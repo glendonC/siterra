@@ -1,0 +1,51 @@
+{
+ "seedVersion": 1,
+ "caseId": "case_aitbouguemez",
+ "description": "Case seed for the Aït Bouguemez grazing case: the frozen analysis geometry, the validated bundle catalog and the corpus manifest. The seed loader maps these into the case record; this file asserts no measured result and no field visit.",
+ "geoSelection": {
+  "id": "geo_ait_bouguemez_catchment",
+  "revision": 1,
+  "label": "Valley catchment (hydrological analysis extent), not a pasture, agdal or management boundary",
+  "geometryStatus": "analysis_ready",
+  "boundaryRole": "hydrological_unit",
+  "crs": "EPSG:4326",
+  "geometry": {
+   "path": "data/case/geometry/ait-bouguemez-catchment.geojson",
+   "sha256": "ac506ece626b6844d759b56aa60a10248c8c0ea5e206f9a28eb436a892a4d47f",
+   "sameAs": "analysis-geometry.geojson in every bundle of data/bundles/ (byte-identical)"
+  },
+  "areaM2": 417044861,
+  "areaMethod": "Geodesic area of the frozen polygon on the WGS84 ellipsoid (pyproj Geod), 417,044,860.5 m²; published as 417.04 km² in docs/reference/data-sources-and-methods.md#study-area",
+  "selectionMethod": "Native 30 m delineation from Copernicus DEM GLO-30 (2021 release) upstream of a fixed outlet; method and acceptance checks in docs/reference/data-sources-and-methods.md#study-area",
+  "limitations": [
+   "Not expert-reviewed.",
+   "A hydrological analysis extent, not a pasture, agdal, administrative or management boundary."
+  ],
+  "otherAreas": [
+   {
+    "areaM2": 417358612,
+    "method": "Planar area of the frozen polygon in EPSG:32629 (UTM 29N)"
+   },
+   {
+    "areaM2": 417360300,
+    "method": "Count of 10 m analysis pixels whose centres fall inside the frozen polygon, EPSG:32629; the area_m2 of each bundle's siterra:geo_selection"
+   }
+  ]
+ },
+ "bundles": {
+  "catalog": "data/bundles/catalog.json",
+  "catalogSha256": "b1e613ac99e35bbb7990e9ea0b294d2aab3ef8c36423b18d3a47a255509004d9"
+ },
+ "corpus": {
+  "manifest": "data/case/corpus-manifest.json",
+  "manifestSha256": "16bf3c710b51d54f455ec97ff8d7acc6bbbb934e448f859464bb4a22e593527e"
+ },
+ "recipes": {
+  "registry": "science/recipes/registry.json",
+  "registrySha256": "e3ee35e72f23d9dad8047df02860d7e6960f1d052490c152139b9a187f08f662"
+ },
+ "evaluation": {
+  "goldDir": "data/case/gold/",
+  "rubric": "data/case/gold/RUBRIC.md"
+ }
+}

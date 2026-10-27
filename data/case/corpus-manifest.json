@@ -1,0 +1,764 @@
+{
+ "manifestVersion": 1,
+ "caseId": "case_aitbouguemez",
+ "description": "Core corpus of the Aït Bouguemez grazing case: the 13 sources with source cards plus SCI-04. Each entry maps to a Source record in schemas/case.schema.json. Files fetched by science/pipeline/corpus-fetch.py stay in data/raw/corpus/ and their text in data/interim/corpus/, both outside Git; this manifest carries URLs, licences, sizes and checksums. Licence and access wording comes from research/science/source-register.md; a source that is paywalled, or whose open copy is not confirmed as authorized, is bibliography-only.",
+ "register": {
+  "path": "research/science/source-register.md",
+  "sha256": "b8b9a49ad862afa680958b3aef6bfe2722970cd735e1c3c5e4def01e1c3b2a13"
+ },
+ "sources": [
+  {
+   "id": "SCI-04",
+   "sourceRecordId": "src_SCI-04",
+   "title": "Reciprocal relations shape cultural landscapes: Women's environmental stewardship in Aït Bouguemez (High Atlas, Morocco)",
+   "url": "https://doi.org/10.1002/pan3.70379",
+   "publisher": "People and Nature (British Ecological Society, Wiley)",
+   "authors": [
+    "Aakairi, M.",
+    "et al."
+   ],
+   "publicationDate": "2026-06-27",
+   "sourceKind": "peer_reviewed",
+   "license": "CC BY 4.0 (Crossref licence record of the DOI)",
+   "redistributionStatus": "permitted",
+   "access": "open",
+   "accessStatus": "retrieved",
+   "accessNote": "Register: publisher methods, Table 1, abstract and data statement inspected. The publisher PDF refused the fetch script (HTTP 403, 2026-10-27), so only the open Crossref record with the abstract is stored.",
+   "fetch": [
+    {
+     "name": "crossref-10.1002-pan3.70379.json",
+     "role": "abstract_record",
+     "kind": "json",
+     "json_fields": [
+      "message/title[*]",
+      "message/abstract"
+     ],
+     "url": "https://api.crossref.org/works/10.1002/pan3.70379"
+    }
+   ],
+   "excerptPolicy": "text",
+   "excerptPolicyReason": "CC BY 4.0",
+   "files": [
+    {
+     "name": "crossref-10.1002-pan3.70379.json",
+     "role": "abstract_record",
+     "kind": "json",
+     "url": "https://api.crossref.org/works/10.1002/pan3.70379",
+     "final_url": "https://api.crossref.org/works/10.1002/pan3.70379",
+     "http_status": 200,
+     "etag": null,
+     "last_modified": null,
+     "content_type": "application/json",
+     "retrieved": "2026-10-27T23:33:40Z",
+     "size": 20904,
+     "sha256": "760b3e538e1d9e97261ee6380eb68a50e732e6311218bfdaad453fb569c98d43",
+     "stored_path": "data/raw/corpus/SCI-04/crossref-10.1002-pan3.70379.json",
+     "provenance": "data/raw/corpus/SCI-04/crossref-10.1002-pan3.70379.json.provenance.json",
+     "text_path": "data/interim/corpus/SCI-04/crossref-10.1002-pan3.70379.json.text.json",
+     "text_sha256": "604bf9a0a6637b82448a30bef918bbec352835d8fd6a7e15c99a0b8d283bc9f0",
+     "sections": 2
+    }
+   ],
+   "accessedAt": "2026-10-27T23:33:40Z",
+   "contentHash": "sha256:760b3e538e1d9e97261ee6380eb68a50e732e6311218bfdaad453fb569c98d43",
+   "notes": [
+    "Register: publisher methods, Table 1, abstract and data statement inspected. The publisher PDF refused the fetch script (HTTP 403, 2026-10-27), so only the open Crossref record with the abstract is stored.",
+    "Excerpt policy text: CC BY 4.0"
+   ]
+  },
+  {
+   "id": "SCI-07",
+   "sourceRecordId": "src_SCI-07",
+   "title": "Sentinel-2 SR Harmonized (Earth Engine data catalog)",
+   "url": "https://developers.google.com/earth-engine/datasets/catalog/COPERNICUS_S2_SR_HARMONIZED",
+   "publisher": "Google Earth Engine catalog / EU, ESA, Copernicus",
+   "authors": [],
+   "publicationDate": null,
+   "sourceKind": "official_dataset",
+   "license": null,
+   "redistributionStatus": "unknown",
+   "access": "open",
+   "accessStatus": "retrieved",
+   "accessNote": "Public catalog page; the register records no licence for the page text. Stored as a dated snapshot; quote only short excerpts. The stored file is the Earth Engine catalog page that describes the dataset; the licence field is for the dataset (none recorded in the register), not for the page.",
+   "fetch": [
+    {
+     "name": "gee-copernicus-s2-sr-harmonized.html",
+     "role": "page_snapshot",
+     "kind": "html",
+     "url": "https://developers.google.com/earth-engine/datasets/catalog/COPERNICUS_S2_SR_HARMONIZED"
+    }
+   ],
+   "excerptPolicy": "offsets",
+   "excerptPolicyReason": "no licence stated for the page text",
+   "files": [
+    {
+     "name": "gee-copernicus-s2-sr-harmonized.html",
+     "role": "page_snapshot",
+     "kind": "html",
+     "url": "https://developers.google.com/earth-engine/datasets/catalog/COPERNICUS_S2_SR_HARMONIZED",
+     "final_url": "https://developers.google.com/earth-engine/datasets/catalog/COPERNICUS_S2_SR_HARMONIZED",
+     "http_status": 200,
+     "etag": null,
+     "last_modified": "Tue, 27 Oct 2026 22:47:18 GMT",
+     "content_type": "text/html; charset=utf-8",
+     "retrieved": "2026-10-27T23:31:35Z",
+     "size": 127886,
+     "sha256": "35174023bbfb17598b7c03c0b15220f9575a8e6042751b2751b55857ae2467ca",
+     "stored_path": "data/raw/corpus/SCI-07/gee-copernicus-s2-sr-harmonized.html",
+     "provenance": "data/raw/corpus/SCI-07/gee-copernicus-s2-sr-harmonized.html.provenance.json",
+     "text_path": "data/interim/corpus/SCI-07/gee-copernicus-s2-sr-harmonized.html.text.json",
+     "text_sha256": "f4bc457dcc4eac9941c96ce708f6cfc4090902ebb4b2098420cde57b96e17bff",
+     "sections": 12
+    }
+   ],
+   "accessedAt": "2026-10-27T23:31:35Z",
+   "contentHash": "sha256:35174023bbfb17598b7c03c0b15220f9575a8e6042751b2751b55857ae2467ca",
+   "notes": [
+    "Public catalog page; the register records no licence for the page text. Stored as a dated snapshot; quote only short excerpts. The stored file is the Earth Engine catalog page that describes the dataset; the licence field is for the dataset (none recorded in the register), not for the page.",
+    "Excerpt policy offsets: no licence stated for the page text"
+   ]
+  },
+  {
+   "id": "SCI-09",
+   "sourceRecordId": "src_SCI-09",
+   "title": "CHIRPS v3",
+   "url": "https://doi.org/10.15780/G2JQ0P",
+   "publisher": "UCSB Climate Hazards Center",
+   "authors": [
+    "Funk, C.",
+    "et al."
+   ],
+   "publicationDate": null,
+   "sourceKind": "official_dataset",
+   "license": "Public-domain dedication and CC BY 4.0 (both stated by the provider; full attribution given)",
+   "redistributionStatus": "permitted",
+   "access": "open",
+   "accessStatus": "retrieved",
+   "accessNote": "Register: overview, README, archive listings and attribution inspected.",
+   "fetch": [
+    {
+     "name": "README-CHIRPSv3.0.txt",
+     "role": "documentation",
+     "kind": "text",
+     "url": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/README-CHIRPSv3.0.txt"
+    },
+    {
+     "name": "chc-chirps3-overview.html",
+     "role": "page_snapshot",
+     "kind": "html",
+     "url": "https://www.chc.ucsb.edu/data/chirps3"
+    }
+   ],
+   "excerptPolicy": "text",
+   "excerptPolicyReason": "public-domain dedication and CC BY 4.0",
+   "files": [
+    {
+     "name": "README-CHIRPSv3.0.txt",
+     "role": "documentation",
+     "kind": "text",
+     "url": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/README-CHIRPSv3.0.txt",
+     "final_url": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/README-CHIRPSv3.0.txt",
+     "http_status": 200,
+     "etag": "\"6a615555-1da1\"",
+     "last_modified": "Wed, 22 Jul 2026 23:42:13 GMT",
+     "content_type": "text/plain; charset=utf-8",
+     "retrieved": "2026-10-27T23:31:35Z",
+     "size": 7585,
+     "sha256": "8957c7b9136be9ad40595515d0444c63e39c55a3ad36ad9b9eebfdac8eb1d495",
+     "stored_path": "data/raw/corpus/SCI-09/README-CHIRPSv3.0.txt",
+     "provenance": "data/raw/corpus/SCI-09/README-CHIRPSv3.0.txt.provenance.json",
+     "text_path": "data/interim/corpus/SCI-09/README-CHIRPSv3.0.txt.text.json",
+     "text_sha256": "0b12f76eaaab4c260c6bbe9e7b16f89f69d5467b6de705a9e387d53df43e21a6"
+    },
+    {
+     "name": "chc-chirps3-overview.html",
+     "role": "page_snapshot",
+     "kind": "html",
+     "url": "https://www.chc.ucsb.edu/data/chirps3",
+     "final_url": "https://www.chc.ucsb.edu/data/chirps3",
+     "http_status": 200,
+     "etag": "W/\"1793142163-0\"",
+     "last_modified": "Tue, 27 Oct 2026 23:02:43 GMT",
+     "content_type": "text/html; charset=utf-8",
+     "retrieved": "2026-10-27T23:31:35Z",
+     "size": 38968,
+     "sha256": "8d3ec25b2c4912b1f0a7b10b50f05cc5c5b2f9711c65c331f3f446c2395f0206",
+     "stored_path": "data/raw/corpus/SCI-09/chc-chirps3-overview.html",
+     "provenance": "data/raw/corpus/SCI-09/chc-chirps3-overview.html.provenance.json",
+     "text_path": "data/interim/corpus/SCI-09/chc-chirps3-overview.html.text.json",
+     "text_sha256": "0135dcb8f545897e08bfbf8cbdb95c7894e03da654e854a2f76c71b6de021d77",
+     "sections": 8
+    }
+   ],
+   "accessedAt": "2026-10-27T23:31:35Z",
+   "contentHash": "sha256:8957c7b9136be9ad40595515d0444c63e39c55a3ad36ad9b9eebfdac8eb1d495",
+   "notes": [
+    "Register: overview, README, archive listings and attribution inspected.",
+    "Excerpt policy text: public-domain dedication and CC BY 4.0"
+   ]
+  },
+  {
+   "id": "SCI-13",
+   "sourceRecordId": "src_SCI-13",
+   "title": "ESA WorldCover 10 m 2021 v200",
+   "url": "https://doi.org/10.5281/zenodo.7254221",
+   "publisher": "ESA WorldCover Consortium",
+   "authors": [
+    "Zanaga, D.",
+    "et al."
+   ],
+   "publicationDate": "2022",
+   "sourceKind": "official_dataset",
+   "license": "CC BY 4.0",
+   "redistributionStatus": "permitted",
+   "access": "open",
+   "accessStatus": "retrieved",
+   "accessNote": "Register: 2021 vintage, classes, 10 m grid and CC BY 4.0 inspected on the Earth Engine catalog page. The stored file is the Earth Engine catalog page that describes the dataset; the licence field (CC BY 4.0) is the dataset's licence, not the page's.",
+   "fetch": [
+    {
+     "name": "gee-esa-worldcover-v200.html",
+     "role": "page_snapshot",
+     "kind": "html",
+     "url": "https://developers.google.com/earth-engine/datasets/catalog/ESA_WorldCover_v200"
+    }
+   ],
+   "excerptPolicy": "text",
+   "excerptPolicyReason": "CC BY 4.0",
+   "files": [
+    {
+     "name": "gee-esa-worldcover-v200.html",
+     "role": "page_snapshot",
+     "kind": "html",
+     "url": "https://developers.google.com/earth-engine/datasets/catalog/ESA_WorldCover_v200",
+     "final_url": "https://developers.google.com/earth-engine/datasets/catalog/ESA_WorldCover_v200",
+     "http_status": 200,
+     "etag": null,
+     "last_modified": "Tue, 27 Oct 2026 22:35:27 GMT",
+     "content_type": "text/html; charset=utf-8",
+     "retrieved": "2026-10-27T23:31:36Z",
+     "size": 95524,
+     "sha256": "4272f03f42a5e95a3087bf7aef86dba837a5b1c1d5b10565a33c5a9536f8dae3",
+     "stored_path": "data/raw/corpus/SCI-13/gee-esa-worldcover-v200.html",
+     "provenance": "data/raw/corpus/SCI-13/gee-esa-worldcover-v200.html.provenance.json",
+     "text_path": "data/interim/corpus/SCI-13/gee-esa-worldcover-v200.html.text.json",
+     "text_sha256": "c278cb9e398a196de6deca0147eb9ae4a4cf72a593979673c813e3d6d1d58551",
+     "sections": 12
+    }
+   ],
+   "accessedAt": "2026-10-27T23:31:36Z",
+   "contentHash": "sha256:4272f03f42a5e95a3087bf7aef86dba837a5b1c1d5b10565a33c5a9536f8dae3",
+   "notes": [
+    "Register: 2021 vintage, classes, 10 m grid and CC BY 4.0 inspected on the Earth Engine catalog page. The stored file is the Earth Engine catalog page that describes the dataset; the licence field (CC BY 4.0) is the dataset's licence, not the page's.",
+    "Excerpt policy text: CC BY 4.0"
+   ]
+  },
+  {
+   "id": "SCI-25",
+   "sourceRecordId": "src_SCI-25",
+   "title": "Country Brief: Morocco (archive of briefs 2010-02-05 to 2026-02-02)",
+   "url": "https://www.fao.org/giews/countrybrief/country/MAR/pdf_archive/MAR_Archive.pdf",
+   "publisher": "FAO GIEWS",
+   "authors": [],
+   "publicationDate": null,
+   "sourceKind": "institutional",
+   "license": "FAO copyright: research and non-commercial copying with acknowledgement, no implied endorsement; translation and redistribution need permission",
+   "redistributionStatus": "restricted",
+   "access": "open",
+   "accessStatus": "retrieved",
+   "accessNote": "Stored on 2026-10-27 (data/raw/giews/PROVENANCE.md). Short attributed excerpts only; never redistribute the file or its full text.",
+   "fetch": [
+    {
+     "name": "MAR_Archive.pdf",
+     "role": "full_text",
+     "kind": "pdf",
+     "url": "https://www.fao.org/giews/countrybrief/country/MAR/pdf_archive/MAR_Archive.pdf",
+     "stored_path": "data/raw/giews/MAR_Archive.pdf",
+     "sha256": "8f026e4aea3a64a674084d0cfab5e485af914632d3891cc6e7f69edac9a81087",
+     "provenance": "data/raw/giews/PROVENANCE.md",
+     "text_path": "data/interim/giews/pages.json",
+     "retrieved": "2026-10-27T10:17:04-04:00"
+    }
+   ],
+   "excerptPolicy": "text",
+   "excerptPolicyReason": "FAO terms allow short excerpts with attribution for research and non-commercial use",
+   "files": [
+    {
+     "name": "MAR_Archive.pdf",
+     "role": "full_text",
+     "kind": "pdf",
+     "url": "https://www.fao.org/giews/countrybrief/country/MAR/pdf_archive/MAR_Archive.pdf",
+     "stored_path": "data/raw/giews/MAR_Archive.pdf",
+     "provenance": "data/raw/giews/PROVENANCE.md",
+     "retrieved": "2026-10-27T10:17:04-04:00",
+     "size": 6840080,
+     "sha256": "8f026e4aea3a64a674084d0cfab5e485af914632d3891cc6e7f69edac9a81087",
+     "text_path": "data/interim/giews/pages.json",
+     "text_sha256": "dd1d5aa1d9da7f8924d007b9946033d24470cdb29db8ac1a8981b0f33c61de3e"
+    }
+   ],
+   "accessedAt": "2026-10-27T10:17:04-04:00",
+   "contentHash": "sha256:8f026e4aea3a64a674084d0cfab5e485af914632d3891cc6e7f69edac9a81087",
+   "notes": [
+    "Stored on 2026-10-27 (data/raw/giews/PROVENANCE.md). Short attributed excerpts only; never redistribute the file or its full text.",
+    "Excerpt policy text: FAO terms allow short excerpts with attribution for research and non-commercial use"
+   ]
+  },
+  {
+   "id": "SCI-29",
+   "sourceRecordId": "src_SCI-29",
+   "title": "Limits to detectability of land degradation by trend analysis of vegetation index data",
+   "url": "https://doi.org/10.1016/j.rse.2012.06.022",
+   "publisher": "Remote Sensing of Environment (Elsevier)",
+   "authors": [
+    "Wessels, K.J.",
+    "van den Bergh, F.",
+    "Scholes, R.J."
+   ],
+   "publicationDate": "2012",
+   "sourceKind": "peer_reviewed",
+   "license": "Elsevier copyright",
+   "redistributionStatus": "restricted",
+   "access": "open",
+   "accessStatus": "retrieved",
+   "accessNote": "The article is paywalled; the abstract comes from the open CSIR ResearchSpace record (DSpace REST API of the record behind hdl.handle.net/10204/6089), which is the only file fetched. Abstract only.",
+   "fetch": [
+    {
+     "name": "csir-researchspace-item.json",
+     "role": "abstract_record",
+     "kind": "json",
+     "json_fields": [
+      "metadata/dc.title[*]/value",
+      "metadata/dc.description.abstract[*]/value"
+     ],
+     "url": "https://researchspace.csir.co.za/server/api/core/items/9592c878-14fa-42cc-9b93-7468e935cee1"
+    }
+   ],
+   "excerptPolicy": "offsets",
+   "excerptPolicyReason": "Elsevier copyright",
+   "files": [
+    {
+     "name": "csir-researchspace-item.json",
+     "role": "abstract_record",
+     "kind": "json",
+     "url": "https://researchspace.csir.co.za/server/api/core/items/9592c878-14fa-42cc-9b93-7468e935cee1",
+     "final_url": "https://researchspace.csir.co.za/server/api/core/items/9592c878-14fa-42cc-9b93-7468e935cee1",
+     "http_status": 200,
+     "etag": null,
+     "last_modified": null,
+     "content_type": "application/hal+json;charset=UTF-8",
+     "retrieved": "2026-10-27T23:33:41Z",
+     "size": 11845,
+     "sha256": "7858d77f46beade75f755b5a4eb6327d434b04cdd2cbf8ed00550b00c9420cc9",
+     "stored_path": "data/raw/corpus/SCI-29/csir-researchspace-item.json",
+     "provenance": "data/raw/corpus/SCI-29/csir-researchspace-item.json.provenance.json",
+     "text_path": "data/interim/corpus/SCI-29/csir-researchspace-item.json.text.json",
+     "text_sha256": "ad7f03f95d617bd437f99e17c63e5ec407a16077df1a958cdd7c1eea226670cb",
+     "sections": 2
+    }
+   ],
+   "accessedAt": "2026-10-27T23:33:41Z",
+   "contentHash": "sha256:7858d77f46beade75f755b5a4eb6327d434b04cdd2cbf8ed00550b00c9420cc9",
+   "notes": [
+    "The article is paywalled; the abstract comes from the open CSIR ResearchSpace record (DSpace REST API of the record behind hdl.handle.net/10204/6089), which is the only file fetched. Abstract only.",
+    "Excerpt policy offsets: Elsevier copyright"
+   ]
+  },
+  {
+   "id": "SCI-30",
+   "sourceRecordId": "src_SCI-30",
+   "title": "Detecting dryland degradation using Time Series Segmentation and Residual Trend analysis (TSS-RESTREND)",
+   "url": "https://doi.org/10.1016/j.rse.2017.05.018",
+   "publisher": "Remote Sensing of Environment (Elsevier)",
+   "authors": [
+    "Burrell, A.L.",
+    "Evans, J.P.",
+    "Liu, Y."
+   ],
+   "publicationDate": "2017",
+   "sourceKind": "peer_reviewed",
+   "license": "Elsevier copyright",
+   "redistributionStatus": "restricted",
+   "access": "bibliography_only",
+   "accessStatus": "discovered",
+   "accessNote": "Paywalled; abstract unavailable (Crossref, OpenAlex and Semantic Scholar carry none; the publisher page refused the request). The register's method description comes from the authors' CRAN package page, which describes the software, not the paper.",
+   "fetch": [],
+   "excerptPolicy": "none",
+   "excerptPolicyReason": "bibliography-only",
+   "access_check_url": "https://doi.org/10.1016/j.rse.2017.05.018",
+   "accessCheck": {
+    "url": "https://doi.org/10.1016/j.rse.2017.05.018",
+    "checked": "2026-10-27T23:45:45Z",
+    "final_url": "https://linkinghub.elsevier.com/retrieve/pii/S0034425717302171",
+    "http_status": 200,
+    "content_type": "text/html;charset=UTF-8"
+   },
+   "accessedAt": "2026-10-27T23:45:45Z",
+   "contentHash": null,
+   "notes": [
+    "Paywalled; abstract unavailable (Crossref, OpenAlex and Semantic Scholar carry none; the publisher page refused the request). The register's method description comes from the authors' CRAN package page, which describes the software, not the paper.",
+    "Excerpt policy none: bibliography-only"
+   ]
+  },
+  {
+   "id": "SCI-31",
+   "sourceRecordId": "src_SCI-31",
+   "title": "Assessing Land Degradation/Recovery in the African Sahel from Long-Term Earth Observation Based Primary Productivity and Precipitation Relationships",
+   "url": "https://doi.org/10.3390/rs5020664",
+   "publisher": "Remote Sensing (MDPI)",
+   "authors": [
+    "Fensholt, R.",
+    "Rasmussen, K.",
+    "Kaspersen, P.",
+    "Huber, S.",
+    "Horion, S.",
+    "Swinnen, E."
+   ],
+   "publicationDate": "2013",
+   "sourceKind": "peer_reviewed",
+   "license": "CC BY 3.0",
+   "redistributionStatus": "permitted",
+   "access": "open",
+   "accessStatus": "retrieved",
+   "accessNote": "Open access article; the publisher PDF refused the fetch script (HTTP 403, 2026-10-27), so the open Crossref record with the abstract is stored, as the register read it.",
+   "fetch": [
+    {
+     "name": "crossref-10.3390-rs5020664.json",
+     "role": "abstract_record",
+     "kind": "json",
+     "json_fields": [
+      "message/title[*]",
+      "message/abstract"
+     ],
+     "url": "https://api.crossref.org/works/10.3390/rs5020664"
+    }
+   ],
+   "excerptPolicy": "text",
+   "excerptPolicyReason": "CC BY 3.0",
+   "files": [
+    {
+     "name": "crossref-10.3390-rs5020664.json",
+     "role": "abstract_record",
+     "kind": "json",
+     "url": "https://api.crossref.org/works/10.3390/rs5020664",
+     "final_url": "https://api.crossref.org/works/10.3390/rs5020664",
+     "http_status": 200,
+     "etag": null,
+     "last_modified": null,
+     "content_type": "application/json",
+     "retrieved": "2026-10-27T23:33:41Z",
+     "size": 23092,
+     "sha256": "bf38d96c98d513595c6c1a206b02b4311bfd3681de1cd82b681d9e8b1b1da574",
+     "stored_path": "data/raw/corpus/SCI-31/crossref-10.3390-rs5020664.json",
+     "provenance": "data/raw/corpus/SCI-31/crossref-10.3390-rs5020664.json.provenance.json",
+     "text_path": "data/interim/corpus/SCI-31/crossref-10.3390-rs5020664.json.text.json",
+     "text_sha256": "4e265ec5a6f8156d0e9b17a38c0b395841d63cd7f07d566806a5087bd27fe6e6",
+     "sections": 2
+    }
+   ],
+   "accessedAt": "2026-10-27T23:33:41Z",
+   "contentHash": "sha256:bf38d96c98d513595c6c1a206b02b4311bfd3681de1cd82b681d9e8b1b1da574",
+   "notes": [
+    "Open access article; the publisher PDF refused the fetch script (HTTP 403, 2026-10-27), so the open Crossref record with the abstract is stored, as the register read it.",
+    "Excerpt policy text: CC BY 3.0"
+   ]
+  },
+  {
+   "id": "SCI-34",
+   "sourceRecordId": "src_SCI-34",
+   "title": "Land degradation and SDG 15.3.1 (Trends.Earth user documentation, latest)",
+   "url": "https://trendsearth.readthedocs.io/en/latest/for_users/features/unccdreporting.html",
+   "publisher": "Conservation International (Trends.Earth)",
+   "authors": [],
+   "publicationDate": null,
+   "sourceKind": "institutional",
+   "license": "No licence statement on the page; (c) Conservation International",
+   "redistributionStatus": "unknown",
+   "access": "open",
+   "accessStatus": "retrieved",
+   "accessNote": "Public documentation page with no version string; stored as a dated snapshot. Quote only short excerpts.",
+   "fetch": [
+    {
+     "name": "trendsearth-unccdreporting.html",
+     "role": "page_snapshot",
+     "kind": "html",
+     "url": "https://trendsearth.readthedocs.io/en/latest/for_users/features/unccdreporting.html"
+    }
+   ],
+   "excerptPolicy": "offsets",
+   "excerptPolicyReason": "no licence statement on the page",
+   "files": [
+    {
+     "name": "trendsearth-unccdreporting.html",
+     "role": "page_snapshot",
+     "kind": "html",
+     "url": "https://trendsearth.readthedocs.io/en/latest/for_users/features/unccdreporting.html",
+     "final_url": "https://trendsearth.readthedocs.io/en/latest/for_users/features/unccdreporting.html",
+     "http_status": 200,
+     "etag": "W/\"497c5187bc40a940c335ab1fb60ccd2a\"",
+     "last_modified": "Thu, 15 Oct 2026 14:52:52 GMT",
+     "content_type": "text/html; charset=utf-8",
+     "retrieved": "2026-10-27T23:31:51Z",
+     "size": 92124,
+     "sha256": "2a4f68be0cbf337a533bfa1245edb55f3680a6e7eb66d2312de9f4ece8529621",
+     "stored_path": "data/raw/corpus/SCI-34/trendsearth-unccdreporting.html",
+     "provenance": "data/raw/corpus/SCI-34/trendsearth-unccdreporting.html.provenance.json",
+     "text_path": "data/interim/corpus/SCI-34/trendsearth-unccdreporting.html.text.json",
+     "text_sha256": "d8c769834ba88f135762ed50648e58cbf750bcf3aabeeb0cc40ec4294f8a9036",
+     "sections": 26
+    }
+   ],
+   "accessedAt": "2026-10-27T23:31:51Z",
+   "contentHash": "sha256:2a4f68be0cbf337a533bfa1245edb55f3680a6e7eb66d2312de9f4ece8529621",
+   "notes": [
+    "Public documentation page with no version string; stored as a dated snapshot. Quote only short excerpts.",
+    "Excerpt policy offsets: no licence statement on the page"
+   ]
+  },
+  {
+   "id": "SCI-125",
+   "sourceRecordId": "src_SCI-125",
+   "title": "International Year of Rangelands and Pastoralists, 2026 (A/RES/76/253)",
+   "url": "https://digitallibrary.un.org/record/3965711/files/A_RES_76_253-EN.pdf",
+   "publisher": "United Nations General Assembly",
+   "authors": [],
+   "publicationDate": "2022-03-17",
+   "sourceKind": "institutional",
+   "license": "UN document; cite and quote briefly",
+   "redistributionStatus": "restricted",
+   "access": "open",
+   "accessStatus": "retrieved",
+   "accessNote": "Register: full text, 3 pages.",
+   "fetch": [
+    {
+     "name": "A_RES_76_253-EN.pdf",
+     "role": "full_text",
+     "kind": "pdf",
+     "url": "https://digitallibrary.un.org/record/3965711/files/A_RES_76_253-EN.pdf"
+    }
+   ],
+   "excerptPolicy": "text",
+   "excerptPolicyReason": "UN document: cite and quote briefly",
+   "files": [
+    {
+     "name": "A_RES_76_253-EN.pdf",
+     "role": "full_text",
+     "kind": "pdf",
+     "url": "https://digitallibrary.un.org/record/3965711/files/A_RES_76_253-EN.pdf",
+     "final_url": "https://digitallibrary.un.org/nanna/record/3965711/files/A_RES_76_253-EN.pdf?withWatermark=0&withMetadata=0&registerDownload=1&version=1",
+     "http_status": 200,
+     "etag": null,
+     "last_modified": null,
+     "content_type": "application/pdf",
+     "retrieved": "2026-10-27T23:31:53Z",
+     "size": 202955,
+     "sha256": "46dc461b668a60a64e629234fcb52e7218f3fd1c1bcd5c373597298790b4426c",
+     "stored_path": "data/raw/corpus/SCI-125/A_RES_76_253-EN.pdf",
+     "provenance": "data/raw/corpus/SCI-125/A_RES_76_253-EN.pdf.provenance.json",
+     "text_path": "data/interim/corpus/SCI-125/A_RES_76_253-EN.pdf.text.json",
+     "text_sha256": "720769ac04ce6dc7bd3ffd6e5c3d885586fc1860ca60cec649e215952599d901",
+     "pages": 3
+    }
+   ],
+   "accessedAt": "2026-10-27T23:31:53Z",
+   "contentHash": "sha256:46dc461b668a60a64e629234fcb52e7218f3fd1c1bcd5c373597298790b4426c",
+   "notes": [
+    "Register: full text, 3 pages.",
+    "Excerpt policy text: UN document: cite and quote briefly"
+   ]
+  },
+  {
+   "id": "SCI-127",
+   "sourceRecordId": "src_SCI-127",
+   "title": "Global Land Outlook Thematic Report on Rangelands and Pastoralists",
+   "url": "https://digitallibrary.un.org/record/4058928/files/1413651-EN.pdf",
+   "publisher": "UNCCD",
+   "authors": [
+    "Herrera, P.M."
+   ],
+   "publicationDate": "2024",
+   "sourceKind": "institutional",
+   "license": "UNCCD copyright; cite and paraphrase",
+   "redistributionStatus": "restricted",
+   "access": "open",
+   "accessStatus": "retrieved",
+   "accessNote": "Register: full text, 110 PDF pages; register sha256 6cade98da9b896527fd067705c2a375d09118c1f70374f00fefa907265b13909.",
+   "fetch": [
+    {
+     "name": "1413651-EN.pdf",
+     "role": "full_text",
+     "kind": "pdf",
+     "url": "https://digitallibrary.un.org/record/4058928/files/1413651-EN.pdf",
+     "expected_sha256": "6cade98da9b896527fd067705c2a375d09118c1f70374f00fefa907265b13909"
+    }
+   ],
+   "excerptPolicy": "offsets",
+   "excerptPolicyReason": "UNCCD copyright: cite and paraphrase",
+   "files": [
+    {
+     "name": "1413651-EN.pdf",
+     "role": "full_text",
+     "kind": "pdf",
+     "url": "https://digitallibrary.un.org/record/4058928/files/1413651-EN.pdf",
+     "final_url": "https://digitallibrary.un.org/nanna/record/4058928/files/1413651-EN.pdf?withWatermark=0&withMetadata=0&registerDownload=1&version=1",
+     "http_status": 200,
+     "etag": null,
+     "last_modified": null,
+     "content_type": "application/pdf",
+     "retrieved": "2026-10-27T23:32:20Z",
+     "size": 9130463,
+     "sha256": "6cade98da9b896527fd067705c2a375d09118c1f70374f00fefa907265b13909",
+     "stored_path": "data/raw/corpus/SCI-127/1413651-EN.pdf",
+     "provenance": "data/raw/corpus/SCI-127/1413651-EN.pdf.provenance.json",
+     "text_path": "data/interim/corpus/SCI-127/1413651-EN.pdf.text.json",
+     "text_sha256": "5fd0bce31cab9d92533899f2907fb75d7cd7bf4e5cb5db1eedf3e650c08a953a",
+     "pages": 110
+    }
+   ],
+   "accessedAt": "2026-10-27T23:32:20Z",
+   "contentHash": "sha256:6cade98da9b896527fd067705c2a375d09118c1f70374f00fefa907265b13909",
+   "notes": [
+    "Register: full text, 110 PDF pages; register sha256 6cade98da9b896527fd067705c2a375d09118c1f70374f00fefa907265b13909.",
+    "Excerpt policy offsets: UNCCD copyright: cite and paraphrase"
+   ]
+  },
+  {
+   "id": "SCI-142",
+   "sourceRecordId": "src_SCI-142",
+   "title": "The Method of Multiple Working Hypotheses",
+   "url": "https://doi.org/10.1126/science.ns-15.366.92",
+   "publisher": "Science",
+   "authors": [
+    "Chamberlin, T.C."
+   ],
+   "publicationDate": "1890-02-07",
+   "sourceKind": "peer_reviewed",
+   "license": "Public domain by age",
+   "redistributionStatus": "permitted",
+   "access": "open",
+   "accessStatus": "retrieved",
+   "accessNote": "Register: full text (OCR) via the Internet Archive JSTOR Early Journal Content copy.",
+   "fetch": [
+    {
+     "name": "jstor-1764336.pdf",
+     "role": "full_text",
+     "kind": "pdf",
+     "url": "https://archive.org/download/jstor-1764336/1764336.pdf"
+    }
+   ],
+   "excerptPolicy": "text",
+   "excerptPolicyReason": "public domain by age",
+   "files": [
+    {
+     "name": "jstor-1764336.pdf",
+     "role": "full_text",
+     "kind": "pdf",
+     "url": "https://archive.org/download/jstor-1764336/1764336.pdf",
+     "final_url": "https://ia803205.us.archive.org/17/items/jstor-1764336/1764336.pdf",
+     "http_status": 200,
+     "etag": "\"513f1ddf-1400be\"",
+     "last_modified": "Tue, 12 Mar 2013 12:21:51 GMT",
+     "content_type": "application/pdf",
+     "retrieved": "2026-10-27T23:32:26Z",
+     "size": 1310910,
+     "sha256": "ad3e5dda6180e4b028d6cc6512276614b3a9563208d40127b18f6f768adda8d4",
+     "stored_path": "data/raw/corpus/SCI-142/jstor-1764336.pdf",
+     "provenance": "data/raw/corpus/SCI-142/jstor-1764336.pdf.provenance.json",
+     "text_path": "data/interim/corpus/SCI-142/jstor-1764336.pdf.text.json",
+     "text_sha256": "080489bf9c59792807245629dd0ee87ecc3022efe387215a2007aca454f750c6",
+     "pages": 6
+    }
+   ],
+   "accessedAt": "2026-10-27T23:32:26Z",
+   "contentHash": "sha256:ad3e5dda6180e4b028d6cc6512276614b3a9563208d40127b18f6f768adda8d4",
+   "notes": [
+    "Register: full text (OCR) via the Internet Archive JSTOR Early Journal Content copy.",
+    "Excerpt policy text: public domain by age"
+   ]
+  },
+  {
+   "id": "SCI-144",
+   "sourceRecordId": "src_SCI-144",
+   "title": "Predicción por terciles (seasonal forecast explanation page)",
+   "url": "https://www.aemet.es/en/serviciosclimaticos/prediccion_estacional/explicacion_terciles",
+   "publisher": "AEMET (Agencia Estatal de Meteorología, Spain)",
+   "authors": [],
+   "publicationDate": null,
+   "sourceKind": "institutional",
+   "license": null,
+   "redistributionStatus": "unknown",
+   "access": "open",
+   "accessStatus": "retrieved",
+   "accessNote": "Public page with no date; the register records no licence. Stored as a dated snapshot; quote only short excerpts.",
+   "fetch": [
+    {
+     "name": "aemet-explicacion-terciles.html",
+     "role": "page_snapshot",
+     "kind": "html",
+     "url": "https://www.aemet.es/en/serviciosclimaticos/prediccion_estacional/explicacion_terciles"
+    }
+   ],
+   "excerptPolicy": "offsets",
+   "excerptPolicyReason": "no licence stated for the page text",
+   "files": [
+    {
+     "name": "aemet-explicacion-terciles.html",
+     "role": "page_snapshot",
+     "kind": "html",
+     "url": "https://www.aemet.es/en/serviciosclimaticos/prediccion_estacional/explicacion_terciles",
+     "final_url": "https://www.aemet.es/en/serviciosclimaticos/prediccion_estacional/explicacion_terciles",
+     "http_status": 200,
+     "etag": "W/\"1793142026:dtagent10347260902154543A92i-gzip:dtagent10347260902154543A92i\"",
+     "last_modified": "Tue, 27 Oct 2026 23:00:24 GMT",
+     "content_type": "text/html;charset=ISO-8859-15",
+     "retrieved": "2026-10-27T23:32:26Z",
+     "size": 41476,
+     "sha256": "459ea593b7ae1e12a97a1ce34c05383a448fefe1659c7f70d26b3e54d51cdf0e",
+     "stored_path": "data/raw/corpus/SCI-144/aemet-explicacion-terciles.html",
+     "provenance": "data/raw/corpus/SCI-144/aemet-explicacion-terciles.html.provenance.json",
+     "text_path": "data/interim/corpus/SCI-144/aemet-explicacion-terciles.html.text.json",
+     "text_sha256": "f2e873adb6e2da59c2780263c183e2da746ec50d144115ed5b600b3ad7b39426",
+     "sections": 2
+    }
+   ],
+   "accessedAt": "2026-10-27T23:32:26Z",
+   "contentHash": "sha256:459ea593b7ae1e12a97a1ce34c05383a448fefe1659c7f70d26b3e54d51cdf0e",
+   "notes": [
+    "Public page with no date; the register records no licence. Stored as a dated snapshot; quote only short excerpts.",
+    "Excerpt policy offsets: no licence stated for the page text"
+   ]
+  },
+  {
+   "id": "SCI-145",
+   "sourceRecordId": "src_SCI-145",
+   "title": "Potential Forests: Degradation Narratives, Science, and Environmental Policy in Protectorate Morocco, 1912-1956",
+   "url": "https://doi.org/10.1093/envhis/10.2.211",
+   "publisher": "Environmental History",
+   "authors": [
+    "Davis, D.K."
+   ],
+   "publicationDate": "2005",
+   "sourceKind": "peer_reviewed",
+   "license": "Journal copyright",
+   "redistributionStatus": "restricted",
+   "access": "bibliography_only",
+   "accessStatus": "discovered",
+   "accessNote": "The publisher page refused the request; the full text the register read is a History Cooperative copy whose authorization is not confirmed, so it is not fetched. Cite the DOI.",
+   "fetch": [],
+   "excerptPolicy": "none",
+   "excerptPolicyReason": "bibliography-only",
+   "access_check_url": "https://doi.org/10.1093/envhis/10.2.211",
+   "accessCheck": {
+    "url": "https://doi.org/10.1093/envhis/10.2.211",
+    "checked": "2026-10-27T23:45:47Z",
+    "final_url": "https://www.journals.uchicago.edu/doi/10.1093/envhis/10.2.211",
+    "http_status": 403
+   },
+   "accessedAt": "2026-10-27T23:45:47Z",
+   "contentHash": null,
+   "notes": [
+    "The publisher page refused the request; the full text the register read is a History Cooperative copy whose authorization is not confirmed, so it is not fetched. Cite the DOI.",
+    "Excerpt policy none: bibliography-only"
+   ]
+  }
+ ]
+}

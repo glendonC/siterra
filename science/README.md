@@ -2,7 +2,7 @@
 
 The offline pipeline that builds Siterra's observation bundles in [`data/bundles/`](../data/bundles/catalog.json) as a STAC static catalog ([observation preprocessing](../docs/reference/observation-preprocessing.md#bundle-output), [`schemas/stac/`](../schemas/stac/siterra-extension.schema.json)). It reads public data by HTTP range request, computes everything deterministically, and records its inputs, method, checks and attribution in each bundle's manifest. No model computes or edits a number here.
 
-Python 3.12 or 3.13 with the pins in [`uv.lock`](uv.lock), resolved with `exclude-newer = 2026-10-14` (the two-week rule in [stack versions](../research/technology/stack-versions.md)). Every script imports only permissively licensed packages, apart from two unmodified components that come with them: `certifi` (MPL-2.0) and the GEOS library inside the `shapely` wheel (LGPL-2.1). Run each script with `python -I` from a directory that holds no downloaded files. Recipe definitions, with formulas, parameters, references and standard limitations, are in [`recipes/registry.json`](recipes/registry.json); the [analysis recipes](../docs/reference/analysis-recipes.md#p0-recipe-entries) page explains them and says which parts were fixed before any data was read.
+Python 3.12 or 3.13 with the pins in [`uv.lock`](uv.lock), resolved with `exclude-newer = 2026-10-14` (the two-week rule in [stack versions](../research/technology/stack-versions.md)). Every script imports only permissively licensed packages, apart from two unmodified components that come with them: `certifi` (MPL-2.0) and the GEOS library inside the `shapely` wheel (LGPL-2.1). `corpus-fetch.py` also needs poppler's `pdftotext` and `pdfinfo` on the PATH; the stored corpus text was extracted with poppler 26.09.0. Run each script with `python -I` from a directory that holds no downloaded files. Recipe definitions, with formulas, parameters, references and standard limitations, are in [`recipes/registry.json`](recipes/registry.json); the [analysis recipes](../docs/reference/analysis-recipes.md#p0-recipe-entries) page explains them and says which parts were fixed before any data was read.
 
 ## Inputs that are not in Git
 
@@ -34,6 +34,7 @@ python -I pipeline/worldcover-grid.py <geometry.geojson> data/interim/worldcover
 python -I pipeline/dem-strata.py <Copernicus_DSM_COG_10_N31_00_W007_00_DEM.tif> <geometry.geojson> data/interim/worldcover/worldcover-2021.tif data/interim/strata
 python -I pipeline/strata-bundle.py data/interim/strata data/interim/worldcover <geometry.geojson> uv.lock data/bundles --inspected=<note.txt>
 python -I pipeline/validate-bundles.py data/bundles schemas/stac/siterra-extension.schema.json <schema_cache_dir>
+python -I pipeline/corpus-fetch.py data/case/corpus-manifest.json . --check-closed --write=data/case/corpus-manifest.json
 ```
 
 `validate-bundles.py` fetches the STAC core and extension schemas over HTTPS on first use and caches each one in `<schema_cache_dir>` under the SHA-256 of its URL; the Siterra extension is read from the repository file. `--inspected` records that a person looked at rendered samples (`render-cells.py`, `render-ndvi.py`, `render-strata.py`); without it the visual inspection check fails and the bundle status is `failed`. Build a new revision outside `data/bundles/`, validate it there, and copy it in one step.
@@ -64,6 +65,8 @@ Modules that other scripts import keep snake_case names (`chirps_fetch.py`, `s2_
 | `ndvi-bundle.py` | Coverage policy, NDVI bundle and its checks, including a fresh re-run of one month and the offset guard |
 | `season-bundle.py`, `recipes-bundle.py` | Precomputed P0 recipes: `season_summary`, `monthly_departure`, `aligned_antecedent`, `coverage_summary` |
 | `worldcover-grid.py`, `dem-strata.py`, `strata-bundle.py` | WorldCover 2021 context mask and terrain strata on the analysis grid, and the strata bundle |
+| `corpus-fetch.py` | Fetches the open sources of the case corpus listed in [`data/case/corpus-manifest.json`](../data/case/corpus-manifest.json), stores each file with its provenance and extracts its text by page or section (stdlib plus poppler's `pdftotext`) |
+| `gold-extraction.py`, `gold-numeric.py` | Build the evaluation gold sets in `data/case/gold/`: excerpt items checked by code against the stored corpus text, and numeric items generated from every bundle measurement |
 | `validate-bundles.py` | Validates every document against STAC 1.1.0, its listed extensions and the Siterra extension, and every `file:checksum` |
 | `render-cells.py`, `render-ndvi.py`, `render-strata.py` | Render samples for the visual inspection check |
 

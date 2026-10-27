@@ -30,6 +30,7 @@ Contracts and design tokens carry their own Semantic Versioning numbers, recorde
 - Full recipe entries for `coverage_summary`, `monthly_departure`, `aligned_antecedent` and `terrain_strata`, each saying which parts were fixed before any data was read and which were written with the first run.
 - Register entry SCI-154, the GeoNames gazetteer extract for Morocco, used for map labels only.
 - The science pipeline package in `science/`: 19 scripts that build every bundle from public data by HTTP range request, the machine-readable recipe registry and the pinned lock file; no model computes or edits a number, and the catchment delineation stays outside the package.
+- Case seed in `data/case/`: the case record seed with the geodesic study area, the core source corpus manifest (14 sources: 12 stored openly, 2 bibliography-only; fetched by `science/pipeline/corpus-fetch.py`), and draft gold sets: 32 extraction items located by code in the stored texts, drafted by a model and unscored until a person signs them, and 350 numeric items generated from the bundles.
 
 ### Changed
 
