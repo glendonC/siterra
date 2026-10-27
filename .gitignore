@@ -1,0 +1,29 @@
+# Private planning, identities, account diagnostics, raw notes and recordings
+/.internal/
+/.local/
+/.lead/
+/data/raw/
+/data/interim/
+/design/private/
+# Credentials stay outside version control; sanitized examples may be public
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+# Local execution products
+node_modules/
+.next/
+out/
+dist/
+coverage/
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.cache/
+.playwright/
+.DS_Store
+*.log
+# Evaluation harness output (summaries may be published deliberately)
+eval-reports/

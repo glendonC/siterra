@@ -1,0 +1,646 @@
+[
+  {
+    "id": "VIS-01",
+    "type": "webpage",
+    "title": "Magic Patterns MagicOS",
+    "URL": "https://www.magicpatterns.com/",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "VIS-02",
+    "type": "software",
+    "title": "tldraw agent starter kit",
+    "URL": "https://tldraw.dev/starter-kits/agent",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "VIS-03",
+    "type": "webpage",
+    "title": "A calmer interface for a product in motion",
+    "author": [
+      {
+        "family": "Aufmann",
+        "given": "Charlie"
+      },
+      {
+        "family": "Heckel",
+        "given": "Maxime"
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2026,
+          3,
+          12
+        ]
+      ]
+    },
+    "container-title": "Linear",
+    "URL": "https://linear.app/now/behind-the-latest-design-refresh",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "VIS-04",
+    "type": "webpage",
+    "title": "MapLibre GL JS examples",
+    "URL": "https://maplibre.org/maplibre-gl-js/docs/examples/",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "VIS-05",
+    "type": "webpage",
+    "title": "Mapbox docs",
+    "container-title": "Mapbox docs",
+    "URL": "https://docs.mapbox.com/map-styles/standard/guides/",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "VIS-06",
+    "type": "webpage",
+    "title": "Observable and Observable Plot",
+    "URL": "https://observablehq.com/",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "VIS-07",
+    "type": "webpage",
+    "title": "Motion layout animations",
+    "URL": "https://motion.dev/examples",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "VIS-08",
+    "type": "webpage",
+    "title": "shadcn/ui Trace",
+    "URL": "https://ui.shadcn.com/docs/components/base/trace",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "VIS-09",
+    "type": "post",
+    "title": "FireTrace wildfire prototype",
+    "author": [
+      {
+        "literal": "Claude"
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          16
+        ]
+      ]
+    },
+    "URL": "https://x.com/claudeai/status/2111177834127601902",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "VIS-10",
+    "type": "post",
+    "title": "Astra user-flow review",
+    "author": [
+      {
+        "family": "Biasia",
+        "given": "Mona"
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          25
+        ]
+      ]
+    },
+    "URL": "https://x.com/mona_biasia/status/2114498844608385404",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "VIS-11",
+    "type": "webpage",
+    "title": "Destiny 2 Director",
+    "author": [
+      {
+        "literal": "Bungie"
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2026,
+          5,
+          28
+        ]
+      ]
+    },
+    "URL": "https://www.bungie.net/7/en/News/Article/dev_insights_return_of_the_director",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "VIS-12",
+    "type": "webpage",
+    "title": "Star Citizen mobiGlas and ARK Starmap",
+    "author": [
+      {
+        "literal": "Roberts Space Industries"
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2015,
+          1,
+          31
+        ]
+      ]
+    },
+    "URL": "https://robertsspaceindustries.com/en/comm-link/engineering/14466-Design-Notes-MobiGlas",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "VIS-13",
+    "type": "webpage",
+    "title": "NASA Worldview",
+    "URL": "https://worldview.earthdata.nasa.gov/",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "VIS-14",
+    "type": "webpage",
+    "title": "Windy",
+    "URL": "https://www.windy.com/",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "VIS-15",
+    "type": "webpage",
+    "title": "Global Nature Watch map",
+    "URL": "https://www.globalforestwatch.org/map/",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "VIS-16",
+    "type": "webpage",
+    "title": "Copernicus Browser timelapse",
+    "URL": "https://browser.dataspace.copernicus.eu/",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "VIS-17",
+    "type": "webpage",
+    "title": "swisstopo map viewer",
+    "URL": "https://map.geo.admin.ch/",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "VIS-18",
+    "type": "webpage",
+    "title": "Eduard",
+    "URL": "https://eduard.earth/",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "VIS-19",
+    "type": "webpage",
+    "title": "Natural Earth cross-blended hypsometric tints",
+    "author": [
+      {
+        "family": "Patterson",
+        "given": "Tom"
+      }
+    ],
+    "container-title": "Natural Earth",
+    "URL": "https://www.naturalearthdata.com/downloads/10m-raster-data/10m-cross-blend-hypso/",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "VIS-20",
+    "type": "article-newspaper",
+    "title": "How Europe's emptying countryside is fuelling a new wildfire crisis",
+    "author": [
+      {
+        "family": "Abnett",
+        "given": "Kate"
+      },
+      {
+        "family": "Lombardi",
+        "given": "Pietro"
+      },
+      {
+        "family": "Zafra",
+        "given": "Mariano"
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          22
+        ]
+      ]
+    },
+    "container-title": "Reuters",
+    "URL": "https://www.reuters.com/graphics/EUROPE-WEATHER/WILDFIRE-LAND/lgpdbgknrpo/",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "VIS-21",
+    "type": "article-newspaper",
+    "title": "How drought and demand pushed the Colorado River toward crisis",
+    "issued": {
+      "date-parts": [
+        [
+          2026,
+          9,
+          11
+        ]
+      ]
+    },
+    "container-title": "Reuters",
+    "URL": "https://www.reuters.com/graphics/USA-ENVIRONMENT/COLORADO-RIVER/znpngebyxvl/",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "VIS-22",
+    "type": "webpage",
+    "title": "Langfuse tracing",
+    "URL": "https://langfuse.com/docs/observability/overview",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "VIS-23",
+    "type": "webpage",
+    "title": "Arize Phoenix tracing",
+    "URL": "https://arize.com/docs/phoenix/tracing/llm-traces",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "VIS-24",
+    "type": "webpage",
+    "title": "OpenAI Agents SDK tracing",
+    "URL": "https://openai.github.io/openai-agents-python/tracing/",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "VIS-25",
+    "type": "webpage",
+    "title": "Vercel Geist materials",
+    "URL": "https://vercel.com/geist/introduction",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "VIS-26",
+    "type": "webpage",
+    "title": "visionOS ornaments",
+    "container-title": "Apple Human Interface Guidelines",
+    "URL": "https://developer.apple.com/design/human-interface-guidelines/ornaments",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "VIS-27",
+    "type": "webpage",
+    "title": "Invisible Details of Interaction Design",
+    "author": [
+      {
+        "family": "Freiberg",
+        "given": "Rauno"
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2023,
+          7
+        ]
+      ]
+    },
+    "URL": "https://rauno.me/craft/interaction-design",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "VIS-28",
+    "type": "webpage",
+    "title": "GitHub pull request review",
+    "URL": "https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/reviewing-changes-in-pull-requests/reviewing-proposed-changes-in-a-pull-request",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "VIS-29",
+    "type": "webpage",
+    "title": "Linear Triage",
+    "URL": "https://linear.app/docs/triage",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "VIS-30",
+    "type": "webpage",
+    "title": "Avatar (2009) Ops Center holotable",
+    "URL": "https://www.hudsandguis.com/home/2011/01/16/the-design-of-avatar",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          27
+        ]
+      ]
+    }
+  },
+  {
+    "id": "VIS-31",
+    "type": "webpage",
+    "title": "Top Gun: Maverick (2022) Tactical Auditorium maps",
+    "URL": "https://gmunk.com/Top-Gun-Maverick",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          27
+        ]
+      ]
+    }
+  },
+  {
+    "id": "VIS-32",
+    "type": "webpage",
+    "title": "Death Stranding (2019) map table and wrist projection",
+    "URL": "https://interfaceingame.com/screenshots/death-stranding-world-map/",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          27
+        ]
+      ]
+    }
+  },
+  {
+    "id": "VIS-33",
+    "type": "webpage",
+    "title": "Alan Wake 2 (2023) case board",
+    "URL": "https://interfaceingame.com/screenshots/alan-wake-ii-case-board/",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          27
+        ]
+      ]
+    }
+  },
+  {
+    "id": "VIS-34",
+    "type": "webpage",
+    "title": "Black Panther (2018) vibranium sand, Perception",
+    "URL": "https://hudsandguis.com/home/2019/black-panther",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          27
+        ]
+      ]
+    }
+  }
+]

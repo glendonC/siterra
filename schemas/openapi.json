@@ -1,0 +1,838 @@
+{
+  "openapi": "3.2.0",
+  "info": {
+    "title": "Siterra case API",
+    "version": "1.0.0",
+    "summary": "Snapshot, commands, event stream, cancellation, reviews and trace for one case.",
+    "description": "HTTP interface between the Siterra web client and its server for one environmental case. The case record is authoritative: the snapshot and the event stream are its only read paths, and commands and reviews are its only write paths. Record types come from case.schema.json (Siterra case contracts) through relative references; this document adds only request, stream, trace and error shapes. No endpoint performs external outreach, spending, publication or land-management action. Cross-record rules: docs/reference/data-contracts.md. Durations stated in descriptions are design targets, not measurements."
+  },
+  "tags": [
+    {
+      "name": "cases",
+      "description": "Case snapshot."
+    },
+    {
+      "name": "commands",
+      "description": "Commands that start bounded agent work, and their cancellation."
+    },
+    {
+      "name": "events",
+      "description": "Server-sent stream of persisted case events."
+    },
+    {
+      "name": "reviews",
+      "description": "Role-scoped review decisions on exact entity versions."
+    },
+    {
+      "name": "trace",
+      "description": "Sanitized spans and events for the trace inspector."
+    }
+  ],
+  "security": [
+    {
+      "sessionCookie": []
+    }
+  ],
+  "paths": {
+    "/api/cases/{caseId}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/CaseId"
+        }
+      ],
+      "get": {
+        "operationId": "getCaseSnapshot",
+        "tags": [
+          "cases"
+        ],
+        "summary": "Read a case snapshot",
+        "description": "Returns the case, its records and lastSequence, read in one transaction. A client opens the event stream with after set to lastSequence, and refetches the snapshot whenever it detects a sequence gap or receives a reset message.",
+        "responses": {
+          "200": {
+            "description": "The snapshot.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "case.schema.json#/$defs/CaseSnapshot"
+                },
+                "examples": {
+                  "beforeMeasurement": {
+                    "summary": "Synthetic case before any measurement exists",
+                    "externalValue": "examples/case-snapshot.json"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "default": {
+            "$ref": "#/components/responses/Unexpected"
+          }
+        }
+      }
+    },
+    "/api/cases/{caseId}/commands": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/CaseId"
+        }
+      ],
+      "post": {
+        "operationId": "submitCommand",
+        "tags": [
+          "commands"
+        ],
+        "summary": "Submit a command",
+        "description": "Records a command and the tasks it starts, then returns the Command record with its ID and task IDs. Work continues asynchronously and is reported through the event stream. A command whose expectedCaseRevision is behind and cannot be rebased safely ends in status rejected_stale (an event), not in an HTTP error. A repeated idempotencyKey returns the existing command.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommandRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Command accepted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "case.schema.json#/$defs/Command"
+                },
+                "examples": {
+                  "commission": {
+                    "summary": "Synthetic commission command",
+                    "externalValue": "examples/command-commission.json"
+                  }
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "The idempotencyKey was used before with the same request; the existing command is returned and nothing new starts.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "case.schema.json#/$defs/Command"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "description": "The idempotencyKey was used before with a different request body (code idempotency_key_reused).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "The session's command or spending quota is exhausted (code quota_exhausted). Public demo sessions have quotas and an expiry.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Unexpected"
+          }
+        }
+      }
+    },
+    "/api/cases/{caseId}/events": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/CaseId"
+        }
+      ],
+      "get": {
+        "operationId": "streamCaseEvents",
+        "tags": [
+          "events"
+        ],
+        "summary": "Stream case events",
+        "description": "Server-sent events of persisted case events with a sequence greater than the cursor, in sequence order, followed by new events as they are committed. Each domain event is one message without an event field (EventSource dispatches it as message); its id is the event sequence and its data is the Event record serialized as JSON on one line. Sequences are per case, gapless and monotonic; a client ignores sequences at or below its cursor and refetches the snapshot when it sees a gap. The server sends a comment line about every 15 seconds as a heartbeat; comments are not events. When events after the cursor can no longer be replayed, the server sends one reset message and closes the stream. The route disables proxy buffering.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/After"
+          },
+          {
+            "$ref": "#/components/parameters/LastEventId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "An open event stream.",
+            "headers": {
+              "Cache-Control": {
+                "description": "Responses are never cached.",
+                "schema": {
+                  "type": "string",
+                  "const": "no-cache"
+                }
+              },
+              "X-Accel-Buffering": {
+                "description": "Asks reverse proxies not to buffer the stream.",
+                "schema": {
+                  "type": "string",
+                  "const": "no"
+                }
+              }
+            },
+            "content": {
+              "text/event-stream": {
+                "itemSchema": {
+                  "$ref": "#/components/schemas/CaseStreamItem"
+                },
+                "example": "id: 1\ndata: {\"recordType\":\"Event\",\"schemaVersion\":\"1.2.0\",\"id\":\"evt_example_command\",\"caseId\":\"case_example_atlas\",\"sequence\":1,\"occurredAt\":\"2026-10-26T16:00:00-04:00\",\"kind\":\"command.accepted\",\"commandId\":\"cmd_example_commission\",\"taskId\":null,\"caseRevision\":1,\"entityIds\":[\"cmd_example_commission\"],\"message\":\"Fictional example: commission command accepted.\",\"dedupeKey\":\"example-command-accepted-0001\",\"resultStatus\":null,\"tool\":null,\"usage\":null,\"validation\":null,\"spanId\":null,\"parentSpanId\":null}\n\n: heartbeat\n\n"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "default": {
+            "$ref": "#/components/responses/Unexpected"
+          }
+        }
+      }
+    },
+    "/api/commands/{commandId}/cancel": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/CommandId"
+        }
+      ],
+      "post": {
+        "operationId": "cancelCommand",
+        "tags": [
+          "commands"
+        ],
+        "summary": "Request cooperative cancellation",
+        "description": "Asks the worker to stop the command. Cancellation is cooperative: it is checked before each model turn, tool call and commit, so work already committed stays in the case and accepted evidence is never erased. The command reaches status cancelled through the event stream. Repeating the request while the command is still running has no further effect.",
+        "responses": {
+          "202": {
+            "description": "Cancellation requested; the body is the command as it stands.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "case.schema.json#/$defs/Command"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "description": "The command is already in a terminal state (code command_not_cancellable).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Unexpected"
+          }
+        }
+      }
+    },
+    "/api/cases/{caseId}/reviews": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/CaseId"
+        }
+      ],
+      "post": {
+        "operationId": "recordReview",
+        "tags": [
+          "reviews"
+        ],
+        "summary": "Record a review decision",
+        "description": "Records one role's decision on exact entity versions at a case revision. The server sets actorId, authorityStatus, timestamps and stale. Decisions on versions that are no longer current are rejected, and a retry with the same idempotencyKey cannot create a second decision. Demo decisions never satisfy a real authorization, and the server applies the role rules in docs/reference/review-and-authority.md (for example, the community and livelihood role cannot be completed inside the demo).",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Decision recorded.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "case.schema.json#/$defs/ReviewDecision"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "The idempotencyKey was used before with the same request; the existing decision is returned.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "case.schema.json#/$defs/ReviewDecision"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "description": "A reviewed entity version or the reviewed case revision is no longer current (code stale_versions; issues name each stale version with code stale_reference). Review the current version.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "The role cannot record this decision in this mode (code decision_not_permitted), or the idempotencyKey was used before with a different request (code idempotency_key_reused).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Unexpected"
+          }
+        }
+      }
+    },
+    "/api/cases/{caseId}/trace": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/CaseId"
+        }
+      ],
+      "get": {
+        "operationId": "getCommandTrace",
+        "tags": [
+          "trace"
+        ],
+        "summary": "Read the trace of one command",
+        "description": "Spans and events of one command for the trace inspector. Spans carry allowlisted attributes only; prompts, messages, tool arguments, tool results, keys and hidden reasoning never leave the server.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/TraceCommandId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The trace.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TraceResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "default": {
+            "$ref": "#/components/responses/Unexpected"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "sessionCookie": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "__Host-session",
+        "description": "Same-origin session cookie (Secure, HttpOnly, SameSite=Lax, Path=/). Ownership of the case is checked on every request, including the event stream and static case assets; state-changing requests are accepted only from the application origin. A public demo session works on an isolated copy of the seed case with quotas and an expiry."
+      }
+    },
+    "parameters": {
+      "CaseId": {
+        "name": "caseId",
+        "in": "path",
+        "required": true,
+        "description": "Case ID (case_ prefix).",
+        "schema": {
+          "$ref": "case.schema.json#/$defs/Command/properties/caseId"
+        }
+      },
+      "CommandId": {
+        "name": "commandId",
+        "in": "path",
+        "required": true,
+        "description": "Command ID (cmd_ prefix).",
+        "schema": {
+          "$ref": "case.schema.json#/$defs/Command/properties/id"
+        }
+      },
+      "After": {
+        "name": "after",
+        "in": "query",
+        "required": true,
+        "description": "Cursor: the stream starts with the first event whose sequence is greater than this value. Use the snapshot's lastSequence.",
+        "schema": {
+          "$ref": "case.schema.json#/$defs/CaseSnapshot/properties/lastSequence"
+        }
+      },
+      "LastEventId": {
+        "name": "Last-Event-ID",
+        "in": "header",
+        "required": false,
+        "description": "Sent by EventSource when it reconnects (HTML, server-sent events). It takes precedence over after, because the browser reconnects with the original URL.",
+        "schema": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$"
+        }
+      },
+      "TraceCommandId": {
+        "name": "commandId",
+        "in": "query",
+        "required": true,
+        "description": "Command whose trace is returned; one trace per command.",
+        "schema": {
+          "$ref": "case.schema.json#/$defs/Command/properties/id"
+        }
+      }
+    },
+    "schemas": {
+      "CommandRequest": {
+        "description": "Body of a command submission. The server adds id, caseId, createdAt, status and taskIds to form the Command record.",
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "text",
+          "intent",
+          "context",
+          "expectedCaseRevision",
+          "idempotencyKey"
+        ],
+        "properties": {
+          "text": {
+            "$ref": "case.schema.json#/$defs/Command/properties/text"
+          },
+          "intent": {
+            "$ref": "case.schema.json#/$defs/Command/properties/intent",
+            "description": "Set by the control that issued the command."
+          },
+          "context": {
+            "$ref": "case.schema.json#/$defs/Context",
+            "description": "View context with the exact revisions the user saw."
+          },
+          "expectedCaseRevision": {
+            "$ref": "case.schema.json#/$defs/Command/properties/expectedCaseRevision"
+          },
+          "idempotencyKey": {
+            "$ref": "case.schema.json#/$defs/Command/properties/idempotencyKey",
+            "description": "A new UUID per command; reused unchanged on retry."
+          }
+        }
+      },
+      "ReviewRequest": {
+        "description": "Body of a review decision. The server adds id, revision, timestamps, caseId, actorId, authorityStatus, decisionAt and stale to form the ReviewDecision record; decision becomes its status.",
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "role",
+          "reviewedEntityVersions",
+          "caseRevisionReviewed",
+          "actionId",
+          "decision",
+          "conditions",
+          "comments",
+          "mode",
+          "idempotencyKey"
+        ],
+        "properties": {
+          "role": {
+            "$ref": "case.schema.json#/$defs/ReviewDecision/properties/role"
+          },
+          "reviewedEntityVersions": {
+            "$ref": "case.schema.json#/$defs/ReviewDecision/properties/reviewedEntityVersions",
+            "description": "The exact versions the reviewer saw."
+          },
+          "caseRevisionReviewed": {
+            "$ref": "case.schema.json#/$defs/ReviewDecision/properties/caseRevisionReviewed"
+          },
+          "actionId": {
+            "$ref": "case.schema.json#/$defs/ReviewDecision/properties/actionId"
+          },
+          "decision": {
+            "description": "Decision to record.",
+            "type": "string",
+            "enum": [
+              "changes_requested",
+              "approved",
+              "rejected",
+              "deferred"
+            ]
+          },
+          "conditions": {
+            "$ref": "case.schema.json#/$defs/ReviewDecision/properties/conditions"
+          },
+          "comments": {
+            "$ref": "case.schema.json#/$defs/ReviewDecision/properties/comments"
+          },
+          "mode": {
+            "$ref": "case.schema.json#/$defs/ReviewDecision/properties/mode"
+          },
+          "idempotencyKey": {
+            "$ref": "case.schema.json#/$defs/Command/properties/idempotencyKey",
+            "description": "A new UUID per decision; reused unchanged on retry."
+          }
+        }
+      },
+      "CaseStreamItem": {
+        "description": "One message of the event stream after text/event-stream parsing (fields data, event, id, retry). Comment lines are not messages.",
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/CaseEventMessage"
+          },
+          {
+            "$ref": "#/components/schemas/StreamResetMessage"
+          }
+        ]
+      },
+      "CaseEventMessage": {
+        "description": "A persisted domain event.",
+        "type": "object",
+        "required": [
+          "id",
+          "data"
+        ],
+        "not": {
+          "required": [
+            "event"
+          ]
+        },
+        "properties": {
+          "id": {
+            "description": "The event sequence, so a reconnecting browser sends it back as Last-Event-ID.",
+            "type": "string",
+            "pattern": "^[1-9][0-9]*$"
+          },
+          "data": {
+            "type": "string",
+            "contentMediaType": "application/json",
+            "contentSchema": {
+              "$ref": "case.schema.json#/$defs/Event"
+            }
+          },
+          "retry": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      },
+      "StreamResetMessage": {
+        "description": "The cursor is outside the replayable history. The client refetches the snapshot and reconnects with after set to its lastSequence. The message has no id, so it does not move the browser's cursor.",
+        "type": "object",
+        "required": [
+          "event",
+          "data"
+        ],
+        "not": {
+          "required": [
+            "id"
+          ]
+        },
+        "properties": {
+          "event": {
+            "type": "string",
+            "const": "reset"
+          },
+          "data": {
+            "type": "string",
+            "contentMediaType": "application/json",
+            "contentSchema": {
+              "$ref": "#/components/schemas/StreamReset"
+            }
+          },
+          "retry": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      },
+      "StreamReset": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "reason"
+        ],
+        "properties": {
+          "reason": {
+            "type": "string",
+            "const": "history_unavailable"
+          }
+        }
+      },
+      "TraceResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "caseId",
+          "commandId",
+          "spans",
+          "events"
+        ],
+        "properties": {
+          "caseId": {
+            "$ref": "case.schema.json#/$defs/Command/properties/caseId"
+          },
+          "commandId": {
+            "$ref": "case.schema.json#/$defs/Command/properties/id"
+          },
+          "spans": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TraceSpan"
+            }
+          },
+          "events": {
+            "description": "The command's events in sequence order.",
+            "type": "array",
+            "items": {
+              "$ref": "case.schema.json#/$defs/Event"
+            }
+          }
+        }
+      },
+      "TraceSpan": {
+        "description": "Internal span row written by the worker (research/technology/observability.md). Names follow the OpenTelemetry GenAI conventions, for example chat muse-spark-1.3, execute_tool compare_series or invoke_agent source_research; Siterra-only steps are siterra.validate and siterra.commit.",
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "traceId",
+          "spanId",
+          "parentSpanId",
+          "name",
+          "kind",
+          "startedAt",
+          "endedAt",
+          "status",
+          "attributes"
+        ],
+        "properties": {
+          "traceId": {
+            "$ref": "case.schema.json#/$defs/Command/properties/id",
+            "description": "The command ID: one trace per command."
+          },
+          "spanId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "parentSpanId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 1
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "INTERNAL",
+              "CLIENT"
+            ]
+          },
+          "startedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "status": {
+            "description": "OpenTelemetry span status code.",
+            "type": "string",
+            "enum": [
+              "unset",
+              "ok",
+              "error"
+            ]
+          },
+          "attributes": {
+            "description": "Allowlisted attributes only (gen_ai.*, error.type, server.address and siterra.*). Content attributes are never stored or returned.",
+            "type": "object",
+            "propertyNames": {
+              "pattern": "^(gen_ai|siterra|error|server)\\.[a-z0-9_.]+$"
+            },
+            "additionalProperties": {
+              "type": [
+                "string",
+                "number",
+                "boolean",
+                "array"
+              ],
+              "items": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "Problem": {
+        "description": "Problem details (RFC 9457) with a machine-readable code.",
+        "type": "object",
+        "required": [
+          "type",
+          "title",
+          "status",
+          "code"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "format": "uri-reference",
+            "default": "about:blank"
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "type": "integer",
+            "minimum": 400,
+            "maximum": 599
+          },
+          "detail": {
+            "type": "string"
+          },
+          "instance": {
+            "type": "string",
+            "format": "uri-reference"
+          },
+          "code": {
+            "type": "string",
+            "enum": [
+              "invalid_request",
+              "unauthenticated",
+              "not_found",
+              "idempotency_key_reused",
+              "quota_exhausted",
+              "command_not_cancellable",
+              "stale_versions",
+              "decision_not_permitted",
+              "internal_error"
+            ]
+          },
+          "issues": {
+            "$ref": "case.schema.json#/$defs/ValidationResult/properties/issues",
+            "description": "Present for invalid_request, stale_versions and decision_not_permitted."
+          }
+        }
+      }
+    },
+    "responses": {
+      "BadRequest": {
+        "description": "The body or a parameter does not match this description (code invalid_request); issues locate each problem.",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            }
+          }
+        }
+      },
+      "Unauthenticated": {
+        "description": "No valid session (code unauthenticated).",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "The resource does not exist or belongs to another session (code not_found); the two cases are not distinguished.",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            }
+          }
+        }
+      },
+      "Unexpected": {
+        "description": "Unexpected server error (code internal_error). The case keeps its last committed revision.",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            }
+          }
+        }
+      }
+    }
+  }
+}

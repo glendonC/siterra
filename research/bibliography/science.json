@@ -1,0 +1,5552 @@
+[
+  {
+    "id": "SCI-01",
+    "type": "article-journal",
+    "title": "La gestion des ressources naturelles dans la vallée des Aït Bouguemez (Haut Atlas): la montagne marocaine à la recherche d'innovations institutionnelles",
+    "author": [
+      {
+        "family": "Romagny",
+        "given": "B."
+      },
+      {
+        "family": "Auclair",
+        "given": "L."
+      },
+      {
+        "family": "Elgueroua",
+        "given": "A."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2008
+        ]
+      ]
+    },
+    "container-title": "Mondes en développement",
+    "volume": "36",
+    "issue": "1",
+    "page": "63-80",
+    "URL": "https://horizon.documentation.ird.fr/exl-doc/pleins_textes/2021-05/010043415.pdf",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-02",
+    "type": "article-journal",
+    "title": "Resilience of the pastoral component of Moroccan small ruminant systems in mountain areas",
+    "author": [
+      {
+        "family": "El Aayadi",
+        "given": "S."
+      },
+      {
+        "family": "Araba",
+        "given": "A."
+      },
+      {
+        "family": "Jouven",
+        "given": "M."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2021
+        ]
+      ]
+    },
+    "container-title": "The Rangeland Journal",
+    "volume": "43",
+    "page": "257-266",
+    "DOI": "10.1071/RJ21039",
+    "URL": "https://doi.org/10.1071/RJ21039",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-03",
+    "type": "article-journal",
+    "title": "Adaptation strategies of mountain livestock systems to global changes in the Central High Atlas, Morocco",
+    "author": [
+      {
+        "family": "El Aayadi",
+        "given": "S."
+      },
+      {
+        "family": "Challioui",
+        "given": "M. K."
+      },
+      {
+        "family": "Sraïri",
+        "given": "M. T."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2026,
+          7,
+          3
+        ]
+      ]
+    },
+    "container-title": "Sustainable Earth Reviews",
+    "volume": "9",
+    "number": "7",
+    "DOI": "10.1186/s42055-026-00126-4",
+    "URL": "https://doi.org/10.1186/s42055-026-00126-4",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-04",
+    "type": "article-journal",
+    "title": "Reciprocal relations shape cultural landscapes: Women's environmental stewardship in Ait Bouguemez (High Atlas, Morocco)",
+    "author": [
+      {
+        "family": "Aakairi",
+        "given": "M."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2026,
+          6,
+          27
+        ]
+      ]
+    },
+    "container-title": "People and Nature",
+    "volume": "8",
+    "page": "2847-2865",
+    "DOI": "10.1002/pan3.70379",
+    "URL": "https://doi.org/10.1002/pan3.70379",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-05",
+    "type": "webpage",
+    "title": "Land Productivity",
+    "author": [
+      {
+        "literal": "USGS EROS"
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2023
+        ]
+      ]
+    },
+    "URL": "https://www.usgs.gov/centers/eros/science/land-productivity",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-06",
+    "type": "report",
+    "title": "Good practice guidance: SDG indicator 15.3.1",
+    "author": [
+      {
+        "literal": "UNCCD"
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2021
+        ]
+      ]
+    },
+    "version": "2.0",
+    "URL": "https://www.unccd.int/resources/manuals-and-guides/good-practice-guidance-sdg-indicator-1531-proportion-land-degraded",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-07",
+    "type": "dataset",
+    "title": "Sentinel-2 SR Harmonized",
+    "author": [
+      {
+        "literal": "EU-ESA-Copernicus"
+      }
+    ],
+    "container-title": "Google Earth Engine catalog",
+    "URL": "https://developers.google.com/earth-engine/datasets/catalog/COPERNICUS_S2_SR_HARMONIZED",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-08",
+    "type": "dataset",
+    "title": "Cloud Score+ S2_HARMONIZED V1",
+    "author": [
+      {
+        "literal": "Google Earth Engine"
+      }
+    ],
+    "URL": "https://developers.google.com/earth-engine/datasets/catalog/GOOGLE_CLOUD_SCORE_PLUS_V1_S2_HARMONIZED",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-09",
+    "type": "dataset",
+    "title": "CHIRPS v3",
+    "author": [
+      {
+        "literal": "UCSB Climate Hazards Center"
+      }
+    ],
+    "DOI": "10.15780/G2JQ0P",
+    "URL": "https://www.chc.ucsb.edu/data/chirps3",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-10",
+    "type": "dataset",
+    "title": "CHIRPS v3 Daily RNL",
+    "author": [
+      {
+        "literal": "UCSB CHC"
+      }
+    ],
+    "container-title": "Google Earth Engine",
+    "URL": "https://developers.google.com/earth-engine/datasets/catalog/UCSB-CHC_CHIRPS_V3_DAILY_RNL",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-11",
+    "type": "dataset",
+    "title": "SRTMGL1_003",
+    "author": [
+      {
+        "literal": "NASA/USGS/JPL-Caltech"
+      }
+    ],
+    "URL": "https://developers.google.com/earth-engine/datasets/catalog/USGS_SRTMGL1_003",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-12",
+    "type": "dataset",
+    "title": "DEM GLO30_2024_1",
+    "author": [
+      {
+        "literal": "Copernicus"
+      }
+    ],
+    "URL": "https://developers.google.com/earth-engine/datasets/catalog/COPERNICUS_DEM_GLO30_2024_1",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-13",
+    "type": "dataset",
+    "title": "ESA WorldCover 10 m 2021 v200",
+    "author": [
+      {
+        "literal": "ESA WorldCover Consortium"
+      },
+      {
+        "family": "Zanaga"
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2022
+        ]
+      ]
+    },
+    "DOI": "10.5281/zenodo.7254221",
+    "URL": "https://developers.google.com/earth-engine/datasets/catalog/ESA_WorldCover_v200",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-14",
+    "type": "dataset",
+    "title": "CHIRPS v2 overview and transition notice",
+    "author": [
+      {
+        "literal": "UCSB CHC"
+      }
+    ],
+    "URL": "https://chc.ucsb.edu/data/chirps/",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-15",
+    "type": "webpage",
+    "title": "Earth Engine access",
+    "author": [
+      {
+        "literal": "Google"
+      }
+    ],
+    "URL": "https://developers.google.com/earth-engine/guides/access",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-16",
+    "type": "webpage",
+    "title": "Transition to commercial projects",
+    "author": [
+      {
+        "literal": "Google"
+      }
+    ],
+    "URL": "https://developers.google.com/earth-engine/guides/transition_to_commercial",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-17",
+    "type": "webpage",
+    "title": "STAC product catalogue",
+    "author": [
+      {
+        "literal": "Copernicus Data Space"
+      }
+    ],
+    "URL": "https://documentation.dataspace.copernicus.eu/APIs/STAC.html",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-18",
+    "type": "webpage",
+    "title": "Legal notice on use of Copernicus Sentinel data",
+    "author": [
+      {
+        "literal": "European Commission"
+      }
+    ],
+    "URL": "https://cds.climate.copernicus.eu/licences/ec-sentinel",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-19",
+    "type": "article-journal",
+    "title": "Patrimony for resilience: evidence from the forest agdal in the Moroccan High Atlas Mountains",
+    "author": [
+      {
+        "family": "Auclair",
+        "given": "L."
+      },
+      {
+        "family": "Baudot",
+        "given": "P."
+      },
+      {
+        "family": "Genin",
+        "given": "D."
+      },
+      {
+        "family": "Romagny",
+        "given": "B."
+      },
+      {
+        "family": "Simenel",
+        "given": "R."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2011
+        ]
+      ]
+    },
+    "container-title": "Ecology and Society",
+    "volume": "16",
+    "issue": "4",
+    "number": "24",
+    "DOI": "10.5751/ES-04429-160424",
+    "URL": "https://doi.org/10.5751/ES-04429-160424",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-20",
+    "type": "article-journal",
+    "title": "Can traditional forest management buffer forest depletion?…",
+    "author": [
+      {
+        "family": "Hammi",
+        "given": "S."
+      },
+      {
+        "family": "Simonneaux",
+        "given": "V."
+      },
+      {
+        "family": "Cordier",
+        "given": "J.B."
+      },
+      {
+        "family": "Genin",
+        "given": "D."
+      },
+      {
+        "family": "Alifriqui",
+        "given": "M."
+      },
+      {
+        "family": "Montes",
+        "given": "N."
+      },
+      {
+        "family": "Auclair",
+        "given": "L."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2010
+        ]
+      ]
+    },
+    "container-title": "Forest Ecology and Management",
+    "volume": "260",
+    "issue": "10",
+    "page": "1861-1872",
+    "DOI": "10.1016/j.foreco.2010.08.033",
+    "URL": "https://doi.org/10.1016/j.foreco.2010.08.033",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-21",
+    "type": "article-journal",
+    "title": "Évolution des recouvrements forestiers et de l'occupation des sols entre 1964 et 2002 dans la haute vallée des Ait Bouguemez (Haut Atlas central, Maroc)",
+    "author": [
+      {
+        "family": "Hammi",
+        "given": "S."
+      },
+      {
+        "family": "Simonneaux",
+        "given": "V."
+      },
+      {
+        "family": "Alifriqui",
+        "given": "M."
+      },
+      {
+        "family": "Auclair",
+        "given": "L."
+      },
+      {
+        "family": "Montes",
+        "given": "N."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2007
+        ]
+      ]
+    },
+    "container-title": "Sécheresse",
+    "volume": "18",
+    "issue": "4",
+    "page": "271-277",
+    "URL": "https://ird.hal.science/ird-00389794",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-22",
+    "type": "book",
+    "title": "Agdal : patrimoine socio-écologique de l'Atlas marocain",
+    "editor": [
+      {
+        "family": "Auclair",
+        "given": "L."
+      },
+      {
+        "family": "Alifriqui",
+        "given": "M."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2012
+        ]
+      ]
+    },
+    "publisher": "IRCAM, Rabat; IRD, Marseille",
+    "ISBN": "978-2-7099-1714-8",
+    "URL": "https://www.documentation.ird.fr/hor/fdi:010059469",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-23",
+    "type": "article-journal",
+    "title": "Relationships between religious beliefs and mountain pasture uses: a case study in the High Atlas Mountains of Marrakech, Morocco",
+    "author": [
+      {
+        "family": "Domínguez",
+        "given": "P."
+      },
+      {
+        "family": "Zorondo-Rodríguez",
+        "given": "F."
+      },
+      {
+        "family": "Reyes-García",
+        "given": "V."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2010
+        ]
+      ]
+    },
+    "container-title": "Human Ecology",
+    "volume": "38",
+    "page": "351-362",
+    "DOI": "10.1007/s10745-010-9321-7",
+    "URL": "https://doi.org/10.1007/s10745-010-9321-7",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-24",
+    "type": "article-journal",
+    "title": "Diverse ecological, economic and socio-cultural values of a traditional common natural resource management system in the Moroccan High Atlas: the Aït Ikiss",
+    "author": [
+      {
+        "family": "Dominguez",
+        "given": "P."
+      },
+      {
+        "family": "Bourbouze",
+        "given": "A."
+      },
+      {
+        "family": "Demay",
+        "given": "S."
+      },
+      {
+        "family": "Genin",
+        "given": "D."
+      },
+      {
+        "family": "Kosoy",
+        "given": "N."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2012
+        ]
+      ]
+    },
+    "container-title": "Environmental Values",
+    "volume": "21",
+    "issue": "3",
+    "page": "277-296",
+    "DOI": "10.3197/096327112X13400390125939",
+    "URL": "https://doi.org/10.3197/096327112X13400390125939",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-25",
+    "type": "report",
+    "title": "Country Brief: Morocco",
+    "author": [
+      {
+        "literal": "FAO GIEWS"
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2026,
+          7,
+          8
+        ]
+      ]
+    },
+    "URL": "https://www.fao.org/giews/countrybrief/country.jsp?code=MAR",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-26",
+    "type": "article-journal",
+    "title": "Assessment of daily MODIS snow cover products to monitor snow cover dynamics over the Moroccan Atlas mountain range",
+    "author": [
+      {
+        "family": "Marchane",
+        "given": "A."
+      },
+      {
+        "family": "Jarlan",
+        "given": "L."
+      },
+      {
+        "family": "Hanich",
+        "given": "L."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2015
+        ]
+      ]
+    },
+    "container-title": "Remote Sensing of Environment",
+    "volume": "160",
+    "page": "72-86",
+    "DOI": "10.1016/j.rse.2015.01.002",
+    "URL": "https://doi.org/10.1016/j.rse.2015.01.002",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-27",
+    "type": "article-journal",
+    "title": "Snow hydrology in the Moroccan Atlas Mountains",
+    "author": [
+      {
+        "family": "Hanich",
+        "given": "L."
+      },
+      {
+        "family": "Chehbouni",
+        "given": "A."
+      },
+      {
+        "family": "Gascoin",
+        "given": "S."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2022
+        ]
+      ]
+    },
+    "container-title": "Journal of Hydrology: Regional Studies",
+    "volume": "42",
+    "number": "101101",
+    "DOI": "10.1016/j.ejrh.2022.101101",
+    "URL": "https://doi.org/10.1016/j.ejrh.2022.101101",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-28",
+    "type": "article-journal",
+    "title": "Assimilation of Sentinel-2 data into a snowpack model in the High Atlas of Morocco",
+    "author": [
+      {
+        "family": "Baba",
+        "given": "M.W."
+      },
+      {
+        "family": "Gascoin",
+        "given": "S."
+      },
+      {
+        "family": "Hanich",
+        "given": "L."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2018
+        ]
+      ]
+    },
+    "container-title": "Remote Sensing",
+    "volume": "10",
+    "issue": "12",
+    "number": "1982",
+    "DOI": "10.3390/rs10121982",
+    "URL": "https://doi.org/10.3390/rs10121982",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-29",
+    "type": "article-journal",
+    "title": "Limits to detectability of land degradation by trend analysis of vegetation index data",
+    "author": [
+      {
+        "family": "Wessels",
+        "given": "K.J."
+      },
+      {
+        "family": "van den Bergh",
+        "given": "F."
+      },
+      {
+        "family": "Scholes",
+        "given": "R.J."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2012
+        ]
+      ]
+    },
+    "container-title": "Remote Sensing of Environment",
+    "volume": "125",
+    "page": "10-22",
+    "DOI": "10.1016/j.rse.2012.06.022",
+    "URL": "https://doi.org/10.1016/j.rse.2012.06.022",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-30",
+    "type": "article-journal",
+    "title": "Detecting dryland degradation using Time Series Segmentation and Residual Trend analysis (TSS-RESTREND)",
+    "author": [
+      {
+        "family": "Burrell",
+        "given": "A.L."
+      },
+      {
+        "family": "Evans",
+        "given": "J.P."
+      },
+      {
+        "family": "Liu",
+        "given": "Y."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2017
+        ]
+      ]
+    },
+    "container-title": "Remote Sensing of Environment",
+    "volume": "197",
+    "page": "43-57",
+    "DOI": "10.1016/j.rse.2017.05.018",
+    "URL": "https://doi.org/10.1016/j.rse.2017.05.018",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-31",
+    "type": "article-journal",
+    "title": "Assessing Land Degradation/Recovery in the African Sahel from Long-Term Earth Observation Based Primary Productivity and Precipitation Relationships",
+    "author": [
+      {
+        "family": "Fensholt",
+        "given": "R."
+      },
+      {
+        "family": "Rasmussen",
+        "given": "K."
+      },
+      {
+        "family": "Kaspersen",
+        "given": "P."
+      },
+      {
+        "family": "Huber",
+        "given": "S."
+      },
+      {
+        "family": "Horion",
+        "given": "S."
+      },
+      {
+        "family": "Swinnen",
+        "given": "E."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2013
+        ]
+      ]
+    },
+    "container-title": "Remote Sensing",
+    "volume": "5",
+    "issue": "2",
+    "page": "664-686",
+    "DOI": "10.3390/rs5020664",
+    "URL": "https://doi.org/10.3390/rs5020664",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-32",
+    "type": "article-journal",
+    "title": "A soil-adjusted vegetation index (SAVI)",
+    "author": [
+      {
+        "family": "Huete",
+        "given": "A.R."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          1988
+        ]
+      ]
+    },
+    "container-title": "Remote Sensing of Environment",
+    "volume": "25",
+    "issue": "3",
+    "page": "295-309",
+    "DOI": "10.1016/0034-4257(88)90106-X",
+    "URL": "https://doi.org/10.1016/0034-4257(88)90106-X",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-33",
+    "type": "article-journal",
+    "title": "A modified soil adjusted vegetation index",
+    "author": [
+      {
+        "family": "Qi",
+        "given": "J."
+      },
+      {
+        "family": "Chehbouni",
+        "given": "A."
+      },
+      {
+        "family": "Huete",
+        "given": "A.R."
+      },
+      {
+        "family": "Kerr",
+        "given": "Y.H."
+      },
+      {
+        "family": "Sorooshian",
+        "given": "S."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          1994
+        ]
+      ]
+    },
+    "container-title": "Remote Sensing of Environment",
+    "volume": "48",
+    "issue": "2",
+    "page": "119-126",
+    "DOI": "10.1016/0034-4257(94)90134-1",
+    "URL": "https://doi.org/10.1016/0034-4257(94)90134-1",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-34",
+    "type": "webpage",
+    "title": "Land degradation and SDG 15.3.1",
+    "author": [
+      {
+        "literal": "Trends.Earth"
+      }
+    ],
+    "URL": "https://trendsearth.readthedocs.io/en/latest/for_users/features/unccdreporting.html",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-35",
+    "type": "report",
+    "title": "Population légale du Royaume du Maroc… RGPH 2024",
+    "author": [
+      {
+        "literal": "Haut-Commissariat au Plan"
+      }
+    ],
+    "URL": "https://www.hcp.ma/Population-legale-du-Royaume-du-Maroc-repartie-par-regions-provinces-et-prefectures-et-communes-selon-les-resultats-du_a3974.html",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-36",
+    "type": "dataset",
+    "title": "Relation 2887314 (Tabant, admin_level 8, v18), river ways 326552769 and 204402259, peak and place nodes",
+    "author": [
+      {
+        "literal": "OpenStreetMap contributors"
+      }
+    ],
+    "URL": "https://www.openstreetmap.org/copyright",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-37",
+    "type": "dataset",
+    "title": "Morocco: Subnational Administrative Boundaries",
+    "author": [
+      {
+        "literal": "OCHA/HDX"
+      }
+    ],
+    "URL": "https://data.humdata.org/dataset/cod-ab-mar",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-38",
+    "type": "dataset",
+    "title": "geoBoundaries API, MAR gbOpen and gbHumanitarian",
+    "URL": "https://www.geoboundaries.org/api/current/gbOpen/MAR/ALL/",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-39",
+    "type": "webpage",
+    "title": "Licence",
+    "author": [
+      {
+        "literal": "GADM"
+      }
+    ],
+    "URL": "https://gadm.org/license.html",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-40",
+    "type": "dataset",
+    "title": "HydroBASINS",
+    "author": [
+      {
+        "literal": "HydroSHEDS"
+      }
+    ],
+    "URL": "https://www.hydrosheds.org/products/hydrobasins",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-41",
+    "type": "dataset",
+    "title": "Copernicus DEM on AWS",
+    "URL": "https://registry.opendata.aws/copernicus-dem/",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-42",
+    "type": "dataset",
+    "title": "Earth Search STAC v1",
+    "author": [
+      {
+        "literal": "Element 84"
+      }
+    ],
+    "URL": "https://earth-search.aws.element84.com/v1/",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-43",
+    "type": "dataset",
+    "title": "Planetary Computer STAC",
+    "author": [
+      {
+        "literal": "Microsoft"
+      }
+    ],
+    "URL": "https://planetarycomputer.microsoft.com/api/stac/v1",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-44",
+    "type": "webpage",
+    "title": "Cheptel national : plus de 32,8 millions de têtes recensées",
+    "issued": {
+      "date-parts": [
+        [
+          2025,
+          8,
+          26
+        ]
+      ]
+    },
+    "container-title": "Kingdom of Morocco national portal",
+    "URL": "https://www.maroc.ma/fr/actualites/cheptel-national-plus-de-328-millions-de-tetes-recensees",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-45",
+    "type": "article-journal",
+    "title": "A modified Mann-Kendall trend test for autocorrelated data",
+    "author": [
+      {
+        "family": "Hamed",
+        "given": "K.H."
+      },
+      {
+        "family": "Ramachandra Rao",
+        "given": "A."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          1998
+        ]
+      ]
+    },
+    "container-title": "Journal of Hydrology",
+    "volume": "204",
+    "issue": "1-4",
+    "page": "182-196",
+    "DOI": "10.1016/S0022-1694(97)00125-X",
+    "URL": "https://doi.org/10.1016/S0022-1694(97)00125-X",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-46",
+    "type": "article-journal",
+    "title": "The influence of autocorrelation on the ability to detect trend in hydrological series",
+    "author": [
+      {
+        "family": "Yue",
+        "given": "S."
+      },
+      {
+        "family": "Pilon",
+        "given": "P."
+      },
+      {
+        "family": "Phinney",
+        "given": "B."
+      },
+      {
+        "family": "Cavadias",
+        "given": "G."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2002
+        ]
+      ]
+    },
+    "container-title": "Hydrological Processes",
+    "volume": "16",
+    "issue": "9",
+    "page": "1807-1829",
+    "DOI": "10.1002/hyp.1095",
+    "URL": "https://doi.org/10.1002/hyp.1095",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-47",
+    "type": "article-journal",
+    "title": "Techniques of trend analysis for monthly water quality data",
+    "author": [
+      {
+        "family": "Hirsch",
+        "given": "R.M."
+      },
+      {
+        "family": "Slack",
+        "given": "J.R."
+      },
+      {
+        "family": "Smith",
+        "given": "R.A."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          1982
+        ]
+      ]
+    },
+    "container-title": "Water Resources Research",
+    "volume": "18",
+    "issue": "1",
+    "page": "107-121",
+    "DOI": "10.1029/WR018i001p00107",
+    "URL": "https://doi.org/10.1029/WR018i001p00107",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-48",
+    "type": "article-journal",
+    "title": "A nonparametric trend test for seasonal data with serial dependence",
+    "author": [
+      {
+        "family": "Hirsch",
+        "given": "R.M."
+      },
+      {
+        "family": "Slack",
+        "given": "J.R."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          1984
+        ]
+      ]
+    },
+    "container-title": "Water Resources Research",
+    "volume": "20",
+    "issue": "6",
+    "page": "727-732",
+    "DOI": "10.1029/WR020i006p00727",
+    "URL": "https://doi.org/10.1029/WR020i006p00727",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-49",
+    "type": "article-journal",
+    "title": "Estimates of the regression coefficient based on Kendall's tau",
+    "author": [
+      {
+        "family": "Sen",
+        "given": "P.K."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          1968
+        ]
+      ]
+    },
+    "container-title": "Journal of the American Statistical Association",
+    "volume": "63",
+    "issue": "324",
+    "page": "1379-1389",
+    "DOI": "10.1080/01621459.1968.10480934",
+    "URL": "https://doi.org/10.1080/01621459.1968.10480934",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-50",
+    "type": "article-journal",
+    "title": "Factors affecting the detection of trends: statistical considerations and applications to environmental data",
+    "author": [
+      {
+        "family": "Weatherhead",
+        "given": "E.C."
+      },
+      {
+        "family": "Reinsel",
+        "given": "G.C."
+      },
+      {
+        "family": "Tiao",
+        "given": "G.C."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          1998
+        ]
+      ]
+    },
+    "container-title": "Journal of Geophysical Research: Atmospheres",
+    "volume": "103",
+    "issue": "D14",
+    "page": "17149-17161",
+    "DOI": "10.1029/98JD00995",
+    "URL": "https://doi.org/10.1029/98JD00995",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-51",
+    "type": "article-journal",
+    "title": "Trend change detection in NDVI time series: effects of inter-annual variability and methodology",
+    "author": [
+      {
+        "family": "Forkel",
+        "given": "M."
+      },
+      {
+        "family": "Carvalhais",
+        "given": "N."
+      },
+      {
+        "family": "Verbesselt",
+        "given": "J."
+      },
+      {
+        "family": "Mahecha",
+        "given": "M."
+      },
+      {
+        "family": "Neigh",
+        "given": "C."
+      },
+      {
+        "family": "Reichstein",
+        "given": "M."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2013
+        ]
+      ]
+    },
+    "container-title": "Remote Sensing",
+    "volume": "5",
+    "issue": "5",
+    "page": "2113-2144",
+    "DOI": "10.3390/rs5052113",
+    "URL": "https://doi.org/10.3390/rs5052113",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-52",
+    "type": "article-journal",
+    "title": "\"The stippling shows statistically significant grid points\": how research results are routinely overstated and overinterpreted, and what to do about it",
+    "author": [
+      {
+        "family": "Wilks",
+        "given": "D.S."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2016
+        ]
+      ]
+    },
+    "container-title": "Bulletin of the American Meteorological Society",
+    "volume": "97",
+    "issue": "12",
+    "page": "2263-2273",
+    "DOI": "10.1175/BAMS-D-15-00267.1",
+    "URL": "https://doi.org/10.1175/BAMS-D-15-00267.1",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-53",
+    "type": "article-journal",
+    "title": "Detecting trend and seasonal changes in satellite image time series",
+    "author": [
+      {
+        "family": "Verbesselt",
+        "given": "J."
+      },
+      {
+        "family": "Hyndman",
+        "given": "R."
+      },
+      {
+        "family": "Newnham",
+        "given": "G."
+      },
+      {
+        "family": "Culvenor",
+        "given": "D."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2010
+        ]
+      ]
+    },
+    "container-title": "Remote Sensing of Environment",
+    "volume": "114",
+    "issue": "1",
+    "page": "106-115",
+    "DOI": "10.1016/j.rse.2009.08.014",
+    "URL": "https://doi.org/10.1016/j.rse.2009.08.014",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-54",
+    "type": "article-journal",
+    "title": "Phenological change detection while accounting for abrupt and gradual trends in satellite image time series",
+    "author": [
+      {
+        "family": "Verbesselt",
+        "given": "J."
+      },
+      {
+        "family": "Hyndman",
+        "given": "R."
+      },
+      {
+        "family": "Zeileis",
+        "given": "A."
+      },
+      {
+        "family": "Culvenor",
+        "given": "D."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2010
+        ]
+      ]
+    },
+    "container-title": "Remote Sensing of Environment",
+    "volume": "114",
+    "issue": "12",
+    "page": "2970-2980",
+    "DOI": "10.1016/j.rse.2010.08.003",
+    "URL": "https://doi.org/10.1016/j.rse.2010.08.003",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-55",
+    "type": "article-journal",
+    "title": "Near real-time disturbance detection using satellite image time series",
+    "author": [
+      {
+        "family": "Verbesselt",
+        "given": "J."
+      },
+      {
+        "family": "Zeileis",
+        "given": "A."
+      },
+      {
+        "family": "Herold",
+        "given": "M."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2012
+        ]
+      ]
+    },
+    "container-title": "Remote Sensing of Environment",
+    "volume": "123",
+    "page": "98-108",
+    "DOI": "10.1016/j.rse.2012.02.022",
+    "URL": "https://doi.org/10.1016/j.rse.2012.02.022",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-56",
+    "type": "article-journal",
+    "title": "BFAST Lite: a lightweight break detection method for time series analysis",
+    "author": [
+      {
+        "family": "Masiliūnas",
+        "given": "D."
+      },
+      {
+        "family": "Tsendbazar",
+        "given": "N.-E."
+      },
+      {
+        "family": "Herold",
+        "given": "M."
+      },
+      {
+        "family": "Verbesselt",
+        "given": "J."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2021
+        ]
+      ]
+    },
+    "container-title": "Remote Sensing",
+    "volume": "13",
+    "issue": "16",
+    "number": "3308",
+    "DOI": "10.3390/rs13163308",
+    "URL": "https://doi.org/10.3390/rs13163308",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-57",
+    "type": "article-journal",
+    "title": "Continuous change detection and classification of land cover using all available Landsat data",
+    "author": [
+      {
+        "family": "Zhu",
+        "given": "Z."
+      },
+      {
+        "family": "Woodcock",
+        "given": "C.E."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2014
+        ]
+      ]
+    },
+    "container-title": "Remote Sensing of Environment",
+    "volume": "144",
+    "page": "152-171",
+    "DOI": "10.1016/j.rse.2014.01.011",
+    "URL": "https://doi.org/10.1016/j.rse.2014.01.011",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-58",
+    "type": "article-journal",
+    "title": "Detecting trends in forest disturbance and recovery using yearly Landsat time series: 1. LandTrendr, temporal segmentation algorithms",
+    "author": [
+      {
+        "family": "Kennedy",
+        "given": "R.E."
+      },
+      {
+        "family": "Yang",
+        "given": "Z."
+      },
+      {
+        "family": "Cohen",
+        "given": "W.B."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2010
+        ]
+      ]
+    },
+    "container-title": "Remote Sensing of Environment",
+    "volume": "114",
+    "issue": "12",
+    "page": "2897-2910",
+    "DOI": "10.1016/j.rse.2010.07.008",
+    "URL": "https://doi.org/10.1016/j.rse.2010.07.008",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-59",
+    "type": "article-journal",
+    "title": "TIMESAT: a program for analyzing time-series of satellite sensor data",
+    "author": [
+      {
+        "family": "Jönsson",
+        "given": "P."
+      },
+      {
+        "family": "Eklundh",
+        "given": "L."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2004
+        ]
+      ]
+    },
+    "container-title": "Computers & Geosciences",
+    "volume": "30",
+    "issue": "8",
+    "page": "833-845",
+    "DOI": "10.1016/j.cageo.2004.05.006",
+    "URL": "https://doi.org/10.1016/j.cageo.2004.05.006",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-60",
+    "type": "article-journal",
+    "title": "STL: a seasonal-trend decomposition procedure based on loess",
+    "author": [
+      {
+        "family": "Cleveland",
+        "given": "R.B."
+      },
+      {
+        "family": "Cleveland",
+        "given": "W.S."
+      },
+      {
+        "family": "McRae",
+        "given": "J.E."
+      },
+      {
+        "family": "Terpenning",
+        "given": "I."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          1990
+        ]
+      ]
+    },
+    "container-title": "Journal of Official Statistics",
+    "volume": "6",
+    "page": "3-73"
+  },
+  {
+    "id": "SCI-61",
+    "type": "article-journal",
+    "title": "Selective review of offline change point detection methods",
+    "author": [
+      {
+        "family": "Truong",
+        "given": "C."
+      },
+      {
+        "family": "Oudre",
+        "given": "L."
+      },
+      {
+        "family": "Vayatis",
+        "given": "N."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2020
+        ]
+      ]
+    },
+    "container-title": "Signal Processing",
+    "volume": "167",
+    "number": "107299",
+    "DOI": "10.1016/j.sigpro.2019.107299",
+    "URL": "https://doi.org/10.1016/j.sigpro.2019.107299",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-62",
+    "type": "article-journal",
+    "title": "pyMannKendall: a python package for non parametric Mann Kendall family of trend tests",
+    "author": [
+      {
+        "family": "Hussain",
+        "given": "M."
+      },
+      {
+        "family": "Mahmud",
+        "given": "I."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2019
+        ]
+      ]
+    },
+    "container-title": "Journal of Open Source Software",
+    "volume": "4",
+    "issue": "39",
+    "number": "1556",
+    "DOI": "10.21105/joss.01556",
+    "URL": "https://doi.org/10.21105/joss.01556",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-63",
+    "type": "article-journal",
+    "title": "Forecasting vegetation condition for drought early warning systems in pastoral communities in Kenya",
+    "author": [
+      {
+        "family": "Barrett",
+        "given": "A.B."
+      },
+      {
+        "family": "Duivenvoorden",
+        "given": "S."
+      },
+      {
+        "family": "Salakpi",
+        "given": "E.E."
+      },
+      {
+        "family": "Muthoka",
+        "given": "J.M."
+      },
+      {
+        "family": "Mwangi",
+        "given": "J."
+      },
+      {
+        "family": "Oliver",
+        "given": "S."
+      },
+      {
+        "family": "Rowhani",
+        "given": "P."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2020
+        ]
+      ]
+    },
+    "container-title": "Remote Sensing of Environment",
+    "volume": "248",
+    "number": "111886",
+    "DOI": "10.1016/j.rse.2020.111886",
+    "URL": "https://doi.org/10.1016/j.rse.2020.111886",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-64",
+    "type": "article-journal",
+    "title": "A mixed model approach to vegetation condition prediction using artificial neural networks (ANN): case of Kenya's operational drought monitoring",
+    "author": [
+      {
+        "family": "Adede",
+        "given": "C."
+      },
+      {
+        "family": "Oboko",
+        "given": "R."
+      },
+      {
+        "family": "Wagacha",
+        "given": "P.W."
+      },
+      {
+        "family": "Atzberger",
+        "given": "C."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2019
+        ]
+      ]
+    },
+    "container-title": "Remote Sensing",
+    "volume": "11",
+    "issue": "9",
+    "number": "1099",
+    "DOI": "10.3390/rs11091099",
+    "URL": "https://doi.org/10.3390/rs11091099",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-65",
+    "type": "article-journal",
+    "title": "Deep learning for vegetation health forecasting: a case study in Kenya",
+    "author": [
+      {
+        "family": "Lees",
+        "given": "T."
+      },
+      {
+        "family": "Tseng",
+        "given": "G."
+      },
+      {
+        "family": "Atzberger",
+        "given": "C."
+      },
+      {
+        "family": "Reece",
+        "given": "S."
+      },
+      {
+        "family": "Dadson",
+        "given": "S."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2022
+        ]
+      ]
+    },
+    "container-title": "Remote Sensing",
+    "volume": "14",
+    "issue": "3",
+    "number": "698",
+    "DOI": "10.3390/rs14030698",
+    "URL": "https://doi.org/10.3390/rs14030698",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-66",
+    "type": "article",
+    "title": "Multi-modal learning for geospatial vegetation forecasting",
+    "author": [
+      {
+        "family": "Benson",
+        "given": "V."
+      },
+      {
+        "family": "Robin",
+        "given": "C."
+      },
+      {
+        "family": "Requena-Mesa",
+        "given": "C."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2024
+        ]
+      ]
+    },
+    "number": "arXiv:2303.16198",
+    "publisher": "arXiv",
+    "URL": "https://arxiv.org/abs/2303.16198",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-67",
+    "type": "article-journal",
+    "title": "Cereal yield forecasting with satellite drought-based indices, weather data and regional climate indices using machine learning in Morocco",
+    "author": [
+      {
+        "family": "Bouras",
+        "given": "E."
+      },
+      {
+        "family": "Jarlan",
+        "given": "L."
+      },
+      {
+        "family": "Er-Raki",
+        "given": "S."
+      },
+      {
+        "family": "Balaghi",
+        "given": "R."
+      },
+      {
+        "family": "Amazirh",
+        "given": "A."
+      },
+      {
+        "family": "Richard",
+        "given": "B."
+      },
+      {
+        "family": "Khabba",
+        "given": "S."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2021
+        ]
+      ]
+    },
+    "container-title": "Remote Sensing",
+    "volume": "13",
+    "issue": "16",
+    "number": "3101",
+    "DOI": "10.3390/rs13163101",
+    "URL": "https://doi.org/10.3390/rs13163101",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-68",
+    "type": "article-journal",
+    "title": "Seasonal precipitation forecast over Morocco",
+    "author": [
+      {
+        "family": "Tuel",
+        "given": "A."
+      },
+      {
+        "family": "Eltahir",
+        "given": "E.A.B."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2018
+        ]
+      ]
+    },
+    "container-title": "Water Resources Research",
+    "volume": "54",
+    "issue": "11",
+    "page": "9118-9130",
+    "DOI": "10.1029/2018WR022984",
+    "URL": "https://doi.org/10.1029/2018WR022984",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-69",
+    "type": "article-journal",
+    "title": "Seasonal predictability of Mediterranean weather regimes in the Copernicus C3S systems",
+    "author": [
+      {
+        "family": "Giuntoli",
+        "given": "I."
+      },
+      {
+        "family": "Fabiano",
+        "given": "F."
+      },
+      {
+        "family": "Corti",
+        "given": "S."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2022
+        ]
+      ]
+    },
+    "container-title": "Climate Dynamics",
+    "volume": "58",
+    "issue": "7-8",
+    "page": "2131-2147",
+    "DOI": "10.1007/s00382-021-05681-4",
+    "URL": "https://doi.org/10.1007/s00382-021-05681-4",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-70",
+    "type": "article-journal",
+    "title": "SEAS5: the new ECMWF seasonal forecast system",
+    "author": [
+      {
+        "family": "Johnson",
+        "given": "S.J."
+      },
+      {
+        "family": "Stockdale",
+        "given": "T.N."
+      },
+      {
+        "family": "Ferranti",
+        "given": "L."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2019
+        ]
+      ]
+    },
+    "container-title": "Geoscientific Model Development",
+    "volume": "12",
+    "issue": "3",
+    "page": "1087-1117",
+    "DOI": "10.5194/gmd-12-1087-2019",
+    "URL": "https://doi.org/10.5194/gmd-12-1087-2019",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-71",
+    "type": "article-journal",
+    "title": "The North American Multimodel Ensemble: phase-1 seasonal-to-interannual prediction; phase-2 toward developing intraseasonal prediction",
+    "author": [
+      {
+        "family": "Kirtman",
+        "given": "B.P."
+      },
+      {
+        "family": "Min",
+        "given": "D."
+      },
+      {
+        "family": "Infanti",
+        "given": "J.M."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2014
+        ]
+      ]
+    },
+    "container-title": "Bulletin of the American Meteorological Society",
+    "volume": "95",
+    "issue": "4",
+    "page": "585-601",
+    "DOI": "10.1175/BAMS-D-12-00050.1",
+    "URL": "https://doi.org/10.1175/BAMS-D-12-00050.1",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-72",
+    "type": "book",
+    "title": "Forecasting: principles and practice",
+    "author": [
+      {
+        "family": "Hyndman",
+        "given": "R.J."
+      },
+      {
+        "family": "Athanasopoulos",
+        "given": "G."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2021
+        ]
+      ]
+    },
+    "publisher": "OTexts",
+    "publisher-place": "Melbourne",
+    "edition": "3",
+    "URL": "https://otexts.com/fpp3/",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-73",
+    "type": "article-journal",
+    "title": "Conformal prediction beyond exchangeability",
+    "author": [
+      {
+        "family": "Barber",
+        "given": "R.F."
+      },
+      {
+        "family": "Candès",
+        "given": "E.J."
+      },
+      {
+        "family": "Ramdas",
+        "given": "A."
+      },
+      {
+        "family": "Tibshirani",
+        "given": "R.J."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2023
+        ]
+      ]
+    },
+    "container-title": "Annals of Statistics",
+    "volume": "51",
+    "issue": "2",
+    "page": "816-845",
+    "DOI": "10.1214/23-AOS2276",
+    "URL": "https://doi.org/10.1214/23-AOS2276",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-74",
+    "type": "article",
+    "title": "Conformal prediction for time series",
+    "author": [
+      {
+        "family": "Xu",
+        "given": "C."
+      },
+      {
+        "family": "Xie",
+        "given": "Y."
+      }
+    ],
+    "number": "arXiv:2010.09107",
+    "publisher": "arXiv",
+    "URL": "https://arxiv.org/abs/2010.09107",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-75",
+    "type": "article",
+    "title": "Adaptive conformal inference under distribution shift",
+    "author": [
+      {
+        "family": "Gibbs",
+        "given": "I."
+      },
+      {
+        "family": "Candès",
+        "given": "E."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2021
+        ]
+      ]
+    },
+    "number": "arXiv:2106.00170",
+    "publisher": "arXiv",
+    "URL": "https://arxiv.org/abs/2106.00170",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-76",
+    "type": "article-journal",
+    "title": "Operational drought monitoring in Kenya using MODIS NDVI time series",
+    "author": [
+      {
+        "family": "Klisch",
+        "given": "A."
+      },
+      {
+        "family": "Atzberger",
+        "given": "C."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2016
+        ]
+      ]
+    },
+    "container-title": "Remote Sensing",
+    "volume": "8",
+    "issue": "4",
+    "number": "267",
+    "DOI": "10.3390/rs8040267",
+    "URL": "https://doi.org/10.3390/rs8040267",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-77",
+    "type": "book",
+    "title": "Spatial sampling with R",
+    "author": [
+      {
+        "family": "Brus",
+        "given": "D.J."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2022
+        ]
+      ]
+    },
+    "publisher": "Chapman and Hall/CRC",
+    "DOI": "10.1201/9781003258940",
+    "URL": "https://doi.org/10.1201/9781003258940",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-78",
+    "type": "article",
+    "title": "SAM 3: Segment Anything with Concepts",
+    "author": [
+      {
+        "family": "Carion",
+        "given": "N."
+      },
+      {
+        "family": "Gustafson",
+        "given": "L."
+      },
+      {
+        "family": "Hu",
+        "given": "Y.-T."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2025
+        ]
+      ]
+    },
+    "number": "arXiv:2511.16719",
+    "publisher": "arXiv",
+    "URL": "https://arxiv.org/abs/2511.16719",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-79",
+    "type": "article-journal",
+    "title": "The Segment Anything Model (SAM) for remote sensing applications: from zero to one shot",
+    "author": [
+      {
+        "family": "Osco",
+        "given": "L.P."
+      },
+      {
+        "family": "Wu",
+        "given": "Q."
+      },
+      {
+        "family": "de Lemos",
+        "given": "E.L."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2023
+        ]
+      ]
+    },
+    "container-title": "International Journal of Applied Earth Observation and Geoinformation",
+    "volume": "124",
+    "number": "103540",
+    "DOI": "10.1016/j.jag.2023.103540",
+    "URL": "https://doi.org/10.1016/j.jag.2023.103540",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-80",
+    "type": "article",
+    "title": "Segment anything, from space?",
+    "author": [
+      {
+        "family": "Ren",
+        "given": "S."
+      },
+      {
+        "family": "Luzi",
+        "given": "F."
+      },
+      {
+        "family": "Lahrichi",
+        "given": "S."
+      },
+      {
+        "family": "Kassaw",
+        "given": "K."
+      },
+      {
+        "family": "Collins",
+        "given": "L.M."
+      },
+      {
+        "family": "Bradbury",
+        "given": "K."
+      },
+      {
+        "family": "Malof",
+        "given": "J.M."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2024
+        ]
+      ]
+    },
+    "number": "arXiv:2304.13000",
+    "publisher": "arXiv",
+    "URL": "https://arxiv.org/abs/2304.13000",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-81",
+    "type": "article-journal",
+    "title": "Causal inference without balance checking: coarsened exact matching",
+    "author": [
+      {
+        "family": "Iacus",
+        "given": "S.M."
+      },
+      {
+        "family": "King",
+        "given": "G."
+      },
+      {
+        "family": "Porro",
+        "given": "G."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2012
+        ]
+      ]
+    },
+    "container-title": "Political Analysis",
+    "volume": "20",
+    "issue": "1",
+    "page": "1-24",
+    "DOI": "10.1093/pan/mpr013",
+    "URL": "https://doi.org/10.1093/pan/mpr013",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-82",
+    "type": "article-journal",
+    "title": "Statistical matching for conservation science",
+    "author": [
+      {
+        "family": "Schleicher",
+        "given": "J."
+      },
+      {
+        "family": "Eklund",
+        "given": "J."
+      },
+      {
+        "family": "Barnes",
+        "given": "M.D."
+      },
+      {
+        "family": "Geldmann",
+        "given": "J."
+      },
+      {
+        "family": "Oldekop",
+        "given": "J.A."
+      },
+      {
+        "family": "Jones",
+        "given": "J.P.G."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2020
+        ]
+      ]
+    },
+    "container-title": "Conservation Biology",
+    "volume": "34",
+    "issue": "3",
+    "page": "538-549",
+    "DOI": "10.1111/cobi.13448",
+    "URL": "https://doi.org/10.1111/cobi.13448",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-83",
+    "type": "article-journal",
+    "title": "Measuring the effectiveness of protected area networks in reducing deforestation",
+    "author": [
+      {
+        "family": "Andam",
+        "given": "K.S."
+      },
+      {
+        "family": "Ferraro",
+        "given": "P.J."
+      },
+      {
+        "family": "Pfaff",
+        "given": "A."
+      },
+      {
+        "family": "Sanchez-Azofeifa",
+        "given": "G.A."
+      },
+      {
+        "family": "Robalino",
+        "given": "J.A."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2008
+        ]
+      ]
+    },
+    "container-title": "PNAS",
+    "volume": "105",
+    "issue": "42",
+    "page": "16089-16094",
+    "DOI": "10.1073/pnas.0800437105",
+    "URL": "https://doi.org/10.1073/pnas.0800437105",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-84",
+    "type": "article-journal",
+    "title": "Counterfactual thinking and impact evaluation in environmental policy",
+    "author": [
+      {
+        "family": "Ferraro",
+        "given": "P.J."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2009
+        ]
+      ]
+    },
+    "container-title": "New Directions for Evaluation",
+    "volume": "122",
+    "page": "75-84",
+    "DOI": "10.1002/ev.297",
+    "URL": "https://doi.org/10.1002/ev.297",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-85",
+    "type": "article-journal",
+    "title": "Synthetic control methods for comparative case studies: estimating the effect of California's tobacco control program",
+    "author": [
+      {
+        "family": "Abadie",
+        "given": "A."
+      },
+      {
+        "family": "Diamond",
+        "given": "A."
+      },
+      {
+        "family": "Hainmueller",
+        "given": "J."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2010
+        ]
+      ]
+    },
+    "container-title": "JASA",
+    "volume": "105",
+    "issue": "490",
+    "page": "493-505",
+    "DOI": "10.1198/jasa.2009.ap08746",
+    "URL": "https://doi.org/10.1198/jasa.2009.ap08746",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-86",
+    "type": "article-journal",
+    "title": "Estimating the impacts of local policy innovation: the synthetic control method applied to tropical deforestation",
+    "author": [
+      {
+        "family": "Sills",
+        "given": "E.O."
+      },
+      {
+        "family": "Herrera",
+        "given": "D."
+      },
+      {
+        "family": "Kirkpatrick",
+        "given": "A.J."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2015
+        ]
+      ]
+    },
+    "container-title": "PLOS ONE",
+    "volume": "10",
+    "issue": "7",
+    "number": "e0132590",
+    "DOI": "10.1371/journal.pone.0132590",
+    "URL": "https://doi.org/10.1371/journal.pone.0132590",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-87",
+    "type": "article-journal",
+    "title": "International principles and standards for the practice of ecological restoration. Second edition",
+    "author": [
+      {
+        "family": "Gann",
+        "given": "G.D."
+      },
+      {
+        "family": "McDonald",
+        "given": "T."
+      },
+      {
+        "family": "Walder",
+        "given": "B."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2019
+        ]
+      ]
+    },
+    "container-title": "Restoration Ecology",
+    "volume": "27",
+    "issue": "S1",
+    "page": "S1-S46",
+    "DOI": "10.1111/rec.13035",
+    "URL": "https://doi.org/10.1111/rec.13035",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-88",
+    "type": "article-journal",
+    "title": "Environmental impact assessment: \"pseudoreplication\" in time?",
+    "author": [
+      {
+        "family": "Stewart-Oaten",
+        "given": "A."
+      },
+      {
+        "family": "Murdoch",
+        "given": "W.W."
+      },
+      {
+        "family": "Parker",
+        "given": "K.R."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          1986
+        ]
+      ]
+    },
+    "container-title": "Ecology",
+    "volume": "67",
+    "issue": "4",
+    "page": "929-940",
+    "DOI": "10.2307/1939815",
+    "URL": "https://doi.org/10.2307/1939815",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-89",
+    "type": "article-journal",
+    "title": "Beyond BACI: the detection of environmental impacts on populations in the real, but variable, world",
+    "author": [
+      {
+        "family": "Underwood",
+        "given": "A.J."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          1992
+        ]
+      ]
+    },
+    "container-title": "Journal of Experimental Marine Biology and Ecology",
+    "volume": "161",
+    "issue": "2",
+    "page": "145-178",
+    "DOI": "10.1016/0022-0981(92)90094-Q",
+    "URL": "https://doi.org/10.1016/0022-0981(92)90094-Q",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-90",
+    "type": "article-journal",
+    "title": "Simple study designs in ecology produce inaccurate estimates of biodiversity responses",
+    "author": [
+      {
+        "family": "Christie",
+        "given": "A.P."
+      },
+      {
+        "family": "Amano",
+        "given": "T."
+      },
+      {
+        "family": "Martin",
+        "given": "P.A."
+      },
+      {
+        "family": "Shackelford",
+        "given": "G.E."
+      },
+      {
+        "family": "Simmons",
+        "given": "B.I."
+      },
+      {
+        "family": "Sutherland",
+        "given": "W.J."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2019
+        ]
+      ]
+    },
+    "container-title": "Journal of Applied Ecology",
+    "volume": "56",
+    "issue": "12",
+    "page": "2742-2754",
+    "DOI": "10.1111/1365-2664.13499",
+    "URL": "https://doi.org/10.1111/1365-2664.13499",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-91",
+    "type": "chapter",
+    "title": "Space-for-time substitution as an alternative to long-term studies",
+    "author": [
+      {
+        "family": "Pickett",
+        "given": "S.T.A."
+      }
+    ],
+    "editor": [
+      {
+        "family": "Likens",
+        "given": "G.E."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          1989
+        ]
+      ]
+    },
+    "container-title": "Long-Term Studies in Ecology",
+    "page": "110-135",
+    "publisher": "Springer",
+    "DOI": "10.1007/978-1-4615-7358-6_5",
+    "URL": "https://doi.org/10.1007/978-1-4615-7358-6_5",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-92",
+    "type": "article-journal",
+    "title": "Space can substitute for time in predicting climate-change effects on biodiversity",
+    "author": [
+      {
+        "family": "Blois",
+        "given": "J.L."
+      },
+      {
+        "family": "Williams",
+        "given": "J.W."
+      },
+      {
+        "family": "Fitzpatrick",
+        "given": "M.C."
+      },
+      {
+        "family": "Jackson",
+        "given": "S.T."
+      },
+      {
+        "family": "Ferrier",
+        "given": "S."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2013
+        ]
+      ]
+    },
+    "container-title": "PNAS",
+    "volume": "110",
+    "issue": "23",
+    "page": "9374-9379",
+    "DOI": "10.1073/pnas.1220228110",
+    "URL": "https://doi.org/10.1073/pnas.1220228110",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-93",
+    "type": "thesis",
+    "title": "Pastoral systems and their interaction with spatiotemporal vegetation dynamics in the Atlas Mountains, southern Morocco",
+    "author": [
+      {
+        "family": "Akasbi",
+        "given": "Z."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2012
+        ]
+      ]
+    },
+    "genre": "Doctoral thesis",
+    "publisher": "Universität Hamburg",
+    "DOI": "10.7809/thesis.phd.002",
+    "URL": "https://doi.org/10.7809/thesis.phd.002",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-94",
+    "type": "article-journal",
+    "title": "Analysis of GPS trajectories to assess goat grazing pattern and intensity in southern Morocco",
+    "author": [
+      {
+        "family": "Akasbi",
+        "given": "Z."
+      },
+      {
+        "family": "Oldeland",
+        "given": "J."
+      },
+      {
+        "family": "Dengler",
+        "given": "J."
+      },
+      {
+        "family": "Finckh",
+        "given": "M."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2012
+        ]
+      ]
+    },
+    "container-title": "The Rangeland Journal",
+    "volume": "34",
+    "issue": "4",
+    "page": "415-427",
+    "DOI": "10.1071/RJ12036",
+    "URL": "https://doi.org/10.1071/RJ12036",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-95",
+    "type": "article-journal",
+    "title": "Volume-biomass functions reveal the effect of browsing on three Moroccan dwarf shrubs",
+    "author": [
+      {
+        "family": "Akasbi",
+        "given": "Z."
+      },
+      {
+        "family": "Oldeland",
+        "given": "J."
+      },
+      {
+        "family": "Dengler",
+        "given": "J."
+      },
+      {
+        "family": "Finckh",
+        "given": "M."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2012
+        ]
+      ]
+    },
+    "container-title": "African Journal of Range & Forage Science",
+    "volume": "29",
+    "issue": "1",
+    "page": "31-36",
+    "DOI": "10.2989/10220119.2012.687074",
+    "URL": "https://doi.org/10.2989/10220119.2012.687074",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-96",
+    "type": "article-journal",
+    "title": "Assessing the economic contribution of the pastoral common of the Yagur. A pastoral territory managed communally by the traditional Berber system of the agdal (Moroccan High Atlas)",
+    "author": [
+      {
+        "family": "Domínguez",
+        "given": "P."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2021
+        ]
+      ]
+    },
+    "container-title": "Quaderni Storici",
+    "volume": "168",
+    "issue": "3",
+    "page": "799-822",
+    "DOI": "10.1408/104535",
+    "URL": "https://doi.org/10.1408/104535",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-97",
+    "type": "article-journal",
+    "title": "Multi-agentive transformations of rural livelihoods in mountain ICCAs: the case of the decline of community-based management of natural resources in the Mesioui agdals (Morocco)",
+    "author": [
+      {
+        "family": "Domínguez",
+        "given": "P."
+      },
+      {
+        "family": "Benessaiah",
+        "given": "N."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2017
+        ]
+      ]
+    },
+    "container-title": "Quaternary International",
+    "volume": "437",
+    "page": "165-175",
+    "DOI": "10.1016/j.quaint.2015.10.031",
+    "URL": "https://doi.org/10.1016/j.quaint.2015.10.031",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-98",
+    "type": "article-journal",
+    "title": "Recent dynamics of the wet pastures at Oukaimeden plateau (High Atlas mountains, Morocco)",
+    "author": [
+      {
+        "family": "Alaoui Haroni",
+        "given": "S."
+      },
+      {
+        "family": "Alifriqui",
+        "given": "M."
+      },
+      {
+        "family": "Simonneaux",
+        "given": "V."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2009
+        ]
+      ]
+    },
+    "container-title": "Biodiversity and Conservation",
+    "volume": "18",
+    "issue": "1",
+    "page": "167-189",
+    "DOI": "10.1007/s10531-008-9465-6",
+    "URL": "https://doi.org/10.1007/s10531-008-9465-6",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-99",
+    "type": "article-journal",
+    "title": "La diversité floristique des pelouses humides d'altitude: cas de quelques sites du Haut Atlas marocain",
+    "author": [
+      {
+        "family": "Alaoui Haroni",
+        "given": "S."
+      },
+      {
+        "family": "Alifriqui",
+        "given": "M."
+      },
+      {
+        "family": "Ouhammou",
+        "given": "A."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2009
+        ]
+      ]
+    },
+    "container-title": "Acta Botanica Malacitana",
+    "volume": "34",
+    "page": "91-106",
+    "DOI": "10.24310/abm.v34i0.3147",
+    "URL": "https://doi.org/10.24310/abm.v34i0.3147",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-100",
+    "type": "article-journal",
+    "title": "Tradition and modernity in the Oukaïmeden valley: changes in the rites and practices of seasonal transterminance",
+    "author": [
+      {
+        "family": "Nieto",
+        "given": "C."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2014
+        ]
+      ]
+    },
+    "container-title": "Complutum",
+    "volume": "25",
+    "issue": "2",
+    "page": "191-207",
+    "URL": "https://dialnet.unirioja.es/servlet/articulo?codigo=5671777",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-101",
+    "type": "article-journal",
+    "title": "Palynological evidence from a sub-alpine marsh of enhanced Little Ice Age snowpack in the Marrakech High Atlas, North Africa",
+    "author": [
+      {
+        "family": "Bell",
+        "given": "B.A."
+      },
+      {
+        "family": "Fletcher",
+        "given": "W.J."
+      },
+      {
+        "family": "Hughes",
+        "given": "P.D."
+      },
+      {
+        "family": "Cornelissen",
+        "given": "H.L."
+      },
+      {
+        "family": "Fink",
+        "given": "D."
+      },
+      {
+        "family": "Rhoujjati",
+        "given": "A."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2022
+        ]
+      ]
+    },
+    "container-title": "Vegetation History and Archaeobotany",
+    "volume": "31",
+    "issue": "1",
+    "page": "49-66",
+    "DOI": "10.1007/s00334-021-00837-y",
+    "URL": "https://doi.org/10.1007/s00334-021-00837-y",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-102",
+    "type": "article-journal",
+    "title": "Analyse comparée des dynamiques forestières dans deux vallées du Haut Atlas central (Maroc). Retour sur le vieux débat « population-marché-institutions »",
+    "author": [
+      {
+        "family": "Auclair",
+        "given": "L."
+      },
+      {
+        "family": "Aubert",
+        "given": "P.-M."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2024
+        ]
+      ]
+    },
+    "container-title": "Natures Sciences Sociétés",
+    "volume": "32",
+    "issue": "1",
+    "page": "54-68",
+    "DOI": "10.1051/nss/2024025",
+    "URL": "https://doi.org/10.1051/nss/2024025",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-103",
+    "type": "article-journal",
+    "title": "Effet du repos pastoral sur la diversité floristique et la capacité fourragère des parcours du Parc National d'Ifrane (Maroc)",
+    "author": [
+      {
+        "family": "Moukhliss",
+        "given": "M."
+      },
+      {
+        "family": "Oudaha",
+        "given": "H."
+      },
+      {
+        "family": "Essaghi",
+        "given": "S."
+      },
+      {
+        "family": "Yessef",
+        "given": "M."
+      },
+      {
+        "family": "El Mderssa",
+        "given": "M."
+      },
+      {
+        "family": "Abba",
+        "given": "E.H."
+      },
+      {
+        "family": "Abbas",
+        "given": "Y."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2026,
+          5,
+          29
+        ]
+      ]
+    },
+    "container-title": "Fourrages",
+    "DOI": "10.64256/fou2513",
+    "URL": "https://doi.org/10.64256/fou2513",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-104",
+    "type": "article-journal",
+    "title": "Perspectives de l'élevage pastoral dans les oasis de montagne au Maroc: des défis complexes à relever",
+    "author": [
+      {
+        "family": "Hamzaoui",
+        "given": "I."
+      },
+      {
+        "family": "Faysse",
+        "given": "N."
+      },
+      {
+        "family": "Sraïri",
+        "given": "M.T."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2024
+        ]
+      ]
+    },
+    "container-title": "Cahiers Agricultures",
+    "volume": "33",
+    "number": "16",
+    "DOI": "10.1051/cagri/2024012",
+    "URL": "https://doi.org/10.1051/cagri/2024012",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-105",
+    "type": "thesis",
+    "title": "Changement climatique et mutations de l'élevage pastoral dans la vallée des Aït Bouguemez (Haut Atlas central, Maroc)",
+    "author": [
+      {
+        "family": "El Mdaghri",
+        "given": "H."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2026
+        ]
+      ]
+    },
+    "URL": "https://dumas.ccsd.cnrs.fr/dumas-05630816",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-106",
+    "type": "thesis",
+    "title": "Utilisation du drone pour l'estimation de la biomasse herbacée dans les parcours de l'Atlas",
+    "author": [
+      {
+        "family": "El Karroudi",
+        "given": "R."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2026
+        ]
+      ]
+    },
+    "genre": "Mémoire d'ingénieur",
+    "publisher": "Institut agronomique et vétérinaire Hassan II",
+    "publisher-place": "Rabat",
+    "URL": "https://agritrop.cirad.fr/618753/",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-107",
+    "type": "article-journal",
+    "title": "Estimation of rangeland production in the arid Oriental region (Morocco) combining remote sensing vegetation and rainfall indices: challenges and lessons learned",
+    "author": [
+      {
+        "family": "Lang",
+        "given": "M."
+      },
+      {
+        "family": "Mahyou",
+        "given": "H."
+      },
+      {
+        "family": "Tychon",
+        "given": "B."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2021
+        ]
+      ]
+    },
+    "container-title": "Remote Sensing",
+    "volume": "13",
+    "issue": "11",
+    "number": "2093",
+    "DOI": "10.3390/rs13112093",
+    "URL": "https://doi.org/10.3390/rs13112093",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-108",
+    "type": "article-journal",
+    "title": "Vegetation cover dynamics in the High Atlas Mountains of Morocco",
+    "author": [
+      {
+        "family": "Nguyen",
+        "given": "T.T."
+      },
+      {
+        "family": "Aderdour",
+        "given": "N."
+      },
+      {
+        "family": "Rhinane",
+        "given": "H."
+      },
+      {
+        "family": "Buerkert",
+        "given": "A."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2023
+        ]
+      ]
+    },
+    "container-title": "Remote Sensing",
+    "volume": "15",
+    "issue": "5",
+    "number": "1366",
+    "DOI": "10.3390/rs15051366",
+    "URL": "https://doi.org/10.3390/rs15051366",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-109",
+    "type": "article-journal",
+    "title": "Assessing the effectiveness of land restoration interventions in dry lands by multitemporal remote sensing: a case study in Ouled DLIM (Marrakech, Morocco)",
+    "author": [
+      {
+        "family": "Zucca",
+        "given": "C."
+      },
+      {
+        "family": "Wu",
+        "given": "W."
+      },
+      {
+        "family": "Dessena",
+        "given": "L."
+      },
+      {
+        "family": "Mulas",
+        "given": "M."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2015
+        ]
+      ]
+    },
+    "container-title": "Land Degradation & Development",
+    "volume": "26",
+    "issue": "1",
+    "page": "80-91",
+    "DOI": "10.1002/ldr.2307",
+    "URL": "https://doi.org/10.1002/ldr.2307",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-110",
+    "type": "article-journal",
+    "title": "A global assessment of Holistic Planned Grazing compared with season-long, continuous grazing: meta-analysis findings",
+    "author": [
+      {
+        "family": "Hawkins",
+        "given": "H.-J."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2017
+        ]
+      ]
+    },
+    "container-title": "African Journal of Range & Forage Science",
+    "volume": "34",
+    "issue": "2",
+    "page": "65-75",
+    "DOI": "10.2989/10220119.2017.1358213",
+    "URL": "https://doi.org/10.2989/10220119.2017.1358213",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-111",
+    "type": "article-journal",
+    "title": "The effects of livestock grazing on biodiversity are multi-trophic: a meta-analysis",
+    "author": [
+      {
+        "family": "Filazzola",
+        "given": "A."
+      },
+      {
+        "family": "Brown",
+        "given": "C."
+      },
+      {
+        "family": "Dettlaff",
+        "given": "M.A."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2020
+        ]
+      ]
+    },
+    "container-title": "Ecology Letters",
+    "volume": "23",
+    "issue": "8",
+    "page": "1298-1309",
+    "DOI": "10.1111/ele.13527",
+    "URL": "https://doi.org/10.1111/ele.13527",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-112",
+    "type": "article-journal",
+    "title": "Rotational grazing on rangelands: reconciliation of perception and experimental evidence",
+    "author": [
+      {
+        "family": "Briske",
+        "given": "D.D."
+      },
+      {
+        "family": "Derner",
+        "given": "J.D."
+      },
+      {
+        "family": "Brown",
+        "given": "J.R."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2008
+        ]
+      ]
+    },
+    "container-title": "Rangeland Ecology & Management",
+    "volume": "61",
+    "issue": "1",
+    "page": "3-17",
+    "DOI": "10.2111/06-159R.1",
+    "URL": "https://doi.org/10.2111/06-159R.1",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-113",
+    "type": "article",
+    "title": "Data Interpreter: an LLM agent for data science",
+    "author": [
+      {
+        "family": "Hong",
+        "given": "S."
+      },
+      {
+        "family": "Lin",
+        "given": "Y."
+      },
+      {
+        "family": "Liu",
+        "given": "B."
+      },
+      {
+        "family": "Liu",
+        "given": "B."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2024
+        ]
+      ]
+    },
+    "number": "arXiv:2402.18679",
+    "publisher": "arXiv",
+    "URL": "https://arxiv.org/abs/2402.18679",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-114",
+    "type": "paper-conference",
+    "title": "DS-Agent: automated data science by empowering large language models with case-based reasoning",
+    "author": [
+      {
+        "family": "Guo",
+        "given": "S."
+      },
+      {
+        "family": "Deng",
+        "given": "C."
+      },
+      {
+        "family": "Wen",
+        "given": "Y."
+      },
+      {
+        "family": "Chen",
+        "given": "H."
+      },
+      {
+        "family": "Chang",
+        "given": "Y."
+      },
+      {
+        "family": "Wang",
+        "given": "J."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2024
+        ]
+      ]
+    },
+    "container-title": "ICML 2024",
+    "URL": "https://arxiv.org/abs/2402.17453",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-115",
+    "type": "paper-conference",
+    "title": "LIDA: a tool for automatic generation of grammar-agnostic visualizations and infographics using large language models",
+    "author": [
+      {
+        "family": "Dibia",
+        "given": "V."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2023
+        ]
+      ]
+    },
+    "container-title": "ACL 2023 demonstrations",
+    "URL": "https://arxiv.org/abs/2303.02927",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-116",
+    "type": "article",
+    "title": "Kosmos: an AI scientist for autonomous discovery",
+    "author": [
+      {
+        "family": "Mitchener",
+        "given": "L."
+      },
+      {
+        "family": "Yiu",
+        "given": "A."
+      },
+      {
+        "family": "Chang",
+        "given": "B."
+      },
+      {
+        "family": "Bourdenx",
+        "given": "M."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2025
+        ]
+      ]
+    },
+    "number": "arXiv:2511.02824",
+    "publisher": "arXiv",
+    "URL": "https://arxiv.org/abs/2511.02824",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-117",
+    "type": "article",
+    "title": "DSBench: how far are data science agents from becoming data science experts?",
+    "author": [
+      {
+        "family": "Jing",
+        "given": "L."
+      },
+      {
+        "family": "Huang",
+        "given": "Z."
+      },
+      {
+        "family": "Wang",
+        "given": "X."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2024
+        ]
+      ]
+    },
+    "number": "arXiv:2409.07703",
+    "publisher": "arXiv",
+    "URL": "https://arxiv.org/abs/2409.07703",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-118",
+    "type": "paper-conference",
+    "title": "ScienceAgentBench: toward rigorous assessment of language agents for data-driven scientific discovery",
+    "author": [
+      {
+        "family": "Chen",
+        "given": "Z."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2025
+        ]
+      ]
+    },
+    "container-title": "ICLR 2025",
+    "URL": "https://arxiv.org/abs/2410.05080",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-119",
+    "type": "article",
+    "title": "BLADE: benchmarking language model agents for data-driven science",
+    "author": [
+      {
+        "family": "Gu",
+        "given": "K."
+      },
+      {
+        "family": "Shang",
+        "given": "R."
+      },
+      {
+        "family": "Jiang",
+        "given": "R."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2024
+        ]
+      ]
+    },
+    "number": "arXiv:2408.09667",
+    "publisher": "arXiv",
+    "URL": "https://arxiv.org/abs/2408.09667",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-120",
+    "type": "article",
+    "title": "DiscoveryBench: towards data-driven discovery with large language models",
+    "author": [
+      {
+        "family": "Majumder",
+        "given": "B.P."
+      },
+      {
+        "family": "Surana",
+        "given": "H."
+      },
+      {
+        "family": "Agarwal",
+        "given": "D."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2024
+        ]
+      ]
+    },
+    "number": "arXiv:2407.01725",
+    "publisher": "arXiv",
+    "URL": "https://arxiv.org/abs/2407.01725",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-121",
+    "type": "paper-conference",
+    "title": "Are LLMs capable of data-based statistical and causal reasoning? Benchmarking advanced quantitative reasoning with data",
+    "author": [
+      {
+        "family": "Liu",
+        "given": "X."
+      },
+      {
+        "family": "Wu",
+        "given": "Z."
+      },
+      {
+        "family": "Wu",
+        "given": "X."
+      },
+      {
+        "family": "Lu",
+        "given": "P."
+      },
+      {
+        "family": "Chang",
+        "given": "K.-W."
+      },
+      {
+        "family": "Feng",
+        "given": "Y."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2024
+        ]
+      ]
+    },
+    "container-title": "Findings of ACL 2024",
+    "URL": "https://arxiv.org/abs/2402.17644",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-122",
+    "type": "paper-conference",
+    "title": "Are large language models good statisticians?",
+    "author": [
+      {
+        "family": "Zhu",
+        "given": "Y."
+      },
+      {
+        "family": "Du",
+        "given": "S."
+      },
+      {
+        "family": "Li",
+        "given": "B."
+      },
+      {
+        "family": "Luo",
+        "given": "Y."
+      },
+      {
+        "family": "Tang",
+        "given": "N."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2024
+        ]
+      ]
+    },
+    "container-title": "NeurIPS 2024 Datasets and Benchmarks",
+    "URL": "https://arxiv.org/abs/2406.07815",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-123",
+    "type": "article-journal",
+    "title": "Many analysts, one data set: making transparent how variations in analytic choices affect results",
+    "author": [
+      {
+        "family": "Silberzahn",
+        "given": "R."
+      },
+      {
+        "family": "Uhlmann",
+        "given": "E.L."
+      },
+      {
+        "family": "Martin",
+        "given": "D.P."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2018
+        ]
+      ]
+    },
+    "container-title": "Advances in Methods and Practices in Psychological Science",
+    "volume": "1",
+    "issue": "3",
+    "page": "337-356",
+    "DOI": "10.1177/2515245917747646",
+    "URL": "https://doi.org/10.1177/2515245917747646",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-124",
+    "type": "article-journal",
+    "title": "Same data, different analysts: variation in effect sizes due to analytical decisions in ecology and evolutionary biology",
+    "author": [
+      {
+        "family": "Gould",
+        "given": "E."
+      },
+      {
+        "family": "Fraser",
+        "given": "H.S."
+      },
+      {
+        "family": "Parker",
+        "given": "T.H."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2025
+        ]
+      ]
+    },
+    "container-title": "BMC Biology",
+    "volume": "23",
+    "number": "35",
+    "DOI": "10.1186/s12915-024-02101-x",
+    "URL": "https://doi.org/10.1186/s12915-024-02101-x",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-125",
+    "type": "report",
+    "title": "International Year of Rangelands and Pastoralists, 2026",
+    "author": [
+      {
+        "literal": "United Nations General Assembly"
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2022,
+          3,
+          17
+        ]
+      ]
+    },
+    "number": "A/RES/76/253",
+    "URL": "https://digitallibrary.un.org/record/3965711/files/A_RES_76_253-EN.pdf",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-126",
+    "type": "webpage",
+    "title": "FAO launches the International Year of Rangelands and Pastoralists 2026",
+    "author": [
+      {
+        "literal": "FAO"
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2025,
+          12,
+          2
+        ]
+      ]
+    },
+    "URL": "https://www.fao.org/newsroom/detail/fao-launches-the-international-year-of-rangelands-and-pastoralists-2026-to-strengthen-these-ecosystems-and-support-the-people-who-sustain-them/en",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-127",
+    "type": "report",
+    "title": "Global Land Outlook Thematic Report on Rangelands and Pastoralists",
+    "author": [
+      {
+        "family": "Herrera",
+        "given": "P.M."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2024
+        ]
+      ]
+    },
+    "publisher": "UNCCD",
+    "URL": "https://digitallibrary.un.org/record/4058928/files/1413651-EN.pdf",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-128",
+    "type": "report",
+    "title": "Global Land Outlook, second edition: Land Restoration for Recovery and Resilience",
+    "author": [
+      {
+        "literal": "UNCCD"
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2022
+        ]
+      ]
+    },
+    "URL": "https://digitallibrary.un.org/record/3972338/files/UNCCD_GLO2_low-res_2.pdf",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-129",
+    "type": "report",
+    "title": "Summary for policymakers of the assessment report on land degradation and restoration",
+    "author": [
+      {
+        "literal": "IPBES"
+      }
+    ],
+    "editor": [
+      {
+        "family": "Scholes",
+        "given": "R."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2018
+        ]
+      ]
+    },
+    "publisher": "IPBES secretariat",
+    "publisher-place": "Bonn",
+    "DOI": "10.5281/zenodo.3237411",
+    "URL": "https://zenodo.org/records/3237411",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-130",
+    "type": "webpage",
+    "title": "Pastoralist Knowledge Hub",
+    "author": [
+      {
+        "literal": "FAO"
+      }
+    ],
+    "URL": "https://www.fao.org/pastoralist-knowledge-hub/en/",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-131",
+    "type": "legislation",
+    "title": "Law n° 113-13 on pastoral transhumance and the development and management of pastoral and silvopastoral spaces",
+    "author": [
+      {
+        "literal": "Kingdom of Morocco"
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2016,
+          4,
+          27
+        ]
+      ]
+    },
+    "URL": "https://faolex.fao.org/docs/pdf/Mor187751.pdf",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-132",
+    "type": "article-journal",
+    "title": "Adaptation des systèmes d'élevage ovin aux changements climatiques : impacts sur la composante pastorale dans le Haut Atlas central du Maroc",
+    "author": [
+      {
+        "family": "El Aayadi",
+        "given": "S."
+      },
+      {
+        "family": "El Hafid",
+        "given": "B."
+      },
+      {
+        "family": "Maatala",
+        "given": "N."
+      },
+      {
+        "family": "Bekkar",
+        "given": "Y."
+      },
+      {
+        "family": "Bounadi",
+        "given": "I."
+      },
+      {
+        "family": "Julien",
+        "given": "L."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2024
+        ]
+      ]
+    },
+    "container-title": "Cahiers Agricultures",
+    "volume": "33",
+    "number": "32",
+    "DOI": "10.1051/cagri/2024029",
+    "URL": "https://doi.org/10.1051/cagri/2024029",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-133",
+    "type": "report",
+    "title": "Terms of Reference, CEOS Working Group on Capacity Building and Data Democracy (WGCapD)",
+    "author": [
+      {
+        "literal": "CEOS"
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2018
+        ]
+      ]
+    },
+    "URL": "https://ceos.org/document_management/Publications/Governing_Docs/WGCapD_ToR_2018_V2.pdf",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-134",
+    "type": "article-journal",
+    "title": "Benefits of the free and open Landsat data policy",
+    "author": [
+      {
+        "family": "Zhu",
+        "given": "Z."
+      },
+      {
+        "family": "Wulder",
+        "given": "M.A."
+      },
+      {
+        "family": "Roy",
+        "given": "D.P."
+      },
+      {
+        "family": "Woodcock",
+        "given": "C.E."
+      },
+      {
+        "family": "Hansen",
+        "given": "M.C."
+      },
+      {
+        "family": "Radeloff",
+        "given": "V.C."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2019
+        ]
+      ]
+    },
+    "container-title": "Remote Sensing of Environment",
+    "volume": "224",
+    "page": "382-385",
+    "DOI": "10.1016/j.rse.2019.02.016",
+    "URL": "https://doi.org/10.1016/j.rse.2019.02.016",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-135",
+    "type": "report",
+    "title": "Executive summary of the impact assessment accompanying the proposal amending Directive 2011/92/EU",
+    "author": [
+      {
+        "literal": "European Commission"
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2012,
+          10,
+          26
+        ]
+      ]
+    },
+    "number": "SWD(2012) 354 final",
+    "URL": "https://www.cep.eu/fileadmin/user_upload/cep.eu/Analysen/COM_2012_628_UVP/SWD_2012__354_-_Summary_Impact_Assessment__EN_.pdf",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-136",
+    "type": "report",
+    "title": "Protected Planet Report 2024",
+    "author": [
+      {
+        "literal": "UNEP-WCMC"
+      },
+      {
+        "literal": "IUCN"
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2024
+        ]
+      ]
+    },
+    "URL": "https://digitalreport.protectedplanet.net/",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-137",
+    "type": "article-journal",
+    "title": "Action needed to make carbon offsets from forest conservation work for climate change mitigation",
+    "author": [
+      {
+        "family": "West",
+        "given": "T.A.P."
+      },
+      {
+        "family": "Wunder",
+        "given": "S."
+      },
+      {
+        "family": "Sills",
+        "given": "E.O."
+      },
+      {
+        "family": "Börner",
+        "given": "J."
+      },
+      {
+        "family": "Rifai",
+        "given": "S.W."
+      },
+      {
+        "family": "Neidermeier",
+        "given": "A.N."
+      },
+      {
+        "family": "Frey",
+        "given": "G.P."
+      },
+      {
+        "family": "Kontoleon",
+        "given": "A."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2023
+        ]
+      ]
+    },
+    "container-title": "Science",
+    "volume": "381",
+    "issue": "6660",
+    "page": "873-877",
+    "DOI": "10.1126/science.ade3535",
+    "URL": "https://doi.org/10.1126/science.ade3535",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-138",
+    "type": "article-journal",
+    "title": "Increasing frequency and intensity of the most extreme wildfires on Earth",
+    "author": [
+      {
+        "family": "Cunningham",
+        "given": "C.X."
+      },
+      {
+        "family": "Williamson",
+        "given": "G.J."
+      },
+      {
+        "family": "Bowman",
+        "given": "D.M.J.S."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2024,
+          6,
+          24
+        ]
+      ]
+    },
+    "container-title": "Nature Ecology & Evolution",
+    "DOI": "10.1038/s41559-024-02452-2",
+    "URL": "https://doi.org/10.1038/s41559-024-02452-2",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-139",
+    "type": "report",
+    "title": "The State of Food and Agriculture 2020: Overcoming water challenges in agriculture",
+    "author": [
+      {
+        "literal": "FAO"
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2020
+        ]
+      ]
+    },
+    "URL": "http://www.fao.org/interactive/state-of-food-agriculture/2020/en/",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-140",
+    "type": "webpage",
+    "title": "Water use",
+    "author": [
+      {
+        "literal": "FAO AQUASTAT"
+      }
+    ],
+    "URL": "http://www.fao.org/aquastat/en/overview/methodology/water-use/index.html",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-141",
+    "type": "webpage",
+    "title": "Official site",
+    "author": [
+      {
+        "literal": "ANDZOA (Agence nationale pour le développement des zones oasiennes et de l'arganier)"
+      }
+    ],
+    "URL": "https://www.andzoa.ma/",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-142",
+    "type": "article-journal",
+    "title": "The Method of Multiple Working Hypotheses",
+    "author": [
+      {
+        "family": "Chamberlin",
+        "given": "T.C."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          1890,
+          2,
+          7
+        ]
+      ]
+    },
+    "container-title": "Science",
+    "volume": "15",
+    "issue": "366",
+    "page": "92-96",
+    "DOI": "10.1126/science.ns-15.366.92",
+    "URL": "https://doi.org/10.1126/science.ns-15.366.92",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          27
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-143",
+    "type": "article-journal",
+    "title": "Strong Inference: Certain systematic methods of scientific thinking may produce much more rapid progress than others",
+    "author": [
+      {
+        "family": "Platt",
+        "given": "J.R."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          1964,
+          10,
+          16
+        ]
+      ]
+    },
+    "container-title": "Science",
+    "volume": "146",
+    "issue": "3642",
+    "page": "347-353",
+    "DOI": "10.1126/science.146.3642.347",
+    "URL": "https://doi.org/10.1126/science.146.3642.347",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          27
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-144",
+    "type": "webpage",
+    "title": "Predicción por terciles",
+    "author": [
+      {
+        "literal": "AEMET (Agencia Estatal de Meteorología, Spain)"
+      }
+    ],
+    "URL": "https://www.aemet.es/en/serviciosclimaticos/prediccion_estacional/explicacion_terciles",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          27
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-145",
+    "type": "article-journal",
+    "title": "Potential Forests: Degradation Narratives, Science, and Environmental Policy in Protectorate Morocco, 1912–1956",
+    "author": [
+      {
+        "family": "Davis",
+        "given": "D.K."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2005
+        ]
+      ]
+    },
+    "container-title": "Environmental History",
+    "volume": "10",
+    "issue": "2",
+    "page": "211-238",
+    "DOI": "10.1093/envhis/10.2.211",
+    "URL": "https://doi.org/10.1093/envhis/10.2.211",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          27
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-146",
+    "type": "book",
+    "title": "Resurrecting the Granary of Rome: Environmental History and French Colonial Expansion in North Africa",
+    "author": [
+      {
+        "family": "Davis",
+        "given": "D.K."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2007
+        ]
+      ]
+    },
+    "publisher": "Ohio University Press",
+    "ISBN": "9780821417515",
+    "URL": "https://muse.jhu.edu/book/8949",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          27
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-147",
+    "type": "book",
+    "title": "The Arid Lands: History, Power, Knowledge",
+    "author": [
+      {
+        "family": "Davis",
+        "given": "D.K."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2016
+        ]
+      ]
+    },
+    "publisher": "MIT Press",
+    "ISBN": "9780262034524",
+    "URL": "https://muse.jhu.edu/book/45431",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          27
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-148",
+    "type": "article-journal",
+    "title": "Neoliberalism, environmentalism, and agricultural restructuring in Morocco",
+    "author": [
+      {
+        "family": "Davis",
+        "given": "D.K."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2006
+        ]
+      ]
+    },
+    "container-title": "The Geographical Journal",
+    "volume": "172",
+    "issue": "2",
+    "page": "88-105",
+    "DOI": "10.1111/j.1475-4959.2006.00204.x",
+    "URL": "https://doi.org/10.1111/j.1475-4959.2006.00204.x",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          27
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-149",
+    "type": "report",
+    "title": "Rethinking Range Ecology: Implications for Rangeland Management in Africa",
+    "author": [
+      {
+        "family": "Behnke",
+        "given": "R.H."
+      },
+      {
+        "family": "Scoones",
+        "given": "I."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          1992
+        ]
+      ]
+    },
+    "genre": "Drylands Issues Paper",
+    "number": "33",
+    "publisher": "IIED and ODI",
+    "URL": "https://www.iied.org/7282iied",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          27
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-150",
+    "type": "book",
+    "title": "Range Ecology at Disequilibrium: New Models of Natural Variability and Pastoral Adaptation in African Savannas",
+    "editor": [
+      {
+        "family": "Behnke",
+        "given": "R.H."
+      },
+      {
+        "family": "Scoones",
+        "given": "I."
+      },
+      {
+        "family": "Kerven",
+        "given": "C."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          1993
+        ]
+      ]
+    },
+    "publisher": "ODI",
+    "publisher-place": "London",
+    "ISBN": "0850031958"
+  },
+  {
+    "id": "SCI-151",
+    "type": "article-journal",
+    "title": "Stability of African Pastoral Ecosystems: Alternate Paradigms and Implications for Development",
+    "author": [
+      {
+        "family": "Ellis",
+        "given": "J.E."
+      },
+      {
+        "family": "Swift",
+        "given": "D.M."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          1988
+        ]
+      ]
+    },
+    "container-title": "Journal of Range Management",
+    "volume": "41",
+    "issue": "6",
+    "page": "450-459",
+    "DOI": "10.2307/3899515",
+    "URL": "https://doi.org/10.2307/3899515",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          27
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-152",
+    "type": "article-journal",
+    "title": "Recent trends in vegetation dynamics in the African Sahel and their relationship to climate",
+    "author": [
+      {
+        "family": "Herrmann",
+        "given": "S.M."
+      },
+      {
+        "family": "Anyamba",
+        "given": "A."
+      },
+      {
+        "family": "Tucker",
+        "given": "C.J."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2005
+        ]
+      ]
+    },
+    "container-title": "Global Environmental Change",
+    "volume": "15",
+    "issue": "4",
+    "page": "394-404",
+    "DOI": "10.1016/j.gloenvcha.2005.08.004",
+    "URL": "https://doi.org/10.1016/j.gloenvcha.2005.08.004",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          27
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-153",
+    "type": "article-journal",
+    "title": "Increasing Drought Sensitivity and Decline of Atlas Cedar (Cedrus atlantica) in the Moroccan Middle Atlas Forests",
+    "author": [
+      {
+        "family": "Linares",
+        "given": "J.C."
+      },
+      {
+        "family": "Taïqui",
+        "given": "L."
+      },
+      {
+        "family": "Camarero",
+        "given": "J.J."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2011
+        ]
+      ]
+    },
+    "container-title": "Forests",
+    "volume": "2",
+    "issue": "3",
+    "page": "777-796",
+    "DOI": "10.3390/f2030777",
+    "URL": "https://doi.org/10.3390/f2030777",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          27
+        ]
+      ]
+    }
+  },
+  {
+    "id": "SCI-154",
+    "type": "dataset",
+    "title": "Gazetteer extract for Morocco (MA.zip)",
+    "author": [
+      {
+        "literal": "GeoNames"
+      }
+    ],
+    "URL": "https://download.geonames.org/export/dump/MA.zip",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          27
+        ]
+      ]
+    }
+  }
+]

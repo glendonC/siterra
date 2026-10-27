@@ -1,0 +1,24 @@
+{
+  "recordType": "Event",
+  "schemaVersion": "1.2.0",
+  "id": "evt_example_commit",
+  "caseId": "case_example_atlas",
+  "sequence": 2,
+  "occurredAt": "2026-10-26T16:00:00-04:00",
+  "kind": "case.committed",
+  "commandId": "cmd_example_commission",
+  "taskId": "task_example_plan",
+  "caseRevision": 2,
+  "entityIds": [
+    "task_example_plan",
+    "ev_example_gap"
+  ],
+  "message": "Example commit records an evidence gap; no measured analysis result exists.",
+  "dedupeKey": "example-case-commit-0001",
+  "resultStatus": "succeeded",
+  "tool": null,
+  "usage": null,
+  "validation": null,
+  "spanId": null,
+  "parentSpanId": null
+}

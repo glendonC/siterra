@@ -1,0 +1,210 @@
+{
+ "type": "Collection",
+ "stac_version": "1.1.0",
+ "stac_extensions": [
+  "https://stac-extensions.github.io/processing/v1.3.0/schema.json",
+  "https://stac-extensions.github.io/file/v2.1.0/schema.json",
+  "https://siterra.invalid/schemas/stac/siterra/1.0.0/schema.json"
+ ],
+ "id": "bundle_season_summary_ait_bouguemez",
+ "title": "Wet seasons against 1991 to 2020 (season_summary 1.0.0)",
+ "description": "Precomputed result of recipe season_summary 1.0.0 on bundle_chirps_monthly_ait_bouguemez: wet-season (November to April) catchment rainfall totals for the seasons starting November 2018 to November 2024, their departure from the mean of the 30 wet seasons starting November 1991 to November 2020, and their tercile category. Near-normal band 508.7 to 603.0 mm (reference seasons: 10 below, 10 near, 10 above).\n\nThe category places this wet season among the 30 seasons of 1991 to 2020 for this catchment's CHIRPS grid cells; it is not a drought index and says nothing about cause. Agreement compares directions only: a national statement can differ from one valley and still be correct for its own area. CHIRPS cells are estimates for 5 km squares, not rain gauge readings.",
+ "license": "other",
+ "providers": [
+  {
+   "name": "Climate Hazards Center, UC Santa Barbara",
+   "roles": [
+    "producer",
+    "licensor"
+   ],
+   "url": "https://www.chc.ucsb.edu/data/chirps3"
+  },
+  {
+   "name": "Climate Hazards Center data server",
+   "roles": [
+    "host"
+   ],
+   "url": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/"
+  },
+  {
+   "name": "Siterra science pipeline",
+   "roles": [
+    "processor"
+   ],
+   "processing:lineage": "Range reads of one full-resolution tile per monthly CHIRPS v3.0 final global COG; native cells intersecting the frozen catchment weighted by area inside it (EPSG:32629); catchment totals; 1991-2020 same-month means; departures (docs/reference/observation-preprocessing.md section 5).",
+   "processing:software": {
+    "siterra-science": "0.1.0+uncommitted",
+    "python": "3.12.9",
+    "shapely": "2.2.0",
+    "pyproj": "3.8.0",
+    "rasterio": "1.5.2",
+    "gdal": "3.12.2"
+   }
+  }
+ ],
+ "extent": {
+  "spatial": {
+   "bbox": [
+    [
+     -6.54125,
+     31.494306,
+     -6.142083,
+     31.756528
+    ]
+   ]
+  },
+  "temporal": {
+   "interval": [
+    [
+     "1991-11-01T00:00:00Z",
+     "2025-04-30T23:59:59Z"
+    ]
+   ]
+  }
+ },
+ "assets": {
+  "analysis_geometry": {
+   "href": "./analysis-geometry.geojson",
+   "type": "application/geo+json",
+   "title": "Frozen analysis geometry geo_ait_bouguemez_catchment, revision 1",
+   "roles": [
+    "metadata"
+   ],
+   "file:checksum": "1220ac506ece626b6844d759b56aa60a10248c8c0ea5e206f9a28eb436a892a4d47f",
+   "file:size": 119623
+  },
+  "season_summary": {
+   "href": "./season-summary.json",
+   "type": "application/json",
+   "title": "Season totals, departures, categories, reference totals and the near-normal band",
+   "roles": [
+    "data"
+   ],
+   "file:checksum": "122003b2b8f6991744c08183fba1a8fabd80f42ef0e8ad1f12d85c68a9eb1f549e82",
+   "file:size": 12290
+  }
+ },
+ "created": "2026-10-27T16:22:37Z",
+ "siterra:status": "validated",
+ "siterra:variable": "precipitation_departure",
+ "siterra:dataset": {
+  "id": "CHIRPS-3.0-monthly-final",
+  "version": "3.0",
+  "access_route": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.YYYY.MM.cog by HTTP range request",
+  "resolution_note": "Native 0.05 degree grid, about 4.7 km east to west by 5.5 km north to south here"
+ },
+ "siterra:geo_selection": {
+  "id": "geo_ait_bouguemez_catchment",
+  "revision": 1,
+  "boundary_role": "hydrological_unit",
+  "area_m2": 417358612,
+  "area_method": "Planar area of the frozen polygon in EPSG:32629 (UTM 29N)"
+ },
+ "siterra:method": {
+  "id": "season_summary",
+  "version": "1.0.0",
+  "analysis_crs": "EPSG:32629",
+  "parameters": {
+   "season": "November to April",
+   "reference_seasons": "30 wet seasons starting 1991-11 to 2020-11",
+   "band": "terciles: L = (x(10) + x(11)) / 2, U = (x(20) + x(21)) / 2",
+   "cell_weights": "rainfall-cells.geojson of bundle_chirps_monthly_ait_bouguemez"
+  },
+  "reference_period": {
+   "start": "1991-11-01",
+   "end_exclusive": "2021-05-01",
+   "kind": "climate_normal"
+  },
+  "operation_order": [
+   "S(y) = sum of catchment rainfall totals from November of year y to April of year y + 1",
+   "reference: S(y) for the 30 wet seasons starting November 1991 to November 2020, sorted x(1) <= ... <= x(30)",
+   "L = (x(10) + x(11)) / 2; U = (x(20) + x(21)) / 2",
+   "category = below_normal if S < L; above_normal if S > U; otherwise near_normal",
+   "D = S - mean of the 30 reference totals, in mm"
+  ]
+ },
+ "siterra:attribution": [
+  "CHIRPS v3.0, Climate Hazards Center, UC Santa Barbara, https://doi.org/10.15780/G2JQ0P, accessed 2026-10-27",
+  "Catchment derived by Siterra from Copernicus DEM GLO-30 (2021 release)",
+  "Produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved",
+  "The organisations in charge of the Copernicus programme by law or by delegation do not incur any liability for any use of the Copernicus WorldDEM-30"
+ ],
+ "siterra:limitations": [
+  "The category places this wet season among the 30 seasons of 1991 to 2020 for this catchment's CHIRPS grid cells; it is not a drought index and says nothing about cause.",
+  "Agreement compares directions only: a national statement can differ from one valley and still be correct for its own area.",
+  "CHIRPS cells are estimates for 5 km squares, not rain gauge readings."
+ ],
+ "siterra:checks": [
+  {
+   "name": "period_alignment",
+   "passed": true,
+   "detail": "Each season is November of year y to April of year y + 1; month totals use the rainfall bundle's period IDs and cell weights"
+  },
+  {
+   "name": "nodata_not_zero",
+   "passed": true,
+   "detail": "A season with any missing month or cell would have no total; none is missing from 1991-11 to 2025-04"
+  },
+  {
+   "name": "units_and_scale",
+   "passed": true,
+   "detail": "Season totals in mm, sums of monthly catchment totals in mm"
+  },
+  {
+   "name": "recompute_sample_period",
+   "passed": true,
+   "detail": "season_2021-11_2022-04 recomputed month by month from the raw windows and the published weights matches its stored total within 0.01 mm"
+  },
+  {
+   "name": "attribution_present",
+   "passed": true,
+   "detail": "CHIRPS DOI and access date and the Copernicus DEM notice are in siterra:attribution"
+  }
+ ],
+ "links": [
+  {
+   "rel": "root",
+   "href": "../catalog.json",
+   "type": "application/json"
+  },
+  {
+   "rel": "parent",
+   "href": "../catalog.json",
+   "type": "application/json"
+  },
+  {
+   "rel": "derived_from",
+   "href": "../bundle_chirps_monthly_ait_bouguemez/collection.json",
+   "type": "application/json",
+   "title": "Rainfall bundle bundle_chirps_monthly_ait_bouguemez",
+   "file:checksum": "122018fa83935200324ea1951a65bc02a2bce1d4a067c6b135ce244c934a5605f9cf"
+  },
+  {
+   "rel": "license",
+   "href": "https://creativecommons.org/licenses/by/4.0/",
+   "title": "CHIRPS v3: Creative Commons Attribution 4.0 (the CHC also states a public domain dedication)"
+  },
+  {
+   "rel": "license",
+   "href": "https://dataspace.copernicus.eu/sites/default/files/media/files/2025-06/copernicus_contributing_mission_data_access_v2_cop_dem_licenses.pdf",
+   "title": "Licence for Copernicus DEM instance COP-DEM-GLO-30-F Global 30m Full, Free & Open (analysis geometry)"
+  },
+  {
+   "rel": "cite-as",
+   "href": "https://doi.org/10.15780/G2JQ0P",
+   "title": "CHIRPS v3 data repository DOI"
+  },
+  {
+   "rel": "cite-as",
+   "href": "https://doi.org/10.1038/s41597-026-07096-4",
+   "title": "Funk et al. (2026), Scientific Data 13, 718: the CHIRPS v3 paper"
+  },
+  {
+   "rel": "processing-software",
+   "href": "./uv.lock",
+   "type": "application/toml",
+   "title": "Pipeline lockfile (uv)",
+   "file:checksum": "12205154d57a84dcb8f1eb5f992923d7589a669b8dc669edf140f607ff2740733aff"
+  }
+ ]
+}

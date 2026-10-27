@@ -1,0 +1,23 @@
+{
+  "recordType": "Event",
+  "schemaVersion": "1.2.0",
+  "id": "evt_example_command",
+  "caseId": "case_example_atlas",
+  "sequence": 1,
+  "occurredAt": "2026-10-26T16:00:00-04:00",
+  "kind": "command.accepted",
+  "commandId": "cmd_example_commission",
+  "taskId": null,
+  "caseRevision": 1,
+  "entityIds": [
+    "cmd_example_commission"
+  ],
+  "message": "Fictional example: commission command accepted.",
+  "dedupeKey": "example-command-accepted-0001",
+  "resultStatus": null,
+  "tool": null,
+  "usage": null,
+  "validation": null,
+  "spanId": null,
+  "parentSpanId": null
+}

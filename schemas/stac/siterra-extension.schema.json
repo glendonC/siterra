@@ -1,0 +1,945 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://siterra.invalid/schemas/stac/siterra/1.0.0/schema.json",
+  "title": "Siterra observation bundle extension",
+  "description": "STAC extension and profile for Siterra observation bundles: one STAC 1.1.0 Collection per bundle and one STAC Item per calendar-month period. Defines the siterra: fields that STAC core and the community extensions used by the profile do not cover, and the profile rules the bundle importer relies on. Specification: docs/reference/observation-preprocessing.md (bundle output) and docs/reference/data-contracts.md (observation bundles).",
+  "$comment": "Structure follows the stac-extensions template (draft-07, definitions, oneOf per STAC object type). Field names are snake_case as in STAC; the importer converts them to the camelCase case records.",
+  "type": "object",
+  "required": [
+    "stac_extensions",
+    "type"
+  ],
+  "properties": {
+    "stac_extensions": {
+      "type": "array",
+      "contains": {
+        "const": "https://siterra.invalid/schemas/stac/siterra/1.0.0/schema.json"
+      }
+    },
+    "type": {
+      "$comment": "Allowed STAC object types: Collection (bundle) and Feature (period Item).",
+      "type": "string",
+      "enum": [
+        "Collection",
+        "Feature"
+      ]
+    },
+    "links": {
+      "$comment": "Validates siterra: fields in Link Objects, but does not require them.",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/link_fields"
+      }
+    }
+  },
+  "oneOf": [
+    {
+      "$comment": "STAC Items: one per period of a bundle.",
+      "type": "object",
+      "required": [
+        "type",
+        "id",
+        "collection",
+        "properties",
+        "assets"
+      ],
+      "properties": {
+        "type": {
+          "const": "Feature"
+        },
+        "id": {
+          "$ref": "#/definitions/period_id"
+        },
+        "collection": {
+          "$ref": "#/definitions/bundle_id"
+        },
+        "properties": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/item_fields"
+            },
+            {
+              "$ref": "#/definitions/item_properties_profile"
+            }
+          ]
+        },
+        "assets": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/asset_profile"
+          }
+        }
+      },
+      "allOf": [
+        {
+          "$comment": "A missing period has no observation, so it carries no assets.",
+          "if": {
+            "required": [
+              "properties"
+            ],
+            "properties": {
+              "properties": {
+                "required": [
+                  "siterra:period_status"
+                ],
+                "properties": {
+                  "siterra:period_status": {
+                    "const": "missing"
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "assets": {
+                "maxProperties": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "$comment": "STAC Collections: one per bundle.",
+      "type": "object",
+      "required": [
+        "type",
+        "id",
+        "created",
+        "providers",
+        "assets",
+        "links",
+        "siterra:status",
+        "siterra:variable",
+        "siterra:dataset",
+        "siterra:geo_selection",
+        "siterra:method",
+        "siterra:attribution",
+        "siterra:limitations",
+        "siterra:checks"
+      ],
+      "properties": {
+        "type": {
+          "const": "Collection"
+        },
+        "id": {
+          "$ref": "#/definitions/bundle_id"
+        },
+        "providers": {
+          "$comment": "The producing pipeline is a provider with the processor role that carries processing:software (processing extension 1.3.0 places processing fields on providers in Collections).",
+          "type": "array",
+          "contains": {
+            "$ref": "#/definitions/processor_provider"
+          }
+        },
+        "assets": {
+          "$comment": "Collection assets: the frozen analysis geometry, plus any bundle-level files.",
+          "type": "object",
+          "required": [
+            "analysis_geometry"
+          ],
+          "properties": {
+            "analysis_geometry": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/asset_profile"
+                },
+                {
+                  "properties": {
+                    "type": {
+                      "const": "application/geo+json"
+                    },
+                    "roles": {
+                      "contains": {
+                        "const": "metadata"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "additionalProperties": {
+            "$ref": "#/definitions/asset_profile"
+          }
+        },
+        "item_assets": {
+          "$comment": "Item asset definitions may carry the asset-level siterra: fields.",
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/asset_fields"
+          }
+        },
+        "links": {
+          "type": "array",
+          "allOf": [
+            {
+              "$comment": "The pipeline lockfile is published with the bundle and linked with its checksum.",
+              "contains": {
+                "type": "object",
+                "required": [
+                  "rel",
+                  "href",
+                  "file:checksum"
+                ],
+                "properties": {
+                  "rel": {
+                    "const": "processing-software"
+                  }
+                }
+              }
+            },
+            {
+              "$comment": "Every period Item is linked with its checksum, so the Collection checksum pins the whole bundle.",
+              "items": {
+                "if": {
+                  "required": [
+                    "rel"
+                  ],
+                  "properties": {
+                    "rel": {
+                      "const": "item"
+                    }
+                  }
+                },
+                "then": {
+                  "required": [
+                    "file:checksum"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "summaries": {
+          "$ref": "#/definitions/summaries"
+        }
+      },
+      "allOf": [
+        {
+          "$ref": "#/definitions/collection_fields"
+        },
+        {
+          "$comment": "A validated bundle has passed every recorded check.",
+          "if": {
+            "required": [
+              "siterra:status"
+            ],
+            "properties": {
+              "siterra:status": {
+                "const": "validated"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "siterra:checks": {
+                "items": {
+                  "properties": {
+                    "passed": {
+                      "const": true
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "definitions": {
+    "bundle_id": {
+      "type": "string",
+      "pattern": "^bundle_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+    },
+    "period_id": {
+      "$comment": "Calendar month in UTC, start inclusive and end exclusive. The authoritative key for the period.",
+      "type": "string",
+      "pattern": "^period_[0-9]{4}-(0[1-9]|1[0-2])$"
+    },
+    "siterra:status": {
+      "title": "Bundle status",
+      "description": "Outcome of the pipeline checks. A superseded bundle keeps its own status; supersession is declared by the successor's predecessor-version link.",
+      "type": "string",
+      "enum": [
+        "validated",
+        "failed"
+      ]
+    },
+    "siterra:variable": {
+      "title": "Variable",
+      "type": "string",
+      "enum": [
+        "ndvi_monthly_median",
+        "ndvi_departure",
+        "precipitation_monthly_total",
+        "precipitation_departure",
+        "elevation_band",
+        "aspect_class",
+        "landcover_mask"
+      ]
+    },
+    "siterra:dataset": {
+      "title": "Source dataset",
+      "description": "The upstream dataset as the case records it (DataBundle.datasetId and datasetVersion). The derived_from links carry the exact inputs.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "version",
+        "access_route",
+        "resolution_note"
+      ],
+      "properties": {
+        "id": {
+          "description": "For example sentinel-2-l2a or CHIRPS-3.0-monthly-final.",
+          "type": "string",
+          "minLength": 1
+        },
+        "version": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "access_route": {
+          "description": "Exact catalog or URL route used, for example a STAC API endpoint and collection.",
+          "type": "string",
+          "minLength": 1
+        },
+        "resolution_note": {
+          "description": "Native grid in words where metres do not describe it, for example a 0.05 degree grid.",
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        }
+      }
+    },
+    "siterra:geo_selection": {
+      "title": "Analysis geometry",
+      "description": "The exact GeoSelection revision the bundle was computed for. The frozen geometry file is the Collection asset analysis_geometry.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "revision",
+        "boundary_role",
+        "area_m2",
+        "area_method"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^geo_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "boundary_role": {
+          "type": "string",
+          "enum": [
+            "regional_context",
+            "landscape_sample",
+            "administrative_unit",
+            "hydrological_unit",
+            "validated_management_unit"
+          ]
+        },
+        "area_m2": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "area_method": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "siterra:method": {
+      "title": "Method",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "version",
+        "analysis_crs",
+        "parameters",
+        "reference_period",
+        "operation_order"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "analysis_crs": {
+          "description": "Metric CRS in which areas and pixel statistics are computed, for example EPSG:32629.",
+          "type": "string",
+          "pattern": "^EPSG:[0-9]+$"
+        },
+        "parameters": {
+          "description": "Every tunable value, for example SCL classes kept, minimum dates per pixel-month, minimum area coverage, crop mask.",
+          "type": "object"
+        },
+        "reference_period": {
+          "description": "Reference window for departures. Dates are Siterra period bounds: start inclusive, end exclusive.",
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "start",
+                "end_exclusive",
+                "kind"
+              ],
+              "properties": {
+                "start": {
+                  "type": "string",
+                  "format": "date"
+                },
+                "end_exclusive": {
+                  "type": "string",
+                  "format": "date"
+                },
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "short_reference",
+                    "climate_normal"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "operation_order": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "siterra:attribution": {
+      "title": "Attribution strings",
+      "description": "Exact strings for legends and exports, for example the modified Copernicus Sentinel data notice with the actual years.",
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "siterra:limitations": {
+      "title": "Limitations",
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "siterra:checks": {
+      "title": "Pipeline checks",
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "passed",
+          "detail"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "enum": [
+              "recompute_sample_period",
+              "nodata_not_zero",
+              "units_and_scale",
+              "qa_join_coverage",
+              "period_alignment",
+              "attribution_present",
+              "visual_inspection_sample"
+            ]
+          },
+          "passed": {
+            "type": "boolean"
+          },
+          "detail": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "siterra:period_status": {
+      "title": "Period status",
+      "type": "string",
+      "enum": [
+        "available",
+        "insufficient",
+        "missing"
+      ]
+    },
+    "siterra:missing_reason": {
+      "title": "Missing reason",
+      "description": "Null when the period is available; otherwise the reason shown to people.",
+      "type": [
+        "string",
+        "null"
+      ],
+      "minLength": 1
+    },
+    "siterra:area_valid_fraction": {
+      "title": "Area valid fraction",
+      "description": "Accepted share of the analysis geometry's area for the period (0 to 1). Not the STAC statistics valid_percent, which counts every raster value including nodata outside the geometry.",
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "maximum": 1
+    },
+    "siterra:observation_dates": {
+      "title": "Observation dates",
+      "description": "Distinct acquisition dates that contributed accepted observations. Empty for products without per-scene dates.",
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "format": "date"
+      }
+    },
+    "siterra:measurements": {
+      "title": "Measurements",
+      "description": "Area summaries for the period; the importer creates one Measurement record per entry.",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/measurement"
+      }
+    },
+    "siterra:quality_flags": {
+      "title": "Quality flags",
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/definitions/quality_flag"
+      }
+    },
+    "siterra:color_scale": {
+      "title": "Color scale",
+      "description": "Data palette used to render a display raster; names the palette token group in the design tokens.",
+      "type": "string",
+      "enum": [
+        "ndvi-sequential",
+        "ndvi-anomaly-diverging",
+        "rain-sequential",
+        "rain-anomaly-diverging",
+        "categorical-strata"
+      ]
+    },
+    "siterra:domain": {
+      "title": "Display domain",
+      "description": "Fixed value range [minimum, maximum] mapped onto the color scale, in the band unit. Never rescaled per period.",
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": {
+        "type": "number"
+      }
+    },
+    "siterra:retrieved_datetime": {
+      "title": "Retrieval time",
+      "description": "When the pipeline retrieved the linked input, in UTC.",
+      "type": "string",
+      "format": "date-time",
+      "pattern": "(\\+00:00|Z)$"
+    },
+    "measurement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "metric",
+        "value",
+        "unit",
+        "aggregation",
+        "status",
+        "valid_pixel_count",
+        "total_pixel_count",
+        "spread"
+      ],
+      "properties": {
+        "metric": {
+          "type": "string",
+          "minLength": 1
+        },
+        "value": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "unit": {
+          "description": "UCUM code, for example 1 for an index or mm for precipitation.",
+          "type": "string",
+          "minLength": 1
+        },
+        "aggregation": {
+          "description": "For example: area median of per-pixel monthly medians over accepted pixels.",
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "available",
+            "missing",
+            "excluded",
+            "invalid"
+          ]
+        },
+        "valid_pixel_count": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "total_pixel_count": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "spread": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "kind",
+                "lower",
+                "upper"
+              ],
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "spatial_iqr"
+                  ]
+                },
+                "lower": {
+                  "type": "number"
+                },
+                "upper": {
+                  "type": "number"
+                }
+              }
+            }
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "$comment": "Missing is a value: a measurement that is not available has a null value, never zero.",
+          "if": {
+            "required": [
+              "status"
+            ],
+            "properties": {
+              "status": {
+                "const": "available"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "type": "number"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "value": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "quality_flag": {
+      "type": "string",
+      "enum": [
+        "snow_suspected",
+        "terrain_shadow_suspected",
+        "low_scene_count",
+        "qa_join_incomplete",
+        "partial_month",
+        "reduced_qa_fallback"
+      ]
+    },
+    "item_properties_profile": {
+      "$comment": "Profile rules for Item properties: a period is a range, so datetime is null and the inclusive STAC bounds run from the first to the last second of the month.",
+      "type": "object",
+      "required": [
+        "datetime",
+        "start_datetime",
+        "end_datetime",
+        "raster:spatial_resolution",
+        "siterra:period_status",
+        "siterra:missing_reason",
+        "siterra:area_valid_fraction",
+        "siterra:observation_dates",
+        "siterra:measurements",
+        "siterra:quality_flags"
+      ],
+      "properties": {
+        "datetime": {
+          "type": "null"
+        },
+        "start_datetime": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])-01T00:00:00Z$"
+        },
+        "end_datetime": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])-(28|29|30|31)T23:59:59Z$"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "required": [
+              "siterra:period_status"
+            ],
+            "properties": {
+              "siterra:period_status": {
+                "const": "available"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "siterra:missing_reason": {
+                "type": "null"
+              },
+              "siterra:area_valid_fraction": {
+                "type": "number"
+              },
+              "siterra:measurements": {
+                "minItems": 1
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "siterra:missing_reason": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "asset_profile": {
+      "$comment": "Every bundle asset declares its media type and roles and carries a checksum, so the Item or Collection checksum pins the file.",
+      "allOf": [
+        {
+          "$ref": "#/definitions/asset_fields"
+        },
+        {
+          "type": "object",
+          "required": [
+            "type",
+            "roles",
+            "file:checksum"
+          ]
+        },
+        {
+          "$comment": "A display raster states the palette and the fixed domain it was rendered with.",
+          "if": {
+            "required": [
+              "roles"
+            ],
+            "properties": {
+              "roles": {
+                "contains": {
+                  "const": "overview"
+                }
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "siterra:color_scale",
+              "siterra:domain"
+            ]
+          }
+        }
+      ]
+    },
+    "processor_provider": {
+      "type": "object",
+      "required": [
+        "name",
+        "roles",
+        "processing:software"
+      ],
+      "properties": {
+        "roles": {
+          "type": "array",
+          "contains": {
+            "const": "processor"
+          }
+        },
+        "processing:software": {
+          "type": "object",
+          "minProperties": 1
+        }
+      }
+    },
+    "collection_fields": {
+      "$comment": "siterra: fields allowed at the top level of a Collection.",
+      "type": "object",
+      "properties": {
+        "siterra:status": {
+          "$ref": "#/definitions/siterra:status"
+        },
+        "siterra:variable": {
+          "$ref": "#/definitions/siterra:variable"
+        },
+        "siterra:dataset": {
+          "$ref": "#/definitions/siterra:dataset"
+        },
+        "siterra:geo_selection": {
+          "$ref": "#/definitions/siterra:geo_selection"
+        },
+        "siterra:method": {
+          "$ref": "#/definitions/siterra:method"
+        },
+        "siterra:attribution": {
+          "$ref": "#/definitions/siterra:attribution"
+        },
+        "siterra:limitations": {
+          "$ref": "#/definitions/siterra:limitations"
+        },
+        "siterra:checks": {
+          "$ref": "#/definitions/siterra:checks"
+        }
+      },
+      "patternProperties": {
+        "^(?!siterra:)": {}
+      },
+      "additionalProperties": false
+    },
+    "item_fields": {
+      "$comment": "siterra: fields allowed in Item properties.",
+      "type": "object",
+      "properties": {
+        "siterra:period_status": {
+          "$ref": "#/definitions/siterra:period_status"
+        },
+        "siterra:missing_reason": {
+          "$ref": "#/definitions/siterra:missing_reason"
+        },
+        "siterra:area_valid_fraction": {
+          "$ref": "#/definitions/siterra:area_valid_fraction"
+        },
+        "siterra:observation_dates": {
+          "$ref": "#/definitions/siterra:observation_dates"
+        },
+        "siterra:measurements": {
+          "$ref": "#/definitions/siterra:measurements"
+        },
+        "siterra:quality_flags": {
+          "$ref": "#/definitions/siterra:quality_flags"
+        }
+      },
+      "patternProperties": {
+        "^(?!siterra:)": {}
+      },
+      "additionalProperties": false
+    },
+    "asset_fields": {
+      "$comment": "siterra: fields allowed in Asset Objects and Item asset definitions.",
+      "type": "object",
+      "properties": {
+        "siterra:color_scale": {
+          "$ref": "#/definitions/siterra:color_scale"
+        },
+        "siterra:domain": {
+          "$ref": "#/definitions/siterra:domain"
+        }
+      },
+      "patternProperties": {
+        "^(?!siterra:)": {}
+      },
+      "additionalProperties": false
+    },
+    "link_fields": {
+      "$comment": "siterra: fields allowed in Link Objects.",
+      "type": "object",
+      "properties": {
+        "siterra:retrieved_datetime": {
+          "$ref": "#/definitions/siterra:retrieved_datetime"
+        }
+      },
+      "patternProperties": {
+        "^(?!siterra:)": {}
+      },
+      "additionalProperties": false
+    },
+    "summaries": {
+      "$comment": "Summaries of Item fields in Collections: lists of values.",
+      "type": "object",
+      "properties": {
+        "siterra:period_status": {
+          "type": [
+            "array",
+            "object"
+          ],
+          "items": {
+            "$ref": "#/definitions/siterra:period_status"
+          }
+        },
+        "siterra:quality_flags": {
+          "type": [
+            "array",
+            "object"
+          ],
+          "items": {
+            "$ref": "#/definitions/quality_flag"
+          }
+        }
+      },
+      "patternProperties": {
+        "^(?!siterra:)": {}
+      },
+      "additionalProperties": false
+    }
+  }
+}

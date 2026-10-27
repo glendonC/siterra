@@ -1,0 +1,144 @@
+{
+  "recordType": "Commit",
+  "schemaVersion": "1.2.0",
+  "id": "commit_example_01",
+  "caseId": "case_example_atlas",
+  "commandId": "cmd_example_commission",
+  "taskId": "task_example_plan",
+  "expectedCaseRevision": 1,
+  "newCaseRevision": 2,
+  "idempotencyKey": "example-commit-0001",
+  "inputVersions": [
+    {
+      "entityId": "geo_example_context",
+      "revision": 1
+    },
+    {
+      "entityId": "bundle_example_missing",
+      "revision": 1
+    }
+  ],
+  "caseAfter": {
+    "recordType": "EnvironmentalCase",
+    "id": "case_example_atlas",
+    "revision": 2,
+    "createdAt": "2026-10-26T16:00:00-04:00",
+    "updatedAt": "2026-10-26T16:00:00-04:00",
+    "title": "Example: High Atlas investigation",
+    "objective": "Identify evidence and field measurements needed to assess competing explanations for pasture pressure.",
+    "status": "commissioned",
+    "mode": "concept",
+    "ownerScopeId": "example_fixture_only",
+    "activeGeoSelectionId": "geo_example_context",
+    "currentBriefId": null,
+    "unresolvedQuestions": [
+      "The analysis boundary and numerical observations have not been established."
+    ],
+    "permissionProfile": "research_and_preparation_only",
+    "description": "Fictional contract fixture. No measured environmental result or visited location is asserted."
+  },
+  "upserts": [
+    {
+      "recordType": "Task",
+      "id": "task_example_plan",
+      "revision": 1,
+      "createdAt": "2026-10-26T16:00:00-04:00",
+      "updatedAt": "2026-10-26T16:00:00-04:00",
+      "caseId": "case_example_atlas",
+      "commandId": "cmd_example_commission",
+      "kind": "plan",
+      "question": "Prepare the evidence and field-validation plan; first establish an appropriate analysis boundary.",
+      "status": "succeeded",
+      "dependsOnTaskIds": [],
+      "inputVersions": [
+        {
+          "entityId": "geo_example_context",
+          "revision": 1
+        },
+        {
+          "entityId": "bundle_example_missing",
+          "revision": 1
+        }
+      ],
+      "allowedTools": [
+        "read_case",
+        "propose_plan"
+      ],
+      "outputEntityIds": [
+        "ev_example_gap"
+      ],
+      "idempotencyKey": "example-plan-0001",
+      "attempt": 1,
+      "maxModelRounds": 6,
+      "deadlineAt": "2026-10-26T16:03:00-04:00",
+      "budgetMicroUsd": 500000,
+      "spentMicroUsd": 0,
+      "checkpointId": null,
+      "failureCode": null,
+      "missingInputs": [
+        "Validated analysis geometry and observation export."
+      ],
+      "startedAt": "2026-10-26T16:00:00-04:00",
+      "finishedAt": "2026-10-26T16:00:00-04:00"
+    },
+    {
+      "recordType": "Evidence",
+      "id": "ev_example_gap",
+      "revision": 1,
+      "createdAt": "2026-10-26T16:00:00-04:00",
+      "updatedAt": "2026-10-26T16:00:00-04:00",
+      "caseId": "case_example_atlas",
+      "statement": "The example case requires a justified analysis boundary and validated observation export before regional numeric comparison.",
+      "claimKind": "field_requirement",
+      "status": "accepted",
+      "geoSelectionId": "geo_example_context",
+      "periodIds": [],
+      "measurementIds": [
+        "meas_example_missing"
+      ],
+      "provenance": {
+        "sourceLocators": [],
+        "dataBundleIds": [],
+        "methodId": null,
+        "methodVersion": null,
+        "inputVersions": [],
+        "generatedByTaskId": "task_example_plan",
+        "generatedAt": "2026-10-26T16:00:00-04:00",
+        "verificationStatus": "unverified",
+        "limitations": [
+          "No scientific computation has been performed in this fixture."
+        ]
+      },
+      "interpretation": null,
+      "uncertainty": "No conclusion about pasture degradation or its cause is available.",
+      "reviewDecisionIds": []
+    }
+  ],
+  "events": [
+    {
+      "recordType": "Event",
+      "schemaVersion": "1.2.0",
+      "id": "evt_example_commit",
+      "caseId": "case_example_atlas",
+      "sequence": 2,
+      "occurredAt": "2026-10-26T16:00:00-04:00",
+      "kind": "case.committed",
+      "commandId": "cmd_example_commission",
+      "taskId": "task_example_plan",
+      "caseRevision": 2,
+      "entityIds": [
+        "task_example_plan",
+        "ev_example_gap"
+      ],
+      "message": "Example commit records an evidence gap; no measured analysis result exists.",
+      "dedupeKey": "example-case-commit-0001",
+      "resultStatus": "succeeded",
+      "tool": null,
+      "usage": null,
+      "validation": null,
+      "spanId": null,
+      "parentSpanId": null
+    }
+  ],
+  "layoutActions": []
+}

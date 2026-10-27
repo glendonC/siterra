@@ -1,0 +1,58 @@
+{
+ "type": "Catalog",
+ "stac_version": "1.1.0",
+ "id": "siterra-bundles",
+ "description": "Siterra observation bundles. Each child is one bundle (a STAC Collection).",
+ "links": [
+  {
+   "rel": "root",
+   "href": "./catalog.json",
+   "type": "application/json"
+  },
+  {
+   "rel": "child",
+   "href": "./bundle_chirps_monthly_ait_bouguemez/collection.json",
+   "type": "application/json",
+   "file:checksum": "122018fa83935200324ea1951a65bc02a2bce1d4a067c6b135ce244c934a5605f9cf"
+  },
+  {
+   "rel": "child",
+   "href": "./bundle_s2_ndvi_monthly_ait_bouguemez/collection.json",
+   "type": "application/json",
+   "file:checksum": "12201afa22db1690d2561926dc827ff2435d76637b7bbebd3c251c642dd32a316ed7"
+  },
+  {
+   "rel": "child",
+   "href": "./bundle_season_summary_ait_bouguemez/collection.json",
+   "type": "application/json",
+   "file:checksum": "1220757844c0af474a6a9c140aa48154c19d6462c8eb0eecdb061d68a2791b2628dd"
+  },
+  {
+   "rel": "child",
+   "href": "./bundle_ndvi_departure_ait_bouguemez/collection.json",
+   "type": "application/json",
+   "file:checksum": "12205bf6223b58f7dca7add9e540e7744f7b5318c0a164237100f22df9f613bbf719"
+  },
+  {
+   "rel": "child",
+   "href": "./bundle_coverage_summary_ait_bouguemez/collection.json",
+   "type": "application/json",
+   "file:checksum": "1220e7c73e0997f4260d0c9f2ff26940f8e640ff72e31ea66c8bceae271446741980"
+  },
+  {
+   "rel": "child",
+   "href": "./bundle_terrain_strata_ait_bouguemez/collection.json",
+   "type": "application/json",
+   "file:checksum": "1220857e69c5d1ddbe846b8022836f888254f3f818251b9e3e4ffba8748bae07241d"
+  },
+  {
+   "rel": "child",
+   "href": "./bundle_aligned_antecedent_ait_bouguemez/collection.json",
+   "type": "application/json",
+   "file:checksum": "1220c8c73cb31ab71a6b4c14be941a093c0212b09f994b71db12e8ae955b4db03253"
+  }
+ ],
+ "stac_extensions": [
+  "https://stac-extensions.github.io/file/v2.1.0/schema.json"
+ ]
+}

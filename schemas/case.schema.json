@@ -1,0 +1,3674 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://siterra.invalid/schemas/case/1.2.0/case.schema.json",
+  "title": "Siterra case contracts",
+  "description": "Records of one Siterra case as stored and exchanged between the web application, the worker and the browser. The root validates a case snapshot, a command, an event or an atomic commit proposal; $defs holds the record types. Cross-record semantics that JSON Schema cannot express are specified in docs/reference/data-contracts.md.",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/CaseSnapshot"
+    },
+    {
+      "$ref": "#/$defs/Command"
+    },
+    {
+      "$ref": "#/$defs/Event"
+    },
+    {
+      "$ref": "#/$defs/Commit"
+    }
+  ],
+  "$defs": {
+    "EntityVersion": {
+      "type": "object",
+      "properties": {
+        "entityId": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "entityId",
+        "revision"
+      ],
+      "additionalProperties": false
+    },
+    "SourceLocator": {
+      "type": "object",
+      "properties": {
+        "sourceId": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "locator": {
+          "type": "string",
+          "minLength": 1
+        },
+        "excerpt": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "sourceId",
+        "locator",
+        "excerpt"
+      ],
+      "additionalProperties": false
+    },
+    "Provenance": {
+      "type": "object",
+      "properties": {
+        "sourceLocators": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SourceLocator"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "dataBundleIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "methodId": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "methodVersion": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "inputVersions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/EntityVersion"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "generatedByTaskId": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "generatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "verificationStatus": {
+          "type": "string",
+          "enum": [
+            "unverified",
+            "source_checked",
+            "computed_checked",
+            "expert_reviewed"
+          ]
+        },
+        "limitations": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "sourceLocators",
+        "dataBundleIds",
+        "methodId",
+        "methodVersion",
+        "inputVersions",
+        "generatedByTaskId",
+        "generatedAt",
+        "verificationStatus",
+        "limitations"
+      ],
+      "additionalProperties": false
+    },
+    "Context": {
+      "type": "object",
+      "properties": {
+        "caseRevision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "geoSelectionId": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "geoRevision": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "periodIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "focusedEntityIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "dataBundleIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "locale": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "caseRevision",
+        "geoSelectionId",
+        "geoRevision",
+        "periodIds",
+        "focusedEntityIds",
+        "dataBundleIds",
+        "locale"
+      ],
+      "additionalProperties": false
+    },
+    "EnvironmentalCase": {
+      "type": "object",
+      "properties": {
+        "recordType": {
+          "const": "EnvironmentalCase"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "objective": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "draft",
+            "commissioned",
+            "investigating",
+            "ready_for_review",
+            "prepared",
+            "paused",
+            "archived"
+          ]
+        },
+        "mode": {
+          "type": "string",
+          "enum": [
+            "live",
+            "replay",
+            "concept"
+          ]
+        },
+        "ownerScopeId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "activeGeoSelectionId": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "currentBriefId": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "unresolvedQuestions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "permissionProfile": {
+          "const": "research_and_preparation_only"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "recordType",
+        "id",
+        "revision",
+        "createdAt",
+        "updatedAt",
+        "title",
+        "objective",
+        "status",
+        "mode",
+        "ownerScopeId",
+        "activeGeoSelectionId",
+        "currentBriefId",
+        "unresolvedQuestions",
+        "permissionProfile",
+        "description"
+      ],
+      "additionalProperties": false
+    },
+    "Source": {
+      "type": "object",
+      "properties": {
+        "recordType": {
+          "const": "Source"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "caseId": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https?://"
+        },
+        "publisher": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "authors": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "publicationDate": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "accessedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "sourceKind": {
+          "type": "string",
+          "enum": [
+            "official_dataset",
+            "peer_reviewed",
+            "institutional",
+            "community_provided",
+            "other"
+          ]
+        },
+        "accessStatus": {
+          "type": "string",
+          "enum": [
+            "discovered",
+            "retrieved",
+            "unavailable"
+          ]
+        },
+        "license": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "redistributionStatus": {
+          "type": "string",
+          "enum": [
+            "permitted",
+            "restricted",
+            "unknown"
+          ]
+        },
+        "contentHash": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "notes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "recordType",
+        "id",
+        "revision",
+        "createdAt",
+        "updatedAt",
+        "caseId",
+        "title",
+        "url",
+        "publisher",
+        "authors",
+        "publicationDate",
+        "accessedAt",
+        "sourceKind",
+        "accessStatus",
+        "license",
+        "redistributionStatus",
+        "contentHash",
+        "notes"
+      ],
+      "additionalProperties": false
+    },
+    "GeoSelection": {
+      "type": "object",
+      "properties": {
+        "recordType": {
+          "const": "GeoSelection"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "caseId": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "geometryStatus": {
+          "type": "string",
+          "enum": [
+            "not_established",
+            "context_only",
+            "analysis_ready"
+          ]
+        },
+        "geometry": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "const": "Polygon"
+                },
+                "coordinates": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": "array",
+                    "minItems": 4,
+                    "items": {
+                      "type": "array",
+                      "prefixItems": [
+                        {
+                          "type": "number",
+                          "minimum": -180,
+                          "maximum": 180
+                        },
+                        {
+                          "type": "number",
+                          "minimum": -90,
+                          "maximum": 90
+                        }
+                      ],
+                      "minItems": 2,
+                      "maxItems": 2
+                    }
+                  }
+                }
+              },
+              "required": [
+                "type",
+                "coordinates"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "crs": {
+          "const": "EPSG:4326"
+        },
+        "boundaryRole": {
+          "enum": [
+            "regional_context",
+            "landscape_sample",
+            "administrative_unit",
+            "hydrological_unit",
+            "validated_management_unit"
+          ]
+        },
+        "boundarySourceIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "selectionMethod": {
+          "type": "string",
+          "minLength": 1
+        },
+        "areaM2": {
+          "anyOf": [
+            {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "areaMethod": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "limitations": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "recordType",
+        "id",
+        "revision",
+        "createdAt",
+        "updatedAt",
+        "caseId",
+        "label",
+        "geometryStatus",
+        "geometry",
+        "crs",
+        "boundaryRole",
+        "boundarySourceIds",
+        "selectionMethod",
+        "areaM2",
+        "areaMethod",
+        "limitations"
+      ],
+      "additionalProperties": false
+    },
+    "DataBundle": {
+      "type": "object",
+      "properties": {
+        "recordType": {
+          "const": "DataBundle"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "caseId": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "missing",
+            "processing",
+            "validated",
+            "failed",
+            "superseded"
+          ]
+        },
+        "datasetId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "datasetVersion": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "sourceIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "geoSelectionId": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "geoRevision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "periodIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "methodId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "methodVersion": {
+          "type": "string",
+          "minLength": 1
+        },
+        "manifestUri": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "uri"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "contentHash": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "license": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "attribution": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance"
+        }
+      },
+      "required": [
+        "recordType",
+        "id",
+        "revision",
+        "createdAt",
+        "updatedAt",
+        "caseId",
+        "label",
+        "status",
+        "datasetId",
+        "datasetVersion",
+        "sourceIds",
+        "geoSelectionId",
+        "geoRevision",
+        "periodIds",
+        "methodId",
+        "methodVersion",
+        "manifestUri",
+        "contentHash",
+        "license",
+        "attribution",
+        "provenance"
+      ],
+      "additionalProperties": false
+    },
+    "Task": {
+      "type": "object",
+      "properties": {
+        "recordType": {
+          "const": "Task"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "caseId": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "commandId": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "plan",
+            "source_research",
+            "observation_analysis",
+            "livelihood_governance",
+            "hypothesis_comparison",
+            "intervention_feasibility",
+            "brief_package",
+            "validation"
+          ]
+        },
+        "question": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "queued",
+            "running",
+            "awaiting_input",
+            "awaiting_review",
+            "succeeded",
+            "partial",
+            "failed",
+            "cancelled"
+          ]
+        },
+        "dependsOnTaskIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "inputVersions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/EntityVersion"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "allowedTools": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "read_case",
+              "read_evidence",
+              "search_sources",
+              "read_source",
+              "fetch_source",
+              "read_dataset_manifest",
+              "summarize_observations",
+              "compare_series",
+              "propose_plan",
+              "propose_evidence",
+              "propose_hypotheses",
+              "propose_interventions",
+              "propose_package",
+              "propose_layout",
+              "request_review"
+            ]
+          }
+        },
+        "outputEntityIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "idempotencyKey": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 128
+        },
+        "attempt": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 3
+        },
+        "maxModelRounds": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 6
+        },
+        "deadlineAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "budgetMicroUsd": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "spentMicroUsd": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "checkpointId": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "failureCode": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "missingInputs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "startedAt": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date-time"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "finishedAt": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date-time"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "recordType",
+        "id",
+        "revision",
+        "createdAt",
+        "updatedAt",
+        "caseId",
+        "commandId",
+        "kind",
+        "question",
+        "status",
+        "dependsOnTaskIds",
+        "inputVersions",
+        "allowedTools",
+        "outputEntityIds",
+        "idempotencyKey",
+        "attempt",
+        "maxModelRounds",
+        "deadlineAt",
+        "budgetMicroUsd",
+        "spentMicroUsd",
+        "checkpointId",
+        "failureCode",
+        "missingInputs",
+        "startedAt",
+        "finishedAt"
+      ],
+      "additionalProperties": false
+    },
+    "Evidence": {
+      "type": "object",
+      "properties": {
+        "recordType": {
+          "const": "Evidence"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "caseId": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "statement": {
+          "type": "string",
+          "minLength": 1
+        },
+        "claimKind": {
+          "type": "string",
+          "enum": [
+            "observation",
+            "scientific_context",
+            "hypothesis",
+            "model_estimate",
+            "scenario",
+            "field_requirement",
+            "verified_outcome"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "provisional",
+            "accepted",
+            "rejected",
+            "stale",
+            "superseded"
+          ]
+        },
+        "geoSelectionId": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "periodIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "measurementIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance"
+        },
+        "interpretation": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "uncertainty": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reviewDecisionIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "recordType",
+        "id",
+        "revision",
+        "createdAt",
+        "updatedAt",
+        "caseId",
+        "statement",
+        "claimKind",
+        "status",
+        "geoSelectionId",
+        "periodIds",
+        "measurementIds",
+        "provenance",
+        "interpretation",
+        "uncertainty",
+        "reviewDecisionIds"
+      ],
+      "additionalProperties": false
+    },
+    "Measurement": {
+      "type": "object",
+      "properties": {
+        "recordType": {
+          "const": "Measurement"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "caseId": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "metric": {
+          "type": "string",
+          "minLength": 1
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "unit": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "available",
+            "missing",
+            "excluded",
+            "invalid"
+          ]
+        },
+        "missingReason": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "geoSelectionId": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "geoRevision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "periodId": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "dataBundleId": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "aggregation": {
+          "type": "string",
+          "minLength": 1
+        },
+        "validPixelCount": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "totalPixelCount": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "validFraction": {
+          "anyOf": [
+            {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "spatialResolutionM": {
+          "anyOf": [
+            {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "uncertainty": {
+          "$ref": "#/$defs/Uncertainty"
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance"
+        }
+      },
+      "required": [
+        "recordType",
+        "id",
+        "revision",
+        "createdAt",
+        "updatedAt",
+        "caseId",
+        "metric",
+        "value",
+        "unit",
+        "status",
+        "missingReason",
+        "geoSelectionId",
+        "geoRevision",
+        "periodId",
+        "dataBundleId",
+        "aggregation",
+        "validPixelCount",
+        "totalPixelCount",
+        "validFraction",
+        "spatialResolutionM",
+        "uncertainty",
+        "provenance"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "available"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "type": "number"
+              },
+              "missingReason": {
+                "type": "null"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "value": {
+                "type": "null"
+              },
+              "missingReason": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      ]
+    },
+    "TemporalObservation": {
+      "type": "object",
+      "properties": {
+        "recordType": {
+          "const": "TemporalObservation"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "caseId": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "periodId": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "startDate": {
+          "type": "string",
+          "format": "date"
+        },
+        "endDateExclusive": {
+          "type": "string",
+          "format": "date"
+        },
+        "seasonDefinition": {
+          "type": "string",
+          "minLength": 1
+        },
+        "geoSelectionId": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "geoRevision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "dataBundleId": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "measurementIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "mapAssetUri": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "uri"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "mapAssetHash": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "mapStatus": {
+          "type": "string",
+          "enum": [
+            "available",
+            "missing",
+            "excluded"
+          ]
+        },
+        "qualityFlags": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance"
+        }
+      },
+      "required": [
+        "recordType",
+        "id",
+        "revision",
+        "createdAt",
+        "updatedAt",
+        "caseId",
+        "periodId",
+        "startDate",
+        "endDateExclusive",
+        "seasonDefinition",
+        "geoSelectionId",
+        "geoRevision",
+        "dataBundleId",
+        "measurementIds",
+        "mapAssetUri",
+        "mapAssetHash",
+        "mapStatus",
+        "qualityFlags",
+        "provenance"
+      ],
+      "additionalProperties": false
+    },
+    "Hypothesis": {
+      "type": "object",
+      "properties": {
+        "recordType": {
+          "const": "Hypothesis"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "caseId": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "statement": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "enum": [
+            "untested",
+            "consistent",
+            "inconsistent",
+            "inconclusive",
+            "stale"
+          ]
+        },
+        "supportingEvidenceIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "contradictingEvidenceIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "missingEvidence": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "alternativeHypothesisIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "assessment": {
+          "type": "string",
+          "minLength": 1
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance"
+        }
+      },
+      "required": [
+        "recordType",
+        "id",
+        "revision",
+        "createdAt",
+        "updatedAt",
+        "caseId",
+        "statement",
+        "status",
+        "supportingEvidenceIds",
+        "contradictingEvidenceIds",
+        "missingEvidence",
+        "alternativeHypothesisIds",
+        "assessment",
+        "provenance"
+      ],
+      "additionalProperties": false
+    },
+    "Relationship": {
+      "type": "object",
+      "properties": {
+        "recordType": {
+          "const": "Relationship"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "caseId": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "fromEntityId": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "toEntityId": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "supports",
+            "contradicts",
+            "derived_from",
+            "compares_with",
+            "depends_on",
+            "requires_verification",
+            "proposes_response",
+            "requires_authorization"
+          ]
+        },
+        "explanation": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidenceIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "proposed",
+            "accepted",
+            "stale"
+          ]
+        },
+        "fromEntityRevision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "toEntityRevision": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "recordType",
+        "id",
+        "revision",
+        "createdAt",
+        "updatedAt",
+        "caseId",
+        "fromEntityId",
+        "toEntityId",
+        "kind",
+        "explanation",
+        "evidenceIds",
+        "status",
+        "fromEntityRevision",
+        "toEntityRevision"
+      ],
+      "additionalProperties": false
+    },
+    "CanvasComponent": {
+      "type": "object",
+      "properties": {
+        "recordType": {
+          "const": "CanvasComponent"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "caseId": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "componentKind": {
+          "type": "string",
+          "enum": [
+            "geography",
+            "temporal_comparison",
+            "evidence",
+            "hypothesis_comparison",
+            "intervention_comparison",
+            "livelihood_constraints",
+            "activity",
+            "trace",
+            "action_package",
+            "decision_brief"
+          ]
+        },
+        "entityIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "section": {
+          "type": "string",
+          "enum": [
+            "place",
+            "observations",
+            "explanations",
+            "responses",
+            "next_steps"
+          ]
+        },
+        "order": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "visibility": {
+          "enum": [
+            "expanded",
+            "collapsed",
+            "hidden"
+          ]
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 60
+        },
+        "presentationStatus": {
+          "type": "string",
+          "enum": [
+            "loading",
+            "ready",
+            "partial",
+            "error",
+            "stale"
+          ]
+        },
+        "sourceCaseRevision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "comparisonMode": {
+          "anyOf": [
+            {
+              "enum": [
+                "single",
+                "aligned",
+                "two_period"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "periodIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+          },
+          "uniqueItems": true
+        },
+        "entityVersions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/EntityVersion"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "recordType",
+        "id",
+        "revision",
+        "createdAt",
+        "updatedAt",
+        "caseId",
+        "componentKind",
+        "entityIds",
+        "section",
+        "order",
+        "visibility",
+        "title",
+        "presentationStatus",
+        "sourceCaseRevision",
+        "comparisonMode",
+        "periodIds",
+        "entityVersions"
+      ],
+      "additionalProperties": false
+    },
+    "LayoutAction": {
+      "type": "object",
+      "properties": {
+        "recordType": {
+          "const": "LayoutAction"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "caseId": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "commandId": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "kind": {
+          "enum": [
+            "show_component",
+            "update_component",
+            "set_comparison",
+            "focus_entity",
+            "hide_component"
+          ]
+        },
+        "componentIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "entityIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "proposed",
+            "accepted",
+            "rejected",
+            "superseded"
+          ]
+        },
+        "sourceCaseRevision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "componentKind": {
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "geography",
+                "temporal_comparison",
+                "evidence",
+                "hypothesis_comparison",
+                "intervention_comparison",
+                "livelihood_constraints",
+                "activity",
+                "trace",
+                "action_package",
+                "decision_brief"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "section": {
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "place",
+                "observations",
+                "explanations",
+                "responses",
+                "next_steps"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "comparisonMode": {
+          "anyOf": [
+            {
+              "enum": [
+                "single",
+                "aligned",
+                "two_period"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "periodIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+          },
+          "uniqueItems": true
+        },
+        "origin": {
+          "enum": [
+            "user_command",
+            "background",
+            "default_projection"
+          ],
+          "description": "focus_entity is accepted only for user_command"
+        },
+        "title": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1,
+          "maxLength": 60
+        }
+      },
+      "required": [
+        "recordType",
+        "id",
+        "revision",
+        "createdAt",
+        "updatedAt",
+        "caseId",
+        "commandId",
+        "kind",
+        "componentIds",
+        "entityIds",
+        "reason",
+        "status",
+        "sourceCaseRevision",
+        "componentKind",
+        "section",
+        "comparisonMode",
+        "periodIds",
+        "origin",
+        "title"
+      ],
+      "additionalProperties": false
+    },
+    "ResourceRequirement": {
+      "type": "object",
+      "properties": {
+        "recordType": {
+          "const": "ResourceRequirement"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "caseId": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "resourceKind": {
+          "type": "string",
+          "enum": [
+            "expertise",
+            "time",
+            "equipment",
+            "funding",
+            "local_information",
+            "permission"
+          ]
+        },
+        "quantity": {
+          "anyOf": [
+            {
+              "type": "number",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "unit": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "estimateStatus": {
+          "type": "string",
+          "enum": [
+            "unknown",
+            "scenario_assumption",
+            "source_supported",
+            "confirmed"
+          ]
+        },
+        "assumptions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "verificationNeeded": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance"
+        }
+      },
+      "required": [
+        "recordType",
+        "id",
+        "revision",
+        "createdAt",
+        "updatedAt",
+        "caseId",
+        "label",
+        "resourceKind",
+        "quantity",
+        "unit",
+        "estimateStatus",
+        "assumptions",
+        "verificationNeeded",
+        "provenance"
+      ],
+      "additionalProperties": false
+    },
+    "Intervention": {
+      "type": "object",
+      "properties": {
+        "recordType": {
+          "const": "Intervention"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "caseId": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "candidate",
+            "needs_validation",
+            "reviewed",
+            "rejected",
+            "stale"
+          ]
+        },
+        "evidenceIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "hypothesisIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "assumptions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "ecologicalConsiderations": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "livelihoodConsiderations": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "resourceRequirementIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "fieldValidationNeeded": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "requiredReviewRoles": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "scientific",
+              "community_livelihood",
+              "program_coordination"
+            ]
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance"
+        }
+      },
+      "required": [
+        "recordType",
+        "id",
+        "revision",
+        "createdAt",
+        "updatedAt",
+        "caseId",
+        "title",
+        "description",
+        "status",
+        "evidenceIds",
+        "hypothesisIds",
+        "assumptions",
+        "ecologicalConsiderations",
+        "livelihoodConsiderations",
+        "resourceRequirementIds",
+        "fieldValidationNeeded",
+        "requiredReviewRoles",
+        "provenance"
+      ],
+      "additionalProperties": false
+    },
+    "ReviewDecision": {
+      "type": "object",
+      "properties": {
+        "recordType": {
+          "const": "ReviewDecision"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "caseId": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "actionId": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "reviewedEntityVersions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/EntityVersion"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "caseRevisionReviewed": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "role": {
+          "type": "string",
+          "enum": [
+            "scientific",
+            "community_livelihood",
+            "program_coordination"
+          ]
+        },
+        "actorId": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "authorityStatus": {
+          "type": "string",
+          "enum": [
+            "not_established",
+            "verified_for_scope"
+          ]
+        },
+        "mode": {
+          "type": "string",
+          "enum": [
+            "demo",
+            "real"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "not_requested",
+            "requested",
+            "changes_requested",
+            "approved",
+            "rejected",
+            "deferred"
+          ]
+        },
+        "decisionAt": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date-time"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "conditions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "comments": {
+          "type": "string",
+          "minLength": 1
+        },
+        "stale": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "recordType",
+        "id",
+        "revision",
+        "createdAt",
+        "updatedAt",
+        "caseId",
+        "actionId",
+        "reviewedEntityVersions",
+        "caseRevisionReviewed",
+        "role",
+        "actorId",
+        "authorityStatus",
+        "mode",
+        "status",
+        "decisionAt",
+        "conditions",
+        "comments",
+        "stale"
+      ],
+      "additionalProperties": false
+    },
+    "OperationalAction": {
+      "type": "object",
+      "properties": {
+        "recordType": {
+          "const": "OperationalAction"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "caseId": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "field_validation_plan",
+            "feasibility_plan",
+            "communication_draft",
+            "coordination_proposal"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "draft",
+            "awaiting_review",
+            "prepared",
+            "blocked",
+            "cancelled",
+            "superseded"
+          ]
+        },
+        "evidenceIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "interventionIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "dependsOnActionIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "resourceRequirementIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "requiredReviewRoles": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "scientific",
+              "community_livelihood",
+              "program_coordination"
+            ]
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "reviewDecisionIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "authorizationMode": {
+          "type": "string",
+          "enum": [
+            "demo_only",
+            "real_authority_unestablished"
+          ]
+        },
+        "externalExecutionEnabled": {
+          "const": false
+        },
+        "remainingConditions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "preparedArtifactUri": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "uri"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "sourceCaseRevision": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "recordType",
+        "id",
+        "revision",
+        "createdAt",
+        "updatedAt",
+        "caseId",
+        "title",
+        "description",
+        "kind",
+        "status",
+        "evidenceIds",
+        "interventionIds",
+        "dependsOnActionIds",
+        "resourceRequirementIds",
+        "requiredReviewRoles",
+        "reviewDecisionIds",
+        "authorizationMode",
+        "externalExecutionEnabled",
+        "remainingConditions",
+        "preparedArtifactUri",
+        "sourceCaseRevision"
+      ],
+      "additionalProperties": false
+    },
+    "Brief": {
+      "type": "object",
+      "properties": {
+        "recordType": {
+          "const": "Brief"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "caseId": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "draft",
+            "ready_for_review",
+            "prepared",
+            "stale",
+            "superseded"
+          ]
+        },
+        "sourceCaseRevision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "evidenceIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "hypothesisIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "interventionIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "actionIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "known": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/BriefItem"
+          }
+        },
+        "uncertain": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/BriefItem"
+          }
+        },
+        "nextMeasurements": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/BriefItem"
+          }
+        },
+        "stakeholderRoles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/BriefItem"
+          }
+        },
+        "preparedActions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/BriefItem"
+          }
+        },
+        "authorizationRequired": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/BriefItem"
+          }
+        },
+        "nextSteps": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/BriefItem"
+          }
+        },
+        "reviewDecisionIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "limitations": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "mode": {
+          "type": "string",
+          "enum": [
+            "live",
+            "replay",
+            "concept"
+          ]
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance"
+        }
+      },
+      "required": [
+        "recordType",
+        "id",
+        "revision",
+        "createdAt",
+        "updatedAt",
+        "caseId",
+        "title",
+        "status",
+        "sourceCaseRevision",
+        "evidenceIds",
+        "hypothesisIds",
+        "interventionIds",
+        "actionIds",
+        "known",
+        "uncertain",
+        "nextMeasurements",
+        "reviewDecisionIds",
+        "limitations",
+        "mode",
+        "provenance",
+        "stakeholderRoles",
+        "preparedActions",
+        "authorizationRequired",
+        "nextSteps"
+      ],
+      "additionalProperties": false
+    },
+    "Command": {
+      "type": "object",
+      "properties": {
+        "recordType": {
+          "const": "Command"
+        },
+        "schemaVersion": {
+          "const": "1.2.0"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "caseId": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "idempotencyKey": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 128
+        },
+        "expectedCaseRevision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "context": {
+          "$ref": "#/$defs/Context"
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 8000
+        },
+        "intent": {
+          "type": "string",
+          "enum": [
+            "commission",
+            "investigate",
+            "compare",
+            "prepare_package",
+            "clarify"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "accepted",
+            "running",
+            "succeeded",
+            "partial",
+            "failed",
+            "cancelled",
+            "rejected_stale"
+          ]
+        },
+        "taskIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "recordType",
+        "schemaVersion",
+        "id",
+        "caseId",
+        "createdAt",
+        "idempotencyKey",
+        "expectedCaseRevision",
+        "context",
+        "text",
+        "intent",
+        "status",
+        "taskIds"
+      ],
+      "additionalProperties": false
+    },
+    "Event": {
+      "type": "object",
+      "properties": {
+        "recordType": {
+          "const": "Event"
+        },
+        "schemaVersion": {
+          "const": "1.2.0"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "caseId": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "sequence": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "occurredAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "kind": {
+          "enum": [
+            "command.accepted",
+            "command.completed",
+            "task.queued",
+            "task.started",
+            "task.progress",
+            "task.awaiting_input",
+            "task.succeeded",
+            "task.partial",
+            "task.failed",
+            "task.cancelled",
+            "model.started",
+            "model.completed",
+            "tool.started",
+            "tool.completed",
+            "validation.completed",
+            "case.committed",
+            "layout.accepted",
+            "review.recorded",
+            "entity.stale"
+          ]
+        },
+        "commandId": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "taskId": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "caseRevision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "entityIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Rendered by host code from a template; never model-authored"
+        },
+        "dedupeKey": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 128
+        },
+        "resultStatus": {
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "succeeded",
+                "partial",
+                "failed",
+                "cancelled"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "tool": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ToolCallInfo"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "usage": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ModelUsage"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "validation": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ValidationResult"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "spanId": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1,
+          "description": "Internal span this event belongs to; spans follow OpenTelemetry GenAI naming (research/technology/observability.md)"
+        },
+        "parentSpanId": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        }
+      },
+      "required": [
+        "recordType",
+        "schemaVersion",
+        "id",
+        "caseId",
+        "sequence",
+        "occurredAt",
+        "kind",
+        "commandId",
+        "taskId",
+        "caseRevision",
+        "entityIds",
+        "message",
+        "dedupeKey",
+        "resultStatus",
+        "tool",
+        "usage",
+        "validation",
+        "spanId",
+        "parentSpanId"
+      ],
+      "additionalProperties": false
+    },
+    "RecordCollections": {
+      "type": "object",
+      "properties": {
+        "sourceRecords": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Source"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "geoSelectionRecords": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/GeoSelection"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "dataBundleRecords": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/DataBundle"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "taskRecords": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Task"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "evidenceRecords": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Evidence"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "measurementRecords": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Measurement"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "temporalObservationRecords": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TemporalObservation"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "hypothesisRecords": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Hypothesis"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "relationshipRecords": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Relationship"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "canvasComponentRecords": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/CanvasComponent"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "layoutActionRecords": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/LayoutAction"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "interventionRecords": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Intervention"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "resourceRequirementRecords": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ResourceRequirement"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "reviewDecisionRecords": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ReviewDecision"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "operationalActionRecords": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/OperationalAction"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "briefRecords": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Brief"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "sourceRecords",
+        "geoSelectionRecords",
+        "dataBundleRecords",
+        "taskRecords",
+        "evidenceRecords",
+        "measurementRecords",
+        "temporalObservationRecords",
+        "hypothesisRecords",
+        "relationshipRecords",
+        "canvasComponentRecords",
+        "layoutActionRecords",
+        "interventionRecords",
+        "resourceRequirementRecords",
+        "reviewDecisionRecords",
+        "operationalActionRecords",
+        "briefRecords"
+      ],
+      "additionalProperties": false
+    },
+    "CaseSnapshot": {
+      "type": "object",
+      "properties": {
+        "recordType": {
+          "const": "CaseSnapshot"
+        },
+        "schemaVersion": {
+          "const": "1.2.0"
+        },
+        "case": {
+          "$ref": "#/$defs/EnvironmentalCase"
+        },
+        "records": {
+          "$ref": "#/$defs/RecordCollections"
+        },
+        "lastSequence": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "recordType",
+        "schemaVersion",
+        "case",
+        "records",
+        "lastSequence"
+      ],
+      "additionalProperties": false
+    },
+    "Commit": {
+      "type": "object",
+      "properties": {
+        "recordType": {
+          "const": "Commit"
+        },
+        "schemaVersion": {
+          "const": "1.2.0"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "caseId": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "commandId": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "taskId": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "expectedCaseRevision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "newCaseRevision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "idempotencyKey": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 128
+        },
+        "inputVersions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/EntityVersion"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "caseAfter": {
+          "$ref": "#/$defs/EnvironmentalCase"
+        },
+        "upserts": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/Source"
+              },
+              {
+                "$ref": "#/$defs/GeoSelection"
+              },
+              {
+                "$ref": "#/$defs/DataBundle"
+              },
+              {
+                "$ref": "#/$defs/Task"
+              },
+              {
+                "$ref": "#/$defs/Evidence"
+              },
+              {
+                "$ref": "#/$defs/Measurement"
+              },
+              {
+                "$ref": "#/$defs/TemporalObservation"
+              },
+              {
+                "$ref": "#/$defs/Hypothesis"
+              },
+              {
+                "$ref": "#/$defs/Relationship"
+              },
+              {
+                "$ref": "#/$defs/CanvasComponent"
+              },
+              {
+                "$ref": "#/$defs/LayoutAction"
+              },
+              {
+                "$ref": "#/$defs/Intervention"
+              },
+              {
+                "$ref": "#/$defs/ResourceRequirement"
+              },
+              {
+                "$ref": "#/$defs/ReviewDecision"
+              },
+              {
+                "$ref": "#/$defs/OperationalAction"
+              },
+              {
+                "$ref": "#/$defs/Brief"
+              }
+            ]
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "events": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Event"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "layoutActions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/LayoutAction"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "recordType",
+        "schemaVersion",
+        "id",
+        "caseId",
+        "commandId",
+        "taskId",
+        "expectedCaseRevision",
+        "newCaseRevision",
+        "idempotencyKey",
+        "inputVersions",
+        "caseAfter",
+        "upserts",
+        "events",
+        "layoutActions"
+      ],
+      "additionalProperties": false
+    },
+    "Uncertainty": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "lower",
+        "upper",
+        "level",
+        "method"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "not_quantified",
+            "spatial_iqr",
+            "interval",
+            "standard_error"
+          ]
+        },
+        "lower": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "upper": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "level": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 1
+        },
+        "method": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        }
+      }
+    },
+    "ToolCallInfo": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "status",
+        "startedAt",
+        "endedAt",
+        "durationMs",
+        "argumentSummary",
+        "resultEntityIds",
+        "errorCode",
+        "attempt"
+      ],
+      "properties": {
+        "name": {
+          "enum": [
+            "read_case",
+            "read_evidence",
+            "search_sources",
+            "read_source",
+            "fetch_source",
+            "read_dataset_manifest",
+            "summarize_observations",
+            "compare_series",
+            "propose_plan",
+            "propose_evidence",
+            "propose_hypotheses",
+            "propose_interventions",
+            "propose_package",
+            "propose_layout",
+            "request_review"
+          ]
+        },
+        "status": {
+          "enum": [
+            "started",
+            "succeeded",
+            "failed",
+            "rejected",
+            "cancelled"
+          ]
+        },
+        "startedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "endedAt": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "durationMs": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "argumentSummary": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500,
+          "description": "Sanitized, human-readable summary written by host code; never raw prompts or secrets"
+        },
+        "resultEntityIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+          }
+        },
+        "errorCode": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "attempt": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3
+        }
+      }
+    },
+    "ModelUsage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "provider",
+        "model",
+        "requestId",
+        "status",
+        "inputTokens",
+        "outputTokens",
+        "cachedInputTokens",
+        "estimatedCostMicroUsd",
+        "durationMs",
+        "reasoningTokens",
+        "webSearchCalls"
+      ],
+      "properties": {
+        "provider": {
+          "type": "string",
+          "minLength": 1
+        },
+        "model": {
+          "type": "string",
+          "minLength": 1
+        },
+        "requestId": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "status": {
+          "enum": [
+            "started",
+            "succeeded",
+            "refused",
+            "incomplete",
+            "failed"
+          ]
+        },
+        "inputTokens": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "outputTokens": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "cachedInputTokens": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "estimatedCostMicroUsd": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "durationMs": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "reasoningTokens": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Billed as output tokens by the provider"
+        },
+        "webSearchCalls": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Built-in search calls reported in the response; billing per call to be verified"
+        }
+      }
+    },
+    "ValidationResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "outcome",
+        "issues"
+      ],
+      "properties": {
+        "outcome": {
+          "enum": [
+            "accepted",
+            "partial",
+            "rejected"
+          ]
+        },
+        "issues": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "code",
+              "path",
+              "message"
+            ],
+            "properties": {
+              "code": {
+                "enum": [
+                  "schema",
+                  "unknown_reference",
+                  "stale_reference",
+                  "ownership",
+                  "claim_kind",
+                  "numeric_provenance",
+                  "unit",
+                  "coverage",
+                  "authority",
+                  "prohibited_claim",
+                  "transition",
+                  "limit",
+                  "catalog_mismatch",
+                  "focus_not_permitted",
+                  "excerpt_mismatch"
+                ]
+              },
+              "path": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      }
+    },
+    "BriefItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "text",
+        "claimKind",
+        "evidenceIds",
+        "measurementIds"
+      ],
+      "properties": {
+        "text": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 400
+        },
+        "claimKind": {
+          "enum": [
+            "observation",
+            "scientific_context",
+            "hypothesis",
+            "model_estimate",
+            "scenario",
+            "field_requirement",
+            "verified_outcome"
+          ]
+        },
+        "evidenceIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+          }
+        },
+        "measurementIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+          }
+        }
+      }
+    }
+  }
+}

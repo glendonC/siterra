@@ -1,0 +1,171 @@
+{
+ "period_id": "period_2020-10",
+ "unit": "mm",
+ "cells": [
+  {
+   "cell_id": "chirps_r564_c3473",
+   "mm": 40.644,
+   "departure_mm": 4.647
+  },
+  {
+   "cell_id": "chirps_r564_c3474",
+   "mm": 35.566,
+   "departure_mm": -0.457
+  },
+  {
+   "cell_id": "chirps_r564_c3475",
+   "mm": 32.468,
+   "departure_mm": -2.221
+  },
+  {
+   "cell_id": "chirps_r564_c3476",
+   "mm": 37.704,
+   "departure_mm": 3.651
+  },
+  {
+   "cell_id": "chirps_r565_c3471",
+   "mm": 38.127,
+   "departure_mm": 0.599
+  },
+  {
+   "cell_id": "chirps_r565_c3472",
+   "mm": 36.576,
+   "departure_mm": -0.653
+  },
+  {
+   "cell_id": "chirps_r565_c3473",
+   "mm": 38.701,
+   "departure_mm": 1.816
+  },
+  {
+   "cell_id": "chirps_r565_c3474",
+   "mm": 40.805,
+   "departure_mm": 4.751
+  },
+  {
+   "cell_id": "chirps_r565_c3475",
+   "mm": 43.614,
+   "departure_mm": 9.419
+  },
+  {
+   "cell_id": "chirps_r565_c3476",
+   "mm": 40.603,
+   "departure_mm": 7.505
+  },
+  {
+   "cell_id": "chirps_r565_c3477",
+   "mm": 38.681,
+   "departure_mm": 3.97
+  },
+  {
+   "cell_id": "chirps_r566_c3470",
+   "mm": 35.18,
+   "departure_mm": -2.193
+  },
+  {
+   "cell_id": "chirps_r566_c3471",
+   "mm": 34.838,
+   "departure_mm": -2.832
+  },
+  {
+   "cell_id": "chirps_r566_c3472",
+   "mm": 34.769,
+   "departure_mm": -1.5
+  },
+  {
+   "cell_id": "chirps_r566_c3473",
+   "mm": 35.482,
+   "departure_mm": -0.392
+  },
+  {
+   "cell_id": "chirps_r566_c3474",
+   "mm": 38.688,
+   "departure_mm": 3.622
+  },
+  {
+   "cell_id": "chirps_r566_c3475",
+   "mm": 39.653,
+   "departure_mm": 5.377
+  },
+  {
+   "cell_id": "chirps_r566_c3476",
+   "mm": 37.049,
+   "departure_mm": 3.504
+  },
+  {
+   "cell_id": "chirps_r566_c3477",
+   "mm": 43.503,
+   "departure_mm": 8.119
+  },
+  {
+   "cell_id": "chirps_r567_c3469",
+   "mm": 38.389,
+   "departure_mm": 2.118
+  },
+  {
+   "cell_id": "chirps_r567_c3470",
+   "mm": 32.889,
+   "departure_mm": -3.18
+  },
+  {
+   "cell_id": "chirps_r567_c3471",
+   "mm": 36.983,
+   "departure_mm": 1.288
+  },
+  {
+   "cell_id": "chirps_r567_c3472",
+   "mm": 40.46,
+   "departure_mm": 5.796
+  },
+  {
+   "cell_id": "chirps_r567_c3473",
+   "mm": 46.995,
+   "departure_mm": 12.482
+  },
+  {
+   "cell_id": "chirps_r567_c3474",
+   "mm": 47.126,
+   "departure_mm": 12.44
+  },
+  {
+   "cell_id": "chirps_r568_c3469",
+   "mm": 45.803,
+   "departure_mm": 9.747
+  },
+  {
+   "cell_id": "chirps_r568_c3470",
+   "mm": 37.821,
+   "departure_mm": 3.258
+  },
+  {
+   "cell_id": "chirps_r568_c3471",
+   "mm": 34.111,
+   "departure_mm": -0.007
+  },
+  {
+   "cell_id": "chirps_r569_c3469",
+   "mm": 40.201,
+   "departure_mm": 2.657
+  },
+  {
+   "cell_id": "chirps_r569_c3470",
+   "mm": 31.302,
+   "departure_mm": -3.417
+  },
+  {
+   "cell_id": "chirps_r569_c3471",
+   "mm": 32.39,
+   "departure_mm": -2.705
+  },
+  {
+   "cell_id": "chirps_r570_c3470",
+   "mm": 35.15,
+   "departure_mm": 1.707
+  },
+  {
+   "cell_id": "chirps_r570_c3471",
+   "mm": 34.255,
+   "departure_mm": -0.063
+  }
+ ]
+}

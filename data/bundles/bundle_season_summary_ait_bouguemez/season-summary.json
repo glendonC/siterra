@@ -1,0 +1,483 @@
+{
+ "recipeId": "season_summary",
+ "version": "1.0.0",
+ "rainfall_bundle": {
+  "id": "bundle_chirps_monthly_ait_bouguemez",
+  "collection_sha256": "18fa83935200324ea1951a65bc02a2bce1d4a067c6b135ce244c934a5605f9cf"
+ },
+ "reference": {
+  "seasons": [
+   "season_1991-11_1992-04",
+   "season_1992-11_1993-04",
+   "season_1993-11_1994-04",
+   "season_1994-11_1995-04",
+   "season_1995-11_1996-04",
+   "season_1996-11_1997-04",
+   "season_1997-11_1998-04",
+   "season_1998-11_1999-04",
+   "season_1999-11_2000-04",
+   "season_2000-11_2001-04",
+   "season_2001-11_2002-04",
+   "season_2002-11_2003-04",
+   "season_2003-11_2004-04",
+   "season_2004-11_2005-04",
+   "season_2005-11_2006-04",
+   "season_2006-11_2007-04",
+   "season_2007-11_2008-04",
+   "season_2008-11_2009-04",
+   "season_2009-11_2010-04",
+   "season_2010-11_2011-04",
+   "season_2011-11_2012-04",
+   "season_2012-11_2013-04",
+   "season_2013-11_2014-04",
+   "season_2014-11_2015-04",
+   "season_2015-11_2016-04",
+   "season_2016-11_2017-04",
+   "season_2017-11_2018-04",
+   "season_2018-11_2019-04",
+   "season_2019-11_2020-04",
+   "season_2020-11_2021-04"
+  ],
+  "totals_mm": [
+   502.99,
+   581.16,
+   615.3,
+   529.4,
+   791.86,
+   667.75,
+   775.08,
+   555.68,
+   412.27,
+   340.53,
+   723.99,
+   450.29,
+   603.22,
+   422.76,
+   632.9,
+   533.6,
+   501.16,
+   587.46,
+   867.27,
+   626.05,
+   490.06,
+   602.69,
+   452.93,
+   529.99,
+   298.09,
+   514.51,
+   564.46,
+   494.3,
+   571.62,
+   625.7
+  ],
+  "monthly_totals_mm": {
+   "season_1991-11_1992-04": {
+    "period_1991-11": 25.998,
+    "period_1991-12": 135.935,
+    "period_1992-01": 99.424,
+    "period_1992-02": 82.512,
+    "period_1992-03": 65.803,
+    "period_1992-04": 93.315
+   },
+   "season_1992-11_1993-04": {
+    "period_1992-11": 18.864,
+    "period_1992-12": 49.016,
+    "period_1993-01": 201.947,
+    "period_1993-02": 56.977,
+    "period_1993-03": 203.332,
+    "period_1993-04": 51.027
+   },
+   "season_1993-11_1994-04": {
+    "period_1993-11": 188.227,
+    "period_1993-12": 92.424,
+    "period_1994-01": 143.044,
+    "period_1994-02": 67.003,
+    "period_1994-03": 99.113,
+    "period_1994-04": 25.485
+   },
+   "season_1994-11_1995-04": {
+    "period_1994-11": 14.93,
+    "period_1994-12": 19.794,
+    "period_1995-01": 32.996,
+    "period_1995-02": 30.917,
+    "period_1995-03": 172.454,
+    "period_1995-04": 258.311
+   },
+   "season_1995-11_1996-04": {
+    "period_1995-11": 52.023,
+    "period_1995-12": 46.56,
+    "period_1996-01": 376.369,
+    "period_1996-02": 79.584,
+    "period_1996-03": 199.726,
+    "period_1996-04": 37.595
+   },
+   "season_1996-11_1997-04": {
+    "period_1996-11": 25.398,
+    "period_1996-12": 143.308,
+    "period_1997-01": 195.761,
+    "period_1997-02": 20.735,
+    "period_1997-03": 74.6,
+    "period_1997-04": 207.943
+   },
+   "season_1997-11_1998-04": {
+    "period_1997-11": 70.32,
+    "period_1997-12": 96.781,
+    "period_1998-01": 188.628,
+    "period_1998-02": 165.538,
+    "period_1998-03": 237.306,
+    "period_1998-04": 16.508
+   },
+   "season_1998-11_1999-04": {
+    "period_1998-11": 20.84,
+    "period_1998-12": 178.469,
+    "period_1999-01": 145.63,
+    "period_1999-02": 42.507,
+    "period_1999-03": 162.637,
+    "period_1999-04": 5.602
+   },
+   "season_1999-11_2000-04": {
+    "period_1999-11": 110.362,
+    "period_1999-12": 72.727,
+    "period_2000-01": 99.201,
+    "period_2000-02": 23.417,
+    "period_2000-03": 54.769,
+    "period_2000-04": 51.792
+   },
+   "season_2000-11_2001-04": {
+    "period_2000-11": 62.441,
+    "period_2000-12": 124.011,
+    "period_2001-01": 74.932,
+    "period_2001-02": 12.086,
+    "period_2001-03": 59.012,
+    "period_2001-04": 8.046
+   },
+   "season_2001-11_2002-04": {
+    "period_2001-11": 53.299,
+    "period_2001-12": 156.449,
+    "period_2002-01": 138.433,
+    "period_2002-02": 21.179,
+    "period_2002-03": 240.73,
+    "period_2002-04": 113.899
+   },
+   "season_2002-11_2003-04": {
+    "period_2002-11": 65.618,
+    "period_2002-12": 95.626,
+    "period_2003-01": 70.845,
+    "period_2003-02": 64.136,
+    "period_2003-03": 122.84,
+    "period_2003-04": 31.224
+   },
+   "season_2003-11_2004-04": {
+    "period_2003-11": 115.232,
+    "period_2003-12": 77.737,
+    "period_2004-01": 60.116,
+    "period_2004-02": 138.626,
+    "period_2004-03": 159.775,
+    "period_2004-04": 51.733
+   },
+   "season_2004-11_2005-04": {
+    "period_2004-11": 69.915,
+    "period_2004-12": 85.753,
+    "period_2005-01": 33.821,
+    "period_2005-02": 63.77,
+    "period_2005-03": 135.431,
+    "period_2005-04": 34.067
+   },
+   "season_2005-11_2006-04": {
+    "period_2005-11": 110.373,
+    "period_2005-12": 68.456,
+    "period_2006-01": 164.3,
+    "period_2006-02": 138.707,
+    "period_2006-03": 78.031,
+    "period_2006-04": 73.032
+   },
+   "season_2006-11_2007-04": {
+    "period_2006-11": 65.649,
+    "period_2006-12": 110.74,
+    "period_2007-01": 81.24,
+    "period_2007-02": 99.721,
+    "period_2007-03": 64.772,
+    "period_2007-04": 111.478
+   },
+   "season_2007-11_2008-04": {
+    "period_2007-11": 48.264,
+    "period_2007-12": 81.326,
+    "period_2008-01": 56.736,
+    "period_2008-02": 154.435,
+    "period_2008-03": 117.107,
+    "period_2008-04": 43.291
+   },
+   "season_2008-11_2009-04": {
+    "period_2008-11": 25.907,
+    "period_2008-12": 83.379,
+    "period_2009-01": 174.292,
+    "period_2009-02": 88.263,
+    "period_2009-03": 190.86,
+    "period_2009-04": 24.753
+   },
+   "season_2009-11_2010-04": {
+    "period_2009-11": 11.49,
+    "period_2009-12": 176.186,
+    "period_2010-01": 156.071,
+    "period_2010-02": 232.112,
+    "period_2010-03": 184.298,
+    "period_2010-04": 107.112
+   },
+   "season_2010-11_2011-04": {
+    "period_2010-11": 48.64,
+    "period_2010-12": 168.259,
+    "period_2011-01": 81.531,
+    "period_2011-02": 21.929,
+    "period_2011-03": 199.009,
+    "period_2011-04": 106.678
+   },
+   "season_2011-11_2012-04": {
+    "period_2011-11": 148.42,
+    "period_2011-12": 18.199,
+    "period_2012-01": 57.447,
+    "period_2012-02": 14.087,
+    "period_2012-03": 161.899,
+    "period_2012-04": 90.006
+   },
+   "season_2012-11_2013-04": {
+    "period_2012-11": 188.014,
+    "period_2012-12": 14.408,
+    "period_2013-01": 91.224,
+    "period_2013-02": 49.819,
+    "period_2013-03": 212.567,
+    "period_2013-04": 46.657
+   },
+   "season_2013-11_2014-04": {
+    "period_2013-11": 49.346,
+    "period_2013-12": 51.134,
+    "period_2014-01": 88.773,
+    "period_2014-02": 101.981,
+    "period_2014-03": 102.81,
+    "period_2014-04": 58.886
+   },
+   "season_2014-11_2015-04": {
+    "period_2014-11": 226.72,
+    "period_2014-12": 19.684,
+    "period_2015-01": 85.575,
+    "period_2015-02": 50.67,
+    "period_2015-03": 95.67,
+    "period_2015-04": 51.671
+   },
+   "season_2015-11_2016-04": {
+    "period_2015-11": 21.933,
+    "period_2015-12": 60.738,
+    "period_2016-01": 36.413,
+    "period_2016-02": 21.95,
+    "period_2016-03": 137.131,
+    "period_2016-04": 19.929
+   },
+   "season_2016-11_2017-04": {
+    "period_2016-11": 130.489,
+    "period_2016-12": 77.176,
+    "period_2017-01": 52.092,
+    "period_2017-02": 113.832,
+    "period_2017-03": 67.763,
+    "period_2017-04": 73.161
+   },
+   "season_2017-11_2018-04": {
+    "period_2017-11": 60.999,
+    "period_2017-12": 39.977,
+    "period_2018-01": 161.618,
+    "period_2018-02": 125.498,
+    "period_2018-03": 81.153,
+    "period_2018-04": 95.215
+   },
+   "season_2018-11_2019-04": {
+    "period_2018-11": 124.042,
+    "period_2018-12": 26.064,
+    "period_2019-01": 27.538,
+    "period_2019-02": 61.172,
+    "period_2019-03": 162.627,
+    "period_2019-04": 92.852
+   },
+   "season_2019-11_2020-04": {
+    "period_2019-11": 19.369,
+    "period_2019-12": 110.871,
+    "period_2020-01": 51.306,
+    "period_2020-02": 36.215,
+    "period_2020-03": 316.9,
+    "period_2020-04": 36.962
+   },
+   "season_2020-11_2021-04": {
+    "period_2020-11": 69.358,
+    "period_2020-12": 35.046,
+    "period_2021-01": 97.549,
+    "period_2021-02": 161.375,
+    "period_2021-03": 245.801,
+    "period_2021-04": 16.571
+   }
+  },
+  "note": "Monthly catchment totals with the rainfall bundle's published cell weights; months before 2019 are not in the rainfall bundle, so they are stored here",
+  "mean_mm": 562.17
+ },
+ "near_normal_band_mm": [
+  508.75,
+  602.95
+ ],
+ "seasons": [
+  {
+   "season_id": "season_2018-11_2019-04",
+   "periods": [
+    "period_2018-11",
+    "period_2018-12",
+    "period_2019-01",
+    "period_2019-02",
+    "period_2019-03",
+    "period_2019-04"
+   ],
+   "monthly_totals_mm": {
+    "period_2018-11": 124.042,
+    "period_2018-12": 26.064,
+    "period_2019-01": 27.538,
+    "period_2019-02": 61.172,
+    "period_2019-03": 162.627,
+    "period_2019-04": 92.852
+   },
+   "season_total_mm": 494.3,
+   "season_departure_mm": -67.87,
+   "season_category": "below_normal"
+  },
+  {
+   "season_id": "season_2019-11_2020-04",
+   "periods": [
+    "period_2019-11",
+    "period_2019-12",
+    "period_2020-01",
+    "period_2020-02",
+    "period_2020-03",
+    "period_2020-04"
+   ],
+   "monthly_totals_mm": {
+    "period_2019-11": 19.369,
+    "period_2019-12": 110.871,
+    "period_2020-01": 51.306,
+    "period_2020-02": 36.215,
+    "period_2020-03": 316.9,
+    "period_2020-04": 36.962
+   },
+   "season_total_mm": 571.62,
+   "season_departure_mm": 9.45,
+   "season_category": "near_normal"
+  },
+  {
+   "season_id": "season_2020-11_2021-04",
+   "periods": [
+    "period_2020-11",
+    "period_2020-12",
+    "period_2021-01",
+    "period_2021-02",
+    "period_2021-03",
+    "period_2021-04"
+   ],
+   "monthly_totals_mm": {
+    "period_2020-11": 69.358,
+    "period_2020-12": 35.046,
+    "period_2021-01": 97.549,
+    "period_2021-02": 161.375,
+    "period_2021-03": 245.801,
+    "period_2021-04": 16.571
+   },
+   "season_total_mm": 625.7,
+   "season_departure_mm": 63.53,
+   "season_category": "above_normal"
+  },
+  {
+   "season_id": "season_2021-11_2022-04",
+   "periods": [
+    "period_2021-11",
+    "period_2021-12",
+    "period_2022-01",
+    "period_2022-02",
+    "period_2022-03",
+    "period_2022-04"
+   ],
+   "monthly_totals_mm": {
+    "period_2021-11": 46.923,
+    "period_2021-12": 23.023,
+    "period_2022-01": 113.432,
+    "period_2022-02": 155.106,
+    "period_2022-03": 282.403,
+    "period_2022-04": 29.478
+   },
+   "season_total_mm": 650.36,
+   "season_departure_mm": 88.2,
+   "season_category": "above_normal"
+  },
+  {
+   "season_id": "season_2022-11_2023-04",
+   "periods": [
+    "period_2022-11",
+    "period_2022-12",
+    "period_2023-01",
+    "period_2023-02",
+    "period_2023-03",
+    "period_2023-04"
+   ],
+   "monthly_totals_mm": {
+    "period_2022-11": 17.117,
+    "period_2022-12": 80.933,
+    "period_2023-01": 36.876,
+    "period_2023-02": 157.281,
+    "period_2023-03": 41.832,
+    "period_2023-04": 15.294
+   },
+   "season_total_mm": 349.33,
+   "season_departure_mm": -212.83,
+   "season_category": "below_normal"
+  },
+  {
+   "season_id": "season_2023-11_2024-04",
+   "periods": [
+    "period_2023-11",
+    "period_2023-12",
+    "period_2024-01",
+    "period_2024-02",
+    "period_2024-03",
+    "period_2024-04"
+   ],
+   "monthly_totals_mm": {
+    "period_2023-11": 38.828,
+    "period_2023-12": 11.433,
+    "period_2024-01": 56.823,
+    "period_2024-02": 94.272,
+    "period_2024-03": 100.192,
+    "period_2024-04": 44.122
+   },
+   "season_total_mm": 345.67,
+   "season_departure_mm": -216.5,
+   "season_category": "below_normal"
+  },
+  {
+   "season_id": "season_2024-11_2025-04",
+   "periods": [
+    "period_2024-11",
+    "period_2024-12",
+    "period_2025-01",
+    "period_2025-02",
+    "period_2025-03",
+    "period_2025-04"
+   ],
+   "monthly_totals_mm": {
+    "period_2024-11": 61.401,
+    "period_2024-12": 56.262,
+    "period_2025-01": 60.573,
+    "period_2025-02": 25.765,
+    "period_2025-03": 151.685,
+    "period_2025-04": 96.767
+   },
+   "season_total_mm": 452.45,
+   "season_departure_mm": -109.72,
+   "season_category": "below_normal"
+  }
+ ],
+ "standardLimitations": [
+  "The category places this wet season among the 30 seasons of 1991 to 2020 for this catchment's CHIRPS grid cells; it is not a drought index and says nothing about cause.",
+  "Agreement compares directions only: a national statement can differ from one valley and still be correct for its own area.",
+  "CHIRPS cells are estimates for 5 km squares, not rain gauge readings."
+ ]
+}

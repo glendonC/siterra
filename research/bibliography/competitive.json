@@ -1,0 +1,456 @@
+[
+  {
+    "id": "MKT-01",
+    "type": "webpage",
+    "title": "What is Restor?",
+    "container-title": "Restor",
+    "URL": "https://intercom.help/restor/en/articles/6903700-what-is-restor",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "MKT-02",
+    "type": "webpage",
+    "title": "Show with Restor",
+    "container-title": "Restor",
+    "URL": "https://about.restor.eco/solutions/show-with-restor",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "MKT-03",
+    "type": "webpage",
+    "title": "Google Earth Engine",
+    "URL": "https://earthengine.google.com/",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "MKT-04",
+    "type": "webpage",
+    "title": "The Next Era of AI and ArcGIS",
+    "issued": {
+      "date-parts": [
+        [
+          2026
+        ]
+      ]
+    },
+    "container-title": "Esri",
+    "URL": "https://www.esri.com/about/newsroom/arcnews/the-next-era-of-ai-and-arcgis",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "MKT-05",
+    "type": "webpage",
+    "title": "Use research",
+    "container-title": "Claude",
+    "URL": "https://support.claude.com/en/articles/11088861-use-research-on-claude",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "MKT-06",
+    "type": "webpage",
+    "title": "Harvey Agents",
+    "URL": "https://www.harvey.ai/platform/agents",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "MKT-07",
+    "type": "webpage",
+    "title": "Magic Patterns introduction",
+    "URL": "https://www.magicpatterns.com/docs/documentation/get-started/introduction",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "MKT-08",
+    "type": "webpage",
+    "title": "MagicOS overview",
+    "URL": "https://www.magicpatterns.com/docs/documentation/magic-os/overview",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "MKT-09",
+    "type": "webpage",
+    "title": "Land degradation and SDG 15.3.1",
+    "container-title": "Trends.Earth docs",
+    "URL": "https://docs.trends.earth/en/latest/for_users/features/unccdreporting.html",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "MKT-10",
+    "type": "webpage",
+    "title": "Global Forest Watch becomes Global Nature Watch",
+    "issued": {
+      "date-parts": [
+        [
+          2026,
+          9,
+          21
+        ]
+      ]
+    },
+    "container-title": "WRI",
+    "URL": "https://www.wri.org/news/release-global-forest-watch-becomes-global-nature-watch-expanding-cover-more-land-ecosystems",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "MKT-11",
+    "type": "webpage",
+    "title": "Lens by Upstream Tech",
+    "URL": "https://lens.tech/",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "MKT-12",
+    "type": "webpage",
+    "title": "Putting Earth AI to work: geospatial agents",
+    "issued": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          14
+        ]
+      ]
+    },
+    "container-title": "Google Research",
+    "URL": "https://research.google/blog/putting-earth-ai-to-work-geospatial-agents-for-our-planets-biggest-challenges/",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "MKT-13",
+    "type": "webpage",
+    "title": "Planetary Computer Pro what's new",
+    "container-title": "Microsoft Learn",
+    "URL": "https://learn.microsoft.com/en-us/azure/planetary-computer/whats-new",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "MKT-14",
+    "type": "webpage",
+    "title": "AI assistant",
+    "container-title": "Felt help",
+    "URL": "https://help.felt.com/felt-ai/ai-assistant",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "MKT-15",
+    "type": "webpage",
+    "title": "Deep research in ChatGPT",
+    "container-title": "OpenAI Help Center",
+    "URL": "https://help.openai.com/en/articles/10500283-deep-research-in-chatgpt",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "MKT-16",
+    "type": "webpage",
+    "title": "Deep Research",
+    "container-title": "Gemini Apps Help",
+    "URL": "https://support.google.com/gemini/answer/15719111",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "MKT-17",
+    "type": "webpage",
+    "title": "Welcome",
+    "container-title": "Manus docs",
+    "URL": "https://manus.im/docs",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "MKT-18",
+    "type": "webpage",
+    "title": "What is Research mode?",
+    "container-title": "Perplexity Help Center",
+    "URL": "https://www.perplexity.ai/help-center/en/articles/10738684-what-is-research-mode",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "MKT-19",
+    "type": "article",
+    "title": "Kosmos: An AI Scientist for Autonomous Discovery",
+    "issued": {
+      "date-parts": [
+        [
+          2025,
+          11,
+          5
+        ]
+      ]
+    },
+    "number": "arXiv:2511.02824",
+    "version": "v2",
+    "URL": "https://arxiv.org/abs/2511.02824",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "MKT-20",
+    "type": "webpage",
+    "title": "Systematic Reviews in Elicit",
+    "issued": {
+      "date-parts": [
+        [
+          2026,
+          9,
+          16
+        ]
+      ]
+    },
+    "container-title": "Elicit",
+    "URL": "https://support.elicit.com/en/articles/14759154-systematic-reviews-in-elicit",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "STD-01",
+    "type": "standard",
+    "title": "W3C WCAG 2.2",
+    "URL": "https://www.w3.org/TR/WCAG22/",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "STD-02",
+    "type": "webpage",
+    "title": "Complex Images",
+    "container-title": "W3C WAI",
+    "URL": "https://www.w3.org/WAI/tutorials/images/complex/",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "LANG-01",
+    "type": "webpage",
+    "title": "Amazigh official-language implementation",
+    "issued": {
+      "date-parts": [
+        [
+          2025,
+          1,
+          13
+        ]
+      ]
+    },
+    "container-title": "Moroccan government",
+    "URL": "https://maroc.ma/fr/actualites/le-gouvernement-engage-en-faveur-du-renforcement-de-la-mise-en-oeuvre-du-caractere-officiel-de-la",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "LANG-02",
+    "type": "webpage",
+    "title": "Choix d'énigmes amazighes",
+    "container-title": "IRCAM",
+    "URL": "https://www.ircam.ma/index.php/fr/edition/choix_d_enigmes_amazighes",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "LANG-03",
+    "type": "webpage",
+    "title": "Morocco partnership",
+    "issued": {
+      "date-parts": [
+        [
+          2015
+        ]
+      ]
+    },
+    "container-title": "Peace Corps",
+    "URL": "https://www.peacecorps.gov/about-the-agency/media-center/news/peace-corps-moroccan-foreign-minister-honor-longstanding-partnership/",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  }
+]

@@ -1,0 +1,183 @@
+{
+  "recordType": "CaseSnapshot",
+  "schemaVersion": "1.2.0",
+  "case": {
+    "recordType": "EnvironmentalCase",
+    "id": "case_example_atlas",
+    "revision": 1,
+    "createdAt": "2026-10-26T16:00:00-04:00",
+    "updatedAt": "2026-10-26T16:00:00-04:00",
+    "title": "Example: High Atlas investigation",
+    "objective": "Identify evidence and field measurements needed to assess competing explanations for pasture pressure.",
+    "status": "draft",
+    "mode": "concept",
+    "ownerScopeId": "example_fixture_only",
+    "activeGeoSelectionId": "geo_example_context",
+    "currentBriefId": null,
+    "unresolvedQuestions": [
+      "The analysis boundary and numerical observations have not been established."
+    ],
+    "permissionProfile": "research_and_preparation_only",
+    "description": "Fictional contract fixture. No measured environmental result or visited location is asserted."
+  },
+  "records": {
+    "sourceRecords": [],
+    "geoSelectionRecords": [
+      {
+        "recordType": "GeoSelection",
+        "id": "geo_example_context",
+        "revision": 1,
+        "createdAt": "2026-10-26T16:00:00-04:00",
+        "updatedAt": "2026-10-26T16:00:00-04:00",
+        "caseId": "case_example_atlas",
+        "label": "Regional context: analysis extent not established",
+        "geometryStatus": "not_established",
+        "geometry": null,
+        "crs": "EPSG:4326",
+        "boundaryRole": "regional_context",
+        "boundarySourceIds": [],
+        "selectionMethod": "No boundary selected in this contract example.",
+        "areaM2": null,
+        "areaMethod": null,
+        "limitations": [
+          "Not an analysis boundary or claim about the founder’s visited location."
+        ]
+      }
+    ],
+    "dataBundleRecords": [
+      {
+        "recordType": "DataBundle",
+        "id": "bundle_example_missing",
+        "revision": 1,
+        "createdAt": "2026-10-26T16:00:00-04:00",
+        "updatedAt": "2026-10-26T16:00:00-04:00",
+        "caseId": "case_example_atlas",
+        "label": "Pending validated observation export",
+        "status": "missing",
+        "datasetId": "COPERNICUS/S2_SR_HARMONIZED",
+        "datasetVersion": null,
+        "sourceIds": [],
+        "geoSelectionId": "geo_example_context",
+        "geoRevision": 1,
+        "periodIds": [
+          "period_example_pending"
+        ],
+        "methodId": "method_example_pending",
+        "methodVersion": "draft-0",
+        "manifestUri": null,
+        "contentHash": null,
+        "license": null,
+        "attribution": null,
+        "provenance": {
+          "sourceLocators": [],
+          "dataBundleIds": [],
+          "methodId": null,
+          "methodVersion": null,
+          "inputVersions": [],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-26T16:00:00-04:00",
+          "verificationStatus": "unverified",
+          "limitations": [
+            "No scientific computation has been performed in this fixture."
+          ]
+        }
+      }
+    ],
+    "taskRecords": [],
+    "evidenceRecords": [],
+    "measurementRecords": [
+      {
+        "recordType": "Measurement",
+        "id": "meas_example_missing",
+        "revision": 1,
+        "createdAt": "2026-10-26T16:00:00-04:00",
+        "updatedAt": "2026-10-26T16:00:00-04:00",
+        "caseId": "case_example_atlas",
+        "metric": "NDVI seasonal median",
+        "value": null,
+        "unit": "1",
+        "status": "missing",
+        "missingReason": "No validated area or observation export exists in this fixture.",
+        "geoSelectionId": "geo_example_context",
+        "geoRevision": 1,
+        "periodId": "period_example_pending",
+        "dataBundleId": "bundle_example_missing",
+        "aggregation": "Pending method approval; no result.",
+        "validPixelCount": null,
+        "totalPixelCount": null,
+        "validFraction": null,
+        "spatialResolutionM": null,
+        "uncertainty": {
+          "kind": "not_quantified",
+          "lower": null,
+          "upper": null,
+          "level": null,
+          "method": null
+        },
+        "provenance": {
+          "sourceLocators": [],
+          "dataBundleIds": [],
+          "methodId": null,
+          "methodVersion": null,
+          "inputVersions": [],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-26T16:00:00-04:00",
+          "verificationStatus": "unverified",
+          "limitations": [
+            "No scientific computation has been performed in this fixture."
+          ]
+        }
+      }
+    ],
+    "temporalObservationRecords": [
+      {
+        "recordType": "TemporalObservation",
+        "id": "obs_example_missing",
+        "revision": 1,
+        "createdAt": "2026-10-26T16:00:00-04:00",
+        "updatedAt": "2026-10-26T16:00:00-04:00",
+        "caseId": "case_example_atlas",
+        "periodId": "period_example_pending",
+        "startDate": "2026-01-01",
+        "endDateExclusive": "2026-02-01",
+        "seasonDefinition": "Fictional contract interval only; not a chosen scientific analysis season.",
+        "geoSelectionId": "geo_example_context",
+        "geoRevision": 1,
+        "dataBundleId": "bundle_example_missing",
+        "measurementIds": [
+          "meas_example_missing"
+        ],
+        "mapAssetUri": null,
+        "mapAssetHash": null,
+        "mapStatus": "missing",
+        "qualityFlags": [
+          "example_only",
+          "not_processed"
+        ],
+        "provenance": {
+          "sourceLocators": [],
+          "dataBundleIds": [],
+          "methodId": null,
+          "methodVersion": null,
+          "inputVersions": [],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-26T16:00:00-04:00",
+          "verificationStatus": "unverified",
+          "limitations": [
+            "No scientific computation has been performed in this fixture."
+          ]
+        }
+      }
+    ],
+    "hypothesisRecords": [],
+    "relationshipRecords": [],
+    "canvasComponentRecords": [],
+    "layoutActionRecords": [],
+    "interventionRecords": [],
+    "resourceRequirementRecords": [],
+    "reviewDecisionRecords": [],
+    "operationalActionRecords": [],
+    "briefRecords": []
+  },
+  "lastSequence": 0
+}

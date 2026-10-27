@@ -1,0 +1,26 @@
+{
+  "recordType": "Command",
+  "schemaVersion": "1.2.0",
+  "id": "cmd_example_commission",
+  "caseId": "case_example_atlas",
+  "createdAt": "2026-10-26T16:00:00-04:00",
+  "idempotencyKey": "example-commission-0001",
+  "expectedCaseRevision": 1,
+  "context": {
+    "caseRevision": 1,
+    "geoSelectionId": "geo_example_context",
+    "geoRevision": 1,
+    "periodIds": [],
+    "focusedEntityIds": [],
+    "dataBundleIds": [
+      "bundle_example_missing"
+    ],
+    "locale": "en"
+  },
+  "text": "Prepare the evidence and field-validation plan; first establish an appropriate analysis boundary.",
+  "intent": "commission",
+  "status": "accepted",
+  "taskIds": [
+    "task_example_plan"
+  ]
+}

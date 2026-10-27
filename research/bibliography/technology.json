@@ -1,0 +1,821 @@
+[
+  {
+    "id": "TECH-01",
+    "type": "webpage",
+    "title": "Meta hackathon",
+    "URL": "https://dev.meta.ai/events/global-hackathon",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "TECH-02",
+    "type": "webpage",
+    "title": "Organizer event",
+    "URL": "https://cerebralvalley.ai/e/meta-ai-developer-hackathon",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "TECH-03",
+    "type": "webpage",
+    "title": "Meta overview",
+    "URL": "https://dev.meta.ai/docs/overview",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "TECH-04",
+    "type": "webpage",
+    "title": "Choose API",
+    "URL": "https://dev.meta.ai/docs/protocols",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "TECH-05",
+    "type": "webpage",
+    "title": "Responses API",
+    "URL": "https://dev.meta.ai/docs/protocols/responses",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "TECH-06",
+    "type": "webpage",
+    "title": "Structured output",
+    "URL": "https://dev.meta.ai/docs/structured-output",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "TECH-07",
+    "type": "webpage",
+    "title": "Tool calling",
+    "URL": "https://dev.meta.ai/docs/tool-calling",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "TECH-08",
+    "type": "webpage",
+    "title": "Meta pricing and rate limits",
+    "URL": "https://dev.meta.ai/docs/pricing-rate-limits",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "TECH-09",
+    "type": "webpage",
+    "title": "Search grounding",
+    "author": [
+      {
+        "literal": "Meta"
+      }
+    ],
+    "URL": "https://dev.meta.ai/docs/search-grounding",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "TECH-10",
+    "type": "webpage",
+    "title": "Supported countries",
+    "URL": "https://dev.meta.ai/help/accounts-and-login/supported-countries",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "TECH-11",
+    "type": "webpage",
+    "title": "tldraw agent kit",
+    "URL": "https://tldraw.dev/starter-kits/agent",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "TECH-12",
+    "type": "webpage",
+    "title": "tldraw shapes",
+    "URL": "https://tldraw.dev/docs/shapes",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "TECH-13",
+    "type": "webpage",
+    "title": "tldraw license",
+    "URL": "https://tldraw.dev/community/license",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "TECH-14",
+    "type": "webpage",
+    "title": "Next server/client boundary",
+    "URL": "https://nextjs.org/docs/app/getting-started/server-and-client-components",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "TECH-15",
+    "type": "webpage",
+    "title": "Motion layouts",
+    "URL": "https://motion.dev/docs/react-layout-animations",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "TECH-16",
+    "type": "webpage",
+    "title": "MapLibre terrain",
+    "URL": "https://maplibre.org/maplibre-gl-js/docs/examples/3d-terrain/",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "TECH-17",
+    "type": "webpage",
+    "title": "Observable Plot",
+    "URL": "https://observablehq.github.io/plot/getting-started",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "TECH-18",
+    "type": "webpage",
+    "title": "TanStack Query",
+    "URL": "https://tanstack.com/query/latest/docs/framework/react/overview",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "TECH-19",
+    "type": "webpage",
+    "title": "shadcn/ui",
+    "URL": "https://ui.shadcn.com/docs",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "TECH-20",
+    "type": "webpage",
+    "title": "Zod JSON Schema",
+    "URL": "https://zod.dev/json-schema",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "TECH-21",
+    "type": "software",
+    "title": "pg-boss",
+    "URL": "https://github.com/timgit/pg-boss",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "TECH-22",
+    "type": "webpage",
+    "title": "SSE",
+    "URL": "https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "TECH-23",
+    "type": "webpage",
+    "title": "Railway monorepo",
+    "URL": "https://docs.railway.com/guides/deploying-a-monorepo",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "TECH-24",
+    "type": "webpage",
+    "title": "Naïve docs",
+    "URL": "https://usenaive.ai/docs",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "TECH-25",
+    "type": "webpage",
+    "title": "Naïve sessions",
+    "URL": "https://usenaive.ai/docs/concepts/sessions",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "TECH-26",
+    "type": "webpage",
+    "title": "Naïve pricing",
+    "URL": "https://usenaive.ai/pricing",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "TECH-27",
+    "type": "webpage",
+    "title": "Recharts guide",
+    "URL": "https://recharts.github.io/en-US/guide/",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "TECH-28",
+    "type": "webpage",
+    "title": "Apache ECharts guide",
+    "URL": "https://echarts.apache.org/handbook/en/get-started/",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "TECH-29",
+    "type": "report",
+    "title": "Organizer rules and waiver",
+    "issued": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          25
+        ]
+      ]
+    },
+    "URL": "https://cerebralvalley.ai/e/meta-ai-developer-hackathon/waiver",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "TECH-30",
+    "type": "webpage",
+    "title": "Meta error handling",
+    "URL": "https://dev.meta.ai/docs/error-handling",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "TECH-31",
+    "type": "webpage",
+    "title": "ZDR",
+    "container-title": "Meta Help Center",
+    "URL": "https://dev.meta.ai/help/policies-and-privacy/zero-data-retention",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "TECH-32",
+    "type": "webpage",
+    "title": "Muse Spark Open: run inference",
+    "URL": "https://dev.meta.ai/docs/muse-spark-open/deploy",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "TECH-33",
+    "type": "webpage",
+    "title": "Llama and Model API",
+    "URL": "https://dev.meta.ai/help/about-model-api/llama-and-model-api",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "TECH-34",
+    "type": "webpage",
+    "title": "Status endpoint",
+    "URL": "https://dev.meta.ai/docs/api-reference/status",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "TECH-35",
+    "type": "dataset",
+    "title": "npm registry"
+  },
+  {
+    "id": "TECH-36",
+    "type": "webpage",
+    "title": "GHSA-673q-mjm6-r5xr",
+    "URL": "https://github.com/vercel/next.js/security/advisories/GHSA-673q-mjm6-r5xr",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "TECH-37",
+    "type": "webpage",
+    "title": "Next TypeScript config",
+    "URL": "https://nextjs.org/docs/app/api-reference/config/typescript",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "TECH-38",
+    "type": "webpage",
+    "title": "Node.js releases",
+    "URL": "https://nodejs.org/en/about/previous-releases",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "TECH-39",
+    "type": "webpage",
+    "title": "MapLibre v5 to v6 migration",
+    "URL": "https://github.com/maplibre/maplibre-gl-js/blob/main/docs/guides/v5-to-v6-migration-guide.md",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "TECH-40",
+    "type": "standard",
+    "title": "MapLibre style spec: sources",
+    "URL": "https://maplibre.org/maplibre-style-spec/sources/",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "TECH-41",
+    "type": "software",
+    "title": "maplibre-contour",
+    "URL": "https://github.com/onthegomap/maplibre-contour",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "TECH-42",
+    "type": "webpage",
+    "title": "Protomaps downloads",
+    "URL": "https://docs.protomaps.com/basemaps/downloads",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "TECH-43",
+    "type": "webpage",
+    "title": "Mapterhorn data access",
+    "URL": "https://mapterhorn.com/data-access/",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "TECH-44",
+    "type": "dataset",
+    "title": "AWS Terrain Tiles",
+    "URL": "https://registry.opendata.aws/terrain-tiles/",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "TECH-45",
+    "type": "webpage",
+    "title": "OpenFreeMap ToS",
+    "URL": "https://openfreemap.org/tos/",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "TECH-46",
+    "type": "webpage",
+    "title": "OSMF attribution guideline",
+    "URL": "https://osmfoundation.org/wiki/Licence/Attribution_Guidelines",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "TECH-47",
+    "type": "standard",
+    "title": "OTel GenAI semantic conventions",
+    "URL": "https://github.com/open-telemetry/semantic-conventions-genai",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "TECH-48",
+    "type": "webpage",
+    "title": "Langfuse data model",
+    "URL": "https://langfuse.com/docs/observability/data-model",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "TECH-49",
+    "type": "webpage",
+    "title": "AG-UI events",
+    "URL": "https://docs.ag-ui.com/concepts/events",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "TECH-50",
+    "type": "webpage",
+    "title": "networking limits",
+    "container-title": "Railway",
+    "URL": "https://docs.railway.com/networking/public-networking/specs-and-limits",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "TECH-51",
+    "type": "webpage",
+    "title": "background workers",
+    "container-title": "Render",
+    "URL": "https://render.com/docs/background-workers",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "TECH-52",
+    "type": "webpage",
+    "title": "free trial",
+    "container-title": "Fly.io",
+    "URL": "https://fly.io/docs/about/free-trial/",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "TECH-53",
+    "type": "webpage",
+    "title": "function duration",
+    "container-title": "Vercel",
+    "URL": "https://vercel.com/docs/functions/configuring-functions/duration",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  },
+  {
+    "id": "TECH-54",
+    "type": "webpage",
+    "title": "Next.js self-hosting",
+    "URL": "https://nextjs.org/docs/app/guides/self-hosting",
+    "accessed": {
+      "date-parts": [
+        [
+          2026,
+          10,
+          26
+        ]
+      ]
+    }
+  }
+]

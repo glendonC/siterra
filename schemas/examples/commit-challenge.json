@@ -1,0 +1,482 @@
+{
+  "recordType": "Commit",
+  "schemaVersion": "1.2.0",
+  "id": "commit_example_challenge",
+  "caseId": "case_example_atlas",
+  "commandId": "cmd_example_challenge",
+  "taskId": "task_example_compare",
+  "expectedCaseRevision": 5,
+  "newCaseRevision": 6,
+  "idempotencyKey": "example-challenge-commit-0001",
+  "inputVersions": [
+    {
+      "entityId": "ev_example_rain_2022-04",
+      "revision": 1
+    },
+    {
+      "entityId": "geo_example_context",
+      "revision": 1
+    }
+  ],
+  "caseAfter": {
+    "recordType": "EnvironmentalCase",
+    "id": "case_example_atlas",
+    "revision": 6,
+    "createdAt": "2026-10-26T16:00:00-04:00",
+    "updatedAt": "2026-10-26T16:10:00-04:00",
+    "title": "Example: High Atlas investigation",
+    "objective": "Identify evidence and field measurements needed to assess competing explanations for pasture pressure.",
+    "status": "investigating",
+    "mode": "concept",
+    "ownerScopeId": "example_fixture_only",
+    "activeGeoSelectionId": "geo_example_context",
+    "currentBriefId": null,
+    "unresolvedQuestions": [
+      "Grazing-related pressure cannot be assessed without livestock numbers, timing and field vegetation surveys."
+    ],
+    "permissionProfile": "research_and_preparation_only",
+    "description": "Fictional contract fixture. No measured environmental result is asserted."
+  },
+  "upserts": [
+    {
+      "recordType": "Measurement",
+      "id": "meas_example_rain_2022-04",
+      "revision": 1,
+      "createdAt": "2026-10-26T16:10:00-04:00",
+      "updatedAt": "2026-10-26T16:10:00-04:00",
+      "caseId": "case_example_atlas",
+      "metric": "precipitation departure from 1991-2020 April mean",
+      "value": -12.0,
+      "unit": "mm",
+      "status": "available",
+      "missingReason": null,
+      "geoSelectionId": "geo_example_context",
+      "geoRevision": 1,
+      "periodId": "period_2022-04",
+      "dataBundleId": "bundle_example_rain",
+      "aggregation": "area-weighted mean over native 0.05 degree cells",
+      "validPixelCount": null,
+      "totalPixelCount": null,
+      "validFraction": null,
+      "spatialResolutionM": 5500,
+      "uncertainty": {
+        "kind": "not_quantified",
+        "lower": null,
+        "upper": null,
+        "level": null,
+        "method": null
+      },
+      "provenance": {
+        "sourceLocators": [],
+        "dataBundleIds": [
+          "bundle_example_rain"
+        ],
+        "methodId": "chirps_departure",
+        "methodVersion": "0.1.0",
+        "inputVersions": [
+          {
+            "entityId": "bundle_example_rain",
+            "revision": 1
+          }
+        ],
+        "generatedByTaskId": "task_example_rain",
+        "generatedAt": "2026-10-26T16:10:00-04:00",
+        "verificationStatus": "computed_checked",
+        "limitations": [
+          "Synthetic contract example. Values are invented for schema illustration and must never appear in the demo database."
+        ]
+      }
+    },
+    {
+      "recordType": "Evidence",
+      "id": "ev_example_rain_2022-04",
+      "revision": 1,
+      "createdAt": "2026-10-26T16:10:00-04:00",
+      "updatedAt": "2026-10-26T16:10:00-04:00",
+      "caseId": "case_example_atlas",
+      "statement": "April 2022 rainfall over the example area was 12 mm below its 1991-2020 April mean (synthetic example).",
+      "claimKind": "observation",
+      "status": "accepted",
+      "geoSelectionId": "geo_example_context",
+      "periodIds": [
+        "period_2022-04"
+      ],
+      "measurementIds": [
+        "meas_example_rain_2022-04"
+      ],
+      "provenance": {
+        "sourceLocators": [],
+        "dataBundleIds": [
+          "bundle_example_rain"
+        ],
+        "methodId": null,
+        "methodVersion": null,
+        "inputVersions": [
+          {
+            "entityId": "meas_example_rain_2022-04",
+            "revision": 1
+          }
+        ],
+        "generatedByTaskId": "task_example_rain",
+        "generatedAt": "2026-10-26T16:10:00-04:00",
+        "verificationStatus": "computed_checked",
+        "limitations": [
+          "Synthetic contract example. Values are invented for schema illustration and must never appear in the demo database."
+        ]
+      },
+      "interpretation": null,
+      "uncertainty": "Native rainfall grid is about 5 km; no local gauge was used.",
+      "reviewDecisionIds": []
+    },
+    {
+      "recordType": "Hypothesis",
+      "id": "hyp_example_rainfall",
+      "revision": 1,
+      "createdAt": "2026-10-26T16:10:00-04:00",
+      "updatedAt": "2026-10-26T16:10:00-04:00",
+      "caseId": "case_example_atlas",
+      "statement": "Rainfall variability contributes to the observed vegetation departures.",
+      "status": "consistent",
+      "supportingEvidenceIds": [
+        "ev_example_rain_2022-04"
+      ],
+      "contradictingEvidenceIds": [],
+      "missingEvidence": [
+        "Local rainfall and snow records",
+        "Climate-corrected productivity analysis over a longer record"
+      ],
+      "alternativeHypothesisIds": [
+        "hyp_example_grazing"
+      ],
+      "assessment": "Consistent with available evidence; not proof and not exclusive.",
+      "provenance": {
+        "sourceLocators": [],
+        "dataBundleIds": [],
+        "methodId": null,
+        "methodVersion": null,
+        "inputVersions": [
+          {
+            "entityId": "ev_example_rain_2022-04",
+            "revision": 1
+          }
+        ],
+        "generatedByTaskId": "task_example_compare",
+        "generatedAt": "2026-10-26T16:10:00-04:00",
+        "verificationStatus": "source_checked",
+        "limitations": [
+          "Synthetic contract example. Values are invented for schema illustration and must never appear in the demo database."
+        ]
+      }
+    },
+    {
+      "recordType": "Hypothesis",
+      "id": "hyp_example_grazing",
+      "revision": 2,
+      "createdAt": "2026-10-26T16:10:00-04:00",
+      "updatedAt": "2026-10-26T16:10:00-04:00",
+      "caseId": "case_example_atlas",
+      "statement": "Grazing-related pressure contributes to the observed vegetation departures.",
+      "status": "inconclusive",
+      "supportingEvidenceIds": [],
+      "contradictingEvidenceIds": [],
+      "missingEvidence": [
+        "Animal numbers by species and season",
+        "Access calendar and herd movements",
+        "Field vegetation surveys by stratum"
+      ],
+      "alternativeHypothesisIds": [
+        "hyp_example_rainfall"
+      ],
+      "assessment": "Cannot be assessed with current data.",
+      "provenance": {
+        "sourceLocators": [],
+        "dataBundleIds": [],
+        "methodId": null,
+        "methodVersion": null,
+        "inputVersions": [
+          {
+            "entityId": "ev_example_rain_2022-04",
+            "revision": 1
+          }
+        ],
+        "generatedByTaskId": "task_example_compare",
+        "generatedAt": "2026-10-26T16:10:00-04:00",
+        "verificationStatus": "source_checked",
+        "limitations": [
+          "Synthetic contract example. Values are invented for schema illustration and must never appear in the demo database."
+        ]
+      }
+    },
+    {
+      "recordType": "Relationship",
+      "id": "rel_example_rain_supports",
+      "revision": 1,
+      "createdAt": "2026-10-26T16:10:00-04:00",
+      "updatedAt": "2026-10-26T16:10:00-04:00",
+      "caseId": "case_example_atlas",
+      "fromEntityId": "ev_example_rain_2022-04",
+      "toEntityId": "hyp_example_rainfall",
+      "kind": "supports",
+      "explanation": "The rainfall departure is relevant to and consistent with the rainfall hypothesis for the same area and month.",
+      "evidenceIds": [
+        "ev_example_rain_2022-04"
+      ],
+      "status": "accepted",
+      "fromEntityRevision": 1,
+      "toEntityRevision": 1
+    },
+    {
+      "recordType": "Relationship",
+      "id": "rel_example_grazing_verify",
+      "revision": 1,
+      "createdAt": "2026-10-26T16:10:00-04:00",
+      "updatedAt": "2026-10-26T16:10:00-04:00",
+      "caseId": "case_example_atlas",
+      "fromEntityId": "hyp_example_grazing",
+      "toEntityId": "ev_example_need_livestock",
+      "kind": "requires_verification",
+      "explanation": "Grazing pressure needs field measurements before any conclusion.",
+      "evidenceIds": [],
+      "status": "accepted",
+      "fromEntityRevision": 2,
+      "toEntityRevision": 1
+    },
+    {
+      "recordType": "Evidence",
+      "id": "ev_example_need_livestock",
+      "revision": 1,
+      "createdAt": "2026-10-26T16:10:00-04:00",
+      "updatedAt": "2026-10-26T16:10:00-04:00",
+      "caseId": "case_example_atlas",
+      "statement": "Livestock numbers by species and season, herd movement timing and field vegetation surveys by stratum are needed before grazing-related pressure can be assessed.",
+      "claimKind": "field_requirement",
+      "status": "accepted",
+      "geoSelectionId": "geo_example_context",
+      "periodIds": [],
+      "measurementIds": [],
+      "provenance": {
+        "sourceLocators": [],
+        "dataBundleIds": [],
+        "methodId": null,
+        "methodVersion": null,
+        "inputVersions": [
+          {
+            "entityId": "hyp_example_grazing",
+            "revision": 2
+          }
+        ],
+        "generatedByTaskId": "task_example_compare",
+        "generatedAt": "2026-10-26T16:10:00-04:00",
+        "verificationStatus": "unverified",
+        "limitations": [
+          "Synthetic contract example. Values are invented for schema illustration and must never appear in the demo database."
+        ]
+      },
+      "interpretation": null,
+      "uncertainty": "Informs whether the grazing hypothesis can be tested at all.",
+      "reviewDecisionIds": []
+    },
+    {
+      "recordType": "CanvasComponent",
+      "id": "comp_example_ledger",
+      "revision": 1,
+      "createdAt": "2026-10-26T16:10:00-04:00",
+      "updatedAt": "2026-10-26T16:10:00-04:00",
+      "caseId": "case_example_atlas",
+      "componentKind": "hypothesis_comparison",
+      "entityIds": [
+        "hyp_example_rainfall",
+        "hyp_example_grazing"
+      ],
+      "section": "explanations",
+      "order": 0,
+      "visibility": "expanded",
+      "title": "Competing explanations",
+      "presentationStatus": "ready",
+      "sourceCaseRevision": 6,
+      "comparisonMode": null,
+      "periodIds": [],
+      "entityVersions": [
+        {
+          "entityId": "hyp_example_rainfall",
+          "revision": 1
+        },
+        {
+          "entityId": "hyp_example_grazing",
+          "revision": 2
+        }
+      ]
+    }
+  ],
+  "events": [
+    {
+      "recordType": "Event",
+      "schemaVersion": "1.2.0",
+      "id": "evt_example_041",
+      "caseId": "case_example_atlas",
+      "sequence": 41,
+      "occurredAt": "2026-10-26T16:10:00-04:00",
+      "kind": "tool.completed",
+      "commandId": "cmd_example_challenge",
+      "taskId": "task_example_compare",
+      "caseRevision": 6,
+      "entityIds": [],
+      "message": "compare_series aligned vegetation and rainfall departures for 84 months (synthetic example).",
+      "dedupeKey": "example-challenge-0041",
+      "resultStatus": null,
+      "tool": {
+        "name": "compare_series",
+        "status": "succeeded",
+        "startedAt": "2026-10-26T16:10:00-04:00",
+        "endedAt": "2026-10-26T16:10:00-04:00",
+        "durationMs": 420,
+        "argumentSummary": "series: ndvi departure, rainfall departure; periods 2019-01 to 2025-12; lags 0-3 months",
+        "resultEntityIds": [
+          "meas_example_rain_2022-04"
+        ],
+        "errorCode": null,
+        "attempt": 1
+      },
+      "usage": null,
+      "validation": null,
+      "spanId": null,
+      "parentSpanId": null
+    },
+    {
+      "recordType": "Event",
+      "schemaVersion": "1.2.0",
+      "id": "evt_example_042",
+      "caseId": "case_example_atlas",
+      "sequence": 42,
+      "occurredAt": "2026-10-26T16:10:00-04:00",
+      "kind": "model.completed",
+      "commandId": "cmd_example_challenge",
+      "taskId": "task_example_compare",
+      "caseRevision": 6,
+      "entityIds": [],
+      "message": "Model call finished for hypothesis comparison.",
+      "dedupeKey": "example-challenge-0042",
+      "resultStatus": null,
+      "tool": null,
+      "usage": {
+        "provider": "meta",
+        "model": "example-model-id",
+        "requestId": "req_example",
+        "status": "succeeded",
+        "inputTokens": 6100,
+        "outputTokens": 900,
+        "cachedInputTokens": 0,
+        "estimatedCostMicroUsd": 11450,
+        "durationMs": 8200,
+        "reasoningTokens": null,
+        "webSearchCalls": 0
+      },
+      "validation": null,
+      "spanId": null,
+      "parentSpanId": null
+    },
+    {
+      "recordType": "Event",
+      "schemaVersion": "1.2.0",
+      "id": "evt_example_043",
+      "caseId": "case_example_atlas",
+      "sequence": 43,
+      "occurredAt": "2026-10-26T16:10:00-04:00",
+      "kind": "validation.completed",
+      "commandId": "cmd_example_challenge",
+      "taskId": "task_example_compare",
+      "caseRevision": 6,
+      "entityIds": [],
+      "message": "Hypothesis proposal accepted.",
+      "dedupeKey": "example-challenge-0043",
+      "resultStatus": null,
+      "tool": null,
+      "usage": null,
+      "validation": {
+        "outcome": "accepted",
+        "issues": []
+      },
+      "spanId": null,
+      "parentSpanId": null
+    },
+    {
+      "recordType": "Event",
+      "schemaVersion": "1.2.0",
+      "id": "evt_example_044",
+      "caseId": "case_example_atlas",
+      "sequence": 44,
+      "occurredAt": "2026-10-26T16:10:00-04:00",
+      "kind": "case.committed",
+      "commandId": "cmd_example_challenge",
+      "taskId": "task_example_compare",
+      "caseRevision": 6,
+      "entityIds": [
+        "hyp_example_rainfall",
+        "hyp_example_grazing",
+        "ev_example_need_livestock",
+        "rel_example_rain_supports",
+        "rel_example_grazing_verify",
+        "comp_example_ledger"
+      ],
+      "message": "Committed 2 hypotheses, 1 field requirement, 2 relationships, 1 component.",
+      "dedupeKey": "example-challenge-0044",
+      "resultStatus": "succeeded",
+      "tool": null,
+      "usage": null,
+      "validation": null,
+      "spanId": null,
+      "parentSpanId": null
+    },
+    {
+      "recordType": "Event",
+      "schemaVersion": "1.2.0",
+      "id": "evt_example_045",
+      "caseId": "case_example_atlas",
+      "sequence": 45,
+      "occurredAt": "2026-10-26T16:10:00-04:00",
+      "kind": "layout.accepted",
+      "commandId": "cmd_example_challenge",
+      "taskId": "task_example_compare",
+      "caseRevision": 6,
+      "entityIds": [
+        "comp_example_ledger"
+      ],
+      "message": "Showing competing explanations.",
+      "dedupeKey": "example-challenge-0045",
+      "resultStatus": null,
+      "tool": null,
+      "usage": null,
+      "validation": null,
+      "spanId": null,
+      "parentSpanId": null
+    }
+  ],
+  "layoutActions": [
+    {
+      "recordType": "LayoutAction",
+      "id": "layout_example_show_ledger",
+      "revision": 1,
+      "createdAt": "2026-10-26T16:10:00-04:00",
+      "updatedAt": "2026-10-26T16:10:00-04:00",
+      "caseId": "case_example_atlas",
+      "commandId": "cmd_example_challenge",
+      "kind": "show_component",
+      "componentIds": [
+        "comp_example_ledger"
+      ],
+      "entityIds": [
+        "hyp_example_rainfall",
+        "hyp_example_grazing"
+      ],
+      "reason": "User asked whether drought could explain the vegetation pattern.",
+      "status": "accepted",
+      "sourceCaseRevision": 6,
+      "componentKind": "hypothesis_comparison",
+      "section": "explanations",
+      "comparisonMode": null,
+      "periodIds": [],
+      "origin": "user_command",
+      "title": null
+    }
+  ]
+}

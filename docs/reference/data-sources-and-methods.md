@@ -1,0 +1,73 @@
+# Data sources and reproducible methods
+
+Status: public specification, 2026-10-26; updated 2026-10-27. The catchment is frozen at native 30 m and a validated CHIRPS rainfall bundle exists ([`data/bundles/`](../../data/bundles/catalog.json)); the Sentinel-2 bundle is in progress. A preview catchment geometry and catalog-level availability counts were computed during planning ([study area](../../research/geospatial/study-area.md), [availability probe](../../research/geospatial/data-availability.md)). Catalog counts describe metadata, not clear observations. Source IDs resolve in the [science bibliography](../../research/science/source-register.md). Output format: [bundle output](observation-preprocessing.md#bundle-output) (STAC profile).
+
+## Study area
+
+**Decision [D]: the Aït Bouguemez valley catchment** is the analysis extent: all land draining to the Assif n'Aït Bouguemez at an outlet just upstream of its confluence with the Oued Lakhdar.
+
+| Property | Value |
+|---|---|
+| Role | `boundaryRole: hydrological_unit`; product label "Valley catchment (hydrological analysis extent), not a pasture, agdal or management boundary" |
+| Source | Derived by this project from Copernicus DEM GLO-30, AWS `copernicus-dem-30m` 2021 release, tile `Copernicus_DSM_COG_10_N31_00_W007_00_DEM` (one tile covers the area) |
+| Outlet | 31.637197 N, 6.536500 W (mapped river vertex about 268 m upstream of the confluence), snapped to maximum flow accumulation within 120 m |
+| Frozen result | `geo_ait_bouguemez_catchment` revision 1, frozen 2026-10-27: 417.04 km² geodesic (417.36 km² planar in EPSG:32629), bbox [-6.54125, 31.49431, -6.14208, 31.75653], one ring of 3,057 vertices, no holes; SHA-256 `ac506ece626b6844d759b56aa60a10248c8c0ea5e206f9a28eb436a892a4d47f`. Not expert-reviewed |
+| Preview result | 417.5 km², bbox [-6.54125, 31.49403, -6.14236, 31.75625], single ring; computed from the DEM's 55 m overview with a stdlib probe script, not validated hydrology software; overlaps the frozen result with intersection over union 0.994 |
+| Why | Matches the published description of the valley (about 40 km east to west, floor 1800 to 2200 m) (SCI-19); follows ridgelines rather than straight administrative lines; keeps vegetation, snowmelt and rainfall context within one drainage; fixed before any vegetation data is inspected, so it cannot be tuned to a trend |
+| Contains | Tabant, the published Ait Ouchi locator (SCI-04), Lac Izoughar; excludes the upper Assif M'Goun valley, which drains to the other side |
+| Rainfall support | Touches 33 CHIRPS 0.05° cells, 2 fully inside, fractions summing to 15.86 cells (exact intersection with the frozen result; the preview's point sampling gave 31 and 3) |
+| Optical support | Sentinel-2 tiles 29SQR (about 98% on relative orbit R094) and 29RQQ for the southern edge |
+| Analysis CRS | EPSG:32629 (UTM 29N) |
+
+**Freeze procedure (done 2026-10-27, before any vegetation index was computed):** download the DEM tile and verify its ETag and size; condition the DEM with a standard tool, D8 flow, accumulation; snap the outlet; polygonize; record vertex count and SHA-256. Acceptance: area within ±5% of 417.5 km²; contains Tabant (31.65873, -6.42007) and the Ait Ouchi locator; excludes the upper Assif M'Goun valley; inspect the lower gorge near 31.627, -6.528 and the southern lobe. **Never move the outlet after looking at vegetation data.**
+
+How it ran: the full tile (41,088,635 bytes, ETag equal to its MD5, SHA-256 `024f00066f44b6c04c26ab5c22ef8d355f6dc77052206d96c9a9c04f66b9c61e`) on its native 1 arc-second EPSG:4326 grid; pysheds 0.5 fill pits, fill depressions and resolve flats; D8 and accumulation; the outlet snapped 94 m to the cell of maximum accumulation (31.637778 N, 6.537222 W); polygonized on the DEM grid and dissolved to one polygon. Every acceptance check passed: area −0.11%; Tabant and the locator inside; the Refuge de Tarkeddite in the upper Assif M'Goun valley outside. Lower gorge: depression filling reached 58 m about 1.5 km upstream of the outlet, likely a surface-model artefact in the narrow gorge; it routes flow through the gorge and does not move the divide. Southern lobe: 22.19 km² south of 31.55 N against 22.72 km² in the preview; the largest difference from the preview is 0.52 km² at the south-west divide near 31.542 N, 6.512 W. pysheds is GPL-3.0-or-later, so the delineation script is kept out of the public pipeline; the frozen polygon is data.
+
+**Context layers:** the OpenStreetMap commune polygon for Tabant (relation 2887314, ODbL) as `regional_context`, carrying official statistics such as the 2024 census legal population of the commune (SCI-35), which never attach to the catchment. Official open commune boundaries were not found (HDX and geoBoundaries stop at provinces); GADM is non-commercial and excluded.
+
+**Fallbacks, in order:** the frozen preview polygon labeled "preview boundary, about 55 m"; the OSM commune polygon labeled "administrative extent (OpenStreetMap), not an official boundary, spans two drainages"; a labeled landscape sample around the Ait Ouchi locator, persisted with author and rationale before processing. Pasture area, stocking density, household exposure and inside-or-outside-agdal comparisons are never computed for any of these polygons.
+
+## Dataset inventory
+
+| Role | Dataset and route | Coverage and measurement | License and attribution | Decision and limits |
+|---|---|---|---|---|
+| Optical observations | **Sentinel-2 L2A via Earth Search `sentinel-2-l2a`** (legacy collection, public COGs) | Complete 2019 to 2025 for the area (3,765 items; about 70 full-coverage dates a year); red B04 and NIR B08 at 10 m, SCL at 20 m | Copernicus Sentinel terms; "Contains modified Copernicus Sentinel data [years]" (SCI-18) | **Default route.** Requires deduplication (newest processing baseline per tile and date). Stored values of baseline 04.00 and later are already on the pre-04.00 scale: reflectance = DN / 10000, and the asset's −0.1 `raster:bands` offset must not be applied (four pixel-paired tests in [preprocessing](observation-preprocessing.md#default-route-earth-search-legacy-sentinel-2-l2a)). Do **not** use Earth Search Collection 1 (`sentinel-2-c1-l2a`) alone: it lacks February to November 2022 for this area, a reported drought year |
+| Optical, alternative | Earth Engine `COPERNICUS/S2_SR_HARMONIZED` (SCI-07) with Cloud Score+ (SCI-08) | Harmonized offsets; Cloud Score+ visibility scores | Earth Engine terms; noncommercial or paid commercial project required (SCI-15, SCI-16) | Use only if an eligible project exists (founder decision). Coverage for this area not verified |
+| Optical, fallback | Planetary Computer `sentinel-2-l2a` | Complete months; duplicates; offsets from product metadata | Planetary Computer terms; URL signing | Not tested |
+| Cloud and snow QA | SCL classes on the default route; Cloud Score+ only on the Earth Engine route | Scene classification at 20 m | As above | On the default route label summaries "reduced QA (scene classification only)", inspect snow and terrain shadow manually, and add the P1 model imagery review as a cross-checked flag ([Agent orchestration](agent-orchestration.md)) |
+| Rainfall | **CHIRPS v3.0 monthly, final** (SCI-09), global COGs read by HTTP range for the area window | 1981 to the latest final month (2026-09 when checked); 0.05° grid; mm per month | Producer attribution and data DOI; license wording mixes public domain and CC BY 4.0: attribute fully | Preliminary files share filenames with final ones: key provenance on the full URL path. Africa GeoTIFFs exist but are not COGs |
+| Terrain | **Copernicus DEM GLO-30, 2021 release** (AWS COG tile above) | ~30 m surface model | Copernicus DEM license with its distribution and modified-data notices | Delineation and elevation and aspect strata from the **same pinned release**. Display relief (Mapterhorn) is a visualization product with its own attribution, not an analysis input. Fallback for strata: SRTMGL1 v3 (SCI-11), recorded if used |
+| Context strata | ESA WorldCover 2021 v200 (SCI-13) | 10 m, 11 classes | CC BY 4.0, cite the dataset DOI | Static cropland and built masks labeled "2021 context mask", never pasture or rights |
+
+CHIRPS v2 (the directive's `UCSB-CHG/CHIRPS/DAILY`) ends production after December 2026 (SCI-14); never splice v2 and v3.
+
+## Access and delivery
+
+Precompute every observation bundle offline and serve it as a static STAC catalog with its display rasters; no live catalog or raster export in the demo path. Bundles follow the [bundle output](observation-preprocessing.md#bundle-output) profile, including input scene links, method parameters, checks and attribution strings. If no optical route works, ship the blocked-observation path (published context, field-scoping package) and never generate values.
+
+## Analysis choices
+
+Algorithm and quality policy: [preprocessing](observation-preprocessing.md). These are engineering policies, not validated ecological cutoffs.
+
+- **Period:** 2019-01 through 2025-12 for complete years; 2026 months only as clearly partial, never compared with whole years.
+- **Vegetation:** monthly NDVI from masked, harmonized reflectance; per-pixel monthly median; coverage counts kept. Reference: same calendar month 2019 to 2025 per pixel, called a **short reference period**, not a climate normal. Show raw NDVI and departures in index units; no percentages.
+- **Rainfall:** monthly totals over the catchment with fractional cell weights; 1991 to 2020 same-month reference; departures in mm, percent only where the reference is meaningfully positive. State the native grid and cell count everywhere rainfall appears.
+- **Comparison:** aligned monthly departures on shared period IDs; prespecified 0 to 3 month antecedent windows; counts of same-sign months; no causal estimate, significance badge, fitted attribution or lag shopping.
+- **Strata:** elevation bands and aspect classes from the pinned DEM for sampling design; cropland excluded with the context mask and shown as excluded, not as low vegetation.
+- **Outputs:** map display rasters and numeric manifests are separate products; chart numbers always come from manifests, never from display pixels.
+
+## Provenance
+
+Every measurement carries the fields required by the [bundle output](observation-preprocessing.md#bundle-output) profile and the `Measurement` record in [Data contracts](data-contracts.md#observation-bundles): geometry ID, revision, role and hash; dataset and version; access route; scene or file IDs; acquisition window; method and parameters; operation order; units; valid counts and fraction; reference period; uncertainty kind (never zero for unknown); software and lockfile hashes; checks performed; attribution. Raw downloads and caches stay out of Git ([policy](../../CONTRIBUTING.md)).
+
+## Attribution strings
+
+| Layer | String |
+|---|---|
+| Siterra Sentinel-2 products | "Contains modified Copernicus Sentinel data [actual years]" |
+| Catchment and strata | "produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved" (licence Article 6(b), adapted data), plus "Catchment derived by Siterra from Copernicus DEM GLO-30 (2021 release)" |
+| Any public distribution of the catchment geometry or strata | "The organisations in charge of the Copernicus programme by law or by delegation do not incur any liability for any use of the Copernicus WorldDEM-30" (licence Article 6(c), required in a licence or legal notice covering the distribution; [licence](https://dataspace.copernicus.eu/sites/default/files/media/files/2025-06/copernicus_contributing_mission_data_access_v2_cop_dem_licenses.pdf)) |
+| Display relief | "© Mapterhorn" and the Copernicus WorldDEM-30 notice ([map assets](../../research/technology/map-assets.md)) |
+| Rainfall | CHIRPS v3.0, Climate Hazards Center, UC Santa Barbara, with data DOI (https://doi.org/10.15780/G2JQ0P) and access date; the CHC also asks for the paper, Funk et al. (2026), Scientific Data 13: 718, https://doi.org/10.1038/s41597-026-07096-4 |
+| Context mask | "© ESA WorldCover project / Contains modified Copernicus Sentinel data (2021) processed by ESA WorldCover consortium" (the form ESA's download page asks for), plus ESA WorldCover 2021 v200 (Zanaga et al. 2022), CC BY 4.0 |
+| Labels and commune context | "Protomaps © OpenStreetMap" linked to the OpenStreetMap copyright page |

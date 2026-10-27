@@ -1,0 +1,196 @@
+{
+ "type": "Collection",
+ "stac_version": "1.1.0",
+ "stac_extensions": [
+  "https://stac-extensions.github.io/processing/v1.3.0/schema.json",
+  "https://stac-extensions.github.io/file/v2.1.0/schema.json",
+  "https://siterra.invalid/schemas/stac/siterra/1.0.0/schema.json"
+ ],
+ "id": "bundle_coverage_summary_ait_bouguemez",
+ "title": "Usable observations per month, catchment only (coverage_summary 1.0.0)",
+ "description": "Precomputed result of recipe coverage_summary 1.0.0 on bundle_s2_ndvi_monthly_ait_bouguemez, for the catchment only (no strata in this version): 68 available, 16 insufficient, 0 missing periods. Reduced QA (scene classification only): snow, snow edges and terrain shadow can survive the mask. Coverage counts how much data passed the mask; it says nothing about vegetation condition. In winter months the accepted pixels favour the valley floor and south-facing slopes, because snow and shade remove the others; the area value then describes those pixels, not the whole catchment. This version summarizes the catchment only; per-stratum coverage is not computed yet.",
+ "license": "other",
+ "providers": [
+  {
+   "name": "Copernicus Sentinel-2 (European Union, ESA)",
+   "roles": [
+    "producer",
+    "licensor"
+   ]
+  },
+  {
+   "name": "AWS",
+   "roles": [
+    "host"
+   ],
+   "url": "https://registry.opendata.aws/sentinel-2-l2a-cogs/"
+  },
+  {
+   "name": "Sinergise",
+   "roles": [
+    "processor"
+   ],
+   "url": "https://registry.opendata.aws/sentinel-2/"
+  },
+  {
+   "name": "Element 84 Earth Search",
+   "roles": [
+    "processor",
+    "host"
+   ],
+   "url": "https://earth-search.aws.element84.com/v1/"
+  },
+  {
+   "name": "Siterra science pipeline",
+   "roles": [
+    "processor"
+   ],
+   "processing:lineage": "Deduplicated tile-date items (newest baseline), DN/10000 without offset, scene classification classes 4 and 5 kept, NDVI per observation, same-date tiles merged, per-pixel monthly median and date count, acceptance policy, area summaries over the frozen catchment (docs/reference/observation-preprocessing.md).",
+   "processing:software": {
+    "siterra-science": "0.1.0+uncommitted",
+    "python": "3.12.9",
+    "rasterio": "1.5.2",
+    "gdal": "3.12.2",
+    "numpy": "2.5.4"
+   }
+  }
+ ],
+ "extent": {
+  "spatial": {
+   "bbox": [
+    [
+     -6.54125,
+     31.494306,
+     -6.142083,
+     31.756528
+    ]
+   ]
+  },
+  "temporal": {
+   "interval": [
+    [
+     "2019-01-01T00:00:00Z",
+     "2025-12-31T23:59:59Z"
+    ]
+   ]
+  }
+ },
+ "assets": {
+  "analysis_geometry": {
+   "href": "./analysis-geometry.geojson",
+   "type": "application/geo+json",
+   "title": "Frozen analysis geometry geo_ait_bouguemez_catchment, revision 1",
+   "roles": [
+    "metadata"
+   ],
+   "file:checksum": "1220ac506ece626b6844d759b56aa60a10248c8c0ea5e206f9a28eb436a892a4d47f",
+   "file:size": 119623
+  },
+  "coverage_summary": {
+   "href": "./coverage-summary.json",
+   "type": "application/json",
+   "title": "Per-period dates, accepted share, cloud and snow shares",
+   "roles": [
+    "data"
+   ],
+   "file:checksum": "1220330cf271233cb2e010242d39fbc6e94b5f2ad00436f879efa6d234f04cc3b391",
+   "file:size": 22008
+  }
+ },
+ "created": "2026-10-27T16:22:37Z",
+ "siterra:status": "validated",
+ "siterra:variable": "ndvi_monthly_median",
+ "siterra:dataset": {
+  "id": "sentinel-2-l2a",
+  "version": null,
+  "access_route": "Earth Search STAC API https://earth-search.aws.element84.com/v1/, collection sentinel-2-l2a (legacy), COGs on sentinel-cogs.s3.us-west-2.amazonaws.com read by window",
+  "resolution_note": null
+ },
+ "siterra:geo_selection": {
+  "id": "geo_ait_bouguemez_catchment",
+  "revision": 1,
+  "boundary_role": "hydrological_unit",
+  "area_m2": 417360300,
+  "area_method": "Count of 10 m analysis pixels whose centres fall inside the frozen polygon, EPSG:32629"
+ },
+ "siterra:method": {
+  "id": "coverage_summary",
+  "version": "1.0.0",
+  "analysis_crs": "EPSG:32629",
+  "parameters": {
+   "min_dates_per_pixel_month": 3,
+   "min_area_coverage": 0.7,
+   "stratum": "catchment"
+  },
+  "reference_period": null,
+  "operation_order": [
+   "clear(p, d) = 1 if the scene classification of pixel p on date d is 4 (vegetation) or 5 (not vegetated) and red and near-infrared are present, else 0",
+   "dates(p, t) = number of distinct dates d in month t with clear(p, d) = 1",
+   "accepted(p, t) = 1 if dates(p, t) >= 3, else 0",
+   "valid_fraction(t) = sum over catchment pixels of accepted(p, t) / number of catchment pixels",
+   "status(t) = available if valid_fraction(t) >= 0.70; insufficient if below; missing if no clear date"
+  ]
+ },
+ "siterra:attribution": [
+  "Catchment derived by Siterra from Copernicus DEM GLO-30 (2021 release)",
+  "Contains modified Copernicus Sentinel data 2019-2025",
+  "Produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved",
+  "The organisations in charge of the Copernicus programme by law or by delegation do not incur any liability for any use of the Copernicus WorldDEM-30"
+ ],
+ "siterra:limitations": [
+  "Reduced QA (scene classification only): snow, snow edges and terrain shadow can survive the mask.",
+  "Coverage counts how much data passed the mask; it says nothing about vegetation condition.",
+  "In winter months the accepted pixels favour the valley floor and south-facing slopes, because snow and shade remove the others; the area value then describes those pixels, not the whole catchment.",
+  "This version summarizes the catchment only; per-stratum coverage is not computed yet.",
+  "In winter months the accepted pixels favour the valley floor and south-facing slopes, because snow and shade remove the others; the area value then describes those pixels, not the whole catchment.",
+  "This version summarizes the catchment only; per-stratum coverage is not computed yet."
+ ],
+ "siterra:checks": [
+  {
+   "name": "period_alignment",
+   "passed": true,
+   "detail": "One row per NDVI period ID"
+  },
+  {
+   "name": "attribution_present",
+   "passed": true,
+   "detail": "NDVI bundle attributions carried"
+  }
+ ],
+ "links": [
+  {
+   "rel": "root",
+   "href": "../catalog.json",
+   "type": "application/json"
+  },
+  {
+   "rel": "parent",
+   "href": "../catalog.json",
+   "type": "application/json"
+  },
+  {
+   "rel": "derived_from",
+   "href": "../bundle_s2_ndvi_monthly_ait_bouguemez/collection.json",
+   "type": "application/json",
+   "title": "Catchment NDVI, Sentinel-2 monthly",
+   "file:checksum": "12201afa22db1690d2561926dc827ff2435d76637b7bbebd3c251c642dd32a316ed7"
+  },
+  {
+   "rel": "license",
+   "href": "https://cds.climate.copernicus.eu/licences/ec-sentinel",
+   "title": "Legal notice on the use of Copernicus Sentinel data and service information (SCI-18)"
+  },
+  {
+   "rel": "license",
+   "href": "https://dataspace.copernicus.eu/sites/default/files/media/files/2025-06/copernicus_contributing_mission_data_access_v2_cop_dem_licenses.pdf",
+   "title": "Licence for Copernicus DEM instance COP-DEM-GLO-30-F Global 30m Full, Free & Open (analysis geometry)"
+  },
+  {
+   "rel": "processing-software",
+   "href": "./uv.lock",
+   "type": "application/toml",
+   "title": "Pipeline lockfile (uv)",
+   "file:checksum": "12205154d57a84dcb8f1eb5f992923d7589a669b8dc669edf140f607ff2740733aff"
+  }
+ ]
+}
