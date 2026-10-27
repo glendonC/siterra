@@ -8,8 +8,8 @@ Every number below comes from running the harness; nothing is estimated in advan
 
 | Suite | Question | Method | Pass bar for the demo |
 |---|---|---|---|
-| Extraction fidelity | Do extracted statements quote the source exactly and point to the right page? | Gold set of located statements written by a person for each corpus source; every proposed excerpt must match the source text at its page (whitespace-normalized) | 100% excerpt match (the validator rejects the rest); page locator accuracy reported |
-| Claim typing | Does the model label observations, published context, hypotheses and field requirements correctly? | Gold labels on the same set | Accuracy reported with the confusion matrix; target at least 90% before the demo |
+| Extraction fidelity | Do extracted statements quote the source exactly and point to the right page? | The extraction gold set ([format and normalization below](#extraction-gold-set)); every proposed excerpt must match the source text at its page after that normalization | 100% excerpt match (the validator rejects the rest); page locator accuracy reported |
+| Claim typing | Does the model give each statement the right claim kind (observation, published context, hypothesis, model estimate, scenario, field requirement, verified outcome)? | Gold labels on the same set, using the seven values of `Evidence.claimKind` | Accuracy reported with the confusion matrix; target at least 90% before the demo |
 | Status behavior | Does the model choose the honest hypothesis status for a given evidence pattern? | Fixture cases with known correct status (for example no livestock data means "Cannot be assessed with current data"), plus fixtures where model text restates a hypothesis; the claim-rule validator must reject any restatement without its status word in the same sentence | 100% on the fixture set |
 | Numeric provenance | Does model-written text contain numbers that are not in the records? | Count validator rejections per 100 proposals across repeated runs | Violations are caught 100% (validator); first-pass violation rate reported |
 | Schema adherence | Do proposals parse on the first attempt? | Share of proposals valid on first pass; repair success rate | Reported per task kind |
@@ -22,7 +22,37 @@ Every number below comes from running the harness; nothing is estimated in advan
 
 ## Gold sets
 
-Built by a person during the build from the case corpus (the cited sources). Each item: source ID, page, verbatim excerpt (short), the statement it supports, the correct claim kind. About 10 items per core source is enough to detect regressions; the set is versioned with the corpus manifest. Gold items never enter model prompts.
+Built during the build from the case corpus (the cited sources) and signed by a named person. About 10 items per core source is enough to detect regressions; the set is versioned with the corpus manifest. Gold items never enter model prompts.
+
+### Extraction gold set
+
+The extraction fidelity and claim typing suites read `data/case/gold/extraction.jsonl`: UTF-8 JSON Lines, one JSON object per line.
+
+The first line is the header record: `record` (`header`), `corpus_manifest_sha256` (the SHA-256 of the corpus manifest the items were written against), `text_extractor` (the name and version of the tool that produced the stored text of PDF pages) and `created`. Every later line is one item, with `record` set to `item`:
+
+| Field | Content |
+|---|---|
+| `id` | Stable ID, unique in the file and never reused |
+| `source_id` | The source's `SCI-nn` ID in the [source register](../../research/science/source-register.md) |
+| `page` | For a PDF source: the 1-based page number in the PDF file, not the printed page label; null otherwise |
+| `section`, `snapshot_sha256` | For a source that is not a PDF: the section heading and the SHA-256 of the stored snapshot of the source; null for a PDF source |
+| `text_sha256` | For a PDF source: the SHA-256 of the stored text of the cited page, as produced by the header's `text_extractor`; null for a source that is not a PDF |
+| `char_offset`, `char_length` | The excerpt's start and length in the stored text, counted in Unicode code points of the text as stored, before any normalization: the snapshot for a source that is not a PDF, the stored text of the page for a PDF whose excerpt is withheld; null for a PDF whose excerpt is published |
+| `excerpt` | The verbatim text, at most 300 Unicode code points, or null where the source licence does not allow it to be published (see below) |
+| `excerpt_sha256` | SHA-256 of the excerpt's UTF-8 bytes after Unicode NFC normalization, with each run of characters that have the Unicode White_Space property collapsed to one space and the ends trimmed. The same normalization applies wherever this page says an excerpt must match its source |
+| `statement` | The statement the excerpt supports, in the words a correct extraction would give |
+| `claim_kind` | One of the seven values of `Evidence.claimKind` in [`schemas/case.schema.json`](../../schemas/case.schema.json): `observation`, `scientific_context`, `hypothesis`, `model_estimate`, `scenario`, `field_requirement`, `verified_outcome` |
+| `scope` | The place and period the excerpt itself states, in words; the harness compares it with a proposal's scope note |
+| `labeler` | Who wrote the item |
+| `rubric_version` | The version of the claim-kind rubric the labeler applied |
+| `created` | When the item was written (ISO 8601 date and time with offset) |
+| `signed_by`, `signed` | The person who checked the item against the source, given as their name or their role, as that person agrees, and when; null until signed |
+
+Items drafted by a model carry `labeler` "model draft (<model ID>), unreviewed" and are not gold until a person signs them. The harness scores signed items only and reports the number of unsigned items beside each result.
+
+Excerpt text is public only where the source licence allows it. Otherwise `excerpt` is null and `char_offset` and `char_length` locate it in the stored text; the harness reads the text from its local copy, checks that copy against `text_sha256` or `snapshot_sha256` first, so a re-extraction that moved the offsets fails as changed text rather than as a wrong excerpt, and then checks the excerpt against `excerpt_sha256`.
+
+A numeric gold file, `data/case/gold/numeric.jsonl`, follows later: one item per value, with the bundle ID, period, metric, value and the SHA-256 of the bundle's collection.
 
 A synthetic smoke set is not a gold set. The 16 invented statement pairs used to try the second-reader contract on local Glimmer on 2026-10-27 ([Meta models research](../../research/technology/meta-models.md)) showed that the contract parses on that route; they are never reported in the Quality tab.
 
