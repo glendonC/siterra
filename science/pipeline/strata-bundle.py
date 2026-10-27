@@ -133,5 +133,7 @@ cat_path = os.path.join(bundles, "catalog.json")
 cat = json.load(open(cat_path))
 cat["links"] = [l for l in cat["links"] if l.get("href") != f"./{BUNDLE_ID}/collection.json"]
 cat["links"].append({"rel": "child", "href": f"./{BUNDLE_ID}/collection.json", "type": "application/json", "file:checksum": "1220" + sha(cp)})
+# child links sorted by bundle id, so a rebuild changes only what changed
+cat["links"] = [l for l in cat["links"] if l["rel"] != "child"] + sorted((l for l in cat["links"] if l["rel"] == "child"), key=lambda l: l["href"])
 dump(cat, cat_path)
 print(col["siterra:status"], os.path.getsize(cog), "bytes")

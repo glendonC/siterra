@@ -41,10 +41,10 @@
   {
    "period_id": "period_2019-04",
    "status": "available",
-   "observation_dates": 11,
+   "observation_dates": 12,
    "valid_fraction": 0.7999,
-   "cloud_share_percent": 38.02,
-   "snow_share_percent": 12.36,
+   "cloud_share_percent": 38.53,
+   "snow_share_percent": 12.27,
    "quality_flags": [
     "reduced_qa_fallback",
     "snow_suspected"
@@ -67,7 +67,7 @@
    "status": "available",
    "observation_dates": 12,
    "valid_fraction": 1.0,
-   "cloud_share_percent": 11.66,
+   "cloud_share_percent": 11.51,
    "snow_share_percent": 0.0,
    "quality_flags": [
     "reduced_qa_fallback"
@@ -252,7 +252,7 @@
    "observation_dates": 12,
    "valid_fraction": 0.9752,
    "cloud_share_percent": 11.31,
-   "snow_share_percent": 1.04,
+   "snow_share_percent": 1.05,
    "quality_flags": [
     "reduced_qa_fallback",
     "snow_suspected"
@@ -263,8 +263,8 @@
    "status": "available",
    "observation_dates": 12,
    "valid_fraction": 0.851,
-   "cloud_share_percent": 28.97,
-   "snow_share_percent": 11.95,
+   "cloud_share_percent": 28.94,
+   "snow_share_percent": 11.97,
    "quality_flags": [
     "reduced_qa_fallback",
     "snow_suspected"
@@ -345,7 +345,7 @@
   {
    "period_id": "period_2021-06",
    "status": "available",
-   "observation_dates": 11,
+   "observation_dates": 12,
    "valid_fraction": 1.0,
    "cloud_share_percent": 14.96,
    "snow_share_percent": 0.0,
@@ -401,7 +401,7 @@
   {
    "period_id": "period_2021-11",
    "status": "available",
-   "observation_dates": 11,
+   "observation_dates": 12,
    "valid_fraction": 0.8862,
    "cloud_share_percent": 28.31,
    "snow_share_percent": 10.33,
@@ -415,7 +415,7 @@
    "status": "insufficient",
    "observation_dates": 12,
    "valid_fraction": 0.6011,
-   "cloud_share_percent": 18.21,
+   "cloud_share_percent": 18.22,
    "snow_share_percent": 32.91,
    "quality_flags": [
     "reduced_qa_fallback",

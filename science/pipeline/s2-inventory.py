@@ -1,6 +1,10 @@
 """Sentinel-2 item inventory for the catchment from an Earth Search item list (s2-search.py output; the 2026-10-26 list was made the same way). Stdlib only.
 
-Usage: python3 -I s2-inventory.py <earthsearch-s2-l2a-items.jsonl> <out_dir>
+Usage: python -I s2-inventory.py <earthsearch-s2-l2a-items.jsonl> <out_dir> [--skip-empty <geometry.geojson> <item_cache_dir>]
+With --skip-empty (needs rasterio; reads only the scene classification of duplicated tile-dates over the catchment):
+  among duplicates, in the order newest baseline then highest sequence, keep the first item that has at least one
+  clear pixel (scene classification 4 or 5) inside the catchment; if none has, keep the first. Clear counts are
+  written to kept.jsonl and dropped.jsonl as clear_pixels.
 Rules (docs/reference/observation-preprocessing.md section 2, default route):
   keep MGRS tiles 29SQR and 29RQQ only (30STA duplicates the same passes in another zone);
   deduplicate per tile and sensing date: keep the newest processing baseline, then the highest item sequence
@@ -16,6 +20,24 @@ import os
 import sys
 
 src, out = sys.argv[1:3]
+SKIP = "--skip-empty" in sys.argv
+if SKIP:
+    k = sys.argv.index("--skip-empty")
+    geo_path, cache_dir = sys.argv[k + 1], sys.argv[k + 2]
+    import concurrent.futures as cf
+    import numpy as np
+    import rasterio
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import s2_ndvi
+    tr, shp, mask = s2_ndvi.analysis_grid(geo_path)
+    os.makedirs(cache_dir, exist_ok=True)
+
+    def clear_pixels(iid):
+        d = s2_ndvi.fetch_item(iid, cache_dir)
+        with rasterio.Env(**s2_ndvi.ENV):
+            scl20 = s2_ndvi.read_band("/vsicurl/" + d["assets"]["scl"]["href"], tr, shp, 20)
+        scl = np.repeat(np.repeat(scl20, 2, axis=0), 2, axis=1)[: shp[0], : shp[1]]
+        return int((mask & np.isin(scl, (4, 5))).sum())
 os.makedirs(out, exist_ok=True)
 TILES = {"29SQR", "29RQQ"}
 groups = collections.defaultdict(list)
@@ -38,8 +60,21 @@ for line in open(src):
                                  "tile_cloud_cover": p.get("eo:cloud_cover"),
                                  "nodata_pct": p.get("s2:nodata_pixel_percentage")})
 kept, dropped = [], []
+clear = {}
+if SKIP:
+    todo = [r["id"] for items in groups.values() if len(items) > 1 for r in items]
+    with cf.ThreadPoolExecutor(8) as ex:
+        for iid, n in zip(todo, ex.map(clear_pixels, todo)):
+            clear[iid] = n
+    print("clear pixels read for", len(todo), "duplicated items", flush=True)
 for key, items in sorted(groups.items()):
     items.sort(key=lambda r: (r["baseline"], r["seq"]), reverse=True)
+    if SKIP and len(items) > 1:
+        for r in items:
+            r["clear_pixels"] = clear[r["id"]]
+        first = next((r for r in items if r["clear_pixels"] > 0), items[0])
+        items.remove(first)
+        items.insert(0, first)
     kept.append(items[0])
     for r in items[1:]:
         dropped.append({**r, "replaced_by": items[0]["id"]})

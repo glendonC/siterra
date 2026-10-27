@@ -1,7 +1,12 @@
 """Precompute the P0 recipes monthly_departure, aligned_antecedent and coverage_summary as derived bundles.
 
 Usage: python -I recipes-bundle.py <monthly_dir> <bundles_dir> <registry.json> <lockfile> [departure_grid_dir] [--only-aligned]
+       [--revision-note=<file>] [--stac-version=<n>] [--catalog-note=<file>]
 --only-aligned rewrites only the aligned_antecedent bundle and its catalog link; the other bundles are read, not written.
+--revision-note=<file> adds the file's text as a last paragraph of each written Collection's description and as
+its last limitation. --stac-version=<n> sets each written Collection's STAC `version` to <n> and lists the version
+extension (v1.2.0). Without them a Collection carries neither.
+--catalog-note=<file> sets the catalog description to its fixed first sentence followed by the file's text.
 Inputs: the validated NDVI bundle and rainfall bundle in <bundles_dir>, the 10 m monthly composites in <monthly_dir>
 (median.tif, count.tif). Formulas: science/recipes/registry.json, version 1.0.0 of each recipe. Writes:
   bundle_ndvi_departure_ait_bouguemez   one Item per period: area median of per-pixel departures over common-valid
@@ -9,7 +14,8 @@ Inputs: the validated NDVI bundle and rainfall bundle in <bundles_dir>, the 10 m
   bundle_aligned_antecedent_ait_bouguemez Collection asset aligned-antecedent.json: V(t), P(t), R_k(t), counts for k = 0 to 3
   bundle_coverage_summary_ait_bouguemez  Collection asset coverage-summary.json: per period dates, accepted share, cloud
                                          and snow shares, status (from the NDVI bundle and its composites)
-Optional: per-pixel departure grids (all-years) written to [departure_grid_dir] for private inspection and display work.
+Optional: with [departure_grid_dir], per-pixel departure grids for both references (departure-YYYY-MM.tif and
+departure-loyo-YYYY-MM.tif) are written there for private inspection and display work; they are not part of any bundle.
 """
 import calendar
 import datetime
@@ -54,11 +60,15 @@ def load_items(bdir):
 
 def collection(bid, title, desc, variable, method, src_cols, assets, links_extra, checks, lock_out, bdir, now, items_links=()):
     base = src_cols[0]
+    extra = {"version": STAC_VERSION} if STAC_VERSION else {}
+    if REVISION_NOTE:
+        desc = desc + "\n\n" + REVISION_NOTE
+        method["_limitations"] = list(method["_limitations"]) + [REVISION_NOTE]
     return {
         "type": "Collection", "stac_version": "1.1.0",
         "stac_extensions": ["https://stac-extensions.github.io/processing/v1.3.0/schema.json",
-                            "https://stac-extensions.github.io/file/v2.1.0/schema.json", EXT],
-        "id": bid, "title": title, "description": desc, "license": "other",
+                            "https://stac-extensions.github.io/file/v2.1.0/schema.json", EXT] + ([VERSION_EXT] if STAC_VERSION else []),
+        "id": bid, "title": title, "description": desc, "license": "other", **extra,
         "providers": [p for c in src_cols for p in c["providers"] if "processor" not in p["roles"]] + [p for p in base["providers"] if "processor" in p["roles"]],
         "extent": base["extent"], "assets": assets, "created": now,
         "siterra:status": "validated" if all(c["passed"] for c in checks) else "failed",
@@ -76,6 +86,26 @@ def collection(bid, title, desc, variable, method, src_cols, assets, links_extra
                   *links_extra,
                   {"rel": "processing-software", "href": "./uv.lock", "type": "application/toml", "title": "Pipeline lockfile (uv)",
                    "file:checksum": "1220" + sha(lock_out)}]}
+
+
+def date_rule_note(mroot, period_ids):
+    """The coverage limitation on what counts as an observation date, with the fewest-pixel dates read from the composites."""
+    per_date, geom_px = [], None
+    for pid in period_ids:
+        mj = os.path.join(mroot, pid[7:], "month.json")
+        if not os.path.exists(mj):
+            continue
+        m = json.load(open(mj))
+        geom_px = m["geometry_pixels"]
+        kept = {}
+        for it in m["items"]:
+            kept[it["date"]] = kept.get(it["date"], 0) + it.get("pixels_kept", 0)
+        per_date += [(n, d) for d, n in kept.items() if n > 0]
+    per_date.sort()
+    low = [x for x in per_date if x[0] <= per_date[3][0]]
+    return ("An observation date counts when at least one of its pixel observations over the catchment is kept (scene classification 4 or 5); "
+            f"no minimum is set. The fewest are {low[0][0]} to {low[-1][0]} of {geom_px:,} pixels, on " + ", ".join(d for _, d in sorted(low, key=lambda x: x[1])) + ". "
+            "A minimum chosen after seeing these counts would be post hoc.")
 
 
 def main():
@@ -320,7 +350,8 @@ def main():
         dump({"recipeId": "coverage_summary", "version": rc["version"], "rows": cov, "standardLimitations": rc["standardLimitations"]}, cp)
         meth3 = {"id": "coverage_summary", "version": rc["version"], "analysis_crs": "EPSG:32629",
                  "parameters": {p["name"]: p["default"] for p in rc["parameters"]}, "reference_period": None,
-                 "operation_order": rc["formula"], "_limitations": rc["standardLimitations"] + [WINTER, "This version summarizes the catchment only; per-stratum coverage is not computed yet."]}
+                 "operation_order": rc["formula"], "_limitations": rc["standardLimitations"] + [WINTER, "This version summarizes the catchment only; per-stratum coverage is not computed yet.",
+                                                                                   date_rule_note(mroot, sorted(nitems))]}
         n_by = {s: sum(1 for c in cov if c["status"] == s) for s in ("available", "insufficient", "missing")}
         col3 = collection(bid3, f"Usable observations per month, catchment only (coverage_summary {rc['version']})",
                           f"Precomputed result of recipe coverage_summary {rc['version']} on {NDVI_ID}, for the catchment only (no strata in this version): {n_by['available']} available, {n_by['insufficient']} insufficient, {n_by['missing']} missing periods. " + " ".join(rc["standardLimitations"]),
@@ -337,14 +368,27 @@ def main():
 
     cat_path = os.path.join(bundles, "catalog.json")
     cat = json.load(open(cat_path))
+    if CATALOG_NOTE:
+        cat["description"] = CATALOG_DESCRIPTION + " " + CATALOG_NOTE
     for b in ((bid2,) if ONLY_ALIGNED else (bid, bid2, bid3)):
         cat["links"] = [l for l in cat["links"] if l.get("href") != f"./{b}/collection.json"]
         cat["links"].append({"rel": "child", "href": f"./{b}/collection.json", "type": "application/json",
                              "file:checksum": "1220" + sha(os.path.join(bundles, b, "collection.json"))})
+    # child links sorted by bundle id, so a rebuild changes only what changed
+    cat["links"] = [l for l in cat["links"] if l["rel"] != "child"] + sorted((l for l in cat["links"] if l["rel"] == "child"), key=lambda l: l["href"])
     dump(cat, cat_path)
     print(json.dumps({"aligned_counts": counts} if ONLY_ALIGNED else
                      {"departure_available": n_av, "periods": len(dep_rows), "aligned_counts": counts, "coverage": n_by}, indent=1))
 
+
+_rn = [a for a in sys.argv if a.startswith("--revision-note=")]
+REVISION_NOTE = open(_rn[0].split("=", 1)[1]).read().strip() if _rn else None
+_sv = [a for a in sys.argv if a.startswith("--stac-version=")]
+STAC_VERSION = _sv[0].split("=", 1)[1] if _sv else None
+_cn = [a for a in sys.argv if a.startswith("--catalog-note=")]
+CATALOG_NOTE = open(_cn[0].split("=", 1)[1]).read().strip() if _cn else None
+CATALOG_DESCRIPTION = "Siterra observation bundles. Each child is one bundle (a STAC Collection)."
+VERSION_EXT = "https://stac-extensions.github.io/version/v1.2.0/schema.json"
 
 if __name__ == "__main__":
     main()

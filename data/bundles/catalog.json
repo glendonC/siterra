@@ -2,12 +2,18 @@
  "type": "Catalog",
  "stac_version": "1.1.0",
  "id": "siterra-bundles",
- "description": "Siterra observation bundles. Each child is one bundle (a STAC Collection).",
+ "description": "Siterra observation bundles. Each child is one bundle (a STAC Collection). The NDVI, departure, coverage and aligned bundles are revision 13 (STAC version 13). The CHIRPS rainfall, season summary and terrain strata bundles carry no version field and are unchanged since the first commit.",
  "links": [
   {
    "rel": "root",
    "href": "./catalog.json",
    "type": "application/json"
+  },
+  {
+   "rel": "child",
+   "href": "./bundle_aligned_antecedent_ait_bouguemez/collection.json",
+   "type": "application/json",
+   "file:checksum": "1220554bdacc416173c37d933dad82b5823548de9b819b9a3c80e8805390f67b0e45"
   },
   {
    "rel": "child",
@@ -17,9 +23,21 @@
   },
   {
    "rel": "child",
+   "href": "./bundle_coverage_summary_ait_bouguemez/collection.json",
+   "type": "application/json",
+   "file:checksum": "12207d048ee324fbf94f5c4606d2e5f1121de5c0a45335b5812ce8ba3668d3084423"
+  },
+  {
+   "rel": "child",
+   "href": "./bundle_ndvi_departure_ait_bouguemez/collection.json",
+   "type": "application/json",
+   "file:checksum": "12204d08efa4101b26210d0bf9ec28a5eafe207cdf2f79de6e03e649ac3b9b702889"
+  },
+  {
+   "rel": "child",
    "href": "./bundle_s2_ndvi_monthly_ait_bouguemez/collection.json",
    "type": "application/json",
-   "file:checksum": "12201afa22db1690d2561926dc827ff2435d76637b7bbebd3c251c642dd32a316ed7"
+   "file:checksum": "1220091ac5c9e2c46acc35f07d2725001b9ebe7d2a9ca69abcbeed61993e9ab29c67"
   },
   {
    "rel": "child",
@@ -29,27 +47,9 @@
   },
   {
    "rel": "child",
-   "href": "./bundle_ndvi_departure_ait_bouguemez/collection.json",
-   "type": "application/json",
-   "file:checksum": "12205bf6223b58f7dca7add9e540e7744f7b5318c0a164237100f22df9f613bbf719"
-  },
-  {
-   "rel": "child",
-   "href": "./bundle_coverage_summary_ait_bouguemez/collection.json",
-   "type": "application/json",
-   "file:checksum": "1220e7c73e0997f4260d0c9f2ff26940f8e640ff72e31ea66c8bceae271446741980"
-  },
-  {
-   "rel": "child",
    "href": "./bundle_terrain_strata_ait_bouguemez/collection.json",
    "type": "application/json",
    "file:checksum": "1220857e69c5d1ddbe846b8022836f888254f3f818251b9e3e4ffba8748bae07241d"
-  },
-  {
-   "rel": "child",
-   "href": "./bundle_aligned_antecedent_ait_bouguemez/collection.json",
-   "type": "application/json",
-   "file:checksum": "1220c8c73cb31ab71a6b4c14be941a093c0212b09f994b71db12e8ae955b4db03253"
   }
  ],
  "stac_extensions": [

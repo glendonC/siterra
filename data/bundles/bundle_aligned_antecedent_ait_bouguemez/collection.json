@@ -4,12 +4,14 @@
  "stac_extensions": [
   "https://stac-extensions.github.io/processing/v1.3.0/schema.json",
   "https://stac-extensions.github.io/file/v2.1.0/schema.json",
-  "https://siterra.invalid/schemas/stac/siterra/1.0.0/schema.json"
+  "https://siterra.invalid/schemas/stac/siterra/1.0.0/schema.json",
+  "https://stac-extensions.github.io/version/v1.2.0/schema.json"
  ],
  "id": "bundle_aligned_antecedent_ait_bouguemez",
  "title": "Vegetation and rainfall departures side by side (aligned_antecedent 1.1.1)",
- "description": "Precomputed result of recipe aligned_antecedent 1.1.1: same-sign counts for windows of 0, 1, 2 and 3 months, reported together for both vegetation references. all years reference: 0 months 26 of 45; 1 months 25 of 45; 2 months 25 of 45; 3 months 29 of 44. leave one year out reference: 0 months 31 of 56; 1 months 32 of 56; 2 months 32 of 56; 3 months 36 of 56. Version 1.1.1 is post hoc: the leave-one-year-out reference and the zero rule were added after the first results (1.1.0), and the zero rule was applied to stored values after a second audit (1.1.1), all on 2026-10-27. Counting months that move together shows co-occurrence; it does not estimate how much of a change rainfall explains. Rainfall comes from 5 km grid cells, not from gauges in the valley. A short record can hold months that move together by chance. Values are compared as stored, V at four decimals and R_k at two; a month whose stored V or R_k is 0 has no sign and is left out of both counts. Counts are given for both vegetation references side by side; with the all-years reference a 7-year median often equals the month's own value, so more months have V exactly 0.",
+ "description": "Precomputed result of recipe aligned_antecedent 1.1.1: same-sign counts for windows of 0, 1, 2 and 3 months, reported together for both vegetation references. all years reference: 0 months 26 of 45; 1 months 25 of 45; 2 months 25 of 45; 3 months 29 of 44. leave one year out reference: 0 months 31 of 56; 1 months 32 of 56; 2 months 32 of 56; 3 months 36 of 56. Version 1.1.1 is post hoc: the leave-one-year-out reference and the zero rule were added after the first results (1.1.0), and the zero rule was applied to stored values after a second audit (1.1.1), all on 2026-10-27. Counting months that move together shows co-occurrence; it does not estimate how much of a change rainfall explains. Rainfall comes from 5 km grid cells, not from gauges in the valley. A short record can hold months that move together by chance. Values are compared as stored, V at four decimals and R_k at two; a month whose stored V or R_k is 0 has no sign and is left out of both counts. Counts are given for both vegetation references side by side; with the all-years reference a 7-year median often equals the month's own value, so more months have V exactly 0.\n\nRevision 13 (2026-10-27). Among duplicates of a tile and date, an item with no clear pixels over the catchment is now skipped when a twin has some. That clause was added to the duplicate rule after data was first read; the rule fixed before any data was read kept the newest processing baseline only. Revision 12, the first committed, has no version field; it documented the clause but kept the newest item, so it kept an item with 0 clear pixels over the catchment on seven tile-dates: 29RQQ 2019-04-17 (twin had 285 clear pixels), 2019-06-21 (702,669), 2020-11-12 (84), 2021-06-07 (8), 2021-11-19 (8), 2021-12-22 (8), and 29SQR 2020-10-23 (16). In five cases the twin is an older baseline (02.14, 03.00, 03.01), so its clear pixels come from an older scene classification. This revision recomputes 2019-04, 2019-06, 2020-10, 2020-11, 2021-06, 2021-11 and 2021-12 and everything derived from them; no NDVI or departure area median moved at four decimals.",
  "license": "other",
+ "version": "13",
  "providers": [
   {
    "name": "Copernicus Sentinel-2 (European Union, ESA)",
@@ -112,7 +114,7 @@
    "file:size": 20143
   }
  },
- "created": "2026-10-27T17:11:07Z",
+ "created": "2026-10-27T22:21:51Z",
  "siterra:status": "validated",
  "siterra:variable": "ndvi_departure",
  "siterra:dataset": {
@@ -170,7 +172,8 @@
   "A short record can hold months that move together by chance.",
   "Values are compared as stored, V at four decimals and R_k at two; a month whose stored V or R_k is 0 has no sign and is left out of both counts.",
   "Counts are given for both vegetation references side by side; with the all-years reference a 7-year median often equals the month's own value, so more months have V exactly 0.",
-  "Version 1.1.1 is post hoc: the leave-one-year-out reference and the zero rule were added after the first results (1.1.0), and the zero rule was applied to stored values after a second audit (1.1.1), all on 2026-10-27."
+  "Version 1.1.1 is post hoc: the leave-one-year-out reference and the zero rule were added after the first results (1.1.0), and the zero rule was applied to stored values after a second audit (1.1.1), all on 2026-10-27.",
+  "Revision 13 (2026-10-27). Among duplicates of a tile and date, an item with no clear pixels over the catchment is now skipped when a twin has some. That clause was added to the duplicate rule after data was first read; the rule fixed before any data was read kept the newest processing baseline only. Revision 12, the first committed, has no version field; it documented the clause but kept the newest item, so it kept an item with 0 clear pixels over the catchment on seven tile-dates: 29RQQ 2019-04-17 (twin had 285 clear pixels), 2019-06-21 (702,669), 2020-11-12 (84), 2021-06-07 (8), 2021-11-19 (8), 2021-12-22 (8), and 29SQR 2020-10-23 (16). In five cases the twin is an older baseline (02.14, 03.00, 03.01), so its clear pixels come from an older scene classification. This revision recomputes 2019-04, 2019-06, 2020-10, 2020-11, 2021-06, 2021-11 and 2021-12 and everything derived from them; no NDVI or departure area median moved at four decimals."
  ],
  "siterra:checks": [
   {
@@ -205,7 +208,7 @@
    "href": "../bundle_ndvi_departure_ait_bouguemez/collection.json",
    "type": "application/json",
    "title": "NDVI departure from the same month, 2019 to 2025 (monthly_departure 1.0.0)",
-   "file:checksum": "12205bf6223b58f7dca7add9e540e7744f7b5318c0a164237100f22df9f613bbf719"
+   "file:checksum": "12204d08efa4101b26210d0bf9ec28a5eafe207cdf2f79de6e03e649ac3b9b702889"
   },
   {
    "rel": "derived_from",

@@ -147,6 +147,8 @@ def main():
     cat = json.load(open(cat_path))
     cat["links"] = [l for l in cat["links"] if l.get("href") != f"./{BUNDLE_ID}/collection.json"]
     cat["links"].append({"rel": "child", "href": f"./{BUNDLE_ID}/collection.json", "type": "application/json", "file:checksum": "1220" + sha(cpath)})
+    # child links sorted by bundle id, so a rebuild changes only what changed
+    cat["links"] = [l for l in cat["links"] if l["rel"] != "child"] + sorted((l for l in cat["links"] if l["rel"] == "child"), key=lambda l: l["href"])
     dump(cat, cat_path)
     print(json.dumps({"status": status, "band_mm": [round(L, 2), round(U, 2)], "mean_mm": round(mean, 2), "reference_split": n_cat,
                       "seasons": [(r["season_id"], r["season_total_mm"], r["season_departure_mm"], r["season_category"]) for r in rows]}, indent=1))

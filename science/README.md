@@ -24,12 +24,12 @@ python -I pipeline/chirps_fetch.py data/raw/chirps-v3.0/monthly-global-cogs 1991
 python -I pipeline/chirps-crosscheck.py data/raw/chirps-v3.0/monthly-global-cogs/chirps-v3.0.2022.01.cog.window.json 2022 1
 python -I pipeline/chirps-bundle.py data/raw/chirps-v3.0/monthly-global-cogs <geometry.geojson> uv.lock data/bundles 2019-01 2025-12 --inspected
 python -I pipeline/s2-search.py -6.60,31.50,-6.10,31.80 2019-01 2025-12 <items.jsonl>
-python -I pipeline/s2-inventory.py <items.jsonl> <inventory_dir>
+python -I pipeline/s2-inventory.py <items.jsonl> <inventory_dir> --skip-empty <geometry.geojson> <item_cache_dir>
 python -I pipeline/derived-from-items.py data/bundles/bundle_s2_ndvi_monthly_ait_bouguemez <inventory_dir>/kept.jsonl   (instead of the two lines above, to reproduce the bundle's exact inputs)
 python -I pipeline/s2_ndvi.py <inventory_dir>/kept.jsonl <geometry.geojson> data/interim/s2-monthly 2019-01 2025-12 8
-python -I pipeline/ndvi-bundle.py data/interim/s2-monthly <inventory_dir>/kept.jsonl <geometry.geojson> uv.lock data/bundles 2019-01 2025-12 --inspected=<note.txt>
+python -I pipeline/ndvi-bundle.py data/interim/s2-monthly <inventory_dir>/kept.jsonl <geometry.geojson> uv.lock data/bundles 2019-01 2025-12 --inspected=<note.txt> [--revision-note=<file>] [--stac-version=<n>]
 python -I pipeline/season-bundle.py data/bundles/bundle_chirps_monthly_ait_bouguemez data/raw/chirps-v3.0/monthly-global-cogs recipes/registry.json uv.lock data/bundles
-python -I pipeline/recipes-bundle.py data/interim/s2-monthly data/bundles recipes/registry.json uv.lock
+python -I pipeline/recipes-bundle.py data/interim/s2-monthly data/bundles recipes/registry.json uv.lock [data/interim/ndvi-departure] [--revision-note=<file>] [--stac-version=<n>] [--catalog-note=<file>]
 python -I pipeline/worldcover-grid.py <geometry.geojson> data/interim/worldcover
 python -I pipeline/dem-strata.py <Copernicus_DSM_COG_10_N31_00_W007_00_DEM.tif> <geometry.geojson> data/interim/worldcover/worldcover-2021.tif data/interim/strata
 python -I pipeline/strata-bundle.py data/interim/strata data/interim/worldcover <geometry.geojson> uv.lock data/bundles --inspected=<note.txt>
@@ -37,6 +37,15 @@ python -I pipeline/validate-bundles.py data/bundles schemas/stac/siterra-extensi
 ```
 
 `validate-bundles.py` fetches the STAC core and extension schemas over HTTPS on first use and caches each one in `<schema_cache_dir>` under the SHA-256 of its URL; the Siterra extension is read from the repository file. `--inspected` records that a person looked at rendered samples (`render-cells.py`, `render-ndvi.py`, `render-strata.py`); without it the visual inspection check fails and the bundle status is `failed`. Build a new revision outside `data/bundles/`, validate it there, and copy it in one step.
+
+Options for a new revision of the NDVI and recipe bundles (`ndvi-bundle.py`, `recipes-bundle.py`):
+
+- `--revision-note=<file>` adds the file's text as the last paragraph of each Collection the script writes, in its description and as its last limitation.
+- `--stac-version=<n>` sets the STAC `version` field of each Collection the script writes to `<n>` and lists the [version extension](https://github.com/stac-extensions/version) v1.2.0.
+- `--catalog-note=<file>` (`recipes-bundle.py` only) sets the catalog description to its fixed first sentence followed by the file's text.
+- The optional fifth argument of `recipes-bundle.py`, a folder such as `data/interim/ndvi-departure`, receives per-pixel departure grids for both references, for inspection and display only; no bundle contains them.
+
+Without these options a Collection carries no `version` and no revision note. Revision 13 was built with both options on the NDVI, departure, coverage and aligned bundles; the rainfall, season and strata bundles have no `version` field and are unchanged since the first commit. Every script that writes the catalog keeps its child links sorted by bundle ID. `chirps-bundle.py` is the exception: it writes a new catalog that holds only its own child, so run it first, as in Steps; run on an existing `data/bundles/`, it drops the other children.
 
 ## Scripts
 
@@ -48,7 +57,7 @@ Modules that other scripts import keep snake_case names (`chirps_fetch.py`, `s2_
 | `chirps-crosscheck.py` | Compares a stored window with the separate CHIRPS Africa GeoTIFF of the same month, cell by cell |
 | `chirps-bundle.py` | Exact cell fractions in EPSG:32629, catchment totals, 1991 to 2020 same-month means, departures; rainfall bundle with its checks, including a recompute of one month from the Africa GeoTIFF through GDAL |
 | `s2-search.py` | Searches Earth Search month by month for an envelope bounding box and writes the item list (stdlib; the exact STAC query is in its docstring) |
-| `s2-inventory.py` | Keeps tiles 29SQR and 29RQQ, deduplicates per tile and date, records dropped item IDs and monthly date counts |
+| `s2-inventory.py` | Keeps tiles 29SQR and 29RQQ, deduplicates per tile and date (with `--skip-empty`, skips a duplicate with no clear pixels over the catchment when a twin has some), records dropped item IDs and monthly date counts |
 | `derived-from-items.py` | Rebuilds the item list from a bundle's `derived_from` links, so a rerun uses exactly the bundle's inputs |
 | `s2-dn-scale-check.py`, `s2-pair-diff.py` | Read overview levels of Sentinel-2 COGs and compare same-acquisition duplicates pixel by pixel: the evidence for the offset rule |
 | `s2_ndvi.py` | Monthly per-pixel NDVI medians and date counts at 10 m on one EPSG:32629 grid, scene classification mask, DN / 10000 without offset; retries a scene on read failures |
@@ -60,4 +69,4 @@ Modules that other scripts import keep snake_case names (`chirps_fetch.py`, `s2_
 
 ## Known limits
 
-Bundles link this `uv.lock`. The environment that built them held 59 pins: these 15, plus pysheds 0.5 (GPL-3.0-or-later, used only by the separate catchment delineation) and its dependencies (numba, llvmlite, scipy, scikit-image, pandas, networkx, imageio, tifffile, lazy-loader, geojson, looseversion, packaging, python-dateutil, six), plus pystac with pystac-core and 22 pystac-ext packages, and pystac-client with requests, urllib3, idna and charset-normalizer. No script in this package imports any of those 44. `s2-inventory.py` does not yet apply the rule that skips a duplicate with no valid pixels over the catchment; to reproduce a bundle, use `derived-from-items.py`. Display rasters and value grids are not produced yet.
+Bundles link this `uv.lock`. The environment that built them held 59 pins: these 15, plus pysheds 0.5 (GPL-3.0-or-later, used only by the separate catchment delineation) and its dependencies (numba, llvmlite, scipy, scikit-image, pandas, networkx, imageio, tifffile, lazy-loader, geojson, looseversion, packaging, python-dateutil, six), plus pystac with pystac-core and 22 pystac-ext packages, and pystac-client with requests, urllib3, idna and charset-normalizer. No script in this package imports any of those 44. To reproduce an existing bundle exactly, use `derived-from-items.py` rather than a fresh search. Display rasters and value grids are not produced yet.

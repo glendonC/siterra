@@ -1,6 +1,10 @@
 """Build the Sentinel-2 monthly NDVI bundle (STAC 1.1.0 static Collection, one Item per period) from s2_ndvi.py outputs.
 
 Usage: python -I ndvi-bundle.py <monthly_dir> <kept.jsonl> <geometry.geojson> <lockfile> <bundles_dir> <first> <last> [--inspected=<note.txt>]
+       [--revision-note=<file>] [--stac-version=<n>]
+--revision-note=<file> adds the file's text as a last paragraph of each written Collection's description and as
+its last limitation. --stac-version=<n> sets each written Collection's STAC `version` to <n> and lists the version
+extension (v1.2.0). Without them a Collection carries neither.
 Imports only permissive packages. Policy (docs/reference/observation-preprocessing.md section 4), fixed for this version:
   a pixel-month is accepted with at least 3 distinct dates; a period is available when accepted pixels cover at least 70%
   of the geometry, otherwise insufficient (value withheld, counts kept); a period with no kept observation is missing.
@@ -231,7 +235,8 @@ def main(inspected):
                         f"when such pixels cover at least {MIN_AREA * 100:.0f}% of the catchment.\n\nReduced QA (scene classification only): "
                         "snow and terrain shadow can survive the mask. The spatial IQR is variability across pixels, not a confidence "
                         "interval. Item geometries are the catchment simplified to one DEM pixel; the exact frozen geometry is the "
-                        "analysis_geometry asset. The input set is exactly the derived_from items of each period: one item per tile and sensing date, the newest processing baseline, skipping a duplicate with no valid pixels over the catchment. Display rasters and value grids are not part of this version."),
+                        "analysis_geometry asset. The input set is exactly the derived_from items of each period: one item per tile and sensing date, the newest processing baseline, skipping a duplicate with no clear pixels over the catchment when a twin has some. Display rasters and value grids are not part of this version.")
+                       + (("\n\n" + REVISION_NOTE) if REVISION_NOTE else ""),
         "license": "other",
         "providers": [
             {"name": "Copernicus Sentinel-2 (European Union, ESA)", "roles": ["producer", "licensor"]},
@@ -288,7 +293,7 @@ def main(inspected):
             "Processing baselines differ across the record (mostly 05.00 for 2019 to 2021, 04.00 for 2022, 05.09 to 05.11 later); same-acquisition comparisons differ by about 0.002 to 0.003 reflectance.",
             "Seven years is a short record; nothing here is a trend or a degradation finding.",
             "Cloud and snow shares are counted per tile observation; the 29SQR and 29RQQ overlap counts twice.",
-        ] + ([f"{len(pending)} of {len(statuses)} periods were not processed in this revision and are shown as gaps: " + ", ".join(p[7:] for p in pending) + "."] if pending else []),
+        ] + ([f"{len(pending)} of {len(statuses)} periods were not processed in this revision and are shown as gaps: " + ", ".join(p[7:] for p in pending) + "."] if pending else []) + ([REVISION_NOTE] if REVISION_NOTE else []),
         "siterra:checks": checks,
         "links": [{"rel": "root", "href": "../catalog.json", "type": "application/json"},
                   {"rel": "parent", "href": "../catalog.json", "type": "application/json"},
@@ -301,6 +306,9 @@ def main(inspected):
                   {"rel": "processing-software", "href": "./uv.lock", "type": "application/toml",
                    "title": "Pipeline lockfile (uv)", "file:checksum": "1220" + sha(lock_out)}],
     }
+    if STAC_VERSION:
+        collection["stac_extensions"].append(VERSION_EXT)
+        collection["version"] = STAC_VERSION
     cpath = os.path.join(bdir, "collection.json")
     dump(collection, cpath)
     cat_path = os.path.join(bundles_dir, "catalog.json")
@@ -312,12 +320,20 @@ def main(inspected):
     cat["links"] = [l for l in cat["links"] if l.get("href") != f"./{BUNDLE_ID}/collection.json"]
     cat["links"].append({"rel": "child", "href": f"./{BUNDLE_ID}/collection.json", "type": "application/json",
                          "file:checksum": "1220" + sha(cpath)})
+    # child links sorted by bundle id, so a rebuild changes only what changed
+    cat["links"] = [l for l in cat["links"] if l["rel"] != "child"] + sorted((l for l in cat["links"] if l["rel"] == "child"), key=lambda l: l["href"])
     dump(cat, cat_path)
     print(json.dumps({"status": status, "pending": len(pending), "periods": len(summaries), "by_status": {k: sum(1 for v in statuses.values() if v == k) for k in ("available", "insufficient", "missing")}, "guard": guard,
                       "recompute": [a["median"], b["median"], rdiff], "collection_sha256": sha(cpath)}, indent=1))
     for c in checks:
         print(("PASS " if c["passed"] else "FAIL ") + c["name"] + ": " + c["detail"][:160])
 
+
+_rn = [a for a in sys.argv if a.startswith("--revision-note=")]
+REVISION_NOTE = open(_rn[0].split("=", 1)[1]).read().strip() if _rn else None
+_sv = [a for a in sys.argv if a.startswith("--stac-version=")]
+STAC_VERSION = _sv[0].split("=", 1)[1] if _sv else None
+VERSION_EXT = "https://stac-extensions.github.io/version/v1.2.0/schema.json"
 
 if __name__ == "__main__":
     flag = [a for a in sys.argv if a.startswith("--inspected=")]

@@ -4,12 +4,14 @@
  "stac_extensions": [
   "https://stac-extensions.github.io/processing/v1.3.0/schema.json",
   "https://stac-extensions.github.io/file/v2.1.0/schema.json",
-  "https://siterra.invalid/schemas/stac/siterra/1.0.0/schema.json"
+  "https://siterra.invalid/schemas/stac/siterra/1.0.0/schema.json",
+  "https://stac-extensions.github.io/version/v1.2.0/schema.json"
  ],
  "id": "bundle_coverage_summary_ait_bouguemez",
  "title": "Usable observations per month, catchment only (coverage_summary 1.0.0)",
- "description": "Precomputed result of recipe coverage_summary 1.0.0 on bundle_s2_ndvi_monthly_ait_bouguemez, for the catchment only (no strata in this version): 68 available, 16 insufficient, 0 missing periods. Reduced QA (scene classification only): snow, snow edges and terrain shadow can survive the mask. Coverage counts how much data passed the mask; it says nothing about vegetation condition. In winter months the accepted pixels favour the valley floor and south-facing slopes, because snow and shade remove the others; the area value then describes those pixels, not the whole catchment. This version summarizes the catchment only; per-stratum coverage is not computed yet.",
+ "description": "Precomputed result of recipe coverage_summary 1.0.0 on bundle_s2_ndvi_monthly_ait_bouguemez, for the catchment only (no strata in this version): 68 available, 16 insufficient, 0 missing periods. Reduced QA (scene classification only): snow, snow edges and terrain shadow can survive the mask. Coverage counts how much data passed the mask; it says nothing about vegetation condition. In winter months the accepted pixels favour the valley floor and south-facing slopes, because snow and shade remove the others; the area value then describes those pixels, not the whole catchment. This version summarizes the catchment only; per-stratum coverage is not computed yet.\n\nRevision 13 (2026-10-27). Among duplicates of a tile and date, an item with no clear pixels over the catchment is now skipped when a twin has some. That clause was added to the duplicate rule after data was first read; the rule fixed before any data was read kept the newest processing baseline only. Revision 12, the first committed, has no version field; it documented the clause but kept the newest item, so it kept an item with 0 clear pixels over the catchment on seven tile-dates: 29RQQ 2019-04-17 (twin had 285 clear pixels), 2019-06-21 (702,669), 2020-11-12 (84), 2021-06-07 (8), 2021-11-19 (8), 2021-12-22 (8), and 29SQR 2020-10-23 (16). In five cases the twin is an older baseline (02.14, 03.00, 03.01), so its clear pixels come from an older scene classification. This revision recomputes 2019-04, 2019-06, 2020-10, 2020-11, 2021-06, 2021-11 and 2021-12 and everything derived from them; no NDVI or departure area median moved at four decimals.",
  "license": "other",
+ "version": "13",
  "providers": [
   {
    "name": "Copernicus Sentinel-2 (European Union, ESA)",
@@ -93,11 +95,11 @@
    "roles": [
     "data"
    ],
-   "file:checksum": "1220330cf271233cb2e010242d39fbc6e94b5f2ad00436f879efa6d234f04cc3b391",
+   "file:checksum": "1220c8ecac7e722c3686285579d7ebf7ff34b35ed4c5abe4a2d639cccd995fb59a63",
    "file:size": 22008
   }
  },
- "created": "2026-10-27T16:22:37Z",
+ "created": "2026-10-27T22:21:51Z",
  "siterra:status": "validated",
  "siterra:variable": "ndvi_monthly_median",
  "siterra:dataset": {
@@ -143,7 +145,9 @@
   "In winter months the accepted pixels favour the valley floor and south-facing slopes, because snow and shade remove the others; the area value then describes those pixels, not the whole catchment.",
   "This version summarizes the catchment only; per-stratum coverage is not computed yet.",
   "In winter months the accepted pixels favour the valley floor and south-facing slopes, because snow and shade remove the others; the area value then describes those pixels, not the whole catchment.",
-  "This version summarizes the catchment only; per-stratum coverage is not computed yet."
+  "This version summarizes the catchment only; per-stratum coverage is not computed yet.",
+  "An observation date counts when at least one of its pixel observations over the catchment is kept (scene classification 4 or 5); no minimum is set. The fewest are 4 to 8 of 4,173,603 pixels, on 2019-04-02, 2020-03-19, 2021-06-07, 2021-11-19. A minimum chosen after seeing these counts would be post hoc.",
+  "Revision 13 (2026-10-27). Among duplicates of a tile and date, an item with no clear pixels over the catchment is now skipped when a twin has some. That clause was added to the duplicate rule after data was first read; the rule fixed before any data was read kept the newest processing baseline only. Revision 12, the first committed, has no version field; it documented the clause but kept the newest item, so it kept an item with 0 clear pixels over the catchment on seven tile-dates: 29RQQ 2019-04-17 (twin had 285 clear pixels), 2019-06-21 (702,669), 2020-11-12 (84), 2021-06-07 (8), 2021-11-19 (8), 2021-12-22 (8), and 29SQR 2020-10-23 (16). In five cases the twin is an older baseline (02.14, 03.00, 03.01), so its clear pixels come from an older scene classification. This revision recomputes 2019-04, 2019-06, 2020-10, 2020-11, 2021-06, 2021-11 and 2021-12 and everything derived from them; no NDVI or departure area median moved at four decimals."
  ],
  "siterra:checks": [
   {
@@ -173,7 +177,7 @@
    "href": "../bundle_s2_ndvi_monthly_ait_bouguemez/collection.json",
    "type": "application/json",
    "title": "Catchment NDVI, Sentinel-2 monthly",
-   "file:checksum": "12201afa22db1690d2561926dc827ff2435d76637b7bbebd3c251c642dd32a316ed7"
+   "file:checksum": "1220091ac5c9e2c46acc35f07d2725001b9ebe7d2a9ca69abcbeed61993e9ab29c67"
   },
   {
    "rel": "license",
