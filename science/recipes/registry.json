@@ -110,7 +110,7 @@
       ],
       "priority": "P0",
       "registration": "Catalog row before data; formula and parameters written with the first run (2026-10-27)",
-      "formulaPlain": "A pixel-month counts when it has at least 3 clear dates, and a month is available when such pixels cover at least 70% of the catchment."
+      "formulaPlain": "A pixel-month counts when it has at least 3 clear dates. A month is available when such pixels cover at least 70% of the catchment."
     },
     {
       "recipeId": "monthly_departure",
@@ -196,7 +196,7 @@
         }
       ],
       "assumptions": [
-        "A per-pixel median of seven years describes what is usual for that pixel and month"
+        "A per-pixel median of 7 years describes what is usual for that pixel and month"
       ],
       "failureModes": [
         "Dry years inside the reference pull it down; snow-affected months; processing baseline mix (about 0.002 to 0.003 reflectance)"
@@ -227,7 +227,7 @@
       ],
       "priority": "P0",
       "registration": "Catalog row before data; formula and parameters written with the first run (2026-10-27)",
-      "formulaPlain": "Each pixel's monthly NDVI is compared with its median for the same calendar month over 2019 to 2025, and separately over the other years only, and the departures are summarized by their area median and spatial spread over the catchment."
+      "formulaPlain": "Each pixel's monthly NDVI is compared with its median for the same month over 2019 to 2025, and over the other years only. The departures are summarized by their area median and spatial spread."
     },
     {
       "recipeId": "aligned_antecedent",
@@ -327,10 +327,10 @@
         }
       ],
       "assumptions": [
-        "Catchment-weighted CHIRPS cells represent the catchment's rainfall coarsely; vegetation can respond to rain within about three months"
+        "Catchment-weighted CHIRPS cells represent the catchment's rainfall coarsely; vegetation can respond to rain within about 3 months"
       ],
       "failureModes": [
-        "Snow storage delays the response beyond three months; irrigated fields respond to water that is not rain; counts are not significance"
+        "Snow storage delays the response beyond 3 months; irrigated fields respond to water that is not rain; counts are not significance"
       ],
       "standardLimitations": [
         "Counting months that move together shows co-occurrence; it does not estimate how much of a change rainfall explains.",
@@ -361,7 +361,7 @@
       "priority": "P0",
       "registration": "Catalog row before data; 1.0.0 formula written with the first run (all-years reference only, zero rule unstated). 1.1.0 is post hoc (2026-10-27, after the first results and an audit): it adds the leave-one-year-out reference side by side and states the zero rule; neither reference is preferred. 1.1.1 is post hoc too (2026-10-27, after a second audit): the zero rule applies to the stored values (V at four decimals, R_k at two), so the published rows reproduce the counts; this changes the all-years aligned counts from 46, 46, 46, 45 to 45, 45, 45, 44",
       "postHocNote": "Version 1.1.1 is post hoc: the leave-one-year-out reference and the zero rule were added after the first results (1.1.0), and the zero rule was applied to stored values after a second audit (1.1.1), all on 2026-10-27.",
-      "formulaPlain": "For each month, the sign of the catchment vegetation departure is compared with the sign of the rainfall departure summed over that month and up to three months before it, and the months that agree are counted, for both vegetation references."
+      "formulaPlain": "Each month's vegetation departure is compared with rainfall departures summed over that month alone, and over windows reaching 1, 2 and 3 months back. Each window is counted separately. Months whose signs agree are counted, for both vegetation references."
     },
     {
       "recipeId": "season_summary",
@@ -448,7 +448,7 @@
       ],
       "priority": "P0",
       "registration": "Full entry registered 2026-10-27 before any event comparison and without vegetation data",
-      "formulaPlain": "The November to April catchment rainfall total is placed among the 30 wet seasons that start in 1991 to 2020: below the lower third it is below normal, above the upper third above normal, otherwise near normal."
+      "formulaPlain": "The November to April catchment rainfall total is placed among the 30 wet seasons that start in 1991 to 2020. In the lowest third of that range it is below normal, in the highest third above normal, otherwise near normal."
     },
     {
       "recipeId": "terrain_strata",
@@ -567,7 +567,7 @@
         "SCI-13"
       ],
       "priority": "P0",
-      "formulaPlain": "The catchment is split into three equal-area elevation bands and into north, east, south and west facing slopes plus level ground, with WorldCover cropland and built-up areas set aside."
+      "formulaPlain": "The catchment is split into three equal-area elevation bands, and into north, east, south and west facing slopes plus level ground. WorldCover cropland and built-up areas are set aside."
     }
   ]
 }

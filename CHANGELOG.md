@@ -49,3 +49,4 @@ Contracts and design tokens carry their own Semantic Versioning numbers, recorde
 ### Fixed
 
 - Sentinel-2 duplicates: an item with no clear pixels over the catchment is now skipped when a twin of the same tile and date has some, as the preprocessing page already stated. Revision 13 of the NDVI, departure, coverage and aligned bundles (STAC `version` 13) changes seven tile-dates and moves no NDVI or departure value; the pipeline README documents the options that write a revision.
+- Recipe registry: the plain-language formulas of `season_summary` and `aligned_antecedent` now state the registered tercile rule and the four antecedent windows; `all six months` stays as registered.
