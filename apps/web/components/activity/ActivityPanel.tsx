@@ -1,11 +1,11 @@
 "use client";
 
 // The activity panel, docked under the card: the request's steps from its event log (projectActivity),
-// each with its status, the models and tools it used, what it returned, and what was rejected or is
+// under the engine's five stages (stageGroups; a stage with no task shows its name only), each with its status, the models and tools it used, what it returned, and what was rejected or is
 // missing. A replay says it is one, and a replay playing at reading pace says that too. While the request
 // runs the panel holds the one Esc action (Stop, or Show all steps during a paced replay).
 
-import type { ActivityRow } from "../../lib/activity/activity";
+import { stageGroups, type ActivityRow } from "../../lib/activity/activity";
 import { en, format, type MessageId } from "../../lib/copy/en";
 import { READING_PACE_MS } from "./usePacedLog";
 import styles from "./ActivityPanel.module.css";
@@ -62,37 +62,52 @@ export function ActivityPanel({ rows, replay, pacing = false, stop, onStop }: Ac
       {rows.length === 0 ? (
         <p className={styles.empty}>{en["activity.empty"].text}</p>
       ) : (
-        <ol className={styles.rows}>
-          {rows.map((r) => (
+        <ol className={styles.stages}>
+          {stageGroups(rows).map((g) => (
             <li
-              key={r.taskId}
-              className={styles.row}
-              data-state={r.state}
-              data-record-ids={r.taskId}
+              key={g.id}
+              className={styles.stage}
+              data-stage={g.id}
+              data-empty={g.rows.length === 0}
             >
-              <p className={styles.rowHead}>
-                <span className={styles.label}>{r.label}</span>
-                <span className={styles.status}>{r.status}</span>
-              </p>
-              <p className={styles.question}>{r.question}</p>
-              {r.badges.length > 0 ? (
-                <ul className={styles.badges}>
-                  {r.badges.map((b) => (
-                    <li key={b} className={styles.badge}>
-                      {b}
-                    </li>
+              <h3 className={styles.stageName}>{g.label}</h3>
+              {g.rows.length > 0 ? (
+                <ol className={styles.rows}>
+                  {g.rows.map((r) => (
+                    <Row key={r.taskId} r={r} />
                   ))}
-                </ul>
+                </ol>
               ) : null}
-              {r.lines.map((l, i) => (
-                <p key={`${String(i)} ${l.text}`} className={styles.line} data-kind={l.kind}>
-                  {l.text}
-                </p>
-              ))}
             </li>
           ))}
         </ol>
       )}
     </section>
+  );
+}
+
+function Row({ r }: { r: ActivityRow }) {
+  return (
+    <li className={styles.row} data-state={r.state} data-record-ids={r.taskId}>
+      <p className={styles.rowHead}>
+        <span className={styles.label}>{r.label}</span>
+        <span className={styles.status}>{r.status}</span>
+      </p>
+      <p className={styles.question}>{r.question}</p>
+      {r.badges.length > 0 ? (
+        <ul className={styles.badges}>
+          {r.badges.map((b) => (
+            <li key={b} className={styles.badge}>
+              {b}
+            </li>
+          ))}
+        </ul>
+      ) : null}
+      {r.lines.map((l, i) => (
+        <p key={`${String(i)} ${l.text}`} className={styles.line} data-kind={l.kind}>
+          {l.text}
+        </p>
+      ))}
+    </li>
   );
 }

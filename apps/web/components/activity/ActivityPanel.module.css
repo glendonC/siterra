@@ -68,8 +68,29 @@
   color: var(--grey);
 }
 
-.rows {
+.stages {
   margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.stage + .stage {
+  margin-top: 10px;
+}
+
+.stageName {
+  margin: 0;
+  font: 500 11px / 16px var(--font-mono);
+  color: var(--ink);
+}
+
+.stage[data-empty="true"] .stageName {
+  color: var(--grey);
+  font-weight: 400;
+}
+
+.rows {
+  margin: 4px 0 0;
   padding: 0;
   list-style: none;
   border-top: 1px solid var(--rule);

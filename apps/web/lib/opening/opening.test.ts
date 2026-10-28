@@ -15,6 +15,17 @@ describe("openingCopy", () => {
     expect(c.how).toContain("Muse Spark");
   });
 
+  it("names the engine's five stages in order", () => {
+    expect(c.stagesLabel).toBe("Five Stages");
+    expect(c.stages).toEqual([
+      "Scope & Baseline",
+      "Evidence",
+      "Hypothesis Testing",
+      "Interventions & Precedents",
+      "Field Verification",
+    ]);
+  });
+
   it("asks the case's own question, from its record, under a Question label", () => {
     expect(c.questionLabel).toBe("Question");
     expect(c.question).toBe(snapshot.case.objective);

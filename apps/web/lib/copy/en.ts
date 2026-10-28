@@ -30,6 +30,15 @@ export const en = {
   "opening.action": { text: "Open Region Pack", kind: "button" },
   "opening.skip": { text: "Skip to Map", kind: "link" },
 
+  // The engine's five stages (ADR-0043 amendment, proposed). ADR-0023 bars causal diagnosis, so stage 3
+  // tests hypotheses; precedents are published studies; nothing is verified in the field yet
+  "stage.scope_baseline": { text: "Scope & Baseline", kind: "heading" },
+  "stage.evidence": { text: "Evidence", kind: "heading" },
+  "stage.hypothesis_testing": { text: "Hypothesis Testing", kind: "heading" },
+  "stage.interventions_precedents": { text: "Interventions & Precedents", kind: "heading" },
+  "stage.field_verification": { text: "Field Verification", kind: "heading" },
+  "opening.stages": { text: "Five Stages", kind: "heading" },
+
   // The Region Pack the case loads (lib/pack/regionPack.ts): every value comes from the case record
   "pack.title": { text: "Region Pack", kind: "heading" },
   "pack.layers": { text: "Data Layers", kind: "heading" },

@@ -54,6 +54,14 @@ export function Opening({ question, pack, onOpen, onSkip, onShown }: OpeningProp
         <article className={styles.beat}>
           <h1 className={styles.sentence}>{copy.title}</h1>
           <p className={styles.what}>{copy.what}</p>
+          <div className={styles.stagesBlock}>
+            <span className={styles.label}>{copy.stagesLabel}</span>
+            <ol className={styles.stages} data-stages>
+              {copy.stages.map((s) => (
+                <li key={s}>{s}</li>
+              ))}
+            </ol>
+          </div>
           <p className={styles.how}>{copy.how}</p>
           <p className={styles.caseLine}>
             <span className={styles.label}>{copy.questionLabel}</span>

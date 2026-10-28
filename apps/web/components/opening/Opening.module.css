@@ -53,6 +53,38 @@
   color: var(--ink);
 }
 
+.stagesBlock {
+  margin: 16px auto 0;
+  animation: fade 300ms var(--ease-arrive) 250ms both;
+}
+
+.stages {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: stage;
+  font: 400 var(--type-mono-small-size) / 20px var(--font-mono);
+  color: var(--ink);
+}
+
+.stages li {
+  counter-increment: stage;
+}
+
+.stages li::before {
+  content: counter(stage) " ";
+  color: var(--grey);
+}
+
+.stages li + li::before {
+  content: "  " counter(stage) " ";
+  white-space: pre;
+}
+
 .status {
   display: block;
   font: 400 var(--type-mono-small-size) / 20px var(--font-mono);
@@ -136,6 +168,7 @@
 @media (prefers-reduced-motion: reduce) {
   .sentence,
   .what,
+  .stagesBlock,
   .how,
   .caseLine,
   .action {

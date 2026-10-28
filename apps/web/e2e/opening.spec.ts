@@ -18,6 +18,13 @@ test("one opening screen with the case's question, and the skip link goes straig
   const objective = ((await record.json()) as { case: { objective: string } }).case.objective;
   await expect(opening).toContainText(`Question${objective}`);
   await expect(opening).toContainText("Muse Spark");
+  await expect(opening.locator("[data-stages] li")).toHaveText([
+    "Scope & Baseline",
+    "Evidence",
+    "Hypothesis Testing",
+    "Interventions & Precedents",
+    "Field Verification",
+  ]);
   await expect(opening.locator("[data-pack]")).toContainText("Real Data · Field Unverified");
   await expect(opening.locator("h1")).toHaveCount(1);
 

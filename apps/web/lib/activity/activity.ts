@@ -16,6 +16,7 @@ export interface ActivityLine {
 
 export interface ActivityRow {
   taskId: string;
+  kind: Task["kind"];
   label: string;
   question: string;
   state: Task["status"];
@@ -23,6 +24,44 @@ export interface ActivityRow {
   /** The models and tools the step used, in the order they first ran. */
   badges: string[];
   lines: ActivityLine[];
+}
+
+export type StageId =
+  | "scope_baseline"
+  | "evidence"
+  | "hypothesis_testing"
+  | "interventions_precedents"
+  | "field_verification";
+
+/** The engine's five stages, in order (ADR-0043 amendment, proposed). */
+export const STAGES: readonly { id: StageId; label: string }[] = (
+  [
+    "scope_baseline",
+    "evidence",
+    "hypothesis_testing",
+    "interventions_precedents",
+    "field_verification",
+  ] as const
+).map((id) => ({ id, label: en[`stage.${id}`].text }));
+
+/**
+ * The stage each task kind belongs to. The validation task checks any proposal before review, so it sits
+ * with Field Verification, where review is requested.
+ */
+const STAGE_OF: Readonly<Record<Task["kind"], StageId>> = {
+  plan: "scope_baseline",
+  observation_analysis: "evidence",
+  source_research: "evidence",
+  livelihood_governance: "evidence",
+  hypothesis_comparison: "hypothesis_testing",
+  intervention_feasibility: "interventions_precedents",
+  brief_package: "field_verification",
+  validation: "field_verification",
+};
+
+/** All five stages with the rows under each, in row order; a stage with no task keeps an empty list. */
+export function stageGroups(rows: readonly ActivityRow[]) {
+  return STAGES.map((s) => ({ ...s, rows: rows.filter((r) => STAGE_OF[r.kind] === s.id) }));
 }
 
 export type TaskView = Pick<
@@ -180,6 +219,7 @@ export function projectActivity(
       }
       return {
         taskId: t.id,
+        kind: t.kind,
         label: en[`task.kind.${t.kind}`].text,
         question: t.question,
         state: now,

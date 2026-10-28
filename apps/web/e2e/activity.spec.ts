@@ -30,6 +30,17 @@ test("the panel plays a synthetic replay at reading pace, then the card gives th
   await expect(replay).not.toContainText("Reading pace", { timeout: 30_000 });
   await expect(card).toContainText("Complete. Findings:");
   await expect(rows.locator("text=Done")).toHaveCount(3);
+  // the engine's five stages head the rows: the plan under Scope & Baseline, both analyses under Evidence
+  await expect(panel.locator("[data-stage] h3")).toHaveText([
+    "Scope & Baseline",
+    "Evidence",
+    "Hypothesis Testing",
+    "Interventions & Precedents",
+    "Field Verification",
+  ]);
+  await expect(panel.locator("[data-stage=scope_baseline] li[data-record-ids]")).toHaveCount(1);
+  await expect(panel.locator("[data-stage=evidence] li[data-record-ids]")).toHaveCount(2);
+  await expect(panel.locator("[data-empty=true]")).toHaveCount(3);
 
   await page.reload();
   await expect(page.locator("[data-activity] li[data-record-ids]")).toHaveCount(3, {

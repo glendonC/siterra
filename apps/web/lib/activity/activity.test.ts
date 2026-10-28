@@ -1,6 +1,13 @@
 import type { Event, Task } from "@siterra/contracts";
 import { describe, expect, it } from "vitest";
-import { modelName, pacedEvents, projectActivity, replayOrigin } from "./activity";
+import {
+  modelName,
+  pacedEvents,
+  projectActivity,
+  replayOrigin,
+  STAGES,
+  stageGroups,
+} from "./activity";
 
 // synthetic events and tasks in the shapes the worker writes (seen on the replay route), for the rules only
 let seq = 0;
@@ -182,6 +189,42 @@ describe("projectActivity", () => {
     const r = projectActivity(tasks, played, "cmd_a", { playedOnly: true });
     // the plan has no task.started event: its model call starting is what says it runs
     expect(r.map((x) => [x.taskId, x.status])).toEqual([["t_1", "Running"]]);
+  });
+});
+
+describe("stageGroups", () => {
+  it("names the five stages of the engine in order", () => {
+    expect(STAGES.map((s) => s.label)).toEqual([
+      "Scope & Baseline",
+      "Evidence",
+      "Hypothesis Testing",
+      "Interventions & Precedents",
+      "Field Verification",
+    ]);
+  });
+
+  it("puts each step under the stage its task kind belongs to, and keeps empty stages", () => {
+    const r = projectActivity(
+      [
+        task("t_1", "plan", "succeeded"),
+        task("t_2", "observation_analysis", "succeeded"),
+        task("t_3", "source_research", "succeeded"),
+        task("t_4", "hypothesis_comparison", "running"),
+        task("t_5", "intervention_feasibility", "queued"),
+        task("t_6", "brief_package", "queued"),
+      ],
+      [],
+      "cmd_a",
+    );
+    expect(stageGroups(r).map((g) => [g.label, g.rows.map((x) => x.taskId)])).toEqual([
+      ["Scope & Baseline", ["t_1"]],
+      ["Evidence", ["t_2", "t_3"]],
+      ["Hypothesis Testing", ["t_4"]],
+      ["Interventions & Precedents", ["t_5"]],
+      ["Field Verification", ["t_6"]],
+    ]);
+    const plan = stageGroups(projectActivity([task("t_1", "plan", "running")], [], "cmd_a"));
+    expect(plan.map((g) => g.rows.length)).toEqual([1, 0, 0, 0, 0]);
   });
 });
 
