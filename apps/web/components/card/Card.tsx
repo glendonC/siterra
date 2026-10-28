@@ -4,8 +4,8 @@
 // says one thing at a time. Parts arrive in the order of rule 7: the statement whole, its grey half 250 ms
 // later, the source 250 ms after; the leader draws once the card has settled.
 
-import type { ReactNode } from "react";
-import type { CardContent, StepState } from "../../lib/card/content";
+import { useState, type ReactNode } from "react";
+import { cardLines, type CardContent, type StepState } from "../../lib/card/content";
 import { en, type MessageId } from "../../lib/copy/en";
 import styles from "./Card.module.css";
 
@@ -30,11 +30,18 @@ export interface CardProps {
 }
 
 export function Card({ content: c, action, stepKey, anchor = "statement" }: CardProps) {
+  const [activeCitation, setActiveCitation] = useState<number | null>(null);
+  const selectedCit =
+    activeCitation !== null
+      ? c.findings?.citations.find((cit) => cit.index === activeCitation)
+      : undefined;
+
   return (
     <section
       className={styles.card}
       key={stepKey}
       data-budget="card"
+      data-budget-text={cardLines(c).join(" ")}
       aria-live="polite"
       data-record-ids={c.recordIds.join(" ")}
     >
@@ -75,6 +82,68 @@ export function Card({ content: c, action, stepKey, anchor = "statement" }: Card
               {l}
             </p>
           ))}
+        </div>
+      ) : null}
+      {c.findings && c.findings.items.length > 0 ? (
+        <div className={styles.findings} data-findings>
+          <h3 className={styles.sectionHeading}>{en["findings.heading"].text}</h3>
+          <ul className={styles.findingList}>
+            {c.findings.items.map((f) => (
+              <li
+                key={f.evidenceId}
+                className={styles.findingItem}
+                data-finding-id={f.evidenceId}
+                data-record-ids={f.recordIds.join(" ")}
+              >
+                <span className={styles.findingStatement}>{f.statement}</span>
+                {f.citationNumbers.map((n) => (
+                  <button
+                    key={n}
+                    type="button"
+                    className={styles.citationChip}
+                    data-citation-chip={n}
+                    aria-pressed={activeCitation === n}
+                    onClick={() => {
+                      setActiveCitation((prev) => (prev === n ? null : n));
+                    }}
+                  >
+                    [{n}]
+                  </button>
+                ))}
+              </li>
+            ))}
+          </ul>
+          {selectedCit ? (
+            <div
+              className={styles.citationDetail}
+              data-citation-detail={selectedCit.index}
+              data-record-ids={selectedCit.recordId}
+            >
+              <div className={styles.citationHeader}>
+                <span className={styles.citationKind}>
+                  [{selectedCit.index}]{" "}
+                  {
+                    en[selectedCit.kind === "source" ? "findings.excerpt" : "findings.measurement"]
+                      .text
+                  }
+                </span>
+                <button
+                  type="button"
+                  className={styles.citationClose}
+                  onClick={() => {
+                    setActiveCitation(null);
+                  }}
+                >
+                  {en["findings.close"].text}
+                </button>
+              </div>
+              <p className={styles.citationTitle}>
+                {selectedCit.title}
+                {selectedCit.locator ? ` · ${selectedCit.locator}` : ""}
+              </p>
+              <p className={styles.citationExcerpt}>{selectedCit.detail}</p>
+            </div>
+          ) : null}
         </div>
       ) : null}
       {c.status ? <p className={styles.status}>{c.status}</p> : null}

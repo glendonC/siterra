@@ -5,8 +5,10 @@
 // missing. A replay says it is one, and a replay playing at reading pace says that too. While the request
 // runs the panel holds the one Esc action (Stop, or Show all steps during a paced replay).
 
-import { stageGroups, type ActivityRow } from "../../lib/activity/activity";
+import { stageGroups, type ActivityRow, type TraceSummary } from "../../lib/activity/activity";
 import { en, format, type MessageId } from "../../lib/copy/en";
+import type { ProjectedBranches } from "../../lib/projection/branches";
+import { ExplanationBranches } from "../branches/ExplanationBranches";
 import { READING_PACE_MS } from "./usePacedLog";
 import styles from "./ActivityPanel.module.css";
 
@@ -19,9 +21,29 @@ export interface ActivityPanelProps {
   /** The Esc action's label while there is one. */
   stop?: MessageId | undefined;
   onStop?: () => void;
+  /** CMP-16 execution trace summary and items. */
+  trace?: TraceSummary | undefined;
+  traceOpen?: boolean;
+  onToggleTrace?: () => void;
+  /** CMP-23 explanation branches and field plan. */
+  branches?: ProjectedBranches | undefined;
+  selectedBranchId?: string | null;
+  onSelectBranch?: (branchId: string) => void;
 }
 
-export function ActivityPanel({ rows, replay, pacing = false, stop, onStop }: ActivityPanelProps) {
+export function ActivityPanel({
+  rows,
+  replay,
+  pacing = false,
+  stop,
+  onStop,
+  trace,
+  traceOpen = false,
+  onToggleTrace,
+  branches,
+  selectedBranchId,
+  onSelectBranch,
+}: ActivityPanelProps) {
   return (
     <section
       className={styles.panel}
@@ -33,21 +55,55 @@ export function ActivityPanel({ rows, replay, pacing = false, stop, onStop }: Ac
         <h2 id="activity-title" className={styles.title}>
           {en["activity.title"].text}
         </h2>
-        {stop ? (
-          <button
-            type="button"
-            className={styles.key}
-            onClick={onStop}
-            aria-keyshortcuts="Escape"
-            data-budget="action"
-          >
-            <kbd className={styles.glyph} aria-hidden="true">
-              Esc
-            </kbd>
-            {en[stop].text}
-          </button>
-        ) : null}
+        <div className={styles.headActions}>
+          {trace ? (
+            <button
+              type="button"
+              className={styles.traceButton}
+              aria-pressed={traceOpen}
+              onClick={onToggleTrace}
+              data-trace-toggle
+            >
+              {en["action.trace"].text}
+            </button>
+          ) : null}
+          {stop ? (
+            <button
+              type="button"
+              className={styles.key}
+              onClick={onStop}
+              aria-keyshortcuts="Escape"
+              data-budget="action"
+            >
+              <kbd className={styles.glyph} aria-hidden="true">
+                Esc
+              </kbd>
+              {en[stop].text}
+            </button>
+          ) : null}
+        </div>
       </header>
+      {trace && traceOpen ? (
+        <div className={styles.traceDrilldown} data-trace-drilldown>
+          <h3 className={styles.traceHeading}>{en["trace.heading"].text}</h3>
+          <p className={styles.traceLine}>{trace.summaryLine}</p>
+          <p className={styles.traceLine}>{trace.usageLine}</p>
+          {trace.items.length > 0 ? (
+            <ol className={styles.traceList}>
+              {trace.items.map((item) => (
+                <li
+                  key={`${String(item.sequence)}-${item.kind}`}
+                  className={styles.traceItem}
+                  data-trace-kind={item.kind}
+                >
+                  <span className={styles.traceSeq}>#{item.sequence}</span>
+                  <span className={styles.traceDetail}>{item.detail}</span>
+                </li>
+              ))}
+            </ol>
+          ) : null}
+        </div>
+      ) : null}
       {replay ? (
         <p className={styles.replay} data-replay={replay}>
           {en[replay === "recorded" ? "activity.recorded" : "activity.synthetic"].text}
@@ -77,6 +133,13 @@ export function ActivityPanel({ rows, replay, pacing = false, stop, onStop }: Ac
                     <Row key={r.taskId} r={r} />
                   ))}
                 </ol>
+              ) : null}
+              {g.id === "hypothesis_testing" && branches ? (
+                <ExplanationBranches
+                  branches={branches}
+                  selectedBranchId={selectedBranchId}
+                  onSelectBranch={onSelectBranch}
+                />
               ) : null}
             </li>
           ))}

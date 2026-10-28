@@ -42,6 +42,20 @@ test("the panel plays a synthetic replay at reading pace, then the card gives th
   await expect(panel.locator("[data-stage=evidence] li[data-record-ids]")).toHaveCount(2);
   await expect(panel.locator("[data-empty=true]")).toHaveCount(3);
 
+  // IU-02, TR-01, TR-04: numbered citation chips open source excerpt or measurement detail in one click
+  const firstChip = card.locator("[data-citation-chip]").first();
+  await expect(firstChip).toBeVisible();
+  await firstChip.click();
+  await expect(card.locator("[data-citation-detail]")).toBeVisible();
+  await card.getByRole("button", { name: "Close" }).click();
+
+  // CMP-16, TR-02, TR-05, TR-06: Trace toggle opens execution trace with model, tool, and validator counts
+  await panel.locator("[data-trace-toggle]").click();
+  const trace = panel.locator("[data-trace-drilldown]");
+  await expect(trace).toContainText("Execution Trace");
+  await expect(trace).toContainText("Models:");
+  await expect(trace).toContainText("muse-spark-1.3 (replay, synthetic)");
+
   await page.reload();
   await expect(page.locator("[data-activity] li[data-record-ids]")).toHaveCount(3, {
     timeout: 60_000,

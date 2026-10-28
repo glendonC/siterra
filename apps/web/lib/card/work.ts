@@ -9,6 +9,7 @@
 import type { CaseSnapshot, Task } from "@siterra/contracts";
 import type { EventLog } from "../case/events";
 import { en, format, type MessageId } from "../copy/en";
+import { projectFindings } from "../projection/findings";
 import type { ObservationLine } from "../projection/observations";
 import { projectWork } from "../projection/work";
 import type { CardContent } from "./content";
@@ -43,6 +44,7 @@ export function workCard(
   const tasks = commandTasks(s, commandId);
   const produced = producedObservations(s, tasks);
   const lines = ended ? observations.filter((o) => produced.bundleIds.has(o.bundleId)) : [];
+  const findings = ended ? projectFindings(s, commandId) : undefined;
   const refused = ended && tasks.some((t) => t.failureCode === OUT_OF_SCOPE);
   return {
     // the worker gives the plan task the command's own text; before it exists, the case question
@@ -72,11 +74,13 @@ export function workCard(
           },
         }
       : {}),
+    ...(findings && findings.items.length > 0 ? { findings } : {}),
     sources: [],
     recordIds: [
       commandId,
       ...(lines.length > 0 ? produced.evidenceIds : []),
       ...lines.map((o) => o.bundleId),
+      ...(findings ? findings.items.flatMap((f) => f.recordIds) : []),
     ],
   };
 }

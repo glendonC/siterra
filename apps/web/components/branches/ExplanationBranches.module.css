@@ -1,0 +1,195 @@
+/* CMP-23 ExplanationBranches styles: daylight paper, geometric certainty marks (dashed, solid, cut, ring),
+   and Field Verification check list. */
+
+.root {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--rule);
+  font-family: var(--font-sans);
+  color: var(--ink);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.heading,
+.fieldHeading {
+  margin: 0;
+  font: 500 11px / 16px var(--font-mono);
+  color: var(--ink);
+}
+
+.badges {
+  display: inline-flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.badge {
+  padding: 1px 6px;
+  border: 1px solid var(--rule-strong);
+  border-radius: 3px;
+  font: 400 10px / 14px var(--font-mono);
+  color: var(--ink);
+}
+
+.list,
+.predictions,
+.fieldList {
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.branch {
+  padding: 6px 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.branchButton {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font: 500 13px / 18px var(--font-sans);
+  text-align: left;
+  cursor: pointer;
+}
+
+.branchLabel {
+  flex: 1;
+}
+
+.branchStatus {
+  font: 400 11px / 16px var(--font-mono);
+  color: var(--ink);
+}
+
+/* Geometric certainty marks (design language rule 4): dashed, solid, cut, open ring. */
+.mark {
+  position: relative;
+  display: inline-block;
+  width: 14px;
+  height: 10px;
+  flex: 0 0 14px;
+}
+
+.mark[data-mark="dashed"]::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 4px;
+  border-top: 1.5px dashed var(--ink);
+}
+
+.mark[data-mark="solid"]::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 4px;
+  border-top: 2px solid var(--ink);
+}
+
+.mark[data-mark="cut"]::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 4px;
+  border-top: 2px solid var(--ink);
+}
+
+.mark[data-mark="cut"]::after {
+  content: "";
+  position: absolute;
+  left: 6px;
+  top: 0;
+  width: 1.5px;
+  height: 10px;
+  background: var(--ink);
+  transform: rotate(28deg);
+}
+
+.mark[data-mark="ring"]::before {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 0;
+  width: 8px;
+  height: 8px;
+  border: 1.5px solid var(--ink);
+  border-radius: 50%;
+}
+
+.reason {
+  margin: 2px 0 0 22px !important;
+  font: 400 12px / 16px var(--font-sans);
+  color: var(--grey);
+}
+
+.predictions {
+  margin-left: 22px;
+}
+
+.prediction {
+  margin-top: 4px;
+  font: 400 12px / 16px var(--font-sans);
+}
+
+.predHead {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.predOutcome {
+  font: 500 10px / 14px var(--font-mono);
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+.predWording {
+  color: var(--ink);
+}
+
+.observed {
+  margin: 2px 0 0 20px !important;
+  font: 400 11px / 15px var(--font-mono);
+  color: var(--grey);
+}
+
+.fieldPlan {
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px solid var(--rule);
+}
+
+.fieldItem {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 4px 0;
+}
+
+.fieldLabel {
+  font: 500 12px / 16px var(--font-sans);
+  color: var(--ink);
+}
+
+.fieldSeparates,
+.unseparated {
+  margin: 0 !important;
+  font: 400 11px / 15px var(--font-mono);
+  color: var(--grey);
+}

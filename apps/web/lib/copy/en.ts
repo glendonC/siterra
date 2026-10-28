@@ -312,6 +312,35 @@ export const en = {
   "action.flat": { text: "Flat", kind: "button" },
   "action.brief": { text: "Brief", kind: "button" },
 
+  // Findings and citations (IU-02, TR-01, TR-04)
+  "findings.heading": { text: "Accepted Findings", kind: "heading" },
+  "findings.close": { text: "Close", kind: "button" },
+  "findings.excerpt": { text: "Source Excerpt", kind: "heading" },
+  "findings.measurement": { text: "Measurement Record", kind: "heading" },
+
+  // Explanation branches and field plan (CMP-23, DF-09)
+  "branches.heading": { text: "Explanation Branches", kind: "heading" },
+  "branches.locked": { text: "Predictions Locked · Rev {rev}", kind: "heading" },
+  "branches.status.predicted": { text: "Predictions Locked", kind: "heading" },
+  "branches.status.consistent": { text: "Consistent", kind: "heading" },
+  "branches.status.contradicted": { text: "Contradicted", kind: "heading" },
+  "branches.status.cannot_be_assessed": { text: "Cannot Be Assessed", kind: "heading" },
+  "branches.outcome.met": { text: "Met", kind: "heading" },
+  "branches.outcome.not_met": { text: "Not Met", kind: "heading" },
+  "branches.outcome.not_testable": { text: "Not Testable", kind: "heading" },
+  "branches.outcome.pending": { text: "Committed", kind: "heading" },
+  "branches.fieldPlan": { text: "Field Verification", kind: "heading" },
+  "branches.separates": { text: "Separates: {pairs}.", kind: "ui" },
+  "branches.unseparated": { text: "Not separated by configured checks: {pairs}.", kind: "ui" },
+
+  // Trace drill-down (CMP-16, TR-02, TR-05, TR-06)
+  "trace.heading": { text: "Execution Trace", kind: "heading" },
+  "trace.summary": {
+    text: "Models: {models}. Tools: {tools}. Checks: {accepted} accepted, {rejected} rejected.",
+    kind: "ui",
+  },
+  "trace.usage": { text: "Tokens: {input} in, {output} out. Cost: ${cost}.", kind: "ui" },
+
   // Stage notes
   "stage.relief": { text: "Vertical Exaggeration ×{factor}", kind: "heading" },
   "stage.north": { text: "N", kind: "heading" },

@@ -19,7 +19,7 @@ import { useDepartureLayer } from "../map/useDepartureLayer";
 import { Notices } from "../notices/Notices";
 import { ArrivalChrome } from "../shell/ArrivalChrome";
 import { ValleyStage } from "../stage/ValleyStage";
-import { projectActivity, replayOrigin } from "../../lib/activity/activity";
+import { projectActivity, projectTrace, replayOrigin } from "../../lib/activity/activity";
 import type { Point } from "../../lib/card/leader";
 import { commandRunning, workCard } from "../../lib/card/work";
 import { commissionRequest, requestText, submitCommand } from "../../lib/case/command";
@@ -29,6 +29,7 @@ import type { MapBundle } from "../../lib/map/bundle";
 import { legendLines } from "../../lib/map/departure";
 import { arrivalFlat } from "../../lib/flat/arrival";
 import { regionPack } from "../../lib/pack/regionPack";
+import { projectBranches } from "../../lib/projection/branches";
 import { projectObservations } from "../../lib/projection/observations";
 import type { ReadyArrival } from "../../lib/projection/arrival";
 import { ARRIVAL_EXAGGERATION, ARRIVAL_POSE } from "../../lib/stage/arrival";
@@ -126,6 +127,13 @@ export function ArrivalView({
         : [],
     [snapshot, shown, commandId, paced.pacing],
   );
+  const trace = useMemo(
+    () => (commandId ? projectTrace(shown.events, commandId) : undefined),
+    [shown.events, commandId],
+  );
+  const branches = useMemo(() => projectBranches(snapshot, commandId), [snapshot, commandId]);
+  const [traceOpen, setTraceOpen] = useState(false);
+  const [selectedBranchId, setSelectedBranchId] = useState<string | null>(null);
   // storyboard scene 3: the departure layer shows with the Observations this request produced
   const departure = useDepartureLayer(snapshot, card?.section !== undefined);
   const pack = useMemo(() => regionPack(snapshot), [snapshot]);
@@ -229,6 +237,9 @@ export function ArrivalView({
         resetSeq={resetSeq}
         onMoved={setCameraMoved}
         onBearing={setBearing}
+        branches={branches?.branches ?? []}
+        selectedBranchId={selectedBranchId}
+        onSelectBranch={setSelectedBranchId}
       />
       {chrome && card && commandId ? (
         <>
@@ -240,6 +251,14 @@ export function ArrivalView({
               pacing={paced.pacing}
               stop={stopHint({ running, pacing: paced.pacing })}
               onStop={stop}
+              trace={trace}
+              traceOpen={traceOpen}
+              onToggleTrace={() => {
+                setTraceOpen((v) => !v);
+              }}
+              branches={branches}
+              selectedBranchId={selectedBranchId}
+              onSelectBranch={setSelectedBranchId}
             />
           </div>
           <Leader outline={outline} stepKey={commandId} />
@@ -275,6 +294,14 @@ export function ArrivalView({
             }}
             cameraMoved={cameraMoved}
             onResetView={resetView}
+            onTrace={() => {
+              setTraceOpen((v) => !v);
+            }}
+            onBrief={() => {
+              document
+                .querySelector("[data-field-plan], [data-stage=field_verification]")
+                ?.scrollIntoView({ block: "nearest" });
+            }}
             onAsk={commission}
             onSources={() => {
               setNoticesOpen(true);

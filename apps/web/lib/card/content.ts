@@ -3,6 +3,8 @@
 // source and period in mono, the Meaning line, then one action. Every text comes from a record or the
 // catalog; the card never writes its own words.
 
+import type { ProjectedFindings } from "../projection/findings";
+
 export interface CardFigure {
   /** What the number is, for example "Wet season 2022/23". */
   label: string;
@@ -34,6 +36,8 @@ export interface CardContent {
   steps?: CardStep[];
   /** A titled block of committed findings, for example Observations. */
   section?: { heading: string; lines: string[] };
+  /** Accepted findings with numbered citation chips ([1], [2]) that open source excerpts or measurements. */
+  findings?: ProjectedFindings;
   /** "Simulated answer." until the hypothesis task runs live. */
   status?: string;
   statement?: { claim: string; limit?: string };

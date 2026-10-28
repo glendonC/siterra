@@ -79,7 +79,23 @@ export type TaskView = Pick<
 export type EventView = Pick<
   Event,
   "sequence" | "kind" | "commandId" | "taskId" | "message" | "tool" | "usage" | "validation"
->;
+> & {
+  caseRevision?: number;
+  entityIds?: string[];
+};
+
+export interface TraceItem {
+  sequence: number;
+  kind: Event["kind"];
+  taskId: string | null;
+  detail: string;
+}
+
+export interface TraceSummary {
+  summaryLine: string;
+  usageLine: string;
+  items: TraceItem[];
+}
 
 const STATUS: Record<Task["status"], MessageId> = {
   queued: "task.queued",
@@ -239,4 +255,72 @@ export function pacedEvents<E extends Pick<Event, "commandId">>(
 ): E[] {
   let seen = 0;
   return events.filter((e) => e.commandId !== commandId || seen++ < n);
+}
+
+/** CMP-16 execution trace drill-down: model calls, tool calls, validators, tokens, and cost (TR-02, TR-05, TR-06). */
+export function projectTrace(events: readonly EventView[], commandId: string): TraceSummary {
+  const own = events.filter((e) => e.commandId === commandId);
+  let models = 0;
+  let tools = 0;
+  let accepted = 0;
+  let rejected = 0;
+  let inputTokens = 0;
+  let outputTokens = 0;
+  let costMicroUsd = 0;
+  const items: TraceItem[] = [];
+
+  for (const e of own) {
+    if (e.kind === "model.completed" && e.usage) {
+      models += 1;
+      inputTokens += e.usage.inputTokens ?? 0;
+      outputTokens += e.usage.outputTokens ?? 0;
+      costMicroUsd += e.usage.estimatedCostMicroUsd ?? 0;
+      const origin =
+        e.usage.provider === "replay"
+          ? `replay, ${e.usage.replayOrigin ?? "synthetic"}`
+          : e.usage.provider;
+      items.push({
+        sequence: e.sequence,
+        kind: e.kind,
+        taskId: e.taskId,
+        detail: `${modelName(e.usage.model)} · ${e.usage.model} (${origin}): ${String(e.usage.inputTokens ?? 0)} in, ${String(e.usage.outputTokens ?? 0)} out`,
+      });
+    } else if ((e.kind === "tool.started" || e.kind === "tool.completed") && e.tool) {
+      if (e.kind === "tool.started") tools += 1;
+      const ids =
+        e.tool.resultEntityIds.length > 0 ? ` -> ${e.tool.resultEntityIds.join(", ")}` : "";
+      items.push({
+        sequence: e.sequence,
+        kind: e.kind,
+        taskId: e.taskId,
+        detail: `${e.tool.name} (${e.tool.status}): ${e.tool.argumentSummary}${ids}`,
+      });
+    } else if (e.kind === "validation.completed" && e.validation) {
+      if (e.validation.outcome === "accepted") accepted += 1;
+      else rejected += e.validation.issues.length || 1;
+      items.push({
+        sequence: e.sequence,
+        kind: e.kind,
+        taskId: e.taskId,
+        detail: `${e.validation.outcome}: ${e.message}`,
+      });
+    } else if (e.kind === "case.committed") {
+      items.push({
+        sequence: e.sequence,
+        kind: e.kind,
+        taskId: e.taskId,
+        detail: e.message,
+      });
+    }
+  }
+
+  return {
+    summaryLine: format("trace.summary", { models, tools, accepted, rejected }),
+    usageLine: format("trace.usage", {
+      input: inputTokens,
+      output: outputTokens,
+      cost: (costMicroUsd / 1e6).toFixed(4),
+    }),
+    items,
+  };
 }

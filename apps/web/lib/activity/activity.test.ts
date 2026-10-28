@@ -4,6 +4,7 @@ import {
   modelName,
   pacedEvents,
   projectActivity,
+  projectTrace,
   replayOrigin,
   STAGES,
   stageGroups,
@@ -256,5 +257,17 @@ describe("pacedEvents", () => {
     const shown = pacedEvents([...all, other], "cmd_a", 3);
     expect(shown.filter((e) => e.commandId === "cmd_a")).toHaveLength(3);
     expect(shown).toContain(other);
+  });
+});
+
+describe("projectTrace (CMP-16)", () => {
+  it("summarizes model calls, tool calls, validation checks, and token usage", () => {
+    const trace = projectTrace(run(), "cmd_a");
+    expect(trace.summaryLine).toBe("Models: 2. Tools: 1. Checks: 1 accepted, 1 rejected.");
+    expect(trace.usageLine).toBe("Tokens: 0 in, 0 out. Cost: $0.0000.");
+    expect(trace.items.some((i) => i.detail.includes("muse-spark-1.3 (replay, synthetic)"))).toBe(
+      true,
+    );
+    expect(trace.items.some((i) => i.detail.includes("summarize_observations"))).toBe(true);
   });
 });
