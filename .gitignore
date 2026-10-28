@@ -33,3 +33,9 @@ eval-reports/
 next-env.d.ts
 # Agent notes that next dev writes into the app folder
 /apps/web/AGENTS.md
+
+# The first concept prototype and its galleries, superseded by the approved hero (2026-10-27); kept on disk, never published
+/design/prototype/
+/design/component-gallery/
+/design/motion/
+/design/wireframes/
