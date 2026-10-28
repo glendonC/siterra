@@ -1,0 +1,76 @@
+{
+  "format": "siterra-model-replay@1",
+  "origin": "synthetic",
+  "model": "muse-spark-1.3",
+  "description": "Synthetic: one strict structured answer streamed to completion. Written by hand from the event shapes in Meta's Responses documentation; not a recording.",
+  "steps": [
+    {
+      "kind": "stream",
+      "requestId": "req_synthetic_structured_1",
+      "events": [
+        {
+          "type": "response.created",
+          "response": { "id": "resp_synthetic_structured_1", "status": "in_progress" }
+        },
+        {
+          "type": "response.in_progress",
+          "response": { "id": "resp_synthetic_structured_1", "status": "in_progress" }
+        },
+        {
+          "type": "response.output_item.done",
+          "output_index": 0,
+          "item": {
+            "type": "reasoning",
+            "id": "rs_synthetic_1",
+            "summary": [],
+            "encrypted_content": "synthetic-encrypted-reasoning-1"
+          }
+        },
+        {
+          "type": "response.output_text.delta",
+          "item_id": "msg_synthetic_1",
+          "output_index": 1,
+          "delta": "{\"case_code\":\"TEST-01\","
+        },
+        {
+          "type": "response.output_text.delta",
+          "item_id": "msg_synthetic_1",
+          "output_index": 1,
+          "delta": "\"status_word\":\"cannot_be_assessed\",\"note\":\"synthetic\"}"
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_synthetic_structured_1",
+            "status": "completed",
+            "output": [
+              {
+                "type": "reasoning",
+                "id": "rs_synthetic_1",
+                "summary": [],
+                "encrypted_content": "synthetic-encrypted-reasoning-1"
+              },
+              {
+                "type": "message",
+                "id": "msg_synthetic_1",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "output_text",
+                    "text": "{\"case_code\":\"TEST-01\",\"status_word\":\"cannot_be_assessed\",\"note\":\"synthetic\"}"
+                  }
+                ]
+              }
+            ],
+            "usage": {
+              "input_tokens": 412,
+              "output_tokens": 96,
+              "input_tokens_details": { "cached_tokens": 0 },
+              "output_tokens_details": { "reasoning_tokens": 40 }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
