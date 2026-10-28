@@ -170,11 +170,31 @@ describe("departureLegend", () => {
       low: "\u22120.10",
       high: "+0.10",
       coverage: "93% of area observed",
-      excluded: "Mapped cropland and buildings, 2021 context mask (ESA WorldCover)",
+      excluded:
+        "Hatched: cropland and buildings mapped by ESA WorldCover in 2021, left out of the field-sampling strata. Their departure is still drawn.",
       note: "No cropland mask is applied: valley-floor fields and orchards are included.",
       method:
         "Sentinel-2 L2A, monthly median NDVI, cloud and snow masked. Method monthly_departure 1.0.0.",
     });
+  });
+
+  it("says the hatch marks an excluded stratum, not masked values, as the bundle does", () => {
+    const collection = JSON.parse(
+      readFileSync(
+        join(import.meta.dirname, "../../../../data/bundles", BUNDLE, "collection.json"),
+        "utf8",
+      ),
+    ) as { assets: { excluded_land: { description: string } } };
+    expect(collection.assets.excluded_land.description).toContain(
+      "no departure value is masked by it",
+    );
+    const l = departureLegend(b, [-0.1, 0.1], true);
+    expect(l.excluded).not.toMatch(/mask/i);
+    expect(l.excluded).toContain("left out of the field-sampling strata");
+    expect(l.excluded).toContain("still drawn");
+    expect(l.note).toBe(
+      "No cropland mask is applied: valley-floor fields and orchards are included.",
+    );
   });
 
   it("names no hatch when none is drawn", () => {

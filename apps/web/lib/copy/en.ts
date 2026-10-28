@@ -140,8 +140,9 @@ export const en = {
     kind: "ui",
   },
   "legend.coverage": { text: "{percent}% of area observed", kind: "ui" },
+  // the strata bundle's excluded stratum, drawn over the values, not masked from them
   "legend.ndvi.excluded": {
-    text: "Mapped cropland and buildings, 2021 context mask (ESA WorldCover)",
+    text: "Hatched: cropland and buildings mapped by ESA WorldCover in 2021, left out of the field-sampling strata. Their departure is still drawn.",
     kind: "ui",
   },
   "legend.ndvi.note": {
