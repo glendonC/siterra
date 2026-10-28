@@ -5,3 +5,4 @@ export * from "./ids.ts";
 export * from "./messages.ts";
 export * from "./result-key.ts";
 export * from "./staleness.ts";
+export * from "./test-cover.ts";
