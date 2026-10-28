@@ -30,6 +30,7 @@ describe("regionPack", () => {
 
   it("states the observation window from the bundles' periods", () => {
     expect(p.window).toBe("Jan 2019 to Dec 2025, 84 months");
+    expect(p.periodSpan).toBe("2019 to 2025");
   });
 
   it("counts the bundles that passed the automated data checks", () => {

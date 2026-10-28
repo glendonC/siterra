@@ -197,6 +197,10 @@ export interface ValleyStageProps {
   contourArea?: MapBundle["contours"];
   /** The analysis geometry from the case record (GeoSelection, its current revision). */
   catchment: Feature;
+  /** Study valley name from the case record. */
+  valleyName: string;
+  /** Mountain region and country from the case record. */
+  regionName: string;
   /** Its area in km² to one decimal, from the record. */
   areaKm2: string;
   /** Villages on stems, from the case's ContextFeature records. */
@@ -240,6 +244,8 @@ export function ValleyStage({
   assets,
   contourArea,
   catchment,
+  valleyName,
+  regionName,
   areaKm2,
   places,
   outlet,
@@ -616,8 +622,13 @@ export function ValleyStage({
     const stopped = () => cancelled;
 
     const valleyLines: LabelLine[] = [
-      { text: en["arrival.valleyName"].text, size: 0.4, weight: 500, tracking: 0.022 },
-      { text: en["arrival.region"].text, size: 0.28, weight: 500 },
+      {
+        text: format("arrival.valleyName", { valley: valleyName }),
+        size: 0.4,
+        weight: 500,
+        tracking: 0.022,
+      },
+      { text: format("arrival.region", { region: regionName }), size: 0.28, weight: 500 },
     ];
     const studyLines: LabelLine[] = [
       { text: format("arrival.studyArea", { area: areaKm2 }), size: 0.33, weight: 500 },
@@ -875,7 +886,7 @@ export function ValleyStage({
       map?.remove();
     };
     // callers pass the record's geometry once (memoized), so the map is built once per case revision
-  }, [assets, contourArea, catchment, areaKm2, onIdle, onMap, settleKey]);
+  }, [assets, contourArea, catchment, valleyName, regionName, areaKm2, onIdle, onMap, settleKey]);
 
   return (
     <div
@@ -952,8 +963,11 @@ export function ValleyStage({
         </div>
       ))}
       {view === "flat" && mapRef.current ? <FlatFrame map={mapRef.current} /> : null}
-      <ul className={styles.srOnly} aria-label={en["arrival.valleyName"].text}>
-        <li>{en["arrival.region"].text}</li>
+      <ul
+        className={styles.srOnly}
+        aria-label={format("arrival.valleyName", { valley: valleyName })}
+      >
+        <li>{format("arrival.region", { region: regionName })}</li>
         <li>
           {format("arrival.studyArea", { area: areaKm2 })} {en["arrival.studyAreaLimit"].text}
         </li>

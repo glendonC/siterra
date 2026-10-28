@@ -63,8 +63,8 @@ export const en = {
     kind: "ui",
   },
 
-  // Globe and dive (approved hero study A4)
-  "globe.range": { text: "Atlas Mountains, Morocco", kind: "label" },
+  // Globe and dive (approved hero study A4; place and range names come from the case record)
+  "globe.range": { text: "{range}", kind: "label" },
   "globe.pack": { text: "Region Pack: {name}", kind: "ui" },
   "globe.legend": {
     text: "Rangeland biomes, potential extent (Rangelands Atlas method)",
@@ -72,16 +72,16 @@ export const en = {
   },
   "globe.turn": { text: "Turn", kind: "heading" },
   "globe.dragKey": { text: "Drag", kind: "heading" },
-  "dive.highAtlas": { text: "High Atlas Mountains", kind: "label" },
+  "dive.highAtlas": { text: "{subrange}", kind: "label" },
   "credit.globe": {
     text: "Globe relief: produced using Copernicus WorldDEM™-90 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved",
     kind: "ui",
   },
-  "credit.dive": { text: "Dive relief over Morocco: © Mapterhorn (Copernicus GLO-30)", kind: "ui" },
+  "credit.dive": { text: "Dive relief: © Mapterhorn (Copernicus GLO-30)", kind: "ui" },
 
-  // Arrival
-  "arrival.valleyName": { text: "Aït Bouguemez valley", kind: "label" },
-  "arrival.region": { text: "High Atlas Mountains, Morocco", kind: "label" },
+  // Arrival (valley and region names come from the case record)
+  "arrival.valleyName": { text: "{valley}", kind: "label" },
+  "arrival.region": { text: "{region}", kind: "label" },
   "arrival.studyArea": { text: "Valley catchment: {area} km²", kind: "label" },
   "arrival.studyAreaLimit": {
     text: "Not a pasture, agdal, or management boundary.",
@@ -89,10 +89,6 @@ export const en = {
     honesty: true,
   },
   "arrival.outlet": { text: "Outlet: the whole catchment drains here", kind: "label" },
-  "arrival.question": {
-    text: "Is grazing changing the shared pastures of the Aït Bouguemez valley?",
-    kind: "ui",
-  },
   "arrival.start": { text: "Run Assessment", kind: "button" },
   "arrival.readFlat": { text: "Flat Map View", kind: "button" },
   "stage.resetView": { text: "Reset View", kind: "button" },
@@ -306,8 +302,15 @@ export const en = {
     kind: "ui",
   },
 
-  // Command line
+  // Command line and next-step actions (IU-03, 28 Oct copy standard)
   "command.label": { text: "Question", kind: "heading" },
+  "command.areaChip": { text: "Area · {area}", kind: "heading" },
+  "command.periodChip": { text: "Period · {period}", kind: "heading" },
+  "action.investigate": { text: "Investigate", kind: "button" },
+  "action.challenge": { text: "Challenge", kind: "button" },
+  "action.trace": { text: "Trace", kind: "button" },
+  "action.flat": { text: "Flat", kind: "button" },
+  "action.brief": { text: "Brief", kind: "button" },
 
   // Stage notes
   "stage.relief": { text: "Vertical Exaggeration ×{factor}", kind: "heading" },

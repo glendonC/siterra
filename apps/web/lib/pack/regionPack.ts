@@ -13,6 +13,8 @@ export interface RegionPack {
   layers: string[];
   /** "Jan 2019 to Dec 2025, 84 months", or undefined when no bundle names a period. */
   window?: string;
+  /** Compact year span for the command context chip, e.g. "2019 to 2025". */
+  periodSpan?: string;
   checks: string;
   /** Data state and field state, " · " between. */
   status: string;
@@ -42,6 +44,7 @@ export function regionPack(s: CaseSnapshot): RegionPack {
             last: periodLabel(last),
             n: periods.length,
           }),
+          periodSpan: `${/\d{4}/.exec(first)?.[0] ?? periodLabel(first)} to ${/\d{4}/.exec(last)?.[0] ?? periodLabel(last)}`,
         }
       : {}),
     checks: format("pack.checksValue", { passed, total: active.length }),

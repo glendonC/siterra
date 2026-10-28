@@ -20,6 +20,14 @@ export type ArrivalProjection =
       caseRevision: number;
       /** The case's question, from the record (EnvironmentalCase.objective). */
       question: string;
+      /** Study valley name derived from the case record. */
+      valleyName: string;
+      /** Mountain region and country derived from the case's source records. */
+      regionName: string;
+      /** Range label for the globe overview. */
+      rangeName: string;
+      /** Subrange label for the dive sequence. */
+      subrangeName: string;
       modeLines: ModeLines;
       /** Data credits from the case's bundles, for Sources and notices. */
       dataCredits: string[];
@@ -37,6 +45,10 @@ export type ArrivalProjection =
       caseId: string;
       caseRevision: number;
       question: string;
+      valleyName: string;
+      regionName: string;
+      rangeName: string;
+      subrangeName: string;
       modeLines: ModeLines;
       mode: MessageId;
       limitations: string[];
@@ -72,13 +84,45 @@ function activeSelection(s: CaseSnapshot): GeoSelection | undefined {
   return s.records.geoSelectionRecords.find((g) => g.id === id);
 }
 
+/** Extracts the study valley, mountain subrange, range, and country from the case and source records. */
+export function placeNamesFromCase(s: CaseSnapshot): {
+  valleyName: string;
+  regionName: string;
+  rangeName: string;
+  subrangeName: string;
+} {
+  const valleyMatch = /\bin the\s+(.+)$/i.exec(s.case.title);
+  const valleyName = valleyMatch?.[1]?.trim() ?? s.case.title;
+  for (const src of s.records.sourceRecords) {
+    const m = /\(([^(),]+),\s*([^(),]+)\)/.exec(src.title);
+    if (m?.[1] && m[2]) {
+      const sub = m[1].trim();
+      const country = m[2].trim();
+      const subrangeName = /\bMountains\b/i.test(sub) ? sub : `${sub} Mountains`;
+      const regionName = `${subrangeName}, ${country}`;
+      const broader = sub.replace(/^\S+\s+/, "");
+      const broaderMountains = /\bMountains\b/i.test(broader) ? broader : `${broader} Mountains`;
+      const rangeName = `${broaderMountains}, ${country}`;
+      return { valleyName, regionName, rangeName, subrangeName };
+    }
+  }
+  return {
+    valleyName,
+    regionName: s.case.title,
+    rangeName: s.case.title,
+    subrangeName: s.case.title,
+  };
+}
+
 export function projectArrival(s: CaseSnapshot): ArrivalProjection {
+  const names = placeNamesFromCase(s);
   const base = {
     caseId: s.case.id,
     caseRevision: s.case.revision,
     mode: MODE[s.case.mode],
     modeLines: modeLines(s.case.mode),
     question: s.case.objective,
+    ...names,
     dataCredits: dataCredits(s),
     land: contextLand(s),
   };

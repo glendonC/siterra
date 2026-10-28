@@ -73,6 +73,10 @@ describe("arrival from the seed case", () => {
     expect(p.kind).toBe("ready");
     if (p.kind !== "ready") return;
     expect(p.question).toBe("Is grazing changing the shared pastures of the Aït Bouguemez valley?");
+    expect(p.valleyName).toBe("Aït Bouguemez valley");
+    expect(p.regionName).toBe("High Atlas Mountains, Morocco");
+    expect(p.rangeName).toBe("Atlas Mountains, Morocco");
+    expect(p.subrangeName).toBe("High Atlas Mountains");
     expect(p.areaKm2).toBe("417.0");
     expect(p.modeLines).toEqual({ label: "mode.concept", detail: "mode.conceptDetail" });
   });

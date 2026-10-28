@@ -17,6 +17,8 @@ import styles from "./Shell.module.css";
 export interface ArrivalChromeProps {
   /** The case question from the case record, shown in the command line. */
   question: string;
+  /** The study area name from the case record, shown as a context chip before sending (IU-03). */
+  areaName: string;
   /** The mode line and the line under it, chosen from the case record's mode (projectArrival). */
   mode: ModeLines;
   /** The Region Pack the case loads, from its records (regionPack). */
@@ -51,6 +53,9 @@ export interface ArrivalChromeProps {
   /** True when the viewer has moved the camera away from the active step's pose. */
   cameraMoved?: boolean;
   onResetView?: () => void;
+  onChallenge?: (text: string) => void;
+  onTrace?: () => void;
+  onBrief?: () => void;
   /** Enter in the command line, with its trimmed text. */
   onAsk: (text: string) => void;
   onSources: () => void;
@@ -63,6 +68,7 @@ const CREDITS: MessageId[] = ["credit.terrain", "credit.rainfall", "credit.image
 
 export function ArrivalChrome({
   question,
+  areaName,
   mode,
   pack,
   reliefFactor,
@@ -82,6 +88,9 @@ export function ArrivalChrome({
   onReadFlat,
   cameraMoved = false,
   onResetView = () => undefined,
+  onChallenge = () => undefined,
+  onTrace = () => undefined,
+  onBrief = () => undefined,
   onAsk,
   onSources,
 }: ArrivalChromeProps) {
@@ -202,26 +211,72 @@ export function ArrivalChrome({
         data-budget="command"
         onSubmit={(e) => {
           e.preventDefault();
-          const text = input.current?.value.trim();
-          if (text) onAsk(text);
+          const text = input.current?.value.trim() ?? "";
+          onAsk(text);
         }}
       >
-        <span className={styles.commandGlyph} aria-hidden="true">
-          /
-        </span>
-        <span className={styles.commandSep} aria-hidden="true" />
-        <label className={styles.srOnly} htmlFor="command-input">
-          {en["command.label"].text}
-        </label>
-        <input
-          ref={input}
-          id="command-input"
-          className={styles.commandInput}
-          type="text"
-          defaultValue={question}
-          spellCheck={false}
-          aria-keyshortcuts="/"
-        />
+        <div className={styles.commandHeader}>
+          <label className={styles.commandLabel} htmlFor="command-input">
+            {en["command.label"].text}
+          </label>
+          <div className={styles.commandChips} data-command-context>
+            <span className={styles.commandChip}>
+              {format("command.areaChip", { area: areaName })}
+            </span>
+            {pack.periodSpan ? (
+              <span className={styles.commandChip}>
+                {format("command.periodChip", { period: pack.periodSpan })}
+              </span>
+            ) : null}
+          </div>
+          <div className={styles.nextSteps} data-next-steps>
+            <button
+              type="button"
+              className={styles.nextStep}
+              onClick={() => {
+                onStart(input.current?.value ?? "");
+              }}
+            >
+              {en["action.investigate"].text}
+            </button>
+            <button
+              type="button"
+              className={styles.nextStep}
+              onClick={() => {
+                input.current?.focus();
+                onChallenge(input.current?.value ?? question);
+              }}
+            >
+              {en["action.challenge"].text}
+            </button>
+            <button type="button" className={styles.nextStep} onClick={onTrace}>
+              {en["action.trace"].text}
+            </button>
+            {mapDrawn ? (
+              <button type="button" className={styles.nextStep} onClick={onReadFlat}>
+                {en["action.flat"].text}
+              </button>
+            ) : null}
+            <button type="button" className={styles.nextStep} onClick={onBrief}>
+              {en["action.brief"].text}
+            </button>
+          </div>
+        </div>
+        <div className={styles.commandInputRow}>
+          <span className={styles.commandGlyph} aria-hidden="true">
+            /
+          </span>
+          <span className={styles.commandSep} aria-hidden="true" />
+          <input
+            ref={input}
+            id="command-input"
+            className={styles.commandInput}
+            type="text"
+            defaultValue={question}
+            spellCheck={false}
+            aria-keyshortcuts="/"
+          />
+        </div>
       </form>
 
       {notice ? (

@@ -5,6 +5,8 @@ import { en, format } from "../copy/en";
 
 export interface ArrivalFlatInput {
   question: string;
+  valleyName: string;
+  regionName: string;
   areaKm2: string;
   /** Villages and the outlet from the case's ContextFeature records, and their credit line. */
   places: readonly { name: string }[];
@@ -30,7 +32,7 @@ export function arrivalFlat(i: ArrivalFlatInput): FlatSection[] {
     {
       heading: en["flat.place"].text,
       lines: [
-        `${en["arrival.valleyName"].text}, ${en["arrival.region"].text}`,
+        `${format("arrival.valleyName", { valley: i.valleyName })}, ${format("arrival.region", { region: i.regionName })}`,
         `${format("arrival.studyArea", { area: i.areaKm2 })}. ${en["arrival.studyAreaLimit"].text}`,
         ...(i.outlet ? [en["arrival.outlet"].text] : []),
         ...i.places.map((p) => p.name),

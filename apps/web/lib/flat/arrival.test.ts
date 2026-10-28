@@ -4,6 +4,8 @@ import { arrivalFlat } from "./arrival";
 describe("arrivalFlat", () => {
   const flat = arrivalFlat({
     question: "Is grazing changing the shared pastures of the Aït Bouguemez valley?",
+    valleyName: "Aït Bouguemez valley",
+    regionName: "High Atlas Mountains, Morocco",
     areaKm2: "417.0",
     places: [{ name: "Tabant" }, { name: "Aït Ouchi" }],
     outlet: true,
@@ -31,6 +33,8 @@ describe("arrivalFlat", () => {
   it("lists no outlet and no place credit the case does not record", () => {
     const bare = arrivalFlat({
       question: "Q",
+      valleyName: "V",
+      regionName: "R",
       areaKm2: "1.0",
       places: [],
       outlet: false,
@@ -47,6 +51,8 @@ describe("arrivalFlat", () => {
   it("states no relief and no imagery when no map is drawn", () => {
     const noMap = arrivalFlat({
       question: "Q",
+      valleyName: "V",
+      regionName: "R",
       areaKm2: "1.0",
       places: [],
       outlet: false,
@@ -62,6 +68,8 @@ describe("arrivalFlat", () => {
   it("lists the map legend after the view notes while a data layer shows", () => {
     const withLegend = arrivalFlat({
       question: "Q",
+      valleyName: "V",
+      regionName: "R",
       areaKm2: "1.0",
       places: [],
       outlet: false,

@@ -193,6 +193,8 @@ export function ArrivalView({
           shown={mapFailed}
           sections={arrivalFlat({
             question,
+            valleyName: arrival.valleyName,
+            regionName: arrival.regionName,
             areaKm2: arrival.areaKm2,
             places: arrival.land.places,
             outlet: arrival.land.outlet !== undefined,
@@ -210,6 +212,8 @@ export function ArrivalView({
         contourArea={contourArea}
         settleKey={settle ? `siterra.settled.${arrival.caseId}` : undefined}
         catchment={arrival.catchment}
+        valleyName={arrival.valleyName}
+        regionName={arrival.regionName}
         areaKm2={arrival.areaKm2}
         places={arrival.land.places}
         outlet={arrival.land.outlet}
@@ -248,6 +252,7 @@ export function ArrivalView({
         <>
           <ArrivalChrome
             question={question}
+            areaName={arrival.valleyName}
             mode={arrival.modeLines}
             pack={pack}
             reliefFactor={ARRIVAL_EXAGGERATION}

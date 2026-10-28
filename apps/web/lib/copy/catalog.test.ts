@@ -24,6 +24,15 @@ describe("message catalog (VC-06)", () => {
         expect(found, `${id} no longer breaks ${rule}`).toContain(rule);
     }
   });
+
+  it("contains no hard-coded case place names (I18N-01)", () => {
+    for (const [id, msg] of entries) {
+      expect(
+        msg.text,
+        `${id} hard-codes a case place name instead of reading from records`,
+      ).not.toMatch(/Aït Bouguemez|Tabant|Aït Ouchi|High Atlas|Atlas Mountains|Morocco/i);
+    }
+  });
 });
 
 describe("format", () => {

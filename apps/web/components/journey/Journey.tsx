@@ -7,7 +7,7 @@
 
 import type * as maplibregl from "maplibre-gl";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { en, type MessageId } from "../../lib/copy/en";
+import { en, format } from "../../lib/copy/en";
 import { crestCurve, findCrest } from "../../lib/globe/crest";
 import { viewToMapCamera } from "../../lib/globe/drive";
 import { R_KM, globeCamera, project } from "../../lib/globe/frame";
@@ -37,8 +37,6 @@ export interface JourneyProps {
 }
 
 type Phase = "opening" | "globe" | "dive" | "arrival";
-
-const RANGE_NAMES: [MessageId, MessageId] = ["globe.range", "dive.highAtlas"];
 
 export function Journey({
   valleyAssets,
@@ -215,7 +213,10 @@ export function Journey({
         s.rangeOpacity > 0.001 && curve.length ? rangePath(cam.vp, curve, w, h) : undefined;
       if (rd) rangeLine.current?.setAttribute("d", rd);
       if (rangeText.current) {
-        const name = en[RANGE_NAMES[s.rangeName]].text;
+        const name =
+          s.rangeName === 0
+            ? format("globe.range", { range: arrival.rangeName })
+            : format("dive.highAtlas", { subrange: arrival.subrangeName });
         if (rangeText.current.textContent !== name) rangeText.current.textContent = name;
       }
       if (rangeGroup.current) rangeGroup.current.style.opacity = String(rd ? s.rangeOpacity : 0);
@@ -225,7 +226,7 @@ export function Journey({
       cancelAnimationFrame(raf);
       renderer?.dispose();
     };
-  }, [globeAssets]);
+  }, [globeAssets, arrival.rangeName, arrival.subrangeName]);
 
   return (
     <div className={styles.journey} data-phase={phase}>
@@ -253,7 +254,7 @@ export function Journey({
           </svg>
           <div ref={casePoint} className={styles.casePoint} aria-hidden="true" />
           <div ref={valleyName} className={styles.diveName} aria-hidden="true">
-            {en["arrival.valleyName"].text}
+            {format("arrival.valleyName", { valley: arrival.valleyName })}
           </div>
         </>
       ) : null}
