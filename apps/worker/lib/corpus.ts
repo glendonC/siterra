@@ -58,10 +58,18 @@ function pdfPages(raw: unknown): { page: number; text: string }[] {
   });
 }
 
-/** Cuts a text at its section offsets (code points); sections with no located offset are skipped. */
+/** Private-use code points: icon glyphs from page markup that a model cannot copy back exactly. */
+const PRIVATE_USE = /[\u{E000}-\u{F8FF}\u{F0000}-\u{FFFFD}\u{100000}-\u{10FFFD}]/gu;
+
+/**
+ * Cuts a text at its section offsets (code points); sections with no located offset are skipped.
+ * Headings lose private-use glyphs, and a heading left empty is no section.
+ */
 export function sectionPassages(stored: SectionedText): { heading: string; text: string }[] {
   const points = Array.from(stored.text);
   const located = (stored.sections ?? [])
+    .map((s) => ({ ...s, heading: s.heading.replace(PRIVATE_USE, "").trim() }))
+    .filter((s) => s.heading !== "")
     .filter((s) => Number.isInteger(s.offset) && s.offset >= 0 && s.offset <= points.length)
     .sort((a, b) => a.offset - b.offset);
   const seen = new Set<string>();

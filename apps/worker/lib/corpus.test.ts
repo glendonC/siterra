@@ -179,6 +179,20 @@ describe("corpus reader", () => {
     expect(corpus.missing).toEqual([{ sourceId: "src_test_missing", file: "d.pdf" }]);
   });
 
+  it("drops private-use glyphs from headings, so a locator can be copied exactly (live run of 28 Oct 2026)", () => {
+    expect(
+      sectionPassages({
+        text: "Climate text. Other text.",
+        sections: [
+          { heading: "Correcting for the effects of climate\uf0c1", offset: 0 },
+          { heading: "\uf0c1", offset: 14 },
+        ],
+      }),
+    ).toEqual([
+      { heading: "Correcting for the effects of climate", text: "Climate text. Other text." },
+    ]);
+  });
+
   it("skips repeated and unlocated headings", () => {
     expect(
       sectionPassages({
