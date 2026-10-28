@@ -56,10 +56,17 @@ export interface CommandOutcome {
     status: TaskRecord["status"];
     failureCode: string | null;
   }[];
-  /** Why work stopped early, when it did: budget, deadline or cancellation. */
-  stopReason: "budget_exhausted" | "command_deadline" | "cancelled" | null;
+  /** Why work stopped early, when it did: budget, deadline, cancellation or a spend guard stop. */
+  stopReason:
+    "budget_exhausted" | "command_deadline" | "cancelled" | typeof SPEND_GUARD_STOP | null;
   spentUsd: number;
 }
+
+/**
+ * The abort reason of a spend guard stop: the operator's spend guard, outside the command's own
+ * budget, stopped the worker. The command ends cancelled and every task it stops records this code.
+ */
+export const SPEND_GUARD_STOP = "spend_guard";
 
 export interface RunCommandInput {
   planTask: TaskRecord;
@@ -142,13 +149,14 @@ export async function runCommand(
   const halt: { reason: CommandOutcome["stopReason"] } = { reason: null };
   const stop = (reason: NonNullable<CommandOutcome["stopReason"]>): void => {
     halt.reason ??= reason;
-    controller.abort();
+    // Tasks in flight record a spend guard stop as their failure code; other stops read as cancelled.
+    controller.abort(reason === SPEND_GUARD_STOP ? SPEND_GUARD_STOP : undefined);
   };
   const onCancel = (): void => {
-    stop("cancelled");
+    stop(deps.signal?.reason === SPEND_GUARD_STOP ? SPEND_GUARD_STOP : "cancelled");
   };
   deps.signal?.addEventListener("abort", onCancel);
-  if (deps.signal?.aborted) stop("cancelled");
+  if (deps.signal?.aborted) onCancel();
   const deadline = setTimeout(() => {
     stop("command_deadline");
   }, limits.wallClockMs);
@@ -175,7 +183,7 @@ export async function runCommand(
     const succeeded = planned.filter((t) => t.status === "succeeded").length;
     const usable = planned.filter((t) => t.status === "succeeded" || t.status === "partial").length;
     let status: CommandStatus;
-    if (halt.reason === "cancelled") status = "cancelled";
+    if (halt.reason === "cancelled" || halt.reason === SPEND_GUARD_STOP) status = "cancelled";
     else if (!planAccepted) status = "failed";
     else if (planned.length === 0)
       status = "succeeded"; // the plan asked a clarifying question

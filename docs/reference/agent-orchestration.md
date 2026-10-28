@@ -129,6 +129,7 @@ A model may be asked once to repair a rejected domain proposal, given the issues
 - Retry only transient failures: 429, 500 and 503 (honor `Retry-After`; 60 s for overload), and streams that time out before the first event or go idle. Two retries with jitter. Never retry 400, 401, 402, 403, 404 or 413 unchanged; never blindly retry a non-streaming 504 (all calls stream). Authentication, permission, missing data and unsafe requests do not retry (TECH-30).
 - Worker restart reclaims unfinished jobs and reads checkpoints before repeating tools. Tools are read-only or deterministic, so repetition is harmless; commits are idempotent.
 - Cancellation is cooperative: checked before each model turn, tool call and commit. Accepted evidence is never erased.
+- A spend guard stop is not cooperative. The operator's spend guard sends the worker `SIGUSR2`; the worker aborts the running command at once, model calls in flight included, then stops. The command ends `cancelled`, every task it stopped records the failure code `spend_guard`, and a stopped task commits no evidence. `SIGINT` and `SIGTERM` stay graceful: the running job finishes first.
 - **Staleness:** when a measurement, bundle, geometry or summary parameter changes, every record whose provenance cites the old version becomes `stale` (event `entity.stale`), including hypotheses, brief items and review decisions. Re-running produces new revisions; history stays readable. This is what acceptance test DF-03 checks.
 
 ## Budgets (P0 defaults, host-enforced)

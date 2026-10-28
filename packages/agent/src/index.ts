@@ -96,7 +96,7 @@ export type {
 } from "./tools/store.ts";
 export { CommandSpend, P0_LIMITS, Semaphore } from "./coordinator/limits.ts";
 export type { CommandLimits } from "./coordinator/limits.ts";
-export { EXECUTORS, runCommand } from "./coordinator/run-command.ts";
+export { EXECUTORS, SPEND_GUARD_STOP, runCommand } from "./coordinator/run-command.ts";
 export type {
   CommandOutcome,
   CommandStatus,

@@ -83,9 +83,12 @@ export async function runTaskLoop<T>(options: LoopOptions<T>): Promise<LoopResul
     calls,
     repaired,
   });
+  // A stop that names its cause (a spend guard stop) passes it as a string abort reason.
+  const cancelCode = (): string =>
+    typeof signal.reason === "string" ? signal.reason : "cancelled";
 
   for (let round = 1; round <= maxRounds; round += 1) {
-    if (signal.aborted) return done("cancelled", "cancelled");
+    if (signal.aborted) return done("cancelled", cancelCode());
     const offerTools = round <= toolRounds;
     if (!offerTools && lastRoundRead && !askedToPropose) {
       input.push({ kind: "user_text", text: PROPOSE_NOW });
@@ -124,7 +127,7 @@ export async function runTaskLoop<T>(options: LoopOptions<T>): Promise<LoopResul
     if (call.status === "incomplete")
       return done("incomplete", call.incompleteReason ?? "incomplete");
     if (call.status === "failed") {
-      if (call.errorCode === "cancelled") return done("cancelled", "cancelled");
+      if (call.errorCode === "cancelled") return done("cancelled", cancelCode());
       return done("model_failed", call.errorCode ?? "model_failed");
     }
 

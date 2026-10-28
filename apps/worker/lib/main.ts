@@ -60,8 +60,33 @@ function isPlanJob(data: unknown): data is PlanJob {
   );
 }
 
+/**
+ * SIGINT and SIGTERM stop gracefully: pg-boss lets the running job finish. SIGUSR2 is the spend
+ * guard's stop: it aborts the running command first (in-flight model calls included, the command
+ * ends cancelled with cause spend_guard), then stops the worker.
+ */
+export function installStopSignals(
+  target: { once(event: string, listener: () => void): unknown },
+  spendGuard: AbortController,
+  stop: () => Promise<void>,
+): void {
+  let stopping = false;
+  const stopOnce = (): void => {
+    if (stopping) return;
+    stopping = true;
+    void stop();
+  };
+  for (const signal of ["SIGINT", "SIGTERM"]) target.once(signal, stopOnce);
+  target.once("SIGUSR2", () => {
+    console.error("worker: spend guard stop: cancelling the running command");
+    spendGuard.abort();
+    stopOnce();
+  });
+}
+
 export async function startWorker(
   env: NodeJS.ProcessEnv = process.env,
+  options: { spendStop?: AbortSignal } = {},
 ): Promise<() => Promise<void>> {
   const url = env["DATABASE_URL"];
   if (!url) throw new Error("DATABASE_URL is not set");
@@ -116,9 +141,14 @@ export async function startWorker(
           analyses,
           now: () => new Date(),
           newId: (prefix) => newId(prefix),
+          ...(options.spendStop ? { spendStop: options.spendStop } : {}),
         });
+        const stopped =
+          result.status === "ran" && result.outcome.stopReason
+            ? ` (${result.outcome.stopReason})`
+            : "";
         console.log(
-          `worker: plan job ${job.data.commandId} ${result.status === "ran" ? result.outcome.status : `skipped (${result.reason})`}`,
+          `worker: plan job ${job.data.commandId} ${result.status === "ran" ? result.outcome.status : `skipped (${result.reason})`}${stopped}`,
         );
       }
     },
@@ -144,10 +174,7 @@ export async function startWorker(
 }
 
 if (process.argv[1] !== undefined && fileURLToPath(import.meta.url) === process.argv[1]) {
-  const stop = await startWorker();
-  for (const signal of ["SIGINT", "SIGTERM"] as const) {
-    process.once(signal, () => {
-      void stop().then(() => process.exit(0));
-    });
-  }
+  const spendGuard = new AbortController();
+  const stop = await startWorker(process.env, { spendStop: spendGuard.signal });
+  installStopSignals(process, spendGuard, () => stop().then(() => process.exit(0)));
 }

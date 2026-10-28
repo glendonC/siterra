@@ -1,4 +1,10 @@
-import { NumberedEventSink, P0_LIMITS, commandCompletedDraft, runCommand } from "@siterra/agent";
+import {
+  NumberedEventSink,
+  P0_LIMITS,
+  SPEND_GUARD_STOP,
+  commandCompletedDraft,
+  runCommand,
+} from "@siterra/agent";
 import type {
   CommandOutcome,
   CommitApi,
@@ -72,6 +78,8 @@ export interface PlanJobDeps {
   now: () => Date;
   newId: (prefix: "task" | "ev") => string;
   cancelPollMs?: number;
+  /** Aborted by the spend guard's stop: the running command ends cancelled at once, in-flight calls too. */
+  spendStop?: AbortSignal;
   /** Executors by task kind; the build's EXECUTORS when absent (tests pass their own). */
   executors?: Partial<Record<TaskRecord["kind"], TaskExecutor>>;
 }
@@ -220,6 +228,11 @@ export async function handlePlanJob(job: PlanJob, deps: PlanJobDeps): Promise<Pl
       if (yes) controller.abort();
     });
   }, deps.cancelPollMs ?? 1_000);
+  const onSpendStop = (): void => {
+    controller.abort(SPEND_GUARD_STOP);
+  };
+  if (deps.spendStop?.aborted) onSpendStop();
+  deps.spendStop?.addEventListener("abort", onSpendStop);
 
   // A commit waits for the events queued before it, so sequences follow the order things happened.
   const commits: CommitApi = {
@@ -260,6 +273,7 @@ export async function handlePlanJob(job: PlanJob, deps: PlanJobDeps): Promise<Pl
     );
   } finally {
     clearInterval(poll);
+    deps.spendStop?.removeEventListener("abort", onSpendStop);
   }
   await appending;
   const taskIds = [planTask.id, ...outcome.tasks.map((t) => t.id)];

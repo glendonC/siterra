@@ -64,6 +64,7 @@ Contracts and design tokens carry their own Semantic Versioning numbers, recorde
 
 ### Changed
 
+- Worker stop signals: `SIGUSR2`, the spend guard's stop, aborts the running command and its model calls in flight; the command ends cancelled and its stopped tasks record `spend_guard`. `SIGINT` and `SIGTERM` still let the running job finish.
 - Model data use: decision record [ADR-0047](docs/decisions/0047-use-the-hackathon-credits-and-send-no-personal-or-confidential-data.md) keeps the hackathon credits on, under which Meta may use what Siterra sends for product improvement, so model requests carry no personal or confidential data; it supersedes the data-use part of ADR-0015, and the architecture constraints and the security and privacy rules say so.
 - Agent orchestration: the last two of a task's six rounds offer no tools, one for the proposal and one for its repair, so a task stops reading in time to propose.
 - README rewritten to lead with the problem in cited research (eleven numbered sources, each with its register ID), the first case's real data, how the method scales, the Meta model jobs and a table of what exists and what does not; the old hero image, a frame with a contradicted rainfall statement, is gone.
