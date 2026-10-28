@@ -116,7 +116,11 @@ test("pointerdown during settle yields within 100 ms, unlocks camera within boun
     };
     // attempt to orbit 80 degrees away from arrival bearing (-47); should clamp within 30 degrees (-77..-17)
     m.jumpTo({ bearing: 20, pitch: 42, zoom: 11.8 });
-    return { ...before, clampedBearing: m.getBearing(), pitch: m.getPitch() };
+    return {
+      ...before,
+      clampedBearing: Math.round(m.getBearing() * 1e6) / 1e6,
+      pitch: Math.round(m.getPitch() * 1e6) / 1e6,
+    };
   });
   expect(unlocked).toEqual({
     dragPan: true,

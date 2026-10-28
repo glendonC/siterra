@@ -55,6 +55,8 @@ test("the panel plays a synthetic replay at reading pace, then the card gives th
   await expect(trace).toContainText("Execution Trace");
   await expect(trace).toContainText("Models:");
   await expect(trace).toContainText("muse-spark-1.3 (replay, synthetic)");
+  await page.addStyleTag({ content: "nextjs-portal { display: none !important; }" });
+  if (process.env.ACTIVITY_OUT) await page.screenshot({ path: process.env.ACTIVITY_OUT });
 
   await page.reload();
   await expect(page.locator("[data-activity] li[data-record-ids]")).toHaveCount(3, {

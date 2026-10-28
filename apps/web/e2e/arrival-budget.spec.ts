@@ -17,5 +17,11 @@ for (const viewport of [
     const report = checkBudget(await collectBudget(page), viewport, "arrival");
     test.info().annotations.push({ type: "budget", description: JSON.stringify(report) });
     expect(report.violations).toEqual([]);
+    await page.addStyleTag({ content: "nextjs-portal { display: none !important; }" });
+    if (process.env.BUDGET_SHOT_DIR) {
+      await page.screenshot({
+        path: `${process.env.BUDGET_SHOT_DIR}/arrival-${String(viewport.width)}x${String(viewport.height)}.png`,
+      });
+    }
   });
 }

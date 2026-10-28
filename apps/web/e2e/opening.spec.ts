@@ -27,6 +27,8 @@ test("one opening screen with the case's question, and the skip link goes straig
   ]);
   await expect(opening.locator("[data-pack]")).toContainText("Real Data · Field Unverified");
   await expect(opening.locator("h1")).toHaveCount(1);
+  await page.addStyleTag({ content: "nextjs-portal { display: none !important; }" });
+  if (process.env.OPENING_OUT) await page.screenshot({ path: process.env.OPENING_OUT });
 
   // a viewer moving by keyboard reaches the skip link from the action
   await page.getByRole("button", { name: /Open Region Pack/ }).focus();

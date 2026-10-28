@@ -56,6 +56,8 @@ test.describe("at 1024 x 768", () => {
     await expect(toggle).toHaveAttribute("aria-expanded", "true");
     await expect(legend).toBeVisible();
     await expect(legend).toContainText("NDVI Departure · Nov 2025");
+    await page.addStyleTag({ content: "nextjs-portal { display: none !important; }" });
+    if (process.env.LEGEND_1024_OUT) await page.screenshot({ path: process.env.LEGEND_1024_OUT });
     await page.keyboard.press("Escape");
     await expect(toggle).toHaveAttribute("aria-expanded", "false");
     await expect(legend).toBeHidden();
@@ -69,5 +71,7 @@ test.describe("at 1440 x 810", () => {
     await observations(page, baseURL);
     await expect(page.locator("section[data-period-id]")).toBeVisible({ timeout: 15_000 });
     await expect(page.getByRole("button", { name: "Map Legend" })).toBeHidden();
+    await page.addStyleTag({ content: "nextjs-portal { display: none !important; }" });
+    if (process.env.LEGEND_1440_OUT) await page.screenshot({ path: process.env.LEGEND_1440_OUT });
   });
 });
