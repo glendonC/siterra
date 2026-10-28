@@ -115,6 +115,19 @@ describe("source research, synthetic replay, memory commit", () => {
     expect(await LIVELIHOOD_SPEC.firstMessage(task, testStore())).toBe(text);
   });
 
+  it("the shared rules name the cause words code refuses and keep limitations to excerpt numbers (live run of 28 Oct 2026)", () => {
+    for (const spec of [SOURCE_RESEARCH_SPEC, LIVELIHOOD_SPEC]) {
+      expect(spec.instructions).toContain(
+        '- Write no cause, even one the excerpt states: never "caused", "because of", "due to", "driven by", "attributable to", "as a result of", "led to", "leads to" or "results from". The cited excerpt carries what the source says.',
+      );
+      expect(spec.instructions).toContain(
+        "- Numbers in the statement and in limitations must appear in the excerpt.",
+      );
+    }
+    expect(SOURCE_RESEARCH_SPEC.promptVersion).toBe("source_research@3");
+    expect(LIVELIHOOD_SPEC.promptVersion).toBe("livelihood_governance@3");
+  });
+
   it("TR-04 path: search, read, a verified excerpt on its page, committed with its locator", async () => {
     const { deps, events } = harness([SEARCH, READ, answerStep(JSON.stringify(GOOD))]);
     const { loop, commit } = await runSourceResearchTask(
