@@ -26,6 +26,7 @@ import rasterio
 from rasterio.warp import Resampling, reproject
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import modis_record  # noqa: E402
 import place_config  # noqa: E402
 import restrend_rerun  # noqa: E402
 
@@ -110,8 +111,8 @@ def main():
     primary_set = next(b["id"] for b in rc["elevationBandSets"] if b.get("primary"))
     now = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
-    rec_name = sorted(f for f in os.listdir(raw) if f.startswith("search-"))[-1]
-    rec = json.load(open(os.path.join(raw, rec_name)))
+    rec_name, rec = modis_record.search_record(raw)
+    gaps = modis_record.archive_gaps(raw, rec_name, rec)
     sidecars = {iid.split(".")[1]: json.load(open(os.path.join(raw, iid + ".json"))) for iid in rec["kept"]}
     grids = {(tuple(s["assets"][ASSET]["transform"]), s["assets"][ASSET]["window"]["width"], s["assets"][ASSET]["window"]["height"])
              for s in sidecars.values()}
@@ -197,6 +198,15 @@ def main():
     n_insuff = sum(1 for r in rows["catchment"] if r["status"] != "available")
     days_total = sum(len(v) for k, v in by_month.items() if k in set(months))
     cal_days = sum((datetime.date(y + (m == 12), m % 12 + 1, 1) - datetime.date(y, m, 1)).days for y, m in months)
+    absent = []
+    for y, m in months:
+        d = datetime.date(y, m, 1)
+        while d.month == m:
+            key = f"A{d.year}{d.timetuple().tm_yday:03d}"
+            if key not in sidecars:
+                absent.append(key)
+            d += datetime.timedelta(days=1)
+    gap_text = modis_record.gap_sentence(absent, gaps, "day")
     checks = [
         {"name": "recompute_sample_period", "passed": bool(rerun_ok),
          "detail": (f"Month {ry}-{rm:02d} rerun independently for the {primary_set} bands: {len(rkeys)} daily windows read again from "
@@ -213,7 +223,8 @@ def main():
         {"name": "qa_join_coverage", "passed": True,
          "detail": (f"All {len(sidecars)} daily windows share one {mshape[1]} x {mshape[0]} pixel grid; {days_total} of {cal_days} "
                     f"calendar days from {months[0][0]}-{months[0][1]:02d} to {months[-1][0]}-{months[-1][1]:02d} have a Terra product "
-                    f"on Planetary Computer. Catchment months below the clear share minimum or without a product: {n_insuff} of {len(months)}.")},
+                    f"on Planetary Computer. {gap_text} Catchment months below the clear share minimum or without a product: "
+                    f"{n_insuff} of {len(months)}.")},
         {"name": "period_alignment", "passed": True,
          "detail": "A daily product belongs to the calendar month of its acquisition date (AYYYYDDD in the item ID)."},
         {"name": "attribution_present", "passed": True,
@@ -240,7 +251,8 @@ def main():
         "bands": band_meta, "rows": rows,
         "inputs": {"modis": {"collection": rec["collection"], "search_record": rec_name, "items": len(rec["kept"]),
                              "first_item": first_item, "last_item": last_item, "dropped_duplicates": len(rec["dropped_duplicates"]),
-                             "searched_at": rec["searched_at"]},
+                             "searched_at": rec["searched_at"], "days_absent_on_planetary_computer": absent,
+                             "archive_gaps": None if gaps is None else {k: gaps[k] for k in ("checked_at", "cmr", "listed_in_cmr", "missing_in_both")}},
                    "dem_sha256": cfg["elevation"]["sha256"], "strata_bundle": strata_col["id"]},
     }
     series = {}
@@ -259,6 +271,7 @@ def main():
         "default_threshold": "ndsi_0.2", "min_clear_share": min_clear, "band_set": primary_set,
         "series": series,
         "product_days": [r["product_days"] for r in rows["catchment"]],
+        "archive_gaps": gap_text,
         "full_tables": "snow-cover-by-band-tables.json",
         "limitations": reg["standardLimitations"],
     }

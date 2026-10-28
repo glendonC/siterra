@@ -28,6 +28,7 @@ import numpy as np
 import rasterio
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import modis_record  # noqa: E402
 import place_config  # noqa: E402
 import restrend_rerun  # noqa: E402
 import trend_stats as ts  # noqa: E402
@@ -82,8 +83,7 @@ def month_name(m):
 
 
 def load_modis(raw):
-    rec_name = sorted(f for f in os.listdir(raw) if f.startswith("search-"))[-1]
-    rec = json.load(open(os.path.join(raw, rec_name)))
+    rec_name, rec = modis_record.search_record(raw)
     sidecars = {}
     for iid in rec["kept"]:
         side = json.load(open(os.path.join(raw, iid + ".json")))
@@ -229,7 +229,8 @@ def main():
             periods = calendar_periods(y, gw["months"])
             missing = [k for k, _ in periods if k not in arrays]
             composites.append({"growing_window": gw["id"], "year": y, "periods": [d for _, d in periods],
-                               "missing_in_archive": [d for k, d in periods if k in missing]})
+                               "absent_on_planetary_computer": [d for k, d in periods if k in missing],
+                               "absent_keys": missing})
             for rel, kept in RELIABILITY_SETS.items():
                 G = season_ndvi(arrays, periods, kept, min_share)
                 for sid, w in w_modis.items():
@@ -311,7 +312,8 @@ def main():
         it = json.load(open(os.path.join(raw, "items", iid + ".json")))
         item_scales.add(it["assets"][NDVI_ASSET]["raster:bands"][0].get("scale"))
     scale_ok = scale_ok and item_scales == {0.0001}
-    missing_all = sorted({d for c in composites for d in c["missing_in_archive"]})
+    gaps = modis_record.archive_gaps(raw, rec_name, rec)
+    absent_all = sorted({k for c in composites for k in c.pop("absent_keys")})
 
     rerun_detail = (f"Season {rerun_year} ({gw_primary}, catchment) rerun independently: {len(rr['reads'])} composites read again from "
                     f"Planetary Computer with a fresh token; windows identical to the stored ones: {reads_ok}. Season mean resampled "
@@ -325,7 +327,7 @@ def main():
         {"name": "nodata_not_zero", "passed": True,
          "detail": f"NDVI fill (-3000) and values outside -0.2 to 1.0 are not observed; pixel reliability other than "
                    f"{RELIABILITY_SETS[PRIMARY_RELIABILITY]} (primary) or [0] (sensitivity), including fill 255, is not observed; "
-                   f"a composite period absent from the archive counts as nothing kept. A missing CHIRPS month or cell leaves the "
+                   f"a composite period absent from Planetary Computer counts as nothing kept. A missing CHIRPS month or cell leaves the "
                    f"window total undefined."},
         {"name": "units_and_scale", "passed": bool(scale_ok),
          "detail": "Every stored NDVI window is int16 with nodata -3000 and GDAL scale 10000 (physical value = DN / 10000), and every "
@@ -334,9 +336,8 @@ def main():
                    "are kept. Rainfall in mm per window."},
         {"name": "qa_join_coverage", "passed": True,
          "detail": f"All {len(sidecars)} composites share one window grid for NDVI and pixel reliability ({mshape[1]} x {mshape[0]} "
-                   f"pixels); stratum weights count 10 m analysis cells per MODIS pixel and per CHIRPS cell. Composite periods "
-                   f"absent from Planetary Computer but listed in NASA CMR: {', '.join(missing_all) if missing_all else 'none'} "
-                   f"(in the registered windows)."},
+                   f"pixels); stratum weights count 10 m analysis cells per MODIS pixel and per CHIRPS cell. In the registered "
+                   f"growing windows: " + modis_record.gap_sentence(absent_all, gaps, "composite period")},
         {"name": "period_alignment", "passed": True,
          "detail": "A composite belongs to a season when its 16-day period starts in a month of the growing window of that year; "
                    "rainfall windows end in the season's year as configured (start and end month with year offsets)."},
@@ -418,7 +419,8 @@ def main():
         "windows": None, "strata": None, "headline": headline,
         "results": compact,
         "sensitivity_reliability_0": sens,
-        "composites_missing_in_archive": [c for c in composites if c["missing_in_archive"]],
+        "composites_absent_on_planetary_computer": [c for c in composites if c["absent_on_planetary_computer"]],
+        "archive_gaps": modis_record.gap_sentence(absent_all, gaps, "composite period"),
         "full_tables": tables_name,
         "limitations": reg["standardLimitations"],
     }
@@ -449,7 +451,8 @@ def main():
         "composites": composites,
         "inputs": {"modis": {"collection": rec["collection"], "search_record": rec_name, "items": len(rec["kept"]),
                              "first_item": first_item, "last_item": last_item, "dropped_duplicates": rec["dropped_duplicates"],
-                             "searched_at": rec["searched_at"]},
+                             "searched_at": rec["searched_at"],
+                             "archive_gaps": None if gaps is None else {k: gaps[k] for k in ("checked_at", "cmr", "listed_in_cmr", "missing_in_both")}},
                    "rainfall_bundle": {"id": rain_col["id"], "collection_sha256": sha(os.path.join(rain_col_dir, "collection.json"))},
                    "strata_bundle": {"id": strata_col["id"], "asset_sha256": cfg["strata"]["sha256"]}},
         "limitations": reg["standardLimitations"],
