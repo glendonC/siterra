@@ -167,6 +167,8 @@ export const en = {
     honesty: true,
   },
   "flat.legend": { text: "Map legend", kind: "label" },
+  // one label, its state in aria-expanded (voice and tone: a toggle keeps one label)
+  "legend.toggle": { text: "Map legend", kind: "button" },
 
   // Sources and notices
   "notices.data": { text: "Data in this case, as its records credit it", kind: "label" },

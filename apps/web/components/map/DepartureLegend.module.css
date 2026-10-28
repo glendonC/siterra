@@ -1,5 +1,41 @@
 /* The map legend island (design system layout: legend 280; type.label 12/16 for legends). Above the key
-   hints at the bottom left; it arrives with the raster's 160 ms fade, at once under reduced motion. */
+   hints at the bottom left; it arrives with the raster's 160 ms fade, at once under reduced motion. Below
+   1100 px it collapses to a button in the same corner (UX architecture, viewport table). */
+
+.toggle {
+  display: none;
+  position: absolute;
+  left: 40px;
+  bottom: 76px;
+  height: 32px;
+  padding: 0 12px;
+  border: 0;
+  background: var(--card);
+  box-shadow: var(--shadow-card);
+  color: var(--ink);
+  font: 500 var(--type-label-size) / var(--type-label-line) var(--font-sans);
+  cursor: pointer;
+  animation: fade 160ms linear both;
+}
+
+.toggle:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+@media (max-width: 1099.98px) {
+  .toggle {
+    display: block;
+  }
+
+  .root:not([data-open="true"]) .legend {
+    display: none;
+  }
+
+  .legend {
+    bottom: 116px;
+  }
+}
 
 .legend {
   position: absolute;
@@ -101,6 +137,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .toggle,
   .legend {
     animation: none;
   }
