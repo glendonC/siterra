@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 
-import { AT, CASE_ID, bundle, measurement, testStore } from "../testing/case-fixture.ts";
+import {
+  AT,
+  CASE_ID,
+  TEST_ANALYSIS_CONFIG,
+  bundle,
+  measurement,
+  testStore,
+} from "../testing/case-fixture.ts";
 import type { EvidenceRecord } from "../tasks/records.ts";
 import {
   compareSeriesTool,
@@ -119,6 +126,61 @@ describe("compare_series", () => {
         code: "not_a_departure_series",
       });
     }
+  });
+
+  it("aligns the pair another place's configuration allows, with its windows and decimals", async () => {
+    const store = seriesStore();
+    const moisture = [0.0104, -0.0052, -0.0014, 0.0026];
+    for (const m of store.measurements) {
+      if (m.dataBundleId === "bundle_test_veg") m.metric = "evi_departure_area_median";
+      if (m.dataBundleId === "bundle_test_rain") {
+        m.metric = "soil_moisture_departure";
+        m.value = moisture[Number(m.id.slice(-1))] ?? null;
+      }
+    }
+    store.analysisConfigs.set(CASE_ID, {
+      ...TEST_ANALYSIS_CONFIG,
+      seriesPairs: [
+        {
+          id: "vegetation_soil_moisture",
+          a: { label: "vegetation departure", metrics: ["evi_departure_area_median"] },
+          b: {
+            label: "soil moisture departure",
+            metrics: ["soil_moisture_departure"],
+            storedDecimals: 3,
+          },
+          windowsMonths: [0, 1],
+        },
+      ],
+    });
+    const args = {
+      a: { ...ARGS.a, metric: "evi_departure_area_median" },
+      b: { ...ARGS.b, metric: "soil_moisture_departure" },
+    };
+    const output = (await run(compareSeriesTool(store, CASE_ID), args)).output as {
+      windowsMonths: number[];
+      counts: Record<string, { alignedMonths: number; sameSignMonths: number }>;
+      rows: { b: { windows: Record<string, number | null> } }[];
+    };
+    expect(output.windowsMonths).toEqual([0, 1]);
+    expect(output.rows.map((r) => r.b.windows)).toEqual([
+      { "0": 0.01, "1": null },
+      { "0": -0.005, "1": 0.005 },
+      { "0": -0.001, "1": -0.007 },
+      { "0": 0.003, "1": 0.001 },
+    ]);
+    // The valley's pair is not this place's, so it is refused here.
+    await expect(run(compareSeriesTool(store, CASE_ID), ARGS)).rejects.toMatchObject({
+      code: "not_a_departure_series",
+    });
+  });
+
+  it("refuses every pair when the case has no analysis configuration", async () => {
+    const store = seriesStore();
+    store.analysisConfigs.clear();
+    await expect(run(compareSeriesTool(store, CASE_ID), ARGS)).rejects.toMatchObject({
+      code: "no_case_config",
+    });
   });
 
   it("steps back one month across a year", () => {

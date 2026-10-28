@@ -1,3 +1,5 @@
+import type { CaseAnalysisConfig } from "@siterra/contracts";
+
 import type {
   DataBundleRecord,
   MeasurementRecord,
@@ -12,6 +14,39 @@ import type { StoredPassage } from "../tools/store.ts";
 
 export const CASE_ID = "case_test_valley";
 export const AT = new Date("2026-10-27T20:00:00.000Z");
+
+/** The test case's configuration: the same pair, windows and season as the first real case. */
+export const TEST_ANALYSIS_CONFIG: CaseAnalysisConfig = {
+  configVersion: 1,
+  caseId: CASE_ID,
+  areaLabel: "catchment",
+  seriesPairs: [
+    {
+      id: "vegetation_rainfall",
+      a: {
+        label: "vegetation departure",
+        metrics: ["ndvi_departure_area_median", "ndvi_departure_area_median_leave_one_year_out"],
+      },
+      b: {
+        label: "rainfall departure",
+        metrics: ["precipitation_departure_from_1991_2020_mean"],
+        storedDecimals: 2,
+      },
+      windowsMonths: [0, 1, 2, 3],
+    },
+  ],
+  rainfallSeason: {
+    id: "wet_season",
+    label: "November to April wet season",
+    startMonth: 11,
+    endMonth: 4,
+    recipe: { recipeId: "season_summary", version: "1.0.0" },
+  },
+  explanations: [
+    { id: "rainfall", label: "Rainfall", statement: "Lower rainfall lowered greenness." },
+    { id: "grazing", label: "Grazing", statement: "Grazing lowered greenness." },
+  ],
+};
 
 const provenance = (limitations: string[] = []): Provenance => ({
   sourceLocators: [],
@@ -100,6 +135,7 @@ export function testStore(): MemoryCaseStore {
     activeGeoSelectionId: "geo_test_catchment",
     unresolvedQuestions: [],
   });
+  store.analysisConfigs.set(CASE_ID, TEST_ANALYSIS_CONFIG);
   store.bundles.push(bundle());
   store.measurements.push(
     measurement("period_2022-03", 0.1211),

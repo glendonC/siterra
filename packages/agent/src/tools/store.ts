@@ -1,3 +1,4 @@
+import type { CaseAnalysisConfig } from "@siterra/contracts";
 import type { Locator } from "@siterra/domain/validators";
 import { formatLocator } from "@siterra/domain/validators";
 import type {
@@ -122,6 +123,8 @@ export interface CaseStore {
     bundleId: string,
     bundleRevision: number,
   ): Promise<EventRecordRowRecord[]>;
+  /** The case's analysis configuration, or null when it has none. */
+  readAnalysisConfig(caseId: string): Promise<CaseAnalysisConfig | null>;
 }
 
 export class MemoryCaseStore implements CaseStore {
@@ -137,6 +140,11 @@ export class MemoryCaseStore implements CaseStore {
   readonly recipes: RecipeEntry[] = [];
   readonly recipeResults: (RecipeResult & { caseId: string })[] = [];
   readonly eventRows: EventRecordRowRecord[] = [];
+  readonly analysisConfigs = new Map<string, CaseAnalysisConfig>();
+
+  readAnalysisConfig(caseId: string): Promise<CaseAnalysisConfig | null> {
+    return Promise.resolve(this.analysisConfigs.get(caseId) ?? null);
+  }
 
   readEventRows(
     caseId: string,

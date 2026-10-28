@@ -1,4 +1,5 @@
 import { MemoryCaseStore } from "@siterra/agent";
+import { analysisConfigFor } from "@siterra/domain/cases";
 import type {
   CaseSummary,
   DataBundleRecord,
@@ -63,6 +64,8 @@ export function snapshotStore(
     activeGeoSelectionId: snapshot.case.activeGeoSelectionId,
     unresolvedQuestions: snapshot.case.unresolvedQuestions,
   });
+  const config = analysisConfigFor(caseId);
+  if (config) store.analysisConfigs.set(caseId, config);
   store.bundles.push(...snapshot.records.dataBundleRecords);
   store.measurements.push(...snapshot.records.measurementRecords);
   for (const t of snapshot.records.temporalObservationRecords) {

@@ -117,7 +117,6 @@ export type { RouteDescription, RouteEnv } from "./model/route.ts";
 export { P0_JOBS, modelMap } from "./model/model-map.ts";
 export type { ModelJob, ModelMapRow } from "./model/model-map.ts";
 export {
-  WINDOWS,
   compareSeriesTool,
   listRecipesTool,
   previousPeriod,
