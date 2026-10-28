@@ -1,7 +1,7 @@
 {
-  "registryVersion": "1.1.0",
+  "registryVersion": "1.2.0",
   "registered": "2026-10-27",
-  "note": "P0 recipe registry. What was fixed before any data: only the catalog rows in docs/reference/analysis-recipes.md (question, method in one line, output kind) for coverage_summary, monthly_departure and aligned_antecedent, and the full season_summary entry (registered 2026-10-27 before any event comparison). The detailed formulas and parameters of coverage_summary, monthly_departure, aligned_antecedent and terrain_strata were written together with their first run on 2026-10-27, so they are not pre-registered. From now on, changing a formula, parameter or window after results are read is a new version labeled post hoc. The inspector renders method cards from an entry and the bundle manifest that holds its result. References are IDs in research/science/source-register.md.",
+  "note": "Recipe registry. What was fixed before any data: only the catalog rows in docs/reference/analysis-recipes.md (question, method in one line, output kind) for coverage_summary, monthly_departure and aligned_antecedent, and the full season_summary entry (registered 2026-10-27 before any event comparison). The detailed formulas and parameters of coverage_summary, monthly_departure, aligned_antecedent and terrain_strata were written together with their first run on 2026-10-27, so they are not pre-registered. From now on, changing a formula, parameter or window after results are read is a new version labeled post hoc. Registry 1.2.0 (2026-10-28) adds restrend_long_record and snow_cover_by_band, each fully registered before its data was summarized; their place-specific windows and band sets are in science/places/. The inspector renders method cards from an entry and the bundle manifest that holds its result. References are IDs in research/science/source-register.md.",
   "recipes": [
     {
       "recipeId": "coverage_summary",
@@ -568,6 +568,358 @@
       ],
       "priority": "P0",
       "formulaPlain": "The catchment is split into three equal-area elevation bands, and into north, east, south and west facing slopes plus level ground. WorldCover cropland and built-up areas are set aside."
+    },
+    {
+      "recipeId": "restrend_long_record",
+      "version": "1.0.0",
+      "title": "Rainfall-adjusted greenness trend over the MODIS record",
+      "question": "Once growing-season greenness is adjusted for the rain that came before it, does what is left drift up or down over about 25 seasons, for the catchment and for each terrain stratum?",
+      "operation": "residual_trend",
+      "implementation": {
+        "language": "python",
+        "package": "siterra-science",
+        "version": "0.1.0"
+      },
+      "inputs": [
+        "modis_mod13q1_v061_ndvi_16day",
+        "chirps_v3_monthly",
+        "terrain_strata",
+        "place_configuration"
+      ],
+      "registration": "Full entry registered 2026-10-28 before any MODIS NDVI value was summarized or compared with rainfall. The raw MOD13Q1 windows were being downloaded while the entry was written; the download script prints item counts only. The windows, strata and thresholds come from the place configuration (science/places/<place>.json), fixed in the same way.",
+      "formula": [
+        "NDVI(p, c) = DN / 10000 for Terra MOD13Q1 v6.1 composite c and 250 m pixel p, kept only where the composite's pixel reliability is 0 (good) or 1 (marginal) and -0.2 <= NDVI <= 1.0; reliability 2 (snow or ice), 3 (cloudy) and fill are not observed",
+        "Composites of season y and growing window W: the 16-day composite periods of the MODIS calendar (start days of year 1, 17, ..., 353) that start in a month of W in year y; a period with no Terra product in the archive read counts as a composite with nothing kept and is listed in the result",
+        "G(p, y, W) = mean of the kept NDVI(p, c) over the season's composites, defined only when at least half of the season's composite periods (rounded up) are kept at p",
+        "w_s(p) = number of 10 m analysis cells of stratum s whose centre falls in pixel p; the catchment is the stratum of all analysis cells",
+        "Y_s(y, W) = sum over p of w_s(p) G(p, y, W) / sum over p of w_s(p), over the pixels where G is defined; withheld when those pixels hold less than 70% of the stratum's weight",
+        "P_s(y, R) = rainfall total over rainfall window R ending in season y: for each month of R, the CHIRPS v3.0 monthly values of the 0.05 degree cells weighted by the number of 10 m analysis cells of stratum s whose centre falls in each cell, summed over the months",
+        "Rainfall fit: Y = a + b P by ordinary least squares over the n seasons with both values; b is reported with its 95% interval from the t distribution with n - 2 degrees of freedom, and R squared",
+        "e(y) = Y(y) - (a + b P(y)), the rainfall-adjusted residual of season y",
+        "Residual trend d = ordinary least squares slope of e on the season year (NDVI per year), with the 95% t interval (n - 2 degrees of freedom)",
+        "Autocorrelation-adjusted interval: the same slope with standard error scaled by sqrt((n - 2) / (n_eff - 2)), n_eff = n (1 - r1) / (1 + r1), r1 the lag-1 autocorrelation of the trend-fit residuals, n_eff = n when r1 <= 0, t quantile with n_eff - 2 degrees of freedom; withheld when n_eff < 3 (Santer et al. 2000)",
+        "Theil-Sen slope of e on the season year (median of pairwise slopes) with Sen's 95% interval from the ranks (N - C) / 2 and (N + C) / 2 + 1 of the N sorted pairwise slopes, C = 1.96 sqrt(n (n - 1) (2n + 5) / 18), no tie correction (Sen 1968)",
+        "Side by side: the ordinary least squares slope and 95% t interval of Y alone (unadjusted greenness) and of P alone (rainfall) on the season year",
+        "Precondition: when the 95% interval of b does not lie entirely above zero, the result for that stratum and window pair is labelled precondition_not_met; the residual trend is still stored but is not described as rainfall-adjusted",
+        "Direction wording: an interval entirely above zero is described as upward, entirely below zero as downward, otherwise as including zero (no direction stated)"
+      ],
+      "parameters": [
+        {
+          "name": "growing_window",
+          "role": "scope",
+          "allowed": [
+            "the growingWindows of the place configuration (Ait Bouguemez: mar_jun, mar_may, apr_jul)"
+          ],
+          "default": "the window marked primary (Ait Bouguemez: mar_jun)"
+        },
+        {
+          "name": "rainfall_window",
+          "role": "scope",
+          "allowed": [
+            "the rainfallWindows of the place configuration (Ait Bouguemez: sep_may, nov_apr)"
+          ],
+          "default": "the window marked primary (Ait Bouguemez: sep_may)"
+        },
+        {
+          "name": "stratum",
+          "role": "scope",
+          "allowed": [
+            "catchment",
+            "each class of each strata layer listed in the place configuration (Ait Bouguemez: three elevation bands, five aspect classes)"
+          ],
+          "default": "catchment"
+        },
+        {
+          "name": "pixel_reliability_kept",
+          "role": "method",
+          "allowed": [
+            [0, 1]
+          ],
+          "default": [0, 1]
+        },
+        {
+          "name": "min_composite_share",
+          "role": "method",
+          "allowed": [
+            0.5
+          ],
+          "default": 0.5
+        },
+        {
+          "name": "min_area_coverage",
+          "role": "method",
+          "allowed": [
+            0.7
+          ],
+          "default": 0.7
+        },
+        {
+          "name": "min_seasons",
+          "role": "method",
+          "allowed": [
+            15
+          ],
+          "default": 15
+        },
+        {
+          "name": "interval_level",
+          "role": "method",
+          "allowed": [
+            0.95
+          ],
+          "default": 0.95
+        },
+        {
+          "name": "season_years",
+          "role": "method",
+          "allowed": [
+            "the seasonYears of the place configuration (Ait Bouguemez: 2000 to 2025)"
+          ],
+          "default": "the seasonYears of the place configuration"
+        }
+      ],
+      "sensitivitySet": [
+        "every growing window with every rainfall window, computed and stored together",
+        "pixel reliability 0 only (good) in place of 0 and 1",
+        "the autocorrelation-adjusted interval and the Theil-Sen slope with Sen's interval",
+        "the unadjusted greenness trend and the rainfall trend"
+      ],
+      "applicability": [
+        {
+          "check": "seasons with both a greenness value and a rainfall value, for the stratum and window pair",
+          "minimum": "15 seasons; fewer and the pair is reported as insufficient_seasons with no slope"
+        },
+        {
+          "check": "validated rainfall bundle covering every month of every rainfall window",
+          "minimum": "1 bundle"
+        },
+        {
+          "check": "frozen geometry and strata named in the place configuration, checksums matching",
+          "minimum": "1 geometry"
+        }
+      ],
+      "outputs": [
+        {
+          "metric": "residual_trend_per_year",
+          "unit": "1/a",
+          "claimKind": "model_estimate",
+          "uncertaintyKind": "interval"
+        },
+        {
+          "metric": "rainfall_slope_per_mm",
+          "unit": "1/mm",
+          "claimKind": "model_estimate",
+          "uncertaintyKind": "interval"
+        },
+        {
+          "metric": "rainfall_fit_r_squared",
+          "unit": "1",
+          "claimKind": "model_estimate",
+          "uncertaintyKind": "not_quantified"
+        },
+        {
+          "metric": "seasons_used",
+          "unit": "count",
+          "claimKind": "observation",
+          "uncertaintyKind": "not_quantified"
+        },
+        {
+          "metric": "growing_season_ndvi",
+          "unit": "1",
+          "claimKind": "observation",
+          "uncertaintyKind": "not_quantified"
+        },
+        {
+          "metric": "window_rainfall_mm",
+          "unit": "mm",
+          "claimKind": "observation",
+          "uncertaintyKind": "not_quantified"
+        }
+      ],
+      "assumptions": [
+        "In a dryland, growing-season greenness rises roughly in a straight line with the rain of the preceding months, so the residual removes most of the rainfall-driven year-to-year swing (Evans and Geerken 2004)",
+        "The relationship between greenness and rainfall is the same across the record; a change in that relationship shows up in the residual"
+      ],
+      "failureModes": [
+        "Weak or absent rainfall relationship (snowmelt or irrigation water, rainfall data error), flagged by the precondition",
+        "Mixed 250 m pixels on the valley floor where fields, orchards and slopes share a pixel",
+        "Persistent snow or cloud in spring removing upper-band composites",
+        "Terra orbit drift and sensor ageing changing NDVI in later seasons independently of vegetation"
+      ],
+      "standardLimitations": [
+        "The rainfall-adjusted residual still holds everything else that changes greenness: temperature, snow, irrigation, orchards and fields, grazing, fire, and sensor or orbit changes. It is not a measure of grazing impact or of degradation.",
+        "Trend methods can miss real change: in simulations for southern Africa, 30 to 40% degradation was needed before a trend showed under a rainfall-driven increase, and the residual method broke down at about 20% degradation (Wessels et al. 2012). An interval that includes zero is not evidence of no change.",
+        "Each 250 m MODIS pixel mixes surfaces; stratum values weight pixels by how much of the stratum falls inside them, so a mixed pixel counts toward more than one stratum.",
+        "Rainfall comes from 5 km CHIRPS grid cells, not from gauges in the valley, and snowfall is counted with rain.",
+        "Each stratum and window pair has its own interval. With many shown together, some intervals will exclude zero by chance alone.",
+        "Terra's overpass has drifted earlier since 2020, from 10:30 to about 9:06 mean local time by December 2025 (NASA): later seasons are seen with a lower sun and longer shadows in mountain terrain, which may shift NDVI without any change on the ground.",
+        "The windows were fixed before the MODIS values were read; other windows can give other slopes, which is why all registered windows are stored together."
+      ],
+      "allowedComponents": [
+        "method card",
+        "long-record trend table"
+      ],
+      "forbiddenPhrases": [
+        "significant",
+        "significantly",
+        "degradation detected",
+        "grazing impact",
+        "overgrazing",
+        "caused by",
+        "proves",
+        "recovery",
+        "forecast"
+      ],
+      "references": [
+        "SCI-155",
+        "SCI-156",
+        "SCI-157",
+        "SCI-29",
+        "SCI-158",
+        "SCI-49",
+        "SCI-09",
+        "SCI-159"
+      ],
+      "priority": "P2",
+      "formulaPlain": "For each season since 2000, MODIS greenness from March to June is averaged over the catchment and each terrain stratum and set against the rain that fell from the previous September to May. A straight line through those pairs gives the greenness expected from the rain. What is left over each season is tested for an upward or downward drift across the years, with a 95% interval. The drift is a model estimate, and a drift does not by itself say why."
+    },
+    {
+      "recipeId": "snow_cover_by_band",
+      "version": "1.0.0",
+      "title": "Monthly snow cover by elevation band",
+      "question": "What share of each elevation band was snow-covered, month by month, from 2001 to 2025?",
+      "operation": "threshold_fraction",
+      "implementation": {
+        "language": "python",
+        "package": "siterra-science",
+        "version": "0.1.0"
+      },
+      "inputs": [
+        "modis_mod10a1_v061_snow_daily",
+        "copernicus_dem_glo30_2021",
+        "terrain_strata",
+        "place_configuration"
+      ],
+      "registration": "Full entry registered 2026-10-28 before any MOD10A1 data was downloaded. The band sets come from the place configuration (science/places/<place>.json), fixed in the same way.",
+      "formula": [
+        "v(p, d) = NDSI_Snow_Cover of Terra MOD10A1 v6.1 500 m pixel p on day d; clear when 0 <= v <= 100 (0 is snow-free land); cloud when v = 250; every other value (200 missing, 201 no decision, 211 night, 237 inland water, 239 ocean, 254 detector saturated, 255 fill) is not observed",
+        "snow_t(p, d) = 1 when p is clear on d and v >= 100 t, for the NDSI thresholds t = 0.2 (optimised for the Atlas, Bousbaa et al. 2024) and t = 0.4 (the global reference), computed side by side",
+        "w_b(p) = number of 10 m analysis cells of elevation band b whose centre falls in pixel p; elevation from the place's DEM, resampled to the analysis grid as for the terrain strata; band sets from the place configuration",
+        "clear_share(b, m) = sum over the days d of month m that have a product and over pixels p of w_b(p) clear(p, d) / sum over the same days and pixels of w_b(p)",
+        "snow_cover_fraction_t(b, m) = sum over d and p of w_b(p) snow_t(p, d) / sum over d and p of w_b(p) clear(p, d); reported only when clear_share(b, m) >= 0.3, otherwise insufficient_clear",
+        "product_days(m) = number of days of month m with a Terra MOD10A1 product over the place",
+        "The catchment as a whole is reported alongside the bands"
+      ],
+      "parameters": [
+        {
+          "name": "ndsi_threshold",
+          "role": "display",
+          "allowed": [
+            0.2,
+            0.4
+          ],
+          "default": 0.2
+        },
+        {
+          "name": "band_set",
+          "role": "scope",
+          "allowed": [
+            "the elevationBandSets of the place configuration (Ait Bouguemez: fixed_500m, terrain_strata)"
+          ],
+          "default": "the set marked primary (Ait Bouguemez: fixed_500m, edges 2000, 2500, 3000 and 3500 m)"
+        },
+        {
+          "name": "min_clear_share",
+          "role": "method",
+          "allowed": [
+            0.3
+          ],
+          "default": 0.3
+        },
+        {
+          "name": "months",
+          "role": "method",
+          "allowed": [
+            "the months of the place configuration (Ait Bouguemez: 2001-01 to 2025-12)"
+          ],
+          "default": "the months of the place configuration"
+        }
+      ],
+      "sensitivitySet": [
+        "NDSI threshold 0.2 and 0.4 side by side",
+        "fixed 500 m bands and the equal-area terrain strata bands side by side"
+      ],
+      "applicability": [
+        {
+          "check": "elevation band with analysis cells inside the catchment",
+          "minimum": "1 analysis cell; a band with none is listed with no values"
+        },
+        {
+          "check": "clear share of the band in the month",
+          "minimum": "0.3; below it the month is insufficient_clear"
+        }
+      ],
+      "outputs": [
+        {
+          "metric": "snow_cover_fraction",
+          "unit": "1",
+          "claimKind": "observation",
+          "uncertaintyKind": "not_quantified"
+        },
+        {
+          "metric": "clear_share",
+          "unit": "1",
+          "claimKind": "observation",
+          "uncertaintyKind": "not_quantified"
+        },
+        {
+          "metric": "product_days",
+          "unit": "count",
+          "claimKind": "observation",
+          "uncertaintyKind": "not_quantified"
+        }
+      ],
+      "assumptions": [
+        "On clear days, a 500 m pixel whose NDSI reaches the threshold is snow-covered as a whole",
+        "Clear days in a month are representative of the month's snow cover"
+      ],
+      "failureModes": [
+        "Persistent cloud during storms, leaving the snowiest days unobserved",
+        "Threshold bias in the Atlas: snow underestimated at NDSI 0.4",
+        "Shaded north-facing slopes and patchy or thin snow missed in a 500 m pixel",
+        "Terra orbit drift changing illumination in later years"
+      ],
+      "standardLimitations": [
+        "MOD10A1 sees snow only on clear days. Cloudy days are left out, not filled, so a month's fraction describes its clear days; the clear share is shown with it.",
+        "Against 448 Sentinel-2 scenes of the Atlas, Terra MODIS snow cover (version 6) was underestimated by 6.13% on average with the global NDSI threshold of 0.4 and overestimated by 0.34% with the Atlas threshold of 0.2 (Bousbaa et al. 2024). Both thresholds are shown.",
+        "Against five Atlas stations, MOD10A1 (version 5) agreed with snow observations 89% of the time (2000 to 2013, other Atlas catchments; Marchane et al. 2015). There is no station comparison for this valley.",
+        "Each 500 m pixel is called snow-covered or not as a whole; patchy snow, thin snow and snow on shaded slopes can be missed.",
+        "Snow cover is not snow depth or water: it says nothing about how much water the snow holds.",
+        "Terra's overpass has drifted earlier since 2020, from 10:30 to about 9:06 mean local time by December 2025 (NASA), so later years are seen with a lower sun and longer shadows, which may change snow detection on steep slopes."
+      ],
+      "allowedComponents": [
+        "method card",
+        "snow cover by band chart"
+      ],
+      "forbiddenPhrases": [
+        "significant",
+        "significantly",
+        "snow decline",
+        "snow water",
+        "drought",
+        "caused by",
+        "proves",
+        "forecast"
+      ],
+      "references": [
+        "SCI-160",
+        "SCI-161",
+        "SCI-162",
+        "SCI-26",
+        "SCI-159"
+      ],
+      "priority": "P2",
+      "formulaPlain": "For every day from 2001 to 2025, MODIS marks each 500 m pixel as snow, snow-free or not seen (cloud, night, missing). For each elevation band and month, the snow-covered share is the snow pixel-days divided by the clear pixel-days. It is shown at two NDSI thresholds, 0.2 (fitted to the Atlas) and 0.4 (the global default), with the share of the band that was clear."
     }
   ]
 }
