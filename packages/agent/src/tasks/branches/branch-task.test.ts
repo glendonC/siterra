@@ -126,7 +126,12 @@ async function run(
     },
     {
       adapter: new MetaAdapter({ transport, sleep: () => Promise.resolve() }),
-      trace: { emit: (e) => events.push(e) },
+      trace: {
+        emit: (e) => {
+          log.push(`trace:${e.kind}`);
+          events.push(e);
+        },
+      },
       store: view,
       tools: caseToolRegistry(view, CASE_ID),
       newEvidenceId: () => "ev_test_unused",
@@ -302,6 +307,21 @@ describe("TR-07: per-branch model and validator outcomes, no personas", () => {
       const mine = events.filter((e) => e.entityIds.includes(branchId)).map((e) => e.kind);
       expect(mine).toEqual(["model.started", "model.completed", "validation.completed"]);
     }
+  });
+
+  it("the trace shows each host load, run after the predictions were recorded", async () => {
+    const { events, log, interim } = await run();
+    expect(interim[0]?.events.map((e) => e.kind)).toEqual(["task.progress"]);
+    const recorded = log.indexOf("commit:predictions");
+    expect(log.findIndex((entry) => entry.startsWith("trace:tool."))).toBeGreaterThan(recorded);
+    const loads = events.filter((e) => e.kind === "tool.started" || e.kind === "tool.completed");
+    expect(loads.map((e) => `${e.kind} ${e.tool?.name ?? ""} ${e.tool?.status ?? ""}`)).toEqual([
+      "tool.started compare_series started",
+      "tool.completed compare_series succeeded",
+      "tool.started compare_series started",
+      "tool.completed compare_series succeeded",
+    ]);
+    expect(loads[1]?.tool?.resultEntityIds).toContain("meas_rd_0");
   });
 
   it("every branch gets the same instructions; only the explanation differs", async () => {

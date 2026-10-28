@@ -379,6 +379,7 @@ export async function runExplanationBranchesTask(
     catalog,
     allPredictions,
     deps.signal ?? new AbortController().signal,
+    { sink: deps.trace, taskId: task.id, now: deps.now },
   );
   const scoredAt = at();
   const scored = drafted.map((d) => ({

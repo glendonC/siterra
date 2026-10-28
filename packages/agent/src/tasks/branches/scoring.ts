@@ -6,6 +6,8 @@ import { readSeasonSummary } from "../../tools/event-tools.ts";
 import type { CaseStore } from "../../tools/store.ts";
 import { ToolFailure } from "../../tools/tool.ts";
 import type { CommitOutcome } from "../commit.ts";
+import { messages } from "../trace.ts";
+import type { ToolCallDraft, TraceSink } from "../trace.ts";
 import type { BranchCatalog } from "./catalog.ts";
 
 // Reads what the committed predictions name, and only after they are committed (DF-07): every
@@ -30,6 +32,70 @@ interface CompareOutput {
   counts: Record<string, { alignedMonths: number; sameSignMonths: number }>;
 }
 
+/** Where host-run tool loads are traced, as the task loop traces the model's tool calls. */
+export interface LoadTrace {
+  sink: TraceSink;
+  taskId: string;
+  now: () => Date;
+}
+
+async function traced<T extends { resultEntityIds: string[] }>(
+  trace: LoadTrace,
+  name: ToolCallDraft["name"],
+  argumentSummary: string,
+  run: () => Promise<T>,
+): Promise<T> {
+  const startedAt = trace.now();
+  const base = { name, startedAt: startedAt.toISOString(), argumentSummary, attempt: 1 };
+  const emit = (kind: "tool.started" | "tool.completed", tool: ToolCallDraft, message: string) =>
+    trace.sink.emit({
+      kind,
+      taskId: trace.taskId,
+      occurredAt: trace.now().toISOString(),
+      entityIds: tool.resultEntityIds,
+      message,
+      resultStatus: null,
+      usage: null,
+      tool,
+      validation: null,
+    });
+  emit(
+    "tool.started",
+    {
+      ...base,
+      status: "started",
+      endedAt: null,
+      durationMs: null,
+      resultEntityIds: [],
+      errorCode: null,
+    },
+    messages.toolStarted(name),
+  );
+  const finish = (status: ToolCallDraft["status"], ids: string[], errorCode: string | null) => {
+    const ended = trace.now();
+    emit(
+      "tool.completed",
+      {
+        ...base,
+        status,
+        endedAt: ended.toISOString(),
+        durationMs: ended.getTime() - startedAt.getTime(),
+        resultEntityIds: ids,
+        errorCode,
+      },
+      messages.toolCompleted(name, status, ids.length),
+    );
+  };
+  try {
+    const result = await run();
+    finish("succeeded", result.resultEntityIds, null);
+    return result;
+  } catch (error) {
+    finish("failed", [], error instanceof ToolFailure ? error.code : "tool_error");
+    throw error;
+  }
+}
+
 /** The record the predictions name; the receipt comes first so nothing is read before the commit. */
 export async function readScoringRecord(
   _receipt: PredictionsReceipt,
@@ -39,6 +105,7 @@ export async function readScoringRecord(
   catalog: BranchCatalog,
   predictions: readonly Prediction[],
   signal: AbortSignal,
+  trace: LoadTrace,
 ): Promise<ScoringRecord> {
   const series = new Map<string, SeriesRecord>();
   const wantedPeriods = new Map<string, Set<string>>();
@@ -100,17 +167,17 @@ export async function readScoringRecord(
     const measurementIds = new Set<string>();
     let mismatch = false;
     for (const metric of configured.a.metrics) {
+      const args = {
+        a: { bundleId: pair.a.bundle.id, bundleRevision: pair.a.bundle.revision, metric },
+        b: {
+          bundleId: pair.b.bundle.id,
+          bundleRevision: pair.b.bundle.revision,
+          metric: configured.b.metrics[0] ?? "",
+        },
+      };
       try {
-        const result = await compare.run(
-          {
-            a: { bundleId: pair.a.bundle.id, bundleRevision: pair.a.bundle.revision, metric },
-            b: {
-              bundleId: pair.b.bundle.id,
-              bundleRevision: pair.b.bundle.revision,
-              metric: configured.b.metrics[0] ?? "",
-            },
-          },
-          signal,
+        const result = await traced(trace, compare.name, compare.summarize(args), () =>
+          compare.run(args, signal),
         );
         const output = result.output as CompareOutput;
         for (const id of result.resultEntityIds) measurementIds.add(id);
