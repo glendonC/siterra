@@ -15,7 +15,7 @@ const args = {
   repoDir,
   mode: "concept" as const,
   ownerScopeId: "seed",
-  assetBaseUri: "http://127.0.0.1:4350/case-assets/bundles/",
+  assetBaseUri: "http://127.0.0.1:4350/api/case-assets/",
   importedAt: "2026-10-27T20:00:00Z",
 };
 const caseFile = JSON.parse(readFileSync(`${repoDir}data/case/case.json`, "utf8")) as {

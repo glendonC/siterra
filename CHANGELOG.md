@@ -49,6 +49,7 @@ Contracts and design tokens carry their own Semantic Versioning numbers, recorde
 - `maplibre-contour` 0.1.1 (BSD-3-Clause, no dependencies) in the web app for the contour lines on the self-hosted terrain.
 - The approved dive as data in `design/hero/dive-camera.json`: 133 camera keyframes at 30 fps from the globe to the arrival pose, for MapLibre at a 22 degree vertical field of view.
 - Analysis tools for the agent: `compare_series` (only the departure series the aligned_antecedent recipe names, on shared periods and the same area revision, with the fixed 0 to 3 month antecedent windows and no causal statistic), `read_evidence`, `list_recipes` (blocked with a reason when no validated result exists) and `read_recipe_result` (labelled "precomputed analysis").
+- Case assets on the application origin: `GET /api/case-assets/{bundleId}/{contentHash}/{path}` serves the files a validated bundle lists, hash-addressed by the bundle's content hash, only to a session whose cases hold that bundle, each file checked against its listed checksum, with byte ranges (206 and 416) and immutable caching.
 
 ### Changed
 

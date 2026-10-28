@@ -30,6 +30,10 @@
     {
       "name": "sessions",
       "description": "Demo sessions: an isolated, expiring copy of the seed case per visitor."
+    },
+    {
+      "name": "assets",
+      "description": "Case assets: bundle files under a versioned, hash-addressed path, behind the ownership check."
     }
   ],
   "security": [
@@ -445,6 +449,114 @@
                 }
               }
             }
+          },
+          "default": {
+            "$ref": "#/components/responses/Unexpected"
+          }
+        }
+      }
+    },
+    "/api/case-assets/{bundleId}/{contentHash}/{assetPath}": {
+      "parameters": [
+        {
+          "name": "bundleId",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "pattern": "^bundle_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+          }
+        },
+        {
+          "name": "contentHash",
+          "in": "path",
+          "required": true,
+          "description": "The bundle's DataBundle.contentHash: the SHA-256 multihash of its collection.json.",
+          "schema": {
+            "type": "string",
+            "pattern": "^1220[0-9a-f]{64}$"
+          }
+        },
+        {
+          "name": "assetPath",
+          "in": "path",
+          "required": true,
+          "description": "A file the bundle's collection.json lists with a file:checksum, relative to the bundle folder; may contain slashes (for example period_2022-04/cell-values.json).",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "get": {
+        "operationId": "getCaseAsset",
+        "tags": [
+          "assets"
+        ],
+        "summary": "Get a bundle file",
+        "description": "A file of an observation bundle, for a session whose cases hold that bundle with that content hash (07-deployment-view.md, map and observation assets). Only files the bundle manifest lists are served, each checked against its file:checksum; the response is immutable for its path. HTTP Range with one byte range is answered with 206 and Content-Range; a range beyond the file with 416. A stale content hash, an unlisted path or a bundle the session's cases do not hold answers 404.",
+        "parameters": [
+          {
+            "name": "Range",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "One byte range, for example bytes=0-1023."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The whole file.",
+            "headers": {
+              "ETag": {
+                "description": "The file's checksum.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Accept-Ranges": {
+                "schema": {
+                  "type": "string",
+                  "const": "bytes"
+                }
+              }
+            },
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "contentMediaType": "application/octet-stream"
+                }
+              }
+            }
+          },
+          "206": {
+            "description": "The requested byte range.",
+            "headers": {
+              "Content-Range": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "contentMediaType": "application/octet-stream"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "416": {
+            "description": "The range is beyond the file; Content-Range names its size."
           },
           "default": {
             "$ref": "#/components/responses/Unexpected"

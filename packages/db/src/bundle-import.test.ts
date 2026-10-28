@@ -52,7 +52,7 @@ const context: ImportContext = {
   caseId: "case_example_import",
   geoSelections: [geoSelection],
   sources: [],
-  assetBaseUri: "http://127.0.0.1:4350/case-assets/bundles/",
+  assetBaseUri: "http://127.0.0.1:4350/api/case-assets/",
   importedAt: at,
 };
 
@@ -166,7 +166,7 @@ describe("SV-01 (import part): bundles import with verified checksums and values
     for (const bundle of result.bundles) {
       expect(bundle.dataBundle.contentHash).toMatch(/^1220[0-9a-f]{64}$/);
       expect(bundle.dataBundle.manifestUri).toBe(
-        `http://127.0.0.1:4350/case-assets/bundles/${bundle.dataBundle.id}/collection.json`,
+        `http://127.0.0.1:4350/api/case-assets/${bundle.dataBundle.id}/${bundle.dataBundle.contentHash ?? ""}/collection.json`,
       );
     }
   });

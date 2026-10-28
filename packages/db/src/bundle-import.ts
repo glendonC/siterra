@@ -30,7 +30,7 @@ export type ImportContext = {
   caseId: string;
   geoSelections: readonly GeoSelection[];
   sources: readonly Source[];
-  /** Absolute URL the catalog folder is served from, ending in a slash. */
+  /** Absolute URL of the case assets route (GET /api/case-assets/), ending in a slash. */
   assetBaseUri: string;
   /** Timestamp for createdAt and updatedAt of the imported records. */
   importedAt: string;
@@ -258,13 +258,17 @@ function importBundle(
         : "unverified",
     limitations: [...new Set(collection["siterra:limitations"])],
   };
+  // An imported bundle is a first revision; its measurements and observations cite that revision.
+  const bundleRevision = 1;
   // Measurements and observations rest on their own bundle as well, so superseding the bundle
   // reaches what cites them (staleness passes through records without a stale state).
   const recordProvenance: Provenance = {
     ...provenance,
-    inputVersions: [...provenance.inputVersions, { entityId: bundleId, revision: 1 }],
+    inputVersions: [...provenance.inputVersions, { entityId: bundleId, revision: bundleRevision }],
   };
-  const bundleUrl = new URL(`${bundleDir.split("/").pop() ?? bundleId}/`, context.assetBaseUri);
+  // Hash-addressed asset path, as GET /api/case-assets/:bundleId/:contentHash/:path serves it.
+  const contentHash = sha256Multihash(collectionBytes);
+  const bundleUrl = new URL(`${bundleId}/${contentHash}/`, context.assetBaseUri);
   const slug = bundleId.replace(/^bundle_/, "");
   const license = typeof collection["license"] === "string" ? collection["license"] : null;
 
@@ -393,7 +397,7 @@ function importBundle(
   const dataBundle = DataBundle.parse({
     recordType: "DataBundle",
     id: bundleId,
-    revision: 1,
+    revision: bundleRevision,
     createdAt: context.importedAt,
     updatedAt: context.importedAt,
     caseId: context.caseId,
@@ -411,7 +415,7 @@ function importBundle(
     methodId: method.id,
     methodVersion: method.version,
     manifestUri: new URL("collection.json", bundleUrl).toString(),
-    contentHash: sha256Multihash(collectionBytes),
+    contentHash,
     license: license === "other" && licenseTitles.length > 0 ? licenseTitles.join("; ") : license,
     attribution: collection["siterra:attribution"].join("; "),
     provenance,
