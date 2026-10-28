@@ -72,6 +72,13 @@ export interface RunCommandInput {
   planTask: TaskRecord;
   expectedCaseRevision: number;
   snapshot: PlanSnapshot;
+  /**
+   * A command a crashed worker left running (AF-03). With a finished plan task the plan is not
+   * run again: finished tasks stay as recorded and the others run on this attempt. The spend the
+   * command's task records hold counts against its cap; a call in flight at the crash is not in
+   * any task record.
+   */
+  resume?: { tasks: TaskRecord[]; attempt: number; spentMicroUsd: number };
 }
 
 export interface RunCommandDeps {
@@ -132,7 +139,7 @@ export async function runCommand(
 ): Promise<CommandOutcome> {
   const limits = deps.limits ?? P0_LIMITS;
   const executors = deps.executors ?? EXECUTORS;
-  const spend = new CommandSpend(limits.spendCapMicroUsd);
+  const spend = new CommandSpend(limits.spendCapMicroUsd, input.resume?.spentMicroUsd ?? 0);
   const gate = new Semaphore(limits.maxConcurrentModelCalls);
   const adapter = new MetaAdapter({
     ...deps.adapterOptions,
@@ -205,27 +212,46 @@ export async function runCommand(
     };
   };
 
-  // Plan.
-  const plan = await runPlanTask(
-    { planTask: input.planTask, expectedCaseRevision: caseRevision, snapshot: input.snapshot },
-    {
-      adapter,
-      trace: deps.trace,
-      tools: tools.forTask(input.planTask.allowedTools),
-      newTaskId: deps.newTaskId,
-      now: deps.now,
-      signal: controller.signal,
-    },
-  );
-  const planCommit = await commit(plan.commit);
-  if (planCommit.status === "stale" || plan.loop.status !== "accepted") {
-    if (plan.loop.status === "cancelled") halt.reason ??= "cancelled";
-    if (spend.exhausted) halt.reason ??= "budget_exhausted";
-    return finish();
-  }
-  planAccepted = true;
-  for (const record of plan.commit.upserts.slice(1)) {
-    if (record.recordType === "Task") tasks.set(record.id, record);
+  const committedEvidence: EvidenceRecord[] = [];
+  const committedHypotheses: HypothesisRecord[] = [];
+  const committedInterventions: InterventionRecord[] = [];
+
+  if (input.resume && TERMINAL.has(input.planTask.status)) {
+    planAccepted = input.planTask.status === "succeeded";
+    for (const task of input.resume.tasks) tasks.set(task.id, task);
+    // What the finished tasks committed, for the dependents that still run.
+    const caseId = input.planTask.caseId;
+    const outputs = input.resume.tasks
+      .filter((t) => TERMINAL.has(t.status))
+      .flatMap((t) => t.outputEntityIds);
+    committedEvidence.push(
+      ...(await deps.store.readEvidence(caseId, outputs)).filter((e) => e.status === "accepted"),
+    );
+    committedHypotheses.push(...(await deps.store.readHypotheses(caseId, outputs)));
+    committedInterventions.push(...(await deps.store.readInterventions(caseId, outputs)));
+  } else {
+    // Plan.
+    const plan = await runPlanTask(
+      { planTask: input.planTask, expectedCaseRevision: caseRevision, snapshot: input.snapshot },
+      {
+        adapter,
+        trace: deps.trace,
+        tools: tools.forTask(input.planTask.allowedTools),
+        newTaskId: deps.newTaskId,
+        now: deps.now,
+        signal: controller.signal,
+      },
+    );
+    const planCommit = await commit(plan.commit);
+    if (planCommit.status === "stale" || plan.loop.status !== "accepted") {
+      if (plan.loop.status === "cancelled") halt.reason ??= "cancelled";
+      if (spend.exhausted) halt.reason ??= "budget_exhausted";
+      return finish();
+    }
+    planAccepted = true;
+    for (const record of plan.commit.upserts.slice(1)) {
+      if (record.recordType === "Task") tasks.set(record.id, record);
+    }
   }
 
   // Close a task without running it, with its reason, in its own commit.
@@ -267,9 +293,6 @@ export async function runCommand(
     tasks.set(task.id, outcome.status === "stale" ? { ...task, status, failureCode } : after);
   };
 
-  const committedEvidence: EvidenceRecord[] = [];
-  const committedHypotheses: HypothesisRecord[] = [];
-  const committedInterventions: InterventionRecord[] = [];
   const runOne = async (task: TaskRecord): Promise<void> => {
     const executor = executors[task.kind];
     if (!executor) {
@@ -283,7 +306,7 @@ export async function runCommand(
       ...task,
       status: "running",
       startedAt: at,
-      attempt: task.attempt + 1,
+      attempt: Math.max(task.attempt + 1, input.resume?.attempt ?? 1),
     };
     tasks.set(task.id, running);
     deps.trace.emit(

@@ -141,6 +141,7 @@ export async function startWorker(
           analyses,
           now: () => new Date(),
           newId: (prefix) => newId(prefix),
+          delivery: job.retryCount,
           ...(options.spendStop ? { spendStop: options.spendStop } : {}),
         });
         const stopped =
