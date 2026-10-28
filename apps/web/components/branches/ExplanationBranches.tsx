@@ -20,6 +20,7 @@ export function ExplanationBranches({
   selectedBranchId,
   onSelectBranch,
 }: ExplanationBranchesProps) {
+  const hasFieldPlan = branches.fieldChecks.length > 0 || Boolean(branches.unseparatedText);
   return (
     <div
       className={styles.root}
@@ -85,7 +86,7 @@ export function ExplanationBranches({
           );
         })}
       </ol>
-      {branches.fieldChecks.length > 0 || branches.unseparatedText ? (
+      {hasFieldPlan ? (
         <div className={styles.fieldPlan} data-field-plan>
           <h4 className={styles.fieldHeading}>{en["branches.fieldPlan"].text}</h4>
           <ul className={styles.fieldList}>

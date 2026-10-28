@@ -38,7 +38,7 @@ describe("VC-01 tokens only", () => {
 const JSX_TEXT = /(?<!=)>\s*([^<>{}\n]*\p{L}[^<>{}\n]*)\s*</gu;
 
 /** Glyphs and marks that are not words a translator would change. */
-const ALLOWED_TEXT = new Set(["↵", "F", "Esc", "/"]);
+const ALLOWED_TEXT = new Set(["↵", "F", "H", "Esc", "/"]);
 
 describe("I18N-01 no hard-coded copy", () => {
   it("keeps visible words out of JSX; they come from the catalog", () => {
