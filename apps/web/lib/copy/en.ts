@@ -116,7 +116,7 @@ export const en = {
   "task.kind.brief_package": { text: "Field-validation plan", kind: "label" },
   "task.kind.validation": { text: "Validation", kind: "label" },
   // labeled precomputed (ADR-0021; agent orchestration, "Precomputed observations are labeled precomputed")
-  "work.observations": { text: "Precomputed observations", kind: "label" },
+  "work.observations": { text: "Observations (precomputed)", kind: "label" },
   "work.observationLine": {
     text: "{label}: {available} of {total} months observed, {first} to {last}",
     kind: "ui",

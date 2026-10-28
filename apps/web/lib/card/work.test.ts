@@ -101,7 +101,7 @@ describe("workCard as the command runs and completes", () => {
     const d = card(done, ended("succeeded"));
     expect(d.working).toBe("Request complete");
     expect(d.steps).toBeUndefined();
-    expect(d.section?.heading).toBe("Precomputed observations");
+    expect(d.section?.heading).toBe("Observations (precomputed)");
     expect(d.section?.lines).toEqual([RAIN_LINE, NDVI_LINE]);
     expect(d.recordIds).toEqual(
       expect.arrayContaining([
