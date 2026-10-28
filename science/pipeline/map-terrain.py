@@ -2,6 +2,9 @@
 folder, by HTTP range requests and the PMTiles version 3 format. Standard library only; no pmtiles CLI.
 
 Usage: python -I map-terrain.py <archive_url> <min_lon,min_lat,max_lon,max_lat> <max_zoom> <out_dir> [--check=<tile_url_template>]
+       [--also=<min_lon,min_lat,max_lon,max_lat>:<max_zoom> ...]
+Each --also adds the tiles of zoom 0 to its max_zoom that touch its box, so an outer ring can stop at a lower zoom
+than the inner extent; tiles.json lists the union.
 Reads the archive header and directories (gzip), finds every tile of zoom 0 to max_zoom that touches the box, and
 writes <out_dir>/<z>/<x>/<y>.webp unchanged. Writes <out_dir>/tiles.json: archive URL, header fields, the box, and
 per tile its size and SHA-256. With --check, each tile is also fetched from the given z/x/y URL template and must be
@@ -97,6 +100,8 @@ def lonlat_to_tile(lon, lat, z):
 def main():
     pos = [a for a in sys.argv[1:] if not a.startswith("--")]
     url, box, maxz, out = pos[0], [float(v) for v in pos[1].split(",")], int(pos[2]), pos[3]
+    specs = [(box, maxz)] + [([float(v) for v in a.split("=", 1)[1].split(":")[0].split(",")], int(a.rsplit(":", 1)[1]))
+                             for a in sys.argv if a.startswith("--also=")]
     check = next((a.split("=", 1)[1] for a in sys.argv if a.startswith("--check=")), None)
     head = get(url, 0, 127)
     assert head[:7] == b"PMTiles" and head[7] == 3, "not a PMTiles v3 archive"
@@ -133,28 +138,31 @@ def main():
         return None
 
     rows = []
-    for z in range(maxz + 1):
-        x0, y0 = lonlat_to_tile(box[0], box[3], z)
-        x1, y1 = lonlat_to_tile(box[2], box[1], z)
-        for x in range(x0, x1 + 1):
-            for y in range(y0, y1 + 1):
-                p = os.path.join(out, str(z), str(x), f"{y}.webp")
-                if os.path.exists(p):
-                    body = open(p, "rb").read()
-                else:
-                    loc = find(tile_id(z, x, y))
-                    assert loc, ("tile not in archive", z, x, y)
-                    body = get(url, *loc)
-                    assert body[:4] == b"RIFF" and body[8:12] == b"WEBP", ("not WebP", z, x, y)
-                    if check:
-                        ref = get(check.format(z=z, x=x, y=y))
-                        assert ref == body, ("differs from the tile server", z, x, y)
-                    os.makedirs(os.path.dirname(p), exist_ok=True)
-                    open(p + ".tmp", "wb").write(body)
-                    os.replace(p + ".tmp", p)
-                rows.append({"z": z, "x": x, "y": y, "bytes": len(body), "sha256": hashlib.sha256(body).hexdigest()})
+    for z in range(max(m for _, m in specs) + 1):
+        wanted = set()
+        for b, m in specs:
+            if z <= m:
+                x0, y0 = lonlat_to_tile(b[0], b[3], z)
+                x1, y1 = lonlat_to_tile(b[2], b[1], z)
+                wanted |= {(x, y) for x in range(x0, x1 + 1) for y in range(y0, y1 + 1)}
+        for x, y in sorted(wanted):
+            p = os.path.join(out, str(z), str(x), f"{y}.webp")
+            if os.path.exists(p):
+                body = open(p, "rb").read()
+            else:
+                loc = find(tile_id(z, x, y))
+                assert loc, ("tile not in archive", z, x, y)
+                body = get(url, *loc)
+                assert body[:4] == b"RIFF" and body[8:12] == b"WEBP", ("not WebP", z, x, y)
+                if check:
+                    ref = get(check.format(z=z, x=x, y=y))
+                    assert ref == body, ("differs from the tile server", z, x, y)
+                os.makedirs(os.path.dirname(p), exist_ok=True)
+                open(p + ".tmp", "wb").write(body)
+                os.replace(p + ".tmp", p)
+            rows.append({"z": z, "x": x, "y": y, "bytes": len(body), "sha256": hashlib.sha256(body).hexdigest()})
         print(f"z{z}: {sum(1 for r in rows if r['z'] == z)} tiles", flush=True)
-    json.dump({"archive": url, "header": hdr, "bbox": box, "max_zoom": maxz, "checked_against": check,
+    json.dump({"archive": url, "header": hdr, "extents": [{"bbox": b, "max_zoom": m} for b, m in specs], "checked_against": check,
                "tiles": len(rows), "bytes": sum(r["bytes"] for r in rows), "rows": rows}, open(os.path.join(out, "tiles.json"), "w"), indent=1)
     print(len(rows), "tiles,", sum(r["bytes"] for r in rows), "bytes")
 

@@ -1,0 +1,41 @@
+{
+ "image": "truecolour-summer-2025-3857.webp",
+ "bytes": 492344,
+ "sha256": "ba8d002ccabb8cb8efcb8b37e6dde4aadf5b427ad5b90a3d5128f65f0c087f70",
+ "crs": "EPSG:3857",
+ "width": 2322,
+ "height": 2204,
+ "pixel_m_mercator": 34.9971,
+ "pixel_m_ground_at_centre": 29.8,
+ "coordinates": [
+  [
+   -6.71,
+   31.92
+  ],
+  [
+   -5.98,
+   31.92
+  ],
+  [
+   -5.98,
+   31.33
+  ],
+  [
+   -6.71,
+   31.33
+  ]
+ ],
+ "check_corners_from_grid": [
+  [
+   -6.71,
+   31.92
+  ],
+  [
+   -5.98,
+   31.33
+  ]
+ ],
+ "share_of_pixels_with_data": 1.0,
+ "encoder": "GDAL 3.12.2 WEBP, QUALITY=80",
+ "source": "truecolour-outer-30m.tif"
+}

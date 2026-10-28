@@ -71,6 +71,7 @@ Modules that other scripts import keep snake_case names (`chirps_fetch.py`, `s2_
 | `gold-extraction.py`, `gold-numeric.py` | Build the evaluation gold sets in `data/case/gold/`: excerpt items checked by code against the stored corpus text, and numeric items generated from every bundle measurement |
 | `globe-relief.py`, `globe-rangeland.py` | Global relief grid and hillshade from Copernicus DEM GLO-90 overviews; rangeland biomes on a 0.25 degree grid from RESOLVE Ecoregions 2017 (Rangelands Atlas method) |
 | `map-globe.py`, `map-terrain.py`, `map-manifest.py` | The public map assets in [`data/map/`](../data/map/README.md): globe relief, dot grid and rangeland biomes; the valley terrain tiles read from the Mapterhorn archive by range request (stdlib PMTiles reader, checked against the tile server); the manifest of sizes and checksums |
+| `s2-truecolour.py`, `map-imagery.py` | A Sentinel-2 true-colour display composite (per-pixel median of clear summer dates, fixed stretch) and its Web Mercator WebP drape with corner coordinates, for display only |
 | `validate-bundles.py` | Validates every document against STAC 1.1.0, its listed extensions and the Siterra extension, and every `file:checksum` |
 | `render-cells.py`, `render-ndvi.py`, `render-strata.py` | Render samples for the visual inspection check |
 

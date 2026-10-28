@@ -96,6 +96,7 @@ Contracts and design tokens carry their own Semantic Versioning numbers, recorde
 - A brief is committed only when its provenance cites every evidence item, hypothesis and intervention it lists, so a revised input always marks the brief for reassessment.
 - A task commit can no longer write an action as prepared; only completed reviews prepare an action, so no review or community condition can be skipped.
 - Case contracts 1.8.0: a field-validation plan is stored on its action (objective, the decision it informs, strata as kinds of place, measurements each tied to an open gap or a hypothesis, deferred gaps with reasons, permissions and consultation steps), and a plan that leaves an open gap unmeasured and undeferred is refused.
+- The map assets in `data/map/` add the summer 2025 Sentinel-2 true-colour drape for the valley (display only, with the Copernicus Sentinel notice) and widen the terrain by one z11 ring to at least 51 km around the catchment; tracked data stays under the 50 MB target.
 
 ### Fixed
 

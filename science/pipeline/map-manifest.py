@@ -2,7 +2,8 @@
 label, source, licence file and credit line.
 
 Usage: python -I map-manifest.py <map_dir>
-The README and the manifest itself are not listed. A file outside the known layer folders stops the build.
+The README and the manifest itself are not listed. layers_total_bytes counts the layer files only;
+licences_total_bytes counts the licence notices. A file outside the known layer folders stops the build.
 """
 import datetime
 import hashlib
@@ -28,9 +29,14 @@ LAYERS = {
                          "credit": "Ecoregions 2017 (c) Resolve, CC BY 4.0"},
     "valley-terrain": {"prefix": "terrain/",
                        "label": "Valley terrain (Terrarium-encoded elevation tiles, 512 px WebP, z0 to z12)", "status": "display only",
-                       "source": "Mapterhorn planet.pmtiles (version 0.0.13), from Copernicus DEM GLO-30, unchanged tiles for the asset extent -6.71,31.33,-5.98,31.92",
+                       "source": "Mapterhorn planet.pmtiles (version 0.0.13), from Copernicus DEM GLO-30, unchanged tiles: zooms 0 to 12 for the asset extent -6.71,31.33,-5.98,31.92, and zooms 0 to 11 for one more ring of z11 tiles around it (-7.0312,31.0529,-5.8008,32.1012)",
                        "licence": "licences/copernicus-dem-glo-30-mapterhorn.md",
-                       "credit": "© Mapterhorn (https://mapterhorn.com/attribution); Produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved"},
+                       "credit": "© Mapterhorn (https://mapterhorn.com/attribution/); Produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved"},
+    "valley-imagery": {"files": ("imagery/truecolour-summer-2025-3857.webp", "imagery/truecolour-summer-2025-3857.webp.json"),
+                       "label": "Summer true colour (Sentinel-2, July and August 2025)", "status": "display only",
+                       "source": "Copernicus Sentinel-2 L2A, five summer 2025 dates, per-pixel median of B04, B03, B02 at 30 m, fixed display stretch, warped to EPSG:3857 over the asset extent -6.71,31.33,-5.98,31.92; the .json gives the four corners for a MapLibre image source",
+                       "licence": "licences/copernicus-sentinel.md",
+                       "credit": "Contains modified Copernicus Sentinel data 2025"},
 }
 SKIP = {"README.md", "manifest.json"}
 
@@ -54,8 +60,9 @@ assert not rest, ("files outside the known layers", rest)
 man = {"bundle": "siterra-map", "version": 1, "created": datetime.datetime.now().astimezone().isoformat(timespec="seconds"),
        "layers": layers,
        "licences": [{"path": f, "bytes": os.path.getsize(os.path.join(root, f)), "sha256": sha(os.path.join(root, f))} for f in licences],
-       "total_bytes": sum(L["bytes"] for L in layers.values())}
+       "layers_total_bytes": sum(L["bytes"] for L in layers.values()),
+       "licences_total_bytes": sum(os.path.getsize(os.path.join(root, f)) for f in licences)}
 json.dump(man, open(os.path.join(root, "manifest.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
 for k, L in layers.items():
     print(k, len(L["files"]), "files", L["bytes"], "bytes")
-print("total", man["total_bytes"])
+print("layers", man["layers_total_bytes"], "licences", man["licences_total_bytes"])
