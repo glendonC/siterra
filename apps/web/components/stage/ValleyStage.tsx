@@ -234,7 +234,7 @@ export function ValleyStage({
         addDepartureLayers(
           m,
           departure,
-          hatchTile(daylight.excludedHatch, ratio),
+          hatchTile(daylight.excludedHatch, daylight.outlineCasing, ratio),
           daylight.excludedHatchEdge,
         );
         const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;

@@ -41,21 +41,27 @@ const EXCLUDED_SOURCE = "excluded-land";
 const HATCH = "excluded-hatch";
 export const DEPARTURE_LAYERS = ["departure-raster", "excluded-hatch", "excluded-edge"] as const;
 
+const channels = (hex: string) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) || 0);
+
 /**
  * data.excluded-hatch: a 135 degree hatch (top left to bottom right on screen), 1 px lines 6 px apart. A
- * diagonal tile repeats seamlessly with a side of 6 * sqrt(2) px, rounded at the pixel ratio.
+ * diagonal tile repeats seamlessly with a side of 6 * sqrt(2) px, rounded at the pixel ratio. The token
+ * grey has about the luminance of the imagery and the departure colours under it, so each line sits on a
+ * half-pixel `casing` either side, as the catchment line and the names do.
  */
-export function hatchTile(hex: string, pixelRatio: number): HatchTile {
+export function hatchTile(stroke: string, casing: string, pixelRatio: number): HatchTile {
   const side = Math.round(6 * Math.SQRT2 * pixelRatio);
   // a line 1 px across is about sqrt(2) px wide along a row
   const half = (Math.SQRT2 * pixelRatio) / 2;
-  const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
+  const cased = half + (Math.SQRT2 * pixelRatio) / 2 / 2;
+  const [line, edge] = [channels(stroke), channels(casing)];
   const data = new Uint8Array(side * side * 4);
   for (let y = 0; y < side; y++)
     for (let x = 0; x < side; x++) {
       const d = (((x - y) % side) + side) % side;
-      if (Math.min(d, side - d) > half) continue;
-      data.set([r ?? 0, g ?? 0, b ?? 0, 255], (y * side + x) * 4);
+      const across = Math.min(d, side - d);
+      if (across > cased) continue;
+      data.set([...(across > half ? edge : line), 255], (y * side + x) * 4);
     }
   return { width: side, height: side, data, pixelRatio };
 }

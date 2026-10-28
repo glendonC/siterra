@@ -7,6 +7,7 @@ import {
   setDepartureOpacity,
   type DepartureMap,
 } from "./departure-layers";
+import { daylight, ndviDeparture } from "../theme/daylight";
 
 function fakeMap() {
   const sources = new Map<string, unknown>();
@@ -60,7 +61,7 @@ const layer = {
 describe("departure layers", () => {
   it("adds the raster at its corners, cells never smoothed, then the hatch above it, all unseen", () => {
     const f = fakeMap();
-    addDepartureLayers(f.m, layer, hatchTile("#878481", 2), "edge");
+    addDepartureLayers(f.m, layer, hatchTile("#878481", "#f2efea", 2), "edge");
     expect(f.sources.get("departure")).toEqual({
       type: "image",
       url: layer.imageUri,
@@ -87,25 +88,61 @@ describe("departure layers", () => {
 
   it("draws no hatch when the bundle lists no cropland layer", () => {
     const f = fakeMap();
-    addDepartureLayers(f.m, { ...layer, excludedUri: undefined }, hatchTile("#878481", 2), "edge");
+    addDepartureLayers(
+      f.m,
+      { ...layer, excludedUri: undefined },
+      hatchTile("#878481", "#f2efea", 2),
+      "edge",
+    );
     expect(f.layers.map((l) => l.id)).toEqual(["departure-raster"]);
   });
 
   it("removes everything it added, and can be added again", () => {
     const f = fakeMap();
-    addDepartureLayers(f.m, layer, hatchTile("#878481", 2), "edge");
+    addDepartureLayers(f.m, layer, hatchTile("#878481", "#f2efea", 2), "edge");
     removeDepartureLayers(f.m);
     expect(f.layers).toEqual([]);
     expect(f.sources.size).toBe(0);
     expect(f.images.size).toBe(0);
-    addDepartureLayers(f.m, layer, hatchTile("#878481", 2), "edge");
+    addDepartureLayers(f.m, layer, hatchTile("#878481", "#f2efea", 2), "edge");
     expect(f.layers).toHaveLength(DEPARTURE_LAYERS.length);
   });
 });
 
+/** WCAG 2 contrast ratio of two #rrggbb colours. */
+function contrast(a: string, b: string): number {
+  const lum = (hex: string) => {
+    const [r, g, b] = [1, 3, 5].map((i) => {
+      const c = parseInt(hex.slice(i, i + 2), 16) / 255;
+      return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+    });
+    return 0.2126 * (r ?? 0) + 0.7152 * (g ?? 0) + 0.0722 * (b ?? 0);
+  };
+  const [hi, lo] = [lum(a), lum(b)].sort((x, y) => y - x);
+  return ((hi ?? 0) + 0.05) / ((lo ?? 0) + 0.05);
+}
+
 describe("hatchTile", () => {
+  it("cases each stroke in paper on both sides, so it reads over any ground and any departure colour", () => {
+    // the token grey alone is about 1.2:1 on the strongest departure green: it reads only on its casing
+    expect(contrast(daylight.excludedHatch, ndviDeparture.above3)).toBeLessThan(1.5);
+    expect(contrast(daylight.excludedHatch, daylight.outlineCasing)).toBeGreaterThanOrEqual(3);
+    const t = hatchTile(daylight.excludedHatch, daylight.outlineCasing, 2);
+    const px = (x: number, y: number) => [
+      ...t.data.slice((y * t.width + x) * 4, (y * t.width + x) * 4 + 4),
+    ];
+    expect(px(0, 0)).toEqual([0x87, 0x84, 0x81, 255]);
+    expect(px(2, 0)).toEqual([0xf2, 0xef, 0xea, 255]);
+    expect(px(15, 0)).toEqual([0xf2, 0xef, 0xea, 255]);
+    expect(px(5, 0)[3]).toBe(0);
+    // stroke and casing together cover under a third of the land, so the departure stays readable
+    let inked = 0;
+    for (let i = 3; i < t.data.length; i += 4) if (t.data[i]) inked++;
+    expect(inked / (t.width * t.height)).toBeLessThan(1 / 3);
+  });
+
   it("is a 135 degree hatch of 1 px lines 6 px apart, at the pixel ratio", () => {
-    const t = hatchTile("#878481", 2);
+    const t = hatchTile("#878481", "#f2efea", 2);
     // 6 px between lines across a diagonal tile: a side of 6 * sqrt(2) px
     expect(t.width).toBe(17);
     expect(t.height).toBe(17);
