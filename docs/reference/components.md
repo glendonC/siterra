@@ -337,7 +337,7 @@ A component in `loading` binds the task IDs that will produce its records, so it
 | | |
 |---|---|
 | Question | What am I looking at on the map? |
-| Content | Metric and period ("Vegetation departure from the April median, April 2022"), ramp with domain ticks and units, coverage line, missing and excluded swatches, method line, details control; "Your view" note when a user-picked view overrides the default |
+| Content | Metric and period ("Vegetation departure from the April median, April 2022"), ramp with domain ticks and units, coverage line, missing and excluded swatches, method line, display cell size when the drawn cells differ from the analysis grid (SC-04), details control; "Your view" note when a user-picked view overrides the default |
 | Layout | Bottom left, only while a data layer shows; collapses to a button below 1100 px |
 | Priority | P0 |
 
