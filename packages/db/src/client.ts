@@ -3,13 +3,49 @@ import pg from "pg";
 export type Pool = pg.Pool;
 export type Tx = pg.PoolClient;
 
+/** Every pool createPool opened, until it has ended; endPools closes those on one database. */
+const openPools = new Set<Pool>();
+
+/**
+ * A pool on DATABASE_URL. An idle client the server ends (a restart, pg_terminate_backend, a dropped
+ * test database) is emitted as an error on the pool, which Node treats as unhandled without a
+ * listener; pg has already removed that client, and the next query opens a new one. The default
+ * listener logs the PostgreSQL code only, never the connection string.
+ */
 export function createPool(
   connectionString: string | undefined = process.env["DATABASE_URL"],
+  options: { onIdleError?: (error: Error) => void } = {},
 ): Pool {
   if (connectionString === undefined || connectionString === "") {
     throw new Error("DATABASE_URL is not set");
   }
-  return new pg.Pool({ connectionString, max: 10 });
+  const pool = new pg.Pool({ connectionString, max: 10 });
+  pool.on(
+    "error",
+    options.onIdleError ??
+      ((error: Error & { code?: string }) => {
+        console.error(`PostgreSQL idle client ended (${error.code ?? "no code"})`);
+      }),
+  );
+  openPools.add(pool);
+  return pool;
+}
+
+/**
+ * Ends every pool createPool opened on connectionString that has not ended, so a database can be
+ * dropped without terminating a client a pool still holds. Used by the test database helper.
+ */
+export async function endPools(connectionString: string): Promise<void> {
+  const ending: Promise<void>[] = [];
+  for (const pool of openPools) {
+    if (pool.ended) {
+      openPools.delete(pool);
+    } else if (pool.options.connectionString === connectionString) {
+      openPools.delete(pool);
+      if (!pool.ending) ending.push(pool.end());
+    }
+  }
+  await Promise.all(ending);
 }
 
 export type Isolation = "read committed" | "repeatable read" | "serializable";

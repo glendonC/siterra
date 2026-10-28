@@ -1,7 +1,7 @@
 // Test support: a fresh, migrated database per test file on the cluster DATABASE_URL names.
 import { randomBytes } from "node:crypto";
 import pg from "pg";
-import { type Pool, createPool } from "./client.ts";
+import { type Pool, createPool, endPools } from "./client.ts";
 import { migrate } from "./migrate.ts";
 
 export type TestDatabase = { pool: Pool; url: string; drop: () => Promise<void> };
@@ -25,8 +25,10 @@ export async function freshDatabase(): Promise<TestDatabase> {
   return {
     pool,
     url: url.toString(),
+    // Every pool on this database ends before the forced drop, so the drop terminates no client a
+    // pool still holds (a terminated idle client surfaced as PostgreSQL 57P01 in some runs).
     drop: async () => {
-      await pool.end();
+      await endPools(url.toString());
       const cleanup = new pg.Client({ connectionString: base });
       await cleanup.connect();
       await cleanup.query(`drop database if exists ${name} with (force)`);
