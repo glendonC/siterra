@@ -86,6 +86,7 @@ function stringExpr(node: Node): string {
   if (format === "date-time") expr = "dateTime";
   else if (format === "date") expr = "isoDate";
   else if (format === "uri") expr = "uri";
+  else if (format === "uri-reference") expr = "uriReference";
   else if (format === undefined) expr = "z.string()";
   else throw new Error(`Unhandled format ${js(format)}`);
   // JSON Schema counts lengths in code points; .min(1) agrees with that, longer bounds use text().
@@ -211,7 +212,7 @@ export function generateCaseSource(schema: unknown): string {
     "// hand. Regenerate with node src/generate/run.ts; case-zod.test.ts fails when this file is stale.",
     "// Conditional rules the JSON Schema states with if/then/else live in rules.ts.",
     'import { z } from "zod";',
-    'import { dateTime, entityId, isoDate, text, uniqueArray, uri } from "./primitives.ts";',
+    'import { dateTime, entityId, isoDate, text, uniqueArray, uri, uriReference } from "./primitives.ts";',
     `import { ${[...new Set(Object.values(refinements))].sort().join(", ")} } from "./rules.ts";`,
     "",
     `export const caseSchemaVersion = ${js(versions.at(-1))};`,

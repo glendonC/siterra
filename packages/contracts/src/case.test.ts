@@ -339,3 +339,46 @@ describe("contract: string lengths count Unicode code points, as JSON Schema doe
     ]);
   });
 });
+
+describe("contracts 1.6: the context features in data/case/ form valid ContextFeature records", () => {
+  const repoDir = fileURLToPath(new URL("../../../", import.meta.url));
+  const file = readJson(`${repoDir}data/case/context-features.json`) as {
+    caseId: string;
+    features: (Record<string, unknown> & { lonLat: [number, number]; sourceIds: string[] })[];
+  };
+  const manifest = readJson(`${repoDir}data/case/corpus-manifest.json`) as {
+    sources: { sourceRecordId: string }[];
+  };
+  const sourceIds = new Set(manifest.sources.map((s) => s.sourceRecordId));
+
+  it.each(file.features.map((f) => [f["id"], f] as const))("%s", (_id, feature) => {
+    const { lonLat, ...rest } = feature;
+    const record = {
+      ...rest,
+      recordType: "ContextFeature",
+      revision: 1,
+      createdAt: "2026-10-27T20:00:00Z",
+      updatedAt: "2026-10-27T20:00:00Z",
+      caseId: file.caseId,
+      geometry: { type: "Point", coordinates: lonLat },
+      crs: "EPSG:4326",
+    };
+    expect(caseDefinitions.ContextFeature.safeParse(record).error?.issues ?? []).toEqual([]);
+    for (const id of feature.sourceIds) expect(sourceIds.has(id)).toBe(true);
+  });
+});
+
+describe("contracts 1.6: manifestUri and mapAssetUri take a URI reference", () => {
+  const manifestUri = caseDefinitions.DataBundle.shape.manifestUri;
+
+  it.each(["/api/case-assets/bundle_x/abc/collection.json", "https://example.org/a.json", null])(
+    "accepts %s",
+    (value) => {
+      expect(manifestUri.safeParse(value).success).toBe(true);
+    },
+  );
+
+  it.each(["", "/api/case assets/x.json"])("refuses %j", (value) => {
+    expect(manifestUri.safeParse(value).success).toBe(false);
+  });
+});

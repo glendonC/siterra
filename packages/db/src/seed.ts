@@ -1,5 +1,10 @@
 import { eventMessages } from "@siterra/domain";
-import { EnvironmentalCase, type GeoSelection, type Source } from "@siterra/contracts";
+import {
+  type ContextFeature,
+  EnvironmentalCase,
+  type GeoSelection,
+  type Source,
+} from "@siterra/contracts";
 import { type Pool, inTransaction, notifyEvents } from "./client.ts";
 import type { ImportedBundle } from "./bundle-import.ts";
 import { insertEvents, setLastSequence } from "./events.ts";
@@ -9,6 +14,7 @@ export type CaseSeedRecords = {
   geoSelections: readonly GeoSelection[];
   sources: readonly Source[];
   bundles: readonly ImportedBundle[];
+  contextFeatures: readonly ContextFeature[];
 };
 
 /**
@@ -26,6 +32,7 @@ export async function loadSeedCase(
     ...seed.geoSelections,
     ...seed.sources,
     ...seed.bundles.flatMap((b) => [b.dataBundle, ...b.temporalObservations, ...b.measurements]),
+    ...seed.contextFeatures,
   ];
   return inTransaction(pool, async (tx) => {
     const inserted = await tx.query(

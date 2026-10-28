@@ -2,13 +2,13 @@
 // hand. Regenerate with node src/generate/run.ts; case-zod.test.ts fails when this file is stale.
 // Conditional rules the JSON Schema states with if/then/else live in rules.ts.
 import { z } from "zod";
-import { dateTime, entityId, isoDate, text, uniqueArray, uri } from "./primitives.ts";
+import { dateTime, entityId, isoDate, text, uniqueArray, uri, uriReference } from "./primitives.ts";
 import { missingIsAValue } from "./rules.ts";
 
-export const caseSchemaVersion = "1.5.0";
+export const caseSchemaVersion = "1.6.0";
 /** Every schemaVersion string this contract accepts (the earlier ones of the same MAJOR stay valid). */
-export const acceptedCaseSchemaVersions = ["1.2.0", "1.3.0", "1.4.0", "1.5.0"] as const;
-export const caseSchemaId = "https://siterra.invalid/schemas/case/1.5.0/case.schema.json";
+export const acceptedCaseSchemaVersions = ["1.2.0", "1.3.0", "1.4.0", "1.5.0", "1.6.0"] as const;
+export const caseSchemaId = "https://siterra.invalid/schemas/case/1.6.0/case.schema.json";
 
 export const EntityVersion = z.strictObject({
   entityId: entityId,
@@ -163,7 +163,7 @@ export const DataBundle = z.strictObject({
   periodIds: uniqueArray(entityId),
   methodId: z.string().min(1),
   methodVersion: z.string().min(1),
-  manifestUri: uri.nullable(),
+  manifestUri: uriReference.min(1).nullable(),
   contentHash: z.string().min(1).nullable(),
   license: z.string().min(1).nullable(),
   attribution: z.string().min(1).nullable(),
@@ -320,7 +320,7 @@ export const TemporalObservation = z.strictObject({
   geoRevision: z.int().min(1),
   dataBundleId: entityId,
   measurementIds: uniqueArray(entityId),
-  mapAssetUri: uri.nullable(),
+  mapAssetUri: uriReference.min(1).nullable(),
   mapAssetHash: z.string().min(1).nullable(),
   mapStatus: z.enum(["available", "missing", "excluded"]),
   qualityFlags: uniqueArray(z.string().min(1)),
@@ -603,7 +603,7 @@ export type Brief = z.infer<typeof Brief>;
 
 export const Command = z.strictObject({
   recordType: z.literal("Command"),
-  schemaVersion: z.enum(["1.2.0", "1.3.0", "1.4.0", "1.5.0"]),
+  schemaVersion: z.enum(["1.2.0", "1.3.0", "1.4.0", "1.5.0", "1.6.0"]),
   id: entityId,
   caseId: entityId,
   createdAt: dateTime,
@@ -703,7 +703,7 @@ export type ValidationResult = z.infer<typeof ValidationResult>;
 
 export const Event = z.strictObject({
   recordType: z.literal("Event"),
-  schemaVersion: z.enum(["1.2.0", "1.3.0", "1.4.0", "1.5.0"]),
+  schemaVersion: z.enum(["1.2.0", "1.3.0", "1.4.0", "1.5.0", "1.6.0"]),
   id: entityId,
   caseId: entityId,
   sequence: z.int().min(1),
@@ -743,6 +743,29 @@ export const Event = z.strictObject({
   parentSpanId: z.string().min(1).nullable(),
 });
 export type Event = z.infer<typeof Event>;
+
+export const ContextFeature = z.strictObject({
+  recordType: z.literal("ContextFeature"),
+  id: entityId,
+  revision: z.int().min(1),
+  createdAt: dateTime,
+  updatedAt: dateTime,
+  caseId: entityId,
+  name: z.string().min(1),
+  role: z.enum(["outlet", "settlement", "settlement_locator", "viewpoint", "summit"]),
+  geometry: z.strictObject({
+    type: z.literal("Point"),
+    coordinates: z.tuple([z.number().min(-180).max(180), z.number().min(-90).max(90)]),
+  }),
+  crs: z.literal("EPSG:4326"),
+  method: z.string().min(1),
+  datasetId: z.string().min(1).nullable(),
+  sourceIds: uniqueArray(entityId),
+  attribution: z.string().min(1).nullable(),
+  license: z.string().min(1).nullable(),
+  limitations: uniqueArray(z.string().min(1)),
+});
+export type ContextFeature = z.infer<typeof ContextFeature>;
 
 export const EventRecordRow = z.strictObject({
   recordType: z.literal("EventRecordRow"),
@@ -801,12 +824,13 @@ export const RecordCollections = z.strictObject({
   operationalActionRecords: uniqueArray(OperationalAction),
   briefRecords: uniqueArray(Brief),
   eventRecordRowRecords: z.array(EventRecordRow).optional(),
+  contextFeatureRecords: z.array(ContextFeature).optional(),
 });
 export type RecordCollections = z.infer<typeof RecordCollections>;
 
 export const CaseSnapshot = z.strictObject({
   recordType: z.literal("CaseSnapshot"),
-  schemaVersion: z.enum(["1.2.0", "1.3.0", "1.4.0", "1.5.0"]),
+  schemaVersion: z.enum(["1.2.0", "1.3.0", "1.4.0", "1.5.0", "1.6.0"]),
   case: EnvironmentalCase,
   records: RecordCollections,
   lastSequence: z.int().min(0),
@@ -815,7 +839,7 @@ export type CaseSnapshot = z.infer<typeof CaseSnapshot>;
 
 export const Commit = z.strictObject({
   recordType: z.literal("Commit"),
-  schemaVersion: z.enum(["1.2.0", "1.3.0", "1.4.0", "1.5.0"]),
+  schemaVersion: z.enum(["1.2.0", "1.3.0", "1.4.0", "1.5.0", "1.6.0"]),
   id: entityId,
   caseId: entityId,
   commandId: entityId,
@@ -844,6 +868,7 @@ export const Commit = z.strictObject({
       OperationalAction,
       Brief,
       EventRecordRow,
+      ContextFeature,
     ]),
   ),
   events: uniqueArray(Event).min(1),
@@ -894,4 +919,5 @@ export const caseDefinitions = {
   ValidationResult,
   BriefItem,
   EventRecordRow,
+  ContextFeature,
 } as const;

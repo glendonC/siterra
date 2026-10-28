@@ -1,6 +1,6 @@
 # Data contracts
 
-Status: implementation contract v1.5, 2026-10-27. Machine-readable source of truth: [schemas/case.schema.json](../../schemas/case.schema.json) (JSON Schema 2020-12). Examples: [schemas/examples/](../../schemas/examples/). This document owns cross-record semantics that a JSON Schema cannot express. [Orchestration](agent-orchestration.md) owns jobs and tools; [review](review-and-authority.md) owns authority.
+Status: implementation contract v1.6, 2026-10-27. Machine-readable source of truth: [schemas/case.schema.json](../../schemas/case.schema.json) (JSON Schema 2020-12). Examples: [schemas/examples/](../../schemas/examples/). This document owns cross-record semantics that a JSON Schema cannot express. [Orchestration](agent-orchestration.md) owns jobs and tools; [review](review-and-authority.md) owns authority.
 
 ## Principles
 
@@ -30,7 +30,7 @@ Pattern `^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$`. Prefix by type:
 | `obs_` | TemporalObservation | `act_` | OperationalAction |
 | `cmd_` | Command | `brief_` | Brief |
 | `evt_` | Event | `commit_` | Commit |
-| `erow_` | EventRecordRow | | |
+| `erow_` | EventRecordRow | `ctx_` | ContextFeature |
 
 **Periods** are identifiers, not records: `period_YYYY-MM` for a calendar month (UTC, start inclusive, end exclusive). Chart, map, strip and brief select periods by this ID only. Server-generated IDs use a ULID suffix; fixtures may use readable slugs. IDs never contain the product name.
 
@@ -55,6 +55,7 @@ Field-level types live in the schema. This table states purpose and the rules th
 | ReviewDecision | A role-scoped decision on exact versions | `mode: demo \| real`; `authorityStatus: not_established \| verified_for_scope`. Demo decisions can never satisfy a real authorization. |
 | Brief | The decision brief | Every line is a `BriefItem` with claim kind and evidence IDs. |
 | EventRecordRow | One dated event in a validated event bundle ([ADR-0045](../decisions/0045-extend-the-meta-model-map-to-event-records-figures-and-whole-corpus-reading.md)), added in contracts 1.3 | Not evidence. Rules in [event record rows](#event-record-rows). |
+| ContextFeature | A located feature a view needs (outlet, settlement, viewpoint, summit), added in contracts 1.6 | Point geometry in EPSG:4326 with the method, dataset, source IDs, attribution, licence and limitations of its position. Never evidence: no statement, measurement or hypothesis rests on it. Lines (a river main stem, a path) are planned for a later minor version. |
 | CanvasComponent / LayoutAction | Presentation projection | References entity IDs only. See [layout contract](#presentation-contract). |
 | Command / Task / Event / Commit | Execution and audit | See state machines and events below. |
 
@@ -181,7 +182,6 @@ Not in [case.schema.json](../../schemas/case.schema.json) yet. Each is added in 
 | Record | Prefix | Purpose | Key rules |
 |---|---|---|---|
 | Scene | `scene_` | A map view or tour instantiated from a template ([scenes and views](scenes.md)) | `templateId`, `templateVersion`, role bindings to entity versions, bounded parameters, resolved keyframes, `status: ready \| unavailable \| stale`, `origin: default \| user_saved \| model_proposed`. Presentation state, reconstructible from records |
-| ContextFeature | `ctx_` | A point or line that scenes need (viewpoint, river main stem, summit, settlement) | Geometry, role, dataset, method, attribution and license; never evidence |
 | TranslationRecord | `tr_` | A translation of one statement or brief line ([accessibility and language](accessibility-and-language.md#the-translation-layer)) | Source entity version, source and target language (BCP 47), text, `method: machine_draft \| human_reviewed`, model and request ID for drafts, reviewer role and scope for reviews; stale when the source revision changes |
 | AnalogueAssessment | `ana_` | A comparable place ([comparable places](../explanation/comparable-places.md)) | Place and scale, design label from a fixed vocabulary, period, the `scientific_context` evidence it rests on, similarities and differences by named dimension, transfer limits and what it cannot show (both required); no numeric fields outside quoted excerpts |
 | ReadingCheck | `chk_` | The second reader's verdict on one evidence statement ([ADR-0041](../decisions/0041-give-each-meta-model-one-job-with-an-independent-check.md)) | Evidence version, model, route, `verdict`, `overreach`, reason (240 characters at most); advisory only, never accepts, rejects or edits evidence |

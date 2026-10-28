@@ -187,3 +187,45 @@ describe("the seed case is never live before GATE-01 is recorded", () => {
     expect(fixture.case.mode).toBe("concept");
   });
 });
+
+describe("contracts 1.6: the seed carries the context features of data/case/context-features.json", () => {
+  it("returns the outlet, Tabant and the Aït Ouchi locator as Point records in EPSG:4326", () => {
+    const { seed, issues } = readCaseSeed(args);
+    if (seed === null) throw new Error("A pinned seed file does not match");
+    expect(issues).toEqual([]);
+    const records = seedSnapshot(seed).records.contextFeatureRecords ?? [];
+    expect(records.map((r) => [r.id, r.role, r.crs])).toEqual([
+      ["ctx_ait_ouchi_locator", "settlement_locator", "EPSG:4326"],
+      ["ctx_catchment_outlet", "outlet", "EPSG:4326"],
+      ["ctx_tabant", "settlement", "EPSG:4326"],
+    ]);
+    const outlet = records.find((r) => r.id === "ctx_catchment_outlet");
+    expect(outlet?.geometry).toEqual({ type: "Point", coordinates: [-6.5372222, 31.6377778] });
+    expect(records.find((r) => r.id === "ctx_ait_ouchi_locator")?.sourceIds).toEqual([
+      "src_SCI-04",
+    ]);
+  });
+
+  it("18b: the outlet is outlet_snapped of the case geometry and credits its OpenStreetMap input", () => {
+    const geometry = JSON.parse(
+      readFileSync(`${repoDir}data/case/geometry/ait-bouguemez-catchment.geojson`, "utf8"),
+    ) as { features: { properties: { outlet_snapped: [number, number] } }[] };
+    const { seed } = readCaseSeed(args);
+    if (seed === null) throw new Error("A pinned seed file does not match");
+    const outlet = seedSnapshot(seed).records.contextFeatureRecords?.find(
+      (r) => r.id === "ctx_catchment_outlet",
+    );
+    expect(outlet?.geometry.coordinates).toEqual(geometry.features[0]?.properties.outlet_snapped);
+    expect(outlet?.method).toContain("river way 326552769");
+    expect(outlet?.method).toContain("SCI-36");
+    expect(outlet?.datasetId).toContain("SCI-36");
+    expect(outlet?.sourceIds).toEqual([]);
+    expect(outlet?.attribution).toContain("Copernicus WorldDEM-30");
+    expect(outlet?.attribution).toContain("© OpenStreetMap contributors");
+    expect(outlet?.license).toContain("ODbL-1.0");
+    const places = seedSnapshot(seed).records.contextFeatureRecords?.filter(
+      (r) => r.role !== "outlet",
+    );
+    for (const place of places ?? []) expect(place.attribution).not.toContain("OpenStreetMap");
+  });
+});

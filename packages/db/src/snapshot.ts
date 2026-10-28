@@ -21,6 +21,7 @@ export const collectionOf = {
   OperationalAction: "operationalActionRecords",
   Brief: "briefRecords",
   EventRecordRow: "eventRecordRowRecords",
+  ContextFeature: "contextFeatureRecords",
 } as const satisfies Record<string, keyof RecordCollections>;
 
 export function emptyCollections(): RecordCollections {
@@ -42,6 +43,7 @@ export function emptyCollections(): RecordCollections {
     operationalActionRecords: [],
     briefRecords: [],
     eventRecordRowRecords: [],
+    contextFeatureRecords: [],
   };
 }
 

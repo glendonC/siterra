@@ -1,0 +1,61 @@
+{
+  "contextFeaturesVersion": 1,
+  "caseId": "case_aitbouguemez",
+  "description": "Located features the case views name on the land. Each records where its position comes from. They are not evidence: no statement, measurement or hypothesis rests on them.",
+  "features": [
+    {
+      "id": "ctx_catchment_outlet",
+      "name": "Catchment outlet",
+      "role": "outlet",
+      "lonLat": [
+        -6.5372222,
+        31.6377778
+      ],
+      "method": "Outlet of the frozen catchment revision 1 (outlet_snapped in data/case/geometry/ait-bouguemez-catchment.geojson): one OpenStreetMap coordinate, the vertex 31.637197 N, 6.536500 W of river way 326552769 (Assif n Bou Guemez; source register SCI-36), snapped 94 m to the cell of maximum flow accumulation on the conditioned DEM (research/geospatial/study-area.md, outlet)",
+      "datasetId": "Copernicus DEM GLO-30 (2021 release); OpenStreetMap river way 326552769 (SCI-36), one coordinate as the outlet input",
+      "sourceIds": [],
+      "attribution": "produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved; Catchment derived by Siterra from Copernicus DEM GLO-30 (2021 release); outlet input © OpenStreetMap contributors (hydrography context)",
+      "license": "Copernicus DEM licence (data-sources-and-methods.md, terrain); outlet input ODbL-1.0 (OpenStreetMap)",
+      "limitations": [
+        "The point all of the catchment drains to on the 1 arc-second DEM grid; not a gauge and not a surveyed point.",
+        "Its input is one community-mapped OpenStreetMap coordinate, not survey or official data."
+      ]
+    },
+    {
+      "id": "ctx_tabant",
+      "name": "Tabant",
+      "role": "settlement",
+      "lonLat": [
+        -6.41049,
+        31.65255
+      ],
+      "method": "Position of the GeoNames populated place Tabant (geonameid 2532270, feature code PPLA3) in the gazetteer extract for Morocco, snapshot retrieved 2026-10-27 (source register SCI-154)",
+      "datasetId": "GeoNames gazetteer extract for Morocco (SCI-154, MA.zip, snapshot 2026-10-27, SHA-256 c25481b5aaa5855eaf5c5363abc09cb32c7c40b36799bcc4852bc5f00eafe875)",
+      "sourceIds": [],
+      "attribution": "GeoNames, CC BY 4.0",
+      "license": "CC BY 4.0",
+      "limitations": [
+        "A crowd-sourced gazetteer position for orientation and labels only; not a boundary and not a surveyed point. It lies about 1.1 km (great-circle) from the Tabant acceptance point of the catchment freeze (data-sources-and-methods.md, study area)."
+      ]
+    },
+    {
+      "id": "ctx_ait_ouchi_locator",
+      "name": "Aït Ouchi",
+      "role": "settlement_locator",
+      "lonLat": [
+        -6.338611,
+        31.703611
+      ],
+      "method": "Village coordinates published in SCI-04, used as an acceptance point of the catchment freeze (data-sources-and-methods.md, study area)",
+      "datasetId": null,
+      "sourceIds": [
+        "src_SCI-04"
+      ],
+      "attribution": "Aakairi, M. et al. (2026), People and Nature, CC BY 4.0",
+      "license": "CC BY 4.0",
+      "limitations": [
+        "A published locator for the village; not a surveyed point and not the extent of the village or its pastures."
+      ]
+    }
+  ]
+}

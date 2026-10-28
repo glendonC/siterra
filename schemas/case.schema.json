@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://siterra.invalid/schemas/case/1.5.0/case.schema.json",
+  "$id": "https://siterra.invalid/schemas/case/1.6.0/case.schema.json",
   "title": "Siterra case contracts",
   "description": "Records of one Siterra case as stored and exchanged between the web application, the worker and the browser. The root validates a case snapshot, a command, an event or an atomic commit proposal; $defs holds the record types. Cross-record semantics that JSON Schema cannot express are specified in docs/reference/data-contracts.md.",
   "oneOf": [
@@ -756,12 +756,14 @@
           "anyOf": [
             {
               "type": "string",
-              "format": "uri"
+              "format": "uri-reference",
+              "minLength": 1
             },
             {
               "type": "null"
             }
-          ]
+          ],
+          "description": "URI of the bundle collection.json, absolute or relative to the application origin (widened in 1.6.0 from an absolute URI)."
         },
         "contentHash": {
           "anyOf": [
@@ -1437,12 +1439,14 @@
           "anyOf": [
             {
               "type": "string",
-              "format": "uri"
+              "format": "uri-reference",
+              "minLength": 1
             },
             {
               "type": "null"
             }
-          ]
+          ],
+          "description": "URI of the display raster, absolute or relative to the application origin (widened in 1.6.0 from an absolute URI)."
         },
         "mapAssetHash": {
           "anyOf": [
@@ -2776,7 +2780,8 @@
             "1.2.0",
             "1.3.0",
             "1.4.0",
-            "1.5.0"
+            "1.5.0",
+            "1.6.0"
           ],
           "description": "Contract version the instance was written against; producers write the newest, and earlier versions of the same MAJOR stay valid."
         },
@@ -2868,7 +2873,8 @@
             "1.2.0",
             "1.3.0",
             "1.4.0",
-            "1.5.0"
+            "1.5.0",
+            "1.6.0"
           ],
           "description": "Contract version the instance was written against; producers write the newest, and earlier versions of the same MAJOR stay valid."
         },
@@ -3178,6 +3184,13 @@
             "$ref": "#/$defs/EventRecordRow"
           },
           "description": "Added in 1.3.0; optional so 1.2.0 snapshots stay valid."
+        },
+        "contextFeatureRecords": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ContextFeature"
+          },
+          "description": "Added in 1.6.0; optional so earlier snapshots stay valid."
         }
       },
       "required": [
@@ -3211,7 +3224,8 @@
             "1.2.0",
             "1.3.0",
             "1.4.0",
-            "1.5.0"
+            "1.5.0",
+            "1.6.0"
           ],
           "description": "Contract version the instance was written against; producers write the newest, and earlier versions of the same MAJOR stay valid."
         },
@@ -3246,7 +3260,8 @@
             "1.2.0",
             "1.3.0",
             "1.4.0",
-            "1.5.0"
+            "1.5.0",
+            "1.6.0"
           ],
           "description": "Contract version the instance was written against; producers write the newest, and earlier versions of the same MAJOR stay valid."
         },
@@ -3344,6 +3359,9 @@
               },
               {
                 "$ref": "#/$defs/EventRecordRow"
+              },
+              {
+                "$ref": "#/$defs/ContextFeature"
               }
             ]
           },
@@ -3881,6 +3899,157 @@
         "rainfallDirection",
         "extractionModel",
         "extractionRequestId"
+      ]
+    },
+    "ContextFeature": {
+      "type": "object",
+      "description": "A located feature a view needs (an outlet, a settlement, later a viewpoint or a river line), with where its position comes from. Added in 1.6.0. Never evidence: no claim rests on it.",
+      "properties": {
+        "recordType": {
+          "const": "ContextFeature"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "caseId": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "role": {
+          "type": "string",
+          "enum": [
+            "outlet",
+            "settlement",
+            "settlement_locator",
+            "viewpoint",
+            "summit"
+          ]
+        },
+        "geometry": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "Point"
+            },
+            "coordinates": {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "type": "number",
+                  "minimum": -180,
+                  "maximum": 180
+                },
+                {
+                  "type": "number",
+                  "minimum": -90,
+                  "maximum": 90
+                }
+              ],
+              "minItems": 2,
+              "maxItems": 2
+            }
+          },
+          "required": [
+            "type",
+            "coordinates"
+          ],
+          "additionalProperties": false
+        },
+        "crs": {
+          "const": "EPSG:4326"
+        },
+        "method": {
+          "type": "string",
+          "minLength": 1,
+          "description": "How the position was obtained."
+        },
+        "datasetId": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "sourceIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "attribution": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "license": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "limitations": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "recordType",
+        "id",
+        "revision",
+        "createdAt",
+        "updatedAt",
+        "caseId",
+        "name",
+        "role",
+        "geometry",
+        "crs",
+        "method",
+        "datasetId",
+        "sourceIds",
+        "attribution",
+        "license",
+        "limitations"
       ]
     }
   }

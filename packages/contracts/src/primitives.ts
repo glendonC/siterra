@@ -17,6 +17,26 @@ export const isoDate = z.iso.date();
 /** Absolute URI, as JSON Schema `format: uri` asserts. */
 export const uri = z.url();
 
+/**
+ * JSON Schema `format: uri-reference`: an absolute URI or a reference relative to the application
+ * origin, such as /api/case-assets/<bundle>/<hash>/collection.json. The schema states minLength.
+ */
+export const uriReference = z
+  .string()
+  .refine(
+    (value) => {
+      if (/\s/.test(value)) return false;
+      try {
+        new URL(value, "https://origin.invalid/");
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    { error: "Not a URI reference" },
+  )
+  .meta({ format: "uri-reference" });
+
 /** JSON Schema `uniqueItems: true`: items compare by their JSON text. */
 export function uniqueArray<T extends z.ZodType>(item: T) {
   return z

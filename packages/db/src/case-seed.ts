@@ -6,6 +6,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import {
   CaseSnapshot,
+  ContextFeature,
   EnvironmentalCase,
   GeoSelection,
   Source,
@@ -66,6 +67,29 @@ const ManifestSource = z.object({
   language: z.string().optional(),
 });
 const CorpusManifest = z.object({ caseId: z.string(), sources: z.array(ManifestSource) });
+
+/** data/case/context-features.json: the located features the case views name on the land. */
+const ContextFeaturesFile = z.object({
+  contextFeaturesVersion: z.literal(1),
+  caseId: z.string(),
+  description: z.string(),
+  features: z.array(
+    z.object({
+      id: z.string(),
+      name: z.string(),
+      role: z.string(),
+      lonLat: z.tuple([z.number(), z.number()]),
+      method: z.string(),
+      datasetId: z.string().nullable(),
+      sourceIds: z.array(z.string()),
+      attribution: z.string().nullable(),
+      license: z.string().nullable(),
+      limitations: z.array(z.string()),
+    }),
+  ),
+});
+
+const contextFeaturesPath = "data/case/context-features.json";
 
 function sha256File(path: string): string {
   return createHash("sha256").update(readFileSync(path)).digest("hex");
@@ -195,6 +219,53 @@ export function readCaseSeed(args: {
   });
   issues.push(...imported.issues);
 
+  const contextFile = ContextFeaturesFile.parse(
+    JSON.parse(readFileSync(join(args.repoDir, contextFeaturesPath), "utf8")),
+  );
+  if (contextFile.caseId !== file.caseId) {
+    issue(
+      contextFeaturesPath,
+      `Context features are for ${contextFile.caseId}, not ${file.caseId}`,
+    );
+  }
+  const sourceIds = new Set(sources.map((s) => s.id));
+  const contextFeatures: ContextFeature[] = [];
+  for (const feature of contextFile.features) {
+    const missing = feature.sourceIds.filter((id) => !sourceIds.has(id));
+    if (missing.length > 0) {
+      issue(
+        `${contextFeaturesPath}/${feature.id}`,
+        `Cites sources not in the seed: ${missing.join(", ")}`,
+      );
+      continue;
+    }
+    const parsed = ContextFeature.safeParse({
+      recordType: "ContextFeature",
+      id: feature.id,
+      revision: 1,
+      createdAt: at,
+      updatedAt: at,
+      caseId: file.caseId,
+      name: feature.name,
+      role: feature.role,
+      geometry: { type: "Point", coordinates: feature.lonLat },
+      crs: "EPSG:4326",
+      method: feature.method,
+      datasetId: feature.datasetId,
+      sourceIds: feature.sourceIds,
+      attribution: feature.attribution,
+      license: feature.license,
+      limitations: feature.limitations,
+    });
+    if (parsed.success) {
+      contextFeatures.push(parsed.data);
+    } else {
+      for (const e of parsed.error.issues) {
+        issue(`${contextFeaturesPath}/${feature.id}/${e.path.join("/")}`, e.message);
+      }
+    }
+  }
+
   const caseRecord = EnvironmentalCase.parse({
     recordType: "EnvironmentalCase",
     id: file.caseId,
@@ -213,7 +284,13 @@ export function readCaseSeed(args: {
     description: copy.description,
   });
   return {
-    seed: { caseRecord, geoSelections: [geoSelection], sources, bundles: imported.bundles },
+    seed: {
+      caseRecord,
+      geoSelections: [geoSelection],
+      sources,
+      bundles: imported.bundles,
+      contextFeatures,
+    },
     issues,
   };
 }
@@ -229,6 +306,7 @@ export function seedSnapshot(seed: CaseSeedRecords): CaseSnapshot {
     ...seed.geoSelections,
     ...seed.sources,
     ...seed.bundles.flatMap((b) => [b.dataBundle, ...b.temporalObservations, ...b.measurements]),
+    ...seed.contextFeatures,
   ];
   for (const record of all) {
     (records[collectionOf[record.recordType]] as unknown[]).push(record);
