@@ -36,6 +36,12 @@ export const eventMessages = {
 
   /** No approved row; written in the same plain voice. */
   demoCopyOpened: () => "Opened a demo copy of the case",
+
+  /** No approved row; uses the approved status word "Needs reassessment" (microcopy.md, statuses). */
+  entitiesStale: (count: number) =>
+    count === 1
+      ? "1 record needs reassessment after an input changed"
+      : `${count} records need reassessment after an input changed`,
 } as const;
 
 /** Event texts that have no approved microcopy row yet, for DESIGN. */
@@ -43,4 +49,5 @@ export const eventMessagesWithoutApprovedRow = [
   "Program review recorded in demo mode.",
   "Loaded {count} observation bundles",
   "Opened a demo copy of the case",
+  "{count} records need reassessment after an input changed",
 ] as const;

@@ -1,8 +1,9 @@
 import { Commit, EnvironmentalCase, type EntityVersion } from "@siterra/contracts";
-import { canonicalJson } from "@siterra/domain";
+import { canonicalJson, eventMessages } from "@siterra/domain";
 import { z } from "zod";
 import { type Pool, type Tx, inTransaction, lockCase, notifyEvents } from "./client.ts";
 import { EventDraft, insertEvents, setLastSequence } from "./events.ts";
+import { writeStaleDependents } from "./staleness.ts";
 
 /**
  * A commit as the worker proposes it: a Commit whose events are drafts, because the database
@@ -173,6 +174,37 @@ export async function applyCommit(pool: Pool, input: CommitProposal): Promise<Co
       );
     }
 
+    // A newer revision makes every record that rests on the older one stale (DF-03), in this
+    // transaction, with one entity.stale event naming them.
+    const now = new Date().toISOString();
+    const stale = await writeStaleDependents(tx, {
+      caseId: proposal.caseId,
+      written: writes,
+      caseRevision: newRevision,
+      commitId: proposal.id,
+      now,
+    });
+    const staleEvent: EventDraft[] =
+      stale.length === 0
+        ? []
+        : [
+            {
+              occurredAt: now,
+              kind: "entity.stale",
+              commandId: proposal.commandId,
+              taskId: proposal.taskId,
+              entityIds: stale.map((record) => record.id),
+              message: eventMessages.entitiesStale(stale.length),
+              dedupeKey: `entity.stale:${proposal.id}`,
+              resultStatus: null,
+              tool: null,
+              usage: null,
+              validation: null,
+              spanId: null,
+              parentSpanId: null,
+            },
+          ];
+
     await tx.query(
       "update cases set revision = $2, record = $3, updated_at = now() where id = $1",
       [proposal.caseId, newRevision, JSON.stringify(caseAfter)],
@@ -184,7 +216,7 @@ export async function applyCommit(pool: Pool, input: CommitProposal): Promise<Co
     const { events, lastSequence } = await insertEvents(
       tx,
       { ...locked, revision: newRevision },
-      proposal.events,
+      [...proposal.events, ...staleEvent],
       newRevision,
     );
     await tx.query(
@@ -210,6 +242,7 @@ export async function applyCommit(pool: Pool, input: CommitProposal): Promise<Co
       expectedCaseRevision: expected,
       newCaseRevision: newRevision,
       caseAfter,
+      upserts: [...proposal.upserts, ...stale],
       events,
     });
     return { status: "committed", commit, rebasedFrom };
