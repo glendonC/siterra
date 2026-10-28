@@ -1,6 +1,6 @@
 # Voice and tone
 
-Status: adopted 2026-10-27 ([ADR-0043](../decisions/0043-write-in-one-plain-voice-and-lint-product-copy.md)). Labels: **[V]** verified from a cited source, **[D]** decision proposed here, **[H]** hypothesis to test, **[J]** style judgment with no external evidence (reason given), **[P]** rule already set by Siterra's own documents. Source IDs (`WRT-NN`) resolve in the [writing research](../../research/design/writing.md). Strings for every screen are in the [microcopy](microcopy.md).
+Status: adopted 2026-10-27 ([ADR-0043](../decisions/0043-write-in-one-plain-voice-and-lint-product-copy.md)). Labels: **[V]** verified from a cited source, **[D]** decision proposed here, **[H]** hypothesis to test, **[J]** style judgment with no external evidence (reason given), **[P]** rule already set by Siterra's own documents. Source IDs (`WRT-NN`) resolve in the [writing research](../../research/design/writing.md). Strings for every screen are in the [microcopy](microcopy.md). Amendment proposed 2026-10-28: [the precise standard](#the-precise-standard-proposed-amendment-28-oct-2026), which changes capitalization, pronouns, status labels and several terms below; the build follows it pending the founder's decision.
 
 ## Scope
 
@@ -13,6 +13,22 @@ Rules already set elsewhere still apply: the actor is Siterra, never staff or pe
 ## The voice
 
 [D] Siterra writes like a careful field scientist briefing a busy program manager: plain words, exact numbers, the same calm in success and failure, and clear about what is not known.
+
+## The precise standard (proposed amendment, 28 Oct 2026)
+
+Status: proposed in [ADR-0043, amendment 1](../decisions/0043-write-in-one-plain-voice-and-lint-product-copy.md#amendment-1-precise-not-conversational); the build follows it while the founder decides. Where it and an older rule below differ, this section is what the build and the lint apply.
+
+[D] Siterra's interface is precise, not conversational.
+
+- **Controls, tabs, badges, navigation, section and stage headers** are 1 to 3 word Title Case nouns or verbs that name the thing in the system: "Run Assessment", "Flat Map View", "Data Layers", "Field Unverified". No sentences, metaphors, first person, "you", slogans, or meta-commentary that explains what a panel will show. Badge segments are joined by a middle dot: "Muse Spark · Synthetic Replay". "&" is allowed inside a name: "Scope & Baseline".
+- **Findings and detail lines** are short, exact, declarative sentences with numbers and source references: "Complete. Findings: 2.", "7 of 7 bundles passed automated data checks." Not chatty.
+- **Coverage boundaries** are a badge, "Coverage Required" or "Dataset Not Loaded", and two sentences: what is missing, then what is required. Example: "Urban heat-island analysis requires thermal and canopy layers not loaded in this workspace. Select a supported region or attach the required dataset." The scope refusal follows the same form under "Out of Scope".
+- **Product framing.** Siterra is a general five-stage analysis engine. The loaded case is a Region Pack, shown as an object: its name, active data layers, observation window, checks, and status. The status is truthful: "Real Data · Field Unverified" while no accepted verified-outcome evidence exists. A data bundle's status `validated` means its automated data checks passed; the interface says "passed automated data checks", never "validated".
+- **Stage names:** Scope & Baseline; Evidence; Hypothesis Testing (not "Causal Attribution": [ADR-0023](../decisions/0023-prohibit-causal-diagnosis-and-outcome-claims.md) bars causal diagnosis); Interventions & Precedents (not "Validated Interventions": precedents are published studies); Field Verification.
+- **Do not use** "Telemetry" (there are no sensors), "Validated" or "Verified" for anything not validated, "Attribution", or "Autonomous" for actions (the engine analyzes; it never acts, sends, or spends).
+- **Evidence-kind labels stay:** Observation, Published context, Hypothesis, Model estimate, Scenario, Field requirement, Verified outcome.
+
+The lint enforces the standard with the `heading` scope and rules VT-09 and VT-44 to VT-49 (see [Lint rules](#lint-rules)).
 
 ## Voice principles
 
@@ -149,7 +165,7 @@ The voice stays fixed; the tone follows what the reader is going through [V: WRT
 
 ### Capitalization
 
-- Sentence case for everything: headings, buttons, labels, tabs, badges, statuses, chips, and legends [V: WRT-10, WRT-13, WRT-17, WRT-21, WRT-25; P: design system].
+- Title Case for controls, headers, tabs, badges, statuses, chips and stage names; sentence case for detail lines, legends and map labels [D: the precise standard, proposed; it replaces the earlier rule of sentence case for everything, which cited WRT-10, WRT-13, WRT-17, WRT-21, WRT-25 and the design system].
 - Capitalize proper nouns, place names, dataset names, and section names used as names (Observations, Explanations, Next steps).
 - No all caps, including badges: "Live", not "LIVE" [P: design system].
 - Write acronyms and dataset names as their owners do: NDVI, CHIRPS, Sentinel-2 L2A, Copernicus GLO-30.
@@ -209,7 +225,7 @@ The voice stays fixed; the tone follows what the reader is going through [V: WRT
 
 ### Pronouns, voice, and contractions
 
-- "Siterra" for the product, "you" for the reader. No "we", "our", or "us" [P: ADR-0005; V: WRT-16].
+- "Siterra" for the product. No "we", "our", or "us" [P: ADR-0005; V: WRT-16]. No "you" or "your" in Siterra's own text: name the thing ("Question text kept", not "Your question is kept") [D: the precise standard, proposed].
 - "I" only in user-voiced text: suggestions and the "I can provide this" control.
 - Active voice, with Siterra as the subject of its own actions [V: WRT-03, WRT-13]. Use the passive only when the actor is unknown or does not matter: "No household data was collected."
 - No negative contractions: write "cannot" and "does not" [V: WRT-02]. Siterra's honesty lines depend on negation, so it must not be misread. Positive contractions are fine in helper text.
@@ -218,7 +234,7 @@ The voice stays fixed; the tone follows what the reader is going through [V: WRT
 
 - 25 words or fewer per sentence, one idea per sentence [V: WRT-03].
 - Put the key word first: the status, then the detail [V: WRT-10].
-- Status labels: one to four words, sentence case, from a small fixed set [V: WRT-05, WRT-06].
+- Status labels: one to three words, Title Case, from a small fixed set [V: WRT-05, WRT-06; D: the precise standard, proposed].
 - Lists: parallel grammar; no end punctuation on fragments.
 
 ### Links, buttons, emphasis, and fields
@@ -244,14 +260,14 @@ The voice stays fixed; the tone follows what the reader is going through [V: WRT
 | Use | Avoid | Why |
 |---|---|---|
 | Siterra | we, our team, analysts, the AI, the agent, assistant | No accountable staff stand behind the work (ADR-0005). |
-| investigation | analysis run, job, session, chat | The work Siterra does in a case. |
+| assessment (proposed; was investigation) | analysis run, job, session, chat | The work Siterra does in a case; "Run Assessment" on the button. |
 | case | project, workspace, conversation | The persistent record. |
 | start (the investigation) | commission (on a button), run AI, generate | As a button, "Commission investigation" can be read as a noun phrase [H]; keep "commission" in narrative copy. |
 | request (what the user sends) | command, prompt, query | "Command" is engineering language; it stays in code and the trace. |
 | task | agent, sub-agent, worker, job | No personas. |
 | revision | version (for the case) | One word for saved states; the case pill menu already says "Revision 9". |
 | saved | committed | "Commit" stays in the trace. |
-| explanation | hypothesis (in headings and sentences), theory, cause | Plain for program managers; "Hypothesis" stays as the claim-kind label. |
+| hypothesis; Hypothesis Testing (stage 3) (proposed; was explanation) | theory, cause, causal attribution | The stage tests hypotheses against the records; ADR-0023 bars causal diagnosis. |
 | observation | data point, signal, insight | A claim kind with a defined meaning. |
 | published context | research shows, the literature says, science says | Name the source instead. |
 | field requirement | gap, to-do, missing data (as a label) | A claim kind that always says which decision it informs. |
@@ -264,8 +280,12 @@ The voice stays fixed; the tone follows what the reader is going through [V: WRT
 | coverage threshold (70%) | coverage policy | A threshold is a number people can check. [J] |
 | rainfall grid (about 5 km) | local rainfall, weather station, rainfall at the pasture | CHIRPS is a gridded product [P: scientific basis]. |
 | below-average rainfall | drought | No drought index is computed. [J] |
-| possible response, candidate response | intervention, solution, recommendation, action plan | Candidates, not choices; "intervention" can sound imposed on communities. [J] |
-| field-validation plan | action plan, deployment, survey order | A plan to collect evidence. |
+| Interventions & Precedents (stage 4); candidate response in sentences (proposed; was possible response) | solution, recommendation, action plan, validated intervention | Precedents are published studies; nothing is validated in the field. |
+| Field Verification (stage 5); field verification plan (proposed; was field-validation plan) | action plan, deployment, survey order | A plan to collect evidence on the ground. |
+| Region Pack | case pack, dataset, workspace | The loaded case as an object: name, data layers, observation window, checks, status. [D] |
+| passed automated data checks; Real Data · Field Unverified | validated, verified (for data bundles or the pack) | A bundle's `validated` status is its automated data checks, not field validation. [D] |
+| analyzes | autonomous, acts, executes | The engine analyzes; it never acts, sends or spends. [D] |
+| Activity | telemetry | There are no sensors. [D] |
 | decision brief | report, recommendation, summary | It frames a decision. |
 | review (by role) | approval, sign-off, endorsement | Reviews are role-scoped. |
 | Prepared | approved, ready to execute, done, complete | The terminal P0 state; nothing is executed. |
@@ -276,7 +296,7 @@ The voice stays fixed; the tone follows what the reader is going through [V: WRT
 | not collected | none, zero, unknown (for absent data) | Absent data is not an absent thing. |
 | unknown, to be established locally | TBD, N/A | Says who would establish it. |
 | machine-drafted translation | translated, AI translation | Says what made it and that it is a draft (ADR-0034). |
-| Live; Replay of live run, 24 Oct 2026; Concept prototype | LIVE, REPLAY, Demo mode (alone) | Sentence case; a replay always carries its run date. |
+| Live; Recorded Replay · 24 Oct 2026; Synthetic Replay · No Live Model; Concept Prototype | LIVE, REPLAY, Demo mode (alone) | Title Case badges (proposed); a replay always carries its run date. |
 | Activity | logs, thinking, reasoning, chain of thought | The trace shows events, not hidden reasoning. |
 | lists, shows | surfaces (verb) | Google's word list avoids "surface" as a transitive verb [V: WRT-14]. |
 | Aït Bouguemez | Aït Bouguemez (in Siterra's own text) | One display form, matching the study-area document, the scientific basis, and the prototype; source titles keep their own spelling. [D] |
@@ -421,9 +441,10 @@ Lint errors everywhere except strings allowlisted by ID for the "not claimed" pa
 | Scope | Strings | Rules |
 |---|---|---|
 | `ui` | Every externalized UI string, including aria-label and alt text | Rules with scope `ui` |
-| `label` | Buttons, headings, badges, statuses, chips, tabs | `ui` rules plus VT-09 |
-| `button` | Button labels | `ui` rules plus VT-40 and VT-41 |
-| `link` | Link text | `ui` rules plus VT-42 |
+| `label` | Map and data labels: place names, areas, units | `ui` rules |
+| `heading` | Headers, tabs, badges, statuses, chips, stage names (the precise standard, proposed) | `ui` rules except VT-04 and VT-49, plus VT-09, VT-44 and VT-48 |
+| `button` | Button labels | `ui` rules except VT-49, plus VT-09, VT-40, VT-41, VT-44 and VT-48 |
+| `link` | Link text | `ui` rules except VT-49, plus VT-09, VT-42, VT-44 and VT-48 |
 | `model` | Model-written fields before commit: evidence statements, assessments, relationship explanations, planner interpretations, brief lines | Rules with scope `model`. Errors reject the item as a validation issue, like the numeric provenance check, so the task retries with the issue listed. Warnings are logged in the trace. |
 | `docs` | Repository Markdown | VT-01 only |
 | never | User-typed text, verbatim source excerpts, citations, identifiers, attribution and licence notices quoted as the licensor requires, code, and this guide's own examples | None |
@@ -448,12 +469,12 @@ The hero's strings ([microcopy](microcopy.md#1-demo-opening), sections 1 and 1a)
 | VT-01 | Error | ui, model, docs | Em dash | Two sentences, colon, comma, or parentheses |
 | VT-02 | Error | ui, model | En dash and similar dashes | "to" in ranges; hyphen in compounds |
 | VT-03 | Warn | ui, model | Hyphen ranges: 2019-2025, 0-3 months | "2019 to 2025" |
-| VT-04 | Warn | ui | Middle-dot separators | Labeled fields |
+| VT-04 | Warn | ui (not heading) | Middle-dot separators in detail lines | Labeled fields; badges may join segments with a middle dot |
 | VT-05 | Warn | ui, model | Ellipses | The verb alone |
 | VT-06 | Error | ui, model | Exclamation marks | Period |
 | VT-07 | Error | ui, model | Emoji and pictographs (©, ®, ™ allowed) | Icon with text label |
 | VT-08 | Warn | ui | All-caps words outside an acronym allowlist | Sentence case |
-| VT-09 | Warn | label | Title Case outside a proper-noun allowlist | Sentence case |
+| VT-09 | Error | heading, button, link | A lower-case word that is not a minor word (a, and, of, to, ...) | Title Case (proposed; replaces the sentence-case rule) |
 | VT-10 | Error (ui), warn (model) | ui, model | LLM-overused vocabulary, list A | Replacement table |
 | VT-11 | Error (ui), warn (model) | ui, model | Corporate and marketing words, list B | Replacement table |
 | VT-12 | Error | ui, model | Stock phrases | Delete; state the fact |
@@ -463,7 +484,7 @@ The hero's strings ([microcopy](microcopy.md#1-demo-opening), sections 1 and 1a)
 | VT-16 | Warn | ui, model | Filler words and stacked hedges | Delete, or name the limit |
 | VT-17 | Warn | ui | Vague or apologetic errors | Cause, what is kept, action |
 | VT-18 | Warn | ui, model | Latin abbreviations, "via" | Plain words |
-| VT-19 | Warn | ui, model | "surfaces" (verb), "&", "real-time" | "lists", "and", "precomputed" |
+| VT-19 | Warn | ui, model | "surfaces" (verb), "real-time" | "lists", "precomputed" |
 | VT-20 | Error | ui, model | Prohibited claims | Allowlist only the "not claimed" panels |
 | VT-21 | Error (model), warn (ui) | ui, model | Probability, confidence, score, rank | Status word plus evidence |
 | VT-22 | Error | ui, model | "vegetation health" and similar | Vegetation index (NDVI) |
@@ -484,6 +505,12 @@ The hero's strings ([microcopy](microcopy.md#1-demo-opening), sections 1 and 1a)
 | VT-41 | Error | button | Review button without "(demo)" in demo mode | Add "(demo)" |
 | VT-42 | Warn | link | "Learn more", "click here" | Name the destination |
 | VT-43 | Warn | ui, model | Negative contractions | cannot, does not |
+| VT-44 | Error | heading, button, link | Sentence punctuation: full stop, semicolon, question mark | A name, not a sentence |
+| VT-45 | Error (ui), warn (model) | ui, model | "you", "your", "I", "me", "my" | Name the thing |
+| VT-46 | Error (ui), warn (model) | ui, model | telemetry, attribution, autonomous, validated, verified ("Verified outcome" allowed) | Say what is true: "passed automated data checks", "Field Unverified" |
+| VT-47 | Error | ui | Meta-commentary: "appears here", "as it happens", "will show", "this panel shows" | Show it, or state the empty state as a fact |
+| VT-48 | Error | heading, button, link | A segment over 3 words (function; " · " separates segments) | 1 to 3 words |
+| VT-49 | Warn | ui, model (not heading, button, link) | "&" in a sentence | "and"; "&" only inside a name |
 | VT-50 | Warn | ui, model | Sentence over 25 words (function) | Split it |
 
 ### Patterns
@@ -491,27 +518,17 @@ The hero's strings ([microcopy](microcopy.md#1-demo-opening), sections 1 and 1a)
 JavaScript (Node 22 or later; the patterns use lookbehind and Unicode property escapes). Run `lint(text, scope)` over the string catalog in CI and over model fields in the commit validator.
 
 ```js
-const PROPER = [
-  "Siterra", "NDVI", "CHIRPS", "Sentinel-2", "Copernicus", "OpenStreetMap", "Aït", "Ait", "Bouguemez",
-  "Ouchi", "Central", "High", "Atlas", "Morocco", "Tabant", "Azilal", "Jbel", "Azourki", "Lac", "Izoughar",
-  "Oued", "Lakhdar", "Assif", "Earth", "Search", "Muse", "Spark", "Meta", "French", "Arabic", "Darija",
-  "Tamazight", "Tashelhit", "Amazigh", "English", "Place", "Observations", "Explanations", "Responses", "Next",
-  "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November",
-  "December", "Jan", "Feb", "Mar", "Apr", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "WorldCover", "Mountains",
-];
-const PROPER_ALT = PROPER.map((w) => w.replace(/[-]/g, "\\-")).join("|");
-
 export const RULES = [
   // A. Typography
   { id: "VT-01", sev: "error", scope: ["ui", "model", "docs"], re: /\u2014/g, fix: "No em dash. Split the sentence, or use a colon, comma or parentheses." },
   { id: "VT-02", sev: "error", scope: ["ui", "model"], re: /[\u2012\u2013\u2015]/g, fix: "No en dash. Use 'to' for ranges, a hyphen for compound words." },
   { id: "VT-03", sev: "warn", scope: ["ui", "model"], re: /\b(?:19|20)\d{2}\s?-\s?(?:19|20)\d{2}\b|\b\d+(?:\.\d+)?\s?-\s?\d+(?:\.\d+)?\s?(?:%|km²|km|mm|m|months?|years?)(?=\W|$)/g, fix: "Write ranges with 'to': '2019 to 2025', '0 to 3 months'." },
-  { id: "VT-04", sev: "warn", scope: ["ui"], re: /\s\u00B7\s/g, fix: "No middle-dot separators. Use labeled fields or separate elements." },
+  { id: "VT-04", sev: "warn", scope: ["ui"], except: ["heading"], re: /\s\u00B7\s/g, fix: "No middle-dot separators. Use labeled fields or separate elements." },
   { id: "VT-05", sev: "warn", scope: ["ui", "model"], re: /\u2026|\.{3}/g, fix: "No ellipsis in status text. Truncation is done by CSS." },
   { id: "VT-06", sev: "error", scope: ["ui", "model"], re: /!/g, fix: "No exclamation marks." },
   { id: "VT-07", sev: "error", scope: ["ui", "model"], re: /(?![\u00A9\u00AE\u2122])\p{Extended_Pictographic}/gu, fix: "No emoji or pictographs. Use the icon set with a text label." },
   { id: "VT-08", sev: "warn", scope: ["ui"], re: /\b(?!(?:NDVI|CHIRPS|DEM|GLO|ESA|OSM|HCP|SCI|GPS|UCSB|URL|API|PDF|CSV|JSON|SSE|UTC|ISO|WCAG|GIS|CRS|COG|STAC|USGS|EROS|NOAA|NASA|SRTM|GMTED|ETOPO|IRCAM|UNCCD|FAO|IPBES|UNEP|GIEWS)\b)[A-Z]{3,}\b/g, fix: "No all caps. Use sentence case: 'Live', not 'LIVE'." },
-  { id: "VT-09", sev: "warn", scope: ["label"], re: new RegExp(`(?<=\\S\\s+)(?<![:.?!]\\s)(?!(?:${PROPER_ALT})\\b)[A-Z][a-z]+`, "g"), fix: "Sentence case: capitalize only the first word and proper nouns (allowlist in the rule)." },
+  { id: "VT-09", sev: "error", scope: ["heading", "button", "link"], re: /(?<![\p{L}\p{N}{'\u2019-])(?!(?:a|an|and|as|at|by|for|from|in|into|of|on|or|per|the|to|vs|with)(?![\p{L}\p{N}]))\p{Ll}[\p{L}\p{N}'\u2019-]*/gu, fix: "Title Case for controls, headers and badges: 'Run Assessment', 'Field Unverified'." },
 
   // B. Words and phrases
   { id: "VT-10", sev: "error", scope: ["ui", "model"], modelSev: "warn", re: /\b(?:delv(?:e|es|ed|ing)|tapestr(?:y|ies)|testaments?|underscor(?:e|es|ed|ing)|showcas(?:e|es|ed|ing)|pivotal|intricac(?:y|ies)|intricate(?:ly)?|meticulous(?:ly)?|commendabl[ey]|noteworthy|invaluable|groundbreaking|realms?|boast(?:s|ed|ing)?|garner(?:s|ed|ing)?|vibrant|camaraderie|palpable|amidst|nestled|renowned|insights?)\b/gi, fix: "Word overused in LLM text. Use the plain word from the replacement table." },
@@ -523,7 +540,8 @@ export const RULES = [
   { id: "VT-16", sev: "warn", scope: ["ui", "model"], re: /\b(?:simply|easily|obviously|clearly|basically|essentially|actually|really|very|quite|somewhat|arguably|relatively|to some extent|it (?:seems|appears)(?: that)?|may potentially|could possibly|might possibly)\b|\bjust\b(?! now)/gi, fix: "Filler or stacked hedge. Delete it, or name the actual limit." },
   { id: "VT-17", sev: "warn", scope: ["ui"], re: /\b(?:oops|uh[- ]oh|whoops|sorry|please|something went wrong|(?:an )?(?:unknown|unexpected) error|error (?:has )?occurred|invalid)\b/gi, fix: "Vague or apologetic error. Say what happened, what is kept, and what to do." },
   { id: "VT-18", sev: "warn", scope: ["ui", "model"], re: /(?:^|[\s(])(?:e\.g\.|i\.e\.|etc\.)|\bvia\b|\bvs\.?(?=\s)/gi, fix: "Use 'for example', 'that is', 'through', 'compared with'." },
-  { id: "VT-19", sev: "warn", scope: ["ui", "model"], re: /\bsurfac(?:es|ed|ing)\b|\s&\s|\breal[- ]time\b/gi, fix: "Use 'lists' or 'shows' (not 'surfaces'), 'and' (not '&'); observations are precomputed, not real time." },
+  { id: "VT-19", sev: "warn", scope: ["ui", "model"], re: /\bsurfac(?:es|ed|ing)\b|\breal[- ]time\b/gi, fix: "Use 'lists' or 'shows' (not 'surfaces'); observations are precomputed, not real time." },
+  { id: "VT-49", sev: "warn", scope: ["ui", "model"], except: ["heading", "button", "link"], re: /\s&\s/g, fix: "Use 'and' in sentences. '&' is for Title Case names only: 'Scope & Baseline'." },
 
   // C. Honesty
   { id: "VT-20", sev: "error", scope: ["ui", "model"], re: /\b(?:overgraz(?:ed|ing)|degrad(?:ed|ation|ing)|damag(?:e|ed|ing)|crisis|carrying capacity|animal units?|biomass|restor(?:ed|ation) (?:success|achieved|works)|(?:communit(?:y|ies)|households?|herders?) (?:agreed|approved|consented|support(?:s|ed)?)|consent (?:obtained|given|granted|secured)|approved by (?:the )?(?:community|communities|authorit(?:y|ies))|prov(?:es|ed|en)|confirm(?:s|ed)? (?:that )?(?:grazing|overgrazing|drought|degradation)|caused by|due to (?:grazing|overgrazing|livestock|herding|drought))\b/gi, fix: "Prohibited claim. Allowed only in the 'not claimed' panel strings (allowlist by string ID)." },
@@ -548,9 +566,14 @@ export const RULES = [
 
   // E. Actions and links
   { id: "VT-40", sev: "error", scope: ["button"], re: /^(?:OK|Okay|Yes|No|Submit|Approve(?: AI)?|Accept|Confirm|Proceed|Go|Defer|Run AI|Generate|Click here|Learn more|Let['\u2019]s go)$/i, fix: "Name the effect: verb plus object ('Defer decision', 'Record scientific review (demo)')." },
-  { id: "VT-41", sev: "error", scope: ["button"], re: /^(?:Record scientific review|Mark program review complete|Record (?:community|program) review)(?!.*\(demo\))/, fix: "In demo mode, review buttons end with '(demo)'." },
+  { id: "VT-41", sev: "error", scope: ["button"], re: /^(?:Record scientific review|Mark program review complete|Record (?:community|program) review)(?!.*\(demo\))/i, fix: "In demo mode, review buttons end with '(demo)'." },
   { id: "VT-42", sev: "warn", scope: ["link"], re: /^(?:click here|here|learn more|read more|more|link|this)$/i, fix: "Link text names the destination: 'Open source: Romagny et al. 2008'." },
   { id: "VT-43", sev: "warn", scope: ["ui", "model"], re: /\b(?:can|don|won|isn|doesn|aren|wasn|weren|haven|hasn|hadn|didn|shouldn|wouldn|couldn|mustn)['\u2019]t\b/gi, fix: "No negative contractions: 'cannot', 'does not'." },
+  // G. The precise standard (ADR-0043 amendment 1, proposed)
+  { id: "VT-44", sev: "error", scope: ["heading", "button", "link"], re: /[.;?!](?=\s|$)/g, fix: "A control, header or badge is a name, not a sentence: no full stop, semicolon or question mark." },
+  { id: "VT-45", sev: "error", scope: ["ui"], modelSev: "warn", re: /\b(?:[Yy]ou(?:r|rs|rself|['\u2019](?:re|ve|ll|d))?|I|[Mm]e|[Mm]y)\b/g, fix: "No 'you' and no first person. Name the thing: 'Question kept', not 'Your question is kept'." },
+  { id: "VT-46", sev: "error", scope: ["ui"], modelSev: "warn", re: /\b(?:telemetry|attribution|autonomous(?:ly)?|validated|verified(?! outcomes?\b))\b/gi, fix: "No sensors, so no 'telemetry'; no 'attribution' (ADR-0023); the engine analyzes and never acts autonomously; 'validated' and 'verified' only for what is (the 'Verified outcome' kind)." },
+  { id: "VT-47", sev: "error", scope: ["ui"], re: /\b(?:appears? here|(?:shown|listed) here|as it happens|(?:will|would) (?:show|appear|list|display)|this (?:panel|section|page|card|view|list) (?:shows|lists|displays|contains))\b/gi, fix: "No meta-commentary about what a panel will show. Show it, or state the empty state as a fact." },
 ];
 
 // F. Structure checks (functions, not single regexes)
@@ -558,18 +581,29 @@ export function longSentences(text, max = 25) {
   return text.split(/(?<=[.?!])\s+/).filter((s) => (s.match(/\S+/g) || []).length > max);
 }
 
+const CONTROL = ["heading", "button", "link"];
+
+// Segments of a control, header or badge with more than `max` words; " · " separates segments (VT-48)
+export function longControls(text, max = 3) {
+  return text.split(/\s\u00B7\s/).filter((seg) => seg.split(/\s+/).filter((w) => /[\p{L}\p{N}{]/u.test(w)).length > max);
+}
+
 export function lint(text, kind) {
   const out = [];
   for (const r of RULES) {
+    if (r.except?.includes(kind)) continue;
     if (!r.scope.includes(kind)) {
-      // a "ui" rule also applies to labels, buttons and links
-      if (!(["label", "button", "link"].includes(kind) && r.scope.includes("ui"))) continue;
+      // a "ui" rule also applies to labels, headings, buttons and links
+      if (!(["label", ...CONTROL].includes(kind) && r.scope.includes("ui"))) continue;
     }
     r.re.lastIndex = 0;
     const m = text.match(r.re);
     if (m) out.push({ id: r.id, sev: kind === "model" && r.modelSev ? r.modelSev : kind !== "model" && r.uiSev ? r.uiSev : r.sev, hits: [...new Set(m.map((s) => s.trim()))] });
   }
-  if (kind !== "label" && kind !== "button" && kind !== "link") {
+  if (CONTROL.includes(kind)) {
+    const wordy = longControls(text);
+    if (wordy.length) out.push({ id: "VT-48", sev: "error", hits: wordy });
+  } else if (kind !== "label") {
     const long = longSentences(text);
     if (long.length) out.push({ id: "VT-50", sev: "warn", hits: long.map((s) => s.slice(0, 40) + " (" + s.match(/\S+/g).length + " words)") });
   }
@@ -582,6 +616,8 @@ export function lint(text, kind) {
 Tested in Node 24.15 against 128 cases (at least one that must match and one that must not, per rule) and 13 clean proposed strings: 0 failures. All 190 proposed strings in [microcopy](microcopy.md) pass, except "degradation" in the allowlisted "Not claimed" line. A heuristic scan of 370 strings from the first prototype (not published) found 4 real issues: "via" in a source venue, "Three villages" and "Four response options" (numerals), and "millimetres" (US spelling). Quoted strings in the storyboard add 4 middle-dot separators. The test files are not in the repository; the build recreates them from the patterns above.
 
 On 27 Oct 2026 the scopes of VT-10, VT-11 and VT-21 in the patterns were corrected to `ui` and `model`, as the rule summary states (before, VT-10 and VT-11 ran on interface text only and VT-21 on model text only, so their second severities never applied), and VT-26 was added. The 128-case test above predates these changes; the build reruns it. With the corrected patterns, the hero's 99 strings (opening, globe, dive and the valley sequence, [microcopy](microcopy.md) sections 1 and 1a) give findings on 6; each string was checked to appear verbatim in the approved hero, except two the docs define: the challenge's action label, named to match the next beat, and the mode line's added accessible name, all handled in the table above, and the place names "Atlas Mountains, Morocco" and "High Atlas Mountains" pass with "Mountains" in the proper-noun list. Across the other 351 proposed table entries in microcopy the changes add VT-21 warnings on the four "not ranked" strings listed as known cases and no error, and GIEWS in the acronym allowlist clears one VT-08 warning.
+
+On 28 Oct 2026 the precise standard (proposed) added the `heading` scope, replaced VT-09 with the Title Case rule, split "&" out of VT-19 into VT-49, and added VT-44 to VT-48. The build's lint tests (`apps/web/lib/copy/lint.test.ts`) have a must-match and a must-not-match case for each rule and pass, and every string in the catalog passes or is allowlisted by ID with its reason. The patterns above agree with the build's lint on 12 cases for the new rules.
 
 ### What lint cannot catch (review checklist)
 

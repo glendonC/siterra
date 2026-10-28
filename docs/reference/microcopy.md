@@ -298,6 +298,8 @@ Land labels per beat in the approved frames: arrival 5 (two of them two-line blo
 
 ## 6. Plan, tasks, and milestones
 
+The build's strings for this section follow [section 25](#25-the-precise-standard-in-the-build-proposed) (proposed) where they differ from the rows below.
+
 ### Plan component
 
 | Element | Current | Proposed | Why |
@@ -587,6 +589,8 @@ These are English source strings. French strings must be written or reviewed by 
 
 ## 18. Mode and demo labels
 
+The build's strings for this section follow [section 25](#25-the-precise-standard-in-the-build-proposed) (proposed) where they differ from the rows below.
+
 | Element | Current | Proposed | Why |
 |---|---|---|---|
 | Live badge | (spec) LIVE | Live | VT-08 |
@@ -668,6 +672,8 @@ The chart and table show NDVI to three decimals; the design system says two (sec
 | Elevation, loading | Computing from the terrain model | Keep | |
 
 ## 20. Activity (trace)
+
+The build's strings for this section follow [section 25](#25-the-precise-standard-in-the-build-proposed) (proposed) where they differ from the rows below.
 
 | Element | Current | Proposed | Why |
 |---|---|---|---|
@@ -808,3 +814,137 @@ Strings for components specified after the first prototype: the map ornament and
 | Buttons | [Export PDF] [Create read-only link] [Revoke link] | |
 | Link created | Read-only link created for revision {n}. Anyone with the link can view it. | |
 | Stale export | This export is out of date: revision {n} changed after it was made. | |
+
+## 25. The precise standard in the build (proposed)
+
+Status: proposed with [ADR-0043, amendment 1](../decisions/0043-write-in-one-plain-voice-and-lint-product-copy.md#amendment-1-precise-not-conversational) and the [precise standard](voice-and-tone.md#the-precise-standard-proposed-amendment-28-oct-2026). This table is every catalog string in `apps/web/lib/copy/en.ts` that the copy pass of 28 Oct 2026 changed, added or removed, as the build shows it. Where it differs from a row in sections 1 to 24, the build follows this table until the founder decides; sections 6, 18 and 20 are the main ones it supersedes. Kinds: `ui` is a detail line, `label` a map or data label, `heading` a header, tab, badge, status word or stage name.
+
+| String ID | Current | Replacement | Kind | Where shown (apps/web) | Reason |
+|---|---|---|---|---|---|
+| `opening.what` | Siterra assesses environmental questions for communities and organisations that have no specialist to ask. | An environmental analysis engine for communities and organizations with no specialist to ask. | ui to ui | components/opening/Opening.tsx | Detail line names Siterra an analysis engine (general product framing); US spelling |
+| `opening.how` | Its agents plan the work and read published research with Meta's Muse Spark model, and code checks every quote against its source. Code computes every number. A person reviews the results; Siterra contacts no one and decides nothing. | Meta Muse Spark plans the tasks and reads published sources. Code computes every number and checks every quote against its source. A person reviews every result. Siterra sends, spends and decides nothing. | ui to ui | components/opening/Opening.tsx | Declarative; names the model and what code does; 'sends, spends and decides' states the authority boundary |
+| `opening.case` | This case: {question} | (removed) | ui to  | components/opening/Opening.tsx | Removed: 'This case:' replaced by a Question label over the record's own question |
+| `opening.action` | Open the case | Open Region Pack | button to button | components/opening/Opening.tsx | Verb plus the object the product now names (Region Pack) |
+| `opening.skip` | Skip to the map | Skip to Map | link to link | components/opening/Opening.tsx | 1 to 3 words |
+| `globe.oneCase` | One case so far: Aït Bouguemez | (removed) | ui to  | components/journey | Removed: chatty ('so far') and a hard-coded place name; replaced by globe.pack from the case record |
+| `globe.turn` | Turn | Turn | label to heading | components/journey | Title Case |
+| `globe.dragKey` | drag | Drag | label to heading | components/journey | Title Case |
+| `arrival.start` | Start investigation | Run Assessment | button to button | components/stage, components/shell | Founder item 6: 'Run assessment', in Title Case |
+| `arrival.readFlat` | Read flat | Flat Map View | button to button | components/stage, components/shell | Founder item 6: 'Flat map view', in Title Case; names what F does |
+| `flat.title` | Everything on screen, as text | Text View | label to heading | components/flat/FlatListing.tsx | Header, 1 to 3 words; 'Everything on screen, as text' was meta-commentary |
+| `flat.skip` | Skip to everything on screen, as text | Text View | link to link | components/flat/FlatListing.tsx | 1 to 3 words; 'Skip to Text View' is 4 |
+| `flat.place` | Place | Place | label to heading | components/flat/FlatListing.tsx | Title Case |
+| `flat.question` | Question | Question | label to heading | components/flat/FlatListing.tsx | Title Case |
+| `flat.notes` | View notes | Notes | label to heading | components/flat/FlatListing.tsx | 1 word header |
+| `flat.sources` | Sources | Sources | label to heading | components/flat/FlatListing.tsx | Title Case |
+| `task.queued` | Queued | Queued | label to heading | lib/card/work.ts, lib/activity/activity.ts | Title Case |
+| `task.running` | Running | Running | label to heading | lib/card/work.ts, lib/activity/activity.ts | Title Case |
+| `task.needs_input` | Needs your input | Input Required | label to heading | lib/card/work.ts, lib/activity/activity.ts | No 'your'; names the state |
+| `task.done` | Done | Done | label to heading | lib/card/work.ts, lib/activity/activity.ts | Title Case |
+| `task.partial` | Partly done | Partial | label to heading | lib/card/work.ts, lib/activity/activity.ts | 1 word status |
+| `task.failed` | Failed | Failed | label to heading | lib/card/work.ts, lib/activity/activity.ts | Title Case |
+| `task.cancelled` | Canceled | Canceled | label to heading | lib/card/work.ts, lib/activity/activity.ts | Title Case |
+| `task.awaiting_review` | Awaiting review | Awaiting Review | label to heading | lib/card/work.ts, lib/activity/activity.ts | Title Case status |
+| `work.planning` | Planning: {n} steps to answer this question | Planned tasks: {n}. | ui to ui | lib/card/work.ts, lib/activity/activity.ts | Exact count, no chat ('to answer this question') |
+| `work.received` | Request received | Request received. | ui to ui | lib/card/work.ts, lib/activity/activity.ts | Full stop: a detail line |
+| `work.complete` | Request complete | Complete. Findings: {n}. | ui to ui | lib/card/work.ts, lib/activity/activity.ts | States completion and the accepted-finding count; 3 words keep the card within 45 (VC-04) |
+| `work.failed` | Request failed: {cause}. Your question is kept. | Assessment failed: {cause}. Question text kept. | ui to ui | lib/card/work.ts, lib/activity/activity.ts | No 'your'; 'Assessment' names the run; cause inline |
+| `work.partial` | Finished with gaps. Not done: {tasks}. | Assessment partial. Not completed: {tasks}. | ui to ui | lib/card/work.ts, lib/activity/activity.ts | Declarative; task names in Title Case |
+| `work.cancelled` | Request canceled | Assessment canceled. | ui to ui | lib/card/work.ts, lib/activity/activity.ts | Names the run; full stop |
+| `work.cause.roundLimit` | stopped at the model round limit | model round limit reached | ui to ui | lib/card/work.ts, lib/activity/activity.ts | Fragment states the cause |
+| `work.cause.rejected` | Siterra rejected the model's proposal | model proposal rejected by checks | ui to ui | lib/card/work.ts, lib/activity/activity.ts | Names who rejected: the checks |
+| `work.cause.modelDown` | the model service is not responding | model service not responding | ui to ui | lib/card/work.ts, lib/activity/activity.ts | Fragment states the cause |
+| `work.cause.other` | no step finished | no task completed | ui to ui | lib/card/work.ts, lib/activity/activity.ts | Task, the engine's unit, not 'step' |
+| `task.kind.plan` | Plan | Plan | label to heading | lib/card/work.ts, lib/activity/activity.ts | Title Case |
+| `task.kind.source_research` | Source research | Source Research | label to heading | lib/card/work.ts, lib/activity/activity.ts | Title Case |
+| `task.kind.observation_analysis` | Observation analysis | Observation Analysis | label to heading | lib/card/work.ts, lib/activity/activity.ts | Title Case |
+| `task.kind.livelihood_governance` | Livelihood and governance research | Livelihoods & Governance | label to heading | lib/card/work.ts, lib/activity/activity.ts | Title Case, 1 to 3 words ('&' allowed in names) |
+| `task.kind.hypothesis_comparison` | Explanation comparison | Hypothesis Comparison | label to heading | lib/card/work.ts, lib/activity/activity.ts | The task tests hypotheses (stage 3); 'Explanation comparison' was the old voice rule |
+| `task.kind.intervention_feasibility` | Possible responses | Intervention Feasibility | label to heading | lib/card/work.ts, lib/activity/activity.ts | Stage 4 is 'Interventions & Precedents'; the task kind's own name |
+| `task.kind.brief_package` | Field-validation plan | Field Verification Plan | label to heading | lib/card/work.ts, lib/activity/activity.ts | Stage 5 'Field Verification'; the plan is the deliverable |
+| `task.kind.validation` | Automated checks | Automated Checks | label to heading | lib/card/work.ts, lib/activity/activity.ts | Title Case |
+| `work.observations` | Observations (precomputed) | Precomputed Observations | label to heading | lib/card/work.ts, lib/activity/activity.ts | Title Case header; 'precomputed' kept (ADR-0021) |
+| `work.refused` | The request was not sent. Your question is kept. Try again. | Request not sent. Question text kept for another run. | ui to ui | lib/card/work.ts, lib/activity/activity.ts | No 'your', no 'Try again'; states what is kept |
+| `work.quotaUsed` | This demo session has used its requests. Your question is kept. | Demo request limit reached for this session. Question text kept. | ui to ui | lib/card/work.ts, lib/activity/activity.ts | No 'your'; states the limit and what is kept |
+| `activity.title` | Activity | Activity | label to heading | components/activity/ActivityPanel.tsx | Title Case |
+| `activity.empty` | No activity yet. Each model call, tool call and check appears here as it happens. | No events for this request. | ui to ui | components/activity/ActivityPanel.tsx | Meta-commentary ('appears here as it happens') removed; a fact |
+| `activity.model` | {model}, {route} | {model} · {route} | label to heading | components/activity/ActivityPanel.tsx | Badge segments with a middle dot, Title Case |
+| `activity.route.synthetic` | synthetic replay | Synthetic Replay | label to heading | components/activity/ActivityPanel.tsx | Title Case |
+| `activity.route.recorded` | recorded replay | Recorded Replay | label to heading | components/activity/ActivityPanel.tsx | Title Case |
+| `activity.route.modelApi` | Model API | Model API | label to heading | components/activity/ActivityPanel.tsx | Title Case |
+| `activity.code` | Code: {tool} | Code: {tool} | label to heading | components/activity/ActivityPanel.tsx | Title Case |
+| `activity.proposal` | Model proposal: {tool} | Proposal: {tool} | label to heading | components/activity/ActivityPanel.tsx | 1 to 3 words |
+| `activity.blocked` | Blocked: needs {inputs} | Required inputs not loaded: {inputs}. Attach the datasets or limit the question to loaded layers. | ui to ui | components/activity/ActivityPanel.tsx | Coverage boundary: what is missing, what is required |
+| `activity.synthetic` | Replay of a synthetic run (no live model) | Synthetic Replay · No Live Model | label to heading | components/activity/ActivityPanel.tsx | Badge, Title Case, the honest mode name |
+| `activity.recorded` | Replay of a recorded run | Recorded Replay | label to heading | components/activity/ActivityPanel.tsx | Badge, Title Case |
+| `activity.pace` | Shown at reading pace, one event every {seconds} s | Reading pace: 1 event per {seconds} s. | ui to ui | components/activity/ActivityPanel.tsx | Exact rate as a detail line |
+| `activity.showAll` | Show all steps | Show All Steps | button to button | components/activity/ActivityPanel.tsx | Title Case |
+| `legend.ndvi.title` | NDVI departure, {period}, compared with other {months} | NDVI Departure · {period} | label to heading | components/map/DepartureLegend.tsx | Header 'NDVI Departure · {period}'; the comparison stays in the subtitle |
+| `flat.legend` | Map legend | Map Legend | label to heading | components/flat/FlatListing.tsx | Title Case header |
+| `legend.toggle` | Map legend | Map Legend | button to button | components/map/DepartureLegend.tsx | Title Case control |
+| `notices.data` | Data in this case, as its records credit it | Data Credits | label to heading | components/notices/Notices.tsx | Header, 1 to 3 words; was a sentence |
+| `notices.map` | Map and imagery | Map & Imagery | label to heading | components/notices/Notices.tsx | Title Case, '&' in a name |
+| `notices.places` | Points on the land, as their records credit them | Place Credits | label to heading | components/notices/Notices.tsx | Header, 1 to 3 words; was a sentence |
+| `notices.fonts` | Fonts | Fonts | label to heading | components/notices/Notices.tsx | Title Case |
+| `notices.software` | Software | Software | label to heading | components/notices/Notices.tsx | Title Case |
+| `notices.keys` | Keyboard | Keyboard | label to heading | components/notices/Notices.tsx | Title Case |
+| `notices.singleKeys` | Single-key shortcuts | Single-Key Shortcuts | label to heading | components/notices/Notices.tsx | Title Case header |
+| `notices.singleKeysDetail` | F opens Read flat and / moves to the command line. Turn them off if they get in your way. ↵ and Esc always work. | F toggles Flat Map View. / focuses the command line. Turning these off leaves ↵ and Esc on. | ui to ui | components/notices/Notices.tsx | No 'your', no 'get in your way'; states each key |
+| `case.notFound` | This case is not open to this session. Start again from the home page. | Case not available to this session. Open the home page to start a new session. | ui to ui | components/case/CaseNotice.tsx | Declarative; what to do |
+| `case.failed` | The case did not load. Nothing was changed. Reload the page to try again. | Case not loaded. No records changed. Reload the page to retry. | ui to ui | components/case/CaseNotice.tsx | Declarative; what is kept; what to do |
+| `case.noBoundary` | The analysis boundary is not established yet, so the valley is not drawn. | No analysis boundary is set for this case. A catchment boundary is required to draw the region. | ui to ui | components/case/CaseNotice.tsx | Coverage boundary: what is missing, what is required |
+| `command.label` | Ask Siterra | Question | label to heading | components/shell/ArrivalChrome.tsx | Names the field; founder item 6 asks for a visible label |
+| `stage.relief` | Relief ×{factor} | Vertical Exaggeration ×{factor} | label to heading | components/stage, components/shell | Founder item 6 'Height exaggerated 2x'; as an instrument name in Title Case |
+| `stage.north` | N | N | label to heading | components/stage, components/shell | Title Case |
+| `stage.sources` | Sources and notices | Sources & Notices | link to link | components/stage, components/shell | Title Case link, '&' in a name |
+| `stage.mapFailed` | The interactive map could not load. Everything it would show is listed below. | Map not loaded. All map content is listed below as text. | ui to ui | components/stage, components/shell | Declarative; no 'could not' and 'would show' |
+| `mode.live` | Live | Live | label to heading | components/shell/ArrivalChrome.tsx | Title Case |
+| `mode.replay` | Replay of live run, {date} | Recorded Replay · {date} | label to heading | components/shell/ArrivalChrome.tsx | Badge segments with a middle dot |
+| `mode.simulated` | Simulated answer. | Simulated Answer | ui to heading | components/shell/ArrivalChrome.tsx | Badge, no full stop |
+| `scope.name` | What Siterra will and will not do | Scope | label to heading | components/shell/ArrivalChrome.tsx | Header, 1 word; was a sentence |
+| `scope.will` | Siterra will | In Scope | label to heading | components/shell/ArrivalChrome.tsx | Header, 1 to 3 words |
+| `scope.will1` | Plan the investigation and retrieve published research | Plan the assessment and read published research | ui to ui | components/shell/ArrivalChrome.tsx | 'assessment' for the run; 'read', not 'retrieve' |
+| `scope.will3` | Compare explanations and keep unresolved ones open | Test hypotheses against the records; unresolved ones stay open | ui to ui | components/shell/ArrivalChrome.tsx | Stage 3 'Hypothesis Testing'; unresolved hypotheses stay open |
+| `scope.will4` | Prepare a field-validation plan and the reviews it needs | Draft a field verification plan and its required reviews | ui to ui | components/shell/ArrivalChrome.tsx | Stage 5 'Field Verification' |
+| `scope.willNot` | Siterra will not | Out of Scope | label to heading | components/shell/ArrivalChrome.tsx | Header, 1 to 3 words |
+| `mode.concept` | Concept prototype | Concept Prototype | label to heading | components/shell/ArrivalChrome.tsx | Badge, Title Case |
+| `mode.fixture` | Fixture data | Fixture Data | label to heading | components/shell/ArrivalChrome.tsx | Badge, Title Case |
+| `opening.title` | (new) | Siterra |  to heading | components/opening/Opening.tsx | Product name as the page heading; the sentence moves to a detail line |
+| `opening.question` | (new) | Question |  to heading | components/opening/Opening.tsx | Field label, Title Case |
+| `stage.scope_baseline` | (new) | Scope & Baseline |  to heading | lib/activity/activity.ts, components/activity/ActivityPanel.tsx, components/opening/Opening.tsx | New name, Title Case, 1 to 3 words |
+| `stage.evidence` | (new) | Evidence |  to heading | lib/activity/activity.ts, components/activity/ActivityPanel.tsx, components/opening/Opening.tsx | New name, Title Case, 1 to 3 words |
+| `stage.hypothesis_testing` | (new) | Hypothesis Testing |  to heading | lib/activity/activity.ts, components/activity/ActivityPanel.tsx, components/opening/Opening.tsx | New name, Title Case, 1 to 3 words |
+| `stage.interventions_precedents` | (new) | Interventions & Precedents |  to heading | lib/activity/activity.ts, components/activity/ActivityPanel.tsx, components/opening/Opening.tsx | New name, Title Case, 1 to 3 words |
+| `stage.field_verification` | (new) | Field Verification |  to heading | lib/activity/activity.ts, components/activity/ActivityPanel.tsx, components/opening/Opening.tsx | New name, Title Case, 1 to 3 words |
+| `opening.stages` | (new) | Five Stages |  to heading | components/opening/Opening.tsx | Header for the five-stage list |
+| `pack.title` | (new) | Region Pack |  to heading | lib/pack/regionPack.ts, components/shell/ArrivalChrome.tsx, components/opening/Opening.tsx | New name, Title Case, 1 to 3 words |
+| `pack.layers` | (new) | Data Layers |  to heading | lib/pack/regionPack.ts, components/shell/ArrivalChrome.tsx, components/opening/Opening.tsx | New name, Title Case, 1 to 3 words |
+| `pack.window` | (new) | Observation Window |  to heading | lib/pack/regionPack.ts, components/shell/ArrivalChrome.tsx, components/opening/Opening.tsx | New name, Title Case, 1 to 3 words |
+| `pack.checks` | (new) | Checks |  to heading | lib/pack/regionPack.ts, components/shell/ArrivalChrome.tsx, components/opening/Opening.tsx | New name, Title Case, 1 to 3 words |
+| `pack.statusLabel` | (new) | Status |  to heading | lib/pack/regionPack.ts, components/shell/ArrivalChrome.tsx, components/opening/Opening.tsx | New name, Title Case, 1 to 3 words |
+| `pack.status` | (new) | {data} · {field} |  to heading | lib/pack/regionPack.ts, components/shell/ArrivalChrome.tsx, components/opening/Opening.tsx | New name, Title Case, 1 to 3 words |
+| `pack.button` | (new) | Region Pack · {status} |  to heading | lib/pack/regionPack.ts, components/shell/ArrivalChrome.tsx, components/opening/Opening.tsx | New name, Title Case, 1 to 3 words |
+| `pack.windowValue` | (new) | {first} to {last}, {n} months |  to ui | lib/pack/regionPack.ts, components/shell/ArrivalChrome.tsx, components/opening/Opening.tsx | New detail line |
+| `pack.checksValue` | (new) | {passed} of {total} bundles passed automated data checks. |  to ui | lib/pack/regionPack.ts, components/shell/ArrivalChrome.tsx, components/opening/Opening.tsx | New detail line |
+| `pack.realData` | (new) | Real Data |  to heading | lib/pack/regionPack.ts, components/shell/ArrivalChrome.tsx, components/opening/Opening.tsx | New name, Title Case, 1 to 3 words |
+| `pack.checksPending` | (new) | Checks Pending |  to heading | lib/pack/regionPack.ts, components/shell/ArrivalChrome.tsx, components/opening/Opening.tsx | New name, Title Case, 1 to 3 words |
+| `pack.checksFailed` | (new) | Checks Failed |  to heading | lib/pack/regionPack.ts, components/shell/ArrivalChrome.tsx, components/opening/Opening.tsx | New name, Title Case, 1 to 3 words |
+| `pack.fieldUnverified` | (new) | Field Unverified |  to heading | lib/pack/regionPack.ts, components/shell/ArrivalChrome.tsx, components/opening/Opening.tsx | New name, Title Case, 1 to 3 words |
+| `pack.verifiedOutcome` | (new) | Verified Outcome Recorded |  to heading | lib/pack/regionPack.ts, components/shell/ArrivalChrome.tsx, components/opening/Opening.tsx | New name, Title Case, 1 to 3 words |
+| `pack.realDataDetail` | (new) | Real Data: every layer is a measured dataset that passed automated data checks. Field Unverified: no outcome has been checked on the ground. |  to ui | lib/pack/regionPack.ts, components/shell/ArrivalChrome.tsx, components/opening/Opening.tsx | New detail line |
+| `globe.pack` | (new) | Region Pack: {name} |  to ui | components/journey | Names the loaded Region Pack from the case record |
+| `work.outOfScope` | (new) | Out of Scope |  to heading | lib/card/work.ts, lib/activity/activity.ts | Scope refusal badge (out_of_scope), Title Case |
+| `work.outOfScopeDetail` | (new) | The request treats people as the explanation by identity, or names a private individual. Questions must concern land, water, vegetation or land-use practices. |  to ui | lib/card/work.ts, lib/activity/activity.ts | Two sentences: what is wrong, what is required |
+| `activity.notLoaded` | (new) | Dataset Not Loaded |  to heading | components/activity/ActivityPanel.tsx | Coverage boundary badge |
+| `case.coverageRequired` | (new) | Coverage Required |  to heading | components/case/CaseNotice.tsx | Coverage boundary badge |
+
+Unchanged (74): `globe.range`, `globe.legend`, `dive.highAtlas`, `credit.globe`, `credit.dive`, `arrival.valleyName`, `arrival.region`, `arrival.studyArea`, `arrival.studyAreaLimit`, `arrival.outlet`, `arrival.question`, `flat.close`, `flat.lonW`, `flat.latN`, `flat.km`, `flat.m`, `work.stop`, `work.observationLine`, `activity.rejected`, `activity.cause`, `rule.schema`, `rule.unknown_reference`, `rule.stale_reference`, `rule.ownership`, `rule.claim_kind`, `rule.numeric_provenance`, `rule.unit`, `rule.coverage`, `rule.authority`, `rule.prohibited_claim`, `rule.transition`, `rule.limit`, `rule.catalog_mismatch`, `rule.focus_not_permitted`, `rule.excerpt_mismatch`, `legend.ndvi.subtitle`, `legend.coverage`, `legend.ndvi.coverage`, `legend.ndvi.coverage.bare`, `legend.ndvi.painted`, `legend.ndvi.painted.bare`, `legend.flags`, `legend.flags.reducedQaNote`, `flag.snow`, `flag.terrainShadow`, `flag.lowSceneCount`, `flag.partialMonth`, `flag.qaJoinIncomplete`, `flag.reducedQa`, `legend.ndvi.excluded`, `legend.ndvi.note`, `legend.ndvi.method`, `legend.ndvi.cells`, `legend.ndvi.cellsDisplay`, `notice.maplibre`, `notice.maplibreContour`, `notice.relief`, `notice.imagery`, `notice.fontSans`, `notice.fontMono`, `stage.northName`, `stage.imagery`, `credit.terrain`, `credit.rainfall`, `credit.imagery`, `credit.outletInput`, `credit.worldcover`, `mode.liveDetail`, `mode.replayDetail`, `scope.will2`, `scope.willNot1`, `scope.willNot2`, `scope.willNot3`, `mode.conceptDetail`.
+
+Shown but not catalog strings, so not changed in this pass:
+
+| Text | Owner | Note |
+|---|---|---|
+| Event messages on the card's working line and the activity rows ("Request received", "Plan accepted with 2 tasks.", "Tool summarize_observations returned 3 records.", "Proposal accepted by validation.") | packages (event writers), not the UI lane | Declarative already; "Request received" has no full stop. A change belongs to the packages builder. |
+| Bundle labels in the Region Pack and the Observations lines ("Catchment NDVI, Sentinel-2 monthly") | the case record (science lane) | Record text, shown as written. |
+| Case title as the Region Pack name ("Grazing and livelihoods in the Aït Bouguemez valley") | the case record | No Region Pack name field exists in the contract; the case title stands in. |
+| Place labels in the catalog (`arrival.valleyName`, `arrival.region`, `globe.range`, `dive.highAtlas`, `arrival.question`) | UI lane | Hard-coded place names, against the no-hard-coding rule; they should come from records. Not changed in this pass. |
