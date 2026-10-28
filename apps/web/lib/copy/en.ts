@@ -90,6 +90,57 @@ export const en = {
   "task.cancelled": { text: "Canceled", kind: "label" },
   "work.planning": { text: "Planning: {n} steps to answer this question", kind: "ui" },
   "work.stop": { text: "Stop", kind: "button" },
+  "work.received": { text: "Request received", kind: "ui" },
+  "work.complete": { text: "Request complete", kind: "ui" },
+  "work.observations": { text: "Observations", kind: "label" },
+  "work.observationLine": {
+    text: "{label}: {available} of {total} months observed, {first} to {last}",
+    kind: "ui",
+  },
+  "work.refused": {
+    text: "The request was not sent. Your question is kept. Try again.",
+    kind: "ui",
+  },
+  "work.quotaUsed": {
+    text: "This demo session has used its requests. Your question is kept.",
+    kind: "ui",
+  },
+
+  // Sources and notices
+  "notices.data": { text: "Data in this case, as its records credit it", kind: "label" },
+  "notices.map": { text: "Map and imagery", kind: "label" },
+  "notices.places": { text: "Points on the land, as their records credit them", kind: "label" },
+  "notices.fonts": { text: "Fonts", kind: "label" },
+  "notices.keys": { text: "Keyboard", kind: "label" },
+  "notices.singleKeys": { text: "Single-key shortcuts", kind: "label" },
+  "notices.singleKeysDetail": {
+    text: "F opens Read flat and / moves to the command line. Turn them off if they get in your way. ↵ and Esc always work.",
+    kind: "ui",
+  },
+  "notice.relief": {
+    text: "Relief: © Mapterhorn; produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved.",
+    kind: "ui",
+  },
+  "notice.imagery": {
+    text: "Imagery: contains modified Copernicus Sentinel data 2025. A Sentinel-2 summer 2025 view, display only: no number is read from it.",
+    kind: "ui",
+  },
+  "notice.fontSans": { text: "IBM Plex Sans, SIL Open Font License 1.1", kind: "link" },
+  "notice.fontMono": { text: "IBM Plex Mono, SIL Open Font License 1.1", kind: "link" },
+
+  // Opening a case
+  "case.notFound": {
+    text: "This case is not open to this session. Start again from the home page.",
+    kind: "ui",
+  },
+  "case.failed": {
+    text: "The case did not load. Nothing was changed. Reload the page to try again.",
+    kind: "ui",
+  },
+  "case.noBoundary": {
+    text: "The analysis boundary is not established yet, so the valley is not drawn.",
+    kind: "ui",
+  },
 
   // Command line
   "command.label": { text: "Ask Siterra", kind: "label" },
@@ -109,7 +160,7 @@ export const en = {
   "credit.terrain": { text: "© Mapterhorn. Copernicus WorldDEM-30.", kind: "ui" },
   "credit.rainfall": { text: "CHIRPS v3.0, accessed 27 Oct 2026.", kind: "ui" },
   "credit.imagery": { text: "Contains modified Copernicus Sentinel data 2019-2025.", kind: "ui" },
-  "credit.places": { text: "© OpenStreetMap contributors.", kind: "ui" },
+  "credit.outletInput": { text: "© OpenStreetMap contributors.", kind: "ui" },
 
   // Mode
   "mode.live": { text: "Live", kind: "label" },
@@ -123,9 +174,23 @@ export const en = {
     kind: "ui",
   },
   "mode.simulated": { text: "Simulated answer.", kind: "ui" },
+  // The scope popover the mode line opens (microcopy section 2, PC-04)
+  "scope.name": { text: "What Siterra will and will not do", kind: "label" },
+  "scope.will": { text: "Siterra will", kind: "label" },
+  "scope.will1": { text: "Plan the investigation and retrieve published research", kind: "ui" },
+  "scope.will2": {
+    text: "Load satellite and rainfall observations for the analysis area",
+    kind: "ui",
+  },
+  "scope.will3": { text: "Compare explanations and keep unresolved ones open", kind: "ui" },
+  "scope.will4": { text: "Prepare a field-validation plan and the reviews it needs", kind: "ui" },
+  "scope.willNot": { text: "Siterra will not", kind: "label" },
+  "scope.willNot1": { text: "Contact anyone, spend money, or publish anything", kind: "ui" },
+  "scope.willNot2": { text: "Make or authorize land-management decisions", kind: "ui" },
+  "scope.willNot3": { text: "Claim consent, partnerships, or outcomes", kind: "ui" },
   "mode.concept": { text: "Concept prototype", kind: "label" },
   "mode.conceptDetail": {
-    text: "Simulated work and illustrative values. Nothing here is a result.",
+    text: "Model steps are synthetic examples, not live model output. The rainfall and vegetation records are measured.",
     kind: "ui",
   },
   "mode.fixture": { text: "Fixture data", kind: "label" },
@@ -138,6 +203,18 @@ export type MessageId = keyof typeof en;
  * the rules it may break.
  */
 export const LINT_ALLOWLIST: Partial<Record<MessageId, { rules: string[]; reason: string }>> = {
+  "notice.relief": {
+    rules: ["VT-03", "VT-08"],
+    reason: "Copernicus WorldDEM-30 licence notice, kept in the wording the licence requires.",
+  },
+  "notice.fontSans": {
+    rules: ["VT-08"],
+    reason: "IBM and SIL are the names of the font's maker and its licence's publisher.",
+  },
+  "notice.fontMono": {
+    rules: ["VT-08"],
+    reason: "IBM and SIL are the names of the font's maker and its licence's publisher.",
+  },
   "globe.range": {
     rules: ["VT-09"],
     reason:

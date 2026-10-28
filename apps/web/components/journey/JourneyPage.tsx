@@ -6,6 +6,8 @@ import { useEffect, useState } from "react";
 import { en } from "../../lib/copy/en";
 import type { GlobeAssets } from "../../lib/globe/grids";
 import { parseGlobeManifest } from "../../lib/globe/manifest";
+import { CaseNotice } from "../case/CaseNotice";
+import { useArrivalCase } from "../case/useArrivalCase";
 import { Journey } from "./Journey";
 
 export function JourneyPage({
@@ -30,7 +32,18 @@ export function JourneyPage({
       });
   }, [globeManifestUrl]);
 
+  const c = useArrivalCase();
   if (failed) return <p role="alert">{en["stage.mapFailed"].text}</p>;
-  if (!globe) return null;
-  return <Journey manifestUrl={manifestUrl} globeAssets={globe} />;
+  if (c.status === "not_found") return <CaseNotice message="case.notFound" />;
+  if (c.status === "failed") return <CaseNotice message="case.failed" />;
+  if (!globe || c.status === "opening") return null;
+  if (c.arrival.kind !== "ready") return <CaseNotice message="case.noBoundary" />;
+  return (
+    <Journey
+      manifestUrl={manifestUrl}
+      globeAssets={globe}
+      arrival={c.arrival}
+      snapshot={c.snapshot}
+    />
+  );
 }

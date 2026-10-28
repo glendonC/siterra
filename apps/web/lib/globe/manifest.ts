@@ -1,8 +1,20 @@
 // The globe's asset manifest, served beside the assets like the valley's (assets.ts).
 
-import type { GlobeAssets } from "./grids";
+import type { GlobeAssets, Region } from "./grids";
 
 const isString = (v: unknown): v is string => typeof v === "string" && v.length > 0;
+
+function isRegion(v: unknown): v is Region {
+  const r = v as { id?: unknown; z?: unknown; box?: unknown } | null;
+  return (
+    !!r &&
+    isString(r.id) &&
+    typeof r.z === "number" &&
+    Array.isArray(r.box) &&
+    r.box.length === 4 &&
+    r.box.every((n) => typeof n === "number")
+  );
+}
 
 export function parseGlobeManifest(raw: unknown, base: string): GlobeAssets {
   const m = (raw ?? {}) as Record<string, unknown>;
@@ -32,5 +44,7 @@ export function parseGlobeManifest(raw: unknown, base: string): GlobeAssets {
     terrainTiles: abs(m.terrainTiles),
     biomes: abs(m.biomes),
     hillshade: abs(m.hillshade),
+    ...(m.gzip === true ? { gzip: true } : {}),
+    ...(Array.isArray(m.regions) && m.regions.every(isRegion) ? { regions: m.regions } : {}),
   };
 }

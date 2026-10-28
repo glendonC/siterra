@@ -20,11 +20,14 @@ export const ARRIVAL_POSE: OrbitPose = {
 /** Light from the left of the arrival view: azimuth from north and altitude above the horizon. */
 export const ARRIVAL_LIGHT = { azimuthDeg: 224.1, altitudeDeg: 34.2 } as const;
 
-/** Snapped outlet of catchment revision 1 (freeze record). */
+/**
+ * Snapped outlet of catchment revision 1 (freeze record), for the globe and the dive only, which run before
+ * the case is open. The arrival draws the outlet from the case's ContextFeature record.
+ */
 export const OUTLET = { lon: -6.5372222, lat: 31.6377778 } as const;
 
-/** Fixture: villages on stems at arrival. */
-export const ARRIVAL_PLACES = [
-  { id: "tabant", name: "Tabant", lon: -6.42007, lat: 31.65873 },
-  { id: "ait-ouchi", name: "Aït Ouchi", lon: -6.338611, lat: 31.703611 },
-] as const;
+/**
+ * Layout reference for the valley name (the approved u07 placement): the name sits east of this point. Not
+ * drawn; the villages on the land come from the case's ContextFeature records.
+ */
+export const VALLEY_NAME_REFERENCE = { lon: -6.338611, lat: 31.703611 } as const;

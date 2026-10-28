@@ -16,10 +16,20 @@ export interface GlobeAssets {
   biomes: string;
   /** World hillshade PNG, equirectangular. */
   hillshade: string;
+  /** The world grids are gzip streams (SCIENCE's data/map). */
+  gzip?: boolean;
+  /** Regional patches, each where its zoom's tiles exist; the defaults cover Morocco and the High Atlas. */
+  regions?: Region[];
+}
+
+export interface Region {
+  id: string;
+  z: number;
+  box: Grid["box"];
 }
 
 /** The regional patches, stopping short of Ceuta and Melilla so they hold Copernicus GLO-30 only. */
-export const REGIONS: { id: string; z: number; box: Grid["box"] }[] = [
+export const REGIONS: Region[] = [
   { id: "morocco", z: 6, box: [-13, 28, -1, 35] },
   { id: "atlas", z: 8, box: [-8.5, 30.5, -4.5, 33] },
 ];
@@ -61,6 +71,23 @@ async function decodeTile(url: string): Promise<{ size: number; h: Float32Array 
   return { size: p.w, h };
 }
 
+/** The tiles at zoom z that cover a box; a box drawn on tile edges (as data/map's are) does not reach into
+ *  the next tile by a rounding error. */
+export function tileRange(
+  box: Grid["box"],
+  z: number,
+): { tx0: number; tx1: number; ty0: number; ty1: number } {
+  const [W, S, E, N] = box;
+  const lim = 85.05;
+  const EPS = 1e-3; // a thousandth of a tile: above 4-decimal box rounding, far below any real coverage
+  return {
+    tx0: Math.floor(tileX(W, z) + EPS),
+    tx1: Math.min(2 ** z - 1, Math.floor(tileX(E, z) - EPS)),
+    ty0: Math.max(0, Math.floor(tileY(Math.min(N, lim), z) + EPS)),
+    ty1: Math.min(2 ** z - 1, Math.floor(tileY(Math.max(S, -lim), z) - EPS)),
+  };
+}
+
 /** Resamples the zoom-z tiles over box onto a w x h lon/lat grid, north row first (bilinear). */
 async function regionGrid(
   template: string,
@@ -72,10 +99,7 @@ async function regionGrid(
   const [W, S, E, N] = box;
   const lim = 85.05;
   const T = 512;
-  const tx0 = Math.floor(tileX(W, z));
-  const tx1 = Math.min(2 ** z - 1, Math.floor(tileX(E, z) - 1e-9));
-  const ty0 = Math.max(0, Math.floor(tileY(Math.min(N, lim), z)));
-  const ty1 = Math.min(2 ** z - 1, Math.floor(tileY(Math.max(S, -lim), z)));
+  const { tx0, tx1, ty0, ty1 } = tileRange(box, z);
   const rowW = (tx1 - tx0 + 1) * T;
   const rows = (ty1 - ty0 + 1) * T;
   const mosaic = new Float32Array(rowW * rows);
@@ -128,9 +152,17 @@ async function regionGrid(
   return { w, h, box, data };
 }
 
+/** A file's bytes, gunzipped in the browser when the manifest says the grids are gzip streams. */
+async function bytes(url: string, gzip: boolean): Promise<ArrayBuffer> {
+  const res = await fetch(url);
+  if (!res.ok || !res.body) throw new Error(`${url}: HTTP ${String(res.status)}`);
+  if (!gzip) return res.arrayBuffer();
+  return new Response(res.body.pipeThrough(new DecompressionStream("gzip"))).arrayBuffer();
+}
+
 async function worldGrid(a: GlobeAssets): Promise<Grid> {
   const [e, l] = await Promise.all(
-    [a.worldElevation, a.worldLand].map(async (u) => (await fetch(u)).arrayBuffer()),
+    [a.worldElevation, a.worldLand].map((u) => bytes(u, a.gzip === true)),
   );
   if (!e || !l) throw new Error("world grid missing");
   const elev = new Int16Array(e);
@@ -155,7 +187,7 @@ async function layer(url: string): Promise<GlobeData["layer"]> {
 }
 
 export async function loadGlobe(a: GlobeAssets): Promise<GlobeData> {
-  const regions = REGIONS.map((r) => {
+  const regions = (a.regions ?? REGIONS).map((r) => {
     const ppd = (2 ** r.z * 512) / 360;
     const [W, S, E, N] = r.box;
     return regionGrid(

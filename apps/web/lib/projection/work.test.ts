@@ -56,12 +56,21 @@ describe("projectWork", () => {
     ]);
   });
 
-  it("shows each task's latest milestone, or its question before any", () => {
+  it("names a step by its question; a running step shows its latest progress", () => {
     expect(w.steps.map((s) => s.text)).toEqual([
-      "Loaded 84 months of rainfall (CHIRPS grid, 33 cells)",
+      "Question of task_a",
       "Retrieved 3 of 6 sources",
       "Question of task_c",
     ]);
+  });
+
+  it("says why a step failed or waits, in its own message", () => {
+    const failed = projectWork(
+      "cmd_1",
+      [task("task_f", "source_research", "failed", "2026-10-27T20:00:05Z")],
+      [{ taskId: "task_f", sequence: 2, kind: "task.failed", message: "No source could be read" }],
+    );
+    expect(failed.steps[0]?.text).toBe("No source could be read");
   });
 
   it("takes status from the records and says whether work is still running", () => {

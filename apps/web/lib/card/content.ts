@@ -32,6 +32,8 @@ export interface CardContent {
   working?: string;
   /** Numbered steps of the plan, joined by a thin rule. */
   steps?: CardStep[];
+  /** A titled block of committed findings, for example Observations. */
+  section?: { heading: string; lines: string[] };
   /** "Simulated answer." until the hypothesis task runs live. */
   status?: string;
   statement?: { claim: string; limit?: string };
@@ -52,6 +54,8 @@ export function cardLines(c: CardContent): string[] {
     c.branch,
     c.working,
     ...(c.steps ?? []).map((s) => `${s.n} ${s.text}`),
+    c.section?.heading,
+    ...(c.section?.lines ?? []),
     c.status,
     c.statement ? [c.statement.claim, c.statement.limit].filter(Boolean).join(" ") : undefined,
     c.figure

@@ -12,24 +12,30 @@ import { viewToMapCamera } from "../../lib/globe/drive";
 import { R_KM, globeCamera, project } from "../../lib/globe/frame";
 import { polygonPath, rangePath, ringPoints, ringRho } from "../../lib/globe/overlay";
 import { OUTLET } from "../../lib/stage/arrival";
+import { widthFitScale } from "../../lib/stage/camera";
 import { loadGlobe, type GlobeAssets } from "../../lib/globe/grids";
 import { GlobeRenderer } from "../../lib/globe/renderer";
 import { CASE_V, FADE_V, KEY, globeStateAt, sunFor, type Moments } from "../../lib/globe/timeline";
 import { Opening } from "../opening/Opening";
 import { GlobePage } from "./GlobePage";
+import type { CaseSnapshot } from "@siterra/contracts";
+import type { ReadyArrival } from "../../lib/projection/arrival";
 import { ArrivalView } from "../views/ArrivalView";
 import styles from "./Journey.module.css";
 
 export interface JourneyProps {
   manifestUrl: string;
   globeAssets: GlobeAssets;
+  /** The case's arrival, projected from its record. */
+  arrival: ReadyArrival;
+  snapshot: CaseSnapshot;
 }
 
 type Phase = "opening" | "globe" | "dive" | "arrival";
 
 const RANGE_NAMES: [MessageId, MessageId] = ["globe.range", "dive.highAtlas"];
 
-export function Journey({ manifestUrl, globeAssets }: JourneyProps) {
+export function Journey({ manifestUrl, globeAssets, arrival, snapshot }: JourneyProps) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const valley = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
@@ -104,7 +110,8 @@ export function Journey({ manifestUrl, globeAssets }: JourneyProps) {
       const w = el.clientWidth;
       const h = el.clientHeight;
       const s = globeStateAt(now(), moments.current, reduced);
-      const v = s.view;
+      // the same width fit as the arrival, on both renderers, so the cross-fade lines up
+      const v = { ...s.view, distance: s.view.distance * widthFitScale(w, h) };
 
       // the valley follows the same camera from its first visible frame to the arrival pose
       const m = map.current;
@@ -202,7 +209,13 @@ export function Journey({ manifestUrl, globeAssets }: JourneyProps) {
   return (
     <div className={styles.journey} data-phase={phase}>
       <div ref={valley} className={styles.valley} aria-hidden={phase !== "arrival"}>
-        <ArrivalView manifestUrl={manifestUrl} chrome={phase === "arrival"} onMap={onMap} />
+        <ArrivalView
+          manifestUrl={manifestUrl}
+          arrival={arrival}
+          snapshot={snapshot}
+          chrome={phase === "arrival"}
+          onMap={onMap}
+        />
       </div>
       {phase !== "arrival" ? (
         <>

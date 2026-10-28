@@ -1,5 +1,6 @@
-// The work beat, projected from Task records and their events. Each step line is the task's latest
-// milestone message (host-written, from events) or, before any, the question the task answers. Status
+// The work beat, projected from Task records and their events. Each step line is the question the task
+// answers; a running step shows its latest progress message, and a failed, partial or waiting step says
+// why in its own message (host-written, from events). Status
 // changes only from events; there are no percentages and no invented progress (CMP-07 rules).
 
 import type { Event, Task } from "@siterra/contracts";
@@ -31,6 +32,9 @@ const MILESTONE_KINDS = new Set<Event["kind"]>([
   "task.awaiting_input",
 ]);
 
+/** States whose line is the task's own latest message; a done or queued step reads as its question. */
+const MESSAGE_STATES = new Set<StepState>(["running", "failed", "partial", "needs_input"]);
+
 export interface WorkProjection {
   steps: CardStep[];
   running: boolean;
@@ -52,7 +56,8 @@ export function projectWork(
   }
   const steps = own.map((t, i) => ({
     n: i + 1,
-    text: latest.get(t.id)?.message ?? t.question,
+    text:
+      (MESSAGE_STATES.has(STATE[t.status]) ? latest.get(t.id)?.message : undefined) ?? t.question,
     state: STATE[t.status],
     taskId: t.id,
   }));

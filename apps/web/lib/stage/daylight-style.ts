@@ -5,7 +5,8 @@
 import type { Feature, Polygon, Position } from "./geo";
 import type { StyleSpecification } from "maplibre-gl";
 import { daylight } from "../theme/daylight";
-import { ARRIVAL_EXAGGERATION, ARRIVAL_LIGHT, OUTLET } from "./arrival";
+import { ARRIVAL_EXAGGERATION, ARRIVAL_LIGHT } from "./arrival";
+import { smoothFeature } from "./smooth";
 
 /** Corners of a draped picture: top left, top right, bottom right, bottom left, as [lon, lat]. */
 export type LonLat = [number, number];
@@ -22,8 +23,14 @@ export type RasterAsset =
   | { kind: "image"; url: string; coordinates: Corners };
 
 export interface ValleyAssets {
-  /** Terrarium-encoded elevation tiles. */
-  terrain: { tiles: string[]; tileSize: number; maxzoom: number; attribution: string };
+  /** Terrarium-encoded elevation tiles; bounds keep requests inside the self-hosted extent. */
+  terrain: {
+    tiles: string[];
+    tileSize: number;
+    maxzoom: number;
+    attribution: string;
+    bounds?: [number, number, number, number];
+  };
   /** Sentinel-2 composite at 30 m over the wider land. */
   imageryOuter: RasterAsset;
   /** Sentinel-2 composite at 10 m over the catchment and about 5 km round it. */
@@ -36,6 +43,8 @@ export interface ValleyAssets {
 export interface ValleyStyleInput {
   assets: ValleyAssets;
   catchment: Feature;
+  /** The outlet from the case's record, where the beam stands; no beam without one. */
+  outlet?: { lon: number; lat: number } | undefined;
   /** Saturation shift for the imagery round the catchment (the light pool keeps more colour). */
   imagerySaturation?: number;
   /** Saturation shift for the wider land, which takes the paper haze. */
@@ -105,6 +114,7 @@ function rasterSource(asset: RasterAsset, attribution: string) {
 export function valleyStyle({
   assets,
   catchment,
+  outlet,
   imagerySaturation = 0.1,
   outerSaturation = -0.45,
 }: ValleyStyleInput): StyleSpecification {
@@ -118,6 +128,7 @@ export function valleyStyle({
         tileSize: assets.terrain.tileSize,
         maxzoom: assets.terrain.maxzoom,
         attribution: assets.terrain.attribution,
+        ...(assets.terrain.bounds ? { bounds: assets.terrain.bounds } : {}),
       },
       // the same elevation tiles again for the hillshade: MapLibre draws better shading from its own source
       "terrain-shade": {
@@ -126,12 +137,19 @@ export function valleyStyle({
         tiles: assets.terrain.tiles,
         tileSize: assets.terrain.tileSize,
         maxzoom: assets.terrain.maxzoom,
+        ...(assets.terrain.bounds ? { bounds: assets.terrain.bounds } : {}),
       },
       "imagery-outer": rasterSource(assets.imageryOuter, assets.imageryAttribution),
       "imagery-inner": rasterSource(assets.imageryInner, assets.imageryAttribution),
-      catchment: { type: "geojson", data: catchment },
-      outside: { type: "geojson", data: outsideVeil(catchment) },
-      outlet: { type: "geojson", data: beamFootprint(OUTLET.lon, OUTLET.lat, 45) },
+      // the drawn outline is smoothed for display (the record's 30 m geometry steps at every cell)
+      catchment: { type: "geojson", data: smoothFeature(catchment) },
+      outside: { type: "geojson", data: outsideVeil(smoothFeature(catchment)) },
+      outlet: {
+        type: "geojson",
+        data: outlet
+          ? beamFootprint(outlet.lon, outlet.lat, 60)
+          : { type: "FeatureCollection", features: [] },
+      },
       ...(assets.haze
         ? {
             haze: {
@@ -190,7 +208,8 @@ export function valleyStyle({
         id: "light-pool",
         type: "fill",
         source: "catchment",
-        paint: { "fill-color": daylight.pool },
+        // off until arrival: the light warms inside the line as the valley is reached
+        paint: { "fill-color": daylight.pool, "fill-opacity": 0 },
       },
       {
         id: "outside-veil",
@@ -213,14 +232,15 @@ export function valleyStyle({
         type: "line",
         source: "catchment",
         layout: { "line-join": "round" },
-        paint: { "line-color": daylight.outlineCasing, "line-width": 4.2 },
+        // widths measured on the approved frame: an ink stroke about 4 device px over a thin paper casing
+        paint: { "line-color": daylight.outlineCasing, "line-width": 4.4 },
       },
       {
         id: "catchment-line",
         type: "line",
         source: "catchment",
         layout: { "line-join": "round" },
-        paint: { "line-color": daylight.outline, "line-width": 1.5 },
+        paint: { "line-color": daylight.outline, "line-width": 2.2 },
       },
       {
         id: "outlet-beam",
@@ -231,7 +251,8 @@ export function valleyStyle({
           // above the ground under the outlet, in metres before exaggeration
           "fill-extrusion-height": 4200,
           "fill-extrusion-base": 0,
-          "fill-extrusion-opacity": 0.9,
+          // off until the outlet lands at arrival
+          "fill-extrusion-opacity": 0,
         },
       },
     ],

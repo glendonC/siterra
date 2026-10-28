@@ -1,7 +1,7 @@
 import { CaseSnapshot } from "@siterra/contracts";
 import { describe, expect, it } from "vitest";
 import example from "../../../../schemas/examples/case-snapshot.json";
-import { formatAreaKm2, projectArrival } from "./arrival";
+import { formatAreaKm2, modeLines, projectArrival } from "./arrival";
 
 const snapshot = CaseSnapshot.parse(example);
 
@@ -60,5 +60,30 @@ describe("formatAreaKm2", () => {
   it("rounds to one decimal", () => {
     expect(formatAreaKm2(417_040_000)).toBe("417.0");
     expect(formatAreaKm2(417_360_000)).toBe("417.4");
+  });
+});
+
+describe("arrival from the seed case", () => {
+  it("takes the question, area and mode from the records", async () => {
+    const seed = CaseSnapshot.parse(
+      (await import("../../../../packages/contracts/fixtures/case-snapshot-aitbouguemez-seed.json"))
+        .default,
+    );
+    const p = projectArrival(seed);
+    expect(p.kind).toBe("ready");
+    if (p.kind !== "ready") return;
+    expect(p.question).toBe("Is grazing changing the shared pastures of the Aït Bouguemez valley?");
+    expect(p.areaKm2).toBe("417.0");
+    expect(p.modeLines).toEqual({ label: "mode.concept", detail: "mode.conceptDetail" });
+  });
+});
+
+describe("modeLines", () => {
+  it("gives a Live label only to a record whose mode is live", () => {
+    expect(modeLines("live").label).toBe("mode.live");
+    for (const mode of ["concept", "replay"] as const) {
+      expect(modeLines(mode).label).not.toBe("mode.live");
+      expect(modeLines(mode).detail).not.toBe("mode.liveDetail");
+    }
   });
 });

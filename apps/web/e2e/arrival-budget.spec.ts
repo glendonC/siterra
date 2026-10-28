@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { sharedCase } from "./demo-case";
 import { checkBudget } from "../lib/budget/measure";
 import { collectBudget } from "./budget";
 
@@ -11,8 +12,8 @@ for (const viewport of [
     page,
   }) => {
     await page.setViewportSize(viewport);
-    await page.goto("/stage");
-    await expect(page.locator("[data-stage-idle=true]")).toBeVisible({ timeout: 60_000 });
+    await page.goto(`/stage?case=${sharedCase()}`);
+    await expect(page.locator("[data-arrival-settled=true]")).toBeVisible({ timeout: 60_000 });
     const report = checkBudget(await collectBudget(page), viewport, "arrival");
     test.info().annotations.push({ type: "budget", description: JSON.stringify(report) });
     expect(report.violations).toEqual([]);

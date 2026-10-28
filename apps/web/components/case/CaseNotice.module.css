@@ -1,0 +1,11 @@
+.notice {
+  position: fixed;
+  left: 50%;
+  top: 40%;
+  transform: translateX(-50%);
+  max-width: min(560px, calc(100vw - 32px));
+  margin: 0;
+  font: 400 var(--type-command-size) / 24px var(--font-sans);
+  color: var(--ink);
+  text-align: center;
+}

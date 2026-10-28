@@ -41,6 +41,14 @@ describe("parseManifest", () => {
     expect(m.catchment).toBe("http://127.0.0.1:4371/assets/catchment.geojson");
   });
 
+  it("keeps the terrain's bounds, so no tile is requested outside the self-hosted extent", () => {
+    const m = parseManifest(
+      { ...manifest, terrain: { ...manifest.terrain, bounds: [-6.71, 31.33, -5.98, 31.92] } },
+      "http://x/",
+    );
+    expect(m.terrain.bounds).toEqual([-6.71, 31.33, -5.98, 31.92]);
+  });
+
   it("refuses a manifest without terrain attribution", () => {
     expect(() =>
       parseManifest({ ...manifest, terrain: { tiles: ["t/{z}/{x}/{y}.webp"] } }, "http://x/"),

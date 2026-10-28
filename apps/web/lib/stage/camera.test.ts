@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { ARRIVAL_POSE } from "./arrival";
-import { normalizeBearing, orbitToMapCamera } from "./camera";
+import { normalizeBearing, orbitToMapCamera, widthFitScale } from "./camera";
 
 describe("orbitToMapCamera", () => {
   it("turns the approved arrival pose into MapLibre camera options at 1440 x 810", () => {
@@ -39,5 +39,14 @@ describe("normalizeBearing", () => {
     [0, 0],
   ])("%d becomes %d", (input, expected) => {
     expect(normalizeBearing(input)).toBeCloseTo(expected, 9);
+  });
+});
+
+describe("widthFitScale", () => {
+  it("keeps the approved 16:9 framing and moves back on narrower screens so the sides keep their margins", () => {
+    expect(widthFitScale(2560, 1440)).toBe(1);
+    expect(widthFitScale(1920, 800)).toBe(1);
+    expect(widthFitScale(1440, 900)).toBeCloseTo(16 / 9 / 1.6, 10);
+    expect(widthFitScale(1280, 800)).toBeCloseTo(16 / 9 / 1.6, 10);
   });
 });

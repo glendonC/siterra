@@ -43,6 +43,17 @@ function colours(value: unknown, out: string[] = []): string[] {
 describe("valleyStyle", () => {
   const style = valleyStyle({ assets, catchment: square });
 
+  it("asks for terrain only inside its bounds when the manifest gives them", () => {
+    const bounded = valleyStyle({
+      assets: { ...assets, terrain: { ...assets.terrain, bounds: [-6.71, 31.33, -5.98, 31.92] } },
+      catchment: square,
+    });
+    for (const id of ["terrain", "terrain-shade"])
+      expect((bounded.sources[id] as { bounds?: number[] }).bounds).toEqual([
+        -6.71, 31.33, -5.98, 31.92,
+      ]);
+  });
+
   it("draws relief at the arrival exaggeration from the terrain source", () => {
     expect(style.terrain).toEqual({ source: "terrain", exaggeration: ARRIVAL_EXAGGERATION });
   });

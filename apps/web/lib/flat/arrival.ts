@@ -6,7 +6,12 @@ import { en, format } from "../copy/en";
 export interface ArrivalFlatInput {
   question: string;
   areaKm2: string;
+  /** Villages and the outlet from the case's ContextFeature records, and their credit line. */
   places: readonly { name: string }[];
+  outlet: boolean;
+  /** The credit line's addition and each point's credit in its record's words. */
+  placeCredit: string;
+  placeCredits: readonly { name: string; attribution: string }[];
   reliefFactor: number;
 }
 
@@ -21,7 +26,7 @@ export function arrivalFlat(i: ArrivalFlatInput): FlatSection[] {
       lines: [
         `${en["arrival.valleyName"].text}, ${en["arrival.region"].text}`,
         `${format("arrival.studyArea", { area: i.areaKm2 })}. ${en["arrival.studyAreaLimit"].text}`,
-        en["arrival.outlet"].text,
+        ...(i.outlet ? [en["arrival.outlet"].text] : []),
         ...i.places.map((p) => p.name),
       ],
     },
@@ -35,7 +40,8 @@ export function arrivalFlat(i: ArrivalFlatInput): FlatSection[] {
         en["credit.terrain"].text,
         en["credit.rainfall"].text,
         en["credit.imagery"].text,
-        en["credit.places"].text,
+        ...(i.placeCredit ? [i.placeCredit] : []),
+        ...i.placeCredits.map((c) => `${c.name}: ${c.attribution}`),
       ],
     },
   ];

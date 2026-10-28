@@ -26,7 +26,7 @@ export interface CardProps {
   /** Changing the key replays the arrival order, for a new step. */
   stepKey: string;
   /** Element the leader starts from: the line the leader belongs to. */
-  anchor?: "statement" | "figure" | "working";
+  anchor?: "statement" | "figure" | "working" | "section";
 }
 
 export function Card({ content: c, action, stepKey, anchor = "statement" }: CardProps) {
@@ -66,6 +66,16 @@ export function Card({ content: c, action, stepKey, anchor = "statement" }: Card
             </li>
           ))}
         </ol>
+      ) : null}
+      {c.section ? (
+        <div className={styles.section} data-leader-anchor={anchor === "section" ? "" : undefined}>
+          <h3 className={styles.sectionHeading}>{c.section.heading}</h3>
+          {c.section.lines.map((l) => (
+            <p key={l} className={styles.sectionLine}>
+              {l}
+            </p>
+          ))}
+        </div>
       ) : null}
       {c.status ? <p className={styles.status}>{c.status}</p> : null}
       {c.statement ? (

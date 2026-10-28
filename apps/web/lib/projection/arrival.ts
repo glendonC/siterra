@@ -3,13 +3,28 @@
 
 import type { CaseSnapshot, GeoSelection } from "@siterra/contracts";
 import type { MessageId } from "../copy/en";
+import { dataCredits } from "./notices";
+import { contextLand, type ContextLand } from "./places";
 import type { Feature, Polygon } from "../stage/geo";
+
+/** The mode line and the line under it, from the case record's mode. */
+export interface ModeLines {
+  label: MessageId;
+  detail: MessageId;
+}
 
 export type ArrivalProjection =
   | {
       kind: "ready";
       caseId: string;
       caseRevision: number;
+      /** The case's question, from the record (EnvironmentalCase.objective). */
+      question: string;
+      modeLines: ModeLines;
+      /** Data credits from the case's bundles, for Sources and notices. */
+      dataCredits: string[];
+      /** Villages, the outlet and their credits, from the case's ContextFeature records. */
+      land: ContextLand;
       geoSelectionId: string;
       geoRevision: number;
       catchment: Feature<Polygon>;
@@ -21,6 +36,8 @@ export type ArrivalProjection =
       kind: "boundary_not_established";
       caseId: string;
       caseRevision: number;
+      question: string;
+      modeLines: ModeLines;
       mode: MessageId;
       limitations: string[];
     };
@@ -30,6 +47,20 @@ const MODE: Record<CaseSnapshot["case"]["mode"], MessageId> = {
   replay: "mode.replay",
   concept: "mode.concept",
 };
+
+const MODE_DETAIL: Record<CaseSnapshot["case"]["mode"], MessageId> = {
+  live: "mode.liveDetail",
+  replay: "mode.replayDetail",
+  concept: "mode.conceptDetail",
+};
+
+/** The only place a mode label is chosen: a Live label exists only for a record whose mode is live. */
+export function modeLines(mode: CaseSnapshot["case"]["mode"]): ModeLines {
+  return { label: MODE[mode], detail: MODE_DETAIL[mode] };
+}
+
+/** The arrival when the case's analysis boundary is established. */
+export type ReadyArrival = Extract<ArrivalProjection, { kind: "ready" }>;
 
 /** km² to one decimal from m² (design-system precision rule). */
 export function formatAreaKm2(areaM2: number): string {
@@ -42,7 +73,15 @@ function activeSelection(s: CaseSnapshot): GeoSelection | undefined {
 }
 
 export function projectArrival(s: CaseSnapshot): ArrivalProjection {
-  const base = { caseId: s.case.id, caseRevision: s.case.revision, mode: MODE[s.case.mode] };
+  const base = {
+    caseId: s.case.id,
+    caseRevision: s.case.revision,
+    mode: MODE[s.case.mode],
+    modeLines: modeLines(s.case.mode),
+    question: s.case.objective,
+    dataCredits: dataCredits(s),
+    land: contextLand(s),
+  };
   const g = activeSelection(s);
   if (!g || g.geometryStatus !== "analysis_ready" || !g.geometry || g.areaM2 === null) {
     return { kind: "boundary_not_established", ...base, limitations: g?.limitations ?? [] };

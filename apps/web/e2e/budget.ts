@@ -12,7 +12,9 @@ export async function collectBudget(page: Page): Promise<BudgetItem[]> {
       rect: { x: number; y: number; width: number; height: number };
       lines?: { text: string; honesty: boolean }[];
     }[] = [];
-    for (const el of Array.from(document.querySelectorAll<HTMLElement>("[data-budget]"))) {
+    for (const el of Array.from(
+      document.querySelectorAll<HTMLElement | SVGElement>("[data-budget]"),
+    )) {
       const r = el.getBoundingClientRect();
       if (r.width <= 0 || r.height <= 0) continue;
       const cs = getComputedStyle(el);
@@ -24,7 +26,10 @@ export async function collectBudget(page: Page): Promise<BudgetItem[]> {
         if (!top || !(el === top || el.contains(top))) continue;
       }
       const input = el.querySelector("input");
-      const text = el.dataset.budgetText ?? (input ? input.value : el.innerText);
+      // an SVG element (the leader) has no innerText
+      const text =
+        el.dataset.budgetText ??
+        (input ? input.value : el instanceof HTMLElement ? el.innerText : el.textContent);
       const lines = el.dataset.budgetLines
         ? (JSON.parse(el.dataset.budgetLines) as { text: string; honesty: boolean }[])
         : undefined;

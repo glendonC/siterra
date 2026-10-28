@@ -61,3 +61,16 @@ export function orbitToMapCamera(pose: OrbitPose, viewportHeightPx: number): Map
     verticalFovDeg: pose.verticalFovDeg,
   };
 }
+
+/** Aspect ratio of the approved frames (2560 x 1440). */
+export const APPROVED_ASPECT = 16 / 9;
+
+/**
+ * How much farther the camera stands on a screen narrower than the approved frames, so the land keeps the
+ * approved side margins: the field of view is vertical, so a narrower screen would otherwise crop the sides.
+ * 1 at 16:9 and wider.
+ */
+export function widthFitScale(widthPx: number, heightPx: number): number {
+  if (widthPx <= 0 || heightPx <= 0) return 1;
+  return Math.max(1, APPROVED_ASPECT / (widthPx / heightPx));
+}

@@ -27,6 +27,61 @@
   color: var(--grey);
 }
 
+.modeButton {
+  padding: 2px 6px;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+}
+
+.modeButton:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+/* The scope popover under the mode line: the card surface with the popover shadow. */
+.scope {
+  position: fixed;
+  inset: 40px auto auto 50%;
+  transform: translateX(-50%);
+  width: min(420px, calc(100vw - 32px));
+  margin: 0;
+  padding: 16px 20px;
+  border: 0;
+  background: var(--card);
+  color: var(--ink);
+  box-shadow: var(--shadow-popover);
+  font: 400 13px / 18px var(--font-sans);
+}
+
+.scopeMode {
+  margin: 0 0 4px;
+  color: var(--grey);
+}
+
+.scopeHeading {
+  margin: 12px 0 4px;
+  font: 400 12px / 16px var(--font-mono);
+  color: var(--grey);
+}
+
+.scopeList {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.notice {
+  position: absolute;
+  left: 50%;
+  bottom: 74px;
+  transform: translateX(-50%);
+  margin: 0;
+  font: 400 var(--type-body-size) / var(--type-body-line) var(--font-sans);
+  color: var(--ink);
+}
+
 .keys {
   position: absolute;
   left: 40px;
@@ -167,4 +222,22 @@
   overflow: hidden;
   clip-path: inset(50%);
   white-space: nowrap;
+}
+
+/* Arrival: hidden until it begins, then each part lands on its delay (lib/stage/arrival-sequence.ts). */
+.waiting {
+  visibility: hidden;
+}
+
+.landing {
+  animation: land var(--land-dur, 0ms) var(--ease-arrive) var(--land-delay, 0ms) both;
+}
+
+@keyframes land {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }

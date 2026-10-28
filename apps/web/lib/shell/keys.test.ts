@@ -42,3 +42,12 @@ describe("hintAction", () => {
     expect(hintAction(press("/", { ctrlKey: true }))).toBeNull();
   });
 });
+
+describe("single-key shortcuts switched off (WCAG 2.1.4)", () => {
+  it("ignores F and / but keeps Enter and Escape, which are not character keys", () => {
+    expect(hintAction(press("f"), { singleKeys: false })).toBeNull();
+    expect(hintAction(press("/"), { singleKeys: false })).toBeNull();
+    expect(hintAction(press("Enter"), { singleKeys: false })).toBe("primary");
+    expect(hintAction(press("Escape"), { singleKeys: false })).toBe("escape");
+  });
+});

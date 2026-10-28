@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { REGIONS, terrarium, tileX, tileY } from "./grids";
+import { REGIONS, terrarium, tileRange, tileX, tileY } from "./grids";
 
 describe("terrarium", () => {
   it("decodes sea level and a valley floor height", () => {
@@ -31,5 +31,16 @@ describe("REGIONS", () => {
     expect(a.box[1]).toBeGreaterThan(m.box[1]);
     expect(a.box[2]).toBeLessThan(m.box[2]);
     expect(a.box[3]).toBeLessThan(m.box[3]);
+  });
+});
+
+describe("tileRange", () => {
+  it("covers exactly the one tile a box drawn on its edges describes (data/map z6)", () => {
+    expect(tileRange([-11.25, 27.0591, -5.625, 31.9522], 6)).toEqual({
+      tx0: 30,
+      tx1: 30,
+      ty0: 26,
+      ty1: 26,
+    });
   });
 });

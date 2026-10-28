@@ -9,12 +9,18 @@ export interface AssetManifest {
   imageryOuter: RasterAsset;
   imageryInner: RasterAsset;
   imageryAttribution: string;
-  /** URL of the catchment outline (GeoJSON Feature or a FeatureCollection with one feature). */
-  catchment: string;
+  /**
+   * URL of a catchment outline, for tools only: the app draws the analysis geometry from the case record.
+   */
+  catchment?: string;
 }
 
 function isString(v: unknown): v is string {
   return typeof v === "string" && v.length > 0;
+}
+
+function isBounds(v: unknown): v is [number, number, number, number] {
+  return Array.isArray(v) && v.length === 4 && v.every((n) => typeof n === "number");
 }
 
 function isRaster(v: unknown): v is RasterAsset {
@@ -40,8 +46,8 @@ export function parseManifest(raw: unknown, base: string): AssetManifest {
     throw new Error("Asset manifest: terrain needs tiles and an attribution");
   if (!isRaster(m.imageryOuter) || !isRaster(m.imageryInner))
     throw new Error("Asset manifest: imagery needs tiles or an image with 4 corners");
-  if (!isString(m.imageryAttribution) || !isString(m.catchment))
-    throw new Error("Asset manifest: imagery attribution and catchment URL are required");
+  if (!isString(m.imageryAttribution))
+    throw new Error("Asset manifest: imagery attribution is required");
   // resolved against the manifest; tile templates keep their {z}/{x}/{y} braces unencoded
   const abs = (u: string) =>
     /^https?:/.test(u)
@@ -55,11 +61,12 @@ export function parseManifest(raw: unknown, base: string): AssetManifest {
       tileSize: typeof terrain.tileSize === "number" ? terrain.tileSize : 512,
       maxzoom: typeof terrain.maxzoom === "number" ? terrain.maxzoom : 11,
       attribution: terrain.attribution,
+      ...(isBounds(terrain.bounds) ? { bounds: terrain.bounds } : {}),
     },
     imageryOuter: raster(m.imageryOuter),
     imageryInner: raster(m.imageryInner),
     imageryAttribution: m.imageryAttribution,
-    catchment: abs(m.catchment),
+    ...(isString(m.catchment) ? { catchment: abs(m.catchment) } : {}),
   };
 }
 

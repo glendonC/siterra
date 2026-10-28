@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { sharedCase } from "./demo-case";
 
 // Parity still: the arrival frame at 2560 x 1440 device pixels (1440 x 810 CSS at 16:9 device scale), the
 // size of the approved hero stills. The screenshot goes beside the target frame for review; it is a
@@ -11,9 +12,9 @@ test("arrival frame renders with every tile loaded", async ({ page }) => {
   page.on("console", (m) => {
     if (m.type() === "error" || m.type() === "warning") errors.push(m.text());
   });
-  await page.goto("/stage");
-  // the stage marks itself idle once MapLibre reports every tile and picture loaded and drawn
-  await expect(page.locator("[data-stage-idle=true]")).toBeVisible({ timeout: 60_000 });
+  await page.goto(`/stage?case=${sharedCase()}`);
+  // the stage marks itself settled once the land is drawn and every part of the arrival has landed
+  await expect(page.locator("[data-arrival-settled=true]")).toBeVisible({ timeout: 60_000 });
   // the development build's indicator is not part of the product frame
   await page.addStyleTag({ content: "nextjs-portal { display: none !important; }" });
   await page.screenshot({

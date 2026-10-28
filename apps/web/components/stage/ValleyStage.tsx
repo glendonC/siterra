@@ -8,20 +8,22 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import { useEffect, useRef, useState } from "react";
 import type { BudgetLine } from "../../lib/budget/measure";
 import { en, format, isHonesty, type MessageId } from "../../lib/copy/en";
-import {
-  ARRIVAL_EXAGGERATION,
-  ARRIVAL_PLACES,
-  ARRIVAL_POSE,
-  OUTLET,
-} from "../../lib/stage/arrival";
-import { catchmentFeature, parseManifest } from "../../lib/stage/assets";
-import { orbitToMapCamera, type MapCamera } from "../../lib/stage/camera";
+import type { LandPoint } from "../../lib/projection/places";
+import { ARRIVAL_EXAGGERATION, ARRIVAL_POSE, VALLEY_NAME_REFERENCE } from "../../lib/stage/arrival";
+import { parseManifest } from "../../lib/stage/assets";
+import { orbitToMapCamera, widthFitScale, type MapCamera } from "../../lib/stage/camera";
 import { valleyStyle } from "../../lib/stage/daylight-style";
 import { groundCorners, screenReadingBearing, type LabelLine } from "../../lib/stage/ground-label";
 import { northEdgeAnchor, valleyNameAnchor } from "../../lib/stage/placement";
-import type { Feature } from "../../lib/stage/geo";
+import type { Feature, Position } from "../../lib/stage/geo";
+import { smoothFeature } from "../../lib/stage/smooth";
 import { drawHaze, hazeCorners } from "../../lib/stage/haze";
 import { projectAt, quadMatrix3d } from "../../lib/stage/project";
+import {
+  arrivalSettledAfter,
+  arrivalTiming,
+  type ArrivalPart,
+} from "../../lib/stage/arrival-sequence";
 import { daylight } from "../../lib/theme/daylight";
 import styles from "./ValleyStage.module.css";
 
@@ -35,9 +37,6 @@ if (typeof window !== "undefined") {
 
 /** Interface sans for names on the ground; must match the family the app loads. */
 const LABEL_FAMILY = '"IBM Plex Sans Variable", "IBM Plex Sans", sans-serif';
-
-/** Catchment area as recorded for revision 1, one decimal (fixture until the case snapshot supplies it). */
-const STUDY_AREA_KM2 = "417.0";
 
 interface Stem {
   id: string;
@@ -54,6 +53,21 @@ interface GroundText {
   transform: string;
 }
 
+/** The outline at arrival rides this far above the land: 30 m on the crest, at the view's 2x relief. */
+const OUTLINE_LIFT_M = 60;
+
+function outerRing(f: Feature): Position[] | undefined {
+  const g = f.geometry;
+  return g.type === "Polygon" ? g.coordinates[0] : g.coordinates[0]?.[0];
+}
+
+/** The style's draped outline, shown in the dive and hidden while the crisp outline is drawn. */
+function showDrapedLine(m: maplibregl.Map | null, show: boolean): void {
+  if (!m?.isStyleLoaded()) return;
+  for (const id of ["catchment-casing", "catchment-line"])
+    if (m.getLayer(id)) m.setLayoutProperty(id, "visibility", show ? "visible" : "none");
+}
+
 /** The text box the transform maps onto the land: CSS px, wide enough for the hero's ground names. */
 const BOX_W = 1000;
 const LINE_H = 83;
@@ -63,20 +77,126 @@ const PLANE_LIFT_M = 600;
 export interface ValleyStageProps {
   /** URL of the asset manifest. */
   manifestUrl: string;
+  /** The analysis geometry from the case record (GeoSelection, its current revision). */
+  catchment: Feature;
+  /** Its area in km² to one decimal, from the record. */
+  areaKm2: string;
+  /** Villages on stems, from the case's ContextFeature records. */
+  places: LandPoint[];
+  /** The outlet from its ContextFeature record; no beam and no outlet stem without one. */
+  outlet: LandPoint | undefined;
   /** Called once the map has drawn the arrival frame with every tile loaded. */
   onIdle?: () => void;
   /** Called once the map has loaded, so the dive can drive its camera and relief frame by frame. */
   onMap?: (map: maplibregl.Map) => void;
   /** False while the dive comes down: the land only; names and stems land at arrival. */
   labels?: boolean;
+  /** Called when arrival begins, so the chrome can land on the same clock. */
+  onArrive?: () => void;
+  /** False in the work beat: the outline stays, the names and stems leave the land. */
+  names?: boolean;
+  /** The projected outline in CSS px, for a leader that ends on the line. */
+  onOutline?: (points: { x: number; y: number }[]) => void;
 }
 
-export function ValleyStage({ manifestUrl, onIdle, onMap, labels = true }: ValleyStageProps) {
+export function ValleyStage({
+  manifestUrl,
+  catchment,
+  areaKm2,
+  places,
+  outlet,
+  onIdle,
+  onMap,
+  onArrive,
+  onOutline,
+  labels = true,
+  names = true,
+}: ValleyStageProps) {
   const container = useRef<HTMLDivElement>(null);
   const [stems, setStems] = useState<Stem[]>([]);
   const [failed, setFailed] = useState(false);
   const [idle, setIdle] = useState(false);
   const [ground, setGround] = useState<GroundText[]>([]);
+  const [outline, setOutline] = useState("");
+  const mapRef = useRef<maplibregl.Map | null>(null);
+  const labelsRef = useRef(labels);
+  labelsRef.current = labels;
+  const onOutlineRef = useRef(onOutline);
+  onOutlineRef.current = onOutline;
+  // read each frame, so a new snapshot revision moves the stems without rebuilding the map
+  const placesRef = useRef(places);
+  placesRef.current = places;
+  const outletRef = useRef(outlet);
+  outletRef.current = outlet;
+
+  const [arrived, setArrived] = useState(false);
+  const [settled, setSettled] = useState(false);
+
+  // at arrival the outline is drawn crisp above the crest (below); the draped line serves the dive
+  useEffect(() => {
+    showDrapedLine(mapRef.current, !labels);
+  }, [labels]);
+
+  // arrival begins once the land is drawn and the dive (if any) has ended
+  useEffect(() => {
+    if (!labels || !idle || arrived || !mapRef.current) return;
+    setArrived(true);
+    onArrive?.();
+  }, [labels, idle, arrived, onArrive]);
+
+  // then the light pool warms and the beam lands, frame by frame (a MapLibre paint transition can stall
+  // when nothing else requests a frame), and the stage marks itself settled once every part has landed
+  useEffect(() => {
+    const m = mapRef.current;
+    if (!arrived || !m) return;
+    const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const fades = [
+      {
+        layer: "light-pool",
+        prop: "fill-opacity" as const,
+        to: 1,
+        t: arrivalTiming("pool", reduced),
+      },
+      {
+        layer: "outlet-beam",
+        prop: "fill-extrusion-opacity" as const,
+        to: 0.9,
+        t: arrivalTiming("outlet", reduced),
+      },
+    ];
+    const t0 = performance.now();
+    let raf = 0;
+    const step = () => {
+      const now = performance.now() - t0;
+      let running = false;
+      for (const f of fades) {
+        const k = Math.min(1, Math.max(0, (now - f.t.delayMs) / f.t.durationMs));
+        if (k < 1) running = true;
+        m.setPaintProperty(f.layer, f.prop, f.to * k);
+      }
+      if (running) raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    const timer = window.setTimeout(
+      () => {
+        setSettled(true);
+      },
+      arrivalSettledAfter(reduced) * 1000 + 100,
+    );
+    return () => {
+      cancelAnimationFrame(raf);
+      window.clearTimeout(timer);
+    };
+  }, [arrived]);
+
+  const reducedMotion =
+    typeof window !== "undefined" && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  /** CSS variables for the landing class: this part's delay and duration. */
+  const land = (part: ArrivalPart): Record<string, string> => {
+    const t = arrivalTiming(part, reducedMotion);
+    return { "--land-delay": `${String(t.delayMs)}ms`, "--land-dur": `${String(t.durationMs)}ms` };
+  };
+  const show = labels && arrived && names;
 
   useEffect(() => {
     let map: maplibregl.Map | undefined;
@@ -88,7 +208,7 @@ export function ValleyStage({ manifestUrl, onIdle, onMap, labels = true }: Valle
       { text: en["arrival.region"].text, size: 0.28, weight: 500 },
     ];
     const studyLines: LabelLine[] = [
-      { text: format("arrival.studyArea", { area: STUDY_AREA_KM2 }), size: 0.33, weight: 500 },
+      { text: format("arrival.studyArea", { area: areaKm2 }), size: 0.33, weight: 500 },
       { text: en["arrival.studyAreaLimit"].text, size: 0.22, weight: 500 },
     ];
     const budgetLines = (ids: MessageId[], texts: LabelLine[]): BudgetLine[] =>
@@ -111,7 +231,7 @@ export function ValleyStage({ manifestUrl, onIdle, onMap, labels = true }: Valle
           id: "label-valley",
           lines: valleyLines,
           budget: budgetLines(["arrival.valleyName", "arrival.region"], valleyLines),
-          anchor: valleyNameAnchor(catchment, ARRIVAL_PLACES[1], {
+          anchor: valleyNameAnchor(catchment, VALLEY_NAME_REFERENCE, {
             eastOfM: 2500,
             shiftM: { east: -2050, north: -2190 },
             readingBearingDeg: reading,
@@ -128,6 +248,13 @@ export function ValleyStage({ manifestUrl, onIdle, onMap, labels = true }: Valle
         const heightM = (widthM * LINE_H * b.lines.length) / BOX_W;
         return { ...b, heightM, corners: groundCorners({ ...b.anchor, widthM, heightM }) };
       });
+
+      const ring = (outerRing(smoothFeature(catchment)) ?? []).filter((_, i) => i % 2 === 0);
+      mapRef.current = m;
+      showDrapedLine(m, !labelsRef.current);
+      // development and test builds only: lets end-to-end checks read the map's paint state
+      if (process.env.NODE_ENV !== "production")
+        (window as unknown as { __siterraStage?: maplibregl.Map }).__siterraStage = m;
 
       let last = "";
       const place = () => {
@@ -150,16 +277,28 @@ export function ValleyStage({ manifestUrl, onIdle, onMap, labels = true }: Valle
           const transform = quadMatrix3d(BOX_W, LINE_H * b.lines.length, tl, tr, br, bl);
           return [{ id: b.id, lines: b.lines, budget: b.budget, transform }];
         });
+        const pts = ring.map(([lon, lat]) => {
+          const e = (m.queryTerrainElevation([lon, lat]) ?? 0) + OUTLINE_LIFT_M;
+          return projectAt(t.modelViewProjectionMatrix, t.worldSize, lon, lat, e, w, h);
+        });
+        const nextOutline = pts.every(Boolean)
+          ? pts
+              .map((p, i) => `${i ? "L" : "M"}${(p?.x ?? 0).toFixed(1)} ${(p?.y ?? 0).toFixed(1)}`)
+              .join("") + "Z"
+          : "";
+        const o = outletRef.current;
         const nextStems = [
-          { id: "outlet", name: en["arrival.outlet"].text, ...at(OUTLET.lon, OUTLET.lat) },
-          ...ARRIVAL_PLACES.map((p) => ({ id: p.id, name: p.name, ...at(p.lon, p.lat) })),
+          ...(o ? [{ id: "outlet", name: en["arrival.outlet"].text, ...at(o.lon, o.lat) }] : []),
+          ...placesRef.current.map((p) => ({ id: p.id, name: p.name, ...at(p.lon, p.lat) })),
         ];
         // skip React work when nothing moved (render fires every frame)
-        const key = JSON.stringify([placedGround.map((g) => g.transform), nextStems]);
+        const key = JSON.stringify([placedGround.map((g) => g.transform), nextStems, nextOutline]);
         if (key === last) return;
         last = key;
         setStems(nextStems);
         setGround(placedGround);
+        setOutline(nextOutline);
+        onOutlineRef.current?.(pts.flatMap((p) => (p ? [{ x: p.x, y: p.y }] : [])));
       };
       place();
       // terrain tiles arriving change the heights the names and stems stand on, so follow every render
@@ -172,7 +311,6 @@ export function ValleyStage({ manifestUrl, onIdle, onMap, labels = true }: Valle
 
     const setup = async () => {
       const manifest = parseManifest(await (await fetch(manifestUrl)).json(), manifestUrl);
-      const catchment = catchmentFeature(await (await fetch(manifest.catchment)).json());
       await document.fonts.load(`500 64px ${LABEL_FAMILY}`);
       const el = container.current;
       if (cancelled || !el) return;
@@ -191,7 +329,13 @@ export function ValleyStage({ manifestUrl, onIdle, onMap, labels = true }: Valle
       // the effect may have been cleaned up while waiting for a size
       if (stopped()) return;
 
-      const cam = orbitToMapCamera(ARRIVAL_POSE, el.clientHeight);
+      const cam = orbitToMapCamera(
+        {
+          ...ARRIVAL_POSE,
+          distanceM: ARRIVAL_POSE.distanceM * widthFitScale(el.clientWidth, el.clientHeight),
+        },
+        el.clientHeight,
+      );
       const m = new maplibregl.Map({
         container: el,
         style: valleyStyle({
@@ -200,6 +344,7 @@ export function ValleyStage({ manifestUrl, onIdle, onMap, labels = true }: Valle
             haze: { url: drawHaze(daylight.paper), coordinates: hazeCorners() },
           },
           catchment,
+          outlet: outletRef.current,
         }),
         center: cam.center,
         zoom: cam.zoom,
@@ -228,17 +373,28 @@ export function ValleyStage({ manifestUrl, onIdle, onMap, labels = true }: Valle
       cancelled = true;
       map?.remove();
     };
-  }, [manifestUrl, onIdle, onMap]);
+    // callers pass the record's geometry once (memoized), so the map is built once per case revision
+  }, [manifestUrl, catchment, areaKm2, onIdle, onMap]);
 
   return (
-    <div className={styles.stage} data-stage-idle={idle ? "true" : "false"}>
+    <div
+      className={styles.stage}
+      data-stage-idle={idle ? "true" : "false"}
+      data-arrival-settled={settled ? "true" : "false"}
+    >
       <div ref={container} className={styles.map} aria-hidden="true" />
-      {(labels ? stems : []).map((s) =>
+      {labels && outline ? (
+        <svg className={styles.outline} aria-hidden="true">
+          <path className={styles.outlineCasing} d={outline} />
+          <path className={styles.outlineInk} d={outline} />
+        </svg>
+      ) : null}
+      {(show ? stems : []).map((s) =>
         s.id === "outlet" ? (
           <span
             key={s.id}
-            className={styles.outletLabel}
-            style={{ left: s.x, top: s.y }}
+            className={`${styles.outletLabel ?? ""} ${styles.landing ?? ""}`}
+            style={{ left: s.x, top: s.y, ...land("outlet") }}
             aria-hidden="true"
             data-budget="land-label"
           >
@@ -247,21 +403,30 @@ export function ValleyStage({ manifestUrl, onIdle, onMap, labels = true }: Valle
         ) : (
           <span
             key={s.id}
-            className={styles.stem}
-            style={{ left: s.x, top: s.y }}
+            className={`${styles.stem ?? ""} ${styles.landing ?? ""}`}
+            style={{ left: s.x, top: s.y, ...land("villages") }}
             aria-hidden="true"
           >
-            <span className={styles.stemName} data-budget="land-label">
+            <span
+              className={`${styles.stemName ?? ""} ${styles.landing ?? ""}`}
+              style={land("villageNames")}
+              data-budget="land-label"
+            >
               {s.name}
             </span>
           </span>
         ),
       )}
-      {(labels ? ground : []).map((g) => (
+      {(show ? ground : []).map((g) => (
         <div
           key={g.id}
-          className={styles.groundText}
-          style={{ width: BOX_W, height: LINE_H * g.lines.length, transform: g.transform }}
+          className={`${styles.groundText ?? ""} ${styles.landing ?? ""}`}
+          style={{
+            width: BOX_W,
+            height: LINE_H * g.lines.length,
+            transform: g.transform,
+            ...land(g.id === "label-valley" ? "name" : "study"),
+          }}
           aria-hidden="true"
           data-budget="land-label"
           data-budget-text={g.lines.map((l) => l.text).join(" ")}
@@ -284,11 +449,10 @@ export function ValleyStage({ manifestUrl, onIdle, onMap, labels = true }: Valle
       <ul className={styles.srOnly} aria-label={en["arrival.valleyName"].text}>
         <li>{en["arrival.region"].text}</li>
         <li>
-          {format("arrival.studyArea", { area: STUDY_AREA_KM2 })}{" "}
-          {en["arrival.studyAreaLimit"].text}
+          {format("arrival.studyArea", { area: areaKm2 })} {en["arrival.studyAreaLimit"].text}
         </li>
-        <li>{en["arrival.outlet"].text}</li>
-        {ARRIVAL_PLACES.map((p) => (
+        {outlet ? <li>{en["arrival.outlet"].text}</li> : null}
+        {places.map((p) => (
           <li key={p.id}>{p.name}</li>
         ))}
         <li>{format("stage.relief", { factor: ARRIVAL_EXAGGERATION })}</li>
