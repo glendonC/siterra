@@ -43,8 +43,30 @@ export const SeriesPair = z.strictObject({
 });
 export type SeriesPair = z.infer<typeof SeriesPair>;
 
-/** A measurement only fieldwork can make; a prediction about it is never testable from the record. */
-export const FieldCheck = z.strictObject({ id: configKey, label });
+/** Two configured explanation IDs, in either order, that one field check can tell apart. */
+export const ExplanationPairIds = z.tuple([configKey, configKey]);
+
+const pairKey = ([a, b]: readonly [string, string]) => [a, b].sort().join("|");
+
+/**
+ * A measurement the record cannot make; a prediction about it is never testable from the record.
+ * `separates` is a configured judgment about which explanation pairs its result tells apart; the
+ * field plan (DF-09) chooses from these, and nothing reads a check's wording.
+ */
+export const FieldCheck = z.strictObject({
+  id: configKey,
+  label,
+  method: text({ min: 1, max: 300 }),
+  /** Where the judgment comes from: a repository document anchor or a source ID. */
+  basis: text({ min: 1, max: 200 }),
+  separates: z
+    .array(ExplanationPairIds)
+    .min(1)
+    .refine((pairs) => pairs.every(([a, b]) => a !== b), {
+      error: "A field check separates two different explanations",
+    })
+    .refine(uniqueBy(pairKey), { error: "A field check names each pair once" }),
+});
 export type FieldCheck = z.infer<typeof FieldCheck>;
 
 /** The rainfall season events are compared with, and the recipe that summarizes it. */
@@ -65,30 +87,38 @@ export const ExplanationDefinition = z.strictObject({
 });
 export type ExplanationDefinition = z.infer<typeof ExplanationDefinition>;
 
-export const CaseAnalysisConfig = z.strictObject({
-  configVersion: z.literal(analysisConfigVersion),
-  caseId: entityId,
-  /** How tool descriptions and host messages name the case area, such as "catchment". */
-  areaLabel: label,
-  seriesPairs: z
-    .array(SeriesPair)
-    .min(1)
-    .refine(
-      uniqueBy((p: SeriesPair) => p.id),
-      { error: "Series pair IDs must be unique" },
+export const CaseAnalysisConfig = z
+  .strictObject({
+    configVersion: z.literal(analysisConfigVersion),
+    caseId: entityId,
+    /** How tool descriptions and host messages name the case area, such as "catchment". */
+    areaLabel: label,
+    seriesPairs: z
+      .array(SeriesPair)
+      .min(1)
+      .refine(
+        uniqueBy((p: SeriesPair) => p.id),
+        { error: "Series pair IDs must be unique" },
+      ),
+    rainfallSeason: SeasonWindow,
+    explanations: z
+      .array(ExplanationDefinition)
+      .min(1)
+      .max(maxExplanations)
+      .refine(
+        uniqueBy((e: ExplanationDefinition) => e.id),
+        { error: "Explanation IDs must be unique" },
+      ),
+    fieldChecks: z.array(FieldCheck).refine(
+      uniqueBy((c: FieldCheck) => c.id),
+      { error: "Field check IDs must be unique" },
     ),
-  rainfallSeason: SeasonWindow,
-  explanations: z
-    .array(ExplanationDefinition)
-    .min(1)
-    .max(maxExplanations)
-    .refine(
-      uniqueBy((e: ExplanationDefinition) => e.id),
-      { error: "Explanation IDs must be unique" },
-    ),
-  fieldChecks: z.array(FieldCheck).refine(
-    uniqueBy((c: FieldCheck) => c.id),
-    { error: "Field check IDs must be unique" },
-  ),
-});
+  })
+  .refine(
+    (config) => {
+      const ids = new Set(config.explanations.map((e) => e.id));
+      return config.fieldChecks.every((c) => c.separates.flat().every((id) => ids.has(id)));
+    },
+    { error: "A field check separates only configured explanations", path: ["fieldChecks"] },
+  );
 export type CaseAnalysisConfig = z.infer<typeof CaseAnalysisConfig>;

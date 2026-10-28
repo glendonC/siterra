@@ -149,6 +149,6 @@ export function catalogView(catalog: BranchCatalog): unknown {
     })),
     seasonIds: catalog.seasonIds,
     qualityFlags: catalog.qualityFlags,
-    fieldChecks: catalog.fieldChecks,
+    fieldChecks: catalog.fieldChecks.map((c) => ({ id: c.id, label: c.label })),
   };
 }

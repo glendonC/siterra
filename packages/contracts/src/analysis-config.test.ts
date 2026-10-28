@@ -26,7 +26,15 @@ const OTHER_PLACE = {
       minAlignedMonths: 6,
     },
   ],
-  fieldChecks: [{ id: "irrigation_channels", label: "Irrigation channels in use" }],
+  fieldChecks: [
+    {
+      id: "irrigation_channels",
+      label: "Channel Survey",
+      method: "Irrigation channels in use, walked and mapped.",
+      basis: "Synthetic test check.",
+      separates: [["irrigation", "rainfall"]],
+    },
+  ],
   rainfallSeason: {
     id: "rainy_season",
     label: "June to September rainy season",
@@ -73,5 +81,27 @@ describe("case analysis configuration", () => {
     expect(bad({ seriesPairs: [{ ...pair, a: { ...pair?.a, methodId: undefined } }] })).toBe(false);
     const check = OTHER_PLACE.fieldChecks[0];
     expect(bad({ fieldChecks: [check, check] })).toBe(false);
+  });
+
+  it("a field check separates named pairs of two different configured explanations, once each", () => {
+    const check = OTHER_PLACE.fieldChecks[0];
+    const withPairs = (separates: unknown) =>
+      CaseAnalysisConfig.safeParse({ ...OTHER_PLACE, fieldChecks: [{ ...check, separates }] })
+        .success;
+    expect(withPairs([["rainfall", "irrigation"]])).toBe(true);
+    expect(withPairs([])).toBe(false);
+    expect(withPairs([["rainfall", "rainfall"]])).toBe(false);
+    expect(withPairs([["rainfall", "grazing"]])).toBe(false);
+    expect(
+      withPairs([
+        ["rainfall", "irrigation"],
+        ["irrigation", "rainfall"],
+      ]),
+    ).toBe(false);
+    expect(withPairs([["rainfall"]])).toBe(false);
+    const { method: _m, ...noMethod } = check ?? {};
+    expect(CaseAnalysisConfig.safeParse({ ...OTHER_PLACE, fieldChecks: [noMethod] }).success).toBe(
+      false,
+    );
   });
 });

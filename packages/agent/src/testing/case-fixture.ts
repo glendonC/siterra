@@ -38,7 +38,15 @@ export const TEST_ANALYSIS_CONFIG: CaseAnalysisConfig = {
       minAlignedMonths: 3,
     },
   ],
-  fieldChecks: [{ id: "grazing_exclosure", label: "Grazed and ungrazed plots compared" }],
+  fieldChecks: [
+    {
+      id: "grazing_exclosure",
+      label: "Grazing Exclosure",
+      method: "Grazed and ungrazed plots compared.",
+      basis: "Synthetic test check.",
+      separates: [["grazing", "rainfall"]],
+    },
+  ],
   rainfallSeason: {
     id: "wet_season",
     label: "November to April wet season",

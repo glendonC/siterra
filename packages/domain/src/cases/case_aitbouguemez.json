@@ -20,7 +20,68 @@
       "minAlignedMonths": 12
     }
   ],
-  "fieldChecks": [],
+  "fieldChecks": [
+    {
+      "id": "local_rain_records",
+      "label": "Local Rain Records",
+      "method": "Local precipitation records, snow timing and temperature for the catchment, by month.",
+      "basis": "docs/explanation/scientific-basis.md#competing-explanations-and-useful-next-work",
+      "separates": [
+        ["rainfall", "grazing"],
+        ["rainfall", "land_use"],
+        ["rainfall", "snow_terrain"],
+        ["rainfall", "data_artefact"]
+      ]
+    },
+    {
+      "id": "herd_records",
+      "label": "Herd Records",
+      "method": "Animal numbers by species, residence time, access routes, pasture area and seasonal movements.",
+      "basis": "docs/explanation/scientific-basis.md#competing-explanations-and-useful-next-work",
+      "separates": [
+        ["grazing", "rainfall"],
+        ["grazing", "land_use"],
+        ["grazing", "snow_terrain"],
+        ["grazing", "data_artefact"]
+      ]
+    },
+    {
+      "id": "orchard_history",
+      "label": "Orchard History",
+      "method": "Crop, orchard and irrigation history for 2019 to 2025, and botanical composition.",
+      "basis": "docs/explanation/scientific-basis.md#competing-explanations-and-useful-next-work",
+      "separates": [
+        ["land_use", "rainfall"],
+        ["land_use", "grazing"],
+        ["land_use", "snow_terrain"],
+        ["land_use", "data_artefact"]
+      ]
+    },
+    {
+      "id": "seasonal_calendar",
+      "label": "Seasonal Calendar",
+      "method": "Local seasonal calendar and shadow and snow quality checks.",
+      "basis": "docs/explanation/scientific-basis.md#competing-explanations-and-useful-next-work",
+      "separates": [
+        ["snow_terrain", "rainfall"],
+        ["snow_terrain", "grazing"],
+        ["snow_terrain", "land_use"],
+        ["snow_terrain", "data_artefact"]
+      ]
+    },
+    {
+      "id": "scene_inspection",
+      "label": "Scene Inspection",
+      "method": "Independent manual inspection of the source scenes and repeat processing.",
+      "basis": "docs/explanation/scientific-basis.md#competing-explanations-and-useful-next-work",
+      "separates": [
+        ["data_artefact", "rainfall"],
+        ["data_artefact", "grazing"],
+        ["data_artefact", "land_use"],
+        ["data_artefact", "snow_terrain"]
+      ]
+    }
+  ],
   "rainfallSeason": {
     "id": "wet_season",
     "label": "November to April wet season",

@@ -59,4 +59,28 @@ describe("case analysis configurations", () => {
       "data_artefact",
     ]);
   });
+
+  it("each valley field check cites the scientific basis and every explanation pair has one", () => {
+    const valley = analysisConfigFor("case_aitbouguemez");
+    const checks = valley?.fieldChecks ?? [];
+    expect(checks.map((c) => c.id)).toEqual([
+      "local_rain_records",
+      "herd_records",
+      "orchard_history",
+      "seasonal_calendar",
+      "scene_inspection",
+    ]);
+    for (const check of checks) {
+      expect(check.basis).toMatch(
+        /^docs\/explanation\/scientific-basis\.md#competing-explanations/,
+      );
+      expect(check.label).toMatch(/^[A-Z][a-z]+( [A-Z][a-z]+){0,2}$/);
+    }
+    const ids = valley?.explanations.map((e) => e.id) ?? [];
+    const key = (a: string, b: string) => [a, b].sort().join("|");
+    const separated = new Set(checks.flatMap((c) => c.separates.map(([a, b]) => key(a, b))));
+    for (const [i, a] of ids.entries()) {
+      for (const b of ids.slice(i + 1)) expect(separated).toContain(key(a, b));
+    }
+  });
 });
