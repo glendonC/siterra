@@ -1,11 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
-import { Evidence, Hypothesis, Intervention } from "./case.ts";
+import { Evidence, Hypothesis, Intervention, PredictionTest } from "./case.ts";
 import {
   ProposeEvidence,
   ProposeHypotheses,
   ProposeInterventions,
   ProposePlan,
+  ProposePredictions,
   strictSubsetIssues,
   toModelJsonSchema,
 } from "./model-facing.ts";
@@ -133,5 +134,24 @@ describe("contract: propose_interventions", () => {
     expect(item.shape.requiredReviewRoles.element.options).toEqual(
       Intervention.shape.requiredReviewRoles.element.options,
     );
+  });
+});
+
+describe("contract: propose_predictions", () => {
+  it("exports inside the strict subset; the model writes no key and no status", () => {
+    const json = toModelJsonSchema(ProposePredictions);
+    const item = ((json["properties"] as Record<string, Record<string, unknown>>)["predictions"] ??
+      {})["items"] as Record<string, unknown>;
+    expect(item["required"]).toEqual(["necessary", "test", "wording"]);
+    expect(JSON.stringify(json)).not.toMatch(/"(?:key|status|outcome)"/);
+  });
+
+  it("offers exactly the test grammar of the Prediction record", () => {
+    const test = ProposePredictions.shape.predictions.element.shape.test.shape;
+    expect(Object.keys(test)).toEqual(Object.keys(PredictionTest.shape));
+    expect(test.kind.options).toEqual(PredictionTest.shape.kind.options);
+    expect(test.side.unwrap().options).toEqual(PredictionTest.shape.side.unwrap().options);
+    expect(test.flag.unwrap().options).toEqual(PredictionTest.shape.flag.unwrap().options);
+    expect(test.expected.unwrap().options).toEqual(PredictionTest.shape.expected.unwrap().options);
   });
 });
