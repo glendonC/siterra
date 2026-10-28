@@ -35,6 +35,8 @@ export interface ArrivalChromeProps {
   notice?: MessageId | undefined;
   /** False when the map could not be drawn: no F hint and no map instruments (the hint rule). */
   mapDrawn?: boolean;
+  /** True when an input cut the arrival settle short: everything lands at once. */
+  instant?: boolean;
   /** True in the flat reading: the F hint is pressed, and F again returns. */
   flat?: boolean;
   onReadFlat: () => void;
@@ -61,14 +63,15 @@ export function ArrivalChrome({
   notice,
   flat = false,
   mapDrawn = true,
+  instant = false,
   onReadFlat,
   onAsk,
   onSources,
 }: ArrivalChromeProps) {
   const input = useRef<HTMLInputElement>(null);
 
+  // listening from the start, so a key that cuts the arrival settle short still does its own job
   useEffect(() => {
-    if (!arrived) return;
     const onKey = (e: KeyboardEvent) => {
       // key hints never act behind an open dialog (Read flat, Sources and notices). The page is asked, not
       // React state: a dialog's close event comes a task after Esc, and a key pressed in between would be lost
@@ -91,10 +94,11 @@ export function ArrivalChrome({
     return () => {
       window.removeEventListener("keydown", onKey);
     };
-  }, [singleKeys, arrived, primary, mapDrawn, onStart, onReadFlat]);
+  }, [singleKeys, primary, mapDrawn, onStart, onReadFlat]);
 
   const reduced =
-    typeof window !== "undefined" && matchMedia("(prefers-reduced-motion: reduce)").matches;
+    instant ||
+    (typeof window !== "undefined" && matchMedia("(prefers-reduced-motion: reduce)").matches);
   /** The landing class and its timing variables, or hidden until arrival begins. */
   const land = (part: ArrivalPart) => {
     if (!arrived) return { className: styles.waiting ?? "", style: {} };

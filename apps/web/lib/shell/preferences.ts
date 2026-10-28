@@ -3,6 +3,15 @@
 
 const SINGLE_KEYS = "siterra.singleKeys";
 
+/** The tab's session storage, or undefined where even reaching it throws (blocked site data). */
+export function viewerSession(): Storage | undefined {
+  try {
+    return typeof window === "undefined" ? undefined : window.sessionStorage;
+  } catch {
+    return undefined;
+  }
+}
+
 /** The browser's local storage, or undefined where even reaching it throws (blocked site data). */
 export function viewerStorage(): Storage | undefined {
   try {

@@ -14,6 +14,8 @@ import type { MapBundle } from "../../lib/map/bundle";
 import { orbitToMapCamera, widthFitScale, type MapCamera } from "../../lib/stage/camera";
 import { easeInOut, FLAT_MOVE_MS, flatCamera, mixCamera } from "../../lib/stage/flat";
 import { FlatFrame } from "./FlatFrame";
+import { regionalCamera, SETTLE_MS, settleCameraAt } from "../../lib/stage/settle";
+import { viewerSession } from "../../lib/shell/preferences";
 import { valleyStyle } from "../../lib/stage/daylight-style";
 import { groundCorners, screenReadingBearing, type LabelLine } from "../../lib/stage/ground-label";
 import { northEdgeAnchor, valleyNameAnchor } from "../../lib/stage/placement";
@@ -125,7 +127,7 @@ export interface ValleyStageProps {
   /** False while the dive comes down: the land only; names and stems land at arrival. */
   labels?: boolean;
   /** Called when arrival begins, so the chrome can land on the same clock. */
-  onArrive?: () => void;
+  onArrive?: (quick: boolean) => void;
   /** False in the work beat: the outline stays, the names and stems leave the land. */
   names?: boolean;
   /** The projected outline in CSS px, for a leader that ends on the line; empty in the flat reading. */
@@ -134,6 +136,11 @@ export interface ValleyStageProps {
   flat?: boolean;
   /** Called when the map cannot be drawn, so the text listing can take its place. */
   onFailed?: () => void;
+  /**
+   * MOT-01: a key for this case's arrival settle (the regional view moving once to the valley view).
+   * None in the hero sequence, where the dive is the arrival. Kept per tab, so a reload skips it.
+   */
+  settleKey?: string;
 }
 
 export function ValleyStage({
@@ -151,6 +158,7 @@ export function ValleyStage({
   names = true,
   flat = false,
   onFailed,
+  settleKey,
 }: ValleyStageProps) {
   const container = useRef<HTMLDivElement>(null);
   const [stems, setStems] = useState<Stem[]>([]);
@@ -180,6 +188,14 @@ export function ValleyStage({
   const nowRef = useRef<MapCamera | null>(null);
   const reliefRef = useRef<number>(ARRIVAL_EXAGGERATION);
   const flatAppliedRef = useRef(false);
+  // MOT-01: "waiting" for the start view's tiles, then "moving", then "done" (or "done" from the start)
+  const [settle, setSettle] = useState<"waiting" | "moving" | "done">("done");
+  const startRef = useRef<MapCamera | null>(null);
+  const settleRaf = useRef(0);
+  // an interrupted settle shows the arrival at once (the reduced-motion timings)
+  const [quick, setQuick] = useState(false);
+  const settleRef = useRef(settle);
+  settleRef.current = settle;
   const onFailedRef = useRef(onFailed);
   onFailedRef.current = onFailed;
 
@@ -254,19 +270,80 @@ export function ValleyStage({
     showDrapedLine(mapRef.current, !labels);
   }, [labels]);
 
-  // arrival begins once the land is drawn and the dive (if any) has ended
+  // MOT-01: once the regional view's tiles are idle, one camera move to the valley view; the arrival
+  // begins when it ends. Any input during the move ends it at once (MQ-02): this map takes no gestures, so
+  // the camera jumps to the valley view, the arrival shows without its delays, and the input goes on to do
+  // its own job (the listener only watches, in the capture phase, ahead of the key hints).
   useEffect(() => {
-    if (!labels || !idle || arrived || !mapRef.current) return;
+    const m = mapRef.current;
+    const home = homeRef.current;
+    // read through the ref: the state change to "moving" must not re-run this effect and cancel the move
+    if (settleRef.current !== "waiting" || !idle || !m || !home) return;
+    settleRef.current = "moving";
+    setSettle("moving");
+    const jump = (c: MapCamera) => {
+      m.jumpTo({
+        center: c.center,
+        zoom: c.zoom,
+        pitch: c.pitch,
+        bearing: c.bearing,
+        elevation: c.elevation,
+      });
+    };
+    const inputs = ["keydown", "pointerdown", "wheel", "touchstart"] as const;
+    const finish = (interrupted: boolean) => {
+      cancelAnimationFrame(settleRaf.current);
+      for (const t of inputs) window.removeEventListener(t, onInput, true);
+      if (interrupted) jump(home);
+      if (settleKey) {
+        try {
+          viewerSession()?.setItem(settleKey, "1");
+        } catch {
+          // the settle runs again on reload
+        }
+      }
+      settleRef.current = "done";
+      if (interrupted) setQuick(true);
+      setSettle("done");
+    };
+    function onInput() {
+      if (settleRef.current === "moving") finish(true);
+    }
+    for (const t of inputs) window.addEventListener(t, onInput, { capture: true, passive: true });
+    const t0 = performance.now();
+    const step = () => {
+      const k = Math.min(1, (performance.now() - t0) / SETTLE_MS);
+      jump(settleCameraAt(home, k));
+      if (k < 1) {
+        settleRaf.current = requestAnimationFrame(step);
+        return;
+      }
+      finish(false);
+    };
+    settleRaf.current = requestAnimationFrame(step);
+    // `settle` is listed so the move starts when the setup marks it waiting; the ref keeps it to one run,
+    // and the frame is cancelled only on unmount (below) or by input, not when the state moves on
+  }, [settle, idle, settleKey]);
+  useEffect(
+    () => () => {
+      cancelAnimationFrame(settleRaf.current);
+    },
+    [],
+  );
+
+  // arrival begins once the land is drawn and the dive or the settle (if any) has ended
+  useEffect(() => {
+    if (!labels || !idle || arrived || settle !== "done" || !mapRef.current) return;
     setArrived(true);
-    onArrive?.();
-  }, [labels, idle, arrived, onArrive]);
+    onArrive?.(quick);
+  }, [labels, idle, arrived, settle, quick, onArrive]);
 
   // then the light pool warms and the beam lands, frame by frame (a MapLibre paint transition can stall
   // when nothing else requests a frame), and the stage marks itself settled once every part has landed
   useEffect(() => {
     const m = mapRef.current;
     if (!arrived || !m) return;
-    const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const reduced = quick || matchMedia("(prefers-reduced-motion: reduce)").matches;
     const fades = [
       {
         layer: "light-pool",
@@ -304,10 +381,11 @@ export function ValleyStage({
       cancelAnimationFrame(raf);
       window.clearTimeout(timer);
     };
-  }, [arrived]);
+  }, [arrived, quick]);
 
   const reducedMotion =
-    typeof window !== "undefined" && matchMedia("(prefers-reduced-motion: reduce)").matches;
+    quick ||
+    (typeof window !== "undefined" && matchMedia("(prefers-reduced-motion: reduce)").matches);
   /** CSS variables for the landing class: this part's delay and duration. */
   const land = (part: ArrivalPart): Record<string, string> => {
     const t = arrivalTiming(part, reducedMotion);
@@ -336,12 +414,13 @@ export function ValleyStage({
       });
 
     const onLoad = (m: maplibregl.Map, cam: MapCamera, catchment: Feature) => {
+      const start = startRef.current ?? cam;
       m.jumpTo({
-        center: cam.center,
-        zoom: cam.zoom,
-        pitch: cam.pitch,
-        bearing: cam.bearing,
-        elevation: cam.elevation,
+        center: start.center,
+        zoom: start.zoom,
+        pitch: start.pitch,
+        bearing: start.bearing,
+        elevation: start.elevation,
       });
       const reading = screenReadingBearing(cam.bearing);
       const blocks = [
@@ -471,6 +550,18 @@ export function ValleyStage({
         },
         el.clientHeight,
       );
+      // MOT-01 on a first visit to this case in this tab; under reduced motion the camera starts where it ends
+      const settled = (() => {
+        try {
+          return !settleKey || viewerSession()?.getItem(settleKey) === "1";
+        } catch {
+          return true;
+        }
+      })();
+      const reducedSettle = matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const start = settled || reducedSettle ? cam : regionalCamera(cam);
+      startRef.current = start;
+      if (start !== cam) setSettle("waiting");
       const m = new maplibregl.Map({
         container: el,
         style: valleyStyle({
@@ -482,10 +573,10 @@ export function ValleyStage({
           contours,
           outlet: outletRef.current,
         }),
-        center: cam.center,
-        zoom: cam.zoom,
-        pitch: cam.pitch,
-        bearing: cam.bearing,
+        center: start.center,
+        zoom: start.zoom,
+        pitch: start.pitch,
+        bearing: start.bearing,
         maxPitch: 85,
         interactive: false,
         attributionControl: false,
@@ -513,7 +604,7 @@ export function ValleyStage({
       map?.remove();
     };
     // callers pass the record's geometry once (memoized), so the map is built once per case revision
-  }, [assets, contourArea, catchment, areaKm2, onIdle, onMap]);
+  }, [assets, contourArea, catchment, areaKm2, onIdle, onMap, settleKey]);
 
   return (
     <div
@@ -521,6 +612,7 @@ export function ValleyStage({
       data-stage-idle={idle ? "true" : "false"}
       data-arrival-settled={settled ? "true" : "false"}
       data-view={view}
+      data-settle={settle}
     >
       <div ref={container} className={styles.map} aria-hidden="true" />
       {labels && outline && oblique ? (

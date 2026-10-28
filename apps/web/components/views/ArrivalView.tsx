@@ -34,6 +34,8 @@ export interface ArrivalViewProps {
   assets: MapBundle["valley"] | null;
   /** Where contour lines can be made from the bundle's terrain. */
   contourArea?: MapBundle["contours"];
+  /** MOT-01: settle from the regional view on a first visit (the /stage route; the hero's dive replaces it). */
+  settle?: boolean;
   arrival: ReadyArrival;
   /** The case revision the arrival was projected from; the session keeps it current. */
   snapshot: CaseSnapshot;
@@ -50,6 +52,7 @@ const noop = () => undefined;
 export function ArrivalView({
   assets,
   contourArea,
+  settle = false,
   arrival,
   snapshot: initial,
   chrome = true,
@@ -76,7 +79,10 @@ export function ArrivalView({
     writeSingleKeys(viewerStorage(), on);
   }, []);
   const [arrived, setArrived] = useState(false);
-  const onArrive = useCallback(() => {
+  // true when an input cut the settle short: the chrome lands at once too
+  const [quick, setQuick] = useState(false);
+  const onArrive = useCallback((q: boolean) => {
+    setQuick(q);
     setArrived(true);
   }, []);
   const [outline, setOutline] = useState<Point[]>([]);
@@ -141,6 +147,7 @@ export function ArrivalView({
       <ValleyStage
         assets={assets}
         contourArea={contourArea}
+        settleKey={settle ? `siterra.settled.${arrival.caseId}` : undefined}
         catchment={arrival.catchment}
         areaKm2={arrival.areaKm2}
         places={arrival.land.places}
@@ -171,6 +178,7 @@ export function ArrivalView({
             // with no map there is no arrival to wait for: the command line and ↵ land at once
             arrived={arrived || mapFailed}
             mapDrawn={!mapFailed}
+            instant={quick}
             bearingDeg={bearing}
             primary={primaryHint({ commissioned: working, running })}
             onStart={running ? stop : commission}

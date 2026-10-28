@@ -37,3 +37,23 @@ test("the flat reading is pitch 0, bearing 0, terrain off", async ({ page }) => 
   });
   expect(state).toEqual({ pitch: 0, bearing: 0, terrain: null });
 });
+
+// MQ-02 at the camera: a key during the arrival settle puts the camera at the valley view at once.
+test("a key during the settle jumps the camera to the valley view", async ({ page }) => {
+  await page.goto(`/stage?case=${sharedCase()}`);
+  await expect(page.locator("[data-settle]")).toHaveAttribute("data-settle", "moving", {
+    timeout: 60_000,
+  });
+  await page.keyboard.press("Escape");
+  await expect(page.locator("[data-settle]")).toHaveAttribute("data-settle", "done", {
+    timeout: 1_000,
+  });
+  const cam = await page.evaluate(() => {
+    const m = (window as unknown as { __siterraStage?: { getPitch(): number; getZoom(): number } })
+      .__siterraStage;
+    return m ? { pitch: m.getPitch(), zoom: m.getZoom() } : null;
+  });
+  // ARRIVAL_POSE: pitch 54 (90 minus the 36 degree elevation); zoom well above the regional 9.4
+  expect(cam?.pitch ?? 0).toBeCloseTo(54, 3);
+  expect(cam?.zoom ?? 0).toBeGreaterThan(10.5);
+});

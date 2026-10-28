@@ -19,6 +19,7 @@ export function StageView() {
     <ArrivalView
       assets={map.status === "ready" ? map.bundle.valley : null}
       contourArea={map.status === "ready" ? map.bundle.contours : undefined}
+      settle
       arrival={c.arrival}
       snapshot={c.snapshot}
     />
