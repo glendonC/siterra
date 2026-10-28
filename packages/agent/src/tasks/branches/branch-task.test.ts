@@ -5,11 +5,18 @@ import { MetaAdapter } from "../../model/adapter.ts";
 import type { ModelTransport, ResponsesBody, TransportStream } from "../../model/transport.ts";
 import type { ReplayTransport } from "../../model/replay.ts";
 import {
+  BRANCH_PERIODS as PERIODS,
+  BRANCH_SEASON as SEASON,
+  BRANCH_VALUES,
+  GRAZING_REPLY,
+  RAINFALL_REPLY,
+  UNUSED_TEST_FIELDS as none,
+  addBranchRecord,
+} from "../../testing/branch-fixture.ts";
+import {
   AT,
   CASE_ID,
   TEST_ANALYSIS_CONFIG,
-  bundle,
-  measurement,
   queuedTask,
   testStore,
 } from "../../testing/case-fixture.ts";
@@ -28,131 +35,10 @@ import { BRANCH_PROMPT_VERSION, branchIdFor, runExplanationBranchesTask } from "
 import { buildCatalog, coveredSeasons } from "./catalog.ts";
 import { validatePredictions } from "./proposal.ts";
 
-// SYNTHETIC FIXTURE. Two invented explanations of an invented record: six months of vegetation
-// and rainfall departures, one season summary and one field check. The replies are synthetic
-// replays written for these tests; nothing here is a finding about any place.
+// Synthetic record and replayed replies from testing/branch-fixture.ts; nothing here is a
+// finding about any place.
 
-const PERIODS = [
-  "period_2021-11",
-  "period_2021-12",
-  "period_2022-01",
-  "period_2022-02",
-  "period_2022-03",
-  "period_2022-04",
-];
-const VEG = [-0.0213, -0.0331, -0.0117, -0.0242, -0.0408, -0.0519];
-const VEG_LOYO = [-0.0198, -0.0302, -0.0109, -0.0231, -0.0377, -0.0488];
-const RAIN = [-5.17, -3.29, 2.41, -4.63, -6.07, -1.13];
-const SEASON = "season_2021-11_2022-04";
-
-function branchStore(): MemoryCaseStore {
-  const store = testStore();
-  store.bundles.push(
-    bundle({
-      id: "bundle_test_vegdep",
-      revision: 1,
-      methodId: "test_veg_departure",
-      periodIds: PERIODS,
-    }),
-    bundle({
-      id: "bundle_test_rainmon",
-      revision: 1,
-      methodId: "test_rain_monthly",
-      periodIds: PERIODS,
-    }),
-    bundle({
-      id: "bundle_test_season",
-      revision: 1,
-      methodId: "season_summary",
-      methodVersion: "1.0.0",
-      periodIds: [],
-    }),
-  );
-  PERIODS.forEach((p, i) => {
-    const at = { dataBundleId: "bundle_test_vegdep" };
-    store.measurements.push(
-      measurement(p, VEG[i] ?? null, {
-        ...at,
-        id: `meas_vd_${String(i)}`,
-        metric: "ndvi_departure_area_median",
-      }),
-      measurement(p, VEG_LOYO[i] ?? null, {
-        ...at,
-        id: `meas_vl_${String(i)}`,
-        metric: "ndvi_departure_area_median_leave_one_year_out",
-      }),
-      measurement(p, RAIN[i] ?? null, {
-        dataBundleId: "bundle_test_rainmon",
-        id: `meas_rd_${String(i)}`,
-        metric: "precipitation_departure_from_1991_2020_mean",
-      }),
-    );
-    store.quality.push({
-      caseId: CASE_ID,
-      bundleId: "bundle_test_vegdep",
-      periodId: p,
-      qualityFlags: p === "period_2022-02" ? ["snow_suspected"] : [],
-    });
-  });
-  store.recipeResults.push({
-    caseId: CASE_ID,
-    bundleId: "bundle_test_season",
-    recipeId: "season_summary",
-    version: "1.0.0",
-    result: {
-      recipeId: "season_summary",
-      version: "1.0.0",
-      seasons: [{ season_id: SEASON, season_departure_mm: -61.4, season_category: "below_normal" }],
-    },
-  });
-  return store;
-}
-
-const none = {
-  pairId: null,
-  side: null,
-  periodIds: [],
-  windowMonths: null,
-  seasonId: null,
-  flag: null,
-  fieldCheckId: null,
-  expected: null,
-};
-
-const RAINFALL_REPLY = {
-  predictions: [
-    {
-      necessary: true,
-      test: { ...none, kind: "season_category", seasonId: SEASON, expected: "below_normal" },
-      wording: `The wet season ${SEASON} is below normal.`,
-    },
-    {
-      necessary: false,
-      test: {
-        ...none,
-        kind: "co_movement",
-        pairId: "vegetation_rainfall",
-        windowMonths: 0,
-        expected: "same_sign_majority",
-      },
-      wording: "Most aligned months of vegetation and rainfall departures share a sign.",
-    },
-  ],
-};
-const GRAZING_REPLY = {
-  predictions: [
-    {
-      necessary: true,
-      test: { ...none, kind: "season_category", seasonId: SEASON, expected: "near_normal" },
-      wording: `The wet season ${SEASON} is near normal, so rainfall alone does not set the low values.`,
-    },
-    {
-      necessary: false,
-      test: { ...none, kind: "field_check", fieldCheckId: "grazing_exclosure" },
-      wording: "Grazed plots are lower in greenness than ungrazed plots.",
-    },
-  ],
-};
+const branchStore = (): MemoryCaseStore => addBranchRecord(testStore());
 
 /** Routes each branch's request to its own replay by the explanation ID in its first message. */
 class ByExplanation implements ModelTransport {
@@ -205,6 +91,7 @@ function logged(store: CaseStore, log: string[]): CaseStore {
 
 interface Run {
   commit: CommitDraft;
+  blockedInputs: readonly string[];
   interim: CommitDraft[];
   log: string[];
   events: TraceEventDraft[];
@@ -227,7 +114,7 @@ async function run(
     options.replies ?? { rainfall: [RAINFALL_REPLY], grazing: [GRAZING_REPLY] },
   );
   const view = logged(store, log);
-  const { commit } = await runExplanationBranchesTask(
+  const { commit, loop } = await runExplanationBranchesTask(
     {
       task: queuedTask({
         id: "task_test_branches",
@@ -257,7 +144,7 @@ async function run(
           }),
     },
   );
-  return { commit, interim, log, events, transport };
+  return { commit, blockedInputs: loop.blockedInputs, interim, log, events, transport };
 }
 
 const branchesOf = (draft: CommitDraft) =>
@@ -292,12 +179,18 @@ describe("DF-07: predictions are committed before any result is read", () => {
   it("the model is offered no tool and sees no stored value", async () => {
     const { transport } = await run();
     expect(transport.bodies).toHaveLength(2);
+    const values = [
+      ...BRANCH_VALUES.vegetation,
+      ...BRANCH_VALUES.vegetationLeaveOneYearOut,
+      ...BRANCH_VALUES.rainfall,
+      BRANCH_VALUES.seasonDepartureMm,
+    ];
     for (const body of transport.bodies) {
       expect(body["tools"] ?? []).toEqual([]);
       const text = JSON.stringify(body);
-      for (const v of [...VEG, ...VEG_LOYO, ...RAIN]) expect(text).not.toContain(String(v));
+      for (const v of values) expect(text).not.toContain(String(v));
       expect(text).not.toContain("meas_");
-      expect(text).not.toContain("-61.4");
+      expect(JSON.stringify(body["input"])).not.toContain("below_normal");
     }
   });
 
@@ -310,9 +203,10 @@ describe("DF-07: predictions are committed before any result is read", () => {
 
 describe("scoring, merge and the records it writes", () => {
   it("scores by code and sets each status by the fixed rules", async () => {
-    const { commit } = await run();
+    const { commit, blockedInputs } = await run();
     const [task, ...rest] = commit.upserts;
     expect(Task.parse(task)).toMatchObject({ status: "succeeded", failureCode: null });
+    expect(blockedInputs).toEqual([]);
     const scored = branchesOf(commit);
     expect(scored.map((b) => [b.explanationId, b.revision, b.status])).toEqual([
       ["rainfall", 2, "consistent"],
@@ -352,6 +246,37 @@ describe("scoring, merge and the records it writes", () => {
     const { commit, transport } = await run({ store });
     expect(commit.upserts[0]).toMatchObject({ status: "failed", failureCode: "no_case_config" });
     expect(transport.bodies).toHaveLength(0);
+  });
+
+  it("names each configured input the case lacks as a blocked input and offers no target in it", async () => {
+    const store = addBranchRecord(testStore(), ["rainfall", "season"]);
+    const vegetationOnly = {
+      predictions: [
+        {
+          necessary: true,
+          test: {
+            ...none,
+            kind: "departure_sign",
+            pairId: "vegetation_rainfall",
+            side: "a",
+            periodIds: ["period_2022-03"],
+            expected: "negative",
+          },
+          wording: "Vegetation departures in period_2022-03 are negative.",
+        },
+        GRAZING_REPLY.predictions[1],
+      ],
+    };
+    const { blockedInputs, transport, commit } = await run({
+      store,
+      replies: { rainfall: [vegetationOnly], grazing: [vegetationOnly] },
+    });
+    expect(blockedInputs).toEqual([
+      "rainfall departure (vegetation_rainfall side b): no validated test_rain_monthly bundle in this case.",
+      "November to April wet season: no validated season_summary 1.0.0 result in this case.",
+    ]);
+    expect(JSON.stringify(transport.bodies[0]?.["input"])).toContain('\\"seasonIds\\":[]');
+    expect(branchesOf(commit).map((b) => b.status)).toEqual(["consistent", "consistent"]);
   });
 
   it("a resumed task scores the predictions it committed, with no new model call", async () => {
@@ -473,20 +398,16 @@ describe("the prediction check", () => {
 
   it("needs a necessary prediction and one that tests the record", async () => {
     const ctx = await context();
-    const optional = { ...sign(), necessary: false };
-    const c1 = validatePredictions(reply(optional, field), ctx);
-    expect(!c1.ok && c1.issues.map((i) => i.message)).toContain(
+    const messages = (text: string) => {
+      const c = validatePredictions(text, ctx);
+      return c.ok ? [] : c.issues.map((i) => i.message);
+    };
+    expect(messages(reply({ ...sign(), necessary: false }, field))).toContain(
       "Mark at least one prediction necessary.",
     );
-    const c2 = validatePredictions(
-      reply(field, {
-        ...field,
-        necessary: true,
-        test: { ...field.test, fieldCheckId: "grazing_exclosure" },
-      }),
-      ctx,
+    expect(messages(reply({ ...field, necessary: true }, field))).toContain(
+      "At least one prediction must test the record, not the field.",
     );
-    expect(c2.ok).toBe(false);
   });
 
   it("keeps the wording rules: no cause, probability, ranking or unproven number", async () => {
@@ -526,5 +447,6 @@ describe("the catalog the model reads", () => {
     expect(catalog.pairs[0]?.a.bundle).toEqual({ id: "bundle_test_vegdep", revision: 1 });
     expect(catalog.pairs[0]?.b.bundle).toEqual({ id: "bundle_test_rainmon", revision: 1 });
     expect(catalog.seasonIds).toEqual([SEASON]);
+    expect(catalog.gaps).toEqual([]);
   });
 });

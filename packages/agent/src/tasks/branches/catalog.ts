@@ -30,6 +30,8 @@ export interface BranchCatalog {
   seasonIds: readonly string[];
   qualityFlags: readonly string[];
   fieldChecks: readonly FieldCheck[];
+  /** Each configured input the case has no validated bundle for, named as a blocked input. */
+  gaps: readonly string[];
 }
 
 function inWindow(month: number, season: Pick<SeasonWindow, "startMonth" | "endMonth">): boolean {
@@ -96,14 +98,36 @@ export async function buildCatalog(
     windowsMonths: p.windowsMonths,
     minAlignedMonths: p.minAlignedMonths,
   }));
+  const gaps = config.seriesPairs.flatMap((p, i) =>
+    (["a", "b"] as const).flatMap((s) =>
+      pairs[i]?.[s].bundle
+        ? []
+        : [`${p[s].label} (${p.id} side ${s}): no validated ${p[s].methodId} bundle in this case.`],
+    ),
+  );
+  const { recipe } = config.rainfallSeason;
+  const hasSeasons = bundles.some(
+    (b) =>
+      b.status === "validated" &&
+      b.methodId === recipe.recipeId &&
+      b.methodVersion === recipe.version,
+  );
+  if (!hasSeasons) {
+    gaps.push(
+      `${config.rainfallSeason.label}: no validated ${recipe.recipeId} ${recipe.version} result in this case.`,
+    );
+  }
   return {
     pairs,
-    seasonIds: coveredSeasons(
-      pairs.flatMap((p) => [...p.a.periodIds, ...p.b.periodIds]),
-      config.rainfallSeason,
-    ),
+    seasonIds: hasSeasons
+      ? coveredSeasons(
+          pairs.flatMap((p) => [...p.a.periodIds, ...p.b.periodIds]),
+          config.rainfallSeason,
+        )
+      : [],
     qualityFlags: QualityFlag.options,
     fieldChecks: config.fieldChecks,
+    gaps,
   };
 }
 

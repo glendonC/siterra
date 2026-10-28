@@ -328,7 +328,7 @@ export async function runExplanationBranchesTask(
   if (withPredictions === 0) {
     const code = drafted.find((d) => d.model.failureCode)?.model.failureCode ?? "no_valid_items";
     return {
-      loop: { blockedInputs: [] },
+      loop: { blockedInputs: catalog.gaps },
       commit: finalCommit(
         task,
         input,
@@ -497,7 +497,7 @@ export async function runExplanationBranchesTask(
     .map(([s, n]) => `${String(n)} ${s.replaceAll("_", " ")}`);
   const partial = withPredictions < drafted.length;
   return {
-    loop: { blockedInputs: [] },
+    loop: { blockedInputs: catalog.gaps },
     commit: finalCommit(
       task,
       input,
