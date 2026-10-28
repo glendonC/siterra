@@ -66,6 +66,7 @@ describe("GET /api/case-assets/:bundleId/:contentHash/:path", () => {
     expect(response.status).toBe(200);
     expect(response.headers.get("content-type")).toBe("application/geo+json");
     expect(response.headers.get("accept-ranges")).toBe("bytes");
+    expect(response.headers.get("x-content-type-options")).toBe("nosniff");
     const body = Buffer.from(await response.arrayBuffer());
     expect(body.equals(readFileSync(`${bundlesDir}${bundleId}/rainfall-cells.geojson`))).toBe(true);
     expect(response.headers.get("etag")).toBe(`"${sha256Multihash(body)}"`);
@@ -82,6 +83,16 @@ describe("GET /api/case-assets/:bundleId/:contentHash/:path", () => {
   it("answers 416 for a range beyond the file", async () => {
     const response = await get("period_2022-04/cell-values.json", { range: "bytes=999999-" });
     expect(response.status).toBe(416);
+    expect(response.headers.get("x-content-type-options")).toBe("nosniff");
+  });
+
+  it("answers an invalid range such as bytes=5-3 with 200 and the whole file (RFC 9110)", async () => {
+    const full = readFileSync(`${bundlesDir}${bundleId}/period_2022-04/cell-values.json`);
+    const response = await get("period_2022-04/cell-values.json", { range: "bytes=5-3" });
+    expect(response.status).toBe(200);
+    expect(response.headers.get("content-range")).toBeNull();
+    expect(response.headers.get("x-content-type-options")).toBe("nosniff");
+    expect(Buffer.from(await response.arrayBuffer()).equals(full)).toBe(true);
   });
 
   it("answers 404 to an owner whose cases do not hold the bundle, and 401 without a session", async () => {
@@ -105,7 +116,8 @@ describe("the records point at this route", () => {
       ),
     ) as { records: { dataBundleRecords: { id: string; manifestUri: string }[] } };
     const uri = fixture.records.dataBundleRecords.find((b) => b.id === bundleId)?.manifestUri ?? "";
-    const [, , , id, hash, ...rest] = new URL(uri).pathname.split("/");
+    expect(uri.startsWith("/api/case-assets/")).toBe(true);
+    const [, , , id, hash, ...rest] = uri.split("/");
     expect([id, hash, rest.join("/")]).toEqual([bundleId, contentHash, "collection.json"]);
     const response = await get("collection.json");
     expect(response.status).toBe(200);
@@ -127,6 +139,9 @@ describe("byte ranges", () => {
     expect(parseByteRange("bytes=100-", 100)).toBe("unsatisfiable");
     expect(parseByteRange("bytes=-0", 100)).toBe("unsatisfiable");
     expect(parseByteRange("bytes=0-1,5-6", 100)).toBeNull();
+    expect(parseByteRange("bytes=5-3", 100)).toBeNull();
+    expect(parseByteRange("bytes=150-120", 100)).toBeNull();
+    expect(parseByteRange("bytes=5-5", 100)).toEqual({ start: 5, end: 5 });
     expect(parseByteRange(null, 100)).toBeNull();
   });
 });

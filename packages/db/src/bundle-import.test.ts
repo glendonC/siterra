@@ -52,7 +52,6 @@ const context: ImportContext = {
   caseId: "case_example_import",
   geoSelections: [geoSelection],
   sources: [],
-  assetBaseUri: "http://127.0.0.1:4350/api/case-assets/",
   importedAt: at,
 };
 
@@ -162,12 +161,17 @@ describe("SV-01 (import part): bundles import with verified checksums and values
     }
   });
 
-  it("pins each bundle by the multihash of its collection.json and an absolute manifest URI", () => {
+  it("pins each bundle by the multihash of its collection.json and an origin-relative manifest path", () => {
     for (const bundle of result.bundles) {
       expect(bundle.dataBundle.contentHash).toMatch(/^1220[0-9a-f]{64}$/);
       expect(bundle.dataBundle.manifestUri).toBe(
-        `http://127.0.0.1:4350/api/case-assets/${bundle.dataBundle.id}/${bundle.dataBundle.contentHash ?? ""}/collection.json`,
+        `/api/case-assets/${bundle.dataBundle.id}/${bundle.dataBundle.contentHash ?? ""}/collection.json`,
       );
+      for (const o of bundle.temporalObservations) {
+        if (o.mapAssetUri !== null) {
+          expect(o.mapAssetUri.startsWith(`/api/case-assets/${bundle.dataBundle.id}/`)).toBe(true);
+        }
+      }
     }
   });
 });
@@ -282,5 +286,34 @@ describe("STAC extension 1.1.0: a measurement entry states its own missing reaso
       path: "catalog.json/links",
       message: "file:checksum does not match ./bundle_terrain_strata_ait_bouguemez/collection.json",
     });
+  });
+});
+
+describe("19b: asset URIs are paths on the application origin", () => {
+  it("writes a period's overview asset as /api/case-assets/<bundle>/<content hash>/<period>/<file>", () => {
+    const dir = copyCatalog();
+    const bundleId = "bundle_chirps_monthly_ait_bouguemez";
+    const overviewBytes = Buffer.from("Test overview bytes, not a raster");
+    writeFileSync(join(dir, bundleId, "period_2022-04/overview.webp"), overviewBytes);
+    rewriteItem(dir, bundleId, "period_2022-04", (item) => {
+      (item["assets"] as Json)["overview"] = {
+        href: "./overview.webp",
+        type: "image/webp",
+        title: "Test overview, not bundle data",
+        roles: ["overview"],
+        "siterra:color_scale": "rain-sequential",
+        "siterra:domain": [0, 100],
+        "file:checksum": sha256Multihash(overviewBytes),
+      };
+    });
+    const result = importCatalog({ ...context, catalogDir: dir });
+    const chirps = result.bundles.find((b) => b.dataBundle.id === bundleId);
+    const hash = sha256Multihash(readFileSync(join(dir, bundleId, "collection.json")));
+    expect(chirps?.dataBundle.contentHash).toBe(hash);
+    const period = chirps?.temporalObservations.find((o) => o.periodId === "period_2022-04");
+    expect([period?.mapAssetUri, period?.mapStatus]).toEqual([
+      `/api/case-assets/${bundleId}/${hash}/period_2022-04/overview.webp`,
+      "available",
+    ]);
   });
 });

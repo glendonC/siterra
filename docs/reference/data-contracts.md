@@ -224,11 +224,11 @@ The importer accepts a bundle only if every document validates against the STAC 
 | `DataBundle.geoSelectionId`, `geoRevision` | `siterra:geo_selection.id`, `.revision`; the GeoSelection geometry must equal the `analysis_geometry` asset |
 | `DataBundle.periodIds` | Item IDs |
 | `DataBundle.methodId`, `methodVersion` | `siterra:method.id`, `.version` |
-| `DataBundle.manifestUri` | URI of `collection.json` |
+| `DataBundle.manifestUri` | Path of `collection.json` on the application origin, `/api/case-assets/<bundle ID>/<content hash>/collection.json` (a URI reference) |
 | `DataBundle.contentHash` | SHA-256 multihash of `collection.json`, which pins every Item and asset through their `file:checksum` |
 | `DataBundle.license`, `attribution` | Collection `license` (with the `license` link titles when it is `other`); `siterra:attribution` |
 | `TemporalObservation.periodId`, `startDate`, `endDateExclusive` | Item `id`; both dates derive from the period ID and must agree with the inclusive STAC `start_datetime` and `end_datetime` (last second of the month) |
-| `TemporalObservation.mapAssetUri`, `mapAssetHash`, `mapStatus` | The `overview` asset href and `file:checksum`; `mapStatus: missing` when the Item has no `overview` asset |
+| `TemporalObservation.mapAssetUri`, `mapAssetHash`, `mapStatus` | The `overview` asset href resolved under the same origin path, and its `file:checksum`; `mapStatus: missing` when the Item has no `overview` asset |
 | `TemporalObservation.qualityFlags` | `siterra:quality_flags` |
 | `Measurement.metric`, `value`, `unit`, `aggregation`, `status`, `validPixelCount`, `totalPixelCount` | The matching `siterra:measurements` entry |
 | `Measurement.missingReason` | When the measurement is not `available`: the entry's own `missing_reason` (extension 1.1.0), else the Item's `siterra:missing_reason`; with neither, the bundle is refused |

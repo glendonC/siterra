@@ -82,6 +82,7 @@ Contracts and design tokens carry their own Semantic Versioning numbers, recorde
 - VC-02 exempts names on the land whether they are drawn into the map canvas or placed over it with the camera's projection; they scale with the view and are checked on the frames.
 - The numeric provenance check reads a four-digit number as a year only in a date pattern or after a date word inside the case span, with "to" only inside an ascending "from X to Y" range; a count after a date word ("rose to 2000", "In 2000 households") is refused, and the repair message suggests the accepted year forms.
 - Case contracts 1.6.0: ContextFeature records for the places the map names, seeded from `data/case/context-features.json`: the catchment outlet (Copernicus DEM GLO-30, with its one OpenStreetMap input coordinate credited), Tabant from GeoNames (CC BY 4.0) and the Aït Ouchi locator from SCI-04 (CC BY 4.0), each with its attribution, licence and limitations; `manifestUri` and `mapAssetUri` take a URI reference.
+- Case asset links in the records are origin-relative (`/api/case-assets/...`), so a case works on any deployment; the route sends `X-Content-Type-Options: nosniff`, caches checksum matches by size and modification time, and answers an invalid range such as `bytes=5-3` with the whole file.
 
 ### Fixed
 

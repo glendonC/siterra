@@ -30,11 +30,21 @@ export type ImportContext = {
   caseId: string;
   geoSelections: readonly GeoSelection[];
   sources: readonly Source[];
-  /** Absolute URL of the case assets route (GET /api/case-assets/), ending in a slash. */
-  assetBaseUri: string;
   /** Timestamp for createdAt and updatedAt of the imported records. */
   importedAt: string;
 };
+
+/** The case assets route (GET /api/case-assets/), as a path on the application origin. */
+export const caseAssetsPath = "/api/case-assets/";
+const placeholderOrigin = "https://origin.invalid";
+
+/**
+ * A bundle file's URI as the records carry it: a path on the application origin, so a record and the
+ * fixture name no host. An href that leaves the origin stays absolute.
+ */
+function assetUri(url: URL): string {
+  return url.origin === placeholderOrigin ? `${url.pathname}${url.search}` : url.toString();
+}
 
 /** The STAC file extension checksum: a SHA-256 multihash in hex (code 0x12, length 0x20). */
 export function sha256Multihash(bytes: Uint8Array): string {
@@ -268,7 +278,7 @@ function importBundle(
   };
   // Hash-addressed asset path, as GET /api/case-assets/:bundleId/:contentHash/:path serves it.
   const contentHash = sha256Multihash(collectionBytes);
-  const bundleUrl = new URL(`${bundleId}/${contentHash}/`, context.assetBaseUri);
+  const bundleUrl = new URL(`${caseAssetsPath}${bundleId}/${contentHash}/`, placeholderOrigin);
   const slug = bundleId.replace(/^bundle_/, "");
   const license = typeof collection["license"] === "string" ? collection["license"] : null;
 
@@ -384,7 +394,7 @@ function importBundle(
         mapAssetUri:
           overview === undefined
             ? null
-            : new URL(overview.href, new URL(`${periodId}/`, bundleUrl)).toString(),
+            : assetUri(new URL(overview.href, new URL(`${periodId}/`, bundleUrl))),
         mapAssetHash: overview === undefined ? null : overview["file:checksum"],
         mapStatus: overview === undefined ? "missing" : "available",
         qualityFlags: props["siterra:quality_flags"],
@@ -414,7 +424,7 @@ function importBundle(
     periodIds: temporalObservations.map((o) => o.periodId),
     methodId: method.id,
     methodVersion: method.version,
-    manifestUri: new URL("collection.json", bundleUrl).toString(),
+    manifestUri: assetUri(new URL("collection.json", bundleUrl)),
     contentHash,
     license: license === "other" && licenseTitles.length > 0 ? licenseTitles.join("; ") : license,
     attribution: collection["siterra:attribution"].join("; "),

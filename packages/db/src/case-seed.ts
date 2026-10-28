@@ -111,7 +111,6 @@ export function readCaseSeed(args: {
   /** The environment the live approval is read from; process.env unless a test passes one. */
   env?: Record<string, string | undefined>;
   ownerScopeId: string;
-  assetBaseUri: string;
   importedAt: string;
 }): CaseSeedResult {
   const mode = args.mode ?? "concept";
@@ -214,7 +213,6 @@ export function readCaseSeed(args: {
     caseId: file.caseId,
     geoSelections: [geoSelection],
     sources,
-    assetBaseUri: args.assetBaseUri,
     importedAt: at,
   });
   issues.push(...imported.issues);

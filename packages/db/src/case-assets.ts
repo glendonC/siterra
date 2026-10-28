@@ -17,6 +17,13 @@ export type CaseAssetFile = {
 
 type Listing = Map<string, { contentType: string; checksum: string }>;
 const listings = new Map<string, { mtimeMs: number; listing: Listing }>();
+/**
+ * Files whose bytes matched their checksum, keyed by path, with the size and modification time
+ * (nanoseconds) they had then: a file that keeps both is not hashed again; any change to either
+ * hashes it again before it is served. A rewrite that keeps the size and the nanosecond timestamp
+ * is not detected; bundles are written once, not edited in place.
+ */
+const verified = new Map<string, { size: bigint; mtimeNs: bigint; checksum: string }>();
 
 function relativeHref(href: string): string | null {
   if (/^[a-z][a-z0-9+.-]*:/i.test(href) || href.startsWith("/")) return null;
@@ -88,13 +95,26 @@ export function resolveCaseAsset(
   if (entry === undefined) return null;
   const absolutePath = normalize(join(bundleDir, path));
   if (!absolutePath.startsWith(bundleDir + sep) || !existsSync(absolutePath)) return null;
-  const bytes = readFileSync(absolutePath);
-  if (sha256Multihash(bytes) !== entry.checksum) return null;
+  const stat = statSync(absolutePath, { bigint: true });
+  const known = verified.get(absolutePath);
+  if (
+    known?.size !== stat.size ||
+    known.mtimeNs !== stat.mtimeNs ||
+    known.checksum !== entry.checksum
+  ) {
+    verified.delete(absolutePath);
+    if (sha256Multihash(readFileSync(absolutePath)) !== entry.checksum) return null;
+    verified.set(absolutePath, {
+      size: stat.size,
+      mtimeNs: stat.mtimeNs,
+      checksum: entry.checksum,
+    });
+  }
   return {
     absolutePath,
     contentType: entry.contentType,
     checksum: entry.checksum,
-    size: bytes.length,
+    size: Number(stat.size),
   };
 }
 

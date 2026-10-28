@@ -38,6 +38,8 @@ export async function GET(
   }
   const headers = {
     "Content-Type": file.contentType,
+    // The browser keeps the stated type and never sniffs a bundle file as script or HTML.
+    "X-Content-Type-Options": "nosniff",
     "Accept-Ranges": "bytes",
     ETag: `"${file.checksum}"`,
     "Cache-Control": "private, max-age=31536000, immutable",

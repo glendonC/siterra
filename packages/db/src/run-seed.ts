@@ -1,6 +1,7 @@
 // Loads the case seed, or writes the UI fixture of its snapshot, from the repository root:
-//   node packages/db/src/run-seed.ts load <mode> <owner scope> <asset base URL>
-//   node packages/db/src/run-seed.ts fixture <mode> <output path> <asset base URL>
+//   node packages/db/src/run-seed.ts load <mode> <owner scope>
+//   node packages/db/src/run-seed.ts fixture <mode> <output path>
+// Asset URIs in the records are paths on the application origin (/api/case-assets/...).
 // <mode> is concept until GATE-01 is recorded; live is refused without SITERRA_LIVE_APPROVED.
 // It refuses when any source or bundle is refused, and lists why.
 import { writeFileSync } from "node:fs";
@@ -10,16 +11,10 @@ import { readCaseSeed, seedSnapshot } from "./case-seed.ts";
 import { createPool } from "./client.ts";
 import { loadSeedCase } from "./seed.ts";
 
-const [action, modeArg, target, assetBaseUri] = process.argv.slice(2);
+const [action, modeArg, target] = process.argv.slice(2);
 const mode = EnvironmentalCase.shape.mode.parse(modeArg);
-if (
-  (action !== "load" && action !== "fixture") ||
-  target === undefined ||
-  assetBaseUri === undefined
-) {
-  console.error(
-    "usage: run-seed.ts load|fixture <mode> <owner scope or output path> <asset base URL>",
-  );
+if ((action !== "load" && action !== "fixture") || target === undefined) {
+  console.error("usage: run-seed.ts load|fixture <mode> <owner scope or output path>");
   process.exit(2);
 }
 const repoDir = fileURLToPath(new URL("../../../", import.meta.url));
@@ -27,7 +22,6 @@ const { seed, issues } = readCaseSeed({
   repoDir,
   mode,
   ownerScopeId: action === "load" ? target : "seed",
-  assetBaseUri,
   importedAt: new Date().toISOString(),
 });
 if (seed === null || issues.length > 0) {

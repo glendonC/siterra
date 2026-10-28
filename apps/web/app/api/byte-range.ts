@@ -1,5 +1,6 @@
 // One HTTP byte range (RFC 9110, section 14): "bytes=a-b", "bytes=a-" or "bytes=-n". Several ranges
-// in one header are answered with the whole file, as the RFC allows.
+// in one header, and an invalid one such as "bytes=5-3", are answered with the whole file, as the RFC
+// allows.
 
 export type ByteRange = { start: number; end: number };
 
@@ -19,7 +20,9 @@ export function parseByteRange(
     return { start: Math.max(0, size - length), end: size - 1 };
   }
   const start = Number(first);
-  const end = last === "" ? size - 1 : Math.min(Number(last), size - 1);
-  if (start >= size || end < start) return "unsatisfiable";
-  return { start, end };
+  // A last position before the first makes the range invalid, not unsatisfiable: the header is
+  // ignored and the whole file is sent (RFC 9110, sections 14.1.1 and 14.2).
+  if (last !== "" && Number(last) < start) return null;
+  if (start >= size) return "unsatisfiable";
+  return { start, end: last === "" ? size - 1 : Math.min(Number(last), size - 1) };
 }
