@@ -4,9 +4,15 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "typecheck": "tsc -p tsconfig.json"
+    "typecheck": "tsc -p tsconfig.json",
+    "start": "node lib/main.ts"
   },
   "dependencies": {
-    "@siterra/agent": "workspace:*"
+    "@siterra/agent": "workspace:*",
+    "@siterra/contracts": "workspace:*",
+    "@siterra/db": "workspace:*",
+    "@siterra/domain": "workspace:*",
+    "pg": "8.23.1",
+    "pg-boss": "12.37.1"
   }
 }

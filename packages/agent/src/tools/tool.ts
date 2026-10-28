@@ -1,26 +1,13 @@
+import type { Task } from "@siterra/contracts";
+
 import type { JsonSchema } from "../model/types.ts";
 
 // Function tools offered to a model are reads and deterministic computation only
 // (docs/reference/agent-orchestration.md#tools-and-permissions). Proposals are never tools: they
 // are the structured final output of a task.
 
-/** Tool names in Task.allowedTools of case.schema.json 1.2. */
-export type ToolName =
-  | "read_case"
-  | "read_evidence"
-  | "search_sources"
-  | "read_source"
-  | "fetch_source"
-  | "read_dataset_manifest"
-  | "summarize_observations"
-  | "compare_series"
-  | "propose_plan"
-  | "propose_evidence"
-  | "propose_hypotheses"
-  | "propose_interventions"
-  | "propose_package"
-  | "propose_layout"
-  | "request_review";
+/** Tool names in Task.allowedTools of the case contracts. */
+export type ToolName = Task["allowedTools"][number];
 
 export type ParsedArgs<A> = { ok: true; value: A } | { ok: false; message: string };
 

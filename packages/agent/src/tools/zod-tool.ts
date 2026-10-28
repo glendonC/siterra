@@ -1,16 +1,13 @@
-import { z } from "zod";
+import { toModelJsonSchema } from "@siterra/contracts";
+import type { z } from "zod";
 
 import type { JsonSchema } from "../model/types.ts";
 import { jsonPath } from "../tasks/validation.ts";
 import type { ParsedArgs } from "./tool.ts";
 
-/** A model-facing argument schema exported under the strict-subset rules, without `$schema`. */
+/** A model-facing argument schema, exported by the contracts package under the strict-subset rules. */
 export function argumentSchema(schema: z.ZodType): JsonSchema {
-  const exported = {
-    ...(z.toJSONSchema(schema, { cycles: "throw", reused: "inline" }) as JsonSchema),
-  };
-  delete exported["$schema"];
-  return exported;
+  return toModelJsonSchema(schema);
 }
 
 export function parseWith<A>(schema: z.ZodType<A>, args: unknown): ParsedArgs<A> {

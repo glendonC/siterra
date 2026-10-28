@@ -1,24 +1,16 @@
-import { z } from "zod";
+import { ProposePlan, plannableTaskKinds, toModelJsonSchema } from "@siterra/contracts";
 
 import type { JsonSchema } from "../../model/types.ts";
 import { issue, jsonPath } from "../validation.ts";
 import type { Checked, ValidationIssue } from "../validation.ts";
 
-// propose_plan (docs/reference/data-contracts.md#tool-argument-contracts). Local mirror of
-// ProposePlan in PLATFORM's packages/contracts (same fields; revision is z.number() here and
-// checked as an integer by host code); replaced by the import once contracts land. The model-facing schema holds
-// types, enums and required fields only; every limit below is enforced by host code, because Meta
-// does not document support for length, count or pattern keywords in its strict subset.
+// propose_plan (docs/reference/data-contracts.md#tool-argument-contracts): the schema is
+// ProposePlan from packages/contracts. The model-facing schema holds types, enums and required
+// fields only; every limit below is enforced by host code, because Meta does not document support
+// for length, count or pattern keywords in its strict subset.
 
 /** Task kinds a plan may contain. `plan` and `validation` are host-run and never planned. */
-export const PLANNABLE_KINDS = [
-  "source_research",
-  "observation_analysis",
-  "livelihood_governance",
-  "hypothesis_comparison",
-  "intervention_feasibility",
-  "brief_package",
-] as const;
+export const PLANNABLE_KINDS = plannableTaskKinds;
 
 export type PlannableKind = (typeof PLANNABLE_KINDS)[number];
 
@@ -33,29 +25,13 @@ export const LIMITS = {
 
 const KEY_PATTERN = /^[a-z][a-z0-9_]{0,39}$/;
 
-export const PlanProposal = z.strictObject({
-  interpretation: z.string(),
-  tasks: z.array(
-    z.strictObject({
-      key: z.string(),
-      kind: z.enum(PLANNABLE_KINDS),
-      question: z.string(),
-      dependsOn: z.array(z.string()),
-      inputRefs: z.array(z.strictObject({ entityId: z.string(), revision: z.number() })),
-    }),
-  ),
-  clarifyingQuestion: z.string().nullable(),
-});
+export const PlanProposal = ProposePlan;
 
-export type PlanProposal = z.infer<typeof PlanProposal>;
+export type PlanProposal = ProposePlan;
 
-/** The model-facing JSON Schema, exported with the rules in docs/architecture/02-architecture-constraints.md. */
+/** The model-facing JSON Schema, exported by the contracts package under the strict-subset rules. */
 export function planOutputSchema(): JsonSchema {
-  const schema = {
-    ...(z.toJSONSchema(PlanProposal, { cycles: "throw", reused: "inline" }) as JsonSchema),
-  };
-  delete schema["$schema"];
-  return schema;
+  return toModelJsonSchema(ProposePlan);
 }
 
 function sentenceCount(text: string): number {

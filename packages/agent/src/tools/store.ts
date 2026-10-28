@@ -1,5 +1,5 @@
-import type { Locator } from "../../../domain/src/validators/index.ts";
-import { formatLocator } from "../../../domain/src/validators/index.ts";
+import type { Locator } from "@siterra/domain/validators";
+import { formatLocator } from "@siterra/domain/validators";
 import type { DataBundleRecord, MeasurementRecord } from "../tasks/records.ts";
 
 // Read access the tools need, scoped to one authorized case. PLATFORM's packages/db implements it

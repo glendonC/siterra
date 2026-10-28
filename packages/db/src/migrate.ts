@@ -1,11 +1,19 @@
 import { readFileSync } from "node:fs";
 import { sha256Hex } from "@siterra/domain";
 import { inTransaction, type Pool } from "./client.ts";
+import { jobQueueSql } from "./job-queue.ts";
 
-/** Applied in this order; a file never changes once applied (its SHA-256 is recorded). */
-export const migrations = ["case-record", "trace-and-outbox"] as const;
+/**
+ * Applied in this order; a migration never changes once applied (its SHA-256 is recorded).
+ * pg-boss-schema is pg-boss's own construction plan for the pinned version, so upgrading pg-boss
+ * needs a new migration from its migration plan rather than a changed one.
+ */
+export const migrations = ["case-record", "trace-and-outbox", "pg-boss-schema"] as const;
 
 export function migrationSql(name: string): string {
+  if (name === "pg-boss-schema") {
+    return jobQueueSql();
+  }
   return readFileSync(new URL(`../migrations/${name}.sql`, import.meta.url), "utf8");
 }
 

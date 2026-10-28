@@ -1,7 +1,7 @@
 import { z } from "zod";
 
-import { formatLocator } from "../../../domain/src/validators/index.ts";
-import type { Locator } from "../../../domain/src/validators/index.ts";
+import { formatLocator } from "@siterra/domain/validators";
+import type { Locator } from "@siterra/domain/validators";
 import type { CaseStore, StoredDocument } from "./store.ts";
 import { ToolFailure } from "./tool.ts";
 import type { ToolHandler } from "./tool.ts";

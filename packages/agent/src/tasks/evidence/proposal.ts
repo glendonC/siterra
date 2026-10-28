@@ -1,22 +1,21 @@
-import { z } from "zod";
-
-import type { JsonSchema } from "../../model/types.ts";
-import type { CaseStore, StoredSource } from "../../tools/store.ts";
-// Relative until PLATFORM exports the validators from @siterra/domain.
+import { ProposeEvidence, toModelJsonSchema } from "@siterra/contracts";
 import {
   checkExcerpt,
   claimRuleIssues,
   parseLocator,
   prohibitedHits,
   unprovenNumbers,
-} from "../../../../domain/src/validators/index.ts";
-import type { YearSpan } from "../../../../domain/src/validators/index.ts";
+} from "@siterra/domain/validators";
+import type { YearSpan } from "@siterra/domain/validators";
+
+import type { JsonSchema } from "../../model/types.ts";
+import type { CaseStore, StoredSource } from "../../tools/store.ts";
 import type { ClaimKind, DataBundleRecord, MeasurementRecord } from "../records.ts";
 import { issue, jsonPath } from "../validation.ts";
 import type { Checked, ValidationIssue } from "../validation.ts";
 
-// propose_evidence (docs/reference/data-contracts.md#tool-argument-contracts), local mirror like
-// propose_plan. Items are validated one by one; valid items commit and rejected ones are listed,
+// propose_evidence (docs/reference/data-contracts.md#tool-argument-contracts): the schema is
+// ProposeEvidence from packages/contracts. Items are validated one by one; valid items commit and rejected ones are listed,
 // which is a partial result (docs/reference/data-contracts.md#idempotency-revisions-and-recovery).
 
 export const CLAIM_KINDS = [
@@ -36,30 +35,13 @@ export const EVIDENCE_LIMITS = {
   maxLimitations: 5,
 } as const;
 
-export const EvidenceProposal = z.strictObject({
-  items: z.array(
-    z.strictObject({
-      statement: z.string(),
-      claimKind: z.enum(CLAIM_KINDS),
-      measurementIds: z.array(z.string()),
-      sourceId: z.string().nullable(),
-      locator: z.string().nullable(),
-      excerpt: z.string().nullable(),
-      scopeNote: z.string(),
-      limitations: z.array(z.string()),
-    }),
-  ),
-});
+export const EvidenceProposal = ProposeEvidence;
 
-export type EvidenceProposal = z.infer<typeof EvidenceProposal>;
+export type EvidenceProposal = ProposeEvidence;
 export type EvidenceItem = EvidenceProposal["items"][number];
 
 export function evidenceOutputSchema(): JsonSchema {
-  const schema = {
-    ...(z.toJSONSchema(EvidenceProposal, { cycles: "throw", reused: "inline" }) as JsonSchema),
-  };
-  delete schema["$schema"];
-  return schema;
+  return toModelJsonSchema(ProposeEvidence);
 }
 
 /** An item that passed validation, with the records its numbers were checked against. */
