@@ -1,6 +1,6 @@
 {
   "recordType": "Commit",
-  "schemaVersion": "1.9.0",
+  "schemaVersion": "1.10.0",
   "id": "commit_example_branch_scores",
   "caseId": "case_example_atlas",
   "commandId": "cmd_example_branches",
@@ -173,6 +173,17 @@
           "detail": "Fictional example: only a field measurement can test this."
         }
       ],
+      "fieldPlan": {
+        "measurements": [
+          {
+            "fieldCheckId": "soil_moisture_survey",
+            "label": "Soil Moisture Survey",
+            "separates": [["grazing", "rainfall"]],
+            "onlySeparates": [["grazing", "rainfall"]]
+          }
+        ],
+        "unseparated": []
+      },
       "provenance": {
         "sourceLocators": [],
         "dataBundleIds": [],
@@ -198,7 +209,7 @@
   "events": [
     {
       "recordType": "Event",
-      "schemaVersion": "1.9.0",
+      "schemaVersion": "1.10.0",
       "id": "evt_example_branch_scores",
       "caseId": "case_example_atlas",
       "sequence": 21,

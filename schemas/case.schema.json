@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://siterra.invalid/schemas/case/1.9.0/case.schema.json",
+  "$id": "https://siterra.invalid/schemas/case/1.10.0/case.schema.json",
   "title": "Siterra case contracts",
   "description": "Records of one Siterra case as stored and exchanged between the web application, the worker and the browser. The root validates a case snapshot, a command, an event or an atomic commit proposal; $defs holds the record types. Cross-record semantics that JSON Schema cannot express are specified in docs/reference/data-contracts.md.",
   "oneOf": [
@@ -2791,7 +2791,8 @@
             "1.6.0",
             "1.7.0",
             "1.8.0",
-            "1.9.0"
+            "1.9.0",
+            "1.10.0"
           ],
           "description": "Contract version the instance was written against; producers write the newest, and earlier versions of the same MAJOR stay valid."
         },
@@ -2887,7 +2888,8 @@
             "1.6.0",
             "1.7.0",
             "1.8.0",
-            "1.9.0"
+            "1.9.0",
+            "1.10.0"
           ],
           "description": "Contract version the instance was written against; producers write the newest, and earlier versions of the same MAJOR stay valid."
         },
@@ -3255,7 +3257,8 @@
             "1.6.0",
             "1.7.0",
             "1.8.0",
-            "1.9.0"
+            "1.9.0",
+            "1.10.0"
           ],
           "description": "Contract version the instance was written against; producers write the newest, and earlier versions of the same MAJOR stay valid."
         },
@@ -3294,7 +3297,8 @@
             "1.6.0",
             "1.7.0",
             "1.8.0",
-            "1.9.0"
+            "1.9.0",
+            "1.10.0"
           ],
           "description": "Contract version the instance was written against; producers write the newest, and earlier versions of the same MAJOR stay valid."
         },
@@ -4802,8 +4806,79 @@
         }
       }
     },
+    "ExplanationPair": {
+      "description": "Added in 1.10.0: two configured explanation IDs, ordered by code point, that a field measurement can tell apart.",
+      "type": "array",
+      "prefixItems": [
+        {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,39}$"
+        },
+        {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,39}$"
+        }
+      ],
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "BranchFieldPlan": {
+      "description": "Added in 1.10.0: the field plan as a minimum test cover (DF-09). measurements is the smallest set of the case's configured field checks that separates every pair of explanations the merge leaves open (pairs of explanations not contradicted); ties go to the set earliest in configuration order. Each measurement names the open pairs it separates and the pairs only it separates, so removing any one leaves a named pair unseparated. unseparated lists open pairs no configured check separates. Which pairs a check separates is a configured judgment, not a result.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "measurements",
+        "unseparated"
+      ],
+      "properties": {
+        "measurements": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "fieldCheckId",
+              "label",
+              "separates",
+              "onlySeparates"
+            ],
+            "properties": {
+              "fieldCheckId": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]{0,39}$"
+              },
+              "label": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 120
+              },
+              "separates": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/ExplanationPair"
+                },
+                "minItems": 1
+              },
+              "onlySeparates": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/ExplanationPair"
+                },
+                "minItems": 1
+              }
+            }
+          }
+        },
+        "unseparated": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ExplanationPair"
+          }
+        }
+      }
+    },
     "BranchMerge": {
-      "description": "Added in 1.9.0: the fixed merge of one command's explanation branches. Statuses come from the scores alone: contradicted when a necessary prediction is not met on adequate data, consistent when every testable prediction is met and at least one is testable, cannot_be_assessed otherwise.",
+      "description": "Added in 1.9.0: the fixed merge of one command's explanation branches. Statuses come from the scores alone: contradicted when a necessary prediction is not met on adequate data, consistent when every testable prediction is met and at least one is testable, cannot_be_assessed otherwise. fieldPlan added in 1.10.0.",
       "type": "object",
       "additionalProperties": false,
       "required": [
@@ -4909,6 +4984,10 @@
           "items": {
             "$ref": "#/$defs/BranchConflict"
           }
+        },
+        "fieldPlan": {
+          "$ref": "#/$defs/BranchFieldPlan",
+          "description": "Added in 1.10.0; optional so merges written before it stay valid."
         },
         "provenance": {
           "$ref": "#/$defs/Provenance"

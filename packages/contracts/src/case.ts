@@ -5,7 +5,7 @@ import { z } from "zod";
 import { dateTime, entityId, isoDate, text, uniqueArray, uri, uriReference } from "./primitives.ts";
 import { missingIsAValue } from "./rules.ts";
 
-export const caseSchemaVersion = "1.9.0";
+export const caseSchemaVersion = "1.10.0";
 /** Every schemaVersion string this contract accepts (the earlier ones of the same MAJOR stay valid). */
 export const acceptedCaseSchemaVersions = [
   "1.2.0",
@@ -16,8 +16,9 @@ export const acceptedCaseSchemaVersions = [
   "1.7.0",
   "1.8.0",
   "1.9.0",
+  "1.10.0",
 ] as const;
-export const caseSchemaId = "https://siterra.invalid/schemas/case/1.9.0/case.schema.json";
+export const caseSchemaId = "https://siterra.invalid/schemas/case/1.10.0/case.schema.json";
 
 export const EntityVersion = z.strictObject({
   entityId: entityId,
@@ -651,7 +652,17 @@ export type Brief = z.infer<typeof Brief>;
 
 export const Command = z.strictObject({
   recordType: z.literal("Command"),
-  schemaVersion: z.enum(["1.2.0", "1.3.0", "1.4.0", "1.5.0", "1.6.0", "1.7.0", "1.8.0", "1.9.0"]),
+  schemaVersion: z.enum([
+    "1.2.0",
+    "1.3.0",
+    "1.4.0",
+    "1.5.0",
+    "1.6.0",
+    "1.7.0",
+    "1.8.0",
+    "1.9.0",
+    "1.10.0",
+  ]),
   id: entityId,
   caseId: entityId,
   createdAt: dateTime,
@@ -753,7 +764,17 @@ export type ValidationResult = z.infer<typeof ValidationResult>;
 
 export const Event = z.strictObject({
   recordType: z.literal("Event"),
-  schemaVersion: z.enum(["1.2.0", "1.3.0", "1.4.0", "1.5.0", "1.6.0", "1.7.0", "1.8.0", "1.9.0"]),
+  schemaVersion: z.enum([
+    "1.2.0",
+    "1.3.0",
+    "1.4.0",
+    "1.5.0",
+    "1.6.0",
+    "1.7.0",
+    "1.8.0",
+    "1.9.0",
+    "1.10.0",
+  ]),
   id: entityId,
   caseId: entityId,
   sequence: z.int().min(1),
@@ -809,6 +830,25 @@ export const BranchConflict = z.strictObject({
 });
 export type BranchConflict = z.infer<typeof BranchConflict>;
 
+export const ExplanationPair = z.tuple([
+  z.string().regex(new RegExp("^[a-z][a-z0-9_]{0,39}$")),
+  z.string().regex(new RegExp("^[a-z][a-z0-9_]{0,39}$")),
+]);
+export type ExplanationPair = z.infer<typeof ExplanationPair>;
+
+export const BranchFieldPlan = z.strictObject({
+  measurements: z.array(
+    z.strictObject({
+      fieldCheckId: z.string().regex(new RegExp("^[a-z][a-z0-9_]{0,39}$")),
+      label: text({ min: 1, max: 120 }),
+      separates: z.array(ExplanationPair).min(1),
+      onlySeparates: z.array(ExplanationPair).min(1),
+    }),
+  ),
+  unseparated: z.array(ExplanationPair),
+});
+export type BranchFieldPlan = z.infer<typeof BranchFieldPlan>;
+
 export const BranchMerge = z.strictObject({
   recordType: z.literal("BranchMerge"),
   id: entityId,
@@ -833,6 +873,7 @@ export const BranchMerge = z.strictObject({
     .min(1)
     .max(5),
   conflicts: z.array(BranchConflict),
+  fieldPlan: BranchFieldPlan.optional(),
   provenance: Provenance,
 });
 export type BranchMerge = z.infer<typeof BranchMerge>;
@@ -1043,7 +1084,17 @@ export type RecordCollections = z.infer<typeof RecordCollections>;
 
 export const CaseSnapshot = z.strictObject({
   recordType: z.literal("CaseSnapshot"),
-  schemaVersion: z.enum(["1.2.0", "1.3.0", "1.4.0", "1.5.0", "1.6.0", "1.7.0", "1.8.0", "1.9.0"]),
+  schemaVersion: z.enum([
+    "1.2.0",
+    "1.3.0",
+    "1.4.0",
+    "1.5.0",
+    "1.6.0",
+    "1.7.0",
+    "1.8.0",
+    "1.9.0",
+    "1.10.0",
+  ]),
   case: EnvironmentalCase,
   records: RecordCollections,
   lastSequence: z.int().min(0),
@@ -1052,7 +1103,17 @@ export type CaseSnapshot = z.infer<typeof CaseSnapshot>;
 
 export const Commit = z.strictObject({
   recordType: z.literal("Commit"),
-  schemaVersion: z.enum(["1.2.0", "1.3.0", "1.4.0", "1.5.0", "1.6.0", "1.7.0", "1.8.0", "1.9.0"]),
+  schemaVersion: z.enum([
+    "1.2.0",
+    "1.3.0",
+    "1.4.0",
+    "1.5.0",
+    "1.6.0",
+    "1.7.0",
+    "1.8.0",
+    "1.9.0",
+    "1.10.0",
+  ]),
   id: entityId,
   caseId: entityId,
   commandId: entityId,
@@ -1145,5 +1206,7 @@ export const caseDefinitions = {
   BranchModelOutcome,
   ExplanationBranch,
   BranchConflict,
+  ExplanationPair,
+  BranchFieldPlan,
   BranchMerge,
 } as const;

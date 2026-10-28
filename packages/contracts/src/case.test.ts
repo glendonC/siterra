@@ -382,3 +382,38 @@ describe("contracts 1.6: manifestUri and mapAssetUri take a URI reference", () =
     expect(manifestUri.safeParse(value).success).toBe(false);
   });
 });
+
+describe("contracts 1.10: a branch merge carries its field plan (DF-09)", () => {
+  const commit = readJson(`${examplesDir}commit-explanation-branches.json`);
+  const merge = (commit["upserts"] as Json[]).find((u) => u["recordType"] === "BranchMerge") ?? {};
+  const BranchMerge = caseDefinitions.BranchMerge;
+
+  it("the example is 1.10.0 and names a measurement for its open pair", () => {
+    expect(commit["schemaVersion"]).toBe("1.10.0");
+    expect(merge["fieldPlan"]).toEqual({
+      measurements: [
+        {
+          fieldCheckId: "soil_moisture_survey",
+          label: "Soil Moisture Survey",
+          separates: [["grazing", "rainfall"]],
+          onlySeparates: [["grazing", "rainfall"]],
+        },
+      ],
+      unseparated: [],
+    });
+  });
+
+  it("a merge written before 1.10.0 has no field plan and stays valid", () => {
+    const { fieldPlan: _plan, ...before } = merge;
+    expect(BranchMerge.safeParse(before).success).toBe(true);
+  });
+
+  it("refuses a chosen measurement that names no pair only it separates", () => {
+    const plan = merge["fieldPlan"] as { measurements: Json[] };
+    const bad = {
+      ...merge,
+      fieldPlan: { ...plan, measurements: [{ ...plan.measurements[0], onlySeparates: [] }] },
+    };
+    expect(BranchMerge.safeParse(bad).success).toBe(false);
+  });
+});
