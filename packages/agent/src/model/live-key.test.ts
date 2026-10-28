@@ -8,7 +8,9 @@ import { MetaAdapter } from "./adapter.ts";
 import { KeychainError, readKeychainKey } from "./keychain.ts";
 import type { SecurityRunner } from "./keychain.ts";
 import { LIVE_APPROVAL_VALUE, chooseTransport } from "./route.ts";
-import { KEY_REMOVED, scrubSecrets } from "./secrets.ts";
+import { inspect } from "node:util";
+
+import { KEY_REMOVED, scrubError, scrubSecrets } from "./secrets.ts";
 
 // Fake keys and a fake security tool only. No test here runs the real security tool, reads a real
 // key or reaches the network: the client's fetch is a fake that records the request.
@@ -26,6 +28,17 @@ describe("secret scrub", () => {
     const out = scrubSecrets(text, [FAKE_KEY]);
     expect(out).not.toContain("LLM_");
     expect(out).toBe(`Incorrect API key provided: ${KEY_REMOVED}; also ${KEY_REMOVED}`);
+  });
+});
+
+describe("error scrub (b63 note)", () => {
+  it("removes the key from the message and the stack, even after the stack was read", () => {
+    const error = new TypeError(`bad header "Bearer ${FAKE_KEY}"`);
+    expect(error.stack).toContain(FAKE_KEY);
+    scrubError(error, [FAKE_KEY]);
+    expect(error.message).not.toContain(FAKE_KEY);
+    expect(String(error.stack)).not.toContain(FAKE_KEY);
+    expect(inspect(error)).not.toContain(FAKE_KEY);
   });
 });
 
@@ -78,6 +91,25 @@ describe("route key source", () => {
     const fromEnv = vi.fn(() => FAKE_KEY);
     chooseTransport({ ...LIVE, MODEL_API_KEY: "LLM_1_fromEnvironment" }, { readKeychain: fromEnv });
     expect(fromEnv).not.toHaveBeenCalled();
+  });
+
+  it("OPENAI_LOG=debug cannot make the client log a failed request (b63 note)", async () => {
+    vi.stubEnv("OPENAI_LOG", "debug");
+    const logged: unknown[] = [];
+    for (const method of ["log", "error", "warn", "info", "debug"] as const) {
+      vi.spyOn(console, method).mockImplementation((...args: unknown[]) => {
+        logged.push(args);
+      });
+    }
+    const transport = chooseTransport(LIVE, {
+      readKeychain: () => FAKE_KEY,
+      fetch: () => Promise.reject(new TypeError(`network down near ${FAKE_KEY}`)),
+    });
+    await expect(
+      transport.open({ model: "muse-spark-1.3", input: [] }, new AbortController().signal),
+    ).rejects.toBeDefined();
+    expect(logged).toEqual([]);
+    vi.unstubAllEnvs();
   });
 
   it("the key reaches the Authorization header and no environment, log, error or stored event", async () => {

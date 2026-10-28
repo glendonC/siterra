@@ -13,3 +13,13 @@ export function scrubSecrets(text: string, keys: readonly string[] = []): string
   }
   return out.replace(KEY_SHAPE, KEY_REMOVED);
 }
+
+/**
+ * Scrubs an error in place before it is rethrown: its message and its stack, since V8 keeps the
+ * original text in the stack once anything has read it (AUDIT B b63 note).
+ */
+export function scrubError(error: Error, keys: readonly string[] = []): Error {
+  error.message = scrubSecrets(error.message, keys);
+  if (typeof error.stack === "string") error.stack = scrubSecrets(error.stack, keys);
+  return error;
+}

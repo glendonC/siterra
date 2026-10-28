@@ -1,7 +1,7 @@
 import OpenAI, { APIError } from "openai";
 import type { ClientOptions } from "openai";
 
-import { scrubSecrets } from "./secrets.ts";
+import { scrubError, scrubSecrets } from "./secrets.ts";
 import { TransportError, parseRetryAfter } from "./transport.ts";
 import type { ModelTransport, ResponsesBody, TransportStream } from "./transport.ts";
 
@@ -74,6 +74,9 @@ export class ModelApiTransport implements ModelTransport {
       baseURL,
       maxRetries: 0,
       timeout: 600_000,
+      // The SDK logs raw fetch errors at debug level; OPENAI_LOG in the environment cannot turn
+      // that on for the worker (AUDIT B b63 note).
+      logLevel: "off",
       ...(options.fetch ? { fetch: options.fetch } : {}),
     });
   }
@@ -97,7 +100,7 @@ export class ModelApiTransport implements ModelTransport {
       // No HTTP status: the request was aborted or never reached the server. Neither is retried.
       if (signal.aborted) throw new TransportError(0, "cancelled", null);
       if (error instanceof APIError) throw new TransportError(0, "connection_error", null);
-      if (error instanceof Error) error.message = scrubSecrets(error.message, [this.#key]);
+      if (error instanceof Error) scrubError(error, [this.#key]);
       throw error;
     }
   }
