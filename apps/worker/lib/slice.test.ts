@@ -21,6 +21,7 @@ const OWNER = "scope_test_slice";
 const CASE_ID = "case_aitbouguemez";
 const NDVI = "bundle_s2_ndvi_monthly_ait_bouguemez";
 const CHIRPS = "bundle_chirps_monthly_ait_bouguemez";
+const DEPARTURE = "bundle_ndvi_departure_ait_bouguemez";
 const repoDir = fileURLToPath(new URL("../../../", import.meta.url));
 
 let db: TestDatabase;
@@ -270,6 +271,255 @@ describe("vertical slice on the real seed, replay only", () => {
       const kinds = (await eventsOfCommand(db.pool, CASE_ID, command.id)).map((e) => e.kind);
       expect(kinds.filter((k) => k === "tool.completed")).toHaveLength(2);
       expect(kinds.at(-1)).toBe("command.completed");
+    },
+  );
+
+  it(
+    "DF-02 a drought challenge loads rainfall on the same area and periods and leaves both explanations unresolved",
+    { timeout: 60_000 },
+    async () => {
+      const seeded = await readSnapshot(db.pool, CASE_ID, OWNER);
+      if (!seeded) throw new Error("seed not loaded");
+      const revisionOf = (id: string) =>
+        seeded.records.dataBundleRecords.find((b) => b.id === id)?.revision ?? 0;
+      const ndvi = seeded.records.measurementRecords.find(
+        (m) =>
+          m.dataBundleId === NDVI &&
+          m.periodId === "period_2022-04" &&
+          m.metric === "ndvi_area_median",
+      );
+      if (!ndvi?.value) throw new Error("expected an April 2022 NDVI measurement in the seed");
+      const context = (caseRevision: number, dataBundleIds: string[], focused: string[]) => ({
+        caseRevision,
+        geoSelectionId: null,
+        geoRevision: null,
+        periodIds: [],
+        focusedEntityIds: focused,
+        dataBundleIds,
+        locale: "en" as const,
+      });
+      const run = async (
+        text: string,
+        intent: "commission" | "investigate",
+        dataBundleIds: string[],
+        focused: string[],
+        key: string,
+        transport: ModelTransport,
+      ) => {
+        const now = await readSnapshot(db.pool, CASE_ID, OWNER);
+        if (!now) throw new Error("no snapshot");
+        const submitted = await submitCommand(db.pool, {
+          caseId: CASE_ID,
+          ownerScopeId: OWNER,
+          request: {
+            text,
+            intent,
+            context: context(now.case.revision, dataBundleIds, focused),
+            expectedCaseRevision: now.case.revision,
+            idempotencyKey: key,
+          },
+        });
+        if (submitted.status !== "created") throw new Error(submitted.status);
+        const planTaskId = submitted.command.taskIds[0];
+        if (!planTaskId) throw new Error("no plan task");
+        const result = await handlePlanJob(
+          { caseId: CASE_ID, commandId: submitted.command.id, planTaskId },
+          {
+            db: workerDb(db.pool),
+            transport,
+            corpus: { sources: [], passages: [], missing: [] },
+            now: () => new Date(),
+            newId: (p) => newId(p),
+          },
+        );
+        return { command: submitted.command, revisionBefore: now.case.revision, result };
+      };
+
+      // The commission the challenge questions: one observation of April 2022 NDVI.
+      const observed = await run(
+        "What did vegetation look like in April 2022?",
+        "commission",
+        [NDVI],
+        [],
+        "key-test-slice-df02-commission",
+        routed([
+          [
+            "You plan one command",
+            replay([
+              answer(
+                JSON.stringify({
+                  interpretation:
+                    "The command asks what the vegetation record shows for April 2022.",
+                  tasks: [
+                    {
+                      key: "observations",
+                      kind: "observation_analysis",
+                      question: "What did catchment NDVI show in April 2022?",
+                      dependsOn: [],
+                      inputRefs: [{ entityId: NDVI, revision: revisionOf(NDVI) }],
+                    },
+                  ],
+                  clarifyingQuestion: null,
+                }),
+              ),
+            ]),
+          ],
+          [
+            "You answer one question about observations",
+            replay([
+              call(
+                "summarize_observations",
+                {
+                  bundleId: NDVI,
+                  bundleRevision: revisionOf(NDVI),
+                  periodIds: ["period_2022-04"],
+                  metric: "ndvi_area_median",
+                },
+                1,
+              ),
+              answer(
+                JSON.stringify({
+                  items: [
+                    {
+                      statement: `The catchment NDVI area median was ${String(ndvi.value)} in April 2022.`,
+                      claimKind: "observation",
+                      measurementIds: [ndvi.id],
+                      sourceId: null,
+                      locator: null,
+                      excerpt: null,
+                      scopeNote: "",
+                      limitations: [],
+                    },
+                  ],
+                }),
+              ),
+            ]),
+          ],
+        ]),
+      );
+      expect(observed.result.status === "ran" && observed.result.outcome.status).toBe("succeeded");
+      const afterCommission = await readSnapshot(db.pool, CASE_ID, OWNER);
+      const observation = afterCommission?.records.evidenceRecords.find(
+        (e) =>
+          e.measurementIds.includes(ndvi.id) &&
+          afterCommission.records.taskRecords.some(
+            (t) => t.id === e.provenance.generatedByTaskId && t.commandId === observed.command.id,
+          ),
+      );
+      if (!observation) throw new Error("the commission committed no observation");
+
+      // The challenge: a hypothesis task that aligns NDVI departures with rainfall departures.
+      const challengeAt = new Date();
+      const hypothesis = (statement: string, missing: string) => ({
+        hypothesisId: null,
+        statement,
+        status: "inconclusive",
+        supportingEvidenceIds: [observation.id],
+        contradictingEvidenceIds: [],
+        missingEvidence: [missing],
+        assessment: `Cannot be assessed with current data: ${missing.toLowerCase()}`,
+      });
+      const challenged = await run(
+        "Could drought explain this instead?",
+        "investigate",
+        [DEPARTURE, CHIRPS],
+        [observation.id],
+        "key-test-slice-df02-challenge",
+        routed([
+          [
+            "You plan one command",
+            replay([
+              answer(
+                JSON.stringify({
+                  interpretation:
+                    "The command asks whether lower rainfall could explain the April 2022 vegetation record.",
+                  tasks: [
+                    {
+                      key: "compare",
+                      kind: "hypothesis_comparison",
+                      question: "Could drought or grazing explain the April 2022 NDVI?",
+                      dependsOn: [],
+                      inputRefs: [
+                        { entityId: observation.id, revision: observation.revision },
+                        { entityId: DEPARTURE, revision: revisionOf(DEPARTURE) },
+                        { entityId: CHIRPS, revision: revisionOf(CHIRPS) },
+                      ],
+                    },
+                  ],
+                  clarifyingQuestion: null,
+                }),
+              ),
+            ]),
+          ],
+          [
+            "You compare candidate explanations",
+            replay([
+              call(
+                "compare_series",
+                {
+                  a: {
+                    bundleId: DEPARTURE,
+                    bundleRevision: revisionOf(DEPARTURE),
+                    metric: "ndvi_departure_area_median",
+                  },
+                  b: {
+                    bundleId: CHIRPS,
+                    bundleRevision: revisionOf(CHIRPS),
+                    metric: "precipitation_departure_from_1991_2020_mean",
+                  },
+                },
+                1,
+              ),
+              answer(
+                JSON.stringify({
+                  items: [
+                    hypothesis(
+                      "Lower spring rainfall reduced vegetation greenness in the catchment.",
+                      "Soil moisture by month on the upper pastures.",
+                    ),
+                    hypothesis(
+                      "Heavier grazing reduced vegetation greenness in the catchment.",
+                      "Herd counts on the upper pastures by month.",
+                    ),
+                  ],
+                }),
+              ),
+            ]),
+          ],
+        ]),
+      );
+      expect(challenged.result.status === "ran" && challenged.result.outcome.status).toBe(
+        "succeeded",
+      );
+
+      const after = await readSnapshot(db.pool, CASE_ID, OWNER);
+      if (!after) throw new Error("no snapshot");
+      expect(after.case.revision).toBeGreaterThan(challenged.revisionBefore);
+      const ownTasks = new Set(
+        after.records.taskRecords
+          .filter((t) => t.commandId === challenged.command.id)
+          .map((t) => t.id),
+      );
+      const hypotheses = after.records.hypothesisRecords.filter((h) =>
+        ownTasks.has(h.provenance.generatedByTaskId ?? ""),
+      );
+      expect(hypotheses).toHaveLength(2);
+      for (const h of hypotheses) {
+        expect(h.status).toBe("inconclusive");
+        expect(h.supportingEvidenceIds).toEqual([observation.id]);
+        expect(h.missingEvidence).toHaveLength(1);
+      }
+
+      // The trace shows the real load: compare_series over the stored rainfall, after the command.
+      const events = await eventsOfCommand(db.pool, CASE_ID, challenged.command.id);
+      const loads = events.filter((e) => e.kind === "tool.completed");
+      expect(loads.map((e) => e.tool?.name)).toEqual(["compare_series"]);
+      expect(loads[0]?.tool?.resultEntityIds.length).toBeGreaterThan(0);
+      expect(
+        events
+          .filter((e) => e.kind.startsWith("model.") || e.kind.startsWith("tool."))
+          .every((e) => Date.parse(e.occurredAt) >= challengeAt.getTime()),
+      ).toBe(true);
     },
   );
 
