@@ -1,5 +1,5 @@
 // Request and response bodies that schemas/openapi.json adds to the case records: the command and
-// review requests, problem details, the stream reset message and the trace response.
+// review requests, problem details, the stream reset message, the trace and the usage response.
 import { z } from "zod";
 import { Command, Context, Event, ReviewDecision, ValidationResult } from "./case.ts";
 import { dateTime, entityId } from "./primitives.ts";
@@ -82,3 +82,39 @@ export const TraceResponse = z.strictObject({
   events: z.array(Event),
 });
 export type TraceResponse = z.infer<typeof TraceResponse>;
+
+/**
+ * One row of GET /api/cases/:id/usage: the model calls of a case on one route, provider, model and
+ * replay origin. Counts come from the provider usage fields stored on model.completed events; a
+ * replayed call costs nothing and is never summed with live calls.
+ */
+export const UsageRow = z.strictObject({
+  route: z.enum(["live", "replay"]),
+  provider: z.string().min(1),
+  model: z.string().min(1),
+  replayOrigin: z.enum(["synthetic", "recorded"]).nullable(),
+  calls: z.int().min(0),
+  /** Calls that ended refused, incomplete or failed. */
+  unsuccessfulCalls: z.int().min(0),
+  inputTokens: z.int().min(0),
+  outputTokens: z.int().min(0),
+  cachedInputTokens: z.int().min(0),
+  reasoningTokens: z.int().min(0),
+  /** Calls whose usage carried no token counts; their tokens are not in the sums. */
+  callsWithoutTokens: z.int().min(0),
+  /** Estimated from the price table the call was priced with; 0 on the replay route. */
+  estimatedCostMicroUsd: z.int().min(0),
+  /** Live calls with no cost estimate; their cost is not in the sum. */
+  callsWithoutCost: z.int().min(0),
+});
+export type UsageRow = z.infer<typeof UsageRow>;
+
+export const UsageResponse = z.strictObject({
+  caseId: entityId,
+  /** Costs are estimates (TR-06), never billed amounts. */
+  costIsEstimate: z.literal(true),
+  live: z.strictObject({ calls: z.int().min(0), estimatedCostMicroUsd: z.int().min(0) }),
+  replay: z.strictObject({ calls: z.int().min(0) }),
+  rows: z.array(UsageRow),
+});
+export type UsageResponse = z.infer<typeof UsageResponse>;

@@ -18,3 +18,4 @@ export * from "./sessions.ts";
 export * from "./snapshot.ts";
 export * from "./staleness.ts";
 export * from "./trace.ts";
+export * from "./usage.ts";

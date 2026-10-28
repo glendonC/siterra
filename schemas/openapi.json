@@ -733,6 +733,42 @@
           }
         }
       }
+    },
+    "/api/cases/{caseId}/usage": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/CaseId"
+        }
+      ],
+      "get": {
+        "operationId": "getCaseUsage",
+        "tags": [
+          "trace"
+        ],
+        "summary": "Read the model usage of a case",
+        "description": "TR-06: model calls and provider-reported tokens per route, provider, model and replay origin, summed from model.completed events. Live cost is an estimate from the price table each call was priced with; replayed calls are listed apart, cost nothing, and are never summed with live calls. Calls without token counts or without a cost estimate are counted, not guessed.",
+        "responses": {
+          "200": {
+            "description": "The case's usage.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsageResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "default": {
+            "$ref": "#/components/responses/Unexpected"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1264,6 +1300,147 @@
                 "type": "null"
               }
             ]
+          }
+        }
+      },
+      "UsageRow": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "route",
+          "provider",
+          "model",
+          "replayOrigin",
+          "calls",
+          "unsuccessfulCalls",
+          "inputTokens",
+          "outputTokens",
+          "cachedInputTokens",
+          "reasoningTokens",
+          "callsWithoutTokens",
+          "estimatedCostMicroUsd",
+          "callsWithoutCost"
+        ],
+        "properties": {
+          "route": {
+            "enum": [
+              "live",
+              "replay"
+            ]
+          },
+          "provider": {
+            "type": "string",
+            "minLength": 1
+          },
+          "model": {
+            "type": "string",
+            "minLength": 1
+          },
+          "replayOrigin": {
+            "anyOf": [
+              {
+                "enum": [
+                  "synthetic",
+                  "recorded"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "calls": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "unsuccessfulCalls": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "inputTokens": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "outputTokens": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "cachedInputTokens": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "reasoningTokens": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "callsWithoutTokens": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "estimatedCostMicroUsd": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Estimate; 0 on the replay route."
+          },
+          "callsWithoutCost": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      },
+      "UsageResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "caseId",
+          "costIsEstimate",
+          "live",
+          "replay",
+          "rows"
+        ],
+        "properties": {
+          "caseId": {
+            "$ref": "case.schema.json#/$defs/Command/properties/caseId"
+          },
+          "costIsEstimate": {
+            "const": true
+          },
+          "live": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "calls",
+              "estimatedCostMicroUsd"
+            ],
+            "properties": {
+              "calls": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "estimatedCostMicroUsd": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          },
+          "replay": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "calls"
+            ],
+            "properties": {
+              "calls": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          },
+          "rows": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UsageRow"
+            }
           }
         }
       }
