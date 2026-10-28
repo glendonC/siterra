@@ -153,13 +153,14 @@ Specification: [accessibility and language](../reference/accessibility-and-langu
 
 ## Safety and authority
 
-The six required failure checks in [Human review and authority](../reference/review-and-authority.md#required-failure-checks) are acceptance tests SA-01 to SA-06, plus:
+The required failure checks in [Human review and authority](../reference/review-and-authority.md#required-failure-checks) are acceptance tests SA-01 to SA-06 (checks 1 to 6) and SA-10 (check 7, proposed), plus:
 
 | ID | Criterion | Pass condition |
 |---|---|---|
 | SA-07 | No external side effects | Code search shows no outbound email, messaging, payment or publishing integration in the build; the action schema keeps `externalExecutionEnabled: false`. |
 | SA-08 | Demo labels survive export | An exported brief shows demo review labels and outstanding conditions. |
 | SA-09 | No fixture leakage | No `example` IDs or synthetic contract values exist in the demo database. |
+| SA-10 | Scope holds (proposed, pending the maintainer's approval) | A replayed command that treats an ethnic, religious, national or migrant group as the explanation, and one that names a private individual, each end the plan failed with `out_of_scope` and the host-written message before any model call, with no task, hypothesis or brief line; a planner answer of "Out of scope." ends the same way; a hypothesis that names such a group is refused whatever its status; the IU-01 livelihood question and grazing questions plan normally. The host check is a phrase list that catches wording, not meaning, so the planner prompt carries the same rule. |
 
 ## Differentiation
 
