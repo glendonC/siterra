@@ -200,10 +200,9 @@ def land_cover_masks(cfg):
     return {g["id"]: (g["label"], mask & np.isin(lc, g["classes"])) for g in cfg["landCover"]["groups"]}
 
 
-def pixel_weights(cfg, masks, dst_crs, dst_transform, dst_shape):
-    """For each mask, the count of analysis cells whose centre falls in each cell of a destination grid.
-
-    Returns {mask id: float64 array of dst_shape}. Counts are area weights: every analysis cell has the same area."""
+def cell_pixel_index(cfg, dst_crs, dst_transform, dst_shape):
+    """Rows, columns and centre coordinates (analysis CRS) of every analysis cell inside the geometry, and the flat index
+    of the destination grid cell that holds each centre."""
     tr, shp, base = analysis_grid(cfg)
     rows, cols = np.nonzero(base)
     xs = tr.c + (cols + 0.5) * tr.a
@@ -217,9 +216,80 @@ def pixel_weights(cfg, masks, dst_crs, dst_transform, dst_shape):
     ok = (r >= 0) & (r < dst_shape[0]) & (c >= 0) & (c < dst_shape[1])
     if not ok.all():
         raise SystemExit("the destination window does not cover the analysis geometry")
-    flat = r * dst_shape[1] + c
+    return rows, cols, xs, ys, r * dst_shape[1] + c
+
+
+def pixel_weights(cfg, masks, dst_crs, dst_transform, dst_shape):
+    """For each mask, the count of analysis cells whose centre falls in each cell of a destination grid.
+
+    Returns {mask id: float64 array of dst_shape}. Counts are area weights: every analysis cell has the same area."""
+    rows, cols, _, _, flat = cell_pixel_index(cfg, dst_crs, dst_transform, dst_shape)
     out = {}
     for sid, m in masks.items():
         sel = m[rows, cols]
         out[sid] = np.bincount(flat[sel], minlength=dst_shape[0] * dst_shape[1]).reshape(dst_shape).astype(np.float64)
     return out
+
+
+if __name__ == "__main__":
+    import unittest
+
+    class PlaceConfigTests(unittest.TestCase):
+        @classmethod
+        def setUpClass(cls):
+            repo = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+            place = os.path.join(repo, "science", "places", "ait-bouguemez.json")
+            cls.cfg = load(place, repo)
+            cls.tr, cls.shp, cls.mask = analysis_grid(cls.cfg)
+
+        def test_cell_pixel_index_identity_grid(self):
+            rows, cols, xs, ys, flat = cell_pixel_index(self.cfg, self.cfg["analysisCrs"], self.tr, self.shp)
+            exp_r, exp_c = np.nonzero(self.mask)
+            np.testing.assert_array_equal(rows, exp_r)
+            np.testing.assert_array_equal(cols, exp_c)
+            np.testing.assert_array_equal(flat, exp_r * self.shp[1] + exp_c)
+            np.testing.assert_allclose(xs, self.tr.c + (exp_c + 0.5) * self.tr.a)
+            np.testing.assert_allclose(ys, self.tr.f + (exp_r + 0.5) * self.tr.e)
+            w = pixel_weights(self.cfg, {"catchment": self.mask}, self.cfg["analysisCrs"], self.tr, self.shp)
+            np.testing.assert_array_equal(w["catchment"], self.mask.astype(np.float64))
+
+        def test_cell_pixel_index_coarse_30m_and_strata_conservation(self):
+            k = 3
+            hc, wc = -(-self.shp[0] // k), -(-self.shp[1] // k)
+            tr30 = Affine(self.tr.a * k, 0, self.tr.c, 0, self.tr.e * k, self.tr.f)
+            rows, cols, _, _, flat = cell_pixel_index(self.cfg, self.cfg["analysisCrs"], tr30, (hc, wc))
+            np.testing.assert_array_equal(flat, (rows // k) * wc + (cols // k))
+            masks = stratum_masks(self.cfg, ["catchment", "elevation_band", "aspect_class"])
+            w = pixel_weights(self.cfg, masks, self.cfg["analysisCrs"], tr30, (hc, wc))
+            self.assertEqual(int(w["catchment"].sum()), int(self.mask.sum()))
+            np.testing.assert_array_equal(
+                w["elevation_low"] + w["elevation_mid"] + w["elevation_high"],
+                w["catchment"],
+            )
+            np.testing.assert_array_equal(
+                w["aspect_north"] + w["aspect_east"] + w["aspect_south"] + w["aspect_west"] + w["aspect_level"],
+                w["catchment"],
+            )
+
+        def test_cell_pixel_index_geographic_bounds_and_out_of_bounds_rejection(self):
+            g = geometry(self.cfg)
+            lon0, lat0, lon1, lat1 = g.bounds
+            cell_deg = 0.05
+            w0 = np.floor(lon0 / cell_deg) * cell_deg
+            n0 = np.ceil(lat1 / cell_deg) * cell_deg
+            cols_deg = int(np.ceil((lon1 - w0) / cell_deg)) + 1
+            rows_deg = int(np.ceil((n0 - lat0) / cell_deg)) + 1
+            tr_deg = Affine(cell_deg, 0, w0, 0, -cell_deg, n0)
+            _, _, _, _, flat = cell_pixel_index(self.cfg, "EPSG:4326", tr_deg, (rows_deg, cols_deg))
+            self.assertTrue(((flat >= 0) & (flat < rows_deg * cols_deg)).all())
+            with self.assertRaises(SystemExit):
+                cell_pixel_index(self.cfg, "EPSG:4326", tr_deg, (1, 1))
+            shifted = Affine(cell_deg, 0, w0 + 10.0, 0, -cell_deg, n0)
+            with self.assertRaises(SystemExit):
+                cell_pixel_index(self.cfg, "EPSG:4326", shifted, (rows_deg, cols_deg))
+
+    suite = unittest.defaultTestLoader.loadTestsFromTestCase(PlaceConfigTests)
+    res = unittest.TextTestRunner(verbosity=2).run(suite)
+    if not res.wasSuccessful():
+        raise SystemExit(1)
+    print("place_config self-check passed")
