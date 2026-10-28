@@ -326,6 +326,16 @@ describe("observation task, synthetic replay, memory commit", () => {
     ]);
   });
 
+  it("the instructions say what can be cited: measurement IDs, not recipe results or limitations (live run of 28 Oct 2026)", () => {
+    expect(OBSERVATION_SPEC.promptVersion).toBe("observation_analysis@3");
+    expect(OBSERVATION_SPEC.instructions).toContain(
+      "- Cite only measurementId values that summarize_observations returned. Recipe results and limitation texts hold no measurement IDs: never build an ID from a bundle, period or field name, and never copy their numbers into your text; a gap they show is a field_requirement without numbers.",
+    );
+    expect(OBSERVATION_SPEC.instructions).toContain(
+      "- Code attaches the limitations of each cited measurement's bundle to the evidence; do not restate them.",
+    );
+  });
+
   it("the evidence output schema fits the strict subset", () => {
     expect(strictSubsetIssues(evidenceOutputSchema())).toEqual([]);
   });
