@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://siterra.invalid/schemas/case/1.3.0/case.schema.json",
+  "$id": "https://siterra.invalid/schemas/case/1.4.0/case.schema.json",
   "title": "Siterra case contracts",
   "description": "Records of one Siterra case as stored and exchanged between the web application, the worker and the browser. The root validates a case snapshot, a command, an event or an atomic commit proposal; $defs holds the record types. Cross-record semantics that JSON Schema cannot express are specified in docs/reference/data-contracts.md.",
   "oneOf": [
@@ -406,12 +406,13 @@
           "anyOf": [
             {
               "type": "string",
-              "format": "date"
+              "pattern": "^[0-9]{4}(-(0[1-9]|1[0-2])(-(0[1-9]|[12][0-9]|3[01]))?)?$"
             },
             {
               "type": "null"
             }
-          ]
+          ],
+          "description": "Publication date as the source states it: a full date, a year and month, or a year (widened in 1.4.0 from a full date only; never padded to a full date)."
         },
         "accessedAt": {
           "type": "string",
@@ -2768,9 +2769,10 @@
         "schemaVersion": {
           "enum": [
             "1.2.0",
-            "1.3.0"
+            "1.3.0",
+            "1.4.0"
           ],
-          "description": "Contract version the instance was written against; 1.3.0 producers write 1.3.0, and 1.2.0 instances stay valid."
+          "description": "Contract version the instance was written against; producers write the newest, and earlier versions of the same MAJOR stay valid."
         },
         "id": {
           "type": "string",
@@ -2858,9 +2860,10 @@
         "schemaVersion": {
           "enum": [
             "1.2.0",
-            "1.3.0"
+            "1.3.0",
+            "1.4.0"
           ],
-          "description": "Contract version the instance was written against; 1.3.0 producers write 1.3.0, and 1.2.0 instances stay valid."
+          "description": "Contract version the instance was written against; producers write the newest, and earlier versions of the same MAJOR stay valid."
         },
         "id": {
           "type": "string",
@@ -3199,9 +3202,10 @@
         "schemaVersion": {
           "enum": [
             "1.2.0",
-            "1.3.0"
+            "1.3.0",
+            "1.4.0"
           ],
-          "description": "Contract version the instance was written against; 1.3.0 producers write 1.3.0, and 1.2.0 instances stay valid."
+          "description": "Contract version the instance was written against; producers write the newest, and earlier versions of the same MAJOR stay valid."
         },
         "case": {
           "$ref": "#/$defs/EnvironmentalCase"
@@ -3232,9 +3236,10 @@
         "schemaVersion": {
           "enum": [
             "1.2.0",
-            "1.3.0"
+            "1.3.0",
+            "1.4.0"
           ],
-          "description": "Contract version the instance was written against; 1.3.0 producers write 1.3.0, and 1.2.0 instances stay valid."
+          "description": "Contract version the instance was written against; producers write the newest, and earlier versions of the same MAJOR stay valid."
         },
         "id": {
           "type": "string",

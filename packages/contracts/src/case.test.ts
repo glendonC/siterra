@@ -300,3 +300,42 @@ describe("contract: Source.url is an absolute http or https URI", () => {
     expect(caseDefinitions.Source.safeParse({ ...source, url }).success).toBe(valid);
   });
 });
+
+describe("contract: string lengths count Unicode code points, as JSON Schema does", () => {
+  const commit = readJson(`${examplesDir}commit-event-record.json`);
+  const row = (commit["upserts"] as Json[])[2] as Json;
+  const locator = row["sourceLocator"] as Json;
+  // U+2D30 (Tifinagh, one UTF-16 unit) and U+1F30D (outside the BMP, two UTF-16 units).
+  const astral = "\u{1F30D}";
+
+  it("accepts an excerpt of 300 code points that is 600 UTF-16 units long", () => {
+    const excerpt = astral.repeat(300);
+    expect(excerpt.length).toBe(600);
+    const parsed = caseDefinitions.EventRecordRow.safeParse({
+      ...row,
+      sourceLocator: { ...locator, excerpt },
+    });
+    expect(parsed.error?.issues ?? []).toEqual([]);
+  });
+
+  it("rejects an excerpt of 301 code points as too_big", () => {
+    const excerpt = "ⴰ".repeat(301);
+    const parsed = caseDefinitions.EventRecordRow.safeParse({
+      ...row,
+      sourceLocator: { ...locator, excerpt },
+    });
+    expect(parsed.error?.issues.map((i) => [i.code, i.path.join("/")])).toEqual([
+      ["too_big", "sourceLocator/excerpt"],
+    ]);
+  });
+
+  it("rejects an idempotency key of 4 code points that is 8 UTF-16 units long as too_small", () => {
+    const parsed = caseDefinitions.Command.safeParse({
+      ...readJson(`${examplesDir}command-commission.json`),
+      idempotencyKey: astral.repeat(4),
+    });
+    expect(parsed.error?.issues.map((i) => [i.code, i.path.join("/")])).toEqual([
+      ["too_small", "idempotencyKey"],
+    ]);
+  });
+});

@@ -130,3 +130,34 @@ export const ProposePlan = z.strictObject({
   clarifyingQuestion: z.string().nullable(),
 });
 export type ProposePlan = z.infer<typeof ProposePlan>;
+
+/**
+ * propose_evidence: the evidence task's structured final output (data-contracts.md, tool argument
+ * contracts). The claim kind keeps all seven values so verified_outcome is refused by the claim
+ * rules with a clear reason, not by the schema. Host validation adds the limits: at most 10 items,
+ * a statement of at most 600 characters, an excerpt of at most 300 code points, at most 5
+ * limitations; a PDF locator is "page N", the 1-based page of the stored file.
+ */
+export const ProposeEvidence = z.strictObject({
+  items: z.array(
+    z.strictObject({
+      statement: z.string(),
+      claimKind: z.enum([
+        "observation",
+        "scientific_context",
+        "hypothesis",
+        "model_estimate",
+        "scenario",
+        "field_requirement",
+        "verified_outcome",
+      ]),
+      measurementIds: z.array(z.string()),
+      sourceId: z.string().nullable(),
+      locator: z.string().nullable(),
+      excerpt: z.string().nullable(),
+      scopeNote: z.string(),
+      limitations: z.array(z.string()),
+    }),
+  ),
+});
+export type ProposeEvidence = z.infer<typeof ProposeEvidence>;

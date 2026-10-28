@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
-import { ProposePlan, strictSubsetIssues, toModelJsonSchema } from "./model-facing.ts";
+import { Evidence } from "./case.ts";
+import {
+  ProposeEvidence,
+  ProposePlan,
+  strictSubsetIssues,
+  toModelJsonSchema,
+} from "./model-facing.ts";
 
 describe("contract: model-facing schemas fit the strict subset", () => {
   it("propose_plan exports inside the subset", () => {
@@ -49,5 +55,29 @@ describe("contract: model-facing schemas fit the strict subset", () => {
       deep = z.strictObject({ x: deep });
     }
     expect(() => toModelJsonSchema(deep)).toThrow(/deeper than 10/);
+  });
+});
+
+describe("contract: propose_evidence", () => {
+  it("exports inside the strict subset with every item property required", () => {
+    const json = toModelJsonSchema(ProposeEvidence);
+    const items = ((json["properties"] as Record<string, Record<string, unknown>>)["items"] ?? {})[
+      "items"
+    ] as Record<string, unknown>;
+    expect(items["required"]).toEqual([
+      "statement",
+      "claimKind",
+      "measurementIds",
+      "sourceId",
+      "locator",
+      "excerpt",
+      "scopeNote",
+      "limitations",
+    ]);
+  });
+
+  it("offers exactly the claim kinds of the Evidence record", () => {
+    const item = ProposeEvidence.shape.items.element;
+    expect(item.shape.claimKind.options).toEqual(Evidence.shape.claimKind.options);
   });
 });

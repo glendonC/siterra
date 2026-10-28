@@ -25,3 +25,50 @@ export function uniqueArray<T extends z.ZodType>(item: T) {
       error: "Array items must be unique",
     });
 }
+
+/** The number of Unicode code points, the unit JSON Schema minLength and maxLength count. */
+export function codePointLength(value: string): number {
+  let count = 0;
+  for (const _ of value) {
+    count += 1;
+  }
+  return count;
+}
+
+/**
+ * A string bounded in code points, as JSON Schema counts them; Zod's .min and .max count UTF-16
+ * units, which differ for characters outside the Basic Multilingual Plane. The bounds also go into
+ * the JSON Schema export as minLength and maxLength.
+ */
+export function text(bounds: { min?: number; max?: number }) {
+  const { min, max } = bounds;
+  return z
+    .string()
+    .superRefine((value, ctx) => {
+      const length = codePointLength(value);
+      if (min !== undefined && length < min) {
+        ctx.addIssue({
+          code: "too_small",
+          origin: "string",
+          minimum: min,
+          inclusive: true,
+          input: value,
+          message: `Too short: at least ${min} characters`,
+        });
+      }
+      if (max !== undefined && length > max) {
+        ctx.addIssue({
+          code: "too_big",
+          origin: "string",
+          maximum: max,
+          inclusive: true,
+          input: value,
+          message: `Too long: at most ${max} characters`,
+        });
+      }
+    })
+    .meta({
+      ...(min === undefined ? {} : { minLength: min }),
+      ...(max === undefined ? {} : { maxLength: max }),
+    });
+}
