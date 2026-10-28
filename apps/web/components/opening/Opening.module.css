@@ -37,9 +37,9 @@
 .what,
 .how,
 .caseLine {
-  margin: 16px auto 0;
+  margin: 10px auto 0;
   max-width: 720px;
-  font: 400 var(--type-command-size) / 28px var(--font-sans);
+  font: 400 var(--type-command-size) / 24px var(--font-sans);
   text-wrap: pretty;
   animation: fade 300ms var(--ease-arrive) 250ms both;
 }
@@ -54,7 +54,7 @@
 }
 
 .stagesBlock {
-  margin: 16px auto 0;
+  margin: 10px auto 0;
   animation: fade 300ms var(--ease-arrive) 250ms both;
 }
 
@@ -99,7 +99,7 @@
 }
 
 .action {
-  margin: 24px 0 0;
+  margin: 18px 0 0;
   display: flex;
   justify-content: center;
   align-items: center;
