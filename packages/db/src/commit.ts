@@ -25,7 +25,11 @@ export type CommitOutcome =
 /** A commit that breaks a storage rule; nothing is written. */
 export class CommitRejected extends Error {
   readonly code:
-    "revision_conflict" | "case_mismatch" | "duplicate_entity" | "review_not_permitted";
+    | "revision_conflict"
+    | "case_mismatch"
+    | "duplicate_entity"
+    | "review_not_permitted"
+    | "brief_inputs_not_cited";
   constructor(code: CommitRejected["code"], message: string) {
     super(message);
     this.name = "CommitRejected";
@@ -98,6 +102,19 @@ export function isReviewRequest(record: Upsert): boolean {
 }
 
 /**
+ * The evidence, hypotheses and interventions a brief names that its provenance.inputVersions does
+ * not cite at some revision. Staleness follows exact versions only (data-contracts.md, principle 2),
+ * so a brief naming an input it does not cite would never go stale when that input changes.
+ */
+export function uncoveredBriefCitations(record: Upsert): string[] {
+  if (record.recordType !== "Brief") return [];
+  const cited = new Set(record.provenance.inputVersions.map((v) => v.entityId));
+  return [...record.evidenceIds, ...record.hypothesisIds, ...record.interventionIds].filter(
+    (id) => !cited.has(id),
+  );
+}
+
+/**
  * Applies a commit atomically against the expected case revision (data-contracts.md, idempotency,
  * revisions and recovery). When the case moved on, the commit rebases only if its inputs are
  * unchanged and it leaves the case fields as they were; otherwise it is stale and nothing is written.
@@ -160,6 +177,15 @@ export async function applyCommit(pool: Pool, input: CommitProposal): Promise<Co
         "review_not_permitted",
         `${review.id}: a task commit may only request a review, not record a decision`,
       );
+    }
+    for (const record of writes) {
+      const uncovered = uncoveredBriefCitations(record);
+      if (uncovered.length > 0) {
+        throw new CommitRejected(
+          "brief_inputs_not_cited",
+          `${record.id}: provenance.inputVersions does not cite ${uncovered.join(", ")}`,
+        );
+      }
     }
     const ids = writes.map((record) => record.id);
     if (new Set(ids).size !== ids.length) {
