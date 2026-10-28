@@ -1,7 +1,7 @@
 {
  "recipeId": "restrend_long_record",
  "version": "1.0.0",
- "computed": "2026-10-28T18:55:24Z",
+ "computed": "2026-10-28T19:06:32Z",
  "place": {
   "placeId": "ait_bouguemez",
   "configRevision": 1
@@ -2669,7 +2669,7 @@
    "direction": "upward"
   }
  ],
- "composites_missing_in_archive": [
+ "composites_absent_on_planetary_computer": [
   {
    "growing_window": "apr_jul",
    "year": 2025,
@@ -2683,12 +2683,13 @@
     "2025-07-12",
     "2025-07-28"
    ],
-   "missing_in_archive": [
+   "absent_on_planetary_computer": [
     "2025-07-12",
     "2025-07-28"
    ]
   }
  ],
+ "archive_gaps": "2 composite periods absent from Planetary Computer (A2025193, A2025209); on 2026-10-28 NASA CMR listed 2 of them (held by the NASA archive, which needs an Earthdata login, not used).",
  "full_tables": "restrend-long-record-tables.json",
  "limitations": [
   "The rainfall-adjusted residual still holds everything else that changes greenness: temperature, snow, irrigation, orchards and fields, grazing, fire, and sensor or orbit changes. It is not a measure of grazing impact or of degradation.",

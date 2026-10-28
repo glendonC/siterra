@@ -94,8 +94,8 @@
    "roles": [
     "data"
    ],
-   "file:checksum": "1220be374ec199b064f17c05dde83e00b47a4021edead7c5dd1d6fea4f6713bb6b80",
-   "file:size": 61871
+   "file:checksum": "1220a3908b70e21ba031c79fb45599f84917fc688cde460a8c79a64154155bbc2e67",
+   "file:size": 62094
   },
   "restrend_tables": {
    "href": "./restrend-long-record-tables.json",
@@ -104,11 +104,11 @@
    "roles": [
     "data"
    ],
-   "file:checksum": "122079225a231a570d3005a4b8fa011bc53ee78d25078c3d6cfeb9bd85ded868a484",
-   "file:size": 573384
+   "file:checksum": "122007a976a37d02a3f3c2c4490f282382aa5b73261454d099722804fbeb80bb9810",
+   "file:size": 574622
   }
  },
- "created": "2026-10-28T18:55:24Z",
+ "created": "2026-10-28T19:06:32Z",
  "siterra:status": "validated",
  "siterra:variable": "ndvi_departure",
  "siterra:dataset": {
@@ -263,7 +263,7 @@
   {
    "name": "nodata_not_zero",
    "passed": true,
-   "detail": "NDVI fill (-3000) and values outside -0.2 to 1.0 are not observed; pixel reliability other than [0, 1] (primary) or [0] (sensitivity), including fill 255, is not observed; a composite period absent from the archive counts as nothing kept. A missing CHIRPS month or cell leaves the window total undefined."
+   "detail": "NDVI fill (-3000) and values outside -0.2 to 1.0 are not observed; pixel reliability other than [0, 1] (primary) or [0] (sensitivity), including fill 255, is not observed; a composite period absent from Planetary Computer counts as nothing kept. A missing CHIRPS month or cell leaves the window total undefined."
   },
   {
    "name": "units_and_scale",
@@ -273,7 +273,7 @@
   {
    "name": "qa_join_coverage",
    "passed": true,
-   "detail": "All 584 composites share one window grid for NDVI and pixel reliability (176 x 131 pixels); stratum weights count 10 m analysis cells per MODIS pixel and per CHIRPS cell. Composite periods absent from Planetary Computer but listed in NASA CMR: 2025-07-12, 2025-07-28 (in the registered windows)."
+   "detail": "All 584 composites share one window grid for NDVI and pixel reliability (176 x 131 pixels); stratum weights count 10 m analysis cells per MODIS pixel and per CHIRPS cell. In the registered growing windows: 2 composite periods absent from Planetary Computer (A2025193, A2025209); on 2026-10-28 NASA CMR listed 2 of them (held by the NASA archive, which needs an Earthdata login, not used)."
   },
   {
    "name": "period_alignment",
