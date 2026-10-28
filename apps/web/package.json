@@ -15,6 +15,7 @@
     "@siterra/contracts": "workspace:*",
     "@siterra/db": "workspace:*",
     "@siterra/domain": "workspace:*",
+    "maplibre-contour": "0.1.1",
     "maplibre-gl": "6.14.0",
     "motion": "14.1.0",
     "next": "16.4.1",

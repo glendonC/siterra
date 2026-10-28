@@ -46,6 +46,7 @@ Contracts and design tokens carry their own Semantic Versioning numbers, recorde
 - Staleness propagation (DF-03): when a commit materially changes a record, every current record citing its older revision becomes stale through a new revision in the same transaction, with one `entity.stale` event; state changes of workflow records are not material, and a data record moving to invalid, excluded, missing, failed, superseded or rejected is.
 - Action status after reviews: an action awaiting review becomes prepared in demo mode when, for every required role except community and livelihood, the role's latest decision on the current version is an approval and its dependencies are prepared; community consultation stays listed as outstanding, and nothing is executed.
 - Review requests: a task may record a request for review (revision 1, requested, demo mode, no actor, no decision time, no conditions); any other review decision from a task is refused, and a request never counts as a decision.
+- `maplibre-contour` 0.1.1 (BSD-3-Clause, no dependencies) in the web app for the contour lines on the self-hosted terrain.
 
 ### Changed
 
