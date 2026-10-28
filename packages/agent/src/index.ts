@@ -4,6 +4,8 @@ export { MODEL_API_BASE_URL, ModelApiTransport } from "./model/model-api-transpo
 export { PRICE_TABLE, estimateCostUsd, priceFor } from "./model/pricing.ts";
 export { RecordingTransport, assertNoSecrets } from "./model/recorder.ts";
 export { REPLAY_FORMAT, ReplayTransport, loadReplayFile, parseReplayFile } from "./model/replay.ts";
+export { DEFAULT_KEYCHAIN_SERVICE, KeychainError, readKeychainKey } from "./model/keychain.ts";
+export { scrubSecrets } from "./model/secrets.ts";
 export type { ReplayFile, ReplayStep } from "./model/replay.ts";
 export { DEFAULT_RETRY } from "./model/retry.ts";
 export { assertStrictSubset, strictSubsetIssues } from "./model/strict-schema.ts";

@@ -1,5 +1,7 @@
 import OpenAI, { APIError } from "openai";
+import type { ClientOptions } from "openai";
 
+import { scrubSecrets } from "./secrets.ts";
 import { TransportError, parseRetryAfter } from "./transport.ts";
 import type { ModelTransport, ResponsesBody, TransportStream } from "./transport.ts";
 
@@ -33,6 +35,8 @@ export interface ModelApiTransportOptions {
   baseURL?: string;
   /** Must be true; set by the worker only after GATE-01 has passed and a spend cap is recorded. */
   liveApproved: boolean;
+  /** The client's fetch; tests pass a fake to see the request. */
+  fetch?: ClientOptions["fetch"];
 }
 
 function headerValue(headers: unknown, name: string): string | null {
@@ -50,6 +54,8 @@ export class ModelApiTransport implements ModelTransport {
   readonly route = "model_api" as const;
   readonly replayOrigin = null;
   readonly #client: OpenAI;
+  /** Kept only to remove the key from error text. */
+  readonly #key: string;
 
   constructor(options: ModelApiTransportOptions) {
     if (!options.liveApproved) {
@@ -62,11 +68,13 @@ export class ModelApiTransport implements ModelTransport {
       );
     }
     // Retries and stream deadlines belong to the adapter, so the client does neither.
+    this.#key = options.apiKey;
     this.#client = new OpenAI({
       apiKey: options.apiKey,
       baseURL,
       maxRetries: 0,
       timeout: 600_000,
+      ...(options.fetch ? { fetch: options.fetch } : {}),
     });
   }
 
@@ -81,13 +89,15 @@ export class ModelApiTransport implements ModelTransport {
       };
     } catch (error) {
       if (error instanceof APIError && typeof error.status === "number") {
-        const code = typeof error.code === "string" ? error.code : null;
+        // Only the status and the code leave here, never the body; the code is scrubbed too.
+        const code = typeof error.code === "string" ? scrubSecrets(error.code, [this.#key]) : null;
         const retryAfter = parseRetryAfter(headerValue(error.headers, "retry-after"), Date.now());
         throw new TransportError(error.status, code, retryAfter);
       }
       // No HTTP status: the request was aborted or never reached the server. Neither is retried.
       if (signal.aborted) throw new TransportError(0, "cancelled", null);
       if (error instanceof APIError) throw new TransportError(0, "connection_error", null);
+      if (error instanceof Error) error.message = scrubSecrets(error.message, [this.#key]);
       throw error;
     }
   }

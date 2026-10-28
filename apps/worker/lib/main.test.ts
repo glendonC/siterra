@@ -8,7 +8,7 @@ import { exampleCase, exampleCommandRequest, freshDatabase } from "@siterra/db/t
 import type { TestDatabase } from "@siterra/db/testing";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import { WORKER_TIMING, dispatchOnce, startWorker, workerQueue } from "./main.ts";
+import { WORKER_TIMING, dispatchOnce, errorLabel, startWorker, workerQueue } from "./main.ts";
 
 // The whole worker on PostgreSQL: a submitted command goes through the outbox into a pg-boss job,
 // and the plan job finishes it. The model output is a synthetic replay file; nothing is live.
@@ -168,5 +168,16 @@ describe("worker heartbeat (b36)", () => {
 describe("worker timing (PF-05)", () => {
   it("polls the outbox every 250 ms and the plan queue every 0.5 s, pg-boss's minimum", () => {
     expect(WORKER_TIMING).toEqual({ outboxPollMs: 250, jobPollingIntervalSeconds: 0.5 });
+  });
+});
+
+describe("heartbeat error log (b54)", () => {
+  it("logs an error's code, else its name, never its message", () => {
+    const refused = Object.assign(new Error("connect ECONNREFUSED with LLM_1_secret text"), {
+      code: "ECONNREFUSED",
+    });
+    expect(errorLabel(refused)).toBe("ECONNREFUSED");
+    expect(errorLabel(new TypeError("message with LLM_1_secret"))).toBe("TypeError");
+    expect(errorLabel("a bare string")).toBe("unknown error");
   });
 });

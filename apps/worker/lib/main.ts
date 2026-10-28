@@ -1,6 +1,6 @@
 import { fileURLToPath } from "node:url";
 
-import { chooseTransport, describeRoute } from "@siterra/agent";
+import { chooseTransport, describeRoute, readKeychainKey } from "@siterra/agent";
 import { createPool, planQueue } from "@siterra/db";
 import { startWorkerHeartbeat } from "@siterra/db/health";
 import type { Pool } from "@siterra/db";
@@ -40,6 +40,16 @@ export function workerQueue(connectionString: string): PgBoss {
   return new PgBoss({ connectionString, schema: jobSchema, migrate: false });
 }
 
+/** An error's code, else its name: what a log line may carry about it. */
+export function errorLabel(error: unknown): string {
+  if (typeof error === "object" && error !== null) {
+    const code = (error as { code?: unknown }).code;
+    if (typeof code === "string" && code !== "") return code;
+    if (error instanceof Error) return error.name;
+  }
+  return "unknown error";
+}
+
 function isPlanJob(data: unknown): data is PlanJob {
   if (typeof data !== "object" || data === null) return false;
   const d = data as Record<string, unknown>;
@@ -57,7 +67,8 @@ export async function startWorker(
   if (!url) throw new Error("DATABASE_URL is not set");
   const repoRoot = env["SITERRA_REPO_ROOT"] ?? process.cwd();
   const manifest = env["SITERRA_CORPUS_MANIFEST"] ?? "data/case/corpus-manifest.json";
-  const transport = chooseTransport(env);
+  // On the live route without MODEL_API_KEY the key is read from the login Keychain into memory.
+  const transport = chooseTransport(env, { readKeychain: (service) => readKeychainKey(service) });
   console.log(`worker: model route ${describeRoute(transport).label}`);
 
   const pool = createPool(url);
@@ -71,10 +82,10 @@ export async function startWorker(
   await boss.start();
   await boss.createQueue(planQueue);
   // The health check reads this worker as alive from its heartbeat (AUDIT B b36).
+  // A failed beat logs its code or name only, never a message that could carry connection text
+  // (AUDIT B b54).
   const stopHeartbeat = await startWorkerHeartbeat(pool, (error: unknown) => {
-    console.error(
-      `worker: heartbeat failed: ${error instanceof Error ? error.message : "unknown error"}`,
-    );
+    console.error(`worker: heartbeat failed: ${errorLabel(error)}`);
   });
 
   await boss.work<PlanJob>(

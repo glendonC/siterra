@@ -1,0 +1,126 @@
+import { afterEach, describe, expect, it, vi } from "vitest";
+
+import { runObservationTask } from "../tasks/observation/observation-task.ts";
+import type { TraceEventDraft } from "../tasks/trace.ts";
+import { AT, CASE_ID, queuedTask, testStore } from "../testing/case-fixture.ts";
+import { caseToolRegistry } from "../tools/registry.ts";
+import { MetaAdapter } from "./adapter.ts";
+import { KeychainError, readKeychainKey } from "./keychain.ts";
+import type { SecurityRunner } from "./keychain.ts";
+import { LIVE_APPROVAL_VALUE, chooseTransport } from "./route.ts";
+import { KEY_REMOVED, scrubSecrets } from "./secrets.ts";
+
+// Fake keys and a fake security tool only. No test here runs the real security tool, reads a real
+// key or reaches the network: the client's fetch is a fake that records the request.
+
+const FAKE_KEY = "LLM_424242_fakeKeyForTestsOnly-not-real";
+const LIVE = { SITERRA_MODEL_ROUTE: "model_api", SITERRA_LIVE_APPROVED: LIVE_APPROVAL_VALUE };
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
+
+describe("secret scrub", () => {
+  it("removes the key and anything shaped like a Model API key", () => {
+    const text = `Incorrect API key provided: ${FAKE_KEY}; also LLM_9_other-key`;
+    const out = scrubSecrets(text, [FAKE_KEY]);
+    expect(out).not.toContain("LLM_");
+    expect(out).toBe(`Incorrect API key provided: ${KEY_REMOVED}; also ${KEY_REMOVED}`);
+  });
+});
+
+describe("Keychain reader", () => {
+  it("asks the security tool for the item by account and service, and keeps stdout in memory", () => {
+    const calls: (readonly string[])[] = [];
+    const run: SecurityRunner = (args) => {
+      calls.push(args);
+      return { status: 0, stdout: `${FAKE_KEY}\n`, stderr: "" };
+    };
+    expect(readKeychainKey("siterra-meta-model-api", "founder", run)).toBe(FAKE_KEY);
+    expect(calls).toEqual([
+      ["find-generic-password", "-a", "founder", "-s", "siterra-meta-model-api", "-w"],
+    ]);
+  });
+
+  it("a missing item names the service and account and never carries a key", () => {
+    const run: SecurityRunner = () => ({
+      status: 44,
+      stdout: "",
+      stderr: `security: The specified item could not be found in the keychain. ${FAKE_KEY}`,
+    });
+    let caught: unknown;
+    try {
+      readKeychainKey("siterra-meta-model-api", "founder", run);
+    } catch (error) {
+      caught = error;
+    }
+    expect(caught).toBeInstanceOf(KeychainError);
+    const message = (caught as Error).message;
+    expect(message).toContain("service siterra-meta-model-api and account founder");
+    expect(message).not.toContain("LLM_");
+  });
+});
+
+describe("route key source", () => {
+  it("the replay route never reads the key", () => {
+    const readKeychain = vi.fn(() => FAKE_KEY);
+    expect(() => chooseTransport({ SITERRA_MODEL_ROUTE: "replay" }, { readKeychain })).toThrow(
+      /SITERRA_REPLAY_FILE/,
+    );
+    expect(readKeychain).not.toHaveBeenCalled();
+  });
+
+  it("live without MODEL_API_KEY reads the Keychain service, default or configured", () => {
+    const readKeychain = vi.fn(() => FAKE_KEY);
+    chooseTransport(LIVE, { readKeychain });
+    chooseTransport({ ...LIVE, SITERRA_KEYCHAIN_SERVICE: "other-service" }, { readKeychain });
+    expect(readKeychain.mock.calls).toEqual([["siterra-meta-model-api"], ["other-service"]]);
+    const fromEnv = vi.fn(() => FAKE_KEY);
+    chooseTransport({ ...LIVE, MODEL_API_KEY: "LLM_1_fromEnvironment" }, { readKeychain: fromEnv });
+    expect(fromEnv).not.toHaveBeenCalled();
+  });
+
+  it("the key reaches the Authorization header and no environment, log, error or stored event", async () => {
+    const authorization: (string | null)[] = [];
+    const fakeFetch = (_url: unknown, init?: RequestInit) => {
+      authorization.push(new Headers(init?.headers).get("authorization"));
+      const body = JSON.stringify({
+        error: { message: `Incorrect API key provided: ${FAKE_KEY}`, code: `bad ${FAKE_KEY}` },
+      });
+      return Promise.resolve(
+        new Response(body, { status: 401, headers: { "content-type": "application/json" } }),
+      );
+    };
+    const logged: unknown[] = [];
+    for (const method of ["log", "error", "warn", "info", "debug"] as const) {
+      vi.spyOn(console, method).mockImplementation((...args: unknown[]) => {
+        logged.push(args);
+      });
+    }
+    const transport = chooseTransport(LIVE, {
+      readKeychain: () => FAKE_KEY,
+      fetch: fakeFetch,
+    });
+
+    const store = testStore();
+    const events: TraceEventDraft[] = [];
+    const { loop, commit } = await runObservationTask(
+      { task: queuedTask(), expectedCaseRevision: 3 },
+      {
+        adapter: new MetaAdapter({ transport, sleep: () => Promise.resolve() }),
+        trace: { emit: (e) => events.push(e) },
+        store,
+        tools: caseToolRegistry(store, CASE_ID),
+        newEvidenceId: () => "ev_test_01",
+        now: () => AT,
+      },
+    );
+
+    expect(authorization.length).toBeGreaterThan(0);
+    expect(authorization.every((a) => a === `Bearer ${FAKE_KEY}`)).toBe(true);
+    expect(loop.status).not.toBe("accepted");
+    const elsewhere = JSON.stringify([process.env, logged, events, commit, loop]);
+    expect(elsewhere).not.toContain(FAKE_KEY);
+    expect(elsewhere).not.toContain("LLM_424242");
+  });
+});
