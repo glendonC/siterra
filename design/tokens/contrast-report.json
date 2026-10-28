@@ -1,135 +1,135 @@
 {
-  "$description": "Computed contrast for color roles: WCAG 2.2 ratio (normative) and APCA Lc (advisory). Computed from hex values; it does not replace checks over real terrain imagery. Source: research/design/color-system.md.",
+  "$description": "Computed contrast for color roles, tokens 1.3: WCAG 2.2 ratio (normative) and APCA Lc 0.0.98G-4g (advisory). The light section is recomputed for the daylight values; dark, map.dark and translucency are unchanged from 1.2. Computed from hex values (alpha composited in gamma-encoded sRGB); it does not replace checks over real terrain imagery.",
   "light": {
     "backgrounds": {
-      "canvas": "#f6f5f4",
+      "canvas": "#f2efea",
       "surface": "#fdfdfc",
       "overlay": "#fdfdfc",
       "subtle": "#efeeed",
       "selected": "#e8e7e5",
       "field": "#fdfdfc",
-      "hover (surface)": "#f6f6f4",
-      "hover (overlay)": "#f6f6f4",
-      "pressed (surface)": "#efeeed"
+      "hover (surface)": "#f6f6f5",
+      "hover (overlay)": "#f6f6f5",
+      "pressed (surface)": "#f0efee"
     },
     "rows": [
       {
         "role": "text.primary",
-        "hex": "#1c1a18",
+        "hex": "#2b2925",
         "on": {
           "canvas": {
-            "fg": "#1c1a18",
-            "bg": "#f6f5f4",
-            "wcag": 15.93,
-            "apca": 98.3
+            "fg": "#2b2925",
+            "bg": "#f2efea",
+            "wcag": 12.66,
+            "apca": 92.0
           },
           "surface": {
-            "fg": "#1c1a18",
+            "fg": "#2b2925",
             "bg": "#fdfdfc",
-            "wcag": 17.05,
-            "apca": 103.0
+            "wcag": 14.26,
+            "apca": 100.1
           },
           "overlay": {
-            "fg": "#1c1a18",
+            "fg": "#2b2925",
             "bg": "#fdfdfc",
-            "wcag": 17.05,
-            "apca": 103.0
+            "wcag": 14.26,
+            "apca": 100.1
           },
           "subtle": {
-            "fg": "#1c1a18",
+            "fg": "#2b2925",
             "bg": "#efeeed",
-            "wcag": 14.97,
-            "apca": 94.2
+            "wcag": 12.53,
+            "apca": 91.3
           },
           "selected": {
-            "fg": "#1c1a18",
+            "fg": "#2b2925",
             "bg": "#e8e7e5",
-            "wcag": 14.04,
-            "apca": 90.1
+            "wcag": 11.75,
+            "apca": 87.2
           },
           "field": {
-            "fg": "#1c1a18",
+            "fg": "#2b2925",
             "bg": "#fdfdfc",
-            "wcag": 17.05,
-            "apca": 103.0
+            "wcag": 14.26,
+            "apca": 100.1
           },
           "hover (surface)": {
-            "fg": "#1c1a18",
-            "bg": "#f6f6f4",
-            "wcag": 16.03,
-            "apca": 98.8
+            "fg": "#2b2925",
+            "bg": "#f6f6f5",
+            "wcag": 13.42,
+            "apca": 95.9
           },
           "hover (overlay)": {
-            "fg": "#1c1a18",
-            "bg": "#f6f6f4",
-            "wcag": 16.03,
-            "apca": 98.8
+            "fg": "#2b2925",
+            "bg": "#f6f6f5",
+            "wcag": 13.42,
+            "apca": 95.9
           },
           "pressed (surface)": {
-            "fg": "#1c1a18",
-            "bg": "#efeeed",
-            "wcag": 14.97,
-            "apca": 94.2
+            "fg": "#2b2925",
+            "bg": "#f0efee",
+            "wcag": 12.64,
+            "apca": 91.9
           }
         }
       },
       {
         "role": "text.secondary",
-        "hex": "#4e4b48",
+        "hex": "#6b6762",
         "on": {
           "canvas": {
-            "fg": "#4e4b48",
-            "bg": "#f6f5f4",
-            "wcag": 7.96,
-            "apca": 83.9
+            "fg": "#6b6762",
+            "bg": "#f2efea",
+            "wcag": 4.89,
+            "apca": 68.7
           },
           "surface": {
-            "fg": "#4e4b48",
+            "fg": "#6b6762",
             "bg": "#fdfdfc",
-            "wcag": 8.51,
-            "apca": 88.5
+            "wcag": 5.51,
+            "apca": 76.8
           },
           "overlay": {
-            "fg": "#4e4b48",
+            "fg": "#6b6762",
             "bg": "#fdfdfc",
-            "wcag": 8.51,
-            "apca": 88.5
+            "wcag": 5.51,
+            "apca": 76.8
           },
           "subtle": {
-            "fg": "#4e4b48",
+            "fg": "#6b6762",
             "bg": "#efeeed",
-            "wcag": 7.48,
-            "apca": 79.7
+            "wcag": 4.84,
+            "apca": 68.1
           },
           "selected": {
-            "fg": "#4e4b48",
+            "fg": "#6b6762",
             "bg": "#e8e7e5",
-            "wcag": 7.01,
-            "apca": 75.6
+            "wcag": 4.54,
+            "apca": 63.9
           },
           "field": {
-            "fg": "#4e4b48",
+            "fg": "#6b6762",
             "bg": "#fdfdfc",
-            "wcag": 8.51,
-            "apca": 88.5
+            "wcag": 5.51,
+            "apca": 76.8
           },
           "hover (surface)": {
-            "fg": "#4e4b48",
-            "bg": "#f6f6f4",
-            "wcag": 8.01,
-            "apca": 84.3
+            "fg": "#6b6762",
+            "bg": "#f6f6f5",
+            "wcag": 5.19,
+            "apca": 72.7
           },
           "hover (overlay)": {
-            "fg": "#4e4b48",
-            "bg": "#f6f6f4",
-            "wcag": 8.01,
-            "apca": 84.3
+            "fg": "#6b6762",
+            "bg": "#f6f6f5",
+            "wcag": 5.19,
+            "apca": 72.7
           },
           "pressed (surface)": {
-            "fg": "#4e4b48",
-            "bg": "#efeeed",
-            "wcag": 7.48,
-            "apca": 79.7
+            "fg": "#6b6762",
+            "bg": "#f0efee",
+            "wcag": 4.89,
+            "apca": 68.7
           }
         }
       },
@@ -139,9 +139,9 @@
         "on": {
           "canvas": {
             "fg": "#6a6764",
-            "bg": "#f6f5f4",
-            "wcag": 5.16,
-            "apca": 72.2
+            "bg": "#f2efea",
+            "wcag": 4.9,
+            "apca": 68.8
           },
           "surface": {
             "fg": "#6a6764",
@@ -175,21 +175,21 @@
           },
           "hover (surface)": {
             "fg": "#6a6764",
-            "bg": "#f6f6f4",
-            "wcag": 5.19,
+            "bg": "#f6f6f5",
+            "wcag": 5.2,
             "apca": 72.7
           },
           "hover (overlay)": {
             "fg": "#6a6764",
-            "bg": "#f6f6f4",
-            "wcag": 5.19,
+            "bg": "#f6f6f5",
+            "wcag": 5.2,
             "apca": 72.7
           },
           "pressed (surface)": {
             "fg": "#6a6764",
-            "bg": "#efeeed",
-            "wcag": 4.85,
-            "apca": 68.1
+            "bg": "#f0efee",
+            "wcag": 4.89,
+            "apca": 68.7
           }
         }
       },
@@ -199,9 +199,9 @@
         "on": {
           "canvas": {
             "fg": "#a8a6a3",
-            "bg": "#f6f5f4",
-            "wcag": 2.23,
-            "apca": 41.9
+            "bg": "#f2efea",
+            "wcag": 2.12,
+            "apca": 38.5
           },
           "surface": {
             "fg": "#a8a6a3",
@@ -235,81 +235,81 @@
           },
           "hover (surface)": {
             "fg": "#a8a6a3",
-            "bg": "#f6f6f4",
-            "wcag": 2.24,
+            "bg": "#f6f6f5",
+            "wcag": 2.25,
             "apca": 42.4
           },
           "hover (overlay)": {
             "fg": "#a8a6a3",
-            "bg": "#f6f6f4",
-            "wcag": 2.24,
+            "bg": "#f6f6f5",
+            "wcag": 2.25,
             "apca": 42.4
           },
           "pressed (surface)": {
             "fg": "#a8a6a3",
-            "bg": "#efeeed",
-            "wcag": 2.1,
-            "apca": 37.8
+            "bg": "#f0efee",
+            "wcag": 2.11,
+            "apca": 38.4
           }
         }
       },
       {
         "role": "text.link",
-        "hex": "#1c1a18",
+        "hex": "#2b2925",
         "on": {
           "canvas": {
-            "fg": "#1c1a18",
-            "bg": "#f6f5f4",
-            "wcag": 15.93,
-            "apca": 98.3
+            "fg": "#2b2925",
+            "bg": "#f2efea",
+            "wcag": 12.66,
+            "apca": 92.0
           },
           "surface": {
-            "fg": "#1c1a18",
+            "fg": "#2b2925",
             "bg": "#fdfdfc",
-            "wcag": 17.05,
-            "apca": 103.0
+            "wcag": 14.26,
+            "apca": 100.1
           },
           "overlay": {
-            "fg": "#1c1a18",
+            "fg": "#2b2925",
             "bg": "#fdfdfc",
-            "wcag": 17.05,
-            "apca": 103.0
+            "wcag": 14.26,
+            "apca": 100.1
           },
           "subtle": {
-            "fg": "#1c1a18",
+            "fg": "#2b2925",
             "bg": "#efeeed",
-            "wcag": 14.97,
-            "apca": 94.2
+            "wcag": 12.53,
+            "apca": 91.3
           },
           "selected": {
-            "fg": "#1c1a18",
+            "fg": "#2b2925",
             "bg": "#e8e7e5",
-            "wcag": 14.04,
-            "apca": 90.1
+            "wcag": 11.75,
+            "apca": 87.2
           },
           "field": {
-            "fg": "#1c1a18",
+            "fg": "#2b2925",
             "bg": "#fdfdfc",
-            "wcag": 17.05,
-            "apca": 103.0
+            "wcag": 14.26,
+            "apca": 100.1
           },
           "hover (surface)": {
-            "fg": "#1c1a18",
-            "bg": "#f6f6f4",
-            "wcag": 16.03,
-            "apca": 98.8
+            "fg": "#2b2925",
+            "bg": "#f6f6f5",
+            "wcag": 13.42,
+            "apca": 95.9
           },
           "hover (overlay)": {
-            "fg": "#1c1a18",
-            "bg": "#f6f6f4",
-            "wcag": 16.03,
-            "apca": 98.8
+            "fg": "#2b2925",
+            "bg": "#f6f6f5",
+            "wcag": 13.42,
+            "apca": 95.9
           },
           "pressed (surface)": {
-            "fg": "#1c1a18",
-            "bg": "#efeeed",
-            "wcag": 14.97,
-            "apca": 94.2
+            "fg": "#2b2925",
+            "bg": "#f0efee",
+            "wcag": 12.64,
+            "apca": 91.9
           }
         }
       },
@@ -319,9 +319,9 @@
         "on": {
           "canvas": {
             "fg": "#b53e35",
-            "bg": "#f6f5f4",
-            "wcag": 5.21,
-            "apca": 71.5
+            "bg": "#f2efea",
+            "wcag": 4.94,
+            "apca": 68.1
           },
           "surface": {
             "fg": "#b53e35",
@@ -355,21 +355,21 @@
           },
           "hover (surface)": {
             "fg": "#b53e35",
-            "bg": "#f6f6f4",
+            "bg": "#f6f6f5",
             "wcag": 5.24,
-            "apca": 71.9
+            "apca": 72.0
           },
           "hover (overlay)": {
             "fg": "#b53e35",
-            "bg": "#f6f6f4",
+            "bg": "#f6f6f5",
             "wcag": 5.24,
-            "apca": 71.9
+            "apca": 72.0
           },
           "pressed (surface)": {
             "fg": "#b53e35",
-            "bg": "#efeeed",
-            "wcag": 4.89,
-            "apca": 67.4
+            "bg": "#f0efee",
+            "wcag": 4.94,
+            "apca": 68.0
           }
         }
       },
@@ -379,9 +379,9 @@
         "on": {
           "canvas": {
             "fg": "#8f5c16",
-            "bg": "#f6f5f4",
-            "wcag": 5.2,
-            "apca": 72.2
+            "bg": "#f2efea",
+            "wcag": 4.93,
+            "apca": 68.7
           },
           "surface": {
             "fg": "#8f5c16",
@@ -415,21 +415,21 @@
           },
           "hover (surface)": {
             "fg": "#8f5c16",
-            "bg": "#f6f6f4",
+            "bg": "#f6f6f5",
             "wcag": 5.23,
             "apca": 72.6
           },
           "hover (overlay)": {
             "fg": "#8f5c16",
-            "bg": "#f6f6f4",
+            "bg": "#f6f6f5",
             "wcag": 5.23,
             "apca": 72.6
           },
           "pressed (surface)": {
             "fg": "#8f5c16",
-            "bg": "#efeeed",
-            "wcag": 4.88,
-            "apca": 68.0
+            "bg": "#f0efee",
+            "wcag": 4.93,
+            "apca": 68.6
           }
         }
       },
@@ -439,9 +439,9 @@
         "on": {
           "canvas": {
             "fg": "#1d773b",
-            "bg": "#f6f5f4",
-            "wcag": 5.14,
-            "apca": 71.7
+            "bg": "#f2efea",
+            "wcag": 4.88,
+            "apca": 68.2
           },
           "surface": {
             "fg": "#1d773b",
@@ -475,21 +475,21 @@
           },
           "hover (surface)": {
             "fg": "#1d773b",
-            "bg": "#f6f6f4",
+            "bg": "#f6f6f5",
             "wcag": 5.17,
             "apca": 72.1
           },
           "hover (overlay)": {
             "fg": "#1d773b",
-            "bg": "#f6f6f4",
+            "bg": "#f6f6f5",
             "wcag": 5.17,
             "apca": 72.1
           },
           "pressed (surface)": {
             "fg": "#1d773b",
-            "bg": "#efeeed",
-            "wcag": 4.83,
-            "apca": 67.5
+            "bg": "#f0efee",
+            "wcag": 4.87,
+            "apca": 68.1
           }
         }
       },
@@ -499,9 +499,9 @@
         "on": {
           "canvas": {
             "fg": "#226bac",
-            "bg": "#f6f5f4",
-            "wcag": 5.12,
-            "apca": 71.6
+            "bg": "#f2efea",
+            "wcag": 4.86,
+            "apca": 68.1
           },
           "surface": {
             "fg": "#226bac",
@@ -535,81 +535,81 @@
           },
           "hover (surface)": {
             "fg": "#226bac",
-            "bg": "#f6f6f4",
-            "wcag": 5.15,
+            "bg": "#f6f6f5",
+            "wcag": 5.16,
             "apca": 72.0
           },
           "hover (overlay)": {
             "fg": "#226bac",
-            "bg": "#f6f6f4",
-            "wcag": 5.15,
+            "bg": "#f6f6f5",
+            "wcag": 5.16,
             "apca": 72.0
           },
           "pressed (surface)": {
             "fg": "#226bac",
-            "bg": "#efeeed",
-            "wcag": 4.81,
-            "apca": 67.5
+            "bg": "#f0efee",
+            "wcag": 4.85,
+            "apca": 68.0
           }
         }
       },
       {
         "role": "icon.subtle",
-        "hex": "#787672",
+        "hex": "#6b6762",
         "on": {
           "canvas": {
-            "fg": "#787672",
-            "bg": "#f6f5f4",
-            "wcag": 4.16,
-            "apca": 65.6
+            "fg": "#6b6762",
+            "bg": "#f2efea",
+            "wcag": 4.89,
+            "apca": 68.7
           },
           "surface": {
-            "fg": "#787672",
+            "fg": "#6b6762",
             "bg": "#fdfdfc",
-            "wcag": 4.45,
-            "apca": 70.3
+            "wcag": 5.51,
+            "apca": 76.8
           },
           "overlay": {
-            "fg": "#787672",
+            "fg": "#6b6762",
             "bg": "#fdfdfc",
-            "wcag": 4.45,
-            "apca": 70.3
+            "wcag": 5.51,
+            "apca": 76.8
           },
           "subtle": {
-            "fg": "#787672",
+            "fg": "#6b6762",
             "bg": "#efeeed",
-            "wcag": 3.91,
-            "apca": 61.5
+            "wcag": 4.84,
+            "apca": 68.1
           },
           "selected": {
-            "fg": "#787672",
+            "fg": "#6b6762",
             "bg": "#e8e7e5",
-            "wcag": 3.67,
-            "apca": 57.4
+            "wcag": 4.54,
+            "apca": 63.9
           },
           "field": {
-            "fg": "#787672",
+            "fg": "#6b6762",
             "bg": "#fdfdfc",
-            "wcag": 4.45,
-            "apca": 70.3
+            "wcag": 5.51,
+            "apca": 76.8
           },
           "hover (surface)": {
-            "fg": "#787672",
-            "bg": "#f6f6f4",
-            "wcag": 4.19,
-            "apca": 66.0
+            "fg": "#6b6762",
+            "bg": "#f6f6f5",
+            "wcag": 5.19,
+            "apca": 72.7
           },
           "hover (overlay)": {
-            "fg": "#787672",
-            "bg": "#f6f6f4",
-            "wcag": 4.19,
-            "apca": 66.0
+            "fg": "#6b6762",
+            "bg": "#f6f6f5",
+            "wcag": 5.19,
+            "apca": 72.7
           },
           "pressed (surface)": {
-            "fg": "#787672",
-            "bg": "#efeeed",
-            "wcag": 3.91,
-            "apca": 61.5
+            "fg": "#6b6762",
+            "bg": "#f0efee",
+            "wcag": 4.89,
+            "apca": 68.7
           }
         }
       },
@@ -619,9 +619,9 @@
         "on": {
           "canvas": {
             "fg": "#878481",
-            "bg": "#f6f5f4",
-            "wcag": 3.41,
-            "apca": 58.9
+            "bg": "#f2efea",
+            "wcag": 3.24,
+            "apca": 55.4
           },
           "surface": {
             "fg": "#878481",
@@ -655,81 +655,81 @@
           },
           "hover (surface)": {
             "fg": "#878481",
-            "bg": "#f6f6f4",
+            "bg": "#f6f6f5",
             "wcag": 3.44,
-            "apca": 59.3
+            "apca": 59.4
           },
           "hover (overlay)": {
             "fg": "#878481",
-            "bg": "#f6f6f4",
+            "bg": "#f6f6f5",
             "wcag": 3.44,
-            "apca": 59.3
+            "apca": 59.4
           },
           "pressed (surface)": {
             "fg": "#878481",
-            "bg": "#efeeed",
-            "wcag": 3.21,
-            "apca": 54.8
+            "bg": "#f0efee",
+            "wcag": 3.24,
+            "apca": 55.4
           }
         }
       },
       {
         "role": "border.focus",
-        "hex": "#1c1a18",
+        "hex": "#2b2925",
         "on": {
           "canvas": {
-            "fg": "#1c1a18",
-            "bg": "#f6f5f4",
-            "wcag": 15.93,
-            "apca": 98.3
+            "fg": "#2b2925",
+            "bg": "#f2efea",
+            "wcag": 12.66,
+            "apca": 92.0
           },
           "surface": {
-            "fg": "#1c1a18",
+            "fg": "#2b2925",
             "bg": "#fdfdfc",
-            "wcag": 17.05,
-            "apca": 103.0
+            "wcag": 14.26,
+            "apca": 100.1
           },
           "overlay": {
-            "fg": "#1c1a18",
+            "fg": "#2b2925",
             "bg": "#fdfdfc",
-            "wcag": 17.05,
-            "apca": 103.0
+            "wcag": 14.26,
+            "apca": 100.1
           },
           "subtle": {
-            "fg": "#1c1a18",
+            "fg": "#2b2925",
             "bg": "#efeeed",
-            "wcag": 14.97,
-            "apca": 94.2
+            "wcag": 12.53,
+            "apca": 91.3
           },
           "selected": {
-            "fg": "#1c1a18",
+            "fg": "#2b2925",
             "bg": "#e8e7e5",
-            "wcag": 14.04,
-            "apca": 90.1
+            "wcag": 11.75,
+            "apca": 87.2
           },
           "field": {
-            "fg": "#1c1a18",
+            "fg": "#2b2925",
             "bg": "#fdfdfc",
-            "wcag": 17.05,
-            "apca": 103.0
+            "wcag": 14.26,
+            "apca": 100.1
           },
           "hover (surface)": {
-            "fg": "#1c1a18",
-            "bg": "#f6f6f4",
-            "wcag": 16.03,
-            "apca": 98.8
+            "fg": "#2b2925",
+            "bg": "#f6f6f5",
+            "wcag": 13.42,
+            "apca": 95.9
           },
           "hover (overlay)": {
-            "fg": "#1c1a18",
-            "bg": "#f6f6f4",
-            "wcag": 16.03,
-            "apca": 98.8
+            "fg": "#2b2925",
+            "bg": "#f6f6f5",
+            "wcag": 13.42,
+            "apca": 95.9
           },
           "pressed (surface)": {
-            "fg": "#1c1a18",
-            "bg": "#efeeed",
-            "wcag": 14.97,
-            "apca": 94.2
+            "fg": "#2b2925",
+            "bg": "#f0efee",
+            "wcag": 12.64,
+            "apca": 91.9
           }
         }
       },
@@ -739,9 +739,9 @@
         "on": {
           "canvas": {
             "fg": "#a8a6a3",
-            "bg": "#f6f5f4",
-            "wcag": 2.23,
-            "apca": 41.9
+            "bg": "#f2efea",
+            "wcag": 2.12,
+            "apca": 38.5
           },
           "surface": {
             "fg": "#a8a6a3",
@@ -775,141 +775,141 @@
           },
           "hover (surface)": {
             "fg": "#a8a6a3",
-            "bg": "#f6f6f4",
-            "wcag": 2.24,
+            "bg": "#f6f6f5",
+            "wcag": 2.25,
             "apca": 42.4
           },
           "hover (overlay)": {
             "fg": "#a8a6a3",
-            "bg": "#f6f6f4",
-            "wcag": 2.24,
+            "bg": "#f6f6f5",
+            "wcag": 2.25,
             "apca": 42.4
           },
           "pressed (surface)": {
             "fg": "#a8a6a3",
-            "bg": "#efeeed",
-            "wcag": 2.1,
-            "apca": 37.8
+            "bg": "#f0efee",
+            "wcag": 2.11,
+            "apca": 38.4
           }
         }
       },
       {
         "role": "border.subtle",
-        "hex": "#cac8c6",
+        "hex": "#dbdbda",
         "on": {
           "canvas": {
-            "fg": "#cac8c6",
-            "bg": "#f6f5f4",
-            "wcag": 1.53,
-            "apca": 23.5
+            "fg": "#d2cfca",
+            "bg": "#f2efea",
+            "wcag": 1.35,
+            "apca": 16.1
           },
           "surface": {
-            "fg": "#cac8c6",
+            "fg": "#dbdbda",
             "bg": "#fdfdfc",
-            "wcag": 1.64,
-            "apca": 28.1
+            "wcag": 1.36,
+            "apca": 17.5
           },
           "overlay": {
-            "fg": "#cac8c6",
+            "fg": "#dbdbda",
             "bg": "#fdfdfc",
-            "wcag": 1.64,
-            "apca": 28.1
+            "wcag": 1.36,
+            "apca": 17.5
           },
           "subtle": {
-            "fg": "#cac8c6",
+            "fg": "#d0cecd",
             "bg": "#efeeed",
-            "wcag": 1.44,
-            "apca": 19.4
+            "wcag": 1.35,
+            "apca": 15.9
           },
           "selected": {
-            "fg": "#cac8c6",
+            "fg": "#cac9c6",
             "bg": "#e8e7e5",
-            "wcag": 1.35,
-            "apca": 15.2
+            "wcag": 1.34,
+            "apca": 14.8
           },
           "field": {
-            "fg": "#cac8c6",
+            "fg": "#dbdbda",
             "bg": "#fdfdfc",
-            "wcag": 1.64,
-            "apca": 28.1
+            "wcag": 1.36,
+            "apca": 17.5
           },
           "hover (surface)": {
-            "fg": "#cac8c6",
-            "bg": "#f6f6f4",
-            "wcag": 1.54,
-            "apca": 23.9
+            "fg": "#d6d5d4",
+            "bg": "#f6f6f5",
+            "wcag": 1.36,
+            "apca": 16.7
           },
           "hover (overlay)": {
-            "fg": "#cac8c6",
-            "bg": "#f6f6f4",
-            "wcag": 1.54,
-            "apca": 23.9
+            "fg": "#d6d5d4",
+            "bg": "#f6f6f5",
+            "wcag": 1.36,
+            "apca": 16.7
           },
           "pressed (surface)": {
-            "fg": "#cac8c6",
-            "bg": "#efeeed",
-            "wcag": 1.44,
-            "apca": 19.4
+            "fg": "#d0cfce",
+            "bg": "#f0efee",
+            "wcag": 1.35,
+            "apca": 16.1
           }
         }
       },
       {
         "role": "interactive.default",
-        "hex": "#1c1a18",
+        "hex": "#2b2925",
         "on": {
           "canvas": {
-            "fg": "#1c1a18",
-            "bg": "#f6f5f4",
-            "wcag": 15.93,
-            "apca": 98.3
+            "fg": "#2b2925",
+            "bg": "#f2efea",
+            "wcag": 12.66,
+            "apca": 92.0
           },
           "surface": {
-            "fg": "#1c1a18",
+            "fg": "#2b2925",
             "bg": "#fdfdfc",
-            "wcag": 17.05,
-            "apca": 103.0
+            "wcag": 14.26,
+            "apca": 100.1
           },
           "overlay": {
-            "fg": "#1c1a18",
+            "fg": "#2b2925",
             "bg": "#fdfdfc",
-            "wcag": 17.05,
-            "apca": 103.0
+            "wcag": 14.26,
+            "apca": 100.1
           },
           "subtle": {
-            "fg": "#1c1a18",
+            "fg": "#2b2925",
             "bg": "#efeeed",
-            "wcag": 14.97,
-            "apca": 94.2
+            "wcag": 12.53,
+            "apca": 91.3
           },
           "selected": {
-            "fg": "#1c1a18",
+            "fg": "#2b2925",
             "bg": "#e8e7e5",
-            "wcag": 14.04,
-            "apca": 90.1
+            "wcag": 11.75,
+            "apca": 87.2
           },
           "field": {
-            "fg": "#1c1a18",
+            "fg": "#2b2925",
             "bg": "#fdfdfc",
-            "wcag": 17.05,
-            "apca": 103.0
+            "wcag": 14.26,
+            "apca": 100.1
           },
           "hover (surface)": {
-            "fg": "#1c1a18",
-            "bg": "#f6f6f4",
-            "wcag": 16.03,
-            "apca": 98.8
+            "fg": "#2b2925",
+            "bg": "#f6f6f5",
+            "wcag": 13.42,
+            "apca": 95.9
           },
           "hover (overlay)": {
-            "fg": "#1c1a18",
-            "bg": "#f6f6f4",
-            "wcag": 16.03,
-            "apca": 98.8
+            "fg": "#2b2925",
+            "bg": "#f6f6f5",
+            "wcag": 13.42,
+            "apca": 95.9
           },
           "pressed (surface)": {
-            "fg": "#1c1a18",
-            "bg": "#efeeed",
-            "wcag": 14.97,
-            "apca": 94.2
+            "fg": "#2b2925",
+            "bg": "#f0efee",
+            "wcag": 12.64,
+            "apca": 91.9
           }
         }
       }
@@ -918,9 +918,9 @@
       {
         "pair": "text.on-accent on interactive.default",
         "fg": "#ffffff",
-        "bg": "#1c1a18",
-        "wcag": 17.35,
-        "apca": -106.5
+        "bg": "#2b2925",
+        "wcag": 14.52,
+        "apca": -104.2
       },
       {
         "pair": "text.on-accent on interactive.hover",
@@ -945,10 +945,10 @@
       },
       {
         "pair": "status.warning.on-solid on status.warning.solid",
-        "fg": "#1c1a18",
+        "fg": "#2b2925",
         "bg": "#fbbb70",
-        "wcag": 10.28,
-        "apca": 72.2
+        "wcag": 8.6,
+        "apca": 69.3
       },
       {
         "pair": "status.success.on-solid on status.success.solid",
@@ -975,10 +975,10 @@
       },
       {
         "pair": "text.primary on status.danger.bg",
-        "fg": "#1c1a18",
+        "fg": "#2b2925",
         "bg": "#fee9e5",
-        "wcag": 14.87,
-        "apca": 93.8
+        "wcag": 12.44,
+        "apca": 90.9
       },
       {
         "pair": "status.danger.border on status.danger.bg",
@@ -996,10 +996,10 @@
       },
       {
         "pair": "text.primary on status.warning.bg",
-        "fg": "#1c1a18",
+        "fg": "#2b2925",
         "bg": "#fdebd8",
-        "wcag": 14.91,
-        "apca": 94.0
+        "wcag": 12.48,
+        "apca": 91.1
       },
       {
         "pair": "status.warning.border on status.warning.bg",
@@ -1017,10 +1017,10 @@
       },
       {
         "pair": "text.primary on status.success.bg",
-        "fg": "#1c1a18",
+        "fg": "#2b2925",
         "bg": "#e2f4e5",
-        "wcag": 15.12,
-        "apca": 94.9
+        "wcag": 12.65,
+        "apca": 92.0
       },
       {
         "pair": "status.success.border on status.success.bg",
@@ -1038,10 +1038,10 @@
       },
       {
         "pair": "text.primary on status.info.bg",
-        "fg": "#1c1a18",
+        "fg": "#2b2925",
         "bg": "#e3f0fe",
-        "wcag": 15.01,
-        "apca": 94.4
+        "wcag": 12.55,
+        "apca": 91.5
       },
       {
         "pair": "status.info.border on status.info.bg",
@@ -1054,51 +1054,51 @@
     "misc": [
       {
         "pair": "text.primary on bg.text-selection",
-        "fg": "#1c1a18",
-        "bg": "#f0e5d5",
-        "wcag": 13.94,
-        "apca": 89.6
+        "fg": "#2b2925",
+        "bg": "#e8e7e5",
+        "wcag": 11.75,
+        "apca": 87.2
       },
       {
         "pair": "text.tertiary on bg.text-selection",
         "fg": "#6a6764",
-        "bg": "#f0e5d5",
-        "wcag": 4.52,
-        "apca": 63.5
+        "bg": "#e8e7e5",
+        "wcag": 4.55,
+        "apca": 64.0
       },
       {
         "pair": "interactive.default (fill) vs bg.surface",
-        "fg": "#1c1a18",
+        "fg": "#2b2925",
         "bg": "#fdfdfc",
-        "wcag": 17.05,
-        "apca": 103.0
+        "wcag": 14.26,
+        "apca": 100.1
       },
       {
         "pair": "border.selected vs bg.selected",
-        "fg": "#1c1a18",
+        "fg": "#b5561f",
         "bg": "#e8e7e5",
-        "wcag": 14.04,
-        "apca": 90.1
+        "wcag": 3.94,
+        "apca": 59.0
       },
       {
         "pair": "text.primary on bg.selected",
-        "fg": "#1c1a18",
+        "fg": "#2b2925",
         "bg": "#e8e7e5",
-        "wcag": 14.04,
-        "apca": 90.1
+        "wcag": 11.75,
+        "apca": 87.2
       },
       {
         "pair": "focus.map-outer vs focus.map-inner",
-        "fg": "#1c1a18",
+        "fg": "#2b2925",
         "bg": "#ffffff",
-        "wcag": 17.35,
-        "apca": 104.2
+        "wcag": 14.52,
+        "apca": 101.3
       },
       {
         "pair": "bg.surface vs bg.canvas",
         "fg": "#fdfdfc",
-        "bg": "#f6f5f4",
-        "wcag": 1.07,
+        "bg": "#f2efea",
+        "wcag": 1.13,
         "apca": 0.0
       },
       {
@@ -1107,6 +1107,141 @@
         "bg": "#fdfdfc",
         "wcag": 1.0,
         "apca": 0.0
+      }
+    ],
+    "scene": [
+      {
+        "pair": "text.primary (ink) on paper",
+        "fg": "#2b2925",
+        "bg": "#f2efea",
+        "wcag": 12.66,
+        "apca": 92.0
+      },
+      {
+        "pair": "text.secondary (grey) on paper",
+        "fg": "#6b6762",
+        "bg": "#f2efea",
+        "wcag": 4.89,
+        "apca": 68.7
+      },
+      {
+        "pair": "text.secondary (grey) on card",
+        "fg": "#6b6762",
+        "bg": "#fdfdfc",
+        "wcag": 5.51,
+        "apca": 76.8
+      },
+      {
+        "pair": "accent line vs paper",
+        "fg": "#b5561f",
+        "bg": "#f2efea",
+        "wcag": 4.24,
+        "apca": 63.8
+      },
+      {
+        "pair": "accent line vs card",
+        "fg": "#b5561f",
+        "bg": "#fdfdfc",
+        "wcag": 4.78,
+        "apca": 71.9
+      },
+      {
+        "pair": "accent line vs land albedo",
+        "fg": "#b5561f",
+        "bg": "#dcd4c9",
+        "wcag": 3.31,
+        "apca": 48.6
+      },
+      {
+        "pair": "map.label (ink) on map.label-halo (paper)",
+        "fg": "#2b2925",
+        "bg": "#f2efea",
+        "wcag": 12.66,
+        "apca": 92.0
+      },
+      {
+        "pair": "catchment line (ink 0.8 over its paper casing) vs the casing",
+        "fg": "#53504c",
+        "bg": "#f1eee8",
+        "wcag": 6.92,
+        "apca": 77.8
+      },
+      {
+        "pair": "catchment casing (paper 0.95) vs land albedo",
+        "fg": "#f1eee8",
+        "bg": "#dcd4c9",
+        "wcag": 1.27,
+        "apca": -14.2
+      },
+      {
+        "pair": "credit (grey 10 px) on its paper backing",
+        "fg": "#6b6762",
+        "bg": "#f2efea",
+        "wcag": 4.89,
+        "apca": 68.7
+      },
+      {
+        "pair": "focus.ring (ink) vs paper",
+        "fg": "#2b2925",
+        "bg": "#f2efea",
+        "wcag": 12.66,
+        "apca": 92.0
+      },
+      {
+        "pair": "focus.ring (ink) vs card",
+        "fg": "#2b2925",
+        "bg": "#fdfdfc",
+        "wcag": 14.26,
+        "apca": 100.1
+      },
+      {
+        "pair": "focus.ring (ink) vs land albedo",
+        "fg": "#2b2925",
+        "bg": "#dcd4c9",
+        "wcag": 9.89,
+        "apca": 76.8
+      },
+      {
+        "pair": "map.leader (ink 0.70) vs paper",
+        "fg": "#676460",
+        "bg": "#f2efea",
+        "wcag": 5.13,
+        "apca": 70.1
+      },
+      {
+        "pair": "map.leader (ink 0.70) vs land albedo",
+        "fg": "#605c56",
+        "bg": "#dcd4c9",
+        "wcag": 4.52,
+        "apca": 58.3
+      },
+      {
+        "pair": "map.leader-tick (ink 0.90) vs land albedo",
+        "fg": "#3d3a35",
+        "bg": "#dcd4c9",
+        "wcag": 7.71,
+        "apca": 71.6
+      },
+      {
+        "pair": "map.sheet-edge (ink 0.70) vs the sheet over land albedo",
+        "fg": "#64615c",
+        "bg": "#e9e4dc",
+        "wcag": 4.87,
+        "apca": 65.2
+      },
+      {
+        "pair": "data.band.limit (ink 0.70) vs land albedo",
+        "fg": "#605c56",
+        "bg": "#dcd4c9",
+        "wcag": 4.52,
+        "apca": 58.3
+      },
+      {
+        "pair": "data.season.stem-on-show (accent) vs paper",
+        "fg": "#b5561f",
+        "bg": "#f2efea",
+        "wcag": 4.24,
+        "apca": 63.8
       }
     ]
   },
@@ -2221,159 +2356,141 @@
     ]
   },
   "map": {
-    "light": {
-      "map.water-line vs land": {
-        "fg": "#8ab5d0",
-        "bg": "#ebe9e6",
-        "wcag": 1.81,
-        "apca": 30.1
+    "light": [
+      {
+        "pair": "text.primary (ink) on paper",
+        "fg": "#2b2925",
+        "bg": "#f2efea",
+        "wcag": 12.66,
+        "apca": 92.0
       },
-      "map.road-minor vs land": {
-        "fg": "#c5c1bb",
-        "bg": "#ebe9e6",
-        "wcag": 1.48,
-        "apca": 20.3
+      {
+        "pair": "text.secondary (grey) on paper",
+        "fg": "#6b6762",
+        "bg": "#f2efea",
+        "wcag": 4.89,
+        "apca": 68.7
       },
-      "map.road-major vs land": {
-        "fg": "#b4afa7",
-        "bg": "#ebe9e6",
-        "wcag": 1.8,
-        "apca": 30.0
+      {
+        "pair": "text.secondary (grey) on card",
+        "fg": "#6b6762",
+        "bg": "#fdfdfc",
+        "wcag": 5.51,
+        "apca": 76.8
       },
-      "map.contour vs land": {
-        "fg": "#d1cbb6",
-        "bg": "#ebe9e6",
-        "wcag": 1.34,
-        "apca": 15.0
+      {
+        "pair": "accent line vs paper",
+        "fg": "#b5561f",
+        "bg": "#f2efea",
+        "wcag": 4.24,
+        "apca": 63.8
       },
-      "map.contour-index vs land": {
-        "fg": "#c0b8a0",
-        "bg": "#ebe9e6",
-        "wcag": 1.63,
-        "apca": 25.4
+      {
+        "pair": "accent line vs card",
+        "fg": "#b5561f",
+        "bg": "#fdfdfc",
+        "wcag": 4.78,
+        "apca": 71.9
       },
-      "map.no-data-hatch vs land": {
-        "fg": "#6a6764",
-        "bg": "#ebe9e6",
-        "wcag": 4.64,
-        "apca": 65.2
+      {
+        "pair": "accent line vs land albedo",
+        "fg": "#b5561f",
+        "bg": "#dcd4c9",
+        "wcag": 3.31,
+        "apca": 48.6
       },
-      "map.excluded-hatch vs land": {
-        "fg": "#878481",
-        "bg": "#ebe9e6",
-        "wcag": 3.07,
-        "apca": 51.9
+      {
+        "pair": "map.label (ink) on map.label-halo (paper)",
+        "fg": "#2b2925",
+        "bg": "#f2efea",
+        "wcag": 12.66,
+        "apca": 92.0
       },
-      "map.outline vs land": {
-        "fg": "#544820",
-        "bg": "#ebe9e6",
-        "wcag": 7.45,
+      {
+        "pair": "catchment line (ink 0.8 over its paper casing) vs the casing",
+        "fg": "#53504c",
+        "bg": "#f1eee8",
+        "wcag": 6.92,
         "apca": 77.8
       },
-      "map.label vs halo": {
-        "fg": "#4e4b48",
-        "bg": "#ffffff",
-        "wcag": 8.66,
-        "apca": 89.8
+      {
+        "pair": "catchment casing (paper 0.95) vs land albedo",
+        "fg": "#f1eee8",
+        "bg": "#dcd4c9",
+        "wcag": 1.27,
+        "apca": -14.2
       },
-      "map.label-major vs halo": {
-        "fg": "#1c1a18",
-        "bg": "#ffffff",
-        "wcag": 17.35,
-        "apca": 104.2
+      {
+        "pair": "credit (grey 10 px) on its paper backing",
+        "fg": "#6b6762",
+        "bg": "#f2efea",
+        "wcag": 4.89,
+        "apca": 68.7
       },
-      "map.outline vs casing": {
-        "fg": "#544820",
-        "bg": "#ffffff",
-        "wcag": 9.03,
-        "apca": 90.7
+      {
+        "pair": "focus.ring (ink) vs paper",
+        "fg": "#2b2925",
+        "bg": "#f2efea",
+        "wcag": 12.66,
+        "apca": 92.0
       },
-      "map.selection-core vs casing": {
-        "fg": "#1c1a18",
-        "bg": "#ffffff",
-        "wcag": 17.35,
-        "apca": 104.2
-      },
-      "grid: best single neutral, worst class WCAG": 3.98,
-      "grid stroke (two-tone if cased): worst class WCAG": 3.52,
-      "catchment outline two-tone: worst WCAG over terrain and all data classes": 3.27,
-      "selection two-tone: worst WCAG over terrain and all data classes": 4.51,
-      "map focus two-tone: worst WCAG over terrain and all data classes": 4.51,
-      "panel surface vs map land": {
-        "fg": "#fdfdfc",
-        "bg": "#ebe9e6",
-        "wcag": 1.19,
-        "apca": -10.8
-      },
-      "panel border.default vs map land": {
-        "fg": "#a8a6a3",
-        "bg": "#ebe9e6",
-        "wcag": 2.0,
-        "apca": 34.9
-      },
-      "chart.grid vs chart surface": {
-        "fg": "#cac8c6",
+      {
+        "pair": "focus.ring (ink) vs card",
+        "fg": "#2b2925",
         "bg": "#fdfdfc",
-        "wcag": 1.64,
-        "apca": 28.1
+        "wcag": 14.26,
+        "apca": 100.1
       },
-      "chart.axis vs chart surface": {
-        "fg": "#878481",
-        "bg": "#fdfdfc",
-        "wcag": 3.65,
-        "apca": 63.5
+      {
+        "pair": "focus.ring (ink) vs land albedo",
+        "fg": "#2b2925",
+        "bg": "#dcd4c9",
+        "wcag": 9.89,
+        "apca": 76.8
       },
-      "chart.label vs chart surface": {
-        "fg": "#6a6764",
-        "bg": "#fdfdfc",
-        "wcag": 5.52,
-        "apca": 76.9
+      {
+        "pair": "map.leader (ink 0.70) vs paper",
+        "fg": "#676460",
+        "bg": "#f2efea",
+        "wcag": 5.13,
+        "apca": 70.1
       },
-      "chart.reference vs chart surface": {
-        "fg": "#4e4b48",
-        "bg": "#fdfdfc",
-        "wcag": 8.51,
-        "apca": 88.5
+      {
+        "pair": "map.leader (ink 0.70) vs land albedo",
+        "fg": "#605c56",
+        "bg": "#dcd4c9",
+        "wcag": 4.52,
+        "apca": 58.3
       },
-      "chart.series-vegetation vs chart surface": {
-        "fg": "#217825",
-        "bg": "#fdfdfc",
-        "wcag": 5.46,
-        "apca": 76.1
-      },
-      "chart.series-rainfall vs chart surface": {
-        "fg": "#4273bb",
-        "bg": "#fdfdfc",
-        "wcag": 4.69,
+      {
+        "pair": "map.leader-tick (ink 0.90) vs land albedo",
+        "fg": "#3d3a35",
+        "bg": "#dcd4c9",
+        "wcag": 7.71,
         "apca": 71.6
       },
-      "chart.departure-below vs chart surface": {
-        "fg": "#a26112",
-        "bg": "#fdfdfc",
-        "wcag": 4.85,
-        "apca": 72.6
+      {
+        "pair": "map.sheet-edge (ink 0.70) vs the sheet over land albedo",
+        "fg": "#64615c",
+        "bg": "#e9e4dc",
+        "wcag": 4.87,
+        "apca": 65.2
       },
-      "chart.departure-above-vegetation vs chart surface": {
-        "fg": "#16866a",
-        "bg": "#fdfdfc",
-        "wcag": 4.43,
-        "apca": 69.7
+      {
+        "pair": "data.band.limit (ink 0.70) vs land albedo",
+        "fg": "#605c56",
+        "bg": "#dcd4c9",
+        "wcag": 4.52,
+        "apca": 58.3
       },
-      "chart.departure-above-rainfall vs chart surface": {
-        "fg": "#4273bb",
-        "bg": "#fdfdfc",
-        "wcag": 4.69,
-        "apca": 71.6
-      },
-      "map.outline worst vs data class": 1.04,
-      "map.casing worst vs data class": 1.08,
-      "no-data hatch worst vs data class dE": 11.2,
-      "water-line vs rain wet extreme dE": 20.9,
-      "context-dim terrain range WCAG (before -> after)": [
-        3.66,
-        1.67
-      ]
-    },
+      {
+        "pair": "data.season.stem-on-show (accent) vs paper",
+        "fg": "#b5561f",
+        "bg": "#f2efea",
+        "wcag": 4.24,
+        "apca": 63.8
+      }
+    ],
     "dark": {
       "map.water-line vs land": {
         "fg": "#568099",

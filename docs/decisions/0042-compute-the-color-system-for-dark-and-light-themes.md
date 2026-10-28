@@ -30,7 +30,7 @@ Chosen option: "compute project scales in OKLCH from contrast targets", because 
 * Six 12-step scales (neutral and accent at hue 215, success, warning, danger, info) per theme: steps 1 to 5 at fixed lightness for backgrounds, steps 6 to 12 solved for separator, control-boundary (3:1) and text (4.5:1 and 7:1) targets, with APCA as an advisory second check ([design system](../reference/design-system.md#color)).
 * Components use roles (`bg.surface`, `text.secondary`, `border.control`, `interactive.default`), never raw steps; roles alias steps in each theme.
 * Data palettes (NDVI, NDVI departure, rainfall departure, strata, missing and excluded hatches) are separate per theme and validated with a color-vision-deficiency simulation and over each theme's map ground; map colors (hillshade, outline, labels, rainfall grid, horizon) are tokens too.
-* Dark stays the default for the map workspace; light is a full computed theme; the decision brief export is always light.
+* Dark stays the default for the map workspace; light is a full computed theme; the decision brief export is always light. (The default-theme part is superseded by [ADR-0046](0046-use-daylight-as-the-default-theme.md): daylight is the default.)
 * Tokens are stored as DTCG srgb colors with hex values, with the computed OKLCH components kept under `$extensions` ([ADR-0029](0029-store-design-tokens-in-the-dtcg-format.md)).
 
 ### Consequences

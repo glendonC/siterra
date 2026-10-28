@@ -59,7 +59,8 @@ A record is never rewritten to change what it decides. To change a decision, add
 | [ADR-0039](0039-forecast-nothing-until-a-backtest-shows-skill.md) | Forecast nothing until a pre-registered backtest shows skill | accepted |
 | [ADR-0040](0040-present-the-investigation-as-floating-islands-over-a-full-bleed-map.md) | Present the investigation as floating islands over a full-bleed map | accepted |
 | [ADR-0041](0041-give-each-meta-model-one-job-with-an-independent-check.md) | Give each Meta model one job with an independent check | accepted |
-| [ADR-0042](0042-compute-the-color-system-for-dark-and-light-themes.md) | Compute the color system for dark and light themes | accepted |
+| [ADR-0042](0042-compute-the-color-system-for-dark-and-light-themes.md) | Compute the color system for dark and light themes | accepted; its default-theme part superseded by [ADR-0046](0046-use-daylight-as-the-default-theme.md) |
 | [ADR-0043](0043-write-in-one-plain-voice-and-lint-product-copy.md) | Write in one plain voice and lint product copy | accepted |
 | [ADR-0044](0044-build-the-interface-on-shadcn-with-base-ui-and-mit-components.md) | Build the interface on shadcn with Base UI and adapt only MIT-licensed components | accepted |
 | [ADR-0045](0045-extend-the-meta-model-map-to-event-records-figures-and-whole-corpus-reading.md) | Extend the Meta model map to event records, figures and whole-corpus reading | proposed |
+| [ADR-0046](0046-use-daylight-as-the-default-theme.md) | Use daylight as the default theme | accepted |

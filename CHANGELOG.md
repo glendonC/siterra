@@ -41,6 +41,7 @@ Contracts and design tokens carry their own Semantic Versioning numbers, recorde
 - The trace store: spans per command that refuse prompt, message and tool-argument content by key prefix, accept only the listed siterra attributes, cap value lengths, and never rewrite a finished span; an owner-scoped trace route.
 - The agent runtime, on replayed model outputs that stay synthetic until GATE-01: the Meta Responses API adapter (store false, strict output, retries with Retry-After, timeouts, a spend guard, the key sent only to https://api.meta.ai), the plan task, observation and source tasks with excerpt checks, validators (claim rules, numeric provenance, prohibited claims), and a coordinator with a per-command spend ledger and cancellation. No live model call has run.
 - Siterra STAC extension 1.1.0: an optional per-measurement `missing_reason`; additive over 1.0.0.
+- Decision record [ADR-0046](docs/decisions/0046-use-daylight-as-the-default-theme.md): daylight is the default theme, approved with the hero on 27 Oct 2026; it supersedes only the default-theme part of ADR-0042.
 
 ### Changed
 
@@ -62,6 +63,7 @@ Contracts and design tokens carry their own Semantic Versioning numbers, recorde
 - Identifiers use the `PREFIX-NN` form: decisions D01 to D25 became [ADR-0001](docs/decisions/0001-build-one-gated-case-ending-in-a-field-validation-plan.md) to [ADR-0025](docs/decisions/0025-publish-by-default-and-keep-private-by-exception.md), risks R01 to R22 became RISK-01 to RISK-22, presentation rules R1 to R7 became PRES-01 to PRES-07, components C01 to C18 became CMP-01 to CMP-18, motions M01 to M12 became MOT-01 to MOT-12, visual references REF-01 to REF-29 became VIS-01 to VIS-29, competitive sources C01 to C20 became MKT-01 to MKT-20 (with STD and LANG for standards and language sources), gates G0 to G3 became GATE-00 to GATE-03, and acceptance criteria IDs are zero-padded (SV-01).
 - Interface layout: the docked investigation column became floating islands over a full-bleed map (ADR-0040); the primary action reads "Start investigation".
 - Paths: `specs/` became `schemas/`; `research/raw/` and `research/derived/` became the ignored `data/raw/` and `data/interim/`; `design/assets/` became `design/tokens/` and `design/prototype/foundation.css`; `design/high-fidelity/` became `design/prototype/`.
+- Design tokens 1.3 in `design/tokens/`: daylight is the default theme, with the approved hero's paper, ink and map colors, the wetter arm of the rain departure in its own violet hue, the hero type tokens, an ink focus ring, the map leader and sheet, a square card corner, and the contrast report regenerated for every pair.
 
 ### Fixed
 

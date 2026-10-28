@@ -1,5 +1,5 @@
 {
-  "$description": "Siterra design tokens: base scales plus light and dark color themes. Format: DTCG 2025.10 (ADR-0029). Colors are srgb with hex; the computed OKLCH components are under $extensions.siterra.oklch. Rationale: docs/reference/design-system.md and research/design/color-system.md.",
+  "$description": "Siterra design tokens 1.3: base scales plus the light (daylight, the default) and dark color themes. Format: DTCG 2025.10 (ADR-0029). Colors are srgb with hex; OKLCH components are under $extensions.siterra.oklch. The light theme carries the founder-approved hero's daylight colours (palette.light.daylight) and the data the hero draws; dark is kept and is not the default. Rationale: docs/reference/design-system.md and research/design/color-system.md.",
   "font": {
     "family": {
       "$type": "fontFamily",
@@ -211,6 +211,465 @@
         "lineHeight": 1.3333
       },
       "$description": "Map labels with a halo"
+    },
+    "hero-opening": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": {
+          "value": 48,
+          "unit": "px"
+        },
+        "fontWeight": 400,
+        "letterSpacing": {
+          "value": 0,
+          "unit": "px"
+        },
+        "lineHeight": 1.0833
+      },
+      "$description": "Opening page beats, centred"
+    },
+    "hero-sky": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": {
+          "value": 48,
+          "unit": "px"
+        },
+        "fontWeight": 400,
+        "letterSpacing": {
+          "value": -0.24,
+          "unit": "px"
+        },
+        "lineHeight": 1.125
+      },
+      "$description": "The verdict written in the paper sky (tracking -0.005 em)"
+    },
+    "hero-figure": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": {
+          "value": 44,
+          "unit": "px"
+        },
+        "fontWeight": 300,
+        "letterSpacing": {
+          "value": 0,
+          "unit": "px"
+        },
+        "lineHeight": 1.1364
+      },
+      "$description": "The one figure on a card"
+    },
+    "hero-figure-unit": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": {
+          "value": 22,
+          "unit": "px"
+        },
+        "fontWeight": 300,
+        "letterSpacing": {
+          "value": 0,
+          "unit": "px"
+        },
+        "lineHeight": 1.0
+      },
+      "$description": "The figure's unit, inline"
+    },
+    "hero-statement": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": {
+          "value": 22,
+          "unit": "px"
+        },
+        "fontWeight": 400,
+        "letterSpacing": {
+          "value": 0,
+          "unit": "px"
+        },
+        "lineHeight": 1.3636
+      },
+      "$description": "The card's two-tone statement"
+    },
+    "hero-command": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": {
+          "value": 17,
+          "unit": "px"
+        },
+        "fontWeight": 400,
+        "letterSpacing": {
+          "value": 0,
+          "unit": "px"
+        },
+        "lineHeight": 1.4118
+      },
+      "$description": "The command line's input"
+    },
+    "hero-dialog-heading": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": {
+          "value": 17,
+          "unit": "px"
+        },
+        "fontWeight": 500,
+        "letterSpacing": {
+          "value": 0,
+          "unit": "px"
+        },
+        "lineHeight": 1.4118
+      },
+      "$description": "The Sources and notices heading"
+    },
+    "hero-body": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": {
+          "value": 15,
+          "unit": "px"
+        },
+        "fontWeight": 400,
+        "letterSpacing": {
+          "value": 0,
+          "unit": "px"
+        },
+        "lineHeight": 1.4667
+      },
+      "$description": "Card text: the question, work rows, the Meaning line, notes"
+    },
+    "hero-key": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": {
+          "value": 15,
+          "unit": "px"
+        },
+        "fontWeight": 400,
+        "letterSpacing": {
+          "value": 0,
+          "unit": "px"
+        },
+        "lineHeight": 1.3333
+      },
+      "$description": "Key hint labels, the opening and the globe included"
+    },
+    "hero-sheet-label": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": {
+          "value": 15,
+          "unit": "px"
+        },
+        "fontWeight": 500,
+        "letterSpacing": {
+          "value": 0,
+          "unit": "px"
+        },
+        "lineHeight": 1.3333
+      },
+      "$description": "Sheet labels on the land"
+    },
+    "hero-dialog": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": {
+          "value": 14,
+          "unit": "px"
+        },
+        "fontWeight": 400,
+        "letterSpacing": {
+          "value": 0,
+          "unit": "px"
+        },
+        "lineHeight": 1.5
+      },
+      "$description": "Text in the Sources and notices dialog"
+    },
+    "hero-place": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": {
+          "value": 13,
+          "unit": "px"
+        },
+        "fontWeight": 500,
+        "letterSpacing": {
+          "value": 0.26,
+          "unit": "px"
+        },
+        "lineHeight": 1.2308
+      },
+      "$description": "Names on stems: villages, the outlet, the selected stem (tracking 0.02 em)"
+    },
+    "hero-one-case": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": {
+          "value": 13,
+          "unit": "px"
+        },
+        "fontWeight": 500,
+        "letterSpacing": {
+          "value": 0.26,
+          "unit": "px"
+        },
+        "lineHeight": 1.3846
+      },
+      "$description": "The globe's one-case line (tracking 0.02 em)"
+    },
+    "hero-dive-name": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": {
+          "value": 13,
+          "unit": "px"
+        },
+        "fontWeight": 500,
+        "letterSpacing": {
+          "value": 0.78,
+          "unit": "px"
+        },
+        "lineHeight": 1.3846
+      },
+      "$description": "Names in the dive (tracking 0.06 em)"
+    },
+    "hero-focus-note": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": {
+          "value": 13,
+          "unit": "px"
+        },
+        "fontWeight": 400,
+        "letterSpacing": {
+          "value": 0,
+          "unit": "px"
+        },
+        "lineHeight": 1.3846
+      },
+      "$description": "Focus notes on the card"
+    },
+    "hero-focus-note-key": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": {
+          "value": 12,
+          "unit": "px"
+        },
+        "fontWeight": 400,
+        "letterSpacing": {
+          "value": 0,
+          "unit": "px"
+        },
+        "lineHeight": 1.4167
+      },
+      "$description": "Focus notes on the key slot"
+    },
+    "hero-range": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": {
+          "value": 12,
+          "unit": "px"
+        },
+        "fontWeight": 500,
+        "letterSpacing": {
+          "value": 1.2,
+          "unit": "px"
+        },
+        "lineHeight": 1.3333
+      },
+      "$description": "The range name on the globe (tracking 0.1 em)"
+    },
+    "hero-command-glyph": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.family.mono}",
+        "fontSize": {
+          "value": 15,
+          "unit": "px"
+        },
+        "fontWeight": 400,
+        "letterSpacing": {
+          "value": 0,
+          "unit": "px"
+        },
+        "lineHeight": 1.3333
+      },
+      "$description": "The command line's / glyph"
+    },
+    "hero-source-tag": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.family.mono}",
+        "fontSize": {
+          "value": 14,
+          "unit": "px"
+        },
+        "fontWeight": 400,
+        "letterSpacing": {
+          "value": 0.14,
+          "unit": "px"
+        },
+        "lineHeight": 1.4286
+      },
+      "$description": "Source tags on the opening page (tracking 0.01 em)"
+    },
+    "hero-sky-status": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.family.mono}",
+        "fontSize": {
+          "value": 13,
+          "unit": "px"
+        },
+        "fontWeight": 400,
+        "letterSpacing": {
+          "value": 0,
+          "unit": "px"
+        },
+        "lineHeight": 1.3846
+      },
+      "$description": "The status above the verdict"
+    },
+    "hero-chip": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.family.mono}",
+        "fontSize": {
+          "value": 12,
+          "unit": "px"
+        },
+        "fontWeight": 400,
+        "letterSpacing": {
+          "value": 0,
+          "unit": "px"
+        },
+        "lineHeight": 1.5
+      },
+      "$description": "Chips on the card"
+    },
+    "hero-step-number": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.family.mono}",
+        "fontSize": {
+          "value": 12,
+          "unit": "px"
+        },
+        "fontWeight": 400,
+        "letterSpacing": {
+          "value": 0,
+          "unit": "px"
+        },
+        "lineHeight": 1.8333
+      },
+      "$description": "Work step numbers on the card"
+    },
+    "hero-sheet-number": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.family.mono}",
+        "fontSize": {
+          "value": 12,
+          "unit": "px"
+        },
+        "fontWeight": 400,
+        "letterSpacing": {
+          "value": 0,
+          "unit": "px"
+        },
+        "lineHeight": 1.6667
+      },
+      "$description": "Sheet numbers on the land"
+    },
+    "hero-glyph": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.family.mono}",
+        "fontSize": {
+          "value": 12,
+          "unit": "px"
+        },
+        "fontWeight": 400,
+        "letterSpacing": {
+          "value": 0,
+          "unit": "px"
+        },
+        "lineHeight": 1.0
+      },
+      "$description": "Key hint glyphs"
+    },
+    "hero-land-mono": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.family.mono}",
+        "fontSize": {
+          "value": 11,
+          "unit": "px"
+        },
+        "fontWeight": 400,
+        "letterSpacing": {
+          "value": 0,
+          "unit": "px"
+        },
+        "lineHeight": 1.4545
+      },
+      "$description": "Stem, slab and gap labels on the land; the mode line"
+    },
+    "hero-instrument": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.family.mono}",
+        "fontSize": {
+          "value": 11,
+          "unit": "px"
+        },
+        "fontWeight": 400,
+        "letterSpacing": {
+          "value": 0,
+          "unit": "px"
+        },
+        "lineHeight": 1.2727
+      },
+      "$description": "The instruments, the key slot and the flat reading's graticule ticks"
+    },
+    "hero-credit": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.family.mono}",
+        "fontSize": {
+          "value": 10,
+          "unit": "px"
+        },
+        "fontWeight": 400,
+        "letterSpacing": {
+          "value": 0,
+          "unit": "px"
+        },
+        "lineHeight": 1.4
+      },
+      "$description": "The credit line (attribution)"
     }
   },
   "space": {
@@ -311,10 +770,10 @@
     "card": {
       "$type": "dimension",
       "$value": {
-        "value": 10,
+        "value": 0,
         "unit": "px"
       },
-      "$description": "Containers inside an island"
+      "$description": "The hero's one card, and containers inside an island: square corners"
     },
     "control": {
       "$type": "dimension",
@@ -339,6 +798,14 @@
         "unit": "px"
       },
       "$description": "Case pill, map ornament, segmented controls"
+    },
+    "key": {
+      "$type": "dimension",
+      "$value": {
+        "value": 3,
+        "unit": "px"
+      },
+      "$description": "The glyph box of a key hint (the valley's form, used everywhere: lead, 20:29:21)"
     }
   },
   "border": {
@@ -855,289 +1322,276 @@
         }
       },
       "accent": {
-        "$description": "accent scale, light theme, OKLCH hue 80.0",
+        "$description": "Accent scale in the hero accent's hue (OKLCH 46.66); step 9 is the accent. Light and line only.",
         "1": {
           "$type": "color",
-          "$description": "Step 1: background, OKLab L 0.993",
           "$value": {
             "colorSpace": "srgb",
             "components": [
               1.0,
               0.9882,
-              0.9725
+              0.9804
             ],
-            "hex": "#fffcf8"
+            "hex": "#fffcfa"
           },
           "$extensions": {
             "siterra": {
               "oklch": [
-                0.9923,
-                0.0062,
-                75.41
+                0.9928,
+                0.0042,
+                56.38
               ]
             }
           }
         },
         "2": {
           "$type": "color",
-          "$description": "Step 2: background, OKLab L 0.971",
           "$value": {
             "colorSpace": "srgb",
             "components": [
-              0.9804,
-              0.9608,
+              1.0,
+              0.9529,
               0.9294
             ],
-            "hex": "#faf5ed"
+            "hex": "#fff3ed"
           },
           "$extensions": {
             "siterra": {
               "oklch": [
-                0.9718,
-                0.0119,
-                79.78
+                0.9719,
+                0.0153,
+                48.56
               ]
             }
           }
         },
         "3": {
           "$type": "color",
-          "$description": "Step 3: background, OKLab L 0.949",
           "$value": {
             "colorSpace": "srgb",
             "components": [
-              0.9608,
-              0.9294,
-              0.8824
+              1.0,
+              0.9137,
+              0.8745
             ],
-            "hex": "#f5ede1"
+            "hex": "#ffe9df"
           },
           "$extensions": {
             "siterra": {
               "oklch": [
-                0.9491,
-                0.0182,
-                78.24
+                0.949,
+                0.0276,
+                46.09
               ]
             }
           }
         },
         "4": {
           "$type": "color",
-          "$description": "Step 4: background, OKLab L 0.927",
           "$value": {
             "colorSpace": "srgb",
             "components": [
-              0.9412,
-              0.898,
-              0.8353
+              0.9922,
+              0.8784,
+              0.8235
             ],
-            "hex": "#f0e5d5"
+            "hex": "#fde0d2"
           },
           "$extensions": {
             "siterra": {
               "oklch": [
-                0.9263,
-                0.0245,
-                77.45
+                0.9268,
+                0.0373,
+                47.43
               ]
             }
           }
         },
         "5": {
           "$type": "color",
-          "$description": "Step 5: background, OKLab L 0.905",
           "$value": {
             "colorSpace": "srgb",
             "components": [
-              0.9216,
-              0.8706,
-              0.7882
+              0.9922,
+              0.8431,
+              0.7725
             ],
-            "hex": "#ebdec9"
+            "hex": "#fdd7c5"
           },
           "$extensions": {
             "siterra": {
               "oklch": [
-                0.9054,
-                0.0314,
-                79.92
+                0.9065,
+                0.0491,
+                46.84
               ]
             }
           }
         },
         "6": {
           "$type": "color",
-          "$description": "Step 6: tinted separator: Lc >= 15 on every persistent background",
           "$value": {
             "colorSpace": "srgb",
             "components": [
-              0.8431,
-              0.7765,
-              0.6706
+              0.9294,
+              0.7373,
+              0.6471
             ],
-            "hex": "#d7c6ab"
+            "hex": "#edbca5"
           },
           "$extensions": {
             "siterra": {
               "oklch": [
-                0.8335,
-                0.0412,
-                79.43
+                0.8331,
+                0.0649,
+                46.42
               ]
             }
           }
         },
         "7": {
           "$type": "color",
-          "$description": "Step 7: tinted border: OKLab-L midpoint of steps 6 and 8",
           "$value": {
             "colorSpace": "srgb",
             "components": [
-              0.7216,
-              0.6392,
-              0.5059
+              0.8235,
+              0.5882,
+              0.4784
             ],
-            "hex": "#b8a381"
+            "hex": "#d2967a"
           },
           "$extensions": {
             "siterra": {
               "oklch": [
-                0.7251,
-                0.0528,
-                79.67
+                0.7246,
+                0.0827,
+                45.97
               ]
             }
           }
         },
         "8": {
           "$type": "color",
-          "$description": "Step 8: interactive border: WCAG >= 3:1 on every persistent and own tinted background",
           "$value": {
             "colorSpace": "srgb",
             "components": [
-              0.6078,
-              0.502,
-              0.3294
+              0.7255,
+              0.4353,
+              0.2902
             ],
-            "hex": "#9b8054"
+            "hex": "#b96f4a"
           },
           "$extensions": {
             "siterra": {
               "oklch": [
-                0.6147,
-                0.069,
-                79.15
+                0.6149,
+                0.1073,
+                46.65
               ]
             }
           }
         },
         "9": {
           "$type": "color",
-          "$description": "Step 9: solid fill at the contrast threshold of its foreground (WCAG >= 4.5:1 and |Lc| >= 60)",
           "$value": {
             "colorSpace": "srgb",
             "components": [
-              0.5765,
-              0.4431,
-              0.2039
+              0.7098,
+              0.3373,
+              0.1216
             ],
-            "hex": "#937134"
+            "hex": "#b5561f"
           },
           "$extensions": {
             "siterra": {
               "oklch": [
-                0.5697,
-                0.0895,
-                79.88
+                0.5625,
+                0.1395,
+                46.66
               ]
             }
           }
         },
         "10": {
           "$type": "color",
-          "$description": "Step 10: solid hover: step 9 moved 0.035 in OKLab L",
           "$value": {
             "colorSpace": "srgb",
             "components": [
-              0.5373,
-              0.4039,
-              0.1608
+              0.6745,
+              0.3059,
+              0.0745
             ],
-            "hex": "#896729"
+            "hex": "#ac4e13"
           },
           "$extensions": {
             "siterra": {
               "oklch": [
-                0.536,
-                0.0899,
-                79.62
+                0.5358,
+                0.1395,
+                46.86
               ]
             }
           }
         },
         "11": {
           "$type": "color",
-          "$description": "Step 11: colored text: WCAG >= 4.5:1 and Lc >= 60 on every persistent and own tinted background",
           "$value": {
             "colorSpace": "srgb",
             "components": [
-              0.5059,
-              0.3843,
-              0.1725
+              0.6314,
+              0.298,
+              0.1059
             ],
-            "hex": "#81622c"
+            "hex": "#a14c1b"
           },
           "$extensions": {
             "siterra": {
               "oklch": [
                 0.5164,
-                0.0816,
-                79.09
+                0.1276,
+                46.66
               ]
             }
           }
         },
         "12": {
           "$type": "color",
-          "$description": "Step 12: high-contrast colored text: Lc >= 90 on the default surface and own step 2",
           "$value": {
             "colorSpace": "srgb",
             "components": [
-              0.2745,
-              0.2235,
-              0.1451
+              0.3294,
+              0.1922,
+              0.1255
             ],
-            "hex": "#463925"
+            "hex": "#543120"
           },
           "$extensions": {
             "siterra": {
               "oklch": [
-                0.353,
-                0.0368,
-                77.88
+                0.3524,
+                0.0581,
+                46.22
               ]
             }
           }
         },
         "pressed": {
           "$type": "color",
-          "$description": "Solid pressed: step 9 moved 0.07 in OKLab L away from its foreground",
           "$value": {
             "colorSpace": "srgb",
             "components": [
-              0.4941,
-              0.3647,
-              0.1137
+              0.6275,
+              0.2627,
+              0.0
             ],
-            "hex": "#7e5d1d"
+            "hex": "#a04300"
           },
           "$extensions": {
             "siterra": {
               "oklch": [
-                0.5006,
-                0.0899,
-                80.15
+                0.4996,
+                0.1392,
+                46.54
               ]
             }
           }
@@ -2297,6 +2751,185 @@
               ]
             }
           }
+        }
+      },
+      "daylight": {
+        "$description": "Founder-approved hero (design language 1.3): the named daylight colours. Every role in theme.light that the hero shows points here.",
+        "paper": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.949,
+              0.9373,
+              0.9176
+            ],
+            "hex": "#f2efea"
+          },
+          "$extensions": {
+            "siterra": {
+              "oklch": [
+                0.9531,
+                0.0074,
+                80.72
+              ]
+            }
+          },
+          "$description": "Page, sky, haze and the land's fade; the ground of the opening and the globe"
+        },
+        "card": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.9922,
+              0.9922,
+              0.9882
+            ],
+            "hex": "#fdfdfc"
+          },
+          "$extensions": {
+            "siterra": {
+              "oklch": [
+                0.9938,
+                0.0013,
+                106.42
+              ]
+            }
+          },
+          "$description": "Cards, sheets and dialogs over the land"
+        },
+        "ink": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.1686,
+              0.1608,
+              0.1451
+            ],
+            "hex": "#2b2925"
+          },
+          "$extensions": {
+            "siterra": {
+              "oklch": [
+                0.2816,
+                0.0077,
+                84.59
+              ]
+            }
+          },
+          "$description": "Claims, primary text, names on the land, the catchment line, leaders and focus rings"
+        },
+        "grey": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.4196,
+              0.4039,
+              0.3843
+            ],
+            "hex": "#6b6762"
+          },
+          "$extensions": {
+            "siterra": {
+              "oklch": [
+                0.5159,
+                0.0093,
+                73.67
+              ]
+            }
+          },
+          "$description": "Qualifiers (the grey half of a two-tone statement), source lines, captions"
+        },
+        "shadow-tint": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.4706,
+              0.5255,
+              0.5765
+            ],
+            "hex": "#788693"
+          },
+          "$extensions": {
+            "siterra": {
+              "oklch": [
+                0.6131,
+                0.0257,
+                246.24
+              ]
+            }
+          },
+          "$description": "The relief's lee slopes; the elevation-band tints and the near-normal slab"
+        },
+        "accent": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.7098,
+              0.3373,
+              0.1216
+            ],
+            "hex": "#b5561f"
+          },
+          "$extensions": {
+            "siterra": {
+              "oklch": [
+                0.5625,
+                0.1395,
+                46.66
+              ]
+            }
+          },
+          "$description": "Light and line only, never a filled area: the outlet beam, the selected stem, the running step's mark, the playhead, the season on show, the case ring and the caret. Leaders and focus rings are ink."
+        },
+        "land-albedo": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.8627,
+              0.8314,
+              0.7882
+            ],
+            "hex": "#dcd4c9"
+          },
+          "$extensions": {
+            "siterra": {
+              "oklch": [
+                0.8733,
+                0.0174,
+                76.1
+              ]
+            }
+          },
+          "$description": "The land without imagery, lit by the key light"
+        },
+        "key-light": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              1.0,
+              0.9569,
+              0.902
+            ],
+            "hex": "#fff4e6"
+          },
+          "$extensions": {
+            "siterra": {
+              "oklch": [
+                0.972,
+                0.022,
+                74.1
+              ]
+            }
+          },
+          "$description": "The one low warm light from the front left of the arrival view"
         }
       }
     },
@@ -4020,28 +4653,23 @@
       "bg": {
         "canvas": {
           "$type": "color",
-          "$value": "{palette.light.neutral.2}",
-          "$description": "App ground behind the map and panels"
+          "$value": "{palette.light.daylight.paper}"
         },
         "sunken": {
           "$type": "color",
-          "$value": "{palette.light.neutral.2}",
-          "$description": "Wells and recessed areas"
+          "$value": "{palette.light.daylight.paper}"
         },
         "surface": {
           "$type": "color",
-          "$value": "{palette.light.neutral.1}",
-          "$description": "Opaque panels: investigation column, legend, strip"
+          "$value": "{palette.light.daylight.card}"
         },
         "overlay": {
           "$type": "color",
-          "$value": "{palette.light.neutral.1}",
-          "$description": "Menus, popovers, tooltips, dialogs (with shadow)"
+          "$value": "{palette.light.daylight.card}"
         },
         "field": {
           "$type": "color",
-          "$value": "{palette.light.neutral.1}",
-          "$description": "Input fields"
+          "$value": "{palette.light.daylight.card}"
         },
         "subtle": {
           "$type": "color",
@@ -4070,38 +4698,56 @@
         },
         "text-selection": {
           "$type": "color",
-          "$value": "{palette.light.accent.4}",
-          "$description": "Text selection highlight"
+          "$value": "{palette.light.neutral.4}",
+          "$description": "Neutral, not the accent: the accent never fills; every text tier keeps 4.5:1 on it"
         },
         "scrim": {
           "$type": "color",
-          "$description": "Modal backdrop",
           "$value": {
             "colorSpace": "srgb",
             "components": [
-              0.1098,
-              0.102,
-              0.0941
+              0.949,
+              0.9373,
+              0.9176
             ],
-            "hex": "#1c1a18",
-            "alpha": 0.4
+            "hex": "#f2efea",
+            "alpha": 0.6
           },
           "$extensions": {
             "siterra": {
               "oklch": [
-                0.2193,
-                0.005,
-                67.57
+                0.9531,
+                0.0074,
+                80.72
               ]
             }
-          }
+          },
+          "$description": "Behind a dialog: the land stays visible through paper"
         }
       },
       "border": {
         "subtle": {
           "$type": "color",
-          "$value": "{palette.light.neutral.6}",
-          "$description": "Separators; decorative only"
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.1686,
+              0.1608,
+              0.1451
+            ],
+            "hex": "#2b2925",
+            "alpha": 0.16
+          },
+          "$extensions": {
+            "siterra": {
+              "oklch": [
+                0.2816,
+                0.0077,
+                84.59
+              ]
+            }
+          },
+          "$description": "Rules between rows and around chips (the hero's rule)"
         },
         "default": {
           "$type": "color",
@@ -4115,30 +4761,51 @@
         },
         "focus": {
           "$type": "color",
-          "$value": "{palette.light.neutral.12}",
-          "$description": "Keyboard focus ring, 2 px, 3 px offset"
+          "$value": "{palette.light.daylight.ink}",
+          "$description": "Keyboard focus, 2 px ink, as the approved hero draws it"
         },
         "selected": {
           "$type": "color",
-          "$value": "{palette.light.neutral.12}",
-          "$description": "Selected edge, 2 px"
+          "$value": "{palette.light.daylight.accent}",
+          "$description": "A 3 px line beside the selected row, never a fill"
         },
         "control-hover": {
           "$type": "color",
           "$value": "{palette.light.neutral.9}",
           "$description": "Control boundary on hover"
+        },
+        "key-swatch": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.1686,
+              0.1608,
+              0.1451
+            ],
+            "hex": "#2b2925",
+            "alpha": 0.25
+          },
+          "$extensions": {
+            "siterra": {
+              "oklch": [
+                0.2816,
+                0.0077,
+                84.59
+              ]
+            }
+          },
+          "$description": "Around a key's scale or swatches, 1 px"
         }
       },
       "text": {
         "primary": {
           "$type": "color",
-          "$value": "{palette.light.neutral.12}",
-          "$description": "Primary text; APCA Lc >= 90 on every persistent background"
+          "$value": "{palette.light.daylight.ink}"
         },
         "secondary": {
           "$type": "color",
-          "$value": "{palette.light.neutral.11}",
-          "$description": "Secondary text; >= 7:1 and Lc >= 75 on every persistent background"
+          "$value": "{palette.light.daylight.grey}"
         },
         "tertiary": {
           "$type": "color",
@@ -4152,13 +4819,12 @@
         },
         "link": {
           "$type": "color",
-          "$value": "{palette.light.neutral.12}",
-          "$description": "Links; always underlined"
+          "$value": "{palette.light.daylight.ink}",
+          "$description": "Underlined, offset 2 px"
         },
         "link-hover": {
           "$type": "color",
-          "$value": "{palette.light.neutral.11}",
-          "$description": "Link hover"
+          "$value": "{palette.light.daylight.grey}"
         },
         "disabled": {
           "$type": "color",
@@ -4191,20 +4857,17 @@
       "icon": {
         "default": {
           "$type": "color",
-          "$value": "{palette.light.neutral.11}",
-          "$description": "Icons"
+          "$value": "{palette.light.daylight.ink}"
         },
         "subtle": {
           "$type": "color",
-          "$value": "{palette.light.neutral.9}",
-          "$description": "Secondary icons; >= 3:1"
+          "$value": "{palette.light.daylight.grey}"
         }
       },
       "interactive": {
         "default": {
           "$type": "color",
-          "$value": "{palette.light.neutral.12}",
-          "$description": "Primary action fill"
+          "$value": "{palette.light.daylight.ink}"
         },
         "hover": {
           "$type": "color",
@@ -4305,8 +4968,8 @@
           },
           "on-solid": {
             "$type": "color",
-            "$value": "{palette.light.neutral.12}",
-            "$description": "Text on the status solid"
+            "$value": "{palette.light.daylight.ink}",
+            "$description": "Text on the warning solid: the daylight ink"
           }
         },
         "success": {
@@ -4411,56 +5074,77 @@
       "state": {
         "hover": {
           "$type": "color",
-          "$description": "State layer: text.primary at alpha 0.033 over any surface; moves the surface by 1 background step(s) in OKLab L",
           "$value": {
             "colorSpace": "srgb",
             "components": [
-              0.1098,
-              0.102,
-              0.0941
+              0.1686,
+              0.1608,
+              0.1451
             ],
-            "hex": "#1c1a18",
+            "hex": "#2b2925",
             "alpha": 0.033
           },
           "$extensions": {
             "siterra": {
               "oklch": [
-                0.2193,
-                0.005,
-                67.57
+                0.2816,
+                0.0077,
+                84.59
               ]
             }
           }
         },
         "pressed": {
           "$type": "color",
-          "$description": "State layer: text.primary at alpha 0.064 over any surface; moves the surface by 2 background step(s) in OKLab L",
           "$value": {
             "colorSpace": "srgb",
             "components": [
-              0.1098,
-              0.102,
-              0.0941
+              0.1686,
+              0.1608,
+              0.1451
             ],
-            "hex": "#1c1a18",
+            "hex": "#2b2925",
             "alpha": 0.064
           },
           "$extensions": {
             "siterra": {
               "oklch": [
-                0.2193,
-                0.005,
-                67.57
+                0.2816,
+                0.0077,
+                84.59
               ]
             }
           }
+        },
+        "running-glow": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.7098,
+              0.3373,
+              0.1216
+            ],
+            "hex": "#b5561f",
+            "alpha": 0.15
+          },
+          "$extensions": {
+            "siterra": {
+              "oklch": [
+                0.5625,
+                0.1395,
+                46.66
+              ]
+            }
+          },
+          "$description": "A soft 3 px ring around the running step's mark"
         }
       },
       "focus": {
         "ring": {
           "$type": "color",
-          "$value": "{palette.light.accent.9}",
-          "$description": "Focus ring on solid UI surfaces"
+          "$value": "{palette.light.daylight.ink}",
+          "$description": "2 px with a 2 px offset, 4 px on the key slot (border.focus-ring, border.focus-offset); ink, as the approved hero draws it; at least 3:1 on every persistent background"
         },
         "map-inner": {
           "$type": "color",
@@ -4486,25 +5170,7 @@
         },
         "map-outer": {
           "$type": "color",
-          "$description": "Two-tone focus over the map: outer ring",
-          "$value": {
-            "colorSpace": "srgb",
-            "components": [
-              0.1098,
-              0.102,
-              0.0941
-            ],
-            "hex": "#1c1a18"
-          },
-          "$extensions": {
-            "siterra": {
-              "oklch": [
-                0.2193,
-                0.005,
-                67.57
-              ]
-            }
-          }
+          "$value": "{palette.light.daylight.ink}"
         }
       },
       "data": {
@@ -4806,10 +5472,46 @@
                 ]
               }
             }
+          },
+          "$extensions": {
+            "siterra": {
+              "scale": {
+                "domain": [
+                  -0.1,
+                  0.1
+                ],
+                "unit": "NDVI",
+                "neutral": 0.005,
+                "rule": "Fixed scale, never rescaled per period. Within 0.005 of zero the land is left unpainted. Beyond it, t = (|d| - 0.005) / 0.095 clamped to 0..1 picks the colour along steps 1 to 3 of its arm and an opacity of 0.10 + 0.70 t."
+              }
+            }
+          },
+          "unpainted": {
+            "$type": "color",
+            "$value": {
+              "colorSpace": "srgb",
+              "components": [
+                0.9725,
+                0.9647,
+                0.9569
+              ],
+              "hex": "#f8f6f4",
+              "alpha": 0.0
+            },
+            "$extensions": {
+              "siterra": {
+                "oklch": [
+                  0.9741,
+                  0.0034,
+                  67.78
+                ]
+              }
+            },
+            "$description": "The neutral band in the key, left unpainted as on the land"
           }
         },
         "rain-departure": {
-          "$description": "Rainfall departure from the 1991 to 2020 same-month mean: warm arm = drier (shared with NDVI departure), blue arm = wetter. Custom.",
+          "$description": "Departure from the 1991 to 2020 mean (mm): the shared warm arm for drier, a violet arm for wetter. Not drawn in a view that shows data.rain-total.",
           "below-3": {
             "$type": "color",
             "$value": {
@@ -4899,18 +5601,18 @@
             "$value": {
               "colorSpace": "srgb",
               "components": [
-                0.6275,
-                0.8118,
-                0.9686
+                0.8471,
+                0.7255,
+                0.9882
               ],
-              "hex": "#a0cff7"
+              "hex": "#d8b9fc"
             },
             "$extensions": {
               "siterra": {
                 "oklch": [
-                  0.8353,
-                  0.0749,
-                  244.54
+                  0.835,
+                  0.0974,
+                  305.49
                 ]
               }
             }
@@ -4920,18 +5622,18 @@
             "$value": {
               "colorSpace": "srgb",
               "components": [
-                0.4196,
-                0.6314,
-                0.8627
+                0.7059,
+                0.5059,
+                0.9176
               ],
-              "hex": "#6ba1dc"
+              "hex": "#b481ea"
             },
             "$extensions": {
               "siterra": {
                 "oklch": [
-                  0.6953,
-                  0.1045,
-                  251.56
+                  0.6955,
+                  0.1566,
+                  305.09
                 ]
               }
             }
@@ -4941,18 +5643,18 @@
             "$value": {
               "colorSpace": "srgb",
               "components": [
-                0.2588,
-                0.451,
-                0.7333
+                0.5529,
+                0.302,
+                0.7843
               ],
-              "hex": "#4273bb"
+              "hex": "#8d4dc8"
             },
             "$extensions": {
               "siterra": {
                 "oklch": [
-                  0.5558,
-                  0.1245,
-                  257.97
+                  0.5544,
+                  0.1863,
+                  305.04
                 ]
               }
             }
@@ -5094,96 +5796,406 @@
           "$type": "number",
           "$value": 0.9,
           "$description": "Raster opacity over relief; computed minimum for class order to survive hillshade modulation is 0.83 (light NDVI)"
+        },
+        "rain-total": {
+          "$description": "Season rainfall totals per CHIRPS cell, painted flat at true cell size in three display classes (a sequential ramp; the key says \"display classes\").",
+          "class-1": {
+            "$type": "color",
+            "$value": {
+              "colorSpace": "srgb",
+              "components": [
+                0.6275,
+                0.8118,
+                0.9686
+              ],
+              "hex": "#a0cff7"
+            },
+            "$extensions": {
+              "siterra": {
+                "oklch": [
+                  0.8353,
+                  0.0749,
+                  244.54
+                ],
+                "domain": [
+                  null,
+                  400
+                ],
+                "unit": "mm"
+              }
+            },
+            "$description": "Under 400 mm"
+          },
+          "class-2": {
+            "$type": "color",
+            "$value": {
+              "colorSpace": "srgb",
+              "components": [
+                0.4196,
+                0.6314,
+                0.8627
+              ],
+              "hex": "#6ba1dc"
+            },
+            "$extensions": {
+              "siterra": {
+                "oklch": [
+                  0.6953,
+                  0.1045,
+                  251.56
+                ],
+                "domain": [
+                  400,
+                  550
+                ],
+                "unit": "mm"
+              }
+            },
+            "$description": "400 to 550 mm"
+          },
+          "class-3": {
+            "$type": "color",
+            "$value": {
+              "colorSpace": "srgb",
+              "components": [
+                0.2588,
+                0.451,
+                0.7333
+              ],
+              "hex": "#4273bb"
+            },
+            "$extensions": {
+              "siterra": {
+                "oklch": [
+                  0.5558,
+                  0.1245,
+                  257.97
+                ],
+                "domain": [
+                  550,
+                  null
+                ],
+                "unit": "mm"
+              }
+            },
+            "$description": "550 mm and over"
+          },
+          "$extensions": {
+            "siterra": {
+              "opacity": "about 0.10 outside the catchment rising to 0.34 inside it"
+            }
+          },
+          "key-opacity": {
+            "$type": "number",
+            "$value": 0.6,
+            "$description": "The classes' swatches in the key"
+          }
+        },
+        "band": {
+          "$description": "The three elevation bands (sampling strata, not pasture units): the shadow tint at three clearly separate strengths, no border weight.",
+          "lower": {
+            "$type": "color",
+            "$value": {
+              "colorSpace": "srgb",
+              "components": [
+                0.4706,
+                0.5255,
+                0.5765
+              ],
+              "hex": "#788693",
+              "alpha": 0.08
+            },
+            "$extensions": {
+              "siterra": {
+                "oklch": [
+                  0.6131,
+                  0.0257,
+                  246.24
+                ]
+              }
+            }
+          },
+          "middle": {
+            "$type": "color",
+            "$value": {
+              "colorSpace": "srgb",
+              "components": [
+                0.4706,
+                0.5255,
+                0.5765
+              ],
+              "hex": "#788693",
+              "alpha": 0.3
+            },
+            "$extensions": {
+              "siterra": {
+                "oklch": [
+                  0.6131,
+                  0.0257,
+                  246.24
+                ]
+              }
+            }
+          },
+          "upper": {
+            "$type": "color",
+            "$value": {
+              "colorSpace": "srgb",
+              "components": [
+                0.4706,
+                0.5255,
+                0.5765
+              ],
+              "hex": "#788693",
+              "alpha": 0.55
+            },
+            "$extensions": {
+              "siterra": {
+                "oklch": [
+                  0.6131,
+                  0.0257,
+                  246.24
+                ]
+              }
+            }
+          },
+          "limit": {
+            "$type": "color",
+            "$value": {
+              "colorSpace": "srgb",
+              "components": [
+                0.1686,
+                0.1608,
+                0.1451
+              ],
+              "hex": "#2b2925",
+              "alpha": 0.7
+            },
+            "$extensions": {
+              "siterra": {
+                "oklch": [
+                  0.2816,
+                  0.0077,
+                  84.59
+                ]
+              }
+            },
+            "$description": "The band limits as thin contour lines, 1.5 px"
+          }
+        },
+        "season": {
+          "$description": "The season stems: one 3D object beside the catchment, the reference seasons around the 1991 to 2020 mean.",
+          "stem": {
+            "$type": "color",
+            "$value": {
+              "colorSpace": "srgb",
+              "components": [
+                0.1686,
+                0.1608,
+                0.1451
+              ],
+              "hex": "#2b2925",
+              "alpha": 0.6
+            },
+            "$extensions": {
+              "siterra": {
+                "oklch": [
+                  0.2816,
+                  0.0077,
+                  84.59
+                ]
+              }
+            },
+            "$description": "Reference seasons, 1.3 px"
+          },
+          "stem-recent": {
+            "$type": "color",
+            "$value": "{palette.light.daylight.ink}",
+            "$description": "The season before the one on show, 2 px"
+          },
+          "stem-on-show": {
+            "$type": "color",
+            "$value": "{palette.light.daylight.accent}",
+            "$description": "The season on show, 3 px; its label in the accent"
+          },
+          "mean": {
+            "$type": "color",
+            "$value": {
+              "colorSpace": "srgb",
+              "components": [
+                0.1686,
+                0.1608,
+                0.1451
+              ],
+              "hex": "#2b2925",
+              "alpha": 0.85
+            },
+            "$extensions": {
+              "siterra": {
+                "oklch": [
+                  0.2816,
+                  0.0077,
+                  84.59
+                ]
+              }
+            },
+            "$description": "The mean line, 1.2 px"
+          },
+          "base": {
+            "$type": "color",
+            "$value": {
+              "colorSpace": "srgb",
+              "components": [
+                0.1686,
+                0.1608,
+                0.1451
+              ],
+              "hex": "#2b2925",
+              "alpha": 0.55
+            },
+            "$extensions": {
+              "siterra": {
+                "oklch": [
+                  0.2816,
+                  0.0077,
+                  84.59
+                ]
+              }
+            },
+            "$description": "The zero line, 1 px"
+          },
+          "plane": {
+            "$type": "color",
+            "$value": {
+              "colorSpace": "srgb",
+              "components": [
+                0.1686,
+                0.1608,
+                0.1451
+              ],
+              "hex": "#2b2925",
+              "alpha": 0.1
+            },
+            "$extensions": {
+              "siterra": {
+                "oklch": [
+                  0.2816,
+                  0.0077,
+                  84.59
+                ]
+              }
+            },
+            "$description": "The plane at the mean"
+          },
+          "slab": {
+            "$type": "color",
+            "$value": {
+              "colorSpace": "srgb",
+              "components": [
+                0.4706,
+                0.5255,
+                0.5765
+              ],
+              "hex": "#788693",
+              "alpha": 0.16
+            },
+            "$extensions": {
+              "siterra": {
+                "oklch": [
+                  0.6131,
+                  0.0257,
+                  246.24
+                ]
+              }
+            },
+            "$description": "The near-normal band slab"
+          },
+          "slab-edge": {
+            "$type": "color",
+            "$value": {
+              "colorSpace": "srgb",
+              "components": [
+                0.4706,
+                0.5255,
+                0.5765
+              ],
+              "hex": "#788693",
+              "alpha": 0.55
+            },
+            "$extensions": {
+              "siterra": {
+                "oklch": [
+                  0.6131,
+                  0.0257,
+                  246.24
+                ]
+              }
+            }
+          }
+        },
+        "no-observation-hatch-edge": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.4157,
+              0.4039,
+              0.3922
+            ],
+            "hex": "#6a6764",
+            "alpha": 0.6
+          },
+          "$extensions": {
+            "siterra": {
+              "oklch": [
+                0.5155,
+                0.006,
+                67.69
+              ]
+            }
+          },
+          "$description": "The gap swatch's edge beside its reason"
+        },
+        "excluded-hatch-edge": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.5294,
+              0.5176,
+              0.5059
+            ],
+            "hex": "#878481",
+            "alpha": 0.6
+          },
+          "$extensions": {
+            "siterra": {
+              "oklch": [
+                0.615,
+                0.0058,
+                67.72
+              ]
+            }
+          },
+          "$description": "The excluded swatch's edge beside its reason"
         }
       },
       "map": {
         "land": {
           "$type": "color",
-          "$description": "Flat ground under the hillshade",
-          "$value": {
-            "colorSpace": "srgb",
-            "components": [
-              0.9216,
-              0.9137,
-              0.902
-            ],
-            "hex": "#ebe9e6"
-          },
-          "$extensions": {
-            "siterra": {
-              "oklch": [
-                0.9347,
-                0.0046,
-                78.3
-              ]
-            }
-          }
+          "$value": "{palette.light.daylight.land-albedo}"
         },
         "hillshade-shadow": {
           "$type": "color",
-          "$description": "hillshade-shadow-color",
-          "$value": {
-            "colorSpace": "srgb",
-            "components": [
-              0.5412,
-              0.5216,
-              0.4941
-            ],
-            "hex": "#8a857e"
-          },
-          "$extensions": {
-            "siterra": {
-              "oklch": [
-                0.6189,
-                0.012,
-                76.55
-              ]
-            }
-          }
+          "$value": "{palette.light.daylight.shadow-tint}"
         },
         "hillshade-highlight": {
           "$type": "color",
-          "$description": "hillshade-highlight-color",
-          "$value": {
-            "colorSpace": "srgb",
-            "components": [
-              1.0,
-              1.0,
-              1.0
-            ],
-            "hex": "#ffffff"
-          },
-          "$extensions": {
-            "siterra": {
-              "oklch": [
-                1.0,
-                0.0,
-                "none"
-              ]
-            }
-          }
+          "$value": "{palette.light.daylight.key-light}"
         },
         "hillshade-accent": {
           "$type": "color",
-          "$description": "hillshade-accent-color (standard method)",
-          "$value": {
-            "colorSpace": "srgb",
-            "components": [
-              0.5412,
-              0.5216,
-              0.4941
-            ],
-            "hex": "#8a857e"
-          },
-          "$extensions": {
-            "siterra": {
-              "oklch": [
-                0.6189,
-                0.012,
-                76.55
-              ]
-            }
-          }
+          "$value": "{palette.light.daylight.shadow-tint}"
         },
         "water-line": {
           "$type": "color",
@@ -5253,161 +6265,235 @@
         },
         "contour": {
           "$type": "color",
-          "$description": "Contours; Lc 15 on map.land (founder's mineral hue)",
           "$value": {
             "colorSpace": "srgb",
             "components": [
-              0.8196,
-              0.7961,
-              0.7137
+              0.1686,
+              0.1608,
+              0.1451
             ],
-            "hex": "#d1cbb6"
+            "hex": "#2b2925",
+            "alpha": 0.045
           },
           "$extensions": {
             "siterra": {
               "oklch": [
-                0.8413,
-                0.0292,
-                93.79
+                0.2816,
+                0.0077,
+                84.59
               ]
             }
-          }
+          },
+          "$description": "100 m contours, at 30 per cent of this outside the catchment"
         },
         "contour-index": {
           "$type": "color",
-          "$description": "Index contours; Lc 25 on map.land",
           "$value": {
             "colorSpace": "srgb",
             "components": [
-              0.7529,
-              0.7216,
-              0.6275
+              0.1686,
+              0.1608,
+              0.1451
             ],
-            "hex": "#c0b8a0"
+            "hex": "#2b2925",
+            "alpha": 0.09
           },
           "$extensions": {
             "siterra": {
               "oklch": [
-                0.7827,
-                0.0342,
-                91.72
+                0.2816,
+                0.0077,
+                84.59
               ]
             }
-          }
+          },
+          "$description": "500 m contours, at 30 per cent of this outside the catchment"
         },
         "label": {
           "$type": "color",
-          "$description": "Place labels (text-color)",
-          "$value": {
-            "colorSpace": "srgb",
-            "components": [
-              0.3059,
-              0.2941,
-              0.2824
-            ],
-            "hex": "#4e4b48"
-          },
-          "$extensions": {
-            "siterra": {
-              "oklch": [
-                0.4147,
-                0.0063,
-                67.65
-              ]
-            }
-          }
+          "$value": "{palette.light.daylight.ink}",
+          "$description": "Names on the land in IBM Plex Sans Medium on a thin paper halo, never a dark outline"
         },
         "label-major": {
           "$type": "color",
-          "$description": "Major place labels",
-          "$value": {
-            "colorSpace": "srgb",
-            "components": [
-              0.1098,
-              0.102,
-              0.0941
-            ],
-            "hex": "#1c1a18"
-          },
-          "$extensions": {
-            "siterra": {
-              "oklch": [
-                0.2193,
-                0.005,
-                67.57
-              ]
-            }
-          }
+          "$value": "{palette.light.daylight.ink}"
         },
         "label-halo": {
           "$type": "color",
-          "$description": "text-halo-color for labels; WCAG treats a wide halo as the label background",
-          "$value": {
-            "colorSpace": "srgb",
-            "components": [
-              1.0,
-              1.0,
-              1.0
-            ],
-            "hex": "#ffffff"
-          },
-          "$extensions": {
-            "siterra": {
-              "oklch": [
-                1.0,
-                0.0,
-                "none"
-              ]
-            }
-          }
+          "$value": "{palette.light.daylight.paper}"
         },
         "outline-casing": {
           "$type": "color",
-          "$description": "Catchment outline casing, 4.5 px under the core",
           "$value": {
             "colorSpace": "srgb",
             "components": [
-              1.0,
-              1.0,
-              1.0
+              0.949,
+              0.9373,
+              0.9176
             ],
-            "hex": "#ffffff"
+            "hex": "#f2efea",
+            "alpha": 0.95
           },
           "$extensions": {
             "siterra": {
               "oklch": [
-                1.0,
-                0.0,
-                "none"
+                0.9531,
+                0.0074,
+                80.72
               ]
             }
-          }
+          },
+          "$description": "4.2 px under the catchment line"
         },
         "selection-core": {
           "$type": "color",
-          "$description": "Selected map feature, core stroke",
+          "$value": "{palette.light.daylight.accent}"
+        },
+        "selection-casing": {
+          "$type": "color",
+          "$value": "{palette.light.daylight.paper}"
+        },
+        "sky": {
+          "$type": "color",
+          "$value": "{palette.light.daylight.paper}"
+        },
+        "horizon": {
+          "$type": "color",
+          "$value": "{palette.light.daylight.paper}"
+        },
+        "fog": {
+          "$type": "color",
+          "$value": "{palette.light.daylight.paper}",
+          "$description": "Haze: radial from the catchment centre (24 to 52 km to paper) and with distance from the eye (70 to 190 km, 55 per cent)"
+        },
+        "context-dim": {
+          "$type": "color",
           "$value": {
             "colorSpace": "srgb",
             "components": [
-              0.1098,
-              0.102,
-              0.0941
+              0.949,
+              0.9373,
+              0.9176
             ],
-            "hex": "#1c1a18"
+            "hex": "#f2efea",
+            "alpha": 0.65
           },
           "$extensions": {
             "siterra": {
               "oklch": [
-                0.2193,
-                0.005,
-                67.57
+                0.9531,
+                0.0074,
+                80.72
               ]
             }
-          }
+          },
+          "$description": "Outside the catchment once the light has settled: 65 per cent of the way to paper"
         },
-        "selection-casing": {
+        "outline": {
           "$type": "color",
-          "$description": "Selected map feature, casing",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.1686,
+              0.1608,
+              0.1451
+            ],
+            "hex": "#2b2925",
+            "alpha": 0.8
+          },
+          "$extensions": {
+            "siterra": {
+              "oklch": [
+                0.2816,
+                0.0077,
+                84.59
+              ]
+            }
+          },
+          "$description": "The catchment line: 1.5 px on the ridge crest plus 30 m"
+        },
+        "grid-stroke": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.1686,
+              0.1608,
+              0.1451
+            ],
+            "hex": "#2b2925",
+            "alpha": 0.05
+          },
+          "$extensions": {
+            "siterra": {
+              "oklch": [
+                0.2816,
+                0.0077,
+                84.59
+              ]
+            }
+          },
+          "$description": "The 0.1 degree graticule"
+        },
+        "pool": {
+          "$type": "number",
+          "$value": [
+            1.1,
+            1.07,
+            1.02
+          ],
+          "$description": "The light pool inside the catchment: a multiplier on the land's colour, not a colour"
+        },
+        "imagery": {
+          "$type": "number",
+          "$value": {
+            "saturation": 0.6,
+            "saturationInside": 0.7,
+            "warm": [
+              1.03,
+              1.0,
+              0.94
+            ],
+            "paperLift": 0.1,
+            "lightShadow": [
+              0.7,
+              0.75,
+              0.82
+            ],
+            "lightLit": [
+              1.07,
+              1.04,
+              0.99
+            ]
+          },
+          "$description": "Sentinel-2 summer composite as the land's material, display only: saturation, inside the line once the light settles, warming multiplier, paper lift, and the light it takes from the relief (lee to lit)"
+        },
+        "haze": {
+          "$type": "number",
+          "$value": {
+            "radialKm": [
+              24,
+              52
+            ],
+            "distanceKm": [
+              70,
+              190
+            ],
+            "distanceStrength": 0.55,
+            "rimKm": [
+              2,
+              14
+            ]
+          },
+          "$description": "Paper haze: radial from the catchment centre, with distance from the eye, and at the relief block's rim"
+        },
+        "outlet-ring-core": {
+          "$type": "color",
+          "$value": "{palette.light.neutral.12}",
+          "$description": "The outlet's focus ring: 1.2 px on a 3.2 px white ring"
+        },
+        "outlet-ring-casing": {
+          "$type": "color",
           "$value": {
             "colorSpace": "srgb",
             "components": [
@@ -5422,36 +6508,70 @@
               "oklch": [
                 1.0,
                 0.0,
-                "none"
+                89.88
               ]
             }
-          }
+          },
+          "$description": "The 3.2 px white ring under the outlet's focus ring"
         },
-        "sky": {
+        "beam": {
           "$type": "color",
-          "$description": "sky-color",
+          "$value": "{palette.light.daylight.accent}",
+          "$description": "The outlet beam: 1.6 px with a soft column of the same colour at 22 per cent"
+        },
+        "stem": {
+          "$type": "color",
           "$value": {
             "colorSpace": "srgb",
             "components": [
-              0.9647,
-              0.9608,
-              0.9569
+              0.1686,
+              0.1608,
+              0.1451
             ],
-            "hex": "#f6f5f4"
+            "hex": "#2b2925",
+            "alpha": 0.85
           },
           "$extensions": {
             "siterra": {
               "oklch": [
-                0.9706,
-                0.0017,
-                67.8
+                0.2816,
+                0.0077,
+                84.59
               ]
             }
-          }
+          },
+          "$description": "Villages: 1 px stems with a ring at the foot"
         },
-        "horizon": {
+        "stem-selected": {
           "$type": "color",
-          "$description": "horizon-color",
+          "$value": "{palette.light.daylight.accent}",
+          "$description": "The selected evidence stem: 1.8 px, ring 1.4 px"
+        },
+        "leader": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.1686,
+              0.1608,
+              0.1451
+            ],
+            "hex": "#2b2925",
+            "alpha": 0.7
+          },
+          "$extensions": {
+            "siterra": {
+              "oklch": [
+                0.2816,
+                0.0077,
+                84.59
+              ]
+            }
+          },
+          "$description": "One leader from the card to its place: 1 px, ending in a dot of 3 px radius on a located thing"
+        },
+        "sheet": {
+          "$type": "color",
           "$value": {
             "colorSpace": "srgb",
             "components": [
@@ -5459,7 +6579,8 @@
               0.9922,
               0.9882
             ],
-            "hex": "#fdfdfc"
+            "hex": "#fdfdfc",
+            "alpha": 0.38
           },
           "$extensions": {
             "siterra": {
@@ -5469,186 +6590,158 @@
                 106.42
               ]
             }
-          }
+          },
+          "$description": "Measured layers lifted as thin sheets cut to the catchment outline"
         },
-        "fog": {
+        "front": {
           "$type": "color",
-          "$description": "fog-color",
           "$value": {
             "colorSpace": "srgb",
             "components": [
-              0.9647,
-              0.9608,
-              0.9569
+              0.1686,
+              0.1608,
+              0.1451
             ],
-            "hex": "#f6f5f4"
+            "hex": "#2b2925",
+            "alpha": 0.75
           },
           "$extensions": {
             "siterra": {
               "oklch": [
-                0.9706,
-                0.0017,
-                67.8
+                0.2816,
+                0.0077,
+                84.59
               ]
             }
-          }
+          },
+          "$description": "A measurement front crossing the catchment: about 1.5 px at any distance"
         },
-        "context-dim": {
+        "leader-tick": {
           "$type": "color",
-          "$description": "Mask outside the analysis geometry (context dimmed)",
           "$value": {
             "colorSpace": "srgb",
             "components": [
-              1.0,
-              1.0,
-              1.0
+              0.1686,
+              0.1608,
+              0.1451
             ],
-            "hex": "#ffffff",
-            "alpha": 0.55
+            "hex": "#2b2925",
+            "alpha": 0.9
           },
           "$extensions": {
             "siterra": {
               "oklch": [
-                1.0,
-                0.0,
-                "none"
+                0.2816,
+                0.0077,
+                84.59
               ]
             }
-          }
+          },
+          "$description": "Where a leader ends on the catchment line: a 12 px tick across it, 1.2 px"
         },
-        "outline": {
+        "sheet-edge": {
           "$type": "color",
-          "$description": "Catchment outline core, 1.5 px; >= 9:1 against its casing (founder's mineral hue)",
           "$value": {
             "colorSpace": "srgb",
             "components": [
-              0.3294,
-              0.2824,
-              0.1255
+              0.1686,
+              0.1608,
+              0.1451
             ],
-            "hex": "#544820"
+            "hex": "#2b2925",
+            "alpha": 0.7
           },
           "$extensions": {
             "siterra": {
               "oklch": [
-                0.4044,
-                0.0597,
-                92.88
+                0.2816,
+                0.0077,
+                84.59
               ]
             }
-          }
+          },
+          "$description": "The sheet's edge, 1.2 px"
         },
-        "grid-stroke": {
+        "biome-swatch": {
           "$type": "color",
-          "$description": "Rainfall grid cell edge, 1 px",
           "$value": {
             "colorSpace": "srgb",
             "components": [
-              0.1098,
-              0.102,
-              0.0941
+              0.9451,
+              0.8824,
+              0.7882
             ],
-            "hex": "#1c1a18"
+            "hex": "#f1e1c9"
           },
           "$extensions": {
             "siterra": {
               "oklch": [
-                0.2193,
-                0.005,
-                67.57
+                0.9163,
+                0.0364,
+                78.12
               ]
             }
-          }
+          },
+          "$description": "The globe legend's swatch for the lit rangeland biomes"
+        },
+        "biome-swatch-edge": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.7098,
+              0.3373,
+              0.1216
+            ],
+            "hex": "#b5561f",
+            "alpha": 0.35
+          },
+          "$extensions": {
+            "siterra": {
+              "oklch": [
+                0.5625,
+                0.1395,
+                46.66
+              ]
+            }
+          },
+          "$description": "The biome swatch's edge"
         }
       },
       "chart": {
         "grid": {
           "$type": "color",
-          "$description": "Chart grid lines (hairline)",
           "$value": {
             "colorSpace": "srgb",
             "components": [
-              0.7922,
-              0.7843,
-              0.7765
+              0.1686,
+              0.1608,
+              0.1451
             ],
-            "hex": "#cac8c6"
+            "hex": "#2b2925",
+            "alpha": 0.16
           },
           "$extensions": {
             "siterra": {
               "oklch": [
-                0.8338,
-                0.0036,
-                67.77
+                0.2816,
+                0.0077,
+                84.59
               ]
             }
           }
         },
         "axis": {
           "$type": "color",
-          "$description": "Axis lines and ticks; >= 3:1",
-          "$value": {
-            "colorSpace": "srgb",
-            "components": [
-              0.5294,
-              0.5176,
-              0.5059
-            ],
-            "hex": "#878481"
-          },
-          "$extensions": {
-            "siterra": {
-              "oklch": [
-                0.615,
-                0.0058,
-                67.72
-              ]
-            }
-          }
+          "$value": "{palette.light.daylight.grey}"
         },
         "label": {
           "$type": "color",
-          "$description": "Axis labels (tertiary text)",
-          "$value": {
-            "colorSpace": "srgb",
-            "components": [
-              0.4157,
-              0.4039,
-              0.3922
-            ],
-            "hex": "#6a6764"
-          },
-          "$extensions": {
-            "siterra": {
-              "oklch": [
-                0.5155,
-                0.006,
-                67.69
-              ]
-            }
-          }
+          "$value": "{palette.light.daylight.grey}"
         },
         "reference": {
           "$type": "color",
-          "$description": "Reference line (dotted) such as the same-month median",
-          "$value": {
-            "colorSpace": "srgb",
-            "components": [
-              0.3059,
-              0.2941,
-              0.2824
-            ],
-            "hex": "#4e4b48"
-          },
-          "$extensions": {
-            "siterra": {
-              "oklch": [
-                0.4147,
-                0.0063,
-                67.65
-              ]
-            }
-          }
+          "$value": "{palette.light.daylight.ink}"
         },
         "series-vegetation": {
           "$type": "color",
@@ -5674,25 +6767,7 @@
         },
         "series-rainfall": {
           "$type": "color",
-          "$description": "Single rainfall series line",
-          "$value": {
-            "colorSpace": "srgb",
-            "components": [
-              0.2588,
-              0.451,
-              0.7333
-            ],
-            "hex": "#4273bb"
-          },
-          "$extensions": {
-            "siterra": {
-              "oklch": [
-                0.5558,
-                0.1245,
-                257.97
-              ]
-            }
-          }
+          "$value": "{theme.light.data.rain-total.class-3}"
         },
         "departure-below": {
           "$type": "color",
@@ -5740,25 +6815,7 @@
         },
         "departure-above-rainfall": {
           "$type": "color",
-          "$description": "Rainfall bars above reference",
-          "$value": {
-            "colorSpace": "srgb",
-            "components": [
-              0.2588,
-              0.451,
-              0.7333
-            ],
-            "hex": "#4273bb"
-          },
-          "$extensions": {
-            "siterra": {
-              "oklch": [
-                0.5558,
-                0.1245,
-                257.97
-              ]
-            }
-          }
+          "$value": "{theme.light.data.rain-departure.above-3}"
         }
       },
       "shadow": {
@@ -5769,12 +6826,40 @@
               "color": {
                 "colorSpace": "srgb",
                 "components": [
-                  0.0784,
-                  0.1098,
-                  0.1137
+                  0.1686,
+                  0.1608,
+                  0.1451
                 ],
-                "hex": "#141c1d",
-                "alpha": 0.12
+                "hex": "#2b2925",
+                "alpha": 0.08
+              },
+              "offsetX": {
+                "value": 0,
+                "unit": "px"
+              },
+              "offsetY": {
+                "value": 1,
+                "unit": "px"
+              },
+              "blur": {
+                "value": 2,
+                "unit": "px"
+              },
+              "spread": {
+                "value": 0,
+                "unit": "px"
+              }
+            },
+            {
+              "color": {
+                "colorSpace": "srgb",
+                "components": [
+                  0.1686,
+                  0.1608,
+                  0.1451
+                ],
+                "hex": "#2b2925",
+                "alpha": 0.1
               },
               "offsetX": {
                 "value": 0,
@@ -5785,23 +6870,29 @@
                 "unit": "px"
               },
               "blur": {
-                "value": 24,
+                "value": 28,
                 "unit": "px"
               },
               "spread": {
                 "value": 0,
                 "unit": "px"
               }
-            },
+            }
+          ],
+          "$description": "The card over the land, as the approved hero draws it"
+        },
+        "popover": {
+          "$type": "shadow",
+          "$value": [
             {
               "color": {
                 "colorSpace": "srgb",
                 "components": [
-                  0.0784,
-                  0.1098,
-                  0.1137
+                  0.1686,
+                  0.1608,
+                  0.1451
                 ],
-                "hex": "#141c1d",
+                "hex": "#2b2925",
                 "alpha": 0.08
               },
               "offsetX": {
@@ -5820,22 +6911,79 @@
                 "value": 0,
                 "unit": "px"
               }
+            },
+            {
+              "color": {
+                "colorSpace": "srgb",
+                "components": [
+                  0.1686,
+                  0.1608,
+                  0.1451
+                ],
+                "hex": "#2b2925",
+                "alpha": 0.1
+              },
+              "offsetX": {
+                "value": 0,
+                "unit": "px"
+              },
+              "offsetY": {
+                "value": 6,
+                "unit": "px"
+              },
+              "blur": {
+                "value": 18,
+                "unit": "px"
+              },
+              "spread": {
+                "value": 0,
+                "unit": "px"
+              }
             }
-          ]
+          ],
+          "$description": "Focus notes"
         },
-        "popover": {
+        "dialog": {
           "$type": "shadow",
           "$value": [
             {
               "color": {
                 "colorSpace": "srgb",
                 "components": [
-                  0.0784,
-                  0.1098,
-                  0.1137
+                  0.1686,
+                  0.1608,
+                  0.1451
                 ],
-                "hex": "#141c1d",
-                "alpha": 0.16
+                "hex": "#2b2925",
+                "alpha": 0.08
+              },
+              "offsetX": {
+                "value": 0,
+                "unit": "px"
+              },
+              "offsetY": {
+                "value": 1,
+                "unit": "px"
+              },
+              "blur": {
+                "value": 2,
+                "unit": "px"
+              },
+              "spread": {
+                "value": 0,
+                "unit": "px"
+              }
+            },
+            {
+              "color": {
+                "colorSpace": "srgb",
+                "components": [
+                  0.1686,
+                  0.1608,
+                  0.1451
+                ],
+                "hex": "#2b2925",
+                "alpha": 0.18
               },
               "offsetX": {
                 "value": 0,
@@ -5846,35 +6994,7 @@
                 "unit": "px"
               },
               "blur": {
-                "value": 32,
-                "unit": "px"
-              },
-              "spread": {
-                "value": 0,
-                "unit": "px"
-              }
-            },
-            {
-              "color": {
-                "colorSpace": "srgb",
-                "components": [
-                  0.0784,
-                  0.1098,
-                  0.1137
-                ],
-                "hex": "#141c1d",
-                "alpha": 0.08
-              },
-              "offsetX": {
-                "value": 0,
-                "unit": "px"
-              },
-              "offsetY": {
-                "value": 1,
-                "unit": "px"
-              },
-              "blur": {
-                "value": 2,
+                "value": 40,
                 "unit": "px"
               },
               "spread": {
@@ -5882,7 +7002,34 @@
                 "unit": "px"
               }
             }
-          ]
+          ],
+          "$description": "The Sources and notices dialog"
+        }
+      },
+      "key": {
+        "$description": "Key hints: the glyph box, in the valley's form everywhere (lead, 20:29:21)",
+        "glyph-border": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.1686,
+              0.1608,
+              0.1451
+            ],
+            "hex": "#2b2925",
+            "alpha": 0.35
+          },
+          "$extensions": {
+            "siterra": {
+              "oklch": [
+                0.2816,
+                0.0077,
+                84.59
+              ]
+            }
+          },
+          "$description": "The glyph box, 1 px"
         }
       }
     },
@@ -7726,6 +8873,12 @@
           ]
         }
       }
+    }
+  },
+  "$extensions": {
+    "siterra": {
+      "version": "1.3",
+      "defaultTheme": "light"
     }
   }
 }
