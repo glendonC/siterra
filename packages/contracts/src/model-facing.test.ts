@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
-import { Evidence, Hypothesis } from "./case.ts";
+import { Evidence, Hypothesis, Intervention } from "./case.ts";
 import {
   ProposeEvidence,
   ProposeHypotheses,
+  ProposeInterventions,
   ProposePlan,
   strictSubsetIssues,
   toModelJsonSchema,
@@ -104,6 +105,33 @@ describe("contract: propose_hypotheses", () => {
     const item = ProposeHypotheses.shape.items.element;
     expect(item.shape.status.options).toEqual(
       Hypothesis.shape.status.options.filter((s) => s !== "stale"),
+    );
+  });
+});
+
+describe("contract: propose_interventions", () => {
+  it("exports inside the strict subset with every item property required", () => {
+    const json = toModelJsonSchema(ProposeInterventions);
+    const items = ((json["properties"] as Record<string, Record<string, unknown>>)["items"] ?? {})[
+      "items"
+    ] as Record<string, unknown>;
+    expect(items["required"]).toEqual([
+      "title",
+      "description",
+      "assumptions",
+      "ecologicalConsiderations",
+      "livelihoodConsiderations",
+      "fieldValidationNeeded",
+      "requiredReviewRoles",
+      "evidenceIds",
+      "hypothesisIds",
+    ]);
+  });
+
+  it("offers exactly the review roles of the Intervention record", () => {
+    const item = ProposeInterventions.shape.items.element;
+    expect(item.shape.requiredReviewRoles.element.options).toEqual(
+      Intervention.shape.requiredReviewRoles.element.options,
     );
   });
 });

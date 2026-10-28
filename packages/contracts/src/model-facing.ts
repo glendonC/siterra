@@ -190,3 +190,33 @@ export const ProposeHypotheses = z.strictObject({
   ),
 });
 export type ProposeHypotheses = z.infer<typeof ProposeHypotheses>;
+
+/** The review roles an intervention may require (Intervention.requiredReviewRoles). */
+export const interventionReviewRoles = [
+  "scientific",
+  "community_livelihood",
+  "program_coordination",
+] as const;
+
+/**
+ * propose_interventions: the intervention task's structured final output (data-contracts.md, tool
+ * argument contracts). Each item is a candidate response under a condition, never a recommendation.
+ * Host validation adds the limits and the rules (two or three items; the condition; no directive,
+ * ranking, forecast effect or unproven number); host code adds the deferral option itself.
+ */
+export const ProposeInterventions = z.strictObject({
+  items: z.array(
+    z.strictObject({
+      title: z.string(),
+      description: z.string(),
+      assumptions: z.array(z.string()),
+      ecologicalConsiderations: z.array(z.string()),
+      livelihoodConsiderations: z.array(z.string()),
+      fieldValidationNeeded: z.array(z.string()),
+      requiredReviewRoles: z.array(z.enum(interventionReviewRoles)),
+      evidenceIds: z.array(z.string()),
+      hypothesisIds: z.array(z.string()),
+    }),
+  ),
+});
+export type ProposeInterventions = z.infer<typeof ProposeInterventions>;
