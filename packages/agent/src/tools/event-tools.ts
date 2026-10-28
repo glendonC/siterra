@@ -164,12 +164,29 @@ interface SeasonRow {
   season_departure_mm: number;
   season_category: "below_normal" | "near_normal" | "above_normal";
 }
-interface SeasonSummary {
+export interface SeasonSummary {
   recipeId: string;
   version: string;
   rainfall_bundle?: { id?: string };
   near_normal_band_mm?: number[];
   seasons: SeasonRow[];
+}
+
+/** The stored result of the configured season recipe, from its validated bundle, or null. */
+export async function readSeasonSummary(
+  store: CaseStore,
+  caseId: string,
+  recipe: SeasonWindow["recipe"],
+): Promise<{ bundleId: string; summary: SeasonSummary } | null> {
+  const bundle = (await store.listBundles(caseId)).find(
+    (b) =>
+      b.status === "validated" &&
+      b.methodId === recipe.recipeId &&
+      b.methodVersion === recipe.version,
+  );
+  const stored = bundle ? await store.readRecipeResult(caseId, bundle.id) : null;
+  const summary = stored?.result as SeasonSummary | undefined;
+  return bundle && summary?.seasons ? { bundleId: bundle.id, summary } : null;
 }
 
 export function compareEventsTool(store: CaseStore, caseId: string): ToolHandler<CompareArgs> {
@@ -223,20 +240,14 @@ export function compareEventsTool(store: CaseStore, caseId: string): ToolHandler
           "the rainfall bundle or its geometry is not at the cited revision",
         );
       }
-      const seasonBundle = (await store.listBundles(caseId)).find(
-        (b) =>
-          b.status === "validated" &&
-          b.methodId === recipe.recipeId &&
-          b.methodVersion === recipe.version,
-      );
-      const stored = seasonBundle ? await store.readRecipeResult(caseId, seasonBundle.id) : null;
-      const summary = stored?.result as SeasonSummary | undefined;
-      if (!seasonBundle || !summary?.seasons) {
+      const found = await readSeasonSummary(store, caseId, recipe);
+      if (!found) {
         throw new ToolFailure(
           "no_season_summary",
           `no precomputed ${recipe.recipeId} ${recipe.version} result in this case`,
         );
       }
+      const { bundleId: seasonBundleId, summary } = found;
       if (summary.rainfall_bundle?.id !== rain.id) {
         throw new ToolFailure(
           "recipe_mismatch",
@@ -277,7 +288,7 @@ export function compareEventsTool(store: CaseStore, caseId: string): ToolHandler
         output: {
           label: "precomputed analysis",
           recipe: `${recipe.recipeId} ${recipe.version}`,
-          seasonBundleId: seasonBundle.id,
+          seasonBundleId,
           nearNormalBandMm: summary.near_normal_band_mm ?? null,
           results,
           limitations: [
@@ -285,7 +296,7 @@ export function compareEventsTool(store: CaseStore, caseId: string): ToolHandler
             `A national statement can differ from the ${config.areaLabel} record and still be true for its own area.`,
           ],
         },
-        resultEntityIds: [...results.map((r) => r.rowId), seasonBundle.id],
+        resultEntityIds: [...results.map((r) => r.rowId), seasonBundleId],
       };
     },
   };
