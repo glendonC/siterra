@@ -141,6 +141,19 @@ export const en = {
     kind: "ui",
   },
   "legend.coverage": { text: "{percent}% of area observed", kind: "ui" },
+  // the period's quality flags, in the approved verdict line's form (valley.verdict.flags and its note)
+  "legend.flags": { text: "{period} views: {flags}.", kind: "ui", honesty: true },
+  "legend.flags.reducedQaNote": {
+    text: "Cloud screening used the scene classification only.",
+    kind: "ui",
+    honesty: true,
+  },
+  "flag.snow": { text: "snow suspected", kind: "ui" },
+  "flag.terrainShadow": { text: "terrain shadow suspected", kind: "ui" },
+  "flag.lowSceneCount": { text: "few satellite dates", kind: "ui" },
+  "flag.partialMonth": { text: "part of the month only", kind: "ui" },
+  "flag.qaJoinIncomplete": { text: "scene classification incomplete", kind: "ui" },
+  "flag.reducedQa": { text: "cloud screening reduced", kind: "ui" },
   // the strata bundle's excluded stratum, drawn over the values, not masked from them
   "legend.ndvi.excluded": {
     text: "Hatched: cropland and buildings mapped by ESA WorldCover in 2021, left out of the field-sampling strata. Their departure is still drawn.",

@@ -36,7 +36,8 @@ export interface RecordRef {
 
 export interface DepartureBinding {
   periodId: string;
-  observation: RecordRef;
+  /** qualityFlags: the period's flags as the importer copied them from the bundle Item. */
+  observation: RecordRef & { qualityFlags: string[] };
   measurement: RecordRef & { validFraction: number | null; spatialResolutionM: number | null };
   bundle: RecordRef & {
     contentHash: string;
@@ -65,7 +66,7 @@ export function departureBinding(s: CaseSnapshot): DepartureBinding | undefined 
     if (best && best.periodId >= o.periodId) continue;
     best = {
       periodId: o.periodId,
-      observation: { id: o.id, revision: o.revision },
+      observation: { id: o.id, revision: o.revision, qualityFlags: o.qualityFlags },
       measurement: {
         id: m.id,
         revision: m.revision,
@@ -155,6 +156,8 @@ export interface DepartureLegend {
   low: string;
   high: string;
   coverage?: string;
+  flags?: string;
+  flagsNote?: string;
   excluded?: string;
   note: string;
   method: string;
@@ -162,6 +165,23 @@ export interface DepartureLegend {
 }
 
 const meters = new Intl.NumberFormat("en", { maximumFractionDigits: 1 });
+
+/** The extension's quality flags in reading order (the approved verdict line names snow first). */
+const FLAG_WORDS = [
+  ["snow_suspected", "flag.snow"],
+  ["terrain_shadow_suspected", "flag.terrainShadow"],
+  ["low_scene_count", "flag.lowSceneCount"],
+  ["partial_month", "flag.partialMonth"],
+  ["qa_join_incomplete", "flag.qaJoinIncomplete"],
+  ["reduced_qa_fallback", "flag.reducedQa"],
+] as const;
+
+function flagWords(flags: string[]): string | undefined {
+  if (flags.length === 0) return undefined;
+  const known = FLAG_WORDS.filter(([f]) => flags.includes(f)).map(([, id]) => en[id].text);
+  const unknown = flags.filter((f) => !FLAG_WORDS.some(([k]) => k === f));
+  return [...known, ...unknown].join("; ");
+}
 
 /** A domain end as the key writes it: two decimals, a minus sign or a plus (VT-36). */
 const tick = (v: number) => `${v < 0 ? "\u2212" : "+"}${Math.abs(v).toFixed(2)}`;
@@ -175,6 +195,7 @@ export function departureLegend(
   const months = MONTH_PLURALS[Number(b.periodId.slice(12, 14)) - 1] ?? "";
   const f = b.measurement.validFraction;
   const analysis = b.measurement.spatialResolutionM;
+  const flags = flagWords(b.observation.qualityFlags);
   const display = meters.format(cellM);
   return {
     title: format("legend.ndvi.title", { period: periodLabel(b.periodId), months }),
@@ -184,6 +205,12 @@ export function departureLegend(
     ...(f === null
       ? {}
       : { coverage: format("legend.coverage", { percent: Math.round(f * 100) }) }),
+    ...(flags === undefined
+      ? {}
+      : { flags: format("legend.flags", { period: periodLabel(b.periodId), flags }) }),
+    ...(b.observation.qualityFlags.includes("reduced_qa_fallback")
+      ? { flagsNote: en["legend.flags.reducedQaNote"].text }
+      : {}),
     ...(hatched ? { excluded: en["legend.ndvi.excluded"].text } : {}),
     note: en["legend.ndvi.note"].text,
     method: format("legend.ndvi.method", {
@@ -204,6 +231,8 @@ export function legendLines(l: DepartureLegend): string[] {
     l.subtitle,
     `${l.low} ${l.high}`,
     ...(l.coverage ? [l.coverage] : []),
+    ...(l.flags ? [l.flags] : []),
+    ...(l.flagsNote ? [l.flagsNote] : []),
     ...(l.excluded ? [l.excluded] : []),
     l.note,
     l.method,

@@ -57,7 +57,11 @@ describe("departureBinding", () => {
     const b = departureBinding(withMaps(["2022-04", "2025-11", "2019-03"]));
     expect(b).toEqual({
       periodId: "period_2025-11",
-      observation: { id: "obs_ndvi_departure_ait_bouguemez_2025-11", revision: 1 },
+      observation: {
+        id: "obs_ndvi_departure_ait_bouguemez_2025-11",
+        revision: 1,
+        qualityFlags: ["reduced_qa_fallback", "snow_suspected"],
+      },
       measurement: {
         id: "meas_ndvi_departure_ait_bouguemez_2025-11_ndvi_departure_area_median_leave_one_year_out",
         revision: 1,
@@ -182,6 +186,8 @@ describe("departureLegend", () => {
       low: "\u22120.10",
       high: "+0.10",
       coverage: "93% of area observed",
+      flags: "Nov 2025 views: snow suspected; cloud screening reduced.",
+      flagsNote: "Cloud screening used the scene classification only.",
       excluded:
         "Hatched: cropland and buildings mapped by ESA WorldCover in 2021, left out of the field-sampling strata. Their departure is still drawn.",
       note: "No cropland mask is applied: valley-floor fields and orchards are included.",
@@ -190,6 +196,24 @@ describe("departureLegend", () => {
       cells:
         "Drawn in cells of about 25.5 m, averaged from the 10 m analysis grid. The measurements use the 10 m cells.",
     });
+  });
+
+  it("names the period's quality flags from its record, never from a fixed list", () => {
+    const flagged = (qualityFlags: string[]) => ({
+      ...b,
+      observation: { ...b.observation, qualityFlags },
+    });
+    const few = departureLegend(flagged(["low_scene_count"]), [-0.1, 0.1], true, 25.545);
+    expect(few.flags).toBe("Nov 2025 views: few satellite dates.");
+    expect(few.flagsNote).toBeUndefined();
+    expect(legendLines(few)).toContain(few.flags);
+    const clean = departureLegend(flagged([]), [-0.1, 0.1], true, 25.545);
+    expect(clean.flags).toBeUndefined();
+    expect(legendLines(clean)).not.toContain(undefined);
+    // a flag this build has no words for is still shown, by its name, never dropped
+    expect(departureLegend(flagged(["new_flag"]), [-0.1, 0.1], true, 25.545).flags).toBe(
+      "Nov 2025 views: new_flag.",
+    );
   });
 
   it("states the display cell size, not the analysis grid's, as the size it draws (SC-04)", () => {
