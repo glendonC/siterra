@@ -77,6 +77,7 @@ Contracts and design tokens carry their own Semantic Versioning numbers, recorde
 - The delivery plan dates B1 to B5 from the founder's approval of the hero (Tue 27 to Sat 31 Oct 2026) and schedules the Sentinel-2 drape, the contours and the 3D arrival settle on B2 and B3; `maplibre-contour` 0.1.1 is P0; the demo plan notes that a viewer's typed question may say "drought" while Siterra's suggestions say "a dry year".
 - The bundle importer records each measurement's and observation's own bundle version in its provenance, so superseding a bundle stales evidence that cites only its measurements; records without a stale state pass staleness on to what cites them.
 - A review request's comment must be the host catalog text for its role ("Scientific review requested.", "Community and livelihood review requested." or "Program review requested."); a task never writes it.
+- VC-02 exempts names on the land whether they are drawn into the map canvas or placed over it with the camera's projection; they scale with the view and are checked on the frames.
 
 ### Fixed
 
