@@ -148,6 +148,39 @@ describe("corpus reader", () => {
     ).toEqual([{ heading: "A", text: "abc" }]);
   });
 
+  it("the case record's Source.language wins over the corpus manifest", async () => {
+    const corpus = await loadCorpus(
+      await corpusRoot(),
+      "manifest.json",
+      (id) => revisions.get(id) ?? null,
+    );
+    const store = snapshotStore(
+      {
+        case: {
+          id: "case_test",
+          revision: 4,
+          title: "T",
+          objective: "O",
+          mode: "replay",
+          activeGeoSelectionId: null,
+          unresolvedQuestions: [],
+        },
+        records: {
+          dataBundleRecords: [],
+          measurementRecords: [],
+          temporalObservationRecords: [],
+          sourceRecords: [
+            { id: "src_test_pdf", revision: 1, language: "es" },
+            { id: "src_test_list", revision: 2 },
+          ],
+        },
+      },
+      corpus,
+    );
+    expect((await store.readSource("case_test", "src_test_pdf"))?.language).toBe("es");
+    expect((await store.readSource("case_test", "src_test_list"))?.language).toBe("en");
+  });
+
   it("a snapshot store reads one consistent view and only the case's sources", async () => {
     const corpus = await loadCorpus(
       await corpusRoot(),
@@ -175,6 +208,7 @@ describe("corpus reader", () => {
       corpus,
     );
     expect((await store.listSources("case_test")).map((s) => s.id)).toEqual(["src_test_pdf"]);
+    expect((await store.readSource("case_test", "src_test_pdf"))?.language).toBeNull();
     expect(
       await store.passageAt("case_test", "src_test_pdf", { document: "a.pdf", page: 2 }),
     ).toMatchObject({ text: "Two." });

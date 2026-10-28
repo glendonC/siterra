@@ -25,7 +25,8 @@ export interface SnapshotView {
       periodId: string;
       qualityFlags: string[];
     }[];
-    sourceRecords: { id: string; revision: number }[];
+    /** Source records; `language` (contracts 1.5.0) decides the machine-drafted translation label. */
+    sourceRecords: { id: string; revision: number; language?: string | undefined }[];
   };
 }
 
@@ -51,12 +52,15 @@ export function snapshotStore(snapshot: SnapshotView, corpus: Corpus): MemoryCas
       qualityFlags: t.qualityFlags,
     });
   }
-  const inCase = new Set(snapshot.records.sourceRecords.map((s) => s.id));
+  // The case record is authoritative: its Source.language wins over the corpus manifest's.
+  const records = new Map(snapshot.records.sourceRecords.map((s) => [s.id, s]));
   for (const source of corpus.sources) {
-    if (inCase.has(source.id)) store.sources.push({ ...source, caseId });
+    const record = records.get(source.id);
+    if (!record) continue;
+    store.sources.push({ ...source, language: record.language ?? source.language, caseId });
   }
   for (const passage of corpus.passages) {
-    if (inCase.has(passage.sourceId)) store.passages.push({ ...passage, caseId });
+    if (records.has(passage.sourceId)) store.passages.push({ ...passage, caseId });
   }
   return store;
 }
