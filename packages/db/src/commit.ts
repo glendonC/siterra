@@ -77,6 +77,25 @@ function withoutRevisionFields(record: EnvironmentalCase): string {
 }
 
 /**
+ * A review request as a task may write it: a first revision in state requested, demo mode,
+ * authority not established, no actor, no decision time, no conditions, not stale. Anything that
+ * records or pre-fills a decision is not a request.
+ */
+export function isReviewRequest(record: Upsert): boolean {
+  return (
+    record.recordType === "ReviewDecision" &&
+    record.revision === 1 &&
+    record.status === "requested" &&
+    record.mode === "demo" &&
+    record.authorityStatus === "not_established" &&
+    record.actorId === null &&
+    record.decisionAt === null &&
+    record.conditions.length === 0 &&
+    !record.stale
+  );
+}
+
+/**
  * Applies a commit atomically against the expected case revision (data-contracts.md, idempotency,
  * revisions and recovery). When the case moved on, the commit rebases only if its inputs are
  * unchanged and it leaves the case fields as they were; otherwise it is stale and nothing is written.
@@ -129,12 +148,15 @@ export async function applyCommit(pool: Pool, input: CommitProposal): Promise<Co
 
     const writes: Upsert[] = [...proposal.upserts, ...proposal.layoutActions];
     // Review decisions are recorded only through the review endpoint, by a person with a session
-    // and a role (review-and-authority.md); a task commit can never write one.
-    const review = writes.find((record) => record.recordType === "ReviewDecision");
+    // and a role (review-and-authority.md). A task commit may only request a review (request_review
+    // in the brief_package task): a new record in state requested that decides nothing.
+    const review = writes.find(
+      (record) => record.recordType === "ReviewDecision" && !isReviewRequest(record),
+    );
     if (review !== undefined) {
       throw new CommitRejected(
         "review_not_permitted",
-        `${review.id}: review decisions are not written by task commits`,
+        `${review.id}: a task commit may only request a review, not record a decision`,
       );
     }
     const ids = writes.map((record) => record.id);
@@ -159,6 +181,13 @@ export async function applyCommit(pool: Pool, input: CommitProposal): Promise<Co
       }
     }
     for (const record of writes) {
+      if (record.recordType === "ReviewDecision") {
+        await tx.query(
+          "insert into review_records (case_id, entity_id, revision, record) values ($1, $2, $3, $4)",
+          [proposal.caseId, record.id, record.revision, JSON.stringify(record)],
+        );
+        continue;
+      }
       await tx.query(
         `insert into records (case_id, entity_id, revision, record_type, record, commit_id, case_revision)
          values ($1, $2, $3, $4, $5, $6, $7)`,

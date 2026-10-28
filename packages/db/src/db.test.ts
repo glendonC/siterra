@@ -377,6 +377,69 @@ describe("review decisions are never written by a task commit", () => {
   });
 });
 
+describe("a task commit may request a review and nothing more", () => {
+  const request = (caseId: string, overrides: Partial<ReviewDecision> = {}): ReviewDecision => ({
+    recordType: "ReviewDecision",
+    id: "rev_example_request",
+    revision: 1,
+    createdAt: "2026-10-27T20:00:00Z",
+    updatedAt: "2026-10-27T20:00:00Z",
+    caseId,
+    actionId: null,
+    reviewedEntityVersions: [{ entityId: "ev_example_requested", revision: 1 }],
+    caseRevisionReviewed: 1,
+    role: "scientific",
+    actorId: null,
+    authorityStatus: "not_established",
+    mode: "demo",
+    status: "requested",
+    decisionAt: null,
+    conditions: [],
+    comments: "Synthetic review request.",
+    stale: false,
+    ...overrides,
+  });
+
+  it("stores a review request in review_records", async () => {
+    const record = exampleCase("case_example_review_request");
+    await createCase(pool, record, owner);
+    const outcome = await applyCommit(
+      pool,
+      exampleCommit(record, {
+        id: "commit_example_request",
+        expected: 1,
+        upserts: [request(record.id)],
+      }),
+    );
+    expect(outcome.status).toBe("committed");
+    const snapshot = await readSnapshot(pool, record.id, owner);
+    expect(snapshot?.records.reviewDecisionRecords.map((d) => [d.id, d.status])).toEqual([
+      ["rev_example_request", "requested"],
+    ]);
+  });
+
+  it.each([
+    ["an approval", { status: "approved" as const, decisionAt: "2026-10-27T20:00:00Z" }],
+    ["a request with an actor", { actorId: "actor_example" }],
+    ["a request with conditions", { conditions: ["Synthetic condition"] }],
+    ["a request claiming authority", { authorityStatus: "verified_for_scope" as const }],
+    ["a request in real mode", { mode: "real" as const }],
+  ])("refuses %s with review_not_permitted", async (_name, overrides) => {
+    const record = exampleCase(`case_example_rq_${String(Math.random()).slice(2, 8)}`);
+    await createCase(pool, record, owner);
+    await expect(
+      applyCommit(
+        pool,
+        exampleCommit(record, {
+          id: "commit_example_rq",
+          expected: 1,
+          upserts: [request(record.id, overrides)],
+        }),
+      ),
+    ).rejects.toMatchObject({ code: "review_not_permitted" });
+  });
+});
+
 describe("the record and event history is append-only", () => {
   it("refuses DELETE and TRUNCATE on records, events, case revisions and review records", async () => {
     const record = exampleCase("case_example_no_delete");
