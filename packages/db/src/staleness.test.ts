@@ -1,4 +1,4 @@
-import type { Evidence } from "@siterra/contracts";
+import type { Brief, Evidence, Hypothesis } from "@siterra/contracts";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createCase } from "./cases.ts";
 import type { Pool } from "./client.ts";
@@ -166,5 +166,116 @@ describe("DF-03 and SA-04 (storage part): a changed input stales exactly its dep
       "ev_example_state",
       "ev_example_state_dep",
     ]);
+  });
+});
+
+describe("DF-03 (storage part, brief): a changed input stales the hypothesis, the brief and the review on it", () => {
+  it("follows evidence to hypothesis to brief to review in one commit, and leaves an uncited brief alone", async () => {
+    const before = await readSnapshot(pool, record.id, owner);
+    const revision = before?.case.revision ?? 0;
+    const base = accepted("ev_example_brief_base", 1, []);
+    const provenance = base.provenance;
+    const hypothesis: Hypothesis = {
+      recordType: "Hypothesis",
+      id: "hyp_example_brief",
+      revision: 1,
+      createdAt: base.createdAt,
+      updatedAt: base.updatedAt,
+      caseId: record.id,
+      statement: "Synthetic hypothesis statement.",
+      status: "consistent",
+      supportingEvidenceIds: [base.id],
+      contradictingEvidenceIds: [],
+      missingEvidence: [],
+      alternativeHypothesisIds: [],
+      assessment: "Synthetic assessment.",
+      provenance: { ...provenance, inputVersions: [{ entityId: base.id, revision: 1 }] },
+    };
+    const brief = (id: string, cites: { entityId: string; revision: number }[]): Brief => ({
+      recordType: "Brief",
+      id,
+      revision: 1,
+      createdAt: base.createdAt,
+      updatedAt: base.updatedAt,
+      caseId: record.id,
+      title: "Synthetic brief",
+      status: "ready_for_review",
+      sourceCaseRevision: revision,
+      evidenceIds: [],
+      hypothesisIds: cites.map((c) => c.entityId),
+      interventionIds: [],
+      actionIds: [],
+      known: [],
+      uncertain: [],
+      nextMeasurements: [],
+      stakeholderRoles: [],
+      preparedActions: [],
+      authorizationRequired: [],
+      nextSteps: [],
+      reviewDecisionIds: [],
+      limitations: [],
+      mode: "concept",
+      provenance: { ...provenance, inputVersions: cites },
+    });
+    const first = await applyCommit(
+      pool,
+      exampleCommit(record, {
+        id: "commit_example_brief1",
+        expected: revision,
+        upserts: [
+          base,
+          hypothesis,
+          brief("brief_example_cites", [{ entityId: hypothesis.id, revision: 1 }]),
+          brief("brief_example_uncited", []),
+        ],
+      }),
+    );
+    if (first.status !== "committed") throw new Error(first.status);
+    const review = await recordReview(pool, {
+      caseId: record.id,
+      ownerScopeId: owner,
+      request: {
+        role: "scientific",
+        reviewedEntityVersions: [{ entityId: "brief_example_cites", revision: 1 }],
+        caseRevisionReviewed: revision + 1,
+        actionId: null,
+        decision: "approved",
+        conditions: [],
+        comments: "Synthetic review comment.",
+        mode: "demo",
+        idempotencyKey: "staleness-brief-review-0001",
+      },
+    });
+    if (review.status !== "created") throw new Error(review.status);
+
+    const changed = await applyCommit(
+      pool,
+      exampleCommit(record, {
+        id: "commit_example_brief2",
+        expected: revision + 1,
+        upserts: [accepted("ev_example_brief_base", 2, [])],
+      }),
+    );
+    if (changed.status !== "committed") throw new Error(changed.status);
+    expect(changed.commit.upserts.map((u) => u.id).sort()).toEqual(
+      [
+        "brief_example_cites",
+        "ev_example_brief_base",
+        "hyp_example_brief",
+        review.decision.id,
+      ].sort(),
+    );
+    const snapshot = await readSnapshot(pool, record.id, owner);
+    const briefs = new Map(
+      snapshot?.records.briefRecords.map((b) => [b.id, [b.revision, b.status]]),
+    );
+    expect(briefs.get("brief_example_cites")).toEqual([2, "stale"]);
+    expect(briefs.get("brief_example_uncited")).toEqual([1, "ready_for_review"]);
+    expect(
+      snapshot?.records.hypothesisRecords.find((h) => h.id === "hyp_example_brief")?.status,
+    ).toBe("stale");
+    expect(
+      snapshot?.records.reviewDecisionRecords.find((d) => d.id === review.decision.id)?.stale,
+    ).toBe(true);
   });
 });
