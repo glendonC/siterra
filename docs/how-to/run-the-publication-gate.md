@@ -85,7 +85,7 @@ git diff --cached --name-only | grep -E '\.(png|jpe?g|webp|gif|svg|pdf|mp4|woff2
 For each file, establish who made it, under which license and with which attribution:
 
 - Third-party screenshots, video frames and captures belong in the ignored `design/private/` folder only.
-- Derived data and geometry carry their source attribution, for example the Copernicus DEM notice for the catchment geometry in `design/prototype/catchment.js`; prototype screenshots are checked for third-party relief tiles or map labels. Required strings are in [data sources and reproducible methods](../reference/data-sources-and-methods.md#attribution-strings).
+- Derived data and geometry carry their source attribution, for example the catchment geometry in `data/case/geometry/ait-bouguemez-catchment.geojson`, whose `source` names the Copernicus DEM tile it was derived from. Required strings are in [data sources and reproducible methods](../reference/data-sources-and-methods.md#attribution-strings).
 - Fonts and adapted components keep their license notices (IBM Plex is OFL-1.1; adapted MIT components keep the MIT notice).
 - Once licensing is declared with REUSE ([ADR-0032](../decisions/0032-declare-licensing-with-reuse-and-spdx.md)), every third-party file has an annotation in `REUSE.toml`, and `reuse lint` passes.
 

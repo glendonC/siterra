@@ -17,7 +17,8 @@ A document is public because its contents are safe and useful, not because it is
 | `schemas/` (contracts, examples) | Public | Contracts; examples use fictional `example` IDs and labeled synthetic values |
 | `research/` (registers, notes, bibliography) | Public | Makes claims auditable; public sources, links and paraphrase only |
 | `research/design/source-register.md` | Public | Link-only reference manifest with inspection notes; no third-party images |
-| `design/tokens/`, `design/prototype/`, `design/component-gallery/`, `design/wireframes/`, `design/motion/` | Public | Original work, labeled conceptual; illustrative values tagged in every view |
+| `design/tokens/` | Public | Original work: the generated design tokens |
+| `design/prototype/`, `design/component-gallery/`, `design/wireframes/`, `design/motion/` | **Private** (ignored) | The first concept prototype, its component gallery, wireframes and motion storyboard, replaced by the approved hero and not published |
 | `design/private/` | **Private** (ignored) | Third-party screenshots, video frames and the reference board that displays them: inspected for design, not licensed for redistribution |
 | `data/raw/`, `data/interim/` | **Private** (ignored) | Downloaded datasets and candidate geometries before rights and quality review |
 | `.internal/`, `.local/`, `.lead/` | **Private** (ignored) | Private planning, identities, account diagnostics, raw notes and recordings: the original directive with founder context, account and event gates, product-challenge tactics, demo narration and judging notes, handoff and verification logs, and the coordination state of parallel lanes |

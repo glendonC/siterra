@@ -7,7 +7,7 @@ Everything needed to understand Siterra and build it: why it exists, what it mus
 | If you want to | Read, in order |
 |---|---|
 | Understand the problem and the idea (10 minutes) | [The problem](explanation/problem.md), [product thesis](explanation/product-thesis.md), [competitive position](explanation/competitive-position.md) |
-| See the experience | The [prototype](../design/prototype/index.html), then the [experience storyboard](reference/experience-storyboard.md) |
+| See the experience | The [hero sequence](reference/scenes.md#the-hero-sequence-design-language-13), then the [experience storyboard](reference/experience-storyboard.md) |
 | Build it | [AGENTS.md](../AGENTS.md), [delivery plan](project/delivery-plan.md), [architecture](architecture/README.md), [data contracts](reference/data-contracts.md), [components](reference/components.md), [acceptance criteria](project/acceptance-criteria.md) |
 | Review the science | [Scientific basis](explanation/scientific-basis.md), [data sources and methods](reference/data-sources-and-methods.md), [analysis recipes](reference/analysis-recipes.md), [comparable places](explanation/comparable-places.md) |
 | Review the design and the words | [Design system](reference/design-system.md), [voice and tone](reference/voice-and-tone.md), [scenes and views](reference/scenes.md), [design references](explanation/design-references.md) |
@@ -24,7 +24,7 @@ Everything needed to understand Siterra and build it: why it exists, what it mus
 | [project/](project/README.md) | Delivery plan, acceptance criteria, demo plan, risks |
 | [how-to/](how-to/README.md) | Procedures, such as the publication gate |
 
-Outside `docs/`: [schemas/](../schemas/) (contracts and examples), [design/](../design/README.md) (tokens, prototype, wireframes, gallery, motion), [research/](../research/README.md) (sources and research notes), [CONTRIBUTING.md](../CONTRIBUTING.md) and the [changelog](../CHANGELOG.md).
+Outside `docs/`: [schemas/](../schemas/) (contracts and examples), [design/](../design/README.md) (design tokens), [research/](../research/README.md) (sources and research notes), [CONTRIBUTING.md](../CONTRIBUTING.md) and the [changelog](../CHANGELOG.md).
 
 ## Evidence labels
 

@@ -9,9 +9,9 @@ A criterion passes only with recorded evidence: a test name, a screenshot or rec
 | ID | Criterion | Pass condition |
 |---|---|---|
 | PC-01 | Arrival is understood in 15 seconds | 3 of 4 people unfamiliar with Siterra, shown the arrival screen for 15 s, correctly state the place, the question, and what the primary button will do. Answers recorded. |
-| PC-02 | One primary action | Arrival has exactly one primary-styled control. |
+| PC-02 | One primary action | Arrival has exactly one primary action, shown as one key hint (in the hero "↵ Start investigation"); "F Read flat" is a view control, and no control is a filled primary button. |
 | PC-03 | No diagnosis at arrival | Automated copy scan of the arrival view finds none of: "degraded", "overgrazed", "overgrazing detected", "damage", "crisis". |
-| PC-04 | Boundaries are visible | The scope popover lists what the firm will not do (contact people, spend money, make land decisions) and is reachable from arrival in one interaction. |
+| PC-04 | Boundaries are visible | The scope popover lists what the firm will not do (contact people, spend money, make land decisions) and opens from the mode line on arrival in one interaction. |
 
 ## Interaction usability
 
@@ -51,10 +51,10 @@ A criterion passes only with recorded evidence: a test name, a screenshot or rec
 | ID | Criterion | Pass condition |
 |---|---|---|
 | VC-01 | Tokens only | Lint finds no raw color values outside the token definitions (data ramps included). |
-| VC-02 | Type scale only | Computed font sizes in the app are a subset of the type scale; nothing below 12 px except map attribution. |
+| VC-02 | Type scale only | Computed font sizes in the app are a subset of the [type scale](../reference/design-system.md#typography), including the hero's sizes (10, 11, 12, 13, 14, 15, 16, 17, 22, 28, 44 and 48 px); nothing below 11 px except the credit line (10 px). Names drawn into the map canvas have no computed style and are checked on the frames. |
 | VC-03 | Composition review | Screenshots at 1440×900, 1280×800 and 1024×768 for scenes 1, 3, 5, 8 and 9 reviewed against [design references](../explanation/design-references.md) with a written checklist. |
-| VC-04 | Visual budget | For each shell state, an automated DOM count of visible islands, interactive controls, expanded components and text items stays within the [visual budget](../reference/ux-architecture.md#visual-budget); attribution excluded. |
-| VC-05 | Open map | For each shell state at 1440×900 and 1280×800, the share of the map viewport not covered by island bounding boxes meets the budget (for example at least 60% while working). |
+| VC-04 | Visual budget | In the hero, per beat, an automated count finds 1 card, at most 1 leader, at most 45 words on the card, at most 5 labels on the land (a land label line at most 6 words; honesty lines, marked in the string catalog, exempt; a two-line block counts as one), 1 action key plus "F Read flat" and 1 mode label ([the hero's budget](../reference/ux-architecture.md#the-heros-budget-design-language-13)). For each workspace state, the DOM count of visible islands, interactive controls, expanded components and text items stays within the [visual budget](../reference/ux-architecture.md#visual-budget). Attribution excluded. |
+| VC-05 | Open map | In the hero, per beat at 1440×900 and 1280×800, the share of the viewport not covered by the boxes of the card, the sky statement, the command line, the key hints, the key slot, the instruments and the mode line is at least 80%, and at least 60% in the verdict. For each workspace state at the same sizes, the share of the map viewport not covered by island bounding boxes meets the budget (for example at least 60% while working). Attribution excluded. |
 | VC-06 | Copy lint | Every interface string and every model-written field accepted into the case passes the error rules in [voice and tone](../reference/voice-and-tone.md#lint-rules); warnings are reviewed; each exception is allowlisted by string ID with a written reason. |
 
 ## Motion quality
@@ -85,7 +85,7 @@ Specification: [scenes and views](../reference/scenes.md).
 | SC-01 | Scenes come from records | Every item in the Views menu resolves from current case records; changing the area revision marks dependent scenes stale with the reason. |
 | SC-02 | Invalid scenes are rejected | Injected scenes with pitch 85, an unknown recipe, a coordinate outside the display extent, or free caption text are rejected with coded issues; the default scene set stays. |
 | SC-03 | Playback is pure | `evaluate(scene, tMs)` returns identical frame states for identical inputs across 200 sampled times (unit test). |
-| SC-04 | Measurement views are flat | At every sampled time where `period_raster` or `rainfall_grid` is visible, pitch is 0 and terrain is off. |
+| SC-04 | Measurement views are flat | In the flat reading ("Read flat") and in workspace measurement views, at every sampled time where `period_raster` or `rainfall_grid` is visible, pitch is 0 and terrain is off. In the hero's story views, measured layers are painted on the relief at true cell size, the view carries "Relief ×2", and the flat reading is one key away. |
 | SC-05 | Playback yields to the user | A drag, wheel, key or pointer down during a tour pauses it within one frame; Stop restores the camera, layers and period from before the scene. |
 | SC-06 | Background work never moves the camera | A commit that arrives during a tour changes neither the scene nor the camera; it waits behind "View new findings (n)". |
 

@@ -80,7 +80,7 @@ Planning material that the application consumes or follows:
 |---|---|
 | [`docs/`](../) | Explanation, reference, how-to, architecture, decisions and delivery documents |
 | [`schemas/`](../../schemas/) | JSON Schema contracts and validated examples, consumed by `packages/contracts` and the science pipeline |
-| [`design/`](../../design/) | Design tokens, conceptual prototype, component gallery, wireframes and motion storyboard |
+| [`design/`](../../design/) | Design tokens |
 | [`research/`](../../research/) | Source registers and research notes behind the decisions |
 | `data/raw/`, `data/interim/` | Ignored local downloads and unreviewed derivatives |
 
