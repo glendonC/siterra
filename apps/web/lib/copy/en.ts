@@ -144,6 +144,7 @@ export const en = {
   "task.kind.observation_analysis": { text: "Observation Analysis", kind: "heading" },
   "task.kind.livelihood_governance": { text: "Livelihoods & Governance", kind: "heading" },
   "task.kind.hypothesis_comparison": { text: "Hypothesis Comparison", kind: "heading" },
+  "task.kind.explanation_branches": { text: "Explanation Branches", kind: "heading" },
   "task.kind.intervention_feasibility": { text: "Intervention Feasibility", kind: "heading" },
   "task.kind.brief_package": { text: "Field Verification Plan", kind: "heading" },
   "task.kind.validation": { text: "Automated Checks", kind: "heading" },

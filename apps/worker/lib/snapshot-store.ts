@@ -1,9 +1,11 @@
 import { MemoryCaseStore } from "@siterra/agent";
+import { analysisConfigFor } from "@siterra/domain/cases";
 import type {
   CaseSummary,
   DataBundleRecord,
   EventRecordRowRecord,
   EvidenceRecord,
+  ExplanationBranchRecord,
   HypothesisRecord,
   InterventionRecord,
   MeasurementRecord,
@@ -44,6 +46,8 @@ export interface SnapshotView {
     interventionRecords?: InterventionRecord[];
     /** Event record rows of validated event bundles, for read_event_record; absent means none. */
     eventRecordRowRecords?: EventRecordRowRecord[];
+    /** Explanation branches, so a resumed branch task scores what it committed; absent means none. */
+    explanationBranchRecords?: ExplanationBranchRecord[];
   };
 }
 
@@ -63,6 +67,8 @@ export function snapshotStore(
     activeGeoSelectionId: snapshot.case.activeGeoSelectionId,
     unresolvedQuestions: snapshot.case.unresolvedQuestions,
   });
+  const config = analysisConfigFor(caseId);
+  if (config) store.analysisConfigs.set(caseId, config);
   store.bundles.push(...snapshot.records.dataBundleRecords);
   store.measurements.push(...snapshot.records.measurementRecords);
   for (const t of snapshot.records.temporalObservationRecords) {
@@ -87,6 +93,7 @@ export function snapshotStore(
   store.hypotheses.push(...(snapshot.records.hypothesisRecords ?? []));
   store.interventions.push(...(snapshot.records.interventionRecords ?? []));
   store.eventRows.push(...(snapshot.records.eventRecordRowRecords ?? []));
+  store.branches.push(...(snapshot.records.explanationBranchRecords ?? []));
   if (analyses) {
     store.recipes.push(...analyses.recipes);
     store.recipeResults.push(...analyses.results.map((r) => ({ ...r, caseId })));

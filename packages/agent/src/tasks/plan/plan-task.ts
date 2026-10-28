@@ -28,13 +28,7 @@ export const TOOLS_BY_KIND: Readonly<Record<PlannableKind, readonly ToolName[]>>
     "propose_evidence",
   ],
   livelihood_governance: ["search_sources", "read_source", "propose_evidence"],
-  hypothesis_comparison: [
-    "read_evidence",
-    "compare_series",
-    "read_event_record",
-    "compare_events",
-    "propose_hypotheses",
-  ],
+  explanation_branches: ["propose_predictions"],
   intervention_feasibility: ["read_evidence", "read_source", "propose_interventions"],
   brief_package: ["read_case", "propose_package", "request_review", "propose_layout"],
 };

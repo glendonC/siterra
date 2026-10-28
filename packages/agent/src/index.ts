@@ -49,8 +49,10 @@ export type {
 export type {
   ClaimKind,
   DataBundleRecord,
+  BranchMergeRecord,
   EventRecordRowRecord,
   EvidenceRecord,
+  ExplanationBranchRecord,
   HypothesisRecord,
   BriefRecord,
   InterventionRecord,
@@ -117,7 +119,6 @@ export type { RouteDescription, RouteEnv } from "./model/route.ts";
 export { P0_JOBS, modelMap } from "./model/model-map.ts";
 export type { ModelJob, ModelMapRow } from "./model/model-map.ts";
 export {
-  WINDOWS,
   compareSeriesTool,
   listRecipesTool,
   previousPeriod,
@@ -126,7 +127,6 @@ export {
 } from "./tools/analysis-tools.ts";
 export {
   EVENT_TYPES,
-  SEASON_RECIPE,
   compareEventsTool,
   readEventRecordTool,
   seasonFor,
@@ -141,3 +141,12 @@ export {
   runInterventionTask,
 } from "./tasks/intervention/intervention-task.ts";
 export { BRIEF_PROMPT_VERSION, runBriefPackageTask } from "./tasks/brief/brief-task.ts";
+export {
+  BRANCH_PROMPT_VERSION,
+  branchIdFor,
+  hypothesisIdFor,
+  runExplanationBranchesTask,
+} from "./tasks/branches/branch-task.ts";
+export { buildCatalog, catalogView, coveredSeasons } from "./tasks/branches/catalog.ts";
+export type { BranchCatalog, PairCatalog, SideCatalog } from "./tasks/branches/catalog.ts";
+export { GRAMMAR, PREDICTION_LIMITS, validatePredictions } from "./tasks/branches/proposal.ts";

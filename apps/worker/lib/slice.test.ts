@@ -6,11 +6,13 @@ import type { ModelTransport, ReplayStep } from "@siterra/agent";
 import { createPool, eventsOfCommand, readSnapshot, submitCommand } from "@siterra/db";
 import { freshDatabase } from "@siterra/db/testing";
 import type { TestDatabase } from "@siterra/db/testing";
-import { newId } from "@siterra/domain";
+import { coverIssues, mergeBranches, newId, openPairs } from "@siterra/domain";
+import { analysisConfigFor } from "@siterra/domain/cases";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { workerDb } from "./db.ts";
 import { handlePlanJob } from "./plan-job.ts";
+import { loadAnalyses } from "./recipes.ts";
 
 // The vertical slice offline (GATE-03 path, replay only): the real case seed (data/case and
 // data/bundles, loaded by PLATFORM's run-seed.ts), a commission, the plan, an observation task over
@@ -96,7 +98,7 @@ function replay(steps: ReplayStep[]): ReplayTransport {
 }
 
 /** Routes each request to its task's replay by the first line of the instructions. */
-function routed(routes: [string, ReplayTransport][]): ModelTransport {
+function routed(routes: [string, Pick<ModelTransport, "open">][]): ModelTransport {
   return {
     route: "replay",
     replayOrigin: "synthetic",
@@ -275,7 +277,7 @@ describe("vertical slice on the real seed, replay only", () => {
   );
 
   it(
-    "DF-02 a drought challenge loads rainfall on the same area and periods and leaves both explanations unresolved",
+    "DF-02 on explanation branches: a drought challenge records predictions, then loads rainfall on the same area and periods and sets each status by fixed rules",
     { timeout: 60_000 },
     async () => {
       const seeded = await readSnapshot(db.pool, CASE_ID, OWNER);
@@ -322,12 +324,15 @@ describe("vertical slice on the real seed, replay only", () => {
         if (submitted.status !== "created") throw new Error(submitted.status);
         const planTaskId = submitted.command.taskIds[0];
         if (!planTaskId) throw new Error("no plan task");
+        const analyses = await loadAnalyses(repoDir, now.records.dataBundleRecords);
+        expect(analyses.missing).toEqual([]);
         const result = await handlePlanJob(
           { caseId: CASE_ID, commandId: submitted.command.id, planTaskId },
           {
             db: workerDb(db.pool),
             transport,
             corpus: { sources: [], passages: [], missing: [] },
+            analyses,
             now: () => new Date(),
             newId: (p) => newId(p),
           },
@@ -408,17 +413,126 @@ describe("vertical slice on the real seed, replay only", () => {
       );
       if (!observation) throw new Error("the commission committed no observation");
 
-      // The challenge: a hypothesis task that aligns NDVI departures with rainfall departures.
+      // The challenge: explanation branches for the valley's five configured explanations. The
+      // predictions are synthetic replays written for this test; host code scores them against the
+      // real stored record, so the statuses below are a test of the rules, not a finding.
       const challengeAt = new Date();
-      const hypothesis = (statement: string, missing: string) => ({
-        hypothesisId: null,
-        statement,
-        status: "inconclusive",
-        supportingEvidenceIds: [observation.id],
-        contradictingEvidenceIds: [],
-        missingEvidence: [missing],
-        assessment: `Cannot be assessed with current data: ${missing.toLowerCase()}`,
+      const SEASON = "season_2021-11_2022-04";
+      const unused = {
+        pairId: null,
+        side: null,
+        periodIds: [],
+        windowMonths: null,
+        seasonId: null,
+        flag: null,
+        fieldCheckId: null,
+        expected: null,
+      };
+      const onVegetation = (kind: string, periodIds: string[], expected: string, flag = null) => ({
+        ...unused,
+        kind,
+        pairId: "vegetation_rainfall",
+        side: "a",
+        periodIds,
+        flag,
+        expected,
       });
+      const predictions: Record<string, unknown> = {
+        rainfall: [
+          {
+            necessary: true,
+            test: {
+              ...unused,
+              kind: "season_category",
+              seasonId: SEASON,
+              expected: "below_normal",
+            },
+            wording: `The wet season ${SEASON} is below normal.`,
+          },
+          {
+            necessary: false,
+            test: {
+              ...unused,
+              kind: "co_movement",
+              pairId: "vegetation_rainfall",
+              windowMonths: 0,
+              expected: "same_sign_majority",
+            },
+            wording: "Most aligned months of vegetation and rainfall departures share a sign.",
+          },
+        ],
+        grazing: [
+          {
+            necessary: true,
+            test: onVegetation("departure_sign", ["period_2022-04"], "negative"),
+            wording: "The vegetation departure in period_2022-04 is negative.",
+          },
+          {
+            necessary: false,
+            test: { ...unused, kind: "season_category", seasonId: SEASON, expected: "near_normal" },
+            wording: `The wet season ${SEASON} is near normal.`,
+          },
+        ],
+        land_use: [
+          {
+            necessary: true,
+            test: onVegetation("departure_sign", ["period_2022-04"], "negative"),
+            wording: "The vegetation departure in period_2022-04 is negative.",
+          },
+          {
+            necessary: false,
+            test: onVegetation(
+              "availability",
+              ["period_2022-03", "period_2022-04"],
+              "all_available",
+            ),
+            wording: "Vegetation departures are available in period_2022-03 and period_2022-04.",
+          },
+        ],
+        snow_terrain: [
+          {
+            necessary: true,
+            test: {
+              ...onVegetation("quality_flag", ["period_2022-04"], "present"),
+              flag: "snow_suspected",
+            },
+            wording: "Snow is flagged in period_2022-04.",
+          },
+          {
+            necessary: false,
+            test: onVegetation("departure_sign", ["period_2022-04"], "negative"),
+            wording: "The vegetation departure in period_2022-04 is negative.",
+          },
+        ],
+        data_artefact: [
+          {
+            necessary: true,
+            test: {
+              ...onVegetation("quality_flag", ["period_2022-04"], "present"),
+              flag: "low_scene_count",
+            },
+            wording: "A low scene count is flagged in period_2022-04.",
+          },
+          {
+            necessary: false,
+            test: onVegetation("availability", ["period_2022-04"], "some_unavailable"),
+            wording: "A vegetation departure is unavailable in period_2022-04.",
+          },
+        ],
+      };
+      const byExplanation: Pick<ModelTransport, "open"> = {
+        open: (body, signal) => {
+          const text = JSON.stringify(body["input"]);
+          const id = Object.keys(predictions).find((e) =>
+            text.includes(`Explanation: {\\"id\\":\\"${e}\\"`),
+          );
+          if (!id) return Promise.reject(new Error("no explanation route"));
+          return replay([answer(JSON.stringify({ predictions: predictions[id] }))]).open(
+            body,
+            signal,
+          );
+        },
+      };
       const challenged = await run(
         "Could drought explain this instead?",
         "investigate",
@@ -436,8 +550,9 @@ describe("vertical slice on the real seed, replay only", () => {
                   tasks: [
                     {
                       key: "compare",
-                      kind: "hypothesis_comparison",
-                      question: "Could drought or grazing explain the April 2022 NDVI?",
+                      kind: "explanation_branches",
+                      question:
+                        "Which explanations of the April 2022 NDVI does the record leave standing?",
                       dependsOn: [],
                       inputRefs: [
                         { entityId: observation.id, revision: observation.revision },
@@ -451,41 +566,7 @@ describe("vertical slice on the real seed, replay only", () => {
               ),
             ]),
           ],
-          [
-            "You compare candidate explanations",
-            replay([
-              call(
-                "compare_series",
-                {
-                  a: {
-                    bundleId: DEPARTURE,
-                    bundleRevision: revisionOf(DEPARTURE),
-                    metric: "ndvi_departure_area_median",
-                  },
-                  b: {
-                    bundleId: CHIRPS,
-                    bundleRevision: revisionOf(CHIRPS),
-                    metric: "precipitation_departure_from_1991_2020_mean",
-                  },
-                },
-                1,
-              ),
-              answer(
-                JSON.stringify({
-                  items: [
-                    hypothesis(
-                      "Lower spring rainfall reduced vegetation greenness in the catchment.",
-                      "Soil moisture by month on the upper pastures.",
-                    ),
-                    hypothesis(
-                      "Heavier grazing reduced vegetation greenness in the catchment.",
-                      "Herd counts on the upper pastures by month.",
-                    ),
-                  ],
-                }),
-              ),
-            ]),
-          ],
+          ["You write predictions", byExplanation],
         ]),
       );
       expect(challenged.result.status === "ran" && challenged.result.outcome.status).toBe(
@@ -500,20 +581,71 @@ describe("vertical slice on the real seed, replay only", () => {
           .filter((t) => t.commandId === challenged.command.id)
           .map((t) => t.id),
       );
+      const order = Object.keys(predictions);
+      const branches = (after.records.explanationBranchRecords ?? [])
+        .filter((b) => ownTasks.has(b.taskId))
+        .sort((x, y) => order.indexOf(x.explanationId) - order.indexOf(y.explanationId));
+      expect(branches.map((b) => b.explanationId)).toEqual(Object.keys(predictions));
+      // DF-07 on the database: the predictions hold an earlier case revision than the scores.
+      for (const b of branches) {
+        expect(b.revision).toBe(2);
+        expect(b.predictionsCaseRevision).toBeGreaterThan(challenged.revisionBefore);
+        expect(b.predictionsCaseRevision).toBeLessThan(after.case.revision);
+      }
+      // DF-08 on the real record: the stored statuses are the fixed rules over the stored scores.
+      expect(branches.map((b) => b.status)).toEqual(
+        mergeBranches(
+          branches.map((b) => ({
+            branchId: b.id,
+            explanationId: b.explanationId,
+            predictions: b.predictions,
+            scores: b.scores,
+          })),
+        ).branches.map((m) => m.status),
+      );
+      // Rainfall loaded for the same area and periods: compared, not refused for a mismatch.
+      const coMovement = branches
+        .find((b) => b.explanationId === "rainfall")
+        ?.scores.find((s) => s.predictionKey === "p2");
+      expect(coMovement?.reasonCode).not.toBe("area_mismatch");
+      expect(coMovement?.dataBundleIds).toEqual([DEPARTURE, CHIRPS]);
+      expect(coMovement?.measurementIds.length).toBeGreaterThan(0);
+
       const hypotheses = after.records.hypothesisRecords.filter((h) =>
         ownTasks.has(h.provenance.generatedByTaskId ?? ""),
       );
-      expect(hypotheses).toHaveLength(2);
-      for (const h of hypotheses) {
-        expect(h.status).toBe("inconclusive");
-        expect(h.supportingEvidenceIds).toEqual([observation.id]);
-        expect(h.missingEvidence).toHaveLength(1);
-      }
+      expect(hypotheses.map((h) => h.id).sort()).toEqual(
+        branches.map((b) => b.hypothesisId ?? "").sort(),
+      );
+      for (const h of hypotheses) expect(h.status).not.toBe("untested");
 
-      // The trace shows the real load: compare_series over the stored rainfall, after the command.
+      // DF-09 on the real record: the stored field plan is the minimum cover over the valley's
+      // field checks for the pairs the merge left open, recomputed here.
+      const merge = (after.records.branchMergeRecords ?? []).find((m) => ownTasks.has(m.taskId));
+      const valley = analysisConfigFor(CASE_ID);
+      const plan = merge?.fieldPlan;
+      expect(plan).toBeDefined();
+      expect(
+        coverIssues(
+          {
+            measurements: (plan?.measurements ?? []).map((m) => ({ ...m, id: m.fieldCheckId })),
+            unseparated: plan?.unseparated ?? [],
+          },
+          valley?.fieldChecks ?? [],
+          openPairs(merge?.branches ?? []),
+        ),
+      ).toEqual([]);
+
+      // The trace shows the real loads, run by host code after the predictions were recorded.
       const events = await eventsOfCommand(db.pool, CASE_ID, challenged.command.id);
+      const recorded = events.findIndex((e) => e.kind === "task.progress");
+      expect(recorded).toBeGreaterThan(-1);
       const loads = events.filter((e) => e.kind === "tool.completed");
-      expect(loads.map((e) => e.tool?.name)).toEqual(["compare_series"]);
+      expect(loads.map((e) => [e.tool?.name, e.tool?.status])).toEqual([
+        ["compare_series", "succeeded"],
+        ["compare_series", "succeeded"],
+      ]);
+      expect(loads.every((e) => events.indexOf(e) > recorded)).toBe(true);
       expect(loads[0]?.tool?.resultEntityIds.length).toBeGreaterThan(0);
       expect(
         events
@@ -521,6 +653,14 @@ describe("vertical slice on the real seed, replay only", () => {
           .every((e) => Date.parse(e.occurredAt) >= challengeAt.getTime()),
       ).toBe(true);
     },
+  );
+
+  // DF-02 clauses explanation branches do not meet yet; open for the founder, not passed.
+  it.todo(
+    "DF-02 each branch hypothesis is linked to the challenged observation's evidence ID (founder decision: which link)",
+  );
+  it.todo(
+    "DF-02 each unresolved branch names a discriminating field measurement (with these synthetic predictions, merge@1 leaves one branch standing, so no pair is open and the field plan is empty)",
   );
 
   it(

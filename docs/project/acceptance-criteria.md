@@ -150,6 +150,7 @@ Specification: [accessibility and language](../reference/accessibility-and-langu
 | TR-04 | Excerpts are real | Every accepted published-context excerpt is found verbatim in the extracted text of its cited source page after the normalization in [evaluation](../reference/evaluation.md#extraction-gold-set) (Unicode NFC, each run of White_Space characters collapsed to one space, ends trimmed); a translated statement carries "Machine-drafted translation" with "Show original", and an exported document carries "Machine-drafted translation, needs local review" on every page. |
 | TR-05 | Model badges | Every model-derived item names its model, route (Model API, local or provider) and status (validated, advisory, illustration, draft transcript); the model map matches the routing configuration. |
 | TR-06 | Usage meter | Per model and per case, calls and tokens come from provider usage fields; cost is computed from a dated price table and labeled an estimate. |
+| TR-07 | Per-branch outcomes (proposed, pending the maintainer's approval) | For every explanation branch the trace shows its own model calls and validation outcomes, tagged with the branch ID, and the branch record holds its model, prompt version, loop status, validation outcome, failure code and whether a repair turn ran. Every branch gets the same instructions and no persona; only the explanation differs. |
 
 ## Safety and authority
 
@@ -165,6 +166,14 @@ The required failure checks in [Human review and authority](../reference/review-
 ## Differentiation
 
 DF-01 to DF-06 are defined in [competitive research](../explanation/competitive-position.md#testable-differentiation-acceptance-tests-df-01-to-df-06). They are P0 acceptance tests: DF-01 and DF-04 prove the entry requirements, DF-02, DF-03, DF-05 and DF-06 prove the case discipline the product claims. DF-03 requires the dependency invalidation described in [Data contracts](../reference/data-contracts.md#idempotency-revisions-and-recovery); DF-05 doubles as SA-01 and SA-02.
+
+Proposed, pending the maintainer's approval: DF-07 and DF-08 test [explanation branches](../reference/agent-orchestration.md#explanation-branches-proposed). With branches in place of the hypothesis comparison, two DF-02 clauses are not met yet and need a decision: "hypothesis linked to existing observation IDs" (branch hypotheses cite the measurements their scores read, not the challenged observation's evidence ID) and "both explanations unresolved with named discriminating measurements" (a branch can now be contradicted by the fixed rules; the valley now has field checks and DF-09 names them for every open pair, but the slice test's predictions leave only one branch standing, so no pair is open there). DF-09 tests the field plan of explanation branches.
+
+| ID | Criterion | Pass condition |
+|---|---|---|
+| DF-07 | Predictions before results (proposed) | Every branch's predictions are committed, at an earlier case revision than its scores, before any measurement, quality record or recipe result is read. A test that reads a result before the predictions commit fails, and a predictions commit that does not apply reads nothing and scores nothing. |
+| DF-08 | Status by rule (proposed) | The same predictions and record always give the same statuses, and no status depends on model text: changing only the wording changes no score or status. A status is `contradicted` only when a necessary prediction is not met on adequate data, `consistent` only when every testable prediction is met, and `cannot_be_assessed` otherwise. |
+| DF-09 | Field plan as a minimum test cover (proposed) | From the configured field checks and the explanation pairs each separates, the merge stores the smallest set that separates every open pair (neither explanation contradicted) that any check separates, matching an exhaustive search; each chosen check names a pair only it separates, so removing any one leaves a named pair unseparated; open pairs no check separates are named; each open branch's hypothesis lists its checks. |
 
 ## Accessibility
 

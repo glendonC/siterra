@@ -1,3 +1,4 @@
+import type { CaseAnalysisConfig, SeriesPair } from "@siterra/contracts";
 import { z } from "zod";
 
 import type { MeasurementRecord } from "../tasks/records.ts";
@@ -11,9 +12,6 @@ import { argumentSchema, parseWith } from "./zod-tool.ts";
 // Code only aligns, sums at stored precision, counts and looks up; every value returned comes from
 // a stored measurement or a stored recipe result. No causal statistics, no fitted attribution.
 
-/** The prespecified antecedent windows, in months (aligned_antecedent 1.1.1); never a model choice. */
-export const WINDOWS = [0, 1, 2, 3] as const;
-
 const MAX_EVIDENCE = 20;
 
 const SeriesRef = z.strictObject({
@@ -26,19 +24,25 @@ type CompareArgs = z.infer<typeof CompareArgs>;
 type SeriesRef = z.infer<typeof SeriesRef>;
 
 /**
- * The series compare_series may align: the departures the aligned_antecedent recipe names (AUDIT
- * a56). Raw values are refused: always-positive series make every month "move together".
+ * The pair a and b form in the case configuration. Only configured pairs of departures are aligned
+ * (AUDIT a56): raw always-positive series would make every month "move together".
  */
-export const VEGETATION_DEPARTURES: ReadonlySet<string> = new Set([
-  "ndvi_departure_area_median",
-  "ndvi_departure_area_median_leave_one_year_out",
-]);
-export const RAINFALL_DEPARTURES: ReadonlySet<string> = new Set([
-  "precipitation_departure_from_1991_2020_mean",
-]);
-
-/** Rainfall sums are compared as stored at two decimals (aligned_antecedent 1.1.1 zero rule). */
-const RAINFALL_DECIMALS = 2;
+function configuredPair(config: CaseAnalysisConfig | null, args: CompareArgs): SeriesPair {
+  if (!config) {
+    throw new ToolFailure("no_case_config", "this case has no analysis configuration");
+  }
+  const pair = config.seriesPairs.find(
+    (p) => p.a.metrics.includes(args.a.metric) && p.b.metrics.includes(args.b.metric),
+  );
+  if (pair) return pair;
+  const side = (key: "a" | "b"): string =>
+    config.seriesPairs.map((p) => `${p[key].label} (${p[key].metrics.join(", ")})`).join(" or ");
+  const key = config.seriesPairs.some((p) => p.a.metrics.includes(args.a.metric)) ? "b" : "a";
+  throw new ToolFailure(
+    "not_a_departure_series",
+    `series ${key} must be a ${side(key)}, not ${args[key].metric}`,
+  );
+}
 
 function roundTo(value: number, decimals: number): number {
   const f = 10 ** decimals;
@@ -88,7 +92,7 @@ export function compareSeriesTool(store: CaseStore, caseId: string): ToolHandler
   return {
     name: "compare_series",
     description:
-      "Align a vegetation departure series (a) with the rainfall departure series (b) on shared period IDs and the same area revision; other series are refused. Series a is compared month by month with series b summed over the prespecified antecedent windows of 0 to 3 months (b of the month and the months before it). Returns the aligned rows and, per window, the months aligned and the months with the same sign; a stored value of 0 has no sign and is left out. Co-occurrence only: no causal statistic.",
+      "Align a departure series (a) with a departure series (b) on shared period IDs and the same area revision, for the pairs the case configuration allows, such as a vegetation departure against a rainfall departure; other series are refused with the allowed metrics named. Series a is compared month by month with series b summed over the pair's prespecified antecedent windows (b of the month and the months before it). Returns the aligned rows and, per window, the months aligned and the months with the same sign; a stored value of 0 has no sign and is left out. Co-occurrence only: no causal statistic.",
     parameters: argumentSchema(CompareArgs),
     parse: (args) => {
       const parsed = parseWith(CompareArgs, args);
@@ -104,18 +108,8 @@ export function compareSeriesTool(store: CaseStore, caseId: string): ToolHandler
       `${args.a.bundleId} ${args.a.metric} against ${args.b.bundleId} ${args.b.metric}`,
     datasetIds: (args) => [args.a.bundleId, args.b.bundleId],
     run: async (args) => {
-      if (!VEGETATION_DEPARTURES.has(args.a.metric)) {
-        throw new ToolFailure(
-          "not_a_departure_series",
-          `series a must be a vegetation departure (${[...VEGETATION_DEPARTURES].join(", ")}), not ${args.a.metric}`,
-        );
-      }
-      if (!RAINFALL_DEPARTURES.has(args.b.metric)) {
-        throw new ToolFailure(
-          "not_a_departure_series",
-          `series b must be a rainfall departure (${[...RAINFALL_DEPARTURES].join(", ")}), not ${args.b.metric}`,
-        );
-      }
+      const pair = configuredPair(await store.readAnalysisConfig(caseId), args);
+      const windowsMonths = pair.windowsMonths;
       const a = await series(store, caseId, args.a);
       const b = await series(store, caseId, args.b);
       const geoA = new Set(a.map((m) => `${m.geoSelectionId}@${String(m.geoRevision)}`));
@@ -132,7 +126,7 @@ export function compareSeriesTool(store: CaseStore, caseId: string): ToolHandler
         return m?.status === "available" && m.value !== null ? m.value : null;
       };
       const counts = Object.fromEntries(
-        WINDOWS.map((k) => [String(k), { alignedMonths: 0, sameSignMonths: 0 }]),
+        windowsMonths.map((k) => [String(k), { alignedMonths: 0, sameSignMonths: 0 }]),
       ) as Record<string, { alignedMonths: number; sameSignMonths: number }>;
       const rows = [...a]
         .sort((x, y) => x.periodId.localeCompare(y.periodId))
@@ -140,7 +134,7 @@ export function compareSeriesTool(store: CaseStore, caseId: string): ToolHandler
         .map((m) => {
           const av = m.status === "available" ? m.value : null;
           const windows: Record<string, number | null> = {};
-          for (const k of WINDOWS) {
+          for (const k of windowsMonths) {
             let period: string | null = m.periodId;
             const parts: number[] = [];
             for (let i = 0; i <= k && period !== null; i += 1) {
@@ -153,7 +147,7 @@ export function compareSeriesTool(store: CaseStore, caseId: string): ToolHandler
               parts.length === k + 1
                 ? roundTo(
                     parts.reduce((s, v) => s + v, 0),
-                    RAINFALL_DECIMALS,
+                    pair.b.storedDecimals,
                   )
                 : null;
             windows[String(k)] = sum;
@@ -173,7 +167,7 @@ export function compareSeriesTool(store: CaseStore, caseId: string): ToolHandler
         output: {
           a: args.a,
           b: args.b,
-          windowsMonths: WINDOWS,
+          windowsMonths,
           zeroRule: "A value of 0 as stored has no sign and is left out of both counts.",
           counts,
           rows,

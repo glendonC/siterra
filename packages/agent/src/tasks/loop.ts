@@ -63,6 +63,8 @@ export interface LoopOptions<T> {
   now: () => Date;
   signal?: AbortSignal;
   maxRounds?: number;
+  /** Records the model and validation events concern, such as one explanation branch (TR-07). */
+  entityIds?: readonly string[];
 }
 
 function repairText(issues: readonly ValidationIssue[], outputText: string): string {
@@ -117,7 +119,7 @@ export async function runTaskLoop<T>(options: LoopOptions<T>): Promise<LoopResul
       kind: "model.started",
       taskId: options.taskId,
       occurredAt: stamp(),
-      entityIds: [],
+      entityIds: [...(options.entityIds ?? [])],
       message: messages.modelStarted(options.request.model, route),
       resultStatus: null,
       usage: null,
@@ -133,7 +135,7 @@ export async function runTaskLoop<T>(options: LoopOptions<T>): Promise<LoopResul
       kind: "model.completed",
       taskId: options.taskId,
       occurredAt: stamp(),
-      entityIds: [],
+      entityIds: [...(options.entityIds ?? [])],
       message: messages.modelCompleted(call),
       resultStatus: null,
       usage: usageDraft(call),
@@ -177,7 +179,7 @@ export async function runTaskLoop<T>(options: LoopOptions<T>): Promise<LoopResul
       kind: "validation.completed",
       taskId: options.taskId,
       occurredAt: stamp(),
-      entityIds: [],
+      entityIds: [...(options.entityIds ?? [])],
       message: messages.validation(validation),
       resultStatus: null,
       usage: null,

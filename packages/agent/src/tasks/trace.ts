@@ -12,6 +12,7 @@ export type TraceKind =
   | "task.failed"
   | "task.cancelled"
   | "task.queued"
+  | "task.progress"
   | "model.started"
   | "model.completed"
   | "tool.started"

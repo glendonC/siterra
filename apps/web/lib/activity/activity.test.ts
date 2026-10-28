@@ -210,6 +210,7 @@ describe("stageGroups", () => {
         task("t_2", "observation_analysis", "succeeded"),
         task("t_3", "source_research", "succeeded"),
         task("t_4", "hypothesis_comparison", "running"),
+        task("t_4b", "explanation_branches", "running"),
         task("t_5", "intervention_feasibility", "queued"),
         task("t_6", "brief_package", "queued"),
       ],
@@ -219,7 +220,7 @@ describe("stageGroups", () => {
     expect(stageGroups(r).map((g) => [g.label, g.rows.map((x) => x.taskId)])).toEqual([
       ["Scope & Baseline", ["t_1"]],
       ["Evidence", ["t_2", "t_3"]],
-      ["Hypothesis Testing", ["t_4"]],
+      ["Hypothesis Testing", ["t_4", "t_4b"]],
       ["Interventions & Precedents", ["t_5"]],
       ["Field Verification", ["t_6"]],
     ]);

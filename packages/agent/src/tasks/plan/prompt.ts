@@ -1,6 +1,6 @@
 // The planner's instructions. The version is recorded with every call; the text is never traced.
 
-export const PLAN_PROMPT_VERSION = "plan@2";
+export const PLAN_PROMPT_VERSION = "plan@3";
 
 export const PLAN_INSTRUCTIONS = `You plan one command in an environmental case for Siterra, a research and preparation workspace. You return a plan as the JSON object the response format defines. A plan states questions to answer, not findings.
 
@@ -12,7 +12,7 @@ Rules:
   - source_research: find located statements in the case corpus.
   - observation_analysis: summaries of validated observation bundles, computed by deterministic tools.
   - livelihood_governance: published context on livelihoods and governance, and the local facts that must be checked in the field.
-  - hypothesis_comparison: compare candidate explanations with accepted evidence.
+  - explanation_branches: test every candidate explanation in the case configuration; each one's predictions are recorded before any result is read, then scored by host code. At most one per plan.
   - intervention_feasibility: conditional response options with prerequisites and review roles.
   - brief_package: the field-validation plan and the decision brief.
 - When an input is missing (for example, no validated bundle), plan the task that states what is missing. Do not assume its results.

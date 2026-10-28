@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 
 import type { ReplayStep } from "../model/replay.ts";
+import { hypothesisIdFor } from "../tasks/branches/branch-task.ts";
+import {
+  BRANCH_SEASON,
+  RAINFALL_REPLY,
+  UNUSED_TEST_FIELDS,
+  addBranchRecord,
+} from "../testing/branch-fixture.ts";
 import { AT, testStore } from "../testing/case-fixture.ts";
 import { answerStep, syntheticTransport, toolCallStep } from "../testing/replay-steps.ts";
 import { RoutingTransport } from "../testing/routing-transport.ts";
@@ -91,8 +98,8 @@ const PLAN = {
     },
     {
       key: "compare",
-      kind: "hypothesis_comparison",
-      question: "Which explanations fit?",
+      kind: "explanation_branches",
+      question: "Which explanations does the record leave standing?",
       dependsOn: ["sources", "observations", "livelihoods"],
       inputRefs: [],
     },
@@ -180,24 +187,12 @@ function routes(
         ),
       ]),
     ],
+    // One reply serves both configured explanations, whichever branch asks first.
     [
-      "You compare candidate explanations",
+      "You write predictions",
       syntheticTransport([
-        answerStep(
-          JSON.stringify({
-            items: [
-              {
-                hypothesisId: null,
-                statement: "Lower spring rainfall reduced vegetation greenness in the catchment.",
-                status: "inconclusive",
-                supportingEvidenceIds: [],
-                contradictingEvidenceIds: [],
-                missingEvidence: ["Grazing records by month."],
-                assessment: "Cannot be assessed with current data: grazing records are missing.",
-              },
-            ],
-          }),
-        ),
+        answerStep(JSON.stringify(RAINFALL_REPLY)),
+        answerStep(JSON.stringify(RAINFALL_REPLY)),
       ]),
     ],
     ...extra,
@@ -217,7 +212,7 @@ function deps(
     commits,
     deps: {
       transport,
-      store: testStore(),
+      store: addBranchRecord(testStore()),
       commits,
       trace: { emit: (e: TraceEventDraft) => events.push(e) },
       newTaskId: () => `task_test_${String((task += 1)).padStart(2, "0")}`,
@@ -271,7 +266,7 @@ describe("runCommand on synthetic replays", () => {
     expect(byKind.get("source_research")?.status).toBe("succeeded");
     expect(byKind.get("observation_analysis")?.status).toBe("succeeded");
     expect(byKind.get("livelihood_governance")?.status).toBe("succeeded");
-    expect(byKind.get("hypothesis_comparison")).toMatchObject({
+    expect(byKind.get("explanation_branches")).toMatchObject({
       status: "succeeded",
       failureCode: null,
     });
@@ -282,10 +277,17 @@ describe("runCommand on synthetic replays", () => {
     ).toBe(true);
 
     expect(transport.peakOpen).toBeLessThanOrEqual(P0_LIMITS.maxConcurrentModelCalls);
-    expect(commits.caseRevision).toBe(3 + 1 + 4);
+    // The plan, four task commits and the branch predictions committed before their scores.
+    expect(commits.caseRevision).toBe(3 + 1 + 4 + 1);
     expect(outcome.caseRevision).toBe(commits.caseRevision);
     expect(commits.evidence.size).toBe(4);
-    expect(commits.hypotheses.size).toBe(1);
+    expect(commits.hypotheses.size).toBe(2);
+    expect(commits.branchRevisions.map((b) => `${b.explanationId} ${String(b.revision)}`)).toEqual([
+      "rainfall 1",
+      "grazing 1",
+      "rainfall 2",
+      "grazing 2",
+    ]);
     // The records themselves say they came from a synthetic replay (lead, after b30).
     for (const r of [...commits.evidence.values(), ...commits.hypotheses.values()]) {
       expect(r.provenance.limitations, r.id).toContain(
@@ -313,8 +315,8 @@ describe("runCommand on synthetic replays", () => {
         },
         {
           key: "compare",
-          kind: "hypothesis_comparison",
-          question: "Which explanations fit?",
+          kind: "explanation_branches",
+          question: "Which explanations does the record leave standing?",
           dependsOn: ["livelihoods"],
           inputRefs: [],
         },
@@ -328,7 +330,9 @@ describe("runCommand on synthetic replays", () => {
       ],
       clarifyingQuestion: null,
     };
-    // Sequential tasks, so the IDs are fixed: ev_test_01 and 02 (livelihoods), hyp_test_03, int_test_04.
+    // Sequential tasks, so the IDs are fixed: ev_test_01 and 02 (livelihoods), then int_test_03;
+    // the branch hypotheses take IDs fixed by their task (task_test_02) and explanation.
+    const rainfall = hypothesisIdFor("task_test_02", "rainfall");
     const transport = routes(
       [answerStep(JSON.stringify(plan))],
       [
@@ -348,7 +352,7 @@ describe("runCommand on synthetic replays", () => {
                     fieldValidationNeeded: ["Who decides the closure dates."],
                     requiredReviewRoles: ["community_livelihood"],
                     evidenceIds: ["ev_test_02"],
-                    hypothesisIds: ["hyp_test_03"],
+                    hypothesisIds: [rainfall],
                   },
                   {
                     title: "Participatory monitoring before any access change",
@@ -376,21 +380,21 @@ describe("runCommand on synthetic replays", () => {
     );
     expect(outcome.tasks.map((t) => `${t.kind} ${t.status}`)).toEqual([
       "livelihood_governance succeeded",
-      "hypothesis_comparison succeeded",
+      "explanation_branches succeeded",
       "intervention_feasibility succeeded",
     ]);
     expect([...commits.interventions.values()]).toMatchObject([
-      { id: "int_test_04", hypothesisIds: ["hyp_test_03"], evidenceIds: ["ev_test_02"] },
-      { id: "int_test_05", hypothesisIds: [], evidenceIds: ["ev_test_02"] },
-      { id: "int_test_06", title: "Defer until the field check", evidenceIds: ["ev_test_02"] },
+      { id: "int_test_03", hypothesisIds: [rainfall], evidenceIds: ["ev_test_02"] },
+      { id: "int_test_04", hypothesisIds: [], evidenceIds: ["ev_test_02"] },
+      { id: "int_test_05", title: "Defer until the field check", evidenceIds: ["ev_test_02"] },
     ]);
     expect(
       [...commits.relationships.values()]
-        .filter((r) => r.toEntityId === "int_test_04" || r.fromEntityId === "int_test_04")
+        .filter((r) => r.toEntityId === "int_test_03" || r.fromEntityId === "int_test_03")
         .map((r) => `${r.fromEntityId} ${r.kind} ${r.toEntityId}`),
     ).toEqual([
-      "hyp_test_03 proposes_response int_test_04",
-      "int_test_04 requires_verification ev_test_02",
+      `${rainfall} proposes_response int_test_03`,
+      "int_test_03 requires_verification ev_test_02",
     ]);
     // Model-written records say they came from a synthetic replay; the host-written deferral says
     // it is host text instead.
@@ -398,11 +402,11 @@ describe("runCommand on synthetic replays", () => {
     for (const r of [
       ...commits.evidence.values(),
       ...commits.hypotheses.values(),
-      ...[...commits.interventions.values()].filter((r) => r.id !== "int_test_06"),
+      ...[...commits.interventions.values()].filter((r) => r.id !== "int_test_05"),
     ]) {
       expect(r.provenance.limitations, r.id).toContain(synthetic);
     }
-    expect(commits.interventions.get("int_test_06")?.provenance.limitations[0]).toMatch(
+    expect(commits.interventions.get("int_test_05")?.provenance.limitations[0]).toMatch(
       /^Fixed text written by Siterra's host code, not by a model/,
     );
   });
@@ -578,47 +582,59 @@ describe("runCommand on synthetic replays", () => {
       );
     });
 
-    it("a refused compare_series makes the task partial with the dataset named", async () => {
+    it("a configured series the case lacks makes the branch task partial with the dataset named", async () => {
+      const reply = {
+        predictions: [
+          {
+            necessary: true,
+            test: {
+              ...UNUSED_TEST_FIELDS,
+              kind: "season_category",
+              seasonId: BRANCH_SEASON,
+              expected: "below_normal",
+            },
+            wording: `The wet season ${BRANCH_SEASON} is below normal.`,
+          },
+          {
+            necessary: false,
+            test: {
+              ...UNUSED_TEST_FIELDS,
+              kind: "departure_sign",
+              pairId: "vegetation_rainfall",
+              side: "a",
+              periodIds: ["period_2022-03"],
+              expected: "negative",
+            },
+            wording: "Vegetation departures in period_2022-03 are negative.",
+          },
+        ],
+      };
       const transport = new RoutingTransport([
         [
           "You plan one command",
-          syntheticTransport([onePlan("hypothesis_comparison", "Could drought explain it?")]),
+          syntheticTransport([onePlan("explanation_branches", "Could drought explain it?")]),
         ],
         [
-          "You compare candidate explanations",
+          "You write predictions",
           syntheticTransport([
-            toolCallStep("compare_series", {
-              a: { bundleId: "bundle_test_ndvi", bundleRevision: 2, metric: "ndvi_area_median" },
-              b: { bundleId: "bundle_test_ndvi", bundleRevision: 2, metric: "ndvi_area_median" },
-            }),
-            answerStep(
-              JSON.stringify({
-                items: [
-                  {
-                    hypothesisId: null,
-                    statement:
-                      "Lower spring rainfall reduced vegetation greenness in the catchment.",
-                    status: "inconclusive",
-                    supportingEvidenceIds: [],
-                    contradictingEvidenceIds: [],
-                    missingEvidence: ["Rainfall departures for the same months."],
-                    assessment: "Cannot be assessed with current data: rainfall was not aligned.",
-                  },
-                ],
-              }),
-            ),
+            answerStep(JSON.stringify(reply)),
+            answerStep(JSON.stringify(reply)),
           ]),
         ],
       ]);
-      const { deps: d, commits } = deps(transport);
+      const { deps: d, commits } = deps(transport, {
+        store: addBranchRecord(testStore(), ["rainfall"]),
+      });
       const outcome = await runCommand(
         { planTask: PLAN_TASK, expectedCaseRevision: 3, snapshot: SNAPSHOT },
         d,
       );
-      const task = [...commits.tasks.values()].find((t) => t.kind === "hypothesis_comparison");
+      const task = [...commits.tasks.values()].find((t) => t.kind === "explanation_branches");
       expect(task).toMatchObject({
         status: "partial",
-        missingInputs: ["bundle_test_ndvi: compare_series refused it (not a departure series)."],
+        missingInputs: [
+          "rainfall departure (vegetation_rainfall side b): no validated test_rain_monthly bundle in this case.",
+        ],
       });
       expect(
         commits.events.filter(

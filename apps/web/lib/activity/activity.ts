@@ -54,6 +54,7 @@ const STAGE_OF: Readonly<Record<Task["kind"], StageId>> = {
   source_research: "evidence",
   livelihood_governance: "evidence",
   hypothesis_comparison: "hypothesis_testing",
+  explanation_branches: "hypothesis_testing",
   intervention_feasibility: "interventions_precedents",
   brief_package: "field_verification",
   validation: "field_verification",

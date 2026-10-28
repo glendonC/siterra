@@ -1,7 +1,7 @@
 import { EventRecordRow } from "@siterra/contracts";
 import { describe, expect, it } from "vitest";
 
-import { AT, CASE_ID, bundle, testStore } from "../testing/case-fixture.ts";
+import { AT, CASE_ID, TEST_ANALYSIS_CONFIG, bundle, testStore } from "../testing/case-fixture.ts";
 import type { EventRecordRowRecord } from "../tasks/records.ts";
 import { compareEventsTool, readEventRecordTool, seasonFor } from "./event-tools.ts";
 import type { MemoryCaseStore } from "./store.ts";
@@ -118,12 +118,20 @@ const COMPARE = {
 };
 
 describe("season mapping (season_summary 1.0.0)", () => {
+  const wet = TEST_ANALYSIS_CONFIG.rainfallSeason;
   it("maps November and December to the season starting that November, other months to the one before", () => {
-    expect(seasonFor("2021-11-02")).toBe("season_2021-11_2022-04");
-    expect(seasonFor("2021-12")).toBe("season_2021-11_2022-04");
-    expect(seasonFor("2022-04-30")).toBe("season_2021-11_2022-04");
-    expect(seasonFor("2022-10")).toBe("season_2021-11_2022-04");
-    expect(seasonFor("2022")).toBeNull();
+    expect(seasonFor("2021-11-02", wet)).toBe("season_2021-11_2022-04");
+    expect(seasonFor("2021-12", wet)).toBe("season_2021-11_2022-04");
+    expect(seasonFor("2022-04-30", wet)).toBe("season_2021-11_2022-04");
+    expect(seasonFor("2022-10", wet)).toBe("season_2021-11_2022-04");
+    expect(seasonFor("2022", wet)).toBeNull();
+  });
+
+  it("maps a season that does not wrap the year by the same rule", () => {
+    const rainy = { startMonth: 6, endMonth: 9 };
+    expect(seasonFor("2022-07-10", rainy)).toBe("season_2022-06_2022-09");
+    expect(seasonFor("2022-11", rainy)).toBe("season_2022-06_2022-09");
+    expect(seasonFor("2022-03", rainy)).toBe("season_2021-06_2021-09");
   });
 });
 
@@ -224,6 +232,67 @@ describe("compare_events", () => {
     ).rejects.toMatchObject({
       code: "stale_reference",
     });
+  });
+
+  it("uses the season window and season recipe another place's configuration names", async () => {
+    const store = eventStore();
+    store.analysisConfigs.set(CASE_ID, {
+      ...TEST_ANALYSIS_CONFIG,
+      rainfallSeason: {
+        id: "rainy_season",
+        label: "June to September rainy season",
+        startMonth: 6,
+        endMonth: 9,
+        recipe: { recipeId: "season_summary", version: "2.0.0" },
+      },
+    });
+    store.eventRows.push(row("erow_test_aug", "2021-08", "below_normal"));
+    const args = { ...COMPARE, eventRowIds: ["erow_test_aug"] };
+    // Only the 1.0.0 summary is stored, so the configured 2.0.0 one is missing.
+    await expect(run(compareEventsTool(store, CASE_ID), args)).rejects.toMatchObject({
+      code: "no_season_summary",
+    });
+    store.bundles.push(
+      bundle({
+        id: "bundle_test_seasons_two",
+        revision: 1,
+        methodId: "season_summary",
+        methodVersion: "2.0.0",
+        periodIds: [],
+      }),
+    );
+    store.recipeResults.push({
+      caseId: CASE_ID,
+      bundleId: "bundle_test_seasons_two",
+      recipeId: "season_summary",
+      version: "2.0.0",
+      result: {
+        rainfall_bundle: { id: "bundle_test_rain" },
+        seasons: [
+          {
+            season_id: "season_2021-06_2021-09",
+            season_departure_mm: -12.5,
+            season_category: "below_normal",
+          },
+        ],
+      },
+    });
+    const output = (await run(compareEventsTool(store, CASE_ID), args)).output as {
+      recipe: string;
+      results: { result: string; seasonId: string }[];
+    };
+    expect(output.recipe).toBe("season_summary 2.0.0");
+    expect(output.results).toMatchObject([
+      { result: "agrees", seasonId: "season_2021-06_2021-09" },
+    ]);
+  });
+
+  it("refuses when the case has no analysis configuration", async () => {
+    const store = eventStore();
+    store.analysisConfigs.clear();
+    await expect(
+      run(compareEventsTool(store, CASE_ID), { ...COMPARE, eventRowIds: ["erow_test_dec"] }),
+    ).rejects.toMatchObject({ code: "no_case_config" });
   });
 
   it("the synthetic rows follow the event record contract", () => {

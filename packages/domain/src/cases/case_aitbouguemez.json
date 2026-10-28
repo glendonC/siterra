@@ -1,0 +1,119 @@
+{
+  "configVersion": 1,
+  "caseId": "case_aitbouguemez",
+  "areaLabel": "catchment",
+  "seriesPairs": [
+    {
+      "id": "vegetation_rainfall",
+      "a": {
+        "label": "vegetation departure",
+        "metrics": ["ndvi_departure_area_median", "ndvi_departure_area_median_leave_one_year_out"],
+        "methodId": "monthly_departure"
+      },
+      "b": {
+        "label": "rainfall departure",
+        "metrics": ["precipitation_departure_from_1991_2020_mean"],
+        "methodId": "chirps_monthly_catchment_total",
+        "storedDecimals": 2
+      },
+      "windowsMonths": [0, 1, 2, 3],
+      "minAlignedMonths": 12
+    }
+  ],
+  "fieldChecks": [
+    {
+      "id": "local_rain_records",
+      "label": "Local Rain Records",
+      "method": "Local precipitation records, snow timing and temperature for the catchment, by month.",
+      "basis": "docs/explanation/scientific-basis.md#competing-explanations-and-useful-next-work",
+      "separates": [
+        ["rainfall", "grazing"],
+        ["rainfall", "land_use"],
+        ["rainfall", "snow_terrain"],
+        ["rainfall", "data_artefact"]
+      ]
+    },
+    {
+      "id": "herd_records",
+      "label": "Herd Records",
+      "method": "Animal numbers by species, residence time, access routes, pasture area and seasonal movements.",
+      "basis": "docs/explanation/scientific-basis.md#competing-explanations-and-useful-next-work",
+      "separates": [
+        ["grazing", "rainfall"],
+        ["grazing", "land_use"],
+        ["grazing", "snow_terrain"],
+        ["grazing", "data_artefact"]
+      ]
+    },
+    {
+      "id": "orchard_history",
+      "label": "Orchard History",
+      "method": "Crop, orchard and irrigation history for 2019 to 2025, and botanical composition.",
+      "basis": "docs/explanation/scientific-basis.md#competing-explanations-and-useful-next-work",
+      "separates": [
+        ["land_use", "rainfall"],
+        ["land_use", "grazing"],
+        ["land_use", "snow_terrain"],
+        ["land_use", "data_artefact"]
+      ]
+    },
+    {
+      "id": "seasonal_calendar",
+      "label": "Seasonal Calendar",
+      "method": "Local seasonal calendar and shadow and snow quality checks.",
+      "basis": "docs/explanation/scientific-basis.md#competing-explanations-and-useful-next-work",
+      "separates": [
+        ["snow_terrain", "rainfall"],
+        ["snow_terrain", "grazing"],
+        ["snow_terrain", "land_use"],
+        ["snow_terrain", "data_artefact"]
+      ]
+    },
+    {
+      "id": "scene_inspection",
+      "label": "Scene Inspection",
+      "method": "Independent manual inspection of the source scenes and repeat processing.",
+      "basis": "docs/explanation/scientific-basis.md#competing-explanations-and-useful-next-work",
+      "separates": [
+        ["data_artefact", "rainfall"],
+        ["data_artefact", "grazing"],
+        ["data_artefact", "land_use"],
+        ["data_artefact", "snow_terrain"]
+      ]
+    }
+  ],
+  "rainfallSeason": {
+    "id": "wet_season",
+    "label": "November to April wet season",
+    "startMonth": 11,
+    "endMonth": 4,
+    "recipe": { "recipeId": "season_summary", "version": "1.0.0" }
+  },
+  "explanations": [
+    {
+      "id": "rainfall",
+      "label": "Rainfall",
+      "statement": "Lower rainfall in the wet season before lowered vegetation greenness in the catchment."
+    },
+    {
+      "id": "grazing",
+      "label": "Grazing",
+      "statement": "Grazing on the shared pastures lowered vegetation greenness in the catchment."
+    },
+    {
+      "id": "land_use",
+      "label": "Land use",
+      "statement": "A change in land use, such as cropland or buildings replacing pasture, lowered vegetation greenness in parts of the catchment."
+    },
+    {
+      "id": "snow_terrain",
+      "label": "Snow or terrain",
+      "statement": "Snow cover or terrain shadow in the satellite scenes lowered the measured greenness without a change in the vegetation."
+    },
+    {
+      "id": "data_artefact",
+      "label": "Data artefact",
+      "statement": "Too few clear scenes or a processing artefact in the vegetation record produced the low values without a change in the vegetation."
+    }
+  ]
+}

@@ -10,11 +10,13 @@ import { dispatchOutbox } from "./outbox.ts";
 import { readSnapshot } from "./snapshot.ts";
 import { type TestDatabase, freshDatabase } from "./test-database.ts";
 import {
+  exampleBranch,
   exampleCase,
   exampleCommandRequest,
   exampleCommit,
   exampleEvent,
   exampleEvidence,
+  exampleMerge,
 } from "./test-records.ts";
 
 let db: TestDatabase;
@@ -104,6 +106,36 @@ describe("RL-04: reload restores the case from one snapshot", () => {
     expect(snapshot?.records.evidenceRecords.map((e) => [e.id, e.revision])).toEqual([
       ["ev_example_rev", 2],
     ]);
+  });
+
+  it("stores explanation branches and their merge in their own collections (contracts 1.9.0)", async () => {
+    const record = exampleCase("case_example_branches");
+    await createCase(pool, record, owner);
+    await applyCommit(
+      pool,
+      exampleCommit(record, {
+        id: "commit_example_predictions",
+        expected: 1,
+        upserts: [exampleBranch(record.id, "branch_example_rain", 1)],
+      }),
+    );
+    await applyCommit(
+      pool,
+      exampleCommit(record, {
+        id: "commit_example_scores",
+        expected: 2,
+        upserts: [
+          exampleBranch(record.id, "branch_example_rain", 2),
+          exampleMerge(record.id, "merge_example_rain", "branch_example_rain"),
+        ],
+      }),
+    );
+    const snapshot = await readSnapshot(pool, record.id, owner);
+    expect(CaseSnapshot.safeParse(snapshot).error?.issues ?? []).toEqual([]);
+    expect(snapshot?.records.explanationBranchRecords?.map((b) => [b.id, b.revision])).toEqual([
+      ["branch_example_rain", 2],
+    ]);
+    expect(snapshot?.records.branchMergeRecords?.map((m) => m.id)).toEqual(["merge_example_rain"]);
   });
 });
 

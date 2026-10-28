@@ -1,9 +1,11 @@
+import type { CaseAnalysisConfig } from "@siterra/contracts";
 import type { Locator } from "@siterra/domain/validators";
 import { formatLocator } from "@siterra/domain/validators";
 import type {
   DataBundleRecord,
   EventRecordRowRecord,
   EvidenceRecord,
+  ExplanationBranchRecord,
   HypothesisRecord,
   InterventionRecord,
   MeasurementRecord,
@@ -122,6 +124,13 @@ export interface CaseStore {
     bundleId: string,
     bundleRevision: number,
   ): Promise<EventRecordRowRecord[]>;
+  /** The case's analysis configuration, or null when it has none. */
+  readAnalysisConfig(caseId: string): Promise<CaseAnalysisConfig | null>;
+  /** Current revisions of the given explanation branches; unknown IDs are absent. */
+  readExplanationBranches(
+    caseId: string,
+    ids: readonly string[],
+  ): Promise<ExplanationBranchRecord[]>;
 }
 
 export class MemoryCaseStore implements CaseStore {
@@ -137,6 +146,25 @@ export class MemoryCaseStore implements CaseStore {
   readonly recipes: RecipeEntry[] = [];
   readonly recipeResults: (RecipeResult & { caseId: string })[] = [];
   readonly eventRows: EventRecordRowRecord[] = [];
+  readonly analysisConfigs = new Map<string, CaseAnalysisConfig>();
+  readonly branches: ExplanationBranchRecord[] = [];
+
+  readAnalysisConfig(caseId: string): Promise<CaseAnalysisConfig | null> {
+    return Promise.resolve(this.analysisConfigs.get(caseId) ?? null);
+  }
+
+  readExplanationBranches(
+    caseId: string,
+    ids: readonly string[],
+  ): Promise<ExplanationBranchRecord[]> {
+    const latest = new Map<string, ExplanationBranchRecord>();
+    for (const b of this.branches) {
+      if (b.caseId !== caseId || !ids.includes(b.id)) continue;
+      const seen = latest.get(b.id);
+      if (!seen || seen.revision < b.revision) latest.set(b.id, b);
+    }
+    return Promise.resolve([...latest.values()]);
+  }
 
   readEventRows(
     caseId: string,

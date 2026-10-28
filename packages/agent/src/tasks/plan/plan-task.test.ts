@@ -102,7 +102,7 @@ const GOOD_PLAN = {
       ],
     ),
     task("livelihoods", "livelihood_governance"),
-    task("compare", "hypothesis_comparison", ["sources", "observations", "livelihoods"]),
+    task("compare", "explanation_branches", ["sources", "observations", "livelihoods"]),
     task("package", "brief_package", ["compare"]),
   ],
   clarifyingQuestion: null,
@@ -143,11 +143,12 @@ describe("plan task on synthetic replays", () => {
     expect(planAfter?.outputEntityIds).toEqual(planned.map((t) => t.id));
 
     const byKind = new Map(planned.map((t) => [t.kind, t]));
-    expect(byKind.get("hypothesis_comparison")?.dependsOnTaskIds).toEqual([
+    expect(byKind.get("explanation_branches")?.dependsOnTaskIds).toEqual([
       byKind.get("source_research")?.id,
       byKind.get("observation_analysis")?.id,
       byKind.get("livelihood_governance")?.id,
     ]);
+    expect(byKind.get("explanation_branches")?.allowedTools).toEqual(["propose_predictions"]);
     expect(byKind.get("observation_analysis")?.inputVersions).toEqual([
       { entityId: "bundle_test_ndvi", revision: 2 },
       { entityId: "geo_test_catchment", revision: 1 },
@@ -314,9 +315,14 @@ describe("plan scope (SA-10, proposed)", () => {
   };
 
   it("the planner prompt carries the scope rule under a new version", () => {
-    expect(PLAN_PROMPT_VERSION).toBe("plan@2");
+    expect(PLAN_PROMPT_VERSION).toBe("plan@3");
     expect(PLAN_INSTRUCTIONS).toContain("land, water and vegetation");
     expect(PLAN_INSTRUCTIONS).toContain('"Out of scope."');
+  });
+
+  it("plans explanation branches in place of the hypothesis comparison", () => {
+    expect(PLAN_INSTRUCTIONS).toContain("explanation_branches");
+    expect(PLAN_INSTRUCTIONS).not.toContain("hypothesis_comparison");
   });
 
   it("refuses an identity-group command before any model call and creates nothing", async () => {
@@ -362,7 +368,7 @@ describe("plan scope (SA-10, proposed)", () => {
       tasks: [
         ...GOOD_PLAN.tasks.slice(0, 3),
         {
-          ...task("compare", "hypothesis_comparison", ["sources", "observations", "livelihoods"]),
+          ...task("compare", "explanation_branches", ["sources", "observations", "livelihoods"]),
           question: "Do migrant herders explain the decline in greenness?",
         },
         task("package", "brief_package", ["compare"]),
@@ -404,6 +410,19 @@ describe("plan validator", () => {
     expect(check(GOOD_PLAN).ok).toBe(true);
   });
 
+  it("refuses the retired hypothesis comparison and a second set of explanation branches", () => {
+    const retired = {
+      ...GOOD_PLAN,
+      tasks: [task("compare", "hypothesis_comparison")],
+    };
+    expect(codes(retired)).toEqual(["schema $.tasks[0].kind"]);
+    const twice = {
+      ...GOOD_PLAN,
+      tasks: [task("one", "explanation_branches"), task("two", "explanation_branches")],
+    };
+    expect(codes(twice)).toEqual(["limit $.tasks[1].kind"]);
+  });
+
   it("ends an out-of-scope interpretation or clarifying question without a repair", () => {
     for (const [plan, path] of [
       [
@@ -429,7 +448,7 @@ describe("plan validator", () => {
         task("obs", "observation_analysis"),
         task("src", "source_research"),
         task("liv", "livelihood_governance"),
-        task("hyp", "hypothesis_comparison", ["obs"]),
+        task("hyp", "explanation_branches", ["obs"]),
         task("brief", "brief_package", ["hyp"]),
       ],
       clarifyingQuestion: null,

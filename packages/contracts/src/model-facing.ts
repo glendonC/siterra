@@ -7,6 +7,8 @@
 // the subset does not promise to honor them.
 import { z } from "zod";
 
+import { PredictionTest } from "./case.ts";
+
 export const maxModelSchemaDepth = 10;
 
 type JsonSchema = { [key: string]: unknown };
@@ -101,12 +103,15 @@ export function toModelJsonSchema(schema: z.ZodType): JsonSchema {
   return json;
 }
 
-/** Task kinds the planner may propose; plan and validation tasks are created by host code. */
+/**
+ * Task kinds the planner may propose; plan and validation tasks are created by host code.
+ * hypothesis_comparison stays a Task kind for stored records but is no longer planned.
+ */
 export const plannableTaskKinds = [
   "source_research",
   "observation_analysis",
   "livelihood_governance",
-  "hypothesis_comparison",
+  "explanation_branches",
   "intervention_feasibility",
   "brief_package",
 ] as const;
@@ -220,3 +225,32 @@ export const ProposeInterventions = z.strictObject({
   ),
 });
 export type ProposeInterventions = z.infer<typeof ProposeInterventions>;
+
+const testShape = PredictionTest.shape;
+
+/**
+ * propose_predictions: one explanation branch's structured final output (data-contracts.md,
+ * explanation branches). The model drafts two to four predictions in the closed test grammar of
+ * PredictionTest; host code assigns the keys, commits the predictions before any result is read,
+ * scores them and sets the status. Host validation adds the limits and the per-kind field rules.
+ */
+export const ProposePredictions = z.strictObject({
+  predictions: z.array(
+    z.strictObject({
+      necessary: z.boolean(),
+      test: z.strictObject({
+        kind: z.enum(testShape.kind.options),
+        pairId: z.string().nullable(),
+        side: z.enum(testShape.side.unwrap().options).nullable(),
+        periodIds: z.array(z.string()),
+        windowMonths: z.int().nullable(),
+        seasonId: z.string().nullable(),
+        flag: z.enum(testShape.flag.unwrap().options).nullable(),
+        fieldCheckId: z.string().nullable(),
+        expected: z.enum(testShape.expected.unwrap().options).nullable(),
+      }),
+      wording: z.string(),
+    }),
+  ),
+});
+export type ProposePredictions = z.infer<typeof ProposePredictions>;
