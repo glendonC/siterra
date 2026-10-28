@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://siterra.invalid/schemas/case/1.8.0/case.schema.json",
+  "$id": "https://siterra.invalid/schemas/case/1.9.0/case.schema.json",
   "title": "Siterra case contracts",
   "description": "Records of one Siterra case as stored and exchanged between the web application, the worker and the browser. The root validates a case snapshot, a command, an event or an atomic commit proposal; $defs holds the record types. Cross-record semantics that JSON Schema cannot express are specified in docs/reference/data-contracts.md.",
   "oneOf": [
@@ -865,10 +865,12 @@
             "observation_analysis",
             "livelihood_governance",
             "hypothesis_comparison",
+            "explanation_branches",
             "intervention_feasibility",
             "brief_package",
             "validation"
-          ]
+          ],
+          "description": "explanation_branches added in 1.9.0; it replaces hypothesis_comparison in new plans, and hypothesis_comparison stays valid for earlier records."
         },
         "question": {
           "type": "string",
@@ -923,6 +925,7 @@
               "propose_plan",
               "propose_evidence",
               "propose_hypotheses",
+              "propose_predictions",
               "propose_interventions",
               "propose_package",
               "propose_layout",
@@ -2787,7 +2790,8 @@
             "1.5.0",
             "1.6.0",
             "1.7.0",
-            "1.8.0"
+            "1.8.0",
+            "1.9.0"
           ],
           "description": "Contract version the instance was written against; producers write the newest, and earlier versions of the same MAJOR stay valid."
         },
@@ -2882,7 +2886,8 @@
             "1.5.0",
             "1.6.0",
             "1.7.0",
-            "1.8.0"
+            "1.8.0",
+            "1.9.0"
           ],
           "description": "Contract version the instance was written against; producers write the newest, and earlier versions of the same MAJOR stay valid."
         },
@@ -3199,6 +3204,20 @@
             "$ref": "#/$defs/ContextFeature"
           },
           "description": "Added in 1.6.0; optional so earlier snapshots stay valid."
+        },
+        "explanationBranchRecords": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ExplanationBranch"
+          },
+          "description": "Added in 1.9.0; optional so earlier snapshots stay valid."
+        },
+        "branchMergeRecords": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/BranchMerge"
+          },
+          "description": "Added in 1.9.0; optional so earlier snapshots stay valid."
         }
       },
       "required": [
@@ -3235,7 +3254,8 @@
             "1.5.0",
             "1.6.0",
             "1.7.0",
-            "1.8.0"
+            "1.8.0",
+            "1.9.0"
           ],
           "description": "Contract version the instance was written against; producers write the newest, and earlier versions of the same MAJOR stay valid."
         },
@@ -3273,7 +3293,8 @@
             "1.5.0",
             "1.6.0",
             "1.7.0",
-            "1.8.0"
+            "1.8.0",
+            "1.9.0"
           ],
           "description": "Contract version the instance was written against; producers write the newest, and earlier versions of the same MAJOR stay valid."
         },
@@ -3374,6 +3395,12 @@
               },
               {
                 "$ref": "#/$defs/ContextFeature"
+              },
+              {
+                "$ref": "#/$defs/ExplanationBranch"
+              },
+              {
+                "$ref": "#/$defs/BranchMerge"
               }
             ]
           },
@@ -3495,6 +3522,7 @@
             "propose_plan",
             "propose_evidence",
             "propose_hypotheses",
+            "propose_predictions",
             "propose_interventions",
             "propose_package",
             "propose_layout",
@@ -4256,6 +4284,634 @@
             "maxLength": 300
           },
           "uniqueItems": true
+        }
+      }
+    },
+    "PredictionTest": {
+      "description": "Added in 1.9.0: what a prediction tests, in a closed grammar against recipe outputs and bundle metadata. Each kind sets its fields and leaves the others null or empty (host rule): departure_sign (pairId, side, periodIds; expected negative or positive), co_movement (pairId, windowMonths; expected same_sign_majority or no_same_sign_majority), season_category (seasonId; expected below_normal, near_normal or above_normal), quality_flag (pairId, side, periodIds, flag; expected present or absent), availability (pairId, side, periodIds; expected all_available or some_unavailable), field_check (fieldCheckId; expected null).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "pairId",
+        "side",
+        "periodIds",
+        "windowMonths",
+        "seasonId",
+        "flag",
+        "fieldCheckId",
+        "expected"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "departure_sign",
+            "co_movement",
+            "season_category",
+            "quality_flag",
+            "availability",
+            "field_check"
+          ]
+        },
+        "pairId": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]{0,39}$"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "A series pair of the case analysis configuration."
+        },
+        "side": {
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "a",
+                "b"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "periodIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+          },
+          "maxItems": 24,
+          "uniqueItems": true
+        },
+        "windowMonths": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 12
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "seasonId": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 80
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "flag": {
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "snow_suspected",
+                "terrain_shadow_suspected",
+                "low_scene_count",
+                "qa_join_incomplete",
+                "partial_month",
+                "reduced_qa_fallback"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "A monthly quality flag of the STAC Item (siterra:quality_flags)."
+        },
+        "fieldCheckId": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]{0,39}$"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "A field check of the case analysis configuration."
+        },
+        "expected": {
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "negative",
+                "positive",
+                "same_sign_majority",
+                "no_same_sign_majority",
+                "below_normal",
+                "near_normal",
+                "above_normal",
+                "present",
+                "absent",
+                "all_available",
+                "some_unavailable"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "Prediction": {
+      "description": "Added in 1.9.0: one prediction of an explanation branch, committed before any result of the branch is read. The model drafts the test and the wording; host code scores it and never reads the wording to decide anything.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "key",
+        "necessary",
+        "test",
+        "wording"
+      ],
+      "properties": {
+        "key": {
+          "type": "string",
+          "pattern": "^p[1-4]$"
+        },
+        "necessary": {
+          "type": "boolean",
+          "description": "A necessary prediction that is not met on adequate data contradicts the explanation."
+        },
+        "test": {
+          "$ref": "#/$defs/PredictionTest"
+        },
+        "wording": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 300
+        }
+      }
+    },
+    "PredictionScore": {
+      "description": "Added in 1.9.0: how host code scored one prediction against the record. not_testable always has dataAdequate false and a reason code.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "predictionKey",
+        "outcome",
+        "dataAdequate",
+        "reasonCode",
+        "observed",
+        "measurementIds",
+        "dataBundleIds"
+      ],
+      "properties": {
+        "predictionKey": {
+          "type": "string",
+          "pattern": "^p[1-4]$"
+        },
+        "outcome": {
+          "type": "string",
+          "enum": [
+            "met",
+            "not_met",
+            "not_testable"
+          ]
+        },
+        "dataAdequate": {
+          "type": "boolean"
+        },
+        "reasonCode": {
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "unknown_target",
+                "no_series_bundle",
+                "period_not_in_record",
+                "value_not_available",
+                "no_quality_record",
+                "area_mismatch",
+                "too_few_aligned_months",
+                "no_season_summary",
+                "season_not_in_summary",
+                "field_measurement_needed"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "observed": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 400,
+          "description": "Host-written: what the record shows for the test, or why it cannot be tested."
+        },
+        "measurementIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+          },
+          "uniqueItems": true
+        },
+        "dataBundleIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "BranchModelOutcome": {
+      "description": "Added in 1.9.0: the model call and independent check of one branch (TR-07).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "model",
+        "promptVersion",
+        "loopStatus",
+        "validationOutcome",
+        "failureCode",
+        "repaired"
+      ],
+      "properties": {
+        "model": {
+          "type": "string",
+          "minLength": 1
+        },
+        "promptVersion": {
+          "type": "string",
+          "minLength": 1
+        },
+        "loopStatus": {
+          "type": "string",
+          "enum": [
+            "accepted",
+            "rejected",
+            "refused",
+            "incomplete",
+            "model_failed",
+            "round_limit",
+            "cancelled"
+          ]
+        },
+        "validationOutcome": {
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "accepted",
+                "partial",
+                "rejected"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "failureCode": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "repaired": {
+          "type": "boolean"
+        }
+      }
+    },
+    "ExplanationBranch": {
+      "description": "Added in 1.9.0: one candidate explanation tested as a branch. Revision 1 holds the predictions, committed before any result of the branch is read (DF-07); revision 2 holds the scores and the status the fixed merge rules set (DF-08). The status is never a probability or a rank, and never proof.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "recordType",
+        "id",
+        "revision",
+        "createdAt",
+        "updatedAt",
+        "caseId",
+        "commandId",
+        "taskId",
+        "explanationId",
+        "label",
+        "statement",
+        "status",
+        "statusReason",
+        "predictions",
+        "predictedAt",
+        "predictionsCaseRevision",
+        "scores",
+        "scoredAt",
+        "model",
+        "hypothesisId",
+        "provenance"
+      ],
+      "properties": {
+        "recordType": {
+          "const": "ExplanationBranch"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "caseId": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "commandId": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "taskId": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "explanationId": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,39}$",
+          "description": "An explanation of the case analysis configuration."
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "statement": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 400,
+          "description": "The host-written statement of the explanation, from the case analysis configuration."
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "predicted",
+            "contradicted",
+            "consistent",
+            "cannot_be_assessed"
+          ]
+        },
+        "statusReason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 400,
+          "description": "Host-written: which rule set the status."
+        },
+        "predictions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Prediction"
+          },
+          "maxItems": 4
+        },
+        "predictedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When host code drafted the predictions commit, before any result of the branch was read."
+        },
+        "predictionsCaseRevision": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 1
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The case revision the predictions commit produced; null on revision 1, set when scored."
+        },
+        "scores": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/PredictionScore"
+          },
+          "maxItems": 4
+        },
+        "scoredAt": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date-time"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "model": {
+          "$ref": "#/$defs/BranchModelOutcome"
+        },
+        "hypothesisId": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The Hypothesis record host code writes from the scored branch, for interventions and the brief."
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance"
+        }
+      }
+    },
+    "BranchConflict": {
+      "description": "Added in 1.9.0: what the merge flags. separates_nothing: every branch predicts the same outcome of the same test, so the result cannot tell them apart. not_testable: the record holds nothing to score the prediction against. inadequate_data: the record holds the target, but not enough usable values.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "testKey",
+        "predictions",
+        "detail"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "separates_nothing",
+            "not_testable",
+            "inadequate_data"
+          ]
+        },
+        "testKey": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 400
+        },
+        "predictions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "branchId",
+              "predictionKey"
+            ],
+            "properties": {
+              "branchId": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+              },
+              "predictionKey": {
+                "type": "string",
+                "pattern": "^p[1-4]$"
+              }
+            }
+          },
+          "minItems": 1
+        },
+        "detail": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 400
+        }
+      }
+    },
+    "BranchMerge": {
+      "description": "Added in 1.9.0: the fixed merge of one command's explanation branches. Statuses come from the scores alone: contradicted when a necessary prediction is not met on adequate data, consistent when every testable prediction is met and at least one is testable, cannot_be_assessed otherwise.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "recordType",
+        "id",
+        "revision",
+        "createdAt",
+        "updatedAt",
+        "caseId",
+        "commandId",
+        "taskId",
+        "rulesVersion",
+        "predictionsCaseRevision",
+        "branches",
+        "conflicts",
+        "provenance"
+      ],
+      "properties": {
+        "recordType": {
+          "const": "BranchMerge"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "caseId": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "commandId": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "taskId": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "rulesVersion": {
+          "type": "string",
+          "pattern": "^merge@[1-9][0-9]*$"
+        },
+        "predictionsCaseRevision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "branches": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "branchId",
+              "branchRevision",
+              "explanationId",
+              "status",
+              "reason"
+            ],
+            "properties": {
+              "branchId": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+              },
+              "branchRevision": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "explanationId": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]{0,39}$"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "contradicted",
+                  "consistent",
+                  "cannot_be_assessed"
+                ]
+              },
+              "reason": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 400
+              }
+            }
+          },
+          "minItems": 1,
+          "maxItems": 5
+        },
+        "conflicts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/BranchConflict"
+          }
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance"
         }
       }
     }

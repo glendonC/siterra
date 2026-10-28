@@ -5,7 +5,7 @@ import { z } from "zod";
 import { dateTime, entityId, isoDate, text, uniqueArray, uri, uriReference } from "./primitives.ts";
 import { missingIsAValue } from "./rules.ts";
 
-export const caseSchemaVersion = "1.8.0";
+export const caseSchemaVersion = "1.9.0";
 /** Every schemaVersion string this contract accepts (the earlier ones of the same MAJOR stay valid). */
 export const acceptedCaseSchemaVersions = [
   "1.2.0",
@@ -15,8 +15,9 @@ export const acceptedCaseSchemaVersions = [
   "1.6.0",
   "1.7.0",
   "1.8.0",
+  "1.9.0",
 ] as const;
-export const caseSchemaId = "https://siterra.invalid/schemas/case/1.8.0/case.schema.json";
+export const caseSchemaId = "https://siterra.invalid/schemas/case/1.9.0/case.schema.json";
 
 export const EntityVersion = z.strictObject({
   entityId: entityId,
@@ -193,6 +194,7 @@ export const Task = z.strictObject({
     "observation_analysis",
     "livelihood_governance",
     "hypothesis_comparison",
+    "explanation_branches",
     "intervention_feasibility",
     "brief_package",
     "validation",
@@ -227,6 +229,7 @@ export const Task = z.strictObject({
       "propose_plan",
       "propose_evidence",
       "propose_hypotheses",
+      "propose_predictions",
       "propose_interventions",
       "propose_package",
       "propose_layout",
@@ -648,7 +651,7 @@ export type Brief = z.infer<typeof Brief>;
 
 export const Command = z.strictObject({
   recordType: z.literal("Command"),
-  schemaVersion: z.enum(["1.2.0", "1.3.0", "1.4.0", "1.5.0", "1.6.0", "1.7.0", "1.8.0"]),
+  schemaVersion: z.enum(["1.2.0", "1.3.0", "1.4.0", "1.5.0", "1.6.0", "1.7.0", "1.8.0", "1.9.0"]),
   id: entityId,
   caseId: entityId,
   createdAt: dateTime,
@@ -703,6 +706,7 @@ export const ToolCallInfo = z.strictObject({
     "propose_plan",
     "propose_evidence",
     "propose_hypotheses",
+    "propose_predictions",
     "propose_interventions",
     "propose_package",
     "propose_layout",
@@ -749,7 +753,7 @@ export type ValidationResult = z.infer<typeof ValidationResult>;
 
 export const Event = z.strictObject({
   recordType: z.literal("Event"),
-  schemaVersion: z.enum(["1.2.0", "1.3.0", "1.4.0", "1.5.0", "1.6.0", "1.7.0", "1.8.0"]),
+  schemaVersion: z.enum(["1.2.0", "1.3.0", "1.4.0", "1.5.0", "1.6.0", "1.7.0", "1.8.0", "1.9.0"]),
   id: entityId,
   caseId: entityId,
   sequence: z.int().min(1),
@@ -789,6 +793,49 @@ export const Event = z.strictObject({
   parentSpanId: z.string().min(1).nullable(),
 });
 export type Event = z.infer<typeof Event>;
+
+export const BranchConflict = z.strictObject({
+  kind: z.enum(["separates_nothing", "not_testable", "inadequate_data"]),
+  testKey: text({ min: 1, max: 400 }),
+  predictions: z
+    .array(
+      z.strictObject({
+        branchId: entityId,
+        predictionKey: z.string().regex(new RegExp("^p[1-4]$")),
+      }),
+    )
+    .min(1),
+  detail: text({ min: 1, max: 400 }),
+});
+export type BranchConflict = z.infer<typeof BranchConflict>;
+
+export const BranchMerge = z.strictObject({
+  recordType: z.literal("BranchMerge"),
+  id: entityId,
+  revision: z.int().min(1),
+  createdAt: dateTime,
+  updatedAt: dateTime,
+  caseId: entityId,
+  commandId: entityId,
+  taskId: entityId,
+  rulesVersion: z.string().regex(new RegExp("^merge@[1-9][0-9]*$")),
+  predictionsCaseRevision: z.int().min(1),
+  branches: z
+    .array(
+      z.strictObject({
+        branchId: entityId,
+        branchRevision: z.int().min(1),
+        explanationId: z.string().regex(new RegExp("^[a-z][a-z0-9_]{0,39}$")),
+        status: z.enum(["contradicted", "consistent", "cannot_be_assessed"]),
+        reason: text({ min: 1, max: 400 }),
+      }),
+    )
+    .min(1)
+    .max(5),
+  conflicts: z.array(BranchConflict),
+  provenance: Provenance,
+});
+export type BranchMerge = z.infer<typeof BranchMerge>;
 
 export const ContextFeature = z.strictObject({
   recordType: z.literal("ContextFeature"),
@@ -852,6 +899,124 @@ export const EventRecordRow = z.strictObject({
 });
 export type EventRecordRow = z.infer<typeof EventRecordRow>;
 
+export const BranchModelOutcome = z.strictObject({
+  model: z.string().min(1),
+  promptVersion: z.string().min(1),
+  loopStatus: z.enum([
+    "accepted",
+    "rejected",
+    "refused",
+    "incomplete",
+    "model_failed",
+    "round_limit",
+    "cancelled",
+  ]),
+  validationOutcome: z.enum(["accepted", "partial", "rejected"]).nullable(),
+  failureCode: z.string().min(1).nullable(),
+  repaired: z.boolean(),
+});
+export type BranchModelOutcome = z.infer<typeof BranchModelOutcome>;
+
+export const PredictionTest = z.strictObject({
+  kind: z.enum([
+    "departure_sign",
+    "co_movement",
+    "season_category",
+    "quality_flag",
+    "availability",
+    "field_check",
+  ]),
+  pairId: z.string().regex(new RegExp("^[a-z][a-z0-9_]{0,39}$")).nullable(),
+  side: z.enum(["a", "b"]).nullable(),
+  periodIds: uniqueArray(entityId).max(24),
+  windowMonths: z.int().min(0).max(12).nullable(),
+  seasonId: text({ min: 1, max: 80 }).nullable(),
+  flag: z
+    .enum([
+      "snow_suspected",
+      "terrain_shadow_suspected",
+      "low_scene_count",
+      "qa_join_incomplete",
+      "partial_month",
+      "reduced_qa_fallback",
+    ])
+    .nullable(),
+  fieldCheckId: z.string().regex(new RegExp("^[a-z][a-z0-9_]{0,39}$")).nullable(),
+  expected: z
+    .enum([
+      "negative",
+      "positive",
+      "same_sign_majority",
+      "no_same_sign_majority",
+      "below_normal",
+      "near_normal",
+      "above_normal",
+      "present",
+      "absent",
+      "all_available",
+      "some_unavailable",
+    ])
+    .nullable(),
+});
+export type PredictionTest = z.infer<typeof PredictionTest>;
+
+export const Prediction = z.strictObject({
+  key: z.string().regex(new RegExp("^p[1-4]$")),
+  necessary: z.boolean(),
+  test: PredictionTest,
+  wording: text({ min: 1, max: 300 }),
+});
+export type Prediction = z.infer<typeof Prediction>;
+
+export const PredictionScore = z.strictObject({
+  predictionKey: z.string().regex(new RegExp("^p[1-4]$")),
+  outcome: z.enum(["met", "not_met", "not_testable"]),
+  dataAdequate: z.boolean(),
+  reasonCode: z
+    .enum([
+      "unknown_target",
+      "no_series_bundle",
+      "period_not_in_record",
+      "value_not_available",
+      "no_quality_record",
+      "area_mismatch",
+      "too_few_aligned_months",
+      "no_season_summary",
+      "season_not_in_summary",
+      "field_measurement_needed",
+    ])
+    .nullable(),
+  observed: text({ min: 1, max: 400 }),
+  measurementIds: uniqueArray(entityId),
+  dataBundleIds: uniqueArray(entityId),
+});
+export type PredictionScore = z.infer<typeof PredictionScore>;
+
+export const ExplanationBranch = z.strictObject({
+  recordType: z.literal("ExplanationBranch"),
+  id: entityId,
+  revision: z.int().min(1),
+  createdAt: dateTime,
+  updatedAt: dateTime,
+  caseId: entityId,
+  commandId: entityId,
+  taskId: entityId,
+  explanationId: z.string().regex(new RegExp("^[a-z][a-z0-9_]{0,39}$")),
+  label: text({ min: 1, max: 120 }),
+  statement: text({ min: 1, max: 400 }),
+  status: z.enum(["predicted", "contradicted", "consistent", "cannot_be_assessed"]),
+  statusReason: text({ min: 1, max: 400 }),
+  predictions: z.array(Prediction).max(4),
+  predictedAt: dateTime,
+  predictionsCaseRevision: z.int().min(1).nullable(),
+  scores: z.array(PredictionScore).max(4),
+  scoredAt: dateTime.nullable(),
+  model: BranchModelOutcome,
+  hypothesisId: entityId.nullable(),
+  provenance: Provenance,
+});
+export type ExplanationBranch = z.infer<typeof ExplanationBranch>;
+
 export const RecordCollections = z.strictObject({
   sourceRecords: uniqueArray(Source),
   geoSelectionRecords: uniqueArray(GeoSelection),
@@ -871,12 +1036,14 @@ export const RecordCollections = z.strictObject({
   briefRecords: uniqueArray(Brief),
   eventRecordRowRecords: z.array(EventRecordRow).optional(),
   contextFeatureRecords: z.array(ContextFeature).optional(),
+  explanationBranchRecords: z.array(ExplanationBranch).optional(),
+  branchMergeRecords: z.array(BranchMerge).optional(),
 });
 export type RecordCollections = z.infer<typeof RecordCollections>;
 
 export const CaseSnapshot = z.strictObject({
   recordType: z.literal("CaseSnapshot"),
-  schemaVersion: z.enum(["1.2.0", "1.3.0", "1.4.0", "1.5.0", "1.6.0", "1.7.0", "1.8.0"]),
+  schemaVersion: z.enum(["1.2.0", "1.3.0", "1.4.0", "1.5.0", "1.6.0", "1.7.0", "1.8.0", "1.9.0"]),
   case: EnvironmentalCase,
   records: RecordCollections,
   lastSequence: z.int().min(0),
@@ -885,7 +1052,7 @@ export type CaseSnapshot = z.infer<typeof CaseSnapshot>;
 
 export const Commit = z.strictObject({
   recordType: z.literal("Commit"),
-  schemaVersion: z.enum(["1.2.0", "1.3.0", "1.4.0", "1.5.0", "1.6.0", "1.7.0", "1.8.0"]),
+  schemaVersion: z.enum(["1.2.0", "1.3.0", "1.4.0", "1.5.0", "1.6.0", "1.7.0", "1.8.0", "1.9.0"]),
   id: entityId,
   caseId: entityId,
   commandId: entityId,
@@ -915,6 +1082,8 @@ export const Commit = z.strictObject({
       Brief,
       EventRecordRow,
       ContextFeature,
+      ExplanationBranch,
+      BranchMerge,
     ]),
   ),
   events: uniqueArray(Event).min(1),
@@ -970,4 +1139,11 @@ export const caseDefinitions = {
   FieldMeasurement,
   DeferredGap,
   FieldPlan,
+  PredictionTest,
+  Prediction,
+  PredictionScore,
+  BranchModelOutcome,
+  ExplanationBranch,
+  BranchConflict,
+  BranchMerge,
 } as const;

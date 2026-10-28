@@ -1,0 +1,222 @@
+{
+  "recordType": "Commit",
+  "schemaVersion": "1.9.0",
+  "id": "commit_example_branch_scores",
+  "caseId": "case_example_atlas",
+  "commandId": "cmd_example_branches",
+  "taskId": "task_example_branches",
+  "expectedCaseRevision": 6,
+  "newCaseRevision": 7,
+  "idempotencyKey": "example-branch-scores-commit-0001",
+  "inputVersions": [
+    {
+      "entityId": "branch_example_rainfall",
+      "revision": 1
+    },
+    {
+      "entityId": "branch_example_grazing",
+      "revision": 1
+    }
+  ],
+  "caseAfter": {
+    "recordType": "EnvironmentalCase",
+    "id": "case_example_atlas",
+    "revision": 7,
+    "createdAt": "2026-10-26T16:00:00-04:00",
+    "updatedAt": "2026-10-28T10:00:00-04:00",
+    "title": "Example: High Atlas investigation",
+    "objective": "Identify evidence and field measurements needed to assess competing explanations for pasture pressure.",
+    "status": "commissioned",
+    "mode": "concept",
+    "ownerScopeId": "example_fixture_only",
+    "activeGeoSelectionId": "geo_example_context",
+    "currentBriefId": null,
+    "unresolvedQuestions": [],
+    "permissionProfile": "research_and_preparation_only",
+    "description": "Fictional contract fixture. No measured environmental result or visited location is asserted."
+  },
+  "upserts": [
+    {
+      "recordType": "ExplanationBranch",
+      "id": "branch_example_rainfall",
+      "revision": 2,
+      "createdAt": "2026-10-28T09:59:00-04:00",
+      "updatedAt": "2026-10-28T10:00:00-04:00",
+      "caseId": "case_example_atlas",
+      "commandId": "cmd_example_branches",
+      "taskId": "task_example_branches",
+      "explanationId": "rainfall",
+      "label": "Rainfall",
+      "statement": "Fictional example: lower rainfall in the wet season before lowered vegetation greenness.",
+      "status": "consistent",
+      "statusReason": "Every testable prediction is met (1 of 2 testable).",
+      "predictions": [
+        {
+          "key": "p1",
+          "necessary": true,
+          "test": {
+            "kind": "season_category",
+            "pairId": null,
+            "side": null,
+            "periodIds": [],
+            "windowMonths": null,
+            "seasonId": "season_2021-11_2022-04",
+            "flag": null,
+            "fieldCheckId": null,
+            "expected": "below_normal"
+          },
+          "wording": "Fictional example: the wet season before the low months is below normal."
+        },
+        {
+          "key": "p2",
+          "necessary": false,
+          "test": {
+            "kind": "field_check",
+            "pairId": null,
+            "side": null,
+            "periodIds": [],
+            "windowMonths": null,
+            "seasonId": null,
+            "flag": null,
+            "fieldCheckId": "soil_moisture_survey",
+            "expected": null
+          },
+          "wording": "Fictional example: soil moisture was low on ungrazed plots too."
+        }
+      ],
+      "predictedAt": "2026-10-28T09:59:00-04:00",
+      "predictionsCaseRevision": 6,
+      "scores": [
+        {
+          "predictionKey": "p1",
+          "outcome": "met",
+          "dataAdequate": true,
+          "reasonCode": null,
+          "observed": "Fictional example: the season summary places season_2021-11_2022-04 below normal.",
+          "measurementIds": [],
+          "dataBundleIds": ["bundle_example_season_summary"]
+        },
+        {
+          "predictionKey": "p2",
+          "outcome": "not_testable",
+          "dataAdequate": false,
+          "reasonCode": "field_measurement_needed",
+          "observed": "Fictional example: only a field measurement can test this.",
+          "measurementIds": [],
+          "dataBundleIds": []
+        }
+      ],
+      "scoredAt": "2026-10-28T10:00:00-04:00",
+      "model": {
+        "model": "example-model",
+        "promptVersion": "explanation_branches@1",
+        "loopStatus": "accepted",
+        "validationOutcome": "accepted",
+        "failureCode": null,
+        "repaired": false
+      },
+      "hypothesisId": null,
+      "provenance": {
+        "sourceLocators": [],
+        "dataBundleIds": ["bundle_example_season_summary"],
+        "methodId": null,
+        "methodVersion": null,
+        "inputVersions": [
+          {
+            "entityId": "branch_example_rainfall",
+            "revision": 1
+          }
+        ],
+        "generatedByTaskId": "task_example_branches",
+        "generatedAt": "2026-10-28T10:00:00-04:00",
+        "verificationStatus": "unverified",
+        "limitations": ["Fictional example: no branch was tested."]
+      }
+    },
+    {
+      "recordType": "BranchMerge",
+      "id": "merge_example_branches",
+      "revision": 1,
+      "createdAt": "2026-10-28T10:00:00-04:00",
+      "updatedAt": "2026-10-28T10:00:00-04:00",
+      "caseId": "case_example_atlas",
+      "commandId": "cmd_example_branches",
+      "taskId": "task_example_branches",
+      "rulesVersion": "merge@1",
+      "predictionsCaseRevision": 6,
+      "branches": [
+        {
+          "branchId": "branch_example_rainfall",
+          "branchRevision": 2,
+          "explanationId": "rainfall",
+          "status": "consistent",
+          "reason": "Every testable prediction is met (1 of 2 testable)."
+        },
+        {
+          "branchId": "branch_example_grazing",
+          "branchRevision": 2,
+          "explanationId": "grazing",
+          "status": "cannot_be_assessed",
+          "reason": "No prediction is testable with the record."
+        }
+      ],
+      "conflicts": [
+        {
+          "kind": "not_testable",
+          "testKey": "field_check:soil_moisture_survey",
+          "predictions": [
+            {
+              "branchId": "branch_example_rainfall",
+              "predictionKey": "p2"
+            }
+          ],
+          "detail": "Fictional example: only a field measurement can test this."
+        }
+      ],
+      "provenance": {
+        "sourceLocators": [],
+        "dataBundleIds": [],
+        "methodId": null,
+        "methodVersion": null,
+        "inputVersions": [
+          {
+            "entityId": "branch_example_rainfall",
+            "revision": 2
+          },
+          {
+            "entityId": "branch_example_grazing",
+            "revision": 2
+          }
+        ],
+        "generatedByTaskId": "task_example_branches",
+        "generatedAt": "2026-10-28T10:00:00-04:00",
+        "verificationStatus": "unverified",
+        "limitations": ["Fictional example: no branch was tested."]
+      }
+    }
+  ],
+  "events": [
+    {
+      "recordType": "Event",
+      "schemaVersion": "1.9.0",
+      "id": "evt_example_branch_scores",
+      "caseId": "case_example_atlas",
+      "sequence": 21,
+      "occurredAt": "2026-10-28T10:00:00-04:00",
+      "kind": "case.committed",
+      "commandId": "cmd_example_branches",
+      "taskId": "task_example_branches",
+      "caseRevision": 7,
+      "entityIds": ["branch_example_rainfall", "merge_example_branches"],
+      "message": "Fictional example: branch scores saved.",
+      "dedupeKey": "example-branch-scores-0021",
+      "resultStatus": null,
+      "tool": null,
+      "usage": null,
+      "validation": null,
+      "spanId": null,
+      "parentSpanId": null
+    }
+  ],
+  "layoutActions": []
+}

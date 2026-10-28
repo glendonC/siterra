@@ -1,4 +1,9 @@
-import type { CaseSnapshot, EnvironmentalCase, RecordCollections } from "@siterra/contracts";
+import type {
+  CaseSnapshot,
+  Commit,
+  EnvironmentalCase,
+  RecordCollections,
+} from "@siterra/contracts";
 import { caseSchemaVersion } from "@siterra/contracts";
 import { type Pool, inTransaction } from "./client.ts";
 
@@ -22,7 +27,9 @@ export const collectionOf = {
   Brief: "briefRecords",
   EventRecordRow: "eventRecordRowRecords",
   ContextFeature: "contextFeatureRecords",
-} as const satisfies Record<string, keyof RecordCollections>;
+  ExplanationBranch: "explanationBranchRecords",
+  BranchMerge: "branchMergeRecords",
+} as const satisfies Record<Commit["upserts"][number]["recordType"], keyof RecordCollections>;
 
 export function emptyCollections(): RecordCollections {
   return {
@@ -44,6 +51,8 @@ export function emptyCollections(): RecordCollections {
     briefRecords: [],
     eventRecordRowRecords: [],
     contextFeatureRecords: [],
+    explanationBranchRecords: [],
+    branchMergeRecords: [],
   };
 }
 
