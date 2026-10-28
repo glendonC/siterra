@@ -1,6 +1,6 @@
 # Data contracts
 
-Status: implementation contract v1.6, 2026-10-27. Machine-readable source of truth: [schemas/case.schema.json](../../schemas/case.schema.json) (JSON Schema 2020-12). Examples: [schemas/examples/](../../schemas/examples/). This document owns cross-record semantics that a JSON Schema cannot express. [Orchestration](agent-orchestration.md) owns jobs and tools; [review](review-and-authority.md) owns authority.
+Status: implementation contract v1.7, 2026-10-27. Machine-readable source of truth: [schemas/case.schema.json](../../schemas/case.schema.json) (JSON Schema 2020-12). Examples: [schemas/examples/](../../schemas/examples/). This document owns cross-record semantics that a JSON Schema cannot express. [Orchestration](agent-orchestration.md) owns jobs and tools; [review](review-and-authority.md) owns authority.
 
 ## Principles
 
@@ -128,7 +128,7 @@ Events are the trace and the stream. Host code writes event messages from templa
 |---|---|---|
 | `command.accepted`, `command.completed` | Command lifecycle | `resultStatus` on completion |
 | `task.queued`, `task.started`, `task.progress`, `task.awaiting_input`, `task.succeeded`, `task.partial`, `task.failed`, `task.cancelled` | Task lifecycle | `task.progress` only for real milestones (counts of loaded records, sources retrieved) |
-| `model.started`, `model.completed` | Each model request | `usage`: model, input/output/cached tokens, cost estimate, provider request ID, status `succeeded \| refused \| incomplete \| failed`, duration |
+| `model.started`, `model.completed` | Each model request | `usage`: provider (`replay` or the Model API), model, input/output/cached tokens, cost estimate, provider request ID, status `succeeded \| refused \| incomplete \| failed`, duration; on the replay route `replayOrigin` (`synthetic` or `recorded`, added in 1.7). A record's `provenance.generatedByTaskId` leads to these events, so a replayed record reads as replayed wherever it is read |
 | `tool.started`, `tool.completed` | Each tool execution | `tool`: name, sanitized argument summary, result entity IDs, status, duration, error code, attempt |
 | `validation.completed` | After each proposal check | outcome `accepted \| partial \| rejected`, machine-readable issues |
 | `case.committed` | Commit applied | new case revision, entity IDs |
