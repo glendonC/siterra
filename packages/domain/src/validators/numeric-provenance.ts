@@ -12,25 +12,52 @@ export interface YearSpan {
   last: number;
 }
 
-/** Units after a number make it a quantity, never a year: "1950 m", "2040 m", "1991 mm", "2000 %". */
-const UNIT_AFTER = String.raw`(?!\s*(?:%|per\s?cent\b|percent\b|°|km²|km2\b|m²|m2\b|km\b|cm\b|mm\b|m\b|ha\b|kg\b|t\b|metres?\b|meters?\b|kilomet(?:re|er)s?\b|millimet(?:re|er)s?\b|hectares?\b))`;
+/**
+ * Units after a number make it a quantity, never a year: "1950 m", "2040 m", "1991 mm", "2000 %",
+ * "2000 masl".
+ */
+const UNIT_AFTER = String.raw`(?!\s*(?:%|per\s?cent\b|percent\b|°|km²|km2\b|m²|m2\b|masl\b|m\s?a\.?s\.?l\.?|asl\b|km\b|cm\b|mm\b|m\b|ha\b|kg\b|t\b|metres?\b|meters?\b|kilomet(?:re|er)s?\b|millimet(?:re|er)s?\b|hectares?\b))`;
 
 const YEAR = String.raw`\b(?:19|20)\d{2}\b`;
+const MONTH_NUMBER = String.raw`(?:0[1-9]|1[0-2])`;
+const DAY_NUMBER = String.raw`(?:0[1-9]|[12]\d|3[01])`;
+
+/**
+ * Words after which a year can be a date ("in 2022", "since 2019", "from 2019 to 2025",
+ * "until 2025", "between 2019 and 2025", "during 2020"). Not "to" on its own ("rose to 2000"),
+ * "by", "of" or "for", which precede counts; "to" counts only inside a range that starts with one
+ * of these words (AUDIT a46 10c recheck). Anywhere else a four-digit number is a quantity.
+ */
+const DATE_WORD = String.raw`\b(?:[Ii]n|[Ss]ince|[Ff]rom|[Uu]ntil|[Bb]etween|[Dd]uring)\s+`;
+
+/**
+ * After a date word, a year is a date only when the sentence ends, punctuation follows, or a
+ * month, season or function word follows. A noun after it makes it a count: "Herds rose to 2000
+ * head.", "In 2000 households, goats outnumber sheep." (AUDIT a46).
+ */
+const DATE_FOLLOWS = String.raw`(?=\s*(?:$|[.,;:!?)\]]|(?:and|or|the|a|an|when|while|as|after|before|spring|summer|autumn|fall|winter|season|${MONTHS})\b))`;
 
 /** Spans that are always dates or identifiers, whatever the case period. */
 const ALWAYS_DATE: readonly RegExp[] = [
   /\b[a-z][a-z0-9]*_[A-Za-z0-9][A-Za-z0-9_-]*\b/g, // record and period IDs
-  /\b\d{4}-\d{2}-\d{2}\b/g, // ISO dates
-  /\b\d{4}-\d{2}\b/g, // year-month
+  new RegExp(String.raw`\b\d{4}-${MONTH_NUMBER}-${DAY_NUMBER}\b${UNIT_AFTER}`, "g"), // ISO dates
+  new RegExp(String.raw`\b\d{4}-${MONTH_NUMBER}\b${UNIT_AFTER}`, "g"), // year-month
 ];
 
-/** Spans that are dates only when every year in them lies in the case span and no unit follows. */
+/**
+ * Spans that are dates only when every four-digit year in them lies in the case span and no unit
+ * follows: date patterns, and a year or a year range after a date word.
+ */
 const YEAR_DATES: readonly RegExp[] = [
   new RegExp(String.raw`\b\d{1,2}\s+(?:${MONTHS})\.?\s+(${YEAR})${UNIT_AFTER}`, "g"), // 3 April 2022
   new RegExp(String.raw`\b(?:${MONTHS})\.?\s+\d{1,2},\s*(${YEAR})${UNIT_AFTER}`, "g"), // April 3, 2022
   new RegExp(String.raw`\b(?:${MONTHS})\.?\s+(${YEAR})${UNIT_AFTER}`, "g"), // April 2022
-  new RegExp(String.raw`(${YEAR})\s*(?:to|-|\u2013|and)\s*(${YEAR})${UNIT_AFTER}`, "g"), // year ranges
-  new RegExp(String.raw`(${YEAR})${UNIT_AFTER}`, "g"), // a year
+  new RegExp(String.raw`(${YEAR})/(?:\d{2}|(${YEAR}))\b${UNIT_AFTER}`, "g"), // 2022/23, 2022/2023
+  new RegExp(
+    String.raw`${DATE_WORD}(${YEAR})\s*(?:to|-|\u2013|and)\s*(${YEAR})${UNIT_AFTER}${DATE_FOLLOWS}`,
+    "g",
+  ), // from 2019 to 2025.
+  new RegExp(String.raw`${DATE_WORD}(${YEAR})${UNIT_AFTER}${DATE_FOLLOWS}`, "g"), // in 2022, ...
 ];
 
 const NUMBER = /[-+\u2212]?(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?%?/g;
@@ -60,7 +87,9 @@ export function numbersIn(text: string, years: YearSpan | null): FoundNumber[] {
     for (const pattern of YEAR_DATES) {
       masked = masked.replace(pattern, (m: string, ...groups: unknown[]) => {
         const found = groups.filter((g): g is string => typeof g === "string" && /^\d{4}$/.test(g));
-        return found.length > 0 && found.every(inSpan) ? blank(m) : m;
+        // A range is a date only when it runs forward: "from 2010 to 1995" is two numbers.
+        const ascending = found.every((y, i) => i === 0 || Number(y) > Number(found[i - 1]));
+        return found.length > 0 && ascending && found.every(inSpan) ? blank(m) : m;
       });
     }
   }

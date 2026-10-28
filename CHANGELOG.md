@@ -78,6 +78,7 @@ Contracts and design tokens carry their own Semantic Versioning numbers, recorde
 - The bundle importer records each measurement's and observation's own bundle version in its provenance, so superseding a bundle stales evidence that cites only its measurements; records without a stale state pass staleness on to what cites them.
 - A review request's comment must be the host catalog text for its role ("Scientific review requested.", "Community and livelihood review requested." or "Program review requested."); a task never writes it.
 - VC-02 exempts names on the land whether they are drawn into the map canvas or placed over it with the camera's projection; they scale with the view and are checked on the frames.
+- The numeric provenance check reads a four-digit number as a year only in a date pattern or after a date word inside the case span, with "to" only inside an ascending "from X to Y" range; a count after a date word ("rose to 2000", "In 2000 households") is refused, and the repair message suggests the accepted year forms.
 
 ### Fixed
 

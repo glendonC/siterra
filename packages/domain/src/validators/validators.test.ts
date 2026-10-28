@@ -31,17 +31,63 @@ describe("numeric provenance", () => {
   it("a number followed by a unit is never a year (a34)", () => {
     expect(check("Tabant lies at 1950 m.")).toEqual(["1950"]);
     expect(check("The ridge reaches 2040 m.")).toEqual(["2040"]);
-    expect(check("The 2022 total was 2010 mm.")).toEqual(["2010"]);
+    expect(check("In 2022 the total was 2010 mm.")).toEqual(["2010"]);
     expect(check("About 2000 ha are terraced.")).toEqual(["2000"]);
     expect(check("A 2001 % change.")).toEqual(["2001"]);
     expect(check("The ridge reaches 2040 metres.")).toEqual(["2040"]);
+  });
+
+  it("a number followed by a noun, a range with a unit, or masl is never a year (count-noun gap)", () => {
+    expect(check("About 2000 sheep graze here.")).toEqual(["2000"]);
+    expect(check("1995 households use the pasture.")).toEqual(["1995"]);
+    expect(check("Slopes of 1950-60 m.")).toEqual(["1950", "60"]);
+    expect(check("The village sits at 2000 masl.")).toEqual(["2000"]);
+    expect(check("The village sits at 2000 m a.s.l.")).toEqual(["2000"]);
+    expect(check("The 2022 total was low.")).toEqual(["2022"]);
+  });
+
+  it("a count after a date word is a quantity, not a year (a46)", () => {
+    expect(check("Herds rose to 2000 head.")).toEqual(["2000"]);
+    expect(check("The flock grew from 1995 to 2010 animals.")).toEqual(["1995", "2010"]);
+    expect(check("Up to 2000 sheep graze here.")).toEqual(["2000"]);
+    expect(check("In 2000 households, goats outnumber sheep.")).toEqual(["2000"]);
+    expect(check("In 2022 rainfall was low.")).toEqual(["2022"]);
+  });
+
+  it("a bare 'to' never makes a year a date, and a range must run forward (a46 10c recheck)", () => {
+    expect(check("The flock grew to 2000.")).toEqual(["2000"]);
+    expect(check("Herds rose to 2000, then fell.")).toEqual(["2000"]);
+    expect(check("Herds rose to 2000 and then fell.")).toEqual(["2000"]);
+    expect(check("Numbers fell from 2010 to 1995.")).toEqual(["2010", "1995"]);
+    expect(check("The record runs from 2019 to 2025.")).toEqual([]);
+    expect(check("Between 2019 and 2025, the record holds.")).toEqual([]);
+  });
+
+  it("a citation year in brackets is refused, failing closed while the agent cites by source ID", () => {
+    expect(check("Wessels et al. (2012) describe the method.")).toEqual(["2012"]);
+    expect(check("The method is described.", [], ["Wessels et al. (2012)"])).toEqual([]);
+  });
+
+  it("a year counts as a date only in a date pattern or after in, since, from, to, until, between or during", () => {
+    expect(check("The 2022/23 season was dry.")).toEqual([]);
+    expect(check("NDVI in April 2023 was low.")).toEqual([]);
+    expect(check("The flag holds since 2019.")).toEqual([]);
+    expect(check("The record runs from 2019 to 2025.")).toEqual([]);
+    expect(check("The rule held until 2025.")).toEqual([]);
+    expect(check("Between 2019 and 2025 the record.")).toEqual([]);
+    expect(check("In 2022, rainfall was low.")).toEqual([]);
+    expect(check("During 2020 the rain was low.")).toEqual([]);
+    expect(check("The record runs from 2019 to 2025, with gaps.")).toEqual([]);
+    expect(check("In 2023 spring rain was low.")).toEqual([]);
+    expect(check("By 2020 herds had grown.")).toEqual(["2020"]);
+    expect(check("Rainfall was low (2022).")).toEqual(["2022"]);
   });
 
   it("a bare year counts as a date only inside the case's periods", () => {
     expect(check("Tabant lies at 1950.")).toEqual(["1950"]);
     expect(check("In 2040 the pastures.")).toEqual(["2040"]);
     expect(check("In April 1950 the pastures.")).toEqual(["1950"]);
-    expect(check("From 1980 to 2020 the record.")).toEqual(["1980"]);
+    expect(check("From 1980 to 2020 the record.")).toEqual(["1980", "2020"]);
     expect(check("In 2023 the pastures.")).toEqual([]);
     expect(unprovenNumbers("In 2023 the pastures.", allowed, [], null)).toEqual(["2023"]);
   });

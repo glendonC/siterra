@@ -186,6 +186,22 @@ describe("observation task, synthetic replay, memory commit", () => {
     ]);
   });
 
+  it("the repair message for a year written as a count suggests the date forms (10c)", async () => {
+    const result = await validateEvidenceProposal(
+      JSON.stringify({
+        items: [
+          item("2022 NDVI was 0.1439 in April.", ["meas_test_2022-04"]),
+          item("NDVI was 0.15 in April 2022.", ["meas_test_2022-04"]),
+        ],
+      }),
+      { caseId: CASE_ID, store: testStore(), allowedClaimKinds: new Set(["observation"]) },
+    );
+    expect(result.issues.map((i) => i.message)).toEqual([
+      '2022 matches no cited measurement, date, period or excerpt. If it is a year, write it as "in April 2022", "In 2022," or "... in 2022."',
+      "0.15 matches no cited measurement, date, period or excerpt.",
+    ]);
+  });
+
   it("a number the measurements do not hold is rejected, then repaired", async () => {
     const invented = {
       items: [
