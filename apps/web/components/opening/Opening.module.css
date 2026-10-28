@@ -1,0 +1,169 @@
+/* The opening page as approved (DESIGN a5): a centred two-tone paragraph at 48 CSS px in an 860 px column,
+   its source tag in mono beneath, the mark row at the top. The claim arrives faint and wide-tracked and
+   tightens and darkens over 1 s; the tag follows 300 ms later. */
+
+.opening {
+  position: fixed;
+  inset: 0;
+  cursor: default;
+}
+
+.marks {
+  position: absolute;
+  left: 50%;
+  top: 26px;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mark {
+  position: relative;
+  width: 28px;
+  height: 2px;
+  overflow: hidden;
+  background: var(--rule);
+}
+
+.mark::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--ink);
+  transform-origin: left center;
+  transform: scaleX(0);
+}
+
+.mark[data-state="done"]::after {
+  background: var(--grey);
+  transform: scaleX(1);
+}
+
+.mark[data-state="current"]::after {
+  transform: scaleX(1);
+  animation: fill linear both;
+  animation-duration: inherit;
+}
+
+.paper {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: height var(--duration-camera) var(--ease-camera);
+}
+
+.beat {
+  width: 860px;
+  max-width: calc(100vw - 32px);
+  text-align: center;
+}
+
+.sentence {
+  margin: 0;
+  font: 400 var(--type-opening-size) / var(--type-opening-line) var(--font-sans);
+  letter-spacing: -0.005em;
+  text-wrap: balance;
+}
+
+.ink {
+  color: var(--ink);
+  animation: settle 1s var(--ease-arrive) both;
+}
+
+.grey {
+  color: var(--grey);
+  animation: settle 1s var(--ease-arrive) 250ms both;
+}
+
+.tag {
+  margin: 20px 0 0;
+  font: 400 14px / 20px var(--font-mono);
+  letter-spacing: 0.01em;
+  color: var(--grey);
+  animation: fade 300ms var(--ease-arrive) 1.3s both;
+}
+
+.action {
+  margin: 30px 0 0;
+  display: flex;
+  justify-content: center;
+}
+
+.actionButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 8px;
+  border: 0;
+  background: transparent;
+  font: 500 var(--type-command-size) / 24px var(--font-sans);
+  color: var(--ink);
+  cursor: pointer;
+  animation: fade 300ms var(--ease-arrive) both;
+}
+
+.actionButton:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+.glyph {
+  display: inline-grid;
+  place-items: center;
+  min-width: 28px;
+  height: 26px;
+  padding: 0 7px;
+  border: 1px solid var(--rule-strong);
+  border-radius: 5px;
+  font: 500 13px / 1 var(--font-mono);
+  color: var(--ink);
+  background: var(--card);
+}
+
+@keyframes settle {
+  from {
+    opacity: 0.15;
+    letter-spacing: 0.025em;
+  }
+  to {
+    opacity: 1;
+    letter-spacing: -0.005em;
+  }
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fill {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ink,
+  .grey,
+  .tag,
+  .actionButton {
+    animation: fade 150ms linear both;
+  }
+  .mark[data-state="current"]::after {
+    animation: none;
+  }
+}
