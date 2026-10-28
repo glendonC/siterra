@@ -25,6 +25,32 @@ export const LIMITS = {
 
 const KEY_PATTERN = /^[a-z][a-z0-9_]{0,39}$/;
 
+/**
+ * Task kinds that can commit field_requirement Evidence (their specs' claim kinds). A brief package
+ * runs after every one of them in its command, so its field plan sees every open gap the command
+ * adds; host code adds the missing dependencies (lead decision after AGENT 18).
+ */
+export const FIELD_REQUIREMENT_KINDS: readonly PlannableKind[] = [
+  "observation_analysis",
+  "source_research",
+  "livelihood_governance",
+];
+
+/** The plan with every brief_package task depending on every task that can commit a gap. */
+function withBriefDependencies(plan: PlanProposal): PlanProposal {
+  const gapKeys = plan.tasks
+    .filter((t) => FIELD_REQUIREMENT_KINDS.includes(t.kind))
+    .map((t) => t.key);
+  return {
+    ...plan,
+    tasks: plan.tasks.map((t) =>
+      t.kind === "brief_package"
+        ? { ...t, dependsOn: [...new Set([...t.dependsOn, ...gapKeys])] }
+        : t,
+    ),
+  };
+}
+
 export const PlanProposal = ProposePlan;
 
 export type PlanProposal = ProposePlan;
@@ -200,6 +226,21 @@ export function validatePlanProposal(
     plan.tasks.map((t) => ({ key: t.key, dependsOn: t.dependsOn.filter((d) => d !== t.key) })),
   );
   if (cycle) issues.push(issue("limit", "$.tasks", `Dependency cycle: ${cycle.join(" -> ")}.`));
+  if (issues.length > 0) return { ok: false, issues };
 
-  return issues.length > 0 ? { ok: false, issues } : { ok: true, value: plan, issues: [] };
+  const ordered = withBriefDependencies(plan);
+  const after = findCycle(ordered.tasks);
+  if (after) {
+    return {
+      ok: false,
+      issues: [
+        issue(
+          "limit",
+          "$.tasks",
+          `A brief package runs after every task that can add a field requirement, so none of them may depend on it: ${after.join(" -> ")}.`,
+        ),
+      ],
+    };
+  }
+  return { ok: true, value: ordered, issues: [] };
 }

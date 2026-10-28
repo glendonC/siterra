@@ -14,7 +14,9 @@ import type { TaskRecord } from "../records.ts";
 import type { TraceEventDraft } from "../trace.ts";
 import { runPlanTask } from "./plan-task.ts";
 import type { PlanSnapshot } from "./prompt.ts";
-import { planOutputSchema, validatePlanProposal } from "./proposal.ts";
+import { OBSERVATION_SPEC } from "../observation/observation-task.ts";
+import { LIVELIHOOD_SPEC, SOURCE_RESEARCH_SPEC } from "../source/source-task.ts";
+import { FIELD_REQUIREMENT_KINDS, planOutputSchema, validatePlanProposal } from "./proposal.ts";
 
 // All model output here is synthetic replay. These tests show the plan path works on replays;
 // they do not show AF-01, which needs a live model.
@@ -290,6 +292,47 @@ describe("plan validator", () => {
 
   it("accepts the good plan", () => {
     expect(check(GOOD_PLAN).ok).toBe(true);
+  });
+
+  it("runs a brief package after every task that can add a field requirement", () => {
+    const plan = {
+      interpretation: "The command asks for a field plan.",
+      tasks: [
+        task("obs", "observation_analysis"),
+        task("src", "source_research"),
+        task("liv", "livelihood_governance"),
+        task("hyp", "hypothesis_comparison", ["obs"]),
+        task("brief", "brief_package", ["hyp"]),
+      ],
+      clarifyingQuestion: null,
+    };
+    const r = check(plan);
+    expect(r.ok && r.value.tasks.find((t) => t.key === "brief")?.dependsOn).toEqual([
+      "hyp",
+      "obs",
+      "src",
+      "liv",
+    ]);
+    // A gap-adding task that waits for the brief would make a cycle, so the plan is refused.
+    const looped = {
+      ...plan,
+      tasks: [
+        ...plan.tasks.slice(0, 2),
+        task("liv", "livelihood_governance", ["brief"]),
+        ...plan.tasks.slice(3),
+      ],
+    };
+    expect(codes(looped)).toEqual(["limit $.tasks"]);
+  });
+
+  it("names exactly the kinds whose specs can commit a field requirement", () => {
+    const specs = [OBSERVATION_SPEC, SOURCE_RESEARCH_SPEC, LIVELIHOOD_SPEC];
+    expect(
+      specs
+        .filter((s) => s.claimKinds.has("field_requirement"))
+        .map((s) => s.kind)
+        .sort(),
+    ).toEqual([...FIELD_REQUIREMENT_KINDS].sort());
   });
 
   it("rejects text that is not JSON", () => {
