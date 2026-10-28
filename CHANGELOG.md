@@ -64,6 +64,7 @@ Contracts and design tokens carry their own Semantic Versioning numbers, recorde
 - Interface layout: the docked investigation column became floating islands over a full-bleed map (ADR-0040); the primary action reads "Start investigation".
 - Paths: `specs/` became `schemas/`; `research/raw/` and `research/derived/` became the ignored `data/raw/` and `data/interim/`; `design/assets/` became `design/tokens/` and `design/prototype/foundation.css`; `design/high-fidelity/` became `design/prototype/`.
 - Design tokens 1.3 in `design/tokens/`: daylight is the default theme, with the approved hero's paper, ink and map colors, the wetter arm of the rain departure in its own violet hue, the hero type tokens, an ink focus ring, the map leader and sheet, a square card corner, and the contrast report regenerated for every pair.
+- The design reference pages describe the approved hero (design language 1.3): scenes, components, motion, microcopy, voice and tone, UX architecture, the design system, accessibility and language, and the experience storyboard; the drape, the contours and the arrival settle (MOT-01) are P0, and `design/README.md` lists only what is published.
 
 ### Fixed
 

@@ -1,6 +1,6 @@
 # Experience storyboard
 
-The [conceptual prototype](../../design/prototype/index.html) simulates these scenes with labeled illustrative values; it performs no live work. Layout anatomy and the visual budget per state are in [UX architecture](ux-architecture.md), components in [components](components.md), motion IDs (MOT-01 to MOT-13) in [motion](motion.md), map views and tours in [scenes and views](scenes.md), demo timing in the [demo plan](../project/demo-plan.md).
+The approved hero sequence ([scenes and views](scenes.md#the-hero-sequence-design-language-13)) is the reference for how these scenes look; where a scene below and the hero differ, the hero applies. Layout anatomy and the visual budget per state are in [UX architecture](ux-architecture.md), components in [components](components.md), motion IDs (MOT-01 to MOT-13) in [motion](motion.md), map views and tours in [scenes and views](scenes.md), demo timing in the [demo plan](../project/demo-plan.md).
 
 Every scene preserves the same case, area and period context. "Real" means work the implementation must actually perform; values shown in this document are placeholders for layout, not results.
 
@@ -146,7 +146,7 @@ Every scene preserves the same case, area and period context. "Real" means work 
 | Visual state | Export dialog: language (English or French), what is included (brief, field plan, evidence list), the translation status ("Machine-drafted translation, needs local review"), demo labels and outstanding conditions; or a read-only link the user creates and can revoke. |
 | Interaction | Choose language and contents; export a PDF or create the link. |
 | Firm behavior (real) | Muse drafts the French text from the accepted English records; each translated line is bound to its source revision and keeps the original alongside; nothing is sent. |
-| New records | TranslationRecord (contracts 1.3), export record. |
+| New records | TranslationRecord (planned for a later contracts version; not part of contracts 1.3.0), export record. |
 | Motion | None beyond the dialog (MOT-07 timing). |
 | Uncertainty and errors | A source revision that changes after export marks the export stale. No send, email or messaging control exists. |
 

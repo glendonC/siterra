@@ -1,6 +1,84 @@
 # Components
 
-The component catalog: what each component is for, what it binds, how it behaves and how it is built. Layout and budgets: [UX architecture](ux-architecture.md). Tokens: [design system](design-system.md). Motion IDs: [motion](motion.md). Records: [data contracts](data-contracts.md). Pattern sources (VIS, UI and library references): [design references](../explanation/design-references.md), [UI patterns research](../../research/design/ui-patterns.md), [component libraries research](../../research/design/component-libraries.md). Visual examples: [component gallery](../../design/component-gallery/index.html) (conceptual, illustrative values).
+The component catalog: what each component is for, what it binds, how it behaves and how it is built. Layout and budgets: [UX architecture](ux-architecture.md). Tokens: [design system](design-system.md). Motion IDs: [motion](motion.md). Records: [data contracts](data-contracts.md). Pattern sources (VIS, UI and library references): [design references](../explanation/design-references.md), [UI patterns research](../../research/design/ui-patterns.md), [component libraries research](../../research/design/component-libraries.md).
+
+## Hero components (design language 1.3)
+
+The parts of the approved hero ([scenes](scenes.md#the-hero-sequence-design-language-13)). Sizes are CSS px on the 1440-wide layout; colours are the light theme's tokens ([design system](design-system.md)), named here by their roles. Strings and their IDs are in [microcopy](microcopy.md), sections 1 and 1a. The workspace components further down predate the hero; inside the hero sequence its parts apply. Where the five sections, the Views menu and the timeline sit in the hero's layout is not decided yet.
+
+### Card
+
+One card per screen, in a stable place, joined to its place on the land by one leader.
+
+- Place and size: the right third on wide screens (right 32, top 64, 392 wide including its padding), as tall as its content, never full height and never a sidebar; a bottom sheet on narrow screens. Padding 22 top, 24 sides, 20 bottom. Square corners. Background `bg.surface` with the island shadow (0 1 2 ink at 8%, 0 8 28 ink at 10%). Rows divided by `border.subtle`.
+- One card, one face per beat: when the beat changes, the old face fades out and the new one fades in (300 ms each) while the card's height follows its content. The card slides in 40 px from the right over 400 ms when the work starts.
+- Order, top to bottom: the question (15/22, `text.secondary`; a viewer's own question branches from it under a thin grey corner, in `text.primary`); a working line while work runs; the status ("Simulated answer.", mono 12/16, `text.primary`); the two-tone statement (22/30, the claim in `text.primary` and its limit in `text.secondary`); at most one figure (44/50 light, unit 22) or one ruler; source and period (mono 12/16, `text.secondary`); the Meaning line (15/22, `text.primary`); open items as an open ring (9 px, 1 px ink) with their text. The beat's one action is a key hint at the bottom left, not a button on the card.
+- Work rows (15/22): the step number in mono 12, the step's text and a status mark, an 8 px ring: grey outline while waiting; accent outline with a soft 3 px accent ring at 15% while running; grey fill when done. The running row's text is `text.primary`, waiting and done rows `text.secondary`. Nothing is filled to mark the running row.
+- Chips: mono 12/18 in `text.primary` with a `border.subtle` outline. The Why chip reads "Why", with no colon, and opens the source.
+- Focusable lines (the verdict's flags, the field plan's statement) open a focus note under the line on hover or keyboard focus: 13/18 `text.primary` on `bg.surface` with the popover shadow, as wide as the card's text. Keyboard focus on a card line also draws the 2 px focus ring; the note alone does not show focus.
+
+### Leader
+
+One per card, from the card to the place it is about: 1 px `map.leader` (ink at 70%). It leaves the card's left edge 12 px below the top of the line it belongs to, runs 28 px out, then goes straight to the place. On a located thing (the selected stem, the season on show) it ends in a dot of 3 px radius in full ink; when the card is about the whole catchment it ends on the catchment line with a 12 px tick across its end (1.2 px, `map.leader-tick`, ink at 90%). It appears whole, in one frame, once the statement and its source have settled, and never draws on.
+
+### Key hints
+
+Keys instead of buttons. A glyph box (at least 22 by 22, padding 0 5, 1 px `key.glyph-border` (ink at 35%), `radius.key` 3, mono 12, on `bg.surface`) then a label (sans 15/20, `text.primary`), 8 px apart. One row at the bottom left (left 40, bottom 34), hints 24 px apart: the beat's one action first, then "F Read flat". Keyboard focus draws a 2 px ink ring with a 2 px offset. Each beat's action is in [microcopy](microcopy.md), section 1a.
+
+### Command line
+
+One line: a "/" glyph (mono 15/20, `text.secondary`), a thin separator, the input (17/24, `text.primary`, caret in the accent), a `border.subtle` rule beneath; 580 wide, centred, 34 from the bottom. "Ask Siterra" is its placeholder (`text.secondary`) and its accessible name. At arrival it holds the case question; after the arrival it is empty and shows its placeholder. A question the viewer sends turns the accent for 400 ms, leaves the line and becomes a line of the card; it never becomes a chat bubble.
+
+### Key slot
+
+The key of the measured layer on show, at the bottom left above the key hints (left 40, bottom 92): mono 11/14 in `text.secondary`, the layer's title, then its scale's ends or its classes as swatches. Hover or keyboard focus opens its focus note (12/17 `text.primary` on `bg.surface`, 340 wide, popover shadow) and draws a 2 px ink ring with a 4 px offset.
+
+### Sky statement
+
+The verdict is written in the paper sky above the land (left 48, top 58, 800 wide): the status in mono 13/18 `text.primary`, then the two-tone statement at 48/54 with −0.005em tracking, the claim in `text.primary` and its limit in `text.secondary`. The card then carries the figure, its source, method and Meaning line.
+
+### Mode line and instruments
+
+The mode line sits top centre (mono 11/16, `text.secondary`). The instruments sit bottom right (right 40, bottom 38; mono 11/14, `text.secondary`): a north mark that turns with the view, "N" and "Relief ×2" on one row, the imagery note under it.
+
+### Stems and marks on the land
+
+| Part | Drawing |
+|---|---|
+| Outlet beam | `map.beam` stem 1.6 px up from the outlet with a soft column of the same colour at 22%; at its foot the focus ring (0.32 km: `map.outlet-ring-casing` 3.2 px under `map.outlet-ring-core` 1.2 px) |
+| Village stems | `map.stem` 1 px with a ring at the foot; the name in IBM Plex Sans Medium 13/16, tracking 0.02em, `text.primary` |
+| Selected evidence stem | `map.stem-selected` 1.8 px with a 1.4 px ring at its foot; its name at the top, where the leader ends |
+| Names on the land | IBM Plex Sans Medium with light tracking on a thin paper halo (`map.label-halo`), never a dark outline; the valley name the largest but light; written on the ground in perspective |
+| Catchment line | `map.outline` 1.5 px on the ridge crest plus 30 m over `map.outline-casing` 4.2 px, drawn as screen-space lines with round caps |
+| Gap | The `data.no-observation-hatch` on the ground with its reason written where it is (mono 11/16 beside a hatch swatch) |
+
+### Season stems
+
+The one 3D object in the dry-year challenge, beside the catchment: one stem per wet season since 1991/92 (`data.season.stem`, 1.3 px), the season before the one on show (`data.season.stem-recent`, 2 px) and the season on show (`data.season.stem-on-show`, 3 px, its label in the accent), each with a dot at its top; the plane at the 1991 to 2020 mean (`data.season.plane`) with the mean line (`data.season.mean`, 1.2 px); the near-normal band as a slab (`data.season.slab` with `data.season.slab-edge`); the zero line (`data.season.base`). Labels in mono 11/16 beside their stem or line.
+
+### Sheets
+
+Measured layers lift as thin sheets cut to the catchment outline (`map.sheet`, the card colour at 38%, with a 1.2 px `map.sheet-edge`, ink at 70%), each labelled at its east edge by the question it answers (IBM Plex Sans Medium 15/20 `text.primary` on a thin paper halo, its number in mono 12 `text.secondary`: "01 Was the season unusually dry?"). They lift 0.7 s apart; when its step runs, a sheet comes down onto the land in 900 ms and gives way to the measurement front. A stack that stays up is not used.
+
+### Opening and globe parts
+
+| Part | Drawing |
+|---|---|
+| Beat | A centred paragraph in a column of about 38 characters (860 wide), IBM Plex Sans 48/52, the claim in `text.primary` and the qualifier in `text.secondary`; line breaks fixed at the settled tracking |
+| Source tag | Mono 14/20 with 0.01em tracking, `text.secondary`, 20 below the beat |
+| Mark row | Four marks, 28 by 2, 6 apart, centred at the top: the current one fills in ink as its beat holds, done ones grey, the rest ink at 16% |
+| Case mark | A ring in the accent (1.5 px, about 12 px across on screen at any zoom) and a 6 px point in the accent with a 1.5 px paper ring |
+| Range name | IBM Plex Sans Medium 12, tracking 0.1em, ink on a 3 px paper halo, set on a smooth curve along the range just north of the case |
+| Legend | A swatch of the lit land (`map.biome-swatch` with a 1 px `map.biome-swatch-edge` inside) and "Rangeland biomes, potential extent (Rangelands Atlas method)" in 12/16 grey, on a paper backing |
+| Key hints | The valley's form ([Key hints](#key-hints)), here in one row centred at the bottom (bottom 34) on a paper backing. The approved opening and globe frames drew larger ones (28 by 26 glyph boxes, Medium 14/20 labels, the action at Medium 17/24); the build uses the valley's form everywhere, and the same for the Sources and notices dialog |
+
+### Credit line and notices
+
+One credit line on every frame: mono 10/14, `text.secondary`, bottom right (right 40, bottom 14), on a paper halo over the land or a paper backing over the globe, ending in "Sources and notices" (`text.link`, underlined, offset 2) which opens a dialog with every attribution and the Copernicus liability sentences. A credit line changes in one frame, never by a cross-fade.
+
+### Scope
+
+The arrival reaches the scope list (what Siterra will and will not do, [microcopy](microcopy.md#2-scope-popover)) in one interaction: the mode line is that control. Enter or a click on it opens the scope popover; it takes the 2 px ink focus ring, and its accessible name adds "What Siterra will and will not do". The approved frames do not show the popover, and the frame gains nothing else.
 
 ## Catalog decisions
 
@@ -76,11 +154,11 @@ A component in `loading` binds the task IDs that will produce its records, so it
 |---|---|
 | Question | Where is this, and what does the evidence look like on the ground? |
 | Data | GeoSelection geometry and role; TemporalObservation map asset for the committed period; strata and rainfall grid when composed; context features for views |
-| Layers (bottom to top) | Relief (multidirectional hillshade), contours (P1), water and place labels, area outline with its role label, one data raster, excluded-area hatch, rainfall grid, strata, linked highlight |
-| Rules | Full-bleed, one map instance, never resized during a transition; camera padding follows the islands. One data raster at a time. Oblique and 3D only for orientation; measurement views are top-down with terrain off (MOT-12). Never a degradation color scale from vegetation alone |
+| Layers (bottom to top) | Relief (one matte material under one low key light, [design system](design-system.md#cartography)), the Sentinel-2 summer imagery as the land's material (display only), contours, water and place labels, area outline with its role label, one data raster, excluded-area hatch, rainfall grid, strata, linked highlight |
+| Rules | Full-bleed, one map instance, never resized during a transition; camera padding follows the islands. One data raster at a time. The story's oblique views paint measured layers on the relief at true cell size with the exaggeration written beside the view; the flat reading (MOT-12) is top-down with terrain off. Never a degradation color scale from vegetation alone |
 | States | Tiles loading (previous view kept); no map asset for the period ("No map observation for this period"); WebGL unavailable (static relief image and the area as text) |
 | Accessibility | Supplementary: every fact on the map is also in the sheet; the map region is labeled with area and period |
-| Priority | P0 relief, area, raster; P1 contours |
+| Priority | P0: relief, imagery, contours, area, raster (the approved hero) |
 
 ## CMP-03 Timeline
 

@@ -6,7 +6,7 @@ Status: adopted 2026-10-27 ([ADR-0043](../decisions/0043-write-in-one-plain-voic
 
 This guide covers every string a person reads in Siterra: labels, buttons, statuses, errors, empty states, review text, legends, exports, screen-reader announcements, and the model-written text that the validator accepts (evidence statements, assessments, planner interpretations, relationship explanations, brief lines).
 
-It does not cover user-typed text, verbatim source excerpts, citations, or identifiers. Those are shown exactly as they are.
+It does not cover user-typed text, verbatim source excerpts, citations, identifiers, or attribution and licence notices quoted as the licensor requires. Those are shown exactly as they are.
 
 Rules already set elsewhere still apply: the actor is Siterra, never staff or personas (ADR-0005, ADR-0033); sentence case, no all-caps eyebrows, and no middle-dot strings (`docs/reference/design-system.md`); no prohibited claims (`docs/explanation/scientific-basis.md`); cautious hypothesis status words (`docs/reference/data-contracts.md`); buttons that name their effect (`docs/reference/review-and-authority.md`).
 
@@ -35,7 +35,7 @@ Why: GOV.UK makes plain English mandatory but allows technical terms where they 
 
 | Do | Do not |
 |---|---|
-| Rainfall grid about 5 km: 31 cells touch the catchment, 3 of them fully inside. | Leveraging cutting-edge satellite intelligence to unlock robust, seamless insights. |
+| Rainfall grid about 5 km: 33 cells touch the catchment, 2 of them fully inside. | Leveraging cutting-edge satellite intelligence to unlock robust, seamless insights. |
 | Vegetation index (NDVI) | Vegetation health score |
 
 ### 3. Name the gap, then the next step
@@ -95,7 +95,7 @@ The voice stays fixed; the tone follows what the reader is going through [V: WRT
 1. Status words, never probabilities, confidence levels, or ranks. Explanations carry one of five status words (see [microcopy](microcopy.md), section 9). Siterra never writes "likely", "probably", "high confidence", a percentage chance, a score, or a rank for an explanation or a response. [P: data contracts]
 2. Lack of evidence is its own status. "Cannot be assessed with current data" always lists what is missing and what would decide it. Its description says it is not the same as ruled out.
 3. Observation first, interpretation second. State the measurement with its scope, then the interpretation in its own sentence with its claim kind. For timing, use "coincides with" or "came after", and add "Timing alone does not show cause" wherever a cause could be read in.
-4. Bound every number. Pair values with area, period, reference, and coverage: "82% of area observed", "31 cells of about 5 km". Prefer a number to a hedge: "In 23 of 84 months, coverage was below the threshold", not "data may be limited".
+4. Bound every number. Pair values with area, period, reference, and coverage: "82% of area observed", "33 cells of about 5 km". Prefer a number to a hedge: "In 23 of 84 months, coverage was below the threshold", not "data may be limited".
 5. Precision follows the method. NDVI to two decimals, rainfall to whole millimeters, areas to one decimal km², coverage to whole percent. Never add decimals for effect. [P: design system]
 6. Label what is modeled, spread, or unknown. Modeled values say "Model estimate". A spatial band says "spread across the catchment, not uncertainty". Unknown uncertainty is "not quantified", never zero. [P: components, data contracts]
 7. Keep other people's calibrated language inside their attribution. If a published assessment uses calibrated terms (for example IPCC "likely" or "high confidence"), they stay inside the attributed published-context statement. Siterra never restates them in its own voice.
@@ -124,7 +124,7 @@ The voice stays fixed; the tone follows what the reader is going through [V: WRT
 | contradicted by | disproves, rules out | One accepted observation conflicts with the explanation as stated; not disproof of every variant [P] |
 | coincides with, came after | led to, drove, caused, due to | Timing is not attribution [P: prohibited claims] |
 | below the same-month median | decline, loss, degradation | One period below a reference is not a trend or damage [P] |
-| below-average rainfall | drought | No drought index is computed [J] |
+| below-average rainfall; a dry season or a dry year | drought | No drought index is computed [J]. "Drought" appears only in the viewer's own question, which is shown as typed (design language 1.3; VT-26) |
 | change between periods | trend | No trend analysis runs in P0 (ADR-0023) [P] |
 | 0.03 below | a significant difference | No statistical test is run; "significant" implies one [J] |
 | about 5 km | ~5 km, approximately | Plain and read correctly by screen readers [J] |
@@ -426,9 +426,20 @@ Lint errors everywhere except strings allowlisted by ID for the "not claimed" pa
 | `link` | Link text | `ui` rules plus VT-42 |
 | `model` | Model-written fields before commit: evidence statements, assessments, relationship explanations, planner interpretations, brief lines | Rules with scope `model`. Errors reject the item as a validation issue, like the numeric provenance check, so the task retries with the issue listed. Warnings are logged in the trace. |
 | `docs` | Repository Markdown | VT-01 only |
-| never | User-typed text, verbatim source excerpts, citations, identifiers, code, and this guide's own examples | None |
+| never | User-typed text, verbatim source excerpts, citations, identifiers, attribution and licence notices quoted as the licensor requires, code, and this guide's own examples | None |
 
-Exceptions are allowlisted by string ID with a written reason, never by pattern. Known cases: the area card's "Not claimed" line must contain "degradation"; the responses note says "No option is ranked or scored"; the "What this case does not claim" panel lists prohibited claims by design.
+Exceptions are allowlisted by string ID with a written reason, never by pattern. Known cases: the area card's "Not claimed" line must contain "degradation"; the "What this case does not claim" panel lists prohibited claims by design; and five strings say that nothing is ranked, which VT-21 warns on in interface text: the responses note "No option is ranked or scored", the ledger caption "Siterra does not rank them.", the options interpretation "It will not rank them.", the Responses summary "4 possible responses, not ranked." and the hero's "5 explanations, none ranked".
+
+The hero's strings ([microcopy](microcopy.md#1-demo-opening), sections 1 and 1a) carry these handled cases. The opening page quotes cited published results exactly as worded in [problem.md](../explanation/problem.md), outside the product chrome, as title overlays with their source tags:
+
+| String ID | Rules | Handling and reason |
+|---|---|---|
+| `opening.beat2` | VT-20 error ("degraded"), VT-31 warning ("40 per cent") | Allowlisted. Cited published result (SCI-29) quoted exactly as worded in problem.md; shown outside the product chrome as a title overlay with its source tag; describes a simulation study, not this valley. It is Siterra's paraphrase of the abstract, not a verbatim excerpt, so the excerpt scope does not apply |
+| `opening.beat3` | VT-34 warning ("six years"), VT-50 warning (28 words) | Kept as the approved source wording; warnings recorded with that reason |
+| `opening.beat1` source tag | VT-08 warning ("UNCCD") | Cleared: UNCCD, FAO, IPBES and UNEP are in the acronym allowlist |
+| `valley.work.explanations.done` | VT-21 warning ("ranked") | Kept: it says that no explanation was ranked |
+| `valley.challenge.question` | VT-26 error ("drought") | Not linted: the viewer's own question, shown as typed (scope `never`); Siterra's own text never repeats the word |
+| `credit.*` and `notices.*` | VT-03 warnings ("2019-2025", "2010-2014"), VT-08 warnings ("DLR", "COPERNICUS") | Not linted: attribution and licence notices quoted as the licensor requires (scope `never`) |
 
 ### Rule summary
 
@@ -459,6 +470,7 @@ Exceptions are allowlisted by string ID with a written reason, never by pattern.
 | VT-23 | Warn | model | Recommendation language for responses | Candidate response |
 | VT-24 | Warn | model | drought, reveals, significant, trend, verified | Check the claim |
 | VT-25 | Warn | model | Markdown in model text | Plain text |
+| VT-26 | Error | ui | "drought" in Siterra's own text | "a dry season", "a dry year" |
 | VT-30 | Warn | ui, model | Missing space before a unit: 5km | 5 km |
 | VT-31 | Warn | ui, model | "82 %" or "82 percent" | 82% |
 | VT-32 | Error | ui, model | Numeric dates: 10/26/2026 | 26 Oct 2026 |
@@ -485,7 +497,7 @@ const PROPER = [
   "Oued", "Lakhdar", "Assif", "Earth", "Search", "Muse", "Spark", "Meta", "French", "Arabic", "Darija",
   "Tamazight", "Tashelhit", "Amazigh", "English", "Place", "Observations", "Explanations", "Responses", "Next",
   "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November",
-  "December", "Jan", "Feb", "Mar", "Apr", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "WorldCover",
+  "December", "Jan", "Feb", "Mar", "Apr", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "WorldCover", "Mountains",
 ];
 const PROPER_ALT = PROPER.map((w) => w.replace(/[-]/g, "\\-")).join("|");
 
@@ -498,15 +510,15 @@ export const RULES = [
   { id: "VT-05", sev: "warn", scope: ["ui", "model"], re: /\u2026|\.{3}/g, fix: "No ellipsis in status text. Truncation is done by CSS." },
   { id: "VT-06", sev: "error", scope: ["ui", "model"], re: /!/g, fix: "No exclamation marks." },
   { id: "VT-07", sev: "error", scope: ["ui", "model"], re: /(?![\u00A9\u00AE\u2122])\p{Extended_Pictographic}/gu, fix: "No emoji or pictographs. Use the icon set with a text label." },
-  { id: "VT-08", sev: "warn", scope: ["ui"], re: /\b(?!(?:NDVI|CHIRPS|DEM|GLO|ESA|OSM|HCP|SCI|GPS|UCSB|URL|API|PDF|CSV|JSON|SSE|UTC|ISO|WCAG|GIS|CRS|COG|STAC|USGS|EROS|NOAA|NASA|SRTM|GMTED|ETOPO|IRCAM)\b)[A-Z]{3,}\b/g, fix: "No all caps. Use sentence case: 'Live', not 'LIVE'." },
+  { id: "VT-08", sev: "warn", scope: ["ui"], re: /\b(?!(?:NDVI|CHIRPS|DEM|GLO|ESA|OSM|HCP|SCI|GPS|UCSB|URL|API|PDF|CSV|JSON|SSE|UTC|ISO|WCAG|GIS|CRS|COG|STAC|USGS|EROS|NOAA|NASA|SRTM|GMTED|ETOPO|IRCAM|UNCCD|FAO|IPBES|UNEP|GIEWS)\b)[A-Z]{3,}\b/g, fix: "No all caps. Use sentence case: 'Live', not 'LIVE'." },
   { id: "VT-09", sev: "warn", scope: ["label"], re: new RegExp(`(?<=\\S\\s+)(?<![:.?!]\\s)(?!(?:${PROPER_ALT})\\b)[A-Z][a-z]+`, "g"), fix: "Sentence case: capitalize only the first word and proper nouns (allowlist in the rule)." },
 
   // B. Words and phrases
-  { id: "VT-10", sev: "error", scope: ["ui"], modelSev: "warn", re: /\b(?:delv(?:e|es|ed|ing)|tapestr(?:y|ies)|testaments?|underscor(?:e|es|ed|ing)|showcas(?:e|es|ed|ing)|pivotal|intricac(?:y|ies)|intricate(?:ly)?|meticulous(?:ly)?|commendabl[ey]|noteworthy|invaluable|groundbreaking|realms?|boast(?:s|ed|ing)?|garner(?:s|ed|ing)?|vibrant|camaraderie|palpable|amidst|nestled|renowned|insights?)\b/gi, fix: "Word overused in LLM text. Use the plain word from the replacement table." },
-  { id: "VT-11", sev: "error", scope: ["ui"], modelSev: "warn", re: /\b(?:leverag(?:e|es|ed|ing)|utili[sz](?:e|es|ed|ing|ation)|robust(?:ly|ness)?|seamless(?:ly)?|empower(?:s|ed|ing|ment)?|unlock(?:s|ed|ing)?|harness(?:es|ed|ing)?|holistic(?:ally)?|synerg(?:y|ies|istic)|cutting[- ]edge|state[- ]of[- ]the[- ]art|next[- ]gen(?:eration)?|game[- ]?chang(?:er|ers|ing)|revolutioni[sz](?:e|es|ed|ing)|revolutionary|transformative|streamlin(?:e|es|ed|ing)|facilitat(?:e|es|ed|ing)|supercharg(?:e|es|ed|ing)|world[- ]class|best[- ]in[- ]class|AI[- ]powered|powered by AI)\b/gi, fix: "Corporate or marketing word. Say what Siterra does: 'use', 'checked', 'lets you'." },
+  { id: "VT-10", sev: "error", scope: ["ui", "model"], modelSev: "warn", re: /\b(?:delv(?:e|es|ed|ing)|tapestr(?:y|ies)|testaments?|underscor(?:e|es|ed|ing)|showcas(?:e|es|ed|ing)|pivotal|intricac(?:y|ies)|intricate(?:ly)?|meticulous(?:ly)?|commendabl[ey]|noteworthy|invaluable|groundbreaking|realms?|boast(?:s|ed|ing)?|garner(?:s|ed|ing)?|vibrant|camaraderie|palpable|amidst|nestled|renowned|insights?)\b/gi, fix: "Word overused in LLM text. Use the plain word from the replacement table." },
+  { id: "VT-11", sev: "error", scope: ["ui", "model"], modelSev: "warn", re: /\b(?:leverag(?:e|es|ed|ing)|utili(?:s|z)(?:e|es|ed|ing|ation)|robust(?:ly|ness)?|seamless(?:ly)?|empower(?:s|ed|ing|ment)?|unlock(?:s|ed|ing)?|harness(?:es|ed|ing)?|holistic(?:ally)?|synerg(?:y|ies|istic)|cutting[- ]edge|state[- ]of[- ]the[- ]art|next[- ]gen(?:eration)?|game[- ]?chang(?:er|ers|ing)|revolutioni(?:s|z)(?:e|es|ed|ing)|revolutionary|transformative|streamlin(?:e|es|ed|ing)|facilitat(?:e|es|ed|ing)|supercharg(?:e|es|ed|ing)|world[- ]class|best[- ]in[- ]class|AI[- ]powered|powered by AI)\b/gi, fix: "Corporate or marketing word. Say what Siterra does: 'use', 'checked', 'lets you'." },
   { id: "VT-12", sev: "error", scope: ["ui", "model"], re: /\b(?:it(?:['\u2019]s| is) (?:important|worth|crucial|essential) to (?:note|remember|highlight|mention)|it(?:['\u2019]s| is) worth noting|in today['\u2019]s (?:fast[- ]paced|ever[- ]changing|digital|modern) (?:world|age|landscape)|navigat(?:e|es|ed|ing) the (?:complexit(?:y|ies)|landscape|intricacies|challenges)|(?:a|the) testament to|plays? an? (?:crucial|vital|pivotal|key|significant|important|central) role|in the heart of|setting the stage for|indelible mark|deeply rooted|(?:let['\u2019]s|let us) (?:dive|delve)|deep[- ]dive|dive (?:in|into)|I hope this helps|great question|as an AI|in conclusion|at the end of the day|rich (?:tapestry|heritage))\b/gi, fix: "Stock phrase. Delete it and state the fact." },
   { id: "VT-13", sev: "warn", scope: ["ui", "model"], re: /\bnot (?:only|just|merely)\b[^.?!]{0,80}?\bbut\b|\b(?:it|this)(?:['\u2019]s| is) not\b[^.?!]{0,60}?[,;:]\s*(?:it|this)(?:['\u2019]s| is)\b/gi, fix: "Negative parallelism ('not only X but Y', 'it is not X, it is Y'). State the point directly." },
-  { id: "VT-14", sev: "error", scope: ["ui", "model"], re: /\b(?:[Ww]e(?:['\u2019](?:re|ve|ll|d))?|[Oo]urs?|us)\b|\b(?:[Oo]ur|[Tt]he) (?:team|analysts?|experts?|scientists?|consultants?|staff)\b|\b(?:[Aa]nalysts?|[Cc]onsultants?|[Ee]xperts?) (?:found|reviewed|checked|recommend(?:s|ed)?|believe)\b/g, fix: "The actor is Siterra. No 'we', 'our team' or staff." },
+  { id: "VT-14", sev: "error", scope: ["ui", "model"], re: /\b(?:[Ww]e(?:(?:'|\u2019)(?:re|ve|ll|d))?|[Oo]urs?|us)\b|\b(?:[Oo]ur|[Tt]he) (?:team|analysts?|experts?|scientists?|consultants?|staff)\b|\b(?:[Aa]nalysts?|[Cc]onsultants?|[Ee]xperts?) (?:found|reviewed|checked|recommend(?:s|ed)?|believe)\b/g, fix: "The actor is Siterra. No 'we', 'our team' or staff." },
   { id: "VT-15", sev: "warn", scope: ["ui", "model"], re: /\b(?:Siterra|the AI|the model|the system|the agent)\s+(?:thinks|believes|feels|knows|understands|wants|hopes|is (?:thinking|confident|sure|certain|excited|happy|sorry|worried|reasoning))\b|^(?:Thinking|Reasoning|Pondering)\b/gim, fix: "Describe actions, not mental states: 'Siterra compared', 'Siterra could not assess'." },
   { id: "VT-16", sev: "warn", scope: ["ui", "model"], re: /\b(?:simply|easily|obviously|clearly|basically|essentially|actually|really|very|quite|somewhat|arguably|relatively|to some extent|it (?:seems|appears)(?: that)?|may potentially|could possibly|might possibly)\b|\bjust\b(?! now)/gi, fix: "Filler or stacked hedge. Delete it, or name the actual limit." },
   { id: "VT-17", sev: "warn", scope: ["ui"], re: /\b(?:oops|uh[- ]oh|whoops|sorry|please|something went wrong|(?:an )?(?:unknown|unexpected) error|error (?:has )?occurred|invalid)\b/gi, fix: "Vague or apologetic error. Say what happened, what is kept, and what to do." },
@@ -515,11 +527,12 @@ export const RULES = [
 
   // C. Honesty
   { id: "VT-20", sev: "error", scope: ["ui", "model"], re: /\b(?:overgraz(?:ed|ing)|degrad(?:ed|ation|ing)|damag(?:e|ed|ing)|crisis|carrying capacity|animal units?|biomass|restor(?:ed|ation) (?:success|achieved|works)|(?:communit(?:y|ies)|households?|herders?) (?:agreed|approved|consented|support(?:s|ed)?)|consent (?:obtained|given|granted|secured)|approved by (?:the )?(?:community|communities|authorit(?:y|ies))|prov(?:es|ed|en)|confirm(?:s|ed)? (?:that )?(?:grazing|overgrazing|drought|degradation)|caused by|due to (?:grazing|overgrazing|livestock|herding|drought))\b/gi, fix: "Prohibited claim. Allowed only in the 'not claimed' panel strings (allowlist by string ID)." },
-  { id: "VT-21", sev: "error", scope: ["model"], uiSev: "warn", re: /\b(?:likely|unlikely|likelihood|probabl(?:e|y)|probability|almost certain(?:ly)?|virtually certain|(?:high|low|medium|moderate)(?:ly)? confiden(?:t|ce)|confidence (?:level|score|interval)|\d{1,3}\s?% (?:chance|likely|probability|confidence|confident|certain(?:ty)?)|scor(?:e|es|ed|ing)|rank(?:s|ed|ing)?|best option|top option|winner)\b/gi, fix: "No probabilities, confidence or ranking. Use a status word plus what supports, contradicts and is missing." },
+  { id: "VT-21", sev: "error", scope: ["ui", "model"], uiSev: "warn", re: /\b(?:likely|unlikely|likelihood|probabl(?:e|y)|probability|almost certain(?:ly)?|virtually certain|(?:high|low|medium|moderate)(?:ly)? confiden(?:t|ce)|confidence (?:level|score|interval)|\d{1,3}\s?% (?:chance|likely|probability|confidence|confident|certain(?:ty)?)|scor(?:e|es|ed|ing)|rank(?:s|ed|ing)?|best option|top option|winner)\b/gi, fix: "No probabilities, confidence or ranking. Use a status word plus what supports, contradicts and is missing." },
   { id: "VT-22", sev: "error", scope: ["ui", "model"], re: /\b(?:vegetation|pasture|rangeland|land|ecosystem) health\b/gi, fix: "NDVI is not health. Say 'vegetation index (NDVI)'." },
   { id: "VT-23", sev: "warn", scope: ["model"], re: /\brecommend(?:s|ed|ation|ations)?\b|\bthe best (?:option|response|choice)\b|\bshould adopt\b/gi, fix: "Siterra does not recommend responses in P0. Say 'candidate response'." },
   { id: "VT-24", sev: "warn", scope: ["model"], re: /\bdrought\b|\breveal(?:s|ed|ing)?\b|\bdemonstrat(?:es|ed|ing) that\b|\bsignifican(?:t|tly|ce)\b|\btrends?\b|\b(?:verified|confirmed)\b/gi, fix: "Check the claim: 'below-average rainfall' unless a drought index was computed; no 'significant' without a named test; no 'trend' without a trend analysis; 'verified' only for verified outcomes." },
   { id: "VT-25", sev: "warn", scope: ["model"], re: /\*\*[^*\n]+\*\*|__[^_\n]+__|^#{1,6}\s/gm, fix: "No markdown in model text. The renderer formats records." },
+  { id: "VT-26", sev: "error", scope: ["ui"], re: /\bdroughts?\b/gi, fix: "Siterra's own text says 'a dry season' or 'a dry year'; no drought index is computed. 'Drought' appears only in the viewer's own words, shown as typed." },
 
   // D. Numbers, units, dates
   { id: "VT-30", sev: "warn", scope: ["ui", "model"], re: /\b\d+(?:[.,]\d+)?(?:km²|km2|km|mm|m|ha|min)\b/g, fix: "Space between number and unit: '5 km', '3,690 m'." },
@@ -566,7 +579,9 @@ export function lint(text, kind) {
 
 ### Test results
 
-Tested in Node 24.15 against 128 cases (at least one that must match and one that must not, per rule) and 13 clean proposed strings: 0 failures. All 190 proposed strings in [microcopy](microcopy.md) pass, except "degradation" in the allowlisted "Not claimed" line. A heuristic scan of 370 strings from `design/prototype/` found 4 real issues: "via" in a source venue, "Three villages" and "Four response options" (numerals), and "millimetres" (US spelling). Quoted strings in the storyboard add 4 middle-dot separators. The test files are not in the repository; the build recreates them from the patterns above.
+Tested in Node 24.15 against 128 cases (at least one that must match and one that must not, per rule) and 13 clean proposed strings: 0 failures. All 190 proposed strings in [microcopy](microcopy.md) pass, except "degradation" in the allowlisted "Not claimed" line. A heuristic scan of 370 strings from the first prototype (not published) found 4 real issues: "via" in a source venue, "Three villages" and "Four response options" (numerals), and "millimetres" (US spelling). Quoted strings in the storyboard add 4 middle-dot separators. The test files are not in the repository; the build recreates them from the patterns above.
+
+On 27 Oct 2026 the scopes of VT-10, VT-11 and VT-21 in the patterns were corrected to `ui` and `model`, as the rule summary states (before, VT-10 and VT-11 ran on interface text only and VT-21 on model text only, so their second severities never applied), and VT-26 was added. The 128-case test above predates these changes; the build reruns it. With the corrected patterns, the hero's 99 strings (opening, globe, dive and the valley sequence, [microcopy](microcopy.md) sections 1 and 1a) give findings on 6; each string was checked to appear verbatim in the approved hero, except two the docs define: the challenge's action label, named to match the next beat, and the mode line's added accessible name, all handled in the table above, and the place names "Atlas Mountains, Morocco" and "High Atlas Mountains" pass with "Mountains" in the proper-noun list. Across the other 351 proposed table entries in microcopy the changes add VT-21 warnings on the four "not ranked" strings listed as known cases and no error, and GIEWS in the acronym allowlist clears one VT-08 warning.
 
 ### What lint cannot catch (review checklist)
 
@@ -582,4 +597,4 @@ Tested in Node 24.15 against 128 cases (at least one that must match and one tha
 
 ## Applied to the specifications
 
-The conflicts this guide found in the earlier documents were resolved on 2026-10-27: the case card's place line and mode label ("Live", or "Replay of live run" with its date) replace the middle-dot eyebrow and the all-caps badge; status and count are separate elements; NDVI shows two decimals; US spelling throughout; "Aït Bouguemez" in Siterra's own text; "Defer decision"; "Review revision N"; "Needs reassessment"; "Contradicted by available evidence" as the display label of `inconsistent`; the product promise names Siterra, not a team; the director has the visible label "Ask Siterra"; single translated statements carry "Machine-drafted translation" with "Show original", and exported documents carry "Machine-drafted translation, needs local review".
+The conflicts this guide found in the earlier documents were resolved on 2026-10-27: the case card's place line and mode label ("Live", or "Replay of live run" with its date) replace the middle-dot eyebrow and the all-caps badge; status and count are separate elements; NDVI shows two decimals; US spelling throughout; "Aït Bouguemez" in Siterra's own text; "Defer decision"; "Review revision N"; "Needs reassessment"; "Contradicted by available evidence" as the display label of `inconsistent`; the product promise names Siterra, not a team; the director has the visible label "Ask Siterra" (the approved hero later replaced it with the "/" glyph and the placeholder "Ask Siterra", which is also its accessible name; [microcopy](microcopy.md), sections 1a and 5); single translated statements carry "Machine-drafted translation" with "Show original", and exported documents carry "Machine-drafted translation, needs local review".

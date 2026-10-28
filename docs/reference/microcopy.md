@@ -1,10 +1,11 @@
 # Microcopy
 
-Status: adopted string set for the build, 2026-10-27 ([ADR-0043](../decisions/0043-write-in-one-plain-voice-and-lint-product-copy.md)). The build moves these strings into message catalogs (I18N-01); the catalog then becomes the source of truth.
+Status: adopted string set for the build, 2026-10-27 ([ADR-0043](../decisions/0043-write-in-one-plain-voice-and-lint-product-copy.md)); sections 1 and 1a updated the same day with the hero the founder approved (design language 1.3). The build moves these strings into message catalogs (I18N-01); the catalog then becomes the source of truth.
 
 How to read this file:
 
-- **Current** strings come from the first conceptual prototype (v1) in `design/prototype/` (`index.html`, `app.js`, `components.js`, `fixture.js`) or, where the prototype has none, from the specs in `docs/reference/`. "(spec)" marks a string that exists only in a spec; "none" means nothing exists yet.
+- **Approved** strings (sections 1 and 1a) are the hero the founder approved on 27 Oct 2026: the opening page, the globe, the dive and the valley sequence. Use them verbatim with their string IDs. Where a later section proposes a different string for the same place, the approved string wins.
+- **Current** strings come from the first conceptual prototype (v1, not published) or, where the prototype has none, from the specs in `docs/reference/`. "(spec)" marks a string that exists only in a spec; "none" means nothing exists yet.
 - **Proposed** strings follow the [voice and tone guide](voice-and-tone.md). "Keep" means the current string already meets the guide.
 - Numbers in examples are the prototype's illustrative values. Live strings fill counts from events and records.
 - Placeholders use ICU syntax: `{count}`, `{date}`, `{n}`. Buttons are in [brackets].
@@ -12,24 +13,201 @@ How to read this file:
 
 ## 1. Demo opening
 
-The recording should have no title card: the demo plan requires the mode badge in every frame, so the first words a viewer reads are the arrival screen's own. These are the 4 lines a viewer reads in the first 12 seconds, plus the button.
+Approved. The opening page sits outside the product chrome: one beat at a time, each a two-tone paragraph (the claim in ink, its qualifier in grey) with its source tag beneath, then one action into the globe and the valley. Facts are quoted exactly as worded in [problem.md](../explanation/problem.md); beat 3 uses the short form in its fact table. The source of each tag resolves in the [science source register](../../research/science/source-register.md). The beats are split into their two tones at sentence boundaries; no word changes. Lint handling for beats 1 to 3 is in the [voice and tone guide](voice-and-tone.md#where-they-run-d).
 
-| Line | Current | Proposed | Why |
+| String ID | Ink (the claim) | Grey (the qualifier) | Source tag |
 |---|---|---|---|
-| 1. Location | Aït Bouguemez valley, Central High Atlas, Morocco | Central High Atlas, Morocco | The title now names the valley, so the location line does not repeat it. Replaces the storyboard's "Case · ..." eyebrow (VT-04). |
-| 2. Title | Pasture resilience in the Aït Bouguemez valley | Grazing and livelihoods in the Aït Bouguemez valley | Names both halves of the case (ADR-0003) without an abstract term or a finding. |
-| 3. Question | How can communities assess grazing-related pressure on shared pastures and evaluate practical responses without undermining pastoral livelihoods? | Is grazing putting pressure on the valley's shared pastures, and what should be checked before anyone changes how they are used? | Concrete verbs in place of three abstract noun phrases. It no longer implies that communities run the assessment, and it names the decision the field-validation plan serves (V2). [H] Test in PC-01. |
-| 4. Status | Reported: Concern about grazing pressure on shared pastures. Not established: Whether vegetation has changed, or why | Keep, as two labeled fields | The most honest lines on the screen: reported, not diagnosed (V1, V3). |
-| Button | [Commission investigation] | [Start investigation] | On a button, "Commission investigation" can read as a noun phrase (an investigation by a commission), and "commission" also means a fee. "Start" cannot be misread. [H] If the firm metaphor must stay on the button, use [Commission the investigation]: the article forces the verb reading. Test both in PC-01, then update the demo plan's click instruction. |
-| Link | What Siterra will and will not do | Keep | Clear; the future tense fits before work starts. |
-| Mode badge | LIVE or REPLAY (spec); Concept prototype (prototype) | Live | Sentence case (VT-08); see section 18. |
+| `opening.beat1` | Rangelands cover more than half of Earth's land and support the livelihoods of about two billion people. | none | UN General Assembly, 2022; UNCCD, 2024 (SCI-125, SCI-127) |
+| `opening.beat2` | Greenness follows rainfall closely. | In simulations, a vegetation-index trend only became statistically detectable once 30 to 40 per cent of the vegetation had been degraded. | Wessels et al., 2012 (SCI-29) |
+| `opening.beat3` | In protectorate Morocco, a 1917 forest decree banned grazing for six years in burned or harvested forests, and officials treated forest grazing as the main cause of deforestation. | Fossil pollen evidence contradicts the large deforestation estimates. | Davis, 2005 (SCI-145) |
+| `opening.beat4` | The first: is grazing changing the shared pastures of the Aït Bouguemez valley? | Siterra investigates one place at a time. (shown first, in grey) | none (the case) |
+| `opening.action` | [↵ Open the investigation] | | |
 
-What the viewer reads, in order:
+"Changing" in beat 4 was approved by the founder in place of "damaging" (VT-20, [ADR-0003](../decisions/0003-frame-the-first-case-as-a-grazing-pressure-question.md)).
 
-1. Central High Atlas, Morocco
-2. Grazing and livelihoods in the Aït Bouguemez valley
-3. Is grazing putting pressure on the valley's shared pastures, and what should be checked before anyone changes how they are used?
-4. Reported: concern about grazing pressure on shared pastures. Not established: whether vegetation has changed, or why.
+The globe and the dive (approved):
+
+| String ID | String | Where |
+|---|---|---|
+| `globe.range` | Atlas Mountains, Morocco | Set along the range on the globe, north of the case |
+| `globe.one-case` | One case so far: Aït Bouguemez | Top left while the globe shows |
+| `globe.legend` | Rangeland biomes, potential extent (Rangelands Atlas method) | Legend for the lit layer, from beat 1 to the dive |
+| `globe.action` | [↵ Open the investigation] | Key hint while the globe shows |
+| `globe.turn` | [drag Turn] | Key hint while the globe shows |
+| `dive.range` | Atlas Mountains, Morocco | The dive's first 0.5 s |
+| `dive.high-atlas` | High Atlas Mountains | Along the range, about 0.6 to 2.4 s into the dive |
+| `dive.valley` | Aït Bouguemez valley | Beside the case, about 2.4 to 4.0 s into the dive |
+| `credit.globe` | Globe relief: produced using Copernicus WorldDEM™-90 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved | Credit line while the globe shows; quoted as the licensor requires |
+| `credit.dive` | Dive relief over Morocco: © Mapterhorn (Copernicus GLO-30) | Added to `credit.globe` while the Mapterhorn relief shows in the dive |
+| `credit.valley` | © Mapterhorn. Copernicus WorldDEM-30. CHIRPS v3.0, accessed 27 Oct 2026. Contains modified Copernicus Sentinel data 2019-2025. © OpenStreetMap contributors. | The one valley credit line, from the moment the valley's imagery appears through the whole valley sequence (owned by the valley sequence; section 1a) |
+| `notices.open` | Sources and notices | Link at the end of every credit line; opens the full attributions and the Copernicus liability sentences |
+
+The case record's copy, kept with the same words in the case seed (`data/case/case.json`):
+
+| String ID | String | Note |
+|---|---|---|
+| `case.title` | Grazing and livelihoods in the Aït Bouguemez valley | Names both halves of the case (ADR-0003) |
+| `case.location` | Central High Atlas, Morocco | The location line; the land's region line in the hero is `valley.region` |
+| `case.objective` | Is grazing changing the shared pastures of the Aït Bouguemez valley? | The case question, approved by the founder; the hero shows the same words as `valley.question` |
+| `case.description` | Reported: concern about grazing pressure on shared pastures. Not established: whether vegetation has changed, or why. | Two labeled fields: reported, not diagnosed |
+| `case.unresolved.1` | Whether vegetation has changed, or why. | The first unresolved question |
+
+The dialog's items while the globe or the dive shows (notices, never linted; the valley's items are in section 1a):
+
+| String ID | String |
+|---|---|
+| `notices.globe-relief` | Globe relief and dot elevation: produced using Copernicus WorldDEM™-90 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved. The organisations in charge of the Copernicus programme by law or by delegation do not incur any liability for any use of the Copernicus WorldDEM™-90. |
+| `notices.biomes` | Rangeland biomes, potential extent (Rangelands Atlas method): Ecoregions 2017 © Resolve, CC BY 4.0 (Dinerstein et al. 2017, BioScience 67(6): 534-545); method of the Rangelands Atlas (ILRI et al. 2021, CC BY 4.0); preliminary layer prepared for Siterra, 27 Oct 2026. |
+| `notices.dive-relief` | Dive relief over Morocco and the valley terrain: © Mapterhorn, tiles at zooms 6, 8 and 11; tiles produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved. The organisations in charge of the Copernicus programme by law or by delegation do not incur any liability for any use of the Copernicus WorldDEM-30. Accessed 27 Oct 2026. ("© Mapterhorn" links to mapterhorn.com/attribution) |
+| `notices.dive-catchment` | Catchment derived from Copernicus DEM GLO-30 (2021 release). |
+| `notices.dive-imagery` | Imagery: contains modified Copernicus Sentinel data 2025. Sentinel-2, July and August 2025, display only: a summer view, not a measurement. |
+
+## 1a. Valley sequence
+
+Approved. Six beats on one clock in the valley: arrival, work, evidence, dry-year challenge, verdict and field plan ([scenes](scenes.md#valley-sequence), times in [motion](motion.md#valley)). Times below are seconds on the valley clock, which starts at the join with the dive. Values inside strings come from stored records and bundles at their method's precision; a slot in braces shows which, and the approved frame's value follows it.
+
+The **Kind** column is the catalog mark the budget and lint checks read:
+
+- `land`: one line of a label on the land. A land line has at most 6 words (words are separated by spaces). The land holds at most 5 labels at a time; a two-line block (a place name with its region line, or a measured label with its honesty line) counts as one label.
+- `honesty`: a line that states a limit. It is never cut for a budget, and on the land it is exempt from the 6-word cap. When a budget is tight it moves to focus or to the next beat, never to smaller type.
+- `card`, `sky`: text on the one card, or the verdict statement written in the paper sky above the land. The card holds at most 45 words.
+- `key`: a key hint (glyph and label), linted with the `button` scope. Each beat has one action key; "F Read flat" shows in every beat.
+- `key slot`: the key for the measured layer on show, at the bottom left. Its focus note opens on hover or keyboard focus.
+- `focus note`: a short note that opens on hover or keyboard focus of its line or key.
+- `label`, `mode`, `instrument`, `screen reader`: a control's name or a heading (lint scope `label`); the mode line; the notes beside the north mark; text for assistive technology only.
+- `viewer`: the viewer's own words, shown as typed. Never linted, and the only place "drought" may appear.
+- `notice`: attribution and licence notices, quoted as the licensor requires. Never linted.
+
+Credits, key hints and focus notes do not count toward word budgets.
+
+Throughout the sequence:
+
+| String ID | String | Kind | Where and when |
+|---|---|---|---|
+| `valley.mode` | Concept prototype: simulated run | mode, honesty | Top centre, mono 11, from 0.2 s; opens the scope popover (section 2) |
+| `valley.mode.scope` | What Siterra will and will not do | screen reader | Added to the mode line's accessible name |
+| `valley.description` | The Aït Bouguemez valley in the High Atlas Mountains, Morocco, in low warm light, with the valley catchment drawn from its outlet. | screen reader | Text alternative for the canvas |
+| `valley.cmd.name` | Ask Siterra | label | The command line's placeholder and accessible name; the "/" glyph is the visible mark |
+| `valley.key.flat` | [F Read flat] | key | Every beat, beside the beat's action |
+| `valley.north` | N | instrument | Beside the north mark, bottom right, from 3.6 s |
+| `valley.relief` | Relief ×2 | instrument, honesty | Beside the north mark |
+| `valley.imagery` | Imagery: Sentinel-2, summer 2025, display only | instrument, honesty | Under the north mark |
+| `credit.valley` | (section 1) | notice | Bottom right on every frame from 0 s; ends with `notices.open` |
+| `credit.valley.plan` | `credit.valley` followed by "© ESA WorldCover project." | notice | From 42.5 s, while mapped cropland and buildings show |
+| `notices.title` | Sources and notices | label | Dialog heading |
+| `notices.relief` | Relief: © Mapterhorn; produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved. | notice | Dialog item; "© Mapterhorn" links to mapterhorn.com/attribution |
+| `notices.catchment` | Catchment and elevation bands: produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved. Catchment derived by Siterra from Copernicus DEM GLO-30 (2021 release). The organisations in charge of the Copernicus programme by law or by delegation do not incur any liability for any use of the Copernicus WorldDEM-30. | notice | Dialog item |
+| `notices.imagery` | Vegetation index and imagery: contains modified Copernicus Sentinel data 2019-2025. The imagery is a Sentinel-2 summer 2025 view, display only. | notice | Dialog item |
+| `notices.rainfall` | Rainfall: CHIRPS v3.0, Climate Hazards Center, UC Santa Barbara, doi.org/10.15780/G2JQ0P, accessed 27 Oct 2026; Funk et al. (2026), Scientific Data 13: 718, doi.org/10.1038/s41597-026-07096-4. | notice | Dialog item; both DOIs are links |
+| `notices.worldcover` | Mapped cropland and buildings: © ESA WorldCover project / Contains modified Copernicus Sentinel data (2021) processed by ESA WorldCover consortium; ESA WorldCover 2021 v200 (Zanaga et al. 2022), CC BY 4.0. | notice | Dialog item |
+| `notices.osm` | Place points and the outlet input: © OpenStreetMap contributors. | notice | Dialog item; links to openstreetmap.org/copyright |
+| `notices.close` | [Esc Close] | key | Closes the dialog |
+
+Arrival (0 to 6.0 s):
+
+| String ID | String | Kind | Where and when |
+|---|---|---|---|
+| `valley.name` | Aït Bouguemez valley | land | On the ground along the valley, 0.8 s; first line of a two-line block |
+| `valley.region` | High Atlas Mountains, Morocco | land | Beneath `valley.name`, the block's region line |
+| `valley.outlet` | Outlet: the whole catchment drains here | land | Beside the outlet beam, 1.8 s |
+| `valley.village.tabant` | Tabant | land | On its stem, 2.6 s |
+| `valley.village.ouchi` | Aït Ouchi | land | On its stem, 2.6 s |
+| `valley.catchment` | Valley catchment: {area} km² (417.0) | land | On the ground along the long northern edge of the line, 3.0 s; the area from the catchment record, to one decimal |
+| `valley.catchment.limit` | Not a pasture, agdal, or management boundary. | land, honesty | Beneath `valley.catchment`, the block's honesty line |
+| `valley.question` | Is grazing changing the shared pastures of the Aït Bouguemez valley? | card | In the command line from 3.3 s; the card's first line from 6.2 s |
+| `valley.key.start` | [↵ Start investigation] | key | The one action, from 3.3 s |
+
+Work (6.0 to 18.0 s). Each step shows one of three forms, in place: waiting, running (present tense), done (past tense with its count and period).
+
+| String ID | String | Kind | Where and when |
+|---|---|---|---|
+| `valley.work.status` | Planning: 4 steps to answer this question | card | Under the question, 6.2 s |
+| `valley.work.rain.waiting` | Rainfall: 84 months | card | Step 1 line, 6.6 s |
+| `valley.work.rain.running` | Rainfall: loading 84 months | card | 9.0 s |
+| `valley.work.rain.done` | Rainfall: 84 months, 2019 to 2025 | card | 11.6 s |
+| `valley.work.vegetation.waiting` | Vegetation: 84 months | card | Step 2 line, 6.85 s |
+| `valley.work.vegetation.running` | Vegetation: loading 84 months | card | 11.8 s |
+| `valley.work.vegetation.done` | Vegetation: {compared} of 84 months compared, 2019 to 2025 (58) | card | 14.6 s; the count from the vegetation bundle |
+| `valley.work.reports.waiting` | National reports: 5 | card | Step 3 line, 7.1 s |
+| `valley.work.reports.running` | Placing 5 national reports (hand-extracted) | card | 14.8 s |
+| `valley.work.reports.done` | 5 national reports placed (hand-extracted) | card | 15.9 s |
+| `valley.work.explanations.waiting` | Explanations: 5 | card | Step 4 line, 7.35 s |
+| `valley.work.explanations.running` | Comparing 5 explanations | card | 16.1 s |
+| `valley.work.explanations.done` | 5 explanations, none ranked | card | 16.9 s |
+| `valley.sheet.rain` | 01 Was the season unusually dry? | land | The rainfall sheet's label, "01" in mono, while the sheet shows (7.6 to 10.2 s) |
+| `valley.sheet.vegetation` | 02 Did greenness change? | land | The vegetation sheet's label (8.3 to 13.0 s) |
+| `valley.key.ndvi` | NDVI departure, Apr {year}, compared with other Aprils (Apr 2023), with the ends "−0.10" and "+0.10" | key slot | 12.7 to 27.0 s |
+| `valley.key.ndvi.note` | No cropland mask is applied: valley-floor fields and orchards are included. | focus note, honesty | On focus of `valley.key.ndvi` |
+| `valley.key.stop` | [Esc Stop] | key | The one action while steps run, 6.0 to 17.2 s |
+| `valley.key.ask` | [/ Ask or challenge] | key | The one action after the work, 17.2 to 24.5 s |
+
+Evidence (18.0 to 24.5 s):
+
+| String ID | String | Kind | Where and when |
+|---|---|---|---|
+| `valley.evidence.claim` | A published study gives coordinates for villages in this valley. | card | The statement's ink half, 19.0 s |
+| `valley.evidence.limit` | The stem marks one, Aït Ouchi, not a pasture boundary. | card, honesty | The statement's grey half |
+| `valley.evidence.source` | Aakairi et al. 2026, People and Nature (SCI-04) | card | Source line |
+| `valley.evidence.meaning` | Meaning: a location, not a finding about grazing. | card, honesty | Meaning line |
+| `valley.evidence.reports` | 5 national reports for Morocco | card | With an open ring: reported, not placed on the valley |
+| `valley.evidence.stem` | Aït Ouchi | land | At the top of the selected stem, 20.0 s |
+| `valley.gap` | No usable April view: left out | land | With the gap hatch, written where the gap is, 20.9 s |
+
+Dry-year challenge (24.5 to 35.0 s):
+
+| String ID | String | Kind | Where and when |
+|---|---|---|---|
+| `valley.challenge.question` | Could drought explain this instead? | viewer | Typed into the command line at 24.5 s and sent at 25.3 s; then on the card as an open question branching from `valley.question` |
+| `valley.challenge.status` | Simulated answer. | card, honesty | 25.3 s |
+| `valley.challenge.statement.first` | In 2021/22, rainfall was in the upper third, {total} mm (650). | card | 25.3 to 30.8 s |
+| `valley.challenge.statement` | Rainfall fell from the upper third, {total} mm (650), to the lower third, {total} mm (349). | card | From 30.8 s; the totals and thirds from `season_summary` |
+| `valley.challenge.source` | CHIRPS v3.0, 1991 to 2020 | card | Source line |
+| `valley.challenge.meaning` | Meaning: a dry season. Not evidence about grazing. | card, honesty | Meaning line |
+| `valley.key.rain` | Rain per cell, {season} (2021/22, then 2022/23 from 30.2 s), with the classes "under 400", "400 to 550" and "550 mm and over" | key slot | 27.6 to 35.0 s |
+| `valley.key.rain.note` | Display classes only, not the 1991 to 2020 thirds. | focus note, honesty | On focus of `valley.key.rain` |
+| `valley.stems.band` | Near normal: {low} to {high} mm (509 to 603) | land | Beside the slab, 27.3 s |
+| `valley.stems.mean` | Mean {mean} mm (562) | land | Beside the plane, 27.5 s |
+| `valley.stems.caption` | Wet seasons 1991/92 to 2022/23 | land | Under the stems, 27.8 s |
+| `valley.stems.previous` | 2021/22: {total} mm (650) | land | At the season before, 28.6 s |
+| `valley.stems.on-show` | 2022/23: {total} mm (349) | land | At the season on show, in the accent, 30.5 s |
+| `valley.key.next` | [↵ Show the answer] | key | The one action, 24.5 to 35.0 s. The approved frames show "Next: vegetation", a step the sequence does not show; this label names the next beat |
+
+Verdict (35.0 to 42.5 s):
+
+| String ID | String | Kind | Where and when |
+|---|---|---|---|
+| `valley.verdict.status` | Simulated answer. | sky, honesty | In the paper sky, 36.6 s |
+| `valley.verdict.claim` | Grazing: cannot be assessed with current data. | sky | The statement's ink half, 36.9 s |
+| `valley.verdict.limit` | April NDVI in 2022 and 2023 stayed within about {difference} of other Aprils (0.01). | sky | The statement's grey half, 37.7 s; the difference from the vegetation departure bundle, to two decimals |
+| `valley.verdict.figure-label` | Wet season 2022/23 | card | 37.8 s |
+| `valley.verdict.figure` | {total} mm (349) | card | The one figure |
+| `valley.verdict.figure-context` | Lower third of 1991 to 2020 | card | Under the figure |
+| `valley.verdict.source` | CHIRPS v3.0, {cells} cells (33) | card | Source line |
+| `valley.verdict.method` | season_summary 1.0.0 | card | Method line, an identifier |
+| `valley.verdict.meaning` | Meaning: a dry season. Not evidence about grazing. | card, honesty | Meaning line |
+| `valley.verdict.flags` | April views: snow suspected; cloud screening reduced. | card, honesty | Focusable |
+| `valley.verdict.flags.note` | Cloud screening used the scene classification only. | focus note, honesty | On focus of `valley.verdict.flags` |
+| `valley.verdict.why` | "Why" (a chip, no colon), then: year-to-year rainfall can hide a real decline in the vegetation record (SCI-29) | card | Last line; the chip opens the source |
+| `valley.key.plan` | [↵ Show the field plan] | key | The one action, 35.0 to 42.5 s |
+
+Field plan (42.5 to 50.0 s):
+
+| String ID | String | Kind | Where and when |
+|---|---|---|---|
+| `valley.plan.claim` | Proposed: measure plant cover on the ground in each of the three elevation bands. | card | The statement's ink half, 44.1 s; focusable |
+| `valley.plan.limit` | They are not pasture units or boundaries. | card, honesty | The statement's grey half |
+| `valley.plan.limit.note` | Each band holds a third of the study area. | focus note | On focus of the statement |
+| `valley.plan.measure` | To measure: animal numbers and timing, the current access calendar, field vegetation surveys | card | "To measure:" in grey |
+| `valley.plan.proposal-only` | Proposal only. Nothing has been arranged with the villages. | card, honesty | Last line |
+| `valley.band.lower` | Lower band: below {limit} m (2,317) | land | Inside the band, 44.5 s; the limits from the strata bundle |
+| `valley.band.middle` | Middle band: {lower} to {upper} m (2,317 to 2,815) | land | 45.1 s |
+| `valley.band.upper` | Upper band: {limit} m and above (2,815) | land | 45.7 s |
+| `valley.excluded` | Mapped cropland and buildings: not sampled | land | On the valley floor, 47.0 s |
+| `valley.key.print` | [↵ Print the field plan] | key | The one action, from 42.5 s |
+
+Land labels per beat in the approved frames: arrival 5 (two of them two-line blocks), work at most 2 (the sheet labels, while the sheets show), evidence 2, challenge 5, verdict 0, field plan 4. The card's longest faces hold 45 words (challenge and verdict).
+
+"F Read flat" is in every approved frame but its view is not: what it shows is specified in [scenes](scenes.md#valley-sequence).
 
 ## 2. Scope popover
 
@@ -63,7 +241,7 @@ What the viewer reads, in order:
 
 | Where | Current | Proposed | Why |
 |---|---|---|---|
-| Arrival | [Commission investigation] | [Start investigation] | Section 1 |
+| Arrival | [Commission investigation] | [Start investigation] | Approved (section 1a, `valley.key.start`), shown as the key hint ↵ |
 | Director | [Send] (aria-label "Send") | Keep; aria-label "Send request" | Names the object |
 | Director, while running | (spec) cancel available | [Cancel request] | Verb plus object |
 | Director, needs input | (spec) [Answer] [Proceed without] | [Answer] [Continue without an answer] | "Proceed without" leaves out what is skipped. |
@@ -88,12 +266,12 @@ What the viewer reads, in order:
 
 | Element | Current | Proposed | Why |
 |---|---|---|---|
-| Visible label | none (hidden label "Ask Siterra or give an instruction") | Ask Siterra | The accessibility doc requires a persistent visible label (WRT-09). |
+| Visible label | none (hidden label "Ask Siterra or give an instruction") | none: the "/" glyph marks the command line | Approved hero (section 1a, `valley.cmd.name`). "Ask Siterra" is the accessible name, which stays when the placeholder goes (WRT-09) |
 | Hint under the label | none | Siterra uses the area, period, and focus shown above. | Explains the chips (IU-03). |
-| Placeholder | Ask Siterra or give an instruction | none | Placeholders vanish, are not always announced, and often fail contrast (WRT-09). |
+| Placeholder | Ask Siterra or give an instruction | Ask Siterra | Approved hero. A placeholder vanishes and is not always announced (WRT-09), so the same words are the accessible name; it is drawn in `text.secondary` |
 | Chip group label | Context sent with your request (aria only) | Sent with your request (visible) | |
 | Chips | Area Valley catchment; Period 2019 to 2025; Focus None | Area: Valley catchment; Period: 2019 to 2025; Focus: nothing selected | "None" can read as "no focus possible". |
-| Suggestion | Could drought explain this instead? | Keep | The signature question (ADR-0008). It is the user's word; Siterra's reply translates "drought" into what is measured. |
+| Suggestion | Could drought explain this instead? | Could a dry year explain this instead? | Siterra's own text never says "drought" (VT-26, design language 1.3). A person may still type the signature question (ADR-0008), and it shows as typed (section 1a, `valley.challenge.question`) |
 | Suggestion | What about households that rely on these pastures? | Keep | |
 | Suggestion | What could be done, and what should be checked first? | Keep | |
 | Suggestion | Prepare the next steps for review. | Prepare the next steps for review | No period on a single fragment (WRT-17) |
@@ -158,7 +336,7 @@ What the viewer reads, in order:
 | Loaded 84 monthly observations; 23 below the coverage policy | Loaded 84 monthly observations, 23 of them below the 70% coverage threshold | A number people can check |
 | Livelihood and governance research (shown as a running milestone) | Reading sources on livelihoods and governance | A milestone is an action. |
 | Updated Observations: vegetation over time, 5 evidence items | Keep | |
-| Loaded rainfall for 84 months (CHIRPS grid, 31 cells) | Loaded 84 months of rainfall (CHIRPS grid, 31 cells) | Count right after the verb |
+| Loaded rainfall for 84 months (CHIRPS grid, 31 cells) | Loaded 84 months of rainfall (CHIRPS grid, 33 cells) | Count right after the verb; 33 cells touch the frozen catchment |
 | Aligned vegetation and rainfall by month | Keep | |
 | Compared 4 explanations | Keep | |
 | Updated Explanations: ledger and aligned comparison | Updated Explanations: competing explanations, vegetation and rainfall by month | Visible names, not internal ones ("ledger") |
@@ -179,7 +357,7 @@ Section names stay: Place, Observations, Explanations, Responses, Next steps.
 
 | Section | Current summary | Proposed summary | Why |
 |---|---|---|---|
-| Place, running | {role label}, {area} km² | Valley catchment, {area} km². Not a pasture or management boundary. | Two facts, two sentences; area to one decimal |
+| Place, running | {role label}, {area} km² | Valley catchment: {area} km². Not a pasture, agdal, or management boundary. | Approved form (section 1a, `valley.catchment`); area to one decimal |
 | Place, done | {role label}, 6 tasks planned | 6 tasks planned | The role label is on the map and the area card. |
 | Observations | Vegetation 2019 to 2025, 23 months below coverage policy | Vegetation 2019 to 2025, with 23 months below the 70% coverage threshold | |
 | Observations, later | Vegetation over time and 5 evidence items | Keep | |
@@ -350,7 +528,7 @@ Why change "Inconsistent": it differs from "Consistent" by two letters and share
 | Where | Current | Proposed |
 |---|---|---|
 | Observations, before work | Not started | Not started. Siterra loads satellite observations after the investigation starts. |
-| Explanations, before work | Not started | Not started. Ask about the observations, for example: Could drought explain this instead? |
+| Explanations, before work | Not started | Not started. Ask about the observations, for example: Could a dry year explain this instead? |
 | Responses, before work | Not started | Not started. Siterra screens possible responses after it compares explanations. |
 | Next steps, before work | Not started | Not started. Siterra builds the field-validation plan from the open questions. |
 | Evidence list | none | No evidence in this section yet. |
@@ -408,6 +586,7 @@ These are English source strings. French strings must be written or reviewed by 
 | Replay badge | (spec) REPLAY; "Replay of live run, [date]" | Replay of live run, 24 Oct 2026 | Date format from the guide |
 | Replay tooltip | none | Recorded outputs from a live run. Nothing is computed now. | |
 | Concept badge | Concept prototype | Keep | |
+| Concept mode line | none | Concept prototype: simulated run | Approved hero (section 1a, `valley.mode`), top centre; live and replay keep their badges |
 | Concept tooltip | Concept prototype: simulated work and illustrative values | Simulated work and illustrative values. Nothing here is a result. | |
 | Illustrative tag | Illustrative values, not measurements | Keep | |
 | Simulation tags | Simulated in this prototype; Simulated; Simulated assessment; Simulated history; Simulated trace: illustrative timings | Keep (concept mode only) | |
@@ -421,17 +600,17 @@ These are English source strings. French strings must be written or reviewed by 
 
 | Element | Current | Proposed | Why |
 |---|---|---|---|
-| Vegetation title | Vegetation departure, Apr 2022 | NDVI departure, Apr 2022 | Names the measured index |
-| Vegetation subtitle | NDVI difference from the 2019 to 2025 April median, inside the catchment | Difference from the 2019 to 2025 April median, inside the catchment | |
-| Ramp ticks | -0.06; 0; +0.06 | −0.06; 0; +0.06 | Minus sign (VT-36) |
+| Vegetation title | Vegetation departure, Apr 2022 | NDVI departure, Apr {year}, compared with other Aprils | Approved form (section 1a, `valley.key.ndvi`): names the index and the reference |
+| Vegetation subtitle | NDVI difference from the 2019 to 2025 April median, inside the catchment | Difference from the median of the other Aprils, 2019 to 2025, inside the catchment | Matches "compared with other Aprils" in the approved key: the hero paints the leave-one-year-out departure |
+| Ramp ticks | -0.06; 0; +0.06 | −0.10; +0.10 | The fixed scale's ends, as in the approved key; minus sign (VT-36) |
 | Missing swatch | No valid observation | Keep | |
-| Rainfall grid row | Rainfall grid: 31 cells of about 5 km touch the catchment, 3 fully inside | Rainfall grid: 31 cells of about 5 km touch the catchment, 3 of them fully inside | |
+| Rainfall grid row | Rainfall grid: 31 cells of about 5 km touch the catchment, 3 fully inside | Rainfall grid: {touching} cells of about 5 km touch the catchment, {inside} of them fully inside (33 and 2) | The counts of the frozen catchment ([data sources and methods](data-sources-and-methods.md)); 31 and 3 came from the preview |
 | Coverage | 82% of area observed | Keep | |
 | Coverage below threshold | No valid observation for this period (45% observed, below the 70% policy) | No valid observation: 45% of area observed, below the 70% threshold | |
 | Method line (new; required by the components spec) | none | Sentinel-2 L2A, monthly median NDVI, cloud and snow masked. Method ndvi-monthly 0.1. | Dataset and version, reference, method |
-| Strata title | Sampling strata | Keep | |
-| Strata subtitle | Elevation band by slope aspect, from the terrain model. Thresholds illustrative. | Elevation band by slope direction, from the terrain model (Copernicus GLO-30). Thresholds are illustrative. | Full sentence; names the source |
-| Strata classes | Below 2,200 m; 2,200 to 2,700 m; Above 2,700 m; South-facing (hatched) | Keep | |
+| Strata title | Sampling strata | Elevation bands | The hero's name (section 1a); the subtitle says what they are |
+| Strata subtitle | Elevation band by slope aspect, from the terrain model. Thresholds illustrative. | Three sampling strata of equal area by height, from the terrain model (Copernicus GLO-30). Not pasture units or boundaries. | Full sentences; names the source and what the bands are not |
+| Strata classes | Below 2,200 m; 2,200 to 2,700 m; Above 2,700 m; South-facing (hatched) | Lower band: below 2,317 m; Middle band: 2,317 to 2,815 m; Upper band: 2,815 m and above | Approved (section 1a, `valley.band.*`); the limits come from the strata bundle and no aspect class is drawn |
 | Place legend | Place labels from OpenStreetMap | Place labels: OpenStreetMap | |
 
 ### Chart notes and text alternatives
@@ -463,7 +642,7 @@ The chart and table show NDVI to three decimals; the design system says two (sec
 | Element | Current | Proposed | Why |
 |---|---|---|---|
 | What it is | Valley catchment (hydrological analysis extent), not a pasture, agdal or management boundary; preview boundary about 55 m | Valley catchment (hydrological analysis extent). Not a pasture, agdal, or management boundary. Preview boundary at about 55 m resolution. | Three facts, three sentences |
-| Map outline label | Valley catchment, not a pasture or management boundary (prototype); Valley catchment, not a pasture, agdal or management boundary (spec) | Valley catchment, not a pasture, agdal, or management boundary | One label everywhere; the prototype drops "agdal". |
+| Map outline label | Valley catchment, not a pasture or management boundary (prototype); Valley catchment, not a pasture, agdal or management boundary (spec) | Valley catchment: 417.0 km², with the honesty line "Not a pasture, agdal, or management boundary." beneath | Approved form (section 1a, `valley.catchment`); one label everywhere |
 | First-use gloss | none | agdal: a customary institution that governs access and use | Definition from the scientific basis document |
 | Not claimed | Pasture or agdal boundaries, rights, degradation or a visited site | Pasture or agdal boundaries, rights, degradation, or a site visit | Allowlisted for VT-20 |
 | Commune context | Tabant commune: legal population 16,401 (HCP, 2024 general census (legal population)). Whole commune, not herding households and not the catchment. | Tabant commune: legal population 16,401 (HCP, 2024 census). This counts the whole commune, not herding households or the catchment. | No nested parentheses |
@@ -539,15 +718,15 @@ Strings for components specified after the first prototype: the map ornament and
 | Orbit | Orbit. A slow turn around the catchment, {seconds} s. | Tour |
 | Time-lapse | Time-lapse. {month} from {firstYear} to {lastYear}, {observed} of {total} years observed. | Tour; also the timeline's [Play] |
 | Status | Ready; Unavailable: {reason}; Needs update: {input} changed | |
-| 3D toggle | [3D relief] | Tooltip: Shows relief in 3D. Data views stay flat. |
-| Honesty captions | Oblique view: not for reading area or pattern. Relief exaggerated 1.2 times. Preview boundary. | Fixed strings, never model text |
+| 3D toggle | [3D relief] | Tooltip: Shows relief in 3D. In the hero, measured layers are painted on the relief and [F Read flat] gives the flat reading (section 1a). |
+| Honesty captions | Oblique view: not for reading area or pattern. Relief ×2. Preview boundary. | Fixed strings, never model text; "Relief ×2" is the approved form (section 1a, `valley.relief`) |
 | Legend override | Showing your chosen view until your next request. | |
 | Transport bar | [Play] [Pause] [Stop] [Previous step] [Next step] | Step label: Step {n} of {total} |
 | Reduced motion | Motion is reduced. Use Next step to move through the tour. | |
 | Focus mode | [Show only the map]; [Show panels] | |
-| True-color drape caption | True color, Sentinel-2, {months} composite. Contains modified Copernicus Sentinel data {year}. | P1 |
-| Timeline markers | National drought year (FAO GIEWS); Question asked; Findings added | P1 |
-| Theme | Theme: Dark; Light; Match system | Case pill menu |
+| Imagery caption | Imagery: Sentinel-2, summer 2025, display only | P0 with the hero (section 1a, `valley.imagery`); the Copernicus notice is in the credit line |
+| Timeline markers | Dry year in national reports (FAO GIEWS); Question asked; Findings added | P1. Siterra's own text says "dry year", not "drought" (VT-26) |
+| Theme | Theme: Light; Dark; Match system | Not in P0: light is the default and the only theme the hero uses ([ADR-0046](../decisions/0046-use-daylight-as-the-default-theme.md)); offering dark is a separate decision |
 
 ### Answer card
 

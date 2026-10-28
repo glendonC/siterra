@@ -2,6 +2,47 @@
 
 How Siterra shows the same place from different angles, plays time over it, and lets the AI choose and bind reusable map scenes without writing code. Evidence, MapLibre capabilities and the arithmetic behind each template are in the [map scenes research](../../research/technology/map-scenes.md). Decision: [ADR-0035](../decisions/0035-compose-map-scenes-from-reusable-templates.md).
 
+## The hero sequence (design language 1.3)
+
+The first thing anyone sees: an opening page, a globe, a dive, then six beats in the valley, in daylight. The founder approved it on 27 Oct 2026. Timings are in [motion](motion.md#the-hero-timeline-design-language-13), strings with their IDs in [microcopy](microcopy.md) (sections 1 and 1a), parts in [components](components.md#hero-components-design-language-13), colours in the [design system](design-system.md). The language in one line: a lit instrument over real land. The terrain runs to every edge into haze, the catchment is the selected district because one low warm light falls on it, and what has to be read sits on one card that reaches the land by one leader.
+
+### Opening page
+
+On paper, outside the product chrome. One beat at a time, centred, at 48 CSS px on the 1440-wide layout in a column of about 38 characters: the claim in ink, its qualifier in grey, the source tag in mono beneath. A row of four thin marks at the top says which beat is showing. Under the type, a large limb of the globe fills about the lower 40 per cent of the frame. The rangeland biomes are lit on it from beat 1 (biome land takes the warm light, other land takes paper haze). The limb rises a few pixels with each beat and to about half the frame after beat 4, when the single action appears. Credits sit on a paper backing.
+
+### Globe
+
+A dot globe on paper. Dots lie on a regular lattice, each sized by the GLO-90 elevation of its own cell; land dots are ink-grey, sea dots faint. The rangeland biomes stay lit. North Africa turns to the centre. One case is marked: a thin ring in the accent and a small warm point at the valley's outlet. "Atlas Mountains, Morocco" is set along the range, north of the case. Around the globe: "One case so far: Aït Bouguemez", the biome legend, the key hints and the credit line, each on paper so no text sits on dots. No idle spin; drag turns within limits; Enter or a click on the case dives.
+
+### Dive
+
+4.4 s from the globe to the valley's arrival camera, one continuous camera:
+
+1. The camera falls toward the case on a logarithmic altitude curve, top-down. The dots grow denser where it looks.
+2. The dots resolve into contour lines drawn outward from the case, generalized to the scale of the view.
+3. The relief rises out of the flat contours to the valley's exaggeration (2.0).
+4. The camera tilts from top-down to the arrival pose while the catchment line draws round the valley from the outlet.
+5. The Sentinel-2 summer imagery becomes the land's material, and land beyond 52 km of the catchment fades to paper.
+
+The names narrow from "Atlas Mountains, Morocco" to "High Atlas Mountains" to "Aït Bouguemez valley". The case ring stays the anchor and leaves before the join, where the valley's outlet takes over. Land runs to every edge through the whole dive: the valley's relief block blends into the globe around it and never shows as a tile.
+
+The dive ends on the valley's first frame (the join): the same camera, land, catchment line and credit line, no labels, the light not yet warmed. The valley sequence owns its arrival camera pose; the dive reads it and ends exactly on it.
+
+### Valley sequence
+
+Six beats on one clock, one card at a time on the right third, one leader to the land, the camera still while anything is read:
+
+| Beat | On the land | On the card and below |
+|---|---|---|
+| Arrival | The light warms inside the catchment line while the land outside takes paper haze; the valley name on the ground; the outlet beam with "Outlet: the whole catchment drains here"; Tabant and Aït Ouchi on thin stems; "Valley catchment: 417.0 km²" with its honesty line | The founder's question in the command line; the key hint to start |
+| Work | Two measured layers lift as thin sheets cut to the catchment outline, each labelled by the question it answers, and come down onto the land as their step runs; a measurement front crosses the catchment | "Planning: 4 steps to answer this question"; each step runs, then reports in past tense with its count and period |
+| Evidence | One located study on a stem in the accent at Aït Ouchi; the April gaps hatched on the ground with their reason | The study's statement, source and Meaning line; the five national reports as an open ring on the card, never placed on the valley |
+| Dry-year challenge | Rainfall per cell painted at true cell size on the relief in three display classes, 2021/22 then 2022/23; beside the catchment, one stem per wet season from 1991/92 to 2022/23 around the 1991 to 2020 mean, with the near-normal band as a slab and the season on show as the one warm stem | The viewer's question branches from the case question; "Simulated answer."; the 2021/22 statement, then after the swap the statement with both seasons' totals; source and Meaning line |
+| Verdict | Only the evidence the verdict rests on; every gap hatch | A large two-tone statement in the paper sky with "Simulated answer."; the figure card with its source, method and Meaning line, the April flags and the Why chip |
+| Field plan | The three elevation bands as tints of the shadow colour, their limits as thin contour lines, each named on the ground; mapped cropland and buildings marked as not sampled | The proposal in two tones, "To measure:" and "Proposal only. Nothing has been arranged with the villages." |
+
+The story's views are oblique, and measured layers are painted on the relief at their true cell size with "Relief ×2" beside the view. "F Read flat", in every beat, is the flat reading of what the beat shows: the camera moves top-down and north up with terrain off, graticule ticks at the frame edges and a scale bar, so areas and patterns can be read ([MOT-12](motion.md#mot-12-camera-mode-change)); F again returns to the beat's view. The approved frames do not show the flat reading.
+
 ## Terms
 
 | Term | Meaning |
@@ -37,11 +78,11 @@ Step transitions: cut, ease or fly, 300 to 3,000 ms, easing tokens from the [mot
 
 ## Layer recipes
 
-Coded functions that emit MapLibre layers over bundle sources: `area_outline`, `context_dim`, `period_raster` (crossfade only, never interpolated), `rainfall_grid`, `strata`, `path_line` (reveal synced to a fly-through), `evidence_marker` (at most one finite pulse), `terrain_relief` (exaggeration 1.0 to 1.5, set per step, never tweened), and `imagery_drape` (P1: a cloud-free Sentinel-2 true-color composite precomputed by the pipeline, draped on the terrain for orientation views only, captioned with its months and "Contains modified Copernicus Sentinel data", never shown together with a data layer). Recipes read runtime values through MapLibre global state, so a binding change is a state update, not a style edit.
+Coded functions that emit MapLibre layers over bundle sources: `area_outline`, `context_dim`, `period_raster` (crossfade only, never interpolated), `rainfall_grid`, `strata`, `path_line` (reveal synced to a fly-through), `evidence_marker` (at most one finite pulse), `terrain_relief` (exaggeration 2.0, as in the hero, set per step; it rises from flat ground only once, in the dive), and `imagery_drape` (P0 with the hero: the Sentinel-2 summer 2025 composite precomputed by the pipeline is the land's material in every valley view, display only, under the painted measured layers; captioned "Imagery: Sentinel-2, summer 2025, display only", with the Copernicus notice in the credit line). Recipes read runtime values through MapLibre global state, so a binding change is a state update, not a style edit.
 
 ## Annotations
 
-Labels from record fields, callouts that quote an evidence statement with its ID chip (open the inspector), captions from template strings with slots filled from records, and fixed honesty notes ("Relief exaggerated 1.2 times", "Oblique view: not for reading area or pattern", "Preview boundary"). No free text from the model.
+Labels from record fields, callouts that quote an evidence statement with its ID chip (open the inspector), captions from template strings with slots filled from records, and fixed honesty notes ("Relief ×2", "Imagery: Sentinel-2, summer 2025, display only", "Oblique view: not for reading area or pattern", "Preview boundary"). No free text from the model.
 
 ## Templates
 
@@ -58,7 +99,7 @@ Example resolutions for the Aït Bouguemez catchment are computed in the researc
 | `river_flythrough` | Tour | Area, main-stem line record | P1 |
 | `strata_tour` | Tour | Strata records | P1 |
 
-Viewpoint and path roles need a context feature record (point or line with provenance and attribution, for example a DEM-derived main stem or an OpenStreetMap summit) in contracts 1.3.
+Viewpoint and path roles need a context feature record (point or line with provenance and attribution, for example a DEM-derived main stem or an OpenStreetMap summit), planned for a later contracts version; it is not part of contracts 1.3.0 ([data contracts](data-contracts.md)).
 
 ## The model's role
 
@@ -68,7 +109,7 @@ Viewpoint and path roles need a context feature record (point or line with prove
 
 ## Geometry and readability limits
 
-Camera at least 300 m above the terrain maximum along its path; pitch at most 75 for tours and 80 for stills; yaw at most 8 degrees per second; zoom 9 to 13.5; center inside the display extent; steps that show `period_raster` or `rainfall_grid` are top-down with terrain off ([MOT-12](motion.md#mot-12-camera-mode-change)). Tours: at most 12 steps and 45 seconds, no loops, Pause and Stop always visible (WCAG 2.2.2).
+Camera at least 300 m above the terrain maximum along its path; pitch at most 75 for tours and 80 for stills; yaw at most 8 degrees per second; zoom 9 to 13.5; center inside the display extent; in the investigation workspace and in the flat reading, steps that show `period_raster` or `rainfall_grid` are top-down with terrain off ([MOT-12](motion.md#mot-12-camera-mode-change)); the hero's story views paint them on the oblique relief at true cell size with "Relief ×2" beside the view, and the flat reading is one key away. Tours: at most 12 steps and 45 seconds, no loops, Pause and Stop always visible (WCAG 2.2.2).
 
 ## Player behavior
 

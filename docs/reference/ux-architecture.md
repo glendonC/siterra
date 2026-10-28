@@ -34,7 +34,7 @@ The map is always full-bleed and never resized during a transition. Everything e
 | Inspector | Over the sheet, same width; wide content as an overlay `min(760px, 54vw)` wide | Evidence, source, measurement detail; intervention comparison and full brief | On demand |
 | Trace | Bottom sheet over the map, 45% height | Task tree and timing ([components](components.md)) | On demand |
 
-Arrival shows only the case card (bottom left), the case pill and the map ornament. Focus mode (one button and one shortcut) hides the sheet and timeline so the map fills the frame.
+Arrival shows only the case card (bottom left), the case pill and the map ornament. Focus mode (one button and one shortcut) hides the sheet and timeline so the map fills the frame. The approved hero (design language 1.3) arrives differently: names on the land, the command line holding the case question, the key hints and the credit line, with no card until the work starts ([scenes](scenes.md#valley-sequence), [components](components.md#hero-components-design-language-13)).
 
 | Viewport | Sheet | Timeline | Inspector | Trace |
 |---|---|---|---|---|
@@ -68,6 +68,23 @@ Budgets apply to resting states. Transient and deliberately expanded states have
 | Below 960 px (bottom sheet) | Bottom sheet, case pill, ornament, the timeline under the map and the collapsed legend button (5) | 18 | 40 | at least 35%; modal sheets (review, inspector, trace, export) are exempt |
 
 States: **Working** means tasks are running and no data layer is on the map; **Reading** means a section with findings or a data layer is expanded; **Review** means the review queue, the inspector or a wide overlay is open. Counting rules: an element counts only when visible (hit-tested, not scrolled out or covered); labels inside graphics (chart text, timeline ticks, legend ticks) are not text items; expanded components are catalog components, and the answer card counts as its section's header, not as a component. At all times: at most one popover, one toast, one mode label, one honesty tag per graphic, one interactive accent, and one focal transition. Rationale: working memory holds about four chunks (Cowan 2001), and progressive disclosure works best in two levels.
+
+### The hero's budget (design language 1.3)
+
+In the hero sequence the budget counts the hero's parts instead of islands; the tables above apply to the investigation workspace. Credits, key hints and focus notes are not counted as words.
+
+| Per screen | Limit | In the approved frames |
+|---|---|---|
+| Cards and leaders | 1 card, joined to its place by 1 leader | 1 card from the work beat on, with at most 1 leader; none at arrival |
+| Words on the card | at most 45 | 37 to 45 in the approved stills |
+| Labels on the land | at most 5; a two-line block (a place name with its region line, or a measured label with its honesty line) counts as one | 0 to 5 |
+| Words in a land label line | at most 6; an honesty line (marked so in the string catalog) is exempt | at most 6; the catchment's honesty line has 7 |
+| Actions | 1 key hint for the beat's action, plus "F Read flat" in every beat | 1 plus 1 |
+| Selected places | 1 | 1 |
+| Measured layers on the land | 1 painted layer, plus at most 1 more as outlines only | The vegetation departure with the rain cells' outlines (work); the rain cells painted, with their outlines (challenge) |
+| Mode labels | 1 (the mode line) | 1 |
+
+The arrival's one primary action is the key hint "↵ Start investigation"; "F Read flat" is a view control, not a second primary action. Strings, kinds and per-beat counts: [microcopy](microcopy.md), section 1a.
 
 ## Sections and focus
 
