@@ -8,7 +8,7 @@ import { dispatchOutboxToJobs, jobSchema } from "@siterra/db/job-queue";
 import { newId } from "@siterra/domain";
 import { PgBoss } from "pg-boss";
 
-import { loadCorpus } from "./corpus.ts";
+import { corpusWarning, loadCorpus } from "./corpus.ts";
 import { loadAnalyses } from "./recipes.ts";
 import { workerDb } from "./db.ts";
 import { handlePlanJob } from "./plan-job.ts";
@@ -99,6 +99,8 @@ export async function startWorker(
           (snapshot?.records.sourceRecords ?? []).map((s) => [s.id, s.revision]),
         );
         const corpus = await loadCorpus(repoRoot, manifest, (id) => revisions.get(id) ?? null);
+        const unreadable = corpusWarning(corpus);
+        if (unreadable) console.error(unreadable);
         const analyses = await loadAnalyses(repoRoot, snapshot?.records.dataBundleRecords ?? []);
         if (analyses.missing.length > 0) {
           console.error(`worker: recipe results not readable: ${analyses.missing.join(", ")}`);

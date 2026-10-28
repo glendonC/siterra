@@ -160,3 +160,11 @@ export async function loadCorpus(
   }
   return { sources, passages, missing };
 }
+
+/** The log line for files whose stored text could not be read, or null when every file was. */
+export function corpusWarning(corpus: Corpus): string | null {
+  if (corpus.missing.length === 0) return null;
+  const n = corpus.missing.length;
+  const files = corpus.missing.map((m) => `${m.sourceId} ${m.file}`).join(", ");
+  return `worker: stored corpus text not readable for ${n} ${n === 1 ? "file" : "files"}: ${files}`;
+}

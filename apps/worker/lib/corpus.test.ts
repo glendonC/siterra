@@ -4,7 +4,7 @@ import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import { loadCorpus, sectionPassages } from "./corpus.ts";
+import { corpusWarning, loadCorpus, sectionPassages } from "./corpus.ts";
 import { snapshotStore } from "./snapshot-store.ts";
 
 // A synthetic corpus in a temporary folder: the manifest and text shapes follow data/case and
@@ -133,6 +133,18 @@ describe("corpus reader", () => {
     expect(corpus.sources.find((s) => s.id === "src_test_pdf")?.language).toBeNull();
     expect(corpus.missing).toEqual([{ sourceId: "src_test_missing", file: "d.pdf" }]);
     expect(at("src_test_closed")).toEqual([]);
+  });
+
+  it("names the files whose stored text could not be read, and is silent when all could", async () => {
+    const corpus = await loadCorpus(
+      await corpusRoot(),
+      "manifest.json",
+      (id) => revisions.get(id) ?? null,
+    );
+    expect(corpusWarning(corpus)).toBe(
+      "worker: stored corpus text not readable for 1 file: src_test_missing d.pdf",
+    );
+    expect(corpusWarning({ ...corpus, missing: [] })).toBeNull();
   });
 
   it("skips repeated and unlocated headings", () => {
