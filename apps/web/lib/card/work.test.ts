@@ -92,12 +92,10 @@ describe("workCard as the command runs and completes", () => {
     taskRecord("task_2", status, "What did catchment rainfall show in spring 2022?"),
   ];
 
-  it("shows the steps while they run, and the Observations once the request completes", () => {
+  it("leaves the steps to the activity panel while they run, and shows the Observations once the request completes", () => {
     const r = card(withRecords(steps("running")));
-    expect(r.steps?.map((s) => s.text)).toEqual([
-      "What did catchment NDVI show in spring 2022?",
-      "What did catchment rainfall show in spring 2022?",
-    ]);
+    expect(r.working).toBe("Planning: 2 steps to answer this question");
+    expect(r.steps).toBeUndefined();
     expect(r.section).toBeUndefined();
     expect(words(r)).toBeLessThanOrEqual(LIMITS.cardWords);
 
@@ -122,6 +120,17 @@ describe("workCard as the command runs and completes", () => {
       ]),
     );
     expect(words(d)).toBeLessThanOrEqual(LIMITS.cardWords);
+  });
+
+  it("holds the outcome and the Observations while a replay still plays at reading pace", () => {
+    const done = withRecords(steps("succeeded"), [evidence("ev_1", "task_1", [ndviMeasurement])]);
+    const shown = appendEvents(runLog, [
+      { ...ev(5, "task.started"), message: "Task started: observation analysis." },
+    ]);
+    const held = workCard(done, shown, "cmd_b", projectObservations(done), { pacing: true });
+    expect(held.working).toBe("Task started: observation analysis.");
+    expect(held.section).toBeUndefined();
+    expect(held.recordIds).toEqual(["cmd_b"]);
   });
 
   it("says the request failed, with its cause, and shows no Observations when no task produced evidence", () => {

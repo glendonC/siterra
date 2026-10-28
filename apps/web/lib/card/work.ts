@@ -1,7 +1,8 @@
 // The work beat's card from the records: the question, what the request is doing now (the latest
-// milestone of the command, or its planned steps), and once it ends, its outcome and the Observations
-// it produced. Steps show while the request runs; once it ends, the outcome and Observations take their
-// place, so the card stays within its 45 words. An Observations line shows only for a bundle that
+// milestone of the command, or how many steps it planned), and once it ends, its outcome and the
+// Observations it produced. The steps themselves are in the activity panel, so the card stays within its
+// 45 words; a replay playing at reading pace holds the outcome until its steps have played. An
+// Observations line shows only for a bundle that
 // accepted observation evidence from this command's tasks cites: the case's precomputed bundles are
 // input, not a result (demo plan, rule 3).
 
@@ -21,30 +22,35 @@ const CAUSES: Record<string, MessageId> = {
 /** Codes that only say an earlier task failed; the cause is that task's. */
 const DOWNSTREAM = new Set(["dependency_failed", "dependency_unresolved"]);
 
+export interface WorkCardOptions {
+  /** A replay still playing at reading pace: the log is what has played so far, and the outcome waits. */
+  pacing?: boolean;
+}
+
 export function workCard(
   s: CaseSnapshot,
   log: EventLog,
   commandId: string,
   observations: ObservationLine[],
+  { pacing = false }: WorkCardOptions = {},
 ): CardContent {
   const work = projectWork(commandId, s.records.taskRecords, log.events);
   const latest = [...log.events].reverse().find((e) => e.commandId === commandId);
-  const outcome = requestOutcome(s, log, commandId);
+  const outcome = pacing ? "running" : requestOutcome(s, log, commandId);
   const ended = outcome !== "running";
-  const showSteps = work.steps.length > 0 && !ended;
   const tasks = commandTasks(s, commandId);
   const produced = producedObservations(s, tasks);
-  const lines = observations.filter((o) => produced.bundleIds.has(o.bundleId));
+  const lines = ended ? observations.filter((o) => produced.bundleIds.has(o.bundleId)) : [];
   return {
     // the worker gives the plan task the command's own text; before it exists, the case question
     question: tasks.find((t) => t.kind === "plan")?.question ?? s.case.objective,
+    // the steps themselves are in the activity panel
     working: ended
       ? outcomeLine(outcome, tasks)
-      : showSteps
+      : !pacing && work.steps.length > 0
         ? format("work.planning", { n: work.steps.length })
         : (latest?.message ?? en["work.received"].text),
-    ...(showSteps ? { steps: work.steps } : {}),
-    ...(!showSteps && lines.length > 0
+    ...(lines.length > 0
       ? {
           section: {
             heading: en["work.observations"].text,
@@ -107,9 +113,13 @@ function outcomeLine(outcome: Exclude<RequestOutcome, "running">, tasks: Task[])
   const code = tasks.find(
     (t) => t.status === "failed" && t.failureCode && !DOWNSTREAM.has(t.failureCode),
   )?.failureCode;
-  let cause: MessageId = "work.cause.other";
-  if (code) cause = CAUSES[code] ?? (/^http_5\d\d$/.test(code) ? "work.cause.modelDown" : cause);
+  const cause = (code ? failureCause(code) : undefined) ?? "work.cause.other";
   return format("work.failed", { cause: en[cause].text });
+}
+
+/** Plain words for a task's failure code, when the catalog has them. */
+export function failureCause(code: string): MessageId | undefined {
+  return CAUSES[code] ?? (/^http_5\d\d$/.test(code) ? "work.cause.modelDown" : undefined);
 }
 
 /**

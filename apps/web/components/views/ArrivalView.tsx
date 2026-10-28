@@ -8,6 +8,8 @@
 import type * as maplibregl from "maplibre-gl";
 import type { CaseSnapshot } from "@siterra/contracts";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ActivityPanel } from "../activity/ActivityPanel";
+import { usePacedLog } from "../activity/usePacedLog";
 import { Card } from "../card/Card";
 import { Leader } from "../card/Leader";
 import { useCaseSession } from "../case/useCaseSession";
@@ -17,6 +19,7 @@ import { useDepartureLayer } from "../map/useDepartureLayer";
 import { Notices } from "../notices/Notices";
 import { ArrivalChrome } from "../shell/ArrivalChrome";
 import { ValleyStage } from "../stage/ValleyStage";
+import { projectActivity, replayOrigin } from "../../lib/activity/activity";
 import type { Point } from "../../lib/card/leader";
 import { commandRunning, workCard } from "../../lib/card/work";
 import { commissionRequest, requestText, submitCommand } from "../../lib/case/command";
@@ -31,6 +34,7 @@ import { ARRIVAL_EXAGGERATION, ARRIVAL_POSE } from "../../lib/stage/arrival";
 import { primaryHint, stopHint } from "../../lib/shell/hints";
 import { readSingleKeys, viewerStorage, writeSingleKeys } from "../../lib/shell/preferences";
 import { orbitToMapCamera } from "../../lib/stage/camera";
+import styles from "./ArrivalView.module.css";
 
 export interface ArrivalViewProps {
   /** The valley's assets from the map bundle, or null when it could not be read. */
@@ -93,10 +97,33 @@ export function ArrivalView({
   const commandId = latestCommandId(log);
   const working = commandId !== undefined;
   const running = commandId !== undefined && commandRunning(snapshot, log, commandId);
+  // a replayed request started in this tab plays out at reading pace (usePacedLog); a reload shows it whole
+  const [startedHere, setStartedHere] = useState<string | undefined>(undefined);
+  const replay = commandId ? replayOrigin(log.events, commandId) : undefined;
+  const paced = usePacedLog(
+    log,
+    commandId,
+    commandId !== undefined && commandId === startedHere && replay !== undefined,
+  );
+  const shown = paced.log;
+  const busy = running || paced.pacing;
   const card = useMemo(
     () =>
-      commandId ? workCard(snapshot, log, commandId, projectObservations(snapshot)) : undefined,
-    [snapshot, log, commandId],
+      commandId
+        ? workCard(snapshot, shown, commandId, projectObservations(snapshot), {
+            pacing: paced.pacing,
+          })
+        : undefined,
+    [snapshot, shown, commandId, paced.pacing],
+  );
+  const activity = useMemo(
+    () =>
+      commandId
+        ? projectActivity(snapshot.records.taskRecords, shown.events, commandId, {
+            playedOnly: paced.pacing,
+          })
+        : [],
+    [snapshot, shown, commandId, paced.pacing],
   );
   // storyboard scene 3: the departure layer shows with the Observations this request produced
   const departure = useDepartureLayer(snapshot, card?.section !== undefined);
@@ -111,7 +138,7 @@ export function ArrivalView({
   const submitting = useRef(false);
   const commission = useCallback(
     (typed: string) => {
-      if (running || submitting.current) return;
+      if (busy || submitting.current) return;
       submitting.current = true;
       setNotice(undefined);
       const text = requestText(typed, snapshot.case.objective);
@@ -120,7 +147,10 @@ export function ArrivalView({
         .then((r) => {
           if (r.status === "refused")
             setNotice(r.code === "quota_exhausted" ? "work.quotaUsed" : "work.refused");
-          else onStart();
+          else {
+            setStartedHere(r.command.id);
+            onStart();
+          }
         })
         .catch((e: unknown) => {
           console.error("Commission failed", e);
@@ -130,18 +160,21 @@ export function ArrivalView({
           submitting.current = false;
         });
     },
-    [running, snapshot, onStart],
+    [busy, snapshot, onStart],
   );
 
+  // Esc: stops a running request; a finished replay still playing at reading pace shows all its steps
   const stop = useCallback(() => {
     if (!commandId) return;
+    paced.showAll();
+    if (!running) return;
     fetch(`/api/commands/${encodeURIComponent(commandId)}/cancel`, {
       method: "POST",
       credentials: "same-origin",
     }).catch((e: unknown) => {
       console.error("Stop failed", e);
     });
-  }, [commandId]);
+  }, [commandId, running, paced]);
   // the bearing does not depend on the viewport height
   const bearing = orbitToMapCamera(ARRIVAL_POSE, 1).bearing;
   const question = arrival.question;
@@ -185,7 +218,16 @@ export function ArrivalView({
       />
       {chrome && card && commandId ? (
         <>
-          <Card content={card} stepKey={commandId} anchor="working" />
+          <div className={styles.work}>
+            <Card content={card} stepKey={commandId} anchor="working" />
+            <ActivityPanel
+              rows={activity}
+              replay={replay}
+              pacing={paced.pacing}
+              stop={stopHint({ running, pacing: paced.pacing })}
+              onStop={stop}
+            />
+          </div>
           <Leader outline={outline} stepKey={commandId} />
         </>
       ) : null}
@@ -208,7 +250,7 @@ export function ArrivalView({
             bearingDeg={bearing}
             primary={primaryHint({ commissioned: working, running })}
             onStart={commission}
-            stop={stopHint({ running })}
+            stop={stopHint({ running, pacing: paced.pacing })}
             onStop={stop}
             notice={notice}
             flat={flat}

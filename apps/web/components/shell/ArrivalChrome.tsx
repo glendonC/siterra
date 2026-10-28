@@ -32,7 +32,7 @@ export interface ArrivalChromeProps {
   onStart: (text: string) => void;
   /** The one primary action's label, or none when ↵ would do nothing (primaryHint). */
   primary: MessageId | undefined;
-  /** The stop action's label while a request runs, or none (stopHint). */
+  /** The Esc action while there is one (stopHint); its button is in the activity panel. */
   stop?: MessageId | undefined;
   onStop?: () => void;
   /** A message under the command line when a request was refused. */
@@ -205,22 +205,6 @@ export function ArrivalChrome({
                 ↵
               </kbd>
               {en[primary].text}
-            </button>
-          </li>
-        ) : null}
-        {stop ? (
-          <li>
-            <button
-              type="button"
-              className={styles.key}
-              onClick={onStop}
-              aria-keyshortcuts="Escape"
-              data-budget="action"
-            >
-              <kbd className={styles.glyph} aria-hidden="true">
-                Esc
-              </kbd>
-              {en[stop].text}
             </button>
           </li>
         ) : null}

@@ -8,6 +8,8 @@ export function primaryHint(s: { commissioned: boolean; running: boolean }): Mes
   return s.commissioned || s.running ? undefined : "arrival.start";
 }
 
-export function stopHint(s: { running: boolean }): MessageId | undefined {
-  return s.running ? "work.stop" : undefined;
+/** Esc stops a running request; a replay that has finished but still plays at reading pace shows all. */
+export function stopHint(s: { running: boolean; pacing?: boolean }): MessageId | undefined {
+  if (s.running) return "work.stop";
+  return s.pacing ? "activity.showAll" : undefined;
 }

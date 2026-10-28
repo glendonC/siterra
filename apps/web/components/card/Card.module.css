@@ -3,10 +3,8 @@
    250 ms after that. Reduced motion: a 150 ms cross-fade for everything. */
 
 .card {
-  position: absolute;
-  right: 32px;
-  top: 64px;
-  width: 392px;
+  position: relative;
+  flex: 0 0 auto;
   padding: 22px 24px 20px;
   background: var(--card);
   box-shadow: var(--shadow-card);

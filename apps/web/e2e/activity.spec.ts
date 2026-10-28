@@ -1,0 +1,39 @@
+import { expect, test } from "@playwright/test";
+import { demoCase } from "./demo-case";
+
+// The activity panel under the card, from the event log, on the synthetic replay route: labeled as a
+// synthetic replay, played at a stated reading pace, one row per step with its model and tool badges; the
+// card holds its outcome until the steps have played; a reload shows the whole log at once.
+
+test("the panel plays a synthetic replay at reading pace, then the card gives the outcome", async ({
+  page,
+  baseURL,
+}) => {
+  const caseId = await demoCase(page.request, baseURL);
+  await page.goto(`/stage?case=${caseId}`);
+  await expect(page.locator("[data-arrival-settled=true]")).toBeVisible({ timeout: 60_000 });
+  await page.locator("#command-input").press("Enter");
+
+  const panel = page.locator("[data-activity]");
+  const replay = panel.locator("[data-replay=synthetic]");
+  await expect(replay).toContainText("Replay of a synthetic run (no live model)");
+  await expect(replay).toContainText("Shown at reading pace");
+  const card = page.locator("[data-budget=card]");
+  await expect(card).not.toContainText("Request complete");
+
+  const rows = panel.locator("li[data-record-ids]");
+  await expect(rows).toHaveCount(3, { timeout: 30_000 });
+  await expect(panel).toContainText("Muse Spark, synthetic replay");
+  await expect(panel).toContainText("Code: summarize_observations");
+  await expect(panel).toContainText("returned 3 records");
+
+  await expect(replay).not.toContainText("reading pace", { timeout: 30_000 });
+  await expect(card).toContainText("Request complete");
+  await expect(rows.locator("text=Done")).toHaveCount(3);
+
+  await page.reload();
+  await expect(page.locator("[data-activity] li[data-record-ids]")).toHaveCount(3, {
+    timeout: 60_000,
+  });
+  await expect(page.locator("[data-replay=synthetic]")).not.toContainText("reading pace");
+});

@@ -1,0 +1,14 @@
+/* The work column at the right: the one card, and the activity panel docked under it. The column keeps
+   the card's place and width (design language rule 5) and stops above the instruments and the credit
+   line; the panel scrolls inside it. */
+
+.work {
+  position: absolute;
+  right: 32px;
+  top: 64px;
+  width: 392px;
+  max-height: calc(100vh - 64px - 132px);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}

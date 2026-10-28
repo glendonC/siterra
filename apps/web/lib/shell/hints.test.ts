@@ -20,4 +20,9 @@ describe("stopHint", () => {
     expect(stopHint({ running: true })).toBe("work.stop");
     expect(stopHint({ running: false })).toBeUndefined();
   });
+
+  it("offers Esc to show all steps of a replay that has finished but still plays at reading pace", () => {
+    expect(stopHint({ running: false, pacing: true })).toBe("activity.showAll");
+    expect(stopHint({ running: true, pacing: true })).toBe("work.stop");
+  });
 });
