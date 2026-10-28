@@ -37,7 +37,7 @@ beforeAll(async () => {
   const plan = {
     interpretation: "The command does not name a place.",
     tasks: [],
-    clarifyingQuestion: "Which valley do you mean?",
+    clarifyingQuestion: "Which valley is meant?",
   };
   await writeFile(
     replayFile,
@@ -127,7 +127,7 @@ describe("worker process", () => {
         const submitted = await submitCommand(db.pool, {
           caseId: CASE_ID,
           ownerScopeId: OWNER,
-          request: exampleCommandRequest("key-test-main-0001", "Which valley do you mean?"),
+          request: exampleCommandRequest("key-test-main-0001", "Which valley is meant?"),
         });
         if (submitted.status !== "created") throw new Error(submitted.status);
         const commandId = submitted.command.id;

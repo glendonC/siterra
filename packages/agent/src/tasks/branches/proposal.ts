@@ -20,7 +20,15 @@ export const PREDICTION_LIMITS = { min: 2, max: 4, maxPeriods: 24, wordingChars:
 
 type Kind = PredictionTest["kind"];
 type Field =
-  "pairId" | "side" | "periodIds" | "windowMonths" | "seasonId" | "flag" | "fieldCheckId";
+  | "pairId"
+  | "side"
+  | "periodIds"
+  | "windowMonths"
+  | "seasonId"
+  | "flag"
+  | "fieldCheckId"
+  | "stratumId"
+  | "trendSeries";
 
 const FIELDS: readonly Field[] = [
   "pairId",
@@ -30,6 +38,8 @@ const FIELDS: readonly Field[] = [
   "seasonId",
   "flag",
   "fieldCheckId",
+  "stratumId",
+  "trendSeries",
 ];
 
 /** The fields each kind sets and the outcomes it may expect; every other field stays null or empty. */
@@ -52,6 +62,10 @@ export const GRAMMAR: Readonly<
   availability: {
     fields: ["pairId", "side", "periodIds"],
     expected: ["all_available", "some_unavailable"],
+  },
+  trend_direction: {
+    fields: ["stratumId", "trendSeries"],
+    expected: ["increasing", "decreasing", "flat"],
   },
   field_check: { fields: ["fieldCheckId"], expected: null },
 };
@@ -105,6 +119,9 @@ function targetIssues(test: PredictionTest, catalog: BranchCatalog, at: string):
   }
   if (test.fieldCheckId !== null && !catalog.fieldChecks.some((c) => c.id === test.fieldCheckId)) {
     add("fieldCheckId", `${test.fieldCheckId} is not a field check of this case.`);
+  }
+  if (test.stratumId !== null && !catalog.trendStrata.includes(test.stratumId)) {
+    add("stratumId", `${test.stratumId} is not a trend stratum of the catalog.`);
   }
   return out;
 }

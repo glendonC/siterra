@@ -62,6 +62,7 @@ const INADEQUATE: ReadonlySet<ReasonCode> = new Set([
   "value_not_available",
   "no_quality_record",
   "too_few_aligned_months",
+  "precondition_not_met",
 ]);
 
 export interface RecordedMeasurement {
@@ -94,6 +95,21 @@ export type CoMovementRecord =
     }
   | { kind: "area_mismatch"; bundleIds: readonly string[] };
 
+export interface StratumTrendRecord {
+  status: "computed" | "precondition_not_met" | "insufficient_seasons";
+  /** [estimate, lower95, upper95] per decade for unadjusted greenness, or null if unavailable. */
+  unadjustedPerDecade: readonly [number, number, number] | null;
+  /** [estimate, lower95, upper95] per decade for the rainfall-adjusted residual, or null if unavailable. */
+  residualPerDecade: readonly [number, number, number] | null;
+}
+
+export interface TrendSummaryRecord {
+  bundleId: string;
+  firstSeason: number;
+  lastSeason: number;
+  strata: ReadonlyMap<string, StratumTrendRecord>;
+}
+
 /** What the record holds for scoring, read by host code only after the predictions commit. */
 export interface ScoringRecord {
   /** Keyed "pairId:side". */
@@ -101,6 +117,7 @@ export interface ScoringRecord {
   /** Keyed "pairId:windowMonths". */
   coMovement: ReadonlyMap<string, CoMovementRecord>;
   seasons: { bundleId: string; categories: ReadonlyMap<string, SeasonCategory> } | null;
+  trends?: TrendSummaryRecord | null;
   fieldCheckIds: ReadonlySet<string>;
 }
 
@@ -117,12 +134,15 @@ export function testKey(test: PredictionTest): string {
       return `${test.kind}:${test.pairId ?? ""}:${String(test.windowMonths ?? "")}`;
     case "season_category":
       return `${test.kind}:${test.seasonId ?? ""}`;
+    case "trend_direction":
+      return `${test.kind}:${test.stratumId ?? ""}:${test.trendSeries ?? ""}`;
     case "field_check":
       return `${test.kind}:${test.fieldCheckId ?? ""}`;
   }
 }
 
 const words = (code: string): string => code.replaceAll("_", " ");
+const signedFour = (n: number): string => `${n >= 0 ? "+" : ""}${n.toFixed(4)}`;
 
 function untestable(
   key: string,
@@ -334,6 +354,81 @@ export function scorePrediction(prediction: Prediction, record: ScoringRecord): 
         `The season summary places ${test.seasonId ?? ""} ${words(category)}.`,
         [],
         [record.seasons.bundleId],
+      );
+    }
+    case "trend_direction": {
+      const trends = record.trends ?? null;
+      if (!trends) {
+        return untestable(
+          key,
+          "no_trend_record",
+          "The case holds no long-record trend summary result.",
+        );
+      }
+      const stratumId = test.stratumId ?? "";
+      const stratum = trends.strata.get(stratumId);
+      if (!stratum) {
+        return untestable(
+          key,
+          "stratum_not_in_record",
+          `The trend summary holds no stratum ${stratumId || "target"}.`,
+          [trends.bundleId],
+        );
+      }
+      const span = `${String(trends.firstSeason)} to ${String(trends.lastSeason)}`;
+      if (stratum.status === "insufficient_seasons") {
+        return untestable(
+          key,
+          "value_not_available",
+          `Stratum ${stratumId} has too few seasons over ${span} to fit a trend.`,
+          [trends.bundleId],
+        );
+      }
+      if (test.trendSeries === "residual") {
+        if (stratum.status === "precondition_not_met") {
+          return untestable(
+            key,
+            "precondition_not_met",
+            `Rainfall-adjusted residual trend in ${stratumId} (${span}) is not testable: precondition not met because the rainfall slope 95% interval includes zero.`,
+            [trends.bundleId],
+          );
+        }
+        const tuple = stratum.residualPerDecade;
+        if (!tuple) {
+          return untestable(
+            key,
+            "value_not_available",
+            `No residual trend interval is recorded for ${stratumId}.`,
+            [trends.bundleId],
+          );
+        }
+        const [slope, lower, upper] = tuple;
+        const observedDir = lower > 0 ? "increasing" : upper < 0 ? "decreasing" : "flat";
+        return scored(
+          key,
+          observedDir === test.expected,
+          `Rainfall-adjusted residual trend in ${stratumId} (${span}) is ${observedDir}: ${signedFour(slope)} per decade (95% interval ${signedFour(lower)} to ${signedFour(upper)}).`,
+          [],
+          [trends.bundleId],
+        );
+      }
+      const tuple = stratum.unadjustedPerDecade;
+      if (!tuple) {
+        return untestable(
+          key,
+          "value_not_available",
+          `No unadjusted greenness trend interval is recorded for ${stratumId}.`,
+          [trends.bundleId],
+        );
+      }
+      const [slope, lower, upper] = tuple;
+      const observedDir = lower > 0 ? "increasing" : upper < 0 ? "decreasing" : "flat";
+      return scored(
+        key,
+        observedDir === test.expected,
+        `Unadjusted greenness trend in ${stratumId} (${span}) is ${observedDir}: ${signedFour(slope)} per decade (95% interval ${signedFour(lower)} to ${signedFour(upper)}).`,
+        [],
+        [trends.bundleId],
       );
     }
     case "field_check":

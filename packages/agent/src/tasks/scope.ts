@@ -38,6 +38,14 @@ const IDENTITY_CATEGORY =
 const IDENTITY_GROUP =
   /\b(?:(?:im|e)?migrants?|immigres?|emigres?|refugees?|refugies?|asylum seekers?|demandeurs d'asile|foreigners?|etrangers?|sans-papiers|undocumented|illegals|illegal aliens?|berbers?|berberes?|amazighs?|imazighen|arabs?|arabes?|sahrawis?|sahraouis?|jews|jewish|juifs?|juives?|muslims|musulmans?|musulmanes|christians|chretiens?|chretiennes|roma|gypsy|gypsies|gitans?|tsiganes?|black people|white people)\b/;
 
+/**
+ * Customary governance and tenure phrases ("Amazigh customary rules", "Berber agdal institutions")
+ * describe institutions, not people as a cause; stripped before checking IDENTITY_GROUP so
+ * questions about customary rules stay in scope even when the sentence also mentions decline.
+ */
+const CUSTOMARY_INSTITUTION =
+  /\b(?:berbers?|berberes?|amazighs?|imazighen|arabs?|arabes?)\s+(?:customary|traditional|communal|agdal|agdals|institutions?|rules?|practices?|laws?|councils?|jmaa|jemaa|djemaa|management|tenure|governance|coutum\w*|regles?)\b/g;
+
 const EXPLANATION =
   /\b(?:caus\w*|because|due to|blam\w*|fault\w*|faute|responsib\w*|explain\w*|expliqu\w*|behind|driv(?:e|es|en|er|ers|ing)|destr\w*|detrui\w*|ruin\w*|degrad\w*|declin\w*|damag\w*|over-?graz\w*|surpatur\w*|eroded|erosion|desertif\w*|loss|lost|pertes?|pressure|pression|problem\w*|probleme\w*)\b/;
 
@@ -79,7 +87,10 @@ export function outOfScope(text: string): ScopeRule | null {
   if (namesPrivatePerson(cased)) return "private_person";
   const lower = cased.toLowerCase();
   if (IDENTITY_CATEGORY.test(lower)) return "identity";
-  if (IDENTITY_GROUP.test(lower) && EXPLANATION.test(lower)) return "identity";
+  const withoutCustomary = lower.replaceAll(CUSTOMARY_INSTITUTION, "customary institution");
+  if (IDENTITY_GROUP.test(withoutCustomary) && EXPLANATION.test(withoutCustomary)) {
+    return "identity";
+  }
   return null;
 }
 

@@ -426,6 +426,8 @@ describe("vertical slice on the real seed, replay only", () => {
         seasonId: null,
         flag: null,
         fieldCheckId: null,
+        stratumId: null,
+        trendSeries: null,
         expected: null,
       };
       const onVegetation = (kind: string, periodIds: string[], expected: string, flag = null) => ({

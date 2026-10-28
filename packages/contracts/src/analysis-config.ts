@@ -80,6 +80,13 @@ export const SeasonWindow = z.strictObject({
 });
 export type SeasonWindow = z.infer<typeof SeasonWindow>;
 
+/** Long-record trend summary recipe and the stratum IDs it evaluates. */
+export const TrendSummaryConfig = z.strictObject({
+  recipe: z.strictObject({ recipeId: z.string().min(1), version: z.string().min(1) }),
+  strata: uniqueArray(configKey).min(1),
+});
+export type TrendSummaryConfig = z.infer<typeof TrendSummaryConfig>;
+
 /** A candidate explanation, in host-written words; the command tests it as one branch. */
 export const ExplanationDefinition = z.strictObject({
   id: configKey,
@@ -119,6 +126,8 @@ export const CaseAnalysisConfig = z
      * testable prediction is not met. Defaults to "cannot_be_assessed" when omitted.
      */
     whenOptionalNotMet: z.enum(["cannot_be_assessed", "consistent"]).optional(),
+    /** Optional long-record trend summary recipe and its stratum IDs for trend_direction tests. */
+    trendSummary: TrendSummaryConfig.optional(),
   })
   .refine(
     (config) => {

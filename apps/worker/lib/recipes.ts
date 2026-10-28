@@ -70,8 +70,9 @@ export async function loadAnalyses(
       const collection = JSON.parse(
         await readFile(join(dir, "collection.json"), "utf8"),
       ) as Collection;
-      const assets = Object.values(collection.assets ?? {}).filter((a) =>
-        a.roles?.includes("data"),
+      const named = collection.assets?.[bundle.methodId];
+      const assets = [...(named ? [named] : []), ...Object.values(collection.assets ?? {})].filter(
+        (a) => a.roles?.includes("data"),
       );
       const data = assets.find((a) => a.href?.endsWith(".json") || a.type === "application/json");
       if (!data?.href) {

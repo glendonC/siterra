@@ -64,7 +64,7 @@ describe("plan job on PostgreSQL", () => {
     const submitted = await submitCommand(db.pool, {
       caseId: CASE_ID,
       ownerScopeId: OWNER,
-      request: exampleCommandRequest("key-test-worker-0001", "Which valley do you mean?"),
+      request: exampleCommandRequest("key-test-worker-0001", "Which valley is meant?"),
     });
     if (submitted.status !== "created") throw new Error(submitted.status);
     const command = submitted.command;
@@ -74,7 +74,7 @@ describe("plan job on PostgreSQL", () => {
     const plan = {
       interpretation: "The command does not name a place.",
       tasks: [],
-      clarifyingQuestion: "Which valley do you mean?",
+      clarifyingQuestion: "Which valley is meant?",
     };
     const result = await handlePlanJob(
       { caseId: CASE_ID, commandId: command.id, planTaskId },

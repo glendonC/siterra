@@ -4304,7 +4304,7 @@
       }
     },
     "PredictionTest": {
-      "description": "Added in 1.9.0: what a prediction tests, in a closed grammar against recipe outputs and bundle metadata. Each kind sets its fields and leaves the others null or empty (host rule): departure_sign (pairId, side, periodIds; expected negative or positive), co_movement (pairId, windowMonths; expected same_sign_majority or no_same_sign_majority), season_category (seasonId; expected below_normal, near_normal or above_normal), quality_flag (pairId, side, periodIds, flag; expected present or absent), availability (pairId, side, periodIds; expected all_available or some_unavailable), field_check (fieldCheckId; expected null).",
+      "description": "Added in 1.9.0: what a prediction tests, in a closed grammar against recipe outputs and bundle metadata. Each kind sets its fields and leaves the others null or empty (host rule): departure_sign (pairId, side, periodIds; expected negative or positive), co_movement (pairId, windowMonths; expected same_sign_majority or no_same_sign_majority), season_category (seasonId; expected below_normal, near_normal or above_normal), quality_flag (pairId, side, periodIds, flag; expected present or absent), availability (pairId, side, periodIds; expected all_available or some_unavailable), field_check (fieldCheckId; expected null), trend_direction (stratumId, trendSeries; expected increasing, decreasing or flat).",
       "type": "object",
       "additionalProperties": false,
       "required": [
@@ -4316,6 +4316,8 @@
         "seasonId",
         "flag",
         "fieldCheckId",
+        "stratumId",
+        "trendSeries",
         "expected"
       ],
       "properties": {
@@ -4327,7 +4329,8 @@
             "season_category",
             "quality_flag",
             "availability",
-            "field_check"
+            "field_check",
+            "trend_direction"
           ]
         },
         "pairId": {
@@ -4420,6 +4423,33 @@
           ],
           "description": "A field check of the case analysis configuration."
         },
+        "stratumId": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]{0,39}$"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "A stratum ID in a long-record trend summary, such as catchment or elevation_high."
+        },
+        "trendSeries": {
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "unadjusted",
+                "residual"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Which long-record trend series to test: unadjusted greenness or rainfall-adjusted residual."
+        },
         "expected": {
           "anyOf": [
             {
@@ -4435,7 +4465,10 @@
                 "present",
                 "absent",
                 "all_available",
-                "some_unavailable"
+                "some_unavailable",
+                "increasing",
+                "decreasing",
+                "flat"
               ]
             },
             {
@@ -4517,6 +4550,9 @@
                 "too_few_aligned_months",
                 "no_season_summary",
                 "season_not_in_summary",
+                "no_trend_record",
+                "stratum_not_in_record",
+                "precondition_not_met",
                 "field_measurement_needed"
               ]
             },

@@ -56,6 +56,7 @@ Rules:
   - season_category: seasonId from the catalog; expected below_normal, near_normal or above_normal.
   - quality_flag: pairId, side, periodIds, flag; expected present (in any of those months) or absent (in none).
   - availability: pairId, side, periodIds; expected all_available or some_unavailable.
+  - trend_direction: stratumId from the catalog's trendStrata, trendSeries (unadjusted or residual); expected increasing, decreasing or flat.
   - field_check: fieldCheckId from the catalog; expected null. Only fieldwork can test it.
 - A prediction every explanation would share tells them apart from nothing; prefer predictions that would differ between the explanations listed.
 - wording: one plain sentence saying what the record would show. No probability, likelihood or ranking; never "confirmed" or "proven"; no causal phrases such as "caused by", "due to" or "led to". Write no numbers except period and season IDs, dates and the catalog's window months.
@@ -316,7 +317,14 @@ export async function runExplanationBranchesTask(
   }
   const explanations = config.explanations.slice(0, maxExplanations);
   const catalog = await buildCatalog(deps.store, task.caseId, config);
-  const years = caseYearSpan(catalog.pairs.flatMap((p) => [...p.a.periodIds, ...p.b.periodIds]));
+  const rawYears = caseYearSpan(catalog.pairs.flatMap((p) => [...p.a.periodIds, ...p.b.periodIds]));
+  const years =
+    catalog.trendStrata.length > 0
+      ? {
+          first: Math.min(rawYears?.first ?? 2000, 2000),
+          last: Math.max(rawYears?.last ?? 2025, 2025),
+        }
+      : rawYears;
   const model = deps.model ?? DEFAULT_MODEL;
   const ids = explanations.map((e) => branchIdFor(task.id, e.id));
   const stored = new Map(
