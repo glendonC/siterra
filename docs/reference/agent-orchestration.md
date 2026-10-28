@@ -64,7 +64,7 @@ Layout proposals (`propose_layout`) may accompany any result task; if absent, th
 
 ### Transport of proposals
 
-The Meta Responses API accepts only `tool_choice: "auto"`, so a tool call cannot be forced (TECH-07). Each task therefore ends with its proposal as the response's **structured final output** (`text.format` json_schema, strict subset, generated from Zod); the `propose_*` names in this document and in [Data contracts](data-contracts.md#tool-argument-contracts) are those output schemas. Function tools are offered only for reads and deterministic computation. A task whose model turn ends without a schema-valid proposal gets one repair turn, then fails.
+The Meta Responses API accepts only `tool_choice: "auto"`, so a tool call cannot be forced (TECH-07). Each task therefore ends with its proposal as the response's **structured final output** (`text.format` json_schema, strict subset, generated from Zod); the `propose_*` names in this document and in [Data contracts](data-contracts.md#tool-argument-contracts) are those output schemas. Function tools are offered only for reads and deterministic computation. A task whose model turn ends without a schema-valid proposal gets one repair turn, then fails. The last two rounds of every task offer no tools: one for the proposal and one for its repair. Host code asks for the proposal when the first of them starts. A tool call in either round is answered with an error and not run, so a task that keeps reading fails at the round limit.
 
 ### Source reading
 
@@ -135,7 +135,7 @@ A model may be asked once to repair a rejected domain proposal, given the issues
 
 | Limit | Default | On reaching it |
 |---|---|---|
-| Model and tool rounds per task | 6 | Partial result naming the unfinished question |
+| Model and tool rounds per task | 6, the last 2 without tools | Partial result naming the unfinished question |
 | Tasks per command | 8 | Planner narrows scope or asks a clarifying question |
 | Concurrent model calls per case | 2 | Queue |
 | Source searches per command | 10 | Use collected sources; disclose coverage |
