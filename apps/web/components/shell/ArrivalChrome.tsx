@@ -32,6 +32,9 @@ export interface ArrivalChromeProps {
   onStart: (text: string) => void;
   /** The one primary action's label, or none when ↵ would do nothing (primaryHint). */
   primary: MessageId | undefined;
+  /** The stop action's label while a request runs, or none (stopHint). */
+  stop?: MessageId | undefined;
+  onStop?: () => void;
   /** A message under the command line when a request was refused. */
   notice?: MessageId | undefined;
   /** False when the map could not be drawn: no F hint and no map instruments (the hint rule). */
@@ -62,6 +65,8 @@ export function ArrivalChrome({
   bearingDeg,
   onStart,
   primary,
+  stop,
+  onStop = () => undefined,
   notice,
   flat = false,
   mapDrawn = true,
@@ -82,6 +87,11 @@ export function ArrivalChrome({
       if (!action) return;
       if (action === "escape") {
         input.current?.blur();
+        // an open popover (the mode's scope) takes its own Esc; otherwise Esc stops a running request
+        if (stop && !document.querySelector(":popover-open")) {
+          e.preventDefault();
+          onStop();
+        }
         return;
       }
       // ↵ with no primary hint does nothing, so the key is left alone
@@ -96,7 +106,7 @@ export function ArrivalChrome({
     return () => {
       window.removeEventListener("keydown", onKey);
     };
-  }, [singleKeys, primary, mapDrawn, onStart, onReadFlat]);
+  }, [singleKeys, primary, stop, mapDrawn, onStart, onStop, onReadFlat]);
 
   const reduced =
     instant ||
@@ -195,6 +205,22 @@ export function ArrivalChrome({
                 ↵
               </kbd>
               {en[primary].text}
+            </button>
+          </li>
+        ) : null}
+        {stop ? (
+          <li>
+            <button
+              type="button"
+              className={styles.key}
+              onClick={onStop}
+              aria-keyshortcuts="Escape"
+              data-budget="action"
+            >
+              <kbd className={styles.glyph} aria-hidden="true">
+                Esc
+              </kbd>
+              {en[stop].text}
             </button>
           </li>
         ) : null}

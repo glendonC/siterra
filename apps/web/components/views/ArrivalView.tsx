@@ -28,7 +28,7 @@ import { arrivalFlat } from "../../lib/flat/arrival";
 import { projectObservations } from "../../lib/projection/observations";
 import type { ReadyArrival } from "../../lib/projection/arrival";
 import { ARRIVAL_EXAGGERATION, ARRIVAL_POSE } from "../../lib/stage/arrival";
-import { primaryHint } from "../../lib/shell/hints";
+import { primaryHint, stopHint } from "../../lib/shell/hints";
 import { readSingleKeys, viewerStorage, writeSingleKeys } from "../../lib/shell/preferences";
 import { orbitToMapCamera } from "../../lib/stage/camera";
 
@@ -207,7 +207,9 @@ export function ArrivalView({
             instant={quick}
             bearingDeg={bearing}
             primary={primaryHint({ commissioned: working, running })}
-            onStart={running ? stop : commission}
+            onStart={commission}
+            stop={stopHint({ running })}
+            onStop={stop}
             notice={notice}
             flat={flat}
             onReadFlat={() => {
