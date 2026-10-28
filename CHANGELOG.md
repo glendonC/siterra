@@ -102,6 +102,7 @@ Contracts and design tokens carry their own Semantic Versioning numbers, recorde
 - The direct valley view settles once from the regional view on a first visit to a case in a tab (MOT-01): one 2.7 s move with no bearing change in its last fifth, after which the names and chrome appear; any key, click, touch or wheel ends it at once and still does its own job, and reduced motion and reloads skip it.
 - The web app's valley view covers the widened terrain ring at z11 with the summer 2025 true-colour drape and adds 100 m and 500 m contour lines drawn from the same terrain tiles; when the map fails, the command line and keys still work and the listing drops map-only lines; places are listed west to east after the outlet; Sources and notices lists the MapLibre and maplibre-contour licences, copied unchanged.
 - The web app loads the globe, terrain and drape through the app's own map route, so a visitor's browser asks no other host; "F Read flat" is now the flat map reading (top down, north up, terrain off, graticule and scale), with the text listing as a skip link, a labelled region and the fallback when the map fails; a key hint never shows when it does nothing.
+- The delivery plan records the founder's decision of 28 Oct 2026 to narrow GATE-03: the line from the Observations card onto the catchment counts as the map layer, a passing run is reported as "GATE-03 (narrowed: no data layer on the map)", and the NDVI departure data layer on the map moves to B3, after which the full GATE-03 runs again.
 
 ### Fixed
 
