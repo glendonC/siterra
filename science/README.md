@@ -69,6 +69,8 @@ Modules that other scripts import keep snake_case names (`chirps_fetch.py`, `s2_
 | `worldcover-grid.py`, `dem-strata.py`, `strata-bundle.py` | WorldCover 2021 context mask and terrain strata on the analysis grid, and the strata bundle |
 | `corpus-fetch.py` | Fetches the open sources of the case corpus listed in [`data/case/corpus-manifest.json`](../data/case/corpus-manifest.json), stores each file with its provenance and extracts its text by page or section (stdlib plus poppler's `pdftotext`) |
 | `gold-extraction.py`, `gold-numeric.py` | Build the evaluation gold sets in `data/case/gold/`: excerpt items checked by code against the stored corpus text, and numeric items generated from every bundle measurement |
+| `globe-relief.py`, `globe-rangeland.py` | Global relief grid and hillshade from Copernicus DEM GLO-90 overviews; rangeland biomes on a 0.25 degree grid from RESOLVE Ecoregions 2017 (Rangelands Atlas method) |
+| `map-globe.py`, `map-terrain.py`, `map-manifest.py` | The public map assets in [`data/map/`](../data/map/README.md): globe relief, dot grid and rangeland biomes; the valley terrain tiles read from the Mapterhorn archive by range request (stdlib PMTiles reader, checked against the tile server); the manifest of sizes and checksums |
 | `validate-bundles.py` | Validates every document against STAC 1.1.0, its listed extensions and the Siterra extension, and every `file:checksum` |
 | `render-cells.py`, `render-ndvi.py`, `render-strata.py` | Render samples for the visual inspection check |
 

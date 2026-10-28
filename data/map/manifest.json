@@ -1,0 +1,740 @@
+{
+ "bundle": "siterra-map",
+ "version": 1,
+ "created": "2026-10-27T21:30:47-04:00",
+ "layers": {
+  "globe-relief": {
+   "label": "Relief",
+   "status": "display only",
+   "source": "Copernicus DEM GLO-90 (AWS copernicus-dem-90m), coarsest overviews averaged to 0.04 degree; hillshade azimuth 315, altitude 45 degrees, vertical exaggeration 10",
+   "licence": "licences/copernicus-dem-glo-90.md",
+   "credit": "Relief: produced using Copernicus WorldDEM™-90 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved",
+   "files": [
+    {
+     "path": "globe/relief-hillshade-8192x4096.png",
+     "bytes": 7025180,
+     "sha256": "db72a28b4d0f24029f719ae15cb0b02bf8eecc4642d1121049b30ed133a53fab"
+    },
+    {
+     "path": "globe/relief-hillshade-4096x2048.png",
+     "bytes": 1881174,
+     "sha256": "3f016cbc9729b8344b88627854804c9949c7d6b40478d64ab244e9f13d0899db"
+    }
+   ],
+   "bytes": 8906354
+  },
+  "globe-dots": {
+   "label": "Relief dots (dot size by elevation)",
+   "status": "display only",
+   "source": "Copernicus DEM GLO-90, the 0.04 degree grid of the globe relief averaged over 2 x 2 cells to 0.08 degree",
+   "licence": "licences/copernicus-dem-glo-90.md",
+   "credit": "Relief: produced using Copernicus WorldDEM™-90 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved",
+   "files": [
+    {
+     "path": "globe/dots-elevation-0p08-4500x2250.int16le.bin.gz",
+     "bytes": 4936155,
+     "sha256": "09e2d8a224cf7104cf54df6265a5496eef694133730cb6eeec81a16c86fbcba0"
+    },
+    {
+     "path": "globe/dots-land-0p08-4500x2250.uint8.bin.gz",
+     "bytes": 121051,
+     "sha256": "ea669400b64b03af79b99a5a773aa185cd9612193d0bc1c4ef31f93648b97378"
+    }
+   ],
+   "bytes": 5057206
+  },
+  "rangeland-biomes": {
+   "label": "Rangeland biomes, potential extent (Rangelands Atlas method)",
+   "status": "preliminary",
+   "source": "RESOLVE Ecoregions 2017, WWF biomes 7 to 13 without Rock and Ice, rasterized at 0.01 degree and averaged to 0.25 degree",
+   "licence": "licences/resolve-ecoregions-2017.md",
+   "credit": "Ecoregions 2017 (c) Resolve, CC BY 4.0",
+   "files": [
+    {
+     "path": "globe/rangeland-fraction-0p25.png",
+     "bytes": 69779,
+     "sha256": "49cedf1fd0f39a60678c74cecff62ba0248bbd7115df36bb45da01da75f07ecf"
+    },
+    {
+     "path": "globe/rangeland-biome-0p25.png",
+     "bytes": 20412,
+     "sha256": "94ca96bbeedf24c985220cb202bcb28b3ff11cc1595874b232a5dac7410c0214"
+    }
+   ],
+   "bytes": 90191
+  },
+  "valley-terrain": {
+   "label": "Valley terrain (Terrarium-encoded elevation tiles, 512 px WebP, z0 to z12)",
+   "status": "display only",
+   "source": "Mapterhorn planet.pmtiles (version 0.0.13), from Copernicus DEM GLO-30, unchanged tiles for the asset extent -6.71,31.33,-5.98,31.92",
+   "licence": "licences/copernicus-dem-glo-30-mapterhorn.md",
+   "credit": "© Mapterhorn (https://mapterhorn.com/attribution); Produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved",
+   "files": [
+    {
+     "path": "terrain/0/0/0.webp",
+     "bytes": 121656,
+     "sha256": "eadc04d480a999dca4ab0fe8c44f6d1c532fbaad20f113a8745beb1a099ccb32"
+    },
+    {
+     "path": "terrain/1/0/0.webp",
+     "bytes": 100100,
+     "sha256": "6d3120e39e16c89628bee6dec39ddbd53b956be8020429c7eb898391e9197afa"
+    },
+    {
+     "path": "terrain/10/492/416.webp",
+     "bytes": 148350,
+     "sha256": "eafe922f237da4f6ea41ab0346f54c3183e880d284bfb52cbeb5ec16fab2c995"
+    },
+    {
+     "path": "terrain/10/492/417.webp",
+     "bytes": 184560,
+     "sha256": "ab842fc8668a123de6622bddd0927c6ed7afb9ec7b5a756da29cdc29f8ece8bd"
+    },
+    {
+     "path": "terrain/10/492/418.webp",
+     "bytes": 141220,
+     "sha256": "bb1050d37facc17d85d3e7b7019df85adb263841db137cae4bc280d7d21a2783"
+    },
+    {
+     "path": "terrain/10/493/416.webp",
+     "bytes": 167096,
+     "sha256": "697f0240f9b9cc6ab8c92f3745fd444e2060132792fdca20a352a0a746c926a9"
+    },
+    {
+     "path": "terrain/10/493/417.webp",
+     "bytes": 180482,
+     "sha256": "0208475393c0890faee1560511b603b61bcb9a1b10ad4c19530211467b356106"
+    },
+    {
+     "path": "terrain/10/493/418.webp",
+     "bytes": 121686,
+     "sha256": "2245845e99f0a4d4e7c46b8e6e525e86df509e5803a4eb0cc90aed0f937b5485"
+    },
+    {
+     "path": "terrain/10/494/416.webp",
+     "bytes": 178412,
+     "sha256": "fde3062ea16055c6a23e3eba0585da5b51a5ece37d72f183c723576ab3e81f96"
+    },
+    {
+     "path": "terrain/10/494/417.webp",
+     "bytes": 171986,
+     "sha256": "05d201259ef2c5cad9e836d9f8869ed64a5d4aeb9ff8af18e0f7478e22f44ca9"
+    },
+    {
+     "path": "terrain/10/494/418.webp",
+     "bytes": 136318,
+     "sha256": "4936d9ab4e74c98a6614748d216c6658ba47771f391dc22e5f1801fa32ccd5b8"
+    },
+    {
+     "path": "terrain/11/985/832.webp",
+     "bytes": 83278,
+     "sha256": "c95984aaab489a5ac206ee1e335e3f633cd9089a49b29d2d44eb5c16d1d9bb39"
+    },
+    {
+     "path": "terrain/11/985/833.webp",
+     "bytes": 114398,
+     "sha256": "1498dc63e39cefaa37c72f0e0b7faef7b44003abc0a2fc8dfd8ecf9aa03a2d92"
+    },
+    {
+     "path": "terrain/11/985/834.webp",
+     "bytes": 122634,
+     "sha256": "2fb2c7063517f5674fc0f0411aa1603effff935b56959ece9e61fd4a03636bce"
+    },
+    {
+     "path": "terrain/11/985/835.webp",
+     "bytes": 123314,
+     "sha256": "3ebc952a57f5e3fb53001e624d8230acc226d4245b88de670322c23b9e810569"
+    },
+    {
+     "path": "terrain/11/985/836.webp",
+     "bytes": 123948,
+     "sha256": "80516a97beeaf82006c07a3dc4d59ca3ac810b019d10a9cf97e2826831c95563"
+    },
+    {
+     "path": "terrain/11/986/832.webp",
+     "bytes": 92940,
+     "sha256": "94fa661277ae615fd17f65db6a64743b4138335b8d7cbd85b39612917d86708e"
+    },
+    {
+     "path": "terrain/11/986/833.webp",
+     "bytes": 121880,
+     "sha256": "f29bc0153b4904b1a7d8bc5902df940ad6221f9cffb6462793128279d9f37eed"
+    },
+    {
+     "path": "terrain/11/986/834.webp",
+     "bytes": 123930,
+     "sha256": "5599896bcbd5a405fb7ae22ac16c045276bdbd91d96a6fa3b20ab7f22caed9be"
+    },
+    {
+     "path": "terrain/11/986/835.webp",
+     "bytes": 124052,
+     "sha256": "6486d2a5422d0e0fa9d916a07418c3668c311bfde6c151cf42e9990b24da880a"
+    },
+    {
+     "path": "terrain/11/986/836.webp",
+     "bytes": 100298,
+     "sha256": "e7c3ac2aa080b7c1175eef9ff1456d95b6b17a938b1061c26a83f49525eab4c2"
+    },
+    {
+     "path": "terrain/11/987/832.webp",
+     "bytes": 107272,
+     "sha256": "cc8d7061f2200fd55bb5a97a75a59106616d59a4bda14396d52364d8e0597b80"
+    },
+    {
+     "path": "terrain/11/987/833.webp",
+     "bytes": 115414,
+     "sha256": "572b2b699738389c9c2613b7bc56ce9807ee6c0510027215bf380b2bbae4d727"
+    },
+    {
+     "path": "terrain/11/987/834.webp",
+     "bytes": 118798,
+     "sha256": "44a3cffad05fb1468ee81a21283e59e059c387d66f62f9b8c82aa310a98dad8a"
+    },
+    {
+     "path": "terrain/11/987/835.webp",
+     "bytes": 116580,
+     "sha256": "c02ba5d1dbe9be3d72bb2bb0c9dee8ef96d1211674985952241f524b2e3fa66e"
+    },
+    {
+     "path": "terrain/11/987/836.webp",
+     "bytes": 99414,
+     "sha256": "d59389c54761640b330e9f0125993e56f3acd82b66fad6560a652d8acb3d8fb7"
+    },
+    {
+     "path": "terrain/11/988/832.webp",
+     "bytes": 115508,
+     "sha256": "bc87fb8f54bec5e2620ce36832d294871a70f43ec8f2ebd8f461452e69ce24cc"
+    },
+    {
+     "path": "terrain/11/988/833.webp",
+     "bytes": 110190,
+     "sha256": "0f88d7bcd9cf7f5dc05782c973dcea24c43cc856ad178c3141186ea56840dbd1"
+    },
+    {
+     "path": "terrain/11/988/834.webp",
+     "bytes": 122236,
+     "sha256": "922163765b158a57f752a6b8047dffedc9a4cec07b110239354ffc312ab5a1a9"
+    },
+    {
+     "path": "terrain/11/988/835.webp",
+     "bytes": 107750,
+     "sha256": "28ed38fbd4fa8557bfa573af8518fdbd7e9caec9dd801bbef10dc9c8c112e699"
+    },
+    {
+     "path": "terrain/11/988/836.webp",
+     "bytes": 94162,
+     "sha256": "eb989f9d4d27cc480208254eae91659e7110952c72d55a97b09fa4da0069d0bc"
+    },
+    {
+     "path": "terrain/11/989/832.webp",
+     "bytes": 124220,
+     "sha256": "41dc752776614c65777cc0dec81dd6df0d8f1623775fba648c5fad92f927d5d7"
+    },
+    {
+     "path": "terrain/11/989/833.webp",
+     "bytes": 120224,
+     "sha256": "1bfa6b58c32ea0e9c09715ed7d96c7c37b62dc4525c56e4c7a47328607f62ded"
+    },
+    {
+     "path": "terrain/11/989/834.webp",
+     "bytes": 118966,
+     "sha256": "3b817263cb9d28b352d6734efdd649f2f954d3aa86a6c77cabe2be36e958d080"
+    },
+    {
+     "path": "terrain/11/989/835.webp",
+     "bytes": 113472,
+     "sha256": "204792bde318f8e84c17bebe41bc8adcbeba2b9886adfc0c4a6a84e1805d14d0"
+    },
+    {
+     "path": "terrain/11/989/836.webp",
+     "bytes": 74718,
+     "sha256": "8f959d70ec39ae8d7bb7657cb61f417d04cdf10930475b1626dc0798b17d0185"
+    },
+    {
+     "path": "terrain/12/1971/1664.webp",
+     "bytes": 84518,
+     "sha256": "ac678d814e4fc5b1caabd9d3ea88cd3d93df68c9cfd723b97f561ac44b5a6afa"
+    },
+    {
+     "path": "terrain/12/1971/1665.webp",
+     "bytes": 97784,
+     "sha256": "17a8e0cfaf731103416a12c31809fefcc4a6546e1591bf02df1f16caedda134f"
+    },
+    {
+     "path": "terrain/12/1971/1666.webp",
+     "bytes": 104556,
+     "sha256": "3da5fae130fef6272e745f4c28d5bd7219812ef091e6671dccf398b0c1103d7d"
+    },
+    {
+     "path": "terrain/12/1971/1667.webp",
+     "bytes": 120170,
+     "sha256": "cb8c0f8d07fb90f0307c8d6792de00a429f38777c1274f2f76f61a1c56e35291"
+    },
+    {
+     "path": "terrain/12/1971/1668.webp",
+     "bytes": 112278,
+     "sha256": "5f96ae785b06107a92067e702063c88940a8c001a55398dfe2bc46a3a976e82d"
+    },
+    {
+     "path": "terrain/12/1971/1669.webp",
+     "bytes": 117680,
+     "sha256": "aadd063e1586cc0bf7286063abca0fef927b282caeb72e3af512962922cdeb5d"
+    },
+    {
+     "path": "terrain/12/1971/1670.webp",
+     "bytes": 110442,
+     "sha256": "54b0e595b06ec5bfb5f47f5475e26288b541dfbcb4c7133010bf38c55e65a6de"
+    },
+    {
+     "path": "terrain/12/1971/1671.webp",
+     "bytes": 118398,
+     "sha256": "af93ce5f2d4c381c958b7fef08536513412da85810fe23d4ebeaf0408afd3228"
+    },
+    {
+     "path": "terrain/12/1971/1672.webp",
+     "bytes": 129774,
+     "sha256": "6ed2672d55036b553386178302c5ed2288d869e33104d575f996521f7e98d366"
+    },
+    {
+     "path": "terrain/12/1972/1664.webp",
+     "bytes": 87564,
+     "sha256": "ce7b0e6d8eeef7e65e019b269557f6b106f0ba49e43152cbd8d82c1ab9604c83"
+    },
+    {
+     "path": "terrain/12/1972/1665.webp",
+     "bytes": 107172,
+     "sha256": "a6f62663b1352ebac53879b0ccbb2265fdd6062fa5cc11ff40ff3d6f69e272e3"
+    },
+    {
+     "path": "terrain/12/1972/1666.webp",
+     "bytes": 111646,
+     "sha256": "03586adbdc2a9c318345c6b9e9c7c19be0d383c09eca9673ed0ec45f04bb79b7"
+    },
+    {
+     "path": "terrain/12/1972/1667.webp",
+     "bytes": 124610,
+     "sha256": "d4b7d3661a1686c6c6c630e43c57aeb8d118f79eb74d28dd05431b91564c8316"
+    },
+    {
+     "path": "terrain/12/1972/1668.webp",
+     "bytes": 115330,
+     "sha256": "ec015ec11c41eaa538f700f929c2000292cc3b77f50f637c1ccc655c9f12aade"
+    },
+    {
+     "path": "terrain/12/1972/1669.webp",
+     "bytes": 124480,
+     "sha256": "92ae825d4b2c277115872b63ec1e3c52920c6076722e66edeb29c3f1459af6b6"
+    },
+    {
+     "path": "terrain/12/1972/1670.webp",
+     "bytes": 110674,
+     "sha256": "72adb2d0e3da4ffee50e6cb98aa8380c2b50f4326e53df3283b21330ab88b1b2"
+    },
+    {
+     "path": "terrain/12/1972/1671.webp",
+     "bytes": 122036,
+     "sha256": "d2fd652f12b26cc4d15ea465ab47514f181aac310787803f73384e4bafa1df44"
+    },
+    {
+     "path": "terrain/12/1972/1672.webp",
+     "bytes": 120986,
+     "sha256": "58f33897631ba9d4c5a26a996c897e9b475554fae7c3fc82865d2206fec79ea7"
+    },
+    {
+     "path": "terrain/12/1973/1664.webp",
+     "bytes": 96404,
+     "sha256": "9d331ef0038b3ffbb6719b214132ec35f6dcb6a7ba8d1f0684ac935d1fb55332"
+    },
+    {
+     "path": "terrain/12/1973/1665.webp",
+     "bytes": 100234,
+     "sha256": "27150d908eed94ce1ff2ecdfe4f6bd2f0674d770561799b527bbdfb02367ead5"
+    },
+    {
+     "path": "terrain/12/1973/1666.webp",
+     "bytes": 109554,
+     "sha256": "15c043fe2b771d474aebb4696099e0e84baa5efc3696e4303dc8730ffc544923"
+    },
+    {
+     "path": "terrain/12/1973/1667.webp",
+     "bytes": 123798,
+     "sha256": "9b7832eb1d6eacc3b49db88e25f2bb17e3e3b2adea731e324205117d9d8924e1"
+    },
+    {
+     "path": "terrain/12/1973/1668.webp",
+     "bytes": 120332,
+     "sha256": "1b393b0e2f3c38819f84a9ee20751835ca48a480eda34f91dee0e747c4a7fe94"
+    },
+    {
+     "path": "terrain/12/1973/1669.webp",
+     "bytes": 114594,
+     "sha256": "e1e6e33e44efd7650e1ed3419b9d6d609aca4a5ac9f947c58175518a1d3c927b"
+    },
+    {
+     "path": "terrain/12/1973/1670.webp",
+     "bytes": 119712,
+     "sha256": "2fb3ff2f016d8149df30cf8f8994f771b849ad43f3ba9ba35113ae003c1231f2"
+    },
+    {
+     "path": "terrain/12/1973/1671.webp",
+     "bytes": 123936,
+     "sha256": "1b072539328bfb0963ef0ba5f506dc543f345322be69b104a721b965e826fe0c"
+    },
+    {
+     "path": "terrain/12/1973/1672.webp",
+     "bytes": 117296,
+     "sha256": "aed617a20d8b446518bb76f7668e64ca29524c907b08d1bb52d4d151aaa05a7f"
+    },
+    {
+     "path": "terrain/12/1974/1664.webp",
+     "bytes": 95186,
+     "sha256": "56811565a0f7d132819cc5fcb827156ceb7a90aa26c63b1e8aee2516184b4926"
+    },
+    {
+     "path": "terrain/12/1974/1665.webp",
+     "bytes": 100278,
+     "sha256": "e68c6a940a6b4e06178c8344250263963d040bca5a00f8407e47d49b91507fdf"
+    },
+    {
+     "path": "terrain/12/1974/1666.webp",
+     "bytes": 107584,
+     "sha256": "e4d7fe7430e3366e89670a73bb891176765caa3c6b052608134ac8d287883e64"
+    },
+    {
+     "path": "terrain/12/1974/1667.webp",
+     "bytes": 120218,
+     "sha256": "c89c1c1d4afe0cd8ccaee313b1a041d7ad3b17ac6592b43cb2cdc2960400c336"
+    },
+    {
+     "path": "terrain/12/1974/1668.webp",
+     "bytes": 109420,
+     "sha256": "bc431f014ed75f7276084784943f33ca438f52ed582ee398e550b88217fe74af"
+    },
+    {
+     "path": "terrain/12/1974/1669.webp",
+     "bytes": 117198,
+     "sha256": "24b25b78a278939b1015e902e447b4f5cd8c93e00b6475071ca19cd851eeccdb"
+    },
+    {
+     "path": "terrain/12/1974/1670.webp",
+     "bytes": 115334,
+     "sha256": "7b1937552ef00c80f4eea53014530ea0c57d0579b815bb5f4315d3a9c8371340"
+    },
+    {
+     "path": "terrain/12/1974/1671.webp",
+     "bytes": 121590,
+     "sha256": "d4d8f6baf3078b8821bbfb3b8dda33c467e1a0d2442e738434256d422c05e677"
+    },
+    {
+     "path": "terrain/12/1974/1672.webp",
+     "bytes": 102358,
+     "sha256": "acba648dd5f9104e204b84f9324ee907068b87bf501851dd69defa307b188df0"
+    },
+    {
+     "path": "terrain/12/1975/1664.webp",
+     "bytes": 117144,
+     "sha256": "aec9d3e0d3c7c3b89b97a8e3bff7182d365b57d455dc1a248a4ffc99397b270f"
+    },
+    {
+     "path": "terrain/12/1975/1665.webp",
+     "bytes": 114006,
+     "sha256": "521c54f70e53ea4094dfce8318204f65e8433f8611aa47061ad8a0b8920db3a9"
+    },
+    {
+     "path": "terrain/12/1975/1666.webp",
+     "bytes": 107958,
+     "sha256": "004a01dd5c2dd29933bd6c44eb8d9a230b84c22721672319da17a8c1e6f52017"
+    },
+    {
+     "path": "terrain/12/1975/1667.webp",
+     "bytes": 112062,
+     "sha256": "cefe4f0e619176b21762486505b729643f484c5392a35e8773c3578cd78b5a73"
+    },
+    {
+     "path": "terrain/12/1975/1668.webp",
+     "bytes": 113324,
+     "sha256": "af4e0257b6ca749acf820b3bec89f47a934b987d424dabd8600b9b084024c999"
+    },
+    {
+     "path": "terrain/12/1975/1669.webp",
+     "bytes": 118870,
+     "sha256": "21d7b722f0e13f0abd5fbce5d5b26bae83c4f36bf3ee46c39df46e3054196aeb"
+    },
+    {
+     "path": "terrain/12/1975/1670.webp",
+     "bytes": 116902,
+     "sha256": "7e5725eaefdcd49fdd132d28e0de09089556a82817c143028272bd4d06cef3f5"
+    },
+    {
+     "path": "terrain/12/1975/1671.webp",
+     "bytes": 99366,
+     "sha256": "8b26d7dd55c1aef6857ce3153f365a720aa7354bc2828cf224095f2c489a1db3"
+    },
+    {
+     "path": "terrain/12/1975/1672.webp",
+     "bytes": 99126,
+     "sha256": "27fd37a8d1b601ed24348e810f9ed29e512e1c652ba74c86b4ee1a43ff8e9a8b"
+    },
+    {
+     "path": "terrain/12/1976/1664.webp",
+     "bytes": 115578,
+     "sha256": "e2b58a502ca2f64fd74e2b154cd0888a31107932223473beed1d0e492e1555b9"
+    },
+    {
+     "path": "terrain/12/1976/1665.webp",
+     "bytes": 110384,
+     "sha256": "6a031ddab6a2f29689d5928193b50f96dcec4911563da1e1f758adb2c65afee4"
+    },
+    {
+     "path": "terrain/12/1976/1666.webp",
+     "bytes": 111188,
+     "sha256": "4bfe772f1a6306fc9c363109dac3e070d8d81adf0efa09504e4a2ce497264257"
+    },
+    {
+     "path": "terrain/12/1976/1667.webp",
+     "bytes": 104426,
+     "sha256": "3e3a0d74f59c4ea7066fa1817ba90e9afa4cb31958285dd2b35b5126fe7d080c"
+    },
+    {
+     "path": "terrain/12/1976/1668.webp",
+     "bytes": 115690,
+     "sha256": "42a3d4d08590119eef5f3d873c4f4410ad56b35dd345a5e99a1d310ac820f59b"
+    },
+    {
+     "path": "terrain/12/1976/1669.webp",
+     "bytes": 118136,
+     "sha256": "c35ac18c5fe395d1d3f7916ce9f81588d850cf719bd2df0c7a2b4afa00c52c8f"
+    },
+    {
+     "path": "terrain/12/1976/1670.webp",
+     "bytes": 110124,
+     "sha256": "8825872214e3b7619e37565c5dad0a92edb9b9d5ca5971913ad37b8177b4a2ed"
+    },
+    {
+     "path": "terrain/12/1976/1671.webp",
+     "bytes": 96684,
+     "sha256": "23330305e095cb79e97082fa91cb36d3362c7dbe4d46d411842d05814bd0aa2a"
+    },
+    {
+     "path": "terrain/12/1976/1672.webp",
+     "bytes": 108558,
+     "sha256": "eae847d6b4f2bd35c548b375f079e6f91c98b75c7d5fcabb690136a481a3a67f"
+    },
+    {
+     "path": "terrain/12/1977/1664.webp",
+     "bytes": 112362,
+     "sha256": "8c71ef4efdd244dd7490659a2c484cc419a367d072b269c9714b019b761d650a"
+    },
+    {
+     "path": "terrain/12/1977/1665.webp",
+     "bytes": 111894,
+     "sha256": "e7c6b79d268dab12bfe83bed1cb85265c15dc94b5953329d8b3f037d67593839"
+    },
+    {
+     "path": "terrain/12/1977/1666.webp",
+     "bytes": 111260,
+     "sha256": "f19de7d7b4e2eaa2867c95aeb183c8d2f2d6a68da590b9977e3e6255829f603d"
+    },
+    {
+     "path": "terrain/12/1977/1667.webp",
+     "bytes": 109682,
+     "sha256": "853a4fd864030c5e3e51355fd2a0b916cdba45d6890db5e05ce1d6133f644593"
+    },
+    {
+     "path": "terrain/12/1977/1668.webp",
+     "bytes": 119302,
+     "sha256": "9a138011225f87035659679f53a9c823e51721786683dfe9392f540f0897ef52"
+    },
+    {
+     "path": "terrain/12/1977/1669.webp",
+     "bytes": 122144,
+     "sha256": "d612cebd30cfc9416e36ef9fbe1aaedffbccbecb0276feb49af3fa39debe0151"
+    },
+    {
+     "path": "terrain/12/1977/1670.webp",
+     "bytes": 111006,
+     "sha256": "8d39c1715c2e3625b52e61ee6cc05494ee0333831dee04440f7caa8946775ea8"
+    },
+    {
+     "path": "terrain/12/1977/1671.webp",
+     "bytes": 113094,
+     "sha256": "9dc89a41d1c5b10eaa92ce32e6514ec0eebfe7a49b4db051887c99788163bcb0"
+    },
+    {
+     "path": "terrain/12/1977/1672.webp",
+     "bytes": 108026,
+     "sha256": "47f5830d658073630d9a309db4c1f49db0ec96b9f5f5b3620a82c4251ef4fa75"
+    },
+    {
+     "path": "terrain/12/1978/1664.webp",
+     "bytes": 130164,
+     "sha256": "cdcf324188d5b0c28b2d1d23e4a67c0caa6e9f979feb13ca2c04111db61b289a"
+    },
+    {
+     "path": "terrain/12/1978/1665.webp",
+     "bytes": 125106,
+     "sha256": "dda18adfa6092a9c06460545955d6b3dc0c98899603beab6fef3137a452653be"
+    },
+    {
+     "path": "terrain/12/1978/1666.webp",
+     "bytes": 120090,
+     "sha256": "f793de9010f4082cb506b03a68a572f085462aa3aa3287377db6f71262085968"
+    },
+    {
+     "path": "terrain/12/1978/1667.webp",
+     "bytes": 113772,
+     "sha256": "4dc8ab58ae36185474102fa8d265e0c2b771e7a3217b504ee355428c4646ba28"
+    },
+    {
+     "path": "terrain/12/1978/1668.webp",
+     "bytes": 119706,
+     "sha256": "fbbb3854619fd23eee0744483d064328de0980311ae5d0cde69e6288842cafc2"
+    },
+    {
+     "path": "terrain/12/1978/1669.webp",
+     "bytes": 116440,
+     "sha256": "8c2d80c4fe1d38a7c81dccded5ba386858542043642bb3d44521753295c9a9fc"
+    },
+    {
+     "path": "terrain/12/1978/1670.webp",
+     "bytes": 117176,
+     "sha256": "da1534aa6fb725465cd220260799ee11d4c10489846068ca069e06222791aa8e"
+    },
+    {
+     "path": "terrain/12/1978/1671.webp",
+     "bytes": 111452,
+     "sha256": "5a7dcee12852831c0d6ac02eb34abb89f8cdf8ef731ca8888f4ffd566682ef6d"
+    },
+    {
+     "path": "terrain/12/1978/1672.webp",
+     "bytes": 84682,
+     "sha256": "ac65cb6eeac8c5549d0d8ff1604fb61de99ba0909dec4f88046c774553f044d0"
+    },
+    {
+     "path": "terrain/12/1979/1664.webp",
+     "bytes": 105068,
+     "sha256": "1dc37ee698e393244d38e7c9af53b3bbd3875367db28f43efa7d523c84e251e2"
+    },
+    {
+     "path": "terrain/12/1979/1665.webp",
+     "bytes": 117618,
+     "sha256": "d4a05c626c4a48cbd7ecd5c491b8a4a30f59f8500ac491283e8f5b37955657b6"
+    },
+    {
+     "path": "terrain/12/1979/1666.webp",
+     "bytes": 113178,
+     "sha256": "38769e4c8037259483f44dd9313ab4b6d6461143b580fc7ac40acd8eb74da5b3"
+    },
+    {
+     "path": "terrain/12/1979/1667.webp",
+     "bytes": 114470,
+     "sha256": "3e1b136aaac89ec4675dca7293a3e314265d819848dfe8b0c401735037a13304"
+    },
+    {
+     "path": "terrain/12/1979/1668.webp",
+     "bytes": 108602,
+     "sha256": "96b038821c6efb0bddf915239990ae74f887a316b73462010af663d6df085c75"
+    },
+    {
+     "path": "terrain/12/1979/1669.webp",
+     "bytes": 114514,
+     "sha256": "1523b837a300092cced13a9d6e5df15190122dad8d7e252a515acf17844cbd62"
+    },
+    {
+     "path": "terrain/12/1979/1670.webp",
+     "bytes": 116804,
+     "sha256": "9e0fa7465ce64f03a4a703e4afcbd0f401bfb7f71e55a2a58e98cb194b98f66c"
+    },
+    {
+     "path": "terrain/12/1979/1671.webp",
+     "bytes": 105112,
+     "sha256": "7610e8dc82d643163caecebca1771c69f91a0239b076a843e3739b4396a195e8"
+    },
+    {
+     "path": "terrain/12/1979/1672.webp",
+     "bytes": 71792,
+     "sha256": "c1658adeffcbc0744ae4115f3db7433f9144347da8e5f80dc64143327412a40f"
+    },
+    {
+     "path": "terrain/2/1/1.webp",
+     "bytes": 77306,
+     "sha256": "18830f7c6832079e14572a53abf939b1f441df62675644400d0143917a6aa4b1"
+    },
+    {
+     "path": "terrain/3/3/3.webp",
+     "bytes": 55716,
+     "sha256": "a06eaa9397dd19161af88a90947a4b9b573c2d13bffb02b278c6d5fb8e73a05b"
+    },
+    {
+     "path": "terrain/4/7/6.webp",
+     "bytes": 101598,
+     "sha256": "eab02faee733940f051e746dbc838562b4126b9e689ddce06178685ecf131cc0"
+    },
+    {
+     "path": "terrain/5/15/13.webp",
+     "bytes": 167206,
+     "sha256": "16796aae16d0556fa83f315946b7e8179d815ad39cd7aacc670dadeb9ad8e553"
+    },
+    {
+     "path": "terrain/6/30/26.webp",
+     "bytes": 173758,
+     "sha256": "b4187376865630641a328df207a573dea4ad80275e4e617a16de7fd7422505af"
+    },
+    {
+     "path": "terrain/7/61/52.webp",
+     "bytes": 234476,
+     "sha256": "8dd61b0e519db08fce0b474d8b11cd02d7f9d341d5dac7530591e9269f5204e8"
+    },
+    {
+     "path": "terrain/8/123/104.webp",
+     "bytes": 238656,
+     "sha256": "48443952ca05b7d1c39e998df9cdb1e5b6a4cec139995bc11804e12a0178cbc7"
+    },
+    {
+     "path": "terrain/9/246/208.webp",
+     "bytes": 223190,
+     "sha256": "fd1e0c200423a0c524648d9edcab72faa9c2ecdc8134daab4252db1264ed0c01"
+    },
+    {
+     "path": "terrain/9/246/209.webp",
+     "bytes": 169810,
+     "sha256": "58c00c4b5ce99b591dab657a8d7c895c30b2731439fc8cdd39057d52b18a2209"
+    },
+    {
+     "path": "terrain/9/247/208.webp",
+     "bytes": 222356,
+     "sha256": "a585210587d8706c66b5f402e2ec545076d8a01d1f952b055fedf3df86d7239c"
+    },
+    {
+     "path": "terrain/9/247/209.webp",
+     "bytes": 192824,
+     "sha256": "c9ecfd42fa566c4c691dcf15564cf04e955f1992de43ffd4e549c597816334d7"
+    },
+    {
+     "path": "terrain/tiles.json",
+     "bytes": 19603,
+     "sha256": "2cc285f896ec4809dfc51d4774b43cf3119d58b117aec0a16b98da3169a5effe"
+    }
+   ],
+   "bytes": 15367127
+  }
+ },
+ "licences": [
+  {
+   "path": "licences/copernicus-dem-glo-30-mapterhorn.md",
+   "bytes": 1734,
+   "sha256": "017cff79e62e4623421e595ad88f7e315318a0ca228536c095b187911175cc08"
+  },
+  {
+   "path": "licences/copernicus-dem-glo-90.md",
+   "bytes": 1529,
+   "sha256": "dae37b88844d9c68467c0ef887065fa35ee4027c0761c679b7c7a8346605e8b6"
+  },
+  {
+   "path": "licences/resolve-ecoregions-2017.md",
+   "bytes": 976,
+   "sha256": "8bbcb2011a3340774524e5e21fa32b37489791f12439cda5f89200e33776f608"
+  }
+ ],
+ "total_bytes": 29420878
+}
