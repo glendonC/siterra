@@ -6,8 +6,8 @@ Machine-readable contracts shared by the web application, the worker and the off
 
 | File | Describes | Format | Identifier and version |
 |---|---|---|---|
-| [case.schema.json](case.schema.json) | Siterra case contracts: case snapshot, command, event and atomic commit proposal, with every record type in `$defs` | JSON Schema 2020-12 | `https://siterra.invalid/schemas/case/1.2.0/case.schema.json` |
-| [stac/siterra-extension.schema.json](stac/siterra-extension.schema.json) | Observation bundles: the `siterra:` STAC extension and the bundle profile (one Collection per bundle, one Item per period) | JSON Schema draft-07, the dialect of the STAC 1.1.0 schemas and the stac-extensions template | `https://siterra.invalid/schemas/stac/siterra/1.0.0/schema.json` |
+| [case.schema.json](case.schema.json) | Siterra case contracts: case snapshot, command, event and atomic commit proposal, with every record type in `$defs` | JSON Schema 2020-12 | `https://siterra.invalid/schemas/case/1.3.0/case.schema.json` |
+| [stac/siterra-extension.schema.json](stac/siterra-extension.schema.json) | Observation bundles: the `siterra:` STAC extension and the bundle profile (one Collection per bundle, one Item per period) | JSON Schema draft-07, the dialect of the STAC 1.1.0 schemas and the stac-extensions template | `https://siterra.invalid/schemas/stac/siterra/1.1.0/schema.json` |
 | [openapi.json](openapi.json) | HTTP API and Server-Sent Events stream | OpenAPI 3.2.0 | `info.version` 1.0.0 |
 | [examples/](examples/) | Synthetic instances of the above | JSON | |
 
@@ -16,7 +16,7 @@ Bundle profile, extensions used:
 | Extension | Schema URL | Where |
 |---|---|---|
 | STAC core 1.1.0 | `https://schemas.stacspec.org/v1.1.0/item-spec/json-schema/item.json`, `https://schemas.stacspec.org/v1.1.0/collection-spec/json-schema/collection.json` | Every Item and Collection |
-| Siterra 1.0.0 | `https://siterra.invalid/schemas/stac/siterra/1.0.0/schema.json` | Every Item and Collection |
+| Siterra 1.1.0 (1.0.0 still accepted) | `https://siterra.invalid/schemas/stac/siterra/1.1.0/schema.json`, or `https://siterra.invalid/schemas/stac/siterra/1.0.0/schema.json` in documents written before 1.1.0 | Every Item and Collection |
 | raster 2.0.0 | `https://stac-extensions.github.io/raster/v2.0.0/schema.json` | Every Item (`raster:spatial_resolution`); Collections that summarize raster fields |
 | processing 1.3.0 | `https://stac-extensions.github.io/processing/v1.3.0/schema.json` | Every Collection (processor provider, `processing-software` link) |
 | file 2.1.0 | `https://stac-extensions.github.io/file/v2.1.0/schema.json` | Every Collection; every Item with assets or checksummed links |
@@ -28,7 +28,7 @@ Bundle profile, extensions used:
 ## Identifiers and versions
 
 - `$id` is `https://siterra.invalid/schemas/<name>/<version>/<name>.schema.json`; the STAC extension keeps the STAC form `https://siterra.invalid/schemas/stac/<prefix>/<version>/schema.json`. The version lives in the `$id` path, in instance fields (`schemaVersion` in case records; the extension URL in a STAC object's `stac_extensions`) and in CHANGELOG.md, never in a file name or a `title`.
-- `.invalid` is a reserved top-level domain that never resolves (RFC 2606), so a validator must map each `$id` to the local file. When a real host exists, the identifiers move to it in a MAJOR release.
+- `.invalid` is a reserved top-level domain that never resolves (RFC 2606), so a validator must map each `$id` to the local file. The extension file holds the newest version; a validator maps every earlier identifier of the same MAJOR to it, because a MINOR version only adds optional fields. When a real host exists, the identifiers move to it in a MAJOR release.
 - `openapi.json` has no `$self`, so its relative references (`case.schema.json#/$defs/...`, `examples/...`) resolve from its file location.
 
 ## Versioning

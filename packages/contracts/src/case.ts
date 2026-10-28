@@ -1,0 +1,893 @@
+// Zod mirror of schemas/case.schema.json. Generated from the JSON Schema,
+// then kept in step by hand; the parity test in case.test.ts fails when the two drift.
+// Conditional rules the JSON Schema states with if/then/else live in rules.ts.
+import { z } from "zod";
+import { dateTime, entityId, isoDate, uniqueArray, uri } from "./primitives.ts";
+import { missingIsAValue } from "./rules.ts";
+
+export const caseSchemaVersion = "1.3.0";
+/** Every schemaVersion string this contract accepts (the earlier ones of the same MAJOR stay valid). */
+export const acceptedCaseSchemaVersions = ["1.2.0", "1.3.0"] as const;
+export const caseSchemaId = "https://siterra.invalid/schemas/case/1.3.0/case.schema.json";
+
+export const EntityVersion = z.strictObject({
+  entityId: entityId,
+  revision: z.int().min(1),
+});
+export type EntityVersion = z.infer<typeof EntityVersion>;
+
+export const SourceLocator = z.strictObject({
+  sourceId: entityId,
+  locator: z.string().min(1),
+  excerpt: z.string().min(1).nullable(),
+});
+export type SourceLocator = z.infer<typeof SourceLocator>;
+
+export const Provenance = z.strictObject({
+  sourceLocators: uniqueArray(SourceLocator),
+  dataBundleIds: uniqueArray(entityId),
+  methodId: z.string().min(1).nullable(),
+  methodVersion: z.string().min(1).nullable(),
+  inputVersions: uniqueArray(EntityVersion),
+  generatedByTaskId: entityId.nullable(),
+  generatedAt: dateTime,
+  verificationStatus: z.enum([
+    "unverified",
+    "source_checked",
+    "computed_checked",
+    "expert_reviewed",
+  ]),
+  limitations: uniqueArray(z.string().min(1)),
+});
+export type Provenance = z.infer<typeof Provenance>;
+
+export const Context = z.strictObject({
+  caseRevision: z.int().min(1),
+  geoSelectionId: entityId.nullable(),
+  geoRevision: z.int().min(1).nullable(),
+  periodIds: uniqueArray(entityId),
+  focusedEntityIds: uniqueArray(entityId),
+  dataBundleIds: uniqueArray(entityId),
+  locale: z.string().min(1),
+});
+export type Context = z.infer<typeof Context>;
+
+export const EnvironmentalCase = z.strictObject({
+  recordType: z.literal("EnvironmentalCase"),
+  id: entityId,
+  revision: z.int().min(1),
+  createdAt: dateTime,
+  updatedAt: dateTime,
+  title: z.string().min(1),
+  objective: z.string().min(1),
+  status: z.enum([
+    "draft",
+    "commissioned",
+    "investigating",
+    "ready_for_review",
+    "prepared",
+    "paused",
+    "archived",
+  ]),
+  mode: z.enum(["live", "replay", "concept"]),
+  ownerScopeId: z.string().min(1),
+  activeGeoSelectionId: entityId.nullable(),
+  currentBriefId: entityId.nullable(),
+  unresolvedQuestions: uniqueArray(z.string().min(1)),
+  permissionProfile: z.literal("research_and_preparation_only"),
+  description: z.string().min(1),
+});
+export type EnvironmentalCase = z.infer<typeof EnvironmentalCase>;
+
+export const Source = z.strictObject({
+  recordType: z.literal("Source"),
+  id: entityId,
+  revision: z.int().min(1),
+  createdAt: dateTime,
+  updatedAt: dateTime,
+  caseId: entityId,
+  title: z.string().min(1),
+  url: uri.regex(new RegExp("^https?://")),
+  publisher: z.string().min(1).nullable(),
+  authors: uniqueArray(z.string().min(1)),
+  publicationDate: isoDate.nullable(),
+  accessedAt: dateTime,
+  sourceKind: z.enum([
+    "official_dataset",
+    "peer_reviewed",
+    "institutional",
+    "community_provided",
+    "other",
+  ]),
+  accessStatus: z.enum(["discovered", "retrieved", "unavailable"]),
+  license: z.string().min(1).nullable(),
+  redistributionStatus: z.enum(["permitted", "restricted", "unknown"]),
+  contentHash: z.string().min(1).nullable(),
+  notes: uniqueArray(z.string().min(1)),
+});
+export type Source = z.infer<typeof Source>;
+
+export const GeoSelection = z.strictObject({
+  recordType: z.literal("GeoSelection"),
+  id: entityId,
+  revision: z.int().min(1),
+  createdAt: dateTime,
+  updatedAt: dateTime,
+  caseId: entityId,
+  label: z.string().min(1),
+  geometryStatus: z.enum(["not_established", "context_only", "analysis_ready"]),
+  geometry: z
+    .strictObject({
+      type: z.literal("Polygon"),
+      coordinates: z
+        .array(
+          z.array(z.tuple([z.number().min(-180).max(180), z.number().min(-90).max(90)])).min(4),
+        )
+        .min(1),
+    })
+    .nullable(),
+  crs: z.literal("EPSG:4326"),
+  boundaryRole: z.enum([
+    "regional_context",
+    "landscape_sample",
+    "administrative_unit",
+    "hydrological_unit",
+    "validated_management_unit",
+  ]),
+  boundarySourceIds: uniqueArray(entityId),
+  selectionMethod: z.string().min(1),
+  areaM2: z.number().gt(0).nullable(),
+  areaMethod: z.string().min(1).nullable(),
+  limitations: uniqueArray(z.string().min(1)),
+});
+export type GeoSelection = z.infer<typeof GeoSelection>;
+
+export const DataBundle = z.strictObject({
+  recordType: z.literal("DataBundle"),
+  id: entityId,
+  revision: z.int().min(1),
+  createdAt: dateTime,
+  updatedAt: dateTime,
+  caseId: entityId,
+  label: z.string().min(1),
+  status: z.enum(["missing", "processing", "validated", "failed", "superseded"]),
+  datasetId: z.string().min(1),
+  datasetVersion: z.string().min(1).nullable(),
+  sourceIds: uniqueArray(entityId),
+  geoSelectionId: entityId,
+  geoRevision: z.int().min(1),
+  periodIds: uniqueArray(entityId),
+  methodId: z.string().min(1),
+  methodVersion: z.string().min(1),
+  manifestUri: uri.nullable(),
+  contentHash: z.string().min(1).nullable(),
+  license: z.string().min(1).nullable(),
+  attribution: z.string().min(1).nullable(),
+  provenance: Provenance,
+});
+export type DataBundle = z.infer<typeof DataBundle>;
+
+export const Task = z.strictObject({
+  recordType: z.literal("Task"),
+  id: entityId,
+  revision: z.int().min(1),
+  createdAt: dateTime,
+  updatedAt: dateTime,
+  caseId: entityId,
+  commandId: entityId,
+  kind: z.enum([
+    "plan",
+    "source_research",
+    "observation_analysis",
+    "livelihood_governance",
+    "hypothesis_comparison",
+    "intervention_feasibility",
+    "brief_package",
+    "validation",
+  ]),
+  question: z.string().min(1),
+  status: z.enum([
+    "queued",
+    "running",
+    "awaiting_input",
+    "awaiting_review",
+    "succeeded",
+    "partial",
+    "failed",
+    "cancelled",
+  ]),
+  dependsOnTaskIds: uniqueArray(entityId),
+  inputVersions: uniqueArray(EntityVersion),
+  allowedTools: z.array(
+    z.enum([
+      "read_case",
+      "read_evidence",
+      "search_sources",
+      "read_source",
+      "fetch_source",
+      "read_dataset_manifest",
+      "summarize_observations",
+      "compare_series",
+      "list_recipes",
+      "read_recipe_result",
+      "read_event_record",
+      "compare_events",
+      "propose_plan",
+      "propose_evidence",
+      "propose_hypotheses",
+      "propose_interventions",
+      "propose_package",
+      "propose_layout",
+      "request_review",
+    ]),
+  ),
+  outputEntityIds: uniqueArray(entityId),
+  idempotencyKey: z.string().min(8).max(128),
+  attempt: z.int().min(0).max(3),
+  maxModelRounds: z.int().min(1).max(6),
+  deadlineAt: dateTime,
+  budgetMicroUsd: z.int().min(0),
+  spentMicroUsd: z.int().min(0),
+  checkpointId: z.string().min(1).nullable(),
+  failureCode: z.string().min(1).nullable(),
+  missingInputs: uniqueArray(z.string().min(1)),
+  startedAt: dateTime.nullable(),
+  finishedAt: dateTime.nullable(),
+});
+export type Task = z.infer<typeof Task>;
+
+export const Evidence = z.strictObject({
+  recordType: z.literal("Evidence"),
+  id: entityId,
+  revision: z.int().min(1),
+  createdAt: dateTime,
+  updatedAt: dateTime,
+  caseId: entityId,
+  statement: z.string().min(1),
+  claimKind: z.enum([
+    "observation",
+    "scientific_context",
+    "hypothesis",
+    "model_estimate",
+    "scenario",
+    "field_requirement",
+    "verified_outcome",
+  ]),
+  status: z.enum(["provisional", "accepted", "rejected", "stale", "superseded"]),
+  geoSelectionId: entityId.nullable(),
+  periodIds: uniqueArray(entityId),
+  measurementIds: uniqueArray(entityId),
+  provenance: Provenance,
+  interpretation: z.string().min(1).nullable(),
+  uncertainty: z.string().min(1),
+  reviewDecisionIds: uniqueArray(entityId),
+});
+export type Evidence = z.infer<typeof Evidence>;
+
+export const Uncertainty = z.strictObject({
+  kind: z.enum(["not_quantified", "spatial_iqr", "interval", "standard_error"]),
+  lower: z.number().nullable(),
+  upper: z.number().nullable(),
+  level: z.number().min(0).max(1).nullable(),
+  method: z.string().min(1).nullable(),
+});
+export type Uncertainty = z.infer<typeof Uncertainty>;
+
+export const Measurement = z
+  .strictObject({
+    recordType: z.literal("Measurement"),
+    id: entityId,
+    revision: z.int().min(1),
+    createdAt: dateTime,
+    updatedAt: dateTime,
+    caseId: entityId,
+    metric: z.string().min(1),
+    value: z.number().nullable(),
+    unit: z.string().min(1),
+    status: z.enum(["available", "missing", "excluded", "invalid"]),
+    missingReason: z.string().min(1).nullable(),
+    geoSelectionId: entityId,
+    geoRevision: z.int().min(1),
+    periodId: entityId,
+    dataBundleId: entityId,
+    aggregation: z.string().min(1),
+    validPixelCount: z.int().min(0).nullable(),
+    totalPixelCount: z.int().min(0).nullable(),
+    validFraction: z.number().min(0).max(1).nullable(),
+    spatialResolutionM: z.number().gt(0).nullable(),
+    uncertainty: Uncertainty,
+    provenance: Provenance,
+  })
+  .superRefine(missingIsAValue);
+export type Measurement = z.infer<typeof Measurement>;
+
+export const TemporalObservation = z.strictObject({
+  recordType: z.literal("TemporalObservation"),
+  id: entityId,
+  revision: z.int().min(1),
+  createdAt: dateTime,
+  updatedAt: dateTime,
+  caseId: entityId,
+  periodId: entityId,
+  startDate: isoDate,
+  endDateExclusive: isoDate,
+  seasonDefinition: z.string().min(1),
+  geoSelectionId: entityId,
+  geoRevision: z.int().min(1),
+  dataBundleId: entityId,
+  measurementIds: uniqueArray(entityId),
+  mapAssetUri: uri.nullable(),
+  mapAssetHash: z.string().min(1).nullable(),
+  mapStatus: z.enum(["available", "missing", "excluded"]),
+  qualityFlags: uniqueArray(z.string().min(1)),
+  provenance: Provenance,
+});
+export type TemporalObservation = z.infer<typeof TemporalObservation>;
+
+export const Hypothesis = z.strictObject({
+  recordType: z.literal("Hypothesis"),
+  id: entityId,
+  revision: z.int().min(1),
+  createdAt: dateTime,
+  updatedAt: dateTime,
+  caseId: entityId,
+  statement: z.string().min(1),
+  status: z.enum(["untested", "consistent", "inconsistent", "inconclusive", "stale"]),
+  supportingEvidenceIds: uniqueArray(entityId),
+  contradictingEvidenceIds: uniqueArray(entityId),
+  missingEvidence: uniqueArray(z.string().min(1)),
+  alternativeHypothesisIds: uniqueArray(entityId),
+  assessment: z.string().min(1),
+  provenance: Provenance,
+});
+export type Hypothesis = z.infer<typeof Hypothesis>;
+
+export const Relationship = z.strictObject({
+  recordType: z.literal("Relationship"),
+  id: entityId,
+  revision: z.int().min(1),
+  createdAt: dateTime,
+  updatedAt: dateTime,
+  caseId: entityId,
+  fromEntityId: entityId,
+  toEntityId: entityId,
+  kind: z.enum([
+    "supports",
+    "contradicts",
+    "derived_from",
+    "compares_with",
+    "depends_on",
+    "requires_verification",
+    "proposes_response",
+    "requires_authorization",
+  ]),
+  explanation: z.string().min(1),
+  evidenceIds: uniqueArray(entityId),
+  status: z.enum(["proposed", "accepted", "stale"]),
+  fromEntityRevision: z.int().min(1),
+  toEntityRevision: z.int().min(1),
+});
+export type Relationship = z.infer<typeof Relationship>;
+
+export const CanvasComponent = z.strictObject({
+  recordType: z.literal("CanvasComponent"),
+  id: entityId,
+  revision: z.int().min(1),
+  createdAt: dateTime,
+  updatedAt: dateTime,
+  caseId: entityId,
+  componentKind: z.enum([
+    "geography",
+    "temporal_comparison",
+    "evidence",
+    "hypothesis_comparison",
+    "intervention_comparison",
+    "livelihood_constraints",
+    "activity",
+    "trace",
+    "action_package",
+    "decision_brief",
+  ]),
+  entityIds: uniqueArray(entityId).min(1),
+  section: z.enum(["place", "observations", "explanations", "responses", "next_steps"]),
+  order: z.int().min(0),
+  visibility: z.enum(["expanded", "collapsed", "hidden"]),
+  title: z.string().min(1).max(60),
+  presentationStatus: z.enum(["loading", "ready", "partial", "error", "stale"]),
+  sourceCaseRevision: z.int().min(1),
+  comparisonMode: z.enum(["single", "aligned", "two_period"]).nullable(),
+  periodIds: uniqueArray(entityId),
+  entityVersions: uniqueArray(EntityVersion).min(1),
+});
+export type CanvasComponent = z.infer<typeof CanvasComponent>;
+
+export const LayoutAction = z.strictObject({
+  recordType: z.literal("LayoutAction"),
+  id: entityId,
+  revision: z.int().min(1),
+  createdAt: dateTime,
+  updatedAt: dateTime,
+  caseId: entityId,
+  commandId: entityId,
+  kind: z.enum([
+    "show_component",
+    "update_component",
+    "set_comparison",
+    "focus_entity",
+    "hide_component",
+  ]),
+  componentIds: uniqueArray(entityId),
+  entityIds: uniqueArray(entityId),
+  reason: z.string().min(1),
+  status: z.enum(["proposed", "accepted", "rejected", "superseded"]),
+  sourceCaseRevision: z.int().min(1),
+  componentKind: z
+    .enum([
+      "geography",
+      "temporal_comparison",
+      "evidence",
+      "hypothesis_comparison",
+      "intervention_comparison",
+      "livelihood_constraints",
+      "activity",
+      "trace",
+      "action_package",
+      "decision_brief",
+    ])
+    .nullable(),
+  section: z.enum(["place", "observations", "explanations", "responses", "next_steps"]).nullable(),
+  comparisonMode: z.enum(["single", "aligned", "two_period"]).nullable(),
+  periodIds: uniqueArray(entityId),
+  origin: z.enum(["user_command", "background", "default_projection"]),
+  title: z.string().min(1).max(60).nullable(),
+});
+export type LayoutAction = z.infer<typeof LayoutAction>;
+
+export const ResourceRequirement = z.strictObject({
+  recordType: z.literal("ResourceRequirement"),
+  id: entityId,
+  revision: z.int().min(1),
+  createdAt: dateTime,
+  updatedAt: dateTime,
+  caseId: entityId,
+  label: z.string().min(1),
+  resourceKind: z.enum([
+    "expertise",
+    "time",
+    "equipment",
+    "funding",
+    "local_information",
+    "permission",
+  ]),
+  quantity: z.number().min(0).nullable(),
+  unit: z.string().min(1).nullable(),
+  estimateStatus: z.enum(["unknown", "scenario_assumption", "source_supported", "confirmed"]),
+  assumptions: uniqueArray(z.string().min(1)),
+  verificationNeeded: uniqueArray(z.string().min(1)),
+  provenance: Provenance,
+});
+export type ResourceRequirement = z.infer<typeof ResourceRequirement>;
+
+export const Intervention = z.strictObject({
+  recordType: z.literal("Intervention"),
+  id: entityId,
+  revision: z.int().min(1),
+  createdAt: dateTime,
+  updatedAt: dateTime,
+  caseId: entityId,
+  title: z.string().min(1),
+  description: z.string().min(1),
+  status: z.enum(["candidate", "needs_validation", "reviewed", "rejected", "stale"]),
+  evidenceIds: uniqueArray(entityId),
+  hypothesisIds: uniqueArray(entityId),
+  assumptions: uniqueArray(z.string().min(1)),
+  ecologicalConsiderations: uniqueArray(z.string().min(1)),
+  livelihoodConsiderations: uniqueArray(z.string().min(1)),
+  resourceRequirementIds: uniqueArray(entityId),
+  fieldValidationNeeded: uniqueArray(z.string().min(1)),
+  requiredReviewRoles: uniqueArray(
+    z.enum(["scientific", "community_livelihood", "program_coordination"]),
+  ),
+  provenance: Provenance,
+});
+export type Intervention = z.infer<typeof Intervention>;
+
+export const ReviewDecision = z.strictObject({
+  recordType: z.literal("ReviewDecision"),
+  id: entityId,
+  revision: z.int().min(1),
+  createdAt: dateTime,
+  updatedAt: dateTime,
+  caseId: entityId,
+  actionId: entityId.nullable(),
+  reviewedEntityVersions: uniqueArray(EntityVersion).min(1),
+  caseRevisionReviewed: z.int().min(1),
+  role: z.enum(["scientific", "community_livelihood", "program_coordination"]),
+  actorId: z.string().min(1).nullable(),
+  authorityStatus: z.enum(["not_established", "verified_for_scope"]),
+  mode: z.enum(["demo", "real"]),
+  status: z.enum([
+    "not_requested",
+    "requested",
+    "changes_requested",
+    "approved",
+    "rejected",
+    "deferred",
+  ]),
+  decisionAt: dateTime.nullable(),
+  conditions: uniqueArray(z.string().min(1)),
+  comments: z.string().min(1),
+  stale: z.boolean(),
+});
+export type ReviewDecision = z.infer<typeof ReviewDecision>;
+
+export const OperationalAction = z.strictObject({
+  recordType: z.literal("OperationalAction"),
+  id: entityId,
+  revision: z.int().min(1),
+  createdAt: dateTime,
+  updatedAt: dateTime,
+  caseId: entityId,
+  title: z.string().min(1),
+  description: z.string().min(1),
+  kind: z.enum([
+    "field_validation_plan",
+    "feasibility_plan",
+    "communication_draft",
+    "coordination_proposal",
+  ]),
+  status: z.enum(["draft", "awaiting_review", "prepared", "blocked", "cancelled", "superseded"]),
+  evidenceIds: uniqueArray(entityId),
+  interventionIds: uniqueArray(entityId),
+  dependsOnActionIds: uniqueArray(entityId),
+  resourceRequirementIds: uniqueArray(entityId),
+  requiredReviewRoles: uniqueArray(
+    z.enum(["scientific", "community_livelihood", "program_coordination"]),
+  ),
+  reviewDecisionIds: uniqueArray(entityId),
+  authorizationMode: z.enum(["demo_only", "real_authority_unestablished"]),
+  externalExecutionEnabled: z.literal(false),
+  remainingConditions: uniqueArray(z.string().min(1)),
+  preparedArtifactUri: uri.nullable(),
+  sourceCaseRevision: z.int().min(1),
+});
+export type OperationalAction = z.infer<typeof OperationalAction>;
+
+export const BriefItem = z.strictObject({
+  text: z.string().min(1).max(400),
+  claimKind: z.enum([
+    "observation",
+    "scientific_context",
+    "hypothesis",
+    "model_estimate",
+    "scenario",
+    "field_requirement",
+    "verified_outcome",
+  ]),
+  evidenceIds: z.array(entityId),
+  measurementIds: z.array(entityId),
+});
+export type BriefItem = z.infer<typeof BriefItem>;
+
+export const Brief = z.strictObject({
+  recordType: z.literal("Brief"),
+  id: entityId,
+  revision: z.int().min(1),
+  createdAt: dateTime,
+  updatedAt: dateTime,
+  caseId: entityId,
+  title: z.string().min(1),
+  status: z.enum(["draft", "ready_for_review", "prepared", "stale", "superseded"]),
+  sourceCaseRevision: z.int().min(1),
+  evidenceIds: uniqueArray(entityId),
+  hypothesisIds: uniqueArray(entityId),
+  interventionIds: uniqueArray(entityId),
+  actionIds: uniqueArray(entityId),
+  known: z.array(BriefItem),
+  uncertain: z.array(BriefItem),
+  nextMeasurements: z.array(BriefItem),
+  stakeholderRoles: z.array(BriefItem),
+  preparedActions: z.array(BriefItem),
+  authorizationRequired: z.array(BriefItem),
+  nextSteps: z.array(BriefItem),
+  reviewDecisionIds: uniqueArray(entityId),
+  limitations: uniqueArray(z.string().min(1)),
+  mode: z.enum(["live", "replay", "concept"]),
+  provenance: Provenance,
+});
+export type Brief = z.infer<typeof Brief>;
+
+export const Command = z.strictObject({
+  recordType: z.literal("Command"),
+  schemaVersion: z.enum(["1.2.0", "1.3.0"]),
+  id: entityId,
+  caseId: entityId,
+  createdAt: dateTime,
+  idempotencyKey: z.string().min(8).max(128),
+  expectedCaseRevision: z.int().min(1),
+  context: Context,
+  text: z.string().min(1).max(8000),
+  intent: z.enum(["commission", "investigate", "compare", "prepare_package", "clarify"]),
+  status: z.enum([
+    "accepted",
+    "running",
+    "succeeded",
+    "partial",
+    "failed",
+    "cancelled",
+    "rejected_stale",
+  ]),
+  taskIds: uniqueArray(entityId),
+});
+export type Command = z.infer<typeof Command>;
+
+export const ModelUsage = z.strictObject({
+  provider: z.string().min(1),
+  model: z.string().min(1),
+  requestId: z.string().min(1).nullable(),
+  status: z.enum(["started", "succeeded", "refused", "incomplete", "failed"]),
+  inputTokens: z.int().min(0).nullable(),
+  outputTokens: z.int().min(0).nullable(),
+  cachedInputTokens: z.int().min(0).nullable(),
+  estimatedCostMicroUsd: z.int().min(0).nullable(),
+  durationMs: z.int().min(0).nullable(),
+  reasoningTokens: z.int().min(0).nullable(),
+  webSearchCalls: z.int().min(0).nullable(),
+});
+export type ModelUsage = z.infer<typeof ModelUsage>;
+
+export const ToolCallInfo = z.strictObject({
+  name: z.enum([
+    "read_case",
+    "read_evidence",
+    "search_sources",
+    "read_source",
+    "fetch_source",
+    "read_dataset_manifest",
+    "summarize_observations",
+    "compare_series",
+    "list_recipes",
+    "read_recipe_result",
+    "read_event_record",
+    "compare_events",
+    "propose_plan",
+    "propose_evidence",
+    "propose_hypotheses",
+    "propose_interventions",
+    "propose_package",
+    "propose_layout",
+    "request_review",
+  ]),
+  status: z.enum(["started", "succeeded", "failed", "rejected", "cancelled"]),
+  startedAt: dateTime,
+  endedAt: dateTime.nullable(),
+  durationMs: z.int().min(0).nullable(),
+  argumentSummary: z.string().min(1).max(500),
+  resultEntityIds: z.array(entityId),
+  errorCode: z.string().min(1).nullable(),
+  attempt: z.int().min(1).max(3),
+});
+export type ToolCallInfo = z.infer<typeof ToolCallInfo>;
+
+export const ValidationResult = z.strictObject({
+  outcome: z.enum(["accepted", "partial", "rejected"]),
+  issues: z.array(
+    z.strictObject({
+      code: z.enum([
+        "schema",
+        "unknown_reference",
+        "stale_reference",
+        "ownership",
+        "claim_kind",
+        "numeric_provenance",
+        "unit",
+        "coverage",
+        "authority",
+        "prohibited_claim",
+        "transition",
+        "limit",
+        "catalog_mismatch",
+        "focus_not_permitted",
+        "excerpt_mismatch",
+      ]),
+      path: z.string(),
+      message: z.string().min(1),
+    }),
+  ),
+});
+export type ValidationResult = z.infer<typeof ValidationResult>;
+
+export const Event = z.strictObject({
+  recordType: z.literal("Event"),
+  schemaVersion: z.enum(["1.2.0", "1.3.0"]),
+  id: entityId,
+  caseId: entityId,
+  sequence: z.int().min(1),
+  occurredAt: dateTime,
+  kind: z.enum([
+    "command.accepted",
+    "command.completed",
+    "task.queued",
+    "task.started",
+    "task.progress",
+    "task.awaiting_input",
+    "task.succeeded",
+    "task.partial",
+    "task.failed",
+    "task.cancelled",
+    "model.started",
+    "model.completed",
+    "tool.started",
+    "tool.completed",
+    "validation.completed",
+    "case.committed",
+    "layout.accepted",
+    "review.recorded",
+    "entity.stale",
+  ]),
+  commandId: entityId.nullable(),
+  taskId: entityId.nullable(),
+  caseRevision: z.int().min(1),
+  entityIds: uniqueArray(entityId),
+  message: z.string().min(1),
+  dedupeKey: z.string().min(8).max(128),
+  resultStatus: z.enum(["succeeded", "partial", "failed", "cancelled"]).nullable(),
+  tool: ToolCallInfo.nullable(),
+  usage: ModelUsage.nullable(),
+  validation: ValidationResult.nullable(),
+  spanId: z.string().min(1).nullable(),
+  parentSpanId: z.string().min(1).nullable(),
+});
+export type Event = z.infer<typeof Event>;
+
+export const EventRecordRow = z.strictObject({
+  recordType: z.literal("EventRecordRow"),
+  id: entityId,
+  revision: z.int().min(1),
+  createdAt: dateTime,
+  updatedAt: dateTime,
+  caseId: entityId,
+  dataBundleId: entityId,
+  dataBundleRevision: z.int().min(1),
+  eventType: z.enum([
+    "drought_declaration",
+    "emergency_program",
+    "feed_subsidy",
+    "transhumance_change",
+    "pasture_rule",
+    "rainfall_statement",
+  ]),
+  eventStart: z
+    .string()
+    .regex(new RegExp("^[0-9]{4}(-(0[1-9]|1[0-2])(-(0[1-9]|[12][0-9]|3[01]))?)?$")),
+  eventEnd: z
+    .string()
+    .regex(new RegExp("^[0-9]{4}(-(0[1-9]|1[0-2])(-(0[1-9]|[12][0-9]|3[01]))?)?$"))
+    .nullable(),
+  scope: z.enum(["national", "region", "province", "valley"]),
+  placeNamed: z.string().min(1).nullable(),
+  sourceLocator: z.strictObject({
+    sourceId: entityId,
+    locator: z.string().min(1),
+    excerpt: z.string().min(1).max(300),
+  }),
+  sourceLanguage: z.string().regex(new RegExp("^[a-z]{2,3}(-[A-Za-z0-9]{2,8})*$")),
+  statementEn: z.string().min(1),
+  rainfallDirection: z.enum(["below_normal", "near_normal", "above_normal", "not_stated"]),
+  extractionModel: z.string().min(1),
+  extractionRequestId: z.string().min(1).nullable(),
+});
+export type EventRecordRow = z.infer<typeof EventRecordRow>;
+
+export const RecordCollections = z.strictObject({
+  sourceRecords: uniqueArray(Source),
+  geoSelectionRecords: uniqueArray(GeoSelection),
+  dataBundleRecords: uniqueArray(DataBundle),
+  taskRecords: uniqueArray(Task),
+  evidenceRecords: uniqueArray(Evidence),
+  measurementRecords: uniqueArray(Measurement),
+  temporalObservationRecords: uniqueArray(TemporalObservation),
+  hypothesisRecords: uniqueArray(Hypothesis),
+  relationshipRecords: uniqueArray(Relationship),
+  canvasComponentRecords: uniqueArray(CanvasComponent),
+  layoutActionRecords: uniqueArray(LayoutAction),
+  interventionRecords: uniqueArray(Intervention),
+  resourceRequirementRecords: uniqueArray(ResourceRequirement),
+  reviewDecisionRecords: uniqueArray(ReviewDecision),
+  operationalActionRecords: uniqueArray(OperationalAction),
+  briefRecords: uniqueArray(Brief),
+  eventRecordRowRecords: z.array(EventRecordRow).optional(),
+});
+export type RecordCollections = z.infer<typeof RecordCollections>;
+
+export const CaseSnapshot = z.strictObject({
+  recordType: z.literal("CaseSnapshot"),
+  schemaVersion: z.enum(["1.2.0", "1.3.0"]),
+  case: EnvironmentalCase,
+  records: RecordCollections,
+  lastSequence: z.int().min(0),
+});
+export type CaseSnapshot = z.infer<typeof CaseSnapshot>;
+
+export const Commit = z.strictObject({
+  recordType: z.literal("Commit"),
+  schemaVersion: z.enum(["1.2.0", "1.3.0"]),
+  id: entityId,
+  caseId: entityId,
+  commandId: entityId,
+  taskId: entityId,
+  expectedCaseRevision: z.int().min(1),
+  newCaseRevision: z.int().min(1),
+  idempotencyKey: z.string().min(8).max(128),
+  inputVersions: uniqueArray(EntityVersion),
+  caseAfter: EnvironmentalCase,
+  upserts: uniqueArray(
+    z.discriminatedUnion("recordType", [
+      Source,
+      GeoSelection,
+      DataBundle,
+      Task,
+      Evidence,
+      Measurement,
+      TemporalObservation,
+      Hypothesis,
+      Relationship,
+      CanvasComponent,
+      LayoutAction,
+      Intervention,
+      ResourceRequirement,
+      ReviewDecision,
+      OperationalAction,
+      Brief,
+      EventRecordRow,
+    ]),
+  ),
+  events: uniqueArray(Event).min(1),
+  layoutActions: uniqueArray(LayoutAction),
+});
+export type Commit = z.infer<typeof Commit>;
+
+/** The root of case.schema.json: a snapshot, a command, an event or a commit. */
+export const CaseDocument = z.discriminatedUnion("recordType", [
+  CaseSnapshot,
+  Command,
+  Event,
+  Commit,
+]);
+export type CaseDocument = z.infer<typeof CaseDocument>;
+
+/** Every record type in $defs, by name, for the parity test and the importer. */
+export const caseDefinitions = {
+  EntityVersion,
+  SourceLocator,
+  Provenance,
+  Context,
+  EnvironmentalCase,
+  Source,
+  GeoSelection,
+  DataBundle,
+  Task,
+  Evidence,
+  Measurement,
+  TemporalObservation,
+  Hypothesis,
+  Relationship,
+  CanvasComponent,
+  LayoutAction,
+  ResourceRequirement,
+  Intervention,
+  ReviewDecision,
+  OperationalAction,
+  Brief,
+  Command,
+  Event,
+  RecordCollections,
+  CaseSnapshot,
+  Commit,
+  Uncertainty,
+  ToolCallInfo,
+  ModelUsage,
+  ValidationResult,
+  BriefItem,
+  EventRecordRow,
+} as const;

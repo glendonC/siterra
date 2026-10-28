@@ -27,3 +27,9 @@ __pycache__/
 *.log
 # Evaluation harness output (summaries may be published deliberately)
 eval-reports/
+# TypeScript incremental build state
+*.tsbuildinfo
+# Next.js generated type references
+next-env.d.ts
+# Agent notes that next dev writes into the app folder
+/apps/web/AGENTS.md

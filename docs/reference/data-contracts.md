@@ -1,6 +1,6 @@
 # Data contracts
 
-Status: implementation contract v1.2, 2026-10-26. Machine-readable source of truth: [schemas/case.schema.json](../../schemas/case.schema.json) (JSON Schema 2020-12). Examples: [schemas/examples/](../../schemas/examples/). This document owns cross-record semantics that a JSON Schema cannot express. [Orchestration](agent-orchestration.md) owns jobs and tools; [review](review-and-authority.md) owns authority.
+Status: implementation contract v1.3, 2026-10-27. Machine-readable source of truth: [schemas/case.schema.json](../../schemas/case.schema.json) (JSON Schema 2020-12). Examples: [schemas/examples/](../../schemas/examples/). This document owns cross-record semantics that a JSON Schema cannot express. [Orchestration](agent-orchestration.md) owns jobs and tools; [review](review-and-authority.md) owns authority.
 
 ## Principles
 
@@ -30,6 +30,7 @@ Pattern `^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$`. Prefix by type:
 | `obs_` | TemporalObservation | `act_` | OperationalAction |
 | `cmd_` | Command | `brief_` | Brief |
 | `evt_` | Event | `commit_` | Commit |
+| `erow_` | EventRecordRow | | |
 
 **Periods** are identifiers, not records: `period_YYYY-MM` for a calendar month (UTC, start inclusive, end exclusive). Chart, map, strip and brief select periods by this ID only. Server-generated IDs use a ULID suffix; fixtures may use readable slugs. IDs never contain the product name.
 
@@ -53,6 +54,7 @@ Field-level types live in the schema. This table states purpose and the rules th
 | OperationalAction | Prepared real-world work | `externalExecutionEnabled: false` (constant in P0). Terminal P0 state is `prepared`. |
 | ReviewDecision | A role-scoped decision on exact versions | `mode: demo \| real`; `authorityStatus: not_established \| verified_for_scope`. Demo decisions can never satisfy a real authorization. |
 | Brief | The decision brief | Every line is a `BriefItem` with claim kind and evidence IDs. |
+| EventRecordRow | One dated event in a validated event bundle ([ADR-0045](../decisions/0045-extend-the-meta-model-map-to-event-records-figures-and-whole-corpus-reading.md)), added in contracts 1.3 | Not evidence. Rules in [event record rows](#event-record-rows). |
 | CanvasComponent / LayoutAction | Presentation projection | References entity IDs only. See [layout contract](#presentation-contract). |
 | Command / Task / Event / Commit | Execution and audit | See state machines and events below. |
 
@@ -168,7 +170,11 @@ Cross-record rules the commit validator enforces (from the [generative workspace
 | PRES-06 | A relationship whose endpoint gains a newer revision without a re-asserted relationship becomes `stale` and emits `entity.stale` |
 | PRES-07 | Layout proposals are atomic; a rejected proposal never fails its task; the default projection applies and no repair round is spent on layout |
 
-## Records planned for contracts 1.3
+## Event record rows
+
+Added in contracts 1.3 (`EventRecordRow` in [case.schema.json](../../schemas/case.schema.json), snapshot list `eventRecordRowRecords`, example [commit-event-record.json](../../schemas/examples/commit-event-record.json)). The bundle is a DataBundle (`datasetId` `event_record`, `methodId` `event_extraction` with version, `sourceIds`, `manifestUri`, `contentHash`). Each source is a Source with `publicationDate` and `contentHash`; the P0 minimum uses only the FAO GIEWS briefs (SCI-25) with `sourceKind: institutional`, and a `news_report` kind stays a P1 proposal for press reports. Row fields: `dataBundleId` and `dataBundleRevision`, `eventType` (`drought_declaration`, `emergency_program`, `feed_subsidy`, `transhumance_change`, `pasture_rule`, `rainfall_statement`), `eventStart` and `eventEnd` (ISO date, year-month or year as stated), `scope` (`national`, `region`, `province`, `valley`), `placeNamed` or null, `sourceLocator` with the verbatim excerpt (at most 300 Unicode code points), `sourceLanguage` (BCP 47, for example `en`, `fr`, `ar`), `statementEn` (model-drafted; labeled "Machine-drafted translation" only when `sourceLanguage` is not English, so no P0 row carries that label), `rainfallDirection` (`below_normal`, `near_normal`, `above_normal`, `not_stated`), `extractionModel` and `extractionRequestId`. Host rules before a row is accepted: excerpt found verbatim in the stored text of the cited page; `eventStart` not after the source's `publicationDate`; a scope other than `national` needs a listed place name inside the excerpt. A row is not evidence; a task that uses it proposes `scientific_context` evidence citing the same locator, which passes the excerpt check again.
+
+## Records planned for later contracts
 
 Not in [case.schema.json](../../schemas/case.schema.json) yet. Each is added in one minor version with Zod mirrors, examples and contract tests before any feature uses it. None is evidence unless stated; all reference exact entity versions.
 
@@ -180,7 +186,6 @@ Not in [case.schema.json](../../schemas/case.schema.json) yet. Each is added in 
 | AnalogueAssessment | `ana_` | A comparable place ([comparable places](../explanation/comparable-places.md)) | Place and scale, design label from a fixed vocabulary, period, the `scientific_context` evidence it rests on, similarities and differences by named dimension, transfer limits and what it cannot show (both required); no numeric fields outside quoted excerpts |
 | ReadingCheck | `chk_` | The second reader's verdict on one evidence statement ([ADR-0041](../decisions/0041-give-each-meta-model-one-job-with-an-independent-check.md)) | Evidence version, model, route, `verdict`, `overreach`, reason (240 characters at most); advisory only, never accepts, rejects or edits evidence |
 | Illustration | `ill_` | A wordless field-protocol illustration ([ADR-0041](../decisions/0041-give-each-meta-model-one-job-with-an-independent-check.md)) | Field-plan step version, model, image hash, checklist result, `reviewStatus: draft \| usable_in_community_material`; badge text fixed; never evidence |
-| EventRecordRow | `erow_` | One dated event in a validated event bundle ([ADR-0045](../decisions/0045-extend-the-meta-model-map-to-event-records-figures-and-whole-corpus-reading.md)); needed by the P0 minimum bundle, so it lands in 1.3 before build day B3 | The bundle is a DataBundle (`datasetId` `event_record`, `methodId` `event_extraction` with version, `sourceIds`, `manifestUri`, `contentHash`). Each source is a Source with `publicationDate` and `contentHash`; the P0 minimum uses only the FAO GIEWS briefs (SCI-25) with `sourceKind: institutional`, and a `news_report` kind stays a P1 proposal for press reports. Row fields: bundle ID and revision, `eventType` (`drought_declaration`, `emergency_program`, `feed_subsidy`, `transhumance_change`, `pasture_rule`, `rainfall_statement`), `eventStart` and `eventEnd` (ISO date, year-month or year as stated), `scope` (`national`, `region`, `province`, `valley`), `placeNamed` or null, a SourceLocator with the verbatim excerpt (300 characters at most), `sourceLanguage` (BCP 47, for example `en`, `fr`, `ar`), `statementEn` (model-drafted; labeled "Machine-drafted translation" only when `sourceLanguage` is not English, so no P0 row carries that label), `rainfallDirection` (`below_normal`, `near_normal`, `above_normal`, `not_stated`), extraction model and request ID. Host rules before a row is accepted: excerpt found verbatim in the stored text of the cited page; `eventStart` not after the source's `publicationDate`; a scope other than `national` needs a listed place name inside the excerpt. A row is not evidence; a task that uses it proposes `scientific_context` evidence citing the same locator, which passes the excerpt check again |
 
 ## Tool argument contracts
 
@@ -189,7 +194,7 @@ Model tool calls carry typed proposals, never free-form database writes. Each ar
 | Tool | Arguments (summary) | Server result |
 |---|---|---|
 | `propose_plan` | `interpretation` (one sentence), `tasks[] {key, kind, question, dependsOn[], inputRefs[]}`, `clarifyingQuestion` or null | Validated task graph or rejection issues |
-| `propose_evidence` | `items[] {statement, claimKind, sourceId or measurementIds, locator, excerpt (≤ 300 chars) or null, scopeNote, limitations[]}` | Accepted/provisional evidence IDs |
+| `propose_evidence` | `items[] {statement, claimKind, sourceId or measurementIds, locator, excerpt (at most 300 Unicode code points) or null, scopeNote, limitations[]}` | Accepted/provisional evidence IDs |
 | `propose_hypotheses` | `items[] {hypothesisId or null, statement, status, supportingEvidenceIds[], contradictingEvidenceIds[], missingEvidence[], assessment}` | Hypothesis revisions + relationships |
 | `propose_interventions` | `items[] {title, description, assumptions[], ecologicalConsiderations[], livelihoodConsiderations[], fieldValidationNeeded[], requiredReviewRoles[], evidenceIds[], hypothesisIds[]}` | Intervention IDs |
 | `propose_package` | `action {kind, title, description, measurements[], strata[], roles[], permissions[], resources[]}`, `brief {items by section}` | Action and brief IDs (`draft`) |
@@ -226,7 +231,7 @@ The importer accepts a bundle only if every document validates against the STAC 
 | `TemporalObservation.mapAssetUri`, `mapAssetHash`, `mapStatus` | The `overview` asset href and `file:checksum`; `mapStatus: missing` when the Item has no `overview` asset |
 | `TemporalObservation.qualityFlags` | `siterra:quality_flags` |
 | `Measurement.metric`, `value`, `unit`, `aggregation`, `status`, `validPixelCount`, `totalPixelCount` | The matching `siterra:measurements` entry |
-| `Measurement.missingReason` | The Item's `siterra:missing_reason` when the measurement is not `available` |
+| `Measurement.missingReason` | When the measurement is not `available`: the entry's own `missing_reason` (extension 1.1.0), else the Item's `siterra:missing_reason`; with neither, the bundle is refused |
 | `Measurement.validFraction` | `siterra:area_valid_fraction`, never `statistics.valid_percent`, which counts every raster value including nodata outside the geometry |
 | `Measurement.spatialResolutionM` | Item `raster:spatial_resolution` |
 | `Measurement.uncertainty` | `spread` of kind `spatial_iqr` gives kind `spatial_iqr` with its bounds; a null spread gives `not_quantified` |
@@ -255,5 +260,6 @@ The importer assigns the fields not listed (record IDs, revisions, timestamps, `
 | [commit-plan.json](../../schemas/examples/commit-plan.json) | An atomic commit recording a plan task and an evidence gap |
 | [event-case-committed.json](../../schemas/examples/event-case-committed.json) | A `case.committed` event |
 | [commit-challenge.json](../../schemas/examples/commit-challenge.json) | Drought challenge: hypothesis revisions, relationships and layout actions (synthetic values, clearly labeled) |
+| [commit-event-record.json](../../schemas/examples/commit-event-record.json) | An event record bundle with one event record row (contracts 1.3, fictional source) |
 
 Example IDs use the `example` slug. A QA check fails the demo build if any `example` ID or synthetic value reaches the demo database.

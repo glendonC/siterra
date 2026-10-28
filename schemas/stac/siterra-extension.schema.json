@@ -1,9 +1,9 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://siterra.invalid/schemas/stac/siterra/1.0.0/schema.json",
+  "$id": "https://siterra.invalid/schemas/stac/siterra/1.1.0/schema.json",
   "title": "Siterra observation bundle extension",
   "description": "STAC extension and profile for Siterra observation bundles: one STAC 1.1.0 Collection per bundle and one STAC Item per calendar-month period. Defines the siterra: fields that STAC core and the community extensions used by the profile do not cover, and the profile rules the bundle importer relies on. Specification: docs/reference/observation-preprocessing.md (bundle output) and docs/reference/data-contracts.md (observation bundles).",
-  "$comment": "Structure follows the stac-extensions template (draft-07, definitions, oneOf per STAC object type). Field names are snake_case as in STAC; the importer converts them to the camelCase case records.",
+  "$comment": "Structure follows the stac-extensions template (draft-07, definitions, oneOf per STAC object type). Field names are snake_case as in STAC; the importer converts them to the camelCase case records. Version 1.1.0 adds an optional missing_reason to each siterra:measurements entry; a document that lists the 1.0.0 identifier validates against this file unchanged.",
   "type": "object",
   "required": [
     "stac_extensions",
@@ -13,7 +13,10 @@
     "stac_extensions": {
       "type": "array",
       "contains": {
-        "const": "https://siterra.invalid/schemas/stac/siterra/1.0.0/schema.json"
+        "enum": [
+          "https://siterra.invalid/schemas/stac/siterra/1.0.0/schema.json",
+          "https://siterra.invalid/schemas/stac/siterra/1.1.0/schema.json"
+        ]
       }
     },
     "type": {
@@ -616,6 +619,14 @@
             "invalid"
           ]
         },
+        "missing_reason": {
+          "description": "Added in 1.1.0. Why this measurement is not available, shown to people; null or absent when it is available. When absent, the period's siterra:missing_reason applies.",
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
         "valid_pixel_count": {
           "type": [
             "integer",
@@ -678,6 +689,9 @@
             "properties": {
               "value": {
                 "type": "number"
+              },
+              "missing_reason": {
+                "type": "null"
               }
             }
           },

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://siterra.invalid/schemas/case/1.2.0/case.schema.json",
+  "$id": "https://siterra.invalid/schemas/case/1.3.0/case.schema.json",
   "title": "Siterra case contracts",
   "description": "Records of one Siterra case as stored and exchanged between the web application, the worker and the browser. The root validates a case snapshot, a command, an event or an atomic commit proposal; $defs holds the record types. Cross-record semantics that JSON Schema cannot express are specified in docs/reference/data-contracts.md.",
   "oneOf": [
@@ -908,6 +908,10 @@
               "read_dataset_manifest",
               "summarize_observations",
               "compare_series",
+              "list_recipes",
+              "read_recipe_result",
+              "read_event_record",
+              "compare_events",
               "propose_plan",
               "propose_evidence",
               "propose_hypotheses",
@@ -2762,7 +2766,11 @@
           "const": "Command"
         },
         "schemaVersion": {
-          "const": "1.2.0"
+          "enum": [
+            "1.2.0",
+            "1.3.0"
+          ],
+          "description": "Contract version the instance was written against; 1.3.0 producers write 1.3.0, and 1.2.0 instances stay valid."
         },
         "id": {
           "type": "string",
@@ -2848,7 +2856,11 @@
           "const": "Event"
         },
         "schemaVersion": {
-          "const": "1.2.0"
+          "enum": [
+            "1.2.0",
+            "1.3.0"
+          ],
+          "description": "Contract version the instance was written against; 1.3.0 producers write 1.3.0, and 1.2.0 instances stay valid."
         },
         "id": {
           "type": "string",
@@ -3149,6 +3161,13 @@
           },
           "minItems": 0,
           "uniqueItems": true
+        },
+        "eventRecordRowRecords": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/EventRecordRow"
+          },
+          "description": "Added in 1.3.0; optional so 1.2.0 snapshots stay valid."
         }
       },
       "required": [
@@ -3178,7 +3197,11 @@
           "const": "CaseSnapshot"
         },
         "schemaVersion": {
-          "const": "1.2.0"
+          "enum": [
+            "1.2.0",
+            "1.3.0"
+          ],
+          "description": "Contract version the instance was written against; 1.3.0 producers write 1.3.0, and 1.2.0 instances stay valid."
         },
         "case": {
           "$ref": "#/$defs/EnvironmentalCase"
@@ -3207,7 +3230,11 @@
           "const": "Commit"
         },
         "schemaVersion": {
-          "const": "1.2.0"
+          "enum": [
+            "1.2.0",
+            "1.3.0"
+          ],
+          "description": "Contract version the instance was written against; 1.3.0 producers write 1.3.0, and 1.2.0 instances stay valid."
         },
         "id": {
           "type": "string",
@@ -3300,6 +3327,9 @@
               },
               {
                 "$ref": "#/$defs/Brief"
+              },
+              {
+                "$ref": "#/$defs/EventRecordRow"
               }
             ]
           },
@@ -3414,6 +3444,10 @@
             "read_dataset_manifest",
             "summarize_observations",
             "compare_series",
+            "list_recipes",
+            "read_recipe_result",
+            "read_event_record",
+            "compare_events",
             "propose_plan",
             "propose_evidence",
             "propose_hypotheses",
@@ -3669,6 +3703,171 @@
           }
         }
       }
+    },
+    "EventRecordRow": {
+      "type": "object",
+      "description": "One dated event in a validated event bundle (docs/reference/data-contracts.md). A row is not evidence; a task that uses it proposes scientific_context evidence citing the same locator.",
+      "properties": {
+        "recordType": {
+          "const": "EventRecordRow"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "caseId": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "dataBundleId": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "dataBundleRevision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "eventType": {
+          "type": "string",
+          "enum": [
+            "drought_declaration",
+            "emergency_program",
+            "feed_subsidy",
+            "transhumance_change",
+            "pasture_rule",
+            "rainfall_statement"
+          ]
+        },
+        "eventStart": {
+          "type": "string",
+          "pattern": "^[0-9]{4}(-(0[1-9]|1[0-2])(-(0[1-9]|[12][0-9]|3[01]))?)?$",
+          "description": "ISO date, year-month or year, as the source states it."
+        },
+        "eventEnd": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[0-9]{4}(-(0[1-9]|1[0-2])(-(0[1-9]|[12][0-9]|3[01]))?)?$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "scope": {
+          "type": "string",
+          "enum": [
+            "national",
+            "region",
+            "province",
+            "valley"
+          ]
+        },
+        "placeNamed": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "sourceLocator": {
+          "type": "object",
+          "properties": {
+            "sourceId": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+            },
+            "locator": {
+              "type": "string",
+              "minLength": 1
+            },
+            "excerpt": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 300,
+              "description": "Verbatim excerpt, at most 300 Unicode code points."
+            }
+          },
+          "required": [
+            "sourceId",
+            "locator",
+            "excerpt"
+          ],
+          "additionalProperties": false
+        },
+        "sourceLanguage": {
+          "type": "string",
+          "pattern": "^[a-z]{2,3}(-[A-Za-z0-9]{2,8})*$",
+          "description": "BCP 47 tag of the source text, for example en, fr or ar."
+        },
+        "statementEn": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Model-drafted English statement; a machine-drafted translation only when sourceLanguage is not English."
+        },
+        "rainfallDirection": {
+          "type": "string",
+          "enum": [
+            "below_normal",
+            "near_normal",
+            "above_normal",
+            "not_stated"
+          ]
+        },
+        "extractionModel": {
+          "type": "string",
+          "minLength": 1
+        },
+        "extractionRequestId": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "recordType",
+        "id",
+        "revision",
+        "createdAt",
+        "updatedAt",
+        "caseId",
+        "dataBundleId",
+        "dataBundleRevision",
+        "eventType",
+        "eventStart",
+        "eventEnd",
+        "scope",
+        "placeNamed",
+        "sourceLocator",
+        "sourceLanguage",
+        "statementEn",
+        "rainfallDirection",
+        "extractionModel",
+        "extractionRequestId"
+      ]
     }
   }
 }

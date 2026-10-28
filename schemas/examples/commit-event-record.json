@@ -1,0 +1,145 @@
+{
+  "recordType": "Commit",
+  "schemaVersion": "1.3.0",
+  "id": "commit_example_event_record",
+  "caseId": "case_example_atlas",
+  "commandId": "cmd_example_setup",
+  "taskId": "task_example_event_record",
+  "expectedCaseRevision": 3,
+  "newCaseRevision": 4,
+  "idempotencyKey": "example-event-record-commit-0001",
+  "inputVersions": [],
+  "caseAfter": {
+    "recordType": "EnvironmentalCase",
+    "id": "case_example_atlas",
+    "revision": 4,
+    "createdAt": "2026-10-26T16:00:00-04:00",
+    "updatedAt": "2026-10-27T20:00:00-04:00",
+    "title": "Example: High Atlas investigation",
+    "objective": "Identify evidence and field measurements needed to assess competing explanations for pasture pressure.",
+    "status": "commissioned",
+    "mode": "concept",
+    "ownerScopeId": "example_fixture_only",
+    "activeGeoSelectionId": "geo_example_context",
+    "currentBriefId": null,
+    "unresolvedQuestions": [
+      "The analysis boundary and numerical observations have not been established."
+    ],
+    "permissionProfile": "research_and_preparation_only",
+    "description": "Fictional contract fixture. No measured environmental result or visited location is asserted."
+  },
+  "upserts": [
+    {
+      "recordType": "Source",
+      "id": "src_example_bulletin",
+      "revision": 1,
+      "createdAt": "2026-10-27T20:00:00-04:00",
+      "updatedAt": "2026-10-27T20:00:00-04:00",
+      "caseId": "case_example_atlas",
+      "title": "Example country brief (fictional)",
+      "url": "https://example.org/briefs/example-country-brief",
+      "publisher": "Example institution",
+      "authors": [],
+      "publicationDate": "2022-05-10",
+      "accessedAt": "2026-10-27T19:00:00-04:00",
+      "sourceKind": "institutional",
+      "accessStatus": "retrieved",
+      "license": null,
+      "redistributionStatus": "unknown",
+      "contentHash": "sha256-example-not-a-real-hash",
+      "notes": [
+        "Fictional source for a contract example; no such document exists."
+      ]
+    },
+    {
+      "recordType": "DataBundle",
+      "id": "bundle_example_event_record",
+      "revision": 1,
+      "createdAt": "2026-10-27T20:00:00-04:00",
+      "updatedAt": "2026-10-27T20:00:00-04:00",
+      "caseId": "case_example_atlas",
+      "label": "Example event record (fictional)",
+      "status": "validated",
+      "datasetId": "event_record",
+      "datasetVersion": null,
+      "sourceIds": [
+        "src_example_bulletin"
+      ],
+      "geoSelectionId": "geo_example_context",
+      "geoRevision": 1,
+      "periodIds": [],
+      "methodId": "event_extraction",
+      "methodVersion": "0.0.0-example",
+      "manifestUri": "https://example.org/bundles/bundle_example_event_record/manifest.json",
+      "contentHash": "sha256-example-not-a-real-hash",
+      "license": null,
+      "attribution": null,
+      "provenance": {
+        "sourceLocators": [],
+        "dataBundleIds": [],
+        "methodId": "event_extraction",
+        "methodVersion": "0.0.0-example",
+        "inputVersions": [],
+        "generatedByTaskId": "task_example_event_record",
+        "generatedAt": "2026-10-27T20:00:00-04:00",
+        "verificationStatus": "unverified",
+        "limitations": [
+          "Fictional example: no extraction was run."
+        ]
+      }
+    },
+    {
+      "recordType": "EventRecordRow",
+      "id": "erow_example_declaration",
+      "revision": 1,
+      "createdAt": "2026-10-27T20:00:00-04:00",
+      "updatedAt": "2026-10-27T20:00:00-04:00",
+      "caseId": "case_example_atlas",
+      "dataBundleId": "bundle_example_event_record",
+      "dataBundleRevision": 1,
+      "eventType": "drought_declaration",
+      "eventStart": "2022-03",
+      "eventEnd": null,
+      "scope": "national",
+      "placeNamed": null,
+      "sourceLocator": {
+        "sourceId": "src_example_bulletin",
+        "locator": "page 1",
+        "excerpt": "Fictional excerpt: the example government declared a drought in March."
+      },
+      "sourceLanguage": "en",
+      "statementEn": "Fictional example: a national drought was declared in March 2022.",
+      "rainfallDirection": "below_normal",
+      "extractionModel": "example-model",
+      "extractionRequestId": null
+    }
+  ],
+  "events": [
+    {
+      "recordType": "Event",
+      "schemaVersion": "1.3.0",
+      "id": "evt_example_event_record_commit",
+      "caseId": "case_example_atlas",
+      "sequence": 12,
+      "occurredAt": "2026-10-27T20:00:00-04:00",
+      "kind": "case.committed",
+      "commandId": "cmd_example_setup",
+      "taskId": "task_example_event_record",
+      "caseRevision": 4,
+      "entityIds": [
+        "src_example_bulletin",
+        "bundle_example_event_record",
+        "erow_example_declaration"
+      ],
+      "message": "Fictional example: event record saved.",
+      "dedupeKey": "example-event-record-0012",
+      "resultStatus": null,
+      "tool": null,
+      "usage": null,
+      "validation": null,
+      "spanId": null,
+      "parentSpanId": null
+    }
+  ],
+  "layoutActions": []
+}
