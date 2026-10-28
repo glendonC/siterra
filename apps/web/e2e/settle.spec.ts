@@ -12,13 +12,18 @@ test("the arrival settles from the regional view once, and not again on reload",
   const stage = page.locator("[data-settle]");
   await expect(stage).toHaveAttribute("data-settle", "moving", { timeout: 60_000 });
   await expect(page.locator("[data-budget=land-label]")).toHaveCount(0);
-  if (process.env.SETTLE_OUT) {
-    await page.addStyleTag({ content: "nextjs-portal { display: none !important; }" });
-    await page.screenshot({ path: process.env.SETTLE_OUT });
-  }
   const t0 = Date.now();
+  // three frames of the move (start, middle, end) for the board; a screenshot is not an input
+  const frames = process.env.SETTLE_FRAMES;
+  if (frames) {
+    await page.addStyleTag({ content: "nextjs-portal { display: none !important; }" });
+    await page.screenshot({ path: `${frames}-start.png` });
+    await page.waitForTimeout(1350 - (Date.now() - t0));
+    await page.screenshot({ path: `${frames}-middle.png` });
+  }
   await expect(stage).toHaveAttribute("data-settle", "done", { timeout: 10_000 });
   expect(Date.now() - t0).toBeLessThan(3_500);
+  if (frames) await page.screenshot({ path: `${frames}-end.png` });
   await expect(page.locator("[data-arrival-settled=true]")).toBeVisible({ timeout: 30_000 });
 
   await page.reload();

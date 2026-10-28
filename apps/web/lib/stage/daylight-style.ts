@@ -55,6 +55,8 @@ export interface ValleyStyleInput {
     maxzoom: number;
     bounds: [number, number, number, number];
   };
+  /** True for the arrival settle (MOT-01): the veil strengthens toward the regional view (VEIL_OPACITY). */
+  veilByZoom?: boolean;
   /** Saturation shift for the imagery (the veil outside the catchment mutes it further). */
   imagerySaturation?: number;
 }
@@ -69,6 +71,13 @@ const VEIL_RING: Position[] = [
 ];
 
 /** The land outside the catchment: a box with every catchment ring cut out of it. */
+/**
+ * Opacity of the veil outside the catchment: the approved 0.82; during the arrival settle only (MOT-01,
+ * the direct /stage arrival), strong at the regional view it starts from (zoom about 9.4), so the edge of
+ * the drape cannot be seen there, easing to 0.82 by the valley view.
+ */
+export const VEIL_OPACITY = { regional: 0.97, valley: 0.82 } as const;
+
 export function outsideVeil(catchment: Feature): Feature<Polygon> {
   const g = catchment.geometry;
   const outers =
@@ -124,7 +133,8 @@ export function valleyStyle({
   catchment,
   outlet,
   contours,
-  imagerySaturation = 0.1,
+  veilByZoom = false,
+  imagerySaturation = 0.2,
 }: ValleyStyleInput): StyleSpecification {
   return {
     version: 8,
@@ -252,7 +262,21 @@ export function valleyStyle({
         id: "outside-veil",
         type: "fill",
         source: "outside",
-        paint: { "fill-color": daylight.outsideVeil },
+        paint: {
+          "fill-color": daylight.outsideVeil,
+          // by zoom only for the arrival settle (MOT-01); the hero dive keeps the approved 0.82
+          "fill-opacity": veilByZoom
+            ? [
+                "interpolate",
+                ["linear"],
+                ["zoom"],
+                9.4,
+                VEIL_OPACITY.regional,
+                10.5,
+                VEIL_OPACITY.valley,
+              ]
+            : VEIL_OPACITY.valley,
+        },
       },
       ...(assets.haze
         ? [

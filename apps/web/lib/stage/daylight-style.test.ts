@@ -1,7 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { daylight } from "../theme/daylight";
 import { ARRIVAL_EXAGGERATION, ARRIVAL_LIGHT } from "./arrival";
-import { beamFootprint, outsideVeil, valleyStyle, type ValleyAssets } from "./daylight-style";
+import {
+  beamFootprint,
+  outsideVeil,
+  VEIL_OPACITY,
+  valleyStyle,
+  type ValleyAssets,
+} from "./daylight-style";
 import type { Feature, Polygon } from "./geo";
 
 const square: Feature<Polygon> = {
@@ -122,6 +128,33 @@ describe("valleyStyle", () => {
 
   it("uses the accent once, for the outlet beam", () => {
     expect(colours(style).filter((c) => c === daylight.accent)).toHaveLength(1);
+  });
+});
+
+describe("the veil outside the catchment", () => {
+  it("is 0.82 everywhere unless the settle asks for it by zoom, so the hero dive keeps its look", () => {
+    const plain = valleyStyle({ assets, catchment: square }).layers.find(
+      (l) => l.id === "outside-veil",
+    ) as { paint: Record<string, unknown> };
+    expect(plain.paint["fill-color"]).toBe(daylight.outsideVeil);
+    expect(plain.paint["fill-opacity"]).toBe(VEIL_OPACITY.valley);
+    expect(VEIL_OPACITY.valley).toBe(0.82);
+  });
+
+  it("with the settle, is strong at the regional view and eases to 0.82 by the valley view", () => {
+    const veil = valleyStyle({ assets, catchment: square, veilByZoom: true }).layers.find(
+      (l) => l.id === "outside-veil",
+    ) as { paint: Record<string, unknown> };
+    expect(veil.paint["fill-opacity"]).toEqual([
+      "interpolate",
+      ["linear"],
+      ["zoom"],
+      9.4,
+      VEIL_OPACITY.regional,
+      10.5,
+      VEIL_OPACITY.valley,
+    ]);
+    expect(VEIL_OPACITY.regional).toBeGreaterThan(0.9);
   });
 });
 

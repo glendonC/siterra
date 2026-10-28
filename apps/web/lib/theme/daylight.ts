@@ -14,14 +14,17 @@ export const daylight = {
   outline: "rgba(43, 41, 37, 0.92)",
   /** Paper casing under the catchment line and halos under names. */
   outlineCasing: "#f2efea",
-  /** Hillshade over imagery: cool shadow, warm highlight, both partly transparent so the imagery shows. */
-  hillshadeShadow: "rgba(90, 100, 112, 0.85)",
-  hillshadeHighlight: "rgba(255, 244, 230, 0.55)",
-  hillshadeAccent: "rgba(120, 134, 147, 0.25)",
-  /** Paper laid over the land outside the catchment (design language: outside mixed toward paper). */
-  outsideVeil: "rgba(232, 226, 216, 0.82)",
+  /** Hillshade over the drape: a light warm-brown shadow and a warm highlight, so no grey sits on the land. */
+  hillshadeShadow: "rgba(92, 84, 78, 0.42)",
+  hillshadeHighlight: "rgba(255, 240, 220, 0.35)",
+  hillshadeAccent: "rgba(120, 95, 70, 0.15)",
+  /**
+   * Paper laid over the land outside the catchment (design language: outside mixed toward paper); its
+   * opacity depends on zoom (VEIL_OPACITY in the style).
+   */
+  outsideVeil: "#e8e2d8",
   /** The warm light pool inside the catchment (design language rule 2: selection is light, not paint). */
-  pool: "rgba(245, 200, 140, 0.25)",
+  pool: "rgba(245, 200, 140, 0.15)",
   /** Contours, 100 m and 500 m: ink at 4.5% and 9% (design system, cartography; map.contour, map.contour-index). */
   contour: "rgba(43, 41, 37, 0.045)",
   contourIndex: "rgba(43, 41, 37, 0.09)",

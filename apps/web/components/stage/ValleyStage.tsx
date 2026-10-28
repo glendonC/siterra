@@ -192,6 +192,8 @@ export function ValleyStage({
   const [settle, setSettle] = useState<"waiting" | "moving" | "done">("done");
   const startRef = useRef<MapCamera | null>(null);
   const settleRaf = useRef(0);
+  /** Stops the settle's frame loop and removes its input listeners; run on unmount as well (b60). */
+  const stopSettle = useRef<() => void>(() => undefined);
   // an interrupted settle shows the arrival at once (the reduced-motion timings)
   const [quick, setQuick] = useState(false);
   const settleRef = useRef(settle);
@@ -292,8 +294,7 @@ export function ValleyStage({
     };
     const inputs = ["keydown", "pointerdown", "wheel", "touchstart"] as const;
     const finish = (interrupted: boolean) => {
-      cancelAnimationFrame(settleRaf.current);
-      for (const t of inputs) window.removeEventListener(t, onInput, true);
+      stopSettle.current();
       if (interrupted) jump(home);
       if (settleKey) {
         try {
@@ -310,6 +311,10 @@ export function ValleyStage({
       if (settleRef.current === "moving") finish(true);
     }
     for (const t of inputs) window.addEventListener(t, onInput, { capture: true, passive: true });
+    stopSettle.current = () => {
+      cancelAnimationFrame(settleRaf.current);
+      for (const t of inputs) window.removeEventListener(t, onInput, true);
+    };
     const t0 = performance.now();
     const step = () => {
       const k = Math.min(1, (performance.now() - t0) / SETTLE_MS);
@@ -326,7 +331,8 @@ export function ValleyStage({
   }, [settle, idle, settleKey]);
   useEffect(
     () => () => {
-      cancelAnimationFrame(settleRaf.current);
+      // a navigation during the move leaves no frame loop and no listener behind
+      stopSettle.current();
     },
     [],
   );
@@ -571,6 +577,8 @@ export function ValleyStage({
           },
           catchment,
           contours,
+          // the stronger regional veil belongs to the settle alone; the dive keeps the approved veil
+          veilByZoom: settleKey !== undefined,
           outlet: outletRef.current,
         }),
         center: start.center,

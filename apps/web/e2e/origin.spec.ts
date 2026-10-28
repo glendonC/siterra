@@ -10,6 +10,8 @@ test("the arrival asks only the app's own origin, and reads the map through /api
   const origin = new URL(baseURL ?? "").origin;
   const others: string[] = [];
   const mapPaths: string[] = [];
+  const workers: string[] = [];
+  page.on("worker", (w) => workers.push(new URL(w.url()).pathname));
   const missing: string[] = [];
   // a map asset the bundle lacks answers 404 and MapLibre draws it grey (AUDIT B b53)
   page.on("response", (r) => {
@@ -30,6 +32,12 @@ test("the arrival asks only the app's own origin, and reads the map through /api
   });
   await page.waitForTimeout(1500);
   expect(others).toEqual([]);
+  // the production MapLibre worker, never the development build (maplibre-gl picks by its own file name;
+  // the stage names it with setWorkerUrl)
+  expect(
+    workers.some((w) => /maplibre-gl-worker\.[\w-]*\.?mjs$|maplibre-gl-worker\.mjs$/.test(w)),
+  ).toBe(true);
+  expect(workers.filter((w) => w.includes("worker-dev"))).toEqual([]);
   expect(missing).toEqual([]);
   expect(mapPaths[0]).toBe("/api/map-assets");
   expect(
