@@ -12,6 +12,16 @@ import type { Checked, ValidationIssue, ValidationResult } from "./validation.ts
 
 export const DEFAULT_MAX_ROUNDS = 6;
 
+/**
+ * The last rounds of every task offer no tools: one for the proposal and one for its repair. The
+ * Meta Responses API accepts only tool_choice auto (TECH-07), so withholding the tools is the
+ * only way to end the reading within the round limit.
+ */
+export const PROPOSAL_ROUNDS = 2;
+
+const PROPOSE_NOW =
+  "No tool calls are left for this task. Return your proposal now as the JSON object the response format defines, from the tool results above only. Name what you could not read or check as the response format allows.";
+
 export type LoopStatus =
   "accepted" | "rejected" | "refused" | "incomplete" | "model_failed" | "round_limit" | "cancelled";
 
@@ -61,6 +71,9 @@ export async function runTaskLoop<T>(options: LoopOptions<T>): Promise<LoopResul
   let repaired = false;
   let validation: ValidationResult | null = null;
   const stamp = (): string => options.now().toISOString();
+  const toolRounds = Math.max(0, maxRounds - PROPOSAL_ROUNDS);
+  let lastRoundRead = false;
+  let askedToPropose = false;
 
   const done = (status: LoopStatus, failureCode: string | null, value: T | null = null) => ({
     status,
@@ -73,6 +86,11 @@ export async function runTaskLoop<T>(options: LoopOptions<T>): Promise<LoopResul
 
   for (let round = 1; round <= maxRounds; round += 1) {
     if (signal.aborted) return done("cancelled", "cancelled");
+    const offerTools = round <= toolRounds;
+    if (!offerTools && lastRoundRead && !askedToPropose) {
+      input.push({ kind: "user_text", text: PROPOSE_NOW });
+      askedToPropose = true;
+    }
     const route = routeLabel(options.adapter.route, options.adapter.replayOrigin);
     options.trace.emit({
       kind: "model.started",
@@ -86,7 +104,7 @@ export async function runTaskLoop<T>(options: LoopOptions<T>): Promise<LoopResul
       validation: null,
     });
     const call = await options.adapter.call(
-      { ...options.request, input, tools: toolDefs },
+      { ...options.request, input, tools: offerTools ? toolDefs : [] },
       { signal },
     );
     calls.push(call);
@@ -110,13 +128,17 @@ export async function runTaskLoop<T>(options: LoopOptions<T>): Promise<LoopResul
       return done("model_failed", call.errorCode ?? "model_failed");
     }
 
-    if (call.toolCalls.length > 0) {
+    lastRoundRead = call.toolCalls.length > 0;
+    if (lastRoundRead) {
       input.push({ kind: "replay", items: call.replayItems });
       for (const toolCall of call.toolCalls) {
+        const output = offerTools
+          ? await runTool(toolCall, handlers, options, signal)
+          : { error: "no_tool_rounds_left", message: PROPOSE_NOW };
         input.push({
           kind: "tool_output",
           callId: toolCall.callId,
-          output: JSON.stringify(await runTool(toolCall, handlers, options, signal)),
+          output: JSON.stringify(output),
         });
       }
       continue;
