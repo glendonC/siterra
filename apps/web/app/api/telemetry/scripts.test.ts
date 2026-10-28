@@ -9,8 +9,13 @@ const pkg = JSON.parse(readFileSync(new URL("../../../package.json", import.meta
 describe("telemetry is off in every Next.js script", () => {
   const nextScripts = Object.entries(pkg.scripts).filter(([, command]) => /\bnext\b/.test(command));
 
-  it("finds the dev, build and start scripts", () => {
-    expect(nextScripts.map(([name]) => name).sort()).toEqual(["build", "dev", "start"]);
+  it("finds the dev, build, start and start:deploy scripts", () => {
+    expect(nextScripts.map(([name]) => name).sort()).toEqual([
+      "build",
+      "dev",
+      "start",
+      "start:deploy",
+    ]);
   });
 
   it.each(nextScripts)("%s sets NEXT_TELEMETRY_DISABLED=1 and DO_NOT_TRACK=1", (_, command) => {

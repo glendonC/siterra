@@ -5,6 +5,7 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
+    "./health": "./src/health.ts",
     "./job-queue": "./src/job-queue.ts",
     "./testing": "./src/testing.ts"
   },

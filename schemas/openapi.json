@@ -38,6 +38,10 @@
     {
       "name": "map",
       "description": "Public map assets: the data/map bundle under a path versioned by its manifest, without a session (ADR-0018)."
+    },
+    {
+      "name": "health",
+      "description": "Deployment health for a host's health check: database, migrations, worker heartbeat and outbox backlog."
     }
   ],
   "security": [
@@ -693,6 +697,42 @@
           }
         }
       }
+    },
+    "/api/health": {
+      "get": {
+        "operationId": "getHealth",
+        "tags": [
+          "health"
+        ],
+        "summary": "Read the deployment's health",
+        "description": "Public and never cached. status ok: database reachable, migrations applied, a worker heartbeat within 60 s and no outbox row waiting over 30 s; degraded: the web serves but commands may not run (no worker, a stale worker, or a backlog); unavailable: the database is unreachable within 3 s or a migration is pending. Names states only, never a connection string, an error text or a worker ID.",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "ok or degraded.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Unexpected"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1112,6 +1152,118 @@
             "type": "integer",
             "minimum": 0,
             "description": "Commands this session may submit."
+          }
+        }
+      },
+      "Health": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "status",
+          "database",
+          "migrations",
+          "worker",
+          "outbox"
+        ],
+        "properties": {
+          "status": {
+            "enum": [
+              "ok",
+              "degraded",
+              "unavailable"
+            ]
+          },
+          "database": {
+            "enum": [
+              "ok",
+              "unreachable"
+            ]
+          },
+          "migrations": {
+            "anyOf": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "expected",
+                  "pending"
+                ],
+                "properties": {
+                  "expected": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "pending": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "worker": {
+            "anyOf": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "status",
+                  "lastSeenAt"
+                ],
+                "properties": {
+                  "status": {
+                    "enum": [
+                      "ok",
+                      "stale",
+                      "none"
+                    ]
+                  },
+                  "lastSeenAt": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "date-time"
+                  }
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "outbox": {
+            "anyOf": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "pending",
+                  "oldestPendingSeconds"
+                ],
+                "properties": {
+                  "pending": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "oldestPendingSeconds": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "minimum": 0
+                  }
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         }
       }

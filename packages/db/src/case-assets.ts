@@ -93,7 +93,9 @@ export function resolveCaseAsset(
   if (path === null) return null;
   const entry = cached.listing.get(path);
   if (entry === undefined) return null;
-  const absolutePath = normalize(join(bundleDir, path));
+  // Bundle files are read from data/bundles at run time, never bundled; the comment keeps the
+  // build from tracing the whole repository into the server output.
+  const absolutePath = normalize(join(/*turbopackIgnore: true*/ bundleDir, path));
   if (!absolutePath.startsWith(bundleDir + sep) || !existsSync(absolutePath)) return null;
   const stat = statSync(absolutePath, { bigint: true });
   const known = verified.get(absolutePath);
