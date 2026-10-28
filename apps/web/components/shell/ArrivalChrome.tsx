@@ -243,8 +243,14 @@ export function ArrivalChrome({
               type="button"
               className={styles.nextStep}
               onClick={() => {
-                input.current?.focus();
-                onChallenge(input.current?.value ?? question);
+                const current = input.current?.value.trim() ?? "";
+                const next =
+                  current && current !== question ? current : en["command.challengeQuestion"].text;
+                if (input.current) {
+                  input.current.value = next;
+                  input.current.focus();
+                }
+                onChallenge(next);
               }}
             >
               {en["action.challenge"].text}

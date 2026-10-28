@@ -294,6 +294,7 @@ export function ArrivalView({
             }}
             cameraMoved={cameraMoved}
             onResetView={resetView}
+            onChallenge={commission}
             onTrace={() => {
               setTraceOpen((v) => !v);
             }}

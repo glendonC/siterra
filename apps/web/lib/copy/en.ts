@@ -304,6 +304,10 @@ export const en = {
 
   // Command line and next-step actions (IU-03, 28 Oct copy standard)
   "command.label": { text: "Question", kind: "heading" },
+  "command.challengeQuestion": {
+    text: "Could a dry year explain this instead?",
+    kind: "ui",
+  },
   "command.areaChip": { text: "Area · {area}", kind: "heading" },
   "command.periodChip": { text: "Period · {period}", kind: "heading" },
   "action.investigate": { text: "Investigate", kind: "button" },

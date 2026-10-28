@@ -43,3 +43,16 @@ test("the primary action sends the typed question, not the case question", async
   await page.locator("[data-budget=action]").click();
   expect(((await sent).postDataJSON() as { text: string }).text).toBe(ASKED);
 });
+
+test("Challenge sets the dry-year challenge question and commissions the request", async ({
+  page,
+  baseURL,
+}) => {
+  await arrive(page, baseURL);
+  const sent = commandPost(page);
+  await page.getByRole("button", { name: "Challenge" }).click();
+  const expected = "Could a dry year explain this instead?";
+  await expect(page.locator("#command-input")).toHaveValue(expected);
+  expect(((await sent).postDataJSON() as { text: string }).text).toBe(expected);
+  await expect(page.locator("[data-budget=card]")).toContainText(expected, { timeout: 30_000 });
+});

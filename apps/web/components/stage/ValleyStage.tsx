@@ -534,7 +534,15 @@ export function ValleyStage({
         }
       }
       settleRef.current = "done";
-      if (interrupted) setQuick(true);
+      if (interrupted) {
+        setQuick(true);
+        setSettled(true);
+        if (labelsRef.current) {
+          unlockedRef.current = true;
+          setInteractive(true);
+          syncInteractive(m, true, viewRef.current === "flat", boundsRef.current);
+        }
+      }
       setSettle("done");
     };
     function onInput() {

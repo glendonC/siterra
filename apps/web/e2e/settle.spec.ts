@@ -79,11 +79,35 @@ test("pointerdown during settle yields within 100 ms, unlocks camera within boun
   await page.goto(`/stage?case=${sharedCase()}`);
   const stage = page.locator("[data-settle]");
   await expect(stage).toHaveAttribute("data-settle", "moving", { timeout: 60_000 });
-  const yieldMs = await page.evaluate(() => {
-    const t0 = performance.now();
-    window.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }));
-    return performance.now() - t0;
-  });
+  const yieldMs = await page.evaluate(
+    () =>
+      new Promise<number>((resolve, reject) => {
+        const el = document.querySelector("[data-settle]");
+        if (!el) {
+          reject(new Error("missing [data-settle] element"));
+          return;
+        }
+        const t0 = performance.now();
+        const ready = () =>
+          el.getAttribute("data-settle") === "done" &&
+          el.getAttribute("data-camera-interactive") === "true";
+        const obs = new MutationObserver(() => {
+          if (ready()) {
+            obs.disconnect();
+            resolve(performance.now() - t0);
+          }
+        });
+        obs.observe(el, {
+          attributes: true,
+          attributeFilter: ["data-settle", "data-camera-interactive"],
+        });
+        window.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }));
+        if (ready()) {
+          obs.disconnect();
+          resolve(performance.now() - t0);
+        }
+      }),
+  );
   expect(yieldMs).toBeLessThan(100);
   await expect(stage).toHaveAttribute("data-settle", "done");
   await expect(stage).toHaveAttribute("data-arrival-settled", "true");
