@@ -2,7 +2,7 @@ import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 import { chooseTransport, describeRoute, loadReplayFile } from "@siterra/agent";
-import { eventsOfCommand, readSnapshot, submitCommand } from "@siterra/db";
+import { eventsOfCommand, readLineage, readSnapshot, submitCommand } from "@siterra/db";
 import { freshDatabase } from "@siterra/db/testing";
 import type { TestDatabase } from "@siterra/db/testing";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -134,6 +134,18 @@ describe("synthetic seed-commission replay", () => {
             .map((ev) => `${ev.usage?.provider ?? ""} ${ev.usage?.replayOrigin ?? ""}`);
           expect(usage.length).toBeGreaterThan(0);
           expect(usage.every((p) => p === "replay synthetic")).toBe(true);
+        }
+        // PLATFORM's lineage reads the same from the stored records (lead, after b35).
+        for (const e of records) {
+          const lineage = await readLineage(db.pool, {
+            caseId: CASE_ID,
+            ownerScopeId: OWNER,
+            entityId: e.id,
+          });
+          expect(lineage?.replayed, e.id).toBe(true);
+          expect(lineage?.modelCalls, e.id).toEqual([
+            { provider: "replay", model: "muse-spark-1.3", replayOrigin: "synthetic" },
+          ]);
         }
       } finally {
         await stop();
