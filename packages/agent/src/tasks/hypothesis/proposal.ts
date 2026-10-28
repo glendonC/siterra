@@ -1,7 +1,7 @@
-import { toModelJsonSchema } from "@siterra/contracts";
+import { ProposeHypotheses, toModelJsonSchema } from "@siterra/contracts";
+import type { proposableHypothesisStatuses } from "@siterra/contracts";
 import { PROHIBITED_RULES, unprovenNumbers } from "@siterra/domain/validators";
 import type { YearSpan } from "@siterra/domain/validators";
-import { z } from "zod";
 
 import type { JsonSchema } from "../../model/types.ts";
 import { maskReferencePeriods, referencePeriods, unprovenMessage } from "../evidence/proposal.ts";
@@ -9,17 +9,12 @@ import type { EvidenceRecord, HypothesisRecord, MeasurementRecord } from "../rec
 import { issue, jsonPath } from "../validation.ts";
 import type { Checked, ValidationIssue } from "../validation.ts";
 
-// propose_hypotheses (docs/reference/data-contracts.md#tool-argument-contracts and #hypothesis-status).
-// Local mirror until packages/contracts adds it. A hypothesis is a candidate explanation: its status
-// word must match the evidence, its text must carry that word, and no probability is ever stated.
+// propose_hypotheses (docs/reference/data-contracts.md#tool-argument-contracts and #hypothesis-status),
+// with the argument schema from packages/contracts. A hypothesis is a candidate explanation: its
+// status word must match the evidence, its text must carry that word, and no probability is ever
+// stated.
 
-export const PROPOSED_STATUSES = [
-  "untested",
-  "consistent",
-  "inconsistent",
-  "inconclusive",
-] as const;
-export type ProposedStatus = (typeof PROPOSED_STATUSES)[number];
+export type ProposedStatus = (typeof proposableHypothesisStatuses)[number];
 
 /** The status words of the data contract, which every assessment must carry in its own words. */
 export const STATUS_LABELS: Readonly<Record<ProposedStatus, string>> = {
@@ -36,20 +31,6 @@ export const HYPOTHESIS_LIMITS = {
   maxMissing: 8,
 } as const;
 
-export const ProposeHypotheses = z.strictObject({
-  items: z.array(
-    z.strictObject({
-      hypothesisId: z.string().nullable(),
-      statement: z.string(),
-      status: z.enum(PROPOSED_STATUSES),
-      supportingEvidenceIds: z.array(z.string()),
-      contradictingEvidenceIds: z.array(z.string()),
-      missingEvidence: z.array(z.string()),
-      assessment: z.string(),
-    }),
-  ),
-});
-export type ProposeHypotheses = z.infer<typeof ProposeHypotheses>;
 export type HypothesisItem = ProposeHypotheses["items"][number];
 
 export function hypothesisOutputSchema(): JsonSchema {
