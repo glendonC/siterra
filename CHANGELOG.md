@@ -47,6 +47,7 @@ Contracts and design tokens carry their own Semantic Versioning numbers, recorde
 - Action status after reviews: an action awaiting review becomes prepared in demo mode when, for every required role except community and livelihood, the role's latest decision on the current version is an approval and its dependencies are prepared; community consultation stays listed as outstanding, and nothing is executed.
 - Review requests: a task may record a request for review (revision 1, requested, demo mode, no actor, no decision time, no conditions); any other review decision from a task is refused, and a request never counts as a decision.
 - `maplibre-contour` 0.1.1 (BSD-3-Clause, no dependencies) in the web app for the contour lines on the self-hosted terrain.
+- The approved dive as data in `design/hero/dive-camera.json`: 133 camera keyframes at 30 fps from the globe to the arrival pose, for MapLibre at a 22 degree vertical field of view.
 
 ### Changed
 

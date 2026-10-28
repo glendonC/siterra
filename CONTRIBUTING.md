@@ -18,6 +18,7 @@ A document is public because its contents are safe and useful, not because it is
 | `research/` (registers, notes, bibliography) | Public | Makes claims auditable; public sources, links and paraphrase only |
 | `research/design/source-register.md` | Public | Link-only reference manifest with inspection notes; no third-party images |
 | `design/tokens/` | Public | Original work: the generated design tokens |
+| `design/hero/` | Public | Original work: the approved hero's data for the build, such as the dive camera path |
 | `design/prototype/`, `design/component-gallery/`, `design/wireframes/`, `design/motion/` | **Private** (ignored) | The first concept prototype, its component gallery, wireframes and motion storyboard, replaced by the approved hero and not published |
 | `design/private/` | **Private** (ignored) | Third-party screenshots, video frames and the reference board that displays them: inspected for design, not licensed for redistribution |
 | `data/raw/`, `data/interim/` | **Private** (ignored) | Downloaded datasets and candidate geometries before rights and quality review |

@@ -1,0 +1,1784 @@
+{
+ "description": "The dive of the approved hero as camera keyframes, one per frame at 30 fps from the globe (t = 0) to the valley's arrival camera pose (t = 4.4 s), so the build can play it frame for frame.",
+ "timing": {
+  "durationS": 4.4,
+  "fps": 30,
+  "frames": 133,
+  "note": "t is seconds from the start of the dive; in the approved reel the dive starts 34.0 s after the opening page appears and ends at 38.4 s"
+ },
+ "viewport": {
+  "cssWidth": 1440,
+  "cssHeight": 810,
+  "verticalFovDeg": 22
+ },
+ "conventions": {
+  "center": "the camera's target, the point at the frame's centre, as [longitude, latitude] in degrees",
+  "centerHeightFrameKm": "the target's height in kilometres at 2.0 times vertical exaggeration (0 on the globe; at the end the mean crest height of the catchment ring); metres above sea level are this value times 500",
+  "distanceKm": "the camera's distance from the target, with heights exaggerated 2.0 times as the terrain is drawn",
+  "cameraHeightAboveCenterKm": "the camera's height above the target in the same units",
+  "pitch": "MapLibre pitch in degrees: 0 looks straight down; 90 minus the renderer's elevation angle",
+  "bearing": "MapLibre bearing in degrees, clockwise from north, signed so the camera turns the short way (0 to -47)",
+  "zoom": "MapLibre zoom for the viewport above (512 px tiles, earth radius 6371008.8 m): log2((0.5 H / tan(fov / 2)) 2 pi R cos(latitude) / (512 distance)); for a viewport of height h add log2(h / 810). Before 2.5 s the globe draws the frame, so the zoom there is only indicative"
+ },
+ "formulas": {
+  "x": "u / 4.4 for dive time u in seconds",
+  "distance": "exp(lerp(ln(globe distance), ln(arrival distance), s)), s = 0.5 x + 0.5 x^2 (3 - 2 x): a logarithmic fall eased at both ends",
+  "centre": "from the globe view (-3, 25) to the case outlet over the first 1.6 s, then from the outlet to the arrival target from 2.8 s over 1.6 s, both with cubic-bezier(0.65, 0, 0.35, 1)",
+  "tilt": "pitch, bearing and the target's height go from the top-down globe view to the arrival pose from 2.8 s over 1.6 s with cubic-bezier(0.65, 0, 0.35, 1)",
+  "globeDistanceKm": 22581.7692,
+  "arrival": {
+   "center": [
+    -6.370536,
+    31.659089
+   ],
+   "centerHeightFrameKm": 6.3074,
+   "distanceKm": 73.3887,
+   "pitch": 54,
+   "bearing": -47
+  }
+ },
+ "checks": {
+  "lastCenterMinusPoseTargetDeg": [
+   -0.000001,
+   0
+  ],
+  "eyeMinusPoseCameraDeg": [
+   0,
+   -0.000001
+  ],
+  "eyeHeightMinusPoseKm": 0,
+  "lastDistanceMinusPoseKm": 0,
+  "firstMatchesGlobeView": true
+ },
+ "keyframes": [
+  {
+   "t": 0,
+   "center": [
+    -3,
+    25
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 22581.7692,
+   "cameraHeightAboveCenterKm": 22581.7692,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 2.7088
+  },
+  {
+   "t": 0.0333,
+   "center": [
+    -3.001241,
+    25.002329
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 22086.1551,
+   "cameraHeightAboveCenterKm": 22086.1551,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 2.7408
+  },
+  {
+   "t": 0.0667,
+   "center": [
+    -3.005092,
+    25.009555
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 21580.4435,
+   "cameraHeightAboveCenterKm": 21580.4435,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 2.7742
+  },
+  {
+   "t": 0.1,
+   "center": [
+    -3.011761,
+    25.02207
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 21066.1512,
+   "cameraHeightAboveCenterKm": 21066.1512,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 2.8088
+  },
+  {
+   "t": 0.1333,
+   "center": [
+    -3.021481,
+    25.040311
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 20544.7616,
+   "cameraHeightAboveCenterKm": 20544.7616,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 2.8447
+  },
+  {
+   "t": 0.1667,
+   "center": [
+    -3.034518,
+    25.064775
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 20017.7186,
+   "cameraHeightAboveCenterKm": 20017.7186,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 2.8819
+  },
+  {
+   "t": 0.2,
+   "center": [
+    -3.051172,
+    25.096027
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 19486.4224,
+   "cameraHeightAboveCenterKm": 19486.4224,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 2.9204
+  },
+  {
+   "t": 0.2333,
+   "center": [
+    -3.071787,
+    25.134711
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 18952.2245,
+   "cameraHeightAboveCenterKm": 18952.2245,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 2.96
+  },
+  {
+   "t": 0.2667,
+   "center": [
+    -3.096755,
+    25.181566
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 18416.4243,
+   "cameraHeightAboveCenterKm": 18416.4243,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 3.0009
+  },
+  {
+   "t": 0.3,
+   "center": [
+    -3.126531,
+    25.237442
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 17880.2654,
+   "cameraHeightAboveCenterKm": 17880.2654,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 3.0428
+  },
+  {
+   "t": 0.3333,
+   "center": [
+    -3.161641,
+    25.303328
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 17344.9332,
+   "cameraHeightAboveCenterKm": 17344.9332,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 3.0859
+  },
+  {
+   "t": 0.3667,
+   "center": [
+    -3.202699,
+    25.380376
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 16811.5522,
+   "cameraHeightAboveCenterKm": 16811.5522,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 3.13
+  },
+  {
+   "t": 0.4,
+   "center": [
+    -3.250423,
+    25.469932
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 16281.1845,
+   "cameraHeightAboveCenterKm": 16281.1845,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 3.1752
+  },
+  {
+   "t": 0.4333,
+   "center": [
+    -3.305658,
+    25.573582
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 15754.8284,
+   "cameraHeightAboveCenterKm": 15754.8284,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 3.2214
+  },
+  {
+   "t": 0.4667,
+   "center": [
+    -3.3694,
+    25.693197
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 15233.4173,
+   "cameraHeightAboveCenterKm": 15233.4173,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 3.2685
+  },
+  {
+   "t": 0.5,
+   "center": [
+    -3.442824,
+    25.830981
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 14717.8197,
+   "cameraHeightAboveCenterKm": 14717.8197,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 3.3165
+  },
+  {
+   "t": 0.5333,
+   "center": [
+    -3.52731,
+    25.989524
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 14208.8386,
+   "cameraHeightAboveCenterKm": 14208.8386,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 3.3653
+  },
+  {
+   "t": 0.5667,
+   "center": [
+    -3.624459,
+    26.171828
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 13707.2124,
+   "cameraHeightAboveCenterKm": 13707.2124,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 3.4149
+  },
+  {
+   "t": 0.6,
+   "center": [
+    -3.736072,
+    26.381277
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 13213.6151,
+   "cameraHeightAboveCenterKm": 13213.6151,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 3.4652
+  },
+  {
+   "t": 0.6333,
+   "center": [
+    -3.864063,
+    26.621459
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 12728.6575,
+   "cameraHeightAboveCenterKm": 12728.6575,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 3.5162
+  },
+  {
+   "t": 0.6667,
+   "center": [
+    -4.010207,
+    26.895704
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 12252.8884,
+   "cameraHeightAboveCenterKm": 12252.8884,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 3.5676
+  },
+  {
+   "t": 0.7,
+   "center": [
+    -4.175613,
+    27.206097
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 11786.7962,
+   "cameraHeightAboveCenterKm": 11786.7962,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 3.6196
+  },
+  {
+   "t": 0.7333,
+   "center": [
+    -4.359823,
+    27.551777
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 11330.8107,
+   "cameraHeightAboveCenterKm": 11330.8107,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 3.672
+  },
+  {
+   "t": 0.7667,
+   "center": [
+    -4.559677,
+    27.926813
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 10885.3048,
+   "cameraHeightAboveCenterKm": 10885.3048,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 3.7249
+  },
+  {
+   "t": 0.8,
+   "center": [
+    -4.768611,
+    28.318889
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 10450.5969,
+   "cameraHeightAboveCenterKm": 10450.5969,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 3.7784
+  },
+  {
+   "t": 0.8333,
+   "center": [
+    -4.977546,
+    28.710965
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 10026.9531,
+   "cameraHeightAboveCenterKm": 10026.9531,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 3.8328
+  },
+  {
+   "t": 0.8667,
+   "center": [
+    -5.1774,
+    29.086001
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 9614.5895,
+   "cameraHeightAboveCenterKm": 9614.5895,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 3.8881
+  },
+  {
+   "t": 0.9,
+   "center": [
+    -5.36161,
+    29.431681
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 9213.6747,
+   "cameraHeightAboveCenterKm": 9213.6747,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 3.9447
+  },
+  {
+   "t": 0.9333,
+   "center": [
+    -5.527016,
+    29.742073
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 8824.3324,
+   "cameraHeightAboveCenterKm": 8824.3324,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 4.0026
+  },
+  {
+   "t": 0.9667,
+   "center": [
+    -5.673159,
+    30.016319
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 8446.644,
+   "cameraHeightAboveCenterKm": 8446.644,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 4.0617
+  },
+  {
+   "t": 1,
+   "center": [
+    -5.80115,
+    30.256501
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 8080.6512,
+   "cameraHeightAboveCenterKm": 8080.6512,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 4.1221
+  },
+  {
+   "t": 1.0333,
+   "center": [
+    -5.912764,
+    30.465949
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 7726.3586,
+   "cameraHeightAboveCenterKm": 7726.3586,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 4.1837
+  },
+  {
+   "t": 1.0667,
+   "center": [
+    -6.009912,
+    30.648254
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 7383.7363,
+   "cameraHeightAboveCenterKm": 7383.7363,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 4.2464
+  },
+  {
+   "t": 1.1,
+   "center": [
+    -6.094399,
+    30.806797
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 7052.7227,
+   "cameraHeightAboveCenterKm": 7052.7227,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 4.3102
+  },
+  {
+   "t": 1.1333,
+   "center": [
+    -6.167823,
+    30.944581
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 6733.2267,
+   "cameraHeightAboveCenterKm": 6733.2267,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 4.375
+  },
+  {
+   "t": 1.1667,
+   "center": [
+    -6.231564,
+    31.064195
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 6425.1306,
+   "cameraHeightAboveCenterKm": 6425.1306,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 4.4408
+  },
+  {
+   "t": 1.2,
+   "center": [
+    -6.286799,
+    31.167846
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 6128.2923,
+   "cameraHeightAboveCenterKm": 6128.2923,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 4.5075
+  },
+  {
+   "t": 1.2333,
+   "center": [
+    -6.334523,
+    31.257402
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 5842.5475,
+   "cameraHeightAboveCenterKm": 5842.5475,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 4.575
+  },
+  {
+   "t": 1.2667,
+   "center": [
+    -6.375581,
+    31.334449
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 5567.7124,
+   "cameraHeightAboveCenterKm": 5567.7124,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 4.6433
+  },
+  {
+   "t": 1.3,
+   "center": [
+    -6.410691,
+    31.400336
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 5303.5858,
+   "cameraHeightAboveCenterKm": 5303.5858,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 4.7124
+  },
+  {
+   "t": 1.3333,
+   "center": [
+    -6.440467,
+    31.456212
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 5049.9508,
+   "cameraHeightAboveCenterKm": 5049.9508,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 4.7823
+  },
+  {
+   "t": 1.3667,
+   "center": [
+    -6.465436,
+    31.503067
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 4806.5773,
+   "cameraHeightAboveCenterKm": 4806.5773,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 4.8528
+  },
+  {
+   "t": 1.4,
+   "center": [
+    -6.48605,
+    31.54175
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 4573.2237,
+   "cameraHeightAboveCenterKm": 4573.2237,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 4.924
+  },
+  {
+   "t": 1.4333,
+   "center": [
+    -6.502704,
+    31.573003
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 4349.6387,
+   "cameraHeightAboveCenterKm": 4349.6387,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 4.9958
+  },
+  {
+   "t": 1.4667,
+   "center": [
+    -6.515741,
+    31.597467
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 4135.5629,
+   "cameraHeightAboveCenterKm": 4135.5629,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 5.0683
+  },
+  {
+   "t": 1.5,
+   "center": [
+    -6.525461,
+    31.615708
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 3930.7305,
+   "cameraHeightAboveCenterKm": 3930.7305,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 5.1413
+  },
+  {
+   "t": 1.5333,
+   "center": [
+    -6.53213,
+    31.628222
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 3734.871,
+   "cameraHeightAboveCenterKm": 3734.871,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 5.2148
+  },
+  {
+   "t": 1.5667,
+   "center": [
+    -6.535981,
+    31.635449
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 3547.7101,
+   "cameraHeightAboveCenterKm": 3547.7101,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 5.2889
+  },
+  {
+   "t": 1.6,
+   "center": [
+    -6.537222,
+    31.637778
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 3368.9714,
+   "cameraHeightAboveCenterKm": 3368.9714,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 5.3634
+  },
+  {
+   "t": 1.6333,
+   "center": [
+    -6.537222,
+    31.637778
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 3198.3772,
+   "cameraHeightAboveCenterKm": 3198.3772,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 5.4384
+  },
+  {
+   "t": 1.6667,
+   "center": [
+    -6.537222,
+    31.637778
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 3035.65,
+   "cameraHeightAboveCenterKm": 3035.65,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 5.5137
+  },
+  {
+   "t": 1.7,
+   "center": [
+    -6.537222,
+    31.637778
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 2880.5131,
+   "cameraHeightAboveCenterKm": 2880.5131,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 5.5894
+  },
+  {
+   "t": 1.7333,
+   "center": [
+    -6.537222,
+    31.637778
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 2732.6918,
+   "cameraHeightAboveCenterKm": 2732.6918,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 5.6654
+  },
+  {
+   "t": 1.7667,
+   "center": [
+    -6.537222,
+    31.637778
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 2591.9139,
+   "cameraHeightAboveCenterKm": 2591.9139,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 5.7417
+  },
+  {
+   "t": 1.8,
+   "center": [
+    -6.537222,
+    31.637778
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 2457.9108,
+   "cameraHeightAboveCenterKm": 2457.9108,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 5.8183
+  },
+  {
+   "t": 1.8333,
+   "center": [
+    -6.537222,
+    31.637778
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 2330.4177,
+   "cameraHeightAboveCenterKm": 2330.4177,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 5.8951
+  },
+  {
+   "t": 1.8667,
+   "center": [
+    -6.537222,
+    31.637778
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 2209.1745,
+   "cameraHeightAboveCenterKm": 2209.1745,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 5.9722
+  },
+  {
+   "t": 1.9,
+   "center": [
+    -6.537222,
+    31.637778
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 2093.9262,
+   "cameraHeightAboveCenterKm": 2093.9262,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 6.0495
+  },
+  {
+   "t": 1.9333,
+   "center": [
+    -6.537222,
+    31.637778
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 1984.4232,
+   "cameraHeightAboveCenterKm": 1984.4232,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 6.127
+  },
+  {
+   "t": 1.9667,
+   "center": [
+    -6.537222,
+    31.637778
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 1880.4219,
+   "cameraHeightAboveCenterKm": 1880.4219,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 6.2047
+  },
+  {
+   "t": 2,
+   "center": [
+    -6.537222,
+    31.637778
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 1781.6847,
+   "cameraHeightAboveCenterKm": 1781.6847,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 6.2825
+  },
+  {
+   "t": 2.0333,
+   "center": [
+    -6.537222,
+    31.637778
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 1687.9807,
+   "cameraHeightAboveCenterKm": 1687.9807,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 6.3604
+  },
+  {
+   "t": 2.0667,
+   "center": [
+    -6.537222,
+    31.637778
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 1599.0854,
+   "cameraHeightAboveCenterKm": 1599.0854,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 6.4385
+  },
+  {
+   "t": 2.1,
+   "center": [
+    -6.537222,
+    31.637778
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 1514.781,
+   "cameraHeightAboveCenterKm": 1514.781,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 6.5166
+  },
+  {
+   "t": 2.1333,
+   "center": [
+    -6.537222,
+    31.637778
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 1434.8569,
+   "cameraHeightAboveCenterKm": 1434.8569,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 6.5948
+  },
+  {
+   "t": 2.1667,
+   "center": [
+    -6.537222,
+    31.637778
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 1359.1091,
+   "cameraHeightAboveCenterKm": 1359.1091,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 6.6731
+  },
+  {
+   "t": 2.2,
+   "center": [
+    -6.537222,
+    31.637778
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 1287.3409,
+   "cameraHeightAboveCenterKm": 1287.3409,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 6.7513
+  },
+  {
+   "t": 2.2333,
+   "center": [
+    -6.537222,
+    31.637778
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 1219.3625,
+   "cameraHeightAboveCenterKm": 1219.3625,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 6.8296
+  },
+  {
+   "t": 2.2667,
+   "center": [
+    -6.537222,
+    31.637778
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 1154.991,
+   "cameraHeightAboveCenterKm": 1154.991,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 6.9078
+  },
+  {
+   "t": 2.3,
+   "center": [
+    -6.537222,
+    31.637778
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 1094.0504,
+   "cameraHeightAboveCenterKm": 1094.0504,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 6.986
+  },
+  {
+   "t": 2.3333,
+   "center": [
+    -6.537222,
+    31.637778
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 1036.3716,
+   "cameraHeightAboveCenterKm": 1036.3716,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 7.0642
+  },
+  {
+   "t": 2.3667,
+   "center": [
+    -6.537222,
+    31.637778
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 981.7924,
+   "cameraHeightAboveCenterKm": 981.7924,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 7.1422
+  },
+  {
+   "t": 2.4,
+   "center": [
+    -6.537222,
+    31.637778
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 930.1571,
+   "cameraHeightAboveCenterKm": 930.1571,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 7.2202
+  },
+  {
+   "t": 2.4333,
+   "center": [
+    -6.537222,
+    31.637778
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 881.3164,
+   "cameraHeightAboveCenterKm": 881.3164,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 7.298
+  },
+  {
+   "t": 2.4667,
+   "center": [
+    -6.537222,
+    31.637778
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 835.1276,
+   "cameraHeightAboveCenterKm": 835.1276,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 7.3757
+  },
+  {
+   "t": 2.5,
+   "center": [
+    -6.537222,
+    31.637778
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 791.4542,
+   "cameraHeightAboveCenterKm": 791.4542,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 7.4531
+  },
+  {
+   "t": 2.5333,
+   "center": [
+    -6.537222,
+    31.637778
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 750.1656,
+   "cameraHeightAboveCenterKm": 750.1656,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 7.5304
+  },
+  {
+   "t": 2.5667,
+   "center": [
+    -6.537222,
+    31.637778
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 711.1372,
+   "cameraHeightAboveCenterKm": 711.1372,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 7.6075
+  },
+  {
+   "t": 2.6,
+   "center": [
+    -6.537222,
+    31.637778
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 674.2501,
+   "cameraHeightAboveCenterKm": 674.2501,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 7.6844
+  },
+  {
+   "t": 2.6333,
+   "center": [
+    -6.537222,
+    31.637778
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 639.3911,
+   "cameraHeightAboveCenterKm": 639.3911,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 7.7609
+  },
+  {
+   "t": 2.6667,
+   "center": [
+    -6.537222,
+    31.637778
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 606.4521,
+   "cameraHeightAboveCenterKm": 606.4521,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 7.8373
+  },
+  {
+   "t": 2.7,
+   "center": [
+    -6.537222,
+    31.637778
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 575.3304,
+   "cameraHeightAboveCenterKm": 575.3304,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 7.9133
+  },
+  {
+   "t": 2.7333,
+   "center": [
+    -6.537222,
+    31.637778
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 545.9281,
+   "cameraHeightAboveCenterKm": 545.9281,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 7.9889
+  },
+  {
+   "t": 2.7667,
+   "center": [
+    -6.537222,
+    31.637778
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 518.1524,
+   "cameraHeightAboveCenterKm": 518.1524,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 8.0643
+  },
+  {
+   "t": 2.8,
+   "center": [
+    -6.537222,
+    31.637778
+   ],
+   "centerHeightFrameKm": 0,
+   "distanceKm": 491.9147,
+   "cameraHeightAboveCenterKm": 491.9147,
+   "pitch": 0,
+   "bearing": 0,
+   "zoom": 8.1392
+  },
+  {
+   "t": 2.8333,
+   "center": [
+    -6.537164,
+    31.637785
+   ],
+   "centerHeightFrameKm": 0.0022,
+   "distanceKm": 467.1314,
+   "cameraHeightAboveCenterKm": 467.1313,
+   "pitch": 0.019,
+   "bearing": -0.016,
+   "zoom": 8.2138
+  },
+  {
+   "t": 2.8667,
+   "center": [
+    -6.536982,
+    31.637808
+   ],
+   "centerHeightFrameKm": 0.0091,
+   "distanceKm": 443.7226,
+   "cameraHeightAboveCenterKm": 443.7222,
+   "pitch": 0.078,
+   "bearing": -0.068,
+   "zoom": 8.288
+  },
+  {
+   "t": 2.9,
+   "center": [
+    -6.536668,
+    31.637849
+   ],
+   "centerHeightFrameKm": 0.021,
+   "distanceKm": 421.6129,
+   "cameraHeightAboveCenterKm": 421.6108,
+   "pitch": 0.18,
+   "bearing": -0.156,
+   "zoom": 8.3617
+  },
+  {
+   "t": 2.9333,
+   "center": [
+    -6.53621,
+    31.637907
+   ],
+   "centerHeightFrameKm": 0.0383,
+   "distanceKm": 400.7306,
+   "cameraHeightAboveCenterKm": 400.7241,
+   "pitch": 0.328,
+   "bearing": -0.285,
+   "zoom": 8.435
+  },
+  {
+   "t": 2.9667,
+   "center": [
+    -6.535596,
+    31.637986
+   ],
+   "centerHeightFrameKm": 0.0616,
+   "distanceKm": 381.0079,
+   "cameraHeightAboveCenterKm": 380.9918,
+   "pitch": 0.527,
+   "bearing": -0.459,
+   "zoom": 8.5078
+  },
+  {
+   "t": 3,
+   "center": [
+    -6.534811,
+    31.638086
+   ],
+   "centerHeightFrameKm": 0.0912,
+   "distanceKm": 362.3804,
+   "cameraHeightAboveCenterKm": 362.3467,
+   "pitch": 0.781,
+   "bearing": -0.68,
+   "zoom": 8.5801
+  },
+  {
+   "t": 3.0333,
+   "center": [
+    -6.533839,
+    31.63821
+   ],
+   "centerHeightFrameKm": 0.128,
+   "distanceKm": 344.7873,
+   "cameraHeightAboveCenterKm": 344.7242,
+   "pitch": 1.096,
+   "bearing": -0.954,
+   "zoom": 8.6519
+  },
+  {
+   "t": 3.0667,
+   "center": [
+    -6.532663,
+    31.638361
+   ],
+   "centerHeightFrameKm": 0.1725,
+   "distanceKm": 328.1709,
+   "cameraHeightAboveCenterKm": 328.0618,
+   "pitch": 1.477,
+   "bearing": -1.286,
+   "zoom": 8.7232
+  },
+  {
+   "t": 3.1,
+   "center": [
+    -6.53126,
+    31.63854
+   ],
+   "centerHeightFrameKm": 0.2256,
+   "distanceKm": 312.4766,
+   "cameraHeightAboveCenterKm": 312.2991,
+   "pitch": 1.932,
+   "bearing": -1.681,
+   "zoom": 8.7939
+  },
+  {
+   "t": 3.1333,
+   "center": [
+    -6.529605,
+    31.638752
+   ],
+   "centerHeightFrameKm": 0.2882,
+   "distanceKm": 297.6531,
+   "cameraHeightAboveCenterKm": 297.3771,
+   "pitch": 2.468,
+   "bearing": -2.148,
+   "zoom": 8.864
+  },
+  {
+   "t": 3.1667,
+   "center": [
+    -6.52767,
+    31.638999
+   ],
+   "centerHeightFrameKm": 0.3614,
+   "distanceKm": 283.6514,
+   "cameraHeightAboveCenterKm": 283.2378,
+   "pitch": 3.094,
+   "bearing": -2.693,
+   "zoom": 8.9335
+  },
+  {
+   "t": 3.2,
+   "center": [
+    -6.525421,
+    31.639287
+   ],
+   "centerHeightFrameKm": 0.4465,
+   "distanceKm": 270.4255,
+   "cameraHeightAboveCenterKm": 269.8238,
+   "pitch": 3.823,
+   "bearing": -3.327,
+   "zoom": 9.0024
+  },
+  {
+   "t": 3.2333,
+   "center": [
+    -6.522819,
+    31.639619
+   ],
+   "centerHeightFrameKm": 0.545,
+   "distanceKm": 257.932,
+   "cameraHeightAboveCenterKm": 257.0771,
+   "pitch": 4.666,
+   "bearing": -4.061,
+   "zoom": 9.0706
+  },
+  {
+   "t": 3.2667,
+   "center": [
+    -6.519815,
+    31.640003
+   ],
+   "centerHeightFrameKm": 0.6587,
+   "distanceKm": 246.1296,
+   "cameraHeightAboveCenterKm": 244.9384,
+   "pitch": 5.639,
+   "bearing": -4.908,
+   "zoom": 9.1382
+  },
+  {
+   "t": 3.3,
+   "center": [
+    -6.516355,
+    31.640446
+   ],
+   "centerHeightFrameKm": 0.7896,
+   "distanceKm": 234.9797,
+   "cameraHeightAboveCenterKm": 233.346,
+   "pitch": 6.76,
+   "bearing": -5.884,
+   "zoom": 9.2051
+  },
+  {
+   "t": 3.3333,
+   "center": [
+    -6.512373,
+    31.640955
+   ],
+   "centerHeightFrameKm": 0.9403,
+   "distanceKm": 224.4455,
+   "cameraHeightAboveCenterKm": 222.2339,
+   "pitch": 8.05,
+   "bearing": -7.007,
+   "zoom": 9.2712
+  },
+  {
+   "t": 3.3667,
+   "center": [
+    -6.507795,
+    31.64154
+   ],
+   "centerHeightFrameKm": 1.1135,
+   "distanceKm": 214.4926,
+   "cameraHeightAboveCenterKm": 211.5305,
+   "pitch": 9.533,
+   "bearing": -8.297,
+   "zoom": 9.3367
+  },
+  {
+   "t": 3.4,
+   "center": [
+    -6.502536,
+    31.642213
+   ],
+   "centerHeightFrameKm": 1.3125,
+   "distanceKm": 205.0883,
+   "cameraHeightAboveCenterKm": 201.1566,
+   "pitch": 11.237,
+   "bearing": -9.78,
+   "zoom": 9.4013
+  },
+  {
+   "t": 3.4333,
+   "center": [
+    -6.496504,
+    31.642984
+   ],
+   "centerHeightFrameKm": 1.5408,
+   "distanceKm": 196.2018,
+   "cameraHeightAboveCenterKm": 191.025,
+   "pitch": 13.191,
+   "bearing": -11.481,
+   "zoom": 9.4652
+  },
+  {
+   "t": 3.4667,
+   "center": [
+    -6.489618,
+    31.643864
+   ],
+   "centerHeightFrameKm": 1.8014,
+   "distanceKm": 187.8042,
+   "cameraHeightAboveCenterKm": 181.042,
+   "pitch": 15.422,
+   "bearing": -13.423,
+   "zoom": 9.5283
+  },
+  {
+   "t": 3.5,
+   "center": [
+    -6.481823,
+    31.644861
+   ],
+   "centerHeightFrameKm": 2.0963,
+   "distanceKm": 179.8682,
+   "cameraHeightAboveCenterKm": 171.116,
+   "pitch": 17.947,
+   "bearing": -15.621,
+   "zoom": 9.5906
+  },
+  {
+   "t": 3.5333,
+   "center": [
+    -6.473142,
+    31.645971
+   ],
+   "centerHeightFrameKm": 2.4248,
+   "distanceKm": 172.3679,
+   "cameraHeightAboveCenterKm": 161.1773,
+   "pitch": 20.759,
+   "bearing": -18.068,
+   "zoom": 9.652
+  },
+  {
+   "t": 3.5667,
+   "center": [
+    -6.463725,
+    31.647175
+   ],
+   "centerHeightFrameKm": 2.7811,
+   "distanceKm": 165.2792,
+   "cameraHeightAboveCenterKm": 151.2117,
+   "pitch": 23.81,
+   "bearing": -20.724,
+   "zoom": 9.7126
+  },
+  {
+   "t": 3.6,
+   "center": [
+    -6.453879,
+    31.648433
+   ],
+   "centerHeightFrameKm": 3.1537,
+   "distanceKm": 158.5791,
+   "cameraHeightAboveCenterKm": 141.295,
+   "pitch": 27,
+   "bearing": -23.5,
+   "zoom": 9.7723
+  },
+  {
+   "t": 3.6333,
+   "center": [
+    -6.444033,
+    31.649692
+   ],
+   "centerHeightFrameKm": 3.5263,
+   "distanceKm": 152.2462,
+   "cameraHeightAboveCenterKm": 131.5964,
+   "pitch": 30.19,
+   "bearing": -26.276,
+   "zoom": 9.8311
+  },
+  {
+   "t": 3.6667,
+   "center": [
+    -6.434615,
+    31.650896
+   ],
+   "centerHeightFrameKm": 3.8826,
+   "distanceKm": 146.2602,
+   "cameraHeightAboveCenterKm": 122.3285,
+   "pitch": 33.241,
+   "bearing": -28.932,
+   "zoom": 9.8889
+  },
+  {
+   "t": 3.7,
+   "center": [
+    -6.425935,
+    31.652006
+   ],
+   "centerHeightFrameKm": 4.2111,
+   "distanceKm": 140.602,
+   "cameraHeightAboveCenterKm": 113.6731,
+   "pitch": 36.053,
+   "bearing": -31.379,
+   "zoom": 9.9458
+  },
+  {
+   "t": 3.7333,
+   "center": [
+    -6.41814,
+    31.653003
+   ],
+   "centerHeightFrameKm": 4.506,
+   "distanceKm": 135.2536,
+   "cameraHeightAboveCenterKm": 105.7359,
+   "pitch": 38.578,
+   "bearing": -33.577,
+   "zoom": 10.0017
+  },
+  {
+   "t": 3.7667,
+   "center": [
+    -6.411253,
+    31.653883
+   ],
+   "centerHeightFrameKm": 4.7666,
+   "distanceKm": 130.1981,
+   "cameraHeightAboveCenterKm": 98.5459,
+   "pitch": 40.809,
+   "bearing": -35.519,
+   "zoom": 10.0567
+  },
+  {
+   "t": 3.8,
+   "center": [
+    -6.405222,
+    31.654654
+   ],
+   "centerHeightFrameKm": 4.9949,
+   "distanceKm": 125.4196,
+   "cameraHeightAboveCenterKm": 92.0792,
+   "pitch": 42.763,
+   "bearing": -37.22,
+   "zoom": 10.1106
+  },
+  {
+   "t": 3.8333,
+   "center": [
+    -6.399962,
+    31.655327
+   ],
+   "centerHeightFrameKm": 5.1939,
+   "distanceKm": 120.9033,
+   "cameraHeightAboveCenterKm": 86.2833,
+   "pitch": 44.467,
+   "bearing": -38.703,
+   "zoom": 10.1635
+  },
+  {
+   "t": 3.8667,
+   "center": [
+    -6.395384,
+    31.655912
+   ],
+   "centerHeightFrameKm": 5.3671,
+   "distanceKm": 116.6349,
+   "cameraHeightAboveCenterKm": 81.0946,
+   "pitch": 45.95,
+   "bearing": -39.993,
+   "zoom": 10.2154
+  },
+  {
+   "t": 3.9,
+   "center": [
+    -6.391403,
+    31.656421
+   ],
+   "centerHeightFrameKm": 5.5178,
+   "distanceKm": 112.6014,
+   "cameraHeightAboveCenterKm": 76.4487,
+   "pitch": 47.24,
+   "bearing": -41.116,
+   "zoom": 10.2661
+  },
+  {
+   "t": 3.9333,
+   "center": [
+    -6.387943,
+    31.656864
+   ],
+   "centerHeightFrameKm": 5.6487,
+   "distanceKm": 108.7902,
+   "cameraHeightAboveCenterKm": 72.2845,
+   "pitch": 48.361,
+   "bearing": -42.092,
+   "zoom": 10.3158
+  },
+  {
+   "t": 3.9667,
+   "center": [
+    -6.384939,
+    31.657248
+   ],
+   "centerHeightFrameKm": 5.7624,
+   "distanceKm": 105.1898,
+   "cameraHeightAboveCenterKm": 68.5471,
+   "pitch": 49.334,
+   "bearing": -42.939,
+   "zoom": 10.3644
+  },
+  {
+   "t": 4,
+   "center": [
+    -6.382336,
+    31.65758
+   ],
+   "centerHeightFrameKm": 5.8609,
+   "distanceKm": 101.7891,
+   "cameraHeightAboveCenterKm": 65.1876,
+   "pitch": 50.177,
+   "bearing": -43.673,
+   "zoom": 10.4118
+  },
+  {
+   "t": 4.0333,
+   "center": [
+    -6.380087,
+    31.657868
+   ],
+   "centerHeightFrameKm": 5.946,
+   "distanceKm": 98.5779,
+   "cameraHeightAboveCenterKm": 62.1633,
+   "pitch": 50.906,
+   "bearing": -44.307,
+   "zoom": 10.458
+  },
+  {
+   "t": 4.0667,
+   "center": [
+    -6.378153,
+    31.658115
+   ],
+   "centerHeightFrameKm": 6.0192,
+   "distanceKm": 95.5464,
+   "cameraHeightAboveCenterKm": 59.4368,
+   "pitch": 51.532,
+   "bearing": -44.852,
+   "zoom": 10.5031
+  },
+  {
+   "t": 4.1,
+   "center": [
+    -6.376498,
+    31.658327
+   ],
+   "centerHeightFrameKm": 6.0818,
+   "distanceKm": 92.6858,
+   "cameraHeightAboveCenterKm": 56.9759,
+   "pitch": 52.068,
+   "bearing": -45.319,
+   "zoom": 10.5469
+  },
+  {
+   "t": 4.1333,
+   "center": [
+    -6.375095,
+    31.658506
+   ],
+   "centerHeightFrameKm": 6.1349,
+   "distanceKm": 89.9874,
+   "cameraHeightAboveCenterKm": 54.7523,
+   "pitch": 52.523,
+   "bearing": -45.714,
+   "zoom": 10.5895
+  },
+  {
+   "t": 4.1667,
+   "center": [
+    -6.373918,
+    31.658657
+   ],
+   "centerHeightFrameKm": 6.1794,
+   "distanceKm": 87.4434,
+   "cameraHeightAboveCenterKm": 52.7416,
+   "pitch": 52.904,
+   "bearing": -46.046,
+   "zoom": 10.6309
+  },
+  {
+   "t": 4.2,
+   "center": [
+    -6.372947,
+    31.658781
+   ],
+   "centerHeightFrameKm": 6.2162,
+   "distanceKm": 85.0462,
+   "cameraHeightAboveCenterKm": 50.9224,
+   "pitch": 53.219,
+   "bearing": -46.32,
+   "zoom": 10.671
+  },
+  {
+   "t": 4.2333,
+   "center": [
+    -6.372162,
+    31.658881
+   ],
+   "centerHeightFrameKm": 6.2458,
+   "distanceKm": 82.789,
+   "cameraHeightAboveCenterKm": 49.2761,
+   "pitch": 53.473,
+   "bearing": -46.541,
+   "zoom": 10.7098
+  },
+  {
+   "t": 4.2667,
+   "center": [
+    -6.371548,
+    31.65896
+   ],
+   "centerHeightFrameKm": 6.2691,
+   "distanceKm": 80.6652,
+   "cameraHeightAboveCenterKm": 47.7865,
+   "pitch": 53.672,
+   "bearing": -46.715,
+   "zoom": 10.7473
+  },
+  {
+   "t": 4.3,
+   "center": [
+    -6.37109,
+    31.659018
+   ],
+   "centerHeightFrameKm": 6.2864,
+   "distanceKm": 78.6687,
+   "cameraHeightAboveCenterKm": 46.4395,
+   "pitch": 53.82,
+   "bearing": -46.844,
+   "zoom": 10.7835
+  },
+  {
+   "t": 4.3333,
+   "center": [
+    -6.370776,
+    31.659058
+   ],
+   "centerHeightFrameKm": 6.2983,
+   "distanceKm": 76.7939,
+   "cameraHeightAboveCenterKm": 45.2226,
+   "pitch": 53.922,
+   "bearing": -46.932,
+   "zoom": 10.8183
+  },
+  {
+   "t": 4.3667,
+   "center": [
+    -6.370594,
+    31.659082
+   ],
+   "centerHeightFrameKm": 6.3052,
+   "distanceKm": 75.0355,
+   "cameraHeightAboveCenterKm": 44.1249,
+   "pitch": 53.981,
+   "bearing": -46.984,
+   "zoom": 10.8517
+  },
+  {
+   "t": 4.4,
+   "center": [
+    -6.370536,
+    31.659089
+   ],
+   "centerHeightFrameKm": 6.3074,
+   "distanceKm": 73.3887,
+   "cameraHeightAboveCenterKm": 43.1368,
+   "pitch": 54,
+   "bearing": -47,
+   "zoom": 10.8837
+  }
+ ]
+}

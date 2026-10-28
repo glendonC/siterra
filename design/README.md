@@ -5,6 +5,7 @@ Siterra's public design files. The approved hero (design language 1.3, approved 
 | Folder | Contents | Use it for |
 |---|---|---|
 | [tokens/](tokens/) | `siterra.tokens.json` (DTCG 2025.10: base scales, the light theme, which is the default, and the dark theme), `siterra.css` (generated from the tokens; do not edit by hand), `contrast-report.json` (WCAG and APCA for every role) | Generating the theme and checking contrast |
+| [hero/](hero/) | `dive-camera.json`: the approved dive as camera keyframes, one per frame at 30 fps from the globe to the valley's arrival pose, with centre, zoom, pitch and bearing in MapLibre's terms and the formulas behind them | Playing the dive in the build frame for frame |
 | `private/` (ignored) | Third-party captures and the private reference board | Local reference only; never commit or publish |
 
 The earlier concept prototype, component gallery, motion storyboard and wireframes showed the island workspace that the approved hero replaced. They are not published.
