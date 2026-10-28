@@ -7,7 +7,7 @@ import { exampleCase, exampleCommandRequest, freshDatabase } from "@siterra/db/t
 import type { TestDatabase } from "@siterra/db/testing";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import { dispatchOnce, startWorker, workerQueue } from "./main.ts";
+import { WORKER_TIMING, dispatchOnce, startWorker, workerQueue } from "./main.ts";
 
 // The whole worker on PostgreSQL: a submitted command goes through the outbox into a pg-boss job,
 // and the plan job finishes it. The model output is a synthetic replay file; nothing is live.
@@ -146,4 +146,10 @@ describe("worker process", () => {
       }
     },
   );
+});
+
+describe("worker timing (PF-05)", () => {
+  it("polls the outbox every 250 ms and the plan queue every 0.5 s, pg-boss's minimum", () => {
+    expect(WORKER_TIMING).toEqual({ outboxPollMs: 250, jobPollingIntervalSeconds: 0.5 });
+  });
 });

@@ -19,7 +19,15 @@ import type { PlanJob } from "./plan-job.ts";
 // prevent that on a standard queue (AUDIT a44). The model route comes from the environment (replay unless GATE-01 approval and the
 // key are both present); the key is never printed.
 
-const OUTBOX_POLL_MS = 1_000;
+/**
+ * How often the worker looks for new work (PF-05: first progress within 2 s). The outbox pass runs
+ * every 250 ms and pg-boss polls the plan queue every 0.5 s, its minimum; at 1 s and pg-boss's
+ * default 2 s, first progress took 2.9 s (PLATFORM 36 measurement).
+ */
+export const WORKER_TIMING = {
+  outboxPollMs: 250,
+  jobPollingIntervalSeconds: 0.5,
+} as const;
 
 /** One pass of the outbox into pg-boss; returns the number of rows handed over. */
 export function dispatchOnce(pool: Pool, boss: PgBoss): Promise<number> {
@@ -62,31 +70,35 @@ export async function startWorker(
   await boss.start();
   await boss.createQueue(planQueue);
 
-  await boss.work<PlanJob>(planQueue, async (jobs) => {
-    for (const job of jobs) {
-      if (!isPlanJob(job.data)) throw new Error(`job ${job.id} has no plan payload`);
-      const snapshot = await db.readSnapshot(job.data.caseId);
-      const revisions = new Map(
-        (snapshot?.records.sourceRecords ?? []).map((s) => [s.id, s.revision]),
-      );
-      const corpus = await loadCorpus(repoRoot, manifest, (id) => revisions.get(id) ?? null);
-      const analyses = await loadAnalyses(repoRoot, snapshot?.records.dataBundleRecords ?? []);
-      if (analyses.missing.length > 0) {
-        console.error(`worker: recipe results not readable: ${analyses.missing.join(", ")}`);
+  await boss.work<PlanJob>(
+    planQueue,
+    { pollingIntervalSeconds: WORKER_TIMING.jobPollingIntervalSeconds },
+    async (jobs) => {
+      for (const job of jobs) {
+        if (!isPlanJob(job.data)) throw new Error(`job ${job.id} has no plan payload`);
+        const snapshot = await db.readSnapshot(job.data.caseId);
+        const revisions = new Map(
+          (snapshot?.records.sourceRecords ?? []).map((s) => [s.id, s.revision]),
+        );
+        const corpus = await loadCorpus(repoRoot, manifest, (id) => revisions.get(id) ?? null);
+        const analyses = await loadAnalyses(repoRoot, snapshot?.records.dataBundleRecords ?? []);
+        if (analyses.missing.length > 0) {
+          console.error(`worker: recipe results not readable: ${analyses.missing.join(", ")}`);
+        }
+        const result = await handlePlanJob(job.data, {
+          db,
+          transport,
+          corpus,
+          analyses,
+          now: () => new Date(),
+          newId: (prefix) => newId(prefix),
+        });
+        console.log(
+          `worker: plan job ${job.data.commandId} ${result.status === "ran" ? result.outcome.status : `skipped (${result.reason})`}`,
+        );
       }
-      const result = await handlePlanJob(job.data, {
-        db,
-        transport,
-        corpus,
-        analyses,
-        now: () => new Date(),
-        newId: (prefix) => newId(prefix),
-      });
-      console.log(
-        `worker: plan job ${job.data.commandId} ${result.status === "ran" ? result.outcome.status : `skipped (${result.reason})`}`,
-      );
-    }
-  });
+    },
+  );
 
   let stopping = false;
   const dispatch = setInterval(() => {
@@ -96,7 +108,7 @@ export async function startWorker(
         `worker: outbox dispatch failed: ${error instanceof Error ? error.message : "unknown error"}`,
       );
     });
-  }, OUTBOX_POLL_MS);
+  }, WORKER_TIMING.outboxPollMs);
 
   return async () => {
     stopping = true;
