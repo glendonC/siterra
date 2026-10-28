@@ -6,12 +6,13 @@
 // disposed so only MapLibre's context runs.
 
 import type * as maplibregl from "maplibre-gl";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { en, type MessageId } from "../../lib/copy/en";
 import { crestCurve, findCrest } from "../../lib/globe/crest";
 import { viewToMapCamera } from "../../lib/globe/drive";
 import { R_KM, globeCamera, project } from "../../lib/globe/frame";
 import { polygonPath, rangePath, ringPoints, ringRho } from "../../lib/globe/overlay";
+import { regionPack } from "../../lib/pack/regionPack";
 import { OUTLET } from "../../lib/stage/arrival";
 import { widthFitScale } from "../../lib/stage/camera";
 import { loadGlobe, type GlobeAssets } from "../../lib/globe/grids";
@@ -58,6 +59,7 @@ export function Journey({
   const t0 = useRef(0);
   const moments = useRef<Moments>({ beats: [] });
   const [phase, setPhase] = useState<Phase>("opening");
+  const pack = useMemo(() => regionPack(snapshot), [snapshot]);
 
   const now = () => (performance.now() - t0.current) / 1000;
 
@@ -256,9 +258,15 @@ export function Journey({
         </>
       ) : null}
       {phase === "opening" ? (
-        <Opening question={arrival.question} onOpen={onOpen} onSkip={onSkip} onShown={onShown} />
+        <Opening
+          question={arrival.question}
+          pack={pack}
+          onOpen={onOpen}
+          onSkip={onSkip}
+          onShown={onShown}
+        />
       ) : null}
-      {phase === "globe" ? <GlobePage onDive={onDive} /> : null}
+      {phase === "globe" ? <GlobePage packName={pack.name} onDive={onDive} /> : null}
       {phase === "opening" || phase === "globe" ? (
         <p className={styles.legend}>
           <i className={styles.legendSwatch} aria-hidden="true" />

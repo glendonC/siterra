@@ -5,13 +5,17 @@
 // focus and handles its own Enter.
 
 import { useEffect } from "react";
+import { en } from "../../lib/copy/en";
 import { openingCopy } from "../../lib/opening/opening";
+import type { RegionPack } from "../../lib/pack/regionPack";
 import { LIMB } from "../../lib/globe/views";
 import styles from "./Opening.module.css";
 
 export interface OpeningProps {
   /** The case's question, from its record. */
   question: string;
+  /** The Region Pack the case loads: its name and status show under the question. */
+  pack: Pick<RegionPack, "name" | "status">;
   onOpen: () => void;
   /** The skip link: straight to the map, without the globe and the dive. */
   onSkip: () => void;
@@ -23,7 +27,7 @@ export interface OpeningProps {
 const PAPER_TOP = 58;
 const LIMB_AIR = 34;
 
-export function Opening({ question, onOpen, onSkip, onShown }: OpeningProps) {
+export function Opening({ question, pack, onOpen, onSkip, onShown }: OpeningProps) {
   const copy = openingCopy(question);
 
   useEffect(() => {
@@ -54,6 +58,11 @@ export function Opening({ question, onOpen, onSkip, onShown }: OpeningProps) {
           <p className={styles.caseLine}>
             <span className={styles.label}>{copy.questionLabel}</span>
             {copy.question}
+          </p>
+          <p className={styles.caseLine} data-pack>
+            <span className={styles.label}>{en["pack.title"].text}</span>
+            {pack.name}
+            <span className={styles.status}>{pack.status}</span>
           </p>
           <p className={styles.action}>
             <button

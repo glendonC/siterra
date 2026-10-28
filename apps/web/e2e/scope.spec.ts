@@ -28,3 +28,24 @@ test("the mode line opens the scope popover with the concept detail line", async
   await expect(popover).toBeHidden();
   await expect(page.getByText("Live", { exact: true })).toHaveCount(0);
 });
+
+test("the Region Pack opens its layers, window, checks and truthful status from the records", async ({
+  page,
+}) => {
+  await page.goto(`/stage?case=${sharedCase()}`);
+  await expect(page.locator("[data-arrival-settled=true]")).toBeVisible({ timeout: 60_000 });
+  const button = page.locator("[data-pack]");
+  await expect(button).toHaveText("Region Pack · Real Data · Field Unverified");
+  await button.click();
+  const popover = page.locator("#pack-popover");
+  await expect(popover).toBeVisible();
+  await expect(popover).toContainText("Grazing and livelihoods in the Aït Bouguemez valley");
+  await expect(popover.getByRole("listitem")).toHaveCount(7);
+  await expect(popover).toContainText("Jan 2019 to Dec 2025, 84 months");
+  await expect(popover).toContainText("7 of 7 bundles passed automated data checks.");
+  await expect(popover).not.toContainText(/\bvalidated\b/i);
+  await page.addStyleTag({ content: "nextjs-portal { display: none !important; }" });
+  if (process.env.PACK_OUT) await page.screenshot({ path: process.env.PACK_OUT });
+  await page.keyboard.press("Escape");
+  await expect(popover).toBeHidden();
+});

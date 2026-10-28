@@ -1,12 +1,14 @@
 "use client";
 
-// The chrome over the stage at arrival: the mode line (one line, which opens the scope popover with the
-// mode's detail line and what Siterra will and will not do), key hints, the command line holding the case's
+// The chrome over the stage at arrival: the mode line (one line: the Region Pack, which opens its layers,
+// window, checks and status, and the mode, which opens the scope popover with the mode's detail line and
+// what Siterra will and will not do), key hints, the command line holding the case's
 // question, the instruments and the credit line. One action is primary: the ↵ hint, shown only when ↵
 // does something (primaryHint).
 
 import { useEffect, useRef } from "react";
 import { en, format, type MessageId } from "../../lib/copy/en";
+import type { RegionPack } from "../../lib/pack/regionPack";
 import type { ModeLines } from "../../lib/projection/arrival";
 import { hintAction, keyLike } from "../../lib/shell/keys";
 import { arrivalTiming, type ArrivalPart } from "../../lib/stage/arrival-sequence";
@@ -17,6 +19,8 @@ export interface ArrivalChromeProps {
   question: string;
   /** The mode line and the line under it, chosen from the case record's mode (projectArrival). */
   mode: ModeLines;
+  /** The Region Pack the case loads, from its records (regionPack). */
+  pack: RegionPack;
   reliefFactor: number;
   /** True when the Sentinel-2 imagery is drawn on the land; its instrument line shows only then. */
   imagery: boolean;
@@ -57,6 +61,7 @@ const CREDITS: MessageId[] = ["credit.terrain", "credit.rainfall", "credit.image
 export function ArrivalChrome({
   question,
   mode,
+  pack,
   reliefFactor,
   imagery,
   placeCredit,
@@ -130,6 +135,9 @@ export function ArrivalChrome({
   return (
     <div className={styles.chrome}>
       <p className={styles.mode} data-budget="island">
+        <button type="button" className={styles.modeButton} popoverTarget="pack-popover" data-pack>
+          {format("pack.button", { status: pack.status })}
+        </button>
         <button
           type="button"
           className={styles.modeButton}
@@ -139,6 +147,32 @@ export function ArrivalChrome({
           {en[mode.label].text}
         </button>
       </p>
+      <div
+        id="pack-popover"
+        popover="auto"
+        className={styles.scope}
+        aria-label={en["pack.title"].text}
+      >
+        <h2 className={styles.scopeHeading}>{en["pack.title"].text}</h2>
+        <p className={styles.packName}>{pack.name}</p>
+        <h2 className={styles.scopeHeading}>{en["pack.layers"].text}</h2>
+        <ul className={styles.scopeList}>
+          {pack.layers.map((l) => (
+            <li key={l}>{l}</li>
+          ))}
+        </ul>
+        {pack.window ? (
+          <>
+            <h2 className={styles.scopeHeading}>{en["pack.window"].text}</h2>
+            <p className={styles.packValue}>{pack.window}</p>
+          </>
+        ) : null}
+        <h2 className={styles.scopeHeading}>{en["pack.checks"].text}</h2>
+        <p className={styles.packValue}>{pack.checks}</p>
+        <h2 className={styles.scopeHeading}>{en["pack.statusLabel"].text}</h2>
+        <p className={styles.packValue}>{pack.status}</p>
+        <p className={styles.scopeMode}>{en["pack.realDataDetail"].text}</p>
+      </div>
       <div id="scope-popover" popover="auto" className={styles.scope}>
         <p className={styles.scopeMode}>{en[mode.detail].text}</p>
         <h2 className={styles.scopeHeading}>{en["scope.will"].text}</h2>

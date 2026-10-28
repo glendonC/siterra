@@ -30,9 +30,33 @@ export const en = {
   "opening.action": { text: "Open Region Pack", kind: "button" },
   "opening.skip": { text: "Skip to Map", kind: "link" },
 
+  // The Region Pack the case loads (lib/pack/regionPack.ts): every value comes from the case record
+  "pack.title": { text: "Region Pack", kind: "heading" },
+  "pack.layers": { text: "Data Layers", kind: "heading" },
+  "pack.window": { text: "Observation Window", kind: "heading" },
+  "pack.checks": { text: "Checks", kind: "heading" },
+  "pack.statusLabel": { text: "Status", kind: "heading" },
+  "pack.status": { text: "{data} · {field}", kind: "heading" },
+  "pack.button": { text: "Region Pack · {status}", kind: "heading" },
+  "pack.windowValue": { text: "{first} to {last}, {n} months", kind: "ui" },
+  // a bundle's status "validated" is the automated data checks, not field validation
+  "pack.checksValue": {
+    text: "{passed} of {total} bundles passed automated data checks.",
+    kind: "ui",
+  },
+  "pack.realData": { text: "Real Data", kind: "heading" },
+  "pack.checksPending": { text: "Checks Pending", kind: "heading" },
+  "pack.checksFailed": { text: "Checks Failed", kind: "heading" },
+  "pack.fieldUnverified": { text: "Field Unverified", kind: "heading" },
+  "pack.verifiedOutcome": { text: "Verified Outcome Recorded", kind: "heading" },
+  "pack.realDataDetail": {
+    text: "Real Data: every layer is a measured dataset that passed automated data checks. Field Unverified: no outcome has been checked on the ground.",
+    kind: "ui",
+  },
+
   // Globe and dive (approved hero study A4)
   "globe.range": { text: "Atlas Mountains, Morocco", kind: "label" },
-  "globe.oneCase": { text: "One case so far: Aït Bouguemez", kind: "ui" },
+  "globe.pack": { text: "Region Pack: {name}", kind: "ui" },
   "globe.legend": {
     text: "Rangeland biomes, potential extent (Rangelands Atlas method)",
     kind: "ui",

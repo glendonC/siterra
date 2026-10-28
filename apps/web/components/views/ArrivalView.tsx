@@ -28,6 +28,7 @@ import { en, type MessageId } from "../../lib/copy/en";
 import type { MapBundle } from "../../lib/map/bundle";
 import { legendLines } from "../../lib/map/departure";
 import { arrivalFlat } from "../../lib/flat/arrival";
+import { regionPack } from "../../lib/pack/regionPack";
 import { projectObservations } from "../../lib/projection/observations";
 import type { ReadyArrival } from "../../lib/projection/arrival";
 import { ARRIVAL_EXAGGERATION, ARRIVAL_POSE } from "../../lib/stage/arrival";
@@ -127,6 +128,7 @@ export function ArrivalView({
   );
   // storyboard scene 3: the departure layer shows with the Observations this request produced
   const departure = useDepartureLayer(snapshot, card?.section !== undefined);
+  const pack = useMemo(() => regionPack(snapshot), [snapshot]);
   const [departureShown, setDepartureShown] = useState(false);
   const legend = departureShown ? departure.legend : undefined;
   const hatched = departureShown && departure.layer?.excludedUri !== undefined;
@@ -239,6 +241,7 @@ export function ArrivalView({
           <ArrivalChrome
             question={question}
             mode={arrival.modeLines}
+            pack={pack}
             reliefFactor={ARRIVAL_EXAGGERATION}
             imagery={imagery}
             placeCredit={placeCredit}

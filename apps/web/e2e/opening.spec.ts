@@ -18,6 +18,7 @@ test("one opening screen with the case's question, and the skip link goes straig
   const objective = ((await record.json()) as { case: { objective: string } }).case.objective;
   await expect(opening).toContainText(`Question${objective}`);
   await expect(opening).toContainText("Muse Spark");
+  await expect(opening.locator("[data-pack]")).toContainText("Real Data · Field Unverified");
   await expect(opening.locator("h1")).toHaveCount(1);
 
   // a viewer moving by keyboard reaches the skip link from the action

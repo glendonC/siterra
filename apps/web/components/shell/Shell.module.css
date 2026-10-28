@@ -36,6 +36,19 @@
   cursor: pointer;
 }
 
+.modeButton + .modeButton {
+  margin-left: 16px;
+}
+
+.packName {
+  margin: 0;
+  font: 500 14px / 20px var(--font-sans);
+}
+
+.packValue {
+  margin: 0;
+}
+
 .modeButton:focus-visible {
   outline: 2px solid var(--ink);
   outline-offset: 2px;
