@@ -1,7 +1,10 @@
-import { toModelJsonSchema } from "@siterra/contracts";
+import {
+  ProposeInterventions,
+  interventionReviewRoles,
+  toModelJsonSchema,
+} from "@siterra/contracts";
 import { PROHIBITED_RULES, unprovenNumbers } from "@siterra/domain/validators";
 import type { YearSpan } from "@siterra/domain/validators";
-import { z } from "zod";
 
 import type { JsonSchema } from "../../model/types.ts";
 import { maskReferencePeriods, referencePeriods, unprovenMessage } from "../evidence/proposal.ts";
@@ -13,11 +16,12 @@ import type { Checked, ValidationIssue } from "../validation.ts";
 
 // propose_interventions (docs/reference/data-contracts.md#tool-argument-contracts; the Intervention
 // row: conditions, assumptions, livelihood and ecological considerations, required review roles,
-// no benefit numbers). Local mirror until packages/contracts adds it. A candidate response states
-// the condition it rests on and who must review it; it never ranks, recommends, forecasts an
+// no benefit numbers), with the argument schema from packages/contracts. A candidate response
+// states the condition it rests on and who must review it; it never ranks, recommends, forecasts an
 // effect or states a number its cited evidence does not hold.
 
-export const REVIEW_ROLES = ["scientific", "community_livelihood", "program_coordination"] as const;
+/** The review roles in catalog order (packages/contracts). */
+export const REVIEW_ROLES = interventionReviewRoles;
 
 /**
  * The model writes two or three candidate responses; host code adds "Defer until the field check"
@@ -33,22 +37,6 @@ export const INTERVENTION_LIMITS = {
   listItemChars: 300,
 } as const;
 
-export const ProposeInterventions = z.strictObject({
-  items: z.array(
-    z.strictObject({
-      title: z.string(),
-      description: z.string(),
-      assumptions: z.array(z.string()),
-      ecologicalConsiderations: z.array(z.string()),
-      livelihoodConsiderations: z.array(z.string()),
-      fieldValidationNeeded: z.array(z.string()),
-      requiredReviewRoles: z.array(z.enum(REVIEW_ROLES)),
-      evidenceIds: z.array(z.string()),
-      hypothesisIds: z.array(z.string()),
-    }),
-  ),
-});
-export type ProposeInterventions = z.infer<typeof ProposeInterventions>;
 export type InterventionItem = ProposeInterventions["items"][number];
 
 export function interventionOutputSchema(): JsonSchema {
