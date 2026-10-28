@@ -2,7 +2,11 @@
   "placeId": "ait_bouguemez",
   "title": "Ait Bouguemez valley catchment",
   "note": "Place configuration read by the long-record pipeline scripts. Everything that is specific to one place lives here; the scripts hold none of it. A value changed here after a result was read is a new configuration revision labelled post hoc in the recipe result.",
-  "configRevision": 1,
+  "configRevision": 2,
+  "revisions": [
+    {"revision": 1, "date": "2026-10-28", "change": "First configuration: geometry, strata, DEM, rainfall window, restrend_long_record and snow_cover_by_band."},
+    {"revision": 2, "date": "2026-10-28", "change": "Added landCover, pixel_trend_long_record and season_trend_long_record, written before any per-pixel slope, land-cover summary or June to September greenness value was computed. No value of revision 1 changed."}
+  ],
   "geometry": {
     "id": "geo_ait_bouguemez_catchment",
     "revision": 1,
@@ -53,6 +57,27 @@
     "gridM": 30,
     "resampling": "bilinear"
   },
+  "landCover": {
+    "dataset": "ESA WorldCover 10 m 2021 v200",
+    "source": "https://esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N30W009_Map.tif",
+    "path": "data/interim/worldcover/worldcover-2021.tif",
+    "sha256": "48cefdeb34cefae9e5765de39f998d93f3053ce1fb022adfb2b2f8cd873f7507",
+    "madeBy": "science/pipeline/worldcover-grid.py: the tile read by HTTP range request (no account), nearest neighbour onto the analysis grid",
+    "classes": {"10": "tree cover", "20": "shrubland", "30": "grassland", "40": "cropland", "50": "built-up", "60": "bare or sparse vegetation", "80": "permanent water"},
+    "groups": [
+      {"id": "lc_grazing_possible", "classes": [20, 30, 60], "label": "grassland, shrubland, or bare or sparse vegetation (land cover that can carry grazing; not a pasture map)"},
+      {"id": "lc_grassland", "classes": [30], "label": "grassland"},
+      {"id": "lc_bare_sparse", "classes": [60], "label": "bare or sparse vegetation"},
+      {"id": "lc_shrubland", "classes": [20], "label": "shrubland"},
+      {"id": "lc_tree_cover", "classes": [10], "label": "tree cover (on the valley floor this may include orchards)"},
+      {"id": "lc_cropland_built", "classes": [40, 50], "label": "cropland or built-up"}
+    ],
+    "attribution": [
+      "© ESA WorldCover project / Contains modified Copernicus Sentinel data (2021) processed by ESA WorldCover consortium",
+      "ESA WorldCover 10 m 2021 v200, Zanaga et al. (2022), https://doi.org/10.5281/zenodo.7254221, CC BY 4.0"
+    ],
+    "licence": {"href": "https://creativecommons.org/licenses/by/4.0/", "title": "ESA WorldCover 2021 v200: CC BY 4.0"}
+  },
   "rainfall": {
     "dataset": "CHIRPS v3.0 monthly final",
     "rawWindow": {"row0": 562, "row1": 572, "col0": 3467, "col1": 3479},
@@ -79,6 +104,32 @@
         {"id": "fixed_500m", "edgesM": [2000, 2500, 3000, 3500], "primary": true},
         {"id": "terrain_strata", "fromStrataLayer": "elevation_band"}
       ]
+    },
+    "pixel_trend_long_record": {
+      "seasonYears": [2000, 2025],
+      "growingWindows": [
+        {"id": "mar_jun", "months": [3, 4, 5, 6], "primary": true},
+        {"id": "mar_may", "months": [3, 4, 5]},
+        {"id": "apr_jul", "months": [4, 5, 6, 7]},
+        {"id": "jun_sep", "months": [6, 7, 8, 9]}
+      ],
+      "areaGroups": {
+        "strataLayers": ["elevation_band", "aspect_class"],
+        "elevationBandSet": {"recipe": "snow_cover_by_band", "id": "fixed_500m"},
+        "landCoverGroups": true
+      },
+      "minClusterPixels": 4,
+      "display": {"domainPerDecade": [-0.05, 0.05], "neutralPerDecade": 0.0025, "pixelM": 30, "steps": 16},
+      "windowRationale": "The three spring windows are those of restrend_long_record. June to September was added on 2026-10-28 before any June to September greenness value was computed, at the founder's request, for the summer grazing season of the high pastures as the founder describes it (June to September); no source in the register verifies that calendar for this valley. In the snow_cover_by_band result the 2001 to 2025 mean snow-covered share of each month from June to September is at most 0.02 in every 500 m band (NDSI 0.2), so this window is nearly snow-free on average; single months can hold more. Composites from 12 July 2025 (A2025193) to the end of 2025 are absent from Planetary Computer, so the 2025 summer season holds 2 of 8 periods and falls below the composite share."
+    },
+    "season_trend_long_record": {
+      "growingWindowsFrom": "pixel_trend_long_record",
+      "seasonYearsFrom": "pixel_trend_long_record",
+      "strata": ["catchment", "elevation_band", "aspect_class"],
+      "elevationBandSet": {"recipe": "snow_cover_by_band", "id": "fixed_500m"},
+      "landCoverGroups": true,
+      "contrast": {"spring": "mar_may", "summer": "jun_sep"},
+      "contrastRationale": "March to May and June to September share no month, so the contrast compares two separate parts of the year; March to June overlaps June to September in June."
     }
   }
 }
