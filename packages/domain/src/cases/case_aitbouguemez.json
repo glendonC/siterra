@@ -1,0 +1,54 @@
+{
+  "configVersion": 1,
+  "caseId": "case_aitbouguemez",
+  "areaLabel": "catchment",
+  "seriesPairs": [
+    {
+      "id": "vegetation_rainfall",
+      "a": {
+        "label": "vegetation departure",
+        "metrics": ["ndvi_departure_area_median", "ndvi_departure_area_median_leave_one_year_out"]
+      },
+      "b": {
+        "label": "rainfall departure",
+        "metrics": ["precipitation_departure_from_1991_2020_mean"],
+        "storedDecimals": 2
+      },
+      "windowsMonths": [0, 1, 2, 3]
+    }
+  ],
+  "rainfallSeason": {
+    "id": "wet_season",
+    "label": "November to April wet season",
+    "startMonth": 11,
+    "endMonth": 4,
+    "recipe": { "recipeId": "season_summary", "version": "1.0.0" }
+  },
+  "explanations": [
+    {
+      "id": "rainfall",
+      "label": "Rainfall",
+      "statement": "Lower rainfall in the wet season before lowered vegetation greenness in the catchment."
+    },
+    {
+      "id": "grazing",
+      "label": "Grazing",
+      "statement": "Grazing on the shared pastures lowered vegetation greenness in the catchment."
+    },
+    {
+      "id": "land_use",
+      "label": "Land use",
+      "statement": "A change in land use, such as cropland or buildings replacing pasture, lowered vegetation greenness in parts of the catchment."
+    },
+    {
+      "id": "snow_terrain",
+      "label": "Snow or terrain",
+      "statement": "Snow cover or terrain shadow in the satellite scenes lowered the measured greenness without a change in the vegetation."
+    },
+    {
+      "id": "data_artefact",
+      "label": "Data artefact",
+      "statement": "Too few clear scenes or a processing artefact in the vegetation record produced the low values without a change in the vegetation."
+    }
+  ]
+}

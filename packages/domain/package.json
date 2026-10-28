@@ -5,6 +5,7 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
+    "./cases": "./src/cases/index.ts",
     "./validators": "./src/validators/index.ts"
   },
   "scripts": {
