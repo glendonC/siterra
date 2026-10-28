@@ -77,7 +77,13 @@ export {
 export { SEARCHES_PER_COMMAND } from "./tools/registry.ts";
 export { readSourceTool, searchSourcesTool } from "./tools/source-tools.ts";
 export type { SearchBudget } from "./tools/source-tools.ts";
-export type { StoredDocument, StoredPassage, StoredSource } from "./tools/store.ts";
+export type {
+  RecipeEntry,
+  RecipeResult,
+  StoredDocument,
+  StoredPassage,
+  StoredSource,
+} from "./tools/store.ts";
 export { CommandSpend, P0_LIMITS, Semaphore } from "./coordinator/limits.ts";
 export type { CommandLimits } from "./coordinator/limits.ts";
 export { EXECUTORS, runCommand } from "./coordinator/run-command.ts";
@@ -100,3 +106,11 @@ export {
 export type { RouteDescription, RouteEnv } from "./model/route.ts";
 export { P0_JOBS, modelMap } from "./model/model-map.ts";
 export type { ModelJob, ModelMapRow } from "./model/model-map.ts";
+export {
+  WINDOWS,
+  compareSeriesTool,
+  listRecipesTool,
+  previousPeriod,
+  readEvidenceTool,
+  readRecipeResultTool,
+} from "./tools/analysis-tools.ts";

@@ -1,6 +1,6 @@
 import type { Locator } from "@siterra/domain/validators";
 import { formatLocator } from "@siterra/domain/validators";
-import type { DataBundleRecord, MeasurementRecord } from "../tasks/records.ts";
+import type { DataBundleRecord, EvidenceRecord, MeasurementRecord } from "../tasks/records.ts";
 
 // Read access the tools need, scoped to one authorized case. PLATFORM's packages/db implements it
 // over the case record; tests use the in-memory version below. Tools never write through it.
@@ -51,6 +51,25 @@ export interface StoredPassage {
   textSha256: string;
 }
 
+/** One analysis recipe from the registry (science/recipes/registry.json); text is used verbatim. */
+export interface RecipeEntry {
+  recipeId: string;
+  version: string;
+  title: string;
+  question: string;
+  outputs: { metric: string; unit: string; claimKind: string; uncertaintyKind: string }[];
+  standardLimitations: string[];
+  priority: string;
+}
+
+/** A precomputed recipe result: the data asset of a validated recipe bundle, as stored. */
+export interface RecipeResult {
+  bundleId: string;
+  recipeId: string;
+  version: string;
+  result: unknown;
+}
+
 export interface CaseStore {
   readCase(caseId: string): Promise<CaseSummary | null>;
   readBundle(caseId: string, bundleId: string): Promise<DataBundleRecord | null>;
@@ -76,6 +95,12 @@ export interface CaseStore {
   passageAt(caseId: string, sourceId: string, locator: Locator): Promise<StoredPassage | null>;
   /** Stored passages of retrieved sources whose text contains any of the lowercase terms. */
   passagesContaining(caseId: string, terms: readonly string[]): Promise<StoredPassage[]>;
+  /** Current revisions of the given evidence records; unknown IDs are absent. */
+  readEvidence(caseId: string, ids: readonly string[]): Promise<EvidenceRecord[]>;
+  /** The recipe registry the case's analyses come from. */
+  listRecipes(caseId: string): Promise<RecipeEntry[]>;
+  /** The stored result of a recipe bundle, or null when the bundle holds none. */
+  readRecipeResult(caseId: string, bundleId: string): Promise<RecipeResult | null>;
 }
 
 export class MemoryCaseStore implements CaseStore {
@@ -85,6 +110,32 @@ export class MemoryCaseStore implements CaseStore {
   readonly quality: (PeriodQuality & { caseId: string; bundleId: string })[] = [];
   readonly sources: (StoredSource & { caseId: string })[] = [];
   readonly passages: (StoredPassage & { caseId: string })[] = [];
+  readonly evidence: EvidenceRecord[] = [];
+  readonly recipes: RecipeEntry[] = [];
+  readonly recipeResults: (RecipeResult & { caseId: string })[] = [];
+
+  readEvidence(caseId: string, ids: readonly string[]): Promise<EvidenceRecord[]> {
+    const wanted = new Set(ids);
+    return Promise.resolve(this.evidence.filter((e) => e.caseId === caseId && wanted.has(e.id)));
+  }
+
+  listRecipes(_caseId: string): Promise<RecipeEntry[]> {
+    return Promise.resolve([...this.recipes]);
+  }
+
+  readRecipeResult(caseId: string, bundleId: string): Promise<RecipeResult | null> {
+    const found = this.recipeResults.find((r) => r.caseId === caseId && r.bundleId === bundleId);
+    return Promise.resolve(
+      found
+        ? {
+            bundleId: found.bundleId,
+            recipeId: found.recipeId,
+            version: found.version,
+            result: found.result,
+          }
+        : null,
+    );
+  }
 
   listSources(caseId: string): Promise<StoredSource[]> {
     return Promise.resolve(this.sources.filter((s) => s.caseId === caseId));

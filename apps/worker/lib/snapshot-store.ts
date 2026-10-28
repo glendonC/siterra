@@ -1,7 +1,13 @@
 import { MemoryCaseStore } from "@siterra/agent";
-import type { CaseSummary, DataBundleRecord, MeasurementRecord } from "@siterra/agent";
+import type {
+  CaseSummary,
+  DataBundleRecord,
+  EvidenceRecord,
+  MeasurementRecord,
+} from "@siterra/agent";
 
 import type { Corpus } from "./corpus.ts";
+import type { Analyses } from "./recipes.ts";
 
 // A CaseStore for one task run, built from the case snapshot PLATFORM's readSnapshot returns (one
 // repeatable-read transaction) and the corpus. Tools then read one consistent view of the case.
@@ -27,10 +33,16 @@ export interface SnapshotView {
     }[];
     /** Source records; `language` (contracts 1.5.0) decides the machine-drafted translation label. */
     sourceRecords: { id: string; revision: number; language?: string | undefined }[];
+    /** Evidence records, for read_evidence; absent means none. */
+    evidenceRecords?: EvidenceRecord[];
   };
 }
 
-export function snapshotStore(snapshot: SnapshotView, corpus: Corpus): MemoryCaseStore {
+export function snapshotStore(
+  snapshot: SnapshotView,
+  corpus: Corpus,
+  analyses: Analyses | null = null,
+): MemoryCaseStore {
   const store = new MemoryCaseStore();
   const caseId = snapshot.case.id;
   store.cases.set(caseId, {
@@ -61,6 +73,11 @@ export function snapshotStore(snapshot: SnapshotView, corpus: Corpus): MemoryCas
   }
   for (const passage of corpus.passages) {
     if (records.has(passage.sourceId)) store.passages.push({ ...passage, caseId });
+  }
+  store.evidence.push(...(snapshot.records.evidenceRecords ?? []));
+  if (analyses) {
+    store.recipes.push(...analyses.recipes);
+    store.recipeResults.push(...analyses.results.map((r) => ({ ...r, caseId })));
   }
   return store;
 }

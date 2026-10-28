@@ -15,11 +15,17 @@ import type { PlanProposal, PlannableKind } from "./proposal.ts";
 
 /**
  * Tools each planned task may use, assigned by host code from the task table in
- * docs/reference/agent-orchestration.md and limited to the Task.allowedTools enum of contracts 1.2.
+ * docs/reference/agent-orchestration.md, within the Task.allowedTools enum of the case contracts.
  */
 export const TOOLS_BY_KIND: Readonly<Record<PlannableKind, readonly ToolName[]>> = {
   source_research: ["search_sources", "read_source", "propose_evidence"],
-  observation_analysis: ["read_dataset_manifest", "summarize_observations", "propose_evidence"],
+  observation_analysis: [
+    "read_dataset_manifest",
+    "summarize_observations",
+    "list_recipes",
+    "read_recipe_result",
+    "propose_evidence",
+  ],
   livelihood_governance: ["search_sources", "read_source", "propose_evidence"],
   hypothesis_comparison: ["read_evidence", "compare_series", "propose_hypotheses"],
   intervention_feasibility: ["read_evidence", "read_source", "propose_interventions"],

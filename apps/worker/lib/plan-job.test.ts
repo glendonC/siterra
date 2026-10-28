@@ -1,5 +1,11 @@
 import { MemoryCommitApi, ReplayTransport, parseReplayFile } from "@siterra/agent";
-import type { CommitDraft, CommitOutcome, EventDraftRecord, ReplayStep } from "@siterra/agent";
+import type {
+  CommitDraft,
+  CommitOutcome,
+  EventDraftRecord,
+  EvidenceRecord,
+  ReplayStep,
+} from "@siterra/agent";
 import { describe, expect, it } from "vitest";
 
 import type { Corpus } from "./corpus.ts";
@@ -239,9 +245,37 @@ describe("plan job", () => {
     const db = new FakeDb();
     const snapshot = await db.readSnapshot("case_test");
     if (!snapshot) throw new Error("no snapshot");
+    const evidence = (id: string, status: EvidenceRecord["status"]): EvidenceRecord => ({
+      recordType: "Evidence",
+      id,
+      revision: 1,
+      createdAt: AT.toISOString(),
+      updatedAt: AT.toISOString(),
+      caseId: "case_test",
+      statement: "A synthetic statement.",
+      claimKind: "field_requirement",
+      status,
+      geoSelectionId: null,
+      periodIds: [],
+      measurementIds: [],
+      provenance: {
+        sourceLocators: [],
+        dataBundleIds: [],
+        methodId: null,
+        methodVersion: null,
+        inputVersions: [],
+        generatedByTaskId: null,
+        generatedAt: AT.toISOString(),
+        verificationStatus: "unverified",
+        limitations: [],
+      },
+      interpretation: null,
+      uncertainty: "Not quantified.",
+      reviewDecisionIds: [],
+    });
     snapshot.records.evidenceRecords.push(
-      { id: "ev_test_ok", revision: 1, statement: "Accepted.", status: "accepted" },
-      { id: "ev_test_no", revision: 1, statement: "Rejected.", status: "rejected" },
+      evidence("ev_test_ok", "accepted"),
+      evidence("ev_test_no", "rejected"),
     );
     expect(snapshotRecords(snapshot).map((r) => r.id)).toEqual(["geo_test", "ev_test_ok"]);
   });

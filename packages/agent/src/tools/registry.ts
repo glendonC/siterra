@@ -1,3 +1,9 @@
+import {
+  compareSeriesTool,
+  listRecipesTool,
+  readEvidenceTool,
+  readRecipeResultTool,
+} from "./analysis-tools.ts";
 import { readCaseTool, readDatasetManifestTool, summarizeObservationsTool } from "./read-tools.ts";
 import { readSourceTool, searchSourcesTool } from "./source-tools.ts";
 import type { SearchBudget } from "./source-tools.ts";
@@ -56,5 +62,9 @@ export function caseToolRegistry(
     summarizeObservationsTool(store, caseId) as ToolHandler<never>,
     searchSourcesTool(store, caseId, searchBudget) as ToolHandler<never>,
     readSourceTool(store, caseId) as ToolHandler<never>,
+    compareSeriesTool(store, caseId) as ToolHandler<never>,
+    readEvidenceTool(store, caseId) as ToolHandler<never>,
+    listRecipesTool(store, caseId) as ToolHandler<never>,
+    readRecipeResultTool(store, caseId) as ToolHandler<never>,
   ]);
 }

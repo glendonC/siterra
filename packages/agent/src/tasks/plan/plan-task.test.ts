@@ -151,6 +151,8 @@ describe("plan task on synthetic replays", () => {
     expect(byKind.get("observation_analysis")?.allowedTools).toEqual([
       "read_dataset_manifest",
       "summarize_observations",
+      "list_recipes",
+      "read_recipe_result",
       "propose_evidence",
     ]);
     expect(commit.events.map((e) => e.kind)).toEqual([

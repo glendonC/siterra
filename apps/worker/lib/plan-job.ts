@@ -6,6 +6,7 @@ import type {
   CommitOutcome,
   EventDraftRecord,
   EntityVersion,
+  EvidenceRecord,
   ModelTransport,
   PlanSnapshot,
   SnapshotRecord,
@@ -13,6 +14,7 @@ import type {
 } from "@siterra/agent";
 
 import type { Corpus } from "./corpus.ts";
+import type { Analyses } from "./recipes.ts";
 import { snapshotStore } from "./snapshot-store.ts";
 import type { SnapshotView } from "./snapshot-store.ts";
 
@@ -42,7 +44,7 @@ export interface WorkerSnapshot extends SnapshotView {
   records: Omit<SnapshotView["records"], "sourceRecords"> & {
     geoSelectionRecords: { id: string; revision: number; label?: string }[];
     sourceRecords: { id: string; revision: number; title?: string; accessStatus?: string }[];
-    evidenceRecords: { id: string; revision: number; statement: string; status: string }[];
+    evidenceRecords: EvidenceRecord[];
     taskRecords: TaskRecord[];
   };
 }
@@ -64,6 +66,8 @@ export interface PlanJobDeps {
   db: WorkerDb;
   transport: ModelTransport;
   corpus: Corpus;
+  /** The recipe registry and stored recipe results; null leaves the recipe tools empty. */
+  analyses?: Analyses | null;
   now: () => Date;
   newId: (prefix: "task" | "ev") => string;
   cancelPollMs?: number;
@@ -241,7 +245,7 @@ export async function handlePlanJob(job: PlanJob, deps: PlanJobDeps): Promise<Pl
       },
       {
         transport: deps.transport,
-        store: snapshotStore(snapshot, deps.corpus),
+        store: snapshotStore(snapshot, deps.corpus, deps.analyses ?? null),
         commits,
         trace: sink,
         newTaskId: () => deps.newId("task"),
