@@ -104,6 +104,8 @@ export function exampleBranch(caseId: string, id: string, revision: 1 | 2): Expl
           seasonId: null,
           flag: null,
           fieldCheckId: "example_check",
+          stratumId: null,
+          trendSeries: null,
           expected: null,
         },
         wording: "Synthetic prediction.",

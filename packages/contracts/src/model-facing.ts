@@ -247,6 +247,8 @@ export const ProposePredictions = z.strictObject({
         seasonId: z.string().nullable(),
         flag: z.enum(testShape.flag.unwrap().options).nullable(),
         fieldCheckId: z.string().nullable(),
+        stratumId: z.string().nullable(),
+        trendSeries: z.enum(testShape.trendSeries.unwrap().options).nullable(),
         expected: z.enum(testShape.expected.unwrap().options).nullable(),
       }),
       wording: z.string(),

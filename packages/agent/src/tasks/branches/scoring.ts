@@ -1,5 +1,11 @@
 import type { CaseAnalysisConfig, Prediction } from "@siterra/contracts";
-import type { CoMovementRecord, ScoringRecord, SeriesRecord } from "@siterra/domain";
+import type {
+  CoMovementRecord,
+  ScoringRecord,
+  SeriesRecord,
+  StratumTrendRecord,
+  TrendSummaryRecord,
+} from "@siterra/domain";
 
 import { compareSeriesTool } from "../../tools/analysis-tools.ts";
 import { readSeasonSummary } from "../../tools/event-tools.ts";
@@ -101,6 +107,64 @@ async function traced<T extends { resultEntityIds: string[] }>(
   }
 }
 
+interface RestrendSummaryJson {
+  period?: { first_season?: number; last_season?: number };
+  headline?: Record<
+    string,
+    {
+      status?: "computed" | "precondition_not_met" | "insufficient_seasons";
+      unadjusted_trend_per_decade?: [number, number, number] | null;
+      residual_trend_per_decade?: number | null;
+      lower_per_decade?: number | null;
+      upper_per_decade?: number | null;
+    }
+  >;
+}
+
+async function readTrendSummary(
+  store: CaseStore,
+  caseId: string,
+  recipe: { recipeId: string; version: string } | undefined,
+): Promise<TrendSummaryRecord | null> {
+  if (!recipe) return null;
+  const bundle = (await store.listBundles(caseId)).find(
+    (b) =>
+      b.status === "validated" &&
+      b.methodId === recipe.recipeId &&
+      b.methodVersion === recipe.version,
+  );
+  const stored = bundle ? await store.readRecipeResult(caseId, bundle.id) : null;
+  if (!bundle || !stored) return null;
+  const raw = stored.result as RestrendSummaryJson | null;
+  if (!raw?.headline) return null;
+  const strata = new Map<string, StratumTrendRecord>();
+  for (const [id, entry] of Object.entries(raw.headline)) {
+    const status = entry.status ?? "insufficient_seasons";
+    const unadj = entry.unadjusted_trend_per_decade ?? null;
+    const res =
+      typeof entry.residual_trend_per_decade === "number" &&
+      typeof entry.lower_per_decade === "number" &&
+      typeof entry.upper_per_decade === "number"
+        ? ([
+            entry.residual_trend_per_decade,
+            entry.lower_per_decade,
+            entry.upper_per_decade,
+          ] as const)
+        : null;
+    strata.set(id, {
+      status,
+      unadjustedPerDecade: unadj,
+      residualPerDecade: res,
+    });
+  }
+  return {
+    bundleId: stored.bundleId,
+    firstSeason: raw.period?.first_season ?? 2000,
+    lastSeason: raw.period?.last_season ?? 2025,
+    strata,
+  };
+}
+
 /** The record the predictions name; the receipt comes first so nothing is read before the commit. */
 export async function readScoringRecord(
   _receipt: PredictionsReceipt,
@@ -116,6 +180,7 @@ export async function readScoringRecord(
   const wantedPeriods = new Map<string, Set<string>>();
   const coWanted = new Set<string>();
   let seasonsWanted = false;
+  let trendsWanted = false;
   for (const { test } of predictions) {
     if (test.pairId !== null && test.side !== null) {
       const key = `${test.pairId}:${test.side}`;
@@ -125,6 +190,7 @@ export async function readScoringRecord(
     }
     if (test.kind === "co_movement" && test.pairId !== null) coWanted.add(test.pairId);
     if (test.kind === "season_category") seasonsWanted = true;
+    if (test.kind === "trend_direction") trendsWanted = true;
   }
 
   for (const [key, periods] of wantedPeriods) {
@@ -220,10 +286,14 @@ export async function readScoringRecord(
       };
     }
   }
+  const trends = trendsWanted
+    ? await readTrendSummary(store, caseId, config.trendSummary?.recipe)
+    : null;
   return {
     series,
     coMovement,
     seasons,
+    trends,
     fieldCheckIds: new Set(config.fieldChecks.map((c) => c.id)),
   };
 }

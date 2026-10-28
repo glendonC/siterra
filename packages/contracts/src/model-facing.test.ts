@@ -152,6 +152,9 @@ describe("contract: propose_predictions", () => {
     expect(test.kind.options).toEqual(PredictionTest.shape.kind.options);
     expect(test.side.unwrap().options).toEqual(PredictionTest.shape.side.unwrap().options);
     expect(test.flag.unwrap().options).toEqual(PredictionTest.shape.flag.unwrap().options);
+    expect(test.trendSeries.unwrap().options).toEqual(
+      PredictionTest.shape.trendSeries.unwrap().options,
+    );
     expect(test.expected.unwrap().options).toEqual(PredictionTest.shape.expected.unwrap().options);
   });
 });

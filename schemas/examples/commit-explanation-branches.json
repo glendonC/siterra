@@ -63,6 +63,8 @@
             "seasonId": "season_2021-11_2022-04",
             "flag": null,
             "fieldCheckId": null,
+            "stratumId": null,
+            "trendSeries": null,
             "expected": "below_normal"
           },
           "wording": "Fictional example: the wet season before the low months is below normal."
@@ -79,6 +81,8 @@
             "seasonId": null,
             "flag": null,
             "fieldCheckId": "soil_moisture_survey",
+            "stratumId": null,
+            "trendSeries": null,
             "expected": null
           },
           "wording": "Fictional example: soil moisture was low on ungrazed plots too."

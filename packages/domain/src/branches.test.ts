@@ -24,6 +24,8 @@ const NONE: PredictionTest = {
   seasonId: null,
   flag: null,
   fieldCheckId: null,
+  stratumId: null,
+  trendSeries: null,
   expected: null,
 };
 
@@ -246,6 +248,131 @@ describe("scoring a prediction against the record", () => {
       dataAdequate: false,
       reasonCode: "field_measurement_needed",
     });
+  });
+
+  it("trend_direction scores the 2000 to 2025 restrend_long_record summary and handles precondition_not_met", () => {
+    // Exact headline figures from bundle_restrend_long_record_ait_bouguemez (cursor/science 57dc4b5)
+    // for catchment, plus a synthetic computed stratum and a flat stratum.
+    const withTrends: ScoringRecord = {
+      ...record(),
+      trends: {
+        bundleId: "bundle_restrend_long_record_ait_bouguemez",
+        firstSeason: 2000,
+        lastSeason: 2025,
+        strata: new Map([
+          [
+            "catchment",
+            {
+              status: "precondition_not_met",
+              unadjustedPerDecade: [0.009061982905982908, 0.004565103168469516, 0.0135588626434963],
+              residualPerDecade: [0.00942316629059829, 0.005210130730760914, 0.013636201850435667],
+            },
+          ],
+          [
+            "synthetic_computed",
+            {
+              status: "computed",
+              unadjustedPerDecade: [-0.008, -0.012, -0.004],
+              residualPerDecade: [-0.006, -0.01, -0.002],
+            },
+          ],
+          [
+            "synthetic_flat",
+            {
+              status: "computed",
+              unadjustedPerDecade: [0.001, -0.003, 0.005],
+              residualPerDecade: [0.0, -0.002, 0.002],
+            },
+          ],
+        ]),
+      },
+    };
+    const trend = (
+      stratumId: string,
+      trendSeries: "unadjusted" | "residual",
+      expected: "increasing" | "decreasing" | "flat",
+    ): PredictionTest => ({
+      ...NONE,
+      kind: "trend_direction",
+      stratumId,
+      trendSeries,
+      expected,
+    });
+
+    // Expected Decline ("Spring greenness fell from 2000 to 2025") is deterministically not_met
+    // on the valley catchment (+0.0091 per decade, 95% interval +0.0046 to +0.0136) and contradicts.
+    const expectedDecline = prediction("p1", trend("catchment", "unadjusted", "decreasing"), true);
+    const declineScore = scorePrediction(expectedDecline, withTrends);
+    expect(declineScore).toEqual({
+      predictionKey: "p1",
+      outcome: "not_met",
+      dataAdequate: true,
+      reasonCode: null,
+      observed:
+        "Unadjusted greenness trend in catchment (2000 to 2025) is increasing: +0.0091 per decade (95% interval +0.0046 to +0.0136).",
+      measurementIds: [],
+      dataBundleIds: ["bundle_restrend_long_record_ait_bouguemez"],
+    });
+    const mergedDecline = mergeBranches([
+      {
+        branchId: "branch_grazing",
+        explanationId: "grazing",
+        predictions: [expectedDecline],
+        scores: [declineScore],
+      },
+    ]);
+    expect(mergedDecline.branches[0]?.status).toBe("contradicted");
+
+    // Unadjusted increasing on catchment is met.
+    expect(
+      scorePrediction(prediction("p1", trend("catchment", "unadjusted", "increasing")), withTrends)
+        .outcome,
+    ).toBe("met");
+
+    // Residual trend on catchment is precondition_not_met -> not_testable, inadequate_data.
+    const residualScore = scorePrediction(
+      prediction("p1", trend("catchment", "residual", "decreasing")),
+      withTrends,
+    );
+    expect(residualScore).toMatchObject({
+      outcome: "not_testable",
+      dataAdequate: false,
+      reasonCode: "precondition_not_met",
+    });
+    const mergedResidual = mergeBranches([
+      {
+        branchId: "branch_grazing",
+        explanationId: "grazing",
+        predictions: [prediction("p1", trend("catchment", "residual", "decreasing"))],
+        scores: [residualScore],
+      },
+    ]);
+    expect(mergedResidual.branches[0]?.status).toBe("cannot_be_assessed");
+    expect(mergedResidual.conflicts[0]?.kind).toBe("inadequate_data");
+
+    // Computed residual trend and flat interval.
+    expect(
+      scorePrediction(
+        prediction("p1", trend("synthetic_computed", "residual", "decreasing")),
+        withTrends,
+      ).outcome,
+    ).toBe("met");
+    expect(
+      scorePrediction(prediction("p1", trend("synthetic_flat", "unadjusted", "flat")), withTrends)
+        .outcome,
+    ).toBe("met");
+
+    // Missing trend summary or unknown stratum.
+    expect(
+      scorePrediction(prediction("p1", trend("catchment", "unadjusted", "decreasing")), record())
+        .reasonCode,
+    ).toBe("no_trend_record");
+    expect(
+      scorePrediction(
+        prediction("p1", trend("unknown_band", "unadjusted", "decreasing")),
+        withTrends,
+      ).reasonCode,
+    ).toBe("stratum_not_in_record");
   });
 });
 

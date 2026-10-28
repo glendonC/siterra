@@ -18,6 +18,7 @@ import {
   AT,
   CASE_ID,
   TEST_ANALYSIS_CONFIG,
+  bundle,
   queuedTask,
   testStore,
 } from "../../testing/case-fixture.ts";
@@ -573,6 +574,87 @@ describe("the catalog the model reads", () => {
     expect(catalog.pairs[0]?.a.bundle).toEqual({ id: "bundle_test_vegdep", revision: 1 });
     expect(catalog.pairs[0]?.b.bundle).toEqual({ id: "bundle_test_rainmon", revision: 1 });
     expect(catalog.seasonIds).toEqual([SEASON]);
+    expect(catalog.trendStrata).toEqual([]);
     expect(catalog.gaps).toEqual([]);
+  });
+
+  it("scores trend_direction over restrend_long_record and contradicts Expected Decline", async () => {
+    const store = branchStore();
+    store.analysisConfigs.set(CASE_ID, {
+      ...TEST_ANALYSIS_CONFIG,
+      trendSummary: {
+        recipe: { recipeId: "restrend_long_record", version: "1.0.0" },
+        strata: ["catchment", "elevation_high"],
+      },
+    });
+    store.bundles.push(
+      bundle({
+        id: "bundle_test_restrend",
+        revision: 1,
+        methodId: "restrend_long_record",
+        methodVersion: "1.0.0",
+        periodIds: [],
+      }),
+    );
+    store.recipeResults.push({
+      caseId: CASE_ID,
+      bundleId: "bundle_test_restrend",
+      recipeId: "restrend_long_record",
+      version: "1.0.0",
+      result: {
+        recipeId: "restrend_long_record",
+        version: "1.0.0",
+        period: { first_season: 2000, last_season: 2025 },
+        headline: {
+          catchment: {
+            status: "precondition_not_met",
+            unadjusted_trend_per_decade: [
+              0.009061982905982908, 0.004565103168469516, 0.0135588626434963,
+            ],
+            residual_trend_per_decade: 0.00942316629059829,
+            lower_per_decade: 0.005210130730760914,
+            upper_per_decade: 0.013636201850435667,
+          },
+        },
+      },
+    });
+    const expectedDeclineReply = {
+      predictions: [
+        {
+          necessary: true,
+          test: {
+            ...none,
+            kind: "trend_direction",
+            stratumId: "catchment",
+            trendSeries: "unadjusted",
+            expected: "decreasing",
+          },
+          wording: "Between 2000 and 2025, spring greenness in the catchment decreased.",
+        },
+        {
+          necessary: false,
+          test: {
+            ...none,
+            kind: "trend_direction",
+            stratumId: "catchment",
+            trendSeries: "residual",
+            expected: "decreasing",
+          },
+          wording: "Between 2000 and 2025, rainfall-adjusted greenness in the catchment decreased.",
+        },
+      ],
+    };
+    const { commit, log } = await run({
+      store,
+      replies: { rainfall: [RAINFALL_REPLY], grazing: [expectedDeclineReply] },
+    });
+    const committedAt = log.indexOf("commit:predictions");
+    expect(log.indexOf("read:readRecipeResult")).toBeGreaterThan(committedAt);
+    const [, grazing] = branchesOf(commit);
+    expect(grazing?.status).toBe("contradicted");
+    expect(grazing?.scores.map((s) => [s.outcome, s.reasonCode])).toEqual([
+      ["not_met", null],
+      ["not_testable", "precondition_not_met"],
+    ]);
   });
 });

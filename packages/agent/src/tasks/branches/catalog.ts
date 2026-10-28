@@ -28,6 +28,7 @@ export interface PairCatalog {
 export interface BranchCatalog {
   pairs: readonly PairCatalog[];
   seasonIds: readonly string[];
+  trendStrata: readonly string[];
   qualityFlags: readonly string[];
   fieldChecks: readonly FieldCheck[];
   /** Each configured input the case has no validated bundle for, named as a blocked input. */
@@ -117,6 +118,15 @@ export async function buildCatalog(
       `${config.rainfallSeason.label}: no validated ${recipe.recipeId} ${recipe.version} result in this case.`,
     );
   }
+  const trendRecipe = config.trendSummary?.recipe;
+  const hasTrends =
+    trendRecipe !== undefined &&
+    bundles.some(
+      (b) =>
+        b.status === "validated" &&
+        b.methodId === trendRecipe.recipeId &&
+        b.methodVersion === trendRecipe.version,
+    );
   return {
     pairs,
     seasonIds: hasSeasons
@@ -125,6 +135,7 @@ export async function buildCatalog(
           config.rainfallSeason,
         )
       : [],
+    trendStrata: hasTrends ? (config.trendSummary?.strata ?? []) : [],
     qualityFlags: QualityFlag.options,
     fieldChecks: config.fieldChecks,
     gaps,
@@ -148,6 +159,7 @@ export function catalogView(catalog: BranchCatalog): unknown {
       windowsMonths: p.windowsMonths,
     })),
     seasonIds: catalog.seasonIds,
+    trendStrata: catalog.trendStrata,
     qualityFlags: catalog.qualityFlags,
     fieldChecks: catalog.fieldChecks.map((c) => ({ id: c.id, label: c.label })),
   };

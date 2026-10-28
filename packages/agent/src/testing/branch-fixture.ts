@@ -114,6 +114,8 @@ export const UNUSED_TEST_FIELDS = {
   seasonId: null,
   flag: null,
   fieldCheckId: null,
+  stratumId: null,
+  trendSeries: null,
   expected: null,
 };
 

@@ -969,6 +969,7 @@ export const PredictionTest = z.strictObject({
     "quality_flag",
     "availability",
     "field_check",
+    "trend_direction",
   ]),
   pairId: z.string().regex(new RegExp("^[a-z][a-z0-9_]{0,39}$")).nullable(),
   side: z.enum(["a", "b"]).nullable(),
@@ -986,6 +987,8 @@ export const PredictionTest = z.strictObject({
     ])
     .nullable(),
   fieldCheckId: z.string().regex(new RegExp("^[a-z][a-z0-9_]{0,39}$")).nullable(),
+  stratumId: z.string().regex(new RegExp("^[a-z][a-z0-9_]{0,39}$")).nullable(),
+  trendSeries: z.enum(["unadjusted", "residual"]).nullable(),
   expected: z
     .enum([
       "negative",
@@ -999,6 +1002,9 @@ export const PredictionTest = z.strictObject({
       "absent",
       "all_available",
       "some_unavailable",
+      "increasing",
+      "decreasing",
+      "flat",
     ])
     .nullable(),
 });
@@ -1027,6 +1033,9 @@ export const PredictionScore = z.strictObject({
       "too_few_aligned_months",
       "no_season_summary",
       "season_not_in_summary",
+      "no_trend_record",
+      "stratum_not_in_record",
+      "precondition_not_met",
       "field_measurement_needed",
     ])
     .nullable(),

@@ -116,5 +116,19 @@
       "statement": "Too few clear scenes or a processing artefact in the vegetation record produced the low values without a change in the vegetation."
     }
   ],
-  "whenOptionalNotMet": "consistent"
+  "whenOptionalNotMet": "consistent",
+  "trendSummary": {
+    "recipe": { "recipeId": "restrend_long_record", "version": "1.0.0" },
+    "strata": [
+      "catchment",
+      "elevation_low",
+      "elevation_mid",
+      "elevation_high",
+      "aspect_north",
+      "aspect_east",
+      "aspect_south",
+      "aspect_west",
+      "aspect_level"
+    ]
+  }
 }
