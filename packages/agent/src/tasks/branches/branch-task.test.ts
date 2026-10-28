@@ -247,7 +247,7 @@ describe("scoring, merge and the records it writes", () => {
 
     const merge = rest.find((r): r is BranchMergeRecord => r.recordType === "BranchMerge");
     expect(merge && BranchMerge.parse(merge)).toBeTruthy();
-    expect(merge?.rulesVersion).toBe("merge@1");
+    expect(merge?.rulesVersion).toBe("merge@2");
     expect(merge?.conflicts.map((c) => c.kind)).toEqual(["not_testable"]);
 
     const hypotheses = rest.filter((r): r is HypothesisRecord => r.recordType === "Hypothesis");

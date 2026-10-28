@@ -113,6 +113,11 @@ export const CaseAnalysisConfig = z
       uniqueBy((c: FieldCheck) => c.id),
       { error: "Field check IDs must be unique" },
     ),
+    /**
+     * Status of a branch under merge@2 when every necessary prediction is met and an optional
+     * testable prediction is not met. Defaults to "cannot_be_assessed" when omitted.
+     */
+    whenOptionalNotMet: z.enum(["cannot_be_assessed", "consistent"]).optional(),
   })
   .refine(
     (config) => {

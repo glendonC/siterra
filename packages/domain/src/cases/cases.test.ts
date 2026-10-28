@@ -58,6 +58,7 @@ describe("case analysis configurations", () => {
       "snow_terrain",
       "data_artefact",
     ]);
+    expect(valley?.whenOptionalNotMet).toBe("consistent");
   });
 
   it("each valley field check cites the scientific basis and every explanation pair has one", () => {

@@ -2,13 +2,15 @@ import type { Prediction, PredictionTest } from "@siterra/contracts";
 import { describe, expect, it } from "vitest";
 
 import {
-  MERGE_RULES_VERSION,
+  MERGE_RULES_V1,
+  MERGE_RULES_V2,
   hypothesisStatusOf,
   mergeBranches,
+  mergeRulesFor,
   scorePrediction,
   testKey,
 } from "./branches.ts";
-import type { BranchScoring, ScoringRecord } from "./branches.ts";
+import type { BranchScoring, MergeRules, ScoringRecord } from "./branches.ts";
 
 // Synthetic scoring records: a vegetation side with two metrics over three months, a rainfall
 // side, one co-movement window and two seasons. Nothing here is a real measurement.
@@ -264,7 +266,7 @@ describe("merge rules (merge@1)", () => {
     const merged = mergeBranches([
       scored("branch_rainfall", [prediction("p1", metSign), prediction("p2", failedSign)]),
     ]);
-    expect(MERGE_RULES_VERSION).toBe("merge@1");
+    expect(MERGE_RULES_V1.version).toBe("merge@1");
     expect(merged.branches[0]).toMatchObject({ status: "contradicted" });
     expect(merged.branches[0]?.reason).toContain("p2");
   });
@@ -324,6 +326,117 @@ describe("merge rules (merge@1)", () => {
       scored("branch_grazing", [prediction("p1", failedSign)]),
     ]);
     expect(merged.conflicts.filter((c) => c.kind === "separates_nothing")).toEqual([]);
+  });
+});
+
+/** record() with two more usable months before March 2022, so a sign test can span three. */
+function longRecord(): ScoringRecord {
+  const r = record();
+  const side = r.series.get("veg_rain:a");
+  if (!side) throw new Error("no side");
+  const periods = new Map([
+    [
+      "period_2022-01",
+      {
+        measurements: [row("meas_a0", "dep", -0.01), row("meas_a0l", "dep_loyo", -0.02)],
+        qualityFlags: [],
+      },
+    ],
+    [
+      "period_2022-02",
+      {
+        measurements: [row("meas_a9", "dep", -0.04), row("meas_a9l", "dep_loyo", -0.03)],
+        qualityFlags: [],
+      },
+    ],
+    ...side.periods,
+  ]);
+  return { ...r, series: new Map([["veg_rain:a", { ...side, periods }]]) };
+}
+
+const V2: MergeRules = {
+  version: "merge@2",
+  minPeriodsForNecessarySign: 3,
+  whenOptionalNotMet: "cannot_be_assessed",
+};
+const threeMonths = ["period_2022-01", "period_2022-02", "period_2022-03"];
+const scoredOn = (
+  r: ScoringRecord,
+  branchId: string,
+  predictions: Prediction[],
+): BranchScoring => ({
+  branchId,
+  explanationId: branchId.slice("branch_".length),
+  predictions,
+  scores: predictions.map((p) => scorePrediction(p, r)),
+});
+
+describe("merge rules (merge@2, proposed)", () => {
+  it("a necessary sign prediction not met over fewer periods than the minimum does not contradict", () => {
+    const merged = mergeBranches(
+      [scored("branch_rainfall", [prediction("p1", metSign), prediction("p2", failedSign)])],
+      V2,
+    );
+    expect(merged.branches[0]).toMatchObject({
+      status: "cannot_be_assessed",
+      reason:
+        "Necessary prediction p2 is not met over 1 period; merge@2 needs 3 periods to contradict.",
+    });
+    expect(merged.conflicts).toEqual([
+      {
+        kind: "inadequate_data",
+        testKey: testKey(failedSign),
+        predictions: [{ branchId: "branch_rainfall", predictionKey: "p2" }],
+        detail: "Not met over 1 period, fewer than the 3 periods merge@2 needs to contradict.",
+      },
+    ]);
+  });
+
+  it("contradicts when the necessary sign prediction is not met over the minimum periods", () => {
+    const failedLong = sign(threeMonths, "positive");
+    const merged = mergeBranches(
+      [scoredOn(longRecord(), "branch_rainfall", [prediction("p1", failedLong)])],
+      V2,
+    );
+    expect(merged.branches[0]).toMatchObject({
+      status: "contradicted",
+      reason: "Necessary prediction p1 is not met on adequate data.",
+    });
+  });
+
+  it("other kinds of necessary prediction contradict as under merge@1", () => {
+    const wrongSeason = season("season_2021-11_2022-04", "above_normal");
+    const merged = mergeBranches([scored("branch_rainfall", [prediction("p1", wrongSeason)])], V2);
+    expect(merged.branches[0]?.status).toBe("contradicted");
+  });
+
+  it("merge@1 stays reproducible: the default rules contradict on one period", () => {
+    const branches = [
+      scored("branch_rainfall", [prediction("p1", metSign), prediction("p2", failedSign)]),
+    ];
+    expect(MERGE_RULES_V1).toEqual({
+      version: "merge@1",
+      minPeriodsForNecessarySign: 1,
+      whenOptionalNotMet: "cannot_be_assessed",
+    });
+    expect(mergeBranches(branches)).toEqual(mergeBranches(branches, MERGE_RULES_V1));
+    expect(mergeBranches(branches).branches[0]?.status).toBe("contradicted");
+  });
+
+  it("the optional-not-met status is one rules entry", () => {
+    const branches = [
+      scored("branch_snow", [prediction("p1", metSign), prediction("p2", failedSign, false)]),
+    ];
+    expect(mergeBranches(branches, V2).branches[0]?.status).toBe("cannot_be_assessed");
+    const flipped = mergeBranches(branches, { ...V2, whenOptionalNotMet: "consistent" });
+    expect(flipped.branches[0]).toMatchObject({
+      status: "consistent",
+      reason: "Optional prediction p2 is not met; 1 of 1 necessary predictions is met.",
+    });
+    expect(mergeRulesFor(null)).toEqual(MERGE_RULES_V2);
+    expect(mergeRulesFor({ whenOptionalNotMet: "consistent" }).whenOptionalNotMet).toBe(
+      "consistent",
+    );
   });
 });
 

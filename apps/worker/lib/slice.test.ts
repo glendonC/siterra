@@ -6,7 +6,7 @@ import type { ModelTransport, ReplayStep } from "@siterra/agent";
 import { createPool, eventsOfCommand, readSnapshot, submitCommand } from "@siterra/db";
 import { freshDatabase } from "@siterra/db/testing";
 import type { TestDatabase } from "@siterra/db/testing";
-import { coverIssues, mergeBranches, newId, openPairs } from "@siterra/domain";
+import { coverIssues, mergeBranches, mergeRulesFor, newId, openPairs } from "@siterra/domain";
 import { analysisConfigFor } from "@siterra/domain/cases";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
@@ -593,6 +593,7 @@ describe("vertical slice on the real seed, replay only", () => {
         expect(b.predictionsCaseRevision).toBeLessThan(after.case.revision);
       }
       // DF-08 on the real record: the stored statuses are the fixed rules over the stored scores.
+      const valley = analysisConfigFor(CASE_ID);
       expect(branches.map((b) => b.status)).toEqual(
         mergeBranches(
           branches.map((b) => ({
@@ -601,6 +602,7 @@ describe("vertical slice on the real seed, replay only", () => {
             predictions: b.predictions,
             scores: b.scores,
           })),
+          mergeRulesFor(valley),
         ).branches.map((m) => m.status),
       );
       // Rainfall loaded for the same area and periods: compared, not refused for a mismatch.
@@ -622,7 +624,6 @@ describe("vertical slice on the real seed, replay only", () => {
       // DF-09 on the real record: the stored field plan is the minimum cover over the valley's
       // field checks for the pairs the merge left open, recomputed here.
       const merge = (after.records.branchMergeRecords ?? []).find((m) => ownTasks.has(m.taskId));
-      const valley = analysisConfigFor(CASE_ID);
       const plan = merge?.fieldPlan;
       expect(plan).toBeDefined();
       expect(

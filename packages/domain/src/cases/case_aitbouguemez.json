@@ -115,5 +115,6 @@
       "label": "Data artefact",
       "statement": "Too few clear scenes or a processing artefact in the vegetation record produced the low values without a change in the vegetation."
     }
-  ]
+  ],
+  "whenOptionalNotMet": "consistent"
 }
