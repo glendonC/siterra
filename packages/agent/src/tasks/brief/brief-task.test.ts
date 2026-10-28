@@ -455,6 +455,7 @@ async function run(
   answer: unknown,
   committedInterventions = [REST],
   sentOutputLimits: unknown[] = [],
+  missingInputs: string[] = [],
 ) {
   const replay = syntheticTransport([answerStep(JSON.stringify(answer))]);
   const transport: ModelTransport = {
@@ -476,6 +477,7 @@ async function run(
           { entityId: "ev_test_need", revision: 1 },
         ],
         allowedTools: ["read_case", "propose_package", "request_review", "propose_layout"],
+        missingInputs,
       }),
       expectedCaseRevision: 5,
     },
@@ -597,6 +599,24 @@ describe("brief_package task", () => {
       known: [{ evidenceIds: ["ev_test_obs"], measurementIds: ["meas_test_2022-04"] }],
       nextMeasurements: [{ evidenceIds: ["ev_test_need"], measurementIds: [] }],
     });
+  });
+
+  it("RL-02 a failed dependency named by the coordinator keeps the package a draft and says so", async () => {
+    const store = testStore();
+    store.evidence.push(OBS, NEED);
+    const failed = "Dependency task_test_obs (observation analysis) ended failed: executor error.";
+    const { loop, commit } = await run(store, proposal(), [REST], [], [failed]);
+    expect(loop.status).toBe("accepted");
+    const action = commit.upserts.find((r) => r.recordType === "OperationalAction");
+    const brief = commit.upserts.find((r) => r.recordType === "Brief");
+    expect(action).toMatchObject({ status: "blocked", reviewDecisionIds: [] });
+    expect(action?.recordType === "OperationalAction" && action.remainingConditions).toContain(
+      failed,
+    );
+    expect(brief).toMatchObject({ status: "draft", reviewDecisionIds: [] });
+    expect(brief?.recordType === "Brief" && brief.limitations).toContain(failed);
+    expect(commit.upserts.some((r) => r.recordType === "ReviewDecision")).toBe(false);
+    expect(commit.upserts[0]).toMatchObject({ status: "succeeded", missingInputs: [failed] });
   });
 
   it("blocks ready for review and requests nothing while a critical dependency is missing", async () => {

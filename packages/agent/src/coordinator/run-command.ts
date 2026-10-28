@@ -331,7 +331,8 @@ export async function runCommand(
     }
   };
 
-  // Run tasks as their dependencies finish; a failed dependency fails its dependents.
+  // Run tasks as their dependencies finish; a failed dependency fails its dependents, except the
+  // brief package.
   const started = new Set<string>();
   const inFlight = new Map<string, Promise<void>>();
   for (;;) {
@@ -349,6 +350,25 @@ export async function runCommand(
       const failedDeps = depStates.filter(
         (d) => d && TERMINAL.has(d.status) && d.status !== "succeeded" && d.status !== "partial",
       );
+      // The field-scoping package still completes when a task it reads fails (RL-02): it runs once
+      // every dependency has ended, with the failed ones named, and cannot be ready for review.
+      if (task.kind === "brief_package" && failedDeps.length > 0) {
+        if (depStates.every((d) => d && TERMINAL.has(d.status))) {
+          started.add(task.id);
+          const named = failedDeps.flatMap((d) =>
+            d
+              ? [
+                  `Dependency ${d.id} (${d.kind.replaceAll("_", " ")}) ended ${d.status}: ${(d.failureCode ?? d.status).replaceAll("_", " ")}.`,
+                ]
+              : [],
+          );
+          inFlight.set(
+            task.id,
+            runOne({ ...task, missingInputs: [...new Set([...task.missingInputs, ...named])] }),
+          );
+        }
+        continue;
+      }
       if (failedDeps.length > 0) {
         started.add(task.id);
         inFlight.set(

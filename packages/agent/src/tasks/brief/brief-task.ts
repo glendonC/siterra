@@ -188,6 +188,7 @@ export async function runBriefPackageTask(
       measurementIds: e.measurementIds,
     })),
     openGapIds: [...openGapIds].sort(),
+    ...(task.missingInputs.length > 0 ? { missingInputs: task.missingInputs } : {}),
   };
 
   const loop = await runTaskLoop({
@@ -258,8 +259,10 @@ export async function runBriefPackageTask(
       limitations,
     });
 
-    // "Ready for review" needs a candidate response and a next measurement on a field requirement.
+    // "Ready for review" needs a candidate response, a next measurement on a field requirement and
+    // no dependency the coordinator named as failed.
     const missing = [
+      ...task.missingInputs,
       ...(accepted.interventions.length === 0 ? [PACKAGE_TEXT.missingIntervention] : []),
       ...(value.brief.nextMeasurements.some((l) =>
         l.evidenceIds.some((id) => evidence.get(id)?.claimKind === "field_requirement"),

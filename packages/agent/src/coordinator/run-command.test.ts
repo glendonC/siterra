@@ -10,7 +10,7 @@ import type { TaskRecord } from "../tasks/records.ts";
 import { PLAN_INSTRUCTIONS } from "../tasks/plan/prompt.ts";
 import type { TraceEventDraft } from "../tasks/trace.ts";
 import { P0_LIMITS } from "./limits.ts";
-import { runCommand } from "./run-command.ts";
+import { EXECUTORS, runCommand, type TaskExecutor } from "./run-command.ts";
 
 // A whole command on synthetic replays and the memory commit double. These tests show the
 // coordinator's control flow; they show nothing about a live model (AF-01 needs one).
@@ -378,6 +378,83 @@ describe("runCommand on synthetic replays", () => {
     expect(commits.interventions.get("int_test_06")?.provenance.limitations[0]).toMatch(
       /^Fixed text written by Siterra's host code, not by a model/,
     );
+  });
+
+  it("RL-02 the brief package still runs after a quantitative task fails, with the failed task named", async () => {
+    const plan = {
+      interpretation: "The command asks for a field-scoping package for the valley.",
+      tasks: [
+        {
+          key: "sources",
+          kind: "source_research",
+          question: "What do sources say about closures?",
+          dependsOn: [],
+          inputRefs: [],
+        },
+        {
+          key: "observations",
+          kind: "observation_analysis",
+          question: "What did NDVI show in spring 2022?",
+          dependsOn: [],
+          inputRefs: [{ entityId: "bundle_test_ndvi", revision: 2 }],
+        },
+        {
+          key: "brief",
+          kind: "brief_package",
+          question: "Prepare the field-validation plan and the decision brief.",
+          dependsOn: [],
+          inputRefs: [],
+        },
+      ],
+      clarifyingQuestion: null,
+    };
+    const seen: TaskRecord[] = [];
+    const brief: TaskExecutor = ({ task, expectedCaseRevision }) => {
+      seen.push(task);
+      return Promise.resolve({
+        commit: {
+          caseId: task.caseId,
+          commandId: task.commandId,
+          taskId: task.id,
+          expectedCaseRevision,
+          idempotencyKey: `test-${task.id}`,
+          inputVersions: [],
+          upserts: [
+            {
+              ...task,
+              revision: task.revision + 1,
+              status: "succeeded",
+              finishedAt: AT.toISOString(),
+            },
+          ],
+          events: [],
+        },
+      });
+    };
+    const { deps: d } = deps(routes([answerStep(JSON.stringify(plan))]), {
+      executors: {
+        ...EXECUTORS,
+        observation_analysis: () => Promise.reject(new Error("bundle_test_ndvi is missing")),
+        brief_package: brief,
+      },
+    });
+    const outcome = await runCommand(
+      { planTask: PLAN_TASK, expectedCaseRevision: 3, snapshot: SNAPSHOT },
+      d,
+    );
+    const byKind = new Map(outcome.tasks.map((t) => [t.kind, t]));
+    expect(byKind.get("observation_analysis")).toMatchObject({
+      status: "failed",
+      failureCode: "executor_error",
+    });
+    expect(byKind.get("source_research")?.status).toBe("succeeded");
+    expect(byKind.get("brief_package")).toMatchObject({ status: "succeeded", failureCode: null });
+    const observationId = byKind.get("observation_analysis")?.id;
+    expect(seen).toHaveLength(1);
+    expect(seen[0]?.missingInputs).toEqual([
+      `Dependency ${String(observationId)} (observation analysis) ended failed: executor error.`,
+    ]);
+    expect(outcome.status).toBe("partial");
   });
 
   it("TR-03 path: trace events carry no prompt text, source text, key or bearer token", async () => {

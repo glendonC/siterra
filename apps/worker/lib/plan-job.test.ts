@@ -177,9 +177,10 @@ describe("plan job", () => {
     expect(result.status).toBe("ran");
     if (result.status !== "ran") return;
     expect(result.outcome.status).toBe("failed");
+    // A brief package runs after its failed dependency (RL-02), so the second also finds no executor.
     expect(result.outcome.tasks.map((t) => t.failureCode)).toEqual([
       "executor_not_available",
-      "dependency_failed",
+      "executor_not_available",
     ]);
     expect(db.statuses).toEqual(["running", "failed"]);
     expect(db.commits.tasks.get("task_test_plan")).toMatchObject({
