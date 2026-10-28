@@ -1,0 +1,48 @@
+/* Daylight theme variables (design language 1.3). A token definition file: the stage and the islands read
+   colours only from here and from lib/theme/daylight.ts. Replaced by design/tokens once the daylight theme
+   lands there. Type sizes and fonts reuse the public token names. */
+
+:root {
+  --paper: #f2efea;
+  --ink: #2b2925;
+  --grey: #6b6762;
+  --shadow-tint: #788693;
+  --accent: #b5561f;
+  --card: #fdfdfc;
+  --rule: rgba(43, 41, 37, 0.16);
+  --rule-strong: rgba(43, 41, 37, 0.35);
+  --shadow-card: 0 1px 2px rgba(43, 41, 37, 0.08), 0 8px 28px rgba(43, 41, 37, 0.1);
+  --veil-read: rgba(242, 239, 234, 0.72);
+  /* the biomes legend swatch on the globe page (hud4.css) */
+  --biome-fill: #f1e1c9;
+  --biome-edge: rgba(181, 86, 31, 0.35);
+  /* the halo of names on the land, at their box size (5 px in the hero's 2048 px texture) */
+  --paper-halo-ground: 0 0 3px #f2efea, 0 0 3px #f2efea, 0 0 4px #f2efea;
+  --paper-halo: 0 0 2px #f2efea, 0 0 2px #f2efea, 0 0 3px #f2efea;
+
+  --font-sans: "IBM Plex Sans Variable", "IBM Plex Sans", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* names on the land: 13 px with 0.02 em tracking in the approved hero (not on the public type scale) */
+  --type-place-size: 13px;
+  --type-place-line: 16px;
+  --type-place-tracking: 0.02em;
+  /* the opening page: 48 CSS px in the approved a5 frames (design language text says 64) */
+  --type-opening-size: 48px;
+  --type-opening-line: 52px;
+  /* chrome sizes from the approved hero (key hints 15, command line 17, mono notes 11, credits 10) */
+  --type-hint-size: 15px;
+  --type-command-size: 17px;
+  --type-mono-small-size: 11px;
+  --type-credit-size: 10px;
+  --type-label-size: 12px;
+  --type-label-line: 16px;
+  --type-body-size: 14px;
+  --type-body-line: 20px;
+
+  --ease-arrive: cubic-bezier(0.2, 0, 0, 1);
+  --ease-camera: cubic-bezier(0.65, 0, 0.35, 1);
+  --duration-camera: 1600ms;
+  --duration-sentence: 600ms;
+  --duration-leader: 300ms;
+}

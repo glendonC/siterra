@@ -1,0 +1,96 @@
+import { describe, expect, it } from "vitest";
+import { daylight } from "../theme/daylight";
+import { ARRIVAL_EXAGGERATION, ARRIVAL_LIGHT } from "./arrival";
+import { beamFootprint, outsideVeil, valleyStyle, type ValleyAssets } from "./daylight-style";
+import type { Feature, Polygon } from "./geo";
+
+const square: Feature<Polygon> = {
+  type: "Feature",
+  properties: {},
+  geometry: {
+    type: "Polygon",
+    coordinates: [
+      [
+        [-6.5, 31.6],
+        [-6.2, 31.6],
+        [-6.2, 31.75],
+        [-6.5, 31.75],
+        [-6.5, 31.6],
+      ],
+    ],
+  },
+};
+
+const assets: ValleyAssets = {
+  terrain: {
+    tiles: ["/t/{z}/{x}/{y}.png"],
+    tileSize: 512,
+    maxzoom: 12,
+    attribution: "terrain notice",
+  },
+  imageryOuter: { kind: "tiles", tiles: ["/o/{z}/{x}/{y}.webp"], tileSize: 256, maxzoom: 13 },
+  imageryInner: { kind: "tiles", tiles: ["/i/{z}/{x}/{y}.webp"], tileSize: 256, maxzoom: 15 },
+  imageryAttribution: "imagery notice",
+};
+
+function colours(value: unknown, out: string[] = []): string[] {
+  if (typeof value === "string" && /^(#|rgb)/.test(value)) out.push(value);
+  else if (Array.isArray(value)) value.forEach((v) => colours(v, out));
+  else if (value && typeof value === "object") Object.values(value).forEach((v) => colours(v, out));
+  return out;
+}
+
+describe("valleyStyle", () => {
+  const style = valleyStyle({ assets, catchment: square });
+
+  it("draws relief at the arrival exaggeration from the terrain source", () => {
+    expect(style.terrain).toEqual({ source: "terrain", exaggeration: ARRIVAL_EXAGGERATION });
+  });
+
+  it("lights the relief from the arrival light direction, anchored to the map", () => {
+    const relief = style.layers.find((l) => l.id === "relief");
+    expect(relief?.type).toBe("hillshade");
+    expect(
+      (relief as { paint: Record<string, unknown> }).paint["hillshade-illumination-direction"],
+    ).toBe(ARRIVAL_LIGHT.azimuthDeg);
+  });
+
+  it("orders the land: imagery, relief, veil, then the line and the beam on top", () => {
+    const order = style.layers.map((l) => l.id);
+    expect(order.indexOf("imagery-inner")).toBeGreaterThan(order.indexOf("imagery-outer"));
+    expect(order.indexOf("relief")).toBeGreaterThan(order.indexOf("imagery-inner"));
+    expect(order.indexOf("outside-veil")).toBeGreaterThan(order.indexOf("relief"));
+    expect(order.indexOf("catchment-line")).toBeGreaterThan(order.indexOf("catchment-casing"));
+    expect(order.at(-1)).toBe("outlet-beam");
+  });
+
+  it("uses only daylight token colours", () => {
+    const allowed = new Set<string>(Object.values(daylight));
+    expect(colours(style).filter((c) => !allowed.has(c))).toEqual([]);
+  });
+
+  it("uses the accent once, for the outlet beam", () => {
+    expect(colours(style).filter((c) => c === daylight.accent)).toHaveLength(1);
+  });
+});
+
+describe("outsideVeil", () => {
+  it("cuts the catchment out of the veil, wound the other way", () => {
+    const veil = outsideVeil(square);
+    expect(veil.geometry.coordinates).toHaveLength(2);
+    expect(veil.geometry.coordinates[1]).toEqual(
+      [...(square.geometry.coordinates[0] ?? [])].reverse(),
+    );
+  });
+});
+
+describe("beamFootprint", () => {
+  it("is a closed square about the given side in metres", () => {
+    const ring = beamFootprint(-6.5372222, 31.6377778, 70).geometry.coordinates[0] ?? [];
+    const [sw, se, , , last] = ring;
+    if (!sw || !se) throw new Error("footprint has no corners");
+    expect(last).toEqual(sw);
+    const widthM = (se[0] - sw[0]) * 111320 * Math.cos((31.6377778 * Math.PI) / 180);
+    expect(widthM).toBeCloseTo(70, 6);
+  });
+});

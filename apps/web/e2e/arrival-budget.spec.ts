@@ -1,0 +1,20 @@
+import { expect, test } from "@playwright/test";
+import { checkBudget } from "../lib/budget/measure";
+import { collectBudget } from "./budget";
+
+// VC-04 and VC-05 for the arrival state at the two layouts the acceptance criteria name.
+for (const viewport of [
+  { width: 1440, height: 900 },
+  { width: 1280, height: 800 },
+]) {
+  test(`arrival stays within the visual budget at ${viewport.width}x${viewport.height}`, async ({
+    page,
+  }) => {
+    await page.setViewportSize(viewport);
+    await page.goto("/stage");
+    await expect(page.locator("[data-stage-idle=true]")).toBeVisible({ timeout: 60_000 });
+    const report = checkBudget(await collectBudget(page), viewport, "arrival");
+    test.info().annotations.push({ type: "budget", description: JSON.stringify(report) });
+    expect(report.violations).toEqual([]);
+  });
+}

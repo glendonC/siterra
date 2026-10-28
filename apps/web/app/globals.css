@@ -1,0 +1,18 @@
+/* Page ground and defaults for the daylight workspace. Colours and type come from daylight.css. */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  color-scheme: light;
+}

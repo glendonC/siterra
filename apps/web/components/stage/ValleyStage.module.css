@@ -1,0 +1,108 @@
+/* The stage fills its parent; overlays sit on the map in CSS pixels. Colours come from the theme variables. */
+
+.stage {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--paper);
+}
+
+.map {
+  position: absolute;
+  inset: 0;
+}
+
+/* Name beside the top of the outlet beam: the beam itself is drawn on the map. */
+.outletLabel {
+  position: absolute;
+  transform: translate(10px, -66px);
+  font: 500 var(--type-place-size) / var(--type-place-line) var(--font-sans);
+  letter-spacing: var(--type-place-tracking);
+  color: var(--ink);
+  text-shadow: var(--paper-halo);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* A village on a thin ink stem with a small open ring at its foot. */
+.stem {
+  position: absolute;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.stem::before {
+  content: "";
+  position: absolute;
+  left: -0.5px;
+  bottom: 0;
+  width: 1px;
+  height: 44px;
+  background: var(--ink);
+}
+
+.stem::after {
+  content: "";
+  position: absolute;
+  left: -4px;
+  top: -2px;
+  width: 8px;
+  height: 4px;
+  border: 1px solid var(--ink);
+  border-radius: 50%;
+}
+
+.stemName {
+  position: absolute;
+  left: 4px;
+  bottom: 44px;
+  font: 500 var(--type-place-size) / var(--type-place-line) var(--font-sans);
+  letter-spacing: var(--type-place-tracking);
+  color: var(--ink);
+  text-shadow: var(--paper-halo);
+  white-space: nowrap;
+}
+
+/* A name lying on the land: a text box mapped onto four projected corners (transform from the stage). */
+.groundText {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 0 0;
+  display: flex;
+  flex-direction: column;
+  pointer-events: none;
+}
+
+.groundLine {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  font-family: var(--font-sans);
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+  color: var(--ink);
+  text-shadow: var(--paper-halo-ground);
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.error {
+  position: absolute;
+  left: 16px;
+  bottom: 16px;
+  margin: 0;
+  font: 400 var(--type-body-size) / var(--type-body-line) var(--font-sans);
+  color: var(--ink);
+}
