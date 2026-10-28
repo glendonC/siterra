@@ -63,14 +63,17 @@ const PROBABILITY =
 /**
  * Comparatives that rank explanations, which the ledger never does (data-contracts.md: several
  * may be consistent at once; never ranked by a score). Refused in every hypothesis text (a60,
- * b13). Forms, not a word list: a ranking adjective before an explanation noun; a degree word
- * before plausible, supported, consistent and the like; fitting, explaining or accounting
- * "better"; outweighing; explaining more. A bare "than" stays allowed, so measurement comparisons
- * such as "lower than the 1991 to 2020 mean" pass.
+ * b13, b17). Forms, not a word list: a ranking adjective before an explanation noun, with at most
+ * one word between ("the weaker grazing explanation"); a degree word before plausible, supported,
+ * consistent and the like; fitting, explaining or accounting "better"; favouring one over
+ * another; ahead of; outweighing; explaining more. A bare "than" stays allowed, so measurement
+ * comparisons such as "lower than the 1991 to 2020 mean" pass.
  */
 const RANKING = new RegExp(
   `\\b(?:${[
-    String.raw`(?:stronger|strongest|weaker|weakest|better|best|worse|worst|leading|main|primary|principal|dominant|preferred|favou?red|likelier|likeliest)\s+(?:explanation|hypothesis|hypotheses|candidate|driver|cause|reason|factor|account)`,
+    String.raw`(?:stronger|strongest|weaker|weakest|better|best|worse|worst|leading|main|primary|principal|dominant|preferred|favou?red|likelier|likeliest)\s+(?:[\w-]+\s+)?(?:explanation|explanations|hypothesis|hypotheses|candidate|driver|cause|reason|factor|account|case)`,
+    String.raw`favou?r(?:s|ed|ing)?\b[^.;:]{0,80}?\bover`,
+    String.raw`ahead\s+of`,
     String.raw`(?:more|less|most|least|better|best|worse|worst)[\s-]+(?:well[\s-]+)?(?:plausible|likely|convincing|probable|credible|supported|consistent|fitting|founded)`,
     String.raw`(?:better|worse|best|worst|closer)\s+fit`,
     String.raw`(?:fit|explain|account)(?:s|ed|ted|ing|ting)?\b[^.;:]{0,80}?\b(?:better|worse|best|worst)`,

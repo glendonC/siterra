@@ -225,10 +225,23 @@ describe("propose_hypotheses validation", () => {
     }
   });
 
+  it("refuses the ranking forms b13 still let through (b17)", () => {
+    for (const phrase of [
+      "it favours this hypothesis over grazing",
+      "it makes a stronger case than the others",
+      "it is ahead of the others",
+      "it is the weaker grazing explanation",
+    ]) {
+      const issues = codes([hyp("untested", { assessment: `Not yet tested; ${phrase}.` })]);
+      expect(issues, phrase).toContain("prohibited_claim $.items[0].assessment");
+    }
+  });
+
   it("still allows measurement comparisons with than (b13)", () => {
     for (const assessment of [
       `${STATUS_LABELS.consistent}: the cited records show more rainfall than the previous spring.`,
       `${STATUS_LABELS.consistent}: the cited evidence fits the hypothesis.`,
+      `${STATUS_LABELS.consistent}: the case record holds the cited value for April.`,
     ]) {
       expect(
         codes([hyp("consistent", { supportingEvidenceIds: ["ev_test_obs"], assessment })]),
