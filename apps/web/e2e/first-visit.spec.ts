@@ -12,7 +12,9 @@ test("a first visit opens a demo copy without a 401 or a console error", async (
     if (r.status() === 401) unauthorised.push(r.url());
   });
   page.on("request", (r) => {
-    if (r.url().includes("/api/")) requests.push(`${r.method()} ${new URL(r.url()).pathname}`);
+    // the session and case requests; the map bundle is public and asked for alongside
+    const path = new URL(r.url()).pathname;
+    if (/^\/api\/(demo-sessions|cases\/)/.test(path)) requests.push(`${r.method()} ${path}`);
   });
   page.on("console", (m) => {
     if (m.type() === "error") errors.push(m.text());

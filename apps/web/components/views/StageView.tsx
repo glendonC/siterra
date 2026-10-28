@@ -1,16 +1,25 @@
 "use client";
 
-// The arrival on its own (the /stage route): the case opens, then the valley and its chrome.
+// The arrival on its own (the /stage route): the case and the map bundle open, then the valley and its
+// chrome.
 
 import { CaseNotice } from "../case/CaseNotice";
 import { useArrivalCase } from "../case/useArrivalCase";
+import { useMapBundle } from "../map/useMapBundle";
 import { ArrivalView } from "./ArrivalView";
 
-export function StageView({ manifestUrl }: { manifestUrl: string }) {
+export function StageView() {
   const c = useArrivalCase();
-  if (c.status === "opening") return null;
+  const map = useMapBundle();
+  if (c.status === "opening" || map.status === "loading") return null;
   if (c.status === "not_found") return <CaseNotice message="case.notFound" />;
   if (c.status === "failed") return <CaseNotice message="case.failed" />;
   if (c.arrival.kind !== "ready") return <CaseNotice message="case.noBoundary" />;
-  return <ArrivalView manifestUrl={manifestUrl} arrival={c.arrival} snapshot={c.snapshot} />;
+  return (
+    <ArrivalView
+      assets={map.status === "ready" ? map.bundle.valley : null}
+      arrival={c.arrival}
+      snapshot={c.snapshot}
+    />
+  );
 }

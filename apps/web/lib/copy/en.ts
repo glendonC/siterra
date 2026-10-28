@@ -75,6 +75,11 @@ export const en = {
   // Read flat
   "flat.title": { text: "Everything on screen, as text", kind: "label" },
   "flat.close": { text: "Close", kind: "button" },
+  "flat.skip": { text: "Skip to everything on screen, as text", kind: "link" },
+  "flat.lonW": { text: "{deg}° W", kind: "label" },
+  "flat.latN": { text: "{deg}° N", kind: "label" },
+  "flat.km": { text: "{n} km", kind: "label" },
+  "flat.m": { text: "{n} m", kind: "label" },
   "flat.place": { text: "Place", kind: "label" },
   "flat.question": { text: "Question", kind: "label" },
   "flat.notes": { text: "View notes", kind: "label" },
@@ -152,7 +157,7 @@ export const en = {
   "stage.imagery": { text: "Imagery: Sentinel-2, summer 2025, display only", kind: "ui" },
   "stage.sources": { text: "Sources and notices", kind: "link" },
   "stage.mapFailed": {
-    text: "The interactive map could not load. Everything shown on the map is also listed in Read flat.",
+    text: "The interactive map could not load. Everything it would show is listed below.",
     kind: "ui",
   },
 

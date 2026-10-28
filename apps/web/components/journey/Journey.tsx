@@ -19,12 +19,14 @@ import { CASE_V, FADE_V, KEY, globeStateAt, sunFor, type Moments } from "../../l
 import { Opening } from "../opening/Opening";
 import { GlobePage } from "./GlobePage";
 import type { CaseSnapshot } from "@siterra/contracts";
+import type { MapBundle } from "../../lib/map/bundle";
 import type { ReadyArrival } from "../../lib/projection/arrival";
 import { ArrivalView } from "../views/ArrivalView";
 import styles from "./Journey.module.css";
 
 export interface JourneyProps {
-  manifestUrl: string;
+  /** The valley's and the globe's assets, from the one map bundle. */
+  valleyAssets: MapBundle["valley"];
   globeAssets: GlobeAssets;
   /** The case's arrival, projected from its record. */
   arrival: ReadyArrival;
@@ -35,7 +37,7 @@ type Phase = "opening" | "globe" | "dive" | "arrival";
 
 const RANGE_NAMES: [MessageId, MessageId] = ["globe.range", "dive.highAtlas"];
 
-export function Journey({ manifestUrl, globeAssets, arrival, snapshot }: JourneyProps) {
+export function Journey({ valleyAssets, globeAssets, arrival, snapshot }: JourneyProps) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const valley = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
@@ -210,7 +212,7 @@ export function Journey({ manifestUrl, globeAssets, arrival, snapshot }: Journey
     <div className={styles.journey} data-phase={phase}>
       <div ref={valley} className={styles.valley} aria-hidden={phase !== "arrival"}>
         <ArrivalView
-          manifestUrl={manifestUrl}
+          assets={valleyAssets}
           arrival={arrival}
           snapshot={snapshot}
           chrome={phase === "arrival"}

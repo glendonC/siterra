@@ -13,6 +13,8 @@ export interface ArrivalFlatInput {
   placeCredit: string;
   placeCredits: readonly { name: string; attribution: string }[];
   reliefFactor: number;
+  /** True when the imagery is drawn on the land. */
+  imagery: boolean;
 }
 
 export function arrivalFlat(i: ArrivalFlatInput): FlatSection[] {
@@ -32,7 +34,10 @@ export function arrivalFlat(i: ArrivalFlatInput): FlatSection[] {
     },
     {
       heading: en["flat.notes"].text,
-      lines: [format("stage.relief", { factor: i.reliefFactor }), en["stage.imagery"].text],
+      lines: [
+        format("stage.relief", { factor: i.reliefFactor }),
+        ...(i.imagery ? [en["stage.imagery"].text] : []),
+      ],
     },
     {
       heading: en["flat.sources"].text,

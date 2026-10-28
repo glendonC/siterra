@@ -11,7 +11,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Card } from "../card/Card";
 import { Leader } from "../card/Leader";
 import { useCaseSession } from "../case/useCaseSession";
-import { ReadFlat } from "../flat/ReadFlat";
+import { FlatListing } from "../flat/FlatListing";
 import { Notices } from "../notices/Notices";
 import { ArrivalChrome } from "../shell/ArrivalChrome";
 import { ValleyStage } from "../stage/ValleyStage";
@@ -20,15 +20,18 @@ import { commandRunning, workCard } from "../../lib/card/work";
 import { commissionRequest, submitCommand } from "../../lib/case/command";
 import { latestCommandId } from "../../lib/case/events";
 import type { MessageId } from "../../lib/copy/en";
+import type { MapBundle } from "../../lib/map/bundle";
 import { arrivalFlat } from "../../lib/flat/arrival";
 import { projectObservations } from "../../lib/projection/observations";
 import type { ReadyArrival } from "../../lib/projection/arrival";
 import { ARRIVAL_EXAGGERATION, ARRIVAL_POSE } from "../../lib/stage/arrival";
+import { primaryHint } from "../../lib/shell/hints";
 import { readSingleKeys, viewerStorage, writeSingleKeys } from "../../lib/shell/preferences";
 import { orbitToMapCamera } from "../../lib/stage/camera";
 
 export interface ArrivalViewProps {
-  manifestUrl: string;
+  /** The valley's assets from the map bundle, or null when it could not be read. */
+  assets: MapBundle["valley"] | null;
   arrival: ReadyArrival;
   /** The case revision the arrival was projected from; the session keeps it current. */
   snapshot: CaseSnapshot;
@@ -43,7 +46,7 @@ export interface ArrivalViewProps {
 const noop = () => undefined;
 
 export function ArrivalView({
-  manifestUrl,
+  assets,
   arrival,
   snapshot: initial,
   chrome = true,
@@ -52,7 +55,13 @@ export function ArrivalView({
   onAsk = noop,
   onSources = noop,
 }: ArrivalViewProps) {
-  const [flatOpen, setFlatOpen] = useState(false);
+  // "F Read flat": the flat map reading (MOT-12); F again returns to the beat's view
+  const [flat, setFlat] = useState(false);
+  const [mapFailed, setMapFailed] = useState(false);
+  const onMapFailed = useCallback(() => {
+    setMapFailed(true);
+  }, []);
+  const imagery = assets?.imagery !== undefined;
   const [noticesOpen, setNoticesOpen] = useState(false);
   // on for the server render; the viewer's stored choice is read once the page runs
   const [singleKeys, setSingleKeys] = useState(true);
@@ -109,8 +118,24 @@ export function ArrivalView({
   const question = arrival.question;
   return (
     <>
+      {/* first in the tab order: the skip link to the text listing */}
+      {chrome ? (
+        <FlatListing
+          shown={mapFailed}
+          sections={arrivalFlat({
+            question,
+            areaKm2: arrival.areaKm2,
+            places: arrival.land.places,
+            outlet: arrival.land.outlet !== undefined,
+            placeCredit: arrival.land.creditLine,
+            placeCredits: arrival.land.credits,
+            reliefFactor: ARRIVAL_EXAGGERATION,
+            imagery,
+          })}
+        />
+      ) : null}
       <ValleyStage
-        manifestUrl={manifestUrl}
+        assets={assets}
         catchment={arrival.catchment}
         areaKm2={arrival.areaKm2}
         places={arrival.land.places}
@@ -120,6 +145,8 @@ export function ArrivalView({
         names={!working}
         onArrive={onArrive}
         onOutline={setOutline}
+        flat={flat}
+        onFailed={onMapFailed}
       />
       {chrome && card && commandId ? (
         <>
@@ -133,15 +160,17 @@ export function ArrivalView({
             question={question}
             mode={arrival.modeLines}
             reliefFactor={ARRIVAL_EXAGGERATION}
+            imagery={imagery}
             placeCredit={arrival.land.creditLine}
             singleKeys={singleKeys}
             arrived={arrived}
             bearingDeg={bearing}
-            primary={running ? "work.stop" : "arrival.start"}
+            primary={primaryHint({ commissioned: working, running })}
             onStart={running ? stop : commission}
             notice={notice}
+            flat={flat}
             onReadFlat={() => {
-              setFlatOpen(true);
+              setFlat((f) => !f);
             }}
             onAsk={onAsk}
             onSources={() => {
@@ -153,25 +182,11 @@ export function ArrivalView({
             open={noticesOpen}
             dataCredits={arrival.dataCredits}
             placeCredits={arrival.land.credits}
+            imagery={imagery}
             singleKeys={singleKeys}
             onSingleKeys={onSingleKeys}
             onClose={() => {
               setNoticesOpen(false);
-            }}
-          />
-          <ReadFlat
-            open={flatOpen}
-            sections={arrivalFlat({
-              question,
-              areaKm2: arrival.areaKm2,
-              places: arrival.land.places,
-              outlet: arrival.land.outlet !== undefined,
-              placeCredit: arrival.land.creditLine,
-              placeCredits: arrival.land.credits,
-              reliefFactor: ARRIVAL_EXAGGERATION,
-            })}
-            onClose={() => {
-              setFlatOpen(false);
             }}
           />
         </>

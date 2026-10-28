@@ -10,6 +10,7 @@ describe("arrivalFlat", () => {
     placeCredit: "© OpenStreetMap contributors.",
     placeCredits: [{ name: "Tabant", attribution: "GeoNames, CC BY 4.0" }],
     reliefFactor: 2,
+    imagery: true,
   });
 
   it("lists every fact the arrival screen shows, in reading order", () => {
@@ -33,9 +34,11 @@ describe("arrivalFlat", () => {
       placeCredit: "",
       placeCredits: [],
       reliefFactor: 2,
+      imagery: false,
     });
     expect(bare[1]?.lines).toHaveLength(2);
     expect(bare[3]?.lines).toHaveLength(3);
+    expect(bare[2]?.lines).toEqual(["Relief ×2"]);
   });
 
   it("leaves no placeholder unfilled", () => {

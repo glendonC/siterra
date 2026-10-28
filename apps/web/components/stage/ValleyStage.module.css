@@ -126,10 +126,12 @@
   white-space: nowrap;
 }
 
+/* above the text listing, which takes the map's place (FlatListing: top 48, left 40) */
 .error {
   position: absolute;
-  left: 16px;
-  bottom: 16px;
+  left: 40px;
+  top: 16px;
+  max-width: calc(100vw - 80px);
   margin: 0;
   font: 400 var(--type-body-size) / var(--type-body-line) var(--font-sans);
   color: var(--ink);
@@ -147,4 +149,83 @@
   to {
     opacity: 1;
   }
+}
+
+/* The flat reading's frame (MOT-12): graticule ticks at the edges and a scale bar, type.hero-instrument. */
+.flatFrame {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  font: 400 var(--type-hero-instrument-size) / var(--type-hero-instrument-line) var(--font-mono);
+  color: var(--grey);
+}
+
+/* a top tick with its longitude hanging under it */
+.tickTop {
+  position: absolute;
+  top: 0;
+  padding-top: 10px;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+
+.tickTop::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 1px;
+  height: 8px;
+  background: var(--ink);
+}
+
+.tickBottom {
+  position: absolute;
+  bottom: 0;
+  width: 1px;
+  height: 8px;
+  background: var(--ink);
+}
+
+.tickLeft {
+  position: absolute;
+  left: 0;
+  padding-left: 12px;
+  transform: translateY(-50%);
+  white-space: nowrap;
+}
+
+.tickLeft::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 8px;
+  height: 1px;
+  background: var(--ink);
+}
+
+.tickRight {
+  position: absolute;
+  right: 0;
+  width: 8px;
+  height: 1px;
+  background: var(--ink);
+}
+
+.scaleBar {
+  position: absolute;
+  left: 40px;
+  top: 32px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink);
+}
+
+.scaleLine {
+  display: block;
+  height: 6px;
+  border: 1px solid var(--ink);
+  border-top: 0;
 }

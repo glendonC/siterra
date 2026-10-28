@@ -1,13 +1,10 @@
 import { JourneyPage } from "../components/journey/JourneyPage";
 
-// The approved sequence: opening, globe, dive, arrival. Asset manifests come from the environment.
+// The approved sequence: opening, globe, dive, arrival. The map assets come from the app's own origin.
 export default function Home() {
   return (
     <main>
-      <JourneyPage
-        manifestUrl={process.env.NEXT_PUBLIC_MAP_MANIFEST_URL ?? ""}
-        globeManifestUrl={process.env.NEXT_PUBLIC_GLOBE_MANIFEST_URL ?? ""}
-      />
+      <JourneyPage />
     </main>
   );
 }

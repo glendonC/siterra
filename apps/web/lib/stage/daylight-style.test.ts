@@ -28,9 +28,10 @@ const assets: ValleyAssets = {
     maxzoom: 12,
     attribution: "terrain notice",
   },
-  imageryOuter: { kind: "tiles", tiles: ["/o/{z}/{x}/{y}.webp"], tileSize: 256, maxzoom: 13 },
-  imageryInner: { kind: "tiles", tiles: ["/i/{z}/{x}/{y}.webp"], tileSize: 256, maxzoom: 15 },
-  imageryAttribution: "imagery notice",
+  imagery: {
+    image: { kind: "tiles", tiles: ["/i/{z}/{x}/{y}.webp"], tileSize: 256, maxzoom: 15 },
+    attribution: "imagery notice",
+  },
 };
 
 function colours(value: unknown, out: string[] = []): string[] {
@@ -68,11 +69,18 @@ describe("valleyStyle", () => {
 
   it("orders the land: imagery, relief, veil, then the line and the beam on top", () => {
     const order = style.layers.map((l) => l.id);
-    expect(order.indexOf("imagery-inner")).toBeGreaterThan(order.indexOf("imagery-outer"));
-    expect(order.indexOf("relief")).toBeGreaterThan(order.indexOf("imagery-inner"));
+    expect(order.indexOf("imagery")).toBeGreaterThan(order.indexOf("paper"));
+    expect(order.indexOf("relief")).toBeGreaterThan(order.indexOf("imagery"));
     expect(order.indexOf("outside-veil")).toBeGreaterThan(order.indexOf("relief"));
     expect(order.indexOf("catchment-line")).toBeGreaterThan(order.indexOf("catchment-casing"));
     expect(order.at(-1)).toBe("outlet-beam");
+  });
+
+  it("draws the relief alone, with no imagery source, when the bundle has no imagery", () => {
+    const bare = valleyStyle({ assets: { terrain: assets.terrain }, catchment: square });
+    expect(Object.keys(bare.sources).filter((k) => k.startsWith("imagery"))).toEqual([]);
+    expect(bare.layers.some((l) => l.id.startsWith("imagery"))).toBe(false);
+    expect(bare.layers.some((l) => l.id === "relief")).toBe(true);
   });
 
   it("uses only daylight token colours", () => {

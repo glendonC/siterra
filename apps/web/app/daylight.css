@@ -34,6 +34,9 @@
   --type-hint-size: 15px;
   --type-command-size: 17px;
   --type-mono-small-size: 11px;
+  /* type.hero-instrument (design/tokens/siterra.css): the graticule and the scale bar of the flat reading */
+  --type-hero-instrument-size: 11px;
+  --type-hero-instrument-line: 14px;
   --type-credit-size: 10px;
   --type-label-size: 12px;
   --type-label-line: 16px;

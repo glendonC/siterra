@@ -31,13 +31,13 @@ export interface ValleyAssets {
     attribution: string;
     bounds?: [number, number, number, number];
   };
-  /** Sentinel-2 composite at 30 m over the wider land. */
-  imageryOuter: RasterAsset;
-  /** Sentinel-2 composite at 10 m over the catchment and about 5 km round it. */
-  imageryInner: RasterAsset;
+  /**
+   * The Sentinel-2 summer composite draped on the relief, when the map bundle carries it (SCIENCE's
+   * valley-imagery layer: one 30 m picture over the asset extent). Without it the land is the relief alone.
+   */
+  imagery?: { image: RasterAsset; attribution: string };
   /** Paper haze away from the study area, drawn by the client as a radial picture. */
   haze?: { url: string; coordinates: Corners };
-  imageryAttribution: string;
 }
 
 export interface ValleyStyleInput {
@@ -45,10 +45,8 @@ export interface ValleyStyleInput {
   catchment: Feature;
   /** The outlet from the case's record, where the beam stands; no beam without one. */
   outlet?: { lon: number; lat: number } | undefined;
-  /** Saturation shift for the imagery round the catchment (the light pool keeps more colour). */
+  /** Saturation shift for the imagery (the veil outside the catchment mutes it further). */
   imagerySaturation?: number;
-  /** Saturation shift for the wider land, which takes the paper haze. */
-  outerSaturation?: number;
 }
 
 /** Outer ring of the veil: far larger than any view of the valley. */
@@ -116,7 +114,6 @@ export function valleyStyle({
   catchment,
   outlet,
   imagerySaturation = 0.1,
-  outerSaturation = -0.45,
 }: ValleyStyleInput): StyleSpecification {
   return {
     version: 8,
@@ -139,8 +136,11 @@ export function valleyStyle({
         maxzoom: assets.terrain.maxzoom,
         ...(assets.terrain.bounds ? { bounds: assets.terrain.bounds } : {}),
       },
-      "imagery-outer": rasterSource(assets.imageryOuter, assets.imageryAttribution),
-      "imagery-inner": rasterSource(assets.imageryInner, assets.imageryAttribution),
+      ...(assets.imagery
+        ? {
+            imagery: rasterSource(assets.imagery.image, assets.imagery.attribution),
+          }
+        : {}),
       // the drawn outline is smoothed for display (the record's 30 m geometry steps at every cell)
       catchment: { type: "geojson", data: smoothFeature(catchment) },
       outside: { type: "geojson", data: outsideVeil(smoothFeature(catchment)) },
@@ -174,21 +174,16 @@ export function valleyStyle({
     },
     layers: [
       { id: "paper", type: "background", paint: { "background-color": daylight.paper } },
-      {
-        id: "imagery-outer",
-        type: "raster",
-        source: "imagery-outer",
-        paint: {
-          "raster-saturation": outerSaturation,
-          "raster-fade-duration": 0,
-        },
-      },
-      {
-        id: "imagery-inner",
-        type: "raster",
-        source: "imagery-inner",
-        paint: { "raster-saturation": imagerySaturation, "raster-fade-duration": 0 },
-      },
+      ...(assets.imagery
+        ? ([
+            {
+              id: "imagery",
+              type: "raster",
+              source: "imagery",
+              paint: { "raster-saturation": imagerySaturation, "raster-fade-duration": 0 },
+            },
+          ] as const)
+        : []),
       {
         id: "relief",
         type: "hillshade",

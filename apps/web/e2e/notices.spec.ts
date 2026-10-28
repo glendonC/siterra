@@ -38,7 +38,12 @@ test("single-key shortcuts can be turned off, and the choice holds after a reloa
 }) => {
   await page.goto(`/stage?case=${sharedCase()}`);
   await expect(page.locator("[data-arrival-settled=true]")).toBeVisible({ timeout: 60_000 });
-  const readFlat = page.getByRole("dialog", { name: "Everything on screen, as text" });
+  // the stage's view: "oblique" until F asks for the flat reading
+  const stage = page.locator("[data-view]");
+  const staysOblique = async () => {
+    await page.waitForTimeout(400);
+    await expect(stage).toHaveAttribute("data-view", "oblique");
+  };
   const notices = page.getByRole("dialog", { name: "Sources and notices" });
   const sw = notices.getByRole("switch", { name: "Single-key shortcuts" });
 
@@ -53,21 +58,23 @@ test("single-key shortcuts can be turned off, and the choice holds after a reloa
   await page.keyboard.press("Escape");
   await expect(notices).toBeHidden();
   await page.keyboard.press("f");
-  await expect(readFlat).toBeHidden();
-  // the hint is still a button
-  await page.getByRole("button", { name: /Read flat/ }).click();
-  await expect(readFlat).toBeVisible();
-  await page.keyboard.press("Escape");
+  await staysOblique();
+  // the hint is still a button, and pressing it again returns
+  const hint = page.getByRole("button", { name: /Read flat/ });
+  await hint.click();
+  await expect(stage).not.toHaveAttribute("data-view", "oblique");
+  await hint.click();
+  await expect(stage).toHaveAttribute("data-view", "oblique", { timeout: 10_000 });
 
   await page.reload();
   await expect(page.locator("[data-arrival-settled=true]")).toBeVisible({ timeout: 60_000 });
   await page.keyboard.press("f");
-  await expect(readFlat).toBeHidden();
+  await staysOblique();
   await page.getByRole("button", { name: "Sources and notices" }).click();
   await expect(sw).not.toBeChecked();
   await sw.check();
   await page.keyboard.press("Escape");
   await expect(notices).toBeHidden();
   await page.keyboard.press("f");
-  await expect(readFlat).toBeVisible();
+  await expect(stage).not.toHaveAttribute("data-view", "oblique");
 });

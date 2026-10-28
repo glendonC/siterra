@@ -11,10 +11,11 @@ import type { PlaceCredit } from "../../lib/projection/places";
 import styles from "./Notices.module.css";
 
 /** Display notices for what the map draws that is not a case record, each with its source page. */
-const MAP_NOTICES: { id: MessageId; href?: string }[] = [
-  { id: "notice.relief", href: "https://mapterhorn.com/attribution/" },
-  { id: "notice.imagery" },
-];
+const RELIEF_NOTICE: { id: MessageId; href?: string } = {
+  id: "notice.relief",
+  href: "https://mapterhorn.com/attribution/",
+};
+const IMAGERY_NOTICE: { id: MessageId; href?: string } = { id: "notice.imagery" };
 
 const FONT_LICENCES: { id: MessageId; href: string }[] = [
   { id: "notice.fontSans", href: "/fonts/LICENSE-IBM-Plex-Sans.txt" },
@@ -27,6 +28,8 @@ export interface NoticesProps {
   dataCredits: string[];
   /** Credits of the points on the land, from their ContextFeature records (contextLand). */
   placeCredits: PlaceCredit[];
+  /** True when the imagery is drawn on the land; its notice shows only then. */
+  imagery: boolean;
   /** Whether single-key shortcuts are on, and the switch that changes it. */
   singleKeys: boolean;
   onSingleKeys: (on: boolean) => void;
@@ -37,6 +40,7 @@ export function Notices({
   open,
   dataCredits,
   placeCredits,
+  imagery,
   singleKeys,
   onSingleKeys,
   onClose,
@@ -80,7 +84,7 @@ export function Notices({
       ) : null}
       <h3 className={styles.heading}>{en["notices.map"].text}</h3>
       <ul className={styles.list}>
-        {MAP_NOTICES.map((n) => (
+        {(imagery ? [RELIEF_NOTICE, IMAGERY_NOTICE] : [RELIEF_NOTICE]).map((n) => (
           <li key={n.id}>
             {en[n.id].text}
             {n.href ? (

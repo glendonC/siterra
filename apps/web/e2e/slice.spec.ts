@@ -44,6 +44,9 @@ test("commission, stream, Observations and reload", async ({ page, baseURL }) =>
   test.info().annotations.push({ type: "budget", description: JSON.stringify(report) });
   expect(report.violations).toEqual([]);
   expect(report.counts.leaders).toBe(1);
+  // the hint rule: once the request completes, ↵ has nothing to do, so its hint is gone
+  await expect(page.getByRole("button", { name: "Start investigation" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Stop" })).toHaveCount(0);
   // TR-05: a model name never shows without its route and origin
   const text = await page.locator("body").innerText();
   for (const m of text.matchAll(/muse-spark[^\n]*/g)) expect(m[0]).toContain("(replay, synthetic)");

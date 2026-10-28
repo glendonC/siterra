@@ -2,7 +2,8 @@
 
 // The chrome over the stage at arrival: the mode line (one line, which opens the scope popover with the
 // mode's detail line and what Siterra will and will not do), key hints, the command line holding the case's
-// question, the instruments and the credit line. One action is primary: the ↵ hint.
+// question, the instruments and the credit line. One action is primary: the ↵ hint, shown only when ↵
+// does something (primaryHint).
 
 import { useEffect, useRef } from "react";
 import { en, format, type MessageId } from "../../lib/copy/en";
@@ -17,6 +18,8 @@ export interface ArrivalChromeProps {
   /** The mode line and the line under it, chosen from the case record's mode (projectArrival). */
   mode: ModeLines;
   reliefFactor: number;
+  /** True when the Sentinel-2 imagery is drawn on the land; its instrument line shows only then. */
+  imagery: boolean;
   /** The places part of the credit line, from the case's ContextFeature records (contextLand). */
   placeCredit: string;
   /** False when the viewer turned single-key shortcuts off; the hints stay as buttons. */
@@ -26,10 +29,12 @@ export interface ArrivalChromeProps {
   /** Map bearing, so the north mark points to north on the land. */
   bearingDeg: number;
   onStart: () => void;
-  /** The one primary action's label: start at arrival, Stop while work runs. */
-  primary?: MessageId;
+  /** The one primary action's label, or none when ↵ would do nothing (primaryHint). */
+  primary: MessageId | undefined;
   /** A message under the command line when a request was refused. */
   notice?: MessageId | undefined;
+  /** True in the flat reading: the F hint is pressed, and F again returns. */
+  flat?: boolean;
   onReadFlat: () => void;
   onAsk: (text: string) => void;
   onSources: () => void;
@@ -44,13 +49,15 @@ export function ArrivalChrome({
   question,
   mode,
   reliefFactor,
+  imagery,
   placeCredit,
   singleKeys = true,
   arrived,
   bearingDeg,
   onStart,
-  primary = "arrival.start",
+  primary,
   notice,
+  flat = false,
   onReadFlat,
   onAsk,
   onSources,
@@ -69,6 +76,8 @@ export function ArrivalChrome({
         input.current?.blur();
         return;
       }
+      // ↵ with no primary hint does nothing, so the key is left alone
+      if (action === "primary" && !primary) return;
       e.preventDefault();
       if (action === "primary") onStart();
       else if (action === "readFlat") onReadFlat();
@@ -78,7 +87,7 @@ export function ArrivalChrome({
     return () => {
       window.removeEventListener("keydown", onKey);
     };
-  }, [singleKeys, arrived, onStart, onReadFlat]);
+  }, [singleKeys, arrived, primary, onStart, onReadFlat]);
 
   const reduced =
     typeof window !== "undefined" && matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -161,25 +170,28 @@ export function ArrivalChrome({
         </p>
       ) : null}
       <ul className={`${styles.keys ?? ""} ${keys.className}`} style={keys.style}>
-        <li>
-          <button
-            type="button"
-            className={styles.key}
-            onClick={onStart}
-            aria-keyshortcuts="Enter"
-            data-budget="action"
-          >
-            <kbd className={styles.glyph} aria-hidden="true">
-              ↵
-            </kbd>
-            {en[primary].text}
-          </button>
-        </li>
+        {primary ? (
+          <li>
+            <button
+              type="button"
+              className={styles.key}
+              onClick={onStart}
+              aria-keyshortcuts="Enter"
+              data-budget="action"
+            >
+              <kbd className={styles.glyph} aria-hidden="true">
+                ↵
+              </kbd>
+              {en[primary].text}
+            </button>
+          </li>
+        ) : null}
         <li>
           <button
             type="button"
             className={styles.key}
             onClick={onReadFlat}
+            aria-pressed={flat}
             aria-keyshortcuts="F"
             data-budget="key-hint"
           >
@@ -202,18 +214,22 @@ export function ArrivalChrome({
             viewBox="-20 -20 40 40"
             role="img"
             aria-label={en["stage.northName"].text}
-            style={{ transform: `rotate(${-bearingDeg}deg)` }}
+            // north up in the flat reading
+            style={{ transform: `rotate(${String(flat ? 0 : -bearingDeg)}deg)` }}
           >
             <path d="M0 -12 L4.5 5.5 L0 2 L-4.5 5.5 Z" />
           </svg>
           <span className={styles.northLabel} aria-hidden="true">
             {en["stage.north"].text}
           </span>
-          <span>{format("stage.relief", { factor: reliefFactor })}</span>
+          {/* the flat reading has no relief, so no exaggeration to state */}
+          {flat ? null : <span>{format("stage.relief", { factor: reliefFactor })}</span>}
         </div>
-        <div className={styles.instrumentRow}>
-          <span>{en["stage.imagery"].text}</span>
-        </div>
+        {imagery ? (
+          <div className={styles.instrumentRow}>
+            <span>{en["stage.imagery"].text}</span>
+          </div>
+        ) : null}
       </div>
 
       <p className={styles.credit} data-budget="credit">

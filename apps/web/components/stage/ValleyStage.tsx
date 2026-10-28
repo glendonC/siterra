@@ -10,8 +10,10 @@ import type { BudgetLine } from "../../lib/budget/measure";
 import { en, format, isHonesty, type MessageId } from "../../lib/copy/en";
 import type { LandPoint } from "../../lib/projection/places";
 import { ARRIVAL_EXAGGERATION, ARRIVAL_POSE, VALLEY_NAME_REFERENCE } from "../../lib/stage/arrival";
-import { parseManifest } from "../../lib/stage/assets";
+import type { MapBundle } from "../../lib/map/bundle";
 import { orbitToMapCamera, widthFitScale, type MapCamera } from "../../lib/stage/camera";
+import { easeInOut, FLAT_MOVE_MS, flatCamera, mixCamera } from "../../lib/stage/flat";
+import { FlatFrame } from "./FlatFrame";
 import { valleyStyle } from "../../lib/stage/daylight-style";
 import { groundCorners, screenReadingBearing, type LabelLine } from "../../lib/stage/ground-label";
 import { northEdgeAnchor, valleyNameAnchor } from "../../lib/stage/placement";
@@ -75,8 +77,8 @@ const LINE_H = 83;
 const PLANE_LIFT_M = 600;
 
 export interface ValleyStageProps {
-  /** URL of the asset manifest. */
-  manifestUrl: string;
+  /** The valley's assets from the map bundle, or null when the bundle could not be read. */
+  assets: MapBundle["valley"] | null;
   /** The analysis geometry from the case record (GeoSelection, its current revision). */
   catchment: Feature;
   /** Its area in km² to one decimal, from the record. */
@@ -95,12 +97,16 @@ export interface ValleyStageProps {
   onArrive?: () => void;
   /** False in the work beat: the outline stays, the names and stems leave the land. */
   names?: boolean;
-  /** The projected outline in CSS px, for a leader that ends on the line. */
+  /** The projected outline in CSS px, for a leader that ends on the line; empty in the flat reading. */
   onOutline?: (points: { x: number; y: number }[]) => void;
+  /** The flat reading (MOT-12): top-down, north up, terrain off, with graticule ticks and a scale bar. */
+  flat?: boolean;
+  /** Called when the map cannot be drawn, so the text listing can take its place. */
+  onFailed?: () => void;
 }
 
 export function ValleyStage({
-  manifestUrl,
+  assets,
   catchment,
   areaKm2,
   places,
@@ -111,6 +117,8 @@ export function ValleyStage({
   onOutline,
   labels = true,
   names = true,
+  flat = false,
+  onFailed,
 }: ValleyStageProps) {
   const container = useRef<HTMLDivElement>(null);
   const [stems, setStems] = useState<Stem[]>([]);
@@ -131,6 +139,83 @@ export function ValleyStage({
 
   const [arrived, setArrived] = useState(false);
   const [settled, setSettled] = useState(false);
+  // the beat's view, the flat reading, or the move between them
+  const [view, setView] = useState<"oblique" | "toFlat" | "flat" | "toOblique">("oblique");
+  const viewRef = useRef(view);
+  viewRef.current = view;
+  /** The arrival camera, and the camera and relief the map shows now. */
+  const homeRef = useRef<MapCamera | null>(null);
+  const nowRef = useRef<MapCamera | null>(null);
+  const reliefRef = useRef<number>(ARRIVAL_EXAGGERATION);
+  const flatAppliedRef = useRef(false);
+  const onFailedRef = useRef(onFailed);
+  onFailedRef.current = onFailed;
+
+  // F: one camera move to the top-down view with the relief easing to flat, terrain off at the end; F again
+  // returns. Under reduced motion the camera cuts.
+  useEffect(() => {
+    const m = mapRef.current;
+    const home = homeRef.current;
+    if (!m || !home || !arrived || flat === flatAppliedRef.current) return;
+    flatAppliedRef.current = flat;
+    const canvas = m.getCanvas();
+    const ring = outerRing(catchment) ?? [];
+    const lons = ring.map((p) => p[0]);
+    const lats = ring.map((p) => p[1]);
+    const to = flat
+      ? {
+          ...flatCamera(
+            [Math.min(...lons), Math.min(...lats), Math.max(...lons), Math.max(...lats)],
+            canvas.clientWidth,
+            canvas.clientHeight,
+            120,
+          ),
+          verticalFovDeg: home.verticalFovDeg,
+        }
+      : home;
+    const from = nowRef.current ?? home;
+    const reliefFrom = reliefRef.current;
+    const reliefTo = flat ? 0 : ARRIVAL_EXAGGERATION;
+    const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const duration = reduced ? 0 : FLAT_MOVE_MS;
+    setView(flat ? "toFlat" : "toOblique");
+    showDrapedLine(m, true);
+    if (!flat) m.setTerrain({ source: "terrain", exaggeration: Math.max(reliefFrom, 0.001) });
+    const t0 = performance.now();
+    let raf = 0;
+    const step = () => {
+      const k = duration === 0 ? 1 : Math.min(1, (performance.now() - t0) / duration);
+      const e = easeInOut(k);
+      const c = mixCamera(from, to, e);
+      const relief = reliefFrom + (reliefTo - reliefFrom) * e;
+      m.jumpTo({
+        center: c.center,
+        zoom: c.zoom,
+        pitch: c.pitch,
+        bearing: c.bearing,
+        elevation: c.elevation,
+      });
+      if (m.getTerrain())
+        m.setTerrain({ source: "terrain", exaggeration: Math.max(relief, 0.001) });
+      nowRef.current = c;
+      reliefRef.current = relief;
+      if (k < 1) {
+        raf = requestAnimationFrame(step);
+        return;
+      }
+      if (flat) {
+        m.setTerrain(null);
+        setView("flat");
+      } else {
+        showDrapedLine(m, false);
+        setView("oblique");
+      }
+    };
+    raf = requestAnimationFrame(step);
+    return () => {
+      cancelAnimationFrame(raf);
+    };
+  }, [flat, arrived, catchment]);
 
   // at arrival the outline is drawn crisp above the crest (below); the draped line serves the dive
   useEffect(() => {
@@ -196,7 +281,8 @@ export function ValleyStage({
     const t = arrivalTiming(part, reducedMotion);
     return { "--land-delay": `${String(t.delayMs)}ms`, "--land-dur": `${String(t.durationMs)}ms` };
   };
-  const show = labels && arrived && names;
+  const oblique = view === "oblique";
+  const show = labels && arrived && names && oblique;
 
   useEffect(() => {
     let map: maplibregl.Map | undefined;
@@ -258,6 +344,14 @@ export function ValleyStage({
 
       let last = "";
       const place = () => {
+        // the flat reading draws the line on the land and no names; the leader has no line to end on
+        if (viewRef.current !== "oblique") {
+          if (last !== "flat") {
+            last = "flat";
+            onOutlineRef.current?.([]);
+          }
+          return;
+        }
         const at = (lon: number, lat: number) => {
           const p = m.project([lon, lat]);
           return { x: p.x, y: p.y };
@@ -310,7 +404,7 @@ export function ValleyStage({
     };
 
     const setup = async () => {
-      const manifest = parseManifest(await (await fetch(manifestUrl)).json(), manifestUrl);
+      if (!assets) throw new Error("No map bundle");
       await document.fonts.load(`500 64px ${LABEL_FAMILY}`);
       const el = container.current;
       if (cancelled || !el) return;
@@ -340,7 +434,7 @@ export function ValleyStage({
         container: el,
         style: valleyStyle({
           assets: {
-            ...manifest,
+            ...assets,
             haze: { url: drawHaze(daylight.paper), coordinates: hazeCorners() },
           },
           catchment,
@@ -357,6 +451,8 @@ export function ValleyStage({
         centerClampedToGround: false,
       });
       map = m;
+      homeRef.current = cam;
+      nowRef.current = cam;
       m.setVerticalFieldOfView(cam.verticalFovDeg);
       m.once("load", () => {
         onLoad(m, cam, catchment);
@@ -367,6 +463,7 @@ export function ValleyStage({
     setup().catch((e: unknown) => {
       console.error("Stage: map setup failed", e);
       setFailed(true);
+      onFailedRef.current?.();
     });
 
     return () => {
@@ -374,16 +471,17 @@ export function ValleyStage({
       map?.remove();
     };
     // callers pass the record's geometry once (memoized), so the map is built once per case revision
-  }, [manifestUrl, catchment, areaKm2, onIdle, onMap]);
+  }, [assets, catchment, areaKm2, onIdle, onMap]);
 
   return (
     <div
       className={styles.stage}
       data-stage-idle={idle ? "true" : "false"}
       data-arrival-settled={settled ? "true" : "false"}
+      data-view={view}
     >
       <div ref={container} className={styles.map} aria-hidden="true" />
-      {labels && outline ? (
+      {labels && outline && oblique ? (
         <svg className={styles.outline} aria-hidden="true">
           <path className={styles.outlineCasing} d={outline} />
           <path className={styles.outlineInk} d={outline} />
@@ -446,6 +544,7 @@ export function ValleyStage({
           ))}
         </div>
       ))}
+      {view === "flat" && mapRef.current ? <FlatFrame map={mapRef.current} /> : null}
       <ul className={styles.srOnly} aria-label={en["arrival.valleyName"].text}>
         <li>{en["arrival.region"].text}</li>
         <li>

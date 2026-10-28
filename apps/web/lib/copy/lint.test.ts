@@ -3,7 +3,11 @@ import { DESIGN_RULES, RULES, lint, type Scope } from "./lint";
 
 // One string each rule must catch and one it must leave alone, in the scope where the rule runs.
 const CASES: Record<string, { scope: Scope; hit: string; clean: string }> = {
-  "VT-01": { scope: "ui", hit: "Rainfall fell — then rose.", clean: "Rainfall fell, then rose." },
+  "VT-01": {
+    scope: "ui",
+    hit: "Rainfall fell \u2014 then rose.",
+    clean: "Rainfall fell, then rose.",
+  },
   "VT-02": { scope: "ui", hit: "2019–2025", clean: "2019 to 2025" },
   "VT-03": { scope: "ui", hit: "Data for 2019-2025", clean: "Data for 2019 to 2025" },
   "VT-04": { scope: "ui", hit: "CHIRPS · 33 cells", clean: "CHIRPS, 33 cells" },
