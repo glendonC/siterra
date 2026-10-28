@@ -58,6 +58,7 @@ describe("case analysis configurations", () => {
       "snow_terrain",
       "data_artefact",
     ]);
+    expect(valley?.whenOptionalNotMet).toBe("consistent");
   });
 
   it("each valley field check cites the scientific basis and every explanation pair has one", () => {
@@ -74,6 +75,7 @@ describe("case analysis configurations", () => {
       expect(check.basis).toMatch(
         /^docs\/explanation\/scientific-basis\.md#competing-explanations/,
       );
+      expect(check.basis).toContain("inferred, pending science review");
       expect(check.label).toMatch(/^[A-Z][a-z]+( [A-Z][a-z]+){0,2}$/);
     }
     const ids = valley?.explanations.map((e) => e.id) ?? [];

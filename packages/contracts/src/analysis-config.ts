@@ -50,8 +50,9 @@ const pairKey = ([a, b]: readonly [string, string]) => [a, b].sort().join("|");
 
 /**
  * A measurement the record cannot make; a prediction about it is never testable from the record.
- * `separates` is a configured judgment about which explanation pairs its result tells apart; the
- * field plan (DF-09) chooses from these, and nothing reads a check's wording.
+ * `separates` is a configured judgment about which explanation pairs its result tells apart
+ * (inferred, pending science review unless verified); the field plan (DF-09) chooses from these,
+ * and nothing reads a check's wording.
  */
 export const FieldCheck = z.strictObject({
   id: configKey,
@@ -113,6 +114,11 @@ export const CaseAnalysisConfig = z
       uniqueBy((c: FieldCheck) => c.id),
       { error: "Field check IDs must be unique" },
     ),
+    /**
+     * Status of a branch under merge@2 when every necessary prediction is met and an optional
+     * testable prediction is not met. Defaults to "cannot_be_assessed" when omitted.
+     */
+    whenOptionalNotMet: z.enum(["cannot_be_assessed", "consistent"]).optional(),
   })
   .refine(
     (config) => {

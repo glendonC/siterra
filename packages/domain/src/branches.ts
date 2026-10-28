@@ -11,7 +11,47 @@ import type {
 // scores each committed prediction against the record and fixed rules set each branch's status.
 // Nothing here reads a prediction's wording, and no status is a probability, a rank or proof.
 
-export const MERGE_RULES_VERSION = "merge@1";
+/**
+ * The merge rules a case configuration selects. merge@1 is fixed at its original parameters so
+ * stored merges reproduce; merge@2 (proposed) lets a necessary departure_sign prediction
+ * contradict only over at least `minPeriodsForNecessarySign` periods.
+ */
+export interface MergeRules {
+  version: "merge@1" | "merge@2";
+  minPeriodsForNecessarySign: number;
+  /** The status when every necessary prediction is met and an optional testable one is not. */
+  whenOptionalNotMet: "cannot_be_assessed" | "consistent";
+}
+
+/**
+ * Unsourced default minimum number of evaluated periods before a non-matching departure_sign
+ * prediction can contradict a branch under merge@2; pending science review.
+ */
+export const DEFAULT_MIN_SIGN_PERIODS = 3;
+
+export const MERGE_RULES_V1: MergeRules = {
+  version: "merge@1",
+  minPeriodsForNecessarySign: 1,
+  whenOptionalNotMet: "cannot_be_assessed",
+};
+
+export const MERGE_RULES_V2: MergeRules = {
+  version: "merge@2",
+  minPeriodsForNecessarySign: DEFAULT_MIN_SIGN_PERIODS,
+  whenOptionalNotMet: "cannot_be_assessed",
+};
+
+export const MERGE_RULES_VERSION = MERGE_RULES_V2.version;
+
+/** Merge rules for a case configuration (merge@2 with the case's whenOptionalNotMet setting). */
+export function mergeRulesFor(
+  config?: { whenOptionalNotMet?: "cannot_be_assessed" | "consistent" | undefined } | null,
+): MergeRules {
+  return {
+    ...MERGE_RULES_V2,
+    whenOptionalNotMet: config?.whenOptionalNotMet ?? MERGE_RULES_V2.whenOptionalNotMet,
+  };
+}
 
 type ReasonCode = NonNullable<PredictionScore["reasonCode"]>;
 type BranchStatus = BranchMerge["branches"][number]["status"];
@@ -316,19 +356,42 @@ export interface MergeResult {
   conflicts: BranchConflict[];
 }
 
-function statusOf(branch: BranchScoring): { status: BranchStatus; reason: string } {
+const periodsWord = (n: number): string => `${String(n)} ${n === 1 ? "period" : "periods"}`;
+
+function isShortNecessarySign(p: Prediction, rules: MergeRules): boolean {
+  return (
+    p.necessary &&
+    p.test.kind === "departure_sign" &&
+    p.test.periodIds.length < rules.minPeriodsForNecessarySign
+  );
+}
+
+function statusOf(
+  branch: BranchScoring,
+  rules: MergeRules,
+): { status: BranchStatus; reason: string } {
   if (branch.predictions.length === 0) {
     return { status: "cannot_be_assessed", reason: "No predictions were recorded." };
   }
   const scoreOf = new Map(branch.scores.map((s) => [s.predictionKey, s]));
-  const failedNecessary = branch.predictions.filter(
+  const unmetNecessary = branch.predictions.filter(
     (p) => p.necessary && scoreOf.get(p.key)?.outcome === "not_met",
   );
+  const failedNecessary = unmetNecessary.filter((p) => !isShortNecessarySign(p, rules));
   if (failedNecessary.length > 0) {
     const keys = failedNecessary.map((p) => p.key).join(", ");
     return {
       status: "contradicted",
       reason: `Necessary prediction ${keys} is not met on adequate data.`,
+    };
+  }
+  const shortNecessary = unmetNecessary.filter((p) => isShortNecessarySign(p, rules));
+  if (shortNecessary.length > 0) {
+    const keys = shortNecessary.map((p) => p.key).join(", ");
+    const count = Math.max(...shortNecessary.map((p) => p.test.periodIds.length));
+    return {
+      status: "cannot_be_assessed",
+      reason: `Necessary prediction ${keys} is not met over ${periodsWord(count)}; ${rules.version} needs ${periodsWord(rules.minPeriodsForNecessarySign)} to contradict.`,
     };
   }
   const testable = branch.scores.filter((s) => s.outcome !== "not_testable");
@@ -337,6 +400,20 @@ function statusOf(branch: BranchScoring): { status: BranchStatus; reason: string
   }
   const unmet = testable.filter((s) => s.outcome === "not_met").map((s) => s.predictionKey);
   if (unmet.length > 0) {
+    const necessary = branch.predictions.filter((p) => p.necessary);
+    const metNecessary = necessary.filter((p) => scoreOf.get(p.key)?.outcome === "met");
+    if (
+      rules.whenOptionalNotMet === "consistent" &&
+      necessary.length > 0 &&
+      metNecessary.length === necessary.length
+    ) {
+      const optVerb = unmet.length === 1 ? "is" : "are";
+      const necVerb = necessary.length === 1 ? "is" : "are";
+      return {
+        status: "consistent",
+        reason: `Optional prediction ${unmet.join(", ")} ${optVerb} not met; ${String(metNecessary.length)} of ${String(necessary.length)} necessary predictions ${necVerb} met.`,
+      };
+    }
     return {
       status: "cannot_be_assessed",
       reason: `Prediction ${unmet.join(", ")} is not met but not necessary, so the rules set no other status.`,
@@ -355,7 +432,10 @@ const CONFLICT_ORDER: readonly BranchConflict["kind"][] = [
 ];
 
 /** The fixed merge: statuses from the scores alone, and the conflicts to flag. */
-export function mergeBranches(branches: readonly BranchScoring[]): MergeResult {
+export function mergeBranches(
+  branches: readonly BranchScoring[],
+  rules: MergeRules = MERGE_RULES_V1,
+): MergeResult {
   const conflicts: BranchConflict[] = [];
   const predicted = branches.filter((b) => b.predictions.length > 0);
   if (predicted.length >= 2 && predicted.length === branches.length) {
@@ -385,9 +465,18 @@ export function mergeBranches(branches: readonly BranchScoring[]): MergeResult {
   }
   for (const branch of branches) {
     for (const score of branch.scores) {
-      if (score.outcome !== "not_testable") continue;
       const p = branch.predictions.find((x) => x.key === score.predictionKey);
       if (!p) continue;
+      if (score.outcome === "not_met" && isShortNecessarySign(p, rules)) {
+        conflicts.push({
+          kind: "inadequate_data",
+          testKey: testKey(p.test),
+          predictions: [{ branchId: branch.branchId, predictionKey: p.key }],
+          detail: `Not met over ${periodsWord(p.test.periodIds.length)}, fewer than the ${periodsWord(rules.minPeriodsForNecessarySign)} ${rules.version} needs to contradict.`,
+        });
+        continue;
+      }
+      if (score.outcome !== "not_testable") continue;
       conflicts.push({
         kind:
           score.reasonCode !== null && INADEQUATE.has(score.reasonCode)
@@ -404,7 +493,7 @@ export function mergeBranches(branches: readonly BranchScoring[]): MergeResult {
     branches: branches.map((b) => ({
       branchId: b.branchId,
       explanationId: b.explanationId,
-      ...statusOf(b),
+      ...statusOf(b, rules),
     })),
     conflicts,
   };

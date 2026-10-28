@@ -8,9 +8,9 @@ import type {
 } from "@siterra/contracts";
 import { maxExplanations } from "@siterra/contracts";
 import {
-  MERGE_RULES_VERSION,
   hypothesisStatusOf,
   mergeBranches,
+  mergeRulesFor,
   minimumTestCover,
   openPairs,
   scorePrediction,
@@ -262,7 +262,11 @@ function fieldPlanOf(
   const others = (id: string, pairs: readonly PairIds[]) =>
     pairs.filter((p) => p.includes(id)).map(([a, b]) => labelOf.get(a === id ? b : a) ?? "");
   const lines = new Map<string, string[]>();
-  for (const { explanationId: id } of merged.branches) {
+  for (const { explanationId: id, status } of merged.branches) {
+    if (status === "contradicted") {
+      lines.set(id, []);
+      continue;
+    }
     const self = labelOf.get(id) ?? id;
     const named = cover.measurements
       .filter((m) => others(id, m.separates).length > 0)
@@ -442,9 +446,17 @@ export async function runExplanationBranchesTask(
     predictions: d.predictions,
     scores: d.predictions.map((p) => scorePrediction(p, record)),
   }));
-  const merged = mergeBranches(scored);
+  const rules = mergeRulesFor(config);
+  const merged = mergeBranches(scored, rules);
   const fieldPlan = fieldPlanOf(config, merged);
   const hypothesisIds = drafted.map((d) => hypothesisIdFor(task.id, d.explanation.id));
+  const inputEvidenceVersions: EntityVersion[] = [
+    ...task.inputVersions.filter((v) => v.entityId.startsWith("ev_")),
+    ...(deps.committedEvidence ?? [])
+      .filter((e) => e.caseId === task.caseId && e.status === "accepted")
+      .map((e) => ({ entityId: e.id, revision: e.revision })),
+  ].filter((v, i, all) => all.findIndex((w) => w.entityId === v.entityId) === i);
+  const inputEvidenceIds = inputEvidenceVersions.map((v) => v.entityId);
   const bundleVersions = (scores: readonly PredictionScore[]): EntityVersion[] => {
     const read = new Set(scores.flatMap((s) => s.dataBundleIds));
     const known = catalog.pairs.flatMap((p) => [p.a.bundle, p.b.bundle]);
@@ -471,11 +483,11 @@ export async function runExplanationBranchesTask(
       provenance: {
         ...b.provenance,
         dataBundleIds: [...new Set(scores.flatMap((x) => x.dataBundleIds))],
-        inputVersions: bundleVersions(scores),
+        inputVersions: [...inputEvidenceVersions, ...bundleVersions(scores)],
         generatedAt: scoredAt,
         limitations: [
           ...limitations,
-          `Scored by host code and set by the fixed merge rules (${MERGE_RULES_VERSION}); the model wrote the wording only.`,
+          `Scored by host code and set by the fixed merge rules (${rules.version}); the model wrote the wording only.`,
           "A status describes the record against committed predictions; it is not a probability, a rank or proof.",
         ],
       },
@@ -490,7 +502,7 @@ export async function runExplanationBranchesTask(
     caseId: task.caseId,
     commandId: task.commandId,
     taskId: task.id,
-    rulesVersion: MERGE_RULES_VERSION,
+    rulesVersion: rules.version,
     predictionsCaseRevision: receipt.caseRevision,
     branches: revisionTwo.map((b) => ({
       branchId: b.id,
@@ -523,6 +535,7 @@ export async function runExplanationBranchesTask(
   const hypotheses: HypothesisRecord[] = revisionTwo.map((b, i) => {
     const status = hypothesisStatusOf(b.status === "predicted" ? "cannot_be_assessed" : b.status);
     const id = hypothesisIds[i] ?? "";
+    const measurementIds = [...new Set(b.scores.flatMap((s) => s.measurementIds))];
     return {
       recordType: "Hypothesis",
       id,
@@ -532,27 +545,28 @@ export async function runExplanationBranchesTask(
       caseId: task.caseId,
       statement: b.statement,
       status,
-      supportingEvidenceIds: [],
-      contradictingEvidenceIds: [],
+      supportingEvidenceIds: status === "inconsistent" ? [] : inputEvidenceIds,
+      contradictingEvidenceIds: status === "inconsistent" ? inputEvidenceIds : [],
+      measurementIds,
       missingEvidence: [
         ...missingOf(b.predictions, b.scores),
         ...(fieldPlan.lines.get(b.explanationId) ?? []),
       ],
       alternativeHypothesisIds: hypothesisIds.filter((other) => other !== id),
-      assessment: `${STATUS_LABELS[status]}: ${b.statusReason} Explanation branch ${b.id}, scored under ${MERGE_RULES_VERSION}.`,
+      assessment: `${STATUS_LABELS[status]}: ${b.statusReason} Explanation branch ${b.id}, scored under ${rules.version}.`,
       provenance: {
         sourceLocators: [],
         dataBundleIds: b.provenance.dataBundleIds,
         methodId: null,
         methodVersion: null,
-        inputVersions: [{ entityId: b.id, revision: b.revision }],
+        inputVersions: [{ entityId: b.id, revision: b.revision }, ...inputEvidenceVersions],
         generatedByTaskId: task.id,
         generatedAt: scoredAt,
         verificationStatus: "unverified",
         limitations: [
           ...limitations,
           "A hypothesis is a candidate explanation; its status describes the evidence, not proof.",
-          `Its status is the explanation branch's, set by fixed rules (${MERGE_RULES_VERSION}) from host scores of predictions committed before any result was read.`,
+          `Its status is the explanation branch's, set by fixed rules (${rules.version}) from host scores of predictions committed before any result was read.`,
         ],
       },
     };

@@ -24,6 +24,7 @@ export const BundleVariable = z.enum([
   "elevation_band",
   "aspect_class",
   "landcover_mask",
+  "snow_cover_fraction",
 ]);
 export const PeriodStatus = z.enum(["available", "insufficient", "missing"]);
 export const QualityFlag = z.enum([

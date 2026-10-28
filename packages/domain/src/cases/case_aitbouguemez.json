@@ -25,7 +25,7 @@
       "id": "local_rain_records",
       "label": "Local Rain Records",
       "method": "Local precipitation records, snow timing and temperature for the catchment, by month.",
-      "basis": "docs/explanation/scientific-basis.md#competing-explanations-and-useful-next-work",
+      "basis": "docs/explanation/scientific-basis.md#competing-explanations-and-useful-next-work (inferred, pending science review)",
       "separates": [
         ["rainfall", "grazing"],
         ["rainfall", "land_use"],
@@ -37,7 +37,7 @@
       "id": "herd_records",
       "label": "Herd Records",
       "method": "Animal numbers by species, residence time, access routes, pasture area and seasonal movements.",
-      "basis": "docs/explanation/scientific-basis.md#competing-explanations-and-useful-next-work",
+      "basis": "docs/explanation/scientific-basis.md#competing-explanations-and-useful-next-work (inferred, pending science review)",
       "separates": [
         ["grazing", "rainfall"],
         ["grazing", "land_use"],
@@ -49,7 +49,7 @@
       "id": "orchard_history",
       "label": "Orchard History",
       "method": "Crop, orchard and irrigation history for 2019 to 2025, and botanical composition.",
-      "basis": "docs/explanation/scientific-basis.md#competing-explanations-and-useful-next-work",
+      "basis": "docs/explanation/scientific-basis.md#competing-explanations-and-useful-next-work (inferred, pending science review)",
       "separates": [
         ["land_use", "rainfall"],
         ["land_use", "grazing"],
@@ -61,7 +61,7 @@
       "id": "seasonal_calendar",
       "label": "Seasonal Calendar",
       "method": "Local seasonal calendar and shadow and snow quality checks.",
-      "basis": "docs/explanation/scientific-basis.md#competing-explanations-and-useful-next-work",
+      "basis": "docs/explanation/scientific-basis.md#competing-explanations-and-useful-next-work (inferred, pending science review)",
       "separates": [
         ["snow_terrain", "rainfall"],
         ["snow_terrain", "grazing"],
@@ -73,7 +73,7 @@
       "id": "scene_inspection",
       "label": "Scene Inspection",
       "method": "Independent manual inspection of the source scenes and repeat processing.",
-      "basis": "docs/explanation/scientific-basis.md#competing-explanations-and-useful-next-work",
+      "basis": "docs/explanation/scientific-basis.md#competing-explanations-and-useful-next-work (inferred, pending science review)",
       "separates": [
         ["data_artefact", "rainfall"],
         ["data_artefact", "grazing"],
@@ -115,5 +115,6 @@
       "label": "Data artefact",
       "statement": "Too few clear scenes or a processing artefact in the vegetation record produced the low values without a change in the vegetation."
     }
-  ]
+  ],
+  "whenOptionalNotMet": "consistent"
 }

@@ -351,6 +351,7 @@ export const Hypothesis = z.strictObject({
   status: z.enum(["untested", "consistent", "inconsistent", "inconclusive", "stale"]),
   supportingEvidenceIds: uniqueArray(entityId),
   contradictingEvidenceIds: uniqueArray(entityId),
+  measurementIds: uniqueArray(entityId).optional(),
   missingEvidence: uniqueArray(z.string().min(1)),
   alternativeHypothesisIds: uniqueArray(entityId),
   assessment: z.string().min(1),

@@ -59,6 +59,16 @@ const OTHER_PLACE = {
 describe("case analysis configuration", () => {
   it("accepts a place other than the valley", () => {
     expect(CaseAnalysisConfig.safeParse(OTHER_PLACE).success).toBe(true);
+    expect(
+      CaseAnalysisConfig.safeParse({ ...OTHER_PLACE, whenOptionalNotMet: "consistent" }).success,
+    ).toBe(true);
+    expect(
+      CaseAnalysisConfig.safeParse({ ...OTHER_PLACE, whenOptionalNotMet: "cannot_be_assessed" })
+        .success,
+    ).toBe(true);
+    expect(
+      CaseAnalysisConfig.safeParse({ ...OTHER_PLACE, whenOptionalNotMet: "contradicted" }).success,
+    ).toBe(false);
   });
 
   it("refuses months outside 1 to 12, repeated IDs and more explanations than the cap", () => {

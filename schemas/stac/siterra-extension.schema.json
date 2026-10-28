@@ -281,7 +281,8 @@
         "precipitation_departure",
         "elevation_band",
         "aspect_class",
-        "landcover_mask"
+        "landcover_mask",
+        "snow_cover_fraction"
       ]
     },
     "siterra:dataset": {

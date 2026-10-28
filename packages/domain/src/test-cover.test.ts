@@ -34,11 +34,17 @@ describe("open explanation pairs", () => {
     ]);
   });
 
-  it("leaves nothing open when at most one explanation stands", () => {
+  it("pairs a single standing explanation with the contradicted ones, and leaves nothing open when none stand", () => {
     expect(
       openPairs([
         { explanationId: "a", status: "contradicted" },
         { explanationId: "b", status: "cannot_be_assessed" },
+      ]),
+    ).toEqual([["a", "b"]]);
+    expect(
+      openPairs([
+        { explanationId: "a", status: "contradicted" },
+        { explanationId: "b", status: "contradicted" },
       ]),
     ).toEqual([]);
   });
