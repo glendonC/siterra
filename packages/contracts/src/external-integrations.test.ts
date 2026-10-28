@@ -26,6 +26,8 @@ const outboundCall =
 const allowedOutbound: Record<string, string> = {
   "packages/agent/src/model/model-api-transport.ts":
     "Meta Model API only (isModelApiUrl), and only once GATE-01 is recorded",
+  "packages/db/src/run-pf05-local.ts":
+    "the local PF-05 check; it refuses any web or database address that is not a loopback host",
 };
 
 function walk(dir: string, keep: (path: string) => boolean): string[] {

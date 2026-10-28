@@ -17,7 +17,8 @@
     "seed:load": "node packages/db/src/run-seed.ts load concept seed",
     "build:web": "pnpm --filter @siterra/web build",
     "start:web": "pnpm --filter @siterra/web start:deploy",
-    "start:worker": "node apps/worker/lib/main.ts"
+    "start:worker": "node apps/worker/lib/main.ts",
+    "check:pf05": "node packages/db/src/run-pf05-local.ts"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
