@@ -13,6 +13,7 @@ import type * as CommandsRoute from "./cases/[caseId]/commands/route.ts";
 import type * as EventsRoute from "./cases/[caseId]/events/route.ts";
 import type * as CancelRoute from "./commands/[commandId]/cancel/route.ts";
 import type * as DemoRoute from "./demo-sessions/route.ts";
+import type * as TraceRoute from "./cases/[caseId]/trace/route.ts";
 
 let db: TestDatabase;
 let pool: Pool;
@@ -27,6 +28,7 @@ type Routes = {
   events: typeof EventsRoute;
   cancel: typeof CancelRoute;
   demo: typeof DemoRoute;
+  trace: typeof TraceRoute;
 };
 let routes: Routes;
 
@@ -47,6 +49,7 @@ beforeAll(async () => {
     events: await import("./cases/[caseId]/events/route.ts"),
     cancel: await import("./commands/[commandId]/cancel/route.ts"),
     demo: await import("./demo-sessions/route.ts"),
+    trace: await import("./cases/[caseId]/trace/route.ts"),
   };
   await createCase(pool, exampleCase(caseId), owner);
   cookie = `${sessionCookieName}=${await createSession(pool, { ownerScopeId: owner, kind: "local", ttlSeconds: 3600 })}`;
@@ -318,5 +321,30 @@ describe("POST /api/demo-sessions", () => {
       }),
     );
     expect(response.status).toBe(401);
+  });
+});
+
+describe("GET /api/cases/:id/trace", () => {
+  it("answers 200 with the command's events, 400 without a command ID, 404 for an unknown command", async () => {
+    const created = await routes.commands.POST(
+      post(`/api/cases/${caseId}/commands`, exampleCommandRequest("api-trace-0001")),
+      params({ caseId }),
+    );
+    const command = (await created.json()) as Command;
+    const trace = await routes.trace.GET(
+      get(`/api/cases/${caseId}/trace?commandId=${command.id}`),
+      params({ caseId }),
+    );
+    expect(trace.status).toBe(200);
+    const body = (await trace.json()) as { events: { kind: string }[]; spans: unknown[] };
+    expect(body.events.map((e) => e.kind)).toEqual(["command.accepted"]);
+    expect(body.spans).toEqual([]);
+    const missing = await routes.trace.GET(get(`/api/cases/${caseId}/trace`), params({ caseId }));
+    expect(missing.status).toBe(400);
+    const unknown = await routes.trace.GET(
+      get(`/api/cases/${caseId}/trace?commandId=cmd_example_unknown`),
+      params({ caseId }),
+    );
+    expect(unknown.status).toBe(404);
   });
 });

@@ -11,3 +11,4 @@ export * from "./outbox.ts";
 export * from "./seed.ts";
 export * from "./sessions.ts";
 export * from "./snapshot.ts";
+export * from "./trace.ts";
