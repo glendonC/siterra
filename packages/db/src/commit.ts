@@ -1,5 +1,5 @@
 import { Commit, EnvironmentalCase, type EntityVersion } from "@siterra/contracts";
-import { canonicalJson, eventMessages } from "@siterra/domain";
+import { canonicalJson, eventMessages, fieldPlanIssues } from "@siterra/domain";
 import { z } from "zod";
 import { type Pool, type Tx, inTransaction, lockCase, notifyEvents } from "./client.ts";
 import { EventDraft, insertEvents, setLastSequence } from "./events.ts";
@@ -30,7 +30,8 @@ export class CommitRejected extends Error {
     | "duplicate_entity"
     | "review_not_permitted"
     | "brief_inputs_not_cited"
-    | "action_status_not_permitted";
+    | "action_status_not_permitted"
+    | "field_plan_invalid";
   constructor(code: CommitRejected["code"], message: string) {
     super(message);
     this.name = "CommitRejected";
@@ -112,6 +113,51 @@ export function uncoveredBriefCitations(record: Upsert): string[] {
   const cited = new Set(record.provenance.inputVersions.map((v) => v.entityId));
   return [...record.evidenceIds, ...record.hypothesisIds, ...record.interventionIds].filter(
     (id) => !cited.has(id),
+  );
+}
+
+/**
+ * The field-plan rules (DF-06, @siterra/domain fieldPlanIssues) for the actions a commit drafts or
+ * sends for review, against the case's current gaps and hypotheses including those the commit
+ * writes. A cancelled, blocked or superseded action is not checked again.
+ */
+async function fieldPlanProblems(
+  tx: Tx,
+  caseId: string,
+  writes: readonly Upsert[],
+): Promise<string[]> {
+  const plans = writes.filter(
+    (record) =>
+      record.recordType === "OperationalAction" &&
+      (record.status === "draft" || record.status === "awaiting_review") &&
+      (record.kind === "field_validation_plan" || record.fieldPlan !== undefined),
+  );
+  if (plans.length === 0) return [];
+  const stored = await tx.query<{ entity_id: string; record: Upsert }>(
+    `select distinct on (entity_id) entity_id, record from records
+     where case_id = $1 and record_type in ('Evidence', 'Hypothesis')
+     order by entity_id, revision desc`,
+    [caseId],
+  );
+  const current = new Map<string, Upsert>(stored.rows.map((r) => [r.entity_id, r.record]));
+  for (const record of writes) current.set(record.id, record);
+  const openGapIds = new Set<string>();
+  const hypothesisIds = new Set<string>();
+  for (const record of current.values()) {
+    if (
+      record.recordType === "Evidence" &&
+      record.claimKind === "field_requirement" &&
+      record.status === "accepted"
+    ) {
+      openGapIds.add(record.id);
+    } else if (record.recordType === "Hypothesis") {
+      hypothesisIds.add(record.id);
+    }
+  }
+  return plans.flatMap((record) =>
+    record.recordType === "OperationalAction"
+      ? fieldPlanIssues(record, { openGapIds, hypothesisIds })
+      : [],
   );
 }
 
@@ -198,6 +244,10 @@ export async function applyCommit(pool: Pool, input: CommitProposal): Promise<Co
           `${record.id}: provenance.inputVersions does not cite ${uncovered.join(", ")}`,
         );
       }
+    }
+    const planProblems = await fieldPlanProblems(tx, proposal.caseId, writes);
+    if (planProblems.length > 0) {
+      throw new CommitRejected("field_plan_invalid", planProblems.join("; "));
     }
     const ids = writes.map((record) => record.id);
     if (new Set(ids).size !== ids.length) {

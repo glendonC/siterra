@@ -1,6 +1,6 @@
 # Data contracts
 
-Status: implementation contract v1.7, 2026-10-27. Machine-readable source of truth: [schemas/case.schema.json](../../schemas/case.schema.json) (JSON Schema 2020-12). Examples: [schemas/examples/](../../schemas/examples/). This document owns cross-record semantics that a JSON Schema cannot express. [Orchestration](agent-orchestration.md) owns jobs and tools; [review](review-and-authority.md) owns authority.
+Status: implementation contract v1.8, 2026-10-27. Machine-readable source of truth: [schemas/case.schema.json](../../schemas/case.schema.json) (JSON Schema 2020-12). Examples: [schemas/examples/](../../schemas/examples/). This document owns cross-record semantics that a JSON Schema cannot express. [Orchestration](agent-orchestration.md) owns jobs and tools; [review](review-and-authority.md) owns authority.
 
 ## Principles
 
@@ -51,7 +51,7 @@ Field-level types live in the schema. This table states purpose and the rules th
 | Relationship | A typed, explained edge between two exact revisions | Allowed pairs below. `fromEntityRevision` and `toEntityRevision` pin what the edge asserts; drawn only on selection. |
 | Intervention | A candidate response | Conditions, assumptions, livelihood and ecological considerations, required review roles. No benefit numbers. |
 | ResourceRequirement | What a response or plan would need | `estimateStatus: unknown \| scenario_assumption \| source_supported \| confirmed`. Quantities only when sourced. |
-| OperationalAction | Prepared real-world work | `externalExecutionEnabled: false` (constant in P0). Terminal P0 state is `prepared`. |
+| OperationalAction | Prepared real-world work | `externalExecutionEnabled: false` (constant in P0). Terminal P0 state is `prepared`, reached only through completed reviews: a task commit that writes `prepared` is refused (`action_status_not_permitted`). A `field_validation_plan` carries `fieldPlan` (1.8): objective, the decision it informs, strata (kinds of place, never sampling points), measurements (what, method, season, strata, field role, the gaps and hypotheses each resolves), deferred gaps with reasons, permissions and consultation steps. A gap is accepted `field_requirement` Evidence. When drafted or sent for review, every measurement names a gap or hypothesis and every open gap of the case is measured or deferred, never both; otherwise the commit is refused (`field_plan_invalid`, DF-06). |
 | ReviewDecision | A role-scoped decision on exact versions | `mode: demo \| real`; `authorityStatus: not_established \| verified_for_scope`. Demo decisions can never satisfy a real authorization. |
 | Brief | The decision brief | Every line is a `BriefItem` with claim kind and evidence IDs. `provenance.inputVersions` cites every ID in `evidenceIds`, `hypothesisIds` and `interventionIds`, so a changed input stales the brief; a commit with a brief that does not is refused (`brief_inputs_not_cited`). |
 | EventRecordRow | One dated event in a validated event bundle ([ADR-0045](../decisions/0045-extend-the-meta-model-map-to-event-records-figures-and-whole-corpus-reading.md)), added in contracts 1.3 | Not evidence. Rules in [event record rows](#event-record-rows). |

@@ -5,7 +5,7 @@ import { z } from "zod";
 import { dateTime, entityId, isoDate, text, uniqueArray, uri, uriReference } from "./primitives.ts";
 import { missingIsAValue } from "./rules.ts";
 
-export const caseSchemaVersion = "1.7.0";
+export const caseSchemaVersion = "1.8.0";
 /** Every schemaVersion string this contract accepts (the earlier ones of the same MAJOR stay valid). */
 export const acceptedCaseSchemaVersions = [
   "1.2.0",
@@ -14,8 +14,9 @@ export const acceptedCaseSchemaVersions = [
   "1.5.0",
   "1.6.0",
   "1.7.0",
+  "1.8.0",
 ] as const;
-export const caseSchemaId = "https://siterra.invalid/schemas/case/1.7.0/case.schema.json";
+export const caseSchemaId = "https://siterra.invalid/schemas/case/1.8.0/case.schema.json";
 
 export const EntityVersion = z.strictObject({
   entityId: entityId,
@@ -532,6 +533,42 @@ export const ReviewDecision = z.strictObject({
 });
 export type ReviewDecision = z.infer<typeof ReviewDecision>;
 
+export const DeferredGap = z.strictObject({
+  gapId: entityId,
+  reason: text({ min: 1, max: 400 }),
+});
+export type DeferredGap = z.infer<typeof DeferredGap>;
+
+export const FieldMeasurement = z.strictObject({
+  what: text({ min: 1, max: 300 }),
+  method: text({ min: 1, max: 400 }),
+  season: text({ min: 1, max: 120 }),
+  stratumKeys: uniqueArray(z.string().regex(new RegExp("^[a-z][a-z0-9_]{0,39}$"))).min(1),
+  fieldRole: text({ min: 1, max: 120 }),
+  resolvesGapIds: uniqueArray(entityId),
+  discriminatesHypothesisIds: uniqueArray(entityId),
+});
+export type FieldMeasurement = z.infer<typeof FieldMeasurement>;
+
+export const FieldStratum = z.strictObject({
+  key: z.string().regex(new RegExp("^[a-z][a-z0-9_]{0,39}$")),
+  label: text({ min: 1, max: 120 }),
+  definition: text({ min: 1, max: 400 }),
+  dataBundleId: entityId.nullable(),
+});
+export type FieldStratum = z.infer<typeof FieldStratum>;
+
+export const FieldPlan = z.strictObject({
+  objective: text({ min: 1, max: 600 }),
+  decisionInformed: text({ min: 1, max: 600 }),
+  strata: z.array(FieldStratum).min(1),
+  measurements: z.array(FieldMeasurement).min(1),
+  deferredGaps: z.array(DeferredGap),
+  permissions: uniqueArray(text({ min: 1, max: 300 })),
+  consultationSteps: uniqueArray(text({ min: 1, max: 300 })),
+});
+export type FieldPlan = z.infer<typeof FieldPlan>;
+
 export const OperationalAction = z.strictObject({
   recordType: z.literal("OperationalAction"),
   id: entityId,
@@ -561,6 +598,7 @@ export const OperationalAction = z.strictObject({
   remainingConditions: uniqueArray(z.string().min(1)),
   preparedArtifactUri: uri.nullable(),
   sourceCaseRevision: z.int().min(1),
+  fieldPlan: FieldPlan.optional(),
 });
 export type OperationalAction = z.infer<typeof OperationalAction>;
 
@@ -610,7 +648,7 @@ export type Brief = z.infer<typeof Brief>;
 
 export const Command = z.strictObject({
   recordType: z.literal("Command"),
-  schemaVersion: z.enum(["1.2.0", "1.3.0", "1.4.0", "1.5.0", "1.6.0", "1.7.0"]),
+  schemaVersion: z.enum(["1.2.0", "1.3.0", "1.4.0", "1.5.0", "1.6.0", "1.7.0", "1.8.0"]),
   id: entityId,
   caseId: entityId,
   createdAt: dateTime,
@@ -711,7 +749,7 @@ export type ValidationResult = z.infer<typeof ValidationResult>;
 
 export const Event = z.strictObject({
   recordType: z.literal("Event"),
-  schemaVersion: z.enum(["1.2.0", "1.3.0", "1.4.0", "1.5.0", "1.6.0", "1.7.0"]),
+  schemaVersion: z.enum(["1.2.0", "1.3.0", "1.4.0", "1.5.0", "1.6.0", "1.7.0", "1.8.0"]),
   id: entityId,
   caseId: entityId,
   sequence: z.int().min(1),
@@ -838,7 +876,7 @@ export type RecordCollections = z.infer<typeof RecordCollections>;
 
 export const CaseSnapshot = z.strictObject({
   recordType: z.literal("CaseSnapshot"),
-  schemaVersion: z.enum(["1.2.0", "1.3.0", "1.4.0", "1.5.0", "1.6.0", "1.7.0"]),
+  schemaVersion: z.enum(["1.2.0", "1.3.0", "1.4.0", "1.5.0", "1.6.0", "1.7.0", "1.8.0"]),
   case: EnvironmentalCase,
   records: RecordCollections,
   lastSequence: z.int().min(0),
@@ -847,7 +885,7 @@ export type CaseSnapshot = z.infer<typeof CaseSnapshot>;
 
 export const Commit = z.strictObject({
   recordType: z.literal("Commit"),
-  schemaVersion: z.enum(["1.2.0", "1.3.0", "1.4.0", "1.5.0", "1.6.0", "1.7.0"]),
+  schemaVersion: z.enum(["1.2.0", "1.3.0", "1.4.0", "1.5.0", "1.6.0", "1.7.0", "1.8.0"]),
   id: entityId,
   caseId: entityId,
   commandId: entityId,
@@ -928,4 +966,8 @@ export const caseDefinitions = {
   BriefItem,
   EventRecordRow,
   ContextFeature,
+  FieldStratum,
+  FieldMeasurement,
+  DeferredGap,
+  FieldPlan,
 } as const;

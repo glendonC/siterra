@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://siterra.invalid/schemas/case/1.7.0/case.schema.json",
+  "$id": "https://siterra.invalid/schemas/case/1.8.0/case.schema.json",
   "title": "Siterra case contracts",
   "description": "Records of one Siterra case as stored and exchanged between the web application, the worker and the browser. The root validates a case snapshot, a command, an event or an atomic commit proposal; $defs holds the record types. Cross-record semantics that JSON Schema cannot express are specified in docs/reference/data-contracts.md.",
   "oneOf": [
@@ -2562,6 +2562,10 @@
         "sourceCaseRevision": {
           "type": "integer",
           "minimum": 1
+        },
+        "fieldPlan": {
+          "description": "Added in 1.8.0; present exactly when kind is field_validation_plan (host rule). Optional so earlier records stay valid.",
+          "$ref": "#/$defs/FieldPlan"
         }
       },
       "required": [
@@ -2782,7 +2786,8 @@
             "1.4.0",
             "1.5.0",
             "1.6.0",
-            "1.7.0"
+            "1.7.0",
+            "1.8.0"
           ],
           "description": "Contract version the instance was written against; producers write the newest, and earlier versions of the same MAJOR stay valid."
         },
@@ -2876,7 +2881,8 @@
             "1.4.0",
             "1.5.0",
             "1.6.0",
-            "1.7.0"
+            "1.7.0",
+            "1.8.0"
           ],
           "description": "Contract version the instance was written against; producers write the newest, and earlier versions of the same MAJOR stay valid."
         },
@@ -3228,7 +3234,8 @@
             "1.4.0",
             "1.5.0",
             "1.6.0",
-            "1.7.0"
+            "1.7.0",
+            "1.8.0"
           ],
           "description": "Contract version the instance was written against; producers write the newest, and earlier versions of the same MAJOR stay valid."
         },
@@ -3265,7 +3272,8 @@
             "1.4.0",
             "1.5.0",
             "1.6.0",
-            "1.7.0"
+            "1.7.0",
+            "1.8.0"
           ],
           "description": "Contract version the instance was written against; producers write the newest, and earlier versions of the same MAJOR stay valid."
         },
@@ -4062,6 +4070,194 @@
         "license",
         "limitations"
       ]
+    },
+    "FieldStratum": {
+      "description": "Added in 1.8.0: a stratum of a field-validation plan, a kind of place to sample, never a sampling point (CMP-13: the local team chooses sites).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "key",
+        "label",
+        "definition",
+        "dataBundleId"
+      ],
+      "properties": {
+        "key": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,39}$"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "definition": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 400
+        },
+        "dataBundleId": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The bundle the stratum is drawn from, when it is drawn from one."
+        }
+      }
+    },
+    "FieldMeasurement": {
+      "description": "Added in 1.8.0: one row of the measurement table (CMP-13): what, method, season, strata, the field role, and the gaps and hypotheses it would resolve.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "what",
+        "method",
+        "season",
+        "stratumKeys",
+        "fieldRole",
+        "resolvesGapIds",
+        "discriminatesHypothesisIds"
+      ],
+      "properties": {
+        "what": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 300
+        },
+        "method": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 400
+        },
+        "season": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "stratumKeys": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]{0,39}$"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "fieldRole": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "resolvesGapIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+          },
+          "minItems": 0,
+          "uniqueItems": true,
+          "description": "Accepted field_requirement Evidence this measurement would close."
+        },
+        "discriminatesHypothesisIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+          },
+          "minItems": 0,
+          "uniqueItems": true,
+          "description": "Hypotheses this measurement would tell apart."
+        }
+      }
+    },
+    "DeferredGap": {
+      "description": "Added in 1.8.0: an open gap the plan does not measure, with the reason.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "gapId",
+        "reason"
+      ],
+      "properties": {
+        "gapId": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 400
+        }
+      }
+    },
+    "FieldPlan": {
+      "description": "Added in 1.8.0: the content of a field_validation_plan action (CMP-13, DF-06). Every measurement names a gap or hypothesis it resolves; every open gap of the case is measured or deferred with a reason (host rule).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "objective",
+        "decisionInformed",
+        "strata",
+        "measurements",
+        "deferredGaps",
+        "permissions",
+        "consultationSteps"
+      ],
+      "properties": {
+        "objective": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 600
+        },
+        "decisionInformed": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 600
+        },
+        "strata": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/FieldStratum"
+          },
+          "minItems": 1
+        },
+        "measurements": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/FieldMeasurement"
+          },
+          "minItems": 1
+        },
+        "deferredGaps": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/DeferredGap"
+          }
+        },
+        "permissions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300
+          },
+          "uniqueItems": true
+        },
+        "consultationSteps": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300
+          },
+          "uniqueItems": true
+        }
+      }
     }
   }
 }
