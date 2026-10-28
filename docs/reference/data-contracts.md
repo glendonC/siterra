@@ -56,6 +56,8 @@ Field-level types live in the schema. This table states purpose and the rules th
 | Brief | The decision brief | Every line is a `BriefItem` with claim kind and evidence IDs. `provenance.inputVersions` cites every ID in `evidenceIds`, `hypothesisIds` and `interventionIds`, so a changed input stales the brief; a commit with a brief that does not is refused (`brief_inputs_not_cited`). |
 | EventRecordRow | One dated event in a validated event bundle ([ADR-0045](../decisions/0045-extend-the-meta-model-map-to-event-records-figures-and-whole-corpus-reading.md)), added in contracts 1.3 | Not evidence. Rules in [event record rows](#event-record-rows). |
 | ContextFeature | A located feature a view needs (outlet, settlement, viewpoint, summit), added in contracts 1.6 | Point geometry in EPSG:4326 with the method, dataset, source IDs, attribution, licence and limitations of its position. Never evidence: no statement, measurement or hypothesis rests on it. Lines (a river main stem, a path) are planned for a later minor version. |
+| ExplanationBranch | One candidate explanation tested by committed predictions, added in contracts 1.9 (proposed) | Revision 1 holds the predictions and status `predicted`; revision 2 holds host scores, `predictionsCaseRevision` and a status set by fixed rules. Rules in [explanation branches](#explanation-branches-proposed). |
+| BranchMerge | The fixed-rule merge of one task's branches, added in contracts 1.9 (proposed) | `rulesVersion` (`merge@1`), each branch's exact revision and status, and the flagged conflicts. Never a ranking. |
 | CanvasComponent / LayoutAction | Presentation projection | References entity IDs only. See [layout contract](#presentation-contract). |
 | Command / Task / Event / Commit | Execution and audit | See state machines and events below. |
 
@@ -127,7 +129,7 @@ Events are the trace and the stream. Host code writes event messages from templa
 | kind | When | Payload notes |
 |---|---|---|
 | `command.accepted`, `command.completed` | Command lifecycle | `resultStatus` on completion |
-| `task.queued`, `task.started`, `task.progress`, `task.awaiting_input`, `task.succeeded`, `task.partial`, `task.failed`, `task.cancelled` | Task lifecycle | `task.progress` only for real milestones (counts of loaded records, sources retrieved) |
+| `task.queued`, `task.started`, `task.progress`, `task.awaiting_input`, `task.succeeded`, `task.partial`, `task.failed`, `task.cancelled` | Task lifecycle | `task.progress` only for real milestones (counts of loaded records, sources retrieved; proposed: the explanations whose predictions are recorded, with the branch IDs as entity IDs) |
 | `model.started`, `model.completed` | Each model request | `usage`: provider (`replay` or the Model API), model, input/output/cached tokens, cost estimate, provider request ID, status `succeeded \| refused \| incomplete \| failed`, duration; on the replay route `replayOrigin` (`synthetic` or `recorded`, added in 1.7). A record's `provenance.generatedByTaskId` leads to these events, so a replayed record reads as replayed wherever it is read |
 | `tool.started`, `tool.completed` | Each tool execution | `tool`: name, sanitized argument summary, result entity IDs, status, duration, error code, attempt |
 | `validation.completed` | After each proposal check | outcome `accepted \| partial \| rejected`, machine-readable issues |
@@ -175,6 +177,30 @@ Cross-record rules the commit validator enforces (from the [generative workspace
 
 Added in contracts 1.3 (`EventRecordRow` in [case.schema.json](../../schemas/case.schema.json), snapshot list `eventRecordRowRecords`, example [commit-event-record.json](../../schemas/examples/commit-event-record.json)). The bundle is a DataBundle (`datasetId` `event_record`, `methodId` `event_extraction` with version, `sourceIds`, `manifestUri`, `contentHash`). Each source is a Source with `publicationDate` and `contentHash`; the P0 minimum uses only the FAO GIEWS briefs (SCI-25) with `sourceKind: institutional`, and a `news_report` kind stays a P1 proposal for press reports. Row fields: `dataBundleId` and `dataBundleRevision`, `eventType` (`drought_declaration`, `emergency_program`, `feed_subsidy`, `transhumance_change`, `pasture_rule`, `rainfall_statement`), `eventStart` and `eventEnd` (ISO date, year-month or year as stated), `scope` (`national`, `region`, `province`, `valley`), `placeNamed` or null, `sourceLocator` with the verbatim excerpt (at most 300 Unicode code points), `sourceLanguage` (BCP 47, for example `en`, `fr`, `ar`), `statementEn` (model-drafted; labeled "Machine-drafted translation" only when `sourceLanguage` is not English, so no P0 row carries that label), `rainfallDirection` (`below_normal`, `near_normal`, `above_normal`, `not_stated`), `extractionModel` and `extractionRequestId`. Host rules before a row is accepted: excerpt found verbatim in the stored text of the cited page; `eventStart` not after the source's `publicationDate`; a scope other than `national` needs a listed place name inside the excerpt. A row is not evidence; a task that uses it proposes `scientific_context` evidence citing the same locator, which passes the excerpt check again.
 
+## Case analysis configuration (proposed)
+
+Proposed, pending the maintainer's approval. `CaseAnalysisConfig` (configuration version 1, in `packages/contracts`) holds what used to be written into code for one valley, so a new place is configuration: `caseId`; `areaLabel`; `seriesPairs[]` (an ID, sides `a` and `b` each with a label, the metrics, the bundle `methodId` and optional stored decimals, the antecedent `windowsMonths` and `minAlignedMonths`), the only pairs `compare_series` aligns; `rainfallSeason` (ID, label, start and end month, and the `season_summary` recipe ID and version); `explanations[]` (at most 5, each an ID, label and statement); and `fieldChecks[]` (ID and label). The Aït Bouguemez configuration is the first: vegetation departure (`monthly_departure`) against CHIRPS rainfall departure (`chirps_monthly_catchment_total`) at 0 to 3 months with 12 aligned months at least (the `aligned_antecedent` applicability minimum), the November to April wet season, five explanations and no field checks yet.
+
+## Explanation branches (proposed)
+
+Proposed, pending the maintainer's approval. Added in contracts 1.9.0 (`ExplanationBranch` and `BranchMerge` in [case.schema.json](../../schemas/case.schema.json), snapshot lists `explanationBranchRecords` and `branchMergeRecords`, task kind `explanation_branches`, example [commit-explanation-branches.json](../../schemas/examples/commit-explanation-branches.json)); 1.2.0 to 1.8.0 stay valid.
+
+- **Prediction:** `key` (`p1` to `p4`), `necessary`, `test` and `wording` (at most 300 characters, written by the model; it never decides an outcome). `test` always carries every field, null or `[]` when the kind does not use it: `kind`, `pairId`, `side`, `periodIds` (at most 24), `windowMonths`, `seasonId`, `flag`, `fieldCheckId`, `expected`.
+
+| `kind` | Targets | `expected` |
+|---|---|---|
+| `departure_sign` | pair, side, periods | `negative` or `positive`: every stored value of the side's metrics in those periods has that sign |
+| `co_movement` | pair, window | `same_sign_majority` or `no_same_sign_majority`, under every metric of side `a` |
+| `season_category` | season | `below_normal`, `near_normal` or `above_normal` from the configured season recipe |
+| `quality_flag` | pair, side, periods, flag | `present` (in any period) or `absent` (in none) |
+| `availability` | pair, side, periods | `all_available` or `some_unavailable` |
+| `field_check` | field check | null; only fieldwork can test it |
+
+- **PredictionScore:** `predictionKey`, `outcome` (`met`, `not_met`, `not_testable`), `dataAdequate`, `reasonCode`, `observed` (host text, at most 400 characters), and the `measurementIds` and `dataBundleIds` read. Inadequate data: `value_not_available`, `no_quality_record`, `too_few_aligned_months`. Not testable: `unknown_target`, `no_series_bundle`, `period_not_in_record`, `area_mismatch`, `no_season_summary`, `season_not_in_summary`, `field_measurement_needed`.
+- **ExplanationBranch:** `caseId`, `commandId`, `taskId`, `explanationId`, `label`, `statement`, `status` (`predicted`, `contradicted`, `consistent`, `cannot_be_assessed`), `statusReason`, `predictions` (up to 4), `predictedAt`, `predictionsCaseRevision` (null at revision 1), `scores`, `scoredAt`, `model` (model, prompt version, loop status, validation outcome, failure code, whether a repair turn ran) and `hypothesisId`. IDs are fixed by the task and the explanation, so a resumed task finds its own records.
+- **BranchMerge:** `rulesVersion`, `predictionsCaseRevision`, `branches[]` (branch ID and revision, explanation ID, status, reason; 1 to 5) and `conflicts[]` (`separates_nothing`, `not_testable`, `inadequate_data`, each with the test key, the predictions it names and host text).
+- **Rules (`merge@1`):** `contradicted` when a necessary prediction is not met on adequate data; `consistent` when every testable prediction is met; `cannot_be_assessed` otherwise. The same scores always give the same statuses. Each branch writes one Hypothesis with the matching status (`consistent`, `inconsistent`, `inconclusive`) and the untestable predictions as missing evidence.
+
 ## Records planned for later contracts
 
 Not in [case.schema.json](../../schemas/case.schema.json) yet. Each is added in one minor version with Zod mirrors, examples and contract tests before any feature uses it. None is evidence unless stated; all reference exact entity versions.
@@ -196,6 +222,7 @@ Model tool calls carry typed proposals, never free-form database writes. Each ar
 | `propose_plan` | `interpretation` (one sentence), `tasks[] {key, kind, question, dependsOn[], inputRefs[]}`, `clarifyingQuestion` or null | Validated task graph or rejection issues |
 | `propose_evidence` | `items[] {statement, claimKind, sourceId or measurementIds, locator, excerpt (at most 300 Unicode code points) or null, scopeNote, limitations[]}` | Accepted/provisional evidence IDs |
 | `propose_hypotheses` | `items[] {hypothesisId or null, statement, status, supportingEvidenceIds[], contradictingEvidenceIds[], missingEvidence[], assessment}` | Hypothesis revisions + relationships |
+| `propose_predictions` (proposed) | `predictions[] {necessary, test {kind, pairId, side, periodIds[], windowMonths, seasonId, flag, fieldCheckId, expected}, wording}`, 2 to 4 per explanation, every field present and nullable | Branch revision 1, committed before any result is read |
 | `propose_interventions` | `items[] {title, description, assumptions[], ecologicalConsiderations[], livelihoodConsiderations[], fieldValidationNeeded[], requiredReviewRoles[], evidenceIds[], hypothesisIds[]}` | Intervention IDs |
 | `propose_package` | `action {kind, title, description, measurements[], strata[], roles[], permissions[], resources[]}`, `brief {items by section}` | Action and brief IDs (`draft`) |
 | `propose_layout` | One to four `actions[] {kind, componentKind, componentId, entityIds[], section, comparisonMode, periodIds[], title}`, every field present and nullable; at most one call per task | Accepted layout action IDs, or rejection with issue paths and the default projection |
