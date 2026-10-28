@@ -1,4 +1,5 @@
-"""Least squares fits, t intervals, the AR(1) effective sample size and the Theil-Sen slope, in plain Python.
+"""Least squares fits, t intervals, the AR(1) effective sample size, the Theil-Sen slope, the Mann-Kendall test and the
+Benjamini-Hochberg procedure, in plain Python.
 
 No SciPy in the pinned environment: the Student t distribution is computed from the regularized incomplete beta
 function (continued fraction, Numerical Recipes 6.4) and its quantile by bisection. Run this file to check the t
@@ -128,6 +129,43 @@ def theil_sen(x, y):
     return {"slope": med, "lower": s[lo], "upper": s[hi], "pairs": N}
 
 
+def t_two_sided_p(t, df):
+    return 2.0 * (1.0 - t_cdf(abs(t), df))
+
+
+def normal_two_sided_p(z):
+    return math.erfc(abs(z) / math.sqrt(2.0))
+
+
+def mann_kendall(y):
+    """Mann-Kendall S of y in time order, tie-corrected variance, Z with continuity correction, two-sided normal p."""
+    n = len(y)
+    s = 0
+    for i in range(n - 1):
+        for j in range(i + 1, n):
+            s += (y[j] > y[i]) - (y[j] < y[i])
+    ties = {}
+    for v in y:
+        ties[v] = ties.get(v, 0) + 1
+    var = (n * (n - 1) * (2 * n + 5) - sum(t * (t - 1) * (2 * t + 5) for t in ties.values() if t > 1)) / 18.0
+    z = 0.0 if s == 0 or var <= 0 else (s - (1 if s > 0 else -1)) / math.sqrt(var)
+    return {"s": s, "var_s": var, "z": z, "p": normal_two_sided_p(z)}
+
+
+def benjamini_hochberg(pvals, q):
+    """True for each p that the Benjamini-Hochberg step-up procedure rejects at false discovery rate q."""
+    m = len(pvals)
+    order = sorted(range(m), key=lambda i: pvals[i])
+    k = 0
+    for rank, i in enumerate(order, start=1):
+        if pvals[i] <= rank * q / m:
+            k = rank
+    passed = [False] * m
+    for i in order[:k]:
+        passed[i] = True
+    return passed
+
+
 def direction(lower, upper):
     if lower is None or upper is None:
         return None
@@ -153,4 +191,13 @@ if __name__ == "__main__":
     ts = theil_sen(x, y)
     # pairwise slopes sorted: 1.8, 1.8, 1.9333, 1.95, 1.975, 2.0, 2.0, 2.0333, 2.1, 2.2; median (1.975 + 2.0) / 2
     assert abs(ts["slope"] - 1.9875) < 1e-12 and ts["pairs"] == 10, ts
+    assert abs(t_two_sided_p(2.0860, 20) - 0.05) < 5e-4
+    # S = 10, var = 5 * 4 * 15 / 18, Z = 9 / sqrt(var) = 2.2045, p = 0.0275
+    mk = mann_kendall([1, 2, 3, 4, 5])
+    assert mk["s"] == 10 and abs(mk["z"] - 2.20454) < 1e-4 and abs(mk["p"] - 0.02749) < 1e-4, mk
+    # one tie pair: S = 5, var = 4 * 3 * 13 / 18 - 2 * 1 * 9 / 18 = 7.6667, Z = 4 / sqrt(var) = 1.4446, p = 0.1486
+    mk = mann_kendall([1, 1, 2, 3])
+    assert mk["s"] == 5 and abs(mk["var_s"] - 23 / 3) < 1e-12 and abs(mk["p"] - 0.1486) < 1e-4, mk
+    assert benjamini_hochberg([0.01, 0.04, 0.03, 0.2], 0.05) == [True, False, False, False]
+    assert benjamini_hochberg([0.04, 0.01, 0.03, 0.02], 0.05) == [True, True, True, True]
     print("trend_stats self-check passed")
