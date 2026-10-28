@@ -65,6 +65,15 @@ export const RANKING = new RegExp(
 );
 
 /**
+ * A hypothesis is never confirmed or proven: the statuses stop at "consistent with available
+ * evidence" (SA-06: without grazing measurements, grazing attribution cannot be labeled confirmed).
+ * Refused in the statement and the assessment; missing evidence may name a check that would confirm
+ * something, and the present tense "confirms" stays allowed for that reason.
+ */
+export const CONFIRMATION =
+  /\b(?:confirmed|confirmation|proven|proved|conclusively|definitively|beyond (?:doubt|question))\b/i;
+
+/**
  * Only the statement of a hypothesis is a candidate explanation and may name a cause; the
  * assessment and the missing evidence keep every prohibited-claims rule, the causal one included
  * (AUDIT a60).
@@ -251,6 +260,13 @@ export function validateHypothesisProposal(
           "prohibited_claim",
           path,
           `"${ranked[0]}" ranks explanations; several may fit at once.`,
+        );
+      const confirmed = path.startsWith("missingEvidence") ? null : CONFIRMATION.exec(text);
+      if (confirmed)
+        add(
+          "prohibited_claim",
+          path,
+          `"${confirmed[0]}" labels a hypothesis confirmed; the strongest status is "${STATUS_LABELS.consistent}".`,
         );
       for (const rule of path === "statement" ? STATEMENT_RULES : PROHIBITED_RULES) {
         const m = rule.pattern.exec(text);

@@ -258,6 +258,31 @@ describe("propose_hypotheses validation", () => {
     ).toContain("numeric_provenance $.items[0].assessment");
   });
 
+  it("SA-06 without grazing measurements, no statement or assessment labels an explanation confirmed", () => {
+    // The pool holds no grazing measurement: herd numbers are only a field requirement.
+    const base = { supportingEvidenceIds: ["ev_test_ctx"] };
+    for (const [field, text] of [
+      ["statement", "Grazing is confirmed as the reason greenness fell."],
+      ["statement", "Grazing pressure was proved to lower greenness in the catchment."],
+      ["assessment", `${STATUS_LABELS.consistent}: grazing attribution is confirmed.`],
+      ["assessment", `${STATUS_LABELS.consistent}: the grazing explanation is proven.`],
+      ["assessment", `${STATUS_LABELS.consistent}; confirmation of the grazing account.`],
+    ] as const) {
+      expect(codes([hyp("consistent", { ...base, [field]: text })]), text).toContain(
+        `prohibited_claim $.items[0].${field}`,
+      );
+    }
+    // A check still to be made may confirm something; that names missing evidence, not a result.
+    expect(
+      codes([
+        hyp("inconclusive", {
+          missingEvidence: ["A field check that confirms herd numbers by month."],
+          assessment: `${STATUS_LABELS.inconclusive}: no record confirms herd numbers by month.`,
+        }),
+      ]),
+    ).toEqual([]);
+  });
+
   it("allows a cause in the statement of a hypothesis but no diagnosis, biomass or forecast", () => {
     expect(
       codes([hyp("untested", { statement: "Vegetation declined due to grazing pressure." })]),

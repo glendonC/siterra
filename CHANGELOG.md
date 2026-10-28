@@ -64,6 +64,7 @@ Contracts and design tokens carry their own Semantic Versioning numbers, recorde
 
 ### Changed
 
+- Hypothesis statements and assessments that label an explanation confirmed or proven are refused (SA-06), and the hypothesis prompt (hypothesis_comparison@2) says so; missing evidence may still name a check that would confirm something.
 - A plan job delivered again after a worker crash resumes the command left running instead of skipping it (AF-03): finished tasks stay, unfinished ones run again on a new attempt, and the command's recorded spend counts against its cap.
 - The brief package runs after a task it reads fails, a quantitative task without its dataset for example, so the field-scoping package still completes (RL-02); it names each failed task and stays a draft with no review requested. Other tasks still fail when a dependency fails.
 - Worker stop signals: `SIGUSR2`, the spend guard's stop, aborts the running command and its model calls in flight; the command ends cancelled and its stopped tasks record `spend_guard`. `SIGINT` and `SIGTERM` still let the running job finish.
