@@ -41,6 +41,7 @@ export function DepartureLegend({
       ) : null}
       <p className={styles.note}>{legend.note}</p>
       <p className={styles.method}>{legend.method}</p>
+      <p className={styles.cells}>{legend.cells}</p>
     </section>
   );
 }

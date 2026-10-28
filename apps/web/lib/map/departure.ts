@@ -37,7 +37,7 @@ export interface RecordRef {
 export interface DepartureBinding {
   periodId: string;
   observation: RecordRef;
-  measurement: RecordRef & { validFraction: number | null };
+  measurement: RecordRef & { validFraction: number | null; spatialResolutionM: number | null };
   bundle: RecordRef & {
     contentHash: string;
     manifestUri: string;
@@ -66,7 +66,12 @@ export function departureBinding(s: CaseSnapshot): DepartureBinding | undefined 
     best = {
       periodId: o.periodId,
       observation: { id: o.id, revision: o.revision },
-      measurement: { id: m.id, revision: m.revision, validFraction: m.validFraction },
+      measurement: {
+        id: m.id,
+        revision: m.revision,
+        validFraction: m.validFraction,
+        spatialResolutionM: m.spatialResolutionM,
+      },
       bundle: {
         id: b.id,
         revision: b.revision,
@@ -86,6 +91,8 @@ export interface DepartureManifest {
   /** Top left, top right, bottom right, bottom left, as MapLibre's image source takes them. */
   corners: Corners;
   domain: [number, number];
+  /** Ground size of one display cell at the middle of the box, in meters. */
+  cellM: number;
   /** The mapped cropland and buildings, when the manifest lists them with a checksum. */
   excludedUri: string | undefined;
 }
@@ -102,6 +109,7 @@ export function parseDepartureManifest(raw: unknown, manifestUri: string): Depar
   };
   const o = c.item_assets?.["overview"];
   const box = o?.["proj:bbox"];
+  const shape = o?.["proj:shape"];
   const domain = o?.["siterra:domain"];
   if (
     o?.["proj:code"] !== "EPSG:3857" ||
@@ -109,6 +117,9 @@ export function parseDepartureManifest(raw: unknown, manifestUri: string): Depar
     !Array.isArray(box) ||
     box.length !== 4 ||
     !box.every((n) => typeof n === "number") ||
+    !Array.isArray(shape) ||
+    shape.length !== 2 ||
+    !shape.every((n) => typeof n === "number" && n > 0) ||
     !Array.isArray(domain) ||
     domain.length !== 2 ||
     !domain.every((n) => typeof n === "number")
@@ -116,6 +127,9 @@ export function parseDepartureManifest(raw: unknown, manifestUri: string): Depar
     throw new Error("Departure layer: the manifest lists no display grid on the departure scale");
   const [x0, y0, x1, y1] = box as [number, number, number, number];
   const [w, s, e, n] = [lonOf(x0), latOf(y0), lonOf(x1), latOf(y1)];
+  // a Web Mercator meter is cos(latitude) meters on the ground
+  const cellM =
+    ((x1 - x0) / (shape as [number, number])[1]) * Math.cos((latOf((y0 + y1) / 2) * Math.PI) / 180);
   const ex = c.assets?.["excluded_land"];
   const href = ex?.["href"];
   const base = new URL(manifestUri, "http://origin.invalid");
@@ -127,6 +141,7 @@ export function parseDepartureManifest(raw: unknown, manifestUri: string): Depar
       [w, s],
     ],
     domain: domain as [number, number],
+    cellM,
     excludedUri:
       typeof href === "string" && typeof ex?.["file:checksum"] === "string"
         ? new URL(href, base).pathname
@@ -143,7 +158,10 @@ export interface DepartureLegend {
   excluded?: string;
   note: string;
   method: string;
+  cells: string;
 }
+
+const meters = new Intl.NumberFormat("en", { maximumFractionDigits: 1 });
 
 /** A domain end as the key writes it: two decimals, a minus sign or a plus (VT-36). */
 const tick = (v: number) => `${v < 0 ? "\u2212" : "+"}${Math.abs(v).toFixed(2)}`;
@@ -152,9 +170,12 @@ export function departureLegend(
   b: DepartureBinding,
   domain: [number, number],
   hatched: boolean,
+  cellM: number,
 ): DepartureLegend {
   const months = MONTH_PLURALS[Number(b.periodId.slice(12, 14)) - 1] ?? "";
   const f = b.measurement.validFraction;
+  const analysis = b.measurement.spatialResolutionM;
+  const display = meters.format(cellM);
   return {
     title: format("legend.ndvi.title", { period: periodLabel(b.periodId), months }),
     subtitle: format("legend.ndvi.subtitle", { months }),
@@ -169,6 +190,10 @@ export function departureLegend(
       method: b.bundle.methodId,
       version: b.bundle.methodVersion,
     }),
+    cells:
+      analysis === null
+        ? format("legend.ndvi.cellsDisplay", { display })
+        : format("legend.ndvi.cells", { display, analysis: meters.format(analysis) }),
   };
 }
 
@@ -182,5 +207,6 @@ export function legendLines(l: DepartureLegend): string[] {
     ...(l.excluded ? [l.excluded] : []),
     l.note,
     l.method,
+    l.cells,
   ];
 }

@@ -47,7 +47,12 @@ export function useDepartureLayer(snapshot: CaseSnapshot, on: boolean) {
   const legend = useMemo(
     () =>
       binding && manifest
-        ? departureLegend(binding, manifest.domain, manifest.excludedUri !== undefined)
+        ? departureLegend(
+            binding,
+            manifest.domain,
+            manifest.excludedUri !== undefined,
+            manifest.cellM,
+          )
         : undefined,
     [binding, manifest],
   );

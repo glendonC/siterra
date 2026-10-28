@@ -154,6 +154,17 @@ export const en = {
     text: "Sentinel-2 L2A, monthly median NDVI, cloud and snow masked. Method {method} {version}.",
     kind: "ui",
   },
+  // SC-04 asks for true cell size: the display cells are coarser than the analysis grid, so the key says so
+  "legend.ndvi.cells": {
+    text: "Drawn in cells of about {display} m, averaged from the {analysis} m analysis grid. The measurements use the {analysis} m cells.",
+    kind: "ui",
+    honesty: true,
+  },
+  "legend.ndvi.cellsDisplay": {
+    text: "Drawn in cells of about {display} m.",
+    kind: "ui",
+    honesty: true,
+  },
   "flat.legend": { text: "Map legend", kind: "label" },
 
   // Sources and notices

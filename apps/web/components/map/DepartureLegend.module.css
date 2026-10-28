@@ -80,10 +80,15 @@
   background: repeating-linear-gradient(45deg, var(--excluded-hatch) 0 1px, transparent 1px 6px);
 }
 
-.method {
+.method,
+.cells {
   margin-top: 8px !important;
   font: 400 var(--type-mono-small-size) / 14px var(--font-mono);
   color: var(--grey);
+}
+
+.cells {
+  margin-top: 4px !important;
 }
 
 @keyframes fade {

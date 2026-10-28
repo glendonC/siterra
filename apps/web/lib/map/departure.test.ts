@@ -4,7 +4,12 @@ import { CaseSnapshot } from "@siterra/contracts";
 import { describe, expect, it } from "vitest";
 import seed from "../../../../packages/contracts/fixtures/case-snapshot-aitbouguemez-seed.json";
 import { daylight, ndviDeparture } from "../theme/daylight";
-import { departureBinding, departureLegend, parseDepartureManifest } from "./departure";
+import {
+  departureBinding,
+  departureLegend,
+  legendLines,
+  parseDepartureManifest,
+} from "./departure";
 
 const BUNDLE = "bundle_ndvi_departure_ait_bouguemez";
 const parsed = CaseSnapshot.parse(seed);
@@ -57,6 +62,7 @@ describe("departureBinding", () => {
         id: "meas_ndvi_departure_ait_bouguemez_2025-11_ndvi_departure_area_median_leave_one_year_out",
         revision: 1,
         validFraction: 0.9301,
+        spatialResolutionM: 10,
       },
       bundle: {
         id: BUNDLE,
@@ -138,6 +144,12 @@ describe("parseDepartureManifest", () => {
     expect(m.excludedUri).toBe(`/api/case-assets/${BUNDLE}/${HASH}/excluded-land.geojson`);
   });
 
+  it("measures a display cell on the ground: 30 m Web Mercator cells are about 25.5 m at the valley's latitude", () => {
+    const m = parseDepartureManifest(manifest, manifestUri);
+    // 44,520 m / 1,484 cells = 30 m on the projection; times cos(31.6256 degrees), the box's middle
+    expect(m.cellM).toBeCloseTo(25.545, 2);
+  });
+
   it("refuses a picture on another grid or another colour scale", () => {
     const other = (over: Record<string, unknown>) => ({
       ...manifest,
@@ -163,7 +175,7 @@ describe("departureLegend", () => {
   if (!b) throw new Error("fixture");
 
   it("says what the map shows in the legend's words, from the records", () => {
-    expect(departureLegend(b, [-0.1, 0.1], true)).toEqual({
+    expect(departureLegend(b, [-0.1, 0.1], true, 25.545)).toEqual({
       title: "NDVI departure, Nov 2025, compared with other Novembers",
       subtitle:
         "Difference from the median of the other Novembers, 2019 to 2025, inside the catchment",
@@ -175,7 +187,18 @@ describe("departureLegend", () => {
       note: "No cropland mask is applied: valley-floor fields and orchards are included.",
       method:
         "Sentinel-2 L2A, monthly median NDVI, cloud and snow masked. Method monthly_departure 1.0.0.",
+      cells:
+        "Drawn in cells of about 25.5 m, averaged from the 10 m analysis grid. The measurements use the 10 m cells.",
     });
+  });
+
+  it("states the display cell size, not the analysis grid's, as the size it draws (SC-04)", () => {
+    const l = departureLegend(b, [-0.1, 0.1], true, 25.545);
+    expect(legendLines(l)).toContain(l.cells);
+    const unknown = { ...b, measurement: { ...b.measurement, spatialResolutionM: null } };
+    expect(departureLegend(unknown, [-0.1, 0.1], true, 25.545).cells).toBe(
+      "Drawn in cells of about 25.5 m.",
+    );
   });
 
   it("says the hatch marks an excluded stratum, not masked values, as the bundle does", () => {
@@ -188,7 +211,7 @@ describe("departureLegend", () => {
     expect(collection.assets.excluded_land.description).toContain(
       "no departure value is masked by it",
     );
-    const l = departureLegend(b, [-0.1, 0.1], true);
+    const l = departureLegend(b, [-0.1, 0.1], true, 25.545);
     expect(l.excluded).not.toMatch(/mask/i);
     expect(l.excluded).toContain("left out of the field-sampling strata");
     expect(l.excluded).toContain("still drawn");
@@ -198,7 +221,7 @@ describe("departureLegend", () => {
   });
 
   it("names no hatch when none is drawn", () => {
-    expect(departureLegend(b, [-0.1, 0.1], false).excluded).toBeUndefined();
+    expect(departureLegend(b, [-0.1, 0.1], false, 25.545).excluded).toBeUndefined();
   });
 });
 
