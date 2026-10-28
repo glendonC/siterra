@@ -287,6 +287,12 @@ Land labels per beat in the approved frames: arrival 5 (two of them two-line blo
 | Succeeded | Updated Observations: vegetation over time, 5 evidence items | Keep the pattern: Updated {section}: {visible component names} | |
 | Partial | (spec) what was not done | Finished with gaps. Not done: {tasks}. [Run remaining tasks] | V3 |
 | Failed | (spec) cause, Retry, input preserved | Request failed: {cause}. Your text is kept. [Retry] | V5 |
+| Case card heading for a request's results | none | Observations (precomputed) | The section name first, then the label that ADR-0021 and agent orchestration require: "Precomputed observations are labeled precomputed". Lists only what the request's own tasks produced |
+| Case card: request finished | none | Request complete | Only when the request's completion event says it succeeded |
+| Case card: request failed | none | Request failed: {cause}. Your question is kept. | V5. Same words as the card's other kept-question lines. The card has no retry command yet, so it shows no [Retry] |
+| Case card: failure causes ({cause}) | none | stopped at the model round limit; Siterra rejected the model's proposal; the model service is not responding; no step finished | From the first failed task's code: round limit, rejected proposal (section 16), model service error (section 16). "No step finished" when no task names a cause. Lowercase after the colon |
+| Case card: finished with gaps | none | Finished with gaps. Not done: {tasks}. | V3. {tasks} lists the unfinished task kinds (section 6) in lowercase. No [Run remaining tasks] until that command exists |
+| Case card: request canceled | none | Request canceled | US spelling (VT-37); a status, so no period |
 | Rejected as stale | (spec) The case changed; resend against the current version | The case changed while you were writing, so nothing was run. Your text is kept. [Send on revision {n}] | Says what did and did not happen |
 | Concept mode reply | This prototype only simulates the storyboard commands, in order. | Keep (concept mode only) | |
 
@@ -310,6 +316,8 @@ Land labels per beat in the approved frames: arrival 5 (two of them two-line blo
 | Livelihood and governance research | Who depends on these pastures and under what rules? | Keep | |
 | Hypothesis comparison | Which explanations fit the observations? | Kind: Explanation comparison. Question: keep. | "Explanation" in headings (terminology) |
 | Field-validation package | What should be measured next, by whom, with what permissions? | Kind: Field-validation plan. Question: keep. | One name for the deliverable |
+| none (`intervention_feasibility`) | none | Kind: Possible responses | Terminology: "possible response", not "intervention" |
+| none (`validation`) | none | Kind: Automated checks | Deterministic host checks, not a model (agent orchestration); "checked (automated)", not "verified" |
 
 ### Task status words
 
@@ -607,6 +615,17 @@ These are English source strings. French strings must be written or reviewed by 
 | Rainfall grid row | Rainfall grid: 31 cells of about 5 km touch the catchment, 3 fully inside | Rainfall grid: {touching} cells of about 5 km touch the catchment, {inside} of them fully inside (33 and 2) | The counts of the frozen catchment ([data sources and methods](data-sources-and-methods.md)); 31 and 3 came from the preview |
 | Coverage | 82% of area observed | Keep | |
 | Coverage below threshold | No valid observation for this period (45% observed, below the 70% policy) | No valid observation: 45% of area observed, below the 70% threshold | |
+| Vegetation title, any month | none | NDVI departure, {month} {year}, compared with other {months}; for example: NDVI departure, Nov 2025, compared with other Novembers | The approved form for whichever period the layer shows; one plural month name per month, so translation never builds it from fragments |
+| Vegetation subtitle, any month | none | Difference from the median of the other {months}, 2019 to 2025, inside the catchment | As the Aprils subtitle above |
+| Departure coverage | none | Coverage: {percent}% of area, observed in at least {years} {months} including {period}. For example: Coverage: 93% of area, observed in at least 4 Novembers including Nov 2025. Without a stated minimum: Coverage: {percent}% of area | The figure the 70% threshold applies to: the Item's `siterra:area_valid_fraction` (the record's `validFraction`), which for the departure bundle is the all-years reference's common-valid area ([analysis recipes](analysis-recipes.md), `monthly_departure`). `{years}` is the manifest's `min_reference_years`. Whole percent. Honesty line |
+| Departure colored area | none | Colored: {percent}% of area, observed in {period} and at least {years} other {months}. For example: Colored: 90% of area, observed in Nov 2025 and at least 4 other Novembers. Without a stated minimum: Colored: {percent}% of area | The cells the picture paints: the leave-one-year-out measurement's `validPixelCount` over `totalPixelCount`, the same cells its area median uses. Sits under the coverage line so the two numbers are never read as one; "other" is the difference between them. Honesty line |
+| Period quality flags | none | {period} views: {flags}. For example: Nov 2025 views: snow suspected; cloud screening reduced. | The approved verdict line's form (section 1a, `valley.verdict.flags`), from the period's `qualityFlags` record (the bundle's `siterra:quality_flags`). Words per flag: snow suspected; terrain shadow suspected; few satellite dates; part of the month only; scene classification incomplete; cloud screening reduced. A flag without words shows by its name, never dropped. Honesty line |
+| Reduced cloud screening note | none | Cloud screening used the scene classification only. | `valley.verdict.flags.note` (section 1a), shown under the flags when `reduced_qa_fallback` is set |
+| Excluded swatch | none | Hatched: cropland and buildings mapped by ESA WorldCover in 2021, left out of the field-sampling strata. Their departure is still drawn. | `data.excluded-hatch`: the legend states the reason. The second sentence says what the hatch does not mean, beside `valley.key.ndvi.note` (no cropland mask is applied to the values) |
+| No-mask note | none | No cropland mask is applied: valley-floor fields and orchards are included. | `valley.key.ndvi.note` (section 1a), shown in the departure key |
+| Display cell size | none | Drawn in cells of about {display} m, averaged from the {analysis} m analysis grid. The measurements use the {analysis} m cells. When the analysis grid is not recorded: Drawn in cells of about {display} m. | SC-04 asks for measured layers at true cell size; the display raster is coarser than the analysis grid (about 25.5 m over 10 m), so the key says so. Honesty line |
+| Read flat legend heading | none | Map legend | The legend's lines in the flat reading |
+| Collapsed legend (below 1100 px) | none | [Map legend] | The UX architecture's viewport table: the legend collapses to a button, collapsed by default. One label; `aria-expanded` carries the state (voice and tone: a toggle keeps one label). Esc closes it |
 | Method line (new; required by the components spec) | none | Sentinel-2 L2A, monthly median NDVI, cloud and snow masked. Method ndvi-monthly 0.1. | Dataset and version, reference, method |
 | Strata title | Sampling strata | Elevation bands | The hero's name (section 1a); the subtitle says what they are |
 | Strata subtitle | Elevation band by slope aspect, from the terrain model. Thresholds illustrative. | Three sampling strata of equal area by height, from the terrain model (Copernicus GLO-30). Not pasture units or boundaries. | Full sentences; names the source and what the bands are not |

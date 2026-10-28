@@ -97,7 +97,27 @@ export const en = {
   "work.stop": { text: "Stop", kind: "button" },
   "work.received": { text: "Request received", kind: "ui" },
   "work.complete": { text: "Request complete", kind: "ui" },
-  "work.observations": { text: "Observations", kind: "label" },
+  // microcopy section 5 Failed and Partial; "Your question is kept" as in work.refused, no Retry on the card
+  "work.failed": { text: "Request failed: {cause}. Your question is kept.", kind: "ui" },
+  "work.partial": { text: "Finished with gaps. Not done: {tasks}.", kind: "ui" },
+  "work.cancelled": { text: "Request canceled", kind: "ui" },
+  // causes after the section 16 patterns: Budget or time limit, Model output rejected, Model service down
+  "work.cause.roundLimit": { text: "stopped at the model round limit", kind: "ui" },
+  "work.cause.rejected": { text: "Siterra rejected the model's proposal", kind: "ui" },
+  "work.cause.modelDown": { text: "the model service is not responding", kind: "ui" },
+  "work.cause.other": { text: "no step finished", kind: "ui" },
+  // task kinds (microcopy section 6 task rows; the voice guide's terminology for the two it does not list:
+  // "possible response", not "intervention"; "checked (automated)", not "verified")
+  "task.kind.plan": { text: "Plan", kind: "label" },
+  "task.kind.source_research": { text: "Source research", kind: "label" },
+  "task.kind.observation_analysis": { text: "Observation analysis", kind: "label" },
+  "task.kind.livelihood_governance": { text: "Livelihood and governance research", kind: "label" },
+  "task.kind.hypothesis_comparison": { text: "Explanation comparison", kind: "label" },
+  "task.kind.intervention_feasibility": { text: "Possible responses", kind: "label" },
+  "task.kind.brief_package": { text: "Field-validation plan", kind: "label" },
+  "task.kind.validation": { text: "Automated checks", kind: "label" },
+  // labeled precomputed (ADR-0021; agent orchestration, "Precomputed observations are labeled precomputed")
+  "work.observations": { text: "Observations (precomputed)", kind: "label" },
   "work.observationLine": {
     text: "{label}: {available} of {total} months observed, {first} to {last}",
     kind: "ui",
@@ -110,6 +130,72 @@ export const en = {
     text: "This demo session has used its requests. Your question is kept.",
     kind: "ui",
   },
+
+  // Map legend (microcopy section 19, the approved key's form for any month; section 1a valley.key.ndvi.note)
+  "legend.ndvi.title": {
+    text: "NDVI departure, {period}, compared with other {months}",
+    kind: "label",
+  },
+  "legend.ndvi.subtitle": {
+    text: "Difference from the median of the other {months}, 2019 to 2025, inside the catchment",
+    kind: "ui",
+  },
+  "legend.coverage": { text: "{percent}% of area observed", kind: "ui" },
+  // the departure's two shares: the coverage-check figure (all-years reference) and the cells the picture colors
+  // (leave-one-year-out reference); the bare forms when the method states no reference-year minimum
+  "legend.ndvi.coverage": {
+    text: "Coverage: {percent}% of area, observed in at least {years} {months} including {period}",
+    kind: "ui",
+    honesty: true,
+  },
+  "legend.ndvi.coverage.bare": { text: "Coverage: {percent}% of area", kind: "ui", honesty: true },
+  "legend.ndvi.painted": {
+    text: "Colored: {percent}% of area, observed in {period} and at least {years} other {months}",
+    kind: "ui",
+    honesty: true,
+  },
+  "legend.ndvi.painted.bare": { text: "Colored: {percent}% of area", kind: "ui", honesty: true },
+  // the period's quality flags, in the approved verdict line's form (valley.verdict.flags and its note)
+  "legend.flags": { text: "{period} views: {flags}.", kind: "ui", honesty: true },
+  "legend.flags.reducedQaNote": {
+    text: "Cloud screening used the scene classification only.",
+    kind: "ui",
+    honesty: true,
+  },
+  "flag.snow": { text: "snow suspected", kind: "ui" },
+  "flag.terrainShadow": { text: "terrain shadow suspected", kind: "ui" },
+  "flag.lowSceneCount": { text: "few satellite dates", kind: "ui" },
+  "flag.partialMonth": { text: "part of the month only", kind: "ui" },
+  "flag.qaJoinIncomplete": { text: "scene classification incomplete", kind: "ui" },
+  "flag.reducedQa": { text: "cloud screening reduced", kind: "ui" },
+  // the strata bundle's excluded stratum, drawn over the values, not masked from them
+  "legend.ndvi.excluded": {
+    text: "Hatched: cropland and buildings mapped by ESA WorldCover in 2021, left out of the field-sampling strata. Their departure is still drawn.",
+    kind: "ui",
+  },
+  "legend.ndvi.note": {
+    text: "No cropland mask is applied: valley-floor fields and orchards are included.",
+    kind: "ui",
+    honesty: true,
+  },
+  "legend.ndvi.method": {
+    text: "Sentinel-2 L2A, monthly median NDVI, cloud and snow masked. Method {method} {version}.",
+    kind: "ui",
+  },
+  // SC-04 asks for true cell size: the display cells are coarser than the analysis grid, so the key says so
+  "legend.ndvi.cells": {
+    text: "Drawn in cells of about {display} m, averaged from the {analysis} m analysis grid. The measurements use the {analysis} m cells.",
+    kind: "ui",
+    honesty: true,
+  },
+  "legend.ndvi.cellsDisplay": {
+    text: "Drawn in cells of about {display} m.",
+    kind: "ui",
+    honesty: true,
+  },
+  "flat.legend": { text: "Map legend", kind: "label" },
+  // one label, its state in aria-expanded (voice and tone: a toggle keeps one label)
+  "legend.toggle": { text: "Map legend", kind: "button" },
 
   // Sources and notices
   "notices.data": { text: "Data in this case, as its records credit it", kind: "label" },
@@ -172,6 +258,8 @@ export const en = {
   "credit.rainfall": { text: "CHIRPS v3.0, accessed 27 Oct 2026.", kind: "ui" },
   "credit.imagery": { text: "Contains modified Copernicus Sentinel data 2019-2025.", kind: "ui" },
   "credit.outletInput": { text: "© OpenStreetMap contributors.", kind: "ui" },
+  // microcopy section 1a credit.valley.plan: added while mapped cropland and buildings show
+  "credit.worldcover": { text: "© ESA WorldCover project.", kind: "ui" },
 
   // Mode
   "mode.live": { text: "Live", kind: "label" },

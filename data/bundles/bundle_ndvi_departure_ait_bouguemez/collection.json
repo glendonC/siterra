@@ -5,13 +5,14 @@
   "https://stac-extensions.github.io/processing/v1.3.0/schema.json",
   "https://stac-extensions.github.io/file/v2.1.0/schema.json",
   "https://siterra.invalid/schemas/stac/siterra/1.1.0/schema.json",
-  "https://stac-extensions.github.io/version/v1.2.0/schema.json"
+  "https://stac-extensions.github.io/version/v1.2.0/schema.json",
+  "https://stac-extensions.github.io/projection/v2.1.0/schema.json"
  ],
  "id": "bundle_ndvi_departure_ait_bouguemez",
  "title": "NDVI departure from the same month, 2019 to 2025 (monthly_departure 1.0.0)",
- "description": "Precomputed result of recipe monthly_departure 1.0.0 on bundle_s2_ndvi_monthly_ait_bouguemez: 58 of 84 periods have a departure. The reference is a short period (2019 to 2025), not a climate normal. A departure describes how this month differs from other years here; it does not say why. The spatial IQR is variability across pixels, not a confidence interval. In winter months the accepted pixels favour the valley floor and south-facing slopes, because snow and shade remove the others; the area value then describes those pixels, not the whole catchment.\n\nRevision 13 (2026-10-27). Among duplicates of a tile and date, an item with no clear pixels over the catchment is now skipped when a twin has some. That clause was added to the duplicate rule after data was first read; the rule fixed before any data was read kept the newest processing baseline only. Revision 12, the first committed, has no version field; it documented the clause but kept the newest item, so it kept an item with 0 clear pixels over the catchment on seven tile-dates: 29RQQ 2019-04-17 (twin had 285 clear pixels), 2019-06-21 (702,669), 2020-11-12 (84), 2021-06-07 (8), 2021-11-19 (8), 2021-12-22 (8), and 29SQR 2020-10-23 (16). In five cases the twin is an older baseline (02.14, 03.00, 03.01), so its clear pixels come from an older scene classification. This revision recomputes 2019-04, 2019-06, 2020-10, 2020-11, 2021-06, 2021-11 and 2021-12 and everything derived from them; no NDVI or departure area median moved at four decimals.\n\nRevision 14 (2026-10-27). The leave-one-year-out measurements of 2019-03 and 2020-03, which revision 13 excluded without saying why, now carry a missing_reason (Siterra STAC extension 1.1.0): pixels with a value that year and a reference from at least 4 other years cover too little of the catchment, below the 70% coverage policy. No value, status or count changed. Only this bundle is revised; the aligned bundle's link to it is re-pinned, and its results are unchanged.",
+ "description": "Precomputed result of recipe monthly_departure 1.0.0 on bundle_s2_ndvi_monthly_ait_bouguemez: 58 of 84 periods have a departure. The reference is a short period (2019 to 2025), not a climate normal. A departure describes how this month differs from other years here; it does not say why. The spatial IQR is variability across pixels, not a confidence interval. In winter months the accepted pixels favour the valley floor and south-facing slopes, because snow and shade remove the others; the area value then describes those pixels, not the whole catchment.\n\nRevision 13 (2026-10-27). Among duplicates of a tile and date, an item with no clear pixels over the catchment is now skipped when a twin has some. That clause was added to the duplicate rule after data was first read; the rule fixed before any data was read kept the newest processing baseline only. Revision 12, the first committed, has no version field; it documented the clause but kept the newest item, so it kept an item with 0 clear pixels over the catchment on seven tile-dates: 29RQQ 2019-04-17 (twin had 285 clear pixels), 2019-06-21 (702,669), 2020-11-12 (84), 2021-06-07 (8), 2021-11-19 (8), 2021-12-22 (8), and 29SQR 2020-10-23 (16). In five cases the twin is an older baseline (02.14, 03.00, 03.01), so its clear pixels come from an older scene classification. This revision recomputes 2019-04, 2019-06, 2020-10, 2020-11, 2021-06, 2021-11 and 2021-12 and everything derived from them; no NDVI or departure area median moved at four decimals.\n\nRevision 14 (2026-10-27). The leave-one-year-out measurements of 2019-03 and 2020-03, which revision 13 excluded without saying why, now carry a missing_reason (Siterra STAC extension 1.1.0): pixels with a value that year and a reference from at least 4 other years cover too little of the catchment, below the 70% coverage policy. No value, status or count changed. Only this bundle is revised; the aligned bundle's link to it is re-pinned, and its results are unchanged.\n\nRevision 15 (2026-10-28). Each period whose leave-one-year-out departure is available (56 of 84) gains a display raster for the map, asset overview: that period's per-pixel leave-one-year-out departure, averaged into 30 m Web Mercator cells (about 25.5 m on the ground here) and painted on the fixed scale -0.10 to +0.10 with the light-theme NDVI departure ramp, lossless WebP. It is for display only; every number shown comes from the measurements. 2019-03 and 2020-03, whose leave-one-year-out value is excluded, and the periods without a departure have no display raster. The Collection also lists the mapped cropland and buildings (ESA WorldCover 2021 classes 40 and 50) of the terrain strata bundle as polygons, for the map's hatch; no value is masked by them. No value, status or count changed. Only this bundle is revised; the aligned bundle's link to it is re-pinned, and its results are unchanged.",
  "license": "other",
- "version": "14",
+ "version": "15",
  "providers": [
   {
    "name": "Copernicus Sentinel-2 (European Union, ESA)",
@@ -43,17 +44,28 @@
    "url": "https://earth-search.aws.element84.com/v1/"
   },
   {
+   "name": "ESA WorldCover consortium",
+   "roles": [
+    "producer",
+    "licensor"
+   ],
+   "url": "https://esa-worldcover.org/"
+  },
+  {
    "name": "Siterra science pipeline",
    "roles": [
     "processor"
    ],
-   "processing:lineage": "Deduplicated tile-date items (newest baseline), DN/10000 without offset, scene classification classes 4 and 5 kept, NDVI per observation, same-date tiles merged, per-pixel monthly median and date count, acceptance policy, area summaries over the frozen catchment (docs/reference/observation-preprocessing.md).",
+   "processing:lineage": "Deduplicated tile-date items (newest baseline), DN/10000 without offset, scene classification classes 4 and 5 kept, NDVI per observation, same-date tiles merged, per-pixel monthly median and date count, acceptance policy, area summaries over the frozen catchment (docs/reference/observation-preprocessing.md). Display rasters: the leave-one-year-out departure grid averaged into 30 m EPSG:3857 cells and painted with the light-theme data.ndvi-departure ramp on its fixed scale, t in 16 steps, lossless WebP; mapped cropland and buildings from the terrain strata bundle's excluded band, polygonized.",
    "processing:software": {
     "siterra-science": "0.1.0+uncommitted",
     "python": "3.12.9",
     "rasterio": "1.5.2",
     "gdal": "3.12.2",
-    "numpy": "2.5.4"
+    "numpy": "2.5.4",
+    "pillow": "12.3.0",
+    "pyproj": "3.8.0",
+    "shapely": "2.2.0"
    }
   }
  ],
@@ -87,9 +99,20 @@
    ],
    "file:checksum": "1220ac506ece626b6844d759b56aa60a10248c8c0ea5e206f9a28eb436a892a4d47f",
    "file:size": 119623
+  },
+  "excluded_land": {
+   "href": "./excluded-land.geojson",
+   "type": "application/geo+json",
+   "title": "Mapped cropland and buildings (ESA WorldCover 2021 classes 40 and 50), for the map's hatch (display only)",
+   "description": "The excluded layer of bundle_terrain_strata_ait_bouguemez (51,134 pixels of 10 m, from WorldCover's 10 m map) as polygons in EPSG:4326, coordinates at 5 decimals. A 2021 context mask, not a field survey; no departure value is masked by it.",
+   "roles": [
+    "data"
+   ],
+   "file:checksum": "1220df214058325f2f44d2f9cef61c69a1cfbd80bb537e543f11c68e1e7cb949c5b8",
+   "file:size": 454874
   }
  },
- "created": "2026-10-28T00:00:57Z",
+ "created": "2026-10-28T15:08:18Z",
  "siterra:status": "validated",
  "siterra:variable": "ndvi_departure",
  "siterra:dataset": {
@@ -135,7 +158,9 @@
   "Catchment derived by Siterra from Copernicus DEM GLO-30 (2021 release)",
   "Contains modified Copernicus Sentinel data 2019-2025",
   "Produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved",
-  "The organisations in charge of the Copernicus programme by law or by delegation do not incur any liability for any use of the Copernicus WorldDEM-30"
+  "The organisations in charge of the Copernicus programme by law or by delegation do not incur any liability for any use of the Copernicus WorldDEM-30",
+  "© ESA WorldCover project / Contains modified Copernicus Sentinel data (2021) processed by ESA WorldCover consortium",
+  "ESA WorldCover 2021 v200 (Zanaga et al. 2022), CC BY 4.0, https://doi.org/10.5281/zenodo.7254221"
  ],
  "siterra:limitations": [
   "The reference is a short period (2019 to 2025), not a climate normal.",
@@ -144,7 +169,8 @@
   "In winter months the accepted pixels favour the valley floor and south-facing slopes, because snow and shade remove the others; the area value then describes those pixels, not the whole catchment.",
   "In winter months the accepted pixels favour the valley floor and south-facing slopes, because snow and shade remove the others; the area value then describes those pixels, not the whole catchment.",
   "Revision 13 (2026-10-27). Among duplicates of a tile and date, an item with no clear pixels over the catchment is now skipped when a twin has some. That clause was added to the duplicate rule after data was first read; the rule fixed before any data was read kept the newest processing baseline only. Revision 12, the first committed, has no version field; it documented the clause but kept the newest item, so it kept an item with 0 clear pixels over the catchment on seven tile-dates: 29RQQ 2019-04-17 (twin had 285 clear pixels), 2019-06-21 (702,669), 2020-11-12 (84), 2021-06-07 (8), 2021-11-19 (8), 2021-12-22 (8), and 29SQR 2020-10-23 (16). In five cases the twin is an older baseline (02.14, 03.00, 03.01), so its clear pixels come from an older scene classification. This revision recomputes 2019-04, 2019-06, 2020-10, 2020-11, 2021-06, 2021-11 and 2021-12 and everything derived from them; no NDVI or departure area median moved at four decimals.",
-  "Revision 14 (2026-10-27). The leave-one-year-out measurements of 2019-03 and 2020-03, which revision 13 excluded without saying why, now carry a missing_reason (Siterra STAC extension 1.1.0): pixels with a value that year and a reference from at least 4 other years cover too little of the catchment, below the 70% coverage policy. No value, status or count changed. Only this bundle is revised; the aligned bundle's link to it is re-pinned, and its results are unchanged."
+  "Revision 14 (2026-10-27). The leave-one-year-out measurements of 2019-03 and 2020-03, which revision 13 excluded without saying why, now carry a missing_reason (Siterra STAC extension 1.1.0): pixels with a value that year and a reference from at least 4 other years cover too little of the catchment, below the 70% coverage policy. No value, status or count changed. Only this bundle is revised; the aligned bundle's link to it is re-pinned, and its results are unchanged.",
+  "Revision 15 (2026-10-28). Each period whose leave-one-year-out departure is available (56 of 84) gains a display raster for the map, asset overview: that period's per-pixel leave-one-year-out departure, averaged into 30 m Web Mercator cells (about 25.5 m on the ground here) and painted on the fixed scale -0.10 to +0.10 with the light-theme NDVI departure ramp, lossless WebP. It is for display only; every number shown comes from the measurements. 2019-03 and 2020-03, whose leave-one-year-out value is excluded, and the periods without a departure have no display raster. The Collection also lists the mapped cropland and buildings (ESA WorldCover 2021 classes 40 and 50) of the terrain strata bundle as polygons, for the map's hatch; no value is masked by them. No value, status or count changed. Only this bundle is revised; the aligned bundle's link to it is re-pinned, and its results are unchanged."
  ],
  "siterra:checks": [
   {
@@ -155,7 +181,7 @@
   {
    "name": "nodata_not_zero",
    "passed": true,
-   "detail": "Pixels without an accepted value or without a reference stay NaN; periods below the coverage policy carry no value"
+   "detail": "Pixels without an accepted value or without a reference stay NaN; periods below the coverage policy carry no value. In the display rasters, cells without a value are transparent, never painted as zero"
   },
   {
    "name": "units_and_scale",
@@ -165,12 +191,12 @@
   {
    "name": "recompute_sample_period",
    "passed": true,
-   "detail": "Deterministic from the validated NDVI composites; the NDVI bundle's own recompute check covers the inputs"
+   "detail": "Deterministic from the validated NDVI composites; the NDVI bundle's own recompute check covers the inputs. Display rasters: the 2025-11 grids of both references, recomputed from the NDVI composites, are pixel-identical to the grids rendered; all 168 grid statistics (valid pixel count, area median and spatial IQR, both references) equal the stored measurements; the cropland and buildings polygons rasterize back to the strata bundle's excluded band exactly (51,134 pixels)"
   },
   {
    "name": "attribution_present",
    "passed": true,
-   "detail": "Source attributions carried from the NDVI bundle"
+   "detail": "Source attributions carried from the NDVI bundle. ESA WorldCover attribution and licence added for the cropland and buildings layer"
   }
  ],
  "links": [
@@ -206,49 +232,49 @@
    "rel": "item",
    "href": "./period_2019-04/period_2019-04.json",
    "type": "application/geo+json",
-   "file:checksum": "1220181d9b8c96320b0ea762b94ba25f4e6f45dc85bfd01fedc876b02d8154a4b0a8"
+   "file:checksum": "12209dd3ed0ac3f200e3e421390cd0165fe972939627051914f985cbaf1622304acf"
   },
   {
    "rel": "item",
    "href": "./period_2019-05/period_2019-05.json",
    "type": "application/geo+json",
-   "file:checksum": "12200f345dccb600e69fd0a17b364d929fb3a9986737f251566ab612f457b364ba42"
+   "file:checksum": "1220b69e3975d4e221f61f82e2fd851770f946a153a65a67a52bb77a814a0f6e2800"
   },
   {
    "rel": "item",
    "href": "./period_2019-06/period_2019-06.json",
    "type": "application/geo+json",
-   "file:checksum": "1220ee295a04b69721cbfd4d83b4352788f648c3adcd380ef562eb12996bf78b9b65"
+   "file:checksum": "12201b8d096acfbac39349aced3face240b762979433d3f2e3897cad55b1ab91fd56"
   },
   {
    "rel": "item",
    "href": "./period_2019-07/period_2019-07.json",
    "type": "application/geo+json",
-   "file:checksum": "1220053d7d741dcab6f9fcb320c14bf2142adc9b1f0db1472d2bf509c5d24755772f"
+   "file:checksum": "122000931c22ad3411a16e0421103ed8d2b6cc5411b389824fbbe59e3b6bbe5ae4b0"
   },
   {
    "rel": "item",
    "href": "./period_2019-08/period_2019-08.json",
    "type": "application/geo+json",
-   "file:checksum": "122095d8fb116e66898f51b43f3e01f7657260a066310a27afaa0df2a3313cfcbe04"
+   "file:checksum": "1220263c6acc1d21f5926b6a66927eff8b97d7ca8215c09b91960a68f3882b330fc1"
   },
   {
    "rel": "item",
    "href": "./period_2019-09/period_2019-09.json",
    "type": "application/geo+json",
-   "file:checksum": "1220254c88c451745d9358e414e08ff543c9185ae5be4e64836844cb3798ee4fa400"
+   "file:checksum": "12200373dbb87ee2d71e88a467a29b6d91c5390fa34cbb84178cf1489a2021ff0e97"
   },
   {
    "rel": "item",
    "href": "./period_2019-10/period_2019-10.json",
    "type": "application/geo+json",
-   "file:checksum": "1220a35041f2ebea977f3b5e6411134cd6535537f7db1646e4111c75eb85e5dbea65"
+   "file:checksum": "12209e780d005b2331bcfa59743ebdd30e83ed8275462b80bed05267a045641ae36f"
   },
   {
    "rel": "item",
    "href": "./period_2019-11/period_2019-11.json",
    "type": "application/geo+json",
-   "file:checksum": "12204d41aa70333088354fedb0b1be3ee0a6182255e64297f718f6b34fcd47eec138"
+   "file:checksum": "122023fc903b6688e7b4d969d9599546fde16ef4e7908cdc029b508b3572eebdec93"
   },
   {
    "rel": "item",
@@ -278,49 +304,49 @@
    "rel": "item",
    "href": "./period_2020-04/period_2020-04.json",
    "type": "application/geo+json",
-   "file:checksum": "1220279bc5a75d9f34a0331fd0b41f6fb221ae1a36e71a8e4c899a4a4303b8efec81"
+   "file:checksum": "12204312da0e7ea0356d298070a47ab94360217fbee21fb9188274da84f4f57109e9"
   },
   {
    "rel": "item",
    "href": "./period_2020-05/period_2020-05.json",
    "type": "application/geo+json",
-   "file:checksum": "1220ffc4ce4bb9961eef3409088e4e89d21ecc1bd16db34e44df284c8afc585a6340"
+   "file:checksum": "122050b1670c42403498c61e58e527886c8642e9fb96c9dad51619889d1c7c4be19e"
   },
   {
    "rel": "item",
    "href": "./period_2020-06/period_2020-06.json",
    "type": "application/geo+json",
-   "file:checksum": "12206d59f0105f39a952d6365476bba353f02c0f917892c0096e5ea1616cb90f6d86"
+   "file:checksum": "1220b31421ae28928a70d1cf41c0f697034e96c168dfe5e0b94197128df917bf6d57"
   },
   {
    "rel": "item",
    "href": "./period_2020-07/period_2020-07.json",
    "type": "application/geo+json",
-   "file:checksum": "1220073000d5605708f45dc03c1cb9b7d477b3a32b8aaca675177723e8e2d7f97641"
+   "file:checksum": "12201b7817cf7935d701d09cde859a41e357472cdc58b55256157923ea2796a2ff19"
   },
   {
    "rel": "item",
    "href": "./period_2020-08/period_2020-08.json",
    "type": "application/geo+json",
-   "file:checksum": "12209fccb5165cc05709e1d5e61170331dc518218001d252ccc4777ebd1439865652"
+   "file:checksum": "1220f4bc84a4684c383a7aec910d835d6df7a021dffe7257eb1619b4c44d933c1e6a"
   },
   {
    "rel": "item",
    "href": "./period_2020-09/period_2020-09.json",
    "type": "application/geo+json",
-   "file:checksum": "1220f84e4f5824a54c003564ddafde13b1462011a2d45ef22b9d10a0d233141888d0"
+   "file:checksum": "12202789d0ab2c59120c4bc518e6aea9f922d198ceca489b9f7842c6a406c6609c83"
   },
   {
    "rel": "item",
    "href": "./period_2020-10/period_2020-10.json",
    "type": "application/geo+json",
-   "file:checksum": "12202946bdc74ccb1181a08ae1d95d69667616c330cbe1d73873ec40bfdaa58a6224"
+   "file:checksum": "122049976d7c6998527bf7ad69c9fbd754a9da2636a8ddbf141f49c5a8b8ea32a015"
   },
   {
    "rel": "item",
    "href": "./period_2020-11/period_2020-11.json",
    "type": "application/geo+json",
-   "file:checksum": "122089c7f19faf42d6ce34058a8b902c8989130ac5f6367777aadd59d6d09d19b180"
+   "file:checksum": "1220f45ae151622d62f19b981d94773f16a502cd48017489e7b55ca7a80c08efe38b"
   },
   {
    "rel": "item",
@@ -350,49 +376,49 @@
    "rel": "item",
    "href": "./period_2021-04/period_2021-04.json",
    "type": "application/geo+json",
-   "file:checksum": "12207b8c3703c8cc5e4ee043027fdd345d858e378d42794d26312d438dae49d4da72"
+   "file:checksum": "1220dbaabefe3d1e4990d963dc490474871d5ff6953d7d6dedc28b20fc9d9c6d3daa"
   },
   {
    "rel": "item",
    "href": "./period_2021-05/period_2021-05.json",
    "type": "application/geo+json",
-   "file:checksum": "1220b74f5ae51de39e0322e3f2b612a546392e5a8c804606f4d70fea7efa1c9a5413"
+   "file:checksum": "122045e1b05d5312d2318409d14eefa3d499956f4aa0d4e008b8e5ba58803dc11701"
   },
   {
    "rel": "item",
    "href": "./period_2021-06/period_2021-06.json",
    "type": "application/geo+json",
-   "file:checksum": "1220da669fba3063cafb27236aaf2e98942107de2db3518d887c7d077c79d46b9afd"
+   "file:checksum": "1220e3815fbb7ac26eb06445af86d88c958f54bfe8a6c3329b80bb9f7b54bf537453"
   },
   {
    "rel": "item",
    "href": "./period_2021-07/period_2021-07.json",
    "type": "application/geo+json",
-   "file:checksum": "1220d5747b6a4877d6fe3f66b68a8e2611df66689a46044fac0fe69063cc5a6fd956"
+   "file:checksum": "1220f3236eb4db5a7e3aeb1386dfae71201c4ce0c2794a49760550bbd5d338f9fd46"
   },
   {
    "rel": "item",
    "href": "./period_2021-08/period_2021-08.json",
    "type": "application/geo+json",
-   "file:checksum": "1220ec60d6b84a9450cbbb782286fcdc52a5f4bb1600b0eb487d78247ba79e2950c2"
+   "file:checksum": "1220c9e11663b09189bad6cbc9f8bbdc7e020737b7b7fad2b03fa7eff7748f28cba9"
   },
   {
    "rel": "item",
    "href": "./period_2021-09/period_2021-09.json",
    "type": "application/geo+json",
-   "file:checksum": "1220989104e2d2741ac3b1f5db1ad01524fb77c8b79924d1f66bc20b0977a95307ef"
+   "file:checksum": "122068bf830613f86b2a411bacbdd63072a661d662c676fbe89ee2d16f6fa5c85af2"
   },
   {
    "rel": "item",
    "href": "./period_2021-10/period_2021-10.json",
    "type": "application/geo+json",
-   "file:checksum": "122038394fa3575869533aae439b83f2af1002b7a3bae565ebeae2066b313adad17f"
+   "file:checksum": "1220149c66c4a42025e4fefa478ff8005b42111f065ecbab574d57a29258719ae401"
   },
   {
    "rel": "item",
    "href": "./period_2021-11/period_2021-11.json",
    "type": "application/geo+json",
-   "file:checksum": "1220dae503d80229529abb2c8316dbc40bb57e5dab65a2d9b1229ef4212e8899af41"
+   "file:checksum": "1220fb48512631e5cbfb2a0fb29c88088d8e3398b8e225ff304c341c4346e5d45f9a"
   },
   {
    "rel": "item",
@@ -422,49 +448,49 @@
    "rel": "item",
    "href": "./period_2022-04/period_2022-04.json",
    "type": "application/geo+json",
-   "file:checksum": "12202222a249d563c7899818d3eb8c32445fbb396fc892a2c209ccc8a08aab1ded6d"
+   "file:checksum": "12209a4b57eba934791b1df5f9b4dced422173a8b9b9a04758d08c5d338f9263ada9"
   },
   {
    "rel": "item",
    "href": "./period_2022-05/period_2022-05.json",
    "type": "application/geo+json",
-   "file:checksum": "122010d26c7cf6bf773851254f3f7ef96b7d9deddb09798f13dd02fc31900e454b0f"
+   "file:checksum": "122020ea6b7ba42b3cbb9962811866aaa65b8767180226f271e1407d2df622ddf11f"
   },
   {
    "rel": "item",
    "href": "./period_2022-06/period_2022-06.json",
    "type": "application/geo+json",
-   "file:checksum": "12203bee2ef9be81ff5dfef09940d75b0956e69c3cae2ca1bcab4ca67118af9f9e0b"
+   "file:checksum": "122034bb1f11f48445233f7e6ecd641e75bcca8bcaea396cfc5a772639c444d25f62"
   },
   {
    "rel": "item",
    "href": "./period_2022-07/period_2022-07.json",
    "type": "application/geo+json",
-   "file:checksum": "122086a811e8a43183c9ecd67fcacffdd6fe37f5819284c6bdeb99ad086ea7bd9fa8"
+   "file:checksum": "122007a225b535af72d1a99fbeff1f0c8491762e3156d3afe7b52ae78e537313fefc"
   },
   {
    "rel": "item",
    "href": "./period_2022-08/period_2022-08.json",
    "type": "application/geo+json",
-   "file:checksum": "1220d2ed267fbb3d95971347c60a334375ae006e23dab7495f4fa4eeff98f807af69"
+   "file:checksum": "12204f9870dab89de92de633799fe7ba5de4bcfdd67541fb51a9ad83c11d70c66c77"
   },
   {
    "rel": "item",
    "href": "./period_2022-09/period_2022-09.json",
    "type": "application/geo+json",
-   "file:checksum": "12204749387fad2537626bfb331eab39c1dc09dd8bca5a8c166a7596104bcc63bf7f"
+   "file:checksum": "1220afedd07b30291b5ab91260065a42050da0f41d7dc000a26902747aea1196f1eb"
   },
   {
    "rel": "item",
    "href": "./period_2022-10/period_2022-10.json",
    "type": "application/geo+json",
-   "file:checksum": "1220efbd00871b27211a4eb5ee0d50e3e4d43c5f12b63ec3b6753bed5e4e3b2564e3"
+   "file:checksum": "1220bfc09d2dd6387dbc61768d4e4e0950406e3bb47bda9876cd4c399ffd095a3bc9"
   },
   {
    "rel": "item",
    "href": "./period_2022-11/period_2022-11.json",
    "type": "application/geo+json",
-   "file:checksum": "12204eaef0f5decaaece7fa453d523055013ded8a336f648aaf6aeffdf04830b5705"
+   "file:checksum": "12209f88e706c3cb86c83a94dfbefb2be7dbdd54296af6ca3ba0d8fe35f852e22859"
   },
   {
    "rel": "item",
@@ -494,49 +520,49 @@
    "rel": "item",
    "href": "./period_2023-04/period_2023-04.json",
    "type": "application/geo+json",
-   "file:checksum": "1220e0f06b31cda98734c4e610bc7a5147b5cd0eb2e04db56e615178bc8f4bd7db0f"
+   "file:checksum": "1220bf54cce62b57779fa4544e00748255aeb793d55778ba0233cdbe0effd474a6d0"
   },
   {
    "rel": "item",
    "href": "./period_2023-05/period_2023-05.json",
    "type": "application/geo+json",
-   "file:checksum": "12202fdca2f5415e202075a1bda4c56e28aee7e33cb17a53bebaba58abe039e740a8"
+   "file:checksum": "12206e1218f154ebb9df706c22ff3923f4011234f8cb10c577f2d42d916b48c240e9"
   },
   {
    "rel": "item",
    "href": "./period_2023-06/period_2023-06.json",
    "type": "application/geo+json",
-   "file:checksum": "12200b63c7d7479f2f7c85c5399c286f72bbee8ebe7f62f5f08206efe5e419c904f0"
+   "file:checksum": "12201f149b599685a212b4905df3bab535faed5ae441f621dd2064720525098f2b04"
   },
   {
    "rel": "item",
    "href": "./period_2023-07/period_2023-07.json",
    "type": "application/geo+json",
-   "file:checksum": "12203206e7fe04e0b4f47bccb7f357985b7860af9ffe710ccbb86334ff6803896a1d"
+   "file:checksum": "1220b42bc63a65b250e45f6d457db84d1f38f53048986ce89b91c0df3e31305f3cfd"
   },
   {
    "rel": "item",
    "href": "./period_2023-08/period_2023-08.json",
    "type": "application/geo+json",
-   "file:checksum": "122026e58afe9708c06f06e2cd6889e62c3a2f697252c6ed9bd636b37edb470f4ac7"
+   "file:checksum": "122038052663dc38687fbb50ff1151ee8d8e166b0d41421a9f6a603542b469d4622a"
   },
   {
    "rel": "item",
    "href": "./period_2023-09/period_2023-09.json",
    "type": "application/geo+json",
-   "file:checksum": "12200fa7b3ca158b4a43bcf8ba770775306bce3e9b879ba950240326cdef9bed8057"
+   "file:checksum": "1220992926eb9ee86f61be172c309d278a7b82a8e99c41b4fa150d0772da0848a8e9"
   },
   {
    "rel": "item",
    "href": "./period_2023-10/period_2023-10.json",
    "type": "application/geo+json",
-   "file:checksum": "12208b5c1a4f4270dfee325ab73d74eb66e4b041a7264d4c11328a987644d5c54912"
+   "file:checksum": "12206e8c2be00f7bffea5195e917d88ba6686a3c6aabdb0360b0e84aed8cf3bfc0cc"
   },
   {
    "rel": "item",
    "href": "./period_2023-11/period_2023-11.json",
    "type": "application/geo+json",
-   "file:checksum": "1220be4885440b4e5eec453cfe330c2481746f37a6e7b5be923686e668e3fe17794f"
+   "file:checksum": "12202aac3b570409a1b5885db34fd7747127d53efc098aea0aaeb04951ce37919c08"
   },
   {
    "rel": "item",
@@ -566,49 +592,49 @@
    "rel": "item",
    "href": "./period_2024-04/period_2024-04.json",
    "type": "application/geo+json",
-   "file:checksum": "1220ab596f487f99d2f8924069a68037ebf410100783534aef13da48cdeb6a780261"
+   "file:checksum": "12207e1f97e7d5a5efcff699c06ce8e60afe8de43eff94801fd1a92afe17d955d455"
   },
   {
    "rel": "item",
    "href": "./period_2024-05/period_2024-05.json",
    "type": "application/geo+json",
-   "file:checksum": "12209d7e65a6a96f1b32228c798053925d2308a141158807c347b765297068a13032"
+   "file:checksum": "12207291ee198603a7d929e02248962603f46a1d1a3a78e67e34b0d145004db68112"
   },
   {
    "rel": "item",
    "href": "./period_2024-06/period_2024-06.json",
    "type": "application/geo+json",
-   "file:checksum": "12206236d4f870456d8db8877e70eb6d8343f10ba992150f7a59e72e9f2fe5fd15a9"
+   "file:checksum": "1220fe75e4fef3447069c492ab30e2ac9df0e850379bb6a11352f369ad4853dee9fd"
   },
   {
    "rel": "item",
    "href": "./period_2024-07/period_2024-07.json",
    "type": "application/geo+json",
-   "file:checksum": "1220d9e0aef11b1a46601eb8a614dd21ddc4da66358a4fddd221413913421a182029"
+   "file:checksum": "1220c7ff9348d7b247182ff2805365a3158aab17a3d5467aa02e3522dea1e489dcc3"
   },
   {
    "rel": "item",
    "href": "./period_2024-08/period_2024-08.json",
    "type": "application/geo+json",
-   "file:checksum": "1220a98f2b2132129c3bce9f95236d5c0eeb96cff8309ab15b6f572082b4ac74c989"
+   "file:checksum": "1220d94248514bc10d6bc3aba43d8aa6321d523b7502d8d20b84752c51cc18690b0c"
   },
   {
    "rel": "item",
    "href": "./period_2024-09/period_2024-09.json",
    "type": "application/geo+json",
-   "file:checksum": "122009f308a3381cbbe4c06801c6ab85893990142c1ebff83d30e89d367e42834564"
+   "file:checksum": "1220655f4e53790d5a38923634f0de607b4025d08f83094ff22bf90e90fc486f2c3b"
   },
   {
    "rel": "item",
    "href": "./period_2024-10/period_2024-10.json",
    "type": "application/geo+json",
-   "file:checksum": "12207bc22bdb01536dd2e3536721abc9a1996575f44ad1415847bf9e84b523b8cfba"
+   "file:checksum": "12200c2d8929a5b74cf1e2c08b80d0de1ad9d477062440b16d735f0d95f2e139769a"
   },
   {
    "rel": "item",
    "href": "./period_2024-11/period_2024-11.json",
    "type": "application/geo+json",
-   "file:checksum": "12205aba08384450f94d863136575793ac7c8d628147884b87974e4765820512efc4"
+   "file:checksum": "122016eab704d949851bf6bebde22bf35559d6abede25f5f9e13f3651332243fbcff"
   },
   {
    "rel": "item",
@@ -638,49 +664,49 @@
    "rel": "item",
    "href": "./period_2025-04/period_2025-04.json",
    "type": "application/geo+json",
-   "file:checksum": "122025fb70aa4f78fb2200f7ad6605d9e4bc5cd288b25b2f2f9b66bd00ff20f5161e"
+   "file:checksum": "1220a69e6de277344899437b8675bf005e54cf4903e425b803a44d438511ceaa8282"
   },
   {
    "rel": "item",
    "href": "./period_2025-05/period_2025-05.json",
    "type": "application/geo+json",
-   "file:checksum": "1220347b8ea693819feeb93a710c1bcfe142cdeb6556f169a5f5ed161e5531c9e7e8"
+   "file:checksum": "122098bc3394c2bc55dd293d65d7867034025e0ee4d9881f24479f3a24b2a059f987"
   },
   {
    "rel": "item",
    "href": "./period_2025-06/period_2025-06.json",
    "type": "application/geo+json",
-   "file:checksum": "1220629724d6477244e67169c096538900bd3dd9b2f3419077ff80d12ca18c8c6c3e"
+   "file:checksum": "12201bd602763fa5af8ac7ce383526b6ad009df8651dfe7f2fa5206804c968713a3e"
   },
   {
    "rel": "item",
    "href": "./period_2025-07/period_2025-07.json",
    "type": "application/geo+json",
-   "file:checksum": "1220b0d134d073050b828dcff2d0b810e9e8859aef79cece22901f698fb22513df8d"
+   "file:checksum": "12201456fa6091194d86740b35c50cda338b4ed548dee211655aaaa437ad9531f242"
   },
   {
    "rel": "item",
    "href": "./period_2025-08/period_2025-08.json",
    "type": "application/geo+json",
-   "file:checksum": "122005da4a924c88a329f310203de17e3b7912de698ccdcb127746a6795efd3714ea"
+   "file:checksum": "12208e75932a6479cf2d71004d7d9833f14641501451605fb4ab8fad9f010f52e3dd"
   },
   {
    "rel": "item",
    "href": "./period_2025-09/period_2025-09.json",
    "type": "application/geo+json",
-   "file:checksum": "12201f31425d1054aeb3deecdf458e35318b4b8b414d781c0185c6a7988261e0a0e3"
+   "file:checksum": "12207084481122df19c81e8b59d1e700d178ead8ed7318358b611c8cd00e71342e6f"
   },
   {
    "rel": "item",
    "href": "./period_2025-10/period_2025-10.json",
    "type": "application/geo+json",
-   "file:checksum": "122000f8e9f848c6ca030d296699b8832ad4a2ab99e77b032cd41453a00a82bb0a31"
+   "file:checksum": "1220e79de9383cf71367dd20ac6d9c7964f9e516ab5edd1fa680ee6f22d51e3aa82b"
   },
   {
    "rel": "item",
    "href": "./period_2025-11/period_2025-11.json",
    "type": "application/geo+json",
-   "file:checksum": "122019e42f7d4f442b4ce35ffdd83789cd9dbc56dfe650f5dc59b003c5f2a0fdf3fd"
+   "file:checksum": "1220e72fe8befc98f4f5507c10d457716b541539a619db1e0adf84a7db9255b54bfb"
   },
   {
    "rel": "item",
@@ -706,11 +732,48 @@
    "title": "Licence for Copernicus DEM instance COP-DEM-GLO-30-F Global 30m Full, Free & Open (analysis geometry)"
   },
   {
+   "rel": "derived_from",
+   "href": "../bundle_terrain_strata_ait_bouguemez/collection.json",
+   "type": "application/json",
+   "title": "Terrain sampling strata",
+   "file:checksum": "1220857e69c5d1ddbe846b8022836f888254f3f818251b9e3e4ffba8748bae07241d"
+  },
+  {
+   "rel": "license",
+   "href": "https://creativecommons.org/licenses/by/4.0/",
+   "title": "ESA WorldCover: CC BY 4.0"
+  },
+  {
    "rel": "processing-software",
    "href": "./uv.lock",
    "type": "application/toml",
    "title": "Pipeline lockfile (uv)",
    "file:checksum": "12205154d57a84dcb8f1eb5f992923d7589a669b8dc669edf140f607ff2740733aff"
   }
- ]
+ ],
+ "item_assets": {
+  "overview": {
+   "type": "image/webp",
+   "title": "NDVI departure display raster, leave-one-year-out reference (display only)",
+   "roles": [
+    "overview"
+   ],
+   "proj:code": "EPSG:3857",
+   "proj:bbox": [
+    -728220.0,
+    3697080.0,
+    -683700.0,
+    3731430.0
+   ],
+   "proj:shape": [
+    1145,
+    1484
+   ],
+   "siterra:color_scale": "ndvi-anomaly-diverging",
+   "siterra:domain": [
+    -0.1,
+    0.1
+   ]
+  }
+ }
 }

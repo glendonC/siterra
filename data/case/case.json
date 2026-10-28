@@ -43,7 +43,7 @@
  },
  "bundles": {
   "catalog": "data/bundles/catalog.json",
-  "catalogSha256": "03b59c77f0ac7c9577d569ad4ab960d1e7a9f34515ebfc1717e1d2e374fd4ad6"
+  "catalogSha256": "9114704e1877ef4f0b859eb9292e82994e04675d61cc37c49693f222343c4e11"
  },
  "corpus": {
   "manifest": "data/case/corpus-manifest.json",
@@ -51,7 +51,7 @@
  },
  "recipes": {
   "registry": "science/recipes/registry.json",
-  "registrySha256": "e3ee35e72f23d9dad8047df02860d7e6960f1d052490c152139b9a187f08f662"
+  "registrySha256": "f39b9990552a2382d3088a50b444286c57af7d3d44dd7bdb7fa7e9abeebb0b7e"
  },
  "evaluation": {
   "goldDir": "data/case/gold/",

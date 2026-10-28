@@ -3,7 +3,9 @@
  "stac_version": "1.1.0",
  "stac_extensions": [
   "https://stac-extensions.github.io/raster/v2.0.0/schema.json",
-  "https://siterra.invalid/schemas/stac/siterra/1.1.0/schema.json"
+  "https://siterra.invalid/schemas/stac/siterra/1.1.0/schema.json",
+  "https://stac-extensions.github.io/file/v2.1.0/schema.json",
+  "https://stac-extensions.github.io/projection/v2.1.0/schema.json"
  ],
  "id": "period_2020-08",
  "collection": "bundle_ndvi_departure_ait_bouguemez",
@@ -2625,7 +2627,8 @@
   ],
   "siterra:quality_flags": [
    "reduced_qa_fallback"
-  ]
+  ],
+  "updated": "2026-10-28T15:08:18Z"
  },
  "links": [
   {
@@ -2650,5 +2653,33 @@
    "title": "NDVI period period_2020-08"
   }
  ],
- "assets": {}
+ "assets": {
+  "overview": {
+   "href": "./overview.webp",
+   "type": "image/webp",
+   "title": "NDVI departure display raster, August 2020, leave-one-year-out reference (display only)",
+   "description": "The per-pixel departure from the median of the other years' same month, averaged into 30 m Web Mercator cells (about 25.5 m on the ground here) and painted on the fixed scale -0.10 to 0.10. No number is read from it.",
+   "roles": [
+    "overview"
+   ],
+   "proj:code": "EPSG:3857",
+   "proj:bbox": [
+    -728220.0,
+    3697080.0,
+    -683700.0,
+    3731430.0
+   ],
+   "proj:shape": [
+    1145,
+    1484
+   ],
+   "siterra:color_scale": "ndvi-anomaly-diverging",
+   "siterra:domain": [
+    -0.1,
+    0.1
+   ],
+   "file:checksum": "122015b717627a115e569cca0da4b202d69d9aefb9c7d2ff0813ea5f1baf25bf69e3",
+   "file:size": 166468
+  }
+ }
 }

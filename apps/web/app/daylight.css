@@ -16,6 +16,15 @@
   /* the biomes legend swatch on the globe page (hud4.css) */
   --biome-fill: #f1e1c9;
   --biome-edge: rgba(181, 86, 31, 0.35);
+  /* data.ndvi-departure and data.excluded-hatch, light theme (design/tokens), for the map legend */
+  --ndvi-below-3: #a26112;
+  --ndvi-below-2: #c79150;
+  --ndvi-below-1: #e7c293;
+  --ndvi-above-1: #97d9c1;
+  --ndvi-above-2: #4eb293;
+  --ndvi-above-3: #16866a;
+  --excluded-hatch: #878481;
+  --excluded-hatch-edge: rgb(135 132 129 / 0.6);
   /* the halo of names on the land, at their box size (5 px in the hero's 2048 px texture) */
   --paper-halo-ground: 0 0 3px #f2efea, 0 0 3px #f2efea, 0 0 4px #f2efea;
   --paper-halo: 0 0 2px #f2efea, 0 0 2px #f2efea, 0 0 3px #f2efea;

@@ -17,6 +17,8 @@ export interface ArrivalFlatInput {
   imagery: boolean;
   /** False when no map is drawn: then there is no relief, and no view to note. */
   relief?: boolean;
+  /** The map legend's lines while a data layer shows. */
+  legend?: readonly string[];
 }
 
 export function arrivalFlat(i: ArrivalFlatInput): FlatSection[] {
@@ -45,6 +47,7 @@ export function arrivalFlat(i: ArrivalFlatInput): FlatSection[] {
             ],
           },
         ]),
+    ...(i.legend ? [{ heading: en["flat.legend"].text, lines: [...i.legend] }] : []),
     {
       heading: en["flat.sources"].text,
       lines: [

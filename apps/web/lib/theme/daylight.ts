@@ -28,9 +28,23 @@ export const daylight = {
   /** Contours, 100 m and 500 m: ink at 4.5% and 9% (design system, cartography; map.contour, map.contour-index). */
   contour: "rgba(43, 41, 37, 0.045)",
   contourIndex: "rgba(43, 41, 37, 0.09)",
+  /** data.excluded-hatch, light theme: 135 degree hatch, 1 px stroke, 6 px spacing. */
+  excludedHatch: "#878481",
+  excludedHatchEdge: "rgb(135 132 129 / 0.6)",
   sky: "#f2efea",
   horizon: "#f2efea",
   fog: "#f2efea",
 } as const;
 
 export type DaylightTokens = typeof daylight;
+
+/** data.ndvi-departure, light theme (design/tokens); the same values as the bundle's display rasters. */
+export const ndviDeparture = {
+  below3: "#a26112",
+  below2: "#c79150",
+  below1: "#e7c293",
+  reference: "#f8f6f4",
+  above1: "#97d9c1",
+  above2: "#4eb293",
+  above3: "#16866a",
+} as const;
