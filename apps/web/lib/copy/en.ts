@@ -113,6 +113,7 @@ export const en = {
   "task.kind.observation_analysis": { text: "Observation analysis", kind: "label" },
   "task.kind.livelihood_governance": { text: "Livelihood and governance research", kind: "label" },
   "task.kind.hypothesis_comparison": { text: "Explanation comparison", kind: "label" },
+  "task.kind.explanation_branches": { text: "Explanation branches", kind: "label" },
   "task.kind.intervention_feasibility": { text: "Possible responses", kind: "label" },
   "task.kind.brief_package": { text: "Field-validation plan", kind: "label" },
   "task.kind.validation": { text: "Automated checks", kind: "label" },
