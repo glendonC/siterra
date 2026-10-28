@@ -29,6 +29,14 @@ import {
   type ArrivalPart,
 } from "../../lib/stage/arrival-sequence";
 import { daylight } from "../../lib/theme/daylight";
+import { DEPARTURE_FADE_MS } from "../../lib/map/departure";
+import {
+  addDepartureLayers,
+  hatchTile,
+  removeDepartureLayers,
+  setDepartureOpacity,
+  type DepartureMapLayer,
+} from "../../lib/stage/departure-layers";
 import styles from "./ValleyStage.module.css";
 
 // MapLibre 6 is ESM-only; under Next.js and Turbopack its worker must be named by URL (MapLibre install docs,
@@ -141,6 +149,10 @@ export interface ValleyStageProps {
    * None in the hero sequence, where the dive is the arrival. Kept per tab, so a reload skips it.
    */
   settleKey?: string;
+  /** The Observations step's departure raster and cropland hatch; none draws nothing. */
+  departure?: DepartureMapLayer;
+  /** True once the departure layer is drawn, false when it is taken off or could not load. */
+  onDeparture?: (shown: boolean) => void;
 }
 
 export function ValleyStage({
@@ -159,6 +171,8 @@ export function ValleyStage({
   flat = false,
   onFailed,
   settleKey,
+  departure,
+  onDeparture,
 }: ValleyStageProps) {
   const container = useRef<HTMLDivElement>(null);
   const [stems, setStems] = useState<Stem[]>([]);
@@ -200,6 +214,51 @@ export function ValleyStage({
   settleRef.current = settle;
   const onFailedRef = useRef(onFailed);
   onFailedRef.current = onFailed;
+  const onDepartureRef = useRef(onDeparture);
+  onDepartureRef.current = onDeparture;
+
+  // the departure raster and the hatch fade in together once the picture has loaded (MOT-04, 160 ms,
+  // frame by frame as the arrival fades are); under reduced motion they appear at once
+  useEffect(() => {
+    const m = mapRef.current;
+    if (!m || !idle || !departure) return;
+    let live = true;
+    let raf = 0;
+    const picture = new Image();
+    picture.src = departure.imageUri;
+    picture
+      .decode()
+      .then(() => {
+        if (!live) return;
+        const ratio = Math.max(1, Math.round(window.devicePixelRatio));
+        addDepartureLayers(
+          m,
+          departure,
+          hatchTile(daylight.excludedHatch, ratio),
+          daylight.excludedHatchEdge,
+        );
+        const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+        const t0 = performance.now();
+        const step = () => {
+          const k = reduced ? 1 : Math.min(1, (performance.now() - t0) / DEPARTURE_FADE_MS);
+          setDepartureOpacity(m, k);
+          if (k < 1) raf = requestAnimationFrame(step);
+        };
+        step();
+        onDepartureRef.current?.(true);
+      })
+      .catch((e: unknown) => {
+        console.error("Stage: the departure raster could not load", e);
+        if (live) onDepartureRef.current?.(false);
+      });
+    return () => {
+      live = false;
+      cancelAnimationFrame(raf);
+      // the map may already be removed with the stage (maplibre-gl 6.14.0 marks it on map._removed)
+      if (!m._removed) removeDepartureLayers(m);
+      onDepartureRef.current?.(false);
+    };
+  }, [idle, departure]);
 
   // F: one camera move to the top-down view with the relief easing to flat, terrain off at the end; F again
   // returns. Under reduced motion the camera cuts.

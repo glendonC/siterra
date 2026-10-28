@@ -1,0 +1,102 @@
+/* The map legend island (design system layout: legend 280; type.label 12/16 for legends). Above the key
+   hints at the bottom left; it arrives with the raster's 160 ms fade, at once under reduced motion. */
+
+.legend {
+  position: absolute;
+  left: 40px;
+  bottom: 76px;
+  width: 280px;
+  box-sizing: border-box;
+  padding: 12px 14px 12px;
+  background: var(--card);
+  box-shadow: var(--shadow-card);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-feature-settings: "tnum" 1;
+  animation: fade 160ms linear both;
+}
+
+.legend p,
+.legend h2 {
+  margin: 0;
+}
+
+.title {
+  font: 500 var(--type-label-size) / var(--type-label-line) var(--font-sans);
+}
+
+.subtitle,
+.line,
+.note,
+.swatchRow {
+  margin-top: 4px !important;
+  font: 400 var(--type-label-size) / var(--type-label-line) var(--font-sans);
+  color: var(--grey);
+}
+
+.line {
+  color: var(--ink);
+}
+
+.ramp {
+  height: 8px;
+  margin-top: 8px;
+  border: 1px solid var(--rule);
+  background: linear-gradient(
+    to right,
+    var(--ndvi-below-3),
+    var(--ndvi-below-2) 25%,
+    var(--ndvi-below-1) 47.5%,
+    transparent 47.5%,
+    transparent 52.5%,
+    var(--ndvi-above-1) 52.5%,
+    var(--ndvi-above-2) 75%,
+    var(--ndvi-above-3)
+  );
+}
+
+.ticks {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 2px !important;
+  font: 400 var(--type-mono-small-size) / 14px var(--font-mono);
+  color: var(--grey);
+}
+
+.swatchRow {
+  display: grid;
+  grid-template-columns: 16px 1fr;
+  gap: 8px;
+  align-items: start;
+  margin-top: 8px !important;
+  color: var(--ink);
+}
+
+.hatch {
+  width: 16px;
+  height: 12px;
+  margin-top: 2px;
+  border: 1px solid var(--excluded-hatch-edge);
+  background: repeating-linear-gradient(45deg, var(--excluded-hatch) 0 1px, transparent 1px 6px);
+}
+
+.method {
+  margin-top: 8px !important;
+  font: 400 var(--type-mono-small-size) / 14px var(--font-mono);
+  color: var(--grey);
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .legend {
+    animation: none;
+  }
+}

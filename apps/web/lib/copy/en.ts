@@ -130,6 +130,31 @@ export const en = {
     kind: "ui",
   },
 
+  // Map legend (microcopy section 19, the approved key's form for any month; section 1a valley.key.ndvi.note)
+  "legend.ndvi.title": {
+    text: "NDVI departure, {period}, compared with other {months}",
+    kind: "label",
+  },
+  "legend.ndvi.subtitle": {
+    text: "Difference from the median of the other {months}, 2019 to 2025, inside the catchment",
+    kind: "ui",
+  },
+  "legend.coverage": { text: "{percent}% of area observed", kind: "ui" },
+  "legend.ndvi.excluded": {
+    text: "Mapped cropland and buildings, 2021 context mask (ESA WorldCover)",
+    kind: "ui",
+  },
+  "legend.ndvi.note": {
+    text: "No cropland mask is applied: valley-floor fields and orchards are included.",
+    kind: "ui",
+    honesty: true,
+  },
+  "legend.ndvi.method": {
+    text: "Sentinel-2 L2A, monthly median NDVI, cloud and snow masked. Method {method} {version}.",
+    kind: "ui",
+  },
+  "flat.legend": { text: "Map legend", kind: "label" },
+
   // Sources and notices
   "notices.data": { text: "Data in this case, as its records credit it", kind: "label" },
   "notices.map": { text: "Map and imagery", kind: "label" },
@@ -191,6 +216,8 @@ export const en = {
   "credit.rainfall": { text: "CHIRPS v3.0, accessed 27 Oct 2026.", kind: "ui" },
   "credit.imagery": { text: "Contains modified Copernicus Sentinel data 2019-2025.", kind: "ui" },
   "credit.outletInput": { text: "© OpenStreetMap contributors.", kind: "ui" },
+  // microcopy section 1a credit.valley.plan: added while mapped cropland and buildings show
+  "credit.worldcover": { text: "© ESA WorldCover project.", kind: "ui" },
 
   // Mode
   "mode.live": { text: "Live", kind: "label" },

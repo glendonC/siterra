@@ -56,6 +56,32 @@ describe("arrivalFlat", () => {
     expect(noMap.map((s) => s.heading)).toEqual(["Question", "Place", "Sources"]);
   });
 
+  it("lists the map legend after the view notes while a data layer shows", () => {
+    const withLegend = arrivalFlat({
+      question: "Q",
+      areaKm2: "1.0",
+      places: [],
+      outlet: false,
+      placeCredit: "",
+      placeCredits: [],
+      reliefFactor: 2,
+      imagery: false,
+      legend: ["NDVI departure, Nov 2025, compared with other Novembers", "93% of area observed"],
+    });
+    expect(withLegend.map((s) => s.heading)).toEqual([
+      "Question",
+      "Place",
+      "View notes",
+      "Map legend",
+      "Sources",
+    ]);
+    expect(withLegend[3]?.lines).toEqual([
+      "NDVI departure, Nov 2025, compared with other Novembers",
+      "93% of area observed",
+    ]);
+    expect(flat.map((s) => s.heading)).not.toContain("Map legend");
+  });
+
   it("leaves no placeholder unfilled", () => {
     expect(flat.flatMap((s) => s.lines).filter((l) => /\{\w+\}/.test(l))).toEqual([]);
   });

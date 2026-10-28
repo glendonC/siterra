@@ -12,6 +12,8 @@ import { Card } from "../card/Card";
 import { Leader } from "../card/Leader";
 import { useCaseSession } from "../case/useCaseSession";
 import { FlatListing } from "../flat/FlatListing";
+import { DepartureLegend } from "../map/DepartureLegend";
+import { useDepartureLayer } from "../map/useDepartureLayer";
 import { Notices } from "../notices/Notices";
 import { ArrivalChrome } from "../shell/ArrivalChrome";
 import { ValleyStage } from "../stage/ValleyStage";
@@ -19,8 +21,9 @@ import type { Point } from "../../lib/card/leader";
 import { commandRunning, workCard } from "../../lib/card/work";
 import { commissionRequest, submitCommand } from "../../lib/case/command";
 import { latestCommandId } from "../../lib/case/events";
-import type { MessageId } from "../../lib/copy/en";
+import { en, type MessageId } from "../../lib/copy/en";
 import type { MapBundle } from "../../lib/map/bundle";
+import { legendLines } from "../../lib/map/departure";
 import { arrivalFlat } from "../../lib/flat/arrival";
 import { projectObservations } from "../../lib/projection/observations";
 import type { ReadyArrival } from "../../lib/projection/arrival";
@@ -96,6 +99,14 @@ export function ArrivalView({
       commandId ? workCard(snapshot, log, commandId, projectObservations(snapshot)) : undefined,
     [snapshot, log, commandId],
   );
+  // storyboard scene 3: the departure layer shows with the Observations this request produced
+  const departure = useDepartureLayer(snapshot, card?.section !== undefined);
+  const [departureShown, setDepartureShown] = useState(false);
+  const legend = departureShown ? departure.legend : undefined;
+  const hatched = departureShown && departure.layer?.excludedUri !== undefined;
+  const placeCredit = [arrival.land.creditLine, hatched ? en["credit.worldcover"].text : ""]
+    .filter(Boolean)
+    .join(" ");
 
   const commission = useCallback(() => {
     if (working) return;
@@ -136,11 +147,12 @@ export function ArrivalView({
             areaKm2: arrival.areaKm2,
             places: arrival.land.places,
             outlet: arrival.land.outlet !== undefined,
-            placeCredit: arrival.land.creditLine,
+            placeCredit,
             placeCredits: arrival.land.credits,
             reliefFactor: ARRIVAL_EXAGGERATION,
             imagery: imagery && !mapFailed,
             relief: !mapFailed,
+            ...(legend && !mapFailed ? { legend: legendLines(legend) } : {}),
           })}
         />
       ) : null}
@@ -159,12 +171,17 @@ export function ArrivalView({
         onOutline={setOutline}
         flat={flat}
         onFailed={onMapFailed}
+        departure={departure.layer}
+        onDeparture={setDepartureShown}
       />
       {chrome && card && commandId ? (
         <>
           <Card content={card} stepKey={commandId} anchor="working" />
           <Leader outline={outline} stepKey={commandId} />
         </>
+      ) : null}
+      {chrome && legend && departure.binding && !mapFailed ? (
+        <DepartureLegend legend={legend} binding={departure.binding} />
       ) : null}
       {chrome ? (
         <>
@@ -173,7 +190,7 @@ export function ArrivalView({
             mode={arrival.modeLines}
             reliefFactor={ARRIVAL_EXAGGERATION}
             imagery={imagery}
-            placeCredit={arrival.land.creditLine}
+            placeCredit={placeCredit}
             singleKeys={singleKeys}
             // with no map there is no arrival to wait for: the command line and ↵ land at once
             arrived={arrived || mapFailed}
