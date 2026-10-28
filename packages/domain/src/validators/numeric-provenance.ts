@@ -72,6 +72,19 @@ export interface FoundNumber {
 const blank = (m: string): string => " ".repeat(m.length);
 
 /**
+ * A change verb right before "from": "Herds rose from 2000 to 2010." reads as two counts, so the
+ * span stays numbers to prove unless a month or season word follows it. Fails closed: a date
+ * written this way costs a repair round ("between 2019 and 2022"), never a false number (b12).
+ */
+const CHANGE_VERB_BEFORE =
+  /\b(?:rose|fell|grew|increased|decreased|declined|dropped|doubled|halved)\s+$/i;
+const STARTS_WITH_FROM = /^from\s/i;
+const MONTH_OR_SEASON_AFTER = new RegExp(
+  String.raw`^\s*(?:spring|summer|autumn|fall|winter|season|${MONTHS})\b`,
+  "i",
+);
+
+/**
  * The text with its date, period and ID spans blanked to spaces, so offsets are kept. `years` is
  * the case's year span: a bare year, a year range or a month with a year counts as a date only
  * inside it. With `years` null, no bare year is a date.
@@ -86,6 +99,14 @@ export function maskDates(text: string, years: YearSpan | null): string {
     };
     for (const pattern of YEAR_DATES) {
       masked = masked.replace(pattern, (m: string, ...groups: unknown[]) => {
+        const offset = groups.find((g): g is number => typeof g === "number") ?? 0;
+        if (
+          STARTS_WITH_FROM.test(m) &&
+          CHANGE_VERB_BEFORE.test(masked.slice(0, offset)) &&
+          !MONTH_OR_SEASON_AFTER.test(masked.slice(offset + m.length))
+        ) {
+          return m;
+        }
         const found = groups.filter((g): g is string => typeof g === "string" && /^\d{4}$/.test(g));
         // A range is a date only when it runs forward: "from 2010 to 1995" is two numbers.
         const ascending = found.every((y, i) => i === 0 || Number(y) > Number(found[i - 1]));

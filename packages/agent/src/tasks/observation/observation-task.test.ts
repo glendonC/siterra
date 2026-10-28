@@ -197,7 +197,7 @@ describe("observation task, synthetic replay, memory commit", () => {
       { caseId: CASE_ID, store: testStore(), allowedClaimKinds: new Set(["observation"]) },
     );
     expect(result.issues.map((i) => i.message)).toEqual([
-      '2022 matches no cited measurement, date, period or excerpt. If it is a year, write it as "in April 2022", "In 2022," or "... in 2022."',
+      '2022 matches no cited measurement, date, period or excerpt. If it is a year, write it as "in April 2022", "In 2022," or "... in 2022.", and a range of years as "between 2019 and 2022"',
       "0.15 matches no cited measurement, date, period or excerpt.",
     ]);
   });

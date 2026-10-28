@@ -63,6 +63,17 @@ describe("numeric provenance", () => {
     expect(check("Between 2019 and 2025, the record holds.")).toEqual([]);
   });
 
+  it("a range after a change verb is two quantities unless a month or season follows (b12, 10e)", () => {
+    expect(check("Rainfall rose from 2019 to 2022.")).toEqual(["2019", "2022"]);
+    expect(check("Herds rose from 2020 to 2024.")).toEqual(["2020", "2024"]);
+    expect(check("Cover declined from 2019 to 2021, then held.")).toEqual(["2019", "2021"]);
+    expect(check("NDVI fell from 2022.")).toEqual(["2022"]);
+    expect(check("NDVI fell from 2019 to 2022 spring values.")).toEqual([]);
+    expect(check("NDVI fell from 2021 to 2022 April values.")).toEqual([]);
+    expect(check("Rainfall rose between 2019 and 2022.")).toEqual([]);
+    expect(check("The record runs from 2019 to 2022.")).toEqual([]);
+  });
+
   it("a citation year in brackets is refused, failing closed while the agent cites by source ID", () => {
     expect(check("Wessels et al. (2012) describe the method.")).toEqual(["2012"]);
     expect(check("The method is described.", [], ["Wessels et al. (2012)"])).toEqual([]);

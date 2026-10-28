@@ -144,7 +144,8 @@ export function maskReferencePeriods(text: string, periods: readonly ReferencePe
 }
 
 /** The forms in which a year reads as a date (AUDIT a46, lead 21:38:02). */
-export const YEAR_FORMS = '"in April 2022", "In 2022," or "... in 2022."';
+export const YEAR_FORMS =
+  '"in April 2022", "In 2022," or "... in 2022.", and a range of years as "between 2019 and 2022"';
 
 /** The repair message for an unproven number; a four-digit one may be a year written as a count. */
 export function unprovenMessage(n: string): string {
