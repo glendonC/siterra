@@ -93,6 +93,7 @@ Contracts and design tokens carry their own Semantic Versioning numbers, recorde
 - Case contracts 1.7.0: model usage may record `replayOrigin` ("synthetic" or "recorded") on the replay route, and `readLineage` traces any record through its producing task to the provider, model and replay origin of its model calls, so a replayed record never reads as live.
 - Model calls on the replay route record their replay origin ("synthetic" or "recorded") in the stored usage, and every evidence and hypothesis written there carries the limitation "Written from a synthetic replay, not a model output or a live model call." (or the recorded form).
 - A brief is committed only when its provenance cites every evidence item, hypothesis and intervention it lists, so a revised input always marks the brief for reassessment.
+- A task commit can no longer write an action as prepared; only completed reviews prepare an action, so no review or community condition can be skipped.
 
 ### Fixed
 

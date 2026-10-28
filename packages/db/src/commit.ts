@@ -29,7 +29,8 @@ export class CommitRejected extends Error {
     | "case_mismatch"
     | "duplicate_entity"
     | "review_not_permitted"
-    | "brief_inputs_not_cited";
+    | "brief_inputs_not_cited"
+    | "action_status_not_permitted";
   constructor(code: CommitRejected["code"], message: string) {
     super(message);
     this.name = "CommitRejected";
@@ -176,6 +177,17 @@ export async function applyCommit(pool: Pool, input: CommitProposal): Promise<Co
       throw new CommitRejected(
         "review_not_permitted",
         `${review.id}: a task commit may only request a review, not record a decision`,
+      );
+    }
+    // An action becomes prepared only when its reviews complete (reviews.ts, action-status.ts); a
+    // task commit that writes it prepared would skip the reviews and the outstanding conditions.
+    const prepared = writes.find(
+      (record) => record.recordType === "OperationalAction" && record.status === "prepared",
+    );
+    if (prepared !== undefined) {
+      throw new CommitRejected(
+        "action_status_not_permitted",
+        `${prepared.id}: an action is prepared only by its reviews, not by a task commit`,
       );
     }
     for (const record of writes) {
