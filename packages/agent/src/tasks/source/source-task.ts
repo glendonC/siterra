@@ -85,9 +85,12 @@ const WORD_BEFORE = new RegExp(
 );
 const DIGIT_AFTER = new RegExp(String.raw`\b(?:${PEOPLE})\b[^.;!?\d]{0,40}?\d[\d,.]*`, "i");
 
-/** Titles of a person, in any case; refused when a capitalized name follows, after a comma too. */
+/**
+ * Titles and honorifics of a person, in any case; refused when a capitalized name follows, after a
+ * comma too (b20, b23: Si, Sidi, Lalla, Hajj and Hadj included).
+ */
 const TITLE =
-  /\b(?:(?:mr|mrs|ms|dr)\.?|sheikh|cheikh|caid|qaid|moqaddem|mokaddem|amghar|imam)\s*,?\s+/gi;
+  /\b(?:(?:mr|mrs|ms|dr)\.?|sheikh|cheikh|caid|qaid|moqaddem|mokaddem|amghar|imam|si|sidi|lalla|hajj?|hadj)\s*,?\s+/gi;
 const NAME = /^[A-Z][a-z]+/;
 
 /** Runs of digits with separators, read as a phone number when they hold nine digits or more. */

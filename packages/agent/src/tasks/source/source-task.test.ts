@@ -352,6 +352,11 @@ describe("livelihood and governance rules (16)", () => {
       "The amghar, Moha Ouali, sets the closure dates.",
       "The caid Ahmed decides the closure dates.",
       "Dr. Smith described the pasture rules.",
+      "Si Mohamed sets the closure dates.",
+      "Sidi Ali keeps the pasture rules.",
+      "Lalla Fatima leads the association.",
+      "Hajj Brahim decides the dates.",
+      "The rules come from Hadj Omar.",
     ]) {
       const found = await messages(statement);
       expect(
