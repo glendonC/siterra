@@ -46,6 +46,16 @@ Consequences: a C1-only Earth Search series cannot represent most of 2022, a nat
 
 Copernicus DEM GLO-30 on AWS (`copernicus-dem-30m`, eu-central-1, 2021 release, COGs with DEFLATE, floating-point predictor, average-downsampled overviews per the bucket readme): **`Copernicus_DSM_COG_10_N31_00_W007_00_DEM/…_DEM.tif` covers the whole AOI** (HEAD 200, 41,088,635 bytes, ETag `7260ba223188db19ee7390f60c998048`). The eastern neighbour `…_N31_00_W006_00_DEM.tif` exists (40,634,565 bytes) and is not needed unless the AOI extends east of 6° W. Earth Search also lists the tile as STAC item `Copernicus_DSM_COG_10_N31_00_W007_00_DEM` (collection `cop-dem-glo-30`). About 6.8 MB of overview tiles were read by HTTP range request to build the catchment preview; the full-resolution tile was not downloaded.
 
+## Landsat Collection 2 Level-2 (`landsat-c2-l2`)
+
+**[V] Verified 2026-10-28:** Anonymous STAC discovery (`POST https://planetarycomputer.microsoft.com/api/stac/v1/search`, collection `landsat-c2-l2`) and anonymous SAS-signed COG window reads (`GET https://planetarycomputer.microsoft.com/api/sas/v1/token/landsateuwest/landsat-c2`) work without credentials over the frozen Aït Bouguemez catchment bounding box `[-6.54125, 31.49431, -6.14208, 31.75653]`:
+
+| Item | Finding [V] |
+| --- | --- |
+| WRS-2 coverage | Path `201`, row `038` covers the entire catchment in a single scene (`EPSG:32629`, 30 m grid; catchment bounding-box window is `1000 × 1239` pixels). |
+| Test scene verified | `LC09_L2SP_201038_20250827_02_T1` (Landsat 9 OLI/TIRS, 2025-08-27, `eo:cloud_cover` 0.0%). Assets `red` (`SR_B4`), `nir08` (`SR_B5`) and `qa_pixel` are Cloud-Optimized GeoTIFFs in container `landsateuwest/landsat-c2`. |
+| Scaling and QA metadata | `raster:bands` declares `uint16`, `nodata: 0`, `scale: 0.0000275` (`2.75e-05`), `offset: -0.2`, `spatial_resolution: 30`. `qa_pixel` carries `classification:bitfields` (`fill`, `dilated_cloud`, `cirrus`, `cloud`, `cloud_shadow`, `snow`, `clear`, `water` and confidence bits). In the test window, 1,238,541 of 1,239,000 pixels were flagged clear (`qa_pixel = 21824`), with a window median NDVI of `0.1681`. |
+
 ## Not completed
 
-Earth Engine collection counts; PC signed-URL access; Element 84 documentation for `earthsearch:boa_offset_applied` (not found; its effect was tested instead, see above); any cloud, snow or NDVI statistic over the AOI. CHIRPS pixel values were inspected on 2026-10-27: no-data is −9999 over the ocean, no land cell over the catchment is missing in any month from 1991 to 2025, and the unit is declared as mm/month in the official monthly NetCDF.
+Earth Engine collection counts; Element 84 documentation for `earthsearch:boa_offset_applied` (not found; its effect was tested instead, see above). CHIRPS pixel values were inspected on 2026-10-27: no-data is −9999 over the ocean, no land cell over the catchment is missing in any month from 1991 to 2025, and the unit is declared as mm/month in the official monthly NetCDF.
