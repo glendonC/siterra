@@ -115,6 +115,16 @@ describe("SV-01 (import part): bundles import with verified checksums and values
     }
   });
 
+  it("16: every measurement and observation cites its own bundle version; the bundle does not cite itself", () => {
+    for (const bundle of result.bundles) {
+      const own = { entityId: bundle.dataBundle.id, revision: 1 };
+      for (const record of [...bundle.measurements, ...bundle.temporalObservations]) {
+        expect(record.provenance.inputVersions).toContainEqual(own);
+      }
+      expect(bundle.dataBundle.provenance.inputVersions).not.toContainEqual(own);
+    }
+  });
+
   it("copies every measurement value, unit and count from its bundle entry", () => {
     let compared = 0;
     for (const bundle of result.bundles) {

@@ -159,3 +159,39 @@ describe("a51: a data record withdrawn by a change of state stales what rests on
     ).toBe(true);
   });
 });
+
+describe("16: staleness passes through records without a stale state", () => {
+  it("a superseded bundle stales the evidence citing one of its measurements, and the measurement is not revised", () => {
+    const measurement = record("Measurement", "meas_example_pt", {
+      ...cites(["bundle_example_pt", 1]),
+    });
+    const evidence = record("Evidence", "ev_example_pt", {
+      status: "accepted",
+      ...cites(["meas_example_pt", 1]),
+    });
+    const brief = record("Brief", "brief_example_pt", {
+      status: "draft",
+      ...cites(["ev_example_pt", 1]),
+    });
+    const stale = propagateStaleness(
+      [measurement, evidence, brief],
+      new Map([["bundle_example_pt", 2]]),
+      later,
+    );
+    expect(stale.map((r) => r.id).sort()).toEqual(["brief_example_pt", "ev_example_pt"]);
+  });
+
+  it("does not pass through a record that has a stale state but cannot move to it", () => {
+    const provisional = record("Evidence", "ev_example_pv", {
+      status: "provisional",
+      ...cites(["meas_example_pv", 1]),
+    });
+    const hypothesis = record("Hypothesis", "hyp_example_pv", {
+      status: "untested",
+      ...cites(["ev_example_pv", 1]),
+    });
+    expect(
+      propagateStaleness([provisional, hypothesis], new Map([["meas_example_pv", 2]]), later),
+    ).toEqual([]);
+  });
+});

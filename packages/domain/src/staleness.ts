@@ -76,13 +76,17 @@ export function propagateStaleness<T extends CaseRecord>(
   now: string,
 ): T[] {
   const latest = new Map(changed);
+  // Records without a stale state (a measurement of a superseded bundle) are not revised, but what
+  // cites them, at any revision, goes stale through them.
+  const passedThrough = new Set<string>();
   const staled = new Map<string, T>();
   let grew = true;
   while (grew) {
     grew = false;
     for (const record of current) {
-      if (staled.has(record.id) || changed.has(record.id)) continue;
+      if (staled.has(record.id) || changed.has(record.id) || passedThrough.has(record.id)) continue;
       const outdated = citedVersions(record).some((ref) => {
+        if (passedThrough.has(ref.entityId)) return true;
         const newest = latest.get(ref.entityId);
         return newest !== undefined && ref.revision < newest;
       });
@@ -92,10 +96,28 @@ export function propagateStaleness<T extends CaseRecord>(
         staled.set(record.id, stale);
         latest.set(record.id, stale.revision);
         grew = true;
+      } else if (!hasStaleState(record.recordType)) {
+        passedThrough.add(record.id);
+        grew = true;
       }
     }
   }
   return [...staled.values()];
+}
+
+/** Record types whose state machine has a stale state (markedStale can revise them). */
+export const staleableRecordTypes: readonly string[] = [
+  "Evidence",
+  "Hypothesis",
+  "Intervention",
+  "Relationship",
+  "Brief",
+  "CanvasComponent",
+  "ReviewDecision",
+];
+
+export function hasStaleState(recordType: string): boolean {
+  return staleableRecordTypes.includes(recordType);
 }
 
 /** Bookkeeping fields: a change in these alone is never material. */

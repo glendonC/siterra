@@ -5,8 +5,10 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { readCaseSeed, seedSnapshot } from "./case-seed.ts";
 import type { Pool } from "./client.ts";
 import { loadSeedCase } from "./seed.ts";
+import { applyCommit } from "./commit.ts";
 import { readSnapshot } from "./snapshot.ts";
 import { type TestDatabase, freshDatabase } from "./test-database.ts";
+import { exampleCommit, exampleEvidence } from "./test-records.ts";
 
 const repoDir = fileURLToPath(new URL("../../../", import.meta.url));
 const args = {
@@ -89,6 +91,55 @@ describe("the UI fixture packages/contracts/fixtures/case-snapshot-aitbouguemez-
     });
     if (seed === null) throw new Error("A pinned seed file does not match");
     expect(seedSnapshot(seed)).toEqual(fixture);
+  });
+});
+
+describe("DF-03 (seed part): superseding a real bundle reaches evidence citing its measurements", () => {
+  it("marks the evidence stale and leaves the measurement as recorded", async () => {
+    const snapshot = await readSnapshot(pool, caseFile.caseId, "seed");
+    if (snapshot === null) throw new Error("load the seed first");
+    const measurement = snapshot.records.measurementRecords.find((m) => m.status === "available");
+    const bundle = snapshot.records.dataBundleRecords.find(
+      (b) => b.id === measurement?.dataBundleId,
+    );
+    if (measurement === undefined || bundle === undefined) throw new Error("no measurement");
+    const base = exampleEvidence(caseFile.caseId, "ev_example_seed_obs");
+    const evidence = {
+      ...base,
+      status: "accepted" as const,
+      provenance: {
+        ...base.provenance,
+        inputVersions: [{ entityId: measurement.id, revision: measurement.revision }],
+      },
+    };
+    const revision = snapshot.case.revision;
+    await applyCommit(
+      pool,
+      exampleCommit(snapshot.case, {
+        id: "commit_example_seed_ev",
+        expected: revision,
+        upserts: [evidence],
+      }),
+    );
+    const outcome = await applyCommit(
+      pool,
+      exampleCommit(snapshot.case, {
+        id: "commit_example_seed_sup",
+        expected: revision + 1,
+        upserts: [{ ...bundle, revision: bundle.revision + 1, status: "superseded" }],
+      }),
+    );
+    if (outcome.status !== "committed") throw new Error(outcome.status);
+    expect(outcome.commit.upserts.map((u) => u.id).sort()).toEqual(
+      [bundle.id, "ev_example_seed_obs"].sort(),
+    );
+    const after = await readSnapshot(pool, caseFile.caseId, "seed");
+    expect(after?.records.evidenceRecords.find((e) => e.id === "ev_example_seed_obs")?.status).toBe(
+      "stale",
+    );
+    expect(after?.records.measurementRecords.find((m) => m.id === measurement.id)?.revision).toBe(
+      measurement.revision,
+    );
   });
 });
 

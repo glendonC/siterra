@@ -258,6 +258,12 @@ function importBundle(
         : "unverified",
     limitations: [...new Set(collection["siterra:limitations"])],
   };
+  // Measurements and observations rest on their own bundle as well, so superseding the bundle
+  // reaches what cites them (staleness passes through records without a stale state).
+  const recordProvenance: Provenance = {
+    ...provenance,
+    inputVersions: [...provenance.inputVersions, { entityId: bundleId, revision: 1 }],
+  };
   const bundleUrl = new URL(`${bundleDir.split("/").pop() ?? bundleId}/`, context.assetBaseUri);
   const slug = bundleId.replace(/^bundle_/, "");
   const license = typeof collection["license"] === "string" ? collection["license"] : null;
@@ -350,7 +356,7 @@ function importBundle(
                   level: null,
                   method: null,
                 },
-          provenance,
+          provenance: recordProvenance,
         }),
       );
     }
@@ -378,7 +384,7 @@ function importBundle(
         mapAssetHash: overview === undefined ? null : overview["file:checksum"],
         mapStatus: overview === undefined ? "missing" : "available",
         qualityFlags: props["siterra:quality_flags"],
-        provenance,
+        provenance: recordProvenance,
       }),
     );
   }
