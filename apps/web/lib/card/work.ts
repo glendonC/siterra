@@ -36,7 +36,8 @@ export function workCard(
   const produced = producedObservations(s, tasks);
   const lines = observations.filter((o) => produced.bundleIds.has(o.bundleId));
   return {
-    question: s.case.objective,
+    // the worker gives the plan task the command's own text; before it exists, the case question
+    question: tasks.find((t) => t.kind === "plan")?.question ?? s.case.objective,
     working: ended
       ? outcomeLine(outcome, tasks)
       : showSteps

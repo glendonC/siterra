@@ -28,7 +28,8 @@ export interface ArrivalChromeProps {
   arrived: boolean;
   /** Map bearing, so the north mark points to north on the land. */
   bearingDeg: number;
-  onStart: () => void;
+  /** The primary action, given what the command line holds. */
+  onStart: (text: string) => void;
   /** The one primary action's label, or none when ↵ would do nothing (primaryHint). */
   primary: MessageId | undefined;
   /** A message under the command line when a request was refused. */
@@ -40,6 +41,7 @@ export interface ArrivalChromeProps {
   /** True in the flat reading: the F hint is pressed, and F again returns. */
   flat?: boolean;
   onReadFlat: () => void;
+  /** Enter in the command line, with its trimmed text. */
   onAsk: (text: string) => void;
   onSources: () => void;
 }
@@ -86,7 +88,7 @@ export function ArrivalChrome({
       if (action === "primary" && !primary) return;
       if (action === "readFlat" && !mapDrawn) return;
       e.preventDefault();
-      if (action === "primary") onStart();
+      if (action === "primary") onStart(input.current?.value ?? "");
       else if (action === "readFlat") onReadFlat();
       else input.current?.focus();
     };
@@ -183,7 +185,9 @@ export function ArrivalChrome({
             <button
               type="button"
               className={styles.key}
-              onClick={onStart}
+              onClick={() => {
+                onStart(input.current?.value ?? "");
+              }}
               aria-keyshortcuts="Enter"
               data-budget="action"
             >

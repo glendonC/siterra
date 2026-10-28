@@ -72,6 +72,15 @@ describe("workCard", () => {
     expect(c.working).toBe("Request received");
   });
 
+  it("heads the card with the question the request asked: its plan task's question, the command's text", () => {
+    const asked = card(
+      withRecords([
+        taskRecord("t_1", "running", "Has the valley floor changed since 2019?", "plan"),
+      ]),
+    );
+    expect(asked.question).toBe("Has the valley floor changed since 2019?");
+  });
+
   it("does not list the case's precomputed bundles as the result of a request that has produced nothing", () => {
     expect(c.section).toBeUndefined();
   });

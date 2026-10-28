@@ -1,13 +1,13 @@
 "use client";
 
 // Arrival and the work beat: the valley at the approved pose with its chrome, Read flat and Sources and
-// notices, from one case kept current (useCaseSession). ↵ commissions the investigation with the case's
-// question; once a command is accepted the card shows its work and the committed Observations, with one
+// notices, from one case kept current (useCaseSession). The command line or ↵ commissions a request with
+// what the viewer typed, or the case question when the line is empty; once a command is accepted the card shows its work and the committed Observations, with one
 // leader to the catchment line. A reload replays the event log and comes back to the same state.
 
 import type * as maplibregl from "maplibre-gl";
 import type { CaseSnapshot } from "@siterra/contracts";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Card } from "../card/Card";
 import { Leader } from "../card/Leader";
 import { useCaseSession } from "../case/useCaseSession";
@@ -19,7 +19,7 @@ import { ArrivalChrome } from "../shell/ArrivalChrome";
 import { ValleyStage } from "../stage/ValleyStage";
 import type { Point } from "../../lib/card/leader";
 import { commandRunning, workCard } from "../../lib/card/work";
-import { commissionRequest, submitCommand } from "../../lib/case/command";
+import { commissionRequest, requestText, submitCommand } from "../../lib/case/command";
 import { latestCommandId } from "../../lib/case/events";
 import { en, type MessageId } from "../../lib/copy/en";
 import type { MapBundle } from "../../lib/map/bundle";
@@ -45,8 +45,8 @@ export interface ArrivalViewProps {
   /** False while the dive is still coming down: the land only, no chrome. */
   chrome?: boolean;
   onMap?: (map: maplibregl.Map) => void;
+  /** After a request is accepted. */
   onStart?: () => void;
-  onAsk?: (text: string) => void;
   onSources?: () => void;
 }
 
@@ -61,7 +61,6 @@ export function ArrivalView({
   chrome = true,
   onMap,
   onStart = noop,
-  onAsk = noop,
   onSources = noop,
 }: ArrivalViewProps) {
   // "F Read flat": the flat map reading (MOT-12); F again returns to the beat's view
@@ -108,21 +107,31 @@ export function ArrivalView({
     .filter(Boolean)
     .join(" ");
 
-  const commission = useCallback(() => {
-    if (working) return;
-    setNotice(undefined);
-    const body = commissionRequest(snapshot, snapshot.case.objective, crypto.randomUUID());
-    submitCommand(snapshot.case.id, body, (input, init) => fetch(input, init))
-      .then((r) => {
-        if (r.status === "refused")
-          setNotice(r.code === "quota_exhausted" ? "work.quotaUsed" : "work.refused");
-        else onStart();
-      })
-      .catch((e: unknown) => {
-        console.error("Commission failed", e);
-        setNotice("work.refused");
-      });
-  }, [working, snapshot, onStart]);
+  // one submission in flight at a time; a request already running is stopped, not doubled
+  const submitting = useRef(false);
+  const commission = useCallback(
+    (typed: string) => {
+      if (running || submitting.current) return;
+      submitting.current = true;
+      setNotice(undefined);
+      const text = requestText(typed, snapshot.case.objective);
+      const body = commissionRequest(snapshot, text, crypto.randomUUID());
+      submitCommand(snapshot.case.id, body, (input, init) => fetch(input, init))
+        .then((r) => {
+          if (r.status === "refused")
+            setNotice(r.code === "quota_exhausted" ? "work.quotaUsed" : "work.refused");
+          else onStart();
+        })
+        .catch((e: unknown) => {
+          console.error("Commission failed", e);
+          setNotice("work.refused");
+        })
+        .finally(() => {
+          submitting.current = false;
+        });
+    },
+    [running, snapshot, onStart],
+  );
 
   const stop = useCallback(() => {
     if (!commandId) return;
@@ -204,7 +213,7 @@ export function ArrivalView({
             onReadFlat={() => {
               setFlat((f) => !f);
             }}
-            onAsk={onAsk}
+            onAsk={commission}
             onSources={() => {
               setNoticesOpen(true);
               onSources();

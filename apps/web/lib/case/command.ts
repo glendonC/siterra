@@ -3,6 +3,12 @@
 
 import { CommandRequest, type CaseSnapshot, type Command } from "@siterra/contracts";
 
+/** What the request asks: the viewer's own words when they typed any, else the case question. */
+export function requestText(typed: string | undefined, objective: string): string {
+  const t = typed?.trim() ?? "";
+  return t === "" ? objective : t;
+}
+
 /** A command bound to the revision and the analysis area the viewer saw. */
 export function commissionRequest(
   s: CaseSnapshot,

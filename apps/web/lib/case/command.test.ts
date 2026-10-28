@@ -1,9 +1,19 @@
 import { CaseSnapshot } from "@siterra/contracts";
 import { describe, expect, it } from "vitest";
 import seed from "../../../../packages/contracts/fixtures/case-snapshot-aitbouguemez-seed.json";
-import { commissionRequest, submitCommand } from "./command";
+import { commissionRequest, requestText, submitCommand } from "./command";
 
 const snapshot = CaseSnapshot.parse(seed);
+
+describe("requestText", () => {
+  it("sends what the viewer typed, trimmed, and the case question only when the box is empty", () => {
+    expect(requestText("  Has the valley floor changed since 2019?  ", "Case question")).toBe(
+      "Has the valley floor changed since 2019?",
+    );
+    expect(requestText("   ", "Case question")).toBe("Case question");
+    expect(requestText(undefined, "Case question")).toBe("Case question");
+  });
+});
 
 describe("commissionRequest", () => {
   it("binds the command to the revision, the area and the validated bundles the viewer saw", () => {
