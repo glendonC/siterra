@@ -1,0 +1,84 @@
+{
+  "placeId": "ait_bouguemez",
+  "title": "Ait Bouguemez valley catchment",
+  "note": "Place configuration read by the long-record pipeline scripts. Everything that is specific to one place lives here; the scripts hold none of it. A value changed here after a result was read is a new configuration revision labelled post hoc in the recipe result.",
+  "configRevision": 1,
+  "geometry": {
+    "id": "geo_ait_bouguemez_catchment",
+    "revision": 1,
+    "boundaryRole": "hydrological_unit",
+    "label": "Valley catchment (hydrological analysis extent), not a pasture, agdal or management boundary",
+    "path": "data/bundles/bundle_terrain_strata_ait_bouguemez/analysis-geometry.geojson",
+    "sha256": "ac506ece626b6844d759b56aa60a10248c8c0ea5e206f9a28eb436a892a4d47f",
+    "attribution": [
+      "Catchment derived by Siterra from Copernicus DEM GLO-30 (2021 release)",
+      "Produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved",
+      "The organisations in charge of the Copernicus programme by law or by delegation do not incur any liability for any use of the Copernicus WorldDEM-30"
+    ],
+    "licenceLinks": [
+      {
+        "href": "https://dataspace.copernicus.eu/sites/default/files/media/files/2025-06/copernicus_contributing_mission_data_access_v2_cop_dem_licenses.pdf",
+        "title": "Licence for Copernicus DEM instance COP-DEM-GLO-30-F Global 30m Full, Free & Open (analysis geometry and strata)"
+      }
+    ]
+  },
+  "analysisCrs": "EPSG:32629",
+  "analysisGridM": 10,
+  "strata": {
+    "bundle": "bundle_terrain_strata_ait_bouguemez",
+    "asset": "strata.tif",
+    "sha256": "0fad1da26371ef0e7c64a155f11ab10f753dac1c2e29f600b8e574488e88c2a6",
+    "layers": [
+      {
+        "band": 1,
+        "name": "elevation_band",
+        "classes": {"1": "elevation_low", "2": "elevation_mid", "3": "elevation_high"},
+        "labelsFromBundleParameter": "boundaries_m"
+      },
+      {
+        "band": 2,
+        "name": "aspect_class",
+        "classes": {"1": "aspect_north", "2": "aspect_east", "3": "aspect_south", "4": "aspect_west", "5": "aspect_level"},
+        "labels": {"1": "north-facing", "2": "east-facing", "3": "south-facing", "4": "west-facing", "5": "level (slope below 5 degrees)"}
+      }
+    ],
+    "excludedBand": 3,
+    "excludedLabel": "WorldCover 2021 cropland or built-up"
+  },
+  "elevation": {
+    "dem": "Copernicus DEM GLO-30, 2021 release",
+    "url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N31_00_W007_00_DEM/Copernicus_DSM_COG_10_N31_00_W007_00_DEM.tif",
+    "sha256": "024f00066f44b6c04c26ab5c22ef8d355f6dc77052206d96c9a9c04f66b9c61e",
+    "bytes": 41088635,
+    "gridM": 30,
+    "resampling": "bilinear"
+  },
+  "rainfall": {
+    "dataset": "CHIRPS v3.0 monthly final",
+    "rawWindow": {"row0": 562, "row1": 572, "col0": 3467, "col1": 3479},
+    "monthlyBundle": "bundle_chirps_monthly_ait_bouguemez"
+  },
+  "recipes": {
+    "restrend_long_record": {
+      "seasonYears": [2000, 2025],
+      "growingWindows": [
+        {"id": "mar_jun", "months": [3, 4, 5, 6], "primary": true},
+        {"id": "mar_may", "months": [3, 4, 5]},
+        {"id": "apr_jul", "months": [4, 5, 6, 7]}
+      ],
+      "rainfallWindows": [
+        {"id": "sep_may", "start": {"month": 9, "yearOffset": -1}, "end": {"month": 5, "yearOffset": 0}, "primary": true},
+        {"id": "nov_apr", "start": {"month": 11, "yearOffset": -1}, "end": {"month": 4, "yearOffset": 0}}
+      ],
+      "strata": ["catchment", "elevation_band", "aspect_class"],
+      "windowRationale": "Fixed by the science lane on 2026-10-28 before any MODIS NDVI value was summarized. March to June spans spring green-up from the valley floor (about 1500 to 2300 m) to the upper slopes, where the 2001 to 2013 MODIS record of Atlas catchments shows snow persisting into spring (SCI-26); March to May and April to July are the earlier and later sensitivity windows for the low and high bands. September to May is the hydrological year up to the end of the main window; November to April is the wet season of the registered season_summary recipe. The lane had not read the Sentinel-2 monthly series values of this valley; that series (2019 to 2025) was built and inspected by another lane of the project."
+    },
+    "snow_cover_by_band": {
+      "months": ["2001-01", "2025-12"],
+      "elevationBandSets": [
+        {"id": "fixed_500m", "edgesM": [2000, 2500, 3000, 3500], "primary": true},
+        {"id": "terrain_strata", "fromStrataLayer": "elevation_band"}
+      ]
+    }
+  }
+}
