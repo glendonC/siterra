@@ -1,3 +1,4 @@
+import type { SeasonWindow } from "@siterra/contracts";
 import { z } from "zod";
 
 import type { EventRecordRowRecord } from "../tasks/records.ts";
@@ -9,7 +10,8 @@ import { argumentSchema, parseWith } from "./zod-tool.ts";
 // read_event_record and compare_events (docs/reference/data-contracts.md#tool-argument-contracts,
 // docs/reference/agent-orchestration.md#event-record-p0-minimum-p1-search-and-reports). Rows come
 // from a validated event bundle; agreement compares a stated rainfall direction with the tercile
-// category of its November to April wet season from the stored season_summary result. Directions
+// category of its rainfall season (the case configuration's window, such as the valley's November
+// to April wet season) from the stored season_summary result. Directions
 // only: no averaging of text into numbers, and the model never supplies a season, departure or result.
 
 export const EVENT_TYPES = [
@@ -24,7 +26,6 @@ export const EVENT_TYPES = [
 const PERIOD_ID = /^period_(\d{4})-(0[1-9]|1[0-2])$/;
 const MAX_PERIODS = 24;
 const MAX_ROWS = 50;
-export const SEASON_RECIPE = { recipeId: "season_summary", version: "1.0.0" } as const;
 
 const ReadArgs = z.strictObject({
   bundleId: z.string(),
@@ -49,16 +50,23 @@ function inPeriods(eventStart: string, periods: ReadonlySet<string>): boolean {
   return [...periods].some((p) => p.startsWith(`period_${String(s.year)}-`));
 }
 
+const mm = (month: number): string => String(month).padStart(2, "0");
+
 /**
- * The November to April wet season an event start maps to (season_summary 1.0.0): a start in
- * November or December of year y maps to the season starting November y, any other month to the
- * season starting November y - 1. A year-only start has no month, so it maps to no season.
+ * The configured season an event start maps to (season_summary 1.0.0 rule): a start in the start
+ * month of year y or later in that year maps to the season starting in year y, any earlier month to
+ * the season starting in year y - 1. For the valley's November to April season, November and
+ * December of y map to the season starting November y. A year-only start maps to no season.
  */
-export function seasonFor(eventStart: string): string | null {
+export function seasonFor(
+  eventStart: string,
+  season: Pick<SeasonWindow, "startMonth" | "endMonth">,
+): string | null {
   const s = startMonths(eventStart);
   if (!s || s.month === null) return null;
-  const y = s.month >= 11 ? s.year : s.year - 1;
-  return `season_${String(y)}-11_${String(y + 1)}-04`;
+  const y = s.month >= season.startMonth ? s.year : s.year - 1;
+  const endYear = season.endMonth < season.startMonth ? y + 1 : y;
+  return `season_${String(y)}-${mm(season.startMonth)}_${String(endYear)}-${mm(season.endMonth)}`;
 }
 
 async function validatedEventBundle(
@@ -167,7 +175,7 @@ interface SeasonSummary {
 export function compareEventsTool(store: CaseStore, caseId: string): ToolHandler<CompareArgs> {
   return {
     name: "compare_events",
-    description: `For up to ${MAX_ROWS} event rows read with read_event_record, compare each stated rainfall direction with the tercile category of its November to April wet season in the catchment rainfall record (season_summary ${SEASON_RECIPE.version}). Results: agrees, does_not_agree, no_matching_period, or not_applicable when no direction is stated. A national statement can differ from the catchment and still be true for its own area.`,
+    description: `For up to ${MAX_ROWS} event rows read with read_event_record, compare each stated rainfall direction with the tercile category of its rainfall season in the case area's rainfall record. The season window and the season_summary recipe version come from the case configuration. Results: agrees, does_not_agree, no_matching_period, or not_applicable when no direction is stated. A national statement can differ from the case area and still be true for its own area.`,
     parameters: argumentSchema(CompareArgs),
     parse: (args) => {
       const parsed = parseWith(CompareArgs, args);
@@ -190,6 +198,12 @@ export function compareEventsTool(store: CaseStore, caseId: string): ToolHandler
       `${args.eventRowIds.length} event ${args.eventRowIds.length === 1 ? "row" : "rows"} against ${args.rainfallBundleId}`,
     datasetIds: (args) => [args.eventBundleId, args.rainfallBundleId],
     run: async (args) => {
+      const config = await store.readAnalysisConfig(caseId);
+      if (!config) {
+        throw new ToolFailure("no_case_config", "this case has no analysis configuration");
+      }
+      const window = config.rainfallSeason;
+      const recipe = window.recipe;
       const events = await validatedEventBundle(
         store,
         caseId,
@@ -212,15 +226,15 @@ export function compareEventsTool(store: CaseStore, caseId: string): ToolHandler
       const seasonBundle = (await store.listBundles(caseId)).find(
         (b) =>
           b.status === "validated" &&
-          b.methodId === SEASON_RECIPE.recipeId &&
-          b.methodVersion === SEASON_RECIPE.version,
+          b.methodId === recipe.recipeId &&
+          b.methodVersion === recipe.version,
       );
       const stored = seasonBundle ? await store.readRecipeResult(caseId, seasonBundle.id) : null;
       const summary = stored?.result as SeasonSummary | undefined;
       if (!seasonBundle || !summary?.seasons) {
         throw new ToolFailure(
           "no_season_summary",
-          `no precomputed ${SEASON_RECIPE.recipeId} ${SEASON_RECIPE.version} result in this case`,
+          `no precomputed ${recipe.recipeId} ${recipe.version} result in this case`,
         );
       }
       if (summary.rainfall_bundle?.id !== rain.id) {
@@ -243,7 +257,7 @@ export function compareEventsTool(store: CaseStore, caseId: string): ToolHandler
         const row = rows.get(id) as EventRecordRowRecord;
         if (row.rainfallDirection === "not_stated")
           return { rowId: id, result: "not_applicable" as const, seasonId: null };
-        const seasonId = seasonFor(row.eventStart);
+        const seasonId = seasonFor(row.eventStart, window);
         const season = seasonId === null ? undefined : seasons.get(seasonId);
         if (!season) return { rowId: id, result: "no_matching_period" as const, seasonId };
         return {
@@ -262,13 +276,13 @@ export function compareEventsTool(store: CaseStore, caseId: string): ToolHandler
       return {
         output: {
           label: "precomputed analysis",
-          recipe: `${SEASON_RECIPE.recipeId} ${SEASON_RECIPE.version}`,
+          recipe: `${recipe.recipeId} ${recipe.version}`,
           seasonBundleId: seasonBundle.id,
           nearNormalBandMm: summary.near_normal_band_mm ?? null,
           results,
           limitations: [
             "Agreement compares directions only; it says nothing about cause.",
-            "A national statement can differ from the catchment record and still be true for its own area.",
+            `A national statement can differ from the ${config.areaLabel} record and still be true for its own area.`,
           ],
         },
         resultEntityIds: [...results.map((r) => r.rowId), seasonBundle.id],
