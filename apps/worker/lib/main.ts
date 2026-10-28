@@ -2,6 +2,7 @@ import { fileURLToPath } from "node:url";
 
 import { chooseTransport, describeRoute } from "@siterra/agent";
 import { createPool, planQueue } from "@siterra/db";
+import { startWorkerHeartbeat } from "@siterra/db/health";
 import type { Pool } from "@siterra/db";
 import { dispatchOutboxToJobs, jobSchema } from "@siterra/db/job-queue";
 import { newId } from "@siterra/domain";
@@ -69,6 +70,12 @@ export async function startWorker(
   });
   await boss.start();
   await boss.createQueue(planQueue);
+  // The health check reads this worker as alive from its heartbeat (AUDIT B b36).
+  const stopHeartbeat = await startWorkerHeartbeat(pool, (error: unknown) => {
+    console.error(
+      `worker: heartbeat failed: ${error instanceof Error ? error.message : "unknown error"}`,
+    );
+  });
 
   await boss.work<PlanJob>(
     planQueue,
@@ -113,6 +120,7 @@ export async function startWorker(
   return async () => {
     stopping = true;
     clearInterval(dispatch);
+    stopHeartbeat();
     await boss.stop();
     await pool.end();
   };

@@ -106,3 +106,4 @@ Contracts and design tokens carry their own Semantic Versioning numbers, recorde
 - Recipe registry: the plain-language formulas of `season_summary` and `aligned_antecedent` now state the registered tercile rule and the four antecedent windows; `all six months` stays as registered.
 - Database pools now handle an idle connection the server ends (logging only the PostgreSQL code), and a test database ends its pools before it is dropped, so an intermittent "terminating connection" error no longer surfaces as unhandled.
 - The worker polls its outbox every 250 ms and its plan queue every 0.5 s (the pg-boss minimum), so the first progress event of a command arrives in about half a second instead of about three (PF-05, measured locally on the replay route).
+- The worker now starts its heartbeat, so `GET /api/health` reads a running worker as alive instead of reporting none.

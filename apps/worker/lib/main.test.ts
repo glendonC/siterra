@@ -3,6 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 import { createCase, eventsOfCommand, submitCommand } from "@siterra/db";
+import { readHealth } from "@siterra/db/health";
 import { exampleCase, exampleCommandRequest, freshDatabase } from "@siterra/db/testing";
 import type { TestDatabase } from "@siterra/db/testing";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -146,6 +147,22 @@ describe("worker process", () => {
       }
     },
   );
+});
+
+describe("worker heartbeat (b36)", () => {
+  it("a running worker reads as alive in the health check", { timeout: 30_000 }, async () => {
+    const stop = await startWorker({
+      DATABASE_URL: db.url,
+      SITERRA_REPO_ROOT: corpusRoot,
+      SITERRA_CORPUS_MANIFEST: "manifest.json",
+      SITERRA_REPLAY_FILE: replayFile,
+    });
+    try {
+      expect((await readHealth(db.pool)).worker?.status).toBe("ok");
+    } finally {
+      await stop();
+    }
+  });
 });
 
 describe("worker timing (PF-05)", () => {
