@@ -3,11 +3,11 @@ import { describe, expect, it } from "vitest";
 import { MetaAdapter } from "../../model/adapter.ts";
 import type { ReplayStep } from "../../model/replay.ts";
 import { strictSubsetIssues } from "../../model/strict-schema.ts";
-import { AT, CASE_ID, queuedTask, testStore } from "../../testing/case-fixture.ts";
+import { AT, CASE_ID, measurement, queuedTask, testStore } from "../../testing/case-fixture.ts";
 import { answerStep, syntheticTransport, toolCallStep } from "../../testing/replay-steps.ts";
 import { caseToolRegistry } from "../../tools/registry.ts";
 import { MemoryCommitApi } from "../commit.ts";
-import { evidenceOutputSchema } from "../evidence/proposal.ts";
+import { evidenceOutputSchema, validateEvidenceProposal } from "../evidence/proposal.ts";
 import type { EvidenceRecord, TaskRecord } from "../records.ts";
 import type { TraceEventDraft } from "../trace.ts";
 import { runObservationTask } from "./observation-task.ts";
@@ -117,6 +117,73 @@ describe("observation task, synthetic replay, memory commit", () => {
       resultEntityIds: ["meas_test_2022-03", "meas_test_2022-04", "meas_test_2022-05"],
     });
     expect(api.events.map((e) => e.kind)).toEqual(["task.succeeded"]);
+  });
+
+  it("a year that the cited measurement's own definition states is accepted", async () => {
+    const store = testStore();
+    store.measurements.push(
+      measurement("period_2022-04", -38.26, {
+        id: "meas_test_rain_departure",
+        metric: "precipitation_departure_from_1991_2020_mean",
+        unit: "mm",
+      }),
+    );
+    const ok = await validateEvidenceProposal(
+      JSON.stringify({
+        items: [
+          item("April 2022 rainfall departed by -38.26 mm from the 1991 to 2020 mean.", [
+            "meas_test_rain_departure",
+          ]),
+          item("April 2022 NDVI departed from the 1981 mean.", ["meas_test_2022-04"]),
+        ],
+      }),
+      { caseId: CASE_ID, store, allowedClaimKinds: new Set(["observation"]) },
+    );
+    expect(ok.ok).toBe(true);
+    expect(ok.issues.map((i) => `${i.code} ${i.path}`)).toEqual([
+      "numeric_provenance $.items[1].statement",
+    ]);
+  });
+
+  it("other numbers in a measurement's definition never prove a claim (a49)", async () => {
+    const store = testStore();
+    store.measurements.push(
+      measurement("period_2022-04", -38.26, {
+        id: "meas_test_rain_departure",
+        metric: "precipitation_departure_from_1991_2020_mean",
+        unit: "mm",
+        aggregation: "Departure from the 1991 to 2020 same-month mean, 30 of 30 years present",
+      }),
+      measurement("period_2022-04", 29.48, {
+        id: "meas_test_rain_total",
+        metric: "precipitation_catchment_total",
+        unit: "mm",
+        aggregation: "Area-weighted mean of 0.05 degree cells in EPSG:32629, at least 3 cells",
+      }),
+    );
+    const cite = ["meas_test_rain_departure", "meas_test_rain_total", "meas_test_2022-04"];
+    const result = await validateEvidenceProposal(
+      JSON.stringify({
+        items: [
+          item("April 2022 rainfall departed by -38.26 mm from the 1991 to 2020 mean.", cite),
+          item("Rain fell on 3 villages in April 2022.", cite),
+          item("About 30 per cent of the pastures were dry in April 2022.", cite),
+          item("Rain cells of 0.05 covered the catchment in April 2022.", cite),
+          item("The grid was 32629 in April 2022.", cite),
+          item("April 2022 rainfall was below the 1991 mean.", cite),
+        ],
+      }),
+      { caseId: CASE_ID, store, allowedClaimKinds: new Set(["observation"]) },
+    );
+    expect(
+      result.issues.map((i) => `${i.code} ${i.path} ${i.message.split(" ")[0] ?? ""}`),
+    ).toEqual([
+      "numeric_provenance $.items[1].statement 3",
+      "numeric_provenance $.items[2].statement 30",
+      "numeric_provenance $.items[3].statement 0.05",
+      "numeric_provenance $.items[4].statement 32629",
+      "numeric_provenance $.items[5].statement 1991",
+    ]);
   });
 
   it("a number the measurements do not hold is rejected, then repaired", async () => {

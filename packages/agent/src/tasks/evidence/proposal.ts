@@ -75,6 +75,7 @@ export function caseYearSpan(periodIds: readonly string[]): YearSpan | null {
   return years.length === 0 ? null : { first: Math.min(...years), last: Math.max(...years) };
 }
 
+/** The numbers a cited measurement holds: its value, spread, coverage and counts. */
 function measurementNumbers(m: MeasurementRecord): number[] {
   const values = [
     m.value,
@@ -85,6 +86,50 @@ function measurementNumbers(m: MeasurementRecord): number[] {
     m.totalPixelCount,
   ];
   return values.filter((v): v is number => typeof v === "number");
+}
+
+/** A reference period stated in a measurement's definition, such as 1991 to 2020. */
+export interface ReferencePeriod {
+  first: number;
+  last: number;
+}
+
+// Digit lookarounds, not \b: in "from_1991_2020" the underscore is a word character.
+const PERIOD_IN_DEFINITION =
+  /(?<!\d)((?:19|20)\d{2})(?:[\s_-]+(?:to[\s_-]+)?|\s*\u2013\s*)((?:19|20)\d{2})(?!\d)/g;
+
+/**
+ * Reference periods a measurement's own definition states, in its metric name or aggregation text
+ * ("precipitation_departure_from_1991_2020_mean"). Only these year pairs come from a definition;
+ * every other number in it (pixel counts, grid sizes, EPSG codes) does not (AUDIT a49).
+ */
+export function referencePeriods(m: MeasurementRecord): ReferencePeriod[] {
+  const periods: ReferencePeriod[] = [];
+  for (const text of [m.metric, m.aggregation]) {
+    for (const match of text.matchAll(PERIOD_IN_DEFINITION)) {
+      const first = Number(match[1]);
+      const last = Number(match[2]);
+      if (first < last) periods.push({ first, last });
+    }
+  }
+  return periods;
+}
+
+/**
+ * Blanks each cited reference period where the claim repeats it as a range ("1991 to 2020",
+ * "1991-2020", "1991 and 2020"), so its two years are read as the measurement's own definition.
+ * A year of the period written anywhere else stays a number to prove.
+ */
+export function maskReferencePeriods(text: string, periods: readonly ReferencePeriod[]): string {
+  let masked = text;
+  for (const { first, last } of periods) {
+    const range = new RegExp(
+      String.raw`\b${String(first)}\s*(?:to|-|\u2013|and)\s*${String(last)}\b`,
+      "g",
+    );
+    masked = masked.replace(range, (m) => " ".repeat(m.length));
+  }
+  return masked;
 }
 
 export async function validateEvidenceProposal(
@@ -262,8 +307,10 @@ export async function validateEvidenceProposal(
       ...item.limitations.map((l, k): [string, string] => [`${at}.limitations[${k}]`, l]),
     ];
     const allowed = cited.flatMap(measurementNumbers);
+    const periods = cited.flatMap(referencePeriods);
     for (const [path, text] of texts) {
-      for (const n of unprovenNumbers(text, allowed, verifiedExcerpts, years)) {
+      const claim = maskReferencePeriods(text, periods);
+      for (const n of unprovenNumbers(claim, allowed, verifiedExcerpts, years)) {
         itemIssues.push(
           issue(
             "numeric_provenance",
