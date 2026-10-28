@@ -2,7 +2,7 @@ import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 import { chooseTransport, describeRoute, loadReplayFile } from "@siterra/agent";
-import { readSnapshot, submitCommand } from "@siterra/db";
+import { eventsOfCommand, readSnapshot, submitCommand } from "@siterra/db";
 import { freshDatabase } from "@siterra/db/testing";
 import type { TestDatabase } from "@siterra/db/testing";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -115,6 +115,26 @@ describe("synthetic seed-commission replay", () => {
             (e) => e.claimKind === "observation" && e.status === "accepted",
           ),
         ).toBe(true);
+
+        // The record itself says it came from a synthetic replay, and so does the usage of every
+        // model event of the task that wrote it (lead, after b30).
+        const records = after?.records.evidenceRecords ?? [];
+        for (const e of records) {
+          expect(e.provenance.limitations).toContain(
+            "Written from a synthetic replay, not a model output or a live model call.",
+          );
+        }
+        const events = [
+          ...(await eventsOfCommand(db.pool, CASE_ID, first)),
+          ...(await eventsOfCommand(db.pool, CASE_ID, second)),
+        ];
+        for (const taskId of new Set(records.map((e) => e.provenance.generatedByTaskId))) {
+          const usage = events
+            .filter((ev) => ev.taskId === taskId && ev.kind === "model.completed")
+            .map((ev) => `${ev.usage?.provider ?? ""} ${ev.usage?.replayOrigin ?? ""}`);
+          expect(usage.length).toBeGreaterThan(0);
+          expect(usage.every((p) => p === "replay synthetic")).toBe(true);
+        }
       } finally {
         await stop();
       }

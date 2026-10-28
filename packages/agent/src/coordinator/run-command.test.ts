@@ -255,11 +255,17 @@ describe("runCommand on synthetic replays", () => {
     expect(outcome.caseRevision).toBe(commits.caseRevision);
     expect(commits.evidence.size).toBe(4);
     expect(commits.hypotheses.size).toBe(1);
+    // The records themselves say they came from a synthetic replay (lead, after b30).
+    for (const r of [...commits.evidence.values(), ...commits.hypotheses.values()]) {
+      expect(r.provenance.limitations, r.id).toContain(
+        "Written from a synthetic replay, not a model output or a live model call.",
+      );
+    }
     expect(events.filter((e) => e.kind === "task.started")).toHaveLength(4);
     expect(
       events
         .filter((e) => e.kind === "model.completed")
-        .every((e) => e.usage?.provider === "replay"),
+        .every((e) => e.usage?.provider === "replay" && e.usage.replayOrigin === "synthetic"),
     ).toBe(true);
   });
 

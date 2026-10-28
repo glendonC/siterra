@@ -13,6 +13,7 @@ import type {
   RelationshipRecord,
   TaskRecord,
 } from "../records.ts";
+import { replayLimitation } from "../trace.ts";
 import type { TraceEventDraft } from "../trace.ts";
 import { STATUS_LABELS, hypothesisOutputSchema, validateHypothesisProposal } from "./proposal.ts";
 import type { AcceptedHypothesis } from "./proposal.ts";
@@ -139,6 +140,7 @@ export async function runHypothesisTask(
         generatedAt: at,
         verificationStatus: "unverified",
         limitations: [
+          ...replayLimitation(deps.adapter.route, deps.adapter.replayOrigin),
           "A hypothesis is a candidate explanation; its status describes the evidence, not proof.",
         ],
       },

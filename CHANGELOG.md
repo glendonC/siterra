@@ -89,6 +89,7 @@ Contracts and design tokens carry their own Semantic Versioning numbers, recorde
 - Case contracts 1.6.0: ContextFeature records for the places the map names, seeded from `data/case/context-features.json`: the catchment outlet (Copernicus DEM GLO-30, with its one OpenStreetMap input coordinate credited), Tabant from GeoNames (CC BY 4.0) and the Aït Ouchi locator from SCI-04 (CC BY 4.0), each with its attribution, licence and limitations; `manifestUri` and `mapAssetUri` take a URI reference.
 - Case asset links in the records are origin-relative (`/api/case-assets/...`), so a case works on any deployment; the route sends `X-Content-Type-Options: nosniff`, caches checksum matches by size and modification time, and answers an invalid range such as `bytes=5-3` with the whole file.
 - Case contracts 1.7.0: model usage may record `replayOrigin` ("synthetic" or "recorded") on the replay route, and `readLineage` traces any record through its producing task to the provider, model and replay origin of its model calls, so a replayed record never reads as live.
+- Model calls on the replay route record their replay origin ("synthetic" or "recorded") in the stored usage, and every evidence and hypothesis written there carries the limitation "Written from a synthetic replay, not a model output or a live model call." (or the recorded form).
 
 ### Fixed
 

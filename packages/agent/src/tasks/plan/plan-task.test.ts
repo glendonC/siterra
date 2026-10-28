@@ -161,7 +161,11 @@ describe("plan task on synthetic replays", () => {
     ]);
 
     const completed = events.find((e) => e.kind === "model.completed");
-    expect(completed?.usage).toMatchObject({ provider: "replay", model: "muse-spark-1.3" });
+    expect(completed?.usage).toMatchObject({
+      provider: "replay",
+      replayOrigin: "synthetic",
+      model: "muse-spark-1.3",
+    });
     expect(completed?.usage?.requestId).toMatch(/^req_synthetic_/);
     expect(completed?.message).toContain("replay, synthetic");
     expect(events.find((e) => e.kind === "validation.completed")?.validation).toEqual({

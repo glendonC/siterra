@@ -12,6 +12,7 @@ import type {
   EvidenceRecord,
   TaskRecord,
 } from "../records.ts";
+import { replayLimitation } from "../trace.ts";
 import type { TraceEventDraft, TraceSink } from "../trace.ts";
 import { evidenceOutputSchema, validateEvidenceProposal } from "./proposal.ts";
 import type { AcceptedItem, TextRule } from "./proposal.ts";
@@ -84,6 +85,7 @@ function evidenceRecord(
   task: TaskRecord,
   id: string,
   at: string,
+  replayNote: readonly string[],
 ): EvidenceRecord {
   const { item, measurements, bundles, source } = accepted;
   const inputVersions: EntityVersion[] = [
@@ -96,6 +98,7 @@ function evidenceRecord(
   const limitations = [
     ...new Set([
       ...languageNote,
+      ...replayNote,
       ...bundles.flatMap((b) => b.provenance.limitations),
       ...item.limitations.map((l) => l.trim()).filter((l) => l !== ""),
       ...(item.scopeNote.trim() === "" ? [] : [item.scopeNote.trim()]),
@@ -178,7 +181,13 @@ export async function runEvidenceTask(
 
   const at = deps.now().toISOString();
   const evidence = (loop.status === "accepted" ? (loop.value ?? []) : []).map((a) =>
-    evidenceRecord(a, task, deps.newEvidenceId(), at),
+    evidenceRecord(
+      a,
+      task,
+      deps.newEvidenceId(),
+      at,
+      replayLimitation(deps.adapter.route, deps.adapter.replayOrigin),
+    ),
   );
   const partial = evidence.length > 0 && loop.validation?.outcome === "partial";
   const status: TaskRecord["status"] =

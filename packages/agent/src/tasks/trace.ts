@@ -18,7 +18,7 @@ export type TraceKind =
   | "tool.completed"
   | "validation.completed";
 
-/** Mirrors ModelUsage in case.schema.json 1.2. */
+/** Mirrors ModelUsage in case.schema.json 1.7.0. */
 export interface ModelUsageDraft {
   provider: string;
   model: string;
@@ -31,6 +31,8 @@ export interface ModelUsageDraft {
   durationMs: number | null;
   reasoningTokens: number | null;
   webSearchCalls: number | null;
+  /** Set on the replay route only, so lineage reads "synthetic" or "recorded" (contracts 1.7.0). */
+  replayOrigin?: ReplayOrigin;
 }
 
 /** Mirrors ToolCallInfo in case.schema.json 1.2. */
@@ -67,6 +69,20 @@ export function providerLabel(route: ModelRoute): string {
   return route === "replay" ? "replay" : "meta_model_api";
 }
 
+/**
+ * The limitation every record a task writes on the replay route carries, so a reader of the
+ * record, not only of its model events, sees that no live model call wrote it (lead, after b30).
+ * An unlabeled replay reads as synthetic.
+ */
+export function replayLimitation(route: ModelRoute, origin: ReplayOrigin | null): string[] {
+  if (route !== "replay") return [];
+  return [
+    origin === "recorded"
+      ? "Written from a recorded replay of an earlier model call, not a live model call."
+      : "Written from a synthetic replay, not a model output or a live model call.",
+  ];
+}
+
 /** "replay, synthetic" or "Model API": shown with every model event so replayed work is labeled. */
 export function routeLabel(route: ModelRoute, origin: ReplayOrigin | null): string {
   return route === "replay" ? `replay, ${origin ?? "unlabeled"}` : "Model API";
@@ -86,6 +102,9 @@ export function usageDraft(call: ModelCallResult): ModelUsageDraft {
     durationMs: call.durationMs,
     reasoningTokens: call.usage.reasoningTokens,
     webSearchCalls: null,
+    ...(call.route === "replay" && call.replayOrigin !== null
+      ? { replayOrigin: call.replayOrigin }
+      : {}),
   };
 }
 

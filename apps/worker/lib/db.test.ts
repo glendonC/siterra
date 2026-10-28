@@ -108,6 +108,7 @@ describe("plan job on PostgreSQL", () => {
     expect(new Set(sequences).size).toBe(sequences.length);
     expect(events.find((e) => e.kind === "model.completed")?.usage).toMatchObject({
       provider: "replay",
+      replayOrigin: "synthetic",
       model: "muse-spark-1.3",
     });
 
