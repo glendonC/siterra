@@ -66,6 +66,7 @@ Contracts and design tokens carry their own Semantic Versioning numbers, recorde
 - Design tokens 1.3 in `design/tokens/`: daylight is the default theme, with the approved hero's paper, ink and map colors, the wetter arm of the rain departure in its own violet hue, the hero type tokens, an ink focus ring, the map leader and sheet, a square card corner, and the contrast report regenerated for every pair.
 - The design reference pages describe the approved hero (design language 1.3): scenes, components, motion, microcopy, voice and tone, UX architecture, the design system, accessibility and language, and the experience storyboard; the drape, the contours and the arrival settle (MOT-01) are P0, and `design/README.md` lists only what is published.
 - Acceptance rows PC-02, PC-04, VC-02, VC-04, VC-05 and SC-04 restated for the approved hero; links into the unpublished first prototype now point at the hero pages, and `CONTRIBUTING.md` lists the four old design folders as private.
+- The delivery plan dates B1 to B5 from the founder's approval of the hero (Tue 27 to Sat 31 Oct 2026) and schedules the Sentinel-2 drape, the contours and the 3D arrival settle on B2 and B3; `maplibre-contour` 0.1.1 is P0; the demo plan notes that a viewer's typed question may say "drought" while Siterra's suggestions say "a dry year".
 
 ### Fixed
 

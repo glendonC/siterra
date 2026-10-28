@@ -14,7 +14,7 @@ A guided React investigation workspace with one persistent MapLibre map, a durab
 | Web | Next.js App Router, React, TypeScript | UI, API routes and SSE in one application |
 | Styling and controls | Tailwind CSS; owned shadcn/ui components on Base UI primitives; Lucide icons | Tokens from [`siterra.tokens.json`](../../design/tokens/siterra.tokens.json) mapped into Tailwind `@theme`; which components to install, adapt, study or avoid is [ADR-0044](../decisions/0044-build-the-interface-on-shadcn-with-base-ui-and-mit-components.md) |
 | Motion | Motion (`motion/react`) | Layout and shared-element transitions inside the investigation sheet only ([motion](../reference/motion.md)) |
-| Map | MapLibre GL JS with PMTiles; `maplibre-contour` (P1) | One map instance |
+| Map | MapLibre GL JS with PMTiles; `maplibre-contour` (P0) | One map instance |
 | Charts | Observable Plot | Explicit scales, facets for aligned panels, gaps, annotations; one renderer only |
 | Server state | TanStack Query | Snapshot fetch and cache; the case record stays authoritative |
 | Contracts | Zod | Mirrors [`schemas/*.schema.json`](../../schemas/); model-facing schemas are exported from the same source |

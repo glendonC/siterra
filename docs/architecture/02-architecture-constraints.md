@@ -58,7 +58,7 @@ The stack itself is described in the [solution strategy](04-solution-strategy.md
 | Web | Next.js 16.4.1 (App Router), React 19.3.1, TypeScript 6.0.3 |
 | Styling and controls | Tailwind CSS 4.3.3 with `@tailwindcss/postcss`; shadcn/ui components via `npx shadcn@4.21.4`, initialized with Base UI (`--base base`, [ADR-0044](../decisions/0044-build-the-interface-on-shadcn-with-base-ui-and-mit-components.md)); Lucide 1.55.0 |
 | Motion | `motion` 14.1.0 (`motion/react`) |
-| Map | `maplibre-gl` 6.14.0, `pmtiles` 4.5.0, `maplibre-contour` 0.1.1 (P1) |
+| Map | `maplibre-gl` 6.14.0, `pmtiles` 4.5.0, `maplibre-contour` 0.1.1 (P0) |
 | Charts | `@observablehq/plot` 0.6.17 |
 | Server state | `@tanstack/react-query` 5.104.2 |
 | Contracts | `zod` 4.6.7 |
