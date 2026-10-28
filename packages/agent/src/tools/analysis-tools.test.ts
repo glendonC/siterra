@@ -143,13 +143,19 @@ describe("compare_series", () => {
       seriesPairs: [
         {
           id: "vegetation_soil_moisture",
-          a: { label: "vegetation departure", metrics: ["evi_departure_area_median"] },
+          a: {
+            label: "vegetation departure",
+            metrics: ["evi_departure_area_median"],
+            methodId: "test_veg_departure",
+          },
           b: {
             label: "soil moisture departure",
             metrics: ["soil_moisture_departure"],
+            methodId: "test_soil_moisture",
             storedDecimals: 3,
           },
           windowsMonths: [0, 1],
+          minAlignedMonths: 2,
         },
       ],
     });

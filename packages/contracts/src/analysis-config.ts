@@ -24,6 +24,8 @@ const SeriesSide = z.strictObject({
   label,
   /** Measurement metrics this side may be; a metric outside the list is refused. */
   metrics: uniqueArray(z.string().min(1)).min(1),
+  /** The method of the validated bundle that holds this side; found from bundle metadata alone. */
+  methodId: z.string().min(1),
 });
 
 /** A pair of series compare_series may align: a month by month against b summed over windows. */
@@ -36,8 +38,14 @@ export const SeriesPair = z.strictObject({
   }),
   /** Antecedent windows in months, fixed before any data is read; never a model choice. */
   windowsMonths: uniqueArray(z.int().min(0).max(12)).min(1),
+  /** Fewer aligned months than this leave a co-movement prediction not testable (inadequate data). */
+  minAlignedMonths: z.int().min(1),
 });
 export type SeriesPair = z.infer<typeof SeriesPair>;
+
+/** A measurement only fieldwork can make; a prediction about it is never testable from the record. */
+export const FieldCheck = z.strictObject({ id: configKey, label });
+export type FieldCheck = z.infer<typeof FieldCheck>;
 
 /** The rainfall season events are compared with, and the recipe that summarizes it. */
 export const SeasonWindow = z.strictObject({
@@ -78,5 +86,9 @@ export const CaseAnalysisConfig = z.strictObject({
       uniqueBy((e: ExplanationDefinition) => e.id),
       { error: "Explanation IDs must be unique" },
     ),
+  fieldChecks: z.array(FieldCheck).refine(
+    uniqueBy((c: FieldCheck) => c.id),
+    { error: "Field check IDs must be unique" },
+  ),
 });
 export type CaseAnalysisConfig = z.infer<typeof CaseAnalysisConfig>;

@@ -26,15 +26,19 @@ export const TEST_ANALYSIS_CONFIG: CaseAnalysisConfig = {
       a: {
         label: "vegetation departure",
         metrics: ["ndvi_departure_area_median", "ndvi_departure_area_median_leave_one_year_out"],
+        methodId: "test_veg_departure",
       },
       b: {
         label: "rainfall departure",
         metrics: ["precipitation_departure_from_1991_2020_mean"],
+        methodId: "test_rain_monthly",
         storedDecimals: 2,
       },
       windowsMonths: [0, 1, 2, 3],
+      minAlignedMonths: 3,
     },
   ],
+  fieldChecks: [{ id: "grazing_exclosure", label: "Grazed and ungrazed plots compared" }],
   rainfallSeason: {
     id: "wet_season",
     label: "November to April wet season",

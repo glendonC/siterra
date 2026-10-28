@@ -7,16 +7,20 @@
       "id": "vegetation_rainfall",
       "a": {
         "label": "vegetation departure",
-        "metrics": ["ndvi_departure_area_median", "ndvi_departure_area_median_leave_one_year_out"]
+        "metrics": ["ndvi_departure_area_median", "ndvi_departure_area_median_leave_one_year_out"],
+        "methodId": "monthly_departure"
       },
       "b": {
         "label": "rainfall departure",
         "metrics": ["precipitation_departure_from_1991_2020_mean"],
+        "methodId": "chirps_monthly_catchment_total",
         "storedDecimals": 2
       },
-      "windowsMonths": [0, 1, 2, 3]
+      "windowsMonths": [0, 1, 2, 3],
+      "minAlignedMonths": 12
     }
   ],
+  "fieldChecks": [],
   "rainfallSeason": {
     "id": "wet_season",
     "label": "November to April wet season",

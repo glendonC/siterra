@@ -11,15 +11,22 @@ const OTHER_PLACE = {
   seriesPairs: [
     {
       id: "vegetation_soil_moisture",
-      a: { label: "vegetation departure", metrics: ["evi_departure_area_median"] },
+      a: {
+        label: "vegetation departure",
+        metrics: ["evi_departure_area_median"],
+        methodId: "evi_departure",
+      },
       b: {
         label: "soil moisture departure",
         metrics: ["soil_moisture_departure"],
+        methodId: "soil_moisture_monthly",
         storedDecimals: 3,
       },
       windowsMonths: [0, 1],
+      minAlignedMonths: 6,
     },
   ],
+  fieldChecks: [{ id: "irrigation_channels", label: "Irrigation channels in use" }],
   rainfallSeason: {
     id: "rainy_season",
     label: "June to September rainy season",
@@ -61,5 +68,10 @@ describe("case analysis configuration", () => {
     expect(bad({ explanations: many })).toBe(false);
     expect(bad({ seriesPairs: [] })).toBe(false);
     expect(bad({ extra: true })).toBe(false);
+    const [pair] = OTHER_PLACE.seriesPairs;
+    expect(bad({ seriesPairs: [{ ...pair, minAlignedMonths: 0 }] })).toBe(false);
+    expect(bad({ seriesPairs: [{ ...pair, a: { ...pair?.a, methodId: undefined } }] })).toBe(false);
+    const check = OTHER_PLACE.fieldChecks[0];
+    expect(bad({ fieldChecks: [check, check] })).toBe(false);
   });
 });

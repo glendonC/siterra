@@ -1,6 +1,8 @@
 import { CaseAnalysisConfig } from "@siterra/contracts";
 import { describe, expect, it } from "vitest";
 
+import registry from "../../../../science/recipes/registry.json" with { type: "json" };
+import seed from "../../../contracts/fixtures/case-snapshot-aitbouguemez-seed.json" with { type: "json" };
 import { analysisConfigFor, caseAnalysisConfigs } from "./index.ts";
 
 describe("case analysis configurations", () => {
@@ -15,7 +17,7 @@ describe("case analysis configurations", () => {
 
   it("the valley keeps the pair, windows, decimals and season it had in code", () => {
     const valley = analysisConfigFor("case_aitbouguemez");
-    expect(valley?.seriesPairs).toEqual([
+    expect(valley?.seriesPairs).toMatchObject([
       {
         id: "vegetation_rainfall",
         a: {
@@ -30,6 +32,20 @@ describe("case analysis configurations", () => {
         windowsMonths: [0, 1, 2, 3],
       },
     ]);
+  });
+
+  it("the valley's bundle methods and aligned-month minimum come from the seed and the registry", () => {
+    const valley = analysisConfigFor("case_aitbouguemez");
+    const [pair] = valley?.seriesPairs ?? [];
+    const validated = seed.records.dataBundleRecords
+      .filter((b) => b.status === "validated")
+      .map((b) => b.methodId);
+    expect(validated).toContain(pair?.a.methodId);
+    expect(validated).toContain(pair?.b.methodId);
+    const aligned = registry.recipes.find((r) => r.recipeId === "aligned_antecedent");
+    expect(aligned?.applicability.map((a) => a.minimum)).toContain(
+      `${String(pair?.minAlignedMonths)} shared months`,
+    );
     expect(valley?.rainfallSeason).toMatchObject({
       startMonth: 11,
       endMonth: 4,
