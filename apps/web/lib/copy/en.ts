@@ -13,31 +13,18 @@ export interface Message {
 }
 
 export const en = {
-  // Opening page (approved 27 Oct 2026; IDs and wording from the approved opening copy)
-  "opening.beat1": {
-    text: "Rangelands cover more than half of Earth's land and support the livelihoods of about two billion people.",
+  // Opening page: one screen. The case question comes from the case record (opening.case)
+  "opening.what": {
+    text: "Siterra assesses environmental questions for communities and organisations that have no specialist to ask.",
     kind: "ui",
   },
-  "opening.beat1.tag": {
-    text: "UN General Assembly, 2022; UNCCD, 2024 (SCI-125, SCI-127)",
+  "opening.how": {
+    text: "Its agents plan the work and read published research with Meta's Muse Spark model, and code checks every quote against its source. Code computes every number. A person reviews the results; Siterra contacts no one and decides nothing.",
     kind: "ui",
   },
-  "opening.beat2": {
-    text: "Greenness follows rainfall closely. In simulations, a vegetation-index trend only became statistically detectable once 30 to 40 per cent of the vegetation had been degraded.",
-    kind: "ui",
-  },
-  "opening.beat2.tag": { text: "Wessels et al., 2012 (SCI-29)", kind: "ui" },
-  "opening.beat3": {
-    text: "In protectorate Morocco, a 1917 forest decree banned grazing for six years in burned or harvested forests, and officials treated forest grazing as the main cause of deforestation. Fossil pollen evidence contradicts the large deforestation estimates.",
-    kind: "ui",
-  },
-  "opening.beat3.tag": { text: "Davis, 2005 (SCI-145)", kind: "ui" },
-  "opening.beat4": {
-    text: "Siterra investigates one place at a time. The first: is grazing changing the shared pastures of the Aït Bouguemez valley?",
-    kind: "ui",
-  },
-  "opening.action": { text: "Open the investigation", kind: "button" },
-  "opening.next": { text: "Next", kind: "button" },
+  "opening.case": { text: "This case: {question}", kind: "ui" },
+  "opening.action": { text: "Open the case", kind: "button" },
+  "opening.skip": { text: "Skip to the map", kind: "link" },
 
   // Globe and dive (approved hero study A4)
   "globe.range": { text: "Atlas Mountains, Morocco", kind: "label" },
@@ -335,21 +322,6 @@ export const LINT_ALLOWLIST: Partial<Record<MessageId, { rules: string[]; reason
   "credit.globe": {
     rules: ["VT-03", "VT-08"],
     reason: "Copernicus WorldDEM-90 licence notice, kept in the wording the licence requires.",
-  },
-  "opening.beat1.tag": {
-    rules: ["VT-08"],
-    reason:
-      "UNCCD is the source organisation's acronym in a citation tag; the guide's acronym list lacks it.",
-  },
-  "opening.beat2": {
-    rules: ["VT-20", "VT-31"],
-    reason:
-      "Cited published result (SCI-29) quoted exactly as worded in problem.md; shown outside the product chrome as a title with its source tag; describes a simulation study, not this valley.",
-  },
-  "opening.beat3": {
-    rules: ["VT-34", "VT-50"],
-    reason:
-      "Approved source wording (Davis 2005, SCI-145): 'six years' is part of the decree and the sentence keeps its length.",
   },
   "arrival.region": {
     rules: ["VT-09"],

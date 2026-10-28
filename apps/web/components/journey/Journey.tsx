@@ -1,8 +1,9 @@
 "use client";
 
-// The approved sequence as one view: the opening's beats over the globe's limb, the globe, the dive and the
-// arrival. One clock drives both renderers: the ported globe (WebGL2) and the MapLibre valley, which fades
-// in at the dive's relief rise; the globe renderer is then disposed so only MapLibre's context runs.
+// The sequence as one view: the opening over the globe's limb, the globe, the dive and the arrival; the
+// opening's skip link goes straight to the arrival. One clock drives both renderers: the ported globe
+// (WebGL2) and the MapLibre valley, which fades in at the dive's relief rise; the globe renderer is then
+// disposed so only MapLibre's context runs.
 
 import type * as maplibregl from "maplibre-gl";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -60,11 +61,15 @@ export function Journey({
 
   const now = () => (performance.now() - t0.current) / 1000;
 
-  const onBeat = useCallback((i: number) => {
-    moments.current.beats[i] ??= now();
+  const onShown = useCallback(() => {
+    if (moments.current.beats.length === 0) moments.current.beats.push(now());
   }, []);
-  const onActionShown = useCallback(() => {
-    moments.current.action ??= now();
+  // the skip link: straight to the arrival; the frame loop stops and the valley shows at its pose
+  const skipped = useRef(false);
+  const onSkip = useCallback(() => {
+    skipped.current = true;
+    if (valley.current) valley.current.style.opacity = "1";
+    setPhase("arrival");
   }, []);
   const onOpen = useCallback(() => {
     moments.current.press ??= now();
@@ -114,6 +119,11 @@ export function Journey({
       });
 
     const frame = () => {
+      if (skipped.current) {
+        renderer?.dispose(true);
+        renderer = undefined;
+        return;
+      }
       raf = requestAnimationFrame(frame);
       if (!ready) return;
       const w = el.clientWidth;
@@ -217,7 +227,7 @@ export function Journey({
 
   return (
     <div className={styles.journey} data-phase={phase}>
-      <div ref={valley} className={styles.valley} aria-hidden={phase !== "arrival"}>
+      <div ref={valley} id="arrival" className={styles.valley} aria-hidden={phase !== "arrival"}>
         <ArrivalView
           assets={valleyAssets}
           contourArea={contourArea}
@@ -246,7 +256,7 @@ export function Journey({
         </>
       ) : null}
       {phase === "opening" ? (
-        <Opening onOpen={onOpen} onBeat={onBeat} onActionShown={onActionShown} />
+        <Opening question={arrival.question} onOpen={onOpen} onSkip={onSkip} onShown={onShown} />
       ) : null}
       {phase === "globe" ? <GlobePage onDive={onDive} /> : null}
       {phase === "opening" || phase === "globe" ? (

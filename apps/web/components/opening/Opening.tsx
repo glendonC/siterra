@@ -1,143 +1,79 @@
 "use client";
 
-// The opening page: one beat at a time over the globe, a row of marks for the four beats, then one action.
-// Arrow keys, space, Enter or a click step; the recording mode advances after a hold but never presses the
-// action by itself.
+// The opening page: one screen over the globe's limb saying what Siterra does and the case it opens on,
+// then one action into the globe, and a skip link straight to the map. Enter opens, unless a control has
+// focus and handles its own Enter.
 
-import { useCallback, useEffect, useState } from "react";
-import { en } from "../../lib/copy/en";
-import {
-  BEATS,
-  OPENING_START,
-  stepOpening,
-  type OpeningInput,
-  type OpeningState,
-} from "../../lib/opening/beats";
-import { LIMB, LIMB_ACT } from "../../lib/globe/views";
+import { useEffect } from "react";
+import { openingCopy } from "../../lib/opening/opening";
+import { LIMB } from "../../lib/globe/views";
 import styles from "./Opening.module.css";
 
 export interface OpeningProps {
+  /** The case's question, from its record. */
+  question: string;
   onOpen: () => void;
-  /** Told when a beat starts (index) and when the action appears, so the globe behind can follow. */
-  onBeat?: (index: number) => void;
-  onActionShown?: () => void;
-  /** Recording mode: advance after this many ms. Absent in normal use. */
-  autoAdvanceMs?: number;
+  /** The skip link: straight to the map, without the globe and the dive. */
+  onSkip: () => void;
+  /** Told once the page shows, so the globe behind can follow. */
+  onShown?: () => void;
 }
 
-/** The type's paper: below the mark row, and this far above the limb (CSS px, DESIGN a5). */
+/** The type's paper: from the top, and this far above the limb (CSS px, DESIGN a5). */
 const PAPER_TOP = 58;
 const LIMB_AIR = 34;
 
-export function Opening({ onOpen, onBeat, onActionShown, autoAdvanceMs }: OpeningProps) {
-  const [state, setState] = useState<OpeningState>(OPENING_START);
+export function Opening({ question, onOpen, onSkip, onShown }: OpeningProps) {
+  const copy = openingCopy(question);
 
   useEffect(() => {
-    if (state.actionShown) onActionShown?.();
-    else onBeat?.(state.beat);
-  }, [state, onBeat, onActionShown]);
-
-  const step = useCallback(
-    (input: OpeningInput) => {
-      const next = stepOpening(state, input);
-      if (next === "open") onOpen();
-      else setState(next);
-    },
-    [state, onOpen],
-  );
+    onShown?.();
+  }, [onShown]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.altKey || e.ctrlKey || e.metaKey) return;
-      // a focused button handles its own Enter and space
+      if (e.key !== "Enter" || e.altKey || e.ctrlKey || e.metaKey) return;
       const tag = (e.target as HTMLElement | null)?.tagName;
-      if ((tag === "BUTTON" || tag === "A") && (e.key === "Enter" || e.key === " ")) return;
-      if (e.key === "ArrowRight" || e.key === " " || e.key === "Enter") {
-        e.preventDefault();
-        step("next");
-      } else if (e.key === "ArrowLeft") {
-        e.preventDefault();
-        step("previous");
-      }
+      if (tag === "BUTTON" || tag === "A") return;
+      e.preventDefault();
+      onOpen();
     };
     window.addEventListener("keydown", onKey);
     return () => {
       window.removeEventListener("keydown", onKey);
     };
-  }, [step]);
+  }, [onOpen]);
 
-  useEffect(() => {
-    if (!autoAdvanceMs || state.actionShown) return;
-    const t = window.setTimeout(() => {
-      step("timer");
-    }, autoAdvanceMs);
-    return () => {
-      window.clearTimeout(t);
-    };
-  }, [autoAdvanceMs, state, step]);
-
-  const beat = BEATS[state.beat];
-  if (!beat) return null;
   return (
-    <div
-      className={styles.opening}
-      onClick={() => {
-        step("next");
-      }}
-    >
-      <ol
-        className={styles.marks}
-        aria-label={`${String(state.beat + 1)} / ${String(BEATS.length)}`}
-      >
-        {BEATS.map((b, i) => (
-          <li
-            key={b.id}
-            className={styles.mark}
-            data-state={i < state.beat ? "done" : i === state.beat ? "current" : "next"}
-            style={
-              autoAdvanceMs && i === state.beat
-                ? { animationDuration: `${String(autoAdvanceMs)}ms` }
-                : undefined
-            }
-          />
-        ))}
-      </ol>
-      {/* the paper between the mark row and the globe's limb; the beat sits centred in it, as approved */}
-      <div
-        className={styles.paper}
-        style={{
-          height:
-            (state.actionShown ? LIMB_ACT : (LIMB[state.beat] ?? LIMB_ACT)) - PAPER_TOP - LIMB_AIR,
-        }}
-      >
-        <article key={beat.id} className={styles.beat} data-string-id={beat.id} aria-live="polite">
-          <p className={styles.sentence}>
-            {beat.parts.map((p, i) => (
-              <span key={p.text} className={p.tone === "ink" ? styles.ink : styles.grey}>
-                {i > 0 ? " " : ""}
-                {p.text}
-              </span>
-            ))}
+    <div className={styles.opening} data-opening>
+      <div className={styles.paper} style={{ height: LIMB[0] - PAPER_TOP - LIMB_AIR }}>
+        <article className={styles.beat}>
+          <h1 className={styles.sentence}>{copy.what}</h1>
+          <p className={styles.how}>{copy.how}</p>
+          <p className={styles.caseLine}>{copy.caseLine}</p>
+          <p className={styles.action}>
+            <button
+              type="button"
+              className={styles.actionButton}
+              onClick={onOpen}
+              aria-keyshortcuts="Enter"
+            >
+              <kbd className={styles.glyph} aria-hidden="true">
+                ↵
+              </kbd>
+              {copy.action}
+            </button>
+            <a
+              href="#arrival"
+              className={styles.skip}
+              onClick={(e) => {
+                e.preventDefault();
+                onSkip();
+              }}
+            >
+              {copy.skip}
+            </a>
           </p>
-          {beat.tag ? <p className={styles.tag}>{en[beat.tag].text}</p> : null}
-          {state.actionShown ? (
-            <p className={styles.action}>
-              <button
-                type="button"
-                className={styles.actionButton}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onOpen();
-                }}
-                aria-keyshortcuts="Enter"
-              >
-                <kbd className={styles.glyph} aria-hidden="true">
-                  ↵
-                </kbd>
-                {en["opening.action"].text}
-              </button>
-            </p>
-          ) : null}
         </article>
       </div>
     </div>
