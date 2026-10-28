@@ -1,3 +1,4 @@
+import { eventMessages } from "@siterra/domain";
 import { EnvironmentalCase, type GeoSelection, type Source } from "@siterra/contracts";
 import { type Pool, inTransaction, notifyEvents } from "./client.ts";
 import type { ImportedBundle } from "./bundle-import.ts";
@@ -58,7 +59,7 @@ export async function loadSeedCase(
           commandId: null,
           taskId: null,
           entityIds: seed.bundles.map((b) => b.dataBundle.id),
-          message: `Loaded ${seed.bundles.length} observation bundles`,
+          message: eventMessages.caseSeeded(seed.bundles.length),
           dedupeKey: `case.seeded:${caseRecord.id}`,
           resultStatus: null,
           tool: null,

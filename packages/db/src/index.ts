@@ -8,6 +8,7 @@ export * from "./events.ts";
 export * from "./listener.ts";
 export * from "./migrate.ts";
 export * from "./outbox.ts";
+export * from "./reviews.ts";
 export * from "./seed.ts";
 export * from "./sessions.ts";
 export * from "./snapshot.ts";

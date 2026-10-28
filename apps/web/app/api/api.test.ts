@@ -1,10 +1,19 @@
 import type { Command } from "@siterra/contracts";
-import { type Pool, appendEvents, createCase, createSession, sessionCookieName } from "@siterra/db";
+import {
+  type Pool,
+  appendEvents,
+  applyCommit,
+  createCase,
+  createSession,
+  sessionCookieName,
+} from "@siterra/db";
 import {
   type TestDatabase,
   exampleCase,
   exampleCommandRequest,
+  exampleCommit,
   exampleEvent,
+  exampleEvidence,
   freshDatabase,
 } from "@siterra/db/testing";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -14,6 +23,7 @@ import type * as EventsRoute from "./cases/[caseId]/events/route.ts";
 import type * as CancelRoute from "./commands/[commandId]/cancel/route.ts";
 import type * as DemoRoute from "./demo-sessions/route.ts";
 import type * as TraceRoute from "./cases/[caseId]/trace/route.ts";
+import type * as ReviewsRoute from "./cases/[caseId]/reviews/route.ts";
 
 let db: TestDatabase;
 let pool: Pool;
@@ -29,6 +39,7 @@ type Routes = {
   cancel: typeof CancelRoute;
   demo: typeof DemoRoute;
   trace: typeof TraceRoute;
+  reviews: typeof ReviewsRoute;
 };
 let routes: Routes;
 
@@ -50,6 +61,7 @@ beforeAll(async () => {
     cancel: await import("./commands/[commandId]/cancel/route.ts"),
     demo: await import("./demo-sessions/route.ts"),
     trace: await import("./cases/[caseId]/trace/route.ts"),
+    reviews: await import("./cases/[caseId]/reviews/route.ts"),
   };
   await createCase(pool, exampleCase(caseId), owner);
   cookie = `${sessionCookieName}=${await createSession(pool, { ownerScopeId: owner, kind: "local", ttlSeconds: 3600 })}`;
@@ -346,5 +358,62 @@ describe("GET /api/cases/:id/trace", () => {
       params({ caseId }),
     );
     expect(unknown.status).toBe(404);
+  });
+});
+
+describe("POST /api/cases/:id/reviews", () => {
+  it("answers 201, 200 for a repeated key, 422 for a decision the role cannot record, 409 for a stale case revision", async () => {
+    const snapshot = (await (
+      await routes.snapshot.GET(get(`/api/cases/${caseId}`), params({ caseId }))
+    ).json()) as {
+      case: { revision: number };
+    };
+    const body = {
+      role: "scientific",
+      reviewedEntityVersions: [] as { entityId: string; revision: number }[],
+      caseRevisionReviewed: snapshot.case.revision,
+      actionId: null,
+      decision: "approved",
+      conditions: [],
+      comments: "Synthetic review comment.",
+      mode: "demo",
+      idempotencyKey: "api-review-0001",
+    };
+    const path = `/api/cases/${caseId}/reviews`;
+    const empty = await routes.reviews.POST(post(path, body), params({ caseId }));
+    expect(empty.status).toBe(400);
+
+    await applyCommit(
+      pool,
+      exampleCommit(exampleCase(caseId, snapshot.case.revision), {
+        id: "commit_example_api_review",
+        expected: snapshot.case.revision,
+        upserts: [exampleEvidence(caseId, "ev_example_api_review")],
+      }),
+    );
+    const reviewed = {
+      ...body,
+      reviewedEntityVersions: [{ entityId: "ev_example_api_review", revision: 1 }],
+      caseRevisionReviewed: snapshot.case.revision + 1,
+    };
+    const created = await routes.reviews.POST(post(path, reviewed), params({ caseId }));
+    expect(created.status).toBe(201);
+    const repeated = await routes.reviews.POST(post(path, reviewed), params({ caseId }));
+    expect(repeated.status).toBe(200);
+    const notPermitted = await routes.reviews.POST(
+      post(path, { ...reviewed, role: "community_livelihood", idempotencyKey: "api-review-0002" }),
+      params({ caseId }),
+    );
+    expect(notPermitted.status).toBe(422);
+    const stale = await routes.reviews.POST(
+      post(path, {
+        ...reviewed,
+        caseRevisionReviewed: snapshot.case.revision,
+        idempotencyKey: "api-review-0003",
+      }),
+      params({ caseId }),
+    );
+    expect(stale.status).toBe(409);
+    expect(((await stale.json()) as { code: string }).code).toBe("stale_versions");
   });
 });

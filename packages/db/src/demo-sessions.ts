@@ -1,6 +1,6 @@
 import { randomBytes } from "node:crypto";
 import type { EnvironmentalCase } from "@siterra/contracts";
-import { newId, sha256Hex } from "@siterra/domain";
+import { eventMessages, newId, sha256Hex } from "@siterra/domain";
 import { type Pool, type Tx, inTransaction, notifyEvents } from "./client.ts";
 import { insertEvents, setLastSequence } from "./events.ts";
 import { permittedMode } from "./live-mode.ts";
@@ -93,7 +93,7 @@ export async function startDemoSession(
           commandId: null,
           taskId: null,
           entityIds: [caseId],
-          message: "Opened a demo copy of the case",
+          message: eventMessages.demoCopyOpened(),
           dedupeKey: `case.demo_copy:${caseId}`,
           resultStatus: null,
           tool: null,
