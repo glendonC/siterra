@@ -14,6 +14,7 @@ Raw downloads and working files stay in the ignored `data/raw/` and `data/interi
 | Frozen catchment `geo_ait_bouguemez_catchment` revision 1 | each bundle's `analysis-geometry.geojson` (byte-identical copies) | Native 30 m delineation from Copernicus DEM GLO-30 (2021 release) with a separate script that is not part of this package; method and acceptance checks in [data sources and methods](../docs/reference/data-sources-and-methods.md#study-area) |
 | Sentinel-2 item list | `kept.jsonl` | Either from a catalog search (`s2-search.py`, then `s2-inventory.py`: Earth Search legacy `sentinel-2-l2a` items for tiles 29SQR and 29RQQ, deduplicated) or, to reproduce an existing bundle exactly, from its Items' `derived_from` links (`derived-from-items.py`). The catalog changes over time, so a rerun of a bundle uses the second route |
 | Sentinel-2 monthly composites | `data/interim/s2-monthly/<YYYY-MM>/` | `s2_ndvi.py` |
+| MODIS Terra windows (MOD13Q1 and MOD10A1 v6.1) | `data/raw/modis/modis-13Q1-061/`, `data/raw/modis/modis-10A1-061/` | `modis-fetch.py`; the search record `search-<first>-<last>.json` lists the kept item IDs |
 | WorldCover 2021 and DEM strata on the analysis grid | `data/interim/worldcover/`, `data/interim/strata/` | `worldcover-grid.py` (reads the WorldCover tile by range request), `dem-strata.py` from the Copernicus DEM tile [`Copernicus_DSM_COG_10_N31_00_W007_00_DEM.tif`](https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N31_00_W007_00_DEM/Copernicus_DSM_COG_10_N31_00_W007_00_DEM.tif) (41,088,635 bytes) |
 
 ## Steps
@@ -36,7 +37,13 @@ python -I pipeline/strata-bundle.py data/interim/strata data/interim/worldcover 
 python -I pipeline/departure-overviews.py data/bundles data/interim/ndvi-departure data/interim/s2-monthly ../design/tokens/siterra.tokens.json <new_bundles_dir> --revision-note=<file> --stac-version=<n> [--pixel-m=30] [--steps=16]
 python -I pipeline/validate-bundles.py data/bundles schemas/stac/siterra-extension.schema.json <schema_cache_dir>
 python -I pipeline/corpus-fetch.py data/case/corpus-manifest.json . --check-closed --write=data/case/corpus-manifest.json
+python -I pipeline/modis-fetch.py places/ait-bouguemez.json .. mod13q1 data/raw/modis 2000-02-01 2025-12-31
+python -I pipeline/modis-fetch.py places/ait-bouguemez.json .. mod10a1 data/raw/modis 2000-02-24 2025-12-31
+python -I pipeline/restrend-bundle.py places/ait-bouguemez.json .. data/raw/modis/modis-13Q1-061 data/raw/chirps-v3.0/monthly-global-cogs recipes/registry.json uv.lock <new_bundles_dir>
+python -I pipeline/snow-bundle.py places/ait-bouguemez.json .. data/raw/modis/modis-10A1-061 <Copernicus_DSM_COG_10_N31_00_W007_00_DEM.tif> recipes/registry.json uv.lock <new_bundles_dir>
 ```
+
+The long-record scripts (`modis-fetch.py`, `restrend-bundle.py`, `snow-bundle.py`) hold no place-specific value: the geometry, strata, windows, seasons and band sets come from the place configuration, so another place needs only a new file in `places/` and its own frozen geometry and strata bundle. `<new_bundles_dir>` is a copy of `data/bundles/` that also holds the place's rainfall and strata bundles; the scripts write their bundle there and leave the catalog unchanged.
 
 `validate-bundles.py` fetches the STAC core and extension schemas over HTTPS on first use and caches each one in `<schema_cache_dir>` under the SHA-256 of its URL; both Siterra extension identifiers (1.0.0 and 1.1.0) are read from the repository file, which accepts either. `--inspected` records that a person looked at rendered samples (`render-cells.py`, `render-ndvi.py`, `render-strata.py`); without it the visual inspection check fails and the bundle status is `failed`. Build a new revision outside `data/bundles/`, validate it there, and copy it in one step.
 
@@ -74,6 +81,10 @@ Modules that other scripts import keep snake_case names (`chirps_fetch.py`, `s2_
 | `map-globe.py`, `map-terrain.py`, `map-manifest.py` | The public map assets in [`data/map/`](../data/map/README.md): globe relief, dot grid and rangeland biomes; the valley terrain tiles read from the Mapterhorn archive by range request (stdlib PMTiles reader, checked against the tile server); the manifest of sizes and checksums |
 | `s2-truecolour.py`, `map-imagery.py` | A Sentinel-2 true-colour display composite (per-pixel median of clear summer dates, fixed stretch) and its Web Mercator WebP drape with corner coordinates, for display only |
 | `departure-overviews.py` | The departure bundle's display rasters: each available leave-one-year-out grid averaged into one fixed Web Mercator grid and painted with the light-theme `data.ndvi-departure` ramp of the design tokens, lossless WebP; the strata bundle's excluded band as polygons for the map's hatch. Before writing, it checks every grid against its Item's measurements and recomputes the latest period's grids from the composites |
+| `place_config.py` | Reads a place configuration in [`places/`](places/ait-bouguemez.json): the frozen geometry and strata with their checksums, the analysis grid, stratum masks and labels, DEM elevation on the analysis grid, and the count of 10 m analysis cells inside each cell of another grid (the area weights of the long-record recipes) |
+| `modis-fetch.py` | Searches Planetary Computer for Terra MOD13Q1 or MOD10A1 v6.1 items over a place, deduplicates per tile and date, and range-reads each asset's window over the geometry with an anonymous SAS token; keeps each window with a sidecar (URL without token, HTTP validators, window, transform, SHA-256 of the values). Resumable; prints counts only |
+| `restrend-bundle.py`, `restrend_rerun.py`, `trend_stats.py` | `restrend_long_record` for a place: growing-season NDVI per stratum, window rainfall from the CHIRPS windows, least squares fits with t intervals (incomplete beta, no SciPy), the autocorrelation-adjusted interval and Theil-Sen; the bundle with a compact summary and full tables, and an independent rerun of the last season (fresh reads, nearest-neighbour resampling) |
+| `snow-bundle.py` | `snow_cover_by_band` for a place: monthly snow-covered share of clear pixel-days per elevation band at NDSI 0.2 and 0.4, with the clear share, and an independent rerun of one month |
 | `validate-bundles.py` | Validates every document against STAC 1.1.0, its listed extensions and the Siterra extension, and every `file:checksum` |
 | `render-cells.py`, `render-ndvi.py`, `render-strata.py` | Render samples for the visual inspection check |
 
