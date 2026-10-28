@@ -103,12 +103,15 @@ export function toModelJsonSchema(schema: z.ZodType): JsonSchema {
   return json;
 }
 
-/** Task kinds the planner may propose; plan and validation tasks are created by host code. */
+/**
+ * Task kinds the planner may propose; plan and validation tasks are created by host code.
+ * hypothesis_comparison stays a Task kind for stored records but is no longer planned.
+ */
 export const plannableTaskKinds = [
   "source_research",
   "observation_analysis",
   "livelihood_governance",
-  "hypothesis_comparison",
+  "explanation_branches",
   "intervention_feasibility",
   "brief_package",
 ] as const;

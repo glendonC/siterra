@@ -191,8 +191,15 @@ export function validatePlanProposal(
   }
 
   const keys = new Set<string>();
+  let branchTasks = 0;
   plan.tasks.forEach((task, i) => {
     const at = `$.tasks[${i}]`;
+    // One branch task holds every configured explanation, so the cap of 5 branches is per command.
+    if (task.kind === "explanation_branches" && (branchTasks += 1) > 1) {
+      issues.push(
+        issue("limit", `${at}.kind`, "A plan holds at most one explanation_branches task."),
+      );
+    }
     if (!KEY_PATTERN.test(task.key)) {
       issues.push(
         issue("schema", `${at}.key`, "Key must be lowercase letters, digits and underscores."),

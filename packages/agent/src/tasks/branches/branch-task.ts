@@ -68,6 +68,9 @@ function digest(...parts: string[]): string {
 export const branchIdFor = (taskId: string, explanationId: string): string =>
   `branch_${digest(taskId, explanationId)}`;
 
+export const hypothesisIdFor = (taskId: string, explanationId: string): string =>
+  `hyp_${digest(taskId, explanationId)}`;
+
 interface Drafted {
   explanation: ExplanationDefinition;
   branchId: string;
@@ -389,7 +392,7 @@ export async function runExplanationBranchesTask(
     scores: d.predictions.map((p) => scorePrediction(p, record)),
   }));
   const merged = mergeBranches(scored);
-  const hypothesisIds = drafted.map((d) => `hyp_${digest(task.id, d.explanation.id)}`);
+  const hypothesisIds = drafted.map((d) => hypothesisIdFor(task.id, d.explanation.id));
   const bundleVersions = (scores: readonly PredictionScore[]): EntityVersion[] => {
     const read = new Set(scores.flatMap((s) => s.dataBundleIds));
     const known = catalog.pairs.flatMap((p) => [p.a.bundle, p.b.bundle]);

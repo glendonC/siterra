@@ -144,6 +144,7 @@ export { BRIEF_PROMPT_VERSION, runBriefPackageTask } from "./tasks/brief/brief-t
 export {
   BRANCH_PROMPT_VERSION,
   branchIdFor,
+  hypothesisIdFor,
   runExplanationBranchesTask,
 } from "./tasks/branches/branch-task.ts";
 export { buildCatalog, catalogView, coveredSeasons } from "./tasks/branches/catalog.ts";
