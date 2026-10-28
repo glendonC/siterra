@@ -80,7 +80,6 @@ const BriefLine = z.strictObject({
     "verified_outcome",
   ]),
   evidenceIds: z.array(z.string()),
-  measurementIds: z.array(z.string()),
 });
 
 export const ProposePackage = z.strictObject({
@@ -383,16 +382,6 @@ export function validatePackageProposal(
           `${line.claimKind} matches none of the cited evidence (${[...new Set(cited.map((e) => e.claimKind))].join(", ")}).`,
         );
       }
-      const own = new Set(cited.flatMap((e) => e.measurementIds));
-      line.measurementIds.forEach((m, k) => {
-        if (!own.has(m)) {
-          add(
-            "unknown_reference",
-            `${at}.measurementIds[${k}]`,
-            `${m} is not a measurement of the cited evidence.`,
-          );
-        }
-      });
     });
   }
   if (brief.nextMeasurements.length === 0) {

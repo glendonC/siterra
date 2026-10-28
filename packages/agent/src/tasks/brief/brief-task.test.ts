@@ -104,16 +104,10 @@ const REST: InterventionRecord = {
   },
 };
 
-const line = (
-  text: string,
-  claimKind: string,
-  evidenceIds: string[],
-  measurementIds: string[] = [],
-) => ({
+const line = (text: string, claimKind: string, evidenceIds: string[]) => ({
   text,
   claimKind,
   evidenceIds,
-  measurementIds,
 });
 
 function plan(extra: Record<string, unknown> = {}) {
@@ -166,12 +160,9 @@ function proposal(
     },
     brief: {
       known: [
-        line(
-          "The catchment NDVI area median was 0.1439 in April 2022.",
-          "observation",
-          ["ev_test_obs"],
-          ["meas_test_2022-04"],
-        ),
+        line("The catchment NDVI area median was 0.1439 in April 2022.", "observation", [
+          "ev_test_obs",
+        ]),
       ],
       uncertain: [
         line("Whether lower spring rainfall explains the April values.", "hypothesis", [
@@ -272,17 +263,17 @@ describe("propose_package validation", () => {
         proposal({
           brief: {
             known: [
-              line(
-                "The NDVI area median was 0.1439 in April 2022.",
-                "observation",
-                ["ev_test_obs"],
-                ["meas_test_none"],
-              ),
+              {
+                ...line("The NDVI area median was 0.1439 in April 2022.", "observation", [
+                  "ev_test_obs",
+                ]),
+                measurementIds: ["meas_test_2022-04"],
+              },
             ],
           },
         }),
       ),
-    ).toEqual(["unknown_reference $.brief.known[0].measurementIds[0]"]);
+    ).toEqual(["schema $.brief.known[0]"]);
   });
 
   it("refuses outreach, directives, people counts and unknown references", () => {
@@ -571,6 +562,18 @@ describe("brief_package task", () => {
     expect(commit.events[0]?.message).toBe(
       "Brief package prepared a draft plan and brief; reviews requested.",
     );
+  });
+
+  it("code fills each brief line's measurement IDs from its cited evidence; the model writes none (live run of 28 Oct 2026)", async () => {
+    expect(JSON.stringify(packageOutputSchema())).not.toContain("measurementIds");
+    const store = testStore();
+    store.evidence.push(OBS, NEED);
+    const { loop, commit } = await run(store, proposal());
+    expect(loop.status).toBe("accepted");
+    expect(commit.upserts.find((r) => r.recordType === "Brief")).toMatchObject({
+      known: [{ evidenceIds: ["ev_test_obs"], measurementIds: ["meas_test_2022-04"] }],
+      nextMeasurements: [{ evidenceIds: ["ev_test_need"], measurementIds: [] }],
+    });
   });
 
   it("blocks ready for review and requests nothing while a critical dependency is missing", async () => {

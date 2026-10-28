@@ -31,7 +31,7 @@ import type { AcceptedPackage, BriefLine, ProposePackage } from "./proposal.ts";
 // model text, and grant nothing. "Ready for review" is blocked while a critical dependency is
 // missing. Nothing is sent, scheduled or authorized; externalExecutionEnabled is false.
 
-export const BRIEF_PROMPT_VERSION = "brief_package@1";
+export const BRIEF_PROMPT_VERSION = "brief_package@2";
 
 const INSTRUCTIONS = `You prepare a draft field-validation plan and a decision brief for one environmental case for Siterra, using only the candidate responses, hypotheses and accepted evidence listed. Return them as the JSON object the response format defines.
 
@@ -348,7 +348,9 @@ export async function runBriefPackageTask(
       text: l.text.trim(),
       claimKind: l.claimKind,
       evidenceIds: [...new Set(l.evidenceIds)],
-      measurementIds: [...new Set(l.measurementIds)],
+      measurementIds: [
+        ...new Set(l.evidenceIds.flatMap((id) => evidence.get(id)?.measurementIds ?? [])),
+      ],
     });
     const sections = Object.fromEntries(
       BRIEF_SECTIONS.map((s) => [s, value.brief[s].map(line)]),
