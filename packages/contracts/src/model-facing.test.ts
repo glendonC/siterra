@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
-import { Evidence } from "./case.ts";
+import { Evidence, Hypothesis } from "./case.ts";
 import {
   ProposeEvidence,
+  ProposeHypotheses,
   ProposePlan,
   strictSubsetIssues,
   toModelJsonSchema,
@@ -79,5 +80,30 @@ describe("contract: propose_evidence", () => {
   it("offers exactly the claim kinds of the Evidence record", () => {
     const item = ProposeEvidence.shape.items.element;
     expect(item.shape.claimKind.options).toEqual(Evidence.shape.claimKind.options);
+  });
+});
+
+describe("contract: propose_hypotheses", () => {
+  it("exports inside the strict subset with every item property required", () => {
+    const json = toModelJsonSchema(ProposeHypotheses);
+    const items = ((json["properties"] as Record<string, Record<string, unknown>>)["items"] ?? {})[
+      "items"
+    ] as Record<string, unknown>;
+    expect(items["required"]).toEqual([
+      "hypothesisId",
+      "statement",
+      "status",
+      "supportingEvidenceIds",
+      "contradictingEvidenceIds",
+      "missingEvidence",
+      "assessment",
+    ]);
+  });
+
+  it("offers every Hypothesis status except stale, which only the host sets", () => {
+    const item = ProposeHypotheses.shape.items.element;
+    expect(item.shape.status.options).toEqual(
+      Hypothesis.shape.status.options.filter((s) => s !== "stale"),
+    );
   });
 });

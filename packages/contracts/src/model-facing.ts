@@ -161,3 +161,32 @@ export const ProposeEvidence = z.strictObject({
   ),
 });
 export type ProposeEvidence = z.infer<typeof ProposeEvidence>;
+
+/** The statuses a hypothesis task may propose; stale is set by host staleness propagation only. */
+export const proposableHypothesisStatuses = [
+  "untested",
+  "consistent",
+  "inconsistent",
+  "inconclusive",
+] as const;
+
+/**
+ * propose_hypotheses: the hypothesis task's structured final output (data-contracts.md, tool
+ * argument contracts and hypothesis status). hypothesisId is null for a new hypothesis and names an
+ * existing one for a revision. Host validation adds the limits and the status rules (an
+ * inconclusive item lists missing evidence; no probability or ranking language).
+ */
+export const ProposeHypotheses = z.strictObject({
+  items: z.array(
+    z.strictObject({
+      hypothesisId: z.string().nullable(),
+      statement: z.string(),
+      status: z.enum(proposableHypothesisStatuses),
+      supportingEvidenceIds: z.array(z.string()),
+      contradictingEvidenceIds: z.array(z.string()),
+      missingEvidence: z.array(z.string()),
+      assessment: z.string(),
+    }),
+  ),
+});
+export type ProposeHypotheses = z.infer<typeof ProposeHypotheses>;
