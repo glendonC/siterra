@@ -2,7 +2,7 @@
  "type": "Catalog",
  "stac_version": "1.1.0",
  "id": "siterra-bundles",
- "description": "Siterra observation bundles. Each child is one bundle (a STAC Collection). The NDVI, departure, coverage and aligned bundles are revision 13 (STAC version 13). The CHIRPS rainfall, season summary and terrain strata bundles carry no version field and are unchanged since the first commit.",
+ "description": "Siterra observation bundles. Each child is one bundle (a STAC Collection). The departure bundle is revision 14 (STAC version 14, Siterra STAC extension 1.1.0). The NDVI, coverage and aligned bundles are revision 13 (STAC version 13); the aligned bundle's link to the departure bundle is re-pinned to revision 14. The CHIRPS rainfall, season summary and terrain strata bundles carry no version field and are unchanged since the first commit.",
  "links": [
   {
    "rel": "root",
@@ -13,7 +13,7 @@
    "rel": "child",
    "href": "./bundle_aligned_antecedent_ait_bouguemez/collection.json",
    "type": "application/json",
-   "file:checksum": "1220554bdacc416173c37d933dad82b5823548de9b819b9a3c80e8805390f67b0e45"
+   "file:checksum": "12209dcdef2c5d8ecc09f620aeac31f8e6ceaf9df06e0048171ff1ab78d878bbfa62"
   },
   {
    "rel": "child",
@@ -31,7 +31,7 @@
    "rel": "child",
    "href": "./bundle_ndvi_departure_ait_bouguemez/collection.json",
    "type": "application/json",
-   "file:checksum": "12204d08efa4101b26210d0bf9ec28a5eafe207cdf2f79de6e03e649ac3b9b702889"
+   "file:checksum": "1220fe4be224a555dc005a8bce92cfe46cfd142707bc684f11361d3ef9d5e92f7a43"
   },
   {
    "rel": "child",

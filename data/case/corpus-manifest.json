@@ -33,16 +33,19 @@
       "message/title[*]",
       "message/abstract"
      ],
-     "url": "https://api.crossref.org/works/10.1002/pan3.70379"
+     "url": "https://api.crossref.org/works/10.1002/pan3.70379",
+     "language": "en"
     }
    ],
    "excerptPolicy": "text",
    "excerptPolicyReason": "CC BY 4.0",
+   "language": "en",
    "files": [
     {
      "name": "crossref-10.1002-pan3.70379.json",
      "role": "abstract_record",
      "kind": "json",
+     "language": "en",
      "url": "https://api.crossref.org/works/10.1002/pan3.70379",
      "final_url": "https://api.crossref.org/works/10.1002/pan3.70379",
      "http_status": 200,
@@ -55,7 +58,7 @@
      "stored_path": "data/raw/corpus/SCI-04/crossref-10.1002-pan3.70379.json",
      "provenance": "data/raw/corpus/SCI-04/crossref-10.1002-pan3.70379.json.provenance.json",
      "text_path": "data/interim/corpus/SCI-04/crossref-10.1002-pan3.70379.json.text.json",
-     "text_sha256": "604bf9a0a6637b82448a30bef918bbec352835d8fd6a7e15c99a0b8d283bc9f0",
+     "text_sha256": "a8df37cb133cfcce4a6aff07885b0765d0d9ef836b6a69275e0b612fa0e43bda",
      "sections": 2
     }
    ],
@@ -85,16 +88,19 @@
      "name": "gee-copernicus-s2-sr-harmonized.html",
      "role": "page_snapshot",
      "kind": "html",
-     "url": "https://developers.google.com/earth-engine/datasets/catalog/COPERNICUS_S2_SR_HARMONIZED"
+     "url": "https://developers.google.com/earth-engine/datasets/catalog/COPERNICUS_S2_SR_HARMONIZED",
+     "language": "en"
     }
    ],
    "excerptPolicy": "offsets",
    "excerptPolicyReason": "no licence stated for the page text",
+   "language": "en",
    "files": [
     {
      "name": "gee-copernicus-s2-sr-harmonized.html",
      "role": "page_snapshot",
      "kind": "html",
+     "language": "en",
      "url": "https://developers.google.com/earth-engine/datasets/catalog/COPERNICUS_S2_SR_HARMONIZED",
      "final_url": "https://developers.google.com/earth-engine/datasets/catalog/COPERNICUS_S2_SR_HARMONIZED",
      "http_status": 200,
@@ -107,7 +113,7 @@
      "stored_path": "data/raw/corpus/SCI-07/gee-copernicus-s2-sr-harmonized.html",
      "provenance": "data/raw/corpus/SCI-07/gee-copernicus-s2-sr-harmonized.html.provenance.json",
      "text_path": "data/interim/corpus/SCI-07/gee-copernicus-s2-sr-harmonized.html.text.json",
-     "text_sha256": "f4bc457dcc4eac9941c96ce708f6cfc4090902ebb4b2098420cde57b96e17bff",
+     "text_sha256": "536789271c762bb584e005caa23d545448d6d927e84da832c1caa205f2b90ff6",
      "sections": 12
     }
    ],
@@ -140,22 +146,26 @@
      "name": "README-CHIRPSv3.0.txt",
      "role": "documentation",
      "kind": "text",
-     "url": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/README-CHIRPSv3.0.txt"
+     "url": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/README-CHIRPSv3.0.txt",
+     "language": "en"
     },
     {
      "name": "chc-chirps3-overview.html",
      "role": "page_snapshot",
      "kind": "html",
-     "url": "https://www.chc.ucsb.edu/data/chirps3"
+     "url": "https://www.chc.ucsb.edu/data/chirps3",
+     "language": "en"
     }
    ],
    "excerptPolicy": "text",
    "excerptPolicyReason": "public-domain dedication and CC BY 4.0",
+   "language": "en",
    "files": [
     {
      "name": "README-CHIRPSv3.0.txt",
      "role": "documentation",
      "kind": "text",
+     "language": "en",
      "url": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/README-CHIRPSv3.0.txt",
      "final_url": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/README-CHIRPSv3.0.txt",
      "http_status": 200,
@@ -168,12 +178,13 @@
      "stored_path": "data/raw/corpus/SCI-09/README-CHIRPSv3.0.txt",
      "provenance": "data/raw/corpus/SCI-09/README-CHIRPSv3.0.txt.provenance.json",
      "text_path": "data/interim/corpus/SCI-09/README-CHIRPSv3.0.txt.text.json",
-     "text_sha256": "0b12f76eaaab4c260c6bbe9e7b16f89f69d5467b6de705a9e387d53df43e21a6"
+     "text_sha256": "7204c5aab0f0e3ffc3b4b8b8c39c1837ec69cca92b46232ecb1529b77fdd4141"
     },
     {
      "name": "chc-chirps3-overview.html",
      "role": "page_snapshot",
      "kind": "html",
+     "language": "en",
      "url": "https://www.chc.ucsb.edu/data/chirps3",
      "final_url": "https://www.chc.ucsb.edu/data/chirps3",
      "http_status": 200,
@@ -186,7 +197,7 @@
      "stored_path": "data/raw/corpus/SCI-09/chc-chirps3-overview.html",
      "provenance": "data/raw/corpus/SCI-09/chc-chirps3-overview.html.provenance.json",
      "text_path": "data/interim/corpus/SCI-09/chc-chirps3-overview.html.text.json",
-     "text_sha256": "0135dcb8f545897e08bfbf8cbdb95c7894e03da654e854a2f76c71b6de021d77",
+     "text_sha256": "0ac6250aec0b3afd08bb8a76a2713a1543295535c8b1d1789d76ca14356ddf6e",
      "sections": 8
     }
    ],
@@ -219,16 +230,19 @@
      "name": "gee-esa-worldcover-v200.html",
      "role": "page_snapshot",
      "kind": "html",
-     "url": "https://developers.google.com/earth-engine/datasets/catalog/ESA_WorldCover_v200"
+     "url": "https://developers.google.com/earth-engine/datasets/catalog/ESA_WorldCover_v200",
+     "language": "en"
     }
    ],
    "excerptPolicy": "text",
    "excerptPolicyReason": "CC BY 4.0",
+   "language": "en",
    "files": [
     {
      "name": "gee-esa-worldcover-v200.html",
      "role": "page_snapshot",
      "kind": "html",
+     "language": "en",
      "url": "https://developers.google.com/earth-engine/datasets/catalog/ESA_WorldCover_v200",
      "final_url": "https://developers.google.com/earth-engine/datasets/catalog/ESA_WorldCover_v200",
      "http_status": 200,
@@ -241,7 +255,7 @@
      "stored_path": "data/raw/corpus/SCI-13/gee-esa-worldcover-v200.html",
      "provenance": "data/raw/corpus/SCI-13/gee-esa-worldcover-v200.html.provenance.json",
      "text_path": "data/interim/corpus/SCI-13/gee-esa-worldcover-v200.html.text.json",
-     "text_sha256": "c278cb9e398a196de6deca0147eb9ae4a4cf72a593979673c813e3d6d1d58551",
+     "text_sha256": "92391ae9321827b054db09a672cf0dae38bed0874710f464061fe9bc62fe0993",
      "sections": 12
     }
    ],
@@ -276,16 +290,19 @@
      "sha256": "8f026e4aea3a64a674084d0cfab5e485af914632d3891cc6e7f69edac9a81087",
      "provenance": "data/raw/giews/PROVENANCE.md",
      "text_path": "data/interim/giews/pages.json",
-     "retrieved": "2026-10-27T10:17:04-04:00"
+     "retrieved": "2026-10-27T10:17:04-04:00",
+     "language": "en"
     }
    ],
    "excerptPolicy": "text",
    "excerptPolicyReason": "FAO terms allow short excerpts with attribution for research and non-commercial use",
+   "language": "en",
    "files": [
     {
      "name": "MAR_Archive.pdf",
      "role": "full_text",
      "kind": "pdf",
+     "language": "en",
      "url": "https://www.fao.org/giews/countrybrief/country/MAR/pdf_archive/MAR_Archive.pdf",
      "stored_path": "data/raw/giews/MAR_Archive.pdf",
      "provenance": "data/raw/giews/PROVENANCE.md",
@@ -330,16 +347,19 @@
       "metadata/dc.title[*]/value",
       "metadata/dc.description.abstract[*]/value"
      ],
-     "url": "https://researchspace.csir.co.za/server/api/core/items/9592c878-14fa-42cc-9b93-7468e935cee1"
+     "url": "https://researchspace.csir.co.za/server/api/core/items/9592c878-14fa-42cc-9b93-7468e935cee1",
+     "language": "en"
     }
    ],
    "excerptPolicy": "offsets",
    "excerptPolicyReason": "Elsevier copyright",
+   "language": "en",
    "files": [
     {
      "name": "csir-researchspace-item.json",
      "role": "abstract_record",
      "kind": "json",
+     "language": "en",
      "url": "https://researchspace.csir.co.za/server/api/core/items/9592c878-14fa-42cc-9b93-7468e935cee1",
      "final_url": "https://researchspace.csir.co.za/server/api/core/items/9592c878-14fa-42cc-9b93-7468e935cee1",
      "http_status": 200,
@@ -352,7 +372,7 @@
      "stored_path": "data/raw/corpus/SCI-29/csir-researchspace-item.json",
      "provenance": "data/raw/corpus/SCI-29/csir-researchspace-item.json.provenance.json",
      "text_path": "data/interim/corpus/SCI-29/csir-researchspace-item.json.text.json",
-     "text_sha256": "ad7f03f95d617bd437f99e17c63e5ec407a16077df1a958cdd7c1eea226670cb",
+     "text_sha256": "cc5bf274fa8fa36030c433f1605b84db97ddf6d360390231c69d2140e4bd7b3c",
      "sections": 2
     }
    ],
@@ -392,6 +412,7 @@
     "http_status": 200,
     "content_type": "text/html;charset=UTF-8"
    },
+   "language": "en",
    "accessedAt": "2026-10-27T23:45:45Z",
    "contentHash": null,
    "notes": [
@@ -429,16 +450,19 @@
       "message/title[*]",
       "message/abstract"
      ],
-     "url": "https://api.crossref.org/works/10.3390/rs5020664"
+     "url": "https://api.crossref.org/works/10.3390/rs5020664",
+     "language": "en"
     }
    ],
    "excerptPolicy": "text",
    "excerptPolicyReason": "CC BY 3.0",
+   "language": "en",
    "files": [
     {
      "name": "crossref-10.3390-rs5020664.json",
      "role": "abstract_record",
      "kind": "json",
+     "language": "en",
      "url": "https://api.crossref.org/works/10.3390/rs5020664",
      "final_url": "https://api.crossref.org/works/10.3390/rs5020664",
      "http_status": 200,
@@ -451,7 +475,7 @@
      "stored_path": "data/raw/corpus/SCI-31/crossref-10.3390-rs5020664.json",
      "provenance": "data/raw/corpus/SCI-31/crossref-10.3390-rs5020664.json.provenance.json",
      "text_path": "data/interim/corpus/SCI-31/crossref-10.3390-rs5020664.json.text.json",
-     "text_sha256": "4e265ec5a6f8156d0e9b17a38c0b395841d63cd7f07d566806a5087bd27fe6e6",
+     "text_sha256": "c2902139b1d8c0ab4bb38151a86dc97ecf23414302d52cc20cbb0c0736bcc0b8",
      "sections": 2
     }
    ],
@@ -481,16 +505,19 @@
      "name": "trendsearth-unccdreporting.html",
      "role": "page_snapshot",
      "kind": "html",
-     "url": "https://trendsearth.readthedocs.io/en/latest/for_users/features/unccdreporting.html"
+     "url": "https://trendsearth.readthedocs.io/en/latest/for_users/features/unccdreporting.html",
+     "language": "en"
     }
    ],
    "excerptPolicy": "offsets",
    "excerptPolicyReason": "no licence statement on the page",
+   "language": "en",
    "files": [
     {
      "name": "trendsearth-unccdreporting.html",
      "role": "page_snapshot",
      "kind": "html",
+     "language": "en",
      "url": "https://trendsearth.readthedocs.io/en/latest/for_users/features/unccdreporting.html",
      "final_url": "https://trendsearth.readthedocs.io/en/latest/for_users/features/unccdreporting.html",
      "http_status": 200,
@@ -503,7 +530,7 @@
      "stored_path": "data/raw/corpus/SCI-34/trendsearth-unccdreporting.html",
      "provenance": "data/raw/corpus/SCI-34/trendsearth-unccdreporting.html.provenance.json",
      "text_path": "data/interim/corpus/SCI-34/trendsearth-unccdreporting.html.text.json",
-     "text_sha256": "d8c769834ba88f135762ed50648e58cbf750bcf3aabeeb0cc40ec4294f8a9036",
+     "text_sha256": "34746e126912d9f4a0eb999c629bb70f11650eec845877f64ded3ffe7b1fdd2c",
      "sections": 26
     }
    ],
@@ -533,16 +560,19 @@
      "name": "A_RES_76_253-EN.pdf",
      "role": "full_text",
      "kind": "pdf",
-     "url": "https://digitallibrary.un.org/record/3965711/files/A_RES_76_253-EN.pdf"
+     "url": "https://digitallibrary.un.org/record/3965711/files/A_RES_76_253-EN.pdf",
+     "language": "en"
     }
    ],
    "excerptPolicy": "text",
    "excerptPolicyReason": "UN document: cite and quote briefly",
+   "language": "en",
    "files": [
     {
      "name": "A_RES_76_253-EN.pdf",
      "role": "full_text",
      "kind": "pdf",
+     "language": "en",
      "url": "https://digitallibrary.un.org/record/3965711/files/A_RES_76_253-EN.pdf",
      "final_url": "https://digitallibrary.un.org/nanna/record/3965711/files/A_RES_76_253-EN.pdf?withWatermark=0&withMetadata=0&registerDownload=1&version=1",
      "http_status": 200,
@@ -555,7 +585,7 @@
      "stored_path": "data/raw/corpus/SCI-125/A_RES_76_253-EN.pdf",
      "provenance": "data/raw/corpus/SCI-125/A_RES_76_253-EN.pdf.provenance.json",
      "text_path": "data/interim/corpus/SCI-125/A_RES_76_253-EN.pdf.text.json",
-     "text_sha256": "720769ac04ce6dc7bd3ffd6e5c3d885586fc1860ca60cec649e215952599d901",
+     "text_sha256": "4ece3cb776fe678bc492834610f56abe5dbe2e7e644c064e86c8e27372fb04f5",
      "pages": 3
     }
    ],
@@ -588,16 +618,19 @@
      "role": "full_text",
      "kind": "pdf",
      "url": "https://digitallibrary.un.org/record/4058928/files/1413651-EN.pdf",
-     "expected_sha256": "6cade98da9b896527fd067705c2a375d09118c1f70374f00fefa907265b13909"
+     "expected_sha256": "6cade98da9b896527fd067705c2a375d09118c1f70374f00fefa907265b13909",
+     "language": "en"
     }
    ],
    "excerptPolicy": "offsets",
    "excerptPolicyReason": "UNCCD copyright: cite and paraphrase",
+   "language": "en",
    "files": [
     {
      "name": "1413651-EN.pdf",
      "role": "full_text",
      "kind": "pdf",
+     "language": "en",
      "url": "https://digitallibrary.un.org/record/4058928/files/1413651-EN.pdf",
      "final_url": "https://digitallibrary.un.org/nanna/record/4058928/files/1413651-EN.pdf?withWatermark=0&withMetadata=0&registerDownload=1&version=1",
      "http_status": 200,
@@ -610,7 +643,7 @@
      "stored_path": "data/raw/corpus/SCI-127/1413651-EN.pdf",
      "provenance": "data/raw/corpus/SCI-127/1413651-EN.pdf.provenance.json",
      "text_path": "data/interim/corpus/SCI-127/1413651-EN.pdf.text.json",
-     "text_sha256": "5fd0bce31cab9d92533899f2907fb75d7cd7bf4e5cb5db1eedf3e650c08a953a",
+     "text_sha256": "a238cb3c9b743c80d26b35fbbae66789c07f66d0215a8c16aef306ee65bb028d",
      "pages": 110
     }
    ],
@@ -642,16 +675,19 @@
      "name": "jstor-1764336.pdf",
      "role": "full_text",
      "kind": "pdf",
-     "url": "https://archive.org/download/jstor-1764336/1764336.pdf"
+     "url": "https://archive.org/download/jstor-1764336/1764336.pdf",
+     "language": "en"
     }
    ],
    "excerptPolicy": "text",
    "excerptPolicyReason": "public domain by age",
+   "language": "en",
    "files": [
     {
      "name": "jstor-1764336.pdf",
      "role": "full_text",
      "kind": "pdf",
+     "language": "en",
      "url": "https://archive.org/download/jstor-1764336/1764336.pdf",
      "final_url": "https://ia803205.us.archive.org/17/items/jstor-1764336/1764336.pdf",
      "http_status": 200,
@@ -664,7 +700,7 @@
      "stored_path": "data/raw/corpus/SCI-142/jstor-1764336.pdf",
      "provenance": "data/raw/corpus/SCI-142/jstor-1764336.pdf.provenance.json",
      "text_path": "data/interim/corpus/SCI-142/jstor-1764336.pdf.text.json",
-     "text_sha256": "080489bf9c59792807245629dd0ee87ecc3022efe387215a2007aca454f750c6",
+     "text_sha256": "abba673e60a61efdc40d811043fccd9fccd5553d8145ce931a81bdf23ac67de0",
      "pages": 6
     }
    ],
@@ -694,16 +730,21 @@
      "name": "aemet-explicacion-terciles.html",
      "role": "page_snapshot",
      "kind": "html",
-     "url": "https://www.aemet.es/en/serviciosclimaticos/prediccion_estacional/explicacion_terciles"
+     "url": "https://www.aemet.es/en/serviciosclimaticos/prediccion_estacional/explicacion_terciles",
+     "language": "es",
+     "languageNote": "Body text in Spanish; the site's navigation and headings around it are in English."
     }
    ],
    "excerptPolicy": "offsets",
    "excerptPolicyReason": "no licence stated for the page text",
+   "language": "es",
    "files": [
     {
      "name": "aemet-explicacion-terciles.html",
      "role": "page_snapshot",
      "kind": "html",
+     "language": "es",
+     "languageNote": "Body text in Spanish; the site's navigation and headings around it are in English.",
      "url": "https://www.aemet.es/en/serviciosclimaticos/prediccion_estacional/explicacion_terciles",
      "final_url": "https://www.aemet.es/en/serviciosclimaticos/prediccion_estacional/explicacion_terciles",
      "http_status": 200,
@@ -716,7 +757,7 @@
      "stored_path": "data/raw/corpus/SCI-144/aemet-explicacion-terciles.html",
      "provenance": "data/raw/corpus/SCI-144/aemet-explicacion-terciles.html.provenance.json",
      "text_path": "data/interim/corpus/SCI-144/aemet-explicacion-terciles.html.text.json",
-     "text_sha256": "f2e873adb6e2da59c2780263c183e2da746ec50d144115ed5b600b3ad7b39426",
+     "text_sha256": "9f7607fe941d5b08ed95ef78d03e8859a78e43fe0854bb873f4856b13f51a5eb",
      "sections": 2
     }
    ],
@@ -753,6 +794,7 @@
     "final_url": "https://www.journals.uchicago.edu/doi/10.1093/envhis/10.2.211",
     "http_status": 403
    },
+   "language": "en",
    "accessedAt": "2026-10-27T23:45:47Z",
    "contentHash": null,
    "notes": [
@@ -760,5 +802,6 @@
     "Excerpt policy none: bibliography-only"
    ]
   }
- ]
+ ],
+ "languageMethod": "Each tag was checked from the stored text (function-word counts per file and per PDF page), not taken from the publisher. SCI-30 and SCI-145 have no stored text: their tag is the language of their title and abstract record as listed in the register."
 }

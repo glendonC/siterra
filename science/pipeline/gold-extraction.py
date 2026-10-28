@@ -1,7 +1,9 @@
 """Build the extraction gold set (data/case/gold/extraction.jsonl) from a private draft, in the format of
 docs/reference/evaluation.md (section "Extraction gold set"), checking every excerpt by code.
 
-Usage: python -I gold-extraction.py <corpus-manifest.json> <repo_root> <draft.json> <rubric.md> <labeler> <out.jsonl>
+Usage: python -I gold-extraction.py <corpus-manifest.json> <repo_root> <draft.json> <rubric.md> <labeler> <out.jsonl> [--keep-created=<previous.jsonl>]
+--keep-created keeps the `created` time of every item whose ID and content are unchanged from the previous file, so a
+rebuild for a new corpus manifest does not re-date items that were not rewritten.
 The draft (kept outside Git because it holds excerpt text of every source) lists items: source_id, file (a file name
 from the manifest entry), page (PDF only), excerpt, statement, claim_kind, scope (the place and period the excerpt
 states, in words), translation, and optionally id, attribution (required by the source's terms) and note. IDs are
@@ -67,7 +69,9 @@ def sha_file(p):
     return hashlib.sha256(open(p, "rb").read()).hexdigest()
 
 
-man_path, root, draft_path, rubric_path, labeler, out = sys.argv[1:7]
+man_path, root, draft_path, rubric_path, labeler, out = [a for a in sys.argv[1:] if not a.startswith("--")][:6]
+_kc = next((a.split("=", 1)[1] for a in sys.argv if a.startswith("--keep-created=")), None)
+previous = {r["id"]: r for r in (json.loads(l) for l in open(_kc, encoding="utf-8")) if r.get("record") == "item"} if _kc else {}
 man = json.load(open(man_path, encoding="utf-8"))
 draft = json.load(open(draft_path, encoding="utf-8"))
 rubric_version = draft["rubric_version"]
@@ -120,6 +124,9 @@ for n, d in enumerate(draft["items"], 1):
         rec["attribution"] = d["attribution"]
     if d.get("note"):
         rec["note"] = d["note"]
+    old = previous.get(rid)
+    if old and {k: v for k, v in old.items() if k != "created"} == {k: v for k, v in rec.items() if k != "created"}:
+        rec["created"] = old["created"]
     items.append(rec)
 
 extractors.discard(None)

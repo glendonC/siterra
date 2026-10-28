@@ -1,12 +1,16 @@
 """Precompute the P0 recipes monthly_departure, aligned_antecedent and coverage_summary as derived bundles.
 
 Usage: python -I recipes-bundle.py <monthly_dir> <bundles_dir> <registry.json> <lockfile> [departure_grid_dir] [--only-aligned]
-       [--revision-note=<file>] [--stac-version=<n>] [--catalog-note=<file>]
+       [--revision-note=<file> ...] [--stac-version=<n>] [--catalog-note=<file>] [--extension=<version>] [--departure-only]
 --only-aligned rewrites only the aligned_antecedent bundle and its catalog link; the other bundles are read, not written.
 --revision-note=<file> adds the file's text as a last paragraph of each written Collection's description and as
-its last limitation. --stac-version=<n> sets each written Collection's STAC `version` to <n> and lists the version
+its last limitation; repeat it to add several notes in order. --stac-version=<n> sets each written Collection's STAC `version` to <n> and lists the version
 extension (v1.2.0). Without them a Collection carries neither.
 --catalog-note=<file> sets the catalog description to its fixed first sentence followed by the file's text.
+--extension=<1.0.0|1.1.0> is the Siterra STAC extension version the written documents declare (default 1.0.0); with
+1.1.0, a departure measurement excluded in an available period carries missing_reason (why, with the coverage).
+--departure-only rewrites only the departure bundle, re-pins the aligned bundle's derived_from checksum to it and
+updates the catalog; the aligned and coverage results are not recomputed.
 Inputs: the validated NDVI bundle and rainfall bundle in <bundles_dir>, the 10 m monthly composites in <monthly_dir>
 (median.tif, count.tif). Formulas: science/recipes/registry.json, version 1.0.0 of each recipe. Writes:
   bundle_ndvi_departure_ait_bouguemez   one Item per period: area median of per-pixel departures over common-valid
@@ -28,7 +32,6 @@ import sys
 import numpy as np
 import rasterio
 
-EXT = "https://siterra.invalid/schemas/stac/siterra/1.0.0/schema.json"
 NDVI_ID = "bundle_s2_ndvi_monthly_ait_bouguemez"
 RAIN_ID = "bundle_chirps_monthly_ait_bouguemez"
 YEARS = range(2019, 2026)
@@ -61,9 +64,9 @@ def load_items(bdir):
 def collection(bid, title, desc, variable, method, src_cols, assets, links_extra, checks, lock_out, bdir, now, items_links=()):
     base = src_cols[0]
     extra = {"version": STAC_VERSION} if STAC_VERSION else {}
-    if REVISION_NOTE:
-        desc = desc + "\n\n" + REVISION_NOTE
-        method["_limitations"] = list(method["_limitations"]) + [REVISION_NOTE]
+    for note in REVISION_NOTES:
+        desc = desc + "\n\n" + note
+        method["_limitations"] = list(method["_limitations"]) + [note]
     return {
         "type": "Collection", "stac_version": "1.1.0",
         "stac_extensions": ["https://stac-extensions.github.io/processing/v1.3.0/schema.json",
@@ -209,6 +212,11 @@ def main():
                              "aggregation": f"Area median over common-valid pixels of per-pixel NDVI minus the per-pixel {'2019 to 2025' if key == 'all_years' else '2019 to 2025 (this year left out)'} median for the same calendar month (at least {MIN_REF_YEARS} years)",
                              "status": "available" if avail else "excluded", "valid_pixel_count": q["valid"], "total_pixel_count": total_px,
                              "spread": {"kind": "spatial_iqr", "lower": round(q["q25"], 4), "upper": round(q["q75"], 4)} if avail else None})
+                # 1.1.0: a measurement excluded in a period that is itself available says why; otherwise the period's reason applies
+                if EXT_VERSION != "1.0.0" and not avail and src["properties"]["siterra:period_status"] == "available" and r["all_years"]["median"] is not None:
+                    ref_words = "at least {} other years".format(MIN_REF_YEARS) if key == "leave_one_year_out" else "at least {} years".format(MIN_REF_YEARS)
+                    meas[-1]["missing_reason"] = (f"Excluded: pixels with a value this year and a reference from {ref_words} cover "
+                                                  f"{q['frac'] * 100:.1f}% of the catchment, below the {MIN_AREA * 100:.0f}% coverage policy")
             avail = meas[0]["status"] == "available"
             frac = r["all_years"]["frac"]
             reason = None
@@ -254,6 +262,26 @@ def main():
                          "file:size": os.path.getsize(os.path.join(bdir, "analysis-geometry.geojson"))}}, [], checks, lock_out, bdir, now, links)
         dump(col, os.path.join(bdir, "collection.json"))
         dep_col_sha = "1220" + sha(os.path.join(bdir, "collection.json"))
+        if DEP_ONLY:
+            # re-pin the aligned bundle's derived_from link to the new departure collection; its results do not change
+            ap = os.path.join(bundles, "bundle_aligned_antecedent_ait_bouguemez", "collection.json")
+            acol = json.load(open(ap))
+            pins = [l for l in acol["links"] if l["rel"] == "derived_from" and l["href"] == f"../{bid}/collection.json"]
+            assert len(pins) == 1
+            pins[0]["file:checksum"] = dep_col_sha
+            dump(acol, ap)
+            cat_path = os.path.join(bundles, "catalog.json")
+            cat = json.load(open(cat_path))
+            for b in (bid, "bundle_aligned_antecedent_ait_bouguemez"):
+                cat["links"] = [l for l in cat["links"] if l.get("href") != f"./{b}/collection.json"]
+                cat["links"].append({"rel": "child", "href": f"./{b}/collection.json", "type": "application/json",
+                                     "file:checksum": "1220" + sha(os.path.join(bundles, b, "collection.json"))})
+            if CATALOG_NOTE:
+                cat["description"] = CATALOG_DESCRIPTION + " " + CATALOG_NOTE
+            cat["links"] = [l for l in cat["links"] if l["rel"] != "child"] + sorted((l for l in cat["links"] if l["rel"] == "child"), key=lambda l: l["href"])
+            dump(cat, cat_path)
+            print(json.dumps({"departure_available": n_av, "periods": len(dep_rows), "departure_collection_sha256": dep_col_sha[4:]}, indent=1))
+            return
     else:
         bid = "bundle_ndvi_departure_ait_bouguemez"
         bdir = os.path.join(bundles, bid)
@@ -381,8 +409,11 @@ def main():
                      {"departure_available": n_av, "periods": len(dep_rows), "aligned_counts": counts, "coverage": n_by}, indent=1))
 
 
-_rn = [a for a in sys.argv if a.startswith("--revision-note=")]
-REVISION_NOTE = open(_rn[0].split("=", 1)[1]).read().strip() if _rn else None
+REVISION_NOTES = [open(a.split("=", 1)[1]).read().strip() for a in sys.argv if a.startswith("--revision-note=")]
+EXT_VERSION = next((a.split("=", 1)[1] for a in sys.argv if a.startswith("--extension=")), "1.0.0")
+assert EXT_VERSION in ("1.0.0", "1.1.0"), EXT_VERSION
+EXT = f"https://siterra.invalid/schemas/stac/siterra/{EXT_VERSION}/schema.json"
+DEP_ONLY = "--departure-only" in sys.argv
 _sv = [a for a in sys.argv if a.startswith("--stac-version=")]
 STAC_VERSION = _sv[0].split("=", 1)[1] if _sv else None
 _cn = [a for a in sys.argv if a.startswith("--catalog-note=")]

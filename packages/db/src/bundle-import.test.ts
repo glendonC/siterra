@@ -83,16 +83,36 @@ describe("period bounds", () => {
 describe("SV-01 (import part): bundles import with verified checksums and values copied, never computed", () => {
   const result = importCatalog(context);
 
-  it("refuses only bundles with an unavailable measurement that states no reason (known SCIENCE gap)", () => {
-    // Known data gap reported to the lead on 27 Oct 2026: two excluded leave-one-year-out entries
-    // in available periods carry no reason. Update this list when the bundle is fixed.
-    expect(result.issues.map((i) => [i.bundleId, i.path.split("/").at(-1)])).toEqual([
-      ["bundle_ndvi_departure_ait_bouguemez", "ndvi_departure_area_median_leave_one_year_out"],
-      ["bundle_ndvi_departure_ait_bouguemez", "ndvi_departure_area_median_leave_one_year_out"],
-    ]);
+  it("imports every bundle of the catalog, the departure bundle with its stated missing reasons", () => {
+    expect(result.issues).toEqual([]);
     const catalog = readJson(join(catalogDir, "catalog.json"));
     const children = (catalog["links"] as Json[]).filter((l) => l["rel"] === "child");
-    expect(result.bundles).toHaveLength(children.length - 1);
+    expect(result.bundles).toHaveLength(children.length);
+    // Revision 14 states a reason on the two excluded leave-one-year-out entries of available
+    // periods (extension 1.1.0); the importer takes the entry's own reason.
+    const departure = result.bundles.find(
+      (b) => b.dataBundle.id === "bundle_ndvi_departure_ait_bouguemez",
+    );
+    for (const periodId of ["period_2019-03", "period_2020-03"]) {
+      const item = readJson(
+        join(catalogDir, "bundle_ndvi_departure_ait_bouguemez", periodId, `${periodId}.json`),
+      );
+      const props = item["properties"] as Json;
+      expect(props["siterra:period_status"]).toBe("available");
+      const entry = (props["siterra:measurements"] as Json[]).find(
+        (m) => m["metric"] === "ndvi_departure_area_median_leave_one_year_out",
+      );
+      expect(entry?.["status"]).toBe("excluded");
+      expect(typeof entry?.["missing_reason"]).toBe("string");
+      const measurement = departure?.measurements.find(
+        (m) =>
+          m.periodId === periodId && m.metric === "ndvi_departure_area_median_leave_one_year_out",
+      );
+      expect([measurement?.value, measurement?.missingReason]).toEqual([
+        null,
+        entry?.["missing_reason"],
+      ]);
+    }
   });
 
   it("copies every measurement value, unit and count from its bundle entry", () => {

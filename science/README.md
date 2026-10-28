@@ -29,7 +29,7 @@ python -I pipeline/derived-from-items.py data/bundles/bundle_s2_ndvi_monthly_ait
 python -I pipeline/s2_ndvi.py <inventory_dir>/kept.jsonl <geometry.geojson> data/interim/s2-monthly 2019-01 2025-12 8
 python -I pipeline/ndvi-bundle.py data/interim/s2-monthly <inventory_dir>/kept.jsonl <geometry.geojson> uv.lock data/bundles 2019-01 2025-12 --inspected=<note.txt> [--revision-note=<file>] [--stac-version=<n>]
 python -I pipeline/season-bundle.py data/bundles/bundle_chirps_monthly_ait_bouguemez data/raw/chirps-v3.0/monthly-global-cogs recipes/registry.json uv.lock data/bundles
-python -I pipeline/recipes-bundle.py data/interim/s2-monthly data/bundles recipes/registry.json uv.lock [data/interim/ndvi-departure] [--revision-note=<file>] [--stac-version=<n>] [--catalog-note=<file>]
+python -I pipeline/recipes-bundle.py data/interim/s2-monthly data/bundles recipes/registry.json uv.lock [data/interim/ndvi-departure] [--revision-note=<file> ...] [--stac-version=<n>] [--catalog-note=<file>] [--extension=<version>] [--departure-only]
 python -I pipeline/worldcover-grid.py <geometry.geojson> data/interim/worldcover
 python -I pipeline/dem-strata.py <Copernicus_DSM_COG_10_N31_00_W007_00_DEM.tif> <geometry.geojson> data/interim/worldcover/worldcover-2021.tif data/interim/strata
 python -I pipeline/strata-bundle.py data/interim/strata data/interim/worldcover <geometry.geojson> uv.lock data/bundles --inspected=<note.txt>
@@ -37,16 +37,18 @@ python -I pipeline/validate-bundles.py data/bundles schemas/stac/siterra-extensi
 python -I pipeline/corpus-fetch.py data/case/corpus-manifest.json . --check-closed --write=data/case/corpus-manifest.json
 ```
 
-`validate-bundles.py` fetches the STAC core and extension schemas over HTTPS on first use and caches each one in `<schema_cache_dir>` under the SHA-256 of its URL; the Siterra extension is read from the repository file. `--inspected` records that a person looked at rendered samples (`render-cells.py`, `render-ndvi.py`, `render-strata.py`); without it the visual inspection check fails and the bundle status is `failed`. Build a new revision outside `data/bundles/`, validate it there, and copy it in one step.
+`validate-bundles.py` fetches the STAC core and extension schemas over HTTPS on first use and caches each one in `<schema_cache_dir>` under the SHA-256 of its URL; both Siterra extension identifiers (1.0.0 and 1.1.0) are read from the repository file, which accepts either. `--inspected` records that a person looked at rendered samples (`render-cells.py`, `render-ndvi.py`, `render-strata.py`); without it the visual inspection check fails and the bundle status is `failed`. Build a new revision outside `data/bundles/`, validate it there, and copy it in one step.
 
 Options for a new revision of the NDVI and recipe bundles (`ndvi-bundle.py`, `recipes-bundle.py`):
 
-- `--revision-note=<file>` adds the file's text as the last paragraph of each Collection the script writes, in its description and as its last limitation.
+- `--revision-note=<file>` adds the file's text as the last paragraph of each Collection the script writes, in its description and as its last limitation; repeat it to add several notes in order.
 - `--stac-version=<n>` sets the STAC `version` field of each Collection the script writes to `<n>` and lists the [version extension](https://github.com/stac-extensions/version) v1.2.0.
 - `--catalog-note=<file>` (`recipes-bundle.py` only) sets the catalog description to its fixed first sentence followed by the file's text.
+- `--extension=1.1.0` (`recipes-bundle.py` only) declares version 1.1.0 of the [Siterra STAC extension](../schemas/stac/siterra-extension.schema.json) in the documents the script writes; a departure measurement excluded in a period that is itself available then carries `missing_reason`, with the coverage that excluded it. The default is 1.0.0.
+- `--departure-only` (`recipes-bundle.py` only) rewrites the departure bundle alone, re-pins the aligned bundle's `derived_from` checksum to it and updates the catalog; the aligned and coverage results are not recomputed.
 - The optional fifth argument of `recipes-bundle.py`, a folder such as `data/interim/ndvi-departure`, receives per-pixel departure grids for both references, for inspection and display only; no bundle contains them.
 
-Without these options a Collection carries no `version` and no revision note. Revision 13 was built with both options on the NDVI, departure, coverage and aligned bundles; the rainfall, season and strata bundles have no `version` field and are unchanged since the first commit. Every script that writes the catalog keeps its child links sorted by bundle ID. `chirps-bundle.py` is the exception: it writes a new catalog that holds only its own child, so run it first, as in Steps; run on an existing `data/bundles/`, it drops the other children.
+Without these options a Collection carries no `version` and no revision note. Revision 13 was built with both options on the NDVI, departure, coverage and aligned bundles. Revision 14 rebuilt the departure bundle alone with `--departure-only --extension=1.1.0`, both revision notes and `--stac-version=14`; the rainfall, season and strata bundles have no `version` field and are unchanged since the first commit. Every script that writes the catalog keeps its child links sorted by bundle ID. `chirps-bundle.py` is the exception: it writes a new catalog that holds only its own child, so run it first, as in Steps; run on an existing `data/bundles/`, it drops the other children.
 
 ## Scripts
 

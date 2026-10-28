@@ -17,7 +17,8 @@ Sources whose `access` is "bibliography_only" are never fetched; with --check-cl
 requested once (nothing stored) and the result kept as `accessCheck`. On --write every entry also gets the Source
 fields of schemas/case.schema.json the loader needs: `accessedAt` (the latest retrieval of a stored file, else the
 access check), `contentHash` ("sha256:" and the first stored file's SHA-256, or null) and `notes` (the access note
-and the excerpt policy).
+and the excerpt policy). `language` (a BCP 47 tag) is set per source in the manifest and copied to each file from its
+fetch entry, with `languageNote` where a file mixes languages.
 """
 import datetime
 import hashlib
@@ -187,6 +188,12 @@ def extract(sid, entry, path, out_dir, enc="utf-8"):
     return tp, doc
 
 
+def lang(e):
+    """The file's language fields from its fetch entry: a BCP 47 tag checked from the stored text, and a note where
+    the file mixes languages."""
+    return {k: e[k] for k in ("language", "languageNote") if e.get(k)}
+
+
 def check(url):
     """Request a closed source once to record whether it is reachable; nothing is stored."""
     req = urllib.request.Request(url, headers={"User-Agent": UA, "Accept": "*/*"})
@@ -237,7 +244,7 @@ def main():
                         raise ValueError(f"stored file sha256 {got} differs from the manifest")
                     meta = {"url": e["url"], "stored_path": e["stored_path"], "provenance": e.get("provenance")}
                     tp = os.path.join(root, e["text_path"])
-                    files.append({"name": e["name"], "role": e["role"], "kind": e["kind"], **meta, "retrieved": e.get("retrieved"), "size": os.path.getsize(path),
+                    files.append({"name": e["name"], "role": e["role"], "kind": e["kind"], **lang(e), **meta, "retrieved": e.get("retrieved"), "size": os.path.getsize(path),
                                   "sha256": got, "text_path": e["text_path"], "text_sha256": sha(tp)})
                     report.append((sid, e["name"], "stored file checked"))
                     continue
@@ -254,7 +261,7 @@ def main():
                     report.append((sid, e["name"], f"NOTE: sha256 {meta['sha256']} differs from the register's {e['expected_sha256']}"))
                 tp, doc = extract(sid, e, path, os.path.join(root, "data", "interim", "corpus", sid), charset(meta["content_type"]))
                 count = {"pages": len(doc["pages"])} if "pages" in doc else ({"sections": len(doc["sections"])} if "sections" in doc else {})
-                files.append({"name": e["name"], "role": e["role"], "kind": e["kind"], "url": meta["url"], "final_url": meta["final_url"],
+                files.append({"name": e["name"], "role": e["role"], "kind": e["kind"], **lang(e), "url": meta["url"], "final_url": meta["final_url"],
                               "http_status": meta["http_status"], "etag": meta["etag"], "last_modified": meta["last_modified"],
                               "content_type": meta["content_type"], "retrieved": meta["retrieved"], "size": meta["size"],
                               "sha256": meta["sha256"], "stored_path": rel(path), "provenance": rel(pv),

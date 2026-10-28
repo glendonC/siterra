@@ -4,14 +4,14 @@
  "stac_extensions": [
   "https://stac-extensions.github.io/processing/v1.3.0/schema.json",
   "https://stac-extensions.github.io/file/v2.1.0/schema.json",
-  "https://siterra.invalid/schemas/stac/siterra/1.0.0/schema.json",
+  "https://siterra.invalid/schemas/stac/siterra/1.1.0/schema.json",
   "https://stac-extensions.github.io/version/v1.2.0/schema.json"
  ],
  "id": "bundle_ndvi_departure_ait_bouguemez",
  "title": "NDVI departure from the same month, 2019 to 2025 (monthly_departure 1.0.0)",
- "description": "Precomputed result of recipe monthly_departure 1.0.0 on bundle_s2_ndvi_monthly_ait_bouguemez: 58 of 84 periods have a departure. The reference is a short period (2019 to 2025), not a climate normal. A departure describes how this month differs from other years here; it does not say why. The spatial IQR is variability across pixels, not a confidence interval. In winter months the accepted pixels favour the valley floor and south-facing slopes, because snow and shade remove the others; the area value then describes those pixels, not the whole catchment.\n\nRevision 13 (2026-10-27). Among duplicates of a tile and date, an item with no clear pixels over the catchment is now skipped when a twin has some. That clause was added to the duplicate rule after data was first read; the rule fixed before any data was read kept the newest processing baseline only. Revision 12, the first committed, has no version field; it documented the clause but kept the newest item, so it kept an item with 0 clear pixels over the catchment on seven tile-dates: 29RQQ 2019-04-17 (twin had 285 clear pixels), 2019-06-21 (702,669), 2020-11-12 (84), 2021-06-07 (8), 2021-11-19 (8), 2021-12-22 (8), and 29SQR 2020-10-23 (16). In five cases the twin is an older baseline (02.14, 03.00, 03.01), so its clear pixels come from an older scene classification. This revision recomputes 2019-04, 2019-06, 2020-10, 2020-11, 2021-06, 2021-11 and 2021-12 and everything derived from them; no NDVI or departure area median moved at four decimals.",
+ "description": "Precomputed result of recipe monthly_departure 1.0.0 on bundle_s2_ndvi_monthly_ait_bouguemez: 58 of 84 periods have a departure. The reference is a short period (2019 to 2025), not a climate normal. A departure describes how this month differs from other years here; it does not say why. The spatial IQR is variability across pixels, not a confidence interval. In winter months the accepted pixels favour the valley floor and south-facing slopes, because snow and shade remove the others; the area value then describes those pixels, not the whole catchment.\n\nRevision 13 (2026-10-27). Among duplicates of a tile and date, an item with no clear pixels over the catchment is now skipped when a twin has some. That clause was added to the duplicate rule after data was first read; the rule fixed before any data was read kept the newest processing baseline only. Revision 12, the first committed, has no version field; it documented the clause but kept the newest item, so it kept an item with 0 clear pixels over the catchment on seven tile-dates: 29RQQ 2019-04-17 (twin had 285 clear pixels), 2019-06-21 (702,669), 2020-11-12 (84), 2021-06-07 (8), 2021-11-19 (8), 2021-12-22 (8), and 29SQR 2020-10-23 (16). In five cases the twin is an older baseline (02.14, 03.00, 03.01), so its clear pixels come from an older scene classification. This revision recomputes 2019-04, 2019-06, 2020-10, 2020-11, 2021-06, 2021-11 and 2021-12 and everything derived from them; no NDVI or departure area median moved at four decimals.\n\nRevision 14 (2026-10-27). The leave-one-year-out measurements of 2019-03 and 2020-03, which revision 13 excluded without saying why, now carry a missing_reason (Siterra STAC extension 1.1.0): pixels with a value that year and a reference from at least 4 other years cover too little of the catchment, below the 70% coverage policy. No value, status or count changed. Only this bundle is revised; the aligned bundle's link to it is re-pinned, and its results are unchanged.",
  "license": "other",
- "version": "13",
+ "version": "14",
  "providers": [
   {
    "name": "Copernicus Sentinel-2 (European Union, ESA)",
@@ -89,7 +89,7 @@
    "file:size": 119623
   }
  },
- "created": "2026-10-27T22:21:51Z",
+ "created": "2026-10-28T00:00:57Z",
  "siterra:status": "validated",
  "siterra:variable": "ndvi_departure",
  "siterra:dataset": {
@@ -143,7 +143,8 @@
   "The spatial IQR is variability across pixels, not a confidence interval.",
   "In winter months the accepted pixels favour the valley floor and south-facing slopes, because snow and shade remove the others; the area value then describes those pixels, not the whole catchment.",
   "In winter months the accepted pixels favour the valley floor and south-facing slopes, because snow and shade remove the others; the area value then describes those pixels, not the whole catchment.",
-  "Revision 13 (2026-10-27). Among duplicates of a tile and date, an item with no clear pixels over the catchment is now skipped when a twin has some. That clause was added to the duplicate rule after data was first read; the rule fixed before any data was read kept the newest processing baseline only. Revision 12, the first committed, has no version field; it documented the clause but kept the newest item, so it kept an item with 0 clear pixels over the catchment on seven tile-dates: 29RQQ 2019-04-17 (twin had 285 clear pixels), 2019-06-21 (702,669), 2020-11-12 (84), 2021-06-07 (8), 2021-11-19 (8), 2021-12-22 (8), and 29SQR 2020-10-23 (16). In five cases the twin is an older baseline (02.14, 03.00, 03.01), so its clear pixels come from an older scene classification. This revision recomputes 2019-04, 2019-06, 2020-10, 2020-11, 2021-06, 2021-11 and 2021-12 and everything derived from them; no NDVI or departure area median moved at four decimals."
+  "Revision 13 (2026-10-27). Among duplicates of a tile and date, an item with no clear pixels over the catchment is now skipped when a twin has some. That clause was added to the duplicate rule after data was first read; the rule fixed before any data was read kept the newest processing baseline only. Revision 12, the first committed, has no version field; it documented the clause but kept the newest item, so it kept an item with 0 clear pixels over the catchment on seven tile-dates: 29RQQ 2019-04-17 (twin had 285 clear pixels), 2019-06-21 (702,669), 2020-11-12 (84), 2021-06-07 (8), 2021-11-19 (8), 2021-12-22 (8), and 29SQR 2020-10-23 (16). In five cases the twin is an older baseline (02.14, 03.00, 03.01), so its clear pixels come from an older scene classification. This revision recomputes 2019-04, 2019-06, 2020-10, 2020-11, 2021-06, 2021-11 and 2021-12 and everything derived from them; no NDVI or departure area median moved at four decimals.",
+  "Revision 14 (2026-10-27). The leave-one-year-out measurements of 2019-03 and 2020-03, which revision 13 excluded without saying why, now carry a missing_reason (Siterra STAC extension 1.1.0): pixels with a value that year and a reference from at least 4 other years cover too little of the catchment, below the 70% coverage policy. No value, status or count changed. Only this bundle is revised; the aligned bundle's link to it is re-pinned, and its results are unchanged."
  ],
  "siterra:checks": [
   {
@@ -187,505 +188,505 @@
    "rel": "item",
    "href": "./period_2019-01/period_2019-01.json",
    "type": "application/geo+json",
-   "file:checksum": "12209c35a0fdaf9d804974b7aa0df89507a2310c7e7e1b86ff5f9d35b4ff835e5768"
+   "file:checksum": "12202719270af40f879a769111558d1bfd510ab36618a20b3a09adb47b06065a8ec7"
   },
   {
    "rel": "item",
    "href": "./period_2019-02/period_2019-02.json",
    "type": "application/geo+json",
-   "file:checksum": "1220cafd4c8ab08523022388077b419061b8458bfbfd45df0940b8f4354f38ba8e77"
+   "file:checksum": "12201502ab7f8cce24e6199f08ebf81db149b764fecc2000b36a2b90683235d24e3c"
   },
   {
    "rel": "item",
    "href": "./period_2019-03/period_2019-03.json",
    "type": "application/geo+json",
-   "file:checksum": "1220d4ad0b042c350529bd7bea5b345350bcd991a73546a63fa18a1ac9048f112534"
+   "file:checksum": "1220c35951dc83586cd20a7129fa77dc6af4532b84afcd26923352ea7a3c31c35eb2"
   },
   {
    "rel": "item",
    "href": "./period_2019-04/period_2019-04.json",
    "type": "application/geo+json",
-   "file:checksum": "12206c07ff0d1c7b773885b6adcee5ec8345b8b3c8965e8d019b2b93a4e6bb610454"
+   "file:checksum": "1220181d9b8c96320b0ea762b94ba25f4e6f45dc85bfd01fedc876b02d8154a4b0a8"
   },
   {
    "rel": "item",
    "href": "./period_2019-05/period_2019-05.json",
    "type": "application/geo+json",
-   "file:checksum": "12204dcc21fdccab3611e73e8dbe578d19ba29fa8280bbb2cbae576f865513c44aa2"
+   "file:checksum": "12200f345dccb600e69fd0a17b364d929fb3a9986737f251566ab612f457b364ba42"
   },
   {
    "rel": "item",
    "href": "./period_2019-06/period_2019-06.json",
    "type": "application/geo+json",
-   "file:checksum": "12201850b190b3bbf6d9d1ad9d4b5e2e9cf8e72857810e3138b7496f6ad52c8491ff"
+   "file:checksum": "1220ee295a04b69721cbfd4d83b4352788f648c3adcd380ef562eb12996bf78b9b65"
   },
   {
    "rel": "item",
    "href": "./period_2019-07/period_2019-07.json",
    "type": "application/geo+json",
-   "file:checksum": "122075a634d1a22ba6fc6c3e82ff675c628b62de546fd5fff89f9bcabf7a9a77d288"
+   "file:checksum": "1220053d7d741dcab6f9fcb320c14bf2142adc9b1f0db1472d2bf509c5d24755772f"
   },
   {
    "rel": "item",
    "href": "./period_2019-08/period_2019-08.json",
    "type": "application/geo+json",
-   "file:checksum": "1220e73ad581d041fd5fc84b32dfc2e0986c6aed2f911d47aee2a78187f5232dcd78"
+   "file:checksum": "122095d8fb116e66898f51b43f3e01f7657260a066310a27afaa0df2a3313cfcbe04"
   },
   {
    "rel": "item",
    "href": "./period_2019-09/period_2019-09.json",
    "type": "application/geo+json",
-   "file:checksum": "12204baa408f94c32c99f7462f23a6e5e8fb9d73f735568287fb4b487f3a046edeee"
+   "file:checksum": "1220254c88c451745d9358e414e08ff543c9185ae5be4e64836844cb3798ee4fa400"
   },
   {
    "rel": "item",
    "href": "./period_2019-10/period_2019-10.json",
    "type": "application/geo+json",
-   "file:checksum": "12206d8a00c2a5bb61d01bdae4d4bf2bbcf447a183c4d809db20f9257c0e3b135ba1"
+   "file:checksum": "1220a35041f2ebea977f3b5e6411134cd6535537f7db1646e4111c75eb85e5dbea65"
   },
   {
    "rel": "item",
    "href": "./period_2019-11/period_2019-11.json",
    "type": "application/geo+json",
-   "file:checksum": "122072eb98e7dc49cfa83cbe87d116b501fea72710392c9b9c1f227088ce151e2395"
+   "file:checksum": "12204d41aa70333088354fedb0b1be3ee0a6182255e64297f718f6b34fcd47eec138"
   },
   {
    "rel": "item",
    "href": "./period_2019-12/period_2019-12.json",
    "type": "application/geo+json",
-   "file:checksum": "122098d4c622c00d49a3160602f6b7d9478d9f3778380e589ddeafe4cc7e9e289912"
+   "file:checksum": "12209893d095bb15df13561212b0e06adb91bb3028409a825b7988efdafb4e07d599"
   },
   {
    "rel": "item",
    "href": "./period_2020-01/period_2020-01.json",
    "type": "application/geo+json",
-   "file:checksum": "1220c4437ad031c8a53214e232e8f9cb484c3426587b4e39e1dccbad324f2f5693c2"
+   "file:checksum": "1220752fcfc7db689689ca45d33fb0930ba7750fbfd291d824697c74ad9c33eb2d87"
   },
   {
    "rel": "item",
    "href": "./period_2020-02/period_2020-02.json",
    "type": "application/geo+json",
-   "file:checksum": "1220bda32c00ab69f4cc3b393816b400697cfbe5d30429b76c1526b1ae14b10b0d44"
+   "file:checksum": "12203dea6328d5e7eb01d99e5a188c5e8d49759c60adc6fb6889fe4ec5e462289674"
   },
   {
    "rel": "item",
    "href": "./period_2020-03/period_2020-03.json",
    "type": "application/geo+json",
-   "file:checksum": "1220c1a6c5669fff3adc9ff3cfffd84f2ff9c9a6ee145c2dcfeee409d524288e806a"
+   "file:checksum": "12201f17dcc9565090984cece2c50f6ecd5b67e2194c5dddfe6180bcd020ba26461a"
   },
   {
    "rel": "item",
    "href": "./period_2020-04/period_2020-04.json",
    "type": "application/geo+json",
-   "file:checksum": "12205038cde73e89fe9c5525ea53016bbe332e83af7a999c9b683c1e05941cff0d8d"
+   "file:checksum": "1220279bc5a75d9f34a0331fd0b41f6fb221ae1a36e71a8e4c899a4a4303b8efec81"
   },
   {
    "rel": "item",
    "href": "./period_2020-05/period_2020-05.json",
    "type": "application/geo+json",
-   "file:checksum": "1220c165adb4cdf12ba87d84186354af317e3294930e0e1c071cfd7a45b9471e55dd"
+   "file:checksum": "1220ffc4ce4bb9961eef3409088e4e89d21ecc1bd16db34e44df284c8afc585a6340"
   },
   {
    "rel": "item",
    "href": "./period_2020-06/period_2020-06.json",
    "type": "application/geo+json",
-   "file:checksum": "12207e99a416bccfaebbf217fd33ffaf2a2792eb43a60e91913fea58038dbb5fba41"
+   "file:checksum": "12206d59f0105f39a952d6365476bba353f02c0f917892c0096e5ea1616cb90f6d86"
   },
   {
    "rel": "item",
    "href": "./period_2020-07/period_2020-07.json",
    "type": "application/geo+json",
-   "file:checksum": "12207fcdbcc082cc1db16339c300f8e2c03763eb6c067d66424e910ba65cadfb3332"
+   "file:checksum": "1220073000d5605708f45dc03c1cb9b7d477b3a32b8aaca675177723e8e2d7f97641"
   },
   {
    "rel": "item",
    "href": "./period_2020-08/period_2020-08.json",
    "type": "application/geo+json",
-   "file:checksum": "122074d2ee9a11f8fe39359ecb6d879168335b85d292748230131a38610171a6d957"
+   "file:checksum": "12209fccb5165cc05709e1d5e61170331dc518218001d252ccc4777ebd1439865652"
   },
   {
    "rel": "item",
    "href": "./period_2020-09/period_2020-09.json",
    "type": "application/geo+json",
-   "file:checksum": "12208925f8c1910724955273ad316f840919687719776a0c7dffd8d5a0f6290e7799"
+   "file:checksum": "1220f84e4f5824a54c003564ddafde13b1462011a2d45ef22b9d10a0d233141888d0"
   },
   {
    "rel": "item",
    "href": "./period_2020-10/period_2020-10.json",
    "type": "application/geo+json",
-   "file:checksum": "1220d113897eca6344cda32473d7cba7c69e3b4f2862c1416aa8e7d19f2d854e6bbf"
+   "file:checksum": "12202946bdc74ccb1181a08ae1d95d69667616c330cbe1d73873ec40bfdaa58a6224"
   },
   {
    "rel": "item",
    "href": "./period_2020-11/period_2020-11.json",
    "type": "application/geo+json",
-   "file:checksum": "12209fe88a566b9784f2598191ea6afff1ca3856bb95308c49a8b5cce7617da98b77"
+   "file:checksum": "122089c7f19faf42d6ce34058a8b902c8989130ac5f6367777aadd59d6d09d19b180"
   },
   {
    "rel": "item",
    "href": "./period_2020-12/period_2020-12.json",
    "type": "application/geo+json",
-   "file:checksum": "1220893848439164e49aba0b5bbe3b5a7c59662c5b0b348fab45c85bff7d6c1987bd"
+   "file:checksum": "12203508b474f1d2142b90163a122aac3e288ba3cb82eeec639a1c8a9c6749548f38"
   },
   {
    "rel": "item",
    "href": "./period_2021-01/period_2021-01.json",
    "type": "application/geo+json",
-   "file:checksum": "1220e71c8e863496f9aa121fbc6ea97ef9ff641caaeb02088cffcacd58ad7c6daefc"
+   "file:checksum": "122046365f5e59d03afa6d655e6728ae953348b565b6f670bf6cd7315956fd891db3"
   },
   {
    "rel": "item",
    "href": "./period_2021-02/period_2021-02.json",
    "type": "application/geo+json",
-   "file:checksum": "1220aac12045d10078f3874317bdb192344c50bf31aec9de195f464a4c11f1a5a514"
+   "file:checksum": "12202e3ed47315c1bc43a0a424a5292ff7320c99b12fb0825ffd24435b21422bfebd"
   },
   {
    "rel": "item",
    "href": "./period_2021-03/period_2021-03.json",
    "type": "application/geo+json",
-   "file:checksum": "122014812292dc12e9d5c4f32ff18a703bd569220e3f72f330b80613d356dd877174"
+   "file:checksum": "1220aa367ccb67aa7115e777c24c1ab49debf2d1b53daeb990a365df309eb6bad11f"
   },
   {
    "rel": "item",
    "href": "./period_2021-04/period_2021-04.json",
    "type": "application/geo+json",
-   "file:checksum": "12201f22b3c9a62f8ab1339e00d62fdf16d6f6f833cb750e7444d16156898d436e07"
+   "file:checksum": "12207b8c3703c8cc5e4ee043027fdd345d858e378d42794d26312d438dae49d4da72"
   },
   {
    "rel": "item",
    "href": "./period_2021-05/period_2021-05.json",
    "type": "application/geo+json",
-   "file:checksum": "12203a2b0f8d3cbfe5c407e746b44f03b4b542a4afd41491047324089a3f86f43c34"
+   "file:checksum": "1220b74f5ae51de39e0322e3f2b612a546392e5a8c804606f4d70fea7efa1c9a5413"
   },
   {
    "rel": "item",
    "href": "./period_2021-06/period_2021-06.json",
    "type": "application/geo+json",
-   "file:checksum": "12204b9f8042952ce1dd7000eebf5d9530504af1fc92afe085d7c855a1d68cbdf2e8"
+   "file:checksum": "1220da669fba3063cafb27236aaf2e98942107de2db3518d887c7d077c79d46b9afd"
   },
   {
    "rel": "item",
    "href": "./period_2021-07/period_2021-07.json",
    "type": "application/geo+json",
-   "file:checksum": "1220a14517cee024c41e6b4a62c0a24f0d5a0eeb25ca11e546de2484f50517701e08"
+   "file:checksum": "1220d5747b6a4877d6fe3f66b68a8e2611df66689a46044fac0fe69063cc5a6fd956"
   },
   {
    "rel": "item",
    "href": "./period_2021-08/period_2021-08.json",
    "type": "application/geo+json",
-   "file:checksum": "12209b95eb86466b5095f064eeda1cff6857524e7aa5b550c34c32e8f37d7de4a317"
+   "file:checksum": "1220ec60d6b84a9450cbbb782286fcdc52a5f4bb1600b0eb487d78247ba79e2950c2"
   },
   {
    "rel": "item",
    "href": "./period_2021-09/period_2021-09.json",
    "type": "application/geo+json",
-   "file:checksum": "12207b01c4ed3981548be38d4227990d5ec0649b949795d725285bb52b86e4863476"
+   "file:checksum": "1220989104e2d2741ac3b1f5db1ad01524fb77c8b79924d1f66bc20b0977a95307ef"
   },
   {
    "rel": "item",
    "href": "./period_2021-10/period_2021-10.json",
    "type": "application/geo+json",
-   "file:checksum": "12202b998d4737313079a866a8dc70d7ce40aa91ee62a435a809c23c5f4a5ff84756"
+   "file:checksum": "122038394fa3575869533aae439b83f2af1002b7a3bae565ebeae2066b313adad17f"
   },
   {
    "rel": "item",
    "href": "./period_2021-11/period_2021-11.json",
    "type": "application/geo+json",
-   "file:checksum": "1220203d769119e65e8454789abdd189e1fe25908e943a13e5ed458e040f45ab5504"
+   "file:checksum": "1220dae503d80229529abb2c8316dbc40bb57e5dab65a2d9b1229ef4212e8899af41"
   },
   {
    "rel": "item",
    "href": "./period_2021-12/period_2021-12.json",
    "type": "application/geo+json",
-   "file:checksum": "122081e21ff8473a89d7a39b98966cc27a4f448b1d339cc0f900c7a9b0d7535220b2"
+   "file:checksum": "122008e33d8433550273f9d763e3223f98f82beb19d523e49282332363696579c61f"
   },
   {
    "rel": "item",
    "href": "./period_2022-01/period_2022-01.json",
    "type": "application/geo+json",
-   "file:checksum": "1220a7f761cee003330404dc4726ff873f37871ce2ce04e2eb51d312564c3cf854c7"
+   "file:checksum": "1220a43419e26a2dcd1824428bfc344e33cf8c42db758e3c7d3328b26481b39fa016"
   },
   {
    "rel": "item",
    "href": "./period_2022-02/period_2022-02.json",
    "type": "application/geo+json",
-   "file:checksum": "12208d7472860d5a32b8ed41d8fff5f3807dcbfc32d602875d356165e61a17f7f631"
+   "file:checksum": "1220cb6ce30cfed782f81ac5a7641aecf5620c653dbdf3f3c5147b63267daa6b9cb6"
   },
   {
    "rel": "item",
    "href": "./period_2022-03/period_2022-03.json",
    "type": "application/geo+json",
-   "file:checksum": "1220e073bffcc3b2836524bde130593234d55a3a3bd526d8e3aeb3272225bcd68cf2"
+   "file:checksum": "1220f4d3fabde81d19480b30a3bec0d7e807084d1b983b1de72bdbb68ace73afdb32"
   },
   {
    "rel": "item",
    "href": "./period_2022-04/period_2022-04.json",
    "type": "application/geo+json",
-   "file:checksum": "1220b09d50eea91f3a5697709b778dc5b93d3c025a2420cc619008a9a3c691dc9695"
+   "file:checksum": "12202222a249d563c7899818d3eb8c32445fbb396fc892a2c209ccc8a08aab1ded6d"
   },
   {
    "rel": "item",
    "href": "./period_2022-05/period_2022-05.json",
    "type": "application/geo+json",
-   "file:checksum": "122053642de97fd4816b9f20626f47daa54cf9ba79060d7395331e418c6196a72e37"
+   "file:checksum": "122010d26c7cf6bf773851254f3f7ef96b7d9deddb09798f13dd02fc31900e454b0f"
   },
   {
    "rel": "item",
    "href": "./period_2022-06/period_2022-06.json",
    "type": "application/geo+json",
-   "file:checksum": "12208b8efc5436ab1c9469a911f1b77261e39c54177d28ce87aefa678ec5c0284275"
+   "file:checksum": "12203bee2ef9be81ff5dfef09940d75b0956e69c3cae2ca1bcab4ca67118af9f9e0b"
   },
   {
    "rel": "item",
    "href": "./period_2022-07/period_2022-07.json",
    "type": "application/geo+json",
-   "file:checksum": "12204389c99af0b1ec7350816a97e8e10c97221636d58cfeebb778216a7587c2d055"
+   "file:checksum": "122086a811e8a43183c9ecd67fcacffdd6fe37f5819284c6bdeb99ad086ea7bd9fa8"
   },
   {
    "rel": "item",
    "href": "./period_2022-08/period_2022-08.json",
    "type": "application/geo+json",
-   "file:checksum": "1220f0f2ff311a444e861d46106c2c60fe1adee2e801d45036ac6756e5cb6b355ef5"
+   "file:checksum": "1220d2ed267fbb3d95971347c60a334375ae006e23dab7495f4fa4eeff98f807af69"
   },
   {
    "rel": "item",
    "href": "./period_2022-09/period_2022-09.json",
    "type": "application/geo+json",
-   "file:checksum": "1220879e0c584a5dc0086b358e37b4e97c3e3fa5d3577394b462c75b62720ce72a76"
+   "file:checksum": "12204749387fad2537626bfb331eab39c1dc09dd8bca5a8c166a7596104bcc63bf7f"
   },
   {
    "rel": "item",
    "href": "./period_2022-10/period_2022-10.json",
    "type": "application/geo+json",
-   "file:checksum": "1220c927536636b7a203ef50e84390369add7814cb191407f04f087c835e807d4958"
+   "file:checksum": "1220efbd00871b27211a4eb5ee0d50e3e4d43c5f12b63ec3b6753bed5e4e3b2564e3"
   },
   {
    "rel": "item",
    "href": "./period_2022-11/period_2022-11.json",
    "type": "application/geo+json",
-   "file:checksum": "1220c7a651a5611d0c87ccb894c0867e7b565da01ac3bbe1fc41d9bd7bee7f777847"
+   "file:checksum": "12204eaef0f5decaaece7fa453d523055013ded8a336f648aaf6aeffdf04830b5705"
   },
   {
    "rel": "item",
    "href": "./period_2022-12/period_2022-12.json",
    "type": "application/geo+json",
-   "file:checksum": "1220578260f2bb4a91634907ae26e886b8c13d6f308e57a358a049337e6d74496dc5"
+   "file:checksum": "12204cb538532c42305377bfe9e18feabb1639b89f85a90edffc540fa9ac61b3a80d"
   },
   {
    "rel": "item",
    "href": "./period_2023-01/period_2023-01.json",
    "type": "application/geo+json",
-   "file:checksum": "1220bc52ea20565ba9cb8aa1fbec78812b99acf8fd261962d95a404aaa6ffc83d57f"
+   "file:checksum": "122046c5dc54d9749d867794776f3ceab919ca8fc355470db7fec9bdf7db8b6a74da"
   },
   {
    "rel": "item",
    "href": "./period_2023-02/period_2023-02.json",
    "type": "application/geo+json",
-   "file:checksum": "1220acc909715253b80a857d0a8b1177460484b40491ee6cfa45e166d3da4b3cffcd"
+   "file:checksum": "1220d18e681bff6a4217fd2f3280209cabbb0698c121bd743855ac5742839f21664e"
   },
   {
    "rel": "item",
    "href": "./period_2023-03/period_2023-03.json",
    "type": "application/geo+json",
-   "file:checksum": "12201fac52cc6404381a962411874fabe1860e32b2a0f91498e1d5b695c0276fe4ae"
+   "file:checksum": "1220c17ecded516a17886eeceea1fd2530b4dc15e3266e10a6b47836277ff8dff404"
   },
   {
    "rel": "item",
    "href": "./period_2023-04/period_2023-04.json",
    "type": "application/geo+json",
-   "file:checksum": "12207a28b09a7e5306b03f0fc7928b350f2b6a9ebf2c5a6cf9b4bab3d277a530f23d"
+   "file:checksum": "1220e0f06b31cda98734c4e610bc7a5147b5cd0eb2e04db56e615178bc8f4bd7db0f"
   },
   {
    "rel": "item",
    "href": "./period_2023-05/period_2023-05.json",
    "type": "application/geo+json",
-   "file:checksum": "1220ed635b173f3d6419092ca148343c1c61a8f81d7dd613a104ca56f44ab0cb8341"
+   "file:checksum": "12202fdca2f5415e202075a1bda4c56e28aee7e33cb17a53bebaba58abe039e740a8"
   },
   {
    "rel": "item",
    "href": "./period_2023-06/period_2023-06.json",
    "type": "application/geo+json",
-   "file:checksum": "1220abc783854a0c3a98ca7ad31cc75a11e702b65c8d3c0ebb7333e7c64559c9cb8d"
+   "file:checksum": "12200b63c7d7479f2f7c85c5399c286f72bbee8ebe7f62f5f08206efe5e419c904f0"
   },
   {
    "rel": "item",
    "href": "./period_2023-07/period_2023-07.json",
    "type": "application/geo+json",
-   "file:checksum": "1220e7f6c7d773012284bac528bfad5f9f5793916668134598949d1f4ca22323622b"
+   "file:checksum": "12203206e7fe04e0b4f47bccb7f357985b7860af9ffe710ccbb86334ff6803896a1d"
   },
   {
    "rel": "item",
    "href": "./period_2023-08/period_2023-08.json",
    "type": "application/geo+json",
-   "file:checksum": "1220dcd0547a5a44f7143936c39012fd3bb522379c18243d9c22cb0f89bd1a5b7d67"
+   "file:checksum": "122026e58afe9708c06f06e2cd6889e62c3a2f697252c6ed9bd636b37edb470f4ac7"
   },
   {
    "rel": "item",
    "href": "./period_2023-09/period_2023-09.json",
    "type": "application/geo+json",
-   "file:checksum": "1220ac996b116eda86235ac8fac4e4efc4c757a828ba4ee562e39861983e5253f979"
+   "file:checksum": "12200fa7b3ca158b4a43bcf8ba770775306bce3e9b879ba950240326cdef9bed8057"
   },
   {
    "rel": "item",
    "href": "./period_2023-10/period_2023-10.json",
    "type": "application/geo+json",
-   "file:checksum": "122007d8e5863544e61c13e2602e662db024bb5ef567d130780d623c2b421dabee35"
+   "file:checksum": "12208b5c1a4f4270dfee325ab73d74eb66e4b041a7264d4c11328a987644d5c54912"
   },
   {
    "rel": "item",
    "href": "./period_2023-11/period_2023-11.json",
    "type": "application/geo+json",
-   "file:checksum": "122032c4fa2467dcc6d84f7af5b5eef0e66a2aedd68fa3b6e9814db129887183707c"
+   "file:checksum": "1220be4885440b4e5eec453cfe330c2481746f37a6e7b5be923686e668e3fe17794f"
   },
   {
    "rel": "item",
    "href": "./period_2023-12/period_2023-12.json",
    "type": "application/geo+json",
-   "file:checksum": "1220f502e8cb34a17f619445f1800a903555ea002df481ef354df4226e70ddb65306"
+   "file:checksum": "1220e98b9541b560d20cfceb7a8105cf860cff12dbbbbbf8ddad7a2d312e576e8c57"
   },
   {
    "rel": "item",
    "href": "./period_2024-01/period_2024-01.json",
    "type": "application/geo+json",
-   "file:checksum": "1220d434d821106832383f61cfedaba025d4e973a886ce7c1b48768abdc3d10ecc6e"
+   "file:checksum": "12201e6b3188963fd5dd59c717426e54e218ab601c8eec26c0a6c206e49bcc3cdbaa"
   },
   {
    "rel": "item",
    "href": "./period_2024-02/period_2024-02.json",
    "type": "application/geo+json",
-   "file:checksum": "12209d790962a454774f060661000762b3625d66934a31169174fe8c488a619bd004"
+   "file:checksum": "1220e79c83e08b6bd720ad215394176e79486fdddeaa4b40611c3dd4f0508e1047d6"
   },
   {
    "rel": "item",
    "href": "./period_2024-03/period_2024-03.json",
    "type": "application/geo+json",
-   "file:checksum": "122014fa5a84256a1510c2a43ac6615ccfe176b2df682ff2d27165c24e16084a264c"
+   "file:checksum": "122005972fc88c24f0c3e6b832a4d48b7b90c0f08e510db836e6c8cca70e42ebc616"
   },
   {
    "rel": "item",
    "href": "./period_2024-04/period_2024-04.json",
    "type": "application/geo+json",
-   "file:checksum": "1220d06e8ea698df3ba2c983d11591d96641746310c5fb380fb8ccda56e507ebe94f"
+   "file:checksum": "1220ab596f487f99d2f8924069a68037ebf410100783534aef13da48cdeb6a780261"
   },
   {
    "rel": "item",
    "href": "./period_2024-05/period_2024-05.json",
    "type": "application/geo+json",
-   "file:checksum": "12201d1e28629b20265f23b3b3d8b2d60337dc52cab7a18ed8bb7449ca3a80dcee88"
+   "file:checksum": "12209d7e65a6a96f1b32228c798053925d2308a141158807c347b765297068a13032"
   },
   {
    "rel": "item",
    "href": "./period_2024-06/period_2024-06.json",
    "type": "application/geo+json",
-   "file:checksum": "1220bfad60a11943106fcd53e229e04b9c4c09568e985d61e0e15184455602150d51"
+   "file:checksum": "12206236d4f870456d8db8877e70eb6d8343f10ba992150f7a59e72e9f2fe5fd15a9"
   },
   {
    "rel": "item",
    "href": "./period_2024-07/period_2024-07.json",
    "type": "application/geo+json",
-   "file:checksum": "1220577d6318433b56ffa0eb0f3b193348bc0bc1bec39136b1b5ccd3f6fc50da4343"
+   "file:checksum": "1220d9e0aef11b1a46601eb8a614dd21ddc4da66358a4fddd221413913421a182029"
   },
   {
    "rel": "item",
    "href": "./period_2024-08/period_2024-08.json",
    "type": "application/geo+json",
-   "file:checksum": "1220557e75a308875818956fe08a3e66bfeb464df0839edf3811a277f87f6d08be0e"
+   "file:checksum": "1220a98f2b2132129c3bce9f95236d5c0eeb96cff8309ab15b6f572082b4ac74c989"
   },
   {
    "rel": "item",
    "href": "./period_2024-09/period_2024-09.json",
    "type": "application/geo+json",
-   "file:checksum": "1220c837b81057b4c8f44f3f399f2763ec807853bea1be0ddc16188f314ad6e54878"
+   "file:checksum": "122009f308a3381cbbe4c06801c6ab85893990142c1ebff83d30e89d367e42834564"
   },
   {
    "rel": "item",
    "href": "./period_2024-10/period_2024-10.json",
    "type": "application/geo+json",
-   "file:checksum": "12207f9cced27865979747e96d024ea1001a6c926377feb84c08e80cad593ef04237"
+   "file:checksum": "12207bc22bdb01536dd2e3536721abc9a1996575f44ad1415847bf9e84b523b8cfba"
   },
   {
    "rel": "item",
    "href": "./period_2024-11/period_2024-11.json",
    "type": "application/geo+json",
-   "file:checksum": "1220112ead977d1827f610e5d33feef0df890c61efddfbc5d4e86867a5b944b46ae6"
+   "file:checksum": "12205aba08384450f94d863136575793ac7c8d628147884b87974e4765820512efc4"
   },
   {
    "rel": "item",
    "href": "./period_2024-12/period_2024-12.json",
    "type": "application/geo+json",
-   "file:checksum": "1220efccc69c395698b317e83274424276a2a2d8f6dfe0bed88231629e8425133014"
+   "file:checksum": "122024e6fe0c698fc0aff3e90d2ba13d24d5e052721bc55e69889fe224237f4486f0"
   },
   {
    "rel": "item",
    "href": "./period_2025-01/period_2025-01.json",
    "type": "application/geo+json",
-   "file:checksum": "122070b602e2285eb307c89d9e2a93b21afe73b3b9c9bee574ee08a23ce8f472881c"
+   "file:checksum": "1220b40d89cee3603e6136ffd55908b84066518fa5235b3b70aab9d9f15cca440377"
   },
   {
    "rel": "item",
    "href": "./period_2025-02/period_2025-02.json",
    "type": "application/geo+json",
-   "file:checksum": "12208485a32aeaa424590a2e55e513c5ee1b9010a5fbcac6b991bbb23d03e9871ce0"
+   "file:checksum": "12208d2b62ee23d3436f8ed4db73fdc597d00248f02be74baa6f496644d127423efe"
   },
   {
    "rel": "item",
    "href": "./period_2025-03/period_2025-03.json",
    "type": "application/geo+json",
-   "file:checksum": "1220bf6d52847e2c786496aa9a2e79800aabfb0d6d72cfc4105f6da6bfb6e2da383c"
+   "file:checksum": "1220693607a90bb1aa12e013365c12f825f70ad0e31c34582e7e18be522be34af8f4"
   },
   {
    "rel": "item",
    "href": "./period_2025-04/period_2025-04.json",
    "type": "application/geo+json",
-   "file:checksum": "1220324e598150044e358fcd5b6266af42d0862c133a98625b776180bbfb7c893c36"
+   "file:checksum": "122025fb70aa4f78fb2200f7ad6605d9e4bc5cd288b25b2f2f9b66bd00ff20f5161e"
   },
   {
    "rel": "item",
    "href": "./period_2025-05/period_2025-05.json",
    "type": "application/geo+json",
-   "file:checksum": "12207b272e44cd5405c76e9b08affe4788a8610642e3a8c4ec5d17fafdce52bf887b"
+   "file:checksum": "1220347b8ea693819feeb93a710c1bcfe142cdeb6556f169a5f5ed161e5531c9e7e8"
   },
   {
    "rel": "item",
    "href": "./period_2025-06/period_2025-06.json",
    "type": "application/geo+json",
-   "file:checksum": "1220d7c9a03d495c33f8bdf1637f399e117fc00c1961a30009baf2661e3e7402a018"
+   "file:checksum": "1220629724d6477244e67169c096538900bd3dd9b2f3419077ff80d12ca18c8c6c3e"
   },
   {
    "rel": "item",
    "href": "./period_2025-07/period_2025-07.json",
    "type": "application/geo+json",
-   "file:checksum": "12208eb3414452733c5666ad1841bd9557dd5e9cceeba9ad6116fe13bf7909ec80ab"
+   "file:checksum": "1220b0d134d073050b828dcff2d0b810e9e8859aef79cece22901f698fb22513df8d"
   },
   {
    "rel": "item",
    "href": "./period_2025-08/period_2025-08.json",
    "type": "application/geo+json",
-   "file:checksum": "12208ef9acaa38128396af60f09cc704747d1bf9344d6f1725e7b64d3dc9fe87fa0f"
+   "file:checksum": "122005da4a924c88a329f310203de17e3b7912de698ccdcb127746a6795efd3714ea"
   },
   {
    "rel": "item",
    "href": "./period_2025-09/period_2025-09.json",
    "type": "application/geo+json",
-   "file:checksum": "1220b81b410d124d68fb234eec8f11780a34406ebbe6c56513dd3d721ff12f6976e3"
+   "file:checksum": "12201f31425d1054aeb3deecdf458e35318b4b8b414d781c0185c6a7988261e0a0e3"
   },
   {
    "rel": "item",
    "href": "./period_2025-10/period_2025-10.json",
    "type": "application/geo+json",
-   "file:checksum": "12207ae117be31d2970321bde73ddf142a038bfd8388a410ee61e291f88fe38d81c9"
+   "file:checksum": "122000f8e9f848c6ca030d296699b8832ad4a2ab99e77b032cd41453a00a82bb0a31"
   },
   {
    "rel": "item",
    "href": "./period_2025-11/period_2025-11.json",
    "type": "application/geo+json",
-   "file:checksum": "1220a0d6baf7f5357989d306edb347408c7495a1c3c620d95a7844092d22947b82ac"
+   "file:checksum": "122019e42f7d4f442b4ce35ffdd83789cd9dbc56dfe650f5dc59b003c5f2a0fdf3fd"
   },
   {
    "rel": "item",
    "href": "./period_2025-12/period_2025-12.json",
    "type": "application/geo+json",
-   "file:checksum": "12206f44dea43f2e60b59784a4af486756dcc719aa56e35d27b65e4fd0c644f8acdc"
+   "file:checksum": "1220dff14d6381a4fc8a6722ebfd90fb7ee29febaf57788f9560fc2c4d4a3827885e"
   },
   {
    "rel": "derived_from",

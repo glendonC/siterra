@@ -43,6 +43,7 @@ Contracts and design tokens carry their own Semantic Versioning numbers, recorde
 - Demo plan rule 3 admits the validated event bundle as input, labeled "Precomputed by Muse Spark" with its build date and pass counts; its comparison with the rainfall record runs live.
 - Agent orchestration and data contracts: the event tools `read_event_record` and `compare_events` with strict arguments, the event record row planned for contracts 1.3, and a claim rule that model text restating a hypothesis carries its status word in the same sentence, with matching status-behavior fixtures in the evaluation harness.
 - Architecture constraints: the GATE-01 checks run as one script, at about USD 0.01 per run at list prices.
+- Case seed: the case copy (title, location, objective, description, unresolved question) from approved wording, and a language tag on every source and stored file, checked from the stored text.
 - Observation preprocessing: a known limitation found after the bundles were built (post hoc): the scene classification can mark cloud as clear. A scan of 128 of 2,074 items gives a lower bound of kept observations above reflectance 1.0; a rule to exclude them is proposed, not applied.
 - Case contracts 1.3.0: the four recipe and event tools in `Task.allowedTools`, `EventRecordRow` with the optional snapshot list `eventRecordRowRecords`; additive over 1.2.0, whose examples still validate. Data contracts: excerpt lengths in Unicode code points.
 - Evaluation: the extraction gold set format (`data/case/gold/extraction.jsonl`) with code point offsets into hashed stored text, one normalization shared with TR-04, model drafts unscored until a person signs them, and claim typing on the seven `Evidence.claimKind` values.
@@ -55,4 +56,5 @@ Contracts and design tokens carry their own Semantic Versioning numbers, recorde
 ### Fixed
 
 - Sentinel-2 duplicates: an item with no clear pixels over the catchment is now skipped when a twin of the same tile and date has some, as the preprocessing page already stated. Revision 13 of the NDVI, departure, coverage and aligned bundles (STAC `version` 13) changes seven tile-dates and moves no NDVI or departure value; the pipeline README documents the options that write a revision.
+- Departure bundle revision 14: the two leave-one-year-out measurements excluded in available periods (2019-03 and 2020-03) now state why, from the counts (pixels with a reference from at least 4 other years cover 63.7% of the catchment, below the 70% coverage policy); no value changed; the bundles use STAC extension 1.1.0.
 - Recipe registry: the plain-language formulas of `season_summary` and `aligned_antecedent` now state the registered tercile rule and the four antecedent windows; `all six months` stays as registered.

@@ -2,6 +2,15 @@
  "seedVersion": 1,
  "caseId": "case_aitbouguemez",
  "description": "Case seed for the Aït Bouguemez grazing case: the frozen analysis geometry, the validated bundle catalog and the corpus manifest. The seed loader maps these into the case record; this file asserts no measured result and no field visit.",
+ "case": {
+  "title": "Grazing and livelihoods in the Aït Bouguemez valley",
+  "location": "Central High Atlas, Morocco",
+  "objective": "Is grazing changing the shared pastures of the Aït Bouguemez valley?",
+  "description": "Reported: concern about grazing pressure on shared pastures. Not established: whether vegetation has changed, or why.",
+  "unresolvedQuestions": [
+   "Whether vegetation has changed, or why."
+  ]
+ },
  "geoSelection": {
   "id": "geo_ait_bouguemez_catchment",
   "revision": 1,
@@ -34,11 +43,11 @@
  },
  "bundles": {
   "catalog": "data/bundles/catalog.json",
-  "catalogSha256": "b1e613ac99e35bbb7990e9ea0b294d2aab3ef8c36423b18d3a47a255509004d9"
+  "catalogSha256": "03b59c77f0ac7c9577d569ad4ab960d1e7a9f34515ebfc1717e1d2e374fd4ad6"
  },
  "corpus": {
   "manifest": "data/case/corpus-manifest.json",
-  "manifestSha256": "16bf3c710b51d54f455ec97ff8d7acc6bbbb934e448f859464bb4a22e593527e"
+  "manifestSha256": "e6b47477bbefdb68dfe4324d2754f91eb574c41f9cd59be2a08a381dfa3a43de"
  },
  "recipes": {
   "registry": "science/recipes/registry.json",
