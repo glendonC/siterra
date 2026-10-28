@@ -37,7 +37,21 @@ export async function recordWorkerHeartbeat(
 }
 
 /**
- * Starts the heartbeat of a worker process: one write now, then one every workerHeartbeatMs. A failed
+ * Removes the heartbeat rows of workers not seen within workerStaleAfterSeconds (stopped or crashed
+ * processes); returns how many. A live worker that was only slow writes its row again on its next
+ * beat.
+ */
+export async function trimStaleHeartbeats(pool: Pool): Promise<number> {
+  const removed = await pool.query(
+    "delete from worker_heartbeats where last_seen_at < now() - make_interval(secs => $1::integer)",
+    [workerStaleAfterSeconds],
+  );
+  return removed.rowCount ?? 0;
+}
+
+/**
+ * Starts the heartbeat of a worker process: trims the rows of stopped workers, writes one beat now,
+ * then one every workerHeartbeatMs. A failed
  * write is reported to onError and retried on the next tick. Returns a function that stops it.
  */
 export async function startWorkerHeartbeat(
@@ -45,6 +59,7 @@ export async function startWorkerHeartbeat(
   onError: (error: unknown) => void = () => undefined,
 ): Promise<() => void> {
   const worker = { id: `worker_${randomBytes(8).toString("hex")}`, startedAt: new Date() };
+  await trimStaleHeartbeats(pool);
   await recordWorkerHeartbeat(pool, worker);
   const timer = setInterval(() => {
     recordWorkerHeartbeat(pool, worker).catch(onError);

@@ -2,7 +2,13 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createCase } from "./cases.ts";
 import { createPool, type Pool } from "./client.ts";
 import { submitCommand } from "./commands.ts";
-import { outboxBehindAfterSeconds, readHealth, startWorkerHeartbeat } from "./health.ts";
+import {
+  outboxBehindAfterSeconds,
+  readHealth,
+  recordWorkerHeartbeat,
+  startWorkerHeartbeat,
+  workerStaleAfterSeconds,
+} from "./health.ts";
 import { type TestDatabase, freshDatabase } from "./test-database.ts";
 import { exampleCase, exampleCommandRequest } from "./test-records.ts";
 
@@ -78,5 +84,27 @@ describe("deployment health: database, migrations, worker heartbeat and outbox b
       outbox: null,
     });
     await nowhere.end();
+  });
+});
+
+describe("stopped workers leave no heartbeat behind once another worker starts (b36)", () => {
+  it("removes rows older than the stale window on start and keeps recent ones", async () => {
+    await pool.query("delete from worker_heartbeats");
+    const started = new Date();
+    await recordWorkerHeartbeat(pool, { id: "worker_stopped", startedAt: started });
+    await recordWorkerHeartbeat(pool, { id: "worker_recent", startedAt: started });
+    await pool.query(
+      "update worker_heartbeats set last_seen_at = now() - make_interval(secs => $1::integer) where worker_id = 'worker_stopped'",
+      [workerStaleAfterSeconds + 1],
+    );
+    const stop = await startWorkerHeartbeat(pool);
+    stop();
+    const rows = await pool.query<{ worker_id: string }>(
+      "select worker_id from worker_heartbeats order by worker_id",
+    );
+    const ids = rows.rows.map((r) => r.worker_id);
+    expect(ids).not.toContain("worker_stopped");
+    expect(ids).toContain("worker_recent");
+    expect(ids).toHaveLength(2);
   });
 });
