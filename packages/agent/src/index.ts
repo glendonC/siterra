@@ -47,8 +47,11 @@ export type {
 export type {
   ClaimKind,
   DataBundleRecord,
+  EventRecordRowRecord,
   EvidenceRecord,
+  HypothesisRecord,
   MeasurementRecord,
+  RelationshipRecord,
 } from "./tasks/records.ts";
 export {
   readCaseTool,
@@ -114,3 +117,15 @@ export {
   readEvidenceTool,
   readRecipeResultTool,
 } from "./tools/analysis-tools.ts";
+export {
+  EVENT_TYPES,
+  SEASON_RECIPE,
+  compareEventsTool,
+  readEventRecordTool,
+  seasonFor,
+} from "./tools/event-tools.ts";
+export { STATUS_LABELS } from "./tasks/hypothesis/proposal.ts";
+export {
+  HYPOTHESIS_PROMPT_VERSION,
+  runHypothesisTask,
+} from "./tasks/hypothesis/hypothesis-task.ts";

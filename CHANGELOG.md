@@ -52,6 +52,7 @@ Contracts and design tokens carry their own Semantic Versioning numbers, recorde
 - Case assets on the application origin: `GET /api/case-assets/{bundleId}/{contentHash}/{path}` serves the files a validated bundle lists, hash-addressed by the bundle's content hash, only to a session whose cases hold that bundle, each file checked against its listed checksum, with byte ranges (206 and 416) and immutable caching.
 - A synthetic replay of one commission of the seed case in `apps/worker/fixtures/seed-commission.synthetic.replay.json` (origin "synthetic", zero usage, no model ran), for running the slice offline in concept mode; its two answers quote stored bundle values with their measurement IDs, and replay steps can match their request so concurrent tasks replay deterministically.
 - The hypothesis_comparison task: hypotheses with supporting, contradicting and missing evidence and a status word, relationships written by host code at exact revisions, no probabilities and no ranking of explanations; only the hypothesis statement may name a cause, and every number comes from the cited evidence.
+- Event record tools for the agent: `read_event_record` (accepted rows of a validated event bundle for the given periods, labelled "published context, not an observation") and `compare_events` (whether each row's rainfall direction agrees with the stored season_summary tercile of its November to April season, by IDs only, direction only); tested on a fixture marked synthetic, the real event bundle waits for GATE-01.
 
 ### Changed
 

@@ -2,6 +2,7 @@ import type {
   DataBundle,
   EntityVersion as ContractEntityVersion,
   Evidence,
+  EventRecordRow,
   Hypothesis,
   Measurement,
   Provenance as ContractProvenance,
@@ -27,6 +28,7 @@ export type MeasurementRecord = Measurement;
 export type ClaimKind = Evidence["claimKind"];
 export type EvidenceRecord = Evidence;
 export type HypothesisRecord = Hypothesis;
+export type EventRecordRowRecord = EventRecordRow;
 export type RelationshipRecord = Relationship;
 
 /**

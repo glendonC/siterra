@@ -97,6 +97,7 @@ export function workerDb(pool: Pool, now: () => Date = () => new Date()): Worker
           })),
           evidenceRecords: snapshot.records.evidenceRecords,
           taskRecords: snapshot.records.taskRecords,
+          eventRecordRowRecords: snapshot.records.eventRecordRowRecords,
         },
       };
       return view;

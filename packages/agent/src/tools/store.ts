@@ -1,6 +1,11 @@
 import type { Locator } from "@siterra/domain/validators";
 import { formatLocator } from "@siterra/domain/validators";
-import type { DataBundleRecord, EvidenceRecord, MeasurementRecord } from "../tasks/records.ts";
+import type {
+  DataBundleRecord,
+  EventRecordRowRecord,
+  EvidenceRecord,
+  MeasurementRecord,
+} from "../tasks/records.ts";
 
 // Read access the tools need, scoped to one authorized case. PLATFORM's packages/db implements it
 // over the case record; tests use the in-memory version below. Tools never write through it.
@@ -101,6 +106,12 @@ export interface CaseStore {
   listRecipes(caseId: string): Promise<RecipeEntry[]>;
   /** The stored result of a recipe bundle, or null when the bundle holds none. */
   readRecipeResult(caseId: string, bundleId: string): Promise<RecipeResult | null>;
+  /** Accepted rows of an event bundle revision. */
+  readEventRows(
+    caseId: string,
+    bundleId: string,
+    bundleRevision: number,
+  ): Promise<EventRecordRowRecord[]>;
 }
 
 export class MemoryCaseStore implements CaseStore {
@@ -113,6 +124,22 @@ export class MemoryCaseStore implements CaseStore {
   readonly evidence: EvidenceRecord[] = [];
   readonly recipes: RecipeEntry[] = [];
   readonly recipeResults: (RecipeResult & { caseId: string })[] = [];
+  readonly eventRows: EventRecordRowRecord[] = [];
+
+  readEventRows(
+    caseId: string,
+    bundleId: string,
+    bundleRevision: number,
+  ): Promise<EventRecordRowRecord[]> {
+    return Promise.resolve(
+      this.eventRows.filter(
+        (r) =>
+          r.caseId === caseId &&
+          r.dataBundleId === bundleId &&
+          r.dataBundleRevision === bundleRevision,
+      ),
+    );
+  }
 
   readEvidence(caseId: string, ids: readonly string[]): Promise<EvidenceRecord[]> {
     const wanted = new Set(ids);
