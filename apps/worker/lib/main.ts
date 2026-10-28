@@ -8,7 +8,7 @@ import { dispatchOutboxToJobs, jobSchema } from "@siterra/db/job-queue";
 import { newId } from "@siterra/domain";
 import { PgBoss } from "pg-boss";
 
-import { corpusWarning, loadCorpus } from "./corpus.ts";
+import { corpusPaths, corpusWarning, loadCorpus } from "./corpus.ts";
 import { loadAnalyses } from "./recipes.ts";
 import { workerDb } from "./db.ts";
 import { handlePlanJob } from "./plan-job.ts";
@@ -65,8 +65,7 @@ export async function startWorker(
 ): Promise<() => Promise<void>> {
   const url = env["DATABASE_URL"];
   if (!url) throw new Error("DATABASE_URL is not set");
-  const repoRoot = env["SITERRA_REPO_ROOT"] ?? process.cwd();
-  const manifest = env["SITERRA_CORPUS_MANIFEST"] ?? "data/case/corpus-manifest.json";
+  const { repoRoot, manifest, textRoot } = corpusPaths(env, process.cwd());
   // On the live route without MODEL_API_KEY the key is read from the login Keychain into memory.
   const transport = chooseTransport(env, { readKeychain: (service) => readKeychainKey(service) });
   console.log(`worker: model route ${describeRoute(transport).label}`);
@@ -98,8 +97,13 @@ export async function startWorker(
         const revisions = new Map(
           (snapshot?.records.sourceRecords ?? []).map((s) => [s.id, s.revision]),
         );
-        const corpus = await loadCorpus(repoRoot, manifest, (id) => revisions.get(id) ?? null);
-        const unreadable = corpusWarning(corpus);
+        const corpus = await loadCorpus(
+          repoRoot,
+          manifest,
+          (id) => revisions.get(id) ?? null,
+          textRoot,
+        );
+        const unreadable = corpusWarning(corpus, textRoot);
         if (unreadable) console.error(unreadable);
         const analyses = await loadAnalyses(repoRoot, snapshot?.records.dataBundleRecords ?? []);
         if (analyses.missing.length > 0) {

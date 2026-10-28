@@ -1,10 +1,10 @@
-import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import { corpusWarning, loadCorpus, sectionPassages } from "./corpus.ts";
+import { corpusPaths, corpusWarning, loadCorpus, sectionPassages } from "./corpus.ts";
 import { snapshotStore } from "./snapshot-store.ts";
 
 // A synthetic corpus in a temporary folder: the manifest and text shapes follow data/case and
@@ -136,15 +136,47 @@ describe("corpus reader", () => {
   });
 
   it("names the files whose stored text could not be read, and is silent when all could", async () => {
+    const root = await corpusRoot();
+    const corpus = await loadCorpus(root, "manifest.json", (id) => revisions.get(id) ?? null);
+    expect(corpusWarning(corpus, root)).toBe(
+      `worker: stored corpus text not readable under ${root} for 1 file: src_test_missing d.pdf`,
+    );
+    expect(corpusWarning({ ...corpus, missing: [] }, root)).toBeNull();
+  });
+
+  it("takes the corpus text root from SITERRA_CORPUS_TEXT_ROOT, else the repository root", () => {
+    expect(corpusPaths({}, "/work")).toEqual({
+      repoRoot: "/work",
+      manifest: "data/case/corpus-manifest.json",
+      textRoot: "/work",
+    });
+    expect(
+      corpusPaths(
+        {
+          SITERRA_REPO_ROOT: "/repo",
+          SITERRA_CORPUS_MANIFEST: "m.json",
+          SITERRA_CORPUS_TEXT_ROOT: "/main-checkout",
+        },
+        "/work",
+      ),
+    ).toEqual({ repoRoot: "/repo", manifest: "m.json", textRoot: "/main-checkout" });
+  });
+
+  it("reads the stored text from its own root while the manifest stays in the repository", async () => {
+    const textRoot = await corpusRoot();
+    const repoRoot = await mkdtemp(join(tmpdir(), "siterra-repo-"));
+    await writeFile(
+      join(repoRoot, "manifest.json"),
+      await readFile(join(textRoot, "manifest.json"), "utf8"),
+    );
     const corpus = await loadCorpus(
-      await corpusRoot(),
+      repoRoot,
       "manifest.json",
       (id) => revisions.get(id) ?? null,
+      textRoot,
     );
-    expect(corpusWarning(corpus)).toBe(
-      "worker: stored corpus text not readable for 1 file: src_test_missing d.pdf",
-    );
-    expect(corpusWarning({ ...corpus, missing: [] })).toBeNull();
+    expect(corpus.passages.filter((p) => p.sourceId === "src_test_pdf")).toHaveLength(2);
+    expect(corpus.missing).toEqual([{ sourceId: "src_test_missing", file: "d.pdf" }]);
   });
 
   it("skips repeated and unlocated headings", () => {

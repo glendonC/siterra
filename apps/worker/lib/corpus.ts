@@ -76,6 +76,24 @@ export function sectionPassages(stored: SectionedText): { heading: string; text:
 }
 
 /**
+ * Where the worker reads the corpus: the manifest under the repository root, and the stored text
+ * its text_path entries name under SITERRA_CORPUS_TEXT_ROOT (default: the repository root). The
+ * stored text is ignored by Git, so a worktree without it names a checkout that holds it; the
+ * worker only reads there.
+ */
+export function corpusPaths(
+  env: NodeJS.ProcessEnv,
+  cwd: string,
+): { repoRoot: string; manifest: string; textRoot: string } {
+  const repoRoot = env["SITERRA_REPO_ROOT"] ?? cwd;
+  return {
+    repoRoot,
+    manifest: env["SITERRA_CORPUS_MANIFEST"] ?? "data/case/corpus-manifest.json",
+    textRoot: env["SITERRA_CORPUS_TEXT_ROOT"] ?? repoRoot,
+  };
+}
+
+/**
  * Loads the corpus for one case. `revisionOf` gives each Source record's current revision in the
  * case; a manifest source with no Source record in the case is left out.
  */
@@ -83,6 +101,7 @@ export async function loadCorpus(
   repoRoot: string,
   manifestPath: string,
   revisionOf: (sourceId: string) => number | null,
+  textRoot: string = repoRoot,
 ): Promise<Corpus> {
   const manifest = JSON.parse(await readFile(join(repoRoot, manifestPath), "utf8")) as Manifest;
   const sources: StoredSource[] = [];
@@ -104,7 +123,7 @@ export async function loadCorpus(
       if (entry.accessStatus !== "retrieved" || !file.text_path) continue;
       let raw: unknown;
       try {
-        raw = JSON.parse(await readFile(join(repoRoot, file.text_path), "utf8")) as unknown;
+        raw = JSON.parse(await readFile(join(textRoot, file.text_path), "utf8")) as unknown;
       } catch {
         missing.push({ sourceId: entry.sourceRecordId, file: file.name });
         continue;
@@ -162,9 +181,9 @@ export async function loadCorpus(
 }
 
 /** The log line for files whose stored text could not be read, or null when every file was. */
-export function corpusWarning(corpus: Corpus): string | null {
+export function corpusWarning(corpus: Corpus, textRoot: string): string | null {
   if (corpus.missing.length === 0) return null;
   const n = corpus.missing.length;
   const files = corpus.missing.map((m) => `${m.sourceId} ${m.file}`).join(", ");
-  return `worker: stored corpus text not readable for ${n} ${n === 1 ? "file" : "files"}: ${files}`;
+  return `worker: stored corpus text not readable under ${textRoot} for ${n} ${n === 1 ? "file" : "files"}: ${files}`;
 }
