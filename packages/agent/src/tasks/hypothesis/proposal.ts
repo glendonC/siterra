@@ -6,6 +6,7 @@ import type { YearSpan } from "@siterra/domain/validators";
 import type { JsonSchema } from "../../model/types.ts";
 import { maskReferencePeriods, referencePeriods, unprovenMessage } from "../evidence/proposal.ts";
 import type { EvidenceRecord, HypothesisRecord, MeasurementRecord } from "../records.ts";
+import { OUT_OF_SCOPE, scopeIssues } from "../scope.ts";
 import { issue, jsonPath } from "../validation.ts";
 import type { Checked, ValidationIssue } from "../validation.ts";
 
@@ -65,6 +66,15 @@ export const RANKING = new RegExp(
 );
 
 /**
+ * A hypothesis is never confirmed or proven: the statuses stop at "consistent with available
+ * evidence" (SA-06: without grazing measurements, grazing attribution cannot be labeled confirmed).
+ * Refused in the statement and the assessment; missing evidence may name a check that would confirm
+ * something, and the present tense "confirms" stays allowed for that reason.
+ */
+export const CONFIRMATION =
+  /\b(?:confirmed|confirmation|proven|proved|conclusively|definitively|beyond (?:doubt|question))\b/i;
+
+/**
  * Only the statement of a hypothesis is a candidate explanation and may name a cause; the
  * assessment and the missing evidence keep every prohibited-claims rule, the causal one included
  * (AUDIT a60).
@@ -120,6 +130,16 @@ export function validateHypothesisProposal(
       issues: [issue("limit", "$.items", `At most ${HYPOTHESIS_LIMITS.maxItems} hypotheses.`)],
     };
   }
+
+  // One out-of-scope item ends the whole proposal: no hypothesis is committed and none is repaired.
+  const outside = scopeIssues(
+    items.flatMap((item, i) => [
+      [`$.items[${i}].statement`, item.statement] as const,
+      [`$.items[${i}].assessment`, item.assessment] as const,
+      ...item.missingEvidence.map((m, k) => [`$.items[${i}].missingEvidence[${k}]`, m] as const),
+    ]),
+  );
+  if (outside.length > 0) return { ok: false, issues: outside, failureCode: OUT_OF_SCOPE };
 
   const accepted: AcceptedHypothesis[] = [];
   const issues: ValidationIssue[] = [];
@@ -251,6 +271,13 @@ export function validateHypothesisProposal(
           "prohibited_claim",
           path,
           `"${ranked[0]}" ranks explanations; several may fit at once.`,
+        );
+      const confirmed = path.startsWith("missingEvidence") ? null : CONFIRMATION.exec(text);
+      if (confirmed)
+        add(
+          "prohibited_claim",
+          path,
+          `"${confirmed[0]}" labels a hypothesis confirmed; the strongest status is "${STATUS_LABELS.consistent}".`,
         );
       for (const rule of path === "statement" ? STATEMENT_RULES : PROHIBITED_RULES) {
         const m = rule.pattern.exec(text);

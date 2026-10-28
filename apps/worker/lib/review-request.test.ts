@@ -79,7 +79,6 @@ const need = (text: string) => ({
   text,
   claimKind: "field_requirement",
   evidenceIds: ["ev_test_need"],
-  measurementIds: [],
 });
 const PACKAGE = {
   action: {

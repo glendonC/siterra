@@ -1,6 +1,7 @@
 import { ProposePlan, plannableTaskKinds, toModelJsonSchema } from "@siterra/contracts";
 
 import type { JsonSchema } from "../../model/types.ts";
+import { OUT_OF_SCOPE, scopeIssues } from "../scope.ts";
 import { issue, jsonPath } from "../validation.ts";
 import type { Checked, ValidationIssue } from "../validation.ts";
 
@@ -24,6 +25,9 @@ export const LIMITS = {
 } as const;
 
 const KEY_PATTERN = /^[a-z][a-z0-9_]{0,39}$/;
+
+/** The planner's answer for an out-of-scope command (plan@2); the plan then ends out of scope. */
+const OUT_OF_SCOPE_ANSWER = /^\s*out of scope\.?\s*$/i;
 
 /**
  * Task kinds that can commit field_requirement Evidence (their specs' claim kinds). A brief package
@@ -120,6 +124,28 @@ export function validatePlanProposal(
     };
   }
   const plan = parsed.data;
+  if (OUT_OF_SCOPE_ANSWER.test(plan.interpretation)) {
+    return {
+      ok: false,
+      issues: [
+        issue(
+          "prohibited_claim",
+          "$.interpretation",
+          "The planner found the command out of scope.",
+        ),
+      ],
+      failureCode: OUT_OF_SCOPE,
+    };
+  }
+  const outside = scopeIssues([
+    ["$.interpretation", plan.interpretation],
+    ...(plan.clarifyingQuestion === null
+      ? []
+      : [["$.clarifyingQuestion", plan.clarifyingQuestion] as const]),
+    ...plan.tasks.map((t, i) => [`$.tasks[${i}].question`, t.question] as const),
+  ]);
+  if (outside.length > 0) return { ok: false, issues: outside, failureCode: OUT_OF_SCOPE };
+
   const issues: ValidationIssue[] = [];
   const maxTasks = context.maxTasks ?? LIMITS.maxTasks;
 

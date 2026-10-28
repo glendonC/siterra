@@ -6,6 +6,7 @@ import type { ToolHandler, ToolName } from "../../tools/tool.ts";
 import { runTaskLoop } from "../loop.ts";
 import type { LoopResult } from "../loop.ts";
 import type { CommitDraft, EntityVersion, TaskRecord } from "../records.ts";
+import { OUT_OF_SCOPE, OUT_OF_SCOPE_MESSAGE, scopeIssues } from "../scope.ts";
 import { messages } from "../trace.ts";
 import type { TraceEventDraft, TraceSink } from "../trace.ts";
 import { PLAN_INSTRUCTIONS, PLAN_PROMPT_VERSION, planUserText } from "./prompt.ts";
@@ -113,6 +114,32 @@ export async function runPlanTask(
 ): Promise<PlanTaskResult> {
   const settings = deps.settings ?? DEFAULT_PLAN_MODEL;
   const knownEntities = new Map(input.snapshot.records.map((r) => [r.id, r.revision]));
+  const outside = scopeIssues([["$.command.text", input.snapshot.command.text]]);
+  if (outside.length > 0) {
+    // Refused before any model call: nothing is sent, spent or planned.
+    const validation = { outcome: "rejected" as const, issues: outside };
+    deps.trace.emit({
+      kind: "validation.completed",
+      taskId: input.planTask.id,
+      occurredAt: deps.now().toISOString(),
+      entityIds: [],
+      message: messages.validation(validation),
+      resultStatus: null,
+      usage: null,
+      tool: null,
+      validation,
+    });
+    const loop: LoopResult<PlanProposal> = {
+      status: "rejected",
+      value: null,
+      validation,
+      failureCode: OUT_OF_SCOPE,
+      calls: [],
+      repaired: false,
+      blockedInputs: [],
+    };
+    return { loop, commit: planCommit(input, loop, knownEntities, deps) };
+  }
   const loop = await runTaskLoop({
     adapter: deps.adapter,
     request: {
@@ -213,7 +240,9 @@ function planCommit(
           plan.id,
           at,
           [],
-          `Plan failed: ${planAfter.failureCode ?? "failed"}.`,
+          planAfter.failureCode === OUT_OF_SCOPE
+            ? OUT_OF_SCOPE_MESSAGE
+            : `Plan failed: ${planAfter.failureCode ?? "failed"}.`,
           "failed",
         ),
   );

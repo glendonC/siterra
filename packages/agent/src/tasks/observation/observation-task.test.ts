@@ -3,14 +3,21 @@ import { describe, expect, it } from "vitest";
 import { MetaAdapter } from "../../model/adapter.ts";
 import type { ReplayStep } from "../../model/replay.ts";
 import { strictSubsetIssues } from "../../model/strict-schema.ts";
-import { AT, CASE_ID, measurement, queuedTask, testStore } from "../../testing/case-fixture.ts";
+import {
+  AT,
+  CASE_ID,
+  bundle,
+  measurement,
+  queuedTask,
+  testStore,
+} from "../../testing/case-fixture.ts";
 import { answerStep, syntheticTransport, toolCallStep } from "../../testing/replay-steps.ts";
 import { caseToolRegistry } from "../../tools/registry.ts";
 import { MemoryCommitApi } from "../commit.ts";
 import { evidenceOutputSchema, validateEvidenceProposal } from "../evidence/proposal.ts";
 import type { EvidenceRecord, TaskRecord } from "../records.ts";
 import type { TraceEventDraft } from "../trace.ts";
-import { runObservationTask } from "./observation-task.ts";
+import { OBSERVATION_SPEC, runObservationTask } from "./observation-task.ts";
 
 // Synthetic replays over a synthetic case. The commit goes through MemoryCommitApi, the test
 // double of PLATFORM's commit transaction; the PostgreSQL path is not exercised here.
@@ -281,6 +288,52 @@ describe("observation task, synthetic replay, memory commit", () => {
     await api.commit(commit);
     expect(await api.commit(commit)).toMatchObject({ status: "duplicate", newCaseRevision: 4 });
     expect(api.caseRevision).toBe(4);
+  });
+
+  it("the first message gives each bundle's revision, periods and metrics, or its recipe result", async () => {
+    const store = testStore();
+    store.bundles.push(
+      bundle({ id: "bundle_test_coverage", label: "Test coverage", periodIds: [], revision: 1 }),
+    );
+    const text = await OBSERVATION_SPEC.firstMessage(
+      queuedTask({
+        inputVersions: [
+          { entityId: "bundle_test_ndvi", revision: 2 },
+          { entityId: "bundle_test_coverage", revision: 1 },
+          { entityId: "bundle_test_missing", revision: 1 },
+        ],
+      }),
+      store,
+    );
+    expect(text.split("\n")).toEqual([
+      "Question: What did the catchment NDVI show in spring 2022?",
+      `Bundles: ${JSON.stringify([
+        {
+          bundleId: "bundle_test_ndvi",
+          bundleRevision: 2,
+          label: "Test NDVI bundle",
+          periods: { count: 3, first: "period_2022-03", last: "period_2022-05" },
+          metrics: ["ndvi_area_median"],
+        },
+        {
+          bundleId: "bundle_test_coverage",
+          bundleRevision: 1,
+          label: "Test coverage",
+          holds: "a recipe result, read with read_recipe_result",
+        },
+        { bundleId: "bundle_test_missing", bundleRevision: 1, holds: "nothing readable" },
+      ])}`,
+    ]);
+  });
+
+  it("the instructions say what can be cited: measurement IDs, not recipe results or limitations (live run of 28 Oct 2026)", () => {
+    expect(OBSERVATION_SPEC.promptVersion).toBe("observation_analysis@3");
+    expect(OBSERVATION_SPEC.instructions).toContain(
+      "- Cite only measurementId values that summarize_observations returned. Recipe results and limitation texts hold no measurement IDs: never build an ID from a bundle, period or field name, and never copy their numbers into your text; a gap they show is a field_requirement without numbers.",
+    );
+    expect(OBSERVATION_SPEC.instructions).toContain(
+      "- Code attaches the limitations of each cited measurement's bundle to the evidence; do not restate them.",
+    );
   });
 
   it("the evidence output schema fits the strict subset", () => {

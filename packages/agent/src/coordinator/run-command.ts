@@ -32,7 +32,34 @@ import type { CommandLimits } from "./limits.ts";
 export type TaskExecutor = (
   input: EvidenceTaskInput,
   deps: EvidenceTaskDeps,
-) => Promise<{ commit: CommitDraft }>;
+) => Promise<{ commit: CommitDraft; loop?: { blockedInputs: readonly string[] } }>;
+
+/**
+ * A task whose data loads left datasets blocked never ends as a plain success: each blocked
+ * dataset joins its missing inputs and its end event, and a success becomes partial.
+ */
+export function withBlockedInputs(draft: CommitDraft, blocked: readonly string[]): CommitDraft {
+  const [task, ...rest] = draft.upserts;
+  if (blocked.length === 0 || task?.recordType !== "Task") return draft;
+  const status = task.status === "succeeded" ? "partial" : task.status;
+  const ends = new Set(["task.succeeded", "task.partial", "task.failed"]);
+  return {
+    ...draft,
+    upserts: [
+      { ...task, status, missingInputs: [...new Set([...task.missingInputs, ...blocked])] },
+      ...rest,
+    ],
+    events: draft.events.map((e) =>
+      e.taskId === task.id && ends.has(e.kind)
+        ? {
+            ...e,
+            ...(status === "partial" ? { kind: "task.partial", resultStatus: "partial" } : {}),
+            message: `${e.message} Blocked inputs: ${blocked.join(" ")}`,
+          }
+        : e,
+    ),
+  };
+}
 
 /** Task kinds with an executor in this build; the others end as failed with `executor_not_available`. */
 export const EXECUTORS: Partial<Record<TaskRecord["kind"], TaskExecutor>> = {
@@ -56,15 +83,29 @@ export interface CommandOutcome {
     status: TaskRecord["status"];
     failureCode: string | null;
   }[];
-  /** Why work stopped early, when it did: budget, deadline or cancellation. */
-  stopReason: "budget_exhausted" | "command_deadline" | "cancelled" | null;
+  /** Why work stopped early, when it did: budget, deadline, cancellation or a spend guard stop. */
+  stopReason:
+    "budget_exhausted" | "command_deadline" | "cancelled" | typeof SPEND_GUARD_STOP | null;
   spentUsd: number;
 }
+
+/**
+ * The abort reason of a spend guard stop: the operator's spend guard, outside the command's own
+ * budget, stopped the worker. The command ends cancelled and every task it stops records this code.
+ */
+export const SPEND_GUARD_STOP = "spend_guard";
 
 export interface RunCommandInput {
   planTask: TaskRecord;
   expectedCaseRevision: number;
   snapshot: PlanSnapshot;
+  /**
+   * A command a crashed worker left running (AF-03). With a finished plan task the plan is not
+   * run again: finished tasks stay as recorded and the others run on this attempt. The spend the
+   * command's task records hold counts against its cap; a call in flight at the crash is not in
+   * any task record.
+   */
+  resume?: { tasks: TaskRecord[]; attempt: number; spentMicroUsd: number };
 }
 
 export interface RunCommandDeps {
@@ -125,7 +166,7 @@ export async function runCommand(
 ): Promise<CommandOutcome> {
   const limits = deps.limits ?? P0_LIMITS;
   const executors = deps.executors ?? EXECUTORS;
-  const spend = new CommandSpend(limits.spendCapMicroUsd);
+  const spend = new CommandSpend(limits.spendCapMicroUsd, input.resume?.spentMicroUsd ?? 0);
   const gate = new Semaphore(limits.maxConcurrentModelCalls);
   const adapter = new MetaAdapter({
     ...deps.adapterOptions,
@@ -142,13 +183,14 @@ export async function runCommand(
   const halt: { reason: CommandOutcome["stopReason"] } = { reason: null };
   const stop = (reason: NonNullable<CommandOutcome["stopReason"]>): void => {
     halt.reason ??= reason;
-    controller.abort();
+    // Tasks in flight record a spend guard stop as their failure code; other stops read as cancelled.
+    controller.abort(reason === SPEND_GUARD_STOP ? SPEND_GUARD_STOP : undefined);
   };
   const onCancel = (): void => {
-    stop("cancelled");
+    stop(deps.signal?.reason === SPEND_GUARD_STOP ? SPEND_GUARD_STOP : "cancelled");
   };
   deps.signal?.addEventListener("abort", onCancel);
-  if (deps.signal?.aborted) stop("cancelled");
+  if (deps.signal?.aborted) onCancel();
   const deadline = setTimeout(() => {
     stop("command_deadline");
   }, limits.wallClockMs);
@@ -175,7 +217,7 @@ export async function runCommand(
     const succeeded = planned.filter((t) => t.status === "succeeded").length;
     const usable = planned.filter((t) => t.status === "succeeded" || t.status === "partial").length;
     let status: CommandStatus;
-    if (halt.reason === "cancelled") status = "cancelled";
+    if (halt.reason === "cancelled" || halt.reason === SPEND_GUARD_STOP) status = "cancelled";
     else if (!planAccepted) status = "failed";
     else if (planned.length === 0)
       status = "succeeded"; // the plan asked a clarifying question
@@ -197,27 +239,46 @@ export async function runCommand(
     };
   };
 
-  // Plan.
-  const plan = await runPlanTask(
-    { planTask: input.planTask, expectedCaseRevision: caseRevision, snapshot: input.snapshot },
-    {
-      adapter,
-      trace: deps.trace,
-      tools: tools.forTask(input.planTask.allowedTools),
-      newTaskId: deps.newTaskId,
-      now: deps.now,
-      signal: controller.signal,
-    },
-  );
-  const planCommit = await commit(plan.commit);
-  if (planCommit.status === "stale" || plan.loop.status !== "accepted") {
-    if (plan.loop.status === "cancelled") halt.reason ??= "cancelled";
-    if (spend.exhausted) halt.reason ??= "budget_exhausted";
-    return finish();
-  }
-  planAccepted = true;
-  for (const record of plan.commit.upserts.slice(1)) {
-    if (record.recordType === "Task") tasks.set(record.id, record);
+  const committedEvidence: EvidenceRecord[] = [];
+  const committedHypotheses: HypothesisRecord[] = [];
+  const committedInterventions: InterventionRecord[] = [];
+
+  if (input.resume && TERMINAL.has(input.planTask.status)) {
+    planAccepted = input.planTask.status === "succeeded";
+    for (const task of input.resume.tasks) tasks.set(task.id, task);
+    // What the finished tasks committed, for the dependents that still run.
+    const caseId = input.planTask.caseId;
+    const outputs = input.resume.tasks
+      .filter((t) => TERMINAL.has(t.status))
+      .flatMap((t) => t.outputEntityIds);
+    committedEvidence.push(
+      ...(await deps.store.readEvidence(caseId, outputs)).filter((e) => e.status === "accepted"),
+    );
+    committedHypotheses.push(...(await deps.store.readHypotheses(caseId, outputs)));
+    committedInterventions.push(...(await deps.store.readInterventions(caseId, outputs)));
+  } else {
+    // Plan.
+    const plan = await runPlanTask(
+      { planTask: input.planTask, expectedCaseRevision: caseRevision, snapshot: input.snapshot },
+      {
+        adapter,
+        trace: deps.trace,
+        tools: tools.forTask(input.planTask.allowedTools),
+        newTaskId: deps.newTaskId,
+        now: deps.now,
+        signal: controller.signal,
+      },
+    );
+    const planCommit = await commit(plan.commit);
+    if (planCommit.status === "stale" || plan.loop.status !== "accepted") {
+      if (plan.loop.status === "cancelled") halt.reason ??= "cancelled";
+      if (spend.exhausted) halt.reason ??= "budget_exhausted";
+      return finish();
+    }
+    planAccepted = true;
+    for (const record of plan.commit.upserts.slice(1)) {
+      if (record.recordType === "Task") tasks.set(record.id, record);
+    }
   }
 
   // Close a task without running it, with its reason, in its own commit.
@@ -259,9 +320,6 @@ export async function runCommand(
     tasks.set(task.id, outcome.status === "stale" ? { ...task, status, failureCode } : after);
   };
 
-  const committedEvidence: EvidenceRecord[] = [];
-  const committedHypotheses: HypothesisRecord[] = [];
-  const committedInterventions: InterventionRecord[] = [];
   const runOne = async (task: TaskRecord): Promise<void> => {
     const executor = executors[task.kind];
     if (!executor) {
@@ -275,7 +333,7 @@ export async function runCommand(
       ...task,
       status: "running",
       startedAt: at,
-      attempt: task.attempt + 1,
+      attempt: Math.max(task.attempt + 1, input.resume?.attempt ?? 1),
     };
     tasks.set(task.id, running);
     deps.trace.emit(
@@ -285,7 +343,7 @@ export async function runCommand(
     const fromDependencies = new Set(
       task.dependsOnTaskIds.flatMap((id) => tasks.get(id)?.outputEntityIds ?? []),
     );
-    let result: { commit: CommitDraft };
+    let result: Awaited<ReturnType<TaskExecutor>>;
     try {
       result = await executor(
         { task: running, expectedCaseRevision: caseRevision },
@@ -308,14 +366,15 @@ export async function runCommand(
       return;
     }
     if (spend.exhausted) halt.reason ??= "budget_exhausted";
-    const outcome = await commit(result.commit);
-    const after = result.commit.upserts[0];
+    const draft = withBlockedInputs(result.commit, result.loop?.blockedInputs ?? []);
+    const outcome = await commit(draft);
+    const after = draft.upserts[0];
     if (outcome.status === "stale" || after?.recordType !== "Task") {
       tasks.set(task.id, { ...running, status: "failed", failureCode: "stale_inputs" });
       return;
     }
     tasks.set(task.id, after);
-    for (const record of result.commit.upserts) {
+    for (const record of draft.upserts) {
       if (record.recordType === "Evidence" && record.status === "accepted")
         committedEvidence.push(record);
       if (record.recordType === "Hypothesis") committedHypotheses.push(record);
@@ -323,7 +382,8 @@ export async function runCommand(
     }
   };
 
-  // Run tasks as their dependencies finish; a failed dependency fails its dependents.
+  // Run tasks as their dependencies finish; a failed dependency fails its dependents, except the
+  // brief package.
   const started = new Set<string>();
   const inFlight = new Map<string, Promise<void>>();
   for (;;) {
@@ -341,6 +401,37 @@ export async function runCommand(
       const failedDeps = depStates.filter(
         (d) => d && TERMINAL.has(d.status) && d.status !== "succeeded" && d.status !== "partial",
       );
+      // The field-scoping package still completes when a task it reads fails (RL-02): it runs once
+      // every dependency has ended, with the failed ones and their blocked inputs named, and
+      // cannot be ready for review while any is named.
+      if (task.kind === "brief_package") {
+        if (depStates.every((d) => d && TERMINAL.has(d.status))) {
+          started.add(task.id);
+          const named = depStates.flatMap((d) => {
+            if (!d) return [];
+            const label = `Dependency ${d.id} (${d.kind.replaceAll("_", " ")})`;
+            return [
+              ...(failedDeps.includes(d)
+                ? [
+                    `${label} ended ${d.status}: ${(d.failureCode ?? d.status).replaceAll("_", " ")}.`,
+                  ]
+                : []),
+              ...d.missingInputs
+                .filter((m) => !m.startsWith("Dependency "))
+                .map((m) => `${label} is missing: ${m}`),
+            ];
+          });
+          inFlight.set(
+            task.id,
+            runOne(
+              named.length > 0
+                ? { ...task, missingInputs: [...new Set([...task.missingInputs, ...named])] }
+                : task,
+            ),
+          );
+        }
+        continue;
+      }
       if (failedDeps.length > 0) {
         started.add(task.id);
         inFlight.set(

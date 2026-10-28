@@ -105,6 +105,7 @@ export function readEventRecordTool(store: CaseStore, caseId: string): ToolHandl
     },
     summarize: (args) =>
       `event bundle ${args.bundleId} revision ${args.bundleRevision}, ${args.periodIds.length} ${args.periodIds.length === 1 ? "period" : "periods"}`,
+    datasetIds: (args) => [args.bundleId],
     run: async (args) => {
       const bundle = await validatedEventBundle(store, caseId, args.bundleId, args.bundleRevision);
       const all = await store.readEventRows(caseId, bundle.id, bundle.revision);
@@ -187,6 +188,7 @@ export function compareEventsTool(store: CaseStore, caseId: string): ToolHandler
     },
     summarize: (args) =>
       `${args.eventRowIds.length} event ${args.eventRowIds.length === 1 ? "row" : "rows"} against ${args.rainfallBundleId}`,
+    datasetIds: (args) => [args.eventBundleId, args.rainfallBundleId],
     run: async (args) => {
       const events = await validatedEventBundle(
         store,

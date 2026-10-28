@@ -10,6 +10,7 @@ import { describe, expect, it } from "vitest";
 
 import { MetaAdapter } from "../../model/adapter.ts";
 import { strictSubsetIssues } from "../../model/strict-schema.ts";
+import type { ModelTransport } from "../../model/transport.ts";
 import { AT, CASE_ID, queuedTask, testStore } from "../../testing/case-fixture.ts";
 import { answerStep, syntheticTransport } from "../../testing/replay-steps.ts";
 import type { MemoryCaseStore } from "../../tools/store.ts";
@@ -104,16 +105,10 @@ const REST: InterventionRecord = {
   },
 };
 
-const line = (
-  text: string,
-  claimKind: string,
-  evidenceIds: string[],
-  measurementIds: string[] = [],
-) => ({
+const line = (text: string, claimKind: string, evidenceIds: string[]) => ({
   text,
   claimKind,
   evidenceIds,
-  measurementIds,
 });
 
 function plan(extra: Record<string, unknown> = {}) {
@@ -166,12 +161,9 @@ function proposal(
     },
     brief: {
       known: [
-        line(
-          "The catchment NDVI area median was 0.1439 in April 2022.",
-          "observation",
-          ["ev_test_obs"],
-          ["meas_test_2022-04"],
-        ),
+        line("The catchment NDVI area median was 0.1439 in April 2022.", "observation", [
+          "ev_test_obs",
+        ]),
       ],
       uncertain: [
         line("Whether lower spring rainfall explains the April values.", "hypothesis", [
@@ -272,17 +264,17 @@ describe("propose_package validation", () => {
         proposal({
           brief: {
             known: [
-              line(
-                "The NDVI area median was 0.1439 in April 2022.",
-                "observation",
-                ["ev_test_obs"],
-                ["meas_test_none"],
-              ),
+              {
+                ...line("The NDVI area median was 0.1439 in April 2022.", "observation", [
+                  "ev_test_obs",
+                ]),
+                measurementIds: ["meas_test_2022-04"],
+              },
             ],
           },
         }),
       ),
-    ).toEqual(["unknown_reference $.brief.known[0].measurementIds[0]"]);
+    ).toEqual(["schema $.brief.known[0]"]);
   });
 
   it("refuses outreach, directives, people counts and unknown references", () => {
@@ -458,7 +450,22 @@ describe("propose_package validation", () => {
   });
 });
 
-async function run(store: MemoryCaseStore, answer: unknown, committedInterventions = [REST]) {
+async function run(
+  store: MemoryCaseStore,
+  answer: unknown,
+  committedInterventions = [REST],
+  sentOutputLimits: unknown[] = [],
+  missingInputs: string[] = [],
+) {
+  const replay = syntheticTransport([answerStep(JSON.stringify(answer))]);
+  const transport: ModelTransport = {
+    route: replay.route,
+    replayOrigin: replay.replayOrigin,
+    open: (body, signal) => {
+      sentOutputLimits.push(body.max_output_tokens);
+      return replay.open(body, signal);
+    },
+  };
   let n = 0;
   return runBriefPackageTask(
     {
@@ -470,12 +477,13 @@ async function run(store: MemoryCaseStore, answer: unknown, committedInterventio
           { entityId: "ev_test_need", revision: 1 },
         ],
         allowedTools: ["read_case", "propose_package", "request_review", "propose_layout"],
+        missingInputs,
       }),
       expectedCaseRevision: 5,
     },
     {
       adapter: new MetaAdapter({
-        transport: syntheticTransport([answerStep(JSON.stringify(answer))]),
+        transport,
         sleep: () => Promise.resolve(),
       }),
       trace: { emit: () => undefined },
@@ -490,6 +498,14 @@ async function run(store: MemoryCaseStore, answer: unknown, committedInterventio
 }
 
 describe("brief_package task", () => {
+  it("asks for up to 8,000 output tokens: two of three live briefs stopped at 6,000 (28 Oct 2026)", async () => {
+    const store = testStore();
+    store.evidence.push(OBS, NEED);
+    const sent: unknown[] = [];
+    await run(store, proposal(), [REST], sent);
+    expect(sent).toEqual([8_000]);
+  });
+
   it("commits a draft plan, a brief, resources and host-written review requests that parse with the contracts", async () => {
     const store = testStore();
     store.evidence.push(OBS, NEED);
@@ -571,6 +587,36 @@ describe("brief_package task", () => {
     expect(commit.events[0]?.message).toBe(
       "Brief package prepared a draft plan and brief; reviews requested.",
     );
+  });
+
+  it("code fills each brief line's measurement IDs from its cited evidence; the model writes none (live run of 28 Oct 2026)", async () => {
+    expect(JSON.stringify(packageOutputSchema())).not.toContain("measurementIds");
+    const store = testStore();
+    store.evidence.push(OBS, NEED);
+    const { loop, commit } = await run(store, proposal());
+    expect(loop.status).toBe("accepted");
+    expect(commit.upserts.find((r) => r.recordType === "Brief")).toMatchObject({
+      known: [{ evidenceIds: ["ev_test_obs"], measurementIds: ["meas_test_2022-04"] }],
+      nextMeasurements: [{ evidenceIds: ["ev_test_need"], measurementIds: [] }],
+    });
+  });
+
+  it("RL-02 a failed dependency named by the coordinator keeps the package a draft and says so", async () => {
+    const store = testStore();
+    store.evidence.push(OBS, NEED);
+    const failed = "Dependency task_test_obs (observation analysis) ended failed: executor error.";
+    const { loop, commit } = await run(store, proposal(), [REST], [], [failed]);
+    expect(loop.status).toBe("accepted");
+    const action = commit.upserts.find((r) => r.recordType === "OperationalAction");
+    const brief = commit.upserts.find((r) => r.recordType === "Brief");
+    expect(action).toMatchObject({ status: "blocked", reviewDecisionIds: [] });
+    expect(action?.recordType === "OperationalAction" && action.remainingConditions).toContain(
+      failed,
+    );
+    expect(brief).toMatchObject({ status: "draft", reviewDecisionIds: [] });
+    expect(brief?.recordType === "Brief" && brief.limitations).toContain(failed);
+    expect(commit.upserts.some((r) => r.recordType === "ReviewDecision")).toBe(false);
+    expect(commit.upserts[0]).toMatchObject({ status: "succeeded", missingInputs: [failed] });
   });
 
   it("blocks ready for review and requests nothing while a critical dependency is missing", async () => {

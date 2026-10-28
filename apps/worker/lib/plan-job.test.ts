@@ -5,6 +5,7 @@ import type {
   EventDraftRecord,
   EvidenceRecord,
   ReplayStep,
+  TaskExecutor,
 } from "@siterra/agent";
 import { describe, expect, it } from "vitest";
 
@@ -130,7 +131,14 @@ class FakeDb implements WorkerDb {
     });
   }
 
+  /** The commit that throws, as if the worker died before it landed. */
+  crashOn: ((draft: CommitDraft) => boolean) | null = null;
+
   commit(draft: CommitDraft): Promise<CommitOutcome> {
+    if (this.crashOn?.(draft)) {
+      this.crashOn = null;
+      return Promise.reject(new Error("worker crashed"));
+    }
     this.log.push(`commit ${draft.events.map((e) => e.kind).join(",")}`);
     return this.commits.commit(draft);
   }
@@ -177,9 +185,10 @@ describe("plan job", () => {
     expect(result.status).toBe("ran");
     if (result.status !== "ran") return;
     expect(result.outcome.status).toBe("failed");
+    // A brief package runs after its failed dependency (RL-02), so the second also finds no executor.
     expect(result.outcome.tasks.map((t) => t.failureCode)).toEqual([
       "executor_not_available",
-      "dependency_failed",
+      "executor_not_available",
     ]);
     expect(db.statuses).toEqual(["running", "failed"]);
     expect(db.commits.tasks.get("task_test_plan")).toMatchObject({
@@ -212,13 +221,101 @@ describe("plan job", () => {
     );
   });
 
-  it("does not plan twice when the job is delivered again (RL-04 path)", async () => {
+  it("does not plan or run a task twice when the job is delivered again (RL-04 path)", async () => {
     const db = new FakeDb();
     await handlePlanJob(JOB, deps(db, [answer(JSON.stringify(PLAN))]));
+    const tasks = new Map(db.commits.tasks);
     db.statuses.length = 0;
     db.command = { ...db.command, status: "running" };
-    const again = await handlePlanJob(JOB, deps(db, []));
-    expect(again).toEqual({ status: "skipped", reason: "plan_task_exists" });
+    // No replay steps: a model call here would fail the run.
+    const again = await handlePlanJob(JOB, { ...deps(db, []), delivery: 1 });
+    expect(again.status === "ran" && again.outcome.status).toBe("failed");
+    expect(db.commits.tasks).toEqual(tasks);
+    expect(db.statuses).toEqual(["failed"]);
+  });
+
+  describe("AF-03 a job delivered again after a worker crash resumes the command", () => {
+    const ran: string[] = [];
+    const ok: TaskExecutor = ({ task, expectedCaseRevision }) => {
+      ran.push(task.id);
+      return Promise.resolve({
+        commit: {
+          caseId: task.caseId,
+          commandId: task.commandId,
+          taskId: task.id,
+          expectedCaseRevision,
+          idempotencyKey: `test-${task.id}-${String(task.revision)}`,
+          inputVersions: [],
+          upserts: [
+            {
+              ...task,
+              revision: task.revision + 1,
+              status: "succeeded",
+              spentMicroUsd: task.spentMicroUsd + 1_000,
+              finishedAt: AT.toISOString(),
+            },
+          ],
+          events: [],
+        },
+      });
+    };
+    const withOk = (db: FakeDb, steps: ReplayStep[], delivery = 0) => ({
+      ...deps(db, steps),
+      executors: { brief_package: ok },
+      delivery,
+    });
+
+    it("keeps the finished tasks, runs the unfinished one on a new attempt and ends the command", async () => {
+      ran.length = 0;
+      const db = new FakeDb();
+      db.crashOn = (d) => d.taskId === "task_test_2";
+      await expect(handlePlanJob(JOB, withOk(db, [answer(JSON.stringify(PLAN))]))).rejects.toThrow(
+        "worker crashed",
+      );
+      expect(db.statuses).toEqual(["running"]);
+      expect(db.commits.tasks.get("task_test_1")?.status).toBe("succeeded");
+      expect(db.commits.tasks.get("task_test_2")?.status).toBe("queued");
+      const before = db.events.length;
+
+      db.command = { ...db.command, status: "running" };
+      const again = await handlePlanJob(JOB, withOk(db, [], 1));
+      expect(again.status === "ran" && again.outcome.status).toBe("succeeded");
+      expect(ran).toEqual(["task_test_1", "task_test_2", "task_test_2"]);
+      expect([...db.commits.tasks.keys()].sort()).toEqual([
+        "task_test_1",
+        "task_test_2",
+        "task_test_plan",
+      ]);
+      expect(db.commits.tasks.get("task_test_2")).toMatchObject({
+        status: "succeeded",
+        attempt: 2,
+      });
+      expect(db.statuses.at(-1)).toBe("succeeded");
+      // The resumed run's events are keyed on attempt 2, so none repeats a crashed run's key and
+      // none is dropped as a duplicate.
+      const resumed = db.events.slice(before).filter((e) => e.taskId === "task_test_2");
+      expect(resumed.map((e) => e.kind)).toContain("task.started");
+      expect(new Set(db.events.map((e) => e.dedupeKey)).size).toBe(db.events.length);
+      // The spend the finished tasks recorded counts against the command's cap.
+      expect(again.status === "ran" && again.outcome.spentUsd).toBeGreaterThanOrEqual(0.002);
+    });
+
+    it("plans again when the worker died before the plan landed", async () => {
+      ran.length = 0;
+      const db = new FakeDb();
+      // The plan's commit, not the one that queued the plan task: it also upserts the planned tasks.
+      db.crashOn = (d) => d.taskId === "task_test_plan" && d.upserts.length > 1;
+      await expect(handlePlanJob(JOB, withOk(db, [answer(JSON.stringify(PLAN))]))).rejects.toThrow(
+        "worker crashed",
+      );
+      expect(db.commits.tasks.get("task_test_plan")?.status).toBe("queued");
+
+      db.command = { ...db.command, status: "running" };
+      const again = await handlePlanJob(JOB, withOk(db, [answer(JSON.stringify(PLAN))], 1));
+      expect(again.status === "ran" && again.outcome.status).toBe("succeeded");
+      expect(db.commits.tasks.get("task_test_plan")?.status).toBe("succeeded");
+      expect(db.statuses.at(-1)).toBe("succeeded");
+    });
   });
 
   it("skips a terminal command", async () => {

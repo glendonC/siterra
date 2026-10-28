@@ -61,8 +61,10 @@ export class CommandSpend implements SpendGuard {
   #reservedUsd = 0;
   #refused = false;
 
-  constructor(capMicroUsd: number) {
+  /** `spentMicroUsd`: what the command spent before this run, a resumed one (AF-03). */
+  constructor(capMicroUsd: number, spentMicroUsd = 0) {
     this.capUsd = capMicroUsd / 1_000_000;
+    this.#committedUsd = spentMicroUsd / 1_000_000;
   }
 
   get spentUsd(): number {

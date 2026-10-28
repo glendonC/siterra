@@ -1,10 +1,10 @@
-import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import { loadCorpus, sectionPassages } from "./corpus.ts";
+import { corpusPaths, corpusWarning, loadCorpus, sectionPassages } from "./corpus.ts";
 import { snapshotStore } from "./snapshot-store.ts";
 
 // A synthetic corpus in a temporary folder: the manifest and text shapes follow data/case and
@@ -133,6 +133,64 @@ describe("corpus reader", () => {
     expect(corpus.sources.find((s) => s.id === "src_test_pdf")?.language).toBeNull();
     expect(corpus.missing).toEqual([{ sourceId: "src_test_missing", file: "d.pdf" }]);
     expect(at("src_test_closed")).toEqual([]);
+  });
+
+  it("names the files whose stored text could not be read, and is silent when all could", async () => {
+    const root = await corpusRoot();
+    const corpus = await loadCorpus(root, "manifest.json", (id) => revisions.get(id) ?? null);
+    expect(corpusWarning(corpus, root)).toBe(
+      `worker: stored corpus text not readable under ${root} for 1 file: src_test_missing d.pdf`,
+    );
+    expect(corpusWarning({ ...corpus, missing: [] }, root)).toBeNull();
+  });
+
+  it("takes the corpus text root from SITERRA_CORPUS_TEXT_ROOT, else the repository root", () => {
+    expect(corpusPaths({}, "/work")).toEqual({
+      repoRoot: "/work",
+      manifest: "data/case/corpus-manifest.json",
+      textRoot: "/work",
+    });
+    expect(
+      corpusPaths(
+        {
+          SITERRA_REPO_ROOT: "/repo",
+          SITERRA_CORPUS_MANIFEST: "m.json",
+          SITERRA_CORPUS_TEXT_ROOT: "/main-checkout",
+        },
+        "/work",
+      ),
+    ).toEqual({ repoRoot: "/repo", manifest: "m.json", textRoot: "/main-checkout" });
+  });
+
+  it("reads the stored text from its own root while the manifest stays in the repository", async () => {
+    const textRoot = await corpusRoot();
+    const repoRoot = await mkdtemp(join(tmpdir(), "siterra-repo-"));
+    await writeFile(
+      join(repoRoot, "manifest.json"),
+      await readFile(join(textRoot, "manifest.json"), "utf8"),
+    );
+    const corpus = await loadCorpus(
+      repoRoot,
+      "manifest.json",
+      (id) => revisions.get(id) ?? null,
+      textRoot,
+    );
+    expect(corpus.passages.filter((p) => p.sourceId === "src_test_pdf")).toHaveLength(2);
+    expect(corpus.missing).toEqual([{ sourceId: "src_test_missing", file: "d.pdf" }]);
+  });
+
+  it("drops private-use glyphs from headings, so a locator can be copied exactly (live run of 28 Oct 2026)", () => {
+    expect(
+      sectionPassages({
+        text: "Climate text. Other text.",
+        sections: [
+          { heading: "Correcting for the effects of climate\uf0c1", offset: 0 },
+          { heading: "\uf0c1", offset: 14 },
+        ],
+      }),
+    ).toEqual([
+      { heading: "Correcting for the effects of climate", text: "Climate text. Other text." },
+    ]);
   });
 
   it("skips repeated and unlocated headings", () => {

@@ -258,6 +258,31 @@ describe("propose_hypotheses validation", () => {
     ).toContain("numeric_provenance $.items[0].assessment");
   });
 
+  it("SA-06 without grazing measurements, no statement or assessment labels an explanation confirmed", () => {
+    // The pool holds no grazing measurement: herd numbers are only a field requirement.
+    const base = { supportingEvidenceIds: ["ev_test_ctx"] };
+    for (const [field, text] of [
+      ["statement", "Grazing is confirmed as the reason greenness fell."],
+      ["statement", "Grazing pressure was proved to lower greenness in the catchment."],
+      ["assessment", `${STATUS_LABELS.consistent}: grazing attribution is confirmed.`],
+      ["assessment", `${STATUS_LABELS.consistent}: the grazing explanation is proven.`],
+      ["assessment", `${STATUS_LABELS.consistent}; confirmation of the grazing account.`],
+    ] as const) {
+      expect(codes([hyp("consistent", { ...base, [field]: text })]), text).toContain(
+        `prohibited_claim $.items[0].${field}`,
+      );
+    }
+    // A check still to be made may confirm something; that names missing evidence, not a result.
+    expect(
+      codes([
+        hyp("inconclusive", {
+          missingEvidence: ["A field check that confirms herd numbers by month."],
+          assessment: `${STATUS_LABELS.inconclusive}: no record confirms herd numbers by month.`,
+        }),
+      ]),
+    ).toEqual([]);
+  });
+
   it("allows a cause in the statement of a hypothesis but no diagnosis, biomass or forecast", () => {
     expect(
       codes([hyp("untested", { statement: "Vegetation declined due to grazing pressure." })]),
@@ -279,6 +304,30 @@ describe("propose_hypotheses validation", () => {
     expect(codes([{ ...ok, assessment: `${STATUS_LABELS.consistent}: about 40 herds.` }])).toEqual([
       "numeric_provenance $.items[0].assessment",
     ]);
+  });
+
+  it("SA-10 (proposed) a hypothesis naming a group by who they are ends the proposal out of scope", () => {
+    const blaming = hyp("untested", {
+      statement: "Migrant herders who settled in the valley caused the decline in greenness.",
+    });
+    const result = check([hyp("untested"), blaming]);
+    expect(result.ok).toBe(false);
+    expect(!result.ok && result.failureCode).toBe("out_of_scope");
+    expect(codes([hyp("untested"), blaming])).toEqual(["prohibited_claim $.items[1].statement"]);
+    expect(
+      codes([
+        hyp("untested", {
+          assessment: `${STATUS_LABELS.untested}: the Berber families may explain the decline.`,
+        }),
+      ]),
+    ).toEqual(["prohibited_claim $.items[0].assessment"]);
+    // Land-use practices and roles stay candidate explanations.
+    for (const statement of [
+      "Grazing by herding households on the high pastures lowered spring greenness.",
+      "An earlier end to the agdal closure lowered spring greenness on the high pastures.",
+    ]) {
+      expect(codes([hyp("untested", { statement })]), statement).toEqual([]);
+    }
   });
 
   it("the output schema fits the strict subset", () => {
@@ -341,6 +390,48 @@ describe("hypothesis_comparison task", () => {
     expect(commit.upserts[0]).toMatchObject({
       status: "succeeded",
       outputEntityIds: hypotheses.map((h) => h.id),
+    });
+  });
+
+  it("SA-10 (proposed) commits no hypothesis and asks for no repair when one names a group", async () => {
+    const store = testStore();
+    const blaming = hyp("untested", {
+      statement: "Arab herders caused the decline in greenness on the high pastures.",
+    });
+    const transport = syntheticTransport([
+      answerStep(JSON.stringify({ items: [blaming] })),
+      answerStep(JSON.stringify({ items: [hyp("untested")] })),
+    ]);
+    const { loop, commit } = await runHypothesisTask(
+      {
+        task: queuedTask({
+          id: "task_test_hypotheses",
+          kind: "hypothesis_comparison",
+          allowedTools: ["read_evidence", "propose_hypotheses"],
+        }),
+        expectedCaseRevision: 3,
+      },
+      {
+        adapter: new MetaAdapter({ transport, sleep: () => Promise.resolve() }),
+        trace: { emit: () => undefined },
+        store,
+        tools: caseToolRegistry(store, CASE_ID),
+        newEvidenceId: () => "ev_test_unused",
+        committedEvidence: [],
+        now: () => AT,
+      },
+    );
+    expect(loop).toMatchObject({
+      status: "rejected",
+      failureCode: "out_of_scope",
+      repaired: false,
+    });
+    expect(transport.remaining).toBe(1);
+    expect(commit.upserts).toHaveLength(1);
+    expect(commit.upserts[0]).toMatchObject({
+      status: "failed",
+      failureCode: "out_of_scope",
+      outputEntityIds: [],
     });
   });
 });

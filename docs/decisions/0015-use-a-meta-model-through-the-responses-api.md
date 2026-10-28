@@ -1,6 +1,6 @@
 ---
 status: accepted
-date: 2026-10-26
+date: 2026-10-28
 decision-makers: maintainer
 ---
 
@@ -27,7 +27,7 @@ Every request sends `store: false` with encrypted reasoning replay and uses stri
 ### Consequences
 
 * Good, because PDF input lets the model read French-language sources in context, with every excerpt verified against the extracted text.
-* Good, because Standard-mode content is not used for training.
+* Good, because Standard-mode content is not used for training. (This data-use part is superseded by [ADR-0047](0047-use-the-hackathon-credits-and-send-no-personal-or-confidential-data.md) while the hackathon credits are in use: Meta may then use the content for product improvement, so requests carry no personal or confidential data.)
 * Bad, because account access is unverified until GATE-01 passes. Fallbacks, in order: another Standard Spark revision; Muse Spark Open through a documented provider, labeled as a different model with its own adapter tests; a labeled replay of recorded outputs. There is no silent substitution and never another model family.
 * Bad, because `tool_choice` must be `"auto"` and generated arguments are not guaranteed to validate, so every output is validated ([ADR-0014](0014-run-one-coordinator-with-bounded-task-jobs.md)).
 * Bad, because the account has no hard spending cap, only an email alert (RISK-21 in the [risk register](../project/risk-register.md)); application budgets are the only hard stop.

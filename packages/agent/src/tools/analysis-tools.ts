@@ -102,6 +102,7 @@ export function compareSeriesTool(store: CaseStore, caseId: string): ToolHandler
     },
     summarize: (args) =>
       `${args.a.bundleId} ${args.a.metric} against ${args.b.bundleId} ${args.b.metric}`,
+    datasetIds: (args) => [args.a.bundleId, args.b.bundleId],
     run: async (args) => {
       if (!VEGETATION_DEPARTURES.has(args.a.metric)) {
         throw new ToolFailure(
@@ -298,6 +299,7 @@ export function readRecipeResultTool(
     parameters: argumentSchema(ReadRecipeArgs),
     parse: (args) => parseWith(ReadRecipeArgs, args),
     summarize: (args) => `${args.recipeId} ${args.version} from ${args.bundleId}`,
+    datasetIds: (args) => [args.bundleId],
     run: async (args) => {
       const bundle = await store.readBundle(caseId, args.bundleId);
       if (bundle?.status !== "validated") {

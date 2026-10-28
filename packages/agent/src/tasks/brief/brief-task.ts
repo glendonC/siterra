@@ -31,7 +31,7 @@ import type { AcceptedPackage, BriefLine, ProposePackage } from "./proposal.ts";
 // model text, and grant nothing. "Ready for review" is blocked while a critical dependency is
 // missing. Nothing is sent, scheduled or authorized; externalExecutionEnabled is false.
 
-export const BRIEF_PROMPT_VERSION = "brief_package@1";
+export const BRIEF_PROMPT_VERSION = "brief_package@2";
 
 const INSTRUCTIONS = `You prepare a draft field-validation plan and a decision brief for one environmental case for Siterra, using only the candidate responses, hypotheses and accepted evidence listed. Return them as the JSON object the response format defines.
 
@@ -188,6 +188,7 @@ export async function runBriefPackageTask(
       measurementIds: e.measurementIds,
     })),
     openGapIds: [...openGapIds].sort(),
+    ...(task.missingInputs.length > 0 ? { missingInputs: task.missingInputs } : {}),
   };
 
   const loop = await runTaskLoop({
@@ -197,7 +198,8 @@ export async function runBriefPackageTask(
       promptVersion: BRIEF_PROMPT_VERSION,
       instructions: INSTRUCTIONS,
       output: { name: "propose_package", schema: packageOutputSchema() },
-      maxOutputTokens: 6_000,
+      // Live briefs used up to 3,023 reasoning and 3,494 visible tokens; 6,000 cut two of three.
+      maxOutputTokens: 8_000,
       reasoningEffort: "low",
     },
     input: [
@@ -257,8 +259,10 @@ export async function runBriefPackageTask(
       limitations,
     });
 
-    // "Ready for review" needs a candidate response and a next measurement on a field requirement.
+    // "Ready for review" needs a candidate response, a next measurement on a field requirement and
+    // no dependency the coordinator named as failed.
     const missing = [
+      ...task.missingInputs,
       ...(accepted.interventions.length === 0 ? [PACKAGE_TEXT.missingIntervention] : []),
       ...(value.brief.nextMeasurements.some((l) =>
         l.evidenceIds.some((id) => evidence.get(id)?.claimKind === "field_requirement"),
@@ -348,7 +352,9 @@ export async function runBriefPackageTask(
       text: l.text.trim(),
       claimKind: l.claimKind,
       evidenceIds: [...new Set(l.evidenceIds)],
-      measurementIds: [...new Set(l.measurementIds)],
+      measurementIds: [
+        ...new Set(l.evidenceIds.flatMap((id) => evidence.get(id)?.measurementIds ?? [])),
+      ],
     });
     const sections = Object.fromEntries(
       BRIEF_SECTIONS.map((s) => [s, value.brief[s].map(line)]),

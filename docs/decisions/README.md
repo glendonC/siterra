@@ -32,7 +32,7 @@ A record is never rewritten to change what it decides. To change a decision, add
 | [ADR-0012](0012-treat-the-case-record-as-authoritative.md) | Treat the case record as authoritative | accepted |
 | [ADR-0013](0013-define-contracts-in-json-schema-mirrored-in-zod.md) | Define contracts in JSON Schema mirrored in Zod | accepted |
 | [ADR-0014](0014-run-one-coordinator-with-bounded-task-jobs.md) | Run one coordinator with bounded task jobs | accepted |
-| [ADR-0015](0015-use-a-meta-model-through-the-responses-api.md) | Use a Meta model through the Responses API | accepted |
+| [ADR-0015](0015-use-a-meta-model-through-the-responses-api.md) | Use a Meta model through the Responses API | accepted; its data-use part superseded by [ADR-0047](0047-use-the-hackathon-credits-and-send-no-personal-or-confidential-data.md) |
 | [ADR-0016](0016-adopt-the-typescript-react-maplibre-postgresql-stack.md) | Adopt the TypeScript, React, MapLibre and PostgreSQL stack | accepted |
 | [ADR-0017](0017-host-on-railway-with-render-as-fallback.md) | Host on Railway with Render as fallback | accepted |
 | [ADR-0018](0018-self-host-the-regional-map-bundle.md) | Self-host the regional map bundle | accepted |
@@ -64,3 +64,4 @@ A record is never rewritten to change what it decides. To change a decision, add
 | [ADR-0044](0044-build-the-interface-on-shadcn-with-base-ui-and-mit-components.md) | Build the interface on shadcn with Base UI and adapt only MIT-licensed components | accepted |
 | [ADR-0045](0045-extend-the-meta-model-map-to-event-records-figures-and-whole-corpus-reading.md) | Extend the Meta model map to event records, figures and whole-corpus reading | proposed |
 | [ADR-0046](0046-use-daylight-as-the-default-theme.md) | Use daylight as the default theme | accepted |
+| [ADR-0047](0047-use-the-hackathon-credits-and-send-no-personal-or-confidential-data.md) | Use the hackathon credits and send no personal or confidential data | accepted |

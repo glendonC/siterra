@@ -22,12 +22,13 @@ import type { AcceptedHypothesis } from "./proposal.ts";
 // against accepted evidence, each with supporting, contradicting and missing evidence and a status
 // word; relationships are written by host code from the cited IDs. No probabilities, no ranking.
 
-export const HYPOTHESIS_PROMPT_VERSION = "hypothesis_comparison@1";
+export const HYPOTHESIS_PROMPT_VERSION = "hypothesis_comparison@2";
 
 const INSTRUCTIONS = `You compare candidate explanations for one question in an environmental case for Siterra, using only the accepted evidence listed and the tools. Return hypotheses as the JSON object the response format defines.
 
 Rules:
 - Each hypothesis is one candidate explanation. Several may fit at once; never rank them or give a probability, likelihood or chance.
+- No hypothesis is confirmed or proven: never write "confirmed", "confirmation", "proven" or "proved" in a statement or an assessment.
 - status: consistent (supporting evidence and none contradicting), inconsistent (an accepted observation contradicts it as stated), inconclusive (the discriminating data is missing; name it in missingEvidence), untested (no evidence assessed).
 - The assessment must contain the status words: "${STATUS_LABELS.consistent}", "${STATUS_LABELS.inconsistent}", "${STATUS_LABELS.inconclusive}" or "${STATUS_LABELS.untested}".
 - Cite only the listed evidence IDs. Write numbers only as they appear in that evidence. Do no arithmetic.

@@ -8,7 +8,7 @@ import { dispatchOutboxToJobs, jobSchema } from "@siterra/db/job-queue";
 import { newId } from "@siterra/domain";
 import { PgBoss } from "pg-boss";
 
-import { loadCorpus } from "./corpus.ts";
+import { corpusPaths, corpusWarning, loadCorpus } from "./corpus.ts";
 import { loadAnalyses } from "./recipes.ts";
 import { workerDb } from "./db.ts";
 import { handlePlanJob } from "./plan-job.ts";
@@ -60,13 +60,37 @@ function isPlanJob(data: unknown): data is PlanJob {
   );
 }
 
+/**
+ * SIGINT and SIGTERM stop gracefully: pg-boss lets the running job finish. SIGUSR2 is the spend
+ * guard's stop: it aborts the running command first (in-flight model calls included, the command
+ * ends cancelled with cause spend_guard), then stops the worker.
+ */
+export function installStopSignals(
+  target: { once(event: string, listener: () => void): unknown },
+  spendGuard: AbortController,
+  stop: () => Promise<void>,
+): void {
+  let stopping = false;
+  const stopOnce = (): void => {
+    if (stopping) return;
+    stopping = true;
+    void stop();
+  };
+  for (const signal of ["SIGINT", "SIGTERM"]) target.once(signal, stopOnce);
+  target.once("SIGUSR2", () => {
+    console.error("worker: spend guard stop: cancelling the running command");
+    spendGuard.abort();
+    stopOnce();
+  });
+}
+
 export async function startWorker(
   env: NodeJS.ProcessEnv = process.env,
+  options: { spendStop?: AbortSignal } = {},
 ): Promise<() => Promise<void>> {
   const url = env["DATABASE_URL"];
   if (!url) throw new Error("DATABASE_URL is not set");
-  const repoRoot = env["SITERRA_REPO_ROOT"] ?? process.cwd();
-  const manifest = env["SITERRA_CORPUS_MANIFEST"] ?? "data/case/corpus-manifest.json";
+  const { repoRoot, manifest, textRoot } = corpusPaths(env, process.cwd());
   // On the live route without MODEL_API_KEY the key is read from the login Keychain into memory.
   const transport = chooseTransport(env, { readKeychain: (service) => readKeychainKey(service) });
   console.log(`worker: model route ${describeRoute(transport).label}`);
@@ -98,7 +122,14 @@ export async function startWorker(
         const revisions = new Map(
           (snapshot?.records.sourceRecords ?? []).map((s) => [s.id, s.revision]),
         );
-        const corpus = await loadCorpus(repoRoot, manifest, (id) => revisions.get(id) ?? null);
+        const corpus = await loadCorpus(
+          repoRoot,
+          manifest,
+          (id) => revisions.get(id) ?? null,
+          textRoot,
+        );
+        const unreadable = corpusWarning(corpus, textRoot);
+        if (unreadable) console.error(unreadable);
         const analyses = await loadAnalyses(repoRoot, snapshot?.records.dataBundleRecords ?? []);
         if (analyses.missing.length > 0) {
           console.error(`worker: recipe results not readable: ${analyses.missing.join(", ")}`);
@@ -110,9 +141,15 @@ export async function startWorker(
           analyses,
           now: () => new Date(),
           newId: (prefix) => newId(prefix),
+          delivery: job.retryCount,
+          ...(options.spendStop ? { spendStop: options.spendStop } : {}),
         });
+        const stopped =
+          result.status === "ran" && result.outcome.stopReason
+            ? ` (${result.outcome.stopReason})`
+            : "";
         console.log(
-          `worker: plan job ${job.data.commandId} ${result.status === "ran" ? result.outcome.status : `skipped (${result.reason})`}`,
+          `worker: plan job ${job.data.commandId} ${result.status === "ran" ? result.outcome.status : `skipped (${result.reason})`}${stopped}`,
         );
       }
     },
@@ -138,10 +175,7 @@ export async function startWorker(
 }
 
 if (process.argv[1] !== undefined && fileURLToPath(import.meta.url) === process.argv[1]) {
-  const stop = await startWorker();
-  for (const signal of ["SIGINT", "SIGTERM"] as const) {
-    process.once(signal, () => {
-      void stop().then(() => process.exit(0));
-    });
-  }
+  const spendGuard = new AbortController();
+  const stop = await startWorker(process.env, { spendStop: spendGuard.signal });
+  installStopSignals(process, spendGuard, () => stop().then(() => process.exit(0)));
 }

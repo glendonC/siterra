@@ -12,7 +12,9 @@ import {
 import type { ToolHandler } from "../../tools/tool.ts";
 import type { TaskRecord } from "../records.ts";
 import type { TraceEventDraft } from "../trace.ts";
+import { OUT_OF_SCOPE_MESSAGE } from "../scope.ts";
 import { runPlanTask } from "./plan-task.ts";
+import { PLAN_INSTRUCTIONS, PLAN_PROMPT_VERSION } from "./prompt.ts";
 import type { PlanSnapshot } from "./prompt.ts";
 import { OBSERVATION_SPEC } from "../observation/observation-task.ts";
 import { LIVELIHOOD_SPEC, SOURCE_RESEARCH_SPEC } from "../source/source-task.ts";
@@ -282,6 +284,114 @@ describe("plan task on synthetic replays", () => {
   });
 });
 
+describe("plan scope (SA-10, proposed)", () => {
+  const withCommand = (text: string): PlanSnapshot => ({
+    ...SNAPSHOT,
+    command: { text, intent: "commission" },
+  });
+  const run = (snapshot: PlanSnapshot, steps: ReplayStep[]) => {
+    const h = harness(steps);
+    return runPlanTask({ planTask: PLAN_TASK, expectedCaseRevision: 3, snapshot }, h.deps).then(
+      (result) => ({ ...result, ...h }),
+    );
+  };
+  const expectRefused = (
+    { loop, commit }: Awaited<ReturnType<typeof run>>,
+    modelCalls: number,
+  ): void => {
+    expect(loop.status).toBe("rejected");
+    expect(loop.failureCode).toBe("out_of_scope");
+    expect(loop.calls).toHaveLength(modelCalls);
+    expect(commit.upserts).toHaveLength(1);
+    expect(commit.upserts[0]).toMatchObject({
+      id: "task_test_plan",
+      status: "failed",
+      failureCode: "out_of_scope",
+      outputEntityIds: [],
+    });
+    expect(commit.events).toHaveLength(1);
+    expect(commit.events[0]).toMatchObject({ kind: "task.failed", message: OUT_OF_SCOPE_MESSAGE });
+  };
+
+  it("the planner prompt carries the scope rule under a new version", () => {
+    expect(PLAN_PROMPT_VERSION).toBe("plan@2");
+    expect(PLAN_INSTRUCTIONS).toContain("land, water and vegetation");
+    expect(PLAN_INSTRUCTIONS).toContain('"Out of scope."');
+  });
+
+  it("refuses an identity-group command before any model call and creates nothing", async () => {
+    const result = await run(
+      withCommand("Are the migrants who moved into the valley causing the pasture degradation?"),
+      [answerStep(JSON.stringify(GOOD_PLAN))],
+    );
+    expectRefused(result, 0);
+    expect(result.transport.remaining).toBe(1);
+    const check = result.events.find((e) => e.kind === "validation.completed");
+    expect(check?.validation).toMatchObject({
+      outcome: "rejected",
+      issues: [{ code: "prohibited_claim", path: "$.command.text" }],
+    });
+    expect(JSON.stringify(result.events)).not.toContain("migrants");
+  });
+
+  it("refuses a named-person command before any model call and creates nothing", async () => {
+    const result = await run(withCommand("Is Mr Ouhmad overgrazing the agdal above Tabant?"), [
+      answerStep(JSON.stringify(GOOD_PLAN)),
+    ]);
+    expectRefused(result, 0);
+    expect(result.transport.remaining).toBe(1);
+    expect(JSON.stringify(result.events)).not.toContain("Ouhmad");
+  });
+
+  it("ends the plan out of scope when the planner says so, with the host's message", async () => {
+    // Wording the phrase list does not know; the prompt rule is the layer that catches it.
+    const result = await run(
+      withCommand("Are the newcomers from the south ruining the pastures?"),
+      [
+        answerStep(
+          JSON.stringify({ interpretation: "Out of scope.", tasks: [], clarifyingQuestion: null }),
+        ),
+      ],
+    );
+    expectRefused(result, 1);
+  });
+
+  it("refuses a planned question that names a group, without a repair turn", async () => {
+    const bad = {
+      ...GOOD_PLAN,
+      tasks: [
+        ...GOOD_PLAN.tasks.slice(0, 3),
+        {
+          ...task("compare", "hypothesis_comparison", ["sources", "observations", "livelihoods"]),
+          question: "Do migrant herders explain the decline in greenness?",
+        },
+        task("package", "brief_package", ["compare"]),
+      ],
+    };
+    const result = await run(SNAPSHOT, [
+      answerStep(JSON.stringify(bad)),
+      answerStep(JSON.stringify(GOOD_PLAN)),
+    ]);
+    expectRefused(result, 1);
+    expect(result.transport.remaining).toBe(1);
+    expect(result.loop.repaired).toBe(false);
+  });
+
+  it("IU-01 the livelihood question and grazing questions still plan normally", async () => {
+    for (const text of [
+      "What about the households that rely on these pastures?",
+      "Is grazing pressure behind the vegetation decline in the catchment?",
+      "Do tribal agdal rules govern when herders may graze the high pastures?",
+    ]) {
+      const { loop, commit } = await run(withCommand(text), [
+        answerStep(JSON.stringify(GOOD_PLAN)),
+      ]);
+      expect(loop.status, text).toBe("accepted");
+      expect(commit.upserts, text).toHaveLength(6);
+    }
+  });
+});
+
 describe("plan validator", () => {
   const check = (plan: unknown) =>
     validatePlanProposal(JSON.stringify(plan), { knownEntities: KNOWN });
@@ -292,6 +402,24 @@ describe("plan validator", () => {
 
   it("accepts the good plan", () => {
     expect(check(GOOD_PLAN).ok).toBe(true);
+  });
+
+  it("ends an out-of-scope interpretation or clarifying question without a repair", () => {
+    for (const [plan, path] of [
+      [
+        { ...GOOD_PLAN, interpretation: "The command asks whether refugees caused the decline." },
+        "$.interpretation",
+      ],
+      [
+        { ...GOOD_PLAN, tasks: [], clarifyingQuestion: "Which neighbour named Ahmed do you mean?" },
+        "$.clarifyingQuestion",
+      ],
+    ] as const) {
+      const r = check(plan);
+      expect(r.ok).toBe(false);
+      expect(!r.ok && r.failureCode).toBe("out_of_scope");
+      expect(codes(plan)).toEqual([`prohibited_claim ${path}`]);
+    }
   });
 
   it("runs a brief package after every task that can add a field requirement", () => {

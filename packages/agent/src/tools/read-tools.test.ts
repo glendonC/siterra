@@ -107,6 +107,55 @@ describe("summarize_observations", () => {
     ).toBe(false);
   });
 
+  it("names the bundle's period range when a period is outside it", async () => {
+    const tool = summarizeObservationsTool(testStore(), CASE_ID);
+    await expect(
+      run(tool, {
+        bundleId: "bundle_test_ndvi",
+        bundleRevision: 2,
+        periodIds: ["period_2019-01"],
+        metric: null,
+      }),
+    ).rejects.toMatchObject({
+      message:
+        "not in bundle bundle_test_ndvi: period_2019-01. It holds 3 periods from period_2022-03 to period_2022-05",
+    });
+  });
+
+  it("sends a recipe result bundle, which holds no periods, to read_recipe_result", async () => {
+    const store = testStore();
+    store.bundles.push(bundle({ id: "bundle_test_coverage", periodIds: [], methodId: "coverage" }));
+    const tool = summarizeObservationsTool(store, CASE_ID);
+    await expect(
+      run(tool, {
+        bundleId: "bundle_test_coverage",
+        bundleRevision: 2,
+        periodIds: ["period_2022-04"],
+        metric: null,
+      }),
+    ).rejects.toMatchObject({
+      code: "no_period_values",
+      message:
+        "bundle bundle_test_coverage holds a recipe result, not per-period values; read it with read_recipe_result",
+    });
+  });
+
+  it("refuses a metric the bundle's measurements do not carry and names the ones they do", async () => {
+    const tool = summarizeObservationsTool(testStore(), CASE_ID);
+    await expect(
+      run(tool, {
+        bundleId: "bundle_test_ndvi",
+        bundleRevision: 2,
+        periodIds: ["period_2022-04"],
+        metric: "ndvi_median",
+      }),
+    ).rejects.toMatchObject({
+      code: "unknown_metric",
+      message:
+        "no metric ndvi_median in bundle bundle_test_ndvi; its metrics are ndvi_area_median, or null for all",
+    });
+  });
+
   it("marks a period with no stored measurement as no_record, never zero", async () => {
     const store = testStore();
     store.measurements.splice(0, 1);

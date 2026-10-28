@@ -64,7 +64,7 @@ Layout proposals (`propose_layout`) may accompany any result task; if absent, th
 
 ### Transport of proposals
 
-The Meta Responses API accepts only `tool_choice: "auto"`, so a tool call cannot be forced (TECH-07). Each task therefore ends with its proposal as the response's **structured final output** (`text.format` json_schema, strict subset, generated from Zod); the `propose_*` names in this document and in [Data contracts](data-contracts.md#tool-argument-contracts) are those output schemas. Function tools are offered only for reads and deterministic computation. A task whose model turn ends without a schema-valid proposal gets one repair turn, then fails.
+The Meta Responses API accepts only `tool_choice: "auto"`, so a tool call cannot be forced (TECH-07). Each task therefore ends with its proposal as the response's **structured final output** (`text.format` json_schema, strict subset, generated from Zod); the `propose_*` names in this document and in [Data contracts](data-contracts.md#tool-argument-contracts) are those output schemas. Function tools are offered only for reads and deterministic computation. A task whose model turn ends without a schema-valid proposal gets one repair turn, then fails. The last two rounds of every task offer no tools: one for the proposal and one for its repair. Host code asks for the proposal when the first of them starts. A tool call in either round is answered with an error and not run, so a task that keeps reading fails at the round limit.
 
 ### Source reading
 
@@ -128,14 +128,18 @@ A model may be asked once to repair a rejected domain proposal, given the issues
 - Logical result key `(caseId, commandId, task kind, inputHash)`: a retry that finds a committed result returns it.
 - Retry only transient failures: 429, 500 and 503 (honor `Retry-After`; 60 s for overload), and streams that time out before the first event or go idle. Two retries with jitter. Never retry 400, 401, 402, 403, 404 or 413 unchanged; never blindly retry a non-streaming 504 (all calls stream). Authentication, permission, missing data and unsafe requests do not retry (TECH-30).
 - Worker restart reclaims unfinished jobs and reads checkpoints before repeating tools. Tools are read-only or deterministic, so repetition is harmless; commits are idempotent.
+- In the P0 build, pg-boss delivers a plan job again after a crash (the active job expires after 15 minutes; two retries). The worker resumes the command it left running: a finished plan and finished tasks stay as recorded, a plan that never landed is run again, and each unfinished task runs again from its start on a new attempt, so its events never reuse the crashed run's keys. The spend the command's task records hold counts against its cap; a call in flight at the crash is in no task record, so the operator's spend guard covers it. There are no checkpoints inside a task yet.
+- A blocked dataset is a blocked state, never a silent success. When a data load (`read_dataset_manifest`, `summarize_observations`, `compare_series`, `read_recipe_result`, `read_event_record`, `compare_events`) is refused or fails and no later load of the same dataset in the task succeeds, the task names it in its missing inputs ("<dataset ID>: <tool> refused it (<reason>)."), its end event says so, and a task that would have succeeded ends `partial`. Malformed arguments name no dataset.
+- A failed dependency fails its dependents, with one exception: the brief package runs once every task it reads has ended, so the field-scoping package completes when a quantitative task fails (RL-02). Each failed task and each blocked input of the tasks it reads is named in its missing inputs, and the package stays a draft, not ready for review.
 - Cancellation is cooperative: checked before each model turn, tool call and commit. Accepted evidence is never erased.
+- A spend guard stop is not cooperative. The operator's spend guard sends the worker `SIGUSR2`; the worker aborts the running command at once, model calls in flight included, then stops. The command ends `cancelled`, every task it stopped records the failure code `spend_guard`, and a stopped task commits no evidence. `SIGINT` and `SIGTERM` stay graceful: the running job finishes first.
 - **Staleness:** when a measurement, bundle, geometry or summary parameter changes, every record whose provenance cites the old version becomes `stale` (event `entity.stale`), including hypotheses, brief items and review decisions. Re-running produces new revisions; history stays readable. This is what acceptance test DF-03 checks.
 
 ## Budgets (P0 defaults, host-enforced)
 
 | Limit | Default | On reaching it |
 |---|---|---|
-| Model and tool rounds per task | 6 | Partial result naming the unfinished question |
+| Model and tool rounds per task | 6, the last 2 without tools | Partial result naming the unfinished question |
 | Tasks per command | 8 | Planner narrows scope or asks a clarifying question |
 | Concurrent model calls per case | 2 | Queue |
 | Source searches per command | 10 | Use collected sources; disclose coverage |

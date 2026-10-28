@@ -1,3 +1,4 @@
+import { EventEmitter } from "node:events";
 import { mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -8,7 +9,14 @@ import { exampleCase, exampleCommandRequest, freshDatabase } from "@siterra/db/t
 import type { TestDatabase } from "@siterra/db/testing";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import { WORKER_TIMING, dispatchOnce, errorLabel, startWorker, workerQueue } from "./main.ts";
+import {
+  WORKER_TIMING,
+  dispatchOnce,
+  errorLabel,
+  installStopSignals,
+  startWorker,
+  workerQueue,
+} from "./main.ts";
 
 // The whole worker on PostgreSQL: a submitted command goes through the outbox into a pg-boss job,
 // and the plan job finishes it. The model output is a synthetic replay file; nothing is live.
@@ -168,6 +176,35 @@ describe("worker heartbeat (b36)", () => {
 describe("worker timing (PF-05)", () => {
   it("polls the outbox every 250 ms and the plan queue every 0.5 s, pg-boss's minimum", () => {
     expect(WORKER_TIMING).toEqual({ outboxPollMs: 250, jobPollingIntervalSeconds: 0.5 });
+  });
+});
+
+describe("stop signals", () => {
+  function signals() {
+    const target = new EventEmitter();
+    const spendGuard = new AbortController();
+    const stops: string[] = [];
+    installStopSignals(target, spendGuard, () => {
+      stops.push(spendGuard.signal.aborted ? "stop after spend stop" : "graceful stop");
+      return Promise.resolve();
+    });
+    return { target, spendGuard, stops };
+  }
+
+  it("SIGUSR2, the spend guard's signal, aborts the running command before the worker stops", () => {
+    const { target, spendGuard, stops } = signals();
+    target.emit("SIGUSR2");
+    expect(spendGuard.signal.aborted).toBe(true);
+    expect(stops).toEqual(["stop after spend stop"]);
+  });
+
+  it("SIGTERM and SIGINT stop gracefully and let the running job finish", () => {
+    for (const signal of ["SIGTERM", "SIGINT"]) {
+      const { target, spendGuard, stops } = signals();
+      target.emit(signal);
+      expect(spendGuard.signal.aborted).toBe(false);
+      expect(stops).toEqual(["graceful stop"]);
+    }
   });
 });
 

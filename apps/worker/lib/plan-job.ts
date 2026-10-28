@@ -1,4 +1,10 @@
-import { NumberedEventSink, P0_LIMITS, commandCompletedDraft, runCommand } from "@siterra/agent";
+import {
+  NumberedEventSink,
+  P0_LIMITS,
+  SPEND_GUARD_STOP,
+  commandCompletedDraft,
+  runCommand,
+} from "@siterra/agent";
 import type {
   CommandOutcome,
   CommitApi,
@@ -72,8 +78,12 @@ export interface PlanJobDeps {
   now: () => Date;
   newId: (prefix: "task" | "ev") => string;
   cancelPollMs?: number;
+  /** Aborted by the spend guard's stop: the running command ends cancelled at once, in-flight calls too. */
+  spendStop?: AbortSignal;
   /** Executors by task kind; the build's EXECUTORS when absent (tests pass their own). */
   executors?: Partial<Record<TaskRecord["kind"], TaskExecutor>>;
+  /** pg-boss's retry count for this delivery of the job: 0 the first time. */
+  delivery?: number;
 }
 
 export type PlanJobResult =
@@ -173,46 +183,55 @@ export async function handlePlanJob(job: PlanJob, deps: PlanJobDeps): Promise<Pl
     return { status: "skipped", reason: "already_terminal" };
   const snapshot = await deps.db.readSnapshot(job.caseId);
   if (!snapshot) return { status: "skipped", reason: "unknown_case" };
-  // A redelivered job must not plan twice (RL-04): an existing plan task means this ran before.
-  if (snapshot.records.taskRecords.some((t) => t.id === job.planTaskId))
-    return { status: "skipped", reason: "plan_task_exists" };
+  // An existing plan task means a worker ran this job before and stopped before ending the command,
+  // a crash for example (AF-03): the command resumes. A finished plan and finished tasks are never
+  // run again (RL-04); a plan that never landed is run again.
+  const existing = snapshot.records.taskRecords.find((t) => t.id === job.planTaskId);
+  // Event dedupe keys include the attempt, so a resumed run never reuses a crashed run's keys.
+  const attempt = existing ? Math.max(2, 1 + (deps.delivery ?? 0)) : 1 + (deps.delivery ?? 0);
 
   // Events go out in order; each append waits for the one before it.
   let appending: Promise<void> = Promise.resolve();
-  // One run per plan job (a redelivered job is skipped above), so every task is on attempt 1 here.
   const sink = new NumberedEventSink(
     job.commandId,
-    () => 1,
+    () => attempt,
     (draft) => {
       appending = appending.then(() => deps.db.appendEvents(job.caseId, [draft]));
     },
   );
 
-  const planTask = planTaskRecord(job, command, snapshot, deps.now());
-  const queued = await deps.db.commit({
-    caseId: job.caseId,
-    commandId: job.commandId,
-    taskId: planTask.id,
-    expectedCaseRevision: snapshot.case.revision,
-    idempotencyKey: `queue-${planTask.id}`,
-    inputVersions: planTask.inputVersions,
-    upserts: [planTask],
-    events: [
-      {
-        kind: "task.queued",
-        taskId: planTask.id,
-        occurredAt: planTask.createdAt,
-        entityIds: [planTask.id],
-        message: "Task queued: plan.",
-        resultStatus: null,
-        usage: null,
-        tool: null,
-        validation: null,
-      },
-    ],
-  });
-  if (queued.status === "stale") return { status: "skipped", reason: "plan_task_exists" };
-  await deps.db.setCommandStatus(job.commandId, "running");
+  const planTask = existing ?? planTaskRecord(job, command, snapshot, deps.now());
+  const ownTasks = snapshot.records.taskRecords.filter(
+    (t) => t.commandId === job.commandId && t.id !== planTask.id,
+  );
+  let expectedCaseRevision = snapshot.case.revision;
+  if (!existing) {
+    const queued = await deps.db.commit({
+      caseId: job.caseId,
+      commandId: job.commandId,
+      taskId: planTask.id,
+      expectedCaseRevision,
+      idempotencyKey: `queue-${planTask.id}`,
+      inputVersions: planTask.inputVersions,
+      upserts: [planTask],
+      events: [
+        {
+          kind: "task.queued",
+          taskId: planTask.id,
+          occurredAt: planTask.createdAt,
+          entityIds: [planTask.id],
+          message: "Task queued: plan.",
+          resultStatus: null,
+          usage: null,
+          tool: null,
+          validation: null,
+        },
+      ],
+    });
+    if (queued.status === "stale") return { status: "skipped", reason: "plan_task_exists" };
+    expectedCaseRevision = queued.newCaseRevision;
+  }
+  if (command.status !== "running") await deps.db.setCommandStatus(job.commandId, "running");
 
   const controller = new AbortController();
   const poll = setInterval(() => {
@@ -220,6 +239,11 @@ export async function handlePlanJob(job: PlanJob, deps: PlanJobDeps): Promise<Pl
       if (yes) controller.abort();
     });
   }, deps.cancelPollMs ?? 1_000);
+  const onSpendStop = (): void => {
+    controller.abort(SPEND_GUARD_STOP);
+  };
+  if (deps.spendStop?.aborted) onSpendStop();
+  deps.spendStop?.addEventListener("abort", onSpendStop);
 
   // A commit waits for the events queued before it, so sequences follow the order things happened.
   const commits: CommitApi = {
@@ -233,7 +257,16 @@ export async function handlePlanJob(job: PlanJob, deps: PlanJobDeps): Promise<Pl
     outcome = await runCommand(
       {
         planTask,
-        expectedCaseRevision: queued.newCaseRevision,
+        expectedCaseRevision,
+        ...(existing
+          ? {
+              resume: {
+                tasks: ownTasks,
+                attempt,
+                spentMicroUsd: [planTask, ...ownTasks].reduce((sum, t) => sum + t.spentMicroUsd, 0),
+              },
+            }
+          : {}),
         snapshot: {
           command: { text: command.text, intent: command.intent },
           context: command.context,
@@ -260,6 +293,7 @@ export async function handlePlanJob(job: PlanJob, deps: PlanJobDeps): Promise<Pl
     );
   } finally {
     clearInterval(poll);
+    deps.spendStop?.removeEventListener("abort", onSpendStop);
   }
   await appending;
   const taskIds = [planTask.id, ...outcome.tasks.map((t) => t.id)];

@@ -10,7 +10,7 @@ import type { TaskRecord } from "../tasks/records.ts";
 import { PLAN_INSTRUCTIONS } from "../tasks/plan/prompt.ts";
 import type { TraceEventDraft } from "../tasks/trace.ts";
 import { P0_LIMITS } from "./limits.ts";
-import { runCommand } from "./run-command.ts";
+import { EXECUTORS, runCommand, type TaskExecutor } from "./run-command.ts";
 
 // A whole command on synthetic replays and the memory commit double. These tests show the
 // coordinator's control flow; they show nothing about a live model (AF-01 needs one).
@@ -230,6 +230,33 @@ function deps(
 }
 
 describe("runCommand on synthetic replays", () => {
+  it("SA-10 (proposed) an identity-group command ends failed out of scope and creates nothing", async () => {
+    const transport = routes();
+    const { deps: d, commits, events } = deps(transport);
+    const outcome = await runCommand(
+      {
+        planTask: PLAN_TASK,
+        expectedCaseRevision: 3,
+        snapshot: {
+          ...SNAPSHOT,
+          command: { text: "Do Berber herders explain the decline?", intent: "commission" },
+        },
+      },
+      d,
+    );
+    expect(outcome.status).toBe("failed");
+    expect(outcome.tasks).toEqual([]);
+    expect(outcome.spentUsd).toBe(0);
+    expect(events.filter((e) => e.kind === "model.started")).toEqual([]);
+    expect(commits.evidence.size + commits.hypotheses.size + commits.interventions.size).toBe(0);
+    expect(commits.caseRevision).toBe(3 + 1);
+    expect([...commits.tasks.values()]).toMatchObject([
+      { id: "task_test_plan", status: "failed", failureCode: "out_of_scope" },
+    ]);
+    expect(commits.packages.size).toBe(0);
+    expect(commits.events.map((e) => e.kind)).toEqual(["task.failed"]);
+  });
+
   it("plans four tasks, runs them at most two model calls at a time, and ends every task", async () => {
     const transport = routes();
     const { deps: d, commits, events } = deps(transport);
@@ -378,6 +405,255 @@ describe("runCommand on synthetic replays", () => {
     expect(commits.interventions.get("int_test_06")?.provenance.limitations[0]).toMatch(
       /^Fixed text written by Siterra's host code, not by a model/,
     );
+  });
+
+  it("RL-02 the brief package still runs after a quantitative task fails, with the failed task named", async () => {
+    const plan = {
+      interpretation: "The command asks for a field-scoping package for the valley.",
+      tasks: [
+        {
+          key: "sources",
+          kind: "source_research",
+          question: "What do sources say about closures?",
+          dependsOn: [],
+          inputRefs: [],
+        },
+        {
+          key: "observations",
+          kind: "observation_analysis",
+          question: "What did NDVI show in spring 2022?",
+          dependsOn: [],
+          inputRefs: [{ entityId: "bundle_test_ndvi", revision: 2 }],
+        },
+        {
+          key: "brief",
+          kind: "brief_package",
+          question: "Prepare the field-validation plan and the decision brief.",
+          dependsOn: [],
+          inputRefs: [],
+        },
+      ],
+      clarifyingQuestion: null,
+    };
+    const seen: TaskRecord[] = [];
+    const brief: TaskExecutor = ({ task, expectedCaseRevision }) => {
+      seen.push(task);
+      return Promise.resolve({
+        commit: {
+          caseId: task.caseId,
+          commandId: task.commandId,
+          taskId: task.id,
+          expectedCaseRevision,
+          idempotencyKey: `test-${task.id}`,
+          inputVersions: [],
+          upserts: [
+            {
+              ...task,
+              revision: task.revision + 1,
+              status: "succeeded",
+              finishedAt: AT.toISOString(),
+            },
+          ],
+          events: [],
+        },
+      });
+    };
+    const { deps: d } = deps(routes([answerStep(JSON.stringify(plan))]), {
+      executors: {
+        ...EXECUTORS,
+        observation_analysis: () => Promise.reject(new Error("bundle_test_ndvi is missing")),
+        brief_package: brief,
+      },
+    });
+    const outcome = await runCommand(
+      { planTask: PLAN_TASK, expectedCaseRevision: 3, snapshot: SNAPSHOT },
+      d,
+    );
+    const byKind = new Map(outcome.tasks.map((t) => [t.kind, t]));
+    expect(byKind.get("observation_analysis")).toMatchObject({
+      status: "failed",
+      failureCode: "executor_error",
+    });
+    expect(byKind.get("source_research")?.status).toBe("succeeded");
+    expect(byKind.get("brief_package")).toMatchObject({ status: "succeeded", failureCode: null });
+    const observationId = byKind.get("observation_analysis")?.id;
+    expect(seen).toHaveLength(1);
+    expect(seen[0]?.missingInputs).toEqual([
+      `Dependency ${String(observationId)} (observation analysis) ended failed: executor error.`,
+    ]);
+    expect(outcome.status).toBe("partial");
+  });
+
+  describe("a refused or failed data load is a named blocked input, never a silent success", () => {
+    const captureBrief = (seen: TaskRecord[]): TaskExecutor => {
+      return ({ task, expectedCaseRevision }) => {
+        seen.push(task);
+        return Promise.resolve({
+          commit: {
+            caseId: task.caseId,
+            commandId: task.commandId,
+            taskId: task.id,
+            expectedCaseRevision,
+            idempotencyKey: `test-${task.id}`,
+            inputVersions: [],
+            upserts: [
+              {
+                ...task,
+                revision: task.revision + 1,
+                status: "succeeded",
+                finishedAt: AT.toISOString(),
+              },
+            ],
+            events: [],
+          },
+        });
+      };
+    };
+    const summarize = (bundleId: string, bundleRevision: number) =>
+      toolCallStep("summarize_observations", {
+        bundleId,
+        bundleRevision,
+        periodIds: ["period_2022-04"],
+        metric: null,
+      });
+    const onePlan = (kind: string, question: string, withBrief = false) =>
+      answerStep(
+        JSON.stringify({
+          interpretation: "The command asks one question of the case record.",
+          tasks: [
+            { key: "one", kind, question, dependsOn: [], inputRefs: [] },
+            ...(withBrief
+              ? [
+                  {
+                    key: "brief",
+                    kind: "brief_package",
+                    question: "Prepare the field-validation plan and the decision brief.",
+                    dependsOn: [],
+                    inputRefs: [],
+                  },
+                ]
+              : []),
+          ],
+          clarifyingQuestion: null,
+        }),
+      );
+
+    it("RL-02 an observation task whose dataset is missing ends failed with the dataset named, and the brief sees it", async () => {
+      const seen: TaskRecord[] = [];
+      const transport = new RoutingTransport([
+        [
+          "You plan one command",
+          syntheticTransport([
+            onePlan("observation_analysis", "What did NDVI show in April 2022?", true),
+          ]),
+        ],
+        [
+          "You answer one question about observations",
+          syntheticTransport([
+            summarize("bundle_test_removed", 1),
+            answerStep(JSON.stringify({ items: [] })),
+            answerStep(JSON.stringify({ items: [] })),
+          ]),
+        ],
+      ]);
+      const {
+        deps: d,
+        commits,
+        events,
+      } = deps(transport, {
+        executors: { ...EXECUTORS, brief_package: captureBrief(seen) },
+      });
+      await runCommand({ planTask: PLAN_TASK, expectedCaseRevision: 3, snapshot: SNAPSHOT }, d);
+      const blocked = "bundle_test_removed: summarize_observations refused it (unknown bundle).";
+      const observation = [...commits.tasks.values()].find(
+        (t) => t.kind === "observation_analysis",
+      );
+      expect(observation).toMatchObject({ status: "failed", missingInputs: [blocked] });
+      const ended = [...events, ...commits.events].find(
+        (e) => e.taskId === observation?.id && e.kind === "task.failed",
+      );
+      expect(ended?.message).toContain(blocked);
+      expect(seen[0]?.missingInputs).toContain(
+        `Dependency ${String(observation?.id)} (observation analysis) is missing: ${blocked}`,
+      );
+    });
+
+    it("a refused compare_series makes the task partial with the dataset named", async () => {
+      const transport = new RoutingTransport([
+        [
+          "You plan one command",
+          syntheticTransport([onePlan("hypothesis_comparison", "Could drought explain it?")]),
+        ],
+        [
+          "You compare candidate explanations",
+          syntheticTransport([
+            toolCallStep("compare_series", {
+              a: { bundleId: "bundle_test_ndvi", bundleRevision: 2, metric: "ndvi_area_median" },
+              b: { bundleId: "bundle_test_ndvi", bundleRevision: 2, metric: "ndvi_area_median" },
+            }),
+            answerStep(
+              JSON.stringify({
+                items: [
+                  {
+                    hypothesisId: null,
+                    statement:
+                      "Lower spring rainfall reduced vegetation greenness in the catchment.",
+                    status: "inconclusive",
+                    supportingEvidenceIds: [],
+                    contradictingEvidenceIds: [],
+                    missingEvidence: ["Rainfall departures for the same months."],
+                    assessment: "Cannot be assessed with current data: rainfall was not aligned.",
+                  },
+                ],
+              }),
+            ),
+          ]),
+        ],
+      ]);
+      const { deps: d, commits } = deps(transport);
+      const outcome = await runCommand(
+        { planTask: PLAN_TASK, expectedCaseRevision: 3, snapshot: SNAPSHOT },
+        d,
+      );
+      const task = [...commits.tasks.values()].find((t) => t.kind === "hypothesis_comparison");
+      expect(task).toMatchObject({
+        status: "partial",
+        missingInputs: ["bundle_test_ndvi: compare_series refused it (not a departure series)."],
+      });
+      expect(
+        commits.events.filter(
+          (e) => e.taskId === task?.id && /^task\.(succeeded|partial|failed)$/.test(e.kind),
+        ),
+      ).toMatchObject([{ kind: "task.partial", resultStatus: "partial" }]);
+      expect(outcome.status).toBe("partial");
+    });
+
+    it("a load that later succeeds for the same dataset names nothing", async () => {
+      const transport = new RoutingTransport([
+        [
+          "You plan one command",
+          syntheticTransport([
+            onePlan("observation_analysis", "What did NDVI show in April 2022?"),
+          ]),
+        ],
+        [
+          "You answer one question about observations",
+          syntheticTransport([
+            summarize("bundle_test_ndvi", 1),
+            summarize("bundle_test_ndvi", 2),
+            answerStep(JSON.stringify({ items: [observation] })),
+          ]),
+        ],
+      ]);
+      const { deps: d, commits } = deps(transport);
+      await runCommand({ planTask: PLAN_TASK, expectedCaseRevision: 3, snapshot: SNAPSHOT }, d);
+      expect(
+        [...commits.tasks.values()].find((t) => t.kind === "observation_analysis"),
+      ).toMatchObject({
+        status: "succeeded",
+        missingInputs: [],
+      });
+    });
   });
 
   it("TR-03 path: trace events carry no prompt text, source text, key or bearer token", async () => {
