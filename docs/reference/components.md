@@ -116,6 +116,7 @@ One machine-readable entry per `componentKind` in `packages/contracts` is the si
 | `temporal_comparison` | CMP-08 | observations, explanations | DataBundle 1 to 2 and GeoSelection 1 | single, aligned, two_period | yes | `observation_analysis` |
 | `evidence` | CMP-09 | observations, explanations | Evidence 1 to 20 | none | yes | `source_research` |
 | `hypothesis_comparison` | CMP-10 ledger | explanations | Hypothesis 1 to 5 | none | yes | `hypothesis_comparison` |
+| `explanation_branches` (proposed) | CMP-23 | explanations | ExplanationBranch 1 to 5 and BranchMerge 1 | none | no (default projection only) | `explanation_branches` |
 | `livelihood_constraints` | CMP-11 | responses | Evidence 1 to 20 | none | yes | `livelihood_governance` |
 | `intervention_comparison` | CMP-12 | responses | Intervention 2 to 4 | none | yes | `intervention_feasibility` |
 | `action_package` | CMP-13 field plan | next_steps | OperationalAction 1 to 3; ResourceRequirement 0 to 12 | none | yes | `brief_package` |
@@ -359,3 +360,18 @@ A component in `loading` binds the task IDs that will produce its records, so it
 | Content | Cards in a fixed order (same massif first): place and scale, design label, period, finding with a verified excerpt, similarities and differences, transfer limits, what it cannot show; optional regional map view |
 | Rules | [Comparable places](../explanation/comparable-places.md): published context only, no numeric transfer, cannot change a hypothesis status |
 | Priority | P1 (P0 as corpus evidence only) |
+
+## CMP-23 Explanation branches (`explanation_branches`, proposed)
+
+Proposed, pending the maintainer's approval; added in contracts 1.10.0 ([explanation branches](data-contracts.md#explanation-branches-proposed)). The visual design and the copy belong to the UI lane.
+
+| | |
+|---|---|
+| Question | Which explanations does the record leave open, by which committed predictions, and which field check would separate them? |
+| Binds | The ExplanationBranch records of one command (1 to 5) and their BranchMerge (exactly 1), at exact revisions |
+| Level 1 | One line per branch: explanation label, status words, the merge reason |
+| Level 2 (expanded) | Per branch, its predictions in key order: the test, necessary or not, and the score (met, not met, not testable) with the host's observed text and the measurement IDs read; the merge conflicts; the field plan: each chosen check with the pairs it separates and the pairs only it separates, then the pairs no configured check separates |
+| Status words | The [hypothesis status](data-contracts.md#hypothesis-status) words for `contradicted`, `consistent` and `cannot_be_assessed`; a branch at revision 1 has predictions and no status yet |
+| Rules | Predictions show the case revision they were committed at, earlier than the scores. A status comes from the merge record, never from prediction wording. No scores, probabilities or ranking. The pairs a field check separates are labeled as configured judgments, not results. Any change to a bound revision makes the component stale |
+| Text equivalent | Table |
+| Priority | P0 (proposed) |
