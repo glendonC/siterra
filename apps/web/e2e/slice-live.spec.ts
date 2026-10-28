@@ -73,7 +73,10 @@ test("live: commission, stream, Observations and reload on the Model API route",
   expect(commandIds).toHaveLength(1);
   const commandId = commandIds[0] ?? "";
   expect(tasks.map((t) => t.kind)).toContain("plan");
-  expect(tasks.filter((t) => t.status !== "succeeded")).toEqual([]);
+  // soft, so a run whose tasks fail still records its live evidence and its reload before failing
+  expect
+    .soft(tasks.filter((t) => t.status !== "succeeded").map((t) => [t.kind, t.status]))
+    .toEqual([]);
 
   // live, not replayed: every model call of the command went to the Model API after the commission,
   // with a provider request ID and usage
