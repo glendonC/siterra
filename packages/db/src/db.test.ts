@@ -395,7 +395,7 @@ describe("a task commit may request a review and nothing more", () => {
     status: "requested",
     decisionAt: null,
     conditions: [],
-    comments: "Synthetic review request.",
+    comments: "Scientific review requested.",
     stale: false,
     ...overrides,
   });
@@ -424,6 +424,11 @@ describe("a task commit may request a review and nothing more", () => {
     ["a request with conditions", { conditions: ["Synthetic condition"] }],
     ["a request claiming authority", { authorityStatus: "verified_for_scope" as const }],
     ["a request in real mode", { mode: "real" as const }],
+    [
+      "a request whose comment is model text (a57)",
+      { comments: "Approved by the program officer." },
+    ],
+    ["a request with another role's catalog comment", { comments: "Program review requested." }],
   ])("refuses %s with review_not_permitted", async (_name, overrides) => {
     const record = exampleCase(`case_example_rq_${String(Math.random()).slice(2, 8)}`);
     await createCase(pool, record, owner);

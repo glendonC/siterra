@@ -76,6 +76,7 @@ Contracts and design tokens carry their own Semantic Versioning numbers, recorde
 - Acceptance rows PC-02, PC-04, VC-02, VC-04, VC-05 and SC-04 restated for the approved hero; links into the unpublished first prototype now point at the hero pages, and `CONTRIBUTING.md` lists the four old design folders as private.
 - The delivery plan dates B1 to B5 from the founder's approval of the hero (Tue 27 to Sat 31 Oct 2026) and schedules the Sentinel-2 drape, the contours and the 3D arrival settle on B2 and B3; `maplibre-contour` 0.1.1 is P0; the demo plan notes that a viewer's typed question may say "drought" while Siterra's suggestions say "a dry year".
 - The bundle importer records each measurement's and observation's own bundle version in its provenance, so superseding a bundle stales evidence that cites only its measurements; records without a stale state pass staleness on to what cites them.
+- A review request's comment must be the host catalog text for its role ("Scientific review requested.", "Community and livelihood review requested." or "Program review requested."); a task never writes it.
 
 ### Fixed
 

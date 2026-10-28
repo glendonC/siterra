@@ -78,8 +78,9 @@ function withoutRevisionFields(record: EnvironmentalCase): string {
 
 /**
  * A review request as a task may write it: a first revision in state requested, demo mode,
- * authority not established, no actor, no decision time, no conditions, not stale. Anything that
- * records or pre-fills a decision is not a request.
+ * authority not established, no actor, no decision time, no conditions, not stale, and as its
+ * comment exactly the host catalog text for its role (eventMessages.reviewRequested), never model
+ * text. Anything that records or pre-fills a decision is not a request.
  */
 export function isReviewRequest(record: Upsert): boolean {
   return (
@@ -91,7 +92,8 @@ export function isReviewRequest(record: Upsert): boolean {
     record.actorId === null &&
     record.decisionAt === null &&
     record.conditions.length === 0 &&
-    !record.stale
+    !record.stale &&
+    record.comments === eventMessages.reviewRequested(record.role)
   );
 }
 

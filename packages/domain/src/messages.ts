@@ -31,6 +31,21 @@ export const eventMessages = {
     }
   },
 
+  /**
+   * The only comment a review request may carry (a task never writes the comment; AUDIT a57).
+   * No approved row; built on the approved status word "Requested" (microcopy.md, review panels).
+   */
+  reviewRequested: (role: ReviewRole) => {
+    switch (role) {
+      case "scientific":
+        return "Scientific review requested.";
+      case "community_livelihood":
+        return "Community and livelihood review requested.";
+      case "program_coordination":
+        return "Program review requested.";
+    }
+  },
+
   /** No approved row; closest approved pattern "Loaded 84 monthly observations" (microcopy.md, milestones). */
   caseSeeded: (bundleCount: number) => `Loaded ${bundleCount} observation bundles`,
 
@@ -50,4 +65,7 @@ export const eventMessagesWithoutApprovedRow = [
   "Loaded {count} observation bundles",
   "Opened a demo copy of the case",
   "{count} records need reassessment after an input changed",
+  "Scientific review requested.",
+  "Community and livelihood review requested.",
+  "Program review requested.",
 ] as const;
