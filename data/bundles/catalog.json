@@ -13,7 +13,7 @@
    "rel": "child",
    "href": "./bundle_aligned_antecedent_ait_bouguemez/collection.json",
    "type": "application/json",
-   "file:checksum": "12209dcdef2c5d8ecc09f620aeac31f8e6ceaf9df06e0048171ff1ab78d878bbfa62"
+   "file:checksum": "1220b789bb07d04c00c89fe24e96b7c402653cfa1d2c04d02e603e0944b5b16c60a9"
   },
   {
    "rel": "child",
@@ -31,7 +31,7 @@
    "rel": "child",
    "href": "./bundle_ndvi_departure_ait_bouguemez/collection.json",
    "type": "application/json",
-   "file:checksum": "1220fe4be224a555dc005a8bce92cfe46cfd142707bc684f11361d3ef9d5e92f7a43"
+   "file:checksum": "1220a0549ad888b581a557441d2f86d47207cc233662ded5aa57f96b47e2e91bc01a"
   },
   {
    "rel": "child",
