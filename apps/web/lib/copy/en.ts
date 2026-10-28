@@ -97,7 +97,26 @@ export const en = {
   "work.stop": { text: "Stop", kind: "button" },
   "work.received": { text: "Request received", kind: "ui" },
   "work.complete": { text: "Request complete", kind: "ui" },
-  "work.observations": { text: "Observations", kind: "label" },
+  // microcopy section 5 Failed and Partial; "Your question is kept" as in work.refused, no Retry on the card
+  "work.failed": { text: "Request failed: {cause}. Your question is kept.", kind: "ui" },
+  "work.partial": { text: "Finished with gaps. Not done: {tasks}.", kind: "ui" },
+  "work.cancelled": { text: "Request canceled", kind: "ui" },
+  // causes after the section 16 patterns: Budget or time limit, Model output rejected, Model service down
+  "work.cause.roundLimit": { text: "stopped at the model round limit", kind: "ui" },
+  "work.cause.rejected": { text: "Siterra rejected the model's proposal", kind: "ui" },
+  "work.cause.modelDown": { text: "the model service is not responding", kind: "ui" },
+  "work.cause.other": { text: "no step finished", kind: "ui" },
+  // task kinds (microcopy section 6 task rows; agent orchestration for the two it does not list)
+  "task.kind.plan": { text: "Plan", kind: "label" },
+  "task.kind.source_research": { text: "Source research", kind: "label" },
+  "task.kind.observation_analysis": { text: "Observation analysis", kind: "label" },
+  "task.kind.livelihood_governance": { text: "Livelihood and governance research", kind: "label" },
+  "task.kind.hypothesis_comparison": { text: "Explanation comparison", kind: "label" },
+  "task.kind.intervention_feasibility": { text: "Intervention feasibility", kind: "label" },
+  "task.kind.brief_package": { text: "Field-validation plan", kind: "label" },
+  "task.kind.validation": { text: "Validation", kind: "label" },
+  // labeled precomputed (ADR-0021; agent orchestration, "Precomputed observations are labeled precomputed")
+  "work.observations": { text: "Precomputed observations", kind: "label" },
   "work.observationLine": {
     text: "{label}: {available} of {total} months observed, {first} to {last}",
     kind: "ui",
