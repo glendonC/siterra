@@ -33,6 +33,8 @@ export interface ArrivalChromeProps {
   primary: MessageId | undefined;
   /** A message under the command line when a request was refused. */
   notice?: MessageId | undefined;
+  /** False when the map could not be drawn: no F hint and no map instruments (the hint rule). */
+  mapDrawn?: boolean;
   /** True in the flat reading: the F hint is pressed, and F again returns. */
   flat?: boolean;
   onReadFlat: () => void;
@@ -58,6 +60,7 @@ export function ArrivalChrome({
   primary,
   notice,
   flat = false,
+  mapDrawn = true,
   onReadFlat,
   onAsk,
   onSources,
@@ -78,6 +81,7 @@ export function ArrivalChrome({
       }
       // ↵ with no primary hint does nothing, so the key is left alone
       if (action === "primary" && !primary) return;
+      if (action === "readFlat" && !mapDrawn) return;
       e.preventDefault();
       if (action === "primary") onStart();
       else if (action === "readFlat") onReadFlat();
@@ -87,7 +91,7 @@ export function ArrivalChrome({
     return () => {
       window.removeEventListener("keydown", onKey);
     };
-  }, [singleKeys, arrived, primary, onStart, onReadFlat]);
+  }, [singleKeys, arrived, primary, mapDrawn, onStart, onReadFlat]);
 
   const reduced =
     typeof window !== "undefined" && matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -186,51 +190,56 @@ export function ArrivalChrome({
             </button>
           </li>
         ) : null}
-        <li>
-          <button
-            type="button"
-            className={styles.key}
-            onClick={onReadFlat}
-            aria-pressed={flat}
-            aria-keyshortcuts="F"
-            data-budget="key-hint"
-          >
-            <kbd className={styles.glyph} aria-hidden="true">
-              F
-            </kbd>
-            {en["arrival.readFlat"].text}
-          </button>
-        </li>
+        {mapDrawn ? (
+          <li>
+            <button
+              type="button"
+              className={styles.key}
+              onClick={onReadFlat}
+              aria-pressed={flat}
+              aria-keyshortcuts="F"
+              data-budget="key-hint"
+            >
+              <kbd className={styles.glyph} aria-hidden="true">
+                F
+              </kbd>
+              {en["arrival.readFlat"].text}
+            </button>
+          </li>
+        ) : null}
       </ul>
 
-      <div
-        className={`${styles.instruments ?? ""} ${instruments.className}`}
-        style={instruments.style}
-        data-budget="island"
-      >
-        <div className={styles.instrumentRow}>
-          <svg
-            className={styles.north}
-            viewBox="-20 -20 40 40"
-            role="img"
-            aria-label={en["stage.northName"].text}
-            // north up in the flat reading
-            style={{ transform: `rotate(${String(flat ? 0 : -bearingDeg)}deg)` }}
-          >
-            <path d="M0 -12 L4.5 5.5 L0 2 L-4.5 5.5 Z" />
-          </svg>
-          <span className={styles.northLabel} aria-hidden="true">
-            {en["stage.north"].text}
-          </span>
-          {/* the flat reading has no relief, so no exaggeration to state */}
-          {flat ? null : <span>{format("stage.relief", { factor: reliefFactor })}</span>}
-        </div>
-        {imagery ? (
+      {/* the instruments describe the map: none when it is not drawn */}
+      {mapDrawn ? (
+        <div
+          className={`${styles.instruments ?? ""} ${instruments.className}`}
+          style={instruments.style}
+          data-budget="island"
+        >
           <div className={styles.instrumentRow}>
-            <span>{en["stage.imagery"].text}</span>
+            <svg
+              className={styles.north}
+              viewBox="-20 -20 40 40"
+              role="img"
+              aria-label={en["stage.northName"].text}
+              // north up in the flat reading
+              style={{ transform: `rotate(${String(flat ? 0 : -bearingDeg)}deg)` }}
+            >
+              <path d="M0 -12 L4.5 5.5 L0 2 L-4.5 5.5 Z" />
+            </svg>
+            <span className={styles.northLabel} aria-hidden="true">
+              {en["stage.north"].text}
+            </span>
+            {/* the flat reading has no relief, so no exaggeration to state */}
+            {flat ? null : <span>{format("stage.relief", { factor: reliefFactor })}</span>}
           </div>
-        ) : null}
-      </div>
+          {imagery ? (
+            <div className={styles.instrumentRow}>
+              <span>{en["stage.imagery"].text}</span>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
 
       <p className={styles.credit} data-budget="credit">
         {[...CREDITS.map((id) => en[id].text), placeCredit].filter(Boolean).join(" ")}

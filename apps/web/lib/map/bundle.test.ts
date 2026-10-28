@@ -36,7 +36,13 @@ describe("parseMapBundle (data/map/manifest.json)", () => {
   });
 
   it("keeps the valley terrain and the globe patches to tiles the bundle has", () => {
-    expect(m.valley.terrain.maxzoom).toBe(12);
+    // z12 covers only the asset extent; the z11 ring round it is the whole terrain
+    expect(m.valley.terrain.maxzoom).toBe(11);
+    const [rw, rs, re, rn] = m.valley.terrain.bounds ?? [0, 0, 0, 0];
+    expect(rw).toBeCloseTo(-7.0312, 3);
+    expect(re).toBeCloseTo(-5.8008, 3);
+    expect(rs).toBeCloseTo(31.0529, 3);
+    expect(rn).toBeCloseTo(32.1012, 3);
     expect(m.valley.terrain.tileSize).toBe(512);
     const [w, s, e, n] = m.valley.terrain.bounds ?? [0, 0, 0, 0];
     expect(w).toBeLessThanOrEqual(-6.71);
@@ -49,6 +55,22 @@ describe("parseMapBundle (data/map/manifest.json)", () => {
       for (let x = t.tx0; x <= t.tx1; x++)
         for (let y = t.ty0; y <= t.ty1; y++)
           expect(listed.has(`terrain/${String(r.z)}/${String(x)}/${String(y)}.webp`)).toBe(true);
+    }
+  });
+
+  it("makes contours only where every terrain tile they read has its 8 neighbours", () => {
+    expect(m.contours?.minzoom).toBe(10);
+    const box = m.contours?.bounds ?? [0, 0, 0, 0];
+    // the catchment (about -6.66 to -6.18 E, 31.55 to 31.78 N) lies inside
+    expect(box[0]).toBeLessThan(-6.66);
+    expect(box[2]).toBeGreaterThan(-6.18);
+    expect(box[1]).toBeLessThan(31.55);
+    expect(box[3]).toBeGreaterThan(31.78);
+    for (const z of [10, 11]) {
+      const r = tileRange(box, z);
+      for (let x = r.tx0 - 1; x <= r.tx1 + 1; x++)
+        for (let y = r.ty0 - 1; y <= r.ty1 + 1; y++)
+          expect(listed.has(`terrain/${String(z)}/${String(x)}/${String(y)}.webp`)).toBe(true);
     }
   });
 

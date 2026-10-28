@@ -27,6 +27,19 @@ test("Sources and notices lists the record's credits and the font licences", asy
     expect(res.status()).toBe(200);
     expect(await res.text()).toContain("SIL OPEN FONT LICENSE Version 1.1");
   }
+  // the map software's BSD 3-Clause notices ship with the app
+  for (const [name, text] of [
+    ["MapLibre GL JS, BSD 3-Clause License", "Copyright (c) 2023, MapLibre contributors"],
+    [
+      "maplibre-contour, BSD 3-Clause License, with the licences of the code it includes",
+      "Copyright (c) 2023, Michael Barry and maplibre-contour contributors",
+    ],
+  ] as const) {
+    const href = await dialog.getByRole("link", { name }).getAttribute("href");
+    const res = await request.get(href ?? "");
+    expect(res.status()).toBe(200);
+    expect(await res.text()).toContain(text);
+  }
   await page.addStyleTag({ content: "nextjs-portal { display: none !important; }" });
   if (process.env.NOTICES_OUT) await page.screenshot({ path: process.env.NOTICES_OUT });
   await page.keyboard.press("Escape");

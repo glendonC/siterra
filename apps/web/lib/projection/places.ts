@@ -42,9 +42,12 @@ function usesOpenStreetMap(f: ContextFeature): boolean {
 
 export function contextLand(s: CaseSnapshot): ContextLand {
   const features = s.records.contextFeatureRecords ?? [];
-  const placeFeatures = features.filter((f) => PLACE_ROLES.includes(f.role));
+  // the listing reads like the valley: the outlet, then the places west to east (upstream)
+  const placeFeatures = features
+    .filter((f) => PLACE_ROLES.includes(f.role))
+    .sort((a, b) => a.geometry.coordinates[0] - b.geometry.coordinates[0]);
   const outletFeature = features.find((f) => f.role === "outlet");
-  const credits = features.flatMap((f) =>
+  const credits = [...(outletFeature ? [outletFeature] : []), ...placeFeatures].flatMap((f) =>
     f.attribution ? [{ id: f.id, name: f.name, attribution: f.attribution }] : [],
   );
   // the line keeps the approved frame's wording: OpenStreetMap for the outlet input; the place credits,

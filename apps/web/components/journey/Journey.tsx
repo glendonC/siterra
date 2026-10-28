@@ -27,6 +27,7 @@ import styles from "./Journey.module.css";
 export interface JourneyProps {
   /** The valley's and the globe's assets, from the one map bundle. */
   valleyAssets: MapBundle["valley"];
+  contourArea?: MapBundle["contours"];
   globeAssets: GlobeAssets;
   /** The case's arrival, projected from its record. */
   arrival: ReadyArrival;
@@ -37,7 +38,13 @@ type Phase = "opening" | "globe" | "dive" | "arrival";
 
 const RANGE_NAMES: [MessageId, MessageId] = ["globe.range", "dive.highAtlas"];
 
-export function Journey({ valleyAssets, globeAssets, arrival, snapshot }: JourneyProps) {
+export function Journey({
+  valleyAssets,
+  contourArea,
+  globeAssets,
+  arrival,
+  snapshot,
+}: JourneyProps) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const valley = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
@@ -213,6 +220,7 @@ export function Journey({ valleyAssets, globeAssets, arrival, snapshot }: Journe
       <div ref={valley} className={styles.valley} aria-hidden={phase !== "arrival"}>
         <ArrivalView
           assets={valleyAssets}
+          contourArea={contourArea}
           arrival={arrival}
           snapshot={snapshot}
           chrome={phase === "arrival"}

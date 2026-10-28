@@ -19,6 +19,7 @@ export function JourneyPage() {
   return (
     <Journey
       valleyAssets={map.bundle.valley}
+      contourArea={map.bundle.contours}
       globeAssets={map.bundle.globe}
       arrival={c.arrival}
       snapshot={c.snapshot}

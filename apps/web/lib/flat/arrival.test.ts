@@ -41,6 +41,21 @@ describe("arrivalFlat", () => {
     expect(bare[2]?.lines).toEqual(["Relief ×2"]);
   });
 
+  it("states no relief and no imagery when no map is drawn", () => {
+    const noMap = arrivalFlat({
+      question: "Q",
+      areaKm2: "1.0",
+      places: [],
+      outlet: false,
+      placeCredit: "",
+      placeCredits: [],
+      reliefFactor: 2,
+      imagery: false,
+      relief: false,
+    });
+    expect(noMap.map((s) => s.heading)).toEqual(["Question", "Place", "Sources"]);
+  });
+
   it("leaves no placeholder unfilled", () => {
     expect(flat.flatMap((s) => s.lines).filter((l) => /\{\w+\}/.test(l))).toEqual([]);
   });

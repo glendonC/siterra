@@ -37,6 +37,35 @@ if (typeof window !== "undefined") {
   );
 }
 
+/**
+ * Contour tiles from the terrain tiles, made in the browser by maplibre-contour (one shared DEM source per
+ * terrain template, registered with MapLibre once). 100 m lines, every fifth (500 m) as an index line.
+ */
+const contourSources = new Map<string, string>();
+
+async function contourTiles(terrainTiles: string, maxzoom: number): Promise<string> {
+  const known = contourSources.get(terrainTiles);
+  if (known) return known;
+  const { default: mlcontour } = await import("maplibre-contour");
+  const dem = new mlcontour.DemSource({
+    url: terrainTiles,
+    encoding: "terrarium",
+    maxzoom,
+    worker: true,
+  });
+  dem.setupMaplibre(maplibregl);
+  const url = dem.contourProtocolUrl({
+    thresholds: { 8: [100, 500] },
+    levelKey: "level",
+    elevationKey: "ele",
+    contourLayer: "contours",
+    // 512 px terrain tiles: build each contour tile from one quadrant of the tile a zoom above
+    overzoom: 1,
+  });
+  contourSources.set(terrainTiles, url);
+  return url;
+}
+
 /** Interface sans for names on the ground; must match the family the app loads. */
 const LABEL_FAMILY = '"IBM Plex Sans Variable", "IBM Plex Sans", sans-serif';
 
@@ -79,6 +108,8 @@ const PLANE_LIFT_M = 600;
 export interface ValleyStageProps {
   /** The valley's assets from the map bundle, or null when the bundle could not be read. */
   assets: MapBundle["valley"] | null;
+  /** Where the bundle's terrain lets contour lines be made; none without it. */
+  contourArea?: MapBundle["contours"];
   /** The analysis geometry from the case record (GeoSelection, its current revision). */
   catchment: Feature;
   /** Its area in km² to one decimal, from the record. */
@@ -107,6 +138,7 @@ export interface ValleyStageProps {
 
 export function ValleyStage({
   assets,
+  contourArea,
   catchment,
   areaKm2,
   places,
@@ -405,6 +437,15 @@ export function ValleyStage({
 
     const setup = async () => {
       if (!assets) throw new Error("No map bundle");
+      const terrainTiles = assets.terrain.tiles[0];
+      const contours =
+        terrainTiles && contourArea
+          ? {
+              tiles: [await contourTiles(terrainTiles, assets.terrain.maxzoom)],
+              ...contourArea,
+              maxzoom: 13,
+            }
+          : undefined;
       await document.fonts.load(`500 64px ${LABEL_FAMILY}`);
       const el = container.current;
       if (cancelled || !el) return;
@@ -438,6 +479,7 @@ export function ValleyStage({
             haze: { url: drawHaze(daylight.paper), coordinates: hazeCorners() },
           },
           catchment,
+          contours,
           outlet: outletRef.current,
         }),
         center: cam.center,
@@ -471,7 +513,7 @@ export function ValleyStage({
       map?.remove();
     };
     // callers pass the record's geometry once (memoized), so the map is built once per case revision
-  }, [assets, catchment, areaKm2, onIdle, onMap]);
+  }, [assets, contourArea, catchment, areaKm2, onIdle, onMap]);
 
   return (
     <div

@@ -13,6 +13,11 @@ export const MAP_BUNDLE_URL = "/api/map-assets";
 export interface MapBundle {
   /** The valley's assets, without the haze picture the client draws itself. */
   valley: Omit<ValleyAssets, "haze">;
+  /**
+   * Where contour lines can be made: maplibre-contour builds a contour tile from the terrain tile and its 8
+   * neighbours, so only zooms from `minzoom` up, inside the box where every neighbour is listed.
+   */
+  contours?: { minzoom: number; bounds: [number, number, number, number] };
   globe: GlobeAssets;
 }
 
@@ -87,6 +92,38 @@ function isCorners(v: unknown): v is Corners {
   );
 }
 
+/** Lowest zoom the contours are made at: the arrival's zoom is about 10.9. */
+const CONTOUR_MINZOOM = 10;
+
+/** The box of the listed tiles at one zoom whose 8 neighbours are all listed. */
+function interiorBox(
+  tiles: { z: number; x: number; y: number }[],
+  z: number,
+): [number, number, number, number] | undefined {
+  const at = new Set(tiles.filter((t) => t.z === z).map((t) => `${String(t.x)}/${String(t.y)}`));
+  const inner = tiles.filter((t) => {
+    if (t.z !== z) return false;
+    for (let dx = -1; dx <= 1; dx++)
+      for (let dy = -1; dy <= 1; dy++)
+        if (!at.has(`${String(t.x + dx)}/${String(t.y + dy)}`)) return false;
+    return true;
+  });
+  return tileBox(inner, z);
+}
+
+function intersect(
+  a: [number, number, number, number],
+  b: [number, number, number, number],
+): [number, number, number, number] | undefined {
+  const box: [number, number, number, number] = [
+    Math.max(a[0], b[0]),
+    Math.max(a[1], b[1]),
+    Math.min(a[2], b[2]),
+    Math.min(a[3], b[3]),
+  ];
+  return box[0] < box[2] && box[1] < box[3] ? box : undefined;
+}
+
 /**
  * Checks the bundle's shape and resolves its paths against the versioned manifest URL. The imagery is
  * draped only when its layer is listed and its corners file was read (`imageryCorners`).
@@ -103,8 +140,21 @@ export function parseMapBundle(raw: unknown, base: string, imageryCorners?: unkn
     return t ? [{ z: Number(t[1]), x: Number(t[2]), y: Number(t[3]) }] : [];
   });
   if (tiles.length === 0) throw new Error("Map bundle: the valley terrain lists no tiles");
-  const maxzoom = Math.max(...tiles.map((t) => t.z));
-  const bounds = tileBox(tiles, maxzoom);
+  // the top zoom may cover only an inner extent (SCIENCE 22: z12 over the asset extent, a ring of z11
+  // round it); then the terrain stops one zoom lower over the whole ring, so no tile is asked for that
+  // the bundle lacks (MapLibre would draw it grey)
+  const top = Math.max(...tiles.map((t) => t.z));
+  const topBox = tileBox(tiles, top);
+  const belowBox = tileBox(tiles, top - 1);
+  const inner =
+    topBox !== undefined &&
+    belowBox !== undefined &&
+    (topBox[0] > belowBox[0] ||
+      topBox[1] > belowBox[1] ||
+      topBox[2] < belowBox[2] ||
+      topBox[3] < belowBox[3]);
+  const maxzoom = inner ? top - 1 : top;
+  const bounds = inner ? belowBox : topBox;
 
   const dots = layer(all, "globe-dots");
   const elevation = file(dots, /dots-elevation-.*\.int16le\.bin\.gz$/, "elevation grid");
@@ -121,6 +171,13 @@ export function parseMapBundle(raw: unknown, base: string, imageryCorners?: unkn
           attribution: typeof imageryLayer?.credit === "string" ? imageryLayer.credit : "",
         }
       : undefined;
+
+  // the contour box: every zoom the contours read terrain at, from CONTOUR_MINZOOM to the terrain's top
+  let contourBox: [number, number, number, number] | undefined = [-180, -85, 180, 85];
+  for (let z = CONTOUR_MINZOOM; z <= maxzoom && contourBox; z++) {
+    const box = interiorBox(tiles, z);
+    contourBox = box ? intersect(contourBox, box) : undefined;
+  }
 
   const regions: Region[] = REGION_ZOOMS.flatMap((z) => {
     const box = tileBox(tiles, z);
@@ -149,6 +206,7 @@ export function parseMapBundle(raw: unknown, base: string, imageryCorners?: unkn
           }
         : {}),
     },
+    ...(contourBox ? { contours: { minzoom: CONTOUR_MINZOOM, bounds: contourBox } } : {}),
     globe: {
       worldElevation: abs(elevation),
       worldLand: abs(file(dots, /dots-land-.*\.uint8\.bin\.gz$/, "land grid")),

@@ -73,6 +73,19 @@ test("when the map cannot load, the listing takes its place", async ({ page }) =
   const region = page.getByRole("region", { name: "Everything on screen, as text" });
   await expect(region).toHaveAttribute("data-flat-listing", "shown");
   await expect(region.getByText("Tabant", { exact: true })).toBeVisible();
+  await expect(region.getByText("Relief ×2")).toHaveCount(0);
+  // the request can still be made; F and the map instruments are gone (the hint rule)
+  const start = page.getByRole("button", { name: "Start investigation" });
+  await expect(start).toBeVisible();
+  // landed, not only present: its row has faded in
+  await expect
+    .poll(() => start.evaluate((el) => getComputedStyle(el.closest("ul") ?? el).opacity), {
+      timeout: 8_000,
+    })
+    .toBe("1");
+  await expect(page.getByRole("textbox", { name: "Ask Siterra" })).toBeVisible();
+  await expect(page.getByRole("button", { name: /Read flat/ })).toHaveCount(0);
+  await expect(page.getByRole("img", { name: "North" })).toHaveCount(0);
   // the message says the listing is below it
   const message = await page
     .getByRole("alert")

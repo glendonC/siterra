@@ -32,6 +32,8 @@ import { orbitToMapCamera } from "../../lib/stage/camera";
 export interface ArrivalViewProps {
   /** The valley's assets from the map bundle, or null when it could not be read. */
   assets: MapBundle["valley"] | null;
+  /** Where contour lines can be made from the bundle's terrain. */
+  contourArea?: MapBundle["contours"];
   arrival: ReadyArrival;
   /** The case revision the arrival was projected from; the session keeps it current. */
   snapshot: CaseSnapshot;
@@ -47,6 +49,7 @@ const noop = () => undefined;
 
 export function ArrivalView({
   assets,
+  contourArea,
   arrival,
   snapshot: initial,
   chrome = true,
@@ -130,12 +133,14 @@ export function ArrivalView({
             placeCredit: arrival.land.creditLine,
             placeCredits: arrival.land.credits,
             reliefFactor: ARRIVAL_EXAGGERATION,
-            imagery,
+            imagery: imagery && !mapFailed,
+            relief: !mapFailed,
           })}
         />
       ) : null}
       <ValleyStage
         assets={assets}
+        contourArea={contourArea}
         catchment={arrival.catchment}
         areaKm2={arrival.areaKm2}
         places={arrival.land.places}
@@ -163,7 +168,9 @@ export function ArrivalView({
             imagery={imagery}
             placeCredit={arrival.land.creditLine}
             singleKeys={singleKeys}
-            arrived={arrived}
+            // with no map there is no arrival to wait for: the command line and ↵ land at once
+            arrived={arrived || mapFailed}
+            mapDrawn={!mapFailed}
             bearingDeg={bearing}
             primary={primaryHint({ commissioned: working, running })}
             onStart={running ? stop : commission}

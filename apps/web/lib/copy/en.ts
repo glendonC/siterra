@@ -116,6 +116,12 @@ export const en = {
   "notices.map": { text: "Map and imagery", kind: "label" },
   "notices.places": { text: "Points on the land, as their records credit them", kind: "label" },
   "notices.fonts": { text: "Fonts", kind: "label" },
+  "notices.software": { text: "Software", kind: "label" },
+  "notice.maplibre": { text: "MapLibre GL JS, BSD 3-Clause License", kind: "link" },
+  "notice.maplibreContour": {
+    text: "maplibre-contour, BSD 3-Clause License, with the licences of the code it includes",
+    kind: "link",
+  },
   "notices.keys": { text: "Keyboard", kind: "label" },
   "notices.singleKeys": { text: "Single-key shortcuts", kind: "label" },
   "notices.singleKeysDetail": {
@@ -215,6 +221,14 @@ export const LINT_ALLOWLIST: Partial<Record<MessageId, { rules: string[]; reason
   "notice.fontSans": {
     rules: ["VT-08"],
     reason: "IBM and SIL are the names of the font's maker and its licence's publisher.",
+  },
+  "notice.maplibre": {
+    rules: ["VT-08"],
+    reason: "BSD is part of the licence's name, the BSD 3-Clause License.",
+  },
+  "notice.maplibreContour": {
+    rules: ["VT-08"],
+    reason: "BSD is part of the licence's name, the BSD 3-Clause License.",
   },
   "notice.fontMono": {
     rules: ["VT-08"],

@@ -55,6 +55,13 @@ describe("contextLand", () => {
     expect(land.creditLine).toBe("© OpenStreetMap contributors.");
   });
 
+  it("lists the outlet first, then the places west to east, whatever order the records come in", () => {
+    const shuffled = [...seedFeatures].reverse();
+    const land = contextLand(withFeatures(shuffled));
+    expect(land.places.map((p) => p.name)).toEqual(["Tabant", "Aït Ouchi"]);
+    expect(land.credits.map((c) => c.name)).toEqual(["Catchment outlet", "Tabant", "Aït Ouchi"]);
+  });
+
   it("shows no point and no place credit when the case has no context features", () => {
     const land = contextLand(withFeatures(undefined));
     expect(land).toEqual({ places: [], outlet: undefined, credits: [], creditLine: "" });

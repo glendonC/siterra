@@ -17,6 +17,12 @@ const RELIEF_NOTICE: { id: MessageId; href?: string } = {
 };
 const IMAGERY_NOTICE: { id: MessageId; href?: string } = { id: "notice.imagery" };
 
+/** Licences of the map software shipped with the app, copied unchanged from the pinned packages. */
+const SOFTWARE_LICENCES: { id: MessageId; href: string }[] = [
+  { id: "notice.maplibre", href: "/licenses/LICENSE-maplibre-gl.txt" },
+  { id: "notice.maplibreContour", href: "/licenses/LICENSE-maplibre-contour.txt" },
+];
+
 const FONT_LICENCES: { id: MessageId; href: string }[] = [
   { id: "notice.fontSans", href: "/fonts/LICENSE-IBM-Plex-Sans.txt" },
   { id: "notice.fontMono", href: "/fonts/LICENSE-IBM-Plex-Mono.txt" },
@@ -95,6 +101,16 @@ export function Notices({
                 </a>
               </>
             ) : null}
+          </li>
+        ))}
+      </ul>
+      <h3 className={styles.heading}>{en["notices.software"].text}</h3>
+      <ul className={styles.list}>
+        {SOFTWARE_LICENCES.map((f) => (
+          <li key={f.id}>
+            <a href={f.href} target="_blank" rel="noopener noreferrer">
+              {en[f.id].text}
+            </a>
           </li>
         ))}
       </ul>

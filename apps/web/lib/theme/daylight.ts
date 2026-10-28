@@ -22,6 +22,9 @@ export const daylight = {
   outsideVeil: "rgba(232, 226, 216, 0.82)",
   /** The warm light pool inside the catchment (design language rule 2: selection is light, not paint). */
   pool: "rgba(245, 200, 140, 0.25)",
+  /** Contours, 100 m and 500 m: ink at 4.5% and 9% (design system, cartography; map.contour, map.contour-index). */
+  contour: "rgba(43, 41, 37, 0.045)",
+  contourIndex: "rgba(43, 41, 37, 0.09)",
   sky: "#f2efea",
   horizon: "#f2efea",
   fog: "#f2efea",

@@ -83,6 +83,38 @@ describe("valleyStyle", () => {
     expect(bare.layers.some((l) => l.id === "relief")).toBe(true);
   });
 
+  it("draws 100 m and 500 m contours over the relief and under the veil, when given", () => {
+    const withContours = valleyStyle({
+      assets,
+      catchment: square,
+      contours: {
+        tiles: ["contours://{z}/{x}/{y}"],
+        minzoom: 10,
+        maxzoom: 13,
+        bounds: [-6.68, 31.35, -5.98, 31.95],
+      },
+    });
+    const order = withContours.layers.map((l) => l.id);
+    expect(withContours.sources.contours).toMatchObject({ type: "vector", maxzoom: 13 });
+    for (const id of ["contour-minor", "contour-index"]) {
+      expect(order.indexOf(id)).toBeGreaterThan(order.indexOf("relief"));
+      expect(order.indexOf(id)).toBeLessThan(order.indexOf("outside-veil"));
+    }
+    const minor = withContours.layers.find((l) => l.id === "contour-minor") as {
+      paint: Record<string, unknown>;
+      filter: unknown;
+    };
+    const index = withContours.layers.find((l) => l.id === "contour-index") as {
+      paint: Record<string, unknown>;
+      filter: unknown;
+    };
+    expect(minor.paint["line-color"]).toBe(daylight.contour);
+    expect(index.paint["line-color"]).toBe(daylight.contourIndex);
+    expect(minor.filter).toEqual(["==", ["get", "level"], 0]);
+    expect(index.filter).toEqual(["==", ["get", "level"], 1]);
+    expect(style.layers.some((l) => l.id.startsWith("contour-"))).toBe(false);
+  });
+
   it("uses only daylight token colours", () => {
     const allowed = new Set<string>(Object.values(daylight));
     expect(colours(style).filter((c) => !allowed.has(c))).toEqual([]);

@@ -3,7 +3,7 @@
 // crest, and a thin warm beam at the outlet. Built as plain style JSON so it can be tested without a map.
 
 import type { Feature, Polygon, Position } from "./geo";
-import type { StyleSpecification } from "maplibre-gl";
+import type { LayerSpecification, StyleSpecification } from "maplibre-gl";
 import { daylight } from "../theme/daylight";
 import { ARRIVAL_EXAGGERATION, ARRIVAL_LIGHT } from "./arrival";
 import { smoothFeature } from "./smooth";
@@ -45,6 +45,16 @@ export interface ValleyStyleInput {
   catchment: Feature;
   /** The outlet from the case's record, where the beam stands; no beam without one. */
   outlet?: { lon: number; lat: number } | undefined;
+  /**
+   * Contour lines as vector tiles (maplibre-contour from the terrain tiles), with `level` 0 for the 100 m
+   * lines and 1 for the 500 m index lines. Drawn under the veil, which mutes them outside the catchment.
+   */
+  contours?: {
+    tiles: string[];
+    minzoom: number;
+    maxzoom: number;
+    bounds: [number, number, number, number];
+  };
   /** Saturation shift for the imagery (the veil outside the catchment mutes it further). */
   imagerySaturation?: number;
 }
@@ -113,6 +123,7 @@ export function valleyStyle({
   assets,
   catchment,
   outlet,
+  contours,
   imagerySaturation = 0.1,
 }: ValleyStyleInput): StyleSpecification {
   return {
@@ -144,6 +155,17 @@ export function valleyStyle({
       // the drawn outline is smoothed for display (the record's 30 m geometry steps at every cell)
       catchment: { type: "geojson", data: smoothFeature(catchment) },
       outside: { type: "geojson", data: outsideVeil(smoothFeature(catchment)) },
+      ...(contours
+        ? {
+            contours: {
+              type: "vector" as const,
+              tiles: contours.tiles,
+              minzoom: contours.minzoom,
+              maxzoom: contours.maxzoom,
+              bounds: contours.bounds,
+            },
+          }
+        : {}),
       outlet: {
         type: "geojson",
         data: outlet
@@ -206,6 +228,26 @@ export function valleyStyle({
         // off until arrival: the light warms inside the line as the valley is reached
         paint: { "fill-color": daylight.pool, "fill-opacity": 0 },
       },
+      ...(contours
+        ? ([
+            {
+              id: "contour-minor",
+              type: "line",
+              source: "contours",
+              "source-layer": "contours",
+              filter: ["==", ["get", "level"], 0],
+              paint: { "line-color": daylight.contour, "line-width": 0.75 },
+            },
+            {
+              id: "contour-index",
+              type: "line",
+              source: "contours",
+              "source-layer": "contours",
+              filter: ["==", ["get", "level"], 1],
+              paint: { "line-color": daylight.contourIndex, "line-width": 1 },
+            },
+          ] satisfies LayerSpecification[])
+        : []),
       {
         id: "outside-veil",
         type: "fill",
