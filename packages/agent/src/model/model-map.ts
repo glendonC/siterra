@@ -20,7 +20,7 @@ export const P0_JOBS: readonly ModelJob[] = [
     priority: "P0",
   },
   {
-    job: "Describe observations from validated bundles",
+    job: "Describe observations from checked bundles",
     model: "muse-spark-1.3",
     check: "Every number matched to a cited measurement; claim rules; prohibited-claims scan",
     priority: "P0",

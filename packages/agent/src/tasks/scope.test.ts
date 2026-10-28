@@ -43,6 +43,8 @@ describe("scope check", () => {
       "Do tribal agdal rules govern when herders may graze the high pastures?",
       "What do customary institutions in Ait Bouguemez say about closing pastures?",
       "What do Amazigh customary rules say about the agdal?",
+      "How do Amazigh customary rules respond to pasture decline and grazing pressure?",
+      "Do Berber agdal institutions restrict access when vegetation loss is observed?",
       "Is illegal grazing in the forest reserve behind the decline?",
       "Did transhumant herders from outside the valley use the pastures in 2022?",
       "Which grasses of the Poaceae family declined after the drought?",
@@ -72,5 +74,7 @@ describe("scope check", () => {
     expect(OUT_OF_SCOPE_MESSAGE).toMatch(/land, water and vegetation/);
     expect(OUT_OF_SCOPE_MESSAGE).toMatch(/grazing, herding/);
     expect(OUT_OF_SCOPE_MESSAGE).not.toMatch(/\u2014/);
+    expect(OUT_OF_SCOPE_MESSAGE).not.toMatch(/\b(?:I|we|our|us|you|your)\b/i);
+    expect(OUT_OF_SCOPE_MESSAGE).not.toMatch(/\b(?:attribution|telemetry|autonomous|validated)\b/i);
   });
 });
