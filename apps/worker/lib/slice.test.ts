@@ -6,7 +6,8 @@ import type { ModelTransport, ReplayStep } from "@siterra/agent";
 import { createPool, eventsOfCommand, readSnapshot, submitCommand } from "@siterra/db";
 import { freshDatabase } from "@siterra/db/testing";
 import type { TestDatabase } from "@siterra/db/testing";
-import { mergeBranches, newId } from "@siterra/domain";
+import { coverIssues, mergeBranches, newId, openPairs } from "@siterra/domain";
+import { analysisConfigFor } from "@siterra/domain/cases";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { workerDb } from "./db.ts";
@@ -618,6 +619,23 @@ describe("vertical slice on the real seed, replay only", () => {
       );
       for (const h of hypotheses) expect(h.status).not.toBe("untested");
 
+      // DF-09 on the real record: the stored field plan is the minimum cover over the valley's
+      // field checks for the pairs the merge left open, recomputed here.
+      const merge = (after.records.branchMergeRecords ?? []).find((m) => ownTasks.has(m.taskId));
+      const valley = analysisConfigFor(CASE_ID);
+      const plan = merge?.fieldPlan;
+      expect(plan).toBeDefined();
+      expect(
+        coverIssues(
+          {
+            measurements: (plan?.measurements ?? []).map((m) => ({ ...m, id: m.fieldCheckId })),
+            unseparated: plan?.unseparated ?? [],
+          },
+          valley?.fieldChecks ?? [],
+          openPairs(merge?.branches ?? []),
+        ),
+      ).toEqual([]);
+
       // The trace shows the real loads, run by host code after the predictions were recorded.
       const events = await eventsOfCommand(db.pool, CASE_ID, challenged.command.id);
       const recorded = events.findIndex((e) => e.kind === "task.progress");
@@ -642,7 +660,7 @@ describe("vertical slice on the real seed, replay only", () => {
     "DF-02 each branch hypothesis is linked to the challenged observation's evidence ID (founder decision: which link)",
   );
   it.todo(
-    "DF-02 each unresolved branch names a discriminating field measurement (needs the valley field checks, unit 3)",
+    "DF-02 each unresolved branch names a discriminating field measurement (under merge@1 the seed leaves one branch standing, so no pair is open and the field plan is empty)",
   );
 
   it(

@@ -1,13 +1,21 @@
 import { createHash } from "node:crypto";
 
-import type { ExplanationDefinition, Prediction, PredictionScore } from "@siterra/contracts";
+import type {
+  CaseAnalysisConfig,
+  ExplanationDefinition,
+  Prediction,
+  PredictionScore,
+} from "@siterra/contracts";
 import { maxExplanations } from "@siterra/contracts";
 import {
   MERGE_RULES_VERSION,
   hypothesisStatusOf,
   mergeBranches,
+  minimumTestCover,
+  openPairs,
   scorePrediction,
 } from "@siterra/domain";
+import type { MergeResult, PairIds } from "@siterra/domain";
 
 import { caseYearSpan } from "../evidence/proposal.ts";
 import type { EvidenceTaskDeps, EvidenceTaskInput } from "../evidence/evidence-task.ts";
@@ -237,6 +245,49 @@ function missingOf(
     .map((s) => `${s.predictionKey}: ${s.observed}`);
 }
 
+type FieldPlan = NonNullable<BranchMergeRecord["fieldPlan"]>;
+
+const listOf = (items: readonly string[]): string =>
+  items.length <= 1
+    ? (items[0] ?? "")
+    : `${items.slice(0, -1).join(", ")} and ${String(items.at(-1))}`;
+
+/** DF-09: the minimum field plan over the pairs the merge leaves open, and its lines per explanation. */
+function fieldPlanOf(
+  config: CaseAnalysisConfig,
+  merged: MergeResult,
+): { plan: FieldPlan; lines: ReadonlyMap<string, string[]> } {
+  const cover = minimumTestCover(config.fieldChecks, openPairs(merged.branches));
+  const labelOf = new Map(config.explanations.map((e) => [e.id, e.label]));
+  const others = (id: string, pairs: readonly PairIds[]) =>
+    pairs.filter((p) => p.includes(id)).map(([a, b]) => labelOf.get(a === id ? b : a) ?? "");
+  const lines = new Map<string, string[]>();
+  for (const { explanationId: id } of merged.branches) {
+    const self = labelOf.get(id) ?? id;
+    const named = cover.measurements
+      .filter((m) => others(id, m.separates).length > 0)
+      .map(
+        (m) => `${m.label} (${m.id}) separates ${self} from ${listOf(others(id, m.separates))}.`,
+      );
+    const none = others(id, cover.unseparated);
+    if (none.length > 0)
+      named.push(`No configured field check separates ${self} from ${listOf(none)}.`);
+    lines.set(id, named);
+  }
+  return {
+    plan: {
+      measurements: cover.measurements.map((m) => ({
+        fieldCheckId: m.id,
+        label: m.label,
+        separates: m.separates,
+        onlySeparates: m.onlySeparates,
+      })),
+      unseparated: cover.unseparated,
+    },
+    lines,
+  };
+}
+
 export async function runExplanationBranchesTask(
   input: EvidenceTaskInput,
   deps: EvidenceTaskDeps,
@@ -392,6 +443,7 @@ export async function runExplanationBranchesTask(
     scores: d.predictions.map((p) => scorePrediction(p, record)),
   }));
   const merged = mergeBranches(scored);
+  const fieldPlan = fieldPlanOf(config, merged);
   const hypothesisIds = drafted.map((d) => hypothesisIdFor(task.id, d.explanation.id));
   const bundleVersions = (scores: readonly PredictionScore[]): EntityVersion[] => {
     const read = new Set(scores.flatMap((s) => s.dataBundleIds));
@@ -448,6 +500,7 @@ export async function runExplanationBranchesTask(
       reason: b.statusReason,
     })),
     conflicts: merged.conflicts,
+    fieldPlan: fieldPlan.plan,
     provenance: {
       sourceLocators: [],
       dataBundleIds: [],
@@ -457,7 +510,14 @@ export async function runExplanationBranchesTask(
       generatedByTaskId: task.id,
       generatedAt: scoredAt,
       verificationStatus: "unverified",
-      limitations: [...limitations],
+      limitations: [
+        ...limitations,
+        ...(fieldPlan.plan.measurements.length + fieldPlan.plan.unseparated.length > 0
+          ? [
+              "The explanation pairs each field check separates are set in the case configuration, not measured.",
+            ]
+          : []),
+      ],
     },
   };
   const hypotheses: HypothesisRecord[] = revisionTwo.map((b, i) => {
@@ -474,7 +534,10 @@ export async function runExplanationBranchesTask(
       status,
       supportingEvidenceIds: [],
       contradictingEvidenceIds: [],
-      missingEvidence: missingOf(b.predictions, b.scores),
+      missingEvidence: [
+        ...missingOf(b.predictions, b.scores),
+        ...(fieldPlan.lines.get(b.explanationId) ?? []),
+      ],
       alternativeHypothesisIds: hypothesisIds.filter((other) => other !== id),
       assessment: `${STATUS_LABELS[status]}: ${b.statusReason} Explanation branch ${b.id}, scored under ${MERGE_RULES_VERSION}.`,
       provenance: {

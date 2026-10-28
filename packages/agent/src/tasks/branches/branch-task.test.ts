@@ -1,4 +1,5 @@
 import { BranchMerge, ExplanationBranch, Hypothesis, Task } from "@siterra/contracts";
+import { coverIssues, openPairs } from "@siterra/domain";
 import { describe, expect, it } from "vitest";
 
 import { MetaAdapter } from "../../model/adapter.ts";
@@ -39,6 +40,25 @@ import { validatePredictions } from "./proposal.ts";
 // finding about any place.
 
 const branchStore = (): MemoryCaseStore => addBranchRecord(testStore());
+
+/** A reply that tests only the vegetation side, so it is met for either explanation. */
+const VEGETATION_ONLY = {
+  predictions: [
+    {
+      necessary: true,
+      test: {
+        ...none,
+        kind: "departure_sign",
+        pairId: "vegetation_rainfall",
+        side: "a",
+        periodIds: ["period_2022-03"],
+        expected: "negative",
+      },
+      wording: "Vegetation departures in period_2022-03 are negative.",
+    },
+    GRAZING_REPLY.predictions[1],
+  ],
+};
 
 /** Routes each branch's request to its own replay by the explanation ID in its first message. */
 class ByExplanation implements ModelTransport {
@@ -255,26 +275,9 @@ describe("scoring, merge and the records it writes", () => {
 
   it("names each configured input the case lacks as a blocked input and offers no target in it", async () => {
     const store = addBranchRecord(testStore(), ["rainfall", "season"]);
-    const vegetationOnly = {
-      predictions: [
-        {
-          necessary: true,
-          test: {
-            ...none,
-            kind: "departure_sign",
-            pairId: "vegetation_rainfall",
-            side: "a",
-            periodIds: ["period_2022-03"],
-            expected: "negative",
-          },
-          wording: "Vegetation departures in period_2022-03 are negative.",
-        },
-        GRAZING_REPLY.predictions[1],
-      ],
-    };
     const { blockedInputs, transport, commit } = await run({
       store,
-      replies: { rainfall: [vegetationOnly], grazing: [vegetationOnly] },
+      replies: { rainfall: [VEGETATION_ONLY], grazing: [VEGETATION_ONLY] },
     });
     expect(blockedInputs).toEqual([
       "rainfall departure (vegetation_rainfall side b): no validated test_rain_monthly bundle in this case.",
@@ -282,6 +285,86 @@ describe("scoring, merge and the records it writes", () => {
     ]);
     expect(JSON.stringify(transport.bodies[0]?.["input"])).toContain('\\"seasonIds\\":[]');
     expect(branchesOf(commit).map((b) => b.status)).toEqual(["consistent", "consistent"]);
+  });
+
+  it("the merge names the minimum field plan for the explanations left open (DF-09)", async () => {
+    const mergeOf = (draft: CommitDraft) =>
+      draft.upserts.find((r): r is BranchMergeRecord => r.recordType === "BranchMerge");
+    const hypothesesOf = (draft: CommitDraft) =>
+      draft.upserts.filter((r): r is HypothesisRecord => r.recordType === "Hypothesis");
+
+    const open = await run({
+      replies: { rainfall: [VEGETATION_ONLY], grazing: [VEGETATION_ONLY] },
+    });
+    const merge = mergeOf(open.commit);
+    expect(merge?.branches.map((b) => b.status)).toEqual(["consistent", "consistent"]);
+    expect(merge?.fieldPlan).toEqual({
+      measurements: [
+        {
+          fieldCheckId: "grazing_exclosure",
+          label: "Grazing Exclosure",
+          separates: [["grazing", "rainfall"]],
+          onlySeparates: [["grazing", "rainfall"]],
+        },
+      ],
+      unseparated: [],
+    });
+    expect(merge && BranchMerge.parse(merge)).toEqual(merge);
+    const cover = {
+      measurements: (merge?.fieldPlan?.measurements ?? []).map((m) => ({
+        ...m,
+        id: m.fieldCheckId,
+      })),
+      unseparated: merge?.fieldPlan?.unseparated ?? [],
+    };
+    expect(
+      coverIssues(cover, TEST_ANALYSIS_CONFIG.fieldChecks, openPairs(merge?.branches ?? [])),
+    ).toEqual([]);
+    expect(hypothesesOf(open.commit).map((h) => h.missingEvidence.at(-1))).toEqual([
+      "Grazing Exclosure (grazing_exclosure) separates Rainfall from Grazing.",
+      "Grazing Exclosure (grazing_exclosure) separates Grazing from Rainfall.",
+    ]);
+
+    const closed = await run();
+    expect(mergeOf(closed.commit)?.fieldPlan).toEqual({ measurements: [], unseparated: [] });
+    expect(hypothesesOf(closed.commit)[0]?.missingEvidence).toEqual([]);
+  });
+
+  it("names an open pair no configured field check separates", async () => {
+    const store = branchStore();
+    store.analysisConfigs.set(CASE_ID, { ...TEST_ANALYSIS_CONFIG, fieldChecks: [] });
+    const recordOnly = {
+      predictions: [
+        VEGETATION_ONLY.predictions[0],
+        {
+          necessary: false,
+          test: {
+            ...none,
+            kind: "availability",
+            pairId: "vegetation_rainfall",
+            side: "a",
+            periodIds: ["period_2022-03"],
+            expected: "all_available",
+          },
+          wording: "Vegetation values in period_2022-03 are all available.",
+        },
+      ],
+    };
+    const { commit } = await run({
+      store,
+      replies: { rainfall: [recordOnly], grazing: [recordOnly] },
+    });
+    const merge = commit.upserts.find(
+      (r): r is BranchMergeRecord => r.recordType === "BranchMerge",
+    );
+    expect(merge?.fieldPlan).toEqual({ measurements: [], unseparated: [["grazing", "rainfall"]] });
+    const hypotheses = commit.upserts.filter(
+      (r): r is HypothesisRecord => r.recordType === "Hypothesis",
+    );
+    expect(hypotheses.map((h) => h.missingEvidence.at(-1))).toEqual([
+      "No configured field check separates Rainfall from Grazing.",
+      "No configured field check separates Grazing from Rainfall.",
+    ]);
   });
 
   it("a resumed task scores the predictions it committed, with no new model call", async () => {
