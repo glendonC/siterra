@@ -103,7 +103,7 @@ export function summarizeObservationsTool(
   return {
     name: "summarize_observations",
     description:
-      "Per-period values of a validated bundle for up to 24 period IDs: value, unit, status, coverage, spatial spread and quality flags, with counts by status. Values are read from stored measurements.",
+      "Per-period values of a validated bundle for up to 24 period IDs: value, unit, status, coverage, spatial spread and quality flags, with counts by status. Values are read from stored measurements. Use only the period IDs the bundle's manifest lists; a bundle that lists none holds a recipe result, read with read_recipe_result. metric is one of the bundle's metric names, or null for all of them.",
     parameters: argumentSchema(SummarizeArgs),
     parse: (args) => {
       const parsed = parseWith(SummarizeArgs, args);
@@ -135,17 +135,29 @@ export function summarizeObservationsTool(
           `bundle ${bundle.id} is at revision ${bundle.revision}, not ${args.bundleRevision}`,
         );
       }
+      if (bundle.periodIds.length === 0) {
+        throw new ToolFailure(
+          "no_period_values",
+          `bundle ${bundle.id} holds a recipe result, not per-period values; read it with read_recipe_result`,
+        );
+      }
       const periodIds = [...new Set(args.periodIds)];
       const outside = periodIds.filter((p) => !bundle.periodIds.includes(p));
       if (outside.length > 0) {
         throw new ToolFailure(
           "unknown_period",
-          `not in bundle ${bundle.id}: ${outside.join(", ")}`,
+          `not in bundle ${bundle.id}: ${outside.join(", ")}. It holds ${bundle.periodIds.length} periods from ${bundle.periodIds[0]} to ${bundle.periodIds[bundle.periodIds.length - 1]}`,
         );
       }
-      const measurements = (
-        await store.readMeasurements(caseId, bundle.id, bundle.revision, periodIds)
-      ).filter((m) => args.metric === null || m.metric === args.metric);
+      const stored = await store.readMeasurements(caseId, bundle.id, bundle.revision, periodIds);
+      const metrics = [...new Set(stored.map((m) => m.metric))].sort();
+      if (args.metric !== null && metrics.length > 0 && !metrics.includes(args.metric)) {
+        throw new ToolFailure(
+          "unknown_metric",
+          `no metric ${args.metric} in bundle ${bundle.id}; its metrics are ${metrics.join(", ")}, or null for all`,
+        );
+      }
+      const measurements = stored.filter((m) => args.metric === null || m.metric === args.metric);
       const flags = new Map(
         (await store.readPeriodQuality(caseId, bundle.id, periodIds)).map((q) => [
           q.periodId,
