@@ -1,4 +1,5 @@
 # Planning material and data keep their own formatting; Prettier covers the application code.
+.claude/
 .internal/
 .local/
 .lead/
@@ -14,3 +15,5 @@ node_modules/
 .next/
 coverage/
 next-env.d.ts
+# Generated fixtures keep the generator's JSON layout
+packages/contracts/fixtures/

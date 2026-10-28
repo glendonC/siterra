@@ -9,6 +9,7 @@ export default tseslint.config(
       "**/coverage/**",
       "**/dist/**",
       "**/next-env.d.ts",
+      ".claude/**",
       ".internal/**",
       ".local/**",
       ".lead/**",
