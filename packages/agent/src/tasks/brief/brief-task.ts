@@ -197,7 +197,8 @@ export async function runBriefPackageTask(
       promptVersion: BRIEF_PROMPT_VERSION,
       instructions: INSTRUCTIONS,
       output: { name: "propose_package", schema: packageOutputSchema() },
-      maxOutputTokens: 6_000,
+      // Live briefs used up to 3,023 reasoning and 3,494 visible tokens; 6,000 cut two of three.
+      maxOutputTokens: 8_000,
       reasoningEffort: "low",
     },
     input: [

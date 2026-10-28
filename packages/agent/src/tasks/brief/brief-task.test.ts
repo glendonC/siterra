@@ -10,6 +10,7 @@ import { describe, expect, it } from "vitest";
 
 import { MetaAdapter } from "../../model/adapter.ts";
 import { strictSubsetIssues } from "../../model/strict-schema.ts";
+import type { ModelTransport } from "../../model/transport.ts";
 import { AT, CASE_ID, queuedTask, testStore } from "../../testing/case-fixture.ts";
 import { answerStep, syntheticTransport } from "../../testing/replay-steps.ts";
 import type { MemoryCaseStore } from "../../tools/store.ts";
@@ -449,7 +450,21 @@ describe("propose_package validation", () => {
   });
 });
 
-async function run(store: MemoryCaseStore, answer: unknown, committedInterventions = [REST]) {
+async function run(
+  store: MemoryCaseStore,
+  answer: unknown,
+  committedInterventions = [REST],
+  sentOutputLimits: unknown[] = [],
+) {
+  const replay = syntheticTransport([answerStep(JSON.stringify(answer))]);
+  const transport: ModelTransport = {
+    route: replay.route,
+    replayOrigin: replay.replayOrigin,
+    open: (body, signal) => {
+      sentOutputLimits.push(body.max_output_tokens);
+      return replay.open(body, signal);
+    },
+  };
   let n = 0;
   return runBriefPackageTask(
     {
@@ -466,7 +481,7 @@ async function run(store: MemoryCaseStore, answer: unknown, committedInterventio
     },
     {
       adapter: new MetaAdapter({
-        transport: syntheticTransport([answerStep(JSON.stringify(answer))]),
+        transport,
         sleep: () => Promise.resolve(),
       }),
       trace: { emit: () => undefined },
@@ -481,6 +496,14 @@ async function run(store: MemoryCaseStore, answer: unknown, committedInterventio
 }
 
 describe("brief_package task", () => {
+  it("asks for up to 8,000 output tokens: two of three live briefs stopped at 6,000 (28 Oct 2026)", async () => {
+    const store = testStore();
+    store.evidence.push(OBS, NEED);
+    const sent: unknown[] = [];
+    await run(store, proposal(), [REST], sent);
+    expect(sent).toEqual([8_000]);
+  });
+
   it("commits a draft plan, a brief, resources and host-written review requests that parse with the contracts", async () => {
     const store = testStore();
     store.evidence.push(OBS, NEED);
