@@ -660,7 +660,7 @@ describe("vertical slice on the real seed, replay only", () => {
     "DF-02 each branch hypothesis is linked to the challenged observation's evidence ID (founder decision: which link)",
   );
   it.todo(
-    "DF-02 each unresolved branch names a discriminating field measurement (under merge@1 the seed leaves one branch standing, so no pair is open and the field plan is empty)",
+    "DF-02 each unresolved branch names a discriminating field measurement (with these synthetic predictions, merge@1 leaves one branch standing, so no pair is open and the field plan is empty)",
   );
 
   it(
