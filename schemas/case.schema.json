@@ -1563,6 +1563,15 @@
           "minItems": 0,
           "uniqueItems": true
         },
+        "measurementIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
         "missingEvidence": {
           "type": "array",
           "items": {

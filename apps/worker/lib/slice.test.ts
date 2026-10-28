@@ -656,13 +656,66 @@ describe("vertical slice on the real seed, replay only", () => {
     },
   );
 
-  // DF-02 clauses explanation branches do not meet yet; open for the founder, not passed.
-  it.todo(
-    "DF-02 each branch hypothesis is linked to the challenged observation's evidence ID (founder decision: which link)",
-  );
-  it.todo(
-    "DF-02 each unresolved branch names a discriminating field measurement (with these synthetic predictions, merge@1 leaves one branch standing, so no pair is open and the field plan is empty)",
-  );
+  // DF-02 clauses on explanation branches over the real seed.
+  it("DF-02 each branch hypothesis is linked to the challenged observation's evidence ID and separates evidence IDs from measurement IDs", async () => {
+    const snap = await readSnapshot(db.pool, CASE_ID, OWNER);
+    if (!snap) throw new Error("no snapshot");
+    const commissionCmd = snap.records.taskRecords
+      .filter((t) => t.kind === "observation_analysis" && t.status === "succeeded")
+      .at(-1);
+    const observation = snap.records.evidenceRecords.find(
+      (e) => e.provenance.generatedByTaskId === commissionCmd?.id,
+    );
+    if (!observation) throw new Error("no commission observation");
+    const branchTask = snap.records.taskRecords.find((t) => t.kind === "explanation_branches");
+    if (!branchTask) throw new Error("no explanation_branches task");
+    const branches = (snap.records.explanationBranchRecords ?? []).filter(
+      (b) => b.taskId === branchTask.id,
+    );
+    const hypotheses = snap.records.hypothesisRecords.filter(
+      (h) => h.provenance.generatedByTaskId === branchTask.id,
+    );
+    expect(hypotheses).toHaveLength(branches.length);
+    for (const h of hypotheses) {
+      const branch = branches.find((b) => b.hypothesisId === h.id);
+      if (!branch) throw new Error(`no branch for ${h.id}`);
+      const evidenceIds = [...h.supportingEvidenceIds, ...h.contradictingEvidenceIds];
+      expect(evidenceIds).toEqual([observation.id]);
+      expect(evidenceIds.every((id) => id.startsWith("ev_"))).toBe(true);
+      expect(h.provenance.inputVersions.map((v) => v.entityId)).toContain(observation.id);
+      const expectedMeasurements = [...new Set(branch.scores.flatMap((s) => s.measurementIds))];
+      expect(h.measurementIds).toEqual(expectedMeasurements);
+      expect((h.measurementIds ?? []).every((id) => id.startsWith("meas_"))).toBe(true);
+    }
+  });
+
+  it("DF-02 each unresolved branch names a discriminating field measurement", async () => {
+    const snap = await readSnapshot(db.pool, CASE_ID, OWNER);
+    if (!snap) throw new Error("no snapshot");
+    const branchTask = snap.records.taskRecords.find((t) => t.kind === "explanation_branches");
+    if (!branchTask) throw new Error("no explanation_branches task");
+    const merge = (snap.records.branchMergeRecords ?? []).find((m) => m.taskId === branchTask.id);
+    if (!merge?.fieldPlan) throw new Error("no merge field plan");
+    const unresolved = merge.branches.filter((b) => b.status !== "contradicted");
+    expect(unresolved.length).toBeGreaterThan(0);
+    expect(merge.fieldPlan.measurements.length).toBeGreaterThan(0);
+    const hypotheses = snap.records.hypothesisRecords.filter(
+      (h) => h.provenance.generatedByTaskId === branchTask.id,
+    );
+    for (const u of unresolved) {
+      const covering = merge.fieldPlan.measurements.filter((m) =>
+        m.separates.some((pair) => pair.includes(u.explanationId)),
+      );
+      expect(covering.length).toBeGreaterThan(0);
+      const branch = (snap.records.explanationBranchRecords ?? []).find((b) => b.id === u.branchId);
+      const hyp = hypotheses.find((h) => h.id === branch?.hypothesisId);
+      expect(
+        covering.some((c) =>
+          hyp?.missingEvidence.some((line) => line.includes(`(${c.fieldCheckId})`)),
+        ),
+      ).toBe(true);
+    }
+  });
 
   it(
     "a spend guard stop aborts the call in flight and the command ends cancelled, also after reload",

@@ -43,11 +43,24 @@ function canonicalPairs(pairs: readonly PairIds[]): Pair[] {
   return [...byKey.keys()].sort().map((k) => byKey.get(k) as Pair);
 }
 
-/** Pairs of explanations the record has not contradicted: the pairs it leaves open. */
+/**
+ * Pairs of explanations the record leaves open for field verification: every pair of branches not
+ * contradicted when two or more stand, or the single standing branch paired with each contradicted
+ * branch when only one stands (since satellite records alone never confirm the remaining branch).
+ */
 export function openPairs(
   branches: readonly { explanationId: string; status: BranchStatus }[],
 ): Pair[] {
   const standing = branches.filter((b) => b.status !== "contradicted").map((b) => b.explanationId);
+  if (standing.length === 0) return [];
+  if (standing.length === 1) {
+    const only = standing[0] as string;
+    const pairs: Pair[] = [];
+    for (const b of branches) {
+      if (b.explanationId !== only) pairs.push([only, b.explanationId]);
+    }
+    return canonicalPairs(pairs);
+  }
   const pairs: Pair[] = [];
   for (const [i, a] of standing.entries()) {
     for (const b of standing.slice(i + 1)) pairs.push([a, b]);

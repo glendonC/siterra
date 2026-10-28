@@ -262,7 +262,11 @@ function fieldPlanOf(
   const others = (id: string, pairs: readonly PairIds[]) =>
     pairs.filter((p) => p.includes(id)).map(([a, b]) => labelOf.get(a === id ? b : a) ?? "");
   const lines = new Map<string, string[]>();
-  for (const { explanationId: id } of merged.branches) {
+  for (const { explanationId: id, status } of merged.branches) {
+    if (status === "contradicted") {
+      lines.set(id, []);
+      continue;
+    }
     const self = labelOf.get(id) ?? id;
     const named = cover.measurements
       .filter((m) => others(id, m.separates).length > 0)
@@ -446,6 +450,13 @@ export async function runExplanationBranchesTask(
   const merged = mergeBranches(scored, rules);
   const fieldPlan = fieldPlanOf(config, merged);
   const hypothesisIds = drafted.map((d) => hypothesisIdFor(task.id, d.explanation.id));
+  const inputEvidenceVersions: EntityVersion[] = [
+    ...task.inputVersions.filter((v) => v.entityId.startsWith("ev_")),
+    ...(deps.committedEvidence ?? [])
+      .filter((e) => e.caseId === task.caseId && e.status === "accepted")
+      .map((e) => ({ entityId: e.id, revision: e.revision })),
+  ].filter((v, i, all) => all.findIndex((w) => w.entityId === v.entityId) === i);
+  const inputEvidenceIds = inputEvidenceVersions.map((v) => v.entityId);
   const bundleVersions = (scores: readonly PredictionScore[]): EntityVersion[] => {
     const read = new Set(scores.flatMap((s) => s.dataBundleIds));
     const known = catalog.pairs.flatMap((p) => [p.a.bundle, p.b.bundle]);
@@ -472,7 +483,7 @@ export async function runExplanationBranchesTask(
       provenance: {
         ...b.provenance,
         dataBundleIds: [...new Set(scores.flatMap((x) => x.dataBundleIds))],
-        inputVersions: bundleVersions(scores),
+        inputVersions: [...inputEvidenceVersions, ...bundleVersions(scores)],
         generatedAt: scoredAt,
         limitations: [
           ...limitations,
@@ -524,6 +535,7 @@ export async function runExplanationBranchesTask(
   const hypotheses: HypothesisRecord[] = revisionTwo.map((b, i) => {
     const status = hypothesisStatusOf(b.status === "predicted" ? "cannot_be_assessed" : b.status);
     const id = hypothesisIds[i] ?? "";
+    const measurementIds = [...new Set(b.scores.flatMap((s) => s.measurementIds))];
     return {
       recordType: "Hypothesis",
       id,
@@ -533,8 +545,9 @@ export async function runExplanationBranchesTask(
       caseId: task.caseId,
       statement: b.statement,
       status,
-      supportingEvidenceIds: [],
-      contradictingEvidenceIds: [],
+      supportingEvidenceIds: status === "inconsistent" ? [] : inputEvidenceIds,
+      contradictingEvidenceIds: status === "inconsistent" ? inputEvidenceIds : [],
+      measurementIds,
       missingEvidence: [
         ...missingOf(b.predictions, b.scores),
         ...(fieldPlan.lines.get(b.explanationId) ?? []),
@@ -546,7 +559,7 @@ export async function runExplanationBranchesTask(
         dataBundleIds: b.provenance.dataBundleIds,
         methodId: null,
         methodVersion: null,
-        inputVersions: [{ entityId: b.id, revision: b.revision }],
+        inputVersions: [{ entityId: b.id, revision: b.revision }, ...inputEvidenceVersions],
         generatedByTaskId: task.id,
         generatedAt: scoredAt,
         verificationStatus: "unverified",

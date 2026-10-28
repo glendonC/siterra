@@ -325,9 +325,32 @@ describe("scoring, merge and the records it writes", () => {
       "Grazing Exclosure (grazing_exclosure) separates Grazing from Rainfall.",
     ]);
 
-    const closed = await run();
-    expect(mergeOf(closed.commit)?.fieldPlan).toEqual({ measurements: [], unseparated: [] });
-    expect(hypothesesOf(closed.commit)[0]?.missingEvidence).toEqual([]);
+    const oneStanding = await run();
+    expect(mergeOf(oneStanding.commit)?.fieldPlan).toEqual({
+      measurements: [
+        {
+          fieldCheckId: "grazing_exclosure",
+          label: "Grazing Exclosure",
+          separates: [["grazing", "rainfall"]],
+          onlySeparates: [["grazing", "rainfall"]],
+        },
+      ],
+      unseparated: [],
+    });
+    expect(hypothesesOf(oneStanding.commit)[0]?.missingEvidence).toEqual([
+      "Grazing Exclosure (grazing_exclosure) separates Rainfall from Grazing.",
+    ]);
+    expect(hypothesesOf(oneStanding.commit)[1]?.missingEvidence).toEqual([
+      "p2: Only a field measurement can test this.",
+    ]);
+
+    const bothContradicted = await run({
+      replies: { rainfall: [GRAZING_REPLY], grazing: [GRAZING_REPLY] },
+    });
+    expect(mergeOf(bothContradicted.commit)?.fieldPlan).toEqual({
+      measurements: [],
+      unseparated: [],
+    });
   });
 
   it("names an open pair no configured field check separates", async () => {
