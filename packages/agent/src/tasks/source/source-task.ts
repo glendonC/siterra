@@ -15,8 +15,8 @@ import type { TaskRecord } from "../records.ts";
 // model searches and reads the stored corpus and proposes published-context evidence. Code checks
 // every excerpt at its cited locator; unread or unavailable sources are named, never summarized.
 
-export const SOURCE_PROMPT_VERSION = "source_research@1";
-export const LIVELIHOOD_PROMPT_VERSION = "livelihood_governance@1";
+export const SOURCE_PROMPT_VERSION = "source_research@2";
+export const LIVELIHOOD_PROMPT_VERSION = "livelihood_governance@2";
 
 const SHARED_RULES = `- claimKind scientific_context: one statement of what a source says, with sourceId, the locator of the passage exactly as read_source returned it, and an excerpt copied exactly from that passage, at most 300 characters. measurementIds is empty.
 - Write the statement in English. When the source is not in English, keep the excerpt in its original language.
@@ -46,7 +46,12 @@ async function corpusMessage(task: TaskRecord, store: CaseStore): Promise<string
       sourceId: s.id,
       title: s.title,
       language: s.language ?? "not recorded",
-      documents: s.documents.map((d) => d.name),
+      documents: s.documents.map((d) => ({
+        name: d.name,
+        kind: d.kind,
+        pageCount: d.pageCount,
+        sections: d.sections,
+      })),
     }));
   const unreadable = sources
     .filter((s) => s.accessStatus !== "retrieved")

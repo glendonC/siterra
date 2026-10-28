@@ -10,7 +10,12 @@ import { MemoryCommitApi } from "../commit.ts";
 import type { EvidenceRecord, TaskRecord } from "../records.ts";
 import type { TraceEventDraft } from "../trace.ts";
 import { validateEvidenceProposal } from "../evidence/proposal.ts";
-import { LIVELIHOOD_RULES, runSourceResearchTask } from "./source-task.ts";
+import {
+  LIVELIHOOD_RULES,
+  LIVELIHOOD_SPEC,
+  SOURCE_RESEARCH_SPEC,
+  runSourceResearchTask,
+} from "./source-task.ts";
 
 // Synthetic replays over a synthetic corpus: the French page text below is invented for the test.
 
@@ -82,6 +87,34 @@ const READ = toolCallStep("read_source", {
 });
 
 describe("source research, synthetic replay, memory commit", () => {
+  it("the first message lists each readable document's kind, pages and sections", async () => {
+    const task = queuedTask({ kind: "source_research", question: "What do sources say?" });
+    const text = await SOURCE_RESEARCH_SPEC.firstMessage(task, testStore());
+    expect(text.split("\n")).toEqual([
+      "Question: What do sources say?",
+      `Readable sources: ${JSON.stringify([
+        {
+          sourceId: "src_test_report",
+          title: "Synthetic French report",
+          language: "fr",
+          documents: [{ name: "report.pdf", kind: "pdf", pageCount: 3, sections: [] }],
+        },
+        {
+          sourceId: "src_test_page",
+          title: "Synthetic web page",
+          language: "not recorded",
+          documents: [
+            { name: "notes.html", kind: "text", pageCount: null, sections: ["Closures"] },
+          ],
+        },
+      ])}`,
+      `Sources that cannot be read: ${JSON.stringify([
+        { sourceId: "src_test_paywalled", status: "unavailable" },
+      ])}`,
+    ]);
+    expect(await LIVELIHOOD_SPEC.firstMessage(task, testStore())).toBe(text);
+  });
+
   it("TR-04 path: search, read, a verified excerpt on its page, committed with its locator", async () => {
     const { deps, events } = harness([SEARCH, READ, answerStep(JSON.stringify(GOOD))]);
     const { loop, commit } = await runSourceResearchTask(
