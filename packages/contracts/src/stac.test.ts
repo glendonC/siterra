@@ -121,4 +121,15 @@ describe("STAC extension 1.1.0", () => {
       path: ["properties", "siterra:measurements", 0, "missing_reason"],
     });
   });
+
+  it("accepts snow_cover_fraction as a bundle variable in the JSON schema and Zod mirror", () => {
+    const schema = readJson(`${repoDir}schemas/stac/siterra-extension.schema.json`);
+    const defs = schema["definitions"] as Json;
+    const variableDef = defs["siterra:variable"] as { enum: string[] };
+    expect(variableDef.enum).toContain("snow_cover_fraction");
+
+    const collection = readJson(`${examplesDir}stac-collection-ndvi.json`);
+    collection["siterra:variable"] = "snow_cover_fraction";
+    expect(issuesOf(StacCollection.safeParse(collection))).toEqual([]);
+  });
 });
