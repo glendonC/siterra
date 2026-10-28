@@ -1,7 +1,6 @@
-import { readFileSync } from "node:fs";
 import { findBundlesDir, ownsBundle, resolveCaseAsset } from "@siterra/db";
-import { parseByteRange } from "../../../../byte-range.ts";
 import { database } from "../../../../database.ts";
+import { fileResponse } from "../../../../file-response.ts";
 import { problem } from "../../../../problem.ts";
 import { requestOwner } from "../../../../session.ts";
 
@@ -36,35 +35,9 @@ export async function GET(
   if (file === null) {
     return problem(404, "not_found");
   }
-  const headers = {
+  return fileResponse(request, file, {
     "Content-Type": file.contentType,
-    // The browser keeps the stated type and never sniffs a bundle file as script or HTML.
-    "X-Content-Type-Options": "nosniff",
-    "Accept-Ranges": "bytes",
     ETag: `"${file.checksum}"`,
     "Cache-Control": "private, max-age=31536000, immutable",
-  };
-  const range = parseByteRange(request.headers.get("range"), file.size);
-  if (range === "unsatisfiable") {
-    return new Response(null, {
-      status: 416,
-      headers: { ...headers, "Content-Range": `bytes */${file.size}` },
-    });
-  }
-  const bytes = readFileSync(file.absolutePath);
-  if (range === null) {
-    return new Response(new Uint8Array(bytes), {
-      status: 200,
-      headers: { ...headers, "Content-Length": String(file.size) },
-    });
-  }
-  const part = bytes.subarray(range.start, range.end + 1);
-  return new Response(new Uint8Array(part), {
-    status: 206,
-    headers: {
-      ...headers,
-      "Content-Length": String(part.length),
-      "Content-Range": `bytes ${range.start}-${range.end}/${file.size}`,
-    },
   });
 }

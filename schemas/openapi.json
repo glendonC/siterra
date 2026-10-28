@@ -34,6 +34,10 @@
     {
       "name": "assets",
       "description": "Case assets: bundle files under a versioned, hash-addressed path, behind the ownership check."
+    },
+    {
+      "name": "map",
+      "description": "Public map assets: the data/map bundle under a path versioned by its manifest, without a session (ADR-0018)."
     }
   ],
   "security": [
@@ -551,6 +555,132 @@
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "416": {
+            "description": "The range is beyond the file; Content-Range names its size."
+          },
+          "default": {
+            "$ref": "#/components/responses/Unexpected"
+          }
+        }
+      }
+    },
+    "/api/map-assets": {
+      "get": {
+        "operationId": "getCurrentMapManifest",
+        "tags": [
+          "map"
+        ],
+        "summary": "Find the current map manifest",
+        "description": "Redirects to /api/map-assets/{version}/manifest.json of the map bundle the deployment holds, so a client resolves the manifest's relative paths against the versioned URL. Not cached.",
+        "security": [],
+        "responses": {
+          "307": {
+            "description": "Location names the versioned manifest.",
+            "headers": {
+              "Location": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "default": {
+            "$ref": "#/components/responses/Unexpected"
+          }
+        }
+      }
+    },
+    "/api/map-assets/{version}/{assetPath}": {
+      "parameters": [
+        {
+          "name": "version",
+          "in": "path",
+          "required": true,
+          "description": "The SHA-256 (hex) of the map bundle's manifest.json.",
+          "schema": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        },
+        {
+          "name": "assetPath",
+          "in": "path",
+          "required": true,
+          "description": "manifest.json, or a file the manifest lists under layers or licences, relative to the bundle folder; may contain slashes (for example terrain/12/1972/1659.webp).",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "get": {
+        "operationId": "getMapAsset",
+        "tags": [
+          "map"
+        ],
+        "summary": "Get a map bundle file",
+        "description": "A public display asset of the map bundle (07-deployment-view.md, map and observation assets). Only manifest.json and the files it lists are served, each checked against its listed size and SHA-256; the response is immutable for its path. HTTP Range with one byte range is answered with 206 and Content-Range; a range beyond the file with 416; an invalid range such as bytes=5-3 is ignored. An old version or an unlisted path answers 404. The .gz globe grids are served as application/gzip, not with Content-Encoding.",
+        "security": [],
+        "parameters": [
+          {
+            "name": "Range",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "One byte range, for example bytes=0-1023."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The whole file.",
+            "headers": {
+              "ETag": {
+                "description": "The file's SHA-256.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Accept-Ranges": {
+                "schema": {
+                  "type": "string",
+                  "const": "bytes"
+                }
+              }
+            },
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "contentMediaType": "application/octet-stream"
+                }
+              }
+            }
+          },
+          "206": {
+            "description": "The requested byte range.",
+            "headers": {
+              "Content-Range": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "contentMediaType": "application/octet-stream"
+                }
+              }
+            }
           },
           "404": {
             "$ref": "#/components/responses/NotFound"

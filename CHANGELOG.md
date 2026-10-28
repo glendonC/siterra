@@ -53,6 +53,7 @@ Contracts and design tokens carry their own Semantic Versioning numbers, recorde
 - A synthetic replay of one commission of the seed case in `apps/worker/fixtures/seed-commission.synthetic.replay.json` (origin "synthetic", zero usage, no model ran), for running the slice offline in concept mode; its two answers quote stored bundle values with their measurement IDs, and replay steps can match their request so concurrent tasks replay deterministically.
 - The hypothesis_comparison task: hypotheses with supporting, contradicting and missing evidence and a status word, relationships written by host code at exact revisions, no probabilities and no ranking of explanations; only the hypothesis statement may name a cause, and every number comes from the cited evidence.
 - Event record tools for the agent: `read_event_record` (accepted rows of a validated event bundle for the given periods, labelled "published context, not an observation") and `compare_events` (whether each row's rainfall direction agrees with the stored season_summary tercile of its November to April season, by IDs only, direction only); tested on a fixture marked synthetic, the real event bundle waits for GATE-01.
+- Map assets on the application origin (ADR-0018): `GET /api/map-assets/{version}/{path}` serves the files `data/map/manifest.json` lists to any visitor, versioned by the manifest's SHA-256, each file checked against its listed size and hash, with immutable caching and byte ranges; `GET /api/map-assets` redirects to the current manifest.
 
 ### Changed
 

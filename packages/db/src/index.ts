@@ -7,6 +7,7 @@ export * from "./commit.ts";
 export * from "./demo-sessions.ts";
 export * from "./events.ts";
 export * from "./listener.ts";
+export * from "./map-assets.ts";
 export * from "./migrate.ts";
 export * from "./outbox.ts";
 export * from "./reviews.ts";
