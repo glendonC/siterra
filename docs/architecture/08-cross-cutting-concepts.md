@@ -72,7 +72,7 @@ Autonomy is scoped to investigation and preparation, and tool permissions enforc
 - Retrieved text is untrusted evidence: it can never change tools, permissions or instructions. The P1 `fetch_source` proxy blocks private networks and redirects to them.
 - No API keys, bearer tokens, raw system prompts or hidden reasoning reach events or logs shipped to the browser (TR-03).
 - Public fixtures and Git history carry no household locations, names, phone numbers, field notes, disputed boundaries, consent records or access-sensitive site details. Example IDs use the `example` slug, and a QA check keeps them out of the demo database (SA-09).
-- Only Standard model mode is used; Contributor mode must not receive personal or confidential data.
+- Only Standard model mode is used, never Contributor mode. While the hackathon credits are in use, Meta may use what Siterra sends for product improvement ([ADR-0047](../decisions/0047-use-the-hackathon-credits-and-send-no-personal-or-confidential-data.md)), so model requests carry no personal or confidential data.
 
 ## Observations and provenance
 

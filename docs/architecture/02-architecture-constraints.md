@@ -14,7 +14,7 @@ Verified platform facts (TECH-03 to TECH-10, TECH-30 to TECH-34) and the resulti
 | `tool_choice` must be `"auto"`; parallel tool calls default on; arguments "not guaranteed to validate" | Function tools are only for reads and deterministic computation; the proposal is the structured final output, not a forced tool call; validate everything |
 | Errors: retry 429, 500, 503 with backoff and `Retry-After`; do not retry 400 to 404 or 413; do not blindly retry a non-streaming 504 | Stream every call; first-event and inactivity timeouts (not a total timeout); retry policy per error type in [agent orchestration](../reference/agent-orchestration.md#state-retry-and-recovery) |
 | Spark Standard USD 1.25 in, 4.25 out, 0.15 cached per million tokens; web search 2.50 per thousand; 3,000 RPM and 4M TPM per team; no hard spend cap, only an email alert | Application budgets are the only hard stop; set the account alert on day 1 |
-| Standard mode is not used for training; Contributor mode is and must not receive personal or confidential data | Standard only |
+| Standard mode is not used for training; Contributor mode is and must not receive personal or confidential data. While free credits are in use, the account's Billing page says content may be used for product improvement (seen 28 Oct 2026) | Standard mode only, never Contributor mode; while the hackathon credits are in use, requests carry no personal or confidential data ([ADR-0047](../decisions/0047-use-the-hackathon-credits-and-send-no-personal-or-confidential-data.md)) |
 | `GET /v1/status` is public | Pre-demo health check, not proof of account access |
 
 How the adapter uses these rules is in [cross-cutting concepts](08-cross-cutting-concepts.md#model-boundary).

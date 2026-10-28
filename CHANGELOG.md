@@ -64,6 +64,7 @@ Contracts and design tokens carry their own Semantic Versioning numbers, recorde
 
 ### Changed
 
+- Model data use: decision record [ADR-0047](docs/decisions/0047-use-the-hackathon-credits-and-send-no-personal-or-confidential-data.md) keeps the hackathon credits on, under which Meta may use what Siterra sends for product improvement, so model requests carry no personal or confidential data; it supersedes the data-use part of ADR-0015, and the architecture constraints and the security and privacy rules say so.
 - Agent orchestration: the last two of a task's six rounds offer no tools, one for the proposal and one for its repair, so a task stops reading in time to propose.
 - README rewritten to lead with the problem in cited research (eleven numbered sources, each with its register ID), the first case's real data, how the method scales, the Meta model jobs and a table of what exists and what does not; the old hero image, a frame with a contradicted rainfall statement, is gone.
 - Study area frozen at native 30 m (417.04 km2 geodesic, one ring, SHA-256 published in the study-area note) before any vegetation data was read; Sentinel-2 harmonization on the Earth Search legacy collection uses DN / 10000 and never the asset offset, with pixel-paired evidence.
