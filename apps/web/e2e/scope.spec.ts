@@ -8,9 +8,9 @@ test("the mode line opens the scope popover with the concept detail line", async
   await page.goto(`/stage?case=${sharedCase()}`);
   await expect(page.locator("[data-arrival-settled=true]")).toBeVisible({ timeout: 60_000 });
   const mode = page.getByRole("button", {
-    name: "Concept prototype. What Siterra will and will not do",
+    name: "Concept Prototype. Scope",
   });
-  await expect(mode).toHaveText("Concept prototype");
+  await expect(mode).toHaveText("Concept Prototype");
   const popover = page.locator("#scope-popover");
   await expect(popover).toBeHidden();
   await mode.focus();

@@ -18,7 +18,7 @@ test("commission, stream, Observations and reload", async ({ page, baseURL }) =>
 
   await page.goto(`/stage?case=${caseId}`);
   await expect(page.locator("[data-arrival-settled=true]")).toBeVisible({ timeout: 60_000 });
-  await expect(page.getByText("Concept prototype")).toBeVisible();
+  await expect(page.getByText("Concept Prototype")).toBeVisible();
 
   await page.keyboard.press("Enter");
   const card = page.locator("[data-budget=card]");
@@ -27,7 +27,7 @@ test("commission, stream, Observations and reload", async ({ page, baseURL }) =>
     "Is grazing changing the shared pastures of the Aït Bouguemez valley?",
   );
   // the worker plans and runs the steps from the replay, then the request completes
-  await expect(card).toContainText("Request complete", { timeout: 60_000 });
+  await expect(card).toContainText("Complete. Findings:", { timeout: 60_000 });
   await expect(card).toContainText("Observations");
   await expect(card).toContainText(
     "Catchment rainfall, CHIRPS v3.0 monthly: 84 of 84 months observed, Jan 2019 to Dec 2025",
@@ -45,7 +45,7 @@ test("commission, stream, Observations and reload", async ({ page, baseURL }) =>
   expect(report.violations).toEqual([]);
   expect(report.counts.leaders).toBe(1);
   // the hint rule: once the request completes, ↵ has nothing to do, so its hint is gone
-  await expect(page.getByRole("button", { name: "Start investigation" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Run Assessment" })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Stop" })).toHaveCount(0);
   // TR-05: a model name never shows without its route and origin
   const text = await page.locator("body").innerText();

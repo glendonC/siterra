@@ -189,7 +189,7 @@ describe("departureLegend", () => {
 
   it("says what the map shows in the legend's words, from the records", () => {
     expect(departureLegend(b, [-0.1, 0.1], true, 25.545, 4)).toEqual({
-      title: "NDVI departure, Nov 2025, compared with other Novembers",
+      title: "NDVI Departure · Nov 2025",
       subtitle:
         "Difference from the median of the other Novembers, 2019 to 2025, inside the catchment",
       low: "\u22120.10",

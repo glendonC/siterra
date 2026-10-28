@@ -21,6 +21,8 @@ const CAUSES: Record<string, MessageId> = {
 };
 /** Codes that only say an earlier task failed; the cause is that task's. */
 const DOWNSTREAM = new Set(["dependency_failed", "dependency_unresolved"]);
+/** The scope refusal's failure code (packages/agent tasks/scope.ts OUT_OF_SCOPE). */
+const OUT_OF_SCOPE = "out_of_scope";
 
 export interface WorkCardOptions {
   /** A replay still playing at reading pace: the log is what has played so far, and the outcome waits. */
@@ -41,15 +43,19 @@ export function workCard(
   const tasks = commandTasks(s, commandId);
   const produced = producedObservations(s, tasks);
   const lines = ended ? observations.filter((o) => produced.bundleIds.has(o.bundleId)) : [];
+  const refused = ended && tasks.some((t) => t.failureCode === OUT_OF_SCOPE);
   return {
     // the worker gives the plan task the command's own text; before it exists, the case question
     question: tasks.find((t) => t.kind === "plan")?.question ?? s.case.objective,
     // the steps themselves are in the activity panel
-    working: ended
-      ? outcomeLine(outcome, tasks)
-      : !pacing && work.steps.length > 0
-        ? format("work.planning", { n: work.steps.length })
-        : (latest?.message ?? en["work.received"].text),
+    ...(refused ? { status: en["work.outOfScope"].text } : {}),
+    working: refused
+      ? en["work.outOfScopeDetail"].text
+      : ended
+        ? outcomeLine(outcome, tasks, acceptedFindings(s, tasks))
+        : !pacing && work.steps.length > 0
+          ? format("work.planning", { n: work.steps.length })
+          : (latest?.message ?? en["work.received"].text),
     ...(lines.length > 0
       ? {
           section: {
@@ -101,13 +107,25 @@ function producedObservations(s: CaseSnapshot, tasks: Task[]) {
   return { evidenceIds, bundleIds };
 }
 
-function outcomeLine(outcome: Exclude<RequestOutcome, "running">, tasks: Task[]): string {
-  if (outcome === "succeeded") return en["work.complete"].text;
+/** Accepted evidence of any claim kind that this command's tasks generated. */
+function acceptedFindings(s: CaseSnapshot, tasks: Task[]): number {
+  const taskIds = new Set(tasks.map((t) => t.id));
+  return s.records.evidenceRecords.filter(
+    (e) => e.status === "accepted" && taskIds.has(e.provenance.generatedByTaskId ?? ""),
+  ).length;
+}
+
+function outcomeLine(
+  outcome: Exclude<RequestOutcome, "running">,
+  tasks: Task[],
+  findings: number,
+): string {
+  if (outcome === "succeeded") return format("work.complete", { n: findings });
   if (outcome === "cancelled") return en["work.cancelled"].text;
   if (outcome === "partial") {
     const notDone = tasks.filter((t) => t.status !== "succeeded");
     return format("work.partial", {
-      tasks: notDone.map((t) => en[`task.kind.${t.kind}`].text.toLowerCase()).join(", "),
+      tasks: notDone.map((t) => en[`task.kind.${t.kind}`].text).join(", "),
     });
   }
   const code = tasks.find(
@@ -119,6 +137,7 @@ function outcomeLine(outcome: Exclude<RequestOutcome, "running">, tasks: Task[])
 
 /** Plain words for a task's failure code, when the catalog has them. */
 export function failureCause(code: string): MessageId | undefined {
+  if (code === OUT_OF_SCOPE) return "work.outOfScopeDetail";
   return CAUSES[code] ?? (/^http_5\d\d$/.test(code) ? "work.cause.modelDown" : undefined);
 }
 

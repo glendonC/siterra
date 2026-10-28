@@ -34,6 +34,7 @@
   animation: settle 1s var(--ease-arrive) both;
 }
 
+.what,
 .how,
 .caseLine {
   margin: 16px auto 0;
@@ -47,8 +48,16 @@
   color: var(--grey);
 }
 
+.what,
 .caseLine {
   color: var(--ink);
+}
+
+.label {
+  display: block;
+  font: 500 12px / 20px var(--font-mono);
+  letter-spacing: 0.04em;
+  color: var(--grey);
 }
 
 .action {
@@ -120,6 +129,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .sentence,
+  .what,
   .how,
   .caseLine,
   .action {

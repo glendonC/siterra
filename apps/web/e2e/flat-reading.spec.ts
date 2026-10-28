@@ -12,7 +12,7 @@ test("F gives the flat reading with its frame, and F again returns", async ({ pa
   await page.keyboard.press("f");
   await expect(stage).toHaveAttribute("data-view", "toFlat");
   await expect(stage).toHaveAttribute("data-view", "flat", { timeout: 5_000 });
-  await expect(page.getByRole("button", { name: /Read flat/ })).toHaveAttribute(
+  await expect(page.getByRole("button", { name: /Flat Map View/ })).toHaveAttribute(
     "aria-pressed",
     "true",
   );
@@ -22,8 +22,10 @@ test("F gives the flat reading with its frame, and F again returns", async ({ pa
   await expect(frame.getByText(/° W$/).first()).toBeVisible();
   await expect(frame.getByText(/° N$/).first()).toBeVisible();
   // the instruments follow: no relief factor, and the tick labels keep clear of the mode line
-  await expect(page.locator("[data-budget=island]").getByText("Relief ×2")).toHaveCount(0);
-  const mode = await page.getByRole("button", { name: /^Concept prototype/ }).boundingBox();
+  await expect(
+    page.locator("[data-budget=island]").getByText("Vertical Exaggeration ×2"),
+  ).toHaveCount(0);
+  const mode = await page.getByRole("button", { name: /^Concept Prototype/ }).boundingBox();
   for (const t of await frame.getByText(/° W$/).all()) {
     const b = await t.boundingBox();
     const apart =
@@ -42,7 +44,9 @@ test("F gives the flat reading with its frame, and F again returns", async ({ pa
   await expect(stage).toHaveAttribute("data-view", "oblique", { timeout: 5_000 });
   await expect(frame).toHaveCount(0);
   await expect(page.locator("[data-budget=land-label]").first()).toBeVisible();
-  await expect(page.locator("[data-budget=island]").getByText("Relief ×2")).toHaveCount(1);
+  await expect(
+    page.locator("[data-budget=island]").getByText("Vertical Exaggeration ×2"),
+  ).toHaveCount(1);
 });
 
 test("the text listing is a skip link on keyboard focus and a labelled region", async ({
@@ -50,11 +54,11 @@ test("the text listing is a skip link on keyboard focus and a labelled region", 
 }) => {
   await page.goto(`/stage?case=${sharedCase()}`);
   await expect(page.locator("[data-arrival-settled=true]")).toBeVisible({ timeout: 60_000 });
-  const region = page.getByRole("region", { name: "Everything on screen, as text" });
+  const region = page.getByRole("region", { name: "Text View" });
   await expect(region).toBeAttached();
   await expect(region.getByText("Tabant", { exact: true })).toBeAttached();
   await page.keyboard.press("Tab");
-  const skip = page.getByRole("link", { name: "Skip to everything on screen, as text" });
+  const skip = page.getByRole("link", { name: "Text View" });
   await expect(skip).toBeFocused();
   const box = await skip.boundingBox();
   expect(box?.y ?? -1).toBeGreaterThanOrEqual(0);
@@ -67,15 +71,15 @@ test("the text listing is a skip link on keyboard focus and a labelled region", 
 test("when the map cannot load, the listing takes its place", async ({ page }) => {
   await page.route("**/api/map-assets", (r) => r.fulfill({ status: 503, body: "" }));
   await page.goto(`/stage?case=${sharedCase()}`);
-  await expect(
-    page.getByRole("alert").filter({ hasText: "The interactive map could not load." }),
-  ).toHaveText("The interactive map could not load. Everything it would show is listed below.");
-  const region = page.getByRole("region", { name: "Everything on screen, as text" });
+  await expect(page.getByRole("alert").filter({ hasText: "Map not loaded." })).toHaveText(
+    "Map not loaded. All map content is listed below as text.",
+  );
+  const region = page.getByRole("region", { name: "Text View" });
   await expect(region).toHaveAttribute("data-flat-listing", "shown");
   await expect(region.getByText("Tabant", { exact: true })).toBeVisible();
-  await expect(region.getByText("Relief ×2")).toHaveCount(0);
+  await expect(region.getByText("Vertical Exaggeration ×2")).toHaveCount(0);
   // the request can still be made; F and the map instruments are gone (the hint rule)
-  const start = page.getByRole("button", { name: "Start investigation" });
+  const start = page.getByRole("button", { name: "Run Assessment" });
   await expect(start).toBeVisible();
   // landed, not only present: its row has faded in
   await expect
@@ -83,13 +87,13 @@ test("when the map cannot load, the listing takes its place", async ({ page }) =
       timeout: 8_000,
     })
     .toBe("1");
-  await expect(page.getByRole("textbox", { name: "Ask Siterra" })).toBeVisible();
-  await expect(page.getByRole("button", { name: /Read flat/ })).toHaveCount(0);
+  await expect(page.getByRole("textbox", { name: "Question" })).toBeVisible();
+  await expect(page.getByRole("button", { name: /Flat Map View/ })).toHaveCount(0);
   await expect(page.getByRole("img", { name: "North" })).toHaveCount(0);
   // the message says the listing is below it
   const message = await page
     .getByRole("alert")
-    .filter({ hasText: "The interactive map could not load." })
+    .filter({ hasText: "Map not loaded." })
     .boundingBox();
   const listing = await region.boundingBox();
   expect((message?.y ?? 0) + (message?.height ?? 0)).toBeLessThanOrEqual(listing?.y ?? 0);

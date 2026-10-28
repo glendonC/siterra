@@ -6,25 +6,29 @@ import type { Scope } from "./lint";
 
 export interface Message {
   text: string;
-  /** Lint scope: plain interface text, a label, a button or a link. */
-  kind: Extract<Scope, "ui" | "label" | "button" | "link">;
+  /**
+   * Lint scope: a detail line ("ui"), a map or data label, a heading (header, tab, badge, status word or
+   * stage name, in Title Case), a button or a link.
+   */
+  kind: Extract<Scope, "ui" | "label" | "heading" | "button" | "link">;
   /** A line that says what a value is not or does not prove; exempt from the land-label word cap. */
   honesty?: true;
 }
 
 export const en = {
-  // Opening page: one screen. The case question comes from the case record (opening.case)
+  // Opening page: one screen. The case question comes from the case record
+  "opening.title": { text: "Siterra", kind: "heading" },
   "opening.what": {
-    text: "Siterra assesses environmental questions for communities and organisations that have no specialist to ask.",
+    text: "An environmental analysis engine for communities and organizations with no specialist to ask.",
     kind: "ui",
   },
   "opening.how": {
-    text: "Its agents plan the work and read published research with Meta's Muse Spark model, and code checks every quote against its source. Code computes every number. A person reviews the results; Siterra contacts no one and decides nothing.",
+    text: "Meta Muse Spark plans the tasks and reads published sources. Code computes every number and checks every quote against its source. A person reviews every result. Siterra sends, spends and decides nothing.",
     kind: "ui",
   },
-  "opening.case": { text: "This case: {question}", kind: "ui" },
-  "opening.action": { text: "Open the case", kind: "button" },
-  "opening.skip": { text: "Skip to the map", kind: "link" },
+  "opening.question": { text: "Question", kind: "heading" },
+  "opening.action": { text: "Open Region Pack", kind: "button" },
+  "opening.skip": { text: "Skip to Map", kind: "link" },
 
   // Globe and dive (approved hero study A4)
   "globe.range": { text: "Atlas Mountains, Morocco", kind: "label" },
@@ -33,8 +37,8 @@ export const en = {
     text: "Rangeland biomes, potential extent (Rangelands Atlas method)",
     kind: "ui",
   },
-  "globe.turn": { text: "Turn", kind: "label" },
-  "globe.dragKey": { text: "drag", kind: "label" },
+  "globe.turn": { text: "Turn", kind: "heading" },
+  "globe.dragKey": { text: "Drag", kind: "heading" },
   "dive.highAtlas": { text: "High Atlas Mountains", kind: "label" },
   "credit.globe": {
     text: "Globe relief: produced using Copernicus WorldDEM™-90 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved",
@@ -56,88 +60,93 @@ export const en = {
     text: "Is grazing changing the shared pastures of the Aït Bouguemez valley?",
     kind: "ui",
   },
-  "arrival.start": { text: "Start investigation", kind: "button" },
-  "arrival.readFlat": { text: "Read flat", kind: "button" },
+  "arrival.start": { text: "Run Assessment", kind: "button" },
+  "arrival.readFlat": { text: "Flat Map View", kind: "button" },
 
-  // Read flat
-  "flat.title": { text: "Everything on screen, as text", kind: "label" },
+  // Text view (the flat listing)
+  "flat.title": { text: "Text View", kind: "heading" },
   "flat.close": { text: "Close", kind: "button" },
-  "flat.skip": { text: "Skip to everything on screen, as text", kind: "link" },
+  "flat.skip": { text: "Text View", kind: "link" },
   "flat.lonW": { text: "{deg}° W", kind: "label" },
   "flat.latN": { text: "{deg}° N", kind: "label" },
   "flat.km": { text: "{n} km", kind: "label" },
   "flat.m": { text: "{n} m", kind: "label" },
-  "flat.place": { text: "Place", kind: "label" },
-  "flat.question": { text: "Question", kind: "label" },
-  "flat.notes": { text: "View notes", kind: "label" },
-  "flat.sources": { text: "Sources", kind: "label" },
+  "flat.place": { text: "Place", kind: "heading" },
+  "flat.question": { text: "Question", kind: "heading" },
+  "flat.notes": { text: "Notes", kind: "heading" },
+  "flat.sources": { text: "Sources", kind: "heading" },
 
   // Task status words (microcopy section 6)
-  "task.queued": { text: "Queued", kind: "label" },
-  "task.running": { text: "Running", kind: "label" },
-  "task.needs_input": { text: "Needs your input", kind: "label" },
-  "task.done": { text: "Done", kind: "label" },
-  "task.partial": { text: "Partly done", kind: "label" },
-  "task.failed": { text: "Failed", kind: "label" },
-  "task.cancelled": { text: "Canceled", kind: "label" },
-  "task.awaiting_review": { text: "Awaiting review", kind: "label" },
-  "work.planning": { text: "Planning: {n} steps to answer this question", kind: "ui" },
+  "task.queued": { text: "Queued", kind: "heading" },
+  "task.running": { text: "Running", kind: "heading" },
+  "task.needs_input": { text: "Input Required", kind: "heading" },
+  "task.done": { text: "Done", kind: "heading" },
+  "task.partial": { text: "Partial", kind: "heading" },
+  "task.failed": { text: "Failed", kind: "heading" },
+  "task.cancelled": { text: "Canceled", kind: "heading" },
+  "task.awaiting_review": { text: "Awaiting Review", kind: "heading" },
+  "work.planning": { text: "Planned tasks: {n}.", kind: "ui" },
   "work.stop": { text: "Stop", kind: "button" },
-  "work.received": { text: "Request received", kind: "ui" },
-  "work.complete": { text: "Request complete", kind: "ui" },
-  // microcopy section 5 Failed and Partial; "Your question is kept" as in work.refused, no Retry on the card
-  "work.failed": { text: "Request failed: {cause}. Your question is kept.", kind: "ui" },
-  "work.partial": { text: "Finished with gaps. Not done: {tasks}.", kind: "ui" },
-  "work.cancelled": { text: "Request canceled", kind: "ui" },
+  "work.received": { text: "Request received.", kind: "ui" },
+  // accepted evidence only; three words so the completed card stays within its 45 (VC-04)
+  "work.complete": { text: "Complete. Findings: {n}.", kind: "ui" },
+  // microcopy section 5 Failed and Partial; the question text stays in the command line, no Retry on the card
+  "work.failed": { text: "Assessment failed: {cause}. Question text kept.", kind: "ui" },
+  "work.partial": { text: "Assessment partial. Not completed: {tasks}.", kind: "ui" },
+  "work.cancelled": { text: "Assessment canceled.", kind: "ui" },
   // causes after the section 16 patterns: Budget or time limit, Model output rejected, Model service down
-  "work.cause.roundLimit": { text: "stopped at the model round limit", kind: "ui" },
-  "work.cause.rejected": { text: "Siterra rejected the model's proposal", kind: "ui" },
-  "work.cause.modelDown": { text: "the model service is not responding", kind: "ui" },
-  "work.cause.other": { text: "no step finished", kind: "ui" },
-  // task kinds (microcopy section 6 task rows; the voice guide's terminology for the two it does not list:
-  // "possible response", not "intervention"; "checked (automated)", not "verified")
-  "task.kind.plan": { text: "Plan", kind: "label" },
-  "task.kind.source_research": { text: "Source research", kind: "label" },
-  "task.kind.observation_analysis": { text: "Observation analysis", kind: "label" },
-  "task.kind.livelihood_governance": { text: "Livelihood and governance research", kind: "label" },
-  "task.kind.hypothesis_comparison": { text: "Explanation comparison", kind: "label" },
-  "task.kind.intervention_feasibility": { text: "Possible responses", kind: "label" },
-  "task.kind.brief_package": { text: "Field-validation plan", kind: "label" },
-  "task.kind.validation": { text: "Automated checks", kind: "label" },
+  "work.cause.roundLimit": { text: "model round limit reached", kind: "ui" },
+  "work.cause.rejected": { text: "model proposal rejected by checks", kind: "ui" },
+  "work.cause.modelDown": { text: "model service not responding", kind: "ui" },
+  "work.cause.other": { text: "no task completed", kind: "ui" },
+  // the scope refusal (packages/agent tasks/scope.ts): a badge and two sentences, what is wrong and what is required
+  "work.outOfScope": { text: "Out of Scope", kind: "heading" },
+  "work.outOfScopeDetail": {
+    text: "The request treats people as the explanation by identity, or names a private individual. Questions must concern land, water, vegetation or land-use practices.",
+    kind: "ui",
+  },
+  // task kinds, by the five-stage engine's names where a stage owns the task
+  "task.kind.plan": { text: "Plan", kind: "heading" },
+  "task.kind.source_research": { text: "Source Research", kind: "heading" },
+  "task.kind.observation_analysis": { text: "Observation Analysis", kind: "heading" },
+  "task.kind.livelihood_governance": { text: "Livelihoods & Governance", kind: "heading" },
+  "task.kind.hypothesis_comparison": { text: "Hypothesis Comparison", kind: "heading" },
+  "task.kind.intervention_feasibility": { text: "Intervention Feasibility", kind: "heading" },
+  "task.kind.brief_package": { text: "Field Verification Plan", kind: "heading" },
+  "task.kind.validation": { text: "Automated Checks", kind: "heading" },
   // labeled precomputed (ADR-0021; agent orchestration, "Precomputed observations are labeled precomputed")
-  "work.observations": { text: "Observations (precomputed)", kind: "label" },
+  "work.observations": { text: "Precomputed Observations", kind: "heading" },
   "work.observationLine": {
     text: "{label}: {available} of {total} months observed, {first} to {last}",
     kind: "ui",
   },
-  "work.refused": {
-    text: "The request was not sent. Your question is kept. Try again.",
-    kind: "ui",
-  },
+  "work.refused": { text: "Request not sent. Question text kept for another run.", kind: "ui" },
   "work.quotaUsed": {
-    text: "This demo session has used its requests. Your question is kept.",
+    text: "Demo request limit reached for this session. Question text kept.",
     kind: "ui",
   },
 
-  // Activity panel (microcopy section 20: panel title, empty state, model badge "{model}, {route}")
-  "activity.title": { text: "Activity", kind: "label" },
-  "activity.empty": {
-    text: "No activity yet. Each model call, tool call and check appears here as it happens.",
+  // Activity panel (microcopy section 20: panel title, empty state, model badge)
+  "activity.title": { text: "Activity", kind: "heading" },
+  "activity.empty": { text: "No events for this request.", kind: "ui" },
+  "activity.model": { text: "{model} · {route}", kind: "heading" },
+  "activity.route.synthetic": { text: "Synthetic Replay", kind: "heading" },
+  "activity.route.recorded": { text: "Recorded Replay", kind: "heading" },
+  "activity.route.modelApi": { text: "Model API", kind: "heading" },
+  "activity.code": { text: "Code: {tool}", kind: "heading" },
+  "activity.proposal": { text: "Proposal: {tool}", kind: "heading" },
+  "activity.rejected": { text: "Rejected: {rule} ({code})", kind: "ui" },
+  // a coverage boundary: the badge, then what is missing and what is required
+  "activity.notLoaded": { text: "Dataset Not Loaded", kind: "heading" },
+  "activity.blocked": {
+    text: "Required inputs not loaded: {inputs}. Attach the datasets or limit the question to loaded layers.",
     kind: "ui",
   },
-  "activity.model": { text: "{model}, {route}", kind: "label" },
-  "activity.route.synthetic": { text: "synthetic replay", kind: "label" },
-  "activity.route.recorded": { text: "recorded replay", kind: "label" },
-  "activity.route.modelApi": { text: "Model API", kind: "label" },
-  "activity.code": { text: "Code: {tool}", kind: "label" },
-  "activity.proposal": { text: "Model proposal: {tool}", kind: "label" },
-  "activity.rejected": { text: "Rejected: {rule} ({code})", kind: "ui" },
-  "activity.blocked": { text: "Blocked: needs {inputs}", kind: "ui" },
   "activity.cause": { text: "Cause: {cause}", kind: "ui" },
-  "activity.synthetic": { text: "Replay of a synthetic run (no live model)", kind: "label" },
-  "activity.recorded": { text: "Replay of a recorded run", kind: "label" },
-  "activity.pace": { text: "Shown at reading pace, one event every {seconds} s", kind: "ui" },
-  "activity.showAll": { text: "Show all steps", kind: "button" },
+  "activity.synthetic": { text: "Synthetic Replay · No Live Model", kind: "heading" },
+  "activity.recorded": { text: "Recorded Replay", kind: "heading" },
+  "activity.pace": { text: "Reading pace: 1 event per {seconds} s.", kind: "ui" },
+  "activity.showAll": { text: "Show All Steps", kind: "button" },
   // the check that rejected a proposal, by its validation issue code (ValidationResult)
   "rule.schema": { text: "wrong shape", kind: "ui" },
   "rule.unknown_reference": { text: "cites a record that does not exist", kind: "ui" },
@@ -156,10 +165,7 @@ export const en = {
   "rule.excerpt_mismatch": { text: "quote not found in its source", kind: "ui" },
 
   // Map legend (microcopy section 19, the approved key's form for any month; section 1a valley.key.ndvi.note)
-  "legend.ndvi.title": {
-    text: "NDVI departure, {period}, compared with other {months}",
-    kind: "label",
-  },
+  "legend.ndvi.title": { text: "NDVI Departure · {period}", kind: "heading" },
   "legend.ndvi.subtitle": {
     text: "Difference from the median of the other {months}, 2019 to 2025, inside the catchment",
     kind: "ui",
@@ -217,25 +223,25 @@ export const en = {
     kind: "ui",
     honesty: true,
   },
-  "flat.legend": { text: "Map legend", kind: "label" },
+  "flat.legend": { text: "Map Legend", kind: "heading" },
   // one label, its state in aria-expanded (voice and tone: a toggle keeps one label)
-  "legend.toggle": { text: "Map legend", kind: "button" },
+  "legend.toggle": { text: "Map Legend", kind: "button" },
 
   // Sources and notices
-  "notices.data": { text: "Data in this case, as its records credit it", kind: "label" },
-  "notices.map": { text: "Map and imagery", kind: "label" },
-  "notices.places": { text: "Points on the land, as their records credit them", kind: "label" },
-  "notices.fonts": { text: "Fonts", kind: "label" },
-  "notices.software": { text: "Software", kind: "label" },
+  "notices.data": { text: "Data Credits", kind: "heading" },
+  "notices.map": { text: "Map & Imagery", kind: "heading" },
+  "notices.places": { text: "Place Credits", kind: "heading" },
+  "notices.fonts": { text: "Fonts", kind: "heading" },
+  "notices.software": { text: "Software", kind: "heading" },
   "notice.maplibre": { text: "MapLibre GL JS, BSD 3-Clause License", kind: "link" },
   "notice.maplibreContour": {
     text: "maplibre-contour, BSD 3-Clause License, with the licences of the code it includes",
     kind: "link",
   },
-  "notices.keys": { text: "Keyboard", kind: "label" },
-  "notices.singleKeys": { text: "Single-key shortcuts", kind: "label" },
+  "notices.keys": { text: "Keyboard", kind: "heading" },
+  "notices.singleKeys": { text: "Single-Key Shortcuts", kind: "heading" },
   "notices.singleKeysDetail": {
-    text: "F opens Read flat and / moves to the command line. Turn them off if they get in your way. ↵ and Esc always work.",
+    text: "F toggles Flat Map View. / focuses the command line. Turning these off leaves ↵ and Esc on.",
     kind: "ui",
   },
   "notice.relief": {
@@ -251,29 +257,31 @@ export const en = {
 
   // Opening a case
   "case.notFound": {
-    text: "This case is not open to this session. Start again from the home page.",
+    text: "Case not available to this session. Open the home page to start a new session.",
     kind: "ui",
   },
   "case.failed": {
-    text: "The case did not load. Nothing was changed. Reload the page to try again.",
+    text: "Case not loaded. No records changed. Reload the page to retry.",
     kind: "ui",
   },
+  // a coverage boundary: the badge, then what is missing and what is required
+  "case.coverageRequired": { text: "Coverage Required", kind: "heading" },
   "case.noBoundary": {
-    text: "The analysis boundary is not established yet, so the valley is not drawn.",
+    text: "No analysis boundary is set for this case. A catchment boundary is required to draw the region.",
     kind: "ui",
   },
 
   // Command line
-  "command.label": { text: "Ask Siterra", kind: "label" },
+  "command.label": { text: "Question", kind: "heading" },
 
   // Stage notes
-  "stage.relief": { text: "Relief ×{factor}", kind: "label" },
-  "stage.north": { text: "N", kind: "label" },
+  "stage.relief": { text: "Vertical Exaggeration ×{factor}", kind: "heading" },
+  "stage.north": { text: "N", kind: "heading" },
   "stage.northName": { text: "North", kind: "ui" },
   "stage.imagery": { text: "Imagery: Sentinel-2, summer 2025, display only", kind: "ui" },
-  "stage.sources": { text: "Sources and notices", kind: "link" },
+  "stage.sources": { text: "Sources & Notices", kind: "link" },
   "stage.mapFailed": {
-    text: "The interactive map could not load. Everything it would show is listed below.",
+    text: "Map not loaded. All map content is listed below as text.",
     kind: "ui",
   },
 
@@ -286,37 +294,40 @@ export const en = {
   "credit.worldcover": { text: "© ESA WorldCover project.", kind: "ui" },
 
   // Mode
-  "mode.live": { text: "Live", kind: "label" },
+  "mode.live": { text: "Live", kind: "heading" },
   "mode.liveDetail": {
     text: "Model and tool calls run now. Observations are precomputed.",
     kind: "ui",
   },
-  "mode.replay": { text: "Replay of live run, {date}", kind: "label" },
+  "mode.replay": { text: "Recorded Replay · {date}", kind: "heading" },
   "mode.replayDetail": {
     text: "Recorded outputs from a live run. Nothing is computed now.",
     kind: "ui",
   },
-  "mode.simulated": { text: "Simulated answer.", kind: "ui" },
+  "mode.simulated": { text: "Simulated Answer", kind: "heading" },
   // The scope popover the mode line opens (microcopy section 2, PC-04)
-  "scope.name": { text: "What Siterra will and will not do", kind: "label" },
-  "scope.will": { text: "Siterra will", kind: "label" },
-  "scope.will1": { text: "Plan the investigation and retrieve published research", kind: "ui" },
+  "scope.name": { text: "Scope", kind: "heading" },
+  "scope.will": { text: "In Scope", kind: "heading" },
+  "scope.will1": { text: "Plan the assessment and read published research", kind: "ui" },
   "scope.will2": {
     text: "Load satellite and rainfall observations for the analysis area",
     kind: "ui",
   },
-  "scope.will3": { text: "Compare explanations and keep unresolved ones open", kind: "ui" },
-  "scope.will4": { text: "Prepare a field-validation plan and the reviews it needs", kind: "ui" },
-  "scope.willNot": { text: "Siterra will not", kind: "label" },
+  "scope.will3": {
+    text: "Test hypotheses against the records; unresolved ones stay open",
+    kind: "ui",
+  },
+  "scope.will4": { text: "Draft a field verification plan and its required reviews", kind: "ui" },
+  "scope.willNot": { text: "Out of Scope", kind: "heading" },
   "scope.willNot1": { text: "Contact anyone, spend money, or publish anything", kind: "ui" },
   "scope.willNot2": { text: "Make or authorize land-management decisions", kind: "ui" },
   "scope.willNot3": { text: "Claim consent, partnerships, or outcomes", kind: "ui" },
-  "mode.concept": { text: "Concept prototype", kind: "label" },
+  "mode.concept": { text: "Concept Prototype", kind: "heading" },
   "mode.conceptDetail": {
     text: "Model steps are synthetic examples, not live model output. The rainfall and vegetation records are measured.",
     kind: "ui",
   },
-  "mode.fixture": { text: "Fixture data", kind: "label" },
+  "mode.fixture": { text: "Fixture Data", kind: "heading" },
 } as const satisfies Record<string, Message>;
 
 export type MessageId = keyof typeof en;
@@ -331,39 +342,28 @@ export const LINT_ALLOWLIST: Partial<Record<MessageId, { rules: string[]; reason
     reason: "Copernicus WorldDEM-30 licence notice, kept in the wording the licence requires.",
   },
   "notice.fontSans": {
-    rules: ["VT-08"],
-    reason: "IBM and SIL are the names of the font's maker and its licence's publisher.",
+    rules: ["VT-08", "VT-48"],
+    reason:
+      "IBM and SIL are the names of the font's maker and its licence's publisher; the link names the font and its licence in full.",
   },
   "notice.maplibre": {
-    rules: ["VT-08"],
-    reason: "BSD is part of the licence's name, the BSD 3-Clause License.",
+    rules: ["VT-08", "VT-48"],
+    reason:
+      "BSD is part of the licence's name, the BSD 3-Clause License; the link names the library and its licence in full.",
   },
   "notice.maplibreContour": {
-    rules: ["VT-08"],
-    reason: "BSD is part of the licence's name, the BSD 3-Clause License.",
+    rules: ["VT-08", "VT-09", "VT-48"],
+    reason:
+      "maplibre-contour is the package's own lower-case name; the link names it, its licence and the bundled licences in full.",
   },
   "notice.fontMono": {
-    rules: ["VT-08"],
-    reason: "IBM and SIL are the names of the font's maker and its licence's publisher.",
-  },
-  "globe.range": {
-    rules: ["VT-09"],
+    rules: ["VT-08", "VT-48"],
     reason:
-      '"Atlas Mountains" is the range\'s proper name; "Mountains" is missing from the guide\'s allowlist.',
-  },
-  "dive.highAtlas": {
-    rules: ["VT-09"],
-    reason:
-      '"High Atlas Mountains" is the range\'s proper name; "Mountains" is missing from the guide\'s allowlist.',
+      "IBM and SIL are the names of the font's maker and its licence's publisher; the link names the font and its licence in full.",
   },
   "credit.globe": {
     rules: ["VT-03", "VT-08"],
     reason: "Copernicus WorldDEM-90 licence notice, kept in the wording the licence requires.",
-  },
-  "arrival.region": {
-    rules: ["VT-09"],
-    reason:
-      '"High Atlas Mountains" is the range\'s proper name; "Mountains" is missing from the guide\'s allowlist.',
   },
   "credit.imagery": {
     rules: ["VT-03"],

@@ -9,8 +9,8 @@ test("Sources and notices lists the record's credits and the font licences", asy
 }) => {
   await page.goto(`/stage?case=${sharedCase()}`);
   await expect(page.locator("[data-arrival-settled=true]")).toBeVisible({ timeout: 60_000 });
-  await page.getByRole("button", { name: "Sources and notices" }).click();
-  const dialog = page.getByRole("dialog", { name: "Sources and notices" });
+  await page.getByRole("button", { name: "Sources & Notices" }).click();
+  const dialog = page.getByRole("dialog", { name: "Sources & Notices" });
   await expect(dialog).toBeVisible();
   // credits come from the case's DataBundle records, in their own wording
   await expect(dialog.getByText(/CHIRPS v3\.0, Climate Hazards Center/)).toBeVisible();
@@ -57,10 +57,10 @@ test("single-key shortcuts can be turned off, and the choice holds after a reloa
     await page.waitForTimeout(400);
     await expect(stage).toHaveAttribute("data-view", "oblique");
   };
-  const notices = page.getByRole("dialog", { name: "Sources and notices" });
-  const sw = notices.getByRole("switch", { name: "Single-key shortcuts" });
+  const notices = page.getByRole("dialog", { name: "Sources & Notices" });
+  const sw = notices.getByRole("switch", { name: "Single-Key Shortcuts" });
 
-  await page.getByRole("button", { name: "Sources and notices" }).click();
+  await page.getByRole("button", { name: "Sources & Notices" }).click();
   await expect(sw).toBeChecked();
   if (process.env.NOTICES_KEYS_OUT) {
     await sw.scrollIntoViewIfNeeded();
@@ -73,7 +73,7 @@ test("single-key shortcuts can be turned off, and the choice holds after a reloa
   await page.keyboard.press("f");
   await staysOblique();
   // the hint is still a button, and pressing it again returns
-  const hint = page.getByRole("button", { name: /Read flat/ });
+  const hint = page.getByRole("button", { name: /Flat Map View/ });
   await hint.click();
   await expect(stage).not.toHaveAttribute("data-view", "oblique");
   await hint.click();
@@ -83,7 +83,7 @@ test("single-key shortcuts can be turned off, and the choice holds after a reloa
   await expect(page.locator("[data-arrival-settled=true]")).toBeVisible({ timeout: 60_000 });
   await page.keyboard.press("f");
   await staysOblique();
-  await page.getByRole("button", { name: "Sources and notices" }).click();
+  await page.getByRole("button", { name: "Sources & Notices" }).click();
   await expect(sw).not.toBeChecked();
   await sw.check();
   await page.keyboard.press("Escape");

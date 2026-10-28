@@ -94,7 +94,7 @@ describe("workCard as the command runs and completes", () => {
 
   it("leaves the steps to the activity panel while they run, and shows the Observations once the request completes", () => {
     const r = card(withRecords(steps("running")));
-    expect(r.working).toBe("Planning: 2 steps to answer this question");
+    expect(r.working).toBe("Planned tasks: 2.");
     expect(r.steps).toBeUndefined();
     expect(r.section).toBeUndefined();
     expect(words(r)).toBeLessThanOrEqual(LIMITS.cardWords);
@@ -106,9 +106,9 @@ describe("workCard as the command runs and completes", () => {
       ]),
     ]);
     const d = card(done, ended("succeeded"));
-    expect(d.working).toBe("Request complete");
+    expect(d.working).toBe("Complete. Findings: 2.");
     expect(d.steps).toBeUndefined();
-    expect(d.section?.heading).toBe("Observations (precomputed)");
+    expect(d.section?.heading).toBe("Precomputed Observations");
     expect(d.section?.lines).toEqual([RAIN_LINE, NDVI_LINE]);
     expect(d.recordIds).toEqual(
       expect.arrayContaining([
@@ -140,9 +140,7 @@ describe("workCard as the command runs and completes", () => {
     ]);
     for (const l of [ended("failed"), appendEvents(runLog, [ev(9, "task.failed")])]) {
       const f = card(failed, l);
-      expect(f.working).toBe(
-        "Request failed: stopped at the model round limit. Your question is kept.",
-      );
+      expect(f.working).toBe("Assessment failed: model round limit reached. Question text kept.");
       expect(f.section).toBeUndefined();
       expect(f.steps).toBeUndefined();
       expect(words(f)).toBeLessThanOrEqual(LIMITS.cardWords);
@@ -151,12 +149,24 @@ describe("workCard as the command runs and completes", () => {
 
   it("never reads a failed command as complete, with or without task records", () => {
     const f = card(withRecords([]), ended("failed"));
-    expect(f.working).toBe("Request failed: no step finished. Your question is kept.");
+    expect(f.working).toBe("Assessment failed: no task completed. Question text kept.");
     const e = card(
       withRecords([taskRecord("task_1", "failed", "q1", "plan", "executor_error")]),
       ended("failed"),
     );
-    expect(e.working).toBe("Request failed: no step finished. Your question is kept.");
+    expect(e.working).toBe("Assessment failed: no task completed. Question text kept.");
+  });
+
+  it("marks a scope refusal Out of Scope, with what is wrong and what is required", () => {
+    const o = card(
+      withRecords([taskRecord("task_1", "failed", "q1", "plan", "out_of_scope")]),
+      ended("failed"),
+    );
+    expect(o.status).toBe("Out of Scope");
+    expect(o.working).toBe(
+      "The request treats people as the explanation by identity, or names a private individual. Questions must concern land, water, vegetation or land-use practices.",
+    );
+    expect(words(o)).toBeLessThanOrEqual(LIMITS.cardWords);
   });
 
   it("says what was not done when the request finishes with gaps, and lists only what this request observed", () => {
@@ -174,14 +184,14 @@ describe("workCard as the command runs and completes", () => {
       ],
     );
     const p = card(partial, ended("partial"));
-    expect(p.working).toBe("Finished with gaps. Not done: source research.");
+    expect(p.working).toBe("Assessment partial. Not completed: Source Research.");
     expect(p.section?.lines).toEqual([NDVI_LINE]);
     expect(p.recordIds).not.toContain("ev_9");
     expect(p.recordIds).not.toContain("ev_3");
     expect(words(p)).toBeLessThanOrEqual(LIMITS.cardWords);
   });
 
-  it("names the steps not done in the voice guide's words: possible responses, automated checks", () => {
+  it("names the tasks not completed by their task names", () => {
     const p = card(
       withRecords([
         taskRecord("task_1", "succeeded", "q1"),
@@ -190,8 +200,10 @@ describe("workCard as the command runs and completes", () => {
       ]),
       ended("partial"),
     );
-    expect(p.working).toBe("Finished with gaps. Not done: possible responses, automated checks.");
-    expect(p.working).not.toMatch(/intervention|validation/i);
+    expect(p.working).toBe(
+      "Assessment partial. Not completed: Intervention Feasibility, Automated Checks.",
+    );
+    expect(p.working).not.toMatch(/validation/i);
   });
 
   it("says the request was canceled", () => {
@@ -199,7 +211,7 @@ describe("workCard as the command runs and completes", () => {
       withRecords([taskRecord("task_1", "cancelled", "q1")]),
       appendEvents(runLog, [ev(9, "task.cancelled")]),
     );
-    expect(c.working).toBe("Request canceled");
+    expect(c.working).toBe("Assessment canceled.");
     expect(c.section).toBeUndefined();
   });
 });

@@ -16,14 +16,14 @@ test("one opening screen with the case's question, and the skip link goes straig
   );
   const record = await page.request.get(`/api/cases/${caseId ?? ""}`);
   const objective = ((await record.json()) as { case: { objective: string } }).case.objective;
-  await expect(opening).toContainText(`This case: ${objective}`);
+  await expect(opening).toContainText(`Question${objective}`);
   await expect(opening).toContainText("Muse Spark");
   await expect(opening.locator("h1")).toHaveCount(1);
 
   // a viewer moving by keyboard reaches the skip link from the action
-  await page.getByRole("button", { name: /Open the case/ }).focus();
+  await page.getByRole("button", { name: /Open Region Pack/ }).focus();
   await page.keyboard.press("Tab");
-  await expect(page.getByRole("link", { name: "Skip to the map" })).toBeFocused();
+  await expect(page.getByRole("link", { name: "Skip to Map" })).toBeFocused();
   await page.keyboard.press("Enter");
   await expect(page.locator("[data-phase=arrival]")).toBeVisible();
   await expect(page.locator("[data-arrival-settled=true]")).toBeVisible({ timeout: 60_000 });

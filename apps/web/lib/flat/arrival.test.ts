@@ -14,7 +14,7 @@ describe("arrivalFlat", () => {
   });
 
   it("lists every fact the arrival screen shows, in reading order", () => {
-    expect(flat.map((s) => s.heading)).toEqual(["Question", "Place", "View notes", "Sources"]);
+    expect(flat.map((s) => s.heading)).toEqual(["Question", "Place", "Notes", "Sources"]);
     expect(flat[1]?.lines).toEqual([
       "Aït Bouguemez valley, High Atlas Mountains, Morocco",
       "Valley catchment: 417.0 km². Not a pasture, agdal, or management boundary.",
@@ -22,7 +22,10 @@ describe("arrivalFlat", () => {
       "Tabant",
       "Aït Ouchi",
     ]);
-    expect(flat[2]?.lines).toEqual(["Relief ×2", "Imagery: Sentinel-2, summer 2025, display only"]);
+    expect(flat[2]?.lines).toEqual([
+      "Vertical Exaggeration ×2",
+      "Imagery: Sentinel-2, summer 2025, display only",
+    ]);
   });
 
   it("lists no outlet and no place credit the case does not record", () => {
@@ -38,7 +41,7 @@ describe("arrivalFlat", () => {
     });
     expect(bare[1]?.lines).toHaveLength(2);
     expect(bare[3]?.lines).toHaveLength(3);
-    expect(bare[2]?.lines).toEqual(["Relief ×2"]);
+    expect(bare[2]?.lines).toEqual(["Vertical Exaggeration ×2"]);
   });
 
   it("states no relief and no imagery when no map is drawn", () => {
@@ -66,20 +69,17 @@ describe("arrivalFlat", () => {
       placeCredits: [],
       reliefFactor: 2,
       imagery: false,
-      legend: ["NDVI departure, Nov 2025, compared with other Novembers", "93% of area observed"],
+      legend: ["NDVI Departure · Nov 2025", "93% of area observed"],
     });
     expect(withLegend.map((s) => s.heading)).toEqual([
       "Question",
       "Place",
-      "View notes",
-      "Map legend",
+      "Notes",
+      "Map Legend",
       "Sources",
     ]);
-    expect(withLegend[3]?.lines).toEqual([
-      "NDVI departure, Nov 2025, compared with other Novembers",
-      "93% of area observed",
-    ]);
-    expect(flat.map((s) => s.heading)).not.toContain("Map legend");
+    expect(withLegend[3]?.lines).toEqual(["NDVI Departure · Nov 2025", "93% of area observed"]);
+    expect(flat.map((s) => s.heading)).not.toContain("Map Legend");
   });
 
   it("leaves no placeholder unfilled", () => {

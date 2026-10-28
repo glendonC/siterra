@@ -37,9 +37,9 @@ test("live: commission, stream, Observations and reload on the Model API route",
   await page.goto(`/stage?case=${caseId}`);
   await expect(page.locator("[data-arrival-settled=true]")).toBeVisible({ timeout: 60_000 });
   // the case is live, so no live run is ever labelled a concept prototype
-  const mode = page.getByRole("button", { name: "Live. What Siterra will and will not do" });
+  const mode = page.getByRole("button", { name: "Live. Scope" });
   await expect(mode).toHaveText("Live");
-  await expect(page.getByText("Concept prototype")).toHaveCount(0);
+  await expect(page.getByText("Concept Prototype")).toHaveCount(0);
 
   const commissionedAt = new Date().toISOString();
   await page.keyboard.press("Enter");
@@ -48,7 +48,7 @@ test("live: commission, stream, Observations and reload on the Model API route",
   await expect(card).toContainText(
     "Is grazing changing the shared pastures of the Aït Bouguemez valley?",
   );
-  await expect(card).toContainText("Request complete", { timeout: 200_000 });
+  await expect(card).toContainText("Complete. Findings:", { timeout: 200_000 });
   await expect(card).toContainText("Observations");
   await expect(card).toContainText(
     "Catchment rainfall, CHIRPS v3.0 monthly: 84 of 84 months observed, Jan 2019 to Dec 2025",

@@ -48,9 +48,13 @@ export function Opening({ question, onOpen, onSkip, onShown }: OpeningProps) {
     <div className={styles.opening} data-opening>
       <div className={styles.paper} style={{ height: LIMB[0] - PAPER_TOP - LIMB_AIR }}>
         <article className={styles.beat}>
-          <h1 className={styles.sentence}>{copy.what}</h1>
+          <h1 className={styles.sentence}>{copy.title}</h1>
+          <p className={styles.what}>{copy.what}</p>
           <p className={styles.how}>{copy.how}</p>
-          <p className={styles.caseLine}>{copy.caseLine}</p>
+          <p className={styles.caseLine}>
+            <span className={styles.label}>{copy.questionLabel}</span>
+            {copy.question}
+          </p>
           <p className={styles.action}>
             <button
               type="button"

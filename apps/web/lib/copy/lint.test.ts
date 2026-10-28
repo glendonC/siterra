@@ -15,7 +15,7 @@ const CASES: Record<string, { scope: Scope; hit: string; clean: string }> = {
   "VT-06": { scope: "ui", hit: "Done!", clean: "Done." },
   "VT-07": { scope: "ui", hit: "Ready \u{1F680}", clean: "© OpenStreetMap contributors" },
   "VT-08": { scope: "ui", hit: "LIVE", clean: "Live NDVI from CHIRPS" },
-  "VT-09": { scope: "label", hit: "Start Investigation", clean: "Open Aït Bouguemez" },
+  "VT-09": { scope: "heading", hit: "Run assessment", clean: "Scope & Baseline" },
   "VT-10": { scope: "ui", hit: "Key insights", clean: "Key findings" },
   "VT-11": { scope: "ui", hit: "Leverage the data", clean: "Use the data" },
   "VT-12": { scope: "ui", hit: "It is worth noting the gap.", clean: "The gap is 3 months." },
@@ -26,10 +26,10 @@ const CASES: Record<string, { scope: Scope; hit: string; clean: string }> = {
   "VT-17": {
     scope: "ui",
     hit: "Oops, something went wrong.",
-    clean: "Rainfall did not load. Your text is kept.",
+    clean: "Rainfall not loaded. Question text kept.",
   },
   "VT-18": { scope: "ui", hit: "Loaded via Earth Search.", clean: "Loaded through Earth Search." },
-  "VT-19": { scope: "ui", hit: "Rain & snow", clean: "Rain and snow" },
+  "VT-19": { scope: "ui", hit: "Shown in real time.", clean: "Precomputed monthly." },
   "VT-20": { scope: "ui", hit: "Pasture degradation", clean: "Pasture cover" },
   "VT-21": { scope: "model", hit: "Likely caused by rain.", clean: "Supported by 2 records." },
   "VT-22": { scope: "ui", hit: "Vegetation health", clean: "Vegetation index (NDVI)" },
@@ -49,14 +49,27 @@ const CASES: Record<string, { scope: Scope; hit: string; clean: string }> = {
     hit: "Rain fell. 23 months were dry.",
     clean: "Rain fell. In 23 months it was dry.",
   },
-  "VT-40": { scope: "button", hit: "Submit", clean: "Start investigation" },
+  "VT-40": { scope: "button", hit: "Submit", clean: "Run Assessment" },
   "VT-41": {
     scope: "button",
-    hit: "Record scientific review",
-    clean: "Record scientific review (demo)",
+    hit: "Record Scientific Review",
+    clean: "Record Scientific Review (demo)",
   },
-  "VT-42": { scope: "link", hit: "Learn more", clean: "Sources and notices" },
+  "VT-42": { scope: "link", hit: "Learn more", clean: "Sources & Notices" },
   "VT-43": { scope: "ui", hit: "Siterra can't assess this.", clean: "Siterra cannot assess this." },
+  "VT-44": { scope: "button", hit: "Open the case.", clean: "Open Region Pack" },
+  "VT-45": { scope: "ui", hit: "Your question is kept.", clean: "Question kept." },
+  "VT-46": {
+    scope: "ui",
+    hit: "Validated interventions and live telemetry.",
+    clean: "Real Data, Field Unverified. Kind: Verified outcome.",
+  },
+  "VT-47": {
+    scope: "ui",
+    hit: "Each model call appears here as it happens.",
+    clean: "No events for this request.",
+  },
+  "VT-49": { scope: "ui", hit: "Rain & snow", clean: "Rain and snow" },
   "DL-09": { scope: "ui", hit: "A drought year", clean: "A dry year" },
 };
 
@@ -77,6 +90,24 @@ describe("copy lint", () => {
     const long = Array.from({ length: 26 }, () => "word").join(" ") + ".";
     expect(ids(long, "ui")).toContain("VT-50");
     expect(ids("A short sentence.", "ui")).not.toContain("VT-50");
+  });
+
+  it("flags a control segment over 3 words as VT-48", () => {
+    expect(ids("Skip to the Map", "link")).toContain("VT-48");
+    expect(ids("Synthetic Replay · No Live Model", "heading")).not.toContain("VT-48");
+    expect(ids("Interventions & Precedents", "heading")).not.toContain("VT-48");
+  });
+
+  it("lets headings use the middle dot and '&' that detail lines may not", () => {
+    expect(ids("Real Data · Field Unverified", "heading")).toEqual([]);
+    expect(ids("Scope & Baseline", "heading")).toEqual([]);
+    expect(ids("Real data · field unverified", "ui")).toContain("VT-04");
+  });
+
+  it("leaves placeholders, numbers and minor words alone in Title Case", () => {
+    expect(ids("NDVI Departure · {period}", "heading")).toEqual([]);
+    expect(ids("Vertical Exaggeration ×{factor}", "heading")).toEqual([]);
+    expect(ids("Skip to Map", "link")).toEqual([]);
   });
 
   it("does not run docs-only scope on interface rules", () => {

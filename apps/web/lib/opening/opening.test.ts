@@ -9,20 +9,20 @@ const snapshot = CaseSnapshot.parse(seed);
 describe("openingCopy", () => {
   const c = openingCopy(snapshot.case.objective);
 
-  it("says what Siterra does and names the Meta model its agents use", () => {
+  it("says what Siterra is and names the Meta model its agents use", () => {
+    expect(c.title).toBe("Siterra");
     expect(c.what).toBe(en["opening.what"].text);
     expect(c.how).toContain("Muse Spark");
   });
 
-  it("asks the case's own question, from its record", () => {
-    expect(c.caseLine).toBe(`This case: ${snapshot.case.objective}`);
-    expect(openingCopy("Is the spring line moving?").caseLine).toBe(
-      "This case: Is the spring line moving?",
-    );
+  it("asks the case's own question, from its record, under a Question label", () => {
+    expect(c.questionLabel).toBe("Question");
+    expect(c.question).toBe(snapshot.case.objective);
+    expect(openingCopy("Is the spring line moving?").question).toBe("Is the spring line moving?");
   });
 
   it("names no place itself: the place comes with the case question", () => {
-    for (const id of ["opening.what", "opening.how", "opening.case"] as const)
+    for (const id of ["opening.what", "opening.how", "opening.question"] as const)
       expect(en[id].text).not.toMatch(/Bouguemez|Atlas|Morocco/);
   });
 

@@ -14,7 +14,7 @@ async function observations(page: Page, baseURL: string | undefined) {
   await page.goto(`/stage?case=${caseId}`);
   await expect(page.locator("[data-arrival-settled=true]")).toBeVisible({ timeout: 60_000 });
   await page.keyboard.press("Enter");
-  await expect(page.locator("[data-budget=card]")).toContainText("Request complete", {
+  await expect(page.locator("[data-budget=card]")).toContainText("Complete. Findings:", {
     timeout: 60_000,
   });
 }
@@ -27,7 +27,7 @@ test.describe("at 1024 x 768", () => {
     baseURL,
   }) => {
     await observations(page, baseURL);
-    const toggle = page.getByRole("button", { name: "Map legend" });
+    const toggle = page.getByRole("button", { name: "Map Legend" });
     await expect(toggle).toBeVisible({ timeout: 15_000 });
     await expect(toggle).toHaveAttribute("aria-expanded", "false");
     const legend = page.locator("section[data-period-id]");
@@ -55,7 +55,7 @@ test.describe("at 1024 x 768", () => {
     await toggle.click();
     await expect(toggle).toHaveAttribute("aria-expanded", "true");
     await expect(legend).toBeVisible();
-    await expect(legend).toContainText("NDVI departure, Nov 2025, compared with other Novembers");
+    await expect(legend).toContainText("NDVI Departure · Nov 2025");
     await page.keyboard.press("Escape");
     await expect(toggle).toHaveAttribute("aria-expanded", "false");
     await expect(legend).toBeHidden();
@@ -68,6 +68,6 @@ test.describe("at 1440 x 810", () => {
   test("the legend is open, with no button", async ({ page, baseURL }) => {
     await observations(page, baseURL);
     await expect(page.locator("section[data-period-id]")).toBeVisible({ timeout: 15_000 });
-    await expect(page.getByRole("button", { name: "Map legend" })).toBeHidden();
+    await expect(page.getByRole("button", { name: "Map Legend" })).toBeHidden();
   });
 });

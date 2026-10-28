@@ -1,6 +1,6 @@
 "use client";
 
-// Arrival and the work beat: the valley at the approved pose with its chrome, Read flat and Sources and
+// Arrival and the work beat: the valley at the approved pose with its chrome, Flat Map View and Sources and
 // notices, from one case kept current (useCaseSession). The command line or ↵ commissions a request with
 // what the viewer typed, or the case question when the line is empty; once a command is accepted the card shows its work and the committed Observations, with one
 // leader to the catchment line. A reload replays the event log and comes back to the same state.
@@ -67,7 +67,7 @@ export function ArrivalView({
   onStart = noop,
   onSources = noop,
 }: ArrivalViewProps) {
-  // "F Read flat": the flat map reading (MOT-12); F again returns to the beat's view
+  // "F Flat Map View": the flat map reading (MOT-12); F again returns to the beat's view
   const [flat, setFlat] = useState(false);
   const [mapFailed, setMapFailed] = useState(false);
   const onMapFailed = useCallback(() => {

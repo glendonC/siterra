@@ -16,24 +16,24 @@ test("the panel plays a synthetic replay at reading pace, then the card gives th
 
   const panel = page.locator("[data-activity]");
   const replay = panel.locator("[data-replay=synthetic]");
-  await expect(replay).toContainText("Replay of a synthetic run (no live model)");
-  await expect(replay).toContainText("Shown at reading pace");
+  await expect(replay).toContainText("Synthetic Replay · No Live Model");
+  await expect(replay).toContainText("Reading pace: 1 event per 0.4 s.");
   const card = page.locator("[data-budget=card]");
-  await expect(card).not.toContainText("Request complete");
+  await expect(card).not.toContainText("Complete. Findings:");
 
   const rows = panel.locator("li[data-record-ids]");
   await expect(rows).toHaveCount(3, { timeout: 30_000 });
-  await expect(panel).toContainText("Muse Spark, synthetic replay");
+  await expect(panel).toContainText("Muse Spark · Synthetic Replay");
   await expect(panel).toContainText("Code: summarize_observations");
   await expect(panel).toContainText("returned 3 records");
 
-  await expect(replay).not.toContainText("reading pace", { timeout: 30_000 });
-  await expect(card).toContainText("Request complete");
+  await expect(replay).not.toContainText("Reading pace", { timeout: 30_000 });
+  await expect(card).toContainText("Complete. Findings:");
   await expect(rows.locator("text=Done")).toHaveCount(3);
 
   await page.reload();
   await expect(page.locator("[data-activity] li[data-record-ids]")).toHaveCount(3, {
     timeout: 60_000,
   });
-  await expect(page.locator("[data-replay=synthetic]")).not.toContainText("reading pace");
+  await expect(page.locator("[data-replay=synthetic]")).not.toContainText("Reading pace");
 });

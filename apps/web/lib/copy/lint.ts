@@ -1,14 +1,18 @@
 // The copy lint from the voice and tone guide (docs/reference/voice-and-tone.md, "Lint rules"). The rule
-// table and patterns are copied from the guide unchanged; the guide is the source, so a change starts there.
+// table and patterns are copied from the guide; the guide is the source, so a change starts there.
+// VT-09, VT-44 to VT-49 carry the precise standard of the proposed ADR-0043 amendment.
 // Design language rule DL-09 is added below the guide's rules until the guide carries it.
 
-export type Scope = "ui" | "label" | "button" | "link" | "model" | "docs";
+/** "heading" is a header, tab, badge, status word or stage name: Title Case, 1 to 3 words a segment. */
+export type Scope = "ui" | "label" | "heading" | "button" | "link" | "model" | "docs";
 export type Severity = "error" | "warn";
 
 export interface Rule {
   id: string;
   sev: Severity;
-  scope: readonly ("ui" | "model" | "docs" | "label" | "button" | "link")[];
+  scope: readonly Scope[];
+  /** Scopes the rule skips even when it would apply through "ui". */
+  except?: readonly Scope[];
   modelSev?: Severity;
   uiSev?: Severity;
   re: RegExp;
@@ -20,74 +24,6 @@ export interface Finding {
   sev: Severity;
   hits: string[];
 }
-
-const PROPER: readonly string[] = [
-  "Siterra",
-  "NDVI",
-  "CHIRPS",
-  "Sentinel-2",
-  "Copernicus",
-  "OpenStreetMap",
-  "Aït",
-  "Ait",
-  "Bouguemez",
-  "Ouchi",
-  "Central",
-  "High",
-  "Atlas",
-  "Morocco",
-  "Tabant",
-  "Azilal",
-  "Jbel",
-  "Azourki",
-  "Lac",
-  "Izoughar",
-  "Oued",
-  "Lakhdar",
-  "Assif",
-  "Earth",
-  "Search",
-  "Muse",
-  "Spark",
-  "Meta",
-  "French",
-  "Arabic",
-  "Darija",
-  "Tamazight",
-  "Tashelhit",
-  "Amazigh",
-  "English",
-  "Place",
-  "Observations",
-  "Explanations",
-  "Responses",
-  "Next",
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
-  "WorldCover",
-];
-const PROPER_ALT = PROPER.map((w) => w.replace(/[-]/g, "\\-")).join("|");
 
 export const RULES: readonly Rule[] = [
   // A. Typography
@@ -116,6 +52,7 @@ export const RULES: readonly Rule[] = [
     id: "VT-04",
     sev: "warn",
     scope: ["ui"],
+    except: ["heading"],
     re: /\s\u00B7\s/g,
     fix: "No middle-dot separators. Use labeled fields or separate elements.",
   },
@@ -143,10 +80,10 @@ export const RULES: readonly Rule[] = [
   },
   {
     id: "VT-09",
-    sev: "warn",
-    scope: ["label"],
-    re: new RegExp(`(?<=\\S\\s+)(?<![:.?!]\\s)(?!(?:${PROPER_ALT})\\b)[A-Z][a-z]+`, "g"),
-    fix: "Sentence case: capitalize only the first word and proper nouns (allowlist in the rule).",
+    sev: "error",
+    scope: ["heading", "button", "link"],
+    re: /(?<![\p{L}\p{N}{'\u2019-])(?!(?:a|an|and|as|at|by|for|from|in|into|of|on|or|per|the|to|vs|with)(?![\p{L}\p{N}]))\p{Ll}[\p{L}\p{N}'\u2019-]*/gu,
+    fix: "Title Case for controls, headers and badges: 'Run Assessment', 'Field Unverified'.",
   },
 
   // B. Words and phrases
@@ -219,8 +156,16 @@ export const RULES: readonly Rule[] = [
     id: "VT-19",
     sev: "warn",
     scope: ["ui", "model"],
-    re: /\bsurfac(?:es|ed|ing)\b|\s&\s|\breal[- ]time\b/gi,
-    fix: "Use 'lists' or 'shows' (not 'surfaces'), 'and' (not '&'); observations are precomputed, not real time.",
+    re: /\bsurfac(?:es|ed|ing)\b|\breal[- ]time\b/gi,
+    fix: "Use 'lists' or 'shows' (not 'surfaces'); observations are precomputed, not real time.",
+  },
+  {
+    id: "VT-49",
+    sev: "warn",
+    scope: ["ui", "model"],
+    except: ["heading", "button", "link"],
+    re: /\s&\s/g,
+    fix: "Use 'and' in sentences. '&' is for Title Case names only: 'Scope & Baseline'.",
   },
 
   // C. Honesty
@@ -346,7 +291,7 @@ export const RULES: readonly Rule[] = [
     id: "VT-41",
     sev: "error",
     scope: ["button"],
-    re: /^(?:Record scientific review|Mark program review complete|Record (?:community|program) review)(?!.*\(demo\))/,
+    re: /^(?:Record scientific review|Mark program review complete|Record (?:community|program) review)(?!.*\(demo\))/i,
     fix: "In demo mode, review buttons end with '(demo)'.",
   },
   {
@@ -362,6 +307,38 @@ export const RULES: readonly Rule[] = [
     scope: ["ui", "model"],
     re: /\b(?:can|don|won|isn|doesn|aren|wasn|weren|haven|hasn|hadn|didn|shouldn|wouldn|couldn|mustn)['\u2019]t\b/gi,
     fix: "No negative contractions: 'cannot', 'does not'.",
+  },
+
+  // G. The precise standard (ADR-0043 amendment, proposed)
+  {
+    id: "VT-44",
+    sev: "error",
+    scope: ["heading", "button", "link"],
+    re: /[.;?!](?=\s|$)/g,
+    fix: "A control, header or badge is a name, not a sentence: no full stop, semicolon or question mark.",
+  },
+  {
+    id: "VT-45",
+    sev: "error",
+    scope: ["ui"],
+    modelSev: "warn",
+    re: /\b(?:[Yy]ou(?:r|rs|rself|['\u2019](?:re|ve|ll|d))?|I|[Mm]e|[Mm]y)\b/g,
+    fix: "No 'you' and no first person. Name the thing: 'Question kept', not 'Your question is kept'.",
+  },
+  {
+    id: "VT-46",
+    sev: "error",
+    scope: ["ui"],
+    modelSev: "warn",
+    re: /\b(?:telemetry|attribution|autonomous(?:ly)?|validated|verified(?! outcomes?\b))\b/gi,
+    fix: "No sensors, so no 'telemetry'; no 'attribution' (ADR-0023); the engine analyzes and never acts autonomously; 'validated' and 'verified' only for what is (the 'Verified outcome' kind).",
+  },
+  {
+    id: "VT-47",
+    sev: "error",
+    scope: ["ui"],
+    re: /\b(?:appears? here|(?:shown|listed) here|as it happens|(?:will|would) (?:show|appear|list|display)|this (?:panel|section|page|card|view|list) (?:shows|lists|displays|contains))\b/gi,
+    fix: "No meta-commentary about what a panel will show. Show it, or state the empty state as a fact.",
   },
 ];
 
@@ -386,12 +363,22 @@ export function longSentences(text: string, max = 25): string[] {
   return text.split(/(?<=[.?!])\s+/).filter((s) => (s.match(/\S+/g) || []).length > max);
 }
 
+const CONTROL: readonly Scope[] = ["heading", "button", "link"];
+
+/** Segments of a control, header or badge with more than `max` words; " · " separates segments. */
+export function longControls(text: string, max = 3): string[] {
+  return text
+    .split(/\s\u00B7\s/)
+    .filter((seg) => seg.split(/\s+/).filter((w) => /[\p{L}\p{N}{]/u.test(w)).length > max);
+}
+
 export function lint(text: string, kind: Scope): Finding[] {
   const out: Finding[] = [];
   for (const r of ALL_RULES) {
+    if (r.except?.includes(kind)) continue;
     if (!r.scope.includes(kind)) {
-      // a "ui" rule also applies to labels, buttons and links
-      if (!(["label", "button", "link"].includes(kind) && r.scope.includes("ui"))) continue;
+      // a "ui" rule also applies to labels, headings, buttons and links
+      if (!(["label", ...CONTROL].includes(kind) && r.scope.includes("ui"))) continue;
     }
     r.re.lastIndex = 0;
     const m = text.match(r.re);
@@ -407,7 +394,10 @@ export function lint(text: string, kind: Scope): Finding[] {
         hits: [...new Set(m.map((s) => s.trim()))],
       });
   }
-  if (kind !== "label" && kind !== "button" && kind !== "link") {
+  if (CONTROL.includes(kind)) {
+    const wordy = longControls(text);
+    if (wordy.length) out.push({ id: "VT-48", sev: "error", hits: wordy });
+  } else if (kind !== "label") {
     const long = longSentences(text);
     if (long.length)
       out.push({

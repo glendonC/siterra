@@ -17,7 +17,8 @@ export function JourneyPage() {
   if (c.status === "not_found") return <CaseNotice message="case.notFound" />;
   if (c.status === "failed") return <CaseNotice message="case.failed" />;
   if (map.status === "loading" || c.status === "opening") return null;
-  if (c.arrival.kind !== "ready") return <CaseNotice message="case.noBoundary" />;
+  if (c.arrival.kind !== "ready")
+    return <CaseNotice badge="case.coverageRequired" message="case.noBoundary" />;
   if (c.resumed)
     return (
       <ArrivalView

@@ -92,19 +92,19 @@ describe("projectActivity", () => {
   it("gives one row per task of the request, in the order they were queued", () => {
     expect(rows.map((r) => [r.taskId, r.label])).toEqual([
       ["t_1", "Plan"],
-      ["t_2", "Observation analysis"],
+      ["t_2", "Observation Analysis"],
     ]);
   });
 
   it("states each step's status from its latest task event", () => {
-    expect(rows.map((r) => r.status)).toEqual(["Done", "Partly done"]);
+    expect(rows.map((r) => r.status)).toEqual(["Done", "Partial"]);
   });
 
   it("badges the model by its name and route, and a deterministic tool as code", () => {
-    expect(rows[0]?.badges).toEqual(["Muse Spark, synthetic replay"]);
+    expect(rows[0]?.badges).toEqual(["Muse Spark · Synthetic Replay"]);
     expect(rows[1]?.badges).toEqual([
       "Code: summarize_observations",
-      "Muse Spark, synthetic replay",
+      "Muse Spark · Synthetic Replay",
     ]);
   });
 
@@ -125,7 +125,7 @@ describe("projectActivity", () => {
     ]);
   });
 
-  it("names the inputs a blocked step is missing, from its task record", () => {
+  it("marks a blocked step Dataset Not Loaded and names its missing inputs, from its task record", () => {
     const blocked = projectActivity(
       [
         task("t_3", "observation_analysis", "awaiting_input", {
@@ -135,9 +135,10 @@ describe("projectActivity", () => {
       [ev("task.awaiting_input", "t_3", "Waiting for inputs.")],
       "cmd_a",
     );
-    expect(blocked[0]?.status).toBe("Needs your input");
+    expect(blocked[0]?.status).toBe("Input Required");
+    expect(blocked[0]?.badges).toContain("Dataset Not Loaded");
     expect(blocked[0]?.lines.find((l) => l.kind === "blocked")?.text).toBe(
-      "Blocked: needs bundle_x, period_y",
+      "Required inputs not loaded: bundle_x, period_y. Attach the datasets or limit the question to loaded layers.",
     );
   });
 
@@ -155,7 +156,19 @@ describe("projectActivity", () => {
     );
     expect(r.map((x) => x.status)).toEqual(["Canceled", "Failed"]);
     expect(r[1]?.lines.find((l) => l.kind === "cause")?.text).toBe(
-      "Cause: stopped at the model round limit",
+      "Cause: model round limit reached",
+    );
+  });
+
+  it("marks a scope refusal Out of Scope with what is wrong and what is required", () => {
+    const r = projectActivity(
+      [task("t_7", "plan", "failed", { failureCode: "out_of_scope" })],
+      [ev("task.failed", "t_7", "Task failed.", { resultStatus: "failed" })],
+      "cmd_a",
+    );
+    expect(r[0]?.badges).toContain("Out of Scope");
+    expect(r[0]?.lines.find((l) => l.kind === "cause")?.text).toBe(
+      "Cause: The request treats people as the explanation by identity, or names a private individual. Questions must concern land, water, vegetation or land-use practices.",
     );
   });
 

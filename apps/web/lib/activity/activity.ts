@@ -162,11 +162,15 @@ export function projectActivity(
       }
       // before its first task event the record is all there is
       const now = state ?? t.status;
-      if (t.missingInputs.length > 0 && ["awaiting_input", "partial", "failed"].includes(now))
+      if (t.missingInputs.length > 0 && ["awaiting_input", "partial", "failed"].includes(now)) {
+        badges.push(en["activity.notLoaded"].text);
         lines.push({
           kind: "blocked",
           text: format("activity.blocked", { inputs: t.missingInputs.join(", ") }),
         });
+      }
+      if (now === "failed" && t.failureCode === "out_of_scope")
+        badges.push(en["work.outOfScope"].text);
       if (now === "failed" && t.failureCode) {
         const words = failureCause(t.failureCode);
         lines.push({

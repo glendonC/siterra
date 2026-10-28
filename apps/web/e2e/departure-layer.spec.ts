@@ -23,7 +23,7 @@ async function observations(page: Page, baseURL: string | undefined) {
   await page.goto(`/stage?case=${caseId}`);
   await expect(page.locator("[data-arrival-settled=true]")).toBeVisible({ timeout: 60_000 });
   await page.keyboard.press("Enter");
-  await expect(page.locator("[data-budget=card]")).toContainText("Request complete", {
+  await expect(page.locator("[data-budget=card]")).toContainText("Complete. Findings:", {
     timeout: 60_000,
   });
   await expect(page.locator("section[data-period-id]")).toBeVisible({ timeout: 15_000 });
