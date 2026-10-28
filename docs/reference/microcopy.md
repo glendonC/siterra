@@ -298,7 +298,7 @@ Land labels per beat in the approved frames: arrival 5 (two of them two-line blo
 
 ## 6. Plan, tasks, and milestones
 
-The build's strings for this section follow [section 25](#25-the-precise-standard-in-the-build-proposed) (proposed) where they differ from the rows below.
+The build's strings for this section follow [section 25](#25-the-precise-standard-in-the-build-accepted) (accepted) where they differ from the rows below.
 
 ### Plan component
 
@@ -589,7 +589,7 @@ These are English source strings. French strings must be written or reviewed by 
 
 ## 18. Mode and demo labels
 
-The build's strings for this section follow [section 25](#25-the-precise-standard-in-the-build-proposed) (proposed) where they differ from the rows below.
+The build's strings for this section follow [section 25](#25-the-precise-standard-in-the-build-accepted) (accepted) where they differ from the rows below.
 
 | Element | Current | Proposed | Why |
 |---|---|---|---|
@@ -673,7 +673,7 @@ The chart and table show NDVI to three decimals; the design system says two (sec
 
 ## 20. Activity (trace)
 
-The build's strings for this section follow [section 25](#25-the-precise-standard-in-the-build-proposed) (proposed) where they differ from the rows below.
+The build's strings for this section follow [section 25](#25-the-precise-standard-in-the-build-accepted) (accepted) where they differ from the rows below.
 
 | Element | Current | Proposed | Why |
 |---|---|---|---|
@@ -815,9 +815,9 @@ Strings for components specified after the first prototype: the map ornament and
 | Link created | Read-only link created for revision {n}. Anyone with the link can view it. | |
 | Stale export | This export is out of date: revision {n} changed after it was made. | |
 
-## 25. The precise standard in the build (proposed)
+## 25. The precise standard in the build (accepted)
 
-Status: proposed with [ADR-0043, amendment 1](../decisions/0043-write-in-one-plain-voice-and-lint-product-copy.md#amendment-1-precise-not-conversational) and the [precise standard](voice-and-tone.md#the-precise-standard-proposed-amendment-28-oct-2026). This table is every catalog string in `apps/web/lib/copy/en.ts` that the copy pass of 28 Oct 2026 changed, added or removed, as the build shows it. Where it differs from a row in sections 1 to 24, the build follows this table until the founder decides; sections 6, 18 and 20 are the main ones it supersedes. Kinds: `ui` is a detail line, `label` a map or data label, `heading` a header, tab, badge, status word or stage name.
+Status: accepted with [ADR-0043, amendment 1](../decisions/0043-write-in-one-plain-voice-and-lint-product-copy.md#amendment-1-precise-not-conversational) and the [precise standard](voice-and-tone.md#the-precise-standard-accepted-amendment-28-oct-2026). This table is every catalog string in `apps/web/lib/copy/en.ts` that the copy pass of 28 Oct 2026 changed, added or removed, as the build shows it. Where it differs from a row in sections 1 to 24, the build follows this table; sections 6, 18 and 20 are the main ones it supersedes. Kinds: `ui` is a detail line, `label` a map or data label, `heading` a header, tab, badge, status word or stage name.
 
 | String ID | Current | Replacement | Kind | Where shown (apps/web) | Reason |
 |---|---|---|---|---|---|

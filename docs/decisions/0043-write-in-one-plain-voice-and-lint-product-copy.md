@@ -62,11 +62,11 @@ Sources: [writing research](../../research/design/writing.md).
 
 ## Amendment 1: precise, not conversational
 
-Status: **Proposed** (2026-10-28), for the founder's decision. The decision above stays accepted; this amendment changes the plain-voice rule only where it says so.
+Status: **Accepted** (2026-10-28). The decision above stays accepted; this amendment updates the plain-voice rule where it says so.
 
 The founder asked for interface copy that is precise, not conversational, and for Siterra to read as a general five-stage analysis engine with the High Atlas case as its first loaded Region Pack.
 
-Proposed changes:
+Accepted changes:
 
 * Controls, tabs, badges, navigation, section and stage headers become 1 to 3 word Title Case names ("Run Assessment", "Field Unverified"). No sentences, metaphors, first person, "you", slogans or meta-commentary. Badge segments may use a middle dot; "&" may join words inside a name.
 * Findings and detail lines are short, exact, declarative sentences with numbers and source references.
@@ -76,12 +76,12 @@ Proposed changes:
 * The Region Pack is shown as an object with a truthful status ("Real Data · Field Unverified").
 * The evidence-kind labels stay as they are.
 
-Consequences, if accepted:
+Consequences:
 
 * Good, because headers and badges scan as names, and the lint (VT-09 Title Case, VT-44 to VT-49) holds the standard automatically.
 * Good, because the product framing no longer depends on one place.
 * Bad, because it reverses the guide's earlier sentence-case rule, which cited plain-language sources (WRT-10, WRT-13, WRT-17, WRT-21, WRT-25); Title Case on longer labels reads more formally.
 * Bad, because "you" no longer appears in helper text, so some instructions become terser.
 
-The [voice and tone guide](../reference/voice-and-tone.md#the-precise-standard-proposed-amendment-28-oct-2026) and [microcopy section 25](../reference/microcopy.md#25-the-precise-standard-in-the-build-proposed) carry the proposed rules and strings; the build follows them pending this decision.
+The [voice and tone guide](../reference/voice-and-tone.md#the-precise-standard-accepted-amendment-28-oct-2026) and [microcopy section 25](../reference/microcopy.md#25-the-precise-standard-in-the-build-accepted) carry the accepted rules and strings; the build follows them.
 

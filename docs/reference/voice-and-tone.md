@@ -1,6 +1,6 @@
 # Voice and tone
 
-Status: adopted 2026-10-27 ([ADR-0043](../decisions/0043-write-in-one-plain-voice-and-lint-product-copy.md)). Labels: **[V]** verified from a cited source, **[D]** decision proposed here, **[H]** hypothesis to test, **[J]** style judgment with no external evidence (reason given), **[P]** rule already set by Siterra's own documents. Source IDs (`WRT-NN`) resolve in the [writing research](../../research/design/writing.md). Strings for every screen are in the [microcopy](microcopy.md). Amendment proposed 2026-10-28: [the precise standard](#the-precise-standard-proposed-amendment-28-oct-2026), which changes capitalization, pronouns, status labels and several terms below; the build follows it pending the founder's decision.
+Status: adopted 2026-10-27 ([ADR-0043](../decisions/0043-write-in-one-plain-voice-and-lint-product-copy.md)). Labels: **[V]** verified from a cited source, **[D]** decision proposed here, **[H]** hypothesis to test, **[J]** style judgment with no external evidence (reason given), **[P]** rule already set by Siterra's own documents. Source IDs (`WRT-NN`) resolve in the [writing research](../../research/design/writing.md). Strings for every screen are in the [microcopy](microcopy.md). Amendment accepted 2026-10-28: [the precise standard](#the-precise-standard-accepted-amendment-28-oct-2026), which changes capitalization, pronouns, status labels and several terms below; the build follows it.
 
 ## Scope
 
@@ -14,9 +14,9 @@ Rules already set elsewhere still apply: the actor is Siterra, never staff or pe
 
 [D] Siterra writes like a careful field scientist briefing a busy program manager: plain words, exact numbers, the same calm in success and failure, and clear about what is not known.
 
-## The precise standard (proposed amendment, 28 Oct 2026)
+## The precise standard (accepted amendment, 28 Oct 2026)
 
-Status: proposed in [ADR-0043, amendment 1](../decisions/0043-write-in-one-plain-voice-and-lint-product-copy.md#amendment-1-precise-not-conversational); the build follows it while the founder decides. Where it and an older rule below differ, this section is what the build and the lint apply.
+Status: accepted in [ADR-0043, amendment 1](../decisions/0043-write-in-one-plain-voice-and-lint-product-copy.md#amendment-1-precise-not-conversational); the build follows it. Where it and an older rule below differ, this section is what the build and the lint apply.
 
 [D] Siterra's interface is precise, not conversational.
 
@@ -165,7 +165,7 @@ The voice stays fixed; the tone follows what the reader is going through [V: WRT
 
 ### Capitalization
 
-- Title Case for controls, headers, tabs, badges, statuses, chips and stage names; sentence case for detail lines, legends and map labels [D: the precise standard, proposed; it replaces the earlier rule of sentence case for everything, which cited WRT-10, WRT-13, WRT-17, WRT-21, WRT-25 and the design system].
+- Title Case for controls, headers, tabs, badges, statuses, chips and stage names; sentence case for detail lines, legends and map labels [D: the precise standard, accepted; it replaces the earlier rule of sentence case for everything, which cited WRT-10, WRT-13, WRT-17, WRT-21, WRT-25 and the design system].
 - Capitalize proper nouns, place names, dataset names, and section names used as names (Observations, Explanations, Next steps).
 - No all caps, including badges: "Live", not "LIVE" [P: design system].
 - Write acronyms and dataset names as their owners do: NDVI, CHIRPS, Sentinel-2 L2A, Copernicus GLO-30.
@@ -225,7 +225,7 @@ The voice stays fixed; the tone follows what the reader is going through [V: WRT
 
 ### Pronouns, voice, and contractions
 
-- "Siterra" for the product. No "we", "our", or "us" [P: ADR-0005; V: WRT-16]. No "you" or "your" in Siterra's own text: name the thing ("Question text kept", not "Your question is kept") [D: the precise standard, proposed].
+- "Siterra" for the product. No "we", "our", or "us" [P: ADR-0005; V: WRT-16]. No "you" or "your" in Siterra's own text: name the thing ("Question text kept", not "Your question is kept") [D: the precise standard, accepted].
 - "I" only in user-voiced text: suggestions and the "I can provide this" control.
 - Active voice, with Siterra as the subject of its own actions [V: WRT-03, WRT-13]. Use the passive only when the actor is unknown or does not matter: "No household data was collected."
 - No negative contractions: write "cannot" and "does not" [V: WRT-02]. Siterra's honesty lines depend on negation, so it must not be misread. Positive contractions are fine in helper text.
@@ -234,7 +234,7 @@ The voice stays fixed; the tone follows what the reader is going through [V: WRT
 
 - 25 words or fewer per sentence, one idea per sentence [V: WRT-03].
 - Put the key word first: the status, then the detail [V: WRT-10].
-- Status labels: one to three words, Title Case, from a small fixed set [V: WRT-05, WRT-06; D: the precise standard, proposed].
+- Status labels: one to three words, Title Case, from a small fixed set [V: WRT-05, WRT-06; D: the precise standard, accepted].
 - Lists: parallel grammar; no end punctuation on fragments.
 
 ### Links, buttons, emphasis, and fields
@@ -260,14 +260,14 @@ The voice stays fixed; the tone follows what the reader is going through [V: WRT
 | Use | Avoid | Why |
 |---|---|---|
 | Siterra | we, our team, analysts, the AI, the agent, assistant | No accountable staff stand behind the work (ADR-0005). |
-| assessment (proposed; was investigation) | analysis run, job, session, chat | The work Siterra does in a case; "Run Assessment" on the button. |
+| assessment (accepted; was investigation) | analysis run, job, session, chat | The work Siterra does in a case; "Run Assessment" on the button. |
 | case | project, workspace, conversation | The persistent record. |
 | start (the investigation) | commission (on a button), run AI, generate | As a button, "Commission investigation" can be read as a noun phrase [H]; keep "commission" in narrative copy. |
 | request (what the user sends) | command, prompt, query | "Command" is engineering language; it stays in code and the trace. |
 | task | agent, sub-agent, worker, job | No personas. |
 | revision | version (for the case) | One word for saved states; the case pill menu already says "Revision 9". |
 | saved | committed | "Commit" stays in the trace. |
-| hypothesis; Hypothesis Testing (stage 3) (proposed; was explanation) | theory, cause, causal attribution | The stage tests hypotheses against the records; ADR-0023 bars causal diagnosis. |
+| hypothesis; Hypothesis Testing (stage 3) (accepted; was explanation) | theory, cause, causal attribution | The stage tests hypotheses against the records; ADR-0023 bars causal diagnosis. |
 | observation | data point, signal, insight | A claim kind with a defined meaning. |
 | published context | research shows, the literature says, science says | Name the source instead. |
 | field requirement | gap, to-do, missing data (as a label) | A claim kind that always says which decision it informs. |
@@ -280,8 +280,8 @@ The voice stays fixed; the tone follows what the reader is going through [V: WRT
 | coverage threshold (70%) | coverage policy | A threshold is a number people can check. [J] |
 | rainfall grid (about 5 km) | local rainfall, weather station, rainfall at the pasture | CHIRPS is a gridded product [P: scientific basis]. |
 | below-average rainfall | drought | No drought index is computed. [J] |
-| Interventions & Precedents (stage 4); candidate response in sentences (proposed; was possible response) | solution, recommendation, action plan, validated intervention | Precedents are published studies; nothing is validated in the field. |
-| Field Verification (stage 5); field verification plan (proposed; was field-validation plan) | action plan, deployment, survey order | A plan to collect evidence on the ground. |
+| Interventions & Precedents (stage 4); candidate response in sentences (accepted; was possible response) | solution, recommendation, action plan, validated intervention | Precedents are published studies; nothing is validated in the field. |
+| Field Verification (stage 5); field verification plan (accepted; was field-validation plan) | action plan, deployment, survey order | A plan to collect evidence on the ground. |
 | Region Pack | case pack, dataset, workspace | The loaded case as an object: name, data layers, observation window, checks, status. [D] |
 | passed automated data checks; Real Data · Field Unverified | validated, verified (for data bundles or the pack) | A bundle's `validated` status is its automated data checks, not field validation. [D] |
 | analyzes | autonomous, acts, executes | The engine analyzes; it never acts, sends or spends. [D] |
@@ -296,7 +296,7 @@ The voice stays fixed; the tone follows what the reader is going through [V: WRT
 | not collected | none, zero, unknown (for absent data) | Absent data is not an absent thing. |
 | unknown, to be established locally | TBD, N/A | Says who would establish it. |
 | machine-drafted translation | translated, AI translation | Says what made it and that it is a draft (ADR-0034). |
-| Live; Recorded Replay · 24 Oct 2026; Synthetic Replay · No Live Model; Concept Prototype | LIVE, REPLAY, Demo mode (alone) | Title Case badges (proposed); a replay always carries its run date. |
+| Live; Recorded Replay · 24 Oct 2026; Synthetic Replay · No Live Model; Concept Prototype | LIVE, REPLAY, Demo mode (alone) | Title Case badges (accepted); a replay always carries its run date. |
 | Activity | logs, thinking, reasoning, chain of thought | The trace shows events, not hidden reasoning. |
 | lists, shows | surfaces (verb) | Google's word list avoids "surface" as a transitive verb [V: WRT-14]. |
 | Aït Bouguemez | Aït Bouguemez (in Siterra's own text) | One display form, matching the study-area document, the scientific basis, and the prototype; source titles keep their own spelling. [D] |
@@ -442,7 +442,7 @@ Lint errors everywhere except strings allowlisted by ID for the "not claimed" pa
 |---|---|---|
 | `ui` | Every externalized UI string, including aria-label and alt text | Rules with scope `ui` |
 | `label` | Map and data labels: place names, areas, units | `ui` rules |
-| `heading` | Headers, tabs, badges, statuses, chips, stage names (the precise standard, proposed) | `ui` rules except VT-04 and VT-49, plus VT-09, VT-44 and VT-48 |
+| `heading` | Headers, tabs, badges, statuses, chips, stage names (the precise standard, accepted) | `ui` rules except VT-04 and VT-49, plus VT-09, VT-44 and VT-48 |
 | `button` | Button labels | `ui` rules except VT-49, plus VT-09, VT-40, VT-41, VT-44 and VT-48 |
 | `link` | Link text | `ui` rules except VT-49, plus VT-09, VT-42, VT-44 and VT-48 |
 | `model` | Model-written fields before commit: evidence statements, assessments, relationship explanations, planner interpretations, brief lines | Rules with scope `model`. Errors reject the item as a validation issue, like the numeric provenance check, so the task retries with the issue listed. Warnings are logged in the trace. |
@@ -474,7 +474,7 @@ The hero's strings ([microcopy](microcopy.md#1-demo-opening), sections 1 and 1a)
 | VT-06 | Error | ui, model | Exclamation marks | Period |
 | VT-07 | Error | ui, model | Emoji and pictographs (©, ®, ™ allowed) | Icon with text label |
 | VT-08 | Warn | ui | All-caps words outside an acronym allowlist | Sentence case |
-| VT-09 | Error | heading, button, link | A lower-case word that is not a minor word (a, and, of, to, ...) | Title Case (proposed; replaces the sentence-case rule) |
+| VT-09 | Error | heading, button, link | A lower-case word that is not a minor word (a, and, of, to, ...) | Title Case (accepted; replaces the sentence-case rule) |
 | VT-10 | Error (ui), warn (model) | ui, model | LLM-overused vocabulary, list A | Replacement table |
 | VT-11 | Error (ui), warn (model) | ui, model | Corporate and marketing words, list B | Replacement table |
 | VT-12 | Error | ui, model | Stock phrases | Delete; state the fact |
@@ -569,7 +569,7 @@ export const RULES = [
   { id: "VT-41", sev: "error", scope: ["button"], re: /^(?:Record scientific review|Mark program review complete|Record (?:community|program) review)(?!.*\(demo\))/i, fix: "In demo mode, review buttons end with '(demo)'." },
   { id: "VT-42", sev: "warn", scope: ["link"], re: /^(?:click here|here|learn more|read more|more|link|this)$/i, fix: "Link text names the destination: 'Open source: Romagny et al. 2008'." },
   { id: "VT-43", sev: "warn", scope: ["ui", "model"], re: /\b(?:can|don|won|isn|doesn|aren|wasn|weren|haven|hasn|hadn|didn|shouldn|wouldn|couldn|mustn)['\u2019]t\b/gi, fix: "No negative contractions: 'cannot', 'does not'." },
-  // G. The precise standard (ADR-0043 amendment 1, proposed)
+  // G. The precise standard (ADR-0043 amendment 1, accepted)
   { id: "VT-44", sev: "error", scope: ["heading", "button", "link"], re: /[.;?!](?=\s|$)/g, fix: "A control, header or badge is a name, not a sentence: no full stop, semicolon or question mark." },
   { id: "VT-45", sev: "error", scope: ["ui"], modelSev: "warn", re: /\b(?:[Yy]ou(?:r|rs|rself|['\u2019](?:re|ve|ll|d))?|I|[Mm]e|[Mm]y)\b/g, fix: "No 'you' and no first person. Name the thing: 'Question kept', not 'Your question is kept'." },
   { id: "VT-46", sev: "error", scope: ["ui"], modelSev: "warn", re: /\b(?:telemetry|attribution|autonomous(?:ly)?|validated|verified(?! outcomes?\b))\b/gi, fix: "No sensors, so no 'telemetry'; no 'attribution' (ADR-0023); the engine analyzes and never acts autonomously; 'validated' and 'verified' only for what is (the 'Verified outcome' kind)." },
@@ -617,7 +617,7 @@ Tested in Node 24.15 against 128 cases (at least one that must match and one tha
 
 On 27 Oct 2026 the scopes of VT-10, VT-11 and VT-21 in the patterns were corrected to `ui` and `model`, as the rule summary states (before, VT-10 and VT-11 ran on interface text only and VT-21 on model text only, so their second severities never applied), and VT-26 was added. The 128-case test above predates these changes; the build reruns it. With the corrected patterns, the hero's 99 strings (opening, globe, dive and the valley sequence, [microcopy](microcopy.md) sections 1 and 1a) give findings on 6; each string was checked to appear verbatim in the approved hero, except two the docs define: the challenge's action label, named to match the next beat, and the mode line's added accessible name, all handled in the table above, and the place names "Atlas Mountains, Morocco" and "High Atlas Mountains" pass with "Mountains" in the proper-noun list. Across the other 351 proposed table entries in microcopy the changes add VT-21 warnings on the four "not ranked" strings listed as known cases and no error, and GIEWS in the acronym allowlist clears one VT-08 warning.
 
-On 28 Oct 2026 the precise standard (proposed) added the `heading` scope, replaced VT-09 with the Title Case rule, split "&" out of VT-19 into VT-49, and added VT-44 to VT-48. The build's lint tests (`apps/web/lib/copy/lint.test.ts`) have a must-match and a must-not-match case for each rule and pass, and every string in the catalog passes or is allowlisted by ID with its reason. The patterns above agree with the build's lint on 12 cases for the new rules.
+On 28 Oct 2026 the precise standard (accepted) added the `heading` scope, replaced VT-09 with the Title Case rule, split "&" out of VT-19 into VT-49, and added VT-44 to VT-48. The build's lint tests (`apps/web/lib/copy/lint.test.ts`) have a must-match and a must-not-match case for each rule and pass, and every string in the catalog passes or is allowlisted by ID with its reason. The patterns above agree with the build's lint on 12 cases for the new rules.
 
 ### What lint cannot catch (review checklist)
 
