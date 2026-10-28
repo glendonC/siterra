@@ -92,6 +92,21 @@ describe("the UI fixture packages/contracts/fixtures/case-snapshot-aitbouguemez-
   });
 });
 
+describe("contracts 1.5: each source keeps the language the corpus manifest checked", () => {
+  it("maps language onto every Source, SCI-144 as es", () => {
+    const manifest = JSON.parse(
+      readFileSync(`${repoDir}data/case/corpus-manifest.json`, "utf8"),
+    ) as {
+      sources: { sourceRecordId: string; language?: string }[];
+    };
+    const sources = readCaseSeed(args).seed?.sources ?? [];
+    expect(sources.map((s) => [s.id, s.language])).toEqual(
+      manifest.sources.map((s) => [s.sourceRecordId, s.language]),
+    );
+    expect(sources.find((s) => s.id === "src_SCI-144")?.language).toBe("es");
+  });
+});
+
 describe("the seed case is never live before GATE-01 is recorded", () => {
   it("defaults to concept", () => {
     const { mode: _mode, ...rest } = args;

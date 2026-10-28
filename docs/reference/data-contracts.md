@@ -1,6 +1,6 @@
 # Data contracts
 
-Status: implementation contract v1.4, 2026-10-27. Machine-readable source of truth: [schemas/case.schema.json](../../schemas/case.schema.json) (JSON Schema 2020-12). Examples: [schemas/examples/](../../schemas/examples/). This document owns cross-record semantics that a JSON Schema cannot express. [Orchestration](agent-orchestration.md) owns jobs and tools; [review](review-and-authority.md) owns authority.
+Status: implementation contract v1.5, 2026-10-27. Machine-readable source of truth: [schemas/case.schema.json](../../schemas/case.schema.json) (JSON Schema 2020-12). Examples: [schemas/examples/](../../schemas/examples/). This document owns cross-record semantics that a JSON Schema cannot express. [Orchestration](agent-orchestration.md) owns jobs and tools; [review](review-and-authority.md) owns authority.
 
 ## Principles
 
@@ -41,7 +41,7 @@ Field-level types live in the schema. This table states purpose and the rules th
 | Record | Purpose | Key rules |
 |---|---|---|
 | EnvironmentalCase | The commissioned case | `mode: live \| replay \| concept` is shown on every screen. `permissionProfile` is the constant `research_and_preparation_only` in P0. |
-| Source | A document or dataset the firm used | `accessStatus: discovered \| retrieved \| unavailable`. Only `retrieved` sources may support accepted evidence. `redistributionStatus` governs export. `publicationDate` is the date as the source states it (year, year and month, or full date; 1.4), never padded, so a comparison with it uses the stated precision. |
+| Source | A document or dataset the firm used | `accessStatus: discovered \| retrieved \| unavailable`. Only `retrieved` sources may support accepted evidence. `redistributionStatus` governs export. `publicationDate` is the date as the source states it (year, year and month, or full date; 1.4), never padded, so a comparison with it uses the stated precision. Optional `language` (BCP 47, 1.5) names the language of the source text; an English statement drafted from a source in another language is labeled a machine-drafted translation. |
 | GeoSelection | The analysis or context geometry | `boundaryRole` states what the polygon *is* (see below). `geometryStatus: analysis_ready` requires provenance, CRS, area method and limitations. |
 | DataBundle | A frozen, checksummed observation export | `status: validated` requires manifest URI, content hash, license and attribution. Superseding a bundle stales every dependent measurement. |
 | Measurement | One computed value for one area and period | `value: null` whenever `status != available`. Coverage fields required when known. `uncertainty.kind` is explicit; unknown is `not_quantified`, never zero. |

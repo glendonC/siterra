@@ -5,10 +5,10 @@ import { z } from "zod";
 import { dateTime, entityId, isoDate, text, uniqueArray, uri } from "./primitives.ts";
 import { missingIsAValue } from "./rules.ts";
 
-export const caseSchemaVersion = "1.4.0";
+export const caseSchemaVersion = "1.5.0";
 /** Every schemaVersion string this contract accepts (the earlier ones of the same MAJOR stay valid). */
-export const acceptedCaseSchemaVersions = ["1.2.0", "1.3.0", "1.4.0"] as const;
-export const caseSchemaId = "https://siterra.invalid/schemas/case/1.4.0/case.schema.json";
+export const acceptedCaseSchemaVersions = ["1.2.0", "1.3.0", "1.4.0", "1.5.0"] as const;
+export const caseSchemaId = "https://siterra.invalid/schemas/case/1.5.0/case.schema.json";
 
 export const EntityVersion = z.strictObject({
   entityId: entityId,
@@ -94,6 +94,7 @@ export const Source = z.strictObject({
     .string()
     .regex(new RegExp("^[0-9]{4}(-(0[1-9]|1[0-2])(-(0[1-9]|[12][0-9]|3[01]))?)?$"))
     .nullable(),
+  language: z.string().regex(new RegExp("^[a-z]{2,3}(-[A-Za-z0-9]{2,8})*$")).optional(),
   accessedAt: dateTime,
   sourceKind: z.enum([
     "official_dataset",
@@ -602,7 +603,7 @@ export type Brief = z.infer<typeof Brief>;
 
 export const Command = z.strictObject({
   recordType: z.literal("Command"),
-  schemaVersion: z.enum(["1.2.0", "1.3.0", "1.4.0"]),
+  schemaVersion: z.enum(["1.2.0", "1.3.0", "1.4.0", "1.5.0"]),
   id: entityId,
   caseId: entityId,
   createdAt: dateTime,
@@ -702,7 +703,7 @@ export type ValidationResult = z.infer<typeof ValidationResult>;
 
 export const Event = z.strictObject({
   recordType: z.literal("Event"),
-  schemaVersion: z.enum(["1.2.0", "1.3.0", "1.4.0"]),
+  schemaVersion: z.enum(["1.2.0", "1.3.0", "1.4.0", "1.5.0"]),
   id: entityId,
   caseId: entityId,
   sequence: z.int().min(1),
@@ -805,7 +806,7 @@ export type RecordCollections = z.infer<typeof RecordCollections>;
 
 export const CaseSnapshot = z.strictObject({
   recordType: z.literal("CaseSnapshot"),
-  schemaVersion: z.enum(["1.2.0", "1.3.0", "1.4.0"]),
+  schemaVersion: z.enum(["1.2.0", "1.3.0", "1.4.0", "1.5.0"]),
   case: EnvironmentalCase,
   records: RecordCollections,
   lastSequence: z.int().min(0),
@@ -814,7 +815,7 @@ export type CaseSnapshot = z.infer<typeof CaseSnapshot>;
 
 export const Commit = z.strictObject({
   recordType: z.literal("Commit"),
-  schemaVersion: z.enum(["1.2.0", "1.3.0", "1.4.0"]),
+  schemaVersion: z.enum(["1.2.0", "1.3.0", "1.4.0", "1.5.0"]),
   id: entityId,
   caseId: entityId,
   commandId: entityId,

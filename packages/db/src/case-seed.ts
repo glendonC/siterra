@@ -63,6 +63,7 @@ const ManifestSource = z.object({
   redistributionStatus: z.string(),
   contentHash: z.string().nullable(),
   notes: z.array(z.string()),
+  language: z.string().optional(),
 });
 const CorpusManifest = z.object({ caseId: z.string(), sources: z.array(ManifestSource) });
 
@@ -173,6 +174,7 @@ export function readCaseSeed(args: {
       redistributionStatus: entry.redistributionStatus,
       contentHash: entry.contentHash,
       notes: entry.notes,
+      ...(entry.language === undefined ? {} : { language: entry.language }),
     });
     if (parsed.success) {
       sources.push(parsed.data);
