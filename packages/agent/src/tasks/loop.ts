@@ -185,6 +185,7 @@ export async function runTaskLoop<T>(options: LoopOptions<T>): Promise<LoopResul
       validation,
     });
     if (checked.ok) return done("accepted", null, checked.value);
+    if (checked.failureCode) return done("rejected", checked.failureCode);
     if (repaired) return done("rejected", "validation_rejected");
     repaired = true;
     input.push({ kind: "replay", items: call.replayItems });

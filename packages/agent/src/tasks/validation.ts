@@ -28,9 +28,13 @@ export interface ValidationResult {
   issues: ValidationIssue[];
 }
 
-/** `ok` with issues is a partial result: the value holds only the items that validated. */
+/**
+ * `ok` with issues is a partial result: the value holds only the items that validated. A rejection
+ * with a failure code ends the task with that code and gets no repair turn (out of scope).
+ */
 export type Checked<T> =
-  { ok: true; value: T; issues: ValidationIssue[] } | { ok: false; issues: ValidationIssue[] };
+  | { ok: true; value: T; issues: ValidationIssue[] }
+  | { ok: false; issues: ValidationIssue[]; failureCode?: string };
 
 /** Formats a parser path as `$.tasks[0].kind`. */
 export function jsonPath(path: readonly PropertyKey[]): string {

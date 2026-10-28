@@ -230,6 +230,33 @@ function deps(
 }
 
 describe("runCommand on synthetic replays", () => {
+  it("SA-10 (proposed) an identity-group command ends failed out of scope and creates nothing", async () => {
+    const transport = routes();
+    const { deps: d, commits, events } = deps(transport);
+    const outcome = await runCommand(
+      {
+        planTask: PLAN_TASK,
+        expectedCaseRevision: 3,
+        snapshot: {
+          ...SNAPSHOT,
+          command: { text: "Do Berber herders explain the decline?", intent: "commission" },
+        },
+      },
+      d,
+    );
+    expect(outcome.status).toBe("failed");
+    expect(outcome.tasks).toEqual([]);
+    expect(outcome.spentUsd).toBe(0);
+    expect(events.filter((e) => e.kind === "model.started")).toEqual([]);
+    expect(commits.evidence.size + commits.hypotheses.size + commits.interventions.size).toBe(0);
+    expect(commits.caseRevision).toBe(3 + 1);
+    expect([...commits.tasks.values()]).toMatchObject([
+      { id: "task_test_plan", status: "failed", failureCode: "out_of_scope" },
+    ]);
+    expect(commits.packages.size).toBe(0);
+    expect(commits.events.map((e) => e.kind)).toEqual(["task.failed"]);
+  });
+
   it("plans four tasks, runs them at most two model calls at a time, and ends every task", async () => {
     const transport = routes();
     const { deps: d, commits, events } = deps(transport);
