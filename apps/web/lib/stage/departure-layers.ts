@@ -34,12 +34,17 @@ export interface DepartureMap {
   ): unknown;
   removeImage(id: string): unknown;
   setPaintProperty(layer: string, prop: string, value: unknown): unknown;
+  /** Null without terrain (the flat reading). */
+  readonly terrain?: { tileManager: { releaseAllRTT(): void } } | null;
 }
 
 const RASTER_SOURCE = "departure";
 const EXCLUDED_SOURCE = "excluded-land";
 const HATCH = "excluded-hatch";
 export const DEPARTURE_LAYERS = ["departure-raster", "excluded-hatch", "excluded-edge"] as const;
+
+/** The stage fades these layers frame by frame (MOT-04), so no paint transition may carry a value on. */
+const INSTANT = { duration: 0, delay: 0 };
 
 const channels = (hex: string) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) || 0);
 
@@ -79,7 +84,12 @@ export function addDepartureLayers(
     id: "departure-raster",
     type: "raster",
     source: RASTER_SOURCE,
-    paint: { "raster-opacity": 0, "raster-resampling": "nearest", "raster-fade-duration": 0 },
+    paint: {
+      "raster-opacity": 0,
+      "raster-opacity-transition": INSTANT,
+      "raster-resampling": "nearest",
+      "raster-fade-duration": 0,
+    },
   });
   if (!l.excludedUri) return;
   m.addImage(
@@ -92,21 +102,32 @@ export function addDepartureLayers(
     id: "excluded-hatch",
     type: "fill",
     source: EXCLUDED_SOURCE,
-    paint: { "fill-pattern": HATCH, "fill-opacity": 0 },
+    paint: { "fill-pattern": HATCH, "fill-opacity": 0, "fill-opacity-transition": INSTANT },
   });
   m.addLayer({
     id: "excluded-edge",
     type: "line",
     source: EXCLUDED_SOURCE,
-    paint: { "line-color": edge, "line-width": 0.5, "line-opacity": 0 },
+    paint: {
+      "line-color": edge,
+      "line-width": 0.5,
+      "line-opacity": 0,
+      "line-opacity-transition": INSTANT,
+    },
   });
 }
 
-/** Opacity of every departure layer: 0 unseen, 1 drawn. */
+/**
+ * Opacity of every departure layer: 0 unseen, 1 drawn. Over terrain these layers are drawn into textures
+ * draped on the relief, which maplibre-gl 6.14.0 redraws only when their source tiles, the zoom or the layer
+ * set change, never on a paint change; without the release (and with a paint transition carrying the value
+ * on after it) the relief keeps whichever frame was drawn last.
+ */
 export function setDepartureOpacity(m: DepartureMap, k: number): void {
   if (m.getLayer("departure-raster")) m.setPaintProperty("departure-raster", "raster-opacity", k);
   if (m.getLayer("excluded-hatch")) m.setPaintProperty("excluded-hatch", "fill-opacity", k);
   if (m.getLayer("excluded-edge")) m.setPaintProperty("excluded-edge", "line-opacity", k);
+  m.terrain?.tileManager.releaseAllRTT();
 }
 
 export function removeDepartureLayers(m: DepartureMap): void {

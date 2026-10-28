@@ -86,6 +86,45 @@ describe("departure layers", () => {
     expect(f.paint["excluded-hatch"]?.["fill-opacity"]).toBe(1);
   });
 
+  it("redraws the textures the terrain drapes after each opacity change, so the fade's end is what shows", () => {
+    // maplibre-gl 6.14.0 keeps a draped tile's texture until its source tiles, zoom or layer set change;
+    // a paint change alone leaves the fade's early frame on the relief
+    const f = fakeMap();
+    const calls: string[] = [];
+    const m: DepartureMap = {
+      ...f.m,
+      setPaintProperty: (id, prop, v) => {
+        calls.push(`${id} ${prop} ${String(v)}`);
+        f.m.setPaintProperty(id, prop, v);
+      },
+      terrain: { tileManager: { releaseAllRTT: () => calls.push("release") } },
+    };
+    addDepartureLayers(m, layer, hatchTile("#878481", "#f2efea", 2), "edge");
+    // the stage drives the fade frame by frame: maplibre's own 300 ms paint transition would carry each
+    // value on past the release
+    const instant = { duration: 0, delay: 0 };
+    expect(f.paint["departure-raster"]?.["raster-opacity-transition"]).toEqual(instant);
+    expect(f.paint["excluded-hatch"]?.["fill-opacity-transition"]).toEqual(instant);
+    expect(f.paint["excluded-edge"]?.["line-opacity-transition"]).toEqual(instant);
+    calls.length = 0;
+    setDepartureOpacity(m, 0.4);
+    setDepartureOpacity(m, 1);
+    expect(calls).toEqual([
+      "departure-raster raster-opacity 0.4",
+      "excluded-hatch fill-opacity 0.4",
+      "excluded-edge line-opacity 0.4",
+      "release",
+      "departure-raster raster-opacity 1",
+      "excluded-hatch fill-opacity 1",
+      "excluded-edge line-opacity 1",
+      "release",
+    ]);
+    // the flat reading has no terrain: nothing to release
+    expect(() => {
+      setDepartureOpacity({ ...f.m, terrain: null }, 1);
+    }).not.toThrow();
+  });
+
   it("draws no hatch when the bundle lists no cropland layer", () => {
     const f = fakeMap();
     addDepartureLayers(
