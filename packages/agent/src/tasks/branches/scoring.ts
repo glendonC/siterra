@@ -47,7 +47,11 @@ async function traced<T extends { resultEntityIds: string[] }>(
 ): Promise<T> {
   const startedAt = trace.now();
   const base = { name, startedAt: startedAt.toISOString(), argumentSummary, attempt: 1 };
-  const emit = (kind: "tool.started" | "tool.completed", tool: ToolCallDraft, message: string) =>
+  const emit = (
+    kind: "tool.started" | "tool.completed",
+    tool: ToolCallDraft,
+    message: string,
+  ): void => {
     trace.sink.emit({
       kind,
       taskId: trace.taskId,
@@ -59,6 +63,7 @@ async function traced<T extends { resultEntityIds: string[] }>(
       tool,
       validation: null,
     });
+  };
   emit(
     "tool.started",
     {
