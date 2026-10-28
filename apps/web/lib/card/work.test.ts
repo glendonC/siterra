@@ -163,6 +163,19 @@ describe("workCard as the command runs and completes", () => {
     expect(words(p)).toBeLessThanOrEqual(LIMITS.cardWords);
   });
 
+  it("names the steps not done in the voice guide's words: possible responses, automated checks", () => {
+    const p = card(
+      withRecords([
+        taskRecord("task_1", "succeeded", "q1"),
+        taskRecord("task_2", "failed", "q2", "intervention_feasibility", "round_limit"),
+        taskRecord("task_3", "failed", "q3", "validation", "dependency_failed"),
+      ]),
+      ended("partial"),
+    );
+    expect(p.working).toBe("Finished with gaps. Not done: possible responses, automated checks.");
+    expect(p.working).not.toMatch(/intervention|validation/i);
+  });
+
   it("says the request was canceled", () => {
     const c = card(
       withRecords([taskRecord("task_1", "cancelled", "q1")]),

@@ -106,15 +106,16 @@ export const en = {
   "work.cause.rejected": { text: "Siterra rejected the model's proposal", kind: "ui" },
   "work.cause.modelDown": { text: "the model service is not responding", kind: "ui" },
   "work.cause.other": { text: "no step finished", kind: "ui" },
-  // task kinds (microcopy section 6 task rows; agent orchestration for the two it does not list)
+  // task kinds (microcopy section 6 task rows; the voice guide's terminology for the two it does not list:
+  // "possible response", not "intervention"; "checked (automated)", not "verified")
   "task.kind.plan": { text: "Plan", kind: "label" },
   "task.kind.source_research": { text: "Source research", kind: "label" },
   "task.kind.observation_analysis": { text: "Observation analysis", kind: "label" },
   "task.kind.livelihood_governance": { text: "Livelihood and governance research", kind: "label" },
   "task.kind.hypothesis_comparison": { text: "Explanation comparison", kind: "label" },
-  "task.kind.intervention_feasibility": { text: "Intervention feasibility", kind: "label" },
+  "task.kind.intervention_feasibility": { text: "Possible responses", kind: "label" },
   "task.kind.brief_package": { text: "Field-validation plan", kind: "label" },
-  "task.kind.validation": { text: "Validation", kind: "label" },
+  "task.kind.validation": { text: "Automated checks", kind: "label" },
   // labeled precomputed (ADR-0021; agent orchestration, "Precomputed observations are labeled precomputed")
   "work.observations": { text: "Observations (precomputed)", kind: "label" },
   "work.observationLine": {
