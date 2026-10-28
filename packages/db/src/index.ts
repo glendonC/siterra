@@ -1,5 +1,6 @@
 export * from "./bundle-import.ts";
 export * from "./case-assets.ts";
+export * from "./case-seed.ts";
 export * from "./cases.ts";
 export * from "./client.ts";
 export * from "./commands.ts";
