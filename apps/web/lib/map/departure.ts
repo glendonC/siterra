@@ -38,7 +38,16 @@ export interface DepartureBinding {
   periodId: string;
   /** qualityFlags: the period's flags as the importer copied them from the bundle Item. */
   observation: RecordRef & { qualityFlags: string[] };
-  measurement: RecordRef & { validFraction: number | null; spatialResolutionM: number | null };
+  /**
+   * validFraction: the Item's area_valid_fraction, the coverage-check figure (all-years reference).
+   * validPixelCount over totalPixelCount: this measurement's own cells, the ones the picture colors.
+   */
+  measurement: RecordRef & {
+    validFraction: number | null;
+    validPixelCount: number | null;
+    totalPixelCount: number | null;
+    spatialResolutionM: number | null;
+  };
   bundle: RecordRef & {
     contentHash: string;
     manifestUri: string;
@@ -71,6 +80,8 @@ export function departureBinding(s: CaseSnapshot): DepartureBinding | undefined 
         id: m.id,
         revision: m.revision,
         validFraction: m.validFraction,
+        validPixelCount: m.validPixelCount,
+        totalPixelCount: m.totalPixelCount,
         spatialResolutionM: m.spatialResolutionM,
       },
       bundle: {
@@ -96,6 +107,8 @@ export interface DepartureManifest {
   cellM: number;
   /** The mapped cropland and buildings, when the manifest lists them with a checksum. */
   excludedUri: string | undefined;
+  /** The method's minimum number of years behind a reference median, when the manifest states it. */
+  minReferenceYears: number | undefined;
 }
 
 const R = 6378137;
@@ -107,7 +120,9 @@ export function parseDepartureManifest(raw: unknown, manifestUri: string): Depar
   const c = (raw ?? {}) as {
     item_assets?: Record<string, Record<string, unknown>>;
     assets?: Record<string, Record<string, unknown>>;
+    "siterra:method"?: { parameters?: Record<string, unknown> };
   };
+  const years = c["siterra:method"]?.parameters?.["min_reference_years"];
   const o = c.item_assets?.["overview"];
   const box = o?.["proj:bbox"];
   const shape = o?.["proj:shape"];
@@ -147,6 +162,8 @@ export function parseDepartureManifest(raw: unknown, manifestUri: string): Depar
       typeof href === "string" && typeof ex?.["file:checksum"] === "string"
         ? new URL(href, base).pathname
         : undefined,
+    minReferenceYears:
+      Number.isInteger(years) && (years as number) > 0 ? (years as number) : undefined,
   };
 }
 
@@ -156,6 +173,7 @@ export interface DepartureLegend {
   low: string;
   high: string;
   coverage?: string;
+  painted?: string;
   flags?: string;
   flagsNote?: string;
   excluded?: string;
@@ -191,23 +209,33 @@ export function departureLegend(
   domain: [number, number],
   hatched: boolean,
   cellM: number,
+  minReferenceYears: number | undefined,
 ): DepartureLegend {
   const months = MONTH_PLURALS[Number(b.periodId.slice(12, 14)) - 1] ?? "";
+  const period = periodLabel(b.periodId);
   const f = b.measurement.validFraction;
+  const { validPixelCount: valid, totalPixelCount: total } = b.measurement;
+  const shown = valid !== null && total !== null && total > 0 ? valid / total : null;
+  const share = (id: "legend.ndvi.coverage" | "legend.ndvi.painted", fraction: number) =>
+    minReferenceYears === undefined
+      ? format(`${id}.bare`, { percent: Math.round(fraction * 100) })
+      : format(id, {
+          percent: Math.round(fraction * 100),
+          years: minReferenceYears,
+          months,
+          period,
+        });
   const analysis = b.measurement.spatialResolutionM;
   const flags = flagWords(b.observation.qualityFlags);
   const display = meters.format(cellM);
   return {
-    title: format("legend.ndvi.title", { period: periodLabel(b.periodId), months }),
+    title: format("legend.ndvi.title", { period, months }),
     subtitle: format("legend.ndvi.subtitle", { months }),
     low: tick(domain[0]),
     high: tick(domain[1]),
-    ...(f === null
-      ? {}
-      : { coverage: format("legend.coverage", { percent: Math.round(f * 100) }) }),
-    ...(flags === undefined
-      ? {}
-      : { flags: format("legend.flags", { period: periodLabel(b.periodId), flags }) }),
+    ...(f === null ? {} : { coverage: share("legend.ndvi.coverage", f) }),
+    ...(shown === null ? {} : { painted: share("legend.ndvi.painted", shown) }),
+    ...(flags === undefined ? {} : { flags: format("legend.flags", { period, flags }) }),
     ...(b.observation.qualityFlags.includes("reduced_qa_fallback")
       ? { flagsNote: en["legend.flags.reducedQaNote"].text }
       : {}),
@@ -231,6 +259,7 @@ export function legendLines(l: DepartureLegend): string[] {
     l.subtitle,
     `${l.low} ${l.high}`,
     ...(l.coverage ? [l.coverage] : []),
+    ...(l.painted ? [l.painted] : []),
     ...(l.flags ? [l.flags] : []),
     ...(l.flagsNote ? [l.flagsNote] : []),
     ...(l.excluded ? [l.excluded] : []),

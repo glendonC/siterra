@@ -66,6 +66,8 @@ describe("departureBinding", () => {
         id: "meas_ndvi_departure_ait_bouguemez_2025-11_ndvi_departure_area_median_leave_one_year_out",
         revision: 1,
         validFraction: 0.9301,
+        validPixelCount: 3770577,
+        totalPixelCount: 4173603,
         spatialResolutionM: 10,
       },
       bundle: {
@@ -112,6 +114,7 @@ describe("departureBinding", () => {
 const manifest = {
   type: "Collection",
   id: BUNDLE,
+  "siterra:method": { id: "monthly_departure", parameters: { min_reference_years: 4 } },
   assets: {
     excluded_land: {
       href: "./excluded-land.geojson",
@@ -146,6 +149,12 @@ describe("parseDepartureManifest", () => {
     expect(bl).toEqual([tl[0], br[1]]);
     expect(m.domain).toEqual([-0.1, 0.1]);
     expect(m.excludedUri).toBe(`/api/case-assets/${BUNDLE}/${HASH}/excluded-land.geojson`);
+    expect(m.minReferenceYears).toBe(4);
+  });
+
+  it("reads no reference-year minimum the method does not state", () => {
+    const { "siterra:method": _, ...bare } = manifest;
+    expect(parseDepartureManifest(bare, manifestUri).minReferenceYears).toBeUndefined();
   });
 
   it("measures a display cell on the ground: 30 m Web Mercator cells are about 25.5 m at the valley's latitude", () => {
@@ -179,13 +188,14 @@ describe("departureLegend", () => {
   if (!b) throw new Error("fixture");
 
   it("says what the map shows in the legend's words, from the records", () => {
-    expect(departureLegend(b, [-0.1, 0.1], true, 25.545)).toEqual({
+    expect(departureLegend(b, [-0.1, 0.1], true, 25.545, 4)).toEqual({
       title: "NDVI departure, Nov 2025, compared with other Novembers",
       subtitle:
         "Difference from the median of the other Novembers, 2019 to 2025, inside the catchment",
       low: "\u22120.10",
       high: "+0.10",
-      coverage: "93% of area observed",
+      coverage: "Coverage: 93% of area, observed in at least 4 Novembers including Nov 2025",
+      painted: "Colored: 90% of area, observed in Nov 2025 and at least 4 other Novembers",
       flags: "Nov 2025 views: snow suspected; cloud screening reduced.",
       flagsNote: "Cloud screening used the scene classification only.",
       excluded:
@@ -198,29 +208,47 @@ describe("departureLegend", () => {
     });
   });
 
+  it("says which share passed the coverage check and which is colored, both from the records", () => {
+    const l = departureLegend(b, [-0.1, 0.1], true, 25.545, 4);
+    const lines = legendLines(l);
+    expect(lines.indexOf(l.painted ?? "")).toBe(lines.indexOf(l.coverage ?? "") + 1);
+    const counts = (validPixelCount: number | null, totalPixelCount: number | null) => ({
+      ...b,
+      measurement: { ...b.measurement, validPixelCount, totalPixelCount },
+    });
+    expect(departureLegend(counts(1, 4), [-0.1, 0.1], true, 25.545, 4).painted).toBe(
+      "Colored: 25% of area, observed in Nov 2025 and at least 4 other Novembers",
+    );
+    expect(departureLegend(counts(null, 4), [-0.1, 0.1], true, 25.545, 4).painted).toBeUndefined();
+    expect(departureLegend(counts(1, 0), [-0.1, 0.1], true, 25.545, 4).painted).toBeUndefined();
+    const bare = departureLegend(b, [-0.1, 0.1], true, 25.545, undefined);
+    expect(bare.coverage).toBe("Coverage: 93% of area");
+    expect(bare.painted).toBe("Colored: 90% of area");
+  });
+
   it("names the period's quality flags from its record, never from a fixed list", () => {
     const flagged = (qualityFlags: string[]) => ({
       ...b,
       observation: { ...b.observation, qualityFlags },
     });
-    const few = departureLegend(flagged(["low_scene_count"]), [-0.1, 0.1], true, 25.545);
+    const few = departureLegend(flagged(["low_scene_count"]), [-0.1, 0.1], true, 25.545, 4);
     expect(few.flags).toBe("Nov 2025 views: few satellite dates.");
     expect(few.flagsNote).toBeUndefined();
     expect(legendLines(few)).toContain(few.flags);
-    const clean = departureLegend(flagged([]), [-0.1, 0.1], true, 25.545);
+    const clean = departureLegend(flagged([]), [-0.1, 0.1], true, 25.545, 4);
     expect(clean.flags).toBeUndefined();
     expect(legendLines(clean)).not.toContain(undefined);
     // a flag this build has no words for is still shown, by its name, never dropped
-    expect(departureLegend(flagged(["new_flag"]), [-0.1, 0.1], true, 25.545).flags).toBe(
+    expect(departureLegend(flagged(["new_flag"]), [-0.1, 0.1], true, 25.545, 4).flags).toBe(
       "Nov 2025 views: new_flag.",
     );
   });
 
   it("states the display cell size, not the analysis grid's, as the size it draws (SC-04)", () => {
-    const l = departureLegend(b, [-0.1, 0.1], true, 25.545);
+    const l = departureLegend(b, [-0.1, 0.1], true, 25.545, 4);
     expect(legendLines(l)).toContain(l.cells);
     const unknown = { ...b, measurement: { ...b.measurement, spatialResolutionM: null } };
-    expect(departureLegend(unknown, [-0.1, 0.1], true, 25.545).cells).toBe(
+    expect(departureLegend(unknown, [-0.1, 0.1], true, 25.545, 4).cells).toBe(
       "Drawn in cells of about 25.5 m.",
     );
   });
@@ -235,7 +263,7 @@ describe("departureLegend", () => {
     expect(collection.assets.excluded_land.description).toContain(
       "no departure value is masked by it",
     );
-    const l = departureLegend(b, [-0.1, 0.1], true, 25.545);
+    const l = departureLegend(b, [-0.1, 0.1], true, 25.545, 4);
     expect(l.excluded).not.toMatch(/mask/i);
     expect(l.excluded).toContain("left out of the field-sampling strata");
     expect(l.excluded).toContain("still drawn");
@@ -245,7 +273,7 @@ describe("departureLegend", () => {
   });
 
   it("names no hatch when none is drawn", () => {
-    expect(departureLegend(b, [-0.1, 0.1], false, 25.545).excluded).toBeUndefined();
+    expect(departureLegend(b, [-0.1, 0.1], false, 25.545, 4).excluded).toBeUndefined();
   });
 });
 

@@ -52,6 +52,7 @@ export function useDepartureLayer(snapshot: CaseSnapshot, on: boolean) {
             manifest.domain,
             manifest.excludedUri !== undefined,
             manifest.cellM,
+            manifest.minReferenceYears,
           )
         : undefined,
     [binding, manifest],

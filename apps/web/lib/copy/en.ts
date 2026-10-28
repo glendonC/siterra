@@ -141,6 +141,20 @@ export const en = {
     kind: "ui",
   },
   "legend.coverage": { text: "{percent}% of area observed", kind: "ui" },
+  // the departure's two shares: the coverage-check figure (all-years reference) and the cells the picture colors
+  // (leave-one-year-out reference); the bare forms when the method states no reference-year minimum
+  "legend.ndvi.coverage": {
+    text: "Coverage: {percent}% of area, observed in at least {years} {months} including {period}",
+    kind: "ui",
+    honesty: true,
+  },
+  "legend.ndvi.coverage.bare": { text: "Coverage: {percent}% of area", kind: "ui", honesty: true },
+  "legend.ndvi.painted": {
+    text: "Colored: {percent}% of area, observed in {period} and at least {years} other {months}",
+    kind: "ui",
+    honesty: true,
+  },
+  "legend.ndvi.painted.bare": { text: "Colored: {percent}% of area", kind: "ui", honesty: true },
   // the period's quality flags, in the approved verdict line's form (valley.verdict.flags and its note)
   "legend.flags": { text: "{period} views: {flags}.", kind: "ui", honesty: true },
   "legend.flags.reducedQaNote": {

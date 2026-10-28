@@ -64,6 +64,7 @@ export function DepartureLegend({
           <span>{legend.high}</span>
         </p>
         {legend.coverage ? <p className={styles.line}>{legend.coverage}</p> : null}
+        {legend.painted ? <p className={styles.line}>{legend.painted}</p> : null}
         {legend.flags ? <p className={styles.line}>{legend.flags}</p> : null}
         {legend.flagsNote ? <p className={styles.note}>{legend.flagsNote}</p> : null}
         {legend.excluded ? (
