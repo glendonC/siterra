@@ -354,6 +354,43 @@ describe("propose_package validation", () => {
     ).toEqual([]);
   });
 
+  it("binds the outreach and agreement verbs to an actor after any word, so neutral wording passes (18f, b49)", () => {
+    for (const definition of [
+      "Accepted evidence shows the upper band is grazed in late spring.",
+      "The upper pasture, called the agdal, rests in spring.",
+      "Slopes not visited by the field survey, above the summer settlements.",
+      "The upper band was not visited by the field survey.",
+      "Pasture that rests until the association agrees on dates.",
+    ]) {
+      const fieldPlan = plan({ strata: [{ ...plan().strata[0], definition }] });
+      expect(codes(proposal({ action: { fieldPlan } })), definition).toEqual([]);
+    }
+    for (const text of [
+      "The report states the commune agreed to the dates.",
+      "Siterra has already sent the plan to the council.",
+      "The plan was formally approved by the council.",
+      "The record suggests the commune agreed to the dates.",
+      "Notes imply the council approved the plan.",
+      "It appears the association consented.",
+      // Claim forms with no actor (18f): at a sentence start, or after a comma or a semicolon.
+      "Contacted the commune about the agdal dates.",
+      "Approved by the commune council.",
+      "Signed by the association on 2 May.",
+      "Sent to the caidat last week.",
+      "Agreed with the association on the dates.",
+      "Has consented to the dates.",
+      "Visited the upper pasture in May.",
+      "The plan, approved by the council, closes the upper band.",
+      "The grazing calendar, agreed with the association, starts in May.",
+      "Dates set; approved by the council.",
+    ]) {
+      expect(
+        codes(proposal({ action: { fieldPlan: plan({ permissions: [text] }) } })),
+        text,
+      ).toContain("authority $.action.fieldPlan.permissions[0]");
+    }
+  });
+
   it("refuses a consultation step written as a command and suggests a noun phrase (b48 note)", () => {
     const found = check(
       proposal({

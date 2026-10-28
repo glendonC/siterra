@@ -143,19 +143,65 @@ const SECTION_KINDS: Readonly<Record<BriefSection, readonly ClaimKind[]>> = {
   nextSteps: ["field_requirement", "scientific_context"],
 };
 
+/** Outreach and agreement verbs in every form, used after an auxiliary ("has sent", "will agree"). */
+const CLAIM_VERB = String.raw`(?:contact(?:s|ed|ing)?|wr(?:ite|ites|ote|itten|iting)\s+to|call(?:s|ed|ing)?|phon(?:e|es|ed|ing)|e-?mail(?:s|ed|ing)?|messag(?:e|es|ed|ing)|m(?:eet|eets|et|eeting)\s+with|visit(?:s|ed|ing)?|s(?:end|ends|ent|ending)|mail(?:s|ed|ing)?|agree(?:s|d|ing)?|consent(?:s|ed|ing)?|approv(?:e|es|ed|ing)|grant(?:s|ed|ing)?|authori[sz](?:e|es|ed|ing)|permit(?:s|ted|ting)?|accept(?:s|ed|ing)?|sign(?:s|ed|ing)?)`;
+
+/**
+ * The forms that are a claim straight after a subject ("Siterra contacted", "The association
+ * agrees"): past forms, and present forms that are never nouns. "visit", "permits" or "signs"
+ * alone can be nouns ("Any visit waits ...").
+ */
+const CLAIM_FINITE = String.raw`(?:contacted|wrote\s+to|called|phoned|e-?mailed|messaged|met\s+with|visited|sent|mailed|agreed|agrees|consented|consents|approved|approves|granted|authori[sz](?:ed|es)|permitted|accepted|signed)`;
+
+/** The participles a passive claim uses ("is granted", "has been sent"). */
+const CLAIM_PARTICIPLE = String.raw`(?:contacted|written\s+to|called|phoned|e-?mailed|messaged|met\s+with|visited|sent|mailed|agreed|consented|approved|granted|authori[sz]ed|permitted|accepted|signed|scheduled|booked|published|posted|notified|delivered)`;
+
+/**
+ * A word that can be part of a clause subject: never an auxiliary, a negation, a preposition or a
+ * conjunction that opens a condition ("until the association agrees" is not a claim),
+ * so a subject cannot swallow "was not" or reach across "in the pasture".
+ */
+const SUBJECT_WORD = String.raw`(?!(?:is|are|was|were|be|been|being|has|have|had|will|would|shall|may|might|can|could|did|does|do|not|never|no|in|on|at|of|from|for|with|by|to|into|near|above|below|under|over|about|than|as|if|unless|until|once|while|whether|before|after|when)\b)[\w-]+`;
+
+/**
+ * A clause subject: up to four subject words (Siterra, a pronoun, a determiner phrase, a name)
+ * right before the verb, after any word (18e: "The record suggests the commune agreed"), unless
+ * the subject sits in a condition ("until the association agrees", "if the council approves").
+ */
+const ACTOR = String.raw`(?<![\w-])(?<!\b(?:if|unless|until|once|whether|provided)\s+(?:${SUBJECT_WORD}\s+){0,4})(?:${SUBJECT_WORD}\s+){0,3}${SUBJECT_WORD}\s+`;
+
+/**
+ * A claim form with no actor that names an agent or recipient ("Approved by the council", "Sent to
+ * the caidat", "agreed with the association"), unless not or never comes before it ("not visited by
+ * the field survey") (18f).
+ */
+const AGENTLESS_CLAIM = String.raw`(?<!\b(?:not|never)\s+)\b(?:(?:contacted|called|phoned|e-?mailed|messaged|visited|sent|mailed|agreed|consented|approved|granted|authori[sz]ed|permitted|accepted|signed|scheduled|booked|published|posted|notified|delivered)\s+(?:by|with|to)|wr(?:ote|itten)\s+to|met\s+with)\b`;
+
+/**
+ * A claim form that opens a sentence, line or clause after a semicolon and takes an object
+ * ("Contacted the commune ...", "Visited the upper pasture ...", "Has consented ..."). The object
+ * starts with a determiner, so an adjective use passes ("Accepted evidence shows ..."); a comma
+ * clause is left to AGENTLESS_CLAIM, so naming passes ("The upper pasture, called the agdal, ...").
+ */
+const OPENING_CLAIM = String.raw`(?:^|[.;:!?]\s+|\n\s*)(?:(?:has|have|had|was|were|is|are)\s+(?:(?:already|now|also|just)\s+)?(?:been\s+)?)?${CLAIM_FINITE}\s+(?:the|a|an|this|that|these|those|our|their|its|his|her|each|every|all|both|to|with)\b`;
+
 /**
  * Outreach, agreement or authorization the plan claims or asks for; a case command implies none
- * (AGENTS.md). Passive and active forms (b48): "has been sent", "Siterra contacted the commune",
- * "A letter went to the caidat", "The association agreed", "Permission ... is granted". Agreement
- * and authorization verbs are refused in any tense; the nouns ("Permission from the commune, to be
- * established") pass.
+ * (AGENTS.md). The verbs count only when bound to an actor (18d, after b49): a subject that
+ * contacted, wrote, visited, agreed, granted or signed ("Siterra contacted the commune", "The
+ * association agreed"), a passive claim ("Permission from the commune is granted", "has been
+ * sent"), or something that went or was delivered to someone (b48). The same words without an
+ * actor pass: "Accepted evidence shows ...", "a pasture called the agdal", "not visited by the
+ * field survey", and the nouns ("Permission from the commune, to be established").
  */
 const OUTREACH = new RegExp(
   [
-    String.raw`\b(?:has|have|was|were|is|are)\s+(?:been\s+)?(?:sent|emailed|scheduled|booked|published|posted|contacted|notified|signed)\b`,
+    String.raw`${ACTOR}${CLAIM_FINITE}\b`,
+    String.raw`${AGENTLESS_CLAIM}`,
+    String.raw`${OPENING_CLAIM}`,
+    String.raw`${ACTOR}(?:has|have|had|will|would|shall|may|might|can|could|is|are|was|were|did|does|do)\s+(?:(?:already|now|also|then|just)\s+)?(?:been\s+)?${CLAIM_VERB}\b`,
+    String.raw`\b(?:is|are|was|were|be|been|being)\s+(?:(?:already|now|also|then|just|formally|officially)\s+)?${CLAIM_PARTICIPLE}\b`,
     String.raw`\b(?:send|email|schedule|book|publish|post|sign)\s+(?:it|this|the|a|an|them)\b`,
-    String.raw`\b(?:contacted|wrote\s+to|written\s+to|called|phoned|e-?mailed|messaged|met\s+with|visited|sent|mailed)\b`,
-    String.raw`\b(?:agree|agrees|agreed|agreeing|consents|consented|consenting|approve|approves|approved|approving|granted|granting|authori[sz](?:e|es|ed|ing)|permitted|permitting|accepts|accepted|accepting|signed|signing)\b`,
     String.raw`\bwent\s+to\b|\b(?:was|were|been)\s+delivered\s+to\b`,
   ].join("|"),
   "i",
