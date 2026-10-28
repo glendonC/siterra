@@ -95,6 +95,7 @@ export const en = {
   },
   "arrival.start": { text: "Run Assessment", kind: "button" },
   "arrival.readFlat": { text: "Flat Map View", kind: "button" },
+  "stage.resetView": { text: "Reset View", kind: "button" },
 
   // Text view (the flat listing)
   "flat.title": { text: "Text View", kind: "heading" },

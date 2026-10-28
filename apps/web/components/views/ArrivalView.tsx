@@ -177,8 +177,13 @@ export function ArrivalView({
       console.error("Stop failed", e);
     });
   }, [commandId, running, paced]);
-  // the bearing does not depend on the viewport height
-  const bearing = orbitToMapCamera(ARRIVAL_POSE, 1).bearing;
+  // the initial bearing does not depend on the viewport height; user orbit updates it live
+  const [bearing, setBearing] = useState(() => orbitToMapCamera(ARRIVAL_POSE, 1).bearing);
+  const [cameraMoved, setCameraMoved] = useState(false);
+  const [resetSeq, setResetSeq] = useState(0);
+  const resetView = useCallback(() => {
+    setResetSeq((s) => s + 1);
+  }, []);
   const question = arrival.question;
   return (
     <>
@@ -217,6 +222,9 @@ export function ArrivalView({
         onFailed={onMapFailed}
         departure={departure.layer}
         onDeparture={setDepartureShown}
+        resetSeq={resetSeq}
+        onMoved={setCameraMoved}
+        onBearing={setBearing}
       />
       {chrome && card && commandId ? (
         <>
@@ -260,6 +268,8 @@ export function ArrivalView({
             onReadFlat={() => {
               setFlat((f) => !f);
             }}
+            cameraMoved={cameraMoved}
+            onResetView={resetView}
             onAsk={commission}
             onSources={() => {
               setNoticesOpen(true);

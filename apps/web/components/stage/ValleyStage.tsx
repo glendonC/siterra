@@ -11,7 +11,23 @@ import { en, format, isHonesty, type MessageId } from "../../lib/copy/en";
 import type { LandPoint } from "../../lib/projection/places";
 import { ARRIVAL_EXAGGERATION, ARRIVAL_POSE, VALLEY_NAME_REFERENCE } from "../../lib/stage/arrival";
 import type { MapBundle } from "../../lib/map/bundle";
-import { orbitToMapCamera, widthFitScale, type MapCamera } from "../../lib/stage/camera";
+import {
+  cameraMoved,
+  clampBearing,
+  clampCenter,
+  clampPitch,
+  clampZoom,
+  expandBounds,
+  maxZoomForDistance,
+  MIN_VALLEY_ZOOM,
+  normalizeBearing,
+  OBLIQUE_MAX_PITCH,
+  OBLIQUE_MIN_PITCH,
+  orbitToMapCamera,
+  VALLEY_ASSET_BOUNDS,
+  widthFitScale,
+  type MapCamera,
+} from "../../lib/stage/camera";
 import { easeInOut, FLAT_MOVE_MS, flatCamera, mixCamera } from "../../lib/stage/flat";
 import { FlatFrame } from "./FlatFrame";
 import { regionalCamera, SETTLE_MS, settleCameraAt } from "../../lib/stage/settle";
@@ -105,8 +121,67 @@ function outerRing(f: Feature): Position[] | undefined {
 /** The style's draped outline, shown in the dive and hidden while the crisp outline is drawn. */
 function showDrapedLine(m: maplibregl.Map | null, show: boolean): void {
   if (!m?.isStyleLoaded()) return;
+  const want = show ? "visible" : "none";
   for (const id of ["catchment-casing", "catchment-line"])
-    if (m.getLayer(id)) m.setLayoutProperty(id, "visibility", show ? "visible" : "none");
+    if (m.getLayer(id) && m.getLayoutProperty(id, "visibility") !== want)
+      m.setLayoutProperty(id, "visibility", want);
+}
+
+function stepFlatCamera(m: maplibregl.Map, catchment: Feature, home: MapCamera): MapCamera {
+  const canvas = m.getCanvas();
+  const ring = outerRing(catchment) ?? [];
+  const lons = ring.map((p) => p[0]);
+  const lats = ring.map((p) => p[1]);
+  return {
+    ...flatCamera(
+      [Math.min(...lons), Math.min(...lats), Math.max(...lons), Math.max(...lats)],
+      canvas.clientWidth,
+      canvas.clientHeight,
+      120,
+    ),
+    verticalFovDeg: home.verticalFovDeg,
+  };
+}
+
+function syncInteractive(
+  m: maplibregl.Map,
+  unlocked: boolean,
+  flatMode: boolean,
+  bounds: [number, number, number, number],
+): void {
+  if (!unlocked) {
+    m.setMinPitch(0);
+    m.setMaxPitch(85);
+    m.setMinZoom(0);
+    m.setMaxZoom(22);
+    m.setMaxBounds(null);
+    m.dragPan.disable();
+    m.dragRotate.disable();
+    m.scrollZoom.disable();
+    m.doubleClickZoom.disable();
+    m.touchZoomRotate.disable();
+    m.touchPitch.disable();
+    return;
+  }
+  const maxZoom = maxZoomForDistance(ARRIVAL_POSE, m.getCanvas().clientHeight || 810);
+  m.setMinZoom(MIN_VALLEY_ZOOM);
+  m.setMaxZoom(maxZoom);
+  m.setMinPitch(flatMode ? 0 : OBLIQUE_MIN_PITCH);
+  m.setMaxPitch(flatMode ? 0 : OBLIQUE_MAX_PITCH);
+  m.setMaxBounds(expandBounds(bounds));
+  m.dragPan.enable();
+  m.scrollZoom.enable();
+  m.doubleClickZoom.enable();
+  m.touchZoomRotate.enable();
+  if (flatMode) {
+    m.dragRotate.disable();
+    m.touchPitch.disable();
+    m.touchZoomRotate.disableRotation();
+  } else {
+    m.dragRotate.enable();
+    m.touchPitch.enable();
+    m.touchZoomRotate.enableRotation();
+  }
 }
 
 /** The text box the transform maps onto the land: CSS px, wide enough for the hero's ground names. */
@@ -153,6 +228,12 @@ export interface ValleyStageProps {
   departure?: DepartureMapLayer;
   /** True once the departure layer is drawn, false when it is taken off or could not load. */
   onDeparture?: (shown: boolean) => void;
+  /** Incremented when the viewer presses Home / H or Reset View to return to the active step's pose. */
+  resetSeq?: number;
+  /** Called when the viewer moves the camera away from or back to the active step's pose. */
+  onMoved?: (moved: boolean) => void;
+  /** Called when the map's compass bearing changes so the North instrument stays accurate. */
+  onBearing?: (bearingDeg: number) => void;
 }
 
 export function ValleyStage({
@@ -173,6 +254,9 @@ export function ValleyStage({
   settleKey,
   departure,
   onDeparture,
+  resetSeq = 0,
+  onMoved,
+  onBearing,
 }: ValleyStageProps) {
   const container = useRef<HTMLDivElement>(null);
   const [stems, setStems] = useState<Stem[]>([]);
@@ -193,6 +277,8 @@ export function ValleyStage({
 
   const [arrived, setArrived] = useState(false);
   const [settled, setSettled] = useState(false);
+  const [interactive, setInteractive] = useState(false);
+  const [moved, setMoved] = useState(false);
   // the beat's view, the flat reading, or the move between them
   const [view, setView] = useState<"oblique" | "toFlat" | "flat" | "toOblique">("oblique");
   const viewRef = useRef(view);
@@ -202,6 +288,20 @@ export function ValleyStage({
   const nowRef = useRef<MapCamera | null>(null);
   const reliefRef = useRef<number>(ARRIVAL_EXAGGERATION);
   const flatAppliedRef = useRef(false);
+  const resetAppliedRef = useRef(0);
+  const flightActiveRef = useRef(false);
+  const clampingRef = useRef(false);
+  const unlockedRef = useRef(false);
+  const catchmentRef = useRef(catchment);
+  catchmentRef.current = catchment;
+  const boundsRef = useRef<[number, number, number, number]>(
+    assets?.terrain.bounds ?? VALLEY_ASSET_BOUNDS,
+  );
+  boundsRef.current = assets?.terrain.bounds ?? VALLEY_ASSET_BOUNDS;
+  const onMovedRef = useRef(onMoved);
+  onMovedRef.current = onMoved;
+  const onBearingRef = useRef(onBearing);
+  onBearingRef.current = onBearing;
   // MOT-01: "waiting" for the start view's tiles, then "moving", then "done" (or "done" from the start)
   const [settle, setSettle] = useState<"waiting" | "moving" | "done">("done");
   const startRef = useRef<MapCamera | null>(null);
@@ -260,38 +360,59 @@ export function ValleyStage({
     };
   }, [idle, departure]);
 
-  // F: one camera move to the top-down view with the relief easing to flat, terrain off at the end; F again
-  // returns. Under reduced motion the camera cuts.
+  // F or Home/H: one camera move to the top-down view (relief easing to flat, terrain off at the end) or back
+  // to the active step's pose. Under reduced motion the camera cuts (MQ-03). Any user pointer/wheel/touch input
+  // during the move yields immediately (MQ-02, SC-05).
   useEffect(() => {
     const m = mapRef.current;
     const home = homeRef.current;
-    if (!m || !home || !arrived || flat === flatAppliedRef.current) return;
+    const flatChanged = flat !== flatAppliedRef.current;
+    const resetChanged = resetSeq !== resetAppliedRef.current;
+    if (!m || !home || !arrived || (!flatChanged && !resetChanged)) return;
     flatAppliedRef.current = flat;
-    const canvas = m.getCanvas();
-    const ring = outerRing(catchment) ?? [];
-    const lons = ring.map((p) => p[0]);
-    const lats = ring.map((p) => p[1]);
-    const to = flat
-      ? {
-          ...flatCamera(
-            [Math.min(...lons), Math.min(...lats), Math.max(...lons), Math.max(...lats)],
-            canvas.clientWidth,
-            canvas.clientHeight,
-            120,
-          ),
-          verticalFovDeg: home.verticalFovDeg,
-        }
-      : home;
+    resetAppliedRef.current = resetSeq;
+    const to = flat ? stepFlatCamera(m, catchment, home) : home;
     const from = nowRef.current ?? home;
     const reliefFrom = reliefRef.current;
     const reliefTo = flat ? 0 : ARRIVAL_EXAGGERATION;
     const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
     const duration = reduced ? 0 : FLAT_MOVE_MS;
-    setView(flat ? "toFlat" : "toOblique");
+    flightActiveRef.current = true;
+    if (flatChanged) setView(flat ? "toFlat" : "toOblique");
     showDrapedLine(m, true);
     if (!flat) m.setTerrain({ source: "terrain", exaggeration: Math.max(reliefFrom, 0.001) });
     const t0 = performance.now();
     let raf = 0;
+    const el = container.current;
+    const gestures = ["pointerdown", "wheel", "touchstart"] as const;
+    const cleanupGestures = () => {
+      if (!el) return;
+      for (const g of gestures) el.removeEventListener(g, onUserInterrupt, true);
+    };
+    function onUserInterrupt() {
+      if (!flightActiveRef.current || !m || !home) return;
+      cancelAnimationFrame(raf);
+      cleanupGestures();
+      flightActiveRef.current = false;
+      if (flat) {
+        m.setTerrain(null);
+        setView("flat");
+      } else {
+        m.setTerrain({ source: "terrain", exaggeration: ARRIVAL_EXAGGERATION });
+        reliefRef.current = ARRIVAL_EXAGGERATION;
+        showDrapedLine(m, false);
+        setView("oblique");
+      }
+      if (labelsRef.current) {
+        unlockedRef.current = true;
+        setInteractive(true);
+        syncInteractive(m, true, flat, boundsRef.current);
+      }
+    }
+    if (el && duration > 0) {
+      for (const g of gestures)
+        el.addEventListener(g, onUserInterrupt, { capture: true, passive: true });
+    }
     const step = () => {
       const k = duration === 0 ? 1 : Math.min(1, (performance.now() - t0) / duration);
       const e = easeInOut(k);
@@ -308,10 +429,13 @@ export function ValleyStage({
         m.setTerrain({ source: "terrain", exaggeration: Math.max(relief, 0.001) });
       nowRef.current = c;
       reliefRef.current = relief;
+      onBearingRef.current?.(c.bearing);
       if (k < 1) {
         raf = requestAnimationFrame(step);
         return;
       }
+      cleanupGestures();
+      flightActiveRef.current = false;
       if (flat) {
         m.setTerrain(null);
         setView("flat");
@@ -319,12 +443,33 @@ export function ValleyStage({
         showDrapedLine(m, false);
         setView("oblique");
       }
+      setMoved(false);
+      onMovedRef.current?.(false);
+      if (settled && labelsRef.current) {
+        unlockedRef.current = true;
+        setInteractive(true);
+        syncInteractive(m, true, flat, boundsRef.current);
+      }
     };
-    raf = requestAnimationFrame(step);
+    if (duration === 0) step();
+    else raf = requestAnimationFrame(step);
     return () => {
       cancelAnimationFrame(raf);
+      cleanupGestures();
+      flightActiveRef.current = false;
     };
-  }, [flat, arrived, catchment]);
+  }, [flat, resetSeq, arrived, settled, catchment]);
+
+  // unlock the camera once arrival has settled and no transition is running
+  useEffect(() => {
+    const m = mapRef.current;
+    if (!m) return;
+    const canInteract =
+      settled && labels && !flightActiveRef.current && (view === "oblique" || view === "flat");
+    unlockedRef.current = canInteract;
+    setInteractive(canInteract);
+    syncInteractive(m, canInteract, view === "flat", boundsRef.current);
+  }, [settled, labels, view]);
 
   // at arrival the outline is drawn crisp above the crest (below); the draped line serves the dive
   useEffect(() => {
@@ -429,12 +574,18 @@ export function ValleyStage({
       const now = performance.now() - t0;
       let running = false;
       for (const f of fades) {
-        const k = Math.min(1, Math.max(0, (now - f.t.delayMs) / f.t.durationMs));
+        const k =
+          f.t.durationMs <= 0 ? 1 : Math.min(1, Math.max(0, (now - f.t.delayMs) / f.t.durationMs));
         if (k < 1) running = true;
         m.setPaintProperty(f.layer, f.prop, f.to * k);
       }
       if (running) raf = requestAnimationFrame(step);
     };
+    if (reduced) {
+      step();
+      setSettled(true);
+      return;
+    }
     raf = requestAnimationFrame(step);
     const timer = window.setTimeout(
       () => {
@@ -551,7 +702,9 @@ export function ValleyStage({
           const e = (m.queryTerrainElevation([lon, lat]) ?? 0) + OUTLINE_LIFT_M;
           return projectAt(t.modelViewProjectionMatrix, t.worldSize, lon, lat, e, w, h);
         });
-        const nextOutline = pts.every(Boolean)
+        const allVisible = pts.every(Boolean);
+        showDrapedLine(m, !labelsRef.current || !allVisible);
+        const nextOutline = allVisible
           ? pts
               .map((p, i) => `${i ? "L" : "M"}${(p?.x ?? 0).toFixed(1)} ${(p?.y ?? 0).toFixed(1)}`)
               .join("") + "Z"
@@ -573,6 +726,57 @@ export function ValleyStage({
       place();
       // terrain tiles arriving change the heights the names and stems stand on, so follow every render
       m.on("render", place);
+      const onUserMove = () => {
+        if (
+          !unlockedRef.current ||
+          flightActiveRef.current ||
+          settleRef.current === "moving" ||
+          clampingRef.current
+        )
+          return;
+        const c = m.getCenter();
+        const z = m.getZoom();
+        const p = m.getPitch();
+        const b = m.getBearing();
+        const flatMode = viewRef.current === "flat";
+        const maxZ = maxZoomForDistance(ARRIVAL_POSE, m.getCanvas().clientHeight || 810);
+        const nextCenter = clampCenter([c.lng, c.lat], boundsRef.current);
+        const nextZoom = clampZoom(z, maxZ);
+        const nextPitch = clampPitch(p, flatMode);
+        const nextBearing = flatMode ? 0 : clampBearing(b, cam.bearing);
+        if (
+          Math.abs(nextCenter[0] - c.lng) > 1e-5 ||
+          Math.abs(nextCenter[1] - c.lat) > 1e-5 ||
+          Math.abs(nextZoom - z) > 1e-4 ||
+          Math.abs(nextPitch - p) > 1e-3 ||
+          Math.abs(normalizeBearing(nextBearing - b)) > 1e-3
+        ) {
+          clampingRef.current = true;
+          m.jumpTo({
+            center: nextCenter,
+            zoom: nextZoom,
+            pitch: nextPitch,
+            bearing: nextBearing,
+            elevation: m.getCenterElevation(),
+          });
+          clampingRef.current = false;
+        }
+        const nextCam: MapCamera = {
+          center: nextCenter,
+          elevation: m.getCenterElevation(),
+          zoom: nextZoom,
+          pitch: nextPitch,
+          bearing: nextBearing,
+          verticalFovDeg: cam.verticalFovDeg,
+        };
+        nowRef.current = nextCam;
+        const target = flatMode ? stepFlatCamera(m, catchmentRef.current, cam) : cam;
+        const isMoved = cameraMoved(nextCam, target);
+        setMoved(isMoved);
+        onMovedRef.current?.(isMoved);
+        onBearingRef.current?.(nextBearing);
+      };
+      m.on("move", onUserMove);
       m.once("idle", () => {
         setIdle(true);
         onIdle?.();
@@ -678,6 +882,8 @@ export function ValleyStage({
       className={styles.stage}
       data-stage-idle={idle ? "true" : "false"}
       data-arrival-settled={settled ? "true" : "false"}
+      data-camera-interactive={interactive ? "true" : "false"}
+      data-camera-moved={moved ? "true" : "false"}
       data-view={view}
       data-settle={settle}
     >

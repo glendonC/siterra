@@ -14,6 +14,9 @@ const press = (key: string, over: Partial<KeyLike> = {}): KeyLike => ({
 describe("hintAction", () => {
   it.each([
     ["Enter", "primary"],
+    ["Home", "resetView"],
+    ["h", "resetView"],
+    ["H", "resetView"],
     ["f", "readFlat"],
     ["F", "readFlat"],
     ["/", "focusCommand"],
@@ -23,8 +26,10 @@ describe("hintAction", () => {
     expect(hintAction(press(key))).toBe(action);
   });
 
-  it("leaves typing alone: F, / and Enter in the command line are text", () => {
+  it("leaves typing alone: F, H, / and Enter in the command line are text", () => {
     expect(hintAction(press("f", { inEditable: true }))).toBeNull();
+    expect(hintAction(press("h", { inEditable: true }))).toBeNull();
+    expect(hintAction(press("Home", { inEditable: true }))).toBeNull();
     expect(hintAction(press("/", { inEditable: true }))).toBeNull();
     expect(hintAction(press("Enter", { inEditable: true }))).toBeNull();
   });
@@ -44,10 +49,12 @@ describe("hintAction", () => {
 });
 
 describe("single-key shortcuts switched off (WCAG 2.1.4)", () => {
-  it("ignores F and / but keeps Enter and Escape, which are not character keys", () => {
+  it("ignores F, H and / but keeps Enter, Home and Escape, which are not character keys", () => {
     expect(hintAction(press("f"), { singleKeys: false })).toBeNull();
+    expect(hintAction(press("h"), { singleKeys: false })).toBeNull();
     expect(hintAction(press("/"), { singleKeys: false })).toBeNull();
     expect(hintAction(press("Enter"), { singleKeys: false })).toBe("primary");
+    expect(hintAction(press("Home"), { singleKeys: false })).toBe("resetView");
     expect(hintAction(press("Escape"), { singleKeys: false })).toBe("escape");
   });
 });

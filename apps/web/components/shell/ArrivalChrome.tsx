@@ -48,6 +48,9 @@ export interface ArrivalChromeProps {
   /** True in the flat reading: the F hint is pressed, and F again returns. */
   flat?: boolean;
   onReadFlat: () => void;
+  /** True when the viewer has moved the camera away from the active step's pose. */
+  cameraMoved?: boolean;
+  onResetView?: () => void;
   /** Enter in the command line, with its trimmed text. */
   onAsk: (text: string) => void;
   onSources: () => void;
@@ -77,6 +80,8 @@ export function ArrivalChrome({
   mapDrawn = true,
   instant = false,
   onReadFlat,
+  cameraMoved = false,
+  onResetView = () => undefined,
   onAsk,
   onSources,
 }: ArrivalChromeProps) {
@@ -101,17 +106,18 @@ export function ArrivalChrome({
       }
       // ↵ with no primary hint does nothing, so the key is left alone
       if (action === "primary" && !primary) return;
-      if (action === "readFlat" && !mapDrawn) return;
+      if ((action === "readFlat" || action === "resetView") && !mapDrawn) return;
       e.preventDefault();
       if (action === "primary") onStart(input.current?.value ?? "");
       else if (action === "readFlat") onReadFlat();
+      else if (action === "resetView") onResetView();
       else input.current?.focus();
     };
     window.addEventListener("keydown", onKey);
     return () => {
       window.removeEventListener("keydown", onKey);
     };
-  }, [singleKeys, primary, stop, mapDrawn, onStart, onStop, onReadFlat]);
+  }, [singleKeys, primary, stop, mapDrawn, onStart, onStop, onReadFlat, onResetView]);
 
   const reduced =
     instant ||
@@ -256,6 +262,22 @@ export function ArrivalChrome({
                 F
               </kbd>
               {en["arrival.readFlat"].text}
+            </button>
+          </li>
+        ) : null}
+        {mapDrawn && cameraMoved ? (
+          <li>
+            <button
+              type="button"
+              className={styles.key}
+              onClick={onResetView}
+              aria-keyshortcuts="Home H"
+              data-budget="key-hint"
+            >
+              <kbd className={styles.glyph} aria-hidden="true">
+                H
+              </kbd>
+              {en["stage.resetView"].text}
             </button>
           </li>
         ) : null}

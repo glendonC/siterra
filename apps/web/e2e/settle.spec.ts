@@ -71,3 +71,66 @@ test("with reduced motion the settle never moves", async ({ page }) => {
   expect(seen).not.toContain("moving");
   expect(seen).not.toContain("waiting");
 });
+
+// MQ-02, SC-05: pointerdown during settle yields within 100 ms, unlocks interactive controls, and Home returns to step pose.
+test("pointerdown during settle yields within 100 ms, unlocks camera within bounds, and Home resets pose", async ({
+  page,
+}) => {
+  await page.goto(`/stage?case=${sharedCase()}`);
+  const stage = page.locator("[data-settle]");
+  await expect(stage).toHaveAttribute("data-settle", "moving", { timeout: 60_000 });
+  const yieldMs = await page.evaluate(() => {
+    const t0 = performance.now();
+    window.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }));
+    return performance.now() - t0;
+  });
+  expect(yieldMs).toBeLessThan(100);
+  await expect(stage).toHaveAttribute("data-settle", "done");
+  await expect(stage).toHaveAttribute("data-arrival-settled", "true");
+  await expect(stage).toHaveAttribute("data-camera-interactive", "true");
+
+  const unlocked = await page.evaluate(() => {
+    const m = (
+      window as unknown as {
+        __siterraStage?: {
+          dragPan: { isEnabled(): boolean };
+          dragRotate: { isEnabled(): boolean };
+          scrollZoom: { isEnabled(): boolean };
+          getMinPitch(): number;
+          getMaxPitch(): number;
+          getMaxBounds(): unknown;
+          jumpTo(opts: { bearing?: number; pitch?: number; zoom?: number }): void;
+          getBearing(): number;
+          getPitch(): number;
+        };
+      }
+    ).__siterraStage;
+    if (!m) return null;
+    const before = {
+      dragPan: m.dragPan.isEnabled(),
+      dragRotate: m.dragRotate.isEnabled(),
+      scrollZoom: m.scrollZoom.isEnabled(),
+      minPitch: m.getMinPitch(),
+      maxPitch: m.getMaxPitch(),
+      hasMaxBounds: m.getMaxBounds() !== null,
+    };
+    // attempt to orbit 80 degrees away from arrival bearing (-47); should clamp within 30 degrees (-77..-17)
+    m.jumpTo({ bearing: 20, pitch: 42, zoom: 11.8 });
+    return { ...before, clampedBearing: m.getBearing(), pitch: m.getPitch() };
+  });
+  expect(unlocked).toEqual({
+    dragPan: true,
+    dragRotate: true,
+    scrollZoom: true,
+    minPitch: 25,
+    maxPitch: 60,
+    hasMaxBounds: true,
+    clampedBearing: -17,
+    pitch: 42,
+  });
+  await expect(stage).toHaveAttribute("data-camera-moved", "true");
+  await expect(page.getByRole("button", { name: /Reset View/ })).toBeVisible();
+
+  await page.keyboard.press("Home");
+  await expect(stage).toHaveAttribute("data-camera-moved", "false", { timeout: 5_000 });
+});
