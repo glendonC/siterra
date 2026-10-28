@@ -64,6 +64,7 @@ Contracts and design tokens carry their own Semantic Versioning numbers, recorde
 
 ### Changed
 
+- A refused or failed data load is a named blocked input: the task's missing inputs and end event name the dataset and the reason, a task that would have succeeded ends partial, and the brief package names the blocked inputs of the tasks it reads (RL-02: an observation task without its dataset ends failed with the dataset named).
 - Hypothesis statements and assessments that label an explanation confirmed or proven are refused (SA-06), and the hypothesis prompt (hypothesis_comparison@2) says so; missing evidence may still name a check that would confirm something.
 - A plan job delivered again after a worker crash resumes the command left running instead of skipping it (AF-03): finished tasks stay, unfinished ones run again on a new attempt, and the command's recorded spend counts against its cap.
 - The brief package runs after a task it reads fails, a quantitative task without its dataset for example, so the field-scoping package still completes (RL-02); it names each failed task and stays a draft with no review requested. Other tasks still fail when a dependency fails.

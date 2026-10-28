@@ -46,6 +46,7 @@ export function readDatasetManifestTool(
     parameters: argumentSchema(ManifestArgs),
     parse: (args) => parseWith(ManifestArgs, args),
     summarize: (args) => `bundle ${args.bundleId}`,
+    datasetIds: (args) => [args.bundleId],
     run: async (args) => {
       const bundle = await store.readBundle(caseId, args.bundleId);
       if (!bundle)
@@ -122,6 +123,7 @@ export function summarizeObservationsTool(
     },
     summarize: (args) =>
       `bundle ${args.bundleId} revision ${args.bundleRevision}, ${args.periodIds.length} ${args.periodIds.length === 1 ? "period" : "periods"}${args.metric ? `, ${args.metric}` : ""}`,
+    datasetIds: (args) => [args.bundleId],
     run: async (args) => {
       const bundle = await store.readBundle(caseId, args.bundleId);
       if (!bundle)

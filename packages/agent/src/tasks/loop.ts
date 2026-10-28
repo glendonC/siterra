@@ -33,6 +33,22 @@ export interface LoopResult<T> {
   failureCode: string | null;
   calls: ModelCallResult[];
   repaired: boolean;
+  /**
+   * Datasets a refused or failed load left unread, one host-written line each ("<dataset ID>:
+   * <tool> refused it (<reason>)."); a later successful load of the same dataset clears its line.
+   */
+  blockedInputs: string[];
+}
+
+/** A dataset ID as the case names them; anything else is not echoed into the task record. */
+const DATASET_ID = /^[a-z][a-z0-9]*_[A-Za-z0-9_.-]{1,120}$/;
+
+function blockedLine(datasetId: string, tool: string, code: string): string {
+  const id = DATASET_ID.test(datasetId) ? datasetId : "A dataset ID not in this case";
+  const reason = code.replaceAll("_", " ");
+  return code === "tool_error"
+    ? `${id}: ${tool} failed (${reason}).`
+    : `${id}: ${tool} refused it (${reason}).`;
 }
 
 export interface LoopOptions<T> {
@@ -74,6 +90,7 @@ export async function runTaskLoop<T>(options: LoopOptions<T>): Promise<LoopResul
   const toolRounds = Math.max(0, maxRounds - PROPOSAL_ROUNDS);
   let lastRoundRead = false;
   let askedToPropose = false;
+  const blocked = new Map<string, string>();
 
   const done = (status: LoopStatus, failureCode: string | null, value: T | null = null) => ({
     status,
@@ -82,6 +99,7 @@ export async function runTaskLoop<T>(options: LoopOptions<T>): Promise<LoopResul
     failureCode,
     calls,
     repaired,
+    blockedInputs: [...blocked.values()],
   });
   // A stop that names its cause (a spend guard stop) passes it as a string abort reason.
   const cancelCode = (): string =>
@@ -135,9 +153,13 @@ export async function runTaskLoop<T>(options: LoopOptions<T>): Promise<LoopResul
     if (lastRoundRead) {
       input.push({ kind: "replay", items: call.replayItems });
       for (const toolCall of call.toolCalls) {
-        const output = offerTools
+        const { output, load } = offerTools
           ? await runTool(toolCall, handlers, options, signal)
-          : { error: "no_tool_rounds_left", message: PROPOSE_NOW };
+          : { output: { error: "no_tool_rounds_left", message: PROPOSE_NOW }, load: null };
+        for (const id of new Set(load?.datasetIds ?? [])) {
+          if (load?.failureCode) blocked.set(id, blockedLine(id, toolCall.name, load.failureCode));
+          else blocked.delete(id);
+        }
         input.push({
           kind: "tool_output",
           callId: toolCall.callId,
@@ -176,7 +198,7 @@ async function runTool(
   handlers: Map<string, ToolHandler<never>>,
   options: Pick<LoopOptions<unknown>, "now" | "taskId" | "trace">,
   signal: AbortSignal,
-): Promise<unknown> {
+): Promise<{ output: unknown; load: { datasetIds: string[]; failureCode: string | null } | null }> {
   const handler = handlers.get(call.name);
   const startedAt = options.now();
   const emit = (
@@ -198,7 +220,12 @@ async function runTool(
   };
   // A tool the task was not given is refused without running anything; the trace cannot name it
   // with a ToolName, so the refusal goes back to the model only.
-  if (!handler) return { error: "tool_not_allowed", message: `${call.name} is not available` };
+  if (!handler) {
+    return {
+      output: { error: "tool_not_allowed", message: `${call.name} is not available` },
+      load: null,
+    };
+  }
 
   let args: unknown;
   try {
@@ -246,18 +273,24 @@ async function runTool(
   };
   if (!parsed.ok) {
     finish("rejected", [], "invalid_arguments");
-    return { error: "invalid_arguments", message: parsed.message };
+    return { output: { error: "invalid_arguments", message: parsed.message }, load: null };
   }
+  const datasetIds = handler.datasetIds?.(parsed.value) ?? [];
+  const load = (failureCode: string | null) =>
+    datasetIds.length > 0 ? { datasetIds, failureCode } : null;
   try {
     const result = await handler.run(parsed.value, signal);
     finish("succeeded", result.resultEntityIds, null);
-    return result.output;
+    return { output: result.output, load: load(null) };
   } catch (error) {
     if (error instanceof ToolFailure) {
       finish("failed", [], error.code);
-      return { error: error.code, message: error.message };
+      return { output: { error: error.code, message: error.message }, load: load(error.code) };
     }
     finish("failed", [], "tool_error");
-    return { error: "tool_error", message: "the tool failed" };
+    return {
+      output: { error: "tool_error", message: "the tool failed" },
+      load: load("tool_error"),
+    };
   }
 }

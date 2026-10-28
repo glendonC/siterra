@@ -457,6 +457,178 @@ describe("runCommand on synthetic replays", () => {
     expect(outcome.status).toBe("partial");
   });
 
+  describe("a refused or failed data load is a named blocked input, never a silent success", () => {
+    const captureBrief = (seen: TaskRecord[]): TaskExecutor => {
+      return ({ task, expectedCaseRevision }) => {
+        seen.push(task);
+        return Promise.resolve({
+          commit: {
+            caseId: task.caseId,
+            commandId: task.commandId,
+            taskId: task.id,
+            expectedCaseRevision,
+            idempotencyKey: `test-${task.id}`,
+            inputVersions: [],
+            upserts: [
+              {
+                ...task,
+                revision: task.revision + 1,
+                status: "succeeded",
+                finishedAt: AT.toISOString(),
+              },
+            ],
+            events: [],
+          },
+        });
+      };
+    };
+    const summarize = (bundleId: string, bundleRevision: number) =>
+      toolCallStep("summarize_observations", {
+        bundleId,
+        bundleRevision,
+        periodIds: ["period_2022-04"],
+        metric: null,
+      });
+    const onePlan = (kind: string, question: string, withBrief = false) =>
+      answerStep(
+        JSON.stringify({
+          interpretation: "The command asks one question of the case record.",
+          tasks: [
+            { key: "one", kind, question, dependsOn: [], inputRefs: [] },
+            ...(withBrief
+              ? [
+                  {
+                    key: "brief",
+                    kind: "brief_package",
+                    question: "Prepare the field-validation plan and the decision brief.",
+                    dependsOn: [],
+                    inputRefs: [],
+                  },
+                ]
+              : []),
+          ],
+          clarifyingQuestion: null,
+        }),
+      );
+
+    it("RL-02 an observation task whose dataset is missing ends failed with the dataset named, and the brief sees it", async () => {
+      const seen: TaskRecord[] = [];
+      const transport = new RoutingTransport([
+        [
+          "You plan one command",
+          syntheticTransport([
+            onePlan("observation_analysis", "What did NDVI show in April 2022?", true),
+          ]),
+        ],
+        [
+          "You answer one question about observations",
+          syntheticTransport([
+            summarize("bundle_test_removed", 1),
+            answerStep(JSON.stringify({ items: [] })),
+            answerStep(JSON.stringify({ items: [] })),
+          ]),
+        ],
+      ]);
+      const {
+        deps: d,
+        commits,
+        events,
+      } = deps(transport, {
+        executors: { ...EXECUTORS, brief_package: captureBrief(seen) },
+      });
+      await runCommand({ planTask: PLAN_TASK, expectedCaseRevision: 3, snapshot: SNAPSHOT }, d);
+      const blocked = "bundle_test_removed: summarize_observations refused it (unknown bundle).";
+      const observation = [...commits.tasks.values()].find(
+        (t) => t.kind === "observation_analysis",
+      );
+      expect(observation).toMatchObject({ status: "failed", missingInputs: [blocked] });
+      const ended = [...events, ...commits.events].find(
+        (e) => e.taskId === observation?.id && e.kind === "task.failed",
+      );
+      expect(ended?.message).toContain(blocked);
+      expect(seen[0]?.missingInputs).toContain(
+        `Dependency ${String(observation?.id)} (observation analysis) is missing: ${blocked}`,
+      );
+    });
+
+    it("a refused compare_series makes the task partial with the dataset named", async () => {
+      const transport = new RoutingTransport([
+        [
+          "You plan one command",
+          syntheticTransport([onePlan("hypothesis_comparison", "Could drought explain it?")]),
+        ],
+        [
+          "You compare candidate explanations",
+          syntheticTransport([
+            toolCallStep("compare_series", {
+              a: { bundleId: "bundle_test_ndvi", bundleRevision: 2, metric: "ndvi_area_median" },
+              b: { bundleId: "bundle_test_ndvi", bundleRevision: 2, metric: "ndvi_area_median" },
+            }),
+            answerStep(
+              JSON.stringify({
+                items: [
+                  {
+                    hypothesisId: null,
+                    statement:
+                      "Lower spring rainfall reduced vegetation greenness in the catchment.",
+                    status: "inconclusive",
+                    supportingEvidenceIds: [],
+                    contradictingEvidenceIds: [],
+                    missingEvidence: ["Rainfall departures for the same months."],
+                    assessment: "Cannot be assessed with current data: rainfall was not aligned.",
+                  },
+                ],
+              }),
+            ),
+          ]),
+        ],
+      ]);
+      const { deps: d, commits } = deps(transport);
+      const outcome = await runCommand(
+        { planTask: PLAN_TASK, expectedCaseRevision: 3, snapshot: SNAPSHOT },
+        d,
+      );
+      const task = [...commits.tasks.values()].find((t) => t.kind === "hypothesis_comparison");
+      expect(task).toMatchObject({
+        status: "partial",
+        missingInputs: ["bundle_test_ndvi: compare_series refused it (not a departure series)."],
+      });
+      expect(
+        commits.events.filter(
+          (e) => e.taskId === task?.id && /^task\.(succeeded|partial|failed)$/.test(e.kind),
+        ),
+      ).toMatchObject([{ kind: "task.partial", resultStatus: "partial" }]);
+      expect(outcome.status).toBe("partial");
+    });
+
+    it("a load that later succeeds for the same dataset names nothing", async () => {
+      const transport = new RoutingTransport([
+        [
+          "You plan one command",
+          syntheticTransport([
+            onePlan("observation_analysis", "What did NDVI show in April 2022?"),
+          ]),
+        ],
+        [
+          "You answer one question about observations",
+          syntheticTransport([
+            summarize("bundle_test_ndvi", 1),
+            summarize("bundle_test_ndvi", 2),
+            answerStep(JSON.stringify({ items: [observation] })),
+          ]),
+        ],
+      ]);
+      const { deps: d, commits } = deps(transport);
+      await runCommand({ planTask: PLAN_TASK, expectedCaseRevision: 3, snapshot: SNAPSHOT }, d);
+      expect(
+        [...commits.tasks.values()].find((t) => t.kind === "observation_analysis"),
+      ).toMatchObject({
+        status: "succeeded",
+        missingInputs: [],
+      });
+    });
+  });
+
   it("TR-03 path: trace events carry no prompt text, source text, key or bearer token", async () => {
     const { deps: d, events, commits } = deps(routes());
     await runCommand({ planTask: PLAN_TASK, expectedCaseRevision: 3, snapshot: SNAPSHOT }, d);

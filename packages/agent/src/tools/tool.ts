@@ -37,4 +37,9 @@ export interface ToolHandler<A = unknown> {
   summarize(args: A): string;
   /** Throws `ToolFailure` for an expected refusal (unknown bundle, stale revision). */
   run(args: A, signal: AbortSignal): Promise<ToolOutput>;
+  /**
+   * The datasets a data load reads, by ID. A refused or failed load names them as blocked inputs
+   * of the task unless a later load of the same dataset succeeds.
+   */
+  datasetIds?(args: A): string[];
 }

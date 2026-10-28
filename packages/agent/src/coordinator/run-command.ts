@@ -32,7 +32,34 @@ import type { CommandLimits } from "./limits.ts";
 export type TaskExecutor = (
   input: EvidenceTaskInput,
   deps: EvidenceTaskDeps,
-) => Promise<{ commit: CommitDraft }>;
+) => Promise<{ commit: CommitDraft; loop?: { blockedInputs: readonly string[] } }>;
+
+/**
+ * A task whose data loads left datasets blocked never ends as a plain success: each blocked
+ * dataset joins its missing inputs and its end event, and a success becomes partial.
+ */
+export function withBlockedInputs(draft: CommitDraft, blocked: readonly string[]): CommitDraft {
+  const [task, ...rest] = draft.upserts;
+  if (blocked.length === 0 || task?.recordType !== "Task") return draft;
+  const status = task.status === "succeeded" ? "partial" : task.status;
+  const ends = new Set(["task.succeeded", "task.partial", "task.failed"]);
+  return {
+    ...draft,
+    upserts: [
+      { ...task, status, missingInputs: [...new Set([...task.missingInputs, ...blocked])] },
+      ...rest,
+    ],
+    events: draft.events.map((e) =>
+      e.taskId === task.id && ends.has(e.kind)
+        ? {
+            ...e,
+            ...(status === "partial" ? { kind: "task.partial", resultStatus: "partial" } : {}),
+            message: `${e.message} Blocked inputs: ${blocked.join(" ")}`,
+          }
+        : e,
+    ),
+  };
+}
 
 /** Task kinds with an executor in this build; the others end as failed with `executor_not_available`. */
 export const EXECUTORS: Partial<Record<TaskRecord["kind"], TaskExecutor>> = {
@@ -316,7 +343,7 @@ export async function runCommand(
     const fromDependencies = new Set(
       task.dependsOnTaskIds.flatMap((id) => tasks.get(id)?.outputEntityIds ?? []),
     );
-    let result: { commit: CommitDraft };
+    let result: Awaited<ReturnType<TaskExecutor>>;
     try {
       result = await executor(
         { task: running, expectedCaseRevision: caseRevision },
@@ -339,14 +366,15 @@ export async function runCommand(
       return;
     }
     if (spend.exhausted) halt.reason ??= "budget_exhausted";
-    const outcome = await commit(result.commit);
-    const after = result.commit.upserts[0];
+    const draft = withBlockedInputs(result.commit, result.loop?.blockedInputs ?? []);
+    const outcome = await commit(draft);
+    const after = draft.upserts[0];
     if (outcome.status === "stale" || after?.recordType !== "Task") {
       tasks.set(task.id, { ...running, status: "failed", failureCode: "stale_inputs" });
       return;
     }
     tasks.set(task.id, after);
-    for (const record of result.commit.upserts) {
+    for (const record of draft.upserts) {
       if (record.recordType === "Evidence" && record.status === "accepted")
         committedEvidence.push(record);
       if (record.recordType === "Hypothesis") committedHypotheses.push(record);
@@ -374,20 +402,32 @@ export async function runCommand(
         (d) => d && TERMINAL.has(d.status) && d.status !== "succeeded" && d.status !== "partial",
       );
       // The field-scoping package still completes when a task it reads fails (RL-02): it runs once
-      // every dependency has ended, with the failed ones named, and cannot be ready for review.
-      if (task.kind === "brief_package" && failedDeps.length > 0) {
+      // every dependency has ended, with the failed ones and their blocked inputs named, and
+      // cannot be ready for review while any is named.
+      if (task.kind === "brief_package") {
         if (depStates.every((d) => d && TERMINAL.has(d.status))) {
           started.add(task.id);
-          const named = failedDeps.flatMap((d) =>
-            d
-              ? [
-                  `Dependency ${d.id} (${d.kind.replaceAll("_", " ")}) ended ${d.status}: ${(d.failureCode ?? d.status).replaceAll("_", " ")}.`,
-                ]
-              : [],
-          );
+          const named = depStates.flatMap((d) => {
+            if (!d) return [];
+            const label = `Dependency ${d.id} (${d.kind.replaceAll("_", " ")})`;
+            return [
+              ...(failedDeps.includes(d)
+                ? [
+                    `${label} ended ${d.status}: ${(d.failureCode ?? d.status).replaceAll("_", " ")}.`,
+                  ]
+                : []),
+              ...d.missingInputs
+                .filter((m) => !m.startsWith("Dependency "))
+                .map((m) => `${label} is missing: ${m}`),
+            ];
+          });
           inFlight.set(
             task.id,
-            runOne({ ...task, missingInputs: [...new Set([...task.missingInputs, ...named])] }),
+            runOne(
+              named.length > 0
+                ? { ...task, missingInputs: [...new Set([...task.missingInputs, ...named])] }
+                : task,
+            ),
           );
         }
         continue;
