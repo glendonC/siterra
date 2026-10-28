@@ -6,7 +6,8 @@
 import { CaseSnapshot } from "@siterra/contracts";
 
 export type CaseLoad =
-  | { status: "ready"; snapshot: CaseSnapshot }
+  // resumed: openCase read a case this visitor already had, not a demo copy it has just started
+  | { status: "ready"; snapshot: CaseSnapshot; resumed?: boolean }
   | { status: "unauthenticated" }
   | { status: "not_found" }
   | { status: "invalid"; issues: string[] }
@@ -77,12 +78,14 @@ async function openDemo(
   const demo = await startDemoSession(fetchImpl);
   if (!demo) return fallback;
   writeDemo(storage, demo);
-  return loadSnapshot(demo.caseId, fetchImpl);
+  const load = await loadSnapshot(demo.caseId, fetchImpl);
+  return load.status === "ready" ? { ...load, resumed: false } : load;
 }
 
 /**
  * The case to open. A named case (?case=) is read directly, with a demo copy when there is no session.
  * Otherwise the visitor's own unexpired demo copy, or a new one started before any case request.
+ * A case read without starting a new copy is resumed: the visitor has been here.
  */
 export async function openCase(
   caseId: string | undefined,
@@ -94,6 +97,7 @@ export async function openCase(
   const named = caseId ?? readDemo(storage, now)?.caseId;
   if (named === undefined) return openDemo(fetchImpl, storage, unauthenticated);
   const first = await loadSnapshot(named, fetchImpl);
+  if (first.status === "ready") return { ...first, resumed: true };
   if (first.status !== "unauthenticated" && !(caseId === undefined && first.status === "not_found"))
     return first;
   return openDemo(fetchImpl, storage, first);

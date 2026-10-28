@@ -28,7 +28,8 @@ function openOnce(caseId: string | undefined): Promise<CaseLoad> {
 
 export type ArrivalCase =
   | { status: "opening" }
-  | { status: "ready"; arrival: ArrivalProjection; snapshot: CaseSnapshot }
+  // resumed: the visitor has been here, so the page goes back to their case (openCase)
+  | { status: "ready"; arrival: ArrivalProjection; snapshot: CaseSnapshot; resumed: boolean }
   | { status: "not_found" }
   | { status: "failed" };
 
@@ -41,7 +42,12 @@ export function useArrivalCase(): ArrivalCase {
       .then((r) => {
         if (!live) return;
         if (r.status === "ready")
-          setState({ status: "ready", arrival: projectArrival(r.snapshot), snapshot: r.snapshot });
+          setState({
+            status: "ready",
+            arrival: projectArrival(r.snapshot),
+            snapshot: r.snapshot,
+            resumed: r.resumed === true,
+          });
         else if (r.status === "not_found" || r.status === "unauthenticated")
           setState({ status: "not_found" });
         else {

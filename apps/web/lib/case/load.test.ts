@@ -78,6 +78,7 @@ describe("openCase", () => {
     const r = await openCase(undefined, server(calls), storage, NOW);
     expect(calls).toEqual(["POST /api/demo-sessions", "GET /api/cases/case_demo_1"]);
     expect(r.status).toBe("ready");
+    expect(r.status === "ready" && r.resumed).toBe(false);
   });
 
   it("goes back to the visitor's own demo copy while it lasts", async () => {
@@ -89,6 +90,8 @@ describe("openCase", () => {
     const r = await openCase(undefined, server(calls, known), storage, NOW + 60_000);
     expect(calls).toEqual(["GET /api/cases/case_demo_1"]);
     expect(r.status).toBe("ready");
+    // a returning visitor: the page goes back to their case, not to the opening
+    expect(r.status === "ready" && r.resumed).toBe(true);
   });
 
   it("starts a new demo copy once the stored one has expired", async () => {
@@ -109,6 +112,7 @@ describe("openCase", () => {
       "GET /api/cases/case_demo_1",
     ]);
     expect(r.status).toBe("ready");
+    expect(r.status === "ready" && r.resumed).toBe(false);
   });
 
   it("still opens a case when storage is blocked", async () => {
@@ -122,5 +126,12 @@ describe("openCase", () => {
     } as unknown as Storage;
     const r = await openCase(undefined, server([]), blocked, NOW);
     expect(r.status).toBe("ready");
+  });
+});
+
+describe("openCase for a visitor whose session can read the named case", () => {
+  it("reports the case as resumed", async () => {
+    const r = await openCase("case_demo_7", server([], ["case_demo_7"]), memoryStorage(), NOW);
+    expect(r.status === "ready" && r.resumed).toBe(true);
   });
 });
