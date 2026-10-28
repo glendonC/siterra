@@ -1,6 +1,8 @@
 import type {
   Brief,
+  BranchMerge,
   DataBundle,
+  ExplanationBranch,
   EntityVersion as ContractEntityVersion,
   Evidence,
   EventRecordRow,
@@ -40,6 +42,8 @@ export type ReviewDecisionRecord = ReviewDecision;
 export type ResourceRequirementRecord = ResourceRequirement;
 export type EventRecordRowRecord = EventRecordRow;
 export type RelationshipRecord = Relationship;
+export type ExplanationBranchRecord = ExplanationBranch;
+export type BranchMergeRecord = BranchMerge;
 
 /**
  * What a task hands to the commit API: upserts and events applied in one transaction against
@@ -62,6 +66,8 @@ export interface CommitDraft {
     | ReviewDecisionRecord
     | ResourceRequirementRecord
     | RelationshipRecord
+    | ExplanationBranchRecord
+    | BranchMergeRecord
   )[];
   events: TraceEventDraft[];
 }

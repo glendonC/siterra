@@ -49,8 +49,10 @@ export type {
 export type {
   ClaimKind,
   DataBundleRecord,
+  BranchMergeRecord,
   EventRecordRowRecord,
   EvidenceRecord,
+  ExplanationBranchRecord,
   HypothesisRecord,
   BriefRecord,
   InterventionRecord,
@@ -139,3 +141,11 @@ export {
   runInterventionTask,
 } from "./tasks/intervention/intervention-task.ts";
 export { BRIEF_PROMPT_VERSION, runBriefPackageTask } from "./tasks/brief/brief-task.ts";
+export {
+  BRANCH_PROMPT_VERSION,
+  branchIdFor,
+  runExplanationBranchesTask,
+} from "./tasks/branches/branch-task.ts";
+export { buildCatalog, catalogView, coveredSeasons } from "./tasks/branches/catalog.ts";
+export type { BranchCatalog, PairCatalog, SideCatalog } from "./tasks/branches/catalog.ts";
+export { GRAMMAR, PREDICTION_LIMITS, validatePredictions } from "./tasks/branches/proposal.ts";

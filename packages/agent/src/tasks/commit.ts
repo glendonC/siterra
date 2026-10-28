@@ -1,6 +1,7 @@
 import type {
   CommitDraft,
   EvidenceRecord,
+  ExplanationBranchRecord,
   HypothesisRecord,
   InterventionRecord,
   RelationshipRecord,
@@ -31,6 +32,8 @@ export class MemoryCommitApi implements CommitApi {
   /** Actions, briefs and resource requirements, by ID. */
   readonly packages = new Map<string, CommitDraft["upserts"][number]>();
   readonly relationships = new Map<string, RelationshipRecord>();
+  /** Every explanation branch revision, in commit order. */
+  readonly branchRevisions: ExplanationBranchRecord[] = [];
   readonly events: (CommitDraft["events"][number] & { sequence: number; caseRevision: number })[] =
     [];
   readonly #applied = new Map<string, { newCaseRevision: number; entityIds: string[] }>();
@@ -54,6 +57,7 @@ export class MemoryCommitApi implements CommitApi {
       else if (record.recordType === "Intervention") this.interventions.set(record.id, record);
       else if (record.recordType === "ReviewDecision") this.reviewDecisions.set(record.id, record);
       else if (record.recordType === "Relationship") this.relationships.set(record.id, record);
+      else if (record.recordType === "ExplanationBranch") this.branchRevisions.push(record);
       else this.packages.set(record.id, record);
       entityIds.push(record.id);
     }

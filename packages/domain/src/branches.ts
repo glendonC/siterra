@@ -411,7 +411,9 @@ export function mergeBranches(branches: readonly BranchScoring[]): MergeResult {
 }
 
 /** The Hypothesis status host code writes for a merged branch. */
-export function hypothesisStatusOf(status: BranchStatus): Hypothesis["status"] {
+export function hypothesisStatusOf(
+  status: BranchStatus,
+): Exclude<Hypothesis["status"], "stale" | "untested"> {
   switch (status) {
     case "consistent":
       return "consistent";

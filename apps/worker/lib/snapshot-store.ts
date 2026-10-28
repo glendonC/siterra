@@ -5,6 +5,7 @@ import type {
   DataBundleRecord,
   EventRecordRowRecord,
   EvidenceRecord,
+  ExplanationBranchRecord,
   HypothesisRecord,
   InterventionRecord,
   MeasurementRecord,
@@ -45,6 +46,8 @@ export interface SnapshotView {
     interventionRecords?: InterventionRecord[];
     /** Event record rows of validated event bundles, for read_event_record; absent means none. */
     eventRecordRowRecords?: EventRecordRowRecord[];
+    /** Explanation branches, so a resumed branch task scores what it committed; absent means none. */
+    explanationBranchRecords?: ExplanationBranchRecord[];
   };
 }
 
@@ -90,6 +93,7 @@ export function snapshotStore(
   store.hypotheses.push(...(snapshot.records.hypothesisRecords ?? []));
   store.interventions.push(...(snapshot.records.interventionRecords ?? []));
   store.eventRows.push(...(snapshot.records.eventRecordRowRecords ?? []));
+  store.branches.push(...(snapshot.records.explanationBranchRecords ?? []));
   if (analyses) {
     store.recipes.push(...analyses.recipes);
     store.recipeResults.push(...analyses.results.map((r) => ({ ...r, caseId })));

@@ -7,6 +7,7 @@ import { runObservationTask } from "../tasks/observation/observation-task.ts";
 import { runPlanTask } from "../tasks/plan/plan-task.ts";
 import type { PlanSnapshot } from "../tasks/plan/prompt.ts";
 import { runBriefPackageTask } from "../tasks/brief/brief-task.ts";
+import { runExplanationBranchesTask } from "../tasks/branches/branch-task.ts";
 import { runHypothesisTask } from "../tasks/hypothesis/hypothesis-task.ts";
 import { runInterventionTask } from "../tasks/intervention/intervention-task.ts";
 import type {
@@ -67,6 +68,7 @@ export const EXECUTORS: Partial<Record<TaskRecord["kind"], TaskExecutor>> = {
   source_research: runSourceResearchTask,
   livelihood_governance: runLivelihoodTask,
   hypothesis_comparison: runHypothesisTask,
+  explanation_branches: runExplanationBranchesTask,
   intervention_feasibility: runInterventionTask,
   brief_package: runBriefPackageTask,
 };
@@ -359,6 +361,7 @@ export async function runCommand(
           committedInterventions: committedInterventions.filter((r) => fromDependencies.has(r.id)),
           now: deps.now,
           signal: controller.signal,
+          commitNow: commit,
         },
       );
     } catch {

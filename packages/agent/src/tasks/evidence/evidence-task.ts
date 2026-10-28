@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import type { MetaAdapter } from "../../model/adapter.ts";
 import type { CaseStore } from "../../tools/store.ts";
 import type { ToolRegistry } from "../../tools/registry.ts";
+import type { CommitOutcome } from "../commit.ts";
 import { runTaskLoop } from "../loop.ts";
 import type { LoopResult } from "../loop.ts";
 import type {
@@ -55,6 +56,11 @@ export interface EvidenceTaskDeps {
   now: () => Date;
   model?: string;
   signal?: AbortSignal;
+  /**
+   * Commits a draft before the task ends, in the command's commit order: the explanation branches'
+   * predictions, which must be in the case record before any result is read (DF-07).
+   */
+  commitNow?: (draft: CommitDraft) => Promise<CommitOutcome>;
 }
 
 export interface EvidenceTaskResult {
