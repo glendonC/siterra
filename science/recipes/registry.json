@@ -1,7 +1,7 @@
 {
-  "registryVersion": "1.2.0",
+  "registryVersion": "1.3.0",
   "registered": "2026-10-27",
-  "note": "Recipe registry. What was fixed before any data: only the catalog rows in docs/reference/analysis-recipes.md (question, method in one line, output kind) for coverage_summary, monthly_departure and aligned_antecedent, and the full season_summary entry (registered 2026-10-27 before any event comparison). The detailed formulas and parameters of coverage_summary, monthly_departure, aligned_antecedent and terrain_strata were written together with their first run on 2026-10-27, so they are not pre-registered. From now on, changing a formula, parameter or window after results are read is a new version labeled post hoc. Registry 1.2.0 (2026-10-28) adds restrend_long_record and snow_cover_by_band, each fully registered before its data was summarized; their place-specific windows and band sets are in science/places/. The inspector renders method cards from an entry and the bundle manifest that holds its result. References are IDs in research/science/source-register.md.",
+  "note": "Recipe registry. What was fixed before any data: only the catalog rows in docs/reference/analysis-recipes.md (question, method in one line, output kind) for coverage_summary, monthly_departure and aligned_antecedent, and the full season_summary entry (registered 2026-10-27 before any event comparison). The detailed formulas and parameters of coverage_summary, monthly_departure, aligned_antecedent and terrain_strata were written together with their first run on 2026-10-27, so they are not pre-registered. From now on, changing a formula, parameter or window after results are read is a new version labeled post hoc. Registry 1.2.0 (2026-10-28) adds restrend_long_record and snow_cover_by_band, each fully registered before its data was summarized; their place-specific windows and band sets are in science/places/. The inspector renders method cards from an entry and the bundle manifest that holds its result. References are IDs in research/science/source-register.md. Registry 1.3.0 (2026-10-28) adds pixel_trend_long_record and season_trend_long_record, registered before any per-pixel slope, land-cover summary or June to September greenness value was computed (the stratum results of restrend_long_record had been read).",
   "recipes": [
     {
       "recipeId": "coverage_summary",
@@ -920,6 +920,405 @@
       ],
       "priority": "P2",
       "formulaPlain": "For every day from 2001 to 2025, MODIS marks each 500 m pixel as snow, snow-free or not seen (cloud, night, missing). For each elevation band and month, the snow-covered share is the snow pixel-days divided by the clear pixel-days. It is shown at two NDSI thresholds, 0.2 (fitted to the Atlas) and 0.4 (the global default), with the share of the band that was clear."
+    },
+    {
+      "recipeId": "pixel_trend_long_record",
+      "version": "1.0.0",
+      "title": "Where greenness rose or fell over the MODIS record, pixel by pixel",
+      "question": "Across about 25 seasons, which 250 m pixels of the place grew greener or less green, how much of each elevation band and land cover group do they cover, and do any falling pixels form connected areas?",
+      "operation": "pixel_trend",
+      "implementation": {
+        "language": "python",
+        "package": "siterra-science",
+        "version": "0.1.0"
+      },
+      "inputs": [
+        "modis_mod13q1_v061_ndvi_16day",
+        "terrain_strata",
+        "worldcover_2021_v200",
+        "place_configuration"
+      ],
+      "registration": "Full entry registered 2026-10-28 before any per-pixel slope, any land-cover summary or any June to September greenness value was computed. When it was written the science lane had read the stratum results of restrend_long_record 1.0.0 (March to June, March to May and April to July; catchment, three elevation bands, five aspect classes): unadjusted greenness trends upward in every one of them, and greenness tracks antecedent rainfall weakly. Windows, area groups, cluster size and display scale come from the place configuration (science/places/<place>.json, revision 2).",
+      "formula": [
+        "NDVI(p, c) = DN / 10000 for Terra MOD13Q1 v6.1 composite c and 250 m pixel p, kept only where the composite's pixel reliability is 0 (good) or 1 (marginal) and -0.2 <= NDVI <= 1.0, as in restrend_long_record",
+        "G(p, y, W) = mean of the kept NDVI(p, c) over the 16-day periods starting in a month of growing window W in year y, defined only when at least half of those periods (rounded up) are kept at p; a period with no Terra product on the archive read counts as nothing kept",
+        "Pixels: every MOD13Q1 pixel holding at least one 10 m analysis cell of the catchment; w(p) = number of those cells",
+        "Per pixel and window: over the season years where G is defined, the Theil-Sen slope of G on the year (median of pairwise slopes) with Sen's 95% interval from the ranks (N - C) / 2 and (N + C) / 2 + 1 of the N sorted pairwise slopes, C = 1.96 sqrt(n (n - 1) (2n + 5) / 18), no tie correction, as in restrend_long_record; fewer than 15 seasons and the pixel is insufficient_seasons",
+        "Per pixel: the Mann-Kendall statistic S with the tie-corrected variance n (n - 1) (2n + 5) / 18 minus the sum over tie groups of t (t - 1) (2t + 5) / 18, Z = (S - sign(S)) / sqrt(variance), two-sided p from the standard normal distribution",
+        "Pixel direction: Sen's interval entirely above zero is upward, entirely below zero downward, otherwise includes_zero",
+        "False discovery rate check: Benjamini-Hochberg at q = 0.05 over every pixel with a slope in the window; a pixel whose p passes keeps its direction as upward_fdr or downward_fdr when its Sen interval agrees, otherwise not_distinguished",
+        "Area groups: the catchment; each class of each strata layer listed in the configuration; the fixed elevation bands named in the configuration; the land cover groups of the configuration (WorldCover 2021 classes). For each group, the share of its 10 m analysis cells that lie in upward, downward, includes_zero and insufficient_seasons pixels, and the same for the false discovery rate classes. Under no change anywhere, about 2.5% of pixels per direction would show a per-pixel interval by chance; this is stated beside the shares",
+        "Connected areas: 8-connected groups of pixels sharing a false discovery rate direction (primary) or a per-pixel interval direction (sensitivity), of at least minClusterPixels pixels (Ait Bouguemez: 4, about 21 ha). For each: pixel count, catchment area in km2, centroid (longitude, latitude) weighted by catchment cells, median elevation of its catchment cells, land cover and aspect shares, median slope and its range. Every downward area is listed; upward areas are counted with the five largest listed",
+        "Display: for each window, the Theil-Sen slope in NDVI per decade averaged into the fixed EPSG:3857 grid of the map overviews (pixelM metres), painted with the light-theme data.ndvi-departure arms on the fixed domain of the configuration (Ait Bouguemez: -0.05 to +0.05 per decade, unpainted within 0.0025 of zero, t = (|d| - neutral) / (domain - neutral) clamped to 0..1, opacity 0.10 + 0.70 t, t in steps). No direction or false discovery rate class is drawn on the display",
+        "Data rasters: for each window, a GeoTIFF on the native MOD13Q1 grid with the slope, lower and upper bound per decade, the number of seasons, the Mann-Kendall p and the false discovery rate class"
+      ],
+      "parameters": [
+        {
+          "name": "pixel_reliability_kept",
+          "role": "method",
+          "allowed": [
+            [
+              0,
+              1
+            ]
+          ],
+          "default": [
+            0,
+            1
+          ]
+        },
+        {
+          "name": "min_composite_share",
+          "role": "method",
+          "allowed": [
+            0.5
+          ],
+          "default": 0.5
+        },
+        {
+          "name": "min_seasons",
+          "role": "method",
+          "allowed": [
+            15
+          ],
+          "default": 15
+        },
+        {
+          "name": "interval_level",
+          "role": "method",
+          "allowed": [
+            0.95
+          ],
+          "default": 0.95
+        },
+        {
+          "name": "fdr_q",
+          "role": "method",
+          "allowed": [
+            0.05
+          ],
+          "default": 0.05
+        },
+        {
+          "name": "season_years",
+          "role": "method",
+          "allowed": [
+            "the seasonYears of the place configuration (Ait Bouguemez: 2000 to 2025)"
+          ],
+          "default": "the seasonYears of the place configuration"
+        },
+        {
+          "name": "growing_window",
+          "role": "scope",
+          "allowed": [
+            "the growingWindows of the place configuration (Ait Bouguemez: mar_jun, mar_may, apr_jul, jun_sep)"
+          ],
+          "default": "the window marked primary (Ait Bouguemez: mar_jun)"
+        },
+        {
+          "name": "min_cluster_pixels",
+          "role": "method",
+          "allowed": [
+            "minClusterPixels of the place configuration (Ait Bouguemez: 4)"
+          ],
+          "default": "minClusterPixels of the place configuration"
+        },
+        {
+          "name": "display_domain",
+          "role": "display",
+          "allowed": [
+            "display.domainPerDecade and display.neutralPerDecade of the place configuration (Ait Bouguemez: -0.05 to +0.05, neutral 0.0025)"
+          ],
+          "default": "the configuration's display scale"
+        }
+      ],
+      "sensitivitySet": [
+        "every growing window, computed and stored together",
+        "per-pixel interval classes and false discovery rate classes side by side",
+        "connected areas from both class sets"
+      ],
+      "applicability": [
+        {
+          "check": "seasons with a defined G at the pixel",
+          "minimum": "15; fewer and the pixel is insufficient_seasons"
+        },
+        {
+          "check": "frozen geometry, strata and land cover named in the place configuration, checksums matching",
+          "minimum": "1 geometry"
+        }
+      ],
+      "outputs": [
+        {
+          "metric": "pixel_trend_per_decade",
+          "unit": "1/(10 a)",
+          "claimKind": "model_estimate",
+          "uncertaintyKind": "interval"
+        },
+        {
+          "metric": "area_share_by_direction",
+          "unit": "1",
+          "claimKind": "model_estimate",
+          "uncertaintyKind": "not_quantified"
+        },
+        {
+          "metric": "connected_areas",
+          "unit": "km2",
+          "claimKind": "model_estimate",
+          "uncertaintyKind": "not_quantified"
+        }
+      ],
+      "assumptions": [
+        "A straight-line drift over the season years describes the change at a pixel; a rise then fall can give a slope near zero",
+        "WorldCover 2021 describes each 10 m cell's land cover for the whole record"
+      ],
+      "failureModes": [
+        "With thousands of pixels, some intervals exclude zero by chance; reading single pixels overstates the evidence",
+        "Neighbouring pixels share weather, snow and sensor effects, so a connected area can come from one shared cause",
+        "Mixed 250 m pixels on the valley floor combine fields, orchards, villages and slopes"
+      ],
+      "standardLimitations": [
+        "Each pixel's interval is one of thousands. With no change anywhere, about 2.5% of pixels would still show an upward and 2.5% a downward interval at the 95% level, so the shares are shown beside a false discovery rate check (Benjamini and Hochberg 1995, q = 0.05), the control Wilks (2016) recommends when many locations are tested at once, and the map shows the slope only, not which pixels pass.",
+        "Neighbouring pixels are not independent: they share weather, snow and sensor effects. A connected area of pixels can arise from one shared cause, and the false discovery rate procedure was proved for independent tests.",
+        "Each 250 m MODIS pixel mixes surfaces. Land cover shares use ESA WorldCover 2021, a single 2021 map, applied to every season.",
+        "NDVI measures how green the ground looks from above, not forage, palatability or species: a greener pixel can hold more grass, but also more shrubs, trees, crops or plants that animals avoid.",
+        "These trends are not adjusted for rainfall; restrend_long_record states how closely the place's greenness follows antecedent rain.",
+        "Trend methods can miss real change: in simulations for southern Africa, 30 to 40% degradation was needed before a trend showed under a rainfall-driven increase (Wessels et al. 2012). An interval that includes zero is not evidence of no change.",
+        "In the spring windows, upper slopes are snow-covered for part of the window. Composites keep only pixels flagged good or marginal, but earlier or later snowmelt can change spring greenness with no change in the plants.",
+        "Terra's overpass has drifted earlier since 2020, from 10:30 to about 9:06 mean local time by December 2025 (NASA): later seasons are seen with a lower sun and longer shadows in mountain terrain, which may shift NDVI without any change on the ground."
+      ],
+      "allowedComponents": [
+        "method card",
+        "long-record trend map",
+        "long-record trend table"
+      ],
+      "forbiddenPhrases": [
+        "significant",
+        "significantly",
+        "degradation detected",
+        "grazing impact",
+        "overgrazing",
+        "caused by",
+        "proves",
+        "recovery",
+        "forecast",
+        "pasture improvement",
+        "pasture decline",
+        "encroachment"
+      ],
+      "references": [
+        "SCI-155",
+        "SCI-49",
+        "SCI-164",
+        "SCI-62",
+        "SCI-163",
+        "SCI-52",
+        "SCI-13",
+        "SCI-29",
+        "SCI-159"
+      ],
+      "priority": "P2",
+      "formulaPlain": "For each 250 m MODIS pixel, greenness is averaged over each season since 2000, and a robust straight-line slope through those seasons is computed with a 95% interval. The result says how much of each elevation band and land cover type lies in pixels that rose, fell or cannot be told apart from no change, checked against how many would rise or fall by chance among thousands of pixels. Falling pixels that touch each other are grouped and described. The map shows the slope only."
+    },
+    {
+      "recipeId": "season_trend_long_record",
+      "version": "1.0.0",
+      "title": "Greenness trends by season window, stratum and land cover over the MODIS record",
+      "question": "Does the greenness trend differ between spring green-up and the June to September summer, for the catchment, its elevation bands, aspects and land cover groups?",
+      "operation": "stratum_trend",
+      "implementation": {
+        "language": "python",
+        "package": "siterra-science",
+        "version": "0.1.0"
+      },
+      "inputs": [
+        "modis_mod13q1_v061_ndvi_16day",
+        "terrain_strata",
+        "worldcover_2021_v200",
+        "place_configuration"
+      ],
+      "registration": "Full entry registered 2026-10-28 before any per-pixel slope, any land-cover summary or any June to September greenness value was computed. When it was written the science lane had read the stratum results of restrend_long_record 1.0.0 (March to June, March to May and April to July; catchment, three elevation bands, five aspect classes): unadjusted greenness trends upward in every one of them, and greenness tracks antecedent rainfall weakly. Windows, area groups, cluster size and display scale come from the place configuration (science/places/<place>.json, revision 2).",
+      "formula": [
+        "NDVI(p, c) = DN / 10000 for Terra MOD13Q1 v6.1 composite c and 250 m pixel p, kept only where the composite's pixel reliability is 0 (good) or 1 (marginal) and -0.2 <= NDVI <= 1.0, as in restrend_long_record",
+        "G(p, y, W) = mean of the kept NDVI(p, c) over the 16-day periods starting in a month of growing window W in year y, defined only when at least half of those periods (rounded up) are kept at p; a period with no Terra product on the archive read counts as nothing kept",
+        "w_s(p) = number of 10 m analysis cells of stratum s whose centre falls in pixel p. Strata: the catchment, each class of each strata layer listed in the configuration, the fixed elevation bands named in the configuration and the land cover groups of the configuration",
+        "Y_s(y, W) = sum over p of w_s(p) G(p, y, W) / sum over p of w_s(p), over the pixels where G is defined; withheld when those pixels hold less than 70% of the stratum's weight (as restrend_long_record)",
+        "Trend: ordinary least squares slope of Y on the season year with the 95% t interval (n - 2 degrees of freedom) and its two-sided p; beside it the autocorrelation-adjusted interval (n_eff = n (1 - r1) / (1 + r1), Santer et al. 2000, withheld when n_eff < 3) and the Theil-Sen slope with Sen's 95% interval; fewer than 15 seasons and the pair is insufficient_seasons",
+        "False discovery rate check: Benjamini-Hochberg at q = 0.05 over every stratum and window pair with a slope, at pixel reliability 0 and 1; each pair states whether it passes. Every pair is reported",
+        "Season contrast: D_s(y) = Y_s(y, spring) - Y_s(y, summer) with the spring and summer windows of the configuration (Ait Bouguemez: mar_may and jun_sep); ordinary least squares slope of D on the year with the 95% t interval and the autocorrelation-adjusted interval, and the Theil-Sen slope. An interval entirely above zero means spring greenness rose faster (or fell slower) than summer greenness; entirely below zero, the reverse",
+        "Direction wording: an interval entirely above zero is upward, entirely below zero downward, otherwise includes zero (no direction stated)",
+        "Consistency: the catchment and terrain stratum values for the windows shared with restrend_long_record equal its stored season values"
+      ],
+      "parameters": [
+        {
+          "name": "pixel_reliability_kept",
+          "role": "method",
+          "allowed": [
+            [
+              0,
+              1
+            ]
+          ],
+          "default": [
+            0,
+            1
+          ]
+        },
+        {
+          "name": "min_composite_share",
+          "role": "method",
+          "allowed": [
+            0.5
+          ],
+          "default": 0.5
+        },
+        {
+          "name": "min_seasons",
+          "role": "method",
+          "allowed": [
+            15
+          ],
+          "default": 15
+        },
+        {
+          "name": "interval_level",
+          "role": "method",
+          "allowed": [
+            0.95
+          ],
+          "default": 0.95
+        },
+        {
+          "name": "fdr_q",
+          "role": "method",
+          "allowed": [
+            0.05
+          ],
+          "default": 0.05
+        },
+        {
+          "name": "season_years",
+          "role": "method",
+          "allowed": [
+            "the seasonYears of the place configuration (Ait Bouguemez: 2000 to 2025)"
+          ],
+          "default": "the seasonYears of the place configuration"
+        },
+        {
+          "name": "growing_window",
+          "role": "scope",
+          "allowed": [
+            "the growingWindows of the place configuration (Ait Bouguemez: mar_jun, mar_may, apr_jul, jun_sep)"
+          ],
+          "default": "the window marked primary (Ait Bouguemez: mar_jun)"
+        },
+        {
+          "name": "min_area_coverage",
+          "role": "method",
+          "allowed": [
+            0.7
+          ],
+          "default": 0.7
+        },
+        {
+          "name": "stratum",
+          "role": "scope",
+          "allowed": [
+            "catchment",
+            "each class of each strata layer, each fixed elevation band and each land cover group of the place configuration"
+          ],
+          "default": "catchment"
+        },
+        {
+          "name": "contrast",
+          "role": "scope",
+          "allowed": [
+            "contrast.spring and contrast.summer of the place configuration (Ait Bouguemez: mar_may and jun_sep)"
+          ],
+          "default": "the configuration's contrast"
+        }
+      ],
+      "sensitivitySet": [
+        "every growing window and every stratum, computed and stored together",
+        "pixel reliability 0 only (good) in place of 0 and 1",
+        "least squares, autocorrelation-adjusted and Theil-Sen intervals side by side"
+      ],
+      "applicability": [
+        {
+          "check": "seasons with a stratum value",
+          "minimum": "15; fewer and the pair is insufficient_seasons"
+        },
+        {
+          "check": "frozen geometry, strata and land cover named in the place configuration, checksums matching",
+          "minimum": "1 geometry"
+        }
+      ],
+      "outputs": [
+        {
+          "metric": "trend_per_year",
+          "unit": "1/a",
+          "claimKind": "model_estimate",
+          "uncertaintyKind": "interval"
+        },
+        {
+          "metric": "season_contrast_trend_per_year",
+          "unit": "1/a",
+          "claimKind": "model_estimate",
+          "uncertaintyKind": "interval"
+        },
+        {
+          "metric": "growing_season_ndvi",
+          "unit": "1",
+          "claimKind": "observation",
+          "uncertaintyKind": "not_quantified"
+        }
+      ],
+      "assumptions": [
+        "A straight-line drift over the season years describes the change in a stratum",
+        "WorldCover 2021 describes each 10 m cell's land cover for the whole record"
+      ],
+      "failureModes": [
+        "Windows that share months share composites, so their trends are not independent",
+        "Strata overlap (a cell is in an elevation band, an aspect class and a land cover group at once), so their trends are not independent"
+      ],
+      "standardLimitations": [
+        "Each stratum and window pair has its own interval. With many shown together, some intervals will exclude zero by chance alone, so the false discovery rate check (Benjamini and Hochberg 1995, q = 0.05) is stated beside every pair, and every pair is shown.",
+        "Each 250 m MODIS pixel mixes surfaces; stratum values weight pixels by how much of the stratum falls inside them, so a mixed pixel counts toward more than one stratum. Land cover groups use ESA WorldCover 2021, a single 2021 map, applied to every season.",
+        "NDVI measures how green the ground looks from above, not forage, palatability or species: a greener pixel can hold more grass, but also more shrubs, trees, crops or plants that animals avoid.",
+        "These trends are not adjusted for rainfall; restrend_long_record states how closely the place's greenness follows antecedent rain.",
+        "Trend methods can miss real change: in simulations for southern Africa, 30 to 40% degradation was needed before a trend showed under a rainfall-driven increase (Wessels et al. 2012). An interval that includes zero is not evidence of no change.",
+        "In the spring windows, upper slopes are snow-covered for part of the window. Composites keep only pixels flagged good or marginal, but earlier or later snowmelt can change spring greenness with no change in the plants.",
+        "Terra's overpass has drifted earlier since 2020, from 10:30 to about 9:06 mean local time by December 2025 (NASA): later seasons are seen with a lower sun and longer shadows in mountain terrain, which may shift NDVI without any change on the ground."
+      ],
+      "allowedComponents": [
+        "method card",
+        "long-record trend table"
+      ],
+      "forbiddenPhrases": [
+        "significant",
+        "significantly",
+        "degradation detected",
+        "grazing impact",
+        "overgrazing",
+        "caused by",
+        "proves",
+        "recovery",
+        "forecast",
+        "pasture improvement",
+        "pasture decline",
+        "encroachment"
+      ],
+      "references": [
+        "SCI-155",
+        "SCI-158",
+        "SCI-49",
+        "SCI-163",
+        "SCI-52",
+        "SCI-13",
+        "SCI-29",
+        "SCI-159"
+      ],
+      "priority": "P2",
+      "formulaPlain": "Greenness is averaged over each season since 2000 for the catchment, its elevation bands, its aspects and its land cover types, in four windows: March to June, March to May, April to July and June to September. A straight line through the seasons gives a trend with a 95% interval. The spring (March to May) minus summer (June to September) difference is tested the same way, to see whether the two parts of the year changed differently."
     }
   ]
 }

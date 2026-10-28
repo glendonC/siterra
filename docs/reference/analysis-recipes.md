@@ -46,6 +46,8 @@ Recipes run in the offline pipeline and are stored as derived bundles whose `met
 | `comparison_matching` | Which strata could serve as comparisons in a field design? | Coarsened exact or Mahalanobis matching on terrain and reference phenology | Candidate comparison strata supporting a field requirement | P2 |
 | `restrend_long_record` | Once greenness is adjusted for antecedent rain, does what is left drift over about 25 seasons? | MODIS growing-season NDVI regressed on antecedent CHIRPS rainfall per stratum; residual trend by least squares with 95% t interval, an autocorrelation-adjusted interval and Theil-Sen beside it ([entry](#long-record-recipe-entries)) | Slope with interval; model estimate | P2 |
 | `snow_cover_by_band` | What share of each elevation band was snow-covered each month, 2001 to 2025? | MODIS daily snow at NDSI thresholds 0.2 and 0.4; snow pixel-days over clear pixel-days per band and month ([entry](#long-record-recipe-entries)) | Fraction with clear share; observation | P2 |
+| `pixel_trend_long_record` | Where did greenness rise or fall over about 25 seasons, and over how much of each elevation band and land cover group? | Per-pixel MODIS Theil-Sen slope with Sen's 95% interval and Mann-Kendall p; area shares by direction beside a false discovery rate check; connected falling areas; slope-only display raster ([entry](#long-record-recipe-entries)) | Slope with interval, area shares; model estimate | P2 |
+| `season_trend_long_record` | Does the greenness trend differ between spring and the June to September summer? | Stratum and land cover group trends for four windows (least squares, autocorrelation-adjusted, Theil-Sen) with a false discovery rate check; trend of the spring minus summer difference ([entry](#long-record-recipe-entries)) | Slope with interval; model estimate | P2 |
 
 ## Season summary and the near-normal band
 
@@ -76,7 +78,7 @@ The precomputed result is a derived bundle with `methodId` `season_summary` cove
 
 With seven yearly values, a trend is significant at p < 0.05 only if at least 18 of 21 year-pairs move the same way, and seven years sits near the record length where seasonal trend tests stop being reliable (Hirsch and Slack 1984). Siterra therefore makes no significance claims; "significant trend" is a prohibited phrase.
 
-Out of scope for the build: model-written analysis code in the product (Meta's Model API has no hosted code execution, and agent benchmarks show frequent wrong method choices), TIMESAT (research-only license from 4.2.1), LandTrendr and CCDC (record too short), STL as evidence (needs gap-filling), and pixel-level significance maps.
+Out of scope for the build: model-written analysis code in the product (Meta's Model API has no hosted code execution, and agent benchmarks show frequent wrong method choices), TIMESAT (research-only license from 4.2.1), LandTrendr and CCDC (record too short), STL as evidence (needs gap-filling), and pixel-level significance maps. The long-record pixel map of `pixel_trend_long_record` shows the slope only; which pixels pass a test is summarized as area shares beside a false discovery rate check, not drawn.
 
 ## P0 recipe entries
 
@@ -144,6 +146,28 @@ Both entries were registered in full on 2026-10-28: `restrend_long_record` befor
 | Standard limitations (verbatim) | "MOD10A1 sees snow only on clear days. Cloudy days are left out, not filled, so a month's fraction describes its clear days; the clear share is shown with it." "Against 448 Sentinel-2 scenes of the Atlas, Terra MODIS snow cover (version 6) was underestimated by 6.13% on average with the global NDSI threshold of 0.4 and overestimated by 0.34% with the Atlas threshold of 0.2 (Bousbaa et al. 2024). Both thresholds are shown." "Against five Atlas stations, MOD10A1 (version 5) agreed with snow observations 89% of the time (2000 to 2013, other Atlas catchments; Marchane et al. 2015). There is no station comparison for this valley." "Each 500 m pixel is called snow-covered or not as a whole; patchy snow, thin snow and snow on shaded slopes can be missed." "Snow cover is not snow depth or water: it says nothing about how much water the snow holds." "Terra's overpass has drifted earlier since 2020, from 10:30 to about 9:06 mean local time by December 2025 (NASA), so later years are seen with a lower sun and longer shadows, which may change snow detection on steep slopes." |
 | Forbidden phrases | "significant", "significantly", "snow decline", "snow water", "drought", "caused by", "proves", "forecast" |
 | References | [SCI-160](../../research/science/source-register.md) (MOD10A1), [SCI-161](../../research/science/source-register.md) (Atlas threshold), [SCI-162](../../research/science/source-register.md) (snow product user guide), [SCI-26](../../research/science/source-register.md) (station agreement), [SCI-159](../../research/science/source-register.md) (Terra orbit drift) |
+
+`pixel_trend_long_record` and `season_trend_long_record` were registered in full on 2026-10-28, before any per-pixel slope, land-cover summary or June to September greenness value was computed. The stratum results of `restrend_long_record` (unadjusted greenness upward in the catchment and every terrain stratum for the three spring windows) had been read. The June to September window was added at the founder's request for the summer grazing season as the founder describes it; no source in the register verifies that calendar for this valley.
+
+| `pixel_trend_long_record` 1.0.0 | Value |
+|---|---|
+| Inputs | Terra MOD13Q1 v6.1 (as `restrend_long_record`), the terrain strata, ESA WorldCover 2021 v200 on the analysis grid, the place configuration |
+| Formula | Season greenness G per 250 m pixel as in `restrend_long_record`. For every pixel holding a catchment cell: Theil-Sen slope of G on the year with Sen's 95% interval (at least 15 seasons) and the Mann-Kendall p (tie-corrected variance, continuity correction). Direction from the interval: upward, downward or includes zero. Benjamini-Hochberg at q = 0.05 over all pixels of a window gives the false discovery rate classes. Area shares weight each pixel by its 10 m catchment cells, for the catchment, the terrain strata, the fixed 500 m elevation bands and the land cover groups, with the chance level (about 2.5% per direction) stated beside them. Connected areas: 8-connected pixels sharing a direction, at least 4 pixels, described by area, centroid, elevation, land cover, aspect and slope |
+| Display | Slope per decade on the 30 m EPSG:3857 overview grid, painted with the `data.ndvi-departure` arms on a fixed -0.05 to +0.05 per decade scale (unpainted within 0.0025); no class or test result is drawn |
+| Ait Bouguemez configuration | Seasons 2000 to 2025; windows March to June (primary), March to May, April to July, June to September. Land cover groups: grassland, shrubland, bare or sparse together (land cover that can carry grazing, not a pasture map), and each alone; tree cover (may include orchards on the valley floor); cropland or built-up |
+| Outputs | `pixel_trend_per_decade` (95% interval), `area_share_by_direction`, `connected_areas`; claim kind `model_estimate`; native resolution 250 m |
+| Standard limitations (verbatim) | The three sentences on chance at thousands of pixels, dependence between neighbours, and mixed pixels with a single 2021 land cover map, then the five shared sentences: NDVI is not forage or species; not rainfall-adjusted; trends can miss real change (Wessels et al. 2012); spring snow timing; Terra orbit drift. Full text in the registry |
+| Forbidden phrases | "significant", "significantly", "degradation detected", "grazing impact", "overgrazing", "caused by", "proves", "recovery", "forecast", "pasture improvement", "pasture decline", "encroachment" |
+| References | SCI-155, SCI-49, SCI-164 (Mann-Kendall), SCI-62, SCI-163 (false discovery rate), SCI-52 (many locations tested at once), SCI-13, SCI-29, SCI-159 in the [source register](../../research/science/source-register.md) |
+
+| `season_trend_long_record` 1.0.0 | Value |
+|---|---|
+| Formula | Stratum value Y per season and window as in `restrend_long_record` (70% coverage), for the catchment, the terrain strata, the fixed 500 m bands and the land cover groups. Trend: least squares slope with 95% t interval and p, the autocorrelation-adjusted interval and the Theil-Sen slope; Benjamini-Hochberg at q = 0.05 over every stratum and window pair, all pairs reported. Season contrast: the trend of D = Y(spring) - Y(summer), spring March to May and summer June to September (no shared month). Values shared with `restrend_long_record` must equal its stored seasons |
+| Sensitivity set | Every window and stratum; pixel reliability 0 only; the three interval variants |
+| Outputs | `trend_per_year` and `season_contrast_trend_per_year` (95% intervals), `growing_season_ndvi` per season; claim kind `model_estimate` for slopes, `observation` for the season table |
+| Standard limitations (verbatim) | Many pairs shown together with the false discovery rate check; mixed pixels and a single 2021 land cover map; then the five shared sentences above. Full text in the registry |
+| Forbidden phrases | As `pixel_trend_long_record` |
+| References | SCI-155, SCI-158, SCI-49, SCI-163, SCI-52, SCI-13, SCI-29, SCI-159 |
 
 ## Forecasting policy
 
