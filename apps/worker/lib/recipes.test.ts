@@ -82,11 +82,40 @@ describe("drought-challenge tools on the real seed", () => {
     }
     expect(recipes.find((r) => r.recipeId === "aligned_antecedent")?.status).toBe("applicable");
     expect(recipes.find((r) => r.recipeId === "season_summary")?.status).toBe("applicable");
+    expect(recipes.find((r) => r.recipeId === "restrend_long_record")?.status).toBe("applicable");
+    expect(recipes.find((r) => r.recipeId === "snow_cover_by_band")?.status).toBe("applicable");
+    expect(recipes.find((r) => r.recipeId === "pixel_trend_long_record")?.status).toBe(
+      "applicable",
+    );
+    expect(recipes.find((r) => r.recipeId === "season_trend_long_record")?.status).toBe(
+      "applicable",
+    );
     const departure = analyses.results.find((r) => r.recipeId === "monthly_departure")?.result;
     expect(departure).toMatchObject({ kind: "per_period_measurements" });
     expect(analyses.results.find((r) => r.recipeId === "terrain_strata")?.result).toMatchObject({
       kind: "map_layers",
     });
+  });
+
+  it("read_recipe_result returns restrend_long_record, snow_cover_by_band, pixel_trend_long_record and season_trend_long_record from the seed", async () => {
+    for (const [recipeId, bundleId] of [
+      ["restrend_long_record", "bundle_restrend_long_record_ait_bouguemez"],
+      ["snow_cover_by_band", "bundle_snow_cover_by_band_ait_bouguemez"],
+      ["pixel_trend_long_record", "bundle_pixel_trend_long_record_ait_bouguemez"],
+      ["season_trend_long_record", "bundle_season_trend_long_record_ait_bouguemez"],
+    ] as const) {
+      const stored = analyses.results.find((r) => r.bundleId === bundleId);
+      expect(stored?.recipeId).toBe(recipeId);
+      const result = await run(readRecipeResultTool(store, CASE_ID), {
+        recipeId,
+        version: stored?.version ?? "1.0.0",
+        bundleId,
+      });
+      expect(result.output).toMatchObject({
+        label: "precomputed analysis",
+        result: stored?.result,
+      });
+    }
   });
 
   it("a missing registry lists no recipes and is reported", async () => {

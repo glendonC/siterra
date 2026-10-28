@@ -42,6 +42,10 @@ describe("case analysis configurations", () => {
       .map((b) => b.methodId);
     expect(validated).toContain(pair?.a.methodId);
     expect(validated).toContain(pair?.b.methodId);
+    expect(validated).toContain(valley?.trendSummary?.recipe.recipeId);
+    expect(validated).toContain("snow_cover_by_band");
+    expect(validated).toContain("pixel_trend_long_record");
+    expect(validated).toContain("season_trend_long_record");
     const aligned = registry.recipes.find((r) => r.recipeId === "aligned_antecedent");
     expect(aligned?.applicability.map((a) => a.minimum)).toContain(
       `${String(pair?.minAlignedMonths)} shared months`,
@@ -75,7 +79,7 @@ describe("case analysis configurations", () => {
       expect(check.basis).toMatch(
         /^docs\/explanation\/scientific-basis\.md#competing-explanations/,
       );
-      expect(check.basis).toContain("inferred, pending science review");
+      expect(check.basis).toContain("research/science/analytics.md");
       expect(check.label).toMatch(/^[A-Z][a-z]+( [A-Z][a-z]+){0,2}$/);
     }
     const ids = valley?.explanations.map((e) => e.id) ?? [];

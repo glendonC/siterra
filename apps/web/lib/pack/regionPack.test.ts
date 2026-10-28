@@ -34,7 +34,7 @@ describe("regionPack", () => {
   });
 
   it("counts the bundles that passed the automated data checks", () => {
-    expect(p.checks).toBe("7 of 7 bundles passed automated data checks.");
+    expect(p.checks).toBe("11 of 11 bundles passed automated data checks.");
   });
 
   it("states real data and no field verification, the truth of this pack", () => {

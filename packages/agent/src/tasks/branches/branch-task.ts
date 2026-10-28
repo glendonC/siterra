@@ -355,7 +355,8 @@ export async function runExplanationBranchesTask(
           promptVersion: BRANCH_PROMPT_VERSION,
           instructions: INSTRUCTIONS,
           output: { name: "propose_predictions", schema: predictionsOutputSchema() },
-          maxOutputTokens: 1_500,
+          // Live Muse Spark calls use ~1,500-2,500 reasoning tokens before emitting visible JSON.
+          maxOutputTokens: 4_000,
           reasoningEffort: "low",
         },
         input: [

@@ -24,8 +24,10 @@ export interface MergeRules {
 }
 
 /**
- * Unsourced default minimum number of evaluated periods before a non-matching departure_sign
- * prediction can contradict a branch under merge@2; pending science review.
+ * Default minimum number of evaluated periods before a non-matching departure_sign prediction
+ * can contradict a branch under merge@2: a heuristic floor [D] against 1- to 2-month satellite
+ * noise, reviewed in docs/explanation/scientific-basis.md and research/science/analytics.md
+ * (section 11.3), not a statistical significance threshold.
  */
 export const DEFAULT_MIN_SIGN_PERIODS = 3;
 

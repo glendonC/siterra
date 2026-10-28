@@ -35,6 +35,18 @@
   },
   {
    "rel": "child",
+   "href": "./bundle_pixel_trend_long_record_ait_bouguemez/collection.json",
+   "type": "application/json",
+   "file:checksum": "12201953f2b33087cf2424009f9d4c27e04a35bb3b00846eaa10ff5e2b22dde6ed0d"
+  },
+  {
+   "rel": "child",
+   "href": "./bundle_restrend_long_record_ait_bouguemez/collection.json",
+   "type": "application/json",
+   "file:checksum": "122074b8b5c5823c2cf96e7b6bfd48f2747c980ae8335c33ad3b70260593edbb2dec"
+  },
+  {
+   "rel": "child",
    "href": "./bundle_s2_ndvi_monthly_ait_bouguemez/collection.json",
    "type": "application/json",
    "file:checksum": "1220091ac5c9e2c46acc35f07d2725001b9ebe7d2a9ca69abcbeed61993e9ab29c67"
@@ -44,6 +56,18 @@
    "href": "./bundle_season_summary_ait_bouguemez/collection.json",
    "type": "application/json",
    "file:checksum": "1220757844c0af474a6a9c140aa48154c19d6462c8eb0eecdb061d68a2791b2628dd"
+  },
+  {
+   "rel": "child",
+   "href": "./bundle_season_trend_long_record_ait_bouguemez/collection.json",
+   "type": "application/json",
+   "file:checksum": "122065195f215c9458c024278adbd601d350944e98cc1891f6a466755d9e49aeee51"
+  },
+  {
+   "rel": "child",
+   "href": "./bundle_snow_cover_by_band_ait_bouguemez/collection.json",
+   "type": "application/json",
+   "file:checksum": "1220d711080845da1730b1b92498610f214bb87fd22f976646ab8eda97176570dd41"
   },
   {
    "rel": "child",

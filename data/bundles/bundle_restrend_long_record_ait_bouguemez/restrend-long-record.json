@@ -1,0 +1,2703 @@
+{
+ "recipeId": "restrend_long_record",
+ "version": "1.0.0",
+ "computed": "2026-10-28T19:06:32Z",
+ "place": {
+  "placeId": "ait_bouguemez",
+  "configRevision": 1
+ },
+ "claim_kind": "model_estimate",
+ "native_resolution": {
+  "ndvi": "250 m MODIS (MOD13Q1 v6.1), 16-day composites",
+  "rainfall": "0.05 degree CHIRPS v3.0"
+ },
+ "period": {
+  "first_season": 2000,
+  "last_season": 2025
+ },
+ "units": {
+  "rainfall_slope_per_100_mm": "NDVI per 100 mm, [estimate, lower, upper], 95% interval",
+  "residual_trend_per_decade": "NDVI per decade, [estimate, lower, upper], 95% t interval",
+  "autocorrelation_adjusted_per_decade": "NDVI per decade, [lower, upper], effective sample size interval",
+  "theil_sen_per_decade": "NDVI per decade, [estimate, lower, upper], Sen's 95% interval"
+ },
+ "status_meanings": {
+  "computed": "rainfall slope interval entirely above zero; the residual trend is rainfall-adjusted",
+  "precondition_not_met": "rainfall slope interval not entirely above zero; the residual trend is stored but is not described as rainfall-adjusted",
+  "insufficient_seasons": "fewer than 15 seasons with both values; no slope"
+ },
+ "direction_meanings": {
+  "upward": "interval entirely above zero",
+  "downward": "interval entirely below zero",
+  "includes_zero": "interval includes zero; no direction is stated"
+ },
+ "primary": {
+  "growing_window": "mar_jun",
+  "rainfall_window": "sep_may",
+  "reliability": "reliability_0_1"
+ },
+ "windows": {
+  "growing": [
+   {
+    "id": "mar_jun",
+    "months": [
+     3,
+     4,
+     5,
+     6
+    ],
+    "label": "March to June"
+   },
+   {
+    "id": "mar_may",
+    "months": [
+     3,
+     4,
+     5
+    ],
+    "label": "March to May"
+   },
+   {
+    "id": "apr_jul",
+    "months": [
+     4,
+     5,
+     6,
+     7
+    ],
+    "label": "April to July"
+   }
+  ],
+  "rainfall": [
+   {
+    "id": "sep_may",
+    "start": {
+     "month": 9,
+     "yearOffset": -1
+    },
+    "end": {
+     "month": 5,
+     "yearOffset": 0
+    },
+    "label": "September (previous year) to May"
+   },
+   {
+    "id": "nov_apr",
+    "start": {
+     "month": 11,
+     "yearOffset": -1
+    },
+    "end": {
+     "month": 4,
+     "yearOffset": 0
+    },
+    "label": "November (previous year) to April"
+   }
+  ],
+  "rationale": "Fixed by the science lane on 2026-10-28 before any MODIS NDVI value was summarized. March to June spans spring green-up from the valley floor (about 1500 to 2300 m) to the upper slopes, where the 2001 to 2013 MODIS record of Atlas catchments shows snow persisting into spring (SCI-26); March to May and April to July are the earlier and later sensitivity windows for the low and high bands. September to May is the hydrological year up to the end of the main window; November to April is the wet season of the registered season_summary recipe. The lane had not read the Sentinel-2 monthly series values of this valley; that series (2019 to 2025) was built and inspected by another lane of the project."
+ },
+ "strata": [
+  {
+   "id": "catchment",
+   "layer": "catchment",
+   "label": "Ait Bouguemez valley catchment",
+   "analysis_cells": 4173603,
+   "modis_pixels_touched": 8094
+  },
+  {
+   "id": "elevation_low",
+   "layer": "elevation_band",
+   "label": "below 2317 m",
+   "analysis_cells": 1391200,
+   "modis_pixels_touched": 2892
+  },
+  {
+   "id": "elevation_mid",
+   "layer": "elevation_band",
+   "label": "2317 to 2815 m",
+   "analysis_cells": 1391197,
+   "modis_pixels_touched": 3264
+  },
+  {
+   "id": "elevation_high",
+   "layer": "elevation_band",
+   "label": "2815 m and above",
+   "analysis_cells": 1391206,
+   "modis_pixels_touched": 3197
+  },
+  {
+   "id": "aspect_north",
+   "layer": "aspect_class",
+   "label": "north-facing",
+   "analysis_cells": 1260667,
+   "modis_pixels_touched": 5215
+  },
+  {
+   "id": "aspect_east",
+   "layer": "aspect_class",
+   "label": "east-facing",
+   "analysis_cells": 628454,
+   "modis_pixels_touched": 3828
+  },
+  {
+   "id": "aspect_south",
+   "layer": "aspect_class",
+   "label": "south-facing",
+   "analysis_cells": 931624,
+   "modis_pixels_touched": 4133
+  },
+  {
+   "id": "aspect_west",
+   "layer": "aspect_class",
+   "label": "west-facing",
+   "analysis_cells": 1077853,
+   "modis_pixels_touched": 5085
+  },
+  {
+   "id": "aspect_level",
+   "layer": "aspect_class",
+   "label": "level (slope below 5 degrees)",
+   "analysis_cells": 275005,
+   "modis_pixels_touched": 2717
+  }
+ ],
+ "headline": {
+  "catchment": {
+   "status": "precondition_not_met",
+   "n": 26,
+   "residual_trend_per_decade": 0.00942316629059829,
+   "lower_per_decade": 0.005210130730760914,
+   "upper_per_decade": 0.013636201850435667,
+   "direction": "upward",
+   "rainfall_slope_per_100_mm": 0.0015004529535892922,
+   "rainfall_slope_interval_per_100_mm": [
+    -0.0017247493008595133,
+    0.004725655208038098
+   ],
+   "rainfall_fit_r_squared": 0.03699350879758126,
+   "unadjusted_trend_per_decade": [
+    0.009061982905982908,
+    0.004565103168469516,
+    0.0135588626434963
+   ],
+   "unadjusted_direction": "upward",
+   "rainfall_trend_mm_per_decade": [
+    -24.07162393162392,
+    -99.00412067673767,
+    50.860872813489834
+   ],
+   "rainfall_trend_direction": "includes_zero"
+  },
+  "elevation_low": {
+   "status": "precondition_not_met",
+   "n": 26,
+   "residual_trend_per_decade": 0.014283544281025642,
+   "lower_per_decade": 0.009481671501513106,
+   "upper_per_decade": 0.01908541706053818,
+   "direction": "upward",
+   "rainfall_slope_per_100_mm": 0.0026247870005144313,
+   "rainfall_slope_interval_per_100_mm": [
+    -0.0015609389656733598,
+    0.006810512966702222
+   ],
+   "rainfall_fit_r_squared": 0.06523974318044738,
+   "unadjusted_trend_per_decade": [
+    0.013398837606837605,
+    0.007782672454188056,
+    0.019015002759487153
+   ],
+   "unadjusted_direction": "upward",
+   "rainfall_trend_mm_per_decade": [
+    -33.70584615384617,
+    -109.87986762801063,
+    42.46817532031828
+   ],
+   "rainfall_trend_direction": "includes_zero"
+  },
+  "elevation_mid": {
+   "status": "precondition_not_met",
+   "n": 26,
+   "residual_trend_per_decade": 0.0077149755199999994,
+   "lower_per_decade": 0.0024817193760187737,
+   "upper_per_decade": 0.012948231663981225,
+   "direction": "upward",
+   "rainfall_slope_per_100_mm": 0.0024233536136560405,
+   "rainfall_slope_interval_per_100_mm": [
+    -0.0010227651372691961,
+    0.005869472364581278
+   ],
+   "rainfall_fit_r_squared": 0.0806867253082391,
+   "unadjusted_trend_per_decade": [
+    0.007183111111111109,
+    0.0015152858602904534,
+    0.012850936361931764
+   ],
+   "unadjusted_direction": "upward",
+   "rainfall_trend_mm_per_decade": [
+    -21.947452991453,
+    -96.68980742453469,
+    52.794901441628696
+   ],
+   "rainfall_trend_direction": "includes_zero"
+  },
+  "elevation_high": {
+   "status": "precondition_not_met",
+   "n": 26,
+   "residual_trend_per_decade": 0.006846614067350427,
+   "lower_per_decade": 0.0014663272046986167,
+   "upper_per_decade": 0.012226900930002237,
+   "direction": "upward",
+   "rainfall_slope_per_100_mm": -0.000930807425462091,
+   "rainfall_slope_interval_per_100_mm": [
+    -0.004382716240164929,
+    0.002521101389240747
+   ],
+   "rainfall_fit_r_squared": 0.01274082880985021,
+   "unadjusted_trend_per_decade": [
+    0.0070007863247863195,
+    0.0016110258311838267,
+    0.012390546818388812
+   ],
+   "unadjusted_direction": "upward",
+   "rainfall_trend_mm_per_decade": [
+    -16.563282051282062,
+    -90.74119797625909,
+    57.61463387369495
+   ],
+   "rainfall_trend_direction": "includes_zero"
+  },
+  "aspect_north": {
+   "status": "precondition_not_met",
+   "n": 26,
+   "residual_trend_per_decade": 0.008136100570598291,
+   "lower_per_decade": 0.003742330657491534,
+   "upper_per_decade": 0.012529870483705047,
+   "direction": "upward",
+   "rainfall_slope_per_100_mm": 0.001138735346774629,
+   "rainfall_slope_interval_per_100_mm": [
+    -0.0019896132365313157,
+    0.004267083930080575
+   ],
+   "rainfall_fit_r_squared": 0.022976599022611538,
+   "unadjusted_trend_per_decade": [
+    0.007865094017094017,
+    0.0033038255462462585,
+    0.012426362487941774
+   ],
+   "unadjusted_direction": "upward",
+   "rainfall_trend_mm_per_decade": [
+    -23.798905982905975,
+    -98.17208683107353,
+    50.57427486526157
+   ],
+   "rainfall_trend_direction": "includes_zero"
+  },
+  "aspect_east": {
+   "status": "precondition_not_met",
+   "n": 26,
+   "residual_trend_per_decade": 0.007885485289230769,
+   "lower_per_decade": 0.003813854134784693,
+   "upper_per_decade": 0.011957116443676846,
+   "direction": "upward",
+   "rainfall_slope_per_100_mm": 0.0015803720086724083,
+   "rainfall_slope_interval_per_100_mm": [
+    -0.0013207453378081826,
+    0.004481489355152999
+   ],
+   "rainfall_fit_r_squared": 0.0500336015039277,
+   "unadjusted_trend_per_decade": [
+    0.007477196581196579,
+    0.0031015973273997846,
+    0.011852795834993374
+   ],
+   "unadjusted_direction": "upward",
+   "rainfall_trend_mm_per_decade": [
+    -25.834974358974367,
+    -101.36553396960335,
+    49.6955852516546
+   ],
+   "rainfall_trend_direction": "includes_zero"
+  },
+  "aspect_south": {
+   "status": "precondition_not_met",
+   "n": 26,
+   "residual_trend_per_decade": 0.009475666886153845,
+   "lower_per_decade": 0.005410492384484402,
+   "upper_per_decade": 0.013540841387823292,
+   "direction": "upward",
+   "rainfall_slope_per_100_mm": 0.0017495194107351815,
+   "rainfall_slope_interval_per_100_mm": [
+    -0.0013795599499435438,
+    0.004878598771413907
+   ],
+   "rainfall_fit_r_squared": 0.052567589979368994,
+   "unadjusted_trend_per_decade": [
+    0.009032478632478629,
+    0.004584713387464435,
+    0.01348024387749282
+   ],
+   "unadjusted_direction": "upward",
+   "rainfall_trend_mm_per_decade": [
+    -25.332000000000004,
+    -101.29614546810902,
+    50.63214546810901
+   ],
+   "rainfall_trend_direction": "includes_zero"
+  },
+  "aspect_west": {
+   "status": "precondition_not_met",
+   "n": 26,
+   "residual_trend_per_decade": 0.008418545973333335,
+   "lower_per_decade": 0.0039754155520115905,
+   "upper_per_decade": 0.012861676394655078,
+   "direction": "upward",
+   "rainfall_slope_per_100_mm": 0.0014047148538602378,
+   "rainfall_slope_interval_per_100_mm": [
+    -0.001787119527083781,
+    0.004596549234804257
+   ],
+   "rainfall_fit_r_squared": 0.03323398968971179,
+   "unadjusted_trend_per_decade": [
+    0.008120410256410256,
+    0.0034591204368387696,
+    0.012781700075981743
+   ],
+   "unadjusted_direction": "upward",
+   "rainfall_trend_mm_per_decade": [
+    -21.223931623931627,
+    -95.72699989095746,
+    53.27913664309421
+   ],
+   "rainfall_trend_direction": "includes_zero"
+  },
+  "aspect_level": {
+   "status": "precondition_not_met",
+   "n": 26,
+   "residual_trend_per_decade": 0.02284344730119658,
+   "lower_per_decade": 0.016756650535594348,
+   "upper_per_decade": 0.028930244066798817,
+   "direction": "upward",
+   "rainfall_slope_per_100_mm": 0.002238196919525859,
+   "rainfall_slope_interval_per_100_mm": [
+    -0.004063448718117328,
+    0.008539842557169044
+   ],
+   "rainfall_fit_r_squared": 0.02189966614206602,
+   "unadjusted_trend_per_decade": [
+    0.022212170940170937,
+    0.0155039313151687,
+    0.028920410565173173
+   ],
+   "unadjusted_direction": "upward",
+   "rainfall_trend_mm_per_decade": [
+    -28.204683760683757,
+    -103.3990773364877,
+    46.98970981512018
+   ],
+   "rainfall_trend_direction": "includes_zero"
+  }
+ },
+ "results": [
+  {
+   "stratum": "catchment",
+   "growing_window": "mar_jun",
+   "rainfall_window": "sep_may",
+   "primary": true,
+   "status": "precondition_not_met",
+   "n": 26,
+   "rainfall_slope_per_100_mm": [
+    0.0015,
+    -0.00172,
+    0.00473
+   ],
+   "r_squared": 0.03699,
+   "residual_trend_per_decade": [
+    0.00942,
+    0.00521,
+    0.01364
+   ],
+   "direction": "upward",
+   "autocorrelation_adjusted_per_decade": [
+    0.00521,
+    0.01364
+   ],
+   "autocorrelation_adjusted_direction": "upward",
+   "n_eff": 26,
+   "theil_sen_per_decade": [
+    0.00934,
+    0.00585,
+    0.01463
+   ],
+   "theil_sen_direction": "upward",
+   "unadjusted_ndvi_trend_direction": "upward",
+   "rainfall_trend_direction": "includes_zero"
+  },
+  {
+   "stratum": "catchment",
+   "growing_window": "mar_jun",
+   "rainfall_window": "nov_apr",
+   "primary": false,
+   "status": "precondition_not_met",
+   "n": 26,
+   "rainfall_slope_per_100_mm": [
+    0.00077,
+    -0.00272,
+    0.00426
+   ],
+   "r_squared": 0.0086,
+   "residual_trend_per_decade": [
+    0.00921,
+    0.00481,
+    0.01362
+   ],
+   "direction": "upward",
+   "autocorrelation_adjusted_per_decade": [
+    0.00481,
+    0.01362
+   ],
+   "autocorrelation_adjusted_direction": "upward",
+   "n_eff": 26,
+   "theil_sen_per_decade": [
+    0.00944,
+    0.00484,
+    0.0148
+   ],
+   "theil_sen_direction": "upward",
+   "unadjusted_ndvi_trend_direction": "upward",
+   "rainfall_trend_direction": "includes_zero"
+  },
+  {
+   "stratum": "catchment",
+   "growing_window": "mar_may",
+   "rainfall_window": "sep_may",
+   "primary": false,
+   "status": "precondition_not_met",
+   "n": 26,
+   "rainfall_slope_per_100_mm": [
+    0.00102,
+    -0.00238,
+    0.00441
+   ],
+   "r_squared": 0.01566,
+   "residual_trend_per_decade": [
+    0.00837,
+    0.0034,
+    0.01333
+   ],
+   "direction": "upward",
+   "autocorrelation_adjusted_per_decade": [
+    0.0034,
+    0.01333
+   ],
+   "autocorrelation_adjusted_direction": "upward",
+   "n_eff": 26,
+   "theil_sen_per_decade": [
+    0.00898,
+    0.0039,
+    0.0147
+   ],
+   "theil_sen_direction": "upward",
+   "unadjusted_ndvi_trend_direction": "upward",
+   "rainfall_trend_direction": "includes_zero"
+  },
+  {
+   "stratum": "catchment",
+   "growing_window": "mar_may",
+   "rainfall_window": "nov_apr",
+   "primary": false,
+   "status": "precondition_not_met",
+   "n": 26,
+   "rainfall_slope_per_100_mm": [
+    0.00031,
+    -0.00333,
+    0.00395
+   ],
+   "r_squared": 0.00132,
+   "residual_trend_per_decade": [
+    0.00818,
+    0.00311,
+    0.01325
+   ],
+   "direction": "upward",
+   "autocorrelation_adjusted_per_decade": [
+    0.00311,
+    0.01325
+   ],
+   "autocorrelation_adjusted_direction": "upward",
+   "n_eff": 26,
+   "theil_sen_per_decade": [
+    0.00895,
+    0.00279,
+    0.01429
+   ],
+   "theil_sen_direction": "upward",
+   "unadjusted_ndvi_trend_direction": "upward",
+   "rainfall_trend_direction": "includes_zero"
+  },
+  {
+   "stratum": "catchment",
+   "growing_window": "apr_jul",
+   "rainfall_window": "sep_may",
+   "primary": false,
+   "status": "precondition_not_met",
+   "n": 26,
+   "rainfall_slope_per_100_mm": [
+    0.00203,
+    -0.00116,
+    0.00522
+   ],
+   "r_squared": 0.06731,
+   "residual_trend_per_decade": [
+    0.00952,
+    0.00543,
+    0.01361
+   ],
+   "direction": "upward",
+   "autocorrelation_adjusted_per_decade": [
+    0.00449,
+    0.01455
+   ],
+   "autocorrelation_adjusted_direction": "upward",
+   "n_eff": 18.63795,
+   "theil_sen_per_decade": [
+    0.01005,
+    0.00598,
+    0.01388
+   ],
+   "theil_sen_direction": "upward",
+   "unadjusted_ndvi_trend_direction": "upward",
+   "rainfall_trend_direction": "includes_zero"
+  },
+  {
+   "stratum": "catchment",
+   "growing_window": "apr_jul",
+   "rainfall_window": "nov_apr",
+   "primary": false,
+   "status": "precondition_not_met",
+   "n": 26,
+   "rainfall_slope_per_100_mm": [
+    0.00118,
+    -0.0023,
+    0.00467
+   ],
+   "r_squared": 0.02004,
+   "residual_trend_per_decade": [
+    0.00927,
+    0.00488,
+    0.01365
+   ],
+   "direction": "upward",
+   "autocorrelation_adjusted_per_decade": [
+    0.0037,
+    0.01483
+   ],
+   "autocorrelation_adjusted_direction": "upward",
+   "n_eff": 17.75058,
+   "theil_sen_per_decade": [
+    0.01016,
+    0.00493,
+    0.01385
+   ],
+   "theil_sen_direction": "upward",
+   "unadjusted_ndvi_trend_direction": "upward",
+   "rainfall_trend_direction": "includes_zero"
+  },
+  {
+   "stratum": "elevation_low",
+   "growing_window": "mar_jun",
+   "rainfall_window": "sep_may",
+   "primary": true,
+   "status": "precondition_not_met",
+   "n": 26,
+   "rainfall_slope_per_100_mm": [
+    0.00262,
+    -0.00156,
+    0.00681
+   ],
+   "r_squared": 0.06524,
+   "residual_trend_per_decade": [
+    0.01428,
+    0.00948,
+    0.01909
+   ],
+   "direction": "upward",
+   "autocorrelation_adjusted_per_decade": [
+    0.00792,
+    0.02064
+   ],
+   "autocorrelation_adjusted_direction": "upward",
+   "n_eff": 16.65585,
+   "theil_sen_per_decade": [
+    0.01535,
+    0.00993,
+    0.01974
+   ],
+   "theil_sen_direction": "upward",
+   "unadjusted_ndvi_trend_direction": "upward",
+   "rainfall_trend_direction": "includes_zero"
+  },
+  {
+   "stratum": "elevation_low",
+   "growing_window": "mar_jun",
+   "rainfall_window": "nov_apr",
+   "primary": false,
+   "status": "precondition_not_met",
+   "n": 26,
+   "rainfall_slope_per_100_mm": [
+    0.00181,
+    -0.00272,
+    0.00634
+   ],
+   "r_squared": 0.02759,
+   "residual_trend_per_decade": [
+    0.01393,
+    0.00872,
+    0.01915
+   ],
+   "direction": "upward",
+   "autocorrelation_adjusted_per_decade": [
+    0.00708,
+    0.02079
+   ],
+   "autocorrelation_adjusted_direction": "upward",
+   "n_eff": 16.83806,
+   "theil_sen_per_decade": [
+    0.01476,
+    0.00936,
+    0.02036
+   ],
+   "theil_sen_direction": "upward",
+   "unadjusted_ndvi_trend_direction": "upward",
+   "rainfall_trend_direction": "includes_zero"
+  },
+  {
+   "stratum": "elevation_low",
+   "growing_window": "mar_may",
+   "rainfall_window": "sep_may",
+   "primary": false,
+   "status": "precondition_not_met",
+   "n": 26,
+   "rainfall_slope_per_100_mm": [
+    0.00287,
+    -0.00104,
+    0.00679
+   ],
+   "r_squared": 0.08733,
+   "residual_trend_per_decade": [
+    0.01253,
+    0.00764,
+    0.01743
+   ],
+   "direction": "upward",
+   "autocorrelation_adjusted_per_decade": [
+    0.0069,
+    0.01816
+   ],
+   "autocorrelation_adjusted_direction": "upward",
+   "n_eff": 20.68935,
+   "theil_sen_per_decade": [
+    0.01397,
+    0.00864,
+    0.01907
+   ],
+   "theil_sen_direction": "upward",
+   "unadjusted_ndvi_trend_direction": "upward",
+   "rainfall_trend_direction": "includes_zero"
+  },
+  {
+   "stratum": "elevation_low",
+   "growing_window": "mar_may",
+   "rainfall_window": "nov_apr",
+   "primary": false,
+   "status": "precondition_not_met",
+   "n": 26,
+   "rainfall_slope_per_100_mm": [
+    0.00216,
+    -0.00209,
+    0.00641
+   ],
+   "r_squared": 0.04391,
+   "residual_trend_per_decade": [
+    0.0122,
+    0.00692,
+    0.01748
+   ],
+   "direction": "upward",
+   "autocorrelation_adjusted_per_decade": [
+    0.00609,
+    0.01831
+   ],
+   "autocorrelation_adjusted_direction": "upward",
+   "n_eff": 20.47982,
+   "theil_sen_per_decade": [
+    0.01337,
+    0.00759,
+    0.01904
+   ],
+   "theil_sen_direction": "upward",
+   "unadjusted_ndvi_trend_direction": "upward",
+   "rainfall_trend_direction": "includes_zero"
+  },
+  {
+   "stratum": "elevation_low",
+   "growing_window": "apr_jul",
+   "rainfall_window": "sep_may",
+   "primary": false,
+   "status": "precondition_not_met",
+   "n": 26,
+   "rainfall_slope_per_100_mm": [
+    0.00242,
+    -0.00225,
+    0.00708
+   ],
+   "r_squared": 0.04545,
+   "residual_trend_per_decade": [
+    0.01596,
+    0.01063,
+    0.02129
+   ],
+   "direction": "upward",
+   "autocorrelation_adjusted_per_decade": [
+    0.00891,
+    0.023
+   ],
+   "autocorrelation_adjusted_direction": "upward",
+   "n_eff": 16.70182,
+   "theil_sen_per_decade": [
+    0.01689,
+    0.01147,
+    0.0212
+   ],
+   "theil_sen_direction": "upward",
+   "unadjusted_ndvi_trend_direction": "upward",
+   "rainfall_trend_direction": "includes_zero"
+  },
+  {
+   "stratum": "elevation_low",
+   "growing_window": "apr_jul",
+   "rainfall_window": "nov_apr",
+   "primary": false,
+   "status": "precondition_not_met",
+   "n": 26,
+   "rainfall_slope_per_100_mm": [
+    0.00145,
+    -0.00358,
+    0.00648
+   ],
+   "r_squared": 0.01454,
+   "residual_trend_per_decade": [
+    0.01557,
+    0.00983,
+    0.02131
+   ],
+   "direction": "upward",
+   "autocorrelation_adjusted_per_decade": [
+    0.00797,
+    0.02318
+   ],
+   "autocorrelation_adjusted_direction": "upward",
+   "n_eff": 16.64319,
+   "theil_sen_per_decade": [
+    0.01557,
+    0.0099,
+    0.02115
+   ],
+   "theil_sen_direction": "upward",
+   "unadjusted_ndvi_trend_direction": "upward",
+   "rainfall_trend_direction": "includes_zero"
+  },
+  {
+   "stratum": "elevation_mid",
+   "growing_window": "mar_jun",
+   "rainfall_window": "sep_may",
+   "primary": true,
+   "status": "precondition_not_met",
+   "n": 26,
+   "rainfall_slope_per_100_mm": [
+    0.00242,
+    -0.00102,
+    0.00587
+   ],
+   "r_squared": 0.08069,
+   "residual_trend_per_decade": [
+    0.00771,
+    0.00248,
+    0.01295
+   ],
+   "direction": "upward",
+   "autocorrelation_adjusted_per_decade": [
+    0.00248,
+    0.01295
+   ],
+   "autocorrelation_adjusted_direction": "upward",
+   "n_eff": 26,
+   "theil_sen_per_decade": [
+    0.00716,
+    0.0024,
+    0.0131
+   ],
+   "theil_sen_direction": "upward",
+   "unadjusted_ndvi_trend_direction": "upward",
+   "rainfall_trend_direction": "includes_zero"
+  },
+  {
+   "stratum": "elevation_mid",
+   "growing_window": "mar_jun",
+   "rainfall_window": "nov_apr",
+   "primary": false,
+   "status": "precondition_not_met",
+   "n": 26,
+   "rainfall_slope_per_100_mm": [
+    0.00145,
+    -0.00233,
+    0.00522
+   ],
+   "r_squared": 0.02539,
+   "residual_trend_per_decade": [
+    0.00744,
+    0.00193,
+    0.01296
+   ],
+   "direction": "upward",
+   "autocorrelation_adjusted_per_decade": [
+    0.00193,
+    0.01296
+   ],
+   "autocorrelation_adjusted_direction": "upward",
+   "n_eff": 26,
+   "theil_sen_per_decade": [
+    0.00726,
+    0.0019,
+    0.01466
+   ],
+   "theil_sen_direction": "upward",
+   "unadjusted_ndvi_trend_direction": "upward",
+   "rainfall_trend_direction": "includes_zero"
+  },
+  {
+   "stratum": "elevation_mid",
+   "growing_window": "mar_may",
+   "rainfall_window": "sep_may",
+   "primary": false,
+   "status": "precondition_not_met",
+   "n": 26,
+   "rainfall_slope_per_100_mm": [
+    0.00167,
+    -0.00236,
+    0.00569
+   ],
+   "r_squared": 0.02952,
+   "residual_trend_per_decade": [
+    0.00789,
+    0.00151,
+    0.01428
+   ],
+   "direction": "upward",
+   "autocorrelation_adjusted_per_decade": [
+    0.00151,
+    0.01428
+   ],
+   "autocorrelation_adjusted_direction": "upward",
+   "n_eff": 26,
+   "theil_sen_per_decade": [
+    0.00807,
+    0.00109,
+    0.01545
+   ],
+   "theil_sen_direction": "upward",
+   "unadjusted_ndvi_trend_direction": "upward",
+   "rainfall_trend_direction": "includes_zero"
+  },
+  {
+   "stratum": "elevation_mid",
+   "growing_window": "mar_may",
+   "rainfall_window": "nov_apr",
+   "primary": false,
+   "status": "precondition_not_met",
+   "n": 26,
+   "rainfall_slope_per_100_mm": [
+    0.00078,
+    -0.00355,
+    0.00512
+   ],
+   "r_squared": 0.00577,
+   "residual_trend_per_decade": [
+    0.00767,
+    0.00114,
+    0.0142
+   ],
+   "direction": "upward",
+   "autocorrelation_adjusted_per_decade": [
+    0.00114,
+    0.0142
+   ],
+   "autocorrelation_adjusted_direction": "upward",
+   "n_eff": 26,
+   "theil_sen_per_decade": [
+    0.00739,
+    0.00101,
+    0.01602
+   ],
+   "theil_sen_direction": "upward",
+   "unadjusted_ndvi_trend_direction": "upward",
+   "rainfall_trend_direction": "includes_zero"
+  },
+  {
+   "stratum": "elevation_mid",
+   "growing_window": "apr_jul",
+   "rainfall_window": "sep_may",
+   "primary": false,
+   "status": "precondition_not_met",
+   "n": 26,
+   "rainfall_slope_per_100_mm": [
+    0.0032,
+    -6e-05,
+    0.00645
+   ],
+   "r_squared": 0.14612,
+   "residual_trend_per_decade": [
+    0.00713,
+    0.00215,
+    0.01211
+   ],
+   "direction": "upward",
+   "autocorrelation_adjusted_per_decade": [
+    0.00118,
+    0.01308
+   ],
+   "autocorrelation_adjusted_direction": "upward",
+   "n_eff": 19.51093,
+   "theil_sen_per_decade": [
+    0.00751,
+    0.00252,
+    0.01275
+   ],
+   "theil_sen_direction": "upward",
+   "unadjusted_ndvi_trend_direction": "upward",
+   "rainfall_trend_direction": "includes_zero"
+  },
+  {
+   "stratum": "elevation_mid",
+   "growing_window": "apr_jul",
+   "rainfall_window": "nov_apr",
+   "primary": false,
+   "status": "precondition_not_met",
+   "n": 26,
+   "rainfall_slope_per_100_mm": [
+    0.00203,
+    -0.00162,
+    0.00568
+   ],
+   "r_squared": 0.05183,
+   "residual_trend_per_decade": [
+    0.00679,
+    0.00137,
+    0.01221
+   ],
+   "direction": "upward",
+   "autocorrelation_adjusted_per_decade": [
+    0.00014,
+    0.01345
+   ],
+   "autocorrelation_adjusted_direction": "upward",
+   "n_eff": 18.69125,
+   "theil_sen_per_decade": [
+    0.00683,
+    0.00162,
+    0.01249
+   ],
+   "theil_sen_direction": "upward",
+   "unadjusted_ndvi_trend_direction": "upward",
+   "rainfall_trend_direction": "includes_zero"
+  },
+  {
+   "stratum": "elevation_high",
+   "growing_window": "mar_jun",
+   "rainfall_window": "sep_may",
+   "primary": true,
+   "status": "precondition_not_met",
+   "n": 26,
+   "rainfall_slope_per_100_mm": [
+    -0.00093,
+    -0.00438,
+    0.00252
+   ],
+   "r_squared": 0.01274,
+   "residual_trend_per_decade": [
+    0.00685,
+    0.00147,
+    0.01223
+   ],
+   "direction": "upward",
+   "autocorrelation_adjusted_per_decade": [
+    0.00147,
+    0.01223
+   ],
+   "autocorrelation_adjusted_direction": "upward",
+   "n_eff": 26,
+   "theil_sen_per_decade": [
+    0.00729,
+    0.00103,
+    0.01273
+   ],
+   "theil_sen_direction": "upward",
+   "unadjusted_ndvi_trend_direction": "upward",
+   "rainfall_trend_direction": "includes_zero"
+  },
+  {
+   "stratum": "elevation_high",
+   "growing_window": "mar_jun",
+   "rainfall_window": "nov_apr",
+   "primary": false,
+   "status": "precondition_not_met",
+   "n": 26,
+   "rainfall_slope_per_100_mm": [
+    -0.00128,
+    -0.00496,
+    0.0024
+   ],
+   "r_squared": 0.02114,
+   "residual_trend_per_decade": [
+    0.00685,
+    0.0015,
+    0.0122
+   ],
+   "direction": "upward",
+   "autocorrelation_adjusted_per_decade": [
+    0.0015,
+    0.0122
+   ],
+   "autocorrelation_adjusted_direction": "upward",
+   "n_eff": 26,
+   "theil_sen_per_decade": [
+    0.00716,
+    0.00113,
+    0.01264
+   ],
+   "theil_sen_direction": "upward",
+   "unadjusted_ndvi_trend_direction": "upward",
+   "rainfall_trend_direction": "includes_zero"
+  },
+  {
+   "stratum": "elevation_high",
+   "growing_window": "mar_may",
+   "rainfall_window": "sep_may",
+   "primary": false,
+   "status": "precondition_not_met",
+   "n": 26,
+   "rainfall_slope_per_100_mm": [
+    -0.00328,
+    -0.00799,
+    0.00143
+   ],
+   "r_squared": 0.07945,
+   "residual_trend_per_decade": [
+    0.00724,
+    -0.0005,
+    0.01499
+   ],
+   "direction": "includes_zero",
+   "autocorrelation_adjusted_per_decade": [
+    -0.0005,
+    0.01499
+   ],
+   "autocorrelation_adjusted_direction": "includes_zero",
+   "n_eff": 26,
+   "theil_sen_per_decade": [
+    0.00717,
+    -0.00038,
+    0.01508
+   ],
+   "theil_sen_direction": "includes_zero",
+   "unadjusted_ndvi_trend_direction": "includes_zero",
+   "rainfall_trend_direction": "includes_zero"
+  },
+  {
+   "stratum": "elevation_high",
+   "growing_window": "mar_may",
+   "rainfall_window": "nov_apr",
+   "primary": false,
+   "status": "precondition_not_met",
+   "n": 26,
+   "rainfall_slope_per_100_mm": [
+    -0.00378,
+    -0.00879,
+    0.00123
+   ],
+   "r_squared": 0.09171,
+   "residual_trend_per_decade": [
+    0.00733,
+    -0.00034,
+    0.01501
+   ],
+   "direction": "includes_zero",
+   "autocorrelation_adjusted_per_decade": [
+    -0.00034,
+    0.01501
+   ],
+   "autocorrelation_adjusted_direction": "includes_zero",
+   "n_eff": 26,
+   "theil_sen_per_decade": [
+    0.00733,
+    -0.00048,
+    0.01481
+   ],
+   "theil_sen_direction": "includes_zero",
+   "unadjusted_ndvi_trend_direction": "includes_zero",
+   "rainfall_trend_direction": "includes_zero"
+  },
+  {
+   "stratum": "elevation_high",
+   "growing_window": "apr_jul",
+   "rainfall_window": "sep_may",
+   "primary": false,
+   "status": "precondition_not_met",
+   "n": 26,
+   "rainfall_slope_per_100_mm": [
+    0.0003,
+    -0.00246,
+    0.00306
+   ],
+   "r_squared": 0.00208,
+   "residual_trend_per_decade": [
+    0.00557,
+    0.00129,
+    0.00984
+   ],
+   "direction": "upward",
+   "autocorrelation_adjusted_per_decade": [
+    0.00129,
+    0.00984
+   ],
+   "autocorrelation_adjusted_direction": "upward",
+   "n_eff": 26,
+   "theil_sen_per_decade": [
+    0.0055,
+    0.00195,
+    0.00927
+   ],
+   "theil_sen_direction": "upward",
+   "unadjusted_ndvi_trend_direction": "upward",
+   "rainfall_trend_direction": "includes_zero"
+  },
+  {
+   "stratum": "elevation_high",
+   "growing_window": "apr_jul",
+   "rainfall_window": "nov_apr",
+   "primary": false,
+   "status": "precondition_not_met",
+   "n": 26,
+   "rainfall_slope_per_100_mm": [
+    -0.00011,
+    -0.00306,
+    0.00285
+   ],
+   "r_squared": 0.00023,
+   "residual_trend_per_decade": [
+    0.0055,
+    0.00121,
+    0.0098
+   ],
+   "direction": "upward",
+   "autocorrelation_adjusted_per_decade": [
+    0.00121,
+    0.0098
+   ],
+   "autocorrelation_adjusted_direction": "upward",
+   "n_eff": 26,
+   "theil_sen_per_decade": [
+    0.00516,
+    0.00234,
+    0.0096
+   ],
+   "theil_sen_direction": "upward",
+   "unadjusted_ndvi_trend_direction": "upward",
+   "rainfall_trend_direction": "includes_zero"
+  },
+  {
+   "stratum": "aspect_north",
+   "growing_window": "mar_jun",
+   "rainfall_window": "sep_may",
+   "primary": true,
+   "status": "precondition_not_met",
+   "n": 26,
+   "rainfall_slope_per_100_mm": [
+    0.00114,
+    -0.00199,
+    0.00427
+   ],
+   "r_squared": 0.02298,
+   "residual_trend_per_decade": [
+    0.00814,
+    0.00374,
+    0.01253
+   ],
+   "direction": "upward",
+   "autocorrelation_adjusted_per_decade": [
+    0.00374,
+    0.01253
+   ],
+   "autocorrelation_adjusted_direction": "upward",
+   "n_eff": 26,
+   "theil_sen_per_decade": [
+    0.0081,
+    0.00405,
+    0.01313
+   ],
+   "theil_sen_direction": "upward",
+   "unadjusted_ndvi_trend_direction": "upward",
+   "rainfall_trend_direction": "includes_zero"
+  },
+  {
+   "stratum": "aspect_north",
+   "growing_window": "mar_jun",
+   "rainfall_window": "nov_apr",
+   "primary": false,
+   "status": "precondition_not_met",
+   "n": 26,
+   "rainfall_slope_per_100_mm": [
+    0.00049,
+    -0.00287,
+    0.00385
+   ],
+   "r_squared": 0.00378,
+   "residual_trend_per_decade": [
+    0.00796,
+    0.00344,
+    0.01248
+   ],
+   "direction": "upward",
+   "autocorrelation_adjusted_per_decade": [
+    0.00344,
+    0.01248
+   ],
+   "autocorrelation_adjusted_direction": "upward",
+   "n_eff": 26,
+   "theil_sen_per_decade": [
+    0.00809,
+    0.00351,
+    0.01301
+   ],
+   "theil_sen_direction": "upward",
+   "unadjusted_ndvi_trend_direction": "upward",
+   "rainfall_trend_direction": "includes_zero"
+  },
+  {
+   "stratum": "aspect_north",
+   "growing_window": "mar_may",
+   "rainfall_window": "sep_may",
+   "primary": false,
+   "status": "precondition_not_met",
+   "n": 26,
+   "rainfall_slope_per_100_mm": [
+    0.00042,
+    -0.00301,
+    0.00386
+   ],
+   "r_squared": 0.00269,
+   "residual_trend_per_decade": [
+    0.00746,
+    0.0022,
+    0.01271
+   ],
+   "direction": "upward",
+   "autocorrelation_adjusted_per_decade": [
+    0.0022,
+    0.01271
+   ],
+   "autocorrelation_adjusted_direction": "upward",
+   "n_eff": 26,
+   "theil_sen_per_decade": [
+    0.00885,
+    0.00206,
+    0.01385
+   ],
+   "theil_sen_direction": "upward",
+   "unadjusted_ndvi_trend_direction": "upward",
+   "rainfall_trend_direction": "includes_zero"
+  },
+  {
+   "stratum": "aspect_north",
+   "growing_window": "mar_may",
+   "rainfall_window": "nov_apr",
+   "primary": false,
+   "status": "precondition_not_met",
+   "n": 26,
+   "rainfall_slope_per_100_mm": [
+    -0.00024,
+    -0.00389,
+    0.00342
+   ],
+   "r_squared": 0.00075,
+   "residual_trend_per_decade": [
+    0.00731,
+    0.00202,
+    0.0126
+   ],
+   "direction": "upward",
+   "autocorrelation_adjusted_per_decade": [
+    0.00202,
+    0.0126
+   ],
+   "autocorrelation_adjusted_direction": "upward",
+   "n_eff": 26,
+   "theil_sen_per_decade": [
+    0.00855,
+    0.00165,
+    0.01385
+   ],
+   "theil_sen_direction": "upward",
+   "unadjusted_ndvi_trend_direction": "upward",
+   "rainfall_trend_direction": "includes_zero"
+  },
+  {
+   "stratum": "aspect_north",
+   "growing_window": "apr_jul",
+   "rainfall_window": "sep_may",
+   "primary": false,
+   "status": "precondition_not_met",
+   "n": 26,
+   "rainfall_slope_per_100_mm": [
+    0.00163,
+    -0.00129,
+    0.00455
+   ],
+   "r_squared": 0.05238,
+   "residual_trend_per_decade": [
+    0.00764,
+    0.00354,
+    0.01173
+   ],
+   "direction": "upward",
+   "autocorrelation_adjusted_per_decade": [
+    0.00255,
+    0.01272
+   ],
+   "autocorrelation_adjusted_direction": "upward",
+   "n_eff": 18.35828,
+   "theil_sen_per_decade": [
+    0.00852,
+    0.00457,
+    0.01152
+   ],
+   "theil_sen_direction": "upward",
+   "unadjusted_ndvi_trend_direction": "upward",
+   "rainfall_trend_direction": "includes_zero"
+  },
+  {
+   "stratum": "aspect_north",
+   "growing_window": "apr_jul",
+   "rainfall_window": "nov_apr",
+   "primary": false,
+   "status": "precondition_not_met",
+   "n": 26,
+   "rainfall_slope_per_100_mm": [
+    0.00084,
+    -0.00233,
+    0.00401
+   ],
+   "r_squared": 0.01229,
+   "residual_trend_per_decade": [
+    0.00741,
+    0.0031,
+    0.01171
+   ],
+   "direction": "upward",
+   "autocorrelation_adjusted_per_decade": [
+    0.00176,
+    0.01305
+   ],
+   "autocorrelation_adjusted_direction": "upward",
+   "n_eff": 16.89296,
+   "theil_sen_per_decade": [
+    0.00768,
+    0.00329,
+    0.01169
+   ],
+   "theil_sen_direction": "upward",
+   "unadjusted_ndvi_trend_direction": "upward",
+   "rainfall_trend_direction": "includes_zero"
+  },
+  {
+   "stratum": "aspect_east",
+   "growing_window": "mar_jun",
+   "rainfall_window": "sep_may",
+   "primary": true,
+   "status": "precondition_not_met",
+   "n": 26,
+   "rainfall_slope_per_100_mm": [
+    0.00158,
+    -0.00132,
+    0.00448
+   ],
+   "r_squared": 0.05003,
+   "residual_trend_per_decade": [
+    0.00789,
+    0.00381,
+    0.01196
+   ],
+   "direction": "upward",
+   "autocorrelation_adjusted_per_decade": [
+    0.00381,
+    0.01196
+   ],
+   "autocorrelation_adjusted_direction": "upward",
+   "n_eff": 26,
+   "theil_sen_per_decade": [
+    0.00783,
+    0.00434,
+    0.01283
+   ],
+   "theil_sen_direction": "upward",
+   "unadjusted_ndvi_trend_direction": "upward",
+   "rainfall_trend_direction": "includes_zero"
+  },
+  {
+   "stratum": "aspect_east",
+   "growing_window": "mar_jun",
+   "rainfall_window": "nov_apr",
+   "primary": false,
+   "status": "precondition_not_met",
+   "n": 26,
+   "rainfall_slope_per_100_mm": [
+    0.00089,
+    -0.00226,
+    0.00403
+   ],
+   "r_squared": 0.01393,
+   "residual_trend_per_decade": [
+    0.00767,
+    0.0034,
+    0.01194
+   ],
+   "direction": "upward",
+   "autocorrelation_adjusted_per_decade": [
+    0.0034,
+    0.01194
+   ],
+   "autocorrelation_adjusted_direction": "upward",
+   "n_eff": 26,
+   "theil_sen_per_decade": [
+    0.00791,
+    0.0034,
+    0.01313
+   ],
+   "theil_sen_direction": "upward",
+   "unadjusted_ndvi_trend_direction": "upward",
+   "rainfall_trend_direction": "includes_zero"
+  },
+  {
+   "stratum": "aspect_east",
+   "growing_window": "mar_may",
+   "rainfall_window": "sep_may",
+   "primary": false,
+   "status": "precondition_not_met",
+   "n": 26,
+   "rainfall_slope_per_100_mm": [
+    0.00112,
+    -0.00203,
+    0.00427
+   ],
+   "r_squared": 0.02187,
+   "residual_trend_per_decade": [
+    0.00697,
+    0.00208,
+    0.01186
+   ],
+   "direction": "upward",
+   "autocorrelation_adjusted_per_decade": [
+    0.00208,
+    0.01186
+   ],
+   "autocorrelation_adjusted_direction": "upward",
+   "n_eff": 26,
+   "theil_sen_per_decade": [
+    0.00685,
+    0.00162,
+    0.01264
+   ],
+   "theil_sen_direction": "upward",
+   "unadjusted_ndvi_trend_direction": "upward",
+   "rainfall_trend_direction": "includes_zero"
+  },
+  {
+   "stratum": "aspect_east",
+   "growing_window": "mar_may",
+   "rainfall_window": "nov_apr",
+   "primary": false,
+   "status": "precondition_not_met",
+   "n": 26,
+   "rainfall_slope_per_100_mm": [
+    0.00042,
+    -0.00296,
+    0.00381
+   ],
+   "r_squared": 0.00279,
+   "residual_trend_per_decade": [
+    0.00677,
+    0.00177,
+    0.01177
+   ],
+   "direction": "upward",
+   "autocorrelation_adjusted_per_decade": [
+    0.00177,
+    0.01177
+   ],
+   "autocorrelation_adjusted_direction": "upward",
+   "n_eff": 26,
+   "theil_sen_per_decade": [
+    0.00738,
+    0.00201,
+    0.0127
+   ],
+   "theil_sen_direction": "upward",
+   "unadjusted_ndvi_trend_direction": "upward",
+   "rainfall_trend_direction": "includes_zero"
+  },
+  {
+   "stratum": "aspect_east",
+   "growing_window": "apr_jul",
+   "rainfall_window": "sep_may",
+   "primary": false,
+   "status": "precondition_not_met",
+   "n": 26,
+   "rainfall_slope_per_100_mm": [
+    0.00202,
+    -0.00072,
+    0.00476
+   ],
+   "r_squared": 0.08817,
+   "residual_trend_per_decade": [
+    0.00758,
+    0.00377,
+    0.01138
+   ],
+   "direction": "upward",
+   "autocorrelation_adjusted_per_decade": [
+    0.00285,
+    0.0123
+   ],
+   "autocorrelation_adjusted_direction": "upward",
+   "n_eff": 18.36325,
+   "theil_sen_per_decade": [
+    0.00813,
+    0.00351,
+    0.01198
+   ],
+   "theil_sen_direction": "upward",
+   "unadjusted_ndvi_trend_direction": "upward",
+   "rainfall_trend_direction": "includes_zero"
+  },
+  {
+   "stratum": "aspect_east",
+   "growing_window": "apr_jul",
+   "rainfall_window": "nov_apr",
+   "primary": false,
+   "status": "precondition_not_met",
+   "n": 26,
+   "rainfall_slope_per_100_mm": [
+    0.00126,
+    -0.00175,
+    0.00426
+   ],
+   "r_squared": 0.03016,
+   "residual_trend_per_decade": [
+    0.00732,
+    0.00324,
+    0.01141
+   ],
+   "direction": "upward",
+   "autocorrelation_adjusted_per_decade": [
+    0.00206,
+    0.01258
+   ],
+   "autocorrelation_adjusted_direction": "upward",
+   "n_eff": 17.39875,
+   "theil_sen_per_decade": [
+    0.00724,
+    0.00279,
+    0.01171
+   ],
+   "theil_sen_direction": "upward",
+   "unadjusted_ndvi_trend_direction": "upward",
+   "rainfall_trend_direction": "includes_zero"
+  },
+  {
+   "stratum": "aspect_south",
+   "growing_window": "mar_jun",
+   "rainfall_window": "sep_may",
+   "primary": true,
+   "status": "precondition_not_met",
+   "n": 26,
+   "rainfall_slope_per_100_mm": [
+    0.00175,
+    -0.00138,
+    0.00488
+   ],
+   "r_squared": 0.05257,
+   "residual_trend_per_decade": [
+    0.00948,
+    0.00541,
+    0.01354
+   ],
+   "direction": "upward",
+   "autocorrelation_adjusted_per_decade": [
+    0.00541,
+    0.01354
+   ],
+   "autocorrelation_adjusted_direction": "upward",
+   "n_eff": 26,
+   "theil_sen_per_decade": [
+    0.00927,
+    0.00628,
+    0.01438
+   ],
+   "theil_sen_direction": "upward",
+   "unadjusted_ndvi_trend_direction": "upward",
+   "rainfall_trend_direction": "includes_zero"
+  },
+  {
+   "stratum": "aspect_south",
+   "growing_window": "mar_jun",
+   "rainfall_window": "nov_apr",
+   "primary": false,
+   "status": "precondition_not_met",
+   "n": 26,
+   "rainfall_slope_per_100_mm": [
+    0.00102,
+    -0.00238,
+    0.00443
+   ],
+   "r_squared": 0.01578,
+   "residual_trend_per_decade": [
+    0.00926,
+    0.00495,
+    0.01356
+   ],
+   "direction": "upward",
+   "autocorrelation_adjusted_per_decade": [
+    0.00495,
+    0.01356
+   ],
+   "autocorrelation_adjusted_direction": "upward",
+   "n_eff": 26,
+   "theil_sen_per_decade": [
+    0.00954,
+    0.00524,
+    0.01451
+   ],
+   "theil_sen_direction": "upward",
+   "unadjusted_ndvi_trend_direction": "upward",
+   "rainfall_trend_direction": "includes_zero"
+  },
+  {
+   "stratum": "aspect_south",
+   "growing_window": "mar_may",
+   "rainfall_window": "sep_may",
+   "primary": false,
+   "status": "precondition_not_met",
+   "n": 26,
+   "rainfall_slope_per_100_mm": [
+    0.00123,
+    -0.00207,
+    0.00454
+   ],
+   "r_squared": 0.0241,
+   "residual_trend_per_decade": [
+    0.00862,
+    0.00382,
+    0.01342
+   ],
+   "direction": "upward",
+   "autocorrelation_adjusted_per_decade": [
+    0.00382,
+    0.01342
+   ],
+   "autocorrelation_adjusted_direction": "upward",
+   "n_eff": 26,
+   "theil_sen_per_decade": [
+    0.00882,
+    0.00429,
+    0.01414
+   ],
+   "theil_sen_direction": "upward",
+   "unadjusted_ndvi_trend_direction": "upward",
+   "rainfall_trend_direction": "includes_zero"
+  },
+  {
+   "stratum": "aspect_south",
+   "growing_window": "mar_may",
+   "rainfall_window": "nov_apr",
+   "primary": false,
+   "status": "precondition_not_met",
+   "n": 26,
+   "rainfall_slope_per_100_mm": [
+    0.00053,
+    -0.00303,
+    0.0041
+   ],
+   "r_squared": 0.00398,
+   "residual_trend_per_decade": [
+    0.00842,
+    0.00349,
+    0.01336
+   ],
+   "direction": "upward",
+   "autocorrelation_adjusted_per_decade": [
+    0.00349,
+    0.01336
+   ],
+   "autocorrelation_adjusted_direction": "upward",
+   "n_eff": 26,
+   "theil_sen_per_decade": [
+    0.00868,
+    0.00401,
+    0.01472
+   ],
+   "theil_sen_direction": "upward",
+   "unadjusted_ndvi_trend_direction": "upward",
+   "rainfall_trend_direction": "includes_zero"
+  },
+  {
+   "stratum": "aspect_south",
+   "growing_window": "apr_jul",
+   "rainfall_window": "sep_may",
+   "primary": false,
+   "status": "precondition_not_met",
+   "n": 26,
+   "rainfall_slope_per_100_mm": [
+    0.00236,
+    -0.00075,
+    0.00547
+   ],
+   "r_squared": 0.09283,
+   "residual_trend_per_decade": [
+    0.0097,
+    0.00578,
+    0.01361
+   ],
+   "direction": "upward",
+   "autocorrelation_adjusted_per_decade": [
+    0.00541,
+    0.01399
+   ],
+   "autocorrelation_adjusted_direction": "upward",
+   "n_eff": 22.38191,
+   "theil_sen_per_decade": [
+    0.00992,
+    0.00597,
+    0.0139
+   ],
+   "theil_sen_direction": "upward",
+   "unadjusted_ndvi_trend_direction": "upward",
+   "rainfall_trend_direction": "includes_zero"
+  },
+  {
+   "stratum": "aspect_south",
+   "growing_window": "apr_jul",
+   "rainfall_window": "nov_apr",
+   "primary": false,
+   "status": "precondition_not_met",
+   "n": 26,
+   "rainfall_slope_per_100_mm": [
+    0.00154,
+    -0.00188,
+    0.00497
+   ],
+   "r_squared": 0.03486,
+   "residual_trend_per_decade": [
+    0.00944,
+    0.00517,
+    0.01371
+   ],
+   "direction": "upward",
+   "autocorrelation_adjusted_per_decade": [
+    0.00468,
+    0.0142
+   ],
+   "autocorrelation_adjusted_direction": "upward",
+   "n_eff": 21.76886,
+   "theil_sen_per_decade": [
+    0.00987,
+    0.00528,
+    0.01465
+   ],
+   "theil_sen_direction": "upward",
+   "unadjusted_ndvi_trend_direction": "upward",
+   "rainfall_trend_direction": "includes_zero"
+  },
+  {
+   "stratum": "aspect_west",
+   "growing_window": "mar_jun",
+   "rainfall_window": "sep_may",
+   "primary": true,
+   "status": "precondition_not_met",
+   "n": 26,
+   "rainfall_slope_per_100_mm": [
+    0.0014,
+    -0.00179,
+    0.0046
+   ],
+   "r_squared": 0.03323,
+   "residual_trend_per_decade": [
+    0.00842,
+    0.00398,
+    0.01286
+   ],
+   "direction": "upward",
+   "autocorrelation_adjusted_per_decade": [
+    0.00398,
+    0.01286
+   ],
+   "autocorrelation_adjusted_direction": "upward",
+   "n_eff": 26,
+   "theil_sen_per_decade": [
+    0.00826,
+    0.00458,
+    0.01408
+   ],
+   "theil_sen_direction": "upward",
+   "unadjusted_ndvi_trend_direction": "upward",
+   "rainfall_trend_direction": "includes_zero"
+  },
+  {
+   "stratum": "aspect_west",
+   "growing_window": "mar_jun",
+   "rainfall_window": "nov_apr",
+   "primary": false,
+   "status": "precondition_not_met",
+   "n": 26,
+   "rainfall_slope_per_100_mm": [
+    0.00063,
+    -0.00282,
+    0.00409
+   ],
+   "r_squared": 0.00595,
+   "residual_trend_per_decade": [
+    0.00823,
+    0.00362,
+    0.01283
+   ],
+   "direction": "upward",
+   "autocorrelation_adjusted_per_decade": [
+    0.00362,
+    0.01283
+   ],
+   "autocorrelation_adjusted_direction": "upward",
+   "n_eff": 26,
+   "theil_sen_per_decade": [
+    0.00836,
+    0.00396,
+    0.01455
+   ],
+   "theil_sen_direction": "upward",
+   "unadjusted_ndvi_trend_direction": "upward",
+   "rainfall_trend_direction": "includes_zero"
+  },
+  {
+   "stratum": "aspect_west",
+   "growing_window": "mar_may",
+   "rainfall_window": "sep_may",
+   "primary": false,
+   "status": "precondition_not_met",
+   "n": 26,
+   "rainfall_slope_per_100_mm": [
+    0.00066,
+    -0.00282,
+    0.00414
+   ],
+   "r_squared": 0.00627,
+   "residual_trend_per_decade": [
+    0.00787,
+    0.00264,
+    0.01311
+   ],
+   "direction": "upward",
+   "autocorrelation_adjusted_per_decade": [
+    0.00264,
+    0.01311
+   ],
+   "autocorrelation_adjusted_direction": "upward",
+   "n_eff": 26,
+   "theil_sen_per_decade": [
+    0.00847,
+    0.00308,
+    0.01456
+   ],
+   "theil_sen_direction": "upward",
+   "unadjusted_ndvi_trend_direction": "upward",
+   "rainfall_trend_direction": "includes_zero"
+  },
+  {
+   "stratum": "aspect_west",
+   "growing_window": "mar_may",
+   "rainfall_window": "nov_apr",
+   "primary": false,
+   "status": "precondition_not_met",
+   "n": 26,
+   "rainfall_slope_per_100_mm": [
+    -8e-05,
+    -0.00381,
+    0.00364
+   ],
+   "r_squared": 8e-05,
+   "residual_trend_per_decade": [
+    0.00772,
+    0.00242,
+    0.01302
+   ],
+   "direction": "upward",
+   "autocorrelation_adjusted_per_decade": [
+    0.00242,
+    0.01302
+   ],
+   "autocorrelation_adjusted_direction": "upward",
+   "n_eff": 26,
+   "theil_sen_per_decade": [
+    0.00809,
+    0.00224,
+    0.01448
+   ],
+   "theil_sen_direction": "upward",
+   "unadjusted_ndvi_trend_direction": "upward",
+   "rainfall_trend_direction": "includes_zero"
+  },
+  {
+   "stratum": "aspect_west",
+   "growing_window": "apr_jul",
+   "rainfall_window": "sep_may",
+   "primary": false,
+   "status": "precondition_not_met",
+   "n": 26,
+   "rainfall_slope_per_100_mm": [
+    0.00214,
+    -0.00089,
+    0.00517
+   ],
+   "r_squared": 0.08137,
+   "residual_trend_per_decade": [
+    0.00811,
+    0.00392,
+    0.01229
+   ],
+   "direction": "upward",
+   "autocorrelation_adjusted_per_decade": [
+    0.00307,
+    0.01315
+   ],
+   "autocorrelation_adjusted_direction": "upward",
+   "n_eff": 19.24165,
+   "theil_sen_per_decade": [
+    0.00836,
+    0.00435,
+    0.01256
+   ],
+   "theil_sen_direction": "upward",
+   "unadjusted_ndvi_trend_direction": "upward",
+   "rainfall_trend_direction": "includes_zero"
+  },
+  {
+   "stratum": "aspect_west",
+   "growing_window": "apr_jul",
+   "rainfall_window": "nov_apr",
+   "primary": false,
+   "status": "precondition_not_met",
+   "n": 26,
+   "rainfall_slope_per_100_mm": [
+    0.00125,
+    -0.00208,
+    0.00459
+   ],
+   "r_squared": 0.02452,
+   "residual_trend_per_decade": [
+    0.00787,
+    0.0034,
+    0.01234
+   ],
+   "direction": "upward",
+   "autocorrelation_adjusted_per_decade": [
+    0.0023,
+    0.01344
+   ],
+   "autocorrelation_adjusted_direction": "upward",
+   "n_eff": 18.27452,
+   "theil_sen_per_decade": [
+    0.00829,
+    0.00341,
+    0.01255
+   ],
+   "theil_sen_direction": "upward",
+   "unadjusted_ndvi_trend_direction": "upward",
+   "rainfall_trend_direction": "includes_zero"
+  },
+  {
+   "stratum": "aspect_level",
+   "growing_window": "mar_jun",
+   "rainfall_window": "sep_may",
+   "primary": true,
+   "status": "precondition_not_met",
+   "n": 26,
+   "rainfall_slope_per_100_mm": [
+    0.00224,
+    -0.00406,
+    0.00854
+   ],
+   "r_squared": 0.0219,
+   "residual_trend_per_decade": [
+    0.02284,
+    0.01676,
+    0.02893
+   ],
+   "direction": "upward",
+   "autocorrelation_adjusted_per_decade": [
+    0.01676,
+    0.02893
+   ],
+   "autocorrelation_adjusted_direction": "upward",
+   "n_eff": 26,
+   "theil_sen_per_decade": [
+    0.02379,
+    0.0175,
+    0.0294
+   ],
+   "theil_sen_direction": "upward",
+   "unadjusted_ndvi_trend_direction": "upward",
+   "rainfall_trend_direction": "includes_zero"
+  },
+  {
+   "stratum": "aspect_level",
+   "growing_window": "mar_jun",
+   "rainfall_window": "nov_apr",
+   "primary": false,
+   "status": "precondition_not_met",
+   "n": 26,
+   "rainfall_slope_per_100_mm": [
+    0.00128,
+    -0.00552,
+    0.00807
+   ],
+   "r_squared": 0.0062,
+   "residual_trend_per_decade": [
+    0.02252,
+    0.01606,
+    0.02898
+   ],
+   "direction": "upward",
+   "autocorrelation_adjusted_per_decade": [
+    0.01606,
+    0.02898
+   ],
+   "autocorrelation_adjusted_direction": "upward",
+   "n_eff": 26,
+   "theil_sen_per_decade": [
+    0.02385,
+    0.01703,
+    0.02916
+   ],
+   "theil_sen_direction": "upward",
+   "unadjusted_ndvi_trend_direction": "upward",
+   "rainfall_trend_direction": "includes_zero"
+  },
+  {
+   "stratum": "aspect_level",
+   "growing_window": "mar_may",
+   "rainfall_window": "sep_may",
+   "primary": false,
+   "status": "precondition_not_met",
+   "n": 26,
+   "rainfall_slope_per_100_mm": [
+    0.00324,
+    -0.0025,
+    0.00898
+   ],
+   "r_squared": 0.05361,
+   "residual_trend_per_decade": [
+    0.01827,
+    0.01132,
+    0.02522
+   ],
+   "direction": "upward",
+   "autocorrelation_adjusted_per_decade": [
+    0.01132,
+    0.02522
+   ],
+   "autocorrelation_adjusted_direction": "upward",
+   "n_eff": 26,
+   "theil_sen_per_decade": [
+    0.01874,
+    0.01185,
+    0.02532
+   ],
+   "theil_sen_direction": "upward",
+   "unadjusted_ndvi_trend_direction": "upward",
+   "rainfall_trend_direction": "includes_zero"
+  },
+  {
+   "stratum": "aspect_level",
+   "growing_window": "mar_may",
+   "rainfall_window": "nov_apr",
+   "primary": false,
+   "status": "precondition_not_met",
+   "n": 26,
+   "rainfall_slope_per_100_mm": [
+    0.0025,
+    -0.00373,
+    0.00872
+   ],
+   "r_squared": 0.02774,
+   "residual_trend_per_decade": [
+    0.01796,
+    0.01066,
+    0.02525
+   ],
+   "direction": "upward",
+   "autocorrelation_adjusted_per_decade": [
+    0.01066,
+    0.02525
+   ],
+   "autocorrelation_adjusted_direction": "upward",
+   "n_eff": 26,
+   "theil_sen_per_decade": [
+    0.01892,
+    0.01018,
+    0.02533
+   ],
+   "theil_sen_direction": "upward",
+   "unadjusted_ndvi_trend_direction": "upward",
+   "rainfall_trend_direction": "includes_zero"
+  },
+  {
+   "stratum": "aspect_level",
+   "growing_window": "apr_jul",
+   "rainfall_window": "sep_may",
+   "primary": false,
+   "status": "precondition_not_met",
+   "n": 26,
+   "rainfall_slope_per_100_mm": [
+    0.00206,
+    -0.00541,
+    0.00953
+   ],
+   "r_squared": 0.01337,
+   "residual_trend_per_decade": [
+    0.02746,
+    0.02051,
+    0.03442
+   ],
+   "direction": "upward",
+   "autocorrelation_adjusted_per_decade": [
+    0.01913,
+    0.0358
+   ],
+   "autocorrelation_adjusted_direction": "upward",
+   "n_eff": 19.38314,
+   "theil_sen_per_decade": [
+    0.02795,
+    0.02124,
+    0.03437
+   ],
+   "theil_sen_direction": "upward",
+   "unadjusted_ndvi_trend_direction": "upward",
+   "rainfall_trend_direction": "includes_zero"
+  },
+  {
+   "stratum": "aspect_level",
+   "growing_window": "apr_jul",
+   "rainfall_window": "nov_apr",
+   "primary": false,
+   "status": "precondition_not_met",
+   "n": 26,
+   "rainfall_slope_per_100_mm": [
+    0.0008,
+    -0.00724,
+    0.00884
+   ],
+   "r_squared": 0.00175,
+   "residual_trend_per_decade": [
+    0.02708,
+    0.01971,
+    0.03444
+   ],
+   "direction": "upward",
+   "autocorrelation_adjusted_per_decade": [
+    0.01819,
+    0.03596
+   ],
+   "autocorrelation_adjusted_direction": "upward",
+   "n_eff": 19.21387,
+   "theil_sen_per_decade": [
+    0.02814,
+    0.02035,
+    0.03442
+   ],
+   "theil_sen_direction": "upward",
+   "unadjusted_ndvi_trend_direction": "upward",
+   "rainfall_trend_direction": "includes_zero"
+  }
+ ],
+ "sensitivity_reliability_0": [
+  {
+   "stratum": "catchment",
+   "growing_window": "mar_jun",
+   "rainfall_window": "sep_may",
+   "status": "computed",
+   "n": 25,
+   "direction": "upward"
+  },
+  {
+   "stratum": "catchment",
+   "growing_window": "mar_jun",
+   "rainfall_window": "nov_apr",
+   "status": "computed",
+   "n": 25,
+   "direction": "upward"
+  },
+  {
+   "stratum": "catchment",
+   "growing_window": "mar_may",
+   "rainfall_window": "sep_may",
+   "status": "computed",
+   "n": 23,
+   "direction": "upward"
+  },
+  {
+   "stratum": "catchment",
+   "growing_window": "mar_may",
+   "rainfall_window": "nov_apr",
+   "status": "computed",
+   "n": 23,
+   "direction": "includes_zero"
+  },
+  {
+   "stratum": "catchment",
+   "growing_window": "apr_jul",
+   "rainfall_window": "sep_may",
+   "status": "precondition_not_met",
+   "n": 26,
+   "direction": "upward"
+  },
+  {
+   "stratum": "catchment",
+   "growing_window": "apr_jul",
+   "rainfall_window": "nov_apr",
+   "status": "precondition_not_met",
+   "n": 26,
+   "direction": "upward"
+  },
+  {
+   "stratum": "elevation_low",
+   "growing_window": "mar_jun",
+   "rainfall_window": "sep_may",
+   "status": "precondition_not_met",
+   "n": 26,
+   "direction": "upward"
+  },
+  {
+   "stratum": "elevation_low",
+   "growing_window": "mar_jun",
+   "rainfall_window": "nov_apr",
+   "status": "precondition_not_met",
+   "n": 26,
+   "direction": "upward"
+  },
+  {
+   "stratum": "elevation_low",
+   "growing_window": "mar_may",
+   "rainfall_window": "sep_may",
+   "status": "precondition_not_met",
+   "n": 26,
+   "direction": "upward"
+  },
+  {
+   "stratum": "elevation_low",
+   "growing_window": "mar_may",
+   "rainfall_window": "nov_apr",
+   "status": "precondition_not_met",
+   "n": 26,
+   "direction": "upward"
+  },
+  {
+   "stratum": "elevation_low",
+   "growing_window": "apr_jul",
+   "rainfall_window": "sep_may",
+   "status": "precondition_not_met",
+   "n": 26,
+   "direction": "upward"
+  },
+  {
+   "stratum": "elevation_low",
+   "growing_window": "apr_jul",
+   "rainfall_window": "nov_apr",
+   "status": "precondition_not_met",
+   "n": 26,
+   "direction": "upward"
+  },
+  {
+   "stratum": "elevation_mid",
+   "growing_window": "mar_jun",
+   "rainfall_window": "sep_may",
+   "status": "computed",
+   "n": 26,
+   "direction": "upward"
+  },
+  {
+   "stratum": "elevation_mid",
+   "growing_window": "mar_jun",
+   "rainfall_window": "nov_apr",
+   "status": "precondition_not_met",
+   "n": 26,
+   "direction": "upward"
+  },
+  {
+   "stratum": "elevation_mid",
+   "growing_window": "mar_may",
+   "rainfall_window": "sep_may",
+   "status": "computed",
+   "n": 24,
+   "direction": "upward"
+  },
+  {
+   "stratum": "elevation_mid",
+   "growing_window": "mar_may",
+   "rainfall_window": "nov_apr",
+   "status": "computed",
+   "n": 24,
+   "direction": "includes_zero"
+  },
+  {
+   "stratum": "elevation_mid",
+   "growing_window": "apr_jul",
+   "rainfall_window": "sep_may",
+   "status": "computed",
+   "n": 26,
+   "direction": "upward"
+  },
+  {
+   "stratum": "elevation_mid",
+   "growing_window": "apr_jul",
+   "rainfall_window": "nov_apr",
+   "status": "precondition_not_met",
+   "n": 26,
+   "direction": "upward"
+  },
+  {
+   "stratum": "elevation_high",
+   "growing_window": "mar_jun",
+   "rainfall_window": "sep_may",
+   "status": "computed",
+   "n": 21,
+   "direction": "includes_zero"
+  },
+  {
+   "stratum": "elevation_high",
+   "growing_window": "mar_jun",
+   "rainfall_window": "nov_apr",
+   "status": "computed",
+   "n": 21,
+   "direction": "includes_zero"
+  },
+  {
+   "stratum": "elevation_high",
+   "growing_window": "mar_may",
+   "rainfall_window": "sep_may",
+   "status": "insufficient_seasons",
+   "n": 14,
+   "direction": null
+  },
+  {
+   "stratum": "elevation_high",
+   "growing_window": "mar_may",
+   "rainfall_window": "nov_apr",
+   "status": "insufficient_seasons",
+   "n": 14,
+   "direction": null
+  },
+  {
+   "stratum": "elevation_high",
+   "growing_window": "apr_jul",
+   "rainfall_window": "sep_may",
+   "status": "computed",
+   "n": 26,
+   "direction": "upward"
+  },
+  {
+   "stratum": "elevation_high",
+   "growing_window": "apr_jul",
+   "rainfall_window": "nov_apr",
+   "status": "precondition_not_met",
+   "n": 26,
+   "direction": "includes_zero"
+  },
+  {
+   "stratum": "aspect_north",
+   "growing_window": "mar_jun",
+   "rainfall_window": "sep_may",
+   "status": "computed",
+   "n": 25,
+   "direction": "upward"
+  },
+  {
+   "stratum": "aspect_north",
+   "growing_window": "mar_jun",
+   "rainfall_window": "nov_apr",
+   "status": "computed",
+   "n": 25,
+   "direction": "includes_zero"
+  },
+  {
+   "stratum": "aspect_north",
+   "growing_window": "mar_may",
+   "rainfall_window": "sep_may",
+   "status": "computed",
+   "n": 19,
+   "direction": "includes_zero"
+  },
+  {
+   "stratum": "aspect_north",
+   "growing_window": "mar_may",
+   "rainfall_window": "nov_apr",
+   "status": "computed",
+   "n": 19,
+   "direction": "includes_zero"
+  },
+  {
+   "stratum": "aspect_north",
+   "growing_window": "apr_jul",
+   "rainfall_window": "sep_may",
+   "status": "computed",
+   "n": 26,
+   "direction": "upward"
+  },
+  {
+   "stratum": "aspect_north",
+   "growing_window": "apr_jul",
+   "rainfall_window": "nov_apr",
+   "status": "precondition_not_met",
+   "n": 26,
+   "direction": "upward"
+  },
+  {
+   "stratum": "aspect_east",
+   "growing_window": "mar_jun",
+   "rainfall_window": "sep_may",
+   "status": "computed",
+   "n": 26,
+   "direction": "upward"
+  },
+  {
+   "stratum": "aspect_east",
+   "growing_window": "mar_jun",
+   "rainfall_window": "nov_apr",
+   "status": "computed",
+   "n": 26,
+   "direction": "upward"
+  },
+  {
+   "stratum": "aspect_east",
+   "growing_window": "mar_may",
+   "rainfall_window": "sep_may",
+   "status": "computed",
+   "n": 25,
+   "direction": "upward"
+  },
+  {
+   "stratum": "aspect_east",
+   "growing_window": "mar_may",
+   "rainfall_window": "nov_apr",
+   "status": "computed",
+   "n": 25,
+   "direction": "includes_zero"
+  },
+  {
+   "stratum": "aspect_east",
+   "growing_window": "apr_jul",
+   "rainfall_window": "sep_may",
+   "status": "computed",
+   "n": 26,
+   "direction": "upward"
+  },
+  {
+   "stratum": "aspect_east",
+   "growing_window": "apr_jul",
+   "rainfall_window": "nov_apr",
+   "status": "precondition_not_met",
+   "n": 26,
+   "direction": "upward"
+  },
+  {
+   "stratum": "aspect_south",
+   "growing_window": "mar_jun",
+   "rainfall_window": "sep_may",
+   "status": "computed",
+   "n": 26,
+   "direction": "upward"
+  },
+  {
+   "stratum": "aspect_south",
+   "growing_window": "mar_jun",
+   "rainfall_window": "nov_apr",
+   "status": "precondition_not_met",
+   "n": 26,
+   "direction": "upward"
+  },
+  {
+   "stratum": "aspect_south",
+   "growing_window": "mar_may",
+   "rainfall_window": "sep_may",
+   "status": "computed",
+   "n": 25,
+   "direction": "upward"
+  },
+  {
+   "stratum": "aspect_south",
+   "growing_window": "mar_may",
+   "rainfall_window": "nov_apr",
+   "status": "computed",
+   "n": 25,
+   "direction": "upward"
+  },
+  {
+   "stratum": "aspect_south",
+   "growing_window": "apr_jul",
+   "rainfall_window": "sep_may",
+   "status": "precondition_not_met",
+   "n": 26,
+   "direction": "upward"
+  },
+  {
+   "stratum": "aspect_south",
+   "growing_window": "apr_jul",
+   "rainfall_window": "nov_apr",
+   "status": "precondition_not_met",
+   "n": 26,
+   "direction": "upward"
+  },
+  {
+   "stratum": "aspect_west",
+   "growing_window": "mar_jun",
+   "rainfall_window": "sep_may",
+   "status": "computed",
+   "n": 25,
+   "direction": "upward"
+  },
+  {
+   "stratum": "aspect_west",
+   "growing_window": "mar_jun",
+   "rainfall_window": "nov_apr",
+   "status": "precondition_not_met",
+   "n": 25,
+   "direction": "upward"
+  },
+  {
+   "stratum": "aspect_west",
+   "growing_window": "mar_may",
+   "rainfall_window": "sep_may",
+   "status": "computed",
+   "n": 21,
+   "direction": "includes_zero"
+  },
+  {
+   "stratum": "aspect_west",
+   "growing_window": "mar_may",
+   "rainfall_window": "nov_apr",
+   "status": "computed",
+   "n": 21,
+   "direction": "includes_zero"
+  },
+  {
+   "stratum": "aspect_west",
+   "growing_window": "apr_jul",
+   "rainfall_window": "sep_may",
+   "status": "computed",
+   "n": 26,
+   "direction": "upward"
+  },
+  {
+   "stratum": "aspect_west",
+   "growing_window": "apr_jul",
+   "rainfall_window": "nov_apr",
+   "status": "precondition_not_met",
+   "n": 26,
+   "direction": "upward"
+  },
+  {
+   "stratum": "aspect_level",
+   "growing_window": "mar_jun",
+   "rainfall_window": "sep_may",
+   "status": "precondition_not_met",
+   "n": 26,
+   "direction": "upward"
+  },
+  {
+   "stratum": "aspect_level",
+   "growing_window": "mar_jun",
+   "rainfall_window": "nov_apr",
+   "status": "precondition_not_met",
+   "n": 26,
+   "direction": "upward"
+  },
+  {
+   "stratum": "aspect_level",
+   "growing_window": "mar_may",
+   "rainfall_window": "sep_may",
+   "status": "computed",
+   "n": 26,
+   "direction": "upward"
+  },
+  {
+   "stratum": "aspect_level",
+   "growing_window": "mar_may",
+   "rainfall_window": "nov_apr",
+   "status": "computed",
+   "n": 26,
+   "direction": "upward"
+  },
+  {
+   "stratum": "aspect_level",
+   "growing_window": "apr_jul",
+   "rainfall_window": "sep_may",
+   "status": "precondition_not_met",
+   "n": 26,
+   "direction": "upward"
+  },
+  {
+   "stratum": "aspect_level",
+   "growing_window": "apr_jul",
+   "rainfall_window": "nov_apr",
+   "status": "precondition_not_met",
+   "n": 26,
+   "direction": "upward"
+  }
+ ],
+ "composites_absent_on_planetary_computer": [
+  {
+   "growing_window": "apr_jul",
+   "year": 2025,
+   "periods": [
+    "2025-04-07",
+    "2025-04-23",
+    "2025-05-09",
+    "2025-05-25",
+    "2025-06-10",
+    "2025-06-26",
+    "2025-07-12",
+    "2025-07-28"
+   ],
+   "absent_on_planetary_computer": [
+    "2025-07-12",
+    "2025-07-28"
+   ]
+  }
+ ],
+ "archive_gaps": "2 composite periods absent from Planetary Computer (A2025193, A2025209); on 2026-10-28 NASA CMR listed 2 of them (held by the NASA archive, which needs an Earthdata login, not used).",
+ "full_tables": "restrend-long-record-tables.json",
+ "limitations": [
+  "The rainfall-adjusted residual still holds everything else that changes greenness: temperature, snow, irrigation, orchards and fields, grazing, fire, and sensor or orbit changes. It is not a measure of grazing impact or of degradation.",
+  "Trend methods can miss real change: in simulations for southern Africa, 30 to 40% degradation was needed before a trend showed under a rainfall-driven increase, and the residual method broke down at about 20% degradation (Wessels et al. 2012). An interval that includes zero is not evidence of no change.",
+  "Each 250 m MODIS pixel mixes surfaces; stratum values weight pixels by how much of the stratum falls inside them, so a mixed pixel counts toward more than one stratum.",
+  "Rainfall comes from 5 km CHIRPS grid cells, not from gauges in the valley, and snowfall is counted with rain.",
+  "Each stratum and window pair has its own interval. With many shown together, some intervals will exclude zero by chance alone.",
+  "Terra's overpass has drifted earlier since 2020, from 10:30 to about 9:06 mean local time by December 2025 (NASA): later seasons are seen with a lower sun and longer shadows in mountain terrain, which may shift NDVI without any change on the ground.",
+  "The windows were fixed before the MODIS values were read; other windows can give other slopes, which is why all registered windows are stored together."
+ ]
+}

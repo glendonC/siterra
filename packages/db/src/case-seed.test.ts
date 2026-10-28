@@ -39,7 +39,19 @@ describe("the case seed in data/case/", () => {
     const { seed, issues } = readCaseSeed(args);
     expect(issues).toEqual([]);
     expect(seed?.sources).toHaveLength(14);
-    expect(seed?.bundles.length).toBeGreaterThan(0);
+    expect(seed?.bundles.map((b) => b.dataBundle.id).sort()).toEqual([
+      "bundle_aligned_antecedent_ait_bouguemez",
+      "bundle_chirps_monthly_ait_bouguemez",
+      "bundle_coverage_summary_ait_bouguemez",
+      "bundle_ndvi_departure_ait_bouguemez",
+      "bundle_pixel_trend_long_record_ait_bouguemez",
+      "bundle_restrend_long_record_ait_bouguemez",
+      "bundle_s2_ndvi_monthly_ait_bouguemez",
+      "bundle_season_summary_ait_bouguemez",
+      "bundle_season_trend_long_record_ait_bouguemez",
+      "bundle_snow_cover_by_band_ait_bouguemez",
+      "bundle_terrain_strata_ait_bouguemez",
+    ]);
   });
 
   it("takes the case words from the case object of case.json, unchanged", () => {
