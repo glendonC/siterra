@@ -5,6 +5,7 @@ import type { Pool } from "./client.ts";
 import { applyCommit } from "./commit.ts";
 import { eventsAfter } from "./events.ts";
 import { consultationCondition, recordReview } from "./reviews.ts";
+import { readSnapshot } from "./snapshot.ts";
 import { type TestDatabase, freshDatabase } from "./test-database.ts";
 import { at, exampleCase, exampleCommit } from "./test-records.ts";
 
@@ -29,7 +30,7 @@ function action(revision: number): OperationalAction {
     interventionIds: [],
     dependsOnActionIds: [],
     resourceRequirementIds: [],
-    requiredReviewRoles: ["scientific", "community_livelihood"],
+    requiredReviewRoles: ["scientific", "community_livelihood", "program_coordination"],
     reviewDecisionIds: [],
     authorizationMode: "demo_only",
     externalExecutionEnabled: false,
@@ -170,5 +171,60 @@ describe("stale versions and retries", () => {
       }),
     );
     expect(current.status).toBe("created");
+  });
+});
+
+describe("SA-03 (action part): an action is prepared only when its completable reviews approve it", () => {
+  it("stays awaiting review while program review is missing, then is prepared (demo) with consultation outstanding", async () => {
+    const other = exampleCase("case_example_prepare");
+    await createCase(pool, other, owner);
+    const plan = {
+      ...action(1),
+      caseId: other.id,
+      requiredReviewRoles: ["scientific", "community_livelihood", "program_coordination"] as const,
+    };
+    await applyCommit(
+      pool,
+      exampleCommit(other, {
+        id: "commit_example_prepare",
+        expected: 1,
+        upserts: [{ ...plan, requiredReviewRoles: [...plan.requiredReviewRoles] }],
+      }),
+    );
+    const decide = (key: string, overrides: Partial<ReviewRequest>) =>
+      recordReview(pool, {
+        caseId: other.id,
+        ownerScopeId: owner,
+        request: review(key, overrides),
+      });
+
+    expect((await decide("prepare-0001", {})).status).toBe("created");
+    let snapshot = await readSnapshot(pool, other.id, owner);
+    expect(snapshot?.records.operationalActionRecords.map((a) => [a.revision, a.status])).toEqual([
+      [1, "awaiting_review"],
+    ]);
+    expect(snapshot?.case.revision).toBe(2);
+
+    expect(
+      (await decide("prepare-0002", { role: "community_livelihood", decision: "deferred" })).status,
+    ).toBe("created");
+    const program = await decide("prepare-0003", { role: "program_coordination" });
+    expect(program.status).toBe("created");
+    snapshot = await readSnapshot(pool, other.id, owner);
+    const prepared = snapshot?.records.operationalActionRecords[0];
+    expect([prepared?.revision, prepared?.status, snapshot?.case.revision]).toEqual([
+      2,
+      "prepared",
+      3,
+    ]);
+    expect(prepared?.remainingConditions).toEqual([
+      "Community consultation outstanding",
+      "Local consultation required",
+    ]);
+    expect(prepared?.reviewDecisionIds).toHaveLength(3);
+    expect(prepared?.externalExecutionEnabled).toBe(false);
+
+    const late = await decide("prepare-0004", { decision: "changes_requested" });
+    expect(late.status).toBe("stale");
   });
 });

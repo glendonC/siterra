@@ -2,13 +2,16 @@
 // written: a person with a session records one role's decision on exact entity versions at the
 // current case revision. Task commits cannot write one (commit.ts, review_not_permitted).
 import {
+  EnvironmentalCase,
   type EntityVersion,
+  type OperationalAction,
   ReviewDecision,
   type ReviewRequest,
   type ValidationResult,
 } from "@siterra/contracts";
 import { canonicalJson, eventMessages, newId, sha256Hex } from "@siterra/domain";
-import { type Pool, inTransaction, lockCase, notifyEvents } from "./client.ts";
+import { preparedAction } from "./action-status.ts";
+import { type Pool, type Tx, inTransaction, lockCase, notifyEvents } from "./client.ts";
 import { insertEvents, setLastSequence } from "./events.ts";
 
 type Decision = ReviewRequest["decision"];
@@ -149,9 +152,38 @@ export async function recordReview(
        values ($1, $2, 1, $3, $4, $5)`,
       [caseId, decision.id, request.idempotencyKey, requestHash, JSON.stringify(decision)],
     );
+    // Recompute the action: when this decision completes its reviews, the action becomes prepared
+    // in a new case revision, inside this transaction.
+    const prepared =
+      decision.actionId === null
+        ? null
+        : await prepareActionIfReviewed(tx, caseId, decision.actionId, now);
+    let caseRevision = locked.revision;
+    if (prepared !== null) {
+      caseRevision = locked.revision + 1;
+      const caseRecord = EnvironmentalCase.parse({
+        ...(locked.record as EnvironmentalCase),
+        revision: caseRevision,
+        updatedAt: now,
+      });
+      await tx.query(
+        `insert into records (case_id, entity_id, revision, record_type, record, commit_id, case_revision)
+         values ($1, $2, $3, 'OperationalAction', $4, null, $5)`,
+        [caseId, prepared.id, prepared.revision, JSON.stringify(prepared), caseRevision],
+      );
+      await tx.query(
+        "update cases set revision = $2, record = $3, updated_at = now() where id = $1",
+        [caseId, caseRevision, JSON.stringify(caseRecord)],
+      );
+      await tx.query("insert into case_revisions (case_id, revision, record) values ($1, $2, $3)", [
+        caseId,
+        caseRevision,
+        JSON.stringify(caseRecord),
+      ]);
+    }
     const { lastSequence } = await insertEvents(
       tx,
-      locked,
+      { ...locked, revision: caseRevision },
       [
         {
           occurredAt: now,
@@ -169,10 +201,43 @@ export async function recordReview(
           parentSpanId: null,
         },
       ],
-      locked.revision,
+      caseRevision,
     );
     await setLastSequence(tx, caseId, lastSequence);
     await notifyEvents(tx, caseId);
     return { status: "created", decision };
   });
+}
+
+/** Writes nothing; returns the action's prepared revision when its reviews are complete, else null. */
+async function prepareActionIfReviewed(
+  tx: Tx,
+  caseId: string,
+  actionId: string,
+  now: string,
+): Promise<OperationalAction | null> {
+  const latest = await tx.query<{ record: OperationalAction }>(
+    `select distinct on (entity_id) record from records
+     where case_id = $1 and record_type = 'OperationalAction'
+     order by entity_id, revision desc`,
+    [caseId],
+  );
+  const actions = new Map(latest.rows.map((row) => [row.record.id, row.record]));
+  const action = actions.get(actionId);
+  if (action === undefined) {
+    return null;
+  }
+  const decisions = await tx.query<{ record: ReviewDecision }>(
+    `select record from (
+       select distinct on (entity_id) record from review_records
+       where case_id = $1 order by entity_id, revision desc
+     ) latest where record ->> 'actionId' = $2`,
+    [caseId, actionId],
+  );
+  return preparedAction(
+    action,
+    decisions.rows.map((row) => row.record),
+    new Map([...actions.values()].map((a) => [a.id, a.status])),
+    now,
+  );
 }
