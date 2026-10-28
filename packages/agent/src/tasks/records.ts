@@ -2,9 +2,11 @@ import type {
   DataBundle,
   EntityVersion as ContractEntityVersion,
   Evidence,
+  Hypothesis,
   Measurement,
   Provenance as ContractProvenance,
   SourceLocator as ContractSourceLocator,
+  Relationship,
   Task,
   Uncertainty as ContractUncertainty,
 } from "@siterra/contracts";
@@ -24,6 +26,8 @@ export type DataBundleRecord = DataBundle;
 export type MeasurementRecord = Measurement;
 export type ClaimKind = Evidence["claimKind"];
 export type EvidenceRecord = Evidence;
+export type HypothesisRecord = Hypothesis;
+export type RelationshipRecord = Relationship;
 
 /**
  * What a task hands to the commit API: upserts and events applied in one transaction against
@@ -36,6 +40,6 @@ export interface CommitDraft {
   expectedCaseRevision: number;
   idempotencyKey: string;
   inputVersions: EntityVersion[];
-  upserts: (TaskRecord | EvidenceRecord)[];
+  upserts: (TaskRecord | EvidenceRecord | HypothesisRecord | RelationshipRecord)[];
   events: TraceEventDraft[];
 }

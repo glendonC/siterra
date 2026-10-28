@@ -1,4 +1,10 @@
-import type { CommitDraft, EvidenceRecord, TaskRecord } from "./records.ts";
+import type {
+  CommitDraft,
+  EvidenceRecord,
+  HypothesisRecord,
+  RelationshipRecord,
+  TaskRecord,
+} from "./records.ts";
 
 // The commit boundary the worker calls (docs/reference/data-contracts.md#idempotency-revisions-and-recovery).
 // PLATFORM's commit transaction implements it over PostgreSQL; MemoryCommitApi is the test double
@@ -17,6 +23,8 @@ export class MemoryCommitApi implements CommitApi {
   caseRevision: number;
   readonly tasks = new Map<string, TaskRecord>();
   readonly evidence = new Map<string, EvidenceRecord>();
+  readonly hypotheses = new Map<string, HypothesisRecord>();
+  readonly relationships = new Map<string, RelationshipRecord>();
   readonly events: (CommitDraft["events"][number] & { sequence: number; caseRevision: number })[] =
     [];
   readonly #applied = new Map<string, { newCaseRevision: number; entityIds: string[] }>();
@@ -35,7 +43,9 @@ export class MemoryCommitApi implements CommitApi {
     const entityIds: string[] = [];
     for (const record of draft.upserts) {
       if (record.recordType === "Task") this.tasks.set(record.id, record);
-      else this.evidence.set(record.id, record);
+      else if (record.recordType === "Evidence") this.evidence.set(record.id, record);
+      else if (record.recordType === "Hypothesis") this.hypotheses.set(record.id, record);
+      else this.relationships.set(record.id, record);
       entityIds.push(record.id);
     }
     for (const event of draft.events) {

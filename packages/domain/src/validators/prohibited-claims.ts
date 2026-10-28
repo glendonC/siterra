@@ -20,7 +20,7 @@ export const PROHIBITED_RULES: readonly ProhibitedRule[] = [
   {
     id: "causal",
     pattern:
-      /\b(?:caused by|because of|due to|driven by|attributable to|as a result of|led to|leads to|results? from)\b/i,
+      /\b(?:caused(?: by)?|because of|due to|driven by|attributable to|as a result of|led to|leads to|results? from)\b/i,
     reason: "attributes a cause",
   },
   {

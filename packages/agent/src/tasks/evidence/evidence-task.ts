@@ -39,6 +39,10 @@ export interface EvidenceTaskDeps {
   store: CaseStore;
   tools: ToolRegistry;
   newEvidenceId: () => string;
+  /** IDs for other records a task writes (hyp_, int_ and the like); falls back to newEvidenceId's suffix. */
+  newRecordId?: (prefix: string) => string;
+  /** Accepted evidence committed earlier in this command, which the job-start store does not hold. */
+  committedEvidence?: readonly EvidenceRecord[];
   now: () => Date;
   model?: string;
   signal?: AbortSignal;

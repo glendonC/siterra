@@ -23,8 +23,9 @@ const PLAN = {
   tasks: [
     {
       key: "a",
-      kind: "hypothesis_comparison",
-      question: "Which explanations fit?",
+      // Two kinds with no executor yet, so this test covers the executor_not_available path.
+      kind: "intervention_feasibility",
+      question: "Which responses could be prepared?",
       dependsOn: [],
       inputRefs: [],
     },

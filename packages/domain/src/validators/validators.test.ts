@@ -136,6 +136,11 @@ describe("prohibited claims", () => {
     ]);
   });
 
+  it('the causal rule catches "caused" on its own (a60)', () => {
+    expect(prohibitedHits("Grazing caused the decline.")[0]?.ruleId).toBe("causal");
+    expect(prohibitedHits("The decline was caused by grazing.")[0]?.ruleId).toBe("causal");
+  });
+
   it("passes a plain observation", () => {
     expect(prohibitedHits("The April 2022 area median was 0.1439, with snow suspected.")).toEqual(
       [],

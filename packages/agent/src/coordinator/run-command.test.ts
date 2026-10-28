@@ -177,6 +177,26 @@ function routes(plan: ReplayStep[] = [answerStep(JSON.stringify(PLAN))]): Routin
         ),
       ]),
     ],
+    [
+      "You compare candidate explanations",
+      syntheticTransport([
+        answerStep(
+          JSON.stringify({
+            items: [
+              {
+                hypothesisId: null,
+                statement: "Lower spring rainfall reduced vegetation greenness in the catchment.",
+                status: "inconclusive",
+                supportingEvidenceIds: [],
+                contradictingEvidenceIds: [],
+                missingEvidence: ["Grazing records by month."],
+                assessment: "Cannot be assessed with current data: grazing records are missing.",
+              },
+            ],
+          }),
+        ),
+      ]),
+    ],
   ]);
 }
 
@@ -206,7 +226,7 @@ function deps(
 }
 
 describe("runCommand on synthetic replays", () => {
-  it("plans four tasks, runs the three with executors at most two model calls at a time, and ends every task", async () => {
+  it("plans four tasks, runs them at most two model calls at a time, and ends every task", async () => {
     const transport = routes();
     const { deps: d, commits, events } = deps(transport);
     const outcome = await runCommand(
@@ -214,15 +234,15 @@ describe("runCommand on synthetic replays", () => {
       d,
     );
 
-    expect(outcome.status).toBe("partial");
+    expect(outcome.status).toBe("succeeded");
     expect(outcome.stopReason).toBeNull();
     const byKind = new Map(outcome.tasks.map((t) => [t.kind, t]));
     expect(byKind.get("source_research")?.status).toBe("succeeded");
     expect(byKind.get("observation_analysis")?.status).toBe("succeeded");
     expect(byKind.get("livelihood_governance")?.status).toBe("succeeded");
     expect(byKind.get("hypothesis_comparison")).toMatchObject({
-      status: "failed",
-      failureCode: "executor_not_available",
+      status: "succeeded",
+      failureCode: null,
     });
     expect(
       outcome.tasks.every((t) =>
@@ -234,7 +254,8 @@ describe("runCommand on synthetic replays", () => {
     expect(commits.caseRevision).toBe(3 + 1 + 4);
     expect(outcome.caseRevision).toBe(commits.caseRevision);
     expect(commits.evidence.size).toBe(4);
-    expect(events.filter((e) => e.kind === "task.started")).toHaveLength(3);
+    expect(commits.hypotheses.size).toBe(1);
+    expect(events.filter((e) => e.kind === "task.started")).toHaveLength(4);
     expect(
       events
         .filter((e) => e.kind === "model.completed")

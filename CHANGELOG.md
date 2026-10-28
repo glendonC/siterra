@@ -51,6 +51,7 @@ Contracts and design tokens carry their own Semantic Versioning numbers, recorde
 - Analysis tools for the agent: `compare_series` (only the departure series the aligned_antecedent recipe names, on shared periods and the same area revision, with the fixed 0 to 3 month antecedent windows and no causal statistic), `read_evidence`, `list_recipes` (blocked with a reason when no validated result exists) and `read_recipe_result` (labelled "precomputed analysis").
 - Case assets on the application origin: `GET /api/case-assets/{bundleId}/{contentHash}/{path}` serves the files a validated bundle lists, hash-addressed by the bundle's content hash, only to a session whose cases hold that bundle, each file checked against its listed checksum, with byte ranges (206 and 416) and immutable caching.
 - A synthetic replay of one commission of the seed case in `apps/worker/fixtures/seed-commission.synthetic.replay.json` (origin "synthetic", zero usage, no model ran), for running the slice offline in concept mode; its two answers quote stored bundle values with their measurement IDs, and replay steps can match their request so concurrent tasks replay deterministically.
+- The hypothesis_comparison task: hypotheses with supporting, contradicting and missing evidence and a status word, relationships written by host code at exact revisions, no probabilities and no ranking of explanations; only the hypothesis statement may name a cause, and every number comes from the cited evidence.
 
 ### Changed
 

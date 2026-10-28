@@ -2,15 +2,12 @@ import { MetaAdapter } from "../model/adapter.ts";
 import type { AdapterOptions } from "../model/adapter.ts";
 import type { ModelTransport } from "../model/transport.ts";
 import type { CommitApi, CommitOutcome } from "../tasks/commit.ts";
-import type {
-  EvidenceTaskDeps,
-  EvidenceTaskInput,
-  EvidenceTaskResult,
-} from "../tasks/evidence/evidence-task.ts";
+import type { EvidenceTaskDeps, EvidenceTaskInput } from "../tasks/evidence/evidence-task.ts";
 import { runObservationTask } from "../tasks/observation/observation-task.ts";
 import { runPlanTask } from "../tasks/plan/plan-task.ts";
 import type { PlanSnapshot } from "../tasks/plan/prompt.ts";
-import type { CommitDraft, TaskRecord } from "../tasks/records.ts";
+import { runHypothesisTask } from "../tasks/hypothesis/hypothesis-task.ts";
+import type { CommitDraft, EvidenceRecord, TaskRecord } from "../tasks/records.ts";
 import { runLivelihoodTask, runSourceResearchTask } from "../tasks/source/source-task.ts";
 import type { TraceEventDraft, TraceSink } from "../tasks/trace.ts";
 import { caseToolRegistry, SEARCHES_PER_COMMAND } from "../tools/registry.ts";
@@ -23,16 +20,18 @@ import type { CommandLimits } from "./limits.ts";
 // wall clock. Commits are serial per case. Nothing here decides a result: executors propose, host
 // validators accept or reject, and the commit API writes.
 
+/** Runs one task and returns its commit draft; the coordinator commits it. */
 export type TaskExecutor = (
   input: EvidenceTaskInput,
   deps: EvidenceTaskDeps,
-) => Promise<EvidenceTaskResult>;
+) => Promise<{ commit: CommitDraft }>;
 
 /** Task kinds with an executor in this build; the others end as failed with `executor_not_available`. */
 export const EXECUTORS: Partial<Record<TaskRecord["kind"], TaskExecutor>> = {
   observation_analysis: runObservationTask,
   source_research: runSourceResearchTask,
   livelihood_governance: runLivelihoodTask,
+  hypothesis_comparison: runHypothesisTask,
 };
 
 export type CommandStatus = "succeeded" | "partial" | "failed" | "cancelled";
@@ -65,6 +64,8 @@ export interface RunCommandDeps {
   trace: TraceSink;
   newTaskId: () => string;
   newEvidenceId: () => string;
+  /** IDs for other records (hyp_ and the like); optional. */
+  newRecordId?: (prefix: string) => string;
   now: () => Date;
   limits?: CommandLimits;
   executors?: Partial<Record<TaskRecord["kind"], TaskExecutor>>;
@@ -248,6 +249,7 @@ export async function runCommand(
     tasks.set(task.id, outcome.status === "stale" ? { ...task, status, failureCode } : after);
   };
 
+  const committedEvidence: EvidenceRecord[] = [];
   const runOne = async (task: TaskRecord): Promise<void> => {
     const executor = executors[task.kind];
     if (!executor) {
@@ -267,7 +269,11 @@ export async function runCommand(
     deps.trace.emit(
       taskEvent(running, "task.started", at, `Task started: ${task.kind.replaceAll("_", " ")}.`),
     );
-    let result: EvidenceTaskResult;
+    // Evidence the task's dependencies committed in this command; the job-start store lacks it.
+    const fromDependencies = new Set(
+      task.dependsOnTaskIds.flatMap((id) => tasks.get(id)?.outputEntityIds ?? []),
+    );
+    let result: { commit: CommitDraft };
     try {
       result = await executor(
         { task: running, expectedCaseRevision: caseRevision },
@@ -277,6 +283,8 @@ export async function runCommand(
           store: deps.store,
           tools,
           newEvidenceId: deps.newEvidenceId,
+          ...(deps.newRecordId ? { newRecordId: deps.newRecordId } : {}),
+          committedEvidence: committedEvidence.filter((e) => fromDependencies.has(e.id)),
           now: deps.now,
           signal: controller.signal,
         },
@@ -293,6 +301,10 @@ export async function runCommand(
       return;
     }
     tasks.set(task.id, after);
+    for (const record of result.commit.upserts) {
+      if (record.recordType === "Evidence" && record.status === "accepted")
+        committedEvidence.push(record);
+    }
   };
 
   // Run tasks as their dependencies finish; a failed dependency fails its dependents.
