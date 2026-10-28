@@ -26,6 +26,10 @@
     {
       "name": "trace",
       "description": "Sanitized spans and events for the trace inspector."
+    },
+    {
+      "name": "sessions",
+      "description": "Demo sessions: an isolated, expiring copy of the seed case per visitor."
     }
   ],
   "security": [
@@ -387,6 +391,60 @@
           },
           "404": {
             "$ref": "#/components/responses/NotFound"
+          },
+          "default": {
+            "$ref": "#/components/responses/Unexpected"
+          }
+        }
+      }
+    },
+    "/api/demo-sessions": {
+      "post": {
+        "operationId": "startDemoSession",
+        "tags": [
+          "sessions"
+        ],
+        "summary": "Start a demo session",
+        "description": "Creates a session on an isolated copy of the seed case and sets the __Host-session cookie. The copy and the session expire together; expired copies are deleted when a later session starts. Commands on a demo case count against a per-session quota and answer 429 (code quota_exhausted) beyond it. Accepted only from the application origin. No account, credential or personal data is involved.",
+        "security": [],
+        "responses": {
+          "201": {
+            "description": "Session started; the cookie carries the session and the body names the case copy.",
+            "headers": {
+              "Set-Cookie": {
+                "description": "__Host-session=<token>; Path=/; Secure; HttpOnly; SameSite=Lax; Max-Age equal to the session lifetime.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DemoSession"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The request did not come from the application origin (code unauthenticated).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many demo sessions are active (code quota_exhausted).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
           },
           "default": {
             "$ref": "#/components/responses/Unexpected"
@@ -788,6 +846,30 @@
           "issues": {
             "$ref": "case.schema.json#/$defs/ValidationResult/properties/issues",
             "description": "Present for invalid_request, stale_versions and decision_not_permitted."
+          }
+        }
+      },
+      "DemoSession": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "caseId",
+          "expiresAt",
+          "commandQuota"
+        ],
+        "properties": {
+          "caseId": {
+            "$ref": "case.schema.json#/$defs/Command/properties/caseId",
+            "description": "The isolated copy of the seed case this session owns."
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "commandQuota": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Commands this session may submit."
           }
         }
       }

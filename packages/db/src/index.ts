@@ -3,6 +3,7 @@ export * from "./cases.ts";
 export * from "./client.ts";
 export * from "./commands.ts";
 export * from "./commit.ts";
+export * from "./demo-sessions.ts";
 export * from "./events.ts";
 export * from "./listener.ts";
 export * from "./migrate.ts";

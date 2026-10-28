@@ -7,6 +7,7 @@ export type SubmitOutcome =
   | { status: "created"; command: Command }
   | { status: "existing"; command: Command }
   | { status: "key_reused" }
+  | { status: "quota_exhausted" }
   | { status: "revision_ahead"; currentRevision: number }
   | { status: "not_found" };
 
@@ -22,7 +23,14 @@ export const planJobKey = (commandId: string) => `plan:${commandId}`;
  */
 export async function submitCommand(
   pool: Pool,
-  args: { caseId: string; ownerScopeId: string; request: CommandRequest; now?: Date },
+  args: {
+    caseId: string;
+    ownerScopeId: string;
+    request: CommandRequest;
+    /** Commands the case may hold (demo sessions); a repeated key still returns its command. */
+    maxCommands?: number | null;
+    now?: Date;
+  },
 ): Promise<SubmitOutcome> {
   const { caseId, ownerScopeId, request } = args;
   const now = (args.now ?? new Date()).toISOString();
@@ -41,6 +49,15 @@ export async function submitCommand(
       return found.request_hash === requestHash
         ? { status: "existing", command: found.record }
         : { status: "key_reused" };
+    }
+    if (args.maxCommands !== undefined && args.maxCommands !== null) {
+      const held = await tx.query<{ n: string }>(
+        "select count(*) as n from commands where case_id = $1",
+        [caseId],
+      );
+      if (Number(held.rows[0]?.n) >= args.maxCommands) {
+        return { status: "quota_exhausted" };
+      }
     }
     if (
       request.expectedCaseRevision > locked.revision ||

@@ -1,4 +1,4 @@
-import { sessionCookieName, sessionOwner } from "@siterra/db";
+import { type SessionInfo, sessionCookieName, sessionInfo } from "@siterra/db";
 import { database } from "./database.ts";
 
 function cookieValue(header: string | null, name: string): string | null {
@@ -15,20 +15,29 @@ function cookieValue(header: string | null, name: string): string | null {
 }
 
 /**
- * The owner scope of the request's session, or null. In development only, and only when
- * SITERRA_DEV_OWNER_SCOPE is set, a request without a session cookie acts as that owner, so the
- * workspace runs locally before session issuance exists.
+ * The request's session, or null. In development only, and only when SITERRA_DEV_OWNER_SCOPE is
+ * set, a request without a session cookie acts as that owner with a local session.
  */
-export async function requestOwner(request: Request): Promise<string | null> {
+export async function requestSession(request: Request): Promise<SessionInfo | null> {
   const token = cookieValue(request.headers.get("cookie"), sessionCookieName);
   if (token !== null && token !== "") {
-    return sessionOwner(database(), token);
+    return sessionInfo(database(), token);
   }
   const devOwner = process.env["SITERRA_DEV_OWNER_SCOPE"];
   if (process.env.NODE_ENV === "development" && devOwner !== undefined && devOwner !== "") {
-    return devOwner;
+    return { ownerScopeId: devOwner, kind: "local" };
   }
   return null;
+}
+
+/** The owner scope of the request's session, or null. */
+export async function requestOwner(request: Request): Promise<string | null> {
+  return (await requestSession(request))?.ownerScopeId ?? null;
+}
+
+/** The Set-Cookie value for a session token (openapi.json, sessionCookie). */
+export function sessionCookie(token: string, maxAgeSeconds: number): string {
+  return `${sessionCookieName}=${token}; Path=/; Secure; HttpOnly; SameSite=Lax; Max-Age=${maxAgeSeconds}`;
 }
 
 /**

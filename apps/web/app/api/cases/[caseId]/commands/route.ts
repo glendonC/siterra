@@ -2,7 +2,8 @@ import { CommandRequest } from "@siterra/contracts";
 import { submitCommand } from "@siterra/db";
 import { database } from "../../../database.ts";
 import { json, problem, schemaIssues } from "../../../problem.ts";
-import { fromApplicationOrigin, requestOwner } from "../../../session.ts";
+import { demoConfig } from "../../../demo-config.ts";
+import { fromApplicationOrigin, requestSession } from "../../../session.ts";
 
 export const dynamic = "force-dynamic";
 
@@ -15,10 +16,11 @@ export async function POST(
   context: { params: Promise<{ caseId: string }> },
 ): Promise<Response> {
   const { caseId } = await context.params;
-  const owner = fromApplicationOrigin(request) ? await requestOwner(request) : null;
-  if (owner === null) {
+  const session = fromApplicationOrigin(request) ? await requestSession(request) : null;
+  if (session === null) {
     return problem(401, "unauthenticated");
   }
+  const owner = session.ownerScopeId;
   let body: unknown;
   try {
     body = await request.json();
@@ -33,12 +35,15 @@ export async function POST(
     caseId,
     ownerScopeId: owner,
     request: parsed.data,
+    maxCommands: session.kind === "demo" ? demoConfig().commandQuota : null,
   });
   switch (outcome.status) {
     case "created":
       return json(outcome.command, 202);
     case "existing":
       return json(outcome.command, 200);
+    case "quota_exhausted":
+      return problem(429, "quota_exhausted", "This demo session has used its commands");
     case "key_reused":
       return problem(422, "idempotency_key_reused");
     case "revision_ahead":

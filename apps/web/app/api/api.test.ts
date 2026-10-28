@@ -12,6 +12,7 @@ import type * as SnapshotRoute from "./cases/[caseId]/route.ts";
 import type * as CommandsRoute from "./cases/[caseId]/commands/route.ts";
 import type * as EventsRoute from "./cases/[caseId]/events/route.ts";
 import type * as CancelRoute from "./commands/[commandId]/cancel/route.ts";
+import type * as DemoRoute from "./demo-sessions/route.ts";
 
 let db: TestDatabase;
 let pool: Pool;
@@ -25,6 +26,7 @@ type Routes = {
   commands: typeof CommandsRoute;
   events: typeof EventsRoute;
   cancel: typeof CancelRoute;
+  demo: typeof DemoRoute;
 };
 let routes: Routes;
 
@@ -44,6 +46,7 @@ beforeAll(async () => {
     commands: await import("./cases/[caseId]/commands/route.ts"),
     events: await import("./cases/[caseId]/events/route.ts"),
     cancel: await import("./commands/[commandId]/cancel/route.ts"),
+    demo: await import("./demo-sessions/route.ts"),
   };
   await createCase(pool, exampleCase(caseId), owner);
   cookie = `${sessionCookieName}=${await createSession(pool, { ownerScopeId: owner, kind: "local", ttlSeconds: 3600 })}`;
@@ -274,5 +277,46 @@ describe("RL-03: the stream recovers when the LISTEN connection drops", () => {
     const started = Date.now();
     await readUntil(response, [last + 1], 8000);
     expect(Date.now() - started).toBeLessThan(8000);
+  });
+});
+
+describe("POST /api/demo-sessions", () => {
+  it("answers 201 with a session cookie whose case copy the next request can read", async () => {
+    process.env["SITERRA_SEED_CASE_ID"] = caseId;
+    process.env["SITERRA_SEED_OWNER_SCOPE"] = owner;
+    const started = await routes.demo.POST(
+      new Request(`${origin}/api/demo-sessions`, {
+        method: "POST",
+        headers: { origin, host: new URL(origin).host },
+      }),
+    );
+    expect(started.status).toBe(201);
+    const setCookie = started.headers.get("set-cookie") ?? "";
+    expect(setCookie).toMatch(
+      /^__Host-session=[A-Za-z0-9_-]+; Path=\/; Secure; HttpOnly; SameSite=Lax; Max-Age=86400$/,
+    );
+    const body = (await started.json()) as { caseId: string; commandQuota: number };
+    expect(body.commandQuota).toBe(20);
+    const demoCookie = setCookie.split(";")[0] ?? "";
+    const snapshot = await routes.snapshot.GET(
+      get(`/api/cases/${body.caseId}`, { cookie: demoCookie }),
+      params({ caseId: body.caseId }),
+    );
+    expect(snapshot.status).toBe(200);
+    const original = await routes.snapshot.GET(
+      get(`/api/cases/${caseId}`, { cookie: demoCookie }),
+      params({ caseId }),
+    );
+    expect(original.status).toBe(404);
+  });
+
+  it("answers 401 from another origin", async () => {
+    const response = await routes.demo.POST(
+      new Request(`${origin}/api/demo-sessions`, {
+        method: "POST",
+        headers: { origin: "https://elsewhere.example", host: new URL(origin).host },
+      }),
+    );
+    expect(response.status).toBe(401);
   });
 });
