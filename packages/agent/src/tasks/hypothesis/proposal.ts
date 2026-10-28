@@ -6,6 +6,7 @@ import type { YearSpan } from "@siterra/domain/validators";
 import type { JsonSchema } from "../../model/types.ts";
 import { maskReferencePeriods, referencePeriods, unprovenMessage } from "../evidence/proposal.ts";
 import type { EvidenceRecord, HypothesisRecord, MeasurementRecord } from "../records.ts";
+import { OUT_OF_SCOPE, scopeIssues } from "../scope.ts";
 import { issue, jsonPath } from "../validation.ts";
 import type { Checked, ValidationIssue } from "../validation.ts";
 
@@ -129,6 +130,16 @@ export function validateHypothesisProposal(
       issues: [issue("limit", "$.items", `At most ${HYPOTHESIS_LIMITS.maxItems} hypotheses.`)],
     };
   }
+
+  // One out-of-scope item ends the whole proposal: no hypothesis is committed and none is repaired.
+  const outside = scopeIssues(
+    items.flatMap((item, i) => [
+      [`$.items[${i}].statement`, item.statement] as const,
+      [`$.items[${i}].assessment`, item.assessment] as const,
+      ...item.missingEvidence.map((m, k) => [`$.items[${i}].missingEvidence[${k}]`, m] as const),
+    ]),
+  );
+  if (outside.length > 0) return { ok: false, issues: outside, failureCode: OUT_OF_SCOPE };
 
   const accepted: AcceptedHypothesis[] = [];
   const issues: ValidationIssue[] = [];
