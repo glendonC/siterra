@@ -498,7 +498,7 @@ const scoredOn = (
   scores: predictions.map((p) => scorePrediction(p, r)),
 });
 
-describe("merge rules (merge@2, proposed)", () => {
+describe("merge rules (merge@2)", () => {
   it("a necessary sign prediction not met over fewer periods than the minimum does not contradict", () => {
     const merged = mergeBranches(
       [scored("branch_rainfall", [prediction("p1", metSign), prediction("p2", failedSign)])],

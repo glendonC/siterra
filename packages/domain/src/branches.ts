@@ -13,8 +13,8 @@ import type {
 
 /**
  * The merge rules a case configuration selects. merge@1 is fixed at its original parameters so
- * stored merges reproduce; merge@2 (proposed) lets a necessary departure_sign prediction
- * contradict only over at least `minPeriodsForNecessarySign` periods.
+ * stored merges reproduce; merge@2 lets a necessary departure_sign prediction contradict only
+ * over at least `minPeriodsForNecessarySign` periods.
  */
 export interface MergeRules {
   version: "merge@1" | "merge@2";

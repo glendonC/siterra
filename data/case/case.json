@@ -51,7 +51,7 @@
  },
  "recipes": {
   "registry": "science/recipes/registry.json",
-  "registrySha256": "f39b9990552a2382d3088a50b444286c57af7d3d44dd7bdb7fa7e9abeebb0b7e"
+  "registrySha256": "9cef85b221217c77bb70e8dcca6326663b6e61d871676f390477310a4440eba5"
  },
  "evaluation": {
   "goldDir": "data/case/gold/",

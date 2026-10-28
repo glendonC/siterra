@@ -29,7 +29,7 @@ A gate can stop or narrow the build; none permits an invented result. GATE-01 to
 |---|---|---|
 | Track (indie or startup) | Not decided here | Founder |
 | Whether to publish the repository during the event | Keep private until the publication gate passes ([ADR-0025](../decisions/0025-publish-by-default-and-keep-private-by-exception.md)) | Founder |
-| Whether to align the drought comparison with Trends.Earth methods | P2; list as missing evidence in P0 | Science lane after P0 |
+| Whether to align the drought comparison with Trends.Earth methods | Promoted to P0: 25-year MODIS `restrend_long_record`, `pixel_trend_long_record` and `season_trend_long_record` bundles plus `snow_cover_by_band` | Approved by the founder on 28 Oct 2026 |
 | Accent hue | 215, computed farthest from every data color; the earlier 189 sits close to the vegetation palette ([ADR-0042](../decisions/0042-compute-the-color-system-for-dark-and-light-themes.md)) | Founder |
 | Strata count | Three colored strata plus a patterned neutral; four equal strata need patterns as the main channel | Science and UI lanes |
 | Primary button label | "Start investigation", tested by PC-01; fallback "Commission the investigation" ([voice and tone](../reference/voice-and-tone.md)) | Founder after the 15-second test |
@@ -98,7 +98,7 @@ Judgments on a three-step scale (H high, M medium, L low). For complexity and th
 | Rainfall grid outline on map | M | H | M | M | L | L | L | 0.25 | M | P0 |
 | Island layout with visual budget checks (VC-04, VC-05) | H | L | H | M | M | M | L | 1 | H | P0 |
 | Views menu: overview, two obliques, time-lapse ([scenes](../reference/scenes.md)) | H | M | H | M | M | M | L | 1 | M | P0 |
-| Precomputed analysis recipes with pre-registration (P0 recipes) | H | H | M | H | M | M | M (pipeline) | 1 | H | P0 |
+| Precomputed analysis recipes with pre-registration (P0 recipes, including 25-year MODIS `restrend_long_record`, `pixel_trend_long_record`, `season_trend_long_record` and `snow_cover_by_band`) | H | H | M | H | M | M | M (pipeline) | 1 | H | P0 |
 | Evaluation harness with gold sets and Quality tab | M | H | M | H | M | L | L | 1 | M | P0 |
 | Copy lint for interface strings and model text (VC-06) | M | H | L | M | L | L | L | 0.25 | M | P0 |
 | Translation-ready strings, locale formatting, RTL smoke test (I18N-01 to I18N-04) | M | L | L | L | L | L | L | 0.5 | M | P0 |
@@ -127,7 +127,7 @@ Judgments on a three-step scale (H high, M medium, L low). For complexity and th
 | Snow tracked with Segment Anything, checked against scene classification | L | M | M | M | M | L | M (untested on satellite) | 0.5 | L | P1 experiment |
 | Muse Wonder brief critique | L | M | L | M | L | L | M (preview) | 0.5 | L | P2 |
 | Segment Anything cropland mask vs WorldCover | M | M | M | M | H | H | M | 1.5 | L | P2 |
-| Climate-corrected productivity (Trends.Earth-style) | M | H | L | L | H | M | M | 2 | L | P2 |
+| Climate-corrected productivity and 25-year MODIS long-record + snow bundles (`restrend_long_record`, `pixel_trend_long_record`, `season_trend_long_record`, `snow_cover_by_band`) | M | H | H | H | H | M | M | 2 | H | P0 |
 | Push-to-talk voice (Muse Voice Transcribe), editable transcript | L | L | M | M | M | M | M | 1 | L | P1 stretch |
 | Arabic and Tifinagh map labels | M | M | L | L | M | M | M | 0.75 | L | P2 |
 | Second case | M | M | L | L | H | M | H | 3 | L | Out |
@@ -135,13 +135,13 @@ Judgments on a three-step scale (H high, M medium, L low). For complexity and th
 
 ## Priorities
 
-**P0, essential for a credible demonstration:** one case; the island layout within its visual budget; arrival with one action; the Views menu (overview, two obliques, time-lapse); commission with live model planning; validated NDVI and rainfall bundles; geo stage with relief, area and one data raster; the Sentinel-2 true-color drape on the relief, the contours of the dive and the 3D arrival settle (MOT-01), all three in the approved hero frame; temporal strip synced with chart and map; evidence list with claim kinds and inspector; drought challenge producing a hypothesis ledger; a minimum event bundle from the FAO GIEWS archive (SCI-25) with its markers and rainfall comparison in the challenge ([ADR-0045](../decisions/0045-extend-the-meta-model-map-to-event-records-figures-and-whole-corpus-reading.md)); livelihood constraints; intervention comparison (simple table); field-validation plan; decision brief; role-specific demo review; trace list view with model badges and the usage meter; precomputed P0 analysis recipes with pre-registration; the evaluation harness and Quality tab; copy lint; translation-ready strings; persistence, reload and SSE replay; staleness on input change; honest failure states; keyboard path; reduced motion; mode label.
+**P0, essential for a credible demonstration:** one case; the island layout within its visual budget; arrival with one action; the Views menu (overview, two obliques, time-lapse); commission with live model planning; validated NDVI and rainfall bundles; geo stage with relief, area and one data raster; the Sentinel-2 true-color drape on the relief, the contours of the dive and the 3D arrival settle (MOT-01), all three in the approved hero frame; temporal strip synced with chart and map; evidence list with claim kinds and inspector; drought challenge producing a hypothesis ledger; a minimum event bundle from the FAO GIEWS archive (SCI-25) with its markers and rainfall comparison in the challenge ([ADR-0045](../decisions/0045-extend-the-meta-model-map-to-event-records-figures-and-whole-corpus-reading.md)); livelihood constraints; intervention comparison (simple table); field-validation plan; decision brief; role-specific demo review; trace list view with model badges and the usage meter; precomputed P0 analysis recipes with pre-registration (including the 25-year MODIS `restrend_long_record`, `pixel_trend_long_record` and `season_trend_long_record` bundles and `snow_cover_by_band`); the evaluation harness and Quality tab; copy lint; translation-ready strings; persistence, reload and SSE replay; staleness on input change; honest failure states; keyboard path; reduced motion; mode label.
 
 P0 source research includes reading source PDFs in their original language with Muse Spark and verifying every excerpt (TR-04); it is both scientific integrity and the strongest non-trivial use of the Meta model ([Meta capabilities used](../architecture/02-architecture-constraints.md#meta-capabilities-used)).
 
 **P1, high-value polish, only after all P0 tests pass:** the second reader on local Muse Glimmer; French interface and machine-drafted French briefs; field-protocol illustrations with Muse Image; comparable places view; model-proposed scenes; timeline context markers; French and Arabic reports added to the event bundle; a published figure placed on the valley; the sources-disagree comparison; imagery quality review with the model's image input cross-checked against scene classification, or the Segment Anything snow experiment in its place; push-to-talk voice input through Muse Voice Transcribe (stretch, same command contract, editable transcript); search grounding for new source leads; shared-element evidence travel (MOT-05, MOT-11); drawn semantic connectors (MOT-06); trace waterfall; two-period map comparison; case history read-only revision view; brief export; hover values on map rasters; layout undo.
 
-**P2, optional:** Muse Wonder critique of the brief; Segment Anything cropland mask compared with WorldCover; the forecast eligibility backtest ([ADR-0039](../decisions/0039-forecast-nothing-until-a-backtest-shows-skill.md)); climate-corrected productivity analysis aligned with Trends.Earth methods; a second case; additional languages after evaluation.
+**P2, optional:** Muse Wonder critique of the brief; Segment Anything cropland mask compared with WorldCover; the forecast eligibility backtest ([ADR-0039](../decisions/0039-forecast-nothing-until-a-backtest-shows-skill.md)); a second case; additional languages after evaluation.
 
 **Out of scope:** diagnosing overgrazing, biomass or carrying capacity; forecasts; household numbers; real outreach, payments or land decisions; tldraw or any infinite canvas; Naïve or another agent runtime; multi-tenant administration; arbitrary polygon analysis; model-generated UI code.
 
