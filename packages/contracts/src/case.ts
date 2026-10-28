@@ -403,6 +403,7 @@ export const CanvasComponent = z.strictObject({
     "trace",
     "action_package",
     "decision_brief",
+    "explanation_branches",
   ]),
   entityIds: uniqueArray(entityId).min(1),
   section: z.enum(["place", "observations", "explanations", "responses", "next_steps"]),
@@ -449,6 +450,7 @@ export const LayoutAction = z.strictObject({
       "trace",
       "action_package",
       "decision_brief",
+      "explanation_branches",
     ])
     .nullable(),
   section: z.enum(["place", "observations", "explanations", "responses", "next_steps"]).nullable(),

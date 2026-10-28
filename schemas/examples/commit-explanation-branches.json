@@ -204,6 +204,29 @@
         "verificationStatus": "unverified",
         "limitations": ["Fictional example: no branch was tested."]
       }
+    },
+    {
+      "recordType": "CanvasComponent",
+      "id": "comp_example_branches",
+      "revision": 1,
+      "createdAt": "2026-10-28T10:00:00-04:00",
+      "updatedAt": "2026-10-28T10:00:00-04:00",
+      "caseId": "case_example_atlas",
+      "componentKind": "explanation_branches",
+      "entityIds": ["branch_example_rainfall", "branch_example_grazing", "merge_example_branches"],
+      "section": "explanations",
+      "order": 0,
+      "visibility": "expanded",
+      "title": "Explanation Branches",
+      "presentationStatus": "ready",
+      "sourceCaseRevision": 7,
+      "comparisonMode": null,
+      "periodIds": [],
+      "entityVersions": [
+        { "entityId": "branch_example_rainfall", "revision": 2 },
+        { "entityId": "branch_example_grazing", "revision": 2 },
+        { "entityId": "merge_example_branches", "revision": 1 }
+      ]
     }
   ],
   "events": [

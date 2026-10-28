@@ -408,6 +408,26 @@ describe("contracts 1.10: a branch merge carries its field plan (DF-09)", () => 
     expect(BranchMerge.safeParse(before).success).toBe(true);
   });
 
+  it("an explanation_branches component binds the branches and their merge at exact revisions", () => {
+    const component = (commit["upserts"] as Json[]).find(
+      (u) => u["recordType"] === "CanvasComponent",
+    );
+    expect(component).toMatchObject({
+      componentKind: "explanation_branches",
+      section: "explanations",
+      title: "Explanation Branches",
+      entityIds: ["branch_example_rainfall", "branch_example_grazing", "merge_example_branches"],
+      entityVersions: [
+        { entityId: "branch_example_rainfall", revision: 2 },
+        { entityId: "branch_example_grazing", revision: 2 },
+        { entityId: "merge_example_branches", revision: 1 },
+      ],
+    });
+    expect(
+      caseDefinitions.LayoutAction.shape.componentKind.safeParse("explanation_branches").success,
+    ).toBe(true);
+  });
+
   it("refuses a chosen measurement that names no pair only it separates", () => {
     const plan = merge["fieldPlan"] as { measurements: Json[] };
     const bad = {
