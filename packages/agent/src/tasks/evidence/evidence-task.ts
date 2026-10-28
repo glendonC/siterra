@@ -11,6 +11,7 @@ import type {
   EntityVersion,
   EvidenceRecord,
   HypothesisRecord,
+  InterventionRecord,
   TaskRecord,
 } from "../records.ts";
 import { replayLimitation } from "../trace.ts";
@@ -49,6 +50,8 @@ export interface EvidenceTaskDeps {
   committedEvidence?: readonly EvidenceRecord[];
   /** Hypotheses committed earlier in this command, for the same reason. */
   committedHypotheses?: readonly HypothesisRecord[];
+  /** Interventions committed earlier in this command, for the same reason. */
+  committedInterventions?: readonly InterventionRecord[];
   now: () => Date;
   model?: string;
   signal?: AbortSignal;

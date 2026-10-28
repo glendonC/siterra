@@ -59,6 +59,7 @@ Contracts and design tokens carry their own Semantic Versioning numbers, recorde
 - Deployment readiness without a deployment: root scripts to migrate, load the seed, build and start the web service (bound to 127.0.0.1 unless a host says otherwise) and start the worker; `.env.example` naming every variable with placeholders only; a worker heartbeat and `GET /api/health` reporting the database, migrations, worker and outbox as states only.
 - The intervention_feasibility task: two or three conditional options with assumptions, ecological and livelihood considerations, field prerequisites and required review roles, plus the host-written "Defer until the field check"; no directives, advice, predicted benefits or ranking in any response text.
 - Model usage per case: `GET /api/cases/{caseId}/usage` sums the stored usage of completed model calls per route, provider, model and replay origin, counting calls without tokens or cost rather than guessing them; replay calls cost nothing and are never added to live totals.
+- The brief_package task: a field-validation plan (never prepared, demo only, nothing sent or scheduled), a brief whose every line cites evidence and whose provenance cites every input, resources with unknown estimates, and one review request per role with the catalog comment; outreach, agreement and authorization claims are refused, and a missing critical dependency blocks the package with no review requested.
 
 ### Changed
 

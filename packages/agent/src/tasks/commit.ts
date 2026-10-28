@@ -4,6 +4,7 @@ import type {
   HypothesisRecord,
   InterventionRecord,
   RelationshipRecord,
+  ReviewDecisionRecord,
   TaskRecord,
 } from "./records.ts";
 
@@ -26,6 +27,9 @@ export class MemoryCommitApi implements CommitApi {
   readonly evidence = new Map<string, EvidenceRecord>();
   readonly hypotheses = new Map<string, HypothesisRecord>();
   readonly interventions = new Map<string, InterventionRecord>();
+  readonly reviewDecisions = new Map<string, ReviewDecisionRecord>();
+  /** Actions, briefs and resource requirements, by ID. */
+  readonly packages = new Map<string, CommitDraft["upserts"][number]>();
   readonly relationships = new Map<string, RelationshipRecord>();
   readonly events: (CommitDraft["events"][number] & { sequence: number; caseRevision: number })[] =
     [];
@@ -48,7 +52,9 @@ export class MemoryCommitApi implements CommitApi {
       else if (record.recordType === "Evidence") this.evidence.set(record.id, record);
       else if (record.recordType === "Hypothesis") this.hypotheses.set(record.id, record);
       else if (record.recordType === "Intervention") this.interventions.set(record.id, record);
-      else this.relationships.set(record.id, record);
+      else if (record.recordType === "ReviewDecision") this.reviewDecisions.set(record.id, record);
+      else if (record.recordType === "Relationship") this.relationships.set(record.id, record);
+      else this.packages.set(record.id, record);
       entityIds.push(record.id);
     }
     for (const event of draft.events) {

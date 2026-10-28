@@ -23,7 +23,6 @@ const PLAN = {
   tasks: [
     {
       key: "a",
-      // A kind with no executor yet, so this test covers the executor_not_available path.
       kind: "brief_package",
       question: "Which responses could be prepared?",
       dependsOn: [],
@@ -166,6 +165,8 @@ function deps(db: FakeDb, steps: ReplayStep[]) {
     now: () => AT,
     newId: (p: "task" | "ev") => `${p}_test_${(n += 1).toString()}`,
     cancelPollMs: 5,
+    // No executors, so this test covers the executor_not_available path.
+    executors: {},
   };
 }
 

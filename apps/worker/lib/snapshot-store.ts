@@ -5,6 +5,7 @@ import type {
   EventRecordRowRecord,
   EvidenceRecord,
   HypothesisRecord,
+  InterventionRecord,
   MeasurementRecord,
 } from "@siterra/agent";
 
@@ -39,6 +40,8 @@ export interface SnapshotView {
     evidenceRecords?: EvidenceRecord[];
     /** Hypotheses, for the intervention feasibility task; absent means none. */
     hypothesisRecords?: HypothesisRecord[];
+    /** Interventions, for the brief package task; absent means none. */
+    interventionRecords?: InterventionRecord[];
     /** Event record rows of validated event bundles, for read_event_record; absent means none. */
     eventRecordRowRecords?: EventRecordRowRecord[];
   };
@@ -82,6 +85,7 @@ export function snapshotStore(
   }
   store.evidence.push(...(snapshot.records.evidenceRecords ?? []));
   store.hypotheses.push(...(snapshot.records.hypothesisRecords ?? []));
+  store.interventions.push(...(snapshot.records.interventionRecords ?? []));
   store.eventRows.push(...(snapshot.records.eventRecordRowRecords ?? []));
   if (analyses) {
     store.recipes.push(...analyses.recipes);

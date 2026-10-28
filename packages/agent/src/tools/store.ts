@@ -5,6 +5,7 @@ import type {
   EventRecordRowRecord,
   EvidenceRecord,
   HypothesisRecord,
+  InterventionRecord,
   MeasurementRecord,
 } from "../tasks/records.ts";
 
@@ -105,6 +106,12 @@ export interface CaseStore {
   readEvidence(caseId: string, ids: readonly string[]): Promise<EvidenceRecord[]>;
   /** Current revisions of the given hypotheses; unknown IDs are absent. */
   readHypotheses(caseId: string, ids: readonly string[]): Promise<HypothesisRecord[]>;
+  /** Current revisions of the given interventions; unknown IDs are absent. */
+  readInterventions(caseId: string, ids: readonly string[]): Promise<InterventionRecord[]>;
+  /** IDs of the case's accepted field_requirement Evidence: the open gaps a field plan covers. */
+  listOpenGapIds(caseId: string): Promise<string[]>;
+  /** IDs of every hypothesis of the case. */
+  listHypothesisIds(caseId: string): Promise<string[]>;
   /** The recipe registry the case's analyses come from. */
   listRecipes(caseId: string): Promise<RecipeEntry[]>;
   /** The stored result of a recipe bundle, or null when the bundle holds none. */
@@ -126,6 +133,7 @@ export class MemoryCaseStore implements CaseStore {
   readonly passages: (StoredPassage & { caseId: string })[] = [];
   readonly evidence: EvidenceRecord[] = [];
   readonly hypotheses: HypothesisRecord[] = [];
+  readonly interventions: InterventionRecord[] = [];
   readonly recipes: RecipeEntry[] = [];
   readonly recipeResults: (RecipeResult & { caseId: string })[] = [];
   readonly eventRows: EventRecordRowRecord[] = [];
@@ -153,6 +161,28 @@ export class MemoryCaseStore implements CaseStore {
   readHypotheses(caseId: string, ids: readonly string[]): Promise<HypothesisRecord[]> {
     const wanted = new Set(ids);
     return Promise.resolve(this.hypotheses.filter((h) => h.caseId === caseId && wanted.has(h.id)));
+  }
+
+  listOpenGapIds(caseId: string): Promise<string[]> {
+    return Promise.resolve(
+      this.evidence
+        .filter(
+          (e) =>
+            e.caseId === caseId && e.claimKind === "field_requirement" && e.status === "accepted",
+        )
+        .map((e) => e.id),
+    );
+  }
+
+  listHypothesisIds(caseId: string): Promise<string[]> {
+    return Promise.resolve(this.hypotheses.filter((h) => h.caseId === caseId).map((h) => h.id));
+  }
+
+  readInterventions(caseId: string, ids: readonly string[]): Promise<InterventionRecord[]> {
+    const wanted = new Set(ids);
+    return Promise.resolve(
+      this.interventions.filter((r) => r.caseId === caseId && wanted.has(r.id)),
+    );
   }
 
   listRecipes(_caseId: string): Promise<RecipeEntry[]> {

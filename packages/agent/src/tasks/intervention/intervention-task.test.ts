@@ -13,7 +13,11 @@ import type {
   RelationshipRecord,
 } from "../records.ts";
 import { DEFERRAL_TEXT, runInterventionTask } from "./intervention-task.ts";
-import { interventionOutputSchema, validateInterventionProposal } from "./proposal.ts";
+import {
+  interventionOutputSchema,
+  responseTextIssues,
+  validateInterventionProposal,
+} from "./proposal.ts";
 
 // Synthetic evidence, hypotheses and replays; nothing here is a finding about any place or a
 // response anyone has chosen.
@@ -259,6 +263,29 @@ describe("propose_interventions validation", () => {
     ]);
     expect(codes([option(), MODEL_DEFER])).toEqual(["claim_kind $.items[1].title"]);
     expect(codes([OTHER, OTHER])).toEqual(["schema $.items[1].title"]);
+  });
+
+  it("the host deferral text passes the rules it holds the model to (b39 note)", () => {
+    const none = { allowed: [], periods: [], excerpts: [] };
+    for (const text of [
+      DEFERRAL_TEXT.description,
+      ...DEFERRAL_TEXT.assumptions,
+      ...DEFERRAL_TEXT.ecologicalConsiderations,
+      ...DEFERRAL_TEXT.livelihoodConsiderations,
+    ]) {
+      expect(responseTextIssues(text, none, null), text).toEqual([]);
+    }
+    // The earlier wording was an imperative, and is refused now.
+    for (const text of [
+      "Make no change until the field check answers the open questions.",
+      "Close the upper pastures if grazing is confirmed.",
+      "If grazing is confirmed. Ban access to the upper band.",
+    ]) {
+      expect(
+        responseTextIssues(text, none, null).map((i) => i.code),
+        text,
+      ).toEqual(["prohibited_claim"]);
+    }
   });
 
   it("the output schema fits the strict subset", () => {

@@ -31,10 +31,13 @@ import type { AcceptedIntervention } from "./proposal.ts";
 
 export const INTERVENTION_PROMPT_VERSION = "intervention_feasibility@1";
 
-/** The deferral option's fixed text; DESIGN holds the catalog rows. */
+/**
+ * The deferral option's fixed text, descriptive like every response text (no imperative to the
+ * community; lead after b39). DESIGN holds the catalog rows.
+ */
 export const DEFERRAL_TEXT = {
   description:
-    "Make no change until the field check answers the open questions; then compare the candidate responses again.",
+    "No change until the field check reports what it finds; the candidate responses are then compared again.",
   assumptions: ["Nothing in the case requires a change before the field check."],
   ecologicalConsiderations: ["Current use continues unchanged while the field check runs."],
   livelihoodConsiderations: ["Current access and timing stay as they are."],

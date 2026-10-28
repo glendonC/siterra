@@ -10,6 +10,7 @@ import type {
   ModelTransport,
   PlanSnapshot,
   SnapshotRecord,
+  TaskExecutor,
   TaskRecord,
 } from "@siterra/agent";
 
@@ -71,6 +72,8 @@ export interface PlanJobDeps {
   now: () => Date;
   newId: (prefix: "task" | "ev") => string;
   cancelPollMs?: number;
+  /** Executors by task kind; the build's EXECUTORS when absent (tests pass their own). */
+  executors?: Partial<Record<TaskRecord["kind"], TaskExecutor>>;
 }
 
 export type PlanJobResult =
@@ -252,6 +255,7 @@ export async function handlePlanJob(job: PlanJob, deps: PlanJobDeps): Promise<Pl
         newEvidenceId: () => deps.newId("ev"),
         now: deps.now,
         signal: controller.signal,
+        ...(deps.executors ? { executors: deps.executors } : {}),
       },
     );
   } finally {

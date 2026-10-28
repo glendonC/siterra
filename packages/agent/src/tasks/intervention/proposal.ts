@@ -65,6 +65,14 @@ const DIRECTIVE =
 const PRESENT_EFFECT =
   /\b(?:restores|improves|reduces|increases|raises|lowers|boosts|enhances|protects|prevents|secures|stabili[sz]es|regenerates|benefits|recovers|revives)\b|\bhelp(?:s|ing)?\s+(?:[\w-]+\s+){0,3}?(?:recover|improve|restore|regenerate|reduce|increase|protect|prevent)\b|\bresult(?:s|ed|ing)?\s+in\b|\b(?:most|more|less|least)\s+(?:effective|efficient)\b|\beffective\s+(?:response|option|measure|approach)\b/i;
 
+/**
+ * A sentence that opens with a command ("Close the upper pastures if ...", "Make no change ..."):
+ * an imperative directs as a modal does (lead after b39). The verbs are a fixed list, so a noun
+ * such as "rest timing" passes.
+ */
+const IMPERATIVE =
+  /(?:^|[.;:!?]\s+)(?:close|ban|stop|restrict|reduce|limit|prohibit|enforce|exclude|fence|make|keep|ensure|require|apply|implement|adopt|introduce|impose|forbid|avoid|halt|suspend|cease|relocate|consult|contact|send|schedule|tell|ask|do not|don't)\b/i;
+
 /** The deferral option's title (CMP-12); host code writes it, so a model item with it is refused. */
 export const DEFERRAL_TITLE = "Defer until the field check";
 const DEFERRAL = /^\s*defer\b/i;
@@ -101,6 +109,89 @@ function numbersOf(m: MeasurementRecord): number[] {
   return [m.value, m.uncertainty.lower, m.uncertainty.upper, m.validFraction].filter(
     (v): v is number => typeof v === "number",
   );
+}
+
+/** The numbers, reference periods and texts a proposal may take its numbers from. */
+export interface CitedNumbers {
+  allowed: number[];
+  periods: ReturnType<typeof referencePeriods>;
+  excerpts: string[];
+}
+
+export function citedNumbers(
+  evidence: readonly EvidenceRecord[],
+  measurements: ReadonlyMap<string, MeasurementRecord>,
+): CitedNumbers {
+  const cited = evidence.flatMap((e) =>
+    e.measurementIds.flatMap((id) => {
+      const m = measurements.get(id);
+      return m ? [m] : [];
+    }),
+  );
+  return {
+    allowed: cited.flatMap(numbersOf),
+    periods: cited.flatMap(referencePeriods),
+    excerpts: evidence.flatMap((e) => [
+      e.statement,
+      ...e.provenance.sourceLocators.flatMap((l) => (l.excerpt ? [l.excerpt] : [])),
+    ]),
+  };
+}
+
+/**
+ * Every rule a model-written response or plan text must pass: no probability, ranking,
+ * recommendation, directive, advice or predicted effect; the shared prohibited claims; the
+ * livelihood rules; and numbers only from the cited evidence (17, b34). Used by brief_package too.
+ */
+export function responseTextIssues(
+  text: string,
+  cited: CitedNumbers,
+  years: YearSpan | null,
+): { code: "prohibited_claim" | "numeric_provenance"; message: string }[] {
+  const found: { code: "prohibited_claim" | "numeric_provenance"; message: string }[] = [];
+  const add = (code: "prohibited_claim" | "numeric_provenance", message: string): void => {
+    found.push({ code, message });
+  };
+  if (PROBABILITY.test(text)) add("prohibited_claim", "No probability or ranking is stated.");
+  const ranked = RANKING.exec(text) ?? RESPONSE_RANKING.exec(text);
+  if (ranked) add("prohibited_claim", `"${ranked[0]}" ranks responses; they are not ranked.`);
+  const recommended = RECOMMENDATION.exec(text);
+  if (recommended)
+    add("prohibited_claim", `"${recommended[0]}" recommends; say "candidate response" instead.`);
+  const directive = DIRECTIVE.exec(text);
+  if (directive) {
+    add(
+      "prohibited_claim",
+      `"${directive[0]}" directs or advises; say what could be done and under which condition.`,
+    );
+  }
+  const imperative = IMPERATIVE.exec(text);
+  if (imperative) {
+    add(
+      "prohibited_claim",
+      `"${imperative[0].trim()}" opens with a command; write a noun phrase or a description instead, such as "Consultation with the commune council on the access calendar".`,
+    );
+  }
+  const effect = PREDICTED_EFFECT.exec(text) ?? PRESENT_EFFECT.exec(text);
+  if (effect) {
+    add(
+      "prohibited_claim",
+      `"${effect[0]}" predicts an effect of the response; state the condition and what would show it instead.`,
+    );
+  }
+  for (const rule of PROHIBITED_RULES) {
+    const m = rule.pattern.exec(text);
+    if (m) add("prohibited_claim", `"${m[0]}" ${rule.reason}.`);
+  }
+  for (const rule of LIVELIHOOD_RULES) {
+    const reason = rule.check(text, years);
+    if (reason !== null) add("prohibited_claim", reason);
+  }
+  const claim = maskReferencePeriods(text, cited.periods);
+  for (const n of unprovenNumbers(claim, cited.allowed, cited.excerpts, years)) {
+    add("numeric_provenance", unprovenMessage(n));
+  }
+  return found;
 }
 
 const LISTS = [
@@ -235,64 +326,15 @@ export function validateInterventionProposal(
     if (item.evidenceIds.length + item.hypothesisIds.length === 0)
       add("claim_kind", "evidenceIds", "Cite the evidence or hypotheses the response rests on.");
 
-    const citedMeasurements = evidence.flatMap((e) =>
-      e.measurementIds.flatMap((id) => {
-        const m = context.measurements.get(id);
-        return m ? [m] : [];
-      }),
-    );
-    const allowed = citedMeasurements.flatMap(numbersOf);
-    const periods = citedMeasurements.flatMap(referencePeriods);
-    const excerpts = evidence.flatMap((e) => [
-      e.statement,
-      ...e.provenance.sourceLocators.flatMap((l) => (l.excerpt ? [l.excerpt] : [])),
-    ]);
+    const cited = citedNumbers(evidence, context.measurements);
     const texts: [string, string][] = [
       ["title", item.title],
       ["description", item.description],
       ...LISTS.flatMap((list) => item[list].map((v, j): [string, string] => [`${list}[${j}]`, v])),
     ];
     for (const [path, text] of texts) {
-      if (PROBABILITY.test(text))
-        add("prohibited_claim", path, "A candidate response carries no probability or ranking.");
-      const ranked = RANKING.exec(text) ?? RESPONSE_RANKING.exec(text);
-      if (ranked)
-        add("prohibited_claim", path, `"${ranked[0]}" ranks responses; they are not ranked.`);
-      const recommended = RECOMMENDATION.exec(text);
-      if (recommended) {
-        add(
-          "prohibited_claim",
-          path,
-          `"${recommended[0]}" recommends; say "candidate response" instead.`,
-        );
-      }
-      const directive = DIRECTIVE.exec(text);
-      if (directive) {
-        add(
-          "prohibited_claim",
-          path,
-          `"${directive[0]}" directs or advises; say what could be done and under which condition.`,
-        );
-      }
-      const effect = PREDICTED_EFFECT.exec(text) ?? PRESENT_EFFECT.exec(text);
-      if (effect) {
-        add(
-          "prohibited_claim",
-          path,
-          `"${effect[0]}" predicts an effect of the response; state the condition and what would show it instead.`,
-        );
-      }
-      for (const rule of PROHIBITED_RULES) {
-        const m = rule.pattern.exec(text);
-        if (m) add("prohibited_claim", path, `"${m[0]}" ${rule.reason}.`);
-      }
-      for (const rule of LIVELIHOOD_RULES) {
-        const reason = rule.check(text, context.years);
-        if (reason !== null) add("prohibited_claim", path, reason);
-      }
-      const claim = maskReferencePeriods(text, periods);
-      for (const n of unprovenNumbers(claim, allowed, excerpts, context.years)) {
-        add("numeric_provenance", path, unprovenMessage(n));
+      for (const found of responseTextIssues(text, cited, context.years)) {
+        add(found.code, path, found.message);
       }
     }
 

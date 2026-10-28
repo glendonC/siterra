@@ -50,9 +50,13 @@ export type {
   EventRecordRowRecord,
   EvidenceRecord,
   HypothesisRecord,
+  BriefRecord,
   InterventionRecord,
   MeasurementRecord,
+  OperationalActionRecord,
   RelationshipRecord,
+  ResourceRequirementRecord,
+  ReviewDecisionRecord,
 } from "./tasks/records.ts";
 export {
   readCaseTool,
@@ -134,3 +138,4 @@ export {
   INTERVENTION_PROMPT_VERSION,
   runInterventionTask,
 } from "./tasks/intervention/intervention-task.ts";
+export { BRIEF_PROMPT_VERSION, runBriefPackageTask } from "./tasks/brief/brief-task.ts";

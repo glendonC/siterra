@@ -1,4 +1,5 @@
 import type {
+  Brief,
   DataBundle,
   EntityVersion as ContractEntityVersion,
   Evidence,
@@ -6,9 +7,12 @@ import type {
   Hypothesis,
   Intervention,
   Measurement,
+  OperationalAction,
   Provenance as ContractProvenance,
   SourceLocator as ContractSourceLocator,
   Relationship,
+  ResourceRequirement,
+  ReviewDecision,
   Task,
   Uncertainty as ContractUncertainty,
 } from "@siterra/contracts";
@@ -30,6 +34,10 @@ export type ClaimKind = Evidence["claimKind"];
 export type EvidenceRecord = Evidence;
 export type HypothesisRecord = Hypothesis;
 export type InterventionRecord = Intervention;
+export type OperationalActionRecord = OperationalAction;
+export type BriefRecord = Brief;
+export type ReviewDecisionRecord = ReviewDecision;
+export type ResourceRequirementRecord = ResourceRequirement;
 export type EventRecordRowRecord = EventRecordRow;
 export type RelationshipRecord = Relationship;
 
@@ -45,7 +53,15 @@ export interface CommitDraft {
   idempotencyKey: string;
   inputVersions: EntityVersion[];
   upserts: (
-    TaskRecord | EvidenceRecord | HypothesisRecord | InterventionRecord | RelationshipRecord
+    | TaskRecord
+    | EvidenceRecord
+    | HypothesisRecord
+    | InterventionRecord
+    | OperationalActionRecord
+    | BriefRecord
+    | ReviewDecisionRecord
+    | ResourceRequirementRecord
+    | RelationshipRecord
   )[];
   events: TraceEventDraft[];
 }

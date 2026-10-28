@@ -96,6 +96,8 @@ export function workerDb(pool: Pool, now: () => Date = () => new Date()): Worker
             label: g.label,
           })),
           evidenceRecords: snapshot.records.evidenceRecords,
+          hypothesisRecords: snapshot.records.hypothesisRecords,
+          interventionRecords: snapshot.records.interventionRecords,
           taskRecords: snapshot.records.taskRecords,
           eventRecordRowRecords: snapshot.records.eventRecordRowRecords,
         },
