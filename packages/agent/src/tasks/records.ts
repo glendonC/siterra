@@ -4,6 +4,7 @@ import type {
   Evidence,
   EventRecordRow,
   Hypothesis,
+  Intervention,
   Measurement,
   Provenance as ContractProvenance,
   SourceLocator as ContractSourceLocator,
@@ -28,6 +29,7 @@ export type MeasurementRecord = Measurement;
 export type ClaimKind = Evidence["claimKind"];
 export type EvidenceRecord = Evidence;
 export type HypothesisRecord = Hypothesis;
+export type InterventionRecord = Intervention;
 export type EventRecordRowRecord = EventRecordRow;
 export type RelationshipRecord = Relationship;
 
@@ -42,6 +44,8 @@ export interface CommitDraft {
   expectedCaseRevision: number;
   idempotencyKey: string;
   inputVersions: EntityVersion[];
-  upserts: (TaskRecord | EvidenceRecord | HypothesisRecord | RelationshipRecord)[];
+  upserts: (
+    TaskRecord | EvidenceRecord | HypothesisRecord | InterventionRecord | RelationshipRecord
+  )[];
   events: TraceEventDraft[];
 }

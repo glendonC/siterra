@@ -2,6 +2,7 @@ import type {
   CommitDraft,
   EvidenceRecord,
   HypothesisRecord,
+  InterventionRecord,
   RelationshipRecord,
   TaskRecord,
 } from "./records.ts";
@@ -24,6 +25,7 @@ export class MemoryCommitApi implements CommitApi {
   readonly tasks = new Map<string, TaskRecord>();
   readonly evidence = new Map<string, EvidenceRecord>();
   readonly hypotheses = new Map<string, HypothesisRecord>();
+  readonly interventions = new Map<string, InterventionRecord>();
   readonly relationships = new Map<string, RelationshipRecord>();
   readonly events: (CommitDraft["events"][number] & { sequence: number; caseRevision: number })[] =
     [];
@@ -45,6 +47,7 @@ export class MemoryCommitApi implements CommitApi {
       if (record.recordType === "Task") this.tasks.set(record.id, record);
       else if (record.recordType === "Evidence") this.evidence.set(record.id, record);
       else if (record.recordType === "Hypothesis") this.hypotheses.set(record.id, record);
+      else if (record.recordType === "Intervention") this.interventions.set(record.id, record);
       else this.relationships.set(record.id, record);
       entityIds.push(record.id);
     }

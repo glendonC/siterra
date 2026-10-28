@@ -50,6 +50,7 @@ export type {
   EventRecordRowRecord,
   EvidenceRecord,
   HypothesisRecord,
+  InterventionRecord,
   MeasurementRecord,
   RelationshipRecord,
 } from "./tasks/records.ts";
@@ -129,3 +130,7 @@ export {
   HYPOTHESIS_PROMPT_VERSION,
   runHypothesisTask,
 } from "./tasks/hypothesis/hypothesis-task.ts";
+export {
+  INTERVENTION_PROMPT_VERSION,
+  runInterventionTask,
+} from "./tasks/intervention/intervention-task.ts";

@@ -4,6 +4,7 @@ import type {
   DataBundleRecord,
   EventRecordRowRecord,
   EvidenceRecord,
+  HypothesisRecord,
   MeasurementRecord,
 } from "@siterra/agent";
 
@@ -36,6 +37,8 @@ export interface SnapshotView {
     sourceRecords: { id: string; revision: number; language?: string | undefined }[];
     /** Evidence records, for read_evidence; absent means none. */
     evidenceRecords?: EvidenceRecord[];
+    /** Hypotheses, for the intervention feasibility task; absent means none. */
+    hypothesisRecords?: HypothesisRecord[];
     /** Event record rows of validated event bundles, for read_event_record; absent means none. */
     eventRecordRowRecords?: EventRecordRowRecord[];
   };
@@ -78,6 +81,7 @@ export function snapshotStore(
     if (records.has(passage.sourceId)) store.passages.push({ ...passage, caseId });
   }
   store.evidence.push(...(snapshot.records.evidenceRecords ?? []));
+  store.hypotheses.push(...(snapshot.records.hypothesisRecords ?? []));
   store.eventRows.push(...(snapshot.records.eventRecordRowRecords ?? []));
   if (analyses) {
     store.recipes.push(...analyses.recipes);

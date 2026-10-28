@@ -10,6 +10,7 @@ import type {
   CommitDraft,
   EntityVersion,
   EvidenceRecord,
+  HypothesisRecord,
   TaskRecord,
 } from "../records.ts";
 import { replayLimitation } from "../trace.ts";
@@ -46,6 +47,8 @@ export interface EvidenceTaskDeps {
   newRecordId?: (prefix: string) => string;
   /** Accepted evidence committed earlier in this command, which the job-start store does not hold. */
   committedEvidence?: readonly EvidenceRecord[];
+  /** Hypotheses committed earlier in this command, for the same reason. */
+  committedHypotheses?: readonly HypothesisRecord[];
   now: () => Date;
   model?: string;
   signal?: AbortSignal;

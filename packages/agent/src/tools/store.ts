@@ -4,6 +4,7 @@ import type {
   DataBundleRecord,
   EventRecordRowRecord,
   EvidenceRecord,
+  HypothesisRecord,
   MeasurementRecord,
 } from "../tasks/records.ts";
 
@@ -102,6 +103,8 @@ export interface CaseStore {
   passagesContaining(caseId: string, terms: readonly string[]): Promise<StoredPassage[]>;
   /** Current revisions of the given evidence records; unknown IDs are absent. */
   readEvidence(caseId: string, ids: readonly string[]): Promise<EvidenceRecord[]>;
+  /** Current revisions of the given hypotheses; unknown IDs are absent. */
+  readHypotheses(caseId: string, ids: readonly string[]): Promise<HypothesisRecord[]>;
   /** The recipe registry the case's analyses come from. */
   listRecipes(caseId: string): Promise<RecipeEntry[]>;
   /** The stored result of a recipe bundle, or null when the bundle holds none. */
@@ -122,6 +125,7 @@ export class MemoryCaseStore implements CaseStore {
   readonly sources: (StoredSource & { caseId: string })[] = [];
   readonly passages: (StoredPassage & { caseId: string })[] = [];
   readonly evidence: EvidenceRecord[] = [];
+  readonly hypotheses: HypothesisRecord[] = [];
   readonly recipes: RecipeEntry[] = [];
   readonly recipeResults: (RecipeResult & { caseId: string })[] = [];
   readonly eventRows: EventRecordRowRecord[] = [];
@@ -144,6 +148,11 @@ export class MemoryCaseStore implements CaseStore {
   readEvidence(caseId: string, ids: readonly string[]): Promise<EvidenceRecord[]> {
     const wanted = new Set(ids);
     return Promise.resolve(this.evidence.filter((e) => e.caseId === caseId && wanted.has(e.id)));
+  }
+
+  readHypotheses(caseId: string, ids: readonly string[]): Promise<HypothesisRecord[]> {
+    const wanted = new Set(ids);
+    return Promise.resolve(this.hypotheses.filter((h) => h.caseId === caseId && wanted.has(h.id)));
   }
 
   listRecipes(_caseId: string): Promise<RecipeEntry[]> {

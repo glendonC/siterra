@@ -23,8 +23,8 @@ const PLAN = {
   tasks: [
     {
       key: "a",
-      // Two kinds with no executor yet, so this test covers the executor_not_available path.
-      kind: "intervention_feasibility",
+      // A kind with no executor yet, so this test covers the executor_not_available path.
+      kind: "brief_package",
       question: "Which responses could be prepared?",
       dependsOn: [],
       inputRefs: [],

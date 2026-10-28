@@ -132,7 +132,10 @@ const observation = {
   limitations: [],
 };
 
-function routes(plan: ReplayStep[] = [answerStep(JSON.stringify(PLAN))]): RoutingTransport {
+function routes(
+  plan: ReplayStep[] = [answerStep(JSON.stringify(PLAN))],
+  extra: ConstructorParameters<typeof RoutingTransport>[0] = [],
+): RoutingTransport {
   const read = (): ReplayStep =>
     toolCallStep("read_source", {
       sourceId: "src_test_report",
@@ -197,6 +200,7 @@ function routes(plan: ReplayStep[] = [answerStep(JSON.stringify(PLAN))]): Routin
         ),
       ]),
     ],
+    ...extra,
   ]);
 }
 
@@ -267,6 +271,113 @@ describe("runCommand on synthetic replays", () => {
         .filter((e) => e.kind === "model.completed")
         .every((e) => e.usage?.provider === "replay" && e.usage.replayOrigin === "synthetic"),
     ).toBe(true);
+  });
+
+  it("hands the hypotheses and evidence a task's dependencies committed to intervention feasibility", async () => {
+    const plan = {
+      interpretation: "The command asks which responses could be prepared for the valley.",
+      tasks: [
+        {
+          key: "livelihoods",
+          kind: "livelihood_governance",
+          question: "Who sets pasture rules?",
+          dependsOn: [],
+          inputRefs: [],
+        },
+        {
+          key: "compare",
+          kind: "hypothesis_comparison",
+          question: "Which explanations fit?",
+          dependsOn: ["livelihoods"],
+          inputRefs: [],
+        },
+        {
+          key: "responses",
+          kind: "intervention_feasibility",
+          question: "Which responses could be prepared?",
+          dependsOn: ["livelihoods", "compare"],
+          inputRefs: [],
+        },
+      ],
+      clarifyingQuestion: null,
+    };
+    // Sequential tasks, so the IDs are fixed: ev_test_01 and 02 (livelihoods), hyp_test_03, int_test_04.
+    const transport = routes(
+      [answerStep(JSON.stringify(plan))],
+      [
+        [
+          "You prepare candidate responses",
+          syntheticTransport([
+            answerStep(
+              JSON.stringify({
+                items: [
+                  {
+                    title: "Negotiated seasonal rest within existing institutions",
+                    description:
+                      "If the field check names who decides closures, a seasonal rest could be discussed with them.",
+                    assumptions: ["The existing institutions set closure dates."],
+                    ecologicalConsiderations: [],
+                    livelihoodConsiderations: [],
+                    fieldValidationNeeded: ["Who decides the closure dates."],
+                    requiredReviewRoles: ["community_livelihood"],
+                    evidenceIds: ["ev_test_02"],
+                    hypothesisIds: ["hyp_test_03"],
+                  },
+                  {
+                    title: "Participatory monitoring before any access change",
+                    description:
+                      "Once the roles are known, the institutions could monitor the upper band before any access change.",
+                    assumptions: ["The institutions take part in monitoring."],
+                    ecologicalConsiderations: [],
+                    livelihoodConsiderations: [],
+                    fieldValidationNeeded: ["Which institutions could take part in monitoring."],
+                    requiredReviewRoles: ["program_coordination"],
+                    evidenceIds: ["ev_test_02"],
+                    hypothesisIds: [],
+                  },
+                ],
+              }),
+            ),
+          ]),
+        ],
+      ],
+    );
+    const { deps: d, commits } = deps(transport);
+    const outcome = await runCommand(
+      { planTask: PLAN_TASK, expectedCaseRevision: 3, snapshot: SNAPSHOT },
+      d,
+    );
+    expect(outcome.tasks.map((t) => `${t.kind} ${t.status}`)).toEqual([
+      "livelihood_governance succeeded",
+      "hypothesis_comparison succeeded",
+      "intervention_feasibility succeeded",
+    ]);
+    expect([...commits.interventions.values()]).toMatchObject([
+      { id: "int_test_04", hypothesisIds: ["hyp_test_03"], evidenceIds: ["ev_test_02"] },
+      { id: "int_test_05", hypothesisIds: [], evidenceIds: ["ev_test_02"] },
+      { id: "int_test_06", title: "Defer until the field check", evidenceIds: ["ev_test_02"] },
+    ]);
+    expect(
+      [...commits.relationships.values()]
+        .filter((r) => r.toEntityId === "int_test_04" || r.fromEntityId === "int_test_04")
+        .map((r) => `${r.fromEntityId} ${r.kind} ${r.toEntityId}`),
+    ).toEqual([
+      "hyp_test_03 proposes_response int_test_04",
+      "int_test_04 requires_verification ev_test_02",
+    ]);
+    // Model-written records say they came from a synthetic replay; the host-written deferral says
+    // it is host text instead.
+    const synthetic = "Written from a synthetic replay, not a model output or a live model call.";
+    for (const r of [
+      ...commits.evidence.values(),
+      ...commits.hypotheses.values(),
+      ...[...commits.interventions.values()].filter((r) => r.id !== "int_test_06"),
+    ]) {
+      expect(r.provenance.limitations, r.id).toContain(synthetic);
+    }
+    expect(commits.interventions.get("int_test_06")?.provenance.limitations[0]).toMatch(
+      /^Fixed text written by Siterra's host code, not by a model/,
+    );
   });
 
   it("TR-03 path: trace events carry no prompt text, source text, key or bearer token", async () => {

@@ -38,7 +38,7 @@ export function hypothesisOutputSchema(): JsonSchema {
 }
 
 /** Probability and ranking language a hypothesis may never carry (data-contracts.md: never a probability). */
-const PROBABILITY =
+export const PROBABILITY =
   /\b(?:probab\w*|likelihood|likely|unlikely|odds|chance|percent(?:age)? (?:likely|chance)|confidence (?:of|level)|most plausible|best explanation|ranked?)\b|\d+(?:\.\d+)?\s*%\s*(?:likely|chance|probab\w*)/i;
 
 /**
@@ -50,7 +50,7 @@ const PROBABILITY =
  * another; ahead of; outweighing; explaining more. A bare "than" stays allowed, so measurement
  * comparisons such as "lower than the 1991 to 2020 mean" pass.
  */
-const RANKING = new RegExp(
+export const RANKING = new RegExp(
   `\\b(?:${[
     String.raw`(?:stronger|strongest|weaker|weakest|better|best|worse|worst|leading|main|primary|principal|dominant|preferred|favou?red|likelier|likeliest)\s+(?:[\w-]+\s+)?(?:explanation|explanations|hypothesis|hypotheses|candidate|driver|cause|reason|factor|account|case)`,
     String.raw`favou?r(?:s|ed|ing)?\b[^.;:]{0,80}?\bover`,

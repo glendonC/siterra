@@ -7,7 +7,13 @@ import { runObservationTask } from "../tasks/observation/observation-task.ts";
 import { runPlanTask } from "../tasks/plan/plan-task.ts";
 import type { PlanSnapshot } from "../tasks/plan/prompt.ts";
 import { runHypothesisTask } from "../tasks/hypothesis/hypothesis-task.ts";
-import type { CommitDraft, EvidenceRecord, TaskRecord } from "../tasks/records.ts";
+import { runInterventionTask } from "../tasks/intervention/intervention-task.ts";
+import type {
+  CommitDraft,
+  EvidenceRecord,
+  HypothesisRecord,
+  TaskRecord,
+} from "../tasks/records.ts";
 import { runLivelihoodTask, runSourceResearchTask } from "../tasks/source/source-task.ts";
 import type { TraceEventDraft, TraceSink } from "../tasks/trace.ts";
 import { caseToolRegistry, SEARCHES_PER_COMMAND } from "../tools/registry.ts";
@@ -32,6 +38,7 @@ export const EXECUTORS: Partial<Record<TaskRecord["kind"], TaskExecutor>> = {
   source_research: runSourceResearchTask,
   livelihood_governance: runLivelihoodTask,
   hypothesis_comparison: runHypothesisTask,
+  intervention_feasibility: runInterventionTask,
 };
 
 export type CommandStatus = "succeeded" | "partial" | "failed" | "cancelled";
@@ -250,6 +257,7 @@ export async function runCommand(
   };
 
   const committedEvidence: EvidenceRecord[] = [];
+  const committedHypotheses: HypothesisRecord[] = [];
   const runOne = async (task: TaskRecord): Promise<void> => {
     const executor = executors[task.kind];
     if (!executor) {
@@ -285,6 +293,7 @@ export async function runCommand(
           newEvidenceId: deps.newEvidenceId,
           ...(deps.newRecordId ? { newRecordId: deps.newRecordId } : {}),
           committedEvidence: committedEvidence.filter((e) => fromDependencies.has(e.id)),
+          committedHypotheses: committedHypotheses.filter((h) => fromDependencies.has(h.id)),
           now: deps.now,
           signal: controller.signal,
         },
@@ -304,6 +313,7 @@ export async function runCommand(
     for (const record of result.commit.upserts) {
       if (record.recordType === "Evidence" && record.status === "accepted")
         committedEvidence.push(record);
+      if (record.recordType === "Hypothesis") committedHypotheses.push(record);
     }
   };
 
