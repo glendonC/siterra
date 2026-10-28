@@ -70,35 +70,6 @@ def item_date(key):
     return datetime.date(int(key[1:5]), 1, 1) + datetime.timedelta(days=int(key[5:8]) - 1)
 
 
-def band_masks(cfg, elev, band_sets):
-    """{set id: [(band id, label, mask)]} from fixed edges or from a strata layer."""
-    tr, shp, mask = place_config.analysis_grid(cfg)
-    out = {}
-    for bs in band_sets:
-        bands = []
-        if "edgesM" in bs:
-            e = bs["edgesM"]
-            bounds = [None] + e + [None]
-            for lo, hi in zip(bounds[:-1], bounds[1:]):
-                m = mask & ~np.isnan(elev)
-                if lo is not None:
-                    m &= elev >= lo
-                if hi is not None:
-                    m &= elev < hi
-                bid = f"elev_{'below' if lo is None else int(lo)}_{'up' if hi is None else int(hi)}"
-                label = f"below {hi} m" if lo is None else (f"{lo} m and above" if hi is None else f"{lo} to {hi} m")
-                bands.append((bid, label, m))
-        else:
-            labels = place_config.stratum_labels(cfg)
-            layer = next(l for l in cfg["strata"]["layers"] if l["name"] == bs["fromStrataLayer"])
-            masks = place_config.stratum_masks(cfg, [layer["name"]])
-            for k in sorted(layer["classes"], key=int):
-                sid = layer["classes"][k]
-                bands.append((sid, labels[sid], masks[sid]))
-        out[bs["id"]] = bands
-    return out
-
-
 def main():
     place, repo, raw, dem, reg_path, lock_path, bundles = [a for a in sys.argv[1:] if not a.startswith("--")][:7]
     cfg = place_config.load(place, repo)
@@ -124,7 +95,7 @@ def main():
     encodings = {(s["assets"][ASSET]["dtype"], s["assets"][ASSET]["nodata"]) for s in sidecars.values()}
 
     elev = place_config.elevation(cfg, dem)
-    sets = band_masks(cfg, elev, rc["elevationBandSets"])
+    sets = place_config.elevation_band_masks(cfg, elev, rc["elevationBandSets"])
     _, _, cmask = place_config.analysis_grid(cfg)
     all_bands = [("catchment", cfg["title"], cmask)] + [b for bs in sets.values() for b in bs]
     names = [b[0] for b in all_bands]

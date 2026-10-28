@@ -147,6 +147,59 @@ def elevation(cfg, dem_path):
     return np.where(mask, Z, np.nan).astype(np.float32)
 
 
+def elevation_band_masks(cfg, elev, band_sets):
+    """{set id: [(band id, label, mask)]} from fixed edges (edgesM) or from a strata layer (fromStrataLayer)."""
+    tr, shp, mask = analysis_grid(cfg)
+    out = {}
+    for bs in band_sets:
+        bands = []
+        if "edgesM" in bs:
+            bounds = [None] + bs["edgesM"] + [None]
+            for lo, hi in zip(bounds[:-1], bounds[1:]):
+                m = mask & ~np.isnan(elev)
+                if lo is not None:
+                    m &= elev >= lo
+                if hi is not None:
+                    m &= elev < hi
+                bid = f"elev_{'below' if lo is None else int(lo)}_{'up' if hi is None else int(hi)}"
+                label = f"below {hi} m" if lo is None else (f"{lo} m and above" if hi is None else f"{lo} to {hi} m")
+                bands.append((bid, label, m))
+        else:
+            labels = stratum_labels(cfg)
+            layer = next(l for l in cfg["strata"]["layers"] if l["name"] == bs["fromStrataLayer"])
+            masks = stratum_masks(cfg, [layer["name"]])
+            for k in sorted(layer["classes"], key=int):
+                sid = layer["classes"][k]
+                bands.append((sid, labels[sid], masks[sid]))
+        out[bs["id"]] = bands
+    return out
+
+
+def band_set(cfg, ref):
+    """The elevation band set named by {"recipe": ..., "id": ...} in the place configuration."""
+    return next(b for b in cfg["recipes"][ref["recipe"]]["elevationBandSets"] if b["id"] == ref["id"])
+
+
+def land_cover(cfg):
+    """The land cover layer on the analysis grid (uint8 class codes), checked against the configured checksum."""
+    lc = cfg["landCover"]
+    path = os.path.join(cfg["_repo"], lc["path"])
+    if sha256(path) != lc["sha256"]:
+        raise SystemExit("land cover checksum does not match the place configuration")
+    tr, shp, mask = analysis_grid(cfg)
+    with rasterio.open(path) as s:
+        if (s.height, s.width) != shp or not s.transform.almost_equals(tr) or s.crs.to_string() != cfg["analysisCrs"]:
+            raise SystemExit("the land cover layer is not on the analysis grid of this place configuration")
+        return s.read(1)
+
+
+def land_cover_masks(cfg):
+    """{group id: (label, mask)} for the land cover groups of the configuration, inside the geometry."""
+    _, _, mask = analysis_grid(cfg)
+    lc = land_cover(cfg)
+    return {g["id"]: (g["label"], mask & np.isin(lc, g["classes"])) for g in cfg["landCover"]["groups"]}
+
+
 def pixel_weights(cfg, masks, dst_crs, dst_transform, dst_shape):
     """For each mask, the count of analysis cells whose centre falls in each cell of a destination grid.
 
