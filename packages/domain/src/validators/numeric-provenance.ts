@@ -72,11 +72,11 @@ export interface FoundNumber {
 const blank = (m: string): string => " ".repeat(m.length);
 
 /**
- * Numbers in text after removing date, period and ID spans. `years` is the case's year span: a
- * bare year, a year range or a month with a year counts as a date only inside it. With `years`
- * null, no bare year is a date, so every number is returned (used to read excerpts).
+ * The text with its date, period and ID spans blanked to spaces, so offsets are kept. `years` is
+ * the case's year span: a bare year, a year range or a month with a year counts as a date only
+ * inside it. With `years` null, no bare year is a date.
  */
-export function numbersIn(text: string, years: YearSpan | null): FoundNumber[] {
+export function maskDates(text: string, years: YearSpan | null): string {
   let masked = text;
   for (const pattern of ALWAYS_DATE) masked = masked.replace(pattern, blank);
   if (years !== null) {
@@ -93,6 +93,15 @@ export function numbersIn(text: string, years: YearSpan | null): FoundNumber[] {
       });
     }
   }
+  return masked;
+}
+
+/**
+ * Numbers in text after removing date, period and ID spans (see maskDates). With `years` null,
+ * every number is returned (used to read excerpts).
+ */
+export function numbersIn(text: string, years: YearSpan | null): FoundNumber[] {
+  const masked = maskDates(text, years);
   const found: FoundNumber[] = [];
   for (const match of masked.matchAll(NUMBER)) {
     let raw = match[0];

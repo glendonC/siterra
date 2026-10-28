@@ -64,6 +64,17 @@ export interface EvidenceContext {
   store: CaseStore;
   /** Claim kinds this task may propose; `verified_outcome` is rejected in P0 regardless. */
   allowedClaimKinds: ReadonlySet<ClaimKind>;
+  /** Task-specific text rules, run on every model-written field after the shared checks. */
+  textRules?: readonly TextRule[];
+}
+
+/**
+ * A task-specific rule over one model-written text; returns why the text is refused, or null.
+ * `years` is the case's year span, so a rule can read dates as numeric provenance does.
+ */
+export interface TextRule {
+  id: string;
+  check: (text: string, years: YearSpan | null) => string | null;
 }
 
 /** The calendar years the case's bundles cover; a bare year in model text is a date only inside them. */
@@ -324,6 +335,10 @@ export async function validateEvidenceProposal(
       }
       for (const hit of prohibitedHits(text)) {
         itemIssues.push(issue("prohibited_claim", path, `"${hit.phrase}" ${hit.reason}.`));
+      }
+      for (const rule of context.textRules ?? []) {
+        const reason = rule.check(text, years);
+        if (reason !== null) itemIssues.push(issue("prohibited_claim", path, reason));
       }
     }
 

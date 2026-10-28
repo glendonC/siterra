@@ -14,7 +14,7 @@ import type {
 } from "../records.ts";
 import type { TraceEventDraft, TraceSink } from "../trace.ts";
 import { evidenceOutputSchema, validateEvidenceProposal } from "./proposal.ts";
-import type { AcceptedItem } from "./proposal.ts";
+import type { AcceptedItem, TextRule } from "./proposal.ts";
 
 // The shared runner for tasks whose result is propose_evidence: observation_analysis,
 // source_research and livelihood_governance. A spec names the prompt, the claim kinds and the
@@ -26,6 +26,8 @@ export interface EvidenceTaskSpec {
   instructions: string;
   claimKinds: ReadonlySet<ClaimKind>;
   firstMessage: (task: TaskRecord, store: CaseStore) => string | Promise<string>;
+  /** Extra rules this task's text must pass (livelihood: no household counts or contacts). */
+  textRules?: readonly TextRule[];
 }
 
 export interface EvidenceTaskInput {
@@ -165,6 +167,7 @@ export async function runEvidenceTask(
         caseId: task.caseId,
         store: deps.store,
         allowedClaimKinds: spec.claimKinds,
+        ...(spec.textRules ? { textRules: spec.textRules } : {}),
       }),
     taskId: task.id,
     trace: deps.trace,
