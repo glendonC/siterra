@@ -1,0 +1,45 @@
+{
+ "crs": "EPSG:32629",
+ "transform": [
+  10.0,
+  0.0,
+  733200.0,
+  0.0,
+  -10.0,
+  3516800.0
+ ],
+ "shape": [
+  2964,
+  3766
+ ],
+ "dtype": "uint8",
+ "origin": "top left corner of the top left cell; row 0 is north",
+ "nodata": 0,
+ "format": "indexed PNG, 8 bit, palette index = value, index 0 transparent (nodata)",
+ "values": {
+  "1": "elevation band 1 (low)",
+  "2": "elevation band 2 (mid)",
+  "3": "elevation band 3 (high)"
+ },
+ "palette_rgb": {
+  "1": [
+   31,
+   119,
+   180
+  ],
+  "2": [
+   255,
+   127,
+   14
+  ],
+  "3": [
+   44,
+   160,
+   44
+  ]
+ },
+ "source_asset": "strata",
+ "source_sha256": "0fad1da26371ef0e7c64a155f11ab10f753dac1c2e29f600b8e574488e88c2a6",
+ "source_band": 1,
+ "verified": "the decoded PNG indices equal the GeoTIFF values cell for cell"
+}

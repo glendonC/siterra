@@ -1,0 +1,23 @@
+{
+ "crs": "EPSG:32629",
+ "transform": [
+  30.0,
+  0.0,
+  733170.0,
+  0.0,
+  -30.0,
+  3516830.0
+ ],
+ "shape": [
+  990,
+  1258
+ ],
+ "dtype": "float32",
+ "origin": "top left corner of the top left cell; row 0 is north",
+ "byte_order": "little",
+ "nodata": -9999.0,
+ "unit": "m above the EGM2008 geoid",
+ "source_asset": "elevation_surface",
+ "source_sha256": "e1bd61a7c4a0bcbf671bbdbf737b85673c5988c10f29ae0949e7e586a4ebef1d",
+ "verified": "every value equals the GeoTIFF value"
+}
