@@ -1,0 +1,179 @@
+{
+ "recipeId": "land_cover_classes",
+ "version": "1.0.0",
+ "computed": "2026-10-29T13:39:12Z",
+ "place": {
+  "placeId": "ait_bouguemez",
+  "configRevision": 5,
+  "config_sha256": "8dd58b05777039e64773148647bcefd408a8b49d8dc54465830918e31caef7ec"
+ },
+ "claim_kind": "observation",
+ "grid": {
+  "crs": "EPSG:32629",
+  "cell_m": 10.0,
+  "shape": [
+   2964,
+   3766
+  ],
+  "transform": [
+   10.0,
+   0.0,
+   733200.0,
+   0.0,
+   -10.0,
+   3516800.0
+  ],
+  "nodata": 0
+ },
+ "cells_inside": 4173603,
+ "classes": [
+  {
+   "code": 10,
+   "name": "tree cover",
+   "cells": 339058,
+   "area_km2": 33.906,
+   "share": 0.0812
+  },
+  {
+   "code": 20,
+   "name": "shrubland",
+   "cells": 51988,
+   "area_km2": 5.199,
+   "share": 0.0125
+  },
+  {
+   "code": 30,
+   "name": "grassland",
+   "cells": 2854260,
+   "area_km2": 285.426,
+   "share": 0.6839
+  },
+  {
+   "code": 40,
+   "name": "cropland",
+   "cells": 47230,
+   "area_km2": 4.723,
+   "share": 0.0113
+  },
+  {
+   "code": 50,
+   "name": "built-up",
+   "cells": 3904,
+   "area_km2": 0.39,
+   "share": 0.0009
+  },
+  {
+   "code": 60,
+   "name": "bare or sparse vegetation",
+   "cells": 869235,
+   "area_km2": 86.924,
+   "share": 0.2083
+  },
+  {
+   "code": 80,
+   "name": "permanent water",
+   "cells": 7928,
+   "area_km2": 0.793,
+   "share": 0.0019
+  }
+ ],
+ "groups": [
+  {
+   "id": "lc_grazing_possible",
+   "label": "grassland, shrubland, or bare or sparse vegetation (land cover that can carry grazing; not a pasture map)",
+   "classes": [
+    20,
+    30,
+    60
+   ],
+   "cells": 3775483,
+   "share": 0.9046
+  },
+  {
+   "id": "lc_grassland",
+   "label": "grassland",
+   "classes": [
+    30
+   ],
+   "cells": 2854260,
+   "share": 0.6839
+  },
+  {
+   "id": "lc_bare_sparse",
+   "label": "bare or sparse vegetation",
+   "classes": [
+    60
+   ],
+   "cells": 869235,
+   "share": 0.2083
+  },
+  {
+   "id": "lc_shrubland",
+   "label": "shrubland",
+   "classes": [
+    20
+   ],
+   "cells": 51988,
+   "share": 0.0125
+  },
+  {
+   "id": "lc_tree_cover",
+   "label": "tree cover (on the valley floor this may include orchards)",
+   "classes": [
+    10
+   ],
+   "cells": 339058,
+   "share": 0.0812
+  },
+  {
+   "id": "lc_cropland_built",
+   "label": "cropland or built-up",
+   "classes": [
+    40,
+    50
+   ],
+   "cells": 51134,
+   "share": 0.0123
+  }
+ ],
+ "dataset": "ESA WorldCover 10 m 2021 v200",
+ "layer_sha256_in_place_configuration": "48cefdeb34cefae9e5765de39f998d93f3053ce1fb022adfb2b2f8cd873f7507",
+ "checks": {
+  "class_counts_sum": 4173603,
+  "unlisted_classes": {},
+  "zero_inside": 0,
+  "excluded_layer_cells": 51134,
+  "cropland_plus_built_up_cells": 51134,
+  "differing_from_placed_grid": 0
+ },
+ "units": "Class codes are the ESA WorldCover 2021 v200 legend values (10 tree cover, 20 shrubland, 30 grassland, 40 cropland, 50 built-up, 60 bare or sparse vegetation, 80 permanent water bodies); areas are km2 from 10 m cells of 100 m2 in EPSG:32629; shares are fractions of the cells inside the polygon.",
+ "check_results": {
+  "recompute_sample_period": true,
+  "units_and_scale": true,
+  "nodata_not_zero": true,
+  "attribution_present": true,
+  "visual_inspection_sample": true
+ },
+ "limitations": [
+  "ESA WorldCover 2021 is a single 2021 map classified from satellite data at 10 m: its classes can differ from the ground, and the class of one cell is not a field observation.",
+  "Tree cover on the valley floor may include orchards; cropland is a small share of the catchment in this map (the class 'cropland or built-up' is excluded from the sampling strata, never read as low vegetation). No class is a pasture, agdal or management unit.",
+  "Areas are cell counts times 100 m2 in EPSG:32629, not geodesic areas, and cells on the polygon's boundary are counted where their centre lies inside it.",
+  "The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary."
+ ],
+ "forbidden_phrases": [
+  "significant",
+  "significantly",
+  "degradation detected",
+  "grazing impact",
+  "overgrazing",
+  "caused by",
+  "proves",
+  "recovery",
+  "forecast",
+  "pasture improvement",
+  "pasture decline",
+  "encroachment",
+  "flood risk",
+  "water supply"
+ ]
+}

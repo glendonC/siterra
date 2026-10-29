@@ -24,6 +24,34 @@
     "sourceRecords": [
       {
         "recordType": "Source",
+        "id": "src_SCI-03",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "title": "Adaptation strategies of mountain livestock systems to global changes in the Central High Atlas, Morocco",
+        "url": "https://doi.org/10.1186/s42055-026-00126-4",
+        "publisher": "Sustainable Earth Reviews 9, article 7 (Springer Nature)",
+        "authors": [
+          "El Aayadi, S.",
+          "Challioui, M. K.",
+          "Sraïri, M. T."
+        ],
+        "publicationDate": "2026-07-03",
+        "language": "en",
+        "accessedAt": "2026-10-29T14:02:13Z",
+        "sourceKind": "peer_reviewed",
+        "accessStatus": "retrieved",
+        "license": "CC BY-NC-ND 4.0 (Crossref licence record of the DOI, version of record; the publisher page was not readable by the fetch script on 2026-10-29)",
+        "redistributionStatus": "restricted",
+        "contentHash": "sha256:e7bc91c09c54cca1d10b515f460ddd5108551bd0ea1578cd0b0c4ba65d925de8",
+        "notes": [
+          "Register: full text retrieved, pp. 5 to 12 re-read 2026-10-28. Stored privately for excerpt checks only: CC BY-NC-ND forbids sharing adaptations, so no file and no full text is redistributed, and quotes on screen stay short with attribution.",
+          "Excerpt policy offsets: CC BY-NC-ND 4.0: store privately, cite page and offsets, quote briefly"
+        ]
+      },
+      {
+        "recordType": "Source",
         "id": "src_SCI-04",
         "revision": 1,
         "createdAt": "2026-10-28T20:42:35.015Z",
@@ -251,6 +279,36 @@
         "notes": [
           "The publisher page refused the request; the full text the register read is a History Cooperative copy whose authorization is not confirmed, so it is not fetched. Cite the DOI.",
           "Excerpt policy none: bibliography-only"
+        ]
+      },
+      {
+        "recordType": "Source",
+        "id": "src_SCI-19",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "title": "Patrimony for resilience: evidence from the forest agdal in the Moroccan High Atlas Mountains",
+        "url": "https://doi.org/10.5751/ES-04429-160424",
+        "publisher": "Ecology and Society 16(4): 24 (Resilience Alliance)",
+        "authors": [
+          "Auclair, L.",
+          "Baudot, P.",
+          "Genin, D.",
+          "Romagny, B.",
+          "Simenel, R."
+        ],
+        "publicationDate": "2011-12-21",
+        "language": "en",
+        "accessedAt": "2026-10-29T14:02:16Z",
+        "sourceKind": "peer_reviewed",
+        "accessStatus": "retrieved",
+        "license": "Copyright by the authors, published under licence by the Resilience Alliance; no Creative Commons licence stated",
+        "redistributionStatus": "restricted",
+        "contentHash": "sha256:ff92a9d66ffe547a04d49c50e581e3ddf48fed836bd40194a355f2129ee8ced6",
+        "notes": [
+          "Register: full text (publisher HTML and PDF) re-read 2026-10-28, pp. 2 to 9, Tables 1 and 2. Stored privately for excerpt checks only; no licence allows redistribution, so link and paraphrase, with short attributed quotes.",
+          "Excerpt policy offsets: no licence stated: link, paraphrase and quote briefly"
         ]
       },
       {
@@ -12886,6 +12944,107 @@
       },
       {
         "recordType": "DataBundle",
+        "id": "bundle_drainage_network_ait_bouguemez",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "label": "Drainage network of the catchment (drainage_network 1.0.0)",
+        "status": "validated",
+        "datasetId": "copernicus-dem-glo-30",
+        "datasetVersion": "2021",
+        "sourceIds": [],
+        "geoSelectionId": "geo_ait_bouguemez_catchment",
+        "geoRevision": 1,
+        "periodIds": [],
+        "methodId": "drainage_network",
+        "methodVersion": "1.0.0",
+        "manifestUri": "/api/case-assets/bundle_drainage_network_ait_bouguemez/12205f984cb2dab28034108c2a7582305f6397a7932eaf3ee1a669aea50b462a88f2/collection.json",
+        "contentHash": "12205f984cb2dab28034108c2a7582305f6397a7932eaf3ee1a669aea50b462a88f2",
+        "license": "Licence for Copernicus DEM instance COP-DEM-GLO-30-F Global 30m Full, Free & Open",
+        "attribution": "Catchment derived by Siterra from Copernicus DEM GLO-30 (2021 release); Produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved; The organisations in charge of the Copernicus programme by law or by delegation do not incur any liability for any use of the Copernicus WorldDEM-30; Flow direction and depression fill depth conditioned by a private step that uses pysheds 0.5 (Bartos 2020, GPL-3.0, https://doi.org/10.5281/zenodo.3822494); the software is not part of this bundle",
+        "provenance": {
+          "sourceLocators": [],
+          "dataBundleIds": [
+            "bundle_terrain_strata_ait_bouguemez"
+          ],
+          "methodId": "drainage_network",
+          "methodVersion": "1.0.0",
+          "inputVersions": [
+            {
+              "entityId": "geo_ait_bouguemez_catchment",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_terrain_strata_ait_bouguemez",
+              "revision": 1
+            }
+          ],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-29T09:53:24Z",
+          "verificationStatus": "computed_checked",
+          "limitations": [
+            "The network is drawn from a 30 m surface model, not mapped on the ground: trees, buildings, steep walls and radar artefacts distort the surface, and the D8 path can leave the real channel. No stream was checked in the field.",
+            "A segment is drawn wherever 1.0 km2 or more drains to a cell. The network's extent and length follow that threshold; it is not a measured channel head, and it does not separate streams that run all year from streams that run only after rain or snowmelt.",
+            "Depression filling and flat resolution route flow across closed hollows and the lower gorge, so some segments run where the 30 m surface rises along the line. Those segments are flagged, their heights are stored unchanged, and the line says nothing about how water moves there.",
+            "Upstream area counts the cells that drain to a point along D8 paths on the filled surface. It is not the share of rain that reaches the point, and it ignores irrigation canals, withdrawals and groundwater.",
+            "Strahler order counts how channels join. It says nothing about channel size, discharge or whether water is present.",
+            "Heights are metres above the EGM2008 geoid from the Copernicus DEM GLO-30 surface model, whose stated absolute vertical accuracy is under 4 m (90% linear error) and relative vertical accuracy under 2 m on slopes up to 20% and under 4 m above, as arithmetic means with local deviations possible (Copernicus DEM Product Handbook 5.0).",
+            "The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary."
+          ]
+        }
+      },
+      {
+        "recordType": "DataBundle",
+        "id": "bundle_land_cover_ait_bouguemez",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "label": "Land cover of the valley catchment (land_cover_classes 1.0.0)",
+        "status": "validated",
+        "datasetId": "esa-worldcover-v200",
+        "datasetVersion": "2021",
+        "sourceIds": [],
+        "geoSelectionId": "geo_ait_bouguemez_catchment",
+        "geoRevision": 1,
+        "periodIds": [],
+        "methodId": "land_cover_classes",
+        "methodVersion": "1.0.0",
+        "manifestUri": "/api/case-assets/bundle_land_cover_ait_bouguemez/12201d54f4add011b26f62118f610898621f55c93c9e2b73cebd4e92a85344c6eccd/collection.json",
+        "contentHash": "12201d54f4add011b26f62118f610898621f55c93c9e2b73cebd4e92a85344c6eccd",
+        "license": "Licence for Copernicus DEM instance COP-DEM-GLO-30-F Global 30m Full, Free & Open; ESA WorldCover: CC BY 4.0",
+        "attribution": "Catchment and strata derived by Siterra from Copernicus DEM GLO-30 (2021 release); produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved; The organisations in charge of the Copernicus programme by law or by delegation do not incur any liability for any use of the Copernicus WorldDEM-30; © ESA WorldCover project / Contains modified Copernicus Sentinel data (2021) processed by ESA WorldCover consortium; ESA WorldCover 2021 v200 (Zanaga et al. 2022), CC BY 4.0, https://doi.org/10.5281/zenodo.7254221",
+        "provenance": {
+          "sourceLocators": [],
+          "dataBundleIds": [
+            "bundle_terrain_strata_ait_bouguemez"
+          ],
+          "methodId": "land_cover_classes",
+          "methodVersion": "1.0.0",
+          "inputVersions": [
+            {
+              "entityId": "geo_ait_bouguemez_catchment",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_terrain_strata_ait_bouguemez",
+              "revision": 1
+            }
+          ],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-29T13:39:12Z",
+          "verificationStatus": "computed_checked",
+          "limitations": [
+            "ESA WorldCover 2021 is a single 2021 map classified from satellite data at 10 m: its classes can differ from the ground, and the class of one cell is not a field observation.",
+            "Tree cover on the valley floor may include orchards; cropland is a small share of the catchment in this map (the class 'cropland or built-up' is excluded from the sampling strata, never read as low vegetation). No class is a pasture, agdal or management unit.",
+            "Areas are cell counts times 100 m2 in EPSG:32629, not geodesic areas, and cells on the polygon's boundary are counted where their centre lies inside it.",
+            "The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary."
+          ]
+        }
+      },
+      {
+        "recordType": "DataBundle",
         "id": "bundle_ndvi_departure_ait_bouguemez",
         "revision": 1,
         "createdAt": "2026-10-28T20:42:35.015Z",
@@ -13023,6 +13182,122 @@
             "Revision 13 (2026-10-27). Among duplicates of a tile and date, an item with no clear pixels over the catchment is now skipped when a twin has some. That clause was added to the duplicate rule after data was first read; the rule fixed before any data was read kept the newest processing baseline only. Revision 12, the first committed, has no version field; it documented the clause but kept the newest item, so it kept an item with 0 clear pixels over the catchment on seven tile-dates: 29RQQ 2019-04-17 (twin had 285 clear pixels), 2019-06-21 (702,669), 2020-11-12 (84), 2021-06-07 (8), 2021-11-19 (8), 2021-12-22 (8), and 29SQR 2020-10-23 (16). In five cases the twin is an older baseline (02.14, 03.00, 03.01), so its clear pixels come from an older scene classification. This revision recomputes 2019-04, 2019-06, 2020-10, 2020-11, 2021-06, 2021-11 and 2021-12 and everything derived from them; no NDVI or departure area median moved at four decimals.",
             "Revision 14 (2026-10-27). The leave-one-year-out measurements of 2019-03 and 2020-03, which revision 13 excluded without saying why, now carry a missing_reason (Siterra STAC extension 1.1.0): pixels with a value that year and a reference from at least 4 other years cover too little of the catchment, below the 70% coverage policy. No value, status or count changed. Only this bundle is revised; the aligned bundle's link to it is re-pinned, and its results are unchanged.",
             "Revision 15 (2026-10-28). Each period whose leave-one-year-out departure is available (56 of 84) gains a display raster for the map, asset overview: that period's per-pixel leave-one-year-out departure, averaged into 30 m Web Mercator cells (about 25.5 m on the ground here) and painted on the fixed scale -0.10 to +0.10 with the light-theme NDVI departure ramp, lossless WebP. It is for display only; every number shown comes from the measurements. 2019-03 and 2020-03, whose leave-one-year-out value is excluded, and the periods without a departure have no display raster. The Collection also lists the mapped cropland and buildings (ESA WorldCover 2021 classes 40 and 50) of the terrain strata bundle as polygons, for the map's hatch; no value is masked by them. No value, status or count changed. Only this bundle is revised; the aligned bundle's link to it is re-pinned, and its results are unchanged."
+          ]
+        }
+      },
+      {
+        "recordType": "DataBundle",
+        "id": "bundle_optical_visibility_ait_bouguemez",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "label": "Optical visibility by elevation band (optical_visibility_by_band 1.0.0)",
+        "status": "validated",
+        "datasetId": "sentinel-2-l2a",
+        "datasetVersion": null,
+        "sourceIds": [],
+        "geoSelectionId": "geo_ait_bouguemez_catchment",
+        "geoRevision": 1,
+        "periodIds": [],
+        "methodId": "optical_visibility_by_band",
+        "methodVersion": "1.0.0",
+        "manifestUri": "/api/case-assets/bundle_optical_visibility_ait_bouguemez/12209f1bb3e798be61c82b2187a1ccc4685a0fc0710298d747830430c72484adaba6/collection.json",
+        "contentHash": "12209f1bb3e798be61c82b2187a1ccc4685a0fc0710298d747830430c72484adaba6",
+        "license": "other",
+        "attribution": "Contains modified Copernicus Sentinel data 2019-2025; Catchment derived by Siterra from Copernicus DEM GLO-30 (2021 release); Produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved; The organisations in charge of the Copernicus programme by law or by delegation do not incur any liability for any use of the Copernicus WorldDEM-30",
+        "provenance": {
+          "sourceLocators": [],
+          "dataBundleIds": [
+            "bundle_s2_ndvi_monthly_ait_bouguemez",
+            "bundle_terrain_strata_ait_bouguemez"
+          ],
+          "methodId": "optical_visibility_by_band",
+          "methodVersion": "1.0.0",
+          "inputVersions": [
+            {
+              "entityId": "geo_ait_bouguemez_catchment",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_s2_ndvi_monthly_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_terrain_strata_ait_bouguemez",
+              "revision": 1
+            }
+          ],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-29T13:54:01Z",
+          "verificationStatus": "computed_checked",
+          "limitations": [
+            "A clear share counts cells that have at least one (or three) Sentinel-2 dates not classed as cloud, cloud shadow, snow or water in the month; it says how often the band was seen, not how much of it was covered by snow or cloud, and the files do not say which of the two hid a cell.",
+            "The shares depend on the Sentinel-2 scene classification of each date, which makes errors on thin cloud, snow edges and shadow; they are observations of the classification, not of the ground.",
+            "Bands are elevation terciles that organise sampling; they are not vegetation types, grazing zones or management boundaries.",
+            "Only the months of 2019 to 2025 that the Sentinel-2 monthly series holds are covered, 28 winter months."
+          ]
+        }
+      },
+      {
+        "recordType": "DataBundle",
+        "id": "bundle_pixel_anatomy_ait_bouguemez",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "label": "One MODIS pixel opened into its 10 m cells (pixel_anatomy 1.0.0)",
+        "status": "validated",
+        "datasetId": "sentinel-2-l2a",
+        "datasetVersion": "05.11",
+        "sourceIds": [],
+        "geoSelectionId": "geo_ait_bouguemez_catchment",
+        "geoRevision": 1,
+        "periodIds": [],
+        "methodId": "pixel_anatomy",
+        "methodVersion": "1.0.0",
+        "manifestUri": "/api/case-assets/bundle_pixel_anatomy_ait_bouguemez/12200df94b9c94dd380f37ea6a9e586dc026fe13a69f525508d6617d49247539f1ee/collection.json",
+        "contentHash": "12200df94b9c94dd380f37ea6a9e586dc026fe13a69f525508d6617d49247539f1ee",
+        "license": "MOD13Q1 v6.1: NASA data use guidance (NASA-led mission data without a marked restriction are CC0; citation strongly urged); Licence for Copernicus DEM instance COP-DEM-GLO-30-F Global 30m Full, Free & Open; ESA WorldCover: CC BY 4.0; Legal notice on the use of Copernicus Sentinel data and service information (SCI-18)",
+        "attribution": "Contains modified Copernicus Sentinel data 2025; Didan, K. (2021). MODIS/Terra Vegetation Indices 16-Day L3 Global 250m SIN Grid V061. NASA Land Processes Distributed Active Archive Center. https://doi.org/10.5067/MODIS/MOD13Q1.061. Tile h17v05, A2000049 to A2025353, read from Microsoft Planetary Computer, accessed 2026-10-28; Catchment and strata derived by Siterra from Copernicus DEM GLO-30 (2021 release); produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved; The organisations in charge of the Copernicus programme by law or by delegation do not incur any liability for any use of the Copernicus WorldDEM-30; © ESA WorldCover project / Contains modified Copernicus Sentinel data (2021) processed by ESA WorldCover consortium; ESA WorldCover 2021 v200 (Zanaga et al. 2022), CC BY 4.0, https://doi.org/10.5281/zenodo.7254221; ESA WorldCover 10 m 2021 v200, Zanaga et al. (2022), https://doi.org/10.5281/zenodo.7254221, CC BY 4.0",
+        "provenance": {
+          "sourceLocators": [],
+          "dataBundleIds": [
+            "bundle_terrain_strata_ait_bouguemez",
+            "bundle_pixel_trend_long_record_ait_bouguemez",
+            "bundle_s2_ndvi_monthly_ait_bouguemez"
+          ],
+          "methodId": "pixel_anatomy",
+          "methodVersion": "1.0.0",
+          "inputVersions": [
+            {
+              "entityId": "geo_ait_bouguemez_catchment",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_terrain_strata_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_pixel_trend_long_record_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_s2_ndvi_monthly_ait_bouguemez",
+              "revision": 1
+            }
+          ],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-29T11:09:47Z",
+          "verificationStatus": "computed_checked",
+          "limitations": [
+            "One pixel is an illustration, not a sample: it was chosen by judgment among the candidates of a rule (the selection record gives their number and its rank), and it says nothing about other pixels.",
+            "The class spectra come from one clear day, the cells of each class inside this pixel, and one 2021 land cover map. They are not typical spectra of the classes, and a 10 m cell at the edge of a class mixes surfaces.",
+            "The mix model assumes the pixel's reflectance is the share-weighted sum of its class medians. It ignores shadow, slope and variation inside a class, so its NDVI is modelled, not measured, and it differs from the measured pixel NDVI by the amount stored.",
+            "NDVI measures how green the ground looks from above, not forage, palatability or species: in Ait Bouguemez and the Central High Atlas, upper rangelands are dominated by spiny xerophytic vegetation over reduced short grasslands (SCI-19, p. 2), and on the valley floor tree cover may include orchards (SCI-03, pp. 5, 9 to 10).",
+            "The 26-season series is the pixel's own March to June greenness, not adjusted for rainfall. Its trend is a descriptive Theil-Sen slope with Sen's 95% interval, and no p-value or false discovery rate class is stored for one pixel (SCI-52).",
+            "Terra's overpass has drifted earlier since 2020, from 10:30 to about 9:06 mean local time by December 2025 (NASA), so later seasons are seen with a lower sun and longer shadows in mountain terrain, which may shift NDVI without any change on the ground.",
+            "The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary."
           ]
         }
       },
@@ -13470,6 +13745,63 @@
             "The DEM is a surface model: trees and buildings raise it; radar artefacts are possible in narrow gorges.",
             "WorldCover 2021 is a 2021 context mask: it maps only 1.1% of the catchment as cropland, and much of the green valley floor is mapped as tree cover, which may include orchards.",
             "Strata organize field sampling; they are not vegetation types, pasture units or management boundaries."
+          ]
+        }
+      },
+      {
+        "recordType": "DataBundle",
+        "id": "bundle_transects_ait_bouguemez",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "label": "Profiles across and along the valley (terrain_transects 1.0.1)",
+        "status": "validated",
+        "datasetId": "copernicus-dem-glo-30",
+        "datasetVersion": "2021",
+        "sourceIds": [],
+        "geoSelectionId": "geo_ait_bouguemez_catchment",
+        "geoRevision": 1,
+        "periodIds": [],
+        "methodId": "terrain_transects",
+        "methodVersion": "1.0.1",
+        "manifestUri": "/api/case-assets/bundle_transects_ait_bouguemez/1220412d569c665d81dc56b8bedbf71f4845512345bc07743a5af1704b56aa6d1fc1/collection.json",
+        "contentHash": "1220412d569c665d81dc56b8bedbf71f4845512345bc07743a5af1704b56aa6d1fc1",
+        "license": "Licence for Copernicus DEM instance COP-DEM-GLO-30-F Global 30m Full, Free & Open; ESA WorldCover: CC BY 4.0",
+        "attribution": "Catchment and strata derived by Siterra from Copernicus DEM GLO-30 (2021 release); produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved; The organisations in charge of the Copernicus programme by law or by delegation do not incur any liability for any use of the Copernicus WorldDEM-30; © ESA WorldCover project / Contains modified Copernicus Sentinel data (2021) processed by ESA WorldCover consortium; ESA WorldCover 2021 v200 (Zanaga et al. 2022), CC BY 4.0, https://doi.org/10.5281/zenodo.7254221",
+        "provenance": {
+          "sourceLocators": [],
+          "dataBundleIds": [
+            "bundle_terrain_strata_ait_bouguemez",
+            "bundle_drainage_network_ait_bouguemez"
+          ],
+          "methodId": "terrain_transects",
+          "methodVersion": "1.0.1",
+          "inputVersions": [
+            {
+              "entityId": "geo_ait_bouguemez_catchment",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_terrain_strata_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_drainage_network_ait_bouguemez",
+              "revision": 1
+            }
+          ],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-29T10:03:38Z",
+          "verificationStatus": "computed_checked",
+          "limitations": [
+            "A profile is read from a 30 m surface model: trees, buildings, steep walls and radar artefacts distort it, and narrow gorges such as the lower gorge near the outlet are not resolved. Heights are metres above the EGM2008 geoid with the DEM's stated vertical accuracy (Copernicus DEM Product Handbook 5.0).",
+            "Samples are 30 m apart, so a band crossing or a land cover boundary is placed to within about 15 m, and a feature narrower than 30 m can fall between samples.",
+            "Land cover is ESA WorldCover 2021 at 10 m, a single 2021 map applied to the line: tree cover on the valley floor may include orchards, and no class is a pasture, agdal or management unit.",
+            "An elevation band is a stratum that organises sampling, cut from the elevation distribution of the catchment; it is not a vegetation type, a grazing zone or a management boundary.",
+            "The valley floor segment follows the published elevation range of the valley floor (1800 to 2200 m, SCI-19); it is not a measured flat bottom.",
+            "The valley axis is the longest flow path of a D8 network, which follows the main river, not the centre line of the valley; its profile inherits the limits of the drainage network, including places where the surface rises along the line.",
+            "The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary."
           ]
         }
       }
@@ -53130,18 +53462,18 @@
         "geometry": {
           "type": "Point",
           "coordinates": [
-            -6.41049,
-            31.65255
+            -6.42007,
+            31.65873
           ]
         },
         "crs": "EPSG:4326",
-        "method": "Position of the GeoNames populated place Tabant (geonameid 2532270, feature code PPLA3) in the gazetteer extract for Morocco, snapshot retrieved 2026-10-27 (source register SCI-154)",
+        "method": "Position of the Tabant acceptance point of the catchment freeze (data-sources-and-methods.md, study area), checked on 2026-10-29 against the 10 m true colour image (data/interim/hero/imagery/truecolour-inner-10m.tif, EPSG:32629): it lies on the village. The GeoNames populated place Tabant (geonameid 2532270, feature code PPLA3; gazetteer extract for Morocco, snapshot retrieved 2026-10-27, source register SCI-154) lies about 1.1 km south-east of it on bare hillside and is not used for the position; the name and the identifier are GeoNames'",
         "datasetId": "GeoNames gazetteer extract for Morocco (SCI-154, MA.zip, snapshot 2026-10-27, SHA-256 c25481b5aaa5855eaf5c5363abc09cb32c7c40b36799bcc4852bc5f00eafe875)",
         "sourceIds": [],
         "attribution": "GeoNames, CC BY 4.0",
         "license": "CC BY 4.0",
         "limitations": [
-          "A crowd-sourced gazetteer position for orientation and labels only; not a boundary and not a surveyed point. It lies about 1.1 km (great-circle) from the Tabant acceptance point of the catchment freeze (data-sources-and-methods.md, study area)."
+          "A label position for orientation and labels only; not a boundary and not a surveyed point. The GeoNames gazetteer position of Tabant (31.65255 N, 6.41049 W) is about 1.1 km south-east of this point, on bare hillside, as seen on the 10 m true colour image."
         ]
       }
     ],

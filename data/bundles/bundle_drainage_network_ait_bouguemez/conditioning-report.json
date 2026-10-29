@@ -1,0 +1,128 @@
+{
+ "script": "condition-d8.py (private; pysheds)",
+ "dem": {
+  "file": "Copernicus_DSM_COG_10_N31_00_W007_00_DEM.tif",
+  "sha256": "024f00066f44b6c04c26ab5c22ef8d355f6dc77052206d96c9a9c04f66b9c61e",
+  "window": [
+   -6.7,
+   31.4,
+   -6.001,
+   31.85
+  ],
+  "window_shape": [
+   1620,
+   2516
+  ],
+  "transform": [
+   0.0002777777777777778,
+   0.0,
+   -6.700138888888889,
+   0.0,
+   -0.0002777777777777778,
+   31.850138888888893
+  ]
+ },
+ "geometry": {
+  "file": "analysis-geometry.geojson",
+  "sha256": "ac506ece626b6844d759b56aa60a10248c8c0ea5e206f9a28eb436a892a4d47f"
+ },
+ "d8_steps_rising_on_conditioned_dem": {
+  "window": {
+   "checked": 4075587,
+   "rising": 0
+  },
+  "catchment": {
+   "checked": 513974,
+   "rising": 0
+  }
+ },
+ "software": {
+  "pysheds": "0.5",
+  "numpy": "2.5.4",
+  "rasterio": "1.5.2",
+  "gdal": "3.12.2",
+  "python": "3.12.9"
+ },
+ "method": [
+  "fill_pits",
+  "fill_depressions",
+  "resolve_flats",
+  "flowdir D8 (dirmap 64,128,1,2,4,8,16,32)"
+ ],
+ "crop": {
+  "margin_cells": 8,
+  "rows": [
+   329,
+   1289
+  ],
+  "cols": [
+   564,
+   2017
+  ],
+  "shape": [
+   960,
+   1453
+  ],
+  "transform": [
+   0.0002777777777777778,
+   0.0,
+   -6.543472222222222,
+   0.0,
+   -0.0002777777777777778,
+   31.758750000000003
+  ],
+  "cells_without_direction_in_crop": 0,
+  "cells_without_direction_inside_catchment": 0
+ },
+ "outlet": {
+  "input_lat_lon": [
+   31.637197,
+   -6.5365
+  ],
+  "snapped_lat_lon": [
+   31.63777777777778,
+   -6.537222222222222
+  ],
+  "snap_distance_m": 94.0,
+  "row": 764,
+  "col": 586,
+  "candidates": 54,
+  "upstream_km2": 417.0449
+ },
+ "freeze_comparison": {
+  "delineated_cells": 513974,
+  "frozen_polygon_cells": 513974,
+  "cells_that_differ": 0
+ },
+ "fdir_values_from_pysheds": {
+  "-2": 333,
+  "1": 402877,
+  "2": 503979,
+  "4": 674563,
+  "8": 453510,
+  "16": 424122,
+  "32": 511029,
+  "64": 664592,
+  "128": 440915
+ },
+ "fill_depth_m": {
+  "max_in_window": 107.96,
+  "cells_raised": 41069,
+  "cells_raised_inside_catchment": 6723,
+  "max_within_1km_of_lower_gorge": 58.175
+ },
+ "outputs": {
+  "d8-flow-direction.tif": {
+   "sha256": "2e54508eeaf6b449ee41154b70caa872be4a5f345a36c68ccffbfc6305eb4979",
+   "bytes": 366411
+  },
+  "depression-fill-depth.tif": {
+   "sha256": "94b9c3f802bb4dfb67535118e25f1359f9ac3cc099a882d5ce9ba3c17c85f25f",
+   "bytes": 78415
+  },
+  "acc-km2-pysheds.tif": {
+   "sha256": "05ef897e9454f8c84b8dcda27b2644f14c4eba72c2d97a4f47c8c3c622666c80",
+   "bytes": 7953698
+  }
+ }
+}

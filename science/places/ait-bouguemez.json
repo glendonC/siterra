@@ -2,10 +2,18 @@
   "placeId": "ait_bouguemez",
   "title": "Ait Bouguemez valley catchment",
   "note": "Place configuration read by the long-record pipeline scripts. Everything that is specific to one place lives here; the scripts hold none of it. A value changed here after a result was read is a new configuration revision labelled post hoc in the recipe result.",
-  "configRevision": 2,
+  "configRevision": 6,
   "revisions": [
     {"revision": 1, "date": "2026-10-28", "change": "First configuration: geometry, strata, DEM, rainfall window, restrend_long_record and snow_cover_by_band."},
-    {"revision": 2, "date": "2026-10-28", "change": "Added landCover, pixel_trend_long_record and season_trend_long_record, written before any per-pixel slope, land-cover summary or June to September greenness value was computed. No value of revision 1 changed."}
+    {"revision": 2, "date": "2026-10-28", "change": "Added landCover, pixel_trend_long_record and season_trend_long_record, written before any per-pixel slope, land-cover summary or June to September greenness value was computed. No value of revision 1 changed."},
+    {"revision": 3, "date": "2026-10-29", "change": "Added drainage_network (the conditioned flow direction and fill depth rasters of the catchment freeze, pinned by checksum), written before this pipeline built any drainage segment. No value of revision 1 or 2 changed."},
+    {"revision": 4, "date": "2026-10-29", "change": "Added terrain_transects (the two lines, the Tabant coordinates and the published valley floor range), written before this pipeline sampled any line. No value of revision 1, 2 or 3 changed."},
+    {"revision": 5, "date": "2026-10-29", "change": "Added pixel_anatomy (the pixel, its selection record, the month and orbit of the scene, and the pinned display inputs), written before this pipeline built any pixel anatomy. No value of revision 1 to 4 changed."},
+  {
+   "revision": 6,
+   "date": "2026-10-29",
+   "change": "Added optical_visibility_by_band (the elevation bands of the strata, the winter months, the period and the two validity definitions), written before this pipeline computed any per-band clear share; the lead's published winter figures for the upper band are named as the figures to reproduce. No value of revision 1 to 5 changed."
+  }
   ],
   "geometry": {
     "id": "geo_ait_bouguemez_catchment",
@@ -130,6 +138,107 @@
       "landCoverGroups": true,
       "contrast": {"spring": "mar_may", "summer": "jun_sep"},
       "contrastRationale": "March to May and June to September share no month, so the contrast compares two separate parts of the year; March to June overlaps June to September in June."
+    },
+    "drainage_network": {
+      "conditioning": {
+        "note": "Made by a private step (pysheds 0.5 is GPL-3.0-or-later, so the step stays out of the public pipeline, as the catchment freeze script does): the elevation tile named above, window 6.70 to 6.001 W and 31.40 to 31.85 N on its native 1 arc-second grid, fill_pits, fill_depressions, resolve_flats, D8 flow direction with codes 64, 128, 1, 2, 4, 8, 16, 32 for north, north-east, east, south-east, south, south-west, west and north-west, cropped to the catchment's bounding box plus 8 cells. The step reproduced the freeze: the cells that drain to the snapped outlet equal the frozen polygon's cells, 513,974 of 513,974, 0 differ. The public builder reads the two rasters from the bundle's assets; its first build reads them from data/interim/drainage/ and the checksums must match.",
+        "freezeInputPoint": {"lat": 31.637197, "lon": -6.5365},
+        "outletSnapMaxM": 120,
+        "flowDirection": {
+          "bundleAsset": "d8-flow-direction.tif",
+          "interimPath": "data/interim/drainage/d8-flow-direction.tif",
+          "sha256": "2e54508eeaf6b449ee41154b70caa872be4a5f345a36c68ccffbfc6305eb4979"
+        },
+        "fillDepth": {
+          "bundleAsset": "depression-fill-depth.tif",
+          "interimPath": "data/interim/drainage/depression-fill-depth.tif",
+          "sha256": "94b9c3f802bb4dfb67535118e25f1359f9ac3cc099a882d5ce9ba3c17c85f25f"
+        },
+        "report": {
+          "bundleAsset": "conditioning-report.json",
+          "interimPath": "data/interim/drainage/conditioning-report.json",
+          "sha256": "f0d9fe744659e27d868381de57c6828fdb6a52c7f8fd40020c295cca6740e251"
+        }
+      },
+      "heightSurface": "elevation",
+      "heightPadCells": 1,
+      "rationale": "The 1.0 km2 threshold, the smoothing, simplification and vertex spacing, the 30 m height surface of the terrain strata and the 4.0 m rise tolerance are fixed in science/recipes/registry.json (drainage_network 1.0.0) before the first build; this block holds only what belongs to the place."
+    },
+    "terrain_transects": {
+      "bundleId": "bundle_transects_ait_bouguemez",
+      "transects": [
+        {
+          "id": "tabant_meridian",
+          "kind": "meridian_through_point",
+          "label": "Cross-valley section along the meridian through Tabant",
+          "point": {"name": "Tabant", "lat": 31.65873, "lon": -6.42007},
+          "expectedEnds": {"northLat": 31.709028, "southLat": 31.600972, "decimals": 6, "source": "specimen B of 29 October 2026, as given in the lead's brief"}
+        },
+        {
+          "id": "valley_axis",
+          "kind": "longest_flow_path",
+          "label": "Long profile from the outlet to the head along the longest flow path of the drainage network",
+          "network": {"bundle": "bundle_drainage_network_ait_bouguemez", "asset": "drainage_lines"}
+        }
+      ],
+      "valleyFloor": {"maxElevationM": 2200, "source": "SCI-19: valley floor 1800 to 2200 m"},
+      "rationale": "The step, the recompute tolerance and the height surface are fixed in science/recipes/registry.json (terrain_transects 1.0.0) before the first build; this block holds the lines, the Tabant coordinates (GeoNames, as in research/geospatial/study-area.md) and the published valley floor range."
+    },
+    "pixel_anatomy": {
+      "bundleId": "bundle_pixel_anatomy_ait_bouguemez",
+      "pixels": [
+        {
+          "id": "h17v05r4005c2178",
+          "role": "primary",
+          "chosenBy": "The 28 October specimen build, by a disclosed judgment: rank 3 of the candidates of the rule below. Ranks 1 and 2 lie in the lower gorge along a meandering riparian strip; this is the first candidate on the edge of the main valley floor, where the floor of tree cover and cropland meets the open slope in one straight boundary."
+        }
+      ],
+      "candidateRule": {
+        "window": "mar_jun",
+        "direction": "upward",
+        "fullyInsideCatchment": true,
+        "treeCoverPlusCropland": [0.25, 0.60],
+        "grasslandShrublandBareOrSparseMin": 0.35,
+        "builtUpMax": 0.05,
+        "slopingCellsMin": 0.50,
+        "ranking": "lower bound of Sen's 95% interval, highest first",
+        "writtenBefore": "the candidate list was made, by the 28 October specimen build"
+      },
+      "ndviMonth": "2025-06",
+      "scene": {
+        "tile": "29SQR",
+        "relativeOrbit": "R094",
+        "month": "2025-06",
+        "itemsFolder": "s2-monthly/items",
+        "orbitReason": "In the cached items of tile 29SQR for June 2025, the R094 scenes carry 7.3 to 9.0% no-data (apart from one sliver of 95.6%) and the R137 scenes 33.8 to 35.6%"
+      },
+      "interimInputs": {
+        "root": "data/interim",
+        "ndviMedian": {"path": "s2-monthly/2025-06/median.tif", "sha256": "1f31217f15421eed40a9342011785e8ef0d47daacf24bdc8544bfbc7c712cf38"},
+        "ndviCount": {"path": "s2-monthly/2025-06/count.tif", "sha256": "83ea290dccde4f5c1c991a3223b39c3eceb0d19e46e947416cb2196cf8f3cbd1"},
+        "trueColour": {"path": "hero/imagery/truecolour-inner-10m.tif", "sha256": "68ba737d375936f0acb42057b0df047ed4b09148e577b71f87b668ec5a95734e", "use": "display only"}
+      },
+      "trendBundle": {"bundle": "bundle_pixel_trend_long_record_ait_bouguemez", "table": "pixel-trend-long-record-tables.json", "grid": "pixel-trend-mar_jun.tif"},
+      "rationale": "The window margin, the SCL classes, the reflectance divisor, the shift of the example control and the series parameters are fixed in science/recipes/registry.json (pixel_anatomy 1.0.0) before the first build; this block holds the pixel, how it was chosen, the month and orbit of the scene and the pinned display inputs."
+    },
+    "optical_visibility_by_band": {
+      "bundleId": "bundle_optical_visibility_ait_bouguemez",
+      "months": ["2019-01", "2025-12"],
+      "winterMonths": [12, 1, 2, 3],
+      "elevationBands": {"fromStrataLayer": "elevation_band"},
+      "validity": [
+        {"id": "any_date", "minDates": 1, "primary": true, "label": "at least one clear Sentinel-2 date in the month (a monthly median exists)"},
+        {"id": "three_dates", "minDates": 3, "label": "at least three clear Sentinel-2 dates in the month"}
+      ],
+      "inputs": {"median": "s2-monthly/<YYYY-MM>/median.tif", "count": "s2-monthly/<YYYY-MM>/count.tif", "root": "the Sentinel-2 monthly composites folder named on the command line", "grid": "the 10 m analysis grid of the strata"},
+      "thresholds": [0.5, 0.9],
+      "reproduce": {
+        "source": "the lead's checks of 28 Oct 2026 against the bundles (COMMON.md verified facts)",
+        "band": 3, "variant": "any_date", "winterMonths": 28,
+        "min": 0.19, "median": 0.4731, "max": 0.985, "atOrAbove0.9": 3, "atOrAbove0.5": 11,
+        "months": {"2023-12": 0.971, "2024-01": 0.947, "2024-02": 0.985}
+      },
+      "rationale": "The bands are the equal-area terciles of the strata bundle, so each holds a third of the catchment's 10 m cells. Winter is December to March because that is when snow covers the upper band and optical images of it are least often clear. The two validity definitions are stored side by side and neither is chosen after the numbers are read: any_date is the monthly median the NDVI bundle uses, three_dates is the stricter reading of the same monthly files."
     }
   }
 }

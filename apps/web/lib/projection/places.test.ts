@@ -34,7 +34,7 @@ describe("contextLand", () => {
   it("places the villages and the outlet where their records put them", () => {
     const land = contextLand(withFeatures(seedFeatures));
     expect(land.places).toEqual([
-      { id: "ctx_tabant", name: "Tabant", lon: -6.41049, lat: 31.65255 },
+      { id: "ctx_tabant", name: "Tabant", lon: -6.42007, lat: 31.65873 },
       { id: "ctx_ait_ouchi_locator", name: "Aït Ouchi", lon: -6.338611, lat: 31.703611 },
     ]);
     expect(land.outlet).toEqual({

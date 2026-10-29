@@ -6,7 +6,7 @@ Public. Probed 2026-10-26 (UTC 2026-10-27). Status: **frozen 2026-10-27 at nativ
 
 | Item | Verified fact | Source |
 | --- | --- | --- |
-| Valley | Aït Bouguemez valley, central High Atlas, in the rural district (commune) of Tabant, Province of Azilal; about 40 km long, oriented east–west; valley floor 1800–2200 m with surrounding ranges above 3000 m; more than thirty villages. | SCI-19 (full text) |
+| Valley | Aït Bouguemez valley, central High Atlas, in the rural district (commune) of Tabant, Province of Azilal; about 40 km long, oriented east–west; valley between 1800 and 2200 m altitude (SCI-19, p. 2; SCI-03, p. 5 gives 1800–2200 m for the cultivated land at the valley bottom) with surrounding ranges rising to over 3000 m; more than thirty villages (SCI-19, p. 2). | SCI-19, SCI-03 (full text) |
 | Administrative chain | Commune de Tabant, HCP geographic code 50810309, in Cercle d'Azilal (508103), Province d'Azilal (5081), Région de Béni Mellal-Khénifra (5). | SCI-35 (HCP RGPH 2024 legal population file) |
 | Population (official) | Commune de Tabant: 16,401 legal population, 2,910 households, reference date 1 September 2024. Whole commune, not the valley or herding households. | SCI-35 |
 | Published locator | Ait Ouchi village, 31.703611 N, 6.338611 W (converted from SCI-04 Table 1). Inside both the commune polygon and the recommended catchment. | SCI-04 |
@@ -30,7 +30,7 @@ Boundary datasets disagree at this scale: the recommended catchment's southern l
 
 **Default analysis extent: the Aït Bouguemez valley catchment**, defined as all land draining to the Assif n'Aït Bouguemez at an outlet just upstream of its confluence with the Oued Lakhdar. Schema use (contracts 1.2): `boundaryRole = hydrological_unit`; `geometryStatus = analysis_ready` only after the native-resolution recompute and review below; label in the product "Valley catchment (hydrological analysis extent); not a pasture, agdal or management boundary".
 
-Rationale: it matches the published description of the valley (east–west extent about 38 km versus "about 40 km" in SCI-19; 5th-percentile elevation about 1880 m versus the published 1800–2200 m floor); boundaries follow ridgelines, so slopes and high ground that drain to the valley are included and the area is not cut by straight administrative lines; vegetation, snowmelt and rainfall context refer to one drainage; inputs are openly licensed and the outlet is fixed before any NDVI is inspected, so the area cannot be tuned to manufacture a trend.
+Rationale: it matches the published description of the valley (east–west extent about 38 km versus "about 40 km" in SCI-19; 5th-percentile elevation about 1880 m versus the published 1800–2200 m valley range); boundaries follow ridgelines, so slopes and high ground that drain to the valley are included and the area is not cut by straight administrative lines; vegetation, snowmelt and rainfall context refer to one drainage; inputs are openly licensed and the outlet is fixed before any NDVI is inspected, so the area cannot be tuned to manufacture a trend.
 
 | Property | Value |
 | --- | --- |

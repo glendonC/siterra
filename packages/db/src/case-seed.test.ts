@@ -38,12 +38,16 @@ describe("the case seed in data/case/", () => {
   it("verifies every pinned file and imports every source and bundle without an issue", () => {
     const { seed, issues } = readCaseSeed(args);
     expect(issues).toEqual([]);
-    expect(seed?.sources).toHaveLength(14);
+    expect(seed?.sources).toHaveLength(16);
     expect(seed?.bundles.map((b) => b.dataBundle.id).sort()).toEqual([
       "bundle_aligned_antecedent_ait_bouguemez",
       "bundle_chirps_monthly_ait_bouguemez",
       "bundle_coverage_summary_ait_bouguemez",
+      "bundle_drainage_network_ait_bouguemez",
+      "bundle_land_cover_ait_bouguemez",
       "bundle_ndvi_departure_ait_bouguemez",
+      "bundle_optical_visibility_ait_bouguemez",
+      "bundle_pixel_anatomy_ait_bouguemez",
       "bundle_pixel_trend_long_record_ait_bouguemez",
       "bundle_restrend_long_record_ait_bouguemez",
       "bundle_s2_ndvi_monthly_ait_bouguemez",
@@ -51,6 +55,7 @@ describe("the case seed in data/case/", () => {
       "bundle_season_trend_long_record_ait_bouguemez",
       "bundle_snow_cover_by_band_ait_bouguemez",
       "bundle_terrain_strata_ait_bouguemez",
+      "bundle_transects_ait_bouguemez",
     ]);
   });
 
