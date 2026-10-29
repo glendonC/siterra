@@ -283,7 +283,9 @@
         "aspect_class",
         "landcover_mask",
         "snow_cover_fraction",
-        "drainage_network"
+        "drainage_network",
+        "elevation_profile",
+        "pixel_anatomy"
       ]
     },
     "siterra:dataset": {
