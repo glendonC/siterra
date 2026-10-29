@@ -144,6 +144,20 @@ describe("STAC extension 1.1.0", () => {
     expect(issuesOf(StacCollection.safeParse(collection))).toEqual([]);
   });
 
+  it.each(["elevation_profile", "pixel_anatomy"])(
+    "accepts %s as a bundle variable in the JSON schema and Zod mirror",
+    (variable) => {
+      const schema = readJson(`${repoDir}schemas/stac/siterra-extension.schema.json`);
+      const defs = schema["definitions"] as Json;
+      const variableDef = defs["siterra:variable"] as { enum: string[] };
+      expect(variableDef.enum).toContain(variable);
+
+      const collection = readJson(`${examplesDir}stac-collection-ndvi.json`);
+      collection["siterra:variable"] = variable;
+      expect(issuesOf(StacCollection.safeParse(collection))).toEqual([]);
+    },
+  );
+
   it("still refuses a variable the extension does not list", () => {
     const collection = readJson(`${examplesDir}stac-collection-ndvi.json`);
     collection["siterra:variable"] = "river_depth";
