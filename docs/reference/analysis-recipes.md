@@ -1,6 +1,6 @@
 # Analysis recipes
 
-How Siterra uses AI for data-science work without letting the model compute or invent numbers: Muse plans, checks and explains; a catalog of deterministic recipes computes. Decisions: [ADR-0036](../decisions/0036-run-analyses-as-declarative-precomputed-recipes.md) and [ADR-0039](../decisions/0039-forecast-nothing-until-a-backtest-shows-skill.md). Evidence, method-by-method assessment and sources (SCI-45 onward): [data science research](../../research/science/analytics.md).
+How Siterra uses AI for data-science work without letting the model compute or invent numbers: Muse plans, checks and explains; a catalog of deterministic recipes computes. Decisions: ADR-0036 and ADR-0039. Evidence, method-by-method assessment and sources (SCI-45 onward): [data science research](../../research/science/analytics.md).
 
 ## Role split
 

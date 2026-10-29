@@ -1,6 +1,6 @@
 # Comparable places
 
-Why a case can show other places where something similar was studied, and the rules that keep those places from being read as evidence about this valley. Decision: [ADR-0037](../decisions/0037-show-comparable-places-as-context-by-analogy.md). Sources and the full assessment: [data science research](../../research/science/analytics.md) and the [science source register](../../research/science/source-register.md) (SCI-87 to SCI-111).
+Why a case can show other places where something similar was studied, and the rules that keep those places from being read as evidence about this valley. Sources and the full assessment: [data science research](../../research/science/analytics.md) and the [science source register](../../research/science/source-register.md) (SCI-87 to SCI-111).
 
 ## Why
 

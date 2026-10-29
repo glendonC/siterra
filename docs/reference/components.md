@@ -1,6 +1,6 @@
 # Components
 
-The component catalog: what each component is for, what it binds, how it behaves and how it is built. Layout and budgets: [UX architecture](ux-architecture.md). Tokens: [design system](design-system.md). Motion IDs: [motion](motion.md). Records: [data contracts](data-contracts.md). Pattern sources (VIS, UI and library references): [design references](../explanation/design-references.md), [UI patterns research](../../research/design/ui-patterns.md), [component libraries research](../../research/design/component-libraries.md).
+The component catalog: what each component is for, what it binds, how it behaves and how it is built. Layout and budgets: [UX architecture](ux-architecture.md). Tokens: [design system](design-system.md). Motion IDs: [motion](motion.md). Records: [data contracts](data-contracts.md). Pattern sources (VIS, UI and library references): [design references](../../research/design/source-register.md), [UI patterns research](../../research/design/ui-patterns.md), [component libraries research](../../research/design/component-libraries.md).
 
 ## Hero components (design language 1.3)
 
@@ -90,7 +90,7 @@ The arrival reaches the scope list (what Siterra will and will not do, [microcop
 
 ## Building blocks
 
-Per [ADR-0044](../decisions/0044-build-the-interface-on-shadcn-with-base-ui-and-mit-components.md): shadcn components initialized on Base UI primitives (`--base base`), plus a few adapted MIT components with their notices kept.
+Per ADR-0044: shadcn components initialized on Base UI primitives (`--base base`), plus a few adapted MIT components with their notices kept.
 
 | Surface | Base | Adapt or study |
 |---|---|---|

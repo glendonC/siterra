@@ -1,6 +1,6 @@
 # Deployment view
 
-Where the containers run, how map and observation assets are served, and what a deployment must prove before it is used. Hosting limits are in [architecture constraints](02-architecture-constraints.md#hosting-limits); the hosting decision is [ADR-0017](../decisions/0017-host-on-railway-with-render-as-fallback.md).
+Where the containers run, how map and observation assets are served, and what a deployment must prove before it is used. Hosting limits are in [architecture constraints](02-architecture-constraints.md#hosting-limits); the hosting decision is ADR-0017.
 
 ## Infrastructure
 
@@ -40,13 +40,13 @@ A public demo session gets an isolated copy of the seed case with quotas and exp
 
 ## Deployment checks
 
-The hosting gate (GATE-04 in the [delivery plan](../project/delivery-plan.md#gates)) passes only when, on the deployment:
+The hosting gate (GATE-04 in the delivery plan) passes only when, on the deployment:
 
 - the worker survives the browser closing;
 - the SSE stream reconnects across the 15-minute request cap;
 - map asset requests with an HTTP Range header return 206.
 
-If it fails: Render, then the local deployment with disclosure. All P0 acceptance tests must pass on the deployment ([definition of done](../project/delivery-plan.md#definition-of-done-for-submission)).
+If it fails: Render, then the local deployment with disclosure. All P0 acceptance tests must pass on the deployment (definition of done).
 
 ## Map and observation assets
 

@@ -11,7 +11,7 @@ Domain and technical terms used across Siterra's documentation. Where a term nam
 | Blocked-observation path | What ships when no validated observation bundle exists: published context, missing-data states and the field-scoping package. Values are never fabricated. |
 | Boundary role | `boundaryRole` of a geo selection: what the polygon represents (`regional_context`, `landscape_sample`, `administrative_unit`, `hydrological_unit`, `validated_management_unit`). Separate from `geometryStatus`, which says whether it can be analyzed. |
 | Brief | The decision brief (`Brief`). Every line is a `BriefItem` with a claim kind and evidence IDs; sections Known, Uncertain, Measure next, Involve, Firm can prepare, Requires authorization, What happens next. |
-| Bundle | A frozen, checksummed observation export (`DataBundle`), for example monthly NDVI for one geometry or monthly CHIRPS rainfall. On disk it is a STAC Collection with one Item per period, constrained by the [Siterra STAC extension](../../schemas/stac/siterra-extension.schema.json) and the [bundle output profile](../reference/observation-preprocessing.md#bundle-output) ([ADR-0028](../decisions/0028-describe-observation-bundles-as-a-stac-catalog.md)). `validated` requires manifest URI, content hash, license and attribution; superseding a bundle stales every dependent measurement. |
+| Bundle | A frozen, checksummed observation export (`DataBundle`), for example monthly NDVI for one geometry or monthly CHIRPS rainfall. On disk it is a STAC Collection with one Item per period, constrained by the [Siterra STAC extension](../../schemas/stac/siterra-extension.schema.json) and the [bundle output profile](../reference/observation-preprocessing.md#bundle-output) (ADR-0028). `validated` requires manifest URI, content hash, license and attribution; superseding a bundle stales every dependent measurement. |
 | Case | The commissioned investigation (`EnvironmentalCase`) that holds every record. Its `mode` (`live`, `replay` or `concept`) is shown on every screen; its `permissionProfile` is `research_and_preparation_only` in P0. |
 | Case corpus | The sources retrieved at setup from their official URLs, hashed and stored outside Git, which tasks search and read. |
 | Case pill | The small island at the top left with the mark, case title, status word, running count and mode label; its menu opens activity, history and the theme (CMP-01). |
@@ -38,7 +38,7 @@ Domain and technical terms used across Siterra's documentation. Where a term nam
 | Evidence labels | [V] verified, [D] decision, [H] hypothesis, [U] unverified: the labels documentation uses for claims ([documentation index](../README.md#evidence-labels)). |
 | Field-validation plan | The prepared package (`OperationalAction`, component `action_package`): objective, sampling strata, measurements, roles, permissions, resource categories and dependencies. |
 | Focus mode | A shell state that hides the investigation sheet and timeline so the map fills the frame. |
-| Gate | A delivery checkpoint that can stop or narrow the build, GATE-00 to GATE-05 ([delivery plan](../project/delivery-plan.md#gates)). |
+| Gate | A delivery checkpoint that can stop or narrow the build, GATE-00 to GATE-05 (delivery plan). |
 | Geo selection | The analysis or context geometry (`GeoSelection`), with a boundary role and a geometry status. `analysis_ready` requires provenance, CRS, area method and limitations. |
 | Gold set | Items written by a person with known correct answers, used only to score model output; never sent to a model. |
 | Hold and release | Composition changes apply immediately only when they complete the user's latest command and the pointer and keyboard focus are outside the affected section; otherwise they wait behind "View new findings (n)". |
@@ -49,7 +49,7 @@ Domain and technical terms used across Siterra's documentation. Where a term nam
 | Intervention | A candidate response (`Intervention`) with conditions, assumptions, ecological and livelihood considerations and required review roles. No benefit numbers. |
 | Investigation sheet | The opaque panel that holds the five sections, with only the focused section expanded ([UX architecture](../reference/ux-architecture.md#anatomy)). |
 | Island | A floating panel over the full-bleed map: case pill, map ornament, investigation sheet with the director, timeline and legend ([UX architecture](../reference/ux-architecture.md)). |
-| Lane | A parallel implementation unit with owned directories: platform, agent runtime, science and map data, workspace UI, quality ([delivery plan](../project/delivery-plan.md#lanes-and-ownership)). |
+| Lane | A parallel implementation unit with owned directories: platform, agent runtime, science and map data, workspace UI, quality (delivery plan). |
 | Layer recipe | A coded function that emits MapLibre layers over bundle sources for map scenes (for example `area_outline`, `period_raster`). Not to be confused with an analysis recipe. |
 | Layout action | A typed presentation change proposed by the model (`show_component`, `update_component`, `set_comparison`, `focus_entity`, `hide_component`) and applied by the reducer. |
 | Local initiator | A person with a stake in a place but no technical staff, such as a tour operator, who commissions a case to raise a concern with officials or community groups ([users and flows](../explanation/users-and-flows.md#second-role-local-initiator)). |
@@ -58,7 +58,7 @@ Domain and technical terms used across Siterra's documentation. Where a term nam
 | Measurement | One computed value for one area and period (`Measurement`). `value` is null whenever its status is not `available`; the uncertainty kind is explicit, and unknown is `not_quantified`, never zero. |
 | Method card, data card | Generated summaries of an analysis recipe (purpose, inputs, assumptions, minimum data, outputs, known failure modes, validation) and of an observation bundle (sources, coverage, processing, licenses, limitations). Never written by the model ([evaluation harness](../reference/evaluation.md#method-and-data-cards)). |
 | Mode | `live`, `replay` or `concept` on the case, shown on every screen. Review decisions carry their own mode, `demo` or `real`. |
-| Model map | The list of Meta models Siterra uses, each with one job and one independent check, generated from the routing configuration ([ADR-0041](../decisions/0041-give-each-meta-model-one-job-with-an-independent-check.md)). |
+| Model map | The list of Meta models Siterra uses, each with one job and one independent check, generated from the routing configuration (ADR-0041). |
 | Muse Glimmer | Meta's 30B open-weight model; Siterra runs a pinned copy locally as the second reader. |
 | Muse Image | Meta's image model; Siterra uses it only for labeled, wordless illustrations of field-protocol steps. |
 | Muse Spark | Meta's model family on the Model API; `muse-spark-1.3` on the Responses API is the P0 model ([architecture constraints](02-architecture-constraints.md#model-platform)). |
@@ -66,7 +66,7 @@ Domain and technical terms used across Siterra's documentation. Where a term nam
 | Numeric provenance check | The validator rule that every number in model-written text matches a value in a referenced measurement (within its displayed precision), a date or period, or a number inside a cited excerpt. |
 | Operational action | Prepared real-world work (`OperationalAction`) with `externalExecutionEnabled: false`. States `draft → awaiting_review → prepared`, with `blocked`, `cancelled` and `superseded` branches. |
 | Outbox | Rows written with each command in the same transaction; the dispatcher enqueues jobs from them with a stable key, so a lost queue message is recovered. |
-| P0, P1, P2 | Priorities: P0 is essential for a credible demonstration, P1 is high-value polish only after all P0 tests pass, P2 is optional ([delivery plan](../project/delivery-plan.md#priorities)). |
+| P0, P1, P2 | Priorities: P0 is essential for a credible demonstration, P1 is high-value polish only after all P0 tests pass, P2 is optional (delivery plan). |
 | Period | A calendar month identified as `period_YYYY-MM` (UTC, start inclusive, end exclusive). An identifier, not a record; every view selects periods by this ID only. |
 | Pre-registration | Committing an analysis plan's scope and windows before any result is read, so the model cannot choose a window after seeing the data ([analysis recipes](../reference/analysis-recipes.md)). |
 | Prepared | The terminal P0 state for operational actions; there is no `executed` state. |

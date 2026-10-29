@@ -1,6 +1,6 @@
 # Scientific basis and limits
 
-No imagery, rainfall observations, vegetation trends, field sites or intervention outcomes have been processed or validated by Siterra during planning. Sources are indexed in [science bibliography](../../research/science/source-register.md).
+Sources are indexed in the [science bibliography](../../research/science/source-register.md). Validated observation and recipe bundles for the Aït Bouguemez catchment are cataloged in [`data/bundles/catalog.json`](../../data/bundles/catalog.json).
 
 ## Decision and scope
 
@@ -42,7 +42,7 @@ NDVI uses red and near-infrared reflectance as a greenness proxy. Climate, topog
 
 These hypotheses can coexist. Do not force a binary drought-versus-grazing answer. Rainfall-adjusted residuals also contain omitted variables; they are not a “grazing impact” estimate. In simulation, 30 to 40% degradation was needed before vegetation-index trends became detectable under rainfall-driven variability, and residual-trend methods broke down under some conditions [SCI-29](../../research/science/source-register.md); rain-use efficiency can stay correlated with rainfall and fail to normalize it [SCI-31](../../research/science/source-register.md). Segmented residual-trend methods exist [SCI-30](../../research/science/source-register.md). In sparse cover, soil background affects NDVI; MSAVI may be computed as an optional sensitivity check only, never as a second headline index [SCI-32, SCI-33](../../research/science/source-register.md).
 
-Standardized climate-corrected productivity methods already exist [D]: Trends.Earth implements RESTREND, rain-use efficiency and water-use efficiency corrections with CHIRPS inputs for SDG 15.3.1 reporting, and its documentation says productivity declines may reflect rainfall ([SCI-34](../../research/science/source-register.md), [MKT-09](../../research/competitive/source-register.md)). Siterra's P0 comparison is deliberately descriptive (aligned monthly departures on shared periods, prespecified 0 to 3 month antecedent windows, counts of same-sign months) and claims nothing beyond that. The hypothesis ledger lists "climate-corrected productivity trend over a longer record" as missing evidence for the rainfall hypothesis, and the field package may recommend running it; implementing it is P2. A remote-sensing reviewer should expect exactly this framing.
+Standardized climate-corrected productivity methods exist [D]: Trends.Earth implements RESTREND, rain-use efficiency and water-use efficiency corrections with CHIRPS inputs for SDG 15.3.1 reporting, and its documentation notes that productivity declines may reflect rainfall ([SCI-34](../../research/science/source-register.md)). Siterra precomputes both descriptive short-record comparisons (`monthly_departure`, `aligned_antecedent` over 0 to 3 month antecedent windows) and 26-season MODIS long-record analyses (`restrend_long_record`, `pixel_trend_long_record`, `season_trend_long_record`, and `snow_cover_by_band` over 2000 to 2025). When the rainfall slope confidence interval in `restrend_long_record` includes zero, the result is marked `precondition_not_met` and no rainfall-adjusted residual trend is claimed.
 
 Hypothesis status words in data and UI: not yet tested, consistent with available evidence, contradicted by available evidence, cannot be assessed with current data, needs reassessment ([Data contracts](../reference/data-contracts.md#hypothesis-status)). Several hypotheses can be consistent at once; none is ranked by a score.
 
@@ -93,7 +93,7 @@ For each, show ecological rationale, household exposure, authority, evidence gap
 
 A field package should request locally agreed management units; representative vegetation transects or quadrats covering elevation, aspect and management contrasts; species/palatability and bare-ground observations; repeat fixed photographs with consent; documented livestock-use calendars; and livelihood interviews designed with community representatives. A qualified local team must choose sampling intensity, consent process, languages, governance representation and season. Do not publish household identities, sensitive access disputes or precise sensitive sites by default.
 
-## Claims prohibited in the demo
+## Prohibited claims
 
 - “Overgrazing detected,” “pasture degraded by livestock,” or causal attribution from an NDVI decline alone.
 - Biomass, livestock carrying capacity, animal units per hectare or biodiversity measured from uncalibrated NDVI. A 2026 drone calibration study with 180 destructively sampled plots in Aït Bouguemez and Midelt found the best index explained 42% of biomass variance and bare soil hid biomass below about 800 kg per hectare (SCI-106).

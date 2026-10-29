@@ -72,7 +72,7 @@ data/
   map/                regional map assets (PMTiles, terrain) and attribution
 ```
 
-Bundles follow [ADR-0028](../decisions/0028-describe-observation-bundles-as-a-stac-catalog.md): one STAC Collection per bundle, one Item per period, a display raster as the `overview` asset and a value grid as the `data` asset; the importer maps them into `DataBundle`, `Measurement` and `TemporalObservation` records. Large raw downloads stay in the ignored `data/raw/` folder. Derived bundles are committed only if license-cleared and small (target under 50 MB in total); otherwise they are served from object storage with the same manifest hashes. Shared root files (`package.json`, `pnpm-workspace.yaml`, the base `tsconfig`, CI) belong to the platform lane.
+Bundles follow ADR-0028: one STAC Collection per bundle, one Item per period, a display raster as the `overview` asset and a value grid as the `data` asset; the importer maps them into `DataBundle`, `Measurement` and `TemporalObservation` records. Large raw downloads stay in the ignored `data/raw/` folder. Derived bundles are committed only if license-cleared and small (target under 50 MB in total); otherwise they are served from object storage with the same manifest hashes. Shared root files (`package.json`, `pnpm-workspace.yaml`, the base `tsconfig`, CI) belong to the platform lane.
 
 Planning material that the application consumes or follows:
 
@@ -98,7 +98,7 @@ Planning material that the application consumes or follows:
 | `data/` | Case seed, validated bundles, regional map assets | Science and map data |
 | `tests/`, `e2e/` | Acceptance suites, prohibited-claims and numeric scans, accessibility checks, performance traces | Quality |
 
-Lane deliverables and dependencies are in the [delivery plan](../project/delivery-plan.md#lanes-and-ownership).
+Lane deliverables and dependencies are in the delivery plan.
 
 ### Inside the worker
 
@@ -115,6 +115,6 @@ Lane deliverables and dependencies are in the [delivery plan](../project/deliver
 
 These must not change without the owning lane's approval:
 
-- [`schemas/case.schema.json`](../../schemas/case.schema.json), [`schemas/stac/siterra-extension.schema.json`](../../schemas/stac/siterra-extension.schema.json) and [`schemas/openapi.json`](../../schemas/openapi.json), with the STAC profile for bundles ([ADR-0028](../decisions/0028-describe-observation-bundles-as-a-stac-catalog.md)).
+- [`schemas/case.schema.json`](../../schemas/case.schema.json), [`schemas/stac/siterra-extension.schema.json`](../../schemas/stac/siterra-extension.schema.json) and [`schemas/openapi.json`](../../schemas/openapi.json), with the STAC profile for bundles (ADR-0028).
 - The API routes in the [runtime view](06-runtime-view.md#api-and-stream) and the event kinds in [data contracts](../reference/data-contracts.md#events).
 - The component catalog in [components](../reference/components.md#catalog-bindings).

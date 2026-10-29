@@ -4,7 +4,7 @@ This document owns task boundaries, tools, validation, budgets and recovery. The
 
 ## Shape of the autonomy
 
-**One coordinator and bounded task jobs** [D]. They may share one Meta model and one worker process. An agent here is a task with an input snapshot, a tool allowlist, a typed result, a budget, a deadline, dependencies and a trace; it is not a persona or a conversation. Multi-agent parallelism is not a claim the product makes (it is a commodity, see [competitive position](../explanation/competitive-position.md)).
+**One coordinator and bounded task jobs** [D]. They may share one Meta model and one worker process. An agent here is a task with an input snapshot, a tool allowlist, a typed result, a budget, a deadline, dependencies and a trace; it is not a persona or a conversation. Multi-agent parallelism is not a claim the product makes (it is a commodity, see competitive position).
 
 The user commissions once. The coordinator plans; tasks retrieve and check sources, request deterministic summaries of validated observations, compare explanations, surface livelihood constraints, screen responses and compose the field-validation package. When data quality or a missing input blocks a conclusion, the result says exactly what is missing and the next plan includes the step that would supply it.
 
@@ -27,7 +27,7 @@ Independent tasks run concurrently after the plan is validated, with at most two
 
 ## Models
 
-Each Meta model has one job and a check that does not depend on it ([ADR-0041](../decisions/0041-give-each-meta-model-one-job-with-an-independent-check.md); facts and limits in the [Meta models research](../../research/technology/meta-models.md)).
+Each Meta model has one job and a check that does not depend on it (ADR-0041; facts and limits in the [Meta models research](../../research/technology/meta-models.md)).
 
 | Job | Model | Independent check | Priority |
 |---|---|---|---|
@@ -40,7 +40,7 @@ Each Meta model has one job and a check that does not depend on it ([ADR-0041](.
 | Push-to-talk | Muse Voice Transcribe | Person edits and submits | P1 stretch |
 | Brief critique | Muse Wonder | Person accepts or dismisses | P2 |
 | Candidate cropland mask | Segment Anything | Agreement with WorldCover | P2 |
-| Cited drought event record, built at setup ([ADR-0045](../decisions/0045-extend-the-meta-model-map-to-event-records-figures-and-whole-corpus-reading.md)) | `muse-spark-1.3` on stored source text; `web_search` for leads only in the P1 extension | Excerpt, date and scope rules; rainfall direction against the catchment record; sampled human review | P0 minimum (SCI-25, no search); P1 French and Arabic reports with `web_search` leads |
+| Cited drought event record, built at setup (ADR-0045) | `muse-spark-1.3` on stored source text; `web_search` for leads only in the P1 extension | Excerpt, date and scope rules; rainfall direction against the catchment record; sampled human review | P0 minimum (SCI-25, no search); P1 French and Arabic reports with `web_search` leads |
 | Place a published figure on the valley (ADR-0045) | `muse-spark-1.3` spatial grounding | Gazetteer fit with leave-one-out error | P1 |
 | Find where sources disagree (ADR-0045) | `muse-spark-1.3`, whole corpus in one request | Both excerpts verbatim; person accepts | P1 |
 | Snow through monthly composites (ADR-0045) | Segment Anything on video | Agreement with Scene Classification | P1 experiment |
@@ -116,7 +116,7 @@ An optional `imagery_review` step sends monthly true-color thumbnails to the mod
 | `propose_plan`, `propose_evidence`, `propose_hypotheses`, `propose_predictions`, `propose_interventions`, `propose_package`, `propose_layout` | Proposal | Typed arguments ([Data contracts](data-contracts.md#tool-argument-contracts)); nothing is written until validation and commit | P0 |
 | `request_review` | Proposal | Creates review requests for exact entity versions and roles; grants nothing | P0 |
 
-Muse Code and any code execution stay outside the product runtime; analysis depth comes from the recipe catalog, not from model-written code ([ADR-0036](../decisions/0036-run-analyses-as-declarative-precomputed-recipes.md)). Map scenes are proposed with `propose_scene` in P1 ([scenes and views](scenes.md)).
+Muse Code and any code execution stay outside the product runtime; analysis depth comes from the recipe catalog, not from model-written code (ADR-0036). Map scenes are proposed with `propose_scene` in P1 ([scenes and views](scenes.md)).
 
 Not exposed, in any phase of this build: shell, arbitrary code, SQL, filesystem writes, unrestricted browsing, generic HTTP mutation, email or messaging, payments, scheduling, publishing, land-management execution. Retrieved text is untrusted evidence; it can never change tools, permissions or instructions. Budgets and deadlines come from host code and cannot be raised by the model.
 
@@ -129,7 +129,7 @@ Every proposal passes these checks in order; any failure rejects the proposal (o
 3. **References:** every ID exists in this case at the expected revision; inputs not stale; geometry and period compatible.
 4. **Claim rules:** `observation` must cite measurements; `scientific_context` must cite a retrieved source locator; `verified_outcome` is rejected in P0; status words must match the evidence (an `inconclusive` hypothesis needs missing evidence), and model text that restates a hypothesis carries its status word in the same sentence.
 5. **Numeric provenance:** every number in model-written text must match a value in a referenced measurement (within its displayed precision), a date or period, or a number inside a cited excerpt. Anything else is rejected. This is the guard against model arithmetic and invented figures.
-6. **Prohibited claims:** a phrase scan for the claims listed in [Scientific basis and limits](../explanation/scientific-basis.md#claims-prohibited-in-the-demo) (diagnosis, carrying capacity, biomass, forecasts, consent, outcomes).
+6. **Prohibited claims:** a phrase scan for the claims listed in [Scientific basis and limits](../explanation/scientific-basis.md#prohibited-claims) (diagnosis, carrying capacity, biomass, forecasts, consent, outcomes).
 7. **Authority:** proposed actions stay within `prepared`; required review roles present; `externalExecutionEnabled` false.
 8. **Transitions and limits:** allowed state transitions only; layout limits enforced.
 9. **Commit:** accepted records, events and layout actions written in one transaction against the expected case revision.

@@ -312,7 +312,7 @@ A rejected proposal never fails its task: the default scene set stays and no mod
 
 Not for this build. MapLibre covers every primitive above; deck layers would not drape over MapLibre terrain (the FireTrace look depends on draped paths); TerrainExtension needs a second terrain; the old `MapboxOverlay` path reads removed internals; there are no trajectories, aggregations or point clouds in this case. Revisit if a later case needs many time-stamped trajectories (TripsLayer), GPU aggregation or point clouds, and then use `@deck.gl/maplibre` 9.4.0, not `@deck.gl/mapbox`.
 
-### Build cut (today is day 1; feature freeze at the end of day 7, [delivery plan](../../docs/project/delivery-plan.md))
+### Build cut (today is day 1; feature freeze at the end of day 7, delivery plan)
 
 | When | Build | Exit check |
 |---|---|---|

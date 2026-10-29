@@ -1,6 +1,6 @@
 # Experience storyboard
 
-The approved hero sequence ([scenes and views](scenes.md#the-hero-sequence-design-language-13)) is the reference for how these scenes look; where a scene below and the hero differ, the hero applies. Layout anatomy and the visual budget per state are in [UX architecture](ux-architecture.md), components in [components](components.md), motion IDs (MOT-01 to MOT-13) in [motion](motion.md), map views and tours in [scenes and views](scenes.md), demo timing in the [demo plan](../project/demo-plan.md).
+The approved hero sequence ([scenes and views](scenes.md#the-hero-sequence-design-language-13)) is the reference for how these scenes look; where a scene below and the hero differ, the hero applies. Layout anatomy and the visual budget per state are in [UX architecture](ux-architecture.md), components in [components](components.md), motion IDs (MOT-01 to MOT-13) in [motion](motion.md), map views and tours in [scenes and views](scenes.md), demo timing in the demo plan.
 
 Every scene preserves the same case, area and period context. "Real" means work the implementation must actually perform; values shown in this document are placeholders for layout, not results.
 
@@ -156,7 +156,7 @@ The Views menu is available from arrival on. Views computed from the area geomet
 
 ## Required failure scenes
 
-These are product states, not demo exceptions. Each has an acceptance test in [acceptance criteria](../project/acceptance-criteria.md).
+These are product states, not demo exceptions. Each has an acceptance test in acceptance criteria.
 
 | Failure | Required behavior |
 |---|---|

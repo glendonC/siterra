@@ -1,6 +1,6 @@
 # Accessibility and language
 
-Target **WCAG 2.2 AA**, with reduced-motion support beyond the minimum where relevant. This is a target, not a conformance claim. Use the [W3C standard](https://www.w3.org/TR/WCAG22/) as the criterion authority and [WAI complex-image guidance](https://www.w3.org/WAI/tutorials/images/complex/) for meaningful map and chart alternatives. Translation decision: [ADR-0034](../decisions/0034-build-translation-ready-and-ship-french-first.md).
+Target **WCAG 2.2 AA**, with reduced-motion support beyond the minimum where relevant. This is a target, not a conformance claim. Use the [W3C standard](https://www.w3.org/TR/WCAG22/) as the criterion authority and [WAI complex-image guidance](https://www.w3.org/WAI/tutorials/images/complex/) for meaningful map and chart alternatives. Translation decision: ADR-0034.
 
 ## Core interaction
 
@@ -32,11 +32,11 @@ Respect `prefers-reduced-motion`: remove camera flights, parallax and large spat
 
 ### Who needs another language
 
-Two kinds of reader need more than English: people who commission or read a case and work in French or Arabic (program staff, officials, researchers), and local initiators. A local initiator is someone with a stake in the place but no technical staff, for example a tour operator in the High Atlas who wants to raise a pasture concern with officials and community groups. Siterra prepares their brief and field plan in a language those groups can read; the initiator decides whether and how to share it. Siterra never contacts anyone ([ADR-0033](../decisions/0033-keep-the-autonomous-firm-stance-with-human-authority.md)).
+Two kinds of reader need more than English: people who commission or read a case and work in French or Arabic (program staff, officials, researchers), and local initiators. A local initiator is someone with a stake in the place but no technical staff, for example a tour operator in the High Atlas who wants to raise a pasture concern with officials and community groups. Siterra prepares their brief and field plan in a language those groups can read; the initiator decides whether and how to share it. Siterra never contacts anyone (ADR-0033).
 
 ### What the sources support
 
-English is a demonstration interface choice, not evidence that intended Moroccan participants prefer English. Morocco's government documents the implementation of Amazigh official status; IRCAM publications distinguish several Amazigh varieties; historical Peace Corps material separately names Darija, Tamazight and Tashelhit in training ([LANG-01 to LANG-03](../../research/competitive/source-register.md)). These sources support the need for local language discovery; they do not establish the language, script preference, literacy or consent process of a particular High Atlas community, and model marketing lists do not establish translation reliability.
+English is a demonstration interface choice, not evidence that intended Moroccan participants prefer English. Morocco's government documents the implementation of Amazigh official status; IRCAM publications distinguish several Amazigh varieties; historical Peace Corps material separately names Darija, Tamazight and Tashelhit in training (LANG-01 to LANG-03). These sources support the need for local language discovery; they do not establish the language, script preference, literacy or consent process of a particular High Atlas community, and model marketing lists do not establish translation reliability.
 
 Before community-facing use, ask participants which language variety, script, oral or written form and interpreter support are appropriate. Do not treat Modern Standard Arabic as tested Darija, or a generic Amazigh locale as tested local Tamazight or Tashelhit support.
 
@@ -72,7 +72,7 @@ Voice is a P1 stretch and never on the critical path. Meta hosts a speech-to-tex
 
 ## Release checks
 
-Acceptance tests for the [acceptance criteria](../project/acceptance-criteria.md#accessibility). Record device, browser, failures and fixes for each. A prototype screenshot or an automated score alone cannot establish accessibility; automated checks supplement manual ones.
+Acceptance tests for the acceptance criteria. Record device, browser, failures and fixes for each. A prototype screenshot or an automated score alone cannot establish accessibility; automated checks supplement manual ones.
 
 | ID | Check | Pass condition | Submission minimum |
 |---|---|---|---|

@@ -1,6 +1,6 @@
 # Voice and tone
 
-Status: adopted 2026-10-27 ([ADR-0043](../decisions/0043-write-in-one-plain-voice-and-lint-product-copy.md)). Labels: **[V]** verified from a cited source, **[D]** decision proposed here, **[H]** hypothesis to test, **[J]** style judgment with no external evidence (reason given), **[P]** rule already set by Siterra's own documents. Source IDs (`WRT-NN`) resolve in the [writing research](../../research/design/writing.md). Strings for every screen are in the [microcopy](microcopy.md).
+Status: adopted 2026-10-27 (ADR-0043). Labels: **[V]** verified from a cited source, **[D]** decision proposed here, **[H]** hypothesis to test, **[J]** style judgment with no external evidence (reason given), **[P]** rule already set by Siterra's own documents. Source IDs (`WRT-NN`) resolve in the [writing research](../../research/design/writing.md). Strings for every screen are in the [microcopy](microcopy.md).
 
 ## Scope
 

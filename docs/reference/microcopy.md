@@ -1,6 +1,6 @@
 # Microcopy
 
-Status: adopted string set for the build, 2026-10-27 ([ADR-0043](../decisions/0043-write-in-one-plain-voice-and-lint-product-copy.md)); sections 1 and 1a updated the same day with the hero the founder approved (design language 1.3). The build moves these strings into message catalogs (I18N-01); the catalog then becomes the source of truth.
+Status: adopted string set for the build, 2026-10-27 (ADR-0043); sections 1 and 1a updated the same day with the hero the founder approved (design language 1.3). The build moves these strings into message catalogs (I18N-01); the catalog then becomes the source of truth.
 
 How to read this file:
 
@@ -23,7 +23,7 @@ Approved. The opening page sits outside the product chrome: one beat at a time, 
 | `opening.beat4` | The first: is grazing changing the shared pastures of the Aït Bouguemez valley? | Siterra investigates one place at a time. (shown first, in grey) | none (the case) |
 | `opening.action` | [↵ Open the investigation] | | |
 
-"Changing" in beat 4 was approved by the founder in place of "damaging" (VT-20, [ADR-0003](../decisions/0003-frame-the-first-case-as-a-grazing-pressure-question.md)).
+"Changing" in beat 4 was approved by the founder in place of "damaging" (VT-20, ADR-0003).
 
 The globe and the dive (approved):
 
@@ -723,7 +723,7 @@ Progress is announced politely and in batches; errors are announced separately (
 
 ## 24. Island layout and later features
 
-Strings for components specified after the first prototype: the map ornament and Views menu (CMP-19), legend override (CMP-20), answer card (CMP-21), comparable places (CMP-22), trace quality and usage, Meta model badges ([ADR-0041](../decisions/0041-give-each-meta-model-one-job-with-an-independent-check.md)), forecast refusal ([ADR-0039](../decisions/0039-forecast-nothing-until-a-backtest-shows-skill.md)) and export ([ADR-0034](../decisions/0034-build-translation-ready-and-ship-french-first.md)). Written to this guide; review them with the checklist before release.
+Strings for components specified after the first prototype: the map ornament and Views menu (CMP-19), legend override (CMP-20), answer card (CMP-21), comparable places (CMP-22), trace quality and usage, Meta model badges (ADR-0041), forecast refusal (ADR-0039) and export (ADR-0034). Written to this guide; review them with the checklist before release.
 
 ### Views and tours
 
@@ -745,7 +745,7 @@ Strings for components specified after the first prototype: the map ornament and
 | Focus mode | [Show only the map]; [Show panels] | |
 | Imagery caption | Imagery: Sentinel-2, summer 2025, display only | P0 with the hero (section 1a, `valley.imagery`); the Copernicus notice is in the credit line |
 | Timeline markers | Dry year in national reports (FAO GIEWS); Question asked; Findings added | P1. Siterra's own text says "dry year", not "drought" (VT-26) |
-| Theme | Theme: Light; Dark; Match system | Not in P0: light is the default and the only theme the hero uses ([ADR-0046](../decisions/0046-use-daylight-as-the-default-theme.md)); offering dark is a separate decision |
+| Theme | Theme: Light; Dark; Match system | Not in P0: light is the default and the only theme the hero uses (ADR-0046); offering dark is a separate decision |
 
 ### Answer card
 
