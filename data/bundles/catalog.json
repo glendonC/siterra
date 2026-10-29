@@ -47,6 +47,12 @@
   },
   {
    "rel": "child",
+   "href": "./bundle_optical_visibility_ait_bouguemez/collection.json",
+   "type": "application/json",
+   "file:checksum": "12209f1bb3e798be61c82b2187a1ccc4685a0fc0710298d747830430c72484adaba6"
+  },
+  {
+   "rel": "child",
    "href": "./bundle_pixel_anatomy_ait_bouguemez/collection.json",
    "type": "application/json",
    "file:checksum": "12200df94b9c94dd380f37ea6a9e586dc026fe13a69f525508d6617d49247539f1ee"
