@@ -1834,7 +1834,7 @@
     },
     {
       "recipeId": "terrain_relief",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "title": "Elevation surface of the catchment as a data layer",
       "question": "What is the height of the ground at every 30 m cell of the catchment, in the same numbers every other bundle of this place uses?",
       "operation": "surface_layer",
@@ -1849,12 +1849,13 @@
         "place_configuration"
       ],
       "registration": "Full entry registered 2026-10-29, before this pipeline wrote any relief layer. The surface is not a new computation: it is the 30 m EPSG:32629 grid that place_config.elevation_grid(pad_cells=1) already gives to the terrain strata, the drainage network vertices and the transect samples, written out so the interface draws relief from the case record and never reads or resamples a DEM. No hypothesis is tested.",
+      "postHocNote": "Version 1.0.1 (2026-10-29) changes the vertex check after the first build of 1.0.0 failed it. 1.0.0 rounded the interpolated height to 0.1 m and required it to differ from every stored vertex or sample height by at most 0.05 m; 70 of the 20,785 drainage vertices differed by exactly 0.1 m (none of the 2,030 transect samples did). Their unrounded interpolated heights lie within 0.01 m of a rounding tie (0.05 m past a multiple of 0.1 m): the drainage builder interpolated at coordinates before rounding them to 7 decimals (about 1 cm), then rounded the height to 0.1 m, so the two roundings fall on different sides of the tie. 1.0.1 compares the unrounded interpolated height with the stored height and allows 0.06 m (half a rounding step plus 0.01 m for the coordinate rounding); the largest unrounded difference of the first build was 0.054 m. The surface, its cells and every other check are unchanged.",
       "formula": [
         "Surface: the Copernicus DEM GLO-30 (2021) tile resampled once, bilinear, to the 30 m EPSG:32629 grid whose cells are aligned with the 10 m analysis grid and which has 1 extra cell on every side (place_config.elevation_grid with pad_cells 1, DEM checksum pinned in the place configuration); heights in metres above the EGM2008 geoid, float32, not rounded",
         "Kept cells: every 30 m cell that holds the centre of at least one 10 m analysis cell inside the frozen polygon (the cells the strata raster repeats), and every cell within one cell of those in any direction (the ring the profile and drainage heights are interpolated from); all other cells are nodata (-9999.0)",
         "Asset: one-band float32 cloud-optimised GeoTIFF in EPSG:32629 on that grid, DEFLATE with floating-point predictor, nodata -9999.0, with its transform and shape stored in the collection; the inside-polygon test is the separate frozen geometry asset, never a second band",
         "Summary: counts of kept cells and of cells inside the polygon; lowest, highest and mean height of the inside cells and of the native 1 arc-second tile within the polygon; the three elevation band boundaries and the share of inside cells in each band as in the strata bundle",
-        "Acceptance checks, all stored with the bundle: the stored surface repeated 3 x 3 onto the 10 m grid equals place_config.elevation() on every cell inside the polygon (0 cells differ); the heights bilinear-interpolated from the stored surface equal every vertex height of the drainage network bundle and every sample height of the transects bundle in the bundle folder to within 0.05 m; the 90th percentile of the absolute differences between the stored height at each inside cell centre and the native 1 arc-second tile (bilinear in longitude and latitude) is at most 4.0 m, with the largest difference and where it lies stored; no inside cell is nodata; two runs give identical files apart from the computed time"
+        "Acceptance checks, all stored with the bundle: the stored surface repeated 3 x 3 onto the 10 m grid equals place_config.elevation() on every cell inside the polygon (0 cells differ); the heights bilinear-interpolated from the stored surface equal every vertex height of the drainage network bundle and every sample height of the transects bundle in the bundle folder to within 0.06 m (the interpolated height is not rounded; the stored heights are rounded to 0.1 m); the 90th percentile of the absolute differences between the stored height at each inside cell centre and the native 1 arc-second tile (bilinear in longitude and latitude) is at most 4.0 m, with the largest difference and where it lies stored; no inside cell is nodata; two runs give identical files apart from the computed time"
       ],
       "parameters": [
         {
@@ -1893,9 +1894,9 @@
           "name": "vertex_tolerance_m",
           "role": "method",
           "allowed": [
-            0.05
+            0.06
           ],
-          "default": 0.05
+          "default": 0.06
         }
       ],
       "sensitivitySet": [],

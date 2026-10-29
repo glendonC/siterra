@@ -231,15 +231,15 @@ Both entries were registered in full on 2026-10-28: `restrend_long_record` befor
 
 ## Relief recipe entry
 
-`terrain_relief` was registered in full on 2026-10-29, before this pipeline wrote any relief layer. It is not a new computation: the surface is the 30 m EPSG:32629 grid that already gives the terrain strata, the drainage network vertices and the transect samples their heights, written out as a bundle asset so the interface draws relief from the case record and never reads or resamples a DEM. It tests no hypothesis. The machine-readable form is `science/recipes/registry.json`.
+`terrain_relief` was registered in full on 2026-10-29, before this pipeline wrote any relief layer. It is not a new computation: the surface is the 30 m EPSG:32629 grid that already gives the terrain strata, the drainage network vertices and the transect samples their heights, written out as a bundle asset so the interface draws relief from the case record and never reads or resamples a DEM. It tests no hypothesis. Version 1.0.1 (2026-10-29) is post hoc: the first build of 1.0.0 failed its vertex check, which rounded the interpolated height to 0.1 m and allowed 0.05 m; 70 of 20,785 drainage vertices differed by exactly 0.1 m because their unrounded heights lie within 0.01 m of a rounding tie (the drainage builder interpolated before rounding coordinates to 7 decimals, then rounded the height). 1.0.1 compares the unrounded interpolated height with the stored height and allows 0.06 m (the largest difference of the first build was 0.054 m); the surface and every other check are unchanged. The machine-readable form is `science/recipes/registry.json`.
 
-| `terrain_relief` 1.0.0 | Value |
+| `terrain_relief` 1.0.1 | Value |
 |---|---|
 | Inputs | The Copernicus DEM GLO-30 (2021) tile named in the place configuration (checksum pinned), the frozen polygon, the place configuration |
 | Surface | The tile resampled once, bilinear, to the 30 m EPSG:32629 grid aligned with the 10 m analysis grid with 1 extra cell on every side (`place_config.elevation_grid`, `pad_cells` 1); metres above the EGM2008 geoid, float32, not rounded |
 | Kept cells | Every 30 m cell holding the centre of a 10 m analysis cell inside the polygon and every cell within one cell of those; all others nodata (-9999.0). Whether a cell lies inside the polygon is the frozen geometry asset's business, not a second band |
-| Parameters | Method only: `pad_cells` 1, `nodata` -9999.0, `recompute_percentile` 90, `recompute_tolerance_m` 4.0, `vertex_tolerance_m` 0.05 |
-| Checks | The surface repeated 3 x 3 equals `place_config.elevation()` on every inside cell; heights interpolated from it equal every drainage vertex and every transect sample height in the bundle folder within 0.05 m; the 90th percentile of the absolute differences from the native tile at the inside cell centres is at most 4.0 m (largest difference and place stored); no inside cell is nodata; two runs give identical files |
+| Parameters | Method only: `pad_cells` 1, `nodata` -9999.0, `recompute_percentile` 90, `recompute_tolerance_m` 4.0, `vertex_tolerance_m` 0.06 |
+| Checks | The surface repeated 3 x 3 equals `place_config.elevation()` on every inside cell; the unrounded heights interpolated from it equal every drainage vertex and every transect sample height in the bundle folder within 0.06 m; the 90th percentile of the absolute differences from the native tile at the inside cell centres is at most 4.0 m (largest difference and place stored); no inside cell is nodata; two runs give identical files |
 | Outputs | `elevation_m`; claim kind `observation`; uncertainty `not_quantified` |
 | Standard limitations (verbatim) | In the registry: a 30 m surface model, not the ground; bilinear resampling to a 30 m grid; the ring of cells outside the catchment is for interpolation only; the catchment is a hydrological extent |
 | Forbidden phrases | As `drainage_network` |
