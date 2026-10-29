@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://siterra.invalid/schemas/case/1.12.0/case.schema.json",
+  "$id": "https://siterra.invalid/schemas/case/1.13.0/case.schema.json",
   "title": "Siterra case contracts",
   "description": "Records of one Siterra case as stored and exchanged between the web application, the worker and the browser. The root validates a case snapshot, a command, an event or an atomic commit proposal; $defs holds the record types. Cross-record semantics that JSON Schema cannot express are specified in docs/reference/data-contracts.md.",
   "oneOf": [
@@ -1315,6 +1315,9 @@
         },
         "provenance": {
           "$ref": "#/$defs/Provenance"
+        },
+        "source": {
+          "$ref": "#/$defs/MeasurementSource"
         }
       },
       "required": [
@@ -2816,7 +2819,8 @@
             "1.9.0",
             "1.10.0",
             "1.11.0",
-            "1.12.0"
+            "1.12.0",
+            "1.13.0"
           ],
           "description": "Contract version the instance was written against; producers write the newest, and earlier versions of the same MAJOR stay valid."
         },
@@ -2915,7 +2919,8 @@
             "1.9.0",
             "1.10.0",
             "1.11.0",
-            "1.12.0"
+            "1.12.0",
+            "1.13.0"
           ],
           "description": "Contract version the instance was written against; producers write the newest, and earlier versions of the same MAJOR stay valid."
         },
@@ -3293,7 +3298,8 @@
             "1.9.0",
             "1.10.0",
             "1.11.0",
-            "1.12.0"
+            "1.12.0",
+            "1.13.0"
           ],
           "description": "Contract version the instance was written against; producers write the newest, and earlier versions of the same MAJOR stay valid."
         },
@@ -3335,7 +3341,8 @@
             "1.9.0",
             "1.10.0",
             "1.11.0",
-            "1.12.0"
+            "1.12.0",
+            "1.13.0"
           ],
           "description": "Contract version the instance was written against; producers write the newest, and earlier versions of the same MAJOR stay valid."
         },
@@ -5741,6 +5748,120 @@
         },
         {
           "$ref": "#/$defs/MultiLineStringGeometry"
+        }
+      ]
+    },
+    "MeasurementSource": {
+      "description": "Added in 1.13.0, optional on a Measurement: where in a bundle asset the number was read. The seed loader reads the value, and the interval when there is one, at these RFC 6901 JSON pointers in the asset the bundle lists under assetKey, after the asset's checksum is verified, so a value is never typed in. The pointers address the asset file as the bundle lists it; array positions are part of a pointer. periodId stays an opaque name: the period is stated here in fields, and no code parses an ID.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "assetKey",
+        "jsonPointer",
+        "stratum",
+        "claimKind",
+        "period",
+        "lowerJsonPointer",
+        "upperJsonPointer"
+      ],
+      "properties": {
+        "assetKey": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The key under which the bundle's collection lists the asset."
+        },
+        "jsonPointer": {
+          "type": "string",
+          "pattern": "^(\\/[^/]*)+$",
+          "description": "RFC 6901 pointer to the number in the asset (value)."
+        },
+        "stratum": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The part of the place the number describes, as the bundle names it (for example catchment, elevation_low)."
+        },
+        "claimKind": {
+          "enum": [
+            "observation",
+            "scientific_context",
+            "hypothesis",
+            "model_estimate",
+            "scenario",
+            "field_requirement",
+            "verified_outcome"
+          ],
+          "description": "The bundle's claim kind for this number; the loader refuses a row that differs from the bundle."
+        },
+        "period": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "start",
+            "end",
+            "window"
+          ],
+          "properties": {
+            "start": {
+              "type": "string",
+              "pattern": "^[0-9]{4}(-[0-9]{2})?$",
+              "description": "First year (YYYY) or month (YYYY-MM) the number covers."
+            },
+            "end": {
+              "type": "string",
+              "pattern": "^[0-9]{4}(-[0-9]{2})?$",
+              "description": "Last year (YYYY) or month (YYYY-MM) the number covers."
+            },
+            "window": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 1,
+              "description": "The part of each year a repeated window covers, by the bundle's own label (for example mar_jun); null for a plain month or year span."
+            }
+          }
+        },
+        "lowerJsonPointer": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^(\\/[^/]*)+$",
+          "description": "Pointer to the lower end of the interval in uncertainty, or null."
+        },
+        "upperJsonPointer": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^(\\/[^/]*)+$",
+          "description": "Pointer to the upper end of the interval in uncertainty, or null. Both pointers are present or both are null (MS-01)."
+        }
+      },
+      "allOf": [
+        {
+          "oneOf": [
+            {
+              "properties": {
+                "lowerJsonPointer": {
+                  "type": "string"
+                },
+                "upperJsonPointer": {
+                  "type": "string"
+                }
+              }
+            },
+            {
+              "properties": {
+                "lowerJsonPointer": {
+                  "type": "null"
+                },
+                "upperJsonPointer": {
+                  "type": "null"
+                }
+              }
+            }
+          ]
         }
       ]
     }

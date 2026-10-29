@@ -96,6 +96,15 @@ export interface CaseStore {
     bundleId: string,
     periodIds: readonly string[],
   ): Promise<PeriodQuality[]>;
+  /**
+   * The measurements of a bundle that were read from one of its recipe result assets (they carry a
+   * `source`), whatever their period.
+   */
+  listRecipeMeasurements(
+    caseId: string,
+    bundleId: string,
+    bundleRevision: number,
+  ): Promise<MeasurementRecord[]>;
   /** Current revisions of the given measurements; unknown IDs are absent from the result. */
   readMeasurementsById(caseId: string, ids: readonly string[]): Promise<MeasurementRecord[]>;
   listSources(caseId: string): Promise<StoredSource[]>;
@@ -302,6 +311,18 @@ export class MemoryCaseStore implements CaseStore {
     return Promise.resolve(
       this.measurements.filter(
         (m) => m.caseId === caseId && m.dataBundleId === bundleId && wanted.has(m.periodId),
+      ),
+    );
+  }
+
+  listRecipeMeasurements(
+    caseId: string,
+    bundleId: string,
+    _bundleRevision: number,
+  ): Promise<MeasurementRecord[]> {
+    return Promise.resolve(
+      this.measurements.filter(
+        (m) => m.caseId === caseId && m.dataBundleId === bundleId && m.source !== undefined,
       ),
     );
   }

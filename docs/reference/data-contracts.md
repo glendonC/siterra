@@ -33,7 +33,7 @@ Pattern `^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$`. Prefix by type:
 | `erow_` | EventRecordRow | `ctx_` | ContextFeature |
 | `inst_` | InstrumentSpec | | |
 
-**Periods** are identifiers, not records: `period_YYYY-MM` for a calendar month (UTC, start inclusive, end exclusive). Chart, map, strip and brief select periods by this ID only. Server-generated IDs use a ULID suffix; fixtures may use readable slugs. IDs never contain the product name.
+**Periods** are identifiers, not records: `period_YYYY-MM` for a calendar month (UTC, start inclusive, end exclusive). A window repeated each year is `period_<firstYear>-<lastYear>_<mon>_<mon>` (for example `period_2000-2025_mar_jun`, March to June of every year from 2000 to 2025), one season of that window `period_<year>_<mon>_<mon>`, and a window that crosses the new year is named by the bundle's own season-year label (September to May of season 2001 is `period_2001_sep_may`). A period ID is an opaque name: no code parses it, and a Measurement states its period in the fields of `source.period`. Chart, map, strip and brief select periods by this ID only. Server-generated IDs use a ULID suffix; fixtures may use readable slugs. IDs never contain the product name.
 
 ## Entity summary
 
@@ -251,6 +251,20 @@ The ContextFeature lines these kinds name (drainage, a transect, a proposed rout
 | INST-05 | `ink` and `grey` are one sentence each, every number in them is in a cited record (numeric provenance), and neither makes a prohibited claim | Planned with the composer |
 | INST-06 | The model-facing `propose_layout` offers no instrument kind; a contract test rejects a model-facing schema that does | Planned with the composer |
 | INST-07 | Each ID in the parameters is a record of the type its field expects (a ContextFeature for a feature field, an Evidence for a statement) | Planned with the composer |
+
+## Recipe results as Measurements
+
+Added in contracts 1.13.0 (`Measurement.source` and `MeasurementSource` in [case.schema.json](../../schemas/case.schema.json)). An instrument or caption shows a number only by citing a Measurement, so the numbers of a recipe result (a trend, an interval, a share of the area) are Measurements too, each saying where in the bundle it was read.
+
+- **`source`** (optional, so earlier Measurements stay valid): `assetKey` (the key under which the bundle's collection lists the asset), `jsonPointer` (an RFC 6901 pointer to the number in that asset; array positions are part of the pointer), `stratum` (the part of the place, as the bundle names it), `claimKind` (the Evidence claim kinds), `period` (`start` and `end` as `YYYY` or `YYYY-MM`, and `window`, the bundle's own label for a window repeated each year or null) and `lowerJsonPointer` and `upperJsonPointer` (the ends of the interval in `uncertainty`, both present or both null).
+- **The loader reads the value.** `data/case/measurement-rows.json` holds one row per number: bundle, asset key, pointer, optional interval pointers, a pointer to the claim kind in the same asset, metric, unit, aggregation, stratum, period, `periodId`, the uncertainty kind and the places the figure is used. A row holds no value. The seed loader opens the asset through the same checksum verification as the read API (the collection must hash to the content hash the case holds and the file to the checksum the collection lists), follows each pointer, and refuses a row whose pointer does not name a finite number or whose claim kind differs from the one the asset states. A refused row is reported and skipped.
+- **Not every number has a row.** A number in an asset that states no claim kind has no row, because an unlabelled number does not become a Measurement.
+- **Checks.** A test compares each loaded value with the figure the project printed for it (the verified facts and the specimens' provenance), rounded once, half away from zero, to the printed precision, each figure naming its source, so a wrong pointer fails.
+
+| Rule | Statement | Enforced |
+|---|---|---|
+| MS-01 | `lowerJsonPointer` and `upperJsonPointer` are both present or both null | The Zod mirror (`measurementSourceShape`) and the schema's `allOf`, kept equal by a contract test |
+| MS-02 | The value and interval of a Measurement with a `source` are the numbers at its pointers in the asset the bundle lists under `assetKey` | The seed loader (`readMeasurementRows`); a test re-reads every loaded Measurement from the asset |
 
 ## Records planned for later contracts
 

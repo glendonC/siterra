@@ -111,3 +111,20 @@ export function contextFeatureShape(
     });
   }
 }
+
+/**
+ * A Measurement source gives both ends of its interval or neither (MS-01, case.schema.json
+ * MeasurementSource allOf).
+ */
+export function measurementSourceShape(
+  source: { lowerJsonPointer: string | null; upperJsonPointer: string | null },
+  ctx: z.RefinementCtx,
+): void {
+  if ((source.lowerJsonPointer === null) !== (source.upperJsonPointer === null)) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["lowerJsonPointer"],
+      message: "The lower and upper interval pointers are both present or both null",
+    });
+  }
+}

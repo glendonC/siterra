@@ -1,0 +1,256 @@
+{
+  "figures": [
+    {
+      "rowId": "trend_unadjusted_catchment_mar_jun",
+      "printed": 0.0091,
+      "decimals": 4,
+      "part": "value",
+      "source": "COMMON.md verified facts: catchment trend; specimen A numbers_on_screen \"+0.0091 NDVI per decade, March to June, 2000 to 2025\""
+    },
+    {
+      "rowId": "trend_unadjusted_catchment_mar_jun",
+      "printed": 0.0046,
+      "decimals": 4,
+      "part": "lower",
+      "source": "COMMON.md verified facts: catchment trend (95% +0.0046 to +0.0136)"
+    },
+    {
+      "rowId": "trend_unadjusted_catchment_mar_jun",
+      "printed": 0.0136,
+      "decimals": 4,
+      "part": "upper",
+      "source": "COMMON.md verified facts: catchment trend (95% +0.0046 to +0.0136)"
+    },
+    {
+      "rowId": "trend_unadjusted_catchment_mar_jun",
+      "printed": 0.00906,
+      "decimals": 5,
+      "part": "value",
+      "source": "provenance.json specimens.A.numbers_on_screen[0].value; verified_numbers_checked.catchment_trend.per_decade"
+    },
+    {
+      "rowId": "trend_unadjusted_catchment_mar_jun",
+      "printed": 0.00457,
+      "decimals": 5,
+      "part": "lower",
+      "source": "provenance.json specimens.A.numbers_on_screen[0].interval_95[0]; verified_numbers_checked.catchment_trend.lower"
+    },
+    {
+      "rowId": "trend_unadjusted_catchment_mar_jun",
+      "printed": 0.01356,
+      "decimals": 5,
+      "part": "upper",
+      "source": "provenance.json specimens.A.numbers_on_screen[0].interval_95[1]; verified_numbers_checked.catchment_trend.upper"
+    },
+    {
+      "rowId": "pixel_trend_median_catchment_mar_jun",
+      "printed": 0.00757,
+      "decimals": 5,
+      "part": "value",
+      "source": "COMMON.md verified facts: median pixel slope"
+    },
+    {
+      "rowId": "pixel_trend_upward_fdr_share_catchment_mar_jun",
+      "printed": 0.247,
+      "decimals": 3,
+      "part": "value",
+      "source": "COMMON.md verified facts: 24.7% of the area increasing; provenance.json specimens.A.numbers_on_screen[1].value; verified_numbers_checked.fdr_share"
+    },
+    {
+      "rowId": "pixel_trend_downward_fdr_share_catchment_mar_jun",
+      "printed": 0.0009,
+      "decimals": 4,
+      "part": "value",
+      "source": "COMMON.md verified facts: 0.09% of the area decreasing (printed as a share, 0 to 1)"
+    },
+    {
+      "rowId": "pixel_trend_upward_fdr_areas_catchment_mar_jun",
+      "printed": 33,
+      "decimals": 0,
+      "part": "value",
+      "source": "COMMON.md verified facts: 33 upward connected areas; provenance.json verified_numbers_checked.clusters_up_down[0]"
+    },
+    {
+      "rowId": "pixel_trend_downward_fdr_areas_catchment_mar_jun",
+      "printed": 0,
+      "decimals": 0,
+      "part": "value",
+      "source": "COMMON.md verified facts: 0 downward connected areas; provenance.json verified_numbers_checked.clusters_up_down[1]"
+    },
+    {
+      "rowId": "modis_pixels_catchment",
+      "printed": 8094,
+      "decimals": 0,
+      "part": "value",
+      "source": "COMMON.md verified facts: 8,094 MODIS 250 m pixels; provenance.json verified_numbers_checked.modis_pixels"
+    },
+    {
+      "rowId": "rainfall_fit_r_squared_catchment_mar_jun",
+      "printed": 0.037,
+      "decimals": 3,
+      "part": "value",
+      "source": "COMMON.md verified facts: R squared 0.037"
+    },
+    {
+      "rowId": "rainfall_fit_r_squared_catchment_mar_jun",
+      "printed": 0.03699,
+      "decimals": 5,
+      "part": "value",
+      "source": "provenance.json verified_numbers_checked.rain_r_squared (0.03699350879758126)"
+    },
+    {
+      "rowId": "rainfall_sep_may_catchment_2001",
+      "printed": 369,
+      "decimals": 0,
+      "part": "value",
+      "source": "COMMON.md verified facts: driest seasons (2001, 369 mm)"
+    },
+    {
+      "rowId": "rainfall_sep_may_catchment_2001",
+      "printed": 369.19,
+      "decimals": 2,
+      "part": "value",
+      "source": "provenance.json verified_numbers_checked.driest_sep_may (season 2001, 369.19 mm)"
+    },
+    {
+      "rowId": "rainfall_sep_may_catchment_2024",
+      "printed": 391,
+      "decimals": 0,
+      "part": "value",
+      "source": "COMMON.md verified facts: driest seasons (2024, 391 mm)"
+    },
+    {
+      "rowId": "rainfall_sep_may_catchment_2024",
+      "printed": 390.52,
+      "decimals": 2,
+      "part": "value",
+      "source": "provenance.json verified_numbers_checked.driest_sep_may (season 2024, 390.52 mm)"
+    },
+    {
+      "rowId": "rainfall_sep_may_catchment_2016",
+      "printed": 419,
+      "decimals": 0,
+      "part": "value",
+      "source": "COMMON.md verified facts: driest seasons (2016, 419 mm)"
+    },
+    {
+      "rowId": "rainfall_sep_may_catchment_2016",
+      "printed": 419.47,
+      "decimals": 2,
+      "part": "value",
+      "source": "provenance.json verified_numbers_checked.driest_sep_may (season 2016, 419.47 mm)"
+    },
+    {
+      "rowId": "rainfall_sep_may_catchment_2023",
+      "printed": 421,
+      "decimals": 0,
+      "part": "value",
+      "source": "COMMON.md verified facts: driest seasons (2023, 421 mm)"
+    },
+    {
+      "rowId": "rainfall_sep_may_catchment_2023",
+      "printed": 420.81,
+      "decimals": 2,
+      "part": "value",
+      "source": "provenance.json verified_numbers_checked.driest_sep_may (season 2023, 420.81 mm)"
+    },
+    {
+      "rowId": "trend_unadjusted_elevation_low_mar_jun",
+      "printed": 0.0134,
+      "decimals": 4,
+      "part": "value",
+      "source": "COMMON.md verified facts: bands (+0.0134 NDVI per decade, March to June); specimen B numbers_on_screen[0] caption"
+    },
+    {
+      "rowId": "trend_unadjusted_elevation_low_mar_jun",
+      "printed": 0.0134,
+      "decimals": 5,
+      "part": "value",
+      "source": "provenance.json specimens.B.numbers_on_screen[0].value; verified_numbers_checked.band_trends.elevation_low"
+    },
+    {
+      "rowId": "trend_unadjusted_elevation_low_mar_jun",
+      "printed": 0.00778,
+      "decimals": 5,
+      "part": "lower",
+      "source": "provenance.json specimens.B.numbers_on_screen[0].interval_95[0]"
+    },
+    {
+      "rowId": "trend_unadjusted_elevation_low_mar_jun",
+      "printed": 0.01902,
+      "decimals": 5,
+      "part": "upper",
+      "source": "provenance.json specimens.B.numbers_on_screen[0].interval_95[1]"
+    },
+    {
+      "rowId": "trend_unadjusted_elevation_mid_mar_jun",
+      "printed": 0.0072,
+      "decimals": 4,
+      "part": "value",
+      "source": "COMMON.md verified facts: bands (+0.0072 NDVI per decade, March to June); specimen B numbers_on_screen[1] caption"
+    },
+    {
+      "rowId": "trend_unadjusted_elevation_mid_mar_jun",
+      "printed": 0.00718,
+      "decimals": 5,
+      "part": "value",
+      "source": "provenance.json specimens.B.numbers_on_screen[1].value; verified_numbers_checked.band_trends.elevation_mid"
+    },
+    {
+      "rowId": "trend_unadjusted_elevation_mid_mar_jun",
+      "printed": 0.00152,
+      "decimals": 5,
+      "part": "lower",
+      "source": "provenance.json specimens.B.numbers_on_screen[1].interval_95[0]"
+    },
+    {
+      "rowId": "trend_unadjusted_elevation_mid_mar_jun",
+      "printed": 0.01285,
+      "decimals": 5,
+      "part": "upper",
+      "source": "provenance.json specimens.B.numbers_on_screen[1].interval_95[1]"
+    },
+    {
+      "rowId": "trend_unadjusted_elevation_high_mar_jun",
+      "printed": 0.007,
+      "decimals": 4,
+      "part": "value",
+      "source": "COMMON.md verified facts: bands (+0.0070 NDVI per decade, March to June); specimen B numbers_on_screen[2] caption"
+    },
+    {
+      "rowId": "trend_unadjusted_elevation_high_mar_jun",
+      "printed": 0.007,
+      "decimals": 5,
+      "part": "value",
+      "source": "provenance.json specimens.B.numbers_on_screen[2].value; verified_numbers_checked.band_trends.elevation_high"
+    },
+    {
+      "rowId": "trend_unadjusted_elevation_high_mar_jun",
+      "printed": 0.00161,
+      "decimals": 5,
+      "part": "lower",
+      "source": "provenance.json specimens.B.numbers_on_screen[2].interval_95[0]"
+    },
+    {
+      "rowId": "trend_unadjusted_elevation_high_mar_jun",
+      "printed": 0.01239,
+      "decimals": 5,
+      "part": "upper",
+      "source": "provenance.json specimens.B.numbers_on_screen[2].interval_95[1]"
+    },
+    {
+      "rowId": "trend_unadjusted_lc_cropland_built_jun_sep",
+      "printed": 0.0494,
+      "decimals": 4,
+      "part": "value",
+      "source": "COMMON.md verified facts: June to September cropland or built-up +0.0494 NDVI per decade"
+    },
+    {
+      "rowId": "trend_unadjusted_lc_tree_cover_jun_sep",
+      "printed": 0.0268,
+      "decimals": 4,
+      "part": "value",
+      "source": "COMMON.md verified facts: June to September tree cover +0.0268 NDVI per decade (the file printed +0.0267 before the 29 Oct rounding rule; stored 0.02675)"
+    }
+  ]
+}

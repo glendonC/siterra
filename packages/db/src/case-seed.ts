@@ -15,6 +15,7 @@ import {
 import { z } from "zod";
 import { type ImportIssue, importCatalog } from "./bundle-import.ts";
 import { permittedMode } from "./live-mode.ts";
+import { MeasurementRowsFile, readMeasurementRows } from "./measurement-rows.ts";
 import type { CaseSeedRecords } from "./seed.ts";
 import { collectionOf, emptyCollections } from "./snapshot.ts";
 
@@ -90,6 +91,7 @@ const ContextFeaturesFile = z.object({
 });
 
 const contextFeaturesPath = "data/case/context-features.json";
+const measurementRowsPath = "data/case/measurement-rows.json";
 
 function sha256File(path: string): string {
   return createHash("sha256").update(readFileSync(path)).digest("hex");
@@ -217,6 +219,27 @@ export function readCaseSeed(args: {
   });
   issues.push(...imported.issues);
 
+  // Recipe results: each row names a number in a bundle asset, and the loader copies it.
+  const rowsFile = MeasurementRowsFile.parse(
+    JSON.parse(readFileSync(join(args.repoDir, measurementRowsPath), "utf8")),
+  );
+  if (rowsFile.caseId !== file.caseId) {
+    issue(measurementRowsPath, `Measurement rows are for ${rowsFile.caseId}, not ${file.caseId}`);
+  }
+  const fromRows = readMeasurementRows({
+    rows: rowsFile,
+    caseId: file.caseId,
+    bundlesDir: join(args.repoDir, file.bundles.catalog, ".."),
+    bundles: imported.bundles,
+    geoSelection,
+    importedAt: at,
+  });
+  issues.push(...fromRows.issues);
+  const bundles = imported.bundles.map((b) => {
+    const extra = fromRows.measurements.get(b.dataBundle.id);
+    return extra === undefined ? b : { ...b, measurements: [...b.measurements, ...extra] };
+  });
+
   const contextFile = ContextFeaturesFile.parse(
     JSON.parse(readFileSync(join(args.repoDir, contextFeaturesPath), "utf8")),
   );
@@ -286,7 +309,7 @@ export function readCaseSeed(args: {
       caseRecord,
       geoSelections: [geoSelection],
       sources,
-      bundles: imported.bundles,
+      bundles,
       contextFeatures,
     },
     issues,

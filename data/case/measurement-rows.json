@@ -1,0 +1,496 @@
+{
+  "measurementRowsVersion": 1,
+  "caseId": "case_aitbouguemez",
+  "description": "Measurement rows locating each number that an instrument or caption shows inside the Ait Bouguemez bundle assets by JSON pointer, so that values are read from the bundles and never typed here.",
+  "rows": [
+    {
+      "rowId": "pixel_trend_median_catchment_mar_jun",
+      "pointer": "/windows_summary/mar_jun/catchment/median_slope_per_decade",
+      "metric": "ndvi_pixel_trend_median_per_decade",
+      "unit": "NDVI per decade",
+      "aggregation": "Median over the catchment's MODIS pixels of each pixel's Theil-Sen slope of March to June NDVI, 2000 to 2025 (median_slope_per_decade).",
+      "uncertainty": {
+        "kind": "not_quantified"
+      },
+      "usedBy": [
+        "COMMON.md verified fact: median pixel slope"
+      ],
+      "bundleId": "bundle_pixel_trend_long_record_ait_bouguemez",
+      "assetKey": "pixel_trend_long_record",
+      "lowerPointer": null,
+      "upperPointer": null,
+      "claimKindPointer": "/claim_kind",
+      "claimKind": "model_estimate",
+      "stratum": "catchment",
+      "period": {
+        "start": "2000",
+        "end": "2025",
+        "window": "mar_jun"
+      },
+      "periodId": "period_2000-2025_mar_jun",
+      "spatialResolutionM": 250
+    },
+    {
+      "rowId": "pixel_trend_upward_fdr_share_catchment_mar_jun",
+      "pointer": "/windows_summary/mar_jun/catchment/increasing_fdr_share",
+      "metric": "area_share_upward_fdr",
+      "unit": "share of 10 m analysis cells in the group (0 to 1)",
+      "aggregation": "Share of the catchment's 10 m analysis cells that lie in pixels with an upward trend under Benjamini-Hochberg false discovery rate control at q = 0.05 (increasing_fdr_share).",
+      "uncertainty": {
+        "kind": "not_quantified"
+      },
+      "usedBy": [
+        "COMMON.md verified fact: 24.7% of the area increasing",
+        "specimen A numbers_on_screen: 24.7% of the area after a false discovery rate check",
+        "provenance verified_numbers_checked.fdr_share"
+      ],
+      "bundleId": "bundle_pixel_trend_long_record_ait_bouguemez",
+      "assetKey": "pixel_trend_long_record",
+      "lowerPointer": null,
+      "upperPointer": null,
+      "claimKindPointer": "/claim_kind",
+      "claimKind": "model_estimate",
+      "stratum": "catchment",
+      "period": {
+        "start": "2000",
+        "end": "2025",
+        "window": "mar_jun"
+      },
+      "periodId": "period_2000-2025_mar_jun",
+      "spatialResolutionM": 250
+    },
+    {
+      "rowId": "pixel_trend_downward_fdr_share_catchment_mar_jun",
+      "pointer": "/windows_summary/mar_jun/catchment/decreasing_fdr_share",
+      "metric": "area_share_downward_fdr",
+      "unit": "share of 10 m analysis cells in the group (0 to 1)",
+      "aggregation": "Share of the catchment's 10 m analysis cells that lie in pixels with a downward trend under Benjamini-Hochberg false discovery rate control at q = 0.05 (decreasing_fdr_share).",
+      "uncertainty": {
+        "kind": "not_quantified"
+      },
+      "usedBy": [
+        "COMMON.md verified fact: 0.09% of the area decreasing"
+      ],
+      "bundleId": "bundle_pixel_trend_long_record_ait_bouguemez",
+      "assetKey": "pixel_trend_long_record",
+      "lowerPointer": null,
+      "upperPointer": null,
+      "claimKindPointer": "/claim_kind",
+      "claimKind": "model_estimate",
+      "stratum": "catchment",
+      "period": {
+        "start": "2000",
+        "end": "2025",
+        "window": "mar_jun"
+      },
+      "periodId": "period_2000-2025_mar_jun",
+      "spatialResolutionM": 250
+    },
+    {
+      "rowId": "pixel_trend_upward_fdr_areas_catchment_mar_jun",
+      "pointer": "/windows_summary/mar_jun/connected_areas_fdr/upward_fdr_count",
+      "metric": "connected_areas_upward_fdr",
+      "unit": "connected areas (8-connected groups of at least 4 pixels)",
+      "aggregation": "Count of connected areas of at least 4 pixels (8-connected) among upward-FDR pixels, March to June (connected_areas_fdr.upward_fdr_count).",
+      "uncertainty": {
+        "kind": "not_quantified"
+      },
+      "usedBy": [
+        "COMMON.md verified fact: 33 upward connected areas",
+        "provenance verified_numbers_checked.clusters_up_down"
+      ],
+      "bundleId": "bundle_pixel_trend_long_record_ait_bouguemez",
+      "assetKey": "pixel_trend_long_record",
+      "lowerPointer": null,
+      "upperPointer": null,
+      "claimKindPointer": "/claim_kind",
+      "claimKind": "model_estimate",
+      "stratum": "catchment",
+      "period": {
+        "start": "2000",
+        "end": "2025",
+        "window": "mar_jun"
+      },
+      "periodId": "period_2000-2025_mar_jun",
+      "spatialResolutionM": 250
+    },
+    {
+      "rowId": "pixel_trend_downward_fdr_areas_catchment_mar_jun",
+      "pointer": "/windows_summary/mar_jun/connected_areas_fdr/downward_fdr_count",
+      "metric": "connected_areas_downward_fdr",
+      "unit": "connected areas (8-connected groups of at least 4 pixels)",
+      "aggregation": "Count of connected areas of at least 4 pixels (8-connected) among downward-FDR pixels, March to June (connected_areas_fdr.downward_fdr_count).",
+      "uncertainty": {
+        "kind": "not_quantified"
+      },
+      "usedBy": [
+        "COMMON.md verified fact: 0 downward connected areas",
+        "provenance verified_numbers_checked.clusters_up_down"
+      ],
+      "bundleId": "bundle_pixel_trend_long_record_ait_bouguemez",
+      "assetKey": "pixel_trend_long_record",
+      "lowerPointer": null,
+      "upperPointer": null,
+      "claimKindPointer": "/claim_kind",
+      "claimKind": "model_estimate",
+      "stratum": "catchment",
+      "period": {
+        "start": "2000",
+        "end": "2025",
+        "window": "mar_jun"
+      },
+      "periodId": "period_2000-2025_mar_jun",
+      "spatialResolutionM": 250
+    },
+    {
+      "rowId": "modis_pixels_catchment",
+      "pointer": "/windows_summary/mar_jun/catchment/modis_pixels_touched",
+      "metric": "modis_pixels_touched",
+      "unit": "MODIS 250 m pixels",
+      "aggregation": "Number of MODIS 250 m pixels the catchment touches (modis_pixels_touched).",
+      "uncertainty": {
+        "kind": "not_quantified"
+      },
+      "usedBy": [
+        "COMMON.md verified fact: 8,094 MODIS pixels",
+        "provenance verified_numbers_checked.modis_pixels"
+      ],
+      "bundleId": "bundle_pixel_trend_long_record_ait_bouguemez",
+      "assetKey": "pixel_trend_long_record",
+      "lowerPointer": null,
+      "upperPointer": null,
+      "claimKindPointer": "/claim_kind",
+      "claimKind": "model_estimate",
+      "stratum": "catchment",
+      "period": {
+        "start": "2000",
+        "end": "2025",
+        "window": "mar_jun"
+      },
+      "periodId": "period_2000-2025_mar_jun",
+      "spatialResolutionM": 250
+    },
+    {
+      "rowId": "rainfall_fit_r_squared_catchment_mar_jun",
+      "bundleId": "bundle_restrend_long_record_ait_bouguemez",
+      "assetKey": "restrend_long_record",
+      "pointer": "/headline/catchment/rainfall_fit_r_squared",
+      "lowerPointer": null,
+      "upperPointer": null,
+      "claimKindPointer": "/claim_kind",
+      "claimKind": "model_estimate",
+      "metric": "rainfall_fit_r_squared",
+      "unit": "dimensionless (R squared)",
+      "aggregation": "R squared of the least squares fit of March to June catchment NDVI on September (previous year) to May CHIRPS rainfall over 26 seasons (rainfall_fit_r_squared).",
+      "stratum": "catchment",
+      "period": {
+        "start": "2000",
+        "end": "2025",
+        "window": "mar_jun"
+      },
+      "periodId": "period_2000-2025_mar_jun",
+      "uncertainty": {
+        "kind": "not_quantified"
+      },
+      "spatialResolutionM": null,
+      "usedBy": [
+        "COMMON.md verified fact: R squared 0.037",
+        "provenance verified_numbers_checked.rain_r_squared"
+      ]
+    },
+    {
+      "rowId": "rainfall_sep_may_catchment_2001",
+      "bundleId": "bundle_restrend_long_record_ait_bouguemez",
+      "assetKey": "restrend_tables",
+      "pointer": "/rainfall/9/rainfall_mm",
+      "lowerPointer": null,
+      "upperPointer": null,
+      "claimKindPointer": "/claim_kind/season_tables",
+      "claimKind": "observation",
+      "metric": "rainfall_season_total",
+      "unit": "mm",
+      "aggregation": "Catchment total of CHIRPS v3.0 monthly rainfall for September 2000 to May 2001, season labelled by the end year (rainfall_mm, window sep_may).",
+      "stratum": "catchment",
+      "period": {
+        "start": "2001",
+        "end": "2001",
+        "window": "sep_may"
+      },
+      "periodId": "period_2001_sep_may",
+      "uncertainty": {
+        "kind": "not_quantified"
+      },
+      "spatialResolutionM": null,
+      "usedBy": [
+        "COMMON.md verified fact: driest seasons",
+        "provenance verified_numbers_checked.driest_sep_may"
+      ]
+    },
+    {
+      "rowId": "rainfall_sep_may_catchment_2024",
+      "bundleId": "bundle_restrend_long_record_ait_bouguemez",
+      "assetKey": "restrend_tables",
+      "pointer": "/rainfall/216/rainfall_mm",
+      "lowerPointer": null,
+      "upperPointer": null,
+      "claimKindPointer": "/claim_kind/season_tables",
+      "claimKind": "observation",
+      "metric": "rainfall_season_total",
+      "unit": "mm",
+      "aggregation": "Catchment total of CHIRPS v3.0 monthly rainfall for September 2023 to May 2024, season labelled by the end year (rainfall_mm, window sep_may).",
+      "stratum": "catchment",
+      "period": {
+        "start": "2024",
+        "end": "2024",
+        "window": "sep_may"
+      },
+      "periodId": "period_2024_sep_may",
+      "uncertainty": {
+        "kind": "not_quantified"
+      },
+      "spatialResolutionM": null,
+      "usedBy": [
+        "COMMON.md verified fact: driest seasons",
+        "provenance verified_numbers_checked.driest_sep_may"
+      ]
+    },
+    {
+      "rowId": "rainfall_sep_may_catchment_2016",
+      "bundleId": "bundle_restrend_long_record_ait_bouguemez",
+      "assetKey": "restrend_tables",
+      "pointer": "/rainfall/144/rainfall_mm",
+      "lowerPointer": null,
+      "upperPointer": null,
+      "claimKindPointer": "/claim_kind/season_tables",
+      "claimKind": "observation",
+      "metric": "rainfall_season_total",
+      "unit": "mm",
+      "aggregation": "Catchment total of CHIRPS v3.0 monthly rainfall for September 2015 to May 2016, season labelled by the end year (rainfall_mm, window sep_may).",
+      "stratum": "catchment",
+      "period": {
+        "start": "2016",
+        "end": "2016",
+        "window": "sep_may"
+      },
+      "periodId": "period_2016_sep_may",
+      "uncertainty": {
+        "kind": "not_quantified"
+      },
+      "spatialResolutionM": null,
+      "usedBy": [
+        "COMMON.md verified fact: driest seasons",
+        "provenance verified_numbers_checked.driest_sep_may"
+      ]
+    },
+    {
+      "rowId": "rainfall_sep_may_catchment_2023",
+      "bundleId": "bundle_restrend_long_record_ait_bouguemez",
+      "assetKey": "restrend_tables",
+      "pointer": "/rainfall/207/rainfall_mm",
+      "lowerPointer": null,
+      "upperPointer": null,
+      "claimKindPointer": "/claim_kind/season_tables",
+      "claimKind": "observation",
+      "metric": "rainfall_season_total",
+      "unit": "mm",
+      "aggregation": "Catchment total of CHIRPS v3.0 monthly rainfall for September 2022 to May 2023, season labelled by the end year (rainfall_mm, window sep_may).",
+      "stratum": "catchment",
+      "period": {
+        "start": "2023",
+        "end": "2023",
+        "window": "sep_may"
+      },
+      "periodId": "period_2023_sep_may",
+      "uncertainty": {
+        "kind": "not_quantified"
+      },
+      "spatialResolutionM": null,
+      "usedBy": [
+        "COMMON.md verified fact: driest seasons",
+        "provenance verified_numbers_checked.driest_sep_may"
+      ]
+    },
+    {
+      "rowId": "trend_unadjusted_catchment_mar_jun",
+      "bundleId": "bundle_season_trend_long_record_ait_bouguemez",
+      "assetKey": "season_trend_long_record",
+      "pointer": "/results/0/ols/slope_per_decade",
+      "lowerPointer": "/results/0/ols/lower_per_decade",
+      "upperPointer": "/results/0/ols/upper_per_decade",
+      "claimKindPointer": "/claim_kind/trends_and_contrasts",
+      "claimKind": "model_estimate",
+      "metric": "ndvi_trend_unadjusted_per_decade",
+      "unit": "NDVI per decade",
+      "aggregation": "Ordinary least squares slope, per decade, of the March to June growing-season mean NDVI (per-pixel season means weighted by 10 m analysis cells across the stratum) over 26 seasons, not adjusted for rainfall (ols.slope_per_decade).",
+      "stratum": "catchment",
+      "period": {
+        "start": "2000",
+        "end": "2025",
+        "window": "mar_jun"
+      },
+      "periodId": "period_2000-2025_mar_jun",
+      "uncertainty": {
+        "kind": "interval",
+        "level": 0.95,
+        "method": "95% interval (level 0.95) of the ordinary least squares slope of growing-season NDVI on season year (ols block)."
+      },
+      "spatialResolutionM": 250,
+      "usedBy": [
+        "COMMON.md verified fact: catchment trend",
+        "specimen A numbers_on_screen: +0.0091 NDVI per decade",
+        "provenance verified_numbers_checked.catchment_trend"
+      ]
+    },
+    {
+      "rowId": "trend_unadjusted_elevation_low_mar_jun",
+      "bundleId": "bundle_season_trend_long_record_ait_bouguemez",
+      "assetKey": "season_trend_long_record",
+      "pointer": "/results/4/ols/slope_per_decade",
+      "lowerPointer": "/results/4/ols/lower_per_decade",
+      "upperPointer": "/results/4/ols/upper_per_decade",
+      "claimKindPointer": "/claim_kind/trends_and_contrasts",
+      "claimKind": "model_estimate",
+      "metric": "ndvi_trend_unadjusted_per_decade",
+      "unit": "NDVI per decade",
+      "aggregation": "Ordinary least squares slope, per decade, of the March to June growing-season mean NDVI (per-pixel season means weighted by 10 m analysis cells across the stratum) over 26 seasons, not adjusted for rainfall (ols.slope_per_decade).",
+      "stratum": "elevation_low",
+      "period": {
+        "start": "2000",
+        "end": "2025",
+        "window": "mar_jun"
+      },
+      "periodId": "period_2000-2025_mar_jun",
+      "uncertainty": {
+        "kind": "interval",
+        "level": 0.95,
+        "method": "95% interval (level 0.95) of the ordinary least squares slope of growing-season NDVI on season year (ols block)."
+      },
+      "spatialResolutionM": 250,
+      "usedBy": [
+        "COMMON.md verified fact: bands",
+        "specimen B numbers_on_screen: +0.0134 below 2,317 m",
+        "provenance verified_numbers_checked.band_trends"
+      ]
+    },
+    {
+      "rowId": "trend_unadjusted_elevation_mid_mar_jun",
+      "bundleId": "bundle_season_trend_long_record_ait_bouguemez",
+      "assetKey": "season_trend_long_record",
+      "pointer": "/results/8/ols/slope_per_decade",
+      "lowerPointer": "/results/8/ols/lower_per_decade",
+      "upperPointer": "/results/8/ols/upper_per_decade",
+      "claimKindPointer": "/claim_kind/trends_and_contrasts",
+      "claimKind": "model_estimate",
+      "metric": "ndvi_trend_unadjusted_per_decade",
+      "unit": "NDVI per decade",
+      "aggregation": "Ordinary least squares slope, per decade, of the March to June growing-season mean NDVI (per-pixel season means weighted by 10 m analysis cells across the stratum) over 26 seasons, not adjusted for rainfall (ols.slope_per_decade).",
+      "stratum": "elevation_mid",
+      "period": {
+        "start": "2000",
+        "end": "2025",
+        "window": "mar_jun"
+      },
+      "periodId": "period_2000-2025_mar_jun",
+      "uncertainty": {
+        "kind": "interval",
+        "level": 0.95,
+        "method": "95% interval (level 0.95) of the ordinary least squares slope of growing-season NDVI on season year (ols block)."
+      },
+      "spatialResolutionM": 250,
+      "usedBy": [
+        "COMMON.md verified fact: bands",
+        "specimen B numbers_on_screen: +0.0072, 2,317 to 2,815 m",
+        "provenance verified_numbers_checked.band_trends"
+      ]
+    },
+    {
+      "rowId": "trend_unadjusted_elevation_high_mar_jun",
+      "bundleId": "bundle_season_trend_long_record_ait_bouguemez",
+      "assetKey": "season_trend_long_record",
+      "pointer": "/results/12/ols/slope_per_decade",
+      "lowerPointer": "/results/12/ols/lower_per_decade",
+      "upperPointer": "/results/12/ols/upper_per_decade",
+      "claimKindPointer": "/claim_kind/trends_and_contrasts",
+      "claimKind": "model_estimate",
+      "metric": "ndvi_trend_unadjusted_per_decade",
+      "unit": "NDVI per decade",
+      "aggregation": "Ordinary least squares slope, per decade, of the March to June growing-season mean NDVI (per-pixel season means weighted by 10 m analysis cells across the stratum) over 26 seasons, not adjusted for rainfall (ols.slope_per_decade).",
+      "stratum": "elevation_high",
+      "period": {
+        "start": "2000",
+        "end": "2025",
+        "window": "mar_jun"
+      },
+      "periodId": "period_2000-2025_mar_jun",
+      "uncertainty": {
+        "kind": "interval",
+        "level": 0.95,
+        "method": "95% interval (level 0.95) of the ordinary least squares slope of growing-season NDVI on season year (ols block)."
+      },
+      "spatialResolutionM": 250,
+      "usedBy": [
+        "COMMON.md verified fact: bands",
+        "specimen B numbers_on_screen: +0.0070, 2,815 m and above",
+        "provenance verified_numbers_checked.band_trends"
+      ]
+    },
+    {
+      "rowId": "trend_unadjusted_lc_tree_cover_jun_sep",
+      "bundleId": "bundle_season_trend_long_record_ait_bouguemez",
+      "assetKey": "season_trend_long_record",
+      "pointer": "/results/75/ols/slope_per_decade",
+      "lowerPointer": "/results/75/ols/lower_per_decade",
+      "upperPointer": "/results/75/ols/upper_per_decade",
+      "claimKindPointer": "/claim_kind/trends_and_contrasts",
+      "claimKind": "model_estimate",
+      "metric": "ndvi_trend_unadjusted_per_decade",
+      "unit": "NDVI per decade",
+      "aggregation": "Ordinary least squares slope, per decade, of the June to September growing-season mean NDVI (per-pixel season means weighted by 10 m analysis cells across the stratum) over 25 seasons, not adjusted for rainfall (ols.slope_per_decade).",
+      "stratum": "lc_tree_cover",
+      "period": {
+        "start": "2000",
+        "end": "2024",
+        "window": "jun_sep"
+      },
+      "periodId": "period_2000-2024_jun_sep",
+      "uncertainty": {
+        "kind": "interval",
+        "level": 0.95,
+        "method": "95% interval (level 0.95) of the ordinary least squares slope of growing-season NDVI on season year (ols block)."
+      },
+      "spatialResolutionM": 250,
+      "usedBy": [
+        "COMMON.md verified fact: June to September tree cover"
+      ]
+    },
+    {
+      "rowId": "trend_unadjusted_lc_cropland_built_jun_sep",
+      "bundleId": "bundle_season_trend_long_record_ait_bouguemez",
+      "assetKey": "season_trend_long_record",
+      "pointer": "/results/79/ols/slope_per_decade",
+      "lowerPointer": "/results/79/ols/lower_per_decade",
+      "upperPointer": "/results/79/ols/upper_per_decade",
+      "claimKindPointer": "/claim_kind/trends_and_contrasts",
+      "claimKind": "model_estimate",
+      "metric": "ndvi_trend_unadjusted_per_decade",
+      "unit": "NDVI per decade",
+      "aggregation": "Ordinary least squares slope, per decade, of the June to September growing-season mean NDVI (per-pixel season means weighted by 10 m analysis cells across the stratum) over 25 seasons, not adjusted for rainfall (ols.slope_per_decade).",
+      "stratum": "lc_cropland_built",
+      "period": {
+        "start": "2000",
+        "end": "2024",
+        "window": "jun_sep"
+      },
+      "periodId": "period_2000-2024_jun_sep",
+      "uncertainty": {
+        "kind": "interval",
+        "level": 0.95,
+        "method": "95% interval (level 0.95) of the ordinary least squares slope of growing-season NDVI on season year (ols block)."
+      },
+      "spatialResolutionM": 250,
+      "usedBy": [
+        "COMMON.md verified fact: June to September cropland or built-up"
+      ]
+    }
+  ]
+}
