@@ -31,8 +31,7 @@
         "adjacentSlopeJuly2025NdviMedian": 0.1123,
         "windowJuly2025NdviP90": 0.7649,
         "validObservationShare": 1.0
-      },
-      "aiInspectionNote": "Left 60%: 10 m Sentinel-2 true-colour composite showing the bright irrigated ribbon of Tabant and Agouti fields and apple orchards along the Assif n'Ait Bouguemez floor beside bare semi-arid footslopes. Right 40%: July 2025 10 m NDVI (irrigated orchard/cropland median 0.68 vs. 0.11 on adjacent dry slopes) with WorldCover 2021 tree-cover and cropland boundaries outlined in gold. Cross-checked against season_trend_long_record: level valley-floor ground greens at +0.0317 NDVI/decade in summer (June to September) and +0.0222 NDVI/decade in spring (March to June), confirming that irrigated orchards and underplanted alfalfa drive the strongest greening in the catchment."
+      }
     },
     {
       "id": "chip-upper-snow-band",
@@ -52,13 +51,9 @@
         "windowMaxElevationM": 3173.7,
         "snowCoverWinterShare": 0.7507,
         "snowCoverSummerShare": 0.0022,
-        "winterS2MonthsFullClear": 0,
-        "winterS2MonthsTested": 28,
         "ndviSlopePerDecade": 0.007,
-        "summerNdviSlope": 0.00383,
-        "validObservationShare": 0.3289
-      },
-      "aiInspectionNote": "30 m Sentinel-2 optical relief ascending to the 3,180 m northern ridgeline above Ait Ouchi, overlaid with the 2,815 m upper terrain-stratum contour (ice-blue line) and MOD10A1 v6.1 winter snow frequency (cyan tint). Above 2,815 m, 0 of 28 winter Sentinel-2 months (Dec to Mar, 2019 to 2025) are snow-free across the upper band (median valid area fraction 0.3289), and MOD10A1 records a 0.7507 mean winter snow-covered share (NDSI >= 0.2) versus 0.0022 in June to September, showing why spring greenness trends (+0.0070 NDVI/decade) are sensitive to snowmelt timing."
+        "summerNdviSlope": 0.00383
+      }
     },
     {
       "id": "chip-mid-slope-rangeland",
@@ -82,8 +77,7 @@
         "decreasingFdrShare": 0.0015,
         "unadjustedPositiveShare": 0.8929,
         "validObservationShare": 1.0
-      },
-      "aiInspectionNote": "Sentinel-2 optical base draped with the native 250 m MOD13Q1 Theil-Sen slope grid (2000 to 2025, March to June; slope magnitude and direction only per SCI-52, with 250 m sinusoidal cell boundaries outlined). Across the 2,317 to 2,815 m middle rangeland band, spring greenness trends upward at +0.0072 NDVI/decade (+0.0069 Theil-Sen; 20.41% of band area upward at BH-FDR q = 0.05 vs. 0.15% downward), whereas summer (June to September) slope is +0.0050 NDVI/decade with a 95% interval including zero (-0.0020 to +0.0120). Because 250 m NDVI cannot distinguish palatable herbs (Astragalus armatus, Thymus satureioides) from unpalatable spiny xerophytes (Bupleurum spinosum, Erinacea anthyllis, Thymelaea virgata), a botanical palatability transect is required on the ground."
+      }
     },
     {
       "id": "chip-drought-comparison",
@@ -110,8 +104,7 @@
         "windowApril2022NdviMedian": 0.1572,
         "windowApril2023NdviMedian": 0.1523,
         "validObservationShare": 0.971
-      },
-      "aiInspectionNote": "Side-by-side 10 m Sentinel-2 leave-one-year-out NDVI departure comparison across the lower valley and slopes (blue line marks the 0.05 degree / 5 km CHIRPS v3.0 cell boundary at -6.45 E). Left half: April 2022 after an above-normal wet season of 650.36 mm (+88.20 mm vs 1991 to 2020 mean; catchment NDVI 0.1439, LOYO departure +0.0007). Right half: April 2023 after a below-normal wet season of 349.33 mm (-212.83 mm; catchment NDVI 0.1354, LOYO departure -0.0100). Despite wet-season rainfall dropping by 301.03 mm (46%), April catchment greenness shifted by only 0.0085 NDVI (within 0.01 NDVI), consistent with snowmelt and irrigation buffering and restrend_long_record's low rainfall R-squared (0.04)."
+      }
     },
     {
       "id": "chip-outlet-hydrology",
@@ -139,8 +132,7 @@
         "ndviSlopePerDecade": 0.00906,
         "summerNdviSlope": 0.00899,
         "validObservationShare": 1.0
-      },
-      "aiInspectionNote": "Copernicus DEM GLO-30 analytical hillshade and hypsometric relief blended with Sentinel-2 optical imagery at the western gorge where the Assif n'Ait Bouguemez exits the valley (1,464.6 m on the analysis DEM; 1,465 m on Mapterhorn Terrarium z12). The cyan contour traces the frozen hydrological boundary (geo_ait_bouguemez_catchment revision 1, 417.04 km2 geodesic, 4,173,603 analysis cells of 10 m) snapped 94 m from OpenStreetMap river way 326552769 to the D8 flow-accumulation pour point, anchoring the 16-step geographic reveal sequence from the outlet up to the eastern headwaters."
+      }
     }
   ]
 }
