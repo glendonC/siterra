@@ -17,10 +17,11 @@ const RELIEF_NOTICE: { id: MessageId; href?: string } = {
 };
 const IMAGERY_NOTICE: { id: MessageId; href?: string } = { id: "notice.imagery" };
 
-/** Licences of the map software shipped with the app, copied unchanged from the pinned packages. */
+/** Licences of the map and instrument software shipped with the app, copied unchanged from the pinned packages. */
 const SOFTWARE_LICENCES: { id: MessageId; href: string }[] = [
   { id: "notice.maplibre", href: "/licenses/LICENSE-maplibre-gl.txt" },
   { id: "notice.maplibreContour", href: "/licenses/LICENSE-maplibre-contour.txt" },
+  { id: "notice.three", href: "/licenses/LICENSE-three.txt" },
 ];
 
 const FONT_LICENCES: { id: MessageId; href: string }[] = [

@@ -269,6 +269,7 @@ export const en = {
     text: "maplibre-contour, BSD 3-Clause License, with the licences of the code it includes",
     kind: "link",
   },
+  "notice.three": { text: "three.js, MIT License", kind: "link" },
   "notices.keys": { text: "Keyboard", kind: "heading" },
   "notices.singleKeys": { text: "Single-Key Shortcuts", kind: "heading" },
   "notices.singleKeysDetail": {
@@ -426,6 +427,11 @@ export const LINT_ALLOWLIST: Partial<Record<MessageId, { rules: string[]; reason
     rules: ["VT-08", "VT-09", "VT-48"],
     reason:
       "maplibre-contour is the package's own lower-case name; the link names it, its licence and the bundled licences in full.",
+  },
+  "notice.three": {
+    rules: ["VT-08", "VT-09"],
+    reason:
+      "three.js is the library's own lower-case name, and MIT is part of the licence's name, the MIT License; the link names both in full.",
   },
   "notice.fontMono": {
     rules: ["VT-08", "VT-48"],
