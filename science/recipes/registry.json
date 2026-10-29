@@ -1,7 +1,7 @@
 {
-  "registryVersion": "1.4.0",
+  "registryVersion": "1.5.0",
   "registered": "2026-10-27",
-  "note": "Recipe registry. What was fixed before any data: only the catalog rows in docs/reference/analysis-recipes.md (question, method in one line, output kind) for coverage_summary, monthly_departure and aligned_antecedent, and the full season_summary entry (registered 2026-10-27 before any event comparison). The detailed formulas and parameters of coverage_summary, monthly_departure, aligned_antecedent and terrain_strata were written together with their first run on 2026-10-27, so they are not pre-registered. From now on, changing a formula, parameter or window after results are read is a new version labeled post hoc. Registry 1.2.0 (2026-10-28) adds restrend_long_record and snow_cover_by_band, each fully registered before its data was summarized; their place-specific windows and band sets are in science/places/. The inspector renders method cards from an entry and the bundle manifest that holds its result. References are IDs in research/science/source-register.md. Registry 1.3.0 (2026-10-28) adds pixel_trend_long_record and season_trend_long_record, registered before any per-pixel slope, land-cover summary or June to September greenness value was computed (the stratum results of restrend_long_record had been read). Registry 1.4.0 (2026-10-29) adds drainage_network, registered before this pipeline built any network; its smoothing and height rules were carried over from the 29 October specimen build, which had run them first.",
+  "note": "Recipe registry. What was fixed before any data: only the catalog rows in docs/reference/analysis-recipes.md (question, method in one line, output kind) for coverage_summary, monthly_departure and aligned_antecedent, and the full season_summary entry (registered 2026-10-27 before any event comparison). The detailed formulas and parameters of coverage_summary, monthly_departure, aligned_antecedent and terrain_strata were written together with their first run on 2026-10-27, so they are not pre-registered. From now on, changing a formula, parameter or window after results are read is a new version labeled post hoc. Registry 1.2.0 (2026-10-28) adds restrend_long_record and snow_cover_by_band, each fully registered before its data was summarized; their place-specific windows and band sets are in science/places/. The inspector renders method cards from an entry and the bundle manifest that holds its result. References are IDs in research/science/source-register.md. Registry 1.3.0 (2026-10-28) adds pixel_trend_long_record and season_trend_long_record, registered before any per-pixel slope, land-cover summary or June to September greenness value was computed (the stratum results of restrend_long_record had been read). Registry 1.4.0 (2026-10-29) adds drainage_network, registered before this pipeline built any network; its smoothing and height rules were carried over from the 29 October specimen build, which had run them first. Registry 1.5.0 (2026-10-29) adds terrain_transects, registered before this pipeline sampled any line; the Tabant meridian is specimen B's section and the rest was written by the science lane.",
   "recipes": [
     {
       "recipeId": "coverage_summary",
@@ -1492,6 +1492,150 @@
       ],
       "priority": "P2",
       "formulaPlain": "Each cell of the 1 arc-second (about 30 m) Copernicus elevation model is given one downhill neighbour, after hollows are filled. The cells that 1 km2 or more of the catchment drains through are joined into segments from each head or junction to the next, numbered by how the channels join (Strahler order), and drawn as lines at the height of the surface."
+    },
+    {
+      "recipeId": "terrain_transects",
+      "version": "1.0.0",
+      "title": "Profiles along lines across and along the valley",
+      "question": "What does the ground look like along a line across or along the valley: its height every 30 m, which elevation bands and land cover classes it crosses, and where?",
+      "operation": "transect_profile",
+      "implementation": {
+        "language": "python",
+        "package": "siterra-science",
+        "version": "0.1.0"
+      },
+      "inputs": [
+        "copernicus_dem_glo30_2021",
+        "terrain_strata",
+        "worldcover_2021_v200",
+        "frozen_catchment_geometry",
+        "drainage_network",
+        "place_configuration"
+      ],
+      "registration": "Full entry registered 2026-10-29, before this pipeline sampled any line. The meridian through Tabant is the section of the 29 October specimen B, whose ends the lead's brief gives (31.709028 N and 31.600972 N); the pipeline derives the ends from the rule below and checks them to 6 decimals. The valley axis (the longest flow path) and the valley floor rule were written by the science lane for this entry. The lane had read the specimen's section data (band crossings at 748 m, 9,108 m and 10,821 m from the north end, and the land cover shares), and had seen that the specimen's floor extent took every run of tree cover, cropland and built-up and so covered about 9.4 km of the 12.0 km line; this entry takes the published elevation range of the valley floor instead. No hypothesis is tested. Place-specific values are in science/places/<place>.json, revision 4.",
+      "formula": [
+        "Lines: tabant_meridian is the line of constant longitude through Tabant (31.65873 N, 6.42007 W), clipped to the frozen polygon: the part of it that contains Tabant, from its northernmost to its southernmost point; distance runs from north to south. valley_axis is the longest flow path of the drainage network bundle: from the outlet segment, at each confluence the upstream segment whose farthest head is farther along the channels (the sum of the stored segment lengths), ties by the larger upstream area and then the lower segment number, up to the head; the line is the stored vertices of those segments joined from the outlet upwards; distance runs from the outlet",
+        "Samples: at distance 0, 30, 60 m and so on along the line (geodesic, WGS84) and at the last point of the line, so the last interval is 30 m or shorter. A meridian sample keeps the longitude of the line; an axis sample lies on the straight piece between the two stored vertices around it, linearly in longitude and latitude",
+        "Elevation: bilinear height at the sample from the 30 m EPSG:32629 grid of the terrain strata recipe (Copernicus DEM GLO-30 bilinear to 30 m, aligned with the 10 m analysis grid, with 1 extra cell on every side), to 0.1 m, metres above the EGM2008 geoid",
+        "Band: 1 where the elevation is below 2316.8 m, 2 from 2316.8 m to below 2815.2 m, 3 from 2815.2 m up (the boundaries of the strata bundle)",
+        "Land cover: the ESA WorldCover 2021 v200 class of the 10 m analysis cell that contains the sample (EPSG:32629), 0 where the cell lies outside the analysis area. Inside: the sample lies inside the frozen polygon or on its boundary",
+        "Band crossings: where the profile, taken as straight between consecutive samples, crosses a band boundary: the boundary, the distance (0.1 m), whether the height is rising or falling along the line, and the position. Kilometres of line in each band come from the same piecewise linear profile",
+        "Land cover runs: consecutive samples with one class make a run that starts and ends halfway to the neighbouring samples (at the line's ends for the first and last); every class's share of the line length is stored",
+        "Valley floor: the contiguous samples around the lowest sample of the line whose elevation is at most 2,200 m, the upper limit of the published valley floor (1800 to 2200 m, SCI-19); stored with from and to distances (halfway to the neighbouring samples, or the line's end), length and elevation range",
+        "Acceptance checks, all stored with the bundle: the ends of the meridian equal the brief's 31.709028 N and 31.600972 N to 6 decimals; every sample lies inside the frozen polygon; sample distances rise by 30 m except the last interval; every elevation is a number; the elevation of 40 evenly spaced samples of each line recomputed from the native 1 arc-second DEM tile (bilinear in longitude and latitude) differs from the stored value by at most 4.0 m; the band of every sample agrees with the strata raster, with the share that differs stored; band crossings and kilometres in band recomputed from the stored samples; two runs give identical files apart from the computed time"
+      ],
+      "parameters": [
+        {
+          "name": "step_m",
+          "role": "method",
+          "allowed": [
+            30.0
+          ],
+          "default": 30.0
+        },
+        {
+          "name": "recompute_samples",
+          "role": "method",
+          "allowed": [
+            40
+          ],
+          "default": 40
+        },
+        {
+          "name": "recompute_tolerance_m",
+          "role": "method",
+          "allowed": [
+            4.0
+          ],
+          "default": 4.0
+        },
+        {
+          "name": "height_surface",
+          "role": "method",
+          "allowed": [
+            "terrain_strata 30 m EPSG:32629 bilinear"
+          ],
+          "default": "terrain_strata 30 m EPSG:32629 bilinear"
+        }
+      ],
+      "sensitivitySet": [],
+      "applicability": [
+        {
+          "check": "frozen geometry, strata and land cover named in the place configuration, checksums matching",
+          "minimum": "1 geometry"
+        },
+        {
+          "check": "the drainage network bundle named in the place configuration, for the valley axis",
+          "minimum": "1 bundle"
+        }
+      ],
+      "outputs": [
+        {
+          "metric": "elevation_m",
+          "unit": "m",
+          "claimKind": "observation",
+          "uncertaintyKind": "not_quantified"
+        },
+        {
+          "metric": "band_crossing_distance_m",
+          "unit": "m",
+          "claimKind": "observation",
+          "uncertaintyKind": "not_quantified"
+        },
+        {
+          "metric": "land_cover_share",
+          "unit": "1",
+          "claimKind": "observation",
+          "uncertaintyKind": "not_quantified"
+        }
+      ],
+      "assumptions": [
+        "The 30 m surface model stands for the ground along the line at the scale of the samples",
+        "The published elevation range of the valley floor (1800 to 2200 m) applies to the line's samples"
+      ],
+      "failureModes": [
+        "Narrow gorges and steep walls are poorly resolved at 30 m, so the profile can be smoother than the ground",
+        "A single 2021 land cover map can differ from the ground in other years, and tree cover on the valley floor may include orchards"
+      ],
+      "standardLimitations": [
+        "A profile is read from a 30 m surface model: trees, buildings, steep walls and radar artefacts distort it, and narrow gorges such as the lower gorge near the outlet are not resolved. Heights are metres above the EGM2008 geoid with the DEM's stated vertical accuracy (Copernicus DEM Product Handbook 5.0).",
+        "Samples are 30 m apart, so a band crossing or a land cover boundary is placed to within about 15 m, and a feature narrower than 30 m can fall between samples.",
+        "Land cover is ESA WorldCover 2021 at 10 m, a single 2021 map applied to the line: tree cover on the valley floor may include orchards, and no class is a pasture, agdal or management unit.",
+        "An elevation band is a stratum that organises sampling, cut from the elevation distribution of the catchment; it is not a vegetation type, a grazing zone or a management boundary.",
+        "The valley floor segment follows the published elevation range of the valley floor (1800 to 2200 m, SCI-19); it is not a measured flat bottom.",
+        "The valley axis is the longest flow path of a D8 network, which follows the main river, not the centre line of the valley; its profile inherits the limits of the drainage network, including places where the surface rises along the line.",
+        "The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary."
+      ],
+      "allowedComponents": [
+        "cross-section",
+        "long profile",
+        "method card"
+      ],
+      "forbiddenPhrases": [
+        "significant",
+        "significantly",
+        "degradation detected",
+        "grazing impact",
+        "overgrazing",
+        "caused by",
+        "proves",
+        "recovery",
+        "forecast",
+        "pasture improvement",
+        "pasture decline",
+        "encroachment",
+        "flood risk",
+        "water supply"
+      ],
+      "references": [
+        "SCI-12",
+        "SCI-41",
+        "SCI-13",
+        "SCI-19",
+        "SCI-168"
+      ],
+      "priority": "P2",
+      "formulaPlain": "A line is laid across the valley through Tabant and another along the main river from the outlet to the head of its longest branch. The height of the ground, its elevation band and its WorldCover land cover class are read every 30 m along each line, with the points where the line crosses a band limit and the stretch of the valley floor."
     }
   ]
 }
