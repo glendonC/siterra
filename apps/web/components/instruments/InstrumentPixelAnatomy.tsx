@@ -3,7 +3,8 @@
 // The pixel anatomy (approved specimen C): one MODIS 250 m pixel opened into its 10 m Sentinel-2 cells, the measured
 // class spectra, its own season record, a labelled linear mix model with movable class boundaries (drag, or focus a
 // boundary and use the arrow keys; Home returns to the measured shares) and a proposed, dashed field check. The
-// panels are drawn by lib/instruments/pixel/scene.ts on a 1440 x 900 stage scaled to fit.
+// panels are drawn by lib/instruments/pixel/scene.ts on a 1440 x 900 stage scaled to fit. The caption is the pixel
+// anatomy spec's, as the case records carry it.
 
 import { useEffect, useId, useRef, useState } from "react";
 import { en } from "../../lib/copy/en";
@@ -17,6 +18,7 @@ import {
   trendCellsSchema,
 } from "../../lib/instruments/valley/fixtures";
 import styles from "./InstrumentPixelAnatomy.module.css";
+import { useInstrument } from "./InstrumentRecords";
 
 export function InstrumentPixelAnatomy({
   data: dataUrl = "/instruments/pixel/pixel.json",
@@ -36,7 +38,10 @@ export function InstrumentPixelAnatomy({
     statements: Statements;
     locator: PixelLocator;
   } | null>(null);
-  const [failed, setFailed] = useState(false);
+  const [loadFailed, setFailed] = useState(false);
+  const record = useInstrument("pixel_anatomy");
+  const failed = loadFailed || record.status === "failed";
+  const caption = record.status === "ready" ? record.view.spec.caption : null;
   const descriptionId = useId();
 
   useEffect(() => {
@@ -62,8 +67,15 @@ export function InstrumentPixelAnatomy({
   useEffect(() => {
     const stage = stageRef.current;
     const root = stage?.parentElement;
-    if (!loaded || !stage || !root) return;
-    const scene = mountPixel(stage, loaded.pixel, loaded.statements, loaded.locator, styles);
+    if (!loaded || !caption || !stage || !root) return;
+    const scene = mountPixel(
+      stage,
+      loaded.pixel,
+      caption,
+      loaded.statements,
+      loaded.locator,
+      styles,
+    );
     if (state === "shifted") {
       const { from, to, points } = loaded.pixel.model.shift;
       const now = scene.shares();
@@ -89,7 +101,7 @@ export function InstrumentPixelAnatomy({
       observer.disconnect();
       scene.dispose();
     };
-  }, [loaded, state]);
+  }, [loaded, caption, state]);
 
   return (
     <div className={styles.root} data-theme="obsidian" data-instrument="pixel">

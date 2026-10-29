@@ -4,6 +4,7 @@
 // theme; this module computes only the layout and the linear mix. 02 Pixel Cells and 05 Linear Mix Model are the
 // heart; 01 Locate and 04 Season Record are compact.
 
+import type { InstrumentCaption } from "@siterra/contracts";
 import { en, format, type MessageId } from "../../copy/en";
 import { cssColour, obsidian, pixelColours as C } from "../../theme/obsidian";
 import { BAND_LIMITS_M } from "../valley/fixtures";
@@ -83,6 +84,8 @@ const classColour = (code: number) => C.classes[code] ?? C.otherClass;
 export function mountPixel(
   stage: HTMLElement,
   d: PixelData,
+  /** The pixel anatomy spec's caption, as the case records carry it. */
+  caption: InstrumentCaption,
   statements: Statements,
   locator: PixelLocator,
   cls: PixelClasses,
@@ -172,19 +175,12 @@ export function mountPixel(
     const p = div("captionStatement", cap);
     const ink = document.createElement("span");
     ink.className = c("ink");
-    ink.textContent = format("instrument.pixel.statement", {
-      slope: signed(d.pixel.trend_mar_jun.slope_per_decade, 4),
-      from: SEASONS[0],
-      to: SEASONS[1],
-    });
+    ink.textContent = caption.ink;
     p.appendChild(ink);
     p.appendChild(chip(1, en["instrument.pixel.source.trend"].text));
-    const treeCrop = d.classes
-      .filter((k) => k.code === 10 || k.code === 40)
-      .reduce((s, k) => s + k.cells, 0);
     const grey = document.createElement("span");
     grey.className = c("grey");
-    grey.textContent = ` ${format("instrument.pixel.statement.grey", { share: pct(treeCrop / d.pixel.analysis_cells) })}`;
+    grey.textContent = ` ${caption.grey}`;
     p.appendChild(grey);
     p.appendChild(chip(2, en["instrument.pixel.source.spectra"].text));
   }

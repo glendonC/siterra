@@ -403,11 +403,6 @@ export const en = {
 
   // Instruments: the layer stack (approved specimen A). Figures, years and limits come from the record's fixtures
   // (lib/instruments/valley/fixtures.ts); credits are numbered by the sheet they serve
-  "instrument.layers.unit": { text: "NDVI per decade, March to June, {from} to {to}", kind: "ui" },
-  "instrument.layers.rises": {
-    text: "Rises on {share} of the area after a false discovery rate check.",
-    kind: "ui",
-  },
   "instrument.layers.description": {
     text: "A relief model of the valley catchment with its drainage lines. Above it are five sheets: the March to June vegetation trend, rainfall, snow cover, land cover on the valley floor, and the three elevation bands.",
     kind: "ui",
@@ -465,14 +460,6 @@ export const en = {
   // Instruments: the cutaway (approved specimen B). Figures, years and limits come from the fixtures; the place's
   // name and the two published statements with their sources come from their own fixtures, not from here
   // (lib/instruments/valley/cutaway-data.ts)
-  "instrument.cutaway.unit": {
-    text: "NDVI per decade below {limit} m, March to June, {from} to {to}",
-    kind: "ui",
-  },
-  "instrument.cutaway.intervals": {
-    text: "Band averages over the whole catchment; every 95% interval lies above zero.",
-    kind: "ui",
-  },
   "instrument.cutaway.description": {
     text: "The valley catchment cut north to south through {place}. Its section face shows the true elevation profile and the two band limits. Beside each band are its March to June vegetation trend and its monthly snow cover.",
     kind: "ui",
@@ -509,14 +496,6 @@ export const en = {
   // statements and their sources come from the statements fixture
   "instrument.pixel.question": {
     text: "Why can a pixel get greener while its pasture does not?",
-    kind: "ui",
-  },
-  "instrument.pixel.statement": {
-    text: "This 250 m pixel at the valley floor edge got greener by {slope} NDVI per decade from {from} to {to}.",
-    kind: "ui",
-  },
-  "instrument.pixel.statement.grey": {
-    text: "Tree cover and cropland fill {share} of it, and in a mix of its own spectra, a larger share of them raises NDVI by itself.",
     kind: "ui",
   },
   "instrument.pixel.source.trend": {

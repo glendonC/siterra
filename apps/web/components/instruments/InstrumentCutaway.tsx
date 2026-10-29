@@ -4,19 +4,16 @@
 // Against the face at each elevation band's height: the band's name, its March to June trend and its monthly snow
 // cover, on one hairline each; the two published statements next to what they describe; the ruler, the limits and
 // the place on the model. The scene is three.js (lib/instruments/valley/scene/cutaway.ts); the words are HTML,
-// placed after every render so they follow the model when it is turned.
+// placed after every render so they follow the model when it is turned. The caption is the cross section spec's,
+// as the case records carry it.
 
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
 import { en, format, type MessageId } from "../../lib/copy/en";
+import { splitFigure } from "../../lib/instruments/caption";
 import { metres, percent, signed } from "../../lib/instruments/format";
 import { loadCutawayData, type CutawayData } from "../../lib/instruments/valley/cutaway-data";
 import type { Vec3 } from "../../lib/instruments/valley/frame";
-import {
-  BAND_LIMITS_M,
-  SEASON_TREND_YEARS,
-  SNOW_YEARS,
-  VALLEY_FIXTURES,
-} from "../../lib/instruments/valley/fixtures";
+import { BAND_LIMITS_M, SNOW_YEARS, VALLEY_FIXTURES } from "../../lib/instruments/valley/fixtures";
 import { snowColour } from "../../lib/instruments/valley/palette";
 import {
   CUTAWAY_EXAG,
@@ -26,6 +23,7 @@ import {
 } from "../../lib/instruments/valley/scene/cutaway";
 import { cssColour, obsidian, sheetColours } from "../../lib/theme/obsidian";
 import styles from "./InstrumentCutaway.module.css";
+import { useInstrument } from "./InstrumentRecords";
 
 type BandId = "elevation_high" | "elevation_mid" | "elevation_low";
 /** Top to bottom, as they stand on the face. */
@@ -111,7 +109,11 @@ export function InstrumentCutaway({
   const sceneRef = useRef<CutawayScene | null>(null);
   const [data, setData] = useState<CutawayData | null>(null);
   const [placeName, setPlaceName] = useState<string | null>(null);
-  const [failed, setFailed] = useState(false);
+  const [loadFailed, setFailed] = useState(false);
+  const record = useInstrument("cross_section");
+  const failed = loadFailed || record.status === "failed";
+  const caption = record.status === "ready" ? record.view.spec.caption : null;
+  const lead = caption ? splitFigure(caption.ink) : null;
   const keysId = useId();
 
   useEffect(() => {
@@ -126,7 +128,8 @@ export function InstrumentCutaway({
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!data || !canvas) return;
+    // the words are placed with the scene, so it mounts once the caption is in the record too
+    if (!data || !canvas || !caption) return;
     const ac = new AbortController();
     let scene: CutawayScene | null = null;
 
@@ -210,7 +213,7 @@ export function InstrumentCutaway({
       scene?.dispose();
       sceneRef.current = null;
     };
-  }, [data, base]);
+  }, [data, base, caption]);
 
   // the place's label appears after the scene has found it on the line; lay the words out again then
   useEffect(() => {
@@ -271,7 +274,7 @@ export function InstrumentCutaway({
           {en["instrument.cutaway.failed"].text}
         </p>
       )}
-      {data && !failed && (
+      {data && caption && lead && !failed && (
         <>
           <svg className={styles.leaders} aria-hidden="true">
             {BANDS.map((id, i) => (
@@ -298,18 +301,10 @@ export function InstrumentCutaway({
             <line ref={floorStemRef} stroke={obsidian.leaderOnWall} strokeWidth={1} />
           </svg>
           <p className={styles.brief}>
-            <span className={styles.fig}>
-              {signed(data.figures.season_trend.elevation_low.per_decade, 4)}
-            </span>
-            <span className={styles.unit}>
-              {format("instrument.cutaway.unit", {
-                limit: metres(BAND_LIMITS_M[0]),
-                from: SEASON_TREND_YEARS[0],
-                to: SEASON_TREND_YEARS[1],
-              })}
-            </span>
+            {lead.figure !== null && <span className={styles.fig}>{lead.figure}</span>}
+            <span className={styles.unit}>{lead.rest}</span>
             <span className={styles.qual}>
-              {en["instrument.cutaway.intervals"].text}
+              {caption.grey}
               <span className={styles.chip}>{1}</span>
             </span>
           </p>

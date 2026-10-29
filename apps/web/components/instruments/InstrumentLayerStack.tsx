@@ -3,10 +3,11 @@
 // The layer stack (approved specimen A): five sheets of the record stacked straight up over the 3D catchment,
 // numbered labels on one hairline leader each, one large figure at the top left, and the sources. The scene is
 // three.js (lib/instruments/valley/scene/layer-stack.ts); the words around it are HTML, placed after every render
-// so they follow the model when it is turned.
+// so they follow the model when it is turned. The caption is the layer stack spec's, as the case records carry it.
 
 import { useEffect, useId, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { en, format, type MessageId } from "../../lib/copy/en";
+import { splitFigure } from "../../lib/instruments/caption";
 import { metres, percent, signed } from "../../lib/instruments/format";
 import {
   BAND_LIMITS_M,
@@ -28,6 +29,7 @@ import {
 } from "../../lib/instruments/valley/scene/layer-stack";
 import { obsidian, sheetColours } from "../../lib/theme/obsidian";
 import styles from "./InstrumentLayerStack.module.css";
+import { useInstrument } from "./InstrumentRecords";
 
 /** Left edge of the labels at the design width, as the specimen measured it. */
 const LABEL_X = 1100;
@@ -156,7 +158,11 @@ export function InstrumentLayerStack({ base = VALLEY_FIXTURES }: { base?: string
   const scaleRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<LayerStackScene | null>(null);
   const [data, setData] = useState<LayerStackData | null>(null);
-  const [failed, setFailed] = useState(false);
+  const [loadFailed, setFailed] = useState(false);
+  const record = useInstrument("layer_stack");
+  const failed = loadFailed || record.status === "failed";
+  const caption = record.status === "ready" ? record.view.spec.caption : null;
+  const lead = caption ? splitFigure(caption.ink) : null;
   const keysId = useId();
 
   useEffect(() => {
@@ -171,7 +177,8 @@ export function InstrumentLayerStack({ base = VALLEY_FIXTURES }: { base?: string
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!data || !canvas) return;
+    // the words are placed with the scene, so it mounts once the caption is in the record too
+    if (!data || !canvas || !caption) return;
     const ac = new AbortController();
     let scene: LayerStackScene | null = null;
 
@@ -236,7 +243,7 @@ export function InstrumentLayerStack({ base = VALLEY_FIXTURES }: { base?: string
       scene?.dispose();
       sceneRef.current = null;
     };
-  }, [data, base]);
+  }, [data, base, caption]);
 
   const onKeyDown = (e: KeyboardEvent<HTMLCanvasElement>) => {
     const scene = sceneRef.current;
@@ -271,7 +278,7 @@ export function InstrumentLayerStack({ base = VALLEY_FIXTURES }: { base?: string
           {en["instrument.layers.failed"].text}
         </p>
       )}
-      {data && !failed && (
+      {data && caption && lead && !failed && (
         <>
           <svg className={styles.leaders} aria-hidden="true">
             {SHEETS.map((id, i) => {
@@ -297,19 +304,10 @@ export function InstrumentLayerStack({ base = VALLEY_FIXTURES }: { base?: string
             })}
           </svg>
           <p className={styles.brief}>
-            <span className={styles.fig}>
-              {signed(data.figures.season_trend.catchment.per_decade, 4)}
-            </span>
-            <span className={styles.unit}>
-              {format("instrument.layers.unit", {
-                from: data.trend.period[0],
-                to: data.trend.period[1],
-              })}
-            </span>
+            {lead.figure !== null && <span className={styles.fig}>{lead.figure}</span>}
+            <span className={styles.unit}>{lead.rest}</span>
             <span className={styles.qual}>
-              {format("instrument.layers.rises", {
-                share: percent(data.figures.pixel_trend.increasing_fdr_share),
-              })}
+              {caption.grey}
               <span className={styles.chip}>{1}</span>
             </span>
           </p>

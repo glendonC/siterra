@@ -75,7 +75,9 @@ for (const id of PAGES) {
 test("Enter carries the typed text to the valley and sends nothing", async ({ page }) => {
   const sent: string[] = [];
   page.on("request", (r: Request) => {
-    if (r.method() !== "GET") sent.push(`${r.method()} ${r.url()}`);
+    // opening the demo copy of the seed case is the one write a page makes before anything is asked
+    if (r.method() !== "GET" && new URL(r.url()).pathname !== "/api/demo-sessions")
+      sent.push(`${r.method()} ${r.url()}`);
   });
   await page.goto("/instruments/layers");
   const input = page.locator("[data-command] input");

@@ -3,12 +3,15 @@
 // The briefing shell around one instrument: the instrument's own caption stays at the top left where its specimen
 // puts it; the shell adds a quiet switcher between Valley, Layers, Cutaway and Pixel at the top right (the corner
 // every specimen leaves empty) and the command line at the bottom centre, 480 x 44 at y 796 of the 1440 x 900
-// design. Enter carries the typed text to the valley's command line and opens the valley; nothing is sent.
+// design. Enter carries the typed text to the valley's command line and opens the valley; nothing is sent. The
+// instruments inside read their specs from the case records the shell opens (InstrumentRecords).
 
+import type { CaseSnapshot, InstrumentListing } from "@siterra/contracts";
 import Link from "next/link";
 import type { ReactNode, SubmitEvent } from "react";
 import { en, type MessageId } from "../../lib/copy/en";
 import { carryQuestion } from "../../lib/shell/handoff";
+import { InstrumentRecords } from "./InstrumentRecords";
 import styles from "./InstrumentShell.module.css";
 
 export type InstrumentId = "layers" | "cutaway" | "pixel";
@@ -28,9 +31,12 @@ const COMMAND = { width: 480, bottom: 60 } as const;
 
 export function InstrumentShell({
   current,
+  records,
   children,
 }: {
   current: InstrumentId;
+  /** Records to draw instead of the case the shell would open (the lane's preview). */
+  records?: { snapshot: CaseSnapshot; listing: InstrumentListing };
   children: ReactNode;
 }) {
   const onSubmit = (e: SubmitEvent<HTMLFormElement>) => {
@@ -43,7 +49,7 @@ export function InstrumentShell({
   };
   return (
     <div className={styles.shell} data-theme="obsidian" data-shell={current}>
-      {children}
+      <InstrumentRecords records={records}>{children}</InstrumentRecords>
       <nav className={styles.switcher} aria-label={en["instrument.shell.nav"].text}>
         {VIEWS.map((v) => (
           <Link

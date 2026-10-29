@@ -34,7 +34,13 @@ describe("regionPack", () => {
   });
 
   it("counts the bundles that passed the automated data checks", () => {
-    expect(p.checks).toBe("16 of 16 bundles passed automated data checks.");
+    // counted from the seed, which gains a bundle with each one the science lanes add
+    const all = snapshot.records.dataBundleRecords;
+    const passed = all.filter((b) => b.status === "validated").length;
+    expect(passed).toBeGreaterThan(0);
+    expect(p.checks).toBe(
+      `${String(passed)} of ${String(all.length)} bundles passed automated data checks.`,
+    );
   });
 
   it("states real data and no field verification, the truth of this pack", () => {
