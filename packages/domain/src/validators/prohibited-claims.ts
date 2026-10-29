@@ -1,4 +1,4 @@
-// Phrase scan for the claims prohibited in docs/explanation/scientific-basis.md#claims-prohibited-in-the-demo
+// Phrase scan for the claims prohibited in docs/explanation/scientific-basis.md#prohibited-claims
 // and the forecasting policy in docs/reference/analysis-recipes.md#forecasting-policy. A phrase scan
 // catches wording, not meaning; review remains the authority. Held here until packages/domain takes it.
 

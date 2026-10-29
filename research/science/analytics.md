@@ -240,7 +240,7 @@ Context, not management analogues: SCI-105 (valley livelihood change), SCI-107 a
 - **Muse Code** ([docs](https://dev.meta.ai/docs/muse-code)) is "a coding agent from Meta for the terminal and CI": interactive `muse`, headless `muse exec`, `muse serve` with a JSON-schema session protocol and a TypeScript SDK (`@muse-code/sdk`); default model `muse-spark-1.2`. [Permissions](https://dev.meta.ai/docs/muse-code/permissions): approval modes `on-request` (default), `untrusted`, `never`; OS sandbox (Seatbelt on macOS, bubblewrap on Linux) confining writes to the workspace and a temp directory; network `proxy-only` by default; it refuses shell commands if the sandbox cannot be confirmed. It is a developer tool, not an application runtime.
 - **SAM 3.1** (`sam-3.1`) via `POST /v1/responses`: noun-phrase, box or point prompts on images and video, returning boxes and masks as special-token text; one object type per request; image limits and pricing not stated on the page.
 
-### 5.4 If model-written code is ever allowed (post-hackathon) [D]
+### 5.4 If model-written code is ever allowed (future extension) [D]
 
 Only in an offline analyst mode, never in a live case command, and only when no catalog recipe answers the question: isolated container or VM with no network, read-only mounted inputs (bundle files by hash), CPU, memory and time limits, no secrets; code, lockfile, container image digest, input hashes and outputs saved as provenance; outputs enter the case as `provisional` evidence that a named scientific reviewer must accept; anything reused becomes a new versioned recipe implemented and tested by humans. Muse Code's sandbox is a reasonable development-time pattern but its `--yolo`, `--disable-sandbox` and `never` modes show that safety depends on configuration that Siterra would have to own.
 
@@ -292,7 +292,7 @@ Python version [D]: rasterio, rioxarray and scipy need 3.12 or later; ruptures n
 
 ### (b) Recipe catalog [D]
 
-**Decision: declarative catalog for the whole build; no model-written code in the product.** Sandboxed model-written code is justified only under section 5.4 conditions, after the hackathon.
+**Decision: declarative catalog for the whole build; no model-written code in the product.** Sandboxed model-written code is justified only under section 5.4 conditions in a future extension.
 
 Where it runs. docs/12 forbids a live Python service in P0. So: recipes are implemented in the offline `uv` pipeline and precomputed for every stratum and every allowed parameter value (the grids are small), stored as derived `DataBundle`s whose `methodId` is the recipe ID and whose manifest `method.parameters` holds the values. Staleness then propagates through existing provenance with no new record type. The live tool returns the precomputed result, labelled "precomputed analysis". Existing live tools (`summarize_observations`, `compare_series`) become recipes 2 and 3.
 
@@ -390,7 +390,7 @@ P0 additions total about 1.75 lane-days spread over L2, L3, L4 and L5, inside da
 2. Valley livelihood change (SCI-105) [V]. Apple growing and tourism are reported alongside smaller, more sedentary herds. Supports naming orchards and irrigated fields explicitly in the land-use hypothesis, and raising the priority of checking valley-floor masks during the P1 imagery review [D]. Whether orchards expanded during 2019 to 2025, and whether WorldCover 2021 captures them, are [H].
 3. Short-record seasonal tests (SCI-48) [V]. Seven years sits near the record length where the corrected seasonal Kendall test stops being reliable. Keep "no significance claims"; extend the prohibited list with "significant trend".
 4. TIMESAT licence (SCI-59) [V]. Excludes TIMESAT; phenology must use transparent in-house descriptors.
-5. Forecast evidence (SCI-63 to SCI-69) [V]. Nothing found supports forecasting with this record. Keep the "no forecasts" decision ([ADR-0039](../../docs/decisions/0039-forecast-nothing-until-a-backtest-shows-skill.md)); the P2 backtest can only confirm it or, unexpectedly, open a narrow, labelled outlook.
+5. Forecast evidence (SCI-63 to SCI-69) [V]. Nothing found supports forecasting with this record. Keep the "no forecasts" decision (ADR-0039); the P2 backtest can only confirm it or, unexpectedly, open a narrow, labelled outlook.
 6. SER reference models (SCI-87) [V]. Grazing can be part of the reference condition of cultural mountain pastures. Reinforces the existing framing that grazing is not a diagnosis.
 7. Neighbouring-valley comparison (SCI-102) [V]. Adjacent valleys differ through several co-varying factors; never present a neighbouring valley as a control.
 8. **Remote-sensing limits elsewhere in Morocco (SCI-107, SCI-108) [V].** Production could not be estimated with a global model in the Oriental steppe; High Atlas bare-land share changed by 10% with classification method. Supports multi-method sensitivity labels.
@@ -405,7 +405,7 @@ None of these loosens a limit. Two (items 1 and 5) describe the only routes by w
 - `docs/reference/data-sources-and-methods.md`: add the recipe catalog (P0 rows), the typing rule (observation vs model_estimate), the window-fixing rule and the rainfall-in-parallel rule; Python 3.12 or 3.13 for the pipeline.
 - `docs/reference/agent-orchestration.md`: add `list_recipes` (read) and `read_recipe_result` (read precomputed); state that Muse Code and any code execution remain outside the runtime.
 - `docs/reference/data-contracts.md`: claim rules for `model_estimate` (must reference a measurement from a registered recipe bundle; uncertainty required or declared impossible) and for analogy evidence (cannot set hypothesis status alone; no numeric transfer); P1 `AnalogueAssessment`.
-- `docs/project/delivery-plan.md`: add the P0, P1 and P2 rows from section 7(e).
+- `docs/architecture/10-quality-requirements.md`: add the P0, P1 and P2 rows from section 7(e).
 - `research/science/source-register.md`: append SCI-45 to SCI-124 from [new-sources.md](source-register.md).
 
 ---

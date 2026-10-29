@@ -1,6 +1,6 @@
 # Motion
 
-Tokens: [tokens.json](../../design/tokens/siterra.tokens.json) `motion`. References (VIS IDs) resolve in [design references](../explanation/design-references.md). The hero's timeline comes first; the catalog entries after it have no published demonstration. Scene behavior: [scenes and views](scenes.md#player-behavior).
+Tokens: [tokens.json](../../design/tokens/siterra.tokens.json) `motion`. References (VIS IDs) resolve in [design references](../../research/design/source-register.md). The hero's timeline comes first; the catalog entries after it have no published demonstration. Scene behavior: [scenes and views](scenes.md#player-behavior).
 
 ## The hero timeline (design language 1.3)
 

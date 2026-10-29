@@ -37,7 +37,7 @@ Command and outbox rows are inserted in one transaction; the dispatcher enqueues
 
 Same-origin secure HttpOnly session cookies; ownership checked on every request including the stream and static case assets. A public demo session gets an isolated copy of the seed case with quotas and expiry. No external-action endpoints exist.
 
-Event sequence numbers are per case, gapless and monotonic; `dedupeKey` makes re-delivery harmless; heartbeats are SSE comments, not events ([data contracts](../reference/data-contracts.md#events)). The routes and the stream are described once in OpenAPI 3.2 as `schemas/openapi.json` ([ADR-0031](../decisions/0031-describe-the-http-api-and-event-stream-with-openapi.md)): the stream route returns `text/event-stream`, each Server-Sent Event is modeled with `itemSchema`, and the JSON in its `data` references the Event definition in [`case.schema.json`](../../schemas/case.schema.json).
+Event sequence numbers are per case, gapless and monotonic; `dedupeKey` makes re-delivery harmless; heartbeats are SSE comments, not events ([data contracts](../reference/data-contracts.md#events)). The routes and the stream are described once in OpenAPI 3.2 as `schemas/openapi.json` (ADR-0031): the stream route returns `text/event-stream`, each Server-Sent Event is modeled with `itemSchema`, and the JSON in its `data` references the Event definition in [`case.schema.json`](../../schemas/case.schema.json).
 
 ## Scenario: commission
 
@@ -77,7 +77,7 @@ A planner failure leaves the prior state intact and preserves the input; a clari
 
 ## Scenario: drought challenge
 
-The user asks "Could drought explain this instead?" with Area, Period and Focus chips set ([scene 5](../reference/experience-storyboard.md#scene-5-competing-explanations-signature), [ADR-0008](../decisions/0008-make-the-drought-challenge-the-signature-interaction.md)).
+The user asks "Could drought explain this instead?" with Area, Period and Focus chips set ([scene 5](../reference/experience-storyboard.md#scene-5-competing-explanations-signature), ADR-0008).
 
 1. The command carries the visible context with revisions; changing the selection while it runs does not retarget it.
 2. The planner adds tasks. Deterministic tools load the rainfall bundle and align the series with `compare_series`: aligned departures on shared period IDs and the same area revision, counts of same-sign months, prespecified 0 to 3 month antecedent windows, no causal statistics.

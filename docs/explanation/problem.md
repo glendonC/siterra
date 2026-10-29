@@ -26,7 +26,7 @@ Siterra claims no saving in time or cost. No source measures how long a rangelan
 
 ## Facts and their sources
 
-The opening of the demo and any public material quote these facts exactly as worded here.
+Public material and the opening sequence quote these facts with their exact source scope:
 
 | # | Fact, with its scope | Year | Source | Label |
 |---|---|---|---|---|

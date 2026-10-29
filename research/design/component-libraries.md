@@ -2,7 +2,7 @@
 
 Inspected 2026-10-26. Public-safe and link-only: this file embeds no third-party images and quotes at most one short phrase per source. Captures used during inspection exist only in the gitignored `design/private/references/` folder (prefix `lib-`, with a machine-readable twin `lib-manifest.json`); nothing below depends on them.
 
-Status. Research register, not a decision record. Recommendations are proposals for the build lead. None of them changes the [decision record](../../docs/decisions/README.md): ADR-0016 (owned shadcn components, Motion 14.1.0), ADR-0018 (self-hosted map bundle), [ADR-0040](../../docs/decisions/0040-present-the-investigation-as-floating-islands-over-a-full-bleed-map.md) (floating islands) and the [motion specification](../../docs/reference/motion.md) stand as written. Evidence labels follow the [planning index](../../docs/README.md#evidence-labels): **[V]** checked against the cited source on the stated date, **[H]** belief to test, **[U]** not established.
+Status. Research register, not a decision record. Recommendations are proposals for the build lead. None of them changes the decision record: ADR-0016 (owned shadcn components, Motion 14.1.0), ADR-0018 (self-hosted map bundle), ADR-0040 (floating islands) and the [motion specification](../../docs/reference/motion.md) stand as written. Evidence labels follow the [planning index](../../docs/README.md#evidence-labels): **[V]** checked against the cited source on the stated date, **[H]** belief to test, **[U]** not established.
 
 Scope. Niche, high-craft React component libraries popular with design engineers, the primitives they build on, and inspiration galleries. Another lane covers AffectUI, Magic Patterns, Vercel AI Elements, assistant-ui, prompt-kit, Motion Primitives, Magic UI, shadcn/ui blocks, Origin UI, Kibo UI, Animate UI, Aceternity UI, 21st.dev and product references (Perplexity, ChatGPT, Claude, Linear, Raycast, Apple materials); see the [UI patterns research](ui-patterns.md). This file complements it and does not repeat it.
 
@@ -121,7 +121,7 @@ Specific gaps that matter for Siterra: hover previews from Radix `HoverCard` and
 - Commercial tiers. Untitled UI PRO (no raw source in any product or open-source repository; the page states a USD 10,000 per breach liability), shadcn/studio Pro (no public repositories), Caliper Pro (no public repositories, no AI training), Hairline templates (no resale, no public template repositories), BuouUI (Standard license requires a free, non-monetized end product; source redistribution prohibited), Hover.dev (no standalone redistribution; footer requires written consent to redistribute). Keep all of these out of the repository.
 - MIT still has a condition. The copyright and permission notice must travel with copied code. Sampled Hairline and Kokonut files carry headers; sampled SmoothUI, Caliper and Fluid files do not, so add one when vendoring. Apache-2.0 (React Aria) adds NOTICE handling if code is copied.
 - Namespace confusion. Fancy Components self-declares `@fancy` at `fancycomponents.dev`; the official index lists `@fancy-ui`, a different project. Install by full URL, not by namespace guess.
-- Project license. Siterra has not chosen a license ([decision record](../../docs/decisions/README.md)); third-party notices stay with their files regardless ([contributing guide](../../CONTRIBUTING.md)).
+- Project license. Siterra has not chosen a license (decision record); third-party notices stay with their files regardless ([contributing guide](../../CONTRIBUTING.md)).
 
 ### Maintenance
 

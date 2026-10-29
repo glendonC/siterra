@@ -20,7 +20,7 @@ Requirements that shape the architecture:
 | The case persists over time | Reload restores the case without re-executing completed work | RL-04 |
 | Every action stops at "prepared" until an appropriate human decides | No outbound tools or endpoints; role-specific review records bound to exact revisions | SA-01 to SA-09 |
 
-Acceptance IDs are defined in [acceptance criteria](../project/acceptance-criteria.md). The user's attention is limited to four things: confirming the analysis area, answering targeted questions (or marking them unknown), challenging interpretations, and recording role-specific review decisions.
+Acceptance IDs are defined in acceptance criteria. The user's attention is limited to four things: confirming the analysis area, answering targeted questions (or marking them unknown), challenging interpretations, and recording role-specific review decisions.
 
 ## Quality goals
 
@@ -44,5 +44,5 @@ Roles are design assumptions, not interview findings [U]; see [users and flows](
 | Community participant or appropriately mandated representative | Understandable proposal, livelihood effects, language access and the ability to disagree |
 | Field practitioner | Specific observations to collect, sampling rationale, safe access and permission requirements |
 | Observer or demo viewer | What the system actually did and what remains hypothetical; mode labels on every screen |
-| Implementation lanes: platform, agent runtime, science and map data, workspace UI, quality | Fixed contracts, owned directories and integration rules ([delivery plan](../project/delivery-plan.md#lanes-and-ownership)) |
+| Implementation lanes: platform, agent runtime, science and map data, workspace UI, quality | Fixed contracts, owned directories and integration rules (delivery plan) |
 | Maintainer | Chooses the project license and approves publication or any change of repository visibility |

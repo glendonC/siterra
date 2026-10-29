@@ -1,6 +1,6 @@
 # Voice and tone
 
-Status: adopted 2026-10-27 ([ADR-0043](../decisions/0043-write-in-one-plain-voice-and-lint-product-copy.md)). Labels: **[V]** verified from a cited source, **[D]** decision proposed here, **[H]** hypothesis to test, **[J]** style judgment with no external evidence (reason given), **[P]** rule already set by Siterra's own documents. Source IDs (`WRT-NN`) resolve in the [writing research](../../research/design/writing.md). Strings for every screen are in the [microcopy](microcopy.md). Amendment accepted 2026-10-28: [the precise standard](#the-precise-standard-accepted-amendment-28-oct-2026), which changes capitalization, pronouns, status labels and several terms below; the build follows it.
+Status: adopted 2026-10-27 (ADR-0043). Labels: **[V]** verified from a cited source, **[D]** decision proposed here, **[H]** hypothesis to test, **[J]** style judgment with no external evidence (reason given), **[P]** rule already set by Siterra's own documents. Source IDs (`WRT-NN`) resolve in the [writing research](../../research/design/writing.md). Strings for every screen are in the [microcopy](microcopy.md). Amendment accepted 2026-10-28: [the precise standard](#the-precise-standard-accepted-amendment-28-oct-2026), which changes capitalization, pronouns, status labels and several terms below; the build follows it.
 
 ## Scope
 
@@ -16,7 +16,7 @@ Rules already set elsewhere still apply: the actor is Siterra, never staff or pe
 
 ## The precise standard (accepted amendment, 28 Oct 2026)
 
-Status: accepted in [ADR-0043, amendment 1](../decisions/0043-write-in-one-plain-voice-and-lint-product-copy.md#amendment-1-precise-not-conversational); the build follows it. Where it and an older rule below differ, this section is what the build and the lint apply.
+Status: accepted in ADR-0043, amendment 1; the build follows it. Where it and an older rule below differ, this section is what the build and the lint apply.
 
 [D] Siterra's interface is precise, not conversational.
 
@@ -24,7 +24,7 @@ Status: accepted in [ADR-0043, amendment 1](../decisions/0043-write-in-one-plain
 - **Findings and detail lines** are short, exact, declarative sentences with numbers and source references: "Complete. Findings: 2.", "7 of 7 bundles passed automated data checks." Not chatty.
 - **Coverage boundaries** are a badge, "Coverage Required" or "Dataset Not Loaded", and two sentences: what is missing, then what is required. Example: "Urban heat-island analysis requires thermal and canopy layers not loaded in this workspace. Select a supported region or attach the required dataset." The scope refusal follows the same form under "Out of Scope".
 - **Product framing.** Siterra is a general five-stage analysis engine. The loaded case is a Region Pack, shown as an object: its name, active data layers, observation window, checks, and status. The status is truthful: "Real Data · Field Unverified" while no accepted verified-outcome evidence exists. A data bundle's status `validated` means its automated data checks passed; the interface says "passed automated data checks", never "validated".
-- **Stage names:** Scope & Baseline; Evidence; Hypothesis Testing (not "Causal Attribution": [ADR-0023](../decisions/0023-prohibit-causal-diagnosis-and-outcome-claims.md) bars causal diagnosis); Interventions & Precedents (not "Validated Interventions": precedents are published studies); Field Verification.
+- **Stage names:** Scope & Baseline; Evidence; Hypothesis Testing (not "Causal Attribution": ADR-0023 bars causal diagnosis); Interventions & Precedents (not "Validated Interventions": precedents are published studies); Field Verification.
 - **Do not use** "Telemetry" (there are no sensors), "Validated" or "Verified" for anything not validated, "Attribution", or "Autonomous" for actions (the engine analyzes; it never acts, sends, or spends).
 - **Evidence-kind labels stay:** Observation, Published context, Hypothesis, Model estimate, Scenario, Field requirement, Verified outcome.
 

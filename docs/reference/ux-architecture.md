@@ -1,6 +1,6 @@
 # UX architecture
 
-The workspace anatomy, the AI composition contract and the shared context that keep chat, map, timeline and panels in one state. Decisions: [ADR-0006](../decisions/0006-use-a-guided-adaptive-investigation-workspace.md) (guided workspace), [ADR-0007](../decisions/0007-constrain-ai-composition-to-a-component-catalog.md) (catalog-constrained composition) and [ADR-0040](../decisions/0040-present-the-investigation-as-floating-islands-over-a-full-bleed-map.md) (floating islands). Scenes: [experience storyboard](experience-storyboard.md); components: [components](components.md); motion: [motion](motion.md); map scenes: [scenes and views](scenes.md). Pattern evidence: [UI patterns research](../../research/design/ui-patterns.md).
+The workspace anatomy, the AI composition contract and the shared context that keep chat, map, timeline and panels in one state. Decisions: ADR-0006 (guided workspace), ADR-0007 (catalog-constrained composition) and ADR-0040 (floating islands). Scenes: [experience storyboard](experience-storyboard.md); components: [components](components.md); motion: [motion](motion.md); map scenes: [scenes and views](scenes.md). Pattern evidence: [UI patterns research](../../research/design/ui-patterns.md).
 
 ## Anatomy
 
@@ -47,7 +47,7 @@ Text panels are opaque. Small control islands (pill, ornament) and menus over th
 
 ## Visual budget
 
-Each state has limits that QA counts automatically ([acceptance criteria](../project/acceptance-criteria.md)). Attribution does not count.
+Each state has limits that QA counts automatically (acceptance criteria). Attribution does not count.
 
 | State | Islands | Controls | Expanded components | Text items | Unobstructed map |
 |---|---|---|---|---|---|

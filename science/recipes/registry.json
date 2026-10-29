@@ -780,7 +780,7 @@
         "SCI-09",
         "SCI-159"
       ],
-      "priority": "P2",
+      "priority": "P0",
       "formulaPlain": "For each season since 2000, MODIS greenness from March to June is averaged over the catchment and each terrain stratum and set against the rain that fell from the previous September to May. A straight line through those pairs gives the greenness expected from the rain. What is left over each season is tested for an upward or downward drift across the years, with a 95% interval. The drift is a model estimate, and a drift does not by itself say why."
     },
     {
@@ -918,7 +918,7 @@
         "SCI-26",
         "SCI-159"
       ],
-      "priority": "P2",
+      "priority": "P0",
       "formulaPlain": "For every day from 2001 to 2025, MODIS marks each 500 m pixel as snow, snow-free or not seen (cloud, night, missing). For each elevation band and month, the snow-covered share is the snow pixel-days divided by the clear pixel-days. It is shown at two NDSI thresholds, 0.2 (fitted to the Atlas) and 0.4 (the global default), with the share of the band that was clear."
     },
     {
@@ -1121,7 +1121,7 @@
         "SCI-96",
         "SCI-105"
       ],
-      "priority": "P2",
+      "priority": "P0",
       "formulaPlain": "For each 250 m MODIS pixel, greenness is averaged over each season since 2000, and a robust straight-line slope through those seasons is computed with a 95% interval. The result says how much of each elevation band and land cover type lies in pixels that rose, fell or cannot be told apart from no change, checked against how many would rise or fall by chance among thousands of pixels. Falling pixels that touch each other are grouped and described. The map shows the slope only."
     },
     {
@@ -1327,7 +1327,7 @@
         "SCI-96",
         "SCI-105"
       ],
-      "priority": "P2",
+      "priority": "P0",
       "formulaPlain": "Greenness is averaged over each season since 2000 for the catchment, its elevation bands, its aspects and its land cover types, in four windows: March to June, March to May, April to July and June to September. A straight line through the seasons gives a trend with a 95% interval. The spring (March to May) minus summer (June to September) difference is tested the same way, to see whether the two parts of the year changed differently."
     }
   ]

@@ -67,6 +67,6 @@ The repository's public documentation can explain scientific limits, safety requ
 4. A source or area changes after review: affected review becomes stale and a new decision is required.
 5. A demo brief is exported: demo review labels and unresolved conditions remain visible.
 6. No grazing measurements exist: the system cannot label grazing attribution confirmed.
-7. A user asks whether a group of people named by ethnicity, race, religion, nationality or migration status, or a named private individual, explains a change in the land: the plan ends `out_of_scope` with a host-written message saying what Siterra can look at instead, and no task, hypothesis or brief line is created. A question about herding households or grazing practices still plans normally. (Proposed, pending the maintainer's approval.)
+7. A user asks whether a group of people named by ethnicity, race, religion, nationality or migration status, or a named private individual, explains a change in the land: the plan ends `out_of_scope` with a host-written message saying what Siterra can look at instead, and no task, hypothesis or brief line is created. A question about herding households or grazing practices still plans normally.
 
 These checks are required acceptance cases; they have not been run against an application.

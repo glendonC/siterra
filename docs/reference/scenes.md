@@ -1,6 +1,6 @@
 # Scenes and views
 
-How Siterra shows the same place from different angles, plays time over it, and lets the AI choose and bind reusable map scenes without writing code. Evidence, MapLibre capabilities and the arithmetic behind each template are in the [map scenes research](../../research/technology/map-scenes.md). Decision: [ADR-0035](../decisions/0035-compose-map-scenes-from-reusable-templates.md).
+How Siterra shows the same place from different angles, plays time over it, and lets the AI choose and bind reusable map scenes without writing code. Evidence, MapLibre capabilities and the arithmetic behind each template are in the [map scenes research](../../research/technology/map-scenes.md). Decision: ADR-0035.
 
 ## The hero sequence (design language 1.3)
 

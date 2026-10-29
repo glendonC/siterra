@@ -10,7 +10,7 @@ The primary job: “Help me turn a concern about shared pasture resilience into 
 
 ## Second role: local initiator
 
-**A local actor without technical staff who wants to raise a concern.** Example: a tour operator in the Central High Atlas who notices pasture change along the routes they guide and wants to raise it with commune officials, a pastoral cooperative or community groups. They need a credible, plain account of what is known and what is not, in a language those groups read (French first, [ADR-0034](../decisions/0034-build-translation-ready-and-ship-french-first.md)), a field plan others can check, and a way to share it themselves.
+**A local actor without technical staff who wants to raise a concern.** Example: a tour operator in the Central High Atlas who notices pasture change along the routes they guide and wants to raise it with commune officials, a pastoral cooperative or community groups. They need a credible, plain account of what is known and what is not, in a language those groups read (French first; see [accessibility and language](../reference/accessibility-and-language.md#the-translation-layer)), a field plan others can check, and a way to share it themselves.
 
 Boundaries: Siterra prepares; the initiator decides whether and how to share. Siterra never contacts officials or communities, and commissioning a case gives no one authority over shared land or the right to speak for a community. Whether such actors would commission an investigation, pay for it, or be heard by officials is untested.
 
