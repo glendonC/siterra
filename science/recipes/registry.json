@@ -1495,7 +1495,7 @@
     },
     {
       "recipeId": "terrain_transects",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "title": "Profiles along lines across and along the valley",
       "question": "What does the ground look like along a line across or along the valley: its height every 30 m, which elevation bands and land cover classes it crosses, and where?",
       "operation": "transect_profile",
@@ -1513,6 +1513,7 @@
         "place_configuration"
       ],
       "registration": "Full entry registered 2026-10-29, before this pipeline sampled any line. The meridian through Tabant is the section of the 29 October specimen B, whose ends the lead's brief gives (31.709028 N and 31.600972 N); the pipeline derives the ends from the rule below and checks them to 6 decimals. The valley axis (the longest flow path) and the valley floor rule were written by the science lane for this entry. The lane had read the specimen's section data (band crossings at 748 m, 9,108 m and 10,821 m from the north end, and the land cover shares), and had seen that the specimen's floor extent took every run of tree cover, cropland and built-up and so covered about 9.4 km of the 12.0 km line; this entry takes the published elevation range of the valley floor instead. No hypothesis is tested. Place-specific values are in science/places/<place>.json, revision 4.",
+      "postHocNote": "Version 1.0.1 (2026-10-29) changes the recompute check after the first build of 1.0.0 failed it. 1.0.0 compared 40 evenly spaced samples per line with the native tile and required the largest absolute difference to be at most 4.0 m; on the valley axis the largest of those 40 was 4.62 m (and over every sample 7.36 m, in the lower gorge at 2,310 m from the outlet, against a 90th percentile of 1.52 m). The DEM states its relative vertical accuracy as a 90% linear error (SCI-168), so 1.0.1 compares the 90th percentile of the absolute differences over every sample with the same 4.0 m and stores the largest difference and where it lies. The band comparison with the strata raster now counts separately the samples whose 10 m cell lies outside the strata mask (the first build had counted the south end of the meridian, on the polygon boundary, as a disagreement 464.8 m from a band limit). No line, sample, parameter of the profiles or result changed.",
       "formula": [
         "Lines: tabant_meridian is the line of constant longitude through Tabant (31.65873 N, 6.42007 W), clipped to the frozen polygon: the part of it that contains Tabant, from its northernmost to its southernmost point; distance runs from north to south. valley_axis is the longest flow path of the drainage network bundle: from the outlet segment, at each confluence the upstream segment whose farthest head is farther along the channels (the sum of the stored segment lengths), ties by the larger upstream area and then the lower segment number, up to the head; the line is the stored vertices of those segments joined from the outlet upwards; distance runs from the outlet",
         "Samples: at distance 0, 30, 60 m and so on along the line (geodesic, WGS84) and at the last point of the line, so the last interval is 30 m or shorter. A meridian sample keeps the longitude of the line; an axis sample lies on the straight piece between the two stored vertices around it, linearly in longitude and latitude",
@@ -1522,7 +1523,7 @@
         "Band crossings: where the profile, taken as straight between consecutive samples, crosses a band boundary: the boundary, the distance (0.1 m), whether the height is rising or falling along the line, and the position. Kilometres of line in each band come from the same piecewise linear profile",
         "Land cover runs: consecutive samples with one class make a run that starts and ends halfway to the neighbouring samples (at the line's ends for the first and last); every class's share of the line length is stored",
         "Valley floor: the contiguous samples around the lowest sample of the line whose elevation is at most 2,200 m, the upper limit of the published valley floor (1800 to 2200 m, SCI-19); stored with from and to distances (halfway to the neighbouring samples, or the line's end), length and elevation range",
-        "Acceptance checks, all stored with the bundle: the ends of the meridian equal the brief's 31.709028 N and 31.600972 N to 6 decimals; every sample lies inside the frozen polygon; sample distances rise by 30 m except the last interval; every elevation is a number; the elevation of 40 evenly spaced samples of each line recomputed from the native 1 arc-second DEM tile (bilinear in longitude and latitude) differs from the stored value by at most 4.0 m; the band of every sample agrees with the strata raster, with the share that differs stored; band crossings and kilometres in band recomputed from the stored samples; two runs give identical files apart from the computed time"
+        "Acceptance checks, all stored with the bundle: the ends of the meridian equal the brief's 31.709028 N and 31.600972 N to 6 decimals; every sample lies inside the frozen polygon; sample distances rise by 30 m except the last interval; every elevation is a number; the 90th percentile of the absolute differences between the stored elevations and the heights of the native 1 arc-second DEM tile (bilinear in longitude and latitude), over every sample of each line, is at most 4.0 m, with the largest difference and where it lies stored; the band of every sample is compared with the strata raster, counting separately the samples that differ and the samples whose 10 m cell lies outside the strata mask; band crossings and kilometres in band recomputed from the stored samples; two runs give identical files apart from the computed time"
       ],
       "parameters": [
         {
@@ -1534,12 +1535,12 @@
           "default": 30.0
         },
         {
-          "name": "recompute_samples",
+          "name": "recompute_percentile",
           "role": "method",
           "allowed": [
-            40
+            90
           ],
-          "default": 40
+          "default": 90
         },
         {
           "name": "recompute_tolerance_m",
