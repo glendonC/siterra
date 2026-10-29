@@ -132,4 +132,38 @@ describe("STAC extension 1.1.0", () => {
     collection["siterra:variable"] = "snow_cover_fraction";
     expect(issuesOf(StacCollection.safeParse(collection))).toEqual([]);
   });
+
+  it("accepts drainage_network as a bundle variable in the JSON schema and Zod mirror", () => {
+    const schema = readJson(`${repoDir}schemas/stac/siterra-extension.schema.json`);
+    const defs = schema["definitions"] as Json;
+    const variableDef = defs["siterra:variable"] as { enum: string[] };
+    expect(variableDef.enum).toContain("drainage_network");
+
+    const collection = readJson(`${examplesDir}stac-collection-ndvi.json`);
+    collection["siterra:variable"] = "drainage_network";
+    expect(issuesOf(StacCollection.safeParse(collection))).toEqual([]);
+  });
+
+  it.each(["elevation_profile", "pixel_anatomy", "elevation_surface", "optical_clear_share"])(
+    "accepts %s as a bundle variable in the JSON schema and Zod mirror",
+    (variable) => {
+      const schema = readJson(`${repoDir}schemas/stac/siterra-extension.schema.json`);
+      const defs = schema["definitions"] as Json;
+      const variableDef = defs["siterra:variable"] as { enum: string[] };
+      expect(variableDef.enum).toContain(variable);
+
+      const collection = readJson(`${examplesDir}stac-collection-ndvi.json`);
+      collection["siterra:variable"] = variable;
+      expect(issuesOf(StacCollection.safeParse(collection))).toEqual([]);
+    },
+  );
+
+  it("still refuses a variable the extension does not list", () => {
+    const collection = readJson(`${examplesDir}stac-collection-ndvi.json`);
+    collection["siterra:variable"] = "river_depth";
+    expect(issuesOf(StacCollection.safeParse(collection))).toContainEqual({
+      code: "invalid_value",
+      path: ["siterra:variable"],
+    });
+  });
 });

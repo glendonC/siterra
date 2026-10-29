@@ -1,10 +1,14 @@
 // Test support: synthetic records with the example slug (never demo data; SA-09).
 import type {
   BranchMerge,
+  CanvasComponent,
   CommandRequest,
+  DataBundle,
+  EntityVersion,
   EnvironmentalCase,
   Evidence,
   ExplanationBranch,
+  InstrumentSpec,
 } from "@siterra/contracts";
 import type { EventDraft } from "./events.ts";
 import type { CommitProposal } from "./commit.ts";
@@ -164,6 +168,99 @@ export function exampleMerge(caseId: string, id: string, branchId: string): Bran
     ],
     conflicts: [],
     provenance: noProvenance([{ entityId: branchId, revision: 2 }]),
+  };
+}
+
+/** A validated or superseded bundle with nothing in it, for records that cite a bundle revision. */
+export function exampleBundle(
+  caseId: string,
+  id: string,
+  revision: number,
+  status: DataBundle["status"] = "validated",
+): DataBundle {
+  return {
+    recordType: "DataBundle",
+    id,
+    revision,
+    createdAt: at,
+    updatedAt: at,
+    caseId,
+    label: `Synthetic bundle ${id}`,
+    status,
+    datasetId: "example-dataset",
+    datasetVersion: null,
+    sourceIds: [],
+    geoSelectionId: "geo_example_guard",
+    geoRevision: 1,
+    periodIds: [],
+    methodId: "example_method",
+    methodVersion: "1.0.0",
+    manifestUri: null,
+    contentHash: null,
+    license: null,
+    attribution: null,
+    provenance: noProvenance(),
+  };
+}
+
+/**
+ * A rainfall_scatter spec that names the area geo_example_guard, the bundle bundle_example_guard and
+ * the citation ev_example_guard; its provenance cites exactly `cites`.
+ */
+export function exampleSpec(
+  caseId: string,
+  id: string,
+  cites: EntityVersion[],
+  revision = 1,
+): InstrumentSpec {
+  return {
+    recordType: "InstrumentSpec",
+    id,
+    revision,
+    createdAt: at,
+    updatedAt: at,
+    caseId,
+    status: "ready",
+    parameters: {
+      kind: "rainfall_scatter",
+      geoSelectionId: "geo_example_guard",
+      seasons: { bundleId: "bundle_example_guard", assetKey: "restrend_tables" },
+      fit: { bundleId: "bundle_example_guard", assetKey: "restrend_long_record" },
+    },
+    caption: {
+      ink: "Synthetic caption for a storage test.",
+      grey: "No result is asserted.",
+      claimKind: "observation",
+      citationIds: ["ev_example_guard"],
+    },
+    provenance: noProvenance(cites),
+  };
+}
+
+/** The component that binds one spec at its current revision. */
+export function exampleComponent(
+  caseId: string,
+  id: string,
+  spec: InstrumentSpec,
+): CanvasComponent {
+  return {
+    recordType: "CanvasComponent",
+    id,
+    revision: 1,
+    createdAt: at,
+    updatedAt: at,
+    caseId,
+    componentKind: spec.parameters.kind,
+    entityIds: [spec.id],
+    section: "explanations",
+    order: 0,
+    visibility: "collapsed",
+    title: "Rain And Greenness",
+    presentationStatus: "ready",
+    sourceCaseRevision: 1,
+    comparisonMode: null,
+    periodIds: [],
+    entityVersions: [{ entityId: spec.id, revision: spec.revision }],
   };
 }
 

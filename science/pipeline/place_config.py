@@ -147,6 +147,31 @@ def elevation(cfg, dem_path):
     return np.where(mask, Z, np.nan).astype(np.float32)
 
 
+def check_dem(cfg, dem_path):
+    """Stop unless the DEM file is the one the place configuration pins by checksum."""
+    if sha256(dem_path) != cfg["elevation"]["sha256"]:
+        raise SystemExit("DEM checksum does not match the place configuration")
+
+
+def elevation_grid(cfg, dem_path, pad_cells=0):
+    """The configured DEM grid in the analysis CRS with pad_cells extra cells on every side and no catchment mask:
+    (z, x0, y0, res), z float32 with row 0 north and cell centres half a cell inside the corner (x0, y0).
+
+    The grid and resampling of elevation(), which repeats this grid onto the analysis grid; the caller checks the DEM
+    checksum with check_dem()."""
+    tr, shp, mask = analysis_grid(cfg)
+    k = int(round(cfg["elevation"]["gridM"] / cfg["analysisGridM"]))
+    G = cfg["elevation"]["gridM"]
+    Hc, Wc = -(-shp[0] // k), -(-shp[1] // k)
+    z = np.full((Hc + 2 * pad_cells, Wc + 2 * pad_cells), np.nan, np.float32)
+    x0, y0 = tr.c - pad_cells * G, tr.f + pad_cells * G
+    with rasterio.open(dem_path) as src:
+        reproject(rasterio.band(src, 1), z, src_transform=src.transform, src_crs=src.crs,
+                  dst_transform=Affine(G, 0, x0, 0, -G, y0), dst_crs=cfg["analysisCrs"],
+                  resampling=Resampling[cfg["elevation"]["resampling"]], dst_nodata=np.nan)
+    return z, x0, y0, G
+
+
 def elevation_band_masks(cfg, elev, band_sets):
     """{set id: [(band id, label, mask)]} from fixed edges (edgesM) or from a strata layer (fromStrataLayer)."""
     tr, shp, mask = analysis_grid(cfg)
@@ -288,7 +313,52 @@ if __name__ == "__main__":
             with self.assertRaises(SystemExit):
                 cell_pixel_index(self.cfg, "EPSG:4326", shifted, (rows_deg, cols_deg))
 
-    suite = unittest.defaultTestLoader.loadTestsFromTestCase(PlaceConfigTests)
+    class ElevationGridTests(unittest.TestCase):
+        @classmethod
+        def setUpClass(cls):
+            repo = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+            cls.cfg = load(os.path.join(repo, "science", "places", "ait-bouguemez.json"), repo)
+
+        def test_grid_follows_the_surface_of_a_synthetic_tile(self):
+            import tempfile
+            from rasterio.transform import from_origin
+            lon0, lat1, w, h = -6.60, 31.80, 1800, 1260  # a tile of 1/3600 degree cells over the catchment and its margin
+            lon = lon0 + (np.arange(w) + 0.5) / 3600
+            lat = lat1 - (np.arange(h) + 0.5) / 3600
+            plane = lambda x, y: 2000 + 4000 * (x + 6.3) + 3000 * (y - 31.6)
+            tile = plane(lon[None, :], lat[:, None]).astype(np.float32)
+            with tempfile.TemporaryDirectory() as d:
+                path = os.path.join(d, "tile.tif")
+                with rasterio.open(path, "w", driver="GTiff", width=w, height=h, count=1, dtype="float32",
+                                   crs="EPSG:4326", transform=from_origin(lon0, lat1, 1 / 3600, 1 / 3600)) as dst:
+                    dst.write(tile, 1)
+                z, x0, y0, res = elevation_grid(self.cfg, path, pad_cells=2)
+            self.assertEqual(res, self.cfg["elevation"]["gridM"])
+            tr, shp, _ = analysis_grid(self.cfg)
+            k = int(round(res / self.cfg["analysisGridM"]))
+            self.assertEqual(z.shape, (-(-shp[0] // k) + 4, -(-shp[1] // k) + 4))
+            self.assertFalse(np.isnan(z).any())
+            rows, cols = np.meshgrid(np.arange(0, z.shape[0], 40), np.arange(0, z.shape[1], 40), indexing="ij")
+            to_ll = Transformer.from_crs(self.cfg["analysisCrs"], "EPSG:4326", always_xy=True)
+            x, y = to_ll.transform(x0 + (cols + 0.5) * res, y0 - (rows + 0.5) * res)
+            # GDAL's warp places output cells with an approximate transformer (up to 0.125 output cell), which on this
+            # plane (about 0.03 to 0.04 m of height per metre) is worth up to 0.15 m
+            np.testing.assert_allclose(z[rows, cols], plane(np.asarray(x), np.asarray(y)), atol=0.2)
+
+        @unittest.skipUnless(os.environ.get("SITERRA_DEM"), "set SITERRA_DEM to the pinned Copernicus DEM tile")
+        def test_one_cell_of_padding_is_the_grid_elevation_repeats_and_more_padding_moves_values_by_decimetres(self):
+            dem = os.environ["SITERRA_DEM"]
+            check_dem(self.cfg, dem)
+            z1 = elevation_grid(self.cfg, dem, 1)[0]
+            tr, shp, mask = analysis_grid(self.cfg)
+            k = int(round(self.cfg["elevation"]["gridM"] / self.cfg["analysisGridM"]))
+            Z = np.repeat(np.repeat(z1[1:-1, 1:-1], k, axis=0), k, axis=1)[: shp[0], : shp[1]]
+            np.testing.assert_array_equal(np.where(mask, Z, np.nan).astype(np.float32), elevation(self.cfg, dem))
+            z2 = elevation_grid(self.cfg, dem, 2)[0]
+            self.assertLess(float(np.abs(z2[2:-2, 2:-2] - z1[1:-1, 1:-1]).max()), 0.2)
+
+    suite = unittest.TestSuite([unittest.defaultTestLoader.loadTestsFromTestCase(PlaceConfigTests),
+                                unittest.defaultTestLoader.loadTestsFromTestCase(ElevationGridTests)])
     res = unittest.TextTestRunner(verbosity=2).run(suite)
     if not res.wasSuccessful():
         raise SystemExit(1)

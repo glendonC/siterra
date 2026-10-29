@@ -1,6 +1,6 @@
 # Data contracts
 
-Status: implementation contract v1.8, 2026-10-27. Machine-readable source of truth: [schemas/case.schema.json](../../schemas/case.schema.json) (JSON Schema 2020-12). Examples: [schemas/examples/](../../schemas/examples/). This document owns cross-record semantics that a JSON Schema cannot express. [Orchestration](agent-orchestration.md) owns jobs and tools; [review](review-and-authority.md) owns authority.
+Status: implementation contract v1.12, 2026-10-29. Machine-readable source of truth: [schemas/case.schema.json](../../schemas/case.schema.json) (JSON Schema 2020-12). Examples: [schemas/examples/](../../schemas/examples/). This document owns cross-record semantics that a JSON Schema cannot express. [Orchestration](agent-orchestration.md) owns jobs and tools; [review](review-and-authority.md) owns authority.
 
 ## Principles
 
@@ -31,6 +31,7 @@ Pattern `^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$`. Prefix by type:
 | `cmd_` | Command | `brief_` | Brief |
 | `evt_` | Event | `commit_` | Commit |
 | `erow_` | EventRecordRow | `ctx_` | ContextFeature |
+| `inst_` | InstrumentSpec | | |
 
 **Periods** are identifiers, not records: `period_YYYY-MM` for a calendar month (UTC, start inclusive, end exclusive). Chart, map, strip and brief select periods by this ID only. Server-generated IDs use a ULID suffix; fixtures may use readable slugs. IDs never contain the product name.
 
@@ -55,9 +56,10 @@ Field-level types live in the schema. This table states purpose and the rules th
 | ReviewDecision | A role-scoped decision on exact versions | `mode: demo \| real`; `authorityStatus: not_established \| verified_for_scope`. Demo decisions can never satisfy a real authorization. |
 | Brief | The decision brief | Every line is a `BriefItem` with claim kind and evidence IDs. `provenance.inputVersions` cites every ID in `evidenceIds`, `hypothesisIds` and `interventionIds`, so a changed input stales the brief; a commit with a brief that does not is refused (`brief_inputs_not_cited`). |
 | EventRecordRow | One dated event in a validated event bundle (ADR-0045), added in contracts 1.3 | Not evidence. Rules in [event record rows](#event-record-rows). |
-| ContextFeature | A located feature a view needs (outlet, settlement, viewpoint, summit), added in contracts 1.6 | Point geometry in EPSG:4326 with the method, dataset, source IDs, attribution, licence and limitations of its position. Never evidence: no statement, measurement or hypothesis rests on it. Lines (a river main stem, a path) are planned for a later minor version. |
+| ContextFeature | A located feature a view needs (outlet, settlement, viewpoint, summit), added in contracts 1.6; drainage, transect and proposed-route lines added in 1.12 | A point, a line or a set of lines in EPSG:4326 with the method, dataset, source IDs, attribution, licence and limitations of its position. Never evidence: no statement, measurement or hypothesis rests on it. Rules in [context features](#context-features). |
 | ExplanationBranch | One candidate explanation tested by committed predictions, added in contracts 1.9 | Revision 1 holds the predictions and status `predicted`; revision 2 holds host scores, `predictionsCaseRevision` and a status set by fixed rules. Rules in [explanation branches](#explanation-branches). |
 | BranchMerge | The fixed-rule merge of one task's branches, added in contracts 1.9 | `rulesVersion` (`merge@1` or `merge@2`), each branch's exact revision and status, and the flagged conflicts. Never a ranking. |
+| InstrumentSpec | What one instrument of the workspace shows, added in contracts 1.11 | References only (bundle assets, GeoSelection, ContextFeature, Evidence, BranchMerge and OperationalAction records), never a value, camera, scale, colour, coordinate or URL; a caption with an ink sentence, a grey sentence and citations. Rules in [instruments](#instruments). |
 | CanvasComponent / LayoutAction | Presentation projection | References entity IDs only. See [layout contract](#presentation-contract). |
 | Command / Task / Event / Commit | Execution and audit | See state machines and events below. |
 
@@ -157,7 +159,7 @@ Sequence numbers are per case, gapless and monotonic. `dedupeKey` makes re-deliv
 
 Components are typed views over records. The model may propose layout actions; a deterministic reducer applies them. Full rationale and the evaluated alternatives are in [UX architecture](ux-architecture.md#ai-composition-contract).
 
-- `CanvasComponent.componentKind` is one of the catalog entries in [component specifications](components.md#catalog-bindings). It binds exact `entityVersions` and lives in a `section: place | observations | explanations | responses | next_steps`; `visibility: expanded | collapsed | hidden`.
+- `CanvasComponent.componentKind` is one of the catalog entries in [component specifications](components.md#catalog-bindings). It binds exact `entityVersions` and lives in a `section: place | observations | explanations | responses | next_steps`; `visibility: expanded | collapsed | hidden`. The five instrument kinds (contracts 1.11) are placed by host code and never proposed by the model ([instruments](#instruments)).
 - `LayoutAction.kind` vocabulary, preconditions and limits are listed in [UX architecture](ux-architecture.md#ai-composition-contract). The reducer rejects: unknown component kinds, catalog mismatches, references to missing or stale entity versions, more expanded components than the [visual budget](ux-architecture.md#visual-budget) allows (at most two), focus changes not caused by the user's own command, and any coordinates, CSS, markup, code or URLs.
 - Layout state is reconstructible from records. Deleting presentation records loses nothing scientific.
 
@@ -203,6 +205,52 @@ Added in contracts 1.9.0 (`ExplanationBranch` and `BranchMerge` in [case.schema.
 - **Rules (`merge@1` and `merge@2`):** `contradicted` when a necessary prediction is not met on adequate data, except under `merge@2` a necessary `departure_sign` prediction requires at least 3 evaluated periods (heuristic floor `[D]` reviewed in [Scientific basis](../explanation/scientific-basis.md) and `research/science/analytics.md`) before it can contradict; `consistent` when every testable prediction is met (or under `merge@2` with `whenOptionalNotMet: "consistent"` when all necessary predictions are met and an optional one is not, with the failed optional prediction named in the reason); `cannot_be_assessed` otherwise. Each branch writes one Hypothesis with the matching status (`consistent`, `inconsistent`, `inconclusive`), `supportingEvidenceIds` / `contradictingEvidenceIds` holding only `ev_` evidence IDs (such as the challenged observation), `measurementIds` holding the `meas_` measurement IDs its scores read, and the untestable predictions and field checks as missing evidence.
 - **Field plan (contracts 1.10.0, DF-09):** `BranchMerge.fieldPlan`, optional so earlier merges stay valid. Pairs of explanations are open when neither is `contradicted`, or when only one branch stands it is paired with each contradicted branch so a single unresolved branch still receives a field check. `measurements[]` is the smallest set of configured field checks that separates every open pair any check separates, found by exact search, ties to the set earliest in configuration order; each names its `fieldCheckId`, `label`, the open pairs it `separates` and the pairs it `onlySeparates` (never empty, so removing any one leaves a named pair unseparated). `unseparated[]` lists open pairs no configured check separates. Pairs (`ExplanationPair`) are two explanation IDs in code point order. Each unresolved branch's Hypothesis adds one missing-evidence line per chosen check ("Herd Records (herd_records) separates Grazing from Rainfall.") and one for its unseparated pairs.
 - **Component kind (contracts 1.10.0):** `explanation_branches` for `CanvasComponent` and `LayoutAction`, binding one command's ExplanationBranch records and their BranchMerge at exact revisions ([component specifications](components.md#cmp-23-explanation-branches-explanation_branches)).
+
+## Context features
+
+Points since contracts 1.6, lines since 1.12 (`ContextFeature` and `ContextGeometry` in [case.schema.json](../../schemas/case.schema.json), example [commit-context-lines.json](../../schemas/examples/commit-context-lines.json)); 1.2.0 to 1.11.0 stay valid. A context feature is something a view draws or a person finds on the land. It is located, never measured, and no statement rests on it.
+
+- **Geometry** (`geometry.type`): `Point` as before (two numbers, no elevation), `LineString` (two or more positions) or `MultiLineString` (one or more lines of two or more positions). A position is `[longitude, latitude]` or `[longitude, latitude, elevation]` in EPSG:4326, GeoJSON order, longitude -180 to 180 and latitude -90 to 90. Elevation is in metres, from -500 to 9000, so a nodata value such as -9999 is refused. A feature has an elevation on every position or on none; a half-elevated line is refused (CF-02).
+- **Roles:** `outlet`, `settlement`, `settlement_locator`, `viewpoint` and `summit` are points. `transect` is one `LineString`. `drainage` and `route_proposed` are a `LineString` or a `MultiLineString`. A role with another geometry is refused (CF-01). A `route_proposed` feature is labeled as a proposal with access unconfirmed in its limitations.
+- **`streamOrder`** (optional, drainage only, 1 to 12): the Strahler order of every line in the feature. A loader that imports the drainage bundle is expected to write one feature per order, so a view could set the width and colour of a line by order from the feature alone; no loader does yet. Per-segment details stay in the bundle asset `dataBundle` names (CF-03).
+- **`dataBundle`** (optional): the `{bundleId, assetKey}` of the bundle asset a line was read from. A loader that imports a line bundle is expected to write it, so the asset and the feature can be compared; no loader does yet. A feature without one (the points already in a case) was placed by hand or taken from a gazetteer, and says how in `method`.
+
+| Rule | Statement | Enforced |
+|---|---|---|
+| CF-01 | A role fits its geometry type as listed above | The Zod mirror (`contextFeatureShape`) and the schema's `allOf`, kept equal by a contract test |
+| CF-02 | Elevation is on every position of a feature or on none | The Zod mirror (`contextFeatureShape`) |
+| CF-03 | Only a drainage feature has a `streamOrder` | The Zod mirror (`contextFeatureShape`) and the schema's `allOf` |
+
+## Instruments
+
+Added in contracts 1.11.0 (`InstrumentSpec` in [case.schema.json](../../schemas/case.schema.json), snapshot list `instrumentSpecRecords`, example [commit-instruments.json](../../schemas/examples/commit-instruments.json)); 1.2.0 to 1.10.0 stay valid. An instrument is one of the workspace's measured views of the valley. An `InstrumentSpec` says what it shows as references to records of the case, so the interface draws only what the record says and holds no fact of its own.
+
+- **Component kinds:** `layer_stack`, `cross_section`, `pixel_anatomy`, `rainfall_scatter` and `field_plan`, for `CanvasComponent` and `LayoutAction`. A component of one of these kinds binds exactly one InstrumentSpec at an exact revision (`entityIds` and `entityVersions` of length 1) and carries the usual section, order, visibility and title. Host code places them; the model proposes none (INST-06).
+- **Record:** `id` (prefix `inst_`), `status` (`ready`, or `stale` once a cited record has a newer revision), `parameters`, `caption` and `provenance`. `provenance.inputVersions` pins the exact revision of every bundle, GeoSelection, ContextFeature, Evidence, Measurement, BranchMerge and OperationalAction the spec names, so a changed input makes the spec `stale` in the commit that writes it (DF-03), and the component that binds it with it.
+- **References and nothing else.** `parameters` is one closed object per kind, chosen by its `kind` field. A `BundleAssetRef` is `{bundleId, assetKey}`: a bundle and the key of one of its assets (the bundle revision is pinned in `provenance.inputVersions`; the file's checksum is the one the bundle's collection lists). Every other field is the ID of a record, a word from a fixed list, or a list of those. No parameters object has a field for a value, a camera, a scale, a colour, a coordinate, a URL, markup, code, free text or a number, and a contract test reads the schema to prove it. What the viewer changes while looking (the playhead, a month, the sheet in hand, the mixing control) is view state in the URL, not a record.
+- **Caption.** `ink` (one sentence, at most 200 characters) states the claim, `grey` (one sentence, at most 240) its limit or scope, `claimKind` is the claim kind of the ink sentence and the interface shows it, and `citationIds` (1 to 8) are the Evidence or Measurement records the numbered chips open, in chip order. A later unit lets the model draft `ink` and `grey` through the numeric provenance and prohibited-claim checks; host code fills the parameters and decides which records may be cited.
+
+Every kind also carries `geoSelectionId`, the area the instrument is about. The other parameters:
+
+| Kind | Shows | Parameters |
+|---|---|---|
+| `layer_stack` | Data layers as sheets over the relief of the catchment, with the drainage on the land | `relief`; `layers`, 1 to 5 of `{layer, data}` with `layer` one of `vegetation_trend`, `rainfall`, `snow_cover`, `land_cover`, `elevation_bands`, listed top sheet first and numbered in that order; `drainageFeatureIds` (at most 16) and `placeFeatureIds` (at most 32), ContextFeature records; `selectedLayer` or null |
+| `cross_section` | The catchment cut along one line, the cut face with the elevation bands, their trends and their snow | `transectFeatureId`, a ContextFeature line; `relief`, `profile`, `bands`, `bandTrends`, `snow`; `drainageFeatureIds`; `placeFeatureIds`; `statements`, 0 to 4 of `{evidenceId, placement}` with `placement` one of `valley_floor`, `upper_slope` |
+| `pixel_anatomy` | One coarse satellite pixel opened into the finer cells inside it, their class spectra and the pixel's season series | `locator` (the trend grid), `anatomy` (the asset that names the pixel and holds its cells, spectra and series), `bandSeries`; `contextEvidenceIds` (at most 4), scientific context shown as cited text |
+| `rainfall_scatter` | Each season as one point, rain against greenness, with the fit and its gate | `seasons`, `fit` (the bundle's own primary windows are plotted) |
+| `field_plan` | The field checks that would tell the open explanations apart, drawn as a proposal | `branchMergeId`; `actionId` or null; `routeFeatureIds` (at most 8), proposed routes as ContextFeature lines |
+
+The ContextFeature lines these kinds name (drainage, a transect, a proposed route) are the line features of [context features](#context-features), added in contracts 1.12.
+
+| Rule | Statement | Enforced |
+|---|---|---|
+| INST-01 | Every ID in `parameters` and in `caption.citationIds` appears in `provenance.inputVersions` | The commit is refused with `instrument_inputs_not_cited` (`uncitedInstrumentInputs` in `@siterra/domain`) |
+| INST-02 | A component of an instrument kind binds exactly one InstrumentSpec, of the same kind, at that spec's current revision | The commit is refused with `instrument_invalid` (`instrumentComponentIssues`) |
+| INST-03 | The layers of a `layer_stack` are distinct, and `selectedLayer`, when set, is one of them | The commit is refused with `instrument_invalid` (`instrumentSpecIssues`) |
+| INST-04 | Each `assetKey` is listed by the collection of the bundle revision the spec pins, the bundle is in the case and validated, and the file matches the checksum the collection lists | At read time: the instrument listing gives every asset a status, and the key route serves only a verified file |
+| INST-05 | `ink` and `grey` are one sentence each, every number in them is in a cited record (numeric provenance), and neither makes a prohibited claim | Planned with the composer |
+| INST-06 | The model-facing `propose_layout` offers no instrument kind; a contract test rejects a model-facing schema that does | Planned with the composer |
+| INST-07 | Each ID in the parameters is a record of the type its field expects (a ContextFeature for a feature field, an Evidence for a statement) | Planned with the composer |
 
 ## Records planned for later contracts
 
@@ -279,6 +327,8 @@ The importer assigns the fields not listed (record IDs, revisions, timestamps, `
 - Cancellation: `POST /api/commands/{commandId}/cancel` returns 202 while the command can still stop and 409 once it is terminal.
 - Reviews: `POST /api/cases/{caseId}/reviews` returns 201 with the `ReviewDecision`, 200 for a repeated key, 409 when a reviewed version or the reviewed case revision is no longer current, and 422 when the role cannot record that decision in that mode.
 - Trace: `GET /api/cases/{caseId}/trace?commandId=` returns the command's spans (OpenTelemetry GenAI names, allowlisted attributes only) and its events.
+- Instruments: `GET /api/cases/{caseId}/instruments` returns the case's InstrumentSpec records as of its current revision, or of `?revision=N` (a whole number from 1 up to the current revision; one the case has not reached is 404), each with the components that bind it and every bundle asset it names resolved against the bundle revision the spec pins. An asset is `available` with its immutable URL, type, checksum and size, or its status says why not: `bundle_not_in_case`, `bundle_not_validated`, `asset_key_unknown` or `file_unavailable` (the collection does not match the bundle's content hash, the file is missing or does not match its checksum, or the server has no bundles folder). Read only and never cached (INST-04).
+- Bundle assets by key: `GET /api/cases/{caseId}/bundles/{bundleId}/assets/{assetKey}` serves the file the bundle's collection lists under that key, for the revision of the bundle the case holds, only when the bundle is validated, the collection hashes to its content hash and the file matches the checksum the collection lists. Because the key names the revision the case holds now, the answer is revalidated (`Cache-Control: private, no-cache`); the hash-addressed case-assets route stays the immutable one. HTTP Range is answered as there.
 - Errors: Problem details (RFC 9457, `application/problem+json`) with a machine-readable `code` and, for invalid requests, stale versions and refused decisions, the `issues` list of `ValidationResult`.
 
 ## Example payloads

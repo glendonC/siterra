@@ -1,12 +1,71 @@
 {
  "manifestVersion": 1,
  "caseId": "case_aitbouguemez",
- "description": "Core corpus of the Aït Bouguemez grazing case: the 13 sources with source cards plus SCI-04. Each entry maps to a Source record in schemas/case.schema.json. Files fetched by science/pipeline/corpus-fetch.py stay in data/raw/corpus/ and their text in data/interim/corpus/, both outside Git; this manifest carries URLs, licences, sizes and checksums. Licence and access wording comes from research/science/source-register.md; a source that is paywalled, or whose open copy is not confirmed as authorized, is bibliography-only.",
+ "description": "Core corpus of the Aït Bouguemez grazing case: the 15 sources with source cards plus SCI-04. Each entry maps to a Source record in schemas/case.schema.json. Files fetched by science/pipeline/corpus-fetch.py stay in data/raw/corpus/ and their text in data/interim/corpus/, both outside Git; this manifest carries URLs, licences, sizes and checksums. Licence and access wording comes from research/science/source-register.md; a source that is paywalled, or whose open copy is not confirmed as authorized, is bibliography-only.",
  "register": {
   "path": "research/science/source-register.md",
   "sha256": "b8b9a49ad862afa680958b3aef6bfe2722970cd735e1c3c5e4def01e1c3b2a13"
  },
  "sources": [
+  {
+   "id": "SCI-03",
+   "sourceRecordId": "src_SCI-03",
+   "title": "Adaptation strategies of mountain livestock systems to global changes in the Central High Atlas, Morocco",
+   "url": "https://doi.org/10.1186/s42055-026-00126-4",
+   "publisher": "Sustainable Earth Reviews 9, article 7 (Springer Nature)",
+   "authors": [
+    "El Aayadi, S.",
+    "Challioui, M. K.",
+    "Sraïri, M. T."
+   ],
+   "publicationDate": "2026-07-03",
+   "sourceKind": "peer_reviewed",
+   "license": "CC BY-NC-ND 4.0 (Crossref licence record of the DOI, version of record; the publisher page was not readable by the fetch script on 2026-10-29)",
+   "redistributionStatus": "restricted",
+   "access": "open",
+   "accessNote": "Register: full text retrieved, pp. 5 to 12 re-read 2026-10-28. Stored privately for excerpt checks only: CC BY-NC-ND forbids sharing adaptations, so no file and no full text is redistributed, and quotes on screen stay short with attribution.",
+   "fetch": [
+    {
+     "name": "s42055-026-00126-4.pdf",
+     "role": "full_text",
+     "kind": "pdf",
+     "url": "https://link.springer.com/content/pdf/10.1186/s42055-026-00126-4.pdf",
+     "language": "en"
+    }
+   ],
+   "excerptPolicy": "offsets",
+   "excerptPolicyReason": "CC BY-NC-ND 4.0: store privately, cite page and offsets, quote briefly",
+   "language": "en",
+   "files": [
+    {
+     "name": "s42055-026-00126-4.pdf",
+     "role": "full_text",
+     "kind": "pdf",
+     "language": "en",
+     "url": "https://link.springer.com/content/pdf/10.1186/s42055-026-00126-4.pdf",
+     "final_url": "https://link.springer.com/content/pdf/10.1186/s42055-026-00126-4.pdf?error=cookies_not_supported&code=c342deb4-84b1-474c-84e8-951150ee7073",
+     "http_status": 200,
+     "etag": "\"4cbb88d8c6abfcc05761d8de0f218afb\"",
+     "last_modified": "Fri, 03 Jul 2026 13:24:11 GMT",
+     "content_type": "application/pdf",
+     "retrieved": "2026-10-29T14:02:13Z",
+     "size": 2868907,
+     "sha256": "e7bc91c09c54cca1d10b515f460ddd5108551bd0ea1578cd0b0c4ba65d925de8",
+     "stored_path": "data/raw/corpus/SCI-03/s42055-026-00126-4.pdf",
+     "provenance": "data/raw/corpus/SCI-03/s42055-026-00126-4.pdf.provenance.json",
+     "text_path": "data/interim/corpus/SCI-03/s42055-026-00126-4.pdf.text.json",
+     "text_sha256": "0ff06dbe5941ec7ec2618361104bf6a279026bedf5bb4cd8ac87e4f3d0176b5d",
+     "pages": 15
+    }
+   ],
+   "accessStatus": "retrieved",
+   "accessedAt": "2026-10-29T14:02:13Z",
+   "contentHash": "sha256:e7bc91c09c54cca1d10b515f460ddd5108551bd0ea1578cd0b0c4ba65d925de8",
+   "notes": [
+    "Register: full text retrieved, pp. 5 to 12 re-read 2026-10-28. Stored privately for excerpt checks only: CC BY-NC-ND forbids sharing adaptations, so no file and no full text is redistributed, and quotes on screen stay short with attribution.",
+    "Excerpt policy offsets: CC BY-NC-ND 4.0: store privately, cite page and offsets, quote briefly"
+   ]
+  },
   {
    "id": "SCI-04",
    "sourceRecordId": "src_SCI-04",
@@ -264,6 +323,94 @@
    "notes": [
     "Register: 2021 vintage, classes, 10 m grid and CC BY 4.0 inspected on the Earth Engine catalog page. The stored file is the Earth Engine catalog page that describes the dataset; the licence field (CC BY 4.0) is the dataset's licence, not the page's.",
     "Excerpt policy text: CC BY 4.0"
+   ]
+  },
+  {
+   "id": "SCI-19",
+   "sourceRecordId": "src_SCI-19",
+   "title": "Patrimony for resilience: evidence from the forest agdal in the Moroccan High Atlas Mountains",
+   "url": "https://doi.org/10.5751/ES-04429-160424",
+   "publisher": "Ecology and Society 16(4): 24 (Resilience Alliance)",
+   "authors": [
+    "Auclair, L.",
+    "Baudot, P.",
+    "Genin, D.",
+    "Romagny, B.",
+    "Simenel, R."
+   ],
+   "publicationDate": "2011-12-21",
+   "sourceKind": "peer_reviewed",
+   "license": "Copyright by the authors, published under licence by the Resilience Alliance; no Creative Commons licence stated",
+   "redistributionStatus": "restricted",
+   "access": "open",
+   "accessNote": "Register: full text (publisher HTML and PDF) re-read 2026-10-28, pp. 2 to 9, Tables 1 and 2. Stored privately for excerpt checks only; no licence allows redistribution, so link and paraphrase, with short attributed quotes.",
+   "fetch": [
+    {
+     "name": "ES-2011-4429.pdf",
+     "role": "full_text",
+     "kind": "pdf",
+     "url": "https://ecologyandsociety.org/vol16/iss4/art24/ES-2011-4429.pdf",
+     "language": "en"
+    },
+    {
+     "name": "ES-2011-4429-main.html",
+     "role": "full_text_html",
+     "kind": "html",
+     "url": "https://ecologyandsociety.org/vol16/iss4/art24/main.html",
+     "language": "en"
+    }
+   ],
+   "excerptPolicy": "offsets",
+   "excerptPolicyReason": "no licence stated: link, paraphrase and quote briefly",
+   "language": "en",
+   "files": [
+    {
+     "name": "ES-2011-4429.pdf",
+     "role": "full_text",
+     "kind": "pdf",
+     "language": "en",
+     "url": "https://ecologyandsociety.org/vol16/iss4/art24/ES-2011-4429.pdf",
+     "final_url": "https://ecologyandsociety.org/vol16/iss4/art24/ES-2011-4429.pdf",
+     "http_status": 200,
+     "etag": null,
+     "last_modified": null,
+     "content_type": "application/pdf",
+     "retrieved": "2026-10-29T14:02:15Z",
+     "size": 897158,
+     "sha256": "ff92a9d66ffe547a04d49c50e581e3ddf48fed836bd40194a355f2129ee8ced6",
+     "stored_path": "data/raw/corpus/SCI-19/ES-2011-4429.pdf",
+     "provenance": "data/raw/corpus/SCI-19/ES-2011-4429.pdf.provenance.json",
+     "text_path": "data/interim/corpus/SCI-19/ES-2011-4429.pdf.text.json",
+     "text_sha256": "45c4ca7c19ce0fcd41110ccb2d7e683989686ad8dafc81846550b6d19a400bd8",
+     "pages": 13
+    },
+    {
+     "name": "ES-2011-4429-main.html",
+     "role": "full_text_html",
+     "kind": "html",
+     "language": "en",
+     "url": "https://ecologyandsociety.org/vol16/iss4/art24/main.html",
+     "final_url": "https://ecologyandsociety.org/vol16/iss4/art24/main.html",
+     "http_status": 200,
+     "etag": null,
+     "last_modified": null,
+     "content_type": "text/html",
+     "retrieved": "2026-10-29T14:02:16Z",
+     "size": 66040,
+     "sha256": "4eac9f02730e6f58f975b32b6299cd189fc397aeacc6cde15b8f370bc9c0c292",
+     "stored_path": "data/raw/corpus/SCI-19/ES-2011-4429-main.html",
+     "provenance": "data/raw/corpus/SCI-19/ES-2011-4429-main.html.provenance.json",
+     "text_path": "data/interim/corpus/SCI-19/ES-2011-4429-main.html.text.json",
+     "text_sha256": "c4a9d18b3e4c017022bf2eb2efcb1b1a0e798a106768c99a0cb22c4e99613185",
+     "sections": 2
+    }
+   ],
+   "accessStatus": "retrieved",
+   "accessedAt": "2026-10-29T14:02:16Z",
+   "contentHash": "sha256:ff92a9d66ffe547a04d49c50e581e3ddf48fed836bd40194a355f2129ee8ced6",
+   "notes": [
+    "Register: full text (publisher HTML and PDF) re-read 2026-10-28, pp. 2 to 9, Tables 1 and 2. Stored privately for excerpt checks only; no licence allows redistribution, so link and paraphrase, with short attributed quotes.",
+    "Excerpt policy offsets: no licence stated: link, paraphrase and quote briefly"
    ]
   },
   {

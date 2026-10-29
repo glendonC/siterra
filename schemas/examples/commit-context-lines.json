@@ -1,0 +1,194 @@
+{
+  "recordType": "Commit",
+  "schemaVersion": "1.12.0",
+  "id": "commit_example_context_lines",
+  "caseId": "case_example_atlas",
+  "commandId": "cmd_example_context_lines",
+  "taskId": "task_example_context_lines",
+  "expectedCaseRevision": 8,
+  "newCaseRevision": 9,
+  "idempotencyKey": "example-context-lines-commit-0001",
+  "inputVersions": [],
+  "caseAfter": {
+    "recordType": "EnvironmentalCase",
+    "id": "case_example_atlas",
+    "revision": 9,
+    "createdAt": "2026-10-26T16:00:00-04:00",
+    "updatedAt": "2026-10-29T10:00:00-04:00",
+    "title": "Example: High Atlas investigation",
+    "objective": "Identify evidence and field measurements needed to assess competing explanations for pasture pressure.",
+    "status": "commissioned",
+    "mode": "concept",
+    "ownerScopeId": "example_fixture_only",
+    "activeGeoSelectionId": "geo_example_context",
+    "currentBriefId": null,
+    "unresolvedQuestions": [],
+    "permissionProfile": "research_and_preparation_only",
+    "description": "Fictional contract fixture. No measured environmental result or visited location is asserted."
+  },
+  "upserts": [
+    {
+      "recordType": "ContextFeature",
+      "id": "ctx_example_drainage",
+      "revision": 1,
+      "createdAt": "2026-10-29T10:00:00-04:00",
+      "updatedAt": "2026-10-29T10:00:00-04:00",
+      "caseId": "case_example_atlas",
+      "name": "Example drainage, order 3",
+      "role": "drainage",
+      "geometry": {
+        "type": "MultiLineString",
+        "coordinates": [
+          [
+            [
+              -6.43,
+              31.7,
+              2900.5
+            ],
+            [
+              -6.44,
+              31.68,
+              2400.25
+            ],
+            [
+              -6.45,
+              31.66,
+              2050.0
+            ]
+          ],
+          [
+            [
+              -6.4,
+              31.69,
+              2700.0
+            ],
+            [
+              -6.42,
+              31.67,
+              2300.75
+            ],
+            [
+              -6.45,
+              31.66,
+              2050.0
+            ]
+          ]
+        ]
+      },
+      "crs": "EPSG:4326",
+      "method": "Fictional example: two lines of one stream order traced by hand for the contract fixture, not a measured network.",
+      "datasetId": "example-dem",
+      "sourceIds": [],
+      "attribution": "Fictional contract fixture.",
+      "license": null,
+      "limitations": [
+        "Synthetic contract fixture; no real line is drawn."
+      ],
+      "dataBundle": {
+        "bundleId": "bundle_example_drainage",
+        "assetKey": "drainage_network"
+      },
+      "streamOrder": 3
+    },
+    {
+      "recordType": "ContextFeature",
+      "id": "ctx_example_transect",
+      "revision": 1,
+      "createdAt": "2026-10-29T10:00:00-04:00",
+      "updatedAt": "2026-10-29T10:00:00-04:00",
+      "caseId": "case_example_atlas",
+      "name": "Example cut line",
+      "role": "transect",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -6.42,
+            31.709,
+            2650.5
+          ],
+          [
+            -6.42,
+            31.659,
+            1858.0
+          ],
+          [
+            -6.42,
+            31.601,
+            2710.25
+          ]
+        ]
+      },
+      "crs": "EPSG:4326",
+      "method": "Fictional example: a north to south line with an elevation on every position.",
+      "datasetId": null,
+      "sourceIds": [],
+      "attribution": "Fictional contract fixture.",
+      "license": null,
+      "limitations": [
+        "Synthetic contract fixture; no real line is drawn."
+      ]
+    },
+    {
+      "recordType": "ContextFeature",
+      "id": "ctx_example_route",
+      "revision": 1,
+      "createdAt": "2026-10-29T10:00:00-04:00",
+      "updatedAt": "2026-10-29T10:00:00-04:00",
+      "caseId": "case_example_atlas",
+      "name": "Example proposed route",
+      "role": "route_proposed",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -6.41,
+            31.653
+          ],
+          [
+            -6.39,
+            31.66
+          ]
+        ]
+      },
+      "crs": "EPSG:4326",
+      "method": "Fictional example: a proposed route with no elevation.",
+      "datasetId": null,
+      "sourceIds": [],
+      "attribution": "Fictional contract fixture.",
+      "license": null,
+      "limitations": [
+        "Proposed route, access unconfirmed.",
+        "Synthetic contract fixture."
+      ]
+    }
+  ],
+  "events": [
+    {
+      "recordType": "Event",
+      "schemaVersion": "1.12.0",
+      "id": "evt_example_context_lines",
+      "caseId": "case_example_atlas",
+      "sequence": 23,
+      "occurredAt": "2026-10-29T10:00:00-04:00",
+      "kind": "case.committed",
+      "commandId": "cmd_example_context_lines",
+      "taskId": "task_example_context_lines",
+      "caseRevision": 9,
+      "entityIds": [
+        "ctx_example_drainage",
+        "ctx_example_transect",
+        "ctx_example_route"
+      ],
+      "message": "Fictional example: three lines saved.",
+      "dedupeKey": "example-context-lines-0023",
+      "resultStatus": null,
+      "tool": null,
+      "usage": null,
+      "validation": null,
+      "spanId": null,
+      "parentSpanId": null
+    }
+  ],
+  "layoutActions": []
+}

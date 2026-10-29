@@ -282,7 +282,12 @@
         "elevation_band",
         "aspect_class",
         "landcover_mask",
-        "snow_cover_fraction"
+        "snow_cover_fraction",
+        "drainage_network",
+        "elevation_profile",
+        "pixel_anatomy",
+        "elevation_surface",
+        "optical_clear_share"
       ]
     },
     "siterra:dataset": {

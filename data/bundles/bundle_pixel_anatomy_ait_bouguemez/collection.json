@@ -1,0 +1,549 @@
+{
+ "type": "Collection",
+ "stac_version": "1.1.0",
+ "stac_extensions": [
+  "https://stac-extensions.github.io/processing/v1.3.0/schema.json",
+  "https://stac-extensions.github.io/file/v2.1.0/schema.json",
+  "https://stac-extensions.github.io/projection/v2.1.0/schema.json",
+  "https://siterra.invalid/schemas/stac/siterra/1.1.0/schema.json"
+ ],
+ "id": "bundle_pixel_anatomy_ait_bouguemez",
+ "title": "One MODIS pixel opened into its 10 m cells (pixel_anatomy 1.0.0)",
+ "description": "Precomputed result of recipe pixel_anatomy 1.0.0 for MODIS pixel h17v05r4005c2178 of Ait Bouguemez valley catchment (bundle row 51, column 58, centre 31.655208 N, 6.416024 W): 537 cells of 10 m, tree cover 215 cells (40.0%), grassland 254 cells (47.3%), cropland 32 cells (6.0%), bare or sparse vegetation 36 cells (6.7%). Class spectra from S2B_29SQR_20250611_0_L2A (2025-06-11); the pixel's measured NDVI on that day is 0.4766, a linear mix of the class medians (modelled) gives 0.4450; its own March to June greenness over 26 seasons has a Theil-Sen slope of +0.0570 NDVI per decade (95% interval +0.0374 to +0.0845). The pixel is an illustration chosen by judgment (rank 3 of 391 candidates), not a sample.\n\nOne pixel is an illustration, not a sample: it was chosen by judgment among the candidates of a rule (the selection record gives their number and its rank), and it says nothing about other pixels. The class spectra come from one clear day, the cells of each class inside this pixel, and one 2021 land cover map. They are not typical spectra of the classes, and a 10 m cell at the edge of a class mixes surfaces. The mix model assumes the pixel's reflectance is the share-weighted sum of its class medians. It ignores shadow, slope and variation inside a class, so its NDVI is modelled, not measured, and it differs from the measured pixel NDVI by the amount stored. NDVI measures how green the ground looks from above, not forage, palatability or species: in Ait Bouguemez and the Central High Atlas, upper rangelands are dominated by spiny xerophytic vegetation over reduced short grasslands (SCI-19, p. 2), and on the valley floor tree cover may include orchards (SCI-03, pp. 5, 9 to 10). The 26-season series is the pixel's own March to June greenness, not adjusted for rainfall. Its trend is a descriptive Theil-Sen slope with Sen's 95% interval, and no p-value or false discovery rate class is stored for one pixel (SCI-52). Terra's overpass has drifted earlier since 2020, from 10:30 to about 9:06 mean local time by December 2025 (NASA), so later seasons are seen with a lower sun and longer shadows in mountain terrain, which may shift NDVI without any change on the ground. The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary.",
+ "license": "other",
+ "providers": [
+  {
+   "name": "Copernicus Sentinel-2 (European Union, ESA)",
+   "roles": [
+    "producer",
+    "licensor"
+   ]
+  },
+  {
+   "name": "Sinergise",
+   "roles": [
+    "processor"
+   ],
+   "url": "https://registry.opendata.aws/sentinel-2/"
+  },
+  {
+   "name": "AWS",
+   "roles": [
+    "host"
+   ],
+   "url": "https://registry.opendata.aws/sentinel-2-l2a-cogs/"
+  },
+  {
+   "name": "Element 84 Earth Search",
+   "roles": [
+    "processor",
+    "host"
+   ],
+   "url": "https://earth-search.aws.element84.com/v1/"
+  },
+  {
+   "name": "NASA Land Processes Distributed Active Archive Center",
+   "roles": [
+    "producer",
+    "licensor"
+   ],
+   "url": "https://doi.org/10.5067/MODIS/MOD13Q1.061"
+  },
+  {
+   "name": "Microsoft Planetary Computer",
+   "roles": [
+    "host"
+   ],
+   "url": "https://planetarycomputer.microsoft.com/dataset/modis-13Q1-061"
+  },
+  {
+   "name": "Copernicus DEM GLO-30 (European Union, ESA; DLR e.V. and Airbus Defence and Space)",
+   "roles": [
+    "producer",
+    "licensor"
+   ]
+  },
+  {
+   "name": "ESA WorldCover consortium",
+   "roles": [
+    "producer",
+    "licensor"
+   ],
+   "url": "https://esa-worldcover.org/"
+  },
+  {
+   "name": "Siterra science pipeline",
+   "roles": [
+    "processor"
+   ],
+   "processing:lineage": "The pixel's cells from the strata grid, WorldCover 2021 and the Sentinel-2 monthly NDVI median; band windows of one scene read from the public sentinel-cogs bucket (science/pipeline/pixel-anatomy-fetch.py); spectra, mix and series (science/pipeline/pixel-anatomy-bundle.py)",
+   "processing:software": {
+    "siterra-science": "0.1.0",
+    "python": "3.12.9",
+    "numpy": "2.5.4",
+    "rasterio": "1.5.2",
+    "gdal": "3.12.2",
+    "pyproj": "3.8.0",
+    "shapely": "2.2.0"
+   }
+  }
+ ],
+ "extent": {
+  "spatial": {
+   "bbox": [
+    [
+     -6.417319476254713,
+     31.654166663824522,
+     -6.414728180425967,
+     31.65624999715767
+    ]
+   ]
+  },
+  "temporal": {
+   "interval": [
+    [
+     "2000-03-01T00:00:00Z",
+     "2025-06-30T23:59:59Z"
+    ]
+   ]
+  }
+ },
+ "assets": {
+  "analysis_geometry": {
+   "href": "./analysis-geometry.geojson",
+   "type": "application/geo+json",
+   "title": "Frozen analysis geometry geo_ait_bouguemez_catchment, revision 1",
+   "roles": [
+    "metadata"
+   ],
+   "file:checksum": "1220ac506ece626b6844d759b56aa60a10248c8c0ea5e206f9a28eb436a892a4d47f",
+   "file:size": 119623
+  },
+  "pixel_anatomy": {
+   "href": "./pixel-anatomy.json",
+   "type": "application/json",
+   "title": "Summary: the pixel, its composition, June NDVI by class, the scene and its extracts, class red and near-infrared medians, the labelled mix model, the trend and the selection record (the result read_recipe_result returns)",
+   "roles": [
+    "data"
+   ],
+   "file:checksum": "1220fb7631f73d776e921655b6705f858472cda236e461dac6487dc443ba7548ee1b",
+   "file:size": 14517
+  },
+  "pixel_cells": {
+   "href": "./pixel-cells.json",
+   "type": "application/json",
+   "title": "The 28 x 28 display window of 10 m cells: footprint flag, WorldCover class, June NDVI median and date count, and the display-only true colour",
+   "roles": [
+    "data"
+   ],
+   "file:checksum": "122077dfa7ade4b730b4976c23becfd50a87f592857766cd6024ae58e9e6509af375",
+   "file:size": 21419
+  },
+  "pixel_spectra": {
+   "href": "./pixel-spectra.json",
+   "type": "application/json",
+   "title": "Class spectra of the scene in ten bands (median and quartiles), the pixel's measured mean, the mix model, the shift example and the per-cell NDVI of the date",
+   "roles": [
+    "data"
+   ],
+   "file:checksum": "1220f024b5a7aa8611aba230dc323c7a639217046d0cc2824e2548ed6ddb4c1ecd0a",
+   "file:size": 15355
+  },
+  "pixel_series": {
+   "href": "./pixel-series.json",
+   "type": "application/json",
+   "title": "The pixel's own March to June greenness for each season 2000 to 2025 with its Theil-Sen slope and Sen 95% interval",
+   "roles": [
+    "data"
+   ],
+   "file:checksum": "1220d028684ae68dad54dd73bd5eacdcd63ad9e792898794db10df6b10273ed24a41",
+   "file:size": 7613
+  },
+  "scene_record": {
+   "href": "./scene-record.json",
+   "type": "application/json",
+   "title": "Scene choice and extracts: every candidate scene's clear share, the item's properties, and each extract's address, window and sha256",
+   "roles": [
+    "metadata"
+   ],
+   "file:checksum": "1220ba2ebcaa09961b6eaeaf8d8fe5e8feca61a50e0c48366a5ce1c6ca0ca4ad0fd4",
+   "file:size": 13114
+  },
+  "s2_b02": {
+   "href": "./S2B_29SQR_20250611_0_L2A_B02.tif",
+   "type": "image/tiff; application=geotiff",
+   "title": "S2B_29SQR_20250611_0_L2A B02 window over the display window (28 x 28 cells of 10 m), as read",
+   "roles": [
+    "data"
+   ],
+   "proj:code": "EPSG:32629",
+   "proj:shape": [
+    28,
+    28
+   ],
+   "file:checksum": "1220919f91970035f662625d947a2c4425d7b735371432a559b6baf87e1f75eeadab",
+   "file:size": 2369
+  },
+  "s2_b03": {
+   "href": "./S2B_29SQR_20250611_0_L2A_B03.tif",
+   "type": "image/tiff; application=geotiff",
+   "title": "S2B_29SQR_20250611_0_L2A B03 window over the display window (28 x 28 cells of 10 m), as read",
+   "roles": [
+    "data"
+   ],
+   "proj:code": "EPSG:32629",
+   "proj:shape": [
+    28,
+    28
+   ],
+   "file:checksum": "12208d726f2172be90074c155f8ebd34f206352c72a9ae4499e8f0d74b37d47bcf6a",
+   "file:size": 2355
+  },
+  "s2_b04": {
+   "href": "./S2B_29SQR_20250611_0_L2A_B04.tif",
+   "type": "image/tiff; application=geotiff",
+   "title": "S2B_29SQR_20250611_0_L2A B04 window over the display window (28 x 28 cells of 10 m), as read",
+   "roles": [
+    "data"
+   ],
+   "proj:code": "EPSG:32629",
+   "proj:shape": [
+    28,
+    28
+   ],
+   "file:checksum": "12208b4ea9ee300661e70c704d847804650999661f678db429cd0a623f5ce5b0e4df",
+   "file:size": 2405
+  },
+  "s2_b05": {
+   "href": "./S2B_29SQR_20250611_0_L2A_B05.tif",
+   "type": "image/tiff; application=geotiff",
+   "title": "S2B_29SQR_20250611_0_L2A B05 window over the display window (14 x 14 cells of 20 m), as read",
+   "roles": [
+    "data"
+   ],
+   "proj:code": "EPSG:32629",
+   "proj:shape": [
+    14,
+    14
+   ],
+   "file:checksum": "1220480a907d20ab4148e5df50cb1e16531b94826da1df56219921021677597c41c3",
+   "file:size": 1497
+  },
+  "s2_b06": {
+   "href": "./S2B_29SQR_20250611_0_L2A_B06.tif",
+   "type": "image/tiff; application=geotiff",
+   "title": "S2B_29SQR_20250611_0_L2A B06 window over the display window (14 x 14 cells of 20 m), as read",
+   "roles": [
+    "data"
+   ],
+   "proj:code": "EPSG:32629",
+   "proj:shape": [
+    14,
+    14
+   ],
+   "file:checksum": "1220e6530e133929ca626bd1d60281caa7a1230bc193b239b37cb62991da0f2c7a77",
+   "file:size": 1487
+  },
+  "s2_b07": {
+   "href": "./S2B_29SQR_20250611_0_L2A_B07.tif",
+   "type": "image/tiff; application=geotiff",
+   "title": "S2B_29SQR_20250611_0_L2A B07 window over the display window (14 x 14 cells of 20 m), as read",
+   "roles": [
+    "data"
+   ],
+   "proj:code": "EPSG:32629",
+   "proj:shape": [
+    14,
+    14
+   ],
+   "file:checksum": "1220bb400554d946dc25f067fa57bdabb7e537a2c356e6937cf2607181fd234e51f4",
+   "file:size": 1505
+  },
+  "s2_b08": {
+   "href": "./S2B_29SQR_20250611_0_L2A_B08.tif",
+   "type": "image/tiff; application=geotiff",
+   "title": "S2B_29SQR_20250611_0_L2A B08 window over the display window (28 x 28 cells of 10 m), as read",
+   "roles": [
+    "data"
+   ],
+   "proj:code": "EPSG:32629",
+   "proj:shape": [
+    28,
+    28
+   ],
+   "file:checksum": "122000475d9037d6c08a9ac1329dffe5870377bd01f0af9dfbd86be400d4c105e5f6",
+   "file:size": 2299
+  },
+  "s2_b8a": {
+   "href": "./S2B_29SQR_20250611_0_L2A_B8A.tif",
+   "type": "image/tiff; application=geotiff",
+   "title": "S2B_29SQR_20250611_0_L2A B8A window over the display window (14 x 14 cells of 20 m), as read",
+   "roles": [
+    "data"
+   ],
+   "proj:code": "EPSG:32629",
+   "proj:shape": [
+    14,
+    14
+   ],
+   "file:checksum": "12209c5e7c0236fa7503884a8d582c227c694fcdb0a077e8f213e6b0e2f5941ae9c0",
+   "file:size": 1507
+  },
+  "s2_b11": {
+   "href": "./S2B_29SQR_20250611_0_L2A_B11.tif",
+   "type": "image/tiff; application=geotiff",
+   "title": "S2B_29SQR_20250611_0_L2A B11 window over the display window (14 x 14 cells of 20 m), as read",
+   "roles": [
+    "data"
+   ],
+   "proj:code": "EPSG:32629",
+   "proj:shape": [
+    14,
+    14
+   ],
+   "file:checksum": "122094f9d5f8dc1a4d421e488296b266304d33f2063f4202434fded058314841da5b",
+   "file:size": 1505
+  },
+  "s2_b12": {
+   "href": "./S2B_29SQR_20250611_0_L2A_B12.tif",
+   "type": "image/tiff; application=geotiff",
+   "title": "S2B_29SQR_20250611_0_L2A B12 window over the display window (14 x 14 cells of 20 m), as read",
+   "roles": [
+    "data"
+   ],
+   "proj:code": "EPSG:32629",
+   "proj:shape": [
+    14,
+    14
+   ],
+   "file:checksum": "12206f093c45d6cf899276200ec01e9811a25618e4a2717f0ab382c783d0c7be24af",
+   "file:size": 1507
+  },
+  "s2_scl": {
+   "href": "./S2B_29SQR_20250611_0_L2A_SCL.tif",
+   "type": "image/tiff; application=geotiff",
+   "title": "S2B_29SQR_20250611_0_L2A SCL window over the display window (14 x 14 cells of 20 m), as read",
+   "roles": [
+    "data"
+   ],
+   "proj:code": "EPSG:32629",
+   "proj:shape": [
+    14,
+    14
+   ],
+   "file:checksum": "12200e67ecd4b110275b2a519fb75e6e1631931b14d0451ff411b1e45cb481f1540c",
+   "file:size": 1145
+  }
+ },
+ "created": "2026-10-29T11:09:47Z",
+ "siterra:status": "validated",
+ "siterra:variable": "pixel_anatomy",
+ "siterra:dataset": {
+  "id": "sentinel-2-l2a",
+  "version": "05.11",
+  "access_route": "https://earth-search.aws.element84.com/v1/collections/sentinel-2-l2a/items/S2B_29SQR_20250611_0_L2A; band windows from the public sentinel-cogs bucket (COG range reads); MOD13Q1 v6.1 windows for the series",
+  "resolution_note": "Sentinel-2 10 m and 20 m bands on one 10 m grid; MODIS 250 m pixel of 231.66 m for the footprint and the series"
+ },
+ "siterra:geo_selection": {
+  "id": "geo_ait_bouguemez_catchment",
+  "revision": 1,
+  "boundary_role": "hydrological_unit",
+  "area_m2": 417360300,
+  "area_method": "Count of 10 m analysis pixels whose centres fall inside the frozen polygon, EPSG:32629"
+ },
+ "siterra:method": {
+  "id": "pixel_anatomy",
+  "version": "1.0.0",
+  "analysis_crs": "EPSG:32629",
+  "parameters": {
+   "place_configuration": "science/places/ait-bouguemez.json revision 5, sha256 8dd58b05777039e64773148647bcefd408a8b49d8dc54465830918e31caef7ec",
+   "pixel": "h17v05r4005c2178",
+   "window_margin_cells": 1,
+   "scl_kept": [
+    4,
+    5
+   ],
+   "reflectance_divisor": 10000,
+   "shift_points": 20,
+   "pixel_reliability_kept": [
+    0,
+    1
+   ],
+   "min_composite_share": 0.5,
+   "series_window": "mar_jun",
+   "ndvi_month": "2025-06",
+   "scene_tile": "29SQR",
+   "scene_relative_orbit": "R094",
+   "scene_month": "2025-06",
+   "candidate_rule": {
+    "window": "mar_jun",
+    "direction": "upward",
+    "fullyInsideCatchment": true,
+    "treeCoverPlusCropland": [
+     0.25,
+     0.6
+    ],
+    "grasslandShrublandBareOrSparseMin": 0.35,
+    "builtUpMax": 0.05,
+    "slopingCellsMin": 0.5,
+    "ranking": "lower bound of Sen's 95% interval, highest first",
+    "writtenBefore": "the candidate list was made, by the 28 October specimen build"
+   },
+   "pinned_inputs": {
+    "ndviMedian": "1f31217f15421eed40a9342011785e8ef0d47daacf24bdc8544bfbc7c712cf38",
+    "ndviCount": "83ea290dccde4f5c1c991a3223b39c3eceb0d19e46e947416cb2196cf8f3cbd1",
+    "trueColour": "68ba737d375936f0acb42057b0df047ed4b09148e577b71f87b668ec5a95734e"
+   },
+   "trend_bundle_files": {
+    "pixel_trend_table": "8aa31da81d9e5d9482fae0ce4da8818e7d1a674f34653c5a0b6e4f3de4cd9c3a",
+    "pixel_trend_grid": "3fac981d735cd04a1938e0f64e646f96ab6686576ec7d1b14540618fa019a990"
+   }
+  },
+  "reference_period": null,
+  "operation_order": [
+   "Pixel: a MODIS tile pixel named by its tile, row and column (h17v05, row 4005, column 2178); its position in the pixel trend bundle's native grid follows from the sinusoidal tile lattice; its footprint is the pixel's square in the MODIS sinusoidal grid (231.66 m), which is a four-sided shape in EPSG:32629",
+   "Cells: the 10 m cells of the strata's EPSG:32629 analysis grid whose centres lie inside the frozen polygon and, transformed to the sinusoidal grid, inside the footprint (the cell to pixel rule of place_config.cell_pixel_index). The display window is the bounding box of those cells plus 1 cell on every side, widened so that its edges lie on 20 m",
+   "Per cell: the ESA WorldCover 2021 v200 class; the Sentinel-2 monthly median NDVI and the count of dates behind it for the configured month; the true colour of the shared display composite (display only, never used in a number); whether the cell is inside the footprint and the polygon",
+   "Scene: among the Earth Search items cached for the pixel's Sentinel-2 tile and the configured month, those on the configured relative orbit with data over every footprint cell; the one with the largest share of footprint cells whose scene classification (SCL) is 4 or 5, ties by the latest date. Every candidate's share is stored",
+   "Extracts: for that scene, the windows of B02, B03, B04, B05, B06, B07, B08, B8A, B11, B12 and SCL that cover the display window (10 m bands at 10 m; 20 m bands and SCL at 20 m), as read (uint16 digital numbers, uint8 SCL), each with its source address, COG window and sha256",
+   "Spectra: reflectance = DN / 10000 with no offset; the 20 m bands and SCL repeated 2 x 2 onto the 10 m cells; a footprint cell is kept when its SCL is 4 or 5 and every band's DN is above 0. Per WorldCover class of the footprint: the median, 25th and 75th percentile of the kept cells' reflectance in each band and the number of kept cells. The pixel's measured values: the mean reflectance of all kept cells in each band, the NDVI of the mean red (B04) and near-infrared (B08), and the median and mean of the cell NDVI",
+   "Mix model (modelled, not measured): the share of class k is s_k = footprint cells of class k / footprint cells; the mixed reflectance in band b is R(b) = sum over k of s_k times the class median M_k(b); modelled NDVI = (R(B08) - R(B04)) / (R(B08) + R(B04)). Stored with the difference from the measured pixel NDVI, and with the same formula for a reference shift of 20 percentage points of the footprint from grassland to tree cover (an example of the control, not an observation)",
+   "Series: the pixel's season greenness G(p, y) for March to June of each year 2000 to 2025, recomputed from the MOD13Q1 windows with the registered functions of pixel_trend_long_record (pixel reliability 0 and 1 kept, at least half of the 16-day periods kept, values to 5 decimals), and its Theil-Sen slope per decade with Sen's 95% interval; the builder stops unless slope and interval equal the pixel trend bundle's table at 5 decimals",
+   "Selection record: the pixels that meet the specimen's rule (Sen interval entirely above zero in March to June, every footprint cell inside the catchment, tree cover plus cropland 0.25 to 0.60 of the cells, grassland plus shrubland plus bare or sparse at least 0.35, built-up at most 0.05, at least half of the cells on sloping ground), ranked by the lower bound of the interval; stored with their number, the top five and the pixel's rank",
+   "Acceptance checks, all stored with the bundle: the cell to pixel rule reproduces the table's analysis_cells for every one of the pixels and the footprint count of this pixel; every extract's sha256 equals its record; the extracts cover the display window; no kept cell has red or near-infrared reflectance above 1.0; class cell counts add up to the footprint; the series reproduces the table; the scene is the one the scene rule gives; two runs give identical files apart from the computed time"
+  ]
+ },
+ "siterra:attribution": [
+  "Contains modified Copernicus Sentinel data 2025",
+  "Didan, K. (2021). MODIS/Terra Vegetation Indices 16-Day L3 Global 250m SIN Grid V061. NASA Land Processes Distributed Active Archive Center. https://doi.org/10.5067/MODIS/MOD13Q1.061. Tile h17v05, A2000049 to A2025353, read from Microsoft Planetary Computer, accessed 2026-10-28",
+  "Catchment and strata derived by Siterra from Copernicus DEM GLO-30 (2021 release)",
+  "produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved",
+  "The organisations in charge of the Copernicus programme by law or by delegation do not incur any liability for any use of the Copernicus WorldDEM-30",
+  "© ESA WorldCover project / Contains modified Copernicus Sentinel data (2021) processed by ESA WorldCover consortium",
+  "ESA WorldCover 2021 v200 (Zanaga et al. 2022), CC BY 4.0, https://doi.org/10.5281/zenodo.7254221",
+  "ESA WorldCover 10 m 2021 v200, Zanaga et al. (2022), https://doi.org/10.5281/zenodo.7254221, CC BY 4.0"
+ ],
+ "siterra:limitations": [
+  "One pixel is an illustration, not a sample: it was chosen by judgment among the candidates of a rule (the selection record gives their number and its rank), and it says nothing about other pixels.",
+  "The class spectra come from one clear day, the cells of each class inside this pixel, and one 2021 land cover map. They are not typical spectra of the classes, and a 10 m cell at the edge of a class mixes surfaces.",
+  "The mix model assumes the pixel's reflectance is the share-weighted sum of its class medians. It ignores shadow, slope and variation inside a class, so its NDVI is modelled, not measured, and it differs from the measured pixel NDVI by the amount stored.",
+  "NDVI measures how green the ground looks from above, not forage, palatability or species: in Ait Bouguemez and the Central High Atlas, upper rangelands are dominated by spiny xerophytic vegetation over reduced short grasslands (SCI-19, p. 2), and on the valley floor tree cover may include orchards (SCI-03, pp. 5, 9 to 10).",
+  "The 26-season series is the pixel's own March to June greenness, not adjusted for rainfall. Its trend is a descriptive Theil-Sen slope with Sen's 95% interval, and no p-value or false discovery rate class is stored for one pixel (SCI-52).",
+  "Terra's overpass has drifted earlier since 2020, from 10:30 to about 9:06 mean local time by December 2025 (NASA), so later seasons are seen with a lower sun and longer shadows in mountain terrain, which may shift NDVI without any change on the ground.",
+  "The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary."
+ ],
+ "siterra:checks": [
+  {
+   "name": "recompute_sample_period",
+   "passed": true,
+   "detail": "Recomputed from the shipped extracts, the pixel trend table and the MOD13Q1 windows. The cell to pixel rule gives the table's analysis_cells for 8094 of 8094 pixels (0 differ); this pixel's footprint holds 537 cells, 537 of them inside the catchment, against 537 in the table. 11 of 11 extracts have the recorded sha256 (mismatching: none) and every window covers the 28 x 28 display window (True). 0 kept cells have red or near-infrared reflectance above 1.0; class cell counts add up to 537 of 537. The pixel's 26-season March to June series gives slope +0.05702 and interval +0.03741 to +0.08451 NDVI per decade, equal to the table's +0.05702 and +0.03741 to +0.08451 at 5 decimals (True). The scene rule applied to the stored candidates gives S2B_29SQR_20250611_0_L2A (True). The candidate rule gives 391 pixels and ranks this one 3. The whole computation run twice in one process gives identical results: True."
+  },
+  {
+   "name": "units_and_scale",
+   "passed": true,
+   "detail": "Reflectance is DN / 10000 with no offset (observation-preprocessing.md, offset rule); extracts hold the stored uint16 DN and uint8 SCL; NDVI is (near-infrared - red) / (near-infrared + red) from B08 and B04; series NDVI is the MOD13Q1 DN / 10000 season mean; slopes are NDVI per decade (1/(10 a)); coordinates are EPSG:32629 metres for the grid and decimal degrees for the footprint corners; the MODIS pixel is 231.66 m on a side."
+  },
+  {
+   "name": "nodata_not_zero",
+   "passed": true,
+   "detail": "DN 0 means no data in the extracts and occurs in 0 cells of all 11 windows; SCL 0 (no data) occurs in 0 footprint cells. A season whose half of 16-day periods are not kept has no value (null), never 0; 0 of 26 seasons are missing."
+  },
+  {
+   "name": "qa_join_coverage",
+   "passed": true,
+   "detail": "Scene classification joins every footprint cell to its bands: {'4': 286, '5': 251} cells by SCL class in the footprint (537 cells); the share with SCL 4 or 5 is 1.0. The scene rule compared 8 scenes on R094; every candidate's share is in scene-record.json."
+  },
+  {
+   "name": "period_alignment",
+   "passed": true,
+   "detail": "The scene (2025-06-11) lies in 2025-06, the month of the NDVI median and count shown for each cell, and inside the March to June window of the last season of the series."
+  },
+  {
+   "name": "attribution_present",
+   "passed": true,
+   "detail": "The Sentinel-2 notice for 2025, the MOD13Q1 v6.1 citation with DOI, subset and access date, the ESA WorldCover attribution and the Copernicus DEM notices are in siterra:attribution."
+  },
+  {
+   "name": "visual_inspection_sample",
+   "passed": true,
+   "detail": "Rendered the 28 x 28 cell window, the class spectra and the series (science/pipeline/render-pixel-anatomy.py) and inspected the image on 2026-10-29 (science lane). The footprint is a slightly turned square of 537 cells: tree cover fills its northern half, grassland its southern half, cropland lies in patches towards the north-east, and a strip of bare or sparse ground runs along its south-western edge. June NDVI is high over the tree cover and low over the grassland, and the display true colour shows the same split, dark green above and pale ground below. In the spectra, tree cover and cropland rise steeply from red to near-infrared while grassland and bare ground stay nearly flat, with the pixel mean between them, and the model value sits just below the measured value. The series swings from year to year, 2001 is its lowest season, and the straight line through it slopes upward."
+  }
+ ],
+ "links": [
+  {
+   "rel": "root",
+   "href": "../catalog.json",
+   "type": "application/json"
+  },
+  {
+   "rel": "parent",
+   "href": "../catalog.json",
+   "type": "application/json"
+  },
+  {
+   "rel": "derived_from",
+   "href": "../bundle_terrain_strata_ait_bouguemez/collection.json",
+   "type": "application/json",
+   "title": "Terrain strata bundle bundle_terrain_strata_ait_bouguemez",
+   "file:checksum": "1220857e69c5d1ddbe846b8022836f888254f3f818251b9e3e4ffba8748bae07241d"
+  },
+  {
+   "rel": "derived_from",
+   "href": "../bundle_pixel_trend_long_record_ait_bouguemez/collection.json",
+   "type": "application/json",
+   "title": "Pixel trend bundle bundle_pixel_trend_long_record_ait_bouguemez",
+   "file:checksum": "12201953f2b33087cf2424009f9d4c27e04a35bb3b00846eaa10ff5e2b22dde6ed0d"
+  },
+  {
+   "rel": "derived_from",
+   "href": "../bundle_s2_ndvi_monthly_ait_bouguemez/collection.json",
+   "type": "application/json",
+   "title": "Sentinel-2 monthly NDVI bundle bundle_s2_ndvi_monthly_ait_bouguemez (the June NDVI of each cell)",
+   "file:checksum": "1220091ac5c9e2c46acc35f07d2725001b9ebe7d2a9ca69abcbeed61993e9ab29c67"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://earth-search.aws.element84.com/v1/collections/sentinel-2-l2a/items/S2B_29SQR_20250611_0_L2A",
+   "type": "application/geo+json",
+   "title": "Earth Search item S2B_29SQR_20250611_0_L2A (cached copy sha256 23d64b971286a4c76f6136e844b19b88aec3d86cff0a69a12dff8c30d0267a34)",
+   "siterra:retrieved_datetime": "2026-10-27T15:20:44Z"
+  },
+  {
+   "rel": "license",
+   "href": "https://www.earthdata.nasa.gov/engage/open-data-services-software-policies/data-use-guidance",
+   "title": "MOD13Q1 v6.1: NASA data use guidance (NASA-led mission data without a marked restriction are CC0; citation strongly urged)"
+  },
+  {
+   "rel": "license",
+   "href": "https://dataspace.copernicus.eu/sites/default/files/media/files/2025-06/copernicus_contributing_mission_data_access_v2_cop_dem_licenses.pdf",
+   "title": "Licence for Copernicus DEM instance COP-DEM-GLO-30-F Global 30m Full, Free & Open"
+  },
+  {
+   "rel": "license",
+   "href": "https://creativecommons.org/licenses/by/4.0/",
+   "title": "ESA WorldCover: CC BY 4.0"
+  },
+  {
+   "rel": "cite-as",
+   "href": "https://doi.org/10.5067/MODIS/MOD13Q1.061",
+   "title": "Didan (2021), MOD13Q1 v6.1 data set DOI"
+  },
+  {
+   "rel": "cite-as",
+   "href": "https://doi.org/10.5281/zenodo.7254221",
+   "title": "Zanaga et al. (2022), ESA WorldCover 10 m 2021 v200"
+  },
+  {
+   "rel": "license",
+   "href": "https://cds.climate.copernicus.eu/licences/ec-sentinel",
+   "title": "Legal notice on the use of Copernicus Sentinel data and service information (SCI-18)"
+  },
+  {
+   "rel": "processing-software",
+   "href": "./uv.lock",
+   "type": "application/toml",
+   "title": "Pipeline lockfile (uv)",
+   "file:checksum": "12205154d57a84dcb8f1eb5f992923d7589a669b8dc669edf140f607ff2740733aff"
+  }
+ ]
+}

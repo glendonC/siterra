@@ -21,7 +21,7 @@ describe("commissionRequest", () => {
     expect(r.intent).toBe("commission");
     expect(r.expectedCaseRevision).toBe(snapshot.case.revision);
     expect(r.context.geoSelectionId).toBe("geo_ait_bouguemez_catchment");
-    expect(r.context.dataBundleIds).toHaveLength(11);
+    expect(r.context.dataBundleIds).toHaveLength(16);
   });
 
   it("refuses a key the contract does not accept", () => {

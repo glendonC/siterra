@@ -1,0 +1,226 @@
+{
+ "type": "Collection",
+ "stac_version": "1.1.0",
+ "stac_extensions": [
+  "https://stac-extensions.github.io/processing/v1.3.0/schema.json",
+  "https://stac-extensions.github.io/file/v2.1.0/schema.json",
+  "https://siterra.invalid/schemas/stac/siterra/1.1.0/schema.json"
+ ],
+ "id": "bundle_optical_visibility_ait_bouguemez",
+ "title": "Optical visibility by elevation band (optical_visibility_by_band 1.0.0)",
+ "description": "Precomputed result of recipe optical_visibility_by_band 1.0.0 for Ait Bouguemez valley catchment: for each of the three elevation bands and each of the 84 months of 2019-01 to 2025-12, the share of the band's 10 m cells with a clear Sentinel-2 observation (at least one date, and at least three), and the winter (December to March, 28 months) summary. Upper band, winter, at least one date: 0.1895 to 0.9855, median 0.4731, 3 of 28 months at or above 0.9. Observation.\n\nA clear share counts cells that have at least one (or three) Sentinel-2 dates not classed as cloud, cloud shadow, snow or water in the month; it says how often the band was seen, not how much of it was covered by snow or cloud, and the files do not say which of the two hid a cell. The shares depend on the Sentinel-2 scene classification of each date, which makes errors on thin cloud, snow edges and shadow; they are observations of the classification, not of the ground. Bands are elevation terciles that organise sampling; they are not vegetation types, grazing zones or management boundaries. Only the months of 2019 to 2025 that the Sentinel-2 monthly series holds are covered, 28 winter months.",
+ "license": "other",
+ "providers": [
+  {
+   "name": "Copernicus Sentinel-2 (European Union, ESA)",
+   "roles": [
+    "producer",
+    "licensor"
+   ]
+  },
+  {
+   "name": "AWS",
+   "roles": [
+    "host"
+   ],
+   "url": "https://registry.opendata.aws/sentinel-2-l2a-cogs/"
+  },
+  {
+   "name": "Siterra science pipeline",
+   "roles": [
+    "processor"
+   ],
+   "processing:lineage": "Valid-cell shares per strata elevation band from the monthly Sentinel-2 median and count composites (science/pipeline/optical-visibility-bundle.py)",
+   "processing:software": {
+    "siterra-science": "0.1.0",
+    "python": "3.12.9",
+    "numpy": "2.5.4",
+    "rasterio": "1.5.2",
+    "gdal": "3.12.2"
+   }
+  }
+ ],
+ "extent": {
+  "spatial": {
+   "bbox": [
+    [
+     -6.54125,
+     31.49430555555556,
+     -6.142083333333333,
+     31.75652777777778
+    ]
+   ]
+  },
+  "temporal": {
+   "interval": [
+    [
+     "2019-01-01T00:00:00Z",
+     "2025-12-31T23:59:59Z"
+    ]
+   ]
+  }
+ },
+ "assets": {
+  "analysis_geometry": {
+   "href": "./analysis-geometry.geojson",
+   "type": "application/geo+json",
+   "title": "Frozen analysis geometry geo_ait_bouguemez_catchment, revision 1",
+   "roles": [
+    "metadata"
+   ],
+   "file:checksum": "1220ac506ece626b6844d759b56aa60a10248c8c0ea5e206f9a28eb436a892a4d47f",
+   "file:size": 119623
+  },
+  "optical_visibility_by_band": {
+   "href": "./optical-visibility.json",
+   "type": "application/json",
+   "title": "Winter summary per band and validity definition, the figures reproduced and the check results (the result read_recipe_result returns)",
+   "roles": [
+    "data"
+   ],
+   "file:checksum": "12209e6c361d1b6c7b45e9a28c3dccdd871a2fd9716ac3d4705b7d9b1c7702d96544",
+   "file:size": 9917
+  },
+  "optical_visibility_monthly": {
+   "href": "./optical-visibility-monthly.json",
+   "type": "application/json",
+   "title": "Valid cells and clear share per band, month and validity definition, and the sha256 of every input file",
+   "roles": [
+    "data"
+   ],
+   "file:checksum": "12200507dc78de33b891fabf82e16e4d3af19de9048e3c1c8403130a60920d7964a1",
+   "file:size": 31387
+  }
+ },
+ "created": "2026-10-29T13:54:01Z",
+ "siterra:status": "validated",
+ "siterra:variable": "optical_clear_share",
+ "siterra:dataset": {
+  "id": "sentinel-2-l2a",
+  "version": null,
+  "access_route": "Earth Search STAC API https://earth-search.aws.element84.com/v1/, collection sentinel-2-l2a (legacy), COGs on sentinel-cogs.s3.us-west-2.amazonaws.com read by window",
+  "resolution_note": null
+ },
+ "siterra:geo_selection": {
+  "id": "geo_ait_bouguemez_catchment",
+  "revision": 1,
+  "boundary_role": "hydrological_unit",
+  "area_m2": 417360300,
+  "area_method": "Count of 10 m analysis pixels whose centres fall inside the frozen polygon, EPSG:32629"
+ },
+ "siterra:method": {
+  "id": "optical_visibility_by_band",
+  "version": "1.0.0",
+  "analysis_crs": "EPSG:32629",
+  "parameters": {
+   "place_configuration": "science/places/ait-bouguemez.json revision 6, sha256 b3d421c5d6cc20013acaeab9971f0996ac57cbcb8c7342c525eb234e4a73f07a",
+   "min_dates_primary": 1,
+   "min_dates_strict": 3,
+   "threshold_high": 0.9,
+   "threshold_half": 0.5,
+   "winter_months": [
+    12,
+    1,
+    2,
+    3
+   ],
+   "validity": [
+    {
+     "id": "any_date",
+     "minDates": 1,
+     "primary": true,
+     "label": "at least one clear Sentinel-2 date in the month (a monthly median exists)"
+    },
+    {
+     "id": "three_dates",
+     "minDates": 3,
+     "label": "at least three clear Sentinel-2 dates in the month"
+    }
+   ],
+   "band_boundaries_m": [
+    2316.8,
+    2815.2
+   ]
+  },
+  "reference_period": null,
+  "operation_order": [
+   "Bands: the three equal-area elevation terciles of the terrain strata bundle (band 1 below 2316.8 m, 2 to below 2815.2 m, 3 from 2815.2 m up), each over the 10 m analysis cells inside the frozen polygon",
+   "A month's cells: for each month from 2019-01 to 2025-12, the monthly Sentinel-2 composite of the NDVI bundle: median.tif (NDVI median, NaN where no date kept the cell) and count.tif (the number of dates that kept the cell); a date keeps a cell where the Scene Classification Layer is 4 (vegetation) or 5 (not vegetated) and the bands have data; cloud, shadow, snow and water classes drop it",
+   "Clear share: for each band, month and validity definition, the number of the band's cells that are valid divided by the number of the band's cells, to 4 decimals. any_date (primary): the median is a number (equivalently count at least 1); three_dates: count at least 3",
+   "Winter: the months December, January, February and March (28 months from 2019-01 to 2025-12). For each band and definition: the lowest, median, highest clear share over the winter months, the number of winter months at or above 0.9 and at or above 0.5, and the winter months with their shares",
+   "Acceptance checks, all stored with the bundle: the three bands' cell counts sum to the number of 10 m cells inside the polygon; every month has median.tif and count.tif on the strata grid; for every month the any_date valid count equals the count of cells with count at least 1; the clear shares of the upper band in winter reproduce the figures named in the place configuration (minimum 0.19, median 0.4731, maximum 0.985, 3 months at or above 0.9, 11 at or above 0.5, December 2023 0.971, January 2024 0.947, February 2024 0.985, to the digits given); the sha256 of every input file is stored; two runs give identical files apart from the computed time"
+  ]
+ },
+ "siterra:attribution": [
+  "Contains modified Copernicus Sentinel data 2019-2025",
+  "Catchment derived by Siterra from Copernicus DEM GLO-30 (2021 release)",
+  "Produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved",
+  "The organisations in charge of the Copernicus programme by law or by delegation do not incur any liability for any use of the Copernicus WorldDEM-30"
+ ],
+ "siterra:limitations": [
+  "A clear share counts cells that have at least one (or three) Sentinel-2 dates not classed as cloud, cloud shadow, snow or water in the month; it says how often the band was seen, not how much of it was covered by snow or cloud, and the files do not say which of the two hid a cell.",
+  "The shares depend on the Sentinel-2 scene classification of each date, which makes errors on thin cloud, snow edges and shadow; they are observations of the classification, not of the ground.",
+  "Bands are elevation terciles that organise sampling; they are not vegetation types, grazing zones or management boundaries.",
+  "Only the months of 2019 to 2025 that the Sentinel-2 monthly series holds are covered, 28 winter months."
+ ],
+ "siterra:checks": [
+  {
+   "name": "recompute_sample_period",
+   "passed": true,
+   "detail": "Recomputed from the stored monthly files. The three bands' cells sum to 4173603 against 4173603 cells inside the polygon (True); 84 months present on the strata grid (0 grid mismatches); the any_date count differs from the count of cells with at least one date in 0 months. The upper band's winter shares (28 months, any_date): lowest 0.1895, median 0.4731, highest 0.9855, 3 at or above 0.9 (2023-12, 2024-01, 2024-02), 11 at or above 0.5; each equals the figure named in the place configuration: {'lowest': True, 'median': True, 'highest': True, 'at_or_above_high': True, 'at_or_above_half': True, 'winter_months': True, 'named_months': True}. The stricter three_dates reading of the same band: lowest 0.0467, median 0.3289, highest 0.9028, 1 at or above 0.9, 8 at or above 0.5. The sha256 of all 168 input files is stored. The whole computation run twice in one process is identical: True."
+  },
+  {
+   "name": "units_and_scale",
+   "passed": true,
+   "detail": "Clear share is a fraction of the band's 10 m cells (0 to 1, 4 decimals); the bands are the strata's equal-area elevation terciles (2316.8 m and 2815.2 m); months are calendar months of the Sentinel-2 composites; winter is December to March."
+  },
+  {
+   "name": "nodata_not_zero",
+   "passed": true,
+   "detail": "A share of 0 means no cell of the band had a clear date that month; nothing is stored as missing (every month and band has a value). Cells outside the polygon are not counted in any band."
+  },
+  {
+   "name": "attribution_present",
+   "passed": true,
+   "detail": "The Sentinel-2 and Copernicus DEM notices are in siterra:attribution."
+  },
+  {
+   "name": "visual_inspection_sample",
+   "passed": true,
+   "detail": "Rendered the stored shares as a strip, one row per elevation band and one column per month from 2019-01 to 2025-12, with the winter months marked (visibility.png): the clear share is near 1 in every band from April to November, falls in the winter months of every year, and falls furthest in the upper band, whose winter columns are the darkest and whose three clearest winter months (December 2023, January and February 2024) stand out as light; the lower band stays light throughout. The winter marks line up with the dark columns. The cell classification of each date was not checked against imagery here."
+  }
+ ],
+ "links": [
+  {
+   "rel": "root",
+   "href": "../catalog.json",
+   "type": "application/json"
+  },
+  {
+   "rel": "parent",
+   "href": "../catalog.json",
+   "type": "application/json"
+  },
+  {
+   "rel": "derived_from",
+   "href": "../bundle_s2_ndvi_monthly_ait_bouguemez/collection.json",
+   "type": "application/json",
+   "title": "Sentinel-2 NDVI bundle bundle_s2_ndvi_monthly_ait_bouguemez (the monthly composites)",
+   "file:checksum": "1220091ac5c9e2c46acc35f07d2725001b9ebe7d2a9ca69abcbeed61993e9ab29c67"
+  },
+  {
+   "rel": "derived_from",
+   "href": "../bundle_terrain_strata_ait_bouguemez/collection.json",
+   "type": "application/json",
+   "title": "Terrain strata bundle bundle_terrain_strata_ait_bouguemez",
+   "file:checksum": "1220857e69c5d1ddbe846b8022836f888254f3f818251b9e3e4ffba8748bae07241d"
+  },
+  {
+   "rel": "processing-software",
+   "href": "./uv.lock",
+   "type": "application/toml",
+   "title": "Pipeline lockfile (uv)",
+   "file:checksum": "12205154d57a84dcb8f1eb5f992923d7589a669b8dc669edf140f607ff2740733aff"
+  }
+ ]
+}

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://siterra.invalid/schemas/case/1.10.0/case.schema.json",
+  "$id": "https://siterra.invalid/schemas/case/1.12.0/case.schema.json",
   "title": "Siterra case contracts",
   "description": "Records of one Siterra case as stored and exchanged between the web application, the worker and the browser. The root validates a case snapshot, a command, an event or an atomic commit proposal; $defs holds the record types. Cross-record semantics that JSON Schema cannot express are specified in docs/reference/data-contracts.md.",
   "oneOf": [
@@ -1750,9 +1750,14 @@
             "trace",
             "action_package",
             "decision_brief",
-            "explanation_branches"
+            "explanation_branches",
+            "layer_stack",
+            "cross_section",
+            "pixel_anatomy",
+            "rainfall_scatter",
+            "field_plan"
           ],
-          "description": "explanation_branches added in 1.10.0 (proposed): binds the ExplanationBranch records of one command and their BranchMerge."
+          "description": "explanation_branches added in 1.10.0 (proposed): binds the ExplanationBranch records of one command and their BranchMerge. layer_stack, cross_section, pixel_anatomy, rainfall_scatter and field_plan added in 1.11.0: each binds exactly one InstrumentSpec."
         },
         "entityIds": {
           "type": "array",
@@ -1944,7 +1949,12 @@
                 "trace",
                 "action_package",
                 "decision_brief",
-                "explanation_branches"
+                "explanation_branches",
+                "layer_stack",
+                "cross_section",
+                "pixel_anatomy",
+                "rainfall_scatter",
+                "field_plan"
               ]
             },
             {
@@ -2804,7 +2814,9 @@
             "1.7.0",
             "1.8.0",
             "1.9.0",
-            "1.10.0"
+            "1.10.0",
+            "1.11.0",
+            "1.12.0"
           ],
           "description": "Contract version the instance was written against; producers write the newest, and earlier versions of the same MAJOR stay valid."
         },
@@ -2901,7 +2913,9 @@
             "1.7.0",
             "1.8.0",
             "1.9.0",
-            "1.10.0"
+            "1.10.0",
+            "1.11.0",
+            "1.12.0"
           ],
           "description": "Contract version the instance was written against; producers write the newest, and earlier versions of the same MAJOR stay valid."
         },
@@ -3232,6 +3246,13 @@
             "$ref": "#/$defs/BranchMerge"
           },
           "description": "Added in 1.9.0; optional so earlier snapshots stay valid."
+        },
+        "instrumentSpecRecords": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/InstrumentSpec"
+          },
+          "description": "Added in 1.11.0; optional so earlier snapshots stay valid."
         }
       },
       "required": [
@@ -3270,7 +3291,9 @@
             "1.7.0",
             "1.8.0",
             "1.9.0",
-            "1.10.0"
+            "1.10.0",
+            "1.11.0",
+            "1.12.0"
           ],
           "description": "Contract version the instance was written against; producers write the newest, and earlier versions of the same MAJOR stay valid."
         },
@@ -3310,7 +3333,9 @@
             "1.7.0",
             "1.8.0",
             "1.9.0",
-            "1.10.0"
+            "1.10.0",
+            "1.11.0",
+            "1.12.0"
           ],
           "description": "Contract version the instance was written against; producers write the newest, and earlier versions of the same MAJOR stay valid."
         },
@@ -3417,6 +3442,9 @@
               },
               {
                 "$ref": "#/$defs/BranchMerge"
+              },
+              {
+                "$ref": "#/$defs/InstrumentSpec"
               }
             ]
           },
@@ -3966,7 +3994,7 @@
     },
     "ContextFeature": {
       "type": "object",
-      "description": "A located feature a view needs (an outlet, a settlement, later a viewpoint or a river line), with where its position comes from. Added in 1.6.0. Never evidence: no claim rests on it.",
+      "description": "A located feature a view needs (an outlet, a settlement, later a viewpoint or a river line), with where its position comes from. Added in 1.6.0 as points; lines added in 1.12.0. Never evidence: no claim rests on it.",
       "properties": {
         "recordType": {
           "const": "ContextFeature"
@@ -4002,38 +4030,15 @@
             "settlement",
             "settlement_locator",
             "viewpoint",
-            "summit"
-          ]
+            "summit",
+            "drainage",
+            "transect",
+            "route_proposed"
+          ],
+          "description": "drainage, transect and route_proposed added in 1.12.0 and are lines; the others are points. Each role fits one kind of geometry (the allOf rules below)."
         },
         "geometry": {
-          "type": "object",
-          "properties": {
-            "type": {
-              "const": "Point"
-            },
-            "coordinates": {
-              "type": "array",
-              "prefixItems": [
-                {
-                  "type": "number",
-                  "minimum": -180,
-                  "maximum": 180
-                },
-                {
-                  "type": "number",
-                  "minimum": -90,
-                  "maximum": 90
-                }
-              ],
-              "minItems": 2,
-              "maxItems": 2
-            }
-          },
-          "required": [
-            "type",
-            "coordinates"
-          ],
-          "additionalProperties": false
+          "$ref": "#/$defs/ContextGeometry"
         },
         "crs": {
           "const": "EPSG:4326"
@@ -4093,6 +4098,16 @@
           },
           "minItems": 0,
           "uniqueItems": true
+        },
+        "dataBundle": {
+          "$ref": "#/$defs/BundleAssetRef",
+          "description": "Added in 1.12.0, optional: the bundle asset a line was read from, when it was. A loader that imports a line bundle is expected to write it; no loader does yet."
+        },
+        "streamOrder": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 12,
+          "description": "Added in 1.12.0, optional, drainage only: the Strahler order of every line in the feature (a loader that imports the drainage bundle is expected to write one feature per order; no loader does yet). Per-segment details stay in the bundle asset named by dataBundle."
         }
       },
       "additionalProperties": false,
@@ -4113,6 +4128,110 @@
         "attribution",
         "license",
         "limitations"
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "role": {
+                "enum": [
+                  "outlet",
+                  "settlement",
+                  "settlement_locator",
+                  "viewpoint",
+                  "summit"
+                ]
+              }
+            },
+            "required": [
+              "role"
+            ]
+          },
+          "then": {
+            "properties": {
+              "geometry": {
+                "properties": {
+                  "type": {
+                    "const": "Point"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "role": {
+                "const": "transect"
+              }
+            },
+            "required": [
+              "role"
+            ]
+          },
+          "then": {
+            "properties": {
+              "geometry": {
+                "properties": {
+                  "type": {
+                    "const": "LineString"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "role": {
+                "enum": [
+                  "drainage",
+                  "route_proposed"
+                ]
+              }
+            },
+            "required": [
+              "role"
+            ]
+          },
+          "then": {
+            "properties": {
+              "geometry": {
+                "properties": {
+                  "type": {
+                    "enum": [
+                      "LineString",
+                      "MultiLineString"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "role": {
+                "not": {
+                  "const": "drainage"
+                }
+              }
+            },
+            "required": [
+              "role"
+            ]
+          },
+          "then": {
+            "not": {
+              "required": [
+                "streamOrder"
+              ]
+            }
+          }
+        }
       ]
     },
     "FieldStratum": {
@@ -5041,6 +5160,589 @@
           "$ref": "#/$defs/Provenance"
         }
       }
+    },
+    "BundleAssetRef": {
+      "type": "object",
+      "description": "One file of a validated observation bundle, named by the bundle and the asset key its collection lists. Added in 1.11.0. The bundle revision is pinned once, in the provenance.inputVersions of the record that holds the reference.",
+      "properties": {
+        "bundleId": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "assetKey": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_-]{0,79}$",
+          "description": "The key of the asset in the bundle's STAC collection."
+        }
+      },
+      "required": [
+        "bundleId",
+        "assetKey"
+      ],
+      "additionalProperties": false
+    },
+    "InstrumentCaption": {
+      "type": "object",
+      "description": "The words beside an instrument: a claim in ink, its limit in grey, and the records the numbered chips open. Added in 1.11.0. Host rules in data-contracts.md (INST-05) check each sentence against the cited records.",
+      "properties": {
+        "ink": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200,
+          "description": "The claim, one sentence."
+        },
+        "grey": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 240,
+          "description": "The limit or scope of the claim, one sentence."
+        },
+        "claimKind": {
+          "type": "string",
+          "enum": [
+            "observation",
+            "scientific_context",
+            "hypothesis",
+            "model_estimate",
+            "scenario",
+            "field_requirement",
+            "verified_outcome"
+          ],
+          "description": "The kind of the ink sentence; the interface shows it with the sentence."
+        },
+        "citationIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+          },
+          "minItems": 1,
+          "maxItems": 8,
+          "uniqueItems": true,
+          "description": "Evidence or Measurement records of the case, in the order of the numbered chips."
+        }
+      },
+      "required": [
+        "ink",
+        "grey",
+        "claimKind",
+        "citationIds"
+      ],
+      "additionalProperties": false
+    },
+    "LayerStackLayer": {
+      "type": "object",
+      "properties": {
+        "layer": {
+          "type": "string",
+          "enum": [
+            "vegetation_trend",
+            "rainfall",
+            "snow_cover",
+            "land_cover",
+            "elevation_bands"
+          ]
+        },
+        "data": {
+          "$ref": "#/$defs/BundleAssetRef",
+          "description": "The asset the sheet is drawn from."
+        }
+      },
+      "required": [
+        "layer",
+        "data"
+      ],
+      "additionalProperties": false
+    },
+    "CrossSectionStatement": {
+      "type": "object",
+      "properties": {
+        "evidenceId": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$",
+          "description": "A scientific_context Evidence record."
+        },
+        "placement": {
+          "type": "string",
+          "enum": [
+            "valley_floor",
+            "upper_slope"
+          ]
+        }
+      },
+      "required": [
+        "evidenceId",
+        "placement"
+      ],
+      "additionalProperties": false
+    },
+    "LayerStackParameters": {
+      "type": "object",
+      "description": "Data layers stacked as sheets over the catchment. layers are listed top sheet first and numbered in that order.",
+      "properties": {
+        "kind": {
+          "const": "layer_stack"
+        },
+        "geoSelectionId": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$",
+          "description": "The area the instrument is about (a GeoSelection)."
+        },
+        "relief": {
+          "$ref": "#/$defs/BundleAssetRef",
+          "description": "The relief the sheets stand over."
+        },
+        "layers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/LayerStackLayer"
+          },
+          "minItems": 1,
+          "maxItems": 5
+        },
+        "drainageFeatureIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+          },
+          "uniqueItems": true,
+          "maxItems": 16,
+          "description": "ContextFeature records with the role drainage."
+        },
+        "placeFeatureIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+          },
+          "uniqueItems": true,
+          "maxItems": 32,
+          "description": "ContextFeature points: the outlet and the places named on the land."
+        },
+        "selectedLayer": {
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "vegetation_trend",
+                "rainfall",
+                "snow_cover",
+                "land_cover",
+                "elevation_bands"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "kind",
+        "geoSelectionId",
+        "relief",
+        "layers",
+        "drainageFeatureIds",
+        "placeFeatureIds",
+        "selectedLayer"
+      ],
+      "additionalProperties": false
+    },
+    "CrossSectionParameters": {
+      "type": "object",
+      "description": "The catchment cut along one line, the cut face shown with the bands, their trends and their snow.",
+      "properties": {
+        "kind": {
+          "const": "cross_section"
+        },
+        "geoSelectionId": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$",
+          "description": "The area the instrument is about (a GeoSelection)."
+        },
+        "transectFeatureId": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$",
+          "description": "A ContextFeature record with the role transect: the cut line."
+        },
+        "relief": {
+          "$ref": "#/$defs/BundleAssetRef",
+          "description": "The relief the cut is taken from."
+        },
+        "profile": {
+          "$ref": "#/$defs/BundleAssetRef",
+          "description": "The samples along the cut line."
+        },
+        "bands": {
+          "$ref": "#/$defs/BundleAssetRef",
+          "description": "The elevation bands and their limits."
+        },
+        "bandTrends": {
+          "$ref": "#/$defs/BundleAssetRef",
+          "description": "The trend of each band."
+        },
+        "snow": {
+          "$ref": "#/$defs/BundleAssetRef",
+          "description": "Snow cover by band and month."
+        },
+        "drainageFeatureIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+          },
+          "uniqueItems": true,
+          "maxItems": 16,
+          "description": "ContextFeature records with the role drainage."
+        },
+        "placeFeatureIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+          },
+          "uniqueItems": true,
+          "maxItems": 32,
+          "description": "ContextFeature points named on the land."
+        },
+        "statements": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/CrossSectionStatement"
+          },
+          "maxItems": 4
+        }
+      },
+      "required": [
+        "kind",
+        "geoSelectionId",
+        "transectFeatureId",
+        "relief",
+        "profile",
+        "bands",
+        "bandTrends",
+        "snow",
+        "drainageFeatureIds",
+        "placeFeatureIds",
+        "statements"
+      ],
+      "additionalProperties": false
+    },
+    "PixelAnatomyParameters": {
+      "type": "object",
+      "description": "One coarse satellite pixel opened into the finer cells inside it. The anatomy asset names the pixel.",
+      "properties": {
+        "kind": {
+          "const": "pixel_anatomy"
+        },
+        "geoSelectionId": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$",
+          "description": "The area the instrument is about (a GeoSelection)."
+        },
+        "locator": {
+          "$ref": "#/$defs/BundleAssetRef",
+          "description": "The trend grid the pixel is located on."
+        },
+        "anatomy": {
+          "$ref": "#/$defs/BundleAssetRef",
+          "description": "The pixel's cells, class spectra and season series."
+        },
+        "bandSeries": {
+          "$ref": "#/$defs/BundleAssetRef",
+          "description": "The season series of the pixel's elevation band."
+        },
+        "contextEvidenceIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+          },
+          "uniqueItems": true,
+          "maxItems": 4,
+          "description": "scientific_context Evidence records shown as cited text."
+        }
+      },
+      "required": [
+        "kind",
+        "geoSelectionId",
+        "locator",
+        "anatomy",
+        "bandSeries",
+        "contextEvidenceIds"
+      ],
+      "additionalProperties": false
+    },
+    "RainfallScatterParameters": {
+      "type": "object",
+      "description": "Each season as one point, rain against greenness, with the fit. The bundle's own primary windows are plotted.",
+      "properties": {
+        "kind": {
+          "const": "rainfall_scatter"
+        },
+        "geoSelectionId": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$",
+          "description": "The area the instrument is about (a GeoSelection)."
+        },
+        "seasons": {
+          "$ref": "#/$defs/BundleAssetRef",
+          "description": "The season values."
+        },
+        "fit": {
+          "$ref": "#/$defs/BundleAssetRef",
+          "description": "The fit, its interval and its gate."
+        }
+      },
+      "required": [
+        "kind",
+        "geoSelectionId",
+        "seasons",
+        "fit"
+      ],
+      "additionalProperties": false
+    },
+    "FieldPlanParameters": {
+      "type": "object",
+      "description": "The field checks that would tell the open explanations apart, drawn as a proposal.",
+      "properties": {
+        "kind": {
+          "const": "field_plan"
+        },
+        "geoSelectionId": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$",
+          "description": "The area the instrument is about (a GeoSelection)."
+        },
+        "branchMergeId": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$",
+          "description": "The BranchMerge record whose field plan is drawn."
+        },
+        "actionId": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$",
+              "description": "The field_validation_plan OperationalAction, when there is one."
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "routeFeatureIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+          },
+          "uniqueItems": true,
+          "maxItems": 8,
+          "description": "ContextFeature records with the role route_proposed."
+        }
+      },
+      "required": [
+        "kind",
+        "geoSelectionId",
+        "branchMergeId",
+        "actionId",
+        "routeFeatureIds"
+      ],
+      "additionalProperties": false
+    },
+    "InstrumentParameters": {
+      "description": "What an instrument shows, one object per kind, chosen by its kind field. References only: bundle assets, GeoSelection, ContextFeature, Evidence, BranchMerge and OperationalAction records. No value, camera, scale, colour, coordinate, URL, markup or code. Added in 1.11.0.",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/LayerStackParameters"
+        },
+        {
+          "$ref": "#/$defs/CrossSectionParameters"
+        },
+        {
+          "$ref": "#/$defs/PixelAnatomyParameters"
+        },
+        {
+          "$ref": "#/$defs/RainfallScatterParameters"
+        },
+        {
+          "$ref": "#/$defs/FieldPlanParameters"
+        }
+      ]
+    },
+    "InstrumentSpec": {
+      "type": "object",
+      "description": "What one instrument of the workspace shows, as a record of the case. Added in 1.11.0. A CanvasComponent of the same kind binds it at an exact revision; the interface draws only what it says. Host composed: the model drafts captions, never parameters.",
+      "properties": {
+        "recordType": {
+          "const": "InstrumentSpec"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "caseId": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "ready",
+            "stale"
+          ],
+          "description": "stale when an input it cites has a newer revision (staleness propagation)."
+        },
+        "parameters": {
+          "$ref": "#/$defs/InstrumentParameters"
+        },
+        "caption": {
+          "$ref": "#/$defs/InstrumentCaption"
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance",
+          "description": "inputVersions cites every record the parameters and the caption name (INST-01)."
+        }
+      },
+      "required": [
+        "recordType",
+        "id",
+        "revision",
+        "createdAt",
+        "updatedAt",
+        "caseId",
+        "status",
+        "parameters",
+        "caption",
+        "provenance"
+      ],
+      "additionalProperties": false
+    },
+    "PointGeometry": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "Point"
+        },
+        "coordinates": {
+          "type": "array",
+          "prefixItems": [
+            {
+              "type": "number",
+              "minimum": -180,
+              "maximum": 180
+            },
+            {
+              "type": "number",
+              "minimum": -90,
+              "maximum": 90
+            }
+          ],
+          "minItems": 2,
+          "maxItems": 2
+        }
+      },
+      "required": [
+        "type",
+        "coordinates"
+      ],
+      "additionalProperties": false
+    },
+    "Position": {
+      "type": "array",
+      "prefixItems": [
+        {
+          "type": "number",
+          "minimum": -180,
+          "maximum": 180
+        },
+        {
+          "type": "number",
+          "minimum": -90,
+          "maximum": 90
+        },
+        {
+          "type": "number",
+          "minimum": -500,
+          "maximum": 9000,
+          "description": "Metres above the ground model's datum. The range covers the land and refuses a nodata value such as -9999."
+        }
+      ],
+      "minItems": 2,
+      "maxItems": 3,
+      "description": "[longitude, latitude] or [longitude, latitude, elevation]. Added in 1.12.0. A feature has an elevation on every position or on none (stated in the Zod mirror's role rule)."
+    },
+    "LineStringGeometry": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "LineString"
+        },
+        "coordinates": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Position"
+          },
+          "minItems": 2
+        }
+      },
+      "required": [
+        "type",
+        "coordinates"
+      ],
+      "additionalProperties": false
+    },
+    "MultiLineStringGeometry": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "MultiLineString"
+        },
+        "coordinates": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/Position"
+            },
+            "minItems": 2
+          },
+          "minItems": 1
+        }
+      },
+      "required": [
+        "type",
+        "coordinates"
+      ],
+      "additionalProperties": false
+    },
+    "ContextGeometry": {
+      "description": "Where a ContextFeature is: a point as in 1.6.0, or, added in 1.12.0, a line or a set of lines. All in EPSG:4326, GeoJSON order.",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/PointGeometry"
+        },
+        {
+          "$ref": "#/$defs/LineStringGeometry"
+        },
+        {
+          "$ref": "#/$defs/MultiLineStringGeometry"
+        }
+      ]
     }
   }
 }

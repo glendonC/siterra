@@ -1,0 +1,274 @@
+{
+ "type": "Collection",
+ "stac_version": "1.1.0",
+ "stac_extensions": [
+  "https://stac-extensions.github.io/processing/v1.3.0/schema.json",
+  "https://stac-extensions.github.io/file/v2.1.0/schema.json",
+  "https://siterra.invalid/schemas/stac/siterra/1.1.0/schema.json"
+ ],
+ "id": "bundle_transects_ait_bouguemez",
+ "title": "Profiles across and along the valley (terrain_transects 1.0.1)",
+ "description": "Precomputed result of recipe terrain_transects 1.0.1 for Ait Bouguemez valley catchment: 2 profiles sampled every 30 m, cross-valley section along the meridian through tabant (12.0 km, 401 samples); long profile from the outlet to the head along the longest flow path of the drainage network (48.8 km, 1629 samples). Each sample has its height, elevation band, WorldCover class and inside flag; each line has its band crossings, kilometres in band and valley floor segment. Observation from a 30 m surface model.\n\nA profile is read from a 30 m surface model: trees, buildings, steep walls and radar artefacts distort it, and narrow gorges such as the lower gorge near the outlet are not resolved. Heights are metres above the EGM2008 geoid with the DEM's stated vertical accuracy (Copernicus DEM Product Handbook 5.0). Samples are 30 m apart, so a band crossing or a land cover boundary is placed to within about 15 m, and a feature narrower than 30 m can fall between samples. Land cover is ESA WorldCover 2021 at 10 m, a single 2021 map applied to the line: tree cover on the valley floor may include orchards, and no class is a pasture, agdal or management unit. An elevation band is a stratum that organises sampling, cut from the elevation distribution of the catchment; it is not a vegetation type, a grazing zone or a management boundary. The valley floor segment follows the published elevation range of the valley floor (1800 to 2200 m, SCI-19); it is not a measured flat bottom. The valley axis is the longest flow path of a D8 network, which follows the main river, not the centre line of the valley; its profile inherits the limits of the drainage network, including places where the surface rises along the line. The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary.",
+ "license": "other",
+ "providers": [
+  {
+   "name": "Copernicus DEM GLO-30 (European Union, ESA; DLR e.V. and Airbus Defence and Space)",
+   "roles": [
+    "producer",
+    "licensor"
+   ]
+  },
+  {
+   "name": "ESA WorldCover consortium",
+   "roles": [
+    "producer",
+    "licensor"
+   ],
+   "url": "https://esa-worldcover.org/"
+  },
+  {
+   "name": "Siterra science pipeline",
+   "roles": [
+    "processor"
+   ],
+   "processing:lineage": "Heights from the 30 m EPSG:32629 grid of the terrain strata (Copernicus DEM GLO-30 2021, bilinear), WorldCover 2021 classes of the 10 m analysis cells, the valley axis from the drainage network bundle (science/pipeline/transects-bundle.py)",
+   "processing:software": {
+    "siterra-science": "0.1.0",
+    "python": "3.12.9",
+    "numpy": "2.5.4",
+    "rasterio": "1.5.2",
+    "gdal": "3.12.2",
+    "pyproj": "3.8.0",
+    "shapely": "2.2.0"
+   }
+  }
+ ],
+ "extent": {
+  "spatial": {
+   "bbox": [
+    [
+     -6.54125,
+     31.49430555555556,
+     -6.142083333333333,
+     31.75652777777778
+    ]
+   ]
+  },
+  "temporal": {
+   "interval": [
+    [
+     "2021-01-01T00:00:00Z",
+     null
+    ]
+   ]
+  }
+ },
+ "assets": {
+  "analysis_geometry": {
+   "href": "./analysis-geometry.geojson",
+   "type": "application/geo+json",
+   "title": "Frozen analysis geometry geo_ait_bouguemez_catchment, revision 1",
+   "roles": [
+    "metadata"
+   ],
+   "file:checksum": "1220ac506ece626b6844d759b56aa60a10248c8c0ea5e206f9a28eb436a892a4d47f",
+   "file:size": 119623
+  },
+  "terrain_transects": {
+   "href": "./terrain-transects.json",
+   "type": "application/json",
+   "title": "Summary of each line: ends, length, lowest and highest point, band crossings, kilometres in band, land cover shares, valley floor segment and the check results (the result read_recipe_result returns)",
+   "roles": [
+    "data"
+   ],
+   "file:checksum": "12202fdab92d9133a11a94e43a4fcaff8aba913054243173dfdc7996a4a3e0e70cdc",
+   "file:size": 7498
+  },
+  "transect_samples": {
+   "href": "./transect-samples.json",
+   "type": "application/json",
+   "title": "Samples every 30 m as columns (distance, longitude, latitude, elevation, band, land cover class, inside flag, drainage segment for the axis), the band crossings and the land cover runs",
+   "roles": [
+    "data"
+   ],
+   "file:checksum": "12203e8cb47fd0e1cd4c00feb8be6853149ae8893fd9ddebec01cc998c44b5134623",
+   "file:size": 140945
+  },
+  "transect_lines": {
+   "href": "./transect-lines.geojson",
+   "type": "application/geo+json",
+   "title": "One 3D LineString per line ([lon, lat, elevation], metres above the EGM2008 geoid) through the samples",
+   "roles": [
+    "data"
+   ],
+   "file:checksum": "1220bce1d0aa8228ce34fe66c8eca2762f2c87efb69057590c32e1c6e1745d824d17",
+   "file:size": 62180
+  }
+ },
+ "created": "2026-10-29T10:03:38Z",
+ "siterra:status": "validated",
+ "siterra:variable": "elevation_profile",
+ "siterra:dataset": {
+  "id": "copernicus-dem-glo-30",
+  "version": "2021",
+  "access_route": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N31_00_W007_00_DEM/Copernicus_DSM_COG_10_N31_00_W007_00_DEM.tif",
+  "resolution_note": "DEM 1 arc-second (about 30 m), resampled to the 30 m EPSG:32629 grid of the terrain strata; land cover 10 m"
+ },
+ "siterra:geo_selection": {
+  "id": "geo_ait_bouguemez_catchment",
+  "revision": 1,
+  "boundary_role": "hydrological_unit",
+  "area_m2": 417360300,
+  "area_method": "Count of 10 m analysis pixels whose centres fall inside the frozen polygon, EPSG:32629"
+ },
+ "siterra:method": {
+  "id": "terrain_transects",
+  "version": "1.0.1",
+  "analysis_crs": "EPSG:32629",
+  "parameters": {
+   "place_configuration": "science/places/ait-bouguemez.json revision 4, sha256 b92594aec1c274ee4612381c10d2a1a01dbe9702927937f05b9840615fef4697",
+   "step_m": 30.0,
+   "recompute_percentile": 90,
+   "recompute_tolerance_m": 4.0,
+   "height_surface": "terrain_strata 30 m EPSG:32629 bilinear",
+   "band_boundaries_m": [
+    2316.8,
+    2815.2
+   ],
+   "valley_floor_max_elevation_m": 2200.0,
+   "transects": [
+    {
+     "id": "tabant_meridian",
+     "kind": "meridian_through_point",
+     "label": "Cross-valley section along the meridian through Tabant",
+     "point": {
+      "name": "Tabant",
+      "lat": 31.65873,
+      "lon": -6.42007
+     }
+    },
+    {
+     "id": "valley_axis",
+     "kind": "longest_flow_path",
+     "label": "Long profile from the outlet to the head along the longest flow path of the drainage network",
+     "network": {
+      "bundle": "bundle_drainage_network_ait_bouguemez",
+      "asset": "drainage_lines"
+     }
+    }
+   ]
+  },
+  "reference_period": null,
+  "operation_order": [
+   "Lines: tabant_meridian is the line of constant longitude through Tabant (31.65873 N, 6.42007 W), clipped to the frozen polygon: the part of it that contains Tabant, from its northernmost to its southernmost point; distance runs from north to south. valley_axis is the longest flow path of the drainage network bundle: from the outlet segment, at each confluence the upstream segment whose farthest head is farther along the channels (the sum of the stored segment lengths), ties by the larger upstream area and then the lower segment number, up to the head; the line is the stored vertices of those segments joined from the outlet upwards; distance runs from the outlet",
+   "Samples: at distance 0, 30, 60 m and so on along the line (geodesic, WGS84) and at the last point of the line, so the last interval is 30 m or shorter. A meridian sample keeps the longitude of the line; an axis sample lies on the straight piece between the two stored vertices around it, linearly in longitude and latitude",
+   "Elevation: bilinear height at the sample from the 30 m EPSG:32629 grid of the terrain strata recipe (Copernicus DEM GLO-30 bilinear to 30 m, aligned with the 10 m analysis grid, with 1 extra cell on every side), to 0.1 m, metres above the EGM2008 geoid",
+   "Band: 1 where the elevation is below 2316.8 m, 2 from 2316.8 m to below 2815.2 m, 3 from 2815.2 m up (the boundaries of the strata bundle)",
+   "Land cover: the ESA WorldCover 2021 v200 class of the 10 m analysis cell that contains the sample (EPSG:32629), 0 where the cell lies outside the analysis area. Inside: the sample lies inside the frozen polygon or on its boundary",
+   "Band crossings: where the profile, taken as straight between consecutive samples, crosses a band boundary: the boundary, the distance (0.1 m), whether the height is rising or falling along the line, and the position. Kilometres of line in each band come from the same piecewise linear profile",
+   "Land cover runs: consecutive samples with one class make a run that starts and ends halfway to the neighbouring samples (at the line's ends for the first and last); every class's share of the line length is stored",
+   "Valley floor: the contiguous samples around the lowest sample of the line whose elevation is at most 2,200 m, the upper limit of the published valley floor (1800 to 2200 m, SCI-19); stored with from and to distances (halfway to the neighbouring samples, or the line's end), length and elevation range",
+   "Acceptance checks, all stored with the bundle: the ends of the meridian equal the brief's 31.709028 N and 31.600972 N to 6 decimals; every sample lies inside the frozen polygon; sample distances rise by 30 m except the last interval; every elevation is a number; the 90th percentile of the absolute differences between the stored elevations and the heights of the native 1 arc-second DEM tile (bilinear in longitude and latitude), over every sample of each line, is at most 4.0 m, with the largest difference and where it lies stored; the band of every sample is compared with the strata raster, counting separately the samples that differ and the samples whose 10 m cell lies outside the strata mask; band crossings and kilometres in band recomputed from the stored samples; two runs give identical files apart from the computed time"
+  ]
+ },
+ "siterra:attribution": [
+  "Catchment and strata derived by Siterra from Copernicus DEM GLO-30 (2021 release)",
+  "produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved",
+  "The organisations in charge of the Copernicus programme by law or by delegation do not incur any liability for any use of the Copernicus WorldDEM-30",
+  "© ESA WorldCover project / Contains modified Copernicus Sentinel data (2021) processed by ESA WorldCover consortium",
+  "ESA WorldCover 2021 v200 (Zanaga et al. 2022), CC BY 4.0, https://doi.org/10.5281/zenodo.7254221"
+ ],
+ "siterra:limitations": [
+  "A profile is read from a 30 m surface model: trees, buildings, steep walls and radar artefacts distort it, and narrow gorges such as the lower gorge near the outlet are not resolved. Heights are metres above the EGM2008 geoid with the DEM's stated vertical accuracy (Copernicus DEM Product Handbook 5.0).",
+  "Samples are 30 m apart, so a band crossing or a land cover boundary is placed to within about 15 m, and a feature narrower than 30 m can fall between samples.",
+  "Land cover is ESA WorldCover 2021 at 10 m, a single 2021 map applied to the line: tree cover on the valley floor may include orchards, and no class is a pasture, agdal or management unit.",
+  "An elevation band is a stratum that organises sampling, cut from the elevation distribution of the catchment; it is not a vegetation type, a grazing zone or a management boundary.",
+  "The valley floor segment follows the published elevation range of the valley floor (1800 to 2200 m, SCI-19); it is not a measured flat bottom.",
+  "The valley axis is the longest flow path of a D8 network, which follows the main river, not the centre line of the valley; its profile inherits the limits of the drainage network, including places where the surface rises along the line.",
+  "The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary."
+ ],
+ "siterra:checks": [
+  {
+   "name": "recompute_sample_period",
+   "passed": true,
+   "detail": "Recomputed from the stored samples and the native 1 arc-second DEM tile. The meridian's ends are 31.709028 N and 31.600972 N against the expected 31.709028 N and 31.600972 N at 6 decimals (True). Of 2030 samples, 0 lie outside the frozen polygon (a sample on its boundary to 7 decimals counts as inside); 0 intervals break the 30 m step (only the last may be shorter); 0 elevations are not numbers; 0 bands differ from the elevation bands recomputed from the stored heights; band crossings, kilometres in band and the valley floor recomputed from the stored columns disagree for 0 of 2 lines. Against the native tile (bilinear in longitude and latitude), the absolute differences from the stored heights over every sample have a 90th percentile of 0.96 m on tabant_meridian, 1.52 m on valley_axis (tolerance 4.0 m) and a largest value of 2.78 m at 5280 m on tabant_meridian, 7.36 m at 2310 m on valley_axis. The whole computation run twice in one process gives identical results: True."
+  },
+  {
+   "name": "units_and_scale",
+   "passed": true,
+   "detail": "Distances are metres along the line (geodesic, WGS84) from its first point; longitude and latitude are decimal degrees (EPSG:4326, 7 decimals); elevation is metres above the EGM2008 geoid at 0.1 m (Copernicus DEM GLO-30 vertical datum); band is 1, 2 or 3 as in the strata bundle (boundaries 2316.8 m and 2815.2 m); land cover is the WorldCover 2021 class code; kilometres in band are km."
+  },
+  {
+   "name": "nodata_not_zero",
+   "passed": true,
+   "detail": "A land cover value of 0 means the sample lies outside the analysis area (no WorldCover class) and occurs in 1 of 2030 samples (1 of them on the polygon's boundary, where the 10 m cell can lie outside the analysis area); it is never read as a class, and its label is stored in the summary's land cover shares. Band 0 does not occur."
+  },
+  {
+   "name": "attribution_present",
+   "passed": true,
+   "detail": "The Copernicus DEM notices (Article 6(b) and 6(c)) and the ESA WorldCover citation are in siterra:attribution."
+  },
+  {
+   "name": "visual_inspection_sample",
+   "passed": true,
+   "detail": "Rendered both profiles with their band limits, valley floor segment and land cover strip (science/pipeline/render-transects.py) and inspected the image on 2026-10-29 (science lane). The cross-valley section runs from the north ridge down a wide, uneven valley floor with Tabant near its lowest point (1,857 m) and up the south side, crossing the 2,317 m limit on both sides and the 2,815 m limit once, on the south. The long profile starts rough in the lower gorge next to the outlet, then rises smoothly along a gentle valley floor for about 30 km, steepens across the 2,317 m limit, levels again and climbs to the head, crossing 2,815 m near the end. Land cover along the section is mostly grassland with blocks of tree cover and a little cropland and built-up around Tabant; along the axis tree cover and cropland dominate the lower valley floor, grassland and bare ground the upper reaches, and a patch of permanent water lies in the upper valley."
+  }
+ ],
+ "links": [
+  {
+   "rel": "root",
+   "href": "../catalog.json",
+   "type": "application/json"
+  },
+  {
+   "rel": "parent",
+   "href": "../catalog.json",
+   "type": "application/json"
+  },
+  {
+   "rel": "derived_from",
+   "href": "../bundle_terrain_strata_ait_bouguemez/collection.json",
+   "type": "application/json",
+   "title": "Terrain strata bundle bundle_terrain_strata_ait_bouguemez",
+   "file:checksum": "1220857e69c5d1ddbe846b8022836f888254f3f818251b9e3e4ffba8748bae07241d"
+  },
+  {
+   "rel": "derived_from",
+   "href": "../bundle_drainage_network_ait_bouguemez/collection.json",
+   "type": "application/json",
+   "title": "Drainage network bundle bundle_drainage_network_ait_bouguemez (the valley axis)",
+   "file:checksum": "12205f984cb2dab28034108c2a7582305f6397a7932eaf3ee1a669aea50b462a88f2"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N31_00_W007_00_DEM/Copernicus_DSM_COG_10_N31_00_W007_00_DEM.tif",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Copernicus_DSM_COG_10_N31_00_W007_00_DEM.tif (41,088,635 bytes, ETag 7260ba223188db19ee7390f60c998048)",
+   "file:checksum": "1220024f00066f44b6c04c26ab5c22ef8d355f6dc77052206d96c9a9c04f66b9c61e"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N30W009_Map.tif",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "ESA WorldCover 2021 v200 tile N30W009 (ETag \"ef642c82c2f5c1f8db62f0bca36708db-14\")",
+   "siterra:retrieved_datetime": "2026-10-27T14:35:34Z"
+  },
+  {
+   "rel": "license",
+   "href": "https://dataspace.copernicus.eu/sites/default/files/media/files/2025-06/copernicus_contributing_mission_data_access_v2_cop_dem_licenses.pdf",
+   "title": "Licence for Copernicus DEM instance COP-DEM-GLO-30-F Global 30m Full, Free & Open"
+  },
+  {
+   "rel": "license",
+   "href": "https://creativecommons.org/licenses/by/4.0/",
+   "title": "ESA WorldCover: CC BY 4.0"
+  },
+  {
+   "rel": "processing-software",
+   "href": "./uv.lock",
+   "type": "application/toml",
+   "title": "Pipeline lockfile (uv)",
+   "file:checksum": "12205154d57a84dcb8f1eb5f992923d7589a669b8dc669edf140f607ff2740733aff"
+  }
+ ]
+}

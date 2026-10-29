@@ -43,11 +43,11 @@
  },
  "bundles": {
   "catalog": "data/bundles/catalog.json",
-  "catalogSha256": "9114704e1877ef4f0b859eb9292e82994e04675d61cc37c49693f222343c4e11"
+  "catalogSha256": "b95c54d7e89ad4f1d945488354c7d72ae9e76a7dace2ad4f63a42aed07b65865"
  },
  "corpus": {
   "manifest": "data/case/corpus-manifest.json",
-  "manifestSha256": "e6b47477bbefdb68dfe4324d2754f91eb574c41f9cd59be2a08a381dfa3a43de"
+  "manifestSha256": "cc3a7a73b729e6e2220c9a10a0890aebf7f4e8824240ff089f39b4520acd5de6"
  },
  "recipes": {
   "registry": "science/recipes/registry.json",
