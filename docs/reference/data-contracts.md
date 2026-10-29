@@ -247,9 +247,10 @@ The ContextFeature lines these kinds name (drainage, a transect, a proposed rout
 | INST-01 | Every ID in `parameters` and in `caption.citationIds` appears in `provenance.inputVersions` | The commit is refused with `instrument_inputs_not_cited` (`uncitedInstrumentInputs` in `@siterra/domain`) |
 | INST-02 | A component of an instrument kind binds exactly one InstrumentSpec, of the same kind, at that spec's current revision | The commit is refused with `instrument_invalid` (`instrumentComponentIssues`) |
 | INST-03 | The layers of a `layer_stack` are distinct, and `selectedLayer`, when set, is one of them | The commit is refused with `instrument_invalid` (`instrumentSpecIssues`) |
-| INST-04 | Each ID has the record type its field expects; each `assetKey` is listed by the pinned bundle revision's collection, whose bundle is validated | Planned with the instrument read API |
+| INST-04 | Each `assetKey` is listed by the collection of the bundle revision the spec pins, the bundle is in the case and validated, and the file matches the checksum the collection lists | At read time: the instrument listing gives every asset a status, and the key route serves only a verified file |
 | INST-05 | `ink` and `grey` are one sentence each, every number in them is in a cited record (numeric provenance), and neither makes a prohibited claim | Planned with the composer |
 | INST-06 | The model-facing `propose_layout` offers no instrument kind; a contract test rejects a model-facing schema that does | Planned with the composer |
+| INST-07 | Each ID in the parameters is a record of the type its field expects (a ContextFeature for a feature field, an Evidence for a statement) | Planned with the composer |
 
 ## Records planned for later contracts
 
@@ -326,6 +327,8 @@ The importer assigns the fields not listed (record IDs, revisions, timestamps, `
 - Cancellation: `POST /api/commands/{commandId}/cancel` returns 202 while the command can still stop and 409 once it is terminal.
 - Reviews: `POST /api/cases/{caseId}/reviews` returns 201 with the `ReviewDecision`, 200 for a repeated key, 409 when a reviewed version or the reviewed case revision is no longer current, and 422 when the role cannot record that decision in that mode.
 - Trace: `GET /api/cases/{caseId}/trace?commandId=` returns the command's spans (OpenTelemetry GenAI names, allowlisted attributes only) and its events.
+- Instruments: `GET /api/cases/{caseId}/instruments` returns the case's InstrumentSpec records as of its current revision, or of `?revision=N` (a whole number from 1 up to the current revision; one the case has not reached is 404), each with the components that bind it and every bundle asset it names resolved against the bundle revision the spec pins. An asset is `available` with its immutable URL, type, checksum and size, or its status says why not: `bundle_not_in_case`, `bundle_not_validated`, `asset_key_unknown` or `file_unavailable` (the collection does not match the bundle's content hash, the file is missing or does not match its checksum, or the server has no bundles folder). Read only and never cached (INST-04).
+- Bundle assets by key: `GET /api/cases/{caseId}/bundles/{bundleId}/assets/{assetKey}` serves the file the bundle's collection lists under that key, for the revision of the bundle the case holds, only when the bundle is validated, the collection hashes to its content hash and the file matches the checksum the collection lists. Because the key names the revision the case holds now, the answer is revalidated (`Cache-Control: private, no-cache`); the hash-addressed case-assets route stays the immutable one. HTTP Range is answered as there.
 - Errors: Problem details (RFC 9457, `application/problem+json`) with a machine-readable `code` and, for invalid requests, stale versions and refused decisions, the `issues` list of `ValidationResult`.
 
 ## Example payloads

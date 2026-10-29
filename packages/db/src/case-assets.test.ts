@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { sha256Multihash } from "./bundle-import.ts";
-import { findBundlesDir, resolveCaseAsset } from "./case-assets.ts";
+import { findBundlesDir, resolveBundleAsset, resolveCaseAsset } from "./case-assets.ts";
 
 const bundlesDir = fileURLToPath(new URL("../../../data/bundles/", import.meta.url));
 const bundleId = "bundle_chirps_monthly_ait_bouguemez";
@@ -92,6 +92,57 @@ describe("case assets: a verified file is hashed again when its size or modifica
       utimesSync(path, fixed, fixed);
       // The documented limit: same size and same timestamp, so the cached verification stands.
       expect(resolveCopy()).not.toBeNull();
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+});
+
+describe("case assets: a bundle asset by its key", () => {
+  const byKey = (assetKey: string, hash = contentHash, id = bundleId) =>
+    resolveBundleAsset(bundlesDir, { bundleId: id, contentHash: hash, assetKey });
+
+  it("finds the file the collection lists under the key, and checks it as the path route does", () => {
+    const found = byKey("rainfall_cells");
+    expect(found.status).toBe("available");
+    if (found.status !== "available") return;
+    expect(found.assetPath).toBe("rainfall-cells.geojson");
+    expect(found.file.contentType).toBe("application/geo+json");
+    expect(found.file.absolutePath).toBe(at("rainfall-cells.geojson")?.absolutePath);
+    expect(found.file.checksum).toBe(at("rainfall-cells.geojson")?.checksum);
+  });
+
+  it("finds the frozen geometry under its key", () => {
+    const found = byKey("analysis_geometry");
+    expect(found.status === "available" && found.assetPath).toBe("analysis-geometry.geojson");
+  });
+
+  it("names an unknown key, and refuses a key the collection does not list at its top level", () => {
+    expect(byKey("no_such_asset")).toEqual({ status: "asset_key_unknown" });
+    expect(byKey("period_2022-04")).toEqual({ status: "asset_key_unknown" });
+    expect(byKey("__proto__")).toEqual({ status: "asset_key_unknown" });
+  });
+
+  it("is file_unavailable for a stale content hash, an unknown bundle or a bundle ID of another shape", () => {
+    expect(byKey("rainfall_cells", `1220${"0".repeat(64)}`)).toEqual({
+      status: "file_unavailable",
+    });
+    expect(byKey("rainfall_cells", contentHash, "bundle_example_none")).toEqual({
+      status: "file_unavailable",
+    });
+    expect(byKey("rainfall_cells", contentHash, "../data")).toEqual({ status: "file_unavailable" });
+  });
+
+  it("is file_unavailable when the listed file no longer matches its checksum", () => {
+    const dir = mkdtempSync(join(tmpdir(), "siterra-assets-key-"));
+    try {
+      cpSync(`${bundlesDir}${bundleId}`, join(dir, bundleId), { recursive: true });
+      const path = join(dir, bundleId, "rainfall-cells.geojson");
+      const read = () =>
+        resolveBundleAsset(dir, { bundleId, contentHash, assetKey: "rainfall_cells" }).status;
+      expect(read()).toBe("available");
+      writeFileSync(path, `${readFileSync(path, "utf8")} `);
+      expect(read()).toBe("file_unavailable");
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }

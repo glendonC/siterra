@@ -4,7 +4,7 @@
     "title": "Siterra case API",
     "version": "1.0.0",
     "summary": "Snapshot, commands, event stream, cancellation, reviews and trace for one case.",
-    "description": "HTTP interface between the Siterra web client and its server for one environmental case. The case record is authoritative: the snapshot and the event stream are its only read paths, and commands and reviews are its only write paths. Record types come from case.schema.json (Siterra case contracts) through relative references; this document adds only request, stream, trace and error shapes. No endpoint performs external outreach, spending, publication or land-management action. Cross-record rules: docs/reference/data-contracts.md. Durations stated in descriptions are design targets, not measurements."
+    "description": "HTTP interface between the Siterra web client and its server for one environmental case. The case record is authoritative: the snapshot and the event stream are its read paths, the usage, trace, instruments and bundle asset routes are read-only views over it and over validated bundle files, and commands and reviews are its only write paths. Record types come from case.schema.json (Siterra case contracts) through relative references; this document adds only request, stream, trace and error shapes. No endpoint performs external outreach, spending, publication or land-management action. Cross-record rules: docs/reference/data-contracts.md. Durations stated in descriptions are design targets, not measurements."
   },
   "tags": [
     {
@@ -42,6 +42,10 @@
     {
       "name": "health",
       "description": "Deployment health for a host's health check: database, migrations, worker heartbeat and outbox backlog."
+    },
+    {
+      "name": "instruments",
+      "description": "Instrument specs of a case and the bundle assets they name, read only."
     }
   ],
   "security": [
@@ -769,6 +773,158 @@
           }
         }
       }
+    },
+    "/api/cases/{caseId}/instruments": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/CaseId"
+        }
+      ],
+      "get": {
+        "operationId": "getCaseInstruments",
+        "tags": [
+          "instruments"
+        ],
+        "summary": "Read the instrument specs of a case",
+        "description": "INST-04 (read part): the InstrumentSpec records of the case as of a case revision (the current one unless revision is given), the CanvasComponent records that bind them, and each bundle asset a spec names resolved against the bundle revision the spec pins. An asset is available with its immutable URL (the case-assets route), type, checksum and size when its bundle is in the case and validated, its collection lists the key and the file matches the checksum the collection lists; otherwise its status says which of those failed and it names no file. The listing writes nothing and is never cached.",
+        "parameters": [
+          {
+            "name": "revision",
+            "in": "query",
+            "required": false,
+            "description": "Read the case as of this revision. A revision the case has not reached answers 404.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The case's instruments.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InstrumentListing"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "default": {
+            "$ref": "#/components/responses/Unexpected"
+          }
+        }
+      }
+    },
+    "/api/cases/{caseId}/bundles/{bundleId}/assets/{assetKey}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/CaseId"
+        },
+        {
+          "name": "bundleId",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "$ref": "case.schema.json#/$defs/BundleAssetRef/properties/bundleId"
+          }
+        },
+        {
+          "name": "assetKey",
+          "in": "path",
+          "required": true,
+          "description": "The key of a collection-level asset in the bundle's collection.json.",
+          "schema": {
+            "$ref": "case.schema.json#/$defs/BundleAssetRef/properties/assetKey"
+          }
+        }
+      ],
+      "get": {
+        "operationId": "getCaseBundleAsset",
+        "tags": [
+          "instruments",
+          "assets"
+        ],
+        "summary": "Get a bundle file by its asset key",
+        "description": "The file the bundle's collection lists under the key, for a case of the session that holds the bundle at a validated revision. The case's current revision of the bundle decides which collection answers, and the file is served only when the collection hashes to the bundle's contentHash and the file matches the checksum the collection lists. Because the key names whatever revision the case holds now, the answer is revalidated (Cache-Control private, no-cache) and not immutable; the case-assets route is the immutable one. HTTP Range with one byte range is answered with 206 and Content-Range; a range beyond the file with 416. An unknown case, bundle or key, a bundle that is not validated, a key of another shape and a case of another session all answer 404.",
+        "parameters": [
+          {
+            "name": "Range",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "One byte range, for example bytes=0-1023."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The whole file.",
+            "headers": {
+              "ETag": {
+                "description": "The file's checksum.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Accept-Ranges": {
+                "schema": {
+                  "type": "string",
+                  "const": "bytes"
+                }
+              }
+            },
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "contentMediaType": "application/octet-stream"
+                }
+              }
+            }
+          },
+          "206": {
+            "description": "The requested byte range.",
+            "headers": {
+              "Content-Range": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "contentMediaType": "application/octet-stream"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "416": {
+            "description": "The range is beyond the file; Content-Range names its size."
+          },
+          "default": {
+            "$ref": "#/components/responses/Unexpected"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1440,6 +1596,117 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/UsageRow"
+            }
+          }
+        }
+      },
+      "InstrumentAsset": {
+        "type": "object",
+        "additionalProperties": false,
+        "description": "One bundle asset an instrument spec names, resolved. href, contentType, checksum and size are present when status is available and null otherwise.",
+        "required": [
+          "bundleId",
+          "assetKey",
+          "status",
+          "href",
+          "contentType",
+          "checksum",
+          "size"
+        ],
+        "properties": {
+          "bundleId": {
+            "$ref": "case.schema.json#/$defs/BundleAssetRef/properties/bundleId"
+          },
+          "assetKey": {
+            "$ref": "case.schema.json#/$defs/BundleAssetRef/properties/assetKey"
+          },
+          "status": {
+            "enum": [
+              "available",
+              "bundle_not_in_case",
+              "bundle_not_validated",
+              "asset_key_unknown",
+              "file_unavailable"
+            ]
+          },
+          "href": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 1
+          },
+          "contentType": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 1
+          },
+          "checksum": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 1
+          },
+          "size": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          }
+        }
+      },
+      "InstrumentView": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "spec",
+          "components",
+          "assets"
+        ],
+        "properties": {
+          "spec": {
+            "$ref": "case.schema.json#/$defs/InstrumentSpec"
+          },
+          "components": {
+            "type": "array",
+            "description": "The current components that bind this spec, by section and order.",
+            "items": {
+              "$ref": "case.schema.json#/$defs/CanvasComponent"
+            }
+          },
+          "assets": {
+            "type": "array",
+            "description": "Each bundle asset the spec names, once, in field order.",
+            "items": {
+              "$ref": "#/components/schemas/InstrumentAsset"
+            }
+          }
+        }
+      },
+      "InstrumentListing": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "caseId",
+          "caseRevision",
+          "instruments"
+        ],
+        "properties": {
+          "caseId": {
+            "$ref": "case.schema.json#/$defs/Command/properties/caseId"
+          },
+          "caseRevision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "instruments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InstrumentView"
             }
           }
         }

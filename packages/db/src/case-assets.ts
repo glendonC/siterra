@@ -16,7 +16,9 @@ export type CaseAssetFile = {
 };
 
 type Listing = Map<string, { contentType: string; checksum: string }>;
-const listings = new Map<string, { mtimeMs: number; listing: Listing }>();
+/** A bundle's listed files by path, and its collection-level assets by key (key -> path). */
+type Listed = { listing: Listing; keys: Map<string, string> };
+const listings = new Map<string, { mtimeMs: number } & Listed>();
 /**
  * Files whose bytes matched their checksum, keyed by path, with the size and modification time
  * (nanoseconds) they had then: a file that keeps both is not hashed again; any change to either
@@ -37,23 +39,31 @@ function readJson(path: string): Record<string, unknown> {
 
 type StacFile = { href?: unknown; type?: unknown; rel?: unknown; "file:checksum"?: unknown };
 
-/** Every file the bundle's collection.json lists with a checksum, by its path inside the bundle. */
-function listBundle(bundleDir: string, collectionChecksum: string): Listing {
+/**
+ * Every file the bundle's collection.json lists with a checksum, by its path inside the bundle, and
+ * the collection-level assets among them by their asset key.
+ */
+function listBundle(bundleDir: string, collectionChecksum: string): Listed {
   const listing: Listing = new Map([
     ["collection.json", { contentType: "application/json", checksum: collectionChecksum }],
   ]);
+  const keys = new Map<string, string>();
   const collection = readJson(join(bundleDir, "collection.json"));
-  const add = (base: string, file: StacFile, fallbackType: string) => {
-    if (typeof file.href !== "string" || typeof file["file:checksum"] !== "string") return;
+  const add = (base: string, file: StacFile, fallbackType: string): string | null => {
+    if (typeof file.href !== "string" || typeof file["file:checksum"] !== "string") return null;
     const path = relativeHref(posix.join(base, file.href));
-    if (path === null) return;
+    if (path === null) return null;
     listing.set(path, {
       contentType: typeof file.type === "string" ? file.type : fallbackType,
       checksum: file["file:checksum"],
     });
+    return path;
   };
-  for (const asset of Object.values((collection["assets"] ?? {}) as Record<string, StacFile>)) {
-    add("", asset, "application/octet-stream");
+  for (const [key, asset] of Object.entries(
+    (collection["assets"] ?? {}) as Record<string, StacFile>,
+  )) {
+    const path = add("", asset, "application/octet-stream");
+    if (path !== null) keys.set(key, path);
   }
   for (const link of (collection["links"] ?? []) as StacFile[]) {
     if (link.rel !== "item") continue;
@@ -65,7 +75,31 @@ function listBundle(bundleDir: string, collectionChecksum: string): Listing {
       add(posix.dirname(itemPath), asset, "application/octet-stream");
     }
   }
-  return listing;
+  return { listing, keys };
+}
+
+/**
+ * The listing of a bundle whose collection.json hashes to `contentHash`, or null when the bundle ID
+ * has another shape, the collection is missing, or its bytes hash to something else.
+ */
+function loadListing(
+  bundlesDir: string,
+  args: { bundleId: string; contentHash: string },
+): (Listed & { bundleDir: string }) | null {
+  if (!/^bundle_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$/.test(args.bundleId)) return null;
+  const bundleDir = resolve(bundlesDir, args.bundleId);
+  const collectionPath = join(bundleDir, "collection.json");
+  if (!existsSync(collectionPath)) return null;
+  const mtimeMs = statSync(collectionPath).mtimeMs;
+  let cached = listings.get(collectionPath);
+  if (cached === undefined || cached.mtimeMs !== mtimeMs) {
+    const checksum = sha256Multihash(readFileSync(collectionPath));
+    if (checksum !== args.contentHash) return null;
+    cached = { mtimeMs, ...listBundle(bundleDir, checksum) };
+    listings.set(collectionPath, cached);
+  }
+  if (cached.listing.get("collection.json")?.checksum !== args.contentHash) return null;
+  return { bundleDir, listing: cached.listing, keys: cached.keys };
 }
 
 /**
@@ -76,22 +110,12 @@ export function resolveCaseAsset(
   bundlesDir: string,
   args: { bundleId: string; contentHash: string; assetPath: string },
 ): CaseAssetFile | null {
-  if (!/^bundle_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$/.test(args.bundleId)) return null;
-  const bundleDir = resolve(bundlesDir, args.bundleId);
-  const collectionPath = join(bundleDir, "collection.json");
-  if (!existsSync(collectionPath)) return null;
-  const mtimeMs = statSync(collectionPath).mtimeMs;
-  let cached = listings.get(collectionPath);
-  if (cached === undefined || cached.mtimeMs !== mtimeMs) {
-    const checksum = sha256Multihash(readFileSync(collectionPath));
-    if (checksum !== args.contentHash) return null;
-    cached = { mtimeMs, listing: listBundle(bundleDir, checksum) };
-    listings.set(collectionPath, cached);
-  }
-  if (cached.listing.get("collection.json")?.checksum !== args.contentHash) return null;
+  const loaded = loadListing(bundlesDir, args);
+  if (loaded === null) return null;
+  const { bundleDir, listing } = loaded;
   const path = relativeHref(args.assetPath);
   if (path === null) return null;
-  const entry = cached.listing.get(path);
+  const entry = listing.get(path);
   if (entry === undefined) return null;
   // Bundle files are read from data/bundles at run time, never bundled; the comment keeps the
   // build from tracing the whole repository into the server output.
@@ -118,6 +142,33 @@ export function resolveCaseAsset(
     checksum: entry.checksum,
     size: Number(stat.size),
   };
+}
+
+export type BundleAssetResolution =
+  | { status: "available"; assetPath: string; file: CaseAssetFile }
+  | { status: "asset_key_unknown" }
+  | { status: "file_unavailable" };
+
+/**
+ * The file a bundle's collection lists under an asset key, checked as resolveCaseAsset checks a path:
+ * the collection must hash to `contentHash` and the file to the checksum the collection lists for it.
+ * Only collection-level assets have a key. An unknown key is named apart from a bundle or file that
+ * cannot be read or no longer matches.
+ */
+export function resolveBundleAsset(
+  bundlesDir: string,
+  args: { bundleId: string; contentHash: string; assetKey: string },
+): BundleAssetResolution {
+  const loaded = loadListing(bundlesDir, args);
+  if (loaded === null) return { status: "file_unavailable" };
+  const assetPath = loaded.keys.get(args.assetKey);
+  if (assetPath === undefined) return { status: "asset_key_unknown" };
+  const file = resolveCaseAsset(bundlesDir, {
+    bundleId: args.bundleId,
+    contentHash: args.contentHash,
+    assetPath,
+  });
+  return file === null ? { status: "file_unavailable" } : { status: "available", assetPath, file };
 }
 
 /** True when the owner has a case holding this bundle with this content hash (any revision). */

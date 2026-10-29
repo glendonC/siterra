@@ -1,7 +1,16 @@
 // Request and response bodies that schemas/openapi.json adds to the case records: the command and
 // review requests, problem details, the stream reset message, the trace and the usage response.
 import { z } from "zod";
-import { Command, Context, Event, ReviewDecision, ValidationResult } from "./case.ts";
+import {
+  BundleAssetRef,
+  CanvasComponent,
+  Command,
+  Context,
+  Event,
+  InstrumentSpec,
+  ReviewDecision,
+  ValidationResult,
+} from "./case.ts";
 import { dateTime, entityId } from "./primitives.ts";
 
 export const CommandRequest = z.strictObject({
@@ -118,3 +127,69 @@ export const UsageResponse = z.strictObject({
   rows: z.array(UsageRow),
 });
 export type UsageResponse = z.infer<typeof UsageResponse>;
+
+/**
+ * Why an instrument asset can or cannot be drawn: the bundle is not in the case, it is not validated,
+ * its collection lists no such asset key, or the listed file is missing or no longer matches its
+ * checksum (or the server has no bundles folder). Missing is a value, never a silent gap.
+ */
+export const instrumentAssetStatuses = [
+  "available",
+  "bundle_not_in_case",
+  "bundle_not_validated",
+  "asset_key_unknown",
+  "file_unavailable",
+] as const;
+
+/**
+ * One bundle asset an instrument spec names, resolved against the bundle revision the spec pins
+ * (INST-04). Available means the immutable URL, type, checksum and size of a file whose bytes
+ * matched the collection's checksum when it was resolved; any other status carries none of them.
+ */
+export const InstrumentAsset = z
+  .strictObject({
+    bundleId: BundleAssetRef.shape.bundleId,
+    assetKey: BundleAssetRef.shape.assetKey,
+    status: z.enum(instrumentAssetStatuses),
+    href: z.string().min(1).nullable(),
+    contentType: z.string().min(1).nullable(),
+    checksum: z.string().min(1).nullable(),
+    size: z.int().min(0).nullable(),
+  })
+  .superRefine((asset, ctx) => {
+    const fields = ["href", "contentType", "checksum", "size"] as const;
+    for (const field of fields) {
+      const absent = asset[field] === null;
+      if (asset.status === "available" && absent) {
+        ctx.addIssue({
+          code: "custom",
+          path: [field],
+          message: "An available asset names its file",
+        });
+      } else if (asset.status !== "available" && !absent) {
+        ctx.addIssue({
+          code: "custom",
+          path: [field],
+          message: "An asset that is not available names no file",
+        });
+      }
+    }
+  });
+export type InstrumentAsset = z.infer<typeof InstrumentAsset>;
+
+export const InstrumentView = z.strictObject({
+  spec: InstrumentSpec,
+  /** The current components that bind this spec, by section and order. */
+  components: z.array(CanvasComponent),
+  /** Each bundle asset the spec names, once, in field order. */
+  assets: z.array(InstrumentAsset),
+});
+export type InstrumentView = z.infer<typeof InstrumentView>;
+
+/** GET /api/cases/:id/instruments: the instrument specs of the case as of one case revision. */
+export const InstrumentListing = z.strictObject({
+  caseId: entityId,
+  caseRevision: z.int().min(1),
+  instruments: z.array(InstrumentView),
+});
+export type InstrumentListing = z.infer<typeof InstrumentListing>;

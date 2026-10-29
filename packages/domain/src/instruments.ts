@@ -3,7 +3,12 @@
 // INST-03 the layers of a layer_stack are distinct and the selected one is among them. Pure
 // functions over the records; the commit applies them (packages/db commit.ts) so the interface
 // reads only specs that follow them.
-import { type CanvasComponent, type InstrumentSpec, isInstrumentKind } from "@siterra/contracts";
+import {
+  type BundleAssetRef,
+  type CanvasComponent,
+  type InstrumentSpec,
+  isInstrumentKind,
+} from "@siterra/contracts";
 
 type Named = Pick<InstrumentSpec, "parameters" | "caption">;
 
@@ -112,4 +117,40 @@ export function instrumentComponentIssues(
     ];
   }
   return [];
+}
+
+/**
+ * INST-04 (read part): the bundle assets the parameters name, once each, in field order. A field_plan
+ * names none, because it reads records. The interface resolves each against its bundle before it
+ * draws anything (GET /api/cases/:id/instruments).
+ */
+export function instrumentAssetRefs(spec: Pick<InstrumentSpec, "parameters">): BundleAssetRef[] {
+  const { parameters } = spec;
+  const refs = ((): BundleAssetRef[] => {
+    switch (parameters.kind) {
+      case "layer_stack":
+        return [parameters.relief, ...parameters.layers.map((layer) => layer.data)];
+      case "cross_section":
+        return [
+          parameters.relief,
+          parameters.profile,
+          parameters.bands,
+          parameters.bandTrends,
+          parameters.snow,
+        ];
+      case "pixel_anatomy":
+        return [parameters.locator, parameters.anatomy, parameters.bandSeries];
+      case "rainfall_scatter":
+        return [parameters.seasons, parameters.fit];
+      case "field_plan":
+        return [];
+    }
+  })();
+  const seen = new Set<string>();
+  return refs.filter((ref) => {
+    const key = `${ref.bundleId}/${ref.assetKey}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }

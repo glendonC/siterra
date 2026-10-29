@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { type CanvasComponent, Commit, type InstrumentSpec } from "@siterra/contracts";
 import { describe, expect, it } from "vitest";
 import {
+  instrumentAssetRefs,
   instrumentComponentIssues,
   instrumentReferencedIds,
   instrumentSpecIssues,
@@ -238,5 +239,57 @@ describe("INST-02: a component binds exactly one spec of its own kind, at the sp
   it("ignores a component of a kind that is not an instrument", () => {
     const component = { ...forKind("layer_stack"), componentKind: "evidence" } as CanvasComponent;
     expect(instrumentComponentIssues(component, undefined)).toEqual([]);
+  });
+});
+
+describe("INST-04 (read part): the bundle assets a spec names", () => {
+  const keys = (kind: InstrumentSpec["parameters"]["kind"]) =>
+    instrumentAssetRefs(spec(kind)).map((ref) => `${ref.bundleId}/${ref.assetKey}`);
+
+  it("lists the relief and each layer's data of a layer_stack, in field order", () => {
+    expect(keys("layer_stack")).toEqual([
+      "bundle_example_relief/relief",
+      "bundle_example_trend/pixel_trend_grid_mar_jun",
+      "bundle_example_rain/rainfall_cells",
+      "bundle_example_snow/snow_cover_tables",
+      "bundle_example_land_cover/land_cover",
+      "bundle_example_strata/strata",
+    ]);
+  });
+
+  it("lists the five assets of a cross_section, the three of a pixel_anatomy and the two of a rainfall_scatter", () => {
+    expect(keys("cross_section")).toEqual([
+      "bundle_example_relief/relief",
+      "bundle_example_transects/transect_profile",
+      "bundle_example_strata/strata",
+      "bundle_example_season_trend/season_trend_long_record",
+      "bundle_example_snow/snow_cover_tables",
+    ]);
+    expect(keys("pixel_anatomy")).toEqual([
+      "bundle_example_trend/pixel_trend_grid_mar_jun",
+      "bundle_example_pixel_anatomy/pixel_anatomy",
+      "bundle_example_season_trend/season_trend_tables",
+    ]);
+    expect(keys("rainfall_scatter")).toEqual([
+      "bundle_example_restrend/restrend_tables",
+      "bundle_example_restrend/restrend_long_record",
+    ]);
+  });
+
+  it("lists none for a field_plan, which reads records and no bundle asset", () => {
+    expect(keys("field_plan")).toEqual([]);
+  });
+
+  it("lists an asset once however many fields name it", () => {
+    const layerStack = spec("layer_stack");
+    if (layerStack.parameters.kind !== "layer_stack") throw new Error("example");
+    const twice: InstrumentSpec = {
+      ...layerStack,
+      parameters: {
+        ...layerStack.parameters,
+        layers: [...layerStack.parameters.layers, ...layerStack.parameters.layers],
+      },
+    };
+    expect(instrumentAssetRefs(twice)).toHaveLength(instrumentAssetRefs(layerStack).length);
   });
 });
