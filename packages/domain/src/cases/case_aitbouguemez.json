@@ -87,7 +87,10 @@
     "label": "November to April wet season",
     "startMonth": 11,
     "endMonth": 4,
-    "recipe": { "recipeId": "season_summary", "version": "1.0.0" }
+    "recipe": {
+      "recipeId": "season_summary",
+      "version": "1.0.0"
+    }
   },
   "explanations": [
     {
@@ -118,7 +121,10 @@
   ],
   "whenOptionalNotMet": "consistent",
   "trendSummary": {
-    "recipe": { "recipeId": "restrend_long_record", "version": "1.0.0" },
+    "recipe": {
+      "recipeId": "restrend_long_record",
+      "version": "1.0.0"
+    },
     "strata": [
       "catchment",
       "elevation_low",
@@ -130,5 +136,243 @@
       "aspect_west",
       "aspect_level"
     ]
-  }
+  },
+  "instruments": [
+    {
+      "from": "parameters",
+      "id": "rainfall_scatter_valley",
+      "whenExplanationIds": ["rainfall"],
+      "parameters": {
+        "kind": "rainfall_scatter",
+        "geoSelectionId": "geo_ait_bouguemez_catchment",
+        "seasons": {
+          "bundleId": "bundle_restrend_long_record_ait_bouguemez",
+          "assetKey": "restrend_tables"
+        },
+        "fit": {
+          "bundleId": "bundle_restrend_long_record_ait_bouguemez",
+          "assetKey": "restrend_long_record"
+        }
+      },
+      "caption": {
+        "ink": "September to May rainfall explains little of the change in March to June greenness (R squared {r2}).",
+        "grey": "A straight-line fit across seasons; it measures how closely the two move together and says nothing about why.",
+        "claimKind": "model_estimate",
+        "citationIds": ["meas_rainfall_fit_r_squared_catchment_mar_jun"],
+        "numbers": {
+          "r2": {
+            "measurementId": "meas_rainfall_fit_r_squared_catchment_mar_jun",
+            "part": "value",
+            "decimals": 3
+          }
+        }
+      }
+    },
+    {
+      "from": "parameters",
+      "id": "layer_stack_valley",
+      "whenExplanationIds": ["rainfall"],
+      "parameters": {
+        "kind": "layer_stack",
+        "geoSelectionId": "geo_ait_bouguemez_catchment",
+        "relief": {
+          "bundleId": "bundle_relief_ait_bouguemez",
+          "assetKey": "elevation_surface"
+        },
+        "layers": [
+          {
+            "layer": "vegetation_trend",
+            "data": {
+              "bundleId": "bundle_pixel_trend_long_record_ait_bouguemez",
+              "assetKey": "pixel_trend_grid_mar_jun"
+            }
+          },
+          {
+            "layer": "rainfall",
+            "data": {
+              "bundleId": "bundle_chirps_monthly_ait_bouguemez",
+              "assetKey": "rainfall_cells"
+            }
+          },
+          {
+            "layer": "snow_cover",
+            "data": {
+              "bundleId": "bundle_snow_cover_by_band_ait_bouguemez",
+              "assetKey": "snow_cover_tables"
+            }
+          },
+          {
+            "layer": "land_cover",
+            "data": {
+              "bundleId": "bundle_land_cover_ait_bouguemez",
+              "assetKey": "land_cover"
+            }
+          },
+          {
+            "layer": "elevation_bands",
+            "data": {
+              "bundleId": "bundle_terrain_strata_ait_bouguemez",
+              "assetKey": "strata"
+            }
+          }
+        ],
+        "drainageFeatureIds": [
+          "ctx_drainage_order_1",
+          "ctx_drainage_order_2",
+          "ctx_drainage_order_3",
+          "ctx_drainage_order_4",
+          "ctx_drainage_order_5"
+        ],
+        "placeFeatureIds": ["ctx_catchment_outlet", "ctx_tabant", "ctx_ait_ouchi_locator"],
+        "selectedLayer": "rainfall"
+      },
+      "caption": {
+        "ink": "The driest of the September to May seasons analysed here brought {mm} mm of rain to the catchment.",
+        "grey": "Rainfall comes from a coarse satellite grid with no gauge in the valley; the sheets show where things lie, not why.",
+        "claimKind": "observation",
+        "citationIds": ["meas_rainfall_sep_may_catchment_2001"],
+        "numbers": {
+          "mm": {
+            "measurementId": "meas_rainfall_sep_may_catchment_2001",
+            "part": "value",
+            "decimals": 0
+          }
+        }
+      }
+    },
+    {
+      "from": "parameters",
+      "id": "cross_section_valley",
+      "whenExplanationIds": ["snow_terrain"],
+      "parameters": {
+        "kind": "cross_section",
+        "geoSelectionId": "geo_ait_bouguemez_catchment",
+        "transectFeatureId": "ctx_transect_tabant_meridian",
+        "relief": {
+          "bundleId": "bundle_relief_ait_bouguemez",
+          "assetKey": "elevation_surface"
+        },
+        "profile": {
+          "bundleId": "bundle_transects_ait_bouguemez",
+          "assetKey": "transect_samples"
+        },
+        "bands": {
+          "bundleId": "bundle_terrain_strata_ait_bouguemez",
+          "assetKey": "strata"
+        },
+        "bandTrends": {
+          "bundleId": "bundle_season_trend_long_record_ait_bouguemez",
+          "assetKey": "season_trend_long_record"
+        },
+        "snow": {
+          "bundleId": "bundle_snow_cover_by_band_ait_bouguemez",
+          "assetKey": "snow_cover_tables"
+        },
+        "drainageFeatureIds": [
+          "ctx_drainage_order_1",
+          "ctx_drainage_order_2",
+          "ctx_drainage_order_3",
+          "ctx_drainage_order_4",
+          "ctx_drainage_order_5"
+        ],
+        "placeFeatureIds": ["ctx_tabant", "ctx_catchment_outlet"],
+        "statements": [
+          {
+            "evidenceId": "ev_valley_bottom_cultivated_sci03",
+            "placement": "valley_floor"
+          },
+          {
+            "evidenceId": "ev_valley_villages_sci19",
+            "placement": "valley_floor"
+          },
+          {
+            "evidenceId": "ev_upper_rangelands_vegetation_sci19",
+            "placement": "upper_slope"
+          }
+        ]
+      },
+      "caption": {
+        "ink": "March to June greenness rose in all three elevation bands, by {low}, {mid} and {high} NDVI per decade from the lowest to the highest.",
+        "grey": "The section cuts the valley along one meridian through Tabant and is a model of the ground on a coarse grid, not a survey.",
+        "claimKind": "model_estimate",
+        "citationIds": [
+          "meas_trend_unadjusted_elevation_low_mar_jun",
+          "meas_trend_unadjusted_elevation_mid_mar_jun",
+          "meas_trend_unadjusted_elevation_high_mar_jun"
+        ],
+        "numbers": {
+          "low": {
+            "measurementId": "meas_trend_unadjusted_elevation_low_mar_jun",
+            "part": "value",
+            "decimals": 4
+          },
+          "mid": {
+            "measurementId": "meas_trend_unadjusted_elevation_mid_mar_jun",
+            "part": "value",
+            "decimals": 4
+          },
+          "high": {
+            "measurementId": "meas_trend_unadjusted_elevation_high_mar_jun",
+            "part": "value",
+            "decimals": 4
+          }
+        }
+      }
+    },
+    {
+      "from": "parameters",
+      "id": "pixel_anatomy_valley",
+      "whenExplanationIds": ["land_use"],
+      "parameters": {
+        "kind": "pixel_anatomy",
+        "geoSelectionId": "geo_ait_bouguemez_catchment",
+        "locator": {
+          "bundleId": "bundle_pixel_trend_long_record_ait_bouguemez",
+          "assetKey": "pixel_trend_grid_mar_jun"
+        },
+        "anatomy": {
+          "bundleId": "bundle_pixel_anatomy_ait_bouguemez",
+          "assetKey": "pixel_anatomy"
+        },
+        "bandSeries": {
+          "bundleId": "bundle_season_trend_long_record_ait_bouguemez",
+          "assetKey": "season_trend_tables"
+        },
+        "contextEvidenceIds": [
+          "ev_herder_reported_species_change_sci03",
+          "ev_upper_rangelands_vegetation_sci19"
+        ]
+      },
+      "caption": {
+        "ink": "A mix of the pixel's land cover classes gives a greenness of {mix}, against {measured} measured.",
+        "grey": "A straight mix of class medians for one pixel on one summer day; it shows how mixed a pixel is and does not say what changed.",
+        "claimKind": "model_estimate",
+        "citationIds": [
+          "meas_pixel_anatomy_ndvi_mix_model_2025_06",
+          "meas_pixel_anatomy_ndvi_measured_2025_06"
+        ],
+        "numbers": {
+          "mix": {
+            "measurementId": "meas_pixel_anatomy_ndvi_mix_model_2025_06",
+            "part": "value",
+            "decimals": 3
+          },
+          "measured": {
+            "measurementId": "meas_pixel_anatomy_ndvi_measured_2025_06",
+            "part": "value",
+            "decimals": 4
+          }
+        }
+      }
+    },
+    {
+      "from": "branch_merge",
+      "id": "field_plan_valley",
+      "whenExplanationIds": ["rainfall", "grazing", "land_use", "snow_terrain", "data_artefact"],
+      "caption": {
+        "ink": "A field plan is proposed for the explanations the record leaves open.",
+        "grey": "Proposed only: no visit is scheduled and no access or permission is implied."
+      }
+    }
+  ]
 }

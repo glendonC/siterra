@@ -2,6 +2,7 @@ import { eventMessages } from "@siterra/domain";
 import {
   type ContextFeature,
   type Evidence,
+  type InstrumentSpec,
   EnvironmentalCase,
   type GeoSelection,
   type Source,
@@ -17,6 +18,7 @@ export type CaseSeedRecords = {
   bundles: readonly ImportedBundle[];
   contextFeatures: readonly ContextFeature[];
   evidence: readonly Evidence[];
+  instruments: readonly InstrumentSpec[];
 };
 
 /**
@@ -36,6 +38,7 @@ export async function loadSeedCase(
     ...seed.bundles.flatMap((b) => [b.dataBundle, ...b.temporalObservations, ...b.measurements]),
     ...seed.contextFeatures,
     ...seed.evidence,
+    ...seed.instruments,
   ];
   return inTransaction(pool, async (tx) => {
     const inserted = await tx.query(

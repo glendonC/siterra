@@ -12,8 +12,11 @@ import {
   Source,
   caseSchemaVersion,
 } from "@siterra/contracts";
+import { type BlockedInstrument, composeInstruments } from "@siterra/domain";
+import { analysisConfigFor } from "@siterra/domain/cases";
 import { z } from "zod";
 import { type ImportIssue, importCatalog } from "./bundle-import.ts";
+import { resolveBundleAsset } from "./case-assets.ts";
 import { permittedMode } from "./live-mode.ts";
 import { readContextLines } from "./context-line-loader.ts";
 import { EvidenceStatementsFile, readEvidenceStatements } from "./evidence-statements.ts";
@@ -104,7 +107,12 @@ function sha256File(path: string): string {
  * seed is null only when a pinned file does not match; otherwise it holds every record that passed,
  * and issues name each refused source or bundle, so the caller decides whether a partial seed loads.
  */
-export type CaseSeedResult = { seed: CaseSeedRecords | null; issues: ImportIssue[] };
+export type CaseSeedResult = {
+  seed: CaseSeedRecords | null;
+  issues: ImportIssue[];
+  /** Instrument rules whose inputs the seed does not hold yet, with the reason; not issues. */
+  blocked: BlockedInstrument[];
+};
 
 /** Builds the seed records from the repository at repoDir. */
 export function readCaseSeed(args: {
@@ -148,7 +156,7 @@ export function readCaseSeed(args: {
     }
   }
   if (issues.length > 0) {
-    return { seed: null, issues };
+    return { seed: null, issues, blocked: [] };
   }
 
   const at = args.importedAt;
@@ -317,6 +325,34 @@ export function readCaseSeed(args: {
   });
   issues.push(...statements.issues);
 
+  // Instruments the case configuration opens, composed from the records above by host rules.
+  const config = analysisConfigFor(file.caseId);
+  const bundlesDir = join(args.repoDir, file.bundles.catalog, "..");
+  const composed =
+    config === null
+      ? { specs: [], blocked: [], notOpened: [] }
+      : composeInstruments({
+          caseId: file.caseId,
+          config,
+          openExplanationIds: config.explanations.map((e) => e.id),
+          geoSelectionId: geoSelection.id,
+          geoSelections: [geoSelection],
+          dataBundles: bundles.map((b) => b.dataBundle),
+          contextFeatures,
+          measurements: bundles.flatMap((b) => b.measurements),
+          evidence: statements.evidence,
+          branchMerges: [],
+          hasAsset: (ref) => {
+            const bundle = bundles.find((b) => b.dataBundle.id === ref.bundleId);
+            const contentHash = bundle?.dataBundle.contentHash ?? null;
+            return (
+              contentHash !== null &&
+              resolveBundleAsset(bundlesDir, { ...ref, contentHash }).status === "available"
+            );
+          },
+          now: at,
+        });
+
   const caseRecord = EnvironmentalCase.parse({
     recordType: "EnvironmentalCase",
     id: file.caseId,
@@ -342,8 +378,10 @@ export function readCaseSeed(args: {
       bundles,
       contextFeatures,
       evidence: statements.evidence,
+      instruments: composed.specs,
     },
     issues,
+    blocked: composed.blocked,
   };
 }
 
@@ -360,6 +398,7 @@ export function seedSnapshot(seed: CaseSeedRecords): CaseSnapshot {
     ...seed.bundles.flatMap((b) => [b.dataBundle, ...b.temporalObservations, ...b.measurements]),
     ...seed.contextFeatures,
     ...seed.evidence,
+    ...seed.instruments,
   ];
   for (const record of all) {
     (records[collectionOf[record.recordType]] as unknown[]).push(record);

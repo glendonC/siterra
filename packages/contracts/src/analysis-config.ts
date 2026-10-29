@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { Evidence, InstrumentParameters } from "./case.ts";
 import { entityId, text, uniqueArray } from "./primitives.ts";
 
 // The case analysis configuration: what is specific to one place, so that a new place is a new
@@ -95,6 +96,103 @@ export const ExplanationDefinition = z.strictObject({
 });
 export type ExplanationDefinition = z.infer<typeof ExplanationDefinition>;
 
+const placeholder = /\{([a-z][a-z0-9_]{0,29})\}/g;
+
+/** One number a caption shows: a part of a cited Measurement, rounded once, half away from zero. */
+const CaptionNumber = z.strictObject({
+  measurementId: entityId,
+  part: z.enum(["value", "lower", "upper"]),
+  decimals: z.int().min(0).max(6),
+});
+export type CaptionNumber = z.infer<typeof CaptionNumber>;
+
+const captionSentence = text({ min: 1, max: 300 });
+
+/**
+ * A rule that opens an instrument whose parameters are all IDs, asset keys and fixed words (the
+ * configuration holds them; the composer checks that each exists). The caption is host-written text
+ * with `{name}` slots; every number comes from a cited Measurement and no digit is typed in.
+ */
+export const ParameterInstrumentRule = z
+  .strictObject({
+    from: z.literal("parameters"),
+    id: configKey,
+    /** The rule opens when the case configures at least one of these explanations. */
+    whenExplanationIds: z.array(configKey).min(1).max(maxExplanations),
+    parameters: InstrumentParameters,
+    caption: z.strictObject({
+      ink: captionSentence,
+      grey: captionSentence,
+      claimKind: Evidence.shape.claimKind,
+      citationIds: uniqueArray(entityId),
+      numbers: z.record(configKey, CaptionNumber),
+    }),
+  })
+  .superRefine((rule, ctx) => {
+    const used = new Set(
+      [...rule.caption.ink.matchAll(placeholder), ...rule.caption.grey.matchAll(placeholder)].map(
+        (m) => m[1] ?? "",
+      ),
+    );
+    const defined = new Set(Object.keys(rule.caption.numbers));
+    for (const name of used) {
+      if (!defined.has(name)) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["caption", "numbers"],
+          message: `No number for {${name}}`,
+        });
+      }
+    }
+    for (const name of defined) {
+      if (!used.has(name)) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["caption", "numbers", name],
+          message: `{${name}} is never used`,
+        });
+      }
+    }
+    const cited = new Set(rule.caption.citationIds);
+    for (const [name, number] of Object.entries(rule.caption.numbers)) {
+      if (!cited.has(number.measurementId)) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["caption", "citationIds"],
+          message: `${number.measurementId} (for {${name}}) is not cited`,
+        });
+      }
+    }
+    for (const field of ["ink", "grey"] as const) {
+      if (/\d/.test(rule.caption[field].replace(placeholder, ""))) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["caption", field],
+          message: "A caption holds no typed digit: every number is a slot for a cited Measurement",
+        });
+      }
+    }
+  });
+export type ParameterInstrumentRule = z.infer<typeof ParameterInstrumentRule>;
+
+/** A rule that opens the field plan of the latest explanation branch merge of the case. */
+export const FieldPlanInstrumentRule = z.strictObject({
+  from: z.literal("branch_merge"),
+  id: configKey,
+  whenExplanationIds: z.array(configKey).min(1).max(maxExplanations),
+  caption: z.strictObject({
+    ink: captionSentence.refine((s) => !/\d/.test(s), { error: "A caption holds no typed digit" }),
+    grey: captionSentence.refine((s) => !/\d/.test(s), { error: "A caption holds no typed digit" }),
+  }),
+});
+export type FieldPlanInstrumentRule = z.infer<typeof FieldPlanInstrumentRule>;
+
+export const InstrumentRule = z.discriminatedUnion("from", [
+  ParameterInstrumentRule,
+  FieldPlanInstrumentRule,
+]);
+export type InstrumentRule = z.infer<typeof InstrumentRule>;
+
 export const CaseAnalysisConfig = z
   .strictObject({
     configVersion: z.literal(analysisConfigVersion),
@@ -128,6 +226,14 @@ export const CaseAnalysisConfig = z
     whenOptionalNotMet: z.enum(["cannot_be_assessed", "consistent"]).optional(),
     /** Optional long-record trend summary recipe and its stratum IDs for trend_direction tests. */
     trendSummary: TrendSummaryConfig.optional(),
+    /** Instruments the composer may open for this case; none when omitted. */
+    instruments: z
+      .array(InstrumentRule)
+      .refine(
+        uniqueBy((r: InstrumentRule) => r.id),
+        { error: "Instrument rule IDs must be unique" },
+      )
+      .optional(),
   })
   .refine(
     (config) => {
@@ -135,5 +241,14 @@ export const CaseAnalysisConfig = z
       return config.fieldChecks.every((c) => c.separates.flat().every((id) => ids.has(id)));
     },
     { error: "A field check separates only configured explanations", path: ["fieldChecks"] },
+  )
+  .refine(
+    (config) => {
+      const ids = new Set(config.explanations.map((e) => e.id));
+      return (config.instruments ?? []).every((r) =>
+        r.whenExplanationIds.every((id) => ids.has(id)),
+      );
+    },
+    { error: "An instrument rule opens only on configured explanations", path: ["instruments"] },
   );
 export type CaseAnalysisConfig = z.infer<typeof CaseAnalysisConfig>;

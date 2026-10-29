@@ -147,7 +147,14 @@ describe("DF-03 (seed part): superseding a real bundle reaches evidence citing i
     );
     if (outcome.status !== "committed") throw new Error(outcome.status);
     expect(outcome.commit.upserts.map((u) => u.id).sort()).toEqual(
-      [bundle.id, "ev_example_seed_obs"].sort(),
+      [
+        bundle.id,
+        "ev_example_seed_obs",
+        // The instruments whose Measurements come from bundles built on this one (the rainfall fit
+        // and the pixel trend both read CHIRPS through their upstream bundles) go stale too.
+        "inst_pixel_anatomy_valley",
+        "inst_rainfall_scatter_valley",
+      ].sort(),
     );
     const after = await readSnapshot(pool, caseFile.caseId, "seed");
     expect(after?.records.evidenceRecords.find((e) => e.id === "ev_example_seed_obs")?.status).toBe(

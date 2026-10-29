@@ -172741,7 +172741,153 @@
     ],
     "explanationBranchRecords": [],
     "branchMergeRecords": [],
-    "instrumentSpecRecords": []
+    "instrumentSpecRecords": [
+      {
+        "recordType": "InstrumentSpec",
+        "id": "inst_pixel_anatomy_valley",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "status": "ready",
+        "parameters": {
+          "kind": "pixel_anatomy",
+          "geoSelectionId": "geo_ait_bouguemez_catchment",
+          "locator": {
+            "bundleId": "bundle_pixel_trend_long_record_ait_bouguemez",
+            "assetKey": "pixel_trend_grid_mar_jun"
+          },
+          "anatomy": {
+            "bundleId": "bundle_pixel_anatomy_ait_bouguemez",
+            "assetKey": "pixel_anatomy"
+          },
+          "bandSeries": {
+            "bundleId": "bundle_season_trend_long_record_ait_bouguemez",
+            "assetKey": "season_trend_tables"
+          },
+          "contextEvidenceIds": [
+            "ev_herder_reported_species_change_sci03",
+            "ev_upper_rangelands_vegetation_sci19"
+          ]
+        },
+        "caption": {
+          "ink": "A mix of the pixel's land cover classes gives a greenness of 0.445, against 0.4766 measured.",
+          "grey": "A straight mix of class medians for one pixel on one summer day; it shows how mixed a pixel is and does not say what changed.",
+          "claimKind": "model_estimate",
+          "citationIds": [
+            "meas_pixel_anatomy_ndvi_mix_model_2025_06",
+            "meas_pixel_anatomy_ndvi_measured_2025_06"
+          ]
+        },
+        "provenance": {
+          "sourceLocators": [],
+          "dataBundleIds": [
+            "bundle_pixel_trend_long_record_ait_bouguemez",
+            "bundle_pixel_anatomy_ait_bouguemez",
+            "bundle_season_trend_long_record_ait_bouguemez"
+          ],
+          "methodId": "instrument_composer",
+          "methodVersion": "1",
+          "inputVersions": [
+            {
+              "entityId": "geo_ait_bouguemez_catchment",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_pixel_trend_long_record_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_pixel_anatomy_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_season_trend_long_record_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "ev_herder_reported_species_change_sci03",
+              "revision": 1
+            },
+            {
+              "entityId": "ev_upper_rangelands_vegetation_sci19",
+              "revision": 1
+            },
+            {
+              "entityId": "meas_pixel_anatomy_ndvi_mix_model_2025_06",
+              "revision": 1
+            },
+            {
+              "entityId": "meas_pixel_anatomy_ndvi_measured_2025_06",
+              "revision": 1
+            }
+          ],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-28T20:42:35.015Z",
+          "verificationStatus": "computed_checked",
+          "limitations": [
+            "Composed by host rules from the case configuration; no model wrote it."
+          ]
+        }
+      },
+      {
+        "recordType": "InstrumentSpec",
+        "id": "inst_rainfall_scatter_valley",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "status": "ready",
+        "parameters": {
+          "kind": "rainfall_scatter",
+          "geoSelectionId": "geo_ait_bouguemez_catchment",
+          "seasons": {
+            "bundleId": "bundle_restrend_long_record_ait_bouguemez",
+            "assetKey": "restrend_tables"
+          },
+          "fit": {
+            "bundleId": "bundle_restrend_long_record_ait_bouguemez",
+            "assetKey": "restrend_long_record"
+          }
+        },
+        "caption": {
+          "ink": "September to May rainfall explains little of the change in March to June greenness (R squared 0.037).",
+          "grey": "A straight-line fit across seasons; it measures how closely the two move together and says nothing about why.",
+          "claimKind": "model_estimate",
+          "citationIds": [
+            "meas_rainfall_fit_r_squared_catchment_mar_jun"
+          ]
+        },
+        "provenance": {
+          "sourceLocators": [],
+          "dataBundleIds": [
+            "bundle_restrend_long_record_ait_bouguemez"
+          ],
+          "methodId": "instrument_composer",
+          "methodVersion": "1",
+          "inputVersions": [
+            {
+              "entityId": "geo_ait_bouguemez_catchment",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_restrend_long_record_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "meas_rainfall_fit_r_squared_catchment_mar_jun",
+              "revision": 1
+            }
+          ],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-28T20:42:35.015Z",
+          "verificationStatus": "computed_checked",
+          "limitations": [
+            "Composed by host rules from the case configuration; no model wrote it."
+          ]
+        }
+      }
+    ]
   },
   "lastSequence": 1
 }
