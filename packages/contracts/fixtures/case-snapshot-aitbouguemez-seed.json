@@ -13357,6 +13357,65 @@
       },
       {
         "recordType": "DataBundle",
+        "id": "bundle_relief_ait_bouguemez",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "label": "Elevation surface of the valley catchment (terrain_relief 1.0.1)",
+        "status": "validated",
+        "datasetId": "copernicus-dem-glo-30",
+        "datasetVersion": "2021",
+        "sourceIds": [],
+        "geoSelectionId": "geo_ait_bouguemez_catchment",
+        "geoRevision": 1,
+        "periodIds": [],
+        "methodId": "terrain_relief",
+        "methodVersion": "1.0.1",
+        "manifestUri": "/api/case-assets/bundle_relief_ait_bouguemez/1220d1b1c53fb0e4c350bc6020377d20270812d750ce11da2b97bd8b3c214cc7e44c/collection.json",
+        "contentHash": "1220d1b1c53fb0e4c350bc6020377d20270812d750ce11da2b97bd8b3c214cc7e44c",
+        "license": "Licence for Copernicus DEM instance COP-DEM-GLO-30-F Global 30m Full, Free & Open",
+        "attribution": "Catchment and strata derived by Siterra from Copernicus DEM GLO-30 (2021 release); produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved; The organisations in charge of the Copernicus programme by law or by delegation do not incur any liability for any use of the Copernicus WorldDEM-30",
+        "provenance": {
+          "sourceLocators": [],
+          "dataBundleIds": [
+            "bundle_terrain_strata_ait_bouguemez",
+            "bundle_drainage_network_ait_bouguemez",
+            "bundle_transects_ait_bouguemez"
+          ],
+          "methodId": "terrain_relief",
+          "methodVersion": "1.0.1",
+          "inputVersions": [
+            {
+              "entityId": "geo_ait_bouguemez_catchment",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_terrain_strata_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_drainage_network_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_transects_ait_bouguemez",
+              "revision": 1
+            }
+          ],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-29T13:39:12Z",
+          "verificationStatus": "computed_checked",
+          "limitations": [
+            "The surface is a 30 m surface model, not the ground: trees, buildings, steep walls and radar artefacts distort it, and narrow gorges such as the lower gorge near the outlet are not resolved. Heights are metres above the EGM2008 geoid with the DEM's stated vertical accuracy (Copernicus DEM Product Handbook 5.0).",
+            "Each height is a bilinear resampling of the 1 arc-second tile onto a 30 m grid in EPSG:32629; it is not a measured height at that cell centre, and the 10 m analysis cells inherit the height of their 30 m cell.",
+            "The cells outside the catchment that the layer keeps are a one-cell ring for interpolation near the boundary; they are not part of the analysis area.",
+            "The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary."
+          ]
+        }
+      },
+      {
+        "recordType": "DataBundle",
         "id": "bundle_restrend_long_record_ait_bouguemez",
         "revision": 1,
         "createdAt": "2026-10-28T20:42:35.015Z",
@@ -172742,6 +172801,335 @@
     "explanationBranchRecords": [],
     "branchMergeRecords": [],
     "instrumentSpecRecords": [
+      {
+        "recordType": "InstrumentSpec",
+        "id": "inst_cross_section_valley",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "status": "ready",
+        "parameters": {
+          "kind": "cross_section",
+          "geoSelectionId": "geo_ait_bouguemez_catchment",
+          "transectFeatureId": "ctx_transect_tabant_meridian",
+          "relief": {
+            "bundleId": "bundle_relief_ait_bouguemez",
+            "assetKey": "elevation_surface"
+          },
+          "profile": {
+            "bundleId": "bundle_transects_ait_bouguemez",
+            "assetKey": "transect_samples"
+          },
+          "bands": {
+            "bundleId": "bundle_terrain_strata_ait_bouguemez",
+            "assetKey": "strata"
+          },
+          "bandTrends": {
+            "bundleId": "bundle_season_trend_long_record_ait_bouguemez",
+            "assetKey": "season_trend_long_record"
+          },
+          "snow": {
+            "bundleId": "bundle_snow_cover_by_band_ait_bouguemez",
+            "assetKey": "snow_cover_tables"
+          },
+          "drainageFeatureIds": [
+            "ctx_drainage_order_1",
+            "ctx_drainage_order_2",
+            "ctx_drainage_order_3",
+            "ctx_drainage_order_4",
+            "ctx_drainage_order_5"
+          ],
+          "placeFeatureIds": [
+            "ctx_tabant",
+            "ctx_catchment_outlet"
+          ],
+          "statements": [
+            {
+              "evidenceId": "ev_valley_bottom_cultivated_sci03",
+              "placement": "valley_floor"
+            },
+            {
+              "evidenceId": "ev_valley_villages_sci19",
+              "placement": "valley_floor"
+            },
+            {
+              "evidenceId": "ev_upper_rangelands_vegetation_sci19",
+              "placement": "upper_slope"
+            }
+          ]
+        },
+        "caption": {
+          "ink": "March to June greenness rose in all three elevation bands, by 0.0134, 0.0072 and 0.0070 NDVI per decade from the lowest to the highest.",
+          "grey": "The section cuts the valley along one meridian through Tabant and is a model of the ground on a coarse grid, not a survey.",
+          "claimKind": "model_estimate",
+          "citationIds": [
+            "meas_trend_unadjusted_elevation_low_mar_jun",
+            "meas_trend_unadjusted_elevation_mid_mar_jun",
+            "meas_trend_unadjusted_elevation_high_mar_jun"
+          ]
+        },
+        "provenance": {
+          "sourceLocators": [],
+          "dataBundleIds": [
+            "bundle_relief_ait_bouguemez",
+            "bundle_transects_ait_bouguemez",
+            "bundle_terrain_strata_ait_bouguemez",
+            "bundle_season_trend_long_record_ait_bouguemez",
+            "bundle_snow_cover_by_band_ait_bouguemez"
+          ],
+          "methodId": "instrument_composer",
+          "methodVersion": "1",
+          "inputVersions": [
+            {
+              "entityId": "geo_ait_bouguemez_catchment",
+              "revision": 1
+            },
+            {
+              "entityId": "ctx_transect_tabant_meridian",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_relief_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_transects_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_terrain_strata_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_season_trend_long_record_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_snow_cover_by_band_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "ctx_drainage_order_1",
+              "revision": 1
+            },
+            {
+              "entityId": "ctx_drainage_order_2",
+              "revision": 1
+            },
+            {
+              "entityId": "ctx_drainage_order_3",
+              "revision": 1
+            },
+            {
+              "entityId": "ctx_drainage_order_4",
+              "revision": 1
+            },
+            {
+              "entityId": "ctx_drainage_order_5",
+              "revision": 1
+            },
+            {
+              "entityId": "ctx_tabant",
+              "revision": 1
+            },
+            {
+              "entityId": "ctx_catchment_outlet",
+              "revision": 1
+            },
+            {
+              "entityId": "ev_valley_bottom_cultivated_sci03",
+              "revision": 1
+            },
+            {
+              "entityId": "ev_valley_villages_sci19",
+              "revision": 1
+            },
+            {
+              "entityId": "ev_upper_rangelands_vegetation_sci19",
+              "revision": 1
+            },
+            {
+              "entityId": "meas_trend_unadjusted_elevation_low_mar_jun",
+              "revision": 1
+            },
+            {
+              "entityId": "meas_trend_unadjusted_elevation_mid_mar_jun",
+              "revision": 1
+            },
+            {
+              "entityId": "meas_trend_unadjusted_elevation_high_mar_jun",
+              "revision": 1
+            }
+          ],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-28T20:42:35.015Z",
+          "verificationStatus": "computed_checked",
+          "limitations": [
+            "Composed by host rules from the case configuration; no model wrote it."
+          ]
+        }
+      },
+      {
+        "recordType": "InstrumentSpec",
+        "id": "inst_layer_stack_valley",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "status": "ready",
+        "parameters": {
+          "kind": "layer_stack",
+          "geoSelectionId": "geo_ait_bouguemez_catchment",
+          "relief": {
+            "bundleId": "bundle_relief_ait_bouguemez",
+            "assetKey": "elevation_surface"
+          },
+          "layers": [
+            {
+              "layer": "vegetation_trend",
+              "data": {
+                "bundleId": "bundle_pixel_trend_long_record_ait_bouguemez",
+                "assetKey": "pixel_trend_grid_mar_jun"
+              }
+            },
+            {
+              "layer": "rainfall",
+              "data": {
+                "bundleId": "bundle_chirps_monthly_ait_bouguemez",
+                "assetKey": "rainfall_cells"
+              }
+            },
+            {
+              "layer": "snow_cover",
+              "data": {
+                "bundleId": "bundle_snow_cover_by_band_ait_bouguemez",
+                "assetKey": "snow_cover_tables"
+              }
+            },
+            {
+              "layer": "land_cover",
+              "data": {
+                "bundleId": "bundle_land_cover_ait_bouguemez",
+                "assetKey": "land_cover"
+              }
+            },
+            {
+              "layer": "elevation_bands",
+              "data": {
+                "bundleId": "bundle_terrain_strata_ait_bouguemez",
+                "assetKey": "strata"
+              }
+            }
+          ],
+          "drainageFeatureIds": [
+            "ctx_drainage_order_1",
+            "ctx_drainage_order_2",
+            "ctx_drainage_order_3",
+            "ctx_drainage_order_4",
+            "ctx_drainage_order_5"
+          ],
+          "placeFeatureIds": [
+            "ctx_catchment_outlet",
+            "ctx_tabant",
+            "ctx_ait_ouchi_locator"
+          ],
+          "selectedLayer": "rainfall"
+        },
+        "caption": {
+          "ink": "The driest of the September to May seasons analysed here brought 369 mm of rain to the catchment.",
+          "grey": "Rainfall comes from a coarse satellite grid with no gauge in the valley; the sheets show where things lie, not why.",
+          "claimKind": "observation",
+          "citationIds": [
+            "meas_rainfall_sep_may_catchment_2001"
+          ]
+        },
+        "provenance": {
+          "sourceLocators": [],
+          "dataBundleIds": [
+            "bundle_relief_ait_bouguemez",
+            "bundle_pixel_trend_long_record_ait_bouguemez",
+            "bundle_chirps_monthly_ait_bouguemez",
+            "bundle_snow_cover_by_band_ait_bouguemez",
+            "bundle_land_cover_ait_bouguemez",
+            "bundle_terrain_strata_ait_bouguemez"
+          ],
+          "methodId": "instrument_composer",
+          "methodVersion": "1",
+          "inputVersions": [
+            {
+              "entityId": "geo_ait_bouguemez_catchment",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_relief_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_pixel_trend_long_record_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_chirps_monthly_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_snow_cover_by_band_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_land_cover_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_terrain_strata_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "ctx_drainage_order_1",
+              "revision": 1
+            },
+            {
+              "entityId": "ctx_drainage_order_2",
+              "revision": 1
+            },
+            {
+              "entityId": "ctx_drainage_order_3",
+              "revision": 1
+            },
+            {
+              "entityId": "ctx_drainage_order_4",
+              "revision": 1
+            },
+            {
+              "entityId": "ctx_drainage_order_5",
+              "revision": 1
+            },
+            {
+              "entityId": "ctx_catchment_outlet",
+              "revision": 1
+            },
+            {
+              "entityId": "ctx_tabant",
+              "revision": 1
+            },
+            {
+              "entityId": "ctx_ait_ouchi_locator",
+              "revision": 1
+            },
+            {
+              "entityId": "meas_rainfall_sep_may_catchment_2001",
+              "revision": 1
+            }
+          ],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-28T20:42:35.015Z",
+          "verificationStatus": "computed_checked",
+          "limitations": [
+            "Composed by host rules from the case configuration; no model wrote it."
+          ]
+        }
+      },
       {
         "recordType": "InstrumentSpec",
         "id": "inst_pixel_anatomy_valley",

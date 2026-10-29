@@ -43,7 +43,7 @@
  },
  "bundles": {
   "catalog": "data/bundles/catalog.json",
-  "catalogSha256": "b95c54d7e89ad4f1d945488354c7d72ae9e76a7dace2ad4f63a42aed07b65865"
+  "catalogSha256": "66a3395ec48cc0d4a049b69cd337d1b849e8530c12f874313ee156d27db5dba5"
  },
  "corpus": {
   "manifest": "data/case/corpus-manifest.json",

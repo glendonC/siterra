@@ -49,6 +49,7 @@ describe("the case seed in data/case/", () => {
       "bundle_optical_visibility_ait_bouguemez",
       "bundle_pixel_anatomy_ait_bouguemez",
       "bundle_pixel_trend_long_record_ait_bouguemez",
+      "bundle_relief_ait_bouguemez",
       "bundle_restrend_long_record_ait_bouguemez",
       "bundle_s2_ndvi_monthly_ait_bouguemez",
       "bundle_season_summary_ait_bouguemez",
@@ -150,8 +151,10 @@ describe("DF-03 (seed part): superseding a real bundle reaches evidence citing i
       [
         bundle.id,
         "ev_example_seed_obs",
-        // The instruments whose Measurements come from bundles built on this one (the rainfall fit
-        // and the pixel trend both read CHIRPS through their upstream bundles) go stale too.
+        // The instruments built on this bundle, directly or through bundles that read CHIRPS
+        // (the rainfall fit, the pixel trend, the rainfall sheet) go stale too.
+        "inst_cross_section_valley",
+        "inst_layer_stack_valley",
         "inst_pixel_anatomy_valley",
         "inst_rainfall_scatter_valley",
       ].sort(),
