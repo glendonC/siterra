@@ -4,19 +4,16 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { en, format } from "../../lib/copy/en";
 import type { Fixture } from "../../lib/prototype/fixture";
 import {
-  FORMAL_TEXT,
   resolvePlace,
   STAGES,
   type Coverage,
   type Flow,
   type StageId,
 } from "../../lib/prototype/flow";
-import { protoCopy } from "../../lib/prototype/proto-copy";
-import { PIXEL_TREND_SUMMARY } from "../../lib/prototype/restrend-data";
+import { MULTI_CASES, protoCopy, type CaseSpec } from "../../lib/prototype/proto-copy";
 import type { Story } from "../../lib/prototype/story";
 import type { DirectionId } from "../../lib/theme/daylight";
 import { useMapBundle } from "../map/useMapBundle";
-import { AgentStrip } from "./AgentStrip";
 import { Cite } from "./Cite";
 import { Mark, Pause, Play } from "./icons";
 import { LandPins, type LandPin } from "./LandPins";
@@ -30,16 +27,18 @@ import {
 import {
   BriefModal,
   CoverageNote,
-  PrecedentDock,
-  RulersDock,
+  MIREYE_LAYERS,
+  MireyeLayerStack,
   SplitOverlay,
   StatusBadges,
-  ViewpointHud,
+  TechProofModal,
+  VisualEvidenceHeader,
 } from "./ProtoPanels";
 import styles from "./Story.module.css";
 
 type HypSubMode = "locked" | "record" | "graph" | "trace";
 type ScopeSubMode = "globe" | "valley";
+type ExplanationFilter = "all" | "grazing" | "rainfall" | "farms" | "snow";
 
 const STAGE_TITLES: Record<StageId, string> = {
   scope: protoCopy.stage01,
@@ -49,18 +48,17 @@ const STAGE_TITLES: Record<StageId, string> = {
   field: protoCopy.stage05,
 };
 
-const VIEW_PILLS: readonly { id: View; label: string }[] = [
-  { id: "flat", label: protoCopy.viewOverview },
-  { id: "relief", label: protoCopy.viewOblique },
-  { id: "stack", label: protoCopy.viewStack },
-  { id: "timerecord", label: protoCopy.viewRecord },
-  { id: "split", label: protoCopy.viewSplit },
-  { id: "viewpoint", label: protoCopy.viewViewpoint },
+const LENS_PILLS: readonly { id: View; label: string }[] = [
+  { id: "globe", label: protoCopy.lensGlobe },
+  { id: "relief", label: protoCopy.lens3D },
+  { id: "stack", label: protoCopy.lensStack },
+  { id: "split", label: protoCopy.lensSplit },
+  { id: "viewpoint", label: protoCopy.lens50m },
 ];
 
 export function StoryScreen({
   fixture,
-  story,
+  story: _story,
   flow,
 }: {
   fixture: Fixture;
@@ -72,23 +70,31 @@ export function StoryScreen({
   const [mapReady, setMapReady] = useState(false);
 
   const [direction, setDirection] = useState<DirectionId>("1");
+  const [caseId, setCaseId] = useState<CaseSpec["id"]>("high-atlas");
   const [stage, setStage] = useState<StageId>("scope");
   const [scopeMode, setScopeMode] = useState<ScopeSubMode>("valley");
   const [hypMode, setHypMode] = useState<HypSubMode>("record");
   const [view, setView] = useState<View>("relief");
-  const [splitMode, setSplitMode] = useState<1 | 2 | 3>(1);
+  const [splitMode, _setSplitMode] = useState<1 | 2 | 3>(1);
+  const [expFilter, setExpFilter] = useState<ExplanationFilter>("all");
 
   const [queryText, setQueryText] = useState("");
   const [notice, setNotice] = useState<Coverage | null>(null);
-  const [stripOpen, setStripOpen] = useState(true);
-  const [activeSheet, setActiveSheet] = useState<string | null>("modis_ndvi");
+  const [activeSheet, setActiveSheet] = useState<string | null>(null);
   const [openPin, setOpenPin] = useState<string | null>(null);
+  const [selectedAnchor, setSelectedAnchor] = useState<{ x: number; y: number } | null>(null);
 
   const [seasonYear, setSeasonYear] = useState<number>(2025);
   const [playingRecord, setPlayingRecord] = useState(false);
   const [frontProgress, setFrontProgress] = useState<number | null>(0.72);
   const [cutPlaying, setCutPlaying] = useState(false);
   const [brief, setBrief] = useState<"en" | "fr" | null>(null);
+  const [proofOpen, setProofOpen] = useState(false);
+
+  const activeCase = useMemo(
+    () => MULTI_CASES.find((c) => c.id === caseId) ?? MULTI_CASES[0],
+    [caseId],
+  ) as CaseSpec;
 
   // Sync URL query params for deterministic Playwright screenshots and deep links
   useEffect(() => {
@@ -98,6 +104,10 @@ export function StoryScreen({
     else if (dirParam === "2" || dirParam === "daylight" || dirParam === "mireye")
       setDirection("2");
     else if (dirParam === "3" || dirParam === "dune") setDirection("3");
+
+    const caseParam = q.get("case");
+    if (caseParam === "sierra" || caseParam === "sierra-fire") setCaseId("sierra-fire");
+    else if (caseParam === "draa" || caseParam === "draa-basin") setCaseId("draa-basin");
 
     const stepParam = q.get("step") ?? q.get("stage");
     if (stepParam === "place" || stepParam === "globe") {
@@ -116,7 +126,6 @@ export function StoryScreen({
     } else if (stepParam === "working" || stepParam === "evidence" || stepParam === "2") {
       setStage("evidence");
       setView("stack");
-      setStripOpen(true);
     } else if (
       stepParam === "findings" ||
       stepParam === "time" ||
@@ -127,7 +136,6 @@ export function StoryScreen({
       stepParam === "graph"
     ) {
       setStage("hypotheses");
-      setStripOpen(q.get("strip") === "open");
       if (stepParam === "locked" || q.get("sub") === "locked") {
         setHypMode("locked");
         setView("relief");
@@ -200,7 +208,7 @@ export function StoryScreen({
     };
   }, [playingRecord]);
 
-  // 90s Auto-Director Cut
+  // 90s Auto-Director Story Cut
   useEffect(() => {
     if (!cutPlaying) return;
     const sequence: { stage: StageId; view: View; hyp?: HypSubMode; scope?: ScopeSubMode }[] = [
@@ -237,11 +245,9 @@ export function StoryScreen({
       setView("relief");
     } else if (id === "evidence") {
       setView("stack");
-      setStripOpen(true);
     } else if (id === "hypotheses") {
       setHypMode("record");
       setView("timerecord");
-      setStripOpen(false);
       setFrontProgress(0.72);
     } else if (id === "interventions") {
       setView("relief");
@@ -252,8 +258,24 @@ export function StoryScreen({
 
   const handleQuery = useCallback(
     (qStr: string) => {
+      const lower = qStr.toLowerCase();
+      if (lower.includes("sierra") || lower.includes("california") || lower.includes("fire")) {
+        setCaseId("sierra-fire");
+        setNotice(null);
+        setScopeMode("valley");
+        setView("relief");
+        return;
+      }
+      if (lower.includes("draa") || lower.includes("ouarzazate") || lower.includes("oasis")) {
+        setCaseId("draa-basin");
+        setNotice(null);
+        setScopeMode("valley");
+        setView("relief");
+        return;
+      }
       const r = resolvePlace(qStr, fixture, flow);
       if (r.kind === "match") {
+        setCaseId("high-atlas");
         setNotice(null);
         setScopeMode("valley");
         setView("relief");
@@ -276,9 +298,12 @@ export function StoryScreen({
 
   const layer = useMemo((): MapLayer => {
     const isDry = flow.driestYears.includes(seasonYear);
+    if (expFilter === "rainfall") return { kind: "rain", values: null, dryPulse: true };
+    if (expFilter === "farms") return { kind: "cropland", rainOutline: true };
     if (stage === "evidence") {
       if (activeSheet === "chirps_rain") return { kind: "rain", values: null, dryPulse: true };
-      if (activeSheet === "dem_strata") return { kind: "cropland", rainOutline: true };
+      if (activeSheet === "dem_strata" || activeSheet === "s2_ndvi")
+        return { kind: "cropland", rainOutline: true };
       return { kind: "pixeltrend", step: 16, rainOutline: true };
     }
     if (stage === "hypotheses") {
@@ -307,6 +332,7 @@ export function StoryScreen({
     scopeMode,
     hypMode,
     activeSheet,
+    expFilter,
     seasonYear,
     frontProgress,
     view,
@@ -317,102 +343,126 @@ export function StoryScreen({
   const sheets = useMemo((): SheetState[] => {
     if (view !== "stack" && stage !== "evidence") return [];
     const offsets = [0.96, 0.74, 0.52, 0.3, 0.1];
-    return flow.layerStack.map((ls, idx) => ({
+    return MIREYE_LAYERS.map((ls, idx) => ({
       id: ls.id,
       n: ls.n,
       label: ls.title,
-      sub: `${ls.resolution} · ${ls.status}`,
+      sub: ls.tag,
       height: offsets[idx] ?? 0.2,
-      opacity: 0.95,
-      empty: ls.status === "Staged",
+      opacity: activeSheet === null || activeSheet === ls.id ? 0.96 : 0.28,
+      empty: false,
     }));
-  }, [view, stage, flow.layerStack]);
+  }, [view, stage, activeSheet]);
 
   const activePins = useMemo((): LandPin[] => {
-    if (view === "globe" || view === "stack") return [];
+    if (view === "globe" || view === "stack" || stage === "evidence") return [];
+    const baseLon = fixture.outlet.lon + 0.08;
+    const baseLat = fixture.outlet.lat + 0.025;
+    if (stage === "scope") {
+      const zoneChips = [
+        "/map/chips/chip-valley-floor-orchards.png",
+        "/map/chips/chip-mid-slope-rangeland.png",
+        "/map/chips/chip-upper-snow-band.png",
+      ];
+      return activeCase.zones.map((z, idx) => ({
+        id: z.id,
+        at: [baseLon + z.atOffset[0], baseLat + z.atOffset[1]] as [number, number],
+        label: z.name,
+        sub: z.elev,
+        stem: 68 + idx * 24,
+        kind: "seen" as const,
+        badge: z.delta,
+        chipUrl: zoneChips[idx % zoneChips.length] ?? "/map/chips/chip-mid-slope-rangeland.png",
+      }));
+    }
     if (stage === "hypotheses") {
-      if (hypMode === "locked") {
-        return flow.branchNodes.flatMap((b, idx) =>
-          b.at
-            ? [
-                {
-                  id: b.id,
-                  at: b.at,
-                  label: b.label,
-                  sub: b.revision,
-                  stem: 64 + (idx % 3) * 28,
-                  kind: "locked" as const,
-                  badge: "REV 1",
-                },
-              ]
-            : [],
-        );
-      }
-      return flow.branchNodes.flatMap((b, idx) =>
-        b.at
-          ? [
-              {
-                id: b.id,
-                at: b.at,
-                label: b.label,
-                sub: b.outcomeTitle,
-                stem: 64 + (idx % 3) * 28,
-                kind:
-                  b.status === "contradicted"
-                    ? ("contradicted" as const)
-                    : b.status === "cannot"
-                      ? ("missing" as const)
-                      : ("seen" as const),
-                badge: FORMAL_TEXT[b.status],
-              },
-            ]
-          : [],
-      );
+      const expChips: Record<string, string> = {
+        grazing: "/map/chips/chip-mid-slope-rangeland.png",
+        rainfall: "/map/chips/chip-drought-comparison.png",
+        farms: "/map/chips/chip-valley-floor-orchards.png",
+        snow: "/map/chips/chip-upper-snow-band.png",
+      };
+      return activeCase.explanations.map((ex, idx) => {
+        const offsets: [number, number][] = [
+          [-0.042, -0.008],
+          [-0.008, 0.012],
+          [0.028, -0.006],
+          [0.058, 0.018],
+        ];
+        const off = offsets[idx % offsets.length] ?? [0, 0];
+        return {
+          id: ex.id,
+          at: [baseLon + off[0], baseLat + off[1]] as [number, number],
+          label: ex.label,
+          sub: ex.claim,
+          stem: 66 + (idx % 3) * 26,
+          kind:
+            hypMode === "locked"
+              ? ("locked" as const)
+              : ex.verdict === "contradicted"
+                ? ("contradicted" as const)
+                : ex.verdict === "cannot"
+                  ? ("missing" as const)
+                  : ("seen" as const),
+          badge: hypMode === "locked" ? "Locked Rule" : ex.verdictBadge,
+          chipUrl: expChips[ex.id] ?? "/map/chips/chip-mid-slope-rangeland.png",
+        };
+      });
     }
     if (stage === "interventions") {
       const c = flow.pins[0]?.at ?? [-6.37, 31.64];
-      const mid = flow.pins[1]?.at ?? [-6.39, 31.63];
+      const mid = flow.pins[1]?.at ?? [-6.41, 31.63];
       return [
         {
           id: "rest",
           at: c,
           label: protoCopy.agdalOpenRingLabel,
           sub: protoCopy.openRingTag,
-          stem: 76,
+          stem: 74,
           kind: "missing",
-          badge: en["flow.cov.required"].text,
+          badge: protoCopy.s4PrecedentBadge,
+          chipUrl: "/map/chips/chip-valley-floor-orchards.png",
         },
         {
           id: "dry-year",
           at: mid,
           label: protoCopy.dryRuleFootprintLabel,
           sub: protoCopy.footprintTag,
-          stem: 96,
+          stem: 94,
           kind: "proposed",
+          chipUrl: "/map/chips/chip-drought-comparison.png",
         },
       ];
     }
-    if (stage === "field" || view === "viewpoint") {
-      return flow.groundChecks.flatMap((g, i) =>
-        g.at
-          ? [
-              {
-                id: g.id,
-                at: g.at,
-                label: g.label,
-                sub: g.separates ?? g.short,
-                stem: 58 + (i % 2) * 34,
-                kind: "proposed" as const,
-                ...(g.distanceLabel ? { distanceLabel: g.distanceLabel } : {}),
-                ...(g.elevationDelta ? { elevationDelta: g.elevationDelta } : {}),
-                ...(g.profilePts ? { profilePts: g.profilePts } : {}),
-              },
-            ]
-          : [],
-      );
-    }
-    return [];
-  }, [view, stage, hypMode, flow.branchNodes, flow.pins, flow.groundChecks]);
+    const stopOffsets: [number, number][] = [
+      [-0.044, -0.01],
+      [-0.012, 0.004],
+      [0.038, 0.018],
+      [-0.028, -0.002],
+    ];
+    const stopChips = [
+      "/map/chips/chip-outlet-hydrology.png",
+      "/map/chips/chip-mid-slope-rangeland.png",
+      "/map/chips/chip-upper-snow-band.png",
+      "/map/chips/chip-valley-floor-orchards.png",
+    ];
+    return activeCase.fieldStops.slice(0, 4).map((g, i) => {
+      const off = stopOffsets[i % stopOffsets.length] ?? [0, 0];
+      return {
+        id: g.id,
+        at: [baseLon + off[0], baseLat + off[1]] as [number, number],
+        label: g.label,
+        sub: g.separates,
+        stem: 62 + (i % 2) * 28,
+        kind: "proposed" as const,
+        badge: g.distanceLabel,
+        chipUrl: stopChips[i % stopChips.length] ?? "/map/chips/chip-outlet-hydrology.png",
+        distanceLabel: g.distanceLabel,
+        elevationDelta: g.elevationDelta,
+        profilePts: flow.groundChecks[i]?.profilePts ?? [0.22, 0.35, 0.48, 0.62, 0.78],
+      };
+    });
+  }, [view, stage, hypMode, activeCase, fixture.outlet, flow.pins, flow.groundChecks]);
 
   const map = mapReady ? (mapRef.current?.map() ?? null) : null;
   const assets = bundle.status === "ready" ? bundle.bundle.valley : null;
@@ -429,10 +479,230 @@ export function StoryScreen({
 
   const leaderFrom = useMemo(() => {
     if (view === "globe") return null;
-    return { x: 1034, y: 156 };
+    const w = typeof window === "undefined" ? 1440 : window.innerWidth;
+    return { x: w - 410, y: 174 };
   }, [view]);
 
   const briefText = flow.brief.find((b) => b.lang === brief);
+
+  // Selected pin metadata for the VisualEvidenceHeader
+  const selectedPinObj = useMemo(() => {
+    if (!activePins.length) return null;
+    return activePins.find((p) => p.id === openPin) ?? activePins[0] ?? null;
+  }, [activePins, openPin]);
+
+  // Top-left Editorial Headline per Stage & Active Case
+  const editorial = useMemo(() => {
+    if (stage === "scope" && scopeMode === "globe") {
+      return {
+        kicker: protoCopy.stage1GlobeKicker,
+        headline: protoCopy.stage1GlobeHeadline,
+        subhead: protoCopy.stage1GlobeSubhead,
+      };
+    }
+    if (stage === "scope") {
+      return {
+        kicker: protoCopy.stage1Kicker,
+        headline: activeCase.questionHeadline,
+        subhead: activeCase.questionSubhead,
+      };
+    }
+    if (stage === "evidence") {
+      return {
+        kicker: protoCopy.stage2Kicker,
+        headline: protoCopy.stage2Headline,
+        subhead: protoCopy.stage2Subhead,
+      };
+    }
+    if (stage === "hypotheses") {
+      return {
+        kicker: protoCopy.stage3Kicker,
+        headline: activeCase.verdictHeadline,
+        subhead: activeCase.verdictSubhead,
+      };
+    }
+    if (stage === "interventions") {
+      return {
+        kicker: protoCopy.stage4Kicker,
+        headline: protoCopy.stage4Headline,
+        subhead: protoCopy.stage4Subhead,
+      };
+    }
+    return {
+      kicker: protoCopy.stage5Kicker,
+      headline: protoCopy.stage5Headline,
+      subhead: protoCopy.stage5Subhead,
+    };
+  }, [stage, scopeMode, activeCase]);
+
+  // Active AI Specialist & Plain-English Briefing Caption (Bottom Cortana Bar)
+  const activeSpecialist = useMemo(() => {
+    if (stage === "scope") {
+      return {
+        name: protoCopy.bot1Name,
+        role: protoCopy.bot1Role,
+        speech: scopeMode === "globe" ? protoCopy.bot1SpeechGlobe : protoCopy.bot1SpeechValley,
+        cites: [1] as number[],
+      };
+    }
+    if (stage === "evidence") {
+      const selLayer = MIREYE_LAYERS.find((l) => l.id === activeSheet);
+      return {
+        name: protoCopy.bot2Name,
+        role: protoCopy.bot2Role,
+        speech: selLayer ? `${selLayer.title}: ${selLayer.detail}` : protoCopy.bot2Speech,
+        cites: [1, 2] as number[],
+      };
+    }
+    if (stage === "hypotheses") {
+      return {
+        name: protoCopy.bot3Name,
+        role: protoCopy.bot3Role,
+        speech:
+          hypMode === "locked"
+            ? protoCopy.bot3SpeechLocked
+            : hypMode === "graph"
+              ? protoCopy.bot3SpeechGraph
+              : hypMode === "trace"
+                ? protoCopy.bot3SpeechTrace
+                : protoCopy.bot3SpeechRecord,
+        cites: [1, 2, 3] as number[],
+      };
+    }
+    if (stage === "interventions") {
+      return {
+        name: protoCopy.bot4Name,
+        role: protoCopy.bot4Role,
+        speech: protoCopy.bot4Speech,
+        cites: [3] as number[],
+      };
+    }
+    return {
+      name: protoCopy.bot5Name,
+      role: protoCopy.bot5Role,
+      speech: protoCopy.bot5Speech,
+      cites: [1, 2, 3] as number[],
+    };
+  }, [stage, scopeMode, activeSheet, hypMode]);
+
+  // 3 Clickable Cluely/Aside Quick-Prompt Pills per Stage
+  const quickPrompts = useMemo(() => {
+    if (stage === "scope") {
+      return [
+        {
+          label: protoCopy.s1Prompt1,
+          run: () => {
+            selectStage("evidence");
+          },
+        },
+        {
+          label: protoCopy.s1Prompt2,
+          run: () => {
+            setCaseId("sierra-fire");
+            setScopeMode("valley");
+            setView("relief");
+          },
+        },
+        {
+          label: protoCopy.s1Prompt3,
+          run: () => {
+            setCaseId("draa-basin");
+            setScopeMode("valley");
+            setView("relief");
+          },
+        },
+      ];
+    }
+    if (stage === "evidence") {
+      return [
+        {
+          label: protoCopy.s2Prompt1,
+          run: () => {
+            selectStage("hypotheses");
+          },
+        },
+        {
+          label: protoCopy.s2Prompt2,
+          run: () => {
+            setActiveSheet((cur) => (cur === "modis_ndvi" ? null : "modis_ndvi"));
+          },
+        },
+        {
+          label: protoCopy.s2Prompt3,
+          run: () => {
+            setActiveSheet((cur) => (cur === "modis_snow" ? null : "modis_snow"));
+          },
+        },
+      ];
+    }
+    if (stage === "hypotheses") {
+      return [
+        {
+          label: protoCopy.s3Prompt1,
+          run: () => {
+            setHypMode("record");
+            setView("timerecord");
+            setPlayingRecord((p) => !p);
+          },
+        },
+        {
+          label: protoCopy.s3Prompt2,
+          run: () => {
+            setHypMode("graph");
+            setView("relief");
+          },
+        },
+        {
+          label: protoCopy.s3Prompt3,
+          run: () => {
+            selectStage("interventions");
+          },
+        },
+      ];
+    }
+    if (stage === "interventions") {
+      return [
+        {
+          label: protoCopy.s4Prompt1,
+          run: () => {
+            selectStage("field");
+          },
+        },
+        {
+          label: protoCopy.s4Prompt2,
+          run: () => {
+            setView((v) => (v === "split" ? "relief" : "split"));
+          },
+        },
+        {
+          label: protoCopy.s4Prompt3,
+          run: () => {
+            setBrief("en");
+          },
+        },
+      ];
+    }
+    return [
+      {
+        label: protoCopy.s5Prompt1,
+        run: () => {
+          setBrief("en");
+        },
+      },
+      {
+        label: protoCopy.s5Prompt2,
+        run: () => {
+          setBrief("fr");
+        },
+      },
+      {
+        label: protoCopy.s5Prompt3,
+        run: () => {
+          setProofOpen(true);
+        },
+      },
+    ];
+  }, [stage, selectStage]);
 
   return (
     <div className={styles.root} data-dir={direction} data-stage={stage} data-view={view}>
@@ -448,11 +718,13 @@ export function StoryScreen({
           frontProgress={
             stage === "hypotheses" && hypMode === "record" ? (frontProgress ?? 0.72) : null
           }
-          showStrata={view !== "globe"}
+          showStrata={view !== "globe" && stage !== "evidence"}
+          showRoute={stage === "field" || view === "viewpoint"}
           activeSheetId={activeSheet}
           onSelectSheet={setActiveSheet}
           sheets={sheets}
           leaderFrom={leaderFrom}
+          leaderTarget={selectedAnchor}
           selection="set"
           onReady={() => {
             setMapReady(true);
@@ -464,40 +736,98 @@ export function StoryScreen({
         </div>
       )}
 
+      {/* Non-overlapping LandPins with a single warm ochre active stem tethered to the Inspector */}
       {activePins.length > 0 ? (
-        <LandPins map={map} pins={activePins} open={openPin} onOpen={setOpenPin} />
+        <LandPins
+          map={map}
+          pins={activePins}
+          open={openPin}
+          onOpen={setOpenPin}
+          onSelectAnchor={setSelectedAnchor}
+        />
       ) : null}
 
-      {/* Top Tactical Command Bar */}
+      {/* Mireye 5-Layer Isometric Stack Showcase (Stage 2 / Layer Stack) */}
+      {stage === "evidence" || view === "stack" ? (
+        <MireyeLayerStack activeSheetId={activeSheet} onSelectSheet={setActiveSheet} />
+      ) : null}
+
+      {/* Horizon Compass Ring in 50m Field Viewpoint */}
+      {stage === "field" || view === "viewpoint" ? (
+        <div className={styles.compassBar} aria-hidden="true">
+          <span>{protoCopy.compassN}</span>
+          <span>{protoCopy.compassNE}</span>
+          <span className={styles.compassActive}>{protoCopy.compassENE}</span>
+          <span>{protoCopy.compassE}</span>
+          <span>{protoCopy.compassSE}</span>
+        </div>
+      ) : null}
+
+      {view === "split" ? <SplitOverlay mode={splitMode} /> : null}
+
+      {/* Top Context Bar: Brand + Multi-Case Switcher + Competing Explanations Bar + Theme */}
+      <div className={styles.topScrim} aria-hidden="true" />
       <header className={styles.topBar}>
         <div className={styles.brandGroup}>
           <span className={styles.brandMark}>
             <Mark />
           </span>
           <span className={styles.brandName}>{en["flow.brand"].text}</span>
-          <span className={styles.brandPack}>{protoCopy.packHeaderBadge}</span>
-          <StatusBadges />
+
+          {/* Interactive Multi-Case Switcher */}
+          <div className={styles.caseSwitcher} role="group" aria-label={protoCopy.caseKicker}>
+            {MULTI_CASES.map((c) => (
+              <button
+                key={c.id}
+                type="button"
+                className={styles.casePill}
+                data-active={caseId === c.id ? "true" : "false"}
+                onClick={() => {
+                  setCaseId(c.id);
+                  setOpenPin(null);
+                  setNotice(null);
+                }}
+              >
+                {c.shortName}
+              </button>
+            ))}
+          </div>
         </div>
 
-        <nav className={styles.rail} aria-label={en["flow.stages"].text}>
-          {STAGES.map((id) => (
+        {/* Competing Explanations Toggle Bar (Perplexity Rule 5) */}
+        <div className={styles.expBar} role="group" aria-label={protoCopy.explanationsBarLabel}>
+          <span className={styles.expBarLabel}>{protoCopy.explanationsBarLabel}</span>
+          <button
+            type="button"
+            className={styles.expPill}
+            data-active={expFilter === "all" ? "true" : "false"}
+            onClick={() => {
+              setExpFilter("all");
+            }}
+          >
+            {protoCopy.expAll}
+          </button>
+          {activeCase.explanations.map((ex) => (
             <button
-              key={id}
+              key={ex.id}
               type="button"
-              className={styles.railStep}
-              data-state={stage === id ? "current" : "reached"}
-              aria-current={stage === id ? "step" : undefined}
+              className={styles.expPill}
+              data-active={expFilter === ex.id ? "true" : "false"}
+              data-verdict={ex.verdict}
               onClick={() => {
-                selectStage(id);
+                setExpFilter((cur) => (cur === ex.id ? "all" : ex.id));
+                if (stage === "hypotheses") {
+                  setOpenPin(ex.id);
+                }
               }}
             >
-              {STAGE_TITLES[id]}
+              <span>{ex.label}</span>
             </button>
           ))}
-        </nav>
+        </div>
 
         <div className={styles.topRight}>
-          <div className={styles.opticGroup} role="group" aria-label={protoCopy.opticLabel}>
+          <div className={styles.opticGroup} role="group" aria-label={protoCopy.dir1Title}>
             {(
               [
                 ["1", protoCopy.dir1Short],
@@ -520,216 +850,125 @@ export function StoryScreen({
           </div>
           <button
             type="button"
-            className={styles.cutBtn}
+            className={styles.proofTrigger}
             onClick={() => {
-              setCutPlaying((c) => !c);
+              setProofOpen(true);
             }}
           >
-            {cutPlaying ? <Pause /> : <Play />}
-            {cutPlaying ? protoCopy.cutStop : protoCopy.cutPlay}
+            {protoCopy.techProofBtn}
           </button>
         </div>
       </header>
 
-      {/* Top Activity Strip (Stage 2 open, Stage 3 collapsible pill) */}
-      {stage === "evidence" || (stage === "hypotheses" && stripOpen) ? (
-        <AgentStrip
-          steps={flow.steps}
-          t={story.endsAt + 1}
-          stopped={false}
-          finished={true}
-          open={stripOpen}
-          onToggle={() => {
-            setStripOpen((o) => !o);
-          }}
-          onStop={() => undefined}
+      {/* Top-Left Editorial Stage Headline Banner */}
+      <section className={styles.editorialBanner} aria-live="polite">
+        <span className={styles.editorialKicker}>{editorial.kicker}</span>
+        <h1 className={styles.editorialHeadline}>{editorial.headline}</h1>
+        <p className={styles.editorialSubhead}>{editorial.subhead}</p>
+        {notice ? <CoverageNote c={notice} /> : null}
+      </section>
+
+      {/* Right-Hand Opaque Evidence Inspector Card (Tethered to Selected Terrain Stem) */}
+      <aside className={styles.hudCard} aria-label={activeCase.shortName}>
+        {/* High-Detail Visual Satellite & Telemetry Preview Header */}
+        <VisualEvidenceHeader
+          stage={stage}
+          activeCase={activeCase}
+          strata={flow.restrendStrata}
+          seasonYear={seasonYear}
+          {...(selectedPinObj ? { selectedPinId: selectedPinObj.id } : {})}
+          {...(selectedPinObj ? { selectedLabel: selectedPinObj.label } : {})}
+          {...(selectedPinObj ? { selectedSub: selectedPinObj.sub } : {})}
         />
-      ) : null}
-      {stage === "hypotheses" && !stripOpen ? (
-        <button
-          type="button"
-          className={styles.stripPill}
-          onClick={() => {
-            setStripOpen(true);
-          }}
-        >
-          <span className={styles.demoTag}>{protoCopy.museBadge}</span>
-          <span>{protoCopy.activityCollapsedPrefix}</span>
-        </button>
-      ) : null}
 
-      {/* Left-Hand Instrument Dock per Stage */}
-      {stage === "scope" && scopeMode === "globe" ? (
-        <aside className={styles.leftDock} aria-label={en["flow.packs"].text}>
-          <p className={styles.panelKey}>{protoCopy.globeTitle}</p>
-          <span className={styles.rulerSub}>{protoCopy.globeSubtitle}</span>
-          <span className={styles.demoTag}>{protoCopy.globeBiomesStat}</span>
-          <p className={styles.panelKey}>{en["flow.packs"].text}</p>
-          <button
-            type="button"
-            className={styles.packRow}
-            data-loaded="true"
-            onClick={() => {
-              setNotice(null);
-              setScopeMode("valley");
-              setView("relief");
-            }}
-          >
-            <div>
-              <span className={styles.packName}>{flow.pack.name}</span>
-              <span className={styles.packTheme}>{flow.pack.area}</span>
-            </div>
-            <StatusBadges />
-          </button>
-          {flow.otherPacks.map((p) => (
-            <button
-              key={p.id}
-              type="button"
-              className={styles.packRow}
-              data-loaded="false"
-              onClick={() => {
-                if (p.coverage) setNotice(p.coverage);
-              }}
-            >
-              <div>
-                <span className={styles.packName}>{p.name}</span>
-                <span className={styles.packTheme}>{p.theme}</span>
-              </div>
-              <span className={styles.covBadge} data-badge="notLoaded">
-                {en["flow.cov.notLoaded"].text}
-              </span>
-            </button>
-          ))}
-          <p className={styles.panelKey}>{protoCopy.queryPromptLabel}</p>
-          <form
-            className={styles.searchForm}
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleQuery(queryText);
-            }}
-          >
-            <input
-              className={styles.input}
-              value={queryText}
-              onChange={(e) => {
-                setQueryText(e.target.value);
-              }}
-              placeholder={en["flow.place.placeholder"].text}
-              aria-label={en["flow.place.name"].text}
-            />
-            <button type="submit" className={styles.primary}>
-              {en["flow.search"].text}
-            </button>
-          </form>
-          <div className={styles.actions}>
-            {flow.placeStarters.map((s) => (
-              <button
-                key={s.text}
-                type="button"
-                className={styles.pill}
-                onClick={() => {
-                  setQueryText(s.query);
-                  handleQuery(s.query);
-                }}
-              >
-                {s.text}
-              </button>
-            ))}
-          </div>
-          {notice ? <CoverageNote c={notice} /> : null}
-        </aside>
-      ) : null}
-
-      {stage === "scope" && scopeMode === "valley" ? (
-        <aside className={styles.leftDock} aria-label={protoCopy.scopeStrataTitle}>
-          <p className={styles.panelKey}>{protoCopy.scopeStrataTitle}</p>
-          <div className={styles.rulerCard}>
-            <div className={styles.rulerTop}>
-              <span>{protoCopy.scopeStratumLow}</span>
-              <span className={styles.rulerSlope}>{protoCopy.strataLegendLow}</span>
-            </div>
-            <div className={styles.rulerTop}>
-              <span>{protoCopy.scopeStratumMid}</span>
-              <span className={styles.rulerSlope}>{protoCopy.strataLegendMid}</span>
-            </div>
-            <div className={styles.rulerTop}>
-              <span>{protoCopy.scopeStratumHigh}</span>
-              <span className={styles.rulerSlope}>{protoCopy.strataLegendHigh}</span>
-            </div>
-            <span className={styles.rulerSub}>{protoCopy.scopeAspectNote}</span>
-          </div>
-          <div className={styles.rulerCard}>
-            <span className={styles.rulerSlope}>{protoCopy.baseline2025Badge}</span>
-            <span className={styles.rulerSub}>{protoCopy.baseline2025Sub}</span>
-          </div>
-          <div className={styles.rulerCard}>
-            <span className={styles.packName}>{protoCopy.pixelTrendHeader}</span>
-            <span className={styles.rulerSlope}>{protoCopy.pixelTrendStats}</span>
-            <span className={styles.rulerSub}>{protoCopy.pixelTrendFdr}</span>
-            <span className={styles.rulerSub}>{protoCopy.pixelTrendClusters}</span>
-          </div>
-          <CoverageNote c={flow.pastureCoverage} />
-        </aside>
-      ) : null}
-
-      {stage === "hypotheses" ? (
-        <RulersDock strata={flow.restrendStrata} seasonYear={seasonYear} />
-      ) : null}
-
-      {stage === "interventions" ? <PrecedentDock flow={flow} /> : null}
-
-      {stage === "field" || view === "viewpoint" ? <ViewpointHud flow={flow} /> : null}
-
-      {view === "split" ? <SplitOverlay mode={splitMode} /> : null}
-
-      {/* Right-Hand Receding HUD Investigation Card */}
-      <aside className={styles.hudCard} aria-label={flow.placeTitle}>
-        <header className={styles.cardHeader}>
-          <span className={styles.panelKey}>{STAGE_TITLES[stage]}</span>
-          <span className={styles.demoTag}>{protoCopy.cardRevTag}</span>
-        </header>
-
-        {stage === "scope" ? (
+        {stage === "scope" && scopeMode === "globe" ? (
           <>
-            <h2 className={styles.cardTitle}>{flow.pack.area}</h2>
-            <p className={styles.cardLead}>
-              {flow.analysis.detail}
-              <Cite ns={[1, 2]} chips={flow.sources} down />
-            </p>
-            <p className={styles.cardGrey}>{flow.pack.boundary}</p>
-            <div className={styles.metaBlock}>
-              <span className={styles.metaKey}>{protoCopy.cardSourceTag}</span>
-              <span className={styles.metaVal}>{protoCopy.stackCardSource}</span>
-              <span className={styles.metaKey}>{protoCopy.cardMeaningTag}</span>
-              <span className={styles.metaVal}>{protoCopy.baseline2025Badge}</span>
-            </div>
-            <p className={styles.panelKey}>{en["flow.pack.layers"].text}</p>
-            <ul className={styles.branchList}>
-              {flow.pack.layers.map((l) => (
-                <li key={l.name} className={styles.branchItem}>
-                  <div className={styles.branchRow}>
-                    <span>{l.name}</span>
-                    <span className={styles.rulerSub}>{l.span}</span>
+            <header className={styles.cardHeader}>
+              <span className={styles.panelKey}>{protoCopy.s1CardBadge}</span>
+              <span className={styles.demoTag}>{protoCopy.globeLoadedTag}</span>
+            </header>
+            <h2 className={styles.cardTitle}>{protoCopy.globeCardTitle}</h2>
+            <div className={styles.layerList}>
+              {MULTI_CASES.map((c) => (
+                <button
+                  key={c.id}
+                  type="button"
+                  className={styles.packRow}
+                  data-loaded={caseId === c.id ? "true" : "false"}
+                  onClick={() => {
+                    setCaseId(c.id);
+                    setNotice(null);
+                    setScopeMode("valley");
+                    setView("relief");
+                  }}
+                >
+                  <div>
+                    <span className={styles.packName}>{c.shortName}</span>
+                    <span className={styles.packTheme}>{c.regionLabel}</span>
                   </div>
-                </li>
+                  <span className={styles.demoTag}>{c.heroStatNum}</span>
+                </button>
               ))}
-            </ul>
+            </div>
             <div className={styles.actions}>
               <button
                 type="button"
-                className={styles.secondary}
+                className={styles.primary}
                 onClick={() => {
-                  if (scopeMode === "globe") {
-                    setScopeMode("valley");
-                    setView("relief");
-                  } else {
-                    setScopeMode("globe");
-                    setView("globe");
-                  }
+                  setScopeMode("valley");
+                  setView("relief");
                 }}
               >
-                {scopeMode === "globe" ? protoCopy.globeDiveBtn : protoCopy.globeReturnBtn}
+                <span>{protoCopy.globeDiveBtn}</span>
+                <span className={styles.kbd}>↵</span>
               </button>
+            </div>
+          </>
+        ) : null}
+
+        {stage === "scope" && scopeMode !== "globe" ? (
+          <>
+            <header className={styles.cardHeader}>
+              <span className={styles.panelKey}>{protoCopy.s1CardBadge}</span>
+              <button
+                type="button"
+                className={styles.ghostLink}
+                onClick={() => {
+                  setScopeMode("globe");
+                  setView("globe");
+                }}
+              >
+                {protoCopy.globeReturnBtn}
+              </button>
+            </header>
+            <div className={styles.heroStatBox}>
+              <span className={styles.heroStatBig}>{activeCase.heroStatNum}</span>
+              <span className={styles.heroStatText}>
+                {activeCase.heroStatLabel}
+                <Cite ns={[1, 2]} chips={flow.sources} down />
+              </span>
+            </div>
+            <div className={styles.zoneList}>
+              {activeCase.zones.map((z) => (
+                <button
+                  key={z.id}
+                  type="button"
+                  className={styles.zoneRow}
+                  data-active={openPin === z.id ? "true" : "false"}
+                  onClick={() => {
+                    setOpenPin(z.id);
+                  }}
+                >
+                  <div>
+                    <span className={styles.zoneName}>{z.name}</span>
+                    <span className={styles.zoneElev}>{z.elev}</span>
+                  </div>
+                  <span className={styles.zoneBadge}>{z.delta}</span>
+                </button>
+              ))}
+            </div>
+            <p className={styles.honestyText}>{protoCopy.s1HonestyNote}</p>
+            <div className={styles.actions}>
               <button
                 type="button"
                 className={styles.primary}
@@ -737,7 +976,8 @@ export function StoryScreen({
                   selectStage("evidence");
                 }}
               >
-                {protoCopy.stage02}
+                <span>{protoCopy.s1NextBtn}</span>
+                <span className={styles.kbd}>↵</span>
               </button>
             </div>
           </>
@@ -745,37 +985,45 @@ export function StoryScreen({
 
         {stage === "evidence" ? (
           <>
-            <h2 className={styles.cardTitle}>{protoCopy.stackCardTitle}</h2>
-            <p className={styles.cardLead}>
-              {flow.steps[2]?.check}
-              <Cite ns={[1, 2, 3]} chips={flow.sources} down />
-            </p>
-            <p className={styles.cardGrey}>{protoCopy.sourceHeading}</p>
-            <div className={styles.metaBlock}>
-              <span className={styles.metaKey}>{protoCopy.cardSourceTag}</span>
-              <span className={styles.metaVal}>{protoCopy.stackCardSource}</span>
-              <span className={styles.metaKey}>{protoCopy.cardMeaningTag}</span>
-              <span className={styles.metaVal}>{protoCopy.stackCardMeaning}</span>
+            <header className={styles.cardHeader}>
+              <span className={styles.panelKey}>{protoCopy.s2CardBadge}</span>
+              {activeSheet ? (
+                <button
+                  type="button"
+                  className={styles.ghostLink}
+                  onClick={() => {
+                    setActiveSheet(null);
+                  }}
+                >
+                  {protoCopy.isoShowAll}
+                </button>
+              ) : null}
+            </header>
+            <div className={styles.layerList}>
+              {MIREYE_LAYERS.map((ls) => {
+                const isSel = activeSheet === ls.id;
+                return (
+                  <button
+                    key={ls.id}
+                    type="button"
+                    className={styles.layerRow}
+                    data-active={isSel ? "true" : "false"}
+                    data-layer={String(ls.idx)}
+                    onClick={() => {
+                      setActiveSheet(isSel ? null : ls.id);
+                    }}
+                  >
+                    <div className={styles.layerRowHead}>
+                      <span className={styles.layerNum}>{ls.n}</span>
+                      <span className={styles.layerDot} data-layer={String(ls.idx)} />
+                      <span className={styles.layerTitle}>{ls.title}</span>
+                      <span className={styles.layerTag}>{ls.tag}</span>
+                    </div>
+                    <span className={styles.layerDetail}>{ls.sub}</span>
+                  </button>
+                );
+              })}
             </div>
-            <ul className={styles.branchList}>
-              {flow.layerStack.map((ls) => (
-                <li key={ls.id} className={styles.branchItem}>
-                  <div className={styles.branchRow}>
-                    <span>
-                      {ls.n}
-                      {" · "}
-                      {ls.title}
-                    </span>
-                    <span className={styles.demoTag}>{ls.status}</span>
-                  </div>
-                  <span className={styles.rulerSub}>
-                    {ls.span}
-                    {" · "}
-                    {ls.resolution}
-                  </span>
-                </li>
-              ))}
-            </ul>
             <div className={styles.actions}>
               <button
                 type="button"
@@ -784,7 +1032,8 @@ export function StoryScreen({
                   selectStage("hypotheses");
                 }}
               >
-                {protoCopy.scoreTriggerBtn}
+                <span>{protoCopy.s2NextBtn}</span>
+                <span className={styles.kbd}>↵</span>
               </button>
             </div>
           </>
@@ -795,10 +1044,10 @@ export function StoryScreen({
             <div className={styles.subModeBar} role="tablist">
               {(
                 [
-                  ["locked", protoCopy.subLocked],
-                  ["record", protoCopy.subRecord],
-                  ["graph", protoCopy.subGraph],
-                  ["trace", protoCopy.subTrace],
+                  ["record", protoCopy.s3SubVerdict],
+                  ["graph", protoCopy.s3SubWhy],
+                  ["locked", protoCopy.s3SubLocked],
+                  ["trace", protoCopy.s3SubProof],
                 ] as const
               ).map(([mId, label]) => (
                 <button
@@ -824,162 +1073,101 @@ export function StoryScreen({
               ))}
             </div>
 
-            {hypMode === "locked" ? (
-              <>
-                <h2 className={styles.cardTitle}>{protoCopy.lockedCardTitle}</h2>
-                <p className={styles.cardLead}>{protoCopy.lockedInstruction}</p>
-                <div className={styles.metaBlock}>
-                  <span className={styles.metaKey}>{protoCopy.cardSourceTag}</span>
-                  <span className={styles.metaVal}>{protoCopy.lockedCardSource}</span>
-                  <span className={styles.metaKey}>{protoCopy.cardMeaningTag}</span>
-                  <span className={styles.metaVal}>{protoCopy.lockedCardMeaning}</span>
-                </div>
-                <ul className={styles.branchList}>
-                  {flow.branchNodes.map((b) => (
-                    <li key={b.id} className={styles.branchItem}>
-                      <div className={styles.branchRow}>
-                        <span>{b.label}</span>
-                        <span className={styles.demoTag}>{b.revision}</span>
-                      </div>
-                      <span className={styles.branchDetail}>{b.lockedPrediction}</span>
-                    </li>
-                  ))}
-                </ul>
-              </>
-            ) : null}
-
-            {hypMode === "record" ? (
-              <>
-                <h2 className={styles.cardTitle}>{protoCopy.recordVerdictTitle}</h2>
-                <p className={styles.cardLead}>
-                  {protoCopy.recordVerdictClaim}
-                  <Cite ns={[1, 2]} chips={flow.sources} down />
-                </p>
-                <p className={styles.cardGrey}>{protoCopy.recordVerdictGrey}</p>
-                <div className={styles.metaBlock}>
-                  <span className={styles.metaKey}>{protoCopy.cardSourceTag}</span>
-                  <span className={styles.metaVal}>
-                    {PIXEL_TREND_SUMMARY.bundleId}
-                    {" · "}
-                    {PIXEL_TREND_SUMMARY.medianTheilSenPerDecade}
-                  </span>
-                  <span className={styles.metaKey}>{protoCopy.cardMeaningTag}</span>
-                  <span className={styles.metaVal}>{protoCopy.recordMeaning}</span>
-                </div>
-                <ul className={styles.branchList}>
-                  {flow.branchNodes.slice(0, 4).map((b) => (
-                    <li key={b.id} className={styles.branchItem}>
-                      <div className={styles.branchRow}>
-                        <span>{b.label}</span>
-                        <span className={styles.verdict} data-v={b.status}>
-                          {FORMAL_TEXT[b.status]}
-                        </span>
-                      </div>
-                      <span className={styles.branchDetail}>{b.outcomeTitle}</span>
-                    </li>
-                  ))}
-                </ul>
-              </>
-            ) : null}
-
-            {hypMode === "graph" ? (
-              <>
-                <h2 className={styles.cardTitle}>{protoCopy.graphCardTitle}</h2>
-                <p className={styles.cardLead}>
-                  {protoCopy.branchMergeSub}
-                  <Cite ns={[1, 2, 3]} chips={flow.sources} down />
-                </p>
-                <div className={styles.metaBlock}>
-                  <span className={styles.metaKey}>{protoCopy.cardSourceTag}</span>
-                  <span className={styles.metaVal}>{protoCopy.graphCardSource}</span>
-                  <span className={styles.metaKey}>{protoCopy.cardMeaningTag}</span>
-                  <span className={styles.metaVal}>{protoCopy.graphCardMeaning}</span>
-                </div>
-                <ul className={styles.branchList}>
-                  {flow.branchNodes.map((b) => (
-                    <li key={b.id} className={styles.branchItem}>
-                      <div className={styles.branchRow}>
-                        <span>{b.label}</span>
-                        <span className={styles.verdict} data-v={b.status}>
-                          {FORMAL_TEXT[b.status]}
-                        </span>
-                      </div>
-                      <span className={styles.branchDetail}>{b.outcomeDetail}</span>
-                      <span className={styles.branchCheck}>
-                        {protoCopy.branchOpenTarget}
-                        {": "}
-                        {b.separatingCheck}
+            {hypMode === "record" || hypMode === "graph" ? (
+              <div className={styles.layerList}>
+                {activeCase.explanations.map((ex) => (
+                  <button
+                    key={ex.id}
+                    type="button"
+                    className={styles.hypCard}
+                    data-active={openPin === ex.id ? "true" : "false"}
+                    onClick={() => {
+                      setOpenPin(ex.id);
+                      setExpFilter(ex.id);
+                    }}
+                  >
+                    <div className={styles.hypHead}>
+                      <span className={styles.hypTitle}>{ex.label}</span>
+                      <span className={styles.verdict} data-v={ex.verdict}>
+                        {ex.verdictBadge}
                       </span>
-                    </li>
-                  ))}
-                </ul>
-              </>
+                    </div>
+                    <span className={styles.hypBody}>
+                      {hypMode === "graph" ? ex.limitation : ex.evidence}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            ) : null}
+
+            {hypMode === "locked" ? (
+              <div className={styles.layerList}>
+                {flow.branchNodes.slice(0, 4).map((b) => (
+                  <div key={b.id} className={styles.hypCard}>
+                    <div className={styles.hypHead}>
+                      <span className={styles.hypTitle}>{b.label}</span>
+                      <span className={styles.demoTag}>{b.revision}</span>
+                    </div>
+                    <span className={styles.hypBody}>{b.lockedPrediction}</span>
+                  </div>
+                ))}
+              </div>
             ) : null}
 
             {hypMode === "trace" ? (
-              <>
-                <h2 className={styles.cardTitle}>{protoCopy.traceTitle}</h2>
-                <p className={styles.cardGrey}>{protoCopy.traceSub}</p>
-                <div className={styles.traceBox}>
-                  {flow.traceRecords.map((tr) => (
-                    <div key={tr.id} className={styles.traceRow}>
-                      <div className={styles.traceHead}>
-                        <span>
-                          {tr.id}
-                          {" · "}
-                          {tr.stepTitle}
-                        </span>
-                        <span className={styles.demoTag}>{tr.status}</span>
-                      </div>
-                      <span className={styles.traceMeta}>
-                        {tr.actor}
-                        {" · "}
-                        {String(tr.durationMs)}
-                        {" ms"}
-                      </span>
-                      <span className={styles.traceMeta}>{tr.validatorRule}</span>
-                      <span className={styles.traceCode}>{tr.excerptOrPayload}</span>
+              <div className={styles.layerList}>
+                {flow.traceRecords.slice(0, 4).map((tr) => (
+                  <div key={tr.id} className={styles.hypCard}>
+                    <div className={styles.hypHead}>
+                      <span className={styles.hypTitle}>{tr.stepTitle}</span>
+                      <span className={styles.demoTag}>{tr.status}</span>
                     </div>
-                  ))}
-                </div>
-              </>
+                    <span className={styles.hypBody}>{tr.validatorRule}</span>
+                  </div>
+                ))}
+              </div>
             ) : null}
+
+            <div className={styles.actions}>
+              <button
+                type="button"
+                className={styles.primary}
+                onClick={() => {
+                  selectStage("interventions");
+                }}
+              >
+                <span>{protoCopy.s3NextBtn}</span>
+                <span className={styles.kbd}>↵</span>
+              </button>
+            </div>
           </>
         ) : null}
 
         {stage === "interventions" ? (
           <>
-            <h2 className={styles.cardTitle}>{protoCopy.stage4CardTitle}</h2>
-            <p className={styles.cardLead}>
-              {flow.optionsNote}
-              <Cite ns={[3]} chips={flow.sources} down />
-            </p>
-            <div className={styles.metaBlock}>
-              <span className={styles.metaKey}>{protoCopy.cardSourceTag}</span>
-              <span className={styles.metaVal}>{protoCopy.stage4CardSource}</span>
-              <span className={styles.metaKey}>{protoCopy.cardMeaningTag}</span>
-              <span className={styles.metaVal}>{protoCopy.stage4CardMeaning}</span>
+            <header className={styles.cardHeader}>
+              <span className={styles.panelKey}>{protoCopy.s4CardBadge}</span>
+              <span className={styles.demoTag}>{protoCopy.s4PrecedentBadge}</span>
+            </header>
+            <div className={styles.precedentBox}>
+              <span className={styles.precedentTitle}>{protoCopy.s4PrecedentTitle}</span>
+              <span className={styles.precedentBody}>
+                {protoCopy.s4PrecedentBody}
+                <Cite ns={[3]} chips={flow.sources} down />
+              </span>
+              <span className={styles.precedentCaveat}>{protoCopy.s4PrecedentCaveat}</span>
             </div>
-            <ul className={styles.branchList}>
+            <div className={styles.layerList}>
               {flow.options.map((o) => (
-                <li key={o.id} className={styles.branchItem}>
-                  <div className={styles.branchRow}>
-                    <span>{o.title}</span>
-                    <span className={styles.demoTag}>
-                      {o.group === "precedent"
-                        ? en["flow.precedent"].text
-                        : en["flow.noPrecedent"].text}
-                    </span>
+                <div key={o.id} className={styles.hypCard}>
+                  <div className={styles.hypHead}>
+                    <span className={styles.hypTitle}>{o.title}</span>
+                    <span className={styles.demoTag}>{o.decides}</span>
                   </div>
-                  <span className={styles.branchDetail}>{o.evidence}</span>
-                  <span className={styles.branchCheck}>
-                    {en["flow.decision"].text}
-                    {": "}
-                    {o.decides}
-                  </span>
-                </li>
+                  <span className={styles.hypBody}>{o.evidence}</span>
+                </div>
               ))}
-            </ul>
+            </div>
             <div className={styles.actions}>
               <button
                 type="button"
@@ -988,7 +1176,8 @@ export function StoryScreen({
                   selectStage("field");
                 }}
               >
-                {protoCopy.stage05}
+                <span>{protoCopy.s4NextBtn}</span>
+                <span className={styles.kbd}>↵</span>
               </button>
             </div>
           </>
@@ -996,29 +1185,29 @@ export function StoryScreen({
 
         {stage === "field" ? (
           <>
-            <h2 className={styles.cardTitle}>{protoCopy.stage5CardTitle}</h2>
-            <p className={styles.cardLead}>
-              {protoCopy.stage5CardMeaning}
-              <Cite ns={[1, 2, 3]} chips={flow.sources} down />
-            </p>
-            <div className={styles.metaBlock}>
-              <span className={styles.metaKey}>{protoCopy.cardSourceTag}</span>
-              <span className={styles.metaVal}>{protoCopy.stage5CardSource}</span>
-              <span className={styles.metaKey}>{protoCopy.cardMeaningTag}</span>
-              <span className={styles.metaVal}>{protoCopy.briefPrintHint}</span>
-            </div>
-            <ul className={styles.branchList}>
-              {flow.groundChecks.map((g) => (
-                <li key={g.id} className={styles.branchItem}>
-                  <div className={styles.branchRow}>
-                    <span>{g.label}</span>
-                    <span className={styles.rulerSub}>{g.short}</span>
+            <header className={styles.cardHeader}>
+              <span className={styles.panelKey}>{protoCopy.s5CardBadge}</span>
+              <StatusBadges />
+            </header>
+            <div className={styles.layerList}>
+              {activeCase.fieldStops.slice(0, 4).map((g) => (
+                <button
+                  key={g.id}
+                  type="button"
+                  className={styles.hypCard}
+                  data-active={openPin === g.id ? "true" : "false"}
+                  onClick={() => {
+                    setOpenPin(g.id);
+                  }}
+                >
+                  <div className={styles.hypHead}>
+                    <span className={styles.hypTitle}>{g.label}</span>
+                    <span className={styles.demoTag}>{g.distanceLabel}</span>
                   </div>
-                  <span className={styles.branchDetail}>{g.what}</span>
-                  {g.separates ? <span className={styles.branchCheck}>{g.separates}</span> : null}
-                </li>
+                  <span className={styles.hypBody}>{g.what}</span>
+                </button>
               ))}
-            </ul>
+            </div>
             <div className={styles.actions}>
               <button
                 type="button"
@@ -1027,7 +1216,8 @@ export function StoryScreen({
                   setBrief("en");
                 }}
               >
-                {protoCopy.briefOpenEnBtn}
+                <span>{protoCopy.s5BriefEnBtn}</span>
+                <span className={styles.kbd}>↵</span>
               </button>
               <button
                 type="button"
@@ -1036,79 +1226,81 @@ export function StoryScreen({
                   setBrief("fr");
                 }}
               >
-                {protoCopy.briefOpenFrBtn}
+                {protoCopy.s5BriefFrBtn}
               </button>
             </div>
           </>
         ) : null}
       </aside>
 
-      {/* Bottom Camera View Switcher & Synchronized 26-Season Scrubber */}
-      <div className={styles.bottomBar}>
-        <div className={styles.viewBar} role="toolbar" aria-label={protoCopy.viewLabel}>
-          <button
-            type="button"
-            className={styles.viewBtn}
-            data-active={view === "globe" ? "true" : "false"}
-            onClick={() => {
-              setStage("scope");
-              setScopeMode("globe");
-              setView("globe");
-            }}
-          >
-            {protoCopy.globeReturnBtn}
-          </button>
-          {VIEW_PILLS.map((vp) => (
-            <button
-              key={vp.id}
-              type="button"
-              className={styles.viewBtn}
-              data-active={view === vp.id ? "true" : "false"}
-              onClick={() => {
-                setView(vp.id);
-                if (vp.id === "stack") setStage("evidence");
-                else if (vp.id === "timerecord") {
-                  setStage("hypotheses");
-                  setHypMode("record");
-                  setFrontProgress(0.72);
-                } else if (vp.id === "viewpoint") setStage("field");
-              }}
-            >
-              {vp.label}
-            </button>
-          ))}
-          {view === "split" ? (
-            <button
-              type="button"
-              className={styles.pill}
-              onClick={() => {
-                setSplitMode((m) => (m === 1 ? 2 : m === 2 ? 3 : 1));
-              }}
-            >
-              {splitMode === 1
-                ? protoCopy.splitMode1
-                : splitMode === 2
-                  ? protoCopy.splitMode2
-                  : protoCopy.splitMode3}
-            </button>
-          ) : null}
-        </div>
+      {/* Bottom-Center Unified Cluely / Aside Dynamic Assistant & Stage Dock */}
+      <div className={styles.bottomDockWrap}>
+        {/* 1. Video-Game Cortana / Specialist Briefing Caption + Quick Prompts */}
+        <section className={styles.cortanaBar} aria-label={protoCopy.teamLabel}>
+          <div className={styles.cortanaMain}>
+            <div className={styles.botAvatar}>
+              <span className={styles.botPulse} />
+              <span className={styles.botCore} />
+            </div>
+            <div className={styles.cortanaCopy}>
+              <div className={styles.botMetaRow}>
+                <span className={styles.botName}>{activeSpecialist.name}</span>
+                <span className={styles.botRole}>{activeSpecialist.role}</span>
+              </div>
+              <p className={styles.cortanaSpeech}>
+                {activeSpecialist.speech}
+                <Cite ns={activeSpecialist.cites} chips={flow.sources} />
+              </p>
+            </div>
+          </div>
 
+          <div className={styles.cluelyRow}>
+            <div className={styles.promptPills}>
+              {quickPrompts.map((qp) => (
+                <button key={qp.label} type="button" className={styles.promptPill} onClick={qp.run}>
+                  {qp.label}
+                </button>
+              ))}
+            </div>
+            <form
+              className={styles.inlineSearch}
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (queryText.trim()) handleQuery(queryText);
+              }}
+            >
+              <input
+                className={styles.inlineInput}
+                value={queryText}
+                onChange={(e) => {
+                  setQueryText(e.target.value);
+                }}
+                placeholder={protoCopy.promptInputPlaceholder}
+                aria-label={en["flow.place.name"].text}
+              />
+              <button type="submit" className={styles.inlineAskBtn}>
+                {protoCopy.promptAskBtn}
+              </button>
+            </form>
+          </div>
+        </section>
+
+        {/* 2. Synchronized 26-Year Timeline Scrubber (Stage 3 Record Mode) */}
         {stage === "hypotheses" && hypMode === "record" && catchmentStratum ? (
           <div className={styles.scrubberBar}>
             <button
               type="button"
-              className={styles.primary}
+              className={styles.playPill}
               onClick={() => {
                 setPlayingRecord((p) => !p);
               }}
             >
               {playingRecord ? <Pause /> : <Play />}
-              {playingRecord ? protoCopy.seasonPauseBtn : protoCopy.seasonPlayBtn}
+              <span>{playingRecord ? protoCopy.timelinePause : protoCopy.timelinePlay}</span>
             </button>
             <div className={styles.seasonTracks}>
               {catchmentStratum.seasons.map((s) => {
-                const h = Math.max(6, Math.round(((s.ndvi - 0.18) / 0.05) * 28));
+                const h = Math.max(6, Math.round(((s.ndvi - 0.18) / 0.05) * 26));
                 return (
                   <button
                     key={s.year}
@@ -1117,7 +1309,7 @@ export function StoryScreen({
                     style={{ height: `${String(h)}px` }}
                     data-dry={s.dryPulse ? "true" : "false"}
                     data-active={s.year === seasonYear ? "true" : "false"}
-                    title={`${String(s.year)}: NDVI ${s.ndvi.toFixed(4)}, ${String(Math.round(s.rainMm))} mm`}
+                    title={`${String(s.year)}: ${String(Math.round(s.rainMm))} ${protoCopy.rainUnit}`}
                     onClick={() => {
                       setSeasonYear(s.year);
                       setFrontProgress((s.year - 2000) / 25);
@@ -1126,23 +1318,87 @@ export function StoryScreen({
                 );
               })}
             </div>
-            <div>
-              <span className={styles.packName}>
+            <div className={styles.seasonReadout}>
+              <span className={styles.seasonYearLabel}>
                 {protoCopy.yearPrefix} {String(seasonYear)}
-                {" · "}
-                {protoCopy.ndviLabel} {currentSeasonObj?.ndvi.toFixed(4)}
                 {" · "}
                 {String(Math.round(currentSeasonObj?.rainMm ?? 0))} {protoCopy.rainUnit}
               </span>
-              <span className={styles.packTheme}>
+              <span className={styles.seasonSubLabel}>
                 {currentSeasonObj?.dryPulse
-                  ? protoCopy.seasonDryYearAlert
-                  : protoCopy.scanFrontLabel}
+                  ? protoCopy.timelineDryTag
+                  : protoCopy.timelineNormalTag}
               </span>
             </div>
           </div>
         ) : null}
+
+        {/* 3. Unified 5-Stage & Camera Pill Dock */}
+        <div className={styles.stageDock}>
+          <button
+            type="button"
+            className={styles.cutBtn}
+            onClick={() => {
+              setCutPlaying((c) => !c);
+            }}
+          >
+            {cutPlaying ? <Pause /> : <Play />}
+            <span>{cutPlaying ? protoCopy.cutStop : protoCopy.cutPlay}</span>
+          </button>
+
+          <nav className={styles.rail} aria-label={en["flow.stages"].text}>
+            {STAGES.map((id) => (
+              <button
+                key={id}
+                type="button"
+                className={styles.railStep}
+                data-state={stage === id ? "current" : "reached"}
+                aria-current={stage === id ? "step" : undefined}
+                onClick={() => {
+                  selectStage(id);
+                }}
+              >
+                {STAGE_TITLES[id]}
+              </button>
+            ))}
+          </nav>
+
+          <div className={styles.lensGroup} role="toolbar" aria-label={protoCopy.lens3D}>
+            {LENS_PILLS.map((lp) => (
+              <button
+                key={lp.id}
+                type="button"
+                className={styles.lensBtn}
+                data-active={view === lp.id ? "true" : "false"}
+                onClick={() => {
+                  setView(lp.id);
+                  if (lp.id === "globe") {
+                    setStage("scope");
+                    setScopeMode("globe");
+                  } else if (lp.id === "stack") {
+                    setStage("evidence");
+                  } else if (lp.id === "viewpoint") {
+                    setStage("field");
+                  } else if (scopeMode === "globe") {
+                    setScopeMode("valley");
+                  }
+                }}
+              >
+                {lp.label}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
+
+      {proofOpen ? (
+        <TechProofModal
+          flow={flow}
+          onClose={() => {
+            setProofOpen(false);
+          }}
+        />
+      ) : null}
 
       {brief && briefText ? (
         <BriefModal

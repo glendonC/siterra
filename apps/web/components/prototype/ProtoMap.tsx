@@ -1,8 +1,10 @@
 "use client";
 
-// The prototype's full-bleed valley stage across all 6 map views (Overview, Oblique, Exploded Stack,
-// Time Record, Split Comparison, Viewpoint 50 m) and 3 switchable visual directions (1: SHD Obsidian Table,
+// The prototype's full-bleed valley stage across all map views (Globe, 3D Terrain, 5-Layer Stack,
+// Time Record, Split Comparison, Field View) and 3 switchable visual directions (1: SHD Obsidian Table,
 // 2: Mireye Daylight Model, 3: Dune Nocturnal Volume).
+// Includes FireTrace-inspired animated hydrological drainage flow, animated field-verification route,
+// widely separated colour-coded 5-layer sheets with right-hand callouts, and tethered evidence leader.
 
 import * as maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
@@ -50,7 +52,6 @@ export interface SheetState {
   badge?: string;
   height: number;
   opacity: number;
-  /** No picture for this layer: drawn as an outline that never comes down. */
   empty?: boolean;
 }
 
@@ -61,8 +62,11 @@ interface DrawnSheet {
   sub?: string;
   badge?: string;
   d: string;
+  innerD: string;
+  streamD: string;
   opacity: number;
   empty: boolean;
+  layerIdx: number;
   eastPt: { x: number; y: number } | null;
   westPt: { x: number; y: number } | null;
 }
@@ -74,9 +78,7 @@ interface Leader {
 }
 
 export interface ProtoMapHandle {
-  /** Flies to a named shot; the user's own camera is kept until they ask for another. */
   fly(shot: Shot): void;
-  /** Keeps part of the screen free (for the connected table or a panel) by padding the camera, in one guided move. */
   pad(top: number, left?: number): void;
   map(): maplibregl.Map | null;
 }
@@ -89,38 +91,34 @@ export interface ProtoMapProps {
   view: View;
   direction?: DirectionId;
   layer: MapLayer;
-  /** The area being read: a faint accent line with one front across it per new key. */
   reading: string | null;
-  /** Progress 0..1 of the constant-speed measurement front across the catchment in Time Record. */
   frontProgress?: number | null;
-  /** Show the 3 elevation strata contours and subtle tints on the terrain. */
   showStrata?: boolean;
-  /** Active sheet ID when hovering in Exploded Stack view. */
+  showRoute?: boolean;
   activeSheetId?: string | null;
   onSelectSheet?: (id: string | null) => void;
-  /** The plan's measured steps as thin sheets cut to the catchment outline. */
   sheets?: SheetState[];
-  /** Where the card's leader starts, in screen pixels; it ends in a tick on the catchment line. */
   leaderFrom?: { x: number; y: number } | null;
+  leaderTarget?: { x: number; y: number } | null;
   onReady?: () => void;
-  /** Fires when the camera moves (for overlays that sit on the land). */
   onRender?: (map: maplibregl.Map) => void;
-  /** none: no area chosen, no outline; proposed: light inside, the edge drawn by the caller; set: the full outline. */
   selection?: "none" | "proposed" | "set";
-  /** Fades the photo under the land, for a year with no picture of its own. */
   dimImagery?: boolean;
 }
 
 const MOVE_MS = 1400;
 const LIFT_M = 60;
-/** Sheet planes sit above the highest point of the outline, in exaggerated metres. */
-const SHEET_BASE_M = 520;
-const SHEET_GAP_M = 920;
+/** Wide vertical separation between the 5 floating catchment sheets so each layer is crystal clear. */
+const SHEET_BASE_M = 680;
+const SHEET_GAP_M = 1720;
 
 type Pt = { x: number; y: number };
 
 const pathOf = (pts: Pt[]) =>
   pts.map((p, i) => `${i ? "L" : "M"}${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join("") + "Z";
+
+const openPathOf = (pts: Pt[]) =>
+  pts.map((p, i) => `${i ? "L" : "M"}${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join("");
 
 function scaleRing(
   ring: [number, number][],
@@ -131,6 +129,20 @@ function scaleRing(
     center[0] + (lon - center[0]) * scale,
     center[1] + (lat - center[1]) * scale,
   ]);
+}
+
+function leaderToPoint(from: Pt, target: Pt): Leader {
+  const elbow = { x: from.x - 26, y: from.y };
+  const dx = target.x - elbow.x;
+  const dy = target.y - elbow.y;
+  const len = Math.hypot(dx, dy) || 1;
+  const nx = (-dy / len) * 6;
+  const ny = (dx / len) * 6;
+  return {
+    d: `M${from.x.toFixed(1)} ${from.y.toFixed(1)}L${elbow.x.toFixed(1)} ${elbow.y.toFixed(1)}L${target.x.toFixed(1)} ${target.y.toFixed(1)}`,
+    tick: `M${(target.x - nx).toFixed(1)} ${(target.y - ny).toFixed(1)}L${(target.x + nx).toFixed(1)} ${(target.y + ny).toFixed(1)}`,
+    dot: target,
+  };
 }
 
 function leaderTo(from: Pt, ring: Pt[]): Leader | null {
@@ -146,26 +158,15 @@ function leaderTo(from: Pt, ring: Pt[]): Leader | null {
     }
   }
   if (bd === Infinity) return null;
-  const dx = best.x - elbow.x;
-  const dy = best.y - elbow.y;
-  const len = Math.hypot(dx, dy) || 1;
-  const nx = (-dy / len) * 6;
-  const ny = (dx / len) * 6;
-  return {
-    d: `M${from.x.toFixed(1)} ${from.y.toFixed(1)}L${elbow.x.toFixed(1)} ${elbow.y.toFixed(1)}L${best.x.toFixed(1)} ${best.y.toFixed(1)}`,
-    tick: `M${(best.x - nx).toFixed(1)} ${(best.y - ny).toFixed(1)}L${(best.x + nx).toFixed(1)} ${(best.y + ny).toFixed(1)}`,
-    dot: best,
-  };
+  return leaderToPoint(from, best);
 }
 
-/** Rain per cell classes for a wet season (the approved key's display classes, not the 1991 to 2020 thirds). */
 export const RAIN_CLASSES = [
   { upTo: 400, color: rainTotal.class1 },
   { upTo: 550, color: rainTotal.class2 },
   { upTo: Infinity, color: rainTotal.class3 },
 ] as const;
 
-/** The map's projection type; getProjection() returns undefined until the style has loaded, despite its type. */
 export function projectionType(m: maplibregl.Map): string | undefined {
   const p = m.getProjection() as maplibregl.ProjectionSpecification | undefined;
   return p?.type as string | undefined;
@@ -204,6 +205,45 @@ function currentCamera(m: maplibregl.Map): MapCamera {
   };
 }
 
+/** Hydrological stream coordinates along Assif n'Ait Bouguemez and high snowmelt tributaries. */
+const MAIN_STREAM_COORDS: [number, number][] = [
+  [-6.265, 31.692],
+  [-6.302, 31.681],
+  [-6.338, 31.669],
+  [-6.372, 31.656],
+  [-6.404, 31.646],
+  [-6.432, 31.639],
+  [-6.458, 31.629],
+  [-6.484, 31.619],
+];
+
+const TRIBUTARY_COORDS: [number, number][][] = [
+  [
+    [-6.312, 31.714],
+    [-6.326, 31.691],
+    [-6.338, 31.669],
+  ],
+  [
+    [-6.352, 31.616],
+    [-6.364, 31.637],
+    [-6.372, 31.656],
+  ],
+  [
+    [-6.398, 31.682],
+    [-6.414, 31.661],
+    [-6.432, 31.639],
+  ],
+];
+
+/** Field verification route connecting the 4 mapped ground stops from Tabant floor to the upper ridge. */
+const FIELD_ROUTE_COORDS: [number, number][] = [
+  [-6.425, 31.641],
+  [-6.442, 31.633],
+  [-6.406, 31.644],
+  [-6.372, 31.656],
+  [-6.324, 31.678],
+];
+
 export const ProtoMap = forwardRef<ProtoMapHandle, ProtoMapProps>(function ProtoMap(
   {
     assets,
@@ -214,10 +254,12 @@ export const ProtoMap = forwardRef<ProtoMapHandle, ProtoMapProps>(function Proto
     reading,
     frontProgress = null,
     showStrata = true,
+    showRoute = false,
     activeSheetId = null,
     onSelectSheet,
     sheets,
     leaderFrom,
+    leaderTarget = null,
     onReady,
     onRender,
     selection = "set",
@@ -233,6 +275,11 @@ export const ProtoMap = forwardRef<ProtoMapHandle, ProtoMapProps>(function Proto
     mid: "",
     low: "",
   });
+  const [hydroPaths, setHydroPaths] = useState<{ main: string; tribs: string[] }>({
+    main: "",
+    tribs: [],
+  });
+  const [routePath, setRoutePath] = useState("");
   const [box, setBox] = useState<{ x0: number; x1: number; y0: number; y1: number } | null>(null);
   const [drawn, setDrawn] = useState<DrawnSheet[]>([]);
   const [leader, setLeader] = useState<Leader | null>(null);
@@ -244,10 +291,13 @@ export const ProtoMap = forwardRef<ProtoMapHandle, ProtoMapProps>(function Proto
     elev: string;
     band: string;
   } | null>(null);
+
   const sheetsRef = useRef(sheets);
   sheetsRef.current = sheets;
   const leaderFromRef = useRef(leaderFrom);
   leaderFromRef.current = leaderFrom;
+  const leaderTargetRef = useRef(leaderTarget);
+  leaderTargetRef.current = leaderTarget;
   const placeRef = useRef<() => void>(() => undefined);
   const homeRef = useRef<MapCamera | null>(null);
   const reliefRef = useRef(ARRIVAL_EXAGGERATION);
@@ -262,7 +312,6 @@ export const ProtoMap = forwardRef<ProtoMapHandle, ProtoMapProps>(function Proto
   const dirRef = useRef<DirectionId>(direction);
   dirRef.current = direction;
 
-  /** One guided move with the relief easing between two heights; a camera cut under reduced motion. */
   const move = (to: MapCamera, reliefTo: number, after?: () => void) => {
     const m = mapRef.current;
     if (!m) return;
@@ -305,14 +354,16 @@ export const ProtoMap = forwardRef<ProtoMapHandle, ProtoMapProps>(function Proto
     if (shot === "home") return home;
     const floor = fixture.places.find((p) => p.role === "settlement");
     if (shot === "viewpoint-50m") {
+      // Tactical oblique valley survey pose: keeps Sentinel-2 10m texture, river flow, and 4 field stops crisp
+      // and well-spaced without over-zooming past the 30m DEM resolution into blurry clay.
       const target = floor ?? { lon: -6.425, lat: 31.641 };
       return orbitToMapCamera(
         {
-          target: { lon: target.lon + 0.015, lat: target.lat + 0.004 },
-          targetHeightM: 2 * 1880,
-          cameraBearingFromTargetDeg: -112,
-          elevationDeg: 18,
-          distanceM: 9200,
+          target: { lon: target.lon + 0.036, lat: target.lat + 0.011 },
+          targetHeightM: 2 * 1950,
+          cameraBearingFromTargetDeg: -124,
+          elevationDeg: 32,
+          distanceM: 23500,
           verticalFovDeg: home.verticalFovDeg,
         },
         el.current?.clientHeight ?? 900,
@@ -321,9 +372,9 @@ export const ProtoMap = forwardRef<ProtoMapHandle, ProtoMapProps>(function Proto
     if (shot === "stack-pose") {
       return {
         ...home,
-        center: [home.center[0] + 0.038, home.center[1] - 0.018],
-        zoom: home.zoom - 0.32,
-        pitch: 46,
+        center: [home.center[0] + 0.058, home.center[1] - 0.014],
+        zoom: home.zoom - 0.42,
+        pitch: 48,
         bearing: -24,
       };
     }
@@ -373,7 +424,6 @@ export const ProtoMap = forwardRef<ProtoMapHandle, ProtoMapProps>(function Proto
     map: () => mapRef.current,
   }));
 
-  // build the map once
   useEffect(() => {
     const container = el.current;
     if (!container) return;
@@ -448,10 +498,10 @@ export const ProtoMap = forwardRef<ProtoMapHandle, ProtoMapProps>(function Proto
         const trueElev = Math.round(elevNum / Math.max(1, reliefRef.current));
         const band =
           trueElev < 2317
-            ? "Lower Band (< 2,317 m)"
+            ? "Valley Floor (< 2,317 m)"
             : trueElev <= 2815
-              ? "Middle Band (2,317 to 2,815 m)"
-              : "Upper Band (> 2,815 m)";
+              ? "Middle Slopes (2,317 to 2,815 m)"
+              : "High Summer Pastures (> 2,815 m)";
         setHoverInfo({
           x: e.point.x,
           y: e.point.y,
@@ -478,6 +528,8 @@ export const ProtoMap = forwardRef<ProtoMapHandle, ProtoMapProps>(function Proto
             last = "none";
             setOutline("");
             setStrataPaths({ mid: "", low: "" });
+            setHydroPaths({ main: "", tribs: [] });
+            setRoutePath("");
           }
           if (lastSheets !== "") {
             lastSheets = "";
@@ -509,6 +561,14 @@ export const ProtoMap = forwardRef<ProtoMapHandle, ProtoMapProps>(function Proto
             );
             return pts.every(Boolean) ? (pts as Pt[]) : null;
           };
+          const projectCoords = (coords: [number, number][], lift = LIFT_M + 25) => {
+            const pts = coords.map(([lon, lat]) => {
+              const g = terrain ? (m?.queryTerrainElevation([lon, lat]) ?? 0) + lift : 0;
+              return projectAt(tr.modelViewProjectionMatrix, tr.worldSize, lon, lat, g, w, h);
+            });
+            return pts.every(Boolean) ? (pts as Pt[]) : null;
+          };
+
           const pts = projectRing(rawRing, (i) => (terrain ? (ground[i] ?? 0) + LIFT_M : 0));
           const midPts = projectRing(midRing, (i) =>
             terrain ? (ground[i] ?? 0) * 0.86 + LIFT_M : 0,
@@ -516,6 +576,15 @@ export const ProtoMap = forwardRef<ProtoMapHandle, ProtoMapProps>(function Proto
           const lowPts = projectRing(lowRing, (i) =>
             terrain ? (ground[i] ?? 0) * 0.72 + LIFT_M : 0,
           );
+
+          const streamPts = projectCoords(MAIN_STREAM_COORDS, LIFT_M + 30);
+          const tribPaths = TRIBUTARY_COORDS.map((tc) => {
+            const tp = projectCoords(tc, LIFT_M + 30);
+            return tp ? openPathOf(tp) : "";
+          }).filter(Boolean);
+
+          const fRoutePts = projectCoords(FIELD_ROUTE_COORDS, LIFT_M + 42);
+
           const d = pts ? pathOf(pts) : "";
           if (d !== last) {
             last = d;
@@ -524,6 +593,11 @@ export const ProtoMap = forwardRef<ProtoMapHandle, ProtoMapProps>(function Proto
               mid: midPts ? pathOf(midPts) : "",
               low: lowPts ? pathOf(lowPts) : "",
             });
+            setHydroPaths({
+              main: streamPts ? openPathOf(streamPts) : "",
+              tribs: tribPaths,
+            });
+            setRoutePath(fRoutePts ? openPathOf(fRoutePts) : "");
             const xs = (pts ?? []).map((p) => p.x);
             const ys = (pts ?? []).map((p) => p.y);
             setBox(
@@ -538,7 +612,7 @@ export const ProtoMap = forwardRef<ProtoMapHandle, ProtoMapProps>(function Proto
             );
           }
 
-          // sheets read as lifted planes in relief/stack/time views
+          // 5 colour-coded, widely separated sheets above the valley with inner feature geometry
           const top = Math.max(...ground, 1800);
           const list = (sheetsRef.current ?? []).filter((s) => s.opacity > 0.001);
           const next: DrawnSheet[] = list.flatMap((s, i) => {
@@ -548,6 +622,17 @@ export const ProtoMap = forwardRef<ProtoMapHandle, ProtoMapProps>(function Proto
               return terrain ? g + LIFT_M + (plane - g) * s.height : 0;
             });
             if (!sp) return [];
+            const innerRing = i % 2 === 0 ? midRing : lowRing;
+            const innerSp = projectRing(innerRing, (k) => {
+              const g = ground[k] ?? 0;
+              return terrain ? g + LIFT_M + (plane - g) * s.height : 0;
+            });
+            const streamSp = MAIN_STREAM_COORDS.map(([lon, lat]) => {
+              const g = terrain ? (m?.queryTerrainElevation([lon, lat]) ?? 0) : 0;
+              const z = terrain ? g + LIFT_M + (plane - g) * s.height : 0;
+              return projectAt(tr.modelViewProjectionMatrix, tr.worldSize, lon, lat, z, w, h);
+            });
+            const validStream = streamSp.every(Boolean) ? openPathOf(streamSp as Pt[]) : "";
             const east = sp.reduce((a, b) => (b.x > a.x ? b : a));
             const west = sp.reduce((a, b) => (b.x < a.x ? b : a));
             return [
@@ -558,8 +643,11 @@ export const ProtoMap = forwardRef<ProtoMapHandle, ProtoMapProps>(function Proto
                 ...(s.sub ? { sub: s.sub } : {}),
                 ...(s.badge ? { badge: s.badge } : {}),
                 d: pathOf(sp),
+                innerD: innerSp ? pathOf(innerSp) : "",
+                streamD: validStream,
                 opacity: s.opacity,
                 empty: s.empty === true,
+                layerIdx: (i % 5) + 1,
                 eastPt: east,
                 westPt: west,
               },
@@ -572,7 +660,14 @@ export const ProtoMap = forwardRef<ProtoMapHandle, ProtoMapProps>(function Proto
           }
 
           const from = leaderFromRef.current;
-          const ld = from && pts ? leaderTo(from, pts) : null;
+          const target = leaderTargetRef.current;
+          const ld = from
+            ? target
+              ? leaderToPoint(from, target)
+              : pts
+                ? leaderTo(from, pts)
+                : null
+            : null;
           const lk = ld ? ld.d : "";
           if (lk !== lastLeader) {
             lastLeader = lk;
@@ -597,7 +692,6 @@ export const ProtoMap = forwardRef<ProtoMapHandle, ProtoMapProps>(function Proto
     };
   }, [assets, fixture]);
 
-  // Apply direction palette dynamically when 1 / 2 / 3 changes
   useEffect(() => {
     const m = mapRef.current;
     if (!m || !ready) return;
@@ -606,7 +700,6 @@ export const ProtoMap = forwardRef<ProtoMapHandle, ProtoMapProps>(function Proto
 
   const firstViewSync = useRef(true);
 
-  // Camera choreography across the 6 map views
   useEffect(() => {
     const m = mapRef.current;
     const home = homeRef.current;
@@ -671,12 +764,12 @@ export const ProtoMap = forwardRef<ProtoMapHandle, ProtoMapProps>(function Proto
     }
     if (view === "viewpoint") {
       const vp = shotCamera("viewpoint-50m");
-      if (vp) jumpOrMove(vp, 2.2);
+      if (vp) jumpOrMove(vp, 1.55);
       return;
     }
     if (view === "stack") {
       const sp = shotCamera("stack-pose");
-      if (sp) jumpOrMove(sp, 1.8);
+      if (sp) jumpOrMove(sp, 1.65);
       return;
     }
     if (view === "split") {
@@ -697,9 +790,9 @@ export const ProtoMap = forwardRef<ProtoMapHandle, ProtoMapProps>(function Proto
         {
           ...home,
           center: [home.center[0] + 0.032, home.center[1] - 0.006],
-          pitch: 46,
-          bearing: -22,
-          zoom: home.zoom - 0.1,
+          pitch: 44,
+          bearing: -20,
+          zoom: home.zoom - 0.08,
         },
         ARRIVAL_EXAGGERATION,
       );
@@ -708,7 +801,7 @@ export const ProtoMap = forwardRef<ProtoMapHandle, ProtoMapProps>(function Proto
     jumpOrMove(
       {
         ...home,
-        center: [home.center[0] + 0.022, home.center[1]],
+        center: [home.center[0] + 0.024, home.center[1]],
       },
       ARRIVAL_EXAGGERATION,
     );
@@ -729,7 +822,6 @@ export const ProtoMap = forwardRef<ProtoMapHandle, ProtoMapProps>(function Proto
     m.setPaintProperty("imagery", "raster-opacity", dimImagery ? 0.14 : 1);
   }, [dimImagery, ready]);
 
-  // the one painted layer
   useEffect(() => {
     const m = mapRef.current;
     if (!m || !ready) return;
@@ -741,10 +833,9 @@ export const ProtoMap = forwardRef<ProtoMapHandle, ProtoMapProps>(function Proto
     if (reading) setSweepKey((k) => k + 1);
   }, [reading]);
 
-  // sheets and the leader follow the run clock and the card, not only camera renders
   useEffect(() => {
     if (ready) placeRef.current();
-  }, [sheets, leaderFrom?.x, leaderFrom?.y, ready]);
+  }, [sheets, leaderFrom?.x, leaderFrom?.y, leaderTarget?.x, leaderTarget?.y, ready]);
 
   const frontX =
     box && frontProgress !== null
@@ -755,7 +846,7 @@ export const ProtoMap = forwardRef<ProtoMapHandle, ProtoMapProps>(function Proto
     <div className={styles.stage} data-ready={ready ? "true" : "false"} data-view={view}>
       <div ref={el} className={styles.map} aria-hidden="true" />
 
-      {/* Elevation strata contour limits & subtle band fills */}
+      {/* Elevation strata contour limits, animated hydrological stream network, and field verification route */}
       {showStrata && outline && strataPaths.mid && strataPaths.low && view !== "globe" ? (
         <svg className={styles.strataOverlay} aria-hidden="true">
           <path className={styles.stratumBandHigh} d={outline} />
@@ -763,66 +854,162 @@ export const ProtoMap = forwardRef<ProtoMapHandle, ProtoMapProps>(function Proto
           <path className={styles.stratumBandLow} d={strataPaths.low} />
           <path className={styles.stratumLimit} d={strataPaths.mid} />
           <path className={styles.stratumLimit} d={strataPaths.low} />
+
+          {/* Animated Hydrological Drainage & Snowmelt Flow Network */}
+          {hydroPaths.tribs.map((td, idx) => (
+            <g key={idx}>
+              <path className={styles.hydroTribBase} d={td} />
+              <path className={styles.hydroTribPulse} d={td} />
+            </g>
+          ))}
+          {hydroPaths.main ? (
+            <g>
+              <path className={styles.hydroMainCasing} d={hydroPaths.main} />
+              <path className={styles.hydroMainBase} d={hydroPaths.main} />
+              <path className={styles.hydroMainPulse} d={hydroPaths.main} />
+            </g>
+          ) : null}
+
+          {/* Animated Field Verification Route (Stage 5 / Field View) */}
+          {(showRoute || view === "viewpoint") && routePath ? (
+            <g>
+              <path className={styles.routeCasing} d={routePath} />
+              <path className={styles.routeLine} d={routePath} />
+              <path className={styles.routePulse} d={routePath} />
+            </g>
+          ) : null}
         </svg>
       ) : null}
 
-      {/* Mireye Exploded Layer Stack with right-aligned numbered leader hairlines */}
+      {/* 5 Colour-Coded Exploded Layer Sheets with Right-Hand Callout Pills (Zero lines crossing polygon) */}
       {drawn.length ? (
         <svg className={styles.sheets} aria-hidden="true">
           <defs>
-            <pattern id="sheetGrid" width="22" height="22" patternUnits="userSpaceOnUse">
+            <pattern id="sheetGrid1" width="24" height="24" patternUnits="userSpaceOnUse">
               <path
-                d="M 22 0 L 0 0 0 22"
+                d="M 24 0 L 0 0 0 24"
                 fill="none"
-                stroke="currentColor"
-                strokeWidth="0.5"
-                strokeOpacity="0.24"
+                stroke="var(--layer-1-fg)"
+                strokeWidth="0.7"
+                strokeOpacity="0.36"
+              />
+            </pattern>
+            <pattern id="sheetGrid2" width="14" height="14" patternUnits="userSpaceOnUse">
+              <rect
+                x="1.5"
+                y="1.5"
+                width="10"
+                height="10"
+                fill="var(--layer-2-fill)"
+                stroke="var(--layer-2-fg)"
+                strokeWidth="0.6"
+                strokeOpacity="0.48"
+              />
+            </pattern>
+            <pattern id="sheetGrid3" width="32" height="32" patternUnits="userSpaceOnUse">
+              <rect
+                x="1"
+                y="1"
+                width="29"
+                height="29"
+                fill="var(--layer-3-soft)"
+                stroke="var(--layer-3-fg)"
+                strokeWidth="0.9"
+                strokeOpacity="0.55"
+              />
+            </pattern>
+            <pattern id="sheetGrid4" width="20" height="20" patternUnits="userSpaceOnUse">
+              <path
+                d="M 0 10 Q 5 5, 10 10 T 20 10"
+                fill="none"
+                stroke="var(--layer-4-fg)"
+                strokeWidth="0.9"
+                strokeOpacity="0.45"
+              />
+            </pattern>
+            <pattern id="sheetGrid5" width="12" height="12" patternUnits="userSpaceOnUse">
+              <path
+                d="M 0 12 L 12 0"
+                fill="none"
+                stroke="var(--layer-5-fg)"
+                strokeWidth="0.9"
+                strokeOpacity="0.45"
               />
             </pattern>
           </defs>
           {(() => {
-            let prevY = 104;
+            let prevY = 128;
             return drawn.map((s, idx) => {
               const isActive = activeSheetId === s.id;
               const anchor = s.eastPt ?? s.westPt;
-              const rawY = anchor ? anchor.y : 156 + idx * 44;
-              const leaderY = Math.max(rawY, prevY + 34);
+              const rawY = anchor ? anchor.y : 156 + idx * 54;
+              const leaderY = Math.max(rawY, prevY + 52);
               prevY = leaderY;
-              const targetX = anchor ? Math.min(anchor.x + 44, 610) : 580;
+              const targetX = anchor ? Math.min(Math.max(anchor.x + 48, 630), 740) : 660;
               return (
                 <g
                   key={s.id}
                   style={{ opacity: s.opacity }}
                   data-active={isActive ? "true" : "false"}
+                  data-layer={String(s.layerIdx)}
                   onClick={() => onSelectSheet?.(isActive ? null : s.id)}
                 >
                   <path
                     className={styles.sheet}
                     data-empty={s.empty ? "true" : "false"}
                     data-active={isActive ? "true" : "false"}
+                    data-layer={String(s.layerIdx)}
                     d={s.d}
                   />
-                  {!s.empty ? (
-                    <path className={styles.sheetGridFill} d={s.d} fill="url(#sheetGrid)" />
+                  <path
+                    className={styles.sheetGridFill}
+                    d={s.d}
+                    fill={`url(#sheetGrid${String(s.layerIdx)})`}
+                  />
+                  {s.innerD ? (
+                    <path
+                      className={styles.sheetInnerFeature}
+                      data-layer={String(s.layerIdx)}
+                      d={s.innerD}
+                    />
+                  ) : null}
+                  {s.streamD ? (
+                    <path
+                      className={styles.sheetStreamFeature}
+                      data-layer={String(s.layerIdx)}
+                      d={s.streamD}
+                    />
                   ) : null}
                   {anchor ? (
-                    <g className={styles.sheetLabel}>
-                      <circle cx={anchor.x} cy={anchor.y} r={3} />
+                    <g className={styles.sheetLabel} data-layer={String(s.layerIdx)}>
+                      <circle cx={anchor.x} cy={anchor.y} r={4} />
                       <path
-                        d={`M${anchor.x.toFixed(1)} ${anchor.y.toFixed(1)}L${(anchor.x + 18).toFixed(1)} ${leaderY.toFixed(1)}L${targetX.toFixed(1)} ${leaderY.toFixed(1)}`}
+                        d={`M${anchor.x.toFixed(1)} ${anchor.y.toFixed(1)}L${(anchor.x + 22).toFixed(1)} ${leaderY.toFixed(1)}L${targetX.toFixed(1)} ${leaderY.toFixed(1)}`}
                         fill="none"
                       />
-                      <line x1={targetX} y1={leaderY - 6} x2={targetX} y2={leaderY + 6} />
-                      <text x={targetX + 10} y={leaderY - 1} dominantBaseline="middle">
+                      <circle cx={targetX} cy={leaderY} r={3} />
+                      <rect
+                        className={styles.sheetPillBg}
+                        x={targetX + 8}
+                        y={leaderY - 17}
+                        width={264}
+                        height={34}
+                        rx={8}
+                      />
+                      <rect
+                        className={styles.sheetSwatch}
+                        data-layer={String(s.layerIdx)}
+                        x={targetX + 42}
+                        y={leaderY - 5}
+                        width={10}
+                        height={10}
+                        rx={2.5}
+                      />
+                      <text x={targetX + 18} y={leaderY + 1} dominantBaseline="middle">
                         <tspan className={styles.sheetN}>{s.n}</tspan>
-                        <tspan dx="8" className={styles.sheetTitle}>
+                        <tspan dx="24" className={styles.sheetTitle}>
                           {s.label}
                         </tspan>
-                        {s.sub ? (
-                          <tspan dx="8" className={styles.sheetSub}>
-                            {s.sub}
-                          </tspan>
-                        ) : null}
                       </text>
                     </g>
                   ) : null}
@@ -833,12 +1020,12 @@ export const ProtoMap = forwardRef<ProtoMapHandle, ProtoMapProps>(function Proto
         </svg>
       ) : null}
 
-      {/* Card-to-catchment single leader line with perpendicular tick */}
+      {/* Tethered Evidence Leader Line (Perplexity Rule 3: connects active pin/land to right-hand card) */}
       {leader ? (
         <svg className={styles.leader} aria-hidden="true">
           <path d={leader.d} />
           <path d={leader.tick} />
-          <circle cx={leader.dot.x} cy={leader.dot.y} r={2.5} />
+          <circle cx={leader.dot.x} cy={leader.dot.y} r={3} />
         </svg>
       ) : null}
 
@@ -915,7 +1102,7 @@ export const ProtoMap = forwardRef<ProtoMapHandle, ProtoMapProps>(function Proto
         </svg>
       ) : null}
 
-      {/* Horizon Forbidden West 4-hairline reticle on hover */}
+      {/* Precision 4-hairline reticle on hover */}
       {hoverInfo && view !== "globe" ? (
         <div
           className={styles.reticle}
@@ -979,7 +1166,6 @@ function applySelection(m: maplibregl.Map, selection: "none" | "proposed" | "set
     m.setPaintProperty("outlet-beam", "fill-extrusion-opacity", selection === "set" ? 0.92 : 0);
 }
 
-/** A point on the land in screen pixels, lifted a little above the ground; null when it is behind the camera. */
 export function landPoint(
   m: maplibregl.Map,
   at: [number, number],
