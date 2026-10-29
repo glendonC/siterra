@@ -1,0 +1,313 @@
+{
+ "type": "Collection",
+ "stac_version": "1.1.0",
+ "stac_extensions": [
+  "https://stac-extensions.github.io/processing/v1.3.0/schema.json",
+  "https://stac-extensions.github.io/file/v2.1.0/schema.json",
+  "https://stac-extensions.github.io/projection/v2.1.0/schema.json",
+  "https://siterra.invalid/schemas/stac/siterra/1.1.0/schema.json"
+ ],
+ "id": "bundle_drainage_network_ait_bouguemez",
+ "title": "Drainage network of the catchment (drainage_network 1.0.0)",
+ "description": "Precomputed result of recipe drainage_network 1.0.0 for Ait Bouguemez valley catchment: 233 drainage segments of 8559 stream cells (at least 1.0 km2 upstream), 279.6 km in all, Strahler order 1 to 5, ending at the snapped outlet where 417.04 km2 drains. Each segment is a 3D line with its upstream area and order. 14 of 233 segments do not descend within 4.0 m on the 30 m surface and are listed with their depression fill depth. Model estimate from a 30 m surface model, not a map of channels.\n\nThe network is drawn from a 30 m surface model, not mapped on the ground: trees, buildings, steep walls and radar artefacts distort the surface, and the D8 path can leave the real channel. No stream was checked in the field. A segment is drawn wherever 1.0 km2 or more drains to a cell. The network's extent and length follow that threshold; it is not a measured channel head, and it does not separate streams that run all year from streams that run only after rain or snowmelt. Depression filling and flat resolution route flow across closed hollows and the lower gorge, so some segments run where the 30 m surface rises along the line. Those segments are flagged, their heights are stored unchanged, and the line says nothing about how water moves there. Upstream area counts the cells that drain to a point along D8 paths on the filled surface. It is not the share of rain that reaches the point, and it ignores irrigation canals, withdrawals and groundwater. Strahler order counts how channels join. It says nothing about channel size, discharge or whether water is present. Heights are metres above the EGM2008 geoid from the Copernicus DEM GLO-30 surface model, whose stated absolute vertical accuracy is under 4 m (90% linear error) and relative vertical accuracy under 2 m on slopes up to 20% and under 4 m above, as arithmetic means with local deviations possible (Copernicus DEM Product Handbook 5.0). The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary.",
+ "license": "other",
+ "providers": [
+  {
+   "name": "Copernicus DEM GLO-30 (European Union, ESA; DLR e.V. and Airbus Defence and Space)",
+   "roles": [
+    "producer",
+    "licensor"
+   ]
+  },
+  {
+   "name": "Siterra science pipeline",
+   "roles": [
+    "processor"
+   ],
+   "processing:lineage": "Copernicus DEM GLO-30 2021 tile conditioned and given D8 flow direction by a private step (pysheds 0.5), then, in science/pipeline/drainage-network-bundle.py: area-weighted accumulation, Strahler order, segments, lines and heights from the 30 m EPSG:32629 grid of the terrain strata",
+   "processing:software": {
+    "siterra-science": "0.1.0",
+    "python": "3.12.9",
+    "numpy": "2.5.4",
+    "rasterio": "1.5.2",
+    "gdal": "3.12.2",
+    "pyproj": "3.8.0",
+    "shapely": "2.2.0"
+   }
+  }
+ ],
+ "extent": {
+  "spatial": {
+   "bbox": [
+    [
+     -6.54125,
+     31.49430555555556,
+     -6.142083333333333,
+     31.75652777777778
+    ]
+   ]
+  },
+  "temporal": {
+   "interval": [
+    [
+     "2021-01-01T00:00:00Z",
+     null
+    ]
+   ]
+  }
+ },
+ "assets": {
+  "analysis_geometry": {
+   "href": "./analysis-geometry.geojson",
+   "type": "application/geo+json",
+   "title": "Frozen analysis geometry geo_ait_bouguemez_catchment, revision 1",
+   "roles": [
+    "metadata"
+   ],
+   "file:checksum": "1220ac506ece626b6844d759b56aa60a10248c8c0ea5e206f9a28eb436a892a4d47f",
+   "file:size": 119623
+  },
+  "drainage_network": {
+   "href": "./drainage-network.json",
+   "type": "application/json",
+   "title": "Summary: segment and length counts by Strahler order, threshold sensitivity and the segments that do not descend (the result read_recipe_result returns)",
+   "roles": [
+    "data"
+   ],
+   "file:checksum": "1220bcf2a5501483e593effd2557c0e0d84a2d3ea96f631e30e703da8306ac45298a",
+   "file:size": 6412
+  },
+  "drainage_lines": {
+   "href": "./drainage-lines.geojson",
+   "type": "application/geo+json",
+   "title": "Drainage lines: one 3D LineString per segment ([lon, lat, height], metres above the EGM2008 geoid) with Strahler order, upstream area, length, net drop, largest rise, largest fill depth and links to the downstream and upstream segments",
+   "roles": [
+    "data"
+   ],
+   "file:checksum": "122039bc4d9deb3110fcc87a0e84b158dbedad349a18ddfdb3d756a1f14e1f3fb8c5",
+   "file:size": 719565
+  },
+  "d8_flow_direction": {
+   "href": "./d8-flow-direction.tif",
+   "type": "image/tiff; application=geotiff",
+   "title": "D8 flow direction of the 1 arc-second cells of the catchment's bounding box plus 8 cells, conditioned as the catchment freeze was",
+   "roles": [
+    "data"
+   ],
+   "proj:code": "EPSG:4326",
+   "proj:shape": [
+    960,
+    1453
+   ],
+   "proj:transform": [
+    0.0002777777777777778,
+    0.0,
+    -6.543472222222222,
+    0.0,
+    -0.0002777777777777778,
+    31.758750000000003
+   ],
+   "bands": [
+    {
+     "name": "flow_direction",
+     "data_type": "uint8",
+     "nodata": 0,
+     "unit": "1",
+     "description": "Code of the downstream neighbour: 64 north, 128 north-east, 1 east, 2 south-east, 4 south, 8 south-west, 16 west, 32 north-west; 0 no direction (none in this window)"
+    }
+   ],
+   "file:checksum": "12202e54508eeaf6b449ee41154b70caa872be4a5f345a36c68ccffbfc6305eb4979",
+   "file:size": 366411
+  },
+  "depression_fill_depth": {
+   "href": "./depression-fill-depth.tif",
+   "type": "image/tiff; application=geotiff",
+   "title": "Depression fill depth: height the conditioning raised each cell, metres",
+   "roles": [
+    "data"
+   ],
+   "proj:code": "EPSG:4326",
+   "proj:shape": [
+    960,
+    1453
+   ],
+   "proj:transform": [
+    0.0002777777777777778,
+    0.0,
+    -6.543472222222222,
+    0.0,
+    -0.0002777777777777778,
+    31.758750000000003
+   ],
+   "bands": [
+    {
+     "name": "depression_fill_depth",
+     "data_type": "float32",
+     "unit": "m",
+     "description": "fill_depressions(fill_pits(DEM)) minus DEM, metres; 0 where the cell was not raised"
+    }
+   ],
+   "file:checksum": "122094b9c3f802bb4dfb67535118e25f1359f9ac3cc099a882d5ce9ba3c17c85f25f",
+   "file:size": 78415
+  },
+  "conditioning_report": {
+   "href": "./conditioning-report.json",
+   "type": "application/json",
+   "title": "Report of the private conditioning step: inputs, versions, the comparison with the frozen polygon, the D8 step check and the raster checksums",
+   "roles": [
+    "metadata"
+   ],
+   "file:checksum": "1220f0d9fe744659e27d868381de57c6828fdb6a52c7f8fd40020c295cca6740e251",
+   "file:size": 2445
+  }
+ },
+ "created": "2026-10-29T09:53:24Z",
+ "siterra:status": "validated",
+ "siterra:variable": "drainage_network",
+ "siterra:dataset": {
+  "id": "copernicus-dem-glo-30",
+  "version": "2021",
+  "access_route": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N31_00_W007_00_DEM/Copernicus_DSM_COG_10_N31_00_W007_00_DEM.tif",
+  "resolution_note": "DEM 1 arc-second (about 30 m); D8 paths on the native grid, line heights from the 30 m EPSG:32629 grid of the terrain strata"
+ },
+ "siterra:geo_selection": {
+  "id": "geo_ait_bouguemez_catchment",
+  "revision": 1,
+  "boundary_role": "hydrological_unit",
+  "area_m2": 417360300,
+  "area_method": "Count of 10 m analysis pixels whose centres fall inside the frozen polygon, EPSG:32629"
+ },
+ "siterra:method": {
+  "id": "drainage_network",
+  "version": "1.0.0",
+  "analysis_crs": "EPSG:32629",
+  "parameters": {
+   "place_configuration": "science/places/ait-bouguemez.json revision 3, sha256 a643f5f1240d54dcea6dbf618751d66b1d21c96c0dca7edcab4c58f4fd5d495f",
+   "min_upstream_area_km2": 1.0,
+   "chaikin_passes": 1,
+   "simplify_tolerance_m": 8.0,
+   "max_vertex_spacing_m": 15.0,
+   "height_surface": "terrain_strata 30 m EPSG:32629 bilinear",
+   "rise_tolerance_m": 4.0,
+   "conditioning": {
+    "flow_direction_sha256": "2e54508eeaf6b449ee41154b70caa872be4a5f345a36c68ccffbfc6305eb4979",
+    "fill_depth_sha256": "94b9c3f802bb4dfb67535118e25f1359f9ac3cc099a882d5ce9ba3c17c85f25f",
+    "report_sha256": "f0d9fe744659e27d868381de57c6828fdb6a52c7f8fd40020c295cca6740e251",
+    "window": [
+     -6.7,
+     31.4,
+     -6.001,
+     31.85
+    ],
+    "outlet_snap_max_m": 120
+   },
+   "sensitivity_thresholds_km2": [
+    0.5,
+    1.0,
+    2.0,
+    5.0
+   ],
+   "stored_precision": "coordinates 7 decimals, height 0.1 m, area 0.01 km2"
+  },
+  "reference_period": null,
+  "operation_order": [
+   "Conditioning (a private step, as the catchment freeze geo_ait_bouguemez_catchment revision 1): Copernicus DEM GLO-30 (2021) on its native 1 arc-second EPSG:4326 grid, window 6.70 to 6.001 W and 31.40 to 31.85 N; pysheds 0.5 fill_pits, fill_depressions and resolve_flats; D8 flow direction with codes 64, 128, 1, 2, 4, 8, 16, 32 for north, north-east, east, south-east, south, south-west, west and north-west. Stored: the direction of each cell and the depression fill depth (fill_depressions(fill_pits(DEM)) minus DEM, m), cropped to the catchment's bounding box plus 8 cells",
+   "Outlet: the cell containing the frozen geometry's snapped outlet (31.6377778 N, 6.5372222 W)",
+   "Upstream area A(c) = sum of the WGS84 geodesic areas of the 1 x 1 arc-second cells whose D8 path passes through cell c, c included, in km2",
+   "Stream cells: catchment cells with A(c) >= 1.0 km2",
+   "Strahler order (Strahler 1957): a stream cell with no stream cell draining into it has order 1; where two or more of the stream cells draining into a cell share the highest incoming order m, the cell has order m + 1, otherwise m",
+   "Segments: a segment runs along the D8 path from a head (no stream cell upstream) or a confluence (two or more stream cells draining into it) to the next confluence or the outlet, both end cells included, so a segment ends where its downstream segment begins. Its order is the order of its first cell. Segments are numbered seg_001, seg_002 and so on by decreasing upstream area, ties by the row-major position of the first cell",
+   "Line: the segment's cell centres in EPSG:32629; one Chaikin corner-cutting pass keeping the end points; Douglas-Peucker simplification at 8 m; every straight piece divided into equal parts of at most 15 m; vertices converted to EPSG:4326 and stored to 7 decimals (about 1 cm)",
+   "Height: bilinear interpolation of the 30 m EPSG:32629 grid of the terrain strata recipe (Copernicus DEM GLO-30 bilinear to 30 m, aligned with the 10 m analysis grid, with 1 extra cell on every side, the grid the strata elevation bands are cut from), stored to 0.1 m as the third coordinate, metres above the EGM2008 geoid. The line is not forced downhill: where the surface rises along the path, the stored heights rise",
+   "Per segment: upstream area (the area draining through the segment's last cell before any confluence it ends at, km2 to 0.01) and the area at its first cell; the geodesic length of the stored line (m); net drop = first height minus last height; largest rise = the largest height of any vertex above the lowest vertex upstream of it; the largest fill depth over the D8 cells of the segment (m); the downstream segment and the upstream segments",
+   "Flag descends: true when the largest rise is at most 4.0 m and the net drop is positive, false otherwise. 4.0 m is the larger of the DEM's stated relative vertical accuracies (2 m on slopes up to 20%, 4 m above; SCI-168). Segments with descends false are listed with their largest fill depth; one whose largest fill depth is at least 4.0 m crosses a depression that filling raised by more than the tolerance",
+   "Sensitivity: stream cell count, number of heads and D8 path length (sum of geodesic distances between consecutive cell centres) at the thresholds 0.5, 1.0, 2.0 and 5.0 km2, stored together; only the 1.0 km2 network is drawn",
+   "Acceptance checks, all stored with the bundle: every vertex lies inside the frozen polygon (boundary included); the cells whose D8 path reaches the outlet equal the cells whose centres lie inside the frozen polygon; the outlet cell holds the largest accumulation among cells within 120 m of the freeze's input point; every stream cell drains to the outlet and no D8 path loops; the last vertex of the outlet segment is the snapped outlet and every other segment ends at its downstream segment's first vertex; the area at the outlet equals the polygon's geodesic area within 0.01 km2; the Strahler rule holds at every confluence of the segment graph; two runs give identical files apart from the computed time"
+  ]
+ },
+ "siterra:attribution": [
+  "Catchment derived by Siterra from Copernicus DEM GLO-30 (2021 release)",
+  "Produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved",
+  "The organisations in charge of the Copernicus programme by law or by delegation do not incur any liability for any use of the Copernicus WorldDEM-30",
+  "Flow direction and depression fill depth conditioned by a private step that uses pysheds 0.5 (Bartos 2020, GPL-3.0, https://doi.org/10.5281/zenodo.3822494); the software is not part of this bundle"
+ ],
+ "siterra:limitations": [
+  "The network is drawn from a 30 m surface model, not mapped on the ground: trees, buildings, steep walls and radar artefacts distort the surface, and the D8 path can leave the real channel. No stream was checked in the field.",
+  "A segment is drawn wherever 1.0 km2 or more drains to a cell. The network's extent and length follow that threshold; it is not a measured channel head, and it does not separate streams that run all year from streams that run only after rain or snowmelt.",
+  "Depression filling and flat resolution route flow across closed hollows and the lower gorge, so some segments run where the 30 m surface rises along the line. Those segments are flagged, their heights are stored unchanged, and the line says nothing about how water moves there.",
+  "Upstream area counts the cells that drain to a point along D8 paths on the filled surface. It is not the share of rain that reaches the point, and it ignores irrigation canals, withdrawals and groundwater.",
+  "Strahler order counts how channels join. It says nothing about channel size, discharge or whether water is present.",
+  "Heights are metres above the EGM2008 geoid from the Copernicus DEM GLO-30 surface model, whose stated absolute vertical accuracy is under 4 m (90% linear error) and relative vertical accuracy under 2 m on slopes up to 20% and under 4 m above, as arithmetic means with local deviations possible (Copernicus DEM Product Handbook 5.0).",
+  "The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary."
+ ],
+ "siterra:checks": [
+  {
+   "name": "recompute_sample_period",
+   "passed": true,
+   "detail": "Recomputed without pysheds from the shipped flow direction raster and the stored lines. Catchment: the cells whose D8 path reaches the outlet are 513974 and the cells inside the frozen polygon are 513974, 0 differ; the outlet cell holds the largest accumulation among cells within 120 m of the freeze's input point (True; the freeze snapped 94.0 m); no D8 path loops (0 cells on a loop) and none of the 8559 stream cells drains elsewhere (0); the area draining to the outlet is 417.0449 km2 against the polygon's 417.0449 km2 (tolerance 0.01 km2). Stored lines: 0 of 20785 vertices lie outside the frozen polygon (boundary counts as inside); 0 segment links are broken (a segment ends where its downstream segment begins, the outlet segment ends at the snapped outlet, upstream lists match); the Strahler rule fails at 0 of 233 segments; largest vertex spacing 14.988 m (limit 15.0 m); net drop, largest rise and the descends flag recomputed from the stored heights disagree for 0 segments. The whole computation run twice in one process gives identical results: True. Recorded by the private step and not repeatable without pysheds (conditioning-report.json): 0 of 513974 D8 steps inside the catchment rise on the conditioned DEM (0 of 4075587 in the whole window)."
+  },
+  {
+   "name": "units_and_scale",
+   "passed": true,
+   "detail": "Coordinates are decimal degrees (EPSG:4326, 7 decimals) with the height as the third value, metres above the EGM2008 geoid at 0.1 m (Copernicus DEM GLO-30 vertical datum); upstream areas are km2 at 0.01, lengths metres, net drop, largest rise and fill depth metres at 0.1. The flow direction raster holds the codes 64, 128, 1, 2, 4, 8, 16, 32 for north, north-east, east, south-east, south, south-west, west and north-west; the fill depth raster holds metres."
+  },
+  {
+   "name": "nodata_not_zero",
+   "passed": true,
+   "detail": "0 means no direction in the flow direction raster and occurs in 0 cells of the shipped window, so no cell is read as a direction of 0; in the fill depth raster 0 means the cell was not raised and the raster has no nodata value."
+  },
+  {
+   "name": "attribution_present",
+   "passed": true,
+   "detail": "The Copernicus DEM notices (Article 6(b) and 6(c)) and the pysheds citation are in siterra:attribution."
+  },
+  {
+   "name": "visual_inspection_sample",
+   "passed": true,
+   "detail": "Rendered all 233 segments over the frozen catchment outline (science/pipeline/render-drainage.py) and inspected the image on 2026-10-29 (science lane). The lines form one tree that gathers into a single main stem running from the north-east and east headwaters down the valley to the outlet at the western end, ringed in the render. Strahler order rises along that stem to 5, and the southern lobe drains north through one trunk that joins the main stem close to the outlet. No line leaves the outline or crosses a divide. The 14 segments that do not descend within 4.0 m are drawn in amber: the segment that carries the outlet, the two main stem segments above it, and 11 smaller reaches scattered over the north-east and the southern lobe."
+  }
+ ],
+ "links": [
+  {
+   "rel": "root",
+   "href": "../catalog.json",
+   "type": "application/json"
+  },
+  {
+   "rel": "parent",
+   "href": "../catalog.json",
+   "type": "application/json"
+  },
+  {
+   "rel": "derived_from",
+   "href": "../bundle_terrain_strata_ait_bouguemez/collection.json",
+   "type": "application/json",
+   "title": "Terrain strata bundle bundle_terrain_strata_ait_bouguemez",
+   "file:checksum": "1220857e69c5d1ddbe846b8022836f888254f3f818251b9e3e4ffba8748bae07241d"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N31_00_W007_00_DEM/Copernicus_DSM_COG_10_N31_00_W007_00_DEM.tif",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Copernicus_DSM_COG_10_N31_00_W007_00_DEM.tif (41,088,635 bytes, ETag 7260ba223188db19ee7390f60c998048)",
+   "file:checksum": "1220024f00066f44b6c04c26ab5c22ef8d355f6dc77052206d96c9a9c04f66b9c61e"
+  },
+  {
+   "rel": "license",
+   "href": "https://dataspace.copernicus.eu/sites/default/files/media/files/2025-06/copernicus_contributing_mission_data_access_v2_cop_dem_licenses.pdf",
+   "title": "Licence for Copernicus DEM instance COP-DEM-GLO-30-F Global 30m Full, Free & Open"
+  },
+  {
+   "rel": "cite-as",
+   "href": "https://doi.org/10.5281/zenodo.3822494",
+   "title": "Bartos (2020), pysheds (conditioning step)"
+  },
+  {
+   "rel": "processing-software",
+   "href": "./uv.lock",
+   "type": "application/toml",
+   "title": "Pipeline lockfile (uv)",
+   "file:checksum": "12205154d57a84dcb8f1eb5f992923d7589a669b8dc669edf140f607ff2740733aff"
+  }
+ ]
+}

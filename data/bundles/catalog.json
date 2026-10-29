@@ -29,6 +29,12 @@
   },
   {
    "rel": "child",
+   "href": "./bundle_drainage_network_ait_bouguemez/collection.json",
+   "type": "application/json",
+   "file:checksum": "12205f984cb2dab28034108c2a7582305f6397a7932eaf3ee1a669aea50b462a88f2"
+  },
+  {
+   "rel": "child",
    "href": "./bundle_ndvi_departure_ait_bouguemez/collection.json",
    "type": "application/json",
    "file:checksum": "1220a0549ad888b581a557441d2f86d47207cc233662ded5aa57f96b47e2e91bc01a"
