@@ -491,6 +491,966 @@
       "usedBy": [
         "COMMON.md verified fact: June to September cropland or built-up"
       ]
+    },
+    {
+      "rowId": "pixel_anatomy_cells_kept_pixel_2025_06",
+      "bundleId": "bundle_pixel_anatomy_ait_bouguemez",
+      "assetKey": "pixel_anatomy",
+      "pointer": "/spectra/kept_cells",
+      "lowerPointer": null,
+      "upperPointer": null,
+      "claimKindPointer": "/spectra/claim_kind",
+      "claimKind": "observation",
+      "metric": "pixel_cells_kept",
+      "unit": "10 m cells",
+      "aggregation": "Number of the pixel's 10 m analysis cells kept for the 11 June 2025 spectra (scene classification 4 or 5 and every band above zero); every footprint cell was kept, so it equals the footprint's cell count (spectra.kept_cells).",
+      "stratum": "h17v05r4005c2178",
+      "period": {
+        "start": "2025-06",
+        "end": "2025-06",
+        "window": null
+      },
+      "periodId": "period_2025-06",
+      "uncertainty": {
+        "kind": "not_quantified"
+      },
+      "spatialResolutionM": 10,
+      "usedBy": [
+        "provenance elements: 02 537 cells",
+        "specimen pixel: 537 cells in three aligned views"
+      ]
+    },
+    {
+      "rowId": "pixel_anatomy_cells_kept_tree_cover_2025_06",
+      "bundleId": "bundle_pixel_anatomy_ait_bouguemez",
+      "assetKey": "pixel_anatomy",
+      "pointer": "/spectra/classes/0/cells_kept",
+      "lowerPointer": null,
+      "upperPointer": null,
+      "claimKindPointer": "/spectra/claim_kind",
+      "claimKind": "observation",
+      "metric": "pixel_class_cells_kept",
+      "unit": "10 m cells",
+      "aggregation": "Number of the pixel's 10 m analysis cells of WorldCover 2021 class tree cover that were kept for the 11 June 2025 spectra (scene classification 4 or 5 and every band above zero); every footprint cell was kept (spectra.classes[].cells_kept).",
+      "stratum": "h17v05r4005c2178_tree_cover",
+      "period": {
+        "start": "2025-06",
+        "end": "2025-06",
+        "window": null
+      },
+      "periodId": "period_2025-06",
+      "uncertainty": {
+        "kind": "not_quantified"
+      },
+      "spatialResolutionM": 10,
+      "usedBy": [
+        "provenance elements: 02 WorldCover multiple and shares (tree cover cells)",
+        "specimen pixel: tree cover cells"
+      ]
+    },
+    {
+      "rowId": "pixel_anatomy_cells_kept_grassland_2025_06",
+      "bundleId": "bundle_pixel_anatomy_ait_bouguemez",
+      "assetKey": "pixel_anatomy",
+      "pointer": "/spectra/classes/1/cells_kept",
+      "lowerPointer": null,
+      "upperPointer": null,
+      "claimKindPointer": "/spectra/claim_kind",
+      "claimKind": "observation",
+      "metric": "pixel_class_cells_kept",
+      "unit": "10 m cells",
+      "aggregation": "Number of the pixel's 10 m analysis cells of WorldCover 2021 class grassland that were kept for the 11 June 2025 spectra (scene classification 4 or 5 and every band above zero); every footprint cell was kept (spectra.classes[].cells_kept).",
+      "stratum": "h17v05r4005c2178_grassland",
+      "period": {
+        "start": "2025-06",
+        "end": "2025-06",
+        "window": null
+      },
+      "periodId": "period_2025-06",
+      "uncertainty": {
+        "kind": "not_quantified"
+      },
+      "spatialResolutionM": 10,
+      "usedBy": [
+        "provenance elements: 02 WorldCover multiple and shares (grassland cells)",
+        "specimen pixel: grassland cells"
+      ]
+    },
+    {
+      "rowId": "pixel_anatomy_cells_kept_cropland_2025_06",
+      "bundleId": "bundle_pixel_anatomy_ait_bouguemez",
+      "assetKey": "pixel_anatomy",
+      "pointer": "/spectra/classes/2/cells_kept",
+      "lowerPointer": null,
+      "upperPointer": null,
+      "claimKindPointer": "/spectra/claim_kind",
+      "claimKind": "observation",
+      "metric": "pixel_class_cells_kept",
+      "unit": "10 m cells",
+      "aggregation": "Number of the pixel's 10 m analysis cells of WorldCover 2021 class cropland that were kept for the 11 June 2025 spectra (scene classification 4 or 5 and every band above zero); every footprint cell was kept (spectra.classes[].cells_kept).",
+      "stratum": "h17v05r4005c2178_cropland",
+      "period": {
+        "start": "2025-06",
+        "end": "2025-06",
+        "window": null
+      },
+      "periodId": "period_2025-06",
+      "uncertainty": {
+        "kind": "not_quantified"
+      },
+      "spatialResolutionM": 10,
+      "usedBy": [
+        "provenance elements: 02 WorldCover multiple and shares (cropland cells)",
+        "specimen pixel: cropland cells"
+      ]
+    },
+    {
+      "rowId": "pixel_anatomy_cells_kept_bare_sparse_2025_06",
+      "bundleId": "bundle_pixel_anatomy_ait_bouguemez",
+      "assetKey": "pixel_anatomy",
+      "pointer": "/spectra/classes/3/cells_kept",
+      "lowerPointer": null,
+      "upperPointer": null,
+      "claimKindPointer": "/spectra/claim_kind",
+      "claimKind": "observation",
+      "metric": "pixel_class_cells_kept",
+      "unit": "10 m cells",
+      "aggregation": "Number of the pixel's 10 m analysis cells of WorldCover 2021 class bare or sparse vegetation that were kept for the 11 June 2025 spectra (scene classification 4 or 5 and every band above zero); every footprint cell was kept (spectra.classes[].cells_kept).",
+      "stratum": "h17v05r4005c2178_bare_sparse",
+      "period": {
+        "start": "2025-06",
+        "end": "2025-06",
+        "window": null
+      },
+      "periodId": "period_2025-06",
+      "uncertainty": {
+        "kind": "not_quantified"
+      },
+      "spatialResolutionM": 10,
+      "usedBy": [
+        "provenance elements: 02 WorldCover multiple and shares (bare or sparse vegetation cells)",
+        "specimen pixel: bare or sparse vegetation cells"
+      ]
+    },
+    {
+      "rowId": "pixel_anatomy_class_ndvi_tree_cover_2025_06",
+      "bundleId": "bundle_pixel_anatomy_ait_bouguemez",
+      "assetKey": "pixel_anatomy",
+      "pointer": "/spectra/classes/0/ndvi_of_median_red_nir",
+      "lowerPointer": null,
+      "upperPointer": null,
+      "claimKindPointer": "/spectra/claim_kind",
+      "claimKind": "observation",
+      "metric": "ndvi_of_class_median_red_nir",
+      "unit": "NDVI (-1 to 1)",
+      "aggregation": "NDVI of the median red (B04) and near-infrared (B08) reflectance of the pixel's tree cover cells on the Sentinel-2 scene of 11 June 2025 (spectra.classes[].ndvi_of_median_red_nir).",
+      "stratum": "h17v05r4005c2178_tree_cover",
+      "period": {
+        "start": "2025-06",
+        "end": "2025-06",
+        "window": null
+      },
+      "periodId": "period_2025-06",
+      "uncertainty": {
+        "kind": "not_quantified"
+      },
+      "spatialResolutionM": 10,
+      "usedBy": [
+        "provenance elements: 03 spectra (tree cover class NDVI)",
+        "specimen pixel: tree cover class NDVI"
+      ]
+    },
+    {
+      "rowId": "pixel_anatomy_class_ndvi_grassland_2025_06",
+      "bundleId": "bundle_pixel_anatomy_ait_bouguemez",
+      "assetKey": "pixel_anatomy",
+      "pointer": "/spectra/classes/1/ndvi_of_median_red_nir",
+      "lowerPointer": null,
+      "upperPointer": null,
+      "claimKindPointer": "/spectra/claim_kind",
+      "claimKind": "observation",
+      "metric": "ndvi_of_class_median_red_nir",
+      "unit": "NDVI (-1 to 1)",
+      "aggregation": "NDVI of the median red (B04) and near-infrared (B08) reflectance of the pixel's grassland cells on the Sentinel-2 scene of 11 June 2025 (spectra.classes[].ndvi_of_median_red_nir).",
+      "stratum": "h17v05r4005c2178_grassland",
+      "period": {
+        "start": "2025-06",
+        "end": "2025-06",
+        "window": null
+      },
+      "periodId": "period_2025-06",
+      "uncertainty": {
+        "kind": "not_quantified"
+      },
+      "spatialResolutionM": 10,
+      "usedBy": [
+        "provenance elements: 03 spectra (grassland class NDVI)",
+        "specimen pixel: grassland class NDVI"
+      ]
+    },
+    {
+      "rowId": "pixel_anatomy_class_ndvi_cropland_2025_06",
+      "bundleId": "bundle_pixel_anatomy_ait_bouguemez",
+      "assetKey": "pixel_anatomy",
+      "pointer": "/spectra/classes/2/ndvi_of_median_red_nir",
+      "lowerPointer": null,
+      "upperPointer": null,
+      "claimKindPointer": "/spectra/claim_kind",
+      "claimKind": "observation",
+      "metric": "ndvi_of_class_median_red_nir",
+      "unit": "NDVI (-1 to 1)",
+      "aggregation": "NDVI of the median red (B04) and near-infrared (B08) reflectance of the pixel's cropland cells on the Sentinel-2 scene of 11 June 2025 (spectra.classes[].ndvi_of_median_red_nir).",
+      "stratum": "h17v05r4005c2178_cropland",
+      "period": {
+        "start": "2025-06",
+        "end": "2025-06",
+        "window": null
+      },
+      "periodId": "period_2025-06",
+      "uncertainty": {
+        "kind": "not_quantified"
+      },
+      "spatialResolutionM": 10,
+      "usedBy": [
+        "provenance elements: 03 spectra (cropland class NDVI)",
+        "specimen pixel: cropland class NDVI"
+      ]
+    },
+    {
+      "rowId": "pixel_anatomy_class_ndvi_bare_sparse_2025_06",
+      "bundleId": "bundle_pixel_anatomy_ait_bouguemez",
+      "assetKey": "pixel_anatomy",
+      "pointer": "/spectra/classes/3/ndvi_of_median_red_nir",
+      "lowerPointer": null,
+      "upperPointer": null,
+      "claimKindPointer": "/spectra/claim_kind",
+      "claimKind": "observation",
+      "metric": "ndvi_of_class_median_red_nir",
+      "unit": "NDVI (-1 to 1)",
+      "aggregation": "NDVI of the median red (B04) and near-infrared (B08) reflectance of the pixel's bare or sparse vegetation cells on the Sentinel-2 scene of 11 June 2025 (spectra.classes[].ndvi_of_median_red_nir).",
+      "stratum": "h17v05r4005c2178_bare_sparse",
+      "period": {
+        "start": "2025-06",
+        "end": "2025-06",
+        "window": null
+      },
+      "periodId": "period_2025-06",
+      "uncertainty": {
+        "kind": "not_quantified"
+      },
+      "spatialResolutionM": 10,
+      "usedBy": [
+        "provenance elements: 03 spectra (bare or sparse vegetation class NDVI)",
+        "specimen pixel: bare or sparse vegetation class NDVI"
+      ]
+    },
+    {
+      "rowId": "pixel_anatomy_ndvi_measured_2025_06",
+      "bundleId": "bundle_pixel_anatomy_ait_bouguemez",
+      "assetKey": "pixel_anatomy",
+      "pointer": "/spectra/pixel_measured_ndvi",
+      "lowerPointer": null,
+      "upperPointer": null,
+      "claimKindPointer": "/spectra/claim_kind",
+      "claimKind": "observation",
+      "metric": "ndvi_of_pixel_mean_red_nir",
+      "unit": "NDVI (-1 to 1)",
+      "aggregation": "NDVI of the mean red (B04) and near-infrared (B08) reflectance of all kept 10 m cells of the pixel on the Sentinel-2 scene of 11 June 2025 (spectra.pixel_measured_ndvi). Sentinel-2, not MODIS.",
+      "stratum": "h17v05r4005c2178",
+      "period": {
+        "start": "2025-06",
+        "end": "2025-06",
+        "window": null
+      },
+      "periodId": "period_2025-06",
+      "uncertainty": {
+        "kind": "not_quantified"
+      },
+      "spatialResolutionM": 10,
+      "usedBy": [
+        "provenance elements: 03 this pixel, all cells, NDVI 0.48",
+        "specimen pixel: measured 0.48 on the same date"
+      ]
+    },
+    {
+      "rowId": "pixel_anatomy_ndvi_mix_model_2025_06",
+      "bundleId": "bundle_pixel_anatomy_ait_bouguemez",
+      "assetKey": "pixel_anatomy",
+      "pointer": "/model/ndvi_at_measured_composition",
+      "lowerPointer": null,
+      "upperPointer": null,
+      "claimKindPointer": "/model/claim_kind",
+      "claimKind": "model_estimate",
+      "metric": "ndvi_linear_mix_at_measured_composition",
+      "unit": "NDVI (-1 to 1)",
+      "aggregation": "Modelled NDVI of the share-weighted sum of the pixel's class median reflectances (shares of the pixel's WorldCover 2021 cells), as stored; modelled, not measured (model.ndvi_at_measured_composition).",
+      "stratum": "h17v05r4005c2178",
+      "period": {
+        "start": "2025-06",
+        "end": "2025-06",
+        "window": null
+      },
+      "periodId": "period_2025-06",
+      "uncertainty": {
+        "kind": "not_quantified"
+      },
+      "spatialResolutionM": 10,
+      "usedBy": [
+        "provenance elements: 05 model NDVI at measured shares",
+        "specimen pixel: linear mix model readout"
+      ]
+    },
+    {
+      "rowId": "pixel_anatomy_ndvi_mix_tree_cover_plus20_2025_06",
+      "bundleId": "bundle_pixel_anatomy_ait_bouguemez",
+      "assetKey": "pixel_anatomy",
+      "pointer": "/model/shift_example/ndvi",
+      "lowerPointer": null,
+      "upperPointer": null,
+      "claimKindPointer": "/model/claim_kind",
+      "claimKind": "model_estimate",
+      "metric": "ndvi_linear_mix_shift_example",
+      "unit": "NDVI (-1 to 1)",
+      "aggregation": "Modelled NDVI of the same linear mix with 20 percentage points of the footprint moved from grassland to tree cover; an example of the mixing control, not an observation (model.shift_example.ndvi).",
+      "stratum": "h17v05r4005c2178_shift_grassland_to_tree_cover_20_points",
+      "period": {
+        "start": "2025-06",
+        "end": "2025-06",
+        "window": null
+      },
+      "periodId": "period_2025-06",
+      "uncertainty": {
+        "kind": "not_quantified"
+      },
+      "spatialResolutionM": 10,
+      "usedBy": [
+        "provenance elements: 05 shifted still 0.57",
+        "specimen pixel: shifted still, tree cover +20 points"
+      ]
+    },
+    {
+      "rowId": "pixel_anatomy_trend_mar_jun_pixel",
+      "bundleId": "bundle_pixel_anatomy_ait_bouguemez",
+      "assetKey": "pixel_anatomy",
+      "pointer": "/trend/slope_per_decade",
+      "lowerPointer": "/trend/lower_per_decade",
+      "upperPointer": "/trend/upper_per_decade",
+      "claimKindPointer": "/trend/claim_kind",
+      "claimKind": "model_estimate",
+      "metric": "ndvi_pixel_trend_theil_sen_per_decade",
+      "unit": "NDVI per decade",
+      "aggregation": "Theil-Sen slope, per decade, of the pixel's own March to June MODIS NDVI over 26 seasons, 2000 to 2025, not adjusted for rainfall (trend.slope_per_decade). Descriptive; no p-value or false discovery rate class is stored for one pixel.",
+      "stratum": "h17v05r4005c2178",
+      "period": {
+        "start": "2000",
+        "end": "2025",
+        "window": "mar_jun"
+      },
+      "periodId": "period_2000-2025_mar_jun",
+      "uncertainty": {
+        "kind": "interval",
+        "level": 0.95,
+        "method": "Sen's 95% interval (level 0.95) of the Theil-Sen slope of the pixel's March to June NDVI on season year, 26 seasons (trend.lower_per_decade, trend.upper_per_decade)."
+      },
+      "spatialResolutionM": 250,
+      "usedBy": [
+        "provenance elements: caption +0.0570 NDVI per decade from 2000 to 2025",
+        "provenance elements: 04 +0.0570 per decade, 95% +0.0374 to +0.0845"
+      ]
+    },
+    {
+      "rowId": "optical_clear_share_winter_lowest_elevation_high",
+      "bundleId": "bundle_optical_visibility_ait_bouguemez",
+      "assetKey": "optical_visibility_by_band",
+      "pointer": "/bands/3/winter/any_date/lowest",
+      "lowerPointer": null,
+      "upperPointer": null,
+      "claimKindPointer": "/claim_kind",
+      "claimKind": "observation",
+      "metric": "optical_clear_share_winter_lowest",
+      "unit": "fraction of the band's 10 m cells, 0 to 1",
+      "aggregation": "Lowest of the monthly clear shares of the upper elevation band (2815.2 m and above), December to March 2019 to 2025, a month counted when at least one clear Sentinel-2 date exists (any_date validity) (bands.3.winter.any_date.lowest).",
+      "stratum": "elevation_high",
+      "period": {
+        "start": "2019",
+        "end": "2025",
+        "window": "dec_mar"
+      },
+      "periodId": "period_2019-2025_dec_mar",
+      "uncertainty": {
+        "kind": "not_quantified"
+      },
+      "spatialResolutionM": 10,
+      "usedBy": [
+        "COMMON.md verified fact: winter visibility of the upper band, clear share 0.19 to 0.985"
+      ]
+    },
+    {
+      "rowId": "optical_clear_share_winter_median_elevation_high",
+      "bundleId": "bundle_optical_visibility_ait_bouguemez",
+      "assetKey": "optical_visibility_by_band",
+      "pointer": "/bands/3/winter/any_date/median",
+      "lowerPointer": null,
+      "upperPointer": null,
+      "claimKindPointer": "/claim_kind",
+      "claimKind": "observation",
+      "metric": "optical_clear_share_winter_median",
+      "unit": "fraction of the band's 10 m cells, 0 to 1",
+      "aggregation": "Median of the monthly clear shares of the upper elevation band (2815.2 m and above), December to March 2019 to 2025, a month counted when at least one clear Sentinel-2 date exists (any_date validity) (bands.3.winter.any_date.median).",
+      "stratum": "elevation_high",
+      "period": {
+        "start": "2019",
+        "end": "2025",
+        "window": "dec_mar"
+      },
+      "periodId": "period_2019-2025_dec_mar",
+      "uncertainty": {
+        "kind": "not_quantified"
+      },
+      "spatialResolutionM": 10,
+      "usedBy": [
+        "COMMON.md verified fact: winter visibility of the upper band, median 0.47"
+      ]
+    },
+    {
+      "rowId": "optical_clear_share_winter_highest_elevation_high",
+      "bundleId": "bundle_optical_visibility_ait_bouguemez",
+      "assetKey": "optical_visibility_by_band",
+      "pointer": "/bands/3/winter/any_date/highest",
+      "lowerPointer": null,
+      "upperPointer": null,
+      "claimKindPointer": "/claim_kind",
+      "claimKind": "observation",
+      "metric": "optical_clear_share_winter_highest",
+      "unit": "fraction of the band's 10 m cells, 0 to 1",
+      "aggregation": "Highest of the monthly clear shares of the upper elevation band (2815.2 m and above), December to March 2019 to 2025, a month counted when at least one clear Sentinel-2 date exists (any_date validity) (bands.3.winter.any_date.highest).",
+      "stratum": "elevation_high",
+      "period": {
+        "start": "2019",
+        "end": "2025",
+        "window": "dec_mar"
+      },
+      "periodId": "period_2019-2025_dec_mar",
+      "uncertainty": {
+        "kind": "not_quantified"
+      },
+      "spatialResolutionM": 10,
+      "usedBy": [
+        "COMMON.md verified fact: winter visibility of the upper band, clear share 0.19 to 0.985"
+      ]
+    },
+    {
+      "rowId": "optical_winter_months_clear_at_or_above_0_9_elevation_high",
+      "bundleId": "bundle_optical_visibility_ait_bouguemez",
+      "assetKey": "optical_visibility_by_band",
+      "pointer": "/bands/3/winter/any_date/at_or_above_high",
+      "lowerPointer": null,
+      "upperPointer": null,
+      "claimKindPointer": "/claim_kind",
+      "claimKind": "observation",
+      "metric": "winter_months_clear_share_at_or_above_0_9",
+      "unit": "months",
+      "aggregation": "Count of winter months whose clear share is at or above 0.9 (thresholds.high) in the upper elevation band (2815.2 m and above), December to March 2019 to 2025, a month counted when at least one clear Sentinel-2 date exists (any_date validity) (bands.3.winter.any_date.at_or_above_high).",
+      "stratum": "elevation_high",
+      "period": {
+        "start": "2019",
+        "end": "2025",
+        "window": "dec_mar"
+      },
+      "periodId": "period_2019-2025_dec_mar",
+      "uncertainty": {
+        "kind": "not_quantified"
+      },
+      "spatialResolutionM": 10,
+      "usedBy": [
+        "COMMON.md verified fact: 3 of 28 months at or above 0.9 (December 2023, January 2024, February 2024)"
+      ]
+    },
+    {
+      "rowId": "optical_winter_months_counted_elevation_high",
+      "bundleId": "bundle_optical_visibility_ait_bouguemez",
+      "assetKey": "optical_visibility_by_band",
+      "pointer": "/bands/3/winter/any_date/months",
+      "lowerPointer": null,
+      "upperPointer": null,
+      "claimKindPointer": "/claim_kind",
+      "claimKind": "observation",
+      "metric": "winter_months_counted",
+      "unit": "months",
+      "aggregation": "Number of December to March months of 2019 to 2025 with a clear share in the upper elevation band (2815.2 m and above), December to March 2019 to 2025, a month counted when at least one clear Sentinel-2 date exists (any_date validity) (bands.3.winter.any_date.months).",
+      "stratum": "elevation_high",
+      "period": {
+        "start": "2019",
+        "end": "2025",
+        "window": "dec_mar"
+      },
+      "periodId": "period_2019-2025_dec_mar",
+      "uncertainty": {
+        "kind": "not_quantified"
+      },
+      "spatialResolutionM": 10,
+      "usedBy": [
+        "COMMON.md verified fact: winter visibility of the upper band, 28 months"
+      ]
+    },
+    {
+      "rowId": "drainage_segments_catchment_2021",
+      "bundleId": "bundle_drainage_network_ait_bouguemez",
+      "assetKey": "drainage_network",
+      "pointer": "/headline/segments",
+      "lowerPointer": null,
+      "upperPointer": null,
+      "claimKindPointer": "/claim_kind",
+      "claimKind": "model_estimate",
+      "metric": "drainage_segments",
+      "unit": "segments",
+      "aggregation": "Number of drawn drainage segments where 1.0 km2 or more drains to a cell, D8 paths on the 30 m surface (headline.segments).",
+      "stratum": "catchment",
+      "period": {
+        "start": "2021",
+        "end": "2021",
+        "window": null
+      },
+      "periodId": "period_2021",
+      "uncertainty": {
+        "kind": "not_quantified"
+      },
+      "spatialResolutionM": 30,
+      "usedBy": [
+        "handover S1: 233 segments"
+      ]
+    },
+    {
+      "rowId": "drainage_length_total_catchment_2021",
+      "bundleId": "bundle_drainage_network_ait_bouguemez",
+      "assetKey": "drainage_network",
+      "pointer": "/headline/length_km_total",
+      "lowerPointer": null,
+      "upperPointer": null,
+      "claimKindPointer": "/claim_kind",
+      "claimKind": "model_estimate",
+      "metric": "drainage_length_total",
+      "unit": "km",
+      "aggregation": "Total length of the drawn drainage segments (headline.length_km_total).",
+      "stratum": "catchment",
+      "period": {
+        "start": "2021",
+        "end": "2021",
+        "window": null
+      },
+      "periodId": "period_2021",
+      "uncertainty": {
+        "kind": "not_quantified"
+      },
+      "spatialResolutionM": 30,
+      "usedBy": [
+        "handover S1: 279.6 km"
+      ]
+    },
+    {
+      "rowId": "drainage_max_strahler_order_catchment_2021",
+      "bundleId": "bundle_drainage_network_ait_bouguemez",
+      "assetKey": "drainage_network",
+      "pointer": "/headline/max_strahler_order",
+      "lowerPointer": null,
+      "upperPointer": null,
+      "claimKindPointer": "/claim_kind",
+      "claimKind": "model_estimate",
+      "metric": "drainage_max_strahler_order",
+      "unit": "Strahler order",
+      "aggregation": "Highest Strahler order among the drawn segments (headline.max_strahler_order).",
+      "stratum": "catchment",
+      "period": {
+        "start": "2021",
+        "end": "2021",
+        "window": null
+      },
+      "periodId": "period_2021",
+      "uncertainty": {
+        "kind": "not_quantified"
+      },
+      "spatialResolutionM": 30,
+      "usedBy": [
+        "handover S1: order 5"
+      ]
+    },
+    {
+      "rowId": "drainage_outlet_upstream_area_catchment_2021",
+      "bundleId": "bundle_drainage_network_ait_bouguemez",
+      "assetKey": "drainage_network",
+      "pointer": "/outlet/upstream_area_km2",
+      "lowerPointer": null,
+      "upperPointer": null,
+      "claimKindPointer": "/claim_kind",
+      "claimKind": "model_estimate",
+      "metric": "drainage_outlet_upstream_area",
+      "unit": "km2",
+      "aggregation": "Area draining to the outlet cell along D8 paths on the filled surface (outlet.upstream_area_km2).",
+      "stratum": "catchment",
+      "period": {
+        "start": "2021",
+        "end": "2021",
+        "window": null
+      },
+      "periodId": "period_2021",
+      "uncertainty": {
+        "kind": "not_quantified"
+      },
+      "spatialResolutionM": 30,
+      "usedBy": [
+        "handover S1: 417.04 km2 drains at the outlet"
+      ]
+    },
+    {
+      "rowId": "drainage_segments_not_descending_catchment_2021",
+      "bundleId": "bundle_drainage_network_ait_bouguemez",
+      "assetKey": "drainage_network",
+      "pointer": "/descent/segments_not_descending",
+      "lowerPointer": null,
+      "upperPointer": null,
+      "claimKindPointer": "/claim_kind",
+      "claimKind": "model_estimate",
+      "metric": "drainage_segments_not_descending",
+      "unit": "segments",
+      "aggregation": "Number of segments that rise more than 4.0 m (descent.rise_tolerance_m) somewhere along their line or end no lower than they start (descent.segments_not_descending).",
+      "stratum": "catchment",
+      "period": {
+        "start": "2021",
+        "end": "2021",
+        "window": null
+      },
+      "periodId": "period_2021",
+      "uncertainty": {
+        "kind": "not_quantified"
+      },
+      "spatialResolutionM": 30,
+      "usedBy": [
+        "handover S1: 14 of 233 segments do not descend"
+      ]
+    },
+    {
+      "rowId": "transect_meridian_length_2021",
+      "bundleId": "bundle_transects_ait_bouguemez",
+      "assetKey": "terrain_transects",
+      "pointer": "/transects/tabant_meridian/length_m",
+      "lowerPointer": null,
+      "upperPointer": null,
+      "claimKindPointer": "/claim_kind",
+      "claimKind": "observation",
+      "metric": "transect_length",
+      "unit": "m",
+      "aggregation": "Length of the meridian through Tabant, clipped to the frozen polygon, north to south (tabant_meridian.length_m).",
+      "stratum": "tabant_meridian",
+      "period": {
+        "start": "2021",
+        "end": "2021",
+        "window": null
+      },
+      "periodId": "period_2021",
+      "uncertainty": {
+        "kind": "not_quantified"
+      },
+      "spatialResolutionM": 30,
+      "usedBy": [
+        "handover S2: meridian 11,981.3 m"
+      ]
+    },
+    {
+      "rowId": "transect_meridian_lowest_elevation_2021",
+      "bundleId": "bundle_transects_ait_bouguemez",
+      "assetKey": "terrain_transects",
+      "pointer": "/transects/tabant_meridian/elevation_m/lowest/elevation_m",
+      "lowerPointer": null,
+      "upperPointer": null,
+      "claimKindPointer": "/claim_kind",
+      "claimKind": "observation",
+      "metric": "transect_lowest_elevation",
+      "unit": "m above the EGM2008 geoid",
+      "aggregation": "Height of the lowest sample on the meridian through Tabant (tabant_meridian.elevation_m.lowest.elevation_m).",
+      "stratum": "tabant_meridian",
+      "period": {
+        "start": "2021",
+        "end": "2021",
+        "window": null
+      },
+      "periodId": "period_2021",
+      "uncertainty": {
+        "kind": "not_quantified"
+      },
+      "spatialResolutionM": 30,
+      "usedBy": [
+        "handover S2: lowest 1,846.2 m"
+      ]
+    },
+    {
+      "rowId": "transect_meridian_lowest_distance_2021",
+      "bundleId": "bundle_transects_ait_bouguemez",
+      "assetKey": "terrain_transects",
+      "pointer": "/transects/tabant_meridian/elevation_m/lowest/distance_m",
+      "lowerPointer": null,
+      "upperPointer": null,
+      "claimKindPointer": "/claim_kind",
+      "claimKind": "observation",
+      "metric": "transect_lowest_distance",
+      "unit": "m along the line from its first point",
+      "aggregation": "Distance from the north end of the meridian to its lowest sample (tabant_meridian.elevation_m.lowest.distance_m).",
+      "stratum": "tabant_meridian",
+      "period": {
+        "start": "2021",
+        "end": "2021",
+        "window": null
+      },
+      "periodId": "period_2021",
+      "uncertainty": {
+        "kind": "not_quantified"
+      },
+      "spatialResolutionM": 30,
+      "usedBy": [
+        "handover S2: lowest at 5,730 m"
+      ]
+    },
+    {
+      "rowId": "transect_meridian_tabant_distance_2021",
+      "bundleId": "bundle_transects_ait_bouguemez",
+      "assetKey": "terrain_transects",
+      "pointer": "/transects/tabant_meridian/reference_points/0/distance_m",
+      "lowerPointer": null,
+      "upperPointer": null,
+      "claimKindPointer": "/claim_kind",
+      "claimKind": "observation",
+      "metric": "transect_reference_point_distance",
+      "unit": "m along the line from its first point",
+      "aggregation": "Position of Tabant along the meridian from its north end (tabant_meridian.reference_points[0].distance_m).",
+      "stratum": "tabant_meridian",
+      "period": {
+        "start": "2021",
+        "end": "2021",
+        "window": null
+      },
+      "periodId": "period_2021",
+      "uncertainty": {
+        "kind": "not_quantified"
+      },
+      "spatialResolutionM": 30,
+      "usedBy": [
+        "handover S2: Tabant at 5,577.1 m"
+      ]
+    },
+    {
+      "rowId": "transect_meridian_tabant_elevation_2021",
+      "bundleId": "bundle_transects_ait_bouguemez",
+      "assetKey": "terrain_transects",
+      "pointer": "/transects/tabant_meridian/reference_points/0/elevation_m",
+      "lowerPointer": null,
+      "upperPointer": null,
+      "claimKindPointer": "/claim_kind",
+      "claimKind": "observation",
+      "metric": "transect_reference_point_elevation",
+      "unit": "m above the EGM2008 geoid",
+      "aggregation": "Height of the meridian at Tabant (tabant_meridian.reference_points[0].elevation_m).",
+      "stratum": "tabant_meridian",
+      "period": {
+        "start": "2021",
+        "end": "2021",
+        "window": null
+      },
+      "periodId": "period_2021",
+      "uncertainty": {
+        "kind": "not_quantified"
+      },
+      "spatialResolutionM": 30,
+      "usedBy": [
+        "handover S2: Tabant 1,856.7 m"
+      ]
+    },
+    {
+      "rowId": "transect_meridian_band_crossing_a_2021",
+      "bundleId": "bundle_transects_ait_bouguemez",
+      "assetKey": "terrain_transects",
+      "pointer": "/transects/tabant_meridian/band_crossings/0/distance_m",
+      "lowerPointer": null,
+      "upperPointer": null,
+      "claimKindPointer": "/claim_kind",
+      "claimKind": "observation",
+      "metric": "transect_band_crossing_distance",
+      "unit": "m along the line from its first point",
+      "aggregation": "Distance from the north end of the meridian to its crossing of the 2316.8 m band boundary, falling (tabant_meridian.band_crossings[0].distance_m).",
+      "stratum": "tabant_meridian_band_boundary_2316_8_falling",
+      "period": {
+        "start": "2021",
+        "end": "2021",
+        "window": null
+      },
+      "periodId": "period_2021",
+      "uncertainty": {
+        "kind": "not_quantified"
+      },
+      "spatialResolutionM": 30,
+      "usedBy": [
+        "handover S2: crossing of 2,316.8 m at 748.3 m (falling)"
+      ]
+    },
+    {
+      "rowId": "transect_meridian_band_crossing_b_2021",
+      "bundleId": "bundle_transects_ait_bouguemez",
+      "assetKey": "terrain_transects",
+      "pointer": "/transects/tabant_meridian/band_crossings/1/distance_m",
+      "lowerPointer": null,
+      "upperPointer": null,
+      "claimKindPointer": "/claim_kind",
+      "claimKind": "observation",
+      "metric": "transect_band_crossing_distance",
+      "unit": "m along the line from its first point",
+      "aggregation": "Distance from the north end of the meridian to its crossing of the 2316.8 m band boundary, rising (tabant_meridian.band_crossings[1].distance_m).",
+      "stratum": "tabant_meridian_band_boundary_2316_8_rising",
+      "period": {
+        "start": "2021",
+        "end": "2021",
+        "window": null
+      },
+      "periodId": "period_2021",
+      "uncertainty": {
+        "kind": "not_quantified"
+      },
+      "spatialResolutionM": 30,
+      "usedBy": [
+        "handover S2: crossing of 2,316.8 m at 9,104.0 m (rising)"
+      ]
+    },
+    {
+      "rowId": "transect_meridian_band_crossing_c_2021",
+      "bundleId": "bundle_transects_ait_bouguemez",
+      "assetKey": "terrain_transects",
+      "pointer": "/transects/tabant_meridian/band_crossings/2/distance_m",
+      "lowerPointer": null,
+      "upperPointer": null,
+      "claimKindPointer": "/claim_kind",
+      "claimKind": "observation",
+      "metric": "transect_band_crossing_distance",
+      "unit": "m along the line from its first point",
+      "aggregation": "Distance from the north end of the meridian to its crossing of the 2815.2 m band boundary, rising (tabant_meridian.band_crossings[2].distance_m).",
+      "stratum": "tabant_meridian_band_boundary_2815_2_rising",
+      "period": {
+        "start": "2021",
+        "end": "2021",
+        "window": null
+      },
+      "periodId": "period_2021",
+      "uncertainty": {
+        "kind": "not_quantified"
+      },
+      "spatialResolutionM": 30,
+      "usedBy": [
+        "handover S2: crossing of 2,815.2 m at 10,816.7 m (rising)"
+      ]
+    },
+    {
+      "rowId": "transect_meridian_km_in_band_1_2021",
+      "bundleId": "bundle_transects_ait_bouguemez",
+      "assetKey": "terrain_transects",
+      "pointer": "/transects/tabant_meridian/km_in_band/1",
+      "lowerPointer": null,
+      "upperPointer": null,
+      "claimKindPointer": "/claim_kind",
+      "claimKind": "observation",
+      "metric": "transect_km_in_band",
+      "unit": "km",
+      "aggregation": "Length of the meridian inside strata elevation band 1 (tabant_meridian.km_in_band.1).",
+      "stratum": "tabant_meridian_band_1",
+      "period": {
+        "start": "2021",
+        "end": "2021",
+        "window": null
+      },
+      "periodId": "period_2021",
+      "uncertainty": {
+        "kind": "not_quantified"
+      },
+      "spatialResolutionM": 30,
+      "usedBy": [
+        "handover S2: km in band 1"
+      ]
+    },
+    {
+      "rowId": "transect_meridian_km_in_band_2_2021",
+      "bundleId": "bundle_transects_ait_bouguemez",
+      "assetKey": "terrain_transects",
+      "pointer": "/transects/tabant_meridian/km_in_band/2",
+      "lowerPointer": null,
+      "upperPointer": null,
+      "claimKindPointer": "/claim_kind",
+      "claimKind": "observation",
+      "metric": "transect_km_in_band",
+      "unit": "km",
+      "aggregation": "Length of the meridian inside strata elevation band 2 (tabant_meridian.km_in_band.2).",
+      "stratum": "tabant_meridian_band_2",
+      "period": {
+        "start": "2021",
+        "end": "2021",
+        "window": null
+      },
+      "periodId": "period_2021",
+      "uncertainty": {
+        "kind": "not_quantified"
+      },
+      "spatialResolutionM": 30,
+      "usedBy": [
+        "handover S2: km in band 2"
+      ]
+    },
+    {
+      "rowId": "transect_meridian_km_in_band_3_2021",
+      "bundleId": "bundle_transects_ait_bouguemez",
+      "assetKey": "terrain_transects",
+      "pointer": "/transects/tabant_meridian/km_in_band/3",
+      "lowerPointer": null,
+      "upperPointer": null,
+      "claimKindPointer": "/claim_kind",
+      "claimKind": "observation",
+      "metric": "transect_km_in_band",
+      "unit": "km",
+      "aggregation": "Length of the meridian inside strata elevation band 3 (tabant_meridian.km_in_band.3).",
+      "stratum": "tabant_meridian_band_3",
+      "period": {
+        "start": "2021",
+        "end": "2021",
+        "window": null
+      },
+      "periodId": "period_2021",
+      "uncertainty": {
+        "kind": "not_quantified"
+      },
+      "spatialResolutionM": 30,
+      "usedBy": [
+        "handover S2: km in band 3"
+      ]
+    },
+    {
+      "rowId": "transect_valley_axis_length_2021",
+      "bundleId": "bundle_transects_ait_bouguemez",
+      "assetKey": "terrain_transects",
+      "pointer": "/transects/valley_axis/length_m",
+      "lowerPointer": null,
+      "upperPointer": null,
+      "claimKindPointer": "/claim_kind",
+      "claimKind": "observation",
+      "metric": "transect_length",
+      "unit": "m",
+      "aggregation": "Length of the longest flow path of the drainage network from the outlet to a head (valley_axis.length_m).",
+      "stratum": "valley_axis",
+      "period": {
+        "start": "2021",
+        "end": "2021",
+        "window": null
+      },
+      "periodId": "period_2021",
+      "uncertainty": {
+        "kind": "not_quantified"
+      },
+      "spatialResolutionM": 30,
+      "usedBy": [
+        "handover S2: axis 48,822.5 m"
+      ]
     }
   ]
 }

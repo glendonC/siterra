@@ -23051,6 +23051,386 @@
       },
       {
         "recordType": "Measurement",
+        "id": "meas_drainage_length_total_catchment_2021",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "metric": "drainage_length_total",
+        "value": 279.6,
+        "unit": "km",
+        "status": "available",
+        "missingReason": null,
+        "geoSelectionId": "geo_ait_bouguemez_catchment",
+        "geoRevision": 1,
+        "periodId": "period_2021",
+        "dataBundleId": "bundle_drainage_network_ait_bouguemez",
+        "aggregation": "Total length of the drawn drainage segments (headline.length_km_total).",
+        "validPixelCount": null,
+        "totalPixelCount": null,
+        "validFraction": null,
+        "spatialResolutionM": 30,
+        "uncertainty": {
+          "kind": "not_quantified",
+          "lower": null,
+          "upper": null,
+          "level": null,
+          "method": null
+        },
+        "provenance": {
+          "sourceLocators": [],
+          "dataBundleIds": [
+            "bundle_terrain_strata_ait_bouguemez"
+          ],
+          "methodId": "drainage_network",
+          "methodVersion": "1.0.0",
+          "inputVersions": [
+            {
+              "entityId": "geo_ait_bouguemez_catchment",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_terrain_strata_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_drainage_network_ait_bouguemez",
+              "revision": 1
+            }
+          ],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-29T09:53:24Z",
+          "verificationStatus": "computed_checked",
+          "limitations": [
+            "The network is drawn from a 30 m surface model, not mapped on the ground: trees, buildings, steep walls and radar artefacts distort the surface, and the D8 path can leave the real channel. No stream was checked in the field.",
+            "A segment is drawn wherever 1.0 km2 or more drains to a cell. The network's extent and length follow that threshold; it is not a measured channel head, and it does not separate streams that run all year from streams that run only after rain or snowmelt.",
+            "Depression filling and flat resolution route flow across closed hollows and the lower gorge, so some segments run where the 30 m surface rises along the line. Those segments are flagged, their heights are stored unchanged, and the line says nothing about how water moves there.",
+            "Upstream area counts the cells that drain to a point along D8 paths on the filled surface. It is not the share of rain that reaches the point, and it ignores irrigation canals, withdrawals and groundwater.",
+            "Strahler order counts how channels join. It says nothing about channel size, discharge or whether water is present.",
+            "Heights are metres above the EGM2008 geoid from the Copernicus DEM GLO-30 surface model, whose stated absolute vertical accuracy is under 4 m (90% linear error) and relative vertical accuracy under 2 m on slopes up to 20% and under 4 m above, as arithmetic means with local deviations possible (Copernicus DEM Product Handbook 5.0).",
+            "The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary."
+          ]
+        },
+        "source": {
+          "assetKey": "drainage_network",
+          "jsonPointer": "/headline/length_km_total",
+          "stratum": "catchment",
+          "claimKind": "model_estimate",
+          "period": {
+            "start": "2021",
+            "end": "2021",
+            "window": null
+          },
+          "lowerJsonPointer": null,
+          "upperJsonPointer": null
+        }
+      },
+      {
+        "recordType": "Measurement",
+        "id": "meas_drainage_max_strahler_order_catchment_2021",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "metric": "drainage_max_strahler_order",
+        "value": 5,
+        "unit": "Strahler order",
+        "status": "available",
+        "missingReason": null,
+        "geoSelectionId": "geo_ait_bouguemez_catchment",
+        "geoRevision": 1,
+        "periodId": "period_2021",
+        "dataBundleId": "bundle_drainage_network_ait_bouguemez",
+        "aggregation": "Highest Strahler order among the drawn segments (headline.max_strahler_order).",
+        "validPixelCount": null,
+        "totalPixelCount": null,
+        "validFraction": null,
+        "spatialResolutionM": 30,
+        "uncertainty": {
+          "kind": "not_quantified",
+          "lower": null,
+          "upper": null,
+          "level": null,
+          "method": null
+        },
+        "provenance": {
+          "sourceLocators": [],
+          "dataBundleIds": [
+            "bundle_terrain_strata_ait_bouguemez"
+          ],
+          "methodId": "drainage_network",
+          "methodVersion": "1.0.0",
+          "inputVersions": [
+            {
+              "entityId": "geo_ait_bouguemez_catchment",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_terrain_strata_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_drainage_network_ait_bouguemez",
+              "revision": 1
+            }
+          ],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-29T09:53:24Z",
+          "verificationStatus": "computed_checked",
+          "limitations": [
+            "The network is drawn from a 30 m surface model, not mapped on the ground: trees, buildings, steep walls and radar artefacts distort the surface, and the D8 path can leave the real channel. No stream was checked in the field.",
+            "A segment is drawn wherever 1.0 km2 or more drains to a cell. The network's extent and length follow that threshold; it is not a measured channel head, and it does not separate streams that run all year from streams that run only after rain or snowmelt.",
+            "Depression filling and flat resolution route flow across closed hollows and the lower gorge, so some segments run where the 30 m surface rises along the line. Those segments are flagged, their heights are stored unchanged, and the line says nothing about how water moves there.",
+            "Upstream area counts the cells that drain to a point along D8 paths on the filled surface. It is not the share of rain that reaches the point, and it ignores irrigation canals, withdrawals and groundwater.",
+            "Strahler order counts how channels join. It says nothing about channel size, discharge or whether water is present.",
+            "Heights are metres above the EGM2008 geoid from the Copernicus DEM GLO-30 surface model, whose stated absolute vertical accuracy is under 4 m (90% linear error) and relative vertical accuracy under 2 m on slopes up to 20% and under 4 m above, as arithmetic means with local deviations possible (Copernicus DEM Product Handbook 5.0).",
+            "The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary."
+          ]
+        },
+        "source": {
+          "assetKey": "drainage_network",
+          "jsonPointer": "/headline/max_strahler_order",
+          "stratum": "catchment",
+          "claimKind": "model_estimate",
+          "period": {
+            "start": "2021",
+            "end": "2021",
+            "window": null
+          },
+          "lowerJsonPointer": null,
+          "upperJsonPointer": null
+        }
+      },
+      {
+        "recordType": "Measurement",
+        "id": "meas_drainage_outlet_upstream_area_catchment_2021",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "metric": "drainage_outlet_upstream_area",
+        "value": 417.04,
+        "unit": "km2",
+        "status": "available",
+        "missingReason": null,
+        "geoSelectionId": "geo_ait_bouguemez_catchment",
+        "geoRevision": 1,
+        "periodId": "period_2021",
+        "dataBundleId": "bundle_drainage_network_ait_bouguemez",
+        "aggregation": "Area draining to the outlet cell along D8 paths on the filled surface (outlet.upstream_area_km2).",
+        "validPixelCount": null,
+        "totalPixelCount": null,
+        "validFraction": null,
+        "spatialResolutionM": 30,
+        "uncertainty": {
+          "kind": "not_quantified",
+          "lower": null,
+          "upper": null,
+          "level": null,
+          "method": null
+        },
+        "provenance": {
+          "sourceLocators": [],
+          "dataBundleIds": [
+            "bundle_terrain_strata_ait_bouguemez"
+          ],
+          "methodId": "drainage_network",
+          "methodVersion": "1.0.0",
+          "inputVersions": [
+            {
+              "entityId": "geo_ait_bouguemez_catchment",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_terrain_strata_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_drainage_network_ait_bouguemez",
+              "revision": 1
+            }
+          ],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-29T09:53:24Z",
+          "verificationStatus": "computed_checked",
+          "limitations": [
+            "The network is drawn from a 30 m surface model, not mapped on the ground: trees, buildings, steep walls and radar artefacts distort the surface, and the D8 path can leave the real channel. No stream was checked in the field.",
+            "A segment is drawn wherever 1.0 km2 or more drains to a cell. The network's extent and length follow that threshold; it is not a measured channel head, and it does not separate streams that run all year from streams that run only after rain or snowmelt.",
+            "Depression filling and flat resolution route flow across closed hollows and the lower gorge, so some segments run where the 30 m surface rises along the line. Those segments are flagged, their heights are stored unchanged, and the line says nothing about how water moves there.",
+            "Upstream area counts the cells that drain to a point along D8 paths on the filled surface. It is not the share of rain that reaches the point, and it ignores irrigation canals, withdrawals and groundwater.",
+            "Strahler order counts how channels join. It says nothing about channel size, discharge or whether water is present.",
+            "Heights are metres above the EGM2008 geoid from the Copernicus DEM GLO-30 surface model, whose stated absolute vertical accuracy is under 4 m (90% linear error) and relative vertical accuracy under 2 m on slopes up to 20% and under 4 m above, as arithmetic means with local deviations possible (Copernicus DEM Product Handbook 5.0).",
+            "The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary."
+          ]
+        },
+        "source": {
+          "assetKey": "drainage_network",
+          "jsonPointer": "/outlet/upstream_area_km2",
+          "stratum": "catchment",
+          "claimKind": "model_estimate",
+          "period": {
+            "start": "2021",
+            "end": "2021",
+            "window": null
+          },
+          "lowerJsonPointer": null,
+          "upperJsonPointer": null
+        }
+      },
+      {
+        "recordType": "Measurement",
+        "id": "meas_drainage_segments_catchment_2021",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "metric": "drainage_segments",
+        "value": 233,
+        "unit": "segments",
+        "status": "available",
+        "missingReason": null,
+        "geoSelectionId": "geo_ait_bouguemez_catchment",
+        "geoRevision": 1,
+        "periodId": "period_2021",
+        "dataBundleId": "bundle_drainage_network_ait_bouguemez",
+        "aggregation": "Number of drawn drainage segments where 1.0 km2 or more drains to a cell, D8 paths on the 30 m surface (headline.segments).",
+        "validPixelCount": null,
+        "totalPixelCount": null,
+        "validFraction": null,
+        "spatialResolutionM": 30,
+        "uncertainty": {
+          "kind": "not_quantified",
+          "lower": null,
+          "upper": null,
+          "level": null,
+          "method": null
+        },
+        "provenance": {
+          "sourceLocators": [],
+          "dataBundleIds": [
+            "bundle_terrain_strata_ait_bouguemez"
+          ],
+          "methodId": "drainage_network",
+          "methodVersion": "1.0.0",
+          "inputVersions": [
+            {
+              "entityId": "geo_ait_bouguemez_catchment",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_terrain_strata_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_drainage_network_ait_bouguemez",
+              "revision": 1
+            }
+          ],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-29T09:53:24Z",
+          "verificationStatus": "computed_checked",
+          "limitations": [
+            "The network is drawn from a 30 m surface model, not mapped on the ground: trees, buildings, steep walls and radar artefacts distort the surface, and the D8 path can leave the real channel. No stream was checked in the field.",
+            "A segment is drawn wherever 1.0 km2 or more drains to a cell. The network's extent and length follow that threshold; it is not a measured channel head, and it does not separate streams that run all year from streams that run only after rain or snowmelt.",
+            "Depression filling and flat resolution route flow across closed hollows and the lower gorge, so some segments run where the 30 m surface rises along the line. Those segments are flagged, their heights are stored unchanged, and the line says nothing about how water moves there.",
+            "Upstream area counts the cells that drain to a point along D8 paths on the filled surface. It is not the share of rain that reaches the point, and it ignores irrigation canals, withdrawals and groundwater.",
+            "Strahler order counts how channels join. It says nothing about channel size, discharge or whether water is present.",
+            "Heights are metres above the EGM2008 geoid from the Copernicus DEM GLO-30 surface model, whose stated absolute vertical accuracy is under 4 m (90% linear error) and relative vertical accuracy under 2 m on slopes up to 20% and under 4 m above, as arithmetic means with local deviations possible (Copernicus DEM Product Handbook 5.0).",
+            "The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary."
+          ]
+        },
+        "source": {
+          "assetKey": "drainage_network",
+          "jsonPointer": "/headline/segments",
+          "stratum": "catchment",
+          "claimKind": "model_estimate",
+          "period": {
+            "start": "2021",
+            "end": "2021",
+            "window": null
+          },
+          "lowerJsonPointer": null,
+          "upperJsonPointer": null
+        }
+      },
+      {
+        "recordType": "Measurement",
+        "id": "meas_drainage_segments_not_descending_catchment_2021",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "metric": "drainage_segments_not_descending",
+        "value": 14,
+        "unit": "segments",
+        "status": "available",
+        "missingReason": null,
+        "geoSelectionId": "geo_ait_bouguemez_catchment",
+        "geoRevision": 1,
+        "periodId": "period_2021",
+        "dataBundleId": "bundle_drainage_network_ait_bouguemez",
+        "aggregation": "Number of segments that rise more than 4.0 m (descent.rise_tolerance_m) somewhere along their line or end no lower than they start (descent.segments_not_descending).",
+        "validPixelCount": null,
+        "totalPixelCount": null,
+        "validFraction": null,
+        "spatialResolutionM": 30,
+        "uncertainty": {
+          "kind": "not_quantified",
+          "lower": null,
+          "upper": null,
+          "level": null,
+          "method": null
+        },
+        "provenance": {
+          "sourceLocators": [],
+          "dataBundleIds": [
+            "bundle_terrain_strata_ait_bouguemez"
+          ],
+          "methodId": "drainage_network",
+          "methodVersion": "1.0.0",
+          "inputVersions": [
+            {
+              "entityId": "geo_ait_bouguemez_catchment",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_terrain_strata_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_drainage_network_ait_bouguemez",
+              "revision": 1
+            }
+          ],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-29T09:53:24Z",
+          "verificationStatus": "computed_checked",
+          "limitations": [
+            "The network is drawn from a 30 m surface model, not mapped on the ground: trees, buildings, steep walls and radar artefacts distort the surface, and the D8 path can leave the real channel. No stream was checked in the field.",
+            "A segment is drawn wherever 1.0 km2 or more drains to a cell. The network's extent and length follow that threshold; it is not a measured channel head, and it does not separate streams that run all year from streams that run only after rain or snowmelt.",
+            "Depression filling and flat resolution route flow across closed hollows and the lower gorge, so some segments run where the 30 m surface rises along the line. Those segments are flagged, their heights are stored unchanged, and the line says nothing about how water moves there.",
+            "Upstream area counts the cells that drain to a point along D8 paths on the filled surface. It is not the share of rain that reaches the point, and it ignores irrigation canals, withdrawals and groundwater.",
+            "Strahler order counts how channels join. It says nothing about channel size, discharge or whether water is present.",
+            "Heights are metres above the EGM2008 geoid from the Copernicus DEM GLO-30 surface model, whose stated absolute vertical accuracy is under 4 m (90% linear error) and relative vertical accuracy under 2 m on slopes up to 20% and under 4 m above, as arithmetic means with local deviations possible (Copernicus DEM Product Handbook 5.0).",
+            "The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary."
+          ]
+        },
+        "source": {
+          "assetKey": "drainage_network",
+          "jsonPointer": "/descent/segments_not_descending",
+          "stratum": "catchment",
+          "claimKind": "model_estimate",
+          "period": {
+            "start": "2021",
+            "end": "2021",
+            "window": null
+          },
+          "lowerJsonPointer": null,
+          "upperJsonPointer": null
+        }
+      },
+      {
+        "recordType": "Measurement",
         "id": "meas_modis_pixels_catchment",
         "revision": 1,
         "createdAt": "2026-10-28T20:42:35.015Z",
@@ -34553,6 +34933,1514 @@
       },
       {
         "recordType": "Measurement",
+        "id": "meas_optical_clear_share_winter_highest_elevation_high",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "metric": "optical_clear_share_winter_highest",
+        "value": 0.9855,
+        "unit": "fraction of the band's 10 m cells, 0 to 1",
+        "status": "available",
+        "missingReason": null,
+        "geoSelectionId": "geo_ait_bouguemez_catchment",
+        "geoRevision": 1,
+        "periodId": "period_2019-2025_dec_mar",
+        "dataBundleId": "bundle_optical_visibility_ait_bouguemez",
+        "aggregation": "Highest of the monthly clear shares of the upper elevation band (2815.2 m and above), December to March 2019 to 2025, a month counted when at least one clear Sentinel-2 date exists (any_date validity) (bands.3.winter.any_date.highest).",
+        "validPixelCount": null,
+        "totalPixelCount": null,
+        "validFraction": null,
+        "spatialResolutionM": 10,
+        "uncertainty": {
+          "kind": "not_quantified",
+          "lower": null,
+          "upper": null,
+          "level": null,
+          "method": null
+        },
+        "provenance": {
+          "sourceLocators": [],
+          "dataBundleIds": [
+            "bundle_s2_ndvi_monthly_ait_bouguemez",
+            "bundle_terrain_strata_ait_bouguemez"
+          ],
+          "methodId": "optical_visibility_by_band",
+          "methodVersion": "1.0.0",
+          "inputVersions": [
+            {
+              "entityId": "geo_ait_bouguemez_catchment",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_s2_ndvi_monthly_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_terrain_strata_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_optical_visibility_ait_bouguemez",
+              "revision": 1
+            }
+          ],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-29T13:54:01Z",
+          "verificationStatus": "computed_checked",
+          "limitations": [
+            "A clear share counts cells that have at least one (or three) Sentinel-2 dates not classed as cloud, cloud shadow, snow or water in the month; it says how often the band was seen, not how much of it was covered by snow or cloud, and the files do not say which of the two hid a cell.",
+            "The shares depend on the Sentinel-2 scene classification of each date, which makes errors on thin cloud, snow edges and shadow; they are observations of the classification, not of the ground.",
+            "Bands are elevation terciles that organise sampling; they are not vegetation types, grazing zones or management boundaries.",
+            "Only the months of 2019 to 2025 that the Sentinel-2 monthly series holds are covered, 28 winter months."
+          ]
+        },
+        "source": {
+          "assetKey": "optical_visibility_by_band",
+          "jsonPointer": "/bands/3/winter/any_date/highest",
+          "stratum": "elevation_high",
+          "claimKind": "observation",
+          "period": {
+            "start": "2019",
+            "end": "2025",
+            "window": "dec_mar"
+          },
+          "lowerJsonPointer": null,
+          "upperJsonPointer": null
+        }
+      },
+      {
+        "recordType": "Measurement",
+        "id": "meas_optical_clear_share_winter_lowest_elevation_high",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "metric": "optical_clear_share_winter_lowest",
+        "value": 0.1895,
+        "unit": "fraction of the band's 10 m cells, 0 to 1",
+        "status": "available",
+        "missingReason": null,
+        "geoSelectionId": "geo_ait_bouguemez_catchment",
+        "geoRevision": 1,
+        "periodId": "period_2019-2025_dec_mar",
+        "dataBundleId": "bundle_optical_visibility_ait_bouguemez",
+        "aggregation": "Lowest of the monthly clear shares of the upper elevation band (2815.2 m and above), December to March 2019 to 2025, a month counted when at least one clear Sentinel-2 date exists (any_date validity) (bands.3.winter.any_date.lowest).",
+        "validPixelCount": null,
+        "totalPixelCount": null,
+        "validFraction": null,
+        "spatialResolutionM": 10,
+        "uncertainty": {
+          "kind": "not_quantified",
+          "lower": null,
+          "upper": null,
+          "level": null,
+          "method": null
+        },
+        "provenance": {
+          "sourceLocators": [],
+          "dataBundleIds": [
+            "bundle_s2_ndvi_monthly_ait_bouguemez",
+            "bundle_terrain_strata_ait_bouguemez"
+          ],
+          "methodId": "optical_visibility_by_band",
+          "methodVersion": "1.0.0",
+          "inputVersions": [
+            {
+              "entityId": "geo_ait_bouguemez_catchment",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_s2_ndvi_monthly_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_terrain_strata_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_optical_visibility_ait_bouguemez",
+              "revision": 1
+            }
+          ],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-29T13:54:01Z",
+          "verificationStatus": "computed_checked",
+          "limitations": [
+            "A clear share counts cells that have at least one (or three) Sentinel-2 dates not classed as cloud, cloud shadow, snow or water in the month; it says how often the band was seen, not how much of it was covered by snow or cloud, and the files do not say which of the two hid a cell.",
+            "The shares depend on the Sentinel-2 scene classification of each date, which makes errors on thin cloud, snow edges and shadow; they are observations of the classification, not of the ground.",
+            "Bands are elevation terciles that organise sampling; they are not vegetation types, grazing zones or management boundaries.",
+            "Only the months of 2019 to 2025 that the Sentinel-2 monthly series holds are covered, 28 winter months."
+          ]
+        },
+        "source": {
+          "assetKey": "optical_visibility_by_band",
+          "jsonPointer": "/bands/3/winter/any_date/lowest",
+          "stratum": "elevation_high",
+          "claimKind": "observation",
+          "period": {
+            "start": "2019",
+            "end": "2025",
+            "window": "dec_mar"
+          },
+          "lowerJsonPointer": null,
+          "upperJsonPointer": null
+        }
+      },
+      {
+        "recordType": "Measurement",
+        "id": "meas_optical_clear_share_winter_median_elevation_high",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "metric": "optical_clear_share_winter_median",
+        "value": 0.4731,
+        "unit": "fraction of the band's 10 m cells, 0 to 1",
+        "status": "available",
+        "missingReason": null,
+        "geoSelectionId": "geo_ait_bouguemez_catchment",
+        "geoRevision": 1,
+        "periodId": "period_2019-2025_dec_mar",
+        "dataBundleId": "bundle_optical_visibility_ait_bouguemez",
+        "aggregation": "Median of the monthly clear shares of the upper elevation band (2815.2 m and above), December to March 2019 to 2025, a month counted when at least one clear Sentinel-2 date exists (any_date validity) (bands.3.winter.any_date.median).",
+        "validPixelCount": null,
+        "totalPixelCount": null,
+        "validFraction": null,
+        "spatialResolutionM": 10,
+        "uncertainty": {
+          "kind": "not_quantified",
+          "lower": null,
+          "upper": null,
+          "level": null,
+          "method": null
+        },
+        "provenance": {
+          "sourceLocators": [],
+          "dataBundleIds": [
+            "bundle_s2_ndvi_monthly_ait_bouguemez",
+            "bundle_terrain_strata_ait_bouguemez"
+          ],
+          "methodId": "optical_visibility_by_band",
+          "methodVersion": "1.0.0",
+          "inputVersions": [
+            {
+              "entityId": "geo_ait_bouguemez_catchment",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_s2_ndvi_monthly_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_terrain_strata_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_optical_visibility_ait_bouguemez",
+              "revision": 1
+            }
+          ],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-29T13:54:01Z",
+          "verificationStatus": "computed_checked",
+          "limitations": [
+            "A clear share counts cells that have at least one (or three) Sentinel-2 dates not classed as cloud, cloud shadow, snow or water in the month; it says how often the band was seen, not how much of it was covered by snow or cloud, and the files do not say which of the two hid a cell.",
+            "The shares depend on the Sentinel-2 scene classification of each date, which makes errors on thin cloud, snow edges and shadow; they are observations of the classification, not of the ground.",
+            "Bands are elevation terciles that organise sampling; they are not vegetation types, grazing zones or management boundaries.",
+            "Only the months of 2019 to 2025 that the Sentinel-2 monthly series holds are covered, 28 winter months."
+          ]
+        },
+        "source": {
+          "assetKey": "optical_visibility_by_band",
+          "jsonPointer": "/bands/3/winter/any_date/median",
+          "stratum": "elevation_high",
+          "claimKind": "observation",
+          "period": {
+            "start": "2019",
+            "end": "2025",
+            "window": "dec_mar"
+          },
+          "lowerJsonPointer": null,
+          "upperJsonPointer": null
+        }
+      },
+      {
+        "recordType": "Measurement",
+        "id": "meas_optical_winter_months_clear_at_or_above_0_9_elevation_high",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "metric": "winter_months_clear_share_at_or_above_0_9",
+        "value": 3,
+        "unit": "months",
+        "status": "available",
+        "missingReason": null,
+        "geoSelectionId": "geo_ait_bouguemez_catchment",
+        "geoRevision": 1,
+        "periodId": "period_2019-2025_dec_mar",
+        "dataBundleId": "bundle_optical_visibility_ait_bouguemez",
+        "aggregation": "Count of winter months whose clear share is at or above 0.9 (thresholds.high) in the upper elevation band (2815.2 m and above), December to March 2019 to 2025, a month counted when at least one clear Sentinel-2 date exists (any_date validity) (bands.3.winter.any_date.at_or_above_high).",
+        "validPixelCount": null,
+        "totalPixelCount": null,
+        "validFraction": null,
+        "spatialResolutionM": 10,
+        "uncertainty": {
+          "kind": "not_quantified",
+          "lower": null,
+          "upper": null,
+          "level": null,
+          "method": null
+        },
+        "provenance": {
+          "sourceLocators": [],
+          "dataBundleIds": [
+            "bundle_s2_ndvi_monthly_ait_bouguemez",
+            "bundle_terrain_strata_ait_bouguemez"
+          ],
+          "methodId": "optical_visibility_by_band",
+          "methodVersion": "1.0.0",
+          "inputVersions": [
+            {
+              "entityId": "geo_ait_bouguemez_catchment",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_s2_ndvi_monthly_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_terrain_strata_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_optical_visibility_ait_bouguemez",
+              "revision": 1
+            }
+          ],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-29T13:54:01Z",
+          "verificationStatus": "computed_checked",
+          "limitations": [
+            "A clear share counts cells that have at least one (or three) Sentinel-2 dates not classed as cloud, cloud shadow, snow or water in the month; it says how often the band was seen, not how much of it was covered by snow or cloud, and the files do not say which of the two hid a cell.",
+            "The shares depend on the Sentinel-2 scene classification of each date, which makes errors on thin cloud, snow edges and shadow; they are observations of the classification, not of the ground.",
+            "Bands are elevation terciles that organise sampling; they are not vegetation types, grazing zones or management boundaries.",
+            "Only the months of 2019 to 2025 that the Sentinel-2 monthly series holds are covered, 28 winter months."
+          ]
+        },
+        "source": {
+          "assetKey": "optical_visibility_by_band",
+          "jsonPointer": "/bands/3/winter/any_date/at_or_above_high",
+          "stratum": "elevation_high",
+          "claimKind": "observation",
+          "period": {
+            "start": "2019",
+            "end": "2025",
+            "window": "dec_mar"
+          },
+          "lowerJsonPointer": null,
+          "upperJsonPointer": null
+        }
+      },
+      {
+        "recordType": "Measurement",
+        "id": "meas_optical_winter_months_counted_elevation_high",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "metric": "winter_months_counted",
+        "value": 28,
+        "unit": "months",
+        "status": "available",
+        "missingReason": null,
+        "geoSelectionId": "geo_ait_bouguemez_catchment",
+        "geoRevision": 1,
+        "periodId": "period_2019-2025_dec_mar",
+        "dataBundleId": "bundle_optical_visibility_ait_bouguemez",
+        "aggregation": "Number of December to March months of 2019 to 2025 with a clear share in the upper elevation band (2815.2 m and above), December to March 2019 to 2025, a month counted when at least one clear Sentinel-2 date exists (any_date validity) (bands.3.winter.any_date.months).",
+        "validPixelCount": null,
+        "totalPixelCount": null,
+        "validFraction": null,
+        "spatialResolutionM": 10,
+        "uncertainty": {
+          "kind": "not_quantified",
+          "lower": null,
+          "upper": null,
+          "level": null,
+          "method": null
+        },
+        "provenance": {
+          "sourceLocators": [],
+          "dataBundleIds": [
+            "bundle_s2_ndvi_monthly_ait_bouguemez",
+            "bundle_terrain_strata_ait_bouguemez"
+          ],
+          "methodId": "optical_visibility_by_band",
+          "methodVersion": "1.0.0",
+          "inputVersions": [
+            {
+              "entityId": "geo_ait_bouguemez_catchment",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_s2_ndvi_monthly_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_terrain_strata_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_optical_visibility_ait_bouguemez",
+              "revision": 1
+            }
+          ],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-29T13:54:01Z",
+          "verificationStatus": "computed_checked",
+          "limitations": [
+            "A clear share counts cells that have at least one (or three) Sentinel-2 dates not classed as cloud, cloud shadow, snow or water in the month; it says how often the band was seen, not how much of it was covered by snow or cloud, and the files do not say which of the two hid a cell.",
+            "The shares depend on the Sentinel-2 scene classification of each date, which makes errors on thin cloud, snow edges and shadow; they are observations of the classification, not of the ground.",
+            "Bands are elevation terciles that organise sampling; they are not vegetation types, grazing zones or management boundaries.",
+            "Only the months of 2019 to 2025 that the Sentinel-2 monthly series holds are covered, 28 winter months."
+          ]
+        },
+        "source": {
+          "assetKey": "optical_visibility_by_band",
+          "jsonPointer": "/bands/3/winter/any_date/months",
+          "stratum": "elevation_high",
+          "claimKind": "observation",
+          "period": {
+            "start": "2019",
+            "end": "2025",
+            "window": "dec_mar"
+          },
+          "lowerJsonPointer": null,
+          "upperJsonPointer": null
+        }
+      },
+      {
+        "recordType": "Measurement",
+        "id": "meas_pixel_anatomy_cells_kept_bare_sparse_2025_06",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "metric": "pixel_class_cells_kept",
+        "value": 36,
+        "unit": "10 m cells",
+        "status": "available",
+        "missingReason": null,
+        "geoSelectionId": "geo_ait_bouguemez_catchment",
+        "geoRevision": 1,
+        "periodId": "period_2025-06",
+        "dataBundleId": "bundle_pixel_anatomy_ait_bouguemez",
+        "aggregation": "Number of the pixel's 10 m analysis cells of WorldCover 2021 class bare or sparse vegetation that were kept for the 11 June 2025 spectra (scene classification 4 or 5 and every band above zero); every footprint cell was kept (spectra.classes[].cells_kept).",
+        "validPixelCount": null,
+        "totalPixelCount": null,
+        "validFraction": null,
+        "spatialResolutionM": 10,
+        "uncertainty": {
+          "kind": "not_quantified",
+          "lower": null,
+          "upper": null,
+          "level": null,
+          "method": null
+        },
+        "provenance": {
+          "sourceLocators": [],
+          "dataBundleIds": [
+            "bundle_terrain_strata_ait_bouguemez",
+            "bundle_pixel_trend_long_record_ait_bouguemez",
+            "bundle_s2_ndvi_monthly_ait_bouguemez"
+          ],
+          "methodId": "pixel_anatomy",
+          "methodVersion": "1.0.0",
+          "inputVersions": [
+            {
+              "entityId": "geo_ait_bouguemez_catchment",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_terrain_strata_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_pixel_trend_long_record_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_s2_ndvi_monthly_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_pixel_anatomy_ait_bouguemez",
+              "revision": 1
+            }
+          ],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-29T11:09:47Z",
+          "verificationStatus": "computed_checked",
+          "limitations": [
+            "One pixel is an illustration, not a sample: it was chosen by judgment among the candidates of a rule (the selection record gives their number and its rank), and it says nothing about other pixels.",
+            "The class spectra come from one clear day, the cells of each class inside this pixel, and one 2021 land cover map. They are not typical spectra of the classes, and a 10 m cell at the edge of a class mixes surfaces.",
+            "The mix model assumes the pixel's reflectance is the share-weighted sum of its class medians. It ignores shadow, slope and variation inside a class, so its NDVI is modelled, not measured, and it differs from the measured pixel NDVI by the amount stored.",
+            "NDVI measures how green the ground looks from above, not forage, palatability or species: in Ait Bouguemez and the Central High Atlas, upper rangelands are dominated by spiny xerophytic vegetation over reduced short grasslands (SCI-19, p. 2), and on the valley floor tree cover may include orchards (SCI-03, pp. 5, 9 to 10).",
+            "The 26-season series is the pixel's own March to June greenness, not adjusted for rainfall. Its trend is a descriptive Theil-Sen slope with Sen's 95% interval, and no p-value or false discovery rate class is stored for one pixel (SCI-52).",
+            "Terra's overpass has drifted earlier since 2020, from 10:30 to about 9:06 mean local time by December 2025 (NASA), so later seasons are seen with a lower sun and longer shadows in mountain terrain, which may shift NDVI without any change on the ground.",
+            "The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary."
+          ]
+        },
+        "source": {
+          "assetKey": "pixel_anatomy",
+          "jsonPointer": "/spectra/classes/3/cells_kept",
+          "stratum": "h17v05r4005c2178_bare_sparse",
+          "claimKind": "observation",
+          "period": {
+            "start": "2025-06",
+            "end": "2025-06",
+            "window": null
+          },
+          "lowerJsonPointer": null,
+          "upperJsonPointer": null
+        }
+      },
+      {
+        "recordType": "Measurement",
+        "id": "meas_pixel_anatomy_cells_kept_cropland_2025_06",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "metric": "pixel_class_cells_kept",
+        "value": 32,
+        "unit": "10 m cells",
+        "status": "available",
+        "missingReason": null,
+        "geoSelectionId": "geo_ait_bouguemez_catchment",
+        "geoRevision": 1,
+        "periodId": "period_2025-06",
+        "dataBundleId": "bundle_pixel_anatomy_ait_bouguemez",
+        "aggregation": "Number of the pixel's 10 m analysis cells of WorldCover 2021 class cropland that were kept for the 11 June 2025 spectra (scene classification 4 or 5 and every band above zero); every footprint cell was kept (spectra.classes[].cells_kept).",
+        "validPixelCount": null,
+        "totalPixelCount": null,
+        "validFraction": null,
+        "spatialResolutionM": 10,
+        "uncertainty": {
+          "kind": "not_quantified",
+          "lower": null,
+          "upper": null,
+          "level": null,
+          "method": null
+        },
+        "provenance": {
+          "sourceLocators": [],
+          "dataBundleIds": [
+            "bundle_terrain_strata_ait_bouguemez",
+            "bundle_pixel_trend_long_record_ait_bouguemez",
+            "bundle_s2_ndvi_monthly_ait_bouguemez"
+          ],
+          "methodId": "pixel_anatomy",
+          "methodVersion": "1.0.0",
+          "inputVersions": [
+            {
+              "entityId": "geo_ait_bouguemez_catchment",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_terrain_strata_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_pixel_trend_long_record_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_s2_ndvi_monthly_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_pixel_anatomy_ait_bouguemez",
+              "revision": 1
+            }
+          ],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-29T11:09:47Z",
+          "verificationStatus": "computed_checked",
+          "limitations": [
+            "One pixel is an illustration, not a sample: it was chosen by judgment among the candidates of a rule (the selection record gives their number and its rank), and it says nothing about other pixels.",
+            "The class spectra come from one clear day, the cells of each class inside this pixel, and one 2021 land cover map. They are not typical spectra of the classes, and a 10 m cell at the edge of a class mixes surfaces.",
+            "The mix model assumes the pixel's reflectance is the share-weighted sum of its class medians. It ignores shadow, slope and variation inside a class, so its NDVI is modelled, not measured, and it differs from the measured pixel NDVI by the amount stored.",
+            "NDVI measures how green the ground looks from above, not forage, palatability or species: in Ait Bouguemez and the Central High Atlas, upper rangelands are dominated by spiny xerophytic vegetation over reduced short grasslands (SCI-19, p. 2), and on the valley floor tree cover may include orchards (SCI-03, pp. 5, 9 to 10).",
+            "The 26-season series is the pixel's own March to June greenness, not adjusted for rainfall. Its trend is a descriptive Theil-Sen slope with Sen's 95% interval, and no p-value or false discovery rate class is stored for one pixel (SCI-52).",
+            "Terra's overpass has drifted earlier since 2020, from 10:30 to about 9:06 mean local time by December 2025 (NASA), so later seasons are seen with a lower sun and longer shadows in mountain terrain, which may shift NDVI without any change on the ground.",
+            "The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary."
+          ]
+        },
+        "source": {
+          "assetKey": "pixel_anatomy",
+          "jsonPointer": "/spectra/classes/2/cells_kept",
+          "stratum": "h17v05r4005c2178_cropland",
+          "claimKind": "observation",
+          "period": {
+            "start": "2025-06",
+            "end": "2025-06",
+            "window": null
+          },
+          "lowerJsonPointer": null,
+          "upperJsonPointer": null
+        }
+      },
+      {
+        "recordType": "Measurement",
+        "id": "meas_pixel_anatomy_cells_kept_grassland_2025_06",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "metric": "pixel_class_cells_kept",
+        "value": 254,
+        "unit": "10 m cells",
+        "status": "available",
+        "missingReason": null,
+        "geoSelectionId": "geo_ait_bouguemez_catchment",
+        "geoRevision": 1,
+        "periodId": "period_2025-06",
+        "dataBundleId": "bundle_pixel_anatomy_ait_bouguemez",
+        "aggregation": "Number of the pixel's 10 m analysis cells of WorldCover 2021 class grassland that were kept for the 11 June 2025 spectra (scene classification 4 or 5 and every band above zero); every footprint cell was kept (spectra.classes[].cells_kept).",
+        "validPixelCount": null,
+        "totalPixelCount": null,
+        "validFraction": null,
+        "spatialResolutionM": 10,
+        "uncertainty": {
+          "kind": "not_quantified",
+          "lower": null,
+          "upper": null,
+          "level": null,
+          "method": null
+        },
+        "provenance": {
+          "sourceLocators": [],
+          "dataBundleIds": [
+            "bundle_terrain_strata_ait_bouguemez",
+            "bundle_pixel_trend_long_record_ait_bouguemez",
+            "bundle_s2_ndvi_monthly_ait_bouguemez"
+          ],
+          "methodId": "pixel_anatomy",
+          "methodVersion": "1.0.0",
+          "inputVersions": [
+            {
+              "entityId": "geo_ait_bouguemez_catchment",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_terrain_strata_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_pixel_trend_long_record_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_s2_ndvi_monthly_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_pixel_anatomy_ait_bouguemez",
+              "revision": 1
+            }
+          ],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-29T11:09:47Z",
+          "verificationStatus": "computed_checked",
+          "limitations": [
+            "One pixel is an illustration, not a sample: it was chosen by judgment among the candidates of a rule (the selection record gives their number and its rank), and it says nothing about other pixels.",
+            "The class spectra come from one clear day, the cells of each class inside this pixel, and one 2021 land cover map. They are not typical spectra of the classes, and a 10 m cell at the edge of a class mixes surfaces.",
+            "The mix model assumes the pixel's reflectance is the share-weighted sum of its class medians. It ignores shadow, slope and variation inside a class, so its NDVI is modelled, not measured, and it differs from the measured pixel NDVI by the amount stored.",
+            "NDVI measures how green the ground looks from above, not forage, palatability or species: in Ait Bouguemez and the Central High Atlas, upper rangelands are dominated by spiny xerophytic vegetation over reduced short grasslands (SCI-19, p. 2), and on the valley floor tree cover may include orchards (SCI-03, pp. 5, 9 to 10).",
+            "The 26-season series is the pixel's own March to June greenness, not adjusted for rainfall. Its trend is a descriptive Theil-Sen slope with Sen's 95% interval, and no p-value or false discovery rate class is stored for one pixel (SCI-52).",
+            "Terra's overpass has drifted earlier since 2020, from 10:30 to about 9:06 mean local time by December 2025 (NASA), so later seasons are seen with a lower sun and longer shadows in mountain terrain, which may shift NDVI without any change on the ground.",
+            "The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary."
+          ]
+        },
+        "source": {
+          "assetKey": "pixel_anatomy",
+          "jsonPointer": "/spectra/classes/1/cells_kept",
+          "stratum": "h17v05r4005c2178_grassland",
+          "claimKind": "observation",
+          "period": {
+            "start": "2025-06",
+            "end": "2025-06",
+            "window": null
+          },
+          "lowerJsonPointer": null,
+          "upperJsonPointer": null
+        }
+      },
+      {
+        "recordType": "Measurement",
+        "id": "meas_pixel_anatomy_cells_kept_pixel_2025_06",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "metric": "pixel_cells_kept",
+        "value": 537,
+        "unit": "10 m cells",
+        "status": "available",
+        "missingReason": null,
+        "geoSelectionId": "geo_ait_bouguemez_catchment",
+        "geoRevision": 1,
+        "periodId": "period_2025-06",
+        "dataBundleId": "bundle_pixel_anatomy_ait_bouguemez",
+        "aggregation": "Number of the pixel's 10 m analysis cells kept for the 11 June 2025 spectra (scene classification 4 or 5 and every band above zero); every footprint cell was kept, so it equals the footprint's cell count (spectra.kept_cells).",
+        "validPixelCount": null,
+        "totalPixelCount": null,
+        "validFraction": null,
+        "spatialResolutionM": 10,
+        "uncertainty": {
+          "kind": "not_quantified",
+          "lower": null,
+          "upper": null,
+          "level": null,
+          "method": null
+        },
+        "provenance": {
+          "sourceLocators": [],
+          "dataBundleIds": [
+            "bundle_terrain_strata_ait_bouguemez",
+            "bundle_pixel_trend_long_record_ait_bouguemez",
+            "bundle_s2_ndvi_monthly_ait_bouguemez"
+          ],
+          "methodId": "pixel_anatomy",
+          "methodVersion": "1.0.0",
+          "inputVersions": [
+            {
+              "entityId": "geo_ait_bouguemez_catchment",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_terrain_strata_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_pixel_trend_long_record_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_s2_ndvi_monthly_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_pixel_anatomy_ait_bouguemez",
+              "revision": 1
+            }
+          ],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-29T11:09:47Z",
+          "verificationStatus": "computed_checked",
+          "limitations": [
+            "One pixel is an illustration, not a sample: it was chosen by judgment among the candidates of a rule (the selection record gives their number and its rank), and it says nothing about other pixels.",
+            "The class spectra come from one clear day, the cells of each class inside this pixel, and one 2021 land cover map. They are not typical spectra of the classes, and a 10 m cell at the edge of a class mixes surfaces.",
+            "The mix model assumes the pixel's reflectance is the share-weighted sum of its class medians. It ignores shadow, slope and variation inside a class, so its NDVI is modelled, not measured, and it differs from the measured pixel NDVI by the amount stored.",
+            "NDVI measures how green the ground looks from above, not forage, palatability or species: in Ait Bouguemez and the Central High Atlas, upper rangelands are dominated by spiny xerophytic vegetation over reduced short grasslands (SCI-19, p. 2), and on the valley floor tree cover may include orchards (SCI-03, pp. 5, 9 to 10).",
+            "The 26-season series is the pixel's own March to June greenness, not adjusted for rainfall. Its trend is a descriptive Theil-Sen slope with Sen's 95% interval, and no p-value or false discovery rate class is stored for one pixel (SCI-52).",
+            "Terra's overpass has drifted earlier since 2020, from 10:30 to about 9:06 mean local time by December 2025 (NASA), so later seasons are seen with a lower sun and longer shadows in mountain terrain, which may shift NDVI without any change on the ground.",
+            "The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary."
+          ]
+        },
+        "source": {
+          "assetKey": "pixel_anatomy",
+          "jsonPointer": "/spectra/kept_cells",
+          "stratum": "h17v05r4005c2178",
+          "claimKind": "observation",
+          "period": {
+            "start": "2025-06",
+            "end": "2025-06",
+            "window": null
+          },
+          "lowerJsonPointer": null,
+          "upperJsonPointer": null
+        }
+      },
+      {
+        "recordType": "Measurement",
+        "id": "meas_pixel_anatomy_cells_kept_tree_cover_2025_06",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "metric": "pixel_class_cells_kept",
+        "value": 215,
+        "unit": "10 m cells",
+        "status": "available",
+        "missingReason": null,
+        "geoSelectionId": "geo_ait_bouguemez_catchment",
+        "geoRevision": 1,
+        "periodId": "period_2025-06",
+        "dataBundleId": "bundle_pixel_anatomy_ait_bouguemez",
+        "aggregation": "Number of the pixel's 10 m analysis cells of WorldCover 2021 class tree cover that were kept for the 11 June 2025 spectra (scene classification 4 or 5 and every band above zero); every footprint cell was kept (spectra.classes[].cells_kept).",
+        "validPixelCount": null,
+        "totalPixelCount": null,
+        "validFraction": null,
+        "spatialResolutionM": 10,
+        "uncertainty": {
+          "kind": "not_quantified",
+          "lower": null,
+          "upper": null,
+          "level": null,
+          "method": null
+        },
+        "provenance": {
+          "sourceLocators": [],
+          "dataBundleIds": [
+            "bundle_terrain_strata_ait_bouguemez",
+            "bundle_pixel_trend_long_record_ait_bouguemez",
+            "bundle_s2_ndvi_monthly_ait_bouguemez"
+          ],
+          "methodId": "pixel_anatomy",
+          "methodVersion": "1.0.0",
+          "inputVersions": [
+            {
+              "entityId": "geo_ait_bouguemez_catchment",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_terrain_strata_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_pixel_trend_long_record_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_s2_ndvi_monthly_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_pixel_anatomy_ait_bouguemez",
+              "revision": 1
+            }
+          ],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-29T11:09:47Z",
+          "verificationStatus": "computed_checked",
+          "limitations": [
+            "One pixel is an illustration, not a sample: it was chosen by judgment among the candidates of a rule (the selection record gives their number and its rank), and it says nothing about other pixels.",
+            "The class spectra come from one clear day, the cells of each class inside this pixel, and one 2021 land cover map. They are not typical spectra of the classes, and a 10 m cell at the edge of a class mixes surfaces.",
+            "The mix model assumes the pixel's reflectance is the share-weighted sum of its class medians. It ignores shadow, slope and variation inside a class, so its NDVI is modelled, not measured, and it differs from the measured pixel NDVI by the amount stored.",
+            "NDVI measures how green the ground looks from above, not forage, palatability or species: in Ait Bouguemez and the Central High Atlas, upper rangelands are dominated by spiny xerophytic vegetation over reduced short grasslands (SCI-19, p. 2), and on the valley floor tree cover may include orchards (SCI-03, pp. 5, 9 to 10).",
+            "The 26-season series is the pixel's own March to June greenness, not adjusted for rainfall. Its trend is a descriptive Theil-Sen slope with Sen's 95% interval, and no p-value or false discovery rate class is stored for one pixel (SCI-52).",
+            "Terra's overpass has drifted earlier since 2020, from 10:30 to about 9:06 mean local time by December 2025 (NASA), so later seasons are seen with a lower sun and longer shadows in mountain terrain, which may shift NDVI without any change on the ground.",
+            "The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary."
+          ]
+        },
+        "source": {
+          "assetKey": "pixel_anatomy",
+          "jsonPointer": "/spectra/classes/0/cells_kept",
+          "stratum": "h17v05r4005c2178_tree_cover",
+          "claimKind": "observation",
+          "period": {
+            "start": "2025-06",
+            "end": "2025-06",
+            "window": null
+          },
+          "lowerJsonPointer": null,
+          "upperJsonPointer": null
+        }
+      },
+      {
+        "recordType": "Measurement",
+        "id": "meas_pixel_anatomy_class_ndvi_bare_sparse_2025_06",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "metric": "ndvi_of_class_median_red_nir",
+        "value": 0.0813,
+        "unit": "NDVI (-1 to 1)",
+        "status": "available",
+        "missingReason": null,
+        "geoSelectionId": "geo_ait_bouguemez_catchment",
+        "geoRevision": 1,
+        "periodId": "period_2025-06",
+        "dataBundleId": "bundle_pixel_anatomy_ait_bouguemez",
+        "aggregation": "NDVI of the median red (B04) and near-infrared (B08) reflectance of the pixel's bare or sparse vegetation cells on the Sentinel-2 scene of 11 June 2025 (spectra.classes[].ndvi_of_median_red_nir).",
+        "validPixelCount": null,
+        "totalPixelCount": null,
+        "validFraction": null,
+        "spatialResolutionM": 10,
+        "uncertainty": {
+          "kind": "not_quantified",
+          "lower": null,
+          "upper": null,
+          "level": null,
+          "method": null
+        },
+        "provenance": {
+          "sourceLocators": [],
+          "dataBundleIds": [
+            "bundle_terrain_strata_ait_bouguemez",
+            "bundle_pixel_trend_long_record_ait_bouguemez",
+            "bundle_s2_ndvi_monthly_ait_bouguemez"
+          ],
+          "methodId": "pixel_anatomy",
+          "methodVersion": "1.0.0",
+          "inputVersions": [
+            {
+              "entityId": "geo_ait_bouguemez_catchment",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_terrain_strata_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_pixel_trend_long_record_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_s2_ndvi_monthly_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_pixel_anatomy_ait_bouguemez",
+              "revision": 1
+            }
+          ],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-29T11:09:47Z",
+          "verificationStatus": "computed_checked",
+          "limitations": [
+            "One pixel is an illustration, not a sample: it was chosen by judgment among the candidates of a rule (the selection record gives their number and its rank), and it says nothing about other pixels.",
+            "The class spectra come from one clear day, the cells of each class inside this pixel, and one 2021 land cover map. They are not typical spectra of the classes, and a 10 m cell at the edge of a class mixes surfaces.",
+            "The mix model assumes the pixel's reflectance is the share-weighted sum of its class medians. It ignores shadow, slope and variation inside a class, so its NDVI is modelled, not measured, and it differs from the measured pixel NDVI by the amount stored.",
+            "NDVI measures how green the ground looks from above, not forage, palatability or species: in Ait Bouguemez and the Central High Atlas, upper rangelands are dominated by spiny xerophytic vegetation over reduced short grasslands (SCI-19, p. 2), and on the valley floor tree cover may include orchards (SCI-03, pp. 5, 9 to 10).",
+            "The 26-season series is the pixel's own March to June greenness, not adjusted for rainfall. Its trend is a descriptive Theil-Sen slope with Sen's 95% interval, and no p-value or false discovery rate class is stored for one pixel (SCI-52).",
+            "Terra's overpass has drifted earlier since 2020, from 10:30 to about 9:06 mean local time by December 2025 (NASA), so later seasons are seen with a lower sun and longer shadows in mountain terrain, which may shift NDVI without any change on the ground.",
+            "The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary."
+          ]
+        },
+        "source": {
+          "assetKey": "pixel_anatomy",
+          "jsonPointer": "/spectra/classes/3/ndvi_of_median_red_nir",
+          "stratum": "h17v05r4005c2178_bare_sparse",
+          "claimKind": "observation",
+          "period": {
+            "start": "2025-06",
+            "end": "2025-06",
+            "window": null
+          },
+          "lowerJsonPointer": null,
+          "upperJsonPointer": null
+        }
+      },
+      {
+        "recordType": "Measurement",
+        "id": "meas_pixel_anatomy_class_ndvi_cropland_2025_06",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "metric": "ndvi_of_class_median_red_nir",
+        "value": 0.8581,
+        "unit": "NDVI (-1 to 1)",
+        "status": "available",
+        "missingReason": null,
+        "geoSelectionId": "geo_ait_bouguemez_catchment",
+        "geoRevision": 1,
+        "periodId": "period_2025-06",
+        "dataBundleId": "bundle_pixel_anatomy_ait_bouguemez",
+        "aggregation": "NDVI of the median red (B04) and near-infrared (B08) reflectance of the pixel's cropland cells on the Sentinel-2 scene of 11 June 2025 (spectra.classes[].ndvi_of_median_red_nir).",
+        "validPixelCount": null,
+        "totalPixelCount": null,
+        "validFraction": null,
+        "spatialResolutionM": 10,
+        "uncertainty": {
+          "kind": "not_quantified",
+          "lower": null,
+          "upper": null,
+          "level": null,
+          "method": null
+        },
+        "provenance": {
+          "sourceLocators": [],
+          "dataBundleIds": [
+            "bundle_terrain_strata_ait_bouguemez",
+            "bundle_pixel_trend_long_record_ait_bouguemez",
+            "bundle_s2_ndvi_monthly_ait_bouguemez"
+          ],
+          "methodId": "pixel_anatomy",
+          "methodVersion": "1.0.0",
+          "inputVersions": [
+            {
+              "entityId": "geo_ait_bouguemez_catchment",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_terrain_strata_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_pixel_trend_long_record_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_s2_ndvi_monthly_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_pixel_anatomy_ait_bouguemez",
+              "revision": 1
+            }
+          ],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-29T11:09:47Z",
+          "verificationStatus": "computed_checked",
+          "limitations": [
+            "One pixel is an illustration, not a sample: it was chosen by judgment among the candidates of a rule (the selection record gives their number and its rank), and it says nothing about other pixels.",
+            "The class spectra come from one clear day, the cells of each class inside this pixel, and one 2021 land cover map. They are not typical spectra of the classes, and a 10 m cell at the edge of a class mixes surfaces.",
+            "The mix model assumes the pixel's reflectance is the share-weighted sum of its class medians. It ignores shadow, slope and variation inside a class, so its NDVI is modelled, not measured, and it differs from the measured pixel NDVI by the amount stored.",
+            "NDVI measures how green the ground looks from above, not forage, palatability or species: in Ait Bouguemez and the Central High Atlas, upper rangelands are dominated by spiny xerophytic vegetation over reduced short grasslands (SCI-19, p. 2), and on the valley floor tree cover may include orchards (SCI-03, pp. 5, 9 to 10).",
+            "The 26-season series is the pixel's own March to June greenness, not adjusted for rainfall. Its trend is a descriptive Theil-Sen slope with Sen's 95% interval, and no p-value or false discovery rate class is stored for one pixel (SCI-52).",
+            "Terra's overpass has drifted earlier since 2020, from 10:30 to about 9:06 mean local time by December 2025 (NASA), so later seasons are seen with a lower sun and longer shadows in mountain terrain, which may shift NDVI without any change on the ground.",
+            "The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary."
+          ]
+        },
+        "source": {
+          "assetKey": "pixel_anatomy",
+          "jsonPointer": "/spectra/classes/2/ndvi_of_median_red_nir",
+          "stratum": "h17v05r4005c2178_cropland",
+          "claimKind": "observation",
+          "period": {
+            "start": "2025-06",
+            "end": "2025-06",
+            "window": null
+          },
+          "lowerJsonPointer": null,
+          "upperJsonPointer": null
+        }
+      },
+      {
+        "recordType": "Measurement",
+        "id": "meas_pixel_anatomy_class_ndvi_grassland_2025_06",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "metric": "ndvi_of_class_median_red_nir",
+        "value": 0.1678,
+        "unit": "NDVI (-1 to 1)",
+        "status": "available",
+        "missingReason": null,
+        "geoSelectionId": "geo_ait_bouguemez_catchment",
+        "geoRevision": 1,
+        "periodId": "period_2025-06",
+        "dataBundleId": "bundle_pixel_anatomy_ait_bouguemez",
+        "aggregation": "NDVI of the median red (B04) and near-infrared (B08) reflectance of the pixel's grassland cells on the Sentinel-2 scene of 11 June 2025 (spectra.classes[].ndvi_of_median_red_nir).",
+        "validPixelCount": null,
+        "totalPixelCount": null,
+        "validFraction": null,
+        "spatialResolutionM": 10,
+        "uncertainty": {
+          "kind": "not_quantified",
+          "lower": null,
+          "upper": null,
+          "level": null,
+          "method": null
+        },
+        "provenance": {
+          "sourceLocators": [],
+          "dataBundleIds": [
+            "bundle_terrain_strata_ait_bouguemez",
+            "bundle_pixel_trend_long_record_ait_bouguemez",
+            "bundle_s2_ndvi_monthly_ait_bouguemez"
+          ],
+          "methodId": "pixel_anatomy",
+          "methodVersion": "1.0.0",
+          "inputVersions": [
+            {
+              "entityId": "geo_ait_bouguemez_catchment",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_terrain_strata_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_pixel_trend_long_record_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_s2_ndvi_monthly_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_pixel_anatomy_ait_bouguemez",
+              "revision": 1
+            }
+          ],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-29T11:09:47Z",
+          "verificationStatus": "computed_checked",
+          "limitations": [
+            "One pixel is an illustration, not a sample: it was chosen by judgment among the candidates of a rule (the selection record gives their number and its rank), and it says nothing about other pixels.",
+            "The class spectra come from one clear day, the cells of each class inside this pixel, and one 2021 land cover map. They are not typical spectra of the classes, and a 10 m cell at the edge of a class mixes surfaces.",
+            "The mix model assumes the pixel's reflectance is the share-weighted sum of its class medians. It ignores shadow, slope and variation inside a class, so its NDVI is modelled, not measured, and it differs from the measured pixel NDVI by the amount stored.",
+            "NDVI measures how green the ground looks from above, not forage, palatability or species: in Ait Bouguemez and the Central High Atlas, upper rangelands are dominated by spiny xerophytic vegetation over reduced short grasslands (SCI-19, p. 2), and on the valley floor tree cover may include orchards (SCI-03, pp. 5, 9 to 10).",
+            "The 26-season series is the pixel's own March to June greenness, not adjusted for rainfall. Its trend is a descriptive Theil-Sen slope with Sen's 95% interval, and no p-value or false discovery rate class is stored for one pixel (SCI-52).",
+            "Terra's overpass has drifted earlier since 2020, from 10:30 to about 9:06 mean local time by December 2025 (NASA), so later seasons are seen with a lower sun and longer shadows in mountain terrain, which may shift NDVI without any change on the ground.",
+            "The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary."
+          ]
+        },
+        "source": {
+          "assetKey": "pixel_anatomy",
+          "jsonPointer": "/spectra/classes/1/ndvi_of_median_red_nir",
+          "stratum": "h17v05r4005c2178_grassland",
+          "claimKind": "observation",
+          "period": {
+            "start": "2025-06",
+            "end": "2025-06",
+            "window": null
+          },
+          "lowerJsonPointer": null,
+          "upperJsonPointer": null
+        }
+      },
+      {
+        "recordType": "Measurement",
+        "id": "meas_pixel_anatomy_class_ndvi_tree_cover_2025_06",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "metric": "ndvi_of_class_median_red_nir",
+        "value": 0.8005,
+        "unit": "NDVI (-1 to 1)",
+        "status": "available",
+        "missingReason": null,
+        "geoSelectionId": "geo_ait_bouguemez_catchment",
+        "geoRevision": 1,
+        "periodId": "period_2025-06",
+        "dataBundleId": "bundle_pixel_anatomy_ait_bouguemez",
+        "aggregation": "NDVI of the median red (B04) and near-infrared (B08) reflectance of the pixel's tree cover cells on the Sentinel-2 scene of 11 June 2025 (spectra.classes[].ndvi_of_median_red_nir).",
+        "validPixelCount": null,
+        "totalPixelCount": null,
+        "validFraction": null,
+        "spatialResolutionM": 10,
+        "uncertainty": {
+          "kind": "not_quantified",
+          "lower": null,
+          "upper": null,
+          "level": null,
+          "method": null
+        },
+        "provenance": {
+          "sourceLocators": [],
+          "dataBundleIds": [
+            "bundle_terrain_strata_ait_bouguemez",
+            "bundle_pixel_trend_long_record_ait_bouguemez",
+            "bundle_s2_ndvi_monthly_ait_bouguemez"
+          ],
+          "methodId": "pixel_anatomy",
+          "methodVersion": "1.0.0",
+          "inputVersions": [
+            {
+              "entityId": "geo_ait_bouguemez_catchment",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_terrain_strata_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_pixel_trend_long_record_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_s2_ndvi_monthly_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_pixel_anatomy_ait_bouguemez",
+              "revision": 1
+            }
+          ],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-29T11:09:47Z",
+          "verificationStatus": "computed_checked",
+          "limitations": [
+            "One pixel is an illustration, not a sample: it was chosen by judgment among the candidates of a rule (the selection record gives their number and its rank), and it says nothing about other pixels.",
+            "The class spectra come from one clear day, the cells of each class inside this pixel, and one 2021 land cover map. They are not typical spectra of the classes, and a 10 m cell at the edge of a class mixes surfaces.",
+            "The mix model assumes the pixel's reflectance is the share-weighted sum of its class medians. It ignores shadow, slope and variation inside a class, so its NDVI is modelled, not measured, and it differs from the measured pixel NDVI by the amount stored.",
+            "NDVI measures how green the ground looks from above, not forage, palatability or species: in Ait Bouguemez and the Central High Atlas, upper rangelands are dominated by spiny xerophytic vegetation over reduced short grasslands (SCI-19, p. 2), and on the valley floor tree cover may include orchards (SCI-03, pp. 5, 9 to 10).",
+            "The 26-season series is the pixel's own March to June greenness, not adjusted for rainfall. Its trend is a descriptive Theil-Sen slope with Sen's 95% interval, and no p-value or false discovery rate class is stored for one pixel (SCI-52).",
+            "Terra's overpass has drifted earlier since 2020, from 10:30 to about 9:06 mean local time by December 2025 (NASA), so later seasons are seen with a lower sun and longer shadows in mountain terrain, which may shift NDVI without any change on the ground.",
+            "The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary."
+          ]
+        },
+        "source": {
+          "assetKey": "pixel_anatomy",
+          "jsonPointer": "/spectra/classes/0/ndvi_of_median_red_nir",
+          "stratum": "h17v05r4005c2178_tree_cover",
+          "claimKind": "observation",
+          "period": {
+            "start": "2025-06",
+            "end": "2025-06",
+            "window": null
+          },
+          "lowerJsonPointer": null,
+          "upperJsonPointer": null
+        }
+      },
+      {
+        "recordType": "Measurement",
+        "id": "meas_pixel_anatomy_ndvi_measured_2025_06",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "metric": "ndvi_of_pixel_mean_red_nir",
+        "value": 0.4766,
+        "unit": "NDVI (-1 to 1)",
+        "status": "available",
+        "missingReason": null,
+        "geoSelectionId": "geo_ait_bouguemez_catchment",
+        "geoRevision": 1,
+        "periodId": "period_2025-06",
+        "dataBundleId": "bundle_pixel_anatomy_ait_bouguemez",
+        "aggregation": "NDVI of the mean red (B04) and near-infrared (B08) reflectance of all kept 10 m cells of the pixel on the Sentinel-2 scene of 11 June 2025 (spectra.pixel_measured_ndvi). Sentinel-2, not MODIS.",
+        "validPixelCount": null,
+        "totalPixelCount": null,
+        "validFraction": null,
+        "spatialResolutionM": 10,
+        "uncertainty": {
+          "kind": "not_quantified",
+          "lower": null,
+          "upper": null,
+          "level": null,
+          "method": null
+        },
+        "provenance": {
+          "sourceLocators": [],
+          "dataBundleIds": [
+            "bundle_terrain_strata_ait_bouguemez",
+            "bundle_pixel_trend_long_record_ait_bouguemez",
+            "bundle_s2_ndvi_monthly_ait_bouguemez"
+          ],
+          "methodId": "pixel_anatomy",
+          "methodVersion": "1.0.0",
+          "inputVersions": [
+            {
+              "entityId": "geo_ait_bouguemez_catchment",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_terrain_strata_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_pixel_trend_long_record_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_s2_ndvi_monthly_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_pixel_anatomy_ait_bouguemez",
+              "revision": 1
+            }
+          ],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-29T11:09:47Z",
+          "verificationStatus": "computed_checked",
+          "limitations": [
+            "One pixel is an illustration, not a sample: it was chosen by judgment among the candidates of a rule (the selection record gives their number and its rank), and it says nothing about other pixels.",
+            "The class spectra come from one clear day, the cells of each class inside this pixel, and one 2021 land cover map. They are not typical spectra of the classes, and a 10 m cell at the edge of a class mixes surfaces.",
+            "The mix model assumes the pixel's reflectance is the share-weighted sum of its class medians. It ignores shadow, slope and variation inside a class, so its NDVI is modelled, not measured, and it differs from the measured pixel NDVI by the amount stored.",
+            "NDVI measures how green the ground looks from above, not forage, palatability or species: in Ait Bouguemez and the Central High Atlas, upper rangelands are dominated by spiny xerophytic vegetation over reduced short grasslands (SCI-19, p. 2), and on the valley floor tree cover may include orchards (SCI-03, pp. 5, 9 to 10).",
+            "The 26-season series is the pixel's own March to June greenness, not adjusted for rainfall. Its trend is a descriptive Theil-Sen slope with Sen's 95% interval, and no p-value or false discovery rate class is stored for one pixel (SCI-52).",
+            "Terra's overpass has drifted earlier since 2020, from 10:30 to about 9:06 mean local time by December 2025 (NASA), so later seasons are seen with a lower sun and longer shadows in mountain terrain, which may shift NDVI without any change on the ground.",
+            "The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary."
+          ]
+        },
+        "source": {
+          "assetKey": "pixel_anatomy",
+          "jsonPointer": "/spectra/pixel_measured_ndvi",
+          "stratum": "h17v05r4005c2178",
+          "claimKind": "observation",
+          "period": {
+            "start": "2025-06",
+            "end": "2025-06",
+            "window": null
+          },
+          "lowerJsonPointer": null,
+          "upperJsonPointer": null
+        }
+      },
+      {
+        "recordType": "Measurement",
+        "id": "meas_pixel_anatomy_ndvi_mix_model_2025_06",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "metric": "ndvi_linear_mix_at_measured_composition",
+        "value": 0.445,
+        "unit": "NDVI (-1 to 1)",
+        "status": "available",
+        "missingReason": null,
+        "geoSelectionId": "geo_ait_bouguemez_catchment",
+        "geoRevision": 1,
+        "periodId": "period_2025-06",
+        "dataBundleId": "bundle_pixel_anatomy_ait_bouguemez",
+        "aggregation": "Modelled NDVI of the share-weighted sum of the pixel's class median reflectances (shares of the pixel's WorldCover 2021 cells), as stored; modelled, not measured (model.ndvi_at_measured_composition).",
+        "validPixelCount": null,
+        "totalPixelCount": null,
+        "validFraction": null,
+        "spatialResolutionM": 10,
+        "uncertainty": {
+          "kind": "not_quantified",
+          "lower": null,
+          "upper": null,
+          "level": null,
+          "method": null
+        },
+        "provenance": {
+          "sourceLocators": [],
+          "dataBundleIds": [
+            "bundle_terrain_strata_ait_bouguemez",
+            "bundle_pixel_trend_long_record_ait_bouguemez",
+            "bundle_s2_ndvi_monthly_ait_bouguemez"
+          ],
+          "methodId": "pixel_anatomy",
+          "methodVersion": "1.0.0",
+          "inputVersions": [
+            {
+              "entityId": "geo_ait_bouguemez_catchment",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_terrain_strata_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_pixel_trend_long_record_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_s2_ndvi_monthly_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_pixel_anatomy_ait_bouguemez",
+              "revision": 1
+            }
+          ],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-29T11:09:47Z",
+          "verificationStatus": "computed_checked",
+          "limitations": [
+            "One pixel is an illustration, not a sample: it was chosen by judgment among the candidates of a rule (the selection record gives their number and its rank), and it says nothing about other pixels.",
+            "The class spectra come from one clear day, the cells of each class inside this pixel, and one 2021 land cover map. They are not typical spectra of the classes, and a 10 m cell at the edge of a class mixes surfaces.",
+            "The mix model assumes the pixel's reflectance is the share-weighted sum of its class medians. It ignores shadow, slope and variation inside a class, so its NDVI is modelled, not measured, and it differs from the measured pixel NDVI by the amount stored.",
+            "NDVI measures how green the ground looks from above, not forage, palatability or species: in Ait Bouguemez and the Central High Atlas, upper rangelands are dominated by spiny xerophytic vegetation over reduced short grasslands (SCI-19, p. 2), and on the valley floor tree cover may include orchards (SCI-03, pp. 5, 9 to 10).",
+            "The 26-season series is the pixel's own March to June greenness, not adjusted for rainfall. Its trend is a descriptive Theil-Sen slope with Sen's 95% interval, and no p-value or false discovery rate class is stored for one pixel (SCI-52).",
+            "Terra's overpass has drifted earlier since 2020, from 10:30 to about 9:06 mean local time by December 2025 (NASA), so later seasons are seen with a lower sun and longer shadows in mountain terrain, which may shift NDVI without any change on the ground.",
+            "The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary."
+          ]
+        },
+        "source": {
+          "assetKey": "pixel_anatomy",
+          "jsonPointer": "/model/ndvi_at_measured_composition",
+          "stratum": "h17v05r4005c2178",
+          "claimKind": "model_estimate",
+          "period": {
+            "start": "2025-06",
+            "end": "2025-06",
+            "window": null
+          },
+          "lowerJsonPointer": null,
+          "upperJsonPointer": null
+        }
+      },
+      {
+        "recordType": "Measurement",
+        "id": "meas_pixel_anatomy_ndvi_mix_tree_cover_plus20_2025_06",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "metric": "ndvi_linear_mix_shift_example",
+        "value": 0.5711,
+        "unit": "NDVI (-1 to 1)",
+        "status": "available",
+        "missingReason": null,
+        "geoSelectionId": "geo_ait_bouguemez_catchment",
+        "geoRevision": 1,
+        "periodId": "period_2025-06",
+        "dataBundleId": "bundle_pixel_anatomy_ait_bouguemez",
+        "aggregation": "Modelled NDVI of the same linear mix with 20 percentage points of the footprint moved from grassland to tree cover; an example of the mixing control, not an observation (model.shift_example.ndvi).",
+        "validPixelCount": null,
+        "totalPixelCount": null,
+        "validFraction": null,
+        "spatialResolutionM": 10,
+        "uncertainty": {
+          "kind": "not_quantified",
+          "lower": null,
+          "upper": null,
+          "level": null,
+          "method": null
+        },
+        "provenance": {
+          "sourceLocators": [],
+          "dataBundleIds": [
+            "bundle_terrain_strata_ait_bouguemez",
+            "bundle_pixel_trend_long_record_ait_bouguemez",
+            "bundle_s2_ndvi_monthly_ait_bouguemez"
+          ],
+          "methodId": "pixel_anatomy",
+          "methodVersion": "1.0.0",
+          "inputVersions": [
+            {
+              "entityId": "geo_ait_bouguemez_catchment",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_terrain_strata_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_pixel_trend_long_record_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_s2_ndvi_monthly_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_pixel_anatomy_ait_bouguemez",
+              "revision": 1
+            }
+          ],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-29T11:09:47Z",
+          "verificationStatus": "computed_checked",
+          "limitations": [
+            "One pixel is an illustration, not a sample: it was chosen by judgment among the candidates of a rule (the selection record gives their number and its rank), and it says nothing about other pixels.",
+            "The class spectra come from one clear day, the cells of each class inside this pixel, and one 2021 land cover map. They are not typical spectra of the classes, and a 10 m cell at the edge of a class mixes surfaces.",
+            "The mix model assumes the pixel's reflectance is the share-weighted sum of its class medians. It ignores shadow, slope and variation inside a class, so its NDVI is modelled, not measured, and it differs from the measured pixel NDVI by the amount stored.",
+            "NDVI measures how green the ground looks from above, not forage, palatability or species: in Ait Bouguemez and the Central High Atlas, upper rangelands are dominated by spiny xerophytic vegetation over reduced short grasslands (SCI-19, p. 2), and on the valley floor tree cover may include orchards (SCI-03, pp. 5, 9 to 10).",
+            "The 26-season series is the pixel's own March to June greenness, not adjusted for rainfall. Its trend is a descriptive Theil-Sen slope with Sen's 95% interval, and no p-value or false discovery rate class is stored for one pixel (SCI-52).",
+            "Terra's overpass has drifted earlier since 2020, from 10:30 to about 9:06 mean local time by December 2025 (NASA), so later seasons are seen with a lower sun and longer shadows in mountain terrain, which may shift NDVI without any change on the ground.",
+            "The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary."
+          ]
+        },
+        "source": {
+          "assetKey": "pixel_anatomy",
+          "jsonPointer": "/model/shift_example/ndvi",
+          "stratum": "h17v05r4005c2178_shift_grassland_to_tree_cover_20_points",
+          "claimKind": "model_estimate",
+          "period": {
+            "start": "2025-06",
+            "end": "2025-06",
+            "window": null
+          },
+          "lowerJsonPointer": null,
+          "upperJsonPointer": null
+        }
+      },
+      {
+        "recordType": "Measurement",
+        "id": "meas_pixel_anatomy_trend_mar_jun_pixel",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "metric": "ndvi_pixel_trend_theil_sen_per_decade",
+        "value": 0.05702,
+        "unit": "NDVI per decade",
+        "status": "available",
+        "missingReason": null,
+        "geoSelectionId": "geo_ait_bouguemez_catchment",
+        "geoRevision": 1,
+        "periodId": "period_2000-2025_mar_jun",
+        "dataBundleId": "bundle_pixel_anatomy_ait_bouguemez",
+        "aggregation": "Theil-Sen slope, per decade, of the pixel's own March to June MODIS NDVI over 26 seasons, 2000 to 2025, not adjusted for rainfall (trend.slope_per_decade). Descriptive; no p-value or false discovery rate class is stored for one pixel.",
+        "validPixelCount": null,
+        "totalPixelCount": null,
+        "validFraction": null,
+        "spatialResolutionM": 250,
+        "uncertainty": {
+          "kind": "interval",
+          "lower": 0.03741,
+          "upper": 0.08451,
+          "level": 0.95,
+          "method": "Sen's 95% interval (level 0.95) of the Theil-Sen slope of the pixel's March to June NDVI on season year, 26 seasons (trend.lower_per_decade, trend.upper_per_decade)."
+        },
+        "provenance": {
+          "sourceLocators": [],
+          "dataBundleIds": [
+            "bundle_terrain_strata_ait_bouguemez",
+            "bundle_pixel_trend_long_record_ait_bouguemez",
+            "bundle_s2_ndvi_monthly_ait_bouguemez"
+          ],
+          "methodId": "pixel_anatomy",
+          "methodVersion": "1.0.0",
+          "inputVersions": [
+            {
+              "entityId": "geo_ait_bouguemez_catchment",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_terrain_strata_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_pixel_trend_long_record_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_s2_ndvi_monthly_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_pixel_anatomy_ait_bouguemez",
+              "revision": 1
+            }
+          ],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-29T11:09:47Z",
+          "verificationStatus": "computed_checked",
+          "limitations": [
+            "One pixel is an illustration, not a sample: it was chosen by judgment among the candidates of a rule (the selection record gives their number and its rank), and it says nothing about other pixels.",
+            "The class spectra come from one clear day, the cells of each class inside this pixel, and one 2021 land cover map. They are not typical spectra of the classes, and a 10 m cell at the edge of a class mixes surfaces.",
+            "The mix model assumes the pixel's reflectance is the share-weighted sum of its class medians. It ignores shadow, slope and variation inside a class, so its NDVI is modelled, not measured, and it differs from the measured pixel NDVI by the amount stored.",
+            "NDVI measures how green the ground looks from above, not forage, palatability or species: in Ait Bouguemez and the Central High Atlas, upper rangelands are dominated by spiny xerophytic vegetation over reduced short grasslands (SCI-19, p. 2), and on the valley floor tree cover may include orchards (SCI-03, pp. 5, 9 to 10).",
+            "The 26-season series is the pixel's own March to June greenness, not adjusted for rainfall. Its trend is a descriptive Theil-Sen slope with Sen's 95% interval, and no p-value or false discovery rate class is stored for one pixel (SCI-52).",
+            "Terra's overpass has drifted earlier since 2020, from 10:30 to about 9:06 mean local time by December 2025 (NASA), so later seasons are seen with a lower sun and longer shadows in mountain terrain, which may shift NDVI without any change on the ground.",
+            "The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary."
+          ]
+        },
+        "source": {
+          "assetKey": "pixel_anatomy",
+          "jsonPointer": "/trend/slope_per_decade",
+          "stratum": "h17v05r4005c2178",
+          "claimKind": "model_estimate",
+          "period": {
+            "start": "2000",
+            "end": "2025",
+            "window": "mar_jun"
+          },
+          "lowerJsonPointer": "/trend/lower_per_decade",
+          "upperJsonPointer": "/trend/upper_per_decade"
+        }
+      },
+      {
+        "recordType": "Measurement",
         "id": "meas_pixel_trend_downward_fdr_areas_catchment_mar_jun",
         "revision": 1,
         "createdAt": "2026-10-28T20:42:35.015Z",
@@ -40216,6 +42104,978 @@
             "Cloud and snow shares are counted per tile observation; the 29SQR and 29RQQ overlap counts twice.",
             "Revision 13 (2026-10-27). Among duplicates of a tile and date, an item with no clear pixels over the catchment is now skipped when a twin has some. That clause was added to the duplicate rule after data was first read; the rule fixed before any data was read kept the newest processing baseline only. Revision 12, the first committed, has no version field; it documented the clause but kept the newest item, so it kept an item with 0 clear pixels over the catchment on seven tile-dates: 29RQQ 2019-04-17 (twin had 285 clear pixels), 2019-06-21 (702,669), 2020-11-12 (84), 2021-06-07 (8), 2021-11-19 (8), 2021-12-22 (8), and 29SQR 2020-10-23 (16). In five cases the twin is an older baseline (02.14, 03.00, 03.01), so its clear pixels come from an older scene classification. This revision recomputes 2019-04, 2019-06, 2020-10, 2020-11, 2021-06, 2021-11 and 2021-12 and everything derived from them; no NDVI or departure area median moved at four decimals."
           ]
+        }
+      },
+      {
+        "recordType": "Measurement",
+        "id": "meas_transect_meridian_band_crossing_a_2021",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "metric": "transect_band_crossing_distance",
+        "value": 748.3,
+        "unit": "m along the line from its first point",
+        "status": "available",
+        "missingReason": null,
+        "geoSelectionId": "geo_ait_bouguemez_catchment",
+        "geoRevision": 1,
+        "periodId": "period_2021",
+        "dataBundleId": "bundle_transects_ait_bouguemez",
+        "aggregation": "Distance from the north end of the meridian to its crossing of the 2316.8 m band boundary, falling (tabant_meridian.band_crossings[0].distance_m).",
+        "validPixelCount": null,
+        "totalPixelCount": null,
+        "validFraction": null,
+        "spatialResolutionM": 30,
+        "uncertainty": {
+          "kind": "not_quantified",
+          "lower": null,
+          "upper": null,
+          "level": null,
+          "method": null
+        },
+        "provenance": {
+          "sourceLocators": [],
+          "dataBundleIds": [
+            "bundle_terrain_strata_ait_bouguemez",
+            "bundle_drainage_network_ait_bouguemez"
+          ],
+          "methodId": "terrain_transects",
+          "methodVersion": "1.0.1",
+          "inputVersions": [
+            {
+              "entityId": "geo_ait_bouguemez_catchment",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_terrain_strata_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_drainage_network_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_transects_ait_bouguemez",
+              "revision": 1
+            }
+          ],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-29T10:03:38Z",
+          "verificationStatus": "computed_checked",
+          "limitations": [
+            "A profile is read from a 30 m surface model: trees, buildings, steep walls and radar artefacts distort it, and narrow gorges such as the lower gorge near the outlet are not resolved. Heights are metres above the EGM2008 geoid with the DEM's stated vertical accuracy (Copernicus DEM Product Handbook 5.0).",
+            "Samples are 30 m apart, so a band crossing or a land cover boundary is placed to within about 15 m, and a feature narrower than 30 m can fall between samples.",
+            "Land cover is ESA WorldCover 2021 at 10 m, a single 2021 map applied to the line: tree cover on the valley floor may include orchards, and no class is a pasture, agdal or management unit.",
+            "An elevation band is a stratum that organises sampling, cut from the elevation distribution of the catchment; it is not a vegetation type, a grazing zone or a management boundary.",
+            "The valley floor segment follows the published elevation range of the valley floor (1800 to 2200 m, SCI-19); it is not a measured flat bottom.",
+            "The valley axis is the longest flow path of a D8 network, which follows the main river, not the centre line of the valley; its profile inherits the limits of the drainage network, including places where the surface rises along the line.",
+            "The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary."
+          ]
+        },
+        "source": {
+          "assetKey": "terrain_transects",
+          "jsonPointer": "/transects/tabant_meridian/band_crossings/0/distance_m",
+          "stratum": "tabant_meridian_band_boundary_2316_8_falling",
+          "claimKind": "observation",
+          "period": {
+            "start": "2021",
+            "end": "2021",
+            "window": null
+          },
+          "lowerJsonPointer": null,
+          "upperJsonPointer": null
+        }
+      },
+      {
+        "recordType": "Measurement",
+        "id": "meas_transect_meridian_band_crossing_b_2021",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "metric": "transect_band_crossing_distance",
+        "value": 9104,
+        "unit": "m along the line from its first point",
+        "status": "available",
+        "missingReason": null,
+        "geoSelectionId": "geo_ait_bouguemez_catchment",
+        "geoRevision": 1,
+        "periodId": "period_2021",
+        "dataBundleId": "bundle_transects_ait_bouguemez",
+        "aggregation": "Distance from the north end of the meridian to its crossing of the 2316.8 m band boundary, rising (tabant_meridian.band_crossings[1].distance_m).",
+        "validPixelCount": null,
+        "totalPixelCount": null,
+        "validFraction": null,
+        "spatialResolutionM": 30,
+        "uncertainty": {
+          "kind": "not_quantified",
+          "lower": null,
+          "upper": null,
+          "level": null,
+          "method": null
+        },
+        "provenance": {
+          "sourceLocators": [],
+          "dataBundleIds": [
+            "bundle_terrain_strata_ait_bouguemez",
+            "bundle_drainage_network_ait_bouguemez"
+          ],
+          "methodId": "terrain_transects",
+          "methodVersion": "1.0.1",
+          "inputVersions": [
+            {
+              "entityId": "geo_ait_bouguemez_catchment",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_terrain_strata_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_drainage_network_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_transects_ait_bouguemez",
+              "revision": 1
+            }
+          ],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-29T10:03:38Z",
+          "verificationStatus": "computed_checked",
+          "limitations": [
+            "A profile is read from a 30 m surface model: trees, buildings, steep walls and radar artefacts distort it, and narrow gorges such as the lower gorge near the outlet are not resolved. Heights are metres above the EGM2008 geoid with the DEM's stated vertical accuracy (Copernicus DEM Product Handbook 5.0).",
+            "Samples are 30 m apart, so a band crossing or a land cover boundary is placed to within about 15 m, and a feature narrower than 30 m can fall between samples.",
+            "Land cover is ESA WorldCover 2021 at 10 m, a single 2021 map applied to the line: tree cover on the valley floor may include orchards, and no class is a pasture, agdal or management unit.",
+            "An elevation band is a stratum that organises sampling, cut from the elevation distribution of the catchment; it is not a vegetation type, a grazing zone or a management boundary.",
+            "The valley floor segment follows the published elevation range of the valley floor (1800 to 2200 m, SCI-19); it is not a measured flat bottom.",
+            "The valley axis is the longest flow path of a D8 network, which follows the main river, not the centre line of the valley; its profile inherits the limits of the drainage network, including places where the surface rises along the line.",
+            "The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary."
+          ]
+        },
+        "source": {
+          "assetKey": "terrain_transects",
+          "jsonPointer": "/transects/tabant_meridian/band_crossings/1/distance_m",
+          "stratum": "tabant_meridian_band_boundary_2316_8_rising",
+          "claimKind": "observation",
+          "period": {
+            "start": "2021",
+            "end": "2021",
+            "window": null
+          },
+          "lowerJsonPointer": null,
+          "upperJsonPointer": null
+        }
+      },
+      {
+        "recordType": "Measurement",
+        "id": "meas_transect_meridian_band_crossing_c_2021",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "metric": "transect_band_crossing_distance",
+        "value": 10816.7,
+        "unit": "m along the line from its first point",
+        "status": "available",
+        "missingReason": null,
+        "geoSelectionId": "geo_ait_bouguemez_catchment",
+        "geoRevision": 1,
+        "periodId": "period_2021",
+        "dataBundleId": "bundle_transects_ait_bouguemez",
+        "aggregation": "Distance from the north end of the meridian to its crossing of the 2815.2 m band boundary, rising (tabant_meridian.band_crossings[2].distance_m).",
+        "validPixelCount": null,
+        "totalPixelCount": null,
+        "validFraction": null,
+        "spatialResolutionM": 30,
+        "uncertainty": {
+          "kind": "not_quantified",
+          "lower": null,
+          "upper": null,
+          "level": null,
+          "method": null
+        },
+        "provenance": {
+          "sourceLocators": [],
+          "dataBundleIds": [
+            "bundle_terrain_strata_ait_bouguemez",
+            "bundle_drainage_network_ait_bouguemez"
+          ],
+          "methodId": "terrain_transects",
+          "methodVersion": "1.0.1",
+          "inputVersions": [
+            {
+              "entityId": "geo_ait_bouguemez_catchment",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_terrain_strata_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_drainage_network_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_transects_ait_bouguemez",
+              "revision": 1
+            }
+          ],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-29T10:03:38Z",
+          "verificationStatus": "computed_checked",
+          "limitations": [
+            "A profile is read from a 30 m surface model: trees, buildings, steep walls and radar artefacts distort it, and narrow gorges such as the lower gorge near the outlet are not resolved. Heights are metres above the EGM2008 geoid with the DEM's stated vertical accuracy (Copernicus DEM Product Handbook 5.0).",
+            "Samples are 30 m apart, so a band crossing or a land cover boundary is placed to within about 15 m, and a feature narrower than 30 m can fall between samples.",
+            "Land cover is ESA WorldCover 2021 at 10 m, a single 2021 map applied to the line: tree cover on the valley floor may include orchards, and no class is a pasture, agdal or management unit.",
+            "An elevation band is a stratum that organises sampling, cut from the elevation distribution of the catchment; it is not a vegetation type, a grazing zone or a management boundary.",
+            "The valley floor segment follows the published elevation range of the valley floor (1800 to 2200 m, SCI-19); it is not a measured flat bottom.",
+            "The valley axis is the longest flow path of a D8 network, which follows the main river, not the centre line of the valley; its profile inherits the limits of the drainage network, including places where the surface rises along the line.",
+            "The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary."
+          ]
+        },
+        "source": {
+          "assetKey": "terrain_transects",
+          "jsonPointer": "/transects/tabant_meridian/band_crossings/2/distance_m",
+          "stratum": "tabant_meridian_band_boundary_2815_2_rising",
+          "claimKind": "observation",
+          "period": {
+            "start": "2021",
+            "end": "2021",
+            "window": null
+          },
+          "lowerJsonPointer": null,
+          "upperJsonPointer": null
+        }
+      },
+      {
+        "recordType": "Measurement",
+        "id": "meas_transect_meridian_km_in_band_1_2021",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "metric": "transect_km_in_band",
+        "value": 8.356,
+        "unit": "km",
+        "status": "available",
+        "missingReason": null,
+        "geoSelectionId": "geo_ait_bouguemez_catchment",
+        "geoRevision": 1,
+        "periodId": "period_2021",
+        "dataBundleId": "bundle_transects_ait_bouguemez",
+        "aggregation": "Length of the meridian inside strata elevation band 1 (tabant_meridian.km_in_band.1).",
+        "validPixelCount": null,
+        "totalPixelCount": null,
+        "validFraction": null,
+        "spatialResolutionM": 30,
+        "uncertainty": {
+          "kind": "not_quantified",
+          "lower": null,
+          "upper": null,
+          "level": null,
+          "method": null
+        },
+        "provenance": {
+          "sourceLocators": [],
+          "dataBundleIds": [
+            "bundle_terrain_strata_ait_bouguemez",
+            "bundle_drainage_network_ait_bouguemez"
+          ],
+          "methodId": "terrain_transects",
+          "methodVersion": "1.0.1",
+          "inputVersions": [
+            {
+              "entityId": "geo_ait_bouguemez_catchment",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_terrain_strata_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_drainage_network_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_transects_ait_bouguemez",
+              "revision": 1
+            }
+          ],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-29T10:03:38Z",
+          "verificationStatus": "computed_checked",
+          "limitations": [
+            "A profile is read from a 30 m surface model: trees, buildings, steep walls and radar artefacts distort it, and narrow gorges such as the lower gorge near the outlet are not resolved. Heights are metres above the EGM2008 geoid with the DEM's stated vertical accuracy (Copernicus DEM Product Handbook 5.0).",
+            "Samples are 30 m apart, so a band crossing or a land cover boundary is placed to within about 15 m, and a feature narrower than 30 m can fall between samples.",
+            "Land cover is ESA WorldCover 2021 at 10 m, a single 2021 map applied to the line: tree cover on the valley floor may include orchards, and no class is a pasture, agdal or management unit.",
+            "An elevation band is a stratum that organises sampling, cut from the elevation distribution of the catchment; it is not a vegetation type, a grazing zone or a management boundary.",
+            "The valley floor segment follows the published elevation range of the valley floor (1800 to 2200 m, SCI-19); it is not a measured flat bottom.",
+            "The valley axis is the longest flow path of a D8 network, which follows the main river, not the centre line of the valley; its profile inherits the limits of the drainage network, including places where the surface rises along the line.",
+            "The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary."
+          ]
+        },
+        "source": {
+          "assetKey": "terrain_transects",
+          "jsonPointer": "/transects/tabant_meridian/km_in_band/1",
+          "stratum": "tabant_meridian_band_1",
+          "claimKind": "observation",
+          "period": {
+            "start": "2021",
+            "end": "2021",
+            "window": null
+          },
+          "lowerJsonPointer": null,
+          "upperJsonPointer": null
+        }
+      },
+      {
+        "recordType": "Measurement",
+        "id": "meas_transect_meridian_km_in_band_2_2021",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "metric": "transect_km_in_band",
+        "value": 2.461,
+        "unit": "km",
+        "status": "available",
+        "missingReason": null,
+        "geoSelectionId": "geo_ait_bouguemez_catchment",
+        "geoRevision": 1,
+        "periodId": "period_2021",
+        "dataBundleId": "bundle_transects_ait_bouguemez",
+        "aggregation": "Length of the meridian inside strata elevation band 2 (tabant_meridian.km_in_band.2).",
+        "validPixelCount": null,
+        "totalPixelCount": null,
+        "validFraction": null,
+        "spatialResolutionM": 30,
+        "uncertainty": {
+          "kind": "not_quantified",
+          "lower": null,
+          "upper": null,
+          "level": null,
+          "method": null
+        },
+        "provenance": {
+          "sourceLocators": [],
+          "dataBundleIds": [
+            "bundle_terrain_strata_ait_bouguemez",
+            "bundle_drainage_network_ait_bouguemez"
+          ],
+          "methodId": "terrain_transects",
+          "methodVersion": "1.0.1",
+          "inputVersions": [
+            {
+              "entityId": "geo_ait_bouguemez_catchment",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_terrain_strata_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_drainage_network_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_transects_ait_bouguemez",
+              "revision": 1
+            }
+          ],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-29T10:03:38Z",
+          "verificationStatus": "computed_checked",
+          "limitations": [
+            "A profile is read from a 30 m surface model: trees, buildings, steep walls and radar artefacts distort it, and narrow gorges such as the lower gorge near the outlet are not resolved. Heights are metres above the EGM2008 geoid with the DEM's stated vertical accuracy (Copernicus DEM Product Handbook 5.0).",
+            "Samples are 30 m apart, so a band crossing or a land cover boundary is placed to within about 15 m, and a feature narrower than 30 m can fall between samples.",
+            "Land cover is ESA WorldCover 2021 at 10 m, a single 2021 map applied to the line: tree cover on the valley floor may include orchards, and no class is a pasture, agdal or management unit.",
+            "An elevation band is a stratum that organises sampling, cut from the elevation distribution of the catchment; it is not a vegetation type, a grazing zone or a management boundary.",
+            "The valley floor segment follows the published elevation range of the valley floor (1800 to 2200 m, SCI-19); it is not a measured flat bottom.",
+            "The valley axis is the longest flow path of a D8 network, which follows the main river, not the centre line of the valley; its profile inherits the limits of the drainage network, including places where the surface rises along the line.",
+            "The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary."
+          ]
+        },
+        "source": {
+          "assetKey": "terrain_transects",
+          "jsonPointer": "/transects/tabant_meridian/km_in_band/2",
+          "stratum": "tabant_meridian_band_2",
+          "claimKind": "observation",
+          "period": {
+            "start": "2021",
+            "end": "2021",
+            "window": null
+          },
+          "lowerJsonPointer": null,
+          "upperJsonPointer": null
+        }
+      },
+      {
+        "recordType": "Measurement",
+        "id": "meas_transect_meridian_km_in_band_3_2021",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "metric": "transect_km_in_band",
+        "value": 1.165,
+        "unit": "km",
+        "status": "available",
+        "missingReason": null,
+        "geoSelectionId": "geo_ait_bouguemez_catchment",
+        "geoRevision": 1,
+        "periodId": "period_2021",
+        "dataBundleId": "bundle_transects_ait_bouguemez",
+        "aggregation": "Length of the meridian inside strata elevation band 3 (tabant_meridian.km_in_band.3).",
+        "validPixelCount": null,
+        "totalPixelCount": null,
+        "validFraction": null,
+        "spatialResolutionM": 30,
+        "uncertainty": {
+          "kind": "not_quantified",
+          "lower": null,
+          "upper": null,
+          "level": null,
+          "method": null
+        },
+        "provenance": {
+          "sourceLocators": [],
+          "dataBundleIds": [
+            "bundle_terrain_strata_ait_bouguemez",
+            "bundle_drainage_network_ait_bouguemez"
+          ],
+          "methodId": "terrain_transects",
+          "methodVersion": "1.0.1",
+          "inputVersions": [
+            {
+              "entityId": "geo_ait_bouguemez_catchment",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_terrain_strata_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_drainage_network_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_transects_ait_bouguemez",
+              "revision": 1
+            }
+          ],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-29T10:03:38Z",
+          "verificationStatus": "computed_checked",
+          "limitations": [
+            "A profile is read from a 30 m surface model: trees, buildings, steep walls and radar artefacts distort it, and narrow gorges such as the lower gorge near the outlet are not resolved. Heights are metres above the EGM2008 geoid with the DEM's stated vertical accuracy (Copernicus DEM Product Handbook 5.0).",
+            "Samples are 30 m apart, so a band crossing or a land cover boundary is placed to within about 15 m, and a feature narrower than 30 m can fall between samples.",
+            "Land cover is ESA WorldCover 2021 at 10 m, a single 2021 map applied to the line: tree cover on the valley floor may include orchards, and no class is a pasture, agdal or management unit.",
+            "An elevation band is a stratum that organises sampling, cut from the elevation distribution of the catchment; it is not a vegetation type, a grazing zone or a management boundary.",
+            "The valley floor segment follows the published elevation range of the valley floor (1800 to 2200 m, SCI-19); it is not a measured flat bottom.",
+            "The valley axis is the longest flow path of a D8 network, which follows the main river, not the centre line of the valley; its profile inherits the limits of the drainage network, including places where the surface rises along the line.",
+            "The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary."
+          ]
+        },
+        "source": {
+          "assetKey": "terrain_transects",
+          "jsonPointer": "/transects/tabant_meridian/km_in_band/3",
+          "stratum": "tabant_meridian_band_3",
+          "claimKind": "observation",
+          "period": {
+            "start": "2021",
+            "end": "2021",
+            "window": null
+          },
+          "lowerJsonPointer": null,
+          "upperJsonPointer": null
+        }
+      },
+      {
+        "recordType": "Measurement",
+        "id": "meas_transect_meridian_length_2021",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "metric": "transect_length",
+        "value": 11981.3,
+        "unit": "m",
+        "status": "available",
+        "missingReason": null,
+        "geoSelectionId": "geo_ait_bouguemez_catchment",
+        "geoRevision": 1,
+        "periodId": "period_2021",
+        "dataBundleId": "bundle_transects_ait_bouguemez",
+        "aggregation": "Length of the meridian through Tabant, clipped to the frozen polygon, north to south (tabant_meridian.length_m).",
+        "validPixelCount": null,
+        "totalPixelCount": null,
+        "validFraction": null,
+        "spatialResolutionM": 30,
+        "uncertainty": {
+          "kind": "not_quantified",
+          "lower": null,
+          "upper": null,
+          "level": null,
+          "method": null
+        },
+        "provenance": {
+          "sourceLocators": [],
+          "dataBundleIds": [
+            "bundle_terrain_strata_ait_bouguemez",
+            "bundle_drainage_network_ait_bouguemez"
+          ],
+          "methodId": "terrain_transects",
+          "methodVersion": "1.0.1",
+          "inputVersions": [
+            {
+              "entityId": "geo_ait_bouguemez_catchment",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_terrain_strata_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_drainage_network_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_transects_ait_bouguemez",
+              "revision": 1
+            }
+          ],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-29T10:03:38Z",
+          "verificationStatus": "computed_checked",
+          "limitations": [
+            "A profile is read from a 30 m surface model: trees, buildings, steep walls and radar artefacts distort it, and narrow gorges such as the lower gorge near the outlet are not resolved. Heights are metres above the EGM2008 geoid with the DEM's stated vertical accuracy (Copernicus DEM Product Handbook 5.0).",
+            "Samples are 30 m apart, so a band crossing or a land cover boundary is placed to within about 15 m, and a feature narrower than 30 m can fall between samples.",
+            "Land cover is ESA WorldCover 2021 at 10 m, a single 2021 map applied to the line: tree cover on the valley floor may include orchards, and no class is a pasture, agdal or management unit.",
+            "An elevation band is a stratum that organises sampling, cut from the elevation distribution of the catchment; it is not a vegetation type, a grazing zone or a management boundary.",
+            "The valley floor segment follows the published elevation range of the valley floor (1800 to 2200 m, SCI-19); it is not a measured flat bottom.",
+            "The valley axis is the longest flow path of a D8 network, which follows the main river, not the centre line of the valley; its profile inherits the limits of the drainage network, including places where the surface rises along the line.",
+            "The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary."
+          ]
+        },
+        "source": {
+          "assetKey": "terrain_transects",
+          "jsonPointer": "/transects/tabant_meridian/length_m",
+          "stratum": "tabant_meridian",
+          "claimKind": "observation",
+          "period": {
+            "start": "2021",
+            "end": "2021",
+            "window": null
+          },
+          "lowerJsonPointer": null,
+          "upperJsonPointer": null
+        }
+      },
+      {
+        "recordType": "Measurement",
+        "id": "meas_transect_meridian_lowest_distance_2021",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "metric": "transect_lowest_distance",
+        "value": 5730,
+        "unit": "m along the line from its first point",
+        "status": "available",
+        "missingReason": null,
+        "geoSelectionId": "geo_ait_bouguemez_catchment",
+        "geoRevision": 1,
+        "periodId": "period_2021",
+        "dataBundleId": "bundle_transects_ait_bouguemez",
+        "aggregation": "Distance from the north end of the meridian to its lowest sample (tabant_meridian.elevation_m.lowest.distance_m).",
+        "validPixelCount": null,
+        "totalPixelCount": null,
+        "validFraction": null,
+        "spatialResolutionM": 30,
+        "uncertainty": {
+          "kind": "not_quantified",
+          "lower": null,
+          "upper": null,
+          "level": null,
+          "method": null
+        },
+        "provenance": {
+          "sourceLocators": [],
+          "dataBundleIds": [
+            "bundle_terrain_strata_ait_bouguemez",
+            "bundle_drainage_network_ait_bouguemez"
+          ],
+          "methodId": "terrain_transects",
+          "methodVersion": "1.0.1",
+          "inputVersions": [
+            {
+              "entityId": "geo_ait_bouguemez_catchment",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_terrain_strata_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_drainage_network_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_transects_ait_bouguemez",
+              "revision": 1
+            }
+          ],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-29T10:03:38Z",
+          "verificationStatus": "computed_checked",
+          "limitations": [
+            "A profile is read from a 30 m surface model: trees, buildings, steep walls and radar artefacts distort it, and narrow gorges such as the lower gorge near the outlet are not resolved. Heights are metres above the EGM2008 geoid with the DEM's stated vertical accuracy (Copernicus DEM Product Handbook 5.0).",
+            "Samples are 30 m apart, so a band crossing or a land cover boundary is placed to within about 15 m, and a feature narrower than 30 m can fall between samples.",
+            "Land cover is ESA WorldCover 2021 at 10 m, a single 2021 map applied to the line: tree cover on the valley floor may include orchards, and no class is a pasture, agdal or management unit.",
+            "An elevation band is a stratum that organises sampling, cut from the elevation distribution of the catchment; it is not a vegetation type, a grazing zone or a management boundary.",
+            "The valley floor segment follows the published elevation range of the valley floor (1800 to 2200 m, SCI-19); it is not a measured flat bottom.",
+            "The valley axis is the longest flow path of a D8 network, which follows the main river, not the centre line of the valley; its profile inherits the limits of the drainage network, including places where the surface rises along the line.",
+            "The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary."
+          ]
+        },
+        "source": {
+          "assetKey": "terrain_transects",
+          "jsonPointer": "/transects/tabant_meridian/elevation_m/lowest/distance_m",
+          "stratum": "tabant_meridian",
+          "claimKind": "observation",
+          "period": {
+            "start": "2021",
+            "end": "2021",
+            "window": null
+          },
+          "lowerJsonPointer": null,
+          "upperJsonPointer": null
+        }
+      },
+      {
+        "recordType": "Measurement",
+        "id": "meas_transect_meridian_lowest_elevation_2021",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "metric": "transect_lowest_elevation",
+        "value": 1846.2,
+        "unit": "m above the EGM2008 geoid",
+        "status": "available",
+        "missingReason": null,
+        "geoSelectionId": "geo_ait_bouguemez_catchment",
+        "geoRevision": 1,
+        "periodId": "period_2021",
+        "dataBundleId": "bundle_transects_ait_bouguemez",
+        "aggregation": "Height of the lowest sample on the meridian through Tabant (tabant_meridian.elevation_m.lowest.elevation_m).",
+        "validPixelCount": null,
+        "totalPixelCount": null,
+        "validFraction": null,
+        "spatialResolutionM": 30,
+        "uncertainty": {
+          "kind": "not_quantified",
+          "lower": null,
+          "upper": null,
+          "level": null,
+          "method": null
+        },
+        "provenance": {
+          "sourceLocators": [],
+          "dataBundleIds": [
+            "bundle_terrain_strata_ait_bouguemez",
+            "bundle_drainage_network_ait_bouguemez"
+          ],
+          "methodId": "terrain_transects",
+          "methodVersion": "1.0.1",
+          "inputVersions": [
+            {
+              "entityId": "geo_ait_bouguemez_catchment",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_terrain_strata_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_drainage_network_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_transects_ait_bouguemez",
+              "revision": 1
+            }
+          ],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-29T10:03:38Z",
+          "verificationStatus": "computed_checked",
+          "limitations": [
+            "A profile is read from a 30 m surface model: trees, buildings, steep walls and radar artefacts distort it, and narrow gorges such as the lower gorge near the outlet are not resolved. Heights are metres above the EGM2008 geoid with the DEM's stated vertical accuracy (Copernicus DEM Product Handbook 5.0).",
+            "Samples are 30 m apart, so a band crossing or a land cover boundary is placed to within about 15 m, and a feature narrower than 30 m can fall between samples.",
+            "Land cover is ESA WorldCover 2021 at 10 m, a single 2021 map applied to the line: tree cover on the valley floor may include orchards, and no class is a pasture, agdal or management unit.",
+            "An elevation band is a stratum that organises sampling, cut from the elevation distribution of the catchment; it is not a vegetation type, a grazing zone or a management boundary.",
+            "The valley floor segment follows the published elevation range of the valley floor (1800 to 2200 m, SCI-19); it is not a measured flat bottom.",
+            "The valley axis is the longest flow path of a D8 network, which follows the main river, not the centre line of the valley; its profile inherits the limits of the drainage network, including places where the surface rises along the line.",
+            "The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary."
+          ]
+        },
+        "source": {
+          "assetKey": "terrain_transects",
+          "jsonPointer": "/transects/tabant_meridian/elevation_m/lowest/elevation_m",
+          "stratum": "tabant_meridian",
+          "claimKind": "observation",
+          "period": {
+            "start": "2021",
+            "end": "2021",
+            "window": null
+          },
+          "lowerJsonPointer": null,
+          "upperJsonPointer": null
+        }
+      },
+      {
+        "recordType": "Measurement",
+        "id": "meas_transect_meridian_tabant_distance_2021",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "metric": "transect_reference_point_distance",
+        "value": 5577.1,
+        "unit": "m along the line from its first point",
+        "status": "available",
+        "missingReason": null,
+        "geoSelectionId": "geo_ait_bouguemez_catchment",
+        "geoRevision": 1,
+        "periodId": "period_2021",
+        "dataBundleId": "bundle_transects_ait_bouguemez",
+        "aggregation": "Position of Tabant along the meridian from its north end (tabant_meridian.reference_points[0].distance_m).",
+        "validPixelCount": null,
+        "totalPixelCount": null,
+        "validFraction": null,
+        "spatialResolutionM": 30,
+        "uncertainty": {
+          "kind": "not_quantified",
+          "lower": null,
+          "upper": null,
+          "level": null,
+          "method": null
+        },
+        "provenance": {
+          "sourceLocators": [],
+          "dataBundleIds": [
+            "bundle_terrain_strata_ait_bouguemez",
+            "bundle_drainage_network_ait_bouguemez"
+          ],
+          "methodId": "terrain_transects",
+          "methodVersion": "1.0.1",
+          "inputVersions": [
+            {
+              "entityId": "geo_ait_bouguemez_catchment",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_terrain_strata_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_drainage_network_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_transects_ait_bouguemez",
+              "revision": 1
+            }
+          ],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-29T10:03:38Z",
+          "verificationStatus": "computed_checked",
+          "limitations": [
+            "A profile is read from a 30 m surface model: trees, buildings, steep walls and radar artefacts distort it, and narrow gorges such as the lower gorge near the outlet are not resolved. Heights are metres above the EGM2008 geoid with the DEM's stated vertical accuracy (Copernicus DEM Product Handbook 5.0).",
+            "Samples are 30 m apart, so a band crossing or a land cover boundary is placed to within about 15 m, and a feature narrower than 30 m can fall between samples.",
+            "Land cover is ESA WorldCover 2021 at 10 m, a single 2021 map applied to the line: tree cover on the valley floor may include orchards, and no class is a pasture, agdal or management unit.",
+            "An elevation band is a stratum that organises sampling, cut from the elevation distribution of the catchment; it is not a vegetation type, a grazing zone or a management boundary.",
+            "The valley floor segment follows the published elevation range of the valley floor (1800 to 2200 m, SCI-19); it is not a measured flat bottom.",
+            "The valley axis is the longest flow path of a D8 network, which follows the main river, not the centre line of the valley; its profile inherits the limits of the drainage network, including places where the surface rises along the line.",
+            "The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary."
+          ]
+        },
+        "source": {
+          "assetKey": "terrain_transects",
+          "jsonPointer": "/transects/tabant_meridian/reference_points/0/distance_m",
+          "stratum": "tabant_meridian",
+          "claimKind": "observation",
+          "period": {
+            "start": "2021",
+            "end": "2021",
+            "window": null
+          },
+          "lowerJsonPointer": null,
+          "upperJsonPointer": null
+        }
+      },
+      {
+        "recordType": "Measurement",
+        "id": "meas_transect_meridian_tabant_elevation_2021",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "metric": "transect_reference_point_elevation",
+        "value": 1856.7,
+        "unit": "m above the EGM2008 geoid",
+        "status": "available",
+        "missingReason": null,
+        "geoSelectionId": "geo_ait_bouguemez_catchment",
+        "geoRevision": 1,
+        "periodId": "period_2021",
+        "dataBundleId": "bundle_transects_ait_bouguemez",
+        "aggregation": "Height of the meridian at Tabant (tabant_meridian.reference_points[0].elevation_m).",
+        "validPixelCount": null,
+        "totalPixelCount": null,
+        "validFraction": null,
+        "spatialResolutionM": 30,
+        "uncertainty": {
+          "kind": "not_quantified",
+          "lower": null,
+          "upper": null,
+          "level": null,
+          "method": null
+        },
+        "provenance": {
+          "sourceLocators": [],
+          "dataBundleIds": [
+            "bundle_terrain_strata_ait_bouguemez",
+            "bundle_drainage_network_ait_bouguemez"
+          ],
+          "methodId": "terrain_transects",
+          "methodVersion": "1.0.1",
+          "inputVersions": [
+            {
+              "entityId": "geo_ait_bouguemez_catchment",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_terrain_strata_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_drainage_network_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_transects_ait_bouguemez",
+              "revision": 1
+            }
+          ],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-29T10:03:38Z",
+          "verificationStatus": "computed_checked",
+          "limitations": [
+            "A profile is read from a 30 m surface model: trees, buildings, steep walls and radar artefacts distort it, and narrow gorges such as the lower gorge near the outlet are not resolved. Heights are metres above the EGM2008 geoid with the DEM's stated vertical accuracy (Copernicus DEM Product Handbook 5.0).",
+            "Samples are 30 m apart, so a band crossing or a land cover boundary is placed to within about 15 m, and a feature narrower than 30 m can fall between samples.",
+            "Land cover is ESA WorldCover 2021 at 10 m, a single 2021 map applied to the line: tree cover on the valley floor may include orchards, and no class is a pasture, agdal or management unit.",
+            "An elevation band is a stratum that organises sampling, cut from the elevation distribution of the catchment; it is not a vegetation type, a grazing zone or a management boundary.",
+            "The valley floor segment follows the published elevation range of the valley floor (1800 to 2200 m, SCI-19); it is not a measured flat bottom.",
+            "The valley axis is the longest flow path of a D8 network, which follows the main river, not the centre line of the valley; its profile inherits the limits of the drainage network, including places where the surface rises along the line.",
+            "The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary."
+          ]
+        },
+        "source": {
+          "assetKey": "terrain_transects",
+          "jsonPointer": "/transects/tabant_meridian/reference_points/0/elevation_m",
+          "stratum": "tabant_meridian",
+          "claimKind": "observation",
+          "period": {
+            "start": "2021",
+            "end": "2021",
+            "window": null
+          },
+          "lowerJsonPointer": null,
+          "upperJsonPointer": null
+        }
+      },
+      {
+        "recordType": "Measurement",
+        "id": "meas_transect_valley_axis_length_2021",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "metric": "transect_length",
+        "value": 48822.5,
+        "unit": "m",
+        "status": "available",
+        "missingReason": null,
+        "geoSelectionId": "geo_ait_bouguemez_catchment",
+        "geoRevision": 1,
+        "periodId": "period_2021",
+        "dataBundleId": "bundle_transects_ait_bouguemez",
+        "aggregation": "Length of the longest flow path of the drainage network from the outlet to a head (valley_axis.length_m).",
+        "validPixelCount": null,
+        "totalPixelCount": null,
+        "validFraction": null,
+        "spatialResolutionM": 30,
+        "uncertainty": {
+          "kind": "not_quantified",
+          "lower": null,
+          "upper": null,
+          "level": null,
+          "method": null
+        },
+        "provenance": {
+          "sourceLocators": [],
+          "dataBundleIds": [
+            "bundle_terrain_strata_ait_bouguemez",
+            "bundle_drainage_network_ait_bouguemez"
+          ],
+          "methodId": "terrain_transects",
+          "methodVersion": "1.0.1",
+          "inputVersions": [
+            {
+              "entityId": "geo_ait_bouguemez_catchment",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_terrain_strata_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_drainage_network_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_transects_ait_bouguemez",
+              "revision": 1
+            }
+          ],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-29T10:03:38Z",
+          "verificationStatus": "computed_checked",
+          "limitations": [
+            "A profile is read from a 30 m surface model: trees, buildings, steep walls and radar artefacts distort it, and narrow gorges such as the lower gorge near the outlet are not resolved. Heights are metres above the EGM2008 geoid with the DEM's stated vertical accuracy (Copernicus DEM Product Handbook 5.0).",
+            "Samples are 30 m apart, so a band crossing or a land cover boundary is placed to within about 15 m, and a feature narrower than 30 m can fall between samples.",
+            "Land cover is ESA WorldCover 2021 at 10 m, a single 2021 map applied to the line: tree cover on the valley floor may include orchards, and no class is a pasture, agdal or management unit.",
+            "An elevation band is a stratum that organises sampling, cut from the elevation distribution of the catchment; it is not a vegetation type, a grazing zone or a management boundary.",
+            "The valley floor segment follows the published elevation range of the valley floor (1800 to 2200 m, SCI-19); it is not a measured flat bottom.",
+            "The valley axis is the longest flow path of a D8 network, which follows the main river, not the centre line of the valley; its profile inherits the limits of the drainage network, including places where the surface rises along the line.",
+            "The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary."
+          ]
+        },
+        "source": {
+          "assetKey": "terrain_transects",
+          "jsonPointer": "/transects/valley_axis/length_m",
+          "stratum": "valley_axis",
+          "claimKind": "observation",
+          "period": {
+            "start": "2021",
+            "end": "2021",
+            "window": null
+          },
+          "lowerJsonPointer": null,
+          "upperJsonPointer": null
         }
       },
       {

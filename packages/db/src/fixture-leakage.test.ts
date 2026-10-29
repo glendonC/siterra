@@ -20,7 +20,11 @@ const repoDir = fileURLToPath(new URL("../../../", import.meta.url));
  * "Synthetic ..." (test-records.ts).
  */
 function leaks(text: string): string[] {
-  const found = [...new Set(text.match(/[a-z]+_example[A-Za-z0-9_-]*|example_[A-Za-z0-9_-]+/g))];
+  // `shift_example` is a key of the pixel anatomy bundle's own asset, named in the JSON pointer of a
+  // Measurement source (/model/shift_example/ndvi); it is data the bundle holds, not an example ID.
+  const found = [
+    ...new Set(text.match(/[a-z]+_example[A-Za-z0-9_-]*|example_[A-Za-z0-9_-]+/g)),
+  ].filter((id) => id !== "shift_example");
   if (/synthetic/i.test(text)) found.push("synthetic");
   return found;
 }

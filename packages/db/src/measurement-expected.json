@@ -251,6 +251,377 @@
       "decimals": 4,
       "part": "value",
       "source": "COMMON.md verified facts: June to September tree cover +0.0268 NDVI per decade (the file printed +0.0267 before the 29 Oct rounding rule; stored 0.02675)"
+    },
+    {
+      "rowId": "pixel_anatomy_cells_kept_pixel_2025_06",
+      "printed": 537,
+      "decimals": 0,
+      "part": "value",
+      "source": "specimen pixel provenance.json elements '02 537 cells' (value 537); specimen pixel web/data/specimen.json pixel.analysis_cells"
+    },
+    {
+      "rowId": "pixel_anatomy_cells_kept_pixel_2025_06",
+      "printed": 537,
+      "decimals": 0,
+      "part": "value",
+      "source": "science-handover-s1-s2.md section S3 pixel anatomy: 537 cells in a 28 x 28 window"
+    },
+    {
+      "rowId": "pixel_anatomy_cells_kept_tree_cover_2025_06",
+      "printed": 215,
+      "decimals": 0,
+      "part": "value",
+      "source": "specimen pixel provenance.json elements '02 WorldCover multiple and shares' values (cells); specimen pixel web/data/specimen.json classes[].cells"
+    },
+    {
+      "rowId": "pixel_anatomy_cells_kept_tree_cover_2025_06",
+      "printed": 215,
+      "decimals": 0,
+      "part": "value",
+      "source": "science-handover-s1-s2.md section S3 pixel anatomy: pixel composition, tree cover 215 cells"
+    },
+    {
+      "rowId": "pixel_anatomy_cells_kept_grassland_2025_06",
+      "printed": 254,
+      "decimals": 0,
+      "part": "value",
+      "source": "specimen pixel provenance.json elements '02 WorldCover multiple and shares' values (cells); specimen pixel web/data/specimen.json classes[].cells"
+    },
+    {
+      "rowId": "pixel_anatomy_cells_kept_grassland_2025_06",
+      "printed": 254,
+      "decimals": 0,
+      "part": "value",
+      "source": "science-handover-s1-s2.md section S3 pixel anatomy: pixel composition, grassland 254 cells"
+    },
+    {
+      "rowId": "pixel_anatomy_cells_kept_cropland_2025_06",
+      "printed": 32,
+      "decimals": 0,
+      "part": "value",
+      "source": "specimen pixel provenance.json elements '02 WorldCover multiple and shares' values (cells); specimen pixel web/data/specimen.json classes[].cells"
+    },
+    {
+      "rowId": "pixel_anatomy_cells_kept_cropland_2025_06",
+      "printed": 32,
+      "decimals": 0,
+      "part": "value",
+      "source": "science-handover-s1-s2.md section S3 pixel anatomy: pixel composition, cropland 32 cells"
+    },
+    {
+      "rowId": "pixel_anatomy_cells_kept_bare_sparse_2025_06",
+      "printed": 36,
+      "decimals": 0,
+      "part": "value",
+      "source": "specimen pixel provenance.json elements '02 WorldCover multiple and shares' values (cells); specimen pixel web/data/specimen.json classes[].cells"
+    },
+    {
+      "rowId": "pixel_anatomy_cells_kept_bare_sparse_2025_06",
+      "printed": 36,
+      "decimals": 0,
+      "part": "value",
+      "source": "science-handover-s1-s2.md section S3 pixel anatomy: pixel composition, bare or sparse vegetation 36 cells"
+    },
+    {
+      "rowId": "pixel_anatomy_class_ndvi_tree_cover_2025_06",
+      "printed": 0.8,
+      "decimals": 2,
+      "part": "value",
+      "source": "specimen pixel web/data/specimen.json classes[].ndvi_of_median shown to 2 decimals; task brief class NDVI 0.80, 0.86, 0.17, 0.08"
+    },
+    {
+      "rowId": "pixel_anatomy_class_ndvi_tree_cover_2025_06",
+      "printed": 0.8005,
+      "decimals": 4,
+      "part": "value",
+      "source": "science-handover-s1-s2.md section S3 pixel anatomy: class NDVI of the median red and near-infrared, tree cover 0.8005"
+    },
+    {
+      "rowId": "pixel_anatomy_class_ndvi_grassland_2025_06",
+      "printed": 0.17,
+      "decimals": 2,
+      "part": "value",
+      "source": "specimen pixel web/data/specimen.json classes[].ndvi_of_median shown to 2 decimals; task brief class NDVI 0.80, 0.86, 0.17, 0.08"
+    },
+    {
+      "rowId": "pixel_anatomy_class_ndvi_grassland_2025_06",
+      "printed": 0.1678,
+      "decimals": 4,
+      "part": "value",
+      "source": "science-handover-s1-s2.md section S3 pixel anatomy: class NDVI of the median red and near-infrared, grassland 0.1678"
+    },
+    {
+      "rowId": "pixel_anatomy_class_ndvi_cropland_2025_06",
+      "printed": 0.86,
+      "decimals": 2,
+      "part": "value",
+      "source": "specimen pixel web/data/specimen.json classes[].ndvi_of_median shown to 2 decimals; task brief class NDVI 0.80, 0.86, 0.17, 0.08"
+    },
+    {
+      "rowId": "pixel_anatomy_class_ndvi_cropland_2025_06",
+      "printed": 0.8581,
+      "decimals": 4,
+      "part": "value",
+      "source": "science-handover-s1-s2.md section S3 pixel anatomy: class NDVI of the median red and near-infrared, cropland 0.8581"
+    },
+    {
+      "rowId": "pixel_anatomy_class_ndvi_bare_sparse_2025_06",
+      "printed": 0.08,
+      "decimals": 2,
+      "part": "value",
+      "source": "specimen pixel web/data/specimen.json classes[].ndvi_of_median shown to 2 decimals; task brief class NDVI 0.80, 0.86, 0.17, 0.08"
+    },
+    {
+      "rowId": "pixel_anatomy_class_ndvi_bare_sparse_2025_06",
+      "printed": 0.0813,
+      "decimals": 4,
+      "part": "value",
+      "source": "science-handover-s1-s2.md section S3 pixel anatomy: class NDVI of the median red and near-infrared, bare or sparse vegetation 0.0813"
+    },
+    {
+      "rowId": "pixel_anatomy_ndvi_measured_2025_06",
+      "printed": 0.48,
+      "decimals": 2,
+      "part": "value",
+      "source": "specimen pixel provenance.json elements '03 this pixel, all cells, NDVI 0.48' (value 0.4765531041022895)"
+    },
+    {
+      "rowId": "pixel_anatomy_ndvi_measured_2025_06",
+      "printed": 0.4766,
+      "decimals": 4,
+      "part": "value",
+      "source": "science-handover-s1-s2.md section S3 pixel anatomy: pixel measured 0.4766"
+    },
+    {
+      "rowId": "pixel_anatomy_ndvi_mix_model_2025_06",
+      "printed": 0.445,
+      "decimals": 4,
+      "part": "value",
+      "source": "science-handover-s1-s2.md section S3 pixel anatomy: mix model (modelled) 0.4450; lead check: stored /model/ndvi_at_measured_composition is 0.445"
+    },
+    {
+      "rowId": "pixel_anatomy_ndvi_mix_tree_cover_plus20_2025_06",
+      "printed": 0.57,
+      "decimals": 2,
+      "part": "value",
+      "source": "specimen pixel provenance.json elements '05 shifted still: 0.57, +0.13' (value 0.5710734381338054)"
+    },
+    {
+      "rowId": "pixel_anatomy_ndvi_mix_tree_cover_plus20_2025_06",
+      "printed": 0.5711,
+      "decimals": 4,
+      "part": "value",
+      "source": "science-handover-s1-s2.md section S3 pixel anatomy: +20 points from grassland to tree cover 0.5711"
+    },
+    {
+      "rowId": "pixel_anatomy_trend_mar_jun_pixel",
+      "printed": 0.057,
+      "decimals": 4,
+      "part": "value",
+      "source": "specimen pixel provenance.json elements 'caption: +0.0570 NDVI per decade from 2000 to 2025' (value 0.05702)"
+    },
+    {
+      "rowId": "pixel_anatomy_trend_mar_jun_pixel",
+      "printed": 0.05702,
+      "decimals": 5,
+      "part": "value",
+      "source": "specimen pixel provenance.json elements 'caption' value 0.05702; science-handover-s1-s2.md section S3 pixel anatomy: slope +0.05702 NDVI per decade"
+    },
+    {
+      "rowId": "pixel_anatomy_trend_mar_jun_pixel",
+      "printed": 0.0374,
+      "decimals": 4,
+      "part": "lower",
+      "source": "specimen pixel provenance.json elements '04 +0.0570 per decade, 95% +0.0374 to +0.0845'"
+    },
+    {
+      "rowId": "pixel_anatomy_trend_mar_jun_pixel",
+      "printed": 0.0845,
+      "decimals": 4,
+      "part": "upper",
+      "source": "specimen pixel provenance.json elements '04 +0.0570 per decade, 95% +0.0374 to +0.0845'"
+    },
+    {
+      "rowId": "pixel_anatomy_trend_mar_jun_pixel",
+      "printed": 0.03741,
+      "decimals": 5,
+      "part": "lower",
+      "source": "specimen pixel provenance.json elements '04' lower_per_decade 0.03741; science-handover-s1-s2.md section S3 pixel anatomy: Sen 95% interval +0.03741 to +0.08451"
+    },
+    {
+      "rowId": "pixel_anatomy_trend_mar_jun_pixel",
+      "printed": 0.08451,
+      "decimals": 5,
+      "part": "upper",
+      "source": "specimen pixel provenance.json elements '04' upper_per_decade 0.08451; science-handover-s1-s2.md section S3 pixel anatomy: Sen 95% interval +0.03741 to +0.08451"
+    },
+    {
+      "rowId": "optical_clear_share_winter_lowest_elevation_high",
+      "printed": 0.19,
+      "decimals": 2,
+      "part": "value",
+      "source": "COMMON.md verified facts (winter visibility of the upper band): clear share 0.19"
+    },
+    {
+      "rowId": "optical_clear_share_winter_lowest_elevation_high",
+      "printed": 0.1895,
+      "decimals": 4,
+      "part": "value",
+      "source": "lead STATE.md 2026-10-29 10:00:04 EDT SCIENCE-GEO S4 entry: lowest 0.1895"
+    },
+    {
+      "rowId": "optical_clear_share_winter_median_elevation_high",
+      "printed": 0.47,
+      "decimals": 2,
+      "part": "value",
+      "source": "COMMON.md verified facts (winter visibility of the upper band): median 0.47"
+    },
+    {
+      "rowId": "optical_clear_share_winter_median_elevation_high",
+      "printed": 0.4731,
+      "decimals": 4,
+      "part": "value",
+      "source": "lead STATE.md 2026-10-29 10:00:04 EDT SCIENCE-GEO S4 entry: median 0.4731"
+    },
+    {
+      "rowId": "optical_clear_share_winter_highest_elevation_high",
+      "printed": 0.9855,
+      "decimals": 4,
+      "part": "value",
+      "source": "lead STATE.md 2026-10-29 10:00:04 EDT SCIENCE-GEO S4 entry: highest 0.9855 (COMMON.md prints 0.985, which the stored 0.9855 does not round to at 3 decimals: 0.986)"
+    },
+    {
+      "rowId": "optical_winter_months_clear_at_or_above_0_9_elevation_high",
+      "printed": 3,
+      "decimals": 0,
+      "part": "value",
+      "source": "COMMON.md verified facts (winter visibility of the upper band): 3 of 28 months at or above 0.9; lead STATE.md 2026-10-29 10:00:04 EDT SCIENCE-GEO S4 entry: 3 of 28 months at or above 0.9"
+    },
+    {
+      "rowId": "optical_winter_months_counted_elevation_high",
+      "printed": 28,
+      "decimals": 0,
+      "part": "value",
+      "source": "COMMON.md verified facts (winter visibility of the upper band): 28 months; lead STATE.md 2026-10-29 10:00:04 EDT SCIENCE-GEO S4 entry: 3 of 28 months"
+    },
+    {
+      "rowId": "drainage_segments_catchment_2021",
+      "printed": 233,
+      "decimals": 0,
+      "part": "value",
+      "source": "science-handover-s1-s2.md section Numbers the lead can check: Drainage 233 segments; lead STATE.md 2026-10-29 09:55:12 EDT AUDIT SCIENCE-GEO spot checks: 233 segments"
+    },
+    {
+      "rowId": "drainage_length_total_catchment_2021",
+      "printed": 279.6,
+      "decimals": 1,
+      "part": "value",
+      "source": "science-handover-s1-s2.md section Numbers the lead can check: Drainage 279.6 km"
+    },
+    {
+      "rowId": "drainage_max_strahler_order_catchment_2021",
+      "printed": 5,
+      "decimals": 0,
+      "part": "value",
+      "source": "science-handover-s1-s2.md section Numbers the lead can check: Drainage order 5 at the outlet; lead STATE.md 2026-10-29 09:55:12 EDT AUDIT SCIENCE-GEO spot checks: order 5"
+    },
+    {
+      "rowId": "drainage_outlet_upstream_area_catchment_2021",
+      "printed": 417.04,
+      "decimals": 2,
+      "part": "value",
+      "source": "science-handover-s1-s2.md section Numbers the lead can check: Drainage outlet where 417.04 km2 drains; lead STATE.md 2026-10-29 09:55:12 EDT AUDIT SCIENCE-GEO spot checks: outlet 417.04 km2"
+    },
+    {
+      "rowId": "drainage_segments_not_descending_catchment_2021",
+      "printed": 14,
+      "decimals": 0,
+      "part": "value",
+      "source": "science-handover-s1-s2.md Asset keys, drainage caveat: 14 of 233 segments; lead STATE.md 2026-10-29 09:55:12 EDT AUDIT SCIENCE-GEO spot checks: the 14 non-descending"
+    },
+    {
+      "rowId": "transect_meridian_length_2021",
+      "printed": 11981.3,
+      "decimals": 1,
+      "part": "value",
+      "source": "science-handover-s1-s2.md Lines: tabant_meridian 11,981.3 m"
+    },
+    {
+      "rowId": "transect_meridian_lowest_elevation_2021",
+      "printed": 1846.2,
+      "decimals": 1,
+      "part": "value",
+      "source": "science-handover-s1-s2.md section Numbers the lead can check Meridian: lowest 1,846.2 m at 5,730 m"
+    },
+    {
+      "rowId": "transect_meridian_lowest_distance_2021",
+      "printed": 5730,
+      "decimals": 0,
+      "part": "value",
+      "source": "science-handover-s1-s2.md section Numbers the lead can check Meridian: lowest 1,846.2 m at 5,730 m"
+    },
+    {
+      "rowId": "transect_meridian_tabant_distance_2021",
+      "printed": 5577.1,
+      "decimals": 1,
+      "part": "value",
+      "source": "science-handover-s1-s2.md section Numbers the lead can check Meridian: Tabant at 5,577.1 m, 1,856.7 m"
+    },
+    {
+      "rowId": "transect_meridian_tabant_elevation_2021",
+      "printed": 1856.7,
+      "decimals": 1,
+      "part": "value",
+      "source": "science-handover-s1-s2.md section Numbers the lead can check Meridian: Tabant at 5,577.1 m, 1,856.7 m"
+    },
+    {
+      "rowId": "transect_meridian_band_crossing_a_2021",
+      "printed": 748.3,
+      "decimals": 1,
+      "part": "value",
+      "source": "science-handover-s1-s2.md section Numbers the lead can check Meridian: crossings of 2,316.8 m at 748.3 m (falling) and 9,104.0 m (rising), of 2,815.2 m at 10,816.7 m (rising)"
+    },
+    {
+      "rowId": "transect_meridian_band_crossing_b_2021",
+      "printed": 9104.0,
+      "decimals": 1,
+      "part": "value",
+      "source": "science-handover-s1-s2.md section Numbers the lead can check Meridian: crossings of 2,316.8 m at 748.3 m (falling) and 9,104.0 m (rising), of 2,815.2 m at 10,816.7 m (rising)"
+    },
+    {
+      "rowId": "transect_meridian_band_crossing_c_2021",
+      "printed": 10816.7,
+      "decimals": 1,
+      "part": "value",
+      "source": "science-handover-s1-s2.md section Numbers the lead can check Meridian: crossings of 2,316.8 m at 748.3 m (falling) and 9,104.0 m (rising), of 2,815.2 m at 10,816.7 m (rising)"
+    },
+    {
+      "rowId": "transect_meridian_km_in_band_1_2021",
+      "printed": 8.356,
+      "decimals": 3,
+      "part": "value",
+      "source": "science-handover-s1-s2.md section Numbers the lead can check Meridian: km in band 8.356, 2.461, 1.165"
+    },
+    {
+      "rowId": "transect_meridian_km_in_band_2_2021",
+      "printed": 2.461,
+      "decimals": 3,
+      "part": "value",
+      "source": "science-handover-s1-s2.md section Numbers the lead can check Meridian: km in band 8.356, 2.461, 1.165"
+    },
+    {
+      "rowId": "transect_meridian_km_in_band_3_2021",
+      "printed": 1.165,
+      "decimals": 3,
+      "part": "value",
+      "source": "science-handover-s1-s2.md section Numbers the lead can check Meridian: km in band 8.356, 2.461, 1.165"
+    },
+    {
+      "rowId": "transect_valley_axis_length_2021",
+      "printed": 48822.5,
+      "decimals": 1,
+      "part": "value",
+      "source": "science-handover-s1-s2.md Lines: valley_axis 48,822.5 m"
     }
   ]
 }
