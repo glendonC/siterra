@@ -29,13 +29,13 @@
         -6.42007,
         31.65873
       ],
-      "method": "Position of the Tabant acceptance point of the catchment freeze (data-sources-and-methods.md, study area), checked on 2026-10-29 against the 10 m true colour image: it lies on the village. The GeoNames populated place Tabant (geonameid 2532270, feature code PPLA3; gazetteer extract for Morocco, snapshot retrieved 2026-10-27, source register SCI-154) lies about 1.1 km south-east of it on bare hillside and is not used for the position; the name and the identifier are GeoNames'",
+      "method": "Position of the Tabant acceptance point of the catchment freeze (data-sources-and-methods.md, study area), checked on 2026-10-29 against the 10 m true colour image (data/interim/hero/imagery/truecolour-inner-10m.tif, EPSG:32629): it lies on the village. The GeoNames populated place Tabant (geonameid 2532270, feature code PPLA3; gazetteer extract for Morocco, snapshot retrieved 2026-10-27, source register SCI-154) lies about 1.1 km south-east of it on bare hillside and is not used for the position; the name and the identifier are GeoNames'",
       "datasetId": "GeoNames gazetteer extract for Morocco (SCI-154, MA.zip, snapshot 2026-10-27, SHA-256 c25481b5aaa5855eaf5c5363abc09cb32c7c40b36799bcc4852bc5f00eafe875)",
       "sourceIds": [],
       "attribution": "GeoNames, CC BY 4.0",
       "license": "CC BY 4.0",
       "limitations": [
-        "A label position for orientation only; not a boundary and not a surveyed point. The GeoNames gazetteer position of Tabant (31.65255 N, 6.41049 W) is about 1.1 km south-east of this point, on bare hillside, as seen on the 10 m true colour image."
+        "A label position for orientation and labels only; not a boundary and not a surveyed point. The GeoNames gazetteer position of Tabant (31.65255 N, 6.41049 W) is about 1.1 km south-east of this point, on bare hillside, as seen on the 10 m true colour image."
       ]
     },
     {
