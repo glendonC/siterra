@@ -92,6 +92,12 @@
    "href": "./bundle_terrain_strata_ait_bouguemez/collection.json",
    "type": "application/json",
    "file:checksum": "1220857e69c5d1ddbe846b8022836f888254f3f818251b9e3e4ffba8748bae07241d"
+  },
+  {
+   "rel": "child",
+   "href": "./bundle_transects_ait_bouguemez/collection.json",
+   "type": "application/json",
+   "file:checksum": "1220412d569c665d81dc56b8bedbf71f4845512345bc07743a5af1704b56aa6d1fc1"
   }
  ],
  "stac_extensions": [
