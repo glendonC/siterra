@@ -51,6 +51,8 @@ Recipes run in the offline pipeline and are stored as derived bundles whose `met
 | `drainage_network` | Along which channels does the catchment drain to its outlet, and how much area drains to each segment? | D8 flow on the catchment freeze's conditioned Copernicus DEM; stream cells with 1.0 km2 or more upstream; Strahler order, upstream area and 3D line per segment; segments where the surface rises along the line flagged ([entry](#drainage-recipe-entry)) | Lines with upstream area and order; model estimate | P2 |
 | `terrain_transects` | What does the ground look like along a line across or along the valley, and which elevation bands and land cover classes does it cross? | Height every 30 m along the meridian through Tabant and along the longest flow path from the outlet; band, WorldCover class and inside flag per sample; band crossings, land cover runs and the valley floor segment ([entry](#transect-recipe-entry)) | Profile; observation | P2 |
 | `pixel_anatomy` | What fills one 250 m MODIS pixel, how green does each class look, does a linear mix of the classes account for the pixel's greenness, and how did its own March to June greenness move over about 25 seasons? | The pixel's 10 m cells with WorldCover class, June NDVI and display colour; class spectra from one clear Sentinel-2 day; a labelled linear mix of the class medians; the pixel's own series with its Theil-Sen slope and Sen 95% interval ([entry](#pixel-anatomy-recipe-entry)) | Composition and spectra; observation; mix, slope; model estimate | P2 |
+| `terrain_relief` | What is the height of the ground at every 30 m cell of the catchment? | One-band float32 surface on the 30 m EPSG:32629 grid that the strata, drainage and transect heights use, the catchment cells plus a one-cell ring, with its summary ([entry](#relief-recipe-entry)) | Observation | P2 |
+| `land_cover_classes` | Which WorldCover 2021 class covers each 10 m cell of the catchment, and how much does each class cover? | The class layer on the 10 m analysis grid and the class table with cell counts, areas and shares ([entry](#land-cover-recipe-entry)) | Observation | P2 |
 
 ## Season summary and the near-normal band
 
@@ -226,6 +228,38 @@ Both entries were registered in full on 2026-10-28: `restrend_long_record` befor
 | Standard limitations (verbatim) | In the registry: one pixel is an illustration chosen by judgment, not a sample; spectra from one clear day, one 2021 land cover map, mixed edge cells; the mix ignores shadow, slope and variation inside a class and is modelled; NDVI is not forage or species, and tree cover on the valley floor may include orchards; the series is not rainfall-adjusted and has no p-value or false discovery rate class; Terra's overpass drift; the catchment is a hydrological analysis extent |
 | Forbidden phrases | As `drainage_network` |
 | References | SCI-155, SCI-13, SCI-07, SCI-49, SCI-52, SCI-03, SCI-19, SCI-159 in the [source register](../../research/science/source-register.md) |
+
+## Relief recipe entry
+
+`terrain_relief` was registered in full on 2026-10-29, before this pipeline wrote any relief layer. It is not a new computation: the surface is the 30 m EPSG:32629 grid that already gives the terrain strata, the drainage network vertices and the transect samples their heights, written out as a bundle asset so the interface draws relief from the case record and never reads or resamples a DEM. It tests no hypothesis. The machine-readable form is `science/recipes/registry.json`.
+
+| `terrain_relief` 1.0.0 | Value |
+|---|---|
+| Inputs | The Copernicus DEM GLO-30 (2021) tile named in the place configuration (checksum pinned), the frozen polygon, the place configuration |
+| Surface | The tile resampled once, bilinear, to the 30 m EPSG:32629 grid aligned with the 10 m analysis grid with 1 extra cell on every side (`place_config.elevation_grid`, `pad_cells` 1); metres above the EGM2008 geoid, float32, not rounded |
+| Kept cells | Every 30 m cell holding the centre of a 10 m analysis cell inside the polygon and every cell within one cell of those; all others nodata (-9999.0). Whether a cell lies inside the polygon is the frozen geometry asset's business, not a second band |
+| Parameters | Method only: `pad_cells` 1, `nodata` -9999.0, `recompute_percentile` 90, `recompute_tolerance_m` 4.0, `vertex_tolerance_m` 0.05 |
+| Checks | The surface repeated 3 x 3 equals `place_config.elevation()` on every inside cell; heights interpolated from it equal every drainage vertex and every transect sample height in the bundle folder within 0.05 m; the 90th percentile of the absolute differences from the native tile at the inside cell centres is at most 4.0 m (largest difference and place stored); no inside cell is nodata; two runs give identical files |
+| Outputs | `elevation_m`; claim kind `observation`; uncertainty `not_quantified` |
+| Standard limitations (verbatim) | In the registry: a 30 m surface model, not the ground; bilinear resampling to a 30 m grid; the ring of cells outside the catchment is for interpolation only; the catchment is a hydrological extent |
+| Forbidden phrases | As `drainage_network` |
+| References | SCI-165, SCI-168, SCI-12, SCI-41 in the [source register](../../research/science/source-register.md) |
+
+## Land cover recipe entry
+
+`land_cover_classes` was registered in full on 2026-10-29, before this pipeline wrote any land cover layer. It is the ESA WorldCover 2021 v200 class map already placed on the 10 m analysis grid (`place_config.land_cover`, checksum pinned) and clipped to the frozen polygon, with the class table the interface needs. It tests no hypothesis; the classes are a 2021 context map, not pasture types. The machine-readable form is `science/recipes/registry.json`.
+
+| `land_cover_classes` 1.0.0 | Value |
+|---|---|
+| Inputs | The WorldCover 2021 v200 grid placed on the analysis grid (checksum pinned), the frozen polygon, the terrain strata (excluded layer, for a check), the place configuration |
+| Layer | The class code of each 10 m cell (nearest neighbour from the 10 m product), 0 outside the polygon; uint8 cloud-optimised GeoTIFF, DEFLATE, nodata 0 |
+| Class table | For each class inside the polygon: code, name, 10 m cells, area in km2 (cells times 100 m2), share of the cells inside the polygon (4 decimals); the configured classes and the configured groups; an unlisted class stops the build |
+| Parameters | Method only: `nodata` 0 |
+| Checks | Class counts sum to the number of inside cells; no 0 inside and no unlisted class; cropland plus built-up cells equal the strata excluded layer; the stored layer equals the placed grid cell for cell; two runs give identical files |
+| Outputs | `land_cover_share`; claim kind `observation`; uncertainty `not_quantified` |
+| Standard limitations (verbatim) | In the registry: one 2021 map classified from satellite data, tree cover on the valley floor may include orchards, areas are cell counts times 100 m2, the catchment is a hydrological extent |
+| Forbidden phrases | As `drainage_network` |
+| References | SCI-13, SCI-19 in the [source register](../../research/science/source-register.md) |
 
 ## Forecasting policy
 

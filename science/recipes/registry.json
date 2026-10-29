@@ -1,7 +1,7 @@
 {
-  "registryVersion": "1.6.0",
+  "registryVersion": "1.7.0",
   "registered": "2026-10-27",
-  "note": "Recipe registry. What was fixed before any data: only the catalog rows in docs/reference/analysis-recipes.md (question, method in one line, output kind) for coverage_summary, monthly_departure and aligned_antecedent, and the full season_summary entry (registered 2026-10-27 before any event comparison). The detailed formulas and parameters of coverage_summary, monthly_departure, aligned_antecedent and terrain_strata were written together with their first run on 2026-10-27, so they are not pre-registered. From now on, changing a formula, parameter or window after results are read is a new version labeled post hoc. Registry 1.2.0 (2026-10-28) adds restrend_long_record and snow_cover_by_band, each fully registered before its data was summarized; their place-specific windows and band sets are in science/places/. The inspector renders method cards from an entry and the bundle manifest that holds its result. References are IDs in research/science/source-register.md. Registry 1.3.0 (2026-10-28) adds pixel_trend_long_record and season_trend_long_record, registered before any per-pixel slope, land-cover summary or June to September greenness value was computed (the stratum results of restrend_long_record had been read). Registry 1.4.0 (2026-10-29) adds drainage_network, registered before this pipeline built any network; its smoothing and height rules were carried over from the 29 October specimen build, which had run them first. Registry 1.5.0 (2026-10-29) adds terrain_transects, registered before this pipeline sampled any line; the Tabant meridian is specimen B's section and the rest was written by the science lane. Registry 1.6.0 (2026-10-29) adds pixel_anatomy, registered before this pipeline built any pixel anatomy; the pixel and its scene come from the 28 October specimen build and the scene rule was written afterwards to name that choice.",
+  "note": "Recipe registry. What was fixed before any data: only the catalog rows in docs/reference/analysis-recipes.md (question, method in one line, output kind) for coverage_summary, monthly_departure and aligned_antecedent, and the full season_summary entry (registered 2026-10-27 before any event comparison). The detailed formulas and parameters of coverage_summary, monthly_departure, aligned_antecedent and terrain_strata were written together with their first run on 2026-10-27, so they are not pre-registered. From now on, changing a formula, parameter or window after results are read is a new version labeled post hoc. Registry 1.2.0 (2026-10-28) adds restrend_long_record and snow_cover_by_band, each fully registered before its data was summarized; their place-specific windows and band sets are in science/places/. The inspector renders method cards from an entry and the bundle manifest that holds its result. References are IDs in research/science/source-register.md. Registry 1.3.0 (2026-10-28) adds pixel_trend_long_record and season_trend_long_record, registered before any per-pixel slope, land-cover summary or June to September greenness value was computed (the stratum results of restrend_long_record had been read). Registry 1.4.0 (2026-10-29) adds drainage_network, registered before this pipeline built any network; its smoothing and height rules were carried over from the 29 October specimen build, which had run them first. Registry 1.5.0 (2026-10-29) adds terrain_transects, registered before this pipeline sampled any line; the Tabant meridian is specimen B's section and the rest was written by the science lane. Registry 1.6.0 (2026-10-29) adds pixel_anatomy, registered before this pipeline built any pixel anatomy; the pixel and its scene come from the 28 October specimen build and the scene rule was written afterwards to name that choice. Registry 1.7.0 (2026-10-29) adds terrain_relief and land_cover_classes, registered before this pipeline wrote any relief or land cover layer; both repeat grids that earlier bundles already use.",
   "recipes": [
     {
       "recipeId": "coverage_summary",
@@ -1831,6 +1831,219 @@
       ],
       "priority": "P2",
       "formulaPlain": "One 250 m MODIS pixel is opened into its 10 m cells. Each cell has a land cover class and a June greenness value. On one clear day the light reflected by each class inside the pixel is measured in ten bands, and a simple mix of those classes is compared with the pixel's measured greenness. The pixel's own March to June greenness is shown for each season since 2000, with its trend and 95% interval."
+    },
+    {
+      "recipeId": "terrain_relief",
+      "version": "1.0.0",
+      "title": "Elevation surface of the catchment as a data layer",
+      "question": "What is the height of the ground at every 30 m cell of the catchment, in the same numbers every other bundle of this place uses?",
+      "operation": "surface_layer",
+      "implementation": {
+        "language": "python",
+        "package": "siterra-science",
+        "version": "0.1.0"
+      },
+      "inputs": [
+        "copernicus_dem_glo30_2021",
+        "frozen_catchment_geometry",
+        "place_configuration"
+      ],
+      "registration": "Full entry registered 2026-10-29, before this pipeline wrote any relief layer. The surface is not a new computation: it is the 30 m EPSG:32629 grid that place_config.elevation_grid(pad_cells=1) already gives to the terrain strata, the drainage network vertices and the transect samples, written out so the interface draws relief from the case record and never reads or resamples a DEM. No hypothesis is tested.",
+      "formula": [
+        "Surface: the Copernicus DEM GLO-30 (2021) tile resampled once, bilinear, to the 30 m EPSG:32629 grid whose cells are aligned with the 10 m analysis grid and which has 1 extra cell on every side (place_config.elevation_grid with pad_cells 1, DEM checksum pinned in the place configuration); heights in metres above the EGM2008 geoid, float32, not rounded",
+        "Kept cells: every 30 m cell that holds the centre of at least one 10 m analysis cell inside the frozen polygon (the cells the strata raster repeats), and every cell within one cell of those in any direction (the ring the profile and drainage heights are interpolated from); all other cells are nodata (-9999.0)",
+        "Asset: one-band float32 cloud-optimised GeoTIFF in EPSG:32629 on that grid, DEFLATE with floating-point predictor, nodata -9999.0, with its transform and shape stored in the collection; the inside-polygon test is the separate frozen geometry asset, never a second band",
+        "Summary: counts of kept cells and of cells inside the polygon; lowest, highest and mean height of the inside cells and of the native 1 arc-second tile within the polygon; the three elevation band boundaries and the share of inside cells in each band as in the strata bundle",
+        "Acceptance checks, all stored with the bundle: the stored surface repeated 3 x 3 onto the 10 m grid equals place_config.elevation() on every cell inside the polygon (0 cells differ); the heights bilinear-interpolated from the stored surface equal every vertex height of the drainage network bundle and every sample height of the transects bundle in the bundle folder to within 0.05 m; the 90th percentile of the absolute differences between the stored height at each inside cell centre and the native 1 arc-second tile (bilinear in longitude and latitude) is at most 4.0 m, with the largest difference and where it lies stored; no inside cell is nodata; two runs give identical files apart from the computed time"
+      ],
+      "parameters": [
+        {
+          "name": "pad_cells",
+          "role": "method",
+          "allowed": [
+            1
+          ],
+          "default": 1
+        },
+        {
+          "name": "nodata",
+          "role": "method",
+          "allowed": [
+            -9999.0
+          ],
+          "default": -9999.0
+        },
+        {
+          "name": "recompute_percentile",
+          "role": "method",
+          "allowed": [
+            90
+          ],
+          "default": 90
+        },
+        {
+          "name": "recompute_tolerance_m",
+          "role": "method",
+          "allowed": [
+            4.0
+          ],
+          "default": 4.0
+        },
+        {
+          "name": "vertex_tolerance_m",
+          "role": "method",
+          "allowed": [
+            0.05
+          ],
+          "default": 0.05
+        }
+      ],
+      "sensitivitySet": [],
+      "applicability": [
+        {
+          "check": "frozen geometry and DEM named in the place configuration, checksums matching",
+          "minimum": "1 geometry and 1 DEM tile"
+        }
+      ],
+      "outputs": [
+        {
+          "metric": "elevation_m",
+          "unit": "m",
+          "claimKind": "observation",
+          "uncertaintyKind": "not_quantified"
+        }
+      ],
+      "assumptions": [
+        "The 30 m surface model stands for the ground at the scale of one cell"
+      ],
+      "failureModes": [
+        "Narrow gorges and steep walls are poorly resolved at 30 m, so the surface can be smoother than the ground",
+        "Trees and buildings raise a surface model above the ground"
+      ],
+      "standardLimitations": [
+        "The surface is a 30 m surface model, not the ground: trees, buildings, steep walls and radar artefacts distort it, and narrow gorges such as the lower gorge near the outlet are not resolved. Heights are metres above the EGM2008 geoid with the DEM's stated vertical accuracy (Copernicus DEM Product Handbook 5.0).",
+        "Each height is a bilinear resampling of the 1 arc-second tile onto a 30 m grid in EPSG:32629; it is not a measured height at that cell centre, and the 10 m analysis cells inherit the height of their 30 m cell.",
+        "The cells outside the catchment that the layer keeps are a one-cell ring for interpolation near the boundary; they are not part of the analysis area.",
+        "The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary."
+      ],
+      "allowedComponents": [
+        "relief",
+        "method card"
+      ],
+      "forbiddenPhrases": [
+        "significant",
+        "significantly",
+        "degradation detected",
+        "grazing impact",
+        "overgrazing",
+        "caused by",
+        "proves",
+        "recovery",
+        "forecast",
+        "pasture improvement",
+        "pasture decline",
+        "encroachment",
+        "flood risk",
+        "water supply"
+      ],
+      "references": [
+        "SCI-165",
+        "SCI-168",
+        "SCI-12",
+        "SCI-41"
+      ],
+      "priority": "P2",
+      "formulaPlain": "The height of the ground is stored for every 30 m cell of the valley catchment, as the same numbers that give the heights of the drainage lines and the profiles, so the map can draw relief from the record."
+    },
+    {
+      "recipeId": "land_cover_classes",
+      "version": "1.0.0",
+      "title": "Land cover classes of the catchment as a data layer",
+      "question": "Which ESA WorldCover 2021 class covers each 10 m cell of the catchment, and how much of the catchment does each class cover?",
+      "operation": "categorical_layer",
+      "implementation": {
+        "language": "python",
+        "package": "siterra-science",
+        "version": "0.1.0"
+      },
+      "inputs": [
+        "worldcover_2021_v200",
+        "frozen_catchment_geometry",
+        "terrain_strata",
+        "place_configuration"
+      ],
+      "registration": "Full entry registered 2026-10-29, before this pipeline wrote any land cover layer. It is the WorldCover 2021 class map already placed on the 10 m analysis grid (place_config.land_cover, checksum pinned in the place configuration) and clipped to the frozen polygon, with the class table the interface needs. No hypothesis is tested; the classes are a 2021 context map, not pasture types.",
+      "formula": [
+        "Layer: the WorldCover 2021 v200 class code of each 10 m analysis cell (nearest neighbour from the 10 m product, EPSG:32629), 0 outside the frozen polygon; uint8 cloud-optimised GeoTIFF, DEFLATE, nodata 0, on the analysis grid of the strata bundle",
+        "Class table: for each class present inside the polygon, its code, name, number of 10 m cells, area in km2 (cells times 100 m2 in EPSG:32629) and share of the cells inside the polygon, to 4 decimals; the table lists the configured classes (10, 20, 30, 40, 50, 60, 80) and any other class found, which stops the build",
+        "Groups: the configured land cover groups with their classes and combined share, as in the place configuration",
+        "Acceptance checks, all stored with the bundle: the class counts sum to the number of 10 m cells inside the polygon (the analysis grid mask); every cell inside the polygon has a class (no 0 inside); no class outside the configured list; cropland plus built-up cells equal the excluded layer of the strata raster; the layer read back from the stored file equals the placed WorldCover grid cell for cell; two runs give identical files apart from the computed time"
+      ],
+      "parameters": [
+        {
+          "name": "nodata",
+          "role": "method",
+          "allowed": [
+            0
+          ],
+          "default": 0
+        }
+      ],
+      "sensitivitySet": [],
+      "applicability": [
+        {
+          "check": "frozen geometry, strata and land cover named in the place configuration, checksums matching",
+          "minimum": "1 geometry"
+        }
+      ],
+      "outputs": [
+        {
+          "metric": "land_cover_share",
+          "unit": "1",
+          "claimKind": "observation",
+          "uncertaintyKind": "not_quantified"
+        }
+      ],
+      "assumptions": [
+        "A single 2021 map stands for land cover at the scale of the analysis"
+      ],
+      "failureModes": [
+        "Classification errors at 10 m, especially between tree cover, shrubland and cropland on the valley floor",
+        "Land cover in other years can differ from the 2021 map"
+      ],
+      "standardLimitations": [
+        "ESA WorldCover 2021 is a single 2021 map classified from satellite data at 10 m: its classes can differ from the ground, and the class of one cell is not a field observation.",
+        "Tree cover on the valley floor may include orchards; cropland is a small share of the catchment in this map (the class 'cropland or built-up' is excluded from the sampling strata, never read as low vegetation). No class is a pasture, agdal or management unit.",
+        "Areas are cell counts times 100 m2 in EPSG:32629, not geodesic areas, and cells on the polygon's boundary are counted where their centre lies inside it.",
+        "The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary."
+      ],
+      "allowedComponents": [
+        "land cover layer",
+        "class table",
+        "method card"
+      ],
+      "forbiddenPhrases": [
+        "significant",
+        "significantly",
+        "degradation detected",
+        "grazing impact",
+        "overgrazing",
+        "caused by",
+        "proves",
+        "recovery",
+        "forecast",
+        "pasture improvement",
+        "pasture decline",
+        "encroachment",
+        "flood risk",
+        "water supply"
+      ],
+      "references": [
+        "SCI-13",
+        "SCI-19"
+      ],
+      "priority": "P2",
+      "formulaPlain": "Each 10 m cell of the valley catchment carries the land cover class of the ESA WorldCover 2021 map, with a table of how much of the catchment each class covers."
     }
   ]
 }
