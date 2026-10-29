@@ -1,0 +1,113 @@
+{
+ "recipeId": "terrain_relief",
+ "version": "1.0.1",
+ "computed": "2026-10-29T13:39:12Z",
+ "place": {
+  "placeId": "ait_bouguemez",
+  "configRevision": 5,
+  "config_sha256": "8dd58b05777039e64773148647bcefd408a8b49d8dc54465830918e31caef7ec"
+ },
+ "claim_kind": "observation",
+ "grid": {
+  "crs": "EPSG:32629",
+  "cell_m": 30,
+  "shape": [
+   990,
+   1258
+  ],
+  "transform": [
+   30.0,
+   0.0,
+   733170.0,
+   0.0,
+   -30.0,
+   3516830.0
+  ],
+  "pad_cells": 1,
+  "nodata": -9999.0
+ },
+ "cells": {
+  "kept": 470760,
+  "inside_polygon_parents": 465508,
+  "ring_outside": 5252,
+  "analysis_cells_inside_10m": 4173603
+ },
+ "elevation_m_inside_cells_10m": {
+  "lowest": 1464.7,
+  "highest": 4001.6,
+  "mean": 2586.3
+ },
+ "native_tile_inside_polygon_m": {
+  "lowest": 1464.572021484375,
+  "highest": 4007.30419921875,
+  "cells": 513974
+ },
+ "band_boundaries_m": [
+  2316.8,
+  2815.2
+ ],
+ "band_share_of_inside_cells": {
+  "1": 0.3334,
+  "2": 0.3333,
+  "3": 0.3334
+ },
+ "checks": {
+  "repeat_equals_elevation_differing_cells": 0,
+  "inside_cells_without_height": 0,
+  "heights_reproduced": [
+   {
+    "bundle": "bundle_drainage_network_ait_bouguemez",
+    "collection_sha256": "5f984cb2dab28034108c2a7582305f6397a7932eaf3ee1a669aea50b462a88f2",
+    "values": 20785,
+    "differing_more_than_tolerance": 0,
+    "largest_difference_m": 0.054
+   },
+   {
+    "bundle": "bundle_transects_ait_bouguemez",
+    "collection_sha256": "412d569c665d81dc56b8bedbf71f4845512345bc07743a5af1704b56aa6d1fc1",
+    "values": 2030,
+    "differing_more_than_tolerance": 0,
+    "largest_difference_m": 0.05
+   }
+  ],
+  "native_tile": {
+   "percentile": 0.8195425380859886,
+   "max": 5.265193185553926,
+   "max_at": [
+    -6.46338,
+    31.558175
+   ],
+   "cells": 465508
+  }
+ },
+ "units": "Elevation is float32 metres above the EGM2008 geoid (Copernicus DEM GLO-30 vertical datum) on a 30 m EPSG:32629 grid, not rounded; nodata is -9999.0; the three elevation bands are 2316.8 m and 2815.2 m as in the strata bundle.",
+ "check_results": {
+  "recompute_sample_period": true,
+  "units_and_scale": true,
+  "nodata_not_zero": true,
+  "attribution_present": true,
+  "visual_inspection_sample": true
+ },
+ "limitations": [
+  "The surface is a 30 m surface model, not the ground: trees, buildings, steep walls and radar artefacts distort it, and narrow gorges such as the lower gorge near the outlet are not resolved. Heights are metres above the EGM2008 geoid with the DEM's stated vertical accuracy (Copernicus DEM Product Handbook 5.0).",
+  "Each height is a bilinear resampling of the 1 arc-second tile onto a 30 m grid in EPSG:32629; it is not a measured height at that cell centre, and the 10 m analysis cells inherit the height of their 30 m cell.",
+  "The cells outside the catchment that the layer keeps are a one-cell ring for interpolation near the boundary; they are not part of the analysis area.",
+  "The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary."
+ ],
+ "forbidden_phrases": [
+  "significant",
+  "significantly",
+  "degradation detected",
+  "grazing impact",
+  "overgrazing",
+  "caused by",
+  "proves",
+  "recovery",
+  "forecast",
+  "pasture improvement",
+  "pasture decline",
+  "encroachment",
+  "flood risk",
+  "water supply"
+ ]
+}
