@@ -65,6 +65,12 @@
   },
   {
    "rel": "child",
+   "href": "./bundle_relief_ait_bouguemez/collection.json",
+   "type": "application/json",
+   "file:checksum": "1220d1b1c53fb0e4c350bc6020377d20270812d750ce11da2b97bd8b3c214cc7e44c"
+  },
+  {
+   "rel": "child",
    "href": "./bundle_restrend_long_record_ait_bouguemez/collection.json",
    "type": "application/json",
    "file:checksum": "122074b8b5c5823c2cf96e7b6bfd48f2747c980ae8335c33ad3b70260593edbb2dec"

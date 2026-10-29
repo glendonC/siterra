@@ -324,6 +324,37 @@ describe("recipes", () => {
     ]);
   });
 
+  it("read_recipe_result names the Measurements read from the result, so a caption can cite them", async () => {
+    const store = recipeStore();
+    const source = {
+      assetKey: "test_recipe",
+      jsonPointer: "/value",
+      stratum: "catchment",
+      claimKind: "model_estimate" as const,
+      period: { start: "2000", end: "2025", window: "mar_jun" },
+      lowerJsonPointer: null,
+      upperJsonPointer: null,
+    };
+    const base = { dataBundleId: "bundle_test_recipe", metric: "ndvi_trend_per_decade" };
+    store.measurements.push(
+      measurement("period_2000-2025_mar_jun", 1, { ...base, id: "meas_test_trend", source }),
+      measurement("period_2019-01", 2, { ...base, id: "meas_test_monthly" }),
+      measurement("period_2000-2025_mar_jun", 3, {
+        ...base,
+        id: "meas_test_other_bundle",
+        dataBundleId: "bundle_test_versioned",
+        source,
+      }),
+    );
+    const result = await run(readRecipeResultTool(store, CASE_ID), {
+      recipeId: "test_recipe",
+      version: "1.0.0",
+      bundleId: "bundle_test_recipe",
+    });
+    expect(result.output).toMatchObject({ measurementIds: ["meas_test_trend"] });
+    expect(result.resultEntityIds).toEqual(["bundle_test_recipe", "meas_test_trend"]);
+  });
+
   it("read_recipe_result returns the stored result labelled precomputed analysis, with its limitations", async () => {
     const result = await run(readRecipeResultTool(recipeStore(), CASE_ID), {
       recipeId: "test_recipe",

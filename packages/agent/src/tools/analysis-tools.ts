@@ -310,6 +310,9 @@ export function readRecipeResultTool(
       }
       const stored = await store.readRecipeResult(caseId, bundle.id);
       if (!stored) throw new ToolFailure("no_result", `bundle ${bundle.id} holds no stored result`);
+      const measurementIds = (
+        await store.listRecipeMeasurements(caseId, bundle.id, bundle.revision)
+      ).map((m) => m.id);
       const entry = (await store.listRecipes(caseId)).find(
         (r) => r.recipeId === args.recipeId && r.version === args.version,
       );
@@ -321,9 +324,10 @@ export function readRecipeResultTool(
           bundleId: bundle.id,
           bundleRevision: bundle.revision,
           standardLimitations: entry?.standardLimitations ?? [],
+          measurementIds,
           result: stored.result,
         },
-        resultEntityIds: [bundle.id],
+        resultEntityIds: [bundle.id, ...measurementIds],
       };
     },
   };

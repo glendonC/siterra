@@ -1,0 +1,141 @@
+import { fileURLToPath } from "node:url";
+import { analysisConfigFor } from "@siterra/domain/cases";
+import { describe, expect, it } from "vitest";
+import { instrumentReferencedIds, uncitedInstrumentInputs } from "@siterra/domain";
+import { readCaseSeed } from "./case-seed.ts";
+
+const repoDir = fileURLToPath(new URL("../../../", import.meta.url));
+const { seed, issues, blocked } = readCaseSeed({
+  repoDir,
+  mode: "concept",
+  ownerScopeId: "seed",
+  importedAt: "2026-10-27T20:00:00Z",
+});
+const measurements = new Map(
+  (seed?.bundles ?? []).flatMap((b) => b.measurements).map((m) => [m.id, m]),
+);
+
+describe("the instruments the case seed composes", () => {
+  it("compose from the configuration without an issue", () => {
+    expect(issues).toEqual([]);
+  });
+
+  it("hold the instruments whose inputs the case has, each ready and citing everything it names", () => {
+    expect(seed?.instruments.map((s) => s.id).sort()).toEqual(
+      [
+        "inst_cross_section_valley",
+        "inst_layer_stack_valley",
+        "inst_pixel_anatomy_valley",
+        "inst_rainfall_scatter_valley",
+      ].sort(),
+    );
+    for (const spec of seed?.instruments ?? []) {
+      expect(spec.status).toBe("ready");
+      expect(uncitedInstrumentInputs(spec)).toEqual([]);
+      for (const id of instrumentReferencedIds(spec)) {
+        const known = [
+          seed?.geoSelections,
+          seed?.contextFeatures,
+          seed?.evidence,
+          seed?.bundles.map((b) => b.dataBundle),
+          [...measurements.values()],
+        ]
+          .flat()
+          .some((r) => r?.id === id);
+        expect(known, `${spec.id} names ${id}`).toBe(true);
+      }
+    }
+  });
+
+  it("write only numbers the cited Measurements hold, rounded once", () => {
+    const rain = seed?.instruments.find((s) => s.id === "inst_rainfall_scatter_valley");
+    const r2 = measurements.get("meas_rainfall_fit_r_squared_catchment_mar_jun");
+    expect(r2?.value).toBeCloseTo(0.03699, 5);
+    expect(rain?.caption.ink).toBe(
+      "September to May rainfall explains little of the change in March to June greenness (R squared 0.037).",
+    );
+    const pixel = seed?.instruments.find((s) => s.id === "inst_pixel_anatomy_valley");
+    expect(pixel?.caption).toMatchObject({
+      ink: "This 250 m pixel at the valley floor edge got greener by +0.0570 NDVI per decade from 2000 to 2025.",
+      grey: "Tree cover and cropland fill 46% of it, and in a mix of its own spectra, a larger share of them raises NDVI by itself.",
+    });
+  });
+
+  it("compose the layer stack and the cross section on the relief bundle, with the captions the Measurements give", () => {
+    const stack = seed?.instruments.find((s) => s.id === "inst_layer_stack_valley");
+    expect(stack?.parameters).toMatchObject({
+      kind: "layer_stack",
+      relief: { bundleId: "bundle_relief_ait_bouguemez", assetKey: "elevation_surface" },
+      selectedLayer: "vegetation_trend",
+      drainageFeatureIds: [1, 2, 3, 4, 5].map((n) => `ctx_drainage_order_${String(n)}`),
+    });
+    expect(
+      stack?.parameters.kind === "layer_stack" && stack.parameters.layers.map((l) => l.layer),
+    ).toEqual(["vegetation_trend", "rainfall", "snow_cover", "land_cover", "elevation_bands"]);
+    // The captions of the approved specimens, with numbers from Measurements rounded once
+    expect(stack?.caption).toMatchObject({
+      ink: "+0.0091 NDVI per decade, March to June, 2000 to 2025",
+      grey: "Rises on 24.7% of the area after a false discovery rate check.",
+    });
+
+    const section = seed?.instruments.find((s) => s.id === "inst_cross_section_valley");
+    expect(section?.parameters).toMatchObject({
+      kind: "cross_section",
+      transectFeatureId: "ctx_transect_tabant_meridian",
+      statements: [
+        { evidenceId: "ev_valley_bottom_cultivated_sci03", placement: "valley_floor" },
+        { evidenceId: "ev_valley_villages_sci19", placement: "valley_floor" },
+        { evidenceId: "ev_upper_rangelands_vegetation_sci19", placement: "upper_slope" },
+      ],
+    });
+    expect(section?.caption).toMatchObject({
+      ink: "+0.0134 NDVI per decade below 2,317 m, March to June, 2000 to 2025",
+      grey: "Band averages over the whole catchment; every 95% interval lies above zero.",
+    });
+    for (const [id, printed] of [
+      ["meas_trend_unadjusted_elevation_low_mar_jun", 0.0134],
+      ["meas_trend_unadjusted_elevation_mid_mar_jun", 0.0072],
+      ["meas_trend_unadjusted_elevation_high_mar_jun", 0.007],
+    ] as const) {
+      expect(Math.abs((measurements.get(id)?.value ?? Number.NaN) - printed)).toBeLessThan(0.00006);
+    }
+  });
+
+  it("guard the words 'greener' and 'every interval lies above zero' with held claims on the records", () => {
+    const rules = analysisConfigFor("case_aitbouguemez")?.instruments ?? [];
+    const holds = (id: string) => {
+      const rule = rules.find((r) => r.id === id);
+      return rule?.from === "parameters" ? (rule.caption.holds ?? []) : [];
+    };
+    expect(holds("pixel_anatomy_valley")).toEqual([
+      { measurementId: "meas_pixel_anatomy_trend_mar_jun_pixel", part: "lower", above: 0 },
+    ]);
+    expect(holds("cross_section_valley")).toEqual(
+      [
+        "meas_trend_unadjusted_elevation_low_mar_jun",
+        "meas_trend_unadjusted_elevation_mid_mar_jun",
+        "meas_trend_unadjusted_elevation_high_mar_jun",
+      ].map((measurementId) => ({ measurementId, part: "lower", above: 0 })),
+    );
+    // The claim about mixing cites the two modelled values it rests on
+    const pixel = seed?.instruments.find((s) => s.id === "inst_pixel_anatomy_valley");
+    expect(pixel?.caption.citationIds).toEqual(
+      expect.arrayContaining([
+        "meas_pixel_anatomy_ndvi_mix_model_2025_06",
+        "meas_pixel_anatomy_ndvi_mix_tree_cover_plus20_2025_06",
+      ]),
+    );
+    const mix = measurements.get("meas_pixel_anatomy_ndvi_mix_model_2025_06")?.value ?? 0;
+    const shifted =
+      measurements.get("meas_pixel_anatomy_ndvi_mix_tree_cover_plus20_2025_06")?.value ?? 0;
+    expect(shifted).toBeGreaterThan(mix);
+  });
+
+  it("report the rules that wait on inputs the seed lacks, with the reason, and write no spec for them", () => {
+    expect(blocked.map((b) => b.ruleId)).toEqual(["field_plan_valley"]);
+    expect(blocked[0]?.reasons[0]).toBe("The case holds no branch merge with a field plan");
+    for (const b of blocked) {
+      expect(seed?.instruments.map((s) => s.id)).not.toContain(`inst_${b.ruleId}`);
+    }
+  });
+});

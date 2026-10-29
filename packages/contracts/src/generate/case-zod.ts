@@ -34,6 +34,7 @@ const handled = new Set([
 const refinements: Record<string, string> = {
   Measurement: "missingIsAValue",
   ContextFeature: "contextFeatureShape",
+  MeasurementSource: "measurementSourceShape",
 };
 
 function asNode(value: unknown, where: string): Node {

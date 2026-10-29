@@ -115,3 +115,143 @@ describe("case analysis configuration", () => {
     );
   });
 });
+
+describe("case analysis configuration: instrument rules", () => {
+  const ref = (bundleId: string, assetKey: string) => ({ bundleId, assetKey });
+  const scatter = {
+    from: "parameters",
+    id: "rainfall_scatter_rule",
+    whenExplanationIds: ["rainfall"],
+    parameters: {
+      kind: "rainfall_scatter",
+      geoSelectionId: "geo_example_plain",
+      seasons: ref("bundle_example_rain", "tables"),
+      fit: ref("bundle_example_rain", "summary"),
+    },
+    caption: {
+      ink: "Rainfall explains {share} of the greenness.",
+      grey: "A fit over {seasons} seasons; not a cause.",
+      claimKind: "model_estimate",
+      citationIds: ["meas_example_r2", "meas_example_n"],
+      numbers: {
+        share: { measurementId: "meas_example_r2", part: "value", decimals: 3 },
+        seasons: { measurementId: "meas_example_n", part: "value", decimals: 0 },
+      },
+    },
+  };
+  const fieldPlan = {
+    from: "branch_merge",
+    id: "field_plan_rule",
+    whenExplanationIds: ["rainfall", "irrigation"],
+    caption: { ink: "A field plan is proposed.", grey: "Proposed, not scheduled." },
+  };
+  const withRules = (...instruments: unknown[]) =>
+    CaseAnalysisConfig.safeParse({ ...OTHER_PLACE, instruments }).success;
+
+  it("accepts a configuration without rules, with a parameter rule and with a field plan rule", () => {
+    expect(CaseAnalysisConfig.safeParse(OTHER_PLACE).success).toBe(true);
+    expect(withRules(scatter)).toBe(true);
+    expect(withRules(scatter, fieldPlan)).toBe(true);
+  });
+
+  it("refuses a rule that names an explanation the configuration does not hold", () => {
+    expect(withRules({ ...scatter, whenExplanationIds: ["grazing"] })).toBe(false);
+    expect(withRules({ ...fieldPlan, whenExplanationIds: ["grazing"] })).toBe(false);
+  });
+
+  it("refuses repeated rule IDs and an empty explanation list", () => {
+    expect(withRules(scatter, scatter)).toBe(false);
+    expect(withRules({ ...scatter, whenExplanationIds: [] })).toBe(false);
+  });
+
+  it("refuses a caption placeholder with no number, a number never used, and an uncited number", () => {
+    const caption = scatter.caption;
+    expect(
+      withRules({ ...scatter, caption: { ...caption, ink: "Rainfall explains {missing}." } }),
+    ).toBe(false);
+    expect(withRules({ ...scatter, caption: { ...caption, grey: "A fit; not a cause." } })).toBe(
+      false,
+    );
+    expect(
+      withRules({ ...scatter, caption: { ...caption, citationIds: ["meas_example_r2"] } }),
+    ).toBe(false);
+  });
+
+  it("refuses a digit written into caption text, because every number comes from a cited Measurement", () => {
+    const caption = scatter.caption;
+    expect(
+      withRules({
+        ...scatter,
+        caption: { ...caption, ink: "Rainfall explains {share} of 26 seasons." },
+      }),
+    ).toBe(false);
+    expect(
+      withRules({ ...fieldPlan, caption: { ink: "Plan 1 is proposed.", grey: "Proposed." } }),
+    ).toBe(false);
+  });
+
+  it("accepts signed, percent and grouped slots, period and level parts, sums and held claims", () => {
+    const caption = {
+      ...scatter.caption,
+      ink: "{trend} NDVI per decade below {limit} m, March to June, {start} to {end}.",
+      grey: "{cover} of the pixel is tree cover and cropland; every {level} interval lies above zero.",
+      citationIds: ["meas_example_r2", "meas_example_n", "meas_example_a", "meas_example_b"],
+      numbers: {
+        trend: { measurementId: "meas_example_r2", part: "value", decimals: 4, style: "signed" },
+        limit: { measurementId: "meas_example_n", part: "value", decimals: 0, style: "grouped" },
+        start: { measurementId: "meas_example_r2", part: "period_start", decimals: 0 },
+        end: { measurementId: "meas_example_r2", part: "period_end", decimals: 0 },
+        cover: { sumOf: ["meas_example_a", "meas_example_b"], decimals: 0, style: "percent" },
+        level: { measurementId: "meas_example_r2", part: "level", decimals: 0, style: "percent" },
+      },
+      holds: [{ measurementId: "meas_example_r2", part: "lower", above: 0 }],
+    };
+    expect(withRules({ ...scatter, caption })).toBe(true);
+    expect(
+      withRules({
+        ...scatter,
+        caption: {
+          ...caption,
+          holds: [{ measurementId: "meas_example_gone", part: "lower", above: 0 }],
+        },
+      }),
+    ).toBe(false);
+    expect(
+      withRules({
+        ...scatter,
+        caption: {
+          ...caption,
+          citationIds: ["meas_example_r2", "meas_example_n", "meas_example_a"],
+        },
+      }),
+    ).toBe(false);
+    expect(
+      withRules({
+        ...scatter,
+        caption: {
+          ...caption,
+          numbers: { ...caption.numbers, cover: { sumOf: ["meas_example_a"], decimals: 0 } },
+        },
+      }),
+    ).toBe(false);
+    expect(
+      withRules({
+        ...scatter,
+        caption: {
+          ...caption,
+          numbers: {
+            ...caption.numbers,
+            trend: { measurementId: "meas_example_r2", part: "value", decimals: 4, style: "bold" },
+          },
+        },
+      }),
+    ).toBe(false);
+  });
+
+  it("refuses parameters that name a field the kind does not have, and a rule for a field plan with parameters", () => {
+    expect(
+      withRules({ ...scatter, parameters: { ...scatter.parameters, camera: [1, 2, 3] } }),
+    ).toBe(false);
+    expect(withRules({ ...fieldPlan, parameters: scatter.parameters })).toBe(false);
+  });
+});

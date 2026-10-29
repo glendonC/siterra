@@ -107,18 +107,20 @@ describe("synthetic seed-commission replay", () => {
         const second = await commission("key-test-replay-fixture-2", "Show spring 2022 again.");
         expect(await settled(second)).toBe("succeeded");
         const after = await readSnapshot(db.pool, CASE_ID, OWNER);
-        const statements = (after?.records.evidenceRecords ?? []).map((e) => e.statement).sort();
+        // The seed also holds statements of published sources (scientific context); these are what the tasks wrote
+        const written = (after?.records.evidenceRecords ?? []).filter(
+          (e) => e.claimKind !== "scientific_context",
+        );
+        const statements = written.map((e) => e.statement).sort();
         expect(statements).toHaveLength(4);
         expect(new Set(statements).size).toBe(2);
-        expect(
-          after?.records.evidenceRecords.every(
-            (e) => e.claimKind === "observation" && e.status === "accepted",
-          ),
-        ).toBe(true);
+        expect(written.every((e) => e.claimKind === "observation" && e.status === "accepted")).toBe(
+          true,
+        );
 
         // The record itself says it came from a synthetic replay, and so does the usage of every
         // model event of the task that wrote it (lead, after b30).
-        const records = after?.records.evidenceRecords ?? [];
+        const records = written;
         for (const e of records) {
           expect(e.provenance.limitations).toContain(
             "Written from a synthetic replay, not a model output or a live model call.",

@@ -49,6 +49,7 @@ describe("the case seed in data/case/", () => {
       "bundle_optical_visibility_ait_bouguemez",
       "bundle_pixel_anatomy_ait_bouguemez",
       "bundle_pixel_trend_long_record_ait_bouguemez",
+      "bundle_relief_ait_bouguemez",
       "bundle_restrend_long_record_ait_bouguemez",
       "bundle_s2_ndvi_monthly_ait_bouguemez",
       "bundle_season_summary_ait_bouguemez",
@@ -147,7 +148,16 @@ describe("DF-03 (seed part): superseding a real bundle reaches evidence citing i
     );
     if (outcome.status !== "committed") throw new Error(outcome.status);
     expect(outcome.commit.upserts.map((u) => u.id).sort()).toEqual(
-      [bundle.id, "ev_example_seed_obs"].sort(),
+      [
+        bundle.id,
+        "ev_example_seed_obs",
+        // The instruments built on this bundle, directly or through bundles that read CHIRPS
+        // (the rainfall fit, the pixel trend, the rainfall sheet) go stale too.
+        "inst_cross_section_valley",
+        "inst_layer_stack_valley",
+        "inst_pixel_anatomy_valley",
+        "inst_rainfall_scatter_valley",
+      ].sort(),
     );
     const after = await readSnapshot(pool, caseFile.caseId, "seed");
     expect(after?.records.evidenceRecords.find((e) => e.id === "ev_example_seed_obs")?.status).toBe(
@@ -205,11 +215,13 @@ describe("the seed case is never live before GATE-01 is recorded", () => {
 });
 
 describe("contracts 1.6: the seed carries the context features of data/case/context-features.json", () => {
-  it("returns the outlet, Tabant and the Aït Ouchi locator as Point records in EPSG:4326", () => {
+  it("returns the outlet, Tabant and the Aït Ouchi locator as Point records in EPSG:4326 (the lines come from the bundles)", () => {
     const { seed, issues } = readCaseSeed(args);
     if (seed === null) throw new Error("A pinned seed file does not match");
     expect(issues).toEqual([]);
-    const records = seedSnapshot(seed).records.contextFeatureRecords ?? [];
+    const records = (seedSnapshot(seed).records.contextFeatureRecords ?? []).filter(
+      (r) => r.geometry.type === "Point",
+    );
     expect(records.map((r) => [r.id, r.role, r.crs])).toEqual([
       ["ctx_ait_ouchi_locator", "settlement_locator", "EPSG:4326"],
       ["ctx_catchment_outlet", "outlet", "EPSG:4326"],
