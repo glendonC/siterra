@@ -1,0 +1,226 @@
+/* The layer stack instrument (approved specimen A), in the Obsidian tokens of app/obsidian.css: one large figure
+   at the top left, numbered sheet labels on hairline leaders, the vertical scale under the model, the sources. */
+
+.root {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--bg-canvas);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-kerning: normal;
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+}
+
+.canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.canvas:focus-visible {
+  outline: 1px solid var(--hairline);
+  outline-offset: -2px;
+}
+
+.leaders {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+/* the briefing: one large figure, its unit line, one grey qualifying line with a source chip */
+.brief {
+  position: absolute;
+  left: 48px;
+  top: 36px;
+  width: 480px;
+  margin: 0;
+  pointer-events: none;
+}
+
+.fig {
+  display: block;
+  font-size: 56px;
+  line-height: 60px;
+  font-weight: 300;
+  letter-spacing: -0.5px;
+}
+
+.unit {
+  display: block;
+  margin-top: 4px;
+  font-size: 17px;
+  line-height: 24px;
+  white-space: nowrap;
+}
+
+.qual {
+  display: block;
+  margin-top: 4px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.chip {
+  display: inline-block;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  margin-left: 6px;
+  border: 1px solid var(--hairline);
+  border-radius: 3px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 16px;
+  text-align: center;
+  color: var(--text-secondary);
+  vertical-align: 1px;
+}
+
+/* labels that belong to the model, placed after every render */
+.label {
+  position: absolute;
+  width: 300px;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  white-space: nowrap;
+}
+
+.row .chip {
+  margin-left: 0;
+  align-self: center;
+}
+
+.num {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.selected .num {
+  color: var(--accent);
+}
+
+.swatch {
+  width: 10px;
+  height: 10px;
+  display: inline-block;
+  align-self: center;
+  border-radius: 1px;
+}
+
+.name {
+  font-size: 16px;
+  line-height: 22px;
+  font-weight: 500;
+}
+
+.question {
+  margin: 1px 0 0 33px;
+  white-space: nowrap;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--text-secondary);
+}
+
+.key {
+  margin: 5px 0 0 33px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--text-tertiary);
+  white-space: nowrap;
+}
+
+.ramp,
+.patch,
+.limit {
+  display: inline-block;
+  height: 8px;
+  border-radius: 1px;
+  flex: none;
+}
+
+.ramp {
+  width: 44px;
+}
+
+.patch {
+  width: 10px;
+}
+
+.limit {
+  width: 18px;
+  height: 2px;
+}
+
+.scaleNote {
+  position: absolute;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  letter-spacing: 0.24px;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* the attribution line, wrapped inside the frame */
+.credit {
+  position: absolute;
+  left: 48px;
+  right: 48px;
+  bottom: 12px;
+  margin: 0;
+  text-align: center;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--text-tertiary);
+  text-wrap: balance;
+}
+
+.credit span + span {
+  margin-left: 0.6em;
+}
+
+.credit b {
+  font-weight: 500;
+  font-family: var(--font-mono);
+  color: var(--text-secondary);
+}
+
+.failed {
+  position: absolute;
+  left: 48px;
+  top: 36px;
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--text-secondary);
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

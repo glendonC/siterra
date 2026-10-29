@@ -21,7 +21,12 @@ function files(dir: string, out: string[] = []): string[] {
 const all = files(WEB).map((p) => ({ path: relative(WEB, p), text: readFileSync(p, "utf8") }));
 
 /** Files that define tokens: the only places a colour value may be written. */
-const TOKEN_FILES = new Set(["app/daylight.css", "lib/theme/daylight.ts"]);
+const TOKEN_FILES = new Set([
+  "app/daylight.css",
+  "lib/theme/daylight.ts",
+  "app/obsidian.css",
+  "lib/theme/obsidian.ts",
+]);
 
 const COLOUR = /#[0-9a-fA-F]{3,8}\b|\b(?:rgba?|hsla?|oklch|oklab|lab|lch)\(/g;
 

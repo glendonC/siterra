@@ -1,0 +1,80 @@
+{
+  "frame": {
+    "crs": "EPSG:32629",
+    "units": "km",
+    "origin_E": 752030,
+    "origin_N": 3501980,
+    "axes": "x east, z south, y up; y = (elevation - base) * exaggeration / 1000"
+  },
+  "relief": {
+    "file": "relief-30m.f32",
+    "dtype": "float32 little-endian, row 0 north",
+    "E0": 733020,
+    "N0": 3516980,
+    "res": 30,
+    "width": 1268,
+    "height": 1000,
+    "pad_cells": 6,
+    "method": "Copernicus DEM GLO-30 2021 tile reprojected bilinear to EPSG:32629 at 30 m on the grid of the strata recipe (aligned with the 10 m analysis grid), as in dem_strata.py",
+    "inside_catchment_utm30": {
+      "min": 1464.9403076171875,
+      "max": 4001.4951171875,
+      "cells": 463680
+    },
+    "inside_catchment_native": {
+      "min": 1464.572021484375,
+      "max": 4007.30419921875,
+      "cells": 513974
+    }
+  },
+  "analysis": {
+    "E0": 733200,
+    "N0": 3516800,
+    "res": 10,
+    "width": 3766,
+    "height": 2964,
+    "strata_png": "strata-10m.png (R band 1 below 2316.8 m, G band 2, B band 3)",
+    "landcover_png": "landcover-10m.png (R WorldCover 10 tree cover, G 40 cropland or 50 built-up, B inside catchment)"
+  },
+  "truecolour": {
+    "file": "truecolour-10m.jpg",
+    "E0": 733020,
+    "N0": 3516980,
+    "res": 10,
+    "width": 3804,
+    "height": 3000,
+    "source": "data/interim/hero/imagery/truecolour-inner-10m.tif",
+    "note": "display only; Sentinel-2 L2A median of 5 dates, Jul to Aug 2025"
+  },
+  "worldcover_counts_inside": {
+    "10": 339058,
+    "20": 51988,
+    "30": 2854260,
+    "40": 47230,
+    "50": 3904,
+    "60": 869235,
+    "80": 7928
+  },
+  "sources": {
+    "dem": {
+      "path": "data/raw/copernicus-dem-30m/Copernicus_DSM_COG_10_N31_00_W007_00_DEM.tif",
+      "sha256": "024f00066f44b6c04c26ab5c22ef8d355f6dc77052206d96c9a9c04f66b9c61e"
+    },
+    "catchment": {
+      "path": "data/bundles/bundle_terrain_strata_ait_bouguemez/analysis-geometry.geojson",
+      "sha256": "ac506ece626b6844d759b56aa60a10248c8c0ea5e206f9a28eb436a892a4d47f"
+    },
+    "strata": {
+      "path": "data/bundles/bundle_terrain_strata_ait_bouguemez/strata.tif",
+      "sha256": "0fad1da26371ef0e7c64a155f11ab10f753dac1c2e29f600b8e574488e88c2a6"
+    },
+    "worldcover": {
+      "path": "data/interim/worldcover/worldcover-2021.tif",
+      "sha256": "48cefdeb34cefae9e5765de39f998d93f3053ce1fb022adfb2b2f8cd873f7507"
+    },
+    "truecolour": {
+      "path": "data/interim/hero/imagery/truecolour-inner-10m.tif",
+      "sha256": "68ba737d375936f0acb42057b0df047ed4b09148e577b71f87b668ec5a95734e"
+    }
+  }
+}

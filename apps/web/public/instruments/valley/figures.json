@@ -1,0 +1,56 @@
+{
+  "season_trend": {
+    "source": "data/bundles/bundle_season_trend_long_record_ait_bouguemez/season-trend-long-record.json",
+    "field": "results[growing_window=mar_jun, reliability_0_1].ols",
+    "catchment": {
+      "per_decade": 0.00906,
+      "lower": 0.00457,
+      "upper": 0.01356,
+      "direction": "upward",
+      "label": "Ait Bouguemez valley catchment"
+    },
+    "elevation_low": {
+      "per_decade": 0.0134,
+      "lower": 0.00778,
+      "upper": 0.01902,
+      "direction": "upward",
+      "label": "below 2317 m"
+    },
+    "elevation_mid": {
+      "per_decade": 0.00718,
+      "lower": 0.00152,
+      "upper": 0.01285,
+      "direction": "upward",
+      "label": "2317 to 2815 m"
+    },
+    "elevation_high": {
+      "per_decade": 0.007,
+      "lower": 0.00161,
+      "upper": 0.01239,
+      "direction": "upward",
+      "label": "2815 m and above"
+    }
+  },
+  "pixel_trend": {
+    "source": "data/bundles/bundle_pixel_trend_long_record_ait_bouguemez/pixel-trend-long-record.json",
+    "field": "windows_summary.mar_jun",
+    "modis_pixels_touched": 8094,
+    "increasing_fdr_share": 0.247,
+    "decreasing_fdr_share": 0.0009,
+    "upward_fdr_clusters": 33,
+    "downward_fdr_clusters": 0,
+    "fdr_q": 0.05
+  },
+  "restrend": {
+    "source": "data/bundles/bundle_restrend_long_record_ait_bouguemez/restrend-long-record.json",
+    "field": "headline.catchment.rainfall_fit_r_squared",
+    "rainfall_fit_r_squared": 0.03699350879758126,
+    "driest_sep_may": [
+      { "season": 2001, "mm": 369.19 },
+      { "season": 2024, "mm": 390.52 },
+      { "season": 2016, "mm": 419.47 },
+      { "season": 2023, "mm": 420.81 }
+    ],
+    "driest_from": "data/bundles/bundle_restrend_long_record_ait_bouguemez/restrend-long-record-tables.json rainfall[stratum=catchment, rainfall_window=sep_may]"
+  }
+}

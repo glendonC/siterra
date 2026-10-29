@@ -1,0 +1,87 @@
+{
+  "source": "data/bundles/bundle_snow_cover_by_band_ait_bouguemez/snow-cover-by-band-tables.json",
+  "sha256": "658f75ac5e5d7f0c06d2179dcdc2ca89792549ce1d728202b03ce56f07323db2",
+  "threshold": "NDSI 0.2 (the bundle default)",
+  "value": "mean over 2001 to 2025 of the monthly share of clear-day 500 m pixels that are snow-covered; months whose status is not 'available' are left out (the count of years used is listed)",
+  "months": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+  "bands": {
+    "elev_below_2000": {
+      "label": "below 2000 m",
+      "set": "fixed_500m",
+      "monthly_mean": [
+        0.1395, 0.0803, 0.0201, 0.0013, 0.0003, 0.001, 0.0009, 0.0014, 0.0011, 0.0032, 0.0192,
+        0.0785
+      ],
+      "years_used": [25, 25, 25, 25, 25, 25, 24, 24, 25, 25, 25, 25]
+    },
+    "elev_2000_2500": {
+      "label": "2000 to 2500 m",
+      "set": "fixed_500m",
+      "monthly_mean": [
+        0.2883, 0.2181, 0.0878, 0.0084, 0.0034, 0.0013, 0.0011, 0.0015, 0.0009, 0.0066, 0.0861,
+        0.1828
+      ],
+      "years_used": [25, 25, 25, 25, 25, 25, 24, 24, 25, 25, 25, 25]
+    },
+    "elev_2500_3000": {
+      "label": "2500 to 3000 m",
+      "set": "fixed_500m",
+      "monthly_mean": [
+        0.5822, 0.6094, 0.4441, 0.1058, 0.0195, 0.0009, 0.0015, 0.0016, 0.0015, 0.0158, 0.2547,
+        0.5214
+      ],
+      "years_used": [25, 24, 25, 25, 25, 25, 24, 24, 25, 25, 25, 25]
+    },
+    "elev_3000_3500": {
+      "label": "3000 to 3500 m",
+      "set": "fixed_500m",
+      "monthly_mean": [
+        0.7923, 0.837, 0.7862, 0.42, 0.0815, 0.0013, 0.0015, 0.0024, 0.0021, 0.0481, 0.42, 0.7756
+      ],
+      "years_used": [25, 24, 25, 25, 25, 25, 24, 24, 25, 25, 25, 25]
+    },
+    "elev_3500_up": {
+      "label": "3500 m and above",
+      "set": "fixed_500m",
+      "monthly_mean": [
+        0.8619, 0.9123, 0.9066, 0.7433, 0.2898, 0.0141, 0.001, 0.0025, 0.0199, 0.1915, 0.6042,
+        0.8607
+      ],
+      "years_used": [25, 25, 25, 25, 25, 25, 24, 24, 25, 25, 25, 25]
+    },
+    "elevation_low": {
+      "label": "below 2317 m",
+      "set": "terrain_strata",
+      "monthly_mean": [
+        0.2135, 0.1395, 0.0452, 0.0038, 0.0016, 0.0012, 0.0011, 0.0014, 0.001, 0.0047, 0.0489, 0.122
+      ],
+      "years_used": [25, 25, 25, 25, 25, 25, 24, 24, 25, 25, 25, 25]
+    },
+    "elevation_mid": {
+      "label": "2317 to 2815 m",
+      "set": "terrain_strata",
+      "monthly_mean": [
+        0.4841, 0.4844, 0.3011, 0.0512, 0.0124, 0.001, 0.0013, 0.0015, 0.0013, 0.0118, 0.1974,
+        0.4045
+      ],
+      "years_used": [25, 24, 25, 25, 25, 25, 24, 24, 25, 25, 25, 25]
+    },
+    "elevation_high": {
+      "label": "2815 m and above",
+      "set": "terrain_strata",
+      "monthly_mean": [
+        0.7535, 0.7966, 0.725, 0.3566, 0.0757, 0.002, 0.0015, 0.0022, 0.003, 0.0474, 0.3928, 0.7294
+      ],
+      "years_used": [25, 24, 25, 25, 25, 25, 24, 24, 25, 25, 25, 25]
+    },
+    "catchment": {
+      "label": "Ait Bouguemez valley catchment",
+      "set": null,
+      "monthly_mean": [
+        0.4835, 0.4697, 0.3472, 0.1339, 0.0298, 0.0014, 0.0013, 0.0017, 0.0018, 0.021, 0.2104,
+        0.4146
+      ],
+      "years_used": [25, 25, 25, 25, 25, 25, 24, 24, 25, 25, 25, 25]
+    }
+  }
+}

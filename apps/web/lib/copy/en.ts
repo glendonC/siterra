@@ -400,6 +400,67 @@ export const en = {
     kind: "ui",
   },
   "mode.fixture": { text: "Fixture Data", kind: "heading" },
+
+  // Instruments: the layer stack (approved specimen A). Figures, years and limits come from the record's fixtures
+  // (lib/instruments/valley/fixtures.ts); credits are numbered by the sheet they serve
+  "instrument.layers.unit": { text: "NDVI per decade, March to June, {from} to {to}", kind: "ui" },
+  "instrument.layers.rises": {
+    text: "Rises on {share} of the area after a false discovery rate check.",
+    kind: "ui",
+  },
+  "instrument.layers.description": {
+    text: "A relief model of the valley catchment with its drainage lines. Above it are five sheets: the March to June vegetation trend, rainfall, snow cover, land cover on the valley floor, and the three elevation bands.",
+    kind: "ui",
+  },
+  "instrument.layers.keys": {
+    text: "Arrow keys turn the model; Home returns to the measured view.",
+    kind: "ui",
+  },
+  "instrument.layers.scale": { text: "Vertical scale {value}×", kind: "label" },
+  "instrument.layers.failed": { text: "Layers not loaded. Reload the page to retry.", kind: "ui" },
+  "instrument.sheet.trend": { text: "Vegetation Trend", kind: "heading" },
+  "instrument.sheet.trend.question": {
+    text: "Where did greenness change, {from} to {to}?",
+    kind: "ui",
+  },
+  "instrument.sheet.trend.key": { text: "{value} NDVI per decade", kind: "label" },
+  "instrument.sheet.rain": { text: "Rainfall", kind: "heading" },
+  "instrument.sheet.rain.question": {
+    text: "Where does more rain fall, September to May?",
+    kind: "ui",
+  },
+  "instrument.sheet.rain.key": { text: "{value} mm, {from} to {to} mean", kind: "label" },
+  "instrument.sheet.snow": { text: "Snow Cover", kind: "heading" },
+  // the sheet shows February (SNOW_MONTH in lib/instruments/valley/scene/layer-stack.ts)
+  "instrument.sheet.snow.question": {
+    text: "How snowy is each 500 m band in February?",
+    kind: "ui",
+  },
+  "instrument.sheet.snow.key": { text: "{value}, mean of {from} to {to}", kind: "label" },
+  "instrument.sheet.cover": { text: "Land Cover", kind: "heading" },
+  "instrument.sheet.cover.question": {
+    text: "Where are the fields, buildings and trees?",
+    kind: "ui",
+  },
+  "instrument.sheet.cover.crop": { text: "cropland or built-up", kind: "label" },
+  "instrument.sheet.cover.tree": { text: "tree cover, {year}, {res} m", kind: "label" },
+  "instrument.sheet.bands": { text: "Elevation Bands", kind: "heading" },
+  "instrument.sheet.bands.question": {
+    text: "Which equal-area third is each place in?",
+    kind: "ui",
+  },
+  "instrument.sheet.bands.key": { text: "limits at {lower} m and {upper} m", kind: "label" },
+  "instrument.credit.modisNdvi": { text: "MODIS MOD13Q1 v6.1, NASA LP DAAC", kind: "ui" },
+  "instrument.credit.chirps": {
+    text: "CHIRPS v3.0, Climate Hazards Center, UC Santa Barbara",
+    kind: "ui",
+  },
+  "instrument.credit.modisSnow": { text: "MODIS MOD10A1 v6.1, NSIDC", kind: "ui" },
+  "instrument.credit.worldcover": { text: "© ESA WorldCover 2021, CC BY 4.0", kind: "ui" },
+  "instrument.credit.dem": {
+    text: "Produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved",
+    kind: "ui",
+  },
 } as const satisfies Record<string, Message>;
 
 export type MessageId = keyof typeof en;
@@ -427,6 +488,20 @@ export const LINT_ALLOWLIST: Partial<Record<MessageId, { rules: string[]; reason
     rules: ["VT-08", "VT-09", "VT-48"],
     reason:
       "maplibre-contour is the package's own lower-case name; the link names it, its licence and the bundled licences in full.",
+  },
+  "instrument.credit.modisNdvi": {
+    rules: ["VT-08"],
+    reason:
+      "MODIS is the instrument's name and LP DAAC the archive's; the credit names the product as NASA's archive lists it.",
+  },
+  "instrument.credit.modisSnow": {
+    rules: ["VT-08"],
+    reason:
+      "MODIS is the instrument's name and NSIDC the data centre's; the credit names the product as the data centre lists it.",
+  },
+  "instrument.credit.dem": {
+    rules: ["VT-03", "VT-08"],
+    reason: "Copernicus WorldDEM-30 licence notice, kept in the wording the licence requires.",
   },
   "notice.three": {
     rules: ["VT-08", "VT-09"],

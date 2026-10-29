@@ -86,6 +86,22 @@ In the hero sequence the budget counts the hero's parts instead of islands; the 
 
 The arrival's one primary action is the key hint "↵ Start investigation"; "F Read flat" is a view control, not a second primary action. Strings, kinds and per-beat counts: [microcopy](microcopy.md), section 1a.
 
+### The instruments' budget
+
+The instrument views (the layer stack, the cutaway, the pixel anatomy) have their own budget instead of the hero's: each approved specimen's counts are the ceiling for its instrument (lead decision, 29 Oct 2026). Credits are not counted. The layer stack, from the approved specimen of the five layers:
+
+| Per screen | Ceiling |
+|---|---|
+| Large figures | 1, with its unit line and one grey qualifying line carrying its source chip |
+| Sheets | 5, stacked straight up over the relief model, one dataset each |
+| Leaders | 5, one hairline from each sheet's plate to its label; only the selected sheet's leader and number are warm |
+| Sheet labels | 5: number, swatch, name and source chip; one question line; one key line |
+| Notes on the model | 1, the vertical scale |
+| Warm accent | 1 thing, the selected sheet |
+| Command line | 1, from the briefing shell |
+
+The cutaway and the pixel anatomy add their rows when they are built. The instrument checks (`apps/web/e2e/instrument-*.spec.ts`) count what is drawn against these ceilings, and also check that no line of text overlaps another, none is under 12 CSS px and none leaves the frame.
+
 ## Sections and focus
 
 Five fixed sections in reading order: **Place, Observations, Explanations, Responses, Next steps**. The model cannot reorder them; order is part of the argument. The section that receives the result of the user's latest command expands; the others collapse to one line. Background results never collapse what the user opened and never move content under the pointer (rule 5 in [motion](motion.md)).

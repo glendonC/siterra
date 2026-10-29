@@ -1,0 +1,15 @@
+/* Direction 1, SHD Obsidian: the theme of the instrument views, with the values of the approved specimens.
+   This file and lib/theme/obsidian.ts are the only places where the instruments' colour values are written
+   (VC-01). It applies inside an element with data-theme="obsidian"; the daylight tokens stay as they are. */
+
+[data-theme="obsidian"] {
+  color-scheme: dark;
+  --bg-canvas: #0b1012;
+  --bg-surface: #141c20;
+  --text-primary: #ebf0f1;
+  --text-secondary: #b7c4c8;
+  --text-tertiary: #8e9da2;
+  --hairline: rgb(235 240 241 / 0.34);
+  --hairline-quiet: rgb(235 240 241 / 0.16);
+  --accent: #e07a3a;
+}

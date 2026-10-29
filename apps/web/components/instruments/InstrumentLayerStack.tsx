@@ -1,0 +1,354 @@
+"use client";
+
+// The layer stack (approved specimen A): five sheets of the record stacked straight up over the 3D catchment,
+// numbered labels on one hairline leader each, one large figure at the top left, and the sources. The scene is
+// three.js (lib/instruments/valley/scene/layer-stack.ts); the words around it are HTML, placed after every render
+// so they follow the model when it is turned.
+
+import { useEffect, useId, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
+import { en, format, type MessageId } from "../../lib/copy/en";
+import { metres, percent, signed } from "../../lib/instruments/format";
+import {
+  BAND_LIMITS_M,
+  RAIN_REFERENCE_YEARS,
+  SNOW_YEARS,
+  VALLEY_FIXTURES,
+  WORLDCOVER,
+  loadLayerStackData,
+  type LayerStackData,
+} from "../../lib/instruments/valley/fixtures";
+import { RAIN_RANGE } from "../../lib/instruments/valley/palette";
+import {
+  LAYER_STACK_DESIGN,
+  LAYER_STACK_EXAG,
+  SHEETS,
+  mountLayerStack,
+  type LayerStackScene,
+  type SheetId,
+} from "../../lib/instruments/valley/scene/layer-stack";
+import { obsidian, sheetColours } from "../../lib/theme/obsidian";
+import styles from "./InstrumentLayerStack.module.css";
+
+/** Left edge of the labels at the design width, as the specimen measured it. */
+const LABEL_X = 1100;
+/** The selected sheet: its number and its leader carry the one warm line. */
+const SELECTED: SheetId = "trend";
+
+const NAME: Record<SheetId, MessageId> = {
+  trend: "instrument.sheet.trend",
+  rain: "instrument.sheet.rain",
+  snow: "instrument.sheet.snow",
+  cover: "instrument.sheet.cover",
+  bands: "instrument.sheet.bands",
+};
+
+const SWATCH: Record<SheetId, string> = {
+  trend: sheetColours.swatchTrend,
+  rain: sheetColours.swatchRain,
+  snow: sheetColours.swatchSnow,
+  cover: sheetColours.coverCrop,
+  bands: sheetColours.bandTint,
+};
+
+/** The sources, numbered as the sheets' chips are. */
+const CREDITS: MessageId[] = [
+  "instrument.credit.modisNdvi",
+  "instrument.credit.chirps",
+  "instrument.credit.modisSnow",
+  "instrument.credit.worldcover",
+  "instrument.credit.dem",
+];
+
+const gradient = (stops: readonly string[]) => `linear-gradient(90deg, ${stops.join(", ")})`;
+const TREND_KEY = [
+  ...[...sheetColours.trendBelow].reverse(),
+  sheetColours.trendKeyNeutral,
+  ...sheetColours.trendAbove,
+];
+
+function question(id: SheetId, d: LayerStackData): string {
+  const [from, to] = d.trend.period;
+  return id === "trend"
+    ? format("instrument.sheet.trend.question", { from, to })
+    : en[`instrument.sheet.${id}.question`].text;
+}
+
+function sheetKey(id: SheetId, d: LayerStackData): ReactNode {
+  switch (id) {
+    case "trend": {
+      const half = d.trend.display_scale.domain_per_decade[1];
+      return (
+        <>
+          <span>{signed(-half, 2)}</span>
+          <i className={styles.ramp} style={{ background: gradient(TREND_KEY) }} />
+          <span>{format("instrument.sheet.trend.key", { value: signed(half, 2) })}</span>
+        </>
+      );
+    }
+    case "rain":
+      return (
+        <>
+          <span>{RAIN_RANGE.lo}</span>
+          <i className={styles.ramp} style={{ background: gradient(sheetColours.rain) }} />
+          <span>
+            {format("instrument.sheet.rain.key", {
+              value: RAIN_RANGE.hi,
+              from: RAIN_REFERENCE_YEARS[0],
+              to: RAIN_REFERENCE_YEARS[1],
+            })}
+          </span>
+        </>
+      );
+    case "snow":
+      return (
+        <>
+          <span>{0}</span>
+          <i className={styles.ramp} style={{ background: gradient(sheetColours.snow) }} />
+          <span>
+            {format("instrument.sheet.snow.key", {
+              value: percent(1, 0),
+              from: SNOW_YEARS[0],
+              to: SNOW_YEARS[1],
+            })}
+          </span>
+        </>
+      );
+    case "cover":
+      return (
+        <>
+          <i className={styles.patch} style={{ background: sheetColours.coverCrop }} />
+          <span>{en["instrument.sheet.cover.crop"].text}</span>
+          <i className={styles.patch} style={{ background: sheetColours.coverTree }} />
+          <span>
+            {format("instrument.sheet.cover.tree", { year: WORLDCOVER.year, res: WORLDCOVER.res })}
+          </span>
+        </>
+      );
+    case "bands":
+      return (
+        <>
+          <i className={styles.limit} style={{ background: sheetColours.outline }} />
+          <span>
+            {format("instrument.sheet.bands.key", {
+              lower: metres(BAND_LIMITS_M[0]),
+              upper: metres(BAND_LIMITS_M[1]),
+            })}
+          </span>
+        </>
+      );
+  }
+}
+
+/** Arrow keys turn the model (degrees of bearing, of elevation); Home shows the measured view. */
+const TURN: Record<string, [number, number]> = {
+  ArrowLeft: [5, 0],
+  ArrowRight: [-5, 0],
+  ArrowUp: [0, 3],
+  ArrowDown: [0, -3],
+};
+
+export function InstrumentLayerStack({ base = VALLEY_FIXTURES }: { base?: string }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const labelRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const rowRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const leaderRefs = useRef<(SVGLineElement | null)[]>([]);
+  const dotRefs = useRef<(SVGCircleElement | null)[]>([]);
+  const scaleRef = useRef<HTMLDivElement>(null);
+  const sceneRef = useRef<LayerStackScene | null>(null);
+  const [data, setData] = useState<LayerStackData | null>(null);
+  const [failed, setFailed] = useState(false);
+  const keysId = useId();
+
+  useEffect(() => {
+    const ac = new AbortController();
+    loadLayerStackData(base, ac.signal).then(setData, () => {
+      if (!ac.signal.aborted) setFailed(true);
+    });
+    return () => {
+      ac.abort();
+    };
+  }, [base]);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!data || !canvas) return;
+    const ac = new AbortController();
+    let scene: LayerStackScene | null = null;
+
+    // each sheet's label at the leader from its plate's right-most corner; the scale note under the model
+    const place = () => {
+      if (!scene) return;
+      const { stage, sheetY, plate, footprint } = scene;
+      const { width, height } = stage.size();
+      const fit = Math.min(width / LAYER_STACK_DESIGN.width, height / LAYER_STACK_DESIGN.height);
+      const labelX = width / 2 + (LABEL_X - LAYER_STACK_DESIGN.width / 2) * fit;
+      sheetY.forEach((y, i) => {
+        const p = plate
+          .map(([x, z]) => stage.project([x, y, z]))
+          .reduce((a, b) => (b.x > a.x ? b : a));
+        const label = labelRefs.current[i];
+        const row = rowRefs.current[i];
+        if (label && row) {
+          label.style.left = `${labelX.toFixed(1)}px`;
+          label.style.top = `${(p.y - (row.offsetTop + row.offsetHeight / 2)).toFixed(1)}px`;
+          label.style.visibility = "visible";
+        }
+        const leader = leaderRefs.current[i];
+        leader?.setAttribute("x1", p.x.toFixed(1));
+        leader?.setAttribute("y1", p.y.toFixed(1));
+        leader?.setAttribute("x2", (labelX - 10).toFixed(1));
+        leader?.setAttribute("y2", p.y.toFixed(1));
+        dotRefs.current[i]?.setAttribute("cx", p.x.toFixed(1));
+        dotRefs.current[i]?.setAttribute("cy", p.y.toFixed(1));
+      });
+      let left = Infinity;
+      let lowest = -Infinity;
+      for (const [x, z] of footprint) {
+        const q = stage.project([x, 0, z]);
+        left = Math.min(left, q.x);
+        lowest = Math.max(lowest, q.y);
+      }
+      const note = scaleRef.current;
+      if (note) {
+        note.style.left = `${left.toFixed(1)}px`;
+        note.style.top = `${(lowest + 16).toFixed(1)}px`;
+        note.style.visibility = "visible";
+      }
+    };
+
+    mountLayerStack(canvas, data, base, ac.signal).then(
+      (s) => {
+        if (ac.signal.aborted) {
+          s.dispose();
+          return;
+        }
+        scene = s;
+        sceneRef.current = s;
+        s.stage.onRender(place);
+        s.stage.render();
+      },
+      () => {
+        if (!ac.signal.aborted) setFailed(true);
+      },
+    );
+    return () => {
+      ac.abort();
+      scene?.dispose();
+      sceneRef.current = null;
+    };
+  }, [data, base]);
+
+  const onKeyDown = (e: KeyboardEvent<HTMLCanvasElement>) => {
+    const scene = sceneRef.current;
+    if (!scene) return;
+    if (e.key === "Home") {
+      scene.reset();
+      e.preventDefault();
+      return;
+    }
+    const t = TURN[e.key];
+    if (t) {
+      scene.turn(t[0], t[1]);
+      e.preventDefault();
+    }
+  };
+
+  return (
+    <div className={styles.root} data-theme="obsidian" data-instrument="layers">
+      <canvas
+        ref={canvasRef}
+        className={styles.canvas}
+        tabIndex={0}
+        aria-label={en["instrument.layers.description"].text}
+        aria-describedby={keysId}
+        onKeyDown={onKeyDown}
+      />
+      <p id={keysId} className={styles.srOnly}>
+        {en["instrument.layers.keys"].text}
+      </p>
+      {failed && (
+        <p className={styles.failed} role="status">
+          {en["instrument.layers.failed"].text}
+        </p>
+      )}
+      {data && !failed && (
+        <>
+          <svg className={styles.leaders} aria-hidden="true">
+            {SHEETS.map((id, i) => {
+              const stroke = id === SELECTED ? obsidian.accent : obsidian.leaderQuiet;
+              return (
+                <g key={id}>
+                  <line
+                    ref={(e) => {
+                      leaderRefs.current[i] = e;
+                    }}
+                    stroke={stroke}
+                    strokeWidth={1}
+                  />
+                  <circle
+                    ref={(e) => {
+                      dotRefs.current[i] = e;
+                    }}
+                    r={2.4}
+                    fill={stroke}
+                  />
+                </g>
+              );
+            })}
+          </svg>
+          <p className={styles.brief}>
+            <span className={styles.fig}>
+              {signed(data.figures.season_trend.catchment.per_decade, 4)}
+            </span>
+            <span className={styles.unit}>
+              {format("instrument.layers.unit", {
+                from: data.trend.period[0],
+                to: data.trend.period[1],
+              })}
+            </span>
+            <span className={styles.qual}>
+              {format("instrument.layers.rises", {
+                share: percent(data.figures.pixel_trend.increasing_fdr_share),
+              })}
+              <span className={styles.chip}>{1}</span>
+            </span>
+          </p>
+          {SHEETS.map((id, i) => (
+            <div
+              key={id}
+              ref={(e) => {
+                labelRefs.current[i] = e;
+              }}
+              className={id === SELECTED ? `${styles.label} ${styles.selected}` : styles.label}
+              data-sheet={id}
+            >
+              <div
+                ref={(e) => {
+                  rowRefs.current[i] = e;
+                }}
+                className={styles.row}
+              >
+                <span className={styles.num}>{String(i + 1).padStart(2, "0")}</span>
+                <span className={styles.swatch} style={{ background: SWATCH[id] }} />
+                <span className={styles.name}>{en[NAME[id]].text}</span>
+                <span className={styles.chip}>{i + 1}</span>
+              </div>
+              <p className={styles.question}>{question(id, data)}</p>
+              <div className={styles.key}>{sheetKey(id, data)}</div>
+            </div>
+          ))}
+          <div ref={scaleRef} className={styles.scaleNote} data-scale-note>
+            {format("instrument.layers.scale", { value: LAYER_STACK_EXAG })}
+          </div>
+          <p className={styles.credit}>
+            {CREDITS.map((id, i) => (
+              <span key={id}>
+                <b>{i + 1}</b> {en[id].text}
+              </span>
+            ))}
+          </p>
+        </>
+      )}
+    </div>
+  );
+}
