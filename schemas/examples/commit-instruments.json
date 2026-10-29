@@ -1,0 +1,786 @@
+{
+  "recordType": "Commit",
+  "schemaVersion": "1.11.0",
+  "id": "commit_example_instruments",
+  "caseId": "case_example_atlas",
+  "commandId": "cmd_example_instruments",
+  "taskId": "task_example_instruments",
+  "expectedCaseRevision": 7,
+  "newCaseRevision": 8,
+  "idempotencyKey": "example-instruments-commit-0001",
+  "inputVersions": [
+    {
+      "entityId": "geo_example_context",
+      "revision": 1
+    },
+    {
+      "entityId": "bundle_example_trend",
+      "revision": 1
+    },
+    {
+      "entityId": "bundle_example_restrend",
+      "revision": 1
+    },
+    {
+      "entityId": "merge_example_branches",
+      "revision": 1
+    }
+  ],
+  "caseAfter": {
+    "recordType": "EnvironmentalCase",
+    "id": "case_example_atlas",
+    "revision": 8,
+    "createdAt": "2026-10-26T16:00:00-04:00",
+    "updatedAt": "2026-10-29T09:00:00-04:00",
+    "title": "Example: High Atlas investigation",
+    "objective": "Identify evidence and field measurements needed to assess competing explanations for pasture pressure.",
+    "status": "commissioned",
+    "mode": "concept",
+    "ownerScopeId": "example_fixture_only",
+    "activeGeoSelectionId": "geo_example_context",
+    "currentBriefId": null,
+    "unresolvedQuestions": [],
+    "permissionProfile": "research_and_preparation_only",
+    "description": "Fictional contract fixture. No measured environmental result or visited location is asserted."
+  },
+  "upserts": [
+    {
+      "recordType": "InstrumentSpec",
+      "id": "inst_example_layer_stack",
+      "revision": 1,
+      "createdAt": "2026-10-29T09:00:00-04:00",
+      "updatedAt": "2026-10-29T09:00:00-04:00",
+      "caseId": "case_example_atlas",
+      "status": "ready",
+      "parameters": {
+        "kind": "layer_stack",
+        "geoSelectionId": "geo_example_context",
+        "relief": {
+          "bundleId": "bundle_example_relief",
+          "assetKey": "relief"
+        },
+        "layers": [
+          {
+            "layer": "vegetation_trend",
+            "data": {
+              "bundleId": "bundle_example_trend",
+              "assetKey": "pixel_trend_grid_mar_jun"
+            }
+          },
+          {
+            "layer": "rainfall",
+            "data": {
+              "bundleId": "bundle_example_rain",
+              "assetKey": "rainfall_cells"
+            }
+          },
+          {
+            "layer": "snow_cover",
+            "data": {
+              "bundleId": "bundle_example_snow",
+              "assetKey": "snow_cover_tables"
+            }
+          },
+          {
+            "layer": "land_cover",
+            "data": {
+              "bundleId": "bundle_example_land_cover",
+              "assetKey": "land_cover"
+            }
+          },
+          {
+            "layer": "elevation_bands",
+            "data": {
+              "bundleId": "bundle_example_strata",
+              "assetKey": "strata"
+            }
+          }
+        ],
+        "drainageFeatureIds": [
+          "ctx_example_drainage"
+        ],
+        "placeFeatureIds": [
+          "ctx_example_outlet"
+        ],
+        "selectedLayer": "vegetation_trend"
+      },
+      "caption": {
+        "ink": "Fictional example: five data layers stand one above the other over the same catchment.",
+        "grey": "Synthetic fixture; the layers hold no measured result.",
+        "claimKind": "observation",
+        "citationIds": [
+          "ev_example_layers"
+        ]
+      },
+      "provenance": {
+        "sourceLocators": [],
+        "dataBundleIds": [
+          "bundle_example_relief",
+          "bundle_example_trend",
+          "bundle_example_rain",
+          "bundle_example_snow",
+          "bundle_example_land_cover",
+          "bundle_example_strata"
+        ],
+        "methodId": "instrument_composer",
+        "methodVersion": "1",
+        "inputVersions": [
+          {
+            "entityId": "geo_example_context",
+            "revision": 1
+          },
+          {
+            "entityId": "bundle_example_relief",
+            "revision": 1
+          },
+          {
+            "entityId": "bundle_example_trend",
+            "revision": 1
+          },
+          {
+            "entityId": "bundle_example_rain",
+            "revision": 1
+          },
+          {
+            "entityId": "bundle_example_snow",
+            "revision": 1
+          },
+          {
+            "entityId": "bundle_example_land_cover",
+            "revision": 1
+          },
+          {
+            "entityId": "bundle_example_strata",
+            "revision": 1
+          },
+          {
+            "entityId": "ctx_example_drainage",
+            "revision": 1
+          },
+          {
+            "entityId": "ctx_example_outlet",
+            "revision": 1
+          },
+          {
+            "entityId": "ev_example_layers",
+            "revision": 1
+          }
+        ],
+        "generatedByTaskId": "task_example_instruments",
+        "generatedAt": "2026-10-29T09:00:00-04:00",
+        "verificationStatus": "computed_checked",
+        "limitations": [
+          "Fictional contract fixture. No measured environmental result is asserted."
+        ]
+      }
+    },
+    {
+      "recordType": "InstrumentSpec",
+      "id": "inst_example_cross_section",
+      "revision": 1,
+      "createdAt": "2026-10-29T09:00:00-04:00",
+      "updatedAt": "2026-10-29T09:00:00-04:00",
+      "caseId": "case_example_atlas",
+      "status": "ready",
+      "parameters": {
+        "kind": "cross_section",
+        "geoSelectionId": "geo_example_context",
+        "transectFeatureId": "ctx_example_transect",
+        "relief": {
+          "bundleId": "bundle_example_relief",
+          "assetKey": "relief"
+        },
+        "profile": {
+          "bundleId": "bundle_example_transects",
+          "assetKey": "transect_profile"
+        },
+        "bands": {
+          "bundleId": "bundle_example_strata",
+          "assetKey": "strata"
+        },
+        "bandTrends": {
+          "bundleId": "bundle_example_season_trend",
+          "assetKey": "season_trend_long_record"
+        },
+        "snow": {
+          "bundleId": "bundle_example_snow",
+          "assetKey": "snow_cover_tables"
+        },
+        "drainageFeatureIds": [
+          "ctx_example_drainage"
+        ],
+        "placeFeatureIds": [
+          "ctx_example_settlement"
+        ],
+        "statements": [
+          {
+            "evidenceId": "ev_example_valley_floor",
+            "placement": "valley_floor"
+          },
+          {
+            "evidenceId": "ev_example_upper_slope",
+            "placement": "upper_slope"
+          }
+        ]
+      },
+      "caption": {
+        "ink": "Fictional example: the catchment is cut along one line and the cut face is shown.",
+        "grey": "Synthetic fixture; the face holds no measured profile.",
+        "claimKind": "observation",
+        "citationIds": [
+          "ev_example_section",
+          "ev_example_valley_floor"
+        ]
+      },
+      "provenance": {
+        "sourceLocators": [],
+        "dataBundleIds": [
+          "bundle_example_relief",
+          "bundle_example_transects",
+          "bundle_example_strata",
+          "bundle_example_season_trend",
+          "bundle_example_snow"
+        ],
+        "methodId": "instrument_composer",
+        "methodVersion": "1",
+        "inputVersions": [
+          {
+            "entityId": "geo_example_context",
+            "revision": 1
+          },
+          {
+            "entityId": "ctx_example_transect",
+            "revision": 1
+          },
+          {
+            "entityId": "bundle_example_relief",
+            "revision": 1
+          },
+          {
+            "entityId": "bundle_example_transects",
+            "revision": 1
+          },
+          {
+            "entityId": "bundle_example_strata",
+            "revision": 1
+          },
+          {
+            "entityId": "bundle_example_season_trend",
+            "revision": 1
+          },
+          {
+            "entityId": "bundle_example_snow",
+            "revision": 1
+          },
+          {
+            "entityId": "ctx_example_drainage",
+            "revision": 1
+          },
+          {
+            "entityId": "ctx_example_settlement",
+            "revision": 1
+          },
+          {
+            "entityId": "ev_example_valley_floor",
+            "revision": 1
+          },
+          {
+            "entityId": "ev_example_upper_slope",
+            "revision": 1
+          },
+          {
+            "entityId": "ev_example_section",
+            "revision": 1
+          }
+        ],
+        "generatedByTaskId": "task_example_instruments",
+        "generatedAt": "2026-10-29T09:00:00-04:00",
+        "verificationStatus": "computed_checked",
+        "limitations": [
+          "Fictional contract fixture. No measured environmental result is asserted."
+        ]
+      }
+    },
+    {
+      "recordType": "InstrumentSpec",
+      "id": "inst_example_pixel_anatomy",
+      "revision": 1,
+      "createdAt": "2026-10-29T09:00:00-04:00",
+      "updatedAt": "2026-10-29T09:00:00-04:00",
+      "caseId": "case_example_atlas",
+      "status": "ready",
+      "parameters": {
+        "kind": "pixel_anatomy",
+        "geoSelectionId": "geo_example_context",
+        "locator": {
+          "bundleId": "bundle_example_trend",
+          "assetKey": "pixel_trend_grid_mar_jun"
+        },
+        "anatomy": {
+          "bundleId": "bundle_example_pixel_anatomy",
+          "assetKey": "pixel_anatomy"
+        },
+        "bandSeries": {
+          "bundleId": "bundle_example_season_trend",
+          "assetKey": "season_trend_tables"
+        },
+        "contextEvidenceIds": [
+          "ev_example_species_context"
+        ]
+      },
+      "caption": {
+        "ink": "Fictional example: one coarse pixel is opened into the finer cells inside it.",
+        "grey": "Synthetic fixture; the cells hold no measured value.",
+        "claimKind": "observation",
+        "citationIds": [
+          "ev_example_pixel"
+        ]
+      },
+      "provenance": {
+        "sourceLocators": [],
+        "dataBundleIds": [
+          "bundle_example_trend",
+          "bundle_example_pixel_anatomy",
+          "bundle_example_season_trend"
+        ],
+        "methodId": "instrument_composer",
+        "methodVersion": "1",
+        "inputVersions": [
+          {
+            "entityId": "geo_example_context",
+            "revision": 1
+          },
+          {
+            "entityId": "bundle_example_trend",
+            "revision": 1
+          },
+          {
+            "entityId": "bundle_example_pixel_anatomy",
+            "revision": 1
+          },
+          {
+            "entityId": "bundle_example_season_trend",
+            "revision": 1
+          },
+          {
+            "entityId": "ev_example_species_context",
+            "revision": 1
+          },
+          {
+            "entityId": "ev_example_pixel",
+            "revision": 1
+          }
+        ],
+        "generatedByTaskId": "task_example_instruments",
+        "generatedAt": "2026-10-29T09:00:00-04:00",
+        "verificationStatus": "computed_checked",
+        "limitations": [
+          "Fictional contract fixture. No measured environmental result is asserted."
+        ]
+      }
+    },
+    {
+      "recordType": "InstrumentSpec",
+      "id": "inst_example_rainfall_scatter",
+      "revision": 1,
+      "createdAt": "2026-10-29T09:00:00-04:00",
+      "updatedAt": "2026-10-29T09:00:00-04:00",
+      "caseId": "case_example_atlas",
+      "status": "ready",
+      "parameters": {
+        "kind": "rainfall_scatter",
+        "geoSelectionId": "geo_example_context",
+        "seasons": {
+          "bundleId": "bundle_example_restrend",
+          "assetKey": "restrend_tables"
+        },
+        "fit": {
+          "bundleId": "bundle_example_restrend",
+          "assetKey": "restrend_long_record"
+        }
+      },
+      "caption": {
+        "ink": "Fictional example: each season is one point, rain across and greenness up.",
+        "grey": "Synthetic fixture; the points hold no measured season.",
+        "claimKind": "model_estimate",
+        "citationIds": [
+          "ev_example_scatter"
+        ]
+      },
+      "provenance": {
+        "sourceLocators": [],
+        "dataBundleIds": [
+          "bundle_example_restrend"
+        ],
+        "methodId": "instrument_composer",
+        "methodVersion": "1",
+        "inputVersions": [
+          {
+            "entityId": "geo_example_context",
+            "revision": 1
+          },
+          {
+            "entityId": "bundle_example_restrend",
+            "revision": 1
+          },
+          {
+            "entityId": "ev_example_scatter",
+            "revision": 1
+          }
+        ],
+        "generatedByTaskId": "task_example_instruments",
+        "generatedAt": "2026-10-29T09:00:00-04:00",
+        "verificationStatus": "computed_checked",
+        "limitations": [
+          "Fictional contract fixture. No measured environmental result is asserted."
+        ]
+      }
+    },
+    {
+      "recordType": "InstrumentSpec",
+      "id": "inst_example_field_plan",
+      "revision": 1,
+      "createdAt": "2026-10-29T09:00:00-04:00",
+      "updatedAt": "2026-10-29T09:00:00-04:00",
+      "caseId": "case_example_atlas",
+      "status": "ready",
+      "parameters": {
+        "kind": "field_plan",
+        "geoSelectionId": "geo_example_context",
+        "branchMergeId": "merge_example_branches",
+        "actionId": "act_example_field_plan",
+        "routeFeatureIds": [
+          "ctx_example_route"
+        ]
+      },
+      "caption": {
+        "ink": "Fictional example: the field checks that would tell the open explanations apart, drawn as a proposal.",
+        "grey": "Proposed only; no visit, route or permission is implied.",
+        "claimKind": "field_requirement",
+        "citationIds": [
+          "ev_example_gap"
+        ]
+      },
+      "provenance": {
+        "sourceLocators": [],
+        "dataBundleIds": [],
+        "methodId": "instrument_composer",
+        "methodVersion": "1",
+        "inputVersions": [
+          {
+            "entityId": "geo_example_context",
+            "revision": 1
+          },
+          {
+            "entityId": "merge_example_branches",
+            "revision": 1
+          },
+          {
+            "entityId": "act_example_field_plan",
+            "revision": 1
+          },
+          {
+            "entityId": "ctx_example_route",
+            "revision": 1
+          },
+          {
+            "entityId": "ev_example_gap",
+            "revision": 1
+          }
+        ],
+        "generatedByTaskId": "task_example_instruments",
+        "generatedAt": "2026-10-29T09:00:00-04:00",
+        "verificationStatus": "computed_checked",
+        "limitations": [
+          "Fictional contract fixture. No measured environmental result is asserted."
+        ]
+      }
+    },
+    {
+      "recordType": "CanvasComponent",
+      "id": "comp_example_layer_stack",
+      "revision": 1,
+      "createdAt": "2026-10-29T09:00:00-04:00",
+      "updatedAt": "2026-10-29T09:00:00-04:00",
+      "caseId": "case_example_atlas",
+      "componentKind": "layer_stack",
+      "entityIds": [
+        "inst_example_layer_stack"
+      ],
+      "section": "observations",
+      "order": 0,
+      "visibility": "expanded",
+      "title": "Five Layers",
+      "presentationStatus": "ready",
+      "sourceCaseRevision": 8,
+      "comparisonMode": null,
+      "periodIds": [],
+      "entityVersions": [
+        {
+          "entityId": "inst_example_layer_stack",
+          "revision": 1
+        }
+      ]
+    },
+    {
+      "recordType": "CanvasComponent",
+      "id": "comp_example_cross_section",
+      "revision": 1,
+      "createdAt": "2026-10-29T09:00:00-04:00",
+      "updatedAt": "2026-10-29T09:00:00-04:00",
+      "caseId": "case_example_atlas",
+      "componentKind": "cross_section",
+      "entityIds": [
+        "inst_example_cross_section"
+      ],
+      "section": "observations",
+      "order": 1,
+      "visibility": "collapsed",
+      "title": "Cutaway",
+      "presentationStatus": "ready",
+      "sourceCaseRevision": 8,
+      "comparisonMode": null,
+      "periodIds": [],
+      "entityVersions": [
+        {
+          "entityId": "inst_example_cross_section",
+          "revision": 1
+        }
+      ]
+    },
+    {
+      "recordType": "CanvasComponent",
+      "id": "comp_example_pixel_anatomy",
+      "revision": 1,
+      "createdAt": "2026-10-29T09:00:00-04:00",
+      "updatedAt": "2026-10-29T09:00:00-04:00",
+      "caseId": "case_example_atlas",
+      "componentKind": "pixel_anatomy",
+      "entityIds": [
+        "inst_example_pixel_anatomy"
+      ],
+      "section": "observations",
+      "order": 2,
+      "visibility": "collapsed",
+      "title": "Pixel Anatomy",
+      "presentationStatus": "ready",
+      "sourceCaseRevision": 8,
+      "comparisonMode": null,
+      "periodIds": [],
+      "entityVersions": [
+        {
+          "entityId": "inst_example_pixel_anatomy",
+          "revision": 1
+        }
+      ]
+    },
+    {
+      "recordType": "CanvasComponent",
+      "id": "comp_example_rainfall_scatter",
+      "revision": 1,
+      "createdAt": "2026-10-29T09:00:00-04:00",
+      "updatedAt": "2026-10-29T09:00:00-04:00",
+      "caseId": "case_example_atlas",
+      "componentKind": "rainfall_scatter",
+      "entityIds": [
+        "inst_example_rainfall_scatter"
+      ],
+      "section": "explanations",
+      "order": 0,
+      "visibility": "expanded",
+      "title": "Rain And Greenness",
+      "presentationStatus": "ready",
+      "sourceCaseRevision": 8,
+      "comparisonMode": null,
+      "periodIds": [],
+      "entityVersions": [
+        {
+          "entityId": "inst_example_rainfall_scatter",
+          "revision": 1
+        }
+      ]
+    },
+    {
+      "recordType": "CanvasComponent",
+      "id": "comp_example_field_plan",
+      "revision": 1,
+      "createdAt": "2026-10-29T09:00:00-04:00",
+      "updatedAt": "2026-10-29T09:00:00-04:00",
+      "caseId": "case_example_atlas",
+      "componentKind": "field_plan",
+      "entityIds": [
+        "inst_example_field_plan"
+      ],
+      "section": "next_steps",
+      "order": 0,
+      "visibility": "collapsed",
+      "title": "Field Plan",
+      "presentationStatus": "ready",
+      "sourceCaseRevision": 8,
+      "comparisonMode": null,
+      "periodIds": [],
+      "entityVersions": [
+        {
+          "entityId": "inst_example_field_plan",
+          "revision": 1
+        }
+      ]
+    }
+  ],
+  "events": [
+    {
+      "recordType": "Event",
+      "schemaVersion": "1.11.0",
+      "id": "evt_example_instruments",
+      "caseId": "case_example_atlas",
+      "sequence": 22,
+      "occurredAt": "2026-10-29T09:00:00-04:00",
+      "kind": "case.committed",
+      "commandId": "cmd_example_instruments",
+      "taskId": "task_example_instruments",
+      "caseRevision": 8,
+      "entityIds": [
+        "inst_example_layer_stack",
+        "inst_example_cross_section",
+        "inst_example_pixel_anatomy",
+        "inst_example_rainfall_scatter",
+        "inst_example_field_plan"
+      ],
+      "message": "Fictional example: five instruments saved.",
+      "dedupeKey": "example-instruments-0022",
+      "resultStatus": null,
+      "tool": null,
+      "usage": null,
+      "validation": null,
+      "spanId": null,
+      "parentSpanId": null
+    }
+  ],
+  "layoutActions": [
+    {
+      "recordType": "LayoutAction",
+      "id": "layout_example_layer_stack",
+      "revision": 1,
+      "createdAt": "2026-10-29T09:00:00-04:00",
+      "updatedAt": "2026-10-29T09:00:00-04:00",
+      "caseId": "case_example_atlas",
+      "commandId": "cmd_example_instruments",
+      "kind": "show_component",
+      "componentIds": [
+        "comp_example_layer_stack"
+      ],
+      "entityIds": [
+        "inst_example_layer_stack"
+      ],
+      "reason": "Fictional example: the host composer places the instrument for the question.",
+      "status": "accepted",
+      "sourceCaseRevision": 8,
+      "componentKind": "layer_stack",
+      "section": "observations",
+      "comparisonMode": null,
+      "periodIds": [],
+      "origin": "default_projection",
+      "title": "Five Layers"
+    },
+    {
+      "recordType": "LayoutAction",
+      "id": "layout_example_cross_section",
+      "revision": 1,
+      "createdAt": "2026-10-29T09:00:00-04:00",
+      "updatedAt": "2026-10-29T09:00:00-04:00",
+      "caseId": "case_example_atlas",
+      "commandId": "cmd_example_instruments",
+      "kind": "show_component",
+      "componentIds": [
+        "comp_example_cross_section"
+      ],
+      "entityIds": [
+        "inst_example_cross_section"
+      ],
+      "reason": "Fictional example: the host composer places the instrument for the question.",
+      "status": "accepted",
+      "sourceCaseRevision": 8,
+      "componentKind": "cross_section",
+      "section": "observations",
+      "comparisonMode": null,
+      "periodIds": [],
+      "origin": "default_projection",
+      "title": "Cutaway"
+    },
+    {
+      "recordType": "LayoutAction",
+      "id": "layout_example_pixel_anatomy",
+      "revision": 1,
+      "createdAt": "2026-10-29T09:00:00-04:00",
+      "updatedAt": "2026-10-29T09:00:00-04:00",
+      "caseId": "case_example_atlas",
+      "commandId": "cmd_example_instruments",
+      "kind": "show_component",
+      "componentIds": [
+        "comp_example_pixel_anatomy"
+      ],
+      "entityIds": [
+        "inst_example_pixel_anatomy"
+      ],
+      "reason": "Fictional example: the host composer places the instrument for the question.",
+      "status": "accepted",
+      "sourceCaseRevision": 8,
+      "componentKind": "pixel_anatomy",
+      "section": "observations",
+      "comparisonMode": null,
+      "periodIds": [],
+      "origin": "default_projection",
+      "title": "Pixel Anatomy"
+    },
+    {
+      "recordType": "LayoutAction",
+      "id": "layout_example_rainfall_scatter",
+      "revision": 1,
+      "createdAt": "2026-10-29T09:00:00-04:00",
+      "updatedAt": "2026-10-29T09:00:00-04:00",
+      "caseId": "case_example_atlas",
+      "commandId": "cmd_example_instruments",
+      "kind": "show_component",
+      "componentIds": [
+        "comp_example_rainfall_scatter"
+      ],
+      "entityIds": [
+        "inst_example_rainfall_scatter"
+      ],
+      "reason": "Fictional example: the host composer places the instrument for the question.",
+      "status": "accepted",
+      "sourceCaseRevision": 8,
+      "componentKind": "rainfall_scatter",
+      "section": "explanations",
+      "comparisonMode": null,
+      "periodIds": [],
+      "origin": "default_projection",
+      "title": "Rain And Greenness"
+    },
+    {
+      "recordType": "LayoutAction",
+      "id": "layout_example_field_plan",
+      "revision": 1,
+      "createdAt": "2026-10-29T09:00:00-04:00",
+      "updatedAt": "2026-10-29T09:00:00-04:00",
+      "caseId": "case_example_atlas",
+      "commandId": "cmd_example_instruments",
+      "kind": "show_component",
+      "componentIds": [
+        "comp_example_field_plan"
+      ],
+      "entityIds": [
+        "inst_example_field_plan"
+      ],
+      "reason": "Fictional example: the host composer places the instrument for the question.",
+      "status": "accepted",
+      "sourceCaseRevision": 8,
+      "componentKind": "field_plan",
+      "section": "next_steps",
+      "comparisonMode": null,
+      "periodIds": [],
+      "origin": "default_projection",
+      "title": "Field Plan"
+    }
+  ]
+}

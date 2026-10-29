@@ -1,5 +1,19 @@
-import { Commit, EnvironmentalCase, type EntityVersion } from "@siterra/contracts";
-import { canonicalJson, eventMessages, fieldPlanIssues } from "@siterra/domain";
+import {
+  type CanvasComponent,
+  Commit,
+  EnvironmentalCase,
+  type EntityVersion,
+  type InstrumentSpec,
+  isInstrumentKind,
+} from "@siterra/contracts";
+import {
+  canonicalJson,
+  eventMessages,
+  fieldPlanIssues,
+  instrumentComponentIssues,
+  instrumentSpecIssues,
+  uncitedInstrumentInputs,
+} from "@siterra/domain";
 import { z } from "zod";
 import { type Pool, type Tx, inTransaction, lockCase, notifyEvents } from "./client.ts";
 import { EventDraft, insertEvents, setLastSequence } from "./events.ts";
@@ -30,6 +44,8 @@ export class CommitRejected extends Error {
     | "duplicate_entity"
     | "review_not_permitted"
     | "brief_inputs_not_cited"
+    | "instrument_inputs_not_cited"
+    | "instrument_invalid"
     | "action_status_not_permitted"
     | "field_plan_invalid";
   constructor(code: CommitRejected["code"], message: string) {
@@ -114,6 +130,56 @@ export function uncoveredBriefCitations(record: Upsert): string[] {
   return [...record.evidenceIds, ...record.hypothesisIds, ...record.interventionIds].filter(
     (id) => !cited.has(id),
   );
+}
+
+/**
+ * The records an instrument spec names that its provenance.inputVersions does not cite (INST-01).
+ * Staleness follows exact versions only (data-contracts.md, principle 2), so a spec naming a bundle,
+ * area, feature or statement it does not cite would never go stale when that record changes.
+ */
+export function uncoveredInstrumentCitations(record: Upsert): string[] {
+  return record.recordType === "InstrumentSpec" ? uncitedInstrumentInputs(record) : [];
+}
+
+/**
+ * The instrument rules for what a commit writes: a layer_stack lists distinct layers and selects
+ * one of them (INST-03), and an instrument component binds the one spec of its own kind at that
+ * spec's current revision (INST-02), looked up among the commit's own writes first and then in the
+ * case.
+ */
+async function instrumentProblems(
+  tx: Tx,
+  caseId: string,
+  writes: readonly Upsert[],
+): Promise<string[]> {
+  const specs = new Map<string, InstrumentSpec>();
+  const components: CanvasComponent[] = [];
+  for (const record of writes) {
+    if (record.recordType === "InstrumentSpec") specs.set(record.id, record);
+    else if (record.recordType === "CanvasComponent" && isInstrumentKind(record.componentKind)) {
+      components.push(record);
+    }
+  }
+  const missing = components
+    .map((component) => component.entityVersions[0]?.entityId)
+    .filter((id): id is string => id !== undefined && !specs.has(id));
+  if (missing.length > 0) {
+    const stored = await tx.query<{ record: InstrumentSpec }>(
+      `select distinct on (entity_id) record from records
+       where case_id = $1 and record_type = 'InstrumentSpec' and entity_id = any($2::text[])
+       order by entity_id, revision desc`,
+      [caseId, missing],
+    );
+    for (const row of stored.rows) specs.set(row.record.id, row.record);
+  }
+  return [
+    ...[...specs.values()]
+      .filter((spec) => writes.includes(spec))
+      .flatMap((spec) => instrumentSpecIssues(spec)),
+    ...components.flatMap((component) =>
+      instrumentComponentIssues(component, specs.get(component.entityVersions[0]?.entityId ?? "")),
+    ),
+  ];
 }
 
 /**
@@ -244,6 +310,19 @@ export async function applyCommit(pool: Pool, input: CommitProposal): Promise<Co
           `${record.id}: provenance.inputVersions does not cite ${uncovered.join(", ")}`,
         );
       }
+    }
+    for (const record of writes) {
+      const uncited = uncoveredInstrumentCitations(record);
+      if (uncited.length > 0) {
+        throw new CommitRejected(
+          "instrument_inputs_not_cited",
+          `${record.id}: provenance.inputVersions does not cite ${uncited.join(", ")}`,
+        );
+      }
+    }
+    const instrumentIssues = await instrumentProblems(tx, proposal.caseId, writes);
+    if (instrumentIssues.length > 0) {
+      throw new CommitRejected("instrument_invalid", instrumentIssues.join("; "));
     }
     const planProblems = await fieldPlanProblems(tx, proposal.caseId, writes);
     if (planProblems.length > 0) {

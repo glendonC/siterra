@@ -6,7 +6,7 @@ Machine-readable contracts shared by the web application, the worker and the off
 
 | File | Describes | Format | Identifier and version |
 |---|---|---|---|
-| [case.schema.json](case.schema.json) | Siterra case contracts: case snapshot, command, event and atomic commit proposal, with every record type in `$defs` | JSON Schema 2020-12 | `https://siterra.invalid/schemas/case/1.10.0/case.schema.json` |
+| [case.schema.json](case.schema.json) | Siterra case contracts: case snapshot, command, event and atomic commit proposal, with every record type in `$defs` | JSON Schema 2020-12 | `https://siterra.invalid/schemas/case/1.11.0/case.schema.json` |
 | [stac/siterra-extension.schema.json](stac/siterra-extension.schema.json) | Observation bundles: the `siterra:` STAC extension and the bundle profile (one Collection per bundle, one Item per period) | JSON Schema draft-07, the dialect of the STAC 1.1.0 schemas and the stac-extensions template | `https://siterra.invalid/schemas/stac/siterra/1.1.0/schema.json` |
 | [openapi.json](openapi.json) | HTTP API and Server-Sent Events stream | OpenAPI 3.2.0 | `info.version` 1.0.0 |
 | [examples/](examples/) | Synthetic instances of the above | JSON | |

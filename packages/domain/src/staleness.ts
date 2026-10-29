@@ -56,6 +56,8 @@ export function markedStale<T extends CaseRecord>(record: T, now: string): T | n
       return ["draft", "ready_for_review", "prepared"].includes(String(r["status"]))
         ? next({ status: "stale" })
         : null;
+    case "InstrumentSpec":
+      return r["status"] === "stale" ? null : next({ status: "stale" });
     case "CanvasComponent":
       return r["presentationStatus"] === "stale" ? null : next({ presentationStatus: "stale" });
     case "ReviewDecision":
@@ -112,6 +114,7 @@ export const staleableRecordTypes: readonly string[] = [
   "Intervention",
   "Relationship",
   "Brief",
+  "InstrumentSpec",
   "CanvasComponent",
   "ReviewDecision",
 ];

@@ -29,6 +29,7 @@ export const collectionOf = {
   ContextFeature: "contextFeatureRecords",
   ExplanationBranch: "explanationBranchRecords",
   BranchMerge: "branchMergeRecords",
+  InstrumentSpec: "instrumentSpecRecords",
 } as const satisfies Record<Commit["upserts"][number]["recordType"], keyof RecordCollections>;
 
 export function emptyCollections(): RecordCollections {
@@ -53,6 +54,7 @@ export function emptyCollections(): RecordCollections {
     contextFeatureRecords: [],
     explanationBranchRecords: [],
     branchMergeRecords: [],
+    instrumentSpecRecords: [],
   };
 }
 

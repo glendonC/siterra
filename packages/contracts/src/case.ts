@@ -5,7 +5,7 @@ import { z } from "zod";
 import { dateTime, entityId, isoDate, text, uniqueArray, uri, uriReference } from "./primitives.ts";
 import { missingIsAValue } from "./rules.ts";
 
-export const caseSchemaVersion = "1.10.0";
+export const caseSchemaVersion = "1.11.0";
 /** Every schemaVersion string this contract accepts (the earlier ones of the same MAJOR stay valid). */
 export const acceptedCaseSchemaVersions = [
   "1.2.0",
@@ -17,8 +17,9 @@ export const acceptedCaseSchemaVersions = [
   "1.8.0",
   "1.9.0",
   "1.10.0",
+  "1.11.0",
 ] as const;
-export const caseSchemaId = "https://siterra.invalid/schemas/case/1.10.0/case.schema.json";
+export const caseSchemaId = "https://siterra.invalid/schemas/case/1.11.0/case.schema.json";
 
 export const EntityVersion = z.strictObject({
   entityId: entityId,
@@ -405,6 +406,11 @@ export const CanvasComponent = z.strictObject({
     "action_package",
     "decision_brief",
     "explanation_branches",
+    "layer_stack",
+    "cross_section",
+    "pixel_anatomy",
+    "rainfall_scatter",
+    "field_plan",
   ]),
   entityIds: uniqueArray(entityId).min(1),
   section: z.enum(["place", "observations", "explanations", "responses", "next_steps"]),
@@ -452,6 +458,11 @@ export const LayoutAction = z.strictObject({
       "action_package",
       "decision_brief",
       "explanation_branches",
+      "layer_stack",
+      "cross_section",
+      "pixel_anatomy",
+      "rainfall_scatter",
+      "field_plan",
     ])
     .nullable(),
   section: z.enum(["place", "observations", "explanations", "responses", "next_steps"]).nullable(),
@@ -665,6 +676,7 @@ export const Command = z.strictObject({
     "1.8.0",
     "1.9.0",
     "1.10.0",
+    "1.11.0",
   ]),
   id: entityId,
   caseId: entityId,
@@ -777,6 +789,7 @@ export const Event = z.strictObject({
     "1.8.0",
     "1.9.0",
     "1.10.0",
+    "1.11.0",
   ]),
   id: entityId,
   caseId: entityId,
@@ -1070,6 +1083,118 @@ export const ExplanationBranch = z.strictObject({
 });
 export type ExplanationBranch = z.infer<typeof ExplanationBranch>;
 
+export const InstrumentCaption = z.strictObject({
+  ink: text({ min: 1, max: 200 }),
+  grey: text({ min: 1, max: 240 }),
+  claimKind: z.enum([
+    "observation",
+    "scientific_context",
+    "hypothesis",
+    "model_estimate",
+    "scenario",
+    "field_requirement",
+    "verified_outcome",
+  ]),
+  citationIds: uniqueArray(entityId).min(1).max(8),
+});
+export type InstrumentCaption = z.infer<typeof InstrumentCaption>;
+
+export const BundleAssetRef = z.strictObject({
+  bundleId: entityId,
+  assetKey: z.string().regex(new RegExp("^[a-z][a-z0-9_-]{0,79}$")),
+});
+export type BundleAssetRef = z.infer<typeof BundleAssetRef>;
+
+export const CrossSectionStatement = z.strictObject({
+  evidenceId: entityId,
+  placement: z.enum(["valley_floor", "upper_slope"]),
+});
+export type CrossSectionStatement = z.infer<typeof CrossSectionStatement>;
+
+export const CrossSectionParameters = z.strictObject({
+  kind: z.literal("cross_section"),
+  geoSelectionId: entityId,
+  transectFeatureId: entityId,
+  relief: BundleAssetRef,
+  profile: BundleAssetRef,
+  bands: BundleAssetRef,
+  bandTrends: BundleAssetRef,
+  snow: BundleAssetRef,
+  drainageFeatureIds: uniqueArray(entityId).max(16),
+  placeFeatureIds: uniqueArray(entityId).max(32),
+  statements: z.array(CrossSectionStatement).max(4),
+});
+export type CrossSectionParameters = z.infer<typeof CrossSectionParameters>;
+
+export const FieldPlanParameters = z.strictObject({
+  kind: z.literal("field_plan"),
+  geoSelectionId: entityId,
+  branchMergeId: entityId,
+  actionId: entityId.nullable(),
+  routeFeatureIds: uniqueArray(entityId).max(8),
+});
+export type FieldPlanParameters = z.infer<typeof FieldPlanParameters>;
+
+export const LayerStackLayer = z.strictObject({
+  layer: z.enum(["vegetation_trend", "rainfall", "snow_cover", "land_cover", "elevation_bands"]),
+  data: BundleAssetRef,
+});
+export type LayerStackLayer = z.infer<typeof LayerStackLayer>;
+
+export const LayerStackParameters = z.strictObject({
+  kind: z.literal("layer_stack"),
+  geoSelectionId: entityId,
+  relief: BundleAssetRef,
+  layers: z.array(LayerStackLayer).min(1).max(5),
+  drainageFeatureIds: uniqueArray(entityId).max(16),
+  placeFeatureIds: uniqueArray(entityId).max(32),
+  selectedLayer: z
+    .enum(["vegetation_trend", "rainfall", "snow_cover", "land_cover", "elevation_bands"])
+    .nullable(),
+});
+export type LayerStackParameters = z.infer<typeof LayerStackParameters>;
+
+export const PixelAnatomyParameters = z.strictObject({
+  kind: z.literal("pixel_anatomy"),
+  geoSelectionId: entityId,
+  locator: BundleAssetRef,
+  anatomy: BundleAssetRef,
+  bandSeries: BundleAssetRef,
+  contextEvidenceIds: uniqueArray(entityId).max(4),
+});
+export type PixelAnatomyParameters = z.infer<typeof PixelAnatomyParameters>;
+
+export const RainfallScatterParameters = z.strictObject({
+  kind: z.literal("rainfall_scatter"),
+  geoSelectionId: entityId,
+  seasons: BundleAssetRef,
+  fit: BundleAssetRef,
+});
+export type RainfallScatterParameters = z.infer<typeof RainfallScatterParameters>;
+
+export const InstrumentParameters = z.discriminatedUnion("kind", [
+  LayerStackParameters,
+  CrossSectionParameters,
+  PixelAnatomyParameters,
+  RainfallScatterParameters,
+  FieldPlanParameters,
+]);
+export type InstrumentParameters = z.infer<typeof InstrumentParameters>;
+
+export const InstrumentSpec = z.strictObject({
+  recordType: z.literal("InstrumentSpec"),
+  id: entityId,
+  revision: z.int().min(1),
+  createdAt: dateTime,
+  updatedAt: dateTime,
+  caseId: entityId,
+  status: z.enum(["ready", "stale"]),
+  parameters: InstrumentParameters,
+  caption: InstrumentCaption,
+  provenance: Provenance,
+});
+export type InstrumentSpec = z.infer<typeof InstrumentSpec>;
+
 export const RecordCollections = z.strictObject({
   sourceRecords: uniqueArray(Source),
   geoSelectionRecords: uniqueArray(GeoSelection),
@@ -1091,6 +1216,7 @@ export const RecordCollections = z.strictObject({
   contextFeatureRecords: z.array(ContextFeature).optional(),
   explanationBranchRecords: z.array(ExplanationBranch).optional(),
   branchMergeRecords: z.array(BranchMerge).optional(),
+  instrumentSpecRecords: z.array(InstrumentSpec).optional(),
 });
 export type RecordCollections = z.infer<typeof RecordCollections>;
 
@@ -1106,6 +1232,7 @@ export const CaseSnapshot = z.strictObject({
     "1.8.0",
     "1.9.0",
     "1.10.0",
+    "1.11.0",
   ]),
   case: EnvironmentalCase,
   records: RecordCollections,
@@ -1125,6 +1252,7 @@ export const Commit = z.strictObject({
     "1.8.0",
     "1.9.0",
     "1.10.0",
+    "1.11.0",
   ]),
   id: entityId,
   caseId: entityId,
@@ -1157,6 +1285,7 @@ export const Commit = z.strictObject({
       ContextFeature,
       ExplanationBranch,
       BranchMerge,
+      InstrumentSpec,
     ]),
   ),
   events: uniqueArray(Event).min(1),
@@ -1221,4 +1350,15 @@ export const caseDefinitions = {
   ExplanationPair,
   BranchFieldPlan,
   BranchMerge,
+  BundleAssetRef,
+  InstrumentCaption,
+  LayerStackLayer,
+  CrossSectionStatement,
+  LayerStackParameters,
+  CrossSectionParameters,
+  PixelAnatomyParameters,
+  RainfallScatterParameters,
+  FieldPlanParameters,
+  InstrumentParameters,
+  InstrumentSpec,
 } as const;

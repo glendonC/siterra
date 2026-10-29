@@ -1,6 +1,6 @@
 {
   "recordType": "CaseSnapshot",
-  "schemaVersion": "1.10.0",
+  "schemaVersion": "1.11.0",
   "case": {
     "recordType": "EnvironmentalCase",
     "id": "case_aitbouguemez",
@@ -53146,7 +53146,8 @@
       }
     ],
     "explanationBranchRecords": [],
-    "branchMergeRecords": []
+    "branchMergeRecords": [],
+    "instrumentSpecRecords": []
   },
   "lastSequence": 1
 }

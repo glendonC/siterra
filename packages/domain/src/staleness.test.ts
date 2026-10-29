@@ -195,3 +195,52 @@ describe("16: staleness passes through records without a stale state", () => {
     ).toEqual([]);
   });
 });
+
+describe("INST: an instrument spec goes stale with the inputs it cites, and its component through it", () => {
+  const spec = record("InstrumentSpec", "inst_example_st", {
+    status: "ready",
+    ...cites(["bundle_example_st", 1], ["ev_example_st", 1]),
+  });
+  const component = record("CanvasComponent", "comp_example_st", {
+    presentationStatus: "ready",
+    entityVersions: [{ entityId: "inst_example_st", revision: 1 }],
+  });
+  const unrelated = record("InstrumentSpec", "inst_example_other", {
+    status: "ready",
+    ...cites(["bundle_example_other", 1]),
+  });
+
+  it("marks the spec and then its component stale when a cited bundle has a newer revision", () => {
+    const stale = propagateStaleness(
+      [spec, component, unrelated],
+      new Map([["bundle_example_st", 2]]),
+      later,
+    );
+    expect(stale.map((r) => [r.id, r.revision]).sort()).toEqual([
+      ["comp_example_st", 2],
+      ["inst_example_st", 2],
+    ]);
+    const byId = new Map(stale.map((r) => [r.id, r as unknown as Record<string, unknown>]));
+    expect(byId.get("inst_example_st")?.["status"]).toBe("stale");
+    expect(byId.get("comp_example_st")?.["presentationStatus"]).toBe("stale");
+  });
+
+  it("stales a spec when a cited statement changes, not only a bundle", () => {
+    const stale = propagateStaleness([spec], new Map([["ev_example_st", 2]]), later);
+    expect(stale.map((r) => r.id)).toEqual(["inst_example_st"]);
+  });
+
+  it("leaves a spec that is already stale", () => {
+    const already = record("InstrumentSpec", "inst_example_already", {
+      status: "stale",
+      ...cites(["bundle_example_st", 1]),
+    });
+    expect(propagateStaleness([already], new Map([["bundle_example_st", 2]]), later)).toEqual([]);
+  });
+
+  it("counts a move of a spec to stale as a material change, so what rests on it follows", () => {
+    expect(isMaterialChange(spec, { ...spec, revision: 2, status: "stale" } as CaseRecord)).toBe(
+      true,
+    );
+  });
+});

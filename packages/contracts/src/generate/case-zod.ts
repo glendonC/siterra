@@ -114,15 +114,15 @@ function numberExpr(node: Node, integer: boolean): string {
   return expr;
 }
 
-function arrayExpr(node: Node, indent: number): string {
+function arrayExpr(node: Node, defs: Record<string, Node>, indent: number): string {
   if (Array.isArray(node["prefixItems"])) {
     const items = node["prefixItems"] as unknown[];
     if (node["minItems"] !== items.length || node["maxItems"] !== items.length) {
       throw new Error("prefixItems without a fixed length");
     }
-    return `z.tuple([${items.map((p, i) => expr(asNode(p, `prefixItems/${i}`), indent)).join(", ")}])`;
+    return `z.tuple([${items.map((p, i) => expr(asNode(p, `prefixItems/${i}`), defs, indent)).join(", ")}])`;
   }
-  const item = expr(asNode(node["items"], "items"), indent);
+  const item = expr(asNode(node["items"], "items"), defs, indent);
   let out = node["uniqueItems"] === true ? `uniqueArray(${item})` : `z.array(${item})`;
   if (typeof node["minItems"] === "number" && node["minItems"] > 0)
     out += `.min(${node["minItems"]})`;
@@ -130,19 +130,38 @@ function arrayExpr(node: Node, indent: number): string {
   return out;
 }
 
-function objectExpr(node: Node, indent: number): string {
+function objectExpr(node: Node, defs: Record<string, Node>, indent: number): string {
   if (node["additionalProperties"] !== false) throw new Error("Open object");
   const props = asNode(node["properties"] ?? {}, "properties");
   const required = new Set((node["required"] as string[] | undefined) ?? []);
   const pad = "  ".repeat(indent + 1);
   const lines = Object.entries(props).map(([key, sub]) => {
-    const e = expr(asNode(sub, key), indent + 1) + (required.has(key) ? "" : ".optional()");
+    const e = expr(asNode(sub, key), defs, indent + 1) + (required.has(key) ? "" : ".optional()");
     return `${pad}${key}: ${e},`;
   });
   return `z.strictObject({\n${lines.join("\n")}\n${"  ".repeat(indent)}})`;
 }
 
-function expr(node: Node, indent = 0): string {
+/**
+ * The property every branch of a oneOf fixes with a const: the key z.discriminatedUnion switches on
+ * (recordType for the records, kind for the parameters of an instrument). It must be exactly one,
+ * so a union whose branches cannot be told apart by a single field cannot pass silently.
+ */
+function discriminatorOf(branches: Node[], defs: Record<string, Node>): string {
+  const fixed = branches.map((branch, i) => {
+    const target = typeof branch["$ref"] === "string" ? defs[refName(branch)] : branch;
+    const props = asNode(asNode(target, `oneOf/${i}`)["properties"], `oneOf/${i}/properties`);
+    return Object.keys(props).filter((key) => "const" in asNode(props[key], key));
+  });
+  const shared = (fixed[0] ?? []).filter((key) => fixed.every((keys) => keys.includes(key)));
+  const [only, ...more] = shared;
+  if (only === undefined || more.length > 0) {
+    throw new Error(`oneOf branches must share exactly one const property, found ${js(shared)}`);
+  }
+  return only;
+}
+
+function expr(node: Node, defs: Record<string, Node>, indent = 0): string {
   const unknown = Object.keys(node).filter((k) => !handled.has(k));
   if (unknown.length > 0) throw new Error(`Unhandled keywords ${unknown.join(", ")}`);
   if (typeof node["$ref"] === "string") return refName(node);
@@ -153,19 +172,20 @@ function expr(node: Node, indent = 0): string {
     const isNull = (b: Node) => js(b) === js({ type: "null" });
     const rest = branches.filter((b) => !isNull(b));
     if (rest.length === 1 && rest.length < branches.length && rest[0] !== undefined) {
-      return `${expr(rest[0], indent)}.nullable()`;
+      return `${expr(rest[0], defs, indent)}.nullable()`;
     }
     throw new Error("Unhandled anyOf");
   }
   if (Array.isArray(node["oneOf"])) {
-    const names = node["oneOf"].map((b, i) => refName(asNode(b, `oneOf/${i}`)));
-    return `z.discriminatedUnion("recordType", [${names.join(", ")}])`;
+    const branches = node["oneOf"].map((b, i) => asNode(b, `oneOf/${i}`));
+    const names = branches.map(refName);
+    return `z.discriminatedUnion(${js(discriminatorOf(branches, defs))}, [${names.join(", ")}])`;
   }
   const type = node["type"];
   if (Array.isArray(type)) {
     const nonNull = type.filter((t) => t !== "null");
     if (type.length === 2 && nonNull.length === 1) {
-      return `${expr({ ...node, type: nonNull[0] }, indent)}.nullable()`;
+      return `${expr({ ...node, type: nonNull[0] }, defs, indent)}.nullable()`;
     }
     throw new Error(`Unhandled type list ${js(type)}`);
   }
@@ -179,9 +199,9 @@ function expr(node: Node, indent = 0): string {
     case "boolean":
       return "z.boolean()";
     case "array":
-      return arrayExpr(node, indent);
+      return arrayExpr(node, defs, indent);
     case "object":
-      return objectExpr(node, indent);
+      return objectExpr(node, defs, indent);
     default:
       throw new Error(`Unhandled node ${js(node)}`);
   }
@@ -195,7 +215,7 @@ export function generateCaseSource(schema: unknown): string {
   for (const name of dependencyOrder(defs)) {
     const node = asNode(defs[name], name);
     const { allOf, ...rest } = node;
-    let e = expr(rest);
+    let e = expr(rest, defs);
     if (allOf !== undefined) {
       const rule = refinements[name];
       if (rule === undefined) throw new Error(`allOf without a hand-written rule: ${name}`);
