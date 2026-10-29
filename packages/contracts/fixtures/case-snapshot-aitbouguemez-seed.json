@@ -13807,7 +13807,228 @@
       }
     ],
     "taskRecords": [],
-    "evidenceRecords": [],
+    "evidenceRecords": [
+      {
+        "recordType": "Evidence",
+        "id": "ev_herder_reported_species_change_sci03",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "statement": "SCI-03 says that herders, in a study in Azilal Province, reported the disappearance of palatable species (Astragalus armatus, Thymus satureioides) and the spread of unpalatable plants (Thymelaea virgata, Euphorbia nicaeensis).",
+        "claimKind": "scientific_context",
+        "status": "provisional",
+        "geoSelectionId": "geo_ait_bouguemez_catchment",
+        "periodIds": [],
+        "measurementIds": [],
+        "provenance": {
+          "sourceLocators": [
+            {
+              "sourceId": "src_SCI-03",
+              "locator": "s42055-026-00126-4.pdf, page 7",
+              "excerpt": "A study in Azilal Province highlights a clear decline in the availability and quality of pastoral resources as perceived by herders [10]"
+            },
+            {
+              "sourceId": "src_SCI-03",
+              "locator": "s42055-026-00126-4.pdf, page 7",
+              "excerpt": "Herders reported observable changes in rangeland conditions, with variations linked to altitude."
+            },
+            {
+              "sourceId": "src_SCI-03",
+              "locator": "s42055-026-00126-4.pdf, page 7",
+              "excerpt": "the disappearance of palatable species (e.g., Astragalus armatus, Thymus satureioides), and the spread of"
+            },
+            {
+              "sourceId": "src_SCI-03",
+              "locator": "s42055-026-00126-4.pdf, page 8",
+              "excerpt": "unpalatable plants (e.g., Thymelaea virgata, Euphorbia nicaeensis) [10]"
+            }
+          ],
+          "dataBundleIds": [],
+          "methodId": "source_excerpt",
+          "methodVersion": "1",
+          "inputVersions": [
+            {
+              "entityId": "src_SCI-03",
+              "revision": 1
+            }
+          ],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-28T20:42:35.015Z",
+          "verificationStatus": "source_checked",
+          "limitations": [
+            "Says what the cited source says; not a finding of Siterra and not reviewed by a person."
+          ]
+        },
+        "interpretation": null,
+        "uncertainty": "Reported perception of herders in a study the paper cites (its reference 10), in Azilal Province; not measured by Siterra and not specific to one valley. No species spectrum exists in the case.",
+        "reviewDecisionIds": []
+      },
+      {
+        "recordType": "Evidence",
+        "id": "ev_upper_rangelands_vegetation_sci19",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "statement": "SCI-19 describes the upper parts of the valley as extensive rangelands, mainly spiny xerophytic vegetation with reduced areas of short grasslands.",
+        "claimKind": "scientific_context",
+        "status": "provisional",
+        "geoSelectionId": "geo_ait_bouguemez_catchment",
+        "periodIds": [],
+        "measurementIds": [],
+        "provenance": {
+          "sourceLocators": [
+            {
+              "sourceId": "src_SCI-19",
+              "locator": "ES-2011-4429.pdf, page 2",
+              "excerpt": "The upper parts resemble extensive rangelands, mainly composed of spiny xerophytic vegetation and reduced areas of short grasslands"
+            }
+          ],
+          "dataBundleIds": [],
+          "methodId": "source_excerpt",
+          "methodVersion": "1",
+          "inputVersions": [
+            {
+              "entityId": "src_SCI-19",
+              "revision": 1
+            }
+          ],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-28T20:42:35.015Z",
+          "verificationStatus": "source_checked",
+          "limitations": [
+            "Says what the cited source says; not a finding of Siterra and not reviewed by a person."
+          ]
+        },
+        "interpretation": null,
+        "uncertainty": "As published (Auclair et al. 2011); a description of vegetation types, not a survey by Siterra and not a species list.",
+        "reviewDecisionIds": []
+      },
+      {
+        "recordType": "Evidence",
+        "id": "ev_valley_altitude_range_sci19",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "statement": "SCI-19 places the Aït Bouguemez valley between 1800 and 2200 m altitude, in the rural district of Tabant, Province of Azilal.",
+        "claimKind": "scientific_context",
+        "status": "provisional",
+        "geoSelectionId": "geo_ait_bouguemez_catchment",
+        "periodIds": [],
+        "measurementIds": [],
+        "provenance": {
+          "sourceLocators": [
+            {
+              "sourceId": "src_SCI-19",
+              "locator": "ES-2011-4429.pdf, page 2",
+              "excerpt": "between 1800 and 2200 m altitude in the rural district of Tabant, Province of Azilal"
+            }
+          ],
+          "dataBundleIds": [],
+          "methodId": "source_excerpt",
+          "methodVersion": "1",
+          "inputVersions": [
+            {
+              "entityId": "src_SCI-19",
+              "revision": 1
+            }
+          ],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-28T20:42:35.015Z",
+          "verificationStatus": "source_checked",
+          "limitations": [
+            "Says what the cited source says; not a finding of Siterra and not reviewed by a person."
+          ]
+        },
+        "interpretation": null,
+        "uncertainty": "As published (Auclair et al. 2011); a rounded range quoted from the source, not a measurement by Siterra.",
+        "reviewDecisionIds": []
+      },
+      {
+        "recordType": "Evidence",
+        "id": "ev_valley_bottom_cultivated_sci03",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "statement": "SCI-03 describes the cultivated land at the valley bottom as lying at 1800 to 2200 m and used mainly for subsistence crops and apple orchards.",
+        "claimKind": "scientific_context",
+        "status": "provisional",
+        "geoSelectionId": "geo_ait_bouguemez_catchment",
+        "periodIds": [],
+        "measurementIds": [],
+        "provenance": {
+          "sourceLocators": [
+            {
+              "sourceId": "src_SCI-03",
+              "locator": "s42055-026-00126-4.pdf, page 5",
+              "excerpt": "the cultivated land at the valley bottom (1800–2200 m), mainly used for subsistence crops (cereals, vegetables such as potatoes and salsify, etc.) and apple orchards"
+            }
+          ],
+          "dataBundleIds": [],
+          "methodId": "source_excerpt",
+          "methodVersion": "1",
+          "inputVersions": [
+            {
+              "entityId": "src_SCI-03",
+              "revision": 1
+            }
+          ],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-28T20:42:35.015Z",
+          "verificationStatus": "source_checked",
+          "limitations": [
+            "Says what the cited source says; not a finding of Siterra and not reviewed by a person."
+          ]
+        },
+        "interpretation": null,
+        "uncertainty": "As published (El Aayadi et al. 2026); the range describes the livestock system the paper studies, quoted from the source.",
+        "reviewDecisionIds": []
+      },
+      {
+        "recordType": "Evidence",
+        "id": "ev_valley_villages_sci19",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "statement": "SCI-19 says the valley shelters more than thirty villages along its bottom, with a population of approximately 15,000 inhabitants.",
+        "claimKind": "scientific_context",
+        "status": "provisional",
+        "geoSelectionId": "geo_ait_bouguemez_catchment",
+        "periodIds": [],
+        "measurementIds": [],
+        "provenance": {
+          "sourceLocators": [
+            {
+              "sourceId": "src_SCI-19",
+              "locator": "ES-2011-4429.pdf, page 2",
+              "excerpt": "It shelters more than thirty villages stretching along the bottom of the valley, with a population of approximately 15,000 inhabitants"
+            }
+          ],
+          "dataBundleIds": [],
+          "methodId": "source_excerpt",
+          "methodVersion": "1",
+          "inputVersions": [
+            {
+              "entityId": "src_SCI-19",
+              "revision": 1
+            }
+          ],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-28T20:42:35.015Z",
+          "verificationStatus": "source_checked",
+          "limitations": [
+            "Says what the cited source says; not a finding of Siterra and not reviewed by a person."
+          ]
+        },
+        "interpretation": null,
+        "uncertainty": "As published (Auclair et al. 2011); a count and a population quoted from the source, not a measurement by Siterra.",
+        "reviewDecisionIds": []
+      }
+    ],
     "measurementRecords": [
       {
         "recordType": "Measurement",

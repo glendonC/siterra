@@ -266,6 +266,12 @@ Added in contracts 1.13.0 (`Measurement.source` and `MeasurementSource` in [case
 | MS-01 | `lowerJsonPointer` and `upperJsonPointer` are both present or both null | The Zod mirror (`measurementSourceShape`) and the schema's `allOf`, kept equal by a contract test |
 | MS-02 | The value and interval of a Measurement with a `source` are the numbers at its pointers in the asset the bundle lists under `assetKey` | The seed loader (`readMeasurementRows`); a test re-reads every loaded Measurement from the asset |
 
+## Statements of published sources as Evidence
+
+No contract change. `data/case/evidence-statements.json` lists statements of the retrieved sources the instruments cite (SCI-03 and SCI-19 today), and the seed loader writes one `Evidence` record for each: `claimKind` `scientific_context`, `status` `provisional` (no person has reviewed it), `provenance.verificationStatus` `source_checked`, `provenance.sourceLocators` holding each source ID, the locator (`<stored file>, page N`, the 1-based page of the file) and a verbatim excerpt of at most 300 characters, and `provenance.inputVersions` pinning each cited Source revision. A statement says what the source says, never that it holds for the valley today, and its `uncertainty` says so. The loader refuses a statement that cites a source the seed does not hold or did not retrieve.
+
+The excerpts are checked against the stored page text with the same normalisation as the extraction check (Unicode NFC, white space runs collapsed, nothing else folded). That text is a private corpus under restrictive licences and is not in the repository, so `verifyEvidenceExcerpts` runs where the text exists (the contract test reads it from `SITERRA_CORPUS_TEXT_DIR` and is skipped, not passed, elsewhere); a source whose text is missing is reported as unavailable.
+
 ## Records planned for later contracts
 
 Not in [case.schema.json](../../schemas/case.schema.json) yet. Each is added in one minor version with Zod mirrors, examples and contract tests before any feature uses it. None is evidence unless stated; all reference exact entity versions.

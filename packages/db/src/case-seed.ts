@@ -16,6 +16,7 @@ import { z } from "zod";
 import { type ImportIssue, importCatalog } from "./bundle-import.ts";
 import { permittedMode } from "./live-mode.ts";
 import { readContextLines } from "./context-line-loader.ts";
+import { EvidenceStatementsFile, readEvidenceStatements } from "./evidence-statements.ts";
 import { MeasurementRowsFile, readMeasurementRows } from "./measurement-rows.ts";
 import type { CaseSeedRecords } from "./seed.ts";
 import { collectionOf, emptyCollections } from "./snapshot.ts";
@@ -93,6 +94,7 @@ const ContextFeaturesFile = z.object({
 
 const contextFeaturesPath = "data/case/context-features.json";
 const measurementRowsPath = "data/case/measurement-rows.json";
+const evidenceStatementsPath = "data/case/evidence-statements.json";
 
 function sha256File(path: string): string {
   return createHash("sha256").update(readFileSync(path)).digest("hex");
@@ -297,6 +299,24 @@ export function readCaseSeed(args: {
   issues.push(...lines.issues);
   contextFeatures.push(...lines.features);
 
+  const statementsFile = EvidenceStatementsFile.parse(
+    JSON.parse(readFileSync(join(args.repoDir, evidenceStatementsPath), "utf8")),
+  );
+  if (statementsFile.caseId !== file.caseId) {
+    issue(
+      evidenceStatementsPath,
+      `Statements are for ${statementsFile.caseId}, not ${file.caseId}`,
+    );
+  }
+  const statements = readEvidenceStatements({
+    file: statementsFile,
+    caseId: file.caseId,
+    geoSelection,
+    sources,
+    importedAt: at,
+  });
+  issues.push(...statements.issues);
+
   const caseRecord = EnvironmentalCase.parse({
     recordType: "EnvironmentalCase",
     id: file.caseId,
@@ -321,6 +341,7 @@ export function readCaseSeed(args: {
       sources,
       bundles,
       contextFeatures,
+      evidence: statements.evidence,
     },
     issues,
   };
@@ -338,6 +359,7 @@ export function seedSnapshot(seed: CaseSeedRecords): CaseSnapshot {
     ...seed.sources,
     ...seed.bundles.flatMap((b) => [b.dataBundle, ...b.temporalObservations, ...b.measurements]),
     ...seed.contextFeatures,
+    ...seed.evidence,
   ];
   for (const record of all) {
     (records[collectionOf[record.recordType]] as unknown[]).push(record);

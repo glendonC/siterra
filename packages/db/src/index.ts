@@ -2,6 +2,7 @@ export * from "./bundle-import.ts";
 export * from "./case-assets.ts";
 export * from "./case-seed.ts";
 export * from "./context-line-loader.ts";
+export * from "./evidence-statements.ts";
 export * from "./measurement-rows.ts";
 export * from "./cases.ts";
 export * from "./client.ts";

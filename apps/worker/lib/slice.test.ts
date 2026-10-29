@@ -260,7 +260,10 @@ describe("vertical slice on the real seed, replay only", () => {
       expect(result.status === "ran" && result.outcome.status).toBe("succeeded");
 
       const after = await readSnapshot(db.pool, CASE_ID, OWNER);
-      const evidence = after?.records.evidenceRecords ?? [];
+      // The seed also holds statements of published sources (scientific context); these are what the task wrote
+      const evidence = (after?.records.evidenceRecords ?? []).filter(
+        (e) => e.claimKind !== "scientific_context",
+      );
       expect(evidence.map((e) => e.measurementIds[0]).sort()).toEqual([ndvi.id, rain.id].sort());
       expect(evidence.every((e) => e.claimKind === "observation" && e.status === "accepted")).toBe(
         true,
