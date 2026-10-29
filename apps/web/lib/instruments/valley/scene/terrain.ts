@@ -128,12 +128,18 @@ void main() {
 `;
 
 /** The one warm low light: from a bearing (degrees clockwise from north), an altitude above the horizon. */
-export function lightFrom(bearing: number, altitude: number, ambientScale: number): Light {
+/** One warm low light; `key` is its colour and `keyScale` its strength (the cutaway's is warmer and stronger). */
+export function lightFrom(
+  bearing: number,
+  altitude: number,
+  ambientScale: number,
+  key: { colour: string; scale: number } = { colour: modelColours.keyLight, scale: 1 },
+): Light {
   const b = (bearing * Math.PI) / 180;
   const a = (altitude * Math.PI) / 180;
   return {
     dir: new Vector3(Math.sin(b) * Math.cos(a), Math.sin(a), -Math.cos(b) * Math.cos(a)),
-    color: hexVec(modelColours.keyLight),
+    color: hexVec(key.colour).multiplyScalar(key.scale),
     ambient: hexVec(modelColours.ambient).multiplyScalar(ambientScale),
   };
 }
@@ -292,6 +298,11 @@ export interface WallOptions {
   tops?: readonly number[];
   bandA?: [number, number, number];
   limitA?: number;
+  /** The wall's colour and its bands' tint; the catchment wall's tokens when absent. */
+  albedo?: string;
+  bandTint?: string;
+  /** One normal (model x, z) for the whole wall, as for a straight section face lit as one plane. */
+  faceNormal?: readonly [number, number];
 }
 
 /** A vertical wall under a polyline of (E, N) points, from the relief surface down to the base elevation. */
@@ -334,7 +345,8 @@ export function createWall(
     pos.set([x, 0, z, x, 0, z], k * 6);
     elev[k * 2] = top;
     elev[k * 2 + 1] = frame.base;
-    nor.set([nE, 0, -nN, nE, 0, -nN], k * 6);
+    const [fx, fz] = o.faceNormal ?? [nE, -nN];
+    nor.set([fx, 0, fz, fx, 0, fz], k * 6);
   }
   const idx: number[] = [];
   for (let k = 0; k < count - 1; k++) {
@@ -352,11 +364,11 @@ export function createWall(
     uL: { value: o.light.dir.clone() },
     uLight: { value: o.light.color.clone() },
     uAmbient: { value: o.light.ambient.clone() },
-    uAlbedo: { value: hexVec(modelColours.wallAlbedo) },
+    uAlbedo: { value: hexVec(o.albedo ?? modelColours.wallAlbedo) },
     uLine: { value: hexVec(modelColours.wallContour) },
     uLineA: { value: o.lineA ?? 0.28 },
     uFade: { value: o.fade ?? 0.9 },
-    uBandTint: { value: hexVec(modelColours.wallBandTint) },
+    uBandTint: { value: hexVec(o.bandTint ?? modelColours.wallBandTint) },
     uBandA: { value: new Vector3(...(o.bandA ?? [0, 0, 0])) },
     uLimitA: { value: o.limitA ?? 0 },
     uLimitC: { value: rgbVec(channels(modelColours.wallLimit)) },

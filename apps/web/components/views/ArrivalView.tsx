@@ -12,6 +12,7 @@ import { ActivityPanel } from "../activity/ActivityPanel";
 import { usePacedLog } from "../activity/usePacedLog";
 import { Card } from "../card/Card";
 import { Leader } from "../card/Leader";
+import { takeQuestion } from "../../lib/shell/handoff";
 import { useCaseSession } from "../case/useCaseSession";
 import { FlatListing } from "../flat/FlatListing";
 import { DepartureLegend } from "../map/DepartureLegend";
@@ -71,6 +72,12 @@ export function ArrivalView({
 }: ArrivalViewProps) {
   // "F Flat Map View": the flat map reading (MOT-12); F again returns to the beat's view
   const [flat, setFlat] = useState(false);
+  // a question typed in an instrument's command line, taken once from this tab's storage (lib/shell/handoff)
+  const [carried, setCarried] = useState<string | null>(null);
+  useEffect(() => {
+    const q = takeQuestion();
+    if (q) setCarried(q);
+  }, []);
   const [mapFailed, setMapFailed] = useState(false);
   const onMapFailed = useCallback(() => {
     setMapFailed(true);
@@ -280,6 +287,7 @@ export function ArrivalView({
             singleKeys={singleKeys}
             // with no map there is no arrival to wait for: the command line and ↵ land at once
             arrived={arrived || mapFailed}
+            prefill={carried}
             mapDrawn={!mapFailed}
             instant={quick}
             bearingDeg={bearing}

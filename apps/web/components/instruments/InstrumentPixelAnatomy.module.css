@@ -1,0 +1,302 @@
+/* The pixel anatomy instrument (approved specimen C), in the Obsidian tokens of app/obsidian.css: a 1440 x 900 stage
+   scaled to fit, the caption at the top left, six numbered panels, the live mix model, the credit line. */
+
+.root {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--bg-canvas);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-kerning: normal;
+  -webkit-font-smoothing: antialiased;
+}
+
+.stage {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1440px;
+  height: 900px;
+  transform-origin: 0 0;
+}
+
+.overlay {
+  position: absolute;
+  left: 0;
+  top: 0;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.handle {
+  pointer-events: all;
+  cursor: ew-resize;
+  outline: none;
+}
+
+.handle:focus-visible line {
+  stroke: var(--accent);
+}
+
+.nowrap {
+  white-space: nowrap;
+}
+
+.t12 {
+  font-size: 12px;
+  font-family: var(--font-sans);
+}
+
+.ink2 {
+  fill: var(--text-secondary);
+  color: var(--text-secondary);
+}
+
+.ink3 {
+  fill: var(--text-tertiary);
+  color: var(--text-tertiary);
+}
+
+.captionKey {
+  margin-bottom: 6px;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.captionStatement {
+  margin: 0;
+  font-size: 20px;
+  line-height: 28px;
+}
+
+.captionStatement .ink {
+  color: var(--text-primary);
+}
+
+.captionStatement .grey {
+  color: var(--text-tertiary);
+}
+
+.chip {
+  position: relative;
+  display: inline-block;
+  min-width: 18px;
+  height: 18px;
+  margin: 0 0 0 6px;
+  padding: 0 5px;
+  border: 0;
+  border-radius: 4px;
+  background: var(--bg-overlay);
+  color: var(--text-secondary);
+  font: 500 12px/18px var(--font-mono);
+  vertical-align: 3px;
+  cursor: help;
+}
+
+.chipTip {
+  display: none;
+  position: absolute;
+  left: 0;
+  top: 24px;
+  z-index: 5;
+  width: 360px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  background: var(--bg-overlay);
+  color: var(--text-secondary);
+  font: 400 12px/17px var(--font-sans);
+  text-align: left;
+}
+
+.chip:hover .chipTip,
+.chip:focus-visible .chipTip {
+  display: block;
+}
+
+.panelHead {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  height: 20px;
+}
+
+.num {
+  font: 400 12px/20px var(--font-mono);
+  color: var(--text-tertiary);
+}
+
+.title {
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: 500;
+}
+
+.panelDetail,
+.note,
+.barCaption,
+.roKey,
+.roMeasured,
+.citation,
+.credit {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--text-tertiary);
+}
+
+.multTitle {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.classKey {
+  display: grid;
+  row-gap: 2px;
+}
+
+.classRow {
+  display: grid;
+  grid-template-columns: 14px 1fr auto;
+  column-gap: 6px;
+  align-items: center;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--text-secondary);
+}
+
+.swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+
+.classShare {
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+}
+
+.specTable {
+  display: grid;
+  row-gap: 1px;
+}
+
+.specRow {
+  display: grid;
+  grid-template-columns: 18px 1fr 70px 64px;
+  column-gap: 6px;
+  align-items: center;
+  font-size: 12px;
+  line-height: 15px;
+  color: var(--text-secondary);
+}
+
+.lineKey {
+  width: 16px;
+  height: 2px;
+  border-radius: 1px;
+}
+
+.specNdvi,
+.specCells {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  color: var(--text-tertiary);
+}
+
+.modelLabel,
+.proposed {
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.proposed {
+  color: var(--accent);
+}
+
+.segLabel {
+  position: absolute;
+  width: 90px;
+  text-align: center;
+  white-space: nowrap;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.readout {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.roFigRow {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.roFigure {
+  font-size: 44px;
+  line-height: 50px;
+  font-weight: 300;
+}
+
+.roDelta {
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.roGloss,
+.recordsItem {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--text-secondary);
+}
+
+.meaning {
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--text-secondary);
+}
+
+.textButton {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-secondary);
+  font: 400 12px/16px var(--font-sans);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.credit {
+  text-align: center;
+  text-wrap: balance;
+}
+
+.failed {
+  position: absolute;
+  left: 40px;
+  top: 24px;
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--text-secondary);
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

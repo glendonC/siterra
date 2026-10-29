@@ -12,6 +12,8 @@ export const VALLEY_FIXTURES = "/instruments/valley/";
 export const BAND_LIMITS_M = [2316.8, 2815.2] as const;
 /** The CHIRPS reference period of the rain cells: their reference_mm_1991_2020 monthly means. */
 export const RAIN_REFERENCE_YEARS = [1991, 2020] as const;
+/** The seasons of the March to June trends in figures.json: the season trend bundle's period. */
+export const SEASON_TREND_YEARS = [2000, 2025] as const;
 /** The months the snow means cover: the snow tables run from 2001-01 to 2025-12. */
 export const SNOW_YEARS = [2001, 2025] as const;
 /** The land cover map: ESA WorldCover 2021 on the 10 m analysis grid. */
@@ -156,10 +158,24 @@ export interface LayerStackData {
   layout: LayerStackLayout;
 }
 
-async function json<T>(url: string, schema: z.ZodType<T>, signal?: AbortSignal): Promise<T> {
+export async function json<T>(url: string, schema: z.ZodType<T>, signal?: AbortSignal): Promise<T> {
   const r = await fetch(url, signal ? { signal } : {});
   if (!r.ok) throw new Error(`${url}: ${String(r.status)}`);
   return schema.parse(await r.json());
+}
+
+/** The 30 m relief named by the terrain metadata, checked against its grid size. */
+export async function loadRelief(
+  base: string,
+  meta: TerrainMeta,
+  signal?: AbortSignal,
+): Promise<Float32Array<ArrayBuffer>> {
+  const r = await fetch(`${base}${meta.relief.file}`, signal ? { signal } : {});
+  if (!r.ok) throw new Error(`${meta.relief.file}: ${String(r.status)}`);
+  const buf = await r.arrayBuffer();
+  if (buf.byteLength !== meta.relief.width * meta.relief.height * 4)
+    throw new Error(`${meta.relief.file}: ${String(buf.byteLength)} bytes`);
+  return new Float32Array(buf);
 }
 
 /** The JSON and relief fixtures specimen A reads; the two data textures load with the scene. */
@@ -169,13 +185,7 @@ export async function loadLayerStackData(
 ): Promise<LayerStackData> {
   const meta = await json(`${base}terrain-meta.json`, terrainMetaSchema, signal);
   const [relief, catchment, rivers, trend, rain, snow, figures, layout] = await Promise.all([
-    fetch(`${base}${meta.relief.file}`, signal ? { signal } : {}).then(async (r) => {
-      if (!r.ok) throw new Error(`${meta.relief.file}: ${String(r.status)}`);
-      const buf = await r.arrayBuffer();
-      if (buf.byteLength !== meta.relief.width * meta.relief.height * 4)
-        throw new Error(`${meta.relief.file}: ${String(buf.byteLength)} bytes`);
-      return new Float32Array(buf);
-    }),
+    loadRelief(base, meta, signal),
     json(`${base}catchment.json`, catchmentSchema, signal),
     json(`${base}rivers.json`, riversSchema, signal),
     json(`${base}trend-cells.json`, trendCellsSchema, signal),

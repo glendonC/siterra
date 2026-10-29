@@ -1,0 +1,14 @@
+{
+  "source": "data/case/context-features.json",
+  "sha256": "e418bd6c34e5a9c40ccfdc6bdd9ee9d4da3e655bcf6ef3fb6323ff96e2a2abee",
+  "places": [
+    {
+      "id": "ctx_tabant",
+      "name": "Tabant",
+      "role": "settlement",
+      "lonLat": [-6.42007, 31.65873],
+      "attribution": "GeoNames, CC BY 4.0",
+      "license": "CC BY 4.0"
+    }
+  ]
+}

@@ -6,10 +6,14 @@
   color-scheme: dark;
   --bg-canvas: #0b1012;
   --bg-surface: #141c20;
+  --bg-overlay: #1b262b;
   --text-primary: #ebf0f1;
   --text-secondary: #b7c4c8;
   --text-tertiary: #8e9da2;
   --hairline: rgb(235 240 241 / 0.34);
   --hairline-quiet: rgb(235 240 241 / 0.16);
   --accent: #e07a3a;
+  /* words set on the lit section face of the cutaway */
+  --ink-on-wall: #131a1d;
+  --hairline-on-wall: rgb(19 26 29 / 0.55);
 }

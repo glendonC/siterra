@@ -1,0 +1,285 @@
+/* The cutaway instrument (approved specimen B), in the Obsidian tokens of app/obsidian.css: one large figure at the
+   top left, band blocks against the section face on hairlines, the two published statements next to what they
+   describe, the ruler and limits on the model, the sources. */
+
+.root {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--bg-canvas);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-kerning: normal;
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+}
+
+.canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.canvas:focus-visible {
+  outline: 1px solid var(--hairline);
+  outline-offset: -2px;
+}
+
+.leaders {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+/* the briefing: one large figure, its unit line, one grey qualifying line with a source chip */
+.brief {
+  position: absolute;
+  left: 48px;
+  top: 36px;
+  width: 640px;
+  margin: 0;
+  pointer-events: none;
+}
+
+.fig {
+  display: block;
+  font-size: 56px;
+  line-height: 60px;
+  font-weight: 300;
+  letter-spacing: -0.5px;
+}
+
+.unit {
+  display: block;
+  margin-top: 4px;
+  font-size: 17px;
+  line-height: 24px;
+  white-space: nowrap;
+}
+
+.qual {
+  display: block;
+  margin-top: 4px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.chip {
+  display: inline-block;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  margin-left: 6px;
+  border: 1px solid var(--hairline);
+  border-radius: 3px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 16px;
+  text-align: center;
+  color: var(--text-secondary);
+  vertical-align: 1px;
+}
+
+/* words that belong to the model, placed after every render */
+.band,
+.months,
+.snowKey,
+.tickLabel,
+.statement,
+.place,
+.scaleNote {
+  position: absolute;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.band {
+  width: 240px;
+}
+
+.bandName {
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 500;
+  letter-spacing: 2.2px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.bandFig {
+  margin-top: 1px;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.bandFig b {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.strip {
+  display: flex;
+  gap: 2px;
+  margin-top: 4px;
+}
+
+.strip i,
+.months span {
+  width: 14px;
+  display: block;
+  flex: none;
+}
+
+.strip i {
+  height: 12px;
+  border-radius: 1px;
+}
+
+.months {
+  display: flex;
+  gap: 2px;
+}
+
+.months span {
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 14px;
+  color: var(--text-tertiary);
+}
+
+.snowKey {
+  white-space: nowrap;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--text-secondary);
+}
+
+.rampKey {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 6px;
+  color: var(--text-tertiary);
+  vertical-align: -1px;
+}
+
+.rampKey i {
+  display: inline-block;
+  width: 40px;
+  height: 8px;
+  border-radius: 1px;
+}
+
+.tickLabel {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 14px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.onWall {
+  color: var(--ink-on-wall);
+  font-weight: 500;
+}
+
+.statement {
+  margin: 0;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--text-secondary);
+}
+
+.side {
+  width: 460px;
+  text-align: right;
+}
+
+.onWallText {
+  width: 540px;
+  text-align: center;
+  font-weight: 500;
+  color: var(--ink-on-wall);
+}
+
+.onWallText .chip {
+  color: var(--ink-on-wall);
+  border-color: var(--hairline-on-wall);
+}
+
+.side,
+.place {
+  text-shadow:
+    0 0 3px var(--bg-canvas),
+    0 0 6px var(--bg-canvas),
+    0 0 10px var(--bg-canvas);
+}
+
+.place {
+  font-size: 13px;
+  line-height: 16px;
+  font-weight: 500;
+  letter-spacing: 0.26px;
+  white-space: nowrap;
+}
+
+.scaleNote {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  letter-spacing: 0.24px;
+}
+
+/* the attribution line, wrapped inside the frame */
+.credit {
+  position: absolute;
+  left: 48px;
+  right: 48px;
+  bottom: 12px;
+  margin: 0;
+  text-align: center;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--text-tertiary);
+  text-wrap: balance;
+}
+
+.credit span + span {
+  margin-left: 0.6em;
+}
+
+.credit b {
+  font-weight: 500;
+  font-family: var(--font-mono);
+  color: var(--text-secondary);
+}
+
+.failed {
+  position: absolute;
+  left: 48px;
+  top: 36px;
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--text-secondary);
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

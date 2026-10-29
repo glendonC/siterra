@@ -32,6 +32,8 @@ export interface ArrivalChromeProps {
   singleKeys?: boolean;
   /** True once arrival has begun: the command line, key hints and instruments land on their delays. */
   arrived: boolean;
+  /** A question carried from an instrument's command line: shown in the command line, focused, not sent. */
+  prefill?: string | null;
   /** Map bearing, so the north mark points to north on the land. */
   bearingDeg: number;
   /** The primary action, given what the command line holds. */
@@ -76,6 +78,7 @@ export function ArrivalChrome({
   placeCredit,
   singleKeys = true,
   arrived,
+  prefill = null,
   bearingDeg,
   onStart,
   primary,
@@ -95,6 +98,13 @@ export function ArrivalChrome({
   onSources,
 }: ArrivalChromeProps) {
   const input = useRef<HTMLInputElement>(null);
+
+  // a question carried from an instrument lands in the command line once the line is there, focused, unsent
+  useEffect(() => {
+    if (!arrived || !prefill || !input.current) return;
+    input.current.value = prefill;
+    input.current.focus();
+  }, [arrived, prefill]);
 
   // listening from the start, so a key that cuts the arrival settle short still does its own job
   useEffect(() => {

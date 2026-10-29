@@ -461,6 +461,184 @@ export const en = {
     text: "Produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved",
     kind: "ui",
   },
+
+  // Instruments: the cutaway (approved specimen B). Figures, years and limits come from the fixtures; the place's
+  // name and the two published statements with their sources come from their own fixtures, not from here
+  // (lib/instruments/valley/cutaway-data.ts)
+  "instrument.cutaway.unit": {
+    text: "NDVI per decade below {limit} m, March to June, {from} to {to}",
+    kind: "ui",
+  },
+  "instrument.cutaway.intervals": {
+    text: "Band averages over the whole catchment; every 95% interval lies above zero.",
+    kind: "ui",
+  },
+  "instrument.cutaway.description": {
+    text: "The valley catchment cut north to south through {place}. Its section face shows the true elevation profile and the two band limits. Beside each band are its March to June vegetation trend and its monthly snow cover.",
+    kind: "ui",
+  },
+  "instrument.cutaway.keys": {
+    text: "Arrow keys turn the model; Home returns to the measured view.",
+    kind: "ui",
+  },
+  "instrument.cutaway.failed": {
+    text: "Cutaway not loaded. Reload the page to retry.",
+    kind: "ui",
+  },
+  "instrument.cutaway.band.high": { text: "{limit} m and above", kind: "label" },
+  "instrument.cutaway.band.mid": { text: "{lower} to {upper} m", kind: "label" },
+  "instrument.cutaway.band.low": { text: "Below {limit} m", kind: "label" },
+  "instrument.cutaway.band.unit": { text: "NDVI per decade", kind: "label" },
+  // the snow key's two lines, as specimen B breaks them
+  "instrument.cutaway.snow": { text: "Snow-covered share by month,", kind: "label" },
+  "instrument.cutaway.snow.years": { text: "mean of {from} to {to}", kind: "label" },
+  "instrument.cutaway.metres": { text: "{value} m", kind: "label" },
+  "instrument.cutaway.north": { text: "N", kind: "label" },
+  "instrument.cutaway.south": { text: "S", kind: "label" },
+
+  // Instruments: the briefing shell around them. Enter in the command line opens the valley with the typed text in
+  // the valley's command line, sending nothing
+  "instrument.shell.nav": { text: "Instruments", kind: "label" },
+  "instrument.shell.valley": { text: "Valley", kind: "label" },
+  "instrument.shell.layers": { text: "Layers", kind: "label" },
+  "instrument.shell.cutaway": { text: "Cutaway", kind: "label" },
+  "instrument.shell.pixel": { text: "Pixel", kind: "label" },
+  "instrument.shell.command": { text: "Ask or challenge", kind: "label" },
+
+  // Instruments: the pixel anatomy (approved specimen C). Every number comes from the pixel's data file; the species
+  // statements and their sources come from the statements fixture
+  "instrument.pixel.question": {
+    text: "Why can a pixel get greener while its pasture does not?",
+    kind: "ui",
+  },
+  "instrument.pixel.statement": {
+    text: "This 250 m pixel at the valley floor edge got greener by {slope} NDVI per decade from {from} to {to}.",
+    kind: "ui",
+  },
+  "instrument.pixel.statement.grey": {
+    text: "Tree cover and cropland fill {share} of it, and in a mix of its own spectra, a larger share of them raises NDVI by itself.",
+    kind: "ui",
+  },
+  "instrument.pixel.source.trend": {
+    text: "MODIS MOD13Q1 v6.1 (Didan 2021), per-pixel Theil-Sen trend, March to June 2000 to 2025, Siterra pixel_trend_long_record 1.0.0; ESA WorldCover 2021 v200 (Zanaga et al. 2022).",
+    kind: "ui",
+  },
+  "instrument.pixel.source.spectra": {
+    text: "Sentinel-2 L2A S2B_29SQR_20250611_0_L2A, 11 Jun 2025, Earth Search sentinel-cogs; herders' reports of palatable species lost (SCI-03, pp. 7 to 8).",
+    kind: "ui",
+  },
+  "instrument.pixel.chip": { text: "Source {n}: {text}", kind: "label" },
+  "instrument.pixel.locate": { text: "Locate", kind: "heading" },
+  "instrument.pixel.locate.key": {
+    text: "NDVI per decade, March to June {from} to {to}",
+    kind: "label",
+  },
+  "instrument.pixel.km": { text: "{value} km", kind: "label" },
+  "instrument.pixel.m": { text: "{value} m", kind: "label" },
+  "instrument.pixel.cells": { text: "Pixel Cells", kind: "heading" },
+  "instrument.pixel.cells.detail": {
+    text: "Pixel {tile}, row {row}, column {col}, as its {cells} Sentinel-2 cells of 10 m. Cells outside it are veiled.",
+    kind: "ui",
+  },
+  "instrument.pixel.cells.truecolour": { text: "True color", kind: "label" },
+  "instrument.pixel.cells.ndvi": { text: "NDVI, {month}", kind: "label" },
+  "instrument.pixel.cells.class": { text: "WorldCover {year} class", kind: "label" },
+  "instrument.pixel.cells.truecolourNote": {
+    text: "Shared display composite. Display only, no value read from it.",
+    kind: "ui",
+  },
+  "instrument.pixel.cells.ndviNote": {
+    text: "Monthly median of {min} to {max} clear dates per cell",
+    kind: "label",
+  },
+  "instrument.pixel.class.10": { text: "Tree cover", kind: "label" },
+  "instrument.pixel.class.40": { text: "Cropland", kind: "label" },
+  "instrument.pixel.class.30": { text: "Grassland", kind: "label" },
+  "instrument.pixel.class.60": { text: "Bare or sparse", kind: "label" },
+  "instrument.pixel.classShort.10": { text: "Tree", kind: "label" },
+  "instrument.pixel.classShort.40": { text: "Cropland", kind: "label" },
+  "instrument.pixel.classShort.30": { text: "Grassland", kind: "label" },
+  "instrument.pixel.classShort.60": { text: "Bare", kind: "label" },
+  "instrument.pixel.spectra": { text: "Measured Spectra", kind: "heading" },
+  "instrument.pixel.spectra.detail": {
+    text: "Sentinel-2 L2A, {date}: median of each class's cells. All {cells} cells clear.",
+    kind: "ui",
+  },
+  "instrument.pixel.spectra.reflectance": { text: "Reflectance", kind: "label" },
+  "instrument.pixel.spectra.red": { text: "Red B04", kind: "label" },
+  "instrument.pixel.spectra.nir": { text: "Near-infrared B08", kind: "label" },
+  "instrument.pixel.spectra.axis": {
+    text: "Wavelength, nm (axis broken at 900 to 1500)",
+    kind: "label",
+  },
+  "instrument.pixel.spectra.ndvi": { text: "NDVI {value}", kind: "label" },
+  "instrument.pixel.spectra.cellCount": { text: "{n} cells", kind: "label" },
+  "instrument.pixel.spectra.pixel": { text: "This pixel, all cells", kind: "label" },
+  "instrument.pixel.spectra.model": { text: "Model mix, panel 05", kind: "label" },
+  "instrument.pixel.series": { text: "Season Record", kind: "heading" },
+  "instrument.pixel.series.pixel": { text: "This pixel", kind: "label" },
+  "instrument.pixel.series.band": { text: "Band below", kind: "label" },
+  "instrument.pixel.series.trend": {
+    text: "{slope} per decade, 95% {lower} to {upper}",
+    kind: "label",
+  },
+  "instrument.pixel.model": { text: "Linear Mix Model", kind: "heading" },
+  "instrument.pixel.model.label": {
+    text: "Model: linear mix of measured class spectra from this pixel. Not a measurement of plant species.",
+    kind: "ui",
+  },
+  "instrument.pixel.model.bar": {
+    text: "Class shares in the model; ticks mark the measured shares.",
+    kind: "ui",
+  },
+  "instrument.pixel.model.segment": { text: "{name} {share}", kind: "label" },
+  "instrument.pixel.model.boundary": { text: "Boundary between {left} and {right}", kind: "label" },
+  "instrument.pixel.model.key": {
+    text: "Model NDVI, mix of the {date} class medians",
+    kind: "label",
+  },
+  "instrument.pixel.model.delta": { text: "{value} from measured shares", kind: "label" },
+  "instrument.pixel.model.gloss": { text: "Mixed red {red} and near-infrared {nir}.", kind: "ui" },
+  "instrument.pixel.model.measured": {
+    text: "Measured {value} on the same date (mean of cells).",
+    kind: "ui",
+  },
+  "instrument.pixel.model.drag": {
+    text: "Drag a boundary to move share between two classes.",
+    kind: "ui",
+  },
+  "instrument.pixel.model.reset": { text: "Reset Shares", kind: "button" },
+  "instrument.pixel.model.meaning": {
+    text: "Grassland keeps its measured spectrum in every mix; only the shares move. The satellite records the mix, not which plants grow in the grassland.",
+    kind: "ui",
+  },
+  "instrument.pixel.field": { text: "Field Check", kind: "heading" },
+  "instrument.pixel.field.proposed": { text: "Proposed field check. Not measured.", kind: "ui" },
+  "instrument.pixel.field.transect": {
+    text: "Transect of {length} m on grassland: {n} quadrats, dashed on 02",
+    kind: "label",
+  },
+  "instrument.pixel.field.records": {
+    text: "Records plant cover by species and palatability, bare ground",
+    kind: "label",
+  },
+  "instrument.pixel.field.noSpectrum": {
+    text: "No spectrum of any of these species was measured here.",
+    kind: "ui",
+  },
+  "instrument.pixel.description": {
+    text: "One 250 m satellite pixel shown as its 10 m Sentinel-2 cells, with the measured spectra of its land cover classes and its season record. A linear mix model has movable class shares, and a field check is proposed.",
+    kind: "ui",
+  },
+  // a cited statement and its references, as "(SCI-03, pp. 7 to 8)"
+  "instrument.pixel.ref": { text: "{text} ({refs}).", kind: "label" },
+  "instrument.pixel.ref.page": { text: "{id}, p. {page}", kind: "label" },
+  "instrument.pixel.ref.pages": { text: "{id}, pp. {page}", kind: "label" },
+  "instrument.pixel.failed": { text: "Pixel not loaded. Reload the page to retry.", kind: "ui" },
+  "instrument.pixel.credit": {
+    text: "Contains modified Copernicus Sentinel data 2025. MODIS MOD13Q1 v6.1, NASA LP DAAC. © ESA WorldCover project 2021, CC BY 4.0. Catchment from Copernicus DEM GLO-30.",
+    kind: "ui",
+  },
 } as const satisfies Record<string, Message>;
 
 export type MessageId = keyof typeof en;
@@ -502,6 +680,16 @@ export const LINT_ALLOWLIST: Partial<Record<MessageId, { rules: string[]; reason
   "instrument.credit.dem": {
     rules: ["VT-03", "VT-08"],
     reason: "Copernicus WorldDEM-30 licence notice, kept in the wording the licence requires.",
+  },
+  "instrument.pixel.source.trend": {
+    rules: ["VT-08"],
+    reason:
+      "MODIS is the instrument's name; the source note names the product, the recipe and the land cover map as their publishers list them.",
+  },
+  "instrument.pixel.credit": {
+    rules: ["VT-08"],
+    reason:
+      "MODIS is the instrument's name and LP DAAC the archive's; the credit carries the data licences' required wording.",
   },
   "notice.three": {
     rules: ["VT-08", "VT-09"],

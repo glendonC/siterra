@@ -100,7 +100,31 @@ The instrument views (the layer stack, the cutaway, the pixel anatomy) have thei
 | Warm accent | 1 thing, the selected sheet |
 | Command line | 1, from the briefing shell |
 
-The cutaway and the pixel anatomy add their rows when they are built. The instrument checks (`apps/web/e2e/instrument-*.spec.ts`) count what is drawn against these ceilings, and also check that no line of text overlaps another, none is under 12 CSS px and none leaves the frame.
+The cutaway, from the approved specimen of the section through Tabant:
+
+| Per screen | Ceiling |
+|---|---|
+| Large figures | 1, with its unit line and one grey qualifying line carrying its source chip |
+| Section | 1 face, the catchment cut along the transect bundle's line; the profile along its top is the bundle's |
+| Band blocks | 3, against the face at each band's height: name, trend with its unit, 12-month snow strip; one snow key |
+| Leaders | 6 hairlines: 3 to the band blocks, 1 stem to each of the two statements, 1 tick to the named place; none warm |
+| Statements | 2 published statements, each at most two lines with its source chips, next to what it describes |
+| Notes on the model | the ruler's 4 labels, the 2 band limits, N and S, the vertical scale, and 1 place name only where the line passes within 100 m of the case record's point |
+| Warm accent | 1 thing, the cut line along the profile |
+| Command line | 1, from the briefing shell |
+
+The pixel anatomy, from the approved specimen of one MODIS pixel opened into its Sentinel-2 cells:
+
+| Per screen | Ceiling |
+|---|---|
+| Caption | 1 question, one ink sentence and one grey sentence, each with its source chip |
+| Panels | 6, numbered: 02 Pixel Cells and 05 Linear Mix Model the largest; 01 Locate and 04 Season Record compact (title, the visual, one line) |
+| Large figures | 1, the model's NDVI in 05, with its change from the measured shares |
+| Controls | 3 class boundaries on the composition bar (drag, or arrow keys; Home returns to the measured shares) and 1 reset button |
+| Labels | the model labelled as a model, not a measurement of plant species; the field check labelled proposed, not measured |
+| Connectors | 3 hairlines: two from the locator's ring to the pixel, one from the transect to the field check |
+| Warm accent | the selected pixel (its mark and footprint) and the proposed field check, nothing else |
+| Command line | 1, from the briefing shell; no content within 24 CSS px of it | The instrument checks (`apps/web/e2e/instrument-*.spec.ts`) count what is drawn against these ceilings, and also check that no line of text overlaps another, none is under 12 CSS px and none leaves the frame.
 
 ## Sections and focus
 

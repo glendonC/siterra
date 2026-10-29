@@ -5,12 +5,20 @@
 /** A colour as 0 to 1 channels, for shader uniforms that the specimens wrote as numbers. */
 export type Channels = readonly [number, number, number];
 
+/** A colour computed from these tokens (0 to 1 channels, as the ramps give them) written as CSS. */
+export const cssColour = (c: readonly number[]) =>
+  `rgb(${c.map((k) => Math.round(k * 255)).join(" ")})`;
+
 /** Ground, ink and the accent. */
 export const obsidian = {
   canvas: "#0b1012",
   accent: "#e07a3a",
   /** Leaders of the sheets that are not selected: ink at 62%. */
   leaderQuiet: "rgb(235 240 241 / 0.62)",
+  /** A leader's end on the model: ink at 90%. */
+  leaderDot: "rgb(235 240 241 / 0.9)",
+  /** A leader drawn across the lit section face: the on-wall ink at 70%. */
+  leaderOnWall: "rgb(19 26 29 / 0.7)",
 } as const;
 
 /** The land as a model on a table: relief and section walls under one warm low light. */
@@ -27,6 +35,10 @@ export const modelColours = {
   wallContour: "#c9d2d5",
   wallBandTint: "#c3d3db",
   wallLimit: [0.96, 0.97, 0.98] as Channels,
+  /** The cutaway: a warmer key light facing the section, and the section face lighter than the catchment wall. */
+  sectionKeyLight: "#ffd9ae",
+  sectionAlbedo: "#8e9396",
+  sectionBandTint: "#bcd0da",
   /** The table shadow under the model: black, its strength set where it is drawn. */
   tableShadow: "#000000",
   catchmentLine: "#dfe7ea",
@@ -53,4 +65,35 @@ export const sheetColours = {
   swatchTrend: "#57d4ae",
   swatchRain: "#5e95d0",
   swatchSnow: "#9cc9ea",
+} as const;
+
+/** The pixel anatomy (approved specimen C): WorldCover classes, the June NDVI ramp, the locator and the charts. */
+export const pixelColours = {
+  /** WorldCover classes by code: tree cover, cropland, grassland, bare or sparse vegetation. */
+  classes: { 10: "#3b7a2c", 40: "#956ed2", 30: "#a4932e", 60: "#3b5d96" } as Record<number, string>,
+  /** A class the key does not list. */
+  otherClass: "#5a5f61",
+  /** NDVI of the June median by step, below the first break to above the last. */
+  ndviSteps: ["#3e3504", "#584d09", "#676c0f", "#619116", "#5fb25e", "#86ca99", "#bedec3"],
+  /** A cell without an NDVI value. */
+  noValue: "#2d3132",
+  /** The locator's March to June slope key: browning arm, the neutral middle, greening arm. */
+  slopeBelow: ["#745426", "#b27d3b", "#f2a85f"],
+  slopeNeutral: "#2d3132",
+  slopeAbove: ["#266854", "#379d7f", "#57d4ae"],
+  locatorGround: "#141c20",
+  locatorOutline: "rgb(183 196 200 / 0.55)",
+  /** Lines between the 10 m cells, and the veil over cells outside the pixel. */
+  cellLine: "rgb(11 16 18 / 0.55)",
+  veil: "rgb(11 16 18 / 0.74)",
+  gridLine: "rgb(183 196 200 / 0.16)",
+  /** The NDVI bands' shading on the spectra chart. */
+  bandShade: "rgb(235 240 241 / 0.07)",
+  axis: "#8c9a9f",
+  ink2: "#b7c4c8",
+  ink: "#ebf0f1",
+  /** The pixel's own season record. */
+  series: "#5fb25e",
+  connector: "rgb(183 196 200 / 0.38)",
+  connectorWarm: "rgb(224 122 58 / 0.7)",
 } as const;
