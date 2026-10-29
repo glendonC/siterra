@@ -28,6 +28,8 @@ export const BundleVariable = z.enum([
   "drainage_network",
   "elevation_profile",
   "pixel_anatomy",
+  "elevation_surface",
+  "optical_clear_share",
 ]);
 export const PeriodStatus = z.enum(["available", "insufficient", "missing"]);
 export const QualityFlag = z.enum([

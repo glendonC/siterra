@@ -144,7 +144,7 @@ describe("STAC extension 1.1.0", () => {
     expect(issuesOf(StacCollection.safeParse(collection))).toEqual([]);
   });
 
-  it.each(["elevation_profile", "pixel_anatomy"])(
+  it.each(["elevation_profile", "pixel_anatomy", "elevation_surface", "optical_clear_share"])(
     "accepts %s as a bundle variable in the JSON schema and Zod mirror",
     (variable) => {
       const schema = readJson(`${repoDir}schemas/stac/siterra-extension.schema.json`);
