@@ -1,8 +1,9 @@
-/* Daylight theme variables (design language 1.3) and the three switchable visual directions on /prototype:
-   1: SHD Obsidian Table, 2: Mireye Daylight Model, 3: Dune Nocturnal Volume.
+/* Daylight Hero 1.3 tokens (design/tokens/siterra.css).
    This file and lib/theme/daylight.ts are the only places where colour literals are written (VC-01). */
 
-:root {
+:root,
+[data-theme="light"] {
+  color-scheme: light;
   --paper: #f2efea;
   --ink: #2b2925;
   --grey: #6b6762;
@@ -12,22 +13,87 @@
   --rule: rgba(43, 41, 37, 0.16);
   --rule-strong: rgba(43, 41, 37, 0.35);
   --shadow-card: 0 1px 2px rgba(43, 41, 37, 0.08), 0 8px 28px rgba(43, 41, 37, 0.1);
+  --shadow-island: 0 1px 2px rgba(43, 41, 37, 0.08), 0 8px 28px rgba(43, 41, 37, 0.1);
+  --shadow-popover: 0 1px 2px rgba(43, 41, 37, 0.08), 0 6px 18px rgba(43, 41, 37, 0.1);
+  --shadow-dialog: 0 1px 2px rgba(43, 41, 37, 0.08), 0 12px 40px rgba(43, 41, 37, 0.18);
   --veil-read: rgba(242, 239, 234, 0.72);
-  /* the biomes legend swatch on the globe page (hud4.css) */
+
+  --bg-canvas: #f2efea;
+  --bg-sunken: #f2efea;
+  --bg-surface: #fdfdfc;
+  --bg-overlay: #fdfdfc;
+  --bg-field: #fdfdfc;
+  --bg-subtle: #efeeed;
+  --border-subtle: rgba(43, 41, 37, 0.16);
+  --border-default: #a8a6a3;
+  --border-control: #878481;
+  --border-focus: #2b2925;
+  --border-selected: #b5561f;
+  --border-key-swatch: rgba(43, 41, 37, 0.25);
+  --text-primary: #2b2925;
+  --text-secondary: #6b6762;
+  --text-tertiary: #6a6764;
+  --text-link: #2b2925;
+  --state-hover: rgba(43, 41, 37, 0.033);
+  --state-pressed: rgba(43, 41, 37, 0.064);
+  --state-running-glow: rgba(181, 86, 31, 0.15);
+  --key-glyph-border: rgba(43, 41, 37, 0.35);
+
+  /* Biomes legend swatch on the globe page */
   --biome-fill: #f1e1c9;
   --biome-edge: rgba(181, 86, 31, 0.35);
-  /* the warm light behind the measurement front in the /prototype run (key light at 55%) */
+  /* Warm light behind the measurement front (key light at 55%) */
   --survey-light: rgb(255 236 210 / 0.55);
-  /* data.ndvi-departure and data.excluded-hatch, light theme (design/tokens), for the map legend */
+
+  /* data.ndvi-departure and data.excluded-hatch, light theme (design/tokens) */
   --ndvi-below-3: #a26112;
   --ndvi-below-2: #c79150;
   --ndvi-below-1: #e7c293;
+  --ndvi-reference: #f8f6f4;
   --ndvi-above-1: #97d9c1;
   --ndvi-above-2: #4eb293;
   --ndvi-above-3: #16866a;
   --excluded-hatch: #878481;
   --excluded-hatch-edge: rgb(135 132 129 / 0.6);
-  /* the halo of names on the land, at their box size (5 px in the hero's 2048 px texture) */
+  --no-observation-hatch: #6a6764;
+  --no-observation-hatch-edge: rgb(106 103 100 / 0.6);
+
+  /* data.rain-total display classes */
+  --data-rain-total-class-1: #a0cff7;
+  --data-rain-total-class-2: #6ba1dc;
+  --data-rain-total-class-3: #4273bb;
+
+  /* data.band elevation tints and limit line */
+  --data-band-lower: rgba(120, 134, 147, 0.08);
+  --data-band-middle: rgba(120, 134, 147, 0.3);
+  --data-band-upper: rgba(120, 134, 147, 0.55);
+  --data-band-limit: rgba(43, 41, 37, 0.7);
+
+  /* data.season stems and reference plane */
+  --data-season-stem: rgba(43, 41, 37, 0.6);
+  --data-season-stem-recent: #2b2925;
+  --data-season-stem-on-show: #b5561f;
+  --data-season-mean: rgba(43, 41, 37, 0.85);
+  --data-season-base: rgba(43, 41, 37, 0.55);
+  --data-season-plane: rgba(43, 41, 37, 0.1);
+  --data-season-slab: rgba(120, 134, 147, 0.16);
+  --data-season-slab-edge: rgba(120, 134, 147, 0.55);
+
+  /* map.* hero tokens */
+  --map-outline-casing: rgba(242, 239, 234, 0.95);
+  --map-outline: rgba(43, 41, 37, 0.8);
+  --map-outlet-ring-core: #1c1a18;
+  --map-outlet-ring-casing: #ffffff;
+  --map-beam: #b5561f;
+  --map-stem: rgba(43, 41, 37, 0.85);
+  --map-stem-selected: #b5561f;
+  --map-leader: rgba(43, 41, 37, 0.7);
+  --map-leader-tick: rgba(43, 41, 37, 0.9);
+  --map-sheet: rgba(253, 253, 252, 0.38);
+  --map-sheet-edge: rgba(43, 41, 37, 0.7);
+  --map-front: rgba(43, 41, 37, 0.75);
+
+  /* Halo of names on the land */
   --paper-halo-ground: 0 0 3px #f2efea, 0 0 3px #f2efea, 0 0 4px #f2efea;
   --paper-halo: 0 0 2px #f2efea, 0 0 2px #f2efea, 0 0 3px #f2efea;
 
@@ -36,18 +102,14 @@
     "IBM Plex Sans Condensed", "IBM Plex Sans Variable", "IBM Plex Sans", sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
 
-  /* names on the land: 13 px with 0.02 em tracking in the approved hero (not on the public type scale) */
   --type-place-size: 13px;
   --type-place-line: 16px;
   --type-place-tracking: 0.02em;
-  /* the opening page: 48 CSS px in the approved a5 frames (design language text says 64) */
   --type-opening-size: 48px;
   --type-opening-line: 52px;
-  /* chrome sizes from the approved hero (key hints 15, command line 17, mono notes 11, credits 10) */
   --type-hint-size: 15px;
   --type-command-size: 17px;
   --type-mono-small-size: 11px;
-  /* type.hero-instrument (design/tokens/siterra.css): the graticule and the scale bar of the flat reading */
   --type-hero-instrument-size: 11px;
   --type-hero-instrument-line: 14px;
   --type-credit-size: 10px;
@@ -61,283 +123,71 @@
   --duration-camera: 1600ms;
   --duration-sentence: 600ms;
   --duration-leader: 300ms;
-
-  /* 5 Mireye-inspired distinct layer colours for the Isometric Layer Stack */
-  --layer-1-fg: #3b82f6;
-  --layer-1-fill: rgba(59, 130, 246, 0.28);
-  --layer-1-soft: rgba(59, 130, 246, 0.14);
-  --layer-2-fg: #22c55e;
-  --layer-2-fill: rgba(34, 197, 94, 0.3);
-  --layer-2-soft: rgba(34, 197, 94, 0.14);
-  --layer-3-fg: #f97316;
-  --layer-3-fill: rgba(249, 115, 22, 0.28);
-  --layer-3-soft: rgba(249, 115, 22, 0.14);
-  --layer-4-fg: #14b8a6;
-  --layer-4-fill: rgba(20, 184, 166, 0.3);
-  --layer-4-soft: rgba(20, 184, 166, 0.14);
-  --layer-5-fg: #ef4444;
-  --layer-5-fill: rgba(239, 68, 68, 0.3);
-  --layer-5-soft: rgba(239, 68, 68, 0.14);
 }
 
-/* Direction 1: SHD Obsidian Table (The Division 2, Top Gun: Maverick, Oblivion, Elite Dangerous) */
-[data-dir="1"] {
-  --bg-canvas: #0b1012;
-  --bg-sunken: #0f1619;
-  --bg-surface: #141c20;
-  --bg-overlay: #1b262b;
-  --bg-subtle: #1d282d;
-  --bg-field: #0f1619;
-  --paper: #0b1012;
-  --card: #141c20;
-  --ink: #ebf0f1;
-  --grey: #9eb0b6;
-  --text-primary: #ebf0f1;
-  --text-secondary: #b7c4c8;
-  --text-tertiary: #87989e;
-  --accent: #e07a3a;
-  --border-selected: #e07a3a;
-  --border-subtle: rgba(235, 240, 241, 0.12);
-  --border-default: rgba(235, 240, 241, 0.24);
-  --border-control: rgba(235, 240, 241, 0.38);
-  --hairline: rgba(235, 240, 241, 0.18);
-  --hairline-strong: rgba(224, 122, 58, 0.55);
-  --state-hover: rgba(235, 240, 241, 0.06);
-  --state-pressed: rgba(235, 240, 241, 0.12);
-  --survey-light: rgba(224, 122, 58, 0.35);
-  --status-consistent-fg: #57d4ae;
-  --status-consistent-bg: rgba(55, 157, 127, 0.16);
-  --status-contradicted-fg: #fba99d;
-  --status-contradicted-bg: rgba(206, 73, 62, 0.18);
-  --status-cannot-fg: #faae4d;
-  --status-cannot-bg: rgba(239, 158, 44, 0.14);
-  --status-cyan-fg: #63bcd0;
-  --status-cyan-bg: rgba(99, 188, 208, 0.15);
-  --ndvi-up-strong: #57d4ae;
-  --ndvi-up-mod: #379d7f;
-  --ndvi-ref: #2d3132;
-  --ndvi-down-mod: #b27d3b;
-  --ndvi-down-strong: #f2a85f;
-  --rain-wet: #588dc7;
-  --rain-dry: #e07a3a;
-  --shadow-island: 0 14px 42px rgba(0, 0, 0, 0.62), 0 1px 0 rgba(235, 240, 241, 0.08);
-  --shadow-popover: 0 10px 28px rgba(0, 0, 0, 0.55);
-  --globe-bg: radial-gradient(circle at 46% 46%, #18262d 0%, #0d1519 52%, #070b0d 100%);
-  --globe-grid: rgba(99, 188, 208, 0.18);
-  --globe-land: #379d7f;
-  --globe-biome: #e07a3a;
-  --hud-glass: linear-gradient(180deg, rgba(22, 29, 36, 0.86) 0%, rgba(12, 17, 22, 0.93) 100%);
-  --hud-dock-glass: linear-gradient(180deg, rgba(20, 27, 34, 0.88) 0%, rgba(11, 15, 20, 0.95) 100%);
-  --hud-pill-bg: rgba(255, 255, 255, 0.055);
-  --hud-pill-hover: rgba(255, 255, 255, 0.1);
-  --hud-pill-active: rgba(224, 122, 58, 0.2);
-  --hud-row-bg: rgba(255, 255, 255, 0.035);
-  --hud-row-hover: rgba(255, 255, 255, 0.065);
-  --hud-border: rgba(255, 255, 255, 0.09);
-  --hud-border-strong: rgba(255, 255, 255, 0.16);
-  --hud-specular: rgba(255, 255, 255, 0.12);
-  --hud-shadow:
-    0 24px 48px -12px rgba(0, 0, 0, 0.72), 0 0 0 1px rgba(255, 255, 255, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.12);
-  --hud-btn-primary: linear-gradient(180deg, #f08c4b 0%, #d96b27 100%);
-  --hud-btn-primary-shadow:
-    0 6px 20px rgba(224, 122, 58, 0.38), 0 1px 2px rgba(0, 0, 0, 0.45),
-    inset 0 1px 0 rgba(255, 255, 255, 0.32);
-  --hud-btn-text: #ffffff;
-  --stack-backdrop: radial-gradient(
-    ellipse at 42% 52%,
-    rgba(24, 36, 46, 0.92) 0%,
-    rgba(11, 16, 20, 0.96) 64%,
-    rgba(7, 10, 13, 0.98) 100%
-  );
-  --iso-sheet-fill: rgba(235, 244, 252, 0.085);
-  --iso-sheet-fill-active: rgba(235, 244, 252, 0.16);
-  --iso-sheet-stroke: rgba(255, 255, 255, 0.38);
-  --iso-sheet-grid: rgba(255, 255, 255, 0.11);
-  --iso-base-top: #1c272e;
-  --iso-base-side: #0e1418;
-  --iso-base-outline: #ffffff;
-  --iso-shadow: rgba(0, 0, 0, 0.65);
-  --top-scrim: linear-gradient(
-    180deg,
-    rgba(8, 12, 15, 0.78) 0%,
-    rgba(8, 12, 15, 0.38) 55%,
-    rgba(8, 12, 15, 0) 100%
-  );
-}
+/* Dark theme from design/tokens/siterra.css (toggled by pressing D) */
+[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #171513;
+  --ink: #efefed;
+  --grey: #d8d7d4;
+  --shadow-tint: #090704;
+  --accent: #cb5a1a;
+  --card: #272623;
+  --rule: #666460;
+  --rule-strong: #82807c;
+  --shadow-card: 0 8px 24px rgba(0, 0, 0, 0.36), 0 1px 2px rgba(0, 0, 0, 0.24);
+  --shadow-island: 0 8px 24px rgba(0, 0, 0, 0.36), 0 1px 2px rgba(0, 0, 0, 0.24);
+  --shadow-popover: 0 12px 32px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.24);
+  --veil-read: rgba(23, 21, 19, 0.72);
 
-/* Direction 2: Mireye Daylight Model (Mireye, Google Flood Hub, labs.google, Siterra Hero 1.3) */
-[data-dir="2"] {
-  --bg-canvas: #f2efea;
-  --bg-sunken: #eae6df;
-  --bg-surface: #fdfdfc;
-  --bg-overlay: #fdfdfc;
-  --bg-subtle: #efeeed;
-  --bg-field: #f7f5f0;
-  --paper: #f2efea;
-  --card: #fdfdfc;
-  --ink: #2b2925;
-  --grey: #5f5b56;
-  --text-primary: #141c1d;
-  --text-secondary: #424d50;
-  --text-tertiary: #5f6a6e;
-  --accent: #b5561f;
-  --border-selected: #b5561f;
-  --border-subtle: rgba(43, 41, 37, 0.14);
-  --border-default: rgba(43, 41, 37, 0.28);
-  --border-control: rgba(43, 41, 37, 0.45);
-  --hairline: rgba(43, 41, 37, 0.18);
-  --hairline-strong: rgba(181, 86, 31, 0.55);
-  --state-hover: rgba(43, 41, 37, 0.045);
-  --state-pressed: rgba(43, 41, 37, 0.09);
-  --survey-light: rgba(181, 86, 31, 0.28);
-  --status-consistent-fg: #16866a;
-  --status-consistent-bg: rgba(22, 134, 106, 0.12);
-  --status-contradicted-fg: #b53e35;
-  --status-contradicted-bg: rgba(181, 62, 53, 0.11);
-  --status-cannot-fg: #8f5c16;
-  --status-cannot-bg: rgba(181, 118, 32, 0.12);
-  --status-cyan-fg: #1b7183;
-  --status-cyan-bg: rgba(32, 129, 149, 0.12);
-  --ndvi-up-strong: #16866a;
-  --ndvi-up-mod: #4eb293;
-  --ndvi-ref: #d8d4cd;
-  --ndvi-down-mod: #c79150;
-  --ndvi-down-strong: #a26112;
-  --rain-wet: #4273bb;
-  --rain-dry: #b5561f;
-  --shadow-island: 0 12px 36px rgba(43, 41, 37, 0.14), 0 1px 2px rgba(43, 41, 37, 0.08);
-  --shadow-popover: 0 8px 24px rgba(43, 41, 37, 0.12);
-  --globe-bg: radial-gradient(circle at 46% 46%, #fbf9f5 0%, #efeae2 56%, #e2dcd2 100%);
-  --globe-grid: rgba(43, 41, 37, 0.14);
-  --globe-land: #6b6762;
-  --globe-biome: #b5561f;
-  --hud-glass: linear-gradient(180deg, rgba(253, 253, 252, 0.9) 0%, rgba(245, 242, 236, 0.95) 100%);
-  --hud-dock-glass: linear-gradient(
-    180deg,
-    rgba(253, 253, 252, 0.92) 0%,
-    rgba(244, 240, 234, 0.96) 100%
-  );
-  --hud-pill-bg: rgba(43, 41, 37, 0.05);
-  --hud-pill-hover: rgba(43, 41, 37, 0.09);
-  --hud-pill-active: rgba(181, 86, 31, 0.15);
-  --hud-row-bg: rgba(43, 41, 37, 0.035);
-  --hud-row-hover: rgba(43, 41, 37, 0.065);
-  --hud-border: rgba(43, 41, 37, 0.11);
-  --hud-border-strong: rgba(43, 41, 37, 0.2);
-  --hud-specular: rgba(255, 255, 255, 0.8);
-  --hud-shadow:
-    0 20px 44px -12px rgba(43, 41, 37, 0.18), 0 0 0 1px rgba(43, 41, 37, 0.09),
-    inset 0 1px 0 rgba(255, 255, 255, 0.85);
-  --hud-btn-primary: linear-gradient(180deg, #cc6528 0%, #b5561f 100%);
-  --hud-btn-primary-shadow:
-    0 6px 18px rgba(181, 86, 31, 0.28), 0 1px 2px rgba(43, 41, 37, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
-  --hud-btn-text: #ffffff;
-  --stack-backdrop: radial-gradient(
-    ellipse at 42% 52%,
-    rgba(248, 246, 241, 0.94) 0%,
-    rgba(232, 228, 220, 0.97) 64%,
-    rgba(220, 215, 206, 0.99) 100%
-  );
-  --iso-sheet-fill: rgba(255, 255, 255, 0.56);
-  --iso-sheet-fill-active: rgba(255, 255, 255, 0.78);
-  --iso-sheet-stroke: rgba(255, 255, 255, 0.95);
-  --iso-sheet-grid: rgba(43, 41, 37, 0.1);
-  --iso-base-top: #c8ba9e;
-  --iso-base-side: #9b8d74;
-  --iso-base-outline: #ffffff;
-  --iso-shadow: rgba(43, 41, 37, 0.22);
-  --top-scrim: linear-gradient(
-    180deg,
-    rgba(242, 239, 234, 0.82) 0%,
-    rgba(242, 239, 234, 0.4) 55%,
-    rgba(242, 239, 234, 0) 100%
-  );
-}
+  --bg-canvas: #171513;
+  --bg-sunken: #1f1d1b;
+  --bg-surface: #272623;
+  --bg-overlay: #302e2c;
+  --bg-field: #1f1d1b;
+  --bg-subtle: #302e2c;
+  --border-subtle: #666460;
+  --border-default: #74716e;
+  --border-control: #82807c;
+  --border-focus: #efefed;
+  --border-selected: #efefed;
+  --text-primary: #efefed;
+  --text-secondary: #d8d7d4;
+  --text-tertiary: #bfbebb;
+  --text-link: #efefed;
+  --state-hover: rgba(239, 239, 237, 0.042);
+  --state-pressed: rgba(239, 239, 237, 0.087);
+  --state-running-glow: rgba(203, 90, 26, 0.2);
+  --key-glyph-border: #82807c;
 
-/* Direction 3: Dune Nocturnal Volume (Dune: Part Two, Black Panther sand table, Avatar holotable) */
-[data-dir="3"] {
-  --bg-canvas: #120f0c;
-  --bg-sunken: #17130f;
-  --bg-surface: #1d1814;
-  --bg-overlay: #26201a;
-  --bg-subtle: #28211b;
-  --bg-field: #16120e;
-  --paper: #120f0c;
-  --card: #1d1814;
-  --ink: #f2ece1;
-  --grey: #b8ad99;
-  --text-primary: #f2ece1;
-  --text-secondary: #cfc5b2;
-  --text-tertiary: #9e9381;
-  --accent: #d49b4b;
-  --border-selected: #d49b4b;
-  --border-subtle: rgba(242, 236, 225, 0.13);
-  --border-default: rgba(242, 236, 225, 0.25);
-  --border-control: rgba(242, 236, 225, 0.4);
-  --hairline: rgba(242, 236, 225, 0.18);
-  --hairline-strong: rgba(212, 155, 75, 0.58);
-  --state-hover: rgba(242, 236, 225, 0.06);
-  --state-pressed: rgba(242, 236, 225, 0.12);
-  --survey-light: rgba(212, 155, 75, 0.35);
-  --status-consistent-fg: #57d4ae;
-  --status-consistent-bg: rgba(55, 157, 127, 0.16);
-  --status-contradicted-fg: #fba99d;
-  --status-contradicted-bg: rgba(206, 73, 62, 0.18);
-  --status-cannot-fg: #d49b4b;
-  --status-cannot-bg: rgba(212, 155, 75, 0.16);
-  --status-cyan-fg: #8dc2fa;
-  --status-cyan-bg: rgba(75, 132, 189, 0.16);
-  --ndvi-up-strong: #57d4ae;
-  --ndvi-up-mod: #379d7f;
-  --ndvi-ref: #32302d;
-  --ndvi-down-mod: #b27d3b;
-  --ndvi-down-strong: #f2a85f;
-  --rain-wet: #588dc7;
-  --rain-dry: #d49b4b;
-  --shadow-island: 0 16px 44px rgba(0, 0, 0, 0.68), 0 1px 0 rgba(212, 155, 75, 0.14);
-  --shadow-popover: 0 10px 30px rgba(0, 0, 0, 0.6);
-  --globe-bg: radial-gradient(circle at 46% 46%, #2a2118 0%, #17120d 54%, #0c0907 100%);
-  --globe-grid: rgba(212, 155, 75, 0.18);
-  --globe-land: #8b7d65;
-  --globe-biome: #d49b4b;
-  --hud-glass: linear-gradient(180deg, rgba(32, 26, 20, 0.88) 0%, rgba(19, 15, 12, 0.94) 100%);
-  --hud-dock-glass: linear-gradient(180deg, rgba(30, 24, 19, 0.9) 0%, rgba(16, 13, 10, 0.96) 100%);
-  --hud-pill-bg: rgba(242, 236, 225, 0.055);
-  --hud-pill-hover: rgba(242, 236, 225, 0.1);
-  --hud-pill-active: rgba(212, 155, 75, 0.22);
-  --hud-row-bg: rgba(242, 236, 225, 0.035);
-  --hud-row-hover: rgba(242, 236, 225, 0.065);
-  --hud-border: rgba(242, 236, 225, 0.1);
-  --hud-border-strong: rgba(242, 236, 225, 0.18);
-  --hud-specular: rgba(242, 236, 225, 0.12);
-  --hud-shadow:
-    0 24px 48px -12px rgba(0, 0, 0, 0.74), 0 0 0 1px rgba(242, 236, 225, 0.09),
-    inset 0 1px 0 rgba(242, 236, 225, 0.12);
-  --hud-btn-primary: linear-gradient(180deg, #e0aa59 0%, #c48834 100%);
-  --hud-btn-primary-shadow:
-    0 6px 20px rgba(212, 155, 75, 0.36), 0 1px 2px rgba(0, 0, 0, 0.45),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
-  --hud-btn-text: #120f0c;
-  --stack-backdrop: radial-gradient(
-    ellipse at 42% 52%,
-    rgba(38, 30, 22, 0.92) 0%,
-    rgba(18, 15, 12, 0.96) 64%,
-    rgba(11, 9, 7, 0.98) 100%
-  );
-  --iso-sheet-fill: rgba(242, 236, 225, 0.085);
-  --iso-sheet-fill-active: rgba(242, 236, 225, 0.16);
-  --iso-sheet-stroke: rgba(242, 236, 225, 0.38);
-  --iso-sheet-grid: rgba(242, 236, 225, 0.11);
-  --iso-base-top: #2b231b;
-  --iso-base-side: #16120e;
-  --iso-base-outline: #f2ece1;
-  --iso-shadow: rgba(0, 0, 0, 0.68);
-  --top-scrim: linear-gradient(
-    180deg,
-    rgba(14, 11, 8, 0.78) 0%,
-    rgba(14, 11, 8, 0.38) 55%,
-    rgba(14, 11, 8, 0) 100%
-  );
+  --map-outline-casing: #171513;
+  --map-outline: #c3b68a;
+  --map-outlet-ring-core: #efefed;
+  --map-outlet-ring-casing: #171513;
+  --map-beam: #cb5a1a;
+  --map-stem: rgba(239, 239, 237, 0.85);
+  --map-stem-selected: #cb5a1a;
+  --map-leader: rgba(239, 239, 237, 0.7);
+  --map-leader-tick: rgba(239, 239, 237, 0.9);
+  --map-sheet: rgba(39, 38, 35, 0.52);
+  --map-sheet-edge: rgba(239, 239, 237, 0.7);
+  --map-front: rgba(239, 239, 237, 0.75);
+
+  --data-band-lower: rgba(195, 182, 138, 0.08);
+  --data-band-middle: rgba(195, 182, 138, 0.24);
+  --data-band-upper: rgba(195, 182, 138, 0.42);
+  --data-band-limit: rgba(239, 239, 237, 0.7);
+
+  --data-season-stem: rgba(239, 239, 237, 0.6);
+  --data-season-stem-recent: #efefed;
+  --data-season-stem-on-show: #cb5a1a;
+  --data-season-mean: rgba(239, 239, 237, 0.85);
+  --data-season-base: rgba(239, 239, 237, 0.55);
+  --data-season-plane: rgba(239, 239, 237, 0.1);
+  --data-season-slab: rgba(195, 182, 138, 0.16);
+  --data-season-slab-edge: rgba(195, 182, 138, 0.55);
+
+  --paper-halo-ground: 0 0 3px #171513, 0 0 3px #171513, 0 0 4px #171513;
+  --paper-halo: 0 0 2px #171513, 0 0 2px #171513, 0 0 3px #171513;
 }

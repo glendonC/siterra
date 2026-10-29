@@ -1,7 +1,10 @@
+/* Full-bleed valley stage for /prototype (Hero 1.3 tokens from app/daylight.css). */
+
 .stage {
   position: absolute;
   inset: 0;
-  background: var(--bg-canvas);
+  overflow: hidden;
+  background: var(--paper);
 }
 
 .map {
@@ -14,17 +17,19 @@
 }
 
 .map :global(.maplibregl-canvas-container.maplibregl-interactive) {
-  cursor: crosshair;
+  cursor: grab;
 }
 
 .map :global(.maplibregl-canvas-container.maplibregl-interactive:active) {
   cursor: grabbing;
 }
 
+.outline,
 .survey,
 .sheets,
 .leader,
-.strataOverlay {
+.strataOverlay,
+.seasonStemsSvg {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -37,155 +42,261 @@
   z-index: 1;
 }
 
+.outline {
+  z-index: 2;
+}
+
+.sheets,
+.seasonStemsSvg,
+.survey {
+  z-index: 3;
+}
+
+.leader {
+  z-index: 4;
+}
+
+/* Catchment line: 1.5 px ink on the ridge crest over 4.2 px paper casing, round caps */
+.outlineCasing,
+.outlineInk {
+  fill: none;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.outlineCasing {
+  stroke: var(--map-outline-casing);
+  stroke-width: 4.2px;
+}
+
+.outlineInk {
+  stroke: var(--map-outline);
+  stroke-width: 1.5px;
+}
+
+/* Perspective ground text on the land (Beat 1 Arrival) */
+.groundText {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 2;
+  transform-origin: 0 0;
+  display: flex;
+  flex-direction: column;
+  pointer-events: none;
+}
+
+.groundLine {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  font-family: var(--font-sans);
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+  color: var(--ink);
+  text-shadow: var(--paper-halo-ground);
+}
+
+/* Beat 6 (Field Plan): three elevation bands as tints of the shadow colour (8%, 30%, 55%) + thin contour limits */
 .stratumBandHigh {
-  fill: var(--status-cyan-bg);
-  fill-opacity: 0.12;
+  fill: var(--data-band-upper);
   stroke: none;
 }
 
 .stratumBandMid {
-  fill: var(--status-consistent-bg);
-  fill-opacity: 0.14;
+  fill: var(--data-band-middle);
   stroke: none;
 }
 
 .stratumBandLow {
-  fill: var(--survey-light);
-  fill-opacity: 0.16;
+  fill: var(--data-band-lower);
   stroke: none;
 }
 
 .stratumLimit {
   fill: none;
-  stroke: var(--text-secondary);
-  stroke-opacity: 0.44;
-  stroke-width: 1.1;
-  stroke-dasharray: 5 4;
+  stroke: var(--data-band-limit);
+  stroke-width: 1px;
 }
 
-/* FireTrace-style animated hydrological stream & snowmelt drainage network */
-.hydroMainCasing {
+.bandLabels {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.bandLabel {
+  position: absolute;
+  font: 500 13px / 16px var(--font-sans);
+  letter-spacing: 0.02em;
+  color: var(--ink);
+  text-shadow: var(--paper-halo);
+  white-space: nowrap;
+}
+
+.excludedLabel,
+.gapLabel {
+  position: absolute;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font: 400 11px / 16px var(--font-mono);
+  color: var(--ink);
+  text-shadow: var(--paper-halo);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.hatchSwatch,
+.gapSwatch {
+  display: inline-block;
+  width: 14px;
+  height: 10px;
+  border: 1px solid var(--excluded-hatch-edge);
+  background: repeating-linear-gradient(45deg, var(--excluded-hatch) 0 1px, transparent 1px 5px);
+}
+
+.gapSwatch {
+  border-color: var(--no-observation-hatch-edge);
+  background: repeating-linear-gradient(
+    45deg,
+    var(--no-observation-hatch) 0 1px,
+    transparent 1px 5px
+  );
+}
+
+/* Beat 2 (Work): thin sheets cut to the catchment outline (card colour at 38% with 1.2 px ink at 70%) */
+.sheet {
+  fill: var(--map-sheet);
+  stroke: var(--map-sheet-edge);
+  stroke-width: 1.2px;
+  stroke-linejoin: round;
+  transition:
+    d 900ms var(--ease-arrive),
+    opacity 750ms linear;
+}
+
+.sheet[data-empty="true"] {
   fill: none;
-  stroke: var(--bg-canvas);
-  stroke-opacity: 0.65;
-  stroke-width: 4.5;
+  stroke-dasharray: 2 4;
   stroke-linecap: round;
+}
+
+.sheetLabel line {
+  stroke: var(--map-sheet-edge);
+  stroke-width: 1px;
+}
+
+.sheetLabel circle {
+  fill: var(--ink);
+}
+
+.sheetLabel text {
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: 500;
+  fill: var(--ink);
+  paint-order: stroke;
+  stroke: var(--paper);
+  stroke-width: 3.5px;
   stroke-linejoin: round;
 }
 
-.hydroMainBase {
-  fill: none;
-  stroke: var(--layer-4-fg);
-  stroke-opacity: 0.55;
-  stroke-width: 2;
-  stroke-linecap: round;
+.sheetN {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 400;
+  fill: var(--grey);
+}
+
+.sheetTitle {
+  font-weight: 500;
+  fill: var(--ink);
+}
+
+/* Beat 4 (Dry-year challenge / The Record Answers): 3D Season Stems beside the catchment */
+.seasonPlane {
+  fill: var(--data-season-plane);
+  stroke: none;
+}
+
+.seasonSlab {
+  fill: var(--data-season-slab);
+  stroke: var(--data-season-slab-edge);
+  stroke-width: 1px;
+}
+
+.seasonMeanLine {
+  stroke: var(--data-season-mean);
+  stroke-width: 1.2px;
+}
+
+.seasonBaseLine {
+  stroke: var(--data-season-base);
+  stroke-width: 1px;
+}
+
+.seasonStemLine {
+  stroke: var(--data-season-stem);
+  stroke-width: 1.3px;
+}
+
+.seasonStemsSvg g[data-role="recent"] .seasonStemLine {
+  stroke: var(--data-season-stem-recent);
+  stroke-width: 2px;
+}
+
+.seasonStemsSvg g[data-role="on-show"] .seasonStemLine {
+  stroke: var(--data-season-stem-on-show);
+  stroke-width: 3px;
+}
+
+.seasonMeanTick {
+  stroke: var(--data-season-mean);
+  stroke-width: 1px;
+}
+
+.seasonStemDot {
+  fill: var(--ink);
+}
+
+.seasonStemsSvg g[data-role="on-show"] .seasonStemDot {
+  fill: var(--accent);
+}
+
+.seasonMonoLabel {
+  font: 400 11px / 16px var(--font-mono);
+  fill: var(--ink);
+  paint-order: stroke;
+  stroke: var(--paper);
+  stroke-width: 3px;
   stroke-linejoin: round;
 }
 
-.hydroMainPulse {
-  fill: none;
-  stroke: var(--status-cyan-fg);
-  stroke-opacity: 0.95;
-  stroke-width: 2.4;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-dasharray: 12 22;
-  animation: hydroFlow 2.6s linear infinite;
-}
-
-.hydroTribBase {
-  fill: none;
-  stroke: var(--layer-4-fg);
-  stroke-opacity: 0.38;
-  stroke-width: 1.3;
-  stroke-linecap: round;
-}
-
-.hydroTribPulse {
-  fill: none;
-  stroke: var(--status-cyan-fg);
-  stroke-opacity: 0.85;
-  stroke-width: 1.6;
-  stroke-linecap: round;
-  stroke-dasharray: 7 18;
-  animation: hydroFlow 2.1s linear infinite;
-}
-
-@keyframes hydroFlow {
-  from {
-    stroke-dashoffset: 68;
-  }
-  to {
-    stroke-dashoffset: 0;
-  }
-}
-
-/* Animated Field Verification Route (Stage 5) */
-.routeCasing {
-  fill: none;
-  stroke: var(--bg-canvas);
-  stroke-opacity: 0.82;
-  stroke-width: 5.5;
-  stroke-linecap: round;
+.seasonAccentLabel {
+  font: 400 11px / 16px var(--font-mono);
+  fill: var(--accent);
+  paint-order: stroke;
+  stroke: var(--paper);
+  stroke-width: 3px;
   stroke-linejoin: round;
 }
 
-.routeLine {
-  fill: none;
-  stroke: var(--accent);
-  stroke-opacity: 0.72;
-  stroke-width: 2.2;
-  stroke-dasharray: 6 6;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.routePulse {
-  fill: none;
-  stroke: var(--text-primary);
-  stroke-opacity: 0.95;
-  stroke-width: 2.6;
-  stroke-dasharray: 10 26;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  animation: routeFlow 2.2s linear infinite;
-}
-
-@keyframes routeFlow {
-  from {
-    stroke-dashoffset: 72;
-  }
-  to {
-    stroke-dashoffset: 0;
-  }
-}
-
-/* the area being read: a crisp two-tone survey perimeter */
-.surveyCasing {
-  fill: none;
-  stroke: var(--bg-canvas);
-  stroke-opacity: 0.92;
-  stroke-width: 4.2;
-  stroke-linejoin: round;
-}
-
-.surveyLine {
-  fill: none;
-  stroke: var(--accent);
-  stroke-opacity: 0.95;
-  stroke-width: 1.75;
-  stroke-linejoin: round;
-}
-
+/* Measurement front across the catchment (1.5 s constant speed) */
 .surveyFill {
   fill: var(--survey-light);
   stroke: none;
 }
 
 .frontLine {
-  stroke: var(--accent);
-  stroke-width: 2.2;
-  stroke-dasharray: 2 0;
+  stroke: var(--map-front);
+  stroke-width: 1.2px;
 }
 
 .sweepBand {
@@ -201,237 +312,25 @@
   }
 }
 
-/* 5 Colour-Coded Exploded Layer Sheets over the terrain */
-.sheets {
-  z-index: 2;
-}
-
-.sheets g {
-  pointer-events: auto;
-  cursor: pointer;
-}
-
-.sheet {
-  fill: var(--layer-1-soft);
-  stroke: var(--layer-1-fg);
-  stroke-opacity: 0.92;
-  stroke-width: 1.8;
-  stroke-linejoin: round;
-  transition:
-    fill 180ms ease,
-    stroke-width 180ms ease;
-}
-
-.sheet[data-layer="1"] {
-  fill: var(--layer-1-soft);
-  stroke: var(--layer-1-fg);
-}
-
-.sheet[data-layer="2"] {
-  fill: var(--layer-2-soft);
-  stroke: var(--layer-2-fg);
-}
-
-.sheet[data-layer="3"] {
-  fill: var(--layer-3-soft);
-  stroke: var(--layer-3-fg);
-}
-
-.sheet[data-layer="4"] {
-  fill: var(--layer-4-soft);
-  stroke: var(--layer-4-fg);
-}
-
-.sheet[data-layer="5"] {
-  fill: var(--layer-5-soft);
-  stroke: var(--layer-5-fg);
-}
-
-.sheet[data-active="true"],
-.sheets g:hover .sheet {
-  stroke-width: 2.8;
-  stroke-opacity: 1;
-}
-
-.sheet[data-layer="1"][data-active="true"] {
-  fill: var(--layer-1-fill);
-}
-
-.sheet[data-layer="2"][data-active="true"] {
-  fill: var(--layer-2-fill);
-}
-
-.sheet[data-layer="3"][data-active="true"] {
-  fill: var(--layer-3-fill);
-}
-
-.sheet[data-layer="4"][data-active="true"] {
-  fill: var(--layer-4-fill);
-}
-
-.sheet[data-layer="5"][data-active="true"] {
-  fill: var(--layer-5-fill);
-}
-
-.sheetGridFill {
-  pointer-events: none;
-}
-
-.sheetInnerFeature {
-  fill: none;
-  stroke: var(--iso-sheet-stroke);
-  stroke-width: 1.1;
-  stroke-dasharray: 4 3;
-  pointer-events: none;
-}
-
-.sheetStreamFeature {
-  fill: none;
-  stroke: var(--layer-4-fg);
-  stroke-width: 1.8;
-  stroke-opacity: 0.85;
-  pointer-events: none;
-}
-
-.sheetLabel path {
-  stroke: var(--iso-sheet-stroke);
-  stroke-opacity: 0.85;
-  stroke-width: 1.25;
-}
-
-.sheetLabel circle {
-  fill: var(--text-primary);
-}
-
-.sheetPillBg {
-  fill: var(--bg-surface);
-  fill-opacity: 0.92;
-  stroke: var(--hud-border-strong);
-  stroke-width: 1;
-}
-
-.sheetSwatch[data-layer="1"] {
-  fill: var(--layer-1-fg);
-}
-
-.sheetSwatch[data-layer="2"] {
-  fill: var(--layer-2-fg);
-}
-
-.sheetSwatch[data-layer="3"] {
-  fill: var(--layer-3-fg);
-}
-
-.sheetSwatch[data-layer="4"] {
-  fill: var(--layer-4-fg);
-}
-
-.sheetSwatch[data-layer="5"] {
-  fill: var(--layer-5-fg);
-}
-
-.sheetLabel text {
-  font-family: var(--font-sans);
-  font-size: 14px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  fill: var(--text-primary);
-}
-
-.sheetN {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  font-weight: 600;
-  fill: var(--text-secondary);
-}
-
-.sheetTitle {
-  font-weight: 600;
-  fill: var(--text-primary);
-}
-
-/* the card's one leader: whole in one frame, after the card settles */
+/* The ONE Leader Line (1 px map.leader, ink at 70%): whole in one frame, never draws on */
 .leader {
-  z-index: 3;
-  animation: appear 0s step-end 0.08s both;
+  animation: appear 0s step-end 0.1s both;
 }
 
-.leader path {
+.leaderLine {
   fill: none;
-  stroke: var(--accent);
-  stroke-opacity: 0.92;
-  stroke-width: 1.4;
+  stroke: var(--map-leader);
+  stroke-width: 1px;
 }
 
-.leader circle {
-  fill: var(--accent);
+.leaderTick {
+  fill: none;
+  stroke: var(--map-leader-tick);
+  stroke-width: 1.2px;
 }
 
-/* Precision 4-hairline hover reticle */
-.reticle {
-  position: absolute;
-  z-index: 2;
-  width: 0;
-  height: 0;
-  pointer-events: none;
-}
-
-.reticleTickN,
-.reticleTickS,
-.reticleTickE,
-.reticleTickW {
-  position: absolute;
-  background: var(--text-primary);
-  opacity: 0.78;
-}
-
-.reticleTickN {
-  left: -0.5px;
-  top: -16px;
-  width: 1px;
-  height: 10px;
-}
-
-.reticleTickS {
-  left: -0.5px;
-  top: 6px;
-  width: 1px;
-  height: 10px;
-}
-
-.reticleTickW {
-  left: -16px;
-  top: -0.5px;
-  width: 10px;
-  height: 1px;
-}
-
-.reticleTickE {
-  left: 6px;
-  top: -0.5px;
-  width: 10px;
-  height: 1px;
-}
-
-.reticleReadout {
-  position: absolute;
-  left: 14px;
-  top: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  padding: 5px 10px;
-  border-radius: 8px;
-  background: color-mix(in srgb, var(--bg-surface) 90%, transparent);
-  border: 1px solid var(--hud-border);
-  border-left: 2px solid var(--accent);
-  font: 500 10px/14px var(--font-mono);
-  color: var(--text-primary);
-  white-space: nowrap;
-}
-
-.reticleReadout span:last-child {
-  color: var(--text-secondary);
+.leaderDot {
+  fill: var(--ink);
 }
 
 @keyframes appear {
@@ -448,10 +347,7 @@
     animation: none;
     opacity: 0;
   }
-  .leader,
-  .hydroMainPulse,
-  .hydroTribPulse,
-  .routePulse {
+  .leader {
     animation: none;
   }
 }
