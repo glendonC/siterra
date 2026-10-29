@@ -1,7 +1,7 @@
 {
-  "registryVersion": "1.5.0",
+  "registryVersion": "1.6.0",
   "registered": "2026-10-27",
-  "note": "Recipe registry. What was fixed before any data: only the catalog rows in docs/reference/analysis-recipes.md (question, method in one line, output kind) for coverage_summary, monthly_departure and aligned_antecedent, and the full season_summary entry (registered 2026-10-27 before any event comparison). The detailed formulas and parameters of coverage_summary, monthly_departure, aligned_antecedent and terrain_strata were written together with their first run on 2026-10-27, so they are not pre-registered. From now on, changing a formula, parameter or window after results are read is a new version labeled post hoc. Registry 1.2.0 (2026-10-28) adds restrend_long_record and snow_cover_by_band, each fully registered before its data was summarized; their place-specific windows and band sets are in science/places/. The inspector renders method cards from an entry and the bundle manifest that holds its result. References are IDs in research/science/source-register.md. Registry 1.3.0 (2026-10-28) adds pixel_trend_long_record and season_trend_long_record, registered before any per-pixel slope, land-cover summary or June to September greenness value was computed (the stratum results of restrend_long_record had been read). Registry 1.4.0 (2026-10-29) adds drainage_network, registered before this pipeline built any network; its smoothing and height rules were carried over from the 29 October specimen build, which had run them first. Registry 1.5.0 (2026-10-29) adds terrain_transects, registered before this pipeline sampled any line; the Tabant meridian is specimen B's section and the rest was written by the science lane.",
+  "note": "Recipe registry. What was fixed before any data: only the catalog rows in docs/reference/analysis-recipes.md (question, method in one line, output kind) for coverage_summary, monthly_departure and aligned_antecedent, and the full season_summary entry (registered 2026-10-27 before any event comparison). The detailed formulas and parameters of coverage_summary, monthly_departure, aligned_antecedent and terrain_strata were written together with their first run on 2026-10-27, so they are not pre-registered. From now on, changing a formula, parameter or window after results are read is a new version labeled post hoc. Registry 1.2.0 (2026-10-28) adds restrend_long_record and snow_cover_by_band, each fully registered before its data was summarized; their place-specific windows and band sets are in science/places/. The inspector renders method cards from an entry and the bundle manifest that holds its result. References are IDs in research/science/source-register.md. Registry 1.3.0 (2026-10-28) adds pixel_trend_long_record and season_trend_long_record, registered before any per-pixel slope, land-cover summary or June to September greenness value was computed (the stratum results of restrend_long_record had been read). Registry 1.4.0 (2026-10-29) adds drainage_network, registered before this pipeline built any network; its smoothing and height rules were carried over from the 29 October specimen build, which had run them first. Registry 1.5.0 (2026-10-29) adds terrain_transects, registered before this pipeline sampled any line; the Tabant meridian is specimen B's section and the rest was written by the science lane. Registry 1.6.0 (2026-10-29) adds pixel_anatomy, registered before this pipeline built any pixel anatomy; the pixel and its scene come from the 28 October specimen build and the scene rule was written afterwards to name that choice.",
   "recipes": [
     {
       "recipeId": "coverage_summary",
@@ -1637,6 +1637,200 @@
       ],
       "priority": "P2",
       "formulaPlain": "A line is laid across the valley through Tabant and another along the main river from the outlet to the head of its longest branch. The height of the ground, its elevation band and its WorldCover land cover class are read every 30 m along each line, with the points where the line crosses a band limit and the stretch of the valley floor."
+    },
+    {
+      "recipeId": "pixel_anatomy",
+      "version": "1.0.0",
+      "title": "One MODIS pixel opened into its 10 m cells",
+      "question": "What fills one 250 m MODIS pixel: which land cover classes, how green each class looked on one clear day, whether a linear mix of those classes accounts for the pixel's greenness, and how the pixel's own March to June greenness moved over about 25 seasons?",
+      "operation": "pixel_anatomy",
+      "implementation": {
+        "language": "python",
+        "package": "siterra-science",
+        "version": "0.1.0"
+      },
+      "inputs": [
+        "modis_mod13q1_v061_ndvi_16day",
+        "pixel_trend_long_record",
+        "terrain_strata",
+        "worldcover_2021_v200",
+        "sentinel2_l2a_scene",
+        "sentinel2_monthly_ndvi",
+        "place_configuration"
+      ],
+      "registration": "Full entry registered 2026-10-29, before this pipeline built any pixel anatomy. The pixel (MOD13Q1 h17v05, row 4005, column 2178) and its scene (S2B_29SQR_20250611_0_L2A) were chosen by the 28 October specimen build: the pixel by a disclosed judgment among the top candidates of a rule written before the list, the scene as the clearest June 2025 date on the preferred orbit. The scene rule below (the latest of the fully clear scenes on that orbit) was written afterwards to name that choice in general, and the science lane had read the specimen's numbers (class NDVI 0.80 tree cover, 0.86 cropland, 0.17 grassland, 0.08 bare or sparse; pixel 0.4766; model 0.4450; series slope +0.05702) before writing it, so it is not blind. No hypothesis is tested: the recipe describes one pixel. Place-specific values are in science/places/<place>.json, revision 5.",
+      "formula": [
+        "Pixel: a MODIS tile pixel named by its tile, row and column (h17v05, row 4005, column 2178); its position in the pixel trend bundle's native grid follows from the sinusoidal tile lattice; its footprint is the pixel's square in the MODIS sinusoidal grid (231.66 m), which is a four-sided shape in EPSG:32629",
+        "Cells: the 10 m cells of the strata's EPSG:32629 analysis grid whose centres lie inside the frozen polygon and, transformed to the sinusoidal grid, inside the footprint (the cell to pixel rule of place_config.cell_pixel_index). The display window is the bounding box of those cells plus 1 cell on every side, widened so that its edges lie on 20 m",
+        "Per cell: the ESA WorldCover 2021 v200 class; the Sentinel-2 monthly median NDVI and the count of dates behind it for the configured month; the true colour of the shared display composite (display only, never used in a number); whether the cell is inside the footprint and the polygon",
+        "Scene: among the Earth Search items cached for the pixel's Sentinel-2 tile and the configured month, those on the configured relative orbit with data over every footprint cell; the one with the largest share of footprint cells whose scene classification (SCL) is 4 or 5, ties by the latest date. Every candidate's share is stored",
+        "Extracts: for that scene, the windows of B02, B03, B04, B05, B06, B07, B08, B8A, B11, B12 and SCL that cover the display window (10 m bands at 10 m; 20 m bands and SCL at 20 m), as read (uint16 digital numbers, uint8 SCL), each with its source address, COG window and sha256",
+        "Spectra: reflectance = DN / 10000 with no offset; the 20 m bands and SCL repeated 2 x 2 onto the 10 m cells; a footprint cell is kept when its SCL is 4 or 5 and every band's DN is above 0. Per WorldCover class of the footprint: the median, 25th and 75th percentile of the kept cells' reflectance in each band and the number of kept cells. The pixel's measured values: the mean reflectance of all kept cells in each band, the NDVI of the mean red (B04) and near-infrared (B08), and the median and mean of the cell NDVI",
+        "Mix model (modelled, not measured): the share of class k is s_k = footprint cells of class k / footprint cells; the mixed reflectance in band b is R(b) = sum over k of s_k times the class median M_k(b); modelled NDVI = (R(B08) - R(B04)) / (R(B08) + R(B04)). Stored with the difference from the measured pixel NDVI, and with the same formula for a reference shift of 20 percentage points of the footprint from grassland to tree cover (an example of the control, not an observation)",
+        "Series: the pixel's season greenness G(p, y) for March to June of each year 2000 to 2025, recomputed from the MOD13Q1 windows with the registered functions of pixel_trend_long_record (pixel reliability 0 and 1 kept, at least half of the 16-day periods kept, values to 5 decimals), and its Theil-Sen slope per decade with Sen's 95% interval; the builder stops unless slope and interval equal the pixel trend bundle's table at 5 decimals",
+        "Selection record: the pixels that meet the specimen's rule (Sen interval entirely above zero in March to June, every footprint cell inside the catchment, tree cover plus cropland 0.25 to 0.60 of the cells, grassland plus shrubland plus bare or sparse at least 0.35, built-up at most 0.05, at least half of the cells on sloping ground), ranked by the lower bound of the interval; stored with their number, the top five and the pixel's rank",
+        "Acceptance checks, all stored with the bundle: the cell to pixel rule reproduces the table's analysis_cells for every one of the pixels and the footprint count of this pixel; every extract's sha256 equals its record; the extracts cover the display window; no kept cell has red or near-infrared reflectance above 1.0; class cell counts add up to the footprint; the series reproduces the table; the scene is the one the scene rule gives; two runs give identical files apart from the computed time"
+      ],
+      "parameters": [
+        {
+          "name": "window_margin_cells",
+          "role": "method",
+          "allowed": [
+            1
+          ],
+          "default": 1
+        },
+        {
+          "name": "scl_kept",
+          "role": "method",
+          "allowed": [
+            [
+              4,
+              5
+            ]
+          ],
+          "default": [
+            4,
+            5
+          ]
+        },
+        {
+          "name": "reflectance_divisor",
+          "role": "method",
+          "allowed": [
+            10000
+          ],
+          "default": 10000
+        },
+        {
+          "name": "shift_points",
+          "role": "method",
+          "allowed": [
+            20
+          ],
+          "default": 20
+        },
+        {
+          "name": "pixel_reliability_kept",
+          "role": "method",
+          "allowed": [
+            [
+              0,
+              1
+            ]
+          ],
+          "default": [
+            0,
+            1
+          ]
+        },
+        {
+          "name": "min_composite_share",
+          "role": "method",
+          "allowed": [
+            0.5
+          ],
+          "default": 0.5
+        },
+        {
+          "name": "series_window",
+          "role": "method",
+          "allowed": [
+            "mar_jun"
+          ],
+          "default": "mar_jun"
+        }
+      ],
+      "sensitivitySet": [],
+      "applicability": [
+        {
+          "check": "frozen geometry, strata and land cover named in the place configuration, checksums matching",
+          "minimum": "1 geometry"
+        },
+        {
+          "check": "the pixel trend bundle, the MOD13Q1 windows and the cached Sentinel-2 items of the configured month and tile",
+          "minimum": "1 pixel inside the catchment"
+        },
+        {
+          "check": "seasons with a defined G at the pixel",
+          "minimum": "15; fewer and the series is insufficient_seasons"
+        }
+      ],
+      "outputs": [
+        {
+          "metric": "land_cover_share",
+          "unit": "1",
+          "claimKind": "observation",
+          "uncertaintyKind": "not_quantified"
+        },
+        {
+          "metric": "class_reflectance_median",
+          "unit": "1",
+          "claimKind": "observation",
+          "uncertaintyKind": "interval"
+        },
+        {
+          "metric": "modelled_ndvi",
+          "unit": "1",
+          "claimKind": "model_estimate",
+          "uncertaintyKind": "not_quantified"
+        },
+        {
+          "metric": "pixel_trend_per_decade",
+          "unit": "1/(10 a)",
+          "claimKind": "model_estimate",
+          "uncertaintyKind": "interval"
+        }
+      ],
+      "assumptions": [
+        "The share-weighted sum of the class medians stands for the pixel's reflectance, as a first model of mixing within one pixel",
+        "One fully clear scene on the preferred orbit stands for the class spectra of the month"
+      ],
+      "failureModes": [
+        "A single 2021 land cover map can differ from the ground in 2025, and tree cover on the valley floor may include orchards",
+        "The footprint of a MODIS pixel is a nominal square, and cells near its edge also belong to its neighbours"
+      ],
+      "standardLimitations": [
+        "One pixel is an illustration, not a sample: it was chosen by judgment among the candidates of a rule (the selection record gives their number and its rank), and it says nothing about other pixels.",
+        "The class spectra come from one clear day, the cells of each class inside this pixel, and one 2021 land cover map. They are not typical spectra of the classes, and a 10 m cell at the edge of a class mixes surfaces.",
+        "The mix model assumes the pixel's reflectance is the share-weighted sum of its class medians. It ignores shadow, slope and variation inside a class, so its NDVI is modelled, not measured, and it differs from the measured pixel NDVI by the amount stored.",
+        "NDVI measures how green the ground looks from above, not forage, palatability or species: in Ait Bouguemez and the Central High Atlas, upper rangelands are dominated by spiny xerophytic vegetation over reduced short grasslands (SCI-19, p. 2), and on the valley floor tree cover may include orchards (SCI-03, pp. 5, 9 to 10).",
+        "The 26-season series is the pixel's own March to June greenness, not adjusted for rainfall. Its trend is a descriptive Theil-Sen slope with Sen's 95% interval, and no p-value or false discovery rate class is stored for one pixel (SCI-52).",
+        "Terra's overpass has drifted earlier since 2020, from 10:30 to about 9:06 mean local time by December 2025 (NASA), so later seasons are seen with a lower sun and longer shadows in mountain terrain, which may shift NDVI without any change on the ground.",
+        "The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary."
+      ],
+      "allowedComponents": [
+        "pixel anatomy",
+        "method card"
+      ],
+      "forbiddenPhrases": [
+        "significant",
+        "significantly",
+        "degradation detected",
+        "grazing impact",
+        "overgrazing",
+        "caused by",
+        "proves",
+        "recovery",
+        "forecast",
+        "pasture improvement",
+        "pasture decline",
+        "encroachment",
+        "flood risk",
+        "water supply"
+      ],
+      "references": [
+        "SCI-155",
+        "SCI-13",
+        "SCI-07",
+        "SCI-49",
+        "SCI-52",
+        "SCI-03",
+        "SCI-19",
+        "SCI-159"
+      ],
+      "priority": "P2",
+      "formulaPlain": "One 250 m MODIS pixel is opened into its 10 m cells. Each cell has a land cover class and a June greenness value. On one clear day the light reflected by each class inside the pixel is measured in ten bands, and a simple mix of those classes is compared with the pixel's measured greenness. The pixel's own March to June greenness is shown for each season since 2000, with its trend and 95% interval."
     }
   ]
 }

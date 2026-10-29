@@ -2,12 +2,13 @@
   "placeId": "ait_bouguemez",
   "title": "Ait Bouguemez valley catchment",
   "note": "Place configuration read by the long-record pipeline scripts. Everything that is specific to one place lives here; the scripts hold none of it. A value changed here after a result was read is a new configuration revision labelled post hoc in the recipe result.",
-  "configRevision": 4,
+  "configRevision": 5,
   "revisions": [
     {"revision": 1, "date": "2026-10-28", "change": "First configuration: geometry, strata, DEM, rainfall window, restrend_long_record and snow_cover_by_band."},
     {"revision": 2, "date": "2026-10-28", "change": "Added landCover, pixel_trend_long_record and season_trend_long_record, written before any per-pixel slope, land-cover summary or June to September greenness value was computed. No value of revision 1 changed."},
     {"revision": 3, "date": "2026-10-29", "change": "Added drainage_network (the conditioned flow direction and fill depth rasters of the catchment freeze, pinned by checksum), written before this pipeline built any drainage segment. No value of revision 1 or 2 changed."},
-    {"revision": 4, "date": "2026-10-29", "change": "Added terrain_transects (the two lines, the Tabant coordinates and the published valley floor range), written before this pipeline sampled any line. No value of revision 1, 2 or 3 changed."}
+    {"revision": 4, "date": "2026-10-29", "change": "Added terrain_transects (the two lines, the Tabant coordinates and the published valley floor range), written before this pipeline sampled any line. No value of revision 1, 2 or 3 changed."},
+    {"revision": 5, "date": "2026-10-29", "change": "Added pixel_anatomy (the pixel, its selection record, the month and orbit of the scene, and the pinned display inputs), written before this pipeline built any pixel anatomy. No value of revision 1 to 4 changed."}
   ],
   "geometry": {
     "id": "geo_ait_bouguemez_catchment",
@@ -177,6 +178,43 @@
       ],
       "valleyFloor": {"maxElevationM": 2200, "source": "SCI-19: valley floor 1800 to 2200 m"},
       "rationale": "The step, the recompute tolerance and the height surface are fixed in science/recipes/registry.json (terrain_transects 1.0.0) before the first build; this block holds the lines, the Tabant coordinates (GeoNames, as in research/geospatial/study-area.md) and the published valley floor range."
+    },
+    "pixel_anatomy": {
+      "bundleId": "bundle_pixel_anatomy_ait_bouguemez",
+      "pixels": [
+        {
+          "id": "h17v05r4005c2178",
+          "role": "primary",
+          "chosenBy": "The 28 October specimen build, by a disclosed judgment: rank 3 of the candidates of the rule below. Ranks 1 and 2 lie in the lower gorge along a meandering riparian strip; this is the first candidate on the edge of the main valley floor, where the floor of tree cover and cropland meets the open slope in one straight boundary."
+        }
+      ],
+      "candidateRule": {
+        "window": "mar_jun",
+        "direction": "upward",
+        "fullyInsideCatchment": true,
+        "treeCoverPlusCropland": [0.25, 0.60],
+        "grasslandShrublandBareOrSparseMin": 0.35,
+        "builtUpMax": 0.05,
+        "slopingCellsMin": 0.50,
+        "ranking": "lower bound of Sen's 95% interval, highest first",
+        "writtenBefore": "the candidate list was made, by the 28 October specimen build"
+      },
+      "ndviMonth": "2025-06",
+      "scene": {
+        "tile": "29SQR",
+        "relativeOrbit": "R094",
+        "month": "2025-06",
+        "itemsFolder": "s2-monthly/items",
+        "orbitReason": "In the cached items of tile 29SQR for June 2025, the R094 scenes carry 7.3 to 9.0% no-data (apart from one sliver of 95.6%) and the R137 scenes 33.8 to 35.6%"
+      },
+      "interimInputs": {
+        "root": "data/interim",
+        "ndviMedian": {"path": "s2-monthly/2025-06/median.tif", "sha256": "1f31217f15421eed40a9342011785e8ef0d47daacf24bdc8544bfbc7c712cf38"},
+        "ndviCount": {"path": "s2-monthly/2025-06/count.tif", "sha256": "83ea290dccde4f5c1c991a3223b39c3eceb0d19e46e947416cb2196cf8f3cbd1"},
+        "trueColour": {"path": "hero/imagery/truecolour-inner-10m.tif", "sha256": "68ba737d375936f0acb42057b0df047ed4b09148e577b71f87b668ec5a95734e", "use": "display only"}
+      },
+      "trendBundle": {"bundle": "bundle_pixel_trend_long_record_ait_bouguemez", "table": "pixel-trend-long-record-tables.json", "grid": "pixel-trend-mar_jun.tif"},
+      "rationale": "The window margin, the SCL classes, the reflectance divisor, the shift of the example control and the series parameters are fixed in science/recipes/registry.json (pixel_anatomy 1.0.0) before the first build; this block holds the pixel, how it was chosen, the month and orbit of the scene and the pinned display inputs."
     }
   }
 }
