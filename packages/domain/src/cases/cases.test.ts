@@ -1,9 +1,21 @@
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { CaseAnalysisConfig } from "@siterra/contracts";
 import { describe, expect, it } from "vitest";
 
 import registry from "../../../../science/recipes/registry.json" with { type: "json" };
-import seed from "../../../contracts/fixtures/case-snapshot-aitbouguemez-seed.json" with { type: "json" };
 import { analysisConfigFor, caseAnalysisConfigs } from "./index.ts";
+
+// Read as text, not imported as a JSON module: the fixture holds the drainage lines, and a type
+// inferred from that many coordinates cannot be resolved by the typed linter.
+const seed = JSON.parse(
+  readFileSync(
+    fileURLToPath(
+      new URL("../../../contracts/fixtures/case-snapshot-aitbouguemez-seed.json", import.meta.url),
+    ),
+    "utf8",
+  ),
+) as { records: { dataBundleRecords: { status: string; methodId: string | null }[] } };
 
 describe("case analysis configurations", () => {
   it("every configuration parses and is registered under its own case ID", () => {

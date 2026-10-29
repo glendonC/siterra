@@ -5,7 +5,7 @@ import { z } from "zod";
 import { dateTime, entityId, isoDate, text, uniqueArray, uri, uriReference } from "./primitives.ts";
 import { contextFeatureShape, measurementSourceShape, missingIsAValue } from "./rules.ts";
 
-export const caseSchemaVersion = "1.13.0";
+export const caseSchemaVersion = "1.14.0";
 /** Every schemaVersion string this contract accepts (the earlier ones of the same MAJOR stay valid). */
 export const acceptedCaseSchemaVersions = [
   "1.2.0",
@@ -20,8 +20,9 @@ export const acceptedCaseSchemaVersions = [
   "1.11.0",
   "1.12.0",
   "1.13.0",
+  "1.14.0",
 ] as const;
-export const caseSchemaId = "https://siterra.invalid/schemas/case/1.13.0/case.schema.json";
+export const caseSchemaId = "https://siterra.invalid/schemas/case/1.14.0/case.schema.json";
 
 export const EntityVersion = z.strictObject({
   entityId: entityId,
@@ -707,6 +708,7 @@ export const Command = z.strictObject({
     "1.11.0",
     "1.12.0",
     "1.13.0",
+    "1.14.0",
   ]),
   id: entityId,
   caseId: entityId,
@@ -822,6 +824,7 @@ export const Event = z.strictObject({
     "1.11.0",
     "1.12.0",
     "1.13.0",
+    "1.14.0",
   ]),
   id: entityId,
   caseId: entityId,
@@ -926,12 +929,6 @@ export const BranchMerge = z.strictObject({
 });
 export type BranchMerge = z.infer<typeof BranchMerge>;
 
-export const BundleAssetRef = z.strictObject({
-  bundleId: entityId,
-  assetKey: z.string().regex(new RegExp("^[a-z][a-z0-9_-]{0,79}$")),
-});
-export type BundleAssetRef = z.infer<typeof BundleAssetRef>;
-
 export const Position = z.tuple([
   z.number().min(-180).max(180),
   z.number().min(-90).max(90),
@@ -964,6 +961,13 @@ export const ContextGeometry = z.discriminatedUnion("type", [
 ]);
 export type ContextGeometry = z.infer<typeof ContextGeometry>;
 
+export const ContextLineSource = z.strictObject({
+  bundleId: entityId,
+  assetKey: z.string().regex(new RegExp("^[a-z][a-z0-9_-]{0,79}$")),
+  member: z.string().min(1).optional(),
+});
+export type ContextLineSource = z.infer<typeof ContextLineSource>;
+
 export const ContextFeature = z
   .strictObject({
     recordType: z.literal("ContextFeature"),
@@ -991,7 +995,7 @@ export const ContextFeature = z
     attribution: z.string().min(1).nullable(),
     license: z.string().min(1).nullable(),
     limitations: uniqueArray(z.string().min(1)),
-    dataBundle: BundleAssetRef.optional(),
+    dataBundle: ContextLineSource.optional(),
     streamOrder: z.int().min(1).max(12).optional(),
   })
   .superRefine(contextFeatureShape);
@@ -1179,6 +1183,12 @@ export const InstrumentCaption = z.strictObject({
 });
 export type InstrumentCaption = z.infer<typeof InstrumentCaption>;
 
+export const BundleAssetRef = z.strictObject({
+  bundleId: entityId,
+  assetKey: z.string().regex(new RegExp("^[a-z][a-z0-9_-]{0,79}$")),
+});
+export type BundleAssetRef = z.infer<typeof BundleAssetRef>;
+
 export const CrossSectionStatement = z.strictObject({
   evidenceId: entityId,
   placement: z.enum(["valley_floor", "upper_slope"]),
@@ -1309,6 +1319,7 @@ export const CaseSnapshot = z.strictObject({
     "1.11.0",
     "1.12.0",
     "1.13.0",
+    "1.14.0",
   ]),
   case: EnvironmentalCase,
   records: RecordCollections,
@@ -1331,6 +1342,7 @@ export const Commit = z.strictObject({
     "1.11.0",
     "1.12.0",
     "1.13.0",
+    "1.14.0",
   ]),
   id: entityId,
   caseId: entityId,
@@ -1445,4 +1457,5 @@ export const caseDefinitions = {
   MultiLineStringGeometry,
   ContextGeometry,
   MeasurementSource,
+  ContextLineSource,
 } as const;

@@ -15,6 +15,7 @@ import {
 import { z } from "zod";
 import { type ImportIssue, importCatalog } from "./bundle-import.ts";
 import { permittedMode } from "./live-mode.ts";
+import { readContextLines } from "./context-line-loader.ts";
 import { MeasurementRowsFile, readMeasurementRows } from "./measurement-rows.ts";
 import type { CaseSeedRecords } from "./seed.ts";
 import { collectionOf, emptyCollections } from "./snapshot.ts";
@@ -286,6 +287,15 @@ export function readCaseSeed(args: {
       }
     }
   }
+
+  const lines = readContextLines({
+    bundlesDir: join(args.repoDir, file.bundles.catalog, ".."),
+    bundles,
+    caseId: file.caseId,
+    importedAt: at,
+  });
+  issues.push(...lines.issues);
+  contextFeatures.push(...lines.features);
 
   const caseRecord = EnvironmentalCase.parse({
     recordType: "EnvironmentalCase",

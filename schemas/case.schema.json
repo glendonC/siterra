@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://siterra.invalid/schemas/case/1.13.0/case.schema.json",
+  "$id": "https://siterra.invalid/schemas/case/1.14.0/case.schema.json",
   "title": "Siterra case contracts",
   "description": "Records of one Siterra case as stored and exchanged between the web application, the worker and the browser. The root validates a case snapshot, a command, an event or an atomic commit proposal; $defs holds the record types. Cross-record semantics that JSON Schema cannot express are specified in docs/reference/data-contracts.md.",
   "oneOf": [
@@ -2820,7 +2820,8 @@
             "1.10.0",
             "1.11.0",
             "1.12.0",
-            "1.13.0"
+            "1.13.0",
+            "1.14.0"
           ],
           "description": "Contract version the instance was written against; producers write the newest, and earlier versions of the same MAJOR stay valid."
         },
@@ -2920,7 +2921,8 @@
             "1.10.0",
             "1.11.0",
             "1.12.0",
-            "1.13.0"
+            "1.13.0",
+            "1.14.0"
           ],
           "description": "Contract version the instance was written against; producers write the newest, and earlier versions of the same MAJOR stay valid."
         },
@@ -3299,7 +3301,8 @@
             "1.10.0",
             "1.11.0",
             "1.12.0",
-            "1.13.0"
+            "1.13.0",
+            "1.14.0"
           ],
           "description": "Contract version the instance was written against; producers write the newest, and earlier versions of the same MAJOR stay valid."
         },
@@ -3342,7 +3345,8 @@
             "1.10.0",
             "1.11.0",
             "1.12.0",
-            "1.13.0"
+            "1.13.0",
+            "1.14.0"
           ],
           "description": "Contract version the instance was written against; producers write the newest, and earlier versions of the same MAJOR stay valid."
         },
@@ -4107,14 +4111,14 @@
           "uniqueItems": true
         },
         "dataBundle": {
-          "$ref": "#/$defs/BundleAssetRef",
-          "description": "Added in 1.12.0, optional: the bundle asset a line was read from, when it was. A loader that imports a line bundle is expected to write it; no loader does yet."
+          "$ref": "#/$defs/ContextLineSource",
+          "description": "Added in 1.12.0, optional: the bundle asset a line was read from, when it was. The seed loader writes it for the lines it reads from a bundle, with `member` set when the asset holds several lines of the role."
         },
         "streamOrder": {
           "type": "integer",
           "minimum": 1,
           "maximum": 12,
-          "description": "Added in 1.12.0, optional, drainage only: the Strahler order of every line in the feature (a loader that imports the drainage bundle is expected to write one feature per order; no loader does yet). Per-segment details stay in the bundle asset named by dataBundle."
+          "description": "Added in 1.12.0, optional, drainage only: the Strahler order of every line in the feature (the seed loader writes one drainage feature per order). Per-segment details stay in the bundle asset named by dataBundle."
         }
       },
       "additionalProperties": false,
@@ -5864,6 +5868,31 @@
           ]
         }
       ]
+    },
+    "ContextLineSource": {
+      "type": "object",
+      "description": "The bundle asset a ContextFeature line was read from. Added in 1.14.0. Like BundleAssetRef, with the id the asset gives to the one line of several that this feature is.",
+      "properties": {
+        "bundleId": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "assetKey": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_-]{0,79}$",
+          "description": "The key of the asset in the bundle's STAC collection."
+        },
+        "member": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The asset's own id for the line (for example a transect id such as tabant_meridian), for an asset that holds several lines of one role. Never the display name."
+        }
+      },
+      "required": [
+        "bundleId",
+        "assetKey"
+      ],
+      "additionalProperties": false
     }
   }
 }

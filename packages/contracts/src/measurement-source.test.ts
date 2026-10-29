@@ -70,10 +70,9 @@ function problems(value: unknown) {
 }
 
 describe("contracts 1.13: the version", () => {
-  it("is 1.13.0 and still accepts every earlier version of the same MAJOR", () => {
-    expect(caseSchemaVersion).toBe("1.13.0");
-    expect(acceptedCaseSchemaVersions.at(-1)).toBe("1.13.0");
-    for (const earlier of ["1.2.0", "1.10.0", "1.11.0", "1.12.0"]) {
+  it("accepts 1.13.0 and every earlier version of the same MAJOR", () => {
+    expect(acceptedCaseSchemaVersions).toContain(caseSchemaVersion);
+    for (const earlier of ["1.2.0", "1.10.0", "1.11.0", "1.12.0", "1.13.0"]) {
       expect(acceptedCaseSchemaVersions).toContain(earlier);
     }
   });
