@@ -1,7 +1,7 @@
 {
-  "registryVersion": "1.3.0",
+  "registryVersion": "1.4.0",
   "registered": "2026-10-27",
-  "note": "Recipe registry. What was fixed before any data: only the catalog rows in docs/reference/analysis-recipes.md (question, method in one line, output kind) for coverage_summary, monthly_departure and aligned_antecedent, and the full season_summary entry (registered 2026-10-27 before any event comparison). The detailed formulas and parameters of coverage_summary, monthly_departure, aligned_antecedent and terrain_strata were written together with their first run on 2026-10-27, so they are not pre-registered. From now on, changing a formula, parameter or window after results are read is a new version labeled post hoc. Registry 1.2.0 (2026-10-28) adds restrend_long_record and snow_cover_by_band, each fully registered before its data was summarized; their place-specific windows and band sets are in science/places/. The inspector renders method cards from an entry and the bundle manifest that holds its result. References are IDs in research/science/source-register.md. Registry 1.3.0 (2026-10-28) adds pixel_trend_long_record and season_trend_long_record, registered before any per-pixel slope, land-cover summary or June to September greenness value was computed (the stratum results of restrend_long_record had been read).",
+  "note": "Recipe registry. What was fixed before any data: only the catalog rows in docs/reference/analysis-recipes.md (question, method in one line, output kind) for coverage_summary, monthly_departure and aligned_antecedent, and the full season_summary entry (registered 2026-10-27 before any event comparison). The detailed formulas and parameters of coverage_summary, monthly_departure, aligned_antecedent and terrain_strata were written together with their first run on 2026-10-27, so they are not pre-registered. From now on, changing a formula, parameter or window after results are read is a new version labeled post hoc. Registry 1.2.0 (2026-10-28) adds restrend_long_record and snow_cover_by_band, each fully registered before its data was summarized; their place-specific windows and band sets are in science/places/. The inspector renders method cards from an entry and the bundle manifest that holds its result. References are IDs in research/science/source-register.md. Registry 1.3.0 (2026-10-28) adds pixel_trend_long_record and season_trend_long_record, registered before any per-pixel slope, land-cover summary or June to September greenness value was computed (the stratum results of restrend_long_record had been read). Registry 1.4.0 (2026-10-29) adds drainage_network, registered before this pipeline built any network; its smoothing and height rules were carried over from the 29 October specimen build, which had run them first.",
   "recipes": [
     {
       "recipeId": "coverage_summary",
@@ -1329,6 +1329,169 @@
       ],
       "priority": "P2",
       "formulaPlain": "Greenness is averaged over each season since 2000 for the catchment, its elevation bands, its aspects and its land cover types, in four windows: March to June, March to May, April to July and June to September. A straight line through the seasons gives a trend with a 95% interval. The spring (March to May) minus summer (June to September) difference is tested the same way, to see whether the two parts of the year changed differently."
+    },
+    {
+      "recipeId": "drainage_network",
+      "version": "1.0.0",
+      "title": "Drainage network of the catchment",
+      "question": "Along which channels does the catchment drain to its outlet, how much area drains to each segment, and how do the channels join?",
+      "operation": "drainage_network",
+      "implementation": {
+        "language": "python",
+        "package": "siterra-science",
+        "version": "0.1.0"
+      },
+      "inputs": [
+        "copernicus_dem_glo30_2021",
+        "frozen_catchment_geometry",
+        "terrain_strata",
+        "place_configuration"
+      ],
+      "registration": "Full entry registered 2026-10-29, before this pipeline built any network. The 1.0 km2 threshold is the lead's brief; the conditioning is the catchment freeze's. The smoothing, simplification and spacing rules and the 30 m height surface were carried over from the 29 October specimen build of the valley model, which ran them first: the science lane had read that run's counts (233 segments, 20,785 vertices, none outside the frozen polygon) and how often the sampled surface rises along its lines (139 segments with some rise, 3 ending higher than they start). The 4.0 m rise tolerance comes from the DEM's stated relative vertical accuracy, not from that distribution. No hypothesis is tested: the recipe describes geometry. Place-specific values are in science/places/<place>.json, revision 3.",
+      "formula": [
+        "Conditioning (a private step, as the catchment freeze geo_ait_bouguemez_catchment revision 1): Copernicus DEM GLO-30 (2021) on its native 1 arc-second EPSG:4326 grid, window 6.70 to 6.001 W and 31.40 to 31.85 N; pysheds 0.5 fill_pits, fill_depressions and resolve_flats; D8 flow direction with codes 64, 128, 1, 2, 4, 8, 16, 32 for north, north-east, east, south-east, south, south-west, west and north-west. Stored: the direction of each cell and the depression fill depth (fill_depressions(fill_pits(DEM)) minus DEM, m), cropped to the catchment's bounding box plus 8 cells",
+        "Outlet: the cell containing the frozen geometry's snapped outlet (31.6377778 N, 6.5372222 W)",
+        "Upstream area A(c) = sum of the WGS84 geodesic areas of the 1 x 1 arc-second cells whose D8 path passes through cell c, c included, in km2",
+        "Stream cells: catchment cells with A(c) >= 1.0 km2",
+        "Strahler order (Strahler 1957): a stream cell with no stream cell draining into it has order 1; where two or more of the stream cells draining into a cell share the highest incoming order m, the cell has order m + 1, otherwise m",
+        "Segments: a segment runs along the D8 path from a head (no stream cell upstream) or a confluence (two or more stream cells draining into it) to the next confluence or the outlet, both end cells included, so a segment ends where its downstream segment begins. Its order is the order of its first cell. Segments are numbered seg_001, seg_002 and so on by decreasing upstream area, ties by the row-major position of the first cell",
+        "Line: the segment's cell centres in EPSG:32629; one Chaikin corner-cutting pass keeping the end points; Douglas-Peucker simplification at 8 m; every straight piece divided into equal parts of at most 15 m; vertices converted to EPSG:4326 and stored to 7 decimals (about 1 cm)",
+        "Height: bilinear interpolation of the 30 m EPSG:32629 grid of the terrain strata recipe (Copernicus DEM GLO-30 bilinear to 30 m, aligned with the 10 m analysis grid, with 1 extra cell on every side, the grid the strata elevation bands are cut from), stored to 0.1 m as the third coordinate, metres above the EGM2008 geoid. The line is not forced downhill: where the surface rises along the path, the stored heights rise",
+        "Per segment: upstream area (the area draining through the segment's last cell before any confluence it ends at, km2 to 0.01) and the area at its first cell; the geodesic length of the stored line (m); net drop = first height minus last height; largest rise = the largest height of any vertex above the lowest vertex upstream of it; the largest fill depth over the D8 cells of the segment (m); the downstream segment and the upstream segments",
+        "Flag descends: true when the largest rise is at most 4.0 m and the net drop is positive, false otherwise. 4.0 m is the larger of the DEM's stated relative vertical accuracies (2 m on slopes up to 20%, 4 m above; SCI-168). Segments with descends false are listed with their largest fill depth; one whose largest fill depth is at least 4.0 m crosses a depression that filling raised by more than the tolerance",
+        "Sensitivity: stream cell count, number of heads and D8 path length (sum of geodesic distances between consecutive cell centres) at the thresholds 0.5, 1.0, 2.0 and 5.0 km2, stored together; only the 1.0 km2 network is drawn",
+        "Acceptance checks, all stored with the bundle: every vertex lies inside the frozen polygon (boundary included); the cells whose D8 path reaches the outlet equal the cells whose centres lie inside the frozen polygon; the outlet cell holds the largest accumulation among cells within 120 m of the freeze's input point; every stream cell drains to the outlet and no D8 path loops; the last vertex of the outlet segment is the snapped outlet and every other segment ends at its downstream segment's first vertex; the area at the outlet equals the polygon's geodesic area within 0.01 km2; the Strahler rule holds at every confluence of the segment graph; two runs give identical files apart from the computed time"
+      ],
+      "parameters": [
+        {
+          "name": "min_upstream_area_km2",
+          "role": "method",
+          "allowed": [
+            1.0
+          ],
+          "default": 1.0
+        },
+        {
+          "name": "chaikin_passes",
+          "role": "method",
+          "allowed": [
+            1
+          ],
+          "default": 1
+        },
+        {
+          "name": "simplify_tolerance_m",
+          "role": "method",
+          "allowed": [
+            8.0
+          ],
+          "default": 8.0
+        },
+        {
+          "name": "max_vertex_spacing_m",
+          "role": "method",
+          "allowed": [
+            15.0
+          ],
+          "default": 15.0
+        },
+        {
+          "name": "height_surface",
+          "role": "method",
+          "allowed": [
+            "terrain_strata 30 m EPSG:32629 bilinear"
+          ],
+          "default": "terrain_strata 30 m EPSG:32629 bilinear"
+        },
+        {
+          "name": "rise_tolerance_m",
+          "role": "method",
+          "allowed": [
+            4.0
+          ],
+          "default": 4.0
+        }
+      ],
+      "sensitivitySet": [
+        "stream cells, heads and D8 path length at 0.5, 1.0, 2.0 and 5.0 km2 upstream area, stored together"
+      ],
+      "applicability": [
+        {
+          "check": "frozen geometry and strata named in the place configuration, checksums matching",
+          "minimum": "1 geometry"
+        },
+        {
+          "check": "conditioned flow direction and fill depth rasters named in the place configuration, checksums matching",
+          "minimum": "2 files"
+        }
+      ],
+      "outputs": [
+        {
+          "metric": "upstream_area_km2",
+          "unit": "km2",
+          "claimKind": "model_estimate",
+          "uncertaintyKind": "not_quantified"
+        },
+        {
+          "metric": "strahler_order",
+          "unit": "1",
+          "claimKind": "model_estimate",
+          "uncertaintyKind": "not_quantified"
+        },
+        {
+          "metric": "segment_length_m",
+          "unit": "m",
+          "claimKind": "model_estimate",
+          "uncertaintyKind": "not_quantified"
+        }
+      ],
+      "assumptions": [
+        "Surface water leaves each cell towards the steepest-descending of its eight neighbours on the filled elevation surface",
+        "A drainage area of 1.0 km2 or more is a usable extent for drawing the valley's main channels; it is a drawing rule, not a channel head"
+      ],
+      "failureModes": [
+        "Irrigation canals, terraces, roads and bridges are not in the surface model and can send water elsewhere than the D8 path",
+        "Narrow gorges and closed hollows are poorly resolved at 30 m: depression filling routes flow across them and the line can rise along the surface, as in the lower gorge near the outlet where filling raised the surface by up to 58 m"
+      ],
+      "standardLimitations": [
+        "The network is drawn from a 30 m surface model, not mapped on the ground: trees, buildings, steep walls and radar artefacts distort the surface, and the D8 path can leave the real channel. No stream was checked in the field.",
+        "A segment is drawn wherever 1.0 km2 or more drains to a cell. The network's extent and length follow that threshold; it is not a measured channel head, and it does not separate streams that run all year from streams that run only after rain or snowmelt.",
+        "Depression filling and flat resolution route flow across closed hollows and the lower gorge, so some segments run where the 30 m surface rises along the line. Those segments are flagged, their heights are stored unchanged, and the line says nothing about how water moves there.",
+        "Upstream area counts the cells that drain to a point along D8 paths on the filled surface. It is not the share of rain that reaches the point, and it ignores irrigation canals, withdrawals and groundwater.",
+        "Strahler order counts how channels join. It says nothing about channel size, discharge or whether water is present.",
+        "Heights are metres above the EGM2008 geoid from the Copernicus DEM GLO-30 surface model, whose stated absolute vertical accuracy is under 4 m (90% linear error) and relative vertical accuracy under 2 m on slopes up to 20% and under 4 m above, as arithmetic means with local deviations possible (Copernicus DEM Product Handbook 5.0).",
+        "The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary."
+      ],
+      "allowedComponents": [
+        "drainage lines",
+        "method card"
+      ],
+      "forbiddenPhrases": [
+        "significant",
+        "significantly",
+        "degradation detected",
+        "grazing impact",
+        "overgrazing",
+        "caused by",
+        "proves",
+        "recovery",
+        "forecast",
+        "pasture improvement",
+        "pasture decline",
+        "encroachment",
+        "flood risk",
+        "water supply"
+      ],
+      "references": [
+        "SCI-165",
+        "SCI-166",
+        "SCI-167",
+        "SCI-168",
+        "SCI-12",
+        "SCI-41"
+      ],
+      "priority": "P2",
+      "formulaPlain": "Each cell of the 1 arc-second (about 30 m) Copernicus elevation model is given one downhill neighbour, after hollows are filled. The cells that 1 km2 or more of the catchment drains through are joined into segments from each head or junction to the next, numbered by how the channels join (Strahler order), and drawn as lines at the height of the surface."
     }
   ]
 }

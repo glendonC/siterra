@@ -2,10 +2,11 @@
   "placeId": "ait_bouguemez",
   "title": "Ait Bouguemez valley catchment",
   "note": "Place configuration read by the long-record pipeline scripts. Everything that is specific to one place lives here; the scripts hold none of it. A value changed here after a result was read is a new configuration revision labelled post hoc in the recipe result.",
-  "configRevision": 2,
+  "configRevision": 3,
   "revisions": [
     {"revision": 1, "date": "2026-10-28", "change": "First configuration: geometry, strata, DEM, rainfall window, restrend_long_record and snow_cover_by_band."},
-    {"revision": 2, "date": "2026-10-28", "change": "Added landCover, pixel_trend_long_record and season_trend_long_record, written before any per-pixel slope, land-cover summary or June to September greenness value was computed. No value of revision 1 changed."}
+    {"revision": 2, "date": "2026-10-28", "change": "Added landCover, pixel_trend_long_record and season_trend_long_record, written before any per-pixel slope, land-cover summary or June to September greenness value was computed. No value of revision 1 changed."},
+    {"revision": 3, "date": "2026-10-29", "change": "Added drainage_network (the conditioned flow direction and fill depth rasters of the catchment freeze, pinned by checksum), written before this pipeline built any drainage segment. No value of revision 1 or 2 changed."}
   ],
   "geometry": {
     "id": "geo_ait_bouguemez_catchment",
@@ -130,6 +131,31 @@
       "landCoverGroups": true,
       "contrast": {"spring": "mar_may", "summer": "jun_sep"},
       "contrastRationale": "March to May and June to September share no month, so the contrast compares two separate parts of the year; March to June overlaps June to September in June."
+    },
+    "drainage_network": {
+      "conditioning": {
+        "note": "Made by a private step (pysheds 0.5 is GPL-3.0-or-later, so the step stays out of the public pipeline, as the catchment freeze script does): the elevation tile named above, window 6.70 to 6.001 W and 31.40 to 31.85 N on its native 1 arc-second grid, fill_pits, fill_depressions, resolve_flats, D8 flow direction with codes 64, 128, 1, 2, 4, 8, 16, 32 for north, north-east, east, south-east, south, south-west, west and north-west, cropped to the catchment's bounding box plus 8 cells. The step reproduced the freeze: the cells that drain to the snapped outlet equal the frozen polygon's cells, 513,974 of 513,974, 0 differ. The public builder reads the two rasters from the bundle's assets; its first build reads them from data/interim/drainage/ and the checksums must match.",
+        "freezeInputPoint": {"lat": 31.637197, "lon": -6.5365},
+        "outletSnapMaxM": 120,
+        "flowDirection": {
+          "bundleAsset": "d8-flow-direction.tif",
+          "interimPath": "data/interim/drainage/d8-flow-direction.tif",
+          "sha256": "2e54508eeaf6b449ee41154b70caa872be4a5f345a36c68ccffbfc6305eb4979"
+        },
+        "fillDepth": {
+          "bundleAsset": "depression-fill-depth.tif",
+          "interimPath": "data/interim/drainage/depression-fill-depth.tif",
+          "sha256": "94b9c3f802bb4dfb67535118e25f1359f9ac3cc099a882d5ce9ba3c17c85f25f"
+        },
+        "report": {
+          "bundleAsset": "conditioning-report.json",
+          "interimPath": "data/interim/drainage/conditioning-report.json",
+          "sha256": "f0d9fe744659e27d868381de57c6828fdb6a52c7f8fd40020c295cca6740e251"
+        }
+      },
+      "heightSurface": "elevation",
+      "heightPadCells": 1,
+      "rationale": "The 1.0 km2 threshold, the smoothing, simplification and vertex spacing, the 30 m height surface of the terrain strata and the 4.0 m rise tolerance are fixed in science/recipes/registry.json (drainage_network 1.0.0) before the first build; this block holds only what belongs to the place."
     }
   }
 }
