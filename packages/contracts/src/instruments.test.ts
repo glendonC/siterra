@@ -111,9 +111,8 @@ function problems(value: unknown) {
 }
 
 describe("contracts 1.11: the instrument kinds", () => {
-  it("is 1.11.0 and still accepts every earlier version of the same MAJOR", () => {
-    expect(caseSchemaVersion).toBe("1.11.0");
-    expect(acceptedCaseSchemaVersions).toEqual([
+  it("accepts 1.11.0 and every version of the same MAJOR before it, in order", () => {
+    expect(acceptedCaseSchemaVersions.slice(0, 10)).toEqual([
       "1.2.0",
       "1.3.0",
       "1.4.0",
@@ -125,6 +124,7 @@ describe("contracts 1.11: the instrument kinds", () => {
       "1.10.0",
       "1.11.0",
     ]);
+    expect(acceptedCaseSchemaVersions).toContain(caseSchemaVersion);
   });
 
   it("names five kinds, and the parameter union has exactly those", () => {

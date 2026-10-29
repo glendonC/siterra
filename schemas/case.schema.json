@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://siterra.invalid/schemas/case/1.11.0/case.schema.json",
+  "$id": "https://siterra.invalid/schemas/case/1.12.0/case.schema.json",
   "title": "Siterra case contracts",
   "description": "Records of one Siterra case as stored and exchanged between the web application, the worker and the browser. The root validates a case snapshot, a command, an event or an atomic commit proposal; $defs holds the record types. Cross-record semantics that JSON Schema cannot express are specified in docs/reference/data-contracts.md.",
   "oneOf": [
@@ -2815,7 +2815,8 @@
             "1.8.0",
             "1.9.0",
             "1.10.0",
-            "1.11.0"
+            "1.11.0",
+            "1.12.0"
           ],
           "description": "Contract version the instance was written against; producers write the newest, and earlier versions of the same MAJOR stay valid."
         },
@@ -2913,7 +2914,8 @@
             "1.8.0",
             "1.9.0",
             "1.10.0",
-            "1.11.0"
+            "1.11.0",
+            "1.12.0"
           ],
           "description": "Contract version the instance was written against; producers write the newest, and earlier versions of the same MAJOR stay valid."
         },
@@ -3290,7 +3292,8 @@
             "1.8.0",
             "1.9.0",
             "1.10.0",
-            "1.11.0"
+            "1.11.0",
+            "1.12.0"
           ],
           "description": "Contract version the instance was written against; producers write the newest, and earlier versions of the same MAJOR stay valid."
         },
@@ -3331,7 +3334,8 @@
             "1.8.0",
             "1.9.0",
             "1.10.0",
-            "1.11.0"
+            "1.11.0",
+            "1.12.0"
           ],
           "description": "Contract version the instance was written against; producers write the newest, and earlier versions of the same MAJOR stay valid."
         },
@@ -3990,7 +3994,7 @@
     },
     "ContextFeature": {
       "type": "object",
-      "description": "A located feature a view needs (an outlet, a settlement, later a viewpoint or a river line), with where its position comes from. Added in 1.6.0. Never evidence: no claim rests on it.",
+      "description": "A located feature a view needs (an outlet, a settlement, later a viewpoint or a river line), with where its position comes from. Added in 1.6.0 as points; lines added in 1.12.0. Never evidence: no claim rests on it.",
       "properties": {
         "recordType": {
           "const": "ContextFeature"
@@ -4026,38 +4030,15 @@
             "settlement",
             "settlement_locator",
             "viewpoint",
-            "summit"
-          ]
+            "summit",
+            "drainage",
+            "transect",
+            "route_proposed"
+          ],
+          "description": "drainage, transect and route_proposed added in 1.12.0 and are lines; the others are points. Each role fits one kind of geometry (the allOf rules below)."
         },
         "geometry": {
-          "type": "object",
-          "properties": {
-            "type": {
-              "const": "Point"
-            },
-            "coordinates": {
-              "type": "array",
-              "prefixItems": [
-                {
-                  "type": "number",
-                  "minimum": -180,
-                  "maximum": 180
-                },
-                {
-                  "type": "number",
-                  "minimum": -90,
-                  "maximum": 90
-                }
-              ],
-              "minItems": 2,
-              "maxItems": 2
-            }
-          },
-          "required": [
-            "type",
-            "coordinates"
-          ],
-          "additionalProperties": false
+          "$ref": "#/$defs/ContextGeometry"
         },
         "crs": {
           "const": "EPSG:4326"
@@ -4117,6 +4098,16 @@
           },
           "minItems": 0,
           "uniqueItems": true
+        },
+        "dataBundle": {
+          "$ref": "#/$defs/BundleAssetRef",
+          "description": "Added in 1.12.0, optional: the bundle asset a line was read from, when it was. A loader that imports a line bundle is expected to write it; no loader does yet."
+        },
+        "streamOrder": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 12,
+          "description": "Added in 1.12.0, optional, drainage only: the Strahler order of every line in the feature (a loader that imports the drainage bundle is expected to write one feature per order; no loader does yet). Per-segment details stay in the bundle asset named by dataBundle."
         }
       },
       "additionalProperties": false,
@@ -4137,6 +4128,110 @@
         "attribution",
         "license",
         "limitations"
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "role": {
+                "enum": [
+                  "outlet",
+                  "settlement",
+                  "settlement_locator",
+                  "viewpoint",
+                  "summit"
+                ]
+              }
+            },
+            "required": [
+              "role"
+            ]
+          },
+          "then": {
+            "properties": {
+              "geometry": {
+                "properties": {
+                  "type": {
+                    "const": "Point"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "role": {
+                "const": "transect"
+              }
+            },
+            "required": [
+              "role"
+            ]
+          },
+          "then": {
+            "properties": {
+              "geometry": {
+                "properties": {
+                  "type": {
+                    "const": "LineString"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "role": {
+                "enum": [
+                  "drainage",
+                  "route_proposed"
+                ]
+              }
+            },
+            "required": [
+              "role"
+            ]
+          },
+          "then": {
+            "properties": {
+              "geometry": {
+                "properties": {
+                  "type": {
+                    "enum": [
+                      "LineString",
+                      "MultiLineString"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "role": {
+                "not": {
+                  "const": "drainage"
+                }
+              }
+            },
+            "required": [
+              "role"
+            ]
+          },
+          "then": {
+            "not": {
+              "required": [
+                "streamOrder"
+              ]
+            }
+          }
+        }
       ]
     },
     "FieldStratum": {
@@ -5536,6 +5631,118 @@
         "provenance"
       ],
       "additionalProperties": false
+    },
+    "PointGeometry": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "Point"
+        },
+        "coordinates": {
+          "type": "array",
+          "prefixItems": [
+            {
+              "type": "number",
+              "minimum": -180,
+              "maximum": 180
+            },
+            {
+              "type": "number",
+              "minimum": -90,
+              "maximum": 90
+            }
+          ],
+          "minItems": 2,
+          "maxItems": 2
+        }
+      },
+      "required": [
+        "type",
+        "coordinates"
+      ],
+      "additionalProperties": false
+    },
+    "Position": {
+      "type": "array",
+      "prefixItems": [
+        {
+          "type": "number",
+          "minimum": -180,
+          "maximum": 180
+        },
+        {
+          "type": "number",
+          "minimum": -90,
+          "maximum": 90
+        },
+        {
+          "type": "number",
+          "minimum": -500,
+          "maximum": 9000,
+          "description": "Metres above the ground model's datum. The range covers the land and refuses a nodata value such as -9999."
+        }
+      ],
+      "minItems": 2,
+      "maxItems": 3,
+      "description": "[longitude, latitude] or [longitude, latitude, elevation]. Added in 1.12.0. A feature has an elevation on every position or on none (stated in the Zod mirror's role rule)."
+    },
+    "LineStringGeometry": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "LineString"
+        },
+        "coordinates": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Position"
+          },
+          "minItems": 2
+        }
+      },
+      "required": [
+        "type",
+        "coordinates"
+      ],
+      "additionalProperties": false
+    },
+    "MultiLineStringGeometry": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "MultiLineString"
+        },
+        "coordinates": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/Position"
+            },
+            "minItems": 2
+          },
+          "minItems": 1
+        }
+      },
+      "required": [
+        "type",
+        "coordinates"
+      ],
+      "additionalProperties": false
+    },
+    "ContextGeometry": {
+      "description": "Where a ContextFeature is: a point as in 1.6.0, or, added in 1.12.0, a line or a set of lines. All in EPSG:4326, GeoJSON order.",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/PointGeometry"
+        },
+        {
+          "$ref": "#/$defs/LineStringGeometry"
+        },
+        {
+          "$ref": "#/$defs/MultiLineStringGeometry"
+        }
+      ]
     }
   }
 }

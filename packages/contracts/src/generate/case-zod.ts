@@ -31,7 +31,10 @@ const handled = new Set([
   "allOf",
 ]);
 /** Conditional rules the schema states with if/then/else, written by hand in rules.ts. */
-const refinements: Record<string, string> = { Measurement: "missingIsAValue" };
+const refinements: Record<string, string> = {
+  Measurement: "missingIsAValue",
+  ContextFeature: "contextFeatureShape",
+};
 
 function asNode(value: unknown, where: string): Node {
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
@@ -117,10 +120,21 @@ function numberExpr(node: Node, integer: boolean): string {
 function arrayExpr(node: Node, defs: Record<string, Node>, indent: number): string {
   if (Array.isArray(node["prefixItems"])) {
     const items = node["prefixItems"] as unknown[];
-    if (node["minItems"] !== items.length || node["maxItems"] !== items.length) {
+    // minItems counts the required elements, maxItems all of them; those between are optional.
+    const required = node["minItems"];
+    if (
+      typeof required !== "number" ||
+      required < 1 ||
+      required > items.length ||
+      node["maxItems"] !== items.length
+    ) {
       throw new Error("prefixItems without a fixed length");
     }
-    return `z.tuple([${items.map((p, i) => expr(asNode(p, `prefixItems/${i}`), defs, indent)).join(", ")}])`;
+    const elements = items.map(
+      (p, i) =>
+        expr(asNode(p, `prefixItems/${i}`), defs, indent) + (i < required ? "" : ".optional()"),
+    );
+    return `z.tuple([${elements.join(", ")}])`;
   }
   const item = expr(asNode(node["items"], "items"), defs, indent);
   let out = node["uniqueItems"] === true ? `uniqueArray(${item})` : `z.array(${item})`;

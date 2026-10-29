@@ -30,7 +30,16 @@ export interface ContextLand {
 
 const PLACE_ROLES: ContextFeature["role"][] = ["settlement", "settlement_locator"];
 
-function point(f: ContextFeature): LandPoint {
+type PointFeature = ContextFeature & {
+  geometry: Extract<ContextFeature["geometry"], { type: "Point" }>;
+};
+
+/** Lines (drainage, transects, proposed routes) are drawn by the instruments, not named on the land. */
+function isPoint(f: ContextFeature): f is PointFeature {
+  return f.geometry.type === "Point";
+}
+
+function point(f: PointFeature): LandPoint {
   const [lon, lat] = f.geometry.coordinates;
   return { id: f.id, name: f.name, lon, lat };
 }
@@ -41,7 +50,7 @@ function usesOpenStreetMap(f: ContextFeature): boolean {
 }
 
 export function contextLand(s: CaseSnapshot): ContextLand {
-  const features = s.records.contextFeatureRecords ?? [];
+  const features = (s.records.contextFeatureRecords ?? []).filter(isPoint);
   // the listing reads like the valley: the outlet, then the places west to east (upstream)
   const placeFeatures = features
     .filter((f) => PLACE_ROLES.includes(f.role))

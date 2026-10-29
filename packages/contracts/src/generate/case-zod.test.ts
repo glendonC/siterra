@@ -74,3 +74,47 @@ describe("the generator switches a oneOf on the const field its branches share",
     ).toThrow(/share exactly one const property, found \["kind","unit"\]/);
   });
 });
+
+describe("the generator reads a tuple that ends in optional elements", () => {
+  const schemaWith = (position: Record<string, unknown>) => ({
+    $id: "https://example.invalid/positions.schema.json",
+    oneOf: [{ $ref: "#/$defs/Command" }],
+    $defs: {
+      Command: {
+        type: "object",
+        properties: { schemaVersion: { enum: ["1.0.0"] } },
+        additionalProperties: false,
+      },
+      Position: {
+        type: "array",
+        prefixItems: [{ type: "number" }, { type: "number" }, { type: "number", minimum: -500 }],
+        ...position,
+      },
+    },
+  });
+
+  it("marks the elements after minItems optional", () => {
+    expect(generateCaseSource(schemaWith({ minItems: 2, maxItems: 3 }))).toContain(
+      "export const Position = z.tuple([z.number(), z.number(), z.number().min(-500).optional()]);",
+    );
+  });
+
+  it("leaves a fixed-length tuple as it was", () => {
+    expect(generateCaseSource(schemaWith({ minItems: 3, maxItems: 3 }))).toContain(
+      "export const Position = z.tuple([z.number(), z.number(), z.number().min(-500)]);",
+    );
+  });
+
+  it("refuses a tuple whose bounds do not fit its elements", () => {
+    for (const bounds of [
+      { maxItems: 3 },
+      { minItems: 2 },
+      { minItems: 2, maxItems: 4 },
+      { minItems: 4, maxItems: 3 },
+    ]) {
+      expect(() => generateCaseSource(schemaWith(bounds))).toThrow(
+        /prefixItems without a fixed length/,
+      );
+    }
+  });
+});

@@ -1,6 +1,6 @@
 # Data contracts
 
-Status: implementation contract v1.11, 2026-10-29. Machine-readable source of truth: [schemas/case.schema.json](../../schemas/case.schema.json) (JSON Schema 2020-12). Examples: [schemas/examples/](../../schemas/examples/). This document owns cross-record semantics that a JSON Schema cannot express. [Orchestration](agent-orchestration.md) owns jobs and tools; [review](review-and-authority.md) owns authority.
+Status: implementation contract v1.12, 2026-10-29. Machine-readable source of truth: [schemas/case.schema.json](../../schemas/case.schema.json) (JSON Schema 2020-12). Examples: [schemas/examples/](../../schemas/examples/). This document owns cross-record semantics that a JSON Schema cannot express. [Orchestration](agent-orchestration.md) owns jobs and tools; [review](review-and-authority.md) owns authority.
 
 ## Principles
 
@@ -56,7 +56,7 @@ Field-level types live in the schema. This table states purpose and the rules th
 | ReviewDecision | A role-scoped decision on exact versions | `mode: demo \| real`; `authorityStatus: not_established \| verified_for_scope`. Demo decisions can never satisfy a real authorization. |
 | Brief | The decision brief | Every line is a `BriefItem` with claim kind and evidence IDs. `provenance.inputVersions` cites every ID in `evidenceIds`, `hypothesisIds` and `interventionIds`, so a changed input stales the brief; a commit with a brief that does not is refused (`brief_inputs_not_cited`). |
 | EventRecordRow | One dated event in a validated event bundle (ADR-0045), added in contracts 1.3 | Not evidence. Rules in [event record rows](#event-record-rows). |
-| ContextFeature | A located feature a view needs (outlet, settlement, viewpoint, summit), added in contracts 1.6 | Point geometry in EPSG:4326 with the method, dataset, source IDs, attribution, licence and limitations of its position. Never evidence: no statement, measurement or hypothesis rests on it. Lines (a river main stem, a path) are planned for a later minor version. |
+| ContextFeature | A located feature a view needs (outlet, settlement, viewpoint, summit), added in contracts 1.6; drainage, transect and proposed-route lines added in 1.12 | A point, a line or a set of lines in EPSG:4326 with the method, dataset, source IDs, attribution, licence and limitations of its position. Never evidence: no statement, measurement or hypothesis rests on it. Rules in [context features](#context-features). |
 | ExplanationBranch | One candidate explanation tested by committed predictions, added in contracts 1.9 | Revision 1 holds the predictions and status `predicted`; revision 2 holds host scores, `predictionsCaseRevision` and a status set by fixed rules. Rules in [explanation branches](#explanation-branches). |
 | BranchMerge | The fixed-rule merge of one task's branches, added in contracts 1.9 | `rulesVersion` (`merge@1` or `merge@2`), each branch's exact revision and status, and the flagged conflicts. Never a ranking. |
 | InstrumentSpec | What one instrument of the workspace shows, added in contracts 1.11 | References only (bundle assets, GeoSelection, ContextFeature, Evidence, BranchMerge and OperationalAction records), never a value, camera, scale, colour, coordinate or URL; a caption with an ink sentence, a grey sentence and citations. Rules in [instruments](#instruments). |
@@ -206,6 +206,21 @@ Added in contracts 1.9.0 (`ExplanationBranch` and `BranchMerge` in [case.schema.
 - **Field plan (contracts 1.10.0, DF-09):** `BranchMerge.fieldPlan`, optional so earlier merges stay valid. Pairs of explanations are open when neither is `contradicted`, or when only one branch stands it is paired with each contradicted branch so a single unresolved branch still receives a field check. `measurements[]` is the smallest set of configured field checks that separates every open pair any check separates, found by exact search, ties to the set earliest in configuration order; each names its `fieldCheckId`, `label`, the open pairs it `separates` and the pairs it `onlySeparates` (never empty, so removing any one leaves a named pair unseparated). `unseparated[]` lists open pairs no configured check separates. Pairs (`ExplanationPair`) are two explanation IDs in code point order. Each unresolved branch's Hypothesis adds one missing-evidence line per chosen check ("Herd Records (herd_records) separates Grazing from Rainfall.") and one for its unseparated pairs.
 - **Component kind (contracts 1.10.0):** `explanation_branches` for `CanvasComponent` and `LayoutAction`, binding one command's ExplanationBranch records and their BranchMerge at exact revisions ([component specifications](components.md#cmp-23-explanation-branches-explanation_branches)).
 
+## Context features
+
+Points since contracts 1.6, lines since 1.12 (`ContextFeature` and `ContextGeometry` in [case.schema.json](../../schemas/case.schema.json), example [commit-context-lines.json](../../schemas/examples/commit-context-lines.json)); 1.2.0 to 1.11.0 stay valid. A context feature is something a view draws or a person finds on the land. It is located, never measured, and no statement rests on it.
+
+- **Geometry** (`geometry.type`): `Point` as before (two numbers, no elevation), `LineString` (two or more positions) or `MultiLineString` (one or more lines of two or more positions). A position is `[longitude, latitude]` or `[longitude, latitude, elevation]` in EPSG:4326, GeoJSON order, longitude -180 to 180 and latitude -90 to 90. Elevation is in metres, from -500 to 9000, so a nodata value such as -9999 is refused. A feature has an elevation on every position or on none; a half-elevated line is refused (CF-02).
+- **Roles:** `outlet`, `settlement`, `settlement_locator`, `viewpoint` and `summit` are points. `transect` is one `LineString`. `drainage` and `route_proposed` are a `LineString` or a `MultiLineString`. A role with another geometry is refused (CF-01). A `route_proposed` feature is labeled as a proposal with access unconfirmed in its limitations.
+- **`streamOrder`** (optional, drainage only, 1 to 12): the Strahler order of every line in the feature. A loader that imports the drainage bundle is expected to write one feature per order, so a view could set the width and colour of a line by order from the feature alone; no loader does yet. Per-segment details stay in the bundle asset `dataBundle` names (CF-03).
+- **`dataBundle`** (optional): the `{bundleId, assetKey}` of the bundle asset a line was read from. A loader that imports a line bundle is expected to write it, so the asset and the feature can be compared; no loader does yet. A feature without one (the points already in a case) was placed by hand or taken from a gazetteer, and says how in `method`.
+
+| Rule | Statement | Enforced |
+|---|---|---|
+| CF-01 | A role fits its geometry type as listed above | The Zod mirror (`contextFeatureShape`) and the schema's `allOf`, kept equal by a contract test |
+| CF-02 | Elevation is on every position of a feature or on none | The Zod mirror (`contextFeatureShape`) |
+| CF-03 | Only a drainage feature has a `streamOrder` | The Zod mirror (`contextFeatureShape`) and the schema's `allOf` |
+
 ## Instruments
 
 Added in contracts 1.11.0 (`InstrumentSpec` in [case.schema.json](../../schemas/case.schema.json), snapshot list `instrumentSpecRecords`, example [commit-instruments.json](../../schemas/examples/commit-instruments.json)); 1.2.0 to 1.10.0 stay valid. An instrument is one of the workspace's measured views of the valley. An `InstrumentSpec` says what it shows as references to records of the case, so the interface draws only what the record says and holds no fact of its own.
@@ -225,7 +240,7 @@ Every kind also carries `geoSelectionId`, the area the instrument is about. The 
 | `rainfall_scatter` | Each season as one point, rain against greenness, with the fit and its gate | `seasons`, `fit` (the bundle's own primary windows are plotted) |
 | `field_plan` | The field checks that would tell the open explanations apart, drawn as a proposal | `branchMergeId`; `actionId` or null; `routeFeatureIds` (at most 8), proposed routes as ContextFeature lines |
 
-The ContextFeature lines these kinds name (drainage, a transect, a proposed route) arrive with the line geometry of a later contracts version; until then a spec can name only the points it already has.
+The ContextFeature lines these kinds name (drainage, a transect, a proposed route) are the line features of [context features](#context-features), added in contracts 1.12.
 
 | Rule | Statement | Enforced |
 |---|---|---|
