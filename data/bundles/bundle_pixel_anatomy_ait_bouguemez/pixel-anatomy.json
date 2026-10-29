@@ -1,0 +1,602 @@
+{
+ "recipeId": "pixel_anatomy",
+ "version": "1.0.0",
+ "computed": "2026-10-29T11:09:47Z",
+ "place": {
+  "placeId": "ait_bouguemez",
+  "configRevision": 5,
+  "config_sha256": "8dd58b05777039e64773148647bcefd408a8b49d8dc54465830918e31caef7ec"
+ },
+ "claim_kinds": {
+  "composition_and_spectra": "observation",
+  "mix_and_series": "model_estimate"
+ },
+ "pixel": {
+  "id": "h17v05r4005c2178",
+  "modis_tile": "h17v05",
+  "tile_row": 4005,
+  "tile_col": 2178,
+  "bundle_row": 51,
+  "bundle_col": 58,
+  "centre_lon_lat": [
+   -6.416024,
+   31.655208
+  ],
+  "median_elevation_m": 1862.0,
+  "cell_size_m": 231.66,
+  "footprint_corners_lon_lat": [
+   [
+    -6.417319,
+    31.65625
+   ],
+   [
+    -6.414872,
+    31.65625
+   ],
+   [
+    -6.414728,
+    31.654167
+   ],
+   [
+    -6.417176,
+    31.654167
+   ]
+  ],
+  "footprint_corners_utm29n": [
+   [
+    744891.24,
+    3505232.54
+   ],
+   [
+    745123.39,
+    3505238.04
+   ],
+   [
+    745142.5,
+    3505007.35
+   ],
+   [
+    744910.36,
+    3505001.85
+   ]
+  ],
+  "footprint_cells": 537,
+  "catchment_cells": 537
+ },
+ "trend": {
+  "window": "mar_jun",
+  "slope_per_decade": 0.05702,
+  "lower_per_decade": 0.03741,
+  "upper_per_decade": 0.08451,
+  "direction": "upward",
+  "seasons": 26,
+  "unit": "NDVI per decade",
+  "claim_kind": "model_estimate",
+  "series_asset": "pixel_series",
+  "note": "No p-value or false discovery rate class is stored for one pixel (SCI-52)."
+ },
+ "composition": [
+  {
+   "code": 10,
+   "name": "tree cover",
+   "cells": 215,
+   "share": 0.4004
+  },
+  {
+   "code": 30,
+   "name": "grassland",
+   "cells": 254,
+   "share": 0.473
+  },
+  {
+   "code": 40,
+   "name": "cropland",
+   "cells": 32,
+   "share": 0.0596
+  },
+  {
+   "code": 60,
+   "name": "bare or sparse vegetation",
+   "cells": 36,
+   "share": 0.067
+  }
+ ],
+ "terrain": {
+  "aspect_class_counts": {
+   "0": 0,
+   "1": 397,
+   "2": 0,
+   "3": 0,
+   "4": 0,
+   "5": 140
+  },
+  "elevation_band_counts": {
+   "0": 0,
+   "1": 537,
+   "2": 0,
+   "3": 0
+  }
+ },
+ "june_ndvi": {
+  "month": "2025-06",
+  "cells_with_value": 537,
+  "median_of_cells": 0.5463,
+  "mean_of_cells": 0.4732,
+  "count_min": 5,
+  "count_max": 7,
+  "by_class": {
+   "10": {
+    "cells_with_value": 215,
+    "median": 0.7718
+   },
+   "30": {
+    "cells_with_value": 254,
+    "median": 0.1617
+   },
+   "40": {
+    "cells_with_value": 32,
+    "median": 0.8168
+   },
+   "60": {
+    "cells_with_value": 36,
+    "median": 0.0892
+   }
+  },
+  "cells_asset": "pixel_cells"
+ },
+ "scene": {
+  "id": "S2B_29SQR_20250611_0_L2A",
+  "datetime": "2025-06-11T11:12:25.006000Z",
+  "orbit": "R094",
+  "baseline": "05.11",
+  "product_uri": "S2B_MSIL2A_20250611T105619_N0511_R094_T29SQR_20250611T135411.SAFE",
+  "cloud_cover_percent": 2.565142,
+  "clear_share": 1.0,
+  "rule": "largest share of footprint cells with SCL 4 or 5 among scenes on the orbit with data over every footprint cell; ties by the latest date",
+  "candidates": [
+   {
+    "id": "S2A_29SQR_20250601_2_L2A",
+    "date": "2025-06-01",
+    "orbit": "R137",
+    "cloud_cover": 0.484377,
+    "nodata_percent": 35.596323,
+    "cells": 537,
+    "cells_with_data": null,
+    "clear_share": null
+   },
+   {
+    "id": "S2A_29SQR_20250618_0_L2A",
+    "date": "2025-06-18",
+    "orbit": "R094",
+    "cloud_cover": 18.540357,
+    "nodata_percent": 8.645449,
+    "cells": 537,
+    "cells_with_data": 537,
+    "clear_share": 0.92365
+   },
+   {
+    "id": "S2A_29SQR_20250621_1_L2A",
+    "date": "2025-06-21",
+    "orbit": "R137",
+    "cloud_cover": 26.08518,
+    "nodata_percent": 34.002459,
+    "cells": 537,
+    "cells_with_data": null,
+    "clear_share": null
+   },
+   {
+    "id": "S2B_29SQR_20250601_0_L2A",
+    "date": "2025-06-01",
+    "orbit": "R094",
+    "cloud_cover": 0.722516,
+    "nodata_percent": 95.583349,
+    "cells": 537,
+    "cells_with_data": 0,
+    "clear_share": 0.0
+   },
+   {
+    "id": "S2B_29SQR_20250601_1_L2A",
+    "date": "2025-06-01",
+    "orbit": "R094",
+    "cloud_cover": 0.428368,
+    "nodata_percent": 7.813076,
+    "cells": 537,
+    "cells_with_data": 537,
+    "clear_share": 1.0
+   },
+   {
+    "id": "S2B_29SQR_20250604_0_L2A",
+    "date": "2025-06-04",
+    "orbit": "R137",
+    "cloud_cover": 0.063653,
+    "nodata_percent": 34.657374,
+    "cells": 537,
+    "cells_with_data": null,
+    "clear_share": null
+   },
+   {
+    "id": "S2B_29SQR_20250611_0_L2A",
+    "date": "2025-06-11",
+    "orbit": "R094",
+    "cloud_cover": 2.565142,
+    "nodata_percent": 8.971042,
+    "cells": 537,
+    "cells_with_data": 537,
+    "clear_share": 1.0
+   },
+   {
+    "id": "S2B_29SQR_20250614_0_L2A",
+    "date": "2025-06-14",
+    "orbit": "R137",
+    "cloud_cover": 75.784296,
+    "nodata_percent": 33.820054,
+    "cells": 537,
+    "cells_with_data": null,
+    "clear_share": null
+   },
+   {
+    "id": "S2B_29SQR_20250621_0_L2A",
+    "date": "2025-06-21",
+    "orbit": "R094",
+    "cloud_cover": 35.134101,
+    "nodata_percent": 8.212299,
+    "cells": 537,
+    "cells_with_data": 537,
+    "clear_share": 0.0
+   },
+   {
+    "id": "S2B_29SQR_20250624_0_L2A",
+    "date": "2025-06-24",
+    "orbit": "R137",
+    "cloud_cover": 8.040281,
+    "nodata_percent": 34.664086,
+    "cells": 537,
+    "cells_with_data": null,
+    "clear_share": null
+   },
+   {
+    "id": "S2C_29SQR_20250606_0_L2A",
+    "date": "2025-06-06",
+    "orbit": "R094",
+    "cloud_cover": 12.250122,
+    "nodata_percent": 7.291917,
+    "cells": 537,
+    "cells_with_data": 537,
+    "clear_share": 1.0
+   },
+   {
+    "id": "S2C_29SQR_20250609_0_L2A",
+    "date": "2025-06-09",
+    "orbit": "R137",
+    "cloud_cover": 92.922962,
+    "nodata_percent": 35.45855,
+    "cells": 537,
+    "cells_with_data": null,
+    "clear_share": null
+   },
+   {
+    "id": "S2C_29SQR_20250616_0_L2A",
+    "date": "2025-06-16",
+    "orbit": "R094",
+    "cloud_cover": 50.397265,
+    "nodata_percent": 7.84518,
+    "cells": 537,
+    "cells_with_data": 537,
+    "clear_share": 0.0
+   },
+   {
+    "id": "S2C_29SQR_20250619_0_L2A",
+    "date": "2025-06-19",
+    "orbit": "R137",
+    "cloud_cover": 74.146891,
+    "nodata_percent": 34.58547,
+    "cells": 537,
+    "cells_with_data": null,
+    "clear_share": null
+   },
+   {
+    "id": "S2C_29SQR_20250626_0_L2A",
+    "date": "2025-06-26",
+    "orbit": "R094",
+    "cloud_cover": 32.815784,
+    "nodata_percent": 7.504603,
+    "cells": 537,
+    "cells_with_data": 537,
+    "clear_share": 0.0
+   },
+   {
+    "id": "S2C_29SQR_20250629_0_L2A",
+    "date": "2025-06-29",
+    "orbit": "R137",
+    "cloud_cover": 43.694702,
+    "nodata_percent": 35.612652,
+    "cells": 537,
+    "cells_with_data": null,
+    "clear_share": null
+   }
+  ],
+  "extracts": [
+   {
+    "band": "B02",
+    "window": {
+     "col_off": 4492,
+     "row_off": 9474,
+     "width": 28,
+     "height": 28
+    },
+    "sha256": "919f91970035f662625d947a2c4425d7b735371432a559b6baf87e1f75eeadab"
+   },
+   {
+    "band": "B03",
+    "window": {
+     "col_off": 4492,
+     "row_off": 9474,
+     "width": 28,
+     "height": 28
+    },
+    "sha256": "8d726f2172be90074c155f8ebd34f206352c72a9ae4499e8f0d74b37d47bcf6a"
+   },
+   {
+    "band": "B04",
+    "window": {
+     "col_off": 4492,
+     "row_off": 9474,
+     "width": 28,
+     "height": 28
+    },
+    "sha256": "8b4ea9ee300661e70c704d847804650999661f678db429cd0a623f5ce5b0e4df"
+   },
+   {
+    "band": "B05",
+    "window": {
+     "col_off": 2246,
+     "row_off": 4737,
+     "width": 14,
+     "height": 14
+    },
+    "sha256": "480a907d20ab4148e5df50cb1e16531b94826da1df56219921021677597c41c3"
+   },
+   {
+    "band": "B06",
+    "window": {
+     "col_off": 2246,
+     "row_off": 4737,
+     "width": 14,
+     "height": 14
+    },
+    "sha256": "e6530e133929ca626bd1d60281caa7a1230bc193b239b37cb62991da0f2c7a77"
+   },
+   {
+    "band": "B07",
+    "window": {
+     "col_off": 2246,
+     "row_off": 4737,
+     "width": 14,
+     "height": 14
+    },
+    "sha256": "bb400554d946dc25f067fa57bdabb7e537a2c356e6937cf2607181fd234e51f4"
+   },
+   {
+    "band": "B08",
+    "window": {
+     "col_off": 4492,
+     "row_off": 9474,
+     "width": 28,
+     "height": 28
+    },
+    "sha256": "00475d9037d6c08a9ac1329dffe5870377bd01f0af9dfbd86be400d4c105e5f6"
+   },
+   {
+    "band": "B8A",
+    "window": {
+     "col_off": 2246,
+     "row_off": 4737,
+     "width": 14,
+     "height": 14
+    },
+    "sha256": "9c5e7c0236fa7503884a8d582c227c694fcdb0a077e8f213e6b0e2f5941ae9c0"
+   },
+   {
+    "band": "B11",
+    "window": {
+     "col_off": 2246,
+     "row_off": 4737,
+     "width": 14,
+     "height": 14
+    },
+    "sha256": "94f9d5f8dc1a4d421e488296b266304d33f2063f4202434fded058314841da5b"
+   },
+   {
+    "band": "B12",
+    "window": {
+     "col_off": 2246,
+     "row_off": 4737,
+     "width": 14,
+     "height": 14
+    },
+    "sha256": "6f093c45d6cf899276200ec01e9811a25618e4a2717f0ab382c783d0c7be24af"
+   },
+   {
+    "band": "SCL",
+    "window": {
+     "col_off": 2246,
+     "row_off": 4737,
+     "width": 14,
+     "height": 14
+    },
+    "sha256": "0e67ecd4b110275b2a519fb75e6e1631931b14d0451ff411b1e45cb481f1540c"
+   }
+  ],
+  "record_asset": "scene_record"
+ },
+ "spectra": {
+  "asset": "pixel_spectra",
+  "bands": [
+   "B02",
+   "B03",
+   "B04",
+   "B05",
+   "B06",
+   "B07",
+   "B08",
+   "B8A",
+   "B11",
+   "B12"
+  ],
+  "kept_cells": 537,
+  "cells": 537,
+  "classes": [
+   {
+    "code": 10,
+    "name": "tree cover",
+    "share": 0.4004,
+    "cells_kept": 215,
+    "red_median": 0.0539,
+    "nir_median": 0.4864,
+    "ndvi_of_median_red_nir": 0.8005
+   },
+   {
+    "code": 30,
+    "name": "grassland",
+    "share": 0.473,
+    "cells_kept": 254,
+    "red_median": 0.2406,
+    "nir_median": 0.3376,
+    "ndvi_of_median_red_nir": 0.1678
+   },
+   {
+    "code": 40,
+    "name": "cropland",
+    "share": 0.0596,
+    "cells_kept": 32,
+    "red_median": 0.041,
+    "nir_median": 0.5368,
+    "ndvi_of_median_red_nir": 0.8581
+   },
+   {
+    "code": 60,
+    "name": "bare or sparse vegetation",
+    "share": 0.067,
+    "cells_kept": 36,
+    "red_median": 0.2887,
+    "nir_median": 0.3398,
+    "ndvi_of_median_red_nir": 0.0813
+   }
+  ],
+  "pixel_measured_ndvi": 0.4766,
+  "claim_kind": "observation"
+ },
+ "model": {
+  "claim_kind": "model_estimate",
+  "label": "modelled, not measured",
+  "formula": "R(b) = sum over classes of share times class median; NDVI = (R(B08) - R(B04)) / (R(B08) + R(B04))",
+  "ndvi_at_measured_composition": 0.445,
+  "measured_ndvi": 0.4766,
+  "model_minus_measured": -0.0316,
+  "shift_example": {
+   "from": "grassland",
+   "to": "tree cover",
+   "points": 20,
+   "ndvi": 0.5711,
+   "change": 0.1261,
+   "note": "an example of the mixing control, not an observation"
+  }
+ },
+ "selection": {
+  "candidate_rule": {
+   "window": "mar_jun",
+   "direction": "upward",
+   "fullyInsideCatchment": true,
+   "treeCoverPlusCropland": [
+    0.25,
+    0.6
+   ],
+   "grasslandShrublandBareOrSparseMin": 0.35,
+   "builtUpMax": 0.05,
+   "slopingCellsMin": 0.5,
+   "ranking": "lower bound of Sen's 95% interval, highest first",
+   "writtenBefore": "the candidate list was made, by the 28 October specimen build"
+  },
+  "candidates": 391,
+  "rank": 3,
+  "top": [
+   {
+    "pixel": "h17v05r4015c2145",
+    "lower_per_decade": 0.04998,
+    "slope_per_decade": 0.0548,
+    "upper_per_decade": 0.06115,
+    "analysis_cells": 535
+   },
+   {
+    "pixel": "h17v05r4017c2140",
+    "lower_per_decade": 0.04667,
+    "slope_per_decade": 0.06713,
+    "upper_per_decade": 0.09142,
+    "analysis_cells": 535
+   },
+   {
+    "pixel": "h17v05r4005c2178",
+    "lower_per_decade": 0.03741,
+    "slope_per_decade": 0.05702,
+    "upper_per_decade": 0.08451,
+    "analysis_cells": 537
+   },
+   {
+    "pixel": "h17v05r4005c2177",
+    "lower_per_decade": 0.03566,
+    "slope_per_decade": 0.06393,
+    "upper_per_decade": 0.08441,
+    "analysis_cells": 535
+   },
+   {
+    "pixel": "h17v05r4016c2140",
+    "lower_per_decade": 0.03557,
+    "slope_per_decade": 0.04634,
+    "upper_per_decade": 0.05752,
+    "analysis_cells": 536
+   }
+  ],
+  "chosen_by": "The 28 October specimen build, by a disclosed judgment: rank 3 of the candidates of the rule below. Ranks 1 and 2 lie in the lower gorge along a meandering riparian strip; this is the first candidate on the edge of the main valley floor, where the floor of tree cover and cropland meets the open slope in one straight boundary.",
+  "note": "This pixel is an illustration chosen by judgment, not a sample."
+ },
+ "checks": {
+  "recompute_sample_period": true,
+  "units_and_scale": true,
+  "nodata_not_zero": true,
+  "qa_join_coverage": true,
+  "period_alignment": true,
+  "attribution_present": true,
+  "visual_inspection_sample": true
+ },
+ "assets": {
+  "cells": "pixel_cells",
+  "spectra": "pixel_spectra",
+  "series": "pixel_series",
+  "scene_record": "scene_record"
+ },
+ "limitations": [
+  "One pixel is an illustration, not a sample: it was chosen by judgment among the candidates of a rule (the selection record gives their number and its rank), and it says nothing about other pixels.",
+  "The class spectra come from one clear day, the cells of each class inside this pixel, and one 2021 land cover map. They are not typical spectra of the classes, and a 10 m cell at the edge of a class mixes surfaces.",
+  "The mix model assumes the pixel's reflectance is the share-weighted sum of its class medians. It ignores shadow, slope and variation inside a class, so its NDVI is modelled, not measured, and it differs from the measured pixel NDVI by the amount stored.",
+  "NDVI measures how green the ground looks from above, not forage, palatability or species: in Ait Bouguemez and the Central High Atlas, upper rangelands are dominated by spiny xerophytic vegetation over reduced short grasslands (SCI-19, p. 2), and on the valley floor tree cover may include orchards (SCI-03, pp. 5, 9 to 10).",
+  "The 26-season series is the pixel's own March to June greenness, not adjusted for rainfall. Its trend is a descriptive Theil-Sen slope with Sen's 95% interval, and no p-value or false discovery rate class is stored for one pixel (SCI-52).",
+  "Terra's overpass has drifted earlier since 2020, from 10:30 to about 9:06 mean local time by December 2025 (NASA), so later seasons are seen with a lower sun and longer shadows in mountain terrain, which may shift NDVI without any change on the ground.",
+  "The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary."
+ ],
+ "forbidden_phrases": [
+  "significant",
+  "significantly",
+  "degradation detected",
+  "grazing impact",
+  "overgrazing",
+  "caused by",
+  "proves",
+  "recovery",
+  "forecast",
+  "pasture improvement",
+  "pasture decline",
+  "encroachment",
+  "flood risk",
+  "water supply"
+ ]
+}

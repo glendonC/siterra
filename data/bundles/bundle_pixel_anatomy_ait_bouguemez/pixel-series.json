@@ -1,0 +1,483 @@
+{
+ "recipeId": "pixel_anatomy",
+ "version": "1.0.0",
+ "computed": "2026-10-29T11:09:47Z",
+ "pixel": "h17v05r4005c2178",
+ "window": "mar_jun",
+ "months": [
+  3,
+  4,
+  5,
+  6
+ ],
+ "reliability_kept": [
+  0,
+  1
+ ],
+ "min_composite_share": 0.5,
+ "search_record": "search-2000-02-01-2025-12-31.json",
+ "composites_read": 584,
+ "seasons": [
+  {
+   "year": 2000,
+   "ndvi": 0.32591,
+   "periods": 8,
+   "periods_present": 8,
+   "periods_kept": 8,
+   "period_keys": [
+    "A2000065",
+    "A2000081",
+    "A2000097",
+    "A2000113",
+    "A2000129",
+    "A2000145",
+    "A2000161",
+    "A2000177"
+   ]
+  },
+  {
+   "year": 2001,
+   "ndvi": 0.28559,
+   "periods": 8,
+   "periods_present": 8,
+   "periods_kept": 8,
+   "period_keys": [
+    "A2001065",
+    "A2001081",
+    "A2001097",
+    "A2001113",
+    "A2001129",
+    "A2001145",
+    "A2001161",
+    "A2001177"
+   ]
+  },
+  {
+   "year": 2002,
+   "ndvi": 0.37588,
+   "periods": 8,
+   "periods_present": 8,
+   "periods_kept": 8,
+   "period_keys": [
+    "A2002065",
+    "A2002081",
+    "A2002097",
+    "A2002113",
+    "A2002129",
+    "A2002145",
+    "A2002161",
+    "A2002177"
+   ]
+  },
+  {
+   "year": 2003,
+   "ndvi": 0.37459,
+   "periods": 8,
+   "periods_present": 8,
+   "periods_kept": 8,
+   "period_keys": [
+    "A2003065",
+    "A2003081",
+    "A2003097",
+    "A2003113",
+    "A2003129",
+    "A2003145",
+    "A2003161",
+    "A2003177"
+   ]
+  },
+  {
+   "year": 2004,
+   "ndvi": 0.40026,
+   "periods": 8,
+   "periods_present": 8,
+   "periods_kept": 8,
+   "period_keys": [
+    "A2004065",
+    "A2004081",
+    "A2004097",
+    "A2004113",
+    "A2004129",
+    "A2004145",
+    "A2004161",
+    "A2004177"
+   ]
+  },
+  {
+   "year": 2005,
+   "ndvi": 0.37604,
+   "periods": 8,
+   "periods_present": 8,
+   "periods_kept": 8,
+   "period_keys": [
+    "A2005065",
+    "A2005081",
+    "A2005097",
+    "A2005113",
+    "A2005129",
+    "A2005145",
+    "A2005161",
+    "A2005177"
+   ]
+  },
+  {
+   "year": 2006,
+   "ndvi": 0.4601,
+   "periods": 8,
+   "periods_present": 8,
+   "periods_kept": 8,
+   "period_keys": [
+    "A2006065",
+    "A2006081",
+    "A2006097",
+    "A2006113",
+    "A2006129",
+    "A2006145",
+    "A2006161",
+    "A2006177"
+   ]
+  },
+  {
+   "year": 2007,
+   "ndvi": 0.41216,
+   "periods": 8,
+   "periods_present": 8,
+   "periods_kept": 8,
+   "period_keys": [
+    "A2007065",
+    "A2007081",
+    "A2007097",
+    "A2007113",
+    "A2007129",
+    "A2007145",
+    "A2007161",
+    "A2007177"
+   ]
+  },
+  {
+   "year": 2008,
+   "ndvi": 0.39796,
+   "periods": 8,
+   "periods_present": 8,
+   "periods_kept": 8,
+   "period_keys": [
+    "A2008065",
+    "A2008081",
+    "A2008097",
+    "A2008113",
+    "A2008129",
+    "A2008145",
+    "A2008161",
+    "A2008177"
+   ]
+  },
+  {
+   "year": 2009,
+   "ndvi": 0.43504,
+   "periods": 8,
+   "periods_present": 8,
+   "periods_kept": 8,
+   "period_keys": [
+    "A2009065",
+    "A2009081",
+    "A2009097",
+    "A2009113",
+    "A2009129",
+    "A2009145",
+    "A2009161",
+    "A2009177"
+   ]
+  },
+  {
+   "year": 2010,
+   "ndvi": 0.50059,
+   "periods": 8,
+   "periods_present": 8,
+   "periods_kept": 8,
+   "period_keys": [
+    "A2010065",
+    "A2010081",
+    "A2010097",
+    "A2010113",
+    "A2010129",
+    "A2010145",
+    "A2010161",
+    "A2010177"
+   ]
+  },
+  {
+   "year": 2011,
+   "ndvi": 0.47835,
+   "periods": 8,
+   "periods_present": 8,
+   "periods_kept": 8,
+   "period_keys": [
+    "A2011065",
+    "A2011081",
+    "A2011097",
+    "A2011113",
+    "A2011129",
+    "A2011145",
+    "A2011161",
+    "A2011177"
+   ]
+  },
+  {
+   "year": 2012,
+   "ndvi": 0.42822,
+   "periods": 8,
+   "periods_present": 8,
+   "periods_kept": 8,
+   "period_keys": [
+    "A2012065",
+    "A2012081",
+    "A2012097",
+    "A2012113",
+    "A2012129",
+    "A2012145",
+    "A2012161",
+    "A2012177"
+   ]
+  },
+  {
+   "year": 2013,
+   "ndvi": 0.45571,
+   "periods": 8,
+   "periods_present": 8,
+   "periods_kept": 8,
+   "period_keys": [
+    "A2013065",
+    "A2013081",
+    "A2013097",
+    "A2013113",
+    "A2013129",
+    "A2013145",
+    "A2013161",
+    "A2013177"
+   ]
+  },
+  {
+   "year": 2014,
+   "ndvi": 0.46569,
+   "periods": 8,
+   "periods_present": 8,
+   "periods_kept": 8,
+   "period_keys": [
+    "A2014065",
+    "A2014081",
+    "A2014097",
+    "A2014113",
+    "A2014129",
+    "A2014145",
+    "A2014161",
+    "A2014177"
+   ]
+  },
+  {
+   "year": 2015,
+   "ndvi": 0.4796,
+   "periods": 8,
+   "periods_present": 8,
+   "periods_kept": 8,
+   "period_keys": [
+    "A2015065",
+    "A2015081",
+    "A2015097",
+    "A2015113",
+    "A2015129",
+    "A2015145",
+    "A2015161",
+    "A2015177"
+   ]
+  },
+  {
+   "year": 2016,
+   "ndvi": 0.39598,
+   "periods": 8,
+   "periods_present": 8,
+   "periods_kept": 8,
+   "period_keys": [
+    "A2016065",
+    "A2016081",
+    "A2016097",
+    "A2016113",
+    "A2016129",
+    "A2016145",
+    "A2016161",
+    "A2016177"
+   ]
+  },
+  {
+   "year": 2017,
+   "ndvi": 0.43881,
+   "periods": 8,
+   "periods_present": 8,
+   "periods_kept": 8,
+   "period_keys": [
+    "A2017065",
+    "A2017081",
+    "A2017097",
+    "A2017113",
+    "A2017129",
+    "A2017145",
+    "A2017161",
+    "A2017177"
+   ]
+  },
+  {
+   "year": 2018,
+   "ndvi": 0.4521,
+   "periods": 8,
+   "periods_present": 8,
+   "periods_kept": 8,
+   "period_keys": [
+    "A2018065",
+    "A2018081",
+    "A2018097",
+    "A2018113",
+    "A2018129",
+    "A2018145",
+    "A2018161",
+    "A2018177"
+   ]
+  },
+  {
+   "year": 2019,
+   "ndvi": 0.53745,
+   "periods": 8,
+   "periods_present": 8,
+   "periods_kept": 8,
+   "period_keys": [
+    "A2019065",
+    "A2019081",
+    "A2019097",
+    "A2019113",
+    "A2019129",
+    "A2019145",
+    "A2019161",
+    "A2019177"
+   ]
+  },
+  {
+   "year": 2020,
+   "ndvi": 0.47959,
+   "periods": 8,
+   "periods_present": 8,
+   "periods_kept": 8,
+   "period_keys": [
+    "A2020065",
+    "A2020081",
+    "A2020097",
+    "A2020113",
+    "A2020129",
+    "A2020145",
+    "A2020161",
+    "A2020177"
+   ]
+  },
+  {
+   "year": 2021,
+   "ndvi": 0.53464,
+   "periods": 8,
+   "periods_present": 8,
+   "periods_kept": 8,
+   "period_keys": [
+    "A2021065",
+    "A2021081",
+    "A2021097",
+    "A2021113",
+    "A2021129",
+    "A2021145",
+    "A2021161",
+    "A2021177"
+   ]
+  },
+  {
+   "year": 2022,
+   "ndvi": 0.46731,
+   "periods": 8,
+   "periods_present": 8,
+   "periods_kept": 8,
+   "period_keys": [
+    "A2022065",
+    "A2022081",
+    "A2022097",
+    "A2022113",
+    "A2022129",
+    "A2022145",
+    "A2022161",
+    "A2022177"
+   ]
+  },
+  {
+   "year": 2023,
+   "ndvi": 0.47532,
+   "periods": 8,
+   "periods_present": 8,
+   "periods_kept": 8,
+   "period_keys": [
+    "A2023065",
+    "A2023081",
+    "A2023097",
+    "A2023113",
+    "A2023129",
+    "A2023145",
+    "A2023161",
+    "A2023177"
+   ]
+  },
+  {
+   "year": 2024,
+   "ndvi": 0.46542,
+   "periods": 8,
+   "periods_present": 8,
+   "periods_kept": 8,
+   "period_keys": [
+    "A2024065",
+    "A2024081",
+    "A2024097",
+    "A2024113",
+    "A2024129",
+    "A2024145",
+    "A2024161",
+    "A2024177"
+   ]
+  },
+  {
+   "year": 2025,
+   "ndvi": 0.4949,
+   "periods": 8,
+   "periods_present": 8,
+   "periods_kept": 8,
+   "period_keys": [
+    "A2025065",
+    "A2025081",
+    "A2025097",
+    "A2025113",
+    "A2025129",
+    "A2025145",
+    "A2025161",
+    "A2025177"
+   ]
+  }
+ ],
+ "theil_sen": {
+  "slope_per_decade": 0.05702,
+  "lower_per_decade": 0.03741,
+  "upper_per_decade": 0.08451
+ },
+ "matches_trend_table_at_5_decimals": true,
+ "trend_table_values": {
+  "slope_per_decade": 0.05702,
+  "lower_per_decade": 0.03741,
+  "upper_per_decade": 0.08451
+ },
+ "functions": [
+  "modis_ndvi.load_modis",
+  "modis_ndvi.grid_of",
+  "modis_ndvi.read_windows",
+  "modis_ndvi.calendar_periods",
+  "modis_ndvi.season_ndvi",
+  "trend_stats.theil_sen"
+ ]
+}

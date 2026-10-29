@@ -41,6 +41,12 @@
   },
   {
    "rel": "child",
+   "href": "./bundle_pixel_anatomy_ait_bouguemez/collection.json",
+   "type": "application/json",
+   "file:checksum": "12200df94b9c94dd380f37ea6a9e586dc026fe13a69f525508d6617d49247539f1ee"
+  },
+  {
+   "rel": "child",
    "href": "./bundle_pixel_trend_long_record_ait_bouguemez/collection.json",
    "type": "application/json",
    "file:checksum": "12201953f2b33087cf2424009f9d4c27e04a35bb3b00846eaa10ff5e2b22dde6ed0d"
