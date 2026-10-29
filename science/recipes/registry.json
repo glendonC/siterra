@@ -1,7 +1,7 @@
 {
-  "registryVersion": "1.7.0",
+  "registryVersion": "1.8.0",
   "registered": "2026-10-27",
-  "note": "Recipe registry. What was fixed before any data: only the catalog rows in docs/reference/analysis-recipes.md (question, method in one line, output kind) for coverage_summary, monthly_departure and aligned_antecedent, and the full season_summary entry (registered 2026-10-27 before any event comparison). The detailed formulas and parameters of coverage_summary, monthly_departure, aligned_antecedent and terrain_strata were written together with their first run on 2026-10-27, so they are not pre-registered. From now on, changing a formula, parameter or window after results are read is a new version labeled post hoc. Registry 1.2.0 (2026-10-28) adds restrend_long_record and snow_cover_by_band, each fully registered before its data was summarized; their place-specific windows and band sets are in science/places/. The inspector renders method cards from an entry and the bundle manifest that holds its result. References are IDs in research/science/source-register.md. Registry 1.3.0 (2026-10-28) adds pixel_trend_long_record and season_trend_long_record, registered before any per-pixel slope, land-cover summary or June to September greenness value was computed (the stratum results of restrend_long_record had been read). Registry 1.4.0 (2026-10-29) adds drainage_network, registered before this pipeline built any network; its smoothing and height rules were carried over from the 29 October specimen build, which had run them first. Registry 1.5.0 (2026-10-29) adds terrain_transects, registered before this pipeline sampled any line; the Tabant meridian is specimen B's section and the rest was written by the science lane. Registry 1.6.0 (2026-10-29) adds pixel_anatomy, registered before this pipeline built any pixel anatomy; the pixel and its scene come from the 28 October specimen build and the scene rule was written afterwards to name that choice. Registry 1.7.0 (2026-10-29) adds terrain_relief and land_cover_classes, registered before this pipeline wrote any relief or land cover layer; both repeat grids that earlier bundles already use.",
+  "note": "Recipe registry. What was fixed before any data: only the catalog rows in docs/reference/analysis-recipes.md (question, method in one line, output kind) for coverage_summary, monthly_departure and aligned_antecedent, and the full season_summary entry (registered 2026-10-27 before any event comparison). The detailed formulas and parameters of coverage_summary, monthly_departure, aligned_antecedent and terrain_strata were written together with their first run on 2026-10-27, so they are not pre-registered. From now on, changing a formula, parameter or window after results are read is a new version labeled post hoc. Registry 1.2.0 (2026-10-28) adds restrend_long_record and snow_cover_by_band, each fully registered before its data was summarized; their place-specific windows and band sets are in science/places/. The inspector renders method cards from an entry and the bundle manifest that holds its result. References are IDs in research/science/source-register.md. Registry 1.3.0 (2026-10-28) adds pixel_trend_long_record and season_trend_long_record, registered before any per-pixel slope, land-cover summary or June to September greenness value was computed (the stratum results of restrend_long_record had been read). Registry 1.4.0 (2026-10-29) adds drainage_network, registered before this pipeline built any network; its smoothing and height rules were carried over from the 29 October specimen build, which had run them first. Registry 1.5.0 (2026-10-29) adds terrain_transects, registered before this pipeline sampled any line; the Tabant meridian is specimen B's section and the rest was written by the science lane. Registry 1.6.0 (2026-10-29) adds pixel_anatomy, registered before this pipeline built any pixel anatomy; the pixel and its scene come from the 28 October specimen build and the scene rule was written afterwards to name that choice. Registry 1.7.0 (2026-10-29) adds terrain_relief and land_cover_classes, registered before this pipeline wrote any relief or land cover layer; both repeat grids that earlier bundles already use. Registry 1.8.0 (2026-10-29) adds optical_visibility_by_band, registered before this pipeline wrote any per-band clear share (the upper band's winter figures had been probed and match the lead's checks).",
   "recipes": [
     {
       "recipeId": "coverage_summary",
@@ -2045,6 +2045,128 @@
       ],
       "priority": "P2",
       "formulaPlain": "Each 10 m cell of the valley catchment carries the land cover class of the ESA WorldCover 2021 map, with a table of how much of the catchment each class covers."
+    },
+    {
+      "recipeId": "optical_visibility_by_band",
+      "version": "1.0.0",
+      "title": "How often an elevation band is seen clearly by Sentinel-2, month by month",
+      "question": "In each month, what share of each elevation band's 10 m cells has a clear Sentinel-2 observation, and how does that share look across the winters of 2019 to 2025?",
+      "operation": "valid_share_by_stratum",
+      "implementation": {
+        "language": "python",
+        "package": "siterra-science",
+        "version": "0.1.0"
+      },
+      "inputs": [
+        "sentinel2_monthly_composites",
+        "terrain_strata",
+        "frozen_catchment_geometry",
+        "place_configuration"
+      ],
+      "registration": "Full entry registered 2026-10-29, before this pipeline wrote any per-band clear share. The lane had run a probe of the winter figures of the upper band on 2026-10-29 (the lead's checks of 28 October give them, and the probe reproduced them: minimum 0.190, median 0.4731, maximum 0.985, 3 of 28 winter months at or above 0.9, 11 at or above 0.5) and fixed the definitions below from the monthly files' own meaning, not from those figures; they are named in the place configuration (revision 6) as the figures the build must reproduce. The old claim of 0 of 28 months at or above 0.9 and the median 0.3289 belong to the stricter three-date reading, which this recipe stores beside the primary one. No hypothesis is tested.",
+      "formula": [
+        "Bands: the three equal-area elevation terciles of the terrain strata bundle (band 1 below 2316.8 m, 2 to below 2815.2 m, 3 from 2815.2 m up), each over the 10 m analysis cells inside the frozen polygon",
+        "A month's cells: for each month from 2019-01 to 2025-12, the monthly Sentinel-2 composite of the NDVI bundle: median.tif (NDVI median, NaN where no date kept the cell) and count.tif (the number of dates that kept the cell); a date keeps a cell where the Scene Classification Layer is 4 (vegetation) or 5 (not vegetated) and the bands have data; cloud, shadow, snow and water classes drop it",
+        "Clear share: for each band, month and validity definition, the number of the band's cells that are valid divided by the number of the band's cells, to 4 decimals. any_date (primary): the median is a number (equivalently count at least 1); three_dates: count at least 3",
+        "Winter: the months December, January, February and March (28 months from 2019-01 to 2025-12). For each band and definition: the lowest, median, highest clear share over the winter months, the number of winter months at or above 0.9 and at or above 0.5, and the winter months with their shares",
+        "Acceptance checks, all stored with the bundle: the three bands' cell counts sum to the number of 10 m cells inside the polygon; every month has median.tif and count.tif on the strata grid; for every month the any_date valid count equals the count of cells with count at least 1; the clear shares of the upper band in winter reproduce the figures named in the place configuration (minimum 0.19, median 0.4731, maximum 0.985, 3 months at or above 0.9, 11 at or above 0.5, December 2023 0.971, January 2024 0.947, February 2024 0.985, to the digits given); the sha256 of every input file is stored; two runs give identical files apart from the computed time"
+      ],
+      "parameters": [
+        {
+          "name": "min_dates_primary",
+          "role": "method",
+          "allowed": [
+            1
+          ],
+          "default": 1
+        },
+        {
+          "name": "min_dates_strict",
+          "role": "method",
+          "allowed": [
+            3
+          ],
+          "default": 3
+        },
+        {
+          "name": "threshold_high",
+          "role": "method",
+          "allowed": [
+            0.9
+          ],
+          "default": 0.9
+        },
+        {
+          "name": "threshold_half",
+          "role": "method",
+          "allowed": [
+            0.5
+          ],
+          "default": 0.5
+        }
+      ],
+      "sensitivitySet": [
+        {
+          "parameter": "validity",
+          "values": [
+            "any_date",
+            "three_dates"
+          ]
+        }
+      ],
+      "applicability": [
+        {
+          "check": "monthly composites for every month of the period on the strata grid",
+          "minimum": "84 months"
+        }
+      ],
+      "outputs": [
+        {
+          "metric": "clear_share",
+          "unit": "1",
+          "claimKind": "observation",
+          "uncertaintyKind": "not_quantified"
+        }
+      ],
+      "assumptions": [
+        "Sentinel-2 scene classification separates clear ground from cloud, shadow and snow well enough for a share of cells"
+      ],
+      "failureModes": [
+        "A scene classification error (cloud called clear, or snow called bare) changes a month's share",
+        "A cell without a clear date cannot be told apart as cloud or snow from these files"
+      ],
+      "standardLimitations": [
+        "A clear share counts cells that have at least one (or three) Sentinel-2 dates not classed as cloud, cloud shadow, snow or water in the month; it says how often the band was seen, not how much of it was covered by snow or cloud, and the files do not say which of the two hid a cell.",
+        "The shares depend on the Sentinel-2 scene classification of each date, which makes errors on thin cloud, snow edges and shadow; they are observations of the classification, not of the ground.",
+        "Bands are elevation terciles that organise sampling; they are not vegetation types, grazing zones or management boundaries.",
+        "Only the months of 2019 to 2025 that the Sentinel-2 monthly series holds are covered, 28 winter months."
+      ],
+      "allowedComponents": [
+        "visibility strip",
+        "method card"
+      ],
+      "forbiddenPhrases": [
+        "significant",
+        "significantly",
+        "degradation detected",
+        "grazing impact",
+        "overgrazing",
+        "caused by",
+        "proves",
+        "recovery",
+        "forecast",
+        "pasture improvement",
+        "pasture decline",
+        "encroachment",
+        "flood risk",
+        "water supply"
+      ],
+      "references": [
+        "SCI-13",
+        "SCI-07"
+      ],
+      "priority": "P2",
+      "formulaPlain": "For each month and each of the three elevation bands, count the share of the band's 10 m cells that at least one (or at least three) Sentinel-2 images saw clearly, and read the winter months December to March side by side."
     }
   ]
 }

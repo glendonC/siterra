@@ -53,6 +53,7 @@ Recipes run in the offline pipeline and are stored as derived bundles whose `met
 | `pixel_anatomy` | What fills one 250 m MODIS pixel, how green does each class look, does a linear mix of the classes account for the pixel's greenness, and how did its own March to June greenness move over about 25 seasons? | The pixel's 10 m cells with WorldCover class, June NDVI and display colour; class spectra from one clear Sentinel-2 day; a labelled linear mix of the class medians; the pixel's own series with its Theil-Sen slope and Sen 95% interval ([entry](#pixel-anatomy-recipe-entry)) | Composition and spectra; observation; mix, slope; model estimate | P2 |
 | `terrain_relief` | What is the height of the ground at every 30 m cell of the catchment? | One-band float32 surface on the 30 m EPSG:32629 grid that the strata, drainage and transect heights use, the catchment cells plus a one-cell ring, with its summary ([entry](#relief-recipe-entry)) | Observation | P2 |
 | `land_cover_classes` | Which WorldCover 2021 class covers each 10 m cell of the catchment, and how much does each class cover? | The class layer on the 10 m analysis grid and the class table with cell counts, areas and shares ([entry](#land-cover-recipe-entry)) | Observation | P2 |
+| `optical_visibility_by_band` | In each month, what share of each elevation band's 10 m cells has a clear Sentinel-2 observation? | Per band and month the share of cells with at least one (and at least three) clear dates, with the winter months December to March summarised ([entry](#optical-visibility-recipe-entry)) | Observation | P2 |
 
 ## Season summary and the near-normal band
 
@@ -260,6 +261,23 @@ Both entries were registered in full on 2026-10-28: `restrend_long_record` befor
 | Standard limitations (verbatim) | In the registry: one 2021 map classified from satellite data, tree cover on the valley floor may include orchards, areas are cell counts times 100 m2, the catchment is a hydrological extent |
 | Forbidden phrases | As `drainage_network` |
 | References | SCI-13, SCI-19 in the [source register](../../research/science/source-register.md) |
+
+## Optical visibility recipe entry
+
+`optical_visibility_by_band` was registered in full on 2026-10-29, before this pipeline wrote any per-band clear share. The lane had run a probe of the upper band's winter figures first (the lead's checks of 28 October give them and the probe reproduced them), and fixed the definitions below from the meaning of the monthly files, not from those figures; the place configuration (revision 6) names them as the figures the build must reproduce. It tests no hypothesis. The machine-readable form is `science/recipes/registry.json`.
+
+| `optical_visibility_by_band` 1.0.0 | Value |
+|---|---|
+| Inputs | The Sentinel-2 monthly composites of the NDVI bundle (`median.tif`, `count.tif`, 2019-01 to 2025-12), the terrain strata (elevation band), the frozen polygon, the place configuration |
+| Bands | The three equal-area elevation terciles of the strata bundle (below 2316.8 m, 2316.8 to below 2815.2 m, 2815.2 m and above) |
+| Clear share | Per band, month and definition: valid cells over the band's cells inside the polygon, 4 decimals. `any_date` (primary): the monthly median exists, so at least one date kept the cell; `three_dates`: at least three dates kept it. A date keeps a cell where the scene classification is vegetation or not vegetated; cloud, shadow, snow and water drop it |
+| Winter | December to March, 28 months from 2019-01 to 2025-12: per band and definition the lowest, median and highest share and the months at or above 0.9 and 0.5 |
+| Parameters | Method only: `min_dates_primary` 1, `min_dates_strict` 3, `threshold_high` 0.9, `threshold_half` 0.5 |
+| Checks | Band cell counts sum to the inside cells; every month present on the strata grid; the any_date count equals the count of cells with at least one date; the upper band's winter figures equal the configured ones (0.19, 0.4731, 0.985, 3 and 11 months, December 2023, January and February 2024); every input file's sha256 stored; two runs give identical files |
+| Outputs | `clear_share`; claim kind `observation`; uncertainty `not_quantified` |
+| Standard limitations (verbatim) | In the registry: a clear share says how often a band was seen, not how much was covered by snow or cloud; it depends on the scene classification; bands organise sampling; 28 winter months |
+| Forbidden phrases | As `drainage_network` |
+| References | SCI-13, SCI-07 in the [source register](../../research/science/source-register.md) |
 
 ## Forecasting policy
 
