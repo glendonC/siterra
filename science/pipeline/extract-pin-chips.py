@@ -2,6 +2,10 @@
 for five key locations in the Ait Bouguemez valley catchment.
 
 Usage: python -I extract-pin-chips.py <place.json> <repo_root> <main_data_root> <tokens.json> <out_dir_1> [<out_dir_2> ...]
+       [--optical-bundle=<dir>]   (default <repo_root>/data/bundles/bundle_optical_visibility_ait_bouguemez)
+
+The chips carry no written interpretation: every number in pin-chips.json is a bundle field or a computation over a raster, and the
+winter clear shares of the upper band come from the optical visibility bundle.
 
 Inputs (all deterministic, real sensor rasters and validated bundles):
 - Sentinel-2 L2A 10 m true-colour composite (data/interim/hero/imagery/truecolour-inner-10m.tif) and 30 m Web Mercator
@@ -143,7 +147,7 @@ def add_reticle_and_frame(rgb, split_x=None, pin_xy=(CHIP_W // 2, CHIP_H // 2), 
     if split_x is not None:
         draw.line([(split_x, 0), (split_x, CHIP_H)], fill=(255, 255, 255, 210), width=1)
     px, py = pin_xy
-    # Outer dark halo + inner bright ring for readability over both bright snow and dark orchards
+    # Outer dark halo + inner bright ring for readability over both bright snow and dark vegetation
     draw.ellipse([px - 6, py - 6, px + 6, py + 6], outline=(20, 24, 22, 210), width=2)
     draw.ellipse([px - 5, py - 5, px + 5, py + 5], outline=(*accent, 245), width=1)
     draw.point((px, py), fill=(*accent, 255))
@@ -162,6 +166,7 @@ def save_chip(img, filename, out_dirs):
 
 def main():
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    flags = dict(a[2:].partition("=")[::2] for a in sys.argv[1:] if a.startswith("--"))
     place_path, repo_root, main_data_root, tokens_path = args[:4]
     out_dirs = args[4:]
     if not out_dirs:
@@ -224,11 +229,15 @@ def main():
         repo_root, "data/bundles/bundle_s2_ndvi_monthly_ait_bouguemez/period_2023-04/period_2023-04.json"
     )))
 
+    optical_dir = flags.get("optical-bundle") or os.path.join(repo_root, "data/bundles/bundle_optical_visibility_ait_bouguemez")
+    optical = json.load(open(os.path.join(optical_dir, "optical-visibility.json")))
+    upper_winter = optical["bands"]["3"]["winter"][optical["primary_validity"]]
+
     chips_manifest = []
 
     # =========================================================================
-    # CHIP 1: Valley Floor Orchards ([-6.422, 31.652], 1,850 m, 10 m resolution)
-    # Left 60% (x < 192): Sentinel-2 10 m true colour; Right 40%: July 2025 10 m NDVI + cropland/orchard contour
+    # CHIP 1: Valley Floor ([-6.422, 31.652], 1,850 m, 10 m resolution)
+    # Left 60% (x < 192): Sentinel-2 10 m true colour; Right 40%: July 2025 10 m NDVI + tree cover and cropland contour
     # =========================================================================
     lon1, lat1 = -6.422, 31.652
     tr1, bbox1, _ = window_grid(lon1, lat1, 10.0, to_utm, to_wgs84)
@@ -240,7 +249,7 @@ def main():
     split1 = 192
     comp1 = rgb1.copy()
     comp1[:, split1:, :] = (0.28 * rgb1[:, split1:, :].astype(np.float64) + 0.72 * ndvi1_rgb[:, split1:, :].astype(np.float64)).astype(np.uint8)
-    # Highlight WorldCover tree-cover/orchard (10) and cropland (40) edge contour
+    # Highlight WorldCover tree cover (10) and cropland (40) edge contour (land cover classes, not orchards)
     agri_mask = (lc1 == 10) | (lc1 == 40)
     edge1 = agri_mask ^ np.minimum.reduce([
         np.roll(agri_mask, 1, 0), np.roll(agri_mask, -1, 0),
@@ -248,14 +257,14 @@ def main():
     ])
     comp1[edge1] = (238, 198, 67)
     img1 = add_reticle_and_frame(comp1, split_x=split1, accent=(238, 198, 67))
-    bytes1, sha1 = save_chip(img1, "chip-valley-floor-orchards.png", out_dirs)
+    bytes1, sha1 = save_chip(img1, "chip-valley-floor.png", out_dirs)
 
     valid_ndvi1 = ndvi1[~np.isnan(ndvi1)]
     orch_ndvi1 = ndvi1[agri_mask & ~np.isnan(ndvi1)]
     slope_ndvi1 = ndvi1[(~agri_mask) & ~np.isnan(ndvi1)]
     chips_manifest.append({
-        "id": "chip-valley-floor-orchards",
-        "filename": "chip-valley-floor-orchards.png",
+        "id": "chip-valley-floor",
+        "filename": "chip-valley-floor.png",
         "title": "Tabant & Agouti Valley Floor",
         "coordinates": [lon1, lat1],
         "bbox": bbox1,
@@ -276,16 +285,6 @@ def main():
             "windowJuly2025NdviP90": round(float(np.percentile(valid_ndvi1, 90)), 4),
             "validObservationShare": 1.0,
         },
-        "aiInspectionNote": (
-            "Left 60%: 10 m Sentinel-2 true-colour composite showing the bright irrigated ribbon of Tabant and Agouti "
-            "fields and apple orchards along the Assif n'Ait Bouguemez floor beside bare semi-arid footslopes. Right 40%: "
-            f"July 2025 10 m NDVI (irrigated orchard/cropland median {float(np.median(orch_ndvi1)):.2f} vs. "
-            f"{float(np.median(slope_ndvi1)):.2f} on adjacent dry slopes) with WorldCover "
-            "2021 tree-cover and cropland boundaries outlined in gold. Cross-checked against season_trend_long_record: "
-            "level valley-floor ground greens at +0.0317 NDVI/decade in summer (June to September) and +0.0222 NDVI/decade "
-            "in spring (March to June), confirming that irrigated orchards and underplanted alfalfa drive the strongest "
-            "greening in the catchment."
-        ),
     })
 
     # =========================================================================
@@ -353,7 +352,7 @@ def main():
         "elevationM": 3120,
         "sensor": "Sentinel-2 L2A + MODIS Terra MOD10A1 v6.1 (500 m) + Copernicus DEM GLO-30",
         "sceneId": "MOD10A1.A2001001 to MOD10A1.A2025365 (h17v05, 8,985 daily products)",
-        "bundleId": "bundle_snow_cover_by_band_ait_bouguemez",
+        "bundleId": "bundle_snow_cover_by_band_ait_bouguemez, bundle_optical_visibility_ait_bouguemez",
         "capturedAt": "2001-01 to 2025-12 (winter Jan-Feb 2025 snow frequency overlay)",
         "bytes": bytes2,
         "sha256": sha2,
@@ -362,20 +361,16 @@ def main():
             "windowMaxElevationM": round(float(np.nanmax(el2)), 1),
             "snowCoverWinterShare": round(float(np.mean(w_snow)), 4),
             "snowCoverSummerShare": round(float(np.mean(s_snow)), 4),
-            "winterS2MonthsFullClear": 0,
-            "winterS2MonthsTested": 28,
+            "winterClearShareLowest": upper_winter["lowest"],
+            "winterClearShareMedian": upper_winter["median"],
+            "winterClearShareHighest": upper_winter["highest"],
+            "winterMonthsAtOrAbove0.9": upper_winter["at_or_above_high"],
+            "winterMonthsAtOrAbove0.5": upper_winter["at_or_above_half"],
+            "winterMonthsTested": upper_winter["months"],
             "ndviSlopePerDecade": 0.00700,
             "summerNdviSlope": 0.00383,
-            "validObservationShare": 0.3289,
+            "validObservationShare": upper_winter["median"],
         },
-        "aiInspectionNote": (
-            "30 m Sentinel-2 optical relief ascending to the 3,180 m northern ridgeline above Ait Ouchi, overlaid with "
-            "the 2,815 m upper terrain-stratum contour (ice-blue line) and MOD10A1 v6.1 winter snow frequency (cyan tint). "
-            "Above 2,815 m, 0 of 28 winter Sentinel-2 months (Dec to Mar, 2019 to 2025) are snow-free across the upper "
-            f"band (median valid area fraction 0.3289), and MOD10A1 records a {float(np.mean(w_snow)):.4f} mean winter "
-            f"snow-covered share (NDSI >= 0.2) versus {float(np.mean(s_snow)):.4f} in June to September, showing why "
-            "spring greenness trends (+0.0070 NDVI/decade) are sensitive to snowmelt timing."
-        ),
     })
 
     # =========================================================================
@@ -430,15 +425,6 @@ def main():
             "unadjustedPositiveShare": mid_share["unadjusted_sign_shares"]["positive_slope"],
             "validObservationShare": 1.0,
         },
-        "aiInspectionNote": (
-            "Sentinel-2 optical base draped with the native 250 m MOD13Q1 Theil-Sen slope grid (2000 to 2025, March to June; "
-            "slope magnitude and direction only per SCI-52, with 250 m sinusoidal cell boundaries outlined). Across the "
-            "2,317 to 2,815 m middle rangeland band, spring greenness trends upward at +0.0072 NDVI/decade (+0.0069 Theil-Sen; "
-            "20.41% of band area upward at BH-FDR q = 0.05 vs. 0.15% downward), whereas summer (June to September) slope is "
-            "+0.0050 NDVI/decade with a 95% interval including zero (-0.0020 to +0.0120). Because 250 m NDVI cannot distinguish "
-            "palatable herbs (Astragalus armatus, Thymus satureioides) from unpalatable spiny xerophytes (Bupleurum spinosum, "
-            "Erinacea anthyllis, Thymelaea virgata), a botanical palatability transect is required on the ground."
-        ),
     })
 
     # =========================================================================
@@ -482,7 +468,7 @@ def main():
     chips_manifest.append({
         "id": "chip-drought-comparison",
         "filename": "chip-drought-comparison.png",
-        "title": "Wet Season 2021/22 (650 mm) vs Dry Season 2022/23 (349 mm)",
+        "title": f"Wet season 2021/22 ({s_2122['season_total_mm']:.0f} mm) vs 2022/23 ({s_2223['season_total_mm']:.0f} mm), November to April",
         "coordinates": [lon4, lat4],
         "bbox": bbox4,
         "elevationM": 1816,
@@ -505,15 +491,6 @@ def main():
             "windowApril2023NdviMedian": round(float(np.nanmedian(n23)), 4),
             "validObservationShare": item_2304["properties"]["siterra:area_valid_fraction"],
         },
-        "aiInspectionNote": (
-            "Side-by-side 10 m Sentinel-2 leave-one-year-out NDVI departure comparison across the lower valley and slopes "
-            "(blue line marks the 0.05 degree / 5 km CHIRPS v3.0 cell boundary at -6.45 E). Left half: April 2022 after "
-            "an above-normal wet season of 650.36 mm (+88.20 mm vs 1991 to 2020 mean; catchment NDVI 0.1439, LOYO departure "
-            "+0.0007). Right half: April 2023 after a below-normal wet season of 349.33 mm (-212.83 mm; catchment NDVI "
-            "0.1354, LOYO departure -0.0100). Despite wet-season rainfall dropping by 301.03 mm (46%), April catchment "
-            "greenness shifted by only 0.0085 NDVI (within 0.01 NDVI), consistent with snowmelt and irrigation buffering "
-            "and restrend_long_record's low rainfall R-squared (0.04)."
-        ),
     })
 
     # =========================================================================
@@ -579,14 +556,6 @@ def main():
             "summerNdviSlope": 0.00899,
             "validObservationShare": 1.0,
         },
-        "aiInspectionNote": (
-            "Copernicus DEM GLO-30 analytical hillshade and hypsometric relief blended with Sentinel-2 optical imagery "
-            "at the western gorge where the Assif n'Ait Bouguemez exits the valley (1,464.6 m on the analysis DEM; "
-            "1,465 m on Mapterhorn Terrarium z12). The cyan contour traces the frozen hydrological boundary "
-            "(geo_ait_bouguemez_catchment revision 1, 417.04 km2 geodesic, 4,173,603 analysis cells of 10 m) snapped "
-            "94 m from OpenStreetMap river way 326552769 to the D8 flow-accumulation pour point, anchoring the 16-step "
-            "geographic reveal sequence from the outlet up to the eastern headwaters."
-        ),
     })
 
     manifest = {
