@@ -2,10 +2,14 @@ import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import { describe, expect, it } from "vitest";
 
-// The /prototype screen is retired and the instrument views replace it. These checks keep it, and the
-// model-written notes that came with its map chips, from returning through a merge.
+// The /prototype screen is retired and the instrument views replace it. These checks keep it, and what came with
+// its map chips without being computed (model-written notes, and a winter count the record does not reproduce),
+// from returning through a merge.
 
 const WEB = join(import.meta.dirname, "..", "..");
+
+/** Keys the chip extractor wrote as prose or constants: the notes, and the "0 of 28" clear winter months. */
+const RETIRED_KEYS = ["aiInspectionNote", "winterS2MonthsFullClear", "winterS2MonthsTested"];
 
 function jsonFiles(dir: string, out: string[] = []): string[] {
   for (const name of readdirSync(dir)) {
@@ -34,12 +38,13 @@ describe("retired /prototype screen", () => {
     expect(left).toEqual([]);
   });
 
-  it("leaves no model-written inspection notes in the public data", () => {
-    const notes = jsonFiles(join(WEB, "public")).flatMap((p) =>
-      keyPaths(JSON.parse(readFileSync(p, "utf8")), "aiInspectionNote").map(
-        (k) => `${relative(WEB, p)}: ${k}`,
-      ),
-    );
-    expect(notes).toEqual([]);
+  it("leaves no model-written notes or unreproduced winter counts in the public data", () => {
+    const found = jsonFiles(join(WEB, "public")).flatMap((p) => {
+      const value: unknown = JSON.parse(readFileSync(p, "utf8"));
+      return RETIRED_KEYS.flatMap((key) =>
+        keyPaths(value, key).map((k) => `${relative(WEB, p)}: ${k}`),
+      );
+    });
+    expect(found).toEqual([]);
   });
 });
