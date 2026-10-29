@@ -60,10 +60,18 @@ export type ComposeResult = {
   notOpened: string[];
 };
 
-/** A value rounded once, half away from zero, on its decimal text (0.02675 to 4 places is 0.0268). */
-export function roundHalfAwayFromZero(value: number, decimals: number): number {
-  const rounded = Math.round(Number(`${Math.abs(value)}e${decimals}`));
-  return Math.sign(value) * Number(`${rounded}e-${decimals}`);
+/**
+ * A value rounded once, half away from zero, on its decimal text (0.02675 to 4 places is 0.0268).
+ * `shift` moves the decimal point first, so a fraction shown as a percent is rounded on its own
+ * digits (0.285 to 0 places as a percent is 29, not 28).
+ */
+export function roundHalfAwayFromZero(value: number, decimals: number, shift = 0): number {
+  const text = String(Math.abs(value));
+  // Exponent notation (1e-7) has no decimal text to shift; plain arithmetic is exact enough there.
+  const scaled = text.includes("e")
+    ? Math.abs(value) * 10 ** (decimals + shift)
+    : Number(`${text}e${String(decimals + shift)}`);
+  return Math.sign(value) * Number(`${Math.round(scaled)}e-${String(decimals)}`);
 }
 
 const slot = /\{([a-z][a-z0-9_]{0,29})\}/g;
@@ -125,9 +133,47 @@ function parameterRecords(p: InstrumentSpec["parameters"]): Named[] {
   }
 }
 
-function numberPart(m: Measurement, part: CaptionNumber["part"]): number | null {
+type NumberPart =
+  "value" | "lower" | "upper" | "level" | "period_start" | "period_end" | "resolution_m";
+
+function numberPart(m: Measurement, part: NumberPart): number | null {
   if (m.status !== "available" || m.value === null) return null;
-  return part === "value" ? m.value : part === "lower" ? m.uncertainty.lower : m.uncertainty.upper;
+  switch (part) {
+    case "value":
+      return m.value;
+    case "lower":
+      return m.uncertainty.lower;
+    case "upper":
+      return m.uncertainty.upper;
+    case "level":
+      return m.uncertainty.level;
+    case "resolution_m":
+      return m.spatialResolutionM;
+    case "period_start":
+      return m.source === undefined ? null : Number(m.source.period.start.slice(0, 4));
+    case "period_end":
+      return m.source === undefined ? null : Number(m.source.period.end.slice(0, 4));
+  }
+}
+
+/** The decimal text of a value rounded once, half away from zero, in the style the slot asks for. */
+function writeNumber(raw: number, decimals: number, style: CaptionNumber["style"]): string {
+  const percent = style === "percent";
+  const rounded = roundHalfAwayFromZero(raw, decimals, percent ? 2 : 0);
+  const text = rounded.toFixed(decimals);
+  switch (style) {
+    case "percent":
+      return `${text}%`;
+    case "signed":
+      return rounded > 0 ? `+${text}` : text;
+    case "grouped": {
+      const [whole = "", fraction] = text.split(".");
+      const grouped = whole.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+      return fraction === undefined ? grouped : `${grouped}.${fraction}`;
+    }
+    default:
+      return text;
+  }
 }
 
 /** The caption sentences of a rule with its slots written; reasons when a number cannot be. */
@@ -139,19 +185,44 @@ function writeCaption(
   const allowed: number[] = [];
   const written = new Map<string, string>();
   for (const [name, n] of Object.entries(rule.caption.numbers)) {
-    const m = measurements.get(n.measurementId);
-    const raw = m === undefined ? null : numberPart(m, n.part);
-    if (raw === null) {
-      reasons.push(
-        m === undefined
-          ? `${n.measurementId} is not in the case`
-          : `${n.measurementId} has no ${n.part} to show (status ${m.status})`,
-      );
-      continue;
+    const reads =
+      "sumOf" in n
+        ? n.sumOf.map((id) => [id, "value"] as const)
+        : [[n.measurementId, n.part] as const];
+    const values: number[] = [];
+    for (const [id, part] of reads) {
+      const m = measurements.get(id);
+      const raw = m === undefined ? null : numberPart(m, part);
+      if (raw === null) {
+        reasons.push(
+          m === undefined
+            ? `${id} is not in the case`
+            : `${id} has no ${part} to show (status ${m.status})`,
+        );
+      } else {
+        values.push(raw);
+      }
     }
-    const rounded = roundHalfAwayFromZero(raw, n.decimals);
+    if (values.length !== reads.length) continue;
+    // A sum is a documented computation over stored fields; 12 significant digits keep the float
+    // sum from nudging a value across a rounding half.
+    const raw =
+      values.length === 1
+        ? (values[0] ?? 0)
+        : Number(values.reduce((a, b) => a + b, 0).toPrecision(12));
     allowed.push(raw);
-    written.set(name, rounded.toFixed(n.decimals));
+    written.set(name, writeNumber(raw, n.decimals, n.style));
+  }
+  for (const hold of rule.caption.holds ?? []) {
+    const m = measurements.get(hold.measurementId);
+    const raw = m === undefined ? null : numberPart(m, hold.part);
+    if (raw === null) {
+      reasons.push(`${hold.measurementId} has no ${hold.part} to check against the caption`);
+    } else if (!(raw > hold.above)) {
+      reasons.push(
+        `${hold.measurementId} ${hold.part} is not above ${String(hold.above)}, but the caption says it is`,
+      );
+    }
   }
   const fill = (s: string) =>
     s.replace(slot, (_, name: string) => {

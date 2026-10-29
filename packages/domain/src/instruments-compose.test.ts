@@ -131,6 +131,9 @@ describe("roundHalfAwayFromZero", () => {
     expect(roundHalfAwayFromZero(-0.02675, 4)).toBe(-0.0268);
     expect(roundHalfAwayFromZero(0.03699, 3)).toBe(0.037);
     expect(roundHalfAwayFromZero(26, 0)).toBe(26);
+    expect(roundHalfAwayFromZero(0.285, 0, 2)).toBe(29);
+    expect(roundHalfAwayFromZero(1.5e-7, 7)).toBe(2e-7);
+    expect(roundHalfAwayFromZero(0, 3)).toBe(0);
   });
 });
 
@@ -348,6 +351,203 @@ describe("composeInstruments", () => {
     expect(composeInstruments(inputs({ config: banned })).blocked[0]?.reasons.join()).toContain(
       "banned word",
     );
+  });
+
+  describe("specimen-style captions", () => {
+    const interval = {
+      kind: "interval",
+      lower: 0.00457,
+      upper: 0.01356,
+      level: 0.95,
+      method: "95% interval",
+    };
+    const period = {
+      assetKey: "a",
+      jsonPointer: "/x",
+      stratum: "s",
+      claimKind: "model_estimate",
+      period: { start: "2000", end: "2025", window: "mar_jun" },
+      lowerJsonPointer: "/l",
+      upperJsonPointer: "/u",
+    };
+    const records = [
+      measurement("meas_example_r2", 0.00906, { uncertainty: interval, source: period }),
+      measurement("meas_example_n", 2316.8),
+      measurement("meas_example_a", 0.4004),
+      measurement("meas_example_b", 0.0596),
+    ];
+    const ruleWith = (
+      ink: string,
+      grey: string,
+      numbers: object,
+      citationIds: string[],
+      holds?: object[],
+    ) =>
+      CaseAnalysisConfig.parse({
+        ...config,
+        instruments: [
+          {
+            ...scatterRule,
+            caption: {
+              ...scatterRule.caption,
+              ink,
+              grey,
+              numbers,
+              citationIds,
+              ...(holds ? { holds } : {}),
+            },
+          },
+        ],
+      });
+    const numbers = {
+      trend: { measurementId: "meas_example_r2", part: "value", decimals: 4, style: "signed" },
+      limit: { measurementId: "meas_example_n", part: "value", decimals: 0, style: "grouped" },
+      start: { measurementId: "meas_example_r2", part: "period_start", decimals: 0 },
+      end: { measurementId: "meas_example_r2", part: "period_end", decimals: 0 },
+      cover: { sumOf: ["meas_example_a", "meas_example_b"], decimals: 0, style: "percent" },
+      level: { measurementId: "meas_example_r2", part: "level", decimals: 0, style: "percent" },
+      share: { measurementId: "meas_example_a", part: "value", decimals: 1, style: "percent" },
+    };
+    const cited = ["meas_example_r2", "meas_example_n", "meas_example_a", "meas_example_b"];
+
+    it("writes signed, grouped, period, percent and summed numbers rounded once", () => {
+      const cfg = ruleWith(
+        "{trend} NDVI per decade below {limit} m, March to June, {start} to {end}.",
+        "{cover} of the pixel is tree cover and cropland, {share} is tree cover; every {level} interval lies above zero.",
+        numbers,
+        cited,
+      );
+      const spec = composeInstruments(inputs({ config: cfg, measurements: records })).specs[0];
+      expect(spec?.caption.ink).toBe(
+        "+0.0091 NDVI per decade below 2,317 m, March to June, 2000 to 2025.",
+      );
+      expect(spec?.caption.grey).toBe(
+        "46% of the pixel is tree cover and cropland, 40.0% is tree cover; every 95% interval lies above zero.",
+      );
+    });
+
+    it("writes a negative number with a minus sign and a signed zero without one", () => {
+      const cfg = ruleWith(
+        "{trend} per decade, {zero}.",
+        "A fit; {limit}.",
+        {
+          trend: { measurementId: "meas_example_r2", part: "value", decimals: 4, style: "signed" },
+          zero: { measurementId: "meas_example_n", part: "value", decimals: 0, style: "signed" },
+          limit: { measurementId: "meas_example_n", part: "value", decimals: 0 },
+        },
+        ["meas_example_r2", "meas_example_n"],
+      );
+      const spec = composeInstruments(
+        inputs({
+          config: cfg,
+          measurements: [
+            measurement("meas_example_r2", -0.00906),
+            measurement("meas_example_n", 0),
+          ],
+        }),
+      ).specs[0];
+      expect(spec?.caption.ink).toBe("-0.0091 per decade, 0.");
+    });
+
+    it("blocks a held claim the record contradicts, and opens when it holds", () => {
+      const holds = [{ measurementId: "meas_example_r2", part: "lower", above: 0 }];
+      const cfg = ruleWith(
+        "{trend} NDVI per decade.",
+        "Every interval lies above zero.",
+        { trend: numbers.trend },
+        ["meas_example_r2"],
+        holds,
+      );
+      expect(composeInstruments(inputs({ config: cfg, measurements: records })).specs).toHaveLength(
+        1,
+      );
+      const crossing = measurement("meas_example_r2", 0.00906, {
+        uncertainty: { ...interval, lower: -0.001 },
+      });
+      const blocked = composeInstruments(inputs({ config: cfg, measurements: [crossing] }));
+      expect(blocked.specs).toEqual([]);
+      expect(blocked.blocked[0]?.reasons).toEqual([
+        "meas_example_r2 lower is not above 0, but the caption says it is",
+      ]);
+    });
+
+    it("writes the native resolution of a Measurement, and blocks one that states none", () => {
+      const cfg = ruleWith(
+        "This {res} m pixel.",
+        "A fit; {limit}.",
+        {
+          res: { measurementId: "meas_example_r2", part: "resolution_m", decimals: 0 },
+          limit: numbers.limit,
+        },
+        ["meas_example_r2", "meas_example_n"],
+      );
+      const sized = measurement("meas_example_r2", 0.00906, { spatialResolutionM: 250 });
+      expect(
+        composeInstruments(inputs({ config: cfg, measurements: [sized, records[1] as never] }))
+          .specs[0]?.caption.ink,
+      ).toBe("This 250 m pixel.");
+      const none = measurement("meas_example_r2", 0.00906, { spatialResolutionM: null });
+      expect(
+        composeInstruments(inputs({ config: cfg, measurements: [none, records[1] as never] }))
+          .blocked[0]?.reasons[0],
+      ).toContain("has no resolution_m to show");
+    });
+
+    it("does not accept a bound that is only reached: a lower end of exactly zero is not above zero", () => {
+      const holds = [{ measurementId: "meas_example_r2", part: "lower", above: 0 }];
+      const cfg = ruleWith(
+        "{trend} NDVI per decade.",
+        "Every interval lies above zero.",
+        { trend: numbers.trend },
+        ["meas_example_r2"],
+        holds,
+      );
+      const zero = measurement("meas_example_r2", 0.00906, {
+        uncertainty: { ...interval, lower: 0 },
+      });
+      expect(composeInstruments(inputs({ config: cfg, measurements: [zero] })).specs).toEqual([]);
+    });
+
+    it("blocks a period or level the Measurement does not state", () => {
+      const cfg = ruleWith(
+        "{start} to {end}.",
+        "A fit; {level}.",
+        {
+          start: numbers.start,
+          end: numbers.end,
+          level: numbers.level,
+        },
+        ["meas_example_r2"],
+      );
+      const bare = measurement("meas_example_r2", 0.00906);
+      expect(
+        composeInstruments(inputs({ config: cfg, measurements: [bare] })).blocked[0]?.reasons,
+      ).toEqual([
+        "meas_example_r2 has no period_start to show (status available)",
+        "meas_example_r2 has no period_end to show (status available)",
+        "meas_example_r2 has no level to show (status available)",
+      ]);
+    });
+
+    it("blocks a sum when one of its Measurements is not available", () => {
+      const cfg = ruleWith(
+        "{cover} of the pixel.",
+        "A fit; {limit}.",
+        { cover: numbers.cover, limit: numbers.limit },
+        cited,
+      );
+      const result = composeInstruments(
+        inputs({
+          config: cfg,
+          measurements: [
+            records[1] as never,
+            records[2] as never,
+            measurement("meas_example_b", null),
+          ],
+        }),
+      );
+      expect(result.blocked[0]?.reasons[0]).toContain("meas_example_b");
+    });
   });
 
   it("ignores a branch merge that has no field plan", () => {

@@ -1451,6 +1451,114 @@
       "usedBy": [
         "handover S2: axis 48,822.5 m"
       ]
+    },
+    {
+      "rowId": "transect_band_limit_lower_2021",
+      "bundleId": "bundle_transects_ait_bouguemez",
+      "assetKey": "terrain_transects",
+      "pointer": "/transects/tabant_meridian/band_crossings/0/boundary_m",
+      "lowerPointer": null,
+      "upperPointer": null,
+      "claimKindPointer": "/claim_kind",
+      "claimKind": "observation",
+      "metric": "elevation_band_limit",
+      "unit": "m above the EGM2008 geoid",
+      "aggregation": "The lower elevation band limit that the meridian crosses (tabant_meridian.band_crossings[0].boundary_m), the equal-area tercile limit of the terrain strata.",
+      "stratum": "elevation_band_limit_lower",
+      "period": {
+        "start": "2021",
+        "end": "2021",
+        "window": null
+      },
+      "periodId": "period_2021",
+      "uncertainty": {
+        "kind": "not_quantified"
+      },
+      "spatialResolutionM": 30,
+      "usedBy": [
+        "specimen B: band limit 2,317 m (valley/provenance.json value_m)"
+      ]
+    },
+    {
+      "rowId": "transect_band_limit_upper_2021",
+      "bundleId": "bundle_transects_ait_bouguemez",
+      "assetKey": "terrain_transects",
+      "pointer": "/transects/tabant_meridian/band_crossings/2/boundary_m",
+      "lowerPointer": null,
+      "upperPointer": null,
+      "claimKindPointer": "/claim_kind",
+      "claimKind": "observation",
+      "metric": "elevation_band_limit",
+      "unit": "m above the EGM2008 geoid",
+      "aggregation": "The upper elevation band limit that the meridian crosses (tabant_meridian.band_crossings[2].boundary_m), the equal-area tercile limit of the terrain strata.",
+      "stratum": "elevation_band_limit_upper",
+      "period": {
+        "start": "2021",
+        "end": "2021",
+        "window": null
+      },
+      "periodId": "period_2021",
+      "uncertainty": {
+        "kind": "not_quantified"
+      },
+      "spatialResolutionM": 30,
+      "usedBy": [
+        "specimen B: band limit 2,815 m (valley/provenance.json value_m)"
+      ]
+    },
+    {
+      "rowId": "pixel_anatomy_share_tree_cover_2021",
+      "bundleId": "bundle_pixel_anatomy_ait_bouguemez",
+      "assetKey": "pixel_anatomy",
+      "pointer": "/composition/0/share",
+      "lowerPointer": null,
+      "upperPointer": null,
+      "claimKindPointer": "/spectra/claim_kind",
+      "claimKind": "observation",
+      "metric": "land_cover_share",
+      "unit": "share of the pixel's 10 m cells",
+      "aggregation": "Share of the pixel's cells that WorldCover 2021 classes as tree cover (pixel_anatomy.composition), as the bundle stores it at 4 decimals.",
+      "stratum": "pixel_tree_cover",
+      "period": {
+        "start": "2021",
+        "end": "2021",
+        "window": null
+      },
+      "periodId": "period_2021",
+      "uncertainty": {
+        "kind": "not_quantified"
+      },
+      "spatialResolutionM": 10,
+      "usedBy": [
+        "specimen C: 46% tree cover and cropland (pixel/provenance.json caption element)"
+      ]
+    },
+    {
+      "rowId": "pixel_anatomy_share_cropland_2021",
+      "bundleId": "bundle_pixel_anatomy_ait_bouguemez",
+      "assetKey": "pixel_anatomy",
+      "pointer": "/composition/2/share",
+      "lowerPointer": null,
+      "upperPointer": null,
+      "claimKindPointer": "/spectra/claim_kind",
+      "claimKind": "observation",
+      "metric": "land_cover_share",
+      "unit": "share of the pixel's 10 m cells",
+      "aggregation": "Share of the pixel's cells that WorldCover 2021 classes as cropland (pixel_anatomy.composition), as the bundle stores it at 4 decimals.",
+      "stratum": "pixel_cropland",
+      "period": {
+        "start": "2021",
+        "end": "2021",
+        "window": null
+      },
+      "periodId": "period_2021",
+      "uncertainty": {
+        "kind": "not_quantified"
+      },
+      "spatialResolutionM": 10,
+      "usedBy": [
+        "specimen C: 46% tree cover and cropland (pixel/provenance.json caption element)"
+      ]
     }
   ]
 }

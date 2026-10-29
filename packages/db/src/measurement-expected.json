@@ -622,6 +622,34 @@
       "decimals": 1,
       "part": "value",
       "source": "science-handover-s1-s2.md Lines: valley_axis 48,822.5 m"
+    },
+    {
+      "rowId": "transect_band_limit_lower_2021",
+      "printed": 2316.8,
+      "decimals": 1,
+      "part": "value",
+      "source": "specimen B valley/provenance.json numbers_on_screen value_m [2316.8, 2815.2]"
+    },
+    {
+      "rowId": "transect_band_limit_upper_2021",
+      "printed": 2815.2,
+      "decimals": 1,
+      "part": "value",
+      "source": "specimen B valley/provenance.json numbers_on_screen value_m [2316.8, 2815.2]"
+    },
+    {
+      "rowId": "pixel_anatomy_share_tree_cover_2021",
+      "printed": 0.4004,
+      "decimals": 4,
+      "part": "value",
+      "source": "specimen C pixel/provenance.json: 46% tree cover and cropland = 215 tree cover and 32 cropland cells of 537 (S3 handover: tree cover 215 (40.0%), cropland 32 (6.0%))"
+    },
+    {
+      "rowId": "pixel_anatomy_share_cropland_2021",
+      "printed": 0.0596,
+      "decimals": 4,
+      "part": "value",
+      "source": "specimen C pixel/provenance.json: 46% tree cover and cropland = 215 tree cover and 32 cropland cells of 537 (S3 handover: tree cover 215 (40.0%), cropland 32 (6.0%))"
     }
   ]
 }

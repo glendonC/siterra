@@ -224,18 +224,38 @@
           "ctx_drainage_order_5"
         ],
         "placeFeatureIds": ["ctx_catchment_outlet", "ctx_tabant", "ctx_ait_ouchi_locator"],
-        "selectedLayer": "rainfall"
+        "selectedLayer": "vegetation_trend"
       },
       "caption": {
-        "ink": "The driest of the September to May seasons analysed here brought {mm} mm of rain to the catchment.",
-        "grey": "Rainfall comes from a coarse satellite grid with no gauge in the valley; the sheets show where things lie, not why.",
-        "claimKind": "observation",
-        "citationIds": ["meas_rainfall_sep_may_catchment_2001"],
+        "ink": "{trend} NDVI per decade, March to June, {start} to {end}",
+        "grey": "Rises on {share} of the area after a false discovery rate check.",
+        "claimKind": "model_estimate",
+        "citationIds": [
+          "meas_trend_unadjusted_catchment_mar_jun",
+          "meas_pixel_trend_upward_fdr_share_catchment_mar_jun"
+        ],
         "numbers": {
-          "mm": {
-            "measurementId": "meas_rainfall_sep_may_catchment_2001",
+          "trend": {
+            "measurementId": "meas_trend_unadjusted_catchment_mar_jun",
             "part": "value",
+            "decimals": 4,
+            "style": "signed"
+          },
+          "start": {
+            "measurementId": "meas_trend_unadjusted_catchment_mar_jun",
+            "part": "period_start",
             "decimals": 0
+          },
+          "end": {
+            "measurementId": "meas_trend_unadjusted_catchment_mar_jun",
+            "part": "period_end",
+            "decimals": 0
+          },
+          "share": {
+            "measurementId": "meas_pixel_trend_upward_fdr_share_catchment_mar_jun",
+            "part": "value",
+            "decimals": 1,
+            "style": "percent"
           }
         }
       }
@@ -292,31 +312,62 @@
         ]
       },
       "caption": {
-        "ink": "March to June greenness rose in all three elevation bands, by {low}, {mid} and {high} NDVI per decade from the lowest to the highest.",
-        "grey": "The section cuts the valley along one meridian through Tabant and is a model of the ground on a coarse grid, not a survey.",
+        "ink": "{low} NDVI per decade below {limit} m, March to June, {start} to {end}",
+        "grey": "Band averages over the whole catchment; every {level} interval lies above zero.",
         "claimKind": "model_estimate",
         "citationIds": [
           "meas_trend_unadjusted_elevation_low_mar_jun",
           "meas_trend_unadjusted_elevation_mid_mar_jun",
-          "meas_trend_unadjusted_elevation_high_mar_jun"
+          "meas_trend_unadjusted_elevation_high_mar_jun",
+          "meas_transect_band_limit_lower_2021"
         ],
         "numbers": {
           "low": {
             "measurementId": "meas_trend_unadjusted_elevation_low_mar_jun",
             "part": "value",
-            "decimals": 4
+            "decimals": 4,
+            "style": "signed"
           },
-          "mid": {
-            "measurementId": "meas_trend_unadjusted_elevation_mid_mar_jun",
+          "limit": {
+            "measurementId": "meas_transect_band_limit_lower_2021",
             "part": "value",
-            "decimals": 4
+            "decimals": 0,
+            "style": "grouped"
           },
-          "high": {
-            "measurementId": "meas_trend_unadjusted_elevation_high_mar_jun",
-            "part": "value",
-            "decimals": 4
+          "start": {
+            "measurementId": "meas_trend_unadjusted_elevation_low_mar_jun",
+            "part": "period_start",
+            "decimals": 0
+          },
+          "end": {
+            "measurementId": "meas_trend_unadjusted_elevation_low_mar_jun",
+            "part": "period_end",
+            "decimals": 0
+          },
+          "level": {
+            "measurementId": "meas_trend_unadjusted_elevation_low_mar_jun",
+            "part": "level",
+            "decimals": 0,
+            "style": "percent"
           }
-        }
+        },
+        "holds": [
+          {
+            "measurementId": "meas_trend_unadjusted_elevation_low_mar_jun",
+            "part": "lower",
+            "above": 0
+          },
+          {
+            "measurementId": "meas_trend_unadjusted_elevation_mid_mar_jun",
+            "part": "lower",
+            "above": 0
+          },
+          {
+            "measurementId": "meas_trend_unadjusted_elevation_high_mar_jun",
+            "part": "lower",
+            "above": 0
+          }
+        ]
       }
     },
     {
@@ -344,25 +395,54 @@
         ]
       },
       "caption": {
-        "ink": "A mix of the pixel's land cover classes gives a greenness of {mix}, against {measured} measured.",
-        "grey": "A straight mix of class medians for one pixel on one summer day; it shows how mixed a pixel is and does not say what changed.",
+        "ink": "This {res} m pixel at the valley floor edge got greener by {trend} NDVI per decade from {start} to {end}.",
+        "grey": "Tree cover and cropland fill {cover} of it, and in a mix of its own spectra, a larger share of them raises NDVI by itself.",
         "claimKind": "model_estimate",
         "citationIds": [
+          "meas_pixel_anatomy_trend_mar_jun_pixel",
+          "meas_pixel_anatomy_share_tree_cover_2021",
+          "meas_pixel_anatomy_share_cropland_2021",
           "meas_pixel_anatomy_ndvi_mix_model_2025_06",
-          "meas_pixel_anatomy_ndvi_measured_2025_06"
+          "meas_pixel_anatomy_ndvi_mix_tree_cover_plus20_2025_06"
         ],
         "numbers": {
-          "mix": {
-            "measurementId": "meas_pixel_anatomy_ndvi_mix_model_2025_06",
+          "trend": {
+            "measurementId": "meas_pixel_anatomy_trend_mar_jun_pixel",
             "part": "value",
-            "decimals": 3
+            "decimals": 4,
+            "style": "signed"
           },
-          "measured": {
-            "measurementId": "meas_pixel_anatomy_ndvi_measured_2025_06",
-            "part": "value",
-            "decimals": 4
+          "start": {
+            "measurementId": "meas_pixel_anatomy_trend_mar_jun_pixel",
+            "part": "period_start",
+            "decimals": 0
+          },
+          "end": {
+            "measurementId": "meas_pixel_anatomy_trend_mar_jun_pixel",
+            "part": "period_end",
+            "decimals": 0
+          },
+          "cover": {
+            "sumOf": [
+              "meas_pixel_anatomy_share_tree_cover_2021",
+              "meas_pixel_anatomy_share_cropland_2021"
+            ],
+            "decimals": 0,
+            "style": "percent"
+          },
+          "res": {
+            "measurementId": "meas_pixel_anatomy_trend_mar_jun_pixel",
+            "part": "resolution_m",
+            "decimals": 0
           }
-        }
+        },
+        "holds": [
+          {
+            "measurementId": "meas_pixel_anatomy_trend_mar_jun_pixel",
+            "part": "lower",
+            "above": 0
+          }
+        ]
       }
     },
     {

@@ -190,6 +190,64 @@ describe("case analysis configuration: instrument rules", () => {
     ).toBe(false);
   });
 
+  it("accepts signed, percent and grouped slots, period and level parts, sums and held claims", () => {
+    const caption = {
+      ...scatter.caption,
+      ink: "{trend} NDVI per decade below {limit} m, March to June, {start} to {end}.",
+      grey: "{cover} of the pixel is tree cover and cropland; every {level} interval lies above zero.",
+      citationIds: ["meas_example_r2", "meas_example_n", "meas_example_a", "meas_example_b"],
+      numbers: {
+        trend: { measurementId: "meas_example_r2", part: "value", decimals: 4, style: "signed" },
+        limit: { measurementId: "meas_example_n", part: "value", decimals: 0, style: "grouped" },
+        start: { measurementId: "meas_example_r2", part: "period_start", decimals: 0 },
+        end: { measurementId: "meas_example_r2", part: "period_end", decimals: 0 },
+        cover: { sumOf: ["meas_example_a", "meas_example_b"], decimals: 0, style: "percent" },
+        level: { measurementId: "meas_example_r2", part: "level", decimals: 0, style: "percent" },
+      },
+      holds: [{ measurementId: "meas_example_r2", part: "lower", above: 0 }],
+    };
+    expect(withRules({ ...scatter, caption })).toBe(true);
+    expect(
+      withRules({
+        ...scatter,
+        caption: {
+          ...caption,
+          holds: [{ measurementId: "meas_example_gone", part: "lower", above: 0 }],
+        },
+      }),
+    ).toBe(false);
+    expect(
+      withRules({
+        ...scatter,
+        caption: {
+          ...caption,
+          citationIds: ["meas_example_r2", "meas_example_n", "meas_example_a"],
+        },
+      }),
+    ).toBe(false);
+    expect(
+      withRules({
+        ...scatter,
+        caption: {
+          ...caption,
+          numbers: { ...caption.numbers, cover: { sumOf: ["meas_example_a"], decimals: 0 } },
+        },
+      }),
+    ).toBe(false);
+    expect(
+      withRules({
+        ...scatter,
+        caption: {
+          ...caption,
+          numbers: {
+            ...caption.numbers,
+            trend: { measurementId: "meas_example_r2", part: "value", decimals: 4, style: "bold" },
+          },
+        },
+      }),
+    ).toBe(false);
+  });
+
   it("refuses parameters that name a field the kind does not have, and a rule for a field plan with parameters", () => {
     expect(
       withRules({ ...scatter, parameters: { ...scatter.parameters, camera: [1, 2, 3] } }),

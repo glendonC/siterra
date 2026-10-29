@@ -98,13 +98,53 @@ export type ExplanationDefinition = z.infer<typeof ExplanationDefinition>;
 
 const placeholder = /\{([a-z][a-z0-9_]{0,29})\}/g;
 
-/** One number a caption shows: a part of a cited Measurement, rounded once, half away from zero. */
-const CaptionNumber = z.strictObject({
+/** How a number is written: as is, with an explicit plus sign, as a percent of a fraction, or with thousands grouped. */
+export const captionNumberStyles = ["plain", "signed", "percent", "grouped"] as const;
+
+/**
+ * One number a caption shows, rounded once, half away from zero: a part of a cited Measurement
+ * (its value, an end of its interval, its interval level, or the first or last year of its period),
+ * or the sum of several cited Measurements (a documented computation over stored fields).
+ */
+const CaptionNumber = z.union([
+  z.strictObject({
+    measurementId: entityId,
+    part: z.enum([
+      "value",
+      "lower",
+      "upper",
+      "level",
+      "period_start",
+      "period_end",
+      "resolution_m",
+    ]),
+    decimals: z.int().min(0).max(6),
+    style: z.enum(captionNumberStyles).optional(),
+  }),
+  z.strictObject({
+    sumOf: z.array(entityId).min(2).max(4),
+    decimals: z.int().min(0).max(6),
+    style: z.enum(captionNumberStyles).optional(),
+  }),
+]);
+export type CaptionNumber = z.infer<typeof CaptionNumber>;
+
+/** The Measurements a caption number reads. */
+export function captionNumberMeasurementIds(number: CaptionNumber): string[] {
+  return "sumOf" in number ? number.sumOf : [number.measurementId];
+}
+
+/**
+ * A claim the caption words assert ("every interval lies above zero"): the composer opens the
+ * instrument only when the cited Measurement part is above the bound, so a sentence is never shown
+ * beside a record that contradicts it.
+ */
+const CaptionHold = z.strictObject({
   measurementId: entityId,
   part: z.enum(["value", "lower", "upper"]),
-  decimals: z.int().min(0).max(6),
+  above: z.number(),
 });
-export type CaptionNumber = z.infer<typeof CaptionNumber>;
+export type CaptionHold = z.infer<typeof CaptionHold>;
 
 const captionSentence = text({ min: 1, max: 300 });
 
@@ -126,6 +166,7 @@ export const ParameterInstrumentRule = z
       claimKind: Evidence.shape.claimKind,
       citationIds: uniqueArray(entityId),
       numbers: z.record(configKey, CaptionNumber),
+      holds: z.array(CaptionHold).optional(),
     }),
   })
   .superRefine((rule, ctx) => {
@@ -154,12 +195,20 @@ export const ParameterInstrumentRule = z
       }
     }
     const cited = new Set(rule.caption.citationIds);
-    for (const [name, number] of Object.entries(rule.caption.numbers)) {
-      if (!cited.has(number.measurementId)) {
+    const reads = [
+      ...Object.entries(rule.caption.numbers).flatMap(([name, number]) =>
+        captionNumberMeasurementIds(number).map((id) => [id, `for {${name}}`] as const),
+      ),
+      ...(rule.caption.holds ?? []).map(
+        (hold) => [hold.measurementId, "for a held claim"] as const,
+      ),
+    ];
+    for (const [id, why] of reads) {
+      if (!cited.has(id)) {
         ctx.addIssue({
           code: "custom",
           path: ["caption", "citationIds"],
-          message: `${number.measurementId} (for {${name}}) is not cited`,
+          message: `${id} (${why}) is not cited`,
         });
       }
     }
