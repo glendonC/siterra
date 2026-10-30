@@ -98,6 +98,18 @@ describe("the results caption", () => {
     expect(resultsCaption(two, 1).grey).toBe(
       "The field plan proposes 2 checks; 2 pairs of open explanations are not told apart by any of them.",
     );
+    // one check and one pair: every count agrees with its number
+    const single = {
+      ...merge,
+      fieldPlan: {
+        ...merge.fieldPlan,
+        measurements: [merge.fieldPlan?.measurements[0]],
+        unseparated: [pair],
+      },
+    } as unknown as BranchMerge;
+    expect(resultsCaption(single, 1).grey).toBe(
+      "The field plan proposes 1 check; 1 pair of open explanations is not told apart by any of them.",
+    );
     // the recorded plan leaves none apart, so its sentence stays the plain one
     expect(resultsCaption(merge, 1).grey).toBe(
       "The field plan proposes 2 checks that tell the open ones apart.",

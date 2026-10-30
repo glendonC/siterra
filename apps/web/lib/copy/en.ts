@@ -812,14 +812,15 @@ export const en = {
     kind: "ui",
   },
   "results.plan.none": { text: "No proposed field check tells the open ones apart.", kind: "ui" },
-  "results.plan.partial.one": {
-    text: "The field plan proposes {n} checks; {m} pair of open explanations is not told apart by any of them.",
+  // the counts agree with their numbers: "1 check", "2 checks"; "1 pair ... is", "2 pairs ... are"
+  "results.plan.partial": {
+    text: "The field plan proposes {checks}; {pairs} not told apart by any of them.",
     kind: "ui",
   },
-  "results.plan.partial.many": {
-    text: "The field plan proposes {n} checks; {m} pairs of open explanations are not told apart by any of them.",
-    kind: "ui",
-  },
+  "results.count.check.one": { text: "{n} check", kind: "ui" },
+  "results.count.check.many": { text: "{n} checks", kind: "ui" },
+  "results.count.pair.one": { text: "{n} pair of open explanations is", kind: "ui" },
+  "results.count.pair.many": { text: "{n} pairs of open explanations are", kind: "ui" },
   "results.only.one": { text: "The request added {n} finding to the case record.", kind: "ui" },
   "results.only.many": { text: "The request added {n} findings to the case record.", kind: "ui" },
   "results.excerpt": { text: "{title}, {locator}: \u201c{excerpt}\u201d", kind: "ui" },

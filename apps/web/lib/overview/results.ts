@@ -97,9 +97,13 @@ export function resultsCaption(merge: BranchMerge | undefined, findings: number)
   const plan =
     unseparated === 0
       ? format(checks === 1 ? "results.plan.one" : "results.plan.many", { n: checks })
-      : format(unseparated === 1 ? "results.plan.partial.one" : "results.plan.partial.many", {
-          n: checks,
-          m: unseparated,
+      : format("results.plan.partial", {
+          checks: format(checks === 1 ? "results.count.check.one" : "results.count.check.many", {
+            n: checks,
+          }),
+          pairs: format(unseparated === 1 ? "results.count.pair.one" : "results.count.pair.many", {
+            n: unseparated,
+          }),
         });
   const grey = open < 2 ? null : checks === 0 ? en["results.plan.none"].text : plan;
   return { ink, grey };

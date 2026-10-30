@@ -442,8 +442,14 @@ function OverviewReady({
       field.style.left = `${layout.field.x.toFixed(2)}px`;
       field.style.top = `${layout.field.y.toFixed(2)}px`;
     }
+    // the field mark's label leaves while the results are open, so no text stays over the blurred land
     if (fieldTagRef.current)
-      fieldTagRef.current.style.opacity = ((1 - 0.38 * h) * (1 - 0.3 * k) * (1 - oe)).toFixed(3);
+      fieldTagRef.current.style.opacity = (
+        (1 - 0.38 * h) *
+        (1 - 0.3 * k) *
+        (1 - oe) *
+        (selected === "results" ? 1 - e : 1)
+      ).toFixed(3);
     const pix = pixTagRef.current;
     if (pix && layout.pixelTop) {
       pix.style.left = `${layout.pixelTop.x.toFixed(2)}px`;
