@@ -10,6 +10,14 @@
 import {
   CanvasTexture,
   Color,
+  DynamicDrawUsage,
+  Group,
+  InstancedMesh,
+  Matrix4,
+  MeshBasicMaterial,
+  PlaneGeometry,
+  Raycaster,
+  Vector2,
   LinearFilter,
   LinearMipmapLinearFilter,
   LinearSRGBColorSpace,
@@ -27,9 +35,11 @@ import { LineSegments2 } from "three/addons/lines/LineSegments2.js";
 import { LineSegmentsGeometry } from "three/addons/lines/LineSegmentsGeometry.js";
 import { makeFrame, makeHeightSampler, type Vec3 } from "../../instruments/valley/frame";
 import { landFrame } from "../../land/geometry";
+import type { LandPose } from "../../land/handoff";
 import { createStage, type PerspectiveView } from "../../instruments/valley/scene/stage";
 import { heightTexture } from "../../instruments/valley/scene/textures";
-import { maskAt, overviewColours as C } from "../../theme/obsidian";
+import { liftColours as LC, maskAt, overviewColours as C } from "../../theme/obsidian";
+import { createLift, type LiftLayer } from "./lift";
 import {
   ARC,
   DIAL,
@@ -153,7 +163,22 @@ export interface SceneState {
   rise?: number;
   arcDraw?: number;
   from?: { x: number; y: number };
+  /**
+   * Handing the land to the layer stack (decision 12), 0 to 1: the camera's field of view narrows while it draws
+   * back, so the picture keeps its size and becomes nearly orthographic, as the layer stack's view is.
+   */
+  exit?: number;
+  /**
+   * The pixel taken apart (decision 12), 0 to 1: the camera flies down to the pixel, its Sentinel-2 cells lie on it,
+   * rise off the land one by one and dissolve, for the pixel's instrument to take over.
+   */
+  split?: number;
+  /** One evidence layer lifted off the land at rest (decision 12): which, and how far (0 down to 1 up). */
+  lift?: { layer: LiftId; k: number } | null;
 }
+
+/** The layers the overview can lift: each one the case's own (the trend cells, the CHIRPS cells, the land cover, the bands). */
+export type LiftId = "trend" | "rain" | "cover" | "bands";
 
 export interface Point {
   x: number;
@@ -184,6 +209,17 @@ export interface OverviewLayout {
   routeEnds: { id: string; at: Point; behind: boolean }[];
   /** Where the routes start (their shared first vertex) on screen, when the case has routes. */
   routeStart: { at: Point; behind: boolean } | null;
+  /** The lifted layer's right-most rim point on screen, where its label's leader starts, while one is lifted. */
+  liftAt: Point | null;
+  /**
+   * The land's box on screen, and where the opened finding's card is anchored (decision 14): the catchment's edge
+   * that faces the free side for a finding about the whole catchment or its rain, the band's own place for the band,
+   * the pixel for the pixel and the field check.
+   */
+  landBox: { x0: number; y0: number; x1: number; y1: number };
+  anchor: Point | null;
+  /** What the opened finding's card must not cover: the whole land, the band's place, or the pixel's footprint. */
+  subject: { x0: number; y0: number; x1: number; y1: number };
 }
 
 export interface Gaps {
@@ -193,8 +229,28 @@ export interface Gaps {
   distanceAt(p: Point): number;
 }
 
+/** What lies under a point of the screen on the land, read from the case's own rasters and records (decision 14). */
+export interface LandProbe {
+  E: number;
+  N: number;
+  /** The relief's height there (m). */
+  h: number;
+  /** The WorldCover class there, of the two the overview draws. */
+  cover: "tree" | "crop" | null;
+  /** The stream order of the nearest drainage reach within reach of the point, if any. */
+  order: number | null;
+  /** The id of the nearest proposed route within reach of the point, if any. */
+  route: string | null;
+  /** Inside the field check's pixel. */
+  inPixel: boolean;
+}
+
 export interface OverviewScene {
   render(state: SceneState): void;
+  /** The land under a point of the land canvas (CSS px from its top left), or null where the ray meets no land. */
+  probe(x: number, y: number): LandProbe | null;
+  /** Where the land stands on screen now and how it is seen and lit, for the view it is handed to. */
+  handoff(): LandPose;
   onLayout(f: (layout: OverviewLayout) => void): void;
   /** The land's footprint and the arc's clearance, read back from the next render. */
   measureGaps(): Promise<Gaps>;
@@ -251,11 +307,8 @@ export function mountOverview(
   const c2 = cv.getContext("2d", { willReadFrequently: true });
   if (!c2) throw new Error("No 2D context for the land cover raster");
   c2.drawImage(data.landcover, 0, 0);
-  const M30 = maskOnRelief(
-    c2.getImageData(0, 0, data.landcover.width, data.landcover.height).data,
-    a,
-    g,
-  );
+  const lcPx = c2.getImageData(0, 0, data.landcover.width, data.landcover.height).data;
+  const M30 = maskOnRelief(lcPx, a, g);
   // the key light keeps D3's relation to the overview camera: 45 degrees round from it, 32 degrees up
   const light = {
     dir: lightDir(az0 + 45, 32),
@@ -379,6 +432,93 @@ export function mountOverview(
       scene.add(line);
     }
   }
+  // ---------- one evidence layer lifted off the land at rest (decision 12) ----------
+  const LIFT_KM = 3.2 * lf.kmScale;
+  const bandsTex = data.bands ? coverTexture(data.bands) : null;
+  const liftLayers: Partial<Record<LiftId, LiftLayer>> = {
+    ...(slopeTex
+      ? { trend: { mode: "overlay" as const, tex: slopeTex, rect: frame.rect(g) } }
+      : {}),
+    ...(rainTex ? { rain: { mode: "overlay" as const, tex: rainTex, rect: frame.rect(g) } } : {}),
+    cover: {
+      mode: "cover",
+      tex: lcTex,
+      rect: frame.rect(a),
+      colours: [hexVec(LC.tree), hexVec(LC.crop)],
+    },
+    ...(bandsTex
+      ? {
+          bands: {
+            mode: "bands" as const,
+            tex: bandsTex,
+            rect: frame.rect(a),
+            colours: [hexVec(LC.bandLow), hexVec(LC.bandMid), hexVec(LC.bandHigh)],
+          },
+        }
+      : {}),
+  };
+  const lift = createLift(
+    relief.mesh.geometry,
+    relief.uniforms,
+    lcTex,
+    frame.rect(a),
+    hexVec(LC.plate),
+  );
+  scene.add(lift.mesh);
+  // the lifted layer's own edge: the catchment's rim, carried up with it
+  const liftEdge = new Group();
+  const liftEdgeLine = stage.lines.lines(
+    [smoothRing(data.ring, 2).map(([E, N]) => frame.v(E, N, sample(E, N) + 5))],
+    { color: C.catchmentLine, width: 1, opacity: 0, closed: true },
+  );
+  liftEdgeLine.renderOrder = 41;
+  liftEdge.add(liftEdgeLine);
+  scene.add(liftEdge);
+  let liftHeight = 0;
+  /** The lifted layer's right-most rim point on screen (design px). */
+  const liftAnchor = (km: number): Point =>
+    rimTop.map((p) => project([p[0], p[1] + km, p[2]])).reduce((b, q) => (q.x > b.x ? q : b));
+
+  // ---------- the pixel taken apart into its Sentinel-2 cells (decision 12) ----------
+  const pxCells = data.pixel?.cells ?? [];
+  const cellKm = (data.pixel?.cellM ?? 10) / 1000;
+  const cellGeo = new PlaneGeometry(cellKm * 0.86, cellKm * 0.86);
+  cellGeo.rotateX(-Math.PI / 2);
+  const cellMat = new MeshBasicMaterial({
+    color: 0xffffff,
+    transparent: true,
+    opacity: 0,
+    depthWrite: false,
+  });
+  const cellMesh = new InstancedMesh(cellGeo, cellMat, Math.max(1, pxCells.length));
+  cellMesh.instanceMatrix.setUsage(DynamicDrawUsage);
+  cellMesh.renderOrder = 42;
+  cellMesh.visible = false;
+  cellMesh.frustumCulled = false;
+  const cellBase = pxCells.map((c) => frame.v(c.E, c.N, sample(c.E, c.N) + 1));
+  // each cell's own moment to leave the land: a fixed scatter, so every run takes the pixel apart the same way
+  const cellDelay = pxCells.map((_, i) => (((Math.sin(i * 12.9898) * 43758.5453) % 1) + 1) % 1);
+  pxCells.forEach((c, i) => {
+    cellMesh.setColorAt(i, new Color(c.rgb[0] / 255, c.rgb[1] / 255, c.rgb[2] / 255));
+  });
+  if (cellMesh.instanceColor) cellMesh.instanceColor.needsUpdate = true;
+  scene.add(cellMesh);
+  const cellM4 = new Matrix4();
+  /** The cells at a split k: lying on the pixel, rising off the land one by one, dissolving at the end. */
+  const placeCells = (k: number) => {
+    const on = pxCells.length > 0 && k > 0.33;
+    cellMesh.visible = on;
+    if (!on) return;
+    cellMat.opacity = sstep(0.33, 0.45, k) * (1 - sstep(0.86, 1, k));
+    const riseKm = 0.32;
+    cellBase.forEach((b, i) => {
+      const r = ease(clamp01((k - 0.45 - 0.22 * (cellDelay[i] ?? 0)) / 0.3));
+      cellM4.makeTranslation(b[0], b[1] + riseKm * r + 0.2 * sstep(0.86, 1, k), b[2]);
+      cellMesh.setMatrixAt(i, cellM4);
+    });
+    cellMesh.instanceMatrix.needsUpdate = true;
+  };
+
   // the opened pixel's true footprint on the land (D4 nodeScene)
   const pixelPts: Vec3[] = [];
   const corners = data.pixel?.footprint ?? [];
@@ -900,6 +1040,29 @@ export function mountOverview(
     drawn = { w: width, h: height, bw: glc.width, bh: glc.height };
   };
 
+  /** What a finding's card must not cover (design px): its footprint for the pixel and the band, else the land. */
+  const subjectOf = (sel: Selection | null, lb: Box): Box => {
+    if ((sel === "pixel" || sel === "field") && pixelPts.length) {
+      const b = bbox(pixelPts.map(project));
+      return { x0: b.x0 - 36, y0: b.y0 - 36, x1: b.x1 + 36, y1: b.y1 + 36 };
+    }
+    if (sel === "band" && TB) {
+      const c = project(TB);
+      return { x0: c.x - 140, y0: c.y - 90, x1: c.x + 140, y1: c.y + 90 };
+    }
+    return lb;
+  };
+  /** Where a finding's card is anchored on screen (design px), for the finding opened. */
+  const anchorOf = (sel: Selection | null, lb: { x0: number; x1: number }): Point | null => {
+    if (!sel || sel === "results" || sel === "routes") return null;
+    if ((sel === "pixel" || sel === "field") && TP) return project(TP);
+    if (sel === "band" && TB) return project(TB);
+    // the catchment's edge on the side of the screen that has room: the rim point furthest that way
+    const toward = (lb.x0 + lb.x1) / 2 > design.width / 2 ? -1 : 1;
+    const pts = rimTop.map(project);
+    return pts.reduce((b, q) => (q.x * toward > b.x * toward ? q : b));
+  };
+
   // every render of the land (the page's, or the stage's own on a resize) draws the arc and hands out the layout
   stage.onRender(() => {
     updateFit();
@@ -935,6 +1098,7 @@ export function mountOverview(
         onArc: sstep(-2, 6, span.end - uOf(f.clock)),
       };
     }
+    const lb = landBox();
     const layout: OverviewLayout = {
       fit,
       e,
@@ -951,6 +1115,10 @@ export function mountOverview(
         : null,
       routeEnds: routeEnds.map((r) => ({ id: r.id, at: project(r.p), behind: occluded(r.p) })),
       routeStart: routeStart ? { at: project(routeStart), behind: occluded(routeStart) } : null,
+      liftAt: liftHeight > 0.01 ? liftAnchor(liftHeight) : null,
+      landBox: lb,
+      anchor: anchorOf(state.sel, lb),
+      subject: subjectOf(state.sel, lb),
     };
     for (const l of listeners) l(layout);
   });
@@ -1011,29 +1179,161 @@ export function mountOverview(
     return { arc, distanceAt };
   }
 
+  // ---------- what lies under the cursor (decision 14): a ray marched against the relief, then the records there ----------
+  const ray = new Raycaster();
+  const ndc = new Vector2();
+  const insideAt = (E: number, N: number) => {
+    const i = Math.floor((E - g.E0) / g.res);
+    const j = Math.floor((g.N0 - N) / g.res);
+    return i >= 0 && j >= 0 && i < g.width && j < g.height && M30[j * g.width + i] === 1;
+  };
+  const segDist = (E: number, N: number, a0: readonly number[], a1: readonly number[]) => {
+    const [x0 = 0, y0 = 0] = a0;
+    const [x1 = 0, y1 = 0] = a1;
+    const dx = x1 - x0;
+    const dy = y1 - y0;
+    const L = dx * dx + dy * dy;
+    const t = L > 0 ? clamp01(((E - x0) * dx + (N - y0) * dy) / L) : 0;
+    return Math.hypot(E - (x0 + dx * t), N - (y0 + dy * t));
+  };
+  const nearest = <T>(
+    lines: readonly { pts: readonly (readonly number[])[]; v: T }[],
+    E: number,
+    N: number,
+    within: number,
+  ) => {
+    let best: T | null = null;
+    let bd = within;
+    for (const l of lines)
+      for (let k = 1; k < l.pts.length; k++) {
+        const p0 = l.pts[k - 1];
+        const p1 = l.pts[k];
+        if (!p0 || !p1) continue;
+        const d = segDist(E, N, p0, p1);
+        if (d < bd) {
+          bd = d;
+          best = l.v;
+        }
+      }
+    return best;
+  };
+  const reachLines = data.rivers.reaches.map((r) => ({ pts: r.pts, v: r.order }));
+  const routeLines = data.routes.map((r) => ({ pts: r.pts, v: r.id }));
+  const inPoly = (E: number, N: number, poly: readonly (readonly [number, number])[]) => {
+    let inside = false;
+    for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+      const [xi, yi] = poly[i] ?? [0, 0];
+      const [xj, yj] = poly[j] ?? [0, 0];
+      if (yi > N !== yj > N && E < ((xj - xi) * (N - yi)) / (yj - yi) + xi) inside = !inside;
+    }
+    return inside;
+  };
+  const probe = (x: number, y: number): LandProbe | null => {
+    const el = canvases.land;
+    const w = el.clientWidth;
+    const hgt = el.clientHeight;
+    if (w <= 0 || hgt <= 0) return null;
+    ndc.set((x / w) * 2 - 1, -(y / hgt) * 2 + 1);
+    ray.setFromCamera(ndc, camera);
+    const o = ray.ray.origin;
+    const d = ray.ray.direction;
+    const sy = Math.max(0.01, scene.scale.y);
+    // the land's surface height (world y) under a world point, or null outside the catchment
+    const ground = (wx: number, wz: number) => {
+      const E = frame.E(wx);
+      const N = frame.N(wz);
+      return insideAt(E, N) ? frame.y(sample(E, N)) * sy : null;
+    };
+    const far = camera.position.length() * 3 + 50;
+    const step = Math.max(0.004, (g.res / 1000) * 0.6);
+    let prev = 0;
+    for (let t = step; t < far; t += step) {
+      const wx = o.x + d.x * t;
+      const wy = o.y + d.y * t;
+      const wz = o.z + d.z * t;
+      if (d.y >= 0 && wy > frame.y(lf.ceiling) * sy) break;
+      const gy = ground(wx, wz);
+      if (gy !== null && wy <= gy) {
+        // halve back to the surface
+        let lo = prev;
+        let hi = t;
+        for (let k = 0; k < 14; k++) {
+          const m = (lo + hi) / 2;
+          const gm = ground(o.x + d.x * m, o.z + d.z * m);
+          if (gm !== null && o.y + d.y * m <= gm) hi = m;
+          else lo = m;
+        }
+        const E = frame.E(o.x + d.x * hi);
+        const N = frame.N(o.z + d.z * hi);
+        const ci = Math.floor((E - a.E0) / a.res);
+        const rj = Math.floor((a.N0 - N) / a.res);
+        const q =
+          ci >= 0 && rj >= 0 && ci < a.width && rj < a.height ? (rj * a.width + ci) * 4 : -1;
+        const cover =
+          q < 0 ? null : (lcPx[q] ?? 0) > 127 ? "tree" : (lcPx[q + 1] ?? 0) > 127 ? "crop" : null;
+        // within about 9 screen px of a line on the ground (at this distance and lens), so the cursor need not land
+        // on a hairline
+        const fov = "fov" in camera ? camera.fov : FOV;
+        const mPerPx = ((2 * hi * Math.tan(rad(fov / 2))) / hgt) * 1000;
+        const reach = Math.max(2 * g.res, 9 * mPerPx);
+        return {
+          E,
+          N,
+          h: sample(E, N),
+          cover,
+          order: nearest(reachLines, E, N, reach),
+          route: nearest(routeLines, E, N, reach),
+          inPixel: data.pixel ? inPoly(E, N, data.pixel.footprint) : false,
+        };
+      }
+      prev = t;
+    }
+    return null;
+  };
+
   return {
+    probe,
     render(next) {
       state = next;
       const e = ease(next.s);
       const v1 = next.sel ? viewFor(next.sel) : view0;
       const rise = next.rise ?? 1;
-      const at =
+      const splitK = clamp01(next.split ?? 0);
+      const atRest =
         rise < 1 && next.from
           ? viewAt(introView(next.from), viewAt(view0, v1, e), ease(rise))
           : viewAt(view0, v1, e);
+      // the pixel taken apart: the camera flies down to it from wherever it stood
+      const at =
+        splitK > 0 && TP
+          ? viewAt(
+              atRest,
+              { target: TP, azimuth: azN, elevation: 52, distance: 1.25, shift: [0, -20] },
+              ease(clamp01(splitK / 0.45)),
+            )
+          : atRest;
+      placeCells(splitK);
       // the land rises out of the table as the camera comes down to it
       scene.scale.y = Math.max(0.01, sstep(0.2, 1, rise));
       scene.updateMatrixWorld();
+      // handing the land to the layer stack: a narrower lens from farther back, the same picture size
+      const exitK = ease(clamp01(next.exit ?? 0));
+      const fovK = 1 - 0.9 * exitK;
+      stage.setFovScale(fovK);
+      const dolly = Math.tan(rad(FOV / 2)) / Math.tan(rad((FOV * fovK) / 2));
       const view = {
         ...at,
-        distance: at.distance * (next.zoom ?? 1),
+        distance: at.distance * (next.zoom ?? 1) * dolly,
         azimuth: at.azimuth + (next.turn ?? 0),
       };
       set(view);
       current = { e, view, selClock: clockOf(next.sel) };
       // the fog stands where it stands at rest; during the arrival it moves with the camera (the same distances in
       // front of and behind the land as at rest), so the land is not lost in it while the camera is far
-      const fogAt = rise < 1 ? view.distance / view0.distance : 1;
+      const fogAt =
+        rise < 1 || exitK > 0 || splitK > 0
+          ? view.distance / (view0.distance * (next.zoom ?? 1))
+          : 1;
       relief.uniforms.uFog.value.set(
         lerp(view0.distance - 8, v1.distance - 4, e) * fogAt,
         lerp(view0.distance + 34, v1.distance + 40, e) * fogAt,
@@ -1064,6 +1364,18 @@ export function mountOverview(
           d.edgeMat.dashScale = scale;
         }
       }
+      // a layer lifted off the land at rest, rising, held and settling with the page's idle clock
+      const lk = next.lift ? ease(clamp01(next.lift.k)) : 0;
+      liftHeight = LIFT_KM * lk;
+      const liftA = sstep(0, 0.35, next.lift?.k ?? 0);
+      // light enough that the land reads through the lifted layer (lead, 30 Oct 14:48)
+      lift.show(next.lift ? (liftLayers[next.lift.layer] ?? null) : null, liftHeight, 0.55 * liftA);
+      liftEdge.position.y = liftHeight;
+      liftEdgeLine.material.opacity = 0.7 * liftA;
+      liftEdgeLine.visible = liftA > 0.002;
+      // the land under a lifted layer steps back a little, so the layer reads as lifted off it
+      relief.uniforms.uDim.value *= 1 - 0.15 * liftA;
+      wall.uniforms.uDim.value *= 1 - 0.15 * liftA;
       // the opened finding's footprint on the land
       const fp = next.sel === "fdr" ? slopeTex : next.sel === "rain" ? rainTex : null;
       if (fp) relief.uniforms.uOver.value = fp;
@@ -1086,6 +1398,22 @@ export function mountOverview(
     onLayout(f) {
       listeners.push(f);
     },
+    handoff() {
+      const b = landBox();
+      return {
+        rect: {
+          x0: fit.ox + b.x0 * fit.scale,
+          y0: fit.oy + b.y0 * fit.scale,
+          x1: fit.ox + b.x1 * fit.scale,
+          y1: fit.oy + b.y1 * fit.scale,
+        },
+        azimuth: current.view.azimuth,
+        elevation: current.view.elevation,
+        light: [light.dir.x, light.dir.y, light.dir.z] as const,
+        exag: EXAG,
+        lightMap: { map: lightMap, width: g.width, height: g.height },
+      };
+    },
     measureGaps() {
       return new Promise((resolve) => {
         gapWaiters.push(resolve);
@@ -1102,6 +1430,10 @@ export function mountOverview(
       }
       slopeTex?.dispose();
       rainTex?.dispose();
+      bandsTex?.dispose();
+      lift.dispose();
+      cellGeo.dispose();
+      cellMat.dispose();
       for (const o of scene2.children)
         if (o instanceof Mesh && o.material instanceof ShaderMaterial) o.material.dispose();
       r2.dispose();

@@ -35,6 +35,7 @@ import {
 } from "../../lib/instruments/valley/scene/layer-stack";
 import { obsidian, sheetColours } from "../../lib/theme/obsidian";
 import { useShellSources, useShellView, type ViewHandle } from "./ShellContext";
+import { useTeardown, type Teardown } from "./useTeardown";
 import styles from "./InstrumentLayerStack.module.css";
 import { useInstrument } from "./InstrumentRecords";
 
@@ -158,7 +159,17 @@ const TURN: Record<string, [number, number]> = {
   ArrowDown: [0, -3],
 };
 
-export function InstrumentLayerStack() {
+/**
+ * The land taken apart in place (decision 12): the overview hands over where its land stands (`from`); the stack's
+ * first frame draws that land there and calls `onDrawn`, then the sheets peel up into the stack. With `back` set it
+ * plays back until the sheets have settled into the land, then calls `onBack`.
+ */
+export type StackTeardown = Teardown;
+
+/** The teardown's lengths (s): the stack taken apart, and played back. */
+const TEAR_S = { in: 2.6, back: 1.4 } as const;
+
+export function InstrumentLayerStack({ teardown }: { teardown?: StackTeardown } = {}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const labelRefs = useRef<(HTMLDivElement | null)[]>([]);
   const rowRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -189,6 +200,9 @@ export function InstrumentLayerStack() {
   const caption = view?.spec.caption ?? null;
   const lead = caption ? splitFigure(caption.ink) : null;
   const keysId = useId();
+
+  // the teardown's clock: the first frame where the overview left its land, then the peel; played back on Esc
+  const { tearing, kick: go } = useTeardown(sceneRef, teardown, TEAR_S.in, TEAR_S.back);
 
   useEffect(() => {
     if (!view || !snapshot) return;
@@ -226,11 +240,16 @@ export function InstrumentLayerStack() {
           .reduce((a, b) => (b.x > a.x ? b : a));
         const label = labelRefs.current[i];
         const row = rowRefs.current[i];
+        // a sheet's number and label come in as it separates from the land
+        const shown = Math.min(1, Math.max(0, ((scene?.sheetIn[i] ?? 1) - 0.55) / 0.45)).toFixed(3);
         if (label && row) {
           label.style.left = `${labelX.toFixed(1)}px`;
           label.style.top = `${(p.y - (row.offsetTop + row.offsetHeight / 2)).toFixed(1)}px`;
           label.style.visibility = "visible";
+          label.style.opacity = shown;
         }
+        leaderRefs.current[i]?.style.setProperty("opacity", shown);
+        dotRefs.current[i]?.style.setProperty("opacity", shown);
         const leader = leaderRefs.current[i];
         leader?.setAttribute("x1", p.x.toFixed(1));
         leader?.setAttribute("y1", p.y.toFixed(1));
@@ -264,6 +283,7 @@ export function InstrumentLayerStack() {
         sceneRef.current = s;
         s.stage.onRender(place);
         s.stage.render();
+        go();
       },
       () => {
         if (!ac.signal.aborted) setFailed(true);
@@ -274,7 +294,7 @@ export function InstrumentLayerStack() {
       scene?.dispose();
       sceneRef.current = null;
     };
-  }, [data, caption]);
+  }, [data, caption, go]);
 
   const onKeyDown = (e: KeyboardEvent<HTMLCanvasElement>) => {
     const scene = sceneRef.current;
@@ -292,7 +312,12 @@ export function InstrumentLayerStack() {
   };
 
   return (
-    <div className={styles.root} data-theme="obsidian" data-instrument="layers">
+    <div
+      className={styles.root}
+      data-theme="obsidian"
+      data-instrument="layers"
+      data-tearing={tearing ? "" : undefined}
+    >
       <canvas
         ref={canvasRef}
         className={styles.canvas}

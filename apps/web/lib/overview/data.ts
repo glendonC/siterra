@@ -27,6 +27,8 @@ export interface OverviewData {
   range: ReliefRange;
   /** The 10 m land cover raster: R tree cover, G cropland or built-up, B inside the catchment. */
   landcover: ImageBitmap;
+  /** The equal-area elevation bands on the analysis grid (R low, G mid, B high), for the idle lifts. */
+  bands: ImageBitmap | null;
   /** The catchment outline in the zone's metres. */
   ring: [number, number][];
   rivers: Rivers;
@@ -42,6 +44,13 @@ export interface OverviewData {
     series: PixelData["series"];
     /** The bundle's note on how it was chosen ("an illustration chosen by judgment, not a sample"). */
     note: string;
+    /**
+     * Its Sentinel-2 cells (10 m) whose centres lie inside it, each with its centre and its display colour (the
+     * shared true-colour composite, display only), for the pixel taken apart (decision 12).
+     */
+    cells: { E: number; N: number; rgb: readonly [number, number, number] }[];
+    /** The cells' size (m). */
+    cellM: number;
   } | null;
 }
 
@@ -49,6 +58,34 @@ export interface OverviewData {
 export function centreOf(corners: readonly (readonly [number, number])[]): [number, number] {
   const n = corners.length || 1;
   return [corners.reduce((s, c) => s + c[0], 0) / n, corners.reduce((s, c) => s + c[1], 0) / n];
+}
+
+/** A point inside a ring (even-odd rule). */
+function inside(ring: readonly (readonly [number, number])[], x: number, y: number): boolean {
+  let hit = false;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const [xi, yi] = ring[i] ?? [0, 0];
+    const [xj, yj] = ring[j] ?? [0, 0];
+    if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) hit = !hit;
+  }
+  return hit;
+}
+
+/** The 10 m cells of the pixel's window (row 0 north, from its outer corner) whose centres lie inside its footprint. */
+export function cellsInside(
+  grid: PixelData["grid"],
+  footprint: readonly (readonly [number, number])[],
+  cellM = 10,
+): { E: number; N: number; rgb: readonly [number, number, number] }[] {
+  const out: { E: number; N: number; rgb: readonly [number, number, number] }[] = [];
+  for (let r = 0; r < grid.rows; r++)
+    for (let c = 0; c < grid.cols; c++) {
+      const E = grid.origin_x + (c + 0.5) * cellM;
+      const N = grid.origin_y - (r + 0.5) * cellM;
+      if (!inside(footprint, E, N)) continue;
+      out.push({ E, N, rgb: grid.truecolour_rgb[r]?.[c] ?? [0, 0, 0] });
+    }
+  return out;
 }
 
 /** The rain cells in the zone's metres, or null (with the reason logged) when the asset does not parse. */
@@ -89,7 +126,7 @@ export async function loadOverviewData(
     }),
   ]);
   const [terrain, outline, casePixel] = await Promise.all([
-    readCaseTerrain([layers], fetchImpl, signal),
+    readCaseTerrain([layers], fetchImpl, signal, { bands: true }),
     readJsonAsset(layers, drawnAsset(layers, "catchment_outline"), fetchImpl, signal),
     pixel ? loadCasePixel(pixel, fetchImpl, signal) : Promise.resolve(null),
   ]);
@@ -104,6 +141,7 @@ export async function loadOverviewData(
     relief: terrain.relief,
     range: terrain.range,
     landcover: terrain.landcover,
+    bands: terrain.bands,
     ring: outlineRing(outline, zone),
     rivers: riversFrom(snapshot, p.drainageFeatureIds, zone),
     routes: routesFrom(snapshot, zone),
@@ -115,6 +153,8 @@ export async function loadOverviewData(
             centre: centreOf(footprint),
             series: casePixel.pixel.series,
             note: casePixel.pixel.selection.note,
+            cells: cellsInside(casePixel.pixel.grid, footprint),
+            cellM: 10,
           }
         : null,
   };

@@ -78,7 +78,8 @@ test("opens a finding's record on its side and Esc returns", async ({ page }) =>
   const sent = writes(page);
   await ready(page);
   const record = page.locator("[data-record]");
-  const open = record.getByRole("link", { name: "Open Instrument" });
+  // the record's Enter action (decision 15): the first in its list, named by what the visitor will see
+  const open = record.locator("[data-actions] a").first();
 
   // the pixel: its number, its season chart and context, and the way to the full instrument
   await page.locator("[data-finding='pixel']").click();
@@ -90,6 +91,12 @@ test("opens a finding's record on its side and Esc returns", async ({ page }) =>
     timeout: 30_000,
   });
   await expect(open).toHaveAttribute("href", "/instruments/pixel");
+  await expect(open).toHaveAttribute("aria-keyshortcuts", "Enter");
+  await expect(record.locator("[data-actions] > *")).toHaveText([
+    "Open This PixelEnter",
+    "See the Five LayersL",
+    "BackEsc",
+  ]);
   await expect.poll(() => opacity(page, "[data-record]")).toBe(1);
   // the land outside the focus band is blurred
   await expect
@@ -127,6 +134,26 @@ test("opens a finding's record on its side and Esc returns", async ({ page }) =>
   await page.locator("[data-crumbs]").getByRole("button", { name: "Aït Bouguemez valley" }).click();
   await expect(record).toHaveCount(0);
   expect(sent).toEqual([]);
+});
+
+test("Enter on an opened card runs the action its Enter chip names, however the card was opened", async ({
+  page,
+}) => {
+  await ready(page);
+  // opened by a click: the focus is still on the finding's label
+  await page.locator("[data-finding='band']").click();
+  await expect(page.locator("[data-record='band']")).toBeVisible();
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL(/\/instruments\/cutaway$/);
+  await page.keyboard.press("Escape");
+  await expect(page).toHaveURL(/\/valley$/);
+  // opened by the keyboard, on a fresh overview: Enter on the label opens the card, Enter again runs its action
+  await ready(page);
+  await page.locator("[data-finding='pixel']").focus();
+  await page.keyboard.press("Enter");
+  await expect(page.locator("[data-record='pixel']")).toBeVisible();
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL(/\/instruments\/pixel$/);
 });
 
 test("the proposed routes lie on the land, lift on hover, open with the bundle's figures, and Esc returns", async ({

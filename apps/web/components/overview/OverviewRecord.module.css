@@ -17,17 +17,12 @@
   mask-image: var(--ov-frost-mask);
 }
 
+/* the card beside its subject on the land (decision 14): placed each frame by the page, flat and compact */
 .inst {
   position: absolute;
   left: 800px;
   top: 120px;
-  width: 560px;
-  perspective: 1500px;
-}
-
-.plane {
-  transform: rotateY(-14deg) rotateX(2deg);
-  transform-origin: 0% 40%;
+  width: 420px;
 }
 
 .k {
@@ -43,8 +38,8 @@
   width: fit-content;
   margin-top: 10px;
   font-weight: 300;
-  font-size: 76px;
-  line-height: 80px;
+  font-size: 56px;
+  line-height: 60px;
   letter-spacing: -0.025em;
   font-variant-numeric: lining-nums;
   color: var(--ov-bright);
@@ -107,9 +102,7 @@
   position: absolute;
   left: 1012px;
   top: 620px;
-  width: 380px;
-  transform: perspective(1500px) rotateY(-7deg);
-  transform-origin: 0% 50%;
+  width: 420px;
 }
 
 .q {
@@ -164,15 +157,8 @@
   left: 88px;
 }
 
-.record[data-side="left"] .plane {
-  transform: rotateY(14deg) rotateX(2deg);
-  transform-origin: 100% 40%;
-}
-
 .record[data-side="left"] .evid {
   left: 88px;
-  transform: perspective(1500px) rotateY(7deg);
-  transform-origin: 100% 50%;
 }
 
 /* the fixed slope scale the land is painted on */
@@ -207,4 +193,25 @@
   font-size: 12px;
   line-height: 16px;
   color: var(--text-tertiary);
+}
+
+/* the rain card compared with rainfall (decision 13): wider, its 26 seasons rising into place from the axis */
+.record[data-wide] .inst {
+  width: 640px;
+}
+
+.rise {
+  transform-box: fill-box;
+  animation: seasonRise 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@keyframes seasonRise {
+  from {
+    transform: translateY(var(--rise));
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
 }

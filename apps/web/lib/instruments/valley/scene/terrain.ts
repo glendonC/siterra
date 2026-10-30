@@ -15,10 +15,11 @@ import {
   Vector2,
   Vector3,
   Vector4,
-  type DataTexture,
+  DataTexture,
+  RGBAFormat,
   type Texture,
 } from "three";
-import { modelColours } from "../../../theme/obsidian";
+import { modelColours, obsidian } from "../../../theme/obsidian";
 import type { Frame, Grid } from "../frame";
 import { channels, hexRgb, type Rgb } from "../palette";
 
@@ -82,6 +83,8 @@ uniform vec3 uL, uLight, uAmbient, uAlbedo, uShadow, uLine;
 uniform float uContour, uIndex;
 uniform sampler2D uCover;   // optional WorldCover marks: R tree cover, G cropland or built-up
 uniform float uCoverA;
+uniform sampler2D uLM;      // optional baked light (the overview's): R soft cast shadow, G ambient occlusion
+uniform float uLMA;         // 0 none; 1 the baked light in full (a land handed over from the overview, decision 12)
 uniform vec3 uTreeC, uCropC, uLimitC;
 uniform vec2 uLimits;      // the equal-area band limits (m)
 uniform float uBandLines;
@@ -104,8 +107,9 @@ void main() {
   vec3 n = normalize(vec3(-(hr - hl) / (2.0 * cell) * uExag, 1.0, -(hs - hn) / (2.0 * cell) * uExag));
   float lap = (hl + hr + hn + hs - 4.0 * h);
 
-  float diff = max(dot(n, uL), 0.0);
-  float sky = 0.55 + 0.45 * n.y;
+  vec4 lm = texture(uLM, uv);
+  float diff = max(dot(n, uL), 0.0) * mix(1.0, lm.r, uLMA);
+  float sky = (0.55 + 0.45 * n.y) * mix(1.0, lm.g, uLMA);
   vec3 col = uAlbedo * (uLight * diff + uAmbient * sky);
   col = mix(uShadow, col, smoothstep(-0.05, 0.25, diff) * 0.35 + 0.65);
   // a faint cavity term: channel floors slightly darker, crests slightly lighter (from the relief itself)
@@ -159,6 +163,13 @@ export interface ReliefOptions {
  * The relief mesh: one vertex per 30 m cell centre, heights in an attribute, shading from the height texture.
  * Its uniforms are returned too, so a cutaway can set the cut after building it.
  */
+/** A one-texel white texture: no baked light. */
+const WHITE = (() => {
+  const t = new DataTexture(new Uint8Array([255, 255, 255, 255]), 1, 1, RGBAFormat);
+  t.needsUpdate = true;
+  return t;
+})();
+
 export function createRelief(
   H: Float32Array,
   g: Grid,
@@ -219,6 +230,8 @@ export function createRelief(
     uIndex: { value: o.index ?? 0.42 },
     uCover: { value: o.cover ?? mask },
     uCoverA: { value: o.coverA ?? 0 },
+    uLM: { value: WHITE },
+    uLMA: { value: 0 },
     uTreeC: { value: hexVec(modelColours.coverTree) },
     uCropC: { value: hexVec(modelColours.coverCrop) },
     uLimitC: { value: rgbVec(channels(modelColours.bandLimit)) },
@@ -258,6 +271,8 @@ void main() {
 const WALL_FRAG = /* glsl */ `
 uniform vec3 uL, uLight, uAmbient, uAlbedo, uLine, uLimitC;
 uniform float uLineA, uFade;
+uniform vec3 uBg;
+uniform float uShow;          // 1 drawn; toward 0 the wall sinks into the ground (a land handed over, decision 12)
 uniform vec3 uBandTint, uBandA;
 uniform float uLimitA;
 uniform vec2 uLimits;
@@ -284,6 +299,7 @@ void main() {
   float fw = max(fwidth(vElev), 1e-3);
   float ln = max(1.0 - smoothstep(0.0, 1.3, abs(vElev - uLimits.x) / fw), 1.0 - smoothstep(0.0, 1.3, abs(vElev - uLimits.y) / fw));
   col = mix(col, uLimitC, ln * uLimitA);
+  col = mix(uBg, col, uShow);
   gl_FragColor = vec4(col, 1.0);
 }
 `;
@@ -376,6 +392,8 @@ export function createWall(
     uLimitA: { value: o.limitA ?? 0 },
     uLimitC: { value: rgbVec(channels(modelColours.wallLimit)) },
     uLimits: { value: new Vector2(...o.limits) },
+    uBg: { value: hexVec(obsidian.canvas) },
+    uShow: { value: 1 },
   };
   const material = new ShaderMaterial({
     vertexShader: WALL_VERT,

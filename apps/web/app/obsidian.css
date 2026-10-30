@@ -118,9 +118,9 @@
   --ov-connector-end: #c9d6da;
   --ov-frost: radial-gradient(
     ellipse 50% 50% at 50% 50%,
-    rgb(11 16 18 / 0.86) 0%,
-    rgb(11 16 18 / 0.8) 60%,
-    rgb(11 16 18 / 0.4) 85%,
+    rgb(11 16 18 / 0.88) 0%,
+    rgb(11 16 18 / 0.84) 70%,
+    rgb(11 16 18 / 0.45) 88%,
     rgb(11 16 18 / 0) 100%
   );
   --ov-frost-mask: radial-gradient(

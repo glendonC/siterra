@@ -249,3 +249,21 @@
   outline: 1px solid var(--control-line-strong);
   outline-offset: 2px;
 }
+
+/* the request's activity beside the disc while the ask is closed (decision 14): the status stands by its subject */
+.beside {
+  position: absolute;
+  margin: -10px 0 0 76px;
+  max-width: 420px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--ov-ink-3);
+  white-space: nowrap;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.beside[data-shown] {
+  visibility: visible;
+}

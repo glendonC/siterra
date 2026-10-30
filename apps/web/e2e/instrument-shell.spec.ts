@@ -1,16 +1,15 @@
 import { expect, test, type Request } from "@playwright/test";
+import { ASK_AT } from "../lib/overview/arc";
 import { textReport } from "./instrument-text";
 
-// The briefing shell around each instrument (docs/reference/ux-architecture.md, "The instruments' budget"): a quiet
-// switcher of six views at the top right with the current one marked and Valley leading to the overview at /valley;
-// the ask (approved specimen D4) resting as a 44 x 44 CSS px circle at the bottom centre, in the band the command line
-// kept (y 796 to 840 of the 1440 x 900 design), with no text within 24 px of it except the credit line, which
-// keeps the specimens' gap of 16 px. The ask opens by its circle or "/" and sends nothing; Enter (which carries the
-// text to the overview) is not pressed here, as no test presses Enter in the ask.
+// The chrome around each view (the lead's decisions 13 and 14): no list of views and no word "Instrument" on screen;
+// the breadcrumb names the view; the one ask disc rests on the arc's place, the same in every view (112 x 112 CSS px
+// round ASK_AT at 1440 x 900), and each view keeps 24 px round it clear of text. The ask opens by its circle or "/"
+// and sends nothing; Enter (which carries the text to the overview) is not pressed here.
 
 test.use({ viewport: { width: 1440, height: 900 } });
 
-const ASK = { x: 698, y: 796, width: 44, height: 44 };
+const ASK = { x: ASK_AT.x - 56, y: ASK_AT.y - 56, width: 112, height: 112 };
 const CLEAR = 24;
 const CREDIT_GAP = 16;
 const PAGES = ["layers", "cutaway", "pixel", "rainfall", "field"] as const;
@@ -25,14 +24,15 @@ const READY: Record<(typeof PAGES)[number], string> = {
 };
 
 for (const id of PAGES) {
-  test(`frames the ${id} instrument with the switcher and the ask`, async ({ page }) => {
+  test(`frames the ${id} view with no view list and the ask on the arc`, async ({ page }) => {
     await page.goto(`/instruments/${id}`);
     await expect(page.locator(READY[id]).first()).toBeVisible();
-    const nav = page.locator("nav[aria-label='Instruments']");
-    await expect(nav.locator("a")).toHaveCount(6);
-    await expect(nav.locator("a[aria-current='page']")).toHaveCount(1);
-    await expect(nav.locator("a").first()).toHaveAttribute("href", "/valley");
-    expect(await page.locator("[data-ask]").boundingBox()).toEqual(ASK);
+    await expect(page.locator("nav[aria-label='Instruments']")).toHaveCount(0);
+    expect(await page.locator("body").innerText()).not.toMatch(/\binstruments?\b/i);
+    const box = await page.locator("[data-ask]").boundingBox();
+    expect(box).not.toBeNull();
+    for (const k of ["x", "y", "width", "height"] as const)
+      expect(Math.abs((box?.[k] ?? 0) - ASK[k])).toBeLessThan(1);
     const frags = await page.evaluate(() => {
       const out: {
         t: string;

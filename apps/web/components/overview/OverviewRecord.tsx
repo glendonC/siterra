@@ -7,7 +7,7 @@
 // land with no edge and no box. The page places the frost, the dotted line and the hairline from the finding's dot
 // (ValleyOverview's apply); every value here comes from the case.
 
-import type { Ref } from "react";
+import type { CSSProperties, Ref } from "react";
 import { en, format } from "../../lib/copy/en";
 import { signed } from "../../lib/instruments/format";
 import type { ScatterData } from "../../lib/instruments/scatter/data";
@@ -16,22 +16,16 @@ import type { Finding } from "../../lib/overview/findings";
 import { chartScale, yearTicks, type SeasonChart } from "../../lib/overview/record";
 import type { RecordData } from "../../lib/overview/record-data";
 import type { Selection } from "../../lib/overview/scene/overview";
-import { ControlLink } from "../controls/Control";
+import type { Action } from "../../lib/overview/actions";
+import { ActionList } from "./ActionList";
 import { pixelColours as C } from "../../lib/theme/obsidian";
 import styles from "./OverviewRecord.module.css";
 
-/** The full instrument each record opens. */
-export const INSTRUMENT_HREF: Record<Exclude<Selection, "results" | "routes">, string> = {
-  catchment: "/instruments/layers",
-  fdr: "/instruments/layers",
-  band: "/instruments/cutaway",
-  pixel: "/instruments/pixel",
-  rain: "/instruments/rainfall",
-  field: "/instruments/field",
-};
-
 /** D4's chart: 500 x 190 CSS px with its margins. */
-const CHART = { w: 500, h: 190, pl: 34, pr: 8, pt: 22, pb: 26 } as const;
+const CHART = { w: 420, h: 170, pl: 34, pr: 8, pt: 22, pb: 26 } as const;
+const NARROW = CHART;
+/** The rain card opened wide (Compare with Rainfall). */
+const WIDE = { w: 620, h: 300, pl: 34, pr: 8, pt: 22, pb: 26 } as const;
 
 export interface RecordRefs {
   root: Ref<HTMLDivElement>;
@@ -87,7 +81,9 @@ function SeasonsChart({ chart }: { chart: SeasonChart }) {
 }
 
 /** September to May rainfall (mm) across, March to June NDVI up, the straight-line fit across the seasons. */
-function RainScatter({ data }: { data: ScatterData }) {
+function RainScatter({ data, wide = false }: { data: ScatterData; wide?: boolean }) {
+  // compared with rainfall (decision 13): the card opens wider and the 26 seasons rise into place, one by one
+  const CHART = wide ? WIDE : NARROW;
   const H = CHART.h + 16;
   const pb = CHART.pb + 16;
   const mm = data.seasons.map((s) => s.rain_mm);
@@ -129,8 +125,22 @@ function RainScatter({ data }: { data: ScatterData }) {
         {en["overview.record.ndvi"].text}
       </text>
       <line className={styles.fit} x1={X(x0)} x2={X(x1)} y1={Y(at(x0))} y2={Y(at(x1))} />
-      {data.seasons.map((s) => (
-        <circle key={s.year} className={styles.point} cx={X(s.rain_mm)} cy={Y(s.ndvi)} r="2.6" />
+      {data.seasons.map((s, i) => (
+        <circle
+          key={s.year}
+          className={wide ? `${styles.point} ${styles.rise}` : styles.point}
+          cx={X(s.rain_mm)}
+          cy={Y(s.ndvi)}
+          r={wide ? 3.4 : 2.6}
+          style={
+            wide
+              ? ({
+                  "--rise": `${(H - pb - Y(s.ndvi)).toFixed(1)}px`,
+                  animationDelay: `${String(120 + i * 28)}ms`,
+                } as CSSProperties)
+              : undefined
+          }
+        />
       ))}
     </svg>
   );
@@ -149,6 +159,10 @@ export function OverviewRecord({
   side,
   onLand,
   slopeKey,
+  actions,
+  onOpen,
+  onBack,
+  wide = false,
   refs,
 }: {
   sel: Exclude<Selection, "results" | "routes">;
@@ -172,6 +186,13 @@ export function OverviewRecord({
   onLand: string | null;
   /** The fixed slope scale the land is painted on, when it is. */
   slopeKey: { domain: number } | null;
+  /** What can be done with this finding, from what the record offers (decision 15). */
+  actions: readonly Action[];
+  /** Opens a view in place, taking the land apart (decision 12); true when it did, so the link does not load. */
+  onOpen?: (href: string) => boolean;
+  onBack?: () => void;
+  /** The rain card opened wide: its seasons compared with rainfall, rising beside the rain-tinted land. */
+  wide?: boolean;
   refs: RecordRefs;
 }) {
   const [from, to] = SEASON_TREND_YEARS;
@@ -196,7 +217,13 @@ export function OverviewRecord({
     chart && finding ? format("overview.record.caption", { from, to }) : caption.join(" ");
   const context = data?.context ?? null;
   return (
-    <div ref={refs.root} className={styles.record} data-record={sel} data-side={side}>
+    <div
+      ref={refs.root}
+      className={styles.record}
+      data-record={sel}
+      data-side={side}
+      data-wide={wide ? "" : undefined}
+    >
       <div ref={refs.frost} className={styles.frost} aria-hidden="true" />
       <section ref={refs.inst} className={styles.inst}>
         <div className={styles.plane}>
@@ -215,7 +242,7 @@ export function OverviewRecord({
               ))
             : null}
           {chart ? <SeasonsChart chart={chart} /> : null}
-          {data?.scatter ? <RainScatter data={data.scatter} /> : null}
+          {data?.scatter ? <RainScatter data={data.scatter} wide={wide} /> : null}
           {ci ? <div className={styles.ci}>{ci}</div> : null}
           {slopeKey ? <SlopeKey domain={slopeKey.domain} /> : null}
           {onLand ? (
@@ -228,9 +255,14 @@ export function OverviewRecord({
               {pixelNote}
             </div>
           ) : null}
-          <ControlLink ref={refs.link} className={styles.open} href={INSTRUMENT_HREF[sel]}>
-            {en["overview.record.open"].text}
-          </ControlLink>
+          {wide ? null : (
+            <ActionList
+              actions={actions}
+              {...(onOpen ? { onOpen } : {})}
+              {...(onBack ? { onBack } : {})}
+              primaryRef={refs.link}
+            />
+          )}
         </div>
       </section>
       {context ? (

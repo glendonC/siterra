@@ -8,9 +8,9 @@
 // circle or "/" opens it; Enter carries the typed text to the overview at /valley; nothing is sent from here.
 
 import type { CaseSnapshot, InstrumentListing } from "@siterra/contracts";
-import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { en, type MessageId } from "../../lib/copy/en";
+import { ASK_AT } from "../../lib/overview/arc";
 import { placeNamesFromCase } from "../../lib/projection/arrival";
 import { carryQuestion } from "../../lib/shell/handoff";
 import {
@@ -31,14 +31,14 @@ import styles from "./InstrumentShell.module.css";
 
 export type InstrumentId = "layers" | "cutaway" | "pixel" | "rainfall" | "field";
 
-const VIEWS: { id: InstrumentId | "valley"; href: string; label: MessageId }[] = [
-  { id: "valley", href: "/valley", label: "instrument.shell.valley" },
-  { id: "layers", href: "/instruments/layers", label: "instrument.shell.layers" },
-  { id: "cutaway", href: "/instruments/cutaway", label: "instrument.shell.cutaway" },
-  { id: "pixel", href: "/instruments/pixel", label: "instrument.shell.pixel" },
-  { id: "rainfall", href: "/instruments/rainfall", label: "instrument.shell.rainfall" },
-  { id: "field", href: "/instruments/field", label: "instrument.shell.field" },
-];
+/** Each view's name in the breadcrumb (decision 13: no list of views; the visitor reaches them through the findings). */
+const VIEW_NAME: Record<InstrumentId, MessageId> = {
+  layers: "instrument.shell.layers",
+  cutaway: "instrument.shell.cutaway",
+  pixel: "instrument.shell.pixel",
+  rainfall: "instrument.shell.rainfall",
+  field: "instrument.shell.field",
+};
 
 const go = (href: string) => {
   window.location.assign(href);
@@ -47,22 +47,46 @@ const go = (href: string) => {
 export function InstrumentShell({
   current,
   records,
+  onBack,
+  tearing,
+  finding,
   children,
 }: {
   current: InstrumentId;
   /** Records to draw instead of the case the shell would open (the lane's preview). */
   records?: { snapshot: CaseSnapshot; listing: InstrumentListing };
+  /**
+   * Back to the valley without a page load: the overview opened this instrument in place (decision 12) and plays
+   * the land back together; without it, back loads the valley.
+   */
+  onBack?: () => void;
+  /** True while the land is being taken apart or put back: the shell's chrome waits, and no key but Esc acts. */
+  tearing?: boolean;
+  /** The finding the view was opened from (its crumb plays the view back to that finding's record). */
+  finding?: string;
   children: ReactNode;
 }) {
   const [sources, setSources] = useState<SourceSet | null>(null);
   const [view, setView] = useState<ViewHandle | null>(null);
   const slots = useMemo(() => ({ setSources, setView }), []);
   return (
-    <div className={styles.shell} data-theme="obsidian" data-shell={current}>
+    <div
+      className={styles.shell}
+      data-theme="obsidian"
+      data-shell={current}
+      data-tearing={tearing ? "" : undefined}
+    >
       <ShellContext.Provider value={slots}>
         <InstrumentRecords records={records}>
           <div className={styles.stage}>{children}</div>
-          <ShellChrome current={current} sources={sources} view={view} />
+          <ShellChrome
+            current={current}
+            sources={sources}
+            view={view}
+            onBack={onBack}
+            tearing={tearing ?? false}
+            finding={finding ?? null}
+          />
         </InstrumentRecords>
       </ShellContext.Provider>
     </div>
@@ -73,15 +97,37 @@ function ShellChrome({
   current,
   sources,
   view,
+  onBack,
+  tearing,
+  finding,
 }: {
   current: InstrumentId;
   sources: SourceSet | null;
   view: ViewHandle | null;
+  onBack: (() => void) | undefined;
+  tearing: boolean;
+  finding: string | null;
 }) {
   const records = useInstrumentRecords();
   const valley =
     records.status === "ready" ? placeNamesFromCase(records.snapshot).valleyName : null;
-  const label = VIEWS.find((v) => v.id === current)?.label ?? "instrument.shell.valley";
+  const label = VIEW_NAME[current];
+  const question = records.status === "ready" ? records.snapshot.case.objective : null;
+  // the ask disc rests where the overview's rests, on the arc's start, scaled with the 1440 x 900 design
+  const [fit, setFit] = useState({ s: 1, ox: 0, oy: 0 });
+  useEffect(() => {
+    const onResize = () => {
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      const s = Math.min(w / 1440, h / 900);
+      setFit({ s, ox: (w - 1440 * s) / 2, oy: (h - 900 * s) / 2 });
+    };
+    onResize();
+    window.addEventListener("resize", onResize);
+    return () => {
+      window.removeEventListener("resize", onResize);
+    };
+  }, []);
   const [askOpen, setAskOpen] = useState(false);
   const [text, setText] = useState("");
   const [panel, setPanel] = useState(false);
@@ -98,8 +144,9 @@ function ShellChrome({
     go("/valley");
   };
   const back = useCallback(() => {
-    go("/valley");
-  }, []);
+    if (onBack) onBack();
+    else go("/valley");
+  }, [onBack]);
   const reset = useCallback(() => {
     view?.reset();
   }, [view]);
@@ -108,6 +155,8 @@ function ShellChrome({
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (askOpen || typing(e)) return;
+      // while the land is taken apart or put back only Esc acts (it plays the land back)
+      if (tearing && e.key !== "Escape") return;
       if (e.key === "Escape") {
         e.preventDefault();
         if (panel) setPanel(false);
@@ -124,7 +173,7 @@ function ShellChrome({
     return () => {
       window.removeEventListener("keydown", onKey);
     };
-  }, [askOpen, panel, view, sources, back, reset]);
+  }, [askOpen, panel, view, sources, back, reset, tearing]);
 
   const entries: KeyEntry[] = [
     { chip: "Esc", shortcut: "Escape", label: en["chrome.key.back"].text, onPress: back },
@@ -159,22 +208,16 @@ function ShellChrome({
             },
           },
           ...(valley ? [{ label: valley, onSelect: back }] : []),
+          ...(finding ? [{ label: finding, onSelect: back }] : []),
           { label: en[label].text },
         ]}
       />
-      <nav className={styles.switcher} aria-label={en["instrument.shell.nav"].text}>
-        {VIEWS.map((v) => (
-          <Link
-            key={v.id}
-            href={v.href}
-            className={styles.view}
-            aria-current={v.id === current ? "page" : undefined}
-          >
-            {en[v.label].text}
-          </Link>
-        ))}
-      </nav>
-      {view ? <ViewControl onReset={reset} onZoom={view.zoomBy} besideAsk /> : null}
+      {question ? (
+        <p className={styles.question} data-case-question>
+          {question}
+        </p>
+      ) : null}
+      {view ? <ViewControl onReset={reset} onZoom={view.zoomBy} /> : null}
       <KeyLegend entries={entries}>{sources ? <SourcesLine sources={sources} /> : null}</KeyLegend>
       {sources ? (
         <SourcesPanel
@@ -185,16 +228,24 @@ function ShellChrome({
           }}
         />
       ) : null}
-      <Ask
-        variant="rest"
-        open={askOpen}
-        onOpen={onOpen}
-        onClose={onClose}
-        text={text}
-        onText={setText}
-        onEnter={onEnter}
-        activity={null}
-      />
+      <div
+        className={styles.askPlace}
+        style={{
+          transform: `translate(${fit.ox.toFixed(1)}px, ${fit.oy.toFixed(1)}px) scale(${fit.s.toFixed(5)})`,
+        }}
+      >
+        <Ask
+          variant="arc"
+          circleStyle={{ left: `${ASK_AT.x.toFixed(1)}px`, top: `${ASK_AT.y.toFixed(1)}px` }}
+          open={askOpen}
+          onOpen={onOpen}
+          onClose={onClose}
+          text={text}
+          onText={setText}
+          onEnter={onEnter}
+          activity={null}
+        />
+      </div>
     </>
   );
 }

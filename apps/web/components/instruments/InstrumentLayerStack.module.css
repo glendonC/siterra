@@ -224,3 +224,13 @@
   clip-path: inset(50%);
   white-space: nowrap;
 }
+
+/* the land taken apart from the overview (decision 12): the brief and the scale note wait until the stack stands */
+.brief,
+.scaleNote {
+  transition: opacity 0.45s ease;
+}
+
+.root[data-tearing] :is(.brief, .scaleNote) {
+  opacity: 0;
+}

@@ -17,6 +17,8 @@ import {
   sourceNote,
   verificationOf,
 } from "../../lib/overview/results";
+import type { Action } from "../../lib/overview/actions";
+import { ActionList } from "./ActionList";
 import styles from "./OverviewResults.module.css";
 
 export interface ResultsRefs {
@@ -29,10 +31,18 @@ export interface ResultsRefs {
 export function OverviewResults({
   snapshot,
   commandId,
+  onOpen,
+  actions,
+  onBack,
   refs,
 }: {
   snapshot: CaseSnapshot;
   commandId: string;
+  /** Opens the field plan in place over the land (decision 13); true when it did, so the link does not load. */
+  onOpen?: (href: string) => boolean;
+  /** What can be done from here, from what the record offers (decision 15). */
+  actions: readonly Action[];
+  onBack?: () => void;
   refs: ResultsRefs;
 }) {
   const findings = useMemo(() => commandFindings(snapshot, commandId), [snapshot, commandId]);
@@ -97,6 +107,11 @@ export function OverviewResults({
               );
             })}
           </ul>
+          <ActionList
+            actions={actions}
+            {...(onOpen ? { onOpen } : {})}
+            {...(onBack ? { onBack } : {})}
+          />
         </div>
       </section>
     </div>

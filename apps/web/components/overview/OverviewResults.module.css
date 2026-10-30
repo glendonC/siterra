@@ -135,3 +135,9 @@
   line-height: 17px;
   color: var(--text-secondary);
 }
+
+/* the one action: the field plan, opened in place over the land (decision 13) */
+.open {
+  margin-top: 14px;
+  pointer-events: auto;
+}

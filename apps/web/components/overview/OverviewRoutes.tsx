@@ -15,6 +15,8 @@ import {
   type RouteLine,
   type RoutesRecord,
 } from "../../lib/overview/routes";
+import type { Action } from "../../lib/overview/actions";
+import { ActionList } from "./ActionList";
 import styles from "./OverviewRoutes.module.css";
 
 export interface RoutesRefs {
@@ -31,11 +33,19 @@ export function OverviewRoutes({
   routes,
   load,
   onPick,
+  onOpen,
+  actions,
+  onBack,
   refs,
 }: {
   routes: readonly RouteLine[];
   load: RoutesLoad;
   onPick: (id: string | null) => void;
+  /** Opens the field plan in place over the land (decision 13); true when it did, so the link does not load. */
+  onOpen?: (href: string) => boolean;
+  /** What can be done from here, from what the record offers (decision 15). */
+  actions: readonly Action[];
+  onBack?: () => void;
   refs: RoutesRefs;
 }) {
   const record = load.status === "ready" ? load.record : null;
@@ -118,6 +128,11 @@ export function OverviewRoutes({
             {en["overview.routes.unread"].text}
           </p>
         ) : null}
+        <ActionList
+          actions={actions}
+          {...(onOpen ? { onOpen } : {})}
+          {...(onBack ? { onBack } : {})}
+        />
       </section>
     </div>
   );

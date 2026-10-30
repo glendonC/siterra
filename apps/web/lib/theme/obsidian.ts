@@ -144,3 +144,16 @@ export const globeColours = {
   keyLight: overviewColours.keyLight,
   biome: "#8f6d45",
 } as const;
+
+/**
+ * A layer lifted off the overview's land at rest (decision 12): its plate where the layer holds nothing, the land
+ * cover's two classes (the overview's own), and the three elevation bands, low to high, in the land's cool greys.
+ */
+export const liftColours = {
+  plate: "#1d282c",
+  tree: overviewColours.coverTree,
+  crop: overviewColours.coverCrop,
+  bandLow: "#3f5a66",
+  bandMid: "#5f7883",
+  bandHigh: "#8ea4ad",
+} as const;

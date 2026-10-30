@@ -49,3 +49,40 @@
   outline: 1px solid var(--hairline);
   outline-offset: 3px;
 }
+
+/* the land taken apart in place (decision 12): the chrome around the instrument comes in once the land has */
+.shell :is(nav, [data-key-legend], [data-view-control], [data-sources-line], [data-ask]) {
+  transition: opacity 0.45s ease;
+}
+
+.shell[data-tearing]
+  :is(nav, [data-key-legend], [data-view-control], [data-sources-line], [data-ask]) {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* the case question under the breadcrumb, as on the overview (decision 14a) */
+.question {
+  position: absolute;
+  left: 48px;
+  top: 74px;
+  margin: 0;
+  max-width: 440px;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--text-tertiary);
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* the ask disc's place: the 1440 x 900 design scaled to the window, the disc on the arc's start as on the overview */
+.askPlace {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1440px;
+  height: 900px;
+  transform-origin: 0 0;
+  pointer-events: none;
+  z-index: 20;
+}

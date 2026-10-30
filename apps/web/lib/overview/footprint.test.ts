@@ -85,3 +85,18 @@ describe("rainCellsFrom", () => {
     expect(my).toBeLessThan(box.y1);
   });
 });
+
+describe("the pixel's cells", () => {
+  it("are the 537 Sentinel-2 cells whose centres lie inside the MODIS pixel", async () => {
+    const { cellsInside } = await import("./data");
+    const px = JSON.parse(
+      readFileSync(new URL("../../public/instruments/pixel/pixel.json", import.meta.url), "utf8"),
+    ) as {
+      grid: Parameters<typeof cellsInside>[0];
+      pixel: { footprint_utm29n: [number, number][]; analysis_cells: number };
+    };
+    const cells = cellsInside(px.grid, px.pixel.footprint_utm29n);
+    expect(cells).toHaveLength(px.pixel.analysis_cells);
+    expect(cells).toHaveLength(537);
+  });
+});

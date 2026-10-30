@@ -29,6 +29,8 @@ export interface AskProps {
   onHover?: (on: boolean) => void;
   circleRef?: Ref<HTMLButtonElement>;
   circleStyle?: CSSProperties;
+  /** The activity line beside the disc while the ask is closed (decision 14: a status stands beside its subject). */
+  besideRef?: Ref<HTMLParagraphElement>;
 }
 
 /** True when a key press belongs to a field the viewer is typing in. */
@@ -50,6 +52,7 @@ export function Ask({
   onHover,
   circleRef,
   circleStyle,
+  besideRef,
 }: AskProps) {
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -106,6 +109,16 @@ export function Ask({
           <path d="M-3.6 0 H3.6 M0 -3.6 V3.6" />
         </svg>
       </button>
+      <p
+        ref={besideRef}
+        className={styles.beside}
+        style={circleStyle}
+        aria-hidden="true"
+        data-ask-beside
+        data-shown={!open && activity !== null ? "" : undefined}
+      >
+        {activity?.text}
+      </p>
       <div className={styles.panel} aria-hidden={!open}>
         <form
           className={styles.qline}

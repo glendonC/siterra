@@ -18,8 +18,11 @@ import { useInstrument } from "./InstrumentRecords";
 
 export const SCATTER_DESIGN = { width: 1440, height: 900 } as const;
 
-/** The plot inside the stage, and its axes' ranges and ticks (mm, NDVI). */
-const PLOT = { left: 136, right: 1000, top: 168, bottom: 680 } as const;
+/**
+ * The plot inside the stage, and its axes' ranges and ticks (mm, NDVI); it starts right of the ask disc's place on
+ * the arc (decision 13), which every view keeps clear.
+ */
+const PLOT = { left: 540, right: 1010, top: 168, bottom: 680 } as const;
 const RAIN = { lo: 300, hi: 1000, step: 100 } as const;
 const NDVI = { lo: 0.18, hi: 0.23, step: 0.01 } as const;
 const SIDE = { x: 1064, w: 336 } as const;

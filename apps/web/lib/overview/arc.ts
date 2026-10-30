@@ -9,6 +9,11 @@ export const ARC = { a0: 236, a1: 128, fa: 50, fb: 46, peak: 0.8 } as const;
 export const DIAL = { r: 372, cx: 720, cy: 452, back: 34 } as const;
 /** The dial with a finding opened: moved up and left, larger, turned away (yaw, degrees). */
 export const DIAL1 = { cx: 210, cy: 170, r: 470, yaw: 24 } as const;
+/** Where the ask disc rests on the arc (design px): the dial's start, the same in every view (decision 13d). */
+export const ASK_AT = {
+  x: DIAL.cx + DIAL.r * Math.sin(((236 as number) * Math.PI) / 180),
+  y: DIAL.cy - DIAL.r * Math.cos(((236 as number) * Math.PI) / 180),
+} as const;
 /** A label's distance from its dot. */
 export const GAP = 30;
 /** Degrees per drawn segment of the arc. */

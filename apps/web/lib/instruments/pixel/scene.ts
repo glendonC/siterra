@@ -61,7 +61,7 @@ export interface PixelLocator {
 }
 
 const L = {
-  caption: { x: 40, y: 24, w: 820 },
+  caption: { x: 40, y: 36, w: 820 },
   col1: { x: 40, w: 260 },
   col2: { x: 326, w: 704 },
   col3: { x: 1056, w: 344 },
@@ -74,7 +74,9 @@ const L = {
   creditY: 856,
 };
 /** The bar's size and the readout's offset in 05. */
-const BAR = { w: 370, h: 24, readout: 400 };
+const BAR = { w: 300, h: 24, readout: 324 };
+/** 05 starts this far into its column, so the ask disc's place on the arc (decision 13) stays clear in this view. */
+const ASK_CLEAR = 150;
 
 /** Class names a CSS module gives the scene's parts. */
 export type PixelClasses = Readonly<Record<string, string>>;
@@ -855,19 +857,14 @@ export function mountPixel(
   );
   let shares: Shares = { ...measured };
   const draw = (() => {
-    const x0 = L.col2.x;
-    const w = L.col2.w;
+    const x0 = L.col2.x + ASK_CLEAR;
+    const w = L.col2.w - ASK_CLEAR;
     panelHead(x0, L.rowB, w, "05", "instrument.pixel.model");
     place(div("modelLabel", stage, en["instrument.pixel.model.label"].text), x0, L.rowB + 22, w);
     const bx = x0;
-    const by = L.rowB + 84;
+    const by = L.rowB + 112;
     const g = svg("g", {}, overlay);
-    place(
-      div("barCaption nowrap", stage, en["instrument.pixel.model.bar"].text),
-      bx,
-      L.rowB + 50,
-      BAR.w,
-    );
+    place(div("barCaption", stage, en["instrument.pixel.model.bar"].text), bx, L.rowB + 64, BAR.w);
     const barG = svg("g", {}, g);
     const tickG = svg("g", {}, g);
     let acc = 0;
@@ -881,7 +878,7 @@ export function mountPixel(
       );
     }
     const segLabels = place(div("segLabels", stage), bx, by + BAR.h + 6, BAR.w, 36);
-    const readout = place(div("readout", stage), x0 + BAR.readout, L.rowB + 50, w - BAR.readout);
+    const readout = place(div("readout", stage), x0 + BAR.readout, L.rowB + 64, w - BAR.readout);
     const handles: SVGGElement[] = [];
     const redraw = () => {
       barG.replaceChildren();
@@ -925,7 +922,7 @@ export function mountPixel(
       const nd = ndviOf(refl);
       readout.replaceChildren();
       div(
-        "roKey nowrap",
+        "roKey",
         readout,
         format("instrument.pixel.model.key", { date: day(d.spectra.datetime) }),
       );
@@ -937,7 +934,7 @@ export function mountPixel(
         format("instrument.pixel.model.delta", { value: change(nd - nd0, 2) }),
       );
       div(
-        "roGloss nowrap",
+        "roGloss",
         readout,
         format("instrument.pixel.model.gloss", {
           red: fixed(refl["B04"] ?? 0, 2),
@@ -945,7 +942,7 @@ export function mountPixel(
         }),
       );
       div(
-        "roMeasured nowrap",
+        "roMeasured",
         readout,
         format("instrument.pixel.model.measured", { value: fixed(d.spectra.measured_ndvi, 2) }),
       );

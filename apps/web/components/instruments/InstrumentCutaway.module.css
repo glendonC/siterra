@@ -283,3 +283,12 @@
   clip-path: inset(50%);
   white-space: nowrap;
 }
+
+/* the section cut through in place (decision 13): the words wait until the cut face stands toward the visitor */
+.root > :not(canvas) {
+  transition: opacity 0.45s ease;
+}
+
+.root[data-tearing] > :not(canvas) {
+  opacity: 0;
+}

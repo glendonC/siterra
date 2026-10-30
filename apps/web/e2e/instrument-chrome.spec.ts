@@ -53,7 +53,7 @@ test("an instrument: breadcrumb to its place, R and the view control on a 3D vie
 }) => {
   await page.goto("/instruments/cutaway");
   await expect(page.locator("[data-band]").first()).toBeVisible({ timeout: 60_000 });
-  expect(await crumbs(page)).toEqual(["Siterra", "Aït Bouguemez valley", "Cutaway"]);
+  expect(await crumbs(page)).toEqual(["Siterra", "Aït Bouguemez valley", "Cut through"]);
   await expect(page.locator("[data-view-control]")).toBeVisible();
   await expect(page.locator("[data-key-legend] [data-key]")).toHaveText([
     "EscBack",

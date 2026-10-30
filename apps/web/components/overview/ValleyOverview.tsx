@@ -14,9 +14,33 @@
 import type { CaseSnapshot, InstrumentListing } from "@siterra/contracts";
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { en, format, type MessageId } from "../../lib/copy/en";
+import { metres } from "../../lib/instruments/format";
+import type { LandPose } from "../../lib/land/handoff";
+import {
+  nearestOnBox,
+  placeCard,
+  type Box as CardBox,
+  type Side as CardSide,
+} from "../../lib/overview/card";
+import { bandLimitsOf } from "../../lib/land/record";
+import { InstrumentLayerStack } from "../instruments/InstrumentLayerStack";
+import { InstrumentCutaway } from "../instruments/InstrumentCutaway";
+import { InstrumentFieldPlan } from "../instruments/InstrumentFieldPlan";
+import { InstrumentPixelAnatomy } from "../instruments/InstrumentPixelAnatomy";
+import { InstrumentRainfallScatter } from "../instruments/InstrumentRainfallScatter";
+import { InstrumentShell } from "../instruments/InstrumentShell";
 import { instrumentOf } from "../../lib/instruments/listing";
 import { SEASON_TREND_YEARS, WORLDCOVER } from "../../lib/instruments/valley/fixtures";
 import { clamp01, ease, labelAt, labelSide, lerp, wireTo } from "../../lib/overview/arc";
+import {
+  VIEW_HREF,
+  VIEW_INSTRUMENT,
+  actionForKey,
+  actionsFor,
+  type Action,
+  type Thing,
+  type ViewKind,
+} from "../../lib/overview/actions";
 import { shouldReopen } from "../../lib/overview/ask-line";
 import { loadOverviewData, type OverviewData } from "../../lib/overview/data";
 import { findingsFrom, type Finding, type FindingId } from "../../lib/overview/findings";
@@ -27,6 +51,7 @@ import {
   mountOverview,
   sideOf,
   type OverviewLayout,
+  type LiftId,
   type OverviewScene,
   type Selection,
 } from "../../lib/overview/scene/overview";
@@ -52,6 +77,7 @@ import {
   type KeyEntry,
 } from "../controls/ScreenChrome";
 import { Ask } from "./Ask";
+import { ActionList } from "./ActionList";
 import { OverviewRecord } from "./OverviewRecord";
 import { OverviewResults } from "./OverviewResults";
 import { OverviewRoutes, type RoutesLoad } from "./OverviewRoutes";
@@ -221,6 +247,13 @@ const TURN_MAX = 60;
 
 /** The arrival's steps (s): the land rising as the camera comes down, the arc drawing on, the findings fading in. */
 const ARRIVE_S = { rise: 1.5, arc: 0.5, appear: 0.4 } as const;
+/** The idle lifts' rhythm (s): quiet before the first, then each layer up, held, down, and a pause before the next. */
+const IDLE = { wait: 4, up: 0.7, hold: 2.2, down: 0.7, gap: 0.9 } as const;
+/** The idle lifts wait until the one scene of decision 13 has landed (decision 13g). */
+const IDLE_LIFTS: boolean = process.env.NEXT_PUBLIC_SITERRA_IDLE_LIFTS === "on";
+/** The instruments the overview opens in place (decision 12), and the pixel's split and its play back (s). */
+const PIXEL_HREF = VIEW_HREF.pixel;
+const SPLIT_S = { in: 1.9, back: 1.2 } as const;
 
 function OverviewReady({
   snapshot,
@@ -255,12 +288,37 @@ function OverviewReady({
   const pixel = instrumentOf(listing, "pixel_anatomy") ?? null;
   // the amber mark stands for the case's own field plan: none is drawn until the composer has opened one
   const planned = instrumentOf(listing, "field_plan") !== undefined;
+  // the views the record holds ready: what any action on the land may offer (decision 15)
+  const offered = useMemo(
+    () =>
+      new Set(
+        (Object.keys(VIEW_INSTRUMENT) as ViewKind[]).filter((v) =>
+          listing.instruments.some(
+            (x) => x.spec.parameters.kind === VIEW_INSTRUMENT[v] && x.spec.status === "ready",
+          ),
+        ),
+      ),
+    [listing],
+  );
   const names = placeNamesFromCase(snapshot);
   const area = catchmentAreaKm2(snapshot);
   const reasons = useBlockedReasons("field_plan");
   const descriptionId = useId();
 
   const [data, setData] = useState<OverviewData | null>(null);
+  // the layers this case can lift, in the layer stack's order: only those whose evidence was read
+  const liftOrder = useRef<LiftId[]>([]);
+  const liftShownRef = useRef<LiftId | null>(null);
+  useEffect(() => {
+    liftOrder.current = data
+      ? [
+          ...(data.footprints.slope ? (["trend"] as const) : []),
+          ...(data.footprints.rain ? (["rain"] as const) : []),
+          "cover" as const,
+          ...(data.bands ? (["bands"] as const) : []),
+        ]
+      : [];
+  }, [data]);
   const [failed, setFailed] = useState(layers === undefined);
   // the land is read again only when the specs it is drawn from change, not on every new case revision
   const sources = useRef({ layers, pixel, snapshot });
@@ -297,6 +355,54 @@ function OverviewReady({
     refresh(ask.snapshot);
   }, [ask.snapshot, snapshot.case.revision, refresh]);
   const [askOpen, setAskOpen] = useState(false);
+  const askOpenRef = useRef(askOpen);
+  askOpenRef.current = askOpen;
+  // the idle lifts (decision 12): after a few quiet seconds at rest, one of the case's evidence layers lifts off the
+  // land with its label and status, holds and settles, then the next; any input settles it at once
+  const idle = useRef<{
+    last: number;
+    t0: number | null;
+    layer: LiftId | null;
+    k: number;
+  }>({ last: performance.now(), t0: null, layer: null, k: 0 });
+  const [liftShown, setLiftShown] = useState<LiftId | null>(null);
+  const liftLabelRef = useRef<HTMLDivElement>(null);
+  // the label under the cursor on the land at rest (decision 14)
+  const hoverRef = useRef<HTMLDivElement>(null);
+  const hoverNameRef = useRef<HTMLSpanElement>(null);
+  const hoverStatusRef = useRef<HTMLSpanElement>(null);
+  const hoverWireRef = useRef<SVGLineElement>(null);
+  const hoverSide = useRef<CardSide | null>(null);
+  const liftWireRef = useRef<SVGLineElement>(null);
+  const reducedMotion = useRef(false);
+  // the layer stack opened in place (decision 12): the overview hands its land over and is kept under the stack, so
+  // Esc can play the stack back into this same land. `from` is the land's pose once the overview has let it go.
+  const [tear, setTear] = useState<{
+    /** The layer stack peels out of the land; the pixel splits into its cells. */
+    kind: ViewKind;
+    /** The opened finding's crumb ("24.7% greening"), named in the view's breadcrumb. */
+    crumb: string | null;
+    from: LandPose | null;
+    shown: boolean;
+    back: boolean;
+    stood: boolean;
+    cut: boolean;
+  } | null>(null);
+  // the rain card compared with rainfall (decision 13): the card opens wide beside the rain-tinted land
+  const [rainWide, setRainWide] = useState(false);
+  const rainWideRef = useRef(rainWide);
+  rainWideRef.current = rainWide;
+  const tearRef = useRef(tear);
+  tearRef.current = tear;
+  // handing the land over: dir and progress; `narrow` for a view drawn orthographically (the layer stack), whose
+  // first frame the overview meets by narrowing its lens
+  const exitRef = useRef<{ dir: -1 | 0 | 1; k: number; away: number; narrow: boolean }>({
+    dir: 0,
+    k: 0,
+    away: 0,
+    narrow: true,
+  });
+  const splitRef = useRef<{ dir: -1 | 0 | 1; k: number }>({ dir: 0, k: 0 });
   const [askText, setAskText] = useState("");
   const [askHover, setAskHover] = useState(false);
   useEffect(() => {
@@ -315,6 +421,16 @@ function OverviewReady({
   const hov = useRef<FindingId | null>(null);
   const selRef = useRef<Selection | null>(null);
   const [sel, setSel] = useState<Selection | null>(null);
+  // what can be done with the opened finding, beside its card (decision 15)
+  const cardActions = useMemo(() => (sel ? actionsFor(sel, offered, true) : []), [sel, offered]);
+  const cardActionsRef = useRef<readonly Action[]>(cardActions);
+  cardActionsRef.current = cardActions;
+  // the part of the land under the cursor, its actions, and whether its label shows
+  const [hoverThing, setHoverThing] = useState<Thing | null>(null);
+  const hoverActs = useRef<readonly Action[]>([]);
+  const hoverShown = useRef(false);
+  const offeredRef = useRef(offered);
+  offeredRef.current = offered;
   const raf = useRef(0);
   const last = useRef(0);
 
@@ -342,6 +458,7 @@ function OverviewReady({
   const midcapRef = useRef<HTMLDivElement>(null);
   const firstResultRef = useRef<HTMLLIElement>(null);
   const askCircleRef = useRef<HTMLButtonElement>(null);
+  const askBesideRef = useRef<HTMLParagraphElement>(null);
   const fieldRef = useRef<HTMLButtonElement>(null);
   const fieldTagRef = useRef<HTMLSpanElement>(null);
   const pixTagRef = useRef<HTMLDivElement>(null);
@@ -381,19 +498,20 @@ function OverviewReady({
     if (!rec || !inst) return;
     rec.style.opacity = cc.toFixed(3);
     rec.style.visibility = cc > 0.001 ? "visible" : "hidden";
-    inst.style.transform = `translateX(${(36 * (1 - cc)).toFixed(1)}px)`;
-    if (linkRef.current) linkRef.current.style.pointerEvents = cc > 0.5 ? "auto" : "none";
+    const acts = linkRef.current?.parentElement;
+    if (acts) acts.style.pointerEvents = cc > 0.5 ? "auto" : "none";
     const ib = toDesign(inst, scale);
     const frost = frostRef.current;
     if (frost)
       Object.assign(frost.style, {
-        left: `${(ib.left - 110).toFixed(1)}px`,
-        top: `${(ib.top - 90).toFixed(1)}px`,
-        width: `${(ib.right - ib.left + 220).toFixed(1)}px`,
-        height: `${(ib.bottom - ib.top + 180).toFixed(1)}px`,
+        // wide enough that the card's own edges sit in the dark middle of the frost, over any land
+        left: `${(ib.left - 170).toFixed(1)}px`,
+        top: `${(ib.top - 140).toFixed(1)}px`,
+        width: `${(ib.right - ib.left + 340).toFixed(1)}px`,
+        height: `${(ib.bottom - ib.top + 280).toFixed(1)}px`,
       });
     const evid = evidRef.current;
-    const link = linkRef.current;
+    const link = linkRef.current?.parentElement ?? null;
     const svg = connectorRef.current;
     if (evid && link && svg) {
       const eb = toDesign(evid, scale);
@@ -420,6 +538,36 @@ function OverviewReady({
     }
   };
 
+  // where the opened finding's card stands: beside its anchor, by free space, following the camera (decision 14)
+  const cardSide = useRef<CardSide | null>(null);
+  const cardBox = useRef<CardBox | null>(null);
+  const placeCardNow = (layout: OverviewLayout, selected: Selection | null) => {
+    const inst = instRef.current;
+    cardBox.current = null;
+    if (!selected || selected === "routes" || selected === "results") {
+      cardSide.current = null;
+      return;
+    }
+    if (!inst || !layout.anchor) return;
+    const w = inst.offsetWidth;
+    const h = inst.offsetHeight;
+    const { box, side } = placeCard(layout.anchor, w, h, layout.subject, cardSide.current);
+    cardSide.current = side;
+    cardBox.current = box;
+    inst.style.left = `${box.x0.toFixed(1)}px`;
+    inst.style.top = `${box.y0.toFixed(1)}px`;
+    // the published context under the card, or over it where there is no room below
+    const ev = evidRef.current;
+    if (ev) {
+      const eh = ev.offsetHeight;
+      // room for the "Published context" kicker between the card's actions and the context
+      const below = box.y1 + 40;
+      const y = below + eh <= 860 ? below : Math.max(110, box.y0 - 40 - eh);
+      ev.style.left = `${box.x0.toFixed(1)}px`;
+      ev.style.top = `${y.toFixed(1)}px`;
+    }
+  };
+
   const findingsRef = useRef(findings);
   findingsRef.current = findings;
 
@@ -434,7 +582,8 @@ function OverviewReady({
     if (hud) {
       hud.style.transform = `translate(${fit.ox.toFixed(2)}px, ${fit.oy.toFixed(2)}px) scale(${fit.scale.toFixed(5)})`;
       // the arrival: the words on the land and round the arc come in once the arc is drawn
-      hud.style.opacity = appearRef.current < 1 ? appearRef.current.toFixed(3) : "";
+      const shown = appearRef.current * (1 - exitRef.current.away);
+      hud.style.opacity = shown < 1 ? shown.toFixed(3) : "";
     }
     const lift = `translateY(${(-LIFT * oe * fit.scale).toFixed(2)}px)`;
     for (const c of [landRef.current, arcRef.current, blurRef.current])
@@ -443,8 +592,11 @@ function OverviewReady({
       liftRef.current.style.transform = `translateY(${(-LIFT * oe).toFixed(2)}px)`;
     // the opened record begins with the click and has settled well inside the one-second move (lead, 30 Oct: begin
     // within about 0.3 s, settle within about 1 s), while the land is still easing toward the finding
-    const cc = ease(clamp01((s - 0.05) / 0.6));
-    placeRecord(cc, fit.scale);
+    // decision 14: the subject lights, then the leader draws from it, then the card fades in (and back in reverse)
+    const cc = ease(clamp01((s - 0.25) / 0.45));
+    const leadIn = ease(clamp01((s - 0.05) / 0.3));
+    placeCardNow(layout, selected);
+    placeRecord(cc * (1 - exitRef.current.away), fit.scale);
     const placeText = placeTextRef.current;
     if (placeText) {
       placeText.style.opacity = (1 - e).toFixed(3);
@@ -538,28 +690,19 @@ function OverviewReady({
       ).toFixed(3);
       if (wire) wire.style.opacity = (hv * (1 - e)).toFixed(3);
     }
-    // the opened finding keeps its dot and joins the record by one hairline, to the left of its numeral
+    // the opened finding's card hangs from its subject on the land by one hairline leader (decision 14)
     const sw = selWireRef.current;
-    const sp =
-      selected && selected !== "field" && selected !== "results" && selected !== "routes"
-        ? layout.findings[selected]
-        : undefined;
-    const big = bigRef.current ? toDesign(bigRef.current, fit.scale) : null;
+    const cardB = cardBox.current;
     if (sw) {
-      if (sp && big) {
-        // the hairline meets the number on the side it faces: its left edge for a record on the right
-        const tx =
-          sideOf(selected, findingsRef.current.find((f) => f.id === selected)?.clock) === "left"
-            ? big.right + 14
-            : big.left - 14;
-        const ty = big.top + (big.bottom - big.top) * 0.55;
-        const L = Math.hypot(tx - sp.dot.x, ty - sp.dot.y) || 1;
-        sw.setAttribute("x1", (sp.dot.x + ((tx - sp.dot.x) * 9) / L).toFixed(2));
-        sw.setAttribute("y1", (sp.dot.y + ((ty - sp.dot.y) * 9) / L).toFixed(2));
-        sw.setAttribute("x2", tx.toFixed(2));
-        sw.setAttribute("y2", ty.toFixed(2));
-      }
-      sw.style.opacity = sp && big ? cc.toFixed(3) : "0";
+      if (cardB && layout.anchor) {
+        const a = layout.anchor;
+        const e2 = nearestOnBox(a, cardB);
+        sw.setAttribute("x1", a.x.toFixed(2));
+        sw.setAttribute("y1", a.y.toFixed(2));
+        sw.setAttribute("x2", (a.x + (e2.x - a.x) * leadIn).toFixed(2));
+        sw.setAttribute("y2", (a.y + (e2.y - a.y) * leadIn).toFixed(2));
+        sw.style.opacity = (leadIn > 0.001 ? 0.85 * (1 - exitRef.current.away) : 0).toFixed(3);
+      } else sw.style.opacity = "0";
     }
     // the ask circle sits on the arc's start; it steps away as the space moves toward a finding
     const away = ease(clamp01(s / 0.55));
@@ -571,6 +714,12 @@ function OverviewReady({
       circle.style.opacity = (1 - gone).toFixed(3);
       circle.style.visibility = gone > 0.99 ? "hidden" : "visible";
       circle.style.transform = `translateY(${(-LIFT * oe).toFixed(2)}px) scale(${(1 + 0.04 * Math.max(k, oe)).toFixed(4)})`;
+    }
+    const beside = askBesideRef.current;
+    if (beside) {
+      beside.style.left = `${layout.ask.x.toFixed(2)}px`;
+      beside.style.top = `${layout.ask.y.toFixed(2)}px`;
+      beside.style.opacity = (1 - Math.max(away, awayOf(camRef.current))).toFixed(3);
     }
     // the land marks: the proposed field check, and the opened pixel's name
     const field = fieldRef.current;
@@ -605,6 +754,28 @@ function OverviewReady({
         "--num",
         (selected === "routes" ? clamp01((e - 0.5) / 0.5) : 0).toFixed(3),
       );
+    }
+    // the lifted layer's label at the end of a short leader from its right-most rim point
+    const liftLabel = liftLabelRef.current;
+    const liftWire = liftWireRef.current;
+    const lk = idle.current.k;
+    if (liftLabel && liftWire) {
+      if (layout.liftAt && lk > 0) {
+        const x2 = layout.liftAt.x + 64;
+        const y2 = layout.liftAt.y - 34;
+        liftWire.setAttribute("x1", layout.liftAt.x.toFixed(2));
+        liftWire.setAttribute("y1", layout.liftAt.y.toFixed(2));
+        liftWire.setAttribute("x2", x2.toFixed(2));
+        liftWire.setAttribute("y2", y2.toFixed(2));
+        liftWire.style.opacity = (0.8 * clamp01((lk - 0.3) / 0.5)).toFixed(3);
+        liftLabel.style.left = `${(x2 + 8).toFixed(2)}px`;
+        liftLabel.style.top = `${(y2 - 9).toFixed(2)}px`;
+        liftLabel.style.opacity = clamp01((lk - 0.4) / 0.5).toFixed(3);
+        liftLabel.style.visibility = "visible";
+      } else {
+        liftWire.style.opacity = "0";
+        liftLabel.style.visibility = "hidden";
+      }
     }
     // the routes' shared start, named from the record while the routes are opened
     const start = startRef.current;
@@ -643,9 +814,11 @@ function OverviewReady({
     let moving = false;
     const l = live.current;
     const gl = goal.current;
+    const X = exitRef.current;
     for (const key of ["s", "h", "k", "o", "r"] as const) {
       const d = gl[key] - l[key];
-      const step = dt / DUR[key];
+      // handing the land over closes an open record quickly
+      const step = dt / (key === "s" && X.dir === 1 ? 0.35 : DUR[key]);
       l[key] = Math.abs(d) <= step ? gl[key] : l[key] + Math.sign(d) * step;
       if (l[key] !== gl[key]) moving = true;
     }
@@ -654,6 +827,86 @@ function OverviewReady({
       selRef.current = null;
       setSel(null);
     }
+    // handing the land to the layer stack: the words on the land and the arc step away at once, and come back with
+    // the land; once the record has closed the lens narrows, and coming back it widens
+    const awayTo = tearRef.current ? 1 : 0;
+    if (X.away !== awayTo) {
+      X.away = awayTo > X.away ? Math.min(1, X.away + dt / 0.25) : Math.max(0, X.away - dt / 0.45);
+      moving = true;
+    }
+    if (X.dir === 1 && l.s < 0.02) {
+      X.k = Math.min(1, X.k + dt / 0.4);
+      if (X.k === 1) {
+        X.dir = 0;
+        const from = sceneRef.current?.handoff() ?? null;
+        setTear((p) => (p ? { ...p, from } : p));
+      } else moving = true;
+    } else if (X.dir === 1) moving = true;
+    if (X.dir === -1) {
+      X.k = Math.max(0, X.k - dt / 0.4);
+      if (X.k === 0) X.dir = 0;
+      else moving = true;
+    }
+    // the pixel taken apart: down to the pixel, its cells off the land; played back into the land
+    const P = splitRef.current;
+    if (P.dir === 1) {
+      P.k = Math.min(1, P.k + dt / SPLIT_S.in);
+      // the pixel's panels arrive while its last cells are still settling: no empty frame between them
+      if (P.k >= 0.8 && !tearRef.current?.shown) {
+        setTear((p) => (p ? { ...p, shown: true } : p));
+        window.history.pushState(null, "", PIXEL_HREF);
+      }
+      if (P.k === 1) P.dir = 0;
+      else moving = true;
+    } else if (P.dir === -1) {
+      P.k = Math.max(0, P.k - dt / SPLIT_S.back);
+      if (P.k === 0) {
+        P.dir = 0;
+        setTear(null);
+        window.history.pushState(null, "", "/valley");
+      } else moving = true;
+    }
+    // the idle lifts: the cycle runs while the overview is quiet at rest; any input lets the layer settle
+    const Q = idle.current;
+    const quiet =
+      IDLE_LIFTS &&
+      !reducedMotion.current &&
+      selRef.current === null &&
+      !askOpenRef.current &&
+      !panelRef.current &&
+      arrival.current.done &&
+      tearRef.current === null &&
+      exitRef.current.k === 0 &&
+      document.visibilityState === "visible";
+    let lift: { layer: LiftId; k: number } | null = null;
+    if (quiet && liftOrder.current.length && (t - Q.last) / 1000 >= IDLE.wait) {
+      Q.t0 ??= t;
+      const per = IDLE.up + IDLE.hold + IDLE.down + IDLE.gap;
+      const c = (t - Q.t0) / 1000;
+      const u = c % per;
+      Q.layer = liftOrder.current[Math.floor(c / per) % liftOrder.current.length] ?? null;
+      Q.k =
+        u < IDLE.up
+          ? u / IDLE.up
+          : u < IDLE.up + IDLE.hold
+            ? 1
+            : u < IDLE.up + IDLE.hold + IDLE.down
+              ? 1 - (u - IDLE.up - IDLE.hold) / IDLE.down
+              : 0;
+      moving = true;
+    } else {
+      Q.t0 = null;
+      if (Q.k > 0) {
+        Q.k = Math.max(0, Q.k - dt * 3);
+        moving = true;
+      }
+    }
+    if (Q.layer && Q.k > 0) lift = { layer: Q.layer, k: Q.k };
+    if ((lift?.layer ?? null) !== liftShownRef.current) {
+      liftShownRef.current = lift?.layer ?? null;
+      setLiftShown(liftShownRef.current);
+    }
+
     // the arrival from the globe: the camera comes down and the land rises, the arc draws on, the findings come in
     let arrive: { rise: number; arcDraw: number; from?: { x: number; y: number } } | null = null;
     const I = introRef.current;
@@ -677,6 +930,10 @@ function OverviewReady({
       ...camRef.current,
       sel: selRef.current,
       route: pickRef.current,
+      exit: X.narrow ? X.k : 0,
+      split: P.k,
+      ...(X.away > 0 ? { arcDraw: 1 - X.away } : {}),
+      lift,
       ...(arrive ?? {}),
     });
     raf.current = moving ? requestAnimationFrame(frame) : 0;
@@ -686,6 +943,148 @@ function OverviewReady({
     last.current = performance.now();
     raf.current = requestAnimationFrame(frame);
   }, [frame]);
+  // ---------- the layer stack opened in place: the land taken apart and put back (decision 12) ----------
+  // the opened finding's crumb, as the overview's breadcrumb names it
+  const crumbNow = (): string | null =>
+    selRef.current ? crumbOf(selRef.current, findingsRef.current, bandLimit?.display ?? "") : null;
+  const openRef = useRef<(href: string) => boolean>(() => false);
+  const openInPlace = useCallback(
+    (href: string): boolean => {
+      const kind =
+        (Object.keys(VIEW_HREF) as ViewKind[]).find((k) => VIEW_HREF[k] === href) ?? null;
+      if (kind === "rainfall" && selRef.current === "rain") {
+        setRainWide(true);
+        window.history.pushState(null, "", href);
+        return true;
+      }
+      if (!kind || tearRef.current) return false;
+      if (reducedMotion.current) {
+        // reduced motion: the instrument opens by a cut
+        setTear({
+          kind,
+          crumb: crumbNow(),
+          from: null,
+          shown: true,
+          back: false,
+          stood: true,
+          cut: true,
+        });
+        window.history.pushState(null, "", href);
+        return true;
+      }
+      if (kind === "pixel") {
+        // the pixel's record stays the selection; the camera goes on down to the pixel
+        setTear({
+          kind,
+          crumb: crumbNow(),
+          from: null,
+          shown: false,
+          back: false,
+          stood: true,
+          cut: false,
+        });
+        splitRef.current = { dir: 1, k: 0 };
+        go();
+        return true;
+      }
+      if (kind === "rainfall" || kind === "field") {
+        // the rainfall's seasons and the field plan arrive over the land, which stays (tinted by the rain cells)
+        setTear({
+          kind,
+          crumb: crumbNow(),
+          from: null,
+          shown: false,
+          back: false,
+          stood: true,
+          cut: false,
+        });
+        window.setTimeout(() => {
+          setTear((p) => (p ? { ...p, shown: true } : p));
+          window.history.pushState(null, "", href);
+        }, 260);
+        go();
+        return true;
+      }
+      setTear({
+        kind,
+        crumb: crumbNow(),
+        from: null,
+        shown: false,
+        back: false,
+        stood: false,
+        cut: false,
+      });
+      exitRef.current = { dir: 1, k: 0, away: exitRef.current.away, narrow: kind === "layers" };
+      goal.current.s = 0;
+      go();
+      return true;
+    },
+    [go],
+  );
+  // the stack has drawn the land where the overview left it: it takes the screen
+  openRef.current = openInPlace;
+  const onStackDrawn = useCallback(() => {
+    setTear((p) => (p ? { ...p, shown: true } : p));
+    const t = tearRef.current;
+    window.history.pushState(null, "", t ? VIEW_HREF[t.kind] : VIEW_HREF.layers);
+  }, []);
+  const onStackStood = useCallback(() => {
+    setTear((p) => (p ? { ...p, stood: true } : p));
+  }, []);
+  // back (Esc, the back arrow, the valley crumb, the browser's back): the stack plays back into the land
+  const backInPlace = useCallback(() => {
+    const t = tearRef.current;
+    if (!t) return;
+    if (t.cut) {
+      setTear(null);
+      window.history.pushState(null, "", "/valley");
+      return;
+    }
+    if (t.kind === "rainfall" || t.kind === "field") {
+      setTear({ ...t, shown: false, back: true });
+      window.setTimeout(() => {
+        setTear(null);
+        window.history.pushState(null, "", "/valley");
+        go();
+      }, 450);
+      return;
+    }
+    if (t.kind === "pixel") {
+      // the pixel's panels go, then its cells come back down into the land
+      setTear({ ...t, shown: false, back: true });
+      window.setTimeout(() => {
+        splitRef.current = { dir: -1, k: splitRef.current.k };
+        go();
+      }, 450);
+      return;
+    }
+    setTear({ ...t, back: true, stood: false });
+  }, [go]);
+  // the sheets are back in the land: the overview's own land takes it from here and widens its lens again
+  const onStackBack = useCallback(() => {
+    exitRef.current = { ...exitRef.current, dir: -1, k: 1 };
+    setTear(null);
+    window.history.pushState(null, "", "/valley");
+    go();
+  }, [go]);
+  const teardownOf = (t: NonNullable<typeof tear>) => ({
+    from: t.from,
+    back: t.back,
+    onDrawn: onStackDrawn,
+    onStood: onStackStood,
+    onBack: onStackBack,
+  });
+  useEffect(() => {
+    const onPop = () => {
+      const t = tearRef.current;
+      if (t && window.location.pathname !== VIEW_HREF[t.kind]) backInPlace();
+    };
+    window.addEventListener("popstate", onPop);
+    return () => {
+      window.removeEventListener("popstate", onPop);
+    };
+  }, [backInPlace]);
+
   // the arrival starts, or is skipped, when the journey says so
   const introRun = intro?.run ?? false;
   const introSkip = intro?.skip ?? false;
@@ -825,14 +1224,16 @@ function OverviewReady({
     goal.current.s = 1;
     setAskOpen(false);
     go();
+    // the focus moves to the card's Enter action once the card is drawn (a hidden card takes no focus)
     window.setTimeout(() => {
       (id === "results" || id === "routes" ? firstResultRef.current : linkRef.current)?.focus({
         preventScroll: true,
       });
-    }, 0);
+    }, 350);
   };
   const back = useCallback(() => {
     const was = selRef.current;
+    setRainWide(false);
     goal.current.s = 0;
     go();
     if (was === "field") fieldRef.current?.focus({ preventScroll: true });
@@ -860,6 +1261,23 @@ function OverviewReady({
     [setCam],
   );
   const [panel, setPanel] = useState(false);
+  // any input settles a lifted layer and restarts the quiet count; a timer wakes the loop when the quiet has lasted
+  useEffect(() => {
+    reducedMotion.current = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const onInput = () => {
+      idle.current.last = performance.now();
+      idle.current.t0 = null;
+    };
+    const events = ["pointermove", "pointerdown", "wheel", "keydown"] as const;
+    for (const ev of events) window.addEventListener(ev, onInput, { passive: true });
+    const wake = window.setInterval(() => {
+      if ((performance.now() - idle.current.last) / 1000 >= IDLE.wait) go();
+    }, 500);
+    return () => {
+      for (const ev of events) window.removeEventListener(ev, onInput);
+      window.clearInterval(wake);
+    };
+  }, [go]);
   useEffect(() => {
     panelRef.current = panel;
     go();
@@ -875,14 +1293,43 @@ function OverviewReady({
   // Esc goes back one level: the panel, then what is open, then the opening; R resets; S the sources
   useEffect(() => {
     const onKey = (ev: KeyboardEvent) => {
-      // while the arrival plays no key reaches the overview; Esc and Enter end it (the journey says skip)
-      if (arriving) return;
+      // while the arrival plays no key reaches the overview; Esc and Enter end it (the journey says skip); while an
+      // instrument is open in place its shell has the keys
+      if (arriving || tearRef.current) return;
       if (askOpen || typing(ev)) return;
       if (ev.key === "Escape") {
         ev.preventDefault();
         if (panel) setPanel(false);
-        else if (selRef.current) back();
+        else if (rainWideRef.current) {
+          setRainWide(false);
+          window.history.pushState(null, "", "/valley");
+        } else if (selRef.current) back();
         else toOpening();
+      } else if (ev.key === "Enter" || /^[a-zA-Z]$/.test(ev.key)) {
+        // the action keys of the opened card, or of the label under the cursor (decision 15); Enter on a focused
+        // control is the control's own
+        if (ev.metaKey || ev.ctrlKey || ev.altKey) return;
+        const t = ev.target as HTMLElement | null;
+        // (a finding's own label keeps the focus while its card opens: Enter there is the card's Enter)
+        if (ev.key === "Enter" && t?.closest("a, button") && !t.closest("[data-finding]")) return;
+        const list = selRef.current
+          ? cardActionsRef.current
+          : hoverShown.current
+            ? hoverActs.current
+            : [];
+        const a = actionForKey(list, ev.key);
+        if (a?.view) {
+          ev.preventDefault();
+          openInPlace(VIEW_HREF[a.view]);
+          return;
+        }
+        if (ev.key === "r" || ev.key === "R") {
+          ev.preventDefault();
+          reset();
+        } else if (ev.key === "s" || ev.key === "S") {
+          ev.preventDefault();
+          setPanel((p) => !p);
+        }
       } else if (ev.key === "r" || ev.key === "R") {
         ev.preventDefault();
         reset();
@@ -895,7 +1342,7 @@ function OverviewReady({
     return () => {
       window.removeEventListener("keydown", onKey);
     };
-  }, [arriving, askOpen, panel, back, reset, toOpening]);
+  }, [arriving, askOpen, panel, back, reset, toOpening, openInPlace]);
   // drag on the land turns it, the wheel zooms
   useEffect(() => {
     const root = rootRef.current;
@@ -931,6 +1378,153 @@ function OverviewReady({
       root.removeEventListener("wheel", onWheel);
     };
   }, [setCam]);
+  // hovering the land at rest names what lies there, from the case's own rasters and records (decision 14): the
+  // pixel, a proposed route, a drainage line or the land cover class, then the height and its elevation third
+  const hoverWords = useRef<{
+    routes: readonly { id: string; title: string }[];
+    limits: readonly [number, number] | null;
+  }>({
+    routes: [],
+    limits: null,
+  });
+  hoverWords.current = { routes: data?.routes ?? [], limits: bandLimitsOf(snapshot) };
+  const arrivingRef = useRef(arriving);
+  arrivingRef.current = arriving;
+  useEffect(() => {
+    let raf = 0;
+    let last: PointerEvent | null = null;
+    let held = false;
+    const hide = () => {
+      const el = hoverRef.current;
+      if (el) el.removeAttribute("data-shown");
+      if (hoverWireRef.current) hoverWireRef.current.style.opacity = "0";
+      hoverSide.current = null;
+      hoverShown.current = false;
+    };
+    const show = () => {
+      raf = 0;
+      const ev = last;
+      const scene = sceneRef.current;
+      const land = landRef.current;
+      const hud = hudRef.current;
+      const el = hoverRef.current;
+      const layout = lastLayout.current;
+      if (!ev || !scene || !land || !hud || !el || !layout) return;
+      const t = ev.target as HTMLElement | null;
+      const quiet =
+        held ||
+        selRef.current !== null ||
+        tearRef.current !== null ||
+        arrivingRef.current ||
+        askOpenRef.current ||
+        exitRef.current.away > 0 ||
+        Boolean(
+          t?.closest("button, a, input, textarea, [role='dialog'], [data-ask], [data-hover-off]"),
+        );
+      if (quiet) {
+        hide();
+        return;
+      }
+      const r = land.getBoundingClientRect();
+      const p = scene.probe(ev.clientX - r.left, ev.clientY - r.top);
+      if (!p) {
+        hide();
+        return;
+      }
+      const { routes, limits } = hoverWords.current;
+      const route = p.route ? routes.find((x) => x.id === p.route) : undefined;
+      const height = format("overview.hover.height", { value: metres(Math.round(p.h)) });
+      const part = p.inPixel
+        ? en["overview.pixel"].text
+        : route
+          ? route.title
+          : p.order !== null
+            ? format("overview.hover.drainage", { order: p.order })
+            : p.cover === "tree"
+              ? en["overview.key.tree"].text
+              : p.cover === "crop"
+                ? format("overview.key.crop", { year: WORLDCOVER.year })
+                : null;
+      // the part under the cursor names the label; bare land is named by its height
+      const name = part ?? height;
+      const thing: Thing = p.inPixel ? "pixel" : route ? "route" : "land";
+      hoverActs.current = actionsFor(thing, offeredRef.current, false);
+      setHoverThing((t) => (t === thing ? t : thing));
+      const lines = part ? [height] : [];
+      if (limits) {
+        const [lo, hi] = limits;
+        lines.push(
+          p.h < lo
+            ? format("overview.hover.band.low", { limit: metres(lo) })
+            : p.h < hi
+              ? format("overview.hover.band.mid", { lower: metres(lo), upper: metres(hi) })
+              : format("overview.hover.band.high", { limit: metres(hi) }),
+        );
+      }
+      if (hoverNameRef.current) hoverNameRef.current.textContent = name;
+      if (hoverStatusRef.current) hoverStatusRef.current.textContent = lines.join("\n");
+      // the label stands beside the cursor by the same rule as a finding's card, its hairline from the point
+      const hb = hud.getBoundingClientRect();
+      const sc = layout.fit.scale;
+      const at = { x: (ev.clientX - hb.left) / sc, y: (ev.clientY - hb.top) / sc };
+      const w = el.offsetWidth || 240;
+      const h = el.offsetHeight || 60;
+      const subject = { x0: at.x - 16, y0: at.y - 16, x1: at.x + 16, y1: at.y + 16 };
+      const { box, side } = placeCard(at, w, h, subject, hoverSide.current);
+      hoverSide.current = side;
+      el.style.left = `${box.x0.toFixed(1)}px`;
+      el.style.top = `${box.y0.toFixed(1)}px`;
+      el.dataset.side =
+        side === "left" || side === "upLeft" || side === "downLeft" ? "left" : "right";
+      el.setAttribute("data-shown", "");
+      hoverShown.current = true;
+      const wire = hoverWireRef.current;
+      if (wire) {
+        const e2 = nearestOnBox(at, box);
+        wire.setAttribute("x1", at.x.toFixed(1));
+        wire.setAttribute("y1", at.y.toFixed(1));
+        wire.setAttribute("x2", e2.x.toFixed(1));
+        wire.setAttribute("y2", e2.y.toFixed(1));
+        wire.style.opacity = "0.85";
+      }
+    };
+    const onMove = (e: PointerEvent) => {
+      last = e;
+      if (!raf) raf = requestAnimationFrame(show);
+    };
+    // a plain click on the land (no drag) runs the label's Enter action
+    let down: { x: number; y: number; shown: boolean } | null = null;
+    const onDown = (e: PointerEvent) => {
+      down = { x: e.clientX, y: e.clientY, shown: hoverShown.current };
+      held = true;
+      hide();
+    };
+    const onUp = (e: PointerEvent) => {
+      held = false;
+      const d = down;
+      down = null;
+      if (!d?.shown || Math.hypot(e.clientX - d.x, e.clientY - d.y) > 4) return;
+      const t = e.target as HTMLElement | null;
+      if (t?.closest("button, a, input, textarea, [role='dialog'], [data-ask]")) return;
+      const primary = actionForKey(hoverActs.current, "Enter");
+      if (primary?.view) openRef.current(VIEW_HREF[primary.view]);
+    };
+    const onLeave = () => {
+      last = null;
+      hide();
+    };
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerdown", onDown);
+    window.addEventListener("pointerup", onUp);
+    document.documentElement.addEventListener("pointerleave", onLeave);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerdown", onDown);
+      window.removeEventListener("pointerup", onUp);
+      document.documentElement.removeEventListener("pointerleave", onLeave);
+    };
+  }, []);
   useEffect(() => {
     goal.current.o = askOpen ? 1 : 0;
     go();
@@ -989,11 +1583,51 @@ function OverviewReady({
       pressed: panel,
     },
   ];
+  // the view opened in place over the land
+  const viewOf = (t: NonNullable<typeof tear>) => {
+    const td = t.cut ? {} : { teardown: teardownOf(t) };
+    switch (t.kind) {
+      case "layers":
+        return <InstrumentLayerStack {...td} />;
+      case "cutaway":
+        return <InstrumentCutaway {...td} />;
+      case "pixel":
+        return <InstrumentPixelAnatomy />;
+      case "rainfall":
+        return <InstrumentRainfallScatter />;
+      default:
+        return <InstrumentFieldPlan />;
+    }
+  };
   const selFinding =
     sel && sel !== "field" && sel !== "results" && sel !== "routes"
       ? (findings.find((f) => f.id === sel) ?? null)
       : null;
   const results = sel === "results" ? ask.commandId : null;
+  // a lifted layer's status, from the record: the cells read, the finding it carries, the band limits
+  const limits = bandLimitsOf(snapshot);
+  const liftStatus = (id: LiftId): string => {
+    const shown = (f: FindingId) => findings.find((x) => x.id === f)?.display ?? "";
+    const count = (n: number) => new Intl.NumberFormat("en").format(n);
+    switch (id) {
+      case "trend":
+        return format("overview.lift.trend", {
+          n: count(data?.footprints.slope?.cells.length ?? 0),
+          share: shown("fdr"),
+        });
+      case "rain":
+        return format("overview.lift.rain", {
+          n: count(data?.footprints.rain?.length ?? 0),
+          r2: shown("rain"),
+        });
+      case "cover":
+        return format("overview.lift.cover", { year: WORLDCOVER.year });
+      case "bands":
+        return limits
+          ? format("overview.lift.bands", { lower: metres(limits[0]), upper: metres(limits[1]) })
+          : "";
+    }
+  };
 
   return (
     <div
@@ -1001,6 +1635,8 @@ function OverviewReady({
       className={styles.layer}
       data-overview-root
       data-arriving={arriving ? "" : undefined}
+      data-tearing={tear !== null ? "" : undefined}
+      data-covered={tear?.shown ? "" : undefined}
       data-case-revision={snapshot.case.revision}
     >
       <p id={descriptionId} className={styles.srOnly}>
@@ -1028,6 +1664,8 @@ function OverviewReady({
               />
             ))}
             <line ref={selWireRef} className={styles.wire} />
+            <line ref={liftWireRef} className={styles.liftWire} />
+            <line ref={hoverWireRef} className={styles.hoverWire} />
           </svg>
           {data && layers && pixel ? (
             <>
@@ -1048,6 +1686,28 @@ function OverviewReady({
                   </span>
                 </button>
               )}
+              <div
+                ref={liftLabelRef}
+                className={styles.liftLabel}
+                data-lift={liftShown ?? undefined}
+                aria-hidden="true"
+              >
+                {liftShown ? (
+                  <>
+                    <span className={styles.liftName}>
+                      {en[`instrument.sheet.${liftShown}`].text}
+                    </span>
+                    <span className={styles.liftStatus}>{liftStatus(liftShown)}</span>
+                  </>
+                ) : null}
+              </div>
+              <div ref={hoverRef} className={styles.hover} aria-hidden="true" data-hover-label>
+                <span ref={hoverNameRef} className={styles.liftName} />
+                <span ref={hoverStatusRef} className={styles.hoverStatus} />
+                {hoverThing ? (
+                  <ActionList still actions={actionsFor(hoverThing, offered, false)} />
+                ) : null}
+              </div>
               <div ref={pixTagRef} className={styles.pixTag}>
                 <span>{en["overview.pixel"].text}</span>
               </div>
@@ -1164,6 +1824,9 @@ function OverviewReady({
               <OverviewResults
                 snapshot={ask.snapshot}
                 commandId={results}
+                onOpen={openInPlace}
+                actions={cardActions}
+                onBack={back}
                 refs={{ root: recRef, inst: instRef, frost: frostRef, first: firstResultRef }}
               />
             ) : null}
@@ -1172,6 +1835,9 @@ function OverviewReady({
                 routes={data.routes}
                 load={routesLoad}
                 onPick={pickRoute}
+                onOpen={openInPlace}
+                actions={cardActions}
+                onBack={back}
                 refs={{ root: recRef, inst: instRef, frost: frostRef, first: firstResultRef }}
               />
             ) : null}
@@ -1193,6 +1859,10 @@ function OverviewReady({
                     ? { domain: data.footprints.slope.domain }
                     : null
                 }
+                wide={rainWide && sel === "rain"}
+                actions={cardActions}
+                onOpen={openInPlace}
+                onBack={back}
                 refs={{
                   root: recRef,
                   inst: instRef,
@@ -1210,7 +1880,7 @@ function OverviewReady({
         {data ? (
           <Ask
             variant="arc"
-            keysOff={arriving}
+            keysOff={arriving || tear !== null}
             open={askOpen}
             onOpen={onAskOpen}
             onClose={onAskClose}
@@ -1223,6 +1893,7 @@ function OverviewReady({
             }}
             onHover={setAskHover}
             circleRef={askCircleRef}
+            besideRef={askBesideRef}
           />
         ) : null}
       </div>
@@ -1234,7 +1905,20 @@ function OverviewReady({
         crumbs={[
           { label: en["opening.title"].text, onSelect: toOpening },
           sel ? { label: names.valleyName, onSelect: back } : { label: names.valleyName },
-          ...(sel ? [{ label: crumbOf(sel, findings, bandLimit?.display ?? "") }] : []),
+          ...(sel
+            ? [
+                rainWide && sel === "rain"
+                  ? {
+                      label: crumbOf(sel, findings, bandLimit?.display ?? ""),
+                      onSelect: () => {
+                        setRainWide(false);
+                        window.history.pushState(null, "", "/valley");
+                      },
+                    }
+                  : { label: crumbOf(sel, findings, bandLimit?.display ?? "") },
+              ]
+            : []),
+          ...(rainWide && sel === "rain" ? [{ label: en["instrument.shell.rainfall"].text }] : []),
         ]}
       />
       {data ? (
@@ -1259,6 +1943,23 @@ function OverviewReady({
             }}
           />
         </>
+      ) : null}
+      {tear ? (
+        <div
+          className={styles.inPlace}
+          data-kind={tear.kind}
+          data-shown={tear.shown ? "" : undefined}
+        >
+          <InstrumentShell
+            current={tear.kind}
+            records={{ snapshot, listing }}
+            onBack={backInPlace}
+            tearing={!tear.stood}
+            finding={tear.crumb ?? undefined}
+          >
+            {viewOf(tear)}
+          </InstrumentShell>
+        </div>
       ) : null}
       <span hidden data-view-moved={moved ? "" : undefined} />
     </div>

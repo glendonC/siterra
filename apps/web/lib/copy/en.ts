@@ -136,7 +136,7 @@ export const en = {
   "task.kind.explanation_branches": { text: "Explanation Branches", kind: "heading" },
   "task.kind.intervention_feasibility": { text: "Intervention Feasibility", kind: "heading" },
   "task.kind.brief_package": { text: "Field Verification Plan", kind: "heading" },
-  "task.kind.instrument_composition": { text: "Instrument Order", kind: "heading" },
+  "task.kind.instrument_composition": { text: "View Order", kind: "heading" },
   "task.kind.validation": { text: "Automated Checks", kind: "heading" },
   // labeled precomputed (ADR-0021; agent orchestration, "Precomputed observations are labeled precomputed")
   "work.observations": { text: "Precomputed Observations", kind: "heading" },
@@ -389,11 +389,10 @@ export const en = {
 
   // Instruments: the briefing shell around them. Enter in the command line opens the valley with the typed text in
   // the valley's command line, sending nothing
-  "instrument.shell.nav": { text: "Instruments", kind: "label" },
-  "instrument.shell.valley": { text: "Overview", kind: "label" },
-  "instrument.shell.layers": { text: "Layers", kind: "label" },
-  "instrument.shell.cutaway": { text: "Cutaway", kind: "label" },
-  "instrument.shell.pixel": { text: "Pixel", kind: "label" },
+  // each view's name in the breadcrumb, in plain words (decision 13)
+  "instrument.shell.layers": { text: "Five layers", kind: "label" },
+  "instrument.shell.cutaway": { text: "Cut through", kind: "label" },
+  "instrument.shell.pixel": { text: "This pixel", kind: "label" },
   "instrument.shell.rainfall": { text: "Rainfall", kind: "label" },
   "instrument.shell.field": { text: "Field plan", kind: "label" },
   "instrument.shell.command": { text: "Ask or challenge", kind: "label" },
@@ -556,7 +555,7 @@ export const en = {
     kind: "ui",
   },
   "instrument.fieldPlan.none": {
-    text: "This case's record holds no field plan instrument yet.",
+    text: "This case's record holds no field plan yet.",
     kind: "ui",
   },
   "instrument.fieldPlan.proposed": { text: "Proposed", kind: "label" },
@@ -638,7 +637,7 @@ export const en = {
     kind: "ui",
   },
   "overview.keys": {
-    text: "Enter opens a finding's instrument beside the land; Esc returns to the overview. The slash key opens the ask.",
+    text: "Enter opens a finding's view over the land; Esc plays it back to the overview. The slash key opens the ask.",
     kind: "ui",
   },
   "overview.findings": { text: "Findings", kind: "heading" },
@@ -695,6 +694,24 @@ export const en = {
     kind: "ui",
   },
   "overview.onLand.pixel": { text: "On the land: the pixel's outline.", kind: "ui" },
+  "overview.lift.trend": {
+    text: "{n} cells, March to June; {share} of the area greening after a false discovery rate check",
+    kind: "ui",
+  },
+  "overview.lift.rain": {
+    text: "{n} rainfall cells; R squared {r2} against greenness",
+    kind: "ui",
+  },
+  "overview.lift.cover": { text: "ESA WorldCover {year}, 10 m", kind: "ui" },
+  "overview.lift.bands": {
+    text: "Equal-area thirds, limits at {lower} m and {upper} m",
+    kind: "ui",
+  },
+  "overview.hover.height": { text: "{value} m above sea level", kind: "ui" },
+  "overview.hover.band.low": { text: "Lowest third, below {limit} m", kind: "ui" },
+  "overview.hover.band.mid": { text: "Middle third, {lower} to {upper} m", kind: "ui" },
+  "overview.hover.band.high": { text: "Highest third, {limit} m and above", kind: "ui" },
+  "overview.hover.drainage": { text: "Drainage line, order {order}", kind: "label" },
   "overview.slopeKey": { text: "NDVI per decade, March to June", kind: "label" },
   "overview.record.band": { text: "Below {limit} m", kind: "label" },
   "overview.record.caption": {
@@ -716,7 +733,12 @@ export const en = {
   "overview.record.ndvi": { text: "NDVI", kind: "label" },
   "overview.record.rain": { text: "September to May, mm", kind: "label" },
   "overview.record.context": { text: "Published context", kind: "label" },
-  "overview.record.open": { text: "Open Instrument", kind: "link" },
+  // each record's one action, named by what the visitor will see (decision 13)
+  "overview.open.layers": { text: "See the Five Layers", kind: "button" },
+  "overview.open.cutaway": { text: "Cut Through the Land", kind: "button" },
+  "overview.open.pixel": { text: "Open This Pixel", kind: "button" },
+  "overview.open.rainfall": { text: "Compare with Rainfall", kind: "button" },
+  "overview.open.field": { text: "See the Field Plan", kind: "button" },
   "overview.cite": { text: "{authors} {year}, {venue}, p. {page}", kind: "label" },
   "overview.cite.pages": { text: "{authors} {year}, {venue}, pp. {pages}", kind: "label" },
   "overview.cite.noPage": { text: "{authors} {year}, {venue}", kind: "label" },
@@ -817,6 +839,18 @@ export type MessageId = keyof typeof en;
  * the rules it may break.
  */
 export const LINT_ALLOWLIST: Partial<Record<MessageId, { rules: string[]; reason: string }>> = {
+  "overview.open.layers": {
+    rules: ["VT-48"],
+    reason: "The lead's decision 13 names each record's action by what the visitor will see.",
+  },
+  "overview.open.cutaway": {
+    rules: ["VT-48"],
+    reason: "The lead's decision 13 names each record's action by what the visitor will see.",
+  },
+  "overview.open.field": {
+    rules: ["VT-48"],
+    reason: "The lead's decision 13 names each record's action by what the visitor will see.",
+  },
   "source.modis": {
     rules: ["VT-08"],
     reason:

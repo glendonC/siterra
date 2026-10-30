@@ -5,9 +5,17 @@
 // ruler at the north end. The camera faces the section in perspective; its distance and lens shift are solved at
 // the design size so that the block fills its region, and the words are placed by the component from `marks`.
 
-import { PerspectiveCamera, Vector3 } from "three";
+import {
+  Group,
+  type Material,
+  type Mesh,
+  PerspectiveCamera,
+  type ShaderMaterial,
+  Vector3,
+} from "three";
+import type { LandPose } from "../../../land/handoff";
 import { smoothRing } from "../../../stage/smooth";
-import { modelColours, obsidian, sheetColours } from "../../../theme/obsidian";
+import { modelColours, obsidian, overviewColours, sheetColours } from "../../../theme/obsidian";
 import type { CutawayData } from "../cutaway-data";
 import { makeFrame, makeHeightSampler, type Vec3 } from "../frame";
 import { openRing, signedArea, type Point } from "../geometry";
@@ -22,7 +30,7 @@ import {
 } from "../transect";
 import { lonLatToUtm } from "../utm";
 import { createStage, viewBack, type Stage } from "./stage";
-import { contactShadow, createRelief, createWall, lightFrom } from "./terrain";
+import { contactShadow, createRelief, createWall, hexVec, lightFrom } from "./terrain";
 import { landFrame } from "../../../land/geometry";
 import { bitmapTexture, heightTexture } from "./textures";
 
@@ -33,8 +41,11 @@ export const CUTAWAY_DESIGN = { width: 1440, height: 900 } as const;
 /** Camera elevation above the horizon and vertical field of view, degrees, as specimen B. */
 const ELEVATION = 9;
 const FOV = 26;
-/** The block's region at the design size: about 60 per cent of the frame width, centred a little low. */
-const FIT = { width: 880, cx: 712, cy: 474, maxHeight: 600 };
+/**
+ * The block's region at the design size: about half the frame width, centred a little low and right of centre, so
+ * the ruler's labels keep clear of the ask disc's place on the arc (decision 13).
+ */
+const FIT = { width: 700, cx: 812, cy: 474, maxHeight: 600 };
 /**
  * The elevation ruler for a section: from one tick over the plinth's base to the section's highest point rounded up,
  * labelled at the roundest step that gives three to six labels (500 m on the valley: 1,500 to 3,000 m), with ticks
@@ -91,6 +102,12 @@ export interface CutawayScene {
   reset(): void;
   /** Turns the model about the measured target: degrees of bearing, and of elevation (kept within 2 to 60). */
   turn(dAzimuth: number, dElevation: number): void;
+  /**
+   * The land cut through in place (decision 13): at 0 the overview's whole land as the overview showed it, at 1
+   * specimen B's section; between, the land splits along the section line, the western half slides away and the
+   * cut face turns toward the visitor.
+   */
+  setIntro(k: number, from: LandPose): void;
   dispose(): void;
 }
 
@@ -137,15 +154,34 @@ function buildCutaway(canvas: HTMLCanvasElement, data: CutawayData): CutawayScen
   });
   relief.uniforms.uCut.value.set(...cut.plane, 1);
   scene.add(relief.mesh);
+  // the western half, kept only to be cut away when the section opens in place over the overview's land
+  const west = createRelief(H, g, frame, landcover, aRect, {
+    hTex,
+    light,
+    cover: landcover,
+    coverA: 0.62,
+    bandLines: 0.5,
+    limits: data.limits,
+  });
+  west.uniforms.uCut.value.set(-cut.plane[0], -cut.plane[1], -cut.plane[2], 1);
+  const westGroup = new Group();
+  westGroup.add(west.mesh);
+  westGroup.visible = false;
+  scene.add(westGroup);
+  const walls: Mesh[] = [];
   const ring = openRing(smoothRing(catchment.ring, 2)).map(([E, N]): Point => [E, N]);
   const outward = signedArea(ring) > 0 ? -1 : 1;
   const runs = runsEastOf(ring, sideEN);
-  for (const r of runs)
-    scene.add(createWall(r, sample, frame, { outward, light, limits: data.limits }));
+  for (const r of runs) {
+    const w = createWall(r, sample, frame, { outward, light, limits: data.limits });
+    walls.push(w);
+    scene.add(w);
+  }
   const eastXZ = ring
     .map(([E, N]): Point => [frame.x(E), frame.z(N)])
     .filter(([x, z]) => cut.side(x, z) >= -0.05);
-  scene.add(contactShadow(eastXZ, { blurPx: 28, alpha: 0.8, pad: 4 }));
+  const shadow = contactShadow(eastXZ, { blurPx: 28, alpha: 0.8, pad: 4 });
+  scene.add(shadow);
   scene.add(
     lines.lines(
       runs.map((r) => r.map(([E, N]) => frame.v(E, N, sample(E, N) + 6))),
@@ -177,20 +213,22 @@ function buildCutaway(canvas: HTMLCanvasElement, data: CutawayData): CutawayScen
 
   // the section face under the bundle's profile, lit as one plane facing west
   const prof: Point[] = line.E.map((E, i) => [E, line.N[i] ?? 0]);
-  scene.add(
-    createWall(prof, sample, frame, {
-      light,
-      limits: data.limits,
-      albedo: modelColours.sectionAlbedo,
-      bandTint: modelColours.sectionBandTint,
-      lineA: 0.08,
-      fade: 0.3,
-      tops: line.h,
-      bandA: [0, 0.13, 0.26],
-      limitA: 0.92,
-      faceNormal: [-ex, -ez],
-    }),
-  );
+  const face = createWall(prof, sample, frame, {
+    light,
+    limits: data.limits,
+    albedo: modelColours.sectionAlbedo,
+    bandTint: modelColours.sectionBandTint,
+    lineA: 0.08,
+    fade: 0.3,
+    tops: line.h,
+    bandA: [0, 0.13, 0.26],
+    limitA: 0.92,
+    faceNormal: [-ex, -ez],
+  });
+  walls.push(face);
+  // what the cut alone shows (its face, the lines on it, the ruler) comes in once the cut has opened
+  const furnitureFrom = scene.children.length;
+  scene.add(face);
   // shift a point toward the camera (west), so lines on the face draw in front of it
   const toward = (E: number, N: number, km: number): Point => [
     E - ex * km * 1000,
@@ -312,11 +350,119 @@ function buildCutaway(canvas: HTMLCanvasElement, data: CutawayData): CutawayScen
   };
   reset();
 
+  // ---------- the land cut through in place (decision 13) ----------
+  const lf = landFrame(catchment.ring, data.range);
+  const lightB = light.dir.clone();
+  const keyB = (relief.uniforms as unknown as { uLight: { value: Vector3 } }).uLight.value.clone();
+  const ambB = (
+    relief.uniforms as unknown as { uAmbient: { value: Vector3 } }
+  ).uAmbient.value.clone();
+  const keyO = hexVec(overviewColours.keyLight).multiplyScalar(1.25);
+  const ambO = hexVec(overviewColours.ambient).multiplyScalar(0.62);
+  const lit = [relief, west].map(
+    (r) =>
+      r.uniforms as unknown as {
+        uL: { value: Vector3 };
+        uLight: { value: Vector3 };
+        uAmbient: { value: Vector3 };
+      },
+  );
+  const wallU = walls.map(
+    (w) => (w.material as ShaderMaterial).uniforms as unknown as { uShow: { value: number } },
+  );
+  const shadowMat = shadow.material as Material;
+  const shadowA = shadowMat.opacity;
+  const rimPts = ring
+    .filter((_, i) => i % 4 === 0)
+    .flatMap(([E, N]) => {
+      const s = sample(E, N);
+      return [frame.v(E, N, s), frame.v(E, N, s - lf.rimFoot)];
+    });
+  let start: { key: string; target: Vec3; distance: number; shift: [number, number] } | null = null;
+  /** The camera that puts the whole land in the box the overview left it in (canvas CSS px). */
+  const fitStart = (from: LandPose, rect: LandPose["rect"]) => {
+    const key = `${rect.x0.toFixed(1)},${rect.y0.toFixed(1)},${rect.x1.toFixed(1)},${rect.y1.toFixed(1)}`;
+    if (start?.key === key) return start;
+    const t0: Vec3 = [0, frame.y(lf.target), 0];
+    let d = distance;
+    let sh: [number, number] = [0, 0];
+    const { width, height } = stage.size();
+    const fit = Math.min(width / CUTAWAY_DESIGN.width, height / CUTAWAY_DESIGN.height);
+    for (let it = 0; it < 8; it++) {
+      stage.setPerspectiveView({
+        target: t0,
+        azimuth: from.azimuth,
+        elevation: from.elevation,
+        distance: d,
+        shift: sh,
+        design: CUTAWAY_DESIGN,
+      });
+      const q = rimPts.map((p) => stage.project(p));
+      const bx0 = Math.min(...q.map((p) => p.x));
+      const bx1 = Math.max(...q.map((p) => p.x));
+      const by0 = Math.min(...q.map((p) => p.y));
+      const by1 = Math.max(...q.map((p) => p.y));
+      d *= (by1 - by0) / Math.max(rect.y1 - rect.y0, 1e-3);
+      sh = [
+        sh[0] + ((rect.x0 + rect.x1) / 2 - (bx0 + bx1) / 2) / fit,
+        sh[1] + ((rect.y0 + rect.y1) / 2 - (by0 + by1) / 2) / fit,
+      ];
+    }
+    start = { key, target: t0, distance: d, shift: sh };
+    return start;
+  };
+  const setIntro = (k: number, from: LandPose) => {
+    const box = canvas.getBoundingClientRect();
+    const rect = {
+      x0: from.rect.x0 - box.left,
+      y0: from.rect.y0 - box.top,
+      x1: from.rect.x1 - box.left,
+      y1: from.rect.y1 - box.top,
+    };
+    const S = fitStart(from, rect);
+    const ease = (x: number) => (x <= 0 ? 0 : x >= 1 ? 1 : x * x * x * (x * (6 * x - 15) + 10));
+    const clamp = (x: number) => Math.min(1, Math.max(0, x));
+    const c = ease(clamp((k - 0.12) / 0.7));
+    const split = ease(clamp(k / 0.55));
+    // the camera turns from the overview's view to face the cut
+    const dAz = ((cut.faceBearing - from.azimuth + 540) % 360) - 180;
+    stage.setPerspectiveView({
+      target: [0, 1, 2].map(
+        (i) => (S.target[i] ?? 0) + ((target[i] ?? 0) - (S.target[i] ?? 0)) * c,
+      ) as Vec3,
+      azimuth: from.azimuth + dAz * c,
+      elevation: from.elevation + (ELEVATION - from.elevation) * c * c * (3 - 2 * c),
+      // the camera stands back a little through the turn, so its path arcs round the block instead of sweeping
+      // close past it while it comes down to the face's height
+      distance:
+        Math.exp(Math.log(S.distance) + (Math.log(distance) - Math.log(S.distance)) * c) *
+        (1 + 0.22 * Math.sin(Math.PI * c)),
+      shift: [S.shift[0] + (shift[0] - S.shift[0]) * c, S.shift[1] + (shift[1] - S.shift[1]) * c],
+      design: CUTAWAY_DESIGN,
+    });
+    // the western half slides away from the cut and sinks; the cut face and the walls come up out of the ground
+    const away = Math.max(lf.kmScale * 30, 1) * split;
+    westGroup.visible = k < 0.999;
+    westGroup.position.set(-ex * away, -0.6 * away, -ez * away);
+    for (const u of wallU) u.uShow.value = ease(clamp((k - 0.15) / 0.45));
+    for (const o of scene.children.slice(furnitureFrom)) o.visible = k > 0.35;
+    shadowMat.opacity = shadowA * c;
+    // lit as the overview lit it when handed over, then as this view lights it
+    const l = new Vector3(...from.light).lerp(lightB, c).normalize();
+    for (const u of lit) {
+      u.uL.value.copy(l);
+      u.uLight.value.copy(keyO).lerp(keyB, c);
+      u.uAmbient.value.copy(ambO).lerp(ambB, c);
+    }
+    stage.render();
+  };
+
   return {
     stage,
     marks,
     fitBox,
     reset,
+    setIntro,
     turn(dAzimuth, dElevation) {
       const a = stage.angles();
       view(a.azimuth + dAzimuth, Math.min(60, Math.max(2, a.elevation + dElevation)));

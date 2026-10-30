@@ -63,6 +63,12 @@ export interface Stage {
   angles(): { azimuth: number; elevation: number };
   /** Moves the camera along its line to the target: a factor below 1 closer, above 1 farther (the view control). */
   zoomBy(factor: number): void;
+  /**
+   * Narrows a perspective stage's field of view by a factor (1 as made): with the camera drawn back to keep the
+   * picture's size, a factor near 0 makes the view nearly orthographic (the overview handing its land to the layer
+   * stack, decision 12).
+   */
+  setFovScale(k: number): void;
   render(): void;
   /** Screen position (CSS px, from the canvas's top left) of a model point. */
   project(p: Vec3): { x: number; y: number };
@@ -117,6 +123,7 @@ export function createStage(
   const lines = new LineKit();
   const callbacks: (() => void)[] = [];
   let scale = 10;
+  let fovScale = 1;
   let design: View["design"];
   let shift: readonly [number, number] = [0, 0];
   let width = 1;
@@ -128,7 +135,7 @@ export function createStage(
       // the picture's size follows the fit, as an orthographic scale would: widen the view by the height that
       // is spare at this aspect, and scale the shift
       const spare = design ? height / (design.height * fit) : 1;
-      const half = ((opts.fov ?? camera.fov) * DEG) / 2;
+      const half = ((opts.fov ?? camera.fov) * fovScale * DEG) / 2;
       camera.fov = (2 * Math.atan(Math.tan(half) * spare)) / DEG;
       camera.aspect = width / height;
       if (shift[0] || shift[1])
@@ -190,6 +197,10 @@ export function createStage(
       frustum();
       camera.updateMatrixWorld();
       controls.update();
+    },
+    setFovScale(k) {
+      fovScale = k;
+      frustum();
     },
     setView({ target, azimuth, elevation, scale: s, design: d }) {
       scale = s;

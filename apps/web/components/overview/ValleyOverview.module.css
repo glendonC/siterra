@@ -491,3 +491,127 @@
   opacity: 0;
   pointer-events: none;
 }
+
+/* a layer lifted off the land at rest (decision 12): a hairline leader and its name and status from the record */
+.liftWire {
+  stroke: var(--ov-wire);
+  stroke-width: 1;
+  opacity: 0;
+}
+
+.liftLabel {
+  position: absolute;
+  width: 260px;
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+  text-shadow: var(--ov-halo-dark);
+}
+
+.liftName {
+  display: block;
+  font-size: 15px;
+  line-height: 20px;
+  color: var(--ov-ink);
+}
+
+.liftStatus {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--ov-ink-2);
+}
+
+/* an instrument opened in place over the overview (decision 12): drawn out of sight until its first frame holds the
+   land where the overview left it, then it takes the screen; the overview keeps its land under it */
+.inPlace {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* the pixel's panels arrive over the cells' last place; the rainfall's seasons and the field plan arrive over the land */
+.inPlace:is([data-kind="pixel"], [data-kind="rainfall"], [data-kind="field"]) {
+  transition: opacity 0.45s ease;
+}
+
+/* the rainfall's seasons stand beside the land, which stays, tinted by the rain cells (decision 13) */
+.inPlace[data-kind="rainfall"] :is([data-shell], [data-instrument="rainfall"]) {
+  background: transparent;
+}
+
+.inPlace[data-shown] {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* handing the land over: the chrome and the ground's glow step away (the words on the land and the arc are taken
+   away by the page's own frames) */
+.ground {
+  transition: opacity 0.35s ease;
+}
+
+.root:has(> .layer[data-tearing]) > .ground {
+  opacity: 0;
+}
+
+/* the overview's own chrome only: the view opened in place keeps its breadcrumb and controls */
+.layer[data-tearing] :is([data-crumbs], [data-view-control], .place):not(.inPlace *),
+.layer[data-tearing] > :has(> [data-key-legend]) {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.layer[data-covered] > :not(.inPlace) {
+  visibility: hidden;
+}
+
+/* the label under the cursor on the land at rest (decision 14): the part's name and its height from the record, on a
+   hairline from the point; it comes and goes quickly so it never trails the cursor */
+.hoverWire {
+  stroke: var(--ov-wire);
+  stroke-width: 1;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.hover {
+  position: absolute;
+  z-index: 0;
+  width: 240px;
+  opacity: 0;
+  pointer-events: none;
+  text-shadow: var(--ov-halo-dark);
+  transition: opacity 0.15s ease;
+}
+
+.hover[data-shown] {
+  opacity: 1;
+}
+
+/* the record's frost behind the label, so it reads over the lit land */
+.hover::before {
+  content: "";
+  position: absolute;
+  inset: -26px -40px;
+  z-index: -1;
+  background: var(--ov-frost);
+  mask-image: var(--ov-frost-mask);
+  backdrop-filter: blur(6px);
+}
+
+.hover[data-side="left"] {
+  text-align: right;
+}
+
+.hoverStatus {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--ov-ink-2);
+  white-space: pre-line;
+}

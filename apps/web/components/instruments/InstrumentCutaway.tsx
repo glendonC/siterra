@@ -25,6 +25,7 @@ import { cssColour, obsidian, sheetColours } from "../../lib/theme/obsidian";
 import { useShellSources, useShellView, type ViewHandle } from "./ShellContext";
 import styles from "./InstrumentCutaway.module.css";
 import { useInstrument } from "./InstrumentRecords";
+import { useTeardown, type Teardown } from "./useTeardown";
 
 type BandId = "elevation_high" | "elevation_mid" | "elevation_low";
 /** Top to bottom, as they stand on the face. */
@@ -81,7 +82,10 @@ function dot(e: SVGCircleElement | null, x: number, y: number) {
   e?.setAttribute("cy", y.toFixed(1));
 }
 
-export function InstrumentCutaway() {
+/** The section cut through in place over the overview's land (decision 13); the clock is useTeardown's. */
+const TEAR_S = { in: 2.8, back: 1.5 } as const;
+
+export function InstrumentCutaway({ teardown }: { teardown?: Teardown } = {}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const bandRefs = useRef<(HTMLDivElement | null)[]>([]);
   const bandLeaderRefs = useRef<(SVGLineElement | null)[]>([]);
@@ -101,6 +105,7 @@ export function InstrumentCutaway() {
   const endRefs = useRef<(HTMLDivElement | null)[]>([]);
   const scaleRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<CutawayScene | null>(null);
+  const { tearing, kick } = useTeardown(sceneRef, teardown, TEAR_S.in, TEAR_S.back);
   // the shell's view control and key R reset and zoom this view
   const viewHandle = useMemo<ViewHandle>(
     () => ({
@@ -221,6 +226,7 @@ export function InstrumentCutaway() {
         setPlaceName(s.marks.place?.name ?? null);
         s.stage.onRender(layout);
         s.stage.render();
+        kick();
       },
       () => {
         if (!ac.signal.aborted) setFailed(true);
@@ -231,7 +237,7 @@ export function InstrumentCutaway() {
       scene?.dispose();
       sceneRef.current = null;
     };
-  }, [data, caption]);
+  }, [data, caption, kick]);
 
   // the place's label appears after the scene has found it on the line; lay the words out again then
   useEffect(() => {
@@ -292,7 +298,12 @@ export function InstrumentCutaway() {
   );
 
   return (
-    <div className={styles.root} data-theme="obsidian" data-instrument="cutaway">
+    <div
+      className={styles.root}
+      data-theme="obsidian"
+      data-instrument="cutaway"
+      data-tearing={tearing ? "" : undefined}
+    >
       <canvas
         ref={canvasRef}
         className={styles.canvas}

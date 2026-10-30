@@ -1,0 +1,24 @@
+/* The actions beside a thing on the land (decision 15): the one control style, in a row that wraps */
+.list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+/* the same list, drawn without controls in the label that follows the cursor */
+.still {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.stillRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--ov-ink-2);
+}
