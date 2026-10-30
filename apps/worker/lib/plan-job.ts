@@ -84,8 +84,8 @@ export interface PlanJobDeps {
   executors?: Partial<Record<TaskRecord["kind"], TaskExecutor>>;
   /**
    * Adds the host-made instrument composition task to the plan (a second model call, which orders
-   * the instruments and may reword their captions). Off unless the worker is started with
-   * SITERRA_COMPOSE_INSTRUMENTS=1.
+   * the instruments and may reword their captions). The worker's entry point sets it from
+   * composeInstrumentsEnabled: on for the live route unless SITERRA_COMPOSE_INSTRUMENTS=0.
    */
   composeInstruments?: boolean;
   /** pg-boss's retry count for this delivery of the job: 0 the first time. */

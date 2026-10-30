@@ -1,0 +1,57 @@
+{
+  "format": "siterra-model-replay@1",
+  "origin": "recorded",
+  "model": "muse-spark-1.3",
+  "description": "Recorded outcome of 'P4b live composition 2' (29 Oct 2026, 20:09 EDT, Muse Spark, request fe5c9c1c-957b-4854-a3fc-f27c7ae20f9a, response resp_6ae3e05088e954a857b040ca): the request and response IDs, the token usage (1,401 in, 2,233 out of which 1,912 reasoning) and the answer's content (the order of the four valley instruments and their four captions, unchanged) are as the live call returned them and as the real commit stored them. The raw stream was not kept by that run: the answer text is rebuilt from the stored order and captions, compact JSON in the stored order, and the reasoning item is a placeholder. Recorded outcome, not a raw recording.",
+  "steps": [
+    {
+      "kind": "stream",
+      "requestId": "fe5c9c1c-957b-4854-a3fc-f27c7ae20f9a",
+      "events": [
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_6ae3e05088e954a857b040ca",
+            "status": "in_progress"
+          }
+        },
+        {
+          "type": "response.output_text.delta",
+          "item_id": "msg_recorded_outcome",
+          "output_index": 1,
+          "delta": "{\"order\":[\"inst_layer_stack_valley\",\"inst_cross_section_valley\",\"inst_pixel_anatomy_valley\",\"inst_rainfall_scatter_valley\"],\"captions\":[{\"specId\":\"inst_layer_stack_valley\",\"ink\":\"+0.0091 NDVI per decade, March to June, 2000 to 2025\",\"grey\":\"Rises on 24.7% of the area after a false discovery rate check.\"},{\"specId\":\"inst_cross_section_valley\",\"ink\":\"+0.0134 NDVI per decade below 2,317 m, March to June, 2000 to 2025\",\"grey\":\"Band averages over the whole catchment; every 95% interval lies above zero.\"},{\"specId\":\"inst_pixel_anatomy_valley\",\"ink\":\"This 250 m pixel at the valley floor edge got greener by +0.0570 NDVI per decade from 2000 to 2025.\",\"grey\":\"Tree cover and cropland fill 46% of it, and in a mix of its own spectra, a larger share of them raises NDVI by itself.\"},{\"specId\":\"inst_rainfall_scatter_valley\",\"ink\":\"September to May rainfall explains little of the change in March to June greenness (R squared 0.037).\",\"grey\":\"A straight-line fit across seasons; it measures how closely the two move together and says nothing about why.\"}]}"
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_6ae3e05088e954a857b040ca",
+            "status": "completed",
+            "output": [
+              {
+                "type": "message",
+                "id": "msg_recorded_outcome",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "output_text",
+                    "text": "{\"order\":[\"inst_layer_stack_valley\",\"inst_cross_section_valley\",\"inst_pixel_anatomy_valley\",\"inst_rainfall_scatter_valley\"],\"captions\":[{\"specId\":\"inst_layer_stack_valley\",\"ink\":\"+0.0091 NDVI per decade, March to June, 2000 to 2025\",\"grey\":\"Rises on 24.7% of the area after a false discovery rate check.\"},{\"specId\":\"inst_cross_section_valley\",\"ink\":\"+0.0134 NDVI per decade below 2,317 m, March to June, 2000 to 2025\",\"grey\":\"Band averages over the whole catchment; every 95% interval lies above zero.\"},{\"specId\":\"inst_pixel_anatomy_valley\",\"ink\":\"This 250 m pixel at the valley floor edge got greener by +0.0570 NDVI per decade from 2000 to 2025.\",\"grey\":\"Tree cover and cropland fill 46% of it, and in a mix of its own spectra, a larger share of them raises NDVI by itself.\"},{\"specId\":\"inst_rainfall_scatter_valley\",\"ink\":\"September to May rainfall explains little of the change in March to June greenness (R squared 0.037).\",\"grey\":\"A straight-line fit across seasons; it measures how closely the two move together and says nothing about why.\"}]}"
+                  }
+                ]
+              }
+            ],
+            "usage": {
+              "input_tokens": 1401,
+              "output_tokens": 2233,
+              "input_tokens_details": {
+                "cached_tokens": 0
+              },
+              "output_tokens_details": {
+                "reasoning_tokens": 1912
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
