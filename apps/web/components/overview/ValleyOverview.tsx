@@ -6,7 +6,9 @@
 // dot and label, and the others dim. Click or Enter opens it: the camera turns toward its side, the land blurs, and
 // its record opens on its side (D4's opened node, built from the case) with the way to its full instrument; Esc
 // returns. The ask circle or "/" opens the ask; Enter sends the question
-// the way the valley's command line does. The scene is drawn by lib/overview/scene; this component owns the words and
+// the way the valley's command line does. The case's proposed walking routes lie on the land as dashed amber lines
+// with a small mark at each end; their one entry, under the key, lifts them on hover and opens them (the same
+// movement, the land under them kept sharp) with each route's figures from the bundle. The scene is drawn by lib/overview/scene; this component owns the words and
 // places them from each render's layout, as the specimen's setState did.
 
 import type { CaseSnapshot, InstrumentListing } from "@siterra/contracts";
@@ -25,6 +27,7 @@ import { findingsFrom, type Finding, type FindingId } from "../../lib/overview/f
 import {
   EXAG,
   OVERVIEW_DESIGN as DESIGN,
+  ROUTE_QUIET,
   mountOverview,
   type OverviewLayout,
   type OverviewScene,
@@ -32,6 +35,8 @@ import {
 } from "../../lib/overview/scene/overview";
 import { catchmentAreaKm2 } from "../../lib/overview/record";
 import { loadRecord, type RecordData } from "../../lib/overview/record-data";
+import { inBundleOrder, loadRoutesRecord } from "../../lib/overview/routes";
+import { placesFrom, type Place } from "../../lib/instruments/valley/context";
 import { placeNamesFromCase } from "../../lib/projection/arrival";
 import { takeQuestion } from "../../lib/shell/handoff";
 import {
@@ -42,11 +47,12 @@ import {
 import { Ask } from "./Ask";
 import { OverviewRecord } from "./OverviewRecord";
 import { OverviewResults } from "./OverviewResults";
+import { OverviewRoutes, type RoutesLoad } from "./OverviewRoutes";
 import { useOverviewAsk } from "./useOverviewAsk";
 import styles from "./ValleyOverview.module.css";
 
-/** Seconds for each move: the opening, a finding's hover, the ask circle's hover, the ask opening. */
-const DUR = { s: 1.0, h: 0.3, k: 0.25, o: 0.7 } as const;
+/** Seconds for each move: the opening, a finding's hover, the ask circle's hover, the ask opening, the routes' hover. */
+const DUR = { s: 1.0, h: 0.3, k: 0.25, o: 0.7, r: 0.3 } as const;
 /** How far the land and the findings rise while the ask is open (design px). */
 const LIFT = 34;
 /** The ask circle's radius on the arc (design px). */
@@ -128,6 +134,7 @@ interface Live {
   h: number;
   k: number;
   o: number;
+  r: number;
 }
 
 function OverviewReady({
@@ -210,8 +217,8 @@ function OverviewReady({
 
   // ---------- the moving state, kept out of React: one render of the scene per frame while anything moves ----------
   const sceneRef = useRef<OverviewScene | null>(null);
-  const live = useRef<Live>({ s: 0, h: 0, k: 0, o: 0 });
-  const goal = useRef<Live>({ s: 0, h: 0, k: 0, o: 0 });
+  const live = useRef<Live>({ s: 0, h: 0, k: 0, o: 0, r: 0 });
+  const goal = useRef<Live>({ s: 0, h: 0, k: 0, o: 0, r: 0 });
   const hov = useRef<FindingId | null>(null);
   const selRef = useRef<Selection | null>(null);
   const [sel, setSel] = useState<Selection | null>(null);
@@ -240,6 +247,11 @@ function OverviewReady({
   const fieldTagRef = useRef<HTMLSpanElement>(null);
   const pixTagRef = useRef<HTMLDivElement>(null);
   const selWireRef = useRef<SVGLineElement>(null);
+  const routesRef = useRef<HTMLButtonElement>(null);
+  /** The route picked in the opened list (hovered or focused), if any. */
+  const pickRef = useRef<string | null>(null);
+  const endRefs = useRef(new Map<string, HTMLElement>());
+  const startRef = useRef<HTMLDivElement>(null);
   const dotRefs = useRef(new Map<FindingId, HTMLDivElement>());
   const labelRefs = useRef(new Map<FindingId, HTMLButtonElement>());
   const numeralRefs = useRef(new Map<FindingId, HTMLSpanElement>());
@@ -388,7 +400,8 @@ function OverviewReady({
             q.top - 24 < r.bottom,
         );
         const out = Math.min(r.left, r.top, DESIGN.width - r.right, DESIGN.height - r.bottom) < 0;
-        if (hit || place.behind || out) op *= 1 - e;
+        // the routes opened leave no ring label behind, not even a blurred trace
+        if (hit || place.behind || out || selected === "routes") op *= 1 - e;
       }
       label.style.opacity = op.toFixed(3);
       label.style.filter = e > 0.01 ? `blur(${(2.4 * e).toFixed(2)}px)` : "none";
@@ -409,7 +422,7 @@ function OverviewReady({
     // the opened finding keeps its dot and joins the record by one hairline, to the left of its numeral
     const sw = selWireRef.current;
     const sp =
-      selected && selected !== "field" && selected !== "results"
+      selected && selected !== "field" && selected !== "results" && selected !== "routes"
         ? layout.findings[selected]
         : undefined;
     const big = bigRef.current ? toDesign(bigRef.current, fit.scale) : null;
@@ -442,14 +455,44 @@ function OverviewReady({
       field.style.left = `${layout.field.x.toFixed(2)}px`;
       field.style.top = `${layout.field.y.toFixed(2)}px`;
     }
-    // the field mark's label leaves while the results are open, so no text stays over the blurred land
+    // the field mark's label leaves while the results or the routes are open, so no text stays on the land
     if (fieldTagRef.current)
       fieldTagRef.current.style.opacity = (
         (1 - 0.38 * h) *
         (1 - 0.3 * k) *
         (1 - oe) *
-        (selected === "results" ? 1 - e : 1)
+        (selected === "results" || selected === "routes" ? 1 - e : 1)
       ).toFixed(3);
+    // each route's end: a small amber mark, lifted with the routes, gone where the land hides it
+    const lifted = Math.max(live.current.r, selected === "routes" ? e : 0);
+    for (const r of layout.routeEnds) {
+      const el = endRefs.current.get(r.id);
+      if (!el) continue;
+      el.style.left = `${r.at.x.toFixed(2)}px`;
+      el.style.top = `${r.at.y.toFixed(2)}px`;
+      const under = selected && selected !== "routes" ? 1 - 0.4 * e : 1;
+      const pick = selected === "routes" ? pickRef.current : null;
+      const quiet = pick && pick !== r.id ? ROUTE_QUIET : 1;
+      el.style.opacity = (
+        r.behind ? 0 : lerp(0.75, 1, lifted) * under * (1 - 0.15 * oe) * quiet
+      ).toFixed(3);
+      el.style.setProperty("--lift", (pick === r.id ? 2 : lifted).toFixed(3));
+      // its number, matching the opened list, shows once the routes are opened
+      el.style.setProperty(
+        "--num",
+        (selected === "routes" ? clamp01((e - 0.5) / 0.5) : 0).toFixed(3),
+      );
+    }
+    // the routes' shared start, named from the record while the routes are opened
+    const start = startRef.current;
+    if (start && layout.routeStart) {
+      start.style.left = `${layout.routeStart.at.x.toFixed(2)}px`;
+      start.style.top = `${layout.routeStart.at.y.toFixed(2)}px`;
+      const shown =
+        selected === "routes" && !layout.routeStart.behind ? clamp01((e - 0.5) / 0.5) : 0;
+      start.style.opacity = shown.toFixed(3);
+      start.style.visibility = shown === 0 ? "hidden" : "visible";
+    }
     const pix = pixTagRef.current;
     if (pix && layout.pixelTop) {
       pix.style.left = `${layout.pixelTop.x.toFixed(2)}px`;
@@ -475,7 +518,7 @@ function OverviewReady({
     let moving = false;
     const l = live.current;
     const gl = goal.current;
-    for (const key of ["s", "h", "k", "o"] as const) {
+    for (const key of ["s", "h", "k", "o", "r"] as const) {
       const d = gl[key] - l[key];
       const step = dt / DUR[key];
       l[key] = Math.abs(d) <= step ? gl[key] : l[key] + Math.sign(d) * step;
@@ -486,7 +529,7 @@ function OverviewReady({
       selRef.current = null;
       setSel(null);
     }
-    scene.render({ ...l, sel: selRef.current });
+    scene.render({ ...l, sel: selRef.current, route: pickRef.current });
     raf.current = moving ? requestAnimationFrame(frame) : 0;
   }, []);
   const go = useCallback(() => {
@@ -559,7 +602,7 @@ function OverviewReady({
     setRecordData({});
   }, [listing.caseRevision]);
   useEffect(() => {
-    if (!sel || sel === "field" || sel === "results" || recordData[sel]) return;
+    if (!sel || sel === "field" || sel === "results" || sel === "routes" || recordData[sel]) return;
     const id = sel;
     const ac = new AbortController();
     loadRecord(id, listing, snapshot, data?.pixel?.series ?? null, undefined, ac.signal).then(
@@ -576,10 +619,31 @@ function OverviewReady({
       ac.abort();
     };
   }, [sel, recordData, listing, snapshot, data]);
+  // the routes' figures and cost function, read from their bundle through the read API once the land is in
+  const [routesLoad, setRoutesLoad] = useState<RoutesLoad>({ status: "loading" });
+  const caseId = snapshot.case.id;
+  useEffect(() => {
+    if (!data?.routes.length) return;
+    const ac = new AbortController();
+    setRoutesLoad({ status: "loading" });
+    loadRoutesRecord(caseId, data.routes, undefined, ac.signal).then(
+      (record) => {
+        setRoutesLoad({ status: "ready", record });
+      },
+      (e: unknown) => {
+        if (ac.signal.aborted) return;
+        console.error("Routes not loaded", e);
+        setRoutesLoad({ status: "failed" });
+      },
+    );
+    return () => {
+      ac.abort();
+    };
+  }, [caseId, data]);
   // the record's words are placed with the next frame
   useEffect(() => {
     go();
-  }, [sel, recordData, go]);
+  }, [sel, recordData, routesLoad, go]);
 
   // ---------- interaction ----------
   const hover = (id: FindingId, on: boolean) => {
@@ -587,15 +651,29 @@ function OverviewReady({
     goal.current.h = on ? 1 : 0;
     go();
   };
+  const pickRoute = useCallback(
+    (id: string | null) => {
+      pickRef.current = id;
+      go();
+    },
+    [go],
+  );
+  const hoverRoutes = (on: boolean) => {
+    goal.current.r = on ? 1 : 0;
+    go();
+  };
   const open = (id: Selection) => {
     if (selRef.current && selRef.current !== id) return;
     selRef.current = id;
     setSel(id);
+    pickRef.current = null;
     goal.current.s = 1;
     setAskOpen(false);
     go();
     window.setTimeout(() => {
-      (id === "results" ? firstResultRef.current : linkRef.current)?.focus({ preventScroll: true });
+      (id === "results" || id === "routes" ? firstResultRef.current : linkRef.current)?.focus({
+        preventScroll: true,
+      });
     }, 0);
   };
   const back = useCallback(() => {
@@ -603,6 +681,7 @@ function OverviewReady({
     goal.current.s = 0;
     go();
     if (was === "field") fieldRef.current?.focus({ preventScroll: true });
+    else if (was === "routes") routesRef.current?.focus({ preventScroll: true });
     else if (was === "results")
       // the ask circle comes back with the overview
       window.setTimeout(() => askCircleRef.current?.focus({ preventScroll: true }), DUR.s * 1000);
@@ -636,9 +715,25 @@ function OverviewReady({
     setAskOpen(false);
   }, []);
 
-  const credit = `${CREDITS.map((id) => en[id].text).join(". ")}.`;
+  // the routes' start, the place the proposed_routes summary names, with the credit its source requires
+  const origin = useMemo((): Place | null => {
+    if (routesLoad.status !== "ready") return null;
+    try {
+      return placesFrom(snapshot, [routesLoad.record.cost.originId])[0] ?? null;
+    } catch {
+      return null;
+    }
+  }, [routesLoad, snapshot]);
+  // the routes numbered in the opened list's order
+  const routeNumber = useMemo(() => {
+    const order = routesLoad.status === "ready" ? routesLoad.record.order : undefined;
+    return new Map(inBundleOrder(data?.routes ?? [], order).map((r, i) => [r.id, i + 1]));
+  }, [data, routesLoad]);
+  const credits: string[] = CREDITS.map((id) => en[id].text);
+  if (sel === "routes" && origin) credits.push(origin.attribution);
+  const credit = `${credits.join(". ")}.`;
   const selFinding =
-    sel && sel !== "field" && sel !== "results"
+    sel && sel !== "field" && sel !== "results" && sel !== "routes"
       ? (findings.find((f) => f.id === sel) ?? null)
       : null;
   const results = sel === "results" ? ask.commandId : null;
@@ -699,6 +794,26 @@ function OverviewReady({
               <div ref={pixTagRef} className={styles.pixTag}>
                 <span>{en["overview.pixel"].text}</span>
               </div>
+              {data.routes.map((r) => (
+                <span
+                  key={r.id}
+                  className={styles.site}
+                  data-route-end={r.member}
+                  aria-hidden="true"
+                  ref={(el) => {
+                    if (el) endRefs.current.set(r.id, el);
+                    else endRefs.current.delete(r.id);
+                  }}
+                >
+                  <i className={styles.siteRing} />
+                  <span className={styles.siteNum}>{routeNumber.get(r.id)}</span>
+                </span>
+              ))}
+              {origin ? (
+                <div ref={startRef} className={styles.startTag} data-route-start>
+                  <span>{origin.name}</span>
+                </div>
+              ) : null}
             </>
           ) : null}
           <section className={styles.findings} aria-label={en["overview.findings"].text}>
@@ -748,6 +863,34 @@ function OverviewReady({
             </span>
             <span>{format("instrument.layers.scale", { value: EXAG })}</span>
           </div>
+          {data && data.routes.length ? (
+            <button
+              ref={routesRef}
+              type="button"
+              className={styles.routes}
+              data-routes-entry
+              aria-expanded={sel === "routes"}
+              onPointerEnter={() => {
+                hoverRoutes(true);
+              }}
+              onPointerLeave={() => {
+                hoverRoutes(false);
+              }}
+              onFocus={() => {
+                hoverRoutes(true);
+              }}
+              onBlur={() => {
+                hoverRoutes(false);
+              }}
+              onClick={() => {
+                open("routes");
+              }}
+            >
+              <i className={styles.dash} aria-hidden="true" />
+              {en["overview.routes"].text}
+              <Arrow deg={45} className={styles.tagArrow} />
+            </button>
+          ) : null}
         </footer>
         <p className={styles.credit}>{credit}</p>
         {failed ? (
@@ -764,7 +907,15 @@ function OverviewReady({
                 refs={{ root: recRef, inst: instRef, frost: frostRef, first: firstResultRef }}
               />
             ) : null}
-            {sel !== "results" ? (
+            {sel === "routes" && data ? (
+              <OverviewRoutes
+                routes={data.routes}
+                load={routesLoad}
+                onPick={pickRoute}
+                refs={{ root: recRef, inst: instRef, frost: frostRef, first: firstResultRef }}
+              />
+            ) : null}
+            {sel !== "results" && sel !== "routes" ? (
               <OverviewRecord
                 sel={sel}
                 finding={selFinding}

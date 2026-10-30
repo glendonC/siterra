@@ -2,10 +2,13 @@
 // valley's long axis inside one upright hairline arc of a large circle, open at the bottom, whose ends fade to
 // nothing. The arc draws on its own canvas over the land's depth, so the land's depth of field does not soften it.
 // Opening a finding orbits the camera toward that finding's side and closes in, moves the arc away and rolls the
-// finding round to face its record, and blurs the land outside a band around the focus. The page (React) owns the
-// words; every render hands it the screen positions it needs (design px at 1440 x 900, see `fit`).
+// finding round to face its record, and blurs the land outside a band around the focus. The case's proposed walking
+// routes lie on the land as fine dashed amber lines (dashes of a fixed length on screen), draped on the drawn relief;
+// hovering their entry lifts them, and selecting it moves the view toward them with the land under them kept sharp.
+// The page (React) owns the words; every render hands it the screen positions it needs (design px at 1440 x 900).
 
 import {
+  Color,
   LinearFilter,
   LinearMipmapLinearFilter,
   LinearSRGBColorSpace,
@@ -70,6 +73,20 @@ const ND = { az: 40, el: 33, dist: 42, x: 360, y: 600 } as const;
  * clear of the record on the right.
  */
 const WIDE = { fh: 560, cx: 300, cy: 470 } as const;
+/**
+ * The routes opened: the view of the pixel's side, a little higher, closed in until every route fits the box (design
+ * px) on the left, clear of the arc and of the column on the right.
+ */
+const RT = { el: 40, w: 470, h: 320, cx: 370, cy: 570 } as const;
+/**
+ * The routes' dashes and gaps on screen (design px), their width at rest and lifted (CSS px), their opacity, and the
+ * dark edge under each dash that keeps the amber legible on the lit land (extra width, opacity).
+ */
+const DASH = { dash: 6, gap: 4, w0: 1.5, w1: 2.2, a0: 0.85, a1: 1, edge: 1.6, edgeA: 0.5 } as const;
+/** How far the routes not picked in the opened list step back (opacity factor). */
+export const ROUTE_QUIET = 0.35;
+/** Metres between two points where a route is draped on the drawn relief, and its height over it. */
+const DRAPE = { step: 7.5, over: 4 } as const;
 /** The pixel's clock in D4: its turn (ND.az - OV.az) is the turn for a finding at that clock. */
 const PIXEL_CLOCK = 52;
 const TURN = (ND.az - OV.az) / Math.sin((PIXEL_CLOCK * Math.PI) / 180);
@@ -77,8 +94,11 @@ const TURN = (ND.az - OV.az) / Math.sin((PIXEL_CLOCK * Math.PI) / 180);
 const DEG = Math.PI / 180;
 const rad = (d: number) => d * DEG;
 
-/** A finding, the field check on the land, or the ask's results (which move as the whole catchment's finding). */
-export type Selection = FindingId | "field" | "results";
+/**
+ * A finding, the field check on the land, the ask's results (which move as the whole catchment's finding), or the
+ * proposed walking routes.
+ */
+export type Selection = FindingId | "field" | "results" | "routes";
 
 export interface SceneState {
   /** Opening of the selection: 0 rest, 1 opened. */
@@ -87,6 +107,10 @@ export interface SceneState {
   h: number;
   k: number;
   o: number;
+  /** The routes' entry hovered or focused (0 to 1). */
+  r: number;
+  /** One route picked in the opened list (its context feature id): it is lifted and the others quieted. */
+  route?: string | null;
   /** The finding opening or open (kept while it closes). */
   sel: Selection | null;
 }
@@ -116,6 +140,10 @@ export interface OverviewLayout {
   ask: Point;
   field: Point | null;
   pixelTop: Point | null;
+  /** The end of each proposed route (its candidate site) on screen, and whether the land hides it. */
+  routeEnds: { id: string; at: Point; behind: boolean }[];
+  /** Where the routes start (their shared first vertex) on screen, when the case has routes. */
+  routeStart: { at: Point; behind: boolean } | null;
 }
 
 export interface Gaps {
@@ -264,6 +292,103 @@ export function mountOverview(
     : null;
   if (pixelLine) scene.add(pixelLine);
 
+  // the drawn relief's own height at a place: the 30 m grid's triangles, split as createRelief splits them
+  const meshHeight = (E: number, N: number): number => {
+    const x = (E - g.E0) / g.res - 0.5;
+    const y = (g.N0 - N) / g.res - 0.5;
+    const i = Math.max(0, Math.min(g.width - 2, Math.floor(x)));
+    const j = Math.max(0, Math.min(g.height - 2, Math.floor(y)));
+    const fx = Math.max(0, Math.min(1, x - i));
+    const fy = Math.max(0, Math.min(1, y - j));
+    const at = (n: number) => H[n] ?? 0;
+    const ha = at(j * g.width + i);
+    const hb = at(j * g.width + i + 1);
+    const hc = at((j + 1) * g.width + i);
+    const hd = at((j + 1) * g.width + i + 1);
+    if (Math.abs(ha - hd) < Math.abs(hb - hc))
+      return fy >= fx ? ha + fx * (hd - hc) + fy * (hc - ha) : ha + fx * (hb - ha) + fy * (hd - hb);
+    return fx + fy <= 1
+      ? ha + fx * (hb - ha) + fy * (hc - ha)
+      : hd + (1 - fx) * (hc - hd) + (1 - fy) * (hb - hd);
+  };
+  // the proposed walking routes, draped on the drawn relief: each record vertex and points every 7.5 m between them
+  // set on the relief's own surface, so no stretch of a line runs above a ridge or under the land
+  const routePts: Vec3[][] = data.routes.map((r) => {
+    const out: Vec3[] = [];
+    r.pts.forEach(([E1, N1], i) => {
+      const prev = r.pts[i - 1];
+      const [E0, N0] = prev ?? [E1, N1];
+      const n = prev ? Math.max(1, Math.ceil(Math.hypot(E1 - E0, N1 - N0) / DRAPE.step)) : 1;
+      for (let k = prev ? 1 : 0; k <= n; k++) {
+        const E = E0 + ((E1 - E0) * k) / n;
+        const N = N0 + ((N1 - N0) * k) / n;
+        out.push(frame.v(E, N, meshHeight(E, N) + DRAPE.over));
+      }
+    });
+    return out;
+  });
+  const dashMat = (color: string, width: number, opacity: number) =>
+    new LineMaterial({
+      color: new Color(color),
+      linewidth: width,
+      worldUnits: false,
+      dashed: true,
+      dashSize: DASH.dash,
+      gapSize: DASH.gap,
+      dashScale: 1,
+      transparent: true,
+      opacity,
+      depthTest: true,
+      depthWrite: false,
+    });
+  // one line per route (its amber dashes over a dark edge), so a route picked in the list can be lifted alone
+  const routeDraw = routePts.flatMap((pl, k) => {
+    const id = data.routes[k]?.id;
+    const seg: number[] = [];
+    for (let i = 0; i + 1 < pl.length; i++) {
+      const p = pl[i];
+      const q = pl[i + 1];
+      if (p && q) seg.push(...p, ...q);
+    }
+    if (!id || !seg.length) return [];
+    const geo = new LineSegmentsGeometry();
+    geo.setPositions(seg);
+    const mat = dashMat(C.route, DASH.w0, DASH.a0);
+    const edgeMat = dashMat(C.fog, DASH.w0 + DASH.edge, DASH.edgeA);
+    const edge = new LineSegments2(geo, edgeMat);
+    edge.computeLineDistances();
+    edge.frustumCulled = false;
+    edge.renderOrder = 5;
+    const line = new LineSegments2(geo, mat);
+    line.frustumCulled = false;
+    line.renderOrder = 6;
+    scene.add(edge, line);
+    return [{ id, geo, mat, edgeMat }];
+  });
+  // each route's end, its candidate site, a little over the land; the routes' middle, the place the view turns to
+  const routeEnds = data.routes.map((r) => {
+    const [E, N] = r.pts[r.pts.length - 1] ?? [0, 0];
+    return { id: r.id, p: frame.v(E, N, sample(E, N) + 10) };
+  });
+  const [E0s, N0s] = data.routes[0]?.pts[0] ?? [0, 0];
+  const routeStart: Vec3 | null = data.routes.length
+    ? frame.v(E0s, N0s, sample(E0s, N0s) + 10)
+    : null;
+  const routeAll = data.routes.flatMap((r) => r.pts);
+  const RC: Vec3 | null = routeAll.length
+    ? (() => {
+        const Es = routeAll.map((q) => q[0]);
+        const Ns = routeAll.map((q) => q[1]);
+        const E = (Math.min(...Es) + Math.max(...Es)) / 2;
+        const N = (Math.min(...Ns) + Math.max(...Ns)) / 2;
+        return frame.v(E, N, sample(E, N));
+      })()
+    : null;
+  // a few points of every route, enough to box them on screen
+  const routeProbe = routePts.flatMap((pl) =>
+    pl.filter((_, i) => i % 6 === 0 || i === pl.length - 1),
+  );
+
   // ---------- design px and the screen ----------
   let fit = { scale: 1, ox: 0, oy: 0 };
   const updateFit = () => {
@@ -354,6 +479,19 @@ export function mountOverview(
     findings.find(
       (f) => f.id === (sel === "field" ? "pixel" : sel === "results" ? "catchment" : sel),
     )?.clock ?? PIXEL_CLOCK;
+  /** The routes opened: the pixel's bearing, closed in until every route fits RT's box. */
+  const routesView = (target: Vec3): View => {
+    const base = { target, azimuth: ND.az, elevation: RT.el, shift: [0, 0] as [number, number] };
+    let distance = ND.dist;
+    for (let it = 0; it < 10; it++) {
+      set({ ...base, distance });
+      const b = bbox(routeProbe.map(project));
+      distance *= Math.max((b.y1 - b.y0) / RT.h, (b.x1 - b.x0) / RT.w);
+    }
+    set({ ...base, distance });
+    const b = bbox(routeProbe.map(project));
+    return { ...base, distance, shift: [RT.cx - (b.x0 + b.x1) / 2, RT.cy - (b.y0 + b.y1) / 2] };
+  };
   const views = new Map<Selection, View>();
   /**
    * Each finding's view, derived as D4 derived the pixel's: the camera orbits toward the finding's clock direction
@@ -365,7 +503,12 @@ export function mountOverview(
     if (known) return known;
     const az = OV.az + TURN * Math.sin(rad(clockOf(sel)));
     const place = sel === "pixel" || sel === "field" ? TP : sel === "band" ? TB : null;
-    const v = place ? pointAt(place, az) : fitLand(az, ND.el, WIDE.fh, WIDE.cx, WIDE.cy);
+    const v =
+      sel === "routes" && RC
+        ? routesView(RC)
+        : place
+          ? pointAt(place, az)
+          : fitLand(az, ND.el, WIDE.fh, WIDE.cx, WIDE.cy);
     views.set(sel, v);
     return v;
   };
@@ -373,6 +516,7 @@ export function mountOverview(
   for (const f of findings) viewFor(f.id);
   viewFor("field");
   viewFor("results");
+  if (RC) viewFor("routes");
   set(view0);
   const viewAt = (v0: View, v1: View, e: number): View => {
     // azimuth the short way round, distance in log space, target and lens shift linear
@@ -388,6 +532,7 @@ export function mountOverview(
 
   // ---------- the arc ----------
   const fwd = new Vector3();
+  const dashR = new Vector3();
   const camR = new Vector3();
   const camU = new Vector3();
   let DC = new Vector3();
@@ -523,14 +668,13 @@ export function mountOverview(
 
   // ---------- depth of field: a blurred copy outside a sharp band around the focus ----------
   const bctx = canvases.blur.getContext("2d");
-  const depthOfField = (e: number, focusY: number) => {
+  const depthOfField = (e: number, top: number, bottom: number) => {
     const glc = canvases.land;
     if (e <= 0.001 || !bctx) {
       canvases.blur.style.opacity = "0";
       glc.style.maskImage = "none";
       return;
     }
-    const band = 70;
     const ramp = 150;
     const H2 = stage.size().height;
     const pc = (y: number) => `${((Math.max(0, Math.min(H2, y)) / H2) * 100).toFixed(2)}%`;
@@ -540,17 +684,17 @@ export function mountOverview(
     const k = maskAt(1);
     const none = maskAt(0);
     const rest = maskAt(1 - e);
-    const y0 = pc(focusY - band - ramp);
-    const y1 = pc(focusY - band);
-    const y2 = pc(focusY + band * 0.8);
-    const y3 = pc(focusY + band * 0.8 + ramp);
+    const y0 = pc(top - ramp);
+    const y1 = pc(top);
+    const y2 = pc(bottom);
+    const y3 = pc(bottom + ramp);
     canvases.blur.style.maskImage = `linear-gradient(to bottom, ${k} 0%, ${k} ${y0}, ${none} ${y1}, ${none} ${y2}, ${k} ${y3}, ${k} 100%)`;
     canvases.blur.style.opacity = "1";
     glc.style.maskImage = `linear-gradient(to bottom, ${rest} 0%, ${rest} ${y0}, ${k} ${y1}, ${k} ${y2}, ${rest} ${y3}, ${rest} 100%)`;
   };
 
   // ---------- one function sets every state ----------
-  let state: SceneState = { s: 0, h: 0, k: 0, o: 0, sel: null };
+  let state: SceneState = { s: 0, h: 0, k: 0, o: 0, r: 0, sel: null };
   let current = { e: 0, view: view0, selClock: PIXEL_CLOCK };
   const listeners: ((l: OverviewLayout) => void)[] = [];
   let gapWaiters: ((g: Gaps) => void)[] = [];
@@ -561,6 +705,10 @@ export function mountOverview(
     if (drawn.w !== width || drawn.h !== height) {
       r2.setSize(width, height, false);
       dialMat.resolution.set(width, height);
+      for (const d of routeDraw) {
+        d.mat.resolution.set(width, height);
+        d.edgeMat.resolution.set(width, height);
+      }
     }
     const glc = canvases.land;
     if (drawn.bw !== glc.width || drawn.bh !== glc.height) {
@@ -580,8 +728,12 @@ export function mountOverview(
     buildDial(span);
     r2.render(scene2, camera);
     const target = state.sel ? viewFor(state.sel).target : view0.target;
-    const focus = project(target);
-    depthOfField(e, fit.oy + focus.y * fit.scale);
+    const focus = fit.oy + project(target).y * fit.scale;
+    // the sharp band: around the focus, or, for the routes, over all of them so no land under a route is blurred
+    if (state.sel === "routes" && routeProbe.length) {
+      const b = bbox(routeProbe.map(project));
+      depthOfField(e, fit.oy + (b.y0 - 28) * fit.scale, fit.oy + (b.y1 + 28) * fit.scale);
+    } else depthOfField(e, focus - 70, focus + 56);
     if (gapWaiters.length) {
       const gaps = landGaps();
       for (const w of gapWaiters) w(gaps);
@@ -611,6 +763,8 @@ export function mountOverview(
       pixelTop: pixelPts.length
         ? pixelPts.map(project).reduce((b, q) => (q.y < b.y ? q : b))
         : null,
+      routeEnds: routeEnds.map((r) => ({ id: r.id, at: project(r.p), behind: occluded(r.p) })),
+      routeStart: routeStart ? { at: project(routeStart), behind: occluded(routeStart) } : null,
     };
     for (const l of listeners) l(layout);
   });
@@ -688,6 +842,27 @@ export function mountOverview(
       const dim = 1 - 0.15 * ease(next.o);
       relief.uniforms.uDim.value = dim;
       wall.uniforms.uDim.value = dim;
+      // the routes: lifted while their entry is hovered and when opened, a little quieter under another opened record;
+      // their dashes keep one length on screen at every distance
+      if (routeDraw.length && RC) {
+        const lift = Math.max(next.r, next.sel === "routes" ? e : 0);
+        const under = next.sel && next.sel !== "routes" ? 1 - 0.4 * e : 1;
+        const pick = next.sel === "routes" ? (next.route ?? null) : null;
+        camera.updateMatrixWorld();
+        dashR.setFromMatrixColumn(camera.matrixWorld, 0).normalize();
+        const a = project(RC);
+        const b = project(arr(v3(RC).add(dashR)));
+        const scale = Math.hypot(b.x - a.x, b.y - a.y);
+        for (const d of routeDraw) {
+          const quiet = pick && pick !== d.id ? ROUTE_QUIET : 1;
+          d.mat.opacity = lerp(DASH.a0, DASH.a1, lift) * under * dim * quiet;
+          d.mat.linewidth = pick === d.id ? DASH.w1 + 0.5 : lerp(DASH.w0, DASH.w1, lift);
+          d.edgeMat.opacity = DASH.edgeA * under * dim * quiet;
+          d.edgeMat.linewidth = d.mat.linewidth + DASH.edge;
+          d.mat.dashScale = scale;
+          d.edgeMat.dashScale = scale;
+        }
+      }
       if (pixelLine) {
         const on = next.sel === "pixel" || next.sel === "field";
         pixelLine.material.opacity = on ? Math.min(0.999, clamp01((e - 0.55) / 0.45)) : 0;
@@ -707,6 +882,11 @@ export function mountOverview(
     dispose() {
       if (dialLine) dialLine.geometry.dispose();
       dialMat.dispose();
+      for (const d of routeDraw) {
+        d.geo.dispose();
+        d.mat.dispose();
+        d.edgeMat.dispose();
+      }
       for (const o of scene2.children)
         if (o instanceof Mesh && o.material instanceof ShaderMaterial) o.material.dispose();
       r2.dispose();

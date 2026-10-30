@@ -20,7 +20,7 @@ import type { Selection } from "../../lib/overview/scene/overview";
 import styles from "./OverviewRecord.module.css";
 
 /** The full instrument each record opens. */
-export const INSTRUMENT_HREF: Record<Exclude<Selection, "results">, string> = {
+export const INSTRUMENT_HREF: Record<Exclude<Selection, "results" | "routes">, string> = {
   catchment: "/instruments/layers",
   fdr: "/instruments/layers",
   band: "/instruments/cutaway",
@@ -145,7 +145,7 @@ export function OverviewRecord({
   fieldCaption,
   refs,
 }: {
-  sel: Exclude<Selection, "results">;
+  sel: Exclude<Selection, "results" | "routes">;
   /** The opened finding (none for the field check). */
   finding: Finding | null;
   caption: string[];

@@ -126,6 +126,81 @@ test("opens a finding's record on its side and Esc returns", async ({ page }) =>
   expect(sent).toEqual([]);
 });
 
+test("the proposed routes lie on the land, lift on hover, open with the bundle's figures, and Esc returns", async ({
+  page,
+}) => {
+  const sent = writes(page);
+  await ready(page);
+  const ends = page.locator("[data-route-end]");
+  await expect(ends).toHaveCount(4);
+  const end = (member: string) => opacity(page, `[data-route-end='${member}']`);
+  const entry = page.locator("[data-routes-entry]");
+  await expect(entry).toHaveText("Proposed walking routes, access unconfirmed");
+  // at rest the ends are quiet; hovering the one entry lifts every route
+  await expect.poll(() => end("route_tabant_band_3")).toBeCloseTo(0.75, 2);
+  await entry.hover();
+  await expect.poll(() => end("route_tabant_band_3")).toBe(1);
+
+  // opened: each route as the record names it, its figures from route_lines rounded once, the cost function in grey
+  await entry.click();
+  const record = page.locator("[data-record='routes']");
+  await expect(record.locator("[data-route]")).toHaveCount(4);
+  await expect(record.locator("[data-route-figures]")).toHaveText([
+    "550 m, climb 20 m, estimated 12 min one way",
+    "500 m, climb 130 m, estimated 24 min one way",
+    "3.9 km, climb 560 m, estimated 2 h 20 min one way",
+    "6.6 km, climb 1,060 m, estimated 4 h 10 min one way",
+  ]);
+  await expect(record.locator("[data-route]").first()).toContainText(
+    "Proposed route to the pixel the case opens",
+  );
+  await expect(record.locator("[data-route='route_tabant_band_2']")).toContainText(
+    "Proposed route to elevation band 2",
+  );
+  await expect(record.locator("[data-route='route_tabant_band_2']")).toContainText(
+    "Candidate site chosen by a stated rule",
+  );
+  await expect(record.locator("[data-routes-cost]")).toHaveText(
+    "Cost function: Tobler's hiking function, times 0.6 off path; horizontal length over speed, one way, no load, no rest.",
+  );
+  await expect.poll(() => opacity(page, "[data-record]")).toBe(1);
+  expect(await textReport(page, "[data-record]")).toEqual({ overlaps: [], small: [], outside: [] });
+  // each route numbered in the list as its end is on the land; the shared start named from the record, with its
+  // credit; no ring label left, not even a trace
+  await expect(record.locator("[data-route-number]")).toHaveText(["1", "2", "3", "4"]);
+  for (const [member, n] of [
+    ["route_tabant_pixel_h17v05r4005c2178", "1"],
+    ["route_tabant_band_1", "2"],
+    ["route_tabant_band_2", "3"],
+    ["route_tabant_band_3", "4"],
+  ] as const)
+    await expect(page.locator(`[data-route-end='${member}']`)).toHaveText(n);
+  await expect(page.locator("[data-route-start]")).toHaveText("Tabant");
+  await expect.poll(() => opacity(page, "[data-route-start]")).toBe(1);
+  await expect(page.getByText("GeoNames, CC BY 4.0", { exact: false })).toBeAttached();
+  for (const label of await page.locator("[data-finding]").all())
+    expect(await label.evaluate((el) => Number((el as HTMLElement).style.opacity))).toBe(0);
+  // the routes stay sharp: the land is blurred outside them, every end is shown
+  await expect
+    .poll(() =>
+      page
+        .locator("canvas")
+        .nth(1)
+        .evaluate((el) => (el as HTMLElement).style.opacity),
+    )
+    .toBe("1");
+  // a route picked with the keyboard is lifted alone
+  await record.locator("[data-route='route_tabant_band_1']").focus();
+  await page.keyboard.press("Tab");
+  await expect(record.locator("[data-route='route_tabant_band_2']")).toBeFocused();
+  await expect.poll(() => end("route_tabant_band_2")).toBe(1);
+  await expect.poll(() => end("route_tabant_band_3")).toBeCloseTo(0.35, 2);
+  await page.keyboard.press("Escape");
+  await expect(record).toHaveCount(0);
+  await expect(entry).toBeFocused();
+  expect(sent).toEqual([]);
+});
+
 test("the ask opens and closes by its circle and by the slash key, and sends nothing", async ({
   page,
 }) => {

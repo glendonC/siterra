@@ -724,6 +724,29 @@ export const en = {
   "overview.finding.fdr.2": { text: "false discovery rate check", kind: "label" },
   "overview.field": { text: "Proposed field check, not measured", kind: "label", honesty: true },
   "overview.pixel": { text: "This pixel", kind: "label" },
+  // the proposed walking routes (U12): the entry, and the opened column; numbers and route names come from the record
+  "overview.routes": {
+    text: "Proposed walking routes, access unconfirmed",
+    kind: "label",
+    honesty: true,
+  },
+  "overview.routes.grey": {
+    text: "From {origin}. Model estimates, {not}.",
+    kind: "ui",
+    honesty: true,
+  },
+  "overview.routes.figures": {
+    text: "{length}, climb {climb}, estimated {time} one way",
+    kind: "label",
+  },
+  "overview.routes.cost": {
+    text: "Cost function: {name}, times {factor} off path; {time}.",
+    kind: "ui",
+  },
+  "overview.routes.unread": {
+    text: "Length, climb and time not loaded. Reload the page to retry.",
+    kind: "ui",
+  },
   "overview.key.tree": { text: "Tree cover", kind: "label" },
   "overview.key.crop": { text: "Cropland or built-up, {year}", kind: "label" },
   // the opened finding's record (D4's opened node): a kicker, the number, its caption, the season chart and its

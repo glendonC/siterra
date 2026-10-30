@@ -120,6 +120,8 @@ export const overviewColours = {
   arcLit: [0.769, 0.839, 0.859] as Channels,
   /** The opened pixel's footprint on the land. */
   footprint: "#f4f7f8",
+  /** The proposed walking routes: the one warm amber, for a proposed thing. */
+  route: obsidian.accent,
   drainage: modelColours.drainage,
 } as const;
 

@@ -1,0 +1,109 @@
+/* The proposed walking routes opened, in the opened record's place (D4's .inst at 800, 120, 560 wide), flat and
+   level as the results column, in the tokens of app/obsidian.css. Amber only for the candidate-site marks. */
+
+.routes {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.frost {
+  position: absolute;
+  pointer-events: none;
+  backdrop-filter: blur(18px) saturate(0.6);
+  background: var(--ov-frost);
+  mask-image: var(--ov-frost-mask);
+}
+
+.inst {
+  position: absolute;
+  left: 800px;
+  top: 150px;
+  width: 520px;
+}
+
+.caption {
+  margin: 0;
+  font-size: 20px;
+  line-height: 28px;
+  text-wrap: pretty;
+}
+
+.ink {
+  color: var(--text-primary);
+}
+
+.grey {
+  color: var(--text-tertiary);
+}
+
+.list {
+  margin: 30px 0 0;
+  padding: 0;
+  list-style: none;
+  pointer-events: auto;
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin: 0 0 20px;
+  outline: none;
+}
+
+.item:focus-visible {
+  outline: 1px solid var(--ov-focus);
+  outline-offset: 4px;
+}
+
+.title {
+  font-size: 15px;
+  line-height: 21px;
+  color: var(--text-primary);
+}
+
+.figures {
+  padding-left: 18px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.end {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding-left: 18px;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--text-tertiary);
+}
+
+/* the candidate-site mark, as on the land: a hollow amber ring */
+.site {
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border: 1.5px solid var(--accent);
+  border-radius: 50%;
+  box-sizing: border-box;
+}
+
+/* the route's number, as beside its end on the land */
+.num {
+  display: inline-block;
+  min-width: 18px;
+  color: var(--ov-amber-tag);
+  font-variant-numeric: tabular-nums;
+}
+
+.cost {
+  margin: 8px 0 0;
+  font-size: 13px;
+  line-height: 19px;
+  color: var(--text-tertiary);
+  text-wrap: pretty;
+}

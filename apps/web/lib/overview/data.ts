@@ -1,6 +1,7 @@
 // The overview's data. From the case, through the instrument specs' assets (checksums checked): the catchment
 // outline (the layer stack spec's drawn catchment_outline), the rivers from the case's drainage context features,
-// and the proposed field check's place, the pixel (the pixel anatomy spec's footprint). Still from the valley
+// the proposed field check's place, the pixel (the pixel anatomy spec's footprint), and the proposed walking routes
+// from the case's route_proposed context features. Still from the valley
 // fixtures, as the layer stack reads them: the 30 m relief, its terrain metadata and the 10 m land cover raster.
 
 import type { CaseSnapshot, InstrumentView } from "@siterra/contracts";
@@ -17,6 +18,7 @@ import {
   type TerrainMeta,
 } from "../instruments/valley/fixtures";
 import { outlineRing } from "../instruments/valley/outline";
+import { routesFrom, type RouteLine } from "./routes";
 
 type Fetch = (input: string, init?: RequestInit) => Promise<Response>;
 
@@ -29,6 +31,8 @@ export interface OverviewData {
   /** The catchment outline in EPSG:32629 metres. */
   ring: [number, number][];
   rivers: Rivers;
+  /** The case's proposed walking routes (none when the case holds none). */
+  routes: RouteLine[];
   /** The pixel the field check is proposed at: its four corners and its centre (EPSG:32629), when the case has it. */
   pixel: {
     footprint: [number, number][];
@@ -81,6 +85,7 @@ export async function loadOverviewData(
     landcover,
     ring: outlineRing(outline),
     rivers: riversFrom(snapshot, p.drainageFeatureIds),
+    routes: routesFrom(snapshot),
     pixel:
       footprint && casePixel
         ? { footprint, centre: centreOf(footprint), series: casePixel.pixel.series }
