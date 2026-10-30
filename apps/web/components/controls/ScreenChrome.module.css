@@ -132,6 +132,11 @@
   outline: none;
 }
 
+.panel[data-side="left"] {
+  right: auto;
+  left: 40px;
+}
+
 .panelHead {
   display: flex;
   align-items: center;

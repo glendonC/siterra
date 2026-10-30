@@ -249,7 +249,7 @@ export function Journey({
       if (rangeText.current) {
         const name =
           s.rangeName === 0
-            ? format("globe.range", { range: arrival.rangeName })
+            ? format("globe.range", { range: arrival.regionName })
             : format("dive.highAtlas", { subrange: arrival.subrangeName });
         if (rangeText.current.textContent !== name) rangeText.current.textContent = name;
       }
@@ -260,7 +260,7 @@ export function Journey({
       cancelAnimationFrame(raf);
       renderer?.dispose();
     };
-  }, [globeAssets, arrival.rangeName, arrival.subrangeName]);
+  }, [globeAssets, arrival.regionName, arrival.subrangeName]);
 
   return (
     <div className={styles.journey} data-phase={phase}>

@@ -95,11 +95,18 @@ test("a finding opens on its own side with its footprint named, and a turned lan
   await expect(left.locator("[data-on-land]")).toContainText(
     "The share comes from the false discovery rate check over all 8,094 cells; the map marks no cell as significant.",
   );
+  // no ring label stays while a record is open, and the case question steps aside for a record on the left
+  const opacity = (sel: string) =>
+    page.locator(sel).evaluate((el) => Number(getComputedStyle(el).opacity));
+  await expect.poll(() => opacity("[data-case-question]")).toBeLessThan(0.05);
+  await expect.poll(() => opacity("[data-finding='band']")).toBeLessThan(0.05);
   await page.keyboard.press("Escape");
   await expect(page.locator("[data-record]")).toHaveCount(0);
-  // the pixel sits on the right: its record opens on the right
+  await expect.poll(() => opacity("[data-case-question]")).toBeGreaterThan(0.95);
+  // the pixel sits on the right: its record opens on the right, and the question stays
   await page.locator("[data-finding='pixel']").click();
   await expect(page.locator("[data-record='pixel']")).toHaveAttribute("data-side", "right");
+  await expect.poll(() => opacity("[data-case-question]")).toBeGreaterThan(0.95);
   await page.keyboard.press("Escape");
   await expect(page.locator("[data-record]")).toHaveCount(0);
   // a turned land: the ask steps back; R brings it back

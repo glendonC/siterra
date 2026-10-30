@@ -2,7 +2,7 @@
 
 // The ask's results (U11b), in the opened record's place on the right: the answer caption from the request's
 // BranchMerge counts (ink and grey, as the instruments set theirs), then the findings the request committed, one per
-// line, each statement exactly as recorded, two lines until focused, with its verification state in catalog words
+// line, each statement as recorded (a Source id in its text read as the Source's short citation), two lines until focused, with its verification state in catalog words
 // and its numbered source chip; a chip opens the cited locator and excerpt in a small quiet note.
 
 import type { CaseSnapshot } from "@siterra/contracts";
@@ -12,6 +12,7 @@ import {
   chipNumbers,
   commandFindings,
   commandMerge,
+  readableStatement,
   resultsCaption,
   sourceNote,
   verificationOf,
@@ -84,7 +85,9 @@ export function OverviewResults({
                       </button>
                     ) : null}
                   </span>
-                  <span className={styles.statement}>{e.statement}</span>
+                  <span className={styles.statement}>
+                    {readableStatement(snapshot, e.statement)}
+                  </span>
                   {open ? (
                     <span className={styles.note} role="note">
                       {sourceNote(snapshot, e)}

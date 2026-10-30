@@ -318,25 +318,23 @@ export function mountOverview(
         }
       })
     : null;
-  // the CHIRPS cells over the land, shaded by the share of each inside the catchment, each with its edge
+  // the CHIRPS cells over the land as tiles, shaded by the share of each inside the catchment; each tile is drawn a
+  // little inside its cell, so the untinted gaps between them mark the cells' grid without a line the eye could take
+  // for the drainage
   const rainData = data.footprints.rain;
   const rainTex = rainData
     ? paint((ctx, px) => {
         for (const c of rainData) {
+          const pts = c.ring.slice(0, -1);
+          const cx = pts.reduce((a, [E]) => a + E, 0) / pts.length;
+          const cy = pts.reduce((a, [, N]) => a + N, 0) / pts.length;
           ring(
             ctx,
-            c.ring.map(([E, N]) => px(E, N)),
+            c.ring.map(([E, N]) => px(cx + (E - cx) * 0.9, cy + (N - cy) * 0.9)),
           );
-          ctx.globalAlpha = 0.06 + 0.28 * Math.min(1, c.inside);
+          ctx.globalAlpha = 0.12 + 0.5 * Math.min(1, c.inside);
           ctx.fillStyle = C.rainCell;
           ctx.fill();
-          // dashed edges, so the cells' grid never reads as the drainage lines
-          ctx.globalAlpha = 1;
-          ctx.lineWidth = 7;
-          ctx.setLineDash([26, 18]);
-          ctx.strokeStyle = C.rainCell;
-          ctx.stroke();
-          ctx.setLineDash([]);
         }
         ctx.globalAlpha = 1;
       })

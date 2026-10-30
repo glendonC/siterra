@@ -152,6 +152,10 @@ export const en = {
     text: "Demo request limit reached for this session. Question text kept.",
     kind: "ui",
   },
+  "work.instanceLimit": {
+    text: "This instance has reached its limit for live model questions. Try again later. Question text kept.",
+    kind: "ui",
+  },
 
   // Activity panel (microcopy section 20: panel title, empty state, model badge)
   "activity.model": { text: "{model} · {route}", kind: "heading" },
@@ -798,10 +802,15 @@ export const en = {
   "results.only.many": { text: "The request added {n} findings to the case record.", kind: "ui" },
   "results.excerpt": { text: "{title}, {locator}: \u201c{excerpt}\u201d", kind: "ui" },
   "results.locator": { text: "{title}, {locator}", kind: "ui" },
+  "results.cite": { text: "{authors} {year}", kind: "label" },
+  "results.unknownSource": { text: "a source the case does not hold", kind: "label" },
+  "results.unknownBundle": { text: "Data the case does not hold", kind: "label" },
   "results.checked": { text: "Checked against the source", kind: "label" },
   "results.unchecked": { text: "Not yet checked against the source", kind: "label", honesty: true },
   "results.computed.state": { text: "Computed from the record's measurements", kind: "label" },
-  "results.computed": { text: "{bundle}. Computed from {measurements}.", kind: "ui" },
+  "results.computed.none": { text: "{bundle}.", kind: "ui" },
+  "results.computed.one": { text: "{bundle}. Computed from one of its measurements.", kind: "ui" },
+  "results.computed.many": { text: "{bundle}. Computed from {n} of its measurements.", kind: "ui" },
 } as const satisfies Record<string, Message>;
 
 export type MessageId = keyof typeof en;

@@ -9,6 +9,8 @@ import {
   commandMerge,
   resultsCaption,
   sourceKey,
+  readableStatement,
+  shortCitation,
   sourceNote,
   verificationOf,
 } from "./results";
@@ -210,8 +212,26 @@ describe("the findings list", () => {
     const loc = withSource.provenance.sourceLocators[0];
     expect(sourceNote(snapshot, withSource)).toContain(loc?.locator ?? "?");
     expect(sourceNote(snapshot, withSource)).toContain(loc?.excerpt ?? "?");
-    expect(sourceNote(snapshot, recorded)).toMatch(
-      /\. Computed from meas_s2_ndvi_monthly_ait_bouguemez_2022-04_ndvi_area_median\.$/,
+    // the computed note counts its measurements and names no record id
+    expect(sourceNote(snapshot, recorded)).toMatch(/\. Computed from one of its measurements\.$/);
+    expect(sourceNote(snapshot, recorded)).not.toMatch(/\bmeas_|\bsrc_|\bev_/);
+  });
+});
+
+describe("a statement as shown", () => {
+  const src = seed.records.sourceRecords.find((x) => x.id === "src_SCI-19");
+  it("reads a Source id in recorded text as the Source's short citation, the record unchanged", () => {
+    if (!src) throw new Error("src_SCI-19");
+    const text = "Reading src_SCI-19 is required to add located statements.";
+    const shown = readableStatement(seed, text);
+    expect(shown).toBe(`Reading ${shortCitation(src)} is required to add located statements.`);
+    expect(shown).not.toMatch(/src_/);
+    expect(shortCitation(src)).toMatch(/^\S.* \d{4}$/);
+    expect(text).toContain("src_SCI-19");
+  });
+  it("names an id the case holds no Source for as an unnamed source, never the id", () => {
+    expect(readableStatement(seed, "Reading src_SCI-99 first.")).toBe(
+      "Reading a source the case does not hold first.",
     );
   });
 });

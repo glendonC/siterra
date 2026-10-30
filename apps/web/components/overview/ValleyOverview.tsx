@@ -26,7 +26,6 @@ import { loadOverviewData, type OverviewData } from "../../lib/overview/data";
 import { findingsFrom, type Finding, type FindingId } from "../../lib/overview/findings";
 import {
   EXAG,
-  OVERVIEW_DESIGN as DESIGN,
   ROUTE_QUIET,
   awayOf,
   mountOverview,
@@ -289,6 +288,11 @@ function OverviewReady({
   const landRef = useRef<HTMLCanvasElement>(null);
   const arcRef = useRef<HTMLCanvasElement>(null);
   const blurRef = useRef<HTMLCanvasElement>(null);
+  // the place's name, area and key, bottom left: they step aside while a record is open, so no words sit on the land
+  // the opened finding brings close (lead, 30 Oct: the band's land ran under them)
+  const placeTextRef = useRef<HTMLDivElement>(null);
+  // the case question under the breadcrumb steps aside for a record opened on the left, whose kicker sits just under it
+  const questionRef = useRef<HTMLDivElement>(null);
   const hudRef = useRef<HTMLDivElement>(null);
   const liftRef = useRef<HTMLDivElement>(null);
   const cornerRef = useRef<HTMLDivElement>(null);
@@ -336,11 +340,11 @@ function OverviewReady({
   };
 
   // the record as D4's nodeHud placed it: the frost around the record, the dotted line from under the record to the
-  // context with its caption at the midpoint; returns the boxes the findings' labels keep clear of
+  // context with its caption at the midpoint
   const placeRecord = (cc: number, scale: number) => {
     const rec = recRef.current;
     const inst = instRef.current;
-    if (!rec || !inst) return [];
+    if (!rec || !inst) return;
     rec.style.opacity = cc.toFixed(3);
     rec.style.visibility = cc > 0.001 ? "visible" : "hidden";
     inst.style.transform = `translateX(${(36 * (1 - cc)).toFixed(1)}px)`;
@@ -354,14 +358,12 @@ function OverviewReady({
         width: `${(ib.right - ib.left + 220).toFixed(1)}px`,
         height: `${(ib.bottom - ib.top + 180).toFixed(1)}px`,
       });
-    const keep = [ib];
     const evid = evidRef.current;
     const link = linkRef.current;
     const svg = connectorRef.current;
     if (evid && link && svg) {
       const eb = toDesign(evid, scale);
       const lb = toDesign(link, scale);
-      keep.push(eb);
       const sx = eb.left + 20;
       const sy = lb.bottom + 16;
       const ey = eb.top - 16;
@@ -382,7 +384,6 @@ function OverviewReady({
         mid.style.top = `${((sy + ey) / 2 - 8).toFixed(1)}px`;
       }
     }
-    return cc > 0.01 ? keep : [];
   };
 
   const findingsRef = useRef(findings);
@@ -403,9 +404,32 @@ function OverviewReady({
       if (c) c.style.transform = lift;
     if (liftRef.current)
       liftRef.current.style.transform = `translateY(${(-LIFT * oe).toFixed(2)}px)`;
-    // the opened record fades in once the space has moved (D4: from 62% of the move)
-    const cc = ease(clamp01((s - 0.62) / 0.38));
-    const keep = placeRecord(cc, fit.scale);
+    // the opened record begins with the click and has settled well inside the one-second move (lead, 30 Oct: begin
+    // within about 0.3 s, settle within about 1 s), while the land is still easing toward the finding
+    const cc = ease(clamp01((s - 0.05) / 0.6));
+    placeRecord(cc, fit.scale);
+    const placeText = placeTextRef.current;
+    if (placeText) {
+      placeText.style.opacity = (1 - e).toFixed(3);
+      placeText.style.visibility = e > 0.999 ? "hidden" : "visible";
+    }
+    const question = questionRef.current;
+    if (question) {
+      const left =
+        selected !== null &&
+        sideOf(selected, findingsRef.current.find((f) => f.id === selected)?.clock) === "left"
+          ? e
+          : 0;
+      question.style.opacity = (1 - left).toFixed(3);
+      question.style.visibility = left > 0.999 ? "hidden" : "visible";
+    }
+    // the routes' entry stays while the routes are open (it names them); a finding's record takes it aside too
+    const routesEntry = routesRef.current;
+    if (routesEntry) {
+      const aside = selected !== null && selected !== "routes" ? e : 0;
+      routesEntry.style.opacity = (1 - aside).toFixed(3);
+      routesEntry.style.visibility = aside > 0.999 ? "hidden" : "visible";
+    }
     // findings: rest, hover, opened, the ask; while the ask circle is hovered the findings step back a little
     for (const f of findingsRef.current) {
       const place = layout.findings[f.id];
@@ -442,33 +466,15 @@ function OverviewReady({
       const lower = place.dot.y > layout.centre.y + 40;
       // the arc's words step back while the visitor has turned the land or brought it closer (R brings them back)
       const aw = awayOf(camRef.current);
+      // while a record is open no ring label stays, not even a faded trace (lead, 30 Oct): the opened finding is
+      // its record, and the others come back as the record closes
       let op =
         (1 - aw) *
         (1 - 0.38 * other) *
         (1 - 0.3 * k) *
-        lerp(1, isSel ? 0 : 0.3, e) *
+        (1 - e) *
         (lower ? 1 - oe : 1 - 0.16 * oe) *
         (isSel ? 1 : place.onArc);
-      if (e > 0.01) {
-        // as the record opens, every label steps back to a blurred trace; traces that would sit under the record,
-        // off the frame or behind the land go
-        const r = {
-          left: at.x,
-          top: at.y,
-          right: at.x + label.offsetWidth,
-          bottom: at.y + label.offsetHeight,
-        };
-        const hit = keep.some(
-          (q) =>
-            r.left < q.right + 24 &&
-            q.left - 24 < r.right &&
-            r.top < q.bottom + 24 &&
-            q.top - 24 < r.bottom,
-        );
-        const out = Math.min(r.left, r.top, DESIGN.width - r.right, DESIGN.height - r.bottom) < 0;
-        // the routes opened leave no ring label behind, not even a blurred trace
-        if (hit || place.behind || out || selected === "routes") op *= 1 - e;
-      }
       // what the sources panel covers is dimmed while it is open
       const panelEl = panelRef.current ? document.querySelector("[data-sources-panel]") : null;
       if (panelEl) {
@@ -477,7 +483,6 @@ function OverviewReady({
         if (lr.l < p.right && p.left < lr.r && lr.t < p.bottom && p.top < lr.b) op *= 0.25;
       }
       label.style.opacity = op.toFixed(3);
-      label.style.filter = e > 0.01 ? `blur(${(2.4 * e).toFixed(2)}px)` : "none";
       label.style.setProperty("--hov", hv.toFixed(3));
       // a label stepping back or faint takes no pointer
       const quiet = Math.max(e - 0.05, 0.2 - op) > 0;
@@ -594,7 +599,9 @@ function OverviewReady({
       raf.current = 0;
       return;
     }
-    const dt = Math.min(0.05, (t - last.current) / 1000);
+    // the moves keep wall-clock time on a slow renderer (at 0.05 a frame, a 4 fps pane stretched the one-second move
+    // to five seconds); the cap only stops one long stall from jumping a whole move
+    const dt = Math.min(0.25, (t - last.current) / 1000);
     last.current = t;
     let moving = false;
     const l = live.current;
@@ -934,7 +941,9 @@ function OverviewReady({
       <canvas ref={arcRef} className={styles.canvas} aria-hidden="true" />
       <div ref={cornerRef} className={styles.cornerfade} aria-hidden="true" />
       <div ref={hudRef} className={styles.hud}>
-        <div className={styles.question}>{snapshot.case.objective}</div>
+        <div ref={questionRef} className={styles.question} data-case-question>
+          {snapshot.case.objective}
+        </div>
         <div ref={liftRef} className={styles.lift}>
           <svg className={styles.marks} aria-hidden="true">
             {findings.map((f) => (
@@ -1026,22 +1035,24 @@ function OverviewReady({
           </section>
         </div>
         <footer className={styles.place}>
-          <div className={styles.name}>{names.valleyName}</div>
-          {area !== null ? (
-            <div className={styles.sub}>
-              {format("arrival.studyArea", { label: names.areaLabel, area })}
+          <div ref={placeTextRef} data-place-text>
+            <div className={styles.name}>{names.valleyName}</div>
+            {area !== null ? (
+              <div className={styles.sub}>
+                {format("arrival.studyArea", { label: names.areaLabel, area })}
+              </div>
+            ) : null}
+            <div className={styles.key}>
+              <span>
+                <i className={styles.swatch} aria-hidden="true" />
+                {en["overview.key.tree"].text}
+              </span>
+              <span>
+                <i className={`${styles.swatch} ${styles.crop}`} aria-hidden="true" />
+                {format("overview.key.crop", { year: WORLDCOVER.year })}
+              </span>
+              <span>{format("instrument.layers.scale", { value: EXAG })}</span>
             </div>
-          ) : null}
-          <div className={styles.key}>
-            <span>
-              <i className={styles.swatch} aria-hidden="true" />
-              {en["overview.key.tree"].text}
-            </span>
-            <span>
-              <i className={`${styles.swatch} ${styles.crop}`} aria-hidden="true" />
-              {format("overview.key.crop", { year: WORLDCOVER.year })}
-            </span>
-            <span>{format("instrument.layers.scale", { value: EXAG })}</span>
           </div>
           {data && data.routes.length ? (
             <button
@@ -1169,6 +1180,9 @@ function OverviewReady({
           <SourcesPanel
             sources={sourceSet}
             open={panel}
+            // an open record on the right (a finding there, the routes, the results) keeps its lines: the panel
+            // opens on the left, where the place's words have stepped aside
+            side={sel && sideOf(sel, selFinding?.clock) === "right" ? "left" : "right"}
             onClose={() => {
               setPanel(false);
             }}

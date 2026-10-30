@@ -39,6 +39,29 @@ describe("submitCommand", () => {
     const no = await submitCommand("c", body, () =>
       Promise.resolve(new Response(JSON.stringify({ code: "quota_exhausted" }), { status: 429 })),
     );
-    expect(no).toEqual({ status: "refused", httpStatus: 429, code: "quota_exhausted" });
+    expect(no).toEqual({
+      status: "refused",
+      httpStatus: 429,
+      code: "quota_exhausted",
+      limit: "session",
+    });
+    // the instance's spend cap answers with the same code and names the instance in its detail
+    const capped = await submitCommand("c", body, () =>
+      Promise.resolve(
+        new Response(
+          JSON.stringify({
+            code: "quota_exhausted",
+            detail:
+              "This instance has reached its limit for live model questions. Try again later.",
+          }),
+          { status: 429 },
+        ),
+      ),
+    );
+    expect(capped).toMatchObject({ status: "refused", limit: "instance" });
+    const other = await submitCommand("c", body, () =>
+      Promise.resolve(new Response(JSON.stringify({ code: "invalid_request" }), { status: 400 })),
+    );
+    expect(other).toEqual({ status: "refused", httpStatus: 400, code: "invalid_request" });
   });
 });

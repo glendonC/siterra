@@ -37,7 +37,16 @@ export function commissionRequest(
 
 export type SubmitResult =
   | { status: "accepted"; command: Command }
-  | { status: "refused"; httpStatus: number; code: string | null };
+  | {
+      status: "refused";
+      httpStatus: number;
+      code: string | null;
+      /**
+       * Whose limit refused it, for quota_exhausted: the instance's spend cap or this demo session's commands. The
+       * problem's code is the same for both; its detail names the instance only for the instance's cap.
+       */
+      limit?: "instance" | "session";
+    };
 
 type Fetch = (input: string, init?: RequestInit) => Promise<Response>;
 
@@ -54,9 +63,13 @@ export async function submitCommand(
   });
   if (res.status === 202 || res.status === 200)
     return { status: "accepted", command: (await res.json()) as Command };
-  const code = await res
+  type Problem = { code?: string; detail?: string };
+  const problem: Problem = await res
     .json()
-    .then((b: unknown) => (b as { code?: string }).code ?? null)
-    .catch(() => null);
-  return { status: "refused", httpStatus: res.status, code };
+    .then((b: unknown) => b as Problem)
+    .catch((): Problem => ({}));
+  const code = problem.code ?? null;
+  if (code !== "quota_exhausted") return { status: "refused", httpStatus: res.status, code };
+  const limit = /\binstance\b/i.test(problem.detail ?? "") ? "instance" : "session";
+  return { status: "refused", httpStatus: res.status, code, limit };
 }

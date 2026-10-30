@@ -310,6 +310,7 @@
   width: 0;
   height: 0;
   opacity: 0;
+  visibility: hidden;
 }
 
 .pixTag span {
@@ -452,6 +453,8 @@
   width: 0;
   height: 0;
   opacity: 0;
+  /* hidden until the first layout places it (AUDIT U21: at 0, 0 it sat half outside the frame) */
+  visibility: hidden;
   pointer-events: none;
 }
 

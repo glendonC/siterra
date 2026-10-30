@@ -112,10 +112,13 @@ export function SourcesPanel({
   sources,
   open,
   onClose,
+  side = "right",
 }: {
   sources: SourceSet;
   open: boolean;
   onClose: () => void;
+  /** Which bottom corner it opens in: the right by default, the left when something on the right must stay read. */
+  side?: "left" | "right";
 }) {
   const id = useId();
   const ref = useRef<HTMLDivElement>(null);
@@ -131,6 +134,7 @@ export function SourcesPanel({
       aria-labelledby={id}
       tabIndex={-1}
       data-sources-panel
+      data-side={side}
     >
       <div className={styles.panelHead}>
         <h2 id={id} className={styles.panelTitle}>

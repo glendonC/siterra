@@ -51,7 +51,13 @@ export function useOverviewAsk(initial: CaseSnapshot): OverviewAsk {
       submitCommand(snapshot.case.id, body, (input, init) => fetch(input, init))
         .then((r) => {
           if (r.status === "refused")
-            setNotice(r.code === "quota_exhausted" ? "work.quotaUsed" : "work.refused");
+            setNotice(
+              r.code !== "quota_exhausted"
+                ? "work.refused"
+                : r.limit === "instance"
+                  ? "work.instanceLimit"
+                  : "work.quotaUsed",
+            );
           else setCommandId(r.command.id);
         })
         .catch((e: unknown) => {

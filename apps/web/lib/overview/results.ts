@@ -145,22 +145,57 @@ export function chipNumbers(findings: readonly Evidence[]): (number | null)[] {
 }
 
 /** The chip's note: the source's title, locator and excerpt, or the bundle and the measurements it computed. */
+/** A Source as a reader names it: the first author's surname (with "et al." for three or more) and the year. */
+export function shortCitation(src: CaseSnapshot["records"]["sourceRecords"][number]): string {
+  const surname = (a: string | undefined) =>
+    a === undefined ? "" : a.split(",", 1).join("").trim();
+  const authors = src.authors;
+  const who =
+    authors.length > 2
+      ? format("overview.cite.etAl", { name: surname(authors[0]) })
+      : authors.length === 2
+        ? format("overview.cite.two", { a: surname(authors[0]), b: surname(authors[1]) })
+        : surname(authors[0]);
+  const year = (src.publicationDate ?? "").slice(0, 4);
+  if (!who) return src.title;
+  return year ? format("results.cite", { authors: who, year }) : who;
+}
+
+/**
+ * A recorded statement as it is shown: a Source id written into its text ("Reading src_SCI-19 is required ...")
+ * reads as that Source's short citation, and an id the case holds no Source for reads as an unnamed source. The
+ * record keeps its own text; only the words on screen change.
+ */
+export function readableStatement(snapshot: CaseSnapshot, text: string): string {
+  return text.replace(/\bsrc_[A-Za-z0-9][A-Za-z0-9_.-]*[A-Za-z0-9]/g, (id) => {
+    const src = snapshot.records.sourceRecords.find((x) => x.id === id);
+    return src ? shortCitation(src) : en["results.unknownSource"].text;
+  });
+}
+
 export function sourceNote(snapshot: CaseSnapshot, e: Evidence): string {
   const loc = e.provenance.sourceLocators[0];
   if (loc && e.provenance.verificationStatus !== "computed_checked") {
     const src = snapshot.records.sourceRecords.find((s) => s.id === loc.sourceId);
     return loc.excerpt
       ? format("results.excerpt", {
-          title: src?.title ?? loc.sourceId,
+          title: src?.title ?? en["results.unknownSource"].text,
           locator: loc.locator,
           excerpt: loc.excerpt,
         })
-      : format("results.locator", { title: src?.title ?? loc.sourceId, locator: loc.locator });
+      : format("results.locator", {
+          title: src?.title ?? en["results.unknownSource"].text,
+          locator: loc.locator,
+        });
   }
   const bundleId = e.provenance.dataBundleIds[0];
   const bundle = snapshot.records.dataBundleRecords.find((b) => b.id === bundleId);
-  return format("results.computed", {
-    bundle: bundle?.label ?? bundleId ?? e.id,
-    measurements: e.measurementIds.join(", ") || e.id,
+  // the measurements are counted, never named by their ids
+  const n = e.measurementIds.length;
+  const id =
+    n === 0 ? "results.computed.none" : n === 1 ? "results.computed.one" : "results.computed.many";
+  return format(id, {
+    bundle: bundle?.label ?? en["results.unknownBundle"].text,
+    n: String(n),
   });
 }

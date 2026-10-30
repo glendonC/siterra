@@ -84,6 +84,41 @@ describe("placedStatements", () => {
       ]),
     ).toThrow(/no Evidence/);
   });
+
+  it("refuses Evidence whose locator names a Source the case does not hold", () => {
+    const e = seed.records.evidenceRecords.find((x) => x.provenance.sourceLocators.length > 0);
+    if (!e) throw new Error("no located Evidence in the seed");
+    const lost = {
+      ...seed,
+      records: {
+        ...seed.records,
+        sourceRecords: seed.records.sourceRecords.filter(
+          (x) => !e.provenance.sourceLocators.some((l) => l.sourceId === x.id),
+        ),
+      },
+    };
+    expect(() =>
+      placedStatements(lost, [{ id: "x", display: { text: "Something.", evidenceIds: [e.id] } }]),
+    ).toThrow(/no Source/);
+  });
+
+  it("refuses a statement whose Evidence cites no source", () => {
+    const located = seed.records.evidenceRecords[0];
+    if (!located) throw new Error("no Evidence in the seed");
+    const bare = { ...located, provenance: { ...located.provenance, sourceLocators: [] } };
+    const unlocated = {
+      ...seed,
+      records: {
+        ...seed.records,
+        evidenceRecords: seed.records.evidenceRecords.map((x) => (x.id === bare.id ? bare : x)),
+      },
+    };
+    expect(() =>
+      placedStatements(unlocated, [
+        { id: "x", display: { text: "Something.", evidenceIds: [bare.id] } },
+      ]),
+    ).toThrow(/x cites no source/);
+  });
 });
 
 describe("pagesText", () => {

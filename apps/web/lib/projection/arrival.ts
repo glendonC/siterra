@@ -24,10 +24,9 @@ export type ArrivalProjection =
       valleyName: string;
       /** How the record names its area ("Valley catchment"), from the active GeoSelection's label. */
       areaLabel: string;
-      /** Mountain region and country derived from the case's source records. */
+      /** Mountain region and country derived from the case's source records; the globe's case card and its range
+       * line both use it, so the two never name the region differently. */
       regionName: string;
-      /** Range label for the globe overview. */
-      rangeName: string;
       /** Subrange label for the dive sequence. */
       subrangeName: string;
       modeLines: ModeLines;
@@ -50,7 +49,6 @@ export type ArrivalProjection =
       valleyName: string;
       areaLabel: string;
       regionName: string;
-      rangeName: string;
       subrangeName: string;
       modeLines: ModeLines;
       mode: MessageId;
@@ -87,12 +85,11 @@ function activeSelection(s: CaseSnapshot): GeoSelection | undefined {
   return s.records.geoSelectionRecords.find((g) => g.id === id);
 }
 
-/** Extracts the study valley, mountain subrange, range, and country from the case and source records. */
+/** Extracts the study valley, mountain subrange and country from the case and source records. */
 export function placeNamesFromCase(s: CaseSnapshot): {
   valleyName: string;
   areaLabel: string;
   regionName: string;
-  rangeName: string;
   subrangeName: string;
 } {
   const valleyMatch = /\bin the\s+(.+)$/i.exec(s.case.title);
@@ -107,17 +104,13 @@ export function placeNamesFromCase(s: CaseSnapshot): {
       const country = m[2].trim();
       const subrangeName = /\bMountains\b/i.test(sub) ? sub : `${sub} Mountains`;
       const regionName = `${subrangeName}, ${country}`;
-      const broader = sub.replace(/^\S+\s+/, "");
-      const broaderMountains = /\bMountains\b/i.test(broader) ? broader : `${broader} Mountains`;
-      const rangeName = `${broaderMountains}, ${country}`;
-      return { valleyName, areaLabel, regionName, rangeName, subrangeName };
+      return { valleyName, areaLabel, regionName, subrangeName };
     }
   }
   return {
     valleyName,
     areaLabel,
     regionName: s.case.title,
-    rangeName: s.case.title,
     subrangeName: s.case.title,
   };
 }
