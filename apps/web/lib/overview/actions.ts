@@ -1,7 +1,8 @@
 // What can be done with a thing on the land (decision 15): a short list beside it, on the same hairline leader as its
 // card, each action with its key chip and also clickable. The list comes from what the record offers (the views its
 // listing holds ready), at most three actions, Enter always the primary one, and the same letter for the same verb
-// everywhere (L layers, P pixel, C cut); Esc goes back where there is somewhere to go back from.
+// everywhere (L layers, P pixel, C cut, F field plan; E is the brief's export, which these views do not offer); Esc
+// goes back where there is somewhere to go back from.
 
 import type { MessageId } from "../copy/en";
 
@@ -34,12 +35,12 @@ export const VIEW_LABEL: Record<ViewKind, MessageId> = {
 };
 
 /** The letter for each view's verb, the same everywhere; a view without one is offered only as the primary. */
-export const VIEW_KEY: Record<ViewKind, "L" | "C" | "P" | null> = {
+export const VIEW_KEY: Record<ViewKind, "L" | "C" | "P" | "F" | null> = {
   layers: "L",
   cutaway: "C",
   pixel: "P",
   rainfall: null,
-  field: null,
+  field: "F",
 };
 
 /** A thing on the land: an opened finding's record, or a part under the cursor. */
@@ -71,7 +72,7 @@ const LEADS: Record<Thing, readonly ViewKind[]> = {
 
 export interface Action {
   /** The key chip: Enter for the primary action, the verb's letter, or Esc. */
-  key: "Enter" | "L" | "C" | "P" | "Esc";
+  key: "Enter" | "L" | "C" | "P" | "F" | "Esc";
   /** The view it opens; null for Back. */
   view: ViewKind | null;
   label: MessageId;

@@ -99,4 +99,17 @@ describe("the pixel's cells", () => {
     expect(cells).toHaveLength(px.pixel.analysis_cells);
     expect(cells).toHaveLength(537);
   });
+
+  it("carries each cell's class as the bundle counts them, for the land's paint (U27)", async () => {
+    const { cellsInside } = await import("./data");
+    const px = JSON.parse(
+      readFileSync(new URL("../../public/instruments/pixel/pixel.json", import.meta.url), "utf8"),
+    ) as {
+      grid: Parameters<typeof cellsInside>[0];
+      pixel: { footprint_utm29n: [number, number][] };
+      classes: { code: number; cells: number }[];
+    };
+    const cells = cellsInside(px.grid, px.pixel.footprint_utm29n);
+    for (const k of px.classes) expect(cells.filter((c) => c.cls === k.code)).toHaveLength(k.cells);
+  });
 });

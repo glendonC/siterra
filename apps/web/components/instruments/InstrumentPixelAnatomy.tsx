@@ -12,7 +12,14 @@ import { useEffect, useId, useRef, useState } from "react";
 import { en } from "../../lib/copy/en";
 import { loadCasePixel } from "../../lib/instruments/pixel/case";
 import type { PixelData } from "../../lib/instruments/pixel/data";
-import { PIXEL_DESIGN, mountPixel, type PixelLocator } from "../../lib/instruments/pixel/scene";
+import type { CellPaint } from "../../lib/instruments/pixel/paint";
+import {
+  PIXEL_DESIGN,
+  mountPixel,
+  type PixelLocator,
+  type PixelScene,
+  type StageBox,
+} from "../../lib/instruments/pixel/scene";
 import { placedStatements, type PlacedStatements } from "../../lib/instruments/placed-statements";
 import { drawnAsset, readJsonAsset } from "../../lib/instruments/listing";
 import { bandLimitsOf } from "../../lib/land/record";
@@ -23,11 +30,25 @@ import { useInstrument } from "./InstrumentRecords";
 
 export function InstrumentPixelAnatomy({
   state = "measured",
+  around,
 }: {
   /** The model's opening shares: as measured, or the bundle's example shift. */
   state?: "measured" | "shifted";
+  /**
+   * Opened in place over the land (U27): the panels stand as cards round the pixel's risen cells, 02 chooses their
+   * paint, and each card has a leader to the pixel, wherever the overview reports it on the stage.
+   */
+  around?: {
+    paint: CellPaint;
+    onPaint: (paint: CellPaint) => void;
+    pixelBox: () => StageBox | null;
+  };
 }) {
   const stageRef = useRef<HTMLDivElement>(null);
+  const sceneRef = useRef<PixelScene | null>(null);
+  const aroundRef = useRef(around);
+  aroundRef.current = around;
+  const inPlace = around !== undefined;
   const [loaded, setLoaded] = useState<{
     pixel: PixelData;
     statements: PlacedStatements;
@@ -107,6 +128,7 @@ export function InstrumentPixelAnatomy({
     const stage = stageRef.current;
     const root = stage?.parentElement;
     if (!loaded || !caption || !stage || !root) return;
+    const first = aroundRef.current;
     const scene = mountPixel(
       stage,
       loaded.pixel,
@@ -114,7 +136,40 @@ export function InstrumentPixelAnatomy({
       loaded.statements,
       loaded.locator,
       styles,
+      first
+        ? {
+            paint: first.paint,
+            onPaint: (p) => {
+              aroundRef.current?.onPaint(p);
+            },
+          }
+        : null,
     );
+    sceneRef.current = scene;
+    // in place, the leaders follow the pixel on the land
+    let raf = 0;
+    let lastBox = "";
+    const follow = () => {
+      // the overview reports the pixel in client px; the stage is scaled to fit its own frame
+      const cb = aroundRef.current?.pixelBox() ?? null;
+      const sr = stage.getBoundingClientRect();
+      const k = sr.width / PIXEL_DESIGN.width || 1;
+      const box = cb
+        ? {
+            x0: (cb.x0 - sr.left) / k,
+            y0: (cb.y0 - sr.top) / k,
+            x1: (cb.x1 - sr.left) / k,
+            y1: (cb.y1 - sr.top) / k,
+          }
+        : null;
+      const key = box ? [box.x0, box.y0, box.x1, box.y1].map((v) => v.toFixed(0)).join(",") : "";
+      if (key !== lastBox) {
+        lastBox = key;
+        scene.setPixelBox(box);
+      }
+      raf = requestAnimationFrame(follow);
+    };
+    if (first) raf = requestAnimationFrame(follow);
     if (state === "shifted") {
       const { from, to, points } = loaded.pixel.model.shift;
       const now = scene.shares();
@@ -137,13 +192,24 @@ export function InstrumentPixelAnatomy({
     observer.observe(root);
     fit();
     return () => {
+      cancelAnimationFrame(raf);
       observer.disconnect();
+      sceneRef.current = null;
       scene.dispose();
     };
   }, [loaded, caption, state]);
+  const paint = around?.paint;
+  useEffect(() => {
+    if (paint) sceneRef.current?.setPaint(paint);
+  }, [paint]);
 
   return (
-    <div className={styles.root} data-theme="obsidian" data-instrument="pixel">
+    <div
+      className={styles.root}
+      data-theme="obsidian"
+      data-instrument="pixel"
+      data-around={inPlace ? "" : undefined}
+    >
       <p id={descriptionId} className={styles.srOnly}>
         {en["instrument.pixel.description"].text}
       </p>

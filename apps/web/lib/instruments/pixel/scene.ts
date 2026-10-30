@@ -11,6 +11,7 @@ import { cssColour, obsidian, pixelColours as C } from "../../theme/obsidian";
 import type { PlacedStatements } from "../placed-statements";
 import { change, day, fixed, metres, signed } from "../format";
 import type { PixelData } from "./data";
+import { NDVI_BREAKS, type CellPaint } from "./paint";
 import { ramp } from "../valley/palette";
 import { mixSpectra, moveBoundary, ndviOf, type Shares } from "./mix";
 
@@ -18,7 +19,6 @@ import { mixSpectra, moveBoundary, ndviOf, type Shares } from "./mix";
 export const PIXEL_DESIGN = { width: 1440, height: 900 } as const;
 
 /** The June NDVI ramp's step breaks: a design choice the key states. */
-const NDVI_BREAKS = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6] as const;
 /**
  * The locator's frame: 40 m cells over the catchment's outline with 400 m to spare on each side, snapped to the
  * 40 m lattice (the specimen's frame for this case: 732800, 3517200, 962 x 761).
@@ -81,7 +81,53 @@ const ASK_CLEAR = 150;
 /** Class names a CSS module gives the scene's parts. */
 export type PixelClasses = Readonly<Record<string, string>>;
 
+/**
+ * The pixel opened in place over the land (U27): its cells stand risen on the land in the middle and the panels stand
+ * round them as cards, each with a hairline leader to the pixel; 02 paints the land's cells instead of drawing them.
+ */
+export interface PixelAround {
+  paint: CellPaint;
+  onPaint: (paint: CellPaint) => void;
+}
+
+/** A box on the 1440 x 900 stage. */
+export interface StageBox {
+  x0: number;
+  y0: number;
+  x1: number;
+  y1: number;
+}
+
+/**
+ * The pixel opened in place (stage px; U27, the lead's 16:15 judgment): the risen pixel is the subject in the middle;
+ * three cards stay open round it (the caption and 02 in the left column, 03 at the top right, 05 at the bottom right),
+ * and 01, 04 and 06 wait as small chips on their leaders in the left column, opening beside it on focus or a click.
+ */
+export const AROUND = {
+  column: { x: 40, w: 400 },
+  /** 02's top in the left column, under the caption. */
+  cellsY: 236,
+  /** The chips' first row and spacing. */
+  chipY: 486,
+  chipStep: 40,
+  /**
+   * How far each panel moves from its place in the standalone grid. An opened chip's card stands in the free strip
+   * right of the left column (its content from x 484, y 150), over the land and the pixel's edge but never over
+   * another card's words (the lead, 16:4x).
+   */
+  shift: {
+    "01": [444, -2],
+    "04": [444, -380],
+    "05": [370, -30],
+    "06": [-572, -380],
+  } as Record<string, readonly [number, number]>,
+};
+
 export interface PixelScene {
+  /** In place: where the pixel stands on the stage now, for the cards' leaders. */
+  setPixelBox(box: StageBox | null): void;
+  /** In place: the paint the land's cells carry. */
+  setPaint(paint: CellPaint): void;
   /** Sets some class shares (by WorldCover code) and redraws the model. */
   setShares(next: Shares): void;
   shares(): Shares;
@@ -116,6 +162,7 @@ export function mountPixel(
   statements: PlacedStatements,
   locator: PixelLocator,
   cls: PixelClasses,
+  around: PixelAround | null = null,
 ): PixelScene {
   const c = (...names: string[]) => names.map((n) => cls[n] ?? n).join(" ");
   const svg = <K extends keyof SVGElementTagNameMap>(tag: K, attrs: Attrs, parent: Element) => {
@@ -156,10 +203,11 @@ export function mountPixel(
     title: MessageId,
     detail?: string,
   ) => {
-    const h = place(div("panelHead", stage), x, y, w);
+    const host = part(num).div;
+    const h = place(div("panelHead", host), x, y, w);
     div("num", h, num);
     div("title", h, en[title].text);
-    if (detail) place(div("panelDetail", stage, detail), x, y + 22, w);
+    if (detail) place(div("panelDetail", host, detail), x, y + 22, w);
   };
   const chip = (n: number, tip: string) => {
     const b = document.createElement("button");
@@ -195,9 +243,36 @@ export function mountPixel(
     `0 0 ${String(PIXEL_DESIGN.width)} ${String(PIXEL_DESIGN.height)}`,
   );
 
+  // in place, each panel lives in its own part (a div with its own svg) on its own frosted card, so it can move, stack
+  // and wait as a chip; standalone, every part is the stage itself
+  const parts = new Map<string, { div: HTMLElement; g: Element }>();
+  const part = (id: string): { div: HTMLElement; g: Element } => {
+    if (!around) return { div: stage, g: overlay };
+    const had = parts.get(id);
+    if (had) return had;
+    const d = document.createElement("div");
+    d.className = c("part");
+    d.dataset.part = id;
+    stage.appendChild(d);
+    const g = document.createElementNS(NS, "svg");
+    g.setAttribute("class", c("overlay"));
+    g.setAttribute("width", String(PIXEL_DESIGN.width));
+    g.setAttribute("height", String(PIXEL_DESIGN.height));
+    d.appendChild(g);
+    const p = { div: d, g };
+    parts.set(id, p);
+    return p;
+  };
+
   // the caption: the question, one ink sentence and one grey sentence, each with its source chip
   {
-    const cap = place(div("caption", stage), L.caption.x, L.caption.y, L.caption.w);
+    const stage = part("caption").div;
+    const cap = place(
+      div("caption", stage),
+      L.caption.x,
+      L.caption.y,
+      around ? AROUND.column.w : L.caption.w,
+    );
     div("captionKey", cap, en["instrument.pixel.question"].text);
     const p = div("captionStatement", cap);
     const ink = document.createElement("span");
@@ -215,6 +290,7 @@ export function mountPixel(
   // 01, compact: the catchment's March to June slope, the pixel marked, a 5 km bar and the key
   let ring: Pt;
   {
+    const { div: stage, g: overlay } = part("01");
     const loc = locatorGrid(locator.ring);
     const SLOPE = locator.scale;
     const W = L.col1.w;
@@ -323,13 +399,18 @@ export function mountPixel(
   const fp = d.pixel.footprint_utm29n.map(toGrid);
   const multiples: { x: number; g: SVGGElement }[] = [];
   {
+    const { div: stage, g: overlay } = part("02");
+    // in place 02 stands in the left column under the caption, its views the paint of the land's own cells
+    const p2 = around
+      ? { x: AROUND.column.x, y: AROUND.cellsY, w: AROUND.column.w }
+      : { x: L.col2.x, y: L.rowA, w: L.col2.w };
     panelHead(
-      L.col2.x,
-      L.rowA,
-      L.col2.w,
+      p2.x,
+      p2.y,
+      p2.w,
       "02",
       "instrument.pixel.cells",
-      format("instrument.pixel.cells.detail", {
+      format(around ? "instrument.pixel.cells.detailLand" : "instrument.pixel.cells.detail", {
         tile: d.pixel.modis_tile,
         row: d.pixel.tile_row,
         col: d.pixel.tile_col,
@@ -352,48 +433,66 @@ export function mountPixel(
       (r, k) => classColour(d.grid.worldcover[r]?.[k] ?? -1),
     ];
     const dpr = window.devicePixelRatio || 1;
-    L.multiples.forEach((x, i) => {
-      place(div("multTitle", stage, titles[i]), x, L.multY - 18, size);
-      const cv = document.createElement("canvas");
-      cv.width = Math.round(size * dpr);
-      cv.height = Math.round(size * dpr);
-      place(cv, x, L.multY, size, size);
-      stage.appendChild(cv);
-      const ctx = cv.getContext("2d");
-      const paint = painters[i];
-      if (ctx && paint) {
-        ctx.scale(dpr, dpr);
-        for (let r = 0; r < d.grid.rows; r++)
-          for (let k = 0; k < d.grid.cols; k++) {
-            ctx.fillStyle = paint(r, k);
-            ctx.fillRect(k * L.cellPx, r * L.cellPx, L.cellPx, L.cellPx);
+    // in place the land's own cells are the picture: the three views become the paint they carry
+    const PAINTS: CellPaint[] = ["rgb", "ndvi", "class"];
+    if (around) {
+      const row = place(div("paintRow", stage), p2.x, p2.y + 82, p2.w);
+      L.multiples.forEach((_, i) => {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = c("textButton", "paintButton");
+        b.textContent = titles[i] ?? "";
+        const paint = PAINTS[i] ?? "rgb";
+        b.dataset.paint = paint;
+        b.setAttribute("aria-pressed", String(paint === around.paint));
+        b.addEventListener("click", () => {
+          around.onPaint(paint);
+        });
+        row.appendChild(b);
+      });
+    } else
+      L.multiples.forEach((x, i) => {
+        place(div("multTitle", stage, titles[i]), x, L.multY - 18, size);
+        const cv = document.createElement("canvas");
+        cv.width = Math.round(size * dpr);
+        cv.height = Math.round(size * dpr);
+        place(cv, x, L.multY, size, size);
+        stage.appendChild(cv);
+        const ctx = cv.getContext("2d");
+        const paint = painters[i];
+        if (ctx && paint) {
+          ctx.scale(dpr, dpr);
+          for (let r = 0; r < d.grid.rows; r++)
+            for (let k = 0; k < d.grid.cols; k++) {
+              ctx.fillStyle = paint(r, k);
+              ctx.fillRect(k * L.cellPx, r * L.cellPx, L.cellPx, L.cellPx);
+            }
+          ctx.strokeStyle = C.cellLine;
+          ctx.lineWidth = 1 / dpr;
+          ctx.beginPath();
+          for (let k = 1; k < d.grid.cols; k++) {
+            ctx.moveTo(k * L.cellPx, 0);
+            ctx.lineTo(k * L.cellPx, size);
+            ctx.moveTo(0, k * L.cellPx);
+            ctx.lineTo(size, k * L.cellPx);
           }
-        ctx.strokeStyle = C.cellLine;
-        ctx.lineWidth = 1 / dpr;
-        ctx.beginPath();
-        for (let k = 1; k < d.grid.cols; k++) {
-          ctx.moveTo(k * L.cellPx, 0);
-          ctx.lineTo(k * L.cellPx, size);
-          ctx.moveTo(0, k * L.cellPx);
-          ctx.lineTo(size, k * L.cellPx);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.rect(0, 0, size, size);
+          ctx.moveTo(...(fp[0] ?? [0, 0]));
+          for (let k = 1; k < 4; k++) ctx.lineTo(...(fp[k] ?? [0, 0]));
+          ctx.closePath();
+          ctx.fillStyle = C.veil;
+          ctx.fill("evenodd");
         }
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.rect(0, 0, size, size);
-        ctx.moveTo(...(fp[0] ?? [0, 0]));
-        for (let k = 1; k < 4; k++) ctx.lineTo(...(fp[k] ?? [0, 0]));
-        ctx.closePath();
-        ctx.fillStyle = C.veil;
-        ctx.fill("evenodd");
-      }
-      const g = svg("g", { transform: `translate(${String(x)},${String(L.multY)})` }, overlay);
-      svg(
-        "polygon",
-        { points: pts(fp), fill: "none", stroke: obsidian.accent, "stroke-width": 1.25 },
-        g,
-      );
-      multiples.push({ x, g });
-    });
+        const g = svg("g", { transform: `translate(${String(x)},${String(L.multY)})` }, overlay);
+        svg(
+          "polygon",
+          { points: pts(fp), fill: "none", stroke: obsidian.accent, "stroke-width": 1.25 },
+          g,
+        );
+        multiples.push({ x, g });
+      });
     // the 250 m dimension line along the footprint's top edge
     const a: Pt = fp[0] ?? [0, 0];
     const b: Pt = fp[1] ?? [0, 0];
@@ -430,17 +529,20 @@ export function mountPixel(
           rg,
         );
     }
-    const ny0 = L.multY + size + 10;
-    place(
-      div("note", stage, en["instrument.pixel.cells.truecolourNote"].text),
-      L.multiples[0],
-      ny0,
-      size,
+    // the key of each view under it; in place, the key of the paint the cells carry, under the buttons
+    const ny0 = around ? p2.y + 128 : L.multY + size + 10;
+    const kx = (i: number) => (around ? p2.x : (L.multiples[i] ?? p2.x));
+    const keyOf = (e: Element, paint: CellPaint) => {
+      if (around) e.setAttribute("data-paint-key", paint);
+      return e;
+    };
+    keyOf(
+      place(div("note", stage, en["instrument.pixel.cells.truecolourNote"].text), kx(0), ny0, size),
+      "rgb",
     );
-    const kg = svg(
-      "g",
-      { transform: `translate(${String(L.multiples[1])},${String(ny0)})` },
-      overlay,
+    const kg = keyOf(
+      svg("g", { transform: `translate(${String(kx(1))},${String(ny0)})` }, overlay),
+      "ndvi",
     );
     const sw = size / C.ndviSteps.length;
     C.ndviSteps.forEach((fill, i) =>
@@ -449,20 +551,23 @@ export function mountPixel(
     NDVI_BREAKS.forEach((v, i) =>
       text(kg, (i + 1) * sw - 1, 22, v.toFixed(1), t12("ink3", "middle")),
     );
-    place(
-      div(
-        "note",
-        stage,
-        format("instrument.pixel.cells.ndviNote", {
-          min: d.ndvi_inside.count_min,
-          max: d.ndvi_inside.count_max,
-        }),
+    keyOf(
+      place(
+        div(
+          "note",
+          stage,
+          format("instrument.pixel.cells.ndviNote", {
+            min: d.ndvi_inside.count_min,
+            max: d.ndvi_inside.count_max,
+          }),
+        ),
+        kx(1),
+        ny0 + 28,
+        size,
       ),
-      L.multiples[1],
-      ny0 + 28,
-      size,
+      "ndvi",
     );
-    const key = place(div("classKey", stage), L.multiples[2], ny0, size);
+    const key = keyOf(place(div("classKey", stage), kx(2), ny0, size), "class");
     for (const k of d.classes) {
       const row = div("classRow", key);
       div("swatch", row).style.background = classColour(k.code);
@@ -473,6 +578,7 @@ export function mountPixel(
 
   // 03: the measured class spectra, the pixel's mean, and the model mix drawn by 05
   const spectra = (() => {
+    const { div: stage, g: overlay } = part("03");
     const x0 = L.col3.x;
     const w = L.col3.w;
     panelHead(
@@ -608,6 +714,7 @@ export function mountPixel(
 
   // 04, compact: the pixel's own 26 seasons beside its elevation band's, the pixel's trend line
   {
+    const { div: stage, g: overlay } = part("04");
     const x0 = L.col1.x;
     const w = L.col1.w;
     const s = d.series;
@@ -713,6 +820,7 @@ export function mountPixel(
   // 06: the proposed field check, dashed, and the cited species text as its own block
   let transectEnd: Pt;
   {
+    const { div: stage, g: overlay } = part("06");
     const x0 = L.col3.x;
     const w = L.col3.w;
     const t = d.transect;
@@ -802,11 +910,11 @@ export function mountPixel(
       const refs = st.cites
         .map((ct) =>
           !ct.page
-            ? ct.sourceId
+            ? ct.name
             : format(
                 ct.page.includes(" ") ? "instrument.pixel.ref.pages" : "instrument.pixel.ref.page",
                 {
-                  id: ct.sourceId,
+                  id: ct.name,
                   page: ct.page,
                 },
               ),
@@ -857,14 +965,17 @@ export function mountPixel(
   );
   let shares: Shares = { ...measured };
   const draw = (() => {
+    const { div: stage, g: overlay } = part("05");
+    // in place, 05 stands a little lower, so the pixel between 02 and 05 has room
+    const y5 = around ? L.rowB + 30 : L.rowB;
     const x0 = L.col2.x + ASK_CLEAR;
     const w = L.col2.w - ASK_CLEAR;
-    panelHead(x0, L.rowB, w, "05", "instrument.pixel.model");
-    place(div("modelLabel", stage, en["instrument.pixel.model.label"].text), x0, L.rowB + 22, w);
+    panelHead(x0, y5, w, "05", "instrument.pixel.model");
+    place(div("modelLabel", stage, en["instrument.pixel.model.label"].text), x0, y5 + 22, w);
     const bx = x0;
-    const by = L.rowB + 112;
+    const by = y5 + 112;
     const g = svg("g", {}, overlay);
-    place(div("barCaption", stage, en["instrument.pixel.model.bar"].text), bx, L.rowB + 64, BAR.w);
+    place(div("barCaption", stage, en["instrument.pixel.model.bar"].text), bx, y5 + 64, BAR.w);
     const barG = svg("g", {}, g);
     const tickG = svg("g", {}, g);
     let acc = 0;
@@ -878,7 +989,7 @@ export function mountPixel(
       );
     }
     const segLabels = place(div("segLabels", stage), bx, by + BAR.h + 6, BAR.w, 36);
-    const readout = place(div("readout", stage), x0 + BAR.readout, L.rowB + 64, w - BAR.readout);
+    const readout = place(div("readout", stage), x0 + BAR.readout, y5 + 64, w - BAR.readout);
     const handles: SVGGElement[] = [];
     const redraw = () => {
       barG.replaceChildren();
@@ -1056,31 +1167,167 @@ export function mountPixel(
         );
       }
     }
-    const [ex, ey] = transectEnd;
-    const midX = (L.col2.x + L.col2.w + L.col3.x) / 2;
-    svg(
-      "polyline",
-      {
-        points: pts([
-          [ex + 2, ey],
-          [midX, ey],
-          [midX, L.rowB + 10],
-          [L.col3.x - 6, L.rowB + 10],
-        ]),
-        fill: "none",
-        stroke: C.connectorWarm,
-        "stroke-width": 0.75,
-      },
-      g,
-    );
-    svg("circle", { cx: ex, cy: ey, r: 2, fill: obsidian.accent }, g);
+    // in place the class view that held the transect is the land's own paint: no connector from it
+    if (!around) {
+      const [ex, ey] = transectEnd;
+      const midX = (L.col2.x + L.col2.w + L.col3.x) / 2;
+      svg(
+        "polyline",
+        {
+          points: pts([
+            [ex + 2, ey],
+            [midX, ey],
+            [midX, L.rowB + 10],
+            [L.col3.x - 6, L.rowB + 10],
+          ]),
+          fill: "none",
+          stroke: C.connectorWarm,
+          "stroke-width": 0.75,
+        },
+        g,
+      );
+      svg("circle", { cx: ex, cy: ey, r: 2, fill: obsidian.accent }, g);
+    }
   }
 
   // the credits sit behind the shell's Sources (InstrumentPixelAnatomy registers them)
   stage.appendChild(overlay);
   draw();
 
+  // in place: each part's frosted back fitted to what it holds, the part moved to its place, and 01, 04 and 06 as
+  // chips that open their card beside the column
+  const CHIPS = [
+    ["01", "instrument.pixel.locate"],
+    ["04", "instrument.pixel.series"],
+    ["06", "instrument.pixel.field"],
+  ] as const;
+  const partBox = new Map<string, StageBox>();
+  const chipBox = new Map<string, StageBox>();
+  let opened: string | null = null;
+  let lastPixel: StageBox | null = null;
+  if (around) {
+    for (const [id, p] of parts) {
+      const b = { x0: Infinity, y0: Infinity, x1: -Infinity, y1: -Infinity };
+      const grow = (x0: number, y0: number, x1: number, y1: number) => {
+        if (x1 - x0 < 1 || y1 - y0 < 1) return;
+        b.x0 = Math.min(b.x0, x0);
+        b.y0 = Math.min(b.y0, y0);
+        b.x1 = Math.max(b.x1, x1);
+        b.y1 = Math.max(b.y1, y1);
+      };
+      for (const el of p.div.children)
+        if (el instanceof HTMLElement)
+          grow(
+            el.offsetLeft,
+            el.offsetTop,
+            el.offsetLeft + el.offsetWidth,
+            el.offsetTop + el.offsetHeight,
+          );
+      const bb = (p.g as SVGSVGElement).getBBox();
+      grow(bb.x, bb.y, bb.x + bb.width, bb.y + bb.height);
+      if (!Number.isFinite(b.x0)) continue;
+      // the caption's card starts just above its question, clear of the case question over it
+      const top = id === "caption" ? 4 : 12;
+      const back = place(
+        div("card", p.div),
+        b.x0 - 12,
+        b.y0 - top,
+        b.x1 - b.x0 + 24,
+        b.y1 - b.y0 + top + 12,
+      );
+      back.dataset.card = id;
+      p.div.insertBefore(back, p.div.firstChild);
+      const [dx, dy] = AROUND.shift[id] ?? [0, 0];
+      p.div.style.transform = `translate(${String(dx)}px, ${String(dy)}px)`;
+      partBox.set(id, {
+        x0: b.x0 - 12 + dx,
+        y0: b.y0 - top + dy,
+        x1: b.x1 + 12 + dx,
+        y1: b.y1 + 12 + dy,
+      });
+    }
+  }
+  const chipButtons = new Map<string, HTMLButtonElement>();
+  const show = (id: string | null) => {
+    opened = id;
+    for (const [cid] of CHIPS) {
+      const p = parts.get(cid);
+      if (p) p.div.style.display = cid === id ? "" : "none";
+      chipButtons.get(cid)?.setAttribute("aria-expanded", String(cid === id));
+    }
+    setPixelBox(lastPixel);
+  };
+  if (around) {
+    CHIPS.forEach(([id, title], i) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = c("textButton", "partChip");
+      b.dataset.chip = id;
+      b.setAttribute("aria-expanded", "false");
+      div("num", b, id);
+      div("title", b, en[title].text);
+      const y = AROUND.chipY + i * AROUND.chipStep;
+      place(b, AROUND.column.x, y);
+      stage.appendChild(b);
+      chipBox.set(id, { x0: AROUND.column.x, y0: y, x1: AROUND.column.x + 220, y1: y + 28 });
+      chipButtons.set(id, b);
+      // a click toggles its card; the keyboard's focus opens it; leaving the chip closes it
+      b.addEventListener("click", () => {
+        show(opened === id ? null : id);
+      });
+      b.addEventListener("focus", () => {
+        if (b.matches(":focus-visible")) show(id);
+      });
+      b.addEventListener("blur", () => {
+        if (opened === id) show(null);
+      });
+      const p = parts.get(id);
+      if (p) p.div.style.zIndex = "2";
+    });
+  }
+
+  // in place: one hairline from each open card, or each waiting chip, to the pixel on the land
+  const leaders = svg("g", { "data-leaders": "" }, overlay);
+  const near = (p: Pt, b: StageBox): Pt => [
+    Math.min(b.x1, Math.max(b.x0, p[0])),
+    Math.min(b.y1, Math.max(b.y0, p[1])),
+  ];
+  function setPixelBox(box: StageBox | null) {
+    lastPixel = box;
+    leaders.replaceChildren();
+    if (!around || !box) return;
+    const mid: Pt = [(box.x0 + box.x1) / 2, (box.y0 + box.y1) / 2];
+    const from: Pt[] = (["01", "02", "03", "04", "05", "06"] as const).flatMap((id) => {
+      const waiting = chipBox.get(id);
+      const b = waiting && opened !== id ? waiting : partBox.get(id);
+      return b ? [near(mid, b)] : [];
+    });
+    for (const a of from) {
+      const b = near(a, box);
+      if (Math.hypot(b[0] - a[0], b[1] - a[1]) < 6) continue;
+      svg(
+        "line",
+        { x1: a[0], y1: a[1], x2: b[0], y2: b[1], stroke: C.connector, "stroke-width": 0.75 },
+        leaders,
+      );
+      svg("circle", { cx: b[0], cy: b[1], r: 2, fill: C.connector }, leaders);
+    }
+  }
+  // the pressed paint, and only its key under the buttons
+  const setPaint = (paint: CellPaint) => {
+    for (const b of stage.querySelectorAll<HTMLButtonElement>("[data-paint]"))
+      b.setAttribute("aria-pressed", String(b.dataset.paint === paint));
+    for (const k of stage.querySelectorAll("[data-paint-key]"))
+      k.setAttribute("display", k.getAttribute("data-paint-key") === paint ? "inline" : "none");
+  };
+  if (around) {
+    setPaint(around.paint);
+    show(null);
+  }
+
   return {
+    setPixelBox,
+    setPaint,
     setShares(next) {
       shares = { ...shares, ...next };
       draw();

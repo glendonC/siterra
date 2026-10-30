@@ -40,6 +40,7 @@ import { createStage, type PerspectiveView } from "../../instruments/valley/scen
 import { heightTexture } from "../../instruments/valley/scene/textures";
 import { liftColours as LC, maskAt, overviewColours as C } from "../../theme/obsidian";
 import { createLift, type LiftLayer } from "./lift";
+import { cellColour, type CellPaint } from "../../instruments/pixel/paint";
 import {
   ARC,
   DIAL,
@@ -123,6 +124,15 @@ export function awayOf(v: { zoom?: number; turn?: number }): number {
 
 const DEG = Math.PI / 180;
 const rad = (d: number) => d * DEG;
+/** How far (model km) the pixel's cells rise off the land when it is opened. */
+const CELL_RISE = 0.22;
+/**
+ * The opened pixel's place among its cards (design px): the middle the pixel view leaves between its left column, 03
+ * and 05 (U27: the pixel is the subject, its cards round it); the camera is solved so the pixel and its risen cells
+ * fill it.
+ */
+const PIXEL_GAP = { x0: 495, y0: 200, x1: 820, y1: 830 };
+const PIXEL_ELEVATION = 52;
 
 /**
  * A finding, the field check on the land, the ask's results (which move as the whole catchment's finding), or the
@@ -170,9 +180,11 @@ export interface SceneState {
   exit?: number;
   /**
    * The pixel taken apart (decision 12), 0 to 1: the camera flies down to the pixel, its Sentinel-2 cells lie on it,
-   * rise off the land one by one and dissolve, for the pixel's instrument to take over.
+   * rise off the land one by one and stay risen, with the pixel's cards round them.
    */
   split?: number;
+  /** How the risen cells are painted (U27): true colour, June NDVI or land cover class. */
+  cellPaint?: CellPaint;
   /** One evidence layer lifted off the land at rest (decision 12): which, and how far (0 down to 1 up). */
   lift?: { layer: LiftId; k: number } | null;
 }
@@ -220,6 +232,8 @@ export interface OverviewLayout {
   anchor: Point | null;
   /** What the opened finding's card must not cover: the whole land, the band's place, or the pixel's footprint. */
   subject: { x0: number; y0: number; x1: number; y1: number };
+  /** The pixel and its risen cells on screen while it is opened (U27), for its cards' leaders; null otherwise. */
+  pixelBox: { x0: number; y0: number; x1: number; y1: number } | null;
 }
 
 export interface Gaps {
@@ -498,10 +512,21 @@ export function mountOverview(
   const cellBase = pxCells.map((c) => frame.v(c.E, c.N, sample(c.E, c.N) + 1));
   // each cell's own moment to leave the land: a fixed scatter, so every run takes the pixel apart the same way
   const cellDelay = pxCells.map((_, i) => (((Math.sin(i * 12.9898) * 43758.5453) % 1) + 1) % 1);
-  pxCells.forEach((c, i) => {
-    cellMesh.setColorAt(i, new Color(c.rgb[0] / 255, c.rgb[1] / 255, c.rgb[2] / 255));
-  });
-  if (cellMesh.instanceColor) cellMesh.instanceColor.needsUpdate = true;
+  // the cells painted as the pixel's view asks: true colour, June NDVI or land cover class (U27)
+  let painted: CellPaint | null = null;
+  const paintCells = (paint: CellPaint) => {
+    if (paint === painted) return;
+    painted = paint;
+    const col = new Color();
+    pxCells.forEach((c, i) => {
+      const v = cellColour(paint, c);
+      if (typeof v === "string") col.set(v);
+      else col.setRGB(v[0], v[1], v[2]);
+      cellMesh.setColorAt(i, col);
+    });
+    if (cellMesh.instanceColor) cellMesh.instanceColor.needsUpdate = true;
+  };
+  paintCells("rgb");
   scene.add(cellMesh);
   const cellM4 = new Matrix4();
   /** The cells at a split k: lying on the pixel, rising off the land one by one, dissolving at the end. */
@@ -509,11 +534,12 @@ export function mountOverview(
     const on = pxCells.length > 0 && k > 0.33;
     cellMesh.visible = on;
     if (!on) return;
-    cellMat.opacity = sstep(0.33, 0.45, k) * (1 - sstep(0.86, 1, k));
-    const riseKm = 0.32;
+    // the cells stay risen over the pixel once it is open: its cards stand round them (U27)
+    cellMat.opacity = sstep(0.33, 0.45, k);
+    const riseKm = CELL_RISE;
     cellBase.forEach((b, i) => {
       const r = ease(clamp01((k - 0.45 - 0.22 * (cellDelay[i] ?? 0)) / 0.3));
-      cellM4.makeTranslation(b[0], b[1] + riseKm * r + 0.2 * sstep(0.86, 1, k), b[2]);
+      cellM4.makeTranslation(b[0], b[1] + riseKm * r, b[2]);
       cellMesh.setMatrixAt(i, cellM4);
     });
     cellMesh.instanceMatrix.needsUpdate = true;
@@ -772,6 +798,34 @@ export function mountOverview(
   const TP: Vec3 | null = pixelCentre
     ? frame.v(pixelCentre[0], pixelCentre[1], sample(pixelCentre[0], pixelCentre[1]))
     : null;
+  // the camera on the opened pixel, solved once: distance and lens shift that put the pixel and its risen cells in
+  // PIXEL_GAP, looking down between the land and the cells
+  let pixelSolved: View | null = null;
+  const pixelView = (tp: Vec3): View => {
+    if (pixelSolved) return pixelSolved;
+    const pts = pixelPts.flatMap((p): Vec3[] => [p, [p[0], p[1] + CELL_RISE, p[2]]]);
+    const v: View = {
+      target: [tp[0], tp[1] + CELL_RISE / 2, tp[2]],
+      azimuth: azN,
+      elevation: PIXEL_ELEVATION,
+      distance: 3,
+      shift: [0, 0],
+    };
+    const gw = PIXEL_GAP.x1 - PIXEL_GAP.x0;
+    const gh = PIXEL_GAP.y1 - PIXEL_GAP.y0;
+    for (let it = 0; it < 8 && pts.length; it++) {
+      set(v);
+      const b = bbox(pts.map(project));
+      v.distance *= Math.max((b.x1 - b.x0) / gw, (b.y1 - b.y0) / gh);
+      v.shift = [
+        v.shift[0] + ((PIXEL_GAP.x0 + PIXEL_GAP.x1) / 2 - (b.x0 + b.x1) / 2),
+        v.shift[1] + ((PIXEL_GAP.y0 + PIXEL_GAP.y1) / 2 - (b.y0 + b.y1) / 2),
+      ];
+    }
+    pixelSolved = v;
+    return v;
+  };
+
   // the band below the lower limit: the mean place of the catchment's relief cells under it
   let TB: Vec3 | null = null;
   if (bandLimitM !== null) {
@@ -1119,6 +1173,10 @@ export function mountOverview(
       landBox: lb,
       anchor: anchorOf(state.sel, lb),
       subject: subjectOf(state.sel, lb),
+      pixelBox:
+        (state.split ?? 0) > 0.5 && pixelPts.length
+          ? bbox(pixelPts.flatMap((p) => [project(p), project([p[0], p[1] + CELL_RISE, p[2]])]))
+          : null,
     };
     for (const l of listeners) l(layout);
   });
@@ -1308,10 +1366,12 @@ export function mountOverview(
         splitK > 0 && TP
           ? viewAt(
               atRest,
-              { target: TP, azimuth: azN, elevation: 52, distance: 1.25, shift: [0, -20] },
+              // stood back so the pixel and its risen cells sit in the gap its six cards leave (U27)
+              pixelView(TP),
               ease(clamp01(splitK / 0.45)),
             )
           : atRest;
+      paintCells(next.cellPaint ?? "rgb");
       placeCells(splitK);
       // the land rises out of the table as the camera comes down to it
       scene.scale.y = Math.max(0.01, sstep(0.2, 1, rise));

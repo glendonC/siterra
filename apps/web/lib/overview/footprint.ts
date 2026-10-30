@@ -15,6 +15,8 @@ export const trendCellsSchema = z.object({
   fields: z.array(z.string()),
   count: z.number().int(),
   period: z.tuple([z.number().int(), z.number().int()]).optional(),
+  /** The season the slopes are computed over, as the asset words it ("March to June"). */
+  window: z.string().optional(),
   crs: z.string().optional(),
   median_slope_per_decade: z.number().optional(),
   display_scale: z.object({
@@ -35,6 +37,8 @@ export interface SlopeCells {
   /** The fixed display scale: ± domain, and the neutral half width (NDVI per decade). */
   domain: number;
   neutral: number;
+  /** The season window the asset states, or null when it states none. */
+  window: string | null;
 }
 
 /** The trend_cells asset as quadrilaterals with their slopes, by the field names the asset lists. */
@@ -60,6 +64,7 @@ export function slopeCellsFrom(json: unknown): SlopeCells {
     cells,
     domain: Math.max(Math.abs(lo), Math.abs(hi)),
     neutral: t.display_scale.neutral_per_decade,
+    window: t.window ?? null,
   };
 }
 

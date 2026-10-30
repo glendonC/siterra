@@ -323,3 +323,62 @@
   clip-path: inset(50%);
   white-space: nowrap;
 }
+
+/* in place over the land (U27): no ground of its own; each panel on a frosted card, the land showing between them */
+.root[data-around] {
+  background: transparent;
+}
+
+.card {
+  border-radius: 6px;
+  background: var(--ov-card);
+  backdrop-filter: blur(14px) saturate(0.7);
+  pointer-events: none;
+}
+
+.paintButton {
+  padding: 0 10px;
+}
+
+.paintButton[aria-pressed="true"] {
+  color: var(--text-primary);
+  border-color: var(--control-line-strong);
+  background: var(--control-fill);
+}
+
+/* a panel's own part in place (U27): moved, stacked or waiting as a chip by the scene */
+.part {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1440px;
+  height: 900px;
+  pointer-events: none;
+}
+
+/* the part spans the stage so its words wrap as on the stage; only what it holds takes the pointer */
+.part > :not(svg) {
+  pointer-events: auto;
+}
+
+.paintRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* a key belongs to the paint the cells carry; the others step out */
+.root [data-paint-key][display="none"] {
+  display: none;
+}
+
+/* 01, 04 and 06 waiting in the left column: their number and title, opening their card beside the column */
+.partChip {
+  gap: 8px;
+  padding: 0 12px;
+}
+
+.partChip[aria-expanded="true"] {
+  border-color: var(--control-line-strong);
+  background: var(--control-fill);
+}

@@ -156,6 +156,87 @@ test("Enter on an opened card runs the action its Enter chip names, however the 
   await expect(page).toHaveURL(/\/instruments\/pixel$/);
 });
 
+test("the pixel opens in place: its cards stand round its risen cells, 02 paints them, Esc puts them back", async ({
+  page,
+}) => {
+  await ready(page);
+  await page.locator("[data-finding='pixel']").click();
+  await page.locator("[data-record] [data-actions] a").first().click();
+  await expect(page).toHaveURL(/\/instruments\/pixel$/);
+  const view = page.locator("[data-instrument='pixel'][data-around]");
+  await expect(view).toBeVisible();
+  // the pixel is the subject: three cards open round it (with the caption's), 01, 04 and 06 wait as chips; one
+  // leader from each card or chip to the pixel on the land
+  await expect(view.locator("[data-card]:visible")).toHaveCount(4);
+  await expect(view.locator("[data-chip]")).toHaveText([
+    "01Locate",
+    "04Season Record",
+    "06Field Check",
+  ]);
+  await expect(view.locator("[data-leaders] line")).toHaveCount(6, { timeout: 10_000 });
+  // a chip opens its card beside the column, and closes it again
+  const chip = view.locator("[data-chip='06']");
+  await chip.click();
+  await expect(chip).toHaveAttribute("aria-expanded", "true");
+  await expect(view.locator("[data-card='06']")).toBeVisible();
+  // the field check cites its sources by short citation, never by the record's ids
+  await expect(view.locator("[data-part='06']")).toContainText("El Aayadi et al. 2026, pp. 7 to 8");
+  expect(await view.innerText()).not.toMatch(/\bSCI-\d/);
+  await chip.click();
+  await expect(chip).toHaveAttribute("aria-expanded", "false");
+  await expect(view.locator("[data-card='06']")).toBeHidden();
+  // no opened chip's card covers another card's words: each in turn, the text report clean and its back clear of
+  // every other open card's back
+  for (const id of ["01", "04", "06"]) {
+    const c = view.locator(`[data-chip='${id}']`);
+    await c.click();
+    await expect(view.locator(`[data-card='${id}']`)).toBeVisible();
+    expect(await textReport(page, "[data-instrument='pixel']")).toEqual({
+      overlaps: [],
+      small: [],
+      outside: [],
+    });
+    const boxes = await view.locator("[data-card]:visible").evaluateAll((els) =>
+      els.map((e) => {
+        const r = e.getBoundingClientRect();
+        return {
+          id: e.getAttribute("data-card"),
+          x0: r.left,
+          y0: r.top,
+          x1: r.right,
+          y1: r.bottom,
+        };
+      }),
+    );
+    const mine = boxes.find((b) => b.id === id);
+    if (!mine) throw new Error(`card ${id}`);
+    for (const b of boxes)
+      if (b.id !== id)
+        expect(
+          Math.max(0, Math.min(mine.x1, b.x1) - Math.max(mine.x0, b.x0)) *
+            Math.max(0, Math.min(mine.y1, b.y1) - Math.max(mine.y0, b.y0)),
+          `${id} over ${String(b.id)}`,
+        ).toBe(0);
+    await c.click();
+    await expect(view.locator(`[data-card='${id}']`)).toBeHidden();
+  }
+  // the land stays under the cards
+  await expect(page.locator("[data-overview-root] canvas[data-land]").first()).toBeVisible();
+  for (const paint of ["ndvi", "class", "rgb"]) {
+    await view.locator(`[data-paint='${paint}']`).click();
+    await expect(view.locator(`[data-paint='${paint}']`)).toHaveAttribute("aria-pressed", "true");
+    await expect(view.locator("[data-paint][aria-pressed='true']")).toHaveCount(1);
+  }
+  expect(await textReport(page, "[data-instrument='pixel']")).toEqual({
+    overlaps: [],
+    small: [],
+    outside: [],
+  });
+  await page.keyboard.press("Escape");
+  await expect(page).toHaveURL(/\/valley$/);
+  await expect(page.locator("[data-instrument='pixel']")).toHaveCount(0);
+});
+
 test("the proposed routes lie on the land, lift on hover, open with the bundle's figures, and Esc returns", async ({
   page,
 }) => {

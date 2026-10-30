@@ -424,6 +424,10 @@ export const en = {
     text: "Pixel {tile}, row {row}, column {col}, as its {cells} Sentinel-2 cells of 10 m. Cells outside it are veiled.",
     kind: "ui",
   },
+  "instrument.pixel.cells.detailLand": {
+    text: "Pixel {tile}, row {row}, column {col}, as its {cells} Sentinel-2 cells of 10 m, risen from the land. Paint them by:",
+    kind: "ui",
+  },
   "instrument.pixel.cells.truecolour": { text: "True color", kind: "label" },
   "instrument.pixel.cells.ndvi": { text: "NDVI, {month}", kind: "label" },
   "instrument.pixel.cells.class": { text: "WorldCover {year} class", kind: "label" },
@@ -695,7 +699,7 @@ export const en = {
   },
   "overview.onLand.pixel": { text: "On the land: the pixel's outline.", kind: "ui" },
   "overview.lift.trend": {
-    text: "{n} cells, March to June; {share} of the area greening after a false discovery rate check",
+    text: "{n} cells, {window}; {share} of the area greening after a false discovery rate check",
     kind: "ui",
   },
   "overview.lift.rain": {

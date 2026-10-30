@@ -5,6 +5,7 @@
 
 import type { CaseSnapshot } from "@siterra/contracts";
 import { format } from "../copy/en";
+import { citedAuthors } from "./cite";
 
 export interface Season {
   year: number;
@@ -95,15 +96,7 @@ type Source = CaseSnapshot["records"]["sourceRecords"][number];
  * publisher field gives it (without the publisher's name in parentheses), and the pages.
  */
 export function reference(src: Source, pages: readonly string[]): string {
-  const surname = (a: string | undefined) =>
-    a === undefined ? "" : a.split(",", 1).join("").trim();
-  const authors = src.authors;
-  const who =
-    authors.length > 2
-      ? format("overview.cite.etAl", { name: surname(authors[0]) })
-      : authors.length === 2
-        ? format("overview.cite.two", { a: surname(authors[0]), b: surname(authors[1]) })
-        : surname(authors[0]) || src.title;
+  const who = citedAuthors(src.authors) || src.title;
   const venue = (src.publisher ?? "").replace(/\s*\([^()]*\)\s*$/, "");
   const year = (src.publicationDate ?? "").slice(0, 4);
   if (pages.length === 0) return format("overview.cite.noPage", { authors: who, year, venue });

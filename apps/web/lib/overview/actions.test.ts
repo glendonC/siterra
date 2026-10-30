@@ -20,6 +20,13 @@ describe("actionsFor (decision 15)", () => {
     expect(actionsFor("route", new Set<ViewKind>(), true).map((a) => a.key)).toEqual(["Esc"]);
   });
 
+  it("gives the field plan its letter F where it is not the primary action", () => {
+    expect(actionForKey(actionsFor("route", ALL, true), "Enter")?.view).toBe("field");
+    expect(
+      actionForKey([{ key: "F", view: "field", label: "overview.open.field" }], "f")?.view,
+    ).toBe("field");
+  });
+
   it("never lists more than three actions", () => {
     for (const t of [
       "catchment",

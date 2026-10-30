@@ -116,6 +116,8 @@
   --ov-grid: rgb(255 255 255 / 0.07);
   --ov-connector: rgb(201 214 218 / 0.55);
   --ov-connector-end: #c9d6da;
+  /* a card standing on the land (U27): the ground, nearly opaque, the land faintly through it */
+  --ov-card: rgb(11 16 18 / 0.8);
   --ov-frost: radial-gradient(
     ellipse 50% 50% at 50% 50%,
     rgb(11 16 18 / 0.88) 0%,

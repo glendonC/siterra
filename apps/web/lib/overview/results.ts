@@ -7,6 +7,7 @@
 
 import type { BranchMerge, CaseSnapshot, Evidence } from "@siterra/contracts";
 import { en, format, type MessageId } from "../copy/en";
+import { citedAuthors } from "./cite";
 
 /** The accepted Evidence the command's tasks generated, oldest first. */
 export function commandFindings(snapshot: CaseSnapshot, commandId: string): Evidence[] {
@@ -147,15 +148,7 @@ export function chipNumbers(findings: readonly Evidence[]): (number | null)[] {
 /** The chip's note: the source's title, locator and excerpt, or the bundle and the measurements it computed. */
 /** A Source as a reader names it: the first author's surname (with "et al." for three or more) and the year. */
 export function shortCitation(src: CaseSnapshot["records"]["sourceRecords"][number]): string {
-  const surname = (a: string | undefined) =>
-    a === undefined ? "" : a.split(",", 1).join("").trim();
-  const authors = src.authors;
-  const who =
-    authors.length > 2
-      ? format("overview.cite.etAl", { name: surname(authors[0]) })
-      : authors.length === 2
-        ? format("overview.cite.two", { a: surname(authors[0]), b: surname(authors[1]) })
-        : surname(authors[0]);
+  const who = citedAuthors(src.authors);
   const year = (src.publicationDate ?? "").slice(0, 4);
   if (!who) return src.title;
   return year ? format("results.cite", { authors: who, year }) : who;

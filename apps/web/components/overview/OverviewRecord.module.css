@@ -103,6 +103,19 @@
   left: 1012px;
   top: 620px;
   width: 420px;
+  isolation: isolate;
+}
+
+/* the published context on its own frosted back, as the pixel's cards stand, so it reads where it crosses the land's
+   rim (AUDIT's U26 advisory); the back reaches past the text so the words keep their place */
+.evid::before {
+  content: "";
+  position: absolute;
+  inset: -10px -12px;
+  z-index: -1;
+  border-radius: 6px;
+  background: var(--ov-card);
+  backdrop-filter: blur(14px) saturate(0.7);
 }
 
 .q {

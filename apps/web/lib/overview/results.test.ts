@@ -249,6 +249,19 @@ describe("a statement as shown", () => {
     expect(shortCitation({ ...three, publicationDate: null })).toBe("Auclair et al.");
   });
 
+  it("reads an author list that records 'et al.' as an entry as the first author with et al.", () => {
+    // the seed's src_SCI-04 records its authors as ["Aakairi, M.", "et al."]
+    const aak = seed.records.sourceRecords.find((x) => x.id === "src_SCI-04");
+    if (!aak) throw new Error("src_SCI-04");
+    expect(shortCitation(aak)).toBe("Aakairi et al. 2026");
+    const two = { ...aak, authors: ["Aakairi, M.", "Bourbouze, Alain"] };
+    expect(shortCitation(two)).toBe("Aakairi and Bourbouze 2026");
+    expect(shortCitation({ ...aak, authors: ["Aakairi, M.", "et al"] })).toBe(
+      "Aakairi et al. 2026",
+    );
+    expect(shortCitation({ ...aak, authors: ["Aakairi, M."] })).toBe("Aakairi 2026");
+  });
+
   it("names an id the case holds no Source for as an unnamed source, never the id", () => {
     expect(readableStatement(seed, "Reading src_SCI-99 first.")).toBe(
       "Reading a source the case does not hold first.",

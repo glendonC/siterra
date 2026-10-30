@@ -48,7 +48,14 @@ export interface OverviewData {
      * Its Sentinel-2 cells (10 m) whose centres lie inside it, each with its centre and its display colour (the
      * shared true-colour composite, display only), for the pixel taken apart (decision 12).
      */
-    cells: { E: number; N: number; rgb: readonly [number, number, number] }[];
+    cells: {
+      E: number;
+      N: number;
+      rgb: readonly [number, number, number];
+      /** Its June NDVI median and its WorldCover class, from the same window. */
+      ndvi: number | null;
+      cls: number;
+    }[];
     /** The cells' size (m). */
     cellM: number;
   } | null;
@@ -71,19 +78,27 @@ function inside(ring: readonly (readonly [number, number])[], x: number, y: numb
   return hit;
 }
 
+type OverviewCell = NonNullable<OverviewData["pixel"]>["cells"][number];
+
 /** The 10 m cells of the pixel's window (row 0 north, from its outer corner) whose centres lie inside its footprint. */
 export function cellsInside(
   grid: PixelData["grid"],
   footprint: readonly (readonly [number, number])[],
   cellM = 10,
-): { E: number; N: number; rgb: readonly [number, number, number] }[] {
-  const out: { E: number; N: number; rgb: readonly [number, number, number] }[] = [];
+): OverviewCell[] {
+  const out: OverviewCell[] = [];
   for (let r = 0; r < grid.rows; r++)
     for (let c = 0; c < grid.cols; c++) {
       const E = grid.origin_x + (c + 0.5) * cellM;
       const N = grid.origin_y - (r + 0.5) * cellM;
       if (!inside(footprint, E, N)) continue;
-      out.push({ E, N, rgb: grid.truecolour_rgb[r]?.[c] ?? [0, 0, 0] });
+      out.push({
+        E,
+        N,
+        rgb: grid.truecolour_rgb[r]?.[c] ?? [0, 0, 0],
+        ndvi: grid.ndvi_median[r]?.[c] ?? null,
+        cls: grid.worldcover[r]?.[c] ?? 0,
+      });
     }
   return out;
 }

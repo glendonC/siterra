@@ -77,6 +77,7 @@ import {
   type KeyEntry,
 } from "../controls/ScreenChrome";
 import { Ask } from "./Ask";
+import type { CellPaint } from "../../lib/instruments/pixel/paint";
 import { ActionList } from "./ActionList";
 import { OverviewRecord } from "./OverviewRecord";
 import { OverviewResults } from "./OverviewResults";
@@ -390,6 +391,9 @@ function OverviewReady({
   } | null>(null);
   // the rain card compared with rainfall (decision 13): the card opens wide beside the rain-tinted land
   const [rainWide, setRainWide] = useState(false);
+  // how the opened pixel's risen cells are painted (U27): its 02 card chooses
+  const [cellPaint, setCellPaint] = useState<CellPaint>("rgb");
+  const cellPaintRef = useRef<CellPaint>("rgb");
   const rainWideRef = useRef(rainWide);
   rainWideRef.current = rainWide;
   const tearRef = useRef(tear);
@@ -862,6 +866,8 @@ function OverviewReady({
       P.k = Math.max(0, P.k - dt / SPLIT_S.back);
       if (P.k === 0) {
         P.dir = 0;
+        cellPaintRef.current = "rgb";
+        setCellPaint("rgb");
         setTear(null);
         window.history.pushState(null, "", "/valley");
       } else moving = true;
@@ -932,6 +938,7 @@ function OverviewReady({
       route: pickRef.current,
       exit: X.narrow ? X.k : 0,
       split: P.k,
+      cellPaint: cellPaintRef.current,
       ...(X.away > 0 ? { arcDraw: 1 - X.away } : {}),
       lift,
       ...(arrive ?? {}),
@@ -1592,7 +1599,35 @@ function OverviewReady({
       case "cutaway":
         return <InstrumentCutaway {...td} />;
       case "pixel":
-        return <InstrumentPixelAnatomy />;
+        // the split pixel stays on the land with its cards round it; a cut (reduced motion) opens the panels alone
+        return t.cut ? (
+          <InstrumentPixelAnatomy />
+        ) : (
+          <InstrumentPixelAnatomy
+            around={{
+              paint: cellPaint,
+              onPaint: (p) => {
+                cellPaintRef.current = p;
+                setCellPaint(p);
+                go();
+              },
+              // in client px: the pixel view converts it to its own stage
+              pixelBox: () => {
+                const L = lastLayout.current;
+                const h = hudRef.current?.getBoundingClientRect();
+                const b = L?.pixelBox;
+                if (!L || !h || !b) return null;
+                const k = L.fit.scale;
+                return {
+                  x0: h.left + b.x0 * k,
+                  y0: h.top + b.y0 * k,
+                  x1: h.left + b.x1 * k,
+                  y1: h.top + b.y1 * k,
+                };
+              },
+            }}
+          />
+        );
       case "rainfall":
         return <InstrumentRainfallScatter />;
       default:
@@ -1613,6 +1648,8 @@ function OverviewReady({
       case "trend":
         return format("overview.lift.trend", {
           n: count(data?.footprints.slope?.cells.length ?? 0),
+          // the season as the trend asset states it
+          window: data?.footprints.slope?.window ?? "",
           share: shown("fdr"),
         });
       case "rain":
@@ -1636,14 +1673,14 @@ function OverviewReady({
       data-overview-root
       data-arriving={arriving ? "" : undefined}
       data-tearing={tear !== null ? "" : undefined}
-      data-covered={tear?.shown ? "" : undefined}
+      data-covered={tear?.shown ? (tear.kind === "pixel" ? "land" : "") : undefined}
       data-case-revision={snapshot.case.revision}
     >
       <p id={descriptionId} className={styles.srOnly}>
         {en["overview.description"].text} {en["overview.keys"].text}
       </p>
-      <canvas ref={landRef} className={styles.canvas} aria-hidden="true" />
-      <canvas ref={blurRef} className={styles.blur} aria-hidden="true" />
+      <canvas ref={landRef} className={styles.canvas} aria-hidden="true" data-land />
+      <canvas ref={blurRef} className={styles.blur} aria-hidden="true" data-land />
       <canvas ref={arcRef} className={styles.canvas} aria-hidden="true" />
       <div ref={cornerRef} className={styles.cornerfade} aria-hidden="true" />
       <div ref={hudRef} className={styles.hud}>

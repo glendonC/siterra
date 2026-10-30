@@ -6,6 +6,7 @@ import {
   catchmentAreaKm2,
   chartScale,
   olsIntercept,
+  reference,
   referencesOf,
   stratumSeasons,
   yearTicks,
@@ -92,5 +93,18 @@ describe("the record from the seed case", () => {
 
   it("gives the catchment area as the record stores it", () => {
     expect(catchmentAreaKm2(seed)).toBe("417.04");
+  });
+});
+
+describe("a short reference (the citation rule)", () => {
+  it("reads an author list that records 'et al.' as an entry as the first author with et al.", () => {
+    const src = seed.records.sourceRecords.find((x) => x.id === "src_SCI-04");
+    if (!src) throw new Error("src_SCI-04");
+    expect(reference(src, ["3"]).startsWith("Aakairi et al. 2026, ")).toBe(true);
+    expect(
+      reference({ ...src, authors: ["Aakairi, M.", "Bourbouze, Alain"] }, []).startsWith(
+        "Aakairi and Bourbouze 2026",
+      ),
+    ).toBe(true);
   });
 });

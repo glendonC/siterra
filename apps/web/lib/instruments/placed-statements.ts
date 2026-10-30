@@ -6,14 +6,18 @@
 
 import type { CaseSnapshot, DisplayText } from "@siterra/contracts";
 import { reference } from "../overview/record";
+import { shortCitation } from "../overview/results";
 
 type Source = CaseSnapshot["records"]["sourceRecords"][number];
 
 export interface PlacedStatement {
   id: string;
   text: string;
-  /** One entry per source, in the order the Evidence cites them; page null when no locator names one. */
-  cites: { sourceId: string; page: string | null }[];
+  /**
+   * One entry per source, in the order the Evidence cites them, with the short citation a reader sees ("Aakairi et
+   * al. 2026"; never the record's id on screen); page null when no locator names one.
+   */
+  cites: { sourceId: string; name: string; page: string | null }[];
 }
 
 export interface PlacedStatements {
@@ -62,6 +66,10 @@ export function placedStatements(
       text: display.text,
       cites: [...pages].map(([sourceId, p]) => ({
         sourceId: shortSourceId(sourceId),
+        name: (() => {
+          const src = cited.get(sourceId);
+          return src ? shortCitation(src) : shortSourceId(sourceId);
+        })(),
         page: pagesText(p),
       })),
     };

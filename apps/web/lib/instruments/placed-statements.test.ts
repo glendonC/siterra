@@ -47,8 +47,8 @@ describe("placedStatements", () => {
       (p.contextDisplay ?? []).map((display, i) => ({ id: String(i), display })),
     );
     expect(placed.statements.map((s) => s.cites)).toEqual([
-      [{ sourceId: "SCI-03", page: "7 to 8" }],
-      [{ sourceId: "SCI-19", page: "2" }],
+      [{ sourceId: "SCI-03", name: "El Aayadi et al. 2026", page: "7 to 8" }],
+      [{ sourceId: "SCI-19", name: "Auclair et al. 2011", page: "2" }],
     ]);
     expect(placed.statements[0]?.text).toMatch(/^Herders report losing palatable species/);
   });

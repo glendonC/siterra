@@ -539,7 +539,8 @@
 }
 
 /* the rainfall's seasons stand beside the land, which stays, tinted by the rain cells (decision 13) */
-.inPlace[data-kind="rainfall"] :is([data-shell], [data-instrument="rainfall"]) {
+.inPlace:is([data-kind="rainfall"], [data-kind="pixel"])
+  :is([data-shell], [data-instrument="rainfall"]) {
   background: transparent;
 }
 
@@ -565,7 +566,12 @@
   pointer-events: none;
 }
 
-.layer[data-covered] > :not(.inPlace) {
+/* the pixel's cards stand round its risen cells on the land (U27): the land stays, nothing else of the overview */
+.layer[data-covered="land"] > :not(.inPlace, [data-land]) {
+  visibility: hidden;
+}
+
+.layer[data-covered=""] > :not(.inPlace) {
   visibility: hidden;
 }
 
