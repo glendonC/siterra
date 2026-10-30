@@ -1,16 +1,18 @@
-// The cutaway's data until the case record API serves it: the valley fixtures it shares with the layer stack, the
-// section line (S2 transect bundle), the place it names (case record context features) and the two published
-// statements it places on the model (a marked stand-in for the Evidence records).
+// The cutaway's data. From the case, through the cross section spec's assets (checksums checked): the section line
+// (transect samples and the drawn transect summary, built by the recompute-tested transectFixture), the band
+// trends, the snow shares and the catchment outline. Still from the valley fixtures: the relief (a GeoTIFF in the
+// bundle, until its display asset lands), the rivers and the place (to move to the case's context features), and
+// the two published statements (a marked stand-in until the Evidence wording is settled).
 
+import type { CaseSnapshot, InstrumentView } from "@siterra/contracts";
 import { z } from "zod";
+import { bundleSource, drawnAsset, readJsonAsset } from "../listing";
+import { seasonTrendFrom, snowFrom } from "./derive";
 import {
   VALLEY_FIXTURES,
-  catchmentSchema,
-  figuresSchema,
   json,
   loadRelief,
   riversSchema,
-  snowSchema,
   terrainMetaSchema,
   type Catchment,
   type Figures,
@@ -18,7 +20,8 @@ import {
   type Snow,
   type TerrainMeta,
 } from "./fixtures";
-import { cutawayTransectSchema, type CutawayTransect } from "./transect";
+import { outlineRing } from "./outline";
+import { cutawayTransectSchema, transectFixture, type CutawayTransect } from "./transect";
 
 /** The place the section passes through, by its case record context feature. */
 export const SECTION_PLACE = "ctx_tabant";
@@ -68,31 +71,61 @@ export type Statements = z.infer<typeof statementsSchema>;
 export interface CutawayData {
   meta: TerrainMeta;
   relief: Float32Array<ArrayBuffer>;
-  catchment: Catchment;
+  catchment: Pick<Catchment, "ring">;
   rivers: Rivers;
   snow: Snow;
-  figures: Figures;
+  figures: Pick<Figures, "season_trend">;
   transect: CutawayTransect;
   places: Places;
   statements: Statements;
 }
 
-/** The fixtures specimen B reads; `transect` is the section line's URL. */
+type Fetch = (input: string, init?: RequestInit) => Promise<Response>;
+
+/** The section line, band trends, snow and outline from the cross section spec; the rest from `base`. */
 export async function loadCutawayData(
+  view: InstrumentView,
+  snapshot: CaseSnapshot,
   base = VALLEY_FIXTURES,
-  transect = `${base}transect.json`,
+  fetchImpl: Fetch = (input, init) => fetch(input, init),
   signal?: AbortSignal,
 ): Promise<CutawayData> {
+  const p = view.spec.parameters;
+  if (p.kind !== "cross_section") throw new Error(`Not a cross section spec: ${p.kind}`);
+  const member = snapshot.records.contextFeatureRecords?.find((f) => f.id === p.transectFeatureId)
+    ?.dataBundle?.member;
+  if (member === undefined) throw new Error(`No bundle member for ${p.transectFeatureId}`);
+  const summary = drawnAsset(view, "transect_summary");
+  const read = (ref: Parameters<typeof readJsonAsset>[1]) =>
+    readJsonAsset(view, ref, fetchImpl, signal);
   const meta = await json(`${base}terrain-meta.json`, terrainMetaSchema, signal);
-  const [relief, catchment, rivers, snow, figures, line, places, statements] = await Promise.all([
-    loadRelief(base, meta, signal),
-    json(`${base}catchment.json`, catchmentSchema, signal),
-    json(`${base}rivers.json`, riversSchema, signal),
-    json(`${base}snow.json`, snowSchema, signal),
-    json(`${base}figures.json`, figuresSchema, signal),
-    json(transect, cutawayTransectSchema, signal),
-    json(`${base}places.json`, placesSchema, signal),
-    json(`${base}statements.json`, statementsSchema, signal),
-  ]);
-  return { meta, relief, catchment, rivers, snow, figures, transect: line, places, statements };
+  const [relief, rivers, places, statements, samples, terrain, trends, snow, outline] =
+    await Promise.all([
+      loadRelief(base, meta, signal),
+      json(`${base}rivers.json`, riversSchema, signal),
+      json(`${base}places.json`, placesSchema, signal),
+      json(`${base}statements.json`, statementsSchema, signal),
+      read(p.profile),
+      read(summary),
+      read(p.bandTrends),
+      read(p.snow),
+      read(drawnAsset(view, "catchment_outline")),
+    ]);
+  const transect = cutawayTransectSchema.parse(
+    transectFixture(samples as never, terrain as never, member, [
+      bundleSource(view, p.profile),
+      bundleSource(view, summary),
+    ]),
+  );
+  return {
+    meta,
+    relief,
+    catchment: { ring: outlineRing(outline) },
+    rivers,
+    snow: snowFrom(snow),
+    figures: { season_trend: seasonTrendFrom(trends) },
+    transect,
+    places,
+    statements,
+  };
 }

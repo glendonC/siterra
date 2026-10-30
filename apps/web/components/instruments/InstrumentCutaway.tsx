@@ -82,11 +82,9 @@ function dot(e: SVGCircleElement | null, x: number, y: number) {
 
 export function InstrumentCutaway({
   base = VALLEY_FIXTURES,
-  transect,
 }: {
+  /** The valley fixtures the cutaway still reads: relief, rivers, place and statements. */
   base?: string;
-  /** The section line's fixture; the valley fixtures' transect.json when absent. */
-  transect?: string;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const bandRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -112,19 +110,27 @@ export function InstrumentCutaway({
   const [loadFailed, setFailed] = useState(false);
   const record = useInstrument("cross_section");
   const failed = loadFailed || record.status === "failed";
-  const caption = record.status === "ready" ? record.view.spec.caption : null;
+  const view = record.status === "ready" ? record.view : null;
+  const snapshot = record.status === "ready" ? record.snapshot : null;
+  const caption = view?.spec.caption ?? null;
   const lead = caption ? splitFigure(caption.ink) : null;
   const keysId = useId();
 
   useEffect(() => {
+    if (!view || !snapshot) return;
     const ac = new AbortController();
-    loadCutawayData(base, transect, ac.signal).then(setData, () => {
-      if (!ac.signal.aborted) setFailed(true);
-    });
+    loadCutawayData(view, snapshot, base, (input, init) => fetch(input, init), ac.signal).then(
+      setData,
+      (e: unknown) => {
+        if (ac.signal.aborted) return;
+        console.error("Cutaway not loaded", e);
+        setFailed(true);
+      },
+    );
     return () => {
       ac.abort();
     };
-  }, [base, transect]);
+  }, [view, snapshot, base]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
