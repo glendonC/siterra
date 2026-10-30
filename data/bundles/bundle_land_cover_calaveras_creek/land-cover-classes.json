@@ -1,11 +1,11 @@
 {
  "recipeId": "land_cover_classes",
  "version": "1.0.0",
- "computed": "2026-10-30T20:05:00Z",
+ "computed": "2026-10-30T19:07:10Z",
  "place": {
   "placeId": "calaveras_creek",
-  "configRevision": 7,
-  "config_sha256": "1e3fedd50119c22e0fa46c8b2de27488c52157d8ff9347ccdcae5aefb7411489"
+  "configRevision": 9,
+  "config_sha256": "58db09c93622fae117105eb5bcefba11b5581a88534ef149e8899f61865ddc7d"
  },
  "claim_kind": "observation",
  "grid": {
@@ -156,9 +156,9 @@
  },
  "limitations": [
   "ESA WorldCover 2021 is a single 2021 map classified from satellite data at 10 m: its classes can differ from the ground, and the class of one cell is not a field observation.",
-  "Tree cover on the valley floor may include orchards; cropland is a small share of the catchment in this map (the class 'cropland or built-up' is excluded from the sampling strata, never read as low vegetation). No class is a pasture, agdal or management unit.",
-  "Areas are cell counts times 100 m2 in EPSG:32629, not geodesic areas, and cells on the polygon's boundary are counted where their centre lies inside it.",
-  "The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary."
+  "Tree cover may include open woodland and savanna as well as dense woodland. Cropland (0.07% of the catchment) and built-up land (0.09%) are almost absent in this map; the class 'cropland or built-up' is excluded from the sampling strata, never read as low vegetation. No class is a pasture, grazing lease or management unit.",
+  "Areas are cell counts times 100 m2 in EPSG:32610, not geodesic areas, and cells on the polygon's boundary are counted where their centre lies inside it.",
+  "The catchment is a hydrological analysis extent, not a pasture, grazing lease or management boundary."
  ],
  "forbidden_phrases": [
   "significant",

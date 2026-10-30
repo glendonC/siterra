@@ -94,7 +94,7 @@
    "roles": [
     "data"
    ],
-   "file:checksum": "122059f5ede718a5af5cd375584ca42fd1067ee1bd2becb43767279acca293664294",
+   "file:checksum": "1220e332b345d9c03d24f9fa1fa794723d1e799fff22c374876bec47332a79b40132",
    "file:size": 4706
   },
   "snow_cover_tables": {
@@ -104,11 +104,11 @@
    "roles": [
     "data"
    ],
-   "file:checksum": "122073a9bea5f638948c600c25d6f1a78e0e033612b9739e0ecfa518b6a0886a22f5",
+   "file:checksum": "1220f0c1f044f731b4040d786542312c6265cbb7f128fe7fb9e67a54c3d92c476277",
    "file:size": 11655
   }
  },
- "created": "2026-10-30T20:45:00Z",
+ "created": "2026-10-30T19:07:13Z",
  "siterra:status": "validated",
  "siterra:variable": "snow_cover_fraction",
  "siterra:dataset": {
@@ -129,7 +129,7 @@
   "version": "1.1.0",
   "analysis_crs": "EPSG:32610",
   "parameters": {
-   "place_configuration": "science/places/calaveras-creek.json revision 7, sha256 1e3fedd50119c22e0fa46c8b2de27488c52157d8ff9347ccdcae5aefb7411489",
+   "place_configuration": "science/places/calaveras-creek.json revision 9, sha256 58db09c93622fae117105eb5bcefba11b5581a88534ef149e8899f61865ddc7d",
    "months": [
     "2005-12",
     "2006-01",
@@ -240,7 +240,7 @@
    "href": "../bundle_terrain_strata_calaveras_creek/collection.json",
    "type": "application/json",
    "title": "Terrain strata bundle bundle_terrain_strata_calaveras_creek (equal-area elevation bands)",
-   "file:checksum": "1220131bcd8461757de7c05c82466402af7b0ff487aa56d1b70a59aa1333ea3ad1ed"
+   "file:checksum": "1220469c24e0c5e81c1dfb0cc51262a6a2018d3b1a857e70be166adcccf757a90198"
   },
   {
    "rel": "license",

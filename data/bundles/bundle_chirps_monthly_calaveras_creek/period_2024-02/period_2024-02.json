@@ -3620,7 +3620,7 @@
   "datetime": null,
   "start_datetime": "2024-02-01T00:00:00Z",
   "end_datetime": "2024-02-29T23:59:59Z",
-  "created": "2026-10-30T20:50:00Z",
+  "created": "2026-10-30T19:07:50Z",
   "raster:spatial_resolution": 5000,
   "siterra:period_status": "available",
   "siterra:missing_reason": null,

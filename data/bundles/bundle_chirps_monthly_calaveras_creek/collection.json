@@ -89,7 +89,7 @@
    "file:size": 18332
   }
  },
- "created": "2026-10-30T20:50:00Z",
+ "created": "2026-10-30T19:07:50Z",
  "siterra:status": "validated",
  "siterra:variable": "precipitation_monthly_total",
  "siterra:dataset": {
@@ -193,505 +193,505 @@
    "rel": "item",
    "href": "./period_2019-01/period_2019-01.json",
    "type": "application/geo+json",
-   "file:checksum": "1220ead99dbcaf0a9aa047a54764f955aa287420ea252e31cd7c2d2cb23e438e0865"
+   "file:checksum": "12209c5bbb49c0aa81b693b4f028267896d3a2a14e47d7d9c7f2a31afd5d5ee77eca"
   },
   {
    "rel": "item",
    "href": "./period_2019-02/period_2019-02.json",
    "type": "application/geo+json",
-   "file:checksum": "12202a8ee92d1188aee57d7d940af69d1ee66898b328d5023243f7289caf7b214c8a"
+   "file:checksum": "1220b6dd95d3152ef3e330796122fd6d12a21a32c6e89a890781c04137ac1ddafe99"
   },
   {
    "rel": "item",
    "href": "./period_2019-03/period_2019-03.json",
    "type": "application/geo+json",
-   "file:checksum": "122035c03b188ac7654f69d987481fb60dbeb5e6531f2f18f53e7a744ad0efa7f1f9"
+   "file:checksum": "1220f23af6c735fbb45a8cdc18e2361d420b1476a1854eca788ff5f5f3bbdae6e33d"
   },
   {
    "rel": "item",
    "href": "./period_2019-04/period_2019-04.json",
    "type": "application/geo+json",
-   "file:checksum": "1220f370293151ecf784021de92971e669c5937b8e0e8965cf1dc70aa8af80bf9773"
+   "file:checksum": "12207142e1d188f3a1991b3164e223ac8a2956ddc8cd9474891fcb2766f128fb29af"
   },
   {
    "rel": "item",
    "href": "./period_2019-05/period_2019-05.json",
    "type": "application/geo+json",
-   "file:checksum": "1220f21b68678adf3afb60e50db4cbd6dc6de548965562418d1442cc350211040b9f"
+   "file:checksum": "122066fde61596ad1dee421d2e21b90c4e4f99b9061ef546985e6d0b1afffcbc6386"
   },
   {
    "rel": "item",
    "href": "./period_2019-06/period_2019-06.json",
    "type": "application/geo+json",
-   "file:checksum": "122008e4a998987cbaf170b7054452ec63112b69ade270a5ee82c69ec33851ee016c"
+   "file:checksum": "1220d1298ed889f572e3a5a9e5c3780c3b1d88fdb93d6397e22c610cef7128acb0e6"
   },
   {
    "rel": "item",
    "href": "./period_2019-07/period_2019-07.json",
    "type": "application/geo+json",
-   "file:checksum": "12205b30de5a45909b2e76dfc7082608e595e11b04ab64bfea0abf3be8faf2145815"
+   "file:checksum": "122060378d0b8ebf55002d9df70ff59170cec5a8a0c8b8980f04041405410cf4df3b"
   },
   {
    "rel": "item",
    "href": "./period_2019-08/period_2019-08.json",
    "type": "application/geo+json",
-   "file:checksum": "1220d5cea7c410de108a583f55c96c851f9f671fc87d62ddd1f7327f74482990d210"
+   "file:checksum": "122076330b5110cc3488dc46e4e87bb2cdc68076fe9520bb02394053fd8618a6aafe"
   },
   {
    "rel": "item",
    "href": "./period_2019-09/period_2019-09.json",
    "type": "application/geo+json",
-   "file:checksum": "1220c52124720b0d9c127a47cf1bdde807434db4122c2eab45b6c1606c4d201119b6"
+   "file:checksum": "1220f5431feba9ad710a48fa7f8c7d482346c2a198553652bf94537f9fb17779cd84"
   },
   {
    "rel": "item",
    "href": "./period_2019-10/period_2019-10.json",
    "type": "application/geo+json",
-   "file:checksum": "1220bcce4751e6aaa01cefb37b45e8af17031e4c4d4d2d77263e54ed817448d9ad59"
+   "file:checksum": "12205c067361b5ff1d16b5ba1fe043afd4e38bebbdd3fd8e96d730ff89f8fbbef7a7"
   },
   {
    "rel": "item",
    "href": "./period_2019-11/period_2019-11.json",
    "type": "application/geo+json",
-   "file:checksum": "1220d8fd9a09685bde27742726cdba217ebf2432092a63f5c315fd90431b1c3c18ca"
+   "file:checksum": "1220333e34848c3c52bd1d6d921e6e9cb0b97f6e06f3bbe891d1124b01c69a3aed93"
   },
   {
    "rel": "item",
    "href": "./period_2019-12/period_2019-12.json",
    "type": "application/geo+json",
-   "file:checksum": "1220c430e060447ab8d176239a12421b3886b933b1f72ba1e5a2b37279134396ed1c"
+   "file:checksum": "122096a52623f64428dd9d8c9cc680605cbc17f9a8f319ca032bfc7f1c2d94fae724"
   },
   {
    "rel": "item",
    "href": "./period_2020-01/period_2020-01.json",
    "type": "application/geo+json",
-   "file:checksum": "122008150eaabc266230443e9879e9fd4e699a7bb0f6ee46d780111f7b27a8aba7b7"
+   "file:checksum": "12209390651f5b1dcc249bcfb3a263e66ccdfcca069cf3ee1f49b11b1ddf0baf3ea6"
   },
   {
    "rel": "item",
    "href": "./period_2020-02/period_2020-02.json",
    "type": "application/geo+json",
-   "file:checksum": "122041518bdec29760beda86a32f27ad49c3ddd1c94b46eb503518a5e7e8e7824689"
+   "file:checksum": "12202f5c5e06f1677f231b5eeb24c3e9026a4c054508d56b841964693edd21bef7fd"
   },
   {
    "rel": "item",
    "href": "./period_2020-03/period_2020-03.json",
    "type": "application/geo+json",
-   "file:checksum": "1220a6ab7df833e936a71d6f689670563a12dd735cfdf08e2268fdb903219f414398"
+   "file:checksum": "12206b4a56ac896871707265e8306d8beb62f73a5c9f4248728bb085405fa5e3c96e"
   },
   {
    "rel": "item",
    "href": "./period_2020-04/period_2020-04.json",
    "type": "application/geo+json",
-   "file:checksum": "122090405769bb961f88714c0eef5428e7b178986daadb95ec74d6861a1d106e636b"
+   "file:checksum": "1220a56901a2d823884a0a6e08e519c3ac8d5e60ec16309647ae86b21aa85d188de0"
   },
   {
    "rel": "item",
    "href": "./period_2020-05/period_2020-05.json",
    "type": "application/geo+json",
-   "file:checksum": "12209688e50abedaea81a0a39d5c54a7e743e6654059f530a4ef71bbc088a5235152"
+   "file:checksum": "12209679685731a2260f1300be4d901e75979aa6a7b28856cdefc60aaef5d3b623a7"
   },
   {
    "rel": "item",
    "href": "./period_2020-06/period_2020-06.json",
    "type": "application/geo+json",
-   "file:checksum": "12201375b0f918d0c88e83da9ff6756e71f1bf30abf6747b0d359edd93ba31cf284b"
+   "file:checksum": "12200a5535ba4a61443c1abdfbd55da0fb5eb7a898d383fb4923905c970c6b9d7212"
   },
   {
    "rel": "item",
    "href": "./period_2020-07/period_2020-07.json",
    "type": "application/geo+json",
-   "file:checksum": "1220abf7216cd0a90835f6fbb5481226b4a3df98b9e5ab496a172be7ad95d3f007d8"
+   "file:checksum": "1220dcbcd4692232f400139b2c2417ce486ae22b6d71a606dea61ad89532f5a5a680"
   },
   {
    "rel": "item",
    "href": "./period_2020-08/period_2020-08.json",
    "type": "application/geo+json",
-   "file:checksum": "1220154129fc2d003efd194df4b32c9ceb33849241ad0aafcb3fb094e6ce926512bc"
+   "file:checksum": "122096925c4e8e702972cb8389277c36c94a2369878fd74156d2049128c6ad21624c"
   },
   {
    "rel": "item",
    "href": "./period_2020-09/period_2020-09.json",
    "type": "application/geo+json",
-   "file:checksum": "1220862b88be77132d9e57f624110d4423e298b01c1842544cfa484c031dc4917f04"
+   "file:checksum": "1220164c796958ddf88bf431fc31bc5428e5e2148eac75c11e8f798c0092426c5c39"
   },
   {
    "rel": "item",
    "href": "./period_2020-10/period_2020-10.json",
    "type": "application/geo+json",
-   "file:checksum": "1220bd23f18d9591b54e0f6584d2ba579e6c8cd640ae4e33db2eeb7d242105992358"
+   "file:checksum": "12204011e5ee778619bf15b49cc3fd8432604c503fb2f841da975c39f2a5a434ff35"
   },
   {
    "rel": "item",
    "href": "./period_2020-11/period_2020-11.json",
    "type": "application/geo+json",
-   "file:checksum": "1220fc91deb64ede541508b8d3d46529b2d2c04037eb6a9ea4e33c959e08b4f49725"
+   "file:checksum": "1220b8dc4815de157c7664622ebc271b37a4fd4bfb1c85a5fff60ef6a3a362b8cc14"
   },
   {
    "rel": "item",
    "href": "./period_2020-12/period_2020-12.json",
    "type": "application/geo+json",
-   "file:checksum": "1220b8b73a9eb333cdbf1ce2812cf99d713f2aedc3702970ce69e66f6fa6422a66d6"
+   "file:checksum": "12201cce8bebeb50bf38bc82d90872398e9d9f80f358c8b5366c758bb57374371ce9"
   },
   {
    "rel": "item",
    "href": "./period_2021-01/period_2021-01.json",
    "type": "application/geo+json",
-   "file:checksum": "12209f84c0473fcdda14bbbcd17c1594de131e4c6ac88fd8666262b9206138e8a551"
+   "file:checksum": "1220562809f03eecbe189583e85c2ddb26f86ccd00e25d5de189df81e1ec0c6aa75d"
   },
   {
    "rel": "item",
    "href": "./period_2021-02/period_2021-02.json",
    "type": "application/geo+json",
-   "file:checksum": "12203ec8cfce29b2cac2c1669756de08dba69ae148b5721e7a60eec6114005fcb94c"
+   "file:checksum": "1220c1873a7356ba2d998b46e3ece64a26e649b0659a8bbb2fa8ed954bb891c78367"
   },
   {
    "rel": "item",
    "href": "./period_2021-03/period_2021-03.json",
    "type": "application/geo+json",
-   "file:checksum": "1220eb2a6ee5b67bde8640e939d0ffc579f211cdc9183cf4185f511c097309a2b1e1"
+   "file:checksum": "122011f0ac6e8e8c056858c37c1112eceff0adcbf4096426eb81b8922d1126a5cb5f"
   },
   {
    "rel": "item",
    "href": "./period_2021-04/period_2021-04.json",
    "type": "application/geo+json",
-   "file:checksum": "1220f968c1887ef1bc266f1003dd85572622136050b353b3a3141ad75df89e211a4f"
+   "file:checksum": "1220259be79c39e4acccfce9609fb2dfd34d9354131ae64ee0021a974d153d4e718b"
   },
   {
    "rel": "item",
    "href": "./period_2021-05/period_2021-05.json",
    "type": "application/geo+json",
-   "file:checksum": "122018e8e4b8f765454929ee70d512b267e3d6e2df6c5a1145e9ed51df8535ea44fe"
+   "file:checksum": "12206da86528cf8e8c2af9ab5a7ee0cf9a20944db7520d7104f63d54aaf5962fca47"
   },
   {
    "rel": "item",
    "href": "./period_2021-06/period_2021-06.json",
    "type": "application/geo+json",
-   "file:checksum": "1220d44ba9c8228b0d6c6d11786bd3b16615c17119fe7d4e399e58cbdadaeeb97cee"
+   "file:checksum": "12209f9b3bd61b6ddd4aed3c21647a5fe5b624e7b5cbae400345025761a1a2426cca"
   },
   {
    "rel": "item",
    "href": "./period_2021-07/period_2021-07.json",
    "type": "application/geo+json",
-   "file:checksum": "12208399beeecde1bc2b8704fc62474f12066197fd275edbc4bd1f2c00c0d136e07a"
+   "file:checksum": "12204f0d749468b1c32c2e595c82a6df0c55ccd747c79e3e2f48829cc0966f2c3b36"
   },
   {
    "rel": "item",
    "href": "./period_2021-08/period_2021-08.json",
    "type": "application/geo+json",
-   "file:checksum": "12200f3cf4a0ead4c294e611c073941d02a9e9fe3a180987780b28aaebf284aa4f02"
+   "file:checksum": "1220d9101216a1600063e8d755ef65c2c3cccca0c518546d6937bbf08be8b0fef247"
   },
   {
    "rel": "item",
    "href": "./period_2021-09/period_2021-09.json",
    "type": "application/geo+json",
-   "file:checksum": "1220a18aa7e7adb2b01b6bad6db7188e32bb449e770ff902b32583b44bd360e4861d"
+   "file:checksum": "12207695c3d1fcb320a825b6033a05c794b19c046c45b5818ff66298ce3ba6bfbdd9"
   },
   {
    "rel": "item",
    "href": "./period_2021-10/period_2021-10.json",
    "type": "application/geo+json",
-   "file:checksum": "12207fb3c419bf43edc3401670be17f65c72f5c8ac004c93e012b1390c6d91990b6e"
+   "file:checksum": "1220163ef2c65574ffa7679366cecbd0bee09eadc8b4cf078a9b7a8513288e88cd08"
   },
   {
    "rel": "item",
    "href": "./period_2021-11/period_2021-11.json",
    "type": "application/geo+json",
-   "file:checksum": "122041bebf5c4faf793674d1f684ddecf89312248558d3bd613d4afbf8dc26ea09fc"
+   "file:checksum": "12200d282bf65c80a9e11ab190ea0ed4354e3cb2a51b22fa252d5f1b8d37bcb5d0e2"
   },
   {
    "rel": "item",
    "href": "./period_2021-12/period_2021-12.json",
    "type": "application/geo+json",
-   "file:checksum": "1220433d850d8c63f7b8d2624b509f1a3439e73277f68a7c0403d6dd0cf1af164c9e"
+   "file:checksum": "12201a378a8af0c50d2e23741e9f3ad9c16e4a56570e52947069b3179767ec2c40b4"
   },
   {
    "rel": "item",
    "href": "./period_2022-01/period_2022-01.json",
    "type": "application/geo+json",
-   "file:checksum": "1220fa248f87d22af4b8323b5e85ab6484f76b755889df9f882736bf34eeca552fec"
+   "file:checksum": "1220adeaeb0b84fe46714c8f21621c947f1a91357a8988b593532d48082d5fe42166"
   },
   {
    "rel": "item",
    "href": "./period_2022-02/period_2022-02.json",
    "type": "application/geo+json",
-   "file:checksum": "1220eae457b09636c94d48b4c2a21e2e8885ab60f4a176b5d07d348e730d26152eef"
+   "file:checksum": "1220e3e002c44b04f7cae605dcce770f5e8be84f1dee0fd48fab2e1d6b499ce568f0"
   },
   {
    "rel": "item",
    "href": "./period_2022-03/period_2022-03.json",
    "type": "application/geo+json",
-   "file:checksum": "122044d5806713e9bdf3009ef1097f5d555363fd2223881b1b3333265c88673d9244"
+   "file:checksum": "1220b3889847b1160b0d93d95de23f8b562101621a3a35d1abb3b8a63db3f33fcf27"
   },
   {
    "rel": "item",
    "href": "./period_2022-04/period_2022-04.json",
    "type": "application/geo+json",
-   "file:checksum": "1220ecba12261cf7832a4e71955a608d2aa4ce5694992baf3b47985d63244c7d4cd3"
+   "file:checksum": "122067bd70349f9cb88bf4403389a1defec55abce02d526b930ced8d1ee1a68b2933"
   },
   {
    "rel": "item",
    "href": "./period_2022-05/period_2022-05.json",
    "type": "application/geo+json",
-   "file:checksum": "1220c695b0d5165437ecf9d9697cdee269b36868c907f9218fe0a1b2ea25e0b38edd"
+   "file:checksum": "1220a90b1bb988c649cd14667a5ad697d72ecf9c1c3c6567a618cdbe9d5b6b8d9b8c"
   },
   {
    "rel": "item",
    "href": "./period_2022-06/period_2022-06.json",
    "type": "application/geo+json",
-   "file:checksum": "12205cc323fdcdfadadb5ee0055ab9cf13d01c6f06d090e25345d093e6fb7ad76e8e"
+   "file:checksum": "1220c7d10f7e5a322ffb7a18443dc8165875214039df22d9f8311e841b42f2966aec"
   },
   {
    "rel": "item",
    "href": "./period_2022-07/period_2022-07.json",
    "type": "application/geo+json",
-   "file:checksum": "1220cad7cc974cd83f35524d32c3e57999301fceec00d9954f35a9e8b7b37d75aba4"
+   "file:checksum": "1220c02c2b4d83dd720aeba0426641e5472e5505b52ca31778f74b584094de7944b7"
   },
   {
    "rel": "item",
    "href": "./period_2022-08/period_2022-08.json",
    "type": "application/geo+json",
-   "file:checksum": "122041d41c2d181eaf576474e10db8764f4d2802897a172f92bb039929fffdc56419"
+   "file:checksum": "12209246e875cb11ff7b0dd069e858628b14522a4ee711751f3e9fffcb87d65ab992"
   },
   {
    "rel": "item",
    "href": "./period_2022-09/period_2022-09.json",
    "type": "application/geo+json",
-   "file:checksum": "1220f7015cb5682e9e55c8ad29021ab75aca57ea9eae0110c49be383df4c171d2480"
+   "file:checksum": "12208a82fe8bf6ac9584629fcac2706738584f77db19311e8c89d99f8da541c2dfcf"
   },
   {
    "rel": "item",
    "href": "./period_2022-10/period_2022-10.json",
    "type": "application/geo+json",
-   "file:checksum": "1220340be4f8e8a342d441a8a5dc5047759cfe300d3e7e1ff8ac6676d204d03c1626"
+   "file:checksum": "1220f396f27083e57ba15251d385ce82063e5f36d0dd834151e47f33b69bb94e99ab"
   },
   {
    "rel": "item",
    "href": "./period_2022-11/period_2022-11.json",
    "type": "application/geo+json",
-   "file:checksum": "122048a29f37085443db1ff2fbd355ecd8a515b938bc16615f491b3b607bb0956dee"
+   "file:checksum": "1220cadc7abfcdc151e3a632c615bc7f9b7b176f47966665dee6f8f50ceb3e05370d"
   },
   {
    "rel": "item",
    "href": "./period_2022-12/period_2022-12.json",
    "type": "application/geo+json",
-   "file:checksum": "12205d42273580b42e3f23c897145ea0598d380065dc057e1f7b33427fe4851239ad"
+   "file:checksum": "122071b52eaa254a675f150bd32e5d80cd7be2558077ee8870301fe057b5946a4a04"
   },
   {
    "rel": "item",
    "href": "./period_2023-01/period_2023-01.json",
    "type": "application/geo+json",
-   "file:checksum": "12205ba172d010156c9c8802a9b32f926d14889f010cb3a48b1d7aa65a04175f355c"
+   "file:checksum": "12208e386a4d365a7d63cb017548d449adf123c9b11917cf8b556967b7d8ba01c16a"
   },
   {
    "rel": "item",
    "href": "./period_2023-02/period_2023-02.json",
    "type": "application/geo+json",
-   "file:checksum": "12207d7745a315bc4e61245adc16e59f9ed16c92334d167ec30857d6f24f43acb8fa"
+   "file:checksum": "12203937310daeb2a7667bf86c98b0c25b57e43ce41cc5628cd3ceb9784798dd85bc"
   },
   {
    "rel": "item",
    "href": "./period_2023-03/period_2023-03.json",
    "type": "application/geo+json",
-   "file:checksum": "12203330373850db7862ccb72dba678f0f7c7707381a6b9542771b4696bbcc86c9bc"
+   "file:checksum": "1220b9b7f1d632d927ca152f032a10cb1c96b1b185e62b3c113b61b8c51318b1cb82"
   },
   {
    "rel": "item",
    "href": "./period_2023-04/period_2023-04.json",
    "type": "application/geo+json",
-   "file:checksum": "12203718b1a85219924307459cab008995994ba2884af43930fa642b108ac1a7034e"
+   "file:checksum": "1220f77736b72f68f8b7bb6f87e41037cdfaa0afa630ccf1739f836ec3bad9557d9b"
   },
   {
    "rel": "item",
    "href": "./period_2023-05/period_2023-05.json",
    "type": "application/geo+json",
-   "file:checksum": "12203435b8ef0b3446262df970b05f718689dbe106fbd079ad292dcbed46d9081b0c"
+   "file:checksum": "12209833b5d5436239319872225f99473b7c2483b08344fe75bae62dfe07ea584ca9"
   },
   {
    "rel": "item",
    "href": "./period_2023-06/period_2023-06.json",
    "type": "application/geo+json",
-   "file:checksum": "1220c3840e9155614c23a1963aefac00b986044818a0592fc40cdc8f09da0472205e"
+   "file:checksum": "1220bd07f66c9df73b16e4973145256fb5b834079455720ea5613114ad604538ccd5"
   },
   {
    "rel": "item",
    "href": "./period_2023-07/period_2023-07.json",
    "type": "application/geo+json",
-   "file:checksum": "1220f7ce6e858abef7acdb9b10c0047b56e37b05a17e0d8e3b94d8c08308ffa89164"
+   "file:checksum": "12202cfe0e0fd8de1342b231021d8cde4dfb3ad23b95a080d07558e1c84567a18dca"
   },
   {
    "rel": "item",
    "href": "./period_2023-08/period_2023-08.json",
    "type": "application/geo+json",
-   "file:checksum": "12208c748cca1f06faa4c32fafcf97ad1953df4657767f507559c3961bf8aa7a404c"
+   "file:checksum": "1220adb1c983883dfc4f25c12eb273f4fe6edb07cb2cab5f2ffaae13b91d08f372cf"
   },
   {
    "rel": "item",
    "href": "./period_2023-09/period_2023-09.json",
    "type": "application/geo+json",
-   "file:checksum": "1220887e775edf93c3462d4edb927f63425b5f174f27047e9295deb6429c837f1a0c"
+   "file:checksum": "12205778b1e04ad4d8aadedff6fcefcae5f0d1450445cbc6041e901d34447921b30b"
   },
   {
    "rel": "item",
    "href": "./period_2023-10/period_2023-10.json",
    "type": "application/geo+json",
-   "file:checksum": "1220dd7efc83c472fd609cfea2328cdd6c78415c8de9a37bb495a74e23c56a9d3531"
+   "file:checksum": "1220e0dcb0dfaedfc0b665325ba9d9b8cfc19968d0dd6a79841560524656a352a854"
   },
   {
    "rel": "item",
    "href": "./period_2023-11/period_2023-11.json",
    "type": "application/geo+json",
-   "file:checksum": "1220974ec8ce9e6ae0b8af5aec33f84810561eb589076c13531b0243d0d408ee1c54"
+   "file:checksum": "122053ec6297e269cab91e7a61ae76996e974b74cae41f887f532e302e7f2b062ea3"
   },
   {
    "rel": "item",
    "href": "./period_2023-12/period_2023-12.json",
    "type": "application/geo+json",
-   "file:checksum": "1220dd6c962904724f8a746e03b0067558bd76d226e3ac5207ab3742b4bd95f0ac06"
+   "file:checksum": "12207cb555b954cdf4c9c7efb38574f53bf39215b922377334d6bf0c3b1d905d0f54"
   },
   {
    "rel": "item",
    "href": "./period_2024-01/period_2024-01.json",
    "type": "application/geo+json",
-   "file:checksum": "1220f08c944a91cbe03037a92fea9fc4f76a043f4656cfb6020e5a83638db4ab0973"
+   "file:checksum": "1220934507742be86c0999bfade4805f906075dfc4b9634b9aa185e7075a1b6c8d2e"
   },
   {
    "rel": "item",
    "href": "./period_2024-02/period_2024-02.json",
    "type": "application/geo+json",
-   "file:checksum": "122011250330a63049e6ebb836b05e1f13fc2166281a492441f2325d84d67cc37216"
+   "file:checksum": "1220b399ecc706ad2900b7c0b36103bb6911f008c10c393acd842700240b6cd9a249"
   },
   {
    "rel": "item",
    "href": "./period_2024-03/period_2024-03.json",
    "type": "application/geo+json",
-   "file:checksum": "1220409300417ce2354a43b99133ddc92945c304e5f29007fb70fc89c1ea8140bbf1"
+   "file:checksum": "122029841f4f317e84c5e468bb06aff2c0ab269004714d497a7e719c1e73af7be242"
   },
   {
    "rel": "item",
    "href": "./period_2024-04/period_2024-04.json",
    "type": "application/geo+json",
-   "file:checksum": "12208ed265e45aca7a6330a3c57c187609b3f6b656889e17bb954d724745baea4ca4"
+   "file:checksum": "122001a22328c41425b89a6e688904d111924b0af78c7f96925e56b2ec9067e1b75e"
   },
   {
    "rel": "item",
    "href": "./period_2024-05/period_2024-05.json",
    "type": "application/geo+json",
-   "file:checksum": "12208d7012736662705a715d3e0653dc6d21785b50ff0009fe752031c035c013adc3"
+   "file:checksum": "1220d408d282935a62f83232a93be229d066cae3a1ed9e270b6aa55e921440ede35c"
   },
   {
    "rel": "item",
    "href": "./period_2024-06/period_2024-06.json",
    "type": "application/geo+json",
-   "file:checksum": "122063c260e406b9135ed64b338a0f98e8367e198a9fbebdca1bffb6b817e4b59596"
+   "file:checksum": "1220fcf6d7f39cd9f0c99c4789185c02534d7a1ef6775de8228225fdbe4fc9327d69"
   },
   {
    "rel": "item",
    "href": "./period_2024-07/period_2024-07.json",
    "type": "application/geo+json",
-   "file:checksum": "1220e7835513cdc3175c2fd30dd13a12f79d88ff67867589cc4eb4d1eb0ea3bb6091"
+   "file:checksum": "1220ecbf76c5cae1f1d0834e6efa7ffcc23cdca9a812d2c8bdf1ed2eb5aa6fa68bb9"
   },
   {
    "rel": "item",
    "href": "./period_2024-08/period_2024-08.json",
    "type": "application/geo+json",
-   "file:checksum": "122060d9cc5b3796d372a247edf6dc77aabb8b3bfe19afd4d2cc2563969f1292b38a"
+   "file:checksum": "1220ad54aca32dbdcd81b14c0254302ec1bd711a2abfc8e9bfd5fa6300167335782a"
   },
   {
    "rel": "item",
    "href": "./period_2024-09/period_2024-09.json",
    "type": "application/geo+json",
-   "file:checksum": "1220b140b9fd3fc84cda36aa1cb8eb07db91dcf01ea4679e4b3985b606cf962a8cc0"
+   "file:checksum": "12204161bb210d4f74842db6817033cbfe04e537498abc4d892e062ed01121527b73"
   },
   {
    "rel": "item",
    "href": "./period_2024-10/period_2024-10.json",
    "type": "application/geo+json",
-   "file:checksum": "12203f50eb4de35008df186586b83ba441b521155fd991f2fd6d28eade73989d8d5d"
+   "file:checksum": "122079d68d008cb0554df560ae1042846b94c6d10d6e5577b16163793e4e9a3ea369"
   },
   {
    "rel": "item",
    "href": "./period_2024-11/period_2024-11.json",
    "type": "application/geo+json",
-   "file:checksum": "1220beaffbbee091175906805ae97efb84ebf0dada2d6b7b7436c699b2f731354938"
+   "file:checksum": "1220087efc5843dd5ceaf4231492884dfaa55ff7b7e1684252ab2f161b73e911bcaa"
   },
   {
    "rel": "item",
    "href": "./period_2024-12/period_2024-12.json",
    "type": "application/geo+json",
-   "file:checksum": "12205d8a97b785eca0c09103400f8adac2b834b931c614772361edcaf29fc4b737a2"
+   "file:checksum": "1220c75fbda07fdb094fdb24fec7fbd58ce5181c73707724e1f4cfd50f8b4a964bb2"
   },
   {
    "rel": "item",
    "href": "./period_2025-01/period_2025-01.json",
    "type": "application/geo+json",
-   "file:checksum": "1220c89a646349719604c0538c360c21c151b09e22cc1649fccf366a4d24e46adbfc"
+   "file:checksum": "12200b2ea664250df0d8cf8040a3ee36d05aed4b2cf9b954767f044447428e78592b"
   },
   {
    "rel": "item",
    "href": "./period_2025-02/period_2025-02.json",
    "type": "application/geo+json",
-   "file:checksum": "1220dc9c1c30ee8654e399106bc02430f7ff960e13963f2eaa8beb5f21c8e7c5944e"
+   "file:checksum": "1220808ece46775267234af52f27b0289295b9917fbf9f51bfaf981b291d151477ae"
   },
   {
    "rel": "item",
    "href": "./period_2025-03/period_2025-03.json",
    "type": "application/geo+json",
-   "file:checksum": "1220690545b841f2b4ae5145823f4c5ab87961241565abe4004624d890ec64473831"
+   "file:checksum": "122008471d96d8e5104abbb5a9771305159f646121ac7b16e6d1df882eb6ad3551d7"
   },
   {
    "rel": "item",
    "href": "./period_2025-04/period_2025-04.json",
    "type": "application/geo+json",
-   "file:checksum": "1220f37511fc76d103030c7adc6d539432d00dae9be78a424ca9e205f15d9d6356f8"
+   "file:checksum": "12206286e184306189ed9bbf99e3f63ef40793c96b0117c53cb98873db6a3c2acf2e"
   },
   {
    "rel": "item",
    "href": "./period_2025-05/period_2025-05.json",
    "type": "application/geo+json",
-   "file:checksum": "12201ff23bbf40506669a5c0df64dd872758879f6a00dbc00f32a355d50d4855e1e1"
+   "file:checksum": "12201836ea150cbbc993938191ba6da623ef7242ce69fd05163ea4659b3e2832d964"
   },
   {
    "rel": "item",
    "href": "./period_2025-06/period_2025-06.json",
    "type": "application/geo+json",
-   "file:checksum": "122017d0c979741cabbff0570d8f268de49b60c04eea79cdb6a1016bec59aeebd4e3"
+   "file:checksum": "1220424af2f62dccaa5493aea75341e7b384138bc53b3ff895c055092268e57bbbb0"
   },
   {
    "rel": "item",
    "href": "./period_2025-07/period_2025-07.json",
    "type": "application/geo+json",
-   "file:checksum": "1220a8ab5dae689c8c0001534a5bdd27dc9b358970d17f1dbb45f4b4ebdbabe8c062"
+   "file:checksum": "122098b7ec99fa5135739e5b3f93517236985a3483c9949c04f79febd349bc2ba6fe"
   },
   {
    "rel": "item",
    "href": "./period_2025-08/period_2025-08.json",
    "type": "application/geo+json",
-   "file:checksum": "122083e1f5174d22a86bcbbaa7a76423edfddcf18f4941e8eee3462d3c91afe49591"
+   "file:checksum": "1220b800c7501f87c0bdbb64aee5a1c65f4e2b0e2984378f404714ac3682f8d9bbc0"
   },
   {
    "rel": "item",
    "href": "./period_2025-09/period_2025-09.json",
    "type": "application/geo+json",
-   "file:checksum": "12201079b9a6363e7c97896cc993505f5c3203028d014779a7b8c22a35834bda9659"
+   "file:checksum": "122005624fd8f6707ca2bd9c945d924cc9dd309799051824b1352f49a3e4300f0671"
   },
   {
    "rel": "item",
    "href": "./period_2025-10/period_2025-10.json",
    "type": "application/geo+json",
-   "file:checksum": "1220e70336f82d210e61d77215f3ba41546a9cd7b6e9d9010f40e46eacfaae338bae"
+   "file:checksum": "1220d32860dd58f35a29d48ee861810011c63c83a2b890834f27f767c7f7cac72005"
   },
   {
    "rel": "item",
    "href": "./period_2025-11/period_2025-11.json",
    "type": "application/geo+json",
-   "file:checksum": "12209324bc34647c7be9b46eb27840d52ca958e772b603138bc4661691cc1e9989b2"
+   "file:checksum": "1220ac5fb50c947808b4d982a35b3396e19cfbac2c37c2114cd54e94669ff4121169"
   },
   {
    "rel": "item",
    "href": "./period_2025-12/period_2025-12.json",
    "type": "application/geo+json",
-   "file:checksum": "1220a52076a08a21c797d6688ec8669a7c70c69f13852a543e5054b304822a196068"
+   "file:checksum": "1220e9a6cd2443daef4fc3588b5929a98b0d1de144a94ef7b7b79cf7bfedd3987efa"
   },
   {
    "rel": "license",

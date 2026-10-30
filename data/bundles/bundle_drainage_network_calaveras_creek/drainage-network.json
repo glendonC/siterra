@@ -1,0 +1,533 @@
+{
+ "recipeId": "drainage_network",
+ "version": "1.0.0",
+ "computed": "2026-10-30T19:07:11Z",
+ "place": {
+  "placeId": "calaveras_creek",
+  "configRevision": 9,
+  "config_sha256": "58db09c93622fae117105eb5bcefba11b5581a88534ef149e8899f61865ddc7d"
+ },
+ "claim_kind": "model_estimate",
+ "native_resolution": "1 arc-second (about 30 m) Copernicus DEM GLO-30 grid for the D8 paths; line heights from the 30 m EPSG:32610 grid of the terrain strata",
+ "units": {
+  "coordinates": "EPSG:4326 decimal degrees with the height as the third value",
+  "height": "m above the EGM2008 geoid",
+  "upstream_area_km2": "km2",
+  "length_m": "m"
+ },
+ "outlet": {
+  "lon": -121.8191667,
+  "lat": 37.5025,
+  "upstream_area_km2": 257.46,
+  "strahler_order": 4,
+  "snap_distance_m": 96.1
+ },
+ "headline": {
+  "segments": 131,
+  "heads": 66,
+  "confluences": 65,
+  "max_strahler_order": 4,
+  "stream_cells": 5719,
+  "min_upstream_area_km2": 1.0,
+  "vertices": 13204,
+  "length_km_total": 179.0,
+  "length_km_by_order": {
+   "1": 82.4,
+   "2": 46.3,
+   "3": 19.1,
+   "4": 31.2
+  }
+ },
+ "threshold_sensitivity": [
+  {
+   "min_upstream_area_km2": 0.5,
+   "stream_cells": 8044,
+   "heads": 128,
+   "d8_path_length_km": 260.5
+  },
+  {
+   "min_upstream_area_km2": 1.0,
+   "stream_cells": 5719,
+   "heads": 66,
+   "d8_path_length_km": 184.9
+  },
+  {
+   "min_upstream_area_km2": 2.0,
+   "stream_cells": 4233,
+   "heads": 30,
+   "d8_path_length_km": 138.1
+  },
+  {
+   "min_upstream_area_km2": 5.0,
+   "stream_cells": 2938,
+   "heads": 13,
+   "d8_path_length_km": 96.3
+  }
+ ],
+ "descent": {
+  "rise_tolerance_m": 4.0,
+  "segments_descending": 78,
+  "segments_not_descending": 53,
+  "not_descending_with_fill_depth_at_or_above_tolerance": 51,
+  "not_descending": [
+   {
+    "segment_id": "seg_001",
+    "strahler_order": 4,
+    "upstream_area_km2": 257.46,
+    "net_drop_m": 60.1,
+    "max_rise_m": 25.3,
+    "max_fill_depth_m": 23.2
+   },
+   {
+    "segment_id": "seg_002",
+    "strahler_order": 4,
+    "upstream_area_km2": 250.75,
+    "net_drop_m": 0.0,
+    "max_rise_m": 0.0,
+    "max_fill_depth_m": 23.2
+   },
+   {
+    "segment_id": "seg_003",
+    "strahler_order": 4,
+    "upstream_area_km2": 247.43,
+    "net_drop_m": 0.0,
+    "max_rise_m": 0.0,
+    "max_fill_depth_m": 23.2
+   },
+   {
+    "segment_id": "seg_004",
+    "strahler_order": 4,
+    "upstream_area_km2": 241.13,
+    "net_drop_m": 0.0,
+    "max_rise_m": 16.4,
+    "max_fill_depth_m": 23.2
+   },
+   {
+    "segment_id": "seg_005",
+    "strahler_order": 4,
+    "upstream_area_km2": 237.51,
+    "net_drop_m": 0.0,
+    "max_rise_m": 0.0,
+    "max_fill_depth_m": 23.2
+   },
+   {
+    "segment_id": "seg_006",
+    "strahler_order": 4,
+    "upstream_area_km2": 231.26,
+    "net_drop_m": 0.0,
+    "max_rise_m": 0.0,
+    "max_fill_depth_m": 23.2
+   },
+   {
+    "segment_id": "seg_007",
+    "strahler_order": 4,
+    "upstream_area_km2": 215.48,
+    "net_drop_m": 0.0,
+    "max_rise_m": 0.0,
+    "max_fill_depth_m": 23.2
+   },
+   {
+    "segment_id": "seg_008",
+    "strahler_order": 4,
+    "upstream_area_km2": 213.99,
+    "net_drop_m": 2.8,
+    "max_rise_m": 17.9,
+    "max_fill_depth_m": 23.2
+   },
+   {
+    "segment_id": "seg_009",
+    "strahler_order": 4,
+    "upstream_area_km2": 211.2,
+    "net_drop_m": -3.0,
+    "max_rise_m": 5.2,
+    "max_fill_depth_m": 24.1
+   },
+   {
+    "segment_id": "seg_010",
+    "strahler_order": 4,
+    "upstream_area_km2": 209.4,
+    "net_drop_m": 24.4,
+    "max_rise_m": 14.1,
+    "max_fill_depth_m": 23.9
+   },
+   {
+    "segment_id": "seg_011",
+    "strahler_order": 4,
+    "upstream_area_km2": 204.09,
+    "net_drop_m": 11.5,
+    "max_rise_m": 6.6,
+    "max_fill_depth_m": 8.9
+   },
+   {
+    "segment_id": "seg_012",
+    "strahler_order": 4,
+    "upstream_area_km2": 200.37,
+    "net_drop_m": 22.4,
+    "max_rise_m": 4.8,
+    "max_fill_depth_m": 6.0
+   },
+   {
+    "segment_id": "seg_013",
+    "strahler_order": 4,
+    "upstream_area_km2": 193.42,
+    "net_drop_m": 48.4,
+    "max_rise_m": 7.9,
+    "max_fill_depth_m": 7.7
+   },
+   {
+    "segment_id": "seg_014",
+    "strahler_order": 4,
+    "upstream_area_km2": 187.91,
+    "net_drop_m": 12.1,
+    "max_rise_m": 7.9,
+    "max_fill_depth_m": 6.0
+   },
+   {
+    "segment_id": "seg_015",
+    "strahler_order": 4,
+    "upstream_area_km2": 181.48,
+    "net_drop_m": 38.1,
+    "max_rise_m": 7.3,
+    "max_fill_depth_m": 8.6
+   },
+   {
+    "segment_id": "seg_016",
+    "strahler_order": 4,
+    "upstream_area_km2": 175.62,
+    "net_drop_m": 17.5,
+    "max_rise_m": 20.8,
+    "max_fill_depth_m": 25.3
+   },
+   {
+    "segment_id": "seg_017",
+    "strahler_order": 4,
+    "upstream_area_km2": 173.12,
+    "net_drop_m": 67.7,
+    "max_rise_m": 12.7,
+    "max_fill_depth_m": 12.1
+   },
+   {
+    "segment_id": "seg_018",
+    "strahler_order": 4,
+    "upstream_area_km2": 168.87,
+    "net_drop_m": 6.8,
+    "max_rise_m": 19.7,
+    "max_fill_depth_m": 22.2
+   },
+   {
+    "segment_id": "seg_019",
+    "strahler_order": 4,
+    "upstream_area_km2": 164.01,
+    "net_drop_m": 42.9,
+    "max_rise_m": 16.6,
+    "max_fill_depth_m": 20.0
+   },
+   {
+    "segment_id": "seg_020",
+    "strahler_order": 4,
+    "upstream_area_km2": 105.61,
+    "net_drop_m": 24.1,
+    "max_rise_m": 21.0,
+    "max_fill_depth_m": 19.5
+   },
+   {
+    "segment_id": "seg_021",
+    "strahler_order": 4,
+    "upstream_area_km2": 97.74,
+    "net_drop_m": 14.5,
+    "max_rise_m": 4.7,
+    "max_fill_depth_m": 17.7
+   },
+   {
+    "segment_id": "seg_022",
+    "strahler_order": 4,
+    "upstream_area_km2": 95.06,
+    "net_drop_m": 24.5,
+    "max_rise_m": 8.2,
+    "max_fill_depth_m": 12.3
+   },
+   {
+    "segment_id": "seg_023",
+    "strahler_order": 4,
+    "upstream_area_km2": 89.88,
+    "net_drop_m": 19.7,
+    "max_rise_m": 7.8,
+    "max_fill_depth_m": 11.5
+   },
+   {
+    "segment_id": "seg_024",
+    "strahler_order": 4,
+    "upstream_area_km2": 84.87,
+    "net_drop_m": 24.8,
+    "max_rise_m": 15.9,
+    "max_fill_depth_m": 16.0
+   },
+   {
+    "segment_id": "seg_025",
+    "strahler_order": 3,
+    "upstream_area_km2": 66.35,
+    "net_drop_m": 7.9,
+    "max_rise_m": 6.6,
+    "max_fill_depth_m": 14.1
+   },
+   {
+    "segment_id": "seg_026",
+    "strahler_order": 3,
+    "upstream_area_km2": 64.23,
+    "net_drop_m": 33.1,
+    "max_rise_m": 7.9,
+    "max_fill_depth_m": 9.9
+   },
+   {
+    "segment_id": "seg_027",
+    "strahler_order": 3,
+    "upstream_area_km2": 59.54,
+    "net_drop_m": 10.5,
+    "max_rise_m": 5.5,
+    "max_fill_depth_m": 6.7
+   },
+   {
+    "segment_id": "seg_028",
+    "strahler_order": 2,
+    "upstream_area_km2": 53.3,
+    "net_drop_m": 137.5,
+    "max_rise_m": 12.4,
+    "max_fill_depth_m": 16.4
+   },
+   {
+    "segment_id": "seg_031",
+    "strahler_order": 2,
+    "upstream_area_km2": 46.79,
+    "net_drop_m": 10.2,
+    "max_rise_m": 15.2,
+    "max_fill_depth_m": 14.7
+   },
+   {
+    "segment_id": "seg_034",
+    "strahler_order": 2,
+    "upstream_area_km2": 40.94,
+    "net_drop_m": -2.1,
+    "max_rise_m": 2.4,
+    "max_fill_depth_m": 3.8
+   },
+   {
+    "segment_id": "seg_038",
+    "strahler_order": 2,
+    "upstream_area_km2": 31.17,
+    "net_drop_m": 70.2,
+    "max_rise_m": 6.9,
+    "max_fill_depth_m": 8.8
+   },
+   {
+    "segment_id": "seg_039",
+    "strahler_order": 2,
+    "upstream_area_km2": 26.16,
+    "net_drop_m": 9.1,
+    "max_rise_m": 6.6,
+    "max_fill_depth_m": 7.9
+   },
+   {
+    "segment_id": "seg_040",
+    "strahler_order": 2,
+    "upstream_area_km2": 23.67,
+    "net_drop_m": 7.5,
+    "max_rise_m": 5.5,
+    "max_fill_depth_m": 6.9
+   },
+   {
+    "segment_id": "seg_041",
+    "strahler_order": 2,
+    "upstream_area_km2": 21.16,
+    "net_drop_m": 10.5,
+    "max_rise_m": 4.4,
+    "max_fill_depth_m": 5.1
+   },
+   {
+    "segment_id": "seg_042",
+    "strahler_order": 3,
+    "upstream_area_km2": 18.01,
+    "net_drop_m": 91.8,
+    "max_rise_m": 10.4,
+    "max_fill_depth_m": 14.5
+   },
+   {
+    "segment_id": "seg_045",
+    "strahler_order": 2,
+    "upstream_area_km2": 15.77,
+    "net_drop_m": 46.2,
+    "max_rise_m": 8.6,
+    "max_fill_depth_m": 23.2
+   },
+   {
+    "segment_id": "seg_048",
+    "strahler_order": 1,
+    "upstream_area_km2": 9.75,
+    "net_drop_m": 327.0,
+    "max_rise_m": 5.7,
+    "max_fill_depth_m": 6.6
+   },
+   {
+    "segment_id": "seg_050",
+    "strahler_order": 1,
+    "upstream_area_km2": 8.05,
+    "net_drop_m": 83.7,
+    "max_rise_m": 4.6,
+    "max_fill_depth_m": 5.9
+   },
+   {
+    "segment_id": "seg_051",
+    "strahler_order": 2,
+    "upstream_area_km2": 8.02,
+    "net_drop_m": 52.5,
+    "max_rise_m": 7.5,
+    "max_fill_depth_m": 9.6
+   },
+   {
+    "segment_id": "seg_052",
+    "strahler_order": 2,
+    "upstream_area_km2": 7.57,
+    "net_drop_m": 13.4,
+    "max_rise_m": 5.3,
+    "max_fill_depth_m": 5.8
+   },
+   {
+    "segment_id": "seg_056",
+    "strahler_order": 2,
+    "upstream_area_km2": 5.75,
+    "net_drop_m": 9.1,
+    "max_rise_m": 4.8,
+    "max_fill_depth_m": 5.2
+   },
+   {
+    "segment_id": "seg_057",
+    "strahler_order": 2,
+    "upstream_area_km2": 5.71,
+    "net_drop_m": 0.0,
+    "max_rise_m": 0.0,
+    "max_fill_depth_m": 23.2
+   },
+   {
+    "segment_id": "seg_058",
+    "strahler_order": 2,
+    "upstream_area_km2": 5.64,
+    "net_drop_m": 205.7,
+    "max_rise_m": 4.2,
+    "max_fill_depth_m": 17.7
+   },
+   {
+    "segment_id": "seg_064",
+    "strahler_order": 1,
+    "upstream_area_km2": 4.29,
+    "net_drop_m": 86.4,
+    "max_rise_m": 5.0,
+    "max_fill_depth_m": 5.2
+   },
+   {
+    "segment_id": "seg_065",
+    "strahler_order": 2,
+    "upstream_area_km2": 4.21,
+    "net_drop_m": 13.7,
+    "max_rise_m": 13.8,
+    "max_fill_depth_m": 23.2
+   },
+   {
+    "segment_id": "seg_074",
+    "strahler_order": 1,
+    "upstream_area_km2": 3.23,
+    "net_drop_m": 332.3,
+    "max_rise_m": 4.1,
+    "max_fill_depth_m": 23.2
+   },
+   {
+    "segment_id": "seg_076",
+    "strahler_order": 1,
+    "upstream_area_km2": 3.11,
+    "net_drop_m": 139.0,
+    "max_rise_m": 4.2,
+    "max_fill_depth_m": 3.3
+   },
+   {
+    "segment_id": "seg_081",
+    "strahler_order": 1,
+    "upstream_area_km2": 2.68,
+    "net_drop_m": 0.0,
+    "max_rise_m": 0.0,
+    "max_fill_depth_m": 23.2
+   },
+   {
+    "segment_id": "seg_085",
+    "strahler_order": 1,
+    "upstream_area_km2": 2.57,
+    "net_drop_m": 142.5,
+    "max_rise_m": 7.9,
+    "max_fill_depth_m": 7.2
+   },
+   {
+    "segment_id": "seg_087",
+    "strahler_order": 1,
+    "upstream_area_km2": 2.28,
+    "net_drop_m": 156.4,
+    "max_rise_m": 4.2,
+    "max_fill_depth_m": 5.1
+   },
+   {
+    "segment_id": "seg_090",
+    "strahler_order": 1,
+    "upstream_area_km2": 2.0,
+    "net_drop_m": 346.2,
+    "max_rise_m": 6.3,
+    "max_fill_depth_m": 9.8
+   },
+   {
+    "segment_id": "seg_097",
+    "strahler_order": 1,
+    "upstream_area_km2": 1.71,
+    "net_drop_m": 62.6,
+    "max_rise_m": 4.2,
+    "max_fill_depth_m": 9.2
+   },
+   {
+    "segment_id": "seg_106",
+    "strahler_order": 1,
+    "upstream_area_km2": 1.45,
+    "net_drop_m": 0.0,
+    "max_rise_m": 0.0,
+    "max_fill_depth_m": 23.2
+   }
+  ],
+  "note": "The lines are not forced downhill. Where the 30 m surface rises along the D8 path the stored heights rise; depression filling routed the flow across those places."
+ },
+ "checks": {
+  "recompute_sample_period": true,
+  "units_and_scale": true,
+  "nodata_not_zero": true,
+  "attribution_present": true,
+  "visual_inspection_sample": true
+ },
+ "lines_asset": "drainage_lines",
+ "limitations": [
+  "The network is drawn from a 30 m surface model, not mapped on the ground: trees, buildings, steep walls and radar artefacts distort the surface, and the D8 path can leave the real channel. No stream was checked in the field.",
+  "A segment is drawn wherever 1.0 km2 or more drains to a cell. The network's extent and length follow that threshold; it is not a measured channel head, and it does not separate streams that run all year from streams that run only after rain or snowmelt.",
+  "Depression filling and flat resolution route flow across closed hollows and the reservoir, and the surface model includes tree canopy, so some segments run where the 30 m surface rises along the line. Those segments are flagged, their heights are stored unchanged, and the line says nothing about how water moves there.",
+  "Upstream area counts the cells that drain to a point along D8 paths on the filled surface. It is not the share of rain that reaches the point, and it ignores irrigation canals, withdrawals and groundwater.",
+  "Strahler order counts how channels join. It says nothing about channel size, discharge or whether water is present.",
+  "Heights are metres above the EGM2008 geoid from the Copernicus DEM GLO-30 surface model, whose stated absolute vertical accuracy is under 4 m (90% linear error) and relative vertical accuracy under 2 m on slopes up to 20% and under 4 m above, as arithmetic means with local deviations possible (Copernicus DEM Product Handbook 5.0).",
+  "The catchment is a hydrological analysis extent, not a pasture, grazing lease or management boundary."
+ ],
+ "forbidden_phrases": [
+  "significant",
+  "significantly",
+  "degradation detected",
+  "grazing impact",
+  "overgrazing",
+  "caused by",
+  "proves",
+  "recovery",
+  "forecast",
+  "pasture improvement",
+  "pasture decline",
+  "encroachment",
+  "flood risk",
+  "water supply"
+ ]
+}

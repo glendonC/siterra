@@ -9,7 +9,7 @@
  ],
  "id": "bundle_land_cover_calaveras_creek",
  "title": "Land cover of the creek catchment (land_cover_classes 1.0.0)",
- "description": "Precomputed result of recipe land_cover_classes 1.0.0 for Calaveras Creek catchment: the ESA WorldCover 2021 v200 class of each of the 2573395 10 m cells of the catchment, with a table of cells, area and share per class and per configured group. A 2021 context map, not pasture types.\n\nESA WorldCover 2021 is a single 2021 map classified from satellite data at 10 m: its classes can differ from the ground, and the class of one cell is not a field observation. Tree cover on the valley floor may include orchards; cropland is a small share of the catchment in this map (the class 'cropland or built-up' is excluded from the sampling strata, never read as low vegetation). No class is a pasture, agdal or management unit. Areas are cell counts times 100 m2 in EPSG:32629, not geodesic areas, and cells on the polygon's boundary are counted where their centre lies inside it. The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary.",
+ "description": "Precomputed result of recipe land_cover_classes 1.0.0 for Calaveras Creek catchment: the ESA WorldCover 2021 v200 class of each of the 2573395 10 m cells of the catchment, with a table of cells, area and share per class and per configured group. A 2021 context map, not pasture types.\n\nESA WorldCover 2021 is a single 2021 map classified from satellite data at 10 m: its classes can differ from the ground, and the class of one cell is not a field observation. Tree cover may include open woodland and savanna as well as dense woodland. Cropland (0.07% of the catchment) and built-up land (0.09%) are almost absent in this map; the class 'cropland or built-up' is excluded from the sampling strata, never read as low vegetation. No class is a pasture, grazing lease or management unit. Areas are cell counts times 100 m2 in EPSG:32610, not geodesic areas, and cells on the polygon's boundary are counted where their centre lies inside it. The catchment is a hydrological analysis extent, not a pasture, grazing lease or management boundary.",
  "license": "other",
  "providers": [
   {
@@ -82,8 +82,8 @@
    "roles": [
     "data"
    ],
-   "file:checksum": "122033f5fa89bc8c2eb6e1e0b4acf42f3ad02adf0fa2b9e62348296394d67f037cf8",
-   "file:size": 4142
+   "file:checksum": "122003a2412f0412902e69e3085db981d2729e873e453de13fd6a53f22cf2a643cd9",
+   "file:size": 4215
   },
   "land_cover": {
    "href": "./land-cover.tif",
@@ -138,7 +138,7 @@
    "file:size": 991
   }
  },
- "created": "2026-10-30T20:05:00Z",
+ "created": "2026-10-30T19:07:10Z",
  "siterra:status": "validated",
  "siterra:variable": "landcover_mask",
  "siterra:dataset": {
@@ -159,13 +159,13 @@
   "version": "1.0.0",
   "analysis_crs": "EPSG:32610",
   "parameters": {
-   "place_configuration": "science/places/calaveras-creek.json revision 7, sha256 1e3fedd50119c22e0fa46c8b2de27488c52157d8ff9347ccdcae5aefb7411489",
+   "place_configuration": "science/places/calaveras-creek.json revision 9, sha256 58db09c93622fae117105eb5bcefba11b5581a88534ef149e8899f61865ddc7d",
    "nodata": 0
   },
   "reference_period": null,
   "operation_order": [
-   "Layer: the WorldCover 2021 v200 class code of each 10 m analysis cell (nearest neighbour from the 10 m product, EPSG:32629), 0 outside the frozen polygon; uint8 cloud-optimised GeoTIFF, DEFLATE, nodata 0, on the analysis grid of the strata bundle",
-   "Class table: for each class present inside the polygon, its code, name, number of 10 m cells, area in km2 (cells times 100 m2 in EPSG:32629) and share of the cells inside the polygon, to 4 decimals; the table lists the configured classes (10, 20, 30, 40, 50, 60, 80) and any other class found, which stops the build",
+   "Layer: the WorldCover 2021 v200 class code of each 10 m analysis cell (nearest neighbour from the 10 m product, EPSG:32610), 0 outside the frozen polygon; uint8 cloud-optimised GeoTIFF, DEFLATE, nodata 0, on the analysis grid of the strata bundle",
+   "Class table: for each class present inside the polygon, its code, name, number of 10 m cells, area in km2 (cells times 100 m2 in EPSG:32610) and share of the cells inside the polygon, to 4 decimals; the table lists the configured classes (10, 20, 30, 40, 50, 60, 80) and any other class found, which stops the build",
    "Groups: the configured land cover groups with their classes and combined share, as in the place configuration",
    "Acceptance checks, all stored with the bundle: the class counts sum to the number of 10 m cells inside the polygon (the analysis grid mask); every cell inside the polygon has a class (no 0 inside); no class outside the configured list; cropland plus built-up cells equal the excluded layer of the strata raster; the layer read back from the stored file equals the placed WorldCover grid cell for cell; two runs give identical files apart from the computed time"
   ]
@@ -179,9 +179,9 @@
  ],
  "siterra:limitations": [
   "ESA WorldCover 2021 is a single 2021 map classified from satellite data at 10 m: its classes can differ from the ground, and the class of one cell is not a field observation.",
-  "Tree cover on the valley floor may include orchards; cropland is a small share of the catchment in this map (the class 'cropland or built-up' is excluded from the sampling strata, never read as low vegetation). No class is a pasture, agdal or management unit.",
-  "Areas are cell counts times 100 m2 in EPSG:32629, not geodesic areas, and cells on the polygon's boundary are counted where their centre lies inside it.",
-  "The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary."
+  "Tree cover may include open woodland and savanna as well as dense woodland. Cropland (0.07% of the catchment) and built-up land (0.09%) are almost absent in this map; the class 'cropland or built-up' is excluded from the sampling strata, never read as low vegetation. No class is a pasture, grazing lease or management unit.",
+  "Areas are cell counts times 100 m2 in EPSG:32610, not geodesic areas, and cells on the polygon's boundary are counted where their centre lies inside it.",
+  "The catchment is a hydrological analysis extent, not a pasture, grazing lease or management boundary."
  ],
  "siterra:checks": [
   {
@@ -226,7 +226,7 @@
    "href": "../bundle_terrain_strata_calaveras_creek/collection.json",
    "type": "application/json",
    "title": "Terrain strata bundle bundle_terrain_strata_calaveras_creek (excluded layer, for a check)",
-   "file:checksum": "1220131bcd8461757de7c05c82466402af7b0ff487aa56d1b70a59aa1333ea3ad1ed"
+   "file:checksum": "1220469c24e0c5e81c1dfb0cc51262a6a2018d3b1a857e70be166adcccf757a90198"
   },
   {
    "rel": "derived_from",

@@ -9,7 +9,7 @@
  ],
  "id": "bundle_relief_calaveras_creek",
  "title": "Elevation surface of the creek catchment (terrain_relief 1.0.1)",
- "description": "Precomputed result of recipe terrain_relief 1.0.1 for Calaveras Creek catchment: the Copernicus DEM GLO-30 (2021) height of every 30 m cell of the catchment (287733 cells plus a ring of 5253 cells for interpolation) on the 30 m EPSG:32610 grid that gives the drainage lines, the profiles and the terrain strata their heights; heights from 148.8 to 1326.4 m. Observation from a 30 m surface model.\n\nThe surface is a 30 m surface model, not the ground: trees, buildings, steep walls and radar artefacts distort it, and narrow gorges such as the lower gorge near the outlet are not resolved. Heights are metres above the EGM2008 geoid with the DEM's stated vertical accuracy (Copernicus DEM Product Handbook 5.0). Each height is a bilinear resampling of the 1 arc-second tile onto a 30 m grid in EPSG:32629; it is not a measured height at that cell centre, and the 10 m analysis cells inherit the height of their 30 m cell. The cells outside the catchment that the layer keeps are a one-cell ring for interpolation near the boundary; they are not part of the analysis area. The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary.",
+ "description": "Precomputed result of recipe terrain_relief 1.0.1 for Calaveras Creek catchment: the Copernicus DEM GLO-30 (2021) height of every 30 m cell of the catchment (287733 cells plus a ring of 5253 cells for interpolation) on the 30 m EPSG:32610 grid that gives the drainage lines, the profiles and the terrain strata their heights; heights from 148.8 to 1326.4 m. Observation from a 30 m surface model.\n\nThe surface is a 30 m surface model, not the ground: trees, buildings, steep walls and radar artefacts distort it, and narrow gorges are not resolved. Heights are metres above the EGM2008 geoid with the DEM's stated vertical accuracy (Copernicus DEM Product Handbook 5.0). Each height is a bilinear resampling of the 1 arc-second tile onto a 30 m grid in EPSG:32610; it is not a measured height at that cell centre, and the 10 m analysis cells inherit the height of their 30 m cell. The cells outside the catchment that the layer keeps are a one-cell ring for interpolation near the boundary; they are not part of the analysis area. The catchment is a hydrological analysis extent, not a pasture or management boundary.",
  "license": "other",
  "providers": [
   {
@@ -74,8 +74,8 @@
    "roles": [
     "data"
    ],
-   "file:checksum": "1220c81c1a75f692102df425f165f8492ddd8b9444fddf32e48cc29d8ba97375fa9a",
-   "file:size": 2757
+   "file:checksum": "12201e02e9964890ba4fd243b61fb79ffb92accc52fbfd40a902e0eedf0d3f638154",
+   "file:size": 2968
   },
   "elevation_surface": {
    "href": "./elevation-surface.tif",
@@ -130,7 +130,7 @@
    "file:size": 478
   }
  },
- "created": "2026-10-30T20:05:00Z",
+ "created": "2026-10-30T19:07:12Z",
  "siterra:status": "validated",
  "siterra:variable": "elevation_surface",
  "siterra:dataset": {
@@ -151,7 +151,7 @@
   "version": "1.0.1",
   "analysis_crs": "EPSG:32610",
   "parameters": {
-   "place_configuration": "science/places/calaveras-creek.json revision 7, sha256 1e3fedd50119c22e0fa46c8b2de27488c52157d8ff9347ccdcae5aefb7411489",
+   "place_configuration": "science/places/calaveras-creek.json revision 9, sha256 58db09c93622fae117105eb5bcefba11b5581a88534ef149e8899f61865ddc7d",
    "pad_cells": 1,
    "nodata": -9999.0,
    "recompute_percentile": 90,
@@ -160,9 +160,9 @@
   },
   "reference_period": null,
   "operation_order": [
-   "Surface: the Copernicus DEM GLO-30 (2021) tile resampled once, bilinear, to the 30 m EPSG:32629 grid whose cells are aligned with the 10 m analysis grid and which has 1 extra cell on every side (place_config.elevation_grid with pad_cells 1, DEM checksum pinned in the place configuration); heights in metres above the EGM2008 geoid, float32, not rounded",
+   "Surface: the Copernicus DEM GLO-30 (2021) tile resampled once, bilinear, to the 30 m EPSG:32610 grid whose cells are aligned with the 10 m analysis grid and which has 1 extra cell on every side (place_config.elevation_grid with pad_cells 1, DEM checksum pinned in the place configuration); heights in metres above the EGM2008 geoid, float32, not rounded",
    "Kept cells: every 30 m cell that holds the centre of at least one 10 m analysis cell inside the frozen polygon (the cells the strata raster repeats), and every cell within one cell of those in any direction (the ring the profile and drainage heights are interpolated from); all other cells are nodata (-9999.0)",
-   "Asset: one-band float32 cloud-optimised GeoTIFF in EPSG:32629 on that grid, DEFLATE with floating-point predictor, nodata -9999.0, with its transform and shape stored in the collection; the inside-polygon test is the separate frozen geometry asset, never a second band",
+   "Asset: one-band float32 cloud-optimised GeoTIFF in EPSG:32610 on that grid, DEFLATE with floating-point predictor, nodata -9999.0, with its transform and shape stored in the collection; the inside-polygon test is the separate frozen geometry asset, never a second band",
    "Summary: counts of kept cells and of cells inside the polygon; lowest, highest and mean height of the inside cells and of the native 1 arc-second tile within the polygon; the three elevation band boundaries and the share of inside cells in each band as in the strata bundle",
    "Acceptance checks, all stored with the bundle: the stored surface repeated 3 x 3 onto the 10 m grid equals place_config.elevation() on every cell inside the polygon (0 cells differ); the heights bilinear-interpolated from the stored surface equal every vertex height of the drainage network bundle and every sample height of the transects bundle in the bundle folder to within 0.06 m (the interpolated height is not rounded; the stored heights are rounded to 0.1 m); the 90th percentile of the absolute differences between the stored height at each inside cell centre and the native 1 arc-second tile (bilinear in longitude and latitude) is at most 4.0 m, with the largest difference and where it lies stored; no inside cell is nodata; two runs give identical files apart from the computed time"
   ]
@@ -173,16 +173,16 @@
   "The organisations in charge of the Copernicus programme by law or by delegation do not incur any liability for any use of the Copernicus WorldDEM-30"
  ],
  "siterra:limitations": [
-  "The surface is a 30 m surface model, not the ground: trees, buildings, steep walls and radar artefacts distort it, and narrow gorges such as the lower gorge near the outlet are not resolved. Heights are metres above the EGM2008 geoid with the DEM's stated vertical accuracy (Copernicus DEM Product Handbook 5.0).",
-  "Each height is a bilinear resampling of the 1 arc-second tile onto a 30 m grid in EPSG:32629; it is not a measured height at that cell centre, and the 10 m analysis cells inherit the height of their 30 m cell.",
+  "The surface is a 30 m surface model, not the ground: trees, buildings, steep walls and radar artefacts distort it, and narrow gorges are not resolved. Heights are metres above the EGM2008 geoid with the DEM's stated vertical accuracy (Copernicus DEM Product Handbook 5.0).",
+  "Each height is a bilinear resampling of the 1 arc-second tile onto a 30 m grid in EPSG:32610; it is not a measured height at that cell centre, and the 10 m analysis cells inherit the height of their 30 m cell.",
   "The cells outside the catchment that the layer keeps are a one-cell ring for interpolation near the boundary; they are not part of the analysis area.",
-  "The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary."
+  "The catchment is a hydrological analysis extent, not a pasture or management boundary."
  ],
  "siterra:checks": [
   {
    "name": "recompute_sample_period",
    "passed": true,
-   "detail": "Recomputed from the stored surface and the native 1 arc-second DEM tile. The stored surface repeated 3 x 3 onto the 10 m grid differs from place_config.elevation() in 0 of 2573395 cells inside the polygon; 0 inside cells have no height. Heights interpolated bilinearly from the stored surface (not rounded) against the stored heights of other bundles: . Against the native tile (bilinear in longitude and latitude) at the centres of the 287733 inside 30 m cells, the absolute differences have a 90th percentile of 0.76 m (tolerance 4.0 m) and a largest value of 3.58 m at lon -121.736111, lat 37.448026. The whole build run twice in one process gives an identical file: True."
+   "detail": "Recomputed from the stored surface and the native 1 arc-second DEM tile. The stored surface repeated 3 x 3 onto the 10 m grid differs from place_config.elevation() in 0 of 2573395 cells inside the polygon; 0 inside cells have no height. Heights interpolated bilinearly from the stored surface (not rounded) against the stored heights of other bundles: bundle_drainage_network_calaveras_creek (collection sha256 07280b6902a4): 0 of 13204 values differ by more than 0.06 m (unrounded interpolation), largest 0.053 m. Against the native tile (bilinear in longitude and latitude) at the centres of the 287733 inside 30 m cells, the absolute differences have a 90th percentile of 0.76 m (tolerance 4.0 m) and a largest value of 3.58 m at lon -121.736111, lat 37.448026. The whole build run twice in one process gives an identical file: True."
   },
   {
    "name": "units_and_scale",
@@ -202,7 +202,7 @@
   {
    "name": "visual_inspection_sample",
    "passed": true,
-   "detail": "Rendered the stored surface as a hillshade tinted by height and looked at the whole catchment on 2026-10-30 (first build, geometry revision 1): the outline matches the frozen polygon with a one-cell dark margin; the catchment runs from the downstream end in the north-west to the head in the south-east; ridges and side valleys read as expected, the reservoir at the downstream end is a flat patch, and no stripes, holes, tiles or steps appear. The layer was then rebuilt on geometry revision 2 (15 more boundary cells); the stored surface differs from the inspected build in 14 of 1,010,496 cells, all in the boundary ring. The height check against stored heights of other bundles was not run for this build because this catchment had no drainage network or transect bundle yet. Not compared against imagery, field heights or another DEM beyond the checks above."
+   "detail": "Rendered the stored surface as a hillshade tinted by height and looked at the whole catchment on 2026-10-30 (first build, geometry revision 1): the outline matches the frozen polygon with a one-cell dark margin; the catchment runs from the downstream end in the north-west to the head in the south-east; ridges and side valleys read as expected, the reservoir at the downstream end is a flat patch, and no stripes, holes, tiles or steps appear. The layer was then rebuilt on geometry revision 2 (15 more boundary cells); the stored surface differs from the inspected build in 14 of 1,010,496 cells, all in the boundary ring. The stored heights of the Calaveras drainage network were compared with the surface by the check above. Not compared against imagery, field heights or another DEM beyond the checks above."
   }
  ],
  "links": [
@@ -221,7 +221,14 @@
    "href": "../bundle_terrain_strata_calaveras_creek/collection.json",
    "type": "application/json",
    "title": "Terrain strata bundle bundle_terrain_strata_calaveras_creek",
-   "file:checksum": "1220131bcd8461757de7c05c82466402af7b0ff487aa56d1b70a59aa1333ea3ad1ed"
+   "file:checksum": "1220469c24e0c5e81c1dfb0cc51262a6a2018d3b1a857e70be166adcccf757a90198"
+  },
+  {
+   "rel": "derived_from",
+   "href": "../bundle_drainage_network_calaveras_creek/collection.json",
+   "type": "application/json",
+   "title": "bundle_drainage_network_calaveras_creek (heights recomputed from this surface)",
+   "file:checksum": "1220ae6ca5609fdbf6bd3c529ede3e8bf2d860c793eb9e4aaa670c20744bd9db971a"
   },
   {
    "rel": "derived_from",
