@@ -653,7 +653,7 @@ export const en = {
     kind: "ui",
   },
   "instrument.fieldPlan.none": {
-    text: "No field plan yet. One is proposed when a question's explanation branches are merged.",
+    text: "This case's record holds no field plan instrument yet.",
     kind: "ui",
   },
   "instrument.fieldPlan.proposed": { text: "Proposed", kind: "label" },
