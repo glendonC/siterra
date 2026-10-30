@@ -745,7 +745,7 @@ def main():
     strata_col = json.load(open(os.path.join(bundles, cfg["strata"]["bundle"], "collection.json")))
     first_item, last_item = min(rec["kept"]), max(rec["kept"])
     access = access or rec["searched_at"][:10]
-    attribution = [MODIS_CITATION.format(first=first_item.split(".")[1], last=last_item.split(".")[1], date=access)]
+    attribution = [MODIS_CITATION.format(first=first_item.split(".")[1], last=last_item.split(".")[1], tile=first_item.split(".")[2], date=access)]
     attribution += [a for a in strata_col["siterra:attribution"] if a not in attribution]
     for a in cfg["landCover"]["attribution"]:
         if a not in attribution:

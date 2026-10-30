@@ -1,18 +1,20 @@
 """Build the CHIRPS v3.0 monthly rainfall bundle (STAC 1.1.0 static Collection, one Item per period) for a frozen geometry.
 
-Usage: python -I chirps-bundle.py <raw_dir> <geometry.geojson> <lockfile> <bundles_dir> <first YYYY-MM> <last YYYY-MM> [--inspected]
+Usage: python -I chirps-bundle.py <place.json> <repo_root> <raw_dir> <lockfile> <bundles_dir> <first YYYY-MM> <last YYYY-MM>
+       --access-date=YYYY-MM-DD [--inspected=<note.txt>] [--computed=<YYYY-MM-DDTHH:MM:SSZ>]
+The bundle id (rainfall.monthlyBundle), geometry, CRS, independent recompute source and place notes come from the place configuration.
 Imports only permissive packages (shapely, pyproj, rasterio, numpy). Profile: docs/reference/observation-preprocessing.md
 (bundle output) and schemas/stac/siterra-extension.schema.json.
 
 Method (observation-preprocessing section 5):
   cells      every native 0.05 degree cell whose square intersects the geometry; fraction = area(cell n geometry) /
-             area(cell), both planar in EPSG:32629; weight = area(cell n geometry) / area(geometry)
+             area(cell), both planar in the analysis CRS of the place; weight = area(cell n geometry) / area(geometry)
   total      sum(weight x cell monthly total) over touched cells; a month with any touched cell missing has no total
   reference  arithmetic mean of the catchment total for the same calendar month over 1991 to 2020, all 30 years
   departure  total minus reference, in mm; no percent, no SPI
-Checks written into the manifest: recompute_sample_period (one month recomputed from the separate Africa GeoTIFF read by
+Checks written into the manifest: recompute_sample_period (one month recomputed from a separate regional GeoTIFF read by
 GDAL, tolerance 0.01 mm), nodata_not_zero, units_and_scale, period_alignment, attribution_present,
-visual_inspection_sample (a rendered PNG that a person inspects; pass only with --inspected).
+visual_inspection_sample (a rendered PNG that a person inspects; pass only with --inspected=<note.txt>, whose text is the check's detail).
 """
 import calendar
 import datetime
@@ -28,19 +30,14 @@ from pyproj import Transformer
 from shapely.geometry import box, mapping, shape
 from shapely.ops import transform as shp_transform
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import place_config  # noqa: E402
+
 VERSION = "0.1.0"
-BUNDLE_ID = "bundle_chirps_monthly_ait_bouguemez"
-GEO_ID, GEO_REV = "geo_ait_bouguemez_catchment", 1
 EXT = "https://siterra.invalid/schemas/stac/siterra/1.0.0/schema.json"
 TOL_MM = 0.01
 NODATA = -9999.0
-ACCESS_DATE = "2026-10-27"
-ATTRIBUTION = [
-    f"CHIRPS v3.0, Climate Hazards Center, UC Santa Barbara, https://doi.org/10.15780/G2JQ0P, accessed {ACCESS_DATE}",
-    "Catchment derived by Siterra from Copernicus DEM GLO-30 (2021 release)",
-    "Produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved",
-    "The organisations in charge of the Copernicus programme by law or by delegation do not incur any liability for any use of the Copernicus WorldDEM-30",
-]
+
 
 
 def sha(path):
@@ -65,9 +62,33 @@ def months(a, b):
         y, m = (y + 1, 1) if m == 12 else (y, m + 1)
 
 
-def main(inspected):
-    raw_dir, geo_path, lock_path, bundles_dir, first, last = sys.argv[1:7]
-    to_utm = Transformer.from_crs("EPSG:4326", "EPSG:32629", always_xy=True).transform
+def utm_name(crs):
+    """'UTM 29N' for EPSG:32629 and 'UTM 10N' for EPSG:32610 (WGS 84 UTM zones)."""
+    code = int(crs.split(":")[1])
+    assert 32601 <= code <= 32660 or 32701 <= code <= 32760, crs
+    return f"UTM {code % 100}{'N' if code < 32700 else 'S'}"
+
+
+def flag_value(name):
+    v = [a.split("=", 1)[1] for a in sys.argv if a.startswith(name + "=")]
+    return v[0] if v else None
+
+
+def main():
+    place, repo, raw_dir, lock_path, bundles_dir, first, last = sys.argv[1:8]
+    access_date = flag_value("--access-date")
+    if not access_date:
+        raise SystemExit("--access-date=YYYY-MM-DD is required")
+    note_path = flag_value("--inspected")
+    inspected = open(note_path).read().strip() if note_path else None
+    cfg = place_config.load(place, repo)
+    BUNDLE_ID = cfg["rainfall"]["monthlyBundle"]
+    GEO_ID, GEO_REV = cfg["geometry"]["id"], cfg["geometry"]["revision"]
+    geo_path = place_config.geometry_path(cfg)
+    CRS = cfg["analysisCrs"]
+    ATTRIBUTION = [f"CHIRPS v3.0, Climate Hazards Center, UC Santa Barbara, https://doi.org/10.15780/G2JQ0P, accessed {access_date}",
+                   *cfg["geometry"]["attribution"]]
+    to_utm = Transformer.from_crs("EPSG:4326", CRS, always_xy=True).transform
     gj = json.load(open(geo_path))
     geom = shape(gj["features"][0]["geometry"])
     geom_utm = shp_transform(to_utm, geom)
@@ -118,10 +139,11 @@ def main(inspected):
         ref_cells[m] = {c["cell_id"]: sum(vals[(y, m)][c["cell_id"]] for y in range(1991, 2021)) / 30 for c in cells}
 
     # recompute one month independently: GDAL reading the separate Africa GeoTIFF over HTTP
-    sy, sm = 2022, 4
-    url = f"https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/africa/tifs/chirps-v3.0.{sy}.{sm:02d}.tif"
+    rc_cfg = cfg["rainfall"]["independentRecompute"]
+    sy, sm = rc_cfg["year"], rc_cfg["month"]
+    url = rc_cfg["urlTemplate"].format(year=sy, month=sm)
     with rasterio.open("/vsicurl/" + url) as src:
-        win = rasterio.windows.from_bounds(-6.75, 31.30, -5.95, 31.95, transform=src.transform)
+        win = rasterio.windows.from_bounds(*rc_cfg["bounds"], transform=src.transform)
         arr = src.read(1, window=win)
         wt = src.window_transform(win)
     rc = 0.0
@@ -135,7 +157,7 @@ def main(inspected):
 
     bdir = os.path.join(bundles_dir, BUNDLE_ID)
     os.makedirs(bdir, exist_ok=True)
-    now = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    now = flag_value("--computed") or datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
     # static collection assets
     geo_out = os.path.join(bdir, "analysis-geometry.geojson")
@@ -198,7 +220,7 @@ def main(inspected):
                 "siterra:measurements": [
                     {"metric": "precipitation_catchment_total", "value": None if total is None else round(total, 2),
                      "unit": "mm",
-                     "aggregation": "Area-weighted mean of native CHIRPS v3.0 0.05 degree monthly totals; weight = cell area inside the catchment / catchment area (EPSG:32629)",
+                     "aggregation": f"Area-weighted mean of native CHIRPS v3.0 0.05 degree monthly totals; weight = cell area inside the catchment / catchment area ({CRS})",
                      "status": "available" if available else "missing",
                      "valid_pixel_count": valid_cells, "total_pixel_count": len(cells), "spread": None},
                     {"metric": "precipitation_departure_from_1991_2020_mean", "value": None if dep is None else round(dep, 2),
@@ -214,7 +236,7 @@ def main(inspected):
                 {"rel": "parent", "href": "../collection.json", "type": "application/json"},
                 {"rel": "root", "href": "../../catalog.json", "type": "application/json"},
                 {"rel": "derived_from", "href": rec["url"], "type": "image/tiff; application=geotiff; profile=cloud-optimized",
-                 "title": f"chirps-v3.0.{y}.{m:02d}.cog (ETag {rec['http']['etag']}, {rec['http']['content_length']} bytes; tile r1 c6 bytes {rec['tile']['byte_range'][0]}-{rec['tile']['byte_range'][1]} sha256 {rec['tile']['sha256']})",
+                 "title": f"chirps-v3.0.{y}.{m:02d}.cog (ETag {rec['http']['etag']}, {rec['http']['content_length']} bytes; tile r{rec['tile']['row']} c{rec['tile']['col']} bytes {rec['tile']['byte_range'][0]}-{rec['tile']['byte_range'][1]} sha256 {rec['tile']['sha256']})",
                  "siterra:retrieved_datetime": rec["retrieved_datetime"]},
             ],
             "assets": {} if not available else {"cell_values": {
@@ -238,7 +260,7 @@ def main(inspected):
     ly, lm = map(int, last.split("-"))
     checks = [
         {"name": "recompute_sample_period", "passed": recompute_diff <= TOL_MM,
-         "detail": f"period_{sy}-{sm:02d} recomputed from the separate CHIRPS v3.0 Africa GeoTIFF ({url}) read by GDAL {rasterio.__gdal_version__}: {rc:.4f} mm vs pipeline value {totals[(sy, sm)]:.4f} mm (stored {totals[(sy, sm)]:.2f} mm), difference {recompute_diff:.6f} mm, tolerance {TOL_MM} mm"},
+         "detail": f"period_{sy}-{sm:02d} recomputed from the separate CHIRPS v3.0 {rc_cfg['regionName']} GeoTIFF ({url}) read by GDAL {rasterio.__gdal_version__}: {rc:.4f} mm vs pipeline value {totals[(sy, sm)]:.4f} mm (stored {totals[(sy, sm)]:.2f} mm), difference {recompute_diff:.6f} mm, tolerance {TOL_MM} mm"},
         {"name": "nodata_not_zero", "passed": nodata_hits == 0,
          "detail": f"No-data (-9999) and negative values are treated as missing, never zero. Touched cells with no value across 1991-01 to {last}: {nodata_hits}"},
         {"name": "units_and_scale", "passed": True,
@@ -247,7 +269,7 @@ def main(inspected):
          "detail": "Each Item's period ID matches the file month in its source URL; STAC bounds run from the first to the last second of the month; final products only (no /prelim/ path)"},
         {"name": "attribution_present", "passed": True, "detail": "CHIRPS DOI and access date, and the Copernicus DEM notice for the geometry, are in siterra:attribution"},
         {"name": "visual_inspection_sample", "passed": bool(inspected),
-         "detail": "Cells, cell values, fractions and the catchment outline rendered for period_2022-04 and period_2023-03 and inspected by the science lane on 2026-10-27: the outline lies inside the union of touched cells, interior cells have fractions 0.997 to 1.000, values vary smoothly between neighbours, and in period_2023-03 the southern lobe cells (58 to 81 mm) were wetter than the main valley cells (29 to 45 mm)" if inspected else "Not yet inspected"},
+         "detail": inspected or "Not yet inspected"},
     ]
     status = "validated" if all(c["passed"] for c in checks) else "failed"
     n_full = sum(1 for c in cells if c["fraction_inside"] >= 0.9999)
@@ -258,7 +280,7 @@ def main(inspected):
                             "https://stac-extensions.github.io/file/v2.1.0/schema.json", EXT],
         "id": BUNDLE_ID,
         "title": "Catchment rainfall, CHIRPS v3.0 monthly",
-        "description": (f"Monthly rainfall totals over the Ait Bouguemez valley catchment ({GEO_ID} revision {GEO_REV}) from CHIRPS v3.0 final, "
+        "description": (f"Monthly rainfall totals over the {cfg['title']} ({GEO_ID} revision {GEO_REV}) from CHIRPS v3.0 final, "
                         f"{first} to {last}, on its native 0.05 degree grid: {len(cells)} cells touch the catchment, {n_full} lie fully inside, "
                         f"fractions sum to {eff:.2f} cells. Each Item gives the area-weighted catchment total and its departure from the "
                         "1991 to 2020 mean of the same calendar month, in mm, with every cell's value in cell-values.json.\n\n"
@@ -269,7 +291,7 @@ def main(inspected):
             {"name": "Climate Hazards Center, UC Santa Barbara", "roles": ["producer", "licensor"], "url": "https://www.chc.ucsb.edu/data/chirps3"},
             {"name": "Climate Hazards Center data server", "roles": ["host"], "url": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/"},
             {"name": "Siterra science pipeline", "roles": ["processor"],
-             "processing:lineage": "Range reads of one full-resolution tile per monthly CHIRPS v3.0 final global COG; native cells intersecting the frozen catchment weighted by area inside it (EPSG:32629); catchment totals; 1991-2020 same-month means; departures (docs/reference/observation-preprocessing.md section 5).",
+             "processing:lineage": f"Range reads of one full-resolution tile per monthly CHIRPS v3.0 final global COG; native cells intersecting the frozen catchment weighted by area inside it ({CRS}); catchment totals; 1991-2020 same-month means; departures (docs/reference/observation-preprocessing.md section 5).",
              "processing:software": {"siterra-science": f"{VERSION}+uncommitted", "python": sys.version.split()[0],
                                      "shapely": __import__("shapely").__version__, "pyproj": __import__("pyproj").__version__,
                                      "rasterio": rasterio.__version__, "gdal": rasterio.__gdal_version__}},
@@ -290,26 +312,26 @@ def main(inspected):
         "siterra:variable": "precipitation_monthly_total",
         "siterra:dataset": {"id": "CHIRPS-3.0-monthly-final", "version": "3.0",
                             "access_route": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.YYYY.MM.cog by HTTP range request",
-                            "resolution_note": "Native 0.05 degree grid, about 4.7 km east to west by 5.5 km north to south here"},
+                            "resolution_note": cfg["rainfall"]["resolutionNote"]},
         "siterra:geo_selection": {"id": GEO_ID, "revision": GEO_REV, "boundary_role": "hydrological_unit",
-                                  "area_m2": round(area_m2), "area_method": "Planar area of the frozen polygon in EPSG:32629 (UTM 29N)"},
+                                  "area_m2": round(area_m2), "area_method": f"Planar area of the frozen polygon in {CRS} ({utm_name(CRS)})"},
         "siterra:method": {
-            "id": "chirps_monthly_catchment_total", "version": VERSION, "analysis_crs": "EPSG:32629",
+            "id": "chirps_monthly_catchment_total", "version": VERSION, "analysis_crs": CRS,
             "parameters": {"grid_deg": 0.05, "cell_selection": "every native cell whose square intersects the analysis geometry",
-                           "weight": "cell area inside the geometry / geometry area, planar EPSG:32629",
+                           "weight": f"cell area inside the geometry / geometry area, planar {CRS}",
                            "nodata": "-9999 or negative values are missing; a month with any missing touched cell has no total",
                            "reference_years_required": 30, "departure_unit": "mm", "percent_of_normal": False,
                            "products": "final only", "recompute_tolerance_mm": TOL_MM},
             "reference_period": {"start": "1991-01-01", "end_exclusive": "2021-01-01", "kind": "climate_normal"},
             "operation_order": ["read the window of each monthly final COG (one tile per month by HTTP range)",
-                                "select native cells intersecting the frozen geometry and compute their area weights in EPSG:32629",
+                                f"select native cells intersecting the frozen geometry and compute their area weights in {CRS}",
                                 "compute the area-weighted catchment total per month",
                                 "compute the 1991 to 2020 mean of catchment totals for each calendar month, requiring all 30 years",
                                 "subtract the same-month mean to get the departure in mm"]},
         "siterra:attribution": ATTRIBUTION,
         "siterra:limitations": [
             f"Rainfall is shown on its native 0.05 degree grid: {len(cells)} cells touch the catchment and {n_full} lie fully inside. A cell value is an estimate for the whole cell, not a gauge reading.",
-            "No rain gauge in or near the valley was compared with these values.",
+            cfg["rainfall"]["gaugeNote"],
             "CHIRPS v3.0 fills missing satellite data with ERA5 and adjusts stations for gauge undercatch, so it is overall wetter than v2.0; never splice v2 and v3.",
             "The 1991 to 2020 mean is a reference for departures, not a drought index; no SPI or percent of normal is computed.",
             "Snowfall and snowmelt timing are not represented by a monthly precipitation total.",
@@ -334,7 +356,16 @@ def main(inspected):
                          {"rel": "child", "href": f"./{BUNDLE_ID}/collection.json", "type": "application/json",
                           "file:checksum": multihash(cpath)}],
                "stac_extensions": ["https://stac-extensions.github.io/file/v2.1.0/schema.json"]}
-    dump(catalog, os.path.join(bundles_dir, "catalog.json"))
+    cat_path = os.path.join(bundles_dir, "catalog.json")
+    if os.path.exists(cat_path):
+        catalog = json.load(open(cat_path))
+        catalog["links"] = [l for l in catalog["links"] if l.get("href") != f"./{BUNDLE_ID}/collection.json"]
+        catalog["links"].append({"rel": "child", "href": f"./{BUNDLE_ID}/collection.json", "type": "application/json",
+                                 "file:checksum": multihash(cpath)})
+        # child links sorted by bundle id, so a rebuild changes only what changed
+        catalog["links"] = [l for l in catalog["links"] if l["rel"] != "child"] + sorted(
+            (l for l in catalog["links"] if l["rel"] == "child"), key=lambda l: l["href"])
+    dump(catalog, cat_path)
     print(json.dumps({"status": status, "cells": len(cells), "fully_inside": n_full, "effective": round(eff, 3),
                       "area_m2": round(area_m2), "recompute": [round(rc, 4), round(totals[(sy, sm)], 4)],
                       "nodata_hits": nodata_hits, "items": len(period_ids),
@@ -344,4 +375,4 @@ def main(inspected):
 
 
 if __name__ == "__main__":
-    main("--inspected" in sys.argv)
+    main()

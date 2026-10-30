@@ -38,7 +38,7 @@ CLEAR_MAX, CLOUD = 100, 250
 FRACTION_DECIMALS = 4
 RERUN_TOL = 1e-4
 MODIS_CITATION = ("Hall, D. K. and G. A. Riggs. 2021. MODIS/Terra Snow Cover Daily L3 Global 500m SIN Grid, Version 61. "
-                  "Tile h17v05, NDSI_Snow_Cover, {first} to {last}, windows over the catchment read from Microsoft Planetary "
+                  "Tile {tile}, NDSI_Snow_Cover, {first} to {last}, windows over the catchment read from Microsoft Planetary "
                   "Computer. Boulder, Colorado USA. NASA National Snow and Ice Data Center Distributed Active Archive Center. "
                   "https://doi.org/10.5067/MODIS/MOD10A1.061. Accessed {date}")
 
@@ -256,7 +256,7 @@ def main():
     lic = [{"rel": "license", "href": "https://www.earthdata.nasa.gov/engage/open-data-services-software-policies/data-use-guidance",
             "title": "MOD10A1 v6.1: NASA data use guidance (NASA-led mission data without a marked restriction are CC0); NSIDC requires the data citation"}]
     lic += [l for l in strata_col["links"] if l["rel"] == "license"]
-    attribution = [MODIS_CITATION.format(first=first_item.split(".")[1], last=last_item.split(".")[1], date=access)]
+    attribution = [MODIS_CITATION.format(first=first_item.split(".")[1], last=last_item.split(".")[1], tile=first_item.split(".")[2], date=access)]
     attribution += [a for a in strata_col["siterra:attribution"] if a not in attribution]
     desc = (f"Precomputed result of recipe {RECIPE} {reg['version']} for {cfg['title']}: the monthly snow-covered share of each "
             f"elevation band from {months[0][0]}-{months[0][1]:02d} to {months[-1][0]}-{months[-1][1]:02d}, from {days_total} daily "

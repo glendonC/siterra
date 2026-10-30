@@ -1,8 +1,9 @@
 {
   "placeId": "ait_bouguemez",
   "title": "Ait Bouguemez valley catchment",
+  "areaNoun": "valley catchment",
   "note": "Place configuration read by the long-record pipeline scripts. Everything that is specific to one place lives here; the scripts hold none of it. A value changed here after a result was read is a new configuration revision labelled post hoc in the recipe result.",
-  "configRevision": 7,
+  "configRevision": 8,
   "revisions": [
     {"revision": 1, "date": "2026-10-28", "change": "First configuration: geometry, strata, DEM, rainfall window, restrend_long_record and snow_cover_by_band."},
     {"revision": 2, "date": "2026-10-28", "change": "Added landCover, pixel_trend_long_record and season_trend_long_record, written before any per-pixel slope, land-cover summary or June to September greenness value was computed. No value of revision 1 changed."},
@@ -18,6 +19,11 @@
    "revision": 7,
    "date": "2026-10-29",
    "change": "Added proposed_routes (the origin, the pixel target, the target rule's band set and thresholds, and the bundles whose assets it reads), written before this pipeline computed any route. No value of revision 1 to 6 changed."
+  },
+  {
+   "revision": 8,
+   "date": "2026-10-30",
+   "change": "Restated in the configuration what the strata, land cover and rainfall builders had written into their code for this valley, so that a second place can supply its own: the WorldCover read window, the DEM ETag, the strata limitations, the area noun used in titles, and the rainfall independent recompute source, resolution note and gauge note. No value of revision 1 to 7 changed; the committed bundles rebuild from it identical except the two fields that name the configuration revision and its checksum."
   }
   ],
   "geometry": {
@@ -59,6 +65,11 @@
         "labels": {"1": "north-facing", "2": "east-facing", "3": "south-facing", "4": "west-facing", "5": "level (slope below 5 degrees)"}
       }
     ],
+    "limitations": [
+      "The DEM is a surface model: trees and buildings raise it; radar artefacts are possible in narrow gorges.",
+      "WorldCover 2021 is a 2021 context mask: it maps only 1.1% of the catchment as cropland, and much of the green valley floor is mapped as tree cover, which may include orchards.",
+      "Strata organize field sampling; they are not vegetation types, pasture units or management boundaries."
+    ],
     "excludedBand": 3,
     "excludedLabel": "WorldCover 2021 cropland or built-up"
   },
@@ -67,6 +78,7 @@
     "url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N31_00_W007_00_DEM/Copernicus_DSM_COG_10_N31_00_W007_00_DEM.tif",
     "sha256": "024f00066f44b6c04c26ab5c22ef8d355f6dc77052206d96c9a9c04f66b9c61e",
     "bytes": 41088635,
+    "etag": "7260ba223188db19ee7390f60c998048",
     "gridM": 30,
     "resampling": "bilinear"
   },
@@ -75,6 +87,7 @@
     "source": "https://esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N30W009_Map.tif",
     "path": "data/interim/worldcover/worldcover-2021.tif",
     "sha256": "48cefdeb34cefae9e5765de39f998d93f3053ce1fb022adfb2b2f8cd873f7507",
+    "readWindow": [-6.60, 31.45, -6.08, 31.80],
     "madeBy": "science/pipeline/worldcover-grid.py: the tile read by HTTP range request (no account), nearest neighbour onto the analysis grid",
     "classes": {"10": "tree cover", "20": "shrubland", "30": "grassland", "40": "cropland", "50": "built-up", "60": "bare or sparse vegetation", "80": "permanent water"},
     "groups": [
@@ -94,7 +107,16 @@
   "rainfall": {
     "dataset": "CHIRPS v3.0 monthly final",
     "rawWindow": {"row0": 562, "row1": 572, "col0": 3467, "col1": 3479},
-    "monthlyBundle": "bundle_chirps_monthly_ait_bouguemez"
+    "monthlyBundle": "bundle_chirps_monthly_ait_bouguemez",
+    "tileSizePx": 512,
+    "resolutionNote": "Native 0.05 degree grid, about 4.7 km east to west by 5.5 km north to south here",
+    "gaugeNote": "No rain gauge in or near the valley was compared with these values.",
+    "independentRecompute": {
+      "year": 2022, "month": 4,
+      "urlTemplate": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/africa/tifs/chirps-v3.0.{year}.{month:02d}.tif",
+      "regionName": "Africa",
+      "bounds": [-6.75, 31.30, -5.95, 31.95]
+    }
   },
   "recipes": {
     "restrend_long_record": {
