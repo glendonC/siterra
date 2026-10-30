@@ -1,6 +1,6 @@
 {
   "recordType": "CaseSnapshot",
-  "schemaVersion": "1.14.0",
+  "schemaVersion": "1.16.0",
   "case": {
     "recordType": "EnvironmentalCase",
     "id": "case_aitbouguemez",
@@ -173191,6 +173191,29 @@
               "evidenceId": "ev_upper_rangelands_vegetation_sci19",
               "placement": "upper_slope"
             }
+          ],
+          "drawnAssets": [
+            {
+              "role": "transect_summary",
+              "asset": {
+                "bundleId": "bundle_transects_ait_bouguemez",
+                "assetKey": "terrain_transects"
+              }
+            },
+            {
+              "role": "catchment_outline",
+              "asset": {
+                "bundleId": "bundle_terrain_strata_ait_bouguemez",
+                "assetKey": "analysis_geometry"
+              }
+            },
+            {
+              "role": "drainage_segments",
+              "asset": {
+                "bundleId": "bundle_drainage_network_ait_bouguemez",
+                "assetKey": "drainage_lines"
+              }
+            }
           ]
         },
         "caption": {
@@ -173211,7 +173234,8 @@
             "bundle_transects_ait_bouguemez",
             "bundle_terrain_strata_ait_bouguemez",
             "bundle_season_trend_long_record_ait_bouguemez",
-            "bundle_snow_cover_by_band_ait_bouguemez"
+            "bundle_snow_cover_by_band_ait_bouguemez",
+            "bundle_drainage_network_ait_bouguemez"
           ],
           "methodId": "instrument_composer",
           "methodVersion": "1",
@@ -173282,6 +173306,10 @@
             },
             {
               "entityId": "ev_upper_rangelands_vegetation_sci19",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_drainage_network_ait_bouguemez",
               "revision": 1
             },
             {
@@ -173373,7 +173401,44 @@
             "ctx_tabant",
             "ctx_ait_ouchi_locator"
           ],
-          "selectedLayer": "vegetation_trend"
+          "selectedLayer": "vegetation_trend",
+          "drawnAssets": [
+            {
+              "role": "trend_summary",
+              "asset": {
+                "bundleId": "bundle_season_trend_long_record_ait_bouguemez",
+                "assetKey": "season_trend_long_record"
+              }
+            },
+            {
+              "role": "pixel_trend_summary",
+              "asset": {
+                "bundleId": "bundle_pixel_trend_long_record_ait_bouguemez",
+                "assetKey": "pixel_trend_long_record"
+              }
+            },
+            {
+              "role": "rainfall_fit",
+              "asset": {
+                "bundleId": "bundle_restrend_long_record_ait_bouguemez",
+                "assetKey": "restrend_long_record"
+              }
+            },
+            {
+              "role": "catchment_outline",
+              "asset": {
+                "bundleId": "bundle_terrain_strata_ait_bouguemez",
+                "assetKey": "analysis_geometry"
+              }
+            },
+            {
+              "role": "drainage_segments",
+              "asset": {
+                "bundleId": "bundle_drainage_network_ait_bouguemez",
+                "assetKey": "drainage_lines"
+              }
+            }
+          ]
         },
         "caption": {
           "ink": "+0.0091 NDVI per decade, March to June, 2000 to 2025",
@@ -173392,7 +173457,10 @@
             "bundle_chirps_monthly_ait_bouguemez",
             "bundle_snow_cover_by_band_ait_bouguemez",
             "bundle_land_cover_ait_bouguemez",
-            "bundle_terrain_strata_ait_bouguemez"
+            "bundle_terrain_strata_ait_bouguemez",
+            "bundle_season_trend_long_record_ait_bouguemez",
+            "bundle_restrend_long_record_ait_bouguemez",
+            "bundle_drainage_network_ait_bouguemez"
           ],
           "methodId": "instrument_composer",
           "methodVersion": "1",
@@ -173458,6 +173526,18 @@
               "revision": 1
             },
             {
+              "entityId": "bundle_season_trend_long_record_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_restrend_long_record_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_drainage_network_ait_bouguemez",
+              "revision": 1
+            },
+            {
               "entityId": "meas_trend_unadjusted_catchment_mar_jun",
               "revision": 1
             },
@@ -173500,6 +173580,36 @@
           "contextEvidenceIds": [
             "ev_herder_reported_species_change_sci03",
             "ev_upper_rangelands_vegetation_sci19"
+          ],
+          "drawnAssets": [
+            {
+              "role": "pixel_cells",
+              "asset": {
+                "bundleId": "bundle_pixel_anatomy_ait_bouguemez",
+                "assetKey": "pixel_cells"
+              }
+            },
+            {
+              "role": "pixel_spectra",
+              "asset": {
+                "bundleId": "bundle_pixel_anatomy_ait_bouguemez",
+                "assetKey": "pixel_spectra"
+              }
+            },
+            {
+              "role": "pixel_series",
+              "asset": {
+                "bundleId": "bundle_pixel_anatomy_ait_bouguemez",
+                "assetKey": "pixel_series"
+              }
+            },
+            {
+              "role": "catchment_outline",
+              "asset": {
+                "bundleId": "bundle_terrain_strata_ait_bouguemez",
+                "assetKey": "analysis_geometry"
+              }
+            }
           ]
         },
         "caption": {
@@ -173519,7 +173629,8 @@
           "dataBundleIds": [
             "bundle_pixel_trend_long_record_ait_bouguemez",
             "bundle_pixel_anatomy_ait_bouguemez",
-            "bundle_season_trend_long_record_ait_bouguemez"
+            "bundle_season_trend_long_record_ait_bouguemez",
+            "bundle_terrain_strata_ait_bouguemez"
           ],
           "methodId": "instrument_composer",
           "methodVersion": "1",
@@ -173546,6 +173657,10 @@
             },
             {
               "entityId": "ev_upper_rangelands_vegetation_sci19",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_terrain_strata_ait_bouguemez",
               "revision": 1
             },
             {

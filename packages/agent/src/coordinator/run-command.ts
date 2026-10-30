@@ -8,6 +8,7 @@ import { runPlanTask } from "../tasks/plan/plan-task.ts";
 import type { PlanSnapshot } from "../tasks/plan/prompt.ts";
 import { runBriefPackageTask } from "../tasks/brief/brief-task.ts";
 import { runExplanationBranchesTask } from "../tasks/branches/branch-task.ts";
+import { runInstrumentCompositionTask } from "../tasks/instruments/instrument-task.ts";
 import { runHypothesisTask } from "../tasks/hypothesis/hypothesis-task.ts";
 import { runInterventionTask } from "../tasks/intervention/intervention-task.ts";
 import type {
@@ -71,6 +72,7 @@ export const EXECUTORS: Partial<Record<TaskRecord["kind"], TaskExecutor>> = {
   explanation_branches: runExplanationBranchesTask,
   intervention_feasibility: runInterventionTask,
   brief_package: runBriefPackageTask,
+  instrument_composition: runInstrumentCompositionTask,
 };
 
 export type CommandStatus = "succeeded" | "partial" | "failed" | "cancelled";
@@ -122,6 +124,8 @@ export interface RunCommandDeps {
   now: () => Date;
   limits?: CommandLimits;
   executors?: Partial<Record<TaskRecord["kind"], TaskExecutor>>;
+  /** Adds the host-made instrument composition task to every accepted plan; off unless the case configures instruments. */
+  appendInstrumentComposition?: boolean;
   adapterOptions?: Omit<AdapterOptions, "transport" | "spend" | "gate">;
   signal?: AbortSignal;
 }
@@ -269,6 +273,7 @@ export async function runCommand(
         newTaskId: deps.newTaskId,
         now: deps.now,
         signal: controller.signal,
+        ...(deps.appendInstrumentComposition === true ? { appendInstrumentComposition: true } : {}),
       },
     );
     const planCommit = await commit(plan.commit);
@@ -407,7 +412,7 @@ export async function runCommand(
       // The field-scoping package still completes when a task it reads fails (RL-02): it runs once
       // every dependency has ended, with the failed ones and their blocked inputs named, and
       // cannot be ready for review while any is named.
-      if (task.kind === "brief_package") {
+      if (task.kind === "brief_package" || task.kind === "instrument_composition") {
         if (depStates.every((d) => d && TERMINAL.has(d.status))) {
           started.add(task.id);
           const named = depStates.flatMap((d) => {

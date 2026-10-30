@@ -144,6 +144,7 @@ export const en = {
   "task.kind.explanation_branches": { text: "Explanation Branches", kind: "heading" },
   "task.kind.intervention_feasibility": { text: "Intervention Feasibility", kind: "heading" },
   "task.kind.brief_package": { text: "Field Verification Plan", kind: "heading" },
+  "task.kind.instrument_composition": { text: "Instrument Order", kind: "heading" },
   "task.kind.validation": { text: "Automated Checks", kind: "heading" },
   // labeled precomputed (ADR-0021; agent orchestration, "Precomputed observations are labeled precomputed")
   "work.observations": { text: "Precomputed Observations", kind: "heading" },

@@ -46,7 +46,8 @@ export const STAGES: readonly { id: StageId; label: string }[] = (
 
 /**
  * The stage each task kind belongs to. The validation task checks any proposal before review, so it sits
- * with Field Verification, where review is requested.
+ * with Field Verification, where review is requested; instrument composition runs after the planned tasks
+ * (agent-orchestration.md), so it sits there too.
  */
 const STAGE_OF: Readonly<Record<Task["kind"], StageId>> = {
   plan: "scope_baseline",
@@ -57,6 +58,7 @@ const STAGE_OF: Readonly<Record<Task["kind"], StageId>> = {
   explanation_branches: "hypothesis_testing",
   intervention_feasibility: "interventions_precedents",
   brief_package: "field_verification",
+  instrument_composition: "field_verification",
   validation: "field_verification",
 };
 

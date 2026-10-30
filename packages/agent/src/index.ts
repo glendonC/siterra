@@ -55,6 +55,8 @@ export type {
   ExplanationBranchRecord,
   HypothesisRecord,
   BriefRecord,
+  CanvasComponentRecord,
+  InstrumentSpecRecord,
   InterventionRecord,
   MeasurementRecord,
   OperationalActionRecord,
@@ -141,6 +143,14 @@ export {
   runInterventionTask,
 } from "./tasks/intervention/intervention-task.ts";
 export { BRIEF_PROMPT_VERSION, runBriefPackageTask } from "./tasks/brief/brief-task.ts";
+export {
+  INSTRUMENT_PROMPT_VERSION,
+  runInstrumentCompositionTask,
+} from "./tasks/instruments/instrument-task.ts";
+export {
+  instrumentOutputSchema,
+  validateInstrumentProposal,
+} from "./tasks/instruments/proposal.ts";
 export {
   BRANCH_PROMPT_VERSION,
   branchIdFor,

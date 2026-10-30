@@ -488,6 +488,66 @@ describe("runCommand on synthetic replays", () => {
     expect(outcome.status).toBe("partial");
   });
 
+  it("the host-made instrument composition runs after every planned task, even a failed one, and names it", async () => {
+    const plan = {
+      interpretation: "The command asks what the valley's records show.",
+      tasks: [
+        {
+          key: "observations",
+          kind: "observation_analysis",
+          question: "What did NDVI show in spring 2022?",
+          dependsOn: [],
+          inputRefs: [{ entityId: "bundle_test_ndvi", revision: 2 }],
+        },
+      ],
+      clarifyingQuestion: null,
+    };
+    const seen: TaskRecord[] = [];
+    const composition: TaskExecutor = ({ task, expectedCaseRevision }) => {
+      seen.push(task);
+      return Promise.resolve({
+        commit: {
+          caseId: task.caseId,
+          commandId: task.commandId,
+          taskId: task.id,
+          expectedCaseRevision,
+          idempotencyKey: `test-${task.id}`,
+          inputVersions: [],
+          upserts: [
+            {
+              ...task,
+              revision: task.revision + 1,
+              status: "succeeded",
+              finishedAt: AT.toISOString(),
+            },
+          ],
+          events: [],
+        },
+      });
+    };
+    const run = async (append: boolean) => {
+      seen.length = 0;
+      const { deps: d } = deps(routes([answerStep(JSON.stringify(plan))]), {
+        executors: {
+          ...EXECUTORS,
+          observation_analysis: () => Promise.reject(new Error("bundle_test_ndvi is missing")),
+          instrument_composition: composition,
+        },
+        appendInstrumentComposition: append,
+      });
+      return runCommand({ planTask: PLAN_TASK, expectedCaseRevision: 3, snapshot: SNAPSHOT }, d);
+    };
+    const off = await run(false);
+    expect(off.tasks.map((t) => t.kind)).toEqual(["observation_analysis"]);
+    expect(seen).toEqual([]);
+    const on = await run(true);
+    const byKind = new Map(on.tasks.map((t) => [t.kind, t]));
+    expect(byKind.get("instrument_composition")).toMatchObject({ status: "succeeded" });
+    expect(seen[0]?.allowedTools).toEqual(["propose_instruments"]);
+    expect(seen[0]?.dependsOnTaskIds).toEqual([byKind.get("observation_analysis")?.id]);
+    expect(seen[0]?.missingInputs[0]).toContain("ended failed");
+  });
+
   describe("a refused or failed data load is a named blocked input, never a silent success", () => {
     const captureBrief = (seen: TaskRecord[]): TaskExecutor => {
       return ({ task, expectedCaseRevision }) => {

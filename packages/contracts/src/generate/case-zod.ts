@@ -35,6 +35,7 @@ const refinements: Record<string, string> = {
   Measurement: "missingIsAValue",
   ContextFeature: "contextFeatureShape",
   MeasurementSource: "measurementSourceShape",
+  DrawnAssets: "drawnAssetRoles",
 };
 
 function asNode(value: unknown, where: string): Node {

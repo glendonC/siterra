@@ -82,6 +82,12 @@ export interface PlanJobDeps {
   spendStop?: AbortSignal;
   /** Executors by task kind; the build's EXECUTORS when absent (tests pass their own). */
   executors?: Partial<Record<TaskRecord["kind"], TaskExecutor>>;
+  /**
+   * Adds the host-made instrument composition task to the plan (a second model call, which orders
+   * the instruments and may reword their captions). Off unless the worker is started with
+   * SITERRA_COMPOSE_INSTRUMENTS=1.
+   */
+  composeInstruments?: boolean;
   /** pg-boss's retry count for this delivery of the job: 0 the first time. */
   delivery?: number;
 }
@@ -289,6 +295,7 @@ export async function handlePlanJob(job: PlanJob, deps: PlanJobDeps): Promise<Pl
         now: deps.now,
         signal: controller.signal,
         ...(deps.executors ? { executors: deps.executors } : {}),
+        ...(deps.composeInstruments === true ? { appendInstrumentComposition: true } : {}),
       },
     );
   } finally {

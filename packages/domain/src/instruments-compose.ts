@@ -13,6 +13,7 @@ import type {
   DataBundle,
   Evidence,
   GeoSelection,
+  Hypothesis,
   InstrumentRule,
   InstrumentSpec,
   Measurement,
@@ -26,6 +27,11 @@ import {
   uncitedInstrumentInputs,
 } from "./instruments.ts";
 import { prohibitedHits, unprovenNumbers } from "./validators/index.ts";
+
+/** The phrases of `text` that the shared prohibited-claim rules match (empty when it makes none). */
+export function prohibitedHitsIn(text: string): string[] {
+  return prohibitedHits(text).map((hit) => hit.phrase);
+}
 
 export const composerMethodId = "instrument_composer";
 export const composerMethodVersion = "1";
@@ -43,6 +49,8 @@ export type ComposeInputs = {
   measurements: readonly Measurement[];
   evidence: readonly Evidence[];
   branchMerges: readonly BranchMerge[];
+  /** The hypotheses the branch task wrote; a field plan cites the records the merge's hypotheses rest on. */
+  hypotheses?: readonly Hypothesis[];
   /** True when the bundle's collection lists the asset key (the db layer answers from the manifest). */
   hasAsset: (ref: BundleAssetRef) => boolean;
   now: string;
@@ -76,7 +84,7 @@ export function roundHalfAwayFromZero(value: number, decimals: number, shift = 0
 
 const slot = /\{([a-z][a-z0-9_]{0,29})\}/g;
 /** The words the case copy bans on screen (the bundles' forbidden list), beyond the validators' claim rules. */
-const bannedWords =
+export const captionBannedWords =
   /\b(?:significant(?:ly)?|degradation detected|grazing impact|overgrazing|caused by|proves?|recovery|forecast|pasture improvement|pasture decline|encroachment)\b/i;
 const pointRoles = new Set(["outlet", "settlement", "settlement_locator", "viewpoint", "summit"]);
 
@@ -88,6 +96,14 @@ type Named = {
 
 /** The records the parameters name with the type each must have (INST-07), without the caption. */
 function parameterRecords(p: InstrumentSpec["parameters"]): Named[] {
+  const drawn: Named[] =
+    p.kind === "field_plan"
+      ? []
+      : (p.drawnAssets ?? []).map((d) => ({ id: d.asset.bundleId, recordType: "DataBundle" }));
+  return [...fieldRecords(p), ...drawn];
+}
+
+function fieldRecords(p: InstrumentSpec["parameters"]): Named[] {
   const geo = (id: string): Named => ({ id, recordType: "GeoSelection" });
   const bundle = (ref: BundleAssetRef): Named => ({ id: ref.bundleId, recordType: "DataBundle" });
   const feature = (id: string, role: string): Named => ({ id, recordType: "ContextFeature", role });
@@ -280,10 +296,24 @@ export function composeInstruments(inputs: ComposeInputs): ComposeResult {
       const merge = [...merges.values()]
         .filter((m) => m.fieldPlan !== undefined)
         .sort((a, b) => (a.id < b.id ? 1 : -1))[0];
-      const gaps = [...evidence.values()]
-        .filter((e) => e.claimKind === "field_requirement" && e.status === "accepted")
-        .map((e) => e.id)
-        .sort();
+      // What the plan cites: the records the merge's own hypotheses rest on (the Measurements their
+      // scores read and the Evidence they weigh), and the accepted field requirements of the case.
+      const restsOn = (inputs.hypotheses ?? [])
+        .filter((h) => merge !== undefined && h.provenance.generatedByTaskId === merge.taskId)
+        .flatMap((h) => [
+          ...(h.measurementIds ?? []).filter((id) => measurements.has(id)),
+          ...[...h.supportingEvidenceIds, ...h.contradictingEvidenceIds].filter((id) =>
+            evidence.has(id),
+          ),
+        ]);
+      const gaps = [
+        ...new Set([
+          ...restsOn,
+          ...[...evidence.values()]
+            .filter((e) => e.claimKind === "field_requirement" && e.status === "accepted")
+            .map((e) => e.id),
+        ]),
+      ].sort();
       parameters = {
         kind: "field_plan",
         geoSelectionId: inputs.geoSelectionId,
@@ -293,7 +323,9 @@ export function composeInstruments(inputs: ComposeInputs): ComposeResult {
       };
       if (merge === undefined) reasons.push("The case holds no branch merge with a field plan");
       if (gaps.length === 0)
-        reasons.push("The case holds no accepted field_requirement Evidence for the plan to cite");
+        reasons.push(
+          "The case holds nothing for the plan to cite: no hypothesis of the merge rests on a record of the case and no field requirement is accepted",
+        );
       caption = {
         ink: rule.caption.ink,
         grey: rule.caption.grey,
@@ -344,7 +376,7 @@ export function composeInstruments(inputs: ComposeInputs): ComposeResult {
     ] as const) {
       for (const hit of prohibitedHits(sentence))
         reasons.push(`The ${label} sentence holds a prohibited phrase: ${hit.phrase}`);
-      const banned = bannedWords.exec(sentence);
+      const banned = captionBannedWords.exec(sentence);
       if (banned !== null) reasons.push(`The ${label} sentence holds a banned word: ${banned[0]}`);
       const unproven = unprovenNumbers(sentence, allowed, [], null);
       if (unproven.length > 0)

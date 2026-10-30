@@ -293,3 +293,46 @@ describe("INST-04 (read part): the bundle assets a spec names", () => {
     expect(instrumentAssetRefs(twice)).toHaveLength(instrumentAssetRefs(layerStack).length);
   });
 });
+
+describe("assets an instrument draws (contracts 1.16)", () => {
+  const withDrawn = (kind: InstrumentSpec["parameters"]["kind"]): InstrumentSpec => {
+    const base = spec(kind);
+    if (base.parameters.kind === "field_plan") throw new Error("a field plan draws no asset");
+    return {
+      ...base,
+      parameters: {
+        ...base.parameters,
+        drawnAssets: [
+          {
+            role: "catchment_outline",
+            asset: { bundleId: "bundle_example_outline", assetKey: "analysis_geometry" },
+          },
+          { role: "pixel_cells", asset: { bundleId: "bundle_example_rain", assetKey: "cells" } },
+        ],
+      },
+    };
+  };
+
+  it("lists them with the other assets, each once, and the read API resolves them", () => {
+    for (const kind of [
+      "layer_stack",
+      "cross_section",
+      "pixel_anatomy",
+      "rainfall_scatter",
+    ] as const) {
+      const refs = instrumentAssetRefs(withDrawn(kind));
+      expect(refs).toContainEqual({
+        bundleId: "bundle_example_outline",
+        assetKey: "analysis_geometry",
+      });
+      expect(new Set(refs.map((r) => `${r.bundleId}/${r.assetKey}`)).size).toBe(refs.length);
+    }
+  });
+
+  it("makes INST-01 require the bundle of a drawn asset in the inputs", () => {
+    const s = withDrawn("rainfall_scatter");
+    expect(instrumentReferencedIds(s)).toContain("bundle_example_outline");
+    expect(uncitedInstrumentInputs(s)).toContain("bundle_example_outline");
+    expect(uncitedInstrumentInputs(spec("rainfall_scatter"))).toEqual([]);
+  });
+});

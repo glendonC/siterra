@@ -3,9 +3,14 @@
 // Conditional rules the JSON Schema states with if/then/else live in rules.ts.
 import { z } from "zod";
 import { dateTime, entityId, isoDate, text, uniqueArray, uri, uriReference } from "./primitives.ts";
-import { contextFeatureShape, measurementSourceShape, missingIsAValue } from "./rules.ts";
+import {
+  contextFeatureShape,
+  drawnAssetRoles,
+  measurementSourceShape,
+  missingIsAValue,
+} from "./rules.ts";
 
-export const caseSchemaVersion = "1.14.0";
+export const caseSchemaVersion = "1.16.0";
 /** Every schemaVersion string this contract accepts (the earlier ones of the same MAJOR stay valid). */
 export const acceptedCaseSchemaVersions = [
   "1.2.0",
@@ -21,8 +26,10 @@ export const acceptedCaseSchemaVersions = [
   "1.12.0",
   "1.13.0",
   "1.14.0",
+  "1.15.0",
+  "1.16.0",
 ] as const;
-export const caseSchemaId = "https://siterra.invalid/schemas/case/1.14.0/case.schema.json";
+export const caseSchemaId = "https://siterra.invalid/schemas/case/1.16.0/case.schema.json";
 
 export const EntityVersion = z.strictObject({
   entityId: entityId,
@@ -202,6 +209,7 @@ export const Task = z.strictObject({
     "explanation_branches",
     "intervention_feasibility",
     "brief_package",
+    "instrument_composition",
     "validation",
   ]),
   question: z.string().min(1),
@@ -237,6 +245,7 @@ export const Task = z.strictObject({
       "propose_predictions",
       "propose_interventions",
       "propose_package",
+      "propose_instruments",
       "propose_layout",
       "request_review",
     ]),
@@ -709,6 +718,8 @@ export const Command = z.strictObject({
     "1.12.0",
     "1.13.0",
     "1.14.0",
+    "1.15.0",
+    "1.16.0",
   ]),
   id: entityId,
   caseId: entityId,
@@ -767,6 +778,7 @@ export const ToolCallInfo = z.strictObject({
     "propose_predictions",
     "propose_interventions",
     "propose_package",
+    "propose_instruments",
     "propose_layout",
     "request_review",
   ]),
@@ -825,6 +837,8 @@ export const Event = z.strictObject({
     "1.12.0",
     "1.13.0",
     "1.14.0",
+    "1.15.0",
+    "1.16.0",
   ]),
   id: entityId,
   caseId: entityId,
@@ -1195,6 +1209,15 @@ export const CrossSectionStatement = z.strictObject({
 });
 export type CrossSectionStatement = z.infer<typeof CrossSectionStatement>;
 
+export const DrawnAsset = z.strictObject({
+  role: z.string().regex(new RegExp("^[a-z][a-z0-9_]{0,39}$")),
+  asset: BundleAssetRef,
+});
+export type DrawnAsset = z.infer<typeof DrawnAsset>;
+
+export const DrawnAssets = z.array(DrawnAsset).max(12).superRefine(drawnAssetRoles);
+export type DrawnAssets = z.infer<typeof DrawnAssets>;
+
 export const CrossSectionParameters = z.strictObject({
   kind: z.literal("cross_section"),
   geoSelectionId: entityId,
@@ -1207,6 +1230,7 @@ export const CrossSectionParameters = z.strictObject({
   drainageFeatureIds: uniqueArray(entityId).max(16),
   placeFeatureIds: uniqueArray(entityId).max(32),
   statements: z.array(CrossSectionStatement).max(4),
+  drawnAssets: DrawnAssets.optional(),
 });
 export type CrossSectionParameters = z.infer<typeof CrossSectionParameters>;
 
@@ -1235,6 +1259,7 @@ export const LayerStackParameters = z.strictObject({
   selectedLayer: z
     .enum(["vegetation_trend", "rainfall", "snow_cover", "land_cover", "elevation_bands"])
     .nullable(),
+  drawnAssets: DrawnAssets.optional(),
 });
 export type LayerStackParameters = z.infer<typeof LayerStackParameters>;
 
@@ -1245,6 +1270,7 @@ export const PixelAnatomyParameters = z.strictObject({
   anatomy: BundleAssetRef,
   bandSeries: BundleAssetRef,
   contextEvidenceIds: uniqueArray(entityId).max(4),
+  drawnAssets: DrawnAssets.optional(),
 });
 export type PixelAnatomyParameters = z.infer<typeof PixelAnatomyParameters>;
 
@@ -1253,6 +1279,7 @@ export const RainfallScatterParameters = z.strictObject({
   geoSelectionId: entityId,
   seasons: BundleAssetRef,
   fit: BundleAssetRef,
+  drawnAssets: DrawnAssets.optional(),
 });
 export type RainfallScatterParameters = z.infer<typeof RainfallScatterParameters>;
 
@@ -1320,6 +1347,8 @@ export const CaseSnapshot = z.strictObject({
     "1.12.0",
     "1.13.0",
     "1.14.0",
+    "1.15.0",
+    "1.16.0",
   ]),
   case: EnvironmentalCase,
   records: RecordCollections,
@@ -1343,6 +1372,8 @@ export const Commit = z.strictObject({
     "1.12.0",
     "1.13.0",
     "1.14.0",
+    "1.15.0",
+    "1.16.0",
   ]),
   id: entityId,
   caseId: entityId,
@@ -1458,4 +1489,6 @@ export const caseDefinitions = {
   ContextGeometry,
   MeasurementSource,
   ContextLineSource,
+  DrawnAsset,
+  DrawnAssets,
 } as const;

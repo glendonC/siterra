@@ -8,6 +8,8 @@ import type {
   ExplanationBranchRecord,
   HypothesisRecord,
   InterventionRecord,
+  CanvasComponentRecord,
+  InstrumentSpecRecord,
   MeasurementRecord,
 } from "../tasks/records.ts";
 
@@ -80,6 +82,10 @@ export interface RecipeResult {
 }
 
 export interface CaseStore {
+  /** The current ready instrument specs of the case, as the composer returned them. */
+  listInstrumentSpecs(caseId: string): Promise<InstrumentSpecRecord[]>;
+  /** The latest canvas components that show an instrument, so a re-ordering writes the next revision. */
+  listInstrumentComponents(caseId: string): Promise<CanvasComponentRecord[]>;
   readCase(caseId: string): Promise<CaseSummary | null>;
   readBundle(caseId: string, bundleId: string): Promise<DataBundleRecord | null>;
   /** The latest revision of every bundle in the case. */
@@ -157,6 +163,28 @@ export class MemoryCaseStore implements CaseStore {
   readonly eventRows: EventRecordRowRecord[] = [];
   readonly analysisConfigs = new Map<string, CaseAnalysisConfig>();
   readonly branches: ExplanationBranchRecord[] = [];
+  readonly instrumentSpecs: InstrumentSpecRecord[] = [];
+  readonly instrumentComponents: CanvasComponentRecord[] = [];
+
+  listInstrumentComponents(caseId: string): Promise<CanvasComponentRecord[]> {
+    const latest = new Map<string, CanvasComponentRecord>();
+    for (const c of this.instrumentComponents) {
+      if (c.caseId !== caseId) continue;
+      const seen = latest.get(c.id);
+      if (!seen || seen.revision < c.revision) latest.set(c.id, c);
+    }
+    return Promise.resolve([...latest.values()]);
+  }
+
+  listInstrumentSpecs(caseId: string): Promise<InstrumentSpecRecord[]> {
+    const latest = new Map<string, InstrumentSpecRecord>();
+    for (const spec of this.instrumentSpecs) {
+      if (spec.caseId !== caseId) continue;
+      const seen = latest.get(spec.id);
+      if (!seen || seen.revision < spec.revision) latest.set(spec.id, spec);
+    }
+    return Promise.resolve([...latest.values()].filter((s) => s.status === "ready"));
+  }
 
   readAnalysisConfig(caseId: string): Promise<CaseAnalysisConfig | null> {
     return Promise.resolve(this.analysisConfigs.get(caseId) ?? null);

@@ -166,7 +166,15 @@ export function unprovenNumbers(
   years: YearSpan | null,
 ): string[] {
   const excerptValues = excerpts.flatMap((e) => numbersIn(e, null).map((n) => n.value));
-  return numbersIn(text, years)
-    .filter((n) => !numberIsAllowed(n, allowedValues) && !excerptValues.includes(n.value))
-    .map((n) => n.text);
+  // Compatibility forms (fullwidth digits, superscripts) are read as the digits they stand for. A
+  // decimal digit of another script (Arabic-Indic, Devanagari) is a number this scan cannot read, so
+  // it is refused as one no record accounts for: otherwise it would pass unseen.
+  const normalized = text.normalize("NFKC");
+  const foreign = Array.from(normalized).filter((c) => /\p{Nd}/u.test(c) && !/[0-9]/.test(c));
+  return [
+    ...numbersIn(normalized, years)
+      .filter((n) => !numberIsAllowed(n, allowedValues) && !excerptValues.includes(n.value))
+      .map((n) => n.text),
+    ...(foreign.length > 0 ? [foreign.join("")] : []),
+  ];
 }

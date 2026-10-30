@@ -256,3 +256,21 @@ export const ProposePredictions = z.strictObject({
   ),
 });
 export type ProposePredictions = z.infer<typeof ProposePredictions>;
+
+/**
+ * propose_instruments: the instrument composition task's structured final output. The model orders
+ * the instruments the composer returned, by spec ID, and may rewrite the two caption sentences of
+ * each. It names no kind, parameter, record or number to add: host validation refuses an ID outside
+ * the composer's list and any sentence whose numbers are not in a cited record (INST-05 to INST-07).
+ */
+export const ProposeInstruments = z.strictObject({
+  order: z.array(z.string()),
+  captions: z.array(
+    z.strictObject({
+      specId: z.string(),
+      ink: z.string(),
+      grey: z.string(),
+    }),
+  ),
+});
+export type ProposeInstruments = z.infer<typeof ProposeInstruments>;

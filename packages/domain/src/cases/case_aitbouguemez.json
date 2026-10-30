@@ -224,7 +224,44 @@
           "ctx_drainage_order_5"
         ],
         "placeFeatureIds": ["ctx_catchment_outlet", "ctx_tabant", "ctx_ait_ouchi_locator"],
-        "selectedLayer": "vegetation_trend"
+        "selectedLayer": "vegetation_trend",
+        "drawnAssets": [
+          {
+            "role": "trend_summary",
+            "asset": {
+              "bundleId": "bundle_season_trend_long_record_ait_bouguemez",
+              "assetKey": "season_trend_long_record"
+            }
+          },
+          {
+            "role": "pixel_trend_summary",
+            "asset": {
+              "bundleId": "bundle_pixel_trend_long_record_ait_bouguemez",
+              "assetKey": "pixel_trend_long_record"
+            }
+          },
+          {
+            "role": "rainfall_fit",
+            "asset": {
+              "bundleId": "bundle_restrend_long_record_ait_bouguemez",
+              "assetKey": "restrend_long_record"
+            }
+          },
+          {
+            "role": "catchment_outline",
+            "asset": {
+              "bundleId": "bundle_terrain_strata_ait_bouguemez",
+              "assetKey": "analysis_geometry"
+            }
+          },
+          {
+            "role": "drainage_segments",
+            "asset": {
+              "bundleId": "bundle_drainage_network_ait_bouguemez",
+              "assetKey": "drainage_lines"
+            }
+          }
+        ]
       },
       "caption": {
         "ink": "{trend} NDVI per decade, March to June, {start} to {end}",
@@ -309,6 +346,29 @@
             "evidenceId": "ev_upper_rangelands_vegetation_sci19",
             "placement": "upper_slope"
           }
+        ],
+        "drawnAssets": [
+          {
+            "role": "transect_summary",
+            "asset": {
+              "bundleId": "bundle_transects_ait_bouguemez",
+              "assetKey": "terrain_transects"
+            }
+          },
+          {
+            "role": "catchment_outline",
+            "asset": {
+              "bundleId": "bundle_terrain_strata_ait_bouguemez",
+              "assetKey": "analysis_geometry"
+            }
+          },
+          {
+            "role": "drainage_segments",
+            "asset": {
+              "bundleId": "bundle_drainage_network_ait_bouguemez",
+              "assetKey": "drainage_lines"
+            }
+          }
         ]
       },
       "caption": {
@@ -392,6 +452,36 @@
         "contextEvidenceIds": [
           "ev_herder_reported_species_change_sci03",
           "ev_upper_rangelands_vegetation_sci19"
+        ],
+        "drawnAssets": [
+          {
+            "role": "pixel_cells",
+            "asset": {
+              "bundleId": "bundle_pixel_anatomy_ait_bouguemez",
+              "assetKey": "pixel_cells"
+            }
+          },
+          {
+            "role": "pixel_spectra",
+            "asset": {
+              "bundleId": "bundle_pixel_anatomy_ait_bouguemez",
+              "assetKey": "pixel_spectra"
+            }
+          },
+          {
+            "role": "pixel_series",
+            "asset": {
+              "bundleId": "bundle_pixel_anatomy_ait_bouguemez",
+              "assetKey": "pixel_series"
+            }
+          },
+          {
+            "role": "catchment_outline",
+            "asset": {
+              "bundleId": "bundle_terrain_strata_ait_bouguemez",
+              "assetKey": "analysis_geometry"
+            }
+          }
         ]
       },
       "caption": {

@@ -550,6 +550,90 @@ describe("composeInstruments", () => {
     });
   });
 
+  it("opens an instrument only when the bundles and asset keys it draws exist", () => {
+    const drawn = (bundleId: string, assetKey: string) => ({
+      ...scatterRule,
+      parameters: {
+        ...scatterRule.parameters,
+        drawnAssets: [{ role: "catchment_outline", asset: { bundleId, assetKey } }],
+      },
+    });
+    const withDrawn = (rule: unknown) =>
+      CaseAnalysisConfig.parse({ ...config, instruments: [rule] });
+    const ok = composeInstruments(
+      inputs({ config: withDrawn(drawn("bundle_example_rain", "outline")) }),
+    );
+    expect(ok.specs[0]?.provenance.inputVersions).toContainEqual({
+      entityId: "bundle_example_rain",
+      revision: 3,
+    });
+    const missingBundle = composeInstruments(
+      inputs({ config: withDrawn(drawn("bundle_example_gone", "outline")) }),
+    );
+    expect(missingBundle.blocked[0]?.reasons).toEqual([
+      "The bundle bundle_example_gone is not in the case",
+    ]);
+    const missingKey = composeInstruments(
+      inputs({
+        config: withDrawn(drawn("bundle_example_rain", "outline")),
+        hasAsset: (r) => r.assetKey !== "outline",
+      }),
+    );
+    expect(missingKey.blocked[0]?.reasons).toEqual([
+      "The bundle bundle_example_rain lists no asset outline",
+    ]);
+  });
+
+  it("cites the records the merge's own hypotheses rest on when no field requirement is accepted", () => {
+    const hypothesis = (
+      id: string,
+      taskId: string,
+      measurementIds: string[],
+      evidenceIds: string[],
+    ) =>
+      ({
+        id,
+        revision: 1,
+        provenance: { generatedByTaskId: taskId },
+        measurementIds,
+        supportingEvidenceIds: evidenceIds,
+        contradictingEvidenceIds: [],
+      }) as never;
+    const merge = [
+      {
+        id: "merge_example_1",
+        revision: 4,
+        taskId: "task_example_merge",
+        fieldPlan: { measurements: [], unseparated: [] },
+      },
+    ] as never;
+    const result = composeInstruments(
+      inputs({
+        branchMerges: merge,
+        evidence: [
+          { id: "ev_example_obs", revision: 1, claimKind: "observation", status: "accepted" },
+        ] as never,
+        hypotheses: [
+          hypothesis(
+            "hyp_example_1",
+            "task_example_merge",
+            ["meas_example_r2", "meas_example_gone"],
+            ["ev_example_obs", "ev_example_gone"],
+          ),
+          hypothesis("hyp_example_other", "task_example_other", ["meas_example_n"], []),
+        ],
+      }),
+    );
+    const plan = result.specs.find((s) => s.id === "inst_field_plan_rule");
+    expect(plan?.caption.citationIds).toEqual(["ev_example_obs", "meas_example_r2"]);
+    expect(plan?.provenance.inputVersions).toEqual(
+      expect.arrayContaining([
+        { entityId: "meas_example_r2", revision: 2 },
+        { entityId: "ev_example_obs", revision: 1 },
+      ]),
+    );
+  });
+
   it("ignores a branch merge that has no field plan", () => {
     const result = composeInstruments(
       inputs({
@@ -568,7 +652,7 @@ describe("composeInstruments", () => {
     const none = composeInstruments(inputs());
     expect(none.blocked.find((b) => b.ruleId === "field_plan_rule")?.reasons).toEqual([
       "The case holds no branch merge with a field plan",
-      "The case holds no accepted field_requirement Evidence for the plan to cite",
+      "The case holds nothing for the plan to cite: no hypothesis of the merge rests on a record of the case and no field requirement is accepted",
     ]);
     const open = composeInstruments(
       inputs({

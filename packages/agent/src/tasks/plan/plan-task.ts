@@ -33,6 +33,9 @@ export const TOOLS_BY_KIND: Readonly<Record<PlannableKind, readonly ToolName[]>>
   brief_package: ["read_case", "propose_package", "request_review", "propose_layout"],
 };
 
+/** The only tool of the host-made instrument composition task: its structured output. */
+export const INSTRUMENT_COMPOSITION_TOOLS: readonly ToolName[] = ["propose_instruments"];
+
 export interface PlanModelSettings {
   model: string;
   maxOutputTokens: number;
@@ -61,6 +64,12 @@ export interface PlanTaskDeps {
   now: () => Date;
   settings?: PlanModelSettings;
   signal?: AbortSignal;
+  /**
+   * Host code appends an instrument_composition task after the planned ones when set: the model
+   * never plans it. Off by default; the worker turns it on for a case whose configuration holds
+   * instrument rules.
+   */
+  appendInstrumentComposition?: boolean;
 }
 
 export interface PlanTaskResult {
@@ -202,6 +211,36 @@ function planCommit(
         finishedAt: null,
       });
     }
+  }
+
+  if (proposal && deps.appendInstrumentComposition === true && planned.length > 0) {
+    planned.push({
+      recordType: "Task",
+      id: deps.newTaskId(),
+      revision: 1,
+      createdAt: at,
+      updatedAt: at,
+      caseId: plan.caseId,
+      commandId: plan.commandId,
+      kind: "instrument_composition",
+      question: "Order the instruments for this question and check their caption sentences.",
+      status: "queued",
+      dependsOnTaskIds: planned.map((t) => t.id),
+      inputVersions: [],
+      allowedTools: [...INSTRUMENT_COMPOSITION_TOOLS],
+      outputEntityIds: [],
+      idempotencyKey: `task-${digest(plan.caseId, plan.commandId, "instrument_composition")}`,
+      attempt: 0,
+      maxModelRounds: Math.min(plan.maxModelRounds, 2),
+      deadlineAt: plan.deadlineAt,
+      budgetMicroUsd: Math.max(0, plan.budgetMicroUsd - spent),
+      spentMicroUsd: 0,
+      checkpointId: null,
+      failureCode: null,
+      missingInputs: [],
+      startedAt: null,
+      finishedAt: null,
+    });
   }
 
   const succeeded = proposal !== null;

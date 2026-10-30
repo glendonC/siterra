@@ -142,6 +142,7 @@ export async function startWorker(
           now: () => new Date(),
           newId: (prefix) => newId(prefix),
           delivery: job.retryCount,
+          ...(env["SITERRA_COMPOSE_INSTRUMENTS"] === "1" ? { composeInstruments: true } : {}),
           ...(options.spendStop ? { spendStop: options.spendStop } : {}),
         });
         const stopped =
