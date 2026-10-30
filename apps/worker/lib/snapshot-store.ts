@@ -51,6 +51,8 @@ export interface SnapshotView {
     eventRecordRowRecords?: EventRecordRowRecord[];
     /** Explanation branches, so a resumed branch task scores what it committed; absent means none. */
     explanationBranchRecords?: ExplanationBranchRecord[];
+    /** Areas (GeoSelection), for the field plan the branch task composes; absent means none. */
+    geoSelectionRecords?: { id: string; revision: number }[];
     /** Instrument specs, for the instrument composition task; absent means none. */
     instrumentSpecRecords?: InstrumentSpecRecord[];
     /** Canvas components; the instrument ones are kept, so a re-ordering writes the next revision. */
@@ -103,6 +105,13 @@ export function snapshotStore(
   store.eventRows.push(...(snapshot.records.eventRecordRowRecords ?? []));
   store.branches.push(...(snapshot.records.explanationBranchRecords ?? []));
   store.instrumentSpecs.push(...(snapshot.records.instrumentSpecRecords ?? []));
+  store.geoSelections.push(
+    ...(snapshot.records.geoSelectionRecords ?? []).map((g) => ({
+      caseId,
+      id: g.id,
+      revision: g.revision,
+    })),
+  );
   store.instrumentComponents.push(
     ...(snapshot.records.canvasComponentRecords ?? []).filter((c) =>
       isInstrumentKind(c.componentKind),

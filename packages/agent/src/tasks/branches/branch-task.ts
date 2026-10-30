@@ -33,6 +33,7 @@ import type {
 import { replayLimitation } from "../trace.ts";
 import type { TraceEventDraft } from "../trace.ts";
 import { buildCatalog, catalogView } from "./catalog.ts";
+import { composeFieldPlanSpec } from "./field-plan-spec.ts";
 import type { BranchCatalog } from "./catalog.ts";
 import { predictionsOutputSchema, validatePredictions } from "./proposal.ts";
 import { readScoringRecord, receiptOf } from "./scoring.ts";
@@ -586,6 +587,15 @@ export async function runExplanationBranchesTask(
     .filter(([, n]) => n > 0)
     .map(([s, n]) => `${String(n)} ${s.replaceAll("_", " ")}`);
   const partial = withPredictions < drafted.length;
+  const fieldPlanSpec = await composeFieldPlanSpec({
+    store: deps.store,
+    caseId: task.caseId,
+    config,
+    merge: mergeRecord,
+    hypotheses,
+    committedEvidence: deps.committedEvidence ?? [],
+    at: scoredAt,
+  });
   return {
     loop: { blockedInputs: catalog.gaps },
     commit: finalCommit(
@@ -593,8 +603,13 @@ export async function runExplanationBranchesTask(
       input,
       partial ? "partial" : "succeeded",
       null,
-      [...revisionTwo, mergeRecord, ...hypotheses],
-      [...revisionTwo.map((b) => b.id), mergeRecord.id, ...hypotheses.map((h) => h.id)],
+      [...revisionTwo, mergeRecord, ...hypotheses, ...(fieldPlanSpec ? [fieldPlanSpec] : [])],
+      [
+        ...revisionTwo.map((b) => b.id),
+        mergeRecord.id,
+        ...hypotheses.map((h) => h.id),
+        ...(fieldPlanSpec ? [fieldPlanSpec.id] : []),
+      ],
       spent,
       scoredAt,
       `Explanation branches scored: ${counts.join(", ")}.`,

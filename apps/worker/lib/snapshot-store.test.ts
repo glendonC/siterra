@@ -23,6 +23,16 @@ const view = (id: string) =>
   }) as never;
 const corpus = { sources: [], passages: [], missing: [] };
 
+describe("snapshot store: the areas of the case", () => {
+  it("lists the ID and revision of each area the snapshot holds", async () => {
+    const snapshot = view("case_copy_3") as { records: Record<string, unknown> };
+    snapshot.records["geoSelectionRecords"] = [{ id: "geo_a", revision: 2 }];
+    const store = snapshotStore(snapshot as never, corpus, null);
+    expect(await store.listGeoSelections("case_copy_3")).toEqual([{ id: "geo_a", revision: 2 }]);
+    expect(await store.listGeoSelections("case_other")).toEqual([]);
+  });
+});
+
 describe("snapshot store: the case configuration of a demo copy", () => {
   it("reads the seed's configuration for a copy when it is given the seed's ID", async () => {
     const store = snapshotStore(view("case_copy_1"), corpus, null, "case_aitbouguemez");

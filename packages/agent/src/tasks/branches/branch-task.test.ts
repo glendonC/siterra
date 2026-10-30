@@ -1,4 +1,10 @@
-import { BranchMerge, ExplanationBranch, Hypothesis, Task } from "@siterra/contracts";
+import {
+  BranchMerge,
+  ExplanationBranch,
+  Hypothesis,
+  InstrumentSpec,
+  Task,
+} from "@siterra/contracts";
 import { coverIssues, openPairs } from "@siterra/domain";
 import { describe, expect, it } from "vitest";
 
@@ -29,8 +35,10 @@ import type { CommitOutcome } from "../commit.ts";
 import type {
   BranchMergeRecord,
   CommitDraft,
+  EvidenceRecord,
   ExplanationBranchRecord,
   HypothesisRecord,
+  InstrumentSpecRecord,
 } from "../records.ts";
 import type { TraceEventDraft } from "../trace.ts";
 import { BRANCH_PROMPT_VERSION, branchIdFor, runExplanationBranchesTask } from "./branch-task.ts";
@@ -125,6 +133,7 @@ async function run(
     replies?: Record<string, unknown[]>;
     outcome?: CommitOutcome;
     noCommitNow?: boolean;
+    committedEvidence?: EvidenceRecord[];
   } = {},
 ): Promise<Run> {
   const store = options.store ?? branchStore();
@@ -157,6 +166,7 @@ async function run(
       tools: caseToolRegistry(view, CASE_ID),
       newEvidenceId: () => "ev_test_unused",
       now: () => AT,
+      ...(options.committedEvidence ? { committedEvidence: options.committedEvidence } : {}),
       ...(options.noCommitNow
         ? {}
         : {
@@ -403,6 +413,141 @@ describe("scoring, merge and the records it writes", () => {
     expect(again.transport.bodies).toHaveLength(0);
     expect(again.interim[0]?.idempotencyKey).toBe(first.interim[0]?.idempotencyKey);
     expect(branchesOf(again.commit).map((b) => b.status)).toEqual(["consistent", "contradicted"]);
+  });
+});
+
+describe("the field plan instrument is written in the commit that writes the merge", () => {
+  const rule = {
+    from: "branch_merge" as const,
+    id: "field_plan_test",
+    whenExplanationIds: ["rainfall", "grazing"],
+    caption: {
+      ink: "A field plan is proposed for the explanations the record leaves open.",
+      grey: "Proposed only: no visit is scheduled and no access or permission is implied.",
+    },
+  };
+  const withRule = (): MemoryCaseStore => {
+    const store = branchStore();
+    store.analysisConfigs.set(CASE_ID, { ...TEST_ANALYSIS_CONFIG, instruments: [rule] });
+    store.geoSelections.push({ caseId: CASE_ID, id: "geo_test_catchment", revision: 1 });
+    return store;
+  };
+  const specsOf = (draft: CommitDraft) =>
+    draft.upserts.filter((r): r is InstrumentSpecRecord => r.recordType === "InstrumentSpec");
+  const mergeOf = (draft: CommitDraft) =>
+    draft.upserts.find((r): r is BranchMergeRecord => r.recordType === "BranchMerge");
+  const open = { rainfall: [VEGETATION_ONLY], grazing: [VEGETATION_ONLY] };
+
+  it("adds a field_plan spec that names the merge, cites what the plan rests on and parses as its contract", async () => {
+    const { commit } = await run({ store: withRule(), replies: open });
+    const [spec, ...others] = specsOf(commit);
+    expect(others).toEqual([]);
+    expect(spec && InstrumentSpec.parse(spec)).toEqual(spec);
+    expect(spec).toMatchObject({
+      id: "inst_field_plan_test",
+      revision: 1,
+      status: "ready",
+      parameters: {
+        kind: "field_plan",
+        geoSelectionId: "geo_test_catchment",
+        branchMergeId: mergeOf(commit)?.id,
+        actionId: null,
+      },
+      caption: { claimKind: "field_requirement" },
+      provenance: { methodId: "instrument_composer", generatedByTaskId: null },
+    });
+    expect(spec?.caption.citationIds.length).toBeGreaterThan(0);
+    const task = commit.upserts.find((r) => r.recordType === "Task");
+    expect(task && "outputEntityIds" in task ? task.outputEntityIds : []).toContain(
+      "inst_field_plan_test",
+    );
+  });
+
+  const evidence = (id: string, claimKind: EvidenceRecord["claimKind"]): EvidenceRecord => ({
+    recordType: "Evidence",
+    id,
+    revision: 1,
+    createdAt: AT.toISOString(),
+    updatedAt: AT.toISOString(),
+    caseId: CASE_ID,
+    statement: "A synthetic statement.",
+    claimKind,
+    status: "accepted",
+    geoSelectionId: null,
+    periodIds: [],
+    measurementIds: [],
+    provenance: {
+      sourceLocators: [],
+      dataBundleIds: [],
+      methodId: null,
+      methodVersion: null,
+      inputVersions: [],
+      generatedByTaskId: null,
+      generatedAt: AT.toISOString(),
+      verificationStatus: "computed_checked",
+      limitations: [],
+    },
+    interpretation: null,
+    uncertainty: "Not quantified.",
+    reviewDecisionIds: [],
+  });
+
+  it("cites Evidence an earlier task of the command committed, which the store's view predates", async () => {
+    const committed = evidence("ev_test_committed", "observation");
+    const { commit } = await run({
+      store: withRule(),
+      replies: open,
+      committedEvidence: [committed],
+    });
+    const hypothesis = commit.upserts.find(
+      (r): r is HypothesisRecord => r.recordType === "Hypothesis",
+    );
+    expect(hypothesis?.supportingEvidenceIds).toContain("ev_test_committed");
+    expect(specsOf(commit)[0]?.caption.citationIds).toContain("ev_test_committed");
+  });
+
+  it("cites the accepted field requirements of the case, from the store and from the command", async () => {
+    const store = withRule();
+    store.evidence.push(evidence("ev_test_gap_stored", "field_requirement"));
+    const { commit } = await run({
+      store,
+      replies: open,
+      committedEvidence: [
+        evidence("ev_test_gap_committed", "field_requirement"),
+        { ...evidence("ev_test_gap_other_case", "field_requirement"), caseId: "case_other" },
+      ],
+    });
+    expect(specsOf(commit)[0]?.caption.citationIds).toEqual(
+      expect.arrayContaining(["ev_test_gap_stored", "ev_test_gap_committed"]),
+    );
+    expect(specsOf(commit)[0]?.caption.citationIds).not.toContain("ev_test_gap_other_case");
+  });
+
+  it("writes the next revision of the spec a case already holds", async () => {
+    const first = await run({ store: withRule(), replies: open });
+    const store = withRule();
+    const before = specsOf(first.commit)[0];
+    if (!before) throw new Error("no first spec");
+    store.instrumentSpecs.push({ ...before, createdAt: "2026-10-01T00:00:00.000Z" });
+    const { commit } = await run({ store, replies: open });
+    expect(specsOf(commit)[0]).toMatchObject({
+      id: "inst_field_plan_test",
+      revision: 2,
+      createdAt: "2026-10-01T00:00:00.000Z",
+    });
+  });
+
+  it("writes no spec for a case whose configuration holds no field plan rule", async () => {
+    const { commit } = await run({ replies: open });
+    expect(specsOf(commit)).toEqual([]);
+  });
+
+  it("writes no spec when the case holds no area for the plan to name", async () => {
+    const store = withRule();
+    store.geoSelections.length = 0;
+    const { commit } = await run({ store, replies: open });
+    expect(mergeOf(commit)).toBeDefined();
+    expect(specsOf(commit)).toEqual([]);
   });
 });
 

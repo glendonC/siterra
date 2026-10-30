@@ -43,7 +43,8 @@ export type ComposeInputs = {
   openExplanationIds: readonly string[];
   /** The case's area, used by the rules that do not name one. */
   geoSelectionId: string;
-  geoSelections: readonly GeoSelection[];
+  /** Only the ID and revision are read: the area must exist, and the spec cites its revision. */
+  geoSelections: readonly Pick<GeoSelection, "id" | "revision">[];
   dataBundles: readonly DataBundle[];
   contextFeatures: readonly ContextFeature[];
   measurements: readonly Measurement[];
