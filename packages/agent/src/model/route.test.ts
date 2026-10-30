@@ -50,6 +50,7 @@ describe("route selection", () => {
       chooseTransport({
         SITERRA_MODEL_ROUTE: "model_api",
         SITERRA_LIVE_APPROVED: LIVE_APPROVAL_VALUE,
+        SITERRA_KEY_SOURCE: "env",
         MODEL_API_KEY: FAKE_KEY,
         SITERRA_MODEL_BASE_URL: url,
       });

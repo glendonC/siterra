@@ -162,6 +162,8 @@ A model may be asked once to repair a rejected domain proposal, given the issues
 | Command wall clock | 180 s | Stop new work; assemble a partial package |
 | Estimated model and search spend per command | USD 0.50 | No new calls; show the exhausted state |
 
+An instance can also cap its total live spend (`SITERRA_PUBLIC_SPEND_CAP_MICRO_USD`, micro-USD), counted from the usage stored on `model.completed` events at list price (a billed call without a price counts as USD 0.025; a call that failed before any usage was reported counts as nothing). A new command is accepted only if the stored spend, one command's cap (the USD 0.50 above) for every unfinished command and its own fit under it; otherwise the answer is 429 `quota_exhausted` with a plain message. The cap is checked when a command is accepted, so a command already running is bounded by its own cap. Demo copies are deleted with their events when they expire, and their spend then leaves the count; a cap for a long-running public instance needs that spend kept.
+
 Reserve estimated cost before each call, reconcile with reported usage, include retries. Pricing basis and rechecks: [architecture constraints](../architecture/02-architecture-constraints.md#model-platform). Only a human can raise a budget.
 
 ## Honest trace and completion

@@ -7,9 +7,11 @@ import type { ModelRoute, ReplayOrigin } from "./types.ts";
 
 // Which transport the worker uses. Replay is the default. The live route needs three things at
 // once: SITERRA_MODEL_ROUTE=model_api, SITERRA_LIVE_APPROVED=gate01-passed (set only after the lead
-// records GATE-01 and a spend cap) and the key. The key is MODEL_API_KEY when set (hosts without a
-// Keychain), else it is read from the macOS login Keychain into memory (founder decision,
-// 2026-10-28); it never goes into process.env, a log, a file or a stored event. Asking for live
+// records GATE-01 and a spend cap) and the key. The key is read from the macOS login Keychain into
+// memory (founder decision, 2026-10-28) unless a hosted deployment sets SITERRA_KEY_SOURCE=env, and
+// only then is it read from MODEL_API_KEY. An environment key without that flag is refused, so a
+// stray MODEL_API_KEY on a laptop never becomes the key; and with the flag the Keychain is never
+// read. The key never goes into process.env here, a log, a file or a stored event. Asking for live
 // without them is an error, never a quiet fall back to replay, and no message here ever contains
 // the key. The key only goes to https://api.meta.ai: any other SITERRA_MODEL_BASE_URL is refused.
 // The replay route never reads the key.
@@ -22,6 +24,8 @@ export interface RouteEnv {
   SITERRA_REPLAY_FILE?: string | undefined;
   SITERRA_MODEL_BASE_URL?: string | undefined;
   MODEL_API_KEY?: string | undefined;
+  /** "keychain" (the default) or "env": the hosted flag that lets MODEL_API_KEY be the key. */
+  SITERRA_KEY_SOURCE?: string | undefined;
   SITERRA_KEYCHAIN_SERVICE?: string | undefined;
 }
 
@@ -84,11 +88,27 @@ export function chooseTransport(env: RouteEnv, deps: RouteDeps = {}): ModelTrans
   if (baseURL !== undefined && baseURL !== "" && !isModelApiUrl(baseURL)) {
     throw new RouteConfigError(`SITERRA_MODEL_BASE_URL must be an https URL on ${MODEL_API_HOST}`);
   }
-  let key = env.MODEL_API_KEY ?? "";
-  if (key.trim() === "") {
+  const keySource = env.SITERRA_KEY_SOURCE ?? "keychain";
+  if (keySource !== "keychain" && keySource !== "env") {
+    throw new RouteConfigError(
+      `unknown SITERRA_KEY_SOURCE ${JSON.stringify(keySource)}; use keychain or env`,
+    );
+  }
+  let key: string;
+  if (keySource === "env") {
+    key = env.MODEL_API_KEY ?? "";
+    if (key.trim() === "") {
+      throw new RouteConfigError("SITERRA_KEY_SOURCE=env needs MODEL_API_KEY in the environment");
+    }
+  } else {
+    if ((env.MODEL_API_KEY ?? "").trim() !== "") {
+      throw new RouteConfigError(
+        "MODEL_API_KEY in the environment is refused: set SITERRA_KEY_SOURCE=env on a hosted deployment, or remove it to use the Keychain",
+      );
+    }
     if (!deps.readKeychain) {
       throw new RouteConfigError(
-        "live route needs MODEL_API_KEY in the environment or the worker's Keychain reader",
+        "live route needs the worker's Keychain reader (or SITERRA_KEY_SOURCE=env with MODEL_API_KEY on a host)",
       );
     }
     key = deps.readKeychain(env.SITERRA_KEYCHAIN_SERVICE || DEFAULT_KEYCHAIN_SERVICE);

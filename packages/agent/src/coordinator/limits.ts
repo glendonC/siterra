@@ -1,3 +1,5 @@
+import { COMMAND_SPEND_CAP_MICRO_USD } from "@siterra/domain";
+
 import type { SpendGuard } from "../model/adapter.ts";
 
 // Host-enforced command limits (docs/reference/agent-orchestration.md#budgets). Only a human can
@@ -14,7 +16,7 @@ export const P0_LIMITS: CommandLimits = {
   maxTasks: 8,
   maxConcurrentModelCalls: 2,
   wallClockMs: 180_000,
-  spendCapMicroUsd: 500_000,
+  spendCapMicroUsd: COMMAND_SPEND_CAP_MICRO_USD,
 };
 
 /** A counting semaphore: at most `size` holders at once, served in arrival order. */

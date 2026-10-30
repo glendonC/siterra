@@ -166,7 +166,7 @@
             }
           },
           "429": {
-            "description": "The session's command or spending quota is exhausted (code quota_exhausted). Public demo sessions have quotas and an expiry.",
+            "description": "The session's command or spending quota is exhausted, or the instance has reached its cap on live model spend (code quota_exhausted). Public demo sessions have quotas and an expiry.",
             "content": {
               "application/problem+json": {
                 "schema": {
