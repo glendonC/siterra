@@ -288,7 +288,7 @@ Both entries were registered in full on 2026-10-28: `restrend_long_record` befor
 |---|---|
 | Inputs | The relief, land cover, terrain strata, pixel trend (cells) and pixel anatomy bundles, the frozen polygon, the place configuration |
 | Cost function | Tobler's hiking function (SCI-169), speed W = 6 exp(-3.5 abs(S + 0.05)) km/h with S the slope of the move, times 0.6 off path; time of a move is its horizontal length over W; moves with abs(S) above 0.70 (about 35 degrees) are not allowed; nodes that are mostly permanent water are not allowed; one way, no load, no rest |
-| Moves | The 16 neighbours of a 30 m node (8 neighbours and 8 knight moves); Dijkstra from the Tabant node with ties fixed by cost then node index |
+| Moves | The 8 neighbours of a 30 m node (the first draft listed 16 with knight moves; before any route was computed the tests showed a knight move can step over a one cell wide wall, so it was dropped); Dijkstra from the Tabant node with ties fixed by cost then node index |
 | Sites | The centre of pixel h17v05 row 4005 column 2178; for each elevation band the nearest MODIS cell to Tabant with all corners inside the polygon, at least 0.8 grazing-possible land cover and a finite cost |
 | Per route | Horizontal length, straight-line distance, detour ratio, climb, descent, time, vertex count, largest move slope; the line is the node centres with unsmoothed heights to 0.1 m |
 | Parameters | Method only: `tobler_a_kmh` 6.0, `tobler_b` 3.5, `tobler_offset` 0.05, `off_path_factor` 0.6, `slope_cap` 0.7, `water_cells_min` 5, `duration_tolerance` 0.005 |
