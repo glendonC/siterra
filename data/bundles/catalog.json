@@ -77,6 +77,12 @@
   },
   {
    "rel": "child",
+   "href": "./bundle_pixel_anatomy_calaveras_creek/collection.json",
+   "type": "application/json",
+   "file:checksum": "1220ef0f71bd2132aadba3c37326248da9d883e602532cfa42116bf184c7decd1c51"
+  },
+  {
+   "rel": "child",
    "href": "./bundle_pixel_seasons_ait_bouguemez/collection.json",
    "type": "application/json",
    "file:checksum": "1220b1a8f9d9a10ceb021a9fcc289a6d202459af8c76af0174fddabddce9a10b5fba"

@@ -33,13 +33,14 @@ afterAll(async () => {
 });
 
 describe("the Calaveras Creek seed", () => {
-  it("verifies every pinned file and imports its twelve bundles and no bundle of another place", () => {
+  it("verifies every pinned file and imports its thirteen bundles and no bundle of another place", () => {
     expect(calaveras.issues).toEqual([]);
     expect(calaveras.seed?.caseRecord.id).toBe("case_calaveras_creek");
     expect(calaveras.seed?.bundles.map((b) => b.dataBundle.id).sort()).toEqual([
       "bundle_chirps_monthly_calaveras_creek",
       "bundle_drainage_network_calaveras_creek",
       "bundle_land_cover_calaveras_creek",
+      "bundle_pixel_anatomy_calaveras_creek",
       "bundle_pixel_seasons_calaveras_creek",
       "bundle_pixel_trend_long_record_calaveras_creek",
       "bundle_relief_calaveras_creek",

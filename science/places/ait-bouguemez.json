@@ -3,7 +3,7 @@
   "title": "Ait Bouguemez valley catchment",
   "areaNoun": "valley catchment",
   "note": "Place configuration read by the long-record pipeline scripts. Everything that is specific to one place lives here; the scripts hold none of it. A value changed here after a result was read is a new configuration revision labelled post hoc in the recipe result.",
-  "configRevision": 12,
+  "configRevision": 13,
   "revisions": [
     {"revision": 1, "date": "2026-10-28", "change": "First configuration: geometry, strata, DEM, rainfall window, restrend_long_record and snow_cover_by_band."},
     {"revision": 2, "date": "2026-10-28", "change": "Added landCover, pixel_trend_long_record and season_trend_long_record, written before any per-pixel slope, land-cover summary or June to September greenness value was computed. No value of revision 1 changed."},
@@ -28,7 +28,8 @@
     {"revision": 9, "date": "2026-10-30", "change": "Added pixel_seasons (registry 1.12.0): the March to June mean NDVI of every catchment pixel in every season, from the composites and the filter of pixel_trend_long_record, written before any per-season value was stored. No value of revision 1 to 8 changed."},
     {"revision": 10, "date": "2026-10-30", "change": "Restated in the configuration the wording of terrain_relief, land_cover_classes and drainage_network that the registry carried for this valley (the lower gorge, orchards, agdal, the conditioning window), so that the registry can be place-neutral and a second place can state its own. No word changed: the committed bundles rebuild from it identical except the two fields that name the configuration revision and its checksum. The unread rainfall.tileSizePx key (512; chirps_fetch.py and chirps-bundle.py fix the CHIRPS tile at 512 in code) was dropped."},
     {"revision": 11, "date": "2026-10-30", "change": "Restated in the configuration the wording of terrain_transects that the registry carried for this valley (the lines through Tabant, the band boundaries, the expected ends of the brief, the valley floor rule and the limitations), so that terrain_transects 1.1.0 can be place-neutral. No word changed: the committed transects bundle rebuilds from it identical except the fields that name the configuration revision and its checksum."},
-    {"revision": 12, "date": "2026-10-30", "change": "Added species_occurrences (registry 1.15.0): the query polygon rule, the GBIF filters, the licences kept and the named plants, written before any GBIF record was requested for this place. No value of an earlier revision changed."}
+    {"revision": 12, "date": "2026-10-30", "change": "Added species_occurrences (registry 1.15.0): the query polygon rule, the GBIF filters, the licences kept and the named plants, written before any GBIF record was requested for this place. No value of an earlier revision changed."},
+    {"revision": 13, "date": "2026-10-30", "change": "Restated in the configuration what the pixel_anatomy builders had written into their code or the registry for this valley (the Sentinel-2 bundle, the MODIS raw folder, the series and selection wording of the registry and its limitations), so that pixel_anatomy 1.1.0 can be place-neutral. No word changed: the committed pixel anatomy bundle rebuilds from it identical except the fields that name the configuration revision and its checksum and the renamed summary fields (footprint_corners with footprint_corners_crs instead of footprint_corners_utm29n; month_ndvi instead of june_ndvi)."}
   ],
   "geometry": {
     "id": "geo_ait_bouguemez_catchment",
@@ -311,6 +312,21 @@
       "rationale": "Registered 2026-10-30, before any GBIF record was requested for either place, at the founder's request to add recorded life (the lead's brief of that day gives the filters, the fields and the licences)."
     },
     "pixel_anatomy": {
+      "s2Bundle": "bundle_s2_ndvi_monthly_ait_bouguemez",
+      "modisRaw": "data/raw/modis/modis-13Q1-061",
+      "formulaText": {
+        "7": "Series: the pixel's season greenness G(p, y) for March to June of each year 2000 to 2025, recomputed from the MOD13Q1 windows with the registered functions of pixel_trend_long_record (pixel reliability 0 and 1 kept, at least half of the 16-day periods kept, values to 5 decimals), and its Theil-Sen slope per decade with Sen's 95% interval; the builder stops unless slope and interval equal the pixel trend bundle's table at 5 decimals",
+        "8": "Selection record: the pixels that meet the specimen's rule (Sen interval entirely above zero in March to June, every footprint cell inside the catchment, tree cover plus cropland 0.25 to 0.60 of the cells, grassland plus shrubland plus bare or sparse at least 0.35, built-up at most 0.05, at least half of the cells on sloping ground), ranked by the lower bound of the interval; stored with their number, the top five and the pixel's rank"
+      },
+      "limitations": [
+        "One pixel is an illustration, not a sample: it was chosen by judgment among the candidates of a rule (the selection record gives their number and its rank), and it says nothing about other pixels.",
+        "The class spectra come from one clear day, the cells of each class inside this pixel, and one 2021 land cover map. They are not typical spectra of the classes, and a 10 m cell at the edge of a class mixes surfaces.",
+        "The mix model assumes the pixel's reflectance is the share-weighted sum of its class medians. It ignores shadow, slope and variation inside a class, so its NDVI is modelled, not measured, and it differs from the measured pixel NDVI by the amount stored.",
+        "NDVI measures how green the ground looks from above, not forage, palatability or species: in Ait Bouguemez and the Central High Atlas, upper rangelands are dominated by spiny xerophytic vegetation over reduced short grasslands (SCI-19, p. 2), and on the valley floor tree cover may include orchards (SCI-03, pp. 5, 9 to 10).",
+        "The 26-season series is the pixel's own March to June greenness, not adjusted for rainfall. Its trend is a descriptive Theil-Sen slope with Sen's 95% interval, and no p-value or false discovery rate class is stored for one pixel (SCI-52).",
+        "Terra's overpass has drifted earlier since 2020, from 10:30 to about 9:06 mean local time by December 2025 (NASA), so later seasons are seen with a lower sun and longer shadows in mountain terrain, which may shift NDVI without any change on the ground.",
+        "The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary."
+      ],
       "bundleId": "bundle_pixel_anatomy_ait_bouguemez",
       "pixels": [
         {

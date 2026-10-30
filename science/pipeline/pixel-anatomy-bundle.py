@@ -11,6 +11,7 @@ scene-record.json are copies); --interim holds the display inputs pinned by the 
 <repo>/data/interim). The bundle id is the configuration's for its primary pixel and bundle_pixel_anatomy_<place>_<pixel id>
 otherwise. The bundle folder must not exist yet. Without --inspected the visual inspection check fails.
 """
+import calendar
 import json
 import os
 import shutil
@@ -36,8 +37,13 @@ PROJ_EXT = "https://stac-extensions.github.io/projection/v2.1.0/schema.json"
 WC_NAMES = {10: "tree cover", 20: "shrubland", 30: "grassland", 40: "cropland", 50: "built-up", 60: "bare or sparse vegetation",
             80: "permanent water"}
 SHIFT_FROM, SHIFT_TO = 30, 10  # grassland to tree cover
-YEARS = list(range(2000, 2026))
-MONTHS = {"mar_jun": [3, 4, 5, 6]}
+SENTINEL_PROVIDERS = [  # as the Sentinel-2 monthly bundle of the first place lists them: facts about the product, not about a place
+    {"name": "Copernicus Sentinel-2 (European Union, ESA)", "roles": ["producer", "licensor"]},
+    {"name": "Sinergise", "roles": ["processor"], "url": "https://registry.opendata.aws/sentinel-2/"},
+    {"name": "AWS", "roles": ["host"], "url": "https://registry.opendata.aws/sentinel-2-l2a-cogs/"},
+    {"name": "Element 84 Earth Search", "roles": ["processor", "host"], "url": "https://earth-search.aws.element84.com/v1/"}]
+SENTINEL_LICENSE = {"rel": "license", "href": "https://cds.climate.copernicus.eu/licences/ec-sentinel",
+                    "title": "Legal notice on the use of Copernicus Sentinel data and service information (SCI-18)"}
 CLAIMS = {"composition_and_spectra": "observation", "mix_and_series": "model_estimate"}
 
 
@@ -48,9 +54,54 @@ def pinned(root, entry, label):
     return p
 
 
+def read_aligned(path, atr, r0, r1, c0, c1):
+    """The cells r0:r1, c0:c1 of the analysis grid from a raster on that grid's lattice (the whole grid or a part of it): every band."""
+    with rasterio.open(path) as t:
+        ttr = t.transform
+        dc, dr = (atr.c + c0 * atr.a - ttr.c) / atr.a, (ttr.f - (atr.f + r0 * atr.e)) / -atr.e
+        if abs(ttr.a - atr.a) > 1e-9 or abs(dc - round(dc)) > 1e-9 or abs(dr - round(dr)) > 1e-9:
+            raise SystemExit(f"{os.path.basename(path)} is not aligned with the analysis grid")
+        dc, dr = int(round(dc)), int(round(dr))
+        if dc < 0 or dr < 0 or dc + (c1 - c0) > t.width or dr + (r1 - r0) > t.height:
+            raise SystemExit(f"{os.path.basename(path)} does not cover the display window")
+        return t.read(window=((dr, dr + (r1 - r0)), (dc, dc + (c1 - c0))))
+
+
+def selection_table(cfg, WIN, tables, mtr, mshape, mcrs):
+    """The cell to pixel rule against the pixel trend table, for every pixel, and the composition of every pixel for the selection record:
+    (table rows, number of pixels whose cell count differs from the table, analysis grid transform, shape and catchment mask)."""
+    atr, ashape, amask = place_config.analysis_grid(cfg)
+    crow, ccol, _, _, flat = place_config.cell_pixel_index(cfg, mcrs, mtr, mshape)
+    npix = mshape[0] * mshape[1]
+    n_catch = np.bincount(flat, minlength=npix)
+    mismatch = sum(1 for p in tables[WIN] if n_catch[p["row"] * mshape[1] + p["col"]] != p["analysis_cells"])
+    n_all = pa.footprint_counts(atr, ashape, mtr, mcrs, cfg["analysisCrs"], mshape)
+    wc_grid = place_config.land_cover(cfg)
+    layers = place_config.strata(cfg)[0]
+    wc_c = wc_grid[crow, ccol]
+    sloping = np.isin(layers["aspect_class"][crow, ccol], [1, 2, 3, 4])
+    n_slope = np.bincount(flat[sloping], minlength=npix)
+    shares = {k: np.bincount(flat[wc_c == k], minlength=npix) for k in (10, 20, 30, 40, 50, 60, 80)}
+    table = []
+    for p in tables[WIN]:
+        f = p["row"] * mshape[1] + p["col"]
+        n = n_catch[f]
+        table.append({"row": p["row"], "col": p["col"], "direction": p["direction"], "lower_per_decade": p["lower_per_decade"],
+                      "slope_per_decade": p["slope_per_decade"], "upper_per_decade": p["upper_per_decade"],
+                      "analysis_cells": p["analysis_cells"], "fully_inside": bool(n_all[f] == n_catch[f]),
+                      "sloping_share": float(n_slope[f] / n), "wc_shares": {str(k): float(shares[k][f] / n) for k in shares}})
+    return table, mismatch, atr, ashape, amask
+
+
 def compute(cfg, reg, pid, interim, extracts, bundles):
     params = {p["name"]: p["default"] for p in reg["parameters"]}
     pc = cfg["recipes"][RECIPE]
+    rule = pc["candidateRule"]
+    WIN = rule["window"]
+    params["series_window"] = WIN
+    trc = cfg["recipes"]["pixel_trend_long_record"]
+    months = next(w["months"] for w in trc["growingWindows"] if w["id"] == WIN)
+    years = list(range(trc["seasonYears"][0], trc["seasonYears"][1] + 1))
     h, v, trow, tcol = pa.parse_pixel_id(pid)
     tb = pc["trendBundle"]
     tdir = os.path.join(cfg["_repo"], "data/bundles", tb["bundle"])
@@ -65,31 +116,14 @@ def compute(cfg, reg, pid, interim, extracts, bundles):
         raise SystemExit(f"{pid} lies outside the trend grid")
     tables = json.load(open(os.path.join(tdir, tb["table"])))["pixels_by_window"]
     rec = {w: next((p for p in tables[w] if p["row"] == brow and p["col"] == bcol), None) for w in tables}
-    if rec["mar_jun"] is None:
+    if rec[WIN] is None:
         raise SystemExit(f"{pid} holds no catchment cell")
 
-    # the cell to pixel rule against the table, for every pixel, and the composition of every pixel for the selection record
-    atr, ashape, amask = place_config.analysis_grid(cfg)
-    crow, ccol, _, _, flat = place_config.cell_pixel_index(cfg, mcrs, mtr, mshape)
-    npix = mshape[0] * mshape[1]
-    n_catch = np.bincount(flat, minlength=npix)
-    mismatch = sum(1 for p in tables["mar_jun"] if n_catch[p["row"] * mshape[1] + p["col"]] != p["analysis_cells"])
-    n_all = pa.footprint_counts(atr, ashape, mtr, mcrs, cfg["analysisCrs"], mshape)
+    table, mismatch, atr, ashape, amask = selection_table(cfg, WIN, tables, mtr, mshape, mcrs)
     wc_grid = place_config.land_cover(cfg)
     layers = place_config.strata(cfg)[0]
-    wc_c = wc_grid[crow, ccol]
-    sloping = np.isin(layers["aspect_class"][crow, ccol], [1, 2, 3, 4])
-    n_slope = np.bincount(flat[sloping], minlength=npix)
-    shares = {k: np.bincount(flat[wc_c == k], minlength=npix) for k in (10, 20, 30, 40, 50, 60, 80)}
-    table = []
-    for p in tables["mar_jun"]:
-        f = p["row"] * mshape[1] + p["col"]
-        n = n_catch[f]
-        table.append({"row": p["row"], "col": p["col"], "direction": p["direction"], "lower_per_decade": p["lower_per_decade"],
-                      "slope_per_decade": p["slope_per_decade"], "upper_per_decade": p["upper_per_decade"],
-                      "analysis_cells": p["analysis_cells"], "fully_inside": bool(n_all[f] == n_catch[f]),
-                      "sloping_share": float(n_slope[f] / n), "wc_shares": {str(k): float(shares[k][f] / n) for k in shares}})
-    ranked = pa.rank_candidates(table, pc["candidateRule"])
+    direction = pa.chosen_direction(table, rule)
+    ranked = pa.rank_candidates(table, rule, direction)
     rank = next((i + 1 for i, t in enumerate(ranked) if (t["row"], t["col"]) == (brow, bcol)), None)
     top = []
     for t in ranked[:5]:
@@ -110,18 +144,9 @@ def compute(cfg, reg, pid, interim, extracts, bundles):
     cnt = pinned(rin, pc["interimInputs"]["ndviCount"], "NDVI count")
     tcp = pinned(rin, pc["interimInputs"]["trueColour"], "true colour")
     win = ((r0, r1), (c0, c1))
-    with rasterio.open(med) as m:
-        if not m.transform.almost_equals(atr):
-            raise SystemExit("the NDVI median is not on the analysis grid")
-        ndvi = m.read(1, window=win)
-    with rasterio.open(cnt) as m:
-        ndvi_n = m.read(1, window=win)
-    with rasterio.open(tcp) as t:
-        ttr = t.transform
-        dc, dr = (atr.c + c0 * atr.a - ttr.c) / 10.0, (ttr.f - (atr.f + r0 * atr.e)) / 10.0
-        if abs(dc - round(dc)) > 1e-9 or abs(dr - round(dr)) > 1e-9:
-            raise SystemExit("the true colour composite is not aligned with the analysis grid")
-        tc = t.read(window=((int(round(dr)), int(round(dr)) + H), (int(round(dc)), int(round(dc)) + W)))
+    ndvi = read_aligned(med, atr, r0, r1, c0, c1)[0]
+    ndvi_n = read_aligned(cnt, atr, r0, r1, c0, c1)[0]
+    tc = read_aligned(tcp, atr, r0, r1, c0, c1)
     wc = wc_grid[r0:r1, c0:c1]
     asp = layers["aspect_class"][r0:r1, c0:c1]
     elb = layers["elevation_band"][r0:r1, c0:c1]
@@ -183,7 +208,7 @@ def compute(cfg, reg, pid, interim, extracts, bundles):
     cell_ndvi_grid = np.where(kept, pa.ndvi(refl["B08"], refl["B04"]), np.nan)
 
     # the series, recomputed from the MOD13Q1 windows
-    raw = os.path.join(cfg["_repo"], "data/raw/modis/modis-13Q1-061")
+    raw = os.path.join(cfg["_repo"], pc.get("modisRaw", "data/raw/modis/modis-13Q1-061"))
     mrec, rec_name, sidecars = modis_ndvi.load_modis(raw)
     gtr, gshape, _ = modis_ndvi.grid_of(sidecars)
     if not gtr.almost_equals(mtr) or tuple(gshape) != mshape:
@@ -191,8 +216,8 @@ def compute(cfg, reg, pid, interim, extracts, bundles):
     arrays, _ = modis_ndvi.read_windows(raw, sidecars)
     kept_rel = params["pixel_reliability_kept"]
     seasons = []
-    for y in YEARS:
-        periods = modis_ndvi.calendar_periods(y, MONTHS[params["series_window"]])
+    for y in years:
+        periods = modis_ndvi.calendar_periods(y, months)
         G = modis_ndvi.season_ndvi(arrays, periods, kept_rel, params["min_composite_share"])
         val = float(np.round(G, 5)[brow, bcol]) if G is not None else float("nan")
         present = kept_n = 0
@@ -208,10 +233,10 @@ def compute(cfg, reg, pid, interim, extracts, bundles):
     yrs = [s["year"] for s in seasons if s["ndvi"] is not None]
     vals = [s["ndvi"] for s in seasons if s["ndvi"] is not None]
     sen = trend_stats.theil_sen(yrs, vals)
-    got = {"slope_per_decade": round(sen["slope"] * 10.0, 5), "lower_per_decade": round(sen["lower"] * 10.0, 5),
-           "upper_per_decade": round(sen["upper"] * 10.0, 5)}
-    want = {k: rec["mar_jun"][k] for k in got}
-    series_ok = got == want and len(vals) == rec["mar_jun"]["seasons"]
+    f32 = lambda x: round(float(np.float32(x * 10.0)), 5)  # the trend table rounds the single precision value the slope raster holds: a tie of the fifth decimal falls the same way
+    got = {"slope_per_decade": f32(sen["slope"]), "lower_per_decade": f32(sen["lower"]), "upper_per_decade": f32(sen["upper"])}
+    want = {k: rec[WIN][k] for k in got}
+    series_ok = got == want and len(vals) == rec[WIN]["seasons"]
 
     # the pixel's geometry
     to_utm = Transformer.from_crs(mcrs, cfg["analysisCrs"], always_xy=True).transform
@@ -220,7 +245,9 @@ def compute(cfg, reg, pid, interim, extracts, bundles):
     centre_ll = to_ll(*(mtr * (bcol + 0.5, brow + 0.5)))
     return {
         "params": params, "pid": pid, "brow": brow, "bcol": bcol, "tile": (h, v, trow, tcol), "rec": rec, "mismatch": mismatch,
-        "n_pixels": len(tables["mar_jun"]), "n_in": n_in, "catch_in": catch_in, "window": (r0, r1, c0, c1, H, W),
+        "n_pixels": len(tables[WIN]), "window_id": WIN, "months": months, "years": years, "direction": direction,
+        "wlabel": f"{calendar.month_name[months[0]]} to {calendar.month_name[months[-1]]}",
+        "nlabel": calendar.month_name[int(pc["ndviMonth"][5:7])], "n_in": n_in, "catch_in": catch_in, "window": (r0, r1, c0, c1, H, W),
         "origin": (atr.c + c0 * atr.a, atr.f + r0 * atr.e),
         "inside": inside, "wc": wc, "ndvi": ndvi, "ndvi_n": ndvi_n, "tc": tc, "composition": composition, "ndvi_by_class": ndvi_by_class,
         "ndvi_in": {"cells_with_value": int(ok_n.sum()), "median_of_cells": float(np.median(ndvi_in[ok_n])),
@@ -250,7 +277,7 @@ def main():
     opts = dict(a[2:].split("=", 1) for a in sys.argv[1:] if a.startswith("--") and "=" in a)
     place, repo, pid, registry, lock_path, bundles = argv
     cfg = place_config.load(place, repo)
-    reg = [r for r in json.load(open(registry))["recipes"] if r["recipeId"] == RECIPE][0]
+    reg = place_config.localize(cfg, [r for r in json.load(open(registry))["recipes"] if r["recipeId"] == RECIPE][0])
     pc = cfg["recipes"][RECIPE]
     pcfg = next((p for p in pc["pixels"] if p["id"] == pid), None)
     bid = opts.get("bundle-id") or (pc["bundleId"] if pcfg and pcfg.get("role") == "primary" else f"bundle_pixel_anatomy_{cfg['placeId']}_{pid}")
@@ -268,7 +295,8 @@ def main():
     print(f"computed twice in this process, identical: {identical}")
 
     params, sr = c["params"], c["scene"]
-    rec = c["rec"]["mar_jun"]
+    rec = c["rec"][c["window_id"]]
+    WL, NL = c["wlabel"], c["nlabel"]
     r0, r1, c0, c1, H, W = c["window"]
     os.makedirs(bdir)
     # data files
@@ -303,7 +331,7 @@ def main():
     }
     series = {
         "recipeId": RECIPE, "version": reg["version"], "computed": now, "pixel": pid, "window": params["series_window"],
-        "months": MONTHS[params["series_window"]], "reliability_kept": params["pixel_reliability_kept"],
+        "months": c["months"], "reliability_kept": params["pixel_reliability_kept"],
         "min_composite_share": params["min_composite_share"], "search_record": c["rec_name"], "composites_read": c["composites"],
         "seasons": c["seasons"], "theil_sen": c["got"], "matches_trend_table_at_5_decimals": c["series_ok"], "trend_table_values": c["want"],
         "functions": ["modis_ndvi.load_modis", "modis_ndvi.grid_of", "modis_ndvi.read_windows", "modis_ndvi.calendar_periods",
@@ -333,7 +361,7 @@ def main():
             f"{c['n_pixels'] - c['mismatch']} of {c['n_pixels']} pixels ({c['mismatch']} differ); this pixel's footprint holds {c['n_in']} cells, {c['catch_in']} of them "
             f"inside the catchment, against {rec['analysis_cells']} in the table. {len(sr['extracts']) - len(c['sha_bad'])} of {len(sr['extracts'])} extracts have the recorded sha256 "
             f"(mismatching: {c['sha_bad'] or 'none'}) and every window covers the {H} x {W} display window ({c['shape_ok']}). {c['over_one']} kept cells have red or near-infrared "
-            f"reflectance above 1.0; class cell counts add up to {cls_sum} of {c['n_in']}. The pixel's {c['n_seasons']}-season March to June series gives slope {c['got']['slope_per_decade']:+.5f} "
+            f"reflectance above 1.0; class cell counts add up to {cls_sum} of {c['n_in']}. The pixel's {c['n_seasons']}-season {WL} series gives slope {c['got']['slope_per_decade']:+.5f} "
             f"and interval {c['got']['lower_per_decade']:+.5f} to {c['got']['upper_per_decade']:+.5f} NDVI per decade, equal to the table's {c['want']['slope_per_decade']:+.5f} and "
             f"{c['want']['lower_per_decade']:+.5f} to {c['want']['upper_per_decade']:+.5f} at 5 decimals ({c['series_ok']}). The scene rule applied to the stored candidates gives "
             f"{sr['scene_rule']['chosen']} ({c['scene_ok']}). The candidate rule gives {c['selection']['candidates']} pixels and ranks this one {c['selection']['rank']}. "
@@ -341,7 +369,7 @@ def main():
         {"name": "units_and_scale", "passed": True, "detail": (
             "Reflectance is DN / 10000 with no offset (observation-preprocessing.md, offset rule); extracts hold the stored uint16 DN and uint8 SCL; NDVI is "
             "(near-infrared - red) / (near-infrared + red) from B08 and B04; series NDVI is the MOD13Q1 DN / 10000 season mean; slopes are NDVI per decade (1/(10 a)); "
-            "coordinates are EPSG:32629 metres for the grid and decimal degrees for the footprint corners; the MODIS pixel is 231.66 m on a side.")},
+            f"coordinates are {cfg['analysisCrs']} metres for the grid and decimal degrees for the footprint corners; the MODIS pixel is 231.66 m on a side.")},
         {"name": "nodata_not_zero", "passed": all(r["zero_dn_cells"] == 0 for r in sr["extracts"]), "detail": (
             f"DN 0 means no data in the extracts and occurs in {sum(r['zero_dn_cells'] for r in sr['extracts'])} cells of all {len(sr['extracts'])} windows; SCL 0 (no data) occurs in "
             f"{c['scl_inside'].get('0', 0)} footprint cells. A season whose half of 16-day periods are not kept has no value (null), never 0; "
@@ -351,21 +379,22 @@ def main():
             f"is {chosen['clear_share']}. The scene rule compared {len([x for x in sr['scene_rule']['candidates'] if x['orbit'] == pc['scene']['relativeOrbit']])} scenes on "
             f"{pc['scene']['relativeOrbit']}; every candidate's share is in scene-record.json.")},
         {"name": "period_alignment", "passed": in_window, "detail": (
-            f"The scene ({item_dt[:10]}) lies in {pc['scene']['month']}, the month of the NDVI median and count shown for each cell, and inside the March to June window of the "
+            f"The scene ({item_dt[:10]}) lies in {pc['scene']['month']}, the month of the NDVI median and count shown for each cell, and inside the {WL} window of the "
             f"last season of the series.")},
         {"name": "attribution_present", "passed": True, "detail": (
-            "The Sentinel-2 notice for 2025, the MOD13Q1 v6.1 citation with DOI, subset and access date, the ESA WorldCover attribution and the Copernicus DEM notices are in siterra:attribution.")},
+            f"The Sentinel-2 notice for {item_dt[:4]}, the MOD13Q1 v6.1 citation with DOI, subset and access date, the ESA WorldCover attribution and the Copernicus DEM notices are in siterra:attribution.")},
         {"name": "visual_inspection_sample", "passed": inspected is not None,
          "detail": inspected or "Not inspected: run with --inspected=<note> after looking at the rendered pixel."},
     ]
     status = "validated" if all(x["passed"] for x in checks) else "failed"
 
+    how = "by the rule" if (pcfg or {}).get("choice") == "rule" else "by judgment"
     p = c["tile"]
     pixel = {
         "id": pid, "modis_tile": f"h{p[0]:02d}v{p[1]:02d}", "tile_row": p[2], "tile_col": p[3], "bundle_row": c["brow"], "bundle_col": c["bcol"],
         "centre_lon_lat": [round(c["centre_ll"][0], 6), round(c["centre_ll"][1], 6)], "median_elevation_m": rec["elevation_m"],
         "cell_size_m": round(pa.PX_M, 2), "footprint_corners_lon_lat": [[round(x, 6), round(y, 6)] for x, y in c["corners_ll"]],
-        "footprint_corners_utm29n": [[round(x, 2), round(y, 2)] for x, y in c["corners_utm"]],
+        "footprint_corners": [[round(x, 2), round(y, 2)] for x, y in c["corners_utm"]], "footprint_corners_crs": cfg["analysisCrs"],
         "footprint_cells": c["n_in"], "catchment_cells": c["catch_in"],
     }
     summary = {
@@ -377,7 +406,7 @@ def main():
                   "unit": "NDVI per decade", "claim_kind": CLAIMS["mix_and_series"], "series_asset": "pixel_series",
                   "note": "No p-value or false discovery rate class is stored for one pixel (SCI-52)."},
         "composition": [{**x, "share": round(x["share"], 4)} for x in c["composition"]], "terrain": c["terrain"],
-        "june_ndvi": {"month": pc["ndviMonth"], **{k: (round(v, 4) if isinstance(v, float) else v) for k, v in c["ndvi_in"].items()},
+        "month_ndvi": {"month": pc["ndviMonth"], **{k: (round(v, 4) if isinstance(v, float) else v) for k, v in c["ndvi_in"].items()},
                       "by_class": {k: {"cells_with_value": v["cells_with_value"], "median": None if v["median"] is None else round(v["median"], 4)}
                                    for k, v in c["ndvi_by_class"].items()}, "cells_asset": "pixel_cells"},
         "scene": {"id": sr["stac_item"]["id"], "datetime": item_dt, "orbit": chosen["orbit"], "baseline": sr["stac_item"]["properties"]["s2:processing_baseline"],
@@ -399,7 +428,7 @@ def main():
                                     "note": "an example of the mixing control, not an observation"}},
         "selection": {"candidate_rule": pc["candidateRule"], "candidates": c["selection"]["candidates"], "rank": c["selection"]["rank"],
                       "top": c["selection"]["top"], "chosen_by": (pcfg or {}).get("chosenBy", "named by the caller; not in the place configuration"),
-                      "note": "This pixel is an illustration chosen by judgment, not a sample."},
+                      "note": f"This pixel is an illustration chosen {how}, not a sample.", **({"direction_used": c["direction"]} if "directionOrder" in pc["candidateRule"] else {})},
         "checks": {x["name"]: x["passed"] for x in checks},
         "assets": {"cells": "pixel_cells", "spectra": "pixel_spectra", "series": "pixel_series", "scene_record": "scene_record"},
         "limitations": reg["standardLimitations"], "forbidden_phrases": reg["forbiddenPhrases"],
@@ -409,19 +438,19 @@ def main():
 
     strata_col = json.load(open(os.path.join(bundles, cfg["strata"]["bundle"], "collection.json")))
     trend_col = json.load(open(os.path.join(bundles, pc["trendBundle"]["bundle"], "collection.json")))
-    s2_id = "bundle_s2_ndvi_monthly_ait_bouguemez"
-    s2_col = json.load(open(os.path.join(bundles, s2_id, "collection.json")))
+    s2_id = pc.get("s2Bundle")
+    s2_col = json.load(open(os.path.join(bundles, s2_id, "collection.json"))) if s2_id else None
     assets = {
         "analysis_geometry": bc.plain_asset(bdir, "analysis-geometry.geojson", "application/geo+json",
                                             f"Frozen analysis geometry {cfg['geometry']['id']}, revision {cfg['geometry']['revision']}", ["metadata"]),
         RECIPE: bc.plain_asset(bdir, "pixel-anatomy.json", "application/json",
-                               "Summary: the pixel, its composition, June NDVI by class, the scene and its extracts, class red and near-infrared medians, the labelled mix model, the trend and the selection record (the result read_recipe_result returns)", ["data"]),
+                               f"Summary: the pixel, its composition, {NL} NDVI by class, the scene and its extracts, class red and near-infrared medians, the labelled mix model, the trend and the selection record (the result read_recipe_result returns)", ["data"]),
         "pixel_cells": bc.plain_asset(bdir, "pixel-cells.json", "application/json",
-                                      f"The {H} x {W} display window of 10 m cells: footprint flag, WorldCover class, June NDVI median and date count, and the display-only true colour", ["data"]),
+                                      f"The {H} x {W} display window of 10 m cells: footprint flag, WorldCover class, {NL} NDVI median and date count, and the display-only true colour", ["data"]),
         "pixel_spectra": bc.plain_asset(bdir, "pixel-spectra.json", "application/json",
                                         "Class spectra of the scene in ten bands (median and quartiles), the pixel's measured mean, the mix model, the shift example and the per-cell NDVI of the date", ["data"]),
         "pixel_series": bc.plain_asset(bdir, "pixel-series.json", "application/json",
-                                       "The pixel's own March to June greenness for each season 2000 to 2025 with its Theil-Sen slope and Sen 95% interval", ["data"]),
+                                       f"The pixel's own {WL} greenness for each season {c['years'][0]} to {c['years'][-1]} with its Theil-Sen slope and Sen 95% interval", ["data"]),
         "scene_record": bc.plain_asset(bdir, "scene-record.json", "application/json",
                                        "Scene choice and extracts: every candidate scene's clear share, the item's properties, and each extract's address, window and sha256", ["metadata"]),
     }
@@ -429,19 +458,19 @@ def main():
         key = "s2_" + r["band"].lower()
         assets[key] = bc.plain_asset(bdir, r["extract"], "image/tiff; application=geotiff",
                                      f"{sr['stac_item']['id']} {r['band']} window over the display window ({r['window']['width']} x {r['window']['height']} cells of {r['resolution_m']:.0f} m), as read",
-                                     ["data"], **{"proj:code": "EPSG:32629", "proj:shape": [r["window"]["height"], r["window"]["width"]]})
+                                     ["data"], **{"proj:code": cfg["analysisCrs"], "proj:shape": [r["window"]["height"], r["window"]["width"]]})
     sw = {"siterra-science": "0.1.0", "python": sys.version.split()[0], "numpy": np.__version__, "rasterio": rasterio.__version__,
           "gdal": rasterio.__gdal_version__, "pyproj": pyproj.__version__, "shapely": shapely.__version__}
     sc_line = ", ".join(f"{x['name']} {x['cells']} cells ({x['share'] * 100:.1f}%)" for x in c["composition"])
     desc = (
         f"Precomputed result of recipe {RECIPE} {reg['version']} for MODIS pixel {pid} of {cfg['title']} (bundle row {c['brow']}, column {c['bcol']}, centre "
         f"{pixel['centre_lon_lat'][1]} N, {abs(pixel['centre_lon_lat'][0])} W): {c['n_in']} cells of 10 m, {sc_line}. Class spectra from {sr['stac_item']['id']} ({item_dt[:10]}); the "
-        f"pixel's measured NDVI on that day is {c['measured_ndvi']:.4f}, a linear mix of the class medians (modelled) gives {c['model_ndvi']:.4f}; its own March to June "
+        f"pixel's measured NDVI on that day is {c['measured_ndvi']:.4f}, a linear mix of the class medians (modelled) gives {c['model_ndvi']:.4f}; its own {WL} "
         f"greenness over {c['n_seasons']} seasons has a Theil-Sen slope of {c['got']['slope_per_decade']:+.4f} NDVI per decade (95% interval {c['got']['lower_per_decade']:+.4f} to "
-        f"{c['got']['upper_per_decade']:+.4f}). The pixel is an illustration chosen by judgment (rank {c['selection']['rank']} of {c['selection']['candidates']} candidates), not a sample.\n\n"
+        f"{c['got']['upper_per_decade']:+.4f}). The pixel is an illustration chosen {how} (rank {c['selection']['rank']} of {c['selection']['candidates']} candidates), not a sample.\n\n"
         + " ".join(reg["standardLimitations"]))
     attribution = []
-    for a in ["Contains modified Copernicus Sentinel data 2025", *trend_col["siterra:attribution"], *strata_col["siterra:attribution"]]:
+    for a in [f"Contains modified Copernicus Sentinel data {item_dt[:4]}", *trend_col["siterra:attribution"], *strata_col["siterra:attribution"]]:
         if a not in attribution:
             attribution.append(a)
     col = {
@@ -450,7 +479,7 @@ def main():
                             "https://stac-extensions.github.io/file/v2.1.0/schema.json", PROJ_EXT, EXT],
         "id": bid, "title": f"One MODIS pixel opened into its 10 m cells ({RECIPE} {reg['version']})", "description": desc, "license": "other",
         "providers": [
-            *[x for x in s2_col["providers"] if "processor" not in x["roles"] or x["name"] != "Siterra science pipeline"],
+            *([x for x in s2_col["providers"] if "processor" not in x["roles"] or x["name"] != "Siterra science pipeline"] if s2_col else SENTINEL_PROVIDERS),
             *[x for x in trend_col["providers"] if "processor" not in x["roles"]],
             {"name": "Siterra science pipeline", "roles": ["processor"],
              "processing:lineage": ("The pixel's cells from the strata grid, WorldCover 2021 and the Sentinel-2 monthly NDVI median; band windows of one scene read from the "
@@ -459,7 +488,8 @@ def main():
         ],
         "extent": {"spatial": {"bbox": [[min(x for x, _ in c["corners_ll"]), min(y for _, y in c["corners_ll"]),
                                          max(x for x, _ in c["corners_ll"]), max(y for _, y in c["corners_ll"])]]},
-                   "temporal": {"interval": [["2000-03-01T00:00:00Z", "2025-06-30T23:59:59Z"]]}},
+                   "temporal": {"interval": [[f"{c['years'][0]}-{c['months'][0]:02d}-01T00:00:00Z",
+                                              f"{c['years'][-1]}-{c['months'][-1]:02d}-{calendar.monthrange(c['years'][-1], c['months'][-1])[1]}T23:59:59Z"]]}},
         "assets": assets, "created": now, "siterra:status": status, "siterra:variable": "pixel_anatomy",
         "siterra:dataset": {
             "id": "sentinel-2-l2a", "version": sr["stac_item"]["properties"]["s2:processing_baseline"],
@@ -482,12 +512,12 @@ def main():
             *[{"rel": "derived_from", "href": f"../{x['id']}/collection.json", "type": "application/json", "title": t,
                "file:checksum": "1220" + bc.sha(os.path.join(bundles, x["id"], "collection.json"))}
               for x, t in ((strata_col, f"Terrain strata bundle {strata_col['id']}"), (trend_col, f"Pixel trend bundle {trend_col['id']}"),
-                           (s2_col, f"Sentinel-2 monthly NDVI bundle {s2_col['id']} (the June NDVI of each cell)"))],
+                           *(((s2_col, f"Sentinel-2 monthly NDVI bundle {s2_col['id']} (the {NL} NDVI of each cell)"),) if s2_col else ())) ],
             {"rel": "derived_from", "href": sr["stac_item"]["self"], "type": "application/geo+json",
              "title": f"Earth Search item {sr['stac_item']['id']} (cached copy sha256 {sr['stac_item']['sha256']})",
              "siterra:retrieved_datetime": sr["stac_item"]["cached_by_science_lane_utc"]},
             *[x for x in trend_col["links"] if x["rel"] in ("license", "cite-as")],
-            *[x for x in s2_col["links"] if x["rel"] == "license" and "Sentinel" in x["title"]],
+            *([x for x in s2_col["links"] if x["rel"] == "license" and "Sentinel" in x["title"]] if s2_col else [SENTINEL_LICENSE]),
             {"rel": "processing-software", "href": "./uv.lock", "type": "application/toml", "title": "Pipeline lockfile (uv)",
              "file:checksum": "1220" + bc.sha(lock_out)},
         ],
@@ -496,7 +526,7 @@ def main():
     print(f"{bid}: {status}")
     print(f"  pixel {pid} bundle ({c['brow']}, {c['bcol']}) cells {c['n_in']} ({c['catch_in']} in catchment, table {rec['analysis_cells']}); window {H} x {W}; mismatches {c['mismatch']} of {c['n_pixels']}")
     print("  composition", [(x["name"], x["cells"], round(x["share"], 4)) for x in c["composition"]])
-    print("  june ndvi", {k: (round(v, 4) if isinstance(v, float) else v) for k, v in c["ndvi_in"].items()}, {k: round(v["median"], 3) for k, v in c["ndvi_by_class"].items()})
+    print("  month ndvi", {k: (round(v, 4) if isinstance(v, float) else v) for k, v in c["ndvi_in"].items()}, {k: round(v["median"], 3) for k, v in c["ndvi_by_class"].items()})
     print("  scene", sr["scene_rule"]["chosen"], "| spectra ndvi(median red,nir)", {x["name"]: round(x["ndvi_of_median_red_nir"], 4) for x in c["classes"]})
     print(f"  measured {c['measured_ndvi']:.4f} model {c['model_ndvi']:.4f} shifted {c['shifted_ndvi']:.4f} | kept {c['kept_inside']} over1 {c['over_one']}")
     print(f"  series {c['got']} == table {c['want']}: {c['series_ok']}; seasons {c['n_seasons']}")
