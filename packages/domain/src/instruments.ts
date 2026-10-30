@@ -14,6 +14,17 @@ type Named = Pick<InstrumentSpec, "parameters" | "caption">;
 
 /** The IDs the parameters name, area first; null where an optional field names nothing. */
 function namedByParameters(parameters: InstrumentSpec["parameters"]): (string | null)[] {
+  return [...namedByFields(parameters), ...drawnOf(parameters).map((d) => d.asset.bundleId)];
+}
+
+/** The assets an instrument draws besides the ones its named fields hold (contracts 1.16.0). */
+function drawnOf(
+  parameters: InstrumentSpec["parameters"],
+): { role: string; asset: BundleAssetRef }[] {
+  return parameters.kind === "field_plan" ? [] : (parameters.drawnAssets ?? []);
+}
+
+function namedByFields(parameters: InstrumentSpec["parameters"]): (string | null)[] {
   switch (parameters.kind) {
     case "layer_stack":
       return [
@@ -126,26 +137,29 @@ export function instrumentComponentIssues(
  */
 export function instrumentAssetRefs(spec: Pick<InstrumentSpec, "parameters">): BundleAssetRef[] {
   const { parameters } = spec;
-  const refs = ((): BundleAssetRef[] => {
-    switch (parameters.kind) {
-      case "layer_stack":
-        return [parameters.relief, ...parameters.layers.map((layer) => layer.data)];
-      case "cross_section":
-        return [
-          parameters.relief,
-          parameters.profile,
-          parameters.bands,
-          parameters.bandTrends,
-          parameters.snow,
-        ];
-      case "pixel_anatomy":
-        return [parameters.locator, parameters.anatomy, parameters.bandSeries];
-      case "rainfall_scatter":
-        return [parameters.seasons, parameters.fit];
-      case "field_plan":
-        return [];
-    }
-  })();
+  const refs = [
+    ...((): BundleAssetRef[] => {
+      switch (parameters.kind) {
+        case "layer_stack":
+          return [parameters.relief, ...parameters.layers.map((layer) => layer.data)];
+        case "cross_section":
+          return [
+            parameters.relief,
+            parameters.profile,
+            parameters.bands,
+            parameters.bandTrends,
+            parameters.snow,
+          ];
+        case "pixel_anatomy":
+          return [parameters.locator, parameters.anatomy, parameters.bandSeries];
+        case "rainfall_scatter":
+          return [parameters.seasons, parameters.fit];
+        case "field_plan":
+          return [];
+      }
+    })(),
+    ...drawnOf(parameters).map((d) => d.asset),
+  ];
   const seen = new Set<string>();
   return refs.filter((ref) => {
     const key = `${ref.bundleId}/${ref.assetKey}`;

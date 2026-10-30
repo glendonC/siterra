@@ -44,10 +44,9 @@ const task = (overrides: Record<string, unknown> = {}) => ({
 });
 
 describe("contracts 1.15: the instrument composition task", () => {
-  it("is the current version and still accepts every earlier version of the same MAJOR", () => {
-    expect(caseSchemaVersion).toBe("1.15.0");
-    expect(acceptedCaseSchemaVersions.at(-1)).toBe("1.15.0");
-    for (const earlier of ["1.2.0", "1.12.0", "1.13.0", "1.14.0"]) {
+  it("accepts 1.15.0 and every earlier version of the same MAJOR", () => {
+    expect(acceptedCaseSchemaVersions).toContain(caseSchemaVersion);
+    for (const earlier of ["1.2.0", "1.12.0", "1.13.0", "1.14.0", "1.15.0"]) {
       expect(acceptedCaseSchemaVersions).toContain(earlier);
     }
   });

@@ -550,6 +550,40 @@ describe("composeInstruments", () => {
     });
   });
 
+  it("opens an instrument only when the bundles and asset keys it draws exist", () => {
+    const drawn = (bundleId: string, assetKey: string) => ({
+      ...scatterRule,
+      parameters: {
+        ...scatterRule.parameters,
+        drawnAssets: [{ role: "catchment_outline", asset: { bundleId, assetKey } }],
+      },
+    });
+    const withDrawn = (rule: unknown) =>
+      CaseAnalysisConfig.parse({ ...config, instruments: [rule] });
+    const ok = composeInstruments(
+      inputs({ config: withDrawn(drawn("bundle_example_rain", "outline")) }),
+    );
+    expect(ok.specs[0]?.provenance.inputVersions).toContainEqual({
+      entityId: "bundle_example_rain",
+      revision: 3,
+    });
+    const missingBundle = composeInstruments(
+      inputs({ config: withDrawn(drawn("bundle_example_gone", "outline")) }),
+    );
+    expect(missingBundle.blocked[0]?.reasons).toEqual([
+      "The bundle bundle_example_gone is not in the case",
+    ]);
+    const missingKey = composeInstruments(
+      inputs({
+        config: withDrawn(drawn("bundle_example_rain", "outline")),
+        hasAsset: (r) => r.assetKey !== "outline",
+      }),
+    );
+    expect(missingKey.blocked[0]?.reasons).toEqual([
+      "The bundle bundle_example_rain lists no asset outline",
+    ]);
+  });
+
   it("ignores a branch merge that has no field plan", () => {
     const result = composeInstruments(
       inputs({

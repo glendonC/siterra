@@ -93,6 +93,14 @@ type Named = {
 
 /** The records the parameters name with the type each must have (INST-07), without the caption. */
 function parameterRecords(p: InstrumentSpec["parameters"]): Named[] {
+  const drawn: Named[] =
+    p.kind === "field_plan"
+      ? []
+      : (p.drawnAssets ?? []).map((d) => ({ id: d.asset.bundleId, recordType: "DataBundle" }));
+  return [...fieldRecords(p), ...drawn];
+}
+
+function fieldRecords(p: InstrumentSpec["parameters"]): Named[] {
   const geo = (id: string): Named => ({ id, recordType: "GeoSelection" });
   const bundle = (ref: BundleAssetRef): Named => ({ id: ref.bundleId, recordType: "DataBundle" });
   const feature = (id: string, role: string): Named => ({ id, recordType: "ContextFeature", role });

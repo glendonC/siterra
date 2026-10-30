@@ -101,6 +101,38 @@ describe("the instruments the case seed composes", () => {
     }
   });
 
+  it("name every asset an instrument draws, so no client builds an address from a hash", () => {
+    const roles = (id: string) => {
+      const p = seed?.instruments.find((s) => s.id === id)?.parameters;
+      return p === undefined || p.kind === "field_plan"
+        ? []
+        : (p.drawnAssets ?? []).map((d) => [
+            d.role,
+            d.asset.bundleId.replace(/^bundle_|_ait_bouguemez$/g, ""),
+            d.asset.assetKey,
+          ]);
+    };
+    expect(roles("inst_pixel_anatomy_valley")).toEqual([
+      ["pixel_cells", "pixel_anatomy", "pixel_cells"],
+      ["pixel_spectra", "pixel_anatomy", "pixel_spectra"],
+      ["pixel_series", "pixel_anatomy", "pixel_series"],
+      ["catchment_outline", "terrain_strata", "analysis_geometry"],
+    ]);
+    expect(roles("inst_cross_section_valley")).toEqual([
+      ["transect_summary", "transects", "terrain_transects"],
+      ["catchment_outline", "terrain_strata", "analysis_geometry"],
+      ["drainage_segments", "drainage_network", "drainage_lines"],
+    ]);
+    expect(roles("inst_layer_stack_valley").map((r) => r[0])).toEqual([
+      "trend_summary",
+      "pixel_trend_summary",
+      "rainfall_fit",
+      "catchment_outline",
+      "drainage_segments",
+    ]);
+    expect(roles("inst_rainfall_scatter_valley")).toEqual([]);
+  });
+
   it("guard the words 'greener' and 'every interval lies above zero' with held claims on the records", () => {
     const rules = analysisConfigFor("case_aitbouguemez")?.instruments ?? [];
     const holds = (id: string) => {

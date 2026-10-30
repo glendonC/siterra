@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://siterra.invalid/schemas/case/1.15.0/case.schema.json",
+  "$id": "https://siterra.invalid/schemas/case/1.16.0/case.schema.json",
   "title": "Siterra case contracts",
   "description": "Records of one Siterra case as stored and exchanged between the web application, the worker and the browser. The root validates a case snapshot, a command, an event or an atomic commit proposal; $defs holds the record types. Cross-record semantics that JSON Schema cannot express are specified in docs/reference/data-contracts.md.",
   "oneOf": [
@@ -2824,7 +2824,8 @@
             "1.12.0",
             "1.13.0",
             "1.14.0",
-            "1.15.0"
+            "1.15.0",
+            "1.16.0"
           ],
           "description": "Contract version the instance was written against; producers write the newest, and earlier versions of the same MAJOR stay valid."
         },
@@ -2926,7 +2927,8 @@
             "1.12.0",
             "1.13.0",
             "1.14.0",
-            "1.15.0"
+            "1.15.0",
+            "1.16.0"
           ],
           "description": "Contract version the instance was written against; producers write the newest, and earlier versions of the same MAJOR stay valid."
         },
@@ -3307,7 +3309,8 @@
             "1.12.0",
             "1.13.0",
             "1.14.0",
-            "1.15.0"
+            "1.15.0",
+            "1.16.0"
           ],
           "description": "Contract version the instance was written against; producers write the newest, and earlier versions of the same MAJOR stay valid."
         },
@@ -3352,7 +3355,8 @@
             "1.12.0",
             "1.13.0",
             "1.14.0",
-            "1.15.0"
+            "1.15.0",
+            "1.16.0"
           ],
           "description": "Contract version the instance was written against; producers write the newest, and earlier versions of the same MAJOR stay valid."
         },
@@ -5354,6 +5358,9 @@
               "type": "null"
             }
           ]
+        },
+        "drawnAssets": {
+          "$ref": "#/$defs/DrawnAssets"
         }
       },
       "required": [
@@ -5430,6 +5437,9 @@
             "$ref": "#/$defs/CrossSectionStatement"
           },
           "maxItems": 4
+        },
+        "drawnAssets": {
+          "$ref": "#/$defs/DrawnAssets"
         }
       },
       "required": [
@@ -5480,6 +5490,9 @@
           "uniqueItems": true,
           "maxItems": 4,
           "description": "scientific_context Evidence records shown as cited text."
+        },
+        "drawnAssets": {
+          "$ref": "#/$defs/DrawnAssets"
         }
       },
       "required": [
@@ -5511,6 +5524,9 @@
         "fit": {
           "$ref": "#/$defs/BundleAssetRef",
           "description": "The fit, its interval and its gate."
+        },
+        "drawnAssets": {
+          "$ref": "#/$defs/DrawnAssets"
         }
       },
       "required": [
@@ -5900,6 +5916,37 @@
         "assetKey"
       ],
       "additionalProperties": false
+    },
+    "DrawnAsset": {
+      "type": "object",
+      "description": "A bundle asset an instrument draws besides the ones its named fields hold, with the plain-word role it plays (for example catchment_outline or pixel_cells). Added in 1.16.0. The interface asks the read API for the asset by bundle and key, so no address is built from a hash.",
+      "properties": {
+        "role": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,39}$"
+        },
+        "asset": {
+          "$ref": "#/$defs/BundleAssetRef"
+        }
+      },
+      "required": [
+        "role",
+        "asset"
+      ],
+      "additionalProperties": false
+    },
+    "DrawnAssets": {
+      "type": "array",
+      "description": "The other bundle assets the instrument draws, one per role (the Zod mirror refuses a repeated role). Added in 1.16.0; optional, so earlier specs stay valid.",
+      "items": {
+        "$ref": "#/$defs/DrawnAsset"
+      },
+      "maxItems": 12,
+      "allOf": [
+        {
+          "description": "Each role appears once."
+        }
+      ]
     }
   }
 }

@@ -128,3 +128,18 @@ export function measurementSourceShape(
     });
   }
 }
+
+/** Each role of an instrument's drawn assets appears once (case.schema.json DrawnAssets allOf). */
+export function drawnAssetRoles(assets: readonly { role: string }[], ctx: z.RefinementCtx): void {
+  const seen = new Set<string>();
+  assets.forEach((asset, i) => {
+    if (seen.has(asset.role)) {
+      ctx.addIssue({
+        code: "custom",
+        path: [i, "role"],
+        message: `The role ${asset.role} is used twice`,
+      });
+    }
+    seen.add(asset.role);
+  });
+}
