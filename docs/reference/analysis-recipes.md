@@ -47,6 +47,7 @@ Recipes run in the offline pipeline and are stored as derived bundles whose `met
 | `restrend_long_record` | Once greenness is adjusted for antecedent rain, does what is left drift over about 25 seasons? | MODIS growing-season NDVI regressed on antecedent CHIRPS rainfall per stratum; residual trend by least squares with 95% t interval, an autocorrelation-adjusted interval and Theil-Sen beside it ([entry](#long-record-recipe-entries)) | Slope with interval; model estimate | P2 |
 | `snow_cover_by_band` | What share of each elevation band was snow-covered each month, 2001 to 2025? | MODIS daily snow at NDSI thresholds 0.2 and 0.4; snow pixel-days over clear pixel-days per band and month ([entry](#long-record-recipe-entries)) | Fraction with clear share; observation | P2 |
 | `pixel_trend_long_record` | Where did greenness rise or fall over about 25 seasons, and over how much of each elevation band and land cover group? | Per-pixel MODIS Theil-Sen slope with Sen's 95% interval and Mann-Kendall p; area shares by direction beside a false discovery rate check; connected falling areas; slope-only display raster ([entry](#long-record-recipe-entries)) | Slope with interval, area shares; model estimate | P2 |
+| `pixel_seasons` | What was each pixel's growing-window greenness in every season, and does it give back the stored trend slope? | The season means that `pixel_trend_long_record` computed and kept only as a count, stored per pixel and season (GeoTIFF and a web array), with every pixel's Theil-Sen slope recomputed from them and compared with the trend raster ([entry](#pixel-seasons-recipe-entry)) | Season mean NDVI; observation | P2 |
 | `season_trend_long_record` | Does the greenness trend differ between spring and the June to September summer? | Stratum and land cover group trends for four windows (least squares, autocorrelation-adjusted, Theil-Sen) with a false discovery rate check; trend of the spring minus summer difference ([entry](#long-record-recipe-entries)) | Slope with interval; model estimate | P2 |
 | `drainage_network` | Along which channels does the catchment drain to its outlet, and how much area drains to each segment? | D8 flow on the catchment freeze's conditioned Copernicus DEM; stream cells with 1.0 km2 or more upstream; Strahler order, upstream area and 3D line per segment; segments where the surface rises along the line flagged ([entry](#drainage-recipe-entry)) | Lines with upstream area and order; model estimate | P2 |
 | `terrain_transects` | What does the ground look like along a line across or along the valley, and which elevation bands and land cover classes does it cross? | Height every 30 m along the meridian through Tabant and along the longest flow path from the outlet; band, WorldCover class and inside flag per sample; band crossings, land cover runs and the valley floor segment ([entry](#transect-recipe-entry)) | Profile; observation | P2 |
@@ -176,6 +177,21 @@ Both entries were registered in full on 2026-10-28: `restrend_long_record` befor
 | Forbidden phrases | As `pixel_trend_long_record` |
 | References | SCI-155, SCI-158, SCI-49, SCI-163, SCI-52, SCI-13, SCI-29, SCI-159, SCI-03, SCI-19, SCI-96, SCI-105 |
 
+## Pixel seasons recipe entry
+
+`pixel_seasons` was registered in full on 2026-10-30 (registry 1.12.0), before any per-season pixel value was written to a table or grid. It adds no analysis: it stores the growing-window season means that `pixel_trend_long_record` computed and kept only as a count of seasons, so an interface can step through the years.
+
+| `pixel_seasons` 1.0.0 | Value |
+|---|---|
+| Inputs | The cached Terra MOD13Q1 v6.1 windows of `pixel_trend_long_record` (no new download), the frozen geometry, the `pixel_trend_long_record` bundle of the same place, the place configuration |
+| Formula | The pixels, reliability filter (0 or 1), composite share (half of the periods, rounded up), season definition and rounding (5 decimals, in the precision of the array) of `pixel_trend_long_record`, for the window marked primary there. Stored: a GeoTIFF with one float32 band per season on the native MOD13Q1 grid, and a web array (little-endian float32, seasons x rows x columns, row 0 north, NaN for no value) with a JSON header. An undefined season is NaN, never zero |
+| Check | Every stored pixel's Theil-Sen slope, recomputed from the stored values, is compared with band 1 of the trend raster: largest difference at most 1e-6 NDVI per decade, the same pixels and the same season counts, or the run stops |
+| Ait Bouguemez configuration | March to June (`mar_jun`), seasons 2000 to 2025; 8,094 pixels (all catchment pixels have 15 or more seasons), 26 seasons; largest slope difference 3.7e-9 NDVI per decade |
+| Outputs | `season_mean_ndvi`; claim kind `observation`; uncertainty `not_quantified` |
+| Standard limitations (verbatim) | A value is one 250 m pixel's mean over the composites of one window that passed the filter, not a measurement of a field or plant; NDVI is not forage; spring windows include snow at the upper pixels; the Terra overpass drift since 2020; composites absent from the archive read; a run of high or low seasons seen when stepping through is not a trend or a cause |
+| Forbidden phrases | As `pixel_trend_long_record`, and "drought" |
+| References | SCI-155, SCI-52, SCI-49, SCI-163 |
+
 ## Drainage recipe entry
 
 `drainage_network` was registered in full on 2026-10-29, before this pipeline built any drainage segment. It describes geometry and tests no hypothesis. Its parameters are not blind: the 1.0 km2 threshold is the lead's brief and the conditioning is the catchment freeze's, but the smoothing, simplification, vertex spacing and the 30 m height surface were carried over from the 29 October specimen build of the valley model, which had run them first (233 segments, 20,785 vertices, none outside the frozen polygon, and the surface rising along 139 of the segments). The 4.0 m rise tolerance comes from the DEM's stated relative vertical accuracy ([SCI-168](../../research/science/source-register.md)), not from that distribution. The machine-readable form is `science/recipes/registry.json`; the values that belong to the place are in `science/places/ait-bouguemez.json` (revision 3).
@@ -297,6 +313,10 @@ Both entries were registered in full on 2026-10-28: `restrend_long_record` befor
 | Standard limitations (verbatim) | In the registry: proposed route, access unconfirmed, not a surveyed path; the surface model cannot see cliffs, scree, snow, rivers, fences or fields; times are model estimates for an adult on trackless ground; climb is summed over unsmoothed heights; sites come from a rule and need local agreement; the catchment is a hydrological extent |
 | Forbidden phrases | As `drainage_network` |
 | References | SCI-169, SCI-168, SCI-12, SCI-13 in the [source register](../../research/science/source-register.md) |
+
+## Place configuration and the second place
+
+Recipes name no place. Every place value (geometry, analysis CRS, windows, strata edges, limitation wording that would name one valley) is read from `science/places/<place>.json`, which carries a revision list; a change after a result was seen is labelled POST HOC there. Since registry 1.13.0 the formula and limitation text of `terrain_relief`, `land_cover_classes` and `drainage_network` is place-neutral (`{analysisCrs}` stands for the place's CRS) and a place restates or replaces a line in its own `formulaText` or `limitations`; the first place's configuration restates its former wording word for word, and its committed bundles rebuild identical except for the fields that name the configuration revision and its checksum, the referenced collection checksums and the web-ready assets. The second place, Calaveras Creek, is described in [data sources and methods](data-sources-and-methods.md#second-place-calaveras-creek).
 
 ## Forecasting policy
 
