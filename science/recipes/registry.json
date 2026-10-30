@@ -1,7 +1,7 @@
 {
-  "registryVersion": "1.11.0",
+  "registryVersion": "1.12.0",
   "registered": "2026-10-27",
-  "note": "Recipe registry. What was fixed before any data: only the catalog rows in docs/reference/analysis-recipes.md (question, method in one line, output kind) for coverage_summary, monthly_departure and aligned_antecedent, and the full season_summary entry (registered 2026-10-27 before any event comparison). The detailed formulas and parameters of coverage_summary, monthly_departure, aligned_antecedent and terrain_strata were written together with their first run on 2026-10-27, so they are not pre-registered. From now on, changing a formula, parameter or window after results are read is a new version labeled post hoc. Registry 1.2.0 (2026-10-28) adds restrend_long_record and snow_cover_by_band, each fully registered before its data was summarized; their place-specific windows and band sets are in science/places/. The inspector renders method cards from an entry and the bundle manifest that holds its result. References are IDs in research/science/source-register.md. Registry 1.3.0 (2026-10-28) adds pixel_trend_long_record and season_trend_long_record, registered before any per-pixel slope, land-cover summary or June to September greenness value was computed (the stratum results of restrend_long_record had been read). Registry 1.4.0 (2026-10-29) adds drainage_network, registered before this pipeline built any network; its smoothing and height rules were carried over from the 29 October specimen build, which had run them first. Registry 1.5.0 (2026-10-29) adds terrain_transects, registered before this pipeline sampled any line; the Tabant meridian is specimen B's section and the rest was written by the science lane. Registry 1.6.0 (2026-10-29) adds pixel_anatomy, registered before this pipeline built any pixel anatomy; the pixel and its scene come from the 28 October specimen build and the scene rule was written afterwards to name that choice. Registry 1.7.0 (2026-10-29) adds terrain_relief and land_cover_classes, registered before this pipeline wrote any relief or land cover layer; both repeat grids that earlier bundles already use. Registry 1.8.0 (2026-10-29) adds optical_visibility_by_band, registered before this pipeline wrote any per-band clear share (the upper band's winter figures had been probed and match the lead's checks). Registry 1.9.0 (2026-10-29) adds proposed_routes, registered before this pipeline computed any route; the field plan names no places, so its sites come from a rule written first. Registry 1.10.0 (2026-10-30) revises terrain_strata to 1.1.0 (an optional water zone band, written for the second place before any of its layers was computed). Registry 1.11.0 (2026-10-30) revises snow_cover_by_band to 1.1.0 (an applicability mode over a sample of months, written for the second place before any of its snow values was read).",
+  "note": "Recipe registry. What was fixed before any data: only the catalog rows in docs/reference/analysis-recipes.md (question, method in one line, output kind) for coverage_summary, monthly_departure and aligned_antecedent, and the full season_summary entry (registered 2026-10-27 before any event comparison). The detailed formulas and parameters of coverage_summary, monthly_departure, aligned_antecedent and terrain_strata were written together with their first run on 2026-10-27, so they are not pre-registered. From now on, changing a formula, parameter or window after results are read is a new version labeled post hoc. Registry 1.2.0 (2026-10-28) adds restrend_long_record and snow_cover_by_band, each fully registered before its data was summarized; their place-specific windows and band sets are in science/places/. The inspector renders method cards from an entry and the bundle manifest that holds its result. References are IDs in research/science/source-register.md. Registry 1.3.0 (2026-10-28) adds pixel_trend_long_record and season_trend_long_record, registered before any per-pixel slope, land-cover summary or June to September greenness value was computed (the stratum results of restrend_long_record had been read). Registry 1.4.0 (2026-10-29) adds drainage_network, registered before this pipeline built any network; its smoothing and height rules were carried over from the 29 October specimen build, which had run them first. Registry 1.5.0 (2026-10-29) adds terrain_transects, registered before this pipeline sampled any line; the Tabant meridian is specimen B's section and the rest was written by the science lane. Registry 1.6.0 (2026-10-29) adds pixel_anatomy, registered before this pipeline built any pixel anatomy; the pixel and its scene come from the 28 October specimen build and the scene rule was written afterwards to name that choice. Registry 1.7.0 (2026-10-29) adds terrain_relief and land_cover_classes, registered before this pipeline wrote any relief or land cover layer; both repeat grids that earlier bundles already use. Registry 1.8.0 (2026-10-29) adds optical_visibility_by_band, registered before this pipeline wrote any per-band clear share (the upper band's winter figures had been probed and match the lead's checks). Registry 1.9.0 (2026-10-29) adds proposed_routes, registered before this pipeline computed any route; the field plan names no places, so its sites come from a rule written first. Registry 1.10.0 (2026-10-30) revises terrain_strata to 1.1.0 (an optional water zone band, written for the second place before any of its layers was computed). Registry 1.11.0 (2026-10-30) revises snow_cover_by_band to 1.1.0 (an applicability mode over a sample of months, written for the second place before any of its snow values was read). Registry 1.12.0 (2026-10-30) adds pixel_seasons, registered before any per-season pixel value was written to a table or grid; it stores the season values that pixel_trend_long_record computed and kept only as a count.",
   "recipes": [
     {
       "recipeId": "coverage_summary",
@@ -1139,6 +1139,161 @@
       ],
       "priority": "P2",
       "formulaPlain": "For each 250 m MODIS pixel, greenness is averaged over each season since 2000, and a robust straight-line slope through those seasons is computed with a 95% interval. The result says how much of each elevation band and land cover type lies in pixels that rose, fell or cannot be told apart from no change, checked against how many would rise or fall by chance among thousands of pixels. Falling pixels that touch each other are grouped and described. The map shows the slope only."
+    },
+    {
+      "recipeId": "pixel_seasons",
+      "version": "1.0.0",
+      "title": "Each pixel's mean greenness in every season of the MODIS record",
+      "question": "For each 250 m pixel of the place, what was the mean NDVI of the growing window in each season from 2000 to 2025, and do those values give back the Theil-Sen slope stored by pixel_trend_long_record?",
+      "operation": "pixel_season_values",
+      "implementation": {
+        "language": "python",
+        "package": "siterra-science",
+        "version": "0.1.0"
+      },
+      "inputs": [
+        "modis_mod13q1_v061_ndvi_16day",
+        "frozen_catchment_geometry",
+        "pixel_trend_long_record_result",
+        "place_configuration"
+      ],
+      "registration": "Full entry registered 2026-10-30 before any per-season pixel value was written to a table or grid. It stores the season values that pixel_trend_long_record 1.0.0 computed and kept only as a count (pixels_by_window holds the number of seasons, not the values), so a viewer can step through the years. It adds no analysis: the pixels, the reliability filter, the composite share, the season definition and the rounding are those of pixel_trend_long_record, read from the same place configuration block, and the check below makes the two agree or stops the run.",
+      "formula": [
+        "Pixels, composites, reliability filter and season mean are exactly those of pixel_trend_long_record 1.0.0: NDVI(p, c) = DN / 10000 for Terra MOD13Q1 v6.1 composite c and 250 m pixel p, kept only where the composite's pixel reliability is 0 or 1 and -0.2 <= NDVI <= 1.0; G(p, y, W) = mean of the kept NDVI(p, c) over the 16-day periods starting in a month of the growing window W in year y, defined only when at least half of those periods (rounded up) are kept at p",
+        "Window and years: the growing window marked primary in the pixel_trend_long_record block of the place configuration (Ait Bouguemez: March to June, mar_jun) and its seasonYears (2000 to 2025); no other window is stored",
+        "Values: G(p, y, W) rounded to 5 decimals in the precision of the array it is computed in (float64), for every MOD13Q1 pixel holding at least one 10 m analysis cell of the catchment, for every season year; an undefined G is stored as no value, never as zero",
+        "Stored forms: a GeoTIFF on the native MOD13Q1 grid with one float32 band per season year (nodata NaN); a web copy, a little-endian float32 array of shape seasons x rows x columns, season 0 the first season year, row 0 north, NaN for no value, with a JSON header (CRS, transform, shape, season years, pixel counts). Each is read back and must equal the computed values cell for cell",
+        "Check against the stored trend: for every pixel with at least min_seasons defined seasons, the Theil-Sen slope of the stored values on the year (the pixel_trend_long_record method, NDVI per decade) is compared with band 1 of the pixel_trend_long_record GeoTIFF of the same window; the largest absolute difference must be at most 1e-6 NDVI per decade and the set of pixels with a slope, and each pixel's number of seasons (band 4), must be identical. Any difference stops the run",
+        "Summary: per season, the number of pixels with a value, and the mean, median and the 5th and 95th percentiles over those pixels (unweighted by cells); the composite periods absent from the archive read, from the same record as pixel_trend_long_record"
+      ],
+      "parameters": [
+        {
+          "name": "pixel_reliability_kept",
+          "role": "method",
+          "allowed": [
+            [
+              0,
+              1
+            ]
+          ],
+          "default": [
+            0,
+            1
+          ]
+        },
+        {
+          "name": "min_composite_share",
+          "role": "method",
+          "allowed": [
+            0.5
+          ],
+          "default": 0.5
+        },
+        {
+          "name": "min_seasons",
+          "role": "method",
+          "allowed": [
+            15
+          ],
+          "default": 15
+        },
+        {
+          "name": "value_decimals",
+          "role": "method",
+          "allowed": [
+            5
+          ],
+          "default": 5
+        },
+        {
+          "name": "slope_check_tolerance_per_decade",
+          "role": "method",
+          "allowed": [
+            1e-06
+          ],
+          "default": 1e-06
+        },
+        {
+          "name": "season_years",
+          "role": "method",
+          "allowed": [
+            "the seasonYears of the place configuration (Ait Bouguemez: 2000 to 2025)"
+          ],
+          "default": "the seasonYears of the place configuration"
+        },
+        {
+          "name": "growing_window",
+          "role": "scope",
+          "allowed": [
+            "the window marked primary in the pixel_trend_long_record block of the place configuration (Ait Bouguemez: mar_jun)"
+          ],
+          "default": "the window marked primary"
+        }
+      ],
+      "sensitivitySet": [],
+      "applicability": [
+        {
+          "check": "the pixel_trend_long_record bundle of the same place and window is present and its slope raster matches the stored values",
+          "minimum": "1 bundle; otherwise the run stops"
+        },
+        {
+          "check": "frozen geometry named in the place configuration, checksum matching",
+          "minimum": "1 geometry"
+        }
+      ],
+      "outputs": [
+        {
+          "metric": "season_mean_ndvi",
+          "unit": "1",
+          "claimKind": "observation",
+          "uncertaintyKind": "not_quantified"
+        }
+      ],
+      "assumptions": [
+        "A growing-window mean of the composites kept by the reliability filter describes the season at the pixel",
+        "The pixel_trend_long_record bundle of the same place is the record of what the slope was computed from"
+      ],
+      "failureModes": [
+        "A season value is the mean of a few composites in a snow-affected or cloud-affected window and can move with the number of kept composites rather than the plants",
+        "A pixel mixes surfaces at 250 m; its value is not the greenness of any one field or slope",
+        "Playing the seasons as an animation shows one realisation of the year-to-year change and invites reading a trend into it; the trend and its interval are in pixel_trend_long_record"
+      ],
+      "standardLimitations": [
+        "Each value is one 250 m MODIS pixel's mean over the composites of one growing window that passed the reliability filter, not a measurement of any field, pasture or plant. A season where fewer than half of the periods were kept at a pixel has no value there.",
+        "NDVI measures how green the ground looks from above, not forage, palatability or species.",
+        "Spring windows include snow-covered ground at the upper pixels in some seasons; earlier or later melt can move a season's value with no change in the plants.",
+        "Terra's overpass has drifted earlier since 2020, from 10:30 to about 9:06 mean local time by December 2025 (NASA): later seasons are seen with a lower sun and longer shadows in mountain terrain, which may shift NDVI without any change on the ground.",
+        "Composites from 12 July 2025 to the end of 2025 are absent from Planetary Computer; a season window that includes them holds fewer composites.",
+        "The values are an input to pixel_trend_long_record, not a second analysis. A run of high or low seasons seen when stepping through them is not a trend or a cause; the slope, its interval and the false discovery rate check are in pixel_trend_long_record."
+      ],
+      "allowedComponents": [
+        "season time-lapse",
+        "method card"
+      ],
+      "forbiddenPhrases": [
+        "significant",
+        "significantly",
+        "degradation detected",
+        "grazing impact",
+        "overgrazing",
+        "caused by",
+        "proves",
+        "recovery",
+        "forecast",
+        "pasture improvement",
+        "pasture decline",
+        "encroachment",
+        "drought",
+        "drought season"
+      ],
+      "references": [
+        "SCI-155",
+        "SCI-52",
+        "SCI-49",
+        "SCI-163"
+      ],
+      "priority": "P2",
+      "formulaPlain": "For each 250 m MODIS pixel, the average greenness of the growing window is stored for every season since 2000, exactly as the trend recipe computed it. The stored values are checked by recomputing each pixel's slope from them and comparing with the trend result."
     },
     {
       "recipeId": "season_trend_long_record",
