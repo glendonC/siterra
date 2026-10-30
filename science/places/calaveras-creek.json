@@ -3,7 +3,7 @@
   "title": "Calaveras Creek catchment",
   "areaNoun": "creek catchment",
   "note": "Place configuration read by the long-record pipeline scripts. Everything that is specific to one place lives here; the scripts hold none of it. A value changed here after a result was read is a new configuration revision labelled post hoc in the recipe result. This is the second place built through the pipeline (the first is Ait Bouguemez); every window, rule and threshold below was written before any MODIS, CHIRPS or Sentinel value of this catchment was read, and before any land cover, strata or trend of it was computed.",
-  "configRevision": 13,
+  "configRevision": 16,
   "revisions": [
     {"revision": 1, "date": "2026-10-30", "change": "First configuration: the frozen geometry and its delineation rule, the analysis grid, the DEM pin, the land cover source and read window, the rainfall window, the strata layers with the reservoir zone rule, and the restrend_long_record, snow_cover_by_band, pixel_trend_long_record and season_trend_long_record windows with their basis. Strata, land cover and drainage checksums are pinned in later revisions, after those layers are built."},
     {"revision": 2, "date": "2026-10-30", "change": "POST HOC to revision 1, made after the revision 1 reservoir zone had been drawn and inspected and before any trend, rainfall or season value of this catchment was computed: the zone is now the largest connected WorldCover water body plus 250 m instead of every water body plus 250 m. The revision 1 rule gave a zone of 8.05 per cent of the catchment, made mostly of 250 m circles around 72 small stock ponds (73 connected water bodies, the largest 4.56 km2 of 4.84 km2 of mapped water), which is not the reservoir basin the rule was written for. Nothing else changed."},
@@ -17,7 +17,10 @@
     {"revision": 10, "date": "2026-10-30", "change": "Added pixel_seasons (registry 1.12.0) for this place by the rule of the first place, written before any Calaveras season value was stored. No value of revision 1 to 9 changed."},
     {"revision": 11, "date": "2026-10-30", "change": "Added terrain_transects (registry 1.14.0, version 1.1.0) for this place: a north-south section through the centroid of the reservoir, the long profile along the longest flow path of the drainage network, no valley floor, and the place's own limitations. Written before any Calaveras profile was sampled; the point is derived from the land cover layer by the rule stated in the block. (Revision 10 added pixel_seasons.)"},
     {"revision": 12, "date": "2026-10-30", "change": "Added species_occurrences (registry 1.15.0): the query polygon rule, the GBIF filters, the licences kept and the named plants, written before any GBIF record was requested for this place. No value of an earlier revision changed."},
-    {"revision": 13, "date": "2026-10-30", "change": "species_occurrences.queryPolygon.simplifyDeg changed from 0.001 to 0.002 degrees for this place: the GBIF search API refused the 181-vertex query polygon of revision 12 (HTTP 400, the request URL was about 4.4 kB, and the first place's 146-vertex polygon was accepted). Made before any record of this place was read; the polygon is still tested to contain the frozen polygon and every record to lie inside the exact polygon."}
+    {"revision": 13, "date": "2026-10-30", "change": "species_occurrences.queryPolygon.simplifyDeg changed from 0.001 to 0.002 degrees for this place: the GBIF search API refused the 181-vertex query polygon of revision 12 (HTTP 400, the request URL was about 4.4 kB, and the first place's 146-vertex polygon was accepted). Made before any record of this place was read; the polygon is still tested to contain the frozen polygon and every record to lie inside the exact polygon."},
+    {"revision": 14, "date": "2026-10-30", "change": "Added pixel_anatomy (registry 1.16.0, version 1.1.0) for this place: the candidate rule (the first place's thresholds, directions upward then downward, written after the interval shares of the pixel trend were read and before any candidate was listed), the month 2025-05, the tile and orbit rule and the place's own limitations. The pixel, the tile, the orbit and the pinned display inputs are added in a later revision, after the rule is run."},
+    {"revision": 15, "date": "2026-10-30", "change": "Pinned the pixel of pixel_anatomy: the rule written in revision 14 was run (pixel-anatomy-candidates.py): upward 0 candidates, downward 228, and the first downward candidate is h08v05r1268c1573. No other value changed."},
+    {"revision": 16, "date": "2026-10-30", "change": "Pinned the tile (10SFG), relative orbit (R113) and cached items of the pixel's month, found by the rule of revision 14 (pixel-anatomy-inputs.py), and the checksums of the display inputs it wrote (median, count, true colour over the pixel's display window). No other value changed."}
   ],
   "geometry": {
     "id": "geo_calaveras_creek_catchment",
@@ -309,6 +312,64 @@
       "namedTaxa": [],
       "namedTaxaReason": "No source of the corpus of this place names a plant to look for by name, and the four plants of the first place's source are not Californian; none is queried.",
       "rationale": "Registered 2026-10-30, before any GBIF record was requested for either place, at the founder's request to add recorded life (the lead's brief of that day gives the filters, the fields and the licences)."
+    },
+    "pixel_anatomy": {
+      "bundleId": "bundle_pixel_anatomy_calaveras_creek",
+      "pixels": [
+        {"id": "h08v05r1268c1573", "role": "primary", "choice": "rule",
+         "chosenBy": "The rule of candidateRule, run on 2026-10-30 after it was written: no pixel is a candidate upward (0 of 5,166), 228 are candidates downward, and this is the first of them (interval -0.05209 to -0.02220 NDVI per decade in feb_may). Not chosen by judgment."}
+      ],
+      "candidateRule": {
+        "window": "feb_may",
+        "directionOrder": [
+          "upward",
+          "downward"
+        ],
+        "fullyInsideCatchment": true,
+        "treeCoverPlusCropland": [
+          0.25,
+          0.6
+        ],
+        "grasslandShrublandBareOrSparseMin": 0.35,
+        "builtUpMax": 0.05,
+        "slopingCellsMin": 0.5,
+        "ranking": "the bound of Sen's 95% interval nearest zero: the lower bound, highest first, for upward; the upper bound, lowest first, for downward; ties by row and column",
+        "choice": "The first candidate of the first direction in directionOrder that has any candidate; none is chosen by judgment.",
+        "writtenBefore": "the candidate list of this place was made (2026-10-30). The thresholds are those of the first place's rule. The direction order was written after the interval shares of the pixel trend were read (0.3% of catchment area upward, 12.8% downward in feb_may), not the candidate list: the first place's rule takes upward pixels only, and upward is tried first here too."
+      },
+      "ndviMonth": "2025-05",
+      "scene": {
+        "month": "2025-05",
+        "tileAndOrbitRule": "Among the Earth Search items of the month that intersect the pixel's display window, in the analysis CRS, the tile and relative orbit with the most scenes that have data over every footprint cell; ties by the lower orbit number, then the tile name. The tile and orbit found by pixel-anatomy-inputs.py are pinned here after it runs.",
+        "sceneRule": "As the first place: among those scenes, the largest share of footprint cells with scene class 4 or 5, ties by the latest date.",
+        "tile": "10SFG",
+        "relativeOrbit": "R113",
+        "orbitReason": "Found by pixel-anatomy-inputs.py on 2026-10-30 (inventory.json): 5 scenes of the month on this tile and orbit have data over every footprint cell, the most of any tile and orbit.",
+        "itemsFolder": "pixel-anatomy-calaveras/h08v05r1268c1573/items"
+      },
+      "interimInputs": {
+        "root": "data/interim",
+        "ndviMedian": {"path": "pixel-anatomy-calaveras/inputs/median.tif", "sha256": "e25d22174a54e50712a4e50b29574296a92f06ea4f58ebb50fbf4a11922eaf63"},
+        "ndviCount": {"path": "pixel-anatomy-calaveras/inputs/count.tif", "sha256": "f53e7d7240e44a9c909adfde2ed5ca431deacbf82dbf252328d43da333171cc1"},
+        "trueColour": {"path": "pixel-anatomy-calaveras/inputs/truecolour.tif", "sha256": "a2b427290bd7bc2ca465fdbe9308a102576b857f51cf8d27321e17d5a180eec6", "use": "display only"}
+      },
+      "trendBundle": {
+        "bundle": "bundle_pixel_trend_long_record_calaveras_creek",
+        "table": "pixel-trend-long-record-tables.json",
+        "grid": "pixel-trend-feb_may.tif"
+      },
+      "modisRaw": "data/raw/modis-calaveras/modis-13Q1-061",
+      "limitations": [
+        "One pixel is an illustration, not a sample: it was chosen among the candidates of a rule, or by judgment where the selection record says so (the record gives their number and its rank), and it says nothing about other pixels.",
+        "The class spectra come from one clear day, the cells of each class inside this pixel, and one 2021 land cover map. They are not typical spectra of the classes, and a 10 m cell at the edge of a class mixes surfaces.",
+        "The mix model assumes the pixel's reflectance is the share-weighted sum of its class medians. It ignores shadow, slope and variation inside a class, so its NDVI is modelled, not measured, and it differs from the measured pixel NDVI by the amount stored.",
+        "NDVI measures how green the ground looks from above, not forage, palatability or species; the main classes here are grassland and tree cover, which may include open woodland and savanna.",
+        "The series is the pixel's own greenness for the window of the selection record, not adjusted for rainfall. Its trend is a descriptive Theil-Sen slope with Sen's 95% interval, and no p-value or false discovery rate class is stored for one pixel (SCI-52).",
+        "Terra's overpass has drifted earlier since 2020, from 10:30 to about 9:06 mean local time by December 2025 (NASA), so later seasons are seen with a lower sun and longer shadows in mountain terrain, which may shift NDVI without any change on the ground.",
+        "The catchment is a hydrological analysis extent, not a pasture, grazing lease or management boundary.",
+        "The monthly Sentinel-2 median NDVI and its date count shown for each cell were built for this pixel's display window alone, by the same rules as the catchment-wide monthly bundle of the first place (scene classes 4 and 5, DN / 10000, same-date tiles merged, median over dates); there is no catchment-wide Sentinel-2 monthly bundle for this place. The true colour is display only."
+      ],
+      "rationale": "The window margin, the scene classes, the reflectance divisor, the shift and the series parameters are fixed in science/recipes/registry.json (pixel_anatomy 1.1.0) before the first build. This block holds the candidate rule, the month, the tile and orbit rule, and later the pixel the rule gives and the pinned display inputs. Registered 2026-10-30 at the lead's request that every view work on this place."
     },
     "drainage_network": {
       "limitations": [
