@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://siterra.invalid/schemas/case/1.16.0/case.schema.json",
+  "$id": "https://siterra.invalid/schemas/case/1.17.0/case.schema.json",
   "title": "Siterra case contracts",
   "description": "Records of one Siterra case as stored and exchanged between the web application, the worker and the browser. The root validates a case snapshot, a command, an event or an atomic commit proposal; $defs holds the record types. Cross-record semantics that JSON Schema cannot express are specified in docs/reference/data-contracts.md.",
   "oneOf": [
@@ -2825,7 +2825,8 @@
             "1.13.0",
             "1.14.0",
             "1.15.0",
-            "1.16.0"
+            "1.16.0",
+            "1.17.0"
           ],
           "description": "Contract version the instance was written against; producers write the newest, and earlier versions of the same MAJOR stay valid."
         },
@@ -2928,7 +2929,8 @@
             "1.13.0",
             "1.14.0",
             "1.15.0",
-            "1.16.0"
+            "1.16.0",
+            "1.17.0"
           ],
           "description": "Contract version the instance was written against; producers write the newest, and earlier versions of the same MAJOR stay valid."
         },
@@ -3310,7 +3312,8 @@
             "1.13.0",
             "1.14.0",
             "1.15.0",
-            "1.16.0"
+            "1.16.0",
+            "1.17.0"
           ],
           "description": "Contract version the instance was written against; producers write the newest, and earlier versions of the same MAJOR stay valid."
         },
@@ -3356,7 +3359,8 @@
             "1.13.0",
             "1.14.0",
             "1.15.0",
-            "1.16.0"
+            "1.16.0",
+            "1.17.0"
           ],
           "description": "Contract version the instance was written against; producers write the newest, and earlier versions of the same MAJOR stay valid."
         },
@@ -5290,6 +5294,10 @@
             "valley_floor",
             "upper_slope"
           ]
+        },
+        "display": {
+          "$ref": "#/$defs/DisplayText",
+          "description": "Added in 1.17.0, optional: the wording shown for this statement."
         }
       },
       "required": [
@@ -5493,6 +5501,14 @@
         },
         "drawnAssets": {
           "$ref": "#/$defs/DrawnAssets"
+        },
+        "contextDisplay": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/DisplayText"
+          },
+          "maxItems": 4,
+          "description": "Added in 1.17.0, optional: the wording shown for the context statements of the pixel."
         }
       },
       "required": [
@@ -5947,6 +5963,33 @@
           "description": "Each role appears once."
         }
       ]
+    },
+    "DisplayText": {
+      "type": "object",
+      "description": "The short wording an instrument shows for a statement it places, with the Evidence it rests on. Added in 1.17.0. Written by host rules, never by a model; the composer checks that every number in it is in an excerpt of a cited Evidence record and that it makes no prohibited claim (INST-08). The Evidence statement itself, in the reporting voice of the source, is not shown.",
+      "properties": {
+        "text": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "evidenceIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+          },
+          "minItems": 1,
+          "maxItems": 4,
+          "uniqueItems": true,
+          "description": "scientific_context Evidence records the text rests on."
+        }
+      },
+      "required": [
+        "text",
+        "evidenceIds"
+      ],
+      "additionalProperties": false
     }
   }
 }

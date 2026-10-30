@@ -128,7 +128,10 @@ function fieldRecords(p: InstrumentSpec["parameters"]): Named[] {
         bundle(p.snow),
         ...p.drainageFeatureIds.map((id) => feature(id, "drainage")),
         ...places(p.placeFeatureIds),
-        ...p.statements.map((s): Named => ({ id: s.evidenceId, recordType: "Evidence" })),
+        ...p.statements.flatMap((s): Named[] => [
+          { id: s.evidenceId, recordType: "Evidence" },
+          ...(s.display?.evidenceIds ?? []).map((id): Named => ({ id, recordType: "Evidence" })),
+        ]),
       ];
     case "pixel_anatomy":
       return [
@@ -137,6 +140,9 @@ function fieldRecords(p: InstrumentSpec["parameters"]): Named[] {
         bundle(p.anatomy),
         bundle(p.bandSeries),
         ...p.contextEvidenceIds.map((id): Named => ({ id, recordType: "Evidence" })),
+        ...(p.contextDisplay ?? []).flatMap((d) =>
+          d.evidenceIds.map((id): Named => ({ id, recordType: "Evidence" })),
+        ),
       ];
     case "rainfall_scatter":
       return [geo(p.geoSelectionId), bundle(p.seasons), bundle(p.fit)];
@@ -250,6 +256,47 @@ function writeCaption(
   return { ink: fill(rule.caption.ink), grey: fill(rule.caption.grey), allowed, reasons };
 }
 
+/**
+ * INST-08: the wording an instrument shows for a statement it places. Every number in it is in an
+ * excerpt of an Evidence record it cites, it makes no prohibited claim and uses no banned word, and
+ * the Evidence it cites is in the case. The Evidence statement itself is never what is shown.
+ */
+export function displayTextIssues(
+  parameters: InstrumentSpec["parameters"],
+  evidence: ReadonlyMap<string, Pick<Evidence, "provenance">>,
+): string[] {
+  const texts =
+    parameters.kind === "cross_section"
+      ? parameters.statements.flatMap((s) => (s.display ? [s.display] : []))
+      : parameters.kind === "pixel_anatomy"
+        ? (parameters.contextDisplay ?? [])
+        : [];
+  const issues: string[] = [];
+  for (const { text, evidenceIds } of texts) {
+    const cited = evidenceIds.flatMap((id) => {
+      const e = evidence.get(id);
+      if (e === undefined) {
+        issues.push(`"${text}" cites ${id}, which is not Evidence of the case`);
+        return [];
+      }
+      return [e];
+    });
+    const excerpts = cited.flatMap((e) =>
+      e.provenance.sourceLocators.flatMap((l) => (l.excerpt === null ? [] : [l.excerpt])),
+    );
+    for (const hit of prohibitedHits(text)) {
+      issues.push(`"${text}" holds a prohibited phrase: ${hit.phrase}`);
+    }
+    const banned = captionBannedWords.exec(text);
+    if (banned !== null) issues.push(`"${text}" holds a banned word: ${banned[0]}`);
+    const unproven = unprovenNumbers(text, [], excerpts, null);
+    if (unproven.length > 0) {
+      issues.push(`"${text}" shows numbers no cited excerpt holds: ${unproven.join(", ")}`);
+    }
+  }
+  return issues;
+}
+
 export function composeInstruments(inputs: ComposeInputs): ComposeResult {
   const rules = inputs.config.instruments ?? [];
   const open = new Set(inputs.openExplanationIds);
@@ -358,6 +405,7 @@ export function composeInstruments(inputs: ComposeInputs): ComposeResult {
         }
       }
     }
+    reasons.push(...displayTextIssues(parameters, evidence));
     for (const ref of instrumentAssetRefs({ parameters })) {
       if (bundles.has(ref.bundleId) && !inputs.hasAsset(ref))
         reasons.push(`The bundle ${ref.bundleId} lists no asset ${ref.assetKey}`);

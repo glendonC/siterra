@@ -1,6 +1,6 @@
 {
   "recordType": "CaseSnapshot",
-  "schemaVersion": "1.16.0",
+  "schemaVersion": "1.17.0",
   "case": {
     "recordType": "EnvironmentalCase",
     "id": "case_aitbouguemez",
@@ -173181,15 +173181,25 @@
           "statements": [
             {
               "evidenceId": "ev_valley_bottom_cultivated_sci03",
-              "placement": "valley_floor"
-            },
-            {
-              "evidenceId": "ev_valley_villages_sci19",
-              "placement": "valley_floor"
+              "placement": "valley_floor",
+              "display": {
+                "text": "Irrigated valley floor, about 1,800 to 2,200 m, with more than thirty villages.",
+                "evidenceIds": [
+                  "ev_valley_bottom_cultivated_sci03",
+                  "ev_valley_altitude_range_sci19",
+                  "ev_valley_villages_sci19"
+                ]
+              }
             },
             {
               "evidenceId": "ev_upper_rangelands_vegetation_sci19",
-              "placement": "upper_slope"
+              "placement": "upper_slope",
+              "display": {
+                "text": "Upper rangelands: mainly spiny xerophytic vegetation and reduced areas of short grasslands.",
+                "evidenceIds": [
+                  "ev_upper_rangelands_vegetation_sci19"
+                ]
+              }
             }
           ],
           "drawnAssets": [
@@ -173312,6 +173322,10 @@
             },
             {
               "entityId": "ev_valley_bottom_cultivated_sci03",
+              "revision": 1
+            },
+            {
+              "entityId": "ev_valley_altitude_range_sci19",
               "revision": 1
             },
             {
@@ -173672,6 +173686,20 @@
                 "bundleId": "bundle_terrain_strata_ait_bouguemez",
                 "assetKey": "analysis_geometry"
               }
+            }
+          ],
+          "contextDisplay": [
+            {
+              "text": "Herders report losing palatable species (Astragalus armatus, Thymus satureioides) and the spread of unpalatable plants (Thymelaea virgata, Euphorbia nicaeensis).",
+              "evidenceIds": [
+                "ev_herder_reported_species_change_sci03"
+              ]
+            },
+            {
+              "text": "Upper rangelands: mainly spiny xerophytic vegetation and reduced areas of short grasslands.",
+              "evidenceIds": [
+                "ev_upper_rangelands_vegetation_sci19"
+              ]
             }
           ]
         },

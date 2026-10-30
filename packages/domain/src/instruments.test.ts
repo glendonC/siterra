@@ -8,6 +8,7 @@ import {
   instrumentSpecIssues,
   uncitedInstrumentInputs,
 } from "./instruments.ts";
+import { displayTextIssues } from "./instruments-compose.ts";
 
 const example = Commit.parse(
   JSON.parse(
@@ -334,5 +335,66 @@ describe("assets an instrument draws (contracts 1.16)", () => {
     expect(instrumentReferencedIds(s)).toContain("bundle_example_outline");
     expect(uncitedInstrumentInputs(s)).toContain("bundle_example_outline");
     expect(uncitedInstrumentInputs(spec("rainfall_scatter"))).toEqual([]);
+  });
+});
+
+describe("INST-08: the display text of a placed statement (contracts 1.17)", () => {
+  const evidence = (id: string, excerpts: string[]) =>
+    ({
+      id,
+      claimKind: "scientific_context",
+      provenance: {
+        sourceLocators: excerpts.map((excerpt) => ({
+          sourceId: "src_example",
+          locator: "x.pdf, page 1",
+          excerpt,
+        })),
+      },
+    }) as never;
+  const store = new Map([
+    ["ev_example_a", evidence("ev_example_a", ["between 1800 and 2200 m altitude in the valley"])],
+    ["ev_example_b", evidence("ev_example_b", ["It shelters more than thirty villages"])],
+  ]) as never as ReadonlyMap<
+    string,
+    Parameters<typeof displayTextIssues>[1] extends ReadonlyMap<string, infer E> ? E : never
+  >;
+  const section = (display: unknown) =>
+    ({
+      ...spec("cross_section").parameters,
+      statements: [{ evidenceId: "ev_example_a", placement: "valley_floor", display }],
+    }) as InstrumentSpec["parameters"];
+
+  it("lists the Evidence a display text rests on among the records the spec names (INST-01)", () => {
+    const named = instrumentReferencedIds({
+      parameters: section({ text: "A valley.", evidenceIds: ["ev_example_a", "ev_example_b"] }),
+      caption: spec("cross_section").caption,
+    });
+    expect(named).toContain("ev_example_b");
+  });
+
+  it("accepts wording whose numbers are in a cited excerpt, at the excerpt's own digits", () => {
+    const p = section({
+      text: "Valley floor, about 1,800 to 2,200 m, with more than thirty villages.",
+      evidenceIds: ["ev_example_a", "ev_example_b"],
+    });
+    expect(displayTextIssues(p, store)).toEqual([]);
+  });
+
+  it("refuses a number no cited excerpt holds, a banned word, a prohibited claim and Evidence that is not cited", () => {
+    const issues = (text: string, evidenceIds = ["ev_example_a"]) =>
+      displayTextIssues(section({ text, evidenceIds }), store);
+    expect(issues("Valley floor, about 1,900 m.")).toHaveLength(1);
+    expect(issues("A significant valley floor.")[0]).toContain("banned word");
+    expect(issues("Greenness fell due to grazing.")[0]).toContain("prohibited");
+    expect(issues("Villages: more than thirty.")).toEqual([]);
+    expect(issues("Valley, about 1,800 m.", ["ev_example_gone"])[0]).toContain("ev_example_gone");
+  });
+
+  it("checks the pixel's context wording the same way", () => {
+    const pixel = {
+      ...spec("pixel_anatomy").parameters,
+      contextDisplay: [{ text: "Herders report 40 species.", evidenceIds: ["ev_example_b"] }],
+    } as InstrumentSpec["parameters"];
+    expect(displayTextIssues(pixel, store)[0]).toContain("40");
   });
 });

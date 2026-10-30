@@ -10,7 +10,7 @@ import {
   missingIsAValue,
 } from "./rules.ts";
 
-export const caseSchemaVersion = "1.16.0";
+export const caseSchemaVersion = "1.17.0";
 /** Every schemaVersion string this contract accepts (the earlier ones of the same MAJOR stay valid). */
 export const acceptedCaseSchemaVersions = [
   "1.2.0",
@@ -28,8 +28,9 @@ export const acceptedCaseSchemaVersions = [
   "1.14.0",
   "1.15.0",
   "1.16.0",
+  "1.17.0",
 ] as const;
-export const caseSchemaId = "https://siterra.invalid/schemas/case/1.16.0/case.schema.json";
+export const caseSchemaId = "https://siterra.invalid/schemas/case/1.17.0/case.schema.json";
 
 export const EntityVersion = z.strictObject({
   entityId: entityId,
@@ -720,6 +721,7 @@ export const Command = z.strictObject({
     "1.14.0",
     "1.15.0",
     "1.16.0",
+    "1.17.0",
   ]),
   id: entityId,
   caseId: entityId,
@@ -839,6 +841,7 @@ export const Event = z.strictObject({
     "1.14.0",
     "1.15.0",
     "1.16.0",
+    "1.17.0",
   ]),
   id: entityId,
   caseId: entityId,
@@ -1203,9 +1206,16 @@ export const BundleAssetRef = z.strictObject({
 });
 export type BundleAssetRef = z.infer<typeof BundleAssetRef>;
 
+export const DisplayText = z.strictObject({
+  text: text({ min: 1, max: 200 }),
+  evidenceIds: uniqueArray(entityId).min(1).max(4),
+});
+export type DisplayText = z.infer<typeof DisplayText>;
+
 export const CrossSectionStatement = z.strictObject({
   evidenceId: entityId,
   placement: z.enum(["valley_floor", "upper_slope"]),
+  display: DisplayText.optional(),
 });
 export type CrossSectionStatement = z.infer<typeof CrossSectionStatement>;
 
@@ -1271,6 +1281,7 @@ export const PixelAnatomyParameters = z.strictObject({
   bandSeries: BundleAssetRef,
   contextEvidenceIds: uniqueArray(entityId).max(4),
   drawnAssets: DrawnAssets.optional(),
+  contextDisplay: z.array(DisplayText).max(4).optional(),
 });
 export type PixelAnatomyParameters = z.infer<typeof PixelAnatomyParameters>;
 
@@ -1349,6 +1360,7 @@ export const CaseSnapshot = z.strictObject({
     "1.14.0",
     "1.15.0",
     "1.16.0",
+    "1.17.0",
   ]),
   case: EnvironmentalCase,
   records: RecordCollections,
@@ -1374,6 +1386,7 @@ export const Commit = z.strictObject({
     "1.14.0",
     "1.15.0",
     "1.16.0",
+    "1.17.0",
   ]),
   id: entityId,
   caseId: entityId,
@@ -1491,4 +1504,5 @@ export const caseDefinitions = {
   ContextLineSource,
   DrawnAsset,
   DrawnAssets,
+  DisplayText,
 } as const;
