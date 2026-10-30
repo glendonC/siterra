@@ -14048,6 +14048,47 @@
       },
       {
         "recordType": "Evidence",
+        "id": "ev_valley_bottom_irrigated_sci19",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "statement": "SCI-19 says the bottom of the valley is devoted to irrigated agriculture.",
+        "claimKind": "scientific_context",
+        "status": "provisional",
+        "geoSelectionId": "geo_ait_bouguemez_catchment",
+        "periodIds": [],
+        "measurementIds": [],
+        "provenance": {
+          "sourceLocators": [
+            {
+              "sourceId": "src_SCI-19",
+              "locator": "ES-2011-4429.pdf, page 2",
+              "excerpt": "The bottom of the valley is devoted to irrigated agriculture."
+            }
+          ],
+          "dataBundleIds": [],
+          "methodId": "source_excerpt",
+          "methodVersion": "1",
+          "inputVersions": [
+            {
+              "entityId": "src_SCI-19",
+              "revision": 1
+            }
+          ],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-28T20:42:35.015Z",
+          "verificationStatus": "source_checked",
+          "limitations": [
+            "Says what the cited source says; not a finding of Siterra and not reviewed by a person."
+          ]
+        },
+        "interpretation": null,
+        "uncertainty": "As published (Auclair et al. 2011); a general description of farming at the valley bottom, not a measured extent and not a survey by Siterra.",
+        "reviewDecisionIds": []
+      },
+      {
+        "recordType": "Evidence",
         "id": "ev_valley_villages_sci19",
         "revision": 1,
         "createdAt": "2026-10-28T20:42:35.015Z",
@@ -173186,6 +173227,7 @@
                 "text": "Irrigated valley floor, about 1,800 to 2,200 m, with more than thirty villages.",
                 "evidenceIds": [
                   "ev_valley_bottom_cultivated_sci03",
+                  "ev_valley_bottom_irrigated_sci19",
                   "ev_valley_altitude_range_sci19",
                   "ev_valley_villages_sci19"
                 ]
@@ -173322,6 +173364,10 @@
             },
             {
               "entityId": "ev_valley_bottom_cultivated_sci03",
+              "revision": 1
+            },
+            {
+              "entityId": "ev_valley_bottom_irrigated_sci19",
               "revision": 1
             },
             {

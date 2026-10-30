@@ -111,6 +111,7 @@ describe("the instruments the case seed composes", () => {
         text: "Irrigated valley floor, about 1,800 to 2,200 m, with more than thirty villages.",
         evidenceIds: [
           "ev_valley_bottom_cultivated_sci03",
+          "ev_valley_bottom_irrigated_sci19",
           "ev_valley_altitude_range_sci19",
           "ev_valley_villages_sci19",
         ],

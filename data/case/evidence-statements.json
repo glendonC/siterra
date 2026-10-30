@@ -16,6 +16,18 @@
       ]
     },
     {
+      "id": "ev_valley_bottom_irrigated_sci19",
+      "statement": "SCI-19 says the bottom of the valley is devoted to irrigated agriculture.",
+      "uncertainty": "As published (Auclair et al. 2011); a general description of farming at the valley bottom, not a measured extent and not a survey by Siterra.",
+      "locators": [
+        {
+          "sourceId": "src_SCI-19",
+          "locator": "ES-2011-4429.pdf, page 2",
+          "excerpt": "The bottom of the valley is devoted to irrigated agriculture."
+        }
+      ]
+    },
+    {
       "id": "ev_valley_villages_sci19",
       "statement": "SCI-19 says the valley shelters more than thirty villages along its bottom, with a population of approximately 15,000 inhabitants.",
       "uncertainty": "As published (Auclair et al. 2011); a count and a population quoted from the source, not a measurement by Siterra.",

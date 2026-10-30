@@ -43,16 +43,22 @@ describe("evidence statements of the case seed", () => {
     }
   });
 
-  it("cover exactly the statements the specimens show, none about an irrigated share or species spectrum", () => {
+  it("cover exactly the statements the specimens show, none about an irrigated share, a karst aquifer or a species spectrum", () => {
     expect(file.statements.map((s) => s.id).sort()).toEqual([
       "ev_herder_reported_species_change_sci03",
       "ev_upper_rangelands_vegetation_sci19",
       "ev_valley_altitude_range_sci19",
       "ev_valley_bottom_cultivated_sci03",
+      "ev_valley_bottom_irrigated_sci19",
       "ev_valley_villages_sci19",
     ]);
     const text = JSON.stringify(file.statements).toLowerCase();
-    expect(text).not.toMatch(/80 ?%|irrigated|karst|aquifer|spectrum of/);
+    expect(text).not.toMatch(/80 ?%|irrigated (share|land|area)|karst|aquifer|spectrum of/);
+    // The word irrigated appears only where SCI-19 p. 2 says the valley bottom is devoted to it
+    const irrigated = file.statements.filter((s) =>
+      JSON.stringify(s).toLowerCase().includes("irrigated"),
+    );
+    expect(irrigated.map((s) => s.id)).toEqual(["ev_valley_bottom_irrigated_sci19"]);
   });
 
   // The stored page text is a private corpus (CC BY-NC-ND and all rights reserved): the check runs
