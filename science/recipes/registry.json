@@ -1,7 +1,7 @@
 {
-  "registryVersion": "1.9.0",
+  "registryVersion": "1.10.0",
   "registered": "2026-10-27",
-  "note": "Recipe registry. What was fixed before any data: only the catalog rows in docs/reference/analysis-recipes.md (question, method in one line, output kind) for coverage_summary, monthly_departure and aligned_antecedent, and the full season_summary entry (registered 2026-10-27 before any event comparison). The detailed formulas and parameters of coverage_summary, monthly_departure, aligned_antecedent and terrain_strata were written together with their first run on 2026-10-27, so they are not pre-registered. From now on, changing a formula, parameter or window after results are read is a new version labeled post hoc. Registry 1.2.0 (2026-10-28) adds restrend_long_record and snow_cover_by_band, each fully registered before its data was summarized; their place-specific windows and band sets are in science/places/. The inspector renders method cards from an entry and the bundle manifest that holds its result. References are IDs in research/science/source-register.md. Registry 1.3.0 (2026-10-28) adds pixel_trend_long_record and season_trend_long_record, registered before any per-pixel slope, land-cover summary or June to September greenness value was computed (the stratum results of restrend_long_record had been read). Registry 1.4.0 (2026-10-29) adds drainage_network, registered before this pipeline built any network; its smoothing and height rules were carried over from the 29 October specimen build, which had run them first. Registry 1.5.0 (2026-10-29) adds terrain_transects, registered before this pipeline sampled any line; the Tabant meridian is specimen B's section and the rest was written by the science lane. Registry 1.6.0 (2026-10-29) adds pixel_anatomy, registered before this pipeline built any pixel anatomy; the pixel and its scene come from the 28 October specimen build and the scene rule was written afterwards to name that choice. Registry 1.7.0 (2026-10-29) adds terrain_relief and land_cover_classes, registered before this pipeline wrote any relief or land cover layer; both repeat grids that earlier bundles already use. Registry 1.8.0 (2026-10-29) adds optical_visibility_by_band, registered before this pipeline wrote any per-band clear share (the upper band's winter figures had been probed and match the lead's checks). Registry 1.9.0 (2026-10-29) adds proposed_routes, registered before this pipeline computed any route; the field plan names no places, so its sites come from a rule written first.",
+  "note": "Recipe registry. What was fixed before any data: only the catalog rows in docs/reference/analysis-recipes.md (question, method in one line, output kind) for coverage_summary, monthly_departure and aligned_antecedent, and the full season_summary entry (registered 2026-10-27 before any event comparison). The detailed formulas and parameters of coverage_summary, monthly_departure, aligned_antecedent and terrain_strata were written together with their first run on 2026-10-27, so they are not pre-registered. From now on, changing a formula, parameter or window after results are read is a new version labeled post hoc. Registry 1.2.0 (2026-10-28) adds restrend_long_record and snow_cover_by_band, each fully registered before its data was summarized; their place-specific windows and band sets are in science/places/. The inspector renders method cards from an entry and the bundle manifest that holds its result. References are IDs in research/science/source-register.md. Registry 1.3.0 (2026-10-28) adds pixel_trend_long_record and season_trend_long_record, registered before any per-pixel slope, land-cover summary or June to September greenness value was computed (the stratum results of restrend_long_record had been read). Registry 1.4.0 (2026-10-29) adds drainage_network, registered before this pipeline built any network; its smoothing and height rules were carried over from the 29 October specimen build, which had run them first. Registry 1.5.0 (2026-10-29) adds terrain_transects, registered before this pipeline sampled any line; the Tabant meridian is specimen B's section and the rest was written by the science lane. Registry 1.6.0 (2026-10-29) adds pixel_anatomy, registered before this pipeline built any pixel anatomy; the pixel and its scene come from the 28 October specimen build and the scene rule was written afterwards to name that choice. Registry 1.7.0 (2026-10-29) adds terrain_relief and land_cover_classes, registered before this pipeline wrote any relief or land cover layer; both repeat grids that earlier bundles already use. Registry 1.8.0 (2026-10-29) adds optical_visibility_by_band, registered before this pipeline wrote any per-band clear share (the upper band's winter figures had been probed and match the lead's checks). Registry 1.9.0 (2026-10-29) adds proposed_routes, registered before this pipeline computed any route; the field plan names no places, so its sites come from a rule written first. Registry 1.10.0 (2026-10-30) revises terrain_strata to 1.1.0 (an optional water zone band, written for the second place before any of its layers was computed).",
   "recipes": [
     {
       "recipeId": "coverage_summary",
@@ -452,7 +452,7 @@
     },
     {
       "recipeId": "terrain_strata",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "title": "Terrain sampling strata",
       "question": "Which parts of the catchment should field work sample separately?",
       "operation": "static_strata",
@@ -465,13 +465,14 @@
         "copernicus_dem_glo30_2021",
         "worldcover_2021"
       ],
-      "registration": "Written with the first run (2026-10-27); only a one-line strata bullet in data-sources-and-methods.md came before",
+      "registration": "Written with the first run (2026-10-27); only a one-line strata bullet in data-sources-and-methods.md came before. Version 1.1.0 (2026-10-30) adds an optional fourth band, the water zone, and states the 30 m grid in the place's analysis CRS instead of EPSG:32629; registered before any land cover, strata or trend of the second place (Calaveras Creek) was computed. A place configuration without strata.waterZone gives exactly the three bands of version 1.0.0 (the first place's committed strata rebuild unchanged).",
       "formula": [
-        "z = Copernicus DEM GLO-30 (2021) bilinear on a 30 m EPSG:32629 grid aligned with the 10 m analysis grid",
+        "z = Copernicus DEM GLO-30 (2021) bilinear on a 30 m grid in the place's analysis CRS (a UTM zone) aligned with the 10 m analysis grid",
         "elevation band: 1 if z < q(1/3), 2 if q(1/3) <= z < q(2/3), 3 if z >= q(2/3), q the quantiles of z over the catchment (equal-area terciles)",
         "slope and aspect: Horn (1981) 3 x 3 gradient on the 30 m grid; aspect = downslope bearing from north",
         "aspect class: level if slope < 5 deg; otherwise N (315 to 45 deg), E (45 to 135), S (135 to 225), W (225 to 315)",
         "excluded: WorldCover 2021 class 40 (cropland) or 50 (built-up)",
+        "water zone (only when the place configuration gives strata.waterZone): 1 if the cell is within buffer_m of the selected WorldCover 2021 water body or bodies (configured classes, inside the catchment), else 2",
         "30 m classes repeated 3 x 3 onto the 10 m analysis grid"
       ],
       "parameters": [
@@ -512,6 +513,15 @@
             40,
             50
           ]
+        },
+        {
+          "name": "water_zone",
+          "role": "method",
+          "allowed": [
+            "none",
+            "WorldCover water classes, a body selection (all bodies or the largest connected body) and a buffer, all given by the place configuration"
+          ],
+          "default": "none"
         }
       ],
       "sensitivitySet": [],
@@ -536,6 +546,12 @@
         },
         {
           "metric": "excluded",
+          "unit": "1",
+          "claimKind": "observation",
+          "uncertaintyKind": "not_quantified"
+        },
+        {
+          "metric": "reservoir_zone",
           "unit": "1",
           "claimKind": "observation",
           "uncertaintyKind": "not_quantified"

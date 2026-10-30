@@ -35,7 +35,7 @@ def load(path, repo_root):
     got = sha256(geo)
     if got != cfg["geometry"]["sha256"]:
         raise SystemExit(f"geometry checksum {got} does not match the place configuration")
-    if "strata" in cfg:
+    if "strata" in cfg and cfg["strata"].get("sha256"):  # a configuration that does not pin the strata yet is the one that builds them
         sp = strata_path(cfg)
         got = sha256(sp)
         if got != cfg["strata"]["sha256"]:

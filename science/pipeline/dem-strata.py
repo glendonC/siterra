@@ -10,7 +10,8 @@ Usage: python -I dem-strata.py <place.json> <repo_root> <dem.tif> <out_dir>
               is "level"; flat cells have no aspect class
   excluded    WorldCover 2021 cropland (40) and built-up (50): the patterned neutral stratum, never low vegetation
 Writes strata.tif (band 1 elevation band 1 to 3, 0 outside; band 2 aspect class 1 N, 2 E, 3 S, 4 W, 5 level; band 3
-excluded flag), elevation.tif (float32, 30 m values on the 10 m grid) and strata.json (boundaries, shares, method).
+excluded flag; band 4 only when the place configuration has strata.waterZone: 1 within bufferM of the WorldCover water
+classes inside the catchment, 2 elsewhere inside the catchment, 0 outside; terrain_strata 1.1.0), elevation.tif (float32, 30 m values on the 10 m grid) and strata.json (boundaries, shares, method).
 """
 import json
 import os
@@ -18,8 +19,11 @@ import sys
 
 import numpy as np
 import rasterio
+import rasterio.features
 from affine import Affine
 from rasterio.warp import Resampling, reproject
+from shapely.geometry import mapping, shape
+from shapely.ops import unary_union
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import place_config  # noqa: E402
@@ -74,12 +78,31 @@ for k, sel in ((1, n_), (2, e_), (3, s_), (4, w_), (5, lev)):
     asp[sel] = k
 wc = rasterio.open(wc_path).read(1)
 excl = (inside & np.isin(wc, EXCLUDED_CLASSES)).astype(np.uint8)
+wz = cfg["strata"].get("waterZone")
+zone = None
+if wz:
+    assert wz["band"] == 4, "the water zone is band 4 of the strata raster"
+    water = inside & np.isin(wc, wz["worldcoverClasses"])
+    zone = np.zeros(shp, np.uint8)
+    n_water = int(water.sum())
+    if n_water:
+        pieces = [shape(g) for g, v in rasterio.features.shapes(water.astype(np.uint8), mask=water, transform=tr, connectivity=8) if v == 1]
+        n_bodies = len(pieces)
+        if wz.get("selection") == "largest_connected_body":  # one reservoir, not every stock pond
+            pieces = [max(pieces, key=lambda g: g.area)]
+        else:
+            assert wz.get("selection", "all_bodies") == "all_bodies", wz["selection"]
+        grown = unary_union(pieces).buffer(wz["bufferM"], quad_segs=16)
+        zone = rasterio.features.rasterize([(mapping(grown), 1)], out_shape=shp, transform=tr, fill=0, dtype="uint8")
+    zone_band = np.where(inside, np.where(zone == 1, 1, 2), 0).astype(np.uint8)
 prof = dict(driver="GTiff", width=shp[1], height=shp[0], crs=CRS, transform=tr, tiled=True,
             blockxsize=512, blockysize=512, compress="deflate")
-with rasterio.open(os.path.join(out, "strata.tif"), "w", count=3, dtype="uint8", nodata=0, **prof) as o:
+with rasterio.open(os.path.join(out, "strata.tif"), "w", count=4 if wz else 3, dtype="uint8", nodata=0, **prof) as o:
     o.write(band, 1)
     o.write(asp, 2)
     o.write(excl, 3)
+    if wz:
+        o.write(zone_band, 4)
 with rasterio.open(os.path.join(out, "elevation.tif"), "w", count=1, dtype="float32", nodata=np.nan, predictor=3, **prof) as o:
     o.write(np.where(inside, Z, np.nan).astype(np.float32), 1)
 n = int(inside.sum())
@@ -91,5 +114,10 @@ info = {"elevation_band_boundaries_m": [round(float(q1), 1), round(float(q2), 1)
         "excluded_by_band": {str(k): round(float((excl.astype(bool) & (band == k)).sum()) / max(1, (band == k).sum()), 4) for k in (1, 2, 3)},
         "method": f"Copernicus DEM GLO-30 2021 tile, bilinear to {G} m {CRS}, Horn slope and aspect, equal-area elevation terciles, aspect quadrants, level below 5 degrees; WorldCover 2021 classes 40 and 50 excluded",
         "geometry_pixels_with_elevation": n}
+if wz:
+    info["water_zone"] = {"worldcover_classes": wz["worldcoverClasses"], "buffer_m": wz["bufferM"], "selection": wz.get("selection", "all_bodies"),
+                          "water_bodies": n_bodies if n_water else 0, "water_cells": n_water,
+                          "zone_cells": int((zone_band == 1).sum()), "zone_share": round(float((zone_band == 1).sum()) / n, 4)}
+    info["method"] += f"; water zone: {wz.get('selection', 'all_bodies').replace('_', ' ')} of WorldCover classes {wz['worldcoverClasses']} inside the catchment plus {wz['bufferM']} m (band 4)"
 json.dump(info, open(os.path.join(out, "strata.json"), "w"), indent=1)
 print(json.dumps(info, indent=1))

@@ -59,6 +59,8 @@ shutil.copyfile(geo, os.path.join(bdir, "analysis-geometry.geojson"))
 shutil.copyfile(lock, os.path.join(bdir, "uv.lock"))
 now = computed[0] if computed else datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 q1, q2 = info["elevation_band_boundaries_m"]
+WZ = info.get("water_zone")  # terrain_strata 1.1.0: band 4 and its parameters when the place configuration has strata.waterZone
+METHOD_VERSION = "1.1.0" if WZ else "1.0.0"
 checks = [
     {"name": "units_and_scale", "passed": True, "detail": f"Elevation in metres from the pinned DEM; band boundaries {q1} m and {q2} m; aspect classes in degrees from north"},
     {"name": "nodata_not_zero", "passed": True, "detail": "0 means outside the catchment in every band; no class uses 0"},
@@ -74,7 +76,8 @@ col = {
     "description": (f"Static sampling strata for the {cfg['title']} on the {GRID_M} m {CRS} analysis grid: three equal-area "
                     f"elevation bands (below {q1:.0f} m, {q1:.0f} to {q2:.0f} m, {q2:.0f} m and above), aspect classes (north, east, south, west, "
                     f"level below 5 degrees) and an excluded layer (WorldCover 2021 cropland and built-up, {info['excluded_share'] * 100:.1f}% of the "
-                    "catchment). Strata organize field sampling; they are not vegetation types, pasture units or management boundaries."),
+                    "catchment)" + (f", and a reservoir zone (the {WZ['selection'].replace('_', ' ')} of WorldCover permanent water plus {WZ['buffer_m']} m, {WZ['zone_share'] * 100:.1f}% of the catchment)" if WZ else "")
+                    + ". Strata organize field sampling; they are not vegetation types, pasture units or management boundaries."),
     "license": "other",
     "providers": [{"name": "Copernicus DEM GLO-30 (European Union, ESA; DLR e.V. and Airbus Defence and Space)", "roles": ["producer", "licensor"]},
                   {"name": "ESA WorldCover consortium", "roles": ["producer", "licensor"], "url": "https://esa-worldcover.org/"},
@@ -98,7 +101,9 @@ col = {
                              {"name": "aspect_class", "data_type": "uint8", "nodata": 0, "unit": "1",
                               "description": "1 north (315 to 45 deg), 2 east, 3 south, 4 west, 5 level (slope below 5 deg); Horn gradient on 30 m"},
                              {"name": "excluded", "data_type": "uint8", "nodata": 0, "unit": "1",
-                              "description": "1 where WorldCover 2021 v200 is cropland (40) or built-up (50); shown as excluded, never as low vegetation"}],
+                              "description": "1 where WorldCover 2021 v200 is cropland (40) or built-up (50); shown as excluded, never as low vegetation"},
+                             *([{"name": "reservoir_zone", "data_type": "uint8", "nodata": 0, "unit": "1",
+                                 "description": f"1 within {WZ['buffer_m']} m of the {WZ['selection'].replace('_', ' ')} of the WorldCover 2021 v200 classes {WZ['worldcover_classes']} inside the catchment, 2 elsewhere inside the catchment"}] if WZ else [])],
                    "file:checksum": "1220" + sha(cog), "file:size": os.path.getsize(cog)}},
     "created": now, "siterra:status": "validated" if all(c["passed"] for c in checks) else "failed",
     "siterra:variable": "elevation_band",
@@ -107,16 +112,18 @@ col = {
     "siterra:geo_selection": {"id": GEO["id"], "revision": GEO["revision"], "boundary_role": GEO["boundaryRole"],
                               "area_m2": info["geometry_pixels_with_elevation"] * GRID_M * GRID_M,
                               "area_method": f"Count of {GRID_M} m analysis pixels whose centres fall inside the frozen polygon, {CRS}"},
-    "siterra:method": {"id": "terrain_strata", "version": "1.0.0", "analysis_crs": CRS,
+    "siterra:method": {"id": "terrain_strata", "version": METHOD_VERSION, "analysis_crs": CRS,
                        "parameters": {"elevation_bands": "equal-area terciles", "boundaries_m": [q1, q2], "aspect": "quadrants centred on N, E, S, W",
-                                      "level_slope_deg": 5, "excluded_worldcover_classes": [40, 50]},
+                                      "level_slope_deg": 5, "excluded_worldcover_classes": [40, 50],
+                                      **({"water_zone": {"worldcover_classes": WZ["worldcover_classes"], "buffer_m": WZ["buffer_m"], "selection": WZ["selection"]}} if WZ else {})},
                        "reference_period": None,
                        "operation_order": [f"reproject the DEM once to a {cfg['elevation']['gridM']} m {CRS} grid aligned with the analysis grid (bilinear)",
                                            "compute Horn slope and aspect on the 30 m grid",
                                            "repeat the 30 m cells 3 x 3 onto the 10 m grid",
                                            "split catchment elevation at its 1/3 and 2/3 quantiles",
                                            "classify aspect into quadrants and level ground",
-                                           "flag WorldCover 2021 cropland and built-up as excluded"]},
+                                           "flag WorldCover 2021 cropland and built-up as excluded",
+                                           *([f"mark cells within {WZ['buffer_m']} m of the {WZ['selection'].replace('_', ' ')} of the WorldCover water classes {WZ['worldcover_classes']} as the reservoir zone (band 4)"] if WZ else [])]},
     "siterra:attribution": ["Catchment and strata derived by Siterra from Copernicus DEM GLO-30 (2021 release)",
                             "produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved",
                             LIAB,
