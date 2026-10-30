@@ -69,8 +69,8 @@ export async function startDemoSession(
       updatedAt: now,
     };
     await tx.query(
-      "insert into cases (id, owner_scope_id, revision, record) values ($1, $2, $3, $4)",
-      [caseId, ownerScopeId, seedRow.revision, JSON.stringify(caseRecord)],
+      "insert into cases (id, owner_scope_id, revision, record, origin_case_id) values ($1, $2, $3, $4, $5)",
+      [caseId, ownerScopeId, seedRow.revision, JSON.stringify(caseRecord), args.seedCaseId],
     );
     await tx.query("insert into case_revisions (case_id, revision, record) values ($1, $2, $3)", [
       caseId,

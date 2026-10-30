@@ -4,6 +4,7 @@ import type { CommitDraft, CommitOutcome, EventDraftRecord } from "@siterra/agen
 import type { Command, EnvironmentalCase } from "@siterra/contracts";
 import { caseSchemaVersion } from "@siterra/contracts";
 import {
+  analysisCaseIdOf,
   appendEvents,
   applyCommit,
   isCancelRequested,
@@ -76,6 +77,7 @@ export function workerDb(pool: Pool, now: () => Date = () => new Date()): Worker
       if (!snapshot) return null;
       const c = snapshot.case;
       const view: WorkerSnapshot = {
+        analysisCaseId: await analysisCaseIdOf(pool, caseId),
         case: {
           id: c.id,
           revision: c.revision,

@@ -110,6 +110,7 @@ class FakeDb implements WorkerDb {
   readSnapshot(caseId: string): Promise<WorkerSnapshot | null> {
     if (caseId !== "case_test") return Promise.resolve(null);
     return Promise.resolve({
+      analysisCaseId: caseId,
       case: {
         id: caseId,
         revision: this.commits.caseRevision,
