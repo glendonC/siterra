@@ -1,0 +1,98 @@
+{
+ "recipeId": "terrain_relief",
+ "version": "1.0.1",
+ "computed": "2026-10-30T20:05:00Z",
+ "place": {
+  "placeId": "calaveras_creek",
+  "configRevision": 7,
+  "config_sha256": "1e3fedd50119c22e0fa46c8b2de27488c52157d8ff9347ccdcae5aefb7411489"
+ },
+ "claim_kind": "observation",
+ "grid": {
+  "crs": "EPSG:32610",
+  "cell_m": 30,
+  "shape": [
+   912,
+   1108
+  ],
+  "transform": [
+   30.0,
+   0.0,
+   600170.0,
+   0.0,
+   -30.0,
+   4151790.0
+  ],
+  "pad_cells": 1,
+  "nodata": -9999.0
+ },
+ "cells": {
+  "kept": 292986,
+  "inside_polygon_parents": 287733,
+  "ring_outside": 5253,
+  "analysis_cells_inside_10m": 2573395
+ },
+ "elevation_m_inside_cells_10m": {
+  "lowest": 148.8,
+  "highest": 1326.4,
+  "mean": 736.8
+ },
+ "native_tile_inside_polygon_m": {
+  "lowest": 147.15338134765625,
+  "highest": 1329.5325927734375,
+  "cells": 339446
+ },
+ "band_boundaries_m": [
+  697.8,
+  842.4
+ ],
+ "band_share_of_inside_cells": {
+  "1": 0.3333,
+  "2": 0.3335,
+  "3": 0.3332
+ },
+ "checks": {
+  "repeat_equals_elevation_differing_cells": 0,
+  "inside_cells_without_height": 0,
+  "heights_reproduced": [],
+  "native_tile": {
+   "percentile": 0.7562810813745273,
+   "max": 3.577830686776963,
+   "max_at": [
+    -121.736111,
+    37.448026
+   ],
+   "cells": 287733
+  }
+ },
+ "units": "Elevation is float32 metres above the EGM2008 geoid (Copernicus DEM GLO-30 vertical datum) on a 30 m EPSG:32610 grid, not rounded; nodata is -9999.0; the three elevation bands are 697.8 m and 842.4 m as in the strata bundle.",
+ "check_results": {
+  "recompute_sample_period": true,
+  "units_and_scale": true,
+  "nodata_not_zero": true,
+  "attribution_present": true,
+  "visual_inspection_sample": true
+ },
+ "limitations": [
+  "The surface is a 30 m surface model, not the ground: trees, buildings, steep walls and radar artefacts distort it, and narrow gorges such as the lower gorge near the outlet are not resolved. Heights are metres above the EGM2008 geoid with the DEM's stated vertical accuracy (Copernicus DEM Product Handbook 5.0).",
+  "Each height is a bilinear resampling of the 1 arc-second tile onto a 30 m grid in EPSG:32629; it is not a measured height at that cell centre, and the 10 m analysis cells inherit the height of their 30 m cell.",
+  "The cells outside the catchment that the layer keeps are a one-cell ring for interpolation near the boundary; they are not part of the analysis area.",
+  "The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary."
+ ],
+ "forbidden_phrases": [
+  "significant",
+  "significantly",
+  "degradation detected",
+  "grazing impact",
+  "overgrazing",
+  "caused by",
+  "proves",
+  "recovery",
+  "forecast",
+  "pasture improvement",
+  "pasture decline",
+  "encroachment",
+  "flood risk",
+  "water supply"
+ ]
+}
