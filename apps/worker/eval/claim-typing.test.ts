@@ -14,6 +14,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   CLAIM_KINDS,
+  checkClaimAnswer,
   claimTypingListing,
   claimTypingMarkdown,
   claimTypingSchema,
@@ -256,6 +257,20 @@ describe("claim typing suite", () => {
     expect(transport.opened).toHaveLength(0);
   });
 
+  it("names an id with no label even when it is a prefix of an id that has an issue", () => {
+    const result = checkClaimAnswer(
+      JSON.stringify(
+        labels([
+          ["ab", "scientific_context"],
+          ["ab", "observation"],
+        ]),
+      ),
+      ["a", "ab"],
+    );
+    expect(result.ok).toBe(false);
+    expect(result.issues.map((i) => i.message)).toContain("a has no label.");
+  });
+
   it("takes the spend cap as a whole number in range, or the default, and refuses anything else", () => {
     expect(parseCapMicroUsd(undefined, 500_000)).toBe(500_000);
     expect(parseCapMicroUsd("250000", 500_000)).toBe(250_000);
@@ -270,9 +285,10 @@ describe("claim typing suite", () => {
       "1e6",
       " 5",
       "0x10",
-      "5000001",
+      "500001",
       "NaN",
       "Infinity",
+      "500,000",
     ]) {
       expect(() => parseCapMicroUsd(bad, 500_000), bad).toThrow(/EVAL_CAP_MICRO_USD/);
     }

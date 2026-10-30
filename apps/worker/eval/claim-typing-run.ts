@@ -1,7 +1,7 @@
 // `node apps/worker/eval/claim-typing-run.ts`: one claim typing run over the extraction gold set,
 // on the route SITERRA_MODEL_ROUTE names (replay by default, which needs SITERRA_REPLAY_FILE; the
 // live route needs its approval value and the login Keychain key, which this script never prints).
-// Spend stops at EVAL_CAP_MICRO_USD (default 500000). Writes eval-reports/eval-claim-typing-<date>.json
+// Spend stops at EVAL_CAP_MICRO_USD (default and ceiling 500000). Writes eval-reports/eval-claim-typing-<date>.json
 // and .md. Every figure is scored against unsigned model drafts.
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -16,6 +16,7 @@ import {
 } from "@siterra/agent";
 
 import {
+  MAX_CAP_MICRO_USD,
   claimTypingMarkdown,
   parseCapMicroUsd,
   runClaimTyping,
@@ -26,7 +27,13 @@ import { loadExtractionGold } from "./gold.ts";
 const repoDir = fileURLToPath(new URL("../../../", import.meta.url));
 const gold = loadExtractionGold(join(repoDir, "data/case/gold/extraction.jsonl"));
 // Parsed first: a bad cap stops the run before the Keychain is read or a model is called.
-const capMicro = parseCapMicroUsd(process.env["EVAL_CAP_MICRO_USD"], 500_000);
+let capMicro: number;
+try {
+  capMicro = parseCapMicroUsd(process.env["EVAL_CAP_MICRO_USD"], MAX_CAP_MICRO_USD);
+} catch (error) {
+  console.error(error instanceof Error ? error.message : "EVAL_CAP_MICRO_USD is not usable");
+  process.exit(2);
+}
 const transport = chooseTransport(process.env, { readKeychain: (s) => readKeychainKey(s) });
 const route = describeRoute(transport);
 const model = process.env["EVAL_MODEL"] ?? "muse-spark-1.3";

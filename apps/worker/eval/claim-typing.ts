@@ -21,8 +21,11 @@ export const CLAIM_KINDS = [
 ] as const;
 export type ClaimKindName = (typeof CLAIM_KINDS)[number];
 
-/** The most a claim typing run may be told it can spend: USD 5. A larger figure is a typo. */
-export const MAX_CAP_MICRO_USD = 5_000_000;
+/**
+ * The most a claim typing run may be told it can spend: the USD 0.50 the lead approved for the
+ * first live run. A run with a larger cap needs a new approval and an edit here.
+ */
+export const MAX_CAP_MICRO_USD = 500_000;
 
 /**
  * The spend cap in micro-USD from text: a whole number from 1 to MAX_CAP_MICRO_USD, digits only,
@@ -90,7 +93,7 @@ export function claimTypingListing(items: readonly ExtractionItem[]): string {
 
 type Labels = Map<string, ClaimKindName>;
 
-function validAnswer(
+export function checkClaimAnswer(
   text: string,
   ids: readonly string[],
 ):
@@ -109,6 +112,7 @@ function validAnswer(
   const labels = (parsed as { labels?: unknown } | null)?.labels;
   if (!Array.isArray(labels)) return bad("schema", "$.labels", "labels is not a list.");
   const out: Labels = new Map();
+  const flagged = new Set<string>();
   const issues: ValidationIssue[] = [];
   labels.forEach((entry: unknown, index) => {
     const { id, claimKind } = (entry ?? {}) as { id?: unknown; claimKind?: unknown };
@@ -118,13 +122,14 @@ function validAnswer(
     } else if (out.has(id)) {
       issues.push({ code: "schema", path, message: `${id} is labelled twice.` });
     } else if (!(CLAIM_KINDS as readonly unknown[]).includes(claimKind)) {
+      flagged.add(id);
       issues.push({ code: "claim_kind", path, message: "claimKind is not one of the seven." });
     } else {
       out.set(id, claimKind as ClaimKindName);
     }
   });
   for (const id of ids) {
-    if (!out.has(id) && !issues.some((i) => i.message.startsWith(id))) {
+    if (!out.has(id) && !flagged.has(id)) {
       issues.push({ code: "schema", path: "$.labels", message: `${id} has no label.` });
     }
   }
@@ -163,7 +168,7 @@ export async function runClaimTyping(
     },
     input: [{ kind: "user_text", text: `Statements: ${claimTypingListing(items)}` }],
     tools: [],
-    validate: (text) => validAnswer(text, ids),
+    validate: (text) => checkClaimAnswer(text, ids),
     taskId: "task_eval_claim_typing",
     trace: deps.trace,
     now: deps.now,
