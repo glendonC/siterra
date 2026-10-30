@@ -1,0 +1,273 @@
+{
+ "type": "Collection",
+ "stac_version": "1.1.0",
+ "stac_extensions": [
+  "https://stac-extensions.github.io/processing/v1.3.0/schema.json",
+  "https://stac-extensions.github.io/file/v2.1.0/schema.json",
+  "https://siterra.invalid/schemas/stac/siterra/1.1.0/schema.json"
+ ],
+ "id": "bundle_snow_cover_by_band_calaveras_creek",
+ "title": "Snow applicability check over 12 winter months (snow_cover_by_band 1.1.0)",
+ "description": "Applicability check of recipe snow_cover_by_band 1.1.0 for Calaveras Creek catchment over 12 sample winter months (December to February of the winters 2005/06, 2010/11, 2015/16 and 2020/21: four winters five years apart across the record), from 351 daily Terra MOD10A1 v6.1 products (500 m): decision not applicable. In every elevation band of the fixed_500m set fewer than 1 per cent of the clear catchment-pixel-days in the sample have NDSI snow cover of 40 or more. This is not the recipe's result for the whole record; the monthly values are those of the sample months only.\n\nMOD10A1 sees snow only on clear days. Cloudy days are left out, not filled. The check covers 12 sample months (December to February of four winters five years apart) and says nothing about other months or winters; snow that fell and melted in an unsampled week would not be seen. Each 500 m pixel is called snow-covered or not as a whole; patchy or thin snow can be missed. Terra's overpass has drifted earlier since 2020 (NASA), so later years are seen with a lower sun. The validation studies of this product that the registry cites were made in the Moroccan Atlas; they are not evidence for this catchment, and no validation for this catchment was done. Not applicable means the recipe is not run here because the sample shows almost no snow. It is not a finding that snow never falls in the catchment.",
+ "license": "other",
+ "providers": [
+  {
+   "name": "NASA National Snow and Ice Data Center Distributed Active Archive Center",
+   "roles": [
+    "producer",
+    "licensor"
+   ],
+   "url": "https://nsidc.org/data/mod10a1/versions/61"
+  },
+  {
+   "name": "Microsoft Planetary Computer",
+   "roles": [
+    "host"
+   ],
+   "url": "https://planetarycomputer.microsoft.com/dataset/modis-10A1-061"
+  },
+  {
+   "name": "Copernicus DEM GLO-30 (European Union, ESA; DLR e.V. and Airbus Defence and Space)",
+   "roles": [
+    "producer",
+    "licensor"
+   ]
+  },
+  {
+   "name": "ESA WorldCover consortium",
+   "roles": [
+    "producer",
+    "licensor"
+   ],
+   "url": "https://esa-worldcover.org/"
+  },
+  {
+   "name": "Siterra science pipeline",
+   "roles": [
+    "processor"
+   ],
+   "processing:lineage": "Anonymous SAS-signed range reads of MOD10A1 v6.1 NDSI_Snow_Cover windows over the frozen geometry from Planetary Computer (351 Terra days); Copernicus DEM GLO-30 elevation on the 10 m analysis grid; band shares weighted by 10 m analysis cells (science/pipeline/snow-bundle.py).",
+   "processing:software": {
+    "siterra-science": "0.1.0",
+    "python": "3.12.9",
+    "numpy": "2.5.4",
+    "rasterio": "1.5.2",
+    "gdal": "3.12.2"
+   }
+  }
+ ],
+ "extent": {
+  "spatial": {
+   "bbox": [
+    [
+     -121.86652777777778,
+     37.25763888888889,
+     -121.4948611111111,
+     37.50708333333334
+    ]
+   ]
+  },
+  "temporal": {
+   "interval": [
+    [
+     "2005-12-01T00:00:00Z",
+     "2021-02-28T23:59:59Z"
+    ]
+   ]
+  }
+ },
+ "assets": {
+  "analysis_geometry": {
+   "href": "./analysis-geometry.geojson",
+   "type": "application/geo+json",
+   "title": "Frozen analysis geometry geo_calaveras_creek_catchment, revision 2",
+   "roles": [
+    "metadata"
+   ],
+   "file:checksum": "1220745fb73a2dadb7284074eb6c0b607f390975a70592a7d968588ea083882faa9d",
+   "file:size": 141566
+  },
+  "snow_cover_by_band": {
+   "href": "./snow-cover-by-band.json",
+   "type": "application/json",
+   "title": "Summary: monthly snow cover fraction and clear share per band of the primary band set, both thresholds (the result read_recipe_result returns)",
+   "roles": [
+    "data"
+   ],
+   "file:checksum": "122059f5ede718a5af5cd375584ca42fd1067ee1bd2becb43767279acca293664294",
+   "file:size": 4706
+  },
+  "snow_cover_tables": {
+   "href": "./snow-cover-by-band-tables.json",
+   "type": "application/json",
+   "title": "Full tables: every band of every band set and month, product days, clear share, both thresholds",
+   "roles": [
+    "data"
+   ],
+   "file:checksum": "122073a9bea5f638948c600c25d6f1a78e0e033612b9739e0ecfa518b6a0886a22f5",
+   "file:size": 11655
+  }
+ },
+ "created": "2026-10-30T20:45:00Z",
+ "siterra:status": "validated",
+ "siterra:variable": "snow_cover_fraction",
+ "siterra:dataset": {
+  "id": "modis-10A1-061",
+  "version": "6.1",
+  "access_route": "https://planetarycomputer.microsoft.com/api/stac/v1 collection modis-10A1-061, asset NDSI_Snow_Cover, anonymous SAS-signed COG range reads",
+  "resolution_note": "Native 500 m MODIS sinusoidal grid (463.31 m cells), daily"
+ },
+ "siterra:geo_selection": {
+  "id": "geo_calaveras_creek_catchment",
+  "revision": 2,
+  "boundary_role": "hydrological_unit",
+  "area_m2": 257339500,
+  "area_method": "Count of 10 m analysis pixels whose centres fall inside the frozen polygon, EPSG:32610"
+ },
+ "siterra:method": {
+  "id": "snow_cover_by_band",
+  "version": "1.1.0",
+  "analysis_crs": "EPSG:32610",
+  "parameters": {
+   "place_configuration": "science/places/calaveras-creek.json revision 7, sha256 1e3fedd50119c22e0fa46c8b2de27488c52157d8ff9347ccdcae5aefb7411489",
+   "months": [
+    "2005-12",
+    "2006-01",
+    "2006-02",
+    "2010-12",
+    "2011-01",
+    "2011-02",
+    "2015-12",
+    "2016-01",
+    "2016-02",
+    "2020-12",
+    "2021-01",
+    "2021-02"
+   ],
+   "elevation_band_sets": [
+    {
+     "id": "fixed_500m",
+     "edgesM": [
+      500,
+      1000
+     ],
+     "primary": true
+    },
+    {
+     "id": "terrain_strata",
+     "fromStrataLayer": "elevation_band"
+    }
+   ],
+   "ndsi_thresholds": [
+    0.2,
+    0.4
+   ],
+   "min_clear_share": 0.3,
+   "stored_precision": "fractions at 4 decimals"
+  },
+  "reference_period": null,
+  "operation_order": [
+   "v(p, d) = NDSI_Snow_Cover of Terra MOD10A1 v6.1 500 m pixel p on day d; clear when 0 <= v <= 100 (0 is snow-free land); cloud when v = 250; every other value (200 missing, 201 no decision, 211 night, 237 inland water, 239 ocean, 254 detector saturated, 255 fill) is not observed",
+   "snow_t(p, d) = 1 when p is clear on d and v >= 100 t, for the NDSI thresholds t = 0.2 (optimised for the Atlas, Bousbaa et al. 2024) and t = 0.4 (the global reference), computed side by side",
+   "w_b(p) = number of 10 m analysis cells of elevation band b whose centre falls in pixel p; elevation from the place's DEM, resampled to the analysis grid as for the terrain strata; band sets from the place configuration",
+   "clear_share(b, m) = sum over the days d of month m that have a product and over pixels p of w_b(p) clear(p, d) / sum over the same days and pixels of w_b(p)",
+   "snow_cover_fraction_t(b, m) = sum over d and p of w_b(p) snow_t(p, d) / sum over d and p of w_b(p) clear(p, d); reported only when clear_share(b, m) >= 0.3, otherwise insufficient_clear",
+   "product_days(m) = number of days of month m with a Terra MOD10A1 product over the place",
+   "The catchment as a whole is reported alongside the bands"
+  ]
+ },
+ "siterra:attribution": [
+  "Hall, D. K. and G. A. Riggs. 2021. MODIS/Terra Snow Cover Daily L3 Global 500m SIN Grid, Version 61. Tile h08v05, NDSI_Snow_Cover, A2005335 to A2021059, windows over the catchment read from Microsoft Planetary Computer. Boulder, Colorado USA. NASA National Snow and Ice Data Center Distributed Active Archive Center. https://doi.org/10.5067/MODIS/MOD10A1.061. Accessed 2026-10-30",
+  "Catchment and strata derived by Siterra from Copernicus DEM GLO-30 (2021 release)",
+  "produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved",
+  "The organisations in charge of the Copernicus programme by law or by delegation do not incur any liability for any use of the Copernicus WorldDEM-30",
+  "© ESA WorldCover project / Contains modified Copernicus Sentinel data (2021) processed by ESA WorldCover consortium",
+  "ESA WorldCover 2021 v200 (Zanaga et al. 2022), CC BY 4.0, https://doi.org/10.5281/zenodo.7254221"
+ ],
+ "siterra:limitations": [
+  "MOD10A1 sees snow only on clear days. Cloudy days are left out, not filled.",
+  "The check covers 12 sample months (December to February of four winters five years apart) and says nothing about other months or winters; snow that fell and melted in an unsampled week would not be seen.",
+  "Each 500 m pixel is called snow-covered or not as a whole; patchy or thin snow can be missed.",
+  "Terra's overpass has drifted earlier since 2020 (NASA), so later years are seen with a lower sun.",
+  "The validation studies of this product that the registry cites were made in the Moroccan Atlas; they are not evidence for this catchment, and no validation for this catchment was done.",
+  "Not applicable means the recipe is not run here because the sample shows almost no snow. It is not a finding that snow never falls in the catchment."
+ ],
+ "siterra:checks": [
+  {
+   "name": "recompute_sample_period",
+   "passed": true,
+   "detail": "Month 2021-02 rerun independently for the fixed_500m bands: 28 daily windows read again from Planetary Computer with a fresh token, 28 identical to the stored ones; each day resampled to the 10 m analysis grid by nearest neighbour and counted over each band's cells; largest difference from the stored clear share and NDSI 0.2 fraction 0.000050 over 3 bands (3 with a fraction), tolerance 0.0001 plus rounding."
+  },
+  {
+   "name": "nodata_not_zero",
+   "passed": true,
+   "detail": "NDSI_Snow_Cover 0 is snow-free land and counts as clear; flag values (200 missing, 201 no decision, 211 night, 237 inland water, 239 ocean, 250 cloud, 254 detector saturated, 255 fill) are not observed and never count as 0."
+  },
+  {
+   "name": "units_and_scale",
+   "passed": true,
+   "detail": "Every stored window is uint8 with nodata 255; values 0 to 100 are NDSI times 100, so threshold t is applied as a value of at least 100 t. Fractions are shares of 10 m analysis-cell-weighted pixel-days, 0 to 1."
+  },
+  {
+   "name": "qa_join_coverage",
+   "passed": true,
+   "detail": "All 351 daily windows share one 153 x 65 pixel grid; 351 of 361 calendar days in the 12 sample months have a Terra product on Planetary Computer. 10 days absent from Planetary Computer (A2016049, A2016050, A2016051, A2016052, A2016053, A2016054, A2016055, A2016056, A2016057, A2016058); not checked against NASA CMR. Catchment months below the clear share minimum or without a product: 0 of 12."
+  },
+  {
+   "name": "period_alignment",
+   "passed": true,
+   "detail": "A daily product belongs to the calendar month of its acquisition date (AYYYYDDD in the item ID)."
+  },
+  {
+   "name": "attribution_present",
+   "passed": true,
+   "detail": "The NSIDC-required MOD10A1 v6.1 citation with subset and access date and the Copernicus DEM notices are in siterra:attribution"
+  }
+ ],
+ "links": [
+  {
+   "rel": "root",
+   "href": "../catalog.json",
+   "type": "application/json"
+  },
+  {
+   "rel": "parent",
+   "href": "../catalog.json",
+   "type": "application/json"
+  },
+  {
+   "rel": "derived_from",
+   "href": "../bundle_terrain_strata_calaveras_creek/collection.json",
+   "type": "application/json",
+   "title": "Terrain strata bundle bundle_terrain_strata_calaveras_creek (equal-area elevation bands)",
+   "file:checksum": "1220131bcd8461757de7c05c82466402af7b0ff487aa56d1b70a59aa1333ea3ad1ed"
+  },
+  {
+   "rel": "license",
+   "href": "https://www.earthdata.nasa.gov/engage/open-data-services-software-policies/data-use-guidance",
+   "title": "MOD10A1 v6.1: NASA data use guidance (NASA-led mission data without a marked restriction are CC0); NSIDC requires the data citation"
+  },
+  {
+   "rel": "license",
+   "href": "https://dataspace.copernicus.eu/sites/default/files/media/files/2025-06/copernicus_contributing_mission_data_access_v2_cop_dem_licenses.pdf",
+   "title": "Licence for Copernicus DEM instance COP-DEM-GLO-30-F Global 30m Full, Free & Open"
+  },
+  {
+   "rel": "license",
+   "href": "https://creativecommons.org/licenses/by/4.0/",
+   "title": "ESA WorldCover: CC BY 4.0"
+  },
+  {
+   "rel": "cite-as",
+   "href": "https://doi.org/10.5067/MODIS/MOD10A1.061",
+   "title": "Hall and Riggs (2021), MOD10A1 v6.1 data set DOI"
+  },
+  {
+   "rel": "processing-software",
+   "href": "./uv.lock",
+   "type": "application/toml",
+   "title": "Pipeline lockfile (uv)",
+   "file:checksum": "12205154d57a84dcb8f1eb5f992923d7589a669b8dc669edf140f607ff2740733aff"
+  }
+ ]
+}

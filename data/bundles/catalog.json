@@ -85,7 +85,7 @@
    "rel": "child",
    "href": "./bundle_relief_calaveras_creek/collection.json",
    "type": "application/json",
-   "file:checksum": "12209bfbbd074dee478d25d6391fdccc1212240ef59bbcee60eb37f37bb12add515c"
+   "file:checksum": "1220faaef286dd0e586efe5de64347e54f071530a7f9510c65872651392924ad99bc"
   },
   {
    "rel": "child",
@@ -116,6 +116,12 @@
    "href": "./bundle_snow_cover_by_band_ait_bouguemez/collection.json",
    "type": "application/json",
    "file:checksum": "1220b487663513e6f84cf08ad21ed4e33aac600404d2a84daf98c1de6b607a433f0d"
+  },
+  {
+   "rel": "child",
+   "href": "./bundle_snow_cover_by_band_calaveras_creek/collection.json",
+   "type": "application/json",
+   "file:checksum": "1220b6782e94742e4163140d0b4f20eba56712cf600b282ca90bcb0b7429bb50c9f6"
   },
   {
    "rel": "child",
