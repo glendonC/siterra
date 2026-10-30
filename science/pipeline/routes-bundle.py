@@ -158,7 +158,7 @@ def route_record(core, ro):
     slopes = np.diff(zz) / dxy
     dz = np.diff(zs)
     return {"lon": lon.tolist(), "lat": lat.tolist(), "z": zs.tolist(), "length_m": float(dxy.sum()), "climb_m": float(dz[dz > 0].sum()),
-            "descent_m": float(-dz[dz < 0].sum()), "max_slope": float(np.abs(slopes).max()), "time_h": ro["cost_h"], "e": e, "n": n, "zz": zz, "dxy": dxy}
+            "descent_m": float(-dz[dz < 0].sum()) + 0.0, "max_slope": float(np.abs(slopes).max()), "time_h": ro["cost_h"], "e": e, "n": n, "zz": zz, "dxy": dxy}
 
 
 def main():
