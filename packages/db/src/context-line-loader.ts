@@ -1,5 +1,6 @@
 // Reads the lines of the case's context features from bundle assets: the drainage lines (one
-// MultiLineString per Strahler order) and the transects (one LineString per transect). The geometry
+// MultiLineString per Strahler order), the transects (one LineString per transect) and the proposed
+// routes (one LineString per route, labelled as a proposal with access unconfirmed, CF-04). The geometry
 // is copied from the checksum-verified asset, never drawn or simplified; per-segment attributes stay
 // in the asset, which the feature names in `dataBundle`.
 import { readFileSync } from "node:fs";
@@ -26,12 +27,31 @@ const Transects = z.object({
   features: z.array(LineFeature(z.object({ transect_id: z.string().min(1), label: z.string() }))),
 });
 
+const Routes = z.object({
+  type: z.literal("FeatureCollection"),
+  features: z.array(
+    LineFeature(z.object({ route_id: z.string().min(1), target_id: z.string().min(1) })),
+  ),
+});
+/** The result asset of the routes bundle: only the sites the routes end at are read. */
+const RouteSites = z.object({
+  sites: z.array(
+    z.object({
+      id: z.string().min(1),
+      kind: z.enum(["pixel", "band"]),
+      rule: z.string().min(1),
+      band: z.int().optional(),
+    }),
+  ),
+});
+
 export const drainageMethodId = "drainage_network";
 export const transectMethodId = "terrain_transects";
+export const routesMethodId = "proposed_routes";
 
 /**
- * One drainage ContextFeature per Strahler order and one transect ContextFeature per transect, from
- * the bundles the case holds. A bundle or asset that cannot be read or does not have the expected
+ * One drainage ContextFeature per Strahler order, one transect ContextFeature per transect and one
+ * route_proposed ContextFeature per proposed route, from the bundles the case holds. A bundle or asset that cannot be read or does not have the expected
  * shape is reported and gives no feature.
  */
 export function readContextLines(args: {
@@ -150,6 +170,50 @@ export function readContextLines(args: {
           geometry: f.geometry,
           method: `The line ${f.properties.transect_id} in the asset ${assetKey} of ${bundleId}, copied as the bundle lists it; heights are sampled from the 30 m surface.`,
           dataBundle: { bundleId, assetKey, member: f.properties.transect_id },
+        });
+      }
+    } else if (bundle.dataBundle.methodId === routesMethodId) {
+      const assetKey = "route_lines";
+      const found = open(bundle, assetKey);
+      const resultFound = open(bundle, "proposed_routes");
+      if (found === null || resultFound === null) continue;
+      const parsed = Routes.safeParse(found);
+      const sites = RouteSites.safeParse(resultFound);
+      if (!parsed.success || !sites.success) {
+        issues.push({
+          bundleId,
+          path: `context-lines/${assetKey}`,
+          message: "Not the expected GeoJSON lines and sites",
+        });
+        continue;
+      }
+      const siteById = new Map(sites.data.sites.map((s) => [s.id, s]));
+      for (const f of parsed.data.features) {
+        const site = siteById.get(f.properties.target_id);
+        if (site === undefined) {
+          issues.push({
+            bundleId,
+            path: `context-lines/${assetKey}/${f.properties.route_id}`,
+            message: `The route ends at ${f.properties.target_id}, which the bundle lists no site for`,
+          });
+          continue;
+        }
+        const target =
+          site.kind === "pixel"
+            ? "the pixel the case opens"
+            : `elevation band ${site.band === undefined ? site.id : String(site.band)}`;
+        keep(bundle, assetKey, {
+          ...common(bundle),
+          id: `ctx_${f.properties.route_id}`,
+          name: `Proposed route to ${target} (candidate site chosen by a stated rule)`,
+          role: "route_proposed",
+          geometry: f.geometry,
+          method: `The line ${f.properties.route_id} in the asset ${assetKey} of ${bundleId}, copied as the bundle lists it: the least-time walk over a 30 m surface model, a model estimate and not a surveyed path. It ends at ${site.id}, a candidate site chosen by a stated rule: ${site.rule}.`,
+          limitations: [
+            ...bundle.dataBundle.provenance.limitations,
+            `The end of the line is a candidate site chosen by a stated rule: ${site.rule}; it is not a sampling design or a management unit.`,
+          ].filter((text, i, all) => all.indexOf(text) === i),
+          dataBundle: { bundleId, assetKey, member: f.properties.route_id },
         });
       }
     }
