@@ -2,7 +2,7 @@
   "format": "siterra-model-replay@1",
   "origin": "recorded",
   "model": "muse-spark-1.3",
-  "description": "Recorded outcome of 'P4b live composition 2' (29 Oct 2026, 20:09 EDT, Muse Spark, request fe5c9c1c-957b-4854-a3fc-f27c7ae20f9a, response resp_6ae3e05088e954a857b040ca): the request and response IDs, the token usage (1,401 in, 2,233 out of which 1,912 reasoning) and the answer's content (the order of the four valley instruments and their four captions, unchanged) are as the live call returned them and as the real commit stored them. The raw stream was not kept by that run: the answer text is rebuilt from the stored order and captions, compact JSON in the stored order, and the reasoning item is a placeholder. Recorded outcome, not a raw recording.",
+  "description": "Recorded outcome of 'P4b live composition 2' (29 Oct 2026, 20:09 EDT, Muse Spark, request fe5c9c1c-957b-4854-a3fc-f27c7ae20f9a, response resp_6ae3e05088e954a857b040ca): the request and response IDs, the token usage (1,401 in, 2,233 out of which 1,912 reasoning) and the answer's content (the order of the four valley instruments and their four captions, unchanged) are as the live call returned them and as the real commit stored them. The raw stream was not kept by that run: the answer text is rebuilt from the stored order and captions, compact JSON in the stored order, and the reasoning item is omitted. Recorded outcome, not a raw recording.",
   "steps": [
     {
       "kind": "stream",

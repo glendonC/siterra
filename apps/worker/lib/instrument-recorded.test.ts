@@ -62,6 +62,26 @@ describe("the recorded live composition, replayed", () => {
       );
       expect(recorded.origin).toBe("recorded");
       expect(recorded.description).toContain("fe5c9c1c-957b-4854-a3fc-f27c7ae20f9a");
+      expect(recorded.description).toContain("the reasoning item is omitted");
+      // The identifiers and usage the live call returned (STATE and APPROVALS, 29 Oct 2026)
+      const [step] = recorded.steps;
+      const done =
+        step?.kind === "stream"
+          ? step.events.find((e) => (e as { type?: string }).type === "response.completed")
+          : undefined;
+      expect(step?.kind === "stream" && step.requestId).toBe(
+        "fe5c9c1c-957b-4854-a3fc-f27c7ae20f9a",
+      );
+      expect(done).toMatchObject({
+        response: {
+          id: "resp_6ae3e05088e954a857b040ca",
+          usage: {
+            input_tokens: 1401,
+            output_tokens: 2233,
+            output_tokens_details: { reasoning_tokens: 1912 },
+          },
+        },
+      });
       const before = await readSnapshot(db.pool, CASE_ID, OWNER);
       if (!before) throw new Error("seed not loaded");
       const store = snapshotStore(before, { sources: [], passages: [], missing: [] }, null);
