@@ -95,6 +95,8 @@ describe("INST-04 (read part): the instruments of a case, each asset resolved ag
       "comp_example_read_good",
     ]);
     expect(listing?.instruments[1]?.components).toEqual([]);
+    // A case with no analysis configuration has no rules to open or block
+    expect(listing).not.toHaveProperty("blocked");
   });
 
   it("resolves an asset key to the immutable URL, type, checksum and size of the file the collection lists", async () => {
