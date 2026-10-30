@@ -1,7 +1,7 @@
 {
-  "registryVersion": "1.8.0",
+  "registryVersion": "1.9.0",
   "registered": "2026-10-27",
-  "note": "Recipe registry. What was fixed before any data: only the catalog rows in docs/reference/analysis-recipes.md (question, method in one line, output kind) for coverage_summary, monthly_departure and aligned_antecedent, and the full season_summary entry (registered 2026-10-27 before any event comparison). The detailed formulas and parameters of coverage_summary, monthly_departure, aligned_antecedent and terrain_strata were written together with their first run on 2026-10-27, so they are not pre-registered. From now on, changing a formula, parameter or window after results are read is a new version labeled post hoc. Registry 1.2.0 (2026-10-28) adds restrend_long_record and snow_cover_by_band, each fully registered before its data was summarized; their place-specific windows and band sets are in science/places/. The inspector renders method cards from an entry and the bundle manifest that holds its result. References are IDs in research/science/source-register.md. Registry 1.3.0 (2026-10-28) adds pixel_trend_long_record and season_trend_long_record, registered before any per-pixel slope, land-cover summary or June to September greenness value was computed (the stratum results of restrend_long_record had been read). Registry 1.4.0 (2026-10-29) adds drainage_network, registered before this pipeline built any network; its smoothing and height rules were carried over from the 29 October specimen build, which had run them first. Registry 1.5.0 (2026-10-29) adds terrain_transects, registered before this pipeline sampled any line; the Tabant meridian is specimen B's section and the rest was written by the science lane. Registry 1.6.0 (2026-10-29) adds pixel_anatomy, registered before this pipeline built any pixel anatomy; the pixel and its scene come from the 28 October specimen build and the scene rule was written afterwards to name that choice. Registry 1.7.0 (2026-10-29) adds terrain_relief and land_cover_classes, registered before this pipeline wrote any relief or land cover layer; both repeat grids that earlier bundles already use. Registry 1.8.0 (2026-10-29) adds optical_visibility_by_band, registered before this pipeline wrote any per-band clear share (the upper band's winter figures had been probed and match the lead's checks).",
+  "note": "Recipe registry. What was fixed before any data: only the catalog rows in docs/reference/analysis-recipes.md (question, method in one line, output kind) for coverage_summary, monthly_departure and aligned_antecedent, and the full season_summary entry (registered 2026-10-27 before any event comparison). The detailed formulas and parameters of coverage_summary, monthly_departure, aligned_antecedent and terrain_strata were written together with their first run on 2026-10-27, so they are not pre-registered. From now on, changing a formula, parameter or window after results are read is a new version labeled post hoc. Registry 1.2.0 (2026-10-28) adds restrend_long_record and snow_cover_by_band, each fully registered before its data was summarized; their place-specific windows and band sets are in science/places/. The inspector renders method cards from an entry and the bundle manifest that holds its result. References are IDs in research/science/source-register.md. Registry 1.3.0 (2026-10-28) adds pixel_trend_long_record and season_trend_long_record, registered before any per-pixel slope, land-cover summary or June to September greenness value was computed (the stratum results of restrend_long_record had been read). Registry 1.4.0 (2026-10-29) adds drainage_network, registered before this pipeline built any network; its smoothing and height rules were carried over from the 29 October specimen build, which had run them first. Registry 1.5.0 (2026-10-29) adds terrain_transects, registered before this pipeline sampled any line; the Tabant meridian is specimen B's section and the rest was written by the science lane. Registry 1.6.0 (2026-10-29) adds pixel_anatomy, registered before this pipeline built any pixel anatomy; the pixel and its scene come from the 28 October specimen build and the scene rule was written afterwards to name that choice. Registry 1.7.0 (2026-10-29) adds terrain_relief and land_cover_classes, registered before this pipeline wrote any relief or land cover layer; both repeat grids that earlier bundles already use. Registry 1.8.0 (2026-10-29) adds optical_visibility_by_band, registered before this pipeline wrote any per-band clear share (the upper band's winter figures had been probed and match the lead's checks). Registry 1.9.0 (2026-10-29) adds proposed_routes, registered before this pipeline computed any route; the field plan names no places, so its sites come from a rule written first.",
   "recipes": [
     {
       "recipeId": "coverage_summary",
@@ -2167,6 +2167,170 @@
       ],
       "priority": "P2",
       "formulaPlain": "For each month and each of the three elevation bands, count the share of the band's 10 m cells that at least one (or at least three) Sentinel-2 images saw clearly, and read the winter months December to March side by side."
+    },
+    {
+      "recipeId": "proposed_routes",
+      "version": "1.0.0",
+      "title": "Proposed walking routes from Tabant to field check sites",
+      "question": "Which walking line over the terrain takes the least time from Tabant to each candidate field check site under a stated walking function, and how long, how steep and how far is it?",
+      "operation": "least_cost_path",
+      "implementation": {
+        "language": "python",
+        "package": "siterra-science",
+        "version": "0.1.0"
+      },
+      "inputs": [
+        "terrain_relief",
+        "land_cover_classes",
+        "pixel_trend_long_record",
+        "terrain_strata",
+        "pixel_anatomy",
+        "frozen_catchment_geometry",
+        "place_configuration"
+      ],
+      "registration": "Full entry registered 2026-10-29, before this pipeline computed any route. The cost function is Tobler's hiking function with the off-path factor; the cap, the move set and the target rule were written by the science lane for this entry. The field plan of the case names no places, so the targets are chosen by the rule below. No hypothesis is tested. Every line it produces is a proposed route over a 30 m surface model, access unconfirmed, and not a surveyed path.",
+      "formula": [
+        "Surface: the 30 m EPSG:32629 elevation surface of the relief bundle (cells inside the frozen polygon only); a cell centre is a node",
+        "Moves: from a node to each of the 16 neighbours at offsets (dx, dy) in cells with (|dx|, |dy|) in {(1,0), (0,1), (1,1), (2,1), (1,2)} and their mirrored forms; the horizontal length is 30 m times the length of the offset",
+        "Slope: S = (z_to - z_from) / horizontal length, from the stored heights, not rounded; a move with |S| above 0.70 (about 35 degrees) is not allowed",
+        "Speed: W = 6 exp(-3.5 |S + 0.05|) km/h (Tobler 1993), times 0.6 because there is no path on the surface model; time of a move = horizontal length / W. Down a gentle slope (S near -0.05) is the fastest, steep up and steep down are slow. One way, no load, no rest, no stops",
+        "Water: a node is not allowed when at least 5 of the 9 land cover cells (10 m, WorldCover class 80 permanent water) in its 30 m cell are water",
+        "Origin: the node whose centre is nearest the origin point of the place configuration (ctx_tabant, the freeze acceptance point), ties by row then column; target nodes: the node nearest the target point, same ties",
+        "Route: Dijkstra from the origin over all allowed nodes and moves, the heap ordered by cost then node index so ties are fixed; the route is the stored sequence of node centres from the origin to the target with its height, unsmoothed, 0.1 m",
+        "Targets: (1) the centre of the pixel the pixel anatomy bundle names; (2 to 4) for each elevation band of the strata bundle (band of the cell centre's height), the MODIS cell of the pixel trend bundle's cells asset that, in order of straight-line distance from the origin to its centre (then row, then column), first meets: all four corners inside the frozen polygon, at least 0.8 of its 10 m cells in the lc_grazing_possible land cover group (shrubland, grassland, bare or sparse vegetation), and a finite cost from the origin",
+        "Per route: horizontal length (m, sum of move lengths), straight-line distance, detour ratio, climb and descent (m, sum of positive and negative height steps of the stored vertices), time (h, the sum of move times), vertex count, the largest slope of any move",
+        "Acceptance checks, all stored with the bundle: for every allowed move from every node the cost-to-reach values obey d(to) <= d(from) + cost (no shorter route exists, whatever the search); every stored route starts at the origin node, ends at the target node, uses only allowed moves, and its move times sum to the target's cost-to-reach; every stored vertex is a node centre to 0.01 m; the duration recomputed from the stored vertices (heights to 0.1 m) is within 0.5% of the stored time; two runs give identical files apart from the computed time"
+      ],
+      "parameters": [
+        {
+          "name": "tobler_a_kmh",
+          "role": "method",
+          "allowed": [
+            6.0
+          ],
+          "default": 6.0
+        },
+        {
+          "name": "tobler_b",
+          "role": "method",
+          "allowed": [
+            3.5
+          ],
+          "default": 3.5
+        },
+        {
+          "name": "tobler_offset",
+          "role": "method",
+          "allowed": [
+            0.05
+          ],
+          "default": 0.05
+        },
+        {
+          "name": "off_path_factor",
+          "role": "method",
+          "allowed": [
+            0.6
+          ],
+          "default": 0.6
+        },
+        {
+          "name": "slope_cap",
+          "role": "method",
+          "allowed": [
+            0.7
+          ],
+          "default": 0.7
+        },
+        {
+          "name": "water_cells_min",
+          "role": "method",
+          "allowed": [
+            5
+          ],
+          "default": 5
+        },
+        {
+          "name": "duration_tolerance",
+          "role": "method",
+          "allowed": [
+            0.005
+          ],
+          "default": 0.005
+        }
+      ],
+      "sensitivitySet": [],
+      "applicability": [
+        {
+          "check": "relief, land cover, strata, pixel trend and pixel anatomy bundles named in the place configuration",
+          "minimum": "5 bundles"
+        }
+      ],
+      "outputs": [
+        {
+          "metric": "route_time_h",
+          "unit": "h",
+          "claimKind": "model_estimate",
+          "uncertaintyKind": "not_quantified"
+        },
+        {
+          "metric": "route_length_m",
+          "unit": "m",
+          "claimKind": "model_estimate",
+          "uncertaintyKind": "not_quantified"
+        },
+        {
+          "metric": "route_climb_m",
+          "unit": "m",
+          "claimKind": "model_estimate",
+          "uncertaintyKind": "not_quantified"
+        }
+      ],
+      "assumptions": [
+        "Tobler's function stands for an adult walking on open, trackless slopes in dry conditions",
+        "The 30 m surface model stands for the ground at the scale of one move"
+      ],
+      "failureModes": [
+        "Cliffs, gullies, scree, snow, rivers in spate, fences, fields and irrigation channels are invisible to a 30 m surface model, so a proposed route can cross ground nobody can cross",
+        "Existing tracks and mule paths are not in the data, so the proposed route can ignore a faster real path"
+      ],
+      "standardLimitations": [
+        "Proposed route, access unconfirmed: each line is the least-time walk over a 30 m surface model under Tobler's hiking function with a slope cap, not a surveyed path, not a track on the ground and not a safe or permitted route.",
+        "The surface model smooths gorges and walls and cannot see cliffs, scree, snow, river crossings, fences, fields or irrigation channels; no route was checked on the ground or on imagery for obstacles.",
+        "Times are one way on trackless ground for an adult at Tobler's speed (times 0.6), with no load, rest, weather or snow; they are model estimates, not observed journey times, and real walking times can differ widely.",
+        "Climb and descent are sums over unsmoothed 30 m heights, so they include surface noise and are larger than a smoothed profile would give.",
+        "The sites are chosen by a rule (the pixel the case opens and the nearest grazing-land cell of each elevation band), not by a sampling design, a management unit or an agreement with anyone; reaching a site needs local agreement, land access and permission that no route establishes.",
+        "The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary."
+      ],
+      "allowedComponents": [
+        "route line",
+        "route table",
+        "method card"
+      ],
+      "forbiddenPhrases": [
+        "significant",
+        "significantly",
+        "degradation detected",
+        "grazing impact",
+        "overgrazing",
+        "caused by",
+        "proves",
+        "recovery",
+        "forecast",
+        "pasture improvement",
+        "pasture decline",
+        "encroachment",
+        "flood risk",
+        "water supply"
+      ],
+      "references": [
+        "SCI-169",
+        "SCI-168",
+        "SCI-12",
+        "SCI-13"
+      ],
+      "priority": "P2",
+      "formulaPlain": "For each candidate field check site, find the walking line from Tabant that takes the least time under Tobler's hiking function on the 30 m terrain, and report its length, climb and time. These are proposed routes with access unconfirmed, not surveyed paths."
     }
   ]
 }

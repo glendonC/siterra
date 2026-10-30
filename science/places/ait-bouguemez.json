@@ -2,7 +2,7 @@
   "placeId": "ait_bouguemez",
   "title": "Ait Bouguemez valley catchment",
   "note": "Place configuration read by the long-record pipeline scripts. Everything that is specific to one place lives here; the scripts hold none of it. A value changed here after a result was read is a new configuration revision labelled post hoc in the recipe result.",
-  "configRevision": 6,
+  "configRevision": 7,
   "revisions": [
     {"revision": 1, "date": "2026-10-28", "change": "First configuration: geometry, strata, DEM, rainfall window, restrend_long_record and snow_cover_by_band."},
     {"revision": 2, "date": "2026-10-28", "change": "Added landCover, pixel_trend_long_record and season_trend_long_record, written before any per-pixel slope, land-cover summary or June to September greenness value was computed. No value of revision 1 changed."},
@@ -13,6 +13,11 @@
    "revision": 6,
    "date": "2026-10-29",
    "change": "Added optical_visibility_by_band (the elevation bands of the strata, the winter months, the period and the two validity definitions), written before this pipeline computed any per-band clear share; the lead's published winter figures for the upper band are named as the figures to reproduce. No value of revision 1 to 5 changed."
+  },
+  {
+   "revision": 7,
+   "date": "2026-10-29",
+   "change": "Added proposed_routes (the origin, the pixel target, the target rule's band set and thresholds, and the bundles whose assets it reads), written before this pipeline computed any route. No value of revision 1 to 6 changed."
   }
   ],
   "geometry": {
@@ -239,6 +244,20 @@
         "months": {"2023-12": 0.971, "2024-01": 0.947, "2024-02": 0.985}
       },
       "rationale": "The bands are the equal-area terciles of the strata bundle, so each holds a third of the catchment's 10 m cells. Winter is December to March because that is when snow covers the upper band and optical images of it are least often clear. The two validity definitions are stored side by side and neither is chosen after the numbers are read: any_date is the monthly median the NDVI bundle uses, three_dates is the stricter reading of the same monthly files."
+    },
+    "proposed_routes": {
+      "bundleId": "bundle_proposed_routes_ait_bouguemez",
+      "origin": {"id": "ctx_tabant", "name": "Tabant", "from": "data/case/context-features.json feature ctx_tabant (the acceptance point, lon -6.42007, lat 31.65873)", "lonLat": [-6.42007, 31.65873]},
+      "reads": {"relief": {"bundle": "bundle_relief_ait_bouguemez", "asset": "elevation_surface"},
+                "landCover": {"bundle": "bundle_land_cover_ait_bouguemez", "asset": "land_cover"},
+                "cells": {"bundle": "bundle_pixel_trend_long_record_ait_bouguemez", "asset": "trend_cells"},
+                "strata": {"bundle": "bundle_terrain_strata_ait_bouguemez", "asset": "strata"}},
+      "targets": {
+        "pixel": {"bundle": "bundle_pixel_anatomy_ait_bouguemez", "pixelId": "h17v05r4005c2178", "use": "the pixel centre (the proposed grassland transect of specimen C lies inside this pixel)"},
+        "perBand": {"bandSet": {"fromStrataLayer": "elevation_band"}, "cornersInsidePolygon": true, "landCoverGroup": "lc_grazing_possible", "landCoverShareMin": 0.8,
+                    "order": "straight-line distance from the origin to the MODIS cell centre, ascending, then row, then column", "reachable": true}
+      },
+      "rationale": "The field plan of the case has no coordinates (its field checks are not places), so the sites come from this rule, written by the science lane before any route was computed: the pixel the case already opens, and for each elevation band the grazing-land MODIS cell nearest to Tabant that the cost function can reach. A site is a place to ask about access, not a sampling design."
     }
   }
 }
