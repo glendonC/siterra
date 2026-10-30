@@ -14,17 +14,16 @@ import { loadCasePixel } from "../../lib/instruments/pixel/case";
 import type { PixelData } from "../../lib/instruments/pixel/data";
 import { PIXEL_DESIGN, mountPixel, type PixelLocator } from "../../lib/instruments/pixel/scene";
 import { placedStatements, type PlacedStatements } from "../../lib/instruments/placed-statements";
-import { VALLEY_FIXTURES, json, trendCellsSchema } from "../../lib/instruments/valley/fixtures";
+import { drawnAsset, readJsonAsset } from "../../lib/instruments/listing";
+import { bandLimitsOf } from "../../lib/land/record";
+import { trendCellsFrom } from "../../lib/overview/footprint";
 import { useShellSources } from "./ShellContext";
 import styles from "./InstrumentPixelAnatomy.module.css";
 import { useInstrument } from "./InstrumentRecords";
 
 export function InstrumentPixelAnatomy({
-  valley = VALLEY_FIXTURES,
   state = "measured",
 }: {
-  /** The valley fixtures: the trend cells the locator draws. */
-  valley?: string;
   /** The model's opening shares: as measured, or the bundle's example shift. */
   state?: "measured" | "shifted";
 }) {
@@ -36,6 +35,9 @@ export function InstrumentPixelAnatomy({
   } | null>(null);
   const [loadFailed, setFailed] = useState(false);
   const record = useInstrument("pixel_anatomy");
+  // the locator's trend cells: the pixel spec draws none yet, so the layer stack spec's trend_cells are read
+  const stack = useInstrument("layer_stack");
+  const cellsFrom = stack.status === "ready" ? stack.view : null;
   // its credits sit behind the shell's S; the data's short names stay visible
   useShellSources({
     lines: [en["instrument.pixel.credit"].text, `${en["instrument.credit.dem"].text}.`],
@@ -54,12 +56,15 @@ export function InstrumentPixelAnatomy({
   const descriptionId = useId();
 
   useEffect(() => {
-    if (!view || !snapshot) return;
+    if (!view || !snapshot || !cellsFrom) return;
     const ac = new AbortController();
     const p = view.spec.parameters;
+    const get = (input: string, init?: RequestInit) => fetch(input, init);
     Promise.all([
-      loadCasePixel(view, (input, init) => fetch(input, init), ac.signal),
-      json(`${valley}trend-cells.json`, trendCellsSchema, ac.signal),
+      loadCasePixel(view, get, ac.signal),
+      readJsonAsset(cellsFrom, drawnAsset(cellsFrom, "trend_cells"), get, ac.signal).then(
+        trendCellsFrom,
+      ),
     ]).then(
       ([{ pixel, ring }, trend]) => {
         const display = p.kind === "pixel_anatomy" ? (p.contextDisplay ?? []) : [];
@@ -67,7 +72,27 @@ export function InstrumentPixelAnatomy({
           snapshot,
           display.map((d, i) => ({ id: String(i), display: d })),
         );
-        setLoaded({ pixel, statements, locator: { cells: trend.cells, ring } });
+        // the pixel's band is named by the record's lower limit; without it the page cannot be drawn
+        const limits = bandLimitsOf(snapshot);
+        if (!limits) {
+          console.error("The record holds no two elevation band limits");
+          setFailed(true);
+          return;
+        }
+        setLoaded({
+          pixel,
+          statements,
+          locator: {
+            cells: trend.cells,
+            ring,
+            period: trend.period,
+            bandTop: limits[0],
+            scale: {
+              domain: Math.max(...trend.display_scale.domain_per_decade.map(Math.abs)),
+              neutral: trend.display_scale.neutral_per_decade,
+            },
+          },
+        });
       },
       () => {
         if (!ac.signal.aborted) setFailed(true);
@@ -76,7 +101,7 @@ export function InstrumentPixelAnatomy({
     return () => {
       ac.abort();
     };
-  }, [view, snapshot, valley]);
+  }, [view, snapshot, cellsFrom]);
 
   useEffect(() => {
     const stage = stageRef.current;

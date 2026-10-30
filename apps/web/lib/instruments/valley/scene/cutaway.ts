@@ -9,7 +9,6 @@ import { PerspectiveCamera, Vector3 } from "three";
 import { smoothRing } from "../../../stage/smooth";
 import { modelColours, obsidian, sheetColours } from "../../../theme/obsidian";
 import type { CutawayData } from "../cutaway-data";
-import { BAND_LIMITS_M } from "../fixtures";
 import { makeFrame, makeHeightSampler, type Vec3 } from "../frame";
 import { openRing, signedArea, type Point } from "../geometry";
 import {
@@ -24,12 +23,11 @@ import {
 import { lonLatToUtm } from "../utm";
 import { createStage, viewBack, type Stage } from "./stage";
 import { contactShadow, createRelief, createWall, lightFrom } from "./terrain";
-import { heightTexture, loadDataTexture } from "./textures";
+import { landFrame } from "../../../land/geometry";
+import { bitmapTexture, heightTexture } from "./textures";
 
 /** Vertical exaggeration of the model; the view states it. */
 export const CUTAWAY_EXAG = 2.5;
-/** Plinth base elevation (m), below the catchment's lowest point of 1,465 m. */
-const BASE = 1200;
 /** The size the view was solved at, in CSS px; other sizes scale the picture to fit. */
 export const CUTAWAY_DESIGN = { width: 1440, height: 900 } as const;
 /** Camera elevation above the horizon and vertical field of view, degrees, as specimen B. */
@@ -37,9 +35,29 @@ const ELEVATION = 9;
 const FOV = 26;
 /** The block's region at the design size: about 60 per cent of the frame width, centred a little low. */
 const FIT = { width: 880, cx: 712, cy: 474, maxHeight: 600 };
-/** The elevation ruler: ticks every 100 m from 1,300 m to its top, long ones every 500 m, labels at these. */
-const RULER = { from: 1300, top: 3300, step: 100 };
-export const RULER_LABELS = [1500, 2000, 2500, 3000] as const;
+/**
+ * The elevation ruler for a section: from one tick over the plinth's base to the section's highest point rounded up,
+ * labelled at the roundest step that gives three to six labels (500 m on the valley: 1,500 to 3,000 m), with ticks
+ * at a fifth of it, the labelled ones long.
+ */
+export function cutawayRuler(data: Pick<CutawayData, "catchment" | "range" | "transect">): {
+  base: number;
+  from: number;
+  top: number;
+  step: number;
+  every: number;
+  labels: number[];
+} {
+  const base = landFrame(data.catchment.ring, data.range).base;
+  const high = Math.max(...data.transect.h);
+  const span = Math.max(high - base, 1);
+  const every = [100, 200, 250, 500, 1000, 2000].find((s) => span / s <= 6) ?? 5000;
+  const step = every / 5;
+  const top = Math.ceil(high / step) * step;
+  const labels: number[] = [];
+  for (let e = Math.ceil((base + step) / every) * every; e <= top; e += every) labels.push(e);
+  return { base, from: base + step, top, step, every, labels };
+}
 /** How far (km) the ruler stands north of the section's end, and its ticks' lengths. */
 const RULER_OFFSET = 0.35;
 const TICK = { long: 0.42, short: 0.2 };
@@ -76,15 +94,12 @@ export interface CutawayScene {
   dispose(): void;
 }
 
-export async function mountCutaway(
-  canvas: HTMLCanvasElement,
-  data: CutawayData,
-  base: string,
-  signal?: AbortSignal,
-): Promise<CutawayScene> {
-  const landcover = await loadDataTexture(`${base}landcover-10m.png`, signal);
+function buildCutaway(canvas: HTMLCanvasElement, data: CutawayData): CutawayScene {
+  const landcover = bitmapTexture(data.landcover);
   const { meta, relief: H, catchment, rivers, transect: line, places } = data;
   const g = meta.relief;
+  const RULER = cutawayRuler(data);
+  const BASE = RULER.base;
   const frame = makeFrame(meta.frame, { exag: CUTAWAY_EXAG, base: BASE });
   const sample = makeHeightSampler(H, g);
   const hTex = heightTexture(H, g);
@@ -118,13 +133,15 @@ export async function mountCutaway(
     cover: landcover,
     coverA: 0.62,
     bandLines: 0.5,
+    limits: data.limits,
   });
   relief.uniforms.uCut.value.set(...cut.plane, 1);
   scene.add(relief.mesh);
   const ring = openRing(smoothRing(catchment.ring, 2)).map(([E, N]): Point => [E, N]);
   const outward = signedArea(ring) > 0 ? -1 : 1;
   const runs = runsEastOf(ring, sideEN);
-  for (const r of runs) scene.add(createWall(r, sample, frame, { outward, light }));
+  for (const r of runs)
+    scene.add(createWall(r, sample, frame, { outward, light, limits: data.limits }));
   const eastXZ = ring
     .map(([E, N]): Point => [frame.x(E), frame.z(N)])
     .filter(([x, z]) => cut.side(x, z) >= -0.05);
@@ -163,6 +180,7 @@ export async function mountCutaway(
   scene.add(
     createWall(prof, sample, frame, {
       light,
+      limits: data.limits,
       albedo: modelColours.sectionAlbedo,
       bandTint: modelColours.sectionBandTint,
       lineA: 0.08,
@@ -220,7 +238,7 @@ export async function mountCutaway(
   const rN = frame.N(rulerAt[1]);
   const ruler: Vec3[][] = [[frame.v(rE, rN, BASE), frame.v(rE, rN, RULER.top)]];
   for (let e = RULER.from; e <= RULER.top; e += RULER.step) {
-    const tip = along(rulerAt, -(e % 500 === 0 ? TICK.long : TICK.short));
+    const tip = along(rulerAt, -(e % RULER.every === 0 ? TICK.long : TICK.short));
     ruler.push([frame.v(rE, rN, e), frame.v(frame.E(tip[0]), frame.N(tip[1]), e)]);
   }
   scene.add(lines.lines(ruler, { color: modelColours.catchmentLine, opacity: 0.8, width: 1 }));
@@ -239,7 +257,9 @@ export async function mountCutaway(
       if (sideEN([E, N]) < 0 || !pointInRing(ring, E, N)) continue;
       fitPts.push(frame.v(E, N, H[j * g.width + i] ?? 0));
     }
-  const target: Vec3 = [(pN[0] + pS[0]) / 2, frame.y(2200), (pN[1] + pS[1]) / 2];
+  // the view turns a little under the ruler's middle height (specimen B's 2,200 m on the valley)
+  const pivot = BASE + 0.476 * (RULER.top - BASE);
+  const target: Vec3 = [(pN[0] + pS[0]) / 2, frame.y(pivot), (pN[1] + pS[1]) / 2];
   const { distance, shift, box: fitBox } = fitView(fitPts, target, cut.faceBearing);
 
   // the words' anchors
@@ -252,7 +272,7 @@ export async function mountCutaway(
   const named = places.places[0];
   let place: CutawayMarks["place"] = null;
   if (named) {
-    const [E, N] = lonLatToUtm(named.lonLat[0], named.lonLat[1], 29);
+    const [E, N] = lonLatToUtm(named.lonLat[0], named.lonLat[1], data.zone);
     const near = nearestSample(line, E, N);
     if (near.offset_m <= PLACE_ON_LINE_M)
       place = {
@@ -265,12 +285,12 @@ export async function mountCutaway(
   const marks: CutawayMarks = {
     southBase: v(sE, sN, BASE),
     southTop: v(sE, sN, sH),
-    southLimits: [v(sE, sN, BAND_LIMITS_M[0]), v(sE, sN, BAND_LIMITS_M[1])],
+    southLimits: [v(sE, sN, data.limits[0]), v(sE, sN, data.limits[1])],
     northBase: v(nE, nN, BASE),
     highSlope: v(line.E[k] ?? 0, line.N[k] ?? 0, line.h[k] ?? 0),
     place,
     floorAnchor: place?.top ?? v(line.E[low] ?? 0, line.N[low] ?? 0, line.h[low] ?? 0),
-    ruler: RULER_LABELS.map((e) => ({
+    ruler: RULER.labels.map((e) => ({
       elevation: e,
       at: v(frame.E(labelTip[0]), frame.N(labelTip[1]), e),
     })),
@@ -306,6 +326,11 @@ export async function mountCutaway(
       for (const t of [hTex, landcover]) t.dispose();
     },
   };
+}
+
+/** Builds the scene on the next tick; a failure to build rejects. */
+export function mountCutaway(canvas: HTMLCanvasElement, data: CutawayData): Promise<CutawayScene> {
+  return Promise.resolve().then(() => buildCutaway(canvas, data));
 }
 
 /**

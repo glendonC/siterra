@@ -1,4 +1,4 @@
-// The line the range name sits on: the High Atlas crest found in the world grid (the highest smoothed cell
+// The line the range name sits on: the crest of the range round the case found in the world grid (the highest smoothed cell
 // in each column of longitude), fitted with a parabola and moved to pass through the case, so the name
 // clears the case ring at every zoom. Ported from the design lane's hero study A4 (app4.js).
 
@@ -28,8 +28,14 @@ export function fit2(pts: [number, number][]): [number, number, number] {
   return [det(col(0)) / D, det(col(1)) / D, det(col(2)) / D];
 }
 
-/** The highest 5 x 5 smoothed cell in each 0.2 degree column from 9.4 W to 4.0 W, between 30.2 and 33.0 N. */
-export function findCrest(world: Grid): [number, number][] {
+/**
+ * The highest 5 x 5 smoothed cell in each 0.2 degree column of a box round the case (on the first case 9.4 W to
+ * 4.0 W, 30.2 to 33.0 N). It assumes a range that runs east to west, as the High Atlas does.
+ */
+export function findCrest(
+  world: Grid,
+  around: { lon: number; lat: number } = { lon: -6.5372222, lat: 31.6377778 },
+): [number, number][] {
   const cell = 360 / world.w;
   const elevAt = (lon: number, lat: number) => {
     const i = Math.round((lon + 180) / cell - 0.5);
@@ -41,10 +47,15 @@ export function findCrest(world: Grid): [number, number][] {
     );
   };
   const crest: [number, number][] = [];
-  for (let lon = -9.4; lon <= -4.0 + 1e-6; lon += 0.2) {
-    let bl = 31;
+  // the box searched round the case: on the first case, -9.4 to -4.0 east and 30.2 to 33.0 north (the High Atlas)
+  const w = around.lon - 2.8622222;
+  const e = around.lon + 2.5377778;
+  const s = around.lat - 1.4377778;
+  const n = around.lat + 1.3622222;
+  for (let lon = w; lon <= e + 1e-6; lon += 0.2) {
+    let bl = around.lat;
     let bv = -1e9;
-    for (let lat = 30.2; lat <= 33.0; lat += 0.04) {
+    for (let lat = s; lat <= n; lat += 0.04) {
       let sum = 0;
       for (let a = -2; a <= 2; a++)
         for (let b = -2; b <= 2; b++) sum += elevAt(lon + a * cell, lat + b * cell);

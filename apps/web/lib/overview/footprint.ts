@@ -8,11 +8,15 @@
 import { z } from "zod";
 import { cssColour, pixelColours as C } from "../theme/obsidian";
 import { lonLatToUtm } from "../instruments/valley/utm";
+import type { TrendCells } from "../instruments/valley/fixtures";
 import { ramp } from "../instruments/valley/palette";
 
 export const trendCellsSchema = z.object({
   fields: z.array(z.string()),
   count: z.number().int(),
+  period: z.tuple([z.number().int(), z.number().int()]).optional(),
+  crs: z.string().optional(),
+  median_slope_per_decade: z.number().optional(),
   display_scale: z.object({
     domain_per_decade: z.tuple([z.number(), z.number()]),
     neutral_per_decade: z.number(),
@@ -21,7 +25,7 @@ export const trendCellsSchema = z.object({
 });
 
 export interface SlopeCell {
-  /** Four corners in EPSG:32629. */
+  /** Four corners in the case's UTM metres. */
   corners: [number, number][];
   slope: number;
 }
@@ -83,19 +87,41 @@ const rainSchema = z.object({
 
 export interface RainCell {
   id: string;
-  /** Its ring in EPSG:32629. */
+  /** Its ring in the case's UTM metres. */
   ring: [number, number][];
   /** Share of the cell inside the catchment (0 to 1). */
   inside: number;
 }
 
 /** The rainfall layer's CHIRPS cells as rings in the model's projection, with the share of each inside. */
-export function rainCellsFrom(json: unknown): RainCell[] {
+export function rainCellsFrom(json: unknown, zone: number): RainCell[] {
   return rainSchema.parse(json).features.map((f) => ({
     id: f.properties.cell_id,
     ring: (f.geometry.coordinates[0] ?? []).map(([lon, lat]) =>
-      lonLatToUtm(lon ?? Number.NaN, lat ?? Number.NaN, 29),
+      lonLatToUtm(lon ?? Number.NaN, lat ?? Number.NaN, zone),
     ),
     inside: f.properties.fraction_inside,
   }));
+}
+
+/**
+ * The trend cells as the layer stack and the pixel's locator draw them (the shape of the valley fixture's
+ * trend-cells.json): the record's period, its fixed display scale, the median, and per cell its four corners then its
+ * slope, read from the asset's own field names.
+ */
+export function trendCellsFrom(json: unknown): TrendCells {
+  const t = trendCellsSchema.parse(json);
+  const s = slopeCellsFrom(json);
+  if (!t.period) throw new Error("trend_cells states no period");
+  if (t.median_slope_per_decade === undefined) throw new Error("trend_cells states no median");
+  return {
+    period: t.period,
+    display_scale: t.display_scale,
+    count: t.count,
+    median: t.median_slope_per_decade,
+    cells: s.cells.map(
+      (c): TrendCells["cells"][number] =>
+        [...c.corners.flat(), c.slope] as TrendCells["cells"][number],
+    ),
+  };
 }

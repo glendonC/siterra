@@ -137,9 +137,13 @@ describe("transectFixture", () => {
         },
       },
     };
-    const t = transectFixture(samples, terrain, "tabant_meridian", [
-      { path: "data/bundles/x/transect-samples.json", sha256: "a".repeat(64) },
-    ]);
+    const t = transectFixture(
+      samples,
+      terrain,
+      "tabant_meridian",
+      [{ path: "data/bundles/x/transect-samples.json", sha256: "a".repeat(64) }],
+      29,
+    );
     const [E1, N1] = lonLatToUtm(-6.42007, 31.7087572, 29);
     expect(t.E[1]).toBe(Math.round(E1 * 10) / 10);
     expect(t.N[1]).toBe(Math.round(N1 * 10) / 10);

@@ -65,7 +65,9 @@ describe("transect.json", () => {
 
   it("is the S2 bundle's line, recomputed from its two files", () => {
     const [samples, terrain] = t.sources.map((s) => read(join(REPO, s.path)));
-    expect(t).toEqual(transectFixture(samples as never, terrain as never, t.transect, t.sources));
+    expect(t).toEqual(
+      transectFixture(samples as never, terrain as never, t.transect, t.sources, 29),
+    );
   });
 
   it("passes the section's place, as the case record places it, within PLACE_ON_LINE_M", () => {

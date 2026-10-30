@@ -4,6 +4,7 @@
 // MapLibre valley, which fades in where the study's valley block faded in (dive 2.5 to 3.1 s).
 
 import { ARRIVAL_POSE } from "../stage/arrival";
+import type { OrbitPose } from "../stage/camera";
 import { daylight } from "../theme/daylight";
 import { R_KM, localFrame, unit, type GlobeCamera, type Vec3 } from "./frame";
 import type { GlobeFrame } from "./renderer";
@@ -14,7 +15,7 @@ import {
   FOV,
   LIMB,
   LIMB_ACT,
-  V_GLOBE,
+  globeView,
   limbView,
   mixView,
   type View,
@@ -58,19 +59,24 @@ export function progress(
   return reduced ? clamp((t - t0) / 0.15) : ease(clamp((t - t0) / dur));
 }
 
-/** The dive's end: the approved arrival pose as a view (target height in the x2 frame, km). */
-export const V_END: View = {
-  lon: ARRIVAL_POSE.target.lon,
-  lat: ARRIVAL_POSE.target.lat,
-  tz: ARRIVAL_POSE.targetHeightM / 1000,
-  bearing: ARRIVAL_POSE.cameraBearingFromTargetDeg,
-  pitch: ARRIVAL_POSE.elevationDeg,
-  distance: ARRIVAL_POSE.distanceM / 1000,
-  fov: ARRIVAL_POSE.verticalFovDeg,
-  shiftX: 0,
-  shiftY: 0,
-  rows: 1,
-};
+/** An arrival pose as the dive's end view (target height in the x2 frame, km). */
+export function endView(pose: OrbitPose): View {
+  return {
+    lon: pose.target.lon,
+    lat: pose.target.lat,
+    tz: pose.targetHeightM / 1000,
+    bearing: pose.cameraBearingFromTargetDeg,
+    pitch: pose.elevationDeg,
+    distance: pose.distanceM / 1000,
+    fov: pose.verticalFovDeg,
+    shiftX: 0,
+    shiftY: 0,
+    rows: 1,
+  };
+}
+
+/** The dive's end on the valley: the approved arrival pose (tests; a case's own comes from lib/land/arrival-pose). */
+export const V_END: View = endView(ARRIVAL_POSE);
 
 export interface GlobeState {
   view: View;
@@ -104,15 +110,22 @@ export function globeStateAt(
   m: Moments,
   reduced = false,
   outlet: { lon: number; lat: number } = { lon: -6.5372222, lat: 31.6377778 },
+  end: View = V_END,
 ): GlobeState {
   const p = (t0: number | undefined, dur: number, ease = ARRIVE) =>
     progress(t, t0, dur, ease, reduced);
   const beats = m.beats;
-  let view = limbView(LIMB[0]);
+  // the opening and the globe page stand round the case's own place
+  const vGlobe = globeView(outlet);
+  let view = limbView(LIMB[0], outlet);
   for (let i = 1; i < LIMB.length; i++)
-    view = mixView(view, limbView(LIMB[i] ?? LIMB_ACT), p((beats[i] ?? Infinity) - 0.2, 1.6, CAM));
-  view = mixView(view, limbView(LIMB_ACT), p(m.action, 1.6, CAM));
-  view = mixView(view, V_GLOBE, p(m.press, TURN_S, CAM));
+    view = mixView(
+      view,
+      limbView(LIMB[i] ?? LIMB_ACT, outlet),
+      p((beats[i] ?? Infinity) - 0.2, 1.6, CAM),
+    );
+  view = mixView(view, limbView(LIMB_ACT, outlet), p(m.action, 1.6, CAM));
+  view = mixView(view, vGlobe, p(m.press, TURN_S, CAM));
 
   const u = m.dive === undefined ? -1 : t - m.dive;
   const diving = u >= 0;
@@ -122,12 +135,12 @@ export function globeStateAt(
     const toCase = p(m.dive, 1.6, CAM);
     const tilt = p((m.dive ?? 0) + 2.8, 1.6, CAM);
     view = {
-      lon: lerp(lerp(V_GLOBE.lon, outlet.lon, toCase), V_END.lon, tilt),
-      lat: lerp(lerp(V_GLOBE.lat, outlet.lat, toCase), V_END.lat, tilt),
-      tz: lerp(0, V_END.tz, tilt),
-      bearing: lerp(180, V_END.bearing, tilt),
-      pitch: lerp(90, V_END.pitch, tilt),
-      distance: Math.exp(lerp(Math.log(V_GLOBE.distance), Math.log(V_END.distance), s)),
+      lon: lerp(lerp(vGlobe.lon, outlet.lon, toCase), end.lon, tilt),
+      lat: lerp(lerp(vGlobe.lat, outlet.lat, toCase), end.lat, tilt),
+      tz: lerp(0, end.tz, tilt),
+      bearing: lerp(180, end.bearing, tilt),
+      pitch: lerp(90, end.pitch, tilt),
+      distance: Math.exp(lerp(Math.log(vGlobe.distance), Math.log(end.distance), s)),
       fov: FOV,
       shiftX: 0,
       shiftY: 0,

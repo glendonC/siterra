@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { instrumentOf } from "../listing";
-import { bundleFiles, seed, seedListing } from "../seed-listing";
+import { bundleFiles, seed, seedListing, seedTerrain } from "../seed-listing";
 import { loadCutawayData, placesSchema } from "./cutaway-data";
 import { catchmentSchema, figuresSchema, riversSchema, snowSchema } from "./fixtures";
 import { cutawayTransectSchema } from "./transect";
@@ -27,7 +27,7 @@ describe("loadCutawayData", () => {
     vi.stubGlobal("fetch", serve);
     const view = instrumentOf(seedListing, "cross_section");
     if (view === undefined) throw new Error("no cross section in the seed");
-    const d = await loadCutawayData(view, seed, BASE, serve);
+    const d = await loadCutawayData(view, seed, [], serve, undefined, seedTerrain);
     expect(d.transect).toEqual(cutawayTransectSchema.parse(fixture("transect.json")));
     expect(d.figures.season_trend).toEqual(
       figuresSchema.parse(fixture("figures.json")).season_trend,
@@ -42,7 +42,7 @@ describe("loadCutawayData", () => {
     vi.stubGlobal("fetch", serve);
     const view = instrumentOf(seedListing, "cross_section");
     if (view === undefined) throw new Error("no cross section in the seed");
-    const d = await loadCutawayData(view, seed, BASE, serve);
+    const d = await loadCutawayData(view, seed, [], serve, undefined, seedTerrain);
     const old = riversSchema.parse(fixture("rivers.json"));
     const byOrder = (r: { reaches: { order: number }[] }) =>
       [1, 2, 3, 4, 5].map((o) => r.reaches.filter((x) => x.order === o).length);

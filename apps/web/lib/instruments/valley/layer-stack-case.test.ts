@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { instrumentOf } from "../listing";
-import { bundleFiles, seed, seedListing } from "../seed-listing";
+import { bundleFiles, seed, seedListing, seedTerrain } from "../seed-listing";
 import { catchmentSchema, rainCellsSchema, snowSchema } from "./fixtures";
 import { loadLayerStackData } from "./layer-stack-data";
 
@@ -26,7 +26,7 @@ describe("loadLayerStackData", () => {
     vi.stubGlobal("fetch", serve);
     const view = instrumentOf(seedListing, "layer_stack");
     if (view === undefined) throw new Error("no layer stack in the seed");
-    const d = await loadLayerStackData(view, seed, BASE, serve);
+    const d = await loadLayerStackData(view, seed, serve, undefined, seedTerrain);
     expect(d.catchment.ring).toEqual(catchmentSchema.parse(fixture("catchment.json")).ring);
     expect(d.rain).toEqual(rainCellsSchema.parse(fixture("rain-cells.json")));
     expect(d.snow).toEqual(snowSchema.parse(fixture("snow.json")));

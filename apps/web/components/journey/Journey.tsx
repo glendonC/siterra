@@ -7,18 +7,19 @@
 // the old arrival's rail, cards, legend and notices do not render here.
 
 import type * as maplibregl from "maplibre-gl";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { en, format } from "../../lib/copy/en";
 import { crestCurve, findCrest } from "../../lib/globe/crest";
 import { viewToMapCamera } from "../../lib/globe/drive";
 import { R_KM, globeCamera, project } from "../../lib/globe/frame";
 import { polygonPath, rangePath, ringPoints, ringRho } from "../../lib/globe/overlay";
-import { OUTLET } from "../../lib/stage/arrival";
 import { unit } from "../../lib/globe/frame";
 import { widthFitScale } from "../../lib/stage/camera";
 import { loadGlobe, type GlobeAssets } from "../../lib/globe/grids";
 import { GlobeRenderer } from "../../lib/globe/renderer";
-import { FADE_V, KEY, globeStateAt, sunFor, type Moments } from "../../lib/globe/timeline";
+import { KEY, endView, globeStateAt, sunFor, type Moments } from "../../lib/globe/timeline";
+import { arrivalPose, centreOf } from "../../lib/land/arrival-pose";
+import { bandLimitsOf } from "../../lib/land/record";
 import { Opening } from "../opening/Opening";
 import { GlobePage } from "./GlobePage";
 import type { CaseSnapshot } from "@siterra/contracts";
@@ -61,10 +62,18 @@ export function Journey({
   const rangeGroup = useRef<SVGTextElement>(null);
   const casePoint = useRef<HTMLDivElement>(null);
   const caseCard = useRef<HTMLDivElement>(null);
-  // the case's place on the sphere: its outlet from the record (the stored outlet only when the record has none)
-  const outlet = arrival.land.outlet ?? OUTLET;
+  // the case's place on the sphere: its outlet from the record, else its catchment's centre; the dive ends on the
+  // arrival pose made from the case's own outline and band limits, and the land fades to paper round its centre
+  const outline = arrival.catchment.geometry.coordinates[0] ?? [];
+  const centre = centreOf(outline);
+  const outlet = arrival.land.outlet ?? centre;
   const outletRef = useRef(outlet);
   outletRef.current = outlet;
+  const pose = useMemo(() => arrivalPose(outline, bandLimitsOf(snapshot)), [outline, snapshot]);
+  const endRef = useRef(endView(pose));
+  endRef.current = endView(pose);
+  const fadeRef = useRef(unit(centre.lon, centre.lat));
+  fadeRef.current = unit(centre.lon, centre.lat);
   const valleyName = useRef<HTMLDivElement>(null);
   const t0 = useRef(0);
   const moments = useRef<Moments>({ beats: [] });
@@ -140,7 +149,7 @@ export function Journey({
     loadGlobe(globeAssets)
       .then((g) => {
         renderer?.setGlobe(g);
-        curve = crestCurve(findCrest(g.world), outletRef.current);
+        curve = crestCurve(findCrest(g.world, outletRef.current), outletRef.current);
         ready = true;
       })
       .catch((e: unknown) => {
@@ -154,7 +163,7 @@ export function Journey({
       const h = el.clientHeight;
       const o = outletRef.current;
       const caseV = unit(o.lon, o.lat);
-      const s = globeStateAt(now(), moments.current, reduced, o);
+      const s = globeStateAt(now(), moments.current, reduced, o, endRef.current);
       // the same width fit as the arrival, on both renderers, so the cross-fade lines up
       const v = { ...s.view, distance: s.view.distance * widthFitScale(w, h) };
 
@@ -206,7 +215,7 @@ export function Journey({
           sun: sunFor(cam, s.sunK),
           key: KEY,
           caseV,
-          fadeC: FADE_V,
+          fadeC: fadeRef.current,
         });
         el.style.opacity = String(1 - s.valleyOpacity);
       }
@@ -276,6 +285,7 @@ export function Journey({
             areaLabel={arrival.areaLabel}
             places={arrival.land.places}
             outlet={arrival.land.outlet}
+            pose={pose}
             onMap={onMap}
             labels={false}
           />

@@ -18,10 +18,8 @@ import { en, format, type MessageId } from "../../lib/copy/en";
 import { splitFigure } from "../../lib/instruments/caption";
 import { metres, percent, signed } from "../../lib/instruments/format";
 import {
-  BAND_LIMITS_M,
   RAIN_REFERENCE_YEARS,
   SNOW_YEARS,
-  VALLEY_FIXTURES,
   WORLDCOVER,
   type LayerStackData,
 } from "../../lib/instruments/valley/fixtures";
@@ -143,8 +141,8 @@ function sheetKey(id: SheetId, d: LayerStackData): ReactNode {
           <i className={styles.limit} style={{ background: sheetColours.outline }} />
           <span>
             {format("instrument.sheet.bands.key", {
-              lower: metres(BAND_LIMITS_M[0]),
-              upper: metres(BAND_LIMITS_M[1]),
+              lower: metres(d.limits[0]),
+              upper: metres(d.limits[1]),
             })}
           </span>
         </>
@@ -160,7 +158,7 @@ const TURN: Record<string, [number, number]> = {
   ArrowDown: [0, -3],
 };
 
-export function InstrumentLayerStack({ base = VALLEY_FIXTURES }: { base?: string }) {
+export function InstrumentLayerStack() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const labelRefs = useRef<(HTMLDivElement | null)[]>([]);
   const rowRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -195,7 +193,7 @@ export function InstrumentLayerStack({ base = VALLEY_FIXTURES }: { base?: string
   useEffect(() => {
     if (!view || !snapshot) return;
     const ac = new AbortController();
-    loadLayerStackData(view, snapshot, base, (input, init) => fetch(input, init), ac.signal).then(
+    loadLayerStackData(view, snapshot, (input, init) => fetch(input, init), ac.signal).then(
       setData,
       (e: unknown) => {
         if (ac.signal.aborted) return;
@@ -206,7 +204,7 @@ export function InstrumentLayerStack({ base = VALLEY_FIXTURES }: { base?: string
     return () => {
       ac.abort();
     };
-  }, [view, snapshot, base]);
+  }, [view, snapshot]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -256,7 +254,7 @@ export function InstrumentLayerStack({ base = VALLEY_FIXTURES }: { base?: string
       }
     };
 
-    mountLayerStack(canvas, data, base, ac.signal).then(
+    mountLayerStack(canvas, data).then(
       (s) => {
         if (ac.signal.aborted) {
           s.dispose();
@@ -276,7 +274,7 @@ export function InstrumentLayerStack({ base = VALLEY_FIXTURES }: { base?: string
       scene?.dispose();
       sceneRef.current = null;
     };
-  }, [data, base, caption]);
+  }, [data, caption]);
 
   const onKeyDown = (e: KeyboardEvent<HTMLCanvasElement>) => {
     const scene = sceneRef.current;

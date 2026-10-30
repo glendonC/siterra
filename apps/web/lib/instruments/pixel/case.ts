@@ -5,6 +5,7 @@
 
 import type { InstrumentView } from "@siterra/contracts";
 import { bundleSource, drawnAsset, readJsonAsset } from "../listing";
+import { utmZoneOf } from "../../land/terrain";
 import { outlineRing } from "../valley/outline";
 import { pixelSchema, type PixelData } from "./data";
 import { pixelFixture } from "./fixture";
@@ -13,7 +14,9 @@ type Fetch = (input: string, init?: RequestInit) => Promise<Response>;
 
 export interface CasePixel {
   pixel: PixelData;
-  /** The catchment outline in EPSG:32629 metres. */
+  /** The UTM zone (north) of the pixel cells' CRS, which every coordinate here is in. */
+  zone: number;
+  /** The catchment outline in the zone's metres. */
   ring: [number, number][];
 }
 
@@ -38,5 +41,12 @@ export async function loadCasePixel(
   ]);
   const sources = refs.map((r) => bundleSource(view, r));
   const src = Object.fromEntries(sources.map((s, i) => [s.path, bodies[i]]));
-  return { pixel: pixelSchema.parse(pixelFixture(src, sources)), ring: outlineRing(geometry) };
+  // the pixel cells' grid states its CRS; the outline is drawn in the same zone
+  const crs = (bodies[1] as { grid?: { crs?: unknown } } | undefined)?.grid?.crs;
+  const zone = utmZoneOf(typeof crs === "string" ? crs : "");
+  return {
+    pixel: pixelSchema.parse(pixelFixture(src, sources)),
+    zone,
+    ring: outlineRing(geometry, zone),
+  };
 }

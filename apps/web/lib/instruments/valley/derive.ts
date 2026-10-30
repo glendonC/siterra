@@ -87,9 +87,9 @@ const SEP_MAY = ["09", "10", "11", "12", "01", "02", "03", "04", "05"];
 
 /**
  * Each CHIRPS cell's September to May mean rainfall, 1991 to 2020 (the sum of its nine monthly means, to 0.1 mm),
- * with its corners in EPSG:32629 metres (0.1 m) and its share of the catchment, from the rainfall cells GeoJSON.
+ * with its corners in the zone's UTM metres (0.1 m) and its share of the catchment, from the rainfall cells GeoJSON.
  */
-export function rainCellsFrom(geojson: unknown): RainCells {
+export function rainCellsFrom(geojson: unknown, zone: number): RainCells {
   const g = geojson as {
     features: {
       geometry: { coordinates: number[][][] };
@@ -107,7 +107,7 @@ export function rainCellsFrom(geojson: unknown): RainCells {
     return {
       id: p.cell_id,
       corners: ring.slice(0, 4).map(([lon, lat]) => {
-        const [e, n] = lonLatToUtm(lon ?? Number.NaN, lat ?? Number.NaN, 29);
+        const [e, n] = lonLatToUtm(lon ?? Number.NaN, lat ?? Number.NaN, zone);
         return [round(e, 1), round(n, 1)];
       }),
       sep_may_mm: round(

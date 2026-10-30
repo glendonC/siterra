@@ -19,7 +19,6 @@ import {
   type Texture,
 } from "three";
 import { modelColours } from "../../../theme/obsidian";
-import { BAND_LIMITS_M } from "../fixtures";
 import type { Frame, Grid } from "../frame";
 import { channels, hexRgb, type Rgb } from "../palette";
 
@@ -145,6 +144,8 @@ export function lightFrom(
 }
 
 export interface ReliefOptions {
+  /** The record's two elevation band limits (m), lowest first: the lines drawn at them. */
+  limits: readonly [number, number];
   hTex: DataTexture;
   light: Light;
   cover?: Texture;
@@ -221,7 +222,7 @@ export function createRelief(
     uTreeC: { value: hexVec(modelColours.coverTree) },
     uCropC: { value: hexVec(modelColours.coverCrop) },
     uLimitC: { value: rgbVec(channels(modelColours.bandLimit)) },
-    uLimits: { value: new Vector2(...BAND_LIMITS_M) },
+    uLimits: { value: new Vector2(...o.limits) },
     uBandLines: { value: o.bandLines ?? 0 },
   };
   const material = new ShaderMaterial({
@@ -288,6 +289,8 @@ void main() {
 `;
 
 export interface WallOptions {
+  /** The record's two elevation band limits (m), lowest first: the lines drawn at them. */
+  limits: readonly [number, number];
   light: Light;
   closed?: boolean;
   /** +1 or -1: which side of the polyline (its left normal) the wall faces. */
@@ -372,7 +375,7 @@ export function createWall(
     uBandA: { value: new Vector3(...(o.bandA ?? [0, 0, 0])) },
     uLimitA: { value: o.limitA ?? 0 },
     uLimitC: { value: rgbVec(channels(modelColours.wallLimit)) },
-    uLimits: { value: new Vector2(...BAND_LIMITS_M) },
+    uLimits: { value: new Vector2(...o.limits) },
   };
   const material = new ShaderMaterial({
     vertexShader: WALL_VERT,

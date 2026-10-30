@@ -15,11 +15,7 @@ import type { CaseSnapshot, InstrumentListing } from "@siterra/contracts";
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { en, format, type MessageId } from "../../lib/copy/en";
 import { instrumentOf } from "../../lib/instruments/listing";
-import {
-  SEASON_TREND_YEARS,
-  VALLEY_FIXTURES,
-  WORLDCOVER,
-} from "../../lib/instruments/valley/fixtures";
+import { SEASON_TREND_YEARS, WORLDCOVER } from "../../lib/instruments/valley/fixtures";
 import { clamp01, ease, labelAt, labelSide, lerp, wireTo } from "../../lib/overview/arc";
 import { shouldReopen } from "../../lib/overview/ask-line";
 import { loadOverviewData, type OverviewData } from "../../lib/overview/data";
@@ -238,14 +234,11 @@ function OverviewReady({
     const { layers, pixel, snapshot } = sources.current;
     if (!layers) return;
     const ac = new AbortController();
-    loadOverviewData(layers, pixel, snapshot, VALLEY_FIXTURES, undefined, ac.signal).then(
-      setData,
-      (e: unknown) => {
-        if (ac.signal.aborted) return;
-        console.error("Overview not loaded", e);
-        setFailed(true);
-      },
-    );
+    loadOverviewData(layers, pixel, snapshot, undefined, ac.signal).then(setData, (e: unknown) => {
+      if (ac.signal.aborted) return;
+      console.error("Overview not loaded", e);
+      setFailed(true);
+    });
     return () => {
       ac.abort();
     };

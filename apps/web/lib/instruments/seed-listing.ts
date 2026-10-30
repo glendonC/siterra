@@ -5,6 +5,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import type { CaseSnapshot, InstrumentListing } from "@siterra/contracts";
+import type { CaseTerrain } from "../land/terrain";
 
 const REPO = join(import.meta.dirname, "..", "..", "..", "..");
 const BUNDLES = join(REPO, "data", "bundles");
@@ -56,4 +57,40 @@ export const seedListing = {
 export const bundleFiles = (url: string) => {
   const [, , , bundleId = "", , ...path] = url.split("/");
   return Promise.resolve(new Response(readFileSync(join(BUNDLES, bundleId, ...path))));
+};
+
+/**
+ * A stand-in for readCaseTerrain in Node (no image decoder): the seed's relief and land cover headers and its relief
+ * grid as the loader reads them, with empty images. Enough for the loaders' tests, which check what they build
+ * around the land, not the land's pixels.
+ */
+export const seedTerrain = async (): Promise<CaseTerrain> => {
+  const { fillRelief, rasterHeader, terrainMeta } = await import("../land/terrain");
+  const rh = rasterHeader(
+    JSON.parse(
+      readFileSync(
+        join(BUNDLES, "bundle_relief_ait_bouguemez", "elevation-surface.bin.json"),
+        "utf8",
+      ),
+    ),
+  );
+  const ch = rasterHeader(
+    JSON.parse(
+      readFileSync(join(BUNDLES, "bundle_land_cover_ait_bouguemez", "land-cover.png.json"), "utf8"),
+    ),
+  );
+  const bytes = readFileSync(join(BUNDLES, "bundle_relief_ait_bouguemez", "elevation-surface.bin"));
+  const v = new Float32Array(
+    bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength),
+  );
+  const { heights, range } = fillRelief(v, rh.grid.width, rh.grid.height, rh.nodata);
+  const empty = { width: 0, height: 0, close: () => undefined } as unknown as ImageBitmap;
+  return {
+    zone: rh.zone,
+    meta: terrainMeta(rh.grid, ch.grid),
+    relief: heights,
+    range,
+    landcover: empty,
+    bands: null,
+  };
 };

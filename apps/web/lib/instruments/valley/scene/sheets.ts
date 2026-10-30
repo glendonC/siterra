@@ -19,7 +19,6 @@ import {
   type Texture,
 } from "three";
 import { sheetColours } from "../../../theme/obsidian";
-import { BAND_LIMITS_M } from "../fixtures";
 import type { Rect } from "../frame";
 import type { Point } from "../geometry";
 import type { Rgba } from "../palette";
@@ -188,6 +187,8 @@ export interface RasterContext {
   aRect: Rect;
   landcover: Texture;
   strata: Texture;
+  /** The record's two elevation band limits (m), lowest first. */
+  limits: readonly [number, number];
 }
 
 /** A sheet drawn from the 10 m rasters and the relief, inside the catchment only. */
@@ -215,7 +216,7 @@ export function rasterSheet(
     uTree: { value: hexVec(sheetColours.coverTree) },
     uCrop: { value: hexVec(sheetColours.coverCrop) },
     uLine: { value: hexVec(sheetColours.outline) },
-    uLimits: { value: new Vector2(...BAND_LIMITS_M) },
+    uLimits: { value: new Vector2(...ctx.limits) },
   };
   const material = new ShaderMaterial({
     vertexShader: RASTER_VERT,

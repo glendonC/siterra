@@ -23,7 +23,7 @@ export const cutawayTransectSchema = z
       .min(1),
     transect: z.string(),
     label: z.string(),
-    crs: z.literal("EPSG:32629"),
+    crs: z.string().regex(/^EPSG:326\d{2}$/),
     /** Distance along the line from its north end (m), easting and northing (m), elevation (m). */
     d: z.array(z.number()).min(2),
     E: z.array(z.number()),
@@ -57,23 +57,24 @@ interface TerrainBundle {
 
 const tenth = (v: number) => Math.round(v * 10) / 10;
 
-/** The cutaway's transect fixture from the bundle: samples projected to zone 29 north at 0.1 m. */
+/** The cutaway's transect from the bundle: samples projected to UTM zone `zone` north at 0.1 m. */
 export function transectFixture(
   samples: SamplesBundle,
   terrain: TerrainBundle,
   id: string,
   sources: { path: string; sha256: string }[],
+  zone: number,
 ): CutawayTransect {
   const s = samples.transects[id];
   const t = terrain.transects[id];
   if (!s || !t) throw new Error(`no transect ${id}`);
   const { distance_m, lon, lat, elevation_m } = s.columns;
-  const EN = lon.map((x, i) => lonLatToUtm(x, lat[i] ?? 0, 29));
+  const EN = lon.map((x, i) => lonLatToUtm(x, lat[i] ?? 0, zone));
   return {
     sources,
     transect: id,
     label: t.label,
-    crs: "EPSG:32629",
+    crs: `EPSG:326${String(zone).padStart(2, "0")}`,
     d: distance_m.slice(),
     E: EN.map(([E]) => tenth(E)),
     N: EN.map(([, N]) => tenth(N)),

@@ -24,7 +24,7 @@ export interface RouteLine {
   title: string;
   /** The record's words for the end of the line: "Candidate site chosen by a stated rule". */
   end: string;
-  /** Every vertex in EPSG:32629 metres to 0.1 m, with the height the record carries (m). */
+  /** Every vertex in the zone's UTM metres to 0.1 m, with the height the record carries (m). */
   pts: [number, number, number][];
 }
 
@@ -37,7 +37,7 @@ export function splitName(name: string): { title: string; end: string } {
 }
 
 /** The case's proposed routes, as its route_proposed context features hold them, in the record's order. */
-export function routesFrom(snapshot: CaseSnapshot): RouteLine[] {
+export function routesFrom(snapshot: CaseSnapshot, zone: number): RouteLine[] {
   const all: Feature[] = snapshot.records.contextFeatureRecords ?? [];
   return all
     .filter((f) => f.role === "route_proposed")
@@ -53,7 +53,7 @@ export function routesFrom(snapshot: CaseSnapshot): RouteLine[] {
         assetKey: b.assetKey,
         ...splitName(f.name),
         pts: g.coordinates.map(([lon, lat, h]): [number, number, number] => {
-          const [e, n] = lonLatToUtm(lon ?? Number.NaN, lat ?? Number.NaN, 29);
+          const [e, n] = lonLatToUtm(lon ?? Number.NaN, lat ?? Number.NaN, zone);
           return [tenth(e), tenth(n), h ?? Number.NaN];
         }),
       };

@@ -39,7 +39,7 @@ describe("slopeCellsFrom", () => {
 
 describe("rainCellsFrom", () => {
   it("reads the 33 CHIRPS cells as rings in the model's projection with the share of each inside", () => {
-    const r = rainCellsFrom(read("bundle_chirps_monthly_ait_bouguemez/rainfall-cells.geojson"));
+    const r = rainCellsFrom(read("bundle_chirps_monthly_ait_bouguemez/rainfall-cells.geojson"), 29);
     expect(r).toHaveLength(33);
     expect(r[0]?.id).toBe("chirps_r564_c3473");
     expect(r[0]?.inside).toBe(0.007896);
@@ -68,7 +68,7 @@ describe("rainCellsFrom", () => {
         pts.reduce((a, p) => a + (p[1] ?? 0), 0) / pts.length,
       ] as const;
     };
-    const r = rainCellsFrom(read("bundle_chirps_monthly_ait_bouguemez/rainfall-cells.geojson"));
+    const r = rainCellsFrom(read("bundle_chirps_monthly_ait_bouguemez/rainfall-cells.geojson"), 29);
     const CELL = 5600;
     for (const c of r) {
       const [x, y] = centre(c.ring);

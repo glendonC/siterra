@@ -57,16 +57,30 @@ export const distFor = (rpx: number) => R_KM * Math.sqrt(1 + (F_PX / rpx) ** 2) 
 /** Projection shift that puts the globe's centre cy CSS px from the top. */
 export const shiftFor = (cy: number) => 1 - (2 * cy) / 810;
 
-/** The opening's globe: a large limb under the type, North Africa and Arabia on it. */
+/**
+ * Where the globe looks, against the case's place on it (its outlet): the opening's large limb and the globe page
+ * keep the composition D4 drew round the first case (the opening on [8, -12] and the globe page on [-3, 25], the
+ * outlet at [-6.537, 31.638]), so every case stands where that one stood.
+ */
+const OPEN_FROM_CASE: [number, number] = [14.5372222, -43.6377778];
+const GLOBE_FROM_CASE: [number, number] = [3.5372222, -6.6377778];
+/** The first case's outlet, the views' default. */
+const FIRST_CASE = { lon: -6.5372222, lat: 31.6377778 } as const;
+type Place = { lon: number; lat: number };
+/** Latitude kept off the poles, longitude wrapped. */
+const at = (p: Place, [dl, dp]: [number, number]) => ({
+  lon: ((((p.lon + dl + 180) % 360) + 360) % 360) - 180,
+  lat: Math.max(-80, Math.min(80, p.lat + dp)),
+});
+
+/** The opening's globe: a large limb under the type. */
 export const R_OPEN = 1200;
-const OPEN_LL: [number, number] = [8, -12];
 /** The limb's top at each beat, CSS px from the top, then at the action. */
 export const LIMB = [504, 500, 496, 488] as const;
 export const LIMB_ACT = 424;
 
-export const limbView = (top: number): View => ({
-  lon: OPEN_LL[0],
-  lat: OPEN_LL[1],
+export const limbView = (top: number, place: Place = FIRST_CASE): View => ({
+  ...at(place, OPEN_FROM_CASE),
   tz: 0,
   bearing: 180,
   pitch: 90,
@@ -77,10 +91,9 @@ export const limbView = (top: number): View => ({
   rows: 0.55,
 });
 
-/** The globe page: North Africa at the centre, 470 CSS px radius. */
-export const V_GLOBE: View = {
-  lon: -3,
-  lat: 25,
+/** The globe page round a case's place, 470 CSS px radius. */
+export const globeView = (place: Place): View => ({
+  ...at(place, GLOBE_FROM_CASE),
   tz: 0,
   bearing: 180,
   pitch: 90,
@@ -89,7 +102,10 @@ export const V_GLOBE: View = {
   shiftX: 0,
   shiftY: 0,
   rows: 1,
-};
+});
+
+/** The globe page for the first case. */
+export const V_GLOBE: View = globeView(FIRST_CASE);
 
 const lerp = (a: number, b: number, k: number) => a + (b - a) * k;
 

@@ -1,6 +1,6 @@
 // The valley instruments' rivers and named places from the case's context features, as the specs name them
 // (drainageFeatureIds, placeFeatureIds): drainage lines by stream order with the heights they carry, and the
-// settlements, in the model frame's EPSG:32629 metres to 0.1 m.
+// settlements, in the model frame's UTM metres (the case's zone) to 0.1 m.
 
 import type { CaseSnapshot } from "@siterra/contracts";
 import type { Rivers } from "./fixtures";
@@ -20,7 +20,7 @@ function features(snapshot: CaseSnapshot, ids: readonly string[]): Feature[] {
 }
 
 /** Each drainage feature's lines as reaches of its stream order, every vertex with its height (m). */
-export function riversFrom(snapshot: CaseSnapshot, ids: readonly string[]): Rivers {
+export function riversFrom(snapshot: CaseSnapshot, ids: readonly string[], zone: number): Rivers {
   const reaches = features(snapshot, ids).flatMap((f) => {
     const order = f.streamOrder;
     const g = f.geometry as { type: string; coordinates: number[][][] };
@@ -29,7 +29,7 @@ export function riversFrom(snapshot: CaseSnapshot, ids: readonly string[]): Rive
     return g.coordinates.map((line) => ({
       order,
       pts: line.map(([lon, lat, h]): [number, number, number] => {
-        const [e, n] = lonLatToUtm(lon ?? Number.NaN, lat ?? Number.NaN, 29);
+        const [e, n] = lonLatToUtm(lon ?? Number.NaN, lat ?? Number.NaN, zone);
         return [tenth(e), tenth(n), h ?? Number.NaN];
       }),
     }));

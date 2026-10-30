@@ -18,7 +18,9 @@ describe("loadCasePixel", () => {
   it("builds the fixture's pixel and outline from the spec's assets", async () => {
     const view = instrumentOf(seedListing, "pixel_anatomy");
     if (view === undefined) throw new Error("no pixel anatomy in the seed");
-    const { pixel, ring } = await loadCasePixel(view, bundleFiles);
+    const { pixel, ring, zone } = await loadCasePixel(view, bundleFiles);
+    // the zone is the pixel cells' own CRS (EPSG:32629), not a constant
+    expect(zone).toBe(29);
     expect(pixel).toEqual(pixelSchema.parse(fixture("pixel/pixel.json")));
     expect(ring).toEqual(catchmentSchema.parse(fixture("valley/catchment.json")).ring);
   });

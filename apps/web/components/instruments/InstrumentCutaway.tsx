@@ -13,11 +13,11 @@ import { splitFigure } from "../../lib/instruments/caption";
 import { metres, percent, signed } from "../../lib/instruments/format";
 import { loadCutawayData, type CutawayData } from "../../lib/instruments/valley/cutaway-data";
 import type { Vec3 } from "../../lib/instruments/valley/frame";
-import { BAND_LIMITS_M, SNOW_YEARS, VALLEY_FIXTURES } from "../../lib/instruments/valley/fixtures";
+import { SNOW_YEARS } from "../../lib/instruments/valley/fixtures";
 import { snowColour } from "../../lib/instruments/valley/palette";
 import {
   CUTAWAY_EXAG,
-  RULER_LABELS,
+  cutawayRuler,
   mountCutaway,
   type CutawayScene,
 } from "../../lib/instruments/valley/scene/cutaway";
@@ -30,9 +30,9 @@ type BandId = "elevation_high" | "elevation_mid" | "elevation_low";
 /** Top to bottom, as they stand on the face. */
 const BANDS: readonly BandId[] = ["elevation_high", "elevation_mid", "elevation_low"];
 
-const bandName = (id: BandId) => {
-  const lower = metres(BAND_LIMITS_M[0]);
-  const upper = metres(BAND_LIMITS_M[1]);
+const bandName = (id: BandId, limits: readonly [number, number]) => {
+  const lower = metres(limits[0]);
+  const upper = metres(limits[1]);
   if (id === "elevation_high") return format("instrument.cutaway.band.high", { limit: upper });
   if (id === "elevation_mid") return format("instrument.cutaway.band.mid", { lower, upper });
   return format("instrument.cutaway.band.low", { limit: lower });
@@ -81,12 +81,7 @@ function dot(e: SVGCircleElement | null, x: number, y: number) {
   e?.setAttribute("cy", y.toFixed(1));
 }
 
-export function InstrumentCutaway({
-  base = VALLEY_FIXTURES,
-}: {
-  /** The valley fixtures the cutaway still reads: the relief. */
-  base?: string;
-}) {
+export function InstrumentCutaway() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const bandRefs = useRef<(HTMLDivElement | null)[]>([]);
   const bandLeaderRefs = useRef<(SVGLineElement | null)[]>([]);
@@ -119,6 +114,9 @@ export function InstrumentCutaway({
   const [placeName, setPlaceName] = useState<string | null>(null);
   const [loadFailed, setFailed] = useState(false);
   const record = useInstrument("cross_section");
+  // the cross section spec draws no land cover raster yet: the layer stack's is read in its place
+  const stack = useInstrument("layer_stack");
+  const landFrom = stack.status === "ready" ? stack.view : null;
   // an instrument the case holds no spec for cannot be drawn
   const failed = loadFailed || record.status === "failed" || record.status === "absent";
   const view = record.status === "ready" ? record.view : null;
@@ -130,18 +128,21 @@ export function InstrumentCutaway({
   useEffect(() => {
     if (!view || !snapshot) return;
     const ac = new AbortController();
-    loadCutawayData(view, snapshot, base, (input, init) => fetch(input, init), ac.signal).then(
-      setData,
-      (e: unknown) => {
-        if (ac.signal.aborted) return;
-        console.error("Cutaway not loaded", e);
-        setFailed(true);
-      },
-    );
+    loadCutawayData(
+      view,
+      snapshot,
+      landFrom ? [landFrom] : [],
+      (input, init) => fetch(input, init),
+      ac.signal,
+    ).then(setData, (e: unknown) => {
+      if (ac.signal.aborted) return;
+      console.error("Cutaway not loaded", e);
+      setFailed(true);
+    });
     return () => {
       ac.abort();
     };
-  }, [view, snapshot, base]);
+  }, [view, snapshot, landFrom]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -209,7 +210,7 @@ export function InstrumentCutaway({
       place(scaleRef.current, nb.x + 18, nb.y + 6, "left-top");
     };
 
-    mountCutaway(canvas, data, base, ac.signal).then(
+    mountCutaway(canvas, data).then(
       (s) => {
         if (ac.signal.aborted) {
           s.dispose();
@@ -230,7 +231,7 @@ export function InstrumentCutaway({
       scene?.dispose();
       sceneRef.current = null;
     };
-  }, [data, base, caption]);
+  }, [data, caption]);
 
   // the place's label appears after the scene has found it on the line; lay the words out again then
   useEffect(() => {
@@ -351,7 +352,7 @@ export function InstrumentCutaway({
               className={styles.band}
               data-band={id}
             >
-              <div className={styles.bandName}>{bandName(id)}</div>
+              <div className={styles.bandName}>{bandName(id, data.limits)}</div>
               <div className={styles.bandFig}>
                 <b>{signed(data.figures.season_trend[id].per_decade, 4)}</b>{" "}
                 {en["instrument.cutaway.band.unit"].text}
@@ -384,7 +385,7 @@ export function InstrumentCutaway({
               <span className={styles.chip}>{2}</span>
             </div>
           </div>
-          {BAND_LIMITS_M.map((e, i) => (
+          {data.limits.map((e, i) => (
             <div
               key={e}
               ref={(el) => {
@@ -395,7 +396,7 @@ export function InstrumentCutaway({
               {format("instrument.cutaway.metres", { value: metres(e) })}
             </div>
           ))}
-          {RULER_LABELS.map((e, i) => (
+          {cutawayRuler(data).labels.map((e, i) => (
             <div
               key={e}
               ref={(el) => {

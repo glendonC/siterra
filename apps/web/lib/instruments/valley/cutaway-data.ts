@@ -2,7 +2,8 @@
 // (transect samples and the drawn transect summary, built by the recompute-tested transectFixture), the band
 // trends, the snow shares and the catchment outline; the rivers and the place from the case's context features.
 // The two published statements are the spec's display texts with the sources of their Evidence (contracts 1.17.0).
-// Still from the valley fixtures: the relief (a GeoTIFF in the bundle, until its display asset lands).
+// The land from the drawn display assets (lib/land/terrain): the relief grid from this spec, the land cover raster
+// from the first given view that draws one (the cross section spec names none yet; the layer stack's does).
 
 import type { CaseSnapshot, InstrumentView } from "@siterra/contracts";
 import { z } from "zod";
@@ -10,17 +11,9 @@ import { bundleSource, drawnAsset, readJsonAsset } from "../listing";
 import { placedStatements, type PlacedStatements } from "../placed-statements";
 import { placesFrom, riversFrom, type Place } from "./context";
 import { seasonTrendFrom, snowFrom } from "./derive";
-import {
-  VALLEY_FIXTURES,
-  json,
-  loadRelief,
-  terrainMetaSchema,
-  type Catchment,
-  type Figures,
-  type Rivers,
-  type Snow,
-  type TerrainMeta,
-} from "./fixtures";
+import { bandLimitsOf } from "../../land/record";
+import { readCaseTerrain, type ReadTerrain, type ReliefRange } from "../../land/terrain";
+import { type Catchment, type Figures, type Rivers, type Snow, type TerrainMeta } from "./fixtures";
 import { outlineRing } from "./outline";
 import { cutawayTransectSchema, transectFixture, type CutawayTransect } from "./transect";
 
@@ -42,8 +35,15 @@ export const placesSchema = z.object({
 export type Places = z.infer<typeof placesSchema>;
 
 export interface CutawayData {
+  /** The UTM zone (north) of every coordinate here, from the relief's header. */
+  zone: number;
   meta: TerrainMeta;
   relief: Float32Array<ArrayBuffer>;
+  range: ReliefRange;
+  /** The land cover mask on the analysis grid (lib/land/terrain coverMask). */
+  landcover: ImageBitmap;
+  /** The record's two elevation band limits (m), lowest first (lib/land/record bandLimitsOf). */
+  limits: readonly [number, number];
   catchment: Pick<Catchment, "ring">;
   rivers: Rivers;
   snow: Snow;
@@ -56,13 +56,14 @@ export interface CutawayData {
 
 type Fetch = (input: string, init?: RequestInit) => Promise<Response>;
 
-/** The section line, band trends, snow and outline from the cross section spec; the rest from `base`. */
+/** The section line, band trends, snow, outline and relief from the cross section spec; land cover from `landFrom`. */
 export async function loadCutawayData(
   view: InstrumentView,
   snapshot: CaseSnapshot,
-  base = VALLEY_FIXTURES,
+  landFrom: readonly InstrumentView[] = [],
   fetchImpl: Fetch = (input, init) => fetch(input, init),
   signal?: AbortSignal,
+  readTerrain: ReadTerrain = readCaseTerrain,
 ): Promise<CutawayData> {
   const p = view.spec.parameters;
   if (p.kind !== "cross_section") throw new Error(`Not a cross section spec: ${p.kind}`);
@@ -72,9 +73,8 @@ export async function loadCutawayData(
   const summary = drawnAsset(view, "transect_summary");
   const read = (ref: Parameters<typeof readJsonAsset>[1]) =>
     readJsonAsset(view, ref, fetchImpl, signal);
-  const meta = await json(`${base}terrain-meta.json`, terrainMetaSchema, signal);
-  const [relief, samples, terrain, trends, snow, outline] = await Promise.all([
-    loadRelief(base, meta, signal),
+  const [land, samples, terrain, trends, snow, outline] = await Promise.all([
+    readTerrain([view, ...landFrom], fetchImpl, signal),
     read(p.profile),
     read(summary),
     read(p.bandTrends),
@@ -82,16 +82,25 @@ export async function loadCutawayData(
     read(drawnAsset(view, "catchment_outline")),
   ]);
   const transect = cutawayTransectSchema.parse(
-    transectFixture(samples as never, terrain as never, member, [
-      bundleSource(view, p.profile),
-      bundleSource(view, summary),
-    ]),
+    transectFixture(
+      samples as never,
+      terrain as never,
+      member,
+      [bundleSource(view, p.profile), bundleSource(view, summary)],
+      land.zone,
+    ),
   );
+  const limits = bandLimitsOf(snapshot);
+  if (!limits) throw new Error("The record holds no two elevation band limits");
   return {
-    meta,
-    relief,
-    catchment: { ring: outlineRing(outline) },
-    rivers: riversFrom(snapshot, p.drainageFeatureIds),
+    zone: land.zone,
+    limits,
+    meta: land.meta,
+    relief: land.relief,
+    range: land.range,
+    landcover: land.landcover,
+    catchment: { ring: outlineRing(outline, land.zone) },
+    rivers: riversFrom(snapshot, p.drainageFeatureIds, land.zone),
     snow: snowFrom(snow),
     figures: { season_trend: seasonTrendFrom(trends) },
     transect,

@@ -13,12 +13,12 @@ import { rainColour, trendRgba, type Rgba } from "../palette";
 import { RASTER_MODE, polyMesh, rasterSheet, sheetPlane } from "./sheets";
 import { createStage, type Stage } from "./stage";
 import { contactShadow, createRelief, createWall, lightFrom } from "./terrain";
-import { heightTexture, loadDataTexture } from "./textures";
+import { landFrame } from "../../../land/geometry";
+import { layerStackLayout } from "../../../land/layer-layout";
+import { bitmapTexture, heightTexture } from "./textures";
 
 /** Vertical exaggeration of the model; the view states it. */
 export const LAYER_STACK_EXAG = 1.5;
-/** Plinth base elevation (m), below the catchment's lowest point of 1,465 m. */
-const BASE = 1200;
 /** The size the layout was measured at, in CSS px; other sizes scale the view to fit. */
 export const LAYER_STACK_DESIGN = { width: 1440, height: 900 } as const;
 /** The five 500 m snow bands, low to high, and the month the snow sheet shows (February). */
@@ -51,19 +51,21 @@ export interface LayerStackScene {
   dispose(): void;
 }
 
-export async function mountLayerStack(
-  canvas: HTMLCanvasElement,
-  data: LayerStackData,
-  base: string,
-  signal?: AbortSignal,
-): Promise<LayerStackScene> {
-  const [landcover, strata] = await Promise.all([
-    loadDataTexture(`${base}landcover-10m.png`, signal),
-    loadDataTexture(`${base}strata-10m.png`, signal),
-  ]);
-  const { meta, relief: H, catchment, rivers, trend, rain, snow, layout: L } = data;
+function buildLayerStack(canvas: HTMLCanvasElement, data: LayerStackData): LayerStackScene {
+  if (!data.bands) throw new Error("the layer stack draws the elevation bands, and none were read");
+  const landcover = bitmapTexture(data.landcover);
+  const strata = bitmapTexture(data.bands);
+  const { meta, relief: H, catchment, rivers, trend, rain, snow } = data;
   const g = meta.relief;
-  const frame = makeFrame(meta.frame, { exag: LAYER_STACK_EXAG, base: BASE });
+  // the plinth's base, and the layout (specimen A's, carried to this land) from the land's own outline and heights
+  const lf = landFrame(catchment.ring, data.range);
+  const frame = makeFrame(meta.frame, { exag: LAYER_STACK_EXAG, base: lf.base });
+  const L = layerStackLayout(
+    catchment.ring.map(([E, N]): [number, number] => [frame.x(E), frame.z(N)]),
+    frame.y(data.range.max),
+    lf.bearing,
+    lf.kmScale,
+  );
   const sample = makeHeightSampler(H, g);
   const hTex = heightTexture(H, g);
   const aRect = frame.rect(meta.analysis);
@@ -75,10 +77,10 @@ export async function mountLayerStack(
   const { scene, lines } = stage;
 
   // the model
-  scene.add(createRelief(H, g, frame, landcover, aRect, { hTex, light }).mesh);
+  scene.add(createRelief(H, g, frame, landcover, aRect, { hTex, light, limits: data.limits }).mesh);
   const ring = openRing(smoothRing(catchment.ring, 2)).map(([E, N]): Point => [E, N]);
   const outward = signedArea(ring) > 0 ? -1 : 1;
-  scene.add(createWall(ring, sample, frame, { closed: true, outward, light }));
+  scene.add(createWall(ring, sample, frame, { closed: true, outward, light, limits: data.limits }));
   const footprint: Point[] = ring.map(([E, N]) => [frame.x(E), frame.z(N)]);
   scene.add(contactShadow(footprint, { blurPx: 30, alpha: 0.85, pad: 4 }));
   scene.add(
@@ -106,7 +108,7 @@ export async function mountLayerStack(
   const xs = plate.map((p) => p[0]);
   const zs = plate.map((p) => p[1]);
   const rasterRect: Rect = [Math.min(...xs), Math.min(...zs), Math.max(...xs), Math.max(...zs)];
-  const ctx = { hTex, grid: g, hRect, aRect, landcover, strata };
+  const ctx = { hTex, grid: g, hRect, aRect, landcover, strata, limits: data.limits };
   const scale = {
     domain: trend.display_scale.domain_per_decade[1],
     neutral: trend.display_scale.neutral_per_decade,
@@ -194,4 +196,12 @@ export async function mountLayerStack(
       for (const t of [hTex, landcover, strata]) t.dispose();
     },
   };
+}
+
+/** Builds the scene on the next tick; a failure to build rejects. */
+export function mountLayerStack(
+  canvas: HTMLCanvasElement,
+  data: LayerStackData,
+): Promise<LayerStackScene> {
+  return Promise.resolve().then(() => buildLayerStack(canvas, data));
 }

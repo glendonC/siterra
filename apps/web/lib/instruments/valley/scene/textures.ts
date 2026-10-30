@@ -22,14 +22,8 @@ export function heightTexture(H: Float32Array<ArrayBuffer>, g: Grid): DataTextur
   return t;
 }
 
-export async function loadDataTexture(url: string, signal?: AbortSignal): Promise<Texture> {
-  const r = await fetch(url, signal ? { signal } : {});
-  if (!r.ok) throw new Error(`${url}: ${String(r.status)}`);
-  const bitmap = await createImageBitmap(await r.blob(), {
-    colorSpaceConversion: "none",
-    premultiplyAlpha: "none",
-    imageOrientation: "none",
-  });
+/** A decoded raster whose bytes are data (lib/land/terrain's masks) as a texture; the bitmap stays the caller's. */
+export function bitmapTexture(bitmap: ImageBitmap): Texture {
   const t = new Texture(bitmap);
   t.flipY = false;
   t.colorSpace = NoColorSpace;

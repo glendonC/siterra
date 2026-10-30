@@ -27,6 +27,7 @@ import {
   VALLEY_ASSET_BOUNDS,
   widthFitScale,
   type MapCamera,
+  type OrbitPose,
 } from "../../lib/stage/camera";
 import { easeInOut, FLAT_MOVE_MS, flatCamera, mixCamera } from "../../lib/stage/flat";
 import { FlatFrame } from "./FlatFrame";
@@ -148,6 +149,7 @@ function syncInteractive(
   unlocked: boolean,
   flatMode: boolean,
   bounds: [number, number, number, number],
+  pose: OrbitPose,
 ): void {
   if (!unlocked) {
     m.setMinPitch(0);
@@ -163,7 +165,7 @@ function syncInteractive(
     m.touchPitch.disable();
     return;
   }
-  const maxZoom = maxZoomForDistance(ARRIVAL_POSE, m.getCanvas().clientHeight || 810);
+  const maxZoom = maxZoomForDistance(pose, m.getCanvas().clientHeight || 810);
   m.setMinZoom(MIN_VALLEY_ZOOM);
   m.setMaxZoom(maxZoom);
   m.setMinPitch(flatMode ? 0 : OBLIQUE_MIN_PITCH);
@@ -240,6 +242,8 @@ export interface ValleyStageProps {
   onMoved?: (moved: boolean) => void;
   /** Called when the map's compass bearing changes so the North instrument stays accurate. */
   onBearing?: (bearingDeg: number) => void;
+  /** The arrival camera (lib/land/arrival-pose for the case); the approved valley pose when none is given. */
+  pose?: OrbitPose;
 }
 
 export function ValleyStage({
@@ -257,6 +261,7 @@ export function ValleyStage({
   onArrive,
   onOutline,
   labels = true,
+  pose = ARRIVAL_POSE,
   names = true,
   flat = false,
   onFailed,
@@ -291,6 +296,8 @@ export function ValleyStage({
   // the beat's view, the flat reading, or the move between them
   const [view, setView] = useState<"oblique" | "toFlat" | "flat" | "toOblique">("oblique");
   const viewRef = useRef(view);
+  const poseRef = useRef(pose);
+  poseRef.current = pose;
   viewRef.current = view;
   /** The arrival camera, and the camera and relief the map shows now. */
   const homeRef = useRef<MapCamera | null>(null);
@@ -415,7 +422,7 @@ export function ValleyStage({
       if (labelsRef.current) {
         unlockedRef.current = true;
         setInteractive(true);
-        syncInteractive(m, true, flat, boundsRef.current);
+        syncInteractive(m, true, flat, boundsRef.current, poseRef.current);
       }
     }
     if (el && duration > 0) {
@@ -457,7 +464,7 @@ export function ValleyStage({
       if (settled && labelsRef.current) {
         unlockedRef.current = true;
         setInteractive(true);
-        syncInteractive(m, true, flat, boundsRef.current);
+        syncInteractive(m, true, flat, boundsRef.current, poseRef.current);
       }
     };
     if (duration === 0) step();
@@ -477,7 +484,7 @@ export function ValleyStage({
       settled && labels && !flightActiveRef.current && (view === "oblique" || view === "flat");
     unlockedRef.current = canInteract;
     setInteractive(canInteract);
-    syncInteractive(m, canInteract, view === "flat", boundsRef.current);
+    syncInteractive(m, canInteract, view === "flat", boundsRef.current, poseRef.current);
   }, [settled, labels, view]);
 
   // at arrival the outline is drawn crisp above the crest (below); the draped line serves the dive
@@ -523,7 +530,7 @@ export function ValleyStage({
         if (labelsRef.current) {
           unlockedRef.current = true;
           setInteractive(true);
-          syncInteractive(m, true, viewRef.current === "flat", boundsRef.current);
+          syncInteractive(m, true, viewRef.current === "flat", boundsRef.current, poseRef.current);
         }
       }
       setSettle("done");
@@ -765,7 +772,7 @@ export function ValleyStage({
         const p = m.getPitch();
         const b = m.getBearing();
         const flatMode = viewRef.current === "flat";
-        const maxZ = maxZoomForDistance(ARRIVAL_POSE, m.getCanvas().clientHeight || 810);
+        const maxZ = maxZoomForDistance(poseRef.current, m.getCanvas().clientHeight || 810);
         const nextCenter = clampCenter([c.lng, c.lat], boundsRef.current);
         const nextZoom = clampZoom(z, maxZ);
         const nextPitch = clampPitch(p, flatMode);
@@ -840,8 +847,8 @@ export function ValleyStage({
 
       const cam = orbitToMapCamera(
         {
-          ...ARRIVAL_POSE,
-          distanceM: ARRIVAL_POSE.distanceM * widthFitScale(el.clientWidth, el.clientHeight),
+          ...poseRef.current,
+          distanceM: poseRef.current.distanceM * widthFitScale(el.clientWidth, el.clientHeight),
         },
         el.clientHeight,
       );

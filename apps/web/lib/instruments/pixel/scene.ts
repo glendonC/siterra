@@ -8,7 +8,6 @@
 import type { InstrumentCaption } from "@siterra/contracts";
 import { en, format, type MessageId } from "../../copy/en";
 import { cssColour, obsidian, pixelColours as C } from "../../theme/obsidian";
-import { BAND_LIMITS_M } from "../valley/fixtures";
 import type { PlacedStatements } from "../placed-statements";
 import { change, day, fixed, metres, signed } from "../format";
 import type { PixelData } from "./data";
@@ -21,17 +20,44 @@ export const PIXEL_DESIGN = { width: 1440, height: 900 } as const;
 /** The June NDVI ramp's step breaks: a design choice the key states. */
 const NDVI_BREAKS = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6] as const;
 /**
- * The locator's frame: 40 m cells over the catchment in EPSG:32629 (as the specimen's), and its slope key: a neutral
- * middle within ±0.0025 NDVI per decade, each arm rising from the neutral to full colour at ±0.05.
+ * The locator's frame: 40 m cells over the catchment's outline with 400 m to spare on each side, snapped to the
+ * 40 m lattice (the specimen's frame for this case: 732800, 3517200, 962 x 761).
  */
-const LOCATOR = { origin_x: 732800, origin_y: 3517200, res_m: 40, width: 962, height: 761 };
-const SLOPE = { domain: 0.05, neutral: 0.0025 };
+export function locatorGrid(ring: readonly (readonly number[])[]): {
+  origin_x: number;
+  origin_y: number;
+  res_m: number;
+  width: number;
+  height: number;
+} {
+  const res = 40;
+  const pad = 400;
+  const xs = ring.map((p) => p[0] ?? Number.NaN);
+  const ys = ring.map((p) => p[1] ?? Number.NaN);
+  const origin_x = Math.floor((Math.min(...xs) - pad) / res) * res;
+  const origin_y = Math.ceil((Math.max(...ys) + pad) / res) * res;
+  return {
+    origin_x,
+    origin_y,
+    res_m: res,
+    width: Math.ceil((Math.max(...xs) + pad - origin_x) / res),
+    height: Math.ceil((origin_y - (Math.min(...ys) - pad)) / res),
+  };
+}
 
-/** The catchment's MODIS pixels (corners and March to June slope) and its outline, both in EPSG:32629. */
+/**
+ * The catchment's MODIS pixels (corners and March to June slope) and its outline, both in the case's UTM metres,
+ * with the trend cells' own period and fixed display scale (a neutral middle within ±neutral, each arm rising to full
+ * colour at ±domain).
+ */
 export interface PixelLocator {
   /** Per cell: four corners as E, N pairs, then the slope per decade. */
   cells: readonly (readonly number[])[];
   ring: readonly (readonly number[])[];
+  period: readonly [number, number];
+  scale: { domain: number; neutral: number };
+  /** The record's lower elevation band limit (m), the top of the pixel's band. */
+  bandTop: number;
 }
 
 const L = {
@@ -47,8 +73,6 @@ const L = {
   /** Two lines with the DEM notice, starting where the specimens' credit does (16 px under the command line). */
   creditY: 856,
 };
-/** The trend seasons of the pixel's record. */
-const SEASONS = [2000, 2025] as const;
 /** The bar's size and the readout's offset in 05. */
 const BAR = { w: 370, h: 24, readout: 400 };
 
@@ -189,7 +213,8 @@ export function mountPixel(
   // 01, compact: the catchment's March to June slope, the pixel marked, a 5 km bar and the key
   let ring: Pt;
   {
-    const loc = LOCATOR;
+    const loc = locatorGrid(locator.ring);
+    const SLOPE = locator.scale;
     const W = L.col1.w;
     const s = W / loc.width;
     const H = loc.height * s;
@@ -280,7 +305,7 @@ export function mountPixel(
       div(
         "note nowrap",
         stage,
-        format("instrument.pixel.locate.key", { from: SEASONS[0], to: SEASONS[1] }),
+        format("instrument.pixel.locate.key", { from: locator.period[0], to: locator.period[1] }),
       ),
       x0,
       y0 + H + 36,
@@ -590,7 +615,7 @@ export function mountPixel(
     const top = L.rowB + 32;
     const bottom = L.rowB + 160;
     const xs = (y: number) =>
-      left + ((y - SEASONS[0]) / (SEASONS[1] - SEASONS[0])) * (right - left);
+      left + ((y - locator.period[0]) / (locator.period[1] - locator.period[0])) * (right - left);
     const ys = (v: number) => bottom - ((v - 0.2) / 0.4) * (bottom - top);
     const g = svg("g", {}, overlay);
     for (const v of [0.2, 0.3, 0.4, 0.5, 0.6]) {
@@ -662,7 +687,7 @@ export function mountPixel(
         g,
         right + 8,
         ys(lb.ndvi) + 13,
-        format("instrument.pixel.m", { value: metres(BAND_LIMITS_M[0]) }),
+        format("instrument.pixel.m", { value: metres(locator.bandTop) }),
         t12("ink3"),
       );
     }

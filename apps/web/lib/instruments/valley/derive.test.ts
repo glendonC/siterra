@@ -32,6 +32,6 @@ describe("snowFrom", () => {
 describe("rainCellsFrom", () => {
   it("gives rain-cells.json from the CHIRPS rainfall cells", () => {
     const geo = bundle("bundle_chirps_monthly_ait_bouguemez/rainfall-cells.geojson");
-    expect(rainCellsFrom(geo)).toEqual(rainCellsSchema.parse(fixture("rain-cells.json")));
+    expect(rainCellsFrom(geo, 29)).toEqual(rainCellsSchema.parse(fixture("rain-cells.json")));
   });
 });

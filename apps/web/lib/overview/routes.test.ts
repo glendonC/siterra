@@ -27,7 +27,7 @@ const tag = (b: Buffer) => `"1220${createHash("sha256").update(b).digest("hex")}
 
 describe("routesFrom", () => {
   it("reads the case's four route_proposed features with their vertices and bundle lines", () => {
-    const routes = routesFrom(seed);
+    const routes = routesFrom(seed, 29);
     expect(routes.map((r) => r.member).sort()).toEqual([
       "route_tabant_band_1",
       "route_tabant_band_2",
@@ -60,7 +60,7 @@ describe("routesFrom", () => {
         ),
       },
     };
-    expect(routesFrom(none)).toEqual([]);
+    expect(routesFrom(none, 29)).toEqual([]);
   });
 
   it("splits a name at its parenthesis", () => {
@@ -73,7 +73,7 @@ describe("routesFrom", () => {
 });
 
 describe("the bundle's figures", () => {
-  const routes = routesFrom(seed);
+  const routes = routesFrom(seed, 29);
 
   it("reads length, climb and time of every drawn route from route_lines", () => {
     const { facts, order } = parseRouteLines(lines, routes);
@@ -139,7 +139,7 @@ describe("the bundle's figures", () => {
 });
 
 describe("loadRoutesRecord", () => {
-  const routes = routesFrom(seed);
+  const routes = routesFrom(seed, 29);
   const serve =
     (over: Partial<Record<string, { bytes: Buffer; etag: string }>> = {}) =>
     (url: string) => {

@@ -229,6 +229,26 @@ describe("a statement as shown", () => {
     expect(shortCitation(src)).toMatch(/^\S.* \d{4}$/);
     expect(text).toContain("src_SCI-19");
   });
+  it("reads an id at the end of a sentence without taking the full stop into the id", () => {
+    if (!src) throw new Error("src_SCI-19");
+    expect(readableStatement(seed, "The excerpt comes from src_SCI-19.")).toBe(
+      `The excerpt comes from ${shortCitation(src)}.`,
+    );
+  });
+
+  it("names two authors by both surnames, and three or more by the first with et al.", () => {
+    if (!src) throw new Error("src_SCI-19");
+    const two = {
+      ...src,
+      authors: ["Auclair, Laurent", "Alifriqui, Mohamed"],
+      publicationDate: "2011",
+    };
+    expect(shortCitation(two)).toBe("Auclair and Alifriqui 2011");
+    const three = { ...two, authors: [...two.authors, "Simenel, Romain"] };
+    expect(shortCitation(three)).toBe("Auclair et al. 2011");
+    expect(shortCitation({ ...three, publicationDate: null })).toBe("Auclair et al.");
+  });
+
   it("names an id the case holds no Source for as an unnamed source, never the id", () => {
     expect(readableStatement(seed, "Reading src_SCI-99 first.")).toBe(
       "Reading a source the case does not hold first.",

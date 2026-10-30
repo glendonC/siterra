@@ -148,15 +148,23 @@ export type Figures = z.infer<typeof figuresSchema>;
 export type LayerStackLayout = z.infer<typeof layoutSchema>;
 
 export interface LayerStackData {
+  /** The UTM zone (north) of every coordinate here, from the relief's header. */
+  zone: number;
   meta: TerrainMeta;
-  /** The 30 m relief, row 0 north, metres. */
+  /** The relief, row 0 north, metres (nodata outside the catchment filled). */
   relief: Float32Array<ArrayBuffer>;
+  /** The catchment's own heights. */
+  range: { min: number; max: number; median: number };
+  /** The land cover mask and the elevation bands on the analysis grid (lib/land/terrain). */
+  landcover: ImageBitmap;
+  bands: ImageBitmap | null;
+  /** The record's two elevation band limits (m), lowest first (lib/land/record bandLimitsOf). */
+  limits: readonly [number, number];
   catchment: Pick<Catchment, "ring">;
   rivers: Rivers;
   trend: TrendCells;
   rain: RainCells;
   snow: Snow;
-  layout: LayerStackLayout;
 }
 
 export async function json<T>(url: string, schema: z.ZodType<T>, signal?: AbortSignal): Promise<T> {

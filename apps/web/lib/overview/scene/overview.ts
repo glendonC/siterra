@@ -26,6 +26,7 @@ import { LineMaterial } from "three/addons/lines/LineMaterial.js";
 import { LineSegments2 } from "three/addons/lines/LineSegments2.js";
 import { LineSegmentsGeometry } from "three/addons/lines/LineSegmentsGeometry.js";
 import { makeFrame, makeHeightSampler, type Vec3 } from "../../instruments/valley/frame";
+import { landFrame } from "../../land/geometry";
 import { createStage, type PerspectiveView } from "../../instruments/valley/scene/stage";
 import { heightTexture } from "../../instruments/valley/scene/textures";
 import { maskAt, overviewColours as C } from "../../theme/obsidian";
@@ -33,6 +34,7 @@ import {
   ARC,
   DIAL,
   DIAL1,
+  SPAN,
   STEP,
   arcAlpha,
   clamp01,
@@ -63,11 +65,15 @@ import {
 export const OVERVIEW_DESIGN = { width: 1440, height: 900 } as const;
 /** The vertical scale, and the elevation the model's y = 0 stands at (m). */
 export const EXAG = 2.5;
-const BASE = 1200;
 /** Vertical field of view at the design height (degrees). */
 const FOV = 26;
-/** The overview: bearing, elevation, the land's height on screen and the centre of its box (design px). */
-const OV = { az: 52, el: 34, fh: 640, cx: 731, cy: 494 } as const;
+/**
+ * The overview: D4's bearing (another land is looked at along its own long axis; see landFrame), elevation, the
+ * land's height on screen, the widest it may be inside the arc, and the centre of its box (design px).
+ */
+const OV = { az: 52, el: 34, fh: 640, fw: 700, cx: 731, cy: 494 } as const;
+/** The least clearance (design px) of the land's rim from the arc at rest: D4's 57 and a margin for the walls. */
+const ARC_CLEAR = 64;
 /** D4's opened pixel: bearing, elevation, distance (km) and where its centre lands on screen. */
 const ND = { az: 40, el: 33, dist: 42, x: 360, y: 600 } as const;
 /**
@@ -218,6 +224,12 @@ export function mountOverview(
   const { scene, camera } = stage;
 
   // ---------- the land ----------
+  // the base, the camera's pivot, the walls' depth and the bearing from this land's own outline and heights; the
+  // D4 values (OV.az, ND.dist, ...) are the valley's and scale to another land through `lf`
+  const lf = landFrame(data.ring, data.range);
+  const BASE = lf.base;
+  const az0 = lf.bearing;
+  const azN = az0 + (ND.az - OV.az);
   const g = data.meta.relief;
   const a = data.meta.analysis;
   const H = data.relief;
@@ -236,7 +248,7 @@ export function mountOverview(
   );
   // the key light keeps D3's relation to the overview camera: 45 degrees round from it, 32 degrees up
   const light = {
-    dir: lightDir(OV.az + 45, 32),
+    dir: lightDir(az0 + 45, 32),
     color: hexVec(C.keyLight).multiplyScalar(1.25),
     ambient: hexVec(C.ambient).multiplyScalar(0.62),
     sky: hexVec(C.sky),
@@ -265,7 +277,7 @@ export function mountOverview(
     outward: signedArea(rim) > 0 ? -1 : 1,
     albedo: C.wallAlbedo,
     light,
-    depth: 900,
+    depth: lf.wall,
     fadePow: 2.2,
   });
   scene.add(wall.mesh);
@@ -511,16 +523,20 @@ export function mountOverview(
   const rimTop = rim.filter((_, i) => i % 4 === 0).map(([E, N]) => frame.v(E, N, sample(E, N)));
   const rimFoot = rim
     .filter((_, i) => i % 4 === 0)
-    .map(([E, N]) => frame.v(E, N, sample(E, N) - 450));
+    .map(([E, N]) => frame.v(E, N, sample(E, N) - lf.rimFoot));
   const landBox = () => bbox([...rimTop, ...rimFoot].map(project));
-  const T0: Vec3 = [0, frame.y(2400), 0];
-  /** A view of the whole land: its height on screen fitted to `fh`, its box centred at (cx, cy). */
+  const T0: Vec3 = [0, frame.y(lf.target), 0];
+  /**
+   * A view of the whole land: its height on screen fitted to `fh` (and its width kept within OV.fw, for a land
+   * longer than it is tall), its box centred at (cx, cy).
+   */
   const fitLand = (az: number, el: number, fh: number, cx: number, cy: number): View => {
-    let distance = 90;
+    let distance = 90 * lf.kmScale;
+    const fw = (OV.fw * fh) / OV.fh;
     for (let it = 0; it < 10; it++) {
       set({ target: T0, azimuth: az, elevation: el, distance, shift: [0, 0] });
       const b = landBox();
-      distance *= (b.y1 - b.y0) / fh;
+      distance *= Math.max((b.y1 - b.y0) / fh, (b.x1 - b.x0) / fw);
     }
     set({ target: T0, azimuth: az, elevation: el, distance, shift: [0, 0] });
     const b = landBox();
@@ -532,11 +548,42 @@ export function mountOverview(
       shift: [cx - (b.x0 + b.x1) / 2, cy - (b.y0 + b.y1) / 2],
     };
   };
-  // the overview looks along the valley's long axis from the east-north-east, so the land stands compact and upright
-  const view0 = fitLand(OV.az, OV.el, OV.fh, OV.cx, OV.cy);
+  /**
+   * How close the land's rim comes to the arc at rest (design px) in a view: the least clearance inside the dial of
+   * any rim point whose clock angle lies on the drawn arc (negative when it crosses the arc).
+   */
+  const arcClearance = (v: View): number => {
+    set({ ...v, shift: [0, 0] });
+    let least = Infinity;
+    for (const q of [...rimTop, ...rimFoot]) {
+      const p = project(q);
+      const x = p.x + v.shift[0] - DIAL.cx;
+      const y = p.y + v.shift[1] - DIAL.cy;
+      const clock = ((Math.atan2(x, -y) * 180) / Math.PI + 360) % 360;
+      if (uOf(clock) > SPAN) continue;
+      least = Math.min(least, DIAL.r - Math.hypot(x, y));
+    }
+    return least;
+  };
+  // the overview looks along the land's long axis, so it stands compact and upright, as large as D4 drew the
+  // valley but never nearer the arc than the specimen's clearance (57 px, with a margin for the drawn walls)
+  let fh = OV.fh;
+  let view0 = fitLand(az0, OV.el, fh, OV.cx, OV.cy);
+  for (let it = 0; it < 8; it++) {
+    const c = arcClearance(view0);
+    if (c >= ARC_CLEAR) break;
+    fh *= (DIAL.r - ARC_CLEAR) / Math.max(DIAL.r - c, DIAL.r - ARC_CLEAR + 1);
+    view0 = fitLand(az0, OV.el, fh, OV.cx, OV.cy);
+  }
   /** A view closed in on one place on the land, put at (ND.x, ND.y). */
   const pointAt = (target: Vec3, az: number): View => {
-    const v: View = { target, azimuth: az, elevation: ND.el, distance: ND.dist, shift: [0, 0] };
+    const v: View = {
+      target,
+      azimuth: az,
+      elevation: ND.el,
+      distance: ND.dist * lf.kmScale,
+      shift: [0, 0],
+    };
     set(v);
     const s = project(target);
     return { ...v, shift: [ND.x - s.x, ND.y - s.y] };
@@ -567,8 +614,8 @@ export function mountOverview(
     )?.clock ?? PIXEL_CLOCK;
   /** The routes opened: the pixel's bearing, closed in until every route fits RT's box. */
   const routesView = (target: Vec3): View => {
-    const base = { target, azimuth: ND.az, elevation: RT.el, shift: [0, 0] as [number, number] };
-    let distance = ND.dist;
+    const base = { target, azimuth: azN, elevation: RT.el, shift: [0, 0] as [number, number] };
+    let distance = ND.dist * lf.kmScale;
     for (let it = 0; it < 10; it++) {
       set({ ...base, distance });
       const b = bbox(routeProbe.map(project));
@@ -587,7 +634,7 @@ export function mountOverview(
   const viewFor = (sel: Selection): View => {
     const known = views.get(sel);
     if (known) return known;
-    const az = OV.az + TURN * Math.sin(rad(clockOf(sel)));
+    const az = az0 + TURN * Math.sin(rad(clockOf(sel)));
     const place = sel === "pixel" || sel === "field" ? TP : sel === "band" ? TB : null;
     // a whole-catchment finding keeps the overview's bearing (no swing); the land eases away from its record's side
     const left = sideOf(sel, clockOf(sel)) === "left";
@@ -597,7 +644,7 @@ export function mountOverview(
         : place
           ? pointAt(place, az)
           : fitLand(
-              WHOLE.has(sel) ? OV.az : az,
+              WHOLE.has(sel) ? az0 : az,
               ND.el,
               WIDE.fh,
               left ? design.width - WIDE.cx : WIDE.cx,
@@ -644,7 +691,7 @@ export function mountOverview(
     const cy = lerp(DIAL.cy, DIAL1.cy, e);
     const r = lerp(DIAL.r, DIAL1.r, e);
     const yaw = rad(lerp(0, left ? -DIAL1.yaw : DIAL1.yaw, e));
-    const depth = targetDist + DIAL.back;
+    const depth = targetDist + DIAL.back * lf.kmScale;
     const { width, height } = stage.size();
     const px = fit.ox + cx * fit.scale;
     const py = fit.oy + cy * fit.scale;
@@ -748,7 +795,7 @@ export function mountOverview(
       const x = c.x + (p[0] - c.x) * t;
       const y = c.y + (p[1] - c.y) * t;
       const z = c.z + (p[2] - c.z) * t;
-      if (y > frame.y(4100)) continue;
+      if (y > frame.y(lf.ceiling)) continue;
       const E = frame.E(x);
       const N = frame.N(z);
       const i = Math.floor((E - g.E0) / g.res);
@@ -756,7 +803,7 @@ export function mountOverview(
       if (i < 0 || j < 0 || i >= g.width || j >= g.height || !M30[j * g.width + i]) continue;
       // the land is a slab: the surface and its 900 m edge hide what is behind; a line wholly under it does not
       const ty = frame.y(sample(E, N));
-      if (y < ty - (20 * EXAG) / 1000 && y > ty - (900 * EXAG) / 1000) return true;
+      if (y < ty - (20 * EXAG) / 1000 && y > ty - (lf.wall * EXAG) / 1000) return true;
     }
     return false;
   };
