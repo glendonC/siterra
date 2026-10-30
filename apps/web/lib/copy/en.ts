@@ -678,6 +678,32 @@ export const en = {
     text: "Every testable prediction is met, {n} of {of}.",
     kind: "ui",
   },
+  // a prediction the branch does not need was not met (branches.ts: cannot be assessed, or consistent when every
+  // needed one is met); the predictions are counted, never named
+  "instrument.fieldPlan.reason.notNeeded.one": {
+    text: "A prediction it does not need was not met.",
+    kind: "ui",
+  },
+  "instrument.fieldPlan.reason.notNeeded": {
+    text: "{n} predictions it does not need were not met.",
+    kind: "ui",
+  },
+  "instrument.fieldPlan.reason.optional.need.one": {
+    text: "The prediction it needs was met",
+    kind: "ui",
+  },
+  "instrument.fieldPlan.reason.optional.need": {
+    text: "{met} of {of} predictions it needs were met",
+    kind: "ui",
+  },
+  "instrument.fieldPlan.reason.optional.one": {
+    text: "{need}; one it does not need was not.",
+    kind: "ui",
+  },
+  "instrument.fieldPlan.reason.optional": {
+    text: "{need}; {n} it does not need were not.",
+    kind: "ui",
+  },
   "instrument.fieldPlan.separates": { text: "Tells apart {pairs}", kind: "label" },
   "instrument.fieldPlan.only": {
     text: "The only proposed check that tells {a} from {b}",
