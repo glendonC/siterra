@@ -99,6 +99,48 @@ describe("context lines of the case: transects", () => {
   });
 });
 
+describe("context lines of the case: proposed routes", () => {
+  const asset = read("bundle_proposed_routes_ait_bouguemez", "proposed-routes.geojson");
+  const result = JSON.parse(
+    readFileSync(
+      `${repoDir}data/bundles/bundle_proposed_routes_ait_bouguemez/proposed-routes.json`,
+      "utf8",
+    ),
+  ) as { sites: { id: string; rule: string }[] };
+  const routes = features.filter((f) => f.role === "route_proposed");
+
+  it("make one feature per route line, in the asset's order, with its vertices and heights", () => {
+    const ids = asset.features.map((f) => String(f.properties["route_id"]));
+    expect(routes.map((f) => f.id)).toEqual(ids.map((id) => `ctx_${id}`));
+    asset.features.forEach((f, i) => {
+      expect(routes[i]?.geometry).toEqual({
+        type: "LineString",
+        coordinates: f.geometry.coordinates,
+      });
+      expect(routes[i]?.dataBundle).toEqual({
+        bundleId: "bundle_proposed_routes_ait_bouguemez",
+        assetKey: "route_lines",
+        member: f.properties["route_id"],
+      });
+    });
+  });
+
+  it("say they are proposed with access unconfirmed (CF-04) and name the rule that chose the site", () => {
+    for (const [i, feature] of routes.entries()) {
+      const site = result.sites.find((s) => s.id === asset.features[i]?.properties["target_id"]);
+      expect(site).toBeDefined();
+      expect(feature.limitations.some((l) => /proposed route, access unconfirmed/i.test(l))).toBe(
+        true,
+      );
+      expect(feature.limitations.at(-1)).toContain(
+        `a candidate site chosen by a stated rule: ${site?.rule ?? ""}`,
+      );
+      expect(feature.name).toContain("candidate site chosen by a stated rule");
+      expect(feature.method).toContain("not a surveyed path");
+    }
+  });
+});
+
 describe("readContextLines: what it refuses", () => {
   const dirs: string[] = [];
   afterAll(() => {
@@ -205,6 +247,66 @@ describe("readContextLines: what it refuses", () => {
     const result = run(nodata.dir, nodata.bundle);
     expect(result.features).toEqual([]);
     expect(result.issues.length).toBeGreaterThan(0);
+  });
+
+  function routesBundle(args: { limitations: string[]; targetId: string }) {
+    const dir = mkdtempSync(join(tmpdir(), "siterra-routes-"));
+    dirs.push(dir);
+    const bundleId = "bundle_example_proposed_routes";
+    mkdirSync(join(dir, bundleId));
+    const write = (name: string, value: object) => {
+      const bytes = Buffer.from(JSON.stringify(value));
+      writeFileSync(join(dir, bundleId, name), bytes);
+      return { href: `./${name}`, "file:checksum": sha256Multihash(bytes) };
+    };
+    const assets = {
+      route_lines: write("lines.json", {
+        type: "FeatureCollection",
+        features: [line({ route_id: "route_a", target_id: args.targetId })],
+      }),
+      proposed_routes: write("result.json", {
+        sites: [{ id: "site_a", kind: "band", band: 1, rule: "a stated rule" }],
+      }),
+    };
+    const collection = Buffer.from(JSON.stringify({ assets, links: [] }));
+    writeFileSync(join(dir, bundleId, "collection.json"), collection);
+    const bundle = {
+      dataBundle: {
+        id: bundleId,
+        methodId: "proposed_routes",
+        contentHash: sha256Multihash(collection),
+        datasetId: null,
+        sourceIds: [],
+        attribution: "Example",
+        license: "Example licence",
+        provenance: { limitations: args.limitations },
+      },
+    } as unknown as ImportedBundle;
+    return { dir, bundle };
+  }
+
+  it("refuses a route whose bundle does not say proposed with access unconfirmed (CF-04)", () => {
+    const silent = routesBundle({ limitations: ["Example limitation."], targetId: "site_a" });
+    const refused = run(silent.dir, silent.bundle);
+    expect(refused.features).toEqual([]);
+    expect(refused.issues.map((i) => i.path)).toContain("context-lines/route_lines/limitations");
+    const honest = routesBundle({
+      limitations: ["Proposed route, access unconfirmed: not a surveyed path."],
+      targetId: "site_a",
+    });
+    const accepted = run(honest.dir, honest.bundle);
+    expect(accepted.issues).toEqual([]);
+    expect(accepted.features.map((f) => f.id)).toEqual(["ctx_route_a"]);
+  });
+
+  it("refuses a route that ends at a site the bundle does not list", () => {
+    const lost = routesBundle({
+      limitations: ["Proposed route, access unconfirmed."],
+      targetId: "site_missing",
+    });
+    const result = run(lost.dir, lost.bundle);
+    expect(result.features).toEqual([]);
+    expect(result.issues[0]?.message).toContain("lists no site");
   });
 
   it("refuses a bundle with no content hash", () => {

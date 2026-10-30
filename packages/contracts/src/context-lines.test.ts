@@ -34,7 +34,7 @@ function feature(role: string, geometry: unknown, overrides: Json = {}): Json {
     sourceIds: [],
     attribution: null,
     license: null,
-    limitations: [],
+    limitations: role === "route_proposed" ? ["Proposed route, access unconfirmed."] : [],
     ...overrides,
   };
 }
@@ -78,6 +78,40 @@ describe("contracts 1.12: a ContextFeature may be a line", () => {
       [-6.3, 31.6],
     ];
     expect(problems(feature("route_proposed", line(flat)))).toEqual([]);
+  });
+
+  it("CF-04: a proposed route says in its limitations that it is proposed and access is unconfirmed", () => {
+    const route = line([north, mid]);
+    const refused = { code: "custom", path: "limitations" };
+    expect(problems(feature("route_proposed", route, { limitations: [] }))).toContainEqual(refused);
+    expect(
+      problems(feature("route_proposed", route, { limitations: ["A least-time walk."] })),
+    ).toContainEqual(refused);
+    expect(
+      problems(feature("route_proposed", route, { limitations: ["A proposed route."] })),
+    ).toContainEqual(refused);
+    expect(
+      problems(feature("route_proposed", route, { limitations: ["Access is unconfirmed."] })),
+    ).toContainEqual(refused);
+    expect(
+      problems(
+        feature("route_proposed", route, { limitations: ["A proposed route; access is known."] }),
+      ),
+    ).toContainEqual(refused);
+    expect(
+      problems(
+        feature("route_proposed", route, { limitations: ["A proposed route, unconfirmed."] }),
+      ),
+    ).toContainEqual(refused);
+    expect(
+      problems(
+        feature("route_proposed", route, {
+          limitations: ["A least-time walk.", "Proposed route, access unconfirmed: not surveyed."],
+        }),
+      ),
+    ).toEqual([]);
+    // Only a proposed route carries the rule.
+    expect(problems(feature("transect", route, { limitations: [] }))).toEqual([]);
   });
 
   it("accepts a MultiLineString of lines with elevation", () => {

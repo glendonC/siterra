@@ -69,21 +69,39 @@ function positionsOf(geometry: { type: string; coordinates: unknown }): Position
   }
 }
 
+/** CF-04: one limitation of a proposed route names it as proposed and its access as unconfirmed. */
+function saysProposedAndUnconfirmed(limitations: readonly string[]): boolean {
+  return limitations.some(
+    (text) =>
+      /\bproposed\b/i.test(text) && /\baccess\b/i.test(text) && /\bunconfirmed\b/i.test(text),
+  );
+}
+
 /**
  * A ContextFeature's role fits its geometry (points: outlet, settlement, settlement_locator,
  * viewpoint, summit; lines: drainage and route_proposed as a line or several, transect as one
  * line), its positions carry an elevation all together or not at all, and only a drainage feature
  * has a stream order (case.schema.json ContextFeature allOf; the all-or-none part is stated in
- * Position).
+ * Position). A route_proposed feature says in its limitations that it is proposed and that access
+ * is unconfirmed (CF-04; JSON Schema cannot state it).
  */
 export function contextFeatureShape(
   feature: {
     role: string;
     geometry: { type: string; coordinates: unknown };
     streamOrder?: number | undefined;
+    limitations?: readonly string[] | undefined;
   },
   ctx: z.RefinementCtx,
 ): void {
+  if (feature.role === "route_proposed" && !saysProposedAndUnconfirmed(feature.limitations ?? [])) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["limitations"],
+      message:
+        "A route_proposed feature says in its limitations that it is proposed and that access is unconfirmed",
+    });
+  }
   if (feature.streamOrder !== undefined && feature.role !== "drainage") {
     ctx.addIssue({
       code: "custom",

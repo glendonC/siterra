@@ -31,7 +31,7 @@ function feature(
     sourceIds: [],
     attribution: null,
     license: null,
-    limitations: [],
+    limitations: role === "route_proposed" ? ["Proposed route, access unconfirmed."] : [],
     dataBundle: { bundleId: "bundle_example_lines", assetKey: "drainage_network" },
   };
 }
