@@ -12726,8 +12726,8 @@
         "periodIds": [],
         "methodId": "aligned_antecedent",
         "methodVersion": "1.1.1",
-        "manifestUri": "/api/case-assets/bundle_aligned_antecedent_ait_bouguemez/122095e90a9dc06aa0b307f4fa47569731eb5509b3e78a77e0703f88d26b38379638/collection.json",
-        "contentHash": "122095e90a9dc06aa0b307f4fa47569731eb5509b3e78a77e0703f88d26b38379638",
+        "manifestUri": "/api/case-assets/bundle_aligned_antecedent_ait_bouguemez/1220a050ef615b30f9d271ae2f6b4c09c64f5b89900c73b51e945f899fb707e84199/collection.json",
+        "contentHash": "1220a050ef615b30f9d271ae2f6b4c09c64f5b89900c73b51e945f899fb707e84199",
         "license": "Legal notice on the use of Copernicus Sentinel data and service information (SCI-18); Licence for Copernicus DEM instance COP-DEM-GLO-30-F Global 30m Full, Free & Open (analysis geometry); CHIRPS v3: Creative Commons Attribution 4.0 (the CHC also states a public domain dedication)",
         "attribution": "CHIRPS v3.0, Climate Hazards Center, UC Santa Barbara, https://doi.org/10.15780/G2JQ0P, accessed 2026-10-27; Catchment derived by Siterra from Copernicus DEM GLO-30 (2021 release); Contains modified Copernicus Sentinel data 2019-2025; Produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved; The organisations in charge of the Copernicus programme by law or by delegation do not incur any liability for any use of the Copernicus WorldDEM-30",
         "provenance": {
@@ -12963,8 +12963,8 @@
         "periodIds": [],
         "methodId": "drainage_network",
         "methodVersion": "1.0.0",
-        "manifestUri": "/api/case-assets/bundle_drainage_network_ait_bouguemez/1220338ea189958395b14af06b52bc662d4e7b59d36dddf9c12eeaac4891ab3b687a/collection.json",
-        "contentHash": "1220338ea189958395b14af06b52bc662d4e7b59d36dddf9c12eeaac4891ab3b687a",
+        "manifestUri": "/api/case-assets/bundle_drainage_network_ait_bouguemez/1220e6243836d35e8d1ad679b0c6c671ef33af153a0183ce13e25c8678c5c246ee7e/collection.json",
+        "contentHash": "1220e6243836d35e8d1ad679b0c6c671ef33af153a0183ce13e25c8678c5c246ee7e",
         "license": "Licence for Copernicus DEM instance COP-DEM-GLO-30-F Global 30m Full, Free & Open",
         "attribution": "Catchment derived by Siterra from Copernicus DEM GLO-30 (2021 release); Produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved; The organisations in charge of the Copernicus programme by law or by delegation do not incur any liability for any use of the Copernicus WorldDEM-30; Flow direction and depression fill depth conditioned by a private step that uses pysheds 0.5 (Bartos 2020, GPL-3.0, https://doi.org/10.5281/zenodo.3822494); the software is not part of this bundle",
         "provenance": {
@@ -13015,8 +13015,8 @@
         "periodIds": [],
         "methodId": "land_cover_classes",
         "methodVersion": "1.0.0",
-        "manifestUri": "/api/case-assets/bundle_land_cover_ait_bouguemez/1220a44268fb82b7d2808ba97d700556b428dc579f0335f1eef3166b1056e4da9cb8/collection.json",
-        "contentHash": "1220a44268fb82b7d2808ba97d700556b428dc579f0335f1eef3166b1056e4da9cb8",
+        "manifestUri": "/api/case-assets/bundle_land_cover_ait_bouguemez/12206551cb38c74b629c21e5a7fd3ca8a2caac993f99a0f0c09da77ede7604ecacb0/collection.json",
+        "contentHash": "12206551cb38c74b629c21e5a7fd3ca8a2caac993f99a0f0c09da77ede7604ecacb0",
         "license": "Licence for Copernicus DEM instance COP-DEM-GLO-30-F Global 30m Full, Free & Open; ESA WorldCover: CC BY 4.0",
         "attribution": "Catchment and strata derived by Siterra from Copernicus DEM GLO-30 (2021 release); produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved; The organisations in charge of the Copernicus programme by law or by delegation do not incur any liability for any use of the Copernicus WorldDEM-30; © ESA WorldCover project / Contains modified Copernicus Sentinel data (2021) processed by ESA WorldCover consortium; ESA WorldCover 2021 v200 (Zanaga et al. 2022), CC BY 4.0, https://doi.org/10.5281/zenodo.7254221",
         "provenance": {
@@ -13149,8 +13149,8 @@
         ],
         "methodId": "monthly_departure",
         "methodVersion": "1.0.0",
-        "manifestUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122053660ae1449f41ece290b3b6f19cc28d13de790bf88826bb866d194903abae7a/collection.json",
-        "contentHash": "122053660ae1449f41ece290b3b6f19cc28d13de790bf88826bb866d194903abae7a",
+        "manifestUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122076f1cc766fb2278a80287452b7851cf836d270128f579b24dd14e084cfeec73e/collection.json",
+        "contentHash": "122076f1cc766fb2278a80287452b7851cf836d270128f579b24dd14e084cfeec73e",
         "license": "Legal notice on the use of Copernicus Sentinel data and service information (SCI-18); Licence for Copernicus DEM instance COP-DEM-GLO-30-F Global 30m Full, Free & Open (analysis geometry); ESA WorldCover: CC BY 4.0",
         "attribution": "Catchment derived by Siterra from Copernicus DEM GLO-30 (2021 release); Contains modified Copernicus Sentinel data 2019-2025; Produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved; The organisations in charge of the Copernicus programme by law or by delegation do not incur any liability for any use of the Copernicus WorldDEM-30; © ESA WorldCover project / Contains modified Copernicus Sentinel data (2021) processed by ESA WorldCover consortium; ESA WorldCover 2021 v200 (Zanaga et al. 2022), CC BY 4.0, https://doi.org/10.5281/zenodo.7254221",
         "provenance": {
@@ -13206,8 +13206,8 @@
         "periodIds": [],
         "methodId": "optical_visibility_by_band",
         "methodVersion": "1.0.0",
-        "manifestUri": "/api/case-assets/bundle_optical_visibility_ait_bouguemez/122021b388c54be35408a51dd46a31ac3031f35b7bbf8664a0fba9a6ed14aa4a9576/collection.json",
-        "contentHash": "122021b388c54be35408a51dd46a31ac3031f35b7bbf8664a0fba9a6ed14aa4a9576",
+        "manifestUri": "/api/case-assets/bundle_optical_visibility_ait_bouguemez/12204187a29a2cb33e9944c6c3752654a26942cced7d48841922ddb967f9141d00f7/collection.json",
+        "contentHash": "12204187a29a2cb33e9944c6c3752654a26942cced7d48841922ddb967f9141d00f7",
         "license": "other",
         "attribution": "Contains modified Copernicus Sentinel data 2019-2025; Catchment derived by Siterra from Copernicus DEM GLO-30 (2021 release); Produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved; The organisations in charge of the Copernicus programme by law or by delegation do not incur any liability for any use of the Copernicus WorldDEM-30",
         "provenance": {
@@ -13260,8 +13260,8 @@
         "periodIds": [],
         "methodId": "pixel_anatomy",
         "methodVersion": "1.0.0",
-        "manifestUri": "/api/case-assets/bundle_pixel_anatomy_ait_bouguemez/12201d8aa0b2dd58ca14e8adaca36e672f5587f394a80f9f4e2731882c202d480e9e/collection.json",
-        "contentHash": "12201d8aa0b2dd58ca14e8adaca36e672f5587f394a80f9f4e2731882c202d480e9e",
+        "manifestUri": "/api/case-assets/bundle_pixel_anatomy_ait_bouguemez/1220ba5b7b3d0d724b78d3ba7044fee37f7c839a610c7ea4b25383dbe1ff6f1d2cee/collection.json",
+        "contentHash": "1220ba5b7b3d0d724b78d3ba7044fee37f7c839a610c7ea4b25383dbe1ff6f1d2cee",
         "license": "MOD13Q1 v6.1: NASA data use guidance (NASA-led mission data without a marked restriction are CC0; citation strongly urged); Licence for Copernicus DEM instance COP-DEM-GLO-30-F Global 30m Full, Free & Open; ESA WorldCover: CC BY 4.0; Legal notice on the use of Copernicus Sentinel data and service information (SCI-18)",
         "attribution": "Contains modified Copernicus Sentinel data 2025; Didan, K. (2021). MODIS/Terra Vegetation Indices 16-Day L3 Global 250m SIN Grid V061. NASA Land Processes Distributed Active Archive Center. https://doi.org/10.5067/MODIS/MOD13Q1.061. Tile h17v05, A2000049 to A2025353, read from Microsoft Planetary Computer, accessed 2026-10-28; Catchment and strata derived by Siterra from Copernicus DEM GLO-30 (2021 release); produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved; The organisations in charge of the Copernicus programme by law or by delegation do not incur any liability for any use of the Copernicus WorldDEM-30; © ESA WorldCover project / Contains modified Copernicus Sentinel data (2021) processed by ESA WorldCover consortium; ESA WorldCover 2021 v200 (Zanaga et al. 2022), CC BY 4.0, https://doi.org/10.5281/zenodo.7254221; ESA WorldCover 10 m 2021 v200, Zanaga et al. (2022), https://doi.org/10.5281/zenodo.7254221, CC BY 4.0",
         "provenance": {
@@ -13307,6 +13307,57 @@
       },
       {
         "recordType": "DataBundle",
+        "id": "bundle_pixel_seasons_ait_bouguemez",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "label": "Per-pixel MODIS greenness in every season, 2000 to 2025 (pixel_seasons 1.0.0)",
+        "status": "validated",
+        "datasetId": "modis-13Q1-061",
+        "datasetVersion": "6.1",
+        "sourceIds": [],
+        "geoSelectionId": "geo_ait_bouguemez_catchment",
+        "geoRevision": 1,
+        "periodIds": [],
+        "methodId": "pixel_seasons",
+        "methodVersion": "1.0.0",
+        "manifestUri": "/api/case-assets/bundle_pixel_seasons_ait_bouguemez/1220b1a8f9d9a10ceb021a9fcc289a6d202459af8c76af0174fddabddce9a10b5fba/collection.json",
+        "contentHash": "1220b1a8f9d9a10ceb021a9fcc289a6d202459af8c76af0174fddabddce9a10b5fba",
+        "license": "MOD13Q1 v6.1: NASA data use guidance (NASA-led mission data without a marked restriction are CC0; citation strongly urged)",
+        "attribution": "Didan, K. (2021). MODIS/Terra Vegetation Indices 16-Day L3 Global 250m SIN Grid V061. NASA Land Processes Distributed Active Archive Center. https://doi.org/10.5067/MODIS/MOD13Q1.061. Tile h17v05, A2000049 to A2025353, read from Microsoft Planetary Computer, accessed 2026-10-28; Catchment and strata derived by Siterra from Copernicus DEM GLO-30 (2021 release); produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved; The organisations in charge of the Copernicus programme by law or by delegation do not incur any liability for any use of the Copernicus WorldDEM-30; © ESA WorldCover project / Contains modified Copernicus Sentinel data (2021) processed by ESA WorldCover consortium; ESA WorldCover 2021 v200 (Zanaga et al. 2022), CC BY 4.0, https://doi.org/10.5281/zenodo.7254221; ESA WorldCover 10 m 2021 v200, Zanaga et al. (2022), https://doi.org/10.5281/zenodo.7254221, CC BY 4.0",
+        "provenance": {
+          "sourceLocators": [],
+          "dataBundleIds": [
+            "bundle_pixel_trend_long_record_ait_bouguemez"
+          ],
+          "methodId": "pixel_seasons",
+          "methodVersion": "1.0.0",
+          "inputVersions": [
+            {
+              "entityId": "geo_ait_bouguemez_catchment",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_pixel_trend_long_record_ait_bouguemez",
+              "revision": 1
+            }
+          ],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-30T18:57:26Z",
+          "verificationStatus": "computed_checked",
+          "limitations": [
+            "Each value is one 250 m MODIS pixel's mean over the composites of one growing window that passed the reliability filter, not a measurement of any field, pasture or plant. A season where fewer than half of the periods were kept at a pixel has no value there.",
+            "NDVI measures how green the ground looks from above, not forage, palatability or species.",
+            "Spring windows include snow-covered ground at the upper pixels in some seasons; earlier or later melt can move a season's value with no change in the plants.",
+            "Terra's overpass has drifted earlier since 2020, from 10:30 to about 9:06 mean local time by December 2025 (NASA): later seasons are seen with a lower sun and longer shadows in mountain terrain, which may shift NDVI without any change on the ground.",
+            "Composites from 12 July 2025 to the end of 2025 are absent from Planetary Computer; a season window that includes them holds fewer composites.",
+            "The values are an input to pixel_trend_long_record, not a second analysis. A run of high or low seasons seen when stepping through them is not a trend or a cause; the slope, its interval and the false discovery rate check are in pixel_trend_long_record."
+          ]
+        }
+      },
+      {
+        "recordType": "DataBundle",
         "id": "bundle_pixel_trend_long_record_ait_bouguemez",
         "revision": 1,
         "createdAt": "2026-10-28T20:42:35.015Z",
@@ -13322,8 +13373,8 @@
         "periodIds": [],
         "methodId": "pixel_trend_long_record",
         "methodVersion": "1.0.0",
-        "manifestUri": "/api/case-assets/bundle_pixel_trend_long_record_ait_bouguemez/1220696c5ad4fcd400f8ad84bda55e7c16628c8cd11ff8707e59277cfea1d1cc7c26/collection.json",
-        "contentHash": "1220696c5ad4fcd400f8ad84bda55e7c16628c8cd11ff8707e59277cfea1d1cc7c26",
+        "manifestUri": "/api/case-assets/bundle_pixel_trend_long_record_ait_bouguemez/12206c665b94ebe0263f381e16da1326ef51e4d088964adc841c928e73c0cc1a1cf8/collection.json",
+        "contentHash": "12206c665b94ebe0263f381e16da1326ef51e4d088964adc841c928e73c0cc1a1cf8",
         "license": "MOD13Q1 v6.1: NASA data use guidance (NASA-led mission data without a marked restriction are CC0; citation strongly urged); Licence for Copernicus DEM instance COP-DEM-GLO-30-F Global 30m Full, Free & Open; ESA WorldCover: CC BY 4.0",
         "attribution": "Didan, K. (2021). MODIS/Terra Vegetation Indices 16-Day L3 Global 250m SIN Grid V061. NASA Land Processes Distributed Active Archive Center. https://doi.org/10.5067/MODIS/MOD13Q1.061. Tile h17v05, A2000049 to A2025353, read from Microsoft Planetary Computer, accessed 2026-10-28; Catchment and strata derived by Siterra from Copernicus DEM GLO-30 (2021 release); produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved; The organisations in charge of the Copernicus programme by law or by delegation do not incur any liability for any use of the Copernicus WorldDEM-30; © ESA WorldCover project / Contains modified Copernicus Sentinel data (2021) processed by ESA WorldCover consortium; ESA WorldCover 2021 v200 (Zanaga et al. 2022), CC BY 4.0, https://doi.org/10.5281/zenodo.7254221; ESA WorldCover 10 m 2021 v200, Zanaga et al. (2022), https://doi.org/10.5281/zenodo.7254221, CC BY 4.0",
         "provenance": {
@@ -13376,8 +13427,8 @@
         "periodIds": [],
         "methodId": "proposed_routes",
         "methodVersion": "1.0.0",
-        "manifestUri": "/api/case-assets/bundle_proposed_routes_ait_bouguemez/122030f304a62a03246e3d788510d0112203c2db98c13f3da20672a93607199b16d2/collection.json",
-        "contentHash": "122030f304a62a03246e3d788510d0112203c2db98c13f3da20672a93607199b16d2",
+        "manifestUri": "/api/case-assets/bundle_proposed_routes_ait_bouguemez/1220421e7baa2d80f4df177fc4869e5dc0c0d74c9cac0436e2736832261be2df9cba/collection.json",
+        "contentHash": "1220421e7baa2d80f4df177fc4869e5dc0c0d74c9cac0436e2736832261be2df9cba",
         "license": "Licence for Copernicus DEM instance COP-DEM-GLO-30-F Global 30m Full, Free & Open; ESA WorldCover: CC BY 4.0",
         "attribution": "Catchment and strata derived by Siterra from Copernicus DEM GLO-30 (2021 release); produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved; The organisations in charge of the Copernicus programme by law or by delegation do not incur any liability for any use of the Copernicus WorldDEM-30; © ESA WorldCover project / Contains modified Copernicus Sentinel data (2021) processed by ESA WorldCover consortium; ESA WorldCover 2021 v200 (Zanaga et al. 2022), CC BY 4.0, https://doi.org/10.5281/zenodo.7254221",
         "provenance": {
@@ -13447,8 +13498,8 @@
         "periodIds": [],
         "methodId": "terrain_relief",
         "methodVersion": "1.0.1",
-        "manifestUri": "/api/case-assets/bundle_relief_ait_bouguemez/12200e42ad34b7cd7aa180f24008445c691bfdc83808bb6a2c6225d9dcee934e720d/collection.json",
-        "contentHash": "12200e42ad34b7cd7aa180f24008445c691bfdc83808bb6a2c6225d9dcee934e720d",
+        "manifestUri": "/api/case-assets/bundle_relief_ait_bouguemez/1220cb487ec3a0b65cc6ee6ac87410371bc490cf970ab573e8f5938027f5ea7eaeec/collection.json",
+        "contentHash": "1220cb487ec3a0b65cc6ee6ac87410371bc490cf970ab573e8f5938027f5ea7eaeec",
         "license": "Licence for Copernicus DEM instance COP-DEM-GLO-30-F Global 30m Full, Free & Open",
         "attribution": "Catchment and strata derived by Siterra from Copernicus DEM GLO-30 (2021 release); produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved; The organisations in charge of the Copernicus programme by law or by delegation do not incur any liability for any use of the Copernicus WorldDEM-30",
         "provenance": {
@@ -13506,8 +13557,8 @@
         "periodIds": [],
         "methodId": "restrend_long_record",
         "methodVersion": "1.0.0",
-        "manifestUri": "/api/case-assets/bundle_restrend_long_record_ait_bouguemez/1220e534312abe72fb9eb83c007406ee6e56b255e64443b24ccd3fd2db1af073a036/collection.json",
-        "contentHash": "1220e534312abe72fb9eb83c007406ee6e56b255e64443b24ccd3fd2db1af073a036",
+        "manifestUri": "/api/case-assets/bundle_restrend_long_record_ait_bouguemez/12208c2b2276307ec8dee76085f3cce1401f6a0f535a7b25e0567f1a7e423d0af118/collection.json",
+        "contentHash": "12208c2b2276307ec8dee76085f3cce1401f6a0f535a7b25e0567f1a7e423d0af118",
         "license": "MOD13Q1 v6.1: NASA data use guidance (NASA-led mission data without a marked restriction are CC0; citation strongly urged); ESA WorldCover: CC BY 4.0; Licence for Copernicus DEM instance COP-DEM-GLO-30-F Global 30m Full, Free & Open",
         "attribution": "Didan, K. (2021). MODIS/Terra Vegetation Indices 16-Day L3 Global 250m SIN Grid V061. NASA Land Processes Distributed Active Archive Center. https://doi.org/10.5067/MODIS/MOD13Q1.061. Tile h17v05, A2000049 to A2025353, read from Microsoft Planetary Computer, accessed 2026-10-28; CHIRPS v3.0, Climate Hazards Center, UC Santa Barbara, https://doi.org/10.15780/G2JQ0P, accessed 2026-10-27; Catchment derived by Siterra from Copernicus DEM GLO-30 (2021 release); Produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved; The organisations in charge of the Copernicus programme by law or by delegation do not incur any liability for any use of the Copernicus WorldDEM-30; Catchment and strata derived by Siterra from Copernicus DEM GLO-30 (2021 release); produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved; © ESA WorldCover project / Contains modified Copernicus Sentinel data (2021) processed by ESA WorldCover consortium; ESA WorldCover 2021 v200 (Zanaga et al. 2022), CC BY 4.0, https://doi.org/10.5281/zenodo.7254221",
         "provenance": {
@@ -13743,8 +13794,8 @@
         "periodIds": [],
         "methodId": "season_trend_long_record",
         "methodVersion": "1.0.0",
-        "manifestUri": "/api/case-assets/bundle_season_trend_long_record_ait_bouguemez/122098f5653966e88f83f9d61a3c47b136914a7199e7d54b00b25c14c2a5f0470c2c/collection.json",
-        "contentHash": "122098f5653966e88f83f9d61a3c47b136914a7199e7d54b00b25c14c2a5f0470c2c",
+        "manifestUri": "/api/case-assets/bundle_season_trend_long_record_ait_bouguemez/12207d2971423704939b62fffd0e6228b4585d2e25b9a63f0434ea3236b81bb9ad56/collection.json",
+        "contentHash": "12207d2971423704939b62fffd0e6228b4585d2e25b9a63f0434ea3236b81bb9ad56",
         "license": "MOD13Q1 v6.1: NASA data use guidance (NASA-led mission data without a marked restriction are CC0; citation strongly urged); ESA WorldCover: CC BY 4.0; Licence for Copernicus DEM instance COP-DEM-GLO-30-F Global 30m Full, Free & Open",
         "attribution": "Didan, K. (2021). MODIS/Terra Vegetation Indices 16-Day L3 Global 250m SIN Grid V061. NASA Land Processes Distributed Active Archive Center. https://doi.org/10.5067/MODIS/MOD13Q1.061. Tile h17v05, A2000049 to A2025353, read from Microsoft Planetary Computer, accessed 2026-10-28; CHIRPS v3.0, Climate Hazards Center, UC Santa Barbara, https://doi.org/10.15780/G2JQ0P, accessed 2026-10-27; Catchment derived by Siterra from Copernicus DEM GLO-30 (2021 release); Produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved; The organisations in charge of the Copernicus programme by law or by delegation do not incur any liability for any use of the Copernicus WorldDEM-30; Catchment and strata derived by Siterra from Copernicus DEM GLO-30 (2021 release); produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved; © ESA WorldCover project / Contains modified Copernicus Sentinel data (2021) processed by ESA WorldCover consortium; ESA WorldCover 2021 v200 (Zanaga et al. 2022), CC BY 4.0, https://doi.org/10.5281/zenodo.7254221; ESA WorldCover 10 m 2021 v200, Zanaga et al. (2022), https://doi.org/10.5281/zenodo.7254221, CC BY 4.0",
         "provenance": {
@@ -13796,7 +13847,7 @@
         "createdAt": "2026-10-28T20:42:35.015Z",
         "updatedAt": "2026-10-28T20:42:35.015Z",
         "caseId": "case_aitbouguemez",
-        "label": "Monthly snow cover by elevation band, 2001 to 2025 (snow_cover_by_band 1.0.0)",
+        "label": "Monthly snow cover by elevation band, 2001 to 2025 (snow_cover_by_band 1.1.0)",
         "status": "validated",
         "datasetId": "modis-10A1-061",
         "datasetVersion": "6.1",
@@ -13805,9 +13856,9 @@
         "geoRevision": 1,
         "periodIds": [],
         "methodId": "snow_cover_by_band",
-        "methodVersion": "1.0.0",
-        "manifestUri": "/api/case-assets/bundle_snow_cover_by_band_ait_bouguemez/1220b487663513e6f84cf08ad21ed4e33aac600404d2a84daf98c1de6b607a433f0d/collection.json",
-        "contentHash": "1220b487663513e6f84cf08ad21ed4e33aac600404d2a84daf98c1de6b607a433f0d",
+        "methodVersion": "1.1.0",
+        "manifestUri": "/api/case-assets/bundle_snow_cover_by_band_ait_bouguemez/12205b8ae22a8ca0f8d4a29c61316e1da8a75529f61e17a49d2a21941330ca14f8e9/collection.json",
+        "contentHash": "12205b8ae22a8ca0f8d4a29c61316e1da8a75529f61e17a49d2a21941330ca14f8e9",
         "license": "MOD10A1 v6.1: NASA data use guidance (NASA-led mission data without a marked restriction are CC0); NSIDC requires the data citation; Licence for Copernicus DEM instance COP-DEM-GLO-30-F Global 30m Full, Free & Open; ESA WorldCover: CC BY 4.0",
         "attribution": "Hall, D. K. and G. A. Riggs. 2021. MODIS/Terra Snow Cover Daily L3 Global 500m SIN Grid, Version 61. Tile h17v05, NDSI_Snow_Cover, A2000055 to A2025365, windows over the catchment read from Microsoft Planetary Computer. Boulder, Colorado USA. NASA National Snow and Ice Data Center Distributed Active Archive Center. https://doi.org/10.5067/MODIS/MOD10A1.061. Accessed 2026-10-28; Catchment and strata derived by Siterra from Copernicus DEM GLO-30 (2021 release); produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved; The organisations in charge of the Copernicus programme by law or by delegation do not incur any liability for any use of the Copernicus WorldDEM-30; © ESA WorldCover project / Contains modified Copernicus Sentinel data (2021) processed by ESA WorldCover consortium; ESA WorldCover 2021 v200 (Zanaga et al. 2022), CC BY 4.0, https://doi.org/10.5281/zenodo.7254221",
         "provenance": {
@@ -13816,7 +13867,7 @@
             "bundle_terrain_strata_ait_bouguemez"
           ],
           "methodId": "snow_cover_by_band",
-          "methodVersion": "1.0.0",
+          "methodVersion": "1.1.0",
           "inputVersions": [
             {
               "entityId": "geo_ait_bouguemez_catchment",
@@ -13828,7 +13879,7 @@
             }
           ],
           "generatedByTaskId": null,
-          "generatedAt": "2026-10-28T19:33:19Z",
+          "generatedAt": "2026-10-30T19:25:41Z",
           "verificationStatus": "computed_checked",
           "limitations": [
             "MOD10A1 sees snow only on clear days. Cloudy days are left out, not filled, so a month's fraction describes its clear days; the clear share is shown with it.",
@@ -13856,16 +13907,16 @@
         "geoRevision": 1,
         "periodIds": [],
         "methodId": "terrain_strata",
-        "methodVersion": "1.0.0",
-        "manifestUri": "/api/case-assets/bundle_terrain_strata_ait_bouguemez/1220e7892bc96d951fbe7c89d256bf719931af5f6a1fec40f843dcef44040b8346d1/collection.json",
-        "contentHash": "1220e7892bc96d951fbe7c89d256bf719931af5f6a1fec40f843dcef44040b8346d1",
+        "methodVersion": "1.1.0",
+        "manifestUri": "/api/case-assets/bundle_terrain_strata_ait_bouguemez/1220d78c5c708866192daeb5ab9dbd2ad8eea4e31c9252c611c8b9aeaecfb6daee04/collection.json",
+        "contentHash": "1220d78c5c708866192daeb5ab9dbd2ad8eea4e31c9252c611c8b9aeaecfb6daee04",
         "license": "Licence for Copernicus DEM instance COP-DEM-GLO-30-F Global 30m Full, Free & Open; ESA WorldCover: CC BY 4.0",
         "attribution": "Catchment and strata derived by Siterra from Copernicus DEM GLO-30 (2021 release); produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved; The organisations in charge of the Copernicus programme by law or by delegation do not incur any liability for any use of the Copernicus WorldDEM-30; © ESA WorldCover project / Contains modified Copernicus Sentinel data (2021) processed by ESA WorldCover consortium; ESA WorldCover 2021 v200 (Zanaga et al. 2022), CC BY 4.0, https://doi.org/10.5281/zenodo.7254221",
         "provenance": {
           "sourceLocators": [],
           "dataBundleIds": [],
           "methodId": "terrain_strata",
-          "methodVersion": "1.0.0",
+          "methodVersion": "1.1.0",
           "inputVersions": [
             {
               "entityId": "geo_ait_bouguemez_catchment",
@@ -13873,7 +13924,7 @@
             }
           ],
           "generatedByTaskId": null,
-          "generatedAt": "2026-10-27T16:37:01Z",
+          "generatedAt": "2026-10-30T19:44:31Z",
           "verificationStatus": "unverified",
           "limitations": [
             "The DEM is a surface model: trees and buildings raise it; radar artefacts are possible in narrow gorges.",
@@ -13889,7 +13940,7 @@
         "createdAt": "2026-10-28T20:42:35.015Z",
         "updatedAt": "2026-10-28T20:42:35.015Z",
         "caseId": "case_aitbouguemez",
-        "label": "Profiles across and along the valley (terrain_transects 1.0.1)",
+        "label": "Profiles across and along the valley (terrain_transects 1.1.0)",
         "status": "validated",
         "datasetId": "copernicus-dem-glo-30",
         "datasetVersion": "2021",
@@ -13898,9 +13949,9 @@
         "geoRevision": 1,
         "periodIds": [],
         "methodId": "terrain_transects",
-        "methodVersion": "1.0.1",
-        "manifestUri": "/api/case-assets/bundle_transects_ait_bouguemez/122081ac3bcc025dcfc8b1b7fc2a75316fe8111f2c442ab826ac2ef8bd3a2058f62f/collection.json",
-        "contentHash": "122081ac3bcc025dcfc8b1b7fc2a75316fe8111f2c442ab826ac2ef8bd3a2058f62f",
+        "methodVersion": "1.1.0",
+        "manifestUri": "/api/case-assets/bundle_transects_ait_bouguemez/1220c4ac23091fdddd03d2940739f02b123abe85b3fffbbca2304f7bca21c8cb64cd/collection.json",
+        "contentHash": "1220c4ac23091fdddd03d2940739f02b123abe85b3fffbbca2304f7bca21c8cb64cd",
         "license": "Licence for Copernicus DEM instance COP-DEM-GLO-30-F Global 30m Full, Free & Open; ESA WorldCover: CC BY 4.0",
         "attribution": "Catchment and strata derived by Siterra from Copernicus DEM GLO-30 (2021 release); produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved; The organisations in charge of the Copernicus programme by law or by delegation do not incur any liability for any use of the Copernicus WorldDEM-30; © ESA WorldCover project / Contains modified Copernicus Sentinel data (2021) processed by ESA WorldCover consortium; ESA WorldCover 2021 v200 (Zanaga et al. 2022), CC BY 4.0, https://doi.org/10.5281/zenodo.7254221",
         "provenance": {
@@ -13910,7 +13961,7 @@
             "bundle_drainage_network_ait_bouguemez"
           ],
           "methodId": "terrain_transects",
-          "methodVersion": "1.0.1",
+          "methodVersion": "1.1.0",
           "inputVersions": [
             {
               "entityId": "geo_ait_bouguemez_catchment",
@@ -13926,7 +13977,7 @@
             }
           ],
           "generatedByTaskId": null,
-          "generatedAt": "2026-10-29T10:03:38Z",
+          "generatedAt": "2026-10-30T19:29:12Z",
           "verificationStatus": "computed_checked",
           "limitations": [
             "A profile is read from a 30 m surface model: trees, buildings, steep walls and radar artefacts distort it, and narrow gorges such as the lower gorge near the outlet are not resolved. Heights are metres above the EGM2008 geoid with the DEM's stated vertical accuracy (Copernicus DEM Product Handbook 5.0).",
@@ -42709,7 +42760,7 @@
             "bundle_drainage_network_ait_bouguemez"
           ],
           "methodId": "terrain_transects",
-          "methodVersion": "1.0.1",
+          "methodVersion": "1.1.0",
           "inputVersions": [
             {
               "entityId": "geo_ait_bouguemez_catchment",
@@ -42729,7 +42780,7 @@
             }
           ],
           "generatedByTaskId": null,
-          "generatedAt": "2026-10-29T10:03:38Z",
+          "generatedAt": "2026-10-30T19:29:12Z",
           "verificationStatus": "computed_checked",
           "limitations": [
             "A profile is read from a 30 m surface model: trees, buildings, steep walls and radar artefacts distort it, and narrow gorges such as the lower gorge near the outlet are not resolved. Heights are metres above the EGM2008 geoid with the DEM's stated vertical accuracy (Copernicus DEM Product Handbook 5.0).",
@@ -42790,7 +42841,7 @@
             "bundle_drainage_network_ait_bouguemez"
           ],
           "methodId": "terrain_transects",
-          "methodVersion": "1.0.1",
+          "methodVersion": "1.1.0",
           "inputVersions": [
             {
               "entityId": "geo_ait_bouguemez_catchment",
@@ -42810,7 +42861,7 @@
             }
           ],
           "generatedByTaskId": null,
-          "generatedAt": "2026-10-29T10:03:38Z",
+          "generatedAt": "2026-10-30T19:29:12Z",
           "verificationStatus": "computed_checked",
           "limitations": [
             "A profile is read from a 30 m surface model: trees, buildings, steep walls and radar artefacts distort it, and narrow gorges such as the lower gorge near the outlet are not resolved. Heights are metres above the EGM2008 geoid with the DEM's stated vertical accuracy (Copernicus DEM Product Handbook 5.0).",
@@ -42871,7 +42922,7 @@
             "bundle_drainage_network_ait_bouguemez"
           ],
           "methodId": "terrain_transects",
-          "methodVersion": "1.0.1",
+          "methodVersion": "1.1.0",
           "inputVersions": [
             {
               "entityId": "geo_ait_bouguemez_catchment",
@@ -42891,7 +42942,7 @@
             }
           ],
           "generatedByTaskId": null,
-          "generatedAt": "2026-10-29T10:03:38Z",
+          "generatedAt": "2026-10-30T19:29:12Z",
           "verificationStatus": "computed_checked",
           "limitations": [
             "A profile is read from a 30 m surface model: trees, buildings, steep walls and radar artefacts distort it, and narrow gorges such as the lower gorge near the outlet are not resolved. Heights are metres above the EGM2008 geoid with the DEM's stated vertical accuracy (Copernicus DEM Product Handbook 5.0).",
@@ -42952,7 +43003,7 @@
             "bundle_drainage_network_ait_bouguemez"
           ],
           "methodId": "terrain_transects",
-          "methodVersion": "1.0.1",
+          "methodVersion": "1.1.0",
           "inputVersions": [
             {
               "entityId": "geo_ait_bouguemez_catchment",
@@ -42972,7 +43023,7 @@
             }
           ],
           "generatedByTaskId": null,
-          "generatedAt": "2026-10-29T10:03:38Z",
+          "generatedAt": "2026-10-30T19:29:12Z",
           "verificationStatus": "computed_checked",
           "limitations": [
             "A profile is read from a 30 m surface model: trees, buildings, steep walls and radar artefacts distort it, and narrow gorges such as the lower gorge near the outlet are not resolved. Heights are metres above the EGM2008 geoid with the DEM's stated vertical accuracy (Copernicus DEM Product Handbook 5.0).",
@@ -43033,7 +43084,7 @@
             "bundle_drainage_network_ait_bouguemez"
           ],
           "methodId": "terrain_transects",
-          "methodVersion": "1.0.1",
+          "methodVersion": "1.1.0",
           "inputVersions": [
             {
               "entityId": "geo_ait_bouguemez_catchment",
@@ -43053,7 +43104,7 @@
             }
           ],
           "generatedByTaskId": null,
-          "generatedAt": "2026-10-29T10:03:38Z",
+          "generatedAt": "2026-10-30T19:29:12Z",
           "verificationStatus": "computed_checked",
           "limitations": [
             "A profile is read from a 30 m surface model: trees, buildings, steep walls and radar artefacts distort it, and narrow gorges such as the lower gorge near the outlet are not resolved. Heights are metres above the EGM2008 geoid with the DEM's stated vertical accuracy (Copernicus DEM Product Handbook 5.0).",
@@ -43114,7 +43165,7 @@
             "bundle_drainage_network_ait_bouguemez"
           ],
           "methodId": "terrain_transects",
-          "methodVersion": "1.0.1",
+          "methodVersion": "1.1.0",
           "inputVersions": [
             {
               "entityId": "geo_ait_bouguemez_catchment",
@@ -43134,7 +43185,7 @@
             }
           ],
           "generatedByTaskId": null,
-          "generatedAt": "2026-10-29T10:03:38Z",
+          "generatedAt": "2026-10-30T19:29:12Z",
           "verificationStatus": "computed_checked",
           "limitations": [
             "A profile is read from a 30 m surface model: trees, buildings, steep walls and radar artefacts distort it, and narrow gorges such as the lower gorge near the outlet are not resolved. Heights are metres above the EGM2008 geoid with the DEM's stated vertical accuracy (Copernicus DEM Product Handbook 5.0).",
@@ -43195,7 +43246,7 @@
             "bundle_drainage_network_ait_bouguemez"
           ],
           "methodId": "terrain_transects",
-          "methodVersion": "1.0.1",
+          "methodVersion": "1.1.0",
           "inputVersions": [
             {
               "entityId": "geo_ait_bouguemez_catchment",
@@ -43215,7 +43266,7 @@
             }
           ],
           "generatedByTaskId": null,
-          "generatedAt": "2026-10-29T10:03:38Z",
+          "generatedAt": "2026-10-30T19:29:12Z",
           "verificationStatus": "computed_checked",
           "limitations": [
             "A profile is read from a 30 m surface model: trees, buildings, steep walls and radar artefacts distort it, and narrow gorges such as the lower gorge near the outlet are not resolved. Heights are metres above the EGM2008 geoid with the DEM's stated vertical accuracy (Copernicus DEM Product Handbook 5.0).",
@@ -43276,7 +43327,7 @@
             "bundle_drainage_network_ait_bouguemez"
           ],
           "methodId": "terrain_transects",
-          "methodVersion": "1.0.1",
+          "methodVersion": "1.1.0",
           "inputVersions": [
             {
               "entityId": "geo_ait_bouguemez_catchment",
@@ -43296,7 +43347,7 @@
             }
           ],
           "generatedByTaskId": null,
-          "generatedAt": "2026-10-29T10:03:38Z",
+          "generatedAt": "2026-10-30T19:29:12Z",
           "verificationStatus": "computed_checked",
           "limitations": [
             "A profile is read from a 30 m surface model: trees, buildings, steep walls and radar artefacts distort it, and narrow gorges such as the lower gorge near the outlet are not resolved. Heights are metres above the EGM2008 geoid with the DEM's stated vertical accuracy (Copernicus DEM Product Handbook 5.0).",
@@ -43357,7 +43408,7 @@
             "bundle_drainage_network_ait_bouguemez"
           ],
           "methodId": "terrain_transects",
-          "methodVersion": "1.0.1",
+          "methodVersion": "1.1.0",
           "inputVersions": [
             {
               "entityId": "geo_ait_bouguemez_catchment",
@@ -43377,7 +43428,7 @@
             }
           ],
           "generatedByTaskId": null,
-          "generatedAt": "2026-10-29T10:03:38Z",
+          "generatedAt": "2026-10-30T19:29:12Z",
           "verificationStatus": "computed_checked",
           "limitations": [
             "A profile is read from a 30 m surface model: trees, buildings, steep walls and radar artefacts distort it, and narrow gorges such as the lower gorge near the outlet are not resolved. Heights are metres above the EGM2008 geoid with the DEM's stated vertical accuracy (Copernicus DEM Product Handbook 5.0).",
@@ -43438,7 +43489,7 @@
             "bundle_drainage_network_ait_bouguemez"
           ],
           "methodId": "terrain_transects",
-          "methodVersion": "1.0.1",
+          "methodVersion": "1.1.0",
           "inputVersions": [
             {
               "entityId": "geo_ait_bouguemez_catchment",
@@ -43458,7 +43509,7 @@
             }
           ],
           "generatedByTaskId": null,
-          "generatedAt": "2026-10-29T10:03:38Z",
+          "generatedAt": "2026-10-30T19:29:12Z",
           "verificationStatus": "computed_checked",
           "limitations": [
             "A profile is read from a 30 m surface model: trees, buildings, steep walls and radar artefacts distort it, and narrow gorges such as the lower gorge near the outlet are not resolved. Heights are metres above the EGM2008 geoid with the DEM's stated vertical accuracy (Copernicus DEM Product Handbook 5.0).",
@@ -43519,7 +43570,7 @@
             "bundle_drainage_network_ait_bouguemez"
           ],
           "methodId": "terrain_transects",
-          "methodVersion": "1.0.1",
+          "methodVersion": "1.1.0",
           "inputVersions": [
             {
               "entityId": "geo_ait_bouguemez_catchment",
@@ -43539,7 +43590,7 @@
             }
           ],
           "generatedByTaskId": null,
-          "generatedAt": "2026-10-29T10:03:38Z",
+          "generatedAt": "2026-10-30T19:29:12Z",
           "verificationStatus": "computed_checked",
           "limitations": [
             "A profile is read from a 30 m surface model: trees, buildings, steep walls and radar artefacts distort it, and narrow gorges such as the lower gorge near the outlet are not resolved. Heights are metres above the EGM2008 geoid with the DEM's stated vertical accuracy (Copernicus DEM Product Handbook 5.0).",
@@ -43600,7 +43651,7 @@
             "bundle_drainage_network_ait_bouguemez"
           ],
           "methodId": "terrain_transects",
-          "methodVersion": "1.0.1",
+          "methodVersion": "1.1.0",
           "inputVersions": [
             {
               "entityId": "geo_ait_bouguemez_catchment",
@@ -43620,7 +43671,7 @@
             }
           ],
           "generatedByTaskId": null,
-          "generatedAt": "2026-10-29T10:03:38Z",
+          "generatedAt": "2026-10-30T19:29:12Z",
           "verificationStatus": "computed_checked",
           "limitations": [
             "A profile is read from a 30 m surface model: trees, buildings, steep walls and radar artefacts distort it, and narrow gorges such as the lower gorge near the outlet are not resolved. Heights are metres above the EGM2008 geoid with the DEM's stated vertical accuracy (Copernicus DEM Product Handbook 5.0).",
@@ -43681,7 +43732,7 @@
             "bundle_drainage_network_ait_bouguemez"
           ],
           "methodId": "terrain_transects",
-          "methodVersion": "1.0.1",
+          "methodVersion": "1.1.0",
           "inputVersions": [
             {
               "entityId": "geo_ait_bouguemez_catchment",
@@ -43701,7 +43752,7 @@
             }
           ],
           "generatedByTaskId": null,
-          "generatedAt": "2026-10-29T10:03:38Z",
+          "generatedAt": "2026-10-30T19:29:12Z",
           "verificationStatus": "computed_checked",
           "limitations": [
             "A profile is read from a 30 m surface model: trees, buildings, steep walls and radar artefacts distort it, and narrow gorges such as the lower gorge near the outlet are not resolved. Heights are metres above the EGM2008 geoid with the DEM's stated vertical accuracy (Copernicus DEM Product Handbook 5.0).",
@@ -43762,7 +43813,7 @@
             "bundle_drainage_network_ait_bouguemez"
           ],
           "methodId": "terrain_transects",
-          "methodVersion": "1.0.1",
+          "methodVersion": "1.1.0",
           "inputVersions": [
             {
               "entityId": "geo_ait_bouguemez_catchment",
@@ -43782,7 +43833,7 @@
             }
           ],
           "generatedByTaskId": null,
-          "generatedAt": "2026-10-29T10:03:38Z",
+          "generatedAt": "2026-10-30T19:29:12Z",
           "verificationStatus": "computed_checked",
           "limitations": [
             "A profile is read from a 30 m surface model: trees, buildings, steep walls and radar artefacts distort it, and narrow gorges such as the lower gorge near the outlet are not resolved. Heights are metres above the EGM2008 geoid with the DEM's stated vertical accuracy (Copernicus DEM Product Handbook 5.0).",
@@ -48661,7 +48712,7 @@
           "meas_ndvi_departure_ait_bouguemez_2019-04_ndvi_departure_area_median",
           "meas_ndvi_departure_ait_bouguemez_2019-04_ndvi_departure_area_median_leave_one_year_out"
         ],
-        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122053660ae1449f41ece290b3b6f19cc28d13de790bf88826bb866d194903abae7a/period_2019-04/overview.webp",
+        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122076f1cc766fb2278a80287452b7851cf836d270128f579b24dd14e084cfeec73e/period_2019-04/overview.webp",
         "mapAssetHash": "1220e7154046e93a41c52463c1c1bf5248599eff9f0eb4da47bbe67989264f00eccf",
         "mapStatus": "available",
         "qualityFlags": [
@@ -48726,7 +48777,7 @@
           "meas_ndvi_departure_ait_bouguemez_2019-05_ndvi_departure_area_median",
           "meas_ndvi_departure_ait_bouguemez_2019-05_ndvi_departure_area_median_leave_one_year_out"
         ],
-        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122053660ae1449f41ece290b3b6f19cc28d13de790bf88826bb866d194903abae7a/period_2019-05/overview.webp",
+        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122076f1cc766fb2278a80287452b7851cf836d270128f579b24dd14e084cfeec73e/period_2019-05/overview.webp",
         "mapAssetHash": "1220cf68706c60701ec49ea332e23d5cbe1566b3a60cab25ca373215db62ffcb1fbb",
         "mapStatus": "available",
         "qualityFlags": [
@@ -48791,7 +48842,7 @@
           "meas_ndvi_departure_ait_bouguemez_2019-06_ndvi_departure_area_median",
           "meas_ndvi_departure_ait_bouguemez_2019-06_ndvi_departure_area_median_leave_one_year_out"
         ],
-        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122053660ae1449f41ece290b3b6f19cc28d13de790bf88826bb866d194903abae7a/period_2019-06/overview.webp",
+        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122076f1cc766fb2278a80287452b7851cf836d270128f579b24dd14e084cfeec73e/period_2019-06/overview.webp",
         "mapAssetHash": "122013f6eca5d3494acb2ae8a1222dd8db59351527bf33617061de82765bbcbea0ce",
         "mapStatus": "available",
         "qualityFlags": [
@@ -48855,7 +48906,7 @@
           "meas_ndvi_departure_ait_bouguemez_2019-07_ndvi_departure_area_median",
           "meas_ndvi_departure_ait_bouguemez_2019-07_ndvi_departure_area_median_leave_one_year_out"
         ],
-        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122053660ae1449f41ece290b3b6f19cc28d13de790bf88826bb866d194903abae7a/period_2019-07/overview.webp",
+        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122076f1cc766fb2278a80287452b7851cf836d270128f579b24dd14e084cfeec73e/period_2019-07/overview.webp",
         "mapAssetHash": "122070398e8ff0091850fa20ed50ba48500fb579a65d246386e314c1874cd1c53533",
         "mapStatus": "available",
         "qualityFlags": [
@@ -48919,7 +48970,7 @@
           "meas_ndvi_departure_ait_bouguemez_2019-08_ndvi_departure_area_median",
           "meas_ndvi_departure_ait_bouguemez_2019-08_ndvi_departure_area_median_leave_one_year_out"
         ],
-        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122053660ae1449f41ece290b3b6f19cc28d13de790bf88826bb866d194903abae7a/period_2019-08/overview.webp",
+        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122076f1cc766fb2278a80287452b7851cf836d270128f579b24dd14e084cfeec73e/period_2019-08/overview.webp",
         "mapAssetHash": "12201f25444df95e4d0451009ec7fa8511fd16b5b2323af03ead90654d22d503b8de",
         "mapStatus": "available",
         "qualityFlags": [
@@ -48983,7 +49034,7 @@
           "meas_ndvi_departure_ait_bouguemez_2019-09_ndvi_departure_area_median",
           "meas_ndvi_departure_ait_bouguemez_2019-09_ndvi_departure_area_median_leave_one_year_out"
         ],
-        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122053660ae1449f41ece290b3b6f19cc28d13de790bf88826bb866d194903abae7a/period_2019-09/overview.webp",
+        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122076f1cc766fb2278a80287452b7851cf836d270128f579b24dd14e084cfeec73e/period_2019-09/overview.webp",
         "mapAssetHash": "12201f31e68cb1befc218b1571b6df311bd563ca1b6883d3339a3826ac95328f1f79",
         "mapStatus": "available",
         "qualityFlags": [
@@ -49047,7 +49098,7 @@
           "meas_ndvi_departure_ait_bouguemez_2019-10_ndvi_departure_area_median",
           "meas_ndvi_departure_ait_bouguemez_2019-10_ndvi_departure_area_median_leave_one_year_out"
         ],
-        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122053660ae1449f41ece290b3b6f19cc28d13de790bf88826bb866d194903abae7a/period_2019-10/overview.webp",
+        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122076f1cc766fb2278a80287452b7851cf836d270128f579b24dd14e084cfeec73e/period_2019-10/overview.webp",
         "mapAssetHash": "1220eb9a78f0149f0e90718bbdb5942b4e771026713886d672d2eaea8e4c61beda78",
         "mapStatus": "available",
         "qualityFlags": [
@@ -49112,7 +49163,7 @@
           "meas_ndvi_departure_ait_bouguemez_2019-11_ndvi_departure_area_median",
           "meas_ndvi_departure_ait_bouguemez_2019-11_ndvi_departure_area_median_leave_one_year_out"
         ],
-        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122053660ae1449f41ece290b3b6f19cc28d13de790bf88826bb866d194903abae7a/period_2019-11/overview.webp",
+        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122076f1cc766fb2278a80287452b7851cf836d270128f579b24dd14e084cfeec73e/period_2019-11/overview.webp",
         "mapAssetHash": "12208de65fe30d7e58bc4fffbcc1fcb336737c30fdec41e665c203263837ec93469f",
         "mapStatus": "available",
         "qualityFlags": [
@@ -49437,7 +49488,7 @@
           "meas_ndvi_departure_ait_bouguemez_2020-04_ndvi_departure_area_median",
           "meas_ndvi_departure_ait_bouguemez_2020-04_ndvi_departure_area_median_leave_one_year_out"
         ],
-        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122053660ae1449f41ece290b3b6f19cc28d13de790bf88826bb866d194903abae7a/period_2020-04/overview.webp",
+        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122076f1cc766fb2278a80287452b7851cf836d270128f579b24dd14e084cfeec73e/period_2020-04/overview.webp",
         "mapAssetHash": "1220eef7965ee5e30bfd792845a059f131a79d0015fcba4b5e9a320057e21992cc29",
         "mapStatus": "available",
         "qualityFlags": [
@@ -49502,7 +49553,7 @@
           "meas_ndvi_departure_ait_bouguemez_2020-05_ndvi_departure_area_median",
           "meas_ndvi_departure_ait_bouguemez_2020-05_ndvi_departure_area_median_leave_one_year_out"
         ],
-        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122053660ae1449f41ece290b3b6f19cc28d13de790bf88826bb866d194903abae7a/period_2020-05/overview.webp",
+        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122076f1cc766fb2278a80287452b7851cf836d270128f579b24dd14e084cfeec73e/period_2020-05/overview.webp",
         "mapAssetHash": "1220575a198b7150fd596b69657be410e484173900caa26fbb77eee558b09a20a525",
         "mapStatus": "available",
         "qualityFlags": [
@@ -49567,7 +49618,7 @@
           "meas_ndvi_departure_ait_bouguemez_2020-06_ndvi_departure_area_median",
           "meas_ndvi_departure_ait_bouguemez_2020-06_ndvi_departure_area_median_leave_one_year_out"
         ],
-        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122053660ae1449f41ece290b3b6f19cc28d13de790bf88826bb866d194903abae7a/period_2020-06/overview.webp",
+        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122076f1cc766fb2278a80287452b7851cf836d270128f579b24dd14e084cfeec73e/period_2020-06/overview.webp",
         "mapAssetHash": "1220ca3db0d28db7ec0299678bd6a6a6ede9805d77218b034b0bc8a9780932030553",
         "mapStatus": "available",
         "qualityFlags": [
@@ -49631,7 +49682,7 @@
           "meas_ndvi_departure_ait_bouguemez_2020-07_ndvi_departure_area_median",
           "meas_ndvi_departure_ait_bouguemez_2020-07_ndvi_departure_area_median_leave_one_year_out"
         ],
-        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122053660ae1449f41ece290b3b6f19cc28d13de790bf88826bb866d194903abae7a/period_2020-07/overview.webp",
+        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122076f1cc766fb2278a80287452b7851cf836d270128f579b24dd14e084cfeec73e/period_2020-07/overview.webp",
         "mapAssetHash": "1220920e0ba8d0ef570a39287476127916686ec025601e714c99af6262768e31fb28",
         "mapStatus": "available",
         "qualityFlags": [
@@ -49695,7 +49746,7 @@
           "meas_ndvi_departure_ait_bouguemez_2020-08_ndvi_departure_area_median",
           "meas_ndvi_departure_ait_bouguemez_2020-08_ndvi_departure_area_median_leave_one_year_out"
         ],
-        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122053660ae1449f41ece290b3b6f19cc28d13de790bf88826bb866d194903abae7a/period_2020-08/overview.webp",
+        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122076f1cc766fb2278a80287452b7851cf836d270128f579b24dd14e084cfeec73e/period_2020-08/overview.webp",
         "mapAssetHash": "122015b717627a115e569cca0da4b202d69d9aefb9c7d2ff0813ea5f1baf25bf69e3",
         "mapStatus": "available",
         "qualityFlags": [
@@ -49759,7 +49810,7 @@
           "meas_ndvi_departure_ait_bouguemez_2020-09_ndvi_departure_area_median",
           "meas_ndvi_departure_ait_bouguemez_2020-09_ndvi_departure_area_median_leave_one_year_out"
         ],
-        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122053660ae1449f41ece290b3b6f19cc28d13de790bf88826bb866d194903abae7a/period_2020-09/overview.webp",
+        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122076f1cc766fb2278a80287452b7851cf836d270128f579b24dd14e084cfeec73e/period_2020-09/overview.webp",
         "mapAssetHash": "12209a0d22c67bc8b456156996e4c3f484589c1457ed661d2cf93cfdd1ab2be3571e",
         "mapStatus": "available",
         "qualityFlags": [
@@ -49823,7 +49874,7 @@
           "meas_ndvi_departure_ait_bouguemez_2020-10_ndvi_departure_area_median",
           "meas_ndvi_departure_ait_bouguemez_2020-10_ndvi_departure_area_median_leave_one_year_out"
         ],
-        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122053660ae1449f41ece290b3b6f19cc28d13de790bf88826bb866d194903abae7a/period_2020-10/overview.webp",
+        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122076f1cc766fb2278a80287452b7851cf836d270128f579b24dd14e084cfeec73e/period_2020-10/overview.webp",
         "mapAssetHash": "1220e54ecf42a64be82ea72d3c8f0ad635b18c87fbddee0b0be7c33bcaf8d6b0a2b3",
         "mapStatus": "available",
         "qualityFlags": [
@@ -49888,7 +49939,7 @@
           "meas_ndvi_departure_ait_bouguemez_2020-11_ndvi_departure_area_median",
           "meas_ndvi_departure_ait_bouguemez_2020-11_ndvi_departure_area_median_leave_one_year_out"
         ],
-        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122053660ae1449f41ece290b3b6f19cc28d13de790bf88826bb866d194903abae7a/period_2020-11/overview.webp",
+        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122076f1cc766fb2278a80287452b7851cf836d270128f579b24dd14e084cfeec73e/period_2020-11/overview.webp",
         "mapAssetHash": "12204cbbc6fbee172fc0ed705c601b01bd34f60596515932236058260ea3f25e6466",
         "mapStatus": "available",
         "qualityFlags": [
@@ -50213,7 +50264,7 @@
           "meas_ndvi_departure_ait_bouguemez_2021-04_ndvi_departure_area_median",
           "meas_ndvi_departure_ait_bouguemez_2021-04_ndvi_departure_area_median_leave_one_year_out"
         ],
-        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122053660ae1449f41ece290b3b6f19cc28d13de790bf88826bb866d194903abae7a/period_2021-04/overview.webp",
+        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122076f1cc766fb2278a80287452b7851cf836d270128f579b24dd14e084cfeec73e/period_2021-04/overview.webp",
         "mapAssetHash": "122094e867b30ec2e1b8040e6527776bcaa85d65210ba66bf42adc2cfd84d5276b73",
         "mapStatus": "available",
         "qualityFlags": [
@@ -50278,7 +50329,7 @@
           "meas_ndvi_departure_ait_bouguemez_2021-05_ndvi_departure_area_median",
           "meas_ndvi_departure_ait_bouguemez_2021-05_ndvi_departure_area_median_leave_one_year_out"
         ],
-        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122053660ae1449f41ece290b3b6f19cc28d13de790bf88826bb866d194903abae7a/period_2021-05/overview.webp",
+        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122076f1cc766fb2278a80287452b7851cf836d270128f579b24dd14e084cfeec73e/period_2021-05/overview.webp",
         "mapAssetHash": "122057e889a83c46eedb12fa65c69650a46bd88559cb3ab095d2d58c108192926c7a",
         "mapStatus": "available",
         "qualityFlags": [
@@ -50343,7 +50394,7 @@
           "meas_ndvi_departure_ait_bouguemez_2021-06_ndvi_departure_area_median",
           "meas_ndvi_departure_ait_bouguemez_2021-06_ndvi_departure_area_median_leave_one_year_out"
         ],
-        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122053660ae1449f41ece290b3b6f19cc28d13de790bf88826bb866d194903abae7a/period_2021-06/overview.webp",
+        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122076f1cc766fb2278a80287452b7851cf836d270128f579b24dd14e084cfeec73e/period_2021-06/overview.webp",
         "mapAssetHash": "1220ab921dc594322c19c9e077e4da3a1fa8737a230d6019b3964b603ce67914c662",
         "mapStatus": "available",
         "qualityFlags": [
@@ -50407,7 +50458,7 @@
           "meas_ndvi_departure_ait_bouguemez_2021-07_ndvi_departure_area_median",
           "meas_ndvi_departure_ait_bouguemez_2021-07_ndvi_departure_area_median_leave_one_year_out"
         ],
-        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122053660ae1449f41ece290b3b6f19cc28d13de790bf88826bb866d194903abae7a/period_2021-07/overview.webp",
+        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122076f1cc766fb2278a80287452b7851cf836d270128f579b24dd14e084cfeec73e/period_2021-07/overview.webp",
         "mapAssetHash": "12204d4e511dbec17d01cdcd41b1bd16f7b1cc231e4fce5dbaf0f31ea3daa10c8669",
         "mapStatus": "available",
         "qualityFlags": [
@@ -50471,7 +50522,7 @@
           "meas_ndvi_departure_ait_bouguemez_2021-08_ndvi_departure_area_median",
           "meas_ndvi_departure_ait_bouguemez_2021-08_ndvi_departure_area_median_leave_one_year_out"
         ],
-        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122053660ae1449f41ece290b3b6f19cc28d13de790bf88826bb866d194903abae7a/period_2021-08/overview.webp",
+        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122076f1cc766fb2278a80287452b7851cf836d270128f579b24dd14e084cfeec73e/period_2021-08/overview.webp",
         "mapAssetHash": "12201fe1eeed2c5c5ab2928b0a4bf20e89af9923072cbde493d33576b091d5d677ba",
         "mapStatus": "available",
         "qualityFlags": [
@@ -50535,7 +50586,7 @@
           "meas_ndvi_departure_ait_bouguemez_2021-09_ndvi_departure_area_median",
           "meas_ndvi_departure_ait_bouguemez_2021-09_ndvi_departure_area_median_leave_one_year_out"
         ],
-        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122053660ae1449f41ece290b3b6f19cc28d13de790bf88826bb866d194903abae7a/period_2021-09/overview.webp",
+        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122076f1cc766fb2278a80287452b7851cf836d270128f579b24dd14e084cfeec73e/period_2021-09/overview.webp",
         "mapAssetHash": "12208a13ee77d26a847762a57d4f6296d75c4338f09474f3e36274dcb2b761da1835",
         "mapStatus": "available",
         "qualityFlags": [
@@ -50599,7 +50650,7 @@
           "meas_ndvi_departure_ait_bouguemez_2021-10_ndvi_departure_area_median",
           "meas_ndvi_departure_ait_bouguemez_2021-10_ndvi_departure_area_median_leave_one_year_out"
         ],
-        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122053660ae1449f41ece290b3b6f19cc28d13de790bf88826bb866d194903abae7a/period_2021-10/overview.webp",
+        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122076f1cc766fb2278a80287452b7851cf836d270128f579b24dd14e084cfeec73e/period_2021-10/overview.webp",
         "mapAssetHash": "1220fe35e93f8b8c709f194dc61cdf52aa152a8db589ea1b0b54b814d6f0085527bd",
         "mapStatus": "available",
         "qualityFlags": [
@@ -50664,7 +50715,7 @@
           "meas_ndvi_departure_ait_bouguemez_2021-11_ndvi_departure_area_median",
           "meas_ndvi_departure_ait_bouguemez_2021-11_ndvi_departure_area_median_leave_one_year_out"
         ],
-        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122053660ae1449f41ece290b3b6f19cc28d13de790bf88826bb866d194903abae7a/period_2021-11/overview.webp",
+        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122076f1cc766fb2278a80287452b7851cf836d270128f579b24dd14e084cfeec73e/period_2021-11/overview.webp",
         "mapAssetHash": "1220fbcfcefc391202e098094548a8c9c2c2cf9c4c88fc3c2302bbc5caaf5a5cdfbc",
         "mapStatus": "available",
         "qualityFlags": [
@@ -50989,7 +51040,7 @@
           "meas_ndvi_departure_ait_bouguemez_2022-04_ndvi_departure_area_median",
           "meas_ndvi_departure_ait_bouguemez_2022-04_ndvi_departure_area_median_leave_one_year_out"
         ],
-        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122053660ae1449f41ece290b3b6f19cc28d13de790bf88826bb866d194903abae7a/period_2022-04/overview.webp",
+        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122076f1cc766fb2278a80287452b7851cf836d270128f579b24dd14e084cfeec73e/period_2022-04/overview.webp",
         "mapAssetHash": "12203f7d75c7554a3491ced6434f1a61a8faf49b30911be8c280745434f8c5210544",
         "mapStatus": "available",
         "qualityFlags": [
@@ -51054,7 +51105,7 @@
           "meas_ndvi_departure_ait_bouguemez_2022-05_ndvi_departure_area_median",
           "meas_ndvi_departure_ait_bouguemez_2022-05_ndvi_departure_area_median_leave_one_year_out"
         ],
-        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122053660ae1449f41ece290b3b6f19cc28d13de790bf88826bb866d194903abae7a/period_2022-05/overview.webp",
+        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122076f1cc766fb2278a80287452b7851cf836d270128f579b24dd14e084cfeec73e/period_2022-05/overview.webp",
         "mapAssetHash": "12208e5ddd83d470ae9f761856b91f4ccba828a32c34df40e75ce6548ba0fd76c212",
         "mapStatus": "available",
         "qualityFlags": [
@@ -51118,7 +51169,7 @@
           "meas_ndvi_departure_ait_bouguemez_2022-06_ndvi_departure_area_median",
           "meas_ndvi_departure_ait_bouguemez_2022-06_ndvi_departure_area_median_leave_one_year_out"
         ],
-        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122053660ae1449f41ece290b3b6f19cc28d13de790bf88826bb866d194903abae7a/period_2022-06/overview.webp",
+        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122076f1cc766fb2278a80287452b7851cf836d270128f579b24dd14e084cfeec73e/period_2022-06/overview.webp",
         "mapAssetHash": "122005f55855fc3deb8b54d73b8944a7e54b00245452994055915708aa8e95099276",
         "mapStatus": "available",
         "qualityFlags": [
@@ -51182,7 +51233,7 @@
           "meas_ndvi_departure_ait_bouguemez_2022-07_ndvi_departure_area_median",
           "meas_ndvi_departure_ait_bouguemez_2022-07_ndvi_departure_area_median_leave_one_year_out"
         ],
-        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122053660ae1449f41ece290b3b6f19cc28d13de790bf88826bb866d194903abae7a/period_2022-07/overview.webp",
+        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122076f1cc766fb2278a80287452b7851cf836d270128f579b24dd14e084cfeec73e/period_2022-07/overview.webp",
         "mapAssetHash": "1220e3b1eef87d611606e2df910bd4fd493077ba5b9f1df3824b49fe65367fa2d9ca",
         "mapStatus": "available",
         "qualityFlags": [
@@ -51246,7 +51297,7 @@
           "meas_ndvi_departure_ait_bouguemez_2022-08_ndvi_departure_area_median",
           "meas_ndvi_departure_ait_bouguemez_2022-08_ndvi_departure_area_median_leave_one_year_out"
         ],
-        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122053660ae1449f41ece290b3b6f19cc28d13de790bf88826bb866d194903abae7a/period_2022-08/overview.webp",
+        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122076f1cc766fb2278a80287452b7851cf836d270128f579b24dd14e084cfeec73e/period_2022-08/overview.webp",
         "mapAssetHash": "1220f06dbbe8ce1bf69f2989dad7a46fcbb2f773ad4355a30022ba1c4dea7623dc96",
         "mapStatus": "available",
         "qualityFlags": [
@@ -51310,7 +51361,7 @@
           "meas_ndvi_departure_ait_bouguemez_2022-09_ndvi_departure_area_median",
           "meas_ndvi_departure_ait_bouguemez_2022-09_ndvi_departure_area_median_leave_one_year_out"
         ],
-        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122053660ae1449f41ece290b3b6f19cc28d13de790bf88826bb866d194903abae7a/period_2022-09/overview.webp",
+        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122076f1cc766fb2278a80287452b7851cf836d270128f579b24dd14e084cfeec73e/period_2022-09/overview.webp",
         "mapAssetHash": "1220f14e2957d8d87ddfa138f5795ca69d25bb9ee2b0c8a0c2e9f6860e13a9374c02",
         "mapStatus": "available",
         "qualityFlags": [
@@ -51374,7 +51425,7 @@
           "meas_ndvi_departure_ait_bouguemez_2022-10_ndvi_departure_area_median",
           "meas_ndvi_departure_ait_bouguemez_2022-10_ndvi_departure_area_median_leave_one_year_out"
         ],
-        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122053660ae1449f41ece290b3b6f19cc28d13de790bf88826bb866d194903abae7a/period_2022-10/overview.webp",
+        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122076f1cc766fb2278a80287452b7851cf836d270128f579b24dd14e084cfeec73e/period_2022-10/overview.webp",
         "mapAssetHash": "1220d7af58b7d7a1ea7c73c474e22d0ab2db37d49ad81daf3dec9eed3fe5d032d506",
         "mapStatus": "available",
         "qualityFlags": [
@@ -51438,7 +51489,7 @@
           "meas_ndvi_departure_ait_bouguemez_2022-11_ndvi_departure_area_median",
           "meas_ndvi_departure_ait_bouguemez_2022-11_ndvi_departure_area_median_leave_one_year_out"
         ],
-        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122053660ae1449f41ece290b3b6f19cc28d13de790bf88826bb866d194903abae7a/period_2022-11/overview.webp",
+        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122076f1cc766fb2278a80287452b7851cf836d270128f579b24dd14e084cfeec73e/period_2022-11/overview.webp",
         "mapAssetHash": "122034681ac40346a12343ddb14c7920f64b15c3f0d3ec15647c9a9685acc8b20b66",
         "mapStatus": "available",
         "qualityFlags": [
@@ -51762,7 +51813,7 @@
           "meas_ndvi_departure_ait_bouguemez_2023-04_ndvi_departure_area_median",
           "meas_ndvi_departure_ait_bouguemez_2023-04_ndvi_departure_area_median_leave_one_year_out"
         ],
-        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122053660ae1449f41ece290b3b6f19cc28d13de790bf88826bb866d194903abae7a/period_2023-04/overview.webp",
+        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122076f1cc766fb2278a80287452b7851cf836d270128f579b24dd14e084cfeec73e/period_2023-04/overview.webp",
         "mapAssetHash": "1220b9e74953e08f3e9128da665635efd56b7254d23c779aa8a0a653f28fe5de37b1",
         "mapStatus": "available",
         "qualityFlags": [
@@ -51827,7 +51878,7 @@
           "meas_ndvi_departure_ait_bouguemez_2023-05_ndvi_departure_area_median",
           "meas_ndvi_departure_ait_bouguemez_2023-05_ndvi_departure_area_median_leave_one_year_out"
         ],
-        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122053660ae1449f41ece290b3b6f19cc28d13de790bf88826bb866d194903abae7a/period_2023-05/overview.webp",
+        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122076f1cc766fb2278a80287452b7851cf836d270128f579b24dd14e084cfeec73e/period_2023-05/overview.webp",
         "mapAssetHash": "12204bfc538ad5253c78eb10120fb7fa7b2124aa3472c3b4592a4e77ebd4a1ff73e4",
         "mapStatus": "available",
         "qualityFlags": [
@@ -51891,7 +51942,7 @@
           "meas_ndvi_departure_ait_bouguemez_2023-06_ndvi_departure_area_median",
           "meas_ndvi_departure_ait_bouguemez_2023-06_ndvi_departure_area_median_leave_one_year_out"
         ],
-        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122053660ae1449f41ece290b3b6f19cc28d13de790bf88826bb866d194903abae7a/period_2023-06/overview.webp",
+        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122076f1cc766fb2278a80287452b7851cf836d270128f579b24dd14e084cfeec73e/period_2023-06/overview.webp",
         "mapAssetHash": "122066018f6cfc2225cf9b7969d68e38b48c95e0160dce47bd83ba7557205e5bb373",
         "mapStatus": "available",
         "qualityFlags": [
@@ -51955,7 +52006,7 @@
           "meas_ndvi_departure_ait_bouguemez_2023-07_ndvi_departure_area_median",
           "meas_ndvi_departure_ait_bouguemez_2023-07_ndvi_departure_area_median_leave_one_year_out"
         ],
-        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122053660ae1449f41ece290b3b6f19cc28d13de790bf88826bb866d194903abae7a/period_2023-07/overview.webp",
+        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122076f1cc766fb2278a80287452b7851cf836d270128f579b24dd14e084cfeec73e/period_2023-07/overview.webp",
         "mapAssetHash": "1220f1b895caf4fed57b6b614acb3ed01039d02e2217e795f16d7ef03bdd13a45d68",
         "mapStatus": "available",
         "qualityFlags": [
@@ -52019,7 +52070,7 @@
           "meas_ndvi_departure_ait_bouguemez_2023-08_ndvi_departure_area_median",
           "meas_ndvi_departure_ait_bouguemez_2023-08_ndvi_departure_area_median_leave_one_year_out"
         ],
-        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122053660ae1449f41ece290b3b6f19cc28d13de790bf88826bb866d194903abae7a/period_2023-08/overview.webp",
+        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122076f1cc766fb2278a80287452b7851cf836d270128f579b24dd14e084cfeec73e/period_2023-08/overview.webp",
         "mapAssetHash": "1220cbec107538975feb2e06b8ed833895707c1cc7c9ea63eac2bed624cd82b85a78",
         "mapStatus": "available",
         "qualityFlags": [
@@ -52083,7 +52134,7 @@
           "meas_ndvi_departure_ait_bouguemez_2023-09_ndvi_departure_area_median",
           "meas_ndvi_departure_ait_bouguemez_2023-09_ndvi_departure_area_median_leave_one_year_out"
         ],
-        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122053660ae1449f41ece290b3b6f19cc28d13de790bf88826bb866d194903abae7a/period_2023-09/overview.webp",
+        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122076f1cc766fb2278a80287452b7851cf836d270128f579b24dd14e084cfeec73e/period_2023-09/overview.webp",
         "mapAssetHash": "1220f1091fa459770838a83876b7184eef6ab5be8273a9a15a8fca2e34f343b7be77",
         "mapStatus": "available",
         "qualityFlags": [
@@ -52147,7 +52198,7 @@
           "meas_ndvi_departure_ait_bouguemez_2023-10_ndvi_departure_area_median",
           "meas_ndvi_departure_ait_bouguemez_2023-10_ndvi_departure_area_median_leave_one_year_out"
         ],
-        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122053660ae1449f41ece290b3b6f19cc28d13de790bf88826bb866d194903abae7a/period_2023-10/overview.webp",
+        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122076f1cc766fb2278a80287452b7851cf836d270128f579b24dd14e084cfeec73e/period_2023-10/overview.webp",
         "mapAssetHash": "12203dd5bfac53a247bbb81fff4d3205a001d1f17a2389e72a3ca6363d29caa83bc5",
         "mapStatus": "available",
         "qualityFlags": [
@@ -52211,7 +52262,7 @@
           "meas_ndvi_departure_ait_bouguemez_2023-11_ndvi_departure_area_median",
           "meas_ndvi_departure_ait_bouguemez_2023-11_ndvi_departure_area_median_leave_one_year_out"
         ],
-        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122053660ae1449f41ece290b3b6f19cc28d13de790bf88826bb866d194903abae7a/period_2023-11/overview.webp",
+        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122076f1cc766fb2278a80287452b7851cf836d270128f579b24dd14e084cfeec73e/period_2023-11/overview.webp",
         "mapAssetHash": "12201d6a3ee2a895bb78b000c9f390009fccf696e38de58e2796a3b98edc58477a1a",
         "mapStatus": "available",
         "qualityFlags": [
@@ -52534,7 +52585,7 @@
           "meas_ndvi_departure_ait_bouguemez_2024-04_ndvi_departure_area_median",
           "meas_ndvi_departure_ait_bouguemez_2024-04_ndvi_departure_area_median_leave_one_year_out"
         ],
-        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122053660ae1449f41ece290b3b6f19cc28d13de790bf88826bb866d194903abae7a/period_2024-04/overview.webp",
+        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122076f1cc766fb2278a80287452b7851cf836d270128f579b24dd14e084cfeec73e/period_2024-04/overview.webp",
         "mapAssetHash": "1220781bbd6c3034b060a54bd81d8d5a5ad48e79c88b3566c723971917b0d67a19a1",
         "mapStatus": "available",
         "qualityFlags": [
@@ -52599,7 +52650,7 @@
           "meas_ndvi_departure_ait_bouguemez_2024-05_ndvi_departure_area_median",
           "meas_ndvi_departure_ait_bouguemez_2024-05_ndvi_departure_area_median_leave_one_year_out"
         ],
-        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122053660ae1449f41ece290b3b6f19cc28d13de790bf88826bb866d194903abae7a/period_2024-05/overview.webp",
+        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122076f1cc766fb2278a80287452b7851cf836d270128f579b24dd14e084cfeec73e/period_2024-05/overview.webp",
         "mapAssetHash": "1220f04345593131b94d399b40fefd0c75f62042d3eddc04c7efaf8825fcc7ca62c6",
         "mapStatus": "available",
         "qualityFlags": [
@@ -52663,7 +52714,7 @@
           "meas_ndvi_departure_ait_bouguemez_2024-06_ndvi_departure_area_median",
           "meas_ndvi_departure_ait_bouguemez_2024-06_ndvi_departure_area_median_leave_one_year_out"
         ],
-        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122053660ae1449f41ece290b3b6f19cc28d13de790bf88826bb866d194903abae7a/period_2024-06/overview.webp",
+        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122076f1cc766fb2278a80287452b7851cf836d270128f579b24dd14e084cfeec73e/period_2024-06/overview.webp",
         "mapAssetHash": "1220681621da777f2755475c06e3e79bbf0397699bfd8451343213029c4cc81ca108",
         "mapStatus": "available",
         "qualityFlags": [
@@ -52727,7 +52778,7 @@
           "meas_ndvi_departure_ait_bouguemez_2024-07_ndvi_departure_area_median",
           "meas_ndvi_departure_ait_bouguemez_2024-07_ndvi_departure_area_median_leave_one_year_out"
         ],
-        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122053660ae1449f41ece290b3b6f19cc28d13de790bf88826bb866d194903abae7a/period_2024-07/overview.webp",
+        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122076f1cc766fb2278a80287452b7851cf836d270128f579b24dd14e084cfeec73e/period_2024-07/overview.webp",
         "mapAssetHash": "12204a2074bd99fa789304a09e969541c13f1f63b7573f81eefd0911cc1840dc86f1",
         "mapStatus": "available",
         "qualityFlags": [
@@ -52791,7 +52842,7 @@
           "meas_ndvi_departure_ait_bouguemez_2024-08_ndvi_departure_area_median",
           "meas_ndvi_departure_ait_bouguemez_2024-08_ndvi_departure_area_median_leave_one_year_out"
         ],
-        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122053660ae1449f41ece290b3b6f19cc28d13de790bf88826bb866d194903abae7a/period_2024-08/overview.webp",
+        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122076f1cc766fb2278a80287452b7851cf836d270128f579b24dd14e084cfeec73e/period_2024-08/overview.webp",
         "mapAssetHash": "1220302f691e07b3b1b3cd1ff9415861687d5a3e4ccfd7fb072fc4458d19a682cd39",
         "mapStatus": "available",
         "qualityFlags": [
@@ -52855,7 +52906,7 @@
           "meas_ndvi_departure_ait_bouguemez_2024-09_ndvi_departure_area_median",
           "meas_ndvi_departure_ait_bouguemez_2024-09_ndvi_departure_area_median_leave_one_year_out"
         ],
-        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122053660ae1449f41ece290b3b6f19cc28d13de790bf88826bb866d194903abae7a/period_2024-09/overview.webp",
+        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122076f1cc766fb2278a80287452b7851cf836d270128f579b24dd14e084cfeec73e/period_2024-09/overview.webp",
         "mapAssetHash": "12209553b56da28d6f3477c105de93f434b91bd79a3f983b860b6dd33cc52517a8cb",
         "mapStatus": "available",
         "qualityFlags": [
@@ -52919,7 +52970,7 @@
           "meas_ndvi_departure_ait_bouguemez_2024-10_ndvi_departure_area_median",
           "meas_ndvi_departure_ait_bouguemez_2024-10_ndvi_departure_area_median_leave_one_year_out"
         ],
-        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122053660ae1449f41ece290b3b6f19cc28d13de790bf88826bb866d194903abae7a/period_2024-10/overview.webp",
+        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122076f1cc766fb2278a80287452b7851cf836d270128f579b24dd14e084cfeec73e/period_2024-10/overview.webp",
         "mapAssetHash": "122002abb6ec7acf42c7ef4c69bdcbd882da97f1d699c5060f2d6617dc1f7a9f3eec",
         "mapStatus": "available",
         "qualityFlags": [
@@ -52984,7 +53035,7 @@
           "meas_ndvi_departure_ait_bouguemez_2024-11_ndvi_departure_area_median",
           "meas_ndvi_departure_ait_bouguemez_2024-11_ndvi_departure_area_median_leave_one_year_out"
         ],
-        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122053660ae1449f41ece290b3b6f19cc28d13de790bf88826bb866d194903abae7a/period_2024-11/overview.webp",
+        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122076f1cc766fb2278a80287452b7851cf836d270128f579b24dd14e084cfeec73e/period_2024-11/overview.webp",
         "mapAssetHash": "1220091839c11ee44228aa1d3d2eacb8a769728f4845317f8a1b05e29dd8f047f022",
         "mapStatus": "available",
         "qualityFlags": [
@@ -53309,7 +53360,7 @@
           "meas_ndvi_departure_ait_bouguemez_2025-04_ndvi_departure_area_median",
           "meas_ndvi_departure_ait_bouguemez_2025-04_ndvi_departure_area_median_leave_one_year_out"
         ],
-        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122053660ae1449f41ece290b3b6f19cc28d13de790bf88826bb866d194903abae7a/period_2025-04/overview.webp",
+        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122076f1cc766fb2278a80287452b7851cf836d270128f579b24dd14e084cfeec73e/period_2025-04/overview.webp",
         "mapAssetHash": "1220e31ec55008bd521e7947873da80acbb04e7ae54c1ab2c8904019f487ee171c51",
         "mapStatus": "available",
         "qualityFlags": [
@@ -53374,7 +53425,7 @@
           "meas_ndvi_departure_ait_bouguemez_2025-05_ndvi_departure_area_median",
           "meas_ndvi_departure_ait_bouguemez_2025-05_ndvi_departure_area_median_leave_one_year_out"
         ],
-        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122053660ae1449f41ece290b3b6f19cc28d13de790bf88826bb866d194903abae7a/period_2025-05/overview.webp",
+        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122076f1cc766fb2278a80287452b7851cf836d270128f579b24dd14e084cfeec73e/period_2025-05/overview.webp",
         "mapAssetHash": "122061bece6d5ae4c8bcb39e646da3d85fd97362d9e0c41b184ffdd841d509837e05",
         "mapStatus": "available",
         "qualityFlags": [
@@ -53438,7 +53489,7 @@
           "meas_ndvi_departure_ait_bouguemez_2025-06_ndvi_departure_area_median",
           "meas_ndvi_departure_ait_bouguemez_2025-06_ndvi_departure_area_median_leave_one_year_out"
         ],
-        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122053660ae1449f41ece290b3b6f19cc28d13de790bf88826bb866d194903abae7a/period_2025-06/overview.webp",
+        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122076f1cc766fb2278a80287452b7851cf836d270128f579b24dd14e084cfeec73e/period_2025-06/overview.webp",
         "mapAssetHash": "1220b3d024132c6fc80a925f60618ef21c3a2744cc7f6731cc20b1a0be45574d9f05",
         "mapStatus": "available",
         "qualityFlags": [
@@ -53502,7 +53553,7 @@
           "meas_ndvi_departure_ait_bouguemez_2025-07_ndvi_departure_area_median",
           "meas_ndvi_departure_ait_bouguemez_2025-07_ndvi_departure_area_median_leave_one_year_out"
         ],
-        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122053660ae1449f41ece290b3b6f19cc28d13de790bf88826bb866d194903abae7a/period_2025-07/overview.webp",
+        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122076f1cc766fb2278a80287452b7851cf836d270128f579b24dd14e084cfeec73e/period_2025-07/overview.webp",
         "mapAssetHash": "12200d1f1544a0cbfe08b66bc30c6a1ba7bbc1c52634dfffd77b694d666dec319bb4",
         "mapStatus": "available",
         "qualityFlags": [
@@ -53566,7 +53617,7 @@
           "meas_ndvi_departure_ait_bouguemez_2025-08_ndvi_departure_area_median",
           "meas_ndvi_departure_ait_bouguemez_2025-08_ndvi_departure_area_median_leave_one_year_out"
         ],
-        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122053660ae1449f41ece290b3b6f19cc28d13de790bf88826bb866d194903abae7a/period_2025-08/overview.webp",
+        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122076f1cc766fb2278a80287452b7851cf836d270128f579b24dd14e084cfeec73e/period_2025-08/overview.webp",
         "mapAssetHash": "1220b0ebebc4885bc2867fcd219200fdbc57a7857333f2e2a48fe4efadf949baad77",
         "mapStatus": "available",
         "qualityFlags": [
@@ -53630,7 +53681,7 @@
           "meas_ndvi_departure_ait_bouguemez_2025-09_ndvi_departure_area_median",
           "meas_ndvi_departure_ait_bouguemez_2025-09_ndvi_departure_area_median_leave_one_year_out"
         ],
-        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122053660ae1449f41ece290b3b6f19cc28d13de790bf88826bb866d194903abae7a/period_2025-09/overview.webp",
+        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122076f1cc766fb2278a80287452b7851cf836d270128f579b24dd14e084cfeec73e/period_2025-09/overview.webp",
         "mapAssetHash": "1220156357d6699e864cc1e91ae89de4f7eb76c1115638c087922ebcdbd184c9928d",
         "mapStatus": "available",
         "qualityFlags": [
@@ -53694,7 +53745,7 @@
           "meas_ndvi_departure_ait_bouguemez_2025-10_ndvi_departure_area_median",
           "meas_ndvi_departure_ait_bouguemez_2025-10_ndvi_departure_area_median_leave_one_year_out"
         ],
-        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122053660ae1449f41ece290b3b6f19cc28d13de790bf88826bb866d194903abae7a/period_2025-10/overview.webp",
+        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122076f1cc766fb2278a80287452b7851cf836d270128f579b24dd14e084cfeec73e/period_2025-10/overview.webp",
         "mapAssetHash": "1220281288dc511795d4b3cd575caf1533523438e747194da35f6b406d6656ceb2ba",
         "mapStatus": "available",
         "qualityFlags": [
@@ -53758,7 +53809,7 @@
           "meas_ndvi_departure_ait_bouguemez_2025-11_ndvi_departure_area_median",
           "meas_ndvi_departure_ait_bouguemez_2025-11_ndvi_departure_area_median_leave_one_year_out"
         ],
-        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122053660ae1449f41ece290b3b6f19cc28d13de790bf88826bb866d194903abae7a/period_2025-11/overview.webp",
+        "mapAssetUri": "/api/case-assets/bundle_ndvi_departure_ait_bouguemez/122076f1cc766fb2278a80287452b7851cf836d270128f579b24dd14e084cfeec73e/period_2025-11/overview.webp",
         "mapAssetHash": "12203ace727494ff980a9f1eb32967f345cdc1d5bf1969b791b4904ae0b12d88cb4b",
         "mapStatus": "available",
         "qualityFlags": [

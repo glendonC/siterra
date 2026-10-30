@@ -7,8 +7,8 @@
   "https://siterra.invalid/schemas/stac/siterra/1.1.0/schema.json"
  ],
  "id": "bundle_snow_cover_by_band_ait_bouguemez",
- "title": "Monthly snow cover by elevation band, 2001 to 2025 (snow_cover_by_band 1.0.0)",
- "description": "Precomputed result of recipe snow_cover_by_band 1.0.0 for Ait Bouguemez valley catchment: the monthly snow-covered share of each elevation band from 2001-01 to 2025-12, from 8985 daily Terra MOD10A1 v6.1 products (500 m), at NDSI thresholds 0.2 and 0.4, with the clear share of each band and month. Band sets: fixed_500m (below 2000 m, 2000 to 2500 m, 2500 to 3000 m, 3000 to 3500 m, 3500 m and above), terrain_strata (below 2317 m, 2317 to 2815 m, 2815 m and above). Observation; 2 of 300 catchment months fall below the clear share minimum of 0.3 or have no product.\n\nMOD10A1 sees snow only on clear days. Cloudy days are left out, not filled, so a month's fraction describes its clear days; the clear share is shown with it. Against 448 Sentinel-2 scenes of the Atlas, Terra MODIS snow cover (version 6) was underestimated by 6.13% on average with the global NDSI threshold of 0.4 and overestimated by 0.34% with the Atlas threshold of 0.2 (Bousbaa et al. 2024). Both thresholds are shown. Against five Atlas stations, MOD10A1 (version 5) agreed with snow observations 89% of the time (2000 to 2013, other Atlas catchments; Marchane et al. 2015). There is no station comparison for this valley. Each 500 m pixel is called snow-covered or not as a whole; patchy snow, thin snow and snow on shaded slopes can be missed. Snow cover is not snow depth or water: it says nothing about how much water the snow holds. Terra's overpass has drifted earlier since 2020, from 10:30 to about 9:06 mean local time by December 2025 (NASA), so later years are seen with a lower sun and longer shadows, which may change snow detection on steep slopes.",
+ "title": "Monthly snow cover by elevation band, 2001 to 2025 (snow_cover_by_band 1.1.0)",
+ "description": "Precomputed result of recipe snow_cover_by_band 1.1.0 for Ait Bouguemez valley catchment: the monthly snow-covered share of each elevation band from 2001-01 to 2025-12, from 8985 daily Terra MOD10A1 v6.1 products (500 m), at NDSI thresholds 0.2 and 0.4, with the clear share of each band and month. Band sets: fixed_500m (below 2000 m, 2000 to 2500 m, 2500 to 3000 m, 3000 to 3500 m, 3500 m and above), terrain_strata (below 2317 m, 2317 to 2815 m, 2815 m and above). Observation; 2 of 300 catchment months fall below the clear share minimum of 0.3 or have no product.\n\nMOD10A1 sees snow only on clear days. Cloudy days are left out, not filled, so a month's fraction describes its clear days; the clear share is shown with it. Against 448 Sentinel-2 scenes of the Atlas, Terra MODIS snow cover (version 6) was underestimated by 6.13% on average with the global NDSI threshold of 0.4 and overestimated by 0.34% with the Atlas threshold of 0.2 (Bousbaa et al. 2024). Both thresholds are shown. Against five Atlas stations, MOD10A1 (version 5) agreed with snow observations 89% of the time (2000 to 2013, other Atlas catchments; Marchane et al. 2015). There is no station comparison for this valley. Each 500 m pixel is called snow-covered or not as a whole; patchy snow, thin snow and snow on shaded slopes can be missed. Snow cover is not snow depth or water: it says nothing about how much water the snow holds. Terra's overpass has drifted earlier since 2020, from 10:30 to about 9:06 mean local time by December 2025 (NASA), so later years are seen with a lower sun and longer shadows, which may change snow detection on steep slopes.",
  "license": "other",
  "providers": [
   {
@@ -94,8 +94,8 @@
    "roles": [
     "data"
    ],
-   "file:checksum": "1220ef0edc9cc31a4bc5b29cf24cbdb7a1183b04391625868d36d24e700e9751b543",
-   "file:size": 38015
+   "file:checksum": "1220b36648f5c33e79a4e057cf14df3fd8b2cdba385dbe7e9f996bccd8575baeadea",
+   "file:size": 38016
   },
   "snow_cover_tables": {
    "href": "./snow-cover-by-band-tables.json",
@@ -104,11 +104,11 @@
    "roles": [
     "data"
    ],
-   "file:checksum": "1220658f75ac5e5d7f0c06d2179dcdc2ca89792549ce1d728202b03ce56f07323db2",
-   "file:size": 315325
+   "file:checksum": "12200d3d2dcc5d81117c35436a6fce33c8dd68490df6cf62d93a909dfa209d25e369",
+   "file:size": 315326
   }
  },
- "created": "2026-10-28T19:33:19Z",
+ "created": "2026-10-30T19:25:41Z",
  "siterra:status": "validated",
  "siterra:variable": "snow_cover_fraction",
  "siterra:dataset": {
@@ -126,10 +126,10 @@
  },
  "siterra:method": {
   "id": "snow_cover_by_band",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "analysis_crs": "EPSG:32629",
   "parameters": {
-   "place_configuration": "science/places/ait-bouguemez.json revision 2, sha256 5f2c87a30ef13a84a00d63f790e02df17e499173427b2d73391cdc52decae363",
+   "place_configuration": "science/places/ait-bouguemez.json revision 11, sha256 8ff779893e9507d8bcb2ea1f77f8bac919dfa6f59742ae741dcd977d675d975b",
    "months": [
     "2001-01",
     "2025-12"
@@ -232,7 +232,7 @@
    "href": "../bundle_terrain_strata_ait_bouguemez/collection.json",
    "type": "application/json",
    "title": "Terrain strata bundle bundle_terrain_strata_ait_bouguemez (equal-area elevation bands)",
-   "file:checksum": "1220e7892bc96d951fbe7c89d256bf719931af5f6a1fec40f843dcef44040b8346d1"
+   "file:checksum": "1220d78c5c708866192daeb5ab9dbd2ad8eea4e31c9252c611c8b9aeaecfb6daee04"
   },
   {
    "rel": "license",

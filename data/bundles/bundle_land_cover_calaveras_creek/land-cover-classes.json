@@ -1,0 +1,179 @@
+{
+ "recipeId": "land_cover_classes",
+ "version": "1.0.0",
+ "computed": "2026-10-30T19:07:10Z",
+ "place": {
+  "placeId": "calaveras_creek",
+  "configRevision": 9,
+  "config_sha256": "58db09c93622fae117105eb5bcefba11b5581a88534ef149e8899f61865ddc7d"
+ },
+ "claim_kind": "observation",
+ "grid": {
+  "crs": "EPSG:32610",
+  "cell_m": 10.0,
+  "shape": [
+   2730,
+   3318
+  ],
+  "transform": [
+   10.0,
+   0.0,
+   600200.0,
+   0.0,
+   -10.0,
+   4151760.0
+  ],
+  "nodata": 0
+ },
+ "cells_inside": 2573395,
+ "classes": [
+  {
+   "code": 10,
+   "name": "tree cover",
+   "cells": 1174478,
+   "area_km2": 117.448,
+   "share": 0.4564
+  },
+  {
+   "code": 20,
+   "name": "shrubland",
+   "cells": 53901,
+   "area_km2": 5.39,
+   "share": 0.0209
+  },
+  {
+   "code": 30,
+   "name": "grassland",
+   "cells": 1290170,
+   "area_km2": 129.017,
+   "share": 0.5013
+  },
+  {
+   "code": 40,
+   "name": "cropland",
+   "cells": 1713,
+   "area_km2": 0.171,
+   "share": 0.0007
+  },
+  {
+   "code": 50,
+   "name": "built-up",
+   "cells": 2336,
+   "area_km2": 0.234,
+   "share": 0.0009
+  },
+  {
+   "code": 60,
+   "name": "bare or sparse vegetation",
+   "cells": 2389,
+   "area_km2": 0.239,
+   "share": 0.0009
+  },
+  {
+   "code": 80,
+   "name": "permanent water",
+   "cells": 48408,
+   "area_km2": 4.841,
+   "share": 0.0188
+  }
+ ],
+ "groups": [
+  {
+   "id": "lc_grazing_possible",
+   "label": "grassland, shrubland, or bare or sparse vegetation (land cover that can carry grazing; not a pasture map)",
+   "classes": [
+    20,
+    30,
+    60
+   ],
+   "cells": 1346460,
+   "share": 0.5232
+  },
+  {
+   "id": "lc_grassland",
+   "label": "grassland",
+   "classes": [
+    30
+   ],
+   "cells": 1290170,
+   "share": 0.5013
+  },
+  {
+   "id": "lc_bare_sparse",
+   "label": "bare or sparse vegetation",
+   "classes": [
+    60
+   ],
+   "cells": 2389,
+   "share": 0.0009
+  },
+  {
+   "id": "lc_shrubland",
+   "label": "shrubland",
+   "classes": [
+    20
+   ],
+   "cells": 53901,
+   "share": 0.0209
+  },
+  {
+   "id": "lc_tree_cover",
+   "label": "tree cover (may include oak woodland and savanna, which can also be grazed)",
+   "classes": [
+    10
+   ],
+   "cells": 1174478,
+   "share": 0.4564
+  },
+  {
+   "id": "lc_cropland_built",
+   "label": "cropland or built-up",
+   "classes": [
+    40,
+    50
+   ],
+   "cells": 4049,
+   "share": 0.0016
+  }
+ ],
+ "dataset": "ESA WorldCover 10 m 2021 v200",
+ "layer_sha256_in_place_configuration": "377daac6443d540d4734e8d9170b0779258366c33fcb123cce6d45fcf56a95af",
+ "checks": {
+  "class_counts_sum": 2573395,
+  "unlisted_classes": {},
+  "zero_inside": 0,
+  "excluded_layer_cells": 4049,
+  "cropland_plus_built_up_cells": 4049,
+  "differing_from_placed_grid": 0
+ },
+ "units": "Class codes are the ESA WorldCover 2021 v200 legend values (10 tree cover, 20 shrubland, 30 grassland, 40 cropland, 50 built-up, 60 bare or sparse vegetation, 80 permanent water bodies); areas are km2 from 10 m cells of 100 m2 in EPSG:32610; shares are fractions of the cells inside the polygon.",
+ "check_results": {
+  "recompute_sample_period": true,
+  "units_and_scale": true,
+  "nodata_not_zero": true,
+  "attribution_present": true,
+  "visual_inspection_sample": true
+ },
+ "limitations": [
+  "ESA WorldCover 2021 is a single 2021 map classified from satellite data at 10 m: its classes can differ from the ground, and the class of one cell is not a field observation.",
+  "Tree cover may include open woodland and savanna as well as dense woodland. Cropland (0.07% of the catchment) and built-up land (0.09%) are almost absent in this map; the class 'cropland or built-up' is excluded from the sampling strata, never read as low vegetation. No class is a pasture, grazing lease or management unit.",
+  "Areas are cell counts times 100 m2 in EPSG:32610, not geodesic areas, and cells on the polygon's boundary are counted where their centre lies inside it.",
+  "The catchment is a hydrological analysis extent, not a pasture, grazing lease or management boundary."
+ ],
+ "forbidden_phrases": [
+  "significant",
+  "significantly",
+  "degradation detected",
+  "grazing impact",
+  "overgrazing",
+  "caused by",
+  "proves",
+  "recovery",
+  "forecast",
+  "pasture improvement",
+  "pasture decline",
+  "encroachment",
+  "flood risk",
+  "water supply"
+ ]
+}

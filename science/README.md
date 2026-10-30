@@ -22,9 +22,9 @@ Raw downloads and working files stay in the ignored `data/raw/` and `data/interi
 
 ```
 uv sync --frozen
-python -I pipeline/chirps_fetch.py data/raw/chirps-v3.0/monthly-global-cogs 1991-01 2025-12
+python -I pipeline/chirps_fetch.py places/<place>.json data/raw/chirps-v3.0/monthly-global-cogs 1991-01 2025-12
 python -I pipeline/chirps-crosscheck.py data/raw/chirps-v3.0/monthly-global-cogs/chirps-v3.0.2022.01.cog.window.json 2022 1
-python -I pipeline/chirps-bundle.py data/raw/chirps-v3.0/monthly-global-cogs <geometry.geojson> uv.lock data/bundles 2019-01 2025-12 --inspected
+python -I pipeline/chirps-bundle.py places/<place>.json .. data/raw/chirps-v3.0/monthly-global-cogs uv.lock data/bundles 2019-01 2025-12 --access-date=<YYYY-MM-DD> --inspected=<note.txt> [--computed=<time>]
 python -I pipeline/s2-search.py -6.60,31.50,-6.10,31.80 2019-01 2025-12 <items.jsonl>
 python -I pipeline/s2-inventory.py <items.jsonl> <inventory_dir> --skip-empty <geometry.geojson> <item_cache_dir>
 python -I pipeline/derived-from-items.py data/bundles/bundle_s2_ndvi_monthly_ait_bouguemez <inventory_dir>/kept.jsonl   (instead of the two lines above, to reproduce the bundle's exact inputs)
@@ -32,9 +32,9 @@ python -I pipeline/s2_ndvi.py <inventory_dir>/kept.jsonl <geometry.geojson> data
 python -I pipeline/ndvi-bundle.py data/interim/s2-monthly <inventory_dir>/kept.jsonl <geometry.geojson> uv.lock data/bundles 2019-01 2025-12 --inspected=<note.txt> [--revision-note=<file>] [--stac-version=<n>]
 python -I pipeline/season-bundle.py data/bundles/bundle_chirps_monthly_ait_bouguemez data/raw/chirps-v3.0/monthly-global-cogs recipes/registry.json uv.lock data/bundles
 python -I pipeline/recipes-bundle.py data/interim/s2-monthly data/bundles recipes/registry.json uv.lock [data/interim/ndvi-departure] [--revision-note=<file> ...] [--stac-version=<n>] [--catalog-note=<file>] [--extension=<version>] [--departure-only]
-python -I pipeline/worldcover-grid.py <geometry.geojson> data/interim/worldcover
-python -I pipeline/dem-strata.py <Copernicus_DSM_COG_10_N31_00_W007_00_DEM.tif> <geometry.geojson> data/interim/worldcover/worldcover-2021.tif data/interim/strata
-python -I pipeline/strata-bundle.py data/interim/strata data/interim/worldcover <geometry.geojson> uv.lock data/bundles --inspected=<note.txt>
+python -I pipeline/worldcover-grid.py places/<place>.json .. data/interim/worldcover
+python -I pipeline/dem-strata.py places/<place>.json .. <Copernicus DEM tile named in the place configuration> data/interim/strata
+python -I pipeline/strata-bundle.py places/<place>.json .. data/interim/strata data/interim/worldcover uv.lock data/bundles --inspected=<note.txt> [--computed=<time>]
 python -I pipeline/departure-overviews.py data/bundles data/interim/ndvi-departure data/interim/s2-monthly ../design/tokens/siterra.tokens.json <new_bundles_dir> --revision-note=<file> --stac-version=<n> [--pixel-m=30] [--steps=16]
 python -I pipeline/validate-bundles.py data/bundles schemas/stac/siterra-extension.schema.json <schema_cache_dir>
 python -I pipeline/corpus-fetch.py data/case/corpus-manifest.json . --check-closed --write=data/case/corpus-manifest.json
@@ -88,7 +88,7 @@ Modules that other scripts import keep snake_case names (`chirps_fetch.py`, `s2_
 |---|---|
 | `chirps_fetch.py` | Range-reads one 512 px tile per monthly CHIRPS v3.0 final global COG; keeps the tile bytes and a sidecar with URL, ETag, byte range, SHA-256 and window values. Stdlib only, resumable |
 | `chirps-crosscheck.py` | Compares a stored window with the separate CHIRPS Africa GeoTIFF of the same month, cell by cell |
-| `chirps-bundle.py` | Exact cell fractions in EPSG:32629, catchment totals, 1991 to 2020 same-month means, departures; rainfall bundle with its checks, including a recompute of one month from the Africa GeoTIFF through GDAL |
+| `chirps-bundle.py` | Exact cell fractions in the place's analysis CRS, catchment totals, 1991 to 2020 same-month means, departures; rainfall bundle with its checks, including a recompute of one month from a separate regional GeoTIFF (named in the place configuration) through GDAL |
 | `s2-search.py` | Searches Earth Search month by month for an envelope bounding box and writes the item list (stdlib; the exact STAC query is in its docstring) |
 | `s2-inventory.py` | Keeps tiles 29SQR and 29RQQ, deduplicates per tile and date (with `--skip-empty`, skips a duplicate with no clear pixels over the catchment when a twin has some), records dropped item IDs and monthly date counts |
 | `derived-from-items.py` | Rebuilds the item list from a bundle's `derived_from` links, so a rerun uses exactly the bundle's inputs |

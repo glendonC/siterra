@@ -55,6 +55,7 @@ describe("the case seed in data/case/", () => {
       "bundle_ndvi_departure_ait_bouguemez",
       "bundle_optical_visibility_ait_bouguemez",
       "bundle_pixel_anatomy_ait_bouguemez",
+      "bundle_pixel_seasons_ait_bouguemez",
       "bundle_pixel_trend_long_record_ait_bouguemez",
       "bundle_proposed_routes_ait_bouguemez",
       "bundle_relief_ait_bouguemez",

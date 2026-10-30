@@ -1,0 +1,336 @@
+{
+ "recipeId": "pixel_seasons",
+ "version": "1.0.0",
+ "computed": "2026-10-30T19:19:22Z",
+ "claim_kind": "observation",
+ "place": {
+  "placeId": "calaveras_creek",
+  "configRevision": 10,
+  "config_sha256": "c7cb7b09075af4f449c84029c8fda5033908ca90b3f4dc111092293d798f305a"
+ },
+ "growing_window": {
+  "id": "feb_may",
+  "months": [
+   2,
+   3,
+   4,
+   5
+  ],
+  "label": "February to May",
+  "chosen_as": "the window marked primary in pixel_trend_long_record"
+ },
+ "seasons": [
+  2000,
+  2001,
+  2002,
+  2003,
+  2004,
+  2005,
+  2006,
+  2007,
+  2008,
+  2009,
+  2010,
+  2011,
+  2012,
+  2013,
+  2014,
+  2015,
+  2016,
+  2017,
+  2018,
+  2019,
+  2020,
+  2021,
+  2022,
+  2023,
+  2024,
+  2025
+ ],
+ "trend_bundle": "bundle_pixel_trend_long_record_calaveras_creek",
+ "pixels": {
+  "catchment_pixels": 5166,
+  "trend_pixels_stored": 5166,
+  "catchment_pixels_not_stored": 0,
+  "not_stored_rule": "fewer than 15 seasons with a value (they have no slope in pixel_trend_long_record either)"
+ },
+ "per_season": [
+  {
+   "year": 2000,
+   "pixels_with_value": 5166,
+   "mean": 0.60691,
+   "median": 0.6058,
+   "p05": 0.49191,
+   "p95": 0.73939
+  },
+  {
+   "year": 2001,
+   "pixels_with_value": 5166,
+   "mean": 0.61396,
+   "median": 0.61542,
+   "p05": 0.50481,
+   "p95": 0.73254
+  },
+  {
+   "year": 2002,
+   "pixels_with_value": 5166,
+   "mean": 0.63062,
+   "median": 0.63006,
+   "p05": 0.53113,
+   "p95": 0.74553
+  },
+  {
+   "year": 2003,
+   "pixels_with_value": 5166,
+   "mean": 0.65656,
+   "median": 0.65526,
+   "p05": 0.56066,
+   "p95": 0.7625
+  },
+  {
+   "year": 2004,
+   "pixels_with_value": 5166,
+   "mean": 0.60301,
+   "median": 0.60061,
+   "p05": 0.49481,
+   "p95": 0.72896
+  },
+  {
+   "year": 2005,
+   "pixels_with_value": 5166,
+   "mean": 0.69112,
+   "median": 0.69642,
+   "p05": 0.59904,
+   "p95": 0.77843
+  },
+  {
+   "year": 2006,
+   "pixels_with_value": 5166,
+   "mean": 0.60633,
+   "median": 0.60565,
+   "p05": 0.49572,
+   "p95": 0.73304
+  },
+  {
+   "year": 2007,
+   "pixels_with_value": 5166,
+   "mean": 0.62832,
+   "median": 0.63153,
+   "p05": 0.50073,
+   "p95": 0.75304
+  },
+  {
+   "year": 2008,
+   "pixels_with_value": 5166,
+   "mean": 0.57482,
+   "median": 0.57361,
+   "p05": 0.4581,
+   "p95": 0.71803
+  },
+  {
+   "year": 2009,
+   "pixels_with_value": 5166,
+   "mean": 0.60285,
+   "median": 0.60209,
+   "p05": 0.49699,
+   "p95": 0.71792
+  },
+  {
+   "year": 2010,
+   "pixels_with_value": 5166,
+   "mean": 0.6449,
+   "median": 0.64375,
+   "p05": 0.56146,
+   "p95": 0.74249
+  },
+  {
+   "year": 2011,
+   "pixels_with_value": 5164,
+   "mean": 0.61479,
+   "median": 0.61421,
+   "p05": 0.51467,
+   "p95": 0.73151
+  },
+  {
+   "year": 2012,
+   "pixels_with_value": 5166,
+   "mean": 0.59497,
+   "median": 0.58905,
+   "p05": 0.48785,
+   "p95": 0.72764
+  },
+  {
+   "year": 2013,
+   "pixels_with_value": 5166,
+   "mean": 0.59223,
+   "median": 0.58779,
+   "p05": 0.47744,
+   "p95": 0.73241
+  },
+  {
+   "year": 2014,
+   "pixels_with_value": 5166,
+   "mean": 0.57449,
+   "median": 0.56975,
+   "p05": 0.45001,
+   "p95": 0.72138
+  },
+  {
+   "year": 2015,
+   "pixels_with_value": 5166,
+   "mean": 0.63243,
+   "median": 0.63131,
+   "p05": 0.51786,
+   "p95": 0.75389
+  },
+  {
+   "year": 2016,
+   "pixels_with_value": 5166,
+   "mean": 0.66354,
+   "median": 0.66512,
+   "p05": 0.57991,
+   "p95": 0.7556
+  },
+  {
+   "year": 2017,
+   "pixels_with_value": 5157,
+   "mean": 0.64527,
+   "median": 0.64936,
+   "p05": 0.55203,
+   "p95": 0.74485
+  },
+  {
+   "year": 2018,
+   "pixels_with_value": 5166,
+   "mean": 0.63495,
+   "median": 0.63672,
+   "p05": 0.52918,
+   "p95": 0.747
+  },
+  {
+   "year": 2019,
+   "pixels_with_value": 5166,
+   "mean": 0.63406,
+   "median": 0.63681,
+   "p05": 0.53417,
+   "p95": 0.74522
+  },
+  {
+   "year": 2020,
+   "pixels_with_value": 5166,
+   "mean": 0.62999,
+   "median": 0.63248,
+   "p05": 0.52385,
+   "p95": 0.74805
+  },
+  {
+   "year": 2021,
+   "pixels_with_value": 5166,
+   "mean": 0.5073,
+   "median": 0.51852,
+   "p05": 0.32065,
+   "p95": 0.67127
+  },
+  {
+   "year": 2022,
+   "pixels_with_value": 5166,
+   "mean": 0.55496,
+   "median": 0.55145,
+   "p05": 0.44643,
+   "p95": 0.68489
+  },
+  {
+   "year": 2023,
+   "pixels_with_value": 5166,
+   "mean": 0.56571,
+   "median": 0.56309,
+   "p05": 0.45933,
+   "p95": 0.69575
+  },
+  {
+   "year": 2024,
+   "pixels_with_value": 5166,
+   "mean": 0.61145,
+   "median": 0.61108,
+   "p05": 0.52356,
+   "p95": 0.72328
+  },
+  {
+   "year": 2025,
+   "pixels_with_value": 5166,
+   "mean": 0.57608,
+   "median": 0.57259,
+   "p05": 0.47448,
+   "p95": 0.70643
+  }
+ ],
+ "slope_check": {
+  "pixels_compared": 5166,
+  "max_abs_difference_per_decade": 5.211e-09,
+  "tolerance_per_decade": 1e-06,
+  "same_pixels_as_trend_raster": true,
+  "same_season_counts_as_trend_raster": true,
+  "method": "Theil-Sen slope of the stored 5 decimal values on the year, times 10, against band 1 of the trend raster (float32)"
+ },
+ "composites_absent_on_planetary_computer": [
+  {
+   "growing_window": "feb_may",
+   "year": 2000,
+   "periods": [
+    "2000-02-02",
+    "2000-02-18",
+    "2000-03-05",
+    "2000-03-21",
+    "2000-04-06",
+    "2000-04-22",
+    "2000-05-08",
+    "2000-05-24"
+   ],
+   "absent_on_planetary_computer": [
+    "2000-02-02"
+   ]
+  },
+  {
+   "growing_window": "feb_may",
+   "year": 2023,
+   "periods": [
+    "2023-02-02",
+    "2023-02-18",
+    "2023-03-06",
+    "2023-03-22",
+    "2023-04-07",
+    "2023-04-23",
+    "2023-05-09",
+    "2023-05-25"
+   ],
+   "absent_on_planetary_computer": [
+    "2023-02-18"
+   ]
+  }
+ ],
+ "archive_gaps": "2 composite periods absent from Planetary Computer (A2000033, A2023049); on 2026-10-30 NASA CMR listed 1 of them (held by the NASA archive, which needs an Earthdata login, not used); 1 are missing there too.",
+ "limitations": [
+  "Each value is one 250 m MODIS pixel's mean over the composites of one growing window that passed the reliability filter, not a measurement of any field, pasture or plant. A season where fewer than half of the periods were kept at a pixel has no value there.",
+  "NDVI measures how green the ground looks from above, not forage, palatability or species.",
+  "Spring windows include snow-covered ground at the upper pixels in some seasons; earlier or later melt can move a season's value with no change in the plants.",
+  "Terra's overpass has drifted earlier since 2020, from 10:30 to about 9:06 mean local time by December 2025 (NASA): later seasons are seen with a lower sun and longer shadows in mountain terrain, which may shift NDVI without any change on the ground.",
+  "Composites from 12 July 2025 to the end of 2025 are absent from Planetary Computer; a season window that includes them holds fewer composites.",
+  "The values are an input to pixel_trend_long_record, not a second analysis. A run of high or low seasons seen when stepping through them is not a trend or a cause; the slope, its interval and the false discovery rate check are in pixel_trend_long_record."
+ ],
+ "forbidden_phrases": [
+  "significant",
+  "significantly",
+  "degradation detected",
+  "grazing impact",
+  "overgrazing",
+  "caused by",
+  "proves",
+  "recovery",
+  "forecast",
+  "pasture improvement",
+  "pasture decline",
+  "encroachment",
+  "drought",
+  "drought season"
+ ]
+}

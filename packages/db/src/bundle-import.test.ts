@@ -164,7 +164,13 @@ describe("SV-01 (import part): bundles import with verified checksums and values
     expect(result.issues).toEqual([]);
     const catalog = readJson(join(catalogDir, "catalog.json"));
     const children = (catalog["links"] as Json[]).filter((l) => l["rel"] === "child");
-    expect(result.bundles).toHaveLength(children.length);
+    const own = children.filter((l) => {
+      const collection = readJson(join(catalogDir, String(l["href"])));
+      return (collection["siterra:geo_selection"] as Json)["id"] === geoSelection.id;
+    });
+    expect(own.length).toBeGreaterThan(0);
+    expect(own.length).toBeLessThan(children.length);
+    expect(result.bundles).toHaveLength(own.length);
     // Revision 14 states a reason on the two excluded leave-one-year-out entries of available
     // periods (extension 1.1.0); the importer takes the entry's own reason.
     const departure = result.bundles.find(

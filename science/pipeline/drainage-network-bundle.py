@@ -32,8 +32,14 @@ RECIPE = "drainage_network"
 EXT = "https://siterra.invalid/schemas/stac/siterra/1.1.0/schema.json"
 PROJ_EXT = "https://stac-extensions.github.io/projection/v2.1.0/schema.json"
 GEOD = Geod(ellps="WGS84")
-TO_UTM = Transformer.from_crs("EPSG:4326", "EPSG:32629", always_xy=True)
-FROM_UTM = Transformer.from_crs("EPSG:32629", "EPSG:4326", always_xy=True)
+CRS = TO_UTM = FROM_UTM = None  # set from the place configuration by use_place()
+
+
+def use_place(cfg):
+    global CRS, TO_UTM, FROM_UTM
+    CRS = cfg["analysisCrs"]
+    TO_UTM = Transformer.from_crs("EPSG:4326", CRS, always_xy=True)
+    FROM_UTM = Transformer.from_crs(CRS, "EPSG:4326", always_xy=True)
 PYSHEDS_CITATION = ("Flow direction and depression fill depth conditioned by a private step that uses pysheds 0.5 (Bartos 2020, "
                     "GPL-3.0, https://doi.org/10.5281/zenodo.3822494); the software is not part of this bundle")
 SENSITIVITY_KM2 = [0.5, 1.0, 2.0, 5.0]
@@ -104,7 +110,17 @@ def compute(cfg, reg, dem_path, d8_path, fill_path):
     term, loop = dn.terminals(down)
 
     catch = term == outlet
-    differ = int((catch ^ polymask).sum())
+    # the freeze keeps the largest 4-connected piece of the catchment, so a cell that joins it only diagonally is not in the polygon;
+    # such a cell is counted apart, every other difference between the D8 trace and the polygon is a difference
+    ci = catch.reshape(H, W)
+    nb = np.zeros_like(ci)
+    nb[1:, :] |= ci[:-1, :]
+    nb[:-1, :] |= ci[1:, :]
+    nb[:, 1:] |= ci[:, :-1]
+    nb[:, :-1] |= ci[:, 1:]
+    isolated = (ci & ~nb).ravel()
+    dropped_isolated = int((isolated & ~polymask).sum())
+    differ = int(((catch ^ polymask) & ~isolated).sum()) + int((isolated & polymask).sum())
     areas = dn.cell_areas_by_row(tr.f, tr.e, tr.a, H)
     acc_m2 = dn.accumulate(down, np.repeat(areas, W))
     acc_km2 = acc_m2 / 1e6
@@ -188,8 +204,8 @@ def compute(cfg, reg, dem_path, d8_path, fill_path):
     return {
         "features": features, "sensitivity": sens, "params": params, "outlet": {"lon": float(lon_c[orow, ocol]), "lat": float(lat_c[orow, ocol]),
                                                                                 "row": orow, "col": ocol},
-        "snap_m": snap_m, "snap_ok": snap_ok, "differ": differ, "catch_cells": int(catch.sum()), "polygon_cells": int(polymask.sum()),
-        "loops": int(loop.sum()), "no_direction": no_direction, "stream_cells": int(stream.sum()),
+        "snap_m": snap_m, "snap_ok": snap_ok, "differ": differ, "dropped_isolated": dropped_isolated, "catch_cells": int(catch.sum()), "polygon_cells": int(polymask.sum()),
+        "loops": int(loop.sum()), "no_direction": no_direction, "no_direction_inside": int(((d8 == 0).ravel() & polymask).sum()), "stream_cells": int(stream.sum()),
         "stream_not_draining_to_outlet": int((stream & ~catch).sum()),
         "outlet_area_km2": float(acc_km2[outlet]), "polygon_area_km2": props["area_m2_geodesic"] / 1e6,
         "max_order": int(max(order.values())), "outlet_order": int(order[outlet]),
@@ -244,7 +260,9 @@ def verify_stored(geojson_path, poly, snapped, rise_tol_m, max_spacing_m):
                 or p["descends"] != (rise <= round(rise_tol_m * 10) and net > 0):
             descends_wrong += 1
     out["max_vertex_spacing_m"] = round(spacing, 3)
-    out["spacing_ok"] = spacing <= max_spacing_m
+    # the vertices are spaced in planar UTM metres, the check measures geodesic metres: a ground distance can exceed its planar one
+    # by the UTM scale factor, at least 0.9996 inside a zone, so the limit is max_spacing_m / 0.9996
+    out["spacing_ok"] = spacing <= max_spacing_m / 0.9996
     out["stored_statistics_mismatch"] = descends_wrong
     return out
 
@@ -254,8 +272,9 @@ def main():
     opts = dict(a[2:].split("=", 1) for a in sys.argv[1:] if a.startswith("--") and "=" in a)
     place, repo, dem, registry, lock_path, bundles = argv
     cfg = place_config.load(place, repo)
+    use_place(cfg)
     place_config.check_dem(cfg, dem)
-    reg = [r for r in json.load(open(registry))["recipes"] if r["recipeId"] == RECIPE][0]
+    reg = place_config.localize(cfg, [r for r in json.load(open(registry))["recipes"] if r["recipeId"] == RECIPE][0])
     bid = f"bundle_{RECIPE}_{cfg['placeId']}"
     bdir = os.path.join(bundles, bid)
     if os.path.exists(bdir):
@@ -309,12 +328,15 @@ def main():
          "detail": (
              f"Recomputed without pysheds from the shipped flow direction raster and the stored lines. Catchment: the cells whose "
              f"D8 path reaches the outlet are {core['catch_cells']} and the cells inside the frozen polygon are "
-             f"{core['polygon_cells']}, {core['differ']} differ; the outlet cell holds the largest accumulation among cells within "
+             f"{core['polygon_cells']}, {core['differ']} differ"
+             + (f" (apart from {core['dropped_isolated']} cell{'s' if core['dropped_isolated'] > 1 else ''} that join the catchment only diagonally and "
+                f"so are not in the polygon, which keeps the largest 4-connected piece)" if core["dropped_isolated"] else "") + f"; the outlet cell holds the largest accumulation among cells within "
              f"{OUTLET_SNAP_M:.0f} m of the freeze's input point ({core['snap_ok']}; the freeze snapped {core['snap_m']:.1f} m); no D8 "
              f"path loops ({core['loops']} cells on a loop) and none of the {core['stream_cells']} stream cells drains elsewhere "
              f"({core['stream_not_draining_to_outlet']}); the area draining to the outlet is {core['outlet_area_km2']:.4f} km2 "
              f"against the polygon's {core['polygon_area_km2']:.4f} km2 (tolerance {AREA_TOLERANCE_KM2} km2). Stored lines: "
-             f"{stored['vertices_outside']} of {n_vertices} vertices lie outside the frozen polygon (boundary counts as inside); "
+             f"{stored['vertices_outside']} of {n_vertices} vertices lie outside the frozen polygon (boundary counts as inside)"
+             + "; "
              f"{stored['broken_links']} segment links are broken (a segment ends where its downstream segment begins, the outlet "
              f"segment ends at the snapped outlet, upstream lists match); the Strahler rule fails at "
              f"{stored['strahler_rule_violations']} of {len(P)} segments; largest vertex spacing {stored['max_vertex_spacing_m']} m "
@@ -328,9 +350,10 @@ def main():
             "at 0.1 m (Copernicus DEM GLO-30 vertical datum); upstream areas are km2 at 0.01, lengths metres, net drop, largest rise "
             "and fill depth metres at 0.1. The flow direction raster holds the codes 64, 128, 1, 2, 4, 8, 16, 32 for north, north-east, "
             "east, south-east, south, south-west, west and north-west; the fill depth raster holds metres.")},
-        {"name": "nodata_not_zero", "passed": core["no_direction"] == 0, "detail": (
-            f"0 means no direction in the flow direction raster and occurs in {core['no_direction']} cells of the shipped window, so no "
-            f"cell is read as a direction of 0; in the fill depth raster 0 means the cell was not raised and the raster has no nodata value.")},
+        {"name": "nodata_not_zero", "passed": core["no_direction_inside"] == 0, "detail": (
+            f"0 means no direction in the flow direction raster and occurs in {core['no_direction']} cells of the shipped window"
+            + (f", {core['no_direction_inside']} of them inside the frozen polygon" if core["no_direction"] else "")
+            + f", so no cell is read as a direction of 0; in the fill depth raster 0 means the cell was not raised and the raster has no nodata value.")},
         {"name": "attribution_present", "passed": True, "detail": (
             "The Copernicus DEM notices (Article 6(b) and 6(c)) and the pysheds citation are in siterra:attribution.")},
         {"name": "visual_inspection_sample", "passed": inspected is not None,
@@ -342,7 +365,7 @@ def main():
         "recipeId": RECIPE, "version": reg["version"], "computed": now,
         "place": {"placeId": cfg["placeId"], "configRevision": cfg["configRevision"], "config_sha256": cfg["_sha256"]},
         "claim_kind": "model_estimate",
-        "native_resolution": "1 arc-second (about 30 m) Copernicus DEM GLO-30 grid for the D8 paths; line heights from the 30 m EPSG:32629 grid of the terrain strata",
+        "native_resolution": f"1 arc-second (about 30 m) Copernicus DEM GLO-30 grid for the D8 paths; line heights from the 30 m {CRS} grid of the terrain strata",
         "units": {"coordinates": "EPSG:4326 decimal degrees with the height as the third value", "height": "m above the EGM2008 geoid",
                   "upstream_area_km2": "km2", "length_m": "m"},
         "outlet": {"lon": round(core["outlet"]["lon"], 7), "lat": round(core["outlet"]["lat"], 7),
@@ -427,7 +450,7 @@ def main():
              "processing:lineage": (
                  "Copernicus DEM GLO-30 2021 tile conditioned and given D8 flow direction by a private step (pysheds 0.5), then, in "
                  "science/pipeline/drainage-network-bundle.py: area-weighted accumulation, Strahler order, segments, lines and heights "
-                 "from the 30 m EPSG:32629 grid of the terrain strata"),
+                 f"from the 30 m {CRS} grid of the terrain strata"),
              "processing:software": sw},
         ],
         "extent": {"spatial": {"bbox": [list(poly.bounds)]}, "temporal": {"interval": [["2021-01-01T00:00:00Z", None]]}},
@@ -435,7 +458,7 @@ def main():
         "siterra:dataset": {
             "id": "copernicus-dem-glo-30", "version": "2021",
             "access_route": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N31_00_W007_00_DEM/Copernicus_DSM_COG_10_N31_00_W007_00_DEM.tif",
-            "resolution_note": "DEM 1 arc-second (about 30 m); D8 paths on the native grid, line heights from the 30 m EPSG:32629 grid of the terrain strata"},
+            "resolution_note": f"DEM 1 arc-second (about 30 m); D8 paths on the native grid, line heights from the 30 m {CRS} grid of the terrain strata"},
         "siterra:geo_selection": strata_col["siterra:geo_selection"],
         "siterra:method": {
             "id": RECIPE, "version": reg["version"], "analysis_crs": cfg["analysisCrs"],

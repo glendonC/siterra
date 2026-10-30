@@ -17,7 +17,7 @@ import modis_record
 NDVI_ASSET, REL_ASSET = "250m_16_days_NDVI", "250m_16_days_pixel_reliability"
 DN_MIN, DN_MAX = -2000, 10000
 MODIS_CITATION = ("Didan, K. (2021). MODIS/Terra Vegetation Indices 16-Day L3 Global 250m SIN Grid V061. NASA Land Processes "
-                  "Distributed Active Archive Center. https://doi.org/10.5067/MODIS/MOD13Q1.061. Tile h17v05, {first} to {last}, "
+                  "Distributed Active Archive Center. https://doi.org/10.5067/MODIS/MOD13Q1.061. Tile {tile}, {first} to {last}, "
                   "read from Microsoft Planetary Computer, accessed {date}")
 
 

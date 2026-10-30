@@ -7,8 +7,8 @@
   "https://siterra.invalid/schemas/stac/siterra/1.1.0/schema.json"
  ],
  "id": "bundle_transects_ait_bouguemez",
- "title": "Profiles across and along the valley (terrain_transects 1.0.1)",
- "description": "Precomputed result of recipe terrain_transects 1.0.1 for Ait Bouguemez valley catchment: 2 profiles sampled every 30 m, cross-valley section along the meridian through tabant (12.0 km, 401 samples); long profile from the outlet to the head along the longest flow path of the drainage network (48.8 km, 1629 samples). Each sample has its height, elevation band, WorldCover class and inside flag; each line has its band crossings, kilometres in band and valley floor segment. Observation from a 30 m surface model.\n\nA profile is read from a 30 m surface model: trees, buildings, steep walls and radar artefacts distort it, and narrow gorges such as the lower gorge near the outlet are not resolved. Heights are metres above the EGM2008 geoid with the DEM's stated vertical accuracy (Copernicus DEM Product Handbook 5.0). Samples are 30 m apart, so a band crossing or a land cover boundary is placed to within about 15 m, and a feature narrower than 30 m can fall between samples. Land cover is ESA WorldCover 2021 at 10 m, a single 2021 map applied to the line: tree cover on the valley floor may include orchards, and no class is a pasture, agdal or management unit. An elevation band is a stratum that organises sampling, cut from the elevation distribution of the catchment; it is not a vegetation type, a grazing zone or a management boundary. The valley floor segment follows the published elevation range of the valley floor (1800 to 2200 m, SCI-19); it is not a measured flat bottom. The valley axis is the longest flow path of a D8 network, which follows the main river, not the centre line of the valley; its profile inherits the limits of the drainage network, including places where the surface rises along the line. The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary.",
+ "title": "Profiles across and along the valley (terrain_transects 1.1.0)",
+ "description": "Precomputed result of recipe terrain_transects 1.1.0 for Ait Bouguemez valley catchment: 2 profiles sampled every 30 m, cross-valley section along the meridian through tabant (12.0 km, 401 samples); long profile from the outlet to the head along the longest flow path of the drainage network (48.8 km, 1629 samples). Each sample has its height, elevation band, WorldCover class and inside flag; each line has its band crossings, kilometres in band and valley floor segment. Observation from a 30 m surface model.\n\nA profile is read from a 30 m surface model: trees, buildings, steep walls and radar artefacts distort it, and narrow gorges such as the lower gorge near the outlet are not resolved. Heights are metres above the EGM2008 geoid with the DEM's stated vertical accuracy (Copernicus DEM Product Handbook 5.0). Samples are 30 m apart, so a band crossing or a land cover boundary is placed to within about 15 m, and a feature narrower than 30 m can fall between samples. Land cover is ESA WorldCover 2021 at 10 m, a single 2021 map applied to the line: tree cover on the valley floor may include orchards, and no class is a pasture, agdal or management unit. An elevation band is a stratum that organises sampling, cut from the elevation distribution of the catchment; it is not a vegetation type, a grazing zone or a management boundary. The valley floor segment follows the published elevation range of the valley floor (1800 to 2200 m, SCI-19); it is not a measured flat bottom. The valley axis is the longest flow path of a D8 network, which follows the main river, not the centre line of the valley; its profile inherits the limits of the drainage network, including places where the surface rises along the line. The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary.",
  "license": "other",
  "providers": [
   {
@@ -81,8 +81,8 @@
    "roles": [
     "data"
    ],
-   "file:checksum": "12202fdab92d9133a11a94e43a4fcaff8aba913054243173dfdc7996a4a3e0e70cdc",
-   "file:size": 7498
+   "file:checksum": "1220f97171c8e48152d3d4e796982ee2bb07591bd27470bf1f30a97dd7c8ac041475",
+   "file:size": 7499
   },
   "transect_samples": {
    "href": "./transect-samples.json",
@@ -91,7 +91,7 @@
    "roles": [
     "data"
    ],
-   "file:checksum": "12203e8cb47fd0e1cd4c00feb8be6853149ae8893fd9ddebec01cc998c44b5134623",
+   "file:checksum": "1220e7f1c52e9335e93a16583f7c4d35a13acda20174d4e4bbf966a8e3adc1232fe5",
    "file:size": 140945
   },
   "transect_lines": {
@@ -105,7 +105,7 @@
    "file:size": 62180
   }
  },
- "created": "2026-10-29T10:03:38Z",
+ "created": "2026-10-30T19:29:12Z",
  "siterra:status": "validated",
  "siterra:variable": "elevation_profile",
  "siterra:dataset": {
@@ -123,10 +123,10 @@
  },
  "siterra:method": {
   "id": "terrain_transects",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "analysis_crs": "EPSG:32629",
   "parameters": {
-   "place_configuration": "science/places/ait-bouguemez.json revision 4, sha256 b92594aec1c274ee4612381c10d2a1a01dbe9702927937f05b9840615fef4697",
+   "place_configuration": "science/places/ait-bouguemez.json revision 12, sha256 146436d42ed06174ae4ca3126824147bd9146e940b12e323239b6bbaa6a24d61",
    "step_m": 30.0,
    "recompute_percentile": 90,
    "recompute_tolerance_m": 4.0,
@@ -230,14 +230,14 @@
    "href": "../bundle_terrain_strata_ait_bouguemez/collection.json",
    "type": "application/json",
    "title": "Terrain strata bundle bundle_terrain_strata_ait_bouguemez",
-   "file:checksum": "1220e7892bc96d951fbe7c89d256bf719931af5f6a1fec40f843dcef44040b8346d1"
+   "file:checksum": "1220d78c5c708866192daeb5ab9dbd2ad8eea4e31c9252c611c8b9aeaecfb6daee04"
   },
   {
    "rel": "derived_from",
    "href": "../bundle_drainage_network_ait_bouguemez/collection.json",
    "type": "application/json",
    "title": "Drainage network bundle bundle_drainage_network_ait_bouguemez (the valley axis)",
-   "file:checksum": "1220338ea189958395b14af06b52bc662d4e7b59d36dddf9c12eeaac4891ab3b687a"
+   "file:checksum": "1220e6243836d35e8d1ad679b0c6c671ef33af153a0183ce13e25c8678c5c246ee7e"
   },
   {
    "rel": "derived_from",

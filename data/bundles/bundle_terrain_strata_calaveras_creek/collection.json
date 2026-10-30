@@ -1,0 +1,284 @@
+{
+ "type": "Collection",
+ "stac_version": "1.1.0",
+ "stac_extensions": [
+  "https://stac-extensions.github.io/processing/v1.3.0/schema.json",
+  "https://stac-extensions.github.io/file/v2.1.0/schema.json",
+  "https://stac-extensions.github.io/projection/v2.1.0/schema.json",
+  "https://siterra.invalid/schemas/stac/siterra/1.0.0/schema.json"
+ ],
+ "id": "bundle_terrain_strata_calaveras_creek",
+ "title": "Terrain sampling strata",
+ "description": "Static sampling strata for the Calaveras Creek catchment on the 10 m EPSG:32610 analysis grid: three equal-area elevation bands (below 698 m, 698 to 842 m, 842 m and above), aspect classes (north, east, south, west, level below 5 degrees) and an excluded layer (WorldCover 2021 cropland and built-up, 0.2% of the catchment), and a reservoir zone (the largest connected body of WorldCover permanent water plus 250 m, 3.6% of the catchment). Strata organize field sampling; they are not vegetation types, pasture units or management boundaries.",
+ "license": "other",
+ "providers": [
+  {
+   "name": "Copernicus DEM GLO-30 (European Union, ESA; DLR e.V. and Airbus Defence and Space)",
+   "roles": [
+    "producer",
+    "licensor"
+   ]
+  },
+  {
+   "name": "ESA WorldCover consortium",
+   "roles": [
+    "producer",
+    "licensor"
+   ],
+   "url": "https://esa-worldcover.org/"
+  },
+  {
+   "name": "AWS Open Data",
+   "roles": [
+    "host"
+   ]
+  },
+  {
+   "name": "Siterra science pipeline",
+   "roles": [
+    "processor"
+   ],
+   "processing:lineage": "Copernicus DEM GLO-30 2021 tile, bilinear to 30 m EPSG:32610, Horn slope and aspect, equal-area elevation terciles, aspect quadrants, level below 5 degrees; WorldCover 2021 classes 40 and 50 excluded; water zone: largest connected body of WorldCover classes [80] inside the catchment plus 250 m (band 4) Web-ready derived assets (elevation-band.png) are copies of the canonical GeoTIFF values written by science/pipeline/web-assets.py.",
+   "processing:software": {
+    "siterra-science": "0.1.0+uncommitted",
+    "python": "3.12.9",
+    "rasterio": "1.5.2",
+    "gdal": "3.12.2"
+   }
+  }
+ ],
+ "extent": {
+  "spatial": {
+   "bbox": [
+    [
+     -121.866528,
+     37.257639,
+     -121.494861,
+     37.507083
+    ]
+   ]
+  },
+  "temporal": {
+   "interval": [
+    [
+     "2021-01-01T00:00:00Z",
+     null
+    ]
+   ]
+  }
+ },
+ "assets": {
+  "analysis_geometry": {
+   "href": "./analysis-geometry.geojson",
+   "type": "application/geo+json",
+   "title": "Frozen analysis geometry geo_calaveras_creek_catchment, revision 2",
+   "roles": [
+    "metadata"
+   ],
+   "file:checksum": "1220745fb73a2dadb7284074eb6c0b607f390975a70592a7d968588ea083882faa9d",
+   "file:size": 141566
+  },
+  "strata": {
+   "href": "./strata.tif",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Elevation band, aspect class and excluded layer",
+   "roles": [
+    "data"
+   ],
+   "proj:code": "EPSG:32610",
+   "proj:shape": [
+    2730,
+    3318
+   ],
+   "proj:transform": [
+    10.0,
+    0.0,
+    600200.0,
+    0.0,
+    -10.0,
+    4151760.0
+   ],
+   "bands": [
+    {
+     "name": "elevation_band",
+     "data_type": "uint8",
+     "nodata": 0,
+     "unit": "1",
+     "description": "1 below 697.8 m, 2 from 697.8 to 842.4 m, 3 at or above 842.4 m (equal-area terciles)"
+    },
+    {
+     "name": "aspect_class",
+     "data_type": "uint8",
+     "nodata": 0,
+     "unit": "1",
+     "description": "1 north (315 to 45 deg), 2 east, 3 south, 4 west, 5 level (slope below 5 deg); Horn gradient on 30 m"
+    },
+    {
+     "name": "excluded",
+     "data_type": "uint8",
+     "nodata": 0,
+     "unit": "1",
+     "description": "1 where WorldCover 2021 v200 is cropland (40) or built-up (50); shown as excluded, never as low vegetation"
+    },
+    {
+     "name": "reservoir_zone",
+     "data_type": "uint8",
+     "nodata": 0,
+     "unit": "1",
+     "description": "1 within 250 m of the largest connected body of the WorldCover 2021 v200 classes [80] inside the catchment, 2 elsewhere inside the catchment"
+    }
+   ],
+   "file:checksum": "12201f3a4bbcbb1d2ca22cc2e5ede99e220d26d21bed4561b0623a8b93edbcae3a15",
+   "file:size": 454270
+  },
+  "elevation_band_png": {
+   "href": "./elevation-band.png",
+   "type": "image/png",
+   "title": "Elevation band 1 to 3 as an indexed PNG (web copy of band 1 of strata)",
+   "roles": [
+    "data"
+   ],
+   "file:checksum": "12203a8be6ce8c63b0e0f6a481c57c5413014d2639a3203b332952f5eb4c46913c7d",
+   "file:size": 33982
+  },
+  "elevation_band_png_header": {
+   "href": "./elevation-band.png.json",
+   "type": "application/json",
+   "title": "Header of elevation-band.png: CRS, transform, shape, palette",
+   "roles": [
+    "data"
+   ],
+   "file:checksum": "1220a0c147fd17af5b57208a211af62ea0a9f67d351c9799feb1fa0056075767ace1",
+   "file:size": 772
+  }
+ },
+ "created": "2026-10-30T19:07:09Z",
+ "siterra:status": "validated",
+ "siterra:variable": "elevation_band",
+ "siterra:dataset": {
+  "id": "copernicus-dem-glo-30",
+  "version": "2021",
+  "access_route": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N37_00_W122_00_DEM/Copernicus_DSM_COG_10_N37_00_W122_00_DEM.tif",
+  "resolution_note": "DEM 1 arc-second (about 30 m), strata repeated onto the 10 m analysis grid"
+ },
+ "siterra:geo_selection": {
+  "id": "geo_calaveras_creek_catchment",
+  "revision": 2,
+  "boundary_role": "hydrological_unit",
+  "area_m2": 257339500,
+  "area_method": "Count of 10 m analysis pixels whose centres fall inside the frozen polygon, EPSG:32610"
+ },
+ "siterra:method": {
+  "id": "terrain_strata",
+  "version": "1.1.0",
+  "analysis_crs": "EPSG:32610",
+  "parameters": {
+   "elevation_bands": "equal-area terciles",
+   "boundaries_m": [
+    697.8,
+    842.4
+   ],
+   "aspect": "quadrants centred on N, E, S, W",
+   "level_slope_deg": 5,
+   "excluded_worldcover_classes": [
+    40,
+    50
+   ],
+   "water_zone": {
+    "worldcover_classes": [
+     80
+    ],
+    "buffer_m": 250,
+    "selection": "largest_connected_body"
+   }
+  },
+  "reference_period": null,
+  "operation_order": [
+   "reproject the DEM once to a 30 m EPSG:32610 grid aligned with the analysis grid (bilinear)",
+   "compute Horn slope and aspect on the 30 m grid",
+   "repeat the 30 m cells 3 x 3 onto the 10 m grid",
+   "split catchment elevation at its 1/3 and 2/3 quantiles",
+   "classify aspect into quadrants and level ground",
+   "flag WorldCover 2021 cropland and built-up as excluded",
+   "mark cells within 250 m of the largest connected body of the WorldCover water classes [80] as the reservoir zone (band 4)"
+  ]
+ },
+ "siterra:attribution": [
+  "Catchment and strata derived by Siterra from Copernicus DEM GLO-30 (2021 release)",
+  "produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved",
+  "The organisations in charge of the Copernicus programme by law or by delegation do not incur any liability for any use of the Copernicus WorldDEM-30",
+  "© ESA WorldCover project / Contains modified Copernicus Sentinel data (2021) processed by ESA WorldCover consortium",
+  "ESA WorldCover 2021 v200 (Zanaga et al. 2022), CC BY 4.0, https://doi.org/10.5281/zenodo.7254221"
+ ],
+ "siterra:limitations": [
+  "The DEM is a surface model: trees and buildings raise it; radar artefacts are possible in narrow gorges.",
+  "WorldCover 2021 is a 2021 context mask, not a record of earlier land cover: oak woodland and savanna may be mapped as tree cover or as grassland, and the reservoir is mapped as the water seen in 2021 imagery.",
+  "Strata organize field sampling; they are not vegetation types, pasture units or management boundaries.",
+  "The reservoir zone is the largest mapped water body plus 250 m. It removes the reservoir basin only approximately and says nothing about the water level in any year; small stock ponds are not in it."
+ ],
+ "siterra:checks": [
+  {
+   "name": "units_and_scale",
+   "passed": true,
+   "detail": "Elevation in metres from the pinned DEM; band boundaries 697.8 m and 842.4 m; aspect classes in degrees from north"
+  },
+  {
+   "name": "nodata_not_zero",
+   "passed": true,
+   "detail": "0 means outside the catchment in every band; no class uses 0"
+  },
+  {
+   "name": "attribution_present",
+   "passed": true,
+   "detail": "Copernicus DEM notices (Article 6(b) and 6(c)) and the WorldCover citation are in siterra:attribution"
+  },
+  {
+   "name": "visual_inspection_sample",
+   "passed": true,
+   "detail": "Elevation band, aspect class, excluded and reservoir zone bands rendered and inspected by the science lane on 2026-10-30: the three elevation bands follow the relief (lowest third around the reservoir and the main creek, highest third on the eastern ridges), aspect classes form ridge and gully stripes with level ground on the reservoir and the flat upper basin, excluded cropland and built-up cells are few and scattered (0.16 per cent), and the reservoir zone is one ring around the single large water body at the downstream end (3.6 per cent of the catchment); the 72 stock ponds are not in it. The reservoir zone rule was changed once after it was first drawn and inspected (configuration revision 2, post hoc, before any trend)."
+  }
+ ],
+ "links": [
+  {
+   "rel": "root",
+   "href": "../catalog.json",
+   "type": "application/json"
+  },
+  {
+   "rel": "parent",
+   "href": "../catalog.json",
+   "type": "application/json"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N37_00_W122_00_DEM/Copernicus_DSM_COG_10_N37_00_W122_00_DEM.tif",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Copernicus_DSM_COG_10_N37_00_W122_00_DEM.tif (47,669,564 bytes, ETag 3511fc51aad7c82e5b25fb6576e8b3da)",
+   "file:checksum": "122015d21273ae3d94c3ef19aa6abaef47d5f78bf4ac24e682d131c01bb8b5101db2"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N36W123_Map.tif",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "ESA WorldCover 2021 v200 tile N36W123 (ETag \"03bae261ff9ee76a719e982cb46dd1f6-11\")",
+   "siterra:retrieved_datetime": "2026-10-30T17:32:06Z"
+  },
+  {
+   "rel": "license",
+   "href": "https://dataspace.copernicus.eu/sites/default/files/media/files/2025-06/copernicus_contributing_mission_data_access_v2_cop_dem_licenses.pdf",
+   "title": "Licence for Copernicus DEM instance COP-DEM-GLO-30-F Global 30m Full, Free & Open"
+  },
+  {
+   "rel": "license",
+   "href": "https://creativecommons.org/licenses/by/4.0/",
+   "title": "ESA WorldCover: CC BY 4.0"
+  },
+  {
+   "rel": "processing-software",
+   "href": "./uv.lock",
+   "type": "application/toml",
+   "title": "Pipeline lockfile (uv)",
+   "file:checksum": "12205154d57a84dcb8f1eb5f992923d7589a669b8dc669edf140f607ff2740733aff"
+  }
+ ]
+}
