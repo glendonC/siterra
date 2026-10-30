@@ -13,7 +13,7 @@
    "rel": "child",
    "href": "./bundle_aligned_antecedent_ait_bouguemez/collection.json",
    "type": "application/json",
-   "file:checksum": "1220b789bb07d04c00c89fe24e96b7c402653cfa1d2c04d02e603e0944b5b16c60a9"
+   "file:checksum": "122095e90a9dc06aa0b307f4fa47569731eb5509b3e78a77e0703f88d26b38379638"
   },
   {
    "rel": "child",
@@ -31,49 +31,49 @@
    "rel": "child",
    "href": "./bundle_drainage_network_ait_bouguemez/collection.json",
    "type": "application/json",
-   "file:checksum": "12205f984cb2dab28034108c2a7582305f6397a7932eaf3ee1a669aea50b462a88f2"
+   "file:checksum": "1220338ea189958395b14af06b52bc662d4e7b59d36dddf9c12eeaac4891ab3b687a"
   },
   {
    "rel": "child",
    "href": "./bundle_land_cover_ait_bouguemez/collection.json",
    "type": "application/json",
-   "file:checksum": "12201d54f4add011b26f62118f610898621f55c93c9e2b73cebd4e92a85344c6eccd"
+   "file:checksum": "1220a44268fb82b7d2808ba97d700556b428dc579f0335f1eef3166b1056e4da9cb8"
   },
   {
    "rel": "child",
    "href": "./bundle_ndvi_departure_ait_bouguemez/collection.json",
    "type": "application/json",
-   "file:checksum": "1220a0549ad888b581a557441d2f86d47207cc233662ded5aa57f96b47e2e91bc01a"
+   "file:checksum": "122053660ae1449f41ece290b3b6f19cc28d13de790bf88826bb866d194903abae7a"
   },
   {
    "rel": "child",
    "href": "./bundle_optical_visibility_ait_bouguemez/collection.json",
    "type": "application/json",
-   "file:checksum": "12209f1bb3e798be61c82b2187a1ccc4685a0fc0710298d747830430c72484adaba6"
+   "file:checksum": "122021b388c54be35408a51dd46a31ac3031f35b7bbf8664a0fba9a6ed14aa4a9576"
   },
   {
    "rel": "child",
    "href": "./bundle_pixel_anatomy_ait_bouguemez/collection.json",
    "type": "application/json",
-   "file:checksum": "12200df94b9c94dd380f37ea6a9e586dc026fe13a69f525508d6617d49247539f1ee"
+   "file:checksum": "12201d8aa0b2dd58ca14e8adaca36e672f5587f394a80f9f4e2731882c202d480e9e"
   },
   {
    "rel": "child",
    "href": "./bundle_pixel_trend_long_record_ait_bouguemez/collection.json",
    "type": "application/json",
-   "file:checksum": "12201953f2b33087cf2424009f9d4c27e04a35bb3b00846eaa10ff5e2b22dde6ed0d"
+   "file:checksum": "1220696c5ad4fcd400f8ad84bda55e7c16628c8cd11ff8707e59277cfea1d1cc7c26"
   },
   {
    "rel": "child",
    "href": "./bundle_relief_ait_bouguemez/collection.json",
    "type": "application/json",
-   "file:checksum": "1220d1b1c53fb0e4c350bc6020377d20270812d750ce11da2b97bd8b3c214cc7e44c"
+   "file:checksum": "12200e42ad34b7cd7aa180f24008445c691bfdc83808bb6a2c6225d9dcee934e720d"
   },
   {
    "rel": "child",
    "href": "./bundle_restrend_long_record_ait_bouguemez/collection.json",
    "type": "application/json",
-   "file:checksum": "122074b8b5c5823c2cf96e7b6bfd48f2747c980ae8335c33ad3b70260593edbb2dec"
+   "file:checksum": "1220e534312abe72fb9eb83c007406ee6e56b255e64443b24ccd3fd2db1af073a036"
   },
   {
    "rel": "child",
@@ -91,25 +91,25 @@
    "rel": "child",
    "href": "./bundle_season_trend_long_record_ait_bouguemez/collection.json",
    "type": "application/json",
-   "file:checksum": "122065195f215c9458c024278adbd601d350944e98cc1891f6a466755d9e49aeee51"
+   "file:checksum": "122098f5653966e88f83f9d61a3c47b136914a7199e7d54b00b25c14c2a5f0470c2c"
   },
   {
    "rel": "child",
    "href": "./bundle_snow_cover_by_band_ait_bouguemez/collection.json",
    "type": "application/json",
-   "file:checksum": "1220d711080845da1730b1b92498610f214bb87fd22f976646ab8eda97176570dd41"
+   "file:checksum": "1220b487663513e6f84cf08ad21ed4e33aac600404d2a84daf98c1de6b607a433f0d"
   },
   {
    "rel": "child",
    "href": "./bundle_terrain_strata_ait_bouguemez/collection.json",
    "type": "application/json",
-   "file:checksum": "1220857e69c5d1ddbe846b8022836f888254f3f818251b9e3e4ffba8748bae07241d"
+   "file:checksum": "1220e7892bc96d951fbe7c89d256bf719931af5f6a1fec40f843dcef44040b8346d1"
   },
   {
    "rel": "child",
    "href": "./bundle_transects_ait_bouguemez/collection.json",
    "type": "application/json",
-   "file:checksum": "1220412d569c665d81dc56b8bedbf71f4845512345bc07743a5af1704b56aa6d1fc1"
+   "file:checksum": "122081ac3bcc025dcfc8b1b7fc2a75316fe8111f2c442ab826ac2ef8bd3a2058f62f"
   }
  ],
  "stac_extensions": [

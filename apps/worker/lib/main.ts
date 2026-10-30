@@ -8,6 +8,7 @@ import { dispatchOutboxToJobs, jobSchema } from "@siterra/db/job-queue";
 import { newId } from "@siterra/domain";
 import { PgBoss } from "pg-boss";
 
+import { composeInstrumentsEnabled } from "./compose-switch.ts";
 import { corpusPaths, corpusWarning, loadCorpus } from "./corpus.ts";
 import { loadAnalyses } from "./recipes.ts";
 import { workerDb } from "./db.ts";
@@ -142,7 +143,7 @@ export async function startWorker(
           now: () => new Date(),
           newId: (prefix) => newId(prefix),
           delivery: job.retryCount,
-          ...(env["SITERRA_COMPOSE_INSTRUMENTS"] === "1" ? { composeInstruments: true } : {}),
+          ...(composeInstrumentsEnabled(env, transport.route) ? { composeInstruments: true } : {}),
           ...(options.spendStop ? { spendStop: options.spendStop } : {}),
         });
         const stopped =

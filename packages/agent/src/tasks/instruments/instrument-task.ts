@@ -173,7 +173,9 @@ export async function runInstrumentCompositionTask(
       promptVersion: INSTRUMENT_PROMPT_VERSION,
       instructions: INSTRUCTIONS,
       output: { name: "propose_instruments", schema: instrumentOutputSchema() },
-      maxOutputTokens: 3_000,
+      // The first live composition used 2,710 reasoning tokens at low effort and was cut off at 3,000
+      // before any visible output (29 Oct 2026); the brief task needed 8,000 for the same reason.
+      maxOutputTokens: 6_000,
       reasoningEffort: "low",
     },
     input: [

@@ -68,3 +68,33 @@ describe("GET /api/cases/:id/instruments: an asset is available with everything,
     ).toBe(false);
   });
 });
+
+describe("InstrumentListing: the rules the composer could not open", () => {
+  const base = { caseId: "case_example_atlas", caseRevision: 3, instruments: [] };
+  const blocked = {
+    ruleId: "field_plan_valley",
+    kind: "field_plan",
+    reasons: ["The case holds no branch merge with a field plan"],
+  };
+
+  it("carries blocked rules with the composer's reasons, and rules it did not open", () => {
+    expect(
+      InstrumentListing.safeParse({ ...base, blocked: [blocked], notOpened: ["rule_other"] })
+        .success,
+    ).toBe(true);
+    expect(InstrumentListing.safeParse({ ...base, blocked: [], notOpened: [] }).success).toBe(true);
+    expect(InstrumentListing.safeParse(base).success).toBe(true);
+  });
+
+  it("refuses a blocked rule with no reason, an unknown kind or another key", () => {
+    expect(
+      InstrumentListing.safeParse({ ...base, blocked: [{ ...blocked, reasons: [] }] }).success,
+    ).toBe(false);
+    expect(
+      InstrumentListing.safeParse({ ...base, blocked: [{ ...blocked, kind: "hologram" }] }).success,
+    ).toBe(false);
+    expect(
+      InstrumentListing.safeParse({ ...base, blocked: [{ ...blocked, html: "<b>x</b>" }] }).success,
+    ).toBe(false);
+  });
+});

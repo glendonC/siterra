@@ -426,7 +426,16 @@ describe("contracts 1.11: parameters cannot carry a value, a coordinate, a URL o
       if (types.includes("object") && n["additionalProperties"] !== false) {
         found.push(`${path}: an open object`);
       }
-      if (types.includes("string") && !("pattern" in n) && !("enum" in n) && !("const" in n)) {
+      // The one named exception (contracts 1.17.0): the host-written display wording of a placed
+      // statement, at most 200 characters, checked against the cited excerpts (INST-08).
+      const hostWrittenText = path.endsWith("-> DisplayText/text") && n["maxLength"] === 200;
+      if (
+        types.includes("string") &&
+        !("pattern" in n) &&
+        !("enum" in n) &&
+        !("const" in n) &&
+        !hostWrittenText
+      ) {
         found.push(`${path}: free text`);
       }
       for (const [key, value] of Object.entries(n)) {

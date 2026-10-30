@@ -260,6 +260,55 @@
               "bundleId": "bundle_drainage_network_ait_bouguemez",
               "assetKey": "drainage_lines"
             }
+          },
+          {
+            "role": "relief_grid",
+            "asset": {
+              "bundleId": "bundle_relief_ait_bouguemez",
+              "assetKey": "elevation_surface_bin"
+            }
+          },
+          {
+            "role": "relief_grid_header",
+            "asset": {
+              "bundleId": "bundle_relief_ait_bouguemez",
+              "assetKey": "elevation_surface_bin_header"
+            }
+          },
+          {
+            "role": "land_cover_raster",
+            "asset": {
+              "bundleId": "bundle_land_cover_ait_bouguemez",
+              "assetKey": "land_cover_png"
+            }
+          },
+          {
+            "role": "land_cover_header",
+            "asset": {
+              "bundleId": "bundle_land_cover_ait_bouguemez",
+              "assetKey": "land_cover_png_header"
+            }
+          },
+          {
+            "role": "elevation_band_raster",
+            "asset": {
+              "bundleId": "bundle_terrain_strata_ait_bouguemez",
+              "assetKey": "elevation_band_png"
+            }
+          },
+          {
+            "role": "elevation_band_header",
+            "asset": {
+              "bundleId": "bundle_terrain_strata_ait_bouguemez",
+              "assetKey": "elevation_band_png_header"
+            }
+          },
+          {
+            "role": "trend_cells",
+            "asset": {
+              "bundleId": "bundle_pixel_trend_long_record_ait_bouguemez",
+              "assetKey": "trend_cells"
+            }
           }
         ]
       },
@@ -336,15 +385,24 @@
         "statements": [
           {
             "evidenceId": "ev_valley_bottom_cultivated_sci03",
-            "placement": "valley_floor"
-          },
-          {
-            "evidenceId": "ev_valley_villages_sci19",
-            "placement": "valley_floor"
+            "placement": "valley_floor",
+            "display": {
+              "text": "Irrigated valley floor, about 1,800 to 2,200 m, with more than thirty villages.",
+              "evidenceIds": [
+                "ev_valley_bottom_cultivated_sci03",
+                "ev_valley_bottom_irrigated_sci19",
+                "ev_valley_altitude_range_sci19",
+                "ev_valley_villages_sci19"
+              ]
+            }
           },
           {
             "evidenceId": "ev_upper_rangelands_vegetation_sci19",
-            "placement": "upper_slope"
+            "placement": "upper_slope",
+            "display": {
+              "text": "Upper rangelands: mainly spiny xerophytic vegetation and reduced areas of short grasslands.",
+              "evidenceIds": ["ev_upper_rangelands_vegetation_sci19"]
+            }
           }
         ],
         "drawnAssets": [
@@ -367,6 +425,20 @@
             "asset": {
               "bundleId": "bundle_drainage_network_ait_bouguemez",
               "assetKey": "drainage_lines"
+            }
+          },
+          {
+            "role": "relief_grid",
+            "asset": {
+              "bundleId": "bundle_relief_ait_bouguemez",
+              "assetKey": "elevation_surface_bin"
+            }
+          },
+          {
+            "role": "relief_grid_header",
+            "asset": {
+              "bundleId": "bundle_relief_ait_bouguemez",
+              "assetKey": "elevation_surface_bin_header"
             }
           }
         ]
@@ -481,6 +553,16 @@
               "bundleId": "bundle_terrain_strata_ait_bouguemez",
               "assetKey": "analysis_geometry"
             }
+          }
+        ],
+        "contextDisplay": [
+          {
+            "text": "Herders report losing palatable species (Astragalus armatus, Thymus satureioides) and the spread of unpalatable plants (Thymelaea virgata, Euphorbia nicaeensis).",
+            "evidenceIds": ["ev_herder_reported_species_change_sci03"]
+          },
+          {
+            "text": "Upper rangelands: mainly spiny xerophytic vegetation and reduced areas of short grasslands.",
+            "evidenceIds": ["ev_upper_rangelands_vegetation_sci19"]
           }
         ]
       },

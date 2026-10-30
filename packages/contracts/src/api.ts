@@ -11,6 +11,7 @@ import {
   ReviewDecision,
   ValidationResult,
 } from "./case.ts";
+import { instrumentKinds } from "./instruments.ts";
 import { dateTime, entityId } from "./primitives.ts";
 
 export const CommandRequest = z.strictObject({
@@ -191,5 +192,21 @@ export const InstrumentListing = z.strictObject({
   caseId: entityId,
   caseRevision: z.int().min(1),
   instruments: z.array(InstrumentView),
+  /**
+   * The rules of the case configuration the composer could not open from the case's records now,
+   * each with every reason, in the composer's own words. Only on the current revision, and only for
+   * a case with a configuration.
+   */
+  blocked: z
+    .array(
+      z.strictObject({
+        ruleId: z.string().min(1),
+        kind: z.enum(instrumentKinds),
+        reasons: z.array(z.string().min(1)).min(1),
+      }),
+    )
+    .optional(),
+  /** The rules whose explanations are not in play, so the composer did not try them. */
+  notOpened: z.array(z.string().min(1)).optional(),
 });
 export type InstrumentListing = z.infer<typeof InstrumentListing>;

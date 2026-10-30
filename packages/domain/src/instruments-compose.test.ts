@@ -634,6 +634,60 @@ describe("composeInstruments", () => {
     );
   });
 
+  it("opens a pixel instrument only when the wording shown for its context statements passes INST-08", () => {
+    const evidence = [
+      {
+        id: "ev_example_species",
+        revision: 2,
+        claimKind: "scientific_context",
+        status: "provisional",
+        provenance: {
+          sourceLocators: [
+            {
+              sourceId: "src_x",
+              locator: "x.pdf, page 7",
+              excerpt: "the disappearance of palatable species",
+            },
+          ],
+        },
+      },
+    ] as never;
+    const rule = (text: string) =>
+      CaseAnalysisConfig.parse({
+        ...config,
+        instruments: [
+          {
+            from: "parameters",
+            id: "pixel_rule",
+            whenExplanationIds: ["rainfall"],
+            parameters: {
+              kind: "pixel_anatomy",
+              geoSelectionId: "geo_example_plain",
+              locator: ref("bundle_example_rain", "grid"),
+              anatomy: ref("bundle_example_rain", "anatomy"),
+              bandSeries: ref("bundle_example_rain", "series"),
+              contextEvidenceIds: ["ev_example_species"],
+              contextDisplay: [{ text, evidenceIds: ["ev_example_species"] }],
+            },
+            caption: { ...scatterRule.caption },
+          },
+        ],
+      });
+    const good = composeInstruments(
+      inputs({ config: rule("Herders report losing palatable species."), evidence }),
+    );
+    expect(good.blocked).toEqual([]);
+    expect(good.specs[0]?.provenance.inputVersions).toContainEqual({
+      entityId: "ev_example_species",
+      revision: 2,
+    });
+    const bad = composeInstruments(
+      inputs({ config: rule("Herders report losing 40 palatable species."), evidence }),
+    );
+    expect(bad.specs).toEqual([]);
+    expect(bad.blocked[0]?.reasons.join()).toContain("shows numbers no cited excerpt holds: 40");
+  });
+
   it("ignores a branch merge that has no field plan", () => {
     const result = composeInstruments(
       inputs({

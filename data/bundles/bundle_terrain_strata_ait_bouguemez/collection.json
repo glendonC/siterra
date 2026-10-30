@@ -38,7 +38,7 @@
    "roles": [
     "processor"
    ],
-   "processing:lineage": "Copernicus DEM GLO-30 2021 tile, bilinear to 30 m EPSG:32629, Horn slope and aspect, equal-area elevation terciles, aspect quadrants, level below 5 degrees; WorldCover 2021 classes 40 and 50 excluded",
+   "processing:lineage": "Copernicus DEM GLO-30 2021 tile, bilinear to 30 m EPSG:32629, Horn slope and aspect, equal-area elevation terciles, aspect quadrants, level below 5 degrees; WorldCover 2021 classes 40 and 50 excluded Web-ready derived assets (elevation-band.png) are copies of the canonical GeoTIFF values written by science/pipeline/web-assets.py.",
    "processing:software": {
     "siterra-science": "0.1.0+uncommitted",
     "python": "3.12.9",
@@ -123,6 +123,26 @@
    ],
    "file:checksum": "12200fad1da26371ef0e7c64a155f11ab10f753dac1c2e29f600b8e574488e88c2a6",
    "file:size": 459927
+  },
+  "elevation_band_png": {
+   "href": "./elevation-band.png",
+   "type": "image/png",
+   "title": "Elevation band 1 to 3 as an indexed PNG (web copy of band 1 of strata)",
+   "roles": [
+    "data"
+   ],
+   "file:checksum": "1220a79cc14de6c8e2dfe7617368cff1a068ae950f9a75db755541e47455f286ebb8",
+   "file:size": 35854
+  },
+  "elevation_band_png_header": {
+   "href": "./elevation-band.png.json",
+   "type": "application/json",
+   "title": "Header of elevation-band.png: CRS, transform, shape, palette",
+   "roles": [
+    "data"
+   ],
+   "file:checksum": "1220a1637fe168a359b70c0e7e8921a2c36ce8aca85f6116a8f908c45b06d366b992",
+   "file:size": 772
   }
  },
  "created": "2026-10-27T16:37:01Z",

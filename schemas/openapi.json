@@ -1708,6 +1708,50 @@
             "items": {
               "$ref": "#/components/schemas/InstrumentView"
             }
+          },
+          "blocked": {
+            "type": "array",
+            "description": "The rules of the case configuration the composer could not open from the case's records now, each with every reason in the composer's own words. Present only on the current revision, for a case with a configuration.",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "ruleId",
+                "kind",
+                "reasons"
+              ],
+              "properties": {
+                "ruleId": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "kind": {
+                  "enum": [
+                    "layer_stack",
+                    "cross_section",
+                    "pixel_anatomy",
+                    "rainfall_scatter",
+                    "field_plan"
+                  ]
+                },
+                "reasons": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              }
+            }
+          },
+          "notOpened": {
+            "type": "array",
+            "description": "The rules whose explanations are not in play, so the composer did not try them.",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
           }
         }
       }

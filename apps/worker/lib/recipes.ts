@@ -74,7 +74,14 @@ export async function loadAnalyses(
       const assets = [...(named ? [named] : []), ...Object.values(collection.assets ?? {})].filter(
         (a) => a.roles?.includes("data"),
       );
-      const data = assets.find((a) => a.href?.endsWith(".json") || a.type === "application/json");
+      // The result is the recipe's own data asset: the one named for it, else the first data asset.
+      // A bundle whose first data asset is a raster is a map-layer bundle, even when it also lists
+      // a JSON header for a web-ready copy of that raster.
+      const first = assets[0];
+      const data =
+        first && (first.href?.endsWith(".json") || first.type === "application/json")
+          ? first
+          : undefined;
       if (!data?.href) {
         const pointer = pointerFor(bundle, assets[0]?.type ?? null);
         results.push({

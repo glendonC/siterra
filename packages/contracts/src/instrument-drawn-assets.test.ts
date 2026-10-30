@@ -47,8 +47,7 @@ const ok = (value: unknown) => InstrumentParameters.safeParse(value).success;
 describe("contracts 1.16: the assets an instrument draws", () => {
   it("accepts 1.16.0 and every earlier version of the same MAJOR", () => {
     expect(acceptedCaseSchemaVersions).toContain(caseSchemaVersion);
-    expect(caseSchemaVersion).toBe("1.16.0");
-    for (const earlier of ["1.2.0", "1.14.0", "1.15.0"]) {
+    for (const earlier of ["1.2.0", "1.14.0", "1.15.0", "1.16.0"]) {
       expect(acceptedCaseSchemaVersions).toContain(earlier);
     }
   });

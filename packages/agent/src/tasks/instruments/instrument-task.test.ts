@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { MetaAdapter } from "../../model/adapter.ts";
+import type { ModelTransport } from "../../model/transport.ts";
 import { strictSubsetIssues } from "../../model/strict-schema.ts";
 import { AT, CASE_ID, queuedTask, testStore } from "../../testing/case-fixture.ts";
 import { answerStep, syntheticTransport } from "../../testing/replay-steps.ts";
@@ -209,8 +210,18 @@ describe("propose_instruments validation", () => {
   });
 });
 
+const sentOutputLimits: unknown[] = [];
+
 async function run(store: MemoryCaseStore, ...answers: unknown[]) {
-  const transport = syntheticTransport(answers.map((a) => answerStep(JSON.stringify(a))));
+  const replay = syntheticTransport(answers.map((a) => answerStep(JSON.stringify(a))));
+  const transport: ModelTransport = {
+    route: replay.route,
+    replayOrigin: replay.replayOrigin,
+    open: (body, signal) => {
+      sentOutputLimits.push(body.max_output_tokens);
+      return replay.open(body, signal);
+    },
+  };
   return runInstrumentCompositionTask(
     {
       task: queuedTask({
@@ -232,6 +243,12 @@ async function run(store: MemoryCaseStore, ...answers: unknown[]) {
 }
 
 describe("instrument_composition task", () => {
+  it("asks for up to 6,000 output tokens: the first live composition was cut off at 3,000 (29 Oct 2026)", async () => {
+    sentOutputLimits.length = 0;
+    await run(storeWith(RAIN, PIXEL), answer());
+    expect(sentOutputLimits).toEqual([6_000]);
+  });
+
   it("writes a component per instrument in the model's order, bound to the spec revision it shows", async () => {
     const { loop, commit } = await run(storeWith(RAIN, PIXEL), answer());
     expect(loop?.status).toBe("accepted");

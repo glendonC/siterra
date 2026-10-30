@@ -2,16 +2,94 @@
 // instrument specs of a case as of one case revision, each bundle asset they name resolved against
 // the bundle revision the spec pins, and a bundle asset by its key. Reads only; nothing here writes.
 import type {
+  BranchMerge,
   CanvasComponent,
+  ContextFeature,
   DataBundle,
+  Evidence,
+  GeoSelection,
+  Hypothesis,
   InstrumentAsset,
   InstrumentListing,
   InstrumentSpec,
+  Measurement,
 } from "@siterra/contracts";
 import { isInstrumentKind } from "@siterra/contracts";
-import { instrumentAssetRefs } from "@siterra/domain";
+import { composeInstruments, instrumentAssetRefs } from "@siterra/domain";
+import { analysisConfigFor } from "@siterra/domain/cases";
 import { type CaseAssetFile, resolveBundleAsset } from "./case-assets.ts";
 import { type Pool, inTransaction } from "./client.ts";
+
+type Tx = Parameters<Parameters<typeof inTransaction>[1]>[0];
+
+/**
+ * What the composer cannot open from the case's records now, in its own words: the case
+ * configuration's rules run over the latest records as of one revision. Null for a case with no
+ * configuration. Reads only; nothing is written and no spec is returned from here.
+ */
+async function composition(
+  tx: Tx,
+  args: { caseId: string; bundlesDir: string | null },
+  asOf: number,
+): Promise<Pick<InstrumentListing, "blocked" | "notOpened"> | null> {
+  const config = analysisConfigFor(args.caseId);
+  if (config === null) return null;
+  const types = [
+    "GeoSelection",
+    "DataBundle",
+    "ContextFeature",
+    "Measurement",
+    "Evidence",
+    "BranchMerge",
+    "Hypothesis",
+  ];
+  const rows = await tx.query<{ record_type: string; record: unknown }>(
+    `select record_type, record from (
+       select distinct on (entity_id) entity_id, record_type, record from records
+       where case_id = $1 and record_type = any($2::text[]) and case_revision <= $3
+       order by entity_id, revision desc
+     ) latest`,
+    [args.caseId, types, asOf],
+  );
+  const of = <T>(type: string): T[] =>
+    rows.rows.filter((r) => r.record_type === type).map((r) => r.record as T);
+  const caseRow = await tx.query<{ record: { activeGeoSelectionId: string | null } }>(
+    "select record from cases where id = $1",
+    [args.caseId],
+  );
+  const bundles = of<DataBundle>("DataBundle");
+  const result = composeInstruments({
+    caseId: args.caseId,
+    config,
+    openExplanationIds: config.explanations.map((e) => e.id),
+    geoSelectionId: caseRow.rows[0]?.record.activeGeoSelectionId ?? "",
+    geoSelections: of<GeoSelection>("GeoSelection"),
+    dataBundles: bundles,
+    contextFeatures: of<ContextFeature>("ContextFeature"),
+    measurements: of<Measurement>("Measurement"),
+    evidence: of<Evidence>("Evidence"),
+    branchMerges: of<BranchMerge>("BranchMerge"),
+    hypotheses: of<Hypothesis>("Hypothesis"),
+    hasAsset: (ref) => {
+      const bundle = bundles.find((b) => b.id === ref.bundleId);
+      if (args.bundlesDir === null || bundle === undefined || bundle.contentHash === null) {
+        return false;
+      }
+      return (
+        resolveBundleAsset(args.bundlesDir, {
+          bundleId: ref.bundleId,
+          contentHash: bundle.contentHash,
+          assetKey: ref.assetKey,
+        }).status === "available"
+      );
+    },
+    now: "1970-01-01T00:00:00.000Z",
+  });
+  return {
+    blocked: result.blocked.map((b) => ({ ruleId: b.ruleId, kind: b.kind, reasons: b.reasons })),
+    notOpened: result.notOpened,
+  };
+}
 
 const sectionOrder = ["place", "observations", "explanations", "responses", "next_steps"] as const;
 
@@ -117,9 +195,12 @@ export async function readInstruments(
         components
           .filter((c) => c.entityVersions[0]?.entityId === spec.id)
           .sort((a, b) => rank(a) - rank(b) || a.order - b.order || (a.id < b.id ? -1 : 1));
+      // What the composer cannot open is a statement about the case now, so only the current revision has it
+      const now = asOf === current ? await composition(tx, args, asOf) : null;
       return {
         caseId: args.caseId,
         caseRevision: asOf,
+        ...(now ?? {}),
         instruments: specs
           .sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
           .map((spec) => ({

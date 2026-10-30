@@ -45,7 +45,10 @@ function namedByFields(parameters: InstrumentSpec["parameters"]): (string | null
         parameters.snow.bundleId,
         ...parameters.drainageFeatureIds,
         ...parameters.placeFeatureIds,
-        ...parameters.statements.map((statement) => statement.evidenceId),
+        ...parameters.statements.flatMap((statement) => [
+          statement.evidenceId,
+          ...(statement.display?.evidenceIds ?? []),
+        ]),
       ];
     case "pixel_anatomy":
       return [
@@ -54,6 +57,7 @@ function namedByFields(parameters: InstrumentSpec["parameters"]): (string | null
         parameters.anatomy.bundleId,
         parameters.bandSeries.bundleId,
         ...parameters.contextEvidenceIds,
+        ...(parameters.contextDisplay ?? []).flatMap((d) => d.evidenceIds),
       ];
     case "rainfall_scatter":
       return [parameters.geoSelectionId, parameters.seasons.bundleId, parameters.fit.bundleId];

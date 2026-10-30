@@ -47,7 +47,7 @@
    "roles": [
     "processor"
    ],
-   "processing:lineage": "Anonymous SAS-signed range reads of MOD13Q1 v6.1 NDVI and pixel reliability windows over the frozen geometry from Planetary Computer (584 Terra composites); per-pixel growing-season means, Theil-Sen slopes, Mann-Kendall tests and Benjamini-Hochberg FDR across 8094 catchment pixels; EPSG:3857 slope-only display overviews and 16 outlet-ordered reveal frames (science/pipeline/pixel_trend_long_record.py).",
+   "processing:lineage": "Anonymous SAS-signed range reads of MOD13Q1 v6.1 NDVI and pixel reliability windows over the frozen geometry from Planetary Computer (584 Terra composites); per-pixel growing-season means, Theil-Sen slopes, Mann-Kendall tests and Benjamini-Hochberg FDR across 8094 catchment pixels; EPSG:3857 slope-only display overviews and 16 outlet-ordered reveal frames (science/pipeline/pixel_trend_long_record.py). Web-ready derived assets (pixel-trend-mar_jun-cells.json) are copies of the canonical GeoTIFF values written by science/pipeline/web-assets.py.",
    "processing:software": {
     "siterra-science": "0.1.0",
     "python": "3.12.9",
@@ -700,6 +700,16 @@
    ],
    "file:checksum": "122049698139b9dc57e313b2832e88ba7180d4c445f9c940db1de751c18353327e73",
    "file:size": 52780
+  },
+  "trend_cells": {
+   "href": "./pixel-trend-mar_jun-cells.json",
+   "type": "application/json",
+   "title": "March to June Theil-Sen slope of every MODIS 250 m cell as a quadrilateral in EPSG:32629 (web copy of pixel_trend_mar_jun)",
+   "roles": [
+    "data"
+   ],
+   "file:checksum": "122002530e70cbbec6cd0ec813af56b3c94832b948667a5d6bd23194ca2fb5b1b7a6",
+   "file:size": 748047
   }
  },
  "created": "2026-10-28T20:29:56Z",
@@ -868,7 +878,7 @@
    "href": "../bundle_terrain_strata_ait_bouguemez/collection.json",
    "type": "application/json",
    "title": "Terrain strata bundle bundle_terrain_strata_ait_bouguemez",
-   "file:checksum": "1220857e69c5d1ddbe846b8022836f888254f3f818251b9e3e4ffba8748bae07241d"
+   "file:checksum": "1220e7892bc96d951fbe7c89d256bf719931af5f6a1fec40f843dcef44040b8346d1"
   },
   {
    "rel": "license",

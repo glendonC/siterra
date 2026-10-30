@@ -87,7 +87,6 @@ describe("the instruments the case seed composes", () => {
       transectFeatureId: "ctx_transect_tabant_meridian",
       statements: [
         { evidenceId: "ev_valley_bottom_cultivated_sci03", placement: "valley_floor" },
-        { evidenceId: "ev_valley_villages_sci19", placement: "valley_floor" },
         { evidenceId: "ev_upper_rangelands_vegetation_sci19", placement: "upper_slope" },
       ],
     });
@@ -102,6 +101,34 @@ describe("the instruments the case seed composes", () => {
     ] as const) {
       expect(Math.abs((measurements.get(id)?.value ?? Number.NaN) - printed)).toBeLessThan(0.00006);
     }
+  });
+
+  it("carry the approved wording of the statements they place, each resting on the Evidence it cites", () => {
+    const section = seed?.instruments.find((s) => s.id === "inst_cross_section_valley")?.parameters;
+    const pixel = seed?.instruments.find((s) => s.id === "inst_pixel_anatomy_valley")?.parameters;
+    expect(section?.kind === "cross_section" && section.statements.map((s) => s.display)).toEqual([
+      {
+        text: "Irrigated valley floor, about 1,800 to 2,200 m, with more than thirty villages.",
+        evidenceIds: [
+          "ev_valley_bottom_cultivated_sci03",
+          "ev_valley_bottom_irrigated_sci19",
+          "ev_valley_altitude_range_sci19",
+          "ev_valley_villages_sci19",
+        ],
+      },
+      {
+        text: "Upper rangelands: mainly spiny xerophytic vegetation and reduced areas of short grasslands.",
+        evidenceIds: ["ev_upper_rangelands_vegetation_sci19"],
+      },
+    ]);
+    expect(pixel?.kind === "pixel_anatomy" && pixel.contextDisplay?.map((d) => d.text)).toEqual([
+      "Herders report losing palatable species (Astragalus armatus, Thymus satureioides) and the spread of unpalatable plants (Thymelaea virgata, Euphorbia nicaeensis).",
+      "Upper rangelands: mainly spiny xerophytic vegetation and reduced areas of short grasslands.",
+    ]);
+    // Never the reporting-voice Evidence text, and never the population figure
+    const shown = JSON.stringify([section, pixel]);
+    expect(shown).not.toContain("15,000");
+    expect(shown).not.toContain("SCI-03 says that herders");
   });
 
   it("name every asset an instrument draws, so no client builds an address from a hash", () => {
@@ -121,7 +148,7 @@ describe("the instruments the case seed composes", () => {
       ["pixel_series", "pixel_anatomy", "pixel_series"],
       ["catchment_outline", "terrain_strata", "analysis_geometry"],
     ]);
-    expect(roles("inst_cross_section_valley")).toEqual([
+    expect(roles("inst_cross_section_valley").slice(0, 3)).toEqual([
       ["transect_summary", "transects", "terrain_transects"],
       ["catchment_outline", "terrain_strata", "analysis_geometry"],
       ["drainage_segments", "drainage_network", "drainage_lines"],
@@ -132,6 +159,34 @@ describe("the instruments the case seed composes", () => {
       "rainfall_fit",
       "catchment_outline",
       "drainage_segments",
+      "relief_grid",
+      "relief_grid_header",
+      "land_cover_raster",
+      "land_cover_header",
+      "elevation_band_raster",
+      "elevation_band_header",
+      "trend_cells",
+    ]);
+    expect(roles("inst_cross_section_valley").map((r) => r[0])).toEqual([
+      "transect_summary",
+      "catchment_outline",
+      "drainage_segments",
+      "relief_grid",
+      "relief_grid_header",
+    ]);
+    // The web-ready display assets of SCIENCE-GEO's S7, by their bundle and key
+    expect(
+      roles("inst_layer_stack_valley")
+        .slice(5)
+        .map((r) => [r[1], r[2]]),
+    ).toEqual([
+      ["relief", "elevation_surface_bin"],
+      ["relief", "elevation_surface_bin_header"],
+      ["land_cover", "land_cover_png"],
+      ["land_cover", "land_cover_png_header"],
+      ["terrain_strata", "elevation_band_png"],
+      ["terrain_strata", "elevation_band_png_header"],
+      ["pixel_trend_long_record", "trend_cells"],
     ]);
     expect(roles("inst_rainfall_scatter_valley")).toEqual([]);
   });
