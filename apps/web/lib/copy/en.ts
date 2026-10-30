@@ -768,6 +768,66 @@ export const en = {
   // the activity line: the step running with the model and route that served it (the activity panel's badge)
   "ask.taskModel": { text: "{model}: {task}, {status}", kind: "ui" },
   "ask.task": { text: "{task}, {status}", kind: "ui" },
+  // The ask's results (U11b): the work card's outcome with its findings count as a button, and the results view it
+  // opens: an answer caption from the request's BranchMerge counts, then the findings it committed, each statement
+  // as recorded, with a source chip that opens the cited locator and excerpt
+  "ask.complete": { text: "Complete.", kind: "ui" },
+  "ask.findings": { text: "Findings: {n}", kind: "button" },
+  "results.title": { text: "Results", kind: "heading" },
+  "results.findings": { text: "Findings", kind: "heading" },
+  "results.chip": { text: "Source {n}", kind: "button" },
+  "results.n0": { text: "no", kind: "label" },
+  "results.n1": { text: "one", kind: "label" },
+  "results.n2": { text: "two", kind: "label" },
+  "results.n3": { text: "three", kind: "label" },
+  "results.n4": { text: "four", kind: "label" },
+  "results.n5": { text: "five", kind: "label" },
+  "results.first.contradicted.one": { text: "{n} explanation is contradicted", kind: "ui" },
+  "results.first.contradicted.many": { text: "{n} explanations are contradicted", kind: "ui" },
+  "results.then.contradicted.one": { text: "{n} is contradicted", kind: "ui" },
+  "results.then.contradicted.many": { text: "{n} are contradicted", kind: "ui" },
+  "results.first.consistent.one": {
+    text: "{n} explanation is consistent with the records",
+    kind: "ui",
+  },
+  "results.first.consistent.many": {
+    text: "{n} explanations are consistent with the records",
+    kind: "ui",
+  },
+  "results.then.consistent.one": { text: "{n} is consistent with the records", kind: "ui" },
+  "results.then.consistent.many": { text: "{n} are consistent with the records", kind: "ui" },
+  "results.first.cannot.one": { text: "{n} explanation cannot be assessed yet", kind: "ui" },
+  "results.first.cannot.many": { text: "{n} explanations cannot be assessed yet", kind: "ui" },
+  "results.then.cannot.one": { text: "{n} cannot be assessed yet", kind: "ui" },
+  "results.then.cannot.many": { text: "{n} cannot be assessed yet", kind: "ui" },
+  "results.join1": { text: "{a}.", kind: "ui" },
+  "results.join2": { text: "{a} and {b}.", kind: "ui" },
+  "results.join3": { text: "{a}, {b} and {c}.", kind: "ui" },
+  "results.plan.one": {
+    text: "The field plan proposes {n} check that tells the open ones apart.",
+    kind: "ui",
+  },
+  "results.plan.many": {
+    text: "The field plan proposes {n} checks that tell the open ones apart.",
+    kind: "ui",
+  },
+  "results.plan.none": { text: "No proposed field check tells the open ones apart.", kind: "ui" },
+  "results.plan.partial.one": {
+    text: "The field plan proposes {n} checks; {m} pair of open explanations is not told apart by any of them.",
+    kind: "ui",
+  },
+  "results.plan.partial.many": {
+    text: "The field plan proposes {n} checks; {m} pairs of open explanations are not told apart by any of them.",
+    kind: "ui",
+  },
+  "results.only.one": { text: "The request added {n} finding to the case record.", kind: "ui" },
+  "results.only.many": { text: "The request added {n} findings to the case record.", kind: "ui" },
+  "results.excerpt": { text: "{title}, {locator}: \u201c{excerpt}\u201d", kind: "ui" },
+  "results.locator": { text: "{title}, {locator}", kind: "ui" },
+  "results.checked": { text: "Checked against the source", kind: "label" },
+  "results.unchecked": { text: "Not yet checked against the source", kind: "label", honesty: true },
+  "results.computed.state": { text: "Computed from the record's measurements", kind: "label" },
+  "results.computed": { text: "{bundle}. Computed from {measurements}.", kind: "ui" },
 } as const satisfies Record<string, Message>;
 
 export type MessageId = keyof typeof en;

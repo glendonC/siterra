@@ -2,7 +2,7 @@ import type { CaseSnapshot, Event, Task } from "@siterra/contracts";
 import { describe, expect, it } from "vitest";
 import type { EventLog } from "../case/events";
 import { seed } from "../instruments/seed-listing";
-import { askLine, shouldReopen } from "./ask-line";
+import { askLine, shouldReopen, type AskLineInput } from "./ask-line";
 
 // events and tasks in the shapes the worker writes on the replay route, for the rules only
 let seq = 0;
@@ -46,17 +46,16 @@ const logOf = (events: Event[]): EventLog => ({
   lastSequence: events.at(-1)?.sequence ?? 0,
 });
 const base = { sent: true, notice: null, pacing: false } as const;
+const line = (input: AskLineInput) => askLine(input)?.text ?? null;
 
 describe("the ask's activity line", () => {
   it("shows nothing before Enter, and the catalog's refusal when the server refuses", () => {
     const s = withTasks([]);
-    expect(askLine({ ...base, snapshot: s, log: logOf([]), commandId: null, sent: false })).toBe(
-      null,
-    );
+    expect(line({ ...base, snapshot: s, log: logOf([]), commandId: null, sent: false })).toBe(null);
     expect(
-      askLine({ ...base, snapshot: s, log: logOf([]), commandId: null, notice: "work.quotaUsed" }),
+      line({ ...base, snapshot: s, log: logOf([]), commandId: null, notice: "work.quotaUsed" }),
     ).toBe("Demo request limit reached for this session. Question text kept.");
-    expect(askLine({ ...base, snapshot: s, log: logOf([]), commandId: null })).toBe(
+    expect(line({ ...base, snapshot: s, log: logOf([]), commandId: null })).toBe(
       "Request received.",
     );
   });
@@ -75,11 +74,11 @@ describe("the ask's activity line", () => {
       task("t_1", "plan", "succeeded"),
       task("t_2", "observation_analysis", "running"),
     ]);
-    expect(askLine({ ...base, snapshot: s, log: logOf(events), commandId: "cmd_a" })).toBe(
+    expect(line({ ...base, snapshot: s, log: logOf(events), commandId: "cmd_a" })).toBe(
       "Observation Analysis, Running",
     );
     events.push(ev("model.completed", "t_2", "Model call completed.", { usage }));
-    expect(askLine({ ...base, snapshot: s, log: logOf(events), commandId: "cmd_a" })).toBe(
+    expect(line({ ...base, snapshot: s, log: logOf(events), commandId: "cmd_a" })).toBe(
       "Muse Spark · Synthetic Replay: Observation Analysis, Running",
     );
   });
@@ -91,13 +90,35 @@ describe("the ask's activity line", () => {
       ev("command.completed", null, "Done.", { resultStatus: "failed" }),
     ];
     const s = withTasks([task("t_1", "plan", "failed", { failureCode: "http_503" })]);
-    expect(askLine({ ...base, snapshot: s, log: logOf(done), commandId: "cmd_a" })).toBe(
+    expect(line({ ...base, snapshot: s, log: logOf(done), commandId: "cmd_a" })).toBe(
       "Assessment failed: model service not responding. Question text kept.",
     );
     const refused = withTasks([task("t_1", "plan", "failed", { failureCode: "out_of_scope" })]);
-    expect(askLine({ ...base, snapshot: refused, log: logOf(done), commandId: "cmd_a" })).toMatch(
+    expect(line({ ...base, snapshot: refused, log: logOf(done), commandId: "cmd_a" })).toMatch(
       /^The request treats people/,
     );
+  });
+
+  it("offers a completed request's findings count, the accepted Evidence of its tasks", () => {
+    seq = 0;
+    const done = [
+      ev("command.accepted", null, "Request received"),
+      ev("command.completed", null, "Done.", { resultStatus: "succeeded" }),
+    ];
+    const evidence = {
+      ...seed.records.evidenceRecords[0],
+      id: "ev_from_t_1",
+      status: "accepted",
+      provenance: { ...seed.records.evidenceRecords[0]?.provenance, generatedByTaskId: "t_1" },
+    } as unknown as CaseSnapshot["records"]["evidenceRecords"][number];
+    const s = withTasks([task("t_1", "plan", "succeeded")]);
+    const withEvidence = {
+      ...s,
+      records: { ...s.records, evidenceRecords: [...s.records.evidenceRecords, evidence] },
+    };
+    expect(
+      askLine({ ...base, snapshot: withEvidence, log: logOf(done), commandId: "cmd_a" }),
+    ).toEqual({ text: "Complete.", findings: 1 });
   });
 
   it("holds the outcome while a replay still plays at reading pace", () => {
@@ -109,7 +130,7 @@ describe("the ask's activity line", () => {
     ];
     const s = withTasks([task("t_1", "plan", "succeeded")]);
     expect(
-      askLine({ ...base, snapshot: s, log: logOf(events), commandId: "cmd_a", pacing: true }),
+      line({ ...base, snapshot: s, log: logOf(events), commandId: "cmd_a", pacing: true }),
     ).toBe("Muse Spark · Synthetic Replay: Plan, Running");
   });
 });

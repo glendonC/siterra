@@ -77,7 +77,8 @@ const TURN = (ND.az - OV.az) / Math.sin((PIXEL_CLOCK * Math.PI) / 180);
 const DEG = Math.PI / 180;
 const rad = (d: number) => d * DEG;
 
-export type Selection = FindingId | "field";
+/** A finding, the field check on the land, or the ask's results (which move as the whole catchment's finding). */
+export type Selection = FindingId | "field" | "results";
 
 export interface SceneState {
   /** Opening of the selection: 0 rest, 1 opened. */
@@ -350,7 +351,9 @@ export function mountOverview(
     if (n) TB = frame.v(sE / n, sN / n, sample(sE / n, sN / n));
   }
   const clockOf = (sel: Selection | null) =>
-    findings.find((f) => f.id === (sel === "field" ? "pixel" : sel))?.clock ?? PIXEL_CLOCK;
+    findings.find(
+      (f) => f.id === (sel === "field" ? "pixel" : sel === "results" ? "catchment" : sel),
+    )?.clock ?? PIXEL_CLOCK;
   const views = new Map<Selection, View>();
   /**
    * Each finding's view, derived as D4 derived the pixel's: the camera orbits toward the finding's clock direction
@@ -369,6 +372,7 @@ export function mountOverview(
   // every view is solved now, so no later render moves the camera to measure one
   for (const f of findings) viewFor(f.id);
   viewFor("field");
+  viewFor("results");
   set(view0);
   const viewAt = (v0: View, v1: View, e: number): View => {
     // azimuth the short way round, distance in log space, target and lens shift linear

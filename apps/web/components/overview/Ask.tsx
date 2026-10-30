@@ -6,7 +6,8 @@
 // to the overview). The activity line shows only once the page passes one, after Enter.
 
 import { useEffect, useRef, type CSSProperties, type Ref } from "react";
-import { en } from "../../lib/copy/en";
+import { en, format } from "../../lib/copy/en";
+import type { AskLine } from "../../lib/overview/ask-line";
 import styles from "./Ask.module.css";
 
 export interface AskProps {
@@ -19,7 +20,9 @@ export interface AskProps {
   onText: (text: string) => void;
   onEnter: (text: string) => void;
   /** The line under the question once it is sent; null shows none. */
-  activity: string | null;
+  activity: AskLine | null;
+  /** A completed request's "Findings: N" opens its results. */
+  onFindings?: () => void;
   /** The circle hovered or focused (the overview dims its findings a little). */
   onHover?: (on: boolean) => void;
   circleRef?: Ref<HTMLButtonElement>;
@@ -40,6 +43,7 @@ export function Ask({
   onText,
   onEnter,
   activity,
+  onFindings,
   onHover,
   circleRef,
   circleStyle,
@@ -122,7 +126,20 @@ export function Ask({
         </form>
         {activity !== null ? (
           <p className={styles.act} role="status" data-ask-activity>
-            {activity}
+            {activity.text}
+            {activity.findings !== null && onFindings ? (
+              <>
+                {" "}
+                <button
+                  type="button"
+                  className={styles.findings}
+                  data-ask-findings
+                  onClick={onFindings}
+                >
+                  {format("ask.findings", { n: activity.findings })}
+                </button>
+              </>
+            ) : null}
           </p>
         ) : null}
       </div>

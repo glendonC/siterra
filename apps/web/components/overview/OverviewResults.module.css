@@ -1,0 +1,137 @@
+/* The ask's results in the opened record's place (D4's .inst at 800, 120, 560 wide), in the tokens of
+   app/obsidian.css: the caption as the instruments set theirs, the findings list under it, kept above the credit. */
+
+.results {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.frost {
+  position: absolute;
+  pointer-events: none;
+  backdrop-filter: blur(18px) saturate(0.6);
+  background: var(--ov-frost);
+  mask-image: var(--ov-frost-mask);
+}
+
+.inst {
+  position: absolute;
+  left: 800px;
+  top: 120px;
+  width: 560px;
+  perspective: 1500px;
+}
+
+/* flat and level when settled: the only tilt is the scene's own movement (lead, 2026-10-30) */
+.plane {
+  transform: none;
+}
+
+.caption {
+  margin: 0;
+  font-size: 20px;
+  line-height: 28px;
+  text-wrap: pretty;
+}
+
+.ink {
+  color: var(--text-primary);
+}
+
+.grey {
+  color: var(--text-tertiary);
+}
+
+.k {
+  margin-top: 28px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: 0.02em;
+  color: var(--ov-kicker);
+}
+
+/* the list stops above the credit; a long one scrolls */
+.list {
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+  max-height: 440px;
+  overflow-y: auto;
+  pointer-events: auto;
+}
+
+.item {
+  position: relative;
+  margin: 0 0 14px;
+  outline: none;
+}
+
+.state {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--ov-ci);
+}
+
+.statement {
+  display: -webkit-box;
+  margin-top: 2px;
+  font-size: 15px;
+  line-height: 21px;
+  color: var(--text-secondary);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+}
+
+.item:focus-within .statement,
+.item:hover .statement {
+  display: block;
+  color: var(--text-primary);
+}
+
+.item:focus-visible {
+  outline: 1px solid var(--ov-focus);
+  outline-offset: 4px;
+}
+
+.chip {
+  display: inline-block;
+  min-width: 18px;
+  height: 18px;
+  margin: 0;
+  padding: 0 4px;
+  border: 1px solid var(--hairline);
+  border-radius: 3px;
+  background: none;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 16px;
+  text-align: center;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.chip[aria-expanded="true"],
+.chip:hover,
+.chip:focus-visible {
+  color: var(--text-primary);
+  border-color: var(--text-secondary);
+}
+
+.note {
+  display: block;
+  margin-top: 6px;
+  padding: 8px 10px;
+  border-radius: 4px;
+  background: var(--bg-overlay);
+  font-size: 12px;
+  line-height: 17px;
+  color: var(--text-secondary);
+}

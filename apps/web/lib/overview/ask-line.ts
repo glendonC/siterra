@@ -9,6 +9,13 @@ import { badgeOf, projectActivity } from "../activity/activity";
 import { requestOutcome, workCard } from "../card/work";
 import type { EventLog } from "../case/events";
 import { en, format, type MessageId } from "../copy/en";
+import { commandFindings } from "./results";
+
+/** The line, and the findings count a completed request offers as a button (the results view). */
+export interface AskLine {
+  text: string;
+  findings: number | null;
+}
 
 export interface AskLineInput {
   snapshot: CaseSnapshot;
@@ -31,28 +38,37 @@ export function askLine({
   sent,
   notice,
   pacing,
-}: AskLineInput): string | null {
+}: AskLineInput): AskLine | null {
   if (!sent) return null;
-  if (notice) return en[notice].text;
-  if (!commandId) return en["work.received"].text;
-  const ended = !pacing && requestOutcome(snapshot, log, commandId) !== "running";
-  if (ended) return workCard(snapshot, log, commandId, [], { pacing }).working ?? null;
+  const line = (text: string): AskLine => ({ text, findings: null });
+  if (notice) return line(en[notice].text);
+  if (!commandId) return line(en["work.received"].text);
+  const outcome = pacing ? "running" : requestOutcome(snapshot, log, commandId);
+  // a completed request: the work card's "Complete." with its findings count as the way to the results
+  if (outcome === "succeeded")
+    return { text: en["ask.complete"].text, findings: commandFindings(snapshot, commandId).length };
+  if (outcome !== "running") {
+    const working = workCard(snapshot, log, commandId, [], { pacing }).working;
+    return working ? line(working) : null;
+  }
   const rows = projectActivity(snapshot.records.taskRecords, log.events, commandId, {
     playedOnly: pacing,
   });
   const row = rows.findLast((r) => r.state === "running") ?? rows.at(-1);
   if (!row) {
     const latest = log.events.findLast((e) => e.commandId === commandId);
-    return latest?.message ?? en["work.received"].text;
+    return line(latest?.message ?? en["work.received"].text);
   }
   // the model and its route, from the latest model call of that step
   const model = log.events
     .filter((e) => e.taskId === row.taskId && e.kind === "model.completed")
     .map(badgeOf)
     .findLast((b) => b !== undefined);
-  return model
-    ? format("ask.taskModel", { model, task: row.label, status: row.status })
-    : format("ask.task", { task: row.label, status: row.status });
+  return line(
+    model
+      ? format("ask.taskModel", { model, task: row.label, status: row.status })
+      : format("ask.task", { task: row.label, status: row.status }),
+  );
 }
 
 /**

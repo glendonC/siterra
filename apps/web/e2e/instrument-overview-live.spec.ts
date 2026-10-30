@@ -1,8 +1,8 @@
 import { expect, test, type Request } from "@playwright/test";
 
 // The ask end to end on the overview (/valley): Enter sends one commission, the activity line names the task and
-// the model from the session's event log, and when the request commits the ring shows the findings of the new case
-// revision without a reload. This spec presses Enter, so it runs only against a replay worker on a lane's own
+// the model from the session's event log, when the request commits the ring shows the findings of the new case
+// revision without a reload, and the completed request's "Findings: N" opens its results (U11b), Esc back. This spec presses Enter, so it runs only against a replay worker on a lane's own
 // database (SITERRA_E2E_REPLAY=1; the worker on SITERRA_MODEL_ROUTE=replay with
 // apps/worker/fixtures/seed-commission.synthetic.replay.json, no key). Without that it is skipped.
 
@@ -75,4 +75,21 @@ test("Enter sends one request, names the task and model, and the ring follows th
       navigations: performance.getEntriesByType("navigation").length,
     })),
   ).toEqual({ marker: true, navigations: 1 });
+
+  // the completed request's "Findings: N" opens the results in the opened record's place; Esc returns
+  const findings = page.locator("[data-ask-findings]");
+  await expect(findings).toBeVisible({ timeout: 120_000 });
+  const n = Number(/(\d+)/.exec((await findings.textContent()) ?? "")?.[1] ?? Number.NaN);
+  expect(n).toBeGreaterThan(0);
+  await findings.click();
+  const results = page.locator("[data-record='results']");
+  await expect(results).toBeVisible();
+  await expect(results.locator("[data-results-caption]")).not.toBeEmpty();
+  await expect(results.locator("[data-result]")).toHaveCount(n);
+  await expect
+    .poll(() => results.evaluate((el) => Number((el as HTMLElement).style.opacity)))
+    .toBe(1);
+  await page.keyboard.press("Escape");
+  await expect(results).toHaveCount(0);
+  expect(commands).toHaveLength(1);
 });

@@ -179,8 +179,9 @@
   transition: opacity 0.4s ease 0.3s;
 }
 
-/* only the question line takes the pointer, so the circle above the fade stays clickable */
-.ask[data-open] .qline {
+/* only the question line and the findings button take the pointer, so the circle above the fade stays clickable */
+.ask[data-open] .qline,
+.ask[data-open] .findings {
   pointer-events: auto;
 }
 
@@ -221,4 +222,27 @@
   line-height: 20px;
   color: var(--ov-ink-3);
   white-space: nowrap;
+}
+
+/* a completed request's findings count: the way to its results */
+.findings {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-bottom: 1px solid var(--hairline);
+  background: none;
+  font: inherit;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.findings:hover,
+.findings:focus-visible {
+  color: var(--text-primary);
+  border-bottom-color: var(--text-secondary);
+}
+
+.findings:focus-visible {
+  outline: 1px solid var(--ov-focus);
+  outline-offset: 3px;
 }

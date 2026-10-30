@@ -13,13 +13,15 @@ import { replayOrigin } from "../../lib/activity/activity";
 import { commandRunning } from "../../lib/card/work";
 import { commissionRequest, requestText, submitCommand } from "../../lib/case/command";
 import type { MessageId } from "../../lib/copy/en";
-import { askLine } from "../../lib/overview/ask-line";
+import { askLine, type AskLine } from "../../lib/overview/ask-line";
 import { usePacedLog } from "../activity/usePacedLog";
 import { useCaseSession } from "../case/useCaseSession";
 
 export interface OverviewAsk {
   /** The line under the question: null until Enter. */
-  activity: string | null;
+  activity: AskLine | null;
+  /** The request sent from here, once accepted. */
+  commandId: string | null;
   send: (typed: string) => void;
   /** The case as the session holds it now. */
   snapshot: CaseSnapshot;
@@ -68,5 +70,5 @@ export function useOverviewAsk(initial: CaseSnapshot): OverviewAsk {
     [snapshot, paced.log, paced.pacing, commandId, sent, notice],
   );
 
-  return { activity, send, snapshot };
+  return { activity, send, snapshot, commandId };
 }

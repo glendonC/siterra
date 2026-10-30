@@ -41,6 +41,7 @@ import {
 } from "../instruments/InstrumentRecords";
 import { Ask } from "./Ask";
 import { OverviewRecord } from "./OverviewRecord";
+import { OverviewResults } from "./OverviewResults";
 import { useOverviewAsk } from "./useOverviewAsk";
 import styles from "./ValleyOverview.module.css";
 
@@ -233,6 +234,7 @@ function OverviewReady({
   const frostRef = useRef<HTMLDivElement>(null);
   const connectorRef = useRef<SVGSVGElement>(null);
   const midcapRef = useRef<HTMLDivElement>(null);
+  const firstResultRef = useRef<HTMLLIElement>(null);
   const askCircleRef = useRef<HTMLButtonElement>(null);
   const fieldRef = useRef<HTMLButtonElement>(null);
   const fieldTagRef = useRef<HTMLSpanElement>(null);
@@ -406,7 +408,10 @@ function OverviewReady({
     }
     // the opened finding keeps its dot and joins the record by one hairline, to the left of its numeral
     const sw = selWireRef.current;
-    const sp = selected && selected !== "field" ? layout.findings[selected] : undefined;
+    const sp =
+      selected && selected !== "field" && selected !== "results"
+        ? layout.findings[selected]
+        : undefined;
     const big = bigRef.current ? toDesign(bigRef.current, fit.scale) : null;
     if (sw) {
       if (sp && big) {
@@ -548,7 +553,7 @@ function OverviewReady({
     setRecordData({});
   }, [listing.caseRevision]);
   useEffect(() => {
-    if (!sel || sel === "field" || recordData[sel]) return;
+    if (!sel || sel === "field" || sel === "results" || recordData[sel]) return;
     const id = sel;
     const ac = new AbortController();
     loadRecord(id, listing, snapshot, data?.pixel?.series ?? null, undefined, ac.signal).then(
@@ -583,14 +588,19 @@ function OverviewReady({
     goal.current.s = 1;
     setAskOpen(false);
     go();
-    window.setTimeout(() => linkRef.current?.focus({ preventScroll: true }), 0);
+    window.setTimeout(() => {
+      (id === "results" ? firstResultRef.current : linkRef.current)?.focus({ preventScroll: true });
+    }, 0);
   };
   const back = useCallback(() => {
     const was = selRef.current;
     goal.current.s = 0;
     go();
-    if (was && was !== "field") labelRefs.current.get(was)?.focus({ preventScroll: true });
-    else if (was === "field") fieldRef.current?.focus({ preventScroll: true });
+    if (was === "field") fieldRef.current?.focus({ preventScroll: true });
+    else if (was === "results")
+      // the ask circle comes back with the overview
+      window.setTimeout(() => askCircleRef.current?.focus({ preventScroll: true }), DUR.s * 1000);
+    else if (was) labelRefs.current.get(was)?.focus({ preventScroll: true });
   }, [go]);
   useEffect(() => {
     const onKey = (ev: KeyboardEvent) => {
@@ -621,7 +631,11 @@ function OverviewReady({
   }, []);
 
   const credit = `${CREDITS.map((id) => en[id].text).join(". ")}.`;
-  const selFinding = sel && sel !== "field" ? (findings.find((f) => f.id === sel) ?? null) : null;
+  const selFinding =
+    sel && sel !== "field" && sel !== "results"
+      ? (findings.find((f) => f.id === sel) ?? null)
+      : null;
+  const results = sel === "results" ? ask.commandId : null;
 
   return (
     <div
@@ -737,25 +751,34 @@ function OverviewReady({
         ) : null}
         {sel ? (
           <>
-            <OverviewRecord
-              sel={sel}
-              finding={selFinding}
-              caption={selFinding ? captionOf(selFinding.id, bandLimit?.display ?? "") : []}
-              bandLimit={bandLimit?.display ?? ""}
-              data={sel === "field" ? null : (recordData[sel] ?? null)}
-              reasons={reasons}
-              fieldCaption={instrumentOf(listing, "field_plan")?.spec.caption ?? null}
-              refs={{
-                root: recRef,
-                inst: instRef,
-                big: bigRef,
-                link: linkRef,
-                evid: evidRef,
-                frost: frostRef,
-                connector: connectorRef,
-                midcap: midcapRef,
-              }}
-            />
+            {results !== null ? (
+              <OverviewResults
+                snapshot={ask.snapshot}
+                commandId={results}
+                refs={{ root: recRef, inst: instRef, frost: frostRef, first: firstResultRef }}
+              />
+            ) : null}
+            {sel !== "results" ? (
+              <OverviewRecord
+                sel={sel}
+                finding={selFinding}
+                caption={selFinding ? captionOf(selFinding.id, bandLimit?.display ?? "") : []}
+                bandLimit={bandLimit?.display ?? ""}
+                data={sel === "field" ? null : (recordData[sel] ?? null)}
+                reasons={reasons}
+                fieldCaption={instrumentOf(listing, "field_plan")?.spec.caption ?? null}
+                refs={{
+                  root: recRef,
+                  inst: instRef,
+                  big: bigRef,
+                  link: linkRef,
+                  evid: evidRef,
+                  frost: frostRef,
+                  connector: connectorRef,
+                  midcap: midcapRef,
+                }}
+              />
+            ) : null}
             <button
               ref={backRef}
               type="button"
@@ -777,6 +800,9 @@ function OverviewReady({
             onText={setAskText}
             onEnter={ask.send}
             activity={ask.activity}
+            onFindings={() => {
+              open("results");
+            }}
             onHover={setAskHover}
             circleRef={askCircleRef}
           />
