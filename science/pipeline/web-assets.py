@@ -1,9 +1,10 @@
 """Add web-ready derived assets to four committed bundles and repair the checksums of the links that point at them.
 
-Usage: python -I web-assets.py <bundles_dir> <bundle id | all> [--cell-metres=<n>]
+Usage: python -I web-assets.py <bundles_dir> <place.json> <repo_root> <trend | relief | land_cover | strata | all>
+The bundle ids, the analysis CRS and the primary growing window of the trend come from the place configuration.
 The GeoTIFFs stay the canonical assets; these are copies a browser can read without a GeoTIFF decoder or a sinusoidal reprojection:
-  bundle_pixel_trend_long_record  pixel-trend-mar_jun-cells.json    every MODIS 250 m cell with a March to June Theil-Sen slope as a
-                                                                    quadrilateral in EPSG:32629 (sinusoidal corners, pyproj, 0.1 m)
+  bundle_pixel_trend_long_record  pixel-trend-<window>-cells.json  every MODIS 250 m cell with a primary window Theil-Sen slope as a
+                                                                    quadrilateral in the analysis CRS (sinusoidal corners, pyproj, 0.1 m)
   bundle_relief                   elevation-surface.bin + .json     little-endian float32 grid as the GeoTIFF holds it, with a JSON header
   bundle_land_cover               land-cover.png + .json            indexed PNG, palette index = class code, index 0 transparent, with a header
   bundle_terrain_strata           elevation-band.png + .json        indexed PNG of band 1, index = band 1 to 3, index 0 transparent, with a header
@@ -24,9 +25,20 @@ from pyproj import Transformer
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import bundle_common as bc  # noqa: E402
+import place_config  # noqa: E402
 
-TREND, RELIEF, COVER, STRATA = ("bundle_pixel_trend_long_record_ait_bouguemez", "bundle_relief_ait_bouguemez",
-                                "bundle_land_cover_ait_bouguemez", "bundle_terrain_strata_ait_bouguemez")
+TREND = RELIEF = COVER = STRATA = CFG = CRS = WINDOW = WINDOW_LABEL = None  # set from the place configuration by use_place()
+MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+
+
+def use_place(cfg):
+    global TREND, RELIEF, COVER, STRATA, CFG, CRS, WINDOW, WINDOW_LABEL
+    pid = cfg["placeId"]
+    TREND, RELIEF, COVER, STRATA = (f"bundle_pixel_trend_long_record_{pid}", f"bundle_relief_{pid}", f"bundle_land_cover_{pid}",
+                                    f"bundle_terrain_strata_{pid}")
+    CFG, CRS = cfg, cfg["analysisCrs"]
+    win = next(w for w in cfg["recipes"]["pixel_trend_long_record"]["growingWindows"] if w.get("primary"))
+    WINDOW, WINDOW_LABEL = win["id"], f"{MONTHS[win['months'][0] - 1]} to {MONTHS[win['months'][-1] - 1]}"
 NOTE = " Web-ready derived assets ({names}) are copies of the canonical GeoTIFF values written by science/pipeline/web-assets.py."
 PALETTE = {0: (0, 0, 0), 1: (31, 119, 180), 2: (255, 127, 14), 3: (44, 160, 44), 10: (0, 100, 0), 20: (255, 187, 34), 30: (255, 255, 76),
            40: (240, 150, 255), 50: (250, 0, 0), 60: (180, 180, 180), 80: (0, 100, 200)}
@@ -73,13 +85,13 @@ def load(bundles, bid):
 def do_trend(bundles):
     col = load(bundles, TREND)
     drop_assets(col, ["trend_cells"])
-    tif = os.path.join(col["_dir"], "pixel-trend-mar_jun.tif")
+    tif = os.path.join(col["_dir"], f"pixel-trend-{WINDOW}.tif")
     summary = json.load(open(os.path.join(col["_dir"], "pixel-trend-long-record.json")))
     with rasterio.open(tif) as r:
         assert r.descriptions[0] == "theil_sen_slope_per_decade"
         slope, tr = r.read(1), r.transform
         sin2ll = Transformer.from_crs(r.crs, "EPSG:4326", always_xy=True)
-    to_utm = Transformer.from_crs("EPSG:4326", "EPSG:32629", always_xy=True)
+    to_utm = Transformer.from_crs("EPSG:4326", CRS, always_xy=True)
     rows, cols = np.nonzero(np.isfinite(slope))
     cells = []
     for rr, cc in zip(rows, cols):
@@ -91,18 +103,18 @@ def do_trend(bundles):
     back = np.array([c[-1] for c in cells])
     assert len(cells) == int(np.isfinite(slope).sum()) and np.array_equal(back, np.round(slope[rows, cols].astype(np.float64), 5))
     disp = summary["display"]
-    doc = {"source_asset": "pixel_trend_mar_jun", "source_sha256": sha(tif), "band": "1 theil_sen_slope_per_decade",
-           "units": summary["units"]["pixel_trend_per_decade"], "window": "March to June", "period": [2000, 2025],
-           "crs": "EPSG:32629", "cell_corners": "MODIS sinusoidal pixel corners (231.66 m) to lon/lat to EPSG:32629 (pyproj), metres to 0.1",
+    doc = {"source_asset": f"pixel_trend_{WINDOW}", "source_sha256": sha(tif), "band": "1 theil_sen_slope_per_decade",
+           "units": summary["units"]["pixel_trend_per_decade"], "window": WINDOW_LABEL, "period": [2000, 2025],
+           "crs": CRS, "cell_corners": f"MODIS sinusoidal pixel corners (231.66 m) to lon/lat to {CRS} (pyproj), metres to 0.1",
            "display_scale": {"domain_per_decade": disp["domain_per_decade"], "neutral_per_decade": disp["neutral_per_decade"], "color_scale": disp["color_scale"]},
            "count": len(cells), "median_slope_per_decade": round(float(np.median(slope[rows, cols])), 5),
            "fields": ["row", "col", "E0", "N0", "E1", "N1", "E2", "N2", "E3", "N3", "slope_per_decade"],
            "verified": "the 5 decimal slope of every cell equals the GeoTIFF value at its row and column; the count equals the finite cells of band 1",
            "cells": cells}
-    bc.dump(doc, os.path.join(col["_dir"], "pixel-trend-mar_jun-cells.json"), compact=True)
-    add_asset(col, "trend_cells", "pixel-trend-mar_jun-cells.json", "application/json",
-              "March to June Theil-Sen slope of every MODIS 250 m cell as a quadrilateral in EPSG:32629 (web copy of pixel_trend_mar_jun)")
-    finish(col, ["pixel-trend-mar_jun-cells.json"])
+    bc.dump(doc, os.path.join(col["_dir"], f"pixel-trend-{WINDOW}-cells.json"), compact=True)
+    add_asset(col, "trend_cells", f"pixel-trend-{WINDOW}-cells.json", "application/json",
+              f"{WINDOW_LABEL} Theil-Sen slope of every MODIS 250 m cell as a quadrilateral in {CRS} (web copy of pixel_trend_{WINDOW})")
+    finish(col, [f"pixel-trend-{WINDOW}-cells.json"])
 
 
 def do_relief(bundles):
@@ -204,7 +216,8 @@ def relink(bundles):
 
 
 def main():
-    bundles, which = sys.argv[1:3]
+    bundles, place, repo, which = sys.argv[1:5]
+    use_place(place_config.load(place, repo))
     todo = {"trend": do_trend, "relief": do_relief, "land_cover": do_cover, "strata": do_strata}
     for k in (todo if which == "all" else [which]):
         todo[k](bundles)
