@@ -67,6 +67,65 @@ function copyCatalog(): string {
   return dir;
 }
 
+describe("a catalog shared by several places", () => {
+  function withOtherPlaceBundle(geoRevision: number): string {
+    const dir = copyCatalog();
+    const other = join(dir, "bundle_relief_other_place");
+    cpSync(join(dir, "bundle_relief_ait_bouguemez"), other, { recursive: true });
+    const collectionPath = join(other, "collection.json");
+    const collection = readJson(collectionPath);
+    collection["id"] = "bundle_relief_other_place";
+    collection["siterra:geo_selection"] = {
+      ...(collection["siterra:geo_selection"] as Json),
+      id: "geo_other_place_catchment",
+      revision: geoRevision,
+    };
+    writeFileSync(collectionPath, `${JSON.stringify(collection, null, 2)}\n`);
+    const catalogPath = join(dir, "catalog.json");
+    const catalog = readJson(catalogPath);
+    const links = catalog["links"] as Json[];
+    const template = links.find(
+      (l) => l["rel"] === "child" && String(l["href"]).includes("bundle_relief_ait_bouguemez"),
+    ) as Json;
+    links.push({
+      ...template,
+      href: "./bundle_relief_other_place/collection.json",
+      "file:checksum": sha256Multihash(readFileSync(collectionPath)),
+    });
+    writeFileSync(catalogPath, `${JSON.stringify(catalog, null, 2)}\n`);
+    return dir;
+  }
+
+  it("leaves out the bundles of another place's GeoSelection without an issue", () => {
+    const result = importCatalog({ ...context, catalogDir: withOtherPlaceBundle(1) });
+    expect(result.issues).toEqual([]);
+    const ids = result.bundles.map((b) => b.dataBundle.id);
+    expect(ids).toContain("bundle_relief_ait_bouguemez");
+    expect(ids).not.toContain("bundle_relief_other_place");
+  });
+
+  it("imports the bundles of the case's own GeoSelection and one of the other place when that is the case's", () => {
+    const own = importCatalog({
+      ...context,
+      catalogDir: withOtherPlaceBundle(1),
+      geoSelections: [{ ...geoSelection, id: "geo_other_place_catchment" }],
+    });
+    expect(own.issues).toEqual([]);
+    expect(own.bundles.map((b) => b.dataBundle.id)).toEqual(["bundle_relief_other_place"]);
+  });
+
+  it("still refuses a bundle that names this case's GeoSelection at another revision", () => {
+    const result = importCatalog({
+      ...context,
+      catalogDir: copyCatalog(),
+      geoSelections: [{ ...geoSelection, revision: 2 }],
+    });
+    expect(result.issues.map((i) => i.message)).toContain(
+      "The case has no GeoSelection geo_ait_bouguemez_catchment revision 1",
+    );
+  });
+});
+
 describe("period bounds", () => {
   it("derive the month, its exclusive end and the inclusive STAC bounds", () => {
     expect(periodBounds("period_2024-02")).toEqual({

@@ -1,6 +1,7 @@
 // Loads the case seed, or writes the UI fixture of its snapshot, from the repository root:
-//   node packages/db/src/run-seed.ts load <mode> <owner scope>
-//   node packages/db/src/run-seed.ts fixture <mode> <output path>
+//   node packages/db/src/run-seed.ts load <mode> <owner scope> [--seed-dir <folder>]
+//   node packages/db/src/run-seed.ts fixture <mode> <output path> [--seed-dir <folder>]
+// The seed folder holds a place's seed files, from the repository root; data/case when absent.
 // Asset URIs in the records are paths on the application origin (/api/case-assets/...).
 // <mode> is concept until GATE-01 is recorded; live is refused without SITERRA_LIVE_APPROVED.
 // It refuses when any source or bundle is refused, and lists why.
@@ -11,15 +12,25 @@ import { readCaseSeed, seedSnapshot } from "./case-seed.ts";
 import { createPool } from "./client.ts";
 import { loadSeedCase } from "./seed.ts";
 
-const [action, modeArg, target] = process.argv.slice(2);
+const argv = process.argv.slice(2);
+const dirFlag = argv.indexOf("--seed-dir");
+const seedDir = dirFlag === -1 ? undefined : argv[dirFlag + 1];
+if (dirFlag !== -1 && (seedDir === undefined || seedDir === "")) {
+  console.error("--seed-dir needs a folder");
+  process.exit(2);
+}
+const [action, modeArg, target] = argv;
 const mode = EnvironmentalCase.shape.mode.parse(modeArg);
 if ((action !== "load" && action !== "fixture") || target === undefined) {
-  console.error("usage: run-seed.ts load|fixture <mode> <owner scope or output path>");
+  console.error(
+    "usage: run-seed.ts load|fixture <mode> <owner scope or output path> [--seed-dir <folder>]",
+  );
   process.exit(2);
 }
 const repoDir = fileURLToPath(new URL("../../../", import.meta.url));
 const { seed, issues } = readCaseSeed({
   repoDir,
+  ...(seedDir === undefined ? {} : { seedDir }),
   mode,
   ownerScopeId: action === "load" ? target : "seed",
   importedAt: new Date().toISOString(),

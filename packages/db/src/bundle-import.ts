@@ -99,7 +99,7 @@ function polygonOf(geojson: unknown): unknown {
   return geojson;
 }
 
-/** Imports every child bundle of the catalog against the case's geometry and sources. */
+/** Imports the child bundles of the catalog that belong to the case's GeoSelections, against its geometry and sources. */
 export function importCatalog(context: ImportContext): ImportResult {
   const catalogPath = join(context.catalogDir, "catalog.json");
   const catalog = readJson(catalogPath) as {
@@ -126,6 +126,15 @@ export function importCatalog(context: ImportContext): ImportResult {
         path: "catalog.json/links",
         message: `file:checksum does not match ${child.href}`,
       });
+      continue;
+    }
+    // A catalog is shared by the places of the repository: a bundle of another place's GeoSelection
+    // is not this case's to import. A bundle that names this case's GeoSelection at another
+    // revision is still refused by importBundle.
+    const geoId = (readJson(collectionPath) as { "siterra:geo_selection"?: { id?: unknown } })[
+      "siterra:geo_selection"
+    ]?.id;
+    if (typeof geoId === "string" && !context.geoSelections.some((g) => g.id === geoId)) {
       continue;
     }
     const result = importBundle(context, collectionPath);
