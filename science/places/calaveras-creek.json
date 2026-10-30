@@ -3,7 +3,7 @@
   "title": "Calaveras Creek catchment",
   "areaNoun": "creek catchment",
   "note": "Place configuration read by the long-record pipeline scripts. Everything that is specific to one place lives here; the scripts hold none of it. A value changed here after a result was read is a new configuration revision labelled post hoc in the recipe result. This is the second place built through the pipeline (the first is Ait Bouguemez); every window, rule and threshold below was written before any MODIS, CHIRPS or Sentinel value of this catchment was read, and before any land cover, strata or trend of it was computed.",
-  "configRevision": 9,
+  "configRevision": 11,
   "revisions": [
     {"revision": 1, "date": "2026-10-30", "change": "First configuration: the frozen geometry and its delineation rule, the analysis grid, the DEM pin, the land cover source and read window, the rainfall window, the strata layers with the reservoir zone rule, and the restrend_long_record, snow_cover_by_band, pixel_trend_long_record and season_trend_long_record windows with their basis. Strata, land cover and drainage checksums are pinned in later revisions, after those layers are built."},
     {"revision": 2, "date": "2026-10-30", "change": "POST HOC to revision 1, made after the revision 1 reservoir zone had been drawn and inspected and before any trend, rainfall or season value of this catchment was computed: the zone is now the largest connected WorldCover water body plus 250 m instead of every water body plus 250 m. The revision 1 rule gave a zone of 8.05 per cent of the catchment, made mostly of 250 m circles around 72 small stock ponds (73 connected water bodies, the largest 4.56 km2 of 4.84 km2 of mapped water), which is not the reservoir basin the rule was written for. Nothing else changed."},
@@ -13,7 +13,9 @@
     {"revision": 6, "date": "2026-10-30", "change": "Added drainage_network (the conditioned flow direction and fill depth rasters of the catchment freeze and their report, pinned by checksum, the freeze input point and the registered height surface), written before this pipeline built any drainage segment. The rasters are the ones the freeze wrote (identical on a second run). No value of revisions 1 to 5 changed."},
     {"revision": 7, "date": "2026-10-30", "change": "POST HOC to revision 1: the frozen catchment is replaced by geometry revision 2, made after the drainage network recompute check failed on revision 1 and before any trend, rainfall or season value of this catchment was computed. Revision 1 was the pysheds catchment function's cells (339,432); the same flow direction raster, traced cell by cell with the public D8 functions that the drainage builder uses, has 339,447 cells that reach the outlet (the 15 cells the pysheds function left out are boundary cells, 0.014 km2). Revision 2 is the D8 trace, polygonized 4-connected with the largest piece kept (the outlet cell, joined to the catchment only diagonally, is the one cell left out), 257.455 km2 geodesic, 0.57 per cent above the 256 km2 USGS publishes. The conditioned rasters are unchanged. The strata, land cover and relief layers were rebuilt on the new geometry and their checksums replaced here."},
     {"revision": 8, "date": "2026-10-30", "change": "Added each trend recipe's own limitations (recipes.<recipe>.limitations): the registry's standard limitations for restrend_long_record, pixel_trend_long_record and season_trend_long_record name the first place (agdal closure, spiny xerophytic vegetation, snow on upper slopes, gauges in the valley), so this place states its own, keeping the registry's place-independent bullets word for word. Text only: written after the restrend and season trend bundles were first built from the registry's text; those bundles are rebuilt with these limitations and no number in them changes."},
-    {"revision": 9, "date": "2026-10-30", "change": "Stated this place's own wording for land_cover_classes and drainage_network where the registry's would name another place (cropland and built-up shares, the reservoir and canopy, grazing lease, the conditioning window and freeze). No value changed. The unread rainfall.tileSizePx key (512; chirps_fetch.py and chirps-bundle.py fix the CHIRPS tile at 512 in code) was dropped."}
+    {"revision": 9, "date": "2026-10-30", "change": "Stated this place's own wording for land_cover_classes and drainage_network where the registry's would name another place (cropland and built-up shares, the reservoir and canopy, grazing lease, the conditioning window and freeze). No value changed. The unread rainfall.tileSizePx key (512; chirps_fetch.py and chirps-bundle.py fix the CHIRPS tile at 512 in code) was dropped."},
+    {"revision": 10, "date": "2026-10-30", "change": "Added pixel_seasons (registry 1.12.0) for this place by the rule of the first place, written before any Calaveras season value was stored. No value of revision 1 to 9 changed."},
+    {"revision": 11, "date": "2026-10-30", "change": "Added terrain_transects (registry 1.14.0, version 1.1.0) for this place: a north-south section through the centroid of the reservoir, the long profile along the longest flow path of the drainage network, no valley floor, and the place's own limitations. Written before any Calaveras profile was sampled; the point is derived from the land cover layer by the rule stated in the block. (Revision 10 added pixel_seasons.)"}
   ],
   "geometry": {
     "id": "geo_calaveras_creek_catchment",
@@ -236,6 +238,52 @@
         "Areas are cell counts times 100 m2 in {analysisCrs}, not geodesic areas, and cells on the polygon's boundary are counted where their centre lies inside it.",
         "The catchment is a hydrological analysis extent, not a pasture, grazing lease or management boundary."
       ]
+    },
+    "pixel_seasons": {
+      "growingWindowFrom": "pixel_trend_long_record",
+      "seasonYearsFrom": "pixel_trend_long_record",
+      "trendBundle": "bundle_pixel_trend_long_record_calaveras_creek",
+      "valueDecimals": 5,
+      "slopeCheckTolerancePerDecade": 1e-06,
+      "formulaText": {
+        "1": "Window and years: the growing window marked primary in the pixel_trend_long_record block of the place configuration (Calaveras Creek: February to May, feb_may) and its seasonYears (2000 to 2025); no other window is stored"
+      },
+      "rationale": "Registered 2026-10-30 at the lead's request, by the rule of the first place: the primary-window mean NDVI of every catchment pixel in every season, from the composites, filter and rounding of pixel_trend_long_record, so the slope it stores can be recomputed from them. Written before any Calaveras season value was stored."
+    },
+    "terrain_transects": {
+      "bundleId": "bundle_transects_calaveras_creek",
+      "transects": [
+        {
+          "id": "reservoir_meridian",
+          "kind": "meridian_through_point",
+          "label": "North-south section along the meridian through the Calaveras Reservoir",
+          "point": {
+            "name": "the Calaveras Reservoir",
+            "lat": 37.47306,
+            "lon": -121.8182
+          }
+        },
+        {
+          "id": "valley_axis",
+          "kind": "longest_flow_path",
+          "label": "Long profile from the outlet to the head along the longest flow path of the drainage network",
+          "network": {
+            "bundle": "bundle_drainage_network_calaveras_creek",
+            "asset": "drainage_lines"
+          }
+        }
+      ],
+      "pointRule": "The point is the centroid of the largest 8-connected WorldCover water body inside the catchment (the reservoir; the body the reservoir zone of the strata is cut from), to five decimals, taken from the land cover layer on 2026-10-30 before any profile was sampled. The meridian is the line of constant longitude through it, clipped to the catchment (the part that contains it). No valley floor range is configured: no published range is known for this place, so the lines have no valley floor segment.",
+      "limitations": [
+        "A profile is read from a 30 m surface model: trees, buildings, steep walls and radar artefacts distort it, and narrow gorges are not resolved. Heights are metres above the EGM2008 geoid with the DEM's stated vertical accuracy (Copernicus DEM Product Handbook 5.0).",
+        "Samples are 30 m apart, so a band crossing or a land cover boundary is placed to within about 15 m, and a feature narrower than 30 m can fall between samples.",
+        "Land cover is ESA WorldCover 2021 at 10 m, a single 2021 map applied to the line: tree cover may include open woodland and savanna, and no class is a pasture, grazing lease or management unit.",
+        "An elevation band is a stratum that organises sampling, cut from the elevation distribution of the catchment; it is not a vegetation type, a grazing zone or a management boundary.",
+        "The valley axis is the longest flow path of a D8 network, which follows the main channel, not the centre line of the valley; its profile inherits the limits of the drainage network, including places where the surface rises along the line.",
+        "Over the reservoir the surface model gives the water surface, not the bed, so the section does not show the depth of the water.",
+        "The catchment is a hydrological analysis extent, not a pasture, grazing lease or management boundary."
+      ],
+      "rationale": "The step, the recompute tolerance and the height surface are fixed in science/recipes/registry.json (terrain_transects 1.1.0) before the first build; this block holds the lines and the point rule."
     },
     "drainage_network": {
       "limitations": [

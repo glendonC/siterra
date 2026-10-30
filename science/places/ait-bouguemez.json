@@ -3,7 +3,7 @@
   "title": "Ait Bouguemez valley catchment",
   "areaNoun": "valley catchment",
   "note": "Place configuration read by the long-record pipeline scripts. Everything that is specific to one place lives here; the scripts hold none of it. A value changed here after a result was read is a new configuration revision labelled post hoc in the recipe result.",
-  "configRevision": 10,
+  "configRevision": 11,
   "revisions": [
     {"revision": 1, "date": "2026-10-28", "change": "First configuration: geometry, strata, DEM, rainfall window, restrend_long_record and snow_cover_by_band."},
     {"revision": 2, "date": "2026-10-28", "change": "Added landCover, pixel_trend_long_record and season_trend_long_record, written before any per-pixel slope, land-cover summary or June to September greenness value was computed. No value of revision 1 changed."},
@@ -26,7 +26,8 @@
    "change": "Restated in the configuration what the strata, land cover and rainfall builders had written into their code for this valley, so that a second place can supply its own: the WorldCover read window, the DEM ETag, the strata limitations, the area noun used in titles, and the rainfall independent recompute source, resolution note and gauge note. No value of revision 1 to 7 changed; the committed bundles rebuild from it identical except the two fields that name the configuration revision and its checksum."
   },
     {"revision": 9, "date": "2026-10-30", "change": "Added pixel_seasons (registry 1.12.0): the March to June mean NDVI of every catchment pixel in every season, from the composites and the filter of pixel_trend_long_record, written before any per-season value was stored. No value of revision 1 to 8 changed."},
-    {"revision": 10, "date": "2026-10-30", "change": "Restated in the configuration the wording of terrain_relief, land_cover_classes and drainage_network that the registry carried for this valley (the lower gorge, orchards, agdal, the conditioning window), so that the registry can be place-neutral and a second place can state its own. No word changed: the committed bundles rebuild from it identical except the two fields that name the configuration revision and its checksum. The unread rainfall.tileSizePx key (512; chirps_fetch.py and chirps-bundle.py fix the CHIRPS tile at 512 in code) was dropped."}
+    {"revision": 10, "date": "2026-10-30", "change": "Restated in the configuration the wording of terrain_relief, land_cover_classes and drainage_network that the registry carried for this valley (the lower gorge, orchards, agdal, the conditioning window), so that the registry can be place-neutral and a second place can state its own. No word changed: the committed bundles rebuild from it identical except the two fields that name the configuration revision and its checksum. The unread rainfall.tileSizePx key (512; chirps_fetch.py and chirps-bundle.py fix the CHIRPS tile at 512 in code) was dropped."},
+    {"revision": 11, "date": "2026-10-30", "change": "Restated in the configuration the wording of terrain_transects that the registry carried for this valley (the lines through Tabant, the band boundaries, the expected ends of the brief, the valley floor rule and the limitations), so that terrain_transects 1.1.0 can be place-neutral. No word changed: the committed transects bundle rebuilds from it identical except the fields that name the configuration revision and its checksum."}
   ],
   "geometry": {
     "id": "geo_ait_bouguemez_catchment",
@@ -229,6 +230,21 @@
       "rationale": "The 1.0 km2 threshold, the smoothing, simplification and vertex spacing, the 30 m height surface of the terrain strata and the 4.0 m rise tolerance are fixed in science/recipes/registry.json (drainage_network 1.0.0) before the first build; this block holds only what belongs to the place."
     },
     "terrain_transects": {
+      "formulaText": {
+        "0": "Lines: tabant_meridian is the line of constant longitude through Tabant (31.65873 N, 6.42007 W), clipped to the frozen polygon: the part of it that contains Tabant, from its northernmost to its southernmost point; distance runs from north to south. valley_axis is the longest flow path of the drainage network bundle: from the outlet segment, at each confluence the upstream segment whose farthest head is farther along the channels (the sum of the stored segment lengths), ties by the larger upstream area and then the lower segment number, up to the head; the line is the stored vertices of those segments joined from the outlet upwards; distance runs from the outlet",
+        "3": "Band: 1 where the elevation is below 2316.8 m, 2 from 2316.8 m to below 2815.2 m, 3 from 2815.2 m up (the boundaries of the strata bundle)",
+        "7": "Valley floor: the contiguous samples around the lowest sample of the line whose elevation is at most 2,200 m, the upper limit of the published valley floor (1800 to 2200 m, SCI-19); stored with from and to distances (halfway to the neighbouring samples, or the line's end), length and elevation range",
+        "8": "Acceptance checks, all stored with the bundle: the ends of the meridian equal the brief's 31.709028 N and 31.600972 N to 6 decimals; every sample lies inside the frozen polygon; sample distances rise by 30 m except the last interval; every elevation is a number; the 90th percentile of the absolute differences between the stored elevations and the heights of the native 1 arc-second DEM tile (bilinear in longitude and latitude), over every sample of each line, is at most 4.0 m, with the largest difference and where it lies stored; the band of every sample is compared with the strata raster, counting separately the samples that differ and the samples whose 10 m cell lies outside the strata mask; band crossings and kilometres in band recomputed from the stored samples; two runs give identical files apart from the computed time"
+      },
+      "limitations": [
+        "A profile is read from a 30 m surface model: trees, buildings, steep walls and radar artefacts distort it, and narrow gorges such as the lower gorge near the outlet are not resolved. Heights are metres above the EGM2008 geoid with the DEM's stated vertical accuracy (Copernicus DEM Product Handbook 5.0).",
+        "Samples are 30 m apart, so a band crossing or a land cover boundary is placed to within about 15 m, and a feature narrower than 30 m can fall between samples.",
+        "Land cover is ESA WorldCover 2021 at 10 m, a single 2021 map applied to the line: tree cover on the valley floor may include orchards, and no class is a pasture, agdal or management unit.",
+        "An elevation band is a stratum that organises sampling, cut from the elevation distribution of the catchment; it is not a vegetation type, a grazing zone or a management boundary.",
+        "The valley floor segment follows the published elevation range of the valley floor (1800 to 2200 m, SCI-19); it is not a measured flat bottom.",
+        "The valley axis is the longest flow path of a D8 network, which follows the main river, not the centre line of the valley; its profile inherits the limits of the drainage network, including places where the surface rises along the line.",
+        "The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary."
+      ],
       "bundleId": "bundle_transects_ait_bouguemez",
       "transects": [
         {
@@ -245,7 +261,8 @@
           "network": {"bundle": "bundle_drainage_network_ait_bouguemez", "asset": "drainage_lines"}
         }
       ],
-      "valleyFloor": {"maxElevationM": 2200, "source": "SCI-19: valley floor 1800 to 2200 m"},
+      "valleyFloor": {"maxElevationM": 2200,
+    "ruleText": "contiguous samples around the lowest sample with elevation at most {max:.0f} m, the upper limit of the published valley floor (1800 to 2200 m, SCI-19)", "source": "SCI-19: valley floor 1800 to 2200 m"},
       "rationale": "The step, the recompute tolerance and the height surface are fixed in science/recipes/registry.json (terrain_transects 1.0.0) before the first build; this block holds the lines, the Tabant coordinates (GeoNames, as in research/geospatial/study-area.md) and the published valley floor range."
     },
     "pixel_anatomy": {
