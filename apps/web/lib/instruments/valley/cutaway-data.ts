@@ -1,12 +1,13 @@
 // The cutaway's data. From the case, through the cross section spec's assets (checksums checked): the section line
 // (transect samples and the drawn transect summary, built by the recompute-tested transectFixture), the band
 // trends, the snow shares and the catchment outline; the rivers and the place from the case's context features.
-// Still from the valley fixtures: the relief (a GeoTIFF in the bundle, until its display asset lands) and the two
-// published statements (the approved short wording, a marked stand-in until the record carries display statements).
+// The two published statements are the spec's display texts with the sources of their Evidence (contracts 1.17.0).
+// Still from the valley fixtures: the relief (a GeoTIFF in the bundle, until its display asset lands).
 
 import type { CaseSnapshot, InstrumentView } from "@siterra/contracts";
 import { z } from "zod";
 import { bundleSource, drawnAsset, readJsonAsset } from "../listing";
+import { placedStatements, type PlacedStatements } from "../placed-statements";
 import { placesFrom, riversFrom, type Place } from "./context";
 import { seasonTrendFrom, snowFrom } from "./derive";
 import {
@@ -41,32 +42,7 @@ export const placesSchema = z.object({
   ),
 });
 
-export const statementsSchema = z.object({
-  /** Says what the fixture stands in for; a fixture without it is not accepted. */
-  fixture: z.string().min(1),
-  sources: z.array(z.object({ id: z.string(), citation: z.string() })),
-  statements: z.array(
-    z.object({
-      id: z.string(),
-      text: z.string(),
-      /** How the text renders its sources: in its own words, or quoting a verbatim excerpt. */
-      wording: z.enum(["paraphrase", "quotation"]),
-      cites: z
-        .array(
-          z.object({
-            sourceId: z.string(),
-            page: z.string().nullable(),
-            excerpt: z.string(),
-            kind: z.enum(["verbatim", "register_note", "stored_text"]),
-          }),
-        )
-        .min(1),
-    }),
-  ),
-});
-
 export type Places = z.infer<typeof placesSchema>;
-export type Statements = z.infer<typeof statementsSchema>;
 
 export interface CutawayData {
   meta: TerrainMeta;
@@ -77,7 +53,8 @@ export interface CutawayData {
   figures: Pick<Figures, "season_trend">;
   transect: CutawayTransect;
   places: { places: Place[] };
-  statements: Statements;
+  /** Keyed by placement: "valley_floor", "upper_slope". */
+  statements: PlacedStatements;
 }
 
 type Fetch = (input: string, init?: RequestInit) => Promise<Response>;
@@ -99,9 +76,8 @@ export async function loadCutawayData(
   const read = (ref: Parameters<typeof readJsonAsset>[1]) =>
     readJsonAsset(view, ref, fetchImpl, signal);
   const meta = await json(`${base}terrain-meta.json`, terrainMetaSchema, signal);
-  const [relief, statements, samples, terrain, trends, snow, outline] = await Promise.all([
+  const [relief, samples, terrain, trends, snow, outline] = await Promise.all([
     loadRelief(base, meta, signal),
-    json(`${base}statements.json`, statementsSchema, signal),
     read(p.profile),
     read(summary),
     read(p.bandTrends),
@@ -123,6 +99,9 @@ export async function loadCutawayData(
     figures: { season_trend: seasonTrendFrom(trends) },
     transect,
     places: { places: placesFrom(snapshot, p.placeFeatureIds) },
-    statements,
+    statements: placedStatements(
+      snapshot,
+      p.statements.flatMap((st) => (st.display ? [{ id: st.placement, display: st.display }] : [])),
+    ),
   };
 }

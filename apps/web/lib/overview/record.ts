@@ -94,7 +94,7 @@ type Source = CaseSnapshot["records"]["sourceRecords"][number];
  * A short reference: the first author's surname (with "et al." for three or more), the year, the venue as the
  * publisher field gives it (without the publisher's name in parentheses), and the pages.
  */
-function reference(src: Source, pages: readonly string[]): string {
+export function reference(src: Source, pages: readonly string[]): string {
   const surname = (a: string | undefined) =>
     a === undefined ? "" : a.split(",", 1).join("").trim();
   const authors = src.authors;

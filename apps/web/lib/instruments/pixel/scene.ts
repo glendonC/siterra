@@ -1,6 +1,7 @@
 // The pixel anatomy (approved specimen C): "Why can a pixel get greener while its pasture does not?" One MODIS pixel
 // at three scales plus a model, laid out on a 1440 x 900 stage. Ported from the specimen's mount code: every number
-// comes from the pixel's data file and the statements fixture, every word from the catalog, every colour from the
+// comes from the pixel's data file and the case record's context statements, every word from the catalog (the
+// statements are the record's display texts), every colour from the
 // theme; this module computes only the layout and the linear mix. 02 Pixel Cells and 05 Linear Mix Model are the
 // heart; 01 Locate and 04 Season Record are compact.
 
@@ -8,7 +9,7 @@ import type { InstrumentCaption } from "@siterra/contracts";
 import { en, format, type MessageId } from "../../copy/en";
 import { cssColour, obsidian, pixelColours as C } from "../../theme/obsidian";
 import { BAND_LIMITS_M } from "../valley/fixtures";
-import type { Statements } from "../valley/cutaway-data";
+import type { PlacedStatements } from "../placed-statements";
 import { change, day, fixed, metres, signed } from "../format";
 import type { PixelData } from "./data";
 import { ramp } from "../valley/palette";
@@ -86,7 +87,7 @@ export function mountPixel(
   d: PixelData,
   /** The pixel anatomy spec's caption, as the case records carry it. */
   caption: InstrumentCaption,
-  statements: Statements,
+  statements: PlacedStatements,
   locator: PixelLocator,
   cls: PixelClasses,
 ): PixelScene {
@@ -767,9 +768,8 @@ export function mountPixel(
       L.rowB + 126,
       w,
     );
-    const ref = (id: string) => {
-      const st = statements.statements.find((x) => x.id === id);
-      if (!st) return "";
+    // each context statement as the record's display text, its sources after it in parentheses
+    const ref = (st: PlacedStatements["statements"][number]) => {
       const refs = st.cites
         .map((ct) =>
           !ct.page
@@ -783,17 +783,13 @@ export function mountPixel(
               ),
         )
         .join("; ");
-      return format("instrument.pixel.ref", { text: st.text, refs });
+      return format("instrument.pixel.ref", { text: st.text.replace(/\.$/, ""), refs });
     };
     place(
       div(
         "citation",
         stage,
-        [
-          ref("herders_species"),
-          ref("upper_rangelands_quote"),
-          en["instrument.pixel.field.noSpectrum"].text,
-        ].join(" "),
+        [...statements.statements.map(ref), en["instrument.pixel.field.noSpectrum"].text].join(" "),
       ),
       x0,
       L.rowB + 168,

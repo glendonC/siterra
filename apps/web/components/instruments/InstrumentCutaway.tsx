@@ -37,7 +37,7 @@ const bandName = (id: BandId) => {
   return format("instrument.cutaway.band.low", { limit: lower });
 };
 
-/** The sources, numbered as the chips are; the two statements' sources and the place's come from their fixtures. */
+/** The sources, numbered as the chips are; the two statements' sources and the place's come from the case record. */
 const CREDITS_BEFORE: MessageId[] = ["instrument.credit.modisNdvi", "instrument.credit.modisSnow"];
 const CREDITS_AFTER: MessageId[] = ["instrument.credit.worldcover", "instrument.credit.dem"];
 const STATEMENT_CHIP_FROM = CREDITS_BEFORE.length + 1;
@@ -83,7 +83,7 @@ function dot(e: SVGCircleElement | null, x: number, y: number) {
 export function InstrumentCutaway({
   base = VALLEY_FIXTURES,
 }: {
-  /** The valley fixtures the cutaway still reads: relief, rivers, place and statements. */
+  /** The valley fixtures the cutaway still reads: the relief. */
   base?: string;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -382,10 +382,10 @@ export function InstrumentCutaway({
           <p
             ref={upperRef}
             className={`${styles.statement} ${styles.side}`}
-            data-statement="upper_rangelands"
+            data-statement="upper_slope"
           >
-            {statement("upper_rangelands")?.text}
-            {chips("upper_rangelands")}
+            {statement("upper_slope")?.text}
+            {chips("upper_slope")}
           </p>
           {placeName && (
             <div ref={placeRef} className={styles.place} data-place>
