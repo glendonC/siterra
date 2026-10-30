@@ -41,7 +41,7 @@ Field-level types live in the schema. This table states purpose and the rules th
 
 | Record | Purpose | Key rules |
 |---|---|---|
-| EnvironmentalCase | The commissioned case | `mode: live \| replay \| concept` is shown on every screen. `permissionProfile` is the constant `research_and_preparation_only` in P0. |
+| EnvironmentalCase | The commissioned case | `mode: live \| replay \| concept` is shown on every screen. `permissionProfile` is the constant `research_and_preparation_only` in P0. `place` (1.18.0, optional) is `{name, region}`, the place the case is about in its approved words. |
 | Source | A document or dataset the firm used | `accessStatus: discovered \| retrieved \| unavailable`. Only `retrieved` sources may support accepted evidence. `redistributionStatus` governs export. `publicationDate` is the date as the source states it (year, year and month, or full date; 1.4), never padded, so a comparison with it uses the stated precision. Optional `language` (BCP 47, 1.5) names the language of the source text; an English statement drafted from a source in another language is labeled a machine-drafted translation. |
 | GeoSelection | The analysis or context geometry | `boundaryRole` states what the polygon *is* (see below). `geometryStatus: analysis_ready` requires provenance, CRS, area method and limitations. |
 | DataBundle | A frozen, checksummed observation export | `status: validated` requires manifest URI, content hash, license and attribution. Superseding a bundle (a new revision with status `superseded`) is a material change: every record whose provenance cites that bundle revision becomes `stale`, and so does what rests on it. Measurements have no stale state and stay as recorded. |
@@ -269,6 +269,10 @@ Added in contracts 1.13.0 (`Measurement.source` and `MeasurementSource` in [case
 |---|---|---|
 | MS-01 | `lowerJsonPointer` and `upperJsonPointer` are both present or both null | The Zod mirror (`measurementSourceShape`) and the schema's `allOf`, kept equal by a contract test |
 | MS-02 | The value and interval of a Measurement with a `source` are the numbers at its pointers in the asset the bundle lists under `assetKey` | The seed loader (`readMeasurementRows`); a test re-reads every loaded Measurement from the asset |
+
+## Seed cases
+
+`GET /api/seed-cases` lists the cases a demo session can start: the cases of the seed owner scope that are not copies, in the order they were made. Each entry is `{caseId, title, question, place, outlet}`, read from the case's own records and never written by the server: `title` and `question` (the objective) from the `EnvironmentalCase`, `place` from `EnvironmentalCase.place` (null when the record states none), and `outlet` from the latest revision of the case's one `ContextFeature` with role `outlet` (null when the case has none or more than one, since the listing does not guess which is the outlet). `defaultCaseId` is the configured default (`SITERRA_SEED_CASE_ID`) when it is listed, else null. The route is public because a visitor chooses before a session exists. `POST /api/demo-sessions` takes an optional `{ "seedCaseId": ... }` and refuses, with 400 and no session, a case that is not in the listing; with no body it copies the default.
 
 ## Composing instruments
 

@@ -30,6 +30,8 @@ export const CaseCopy = z.object({
   objective: z.string().min(1),
   description: z.string().min(1),
   unresolvedQuestions: z.array(z.string().min(1)),
+  /** The place and region the case is about, stored in the record (contracts 1.18.0). */
+  place: z.object({ name: z.string().min(1), region: z.string().min(1) }).optional(),
 });
 export type CaseCopy = z.infer<typeof CaseCopy>;
 
@@ -361,6 +363,7 @@ export function readCaseSeed(args: {
     updatedAt: at,
     title: copy.title,
     objective: copy.objective,
+    ...(copy.place === undefined ? {} : { place: copy.place }),
     status: "draft",
     mode,
     ownerScopeId: args.ownerScopeId,

@@ -421,7 +421,7 @@
           "sessions"
         ],
         "summary": "Start a demo session",
-        "description": "Creates a session on an isolated copy of the seed case and sets the __Host-session cookie. The copy and the session expire together; expired copies are deleted when a later session starts. Commands on a demo case count against a per-session quota and answer 429 (code quota_exhausted) beyond it. Accepted only from the application origin. No account, credential or personal data is involved.",
+        "description": "Creates a session on an isolated copy of a seed case and sets the __Host-session cookie. The body is optional: { seedCaseId } chooses one of the cases listed by GET /api/seed-cases; with no body, or an empty object, the instance's default seed case is copied. A case that is not listed is refused with 400 (code invalid_request) and no session is created. The copy and the session expire together; expired copies are deleted when a later session starts. Commands on a demo case count against a per-session quota and answer 429 (code quota_exhausted) beyond it. Accepted only from the application origin. No account, credential or personal data is involved.",
         "security": [],
         "responses": {
           "201": {
@@ -442,6 +442,9 @@
               }
             }
           },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
           "401": {
             "description": "The request did not come from the application origin (code unauthenticated).",
             "content": {
@@ -458,6 +461,42 @@
               "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Unexpected"
+          }
+        },
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DemoSessionRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/seed-cases": {
+      "get": {
+        "operationId": "listSeedCases",
+        "tags": [
+          "sessions"
+        ],
+        "summary": "List the seed cases a demo session can start",
+        "description": "Public and never cached: a visitor chooses a case before a session exists. Each case carries its title, the question it asks, its place and region and its outlet position, all read from its own records.",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "The listing.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SeedCaseListing"
                 }
               }
             }
@@ -1752,6 +1791,136 @@
               "type": "string",
               "minLength": 1
             }
+          }
+        }
+      },
+      "DemoSessionRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "seedCaseId": {
+            "$ref": "case.schema.json#/$defs/Command/properties/caseId",
+            "description": "The seed case to copy, one of the caseId values GET /api/seed-cases lists."
+          }
+        }
+      },
+      "SeedCase": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "caseId",
+          "title",
+          "question",
+          "place",
+          "outlet"
+        ],
+        "description": "A seed case a demo session can start. Every word and position is read from the case's own records; nothing here is written by the server.",
+        "properties": {
+          "caseId": {
+            "$ref": "case.schema.json#/$defs/Command/properties/caseId"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "question": {
+            "type": "string",
+            "minLength": 1,
+            "description": "The case's objective: the question the case asks."
+          },
+          "place": {
+            "anyOf": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "name",
+                  "region"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "region": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "EnvironmentalCase.place (contracts 1.18.0); null when the case record states none."
+          },
+          "outlet": {
+            "anyOf": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "name",
+                  "lonLat"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "lonLat": {
+                    "type": "array",
+                    "prefixItems": [
+                      {
+                        "type": "number",
+                        "minimum": -180,
+                        "maximum": 180
+                      },
+                      {
+                        "type": "number",
+                        "minimum": -90,
+                        "maximum": 90
+                      }
+                    ],
+                    "items": false,
+                    "minItems": 2,
+                    "description": "Longitude and latitude, EPSG:4326."
+                  }
+                }
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The position of the case's one outlet ContextFeature; null when the case has none or more than one."
+          }
+        }
+      },
+      "SeedCaseListing": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "defaultCaseId",
+          "cases"
+        ],
+        "properties": {
+          "defaultCaseId": {
+            "anyOf": [
+              {
+                "$ref": "case.schema.json#/$defs/Command/properties/caseId"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The case a session starts on when none is chosen; null when the configured default is not among the listed cases."
+          },
+          "cases": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SeedCase"
+            },
+            "description": "Every seed case a demo session can start, in the order the cases were made."
           }
         }
       }
