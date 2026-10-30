@@ -57,6 +57,8 @@ function item(overrides: Partial<ExtractionItem>): ExtractionItem {
     excerpt,
     excerpt_sha256: sha(excerpt),
     claim_kind: "scientific_context",
+    statement: "A synthetic source reports a valley between 1800 and 2200 m.",
+    scope: "A synthetic valley",
     file: "paper.pdf",
     signed_by: null,
     ...overrides,

@@ -44,6 +44,9 @@ export type ExtractionItem = {
   excerpt: string | null;
   excerpt_sha256: string;
   claim_kind: string;
+  /** The model-drafted sentence for the excerpt; the input of the claim typing suite. */
+  statement: string;
+  scope: string;
   file: string;
   signed_by: string | null;
 };
@@ -83,6 +86,8 @@ export function loadExtractionGold(path: string) {
       excerpt: textOrNull(r, "excerpt", where),
       excerpt_sha256: text(r, "excerpt_sha256", where),
       claim_kind: text(r, "claim_kind", where),
+      statement: text(r, "statement", where),
+      scope: text(r, "scope", where),
       file: text(r, "file", where),
       signed_by: textOrNull(r, "signed_by", where),
     };
