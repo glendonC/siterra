@@ -121,7 +121,7 @@ describe("the instruments the case seed composes", () => {
       ["pixel_series", "pixel_anatomy", "pixel_series"],
       ["catchment_outline", "terrain_strata", "analysis_geometry"],
     ]);
-    expect(roles("inst_cross_section_valley")).toEqual([
+    expect(roles("inst_cross_section_valley").slice(0, 3)).toEqual([
       ["transect_summary", "transects", "terrain_transects"],
       ["catchment_outline", "terrain_strata", "analysis_geometry"],
       ["drainage_segments", "drainage_network", "drainage_lines"],
@@ -132,6 +132,34 @@ describe("the instruments the case seed composes", () => {
       "rainfall_fit",
       "catchment_outline",
       "drainage_segments",
+      "relief_grid",
+      "relief_grid_header",
+      "land_cover_raster",
+      "land_cover_header",
+      "elevation_band_raster",
+      "elevation_band_header",
+      "trend_cells",
+    ]);
+    expect(roles("inst_cross_section_valley").map((r) => r[0])).toEqual([
+      "transect_summary",
+      "catchment_outline",
+      "drainage_segments",
+      "relief_grid",
+      "relief_grid_header",
+    ]);
+    // The web-ready display assets of SCIENCE-GEO's S7, by their bundle and key
+    expect(
+      roles("inst_layer_stack_valley")
+        .slice(5)
+        .map((r) => [r[1], r[2]]),
+    ).toEqual([
+      ["relief", "elevation_surface_bin"],
+      ["relief", "elevation_surface_bin_header"],
+      ["land_cover", "land_cover_png"],
+      ["land_cover", "land_cover_png_header"],
+      ["terrain_strata", "elevation_band_png"],
+      ["terrain_strata", "elevation_band_png_header"],
+      ["pixel_trend_long_record", "trend_cells"],
     ]);
     expect(roles("inst_rainfall_scatter_valley")).toEqual([]);
   });

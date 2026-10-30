@@ -260,6 +260,55 @@
               "bundleId": "bundle_drainage_network_ait_bouguemez",
               "assetKey": "drainage_lines"
             }
+          },
+          {
+            "role": "relief_grid",
+            "asset": {
+              "bundleId": "bundle_relief_ait_bouguemez",
+              "assetKey": "elevation_surface_bin"
+            }
+          },
+          {
+            "role": "relief_grid_header",
+            "asset": {
+              "bundleId": "bundle_relief_ait_bouguemez",
+              "assetKey": "elevation_surface_bin_header"
+            }
+          },
+          {
+            "role": "land_cover_raster",
+            "asset": {
+              "bundleId": "bundle_land_cover_ait_bouguemez",
+              "assetKey": "land_cover_png"
+            }
+          },
+          {
+            "role": "land_cover_header",
+            "asset": {
+              "bundleId": "bundle_land_cover_ait_bouguemez",
+              "assetKey": "land_cover_png_header"
+            }
+          },
+          {
+            "role": "elevation_band_raster",
+            "asset": {
+              "bundleId": "bundle_terrain_strata_ait_bouguemez",
+              "assetKey": "elevation_band_png"
+            }
+          },
+          {
+            "role": "elevation_band_header",
+            "asset": {
+              "bundleId": "bundle_terrain_strata_ait_bouguemez",
+              "assetKey": "elevation_band_png_header"
+            }
+          },
+          {
+            "role": "trend_cells",
+            "asset": {
+              "bundleId": "bundle_pixel_trend_long_record_ait_bouguemez",
+              "assetKey": "trend_cells"
+            }
           }
         ]
       },
@@ -367,6 +416,20 @@
             "asset": {
               "bundleId": "bundle_drainage_network_ait_bouguemez",
               "assetKey": "drainage_lines"
+            }
+          },
+          {
+            "role": "relief_grid",
+            "asset": {
+              "bundleId": "bundle_relief_ait_bouguemez",
+              "assetKey": "elevation_surface_bin"
+            }
+          },
+          {
+            "role": "relief_grid_header",
+            "asset": {
+              "bundleId": "bundle_relief_ait_bouguemez",
+              "assetKey": "elevation_surface_bin_header"
             }
           }
         ]
