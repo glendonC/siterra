@@ -15,6 +15,7 @@ import type {
   CommitDraft,
   EvidenceRecord,
   HypothesisRecord,
+  BranchMergeRecord,
   InterventionRecord,
   TaskRecord,
 } from "../tasks/records.ts";
@@ -248,6 +249,7 @@ export async function runCommand(
   const committedEvidence: EvidenceRecord[] = [];
   const committedHypotheses: HypothesisRecord[] = [];
   const committedInterventions: InterventionRecord[] = [];
+  const committedBranchMerges: BranchMergeRecord[] = [];
 
   if (input.resume && TERMINAL.has(input.planTask.status)) {
     planAccepted = input.planTask.status === "succeeded";
@@ -262,6 +264,7 @@ export async function runCommand(
     );
     committedHypotheses.push(...(await deps.store.readHypotheses(caseId, outputs)));
     committedInterventions.push(...(await deps.store.readInterventions(caseId, outputs)));
+    committedBranchMerges.push(...(await deps.store.readBranchMerges(caseId, outputs)));
   } else {
     // Plan.
     const plan = await runPlanTask(
@@ -364,6 +367,7 @@ export async function runCommand(
           committedEvidence: committedEvidence.filter((e) => fromDependencies.has(e.id)),
           committedHypotheses: committedHypotheses.filter((h) => fromDependencies.has(h.id)),
           committedInterventions: committedInterventions.filter((r) => fromDependencies.has(r.id)),
+          committedBranchMerges: committedBranchMerges.filter((m) => fromDependencies.has(m.id)),
           now: deps.now,
           signal: controller.signal,
           commitNow: commit,
@@ -387,6 +391,7 @@ export async function runCommand(
         committedEvidence.push(record);
       if (record.recordType === "Hypothesis") committedHypotheses.push(record);
       if (record.recordType === "Intervention") committedInterventions.push(record);
+      if (record.recordType === "BranchMerge") committedBranchMerges.push(record);
     }
   };
 

@@ -145,7 +145,7 @@
    "file:size": 772
   }
  },
- "created": "2026-10-27T16:37:01Z",
+ "created": "2026-10-30T19:44:31Z",
  "siterra:status": "validated",
  "siterra:variable": "elevation_band",
  "siterra:dataset": {
@@ -163,7 +163,7 @@
  },
  "siterra:method": {
   "id": "terrain_strata",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "analysis_crs": "EPSG:32629",
   "parameters": {
    "elevation_bands": "equal-area terciles",

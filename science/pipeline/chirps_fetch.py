@@ -1,12 +1,13 @@
 """Fetch CHIRPS v3.0 final monthly values for a small window from the official global COGs by HTTP range.
 
-Usage: python3 -I chirps_fetch.py <raw_dir> <first YYYY-MM> <last YYYY-MM>
+Usage: python3 -I chirps_fetch.py <place.json> <raw_dir> <first YYYY-MM> <last YYYY-MM>
 Stdlib only. For each month: HEAD the COG (size, ETag, Last-Modified), range-read the header (IFDs before data),
 range-read the one 512 px full-resolution tile that holds the window, keep the tile bytes as retrieved, decode LZW,
 and write a sidecar JSON with provenance and the window values. Resumable: a month whose sidecar exists is skipped.
 
 Window: grid rows ROW0..ROW1 and cols COL0..COL1 of the 7200 x 2400 global grid (origin -180 E, 60 N, 0.05 deg,
-PixelIsArea). The catchment cells are rows 564..570, cols 3469..3477; a two-cell margin is kept for map context.
+PixelIsArea), read from rainfall.rawWindow of the place configuration. It must lie in one 512 px tile; a two-cell margin
+around the catchment cells is kept for map context.
 Final products only: the URL path is .../v3.0/monthly/global/cogs/, never .../v3.0/prelim/....
 """
 import datetime
@@ -20,7 +21,7 @@ import urllib.request
 
 BASE = "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/"
 UA = "siterra-science-pipeline/0.1 (research; contact via project repository)"
-ROW0, ROW1, COL0, COL1 = 562, 572, 3467, 3479
+ROW0 = ROW1 = COL0 = COL1 = None  # set from the place configuration by set_window()
 HEADER_BYTES = 65536
 
 
@@ -90,6 +91,13 @@ def parse_ifd0(head):
         data = e[8:8 + size] if size <= 4 else head[struct.unpack(bo + "I", e[8:12])[0]:][:size]
         tags[tag] = data if typ in (1, 2) else list(struct.unpack(bo + fmts[typ] * cnt, data))
     return bo, tags
+
+
+def set_window(place_path):
+    """Read rainfall.rawWindow from the place configuration (stdlib only: the JSON is read directly)."""
+    global ROW0, ROW1, COL0, COL1
+    w = json.load(open(place_path))["rainfall"]["rawWindow"]
+    ROW0, ROW1, COL0, COL1 = w["row0"], w["row1"], w["col0"], w["col1"]
 
 
 def month_range(a, b):
@@ -163,7 +171,8 @@ def fetch(raw_dir, y, m):
 
 
 if __name__ == "__main__":
-    raw_dir, a, b = sys.argv[1:4]
+    place_path, raw_dir, a, b = sys.argv[1:5]
+    set_window(place_path)
     os.makedirs(raw_dir, exist_ok=True)
     for y, m in month_range(a, b):
         r = fetch(raw_dir, y, m)

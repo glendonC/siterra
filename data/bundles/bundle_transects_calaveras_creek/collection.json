@@ -1,0 +1,274 @@
+{
+ "type": "Collection",
+ "stac_version": "1.1.0",
+ "stac_extensions": [
+  "https://stac-extensions.github.io/processing/v1.3.0/schema.json",
+  "https://stac-extensions.github.io/file/v2.1.0/schema.json",
+  "https://siterra.invalid/schemas/stac/siterra/1.1.0/schema.json"
+ ],
+ "id": "bundle_transects_calaveras_creek",
+ "title": "Profiles across and along the valley (terrain_transects 1.1.0)",
+ "description": "Precomputed result of recipe terrain_transects 1.1.0 for Calaveras Creek catchment: 2 profiles sampled every 30 m, north-south section along the meridian through the calaveras reservoir (7.5 km, 252 samples); long profile from the outlet to the head along the longest flow path of the drainage network (51.7 km, 1725 samples). Each sample has its height, elevation band, WorldCover class and inside flag; each line has its band crossings, kilometres in band and valley floor segment. Observation from a 30 m surface model.\n\nA profile is read from a 30 m surface model: trees, buildings, steep walls and radar artefacts distort it, and narrow gorges are not resolved. Heights are metres above the EGM2008 geoid with the DEM's stated vertical accuracy (Copernicus DEM Product Handbook 5.0). Samples are 30 m apart, so a band crossing or a land cover boundary is placed to within about 15 m, and a feature narrower than 30 m can fall between samples. Land cover is ESA WorldCover 2021 at 10 m, a single 2021 map applied to the line: tree cover may include open woodland and savanna, and no class is a pasture, grazing lease or management unit. An elevation band is a stratum that organises sampling, cut from the elevation distribution of the catchment; it is not a vegetation type, a grazing zone or a management boundary. The valley axis is the longest flow path of a D8 network, which follows the main channel, not the centre line of the valley; its profile inherits the limits of the drainage network, including places where the surface rises along the line. Over the reservoir the surface model gives the water surface, not the bed, so the section does not show the depth of the water. The catchment is a hydrological analysis extent, not a pasture, grazing lease or management boundary.",
+ "license": "other",
+ "providers": [
+  {
+   "name": "Copernicus DEM GLO-30 (European Union, ESA; DLR e.V. and Airbus Defence and Space)",
+   "roles": [
+    "producer",
+    "licensor"
+   ]
+  },
+  {
+   "name": "ESA WorldCover consortium",
+   "roles": [
+    "producer",
+    "licensor"
+   ],
+   "url": "https://esa-worldcover.org/"
+  },
+  {
+   "name": "Siterra science pipeline",
+   "roles": [
+    "processor"
+   ],
+   "processing:lineage": "Heights from the 30 m EPSG:32610 grid of the terrain strata (Copernicus DEM GLO-30 2021, bilinear), WorldCover 2021 classes of the 10 m analysis cells, the valley axis from the drainage network bundle (science/pipeline/transects-bundle.py)",
+   "processing:software": {
+    "siterra-science": "0.1.0",
+    "python": "3.12.9",
+    "numpy": "2.5.4",
+    "rasterio": "1.5.2",
+    "gdal": "3.12.2",
+    "pyproj": "3.8.0",
+    "shapely": "2.2.0"
+   }
+  }
+ ],
+ "extent": {
+  "spatial": {
+   "bbox": [
+    [
+     -121.86652777777778,
+     37.25763888888889,
+     -121.4948611111111,
+     37.50708333333334
+    ]
+   ]
+  },
+  "temporal": {
+   "interval": [
+    [
+     "2021-01-01T00:00:00Z",
+     null
+    ]
+   ]
+  }
+ },
+ "assets": {
+  "analysis_geometry": {
+   "href": "./analysis-geometry.geojson",
+   "type": "application/geo+json",
+   "title": "Frozen analysis geometry geo_calaveras_creek_catchment, revision 2",
+   "roles": [
+    "metadata"
+   ],
+   "file:checksum": "1220745fb73a2dadb7284074eb6c0b607f390975a70592a7d968588ea083882faa9d",
+   "file:size": 141566
+  },
+  "terrain_transects": {
+   "href": "./terrain-transects.json",
+   "type": "application/json",
+   "title": "Summary of each line: ends, length, lowest and highest point, band crossings, kilometres in band, land cover shares, valley floor segment and the check results (the result read_recipe_result returns)",
+   "roles": [
+    "data"
+   ],
+   "file:checksum": "1220b1cda04b74b5fb9c903d59ef617c29acc5f6e5181475a9591e16117367a6a245",
+   "file:size": 6367
+  },
+  "transect_samples": {
+   "href": "./transect-samples.json",
+   "type": "application/json",
+   "title": "Samples every 30 m as columns (distance, longitude, latitude, elevation, band, land cover class, inside flag, drainage segment for the axis), the band crossings and the land cover runs",
+   "roles": [
+    "data"
+   ],
+   "file:checksum": "122036bb1d3ef798b293db9856084134061e4fb29e119b74ee602af25eedc40edf0f",
+   "file:size": 126540
+  },
+  "transect_lines": {
+   "href": "./transect-lines.geojson",
+   "type": "application/geo+json",
+   "title": "One 3D LineString per line ([lon, lat, elevation], metres above the EGM2008 geoid) through the samples",
+   "roles": [
+    "data"
+   ],
+   "file:checksum": "12204a526a7d3636159bc5630dedac02f8d498373a1bc603c8a3aabc0b64fea74f74",
+   "file:size": 62598
+  }
+ },
+ "created": "2026-10-30T19:23:15Z",
+ "siterra:status": "validated",
+ "siterra:variable": "elevation_profile",
+ "siterra:dataset": {
+  "id": "copernicus-dem-glo-30",
+  "version": "2021",
+  "access_route": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N37_00_W122_00_DEM/Copernicus_DSM_COG_10_N37_00_W122_00_DEM.tif",
+  "resolution_note": "DEM 1 arc-second (about 30 m), resampled to the 30 m EPSG:32610 grid of the terrain strata; land cover 10 m"
+ },
+ "siterra:geo_selection": {
+  "id": "geo_calaveras_creek_catchment",
+  "revision": 2,
+  "boundary_role": "hydrological_unit",
+  "area_m2": 257339500,
+  "area_method": "Count of 10 m analysis pixels whose centres fall inside the frozen polygon, EPSG:32610"
+ },
+ "siterra:method": {
+  "id": "terrain_transects",
+  "version": "1.1.0",
+  "analysis_crs": "EPSG:32610",
+  "parameters": {
+   "place_configuration": "science/places/calaveras-creek.json revision 11, sha256 05eba74afc89119432d33f05ed49edf3420a2923b654eb9e0e2329c4a19dafe3",
+   "step_m": 30.0,
+   "recompute_percentile": 90,
+   "recompute_tolerance_m": 4.0,
+   "height_surface": "terrain_strata 30 m EPSG:32610 bilinear",
+   "band_boundaries_m": [
+    697.8,
+    842.4
+   ],
+   "valley_floor_max_elevation_m": null,
+   "transects": [
+    {
+     "id": "reservoir_meridian",
+     "kind": "meridian_through_point",
+     "label": "North-south section along the meridian through the Calaveras Reservoir",
+     "point": {
+      "name": "the Calaveras Reservoir",
+      "lat": 37.47306,
+      "lon": -121.8182
+     }
+    },
+    {
+     "id": "valley_axis",
+     "kind": "longest_flow_path",
+     "label": "Long profile from the outlet to the head along the longest flow path of the drainage network",
+     "network": {
+      "bundle": "bundle_drainage_network_calaveras_creek",
+      "asset": "drainage_lines"
+     }
+    }
+   ]
+  },
+  "reference_period": null,
+  "operation_order": [
+   "Lines: each meridian_through_point transect of the place configuration is the line of constant longitude through its point, clipped to the frozen polygon: the part of it that contains the point, from its northernmost to its southernmost point; distance runs from north to south. valley_axis is the longest flow path of the drainage network bundle: from the outlet segment, at each confluence the upstream segment whose farthest head is farther along the channels (the sum of the stored segment lengths), ties by the larger upstream area and then the lower segment number, up to the head; the line is the stored vertices of those segments joined from the outlet upwards; distance runs from the outlet",
+   "Samples: at distance 0, 30, 60 m and so on along the line (geodesic, WGS84) and at the last point of the line, so the last interval is 30 m or shorter. A meridian sample keeps the longitude of the line; an axis sample lies on the straight piece between the two stored vertices around it, linearly in longitude and latitude",
+   "Elevation: bilinear height at the sample from the 30 m EPSG:32610 grid of the terrain strata recipe (Copernicus DEM GLO-30 bilinear to 30 m, aligned with the 10 m analysis grid, with 1 extra cell on every side), to 0.1 m, metres above the EGM2008 geoid",
+   "Band: 1 where the elevation is below the lower boundary of the strata bundle, 2 from the lower boundary to below the upper boundary, 3 from the upper boundary up",
+   "Land cover: the ESA WorldCover 2021 v200 class of the 10 m analysis cell that contains the sample (EPSG:32610), 0 where the cell lies outside the analysis area. Inside: the sample lies inside the frozen polygon or on its boundary",
+   "Band crossings: where the profile, taken as straight between consecutive samples, crosses a band boundary: the boundary, the distance (0.1 m), whether the height is rising or falling along the line, and the position. Kilometres of line in each band come from the same piecewise linear profile",
+   "Land cover runs: consecutive samples with one class make a run that starts and ends halfway to the neighbouring samples (at the line's ends for the first and last); every class's share of the line length is stored",
+   "Valley floor (only where the place configuration gives valleyFloor.maxElevationM): the contiguous samples around the lowest sample of the line whose elevation is at most that value, the upper limit of a published valley floor range named in the configuration; stored with from and to distances (halfway to the neighbouring samples, or the line's end), length and elevation range. Without it the line has no valley floor segment",
+   "Acceptance checks, all stored with the bundle: where the configuration registers expected ends, the ends of the meridian equal them to the registered decimals; every sample lies inside the frozen polygon; sample distances rise by 30 m except the last interval; every elevation is a number; the 90th percentile of the absolute differences between the stored elevations and the heights of the native 1 arc-second DEM tile (bilinear in longitude and latitude), over every sample of each line, is at most 4.0 m, with the largest difference and where it lies stored; the band of every sample is compared with the strata raster, counting separately the samples that differ and the samples whose 10 m cell lies outside the strata mask; band crossings and kilometres in band recomputed from the stored samples; two runs give identical files apart from the computed time"
+  ]
+ },
+ "siterra:attribution": [
+  "Catchment and strata derived by Siterra from Copernicus DEM GLO-30 (2021 release)",
+  "produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved",
+  "The organisations in charge of the Copernicus programme by law or by delegation do not incur any liability for any use of the Copernicus WorldDEM-30",
+  "© ESA WorldCover project / Contains modified Copernicus Sentinel data (2021) processed by ESA WorldCover consortium",
+  "ESA WorldCover 2021 v200 (Zanaga et al. 2022), CC BY 4.0, https://doi.org/10.5281/zenodo.7254221"
+ ],
+ "siterra:limitations": [
+  "A profile is read from a 30 m surface model: trees, buildings, steep walls and radar artefacts distort it, and narrow gorges are not resolved. Heights are metres above the EGM2008 geoid with the DEM's stated vertical accuracy (Copernicus DEM Product Handbook 5.0).",
+  "Samples are 30 m apart, so a band crossing or a land cover boundary is placed to within about 15 m, and a feature narrower than 30 m can fall between samples.",
+  "Land cover is ESA WorldCover 2021 at 10 m, a single 2021 map applied to the line: tree cover may include open woodland and savanna, and no class is a pasture, grazing lease or management unit.",
+  "An elevation band is a stratum that organises sampling, cut from the elevation distribution of the catchment; it is not a vegetation type, a grazing zone or a management boundary.",
+  "The valley axis is the longest flow path of a D8 network, which follows the main channel, not the centre line of the valley; its profile inherits the limits of the drainage network, including places where the surface rises along the line.",
+  "Over the reservoir the surface model gives the water surface, not the bed, so the section does not show the depth of the water.",
+  "The catchment is a hydrological analysis extent, not a pasture, grazing lease or management boundary."
+ ],
+ "siterra:checks": [
+  {
+   "name": "recompute_sample_period",
+   "passed": true,
+   "detail": "Recomputed from the stored samples and the native 1 arc-second DEM tile. The meridian's ends are 37.503194 N and 37.435417 N (no expected ends are registered for this place). Of 1977 samples, 0 lie outside the frozen polygon (a sample on its boundary to 7 decimals counts as inside); 0 intervals break the 30 m step (only the last may be shorter); 0 elevations are not numbers; 0 bands differ from the elevation bands recomputed from the stored heights; band crossings, kilometres in band and the valley floor recomputed from the stored columns disagree for 0 of 2 lines. Against the native tile (bilinear in longitude and latitude), the absolute differences from the stored heights over every sample have a 90th percentile of 0.69 m on reservoir_meridian, 3.94 m on valley_axis (tolerance 4.0 m) and a largest value of 2.43 m at 660 m on reservoir_meridian, 9.58 m at 24210 m on valley_axis. The whole computation run twice in one process gives identical results: True."
+  },
+  {
+   "name": "units_and_scale",
+   "passed": true,
+   "detail": "Distances are metres along the line (geodesic, WGS84) from its first point; longitude and latitude are decimal degrees (EPSG:4326, 7 decimals); elevation is metres above the EGM2008 geoid at 0.1 m (Copernicus DEM GLO-30 vertical datum); band is 1, 2 or 3 as in the strata bundle (boundaries 697.8 m and 842.4 m); land cover is the WorldCover 2021 class code; kilometres in band are km."
+  },
+  {
+   "name": "nodata_not_zero",
+   "passed": true,
+   "detail": "A land cover value of 0 means the sample lies outside the analysis area (no WorldCover class) and occurs in 1 of 1977 samples (1 of them on the polygon's boundary, where the 10 m cell can lie outside the analysis area); it is never read as a class, and its label is stored in the summary's land cover shares. Band 0 does not occur."
+  },
+  {
+   "name": "attribution_present",
+   "passed": true,
+   "detail": "The Copernicus DEM notices (Article 6(b) and 6(c)) and the ESA WorldCover citation are in siterra:attribution."
+  },
+  {
+   "name": "visual_inspection_sample",
+   "passed": true,
+   "detail": "Viewed on 2026-10-30 in a render of both profiles (science/pipeline/render-transects.py): the north-south section through the Calaveras Reservoir is 7.5 km long and stays in elevation band 1 (no band crossing); the surface rises on both sides of a flat stretch at 212 m that the WorldCover strip marks as permanent water (33.9% of the line), with tree cover, grassland, a few built-up cells and bare or sparse cells on the land either side. The long profile from the outlet is 51.7 km: it starts at 152 m, runs flat through the reservoir for its first kilometres (water strip), climbs through tree cover and grassland, crosses 697.8 m once at 44.6 km and ends at 773.3 m. No profile has a valley floor segment (none is configured)."
+  }
+ ],
+ "links": [
+  {
+   "rel": "root",
+   "href": "../catalog.json",
+   "type": "application/json"
+  },
+  {
+   "rel": "parent",
+   "href": "../catalog.json",
+   "type": "application/json"
+  },
+  {
+   "rel": "derived_from",
+   "href": "../bundle_terrain_strata_calaveras_creek/collection.json",
+   "type": "application/json",
+   "title": "Terrain strata bundle bundle_terrain_strata_calaveras_creek",
+   "file:checksum": "1220469c24e0c5e81c1dfb0cc51262a6a2018d3b1a857e70be166adcccf757a90198"
+  },
+  {
+   "rel": "derived_from",
+   "href": "../bundle_drainage_network_calaveras_creek/collection.json",
+   "type": "application/json",
+   "title": "Drainage network bundle bundle_drainage_network_calaveras_creek (the valley axis)",
+   "file:checksum": "1220ae6ca5609fdbf6bd3c529ede3e8bf2d860c793eb9e4aaa670c20744bd9db971a"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N37_00_W122_00_DEM/Copernicus_DSM_COG_10_N37_00_W122_00_DEM.tif",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Copernicus_DSM_COG_10_N37_00_W122_00_DEM.tif (47,669,564 bytes, ETag 3511fc51aad7c82e5b25fb6576e8b3da)",
+   "file:checksum": "122015d21273ae3d94c3ef19aa6abaef47d5f78bf4ac24e682d131c01bb8b5101db2"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N36W123_Map.tif",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "ESA WorldCover 2021 v200 tile N36W123 (ETag \"03bae261ff9ee76a719e982cb46dd1f6-11\")",
+   "siterra:retrieved_datetime": "2026-10-30T17:32:06Z"
+  },
+  {
+   "rel": "license",
+   "href": "https://dataspace.copernicus.eu/sites/default/files/media/files/2025-06/copernicus_contributing_mission_data_access_v2_cop_dem_licenses.pdf",
+   "title": "Licence for Copernicus DEM instance COP-DEM-GLO-30-F Global 30m Full, Free & Open"
+  },
+  {
+   "rel": "license",
+   "href": "https://creativecommons.org/licenses/by/4.0/",
+   "title": "ESA WorldCover: CC BY 4.0"
+  },
+  {
+   "rel": "processing-software",
+   "href": "./uv.lock",
+   "type": "application/toml",
+   "title": "Pipeline lockfile (uv)",
+   "file:checksum": "12205154d57a84dcb8f1eb5f992923d7589a669b8dc669edf140f607ff2740733aff"
+  }
+ ]
+}

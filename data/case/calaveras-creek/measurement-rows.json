@@ -1,0 +1,315 @@
+{
+ "measurementRowsVersion": 1,
+ "caseId": "case_calaveras_creek",
+ "description": "Measurement rows locating each number of the Calaveras Creek bundles that the case shows inside the bundle assets by JSON pointer, so that values are read from the bundles and never typed here.",
+ "rows": [
+  {
+   "rowId": "residual_trend_catchment_feb_may",
+   "pointer": "/headline/catchment/residual_trend_per_decade",
+   "metric": "ndvi_rainfall_adjusted_trend_per_decade",
+   "unit": "NDVI per decade",
+   "aggregation": "Least squares slope per decade of the growing-season NDVI left after adjusting for October to April rainfall, 2000 to 2025 (residual_trend_per_decade).",
+   "uncertainty": {
+    "kind": "interval",
+    "level": 0.95,
+    "method": "95% interval of the slope: least squares with a t interval (restrend_long_record, residual after rainfall adjustment)."
+   },
+   "usedBy": [],
+   "bundleId": "bundle_restrend_long_record_calaveras_creek",
+   "assetKey": "restrend_long_record",
+   "lowerPointer": "/headline/catchment/lower_per_decade",
+   "upperPointer": "/headline/catchment/upper_per_decade",
+   "claimKindPointer": "/claim_kind",
+   "claimKind": "model_estimate",
+   "stratum": "catchment",
+   "period": {
+    "start": "2000",
+    "end": "2025",
+    "window": "feb_may"
+   },
+   "periodId": "period_2000-2025_feb_may",
+   "spatialResolutionM": 250
+  },
+  {
+   "rowId": "residual_trend_reservoir_zone_feb_may",
+   "pointer": "/headline/reservoir_zone/residual_trend_per_decade",
+   "metric": "ndvi_rainfall_adjusted_trend_per_decade",
+   "unit": "NDVI per decade",
+   "aggregation": "Least squares slope per decade of the growing-season NDVI left after adjusting for October to April rainfall, 2000 to 2025 (residual_trend_per_decade).",
+   "uncertainty": {
+    "kind": "interval",
+    "level": 0.95,
+    "method": "95% interval of the slope: least squares with a t interval (restrend_long_record, residual after rainfall adjustment)."
+   },
+   "usedBy": [],
+   "bundleId": "bundle_restrend_long_record_calaveras_creek",
+   "assetKey": "restrend_long_record",
+   "lowerPointer": "/headline/reservoir_zone/lower_per_decade",
+   "upperPointer": "/headline/reservoir_zone/upper_per_decade",
+   "claimKindPointer": "/claim_kind",
+   "claimKind": "model_estimate",
+   "stratum": "reservoir_zone",
+   "period": {
+    "start": "2000",
+    "end": "2025",
+    "window": "feb_may"
+   },
+   "periodId": "period_2000-2025_feb_may",
+   "spatialResolutionM": 250
+  },
+  {
+   "rowId": "residual_trend_outside_reservoir_zone_feb_may",
+   "pointer": "/headline/outside_reservoir_zone/residual_trend_per_decade",
+   "metric": "ndvi_rainfall_adjusted_trend_per_decade",
+   "unit": "NDVI per decade",
+   "aggregation": "Least squares slope per decade of the growing-season NDVI left after adjusting for October to April rainfall, 2000 to 2025 (residual_trend_per_decade).",
+   "uncertainty": {
+    "kind": "interval",
+    "level": 0.95,
+    "method": "95% interval of the slope: least squares with a t interval (restrend_long_record, residual after rainfall adjustment)."
+   },
+   "usedBy": [],
+   "bundleId": "bundle_restrend_long_record_calaveras_creek",
+   "assetKey": "restrend_long_record",
+   "lowerPointer": "/headline/outside_reservoir_zone/lower_per_decade",
+   "upperPointer": "/headline/outside_reservoir_zone/upper_per_decade",
+   "claimKindPointer": "/claim_kind",
+   "claimKind": "model_estimate",
+   "stratum": "outside_reservoir_zone",
+   "period": {
+    "start": "2000",
+    "end": "2025",
+    "window": "feb_may"
+   },
+   "periodId": "period_2000-2025_feb_may",
+   "spatialResolutionM": 250
+  },
+  {
+   "rowId": "trend_unadjusted_catchment_feb_may",
+   "pointer": "/headline/catchment/unadjusted_trend_per_decade/0",
+   "metric": "ndvi_trend_unadjusted_per_decade",
+   "unit": "NDVI per decade",
+   "aggregation": "Least squares slope per decade of growing-season NDVI on season year, with no rainfall adjustment, 2000 to 2025 (unadjusted_trend_per_decade).",
+   "uncertainty": {
+    "kind": "interval",
+    "level": 0.95,
+    "method": "95% interval (level 0.95) of the ordinary least squares slope of growing-season NDVI on season year."
+   },
+   "usedBy": [],
+   "bundleId": "bundle_restrend_long_record_calaveras_creek",
+   "assetKey": "restrend_long_record",
+   "lowerPointer": "/headline/catchment/unadjusted_trend_per_decade/1",
+   "upperPointer": "/headline/catchment/unadjusted_trend_per_decade/2",
+   "claimKindPointer": "/claim_kind",
+   "claimKind": "model_estimate",
+   "stratum": "catchment",
+   "period": {
+    "start": "2000",
+    "end": "2025",
+    "window": "feb_may"
+   },
+   "periodId": "period_2000-2025_feb_may",
+   "spatialResolutionM": 250
+  },
+  {
+   "rowId": "rainfall_fit_r_squared_catchment_feb_may",
+   "pointer": "/headline/catchment/rainfall_fit_r_squared",
+   "metric": "rainfall_fit_r_squared",
+   "unit": "dimensionless (R squared)",
+   "aggregation": "Share of the variance of growing-season NDVI that the October to April rainfall fit accounts for, 2000 to 2025 (rainfall_fit_r_squared).",
+   "uncertainty": {
+    "kind": "not_quantified"
+   },
+   "usedBy": [],
+   "bundleId": "bundle_restrend_long_record_calaveras_creek",
+   "assetKey": "restrend_long_record",
+   "lowerPointer": null,
+   "upperPointer": null,
+   "claimKindPointer": "/claim_kind",
+   "claimKind": "model_estimate",
+   "stratum": "catchment",
+   "period": {
+    "start": "2000",
+    "end": "2025",
+    "window": "feb_may"
+   },
+   "periodId": "period_2000-2025_feb_may",
+   "spatialResolutionM": 250
+  },
+  {
+   "rowId": "pixel_trend_median_catchment_feb_may",
+   "pointer": "/windows_summary/feb_may/catchment/median_slope_per_decade",
+   "metric": "ndvi_pixel_trend_median_per_decade",
+   "unit": "NDVI per decade",
+   "aggregation": "Median over the catchment's MODIS pixels of each pixel's Theil-Sen slope of February to May NDVI, 2000 to 2025 (median_slope_per_decade).",
+   "uncertainty": {
+    "kind": "not_quantified"
+   },
+   "usedBy": [],
+   "bundleId": "bundle_pixel_trend_long_record_calaveras_creek",
+   "assetKey": "pixel_trend_long_record",
+   "lowerPointer": null,
+   "upperPointer": null,
+   "claimKindPointer": "/claim_kind",
+   "claimKind": "model_estimate",
+   "stratum": "catchment",
+   "period": {
+    "start": "2000",
+    "end": "2025",
+    "window": "feb_may"
+   },
+   "periodId": "period_2000-2025_feb_may",
+   "spatialResolutionM": 250
+  },
+  {
+   "rowId": "pixel_trend_downward_fdr_share_catchment_feb_may",
+   "pointer": "/windows_summary/feb_may/catchment/fdr_shares/downward_fdr",
+   "metric": "area_share_downward_fdr",
+   "unit": "share of 10 m analysis cells in the group (0 to 1)",
+   "aggregation": "Share of the catchment's 10 m analysis cells that lie in pixels with a downward trend under Benjamini-Hochberg false discovery rate control at q = 0.05 (fdr_shares.downward_fdr).",
+   "uncertainty": {
+    "kind": "not_quantified"
+   },
+   "usedBy": [],
+   "bundleId": "bundle_pixel_trend_long_record_calaveras_creek",
+   "assetKey": "pixel_trend_long_record",
+   "lowerPointer": null,
+   "upperPointer": null,
+   "claimKindPointer": "/claim_kind",
+   "claimKind": "model_estimate",
+   "stratum": "catchment",
+   "period": {
+    "start": "2000",
+    "end": "2025",
+    "window": "feb_may"
+   },
+   "periodId": "period_2000-2025_feb_may",
+   "spatialResolutionM": 250
+  },
+  {
+   "rowId": "pixel_trend_upward_fdr_share_catchment_feb_may",
+   "pointer": "/windows_summary/feb_may/catchment/fdr_shares/upward_fdr",
+   "metric": "area_share_upward_fdr",
+   "unit": "share of 10 m analysis cells in the group (0 to 1)",
+   "aggregation": "Share of the catchment's 10 m analysis cells that lie in pixels with an upward trend under Benjamini-Hochberg false discovery rate control at q = 0.05 (fdr_shares.upward_fdr).",
+   "uncertainty": {
+    "kind": "not_quantified"
+   },
+   "usedBy": [],
+   "bundleId": "bundle_pixel_trend_long_record_calaveras_creek",
+   "assetKey": "pixel_trend_long_record",
+   "lowerPointer": null,
+   "upperPointer": null,
+   "claimKindPointer": "/claim_kind",
+   "claimKind": "model_estimate",
+   "stratum": "catchment",
+   "period": {
+    "start": "2000",
+    "end": "2025",
+    "window": "feb_may"
+   },
+   "periodId": "period_2000-2025_feb_may",
+   "spatialResolutionM": 250
+  },
+  {
+   "rowId": "drainage_segments_catchment_2021",
+   "pointer": "/headline/segments",
+   "metric": "drainage_segments",
+   "unit": "segments",
+   "aggregation": "Number of stream segments with 1.0 km2 or more upstream area (headline.segments).",
+   "uncertainty": {
+    "kind": "not_quantified"
+   },
+   "usedBy": [],
+   "bundleId": "bundle_drainage_network_calaveras_creek",
+   "assetKey": "drainage_network",
+   "lowerPointer": null,
+   "upperPointer": null,
+   "claimKindPointer": "/claim_kind",
+   "claimKind": "model_estimate",
+   "stratum": "catchment",
+   "period": {
+    "start": "2021",
+    "end": "2021",
+    "window": null
+   },
+   "periodId": "period_2021",
+   "spatialResolutionM": null
+  },
+  {
+   "rowId": "drainage_length_total_catchment_2021",
+   "pointer": "/headline/length_km_total",
+   "metric": "drainage_length_total",
+   "unit": "km",
+   "aggregation": "Total length of the stream segments (headline.length_km_total).",
+   "uncertainty": {
+    "kind": "not_quantified"
+   },
+   "usedBy": [],
+   "bundleId": "bundle_drainage_network_calaveras_creek",
+   "assetKey": "drainage_network",
+   "lowerPointer": null,
+   "upperPointer": null,
+   "claimKindPointer": "/claim_kind",
+   "claimKind": "model_estimate",
+   "stratum": "catchment",
+   "period": {
+    "start": "2021",
+    "end": "2021",
+    "window": null
+   },
+   "periodId": "period_2021",
+   "spatialResolutionM": null
+  },
+  {
+   "rowId": "drainage_max_strahler_order_catchment_2021",
+   "pointer": "/headline/max_strahler_order",
+   "metric": "drainage_max_strahler_order",
+   "unit": "Strahler order",
+   "aggregation": "Highest Strahler order of any segment (headline.max_strahler_order).",
+   "uncertainty": {
+    "kind": "not_quantified"
+   },
+   "usedBy": [],
+   "bundleId": "bundle_drainage_network_calaveras_creek",
+   "assetKey": "drainage_network",
+   "lowerPointer": null,
+   "upperPointer": null,
+   "claimKindPointer": "/claim_kind",
+   "claimKind": "model_estimate",
+   "stratum": "catchment",
+   "period": {
+    "start": "2021",
+    "end": "2021",
+    "window": null
+   },
+   "periodId": "period_2021",
+   "spatialResolutionM": null
+  },
+  {
+   "rowId": "drainage_outlet_upstream_area_catchment_2021",
+   "pointer": "/outlet/upstream_area_km2",
+   "metric": "drainage_outlet_upstream_area",
+   "unit": "km2",
+   "aggregation": "Upstream area of the snapped outlet cell (outlet.upstream_area_km2).",
+   "uncertainty": {
+    "kind": "not_quantified"
+   },
+   "usedBy": [],
+   "bundleId": "bundle_drainage_network_calaveras_creek",
+   "assetKey": "drainage_network",
+   "lowerPointer": null,
+   "upperPointer": null,
+   "claimKindPointer": "/claim_kind",
+   "claimKind": "model_estimate",
+   "stratum": "catchment",
+   "period": {
+    "start": "2021",
+    "end": "2021",
+    "window": null
+   },
+   "periodId": "period_2021",
+   "spatialResolutionM": null
+  }
+ ]
+}

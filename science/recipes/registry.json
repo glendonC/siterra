@@ -1,7 +1,7 @@
 {
-  "registryVersion": "1.9.0",
+  "registryVersion": "1.14.0",
   "registered": "2026-10-27",
-  "note": "Recipe registry. What was fixed before any data: only the catalog rows in docs/reference/analysis-recipes.md (question, method in one line, output kind) for coverage_summary, monthly_departure and aligned_antecedent, and the full season_summary entry (registered 2026-10-27 before any event comparison). The detailed formulas and parameters of coverage_summary, monthly_departure, aligned_antecedent and terrain_strata were written together with their first run on 2026-10-27, so they are not pre-registered. From now on, changing a formula, parameter or window after results are read is a new version labeled post hoc. Registry 1.2.0 (2026-10-28) adds restrend_long_record and snow_cover_by_band, each fully registered before its data was summarized; their place-specific windows and band sets are in science/places/. The inspector renders method cards from an entry and the bundle manifest that holds its result. References are IDs in research/science/source-register.md. Registry 1.3.0 (2026-10-28) adds pixel_trend_long_record and season_trend_long_record, registered before any per-pixel slope, land-cover summary or June to September greenness value was computed (the stratum results of restrend_long_record had been read). Registry 1.4.0 (2026-10-29) adds drainage_network, registered before this pipeline built any network; its smoothing and height rules were carried over from the 29 October specimen build, which had run them first. Registry 1.5.0 (2026-10-29) adds terrain_transects, registered before this pipeline sampled any line; the Tabant meridian is specimen B's section and the rest was written by the science lane. Registry 1.6.0 (2026-10-29) adds pixel_anatomy, registered before this pipeline built any pixel anatomy; the pixel and its scene come from the 28 October specimen build and the scene rule was written afterwards to name that choice. Registry 1.7.0 (2026-10-29) adds terrain_relief and land_cover_classes, registered before this pipeline wrote any relief or land cover layer; both repeat grids that earlier bundles already use. Registry 1.8.0 (2026-10-29) adds optical_visibility_by_band, registered before this pipeline wrote any per-band clear share (the upper band's winter figures had been probed and match the lead's checks). Registry 1.9.0 (2026-10-29) adds proposed_routes, registered before this pipeline computed any route; the field plan names no places, so its sites come from a rule written first.",
+  "note": "Recipe registry. What was fixed before any data: only the catalog rows in docs/reference/analysis-recipes.md (question, method in one line, output kind) for coverage_summary, monthly_departure and aligned_antecedent, and the full season_summary entry (registered 2026-10-27 before any event comparison). The detailed formulas and parameters of coverage_summary, monthly_departure, aligned_antecedent and terrain_strata were written together with their first run on 2026-10-27, so they are not pre-registered. From now on, changing a formula, parameter or window after results are read is a new version labeled post hoc. Registry 1.2.0 (2026-10-28) adds restrend_long_record and snow_cover_by_band, each fully registered before its data was summarized; their place-specific windows and band sets are in science/places/. The inspector renders method cards from an entry and the bundle manifest that holds its result. References are IDs in research/science/source-register.md. Registry 1.3.0 (2026-10-28) adds pixel_trend_long_record and season_trend_long_record, registered before any per-pixel slope, land-cover summary or June to September greenness value was computed (the stratum results of restrend_long_record had been read). Registry 1.4.0 (2026-10-29) adds drainage_network, registered before this pipeline built any network; its smoothing and height rules were carried over from the 29 October specimen build, which had run them first. Registry 1.5.0 (2026-10-29) adds terrain_transects, registered before this pipeline sampled any line; the Tabant meridian is specimen B's section and the rest was written by the science lane. Registry 1.6.0 (2026-10-29) adds pixel_anatomy, registered before this pipeline built any pixel anatomy; the pixel and its scene come from the 28 October specimen build and the scene rule was written afterwards to name that choice. Registry 1.7.0 (2026-10-29) adds terrain_relief and land_cover_classes, registered before this pipeline wrote any relief or land cover layer; both repeat grids that earlier bundles already use. Registry 1.8.0 (2026-10-29) adds optical_visibility_by_band, registered before this pipeline wrote any per-band clear share (the upper band's winter figures had been probed and match the lead's checks). Registry 1.9.0 (2026-10-29) adds proposed_routes, registered before this pipeline computed any route; the field plan names no places, so its sites come from a rule written first. Registry 1.10.0 (2026-10-30) revises terrain_strata to 1.1.0 (an optional water zone band, written for the second place before any of its layers was computed). Registry 1.11.0 (2026-10-30) revises snow_cover_by_band to 1.1.0 (an applicability mode over a sample of months, written for the second place before any of its snow values was read). Registry 1.12.0 (2026-10-30) adds pixel_seasons, registered before any per-season pixel value was written to a table or grid; it stores the season values that pixel_trend_long_record computed and kept only as a count. Registry 1.13.0 (2026-10-30) makes the wording of terrain_relief, land_cover_classes and drainage_network place-neutral: {analysisCrs} stands for the place's CRS, and wording that named the first place (the lower gorge, orchards, agdal, the conditioning window) moved into that place's configuration, which restates it word for word; no recipe version and no method changes. Registry 1.14.0 (2026-10-30) revises terrain_transects to 1.1.0 (optional expected ends and valley floor, place-neutral wording), written for the second place before any of its profiles was sampled.",
   "recipes": [
     {
       "recipeId": "coverage_summary",
@@ -452,7 +452,7 @@
     },
     {
       "recipeId": "terrain_strata",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "title": "Terrain sampling strata",
       "question": "Which parts of the catchment should field work sample separately?",
       "operation": "static_strata",
@@ -465,13 +465,14 @@
         "copernicus_dem_glo30_2021",
         "worldcover_2021"
       ],
-      "registration": "Written with the first run (2026-10-27); only a one-line strata bullet in data-sources-and-methods.md came before",
+      "registration": "Written with the first run (2026-10-27); only a one-line strata bullet in data-sources-and-methods.md came before. Version 1.1.0 (2026-10-30) adds an optional fourth band, the water zone, and states the 30 m grid in the place's analysis CRS instead of EPSG:32629; registered before any land cover, strata or trend of the second place (Calaveras Creek) was computed. A place configuration without strata.waterZone gives exactly the three bands of version 1.0.0 (the first place's committed strata rebuild unchanged).",
       "formula": [
-        "z = Copernicus DEM GLO-30 (2021) bilinear on a 30 m EPSG:32629 grid aligned with the 10 m analysis grid",
+        "z = Copernicus DEM GLO-30 (2021) bilinear on a 30 m grid in the place's analysis CRS (a UTM zone) aligned with the 10 m analysis grid",
         "elevation band: 1 if z < q(1/3), 2 if q(1/3) <= z < q(2/3), 3 if z >= q(2/3), q the quantiles of z over the catchment (equal-area terciles)",
         "slope and aspect: Horn (1981) 3 x 3 gradient on the 30 m grid; aspect = downslope bearing from north",
         "aspect class: level if slope < 5 deg; otherwise N (315 to 45 deg), E (45 to 135), S (135 to 225), W (225 to 315)",
         "excluded: WorldCover 2021 class 40 (cropland) or 50 (built-up)",
+        "water zone (only when the place configuration gives strata.waterZone): 1 if the cell is within buffer_m of the selected WorldCover 2021 water body or bodies (configured classes, inside the catchment), else 2",
         "30 m classes repeated 3 x 3 onto the 10 m analysis grid"
       ],
       "parameters": [
@@ -512,6 +513,15 @@
             40,
             50
           ]
+        },
+        {
+          "name": "water_zone",
+          "role": "method",
+          "allowed": [
+            "none",
+            "WorldCover water classes, a body selection (all bodies or the largest connected body) and a buffer, all given by the place configuration"
+          ],
+          "default": "none"
         }
       ],
       "sensitivitySet": [],
@@ -536,6 +546,12 @@
         },
         {
           "metric": "excluded",
+          "unit": "1",
+          "claimKind": "observation",
+          "uncertaintyKind": "not_quantified"
+        },
+        {
+          "metric": "reservoir_zone",
           "unit": "1",
           "claimKind": "observation",
           "uncertaintyKind": "not_quantified"
@@ -785,7 +801,7 @@
     },
     {
       "recipeId": "snow_cover_by_band",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "title": "Monthly snow cover by elevation band",
       "question": "What share of each elevation band was snow-covered, month by month, from 2001 to 2025?",
       "operation": "threshold_fraction",
@@ -800,7 +816,7 @@
         "terrain_strata",
         "place_configuration"
       ],
-      "registration": "Full entry registered 2026-10-28 before any MOD10A1 data was downloaded. The band sets come from the place configuration (science/places/<place>.json), fixed in the same way.",
+      "registration": "Version 1.1.0 (2026-10-30) adds an applicability mode: when the place configuration names a sample of months (sampleMonthsFrom) the recipe is run over those months only and the result carries an applicability decision with its rule, the share of clear weighted pixel-days at the NDSI threshold per band, and the sample's limitations; registered for the second place (Calaveras Creek) before any MOD10A1 value of it was read. Full-record mode is unchanged and the first place's committed bundle rebuilds identical from the unchanged formula. Original registration: Full entry registered 2026-10-28 before any MOD10A1 data was downloaded. The band sets come from the place configuration (science/places/<place>.json), fixed in the same way.",
       "formula": [
         "v(p, d) = NDSI_Snow_Cover of Terra MOD10A1 v6.1 500 m pixel p on day d; clear when 0 <= v <= 100 (0 is snow-free land); cloud when v = 250; every other value (200 missing, 201 no decision, 211 night, 237 inland water, 239 ocean, 254 detector saturated, 255 fill) is not observed",
         "snow_t(p, d) = 1 when p is clear on d and v >= 100 t, for the NDSI thresholds t = 0.2 (optimised for the Atlas, Bousbaa et al. 2024) and t = 0.4 (the global reference), computed side by side",
@@ -1125,6 +1141,161 @@
       "formulaPlain": "For each 250 m MODIS pixel, greenness is averaged over each season since 2000, and a robust straight-line slope through those seasons is computed with a 95% interval. The result says how much of each elevation band and land cover type lies in pixels that rose, fell or cannot be told apart from no change, checked against how many would rise or fall by chance among thousands of pixels. Falling pixels that touch each other are grouped and described. The map shows the slope only."
     },
     {
+      "recipeId": "pixel_seasons",
+      "version": "1.0.0",
+      "title": "Each pixel's mean greenness in every season of the MODIS record",
+      "question": "For each 250 m pixel of the place, what was the mean NDVI of the growing window in each season from 2000 to 2025, and do those values give back the Theil-Sen slope stored by pixel_trend_long_record?",
+      "operation": "pixel_season_values",
+      "implementation": {
+        "language": "python",
+        "package": "siterra-science",
+        "version": "0.1.0"
+      },
+      "inputs": [
+        "modis_mod13q1_v061_ndvi_16day",
+        "frozen_catchment_geometry",
+        "pixel_trend_long_record_result",
+        "place_configuration"
+      ],
+      "registration": "Full entry registered 2026-10-30 before any per-season pixel value was written to a table or grid. It stores the season values that pixel_trend_long_record 1.0.0 computed and kept only as a count (pixels_by_window holds the number of seasons, not the values), so a viewer can step through the years. It adds no analysis: the pixels, the reliability filter, the composite share, the season definition and the rounding are those of pixel_trend_long_record, read from the same place configuration block, and the check below makes the two agree or stops the run.",
+      "formula": [
+        "Pixels, composites, reliability filter and season mean are exactly those of pixel_trend_long_record 1.0.0: NDVI(p, c) = DN / 10000 for Terra MOD13Q1 v6.1 composite c and 250 m pixel p, kept only where the composite's pixel reliability is 0 or 1 and -0.2 <= NDVI <= 1.0; G(p, y, W) = mean of the kept NDVI(p, c) over the 16-day periods starting in a month of the growing window W in year y, defined only when at least half of those periods (rounded up) are kept at p",
+        "Window and years: the growing window marked primary in the pixel_trend_long_record block of the place configuration (Ait Bouguemez: March to June, mar_jun) and its seasonYears (2000 to 2025); no other window is stored",
+        "Values: G(p, y, W) rounded to 5 decimals in the precision of the array it is computed in (float64), for every MOD13Q1 pixel holding at least one 10 m analysis cell of the catchment, for every season year; an undefined G is stored as no value, never as zero",
+        "Stored forms: a GeoTIFF on the native MOD13Q1 grid with one float32 band per season year (nodata NaN); a web copy, a little-endian float32 array of shape seasons x rows x columns, season 0 the first season year, row 0 north, NaN for no value, with a JSON header (CRS, transform, shape, season years, pixel counts). Each is read back and must equal the computed values cell for cell",
+        "Check against the stored trend: for every pixel with at least min_seasons defined seasons, the Theil-Sen slope of the stored values on the year (the pixel_trend_long_record method, NDVI per decade) is compared with band 1 of the pixel_trend_long_record GeoTIFF of the same window; the largest absolute difference must be at most 1e-6 NDVI per decade and the set of pixels with a slope, and each pixel's number of seasons (band 4), must be identical. Any difference stops the run",
+        "Summary: per season, the number of pixels with a value, and the mean, median and the 5th and 95th percentiles over those pixels (unweighted by cells); the composite periods absent from the archive read, from the same record as pixel_trend_long_record"
+      ],
+      "parameters": [
+        {
+          "name": "pixel_reliability_kept",
+          "role": "method",
+          "allowed": [
+            [
+              0,
+              1
+            ]
+          ],
+          "default": [
+            0,
+            1
+          ]
+        },
+        {
+          "name": "min_composite_share",
+          "role": "method",
+          "allowed": [
+            0.5
+          ],
+          "default": 0.5
+        },
+        {
+          "name": "min_seasons",
+          "role": "method",
+          "allowed": [
+            15
+          ],
+          "default": 15
+        },
+        {
+          "name": "value_decimals",
+          "role": "method",
+          "allowed": [
+            5
+          ],
+          "default": 5
+        },
+        {
+          "name": "slope_check_tolerance_per_decade",
+          "role": "method",
+          "allowed": [
+            1e-06
+          ],
+          "default": 1e-06
+        },
+        {
+          "name": "season_years",
+          "role": "method",
+          "allowed": [
+            "the seasonYears of the place configuration (Ait Bouguemez: 2000 to 2025)"
+          ],
+          "default": "the seasonYears of the place configuration"
+        },
+        {
+          "name": "growing_window",
+          "role": "scope",
+          "allowed": [
+            "the window marked primary in the pixel_trend_long_record block of the place configuration (Ait Bouguemez: mar_jun)"
+          ],
+          "default": "the window marked primary"
+        }
+      ],
+      "sensitivitySet": [],
+      "applicability": [
+        {
+          "check": "the pixel_trend_long_record bundle of the same place and window is present and its slope raster matches the stored values",
+          "minimum": "1 bundle; otherwise the run stops"
+        },
+        {
+          "check": "frozen geometry named in the place configuration, checksum matching",
+          "minimum": "1 geometry"
+        }
+      ],
+      "outputs": [
+        {
+          "metric": "season_mean_ndvi",
+          "unit": "1",
+          "claimKind": "observation",
+          "uncertaintyKind": "not_quantified"
+        }
+      ],
+      "assumptions": [
+        "A growing-window mean of the composites kept by the reliability filter describes the season at the pixel",
+        "The pixel_trend_long_record bundle of the same place is the record of what the slope was computed from"
+      ],
+      "failureModes": [
+        "A season value is the mean of a few composites in a snow-affected or cloud-affected window and can move with the number of kept composites rather than the plants",
+        "A pixel mixes surfaces at 250 m; its value is not the greenness of any one field or slope",
+        "Playing the seasons as an animation shows one realisation of the year-to-year change and invites reading a trend into it; the trend and its interval are in pixel_trend_long_record"
+      ],
+      "standardLimitations": [
+        "Each value is one 250 m MODIS pixel's mean over the composites of one growing window that passed the reliability filter, not a measurement of any field, pasture or plant. A season where fewer than half of the periods were kept at a pixel has no value there.",
+        "NDVI measures how green the ground looks from above, not forage, palatability or species.",
+        "Spring windows include snow-covered ground at the upper pixels in some seasons; earlier or later melt can move a season's value with no change in the plants.",
+        "Terra's overpass has drifted earlier since 2020, from 10:30 to about 9:06 mean local time by December 2025 (NASA): later seasons are seen with a lower sun and longer shadows in mountain terrain, which may shift NDVI without any change on the ground.",
+        "Composites from 12 July 2025 to the end of 2025 are absent from Planetary Computer; a season window that includes them holds fewer composites.",
+        "The values are an input to pixel_trend_long_record, not a second analysis. A run of high or low seasons seen when stepping through them is not a trend or a cause; the slope, its interval and the false discovery rate check are in pixel_trend_long_record."
+      ],
+      "allowedComponents": [
+        "season time-lapse",
+        "method card"
+      ],
+      "forbiddenPhrases": [
+        "significant",
+        "significantly",
+        "degradation detected",
+        "grazing impact",
+        "overgrazing",
+        "caused by",
+        "proves",
+        "recovery",
+        "forecast",
+        "pasture improvement",
+        "pasture decline",
+        "encroachment",
+        "drought",
+        "drought season"
+      ],
+      "references": [
+        "SCI-155",
+        "SCI-52",
+        "SCI-49",
+        "SCI-163"
+      ],
+      "priority": "P2",
+      "formulaPlain": "For each 250 m MODIS pixel, the average greenness of the growing window is stored for every season since 2000, exactly as the trend recipe computed it. The stored values are checked by recomputing each pixel's slope from them and comparing with the trend result."
+    },
+    {
       "recipeId": "season_trend_long_record",
       "version": "1.0.0",
       "title": "Greenness trends by season window, stratum and land cover over the MODIS record",
@@ -1349,14 +1520,14 @@
       ],
       "registration": "Full entry registered 2026-10-29, before this pipeline built any network. The 1.0 km2 threshold is the lead's brief; the conditioning is the catchment freeze's. The smoothing, simplification and spacing rules and the 30 m height surface were carried over from the 29 October specimen build of the valley model, which ran them first: the science lane had read that run's counts (233 segments, 20,785 vertices, none outside the frozen polygon) and how often the sampled surface rises along its lines (139 segments with some rise, 3 ending higher than they start). The 4.0 m rise tolerance comes from the DEM's stated relative vertical accuracy, not from that distribution. No hypothesis is tested: the recipe describes geometry. Place-specific values are in science/places/<place>.json, revision 3.",
       "formula": [
-        "Conditioning (a private step, as the catchment freeze geo_ait_bouguemez_catchment revision 1): Copernicus DEM GLO-30 (2021) on its native 1 arc-second EPSG:4326 grid, window 6.70 to 6.001 W and 31.40 to 31.85 N; pysheds 0.5 fill_pits, fill_depressions and resolve_flats; D8 flow direction with codes 64, 128, 1, 2, 4, 8, 16, 32 for north, north-east, east, south-east, south, south-west, west and north-west. Stored: the direction of each cell and the depression fill depth (fill_depressions(fill_pits(DEM)) minus DEM, m), cropped to the catchment's bounding box plus 8 cells",
+        "Conditioning (a private step recorded in the conditioning note of the place configuration and in the conditioning report): Copernicus DEM GLO-30 (2021) on its native 1 arc-second EPSG:4326 grid over the window of that note; pysheds 0.5 fill_pits, fill_depressions and resolve_flats; D8 flow direction with codes 64, 128, 1, 2, 4, 8, 16, 32 for north, north-east, east, south-east, south, south-west, west and north-west. Stored: the direction of each cell and the depression fill depth (fill_depressions(fill_pits(DEM)) minus DEM, m), cropped to the catchment's bounding box plus 8 cells",
         "Outlet: the cell containing the frozen geometry's snapped outlet (31.6377778 N, 6.5372222 W)",
         "Upstream area A(c) = sum of the WGS84 geodesic areas of the 1 x 1 arc-second cells whose D8 path passes through cell c, c included, in km2",
         "Stream cells: catchment cells with A(c) >= 1.0 km2",
         "Strahler order (Strahler 1957): a stream cell with no stream cell draining into it has order 1; where two or more of the stream cells draining into a cell share the highest incoming order m, the cell has order m + 1, otherwise m",
         "Segments: a segment runs along the D8 path from a head (no stream cell upstream) or a confluence (two or more stream cells draining into it) to the next confluence or the outlet, both end cells included, so a segment ends where its downstream segment begins. Its order is the order of its first cell. Segments are numbered seg_001, seg_002 and so on by decreasing upstream area, ties by the row-major position of the first cell",
-        "Line: the segment's cell centres in EPSG:32629; one Chaikin corner-cutting pass keeping the end points; Douglas-Peucker simplification at 8 m; every straight piece divided into equal parts of at most 15 m; vertices converted to EPSG:4326 and stored to 7 decimals (about 1 cm)",
-        "Height: bilinear interpolation of the 30 m EPSG:32629 grid of the terrain strata recipe (Copernicus DEM GLO-30 bilinear to 30 m, aligned with the 10 m analysis grid, with 1 extra cell on every side, the grid the strata elevation bands are cut from), stored to 0.1 m as the third coordinate, metres above the EGM2008 geoid. The line is not forced downhill: where the surface rises along the path, the stored heights rise",
+        "Line: the segment's cell centres in {analysisCrs}; one Chaikin corner-cutting pass keeping the end points; Douglas-Peucker simplification at 8 m; every straight piece divided into equal parts of at most 15 m; vertices converted to EPSG:4326 and stored to 7 decimals (about 1 cm)",
+        "Height: bilinear interpolation of the 30 m {analysisCrs} grid of the terrain strata recipe (Copernicus DEM GLO-30 bilinear to 30 m, aligned with the 10 m analysis grid, with 1 extra cell on every side, the grid the strata elevation bands are cut from), stored to 0.1 m as the third coordinate, metres above the EGM2008 geoid. The line is not forced downhill: where the surface rises along the path, the stored heights rise",
         "Per segment: upstream area (the area draining through the segment's last cell before any confluence it ends at, km2 to 0.01) and the area at its first cell; the geodesic length of the stored line (m); net drop = first height minus last height; largest rise = the largest height of any vertex above the lowest vertex upstream of it; the largest fill depth over the D8 cells of the segment (m); the downstream segment and the upstream segments",
         "Flag descends: true when the largest rise is at most 4.0 m and the net drop is positive, false otherwise. 4.0 m is the larger of the DEM's stated relative vertical accuracies (2 m on slopes up to 20%, 4 m above; SCI-168). Segments with descends false are listed with their largest fill depth; one whose largest fill depth is at least 4.0 m crosses a depression that filling raised by more than the tolerance",
         "Sensitivity: stream cell count, number of heads and D8 path length (sum of geodesic distances between consecutive cell centres) at the thresholds 0.5, 1.0, 2.0 and 5.0 km2, stored together; only the 1.0 km2 network is drawn",
@@ -1399,9 +1570,9 @@
           "name": "height_surface",
           "role": "method",
           "allowed": [
-            "terrain_strata 30 m EPSG:32629 bilinear"
+            "terrain_strata 30 m {analysisCrs} bilinear"
           ],
-          "default": "terrain_strata 30 m EPSG:32629 bilinear"
+          "default": "terrain_strata 30 m {analysisCrs} bilinear"
         },
         {
           "name": "rise_tolerance_m",
@@ -1456,11 +1627,11 @@
       "standardLimitations": [
         "The network is drawn from a 30 m surface model, not mapped on the ground: trees, buildings, steep walls and radar artefacts distort the surface, and the D8 path can leave the real channel. No stream was checked in the field.",
         "A segment is drawn wherever 1.0 km2 or more drains to a cell. The network's extent and length follow that threshold; it is not a measured channel head, and it does not separate streams that run all year from streams that run only after rain or snowmelt.",
-        "Depression filling and flat resolution route flow across closed hollows and the lower gorge, so some segments run where the 30 m surface rises along the line. Those segments are flagged, their heights are stored unchanged, and the line says nothing about how water moves there.",
+        "Depression filling and flat resolution route flow across closed hollows and narrow gorges, so some segments run where the 30 m surface rises along the line. Those segments are flagged, their heights are stored unchanged, and the line says nothing about how water moves there.",
         "Upstream area counts the cells that drain to a point along D8 paths on the filled surface. It is not the share of rain that reaches the point, and it ignores irrigation canals, withdrawals and groundwater.",
         "Strahler order counts how channels join. It says nothing about channel size, discharge or whether water is present.",
         "Heights are metres above the EGM2008 geoid from the Copernicus DEM GLO-30 surface model, whose stated absolute vertical accuracy is under 4 m (90% linear error) and relative vertical accuracy under 2 m on slopes up to 20% and under 4 m above, as arithmetic means with local deviations possible (Copernicus DEM Product Handbook 5.0).",
-        "The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary."
+        "The catchment is a hydrological analysis extent, not a pasture or management boundary."
       ],
       "allowedComponents": [
         "drainage lines",
@@ -1495,7 +1666,7 @@
     },
     {
       "recipeId": "terrain_transects",
-      "version": "1.0.1",
+      "version": "1.1.0",
       "title": "Profiles along lines across and along the valley",
       "question": "What does the ground look like along a line across or along the valley: its height every 30 m, which elevation bands and land cover classes it crosses, and where?",
       "operation": "transect_profile",
@@ -1513,17 +1684,17 @@
         "place_configuration"
       ],
       "registration": "Full entry registered 2026-10-29, before this pipeline sampled any line. The meridian through Tabant is the section of the 29 October specimen B, whose ends the lead's brief gives (31.709028 N and 31.600972 N); the pipeline derives the ends from the rule below and checks them to 6 decimals. The valley axis (the longest flow path) and the valley floor rule were written by the science lane for this entry. The lane had read the specimen's section data (band crossings at 748 m, 9,108 m and 10,821 m from the north end, and the land cover shares), and had seen that the specimen's floor extent took every run of tree cover, cropland and built-up and so covered about 9.4 km of the 12.0 km line; this entry takes the published elevation range of the valley floor instead. No hypothesis is tested. Place-specific values are in science/places/<place>.json, revision 4.",
-      "postHocNote": "Version 1.0.1 (2026-10-29) changes the recompute check after the first build of 1.0.0 failed it. 1.0.0 compared 40 evenly spaced samples per line with the native tile and required the largest absolute difference to be at most 4.0 m; on the valley axis the largest of those 40 was 4.62 m (and over every sample 7.36 m, in the lower gorge at 2,310 m from the outlet, against a 90th percentile of 1.52 m). The DEM states its relative vertical accuracy as a 90% linear error (SCI-168), so 1.0.1 compares the 90th percentile of the absolute differences over every sample with the same 4.0 m and stores the largest difference and where it lies. The band comparison with the strata raster now counts separately the samples whose 10 m cell lies outside the strata mask (the first build had counted the south end of the meridian, on the polygon boundary, as a disagreement 464.8 m from a band limit). No line, sample, parameter of the profiles or result changed.",
+      "postHocNote": "Version 1.0.1 (2026-10-29) changes the recompute check after the first build of 1.0.0 failed it. 1.0.0 compared 40 evenly spaced samples per line with the native tile and required the largest absolute difference to be at most 4.0 m; on the valley axis the largest of those 40 was 4.62 m (and over every sample 7.36 m, in the lower gorge at 2,310 m from the outlet, against a 90th percentile of 1.52 m). The DEM states its relative vertical accuracy as a 90% linear error (SCI-168), so 1.0.1 compares the 90th percentile of the absolute differences over every sample with the same 4.0 m and stores the largest difference and where it lies. The band comparison with the strata raster now counts separately the samples whose 10 m cell lies outside the strata mask (the first build had counted the south end of the meridian, on the polygon boundary, as a disagreement 464.8 m from a band limit). No line, sample, parameter of the profiles or result changed. Version 1.1.0 (2026-10-30) makes the recipe place-neutral for the second place, written before any of its profiles was sampled: the expected ends of the meridian and the valley floor range are optional (a place without a published valley floor range gets no valley floor segment and says so), the band boundaries and the CRS are the place's, and the wording that named the first place moved into its configuration, which restates it word for word. No method of 1.0.1 changed for a place that configures both.",
       "formula": [
-        "Lines: tabant_meridian is the line of constant longitude through Tabant (31.65873 N, 6.42007 W), clipped to the frozen polygon: the part of it that contains Tabant, from its northernmost to its southernmost point; distance runs from north to south. valley_axis is the longest flow path of the drainage network bundle: from the outlet segment, at each confluence the upstream segment whose farthest head is farther along the channels (the sum of the stored segment lengths), ties by the larger upstream area and then the lower segment number, up to the head; the line is the stored vertices of those segments joined from the outlet upwards; distance runs from the outlet",
+        "Lines: each meridian_through_point transect of the place configuration is the line of constant longitude through its point, clipped to the frozen polygon: the part of it that contains the point, from its northernmost to its southernmost point; distance runs from north to south. valley_axis is the longest flow path of the drainage network bundle: from the outlet segment, at each confluence the upstream segment whose farthest head is farther along the channels (the sum of the stored segment lengths), ties by the larger upstream area and then the lower segment number, up to the head; the line is the stored vertices of those segments joined from the outlet upwards; distance runs from the outlet",
         "Samples: at distance 0, 30, 60 m and so on along the line (geodesic, WGS84) and at the last point of the line, so the last interval is 30 m or shorter. A meridian sample keeps the longitude of the line; an axis sample lies on the straight piece between the two stored vertices around it, linearly in longitude and latitude",
-        "Elevation: bilinear height at the sample from the 30 m EPSG:32629 grid of the terrain strata recipe (Copernicus DEM GLO-30 bilinear to 30 m, aligned with the 10 m analysis grid, with 1 extra cell on every side), to 0.1 m, metres above the EGM2008 geoid",
-        "Band: 1 where the elevation is below 2316.8 m, 2 from 2316.8 m to below 2815.2 m, 3 from 2815.2 m up (the boundaries of the strata bundle)",
-        "Land cover: the ESA WorldCover 2021 v200 class of the 10 m analysis cell that contains the sample (EPSG:32629), 0 where the cell lies outside the analysis area. Inside: the sample lies inside the frozen polygon or on its boundary",
+        "Elevation: bilinear height at the sample from the 30 m {analysisCrs} grid of the terrain strata recipe (Copernicus DEM GLO-30 bilinear to 30 m, aligned with the 10 m analysis grid, with 1 extra cell on every side), to 0.1 m, metres above the EGM2008 geoid",
+        "Band: 1 where the elevation is below the lower boundary of the strata bundle, 2 from the lower boundary to below the upper boundary, 3 from the upper boundary up",
+        "Land cover: the ESA WorldCover 2021 v200 class of the 10 m analysis cell that contains the sample ({analysisCrs}), 0 where the cell lies outside the analysis area. Inside: the sample lies inside the frozen polygon or on its boundary",
         "Band crossings: where the profile, taken as straight between consecutive samples, crosses a band boundary: the boundary, the distance (0.1 m), whether the height is rising or falling along the line, and the position. Kilometres of line in each band come from the same piecewise linear profile",
         "Land cover runs: consecutive samples with one class make a run that starts and ends halfway to the neighbouring samples (at the line's ends for the first and last); every class's share of the line length is stored",
-        "Valley floor: the contiguous samples around the lowest sample of the line whose elevation is at most 2,200 m, the upper limit of the published valley floor (1800 to 2200 m, SCI-19); stored with from and to distances (halfway to the neighbouring samples, or the line's end), length and elevation range",
-        "Acceptance checks, all stored with the bundle: the ends of the meridian equal the brief's 31.709028 N and 31.600972 N to 6 decimals; every sample lies inside the frozen polygon; sample distances rise by 30 m except the last interval; every elevation is a number; the 90th percentile of the absolute differences between the stored elevations and the heights of the native 1 arc-second DEM tile (bilinear in longitude and latitude), over every sample of each line, is at most 4.0 m, with the largest difference and where it lies stored; the band of every sample is compared with the strata raster, counting separately the samples that differ and the samples whose 10 m cell lies outside the strata mask; band crossings and kilometres in band recomputed from the stored samples; two runs give identical files apart from the computed time"
+        "Valley floor (only where the place configuration gives valleyFloor.maxElevationM): the contiguous samples around the lowest sample of the line whose elevation is at most that value, the upper limit of a published valley floor range named in the configuration; stored with from and to distances (halfway to the neighbouring samples, or the line's end), length and elevation range. Without it the line has no valley floor segment",
+        "Acceptance checks, all stored with the bundle: where the configuration registers expected ends, the ends of the meridian equal them to the registered decimals; every sample lies inside the frozen polygon; sample distances rise by 30 m except the last interval; every elevation is a number; the 90th percentile of the absolute differences between the stored elevations and the heights of the native 1 arc-second DEM tile (bilinear in longitude and latitude), over every sample of each line, is at most 4.0 m, with the largest difference and where it lies stored; the band of every sample is compared with the strata raster, counting separately the samples that differ and the samples whose 10 m cell lies outside the strata mask; band crossings and kilometres in band recomputed from the stored samples; two runs give identical files apart from the computed time"
       ],
       "parameters": [
         {
@@ -1554,9 +1725,9 @@
           "name": "height_surface",
           "role": "method",
           "allowed": [
-            "terrain_strata 30 m EPSG:32629 bilinear"
+            "terrain_strata 30 m {analysisCrs} bilinear"
           ],
-          "default": "terrain_strata 30 m EPSG:32629 bilinear"
+          "default": "terrain_strata 30 m {analysisCrs} bilinear"
         }
       ],
       "sensitivitySet": [],
@@ -1599,13 +1770,13 @@
         "A single 2021 land cover map can differ from the ground in other years, and tree cover on the valley floor may include orchards"
       ],
       "standardLimitations": [
-        "A profile is read from a 30 m surface model: trees, buildings, steep walls and radar artefacts distort it, and narrow gorges such as the lower gorge near the outlet are not resolved. Heights are metres above the EGM2008 geoid with the DEM's stated vertical accuracy (Copernicus DEM Product Handbook 5.0).",
+        "A profile is read from a 30 m surface model: trees, buildings, steep walls and radar artefacts distort it, and narrow gorges are not resolved. Heights are metres above the EGM2008 geoid with the DEM's stated vertical accuracy (Copernicus DEM Product Handbook 5.0).",
         "Samples are 30 m apart, so a band crossing or a land cover boundary is placed to within about 15 m, and a feature narrower than 30 m can fall between samples.",
-        "Land cover is ESA WorldCover 2021 at 10 m, a single 2021 map applied to the line: tree cover on the valley floor may include orchards, and no class is a pasture, agdal or management unit.",
+        "Land cover is ESA WorldCover 2021 at 10 m, a single 2021 map applied to the line: tree cover may include planted or irrigated trees as well as natural woodland, and no class is a pasture or management unit.",
         "An elevation band is a stratum that organises sampling, cut from the elevation distribution of the catchment; it is not a vegetation type, a grazing zone or a management boundary.",
-        "The valley floor segment follows the published elevation range of the valley floor (1800 to 2200 m, SCI-19); it is not a measured flat bottom.",
-        "The valley axis is the longest flow path of a D8 network, which follows the main river, not the centre line of the valley; its profile inherits the limits of the drainage network, including places where the surface rises along the line.",
-        "The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary."
+        "Where a valley floor range is configured, the valley floor segment follows that published range; it is not a measured flat bottom.",
+        "The valley axis is the longest flow path of a D8 network, which follows the main channel, not the centre line of the valley; its profile inherits the limits of the drainage network, including places where the surface rises along the line.",
+        "The catchment is a hydrological analysis extent, not a pasture or management boundary."
       ],
       "allowedComponents": [
         "cross-section",
@@ -1851,9 +2022,9 @@
       "registration": "Full entry registered 2026-10-29, before this pipeline wrote any relief layer. The surface is not a new computation: it is the 30 m EPSG:32629 grid that place_config.elevation_grid(pad_cells=1) already gives to the terrain strata, the drainage network vertices and the transect samples, written out so the interface draws relief from the case record and never reads or resamples a DEM. No hypothesis is tested.",
       "postHocNote": "Version 1.0.1 (2026-10-29) changes the vertex check after the first build of 1.0.0 failed it. 1.0.0 rounded the interpolated height to 0.1 m and required it to differ from every stored vertex or sample height by at most 0.05 m; 70 of the 20,785 drainage vertices differed by exactly 0.1 m (none of the 2,030 transect samples did). Their unrounded interpolated heights lie within 0.01 m of a rounding tie (0.05 m past a multiple of 0.1 m): the drainage builder interpolated at coordinates before rounding them to 7 decimals (about 1 cm), then rounded the height to 0.1 m, so the two roundings fall on different sides of the tie. 1.0.1 compares the unrounded interpolated height with the stored height and allows 0.06 m (half a rounding step plus 0.01 m for the coordinate rounding); the largest unrounded difference of the first build was 0.054 m. The surface, its cells and every other check are unchanged.",
       "formula": [
-        "Surface: the Copernicus DEM GLO-30 (2021) tile resampled once, bilinear, to the 30 m EPSG:32629 grid whose cells are aligned with the 10 m analysis grid and which has 1 extra cell on every side (place_config.elevation_grid with pad_cells 1, DEM checksum pinned in the place configuration); heights in metres above the EGM2008 geoid, float32, not rounded",
+        "Surface: the Copernicus DEM GLO-30 (2021) tile resampled once, bilinear, to the 30 m {analysisCrs} grid whose cells are aligned with the 10 m analysis grid and which has 1 extra cell on every side (place_config.elevation_grid with pad_cells 1, DEM checksum pinned in the place configuration); heights in metres above the EGM2008 geoid, float32, not rounded",
         "Kept cells: every 30 m cell that holds the centre of at least one 10 m analysis cell inside the frozen polygon (the cells the strata raster repeats), and every cell within one cell of those in any direction (the ring the profile and drainage heights are interpolated from); all other cells are nodata (-9999.0)",
-        "Asset: one-band float32 cloud-optimised GeoTIFF in EPSG:32629 on that grid, DEFLATE with floating-point predictor, nodata -9999.0, with its transform and shape stored in the collection; the inside-polygon test is the separate frozen geometry asset, never a second band",
+        "Asset: one-band float32 cloud-optimised GeoTIFF in {analysisCrs} on that grid, DEFLATE with floating-point predictor, nodata -9999.0, with its transform and shape stored in the collection; the inside-polygon test is the separate frozen geometry asset, never a second band",
         "Summary: counts of kept cells and of cells inside the polygon; lowest, highest and mean height of the inside cells and of the native 1 arc-second tile within the polygon; the three elevation band boundaries and the share of inside cells in each band as in the strata bundle",
         "Acceptance checks, all stored with the bundle: the stored surface repeated 3 x 3 onto the 10 m grid equals place_config.elevation() on every cell inside the polygon (0 cells differ); the heights bilinear-interpolated from the stored surface equal every vertex height of the drainage network bundle and every sample height of the transects bundle in the bundle folder to within 0.06 m (the interpolated height is not rounded; the stored heights are rounded to 0.1 m); the 90th percentile of the absolute differences between the stored height at each inside cell centre and the native 1 arc-second tile (bilinear in longitude and latitude) is at most 4.0 m, with the largest difference and where it lies stored; no inside cell is nodata; two runs give identical files apart from the computed time"
       ],
@@ -1922,10 +2093,10 @@
         "Trees and buildings raise a surface model above the ground"
       ],
       "standardLimitations": [
-        "The surface is a 30 m surface model, not the ground: trees, buildings, steep walls and radar artefacts distort it, and narrow gorges such as the lower gorge near the outlet are not resolved. Heights are metres above the EGM2008 geoid with the DEM's stated vertical accuracy (Copernicus DEM Product Handbook 5.0).",
-        "Each height is a bilinear resampling of the 1 arc-second tile onto a 30 m grid in EPSG:32629; it is not a measured height at that cell centre, and the 10 m analysis cells inherit the height of their 30 m cell.",
+        "The surface is a 30 m surface model, not the ground: trees, buildings, steep walls and radar artefacts distort it, and narrow gorges are not resolved. Heights are metres above the EGM2008 geoid with the DEM's stated vertical accuracy (Copernicus DEM Product Handbook 5.0).",
+        "Each height is a bilinear resampling of the 1 arc-second tile onto a 30 m grid in {analysisCrs}; it is not a measured height at that cell centre, and the 10 m analysis cells inherit the height of their 30 m cell.",
         "The cells outside the catchment that the layer keeps are a one-cell ring for interpolation near the boundary; they are not part of the analysis area.",
-        "The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary."
+        "The catchment is a hydrological analysis extent, not a pasture or management boundary."
       ],
       "allowedComponents": [
         "relief",
@@ -1975,8 +2146,8 @@
       ],
       "registration": "Full entry registered 2026-10-29, before this pipeline wrote any land cover layer. It is the WorldCover 2021 class map already placed on the 10 m analysis grid (place_config.land_cover, checksum pinned in the place configuration) and clipped to the frozen polygon, with the class table the interface needs. No hypothesis is tested; the classes are a 2021 context map, not pasture types.",
       "formula": [
-        "Layer: the WorldCover 2021 v200 class code of each 10 m analysis cell (nearest neighbour from the 10 m product, EPSG:32629), 0 outside the frozen polygon; uint8 cloud-optimised GeoTIFF, DEFLATE, nodata 0, on the analysis grid of the strata bundle",
-        "Class table: for each class present inside the polygon, its code, name, number of 10 m cells, area in km2 (cells times 100 m2 in EPSG:32629) and share of the cells inside the polygon, to 4 decimals; the table lists the configured classes (10, 20, 30, 40, 50, 60, 80) and any other class found, which stops the build",
+        "Layer: the WorldCover 2021 v200 class code of each 10 m analysis cell (nearest neighbour from the 10 m product, {analysisCrs}), 0 outside the frozen polygon; uint8 cloud-optimised GeoTIFF, DEFLATE, nodata 0, on the analysis grid of the strata bundle",
+        "Class table: for each class present inside the polygon, its code, name, number of 10 m cells, area in km2 (cells times 100 m2 in {analysisCrs}) and share of the cells inside the polygon, to 4 decimals; the table lists the configured classes (10, 20, 30, 40, 50, 60, 80) and any other class found, which stops the build",
         "Groups: the configured land cover groups with their classes and combined share, as in the place configuration",
         "Acceptance checks, all stored with the bundle: the class counts sum to the number of 10 m cells inside the polygon (the analysis grid mask); every cell inside the polygon has a class (no 0 inside); no class outside the configured list; cropland plus built-up cells equal the excluded layer of the strata raster; the layer read back from the stored file equals the placed WorldCover grid cell for cell; two runs give identical files apart from the computed time"
       ],
@@ -2014,9 +2185,9 @@
       ],
       "standardLimitations": [
         "ESA WorldCover 2021 is a single 2021 map classified from satellite data at 10 m: its classes can differ from the ground, and the class of one cell is not a field observation.",
-        "Tree cover on the valley floor may include orchards; cropland is a small share of the catchment in this map (the class 'cropland or built-up' is excluded from the sampling strata, never read as low vegetation). No class is a pasture, agdal or management unit.",
-        "Areas are cell counts times 100 m2 in EPSG:32629, not geodesic areas, and cells on the polygon's boundary are counted where their centre lies inside it.",
-        "The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary."
+        "The class 'cropland or built-up' is excluded from the sampling strata, never read as low vegetation. No class is a pasture or management unit. The place configuration states what the map shows for this place about tree cover and cropland.",
+        "Areas are cell counts times 100 m2 in {analysisCrs}, not geodesic areas, and cells on the polygon's boundary are counted where their centre lies inside it.",
+        "The catchment is a hydrological analysis extent, not a pasture or management boundary."
       ],
       "allowedComponents": [
         "land cover layer",

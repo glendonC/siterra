@@ -3,7 +3,7 @@
 // checked against its SHA-256 first; nothing is filled in that the seed does not state.
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import {
   CaseSnapshot,
   ContextFeature,
@@ -30,6 +30,8 @@ export const CaseCopy = z.object({
   objective: z.string().min(1),
   description: z.string().min(1),
   unresolvedQuestions: z.array(z.string().min(1)),
+  /** The place and region the case is about, stored in the record (contracts 1.18.0). */
+  place: z.object({ name: z.string().min(1), region: z.string().min(1) }).optional(),
 });
 export type CaseCopy = z.infer<typeof CaseCopy>;
 
@@ -95,9 +97,8 @@ const ContextFeaturesFile = z.object({
   ),
 });
 
-const contextFeaturesPath = "data/case/context-features.json";
-const measurementRowsPath = "data/case/measurement-rows.json";
-const evidenceStatementsPath = "data/case/evidence-statements.json";
+/** The folder of the first place's seed; another place's seed folder holds files of the same names. */
+export const defaultSeedDir = "data/case";
 
 function sha256File(path: string): string {
   return createHash("sha256").update(readFileSync(path)).digest("hex");
@@ -114,9 +115,15 @@ export type CaseSeedResult = {
   blocked: BlockedInstrument[];
 };
 
-/** Builds the seed records from the repository at repoDir. */
+/**
+ * Builds the seed records from the repository at repoDir. The seed is read from seedDir (case.json,
+ * context-features.json, measurement-rows.json, evidence-statements.json); every other file the
+ * case names is a path from repoDir.
+ */
 export function readCaseSeed(args: {
   repoDir: string;
+  /** The folder of the case's seed files, from repoDir or absolute; data/case when absent. */
+  seedDir?: string;
   /** Overrides the copy in case.json; tests only. */
   copy?: CaseCopy;
   /** Defaults to concept; live is refused until GATE-01 is recorded (live-mode.ts). */
@@ -133,13 +140,16 @@ export function readCaseSeed(args: {
   const issues: ImportIssue[] = [];
   const issue = (path: string, message: string) =>
     issues.push({ bundleId: "case seed", path, message });
-  const file = CaseSeedFile.parse(
-    JSON.parse(readFileSync(join(args.repoDir, "data/case/case.json"), "utf8")),
-  );
+  const seedDir = args.seedDir ?? defaultSeedDir;
+  const seedFile = (name: string) => resolve(args.repoDir, seedDir, name);
+  const contextFeaturesPath = `${seedDir}/context-features.json`;
+  const measurementRowsPath = `${seedDir}/measurement-rows.json`;
+  const evidenceStatementsPath = `${seedDir}/evidence-statements.json`;
+  const file = CaseSeedFile.parse(JSON.parse(readFileSync(seedFile("case.json"), "utf8")));
   const copy = args.copy ?? file.case;
   if (copy === undefined) {
     throw new Error(
-      "data/case/case.json has no case object with the case title, objective and description",
+      `${seedDir}/case.json has no case object with the case title, objective and description`,
     );
   }
   const g = file.geoSelection;
@@ -232,7 +242,7 @@ export function readCaseSeed(args: {
 
   // Recipe results: each row names a number in a bundle asset, and the loader copies it.
   const rowsFile = MeasurementRowsFile.parse(
-    JSON.parse(readFileSync(join(args.repoDir, measurementRowsPath), "utf8")),
+    JSON.parse(readFileSync(seedFile("measurement-rows.json"), "utf8")),
   );
   if (rowsFile.caseId !== file.caseId) {
     issue(measurementRowsPath, `Measurement rows are for ${rowsFile.caseId}, not ${file.caseId}`);
@@ -252,7 +262,7 @@ export function readCaseSeed(args: {
   });
 
   const contextFile = ContextFeaturesFile.parse(
-    JSON.parse(readFileSync(join(args.repoDir, contextFeaturesPath), "utf8")),
+    JSON.parse(readFileSync(seedFile("context-features.json"), "utf8")),
   );
   if (contextFile.caseId !== file.caseId) {
     issue(
@@ -308,7 +318,7 @@ export function readCaseSeed(args: {
   contextFeatures.push(...lines.features);
 
   const statementsFile = EvidenceStatementsFile.parse(
-    JSON.parse(readFileSync(join(args.repoDir, evidenceStatementsPath), "utf8")),
+    JSON.parse(readFileSync(seedFile("evidence-statements.json"), "utf8")),
   );
   if (statementsFile.caseId !== file.caseId) {
     issue(
@@ -361,6 +371,7 @@ export function readCaseSeed(args: {
     updatedAt: at,
     title: copy.title,
     objective: copy.objective,
+    ...(copy.place === undefined ? {} : { place: copy.place }),
     status: "draft",
     mode,
     ownerScopeId: args.ownerScopeId,

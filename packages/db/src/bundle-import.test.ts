@@ -67,6 +67,124 @@ function copyCatalog(): string {
   return dir;
 }
 
+describe("a catalog shared by several places", () => {
+  function withOtherPlaceBundle(geoRevision: number): string {
+    const dir = copyCatalog();
+    const other = join(dir, "bundle_relief_other_place");
+    cpSync(join(dir, "bundle_relief_ait_bouguemez"), other, { recursive: true });
+    const collectionPath = join(other, "collection.json");
+    const collection = readJson(collectionPath);
+    collection["id"] = "bundle_relief_other_place";
+    collection["siterra:geo_selection"] = {
+      ...(collection["siterra:geo_selection"] as Json),
+      id: "geo_other_place_catchment",
+      revision: geoRevision,
+    };
+    writeFileSync(collectionPath, `${JSON.stringify(collection, null, 2)}\n`);
+    const catalogPath = join(dir, "catalog.json");
+    const catalog = readJson(catalogPath);
+    const links = catalog["links"] as Json[];
+    const template = links.find(
+      (l) => l["rel"] === "child" && String(l["href"]).includes("bundle_relief_ait_bouguemez"),
+    ) as Json;
+    links.push({
+      ...template,
+      href: "./bundle_relief_other_place/collection.json",
+      "file:checksum": sha256Multihash(readFileSync(collectionPath)),
+    });
+    writeFileSync(catalogPath, `${JSON.stringify(catalog, null, 2)}\n`);
+    return dir;
+  }
+
+  function withBundleFile(text: string): string {
+    const dir = copyCatalog();
+    const broken = join(dir, "bundle_relief_broken");
+    cpSync(join(dir, "bundle_relief_ait_bouguemez"), broken, { recursive: true });
+    const collectionPath = join(broken, "collection.json");
+    writeFileSync(collectionPath, text);
+    const catalogPath = join(dir, "catalog.json");
+    const catalog = readJson(catalogPath);
+    const links = catalog["links"] as Json[];
+    const template = links.find(
+      (l) => l["rel"] === "child" && String(l["href"]).includes("bundle_relief_ait_bouguemez"),
+    ) as Json;
+    links.push({
+      ...template,
+      href: "./bundle_relief_broken/collection.json",
+      "file:checksum": sha256Multihash(readFileSync(collectionPath)),
+    });
+    writeFileSync(catalogPath, `${JSON.stringify(catalog, null, 2)}\n`);
+    return dir;
+  }
+
+  it("does not skip a collection it cannot read: the import stops on it instead of passing over it", () => {
+    expect(() => importCatalog({ ...context, catalogDir: withBundleFile("{ not json") })).toThrow();
+  });
+
+  it("does not skip a collection whose GeoSelection has no text id, so the case reports it", () => {
+    const collection = readJson(join(catalogDir, "bundle_relief_ait_bouguemez", "collection.json"));
+    collection["id"] = "bundle_relief_broken";
+    collection["siterra:geo_selection"] = {
+      ...(collection["siterra:geo_selection"] as Json),
+      id: 7,
+    };
+    const result = importCatalog({
+      ...context,
+      catalogDir: withBundleFile(JSON.stringify(collection)),
+    });
+    expect(result.issues.length).toBeGreaterThan(0);
+    expect(result.bundles.map((b) => b.dataBundle.id)).not.toContain("bundle_relief_broken");
+  });
+
+  it("leaves out the bundles of another place's GeoSelection without an issue", () => {
+    const result = importCatalog({ ...context, catalogDir: withOtherPlaceBundle(1) });
+    expect(result.issues).toEqual([]);
+    const ids = result.bundles.map((b) => b.dataBundle.id);
+    expect(ids).toContain("bundle_relief_ait_bouguemez");
+    expect(ids).not.toContain("bundle_relief_other_place");
+  });
+
+  it("does not let a stale checksum of another place's bundle block this case", () => {
+    const dir = withOtherPlaceBundle(1);
+    const collectionPath = join(dir, "bundle_relief_other_place", "collection.json");
+    const collection = readJson(collectionPath);
+    writeFileSync(
+      collectionPath,
+      `${JSON.stringify({ ...collection, title: "Changed" }, null, 2)}\n`,
+    );
+    expect(importCatalog({ ...context, catalogDir: dir }).issues).toEqual([]);
+    const own = importCatalog({
+      ...context,
+      catalogDir: dir,
+      geoSelections: [{ ...geoSelection, id: "geo_other_place_catchment" }],
+    });
+    expect(own.issues.map((i) => i.message)).toContain(
+      "file:checksum does not match ./bundle_relief_other_place/collection.json",
+    );
+  });
+
+  it("imports the bundles of the case's own GeoSelection and one of the other place when that is the case's", () => {
+    const own = importCatalog({
+      ...context,
+      catalogDir: withOtherPlaceBundle(1),
+      geoSelections: [{ ...geoSelection, id: "geo_other_place_catchment" }],
+    });
+    expect(own.issues).toEqual([]);
+    expect(own.bundles.map((b) => b.dataBundle.id)).toEqual(["bundle_relief_other_place"]);
+  });
+
+  it("still refuses a bundle that names this case's GeoSelection at another revision", () => {
+    const result = importCatalog({
+      ...context,
+      catalogDir: copyCatalog(),
+      geoSelections: [{ ...geoSelection, revision: 2 }],
+    });
+    expect(result.issues.map((i) => i.message)).toContain(
+      "The case has no GeoSelection geo_ait_bouguemez_catchment revision 1",
+    );
+  });
+});
+
 describe("period bounds", () => {
   it("derive the month, its exclusive end and the inclusive STAC bounds", () => {
     expect(periodBounds("period_2024-02")).toEqual({
@@ -86,7 +204,13 @@ describe("SV-01 (import part): bundles import with verified checksums and values
     expect(result.issues).toEqual([]);
     const catalog = readJson(join(catalogDir, "catalog.json"));
     const children = (catalog["links"] as Json[]).filter((l) => l["rel"] === "child");
-    expect(result.bundles).toHaveLength(children.length);
+    const own = children.filter((l) => {
+      const collection = readJson(join(catalogDir, String(l["href"])));
+      return (collection["siterra:geo_selection"] as Json)["id"] === geoSelection.id;
+    });
+    expect(own.length).toBeGreaterThan(0);
+    expect(own.length).toBeLessThan(children.length);
+    expect(result.bundles).toHaveLength(own.length);
     // Revision 14 states a reason on the two excluded leave-one-year-out entries of available
     // periods (extension 1.1.0); the importer takes the entry's own reason.
     const departure = result.bundles.find(

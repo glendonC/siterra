@@ -34,6 +34,7 @@ Command and outbox rows are inserted in one transaction; the dispatcher enqueues
 | `POST /api/commands/:id/cancel` | Cooperative cancellation |
 | `POST /api/cases/:id/reviews` | Role, exact entity versions, decision, conditions, mode; stale versions rejected |
 | `GET /api/cases/:id/trace?commandId=` | Spans and events for the trace inspector, sanitized |
+| `GET /api/seed-cases` | The seed cases a demo session can start, read from their own records; public ([seed cases](../reference/data-contracts.md#seed-cases)) |
 
 Same-origin secure HttpOnly session cookies; ownership checked on every request including the stream and static case assets. A public demo session gets an isolated copy of the seed case with quotas and expiry. No external-action endpoints exist.
 

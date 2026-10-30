@@ -19,6 +19,7 @@ export * from "./map-assets.ts";
 export * from "./migrate.ts";
 export * from "./outbox.ts";
 export * from "./reviews.ts";
+export * from "./seed-cases.ts";
 export * from "./seed.ts";
 export * from "./sessions.ts";
 export * from "./snapshot.ts";

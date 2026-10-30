@@ -1,0 +1,314 @@
+{
+  "placeId": "calaveras_creek",
+  "title": "Calaveras Creek catchment",
+  "areaNoun": "creek catchment",
+  "note": "Place configuration read by the long-record pipeline scripts. Everything that is specific to one place lives here; the scripts hold none of it. A value changed here after a result was read is a new configuration revision labelled post hoc in the recipe result. This is the second place built through the pipeline (the first is Ait Bouguemez); every window, rule and threshold below was written before any MODIS, CHIRPS or Sentinel value of this catchment was read, and before any land cover, strata or trend of it was computed.",
+  "configRevision": 11,
+  "revisions": [
+    {"revision": 1, "date": "2026-10-30", "change": "First configuration: the frozen geometry and its delineation rule, the analysis grid, the DEM pin, the land cover source and read window, the rainfall window, the strata layers with the reservoir zone rule, and the restrend_long_record, snow_cover_by_band, pixel_trend_long_record and season_trend_long_record windows with their basis. Strata, land cover and drainage checksums are pinned in later revisions, after those layers are built."},
+    {"revision": 2, "date": "2026-10-30", "change": "POST HOC to revision 1, made after the revision 1 reservoir zone had been drawn and inspected and before any trend, rainfall or season value of this catchment was computed: the zone is now the largest connected WorldCover water body plus 250 m instead of every water body plus 250 m. The revision 1 rule gave a zone of 8.05 per cent of the catchment, made mostly of 250 m circles around 72 small stock ponds (73 connected water bodies, the largest 4.56 km2 of 4.84 km2 of mapped water), which is not the reservoir basin the rule was written for. Nothing else changed."},
+    {"revision": 3, "date": "2026-10-30", "change": "Pinned the land cover layer and the strata layer by checksum after they were built from revision 2 (strata.tif has the four bands described by the strata block). No value of revision 1 or 2 changed."},
+    {"revision": 4, "date": "2026-10-30", "change": "Made the snow applicability check runnable by snow-bundle.py: snow_cover_by_band.sampleMonthsFrom names the sample, and the sample's limitations are written here. The sample months, rule and decision threshold are those of revision 1, unchanged, and no MOD10A1 value of this catchment had been read."},
+    {"revision": 5, "date": "2026-10-30", "change": "Added a documentary basis to the restrend_long_record window rationale: the SFPUC Alameda Creek Watershed Rangeland Management Plan (March 2026, read in full on 2026-10-30) states that the majority of rainfall in the watershed falls between October and April, which is the rainfall window registered in revision 1. Text only; no window, month or threshold changed, and no MODIS or CHIRPS value of this catchment had been read."},
+    {"revision": 6, "date": "2026-10-30", "change": "Added drainage_network (the conditioned flow direction and fill depth rasters of the catchment freeze and their report, pinned by checksum, the freeze input point and the registered height surface), written before this pipeline built any drainage segment. The rasters are the ones the freeze wrote (identical on a second run). No value of revisions 1 to 5 changed."},
+    {"revision": 7, "date": "2026-10-30", "change": "POST HOC to revision 1: the frozen catchment is replaced by geometry revision 2, made after the drainage network recompute check failed on revision 1 and before any trend, rainfall or season value of this catchment was computed. Revision 1 was the pysheds catchment function's cells (339,432); the same flow direction raster, traced cell by cell with the public D8 functions that the drainage builder uses, has 339,447 cells that reach the outlet (the 15 cells the pysheds function left out are boundary cells, 0.014 km2). Revision 2 is the D8 trace, polygonized 4-connected with the largest piece kept (the outlet cell, joined to the catchment only diagonally, is the one cell left out), 257.455 km2 geodesic, 0.57 per cent above the 256 km2 USGS publishes. The conditioned rasters are unchanged. The strata, land cover and relief layers were rebuilt on the new geometry and their checksums replaced here."},
+    {"revision": 8, "date": "2026-10-30", "change": "Added each trend recipe's own limitations (recipes.<recipe>.limitations): the registry's standard limitations for restrend_long_record, pixel_trend_long_record and season_trend_long_record name the first place (agdal closure, spiny xerophytic vegetation, snow on upper slopes, gauges in the valley), so this place states its own, keeping the registry's place-independent bullets word for word. Text only: written after the restrend and season trend bundles were first built from the registry's text; those bundles are rebuilt with these limitations and no number in them changes."},
+    {"revision": 9, "date": "2026-10-30", "change": "Stated this place's own wording for land_cover_classes and drainage_network where the registry's would name another place (cropland and built-up shares, the reservoir and canopy, grazing lease, the conditioning window and freeze). No value changed. The unread rainfall.tileSizePx key (512; chirps_fetch.py and chirps-bundle.py fix the CHIRPS tile at 512 in code) was dropped."},
+    {"revision": 10, "date": "2026-10-30", "change": "Added pixel_seasons (registry 1.12.0) for this place by the rule of the first place, written before any Calaveras season value was stored. No value of revision 1 to 9 changed."},
+    {"revision": 11, "date": "2026-10-30", "change": "Added terrain_transects (registry 1.14.0, version 1.1.0) for this place: a north-south section through the centroid of the reservoir, the long profile along the longest flow path of the drainage network, no valley floor, and the place's own limitations. Written before any Calaveras profile was sampled; the point is derived from the land cover layer by the rule stated in the block. (Revision 10 added pixel_seasons.)"}
+  ],
+  "geometry": {
+    "id": "geo_calaveras_creek_catchment",
+    "revision": 2,
+    "boundaryRole": "hydrological_unit",
+    "label": "Creek catchment (hydrological analysis extent), not a grazing lease, parcel or management boundary",
+    "path": "science/places/calaveras-creek.geometry.geojson",
+    "sha256": "745fb73a2dadb7284074eb6c0b607f390975a70592a7d968588ea083882faa9d",
+    "delineationRule": "Cells that drain to the USGS stream gauge 11173500 (Calaveras Creek near Sunol, input point 37.50194444 N, 121.8183333 W from the USGS site service), on Copernicus DEM GLO-30 (2021) conditioned by fill_pits, fill_depressions and resolve_flats, D8 flow direction, the input point snapped to the maximum flow accumulation within 120 m (geodesic, cell centres), the catchment polygonized 4-connected, dissolved, largest piece kept. Accepted only if its geodesic area is within 5 per cent of the 256 km2 USGS publishes for the gauge (written before the delineation was run). Revision 1 result: 257.44 km2 geodesic. Revision 2 (see configuration revision 7) takes the catchment as every cell whose D8 path reaches the snapped outlet on the same conditioned flow direction, because the catchment function and the flow direction disagreed by 15 cells: 257.455 km2 geodesic, 0.57 per cent above the published area.",
+    "attribution": [
+      "Catchment derived by Siterra from Copernicus DEM GLO-30 (2021 release)",
+      "Produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved",
+      "The organisations in charge of the Copernicus programme by law or by delegation do not incur any liability for any use of the Copernicus WorldDEM-30"
+    ],
+    "licenceLinks": [
+      {
+        "href": "https://dataspace.copernicus.eu/sites/default/files/media/files/2025-06/copernicus_contributing_mission_data_access_v2_cop_dem_licenses.pdf",
+        "title": "Licence for Copernicus DEM instance COP-DEM-GLO-30-F Global 30m Full, Free & Open (analysis geometry and strata)"
+      }
+    ]
+  },
+  "analysisCrs": "EPSG:32610",
+  "analysisGridM": 10,
+  "strata": {
+    "bundle": "bundle_terrain_strata_calaveras_creek",
+    "asset": "strata.tif",
+    "sha256": "1f3a4bbcbb1d2ca22cc2e5ede99e220d26d21bed4561b0623a8b93edbcae3a15",
+    "layers": [
+      {
+        "band": 1,
+        "name": "elevation_band",
+        "classes": {"1": "elevation_low", "2": "elevation_mid", "3": "elevation_high"},
+        "labelsFromBundleParameter": "boundaries_m"
+      },
+      {
+        "band": 2,
+        "name": "aspect_class",
+        "classes": {"1": "aspect_north", "2": "aspect_east", "3": "aspect_south", "4": "aspect_west", "5": "aspect_level"},
+        "labels": {"1": "north-facing", "2": "east-facing", "3": "south-facing", "4": "west-facing", "5": "level (slope below 5 degrees)"}
+      },
+      {
+        "band": 4,
+        "name": "reservoir_zone",
+        "classes": {"1": "reservoir_zone", "2": "outside_reservoir_zone"},
+        "labels": {"1": "within 250 m of mapped reservoir water", "2": "farther than 250 m from mapped reservoir water"}
+      }
+    ],
+    "excludedBand": 3,
+    "excludedLabel": "WorldCover 2021 cropland or built-up",
+    "waterZone": {
+      "band": 4,
+      "worldcoverClasses": [80],
+      "bufferM": 250,
+      "selection": "largest_connected_body",
+      "connectivity": 8,
+      "rationale": "Calaveras Dam was declared seismically unsafe in 2001, the reservoir was held at a fraction of its capacity, the replacement dam was built from 2011 and the reservoir was refilled afterwards (search results from SFPUC and Regional Water Board documents on 30 Oct 2026; refill years not confirmed). Greenness on ground that was exposed or flooded in different years is not comparable with the rest of the catchment, so the reservoir zone is a stratum of its own and the headline trends are also reported outside it. The zone is the largest connected (8-neighbour) WorldCover 2021 permanent water body inside the catchment plus 250 m (one MODIS pixel); revision 1 used every water body and was changed in revision 2, see the revision list. The largest body is taken to be Calaveras Reservoir from its size (4.56 km2) and its position at the catchment's downstream end; that identification was not checked against a source."
+    },
+    "limitations": [
+      "The DEM is a surface model: trees and buildings raise it; radar artefacts are possible in narrow gorges.",
+      "WorldCover 2021 is a 2021 context mask, not a record of earlier land cover: oak woodland and savanna may be mapped as tree cover or as grassland, and the reservoir is mapped as the water seen in 2021 imagery.",
+      "Strata organize field sampling; they are not vegetation types, pasture units or management boundaries.",
+      "The reservoir zone is the largest mapped water body plus 250 m. It removes the reservoir basin only approximately and says nothing about the water level in any year; small stock ponds are not in it."
+    ]
+  },
+  "elevation": {
+    "dem": "Copernicus DEM GLO-30, 2021 release",
+    "url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N37_00_W122_00_DEM/Copernicus_DSM_COG_10_N37_00_W122_00_DEM.tif",
+    "sha256": "15d21273ae3d94c3ef19aa6abaef47d5f78bf4ac24e682d131c01bb8b5101db2",
+    "bytes": 47669564,
+    "etag": "3511fc51aad7c82e5b25fb6576e8b3da",
+    "gridM": 30,
+    "resampling": "bilinear"
+  },
+  "landCover": {
+    "dataset": "ESA WorldCover 10 m 2021 v200",
+    "source": "https://esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N36W123_Map.tif",
+    "path": "data/interim/worldcover-calaveras/worldcover-2021.tif",
+    "sha256": "377daac6443d540d4734e8d9170b0779258366c33fcb123cce6d45fcf56a95af",
+    "readWindow": [-121.92, 37.20, -121.44, 37.56],
+    "readWindowRule": "the catchment bounding box (-121.86653, 37.25764, -121.49486, 37.50708) widened by 0.05 degrees and rounded outward to 0.01 degrees",
+    "madeBy": "science/pipeline/worldcover-grid.py: the tile read by HTTP range request (no account), nearest neighbour onto the analysis grid",
+    "classes": {"10": "tree cover", "20": "shrubland", "30": "grassland", "40": "cropland", "50": "built-up", "60": "bare or sparse vegetation", "80": "permanent water"},
+    "groups": [
+      {"id": "lc_grazing_possible", "classes": [20, 30, 60], "label": "grassland, shrubland, or bare or sparse vegetation (land cover that can carry grazing; not a pasture map)"},
+      {"id": "lc_grassland", "classes": [30], "label": "grassland"},
+      {"id": "lc_bare_sparse", "classes": [60], "label": "bare or sparse vegetation"},
+      {"id": "lc_shrubland", "classes": [20], "label": "shrubland"},
+      {"id": "lc_tree_cover", "classes": [10], "label": "tree cover (may include oak woodland and savanna, which can also be grazed)"},
+      {"id": "lc_cropland_built", "classes": [40, 50], "label": "cropland or built-up"}
+    ],
+    "attribution": [
+      "© ESA WorldCover project / Contains modified Copernicus Sentinel data (2021) processed by ESA WorldCover consortium",
+      "ESA WorldCover 10 m 2021 v200, Zanaga et al. (2022), https://doi.org/10.5281/zenodo.7254221, CC BY 4.0"
+    ],
+    "licence": {"href": "https://creativecommons.org/licenses/by/4.0/", "title": "ESA WorldCover 2021 v200: CC BY 4.0"}
+  },
+  "rainfall": {
+    "dataset": "CHIRPS v3.0 monthly final",
+    "rawWindow": {"row0": 447, "row1": 456, "col0": 1160, "col1": 1172},
+    "rawWindowRule": "the CHIRPS 0.05 degree cells that touch the catchment bounding box (rows 449 to 454, columns 1162 to 1170 of the 7200 x 2400 grid whose origin is 180 W, 60 N) plus a two-cell margin, as for the first place",
+    "monthlyBundle": "bundle_chirps_monthly_calaveras_creek",
+    "resolutionNote": "Native 0.05 degree grid, about 4.4 km east to west by 5.5 km north to south here",
+    "gaugeNote": "No rain gauge in or near the catchment was compared with these values.",
+    "independentRecompute": {
+      "year": 2022, "month": 4,
+      "urlTemplate": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/tifs/chirps-v3.0.{year}.{month:02d}.tif",
+      "regionName": "global",
+      "bounds": [-122.0, 37.10, -121.40, 37.70]
+    }
+  },
+  "recipes": {
+    "restrend_long_record": {
+      "seasonYears": [2000, 2025],
+      "growingWindows": [
+        {"id": "feb_may", "months": [2, 3, 4, 5], "primary": true},
+        {"id": "jan_apr", "months": [1, 2, 3, 4]},
+        {"id": "mar_jun", "months": [3, 4, 5, 6]}
+      ],
+      "rainfallWindows": [
+        {"id": "oct_apr", "start": {"month": 10, "yearOffset": -1}, "end": {"month": 4, "yearOffset": 0}, "primary": true}
+      ],
+      "strata": ["catchment", "elevation_band", "aspect_class", "reservoir_zone"],
+      "limitations": [
+        "The rainfall-adjusted residual still holds everything else that changes greenness: temperature, water management and reservoir level, grazing, fire, changes in tree cover, land use, and sensor or orbit changes. It is not a measure of grazing impact or of degradation.",
+        "Trend methods can miss real change: in simulations for southern Africa, 30 to 40% degradation was needed before a trend showed under a rainfall-driven increase, and the residual method broke down at about 20% degradation (Wessels et al. 2012). An interval that includes zero is not evidence of no change.",
+        "Each 250 m MODIS pixel mixes surfaces; stratum values weight pixels by how much of the stratum falls inside them, so a mixed pixel counts toward more than one stratum.",
+        "Rainfall comes from 5 km CHIRPS grid cells, not from gauges in the catchment, and the rainfall total is the area-weighted value of 23 cells many of which only partly lie inside it.",
+        "Each stratum and window pair has its own interval. With many shown together, some intervals will exclude zero by arithmetic chance alone.",
+        "Terra's overpass has drifted earlier since 2020, from 10:30 to about 9:06 mean local time by December 2025 (NASA): later seasons are seen with a lower sun and longer shadows in hilly terrain, which may shift NDVI without any change on the ground.",
+        "The windows were fixed before the MODIS values of this catchment were read, and they are the lane's reading of the annual grassland growing season, not figures taken from a source; other windows can give other slopes, which is why all registered windows are stored together.",
+        "The reservoir zone is its own stratum because the water level of Calaveras Reservoir changed over the record (restricted from 2001, the dam replaced from 2011, refilled afterwards; refill years not confirmed). Greenness around the reservoir can change with the water, not with the plants."
+      ],
+      "windowRationale": "Fixed by the science lane on 2026-10-30 before any MODIS NDVI or CHIRPS value of this catchment was read. In a Mediterranean winter-rain climate the annual grasses germinate with the first autumn rains, grow slowly through winter, grow fast in spring and reach their peak standing crop before the dry season (UC ANR Publication 8018, Becchetti et al. 2016, which a search summary describes as naming these phases: break of season with the first fall rains, winter growth, rapid spring growth, peak forage production; the publication itself was not read, so the month boundaries are the lane's reading of the phases and not figures taken from it). February to May is therefore the primary window, spanning the end of winter growth to the peak and the start of drying; January to April is the earlier and March to June the later sensitivity window, and March to June is also the first place's primary window, kept so the two places can be compared. October to April is the rainfall window: it runs from the first autumn rains to the end of the main wet season (Gennet et al. 2017, PLoS ONE, describe the northern Diablo Range as a Mediterranean climate with cool wet winters and hot dry summers and do not give the months). The SFPUC Alameda Creek Watershed Rangeland Management Plan (March 2026), for the lands that drain to Calaveras and San Antonio reservoirs, states that the majority of rainfall occurs between October and April with little to no precipitation in the remainder of the year, and records average precipitation of 10 to 20 inches per year; this was read after the window was registered and agrees with it (revision 5). A single rainfall window is registered; no sensitivity rainfall window was chosen."
+    },
+    "snow_cover_by_band": {
+      "months": ["2001-01", "2025-12"],
+      "elevationBandSets": [
+        {"id": "fixed_500m", "edgesM": [500, 1000], "primary": true},
+        {"id": "terrain_strata", "fromStrataLayer": "elevation_band"}
+      ],
+      "fixedBandRule": "The edges are the multiples of 500 m that lie at least 250 m above the catchment's lowest DEM height and at least 250 m below its highest. The rule was formulated after the first place's edges (2000 to 3500 m, lowest 1465 m, highest 4007 m) were known and reproduces them exactly; for this catchment (147.2 to 1329.5 m) it gives 500 m and 1000 m.",
+      "sampleMonthsFrom": "snowApplicability",
+      "applicability": "This recipe is not run for the full record here. Its use in this place is limited to the pre-registered applicability check in snowApplicability below; the band sets are kept because the pixel and season trend recipes read the fixed band set from this entry."
+    },
+    "snowApplicability": {
+      "note": "Written 2026-10-30 before any MOD10A1 value of this catchment was read. The first place's snow recipe needs 9,300 daily products for 2001 to 2025; the catchment's highest height is 1,330 m in a Mediterranean climate, so the lane checks a sample of winter months before deciding whether the full recipe applies.",
+      "sampleMonths": ["2005-12", "2006-01", "2006-02", "2010-12", "2011-01", "2011-02", "2015-12", "2016-01", "2016-02", "2020-12", "2021-01", "2021-02"],
+      "sampleRule": "December to February of the winters 2005/06, 2010/11, 2015/16 and 2020/21: four winters five years apart across the record",
+      "threshold": {"ndsiSnowCover": 40, "clearProductDays": "MOD10A1 NDSI_Snow_Cover values 0 to 100 only (cloud, no decision and other flag values are not clear)"},
+      "decision": "The snow recipe is recorded as not applicable if, in every elevation band of the fixed band set, fewer than 1 per cent of the clear catchment-pixel-days in the sample have NDSI snow cover of 40 or more. Otherwise the full recipe is run. The decision, its reason and the sample's limits are stored with the result.",
+      "limitations": [
+        "MOD10A1 sees snow only on clear days. Cloudy days are left out, not filled.",
+        "The check covers 12 sample months (December to February of four winters five years apart) and says nothing about other months or winters; snow that fell and melted in an unsampled week would not be seen.",
+        "Each 500 m pixel is called snow-covered or not as a whole; patchy or thin snow can be missed.",
+        "Terra's overpass has drifted earlier since 2020 (NASA), so later years are seen with a lower sun.",
+        "The validation studies of this product that the registry cites were made in the Moroccan Atlas; they are not evidence for this catchment, and no validation for this catchment was done.",
+        "Not applicable means the recipe is not run here because the sample shows almost no snow. It is not a finding that snow never falls in the catchment."
+      ]
+    },
+    "pixel_trend_long_record": {
+      "formulaText": {
+        "8": "Connected areas: 8-connected groups of pixels sharing a false discovery rate direction (primary) or a per-pixel interval direction (sensitivity), of at least minClusterPixels pixels (Calaveras Creek: 4, about 21 ha). For each: pixel count, catchment area in km2, centroid (longitude, latitude) weighted by catchment cells, median elevation of its catchment cells, land cover and aspect shares, median slope and its range. Every downward area is listed; upward areas are counted with the five largest listed",
+        "9": "Display: for each window, the Theil-Sen slope in NDVI per decade averaged into the fixed EPSG:3857 grid of the map overviews (pixelM metres), painted with the light-theme data.ndvi-departure arms on the fixed domain of the configuration (Calaveras Creek: -0.05 to +0.05 per decade, unpainted within 0.0025 of zero, t = (|d| - neutral) / (domain - neutral) clamped to 0..1, opacity 0.10 + 0.70 t, t in steps). No direction or false discovery rate class is drawn on the display"
+      },
+      "seasonYears": [2000, 2025],
+      "growingWindows": [
+        {"id": "feb_may", "months": [2, 3, 4, 5], "primary": true},
+        {"id": "jan_apr", "months": [1, 2, 3, 4]},
+        {"id": "mar_jun", "months": [3, 4, 5, 6]},
+        {"id": "jun_sep", "months": [6, 7, 8, 9]}
+      ],
+      "areaGroups": {
+        "strataLayers": ["elevation_band", "aspect_class", "reservoir_zone"],
+        "elevationBandSet": {"recipe": "snow_cover_by_band", "id": "fixed_500m"},
+        "landCoverGroups": true
+      },
+      "minClusterPixels": 4,
+      "display": {"domainPerDecade": [-0.05, 0.05], "neutralPerDecade": 0.0025, "pixelM": 30, "steps": 16},
+      "limitations": [
+        "Each pixel's interval is one of thousands. With no change anywhere, about 2.5% of pixels would still show an upward and 2.5% a downward interval at the 95% level, so the shares are shown beside a false discovery rate check (Benjamini and Hochberg 1995, q = 0.05) and a rule against drawing pixel-wise significance.",
+        "Neighbouring pixels are not independent: they share weather and sensor effects. A connected area of pixels can arise from one shared cause, and the false discovery rate procedure was proved for independent tests.",
+        "Each 250 m MODIS pixel mixes surfaces. Land cover shares use ESA WorldCover 2021, a single 2021 map, applied to every season.",
+        "NDVI measures how green the ground looks from above, not forage, palatability or species: annual grasses, oak canopy and shrubs all add to it, and the SFPUC plan's residual dry matter target is a different quantity measured on the ground.",
+        "The June to September window is the dry-season half of the season contrast; the lane did not verify which vegetation stays green in it, so a trend in it is not read as a trend in grazed grass.",
+        "These trends are not adjusted for rainfall; restrend_long_record states how closely the place's greenness follows antecedent rain.",
+        "Trend methods can miss real change: in simulations for southern Africa, 30 to 40% degradation was needed before a trend showed under a rainfall-driven increase (Wessels et al. 2012). An interval that includes zero is not evidence of no change.",
+        "Composites keep only pixels flagged good or marginal; winter cloud can leave few usable composites in the January to April window.",
+        "Terra's overpass has drifted earlier since 2020, from 10:30 to about 9:06 mean local time by December 2025 (NASA): later seasons are seen with a lower sun and longer shadows in hilly terrain, which may shift NDVI without any change on the ground.",
+        "Pixels around the reservoir change with the water level (see the reservoir zone); the catchment values include them and the outside-reservoir-zone values do not."
+      ],
+      "windowRationale": "The three growing windows are those of restrend_long_record. June to September is the dry-season window: it follows the annual grasses' peak and drying, so it shows where green vegetation persists through the dry months (trees, irrigated or riparian ground, the reservoir edge) and is the summer half of the season contrast. It was added on 2026-10-30 before any June to September greenness value of this catchment was computed; the first place's June to September window was chosen for a different reason (the founder's description of its summer grazing season). minClusterPixels, the display domain and the neutral band are those of pixel_trend_long_record 1.0.0 and were not tuned to this place."
+    },
+    "season_trend_long_record": {
+      "formulaText": {
+        "6": "Season contrast: D_s(y) = Y_s(y, spring) - Y_s(y, summer) with the spring and summer windows of the configuration (Calaveras Creek: feb_may and jun_sep); ordinary least squares slope of D on the year with the 95% t interval and the autocorrelation-adjusted interval, and the Theil-Sen slope. An interval entirely above zero means spring greenness rose faster (or fell slower) than summer greenness; entirely below zero, the reverse"
+      },
+      "growingWindowsFrom": "pixel_trend_long_record",
+      "seasonYearsFrom": "pixel_trend_long_record",
+      "strata": ["catchment", "elevation_band", "aspect_class", "reservoir_zone"],
+      "elevationBandSet": {"recipe": "snow_cover_by_band", "id": "fixed_500m"},
+      "landCoverGroups": true,
+      "contrast": {"spring": "feb_may", "summer": "jun_sep"},
+      "limitations": [
+        "Each stratum and window pair has its own interval. With many shown together, some intervals will exclude zero by chance alone, so the false discovery rate check (Benjamini and Hochberg 1995, q = 0.05) is stated beside every pair, and every pair is shown.",
+        "Each 250 m MODIS pixel mixes surfaces; stratum values weight pixels by how much of the stratum falls inside them, so a mixed pixel counts toward more than one stratum. Land cover groups use ESA WorldCover 2021, a single 2021 map, applied to every season.",
+        "NDVI measures how green the ground looks from above, not forage, palatability or species: annual grasses, oak canopy and shrubs all add to it, and the SFPUC plan's residual dry matter target is a different quantity measured on the ground.",
+        "The June to September window is the dry-season half of the season contrast; the lane did not verify which vegetation stays green in it, so a trend in it is not read as a trend in grazed grass.",
+        "These trends are not adjusted for rainfall; restrend_long_record states how closely the place's greenness follows antecedent rain.",
+        "Trend methods can miss real change: in simulations for southern Africa, 30 to 40% degradation was needed before a trend showed under a rainfall-driven increase (Wessels et al. 2012). An interval that includes zero is not evidence of no change.",
+        "Composites keep only pixels flagged good or marginal; winter cloud can leave few usable composites in the January to April window.",
+        "Terra's overpass has drifted earlier since 2020, from 10:30 to about 9:06 mean local time by December 2025 (NASA): later seasons are seen with a lower sun and longer shadows in hilly terrain, which may shift NDVI without any change on the ground.",
+        "Pixels around the reservoir change with the water level (see the reservoir zone); the catchment values include them and the outside-reservoir-zone values do not."
+      ],
+      "contrastRationale": "February to May and June to September share no month, so the contrast compares the growing part of the year with the dry season."
+    },
+    "land_cover_classes": {
+      "limitations": [
+        "ESA WorldCover 2021 is a single 2021 map classified from satellite data at 10 m: its classes can differ from the ground, and the class of one cell is not a field observation.",
+        "Tree cover may include open woodland and savanna as well as dense woodland. Cropland (0.07% of the catchment) and built-up land (0.09%) are almost absent in this map; the class 'cropland or built-up' is excluded from the sampling strata, never read as low vegetation. No class is a pasture, grazing lease or management unit.",
+        "Areas are cell counts times 100 m2 in {analysisCrs}, not geodesic areas, and cells on the polygon's boundary are counted where their centre lies inside it.",
+        "The catchment is a hydrological analysis extent, not a pasture, grazing lease or management boundary."
+      ]
+    },
+    "pixel_seasons": {
+      "growingWindowFrom": "pixel_trend_long_record",
+      "seasonYearsFrom": "pixel_trend_long_record",
+      "trendBundle": "bundle_pixel_trend_long_record_calaveras_creek",
+      "valueDecimals": 5,
+      "slopeCheckTolerancePerDecade": 1e-06,
+      "formulaText": {
+        "1": "Window and years: the growing window marked primary in the pixel_trend_long_record block of the place configuration (Calaveras Creek: February to May, feb_may) and its seasonYears (2000 to 2025); no other window is stored"
+      },
+      "rationale": "Registered 2026-10-30 at the lead's request, by the rule of the first place: the primary-window mean NDVI of every catchment pixel in every season, from the composites, filter and rounding of pixel_trend_long_record, so the slope it stores can be recomputed from them. Written before any Calaveras season value was stored."
+    },
+    "terrain_transects": {
+      "bundleId": "bundle_transects_calaveras_creek",
+      "transects": [
+        {
+          "id": "reservoir_meridian",
+          "kind": "meridian_through_point",
+          "label": "North-south section along the meridian through the Calaveras Reservoir",
+          "point": {
+            "name": "the Calaveras Reservoir",
+            "lat": 37.47306,
+            "lon": -121.8182
+          }
+        },
+        {
+          "id": "valley_axis",
+          "kind": "longest_flow_path",
+          "label": "Long profile from the outlet to the head along the longest flow path of the drainage network",
+          "network": {
+            "bundle": "bundle_drainage_network_calaveras_creek",
+            "asset": "drainage_lines"
+          }
+        }
+      ],
+      "pointRule": "The point is the centroid of the largest 8-connected WorldCover water body inside the catchment (the reservoir; the body the reservoir zone of the strata is cut from), to five decimals, taken from the land cover layer on 2026-10-30 before any profile was sampled. The meridian is the line of constant longitude through it, clipped to the catchment (the part that contains it). No valley floor range is configured: no published range is known for this place, so the lines have no valley floor segment.",
+      "limitations": [
+        "A profile is read from a 30 m surface model: trees, buildings, steep walls and radar artefacts distort it, and narrow gorges are not resolved. Heights are metres above the EGM2008 geoid with the DEM's stated vertical accuracy (Copernicus DEM Product Handbook 5.0).",
+        "Samples are 30 m apart, so a band crossing or a land cover boundary is placed to within about 15 m, and a feature narrower than 30 m can fall between samples.",
+        "Land cover is ESA WorldCover 2021 at 10 m, a single 2021 map applied to the line: tree cover may include open woodland and savanna, and no class is a pasture, grazing lease or management unit.",
+        "An elevation band is a stratum that organises sampling, cut from the elevation distribution of the catchment; it is not a vegetation type, a grazing zone or a management boundary.",
+        "The valley axis is the longest flow path of a D8 network, which follows the main channel, not the centre line of the valley; its profile inherits the limits of the drainage network, including places where the surface rises along the line.",
+        "Over the reservoir the surface model gives the water surface, not the bed, so the section does not show the depth of the water.",
+        "The catchment is a hydrological analysis extent, not a pasture, grazing lease or management boundary."
+      ],
+      "rationale": "The step, the recompute tolerance and the height surface are fixed in science/recipes/registry.json (terrain_transects 1.1.0) before the first build; this block holds the lines and the point rule."
+    },
+    "drainage_network": {
+      "limitations": [
+        "The network is drawn from a 30 m surface model, not mapped on the ground: trees, buildings, steep walls and radar artefacts distort the surface, and the D8 path can leave the real channel. No stream was checked in the field.",
+        "A segment is drawn wherever 1.0 km2 or more drains to a cell. The network's extent and length follow that threshold; it is not a measured channel head, and it does not separate streams that run all year from streams that run only after rain or snowmelt.",
+        "Depression filling and flat resolution route flow across closed hollows and the reservoir, and the surface model includes tree canopy, so some segments run where the 30 m surface rises along the line. Those segments are flagged, their heights are stored unchanged, and the line says nothing about how water moves there.",
+        "Upstream area counts the cells that drain to a point along D8 paths on the filled surface. It is not the share of rain that reaches the point, and it ignores irrigation canals, withdrawals and groundwater.",
+        "Strahler order counts how channels join. It says nothing about channel size, discharge or whether water is present.",
+        "Heights are metres above the EGM2008 geoid from the Copernicus DEM GLO-30 surface model, whose stated absolute vertical accuracy is under 4 m (90% linear error) and relative vertical accuracy under 2 m on slopes up to 20% and under 4 m above, as arithmetic means with local deviations possible (Copernicus DEM Product Handbook 5.0).",
+        "The catchment is a hydrological analysis extent, not a pasture, grazing lease or management boundary."
+      ],
+      "formulaText": {
+        "0": "Conditioning (a private step, as the catchment freeze geo_calaveras_creek_catchment revision 2, recorded in the conditioning report): Copernicus DEM GLO-30 (2021) on its native 1 arc-second EPSG:4326 grid over the window 121.95 to 121.40 W and 37.15 to 37.56 N; pysheds 0.5 fill_pits, fill_depressions and resolve_flats; D8 flow direction with codes 64, 128, 1, 2, 4, 8, 16, 32 for north, north-east, east, south-east, south, south-west, west and north-west. Stored: the direction of each cell and the depression fill depth (fill_depressions(fill_pits(DEM)) minus DEM, m), cropped to the catchment's bounding box plus 8 cells"
+      },
+      "conditioning": {
+        "note": "Made by a private step (pysheds 0.5 is GPL-3.0-or-later, so the step stays out of the public pipeline, as the catchment freeze script does): the elevation tile named above, window 121.95 to 121.40 W and 37.15 to 37.56 N on its native 1 arc-second grid, fill_pits, fill_depressions, resolve_flats, D8 flow direction with codes 64, 128, 1, 2, 4, 8, 16, 32 for north, north-east, east, south-east, south, south-west, west and north-west, then the two rasters cropped to the catchment bounding box plus 8 cells. The same run froze the catchment polygon of the geometry block.",
+        "freezeInputPoint": {"lat": 37.50194444, "lon": -121.8183333},
+        "outletSnapMaxM": 120,
+        "flowDirection": {"bundleAsset": "d8-flow-direction.tif", "interimPath": "data/interim/drainage-calaveras/d8-flow-direction.tif", "sha256": "bce15a4a33443b1d1e11d756395f7e04c4bb381d0680cbcf61c6a2be2bdd1f14"},
+        "fillDepth": {"bundleAsset": "depression-fill-depth.tif", "interimPath": "data/interim/drainage-calaveras/depression-fill-depth.tif", "sha256": "99fdf53ea2f0a5f50061c3c2d2d26453a65f3d94e60cde870cc39bf52ebebeac"},
+        "report": {"bundleAsset": "conditioning-report.json", "interimPath": "data/interim/drainage-calaveras/conditioning-report.json", "sha256": "f355f1ce7ab23056bd032703fdca29e8aa660eae9311ff3021a05fdd1593a4b0"}
+      },
+      "heightSurface": "elevation",
+      "heightPadCells": 1,
+      "rationale": "The 1.0 km2 threshold, the smoothing, simplification and vertex spacing, the 30 m height surface of the terrain strata and the 4.0 m rise tolerance are fixed in science/recipes/registry.json (drainage_network 1.0.0) before the first build; this block holds only what belongs to the place."
+    }
+  }
+}

@@ -35,7 +35,7 @@ def load(path, repo_root):
     got = sha256(geo)
     if got != cfg["geometry"]["sha256"]:
         raise SystemExit(f"geometry checksum {got} does not match the place configuration")
-    if "strata" in cfg:
+    if "strata" in cfg and cfg["strata"].get("sha256"):  # a configuration that does not pin the strata yet is the one that builds them
         sp = strata_path(cfg)
         got = sha256(sp)
         if got != cfg["strata"]["sha256"]:
@@ -253,6 +253,20 @@ def pixel_weights(cfg, masks, dst_crs, dst_transform, dst_shape):
     for sid, m in masks.items():
         sel = m[rows, cols]
         out[sid] = np.bincount(flat[sel], minlength=dst_shape[0] * dst_shape[1]).reshape(dst_shape).astype(np.float64)
+    return out
+
+
+def localize(cfg, reg):
+    """The registry entry with the place's own wording: {analysisCrs} in the formula, the limitations and the parameters is the place's CRS, a
+    `formulaText` map in the recipe's block (list index to text) replaces those formula lines, and a `limitations` list in the block
+    replaces the registry's. A place states its own where the registry's would name another place."""
+    rc = cfg["recipes"].get(reg["recipeId"], {})
+    sub = lambda t: t.replace("{analysisCrs}", cfg["analysisCrs"])
+    out = dict(reg)
+    out["formula"] = [sub(rc.get("formulaText", {}).get(str(i), t)) for i, t in enumerate(reg["formula"])]
+    out["standardLimitations"] = [sub(t) for t in rc.get("limitations", reg["standardLimitations"])]
+    out["parameters"] = [{**p, "default": sub(p["default"]) if isinstance(p["default"], str) else p["default"],
+                          "allowed": [sub(v) if isinstance(v, str) else v for v in p["allowed"]]} for p in reg["parameters"]]
     return out
 
 

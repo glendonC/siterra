@@ -32,3 +32,21 @@ def gap_sentence(absent, gaps, unit):
     tail = f"; {len(absent) - n_listed} are missing there too." if n_listed < len(absent) else "."
     return (head + f"; on {gaps['checked_at'][:10]} NASA CMR listed {n_listed} of them (held by the NASA archive, which needs an "
             f"Earthdata login, not used)" + tail)
+
+
+def merged_search_record(raw):
+    """(names, record) over every search record in the folder: the kept items, dropped duplicates and dates of all runs.
+
+    Used for a sample of separate periods, each fetched by its own modis-fetch.py run into one folder."""
+    names = sorted(f for f in os.listdir(raw) if f.startswith("search-"))
+    recs = []
+    for n in names:
+        with open(os.path.join(raw, n)) as f:
+            recs.append(json.load(f))
+    out = dict(recs[0])
+    out["kept"] = sorted({i for r in recs for i in r["kept"]})
+    out["dropped_duplicates"] = sorted({i for r in recs for i in r["dropped_duplicates"]})
+    out["first"], out["last"] = min(r["first"] for r in recs), max(r["last"] for r in recs)
+    out["searched_at"] = max(r["searched_at"] for r in recs)
+    out["searched"] = sum(r["searched"] for r in recs)
+    return ", ".join(names), out

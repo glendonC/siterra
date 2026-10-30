@@ -1,6 +1,6 @@
 """Render the relief and land cover bundles to PNGs for visual inspection.
 
-Usage: python -I render-surface-layers.py <bundles_dir> <out_dir>
+Usage: python -I render-surface-layers.py <bundles_dir> <out_dir> <placeId>
 Relief: hillshade (sun from the north-west, 45 degrees) tinted by height; the nodata ring and everything outside is dark.
 Land cover: the WorldCover legend colours; outside the catchment is dark.
 """
@@ -15,9 +15,9 @@ LEGEND = {10: (0, 100, 0), 20: (255, 187, 34), 30: (255, 255, 76), 40: (240, 150
 
 
 def main():
-    bundles, out = sys.argv[1:3]
+    bundles, out, PLACE = sys.argv[1:4]
     os.makedirs(out, exist_ok=True)
-    with rasterio.open(os.path.join(bundles, "bundle_relief_ait_bouguemez", "elevation-surface.tif")) as s:
+    with rasterio.open(os.path.join(bundles, f"bundle_relief_{PLACE}", "elevation-surface.tif")) as s:
         z = s.read(1).astype(np.float64)
         res = s.res[0]
         nodata = s.nodata
@@ -34,7 +34,7 @@ def main():
     rgb = (low[None, None] * (1 - t[..., None]) + high[None, None] * t[..., None]) * (0.35 + 0.65 * shade[..., None])
     rgb[~ok] = (11, 16, 18)
     Image.fromarray(rgb.astype(np.uint8)).save(os.path.join(out, "relief.png"))
-    with rasterio.open(os.path.join(bundles, "bundle_land_cover_ait_bouguemez", "land-cover.tif")) as s:
+    with rasterio.open(os.path.join(bundles, f"bundle_land_cover_{PLACE}", "land-cover.tif")) as s:
         lc = s.read(1)
     img = np.zeros(lc.shape + (3,), np.uint8)
     img[:] = (11, 16, 18)

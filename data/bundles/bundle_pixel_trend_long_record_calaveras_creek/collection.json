@@ -1,0 +1,918 @@
+{
+ "type": "Collection",
+ "stac_version": "1.1.0",
+ "stac_extensions": [
+  "https://stac-extensions.github.io/processing/v1.3.0/schema.json",
+  "https://stac-extensions.github.io/file/v2.1.0/schema.json",
+  "https://stac-extensions.github.io/projection/v2.1.0/schema.json",
+  "https://siterra.invalid/schemas/stac/siterra/1.1.0/schema.json"
+ ],
+ "id": "bundle_pixel_trend_long_record_calaveras_creek",
+ "title": "Per-pixel MODIS greenness trend, 2000 to 2025 (pixel_trend_long_record 1.0.0)",
+ "description": "Precomputed result of recipe pixel_trend_long_record 1.0.0 for Calaveras Creek catchment: per-pixel 250 m Terra MOD13Q1 v6.1 growing-season NDVI Theil-Sen slopes and Mann-Kendall tests over 2000 to 2025 across 5166 catchment pixels. In the primary March to June window, the catchment median slope is -0.0116 NDVI per decade (spatial IQR -0.0198 to -0.0037); under Benjamini-Hochberg false discovery rate control (q = 0.05), 0.0% of catchment area lies in upward-FDR pixels, 0.0% in downward-FDR pixels, and 100.0% is not distinguished from zero. Per SCI-52, display rasters and the 16 geographic reveal frames show slope direction and magnitude only, never thresholded significance.\n\nEach pixel's interval is one of thousands. With no change anywhere, about 2.5% of pixels would still show an upward and 2.5% a downward interval at the 95% level, so the shares are shown beside a false discovery rate check (Benjamini and Hochberg 1995, q = 0.05) and a rule against drawing pixel-wise significance. Neighbouring pixels are not independent: they share weather and sensor effects. A connected area of pixels can arise from one shared cause, and the false discovery rate procedure was proved for independent tests. Each 250 m MODIS pixel mixes surfaces. Land cover shares use ESA WorldCover 2021, a single 2021 map, applied to every season. NDVI measures how green the ground looks from above, not forage, palatability or species: annual grasses, oak canopy and shrubs all add to it, and the SFPUC plan's residual dry matter target is a different quantity measured on the ground. The June to September window is the dry-season half of the season contrast; the lane did not verify which vegetation stays green in it, so a trend in it is not read as a trend in grazed grass. These trends are not adjusted for rainfall; restrend_long_record states how closely the place's greenness follows antecedent rain. Trend methods can miss real change: in simulations for southern Africa, 30 to 40% degradation was needed before a trend showed under a rainfall-driven increase (Wessels et al. 2012). An interval that includes zero is not evidence of no change. Composites keep only pixels flagged good or marginal; winter cloud can leave few usable composites in the January to April window. Terra's overpass has drifted earlier since 2020, from 10:30 to about 9:06 mean local time by December 2025 (NASA): later seasons are seen with a lower sun and longer shadows in hilly terrain, which may shift NDVI without any change on the ground. Pixels around the reservoir change with the water level (see the reservoir zone); the catchment values include them and the outside-reservoir-zone values do not.",
+ "license": "other",
+ "providers": [
+  {
+   "name": "NASA Land Processes Distributed Active Archive Center",
+   "roles": [
+    "producer",
+    "licensor"
+   ],
+   "url": "https://doi.org/10.5067/MODIS/MOD13Q1.061"
+  },
+  {
+   "name": "Microsoft Planetary Computer",
+   "roles": [
+    "host"
+   ],
+   "url": "https://planetarycomputer.microsoft.com/dataset/modis-13Q1-061"
+  },
+  {
+   "name": "Copernicus DEM GLO-30 (European Union, ESA; DLR e.V. and Airbus Defence and Space)",
+   "roles": [
+    "producer",
+    "licensor"
+   ]
+  },
+  {
+   "name": "ESA WorldCover consortium",
+   "roles": [
+    "producer",
+    "licensor"
+   ],
+   "url": "https://esa-worldcover.org/"
+  },
+  {
+   "name": "Siterra science pipeline",
+   "roles": [
+    "processor"
+   ],
+   "processing:lineage": "Anonymous SAS-signed range reads of MOD13Q1 v6.1 NDVI and pixel reliability windows over the frozen geometry from Planetary Computer (584 Terra composites); per-pixel growing-season means, Theil-Sen slopes, Mann-Kendall tests and Benjamini-Hochberg FDR across 5166 catchment pixels; EPSG:3857 slope-only display overviews and 16 outlet-ordered reveal frames (science/pipeline/pixel_trend_long_record.py). Web-ready derived assets (pixel-trend-feb_may-cells.json) are copies of the canonical GeoTIFF values written by science/pipeline/web-assets.py.",
+   "processing:software": {
+    "siterra-science": "0.1.0",
+    "python": "3.12.9",
+    "numpy": "2.5.4",
+    "rasterio": "1.5.2",
+    "gdal": "3.12.2",
+    "pillow": "12.3.0",
+    "pyproj": "3.8.0"
+   }
+  }
+ ],
+ "extent": {
+  "spatial": {
+   "bbox": [
+    [
+     -121.86652777777778,
+     37.25763888888889,
+     -121.4948611111111,
+     37.50708333333334
+    ]
+   ]
+  },
+  "temporal": {
+   "interval": [
+    [
+     "2000-03-01T00:00:00Z",
+     "2025-09-30T23:59:59Z"
+    ]
+   ]
+  }
+ },
+ "assets": {
+  "analysis_geometry": {
+   "href": "./analysis-geometry.geojson",
+   "type": "application/geo+json",
+   "title": "Frozen analysis geometry geo_calaveras_creek_catchment, revision 2",
+   "roles": [
+    "metadata"
+   ],
+   "file:checksum": "1220745fb73a2dadb7284074eb6c0b607f390975a70592a7d968588ea083882faa9d",
+   "file:size": 141566
+  },
+  "pixel_trend_long_record": {
+   "href": "./pixel-trend-long-record.json",
+   "type": "application/json",
+   "title": "Summary: per-window area shares (BH-FDR and 95% Sen interval), connected areas and reveal-frame index (the result read_recipe_result returns)",
+   "roles": [
+    "data"
+   ],
+   "file:checksum": "1220a748014eb0d93f8cab0ee29d0883b52fb70250f827e6c0052ff793ab12cf6949",
+   "file:size": 195042
+  },
+  "pixel_trend_tables": {
+   "href": "./pixel-trend-long-record-tables.json",
+   "type": "application/json",
+   "title": "Full tables: per-pixel slopes, interval bounds, Mann-Kendall statistics and FDR classes for all windows",
+   "roles": [
+    "data"
+   ],
+   "file:checksum": "1220d45de8dc25f80204f01bd70772f5b7ea021c14a2a1f5fb8c05a3c64815d931e0",
+   "file:size": 5837720
+  },
+  "pixel_trend_grid_feb_may": {
+   "href": "./pixel-trend-feb_may.tif",
+   "type": "image/tiff; application=geotiff",
+   "title": "Native 250 m MOD13Q1 Theil-Sen slope, 95% interval bounds per decade and season count (feb_may; no significance or FDR band per SCI-52)",
+   "roles": [
+    "data"
+   ],
+   "file:checksum": "1220d11c17bc20d00f25899eebf7aad1e0f11c66d0c4811a8fe1483b1282b5ade76c",
+   "file:size": 75229
+  },
+  "pixel_trend_grid_jan_apr": {
+   "href": "./pixel-trend-jan_apr.tif",
+   "type": "image/tiff; application=geotiff",
+   "title": "Native 250 m MOD13Q1 Theil-Sen slope, 95% interval bounds per decade and season count (jan_apr; no significance or FDR band per SCI-52)",
+   "roles": [
+    "data"
+   ],
+   "file:checksum": "122029ca0ea480bfc22ad8823c225e418bf00a1c23058fff10f1d9cf992130415e8b",
+   "file:size": 75598
+  },
+  "pixel_trend_grid_mar_jun": {
+   "href": "./pixel-trend-mar_jun.tif",
+   "type": "image/tiff; application=geotiff",
+   "title": "Native 250 m MOD13Q1 Theil-Sen slope, 95% interval bounds per decade and season count (mar_jun; no significance or FDR band per SCI-52)",
+   "roles": [
+    "data"
+   ],
+   "file:checksum": "122024b1c990a70eb28cc7a94ecd095d3e5b8bf3ef3e479805c7305eb7f31252b923",
+   "file:size": 75333
+  },
+  "pixel_trend_grid_jun_sep": {
+   "href": "./pixel-trend-jun_sep.tif",
+   "type": "image/tiff; application=geotiff",
+   "title": "Native 250 m MOD13Q1 Theil-Sen slope, 95% interval bounds per decade and season count (jun_sep; no significance or FDR band per SCI-52)",
+   "roles": [
+    "data"
+   ],
+   "file:checksum": "1220555104f8d27f16a0688a4264e19efa3a87ee6ac47c54d7743375ab47a60f907a",
+   "file:size": 76104
+  },
+  "overview_feb_may": {
+   "href": "./overview-feb_may.png",
+   "type": "image/png",
+   "title": "Per-pixel Theil-Sen NDVI slope display raster, feb_may, 2000 to 2025 (slope magnitude and direction only, display only)",
+   "description": "Theil-Sen slope in NDVI per decade averaged into 30 m Web Mercator cells (about 23.8 m on the ground) and painted on -0.05 to +0.05 per decade (unpainted within 0.0025 of zero). Shows slope direction and magnitude only; no p-value or FDR class is drawn (SCI-52).",
+   "roles": [
+    "overview"
+   ],
+   "proj:code": "EPSG:3857",
+   "proj:bbox": [
+    -13566150.0,
+    4475040.0,
+    -13524690.0,
+    4510080.0
+   ],
+   "proj:shape": [
+    1168,
+    1382
+   ],
+   "siterra:color_scale": "ndvi-anomaly-diverging",
+   "siterra:domain": [
+    -0.05,
+    0.05
+   ],
+   "file:checksum": "12207a743419bc9c9b74a140bf3b53ff901092849d143a8bb1ed0aa001eaa0c066f2",
+   "file:size": 98988
+  },
+  "overview": {
+   "href": "./overview.png",
+   "type": "image/png",
+   "title": "Primary (March to June) per-pixel Theil-Sen NDVI slope display raster, 2000 to 2025 (display only)",
+   "description": "Theil-Sen slope in NDVI per decade averaged into 30 m Web Mercator cells (about 23.8 m on the ground) and painted on -0.05 to +0.05 per decade (unpainted within 0.0025 of zero). Shows slope direction and magnitude only; no p-value or FDR class is drawn (SCI-52).",
+   "roles": [
+    "overview"
+   ],
+   "proj:code": "EPSG:3857",
+   "proj:bbox": [
+    -13566150.0,
+    4475040.0,
+    -13524690.0,
+    4510080.0
+   ],
+   "proj:shape": [
+    1168,
+    1382
+   ],
+   "siterra:color_scale": "ndvi-anomaly-diverging",
+   "siterra:domain": [
+    -0.05,
+    0.05
+   ],
+   "file:checksum": "12207a743419bc9c9b74a140bf3b53ff901092849d143a8bb1ed0aa001eaa0c066f2",
+   "file:size": 98988
+  },
+  "reveal_step_01": {
+   "href": "./frames/reveal-step-01.png",
+   "type": "image/png",
+   "title": "Geographic reveal frame 1 of 16 from catchment outlet (3438 m), March to June slope only (display only)",
+   "roles": [
+    "overview"
+   ],
+   "proj:code": "EPSG:3857",
+   "proj:bbox": [
+    -13566150.0,
+    4475040.0,
+    -13524690.0,
+    4510080.0
+   ],
+   "proj:shape": [
+    1168,
+    1382
+   ],
+   "siterra:color_scale": "ndvi-anomaly-diverging",
+   "siterra:domain": [
+    -0.05,
+    0.05
+   ],
+   "file:checksum": "12201fce3aafc7dd9a91310c93405a07eccb4d8a7ab416f92a17ea7ec0df17f3b386",
+   "file:size": 14281
+  },
+  "reveal_step_02": {
+   "href": "./frames/reveal-step-02.png",
+   "type": "image/png",
+   "title": "Geographic reveal frame 2 of 16 from catchment outlet (5151 m), March to June slope only (display only)",
+   "roles": [
+    "overview"
+   ],
+   "proj:code": "EPSG:3857",
+   "proj:bbox": [
+    -13566150.0,
+    4475040.0,
+    -13524690.0,
+    4510080.0
+   ],
+   "proj:shape": [
+    1168,
+    1382
+   ],
+   "siterra:color_scale": "ndvi-anomaly-diverging",
+   "siterra:domain": [
+    -0.05,
+    0.05
+   ],
+   "file:checksum": "1220622e502d0e9bf1b51227f72dbfb63a6b44ac180225bd03db426d26f99e474ab8",
+   "file:size": 20414
+  },
+  "reveal_step_03": {
+   "href": "./frames/reveal-step-03.png",
+   "type": "image/png",
+   "title": "Geographic reveal frame 3 of 16 from catchment outlet (7105 m), March to June slope only (display only)",
+   "roles": [
+    "overview"
+   ],
+   "proj:code": "EPSG:3857",
+   "proj:bbox": [
+    -13566150.0,
+    4475040.0,
+    -13524690.0,
+    4510080.0
+   ],
+   "proj:shape": [
+    1168,
+    1382
+   ],
+   "siterra:color_scale": "ndvi-anomaly-diverging",
+   "siterra:domain": [
+    -0.05,
+    0.05
+   ],
+   "file:checksum": "1220ecf6874b69540e852fdc9c2e466597bd4ea86fdd6cbefb7d30ef171d7ca8108b",
+   "file:size": 25478
+  },
+  "reveal_step_04": {
+   "href": "./frames/reveal-step-04.png",
+   "type": "image/png",
+   "title": "Geographic reveal frame 4 of 16 from catchment outlet (9336 m), March to June slope only (display only)",
+   "roles": [
+    "overview"
+   ],
+   "proj:code": "EPSG:3857",
+   "proj:bbox": [
+    -13566150.0,
+    4475040.0,
+    -13524690.0,
+    4510080.0
+   ],
+   "proj:shape": [
+    1168,
+    1382
+   ],
+   "siterra:color_scale": "ndvi-anomaly-diverging",
+   "siterra:domain": [
+    -0.05,
+    0.05
+   ],
+   "file:checksum": "122052383709062665bb8b9629aaeb51f86350509cd144997f427df23d98a700096d",
+   "file:size": 29996
+  },
+  "reveal_step_05": {
+   "href": "./frames/reveal-step-05.png",
+   "type": "image/png",
+   "title": "Geographic reveal frame 5 of 16 from catchment outlet (12199 m), March to June slope only (display only)",
+   "roles": [
+    "overview"
+   ],
+   "proj:code": "EPSG:3857",
+   "proj:bbox": [
+    -13566150.0,
+    4475040.0,
+    -13524690.0,
+    4510080.0
+   ],
+   "proj:shape": [
+    1168,
+    1382
+   ],
+   "siterra:color_scale": "ndvi-anomaly-diverging",
+   "siterra:domain": [
+    -0.05,
+    0.05
+   ],
+   "file:checksum": "1220269bc3bd5c88dcd1143fc17a6166dfe373a85b630e8280e663bef9a785f1a15a",
+   "file:size": 34973
+  },
+  "reveal_step_06": {
+   "href": "./frames/reveal-step-06.png",
+   "type": "image/png",
+   "title": "Geographic reveal frame 6 of 16 from catchment outlet (15097 m), March to June slope only (display only)",
+   "roles": [
+    "overview"
+   ],
+   "proj:code": "EPSG:3857",
+   "proj:bbox": [
+    -13566150.0,
+    4475040.0,
+    -13524690.0,
+    4510080.0
+   ],
+   "proj:shape": [
+    1168,
+    1382
+   ],
+   "siterra:color_scale": "ndvi-anomaly-diverging",
+   "siterra:domain": [
+    -0.05,
+    0.05
+   ],
+   "file:checksum": "12204b0e85d4990806eb4017913a9dd7f8aec56fe9e5d0f0f6c64f331aa17e425c00",
+   "file:size": 41612
+  },
+  "reveal_step_07": {
+   "href": "./frames/reveal-step-07.png",
+   "type": "image/png",
+   "title": "Geographic reveal frame 7 of 16 from catchment outlet (18015 m), March to June slope only (display only)",
+   "roles": [
+    "overview"
+   ],
+   "proj:code": "EPSG:3857",
+   "proj:bbox": [
+    -13566150.0,
+    4475040.0,
+    -13524690.0,
+    4510080.0
+   ],
+   "proj:shape": [
+    1168,
+    1382
+   ],
+   "siterra:color_scale": "ndvi-anomaly-diverging",
+   "siterra:domain": [
+    -0.05,
+    0.05
+   ],
+   "file:checksum": "1220cd13a1f15ee874260fa9c6c8f675bd44bc71246a3b1aeb596b5c79bec9d788bc",
+   "file:size": 48767
+  },
+  "reveal_step_08": {
+   "href": "./frames/reveal-step-08.png",
+   "type": "image/png",
+   "title": "Geographic reveal frame 8 of 16 from catchment outlet (20446 m), March to June slope only (display only)",
+   "roles": [
+    "overview"
+   ],
+   "proj:code": "EPSG:3857",
+   "proj:bbox": [
+    -13566150.0,
+    4475040.0,
+    -13524690.0,
+    4510080.0
+   ],
+   "proj:shape": [
+    1168,
+    1382
+   ],
+   "siterra:color_scale": "ndvi-anomaly-diverging",
+   "siterra:domain": [
+    -0.05,
+    0.05
+   ],
+   "file:checksum": "1220aeb01e39fb5d56310a2773f0ad9c091e39d54b8ca5f5959e0ed9819c9ae94743",
+   "file:size": 55043
+  },
+  "reveal_step_09": {
+   "href": "./frames/reveal-step-09.png",
+   "type": "image/png",
+   "title": "Geographic reveal frame 9 of 16 from catchment outlet (22615 m), March to June slope only (display only)",
+   "roles": [
+    "overview"
+   ],
+   "proj:code": "EPSG:3857",
+   "proj:bbox": [
+    -13566150.0,
+    4475040.0,
+    -13524690.0,
+    4510080.0
+   ],
+   "proj:shape": [
+    1168,
+    1382
+   ],
+   "siterra:color_scale": "ndvi-anomaly-diverging",
+   "siterra:domain": [
+    -0.05,
+    0.05
+   ],
+   "file:checksum": "122023bf70b31320bea9e330ef4ab8e3e0f549ca0bbef41e506c6ec1dd978346a894",
+   "file:size": 60909
+  },
+  "reveal_step_10": {
+   "href": "./frames/reveal-step-10.png",
+   "type": "image/png",
+   "title": "Geographic reveal frame 10 of 16 from catchment outlet (24476 m), March to June slope only (display only)",
+   "roles": [
+    "overview"
+   ],
+   "proj:code": "EPSG:3857",
+   "proj:bbox": [
+    -13566150.0,
+    4475040.0,
+    -13524690.0,
+    4510080.0
+   ],
+   "proj:shape": [
+    1168,
+    1382
+   ],
+   "siterra:color_scale": "ndvi-anomaly-diverging",
+   "siterra:domain": [
+    -0.05,
+    0.05
+   ],
+   "file:checksum": "12206465ccea7f4060badfc3e0872020acc808799515858fba009b100409410bb0ab",
+   "file:size": 66353
+  },
+  "reveal_step_11": {
+   "href": "./frames/reveal-step-11.png",
+   "type": "image/png",
+   "title": "Geographic reveal frame 11 of 16 from catchment outlet (26381 m), March to June slope only (display only)",
+   "roles": [
+    "overview"
+   ],
+   "proj:code": "EPSG:3857",
+   "proj:bbox": [
+    -13566150.0,
+    4475040.0,
+    -13524690.0,
+    4510080.0
+   ],
+   "proj:shape": [
+    1168,
+    1382
+   ],
+   "siterra:color_scale": "ndvi-anomaly-diverging",
+   "siterra:domain": [
+    -0.05,
+    0.05
+   ],
+   "file:checksum": "1220f62ff341571063848afef06e1734a529c00b4b1124d3f2144fa70fa215f1d90b",
+   "file:size": 72356
+  },
+  "reveal_step_12": {
+   "href": "./frames/reveal-step-12.png",
+   "type": "image/png",
+   "title": "Geographic reveal frame 12 of 16 from catchment outlet (28508 m), March to June slope only (display only)",
+   "roles": [
+    "overview"
+   ],
+   "proj:code": "EPSG:3857",
+   "proj:bbox": [
+    -13566150.0,
+    4475040.0,
+    -13524690.0,
+    4510080.0
+   ],
+   "proj:shape": [
+    1168,
+    1382
+   ],
+   "siterra:color_scale": "ndvi-anomaly-diverging",
+   "siterra:domain": [
+    -0.05,
+    0.05
+   ],
+   "file:checksum": "1220299165da063d74faa17dd5cc62008428db33d3bbef2f6deb0b9e387b1bbaf64d",
+   "file:size": 77836
+  },
+  "reveal_step_13": {
+   "href": "./frames/reveal-step-13.png",
+   "type": "image/png",
+   "title": "Geographic reveal frame 13 of 16 from catchment outlet (30484 m), March to June slope only (display only)",
+   "roles": [
+    "overview"
+   ],
+   "proj:code": "EPSG:3857",
+   "proj:bbox": [
+    -13566150.0,
+    4475040.0,
+    -13524690.0,
+    4510080.0
+   ],
+   "proj:shape": [
+    1168,
+    1382
+   ],
+   "siterra:color_scale": "ndvi-anomaly-diverging",
+   "siterra:domain": [
+    -0.05,
+    0.05
+   ],
+   "file:checksum": "122093f170e7f3ae9fc5e0258e6651f191cf811416f6f2e841120f7e9619ad2818a1",
+   "file:size": 83024
+  },
+  "reveal_step_14": {
+   "href": "./frames/reveal-step-14.png",
+   "type": "image/png",
+   "title": "Geographic reveal frame 14 of 16 from catchment outlet (32034 m), March to June slope only (display only)",
+   "roles": [
+    "overview"
+   ],
+   "proj:code": "EPSG:3857",
+   "proj:bbox": [
+    -13566150.0,
+    4475040.0,
+    -13524690.0,
+    4510080.0
+   ],
+   "proj:shape": [
+    1168,
+    1382
+   ],
+   "siterra:color_scale": "ndvi-anomaly-diverging",
+   "siterra:domain": [
+    -0.05,
+    0.05
+   ],
+   "file:checksum": "122060e83bbd8c83c9766bd79a8b66fcb49243fa8b8584e04d141ea58455f9e9e3ba",
+   "file:size": 88063
+  },
+  "reveal_step_15": {
+   "href": "./frames/reveal-step-15.png",
+   "type": "image/png",
+   "title": "Geographic reveal frame 15 of 16 from catchment outlet (33873 m), March to June slope only (display only)",
+   "roles": [
+    "overview"
+   ],
+   "proj:code": "EPSG:3857",
+   "proj:bbox": [
+    -13566150.0,
+    4475040.0,
+    -13524690.0,
+    4510080.0
+   ],
+   "proj:shape": [
+    1168,
+    1382
+   ],
+   "siterra:color_scale": "ndvi-anomaly-diverging",
+   "siterra:domain": [
+    -0.05,
+    0.05
+   ],
+   "file:checksum": "12209540f0084fcbc04a245832c7cb6e8e8d8ff8ad5a090ea21a675d23b0af075bb7",
+   "file:size": 92756
+  },
+  "reveal_step_16": {
+   "href": "./frames/reveal-step-16.png",
+   "type": "image/png",
+   "title": "Geographic reveal frame 16 of 16 from catchment outlet (37542 m), March to June slope only (display only)",
+   "roles": [
+    "overview"
+   ],
+   "proj:code": "EPSG:3857",
+   "proj:bbox": [
+    -13566150.0,
+    4475040.0,
+    -13524690.0,
+    4510080.0
+   ],
+   "proj:shape": [
+    1168,
+    1382
+   ],
+   "siterra:color_scale": "ndvi-anomaly-diverging",
+   "siterra:domain": [
+    -0.05,
+    0.05
+   ],
+   "file:checksum": "12207a743419bc9c9b74a140bf3b53ff901092849d143a8bb1ed0aa001eaa0c066f2",
+   "file:size": 98988
+  },
+  "overview_jan_apr": {
+   "href": "./overview-jan_apr.png",
+   "type": "image/png",
+   "title": "Per-pixel Theil-Sen NDVI slope display raster, jan_apr, 2000 to 2025 (slope magnitude and direction only, display only)",
+   "description": "Theil-Sen slope in NDVI per decade averaged into 30 m Web Mercator cells (about 23.8 m on the ground) and painted on -0.05 to +0.05 per decade (unpainted within 0.0025 of zero). Shows slope direction and magnitude only; no p-value or FDR class is drawn (SCI-52).",
+   "roles": [
+    "overview"
+   ],
+   "proj:code": "EPSG:3857",
+   "proj:bbox": [
+    -13566150.0,
+    4475040.0,
+    -13524690.0,
+    4510080.0
+   ],
+   "proj:shape": [
+    1168,
+    1382
+   ],
+   "siterra:color_scale": "ndvi-anomaly-diverging",
+   "siterra:domain": [
+    -0.05,
+    0.05
+   ],
+   "file:checksum": "122073c4761321fa4d817cae16c10d5be6908e5e20f226cd2b5d655d522e6b2b52f5",
+   "file:size": 105072
+  },
+  "overview_mar_jun": {
+   "href": "./overview-mar_jun.png",
+   "type": "image/png",
+   "title": "Per-pixel Theil-Sen NDVI slope display raster, mar_jun, 2000 to 2025 (slope magnitude and direction only, display only)",
+   "description": "Theil-Sen slope in NDVI per decade averaged into 30 m Web Mercator cells (about 23.8 m on the ground) and painted on -0.05 to +0.05 per decade (unpainted within 0.0025 of zero). Shows slope direction and magnitude only; no p-value or FDR class is drawn (SCI-52).",
+   "roles": [
+    "overview"
+   ],
+   "proj:code": "EPSG:3857",
+   "proj:bbox": [
+    -13566150.0,
+    4475040.0,
+    -13524690.0,
+    4510080.0
+   ],
+   "proj:shape": [
+    1168,
+    1382
+   ],
+   "siterra:color_scale": "ndvi-anomaly-diverging",
+   "siterra:domain": [
+    -0.05,
+    0.05
+   ],
+   "file:checksum": "1220761f2b03cdd823990ca032db5b26ed0f93afd0ed80f208e613891dcd2f6e700e",
+   "file:size": 99503
+  },
+  "overview_jun_sep": {
+   "href": "./overview-jun_sep.png",
+   "type": "image/png",
+   "title": "Per-pixel Theil-Sen NDVI slope display raster, jun_sep, 2000 to 2025 (slope magnitude and direction only, display only)",
+   "description": "Theil-Sen slope in NDVI per decade averaged into 30 m Web Mercator cells (about 23.8 m on the ground) and painted on -0.05 to +0.05 per decade (unpainted within 0.0025 of zero). Shows slope direction and magnitude only; no p-value or FDR class is drawn (SCI-52).",
+   "roles": [
+    "overview"
+   ],
+   "proj:code": "EPSG:3857",
+   "proj:bbox": [
+    -13566150.0,
+    4475040.0,
+    -13524690.0,
+    4510080.0
+   ],
+   "proj:shape": [
+    1168,
+    1382
+   ],
+   "siterra:color_scale": "ndvi-anomaly-diverging",
+   "siterra:domain": [
+    -0.05,
+    0.05
+   ],
+   "file:checksum": "1220513dc983bdcf3804d4056fdd9a4906376b6994d495b3731c26fa98743b000e22",
+   "file:size": 117863
+  },
+  "trend_cells": {
+   "href": "./pixel-trend-feb_may-cells.json",
+   "type": "application/json",
+   "title": "February to May Theil-Sen slope of every MODIS 250 m cell as a quadrilateral in EPSG:32610 (web copy of pixel_trend_feb_may)",
+   "roles": [
+    "data"
+   ],
+   "file:checksum": "12201dda0d99a5ab85624390ff0f69568ca5df7c235f0018bd8071ecd4769db21888",
+   "file:size": 485437
+  }
+ },
+ "created": "2026-10-30T19:08:23Z",
+ "siterra:status": "validated",
+ "siterra:variable": "ndvi_departure",
+ "siterra:dataset": {
+  "id": "modis-13Q1-061",
+  "version": "6.1",
+  "access_route": "https://planetarycomputer.microsoft.com/api/stac/v1 collection modis-13Q1-061, assets 250m_16_days_NDVI and 250m_16_days_pixel_reliability, anonymous SAS-signed COG range reads",
+  "resolution_note": "Native 250 m MODIS sinusoidal grid (231.66 m cells), 16-day composites; display overviews on a 30 m EPSG:3857 grid"
+ },
+ "siterra:geo_selection": {
+  "id": "geo_calaveras_creek_catchment",
+  "revision": 2,
+  "boundary_role": "hydrological_unit",
+  "area_m2": 257339500,
+  "area_method": "Count of 10 m analysis pixels whose centres fall inside the frozen polygon, EPSG:32610"
+ },
+ "siterra:method": {
+  "id": "pixel_trend_long_record",
+  "version": "1.0.0",
+  "analysis_crs": "EPSG:32610",
+  "parameters": {
+   "place_configuration": "science/places/calaveras-creek.json revision 9, sha256 58db09c93622fae117105eb5bcefba11b5581a88534ef149e8899f61865ddc7d",
+   "season_years": [
+    2000,
+    2025
+   ],
+   "growing_windows": [
+    {
+     "id": "feb_may",
+     "months": [
+      2,
+      3,
+      4,
+      5
+     ],
+     "primary": true
+    },
+    {
+     "id": "jan_apr",
+     "months": [
+      1,
+      2,
+      3,
+      4
+     ]
+    },
+    {
+     "id": "mar_jun",
+     "months": [
+      3,
+      4,
+      5,
+      6
+     ]
+    },
+    {
+     "id": "jun_sep",
+     "months": [
+      6,
+      7,
+      8,
+      9
+     ]
+    }
+   ],
+   "pixel_reliability_kept": [
+    0,
+    1
+   ],
+   "min_composite_share": 0.5,
+   "min_seasons": 15,
+   "interval_level": 0.95,
+   "fdr_q": 0.05,
+   "min_cluster_pixels": 4,
+   "display": {
+    "domainPerDecade": [
+     -0.05,
+     0.05
+    ],
+    "neutralPerDecade": 0.0025,
+    "pixelM": 30,
+    "steps": 16
+   }
+  },
+  "reference_period": null,
+  "operation_order": [
+   "NDVI(p, c) = DN / 10000 for Terra MOD13Q1 v6.1 composite c and 250 m pixel p, kept only where the composite's pixel reliability is 0 (good) or 1 (marginal) and -0.2 <= NDVI <= 1.0, as in restrend_long_record",
+   "G(p, y, W) = mean of the kept NDVI(p, c) over the 16-day periods starting in a month of growing window W in year y, defined only when at least half of those periods (rounded up) are kept at p; a period with no Terra product on the archive read counts as nothing kept",
+   "Pixels: every MOD13Q1 pixel holding at least one 10 m analysis cell of the catchment; w(p) = number of those cells",
+   "Per pixel and window: over the season years where G is defined, the Theil-Sen slope of G on the year (median of pairwise slopes) with Sen's 95% interval from the ranks (N - C) / 2 and (N + C) / 2 + 1 of the N sorted pairwise slopes, C = 1.96 sqrt(n (n - 1) (2n + 5) / 18), no tie correction, as in restrend_long_record; fewer than 15 seasons and the pixel is insufficient_seasons",
+   "Per pixel: the Mann-Kendall statistic S with the tie-corrected variance n (n - 1) (2n + 5) / 18 minus the sum over tie groups of t (t - 1) (2t + 5) / 18, Z = (S - sign(S)) / sqrt(variance), two-sided p from the standard normal distribution",
+   "Pixel direction: Sen's interval entirely above zero is upward, entirely below zero downward, otherwise includes_zero",
+   "False discovery rate check: Benjamini-Hochberg at q = 0.05 over every pixel with a slope in the window; a pixel whose p passes keeps its direction as upward_fdr or downward_fdr when its Sen interval agrees, otherwise not_distinguished",
+   "Area groups: the catchment; each class of each strata layer listed in the configuration; the fixed elevation bands named in the configuration; the land cover groups of the configuration (WorldCover 2021 classes). For each group, the share of its 10 m analysis cells that lie in upward, downward, includes_zero and insufficient_seasons pixels, and the same for the false discovery rate classes. Under no change anywhere, about 2.5% of pixels per direction would show a per-pixel interval by chance; this is stated beside the shares",
+   "Connected areas: 8-connected groups of pixels sharing a false discovery rate direction (primary) or a per-pixel interval direction (sensitivity), of at least minClusterPixels pixels (Calaveras Creek: 4, about 21 ha). For each: pixel count, catchment area in km2, centroid (longitude, latitude) weighted by catchment cells, median elevation of its catchment cells, land cover and aspect shares, median slope and its range. Every downward area is listed; upward areas are counted with the five largest listed",
+   "Display: for each window, the Theil-Sen slope in NDVI per decade averaged into the fixed EPSG:3857 grid of the map overviews (pixelM metres), painted with the light-theme data.ndvi-departure arms on the fixed domain of the configuration (Calaveras Creek: -0.05 to +0.05 per decade, unpainted within 0.0025 of zero, t = (|d| - neutral) / (domain - neutral) clamped to 0..1, opacity 0.10 + 0.70 t, t in steps). No direction or false discovery rate class is drawn on the display",
+   "Data rasters: for each window, a GeoTIFF on the native MOD13Q1 grid with the slope, lower and upper bound per decade, and the number of seasons; no pixel-wise p-value or false discovery rate class is stored as a map raster (SCI-52)"
+  ]
+ },
+ "siterra:attribution": [
+  "Didan, K. (2021). MODIS/Terra Vegetation Indices 16-Day L3 Global 250m SIN Grid V061. NASA Land Processes Distributed Active Archive Center. https://doi.org/10.5067/MODIS/MOD13Q1.061. Tile h08v05, A2000049 to A2025353, read from Microsoft Planetary Computer, accessed 2026-10-30",
+  "Catchment and strata derived by Siterra from Copernicus DEM GLO-30 (2021 release)",
+  "produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved",
+  "The organisations in charge of the Copernicus programme by law or by delegation do not incur any liability for any use of the Copernicus WorldDEM-30",
+  "© ESA WorldCover project / Contains modified Copernicus Sentinel data (2021) processed by ESA WorldCover consortium",
+  "ESA WorldCover 2021 v200 (Zanaga et al. 2022), CC BY 4.0, https://doi.org/10.5281/zenodo.7254221",
+  "ESA WorldCover 10 m 2021 v200, Zanaga et al. (2022), https://doi.org/10.5281/zenodo.7254221, CC BY 4.0"
+ ],
+ "siterra:limitations": [
+  "Each pixel's interval is one of thousands. With no change anywhere, about 2.5% of pixels would still show an upward and 2.5% a downward interval at the 95% level, so the shares are shown beside a false discovery rate check (Benjamini and Hochberg 1995, q = 0.05) and a rule against drawing pixel-wise significance.",
+  "Neighbouring pixels are not independent: they share weather and sensor effects. A connected area of pixels can arise from one shared cause, and the false discovery rate procedure was proved for independent tests.",
+  "Each 250 m MODIS pixel mixes surfaces. Land cover shares use ESA WorldCover 2021, a single 2021 map, applied to every season.",
+  "NDVI measures how green the ground looks from above, not forage, palatability or species: annual grasses, oak canopy and shrubs all add to it, and the SFPUC plan's residual dry matter target is a different quantity measured on the ground.",
+  "The June to September window is the dry-season half of the season contrast; the lane did not verify which vegetation stays green in it, so a trend in it is not read as a trend in grazed grass.",
+  "These trends are not adjusted for rainfall; restrend_long_record states how closely the place's greenness follows antecedent rain.",
+  "Trend methods can miss real change: in simulations for southern Africa, 30 to 40% degradation was needed before a trend showed under a rainfall-driven increase (Wessels et al. 2012). An interval that includes zero is not evidence of no change.",
+  "Composites keep only pixels flagged good or marginal; winter cloud can leave few usable composites in the January to April window.",
+  "Terra's overpass has drifted earlier since 2020, from 10:30 to about 9:06 mean local time by December 2025 (NASA): later seasons are seen with a lower sun and longer shadows in hilly terrain, which may shift NDVI without any change on the ground.",
+  "Pixels around the reservoir change with the water level (see the reservoir zone); the catchment values include them and the outside-reservoir-zone values do not."
+ ],
+ "siterra:checks": [
+  {
+   "name": "recompute_sample_period",
+   "passed": true,
+   "detail": "26 evenly spaced catchment pixels in feb_may recomputed independently from the stored MOD13Q1 windows: largest Theil-Sen slope difference 0.0000050 NDVI per decade (tolerance 1e-5). All 16 reveal-step PNG frames verified against catchment outlet distance ordering."
+  },
+  {
+   "name": "nodata_not_zero",
+   "passed": true,
+   "detail": "NDVI fill (-3000) and values outside -0.2 to 1.0 are not observed; pixel reliability other than [0, 1], including fill 255, is not observed; pixels with fewer than 15 seasons are insufficient_seasons and transparent on display rasters, never painted as zero."
+  },
+  {
+   "name": "units_and_scale",
+   "passed": true,
+   "detail": "Every stored NDVI window is int16 with nodata -3000 and GDAL scale 10000 (physical value = DN / 10000). Pixel reliability windows are uint8 with nodata 255, except 4 stored as int8 with nodata -1. Slopes and interval bounds are reported in NDVI per decade (1/(10 a))."
+  },
+  {
+   "name": "qa_join_coverage",
+   "passed": true,
+   "detail": "All 584 composites share one 301 x 125 pixel window grid; 5166 MOD13Q1 pixels hold the 2573395 analysis cells of the catchment. In the registered growing windows: 11 composite periods absent from Planetary Computer (A2000001, A2000017, A2000033, A2023049, A2024225, A2025193, A2025209, A2025225, A2025241, A2025257, A2025273); on 2026-10-30 NASA CMR listed 8 of them (held by the NASA archive, which needs an Earthdata login, not used); 3 are missing there too."
+  },
+  {
+   "name": "period_alignment",
+   "passed": true,
+   "detail": "A composite belongs to a season when its 16-day period starts in a month of the growing window of that year."
+  },
+  {
+   "name": "attribution_present",
+   "passed": true,
+   "detail": "MOD13Q1 v6.1 citation with DOI, subset and access date, ESA WorldCover 2021 attribution and Copernicus DEM notices are in siterra:attribution."
+  }
+ ],
+ "links": [
+  {
+   "rel": "root",
+   "href": "../catalog.json",
+   "type": "application/json"
+  },
+  {
+   "rel": "parent",
+   "href": "../catalog.json",
+   "type": "application/json"
+  },
+  {
+   "rel": "derived_from",
+   "href": "../bundle_terrain_strata_calaveras_creek/collection.json",
+   "type": "application/json",
+   "title": "Terrain strata bundle bundle_terrain_strata_calaveras_creek",
+   "file:checksum": "1220469c24e0c5e81c1dfb0cc51262a6a2018d3b1a857e70be166adcccf757a90198"
+  },
+  {
+   "rel": "license",
+   "href": "https://www.earthdata.nasa.gov/engage/open-data-services-software-policies/data-use-guidance",
+   "title": "MOD13Q1 v6.1: NASA data use guidance (NASA-led mission data without a marked restriction are CC0; citation strongly urged)"
+  },
+  {
+   "rel": "license",
+   "href": "https://dataspace.copernicus.eu/sites/default/files/media/files/2025-06/copernicus_contributing_mission_data_access_v2_cop_dem_licenses.pdf",
+   "title": "Licence for Copernicus DEM instance COP-DEM-GLO-30-F Global 30m Full, Free & Open"
+  },
+  {
+   "rel": "license",
+   "href": "https://creativecommons.org/licenses/by/4.0/",
+   "title": "ESA WorldCover: CC BY 4.0"
+  },
+  {
+   "rel": "cite-as",
+   "href": "https://doi.org/10.5067/MODIS/MOD13Q1.061",
+   "title": "Didan (2021), MOD13Q1 v6.1 data set DOI"
+  },
+  {
+   "rel": "cite-as",
+   "href": "https://doi.org/10.5281/zenodo.7254221",
+   "title": "Zanaga et al. (2022), ESA WorldCover 10 m 2021 v200"
+  },
+  {
+   "rel": "processing-software",
+   "href": "./uv.lock",
+   "type": "application/toml",
+   "title": "Pipeline lockfile (uv)",
+   "file:checksum": "12205154d57a84dcb8f1eb5f992923d7589a669b8dc669edf140f607ff2740733aff"
+  }
+ ]
+}

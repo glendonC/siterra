@@ -1,4 +1,4 @@
-"""Write the relief or the land cover bundle of a place: the elevation surface on the 30 m EPSG:32629 grid (terrain_relief) or the WorldCover
+"""Write the relief or the land cover bundle of a place: the elevation surface on the 30 m grid of the analysis CRS (terrain_relief) or the WorldCover
 2021 classes on the 10 m analysis grid with their class table (land_cover_classes), each as a cloud-optimised GeoTIFF plus a summary and a
 STAC Collection.
 
@@ -31,10 +31,18 @@ import surface_layers as sl  # noqa: E402
 EXT = "https://siterra.invalid/schemas/stac/siterra/1.1.0/schema.json"
 PROJ_EXT = "https://stac-extensions.github.io/projection/v2.1.0/schema.json"
 RASTER_EXT = "https://stac-extensions.github.io/raster/v1.1.0/schema.json"
-BUNDLES = {"relief": ("terrain_relief", "bundle_relief_ait_bouguemez", "elevation_surface"),
-           "land_cover": ("land_cover_classes", "bundle_land_cover_ait_bouguemez", "landcover_mask")}
-TO_UTM = Transformer.from_crs("EPSG:4326", "EPSG:32629", always_xy=True)
-FROM_UTM = Transformer.from_crs("EPSG:32629", "EPSG:4326", always_xy=True)
+BUNDLES = {"relief": ("terrain_relief", "bundle_relief_{place}", "elevation_surface"),
+           "land_cover": ("land_cover_classes", "bundle_land_cover_{place}", "landcover_mask")}
+CRS = TO_UTM = FROM_UTM = None  # set from the place configuration by use_place()
+
+
+def use_place(cfg):
+    """Take the analysis CRS from the place configuration; the 10 m analysis grid and 30 m DEM grid are fixed by the recipes."""
+    global CRS, TO_UTM, FROM_UTM
+    assert cfg["analysisGridM"] == 10 and cfg["elevation"]["gridM"] == 30, "these recipes are registered for a 10 m analysis grid and a 30 m DEM grid"
+    CRS = cfg["analysisCrs"]
+    TO_UTM = Transformer.from_crs("EPSG:4326", CRS, always_xy=True)
+    FROM_UTM = Transformer.from_crs(CRS, "EPSG:4326", always_xy=True)
 CELL_NOTE = {"relief": "terrain-relief.json", "land_cover": "land-cover-classes.json"}
 
 
@@ -188,9 +196,11 @@ def main():
         elif a.startswith("--"):
             k, _, v = a[2:].partition("=")
             opts[k] = v
-    recipe, bid, variable = BUNDLES[which]
     cfg = place_config.load(place, repo)
-    reg = next(r for r in json.load(open(registry))["recipes"] if r["recipeId"] == recipe)
+    use_place(cfg)
+    recipe, bid, variable = BUNDLES[which]
+    bid = bid.format(place=cfg["placeId"])
+    reg = place_config.localize(cfg, next(r for r in json.load(open(registry))["recipes"] if r["recipeId"] == recipe))
     params = {p["name"]: p["default"] for p in reg["parameters"]}
     params["_heights_from"] = heights
     bdir = os.path.join(bundles, bid)
@@ -225,24 +235,24 @@ def main():
             + f". Against the native tile (bilinear in longitude and latitude) at the centres of the {n['cells']} inside 30 m cells, the absolute differences have a "
             f"{params['recompute_percentile']}th percentile of {n['percentile']:.2f} m (tolerance {params['recompute_tolerance_m']} m) and a largest value of {n['max']:.2f} m "
             f"at lon {n['max_at'][0]}, lat {n['max_at'][1]}. The whole build run twice in one process gives an identical file: {identical}.")
-        units = ("Elevation is float32 metres above the EGM2008 geoid (Copernicus DEM GLO-30 vertical datum) on a 30 m EPSG:32629 grid, not rounded; "
+        units = (f"Elevation is float32 metres above the EGM2008 geoid (Copernicus DEM GLO-30 vertical datum) on a 30 m {CRS} grid, not rounded; "
                  f"nodata is {params['nodata']}; the three elevation bands are {core['band_boundaries_m'][0]} m and {core['band_boundaries_m'][1]} m as in the strata bundle.")
         nodata_detail = (f"Nodata is {params['nodata']}, never 0 (sea level is not in the catchment, but 0 is not used to mean missing); "
                          f"{core['cells']['ring_outside']} kept cells lie in the one-cell ring outside the catchment and {detail['nodata_inside']} inside cells are nodata.")
-        title = f"Elevation surface of the valley catchment ({recipe} {reg['version']})"
+        title = f"Elevation surface of the {cfg['areaNoun']} ({recipe} {reg['version']})"
         desc = (f"Precomputed result of recipe {recipe} {reg['version']} for {cfg['title']}: the Copernicus DEM GLO-30 (2021) height of every 30 m cell of the catchment "
-                f"({core['cells']['inside_polygon_parents']} cells plus a ring of {core['cells']['ring_outside']} cells for interpolation) on the 30 m EPSG:32629 grid that gives the drainage "
+                f"({core['cells']['inside_polygon_parents']} cells plus a ring of {core['cells']['ring_outside']} cells for interpolation) on the 30 m {CRS} grid that gives the drainage "
                 f"lines, the profiles and the terrain strata their heights; heights from {core['elevation_m_inside_cells_10m']['lowest']} to {core['elevation_m_inside_cells_10m']['highest']} m. "
                 "Observation from a 30 m surface model.\n\n" + " ".join(reg["standardLimitations"]))
-        data_asset = {"title": "Elevation surface: float32 metres above the EGM2008 geoid on the 30 m EPSG:32629 grid; nodata -9999.0 outside the catchment and its one-cell ring",
+        data_asset = {"title": f"Elevation surface: float32 metres above the EGM2008 geoid on the 30 m {CRS} grid; nodata -9999.0 outside the catchment and its one-cell ring",
                       "bands": [{"name": "elevation", "data_type": "float32", "nodata": float(params["nodata"]), "unit": "m",
                                  "description": "Copernicus DEM GLO-30 2021, bilinear to 30 m, metres above the EGM2008 geoid"}]}
         attribution = [a for a in strata_col["siterra:attribution"] if "WorldCover" not in a]
         dataset = {"id": "copernicus-dem-glo-30", "version": "2021", "access_route": strata_col["siterra:dataset"]["access_route"],
-                   "resolution_note": "DEM 1 arc-second (about 30 m), resampled once to the 30 m EPSG:32629 grid of the terrain strata"}
+                   "resolution_note": f"DEM 1 arc-second (about 30 m), resampled once to the 30 m {CRS} grid of the terrain strata"}
         links_src = [l for l in strata_col["links"] if l["rel"] == "derived_from" and l["href"].endswith("_DEM.tif")]
         licenses = [l for l in strata_col["links"] if l["rel"] == "license" and "copernicus" in l["href"]]
-        lineage = ("The Copernicus DEM GLO-30 (2021) tile resampled once, bilinear, to the 30 m EPSG:32629 grid of the terrain strata with a one-cell margin; "
+        lineage = (f"The Copernicus DEM GLO-30 (2021) tile resampled once, bilinear, to the 30 m {CRS} grid of the terrain strata with a one-cell margin; "
                    "cells outside the catchment and its ring are nodata (science/pipeline/surface-bundles.py)")
         extent_t = [["2021-01-01T00:00:00Z", None]]
         derived = [{"rel": "derived_from", "href": f"../{strata_col['id']}/collection.json", "type": "application/json",
@@ -259,18 +269,18 @@ def main():
             f"{detail['n_excl']} in the excluded layer of the strata raster; {detail['read_back']} cells of the stored file differ from the placed WorldCover grid. "
             f"The whole build run twice in one process gives an identical file: {identical}.")
         units = ("Class codes are the ESA WorldCover 2021 v200 legend values (10 tree cover, 20 shrubland, 30 grassland, 40 cropland, 50 built-up, 60 bare or sparse vegetation, "
-                 "80 permanent water bodies); areas are km2 from 10 m cells of 100 m2 in EPSG:32629; shares are fractions of the cells inside the polygon.")
+                 f"80 permanent water bodies); areas are km2 from 10 m cells of 100 m2 in {CRS}; shares are fractions of the cells inside the polygon.")
         nodata_detail = ("Nodata is 0 and means outside the polygon; no WorldCover class has code 0 and "
                          f"{detail['zero']} cells inside the polygon carry it.")
-        title = f"Land cover of the valley catchment ({recipe} {reg['version']})"
+        title = f"Land cover of the {cfg['areaNoun']} ({recipe} {reg['version']})"
         desc = (f"Precomputed result of recipe {recipe} {reg['version']} for {cfg['title']}: the ESA WorldCover 2021 v200 class of each of the {core['cells_inside']} 10 m cells of the "
                 "catchment, with a table of cells, area and share per class and per configured group. A 2021 context map, not pasture types.\n\n" + " ".join(reg["standardLimitations"]))
-        data_asset = {"title": "WorldCover 2021 v200 class codes on the 10 m EPSG:32629 analysis grid; 0 outside the catchment",
+        data_asset = {"title": f"WorldCover 2021 v200 class codes on the 10 m {CRS} analysis grid; 0 outside the catchment",
                       "bands": [{"name": "land_cover_class", "data_type": "uint8", "nodata": params["nodata"], "unit": "1",
                                  "description": "ESA WorldCover 2021 v200 class code; 0 outside the polygon"}]}
         attribution = list(strata_col["siterra:attribution"])
         dataset = {"id": "esa-worldcover-v200", "version": "2021", "access_route": cfg["landCover"]["source"],
-                   "resolution_note": "WorldCover 10 m 2021 v200, nearest neighbour onto the 10 m EPSG:32629 analysis grid"}
+                   "resolution_note": f"WorldCover 10 m 2021 v200, nearest neighbour onto the 10 m {CRS} analysis grid"}
         links_src = [l for l in strata_col["links"] if l["rel"] == "derived_from" and "WorldCover" in l["href"]]
         licenses = [l for l in strata_col["links"] if l["rel"] == "license"]
         lineage = ("The ESA WorldCover 2021 v200 class map read for the catchment and placed on the 10 m analysis grid (nearest neighbour, science/pipeline/worldcover-grid.py), "

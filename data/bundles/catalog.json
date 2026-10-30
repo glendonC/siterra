@@ -13,13 +13,19 @@
    "rel": "child",
    "href": "./bundle_aligned_antecedent_ait_bouguemez/collection.json",
    "type": "application/json",
-   "file:checksum": "122095e90a9dc06aa0b307f4fa47569731eb5509b3e78a77e0703f88d26b38379638"
+   "file:checksum": "1220a050ef615b30f9d271ae2f6b4c09c64f5b89900c73b51e945f899fb707e84199"
   },
   {
    "rel": "child",
    "href": "./bundle_chirps_monthly_ait_bouguemez/collection.json",
    "type": "application/json",
    "file:checksum": "122018fa83935200324ea1951a65bc02a2bce1d4a067c6b135ce244c934a5605f9cf"
+  },
+  {
+   "rel": "child",
+   "href": "./bundle_chirps_monthly_calaveras_creek/collection.json",
+   "type": "application/json",
+   "file:checksum": "12202956995db303987c19e44194cee1471fe654e48fd0b58c80ad07b5304e021cab"
   },
   {
    "rel": "child",
@@ -31,55 +37,97 @@
    "rel": "child",
    "href": "./bundle_drainage_network_ait_bouguemez/collection.json",
    "type": "application/json",
-   "file:checksum": "1220338ea189958395b14af06b52bc662d4e7b59d36dddf9c12eeaac4891ab3b687a"
+   "file:checksum": "1220e6243836d35e8d1ad679b0c6c671ef33af153a0183ce13e25c8678c5c246ee7e"
+  },
+  {
+   "rel": "child",
+   "href": "./bundle_drainage_network_calaveras_creek/collection.json",
+   "type": "application/json",
+   "file:checksum": "1220ae6ca5609fdbf6bd3c529ede3e8bf2d860c793eb9e4aaa670c20744bd9db971a"
   },
   {
    "rel": "child",
    "href": "./bundle_land_cover_ait_bouguemez/collection.json",
    "type": "application/json",
-   "file:checksum": "1220a44268fb82b7d2808ba97d700556b428dc579f0335f1eef3166b1056e4da9cb8"
+   "file:checksum": "12206551cb38c74b629c21e5a7fd3ca8a2caac993f99a0f0c09da77ede7604ecacb0"
+  },
+  {
+   "rel": "child",
+   "href": "./bundle_land_cover_calaveras_creek/collection.json",
+   "type": "application/json",
+   "file:checksum": "1220548b8a863b9e0b185ac231ad385aa05f3d1c1a56267a06de9fced8766a251864"
   },
   {
    "rel": "child",
    "href": "./bundle_ndvi_departure_ait_bouguemez/collection.json",
    "type": "application/json",
-   "file:checksum": "122053660ae1449f41ece290b3b6f19cc28d13de790bf88826bb866d194903abae7a"
+   "file:checksum": "122076f1cc766fb2278a80287452b7851cf836d270128f579b24dd14e084cfeec73e"
   },
   {
    "rel": "child",
    "href": "./bundle_optical_visibility_ait_bouguemez/collection.json",
    "type": "application/json",
-   "file:checksum": "122021b388c54be35408a51dd46a31ac3031f35b7bbf8664a0fba9a6ed14aa4a9576"
+   "file:checksum": "12204187a29a2cb33e9944c6c3752654a26942cced7d48841922ddb967f9141d00f7"
   },
   {
    "rel": "child",
    "href": "./bundle_pixel_anatomy_ait_bouguemez/collection.json",
    "type": "application/json",
-   "file:checksum": "12201d8aa0b2dd58ca14e8adaca36e672f5587f394a80f9f4e2731882c202d480e9e"
+   "file:checksum": "1220ba5b7b3d0d724b78d3ba7044fee37f7c839a610c7ea4b25383dbe1ff6f1d2cee"
+  },
+  {
+   "rel": "child",
+   "href": "./bundle_pixel_seasons_ait_bouguemez/collection.json",
+   "type": "application/json",
+   "file:checksum": "1220b1a8f9d9a10ceb021a9fcc289a6d202459af8c76af0174fddabddce9a10b5fba"
+  },
+  {
+   "rel": "child",
+   "href": "./bundle_pixel_seasons_calaveras_creek/collection.json",
+   "type": "application/json",
+   "file:checksum": "1220c754d2ebe4651e979f485ccfbb8beef073d5317670270972e4bf1af9069b320d"
   },
   {
    "rel": "child",
    "href": "./bundle_pixel_trend_long_record_ait_bouguemez/collection.json",
    "type": "application/json",
-   "file:checksum": "1220696c5ad4fcd400f8ad84bda55e7c16628c8cd11ff8707e59277cfea1d1cc7c26"
+   "file:checksum": "12206c665b94ebe0263f381e16da1326ef51e4d088964adc841c928e73c0cc1a1cf8"
+  },
+  {
+   "rel": "child",
+   "href": "./bundle_pixel_trend_long_record_calaveras_creek/collection.json",
+   "type": "application/json",
+   "file:checksum": "122009cf889a66efacf7b580773df777f69bd025cbab30ae6e82f8de3dd4df729ce8"
   },
   {
    "rel": "child",
    "href": "./bundle_proposed_routes_ait_bouguemez/collection.json",
    "type": "application/json",
-   "file:checksum": "122030f304a62a03246e3d788510d0112203c2db98c13f3da20672a93607199b16d2"
+   "file:checksum": "1220421e7baa2d80f4df177fc4869e5dc0c0d74c9cac0436e2736832261be2df9cba"
   },
   {
    "rel": "child",
    "href": "./bundle_relief_ait_bouguemez/collection.json",
    "type": "application/json",
-   "file:checksum": "12200e42ad34b7cd7aa180f24008445c691bfdc83808bb6a2c6225d9dcee934e720d"
+   "file:checksum": "1220cb487ec3a0b65cc6ee6ac87410371bc490cf970ab573e8f5938027f5ea7eaeec"
+  },
+  {
+   "rel": "child",
+   "href": "./bundle_relief_calaveras_creek/collection.json",
+   "type": "application/json",
+   "file:checksum": "1220c1b4dcb26f4950c8e187c0923ac5338cda03486e131784246327de64474519ad"
   },
   {
    "rel": "child",
    "href": "./bundle_restrend_long_record_ait_bouguemez/collection.json",
    "type": "application/json",
-   "file:checksum": "1220e534312abe72fb9eb83c007406ee6e56b255e64443b24ccd3fd2db1af073a036"
+   "file:checksum": "12208c2b2276307ec8dee76085f3cce1401f6a0f535a7b25e0567f1a7e423d0af118"
+  },
+  {
+   "rel": "child",
+   "href": "./bundle_restrend_long_record_calaveras_creek/collection.json",
+   "type": "application/json",
+   "file:checksum": "1220e7680c33d6670815015223d8c52589e867357f5344aa7d52bb03fea938ca9a18"
   },
   {
    "rel": "child",
@@ -97,25 +145,49 @@
    "rel": "child",
    "href": "./bundle_season_trend_long_record_ait_bouguemez/collection.json",
    "type": "application/json",
-   "file:checksum": "122098f5653966e88f83f9d61a3c47b136914a7199e7d54b00b25c14c2a5f0470c2c"
+   "file:checksum": "12207d2971423704939b62fffd0e6228b4585d2e25b9a63f0434ea3236b81bb9ad56"
+  },
+  {
+   "rel": "child",
+   "href": "./bundle_season_trend_long_record_calaveras_creek/collection.json",
+   "type": "application/json",
+   "file:checksum": "122038ec78cc85e88dc4ef1dfa6b05b5f13c7330abd1f7c2739336765cf382e46fad"
   },
   {
    "rel": "child",
    "href": "./bundle_snow_cover_by_band_ait_bouguemez/collection.json",
    "type": "application/json",
-   "file:checksum": "1220b487663513e6f84cf08ad21ed4e33aac600404d2a84daf98c1de6b607a433f0d"
+   "file:checksum": "12205b8ae22a8ca0f8d4a29c61316e1da8a75529f61e17a49d2a21941330ca14f8e9"
+  },
+  {
+   "rel": "child",
+   "href": "./bundle_snow_cover_by_band_calaveras_creek/collection.json",
+   "type": "application/json",
+   "file:checksum": "1220fcb7d599a49f32c02b0dc6a221169dc179b8e3d35e6877dcc0ea9e14eaea95f5"
   },
   {
    "rel": "child",
    "href": "./bundle_terrain_strata_ait_bouguemez/collection.json",
    "type": "application/json",
-   "file:checksum": "1220e7892bc96d951fbe7c89d256bf719931af5f6a1fec40f843dcef44040b8346d1"
+   "file:checksum": "1220d78c5c708866192daeb5ab9dbd2ad8eea4e31c9252c611c8b9aeaecfb6daee04"
+  },
+  {
+   "rel": "child",
+   "href": "./bundle_terrain_strata_calaveras_creek/collection.json",
+   "type": "application/json",
+   "file:checksum": "1220469c24e0c5e81c1dfb0cc51262a6a2018d3b1a857e70be166adcccf757a90198"
   },
   {
    "rel": "child",
    "href": "./bundle_transects_ait_bouguemez/collection.json",
    "type": "application/json",
-   "file:checksum": "122081ac3bcc025dcfc8b1b7fc2a75316fe8111f2c442ab826ac2ef8bd3a2058f62f"
+   "file:checksum": "1220c4ac23091fdddd03d2940739f02b123abe85b3fffbbca2304f7bca21c8cb64cd"
+  },
+  {
+   "rel": "child",
+   "href": "./bundle_transects_calaveras_creek/collection.json",
+   "type": "application/json",
+   "file:checksum": "1220de1ba705280b653ea6f3bc30836cfbe0474847f40b396004e2c992ddab5f09ab"
   }
  ],
  "stac_extensions": [

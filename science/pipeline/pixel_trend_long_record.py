@@ -162,6 +162,7 @@ def main():
     cfg = place_config.load(place, repo)
     rc = cfg["recipes"][RECIPE]
     reg = {r["recipeId"]: r for r in json.load(open(reg_path))["recipes"]}[RECIPE]
+    reg = place_config.localize(cfg, reg)  # a place states its own wording where the registry's would name another place
     par = {p["name"]: p["default"] for p in reg["parameters"]}
     kept = par["pixel_reliability_kept"]
     min_share = par["min_composite_share"]
@@ -619,7 +620,7 @@ def main():
             G = season_ndvi(arrays, calendar_periods(y, gwp["months"]), kept, min_share)
             if G is not None and not np.isnan(G[r, c]):
                 yrs_chk.append(y)
-                vals_chk.append(round(float(G[r, c]), NDVI_DECIMALS))
+                vals_chk.append(float(np.round(G[r, c], NDVI_DECIMALS)))  # rounded in the array's own precision, as the map is: Python's round() of the float64 value breaks a tie of the fifth decimal the other way and moved a Theil-Sen slope by 2e-5
         if len(yrs_chk) >= min_seasons:
             sen_chk = ts.theil_sen(yrs_chk, vals_chk)
             stored_row = window_tables[gw_primary][idx]
@@ -745,7 +746,7 @@ def main():
     strata_col = json.load(open(os.path.join(bundles, cfg["strata"]["bundle"], "collection.json")))
     first_item, last_item = min(rec["kept"]), max(rec["kept"])
     access = access or rec["searched_at"][:10]
-    attribution = [MODIS_CITATION.format(first=first_item.split(".")[1], last=last_item.split(".")[1], date=access)]
+    attribution = [MODIS_CITATION.format(first=first_item.split(".")[1], last=last_item.split(".")[1], tile=first_item.split(".")[2], date=access)]
     attribution += [a for a in strata_col["siterra:attribution"] if a not in attribution]
     for a in cfg["landCover"]["attribution"]:
         if a not in attribution:

@@ -131,6 +131,14 @@ def fit_series(years, vals, level):
     }
 
 
+MONTH_NAMES = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+
+
+def window_label(w):
+    """'March to June' for a growing window given by its month list."""
+    return f"{MONTH_NAMES[w['months'][0] - 1]} to {MONTH_NAMES[w['months'][-1] - 1]}"
+
+
 def compute_baseline_summary(years, Ytab, strata_meta, gws):
     """Deterministic baseline summary for each stratum and growing window across 2000-2025, explicitly marked
     preregistered: false because spring values were already read when season_trend_long_record was registered."""
@@ -196,6 +204,7 @@ def main():
     rc = cfg["recipes"][RECIPE]
     rc_pix = cfg["recipes"][rc["growingWindowsFrom"]]
     reg = {r["recipeId"]: r for r in json.load(open(reg_path))["recipes"]}[RECIPE]
+    reg = place_config.localize(cfg, reg)  # a place states its own wording where the registry's would name another place
     par = {p["name"]: p["default"] for p in reg["parameters"]}
     min_share = par["min_composite_share"]
     min_area = par["min_area_coverage"]
@@ -209,6 +218,7 @@ def main():
     rws = cfg["recipes"]["restrend_long_record"]["rainfallWindows"]
     rw_primary = next(w["id"] for w in rws if w.get("primary"))
     contrast_cfg = rc["contrast"]
+    wl = {w["id"]: window_label(w) for w in gws}
     now = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
     # Build all stratum masks: catchment, terrain strata, fixed 500 m elevation bands, land cover groups
@@ -323,7 +333,7 @@ def main():
                 vals = [Ytab[(sid, wid, rel, y)] for y in yrs]
                 fp = fit_series(yrs, vals, level)
                 p_val = fp.pop("_raw_p")
-                # Also compute antecedent rainfall R-squared (primary sep_may and nov_apr)
+                # Also compute antecedent rainfall R-squared for every configured rainfall window
                 rain_fits = {}
                 for rw in rws:
                     rwid = rw["id"]
@@ -412,13 +422,14 @@ def main():
 
     checks = [
         {"name": "recompute_sample_period", "passed": bool(consistency_ok),
-         "detail": (f"All {shared_checked} shared stratum-window-season values (catchment, 3 terrain elevation bands, 5 aspect "
-                    f"classes across mar_jun, mar_may, apr_jul and both reliability sets) compared against "
+         "detail": (f"All {shared_checked} shared stratum-window-season values (the catchment and the terrain strata layers of "
+                    f"restrend_long_record across {', '.join(w['id'] for w in cfg['recipes']['restrend_long_record']['growingWindows'])} "
+                    f"and both reliability sets) compared against "
                     f"bundle_restrend_long_record_{cfg['placeId']}: {mismatches} differences.")},
         {"name": "nodata_not_zero", "passed": True,
          "detail": ("NDVI fill (-3000) and values outside -0.2 to 1.0 are not observed; pixel reliability other than [0, 1] "
                     "(primary) or [0] (sensitivity), including fill 255, is not observed; a season with less than 70% area "
-                    "coverage is withheld ( such as 2025 jun_sep where 6 of 8 composites are absent from Planetary Computer).")},
+                    "coverage is withheld (the composite periods absent from Planetary Computer are listed in the summary).")},
         {"name": "units_and_scale", "passed": bool(scale_ok),
          "detail": (f"Every stored NDVI window is int16 with nodata -3000 and GDAL scale 10000 (physical value = DN / 10000). "
                     f"Pixel reliability windows are uint8 with nodata 255, except {n_int8} stored as int8 with nodata -1. "
@@ -429,7 +440,7 @@ def main():
                     + modis_record.gap_sentence(absent_all, gaps, "composite period"))},
         {"name": "period_alignment", "passed": True,
          "detail": ("A composite belongs to a season when its 16-day period starts in a month of the growing window of that year; "
-                    "the spring (March to May) and summer (June to September) contrast windows share no month.")},
+                    f"the spring ({wl[contrast_cfg['spring']]}) and summer ({wl[contrast_cfg['summer']]}) contrast windows share no month.")},
         {"name": "attribution_present", "passed": True,
          "detail": "MOD13Q1 v6.1 citation with DOI, subset and access date, CHIRPS v3.0 attribution, ESA WorldCover 2021 attribution and Copernicus DEM notices are in siterra:attribution."},
     ]
@@ -460,8 +471,7 @@ def main():
             "theil_sen_per_decade": [r["theil_sen"]["slope_per_decade"], r["theil_sen"]["lower_per_decade"], r["theil_sen"]["upper_per_decade"]],
             "theil_sen_direction": r["theil_sen"]["direction"],
             "fdr_pass": r["fdr_pass"],
-            "rainfall_sep_may_r_squared": r["rainfall_association"].get("sep_may", {}).get("r_squared"),
-            "rainfall_nov_apr_r_squared": r["rainfall_association"].get("nov_apr", {}).get("r_squared"),
+            **{f"rainfall_{rw['id']}_r_squared": r["rainfall_association"].get(rw["id"], {}).get("r_squared") for rw in rws},
         }
         for r in primary_results if r["stratum"] == "catchment" and r["status"] == "computed"
     }
@@ -540,7 +550,7 @@ def main():
     first_item, last_item = min(rec["kept"]), max(rec["kept"])
     access = access or rec["searched_at"][:10]
 
-    attribution = [MODIS_CITATION.format(first=first_item.split(".")[1], last=last_item.split(".")[1], date=access)]
+    attribution = [MODIS_CITATION.format(first=first_item.split(".")[1], last=last_item.split(".")[1], tile=first_item.split(".")[2], date=access)]
     attribution += [a for a in rain_col["siterra:attribution"] if a not in attribution]
     attribution += [a for a in strata_col["siterra:attribution"] if a not in attribution]
     for a in cfg["landCover"]["attribution"]:
@@ -551,16 +561,19 @@ def main():
     lic_links.insert(0, {"rel": "license", "href": "https://www.earthdata.nasa.gov/engage/open-data-services-software-policies/data-use-guidance",
                          "title": "MOD13Q1 v6.1: NASA data use guidance (NASA-led mission data without a marked restriction are CC0; citation strongly urged)"})
 
-    c_mj = cat_by_win["mar_jun"]
-    c_js = cat_by_win["jun_sep"]
+    sp_label, su_label = wl[contrast_cfg["spring"]], wl[contrast_cfg["summer"]]
+    c_mj = cat_by_win[gw_primary]
+    c_js = cat_by_win[contrast_cfg["summer"]]
+    su_years = [y for y in years if Ytab.get(("catchment", contrast_cfg["summer"], PRIMARY_RELIABILITY, y)) is not None]
+    labels = list(wl.values())
     c_con = summary_out["headline_catchment"]["spring_minus_summer_contrast"]
     desc = (
         f"Precomputed result of recipe {RECIPE} {reg['version']} for {cfg['title']}: growing-season MODIS NDVI (MOD13Q1 v6.1, "
-        f"250 m) trends across four windows (March to June, March to May, April to July, and June to September) from {years[0]} "
+        f"250 m) trends across {['zero', 'one', 'two', 'three', 'four', 'five', 'six'][len(labels)]} windows ({', '.join(labels[:-1])}, and {labels[-1]}) from {years[0]} "
         f"to {years[-1]} over the catchment, terrain strata, fixed 500 m elevation bands and WorldCover 2021 land cover groups, "
-        f"plus the spring (March to May) minus summer (June to September) contrast and a post-hoc 26-season stratum baseline "
-        f"summary. Catchment March to June OLS slope: {c_mj['ols_per_decade'][0]:+.4f} NDVI per decade (95% interval "
-        f"{c_mj['ols_per_decade'][1]:+.4f} to {c_mj['ols_per_decade'][2]:+.4f}); June to September (25 seasons, 2000 to 2024): "
+        f"plus the spring ({sp_label}) minus summer ({su_label}) contrast and a post-hoc {len(years)}-season stratum baseline "
+        f"summary. Catchment {wl[gw_primary]} OLS slope: {c_mj['ols_per_decade'][0]:+.4f} NDVI per decade (95% interval "
+        f"{c_mj['ols_per_decade'][1]:+.4f} to {c_mj['ols_per_decade'][2]:+.4f}); {su_label} ({len(su_years)} seasons, {su_years[0]} to {su_years[-1]}): "
         f"{c_js['ols_per_decade'][0]:+.4f} NDVI per decade (95% interval {c_js['ols_per_decade'][1]:+.4f} to "
         f"{c_js['ols_per_decade'][2]:+.4f}); spring minus summer contrast slope: {c_con['ols_per_decade'][0]:+.4f} NDVI per "
         f"decade (95% interval {c_con['ols_per_decade'][1]:+.4f} to {c_con['ols_per_decade'][2]:+.4f}).\n\n"
@@ -593,8 +606,8 @@ def main():
              "processing:lineage": (
                  f"Anonymous SAS-signed range reads of MOD13Q1 v6.1 NDVI and pixel reliability windows over the frozen geometry "
                  f"from Planetary Computer ({len(sidecars)} Terra composites); growing-season means per pixel weighted by 10 m "
-                 f"analysis cells across 20 strata; OLS, AR(1)-adjusted and Theil-Sen trend intervals, Benjamini-Hochberg FDR, "
-                 f"spring-minus-summer contrast and 26-season stratum baseline ranks (science/pipeline/season_trend_long_record.py)."
+                 f"analysis cells across {len(strata_meta)} strata; OLS, AR(1)-adjusted and Theil-Sen trend intervals, Benjamini-Hochberg FDR, "
+                 f"spring-minus-summer contrast and {len(years)}-season stratum baseline ranks (science/pipeline/season_trend_long_record.py)."
              ),
              "processing:software": sw},
         ],
@@ -614,7 +627,7 @@ def main():
             "season_trend_long_record": {
                 "href": "./season-trend-long-record.json",
                 "type": "application/json",
-                "title": "Summary: season-window trends, spring-minus-summer contrasts and 26-season stratum baseline ranks (the result read_recipe_result returns)",
+                "title": f"Summary: season-window trends, spring-minus-summer contrasts and {len(years)}-season stratum baseline ranks (the result read_recipe_result returns)",
                 "roles": ["data"],
                 "file:checksum": "1220" + sha(rpath),
                 "file:size": os.path.getsize(rpath),
@@ -686,9 +699,9 @@ def main():
           f"summary {os.path.getsize(rpath)} bytes, tables {os.path.getsize(tpath)} bytes")
     for wid, cw in cat_by_win.items():
         print(f"  catchment {wid} (n={cw['n']}): ols={cw['ols_per_decade']} ({cw['ols_direction']}), "
-              f"sen={cw['theil_sen_per_decade']} ({cw['theil_sen_direction']}), fdr={cw['fdr_pass']}, R2_sep_may={cw['rainfall_sep_may_r_squared']}")
+              f"sen={cw['theil_sen_per_decade']} ({cw['theil_sen_direction']}), fdr={cw['fdr_pass']}, " + ", ".join(f"R2_{rw['id']}={cw[f'rainfall_{rw['id']}_r_squared']}" for rw in rws))
     if cat_contrast:
-        print(f"  catchment contrast mar_may - jun_sep (n={cat_contrast['n']}): ols={cat_contrast['ols']['slope_per_decade']:+.5f} "
+        print(f"  catchment contrast {contrast_cfg['spring']} - {contrast_cfg['summer']} (n={cat_contrast['n']}): ols={cat_contrast['ols']['slope_per_decade']:+.5f} "
               f"[{cat_contrast['ols']['lower_per_decade']:+.5f}, {cat_contrast['ols']['upper_per_decade']:+.5f}] ({cat_contrast['ols']['direction']})")
     for c in checks:
         print(f"  check {c['name']}: {'passed' if c['passed'] else 'FAILED'}")

@@ -20,7 +20,8 @@ The `case` object in `case.json` holds the words the case record and the screen 
 | Field | Words | Source |
 |---|---|---|
 | `title` | Grazing and livelihoods in the Aït Bouguemez valley | [Microcopy](../../docs/reference/microcopy.md), section 1, line 2 (title) |
-| `location` | Central High Atlas, Morocco | [Microcopy](../../docs/reference/microcopy.md), section 1, line 1 (location); shown on screen only, not stored in the case record |
+| `location` | Central High Atlas, Morocco | [Microcopy](../../docs/reference/microcopy.md), section 1, line 1 (location); shown on screen; the same words are stored as `place.region` |
+| `place` | `name` Aït Bouguemez valley, `region` Central High Atlas, Morocco | Stored in the case record as `place` (contracts 1.18.0) and listed by `GET /api/seed-cases`. The name is the approved `arrival.valleyName` of [Microcopy](../../docs/reference/microcopy.md); the region is `case.location`. A new place states its own approved words here |
 | `objective` | Is grazing changing the shared pastures of the Aït Bouguemez valley? | The investigation question approved for the case on 2026-10-27 |
 | `description` | Reported: concern about grazing pressure on shared pastures. Not established: whether vegetation has changed, or why. | [Microcopy](../../docs/reference/microcopy.md), section 1, line 4 (status) and the reading order that follows it |
 | `unresolvedQuestions` | Whether vegetation has changed, or why. | The "Not established" half of the status line |
@@ -55,3 +56,7 @@ The gold sets follow the format in [evaluation](../../docs/reference/evaluation.
 python -I science/pipeline/gold-extraction.py data/case/corpus-manifest.json . data/interim/gold/extraction-draft.json data/case/gold/RUBRIC.md "model draft (<model ID>), unreviewed" data/case/gold/extraction.jsonl
 python -I science/pipeline/gold-numeric.py data/bundles data/case/gold/numeric.jsonl
 ```
+
+## A second place
+
+`calaveras-creek/` holds the seed of the second place, the Calaveras Creek catchment in the Diablo Range, California (`case_calaveras_creek`), with the same four file names as this folder: `case.json`, `context-features.json`, `measurement-rows.json` and `evidence-statements.json` (no statement yet). Load it with `--seed-dir data/case/calaveras-creek`. Its geometry is `science/places/calaveras-creek.geometry.geojson`, byte-identical to `analysis-geometry.geojson` in each of its bundles, and its corpus manifest is `corpus-manifest-calaveras-creek.json`. The words of its `case` object and `place` are a draft that has not been approved as copy.

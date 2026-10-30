@@ -472,6 +472,35 @@ describe("plan validator", () => {
     expect(codes(looped)).toEqual(["limit $.tasks"]);
   });
 
+  it("runs the candidate responses and the brief after the explanation branches, so both see the merge and its field checks", () => {
+    const plan = {
+      interpretation: "The command asks for a package.",
+      tasks: [
+        task("obs", "observation_analysis"),
+        task("branches", "explanation_branches", ["obs"]),
+        task("responses", "intervention_feasibility"),
+        task("brief", "brief_package"),
+      ],
+      clarifyingQuestion: null,
+    };
+    const r = check(plan);
+    const depends = (key: string) => r.ok && r.value.tasks.find((t) => t.key === key)?.dependsOn;
+    expect(depends("responses")).toEqual(["branches"]);
+    expect(depends("brief")).toEqual(["obs", "branches", "responses"]);
+    expect(depends("branches")).toEqual(["obs"]);
+    // The branches wait for nothing the package adds: a cycle through them is refused.
+    const looped = {
+      ...plan,
+      tasks: [
+        task("obs", "observation_analysis"),
+        task("branches", "explanation_branches", ["responses"]),
+        task("responses", "intervention_feasibility"),
+        task("brief", "brief_package"),
+      ],
+    };
+    expect(codes(looped)).toEqual(["limit $.tasks"]);
+  });
+
   it("names exactly the kinds whose specs can commit a field requirement", () => {
     const specs = [OBSERVATION_SPEC, SOURCE_RESEARCH_SPEC, LIVELIHOOD_SPEC];
     expect(

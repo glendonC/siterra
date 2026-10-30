@@ -122,6 +122,7 @@ def main():
     cfg = place_config.load(place, repo)
     rc = cfg["recipes"][RECIPE]
     reg = {r["recipeId"]: r for r in json.load(open(reg_path))["recipes"]}[RECIPE]
+    reg = place_config.localize(cfg, reg)  # a place states its own wording where the registry's would name another place
     par = {p["name"]: p["default"] for p in reg["parameters"]}
     kept_default, min_share = par["pixel_reliability_kept"], par["min_composite_share"]
     min_area, min_seasons, level = par["min_area_coverage"], par["min_seasons"], par["interval_level"]
@@ -426,7 +427,7 @@ def main():
     lic_links = list({l["href"]: l for c in (rain_col, strata_col) for l in c["links"] if l["rel"] == "license"}.values())
     lic_links.insert(0, {"rel": "license", "href": "https://www.earthdata.nasa.gov/engage/open-data-services-software-policies/data-use-guidance",
                          "title": "MOD13Q1 v6.1: NASA data use guidance (NASA-led mission data without a marked restriction are CC0; citation strongly urged)"})
-    attribution = [MODIS_CITATION.format(first=first_item.split(".")[1], last=last_item.split(".")[1], date=access)]
+    attribution = [MODIS_CITATION.format(first=first_item.split(".")[1], last=last_item.split(".")[1], tile=first_item.split(".")[2], date=access)]
     attribution += [a for a in rain_col["siterra:attribution"]]
     attribution += [a for a in strata_col["siterra:attribution"] if a not in attribution]
     sw = {"siterra-science": "0.1.0", "python": sys.version.split()[0], "numpy": np.__version__,

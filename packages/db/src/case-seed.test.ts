@@ -19,7 +19,14 @@ const args = {
 };
 const caseFile = JSON.parse(readFileSync(`${repoDir}data/case/case.json`, "utf8")) as {
   caseId: string;
-  case: { title: string; objective: string; description: string; unresolvedQuestions: string[] };
+  case: {
+    title: string;
+    location: string;
+    place: { name: string; region: string };
+    objective: string;
+    description: string;
+    unresolvedQuestions: string[];
+  };
 };
 
 let db: TestDatabase;
@@ -48,6 +55,7 @@ describe("the case seed in data/case/", () => {
       "bundle_ndvi_departure_ait_bouguemez",
       "bundle_optical_visibility_ait_bouguemez",
       "bundle_pixel_anatomy_ait_bouguemez",
+      "bundle_pixel_seasons_ait_bouguemez",
       "bundle_pixel_trend_long_record_ait_bouguemez",
       "bundle_proposed_routes_ait_bouguemez",
       "bundle_relief_ait_bouguemez",
@@ -76,6 +84,13 @@ describe("the case seed in data/case/", () => {
       caseFile.case.unresolvedQuestions,
     ]);
     expect([record?.status, record?.mode, record?.revision]).toEqual(["draft", "concept", 1]);
+  });
+
+  it("states the place of the case in the record, with the region as the approved location line", () => {
+    const record = readCaseSeed(args).seed?.caseRecord;
+    expect(record?.place).toEqual(caseFile.case.place);
+    expect(record?.place?.region).toBe(caseFile.case.location);
+    expect(record?.place?.name).toBe("Aït Bouguemez valley");
   });
 
   it("RL-04 (seed part): loads into one snapshot equal to the fixture builder's", async () => {

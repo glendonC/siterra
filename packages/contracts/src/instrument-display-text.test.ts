@@ -30,8 +30,7 @@ const ok = (value: unknown) => InstrumentParameters.safeParse(value).success;
 describe("contracts 1.17: the display text of a placed statement", () => {
   it("accepts 1.17.0 and every earlier version of the same MAJOR", () => {
     expect(acceptedCaseSchemaVersions).toContain(caseSchemaVersion);
-    expect(caseSchemaVersion).toBe("1.17.0");
-    for (const earlier of ["1.2.0", "1.15.0", "1.16.0"]) {
+    for (const earlier of ["1.2.0", "1.15.0", "1.16.0", "1.17.0"]) {
       expect(acceptedCaseSchemaVersions).toContain(earlier);
     }
   });

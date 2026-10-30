@@ -1,0 +1,113 @@
+{
+ "created": "2026-10-30T17:28:09Z",
+ "script": "freeze-catchment-calaveras.py (private; pysheds)",
+ "dem": {
+  "file": "Copernicus_DSM_COG_10_N37_00_W122_00_DEM.tif",
+  "sha256": "15d21273ae3d94c3ef19aa6abaef47d5f78bf4ac24e682d131c01bb8b5101db2",
+  "window": [
+   -121.95,
+   37.15,
+   -121.4,
+   37.56
+  ],
+  "window_bounds": [
+   -121.95,
+   37.15,
+   -121.4,
+   37.56
+  ],
+  "window_shape": [
+   1476,
+   1980
+  ]
+ },
+ "d8_steps_rising_on_conditioned_dem": {
+  "window": {
+   "checked": 2921821,
+   "rising": 0
+  },
+  "catchment": {
+   "checked": 339432,
+   "rising": 0
+  }
+ },
+ "software": {
+  "pysheds": "0.5",
+  "numpy": "2.5.4",
+  "rasterio": "1.5.2",
+  "gdal": "3.12.2",
+  "python": "3.12.9"
+ },
+ "method": [
+  "fill_pits",
+  "fill_depressions",
+  "resolve_flats",
+  "flowdir D8 (dirmap 64,128,1,2,4,8,16,32)",
+  "accumulation",
+  "snap to maximum accumulation within 120.0 m (geodesic, cell centres)",
+  "catchment",
+  "polygonize 4-connected on the DEM grid",
+  "dissolve, keep largest piece"
+ ],
+ "outlet": {
+  "input_lat_lon": [
+   37.50194444,
+   -121.8183333
+  ],
+  "snapped_lat_lon": [
+   37.502500000000005,
+   -121.81916666666666
+  ],
+  "snap_distance_m": 96.1,
+  "accumulation_cells": 339447,
+  "candidates": 59
+ },
+ "result": {
+  "cells": 339432,
+  "area_km2_geodesic": 257.444,
+  "area_km2_utm10n": 257.326,
+  "published_km2": 256.0,
+  "relative_difference": 0.0056,
+  "tolerance": 0.05,
+  "bbox": [
+   -121.86653,
+   37.25764,
+   -121.49486,
+   37.50708
+  ],
+  "vertices": 3431,
+  "holes": 1,
+  "dem_min_m": 147.2,
+  "dem_max_m": 1329.5,
+  "cells_differing_polygon_vs_delineation": 1
+ },
+ "crop": {
+  "margin_cells": 8,
+  "rows": [
+   183,
+   1097
+  ],
+  "cols": [
+   293,
+   1647
+  ],
+  "shape": [
+   914,
+   1354
+  ]
+ },
+ "outputs": {
+  "calaveras-creek-catchment-cdem2021-30m.geojson": {
+   "sha256": "10b9be7d7a71bc0162e684240359e4cdb433567a62f2c29eee979268777f85da",
+   "bytes": 141364
+  },
+  "d8-flow-direction.tif": {
+   "sha256": "bce15a4a33443b1d1e11d756395f7e04c4bb381d0680cbcf61c6a2be2bdd1f14",
+   "bytes": 428247
+  },
+  "depression-fill-depth.tif": {
+   "sha256": "99fdf53ea2f0a5f50061c3c2d2d26453a65f3d94e60cde870cc39bf52ebebeac",
+   "bytes": 351516
+  }
+ }
+}

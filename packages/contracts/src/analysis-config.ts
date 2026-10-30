@@ -248,6 +248,8 @@ export const CaseAnalysisConfig = z
     caseId: entityId,
     /** How tool descriptions and host messages name the case area, such as "catchment". */
     areaLabel: label,
+    /** How the configuration was written, where that matters to a reader (for example what its author had read). */
+    note: text({ min: 1, max: 600 }).optional(),
     seriesPairs: z
       .array(SeriesPair)
       .min(1)

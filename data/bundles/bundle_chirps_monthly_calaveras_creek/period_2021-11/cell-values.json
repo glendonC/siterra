@@ -1,0 +1,121 @@
+{
+ "period_id": "period_2021-11",
+ "unit": "mm",
+ "cells": [
+  {
+   "cell_id": "chirps_r449_c1162",
+   "mm": 27.532,
+   "departure_mm": -26.507
+  },
+  {
+   "cell_id": "chirps_r449_c1163",
+   "mm": 34.114,
+   "departure_mm": -30.524
+  },
+  {
+   "cell_id": "chirps_r450_c1162",
+   "mm": 26.122,
+   "departure_mm": -33.154
+  },
+  {
+   "cell_id": "chirps_r450_c1163",
+   "mm": 34.781,
+   "departure_mm": -35.577
+  },
+  {
+   "cell_id": "chirps_r450_c1164",
+   "mm": 38.307,
+   "departure_mm": -31.856
+  },
+  {
+   "cell_id": "chirps_r450_c1165",
+   "mm": 35.937,
+   "departure_mm": -33.676
+  },
+  {
+   "cell_id": "chirps_r451_c1163",
+   "mm": 31.492,
+   "departure_mm": -28.383
+  },
+  {
+   "cell_id": "chirps_r451_c1164",
+   "mm": 34.85,
+   "departure_mm": -30.171
+  },
+  {
+   "cell_id": "chirps_r451_c1165",
+   "mm": 38.586,
+   "departure_mm": -27.899
+  },
+  {
+   "cell_id": "chirps_r451_c1166",
+   "mm": 40.648,
+   "departure_mm": -36.573
+  },
+  {
+   "cell_id": "chirps_r451_c1167",
+   "mm": 41.325,
+   "departure_mm": -33.297
+  },
+  {
+   "cell_id": "chirps_r452_c1165",
+   "mm": 31.043,
+   "departure_mm": -27.246
+  },
+  {
+   "cell_id": "chirps_r452_c1166",
+   "mm": 37.742,
+   "departure_mm": -36.031
+  },
+  {
+   "cell_id": "chirps_r452_c1167",
+   "mm": 41.81,
+   "departure_mm": -33.453
+  },
+  {
+   "cell_id": "chirps_r452_c1168",
+   "mm": 38.702,
+   "departure_mm": -28.364
+  },
+  {
+   "cell_id": "chirps_r453_c1166",
+   "mm": 43.451,
+   "departure_mm": -30.329
+  },
+  {
+   "cell_id": "chirps_r453_c1167",
+   "mm": 43.241,
+   "departure_mm": -27.965
+  },
+  {
+   "cell_id": "chirps_r453_c1168",
+   "mm": 41.948,
+   "departure_mm": -29.576
+  },
+  {
+   "cell_id": "chirps_r453_c1169",
+   "mm": 38.395,
+   "departure_mm": -26.884
+  },
+  {
+   "cell_id": "chirps_r453_c1170",
+   "mm": 36.34,
+   "departure_mm": -23.265
+  },
+  {
+   "cell_id": "chirps_r454_c1167",
+   "mm": 37.997,
+   "departure_mm": -31.324
+  },
+  {
+   "cell_id": "chirps_r454_c1168",
+   "mm": 42.448,
+   "departure_mm": -26.23
+  },
+  {
+   "cell_id": "chirps_r454_c1169",
+   "mm": 39.363,
+   "departure_mm": -27.352
+  }
+ ]
+}

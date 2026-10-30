@@ -150,6 +150,7 @@ describe("STAC extension 1.1.0", () => {
     "elevation_surface",
     "optical_clear_share",
     "proposed_route",
+    "species_occurrences",
   ])("accepts %s as a bundle variable in the JSON schema and Zod mirror", (variable) => {
     const schema = readJson(`${repoDir}schemas/stac/siterra-extension.schema.json`);
     const defs = schema["definitions"] as Json;

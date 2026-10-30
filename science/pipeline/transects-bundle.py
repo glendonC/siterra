@@ -1,5 +1,5 @@
 """Precompute terrain_transects for a place and write it as a bundle: elevation profiles every 30 m along the meridian
-through Tabant and along the longest flow path from the outlet, with band, WorldCover class and inside flag per sample,
+through a configured point and along the longest flow path from the outlet, with band, WorldCover class and inside flag per sample,
 band crossings, land cover runs and the valley floor segment, as JSON, 3D GeoJSON lines and a STAC Collection.
 
 Usage: python -I transects-bundle.py <place.json> <repo_root> <dem.tif> <registry.json> <lockfile> <bundles_dir>
@@ -31,7 +31,7 @@ RECIPE = "terrain_transects"
 EXT = "https://siterra.invalid/schemas/stac/siterra/1.1.0/schema.json"
 PROJ_EXT = "https://stac-extensions.github.io/projection/v2.1.0/schema.json"
 GEOD = Geod(ellps="WGS84")
-TO_UTM = Transformer.from_crs("EPSG:4326", "EPSG:32629", always_xy=True)
+TO_UTM = None  # set from the place configuration by compute()
 PAD_CELLS = 1
 COORD_DECIMALS = 7
 BOUNDARY_TOLERANCE_DEG = 10 ** -COORD_DECIMALS  # a sample on the polygon's boundary, to the stored precision, counts as inside
@@ -54,7 +54,7 @@ def derive(d, z, lc, bounds, floor_max):
     share = {}
     for c, lo, hi in run_list:
         share[c] = share.get(c, 0.0) + (hi - lo) / total
-    floor = tt.floor_segment(d, z, floor_max)
+    floor = None if floor_max is None else tt.floor_segment(d, z, floor_max)
     lo_i, hi_i = int(np.argmin(z)), int(np.argmax(z))
     return {
         "crossings": [{"boundary_m": b, "distance_m": round(x, 1), "direction": direction} for b, x, direction, _ in cross],
@@ -81,12 +81,14 @@ def native_dem(dem_path, lon, lat):
 
 
 def compute(cfg, reg, dem, bundles):
+    global TO_UTM
+    TO_UTM = Transformer.from_crs("EPSG:4326", cfg["analysisCrs"], always_xy=True)
     params = {p["name"]: p["default"] for p in reg["parameters"]}
     tc = cfg["recipes"][RECIPE]
     step = params["step_m"]
     strata_col = json.load(open(os.path.join(bundles, cfg["strata"]["bundle"], "collection.json")))
     bounds = strata_col["siterra:method"]["parameters"]["boundaries_m"]
-    floor_max = float(tc["valleyFloor"]["maxElevationM"])
+    floor_max = float(tc["valleyFloor"]["maxElevationM"]) if "valleyFloor" in tc else None
     poly = place_config.geometry(cfg)
     z30, gx0, gy0, gres = place_config.elevation_grid(cfg, dem, pad_cells=PAD_CELLS)
     lc_grid = place_config.land_cover(cfg)
@@ -146,7 +148,7 @@ def main():
     place, repo, dem, registry, lock_path, bundles = argv
     cfg = place_config.load(place, repo)
     place_config.check_dem(cfg, dem)
-    reg = [r for r in json.load(open(registry))["recipes"] if r["recipeId"] == RECIPE][0]
+    reg = place_config.localize(cfg, [r for r in json.load(open(registry))["recipes"] if r["recipeId"] == RECIPE][0])
     tc = cfg["recipes"][RECIPE]
     bid = tc["bundleId"]
     bdir = os.path.join(bundles, bid)
@@ -234,10 +236,12 @@ def main():
         differ["no_strata_cell"] += int((ins & (sb == 0)).sum())
         for i in np.flatnonzero(diff):
             differ["max_boundary_distance_m"] = max(differ["max_boundary_distance_m"], float(min(abs(z[i] - b) for b in bounds)))
-    exp = next(s for s in tc["transects"] if s["kind"] == "meridian_through_point")["expectedEnds"]
+    exp = next(s for s in tc["transects"] if s["kind"] == "meridian_through_point").get("expectedEnds")
     mer = next(t for t in core["transects"] if t["spec"]["kind"] == "meridian_through_point")
-    ends_ok = (round(mer["ends"]["north_lat"], exp["decimals"]) == exp["northLat"]
-               and round(mer["ends"]["south_lat"], exp["decimals"]) == exp["southLat"])
+    ends_ok = exp is None or (round(mer["ends"]["north_lat"], exp["decimals"]) == exp["northLat"]
+                              and round(mer["ends"]["south_lat"], exp["decimals"]) == exp["southLat"])
+    ends_text = (f"{mer['ends']['north_lat']} N and {mer['ends']['south_lat']} N against the expected {exp['northLat']} N and {exp['southLat']} N at {exp['decimals']} decimals ({ends_ok})"
+                 if exp else f"{mer['ends']['north_lat']} N and {mer['ends']['south_lat']} N (no expected ends are registered for this place)")
     tol = params["recompute_tolerance_m"]
     native_ok = all(v["percentile"] <= tol for v in native.values())
     recompute_ok = bool(ends_ok and not any(problems.values()) and native_ok and identical)
@@ -247,8 +251,7 @@ def main():
     ids = [t["spec"]["id"] for t in core["transects"]]
     checks = [
         {"name": "recompute_sample_period", "passed": recompute_ok, "detail": (
-            f"Recomputed from the stored samples and the native 1 arc-second DEM tile. The meridian's ends are {mer['ends']['north_lat']} N and "
-            f"{mer['ends']['south_lat']} N against the expected {exp['northLat']} N and {exp['southLat']} N at {exp['decimals']} decimals ({ends_ok}). "
+            f"Recomputed from the stored samples and the native 1 arc-second DEM tile. The meridian's ends are {ends_text}. "
             f"Of {n_samples} samples, {problems['outside']} lie outside the frozen polygon (a sample on its boundary to {COORD_DECIMALS} decimals counts as inside); "
             f"{problems['spacing']} intervals break the {params['step_m']:.0f} m step (only the last may be shorter); {problems['not_finite']} elevations are not numbers; "
             f"{problems['band']} bands differ from the elevation bands recomputed from the stored heights; band crossings, kilometres in band and the valley floor "
@@ -275,11 +278,12 @@ def main():
     summary = {
         "recipeId": RECIPE, "version": reg["version"], "computed": now,
         "place": {"placeId": cfg["placeId"], "configRevision": cfg["configRevision"], "config_sha256": cfg["_sha256"]},
-        "claim_kind": "observation", "native_resolution": "30 m EPSG:32629 grid of the terrain strata for heights, 10 m WorldCover cells for land cover, samples every 30 m",
+        "claim_kind": "observation", "native_resolution": f"30 m {cfg['analysisCrs']} grid of the terrain strata for heights, 10 m WorldCover cells for land cover, samples every 30 m",
         "units": {"distance": "m along the line from its first point", "elevation": "m above the EGM2008 geoid", "band": "strata elevation band 1 to 3",
                   "km_in_band": "km"},
         "band_boundaries_m": bounds,
-        "valley_floor_rule": f"contiguous samples around the lowest sample with elevation at most {core['floor_max']:.0f} m, the upper limit of the published valley floor (1800 to 2200 m, SCI-19)",
+        "valley_floor_rule": (tc["valleyFloor"]["ruleText"].format(max=core["floor_max"]) if "valleyFloor" in tc
+                              else "none: no valley floor range is configured for this place, so no line has a valley floor segment"),
         "transects": summary_t,
         "samples_asset": "transect_samples", "lines_asset": "transect_lines",
         "strata_band_agreement": {"inside_samples": differ["inside_samples"], "compared": differ["compared"], "differing": differ["differing"],
@@ -322,7 +326,7 @@ def main():
         "providers": [
             *[p for p in strata_col["providers"] if "processor" not in p["roles"] and "host" not in p["roles"]],
             {"name": "Siterra science pipeline", "roles": ["processor"],
-             "processing:lineage": ("Heights from the 30 m EPSG:32629 grid of the terrain strata (Copernicus DEM GLO-30 2021, bilinear), WorldCover 2021 classes of the 10 m analysis "
+             "processing:lineage": (f"Heights from the 30 m {cfg['analysisCrs']} grid of the terrain strata (Copernicus DEM GLO-30 2021, bilinear), WorldCover 2021 classes of the 10 m analysis "
                                     "cells, the valley axis from the drainage network bundle (science/pipeline/transects-bundle.py)"),
              "processing:software": sw},
         ],
@@ -330,8 +334,8 @@ def main():
         "assets": assets, "created": now, "siterra:status": status, "siterra:variable": "elevation_profile",
         "siterra:dataset": {
             "id": "copernicus-dem-glo-30", "version": "2021",
-            "access_route": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N31_00_W007_00_DEM/Copernicus_DSM_COG_10_N31_00_W007_00_DEM.tif",
-            "resolution_note": "DEM 1 arc-second (about 30 m), resampled to the 30 m EPSG:32629 grid of the terrain strata; land cover 10 m"},
+            "access_route": cfg["elevation"]["url"],
+            "resolution_note": f"DEM 1 arc-second (about 30 m), resampled to the 30 m {cfg['analysisCrs']} grid of the terrain strata; land cover 10 m"},
         "siterra:geo_selection": strata_col["siterra:geo_selection"],
         "siterra:method": {
             "id": RECIPE, "version": reg["version"], "analysis_crs": cfg["analysisCrs"],
