@@ -71,6 +71,12 @@
   },
   {
    "rel": "child",
+   "href": "./bundle_pixel_seasons_ait_bouguemez/collection.json",
+   "type": "application/json",
+   "file:checksum": "1220201e504b5af67a5bc935bdd0bd97b06280b62649ab103e97d053f127655ff1de"
+  },
+  {
+   "rel": "child",
    "href": "./bundle_pixel_trend_long_record_ait_bouguemez/collection.json",
    "type": "application/json",
    "file:checksum": "1220696c5ad4fcd400f8ad84bda55e7c16628c8cd11ff8707e59277cfea1d1cc7c26"
