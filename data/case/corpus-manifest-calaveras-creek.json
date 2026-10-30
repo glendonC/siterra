@@ -1,0 +1,355 @@
+{
+ "manifestVersion": 1,
+ "caseId": "case_calaveras_creek",
+ "description": "Core corpus of the Calaveras Creek grazing case, the second place built through the pipeline: the open-access studies and the land manager's and regulators' documents found on 2026-10-30. Each entry maps to a Source record in schemas/case.schema.json. Files fetched by science/pipeline/corpus-fetch.py stay in data/raw/corpus/ and their text in data/interim/corpus/, both outside Git; this manifest carries URLs, licences, sizes and checksums. Licence and access wording comes from research/science/source-register.md. The case id is the science lane's proposal; the platform lane names the case. Farrell et al. 2015 (PLoS ONE 10(7): e0129823, CC BY) was read and left out: its study site is the Sierra Foothills Research and Extension Center near Browns Valley (39.25 N), not the Bay Area, and it tests trampling and mowing.",
+ "register": {
+  "path": "research/science/source-register.md",
+  "sha256": "35bea08445205bc4d73398c4568f014a4916dc3c922995f75f9e64490fce9291"
+ },
+ "sources": [
+  {
+   "id": "SCI-170",
+   "sourceRecordId": "src_SCI-170",
+   "title": "Livestock grazing supports native plants and songbirds in a California annual grassland",
+   "url": "https://doi.org/10.1371/journal.pone.0176367",
+   "publisher": "PLoS ONE 12(6): e0176367",
+   "authors": [
+    "Gennet, S.",
+    "Spotswood, E.",
+    "Hammond, M.",
+    "Bartolome, J. W."
+   ],
+   "publicationDate": "2017-06-14",
+   "sourceKind": "peer_reviewed",
+   "license": "CC BY 4.0",
+   "redistributionStatus": "permitted",
+   "access": "open",
+   "accessNote": "Register: full text retrieved 2026-10-30, first 100,000 characters read. Open access under CC BY 4.0, so the text may be stored and quoted with attribution.",
+   "fetch": [
+    {
+     "name": "journal.pone.0176367.pdf",
+     "role": "full_text",
+     "kind": "pdf",
+     "url": "https://journals.plos.org/plosone/article/file?id=10.1371/journal.pone.0176367&type=printable",
+     "language": "en"
+    }
+   ],
+   "excerptPolicy": "text",
+   "excerptPolicyReason": "CC BY 4.0",
+   "language": "en",
+   "files": [
+    {
+     "name": "journal.pone.0176367.pdf",
+     "role": "full_text",
+     "kind": "pdf",
+     "language": "en",
+     "url": "https://journals.plos.org/plosone/article/file?id=10.1371/journal.pone.0176367&type=printable",
+     "final_url": "https://journals.plos.org/plosone/article/file?id=10.1371/journal.pone.0176367&type=printable",
+     "http_status": 200,
+     "etag": "\"0b9b06900a80b63bb4e7a215c441f394\"",
+     "last_modified": "2020-11-30T19:27:56Z",
+     "content_type": "application/pdf",
+     "retrieved": "2026-10-30T17:26:45Z",
+     "size": 1786565,
+     "sha256": "62e4b1b4087a6d40aeec5ff92dc45a02bb314a20b325fa8306a663a0c5a2e381",
+     "stored_path": "data/raw/corpus/SCI-170/journal.pone.0176367.pdf",
+     "provenance": "data/raw/corpus/SCI-170/journal.pone.0176367.pdf.provenance.json",
+     "text_path": "data/interim/corpus/SCI-170/journal.pone.0176367.pdf.text.json",
+     "text_sha256": "08a01b063d2fc6e35d9aa4763586e6ef8d2be1f4e27e00f0a58048874e1327a5",
+     "pages": 23
+    }
+   ],
+   "accessStatus": "retrieved",
+   "accessedAt": "2026-10-30T17:26:45Z",
+   "contentHash": "sha256:62e4b1b4087a6d40aeec5ff92dc45a02bb314a20b325fa8306a663a0c5a2e381",
+   "notes": [
+    "Register: full text retrieved 2026-10-30, first 100,000 characters read. Open access under CC BY 4.0, so the text may be stored and quoted with attribution.",
+    "Excerpt policy text: CC BY 4.0"
+   ]
+  },
+  {
+   "id": "SCI-171",
+   "sourceRecordId": "src_SCI-171",
+   "title": "Native annual forbs decline in California coastal prairies over 15 years despite grazing",
+   "url": "https://doi.org/10.1371/journal.pone.0278608",
+   "publisher": "PLoS ONE",
+   "authors": [
+    "Lesage, J. C.",
+    "Hayes, G. F.",
+    "Holl, K. D."
+   ],
+   "publicationDate": "2022",
+   "sourceKind": "peer_reviewed",
+   "license": "CC BY 4.0",
+   "redistributionStatus": "permitted",
+   "access": "open",
+   "accessNote": "Register: article page summary read 2026-10-30. Open access under CC BY 4.0.",
+   "fetch": [
+    {
+     "name": "journal.pone.0278608.pdf",
+     "role": "full_text",
+     "kind": "pdf",
+     "url": "https://journals.plos.org/plosone/article/file?id=10.1371/journal.pone.0278608&type=printable",
+     "language": "en"
+    }
+   ],
+   "excerptPolicy": "text",
+   "excerptPolicyReason": "CC BY 4.0",
+   "language": "en",
+   "files": [
+    {
+     "name": "journal.pone.0278608.pdf",
+     "role": "full_text",
+     "kind": "pdf",
+     "language": "en",
+     "url": "https://journals.plos.org/plosone/article/file?id=10.1371/journal.pone.0278608&type=printable",
+     "final_url": "https://journals.plos.org/plosone/article/file?id=10.1371/journal.pone.0278608&type=printable",
+     "http_status": 200,
+     "etag": "\"eb660e6f122fe1a71b438bcd0be4e355\"",
+     "last_modified": "2022-12-06T18:25:35Z",
+     "content_type": "application/pdf",
+     "retrieved": "2026-10-30T17:26:46Z",
+     "size": 1217251,
+     "sha256": "b8f8a390b774bd2566e24791c4f30764f76646e59444233d0bec7cc833bc6256",
+     "stored_path": "data/raw/corpus/SCI-171/journal.pone.0278608.pdf",
+     "provenance": "data/raw/corpus/SCI-171/journal.pone.0278608.pdf.provenance.json",
+     "text_path": "data/interim/corpus/SCI-171/journal.pone.0278608.pdf.text.json",
+     "text_sha256": "5a1987a6000be31a5369cfacc22d1b10ac66db4412f683ef765a955d1b90565a",
+     "pages": 15
+    }
+   ],
+   "accessStatus": "retrieved",
+   "accessedAt": "2026-10-30T17:26:46Z",
+   "contentHash": "sha256:b8f8a390b774bd2566e24791c4f30764f76646e59444233d0bec7cc833bc6256",
+   "notes": [
+    "Register: article page summary read 2026-10-30. Open access under CC BY 4.0.",
+    "Excerpt policy text: CC BY 4.0"
+   ]
+  },
+  {
+   "id": "SCI-172",
+   "sourceRecordId": "src_SCI-172",
+   "title": "Livestock grazing and its effects on ecosystem structure, processes, and conservation",
+   "url": "https://www.openspace.org/sites/default/files/SFEI_Final_Conservation%20Grazing_Report.pdf",
+   "publisher": "San Francisco Estuary Institute (Publication #1011), for the Midpeninsula Regional Open Space District",
+   "authors": [
+    "Vaughn, L. S.",
+    "Panlasigui, S.",
+    "Spotswood, E."
+   ],
+   "publicationDate": "2020-10",
+   "sourceKind": "institutional",
+   "license": null,
+   "redistributionStatus": "unknown",
+   "access": "open",
+   "accessNote": "Register: title page and contents read 2026-10-30; no licence statement found in the document. Store privately for excerpt checks only.",
+   "fetch": [
+    {
+     "name": "sfei-livestock-grazing-2020.pdf",
+     "role": "full_text",
+     "kind": "pdf",
+     "url": "https://www.openspace.org/sites/default/files/SFEI_Final_Conservation%20Grazing_Report.pdf",
+     "language": "en"
+    }
+   ],
+   "excerptPolicy": "offsets",
+   "excerptPolicyReason": "no licence stated in the document",
+   "language": "en",
+   "files": [
+    {
+     "name": "sfei-livestock-grazing-2020.pdf",
+     "role": "full_text",
+     "kind": "pdf",
+     "language": "en",
+     "url": "https://www.openspace.org/sites/default/files/SFEI_Final_Conservation%20Grazing_Report.pdf",
+     "final_url": "https://www.openspace.org/sites/default/files/SFEI_Final_Conservation%20Grazing_Report.pdf",
+     "http_status": 200,
+     "etag": "\"61521e9f-1c3ecc\"",
+     "last_modified": "Mon, 27 Sep 2021 19:42:23 GMT",
+     "content_type": "application/pdf",
+     "retrieved": "2026-10-30T17:26:47Z",
+     "size": 1851084,
+     "sha256": "a8a7346438515a7cee4972c5ee165ff11aa840ffff6f021f7eaf94fe73baaa27",
+     "stored_path": "data/raw/corpus/SCI-172/sfei-livestock-grazing-2020.pdf",
+     "provenance": "data/raw/corpus/SCI-172/sfei-livestock-grazing-2020.pdf.provenance.json",
+     "text_path": "data/interim/corpus/SCI-172/sfei-livestock-grazing-2020.pdf.text.json",
+     "text_sha256": "db760c16de2153feda898a4e525824b1958a6f92d6bb6166dcb3cb64377b85e7",
+     "pages": 22
+    }
+   ],
+   "accessStatus": "retrieved",
+   "accessedAt": "2026-10-30T17:26:47Z",
+   "contentHash": "sha256:a8a7346438515a7cee4972c5ee165ff11aa840ffff6f021f7eaf94fe73baaa27",
+   "notes": [
+    "Register: title page and contents read 2026-10-30; no licence statement found in the document. Store privately for excerpt checks only.",
+    "Excerpt policy offsets: no licence stated in the document"
+   ]
+  },
+  {
+   "id": "SCI-173",
+   "sourceRecordId": "src_SCI-173",
+   "title": "Alameda Creek Watershed Rangeland Management Plan, Alameda and Santa Clara Counties, California",
+   "url": "https://www.sfpuc.gov/sites/default/files/construction-and-contracts/Real-Estate/Alameda-Creek-Watershed-Rangeland-Mgmt-Plan.pdf",
+   "publisher": "San Francisco Public Utilities Commission",
+   "authors": [],
+   "publicationDate": "2026-03",
+   "sourceKind": "institutional",
+   "license": null,
+   "redistributionStatus": "unknown",
+   "access": "open",
+   "accessNote": "Register: full text retrieved 2026-10-30; executive summary, section 1.4, the climate paragraph and the residual dry matter section read. Public agency document with no licence statement. Store privately for excerpt checks only.",
+   "fetch": [
+    {
+     "name": "sfpuc-alameda-creek-rmp-2026.pdf",
+     "role": "full_text",
+     "kind": "pdf",
+     "url": "https://www.sfpuc.gov/sites/default/files/construction-and-contracts/Real-Estate/Alameda-Creek-Watershed-Rangeland-Mgmt-Plan.pdf",
+     "language": "en"
+    }
+   ],
+   "excerptPolicy": "offsets",
+   "excerptPolicyReason": "no licence stated for the plan text",
+   "language": "en",
+   "files": [
+    {
+     "name": "sfpuc-alameda-creek-rmp-2026.pdf",
+     "role": "full_text",
+     "kind": "pdf",
+     "language": "en",
+     "url": "https://www.sfpuc.gov/sites/default/files/construction-and-contracts/Real-Estate/Alameda-Creek-Watershed-Rangeland-Mgmt-Plan.pdf",
+     "final_url": "https://www.sfpuc.gov/sites/default/files/construction-and-contracts/Real-Estate/Alameda-Creek-Watershed-Rangeland-Mgmt-Plan.pdf",
+     "http_status": 200,
+     "etag": "\"69b88be9-23ccdb3\"",
+     "last_modified": "Mon, 16 Mar 2026 23:02:01 GMT",
+     "content_type": "application/pdf",
+     "retrieved": "2026-10-30T17:26:48Z",
+     "size": 37539251,
+     "sha256": "6c508cb99064574c4d18fd8d038d1e1d2e6db1b127c8a17f592861dea927a2d6",
+     "stored_path": "data/raw/corpus/SCI-173/sfpuc-alameda-creek-rmp-2026.pdf",
+     "provenance": "data/raw/corpus/SCI-173/sfpuc-alameda-creek-rmp-2026.pdf.provenance.json",
+     "text_path": "data/interim/corpus/SCI-173/sfpuc-alameda-creek-rmp-2026.pdf.text.json",
+     "text_sha256": "e2d5c91ec6be32916442e10d8bf231fa4a2d77b956dda0d1373a12456116665c",
+     "pages": 72
+    }
+   ],
+   "accessStatus": "retrieved",
+   "accessedAt": "2026-10-30T17:26:48Z",
+   "contentHash": "sha256:6c508cb99064574c4d18fd8d038d1e1d2e6db1b127c8a17f592861dea927a2d6",
+   "notes": [
+    "Register: full text retrieved 2026-10-30; executive summary, section 1.4, the climate paragraph and the residual dry matter section read. Public agency document with no licence statement. Store privately for excerpt checks only.",
+    "Excerpt policy offsets: no licence stated for the plan text"
+   ]
+  },
+  {
+   "id": "SCI-174",
+   "sourceRecordId": "src_SCI-174",
+   "title": "Fish and Wildlife Service establishes cooperating rancher rule to encourage protection of California red-legged frog",
+   "url": "https://www.fws.gov/story/2006-04/fish-and-wildlife-service-establishes-cooperating-rancher-rule-encourage-protection",
+   "publisher": "U.S. Fish and Wildlife Service",
+   "authors": [],
+   "publicationDate": "2006-04",
+   "sourceKind": "institutional",
+   "license": null,
+   "redistributionStatus": "unknown",
+   "access": "open",
+   "accessNote": "Register: page read 2026-10-30; the Federal Register notice was not read. Public agency page with no licence stated. Store a dated snapshot; paraphrase.",
+   "fetch": [
+    {
+     "name": "fws-cooperating-rancher-rule-2006.html",
+     "role": "page_snapshot",
+     "kind": "html",
+     "url": "https://www.fws.gov/story/2006-04/fish-and-wildlife-service-establishes-cooperating-rancher-rule-encourage-protection",
+     "language": "en"
+    }
+   ],
+   "excerptPolicy": "offsets",
+   "excerptPolicyReason": "no licence stated for the page text",
+   "language": "en",
+   "files": [
+    {
+     "name": "fws-cooperating-rancher-rule-2006.html",
+     "role": "page_snapshot",
+     "kind": "html",
+     "language": "en",
+     "url": "https://www.fws.gov/story/2006-04/fish-and-wildlife-service-establishes-cooperating-rancher-rule-encourage-protection",
+     "final_url": "https://www.fws.gov/story/2006-04/fish-and-wildlife-service-establishes-cooperating-rancher-rule-encourage-protection",
+     "http_status": 200,
+     "etag": "\"1793381044-gzip\"",
+     "last_modified": "Fri, 30 Oct 2026 17:24:04 GMT",
+     "content_type": "text/html; charset=utf-8",
+     "retrieved": "2026-10-30T17:26:50Z",
+     "size": 102256,
+     "sha256": "450c57f492c39434060ad1864ffa6c0396ec778f5343c5f4fa633b0296b85764",
+     "stored_path": "data/raw/corpus/SCI-174/fws-cooperating-rancher-rule-2006.html",
+     "provenance": "data/raw/corpus/SCI-174/fws-cooperating-rancher-rule-2006.html.provenance.json",
+     "text_path": "data/interim/corpus/SCI-174/fws-cooperating-rancher-rule-2006.html.text.json",
+     "text_sha256": "1499270669c0742e2768f63df2a124ae89a56c377f9281dae23d259145ba0b2f",
+     "sections": 6
+    }
+   ],
+   "accessStatus": "retrieved",
+   "accessedAt": "2026-10-30T17:26:50Z",
+   "contentHash": "sha256:450c57f492c39434060ad1864ffa6c0396ec778f5343c5f4fa633b0296b85764",
+   "notes": [
+    "Register: page read 2026-10-30; the Federal Register notice was not read. Public agency page with no licence stated. Store a dated snapshot; paraphrase.",
+    "Excerpt policy offsets: no licence stated for the page text"
+   ]
+  },
+  {
+   "id": "SCI-175",
+   "sourceRecordId": "src_SCI-175",
+   "title": "San Francisco Endangered Species Take Permit for Alameda Watershed, Take Action!",
+   "url": "https://calsport.org/dev/2-13-09a.htm",
+   "publisher": "California Sportfishing Protection Alliance (repost of an Alameda Creek Alliance alert)",
+   "authors": [],
+   "publicationDate": "2009-02-13",
+   "sourceKind": "other",
+   "license": null,
+   "redistributionStatus": "unknown",
+   "access": "open",
+   "accessNote": "Register: page read 2026-10-30. An advocacy alert; the statement about grazing leases is a claim with no data on the page. Store a dated snapshot; paraphrase.",
+   "fetch": [
+    {
+     "name": "calsport-alameda-take-permit-2009.html",
+     "role": "page_snapshot",
+     "kind": "html",
+     "url": "https://calsport.org/dev/2-13-09a.htm",
+     "language": "en"
+    }
+   ],
+   "excerptPolicy": "offsets",
+   "excerptPolicyReason": "no licence stated for the page text",
+   "language": "en",
+   "files": [
+    {
+     "name": "calsport-alameda-take-permit-2009.html",
+     "role": "page_snapshot",
+     "kind": "html",
+     "language": "en",
+     "url": "https://calsport.org/dev/2-13-09a.htm",
+     "final_url": "https://calsport.org/dev/2-13-09a.htm",
+     "http_status": 200,
+     "etag": "\"5e10fb-846d-58db84b470e00\"",
+     "last_modified": "Mon, 15 Jul 2019 13:32:40 GMT",
+     "content_type": "text/html",
+     "retrieved": "2026-10-30T17:26:51Z",
+     "size": 33901,
+     "sha256": "0663c4d33bdcc3e2071b0f97791f46a6eee0d44efcb39db6714749f4248e18ae",
+     "stored_path": "data/raw/corpus/SCI-175/calsport-alameda-take-permit-2009.html",
+     "provenance": "data/raw/corpus/SCI-175/calsport-alameda-take-permit-2009.html.provenance.json",
+     "text_path": "data/interim/corpus/SCI-175/calsport-alameda-take-permit-2009.html.text.json",
+     "text_sha256": "c2311d857542f3af52ec7f458134763adb1378004aeb2e872f85b8dbae7184a8",
+     "sections": 3
+    }
+   ],
+   "accessStatus": "retrieved",
+   "accessedAt": "2026-10-30T17:26:51Z",
+   "contentHash": "sha256:0663c4d33bdcc3e2071b0f97791f46a6eee0d44efcb39db6714749f4248e18ae",
+   "notes": [
+    "Register: page read 2026-10-30. An advocacy alert; the statement about grazing leases is a claim with no data on the page. Store a dated snapshot; paraphrase.",
+    "Excerpt policy offsets: no licence stated for the page text"
+   ]
+  }
+ ],
+ "languageMethod": "All six sources are in English (title and first pages checked by eye)."
+}
