@@ -287,7 +287,8 @@
         "elevation_profile",
         "pixel_anatomy",
         "elevation_surface",
-        "optical_clear_share"
+        "optical_clear_share",
+        "proposed_route"
       ]
     },
     "siterra:dataset": {
