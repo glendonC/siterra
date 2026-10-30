@@ -3,20 +3,24 @@
   "title": "Calaveras Creek catchment",
   "areaNoun": "creek catchment",
   "note": "Place configuration read by the long-record pipeline scripts. Everything that is specific to one place lives here; the scripts hold none of it. A value changed here after a result was read is a new configuration revision labelled post hoc in the recipe result. This is the second place built through the pipeline (the first is Ait Bouguemez); every window, rule and threshold below was written before any MODIS, CHIRPS or Sentinel value of this catchment was read, and before any land cover, strata or trend of it was computed.",
-  "configRevision": 3,
+  "configRevision": 7,
   "revisions": [
     {"revision": 1, "date": "2026-10-30", "change": "First configuration: the frozen geometry and its delineation rule, the analysis grid, the DEM pin, the land cover source and read window, the rainfall window, the strata layers with the reservoir zone rule, and the restrend_long_record, snow_cover_by_band, pixel_trend_long_record and season_trend_long_record windows with their basis. Strata, land cover and drainage checksums are pinned in later revisions, after those layers are built."},
     {"revision": 2, "date": "2026-10-30", "change": "POST HOC to revision 1, made after the revision 1 reservoir zone had been drawn and inspected and before any trend, rainfall or season value of this catchment was computed: the zone is now the largest connected WorldCover water body plus 250 m instead of every water body plus 250 m. The revision 1 rule gave a zone of 8.05 per cent of the catchment, made mostly of 250 m circles around 72 small stock ponds (73 connected water bodies, the largest 4.56 km2 of 4.84 km2 of mapped water), which is not the reservoir basin the rule was written for. Nothing else changed."},
-    {"revision": 3, "date": "2026-10-30", "change": "Pinned the land cover layer and the strata layer by checksum after they were built from revision 2 (strata.tif has the four bands described by the strata block). No value of revision 1 or 2 changed."}
+    {"revision": 3, "date": "2026-10-30", "change": "Pinned the land cover layer and the strata layer by checksum after they were built from revision 2 (strata.tif has the four bands described by the strata block). No value of revision 1 or 2 changed."},
+    {"revision": 4, "date": "2026-10-30", "change": "Made the snow applicability check runnable by snow-bundle.py: snow_cover_by_band.sampleMonthsFrom names the sample, and the sample's limitations are written here. The sample months, rule and decision threshold are those of revision 1, unchanged, and no MOD10A1 value of this catchment had been read."},
+    {"revision": 5, "date": "2026-10-30", "change": "Added a documentary basis to the restrend_long_record window rationale: the SFPUC Alameda Creek Watershed Rangeland Management Plan (March 2026, read in full on 2026-10-30) states that the majority of rainfall in the watershed falls between October and April, which is the rainfall window registered in revision 1. Text only; no window, month or threshold changed, and no MODIS or CHIRPS value of this catchment had been read."},
+    {"revision": 6, "date": "2026-10-30", "change": "Added drainage_network (the conditioned flow direction and fill depth rasters of the catchment freeze and their report, pinned by checksum, the freeze input point and the registered height surface), written before this pipeline built any drainage segment. The rasters are the ones the freeze wrote (identical on a second run). No value of revisions 1 to 5 changed."},
+    {"revision": 7, "date": "2026-10-30", "change": "POST HOC to revision 1: the frozen catchment is replaced by geometry revision 2, made after the drainage network recompute check failed on revision 1 and before any trend, rainfall or season value of this catchment was computed. Revision 1 was the pysheds catchment function's cells (339,432); the same flow direction raster, traced cell by cell with the public D8 functions that the drainage builder uses, has 339,447 cells that reach the outlet (the 15 cells the pysheds function left out are boundary cells, 0.014 km2). Revision 2 is the D8 trace, polygonized 4-connected with the largest piece kept (the outlet cell, joined to the catchment only diagonally, is the one cell left out), 257.455 km2 geodesic, 0.57 per cent above the 256 km2 USGS publishes. The conditioned rasters are unchanged. The strata, land cover and relief layers were rebuilt on the new geometry and their checksums replaced here."}
   ],
   "geometry": {
     "id": "geo_calaveras_creek_catchment",
-    "revision": 1,
+    "revision": 2,
     "boundaryRole": "hydrological_unit",
     "label": "Creek catchment (hydrological analysis extent), not a grazing lease, parcel or management boundary",
     "path": "science/places/calaveras-creek.geometry.geojson",
-    "sha256": "10b9be7d7a71bc0162e684240359e4cdb433567a62f2c29eee979268777f85da",
-    "delineationRule": "Cells that drain to the USGS stream gauge 11173500 (Calaveras Creek near Sunol, input point 37.50194444 N, 121.8183333 W from the USGS site service), on Copernicus DEM GLO-30 (2021) conditioned by fill_pits, fill_depressions and resolve_flats, D8 flow direction, the input point snapped to the maximum flow accumulation within 120 m (geodesic, cell centres), the catchment polygonized 4-connected, dissolved, largest piece kept. Accepted only if its geodesic area is within 5 per cent of the 256 km2 USGS publishes for the gauge (written before the delineation was run). Result: 257.44 km2 geodesic, 0.6 per cent above the published area.",
+    "sha256": "745fb73a2dadb7284074eb6c0b607f390975a70592a7d968588ea083882faa9d",
+    "delineationRule": "Cells that drain to the USGS stream gauge 11173500 (Calaveras Creek near Sunol, input point 37.50194444 N, 121.8183333 W from the USGS site service), on Copernicus DEM GLO-30 (2021) conditioned by fill_pits, fill_depressions and resolve_flats, D8 flow direction, the input point snapped to the maximum flow accumulation within 120 m (geodesic, cell centres), the catchment polygonized 4-connected, dissolved, largest piece kept. Accepted only if its geodesic area is within 5 per cent of the 256 km2 USGS publishes for the gauge (written before the delineation was run). Revision 1 result: 257.44 km2 geodesic. Revision 2 (see configuration revision 7) takes the catchment as every cell whose D8 path reaches the snapped outlet on the same conditioned flow direction, because the catchment function and the flow direction disagreed by 15 cells: 257.455 km2 geodesic, 0.57 per cent above the published area.",
     "attribution": [
       "Catchment derived by Siterra from Copernicus DEM GLO-30 (2021 release)",
       "Produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved",
@@ -34,7 +38,7 @@
   "strata": {
     "bundle": "bundle_terrain_strata_calaveras_creek",
     "asset": "strata.tif",
-    "sha256": "53427f54302a47ea9598ad2d76ccbaef9d5dfe25b8c005cab12017220ab4ac35",
+    "sha256": "1f3a4bbcbb1d2ca22cc2e5ede99e220d26d21bed4561b0623a8b93edbcae3a15",
     "layers": [
       {
         "band": 1,
@@ -85,7 +89,7 @@
     "dataset": "ESA WorldCover 10 m 2021 v200",
     "source": "https://esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N36W123_Map.tif",
     "path": "data/interim/worldcover-calaveras/worldcover-2021.tif",
-    "sha256": "1d7a909f48039fe194837ac27925a128e482fbed4fbf08d93bb9eabaa9c8befc",
+    "sha256": "377daac6443d540d4734e8d9170b0779258366c33fcb123cce6d45fcf56a95af",
     "readWindow": [-121.92, 37.20, -121.44, 37.56],
     "readWindowRule": "the catchment bounding box (-121.86653, 37.25764, -121.49486, 37.50708) widened by 0.05 degrees and rounded outward to 0.01 degrees",
     "madeBy": "science/pipeline/worldcover-grid.py: the tile read by HTTP range request (no account), nearest neighbour onto the analysis grid",
@@ -131,7 +135,7 @@
         {"id": "oct_apr", "start": {"month": 10, "yearOffset": -1}, "end": {"month": 4, "yearOffset": 0}, "primary": true}
       ],
       "strata": ["catchment", "elevation_band", "aspect_class", "reservoir_zone"],
-      "windowRationale": "Fixed by the science lane on 2026-10-30 before any MODIS NDVI or CHIRPS value of this catchment was read. In a Mediterranean winter-rain climate the annual grasses germinate with the first autumn rains, grow slowly through winter, grow fast in spring and reach their peak standing crop before the dry season (UC ANR Publication 8018, Becchetti et al. 2016, which a search summary describes as naming these phases: break of season with the first fall rains, winter growth, rapid spring growth, peak forage production; the publication itself was not read, so the month boundaries are the lane's reading of the phases and not figures taken from it). February to May is therefore the primary window, spanning the end of winter growth to the peak and the start of drying; January to April is the earlier and March to June the later sensitivity window, and March to June is also the first place's primary window, kept so the two places can be compared. October to April is the rainfall window: it runs from the first autumn rains to the end of the main wet season (Gennet et al. 2017, PLoS ONE, describe the northern Diablo Range as a Mediterranean climate with cool wet winters and hot dry summers and do not give the months). A single rainfall window is registered; no sensitivity rainfall window was chosen."
+      "windowRationale": "Fixed by the science lane on 2026-10-30 before any MODIS NDVI or CHIRPS value of this catchment was read. In a Mediterranean winter-rain climate the annual grasses germinate with the first autumn rains, grow slowly through winter, grow fast in spring and reach their peak standing crop before the dry season (UC ANR Publication 8018, Becchetti et al. 2016, which a search summary describes as naming these phases: break of season with the first fall rains, winter growth, rapid spring growth, peak forage production; the publication itself was not read, so the month boundaries are the lane's reading of the phases and not figures taken from it). February to May is therefore the primary window, spanning the end of winter growth to the peak and the start of drying; January to April is the earlier and March to June the later sensitivity window, and March to June is also the first place's primary window, kept so the two places can be compared. October to April is the rainfall window: it runs from the first autumn rains to the end of the main wet season (Gennet et al. 2017, PLoS ONE, describe the northern Diablo Range as a Mediterranean climate with cool wet winters and hot dry summers and do not give the months). The SFPUC Alameda Creek Watershed Rangeland Management Plan (March 2026), for the lands that drain to Calaveras and San Antonio reservoirs, states that the majority of rainfall occurs between October and April with little to no precipitation in the remainder of the year, and records average precipitation of 10 to 20 inches per year; this was read after the window was registered and agrees with it (revision 5). A single rainfall window is registered; no sensitivity rainfall window was chosen."
     },
     "snow_cover_by_band": {
       "months": ["2001-01", "2025-12"],
@@ -140,6 +144,7 @@
         {"id": "terrain_strata", "fromStrataLayer": "elevation_band"}
       ],
       "fixedBandRule": "The edges are the multiples of 500 m that lie at least 250 m above the catchment's lowest DEM height and at least 250 m below its highest. The rule was formulated after the first place's edges (2000 to 3500 m, lowest 1465 m, highest 4007 m) were known and reproduces them exactly; for this catchment (147.2 to 1329.5 m) it gives 500 m and 1000 m.",
+      "sampleMonthsFrom": "snowApplicability",
       "applicability": "This recipe is not run for the full record here. Its use in this place is limited to the pre-registered applicability check in snowApplicability below; the band sets are kept because the pixel and season trend recipes read the fixed band set from this entry."
     },
     "snowApplicability": {
@@ -147,7 +152,15 @@
       "sampleMonths": ["2005-12", "2006-01", "2006-02", "2010-12", "2011-01", "2011-02", "2015-12", "2016-01", "2016-02", "2020-12", "2021-01", "2021-02"],
       "sampleRule": "December to February of the winters 2005/06, 2010/11, 2015/16 and 2020/21: four winters five years apart across the record",
       "threshold": {"ndsiSnowCover": 40, "clearProductDays": "MOD10A1 NDSI_Snow_Cover values 0 to 100 only (cloud, no decision and other flag values are not clear)"},
-      "decision": "The snow recipe is recorded as not applicable if, in every elevation band of the fixed band set, fewer than 1 per cent of the clear catchment-pixel-days in the sample have NDSI snow cover of 40 or more. Otherwise the full recipe is run. The decision, its reason and the sample's limits are stored with the result."
+      "decision": "The snow recipe is recorded as not applicable if, in every elevation band of the fixed band set, fewer than 1 per cent of the clear catchment-pixel-days in the sample have NDSI snow cover of 40 or more. Otherwise the full recipe is run. The decision, its reason and the sample's limits are stored with the result.",
+      "limitations": [
+        "MOD10A1 sees snow only on clear days. Cloudy days are left out, not filled.",
+        "The check covers 12 sample months (December to February of four winters five years apart) and says nothing about other months or winters; snow that fell and melted in an unsampled week would not be seen.",
+        "Each 500 m pixel is called snow-covered or not as a whole; patchy or thin snow can be missed.",
+        "Terra's overpass has drifted earlier since 2020 (NASA), so later years are seen with a lower sun.",
+        "The validation studies of this product that the registry cites were made in the Moroccan Atlas; they are not evidence for this catchment, and no validation for this catchment was done.",
+        "Not applicable means the recipe is not run here because the sample shows almost no snow. It is not a finding that snow never falls in the catchment."
+      ]
     },
     "pixel_trend_long_record": {
       "seasonYears": [2000, 2025],
@@ -174,6 +187,19 @@
       "landCoverGroups": true,
       "contrast": {"spring": "feb_may", "summer": "jun_sep"},
       "contrastRationale": "February to May and June to September share no month, so the contrast compares the growing part of the year with the dry season."
+    },
+    "drainage_network": {
+      "conditioning": {
+        "note": "Made by a private step (pysheds 0.5 is GPL-3.0-or-later, so the step stays out of the public pipeline, as the catchment freeze script does): the elevation tile named above, window 121.95 to 121.40 W and 37.15 to 37.56 N on its native 1 arc-second grid, fill_pits, fill_depressions, resolve_flats, D8 flow direction with codes 64, 128, 1, 2, 4, 8, 16, 32 for north, north-east, east, south-east, south, south-west, west and north-west, then the two rasters cropped to the catchment bounding box plus 8 cells. The same run froze the catchment polygon of the geometry block.",
+        "freezeInputPoint": {"lat": 37.50194444, "lon": -121.8183333},
+        "outletSnapMaxM": 120,
+        "flowDirection": {"bundleAsset": "d8-flow-direction.tif", "interimPath": "data/interim/drainage-calaveras/d8-flow-direction.tif", "sha256": "bce15a4a33443b1d1e11d756395f7e04c4bb381d0680cbcf61c6a2be2bdd1f14"},
+        "fillDepth": {"bundleAsset": "depression-fill-depth.tif", "interimPath": "data/interim/drainage-calaveras/depression-fill-depth.tif", "sha256": "99fdf53ea2f0a5f50061c3c2d2d26453a65f3d94e60cde870cc39bf52ebebeac"},
+        "report": {"bundleAsset": "conditioning-report.json", "interimPath": "data/interim/drainage-calaveras/conditioning-report.json", "sha256": "f355f1ce7ab23056bd032703fdca29e8aa660eae9311ff3021a05fdd1593a4b0"}
+      },
+      "heightSurface": "elevation",
+      "heightPadCells": 1,
+      "rationale": "The 1.0 km2 threshold, the smoothing, simplification and vertex spacing, the 30 m height surface of the terrain strata and the 4.0 m rise tolerance are fixed in science/recipes/registry.json (drainage_network 1.0.0) before the first build; this block holds only what belongs to the place."
     }
   }
 }
