@@ -1,0 +1,152 @@
+/* The field plan, in the Obsidian tokens of app/obsidian.css and the type of the other instruments: a 1440 x 900
+   stage scaled to fit, the caption at the top left, explanation columns, dashed proposed checks. */
+
+.root {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--bg-canvas);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-kerning: normal;
+  -webkit-font-smoothing: antialiased;
+}
+
+.stage {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1440px;
+  height: 900px;
+  transform-origin: 0 0;
+}
+
+.stage > div,
+.stage > p {
+  position: absolute;
+}
+
+.caption {
+  left: 40px;
+  top: 24px;
+  width: 820px;
+  margin: 0;
+  font-size: 20px;
+  line-height: 28px;
+  text-wrap: pretty;
+}
+
+.ink {
+  color: var(--text-primary);
+}
+
+.grey {
+  color: var(--text-tertiary);
+}
+
+.plot {
+  position: absolute;
+  left: 0;
+  top: 0;
+  overflow: visible;
+}
+
+.column {
+  width: 230px;
+  text-align: center;
+}
+
+.column p {
+  margin: 0;
+}
+
+.colLabel {
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.column .colStatus {
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--text-secondary);
+}
+
+.column .colReason {
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--text-tertiary);
+  text-wrap: balance;
+}
+
+.closed .colLabel,
+.closed .colStatus {
+  color: var(--text-tertiary);
+}
+
+.checkHead {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  white-space: nowrap;
+}
+
+.checkLabel {
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: 500;
+}
+
+.proposed {
+  font: 500 12px/16px var(--font-mono);
+  color: var(--accent);
+}
+
+.checkNote,
+.footnote {
+  font-size: 12px;
+  line-height: 16px;
+  white-space: nowrap;
+  color: var(--text-secondary);
+}
+
+.footnote {
+  left: 40px;
+  top: 740px;
+  margin: 0;
+  color: var(--text-tertiary);
+}
+
+.notice {
+  left: 40px;
+  top: 24px;
+  width: 820px;
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--text-secondary);
+}
+
+.noticeHead {
+  margin: 0 0 8px;
+  font-size: 20px;
+  line-height: 28px;
+  color: var(--text-primary);
+}
+
+.noticeReason {
+  margin: 0 0 4px;
+  color: var(--text-tertiary);
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

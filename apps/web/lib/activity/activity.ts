@@ -160,7 +160,8 @@ function route(usage: NonNullable<Event["usage"]>): string {
   return usage.provider === "meta_model_api" ? en["activity.route.modelApi"].text : usage.provider;
 }
 
-function badgeOf(e: EventView): string | undefined {
+/** A step's badge from one event: the model and its route, or the code or proposal tool it ran. */
+export function badgeOf(e: EventView): string | undefined {
   if (e.kind === "model.completed" && e.usage)
     return format("activity.model", { model: modelName(e.usage.model), route: route(e.usage) });
   if (e.kind === "tool.started" && e.tool) {

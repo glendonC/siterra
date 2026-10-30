@@ -5,8 +5,13 @@
 // instruments inside the shell. A page can be handed records instead (the lane's preview).
 
 import type { CaseSnapshot, InstrumentListing, InstrumentView } from "@siterra/contracts";
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import { instrumentOf, openInstruments, type CaseInstruments } from "../../lib/instruments/listing";
+import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
+import {
+  instrumentOf,
+  loadInstruments,
+  openInstruments,
+  type CaseInstruments,
+} from "../../lib/instruments/listing";
 import { viewerStorage } from "../../lib/shell/preferences";
 
 export type InstrumentRecordsState =
@@ -15,6 +20,8 @@ export type InstrumentRecordsState =
   | { status: "failed" };
 
 const Records = createContext<InstrumentRecordsState>({ status: "opening" });
+/** Reopens the listing for a newer case revision (the overview, after its request commits). */
+const Refresh = createContext<(snapshot: CaseSnapshot) => void>(() => undefined);
 
 /** One open per page: an effect that runs twice (React's development check) shares the first request. */
 let opening: Promise<CaseInstruments> | undefined;
@@ -57,12 +64,42 @@ export function InstrumentRecords({
       live = false;
     };
   }, [records]);
-  return <Records.Provider value={state}>{children}</Records.Provider>;
+  const refresh = useCallback((snapshot: CaseSnapshot) => {
+    const revision = snapshot.case.revision;
+    loadInstruments(snapshot.case.id, (input, init) => fetch(input, init), revision)
+      .then((r) => {
+        if (r.status !== "ready") {
+          console.error("Instrument records could not be reopened", r);
+          return;
+        }
+        // a newer revision already held stays
+        setState((held) =>
+          held.status === "ready" && held.snapshot.case.revision > revision
+            ? held
+            : { status: "ready", snapshot, listing: r.listing },
+        );
+      })
+      .catch((e: unknown) => {
+        console.error("Instrument records could not be reopened", e);
+      });
+  }, []);
+  return (
+    <Records.Provider value={state}>
+      <Refresh.Provider value={refresh}>{children}</Refresh.Provider>
+    </Records.Provider>
+  );
+}
+
+/** Reopens the case's records for a newer snapshot: its instrument listing as of that revision. */
+export function useRecordsRefresh(): (snapshot: CaseSnapshot) => void {
+  return useContext(Refresh);
 }
 
 export type InstrumentRecord =
   | { status: "opening" }
   | { status: "ready"; view: InstrumentView; snapshot: CaseSnapshot }
+  // the case is open and holds no ready spec of this kind
+  | { status: "absent"; snapshot: CaseSnapshot }
   | { status: "failed" };
 
 /** The ready spec of one instrument kind, with the case it belongs to. */
@@ -72,5 +109,20 @@ export function useInstrument(
   const state = useContext(Records);
   if (state.status !== "ready") return state;
   const view = instrumentOf(state.listing, kind);
-  return view ? { status: "ready", view, snapshot: state.snapshot } : { status: "failed" };
+  return view
+    ? { status: "ready", view, snapshot: state.snapshot }
+    : { status: "absent", snapshot: state.snapshot };
+}
+
+/** Why the composer opened no instrument of a kind, in its own words, when the listing says so. */
+export function useBlockedReasons(kind: InstrumentView["spec"]["parameters"]["kind"]): string[] {
+  const state = useContext(Records);
+  if (state.status !== "ready") return [];
+  const blocked = state.listing.blocked;
+  return (blocked ?? []).filter((b) => b.kind === kind).flatMap((b) => b.reasons);
+}
+
+/** The case records the page opened: the snapshot and its whole instrument listing (the overview's findings). */
+export function useInstrumentRecords(): InstrumentRecordsState {
+  return useContext(Records);
 }

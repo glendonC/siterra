@@ -16,4 +16,109 @@
   /* words set on the lit section face of the cutaway */
   --ink-on-wall: #131a1d;
   --hairline-on-wall: rgb(19 26 29 / 0.55);
+
+  /* the overview (approved specimen D4) */
+  --ov-ground:
+    radial-gradient(
+      ellipse 36% 50% at 50% 50%,
+      rgb(40 56 62 / 0.52) 0%,
+      rgb(28 40 45 / 0.3) 42%,
+      rgb(11 16 18 / 0) 100%
+    ),
+    radial-gradient(ellipse 85% 80% at 50% 48%, rgb(11 16 18 / 0) 50%, rgb(3 5 6 / 0.62) 100%),
+    #0b1012;
+  --ov-ink: #e8eef0;
+  --ov-ink-2: #9aa6ab;
+  --ov-ink-3: #6e7b80;
+  --ov-ink-4: #4f5b60;
+  --ov-bright: #eef3f4;
+  --ov-numeral: #a9b4b8;
+  --ov-caption: #7f8b90;
+  --ov-caption-hover: #aab5b9;
+  --ov-wire: #d3dde0;
+  --ov-green: #86c9a1;
+  --ov-blue: #86b6da;
+  --ov-halo-green: radial-gradient(circle, #86c9a1 0%, rgb(134 201 161 / 0) 65%);
+  --ov-halo-blue: radial-gradient(circle, #86b6da 0%, rgb(134 182 218 / 0) 65%);
+  --ov-amber-tag: #eaa57c;
+  --ov-amber-arrow: #e8a27a;
+  --ov-halo-dark:
+    0 0 2px rgb(11 16 18 / 0.95), 0 0 4px rgb(11 16 18 / 0.9), 0 0 8px rgb(11 16 18 / 0.85),
+    0 0 14px rgb(11 16 18 / 0.6);
+  --ov-halo-place: 0 0 12px rgb(11 16 18 / 0.9), 0 0 4px rgb(11 16 18 / 0.9);
+  --ov-cover-tree: #5c8f63;
+  --ov-cover-crop: #93b872;
+  --ov-cornerfade:
+    radial-gradient(
+      ellipse 42% 34% at 0% 100%,
+      rgb(11 16 18 / 0.92) 0%,
+      rgb(11 16 18 / 0.7) 45%,
+      rgb(11 16 18 / 0) 100%
+    ),
+    radial-gradient(
+      ellipse 46% 26% at 0% 0%,
+      rgb(11 16 18 / 0.94) 0%,
+      rgb(11 16 18 / 0.72) 50%,
+      rgb(11 16 18 / 0) 100%
+    );
+  --ov-focus: rgb(235 240 241 / 0.6);
+  /* the ask: a matte slate-teal circle (no glow, no outline) and the colourless fade it opens from the bottom */
+  --ask-disc: radial-gradient(
+    circle at 50% 58%,
+    #24464e 0%,
+    #2f5660 38%,
+    #4f717a 78%,
+    #66868e 100%
+  );
+  --ask-disc-hover: radial-gradient(
+    circle at 50% 58%,
+    #2d5862 0%,
+    #3d6c78 38%,
+    #628893 78%,
+    #7a9ba3 100%
+  );
+  --ask-disc-edge: radial-gradient(closest-side, #000 calc(100% - 1.5px), transparent 100%);
+  --ask-disc-deep: #24464e;
+  --ask-mark: #f4f8f9;
+  --ask-label: #e4ecee;
+  --ask-label-hover: #ffffff;
+  --ask-veil:
+    radial-gradient(
+      ellipse 50% 36% at 50% 100%,
+      rgb(160 196 206 / 0.14) 0%,
+      rgb(160 196 206 / 0.045) 55%,
+      rgb(160 196 206 / 0) 100%
+    ),
+    radial-gradient(
+      ellipse 64% 100% at 50% 100%,
+      rgb(11 16 18 / 0.97) 0%,
+      rgb(11 16 18 / 0.93) 30%,
+      rgb(11 16 18 / 0.62) 58%,
+      rgb(11 16 18 / 0.2) 82%,
+      rgb(11 16 18 / 0) 100%
+    );
+  --ask-text: #eef3f4;
+  --ask-caret: #e3ecee;
+  /* the opened finding's record (D4's opened node) */
+  --ov-kicker: #7d8a90;
+  --ov-cap: #a3aeb2;
+  --ov-ci: #8f9ba0;
+  --ov-evid: #cfd8db;
+  --ov-point: #dbe7e0;
+  --ov-grid: rgb(255 255 255 / 0.07);
+  --ov-connector: rgb(201 214 218 / 0.55);
+  --ov-connector-end: #c9d6da;
+  --ov-frost: radial-gradient(
+    ellipse 50% 50% at 50% 50%,
+    rgb(11 16 18 / 0.86) 0%,
+    rgb(11 16 18 / 0.8) 60%,
+    rgb(11 16 18 / 0.4) 85%,
+    rgb(11 16 18 / 0) 100%
+  );
+  --ov-frost-mask: radial-gradient(
+    ellipse 50% 50% at 50% 50%,
+    #000 64%,
+    rgb(0 0 0 / 0.7) 82%,
+    transparent 100%
+  );
 }

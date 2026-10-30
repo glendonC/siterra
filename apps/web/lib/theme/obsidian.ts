@@ -97,3 +97,31 @@ export const pixelColours = {
   connector: "rgb(183 196 200 / 0.38)",
   connectorWarm: "rgb(224 122 58 / 0.7)",
 } as const;
+
+/**
+ * The overview (approved specimen D4): the land lit and draped as in specimen B with a cool rim and fog, the arc's
+ * two tints, the drainage and outline on the land, and the mask stops of its depth of field.
+ */
+export const overviewColours = {
+  keyLight: "#ffd9ae",
+  ambient: "#55636b",
+  sky: "#8fb3c4",
+  reliefAlbedo: "#a6a8a3",
+  contour: "#e9eef0",
+  coverTree: "#5c8f63",
+  coverCrop: "#93b872",
+  bandLimit: [0.93, 0.96, 0.97] as Channels,
+  fog: "#10181b",
+  rim: "#a9c9d4",
+  wallAlbedo: "#2c3336",
+  catchmentLine: "#e3eaec",
+  /** The arc's tint: the darker toward the lower right, the lighter toward the upper left (the key light's side). */
+  arcDim: [0.498, 0.573, 0.596] as Channels,
+  arcLit: [0.769, 0.839, 0.859] as Channels,
+  /** The opened pixel's footprint on the land. */
+  footprint: "#f4f7f8",
+  drainage: modelColours.drainage,
+} as const;
+
+/** A CSS mask stop: black at an alpha (0 to 1); a mask reads only the alpha. */
+export const maskAt = (alpha: number) => `rgb(0 0 0 / ${alpha.toFixed(3)})`;

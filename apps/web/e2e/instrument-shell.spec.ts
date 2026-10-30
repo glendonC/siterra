@@ -2,33 +2,37 @@ import { expect, test, type Request } from "@playwright/test";
 import { textReport } from "./instrument-text";
 
 // The briefing shell around each instrument (docs/reference/ux-architecture.md, "The instruments' budget"): a quiet
-// switcher of four views at the top right with the current one marked, the command line 480 x 44 CSS px at y 796 of
-// the 1440 x 900 design (specimens A and B) with no text within 24 px of it except the credit line, which keeps the
-// specimens' own gap of 16 px (their command line ends at y 840, their two-line credit starts at y 856), and Enter
-// carrying the typed text to the valley without sending anything.
+// switcher of six views at the top right with the current one marked and Valley leading to the overview at /valley;
+// the ask (approved specimen D4) resting as a 44 x 44 CSS px circle at the bottom centre, in the band the command line
+// kept (y 796 to 840 of the 1440 x 900 design), with no text within 24 px of it except the credit line, which
+// keeps the specimens' gap of 16 px. The ask opens by its circle or "/" and sends nothing; Enter (which carries the
+// text to the overview) is not pressed here, as no test presses Enter in the ask.
 
 test.use({ viewport: { width: 1440, height: 900 } });
 
-const CMD = { x: 480, y: 796, width: 480, height: 44 };
+const ASK = { x: 698, y: 796, width: 44, height: 44 };
 const CLEAR = 24;
 const CREDIT_GAP = 16;
-const PAGES = ["layers", "cutaway", "pixel", "rainfall"] as const;
+const PAGES = ["layers", "cutaway", "pixel", "rainfall", "field"] as const;
 /** An element each instrument shows once its words are placed. */
 const READY: Record<(typeof PAGES)[number], string> = {
   layers: "[data-sheet]",
   cutaway: "[data-band]",
   pixel: "[role='slider']",
   rainfall: "[data-season]",
+  // the seed case holds no field plan: the page says so
+  field: "[data-field-plan]",
 };
 
 for (const id of PAGES) {
-  test(`frames the ${id} instrument with the switcher and the command line`, async ({ page }) => {
+  test(`frames the ${id} instrument with the switcher and the ask`, async ({ page }) => {
     await page.goto(`/instruments/${id}`);
     await expect(page.locator(READY[id]).first()).toBeVisible();
     const nav = page.locator("nav");
-    await expect(nav.locator("a")).toHaveCount(5);
+    await expect(nav.locator("a")).toHaveCount(6);
     await expect(nav.locator("a[aria-current='page']")).toHaveCount(1);
-    expect(await page.locator("[data-command]").boundingBox()).toEqual(CMD);
+    await expect(nav.locator("a").first()).toHaveAttribute("href", "/valley");
+    expect(await page.locator("[data-ask]").boundingBox()).toEqual(ASK);
     const frags = await page.evaluate(() => {
       const out: {
         t: string;
@@ -41,7 +45,7 @@ for (const id of PAGES) {
       const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
       for (let n = walker.nextNode(); n; n = walker.nextNode()) {
         const el = n.parentElement;
-        if (!n.textContent?.trim() || !el || el.closest("[data-command], p[id]")) continue;
+        if (!n.textContent?.trim() || !el || el.closest("[data-ask], p[id]")) continue;
         if (getComputedStyle(el).visibility === "hidden") continue;
         const r = document.createRange();
         r.selectNodeContents(n);
@@ -58,11 +62,11 @@ for (const id of PAGES) {
       }
       return out;
     });
-    const end = CMD.y + CMD.height;
+    const end = ASK.y + ASK.height;
     const near = frags.filter((f) => {
-      const across = f.right > CMD.x - CLEAR && f.left < CMD.x + CMD.width + CLEAR;
+      const across = f.right > ASK.x - CLEAR && f.left < ASK.x + ASK.width + CLEAR;
       const gap = f.credit ? CREDIT_GAP : CLEAR;
-      return across && f.bottom > CMD.y - CLEAR && f.top < end + gap;
+      return across && f.bottom > ASK.y - CLEAR && f.top < end + gap;
     });
     expect(near.map((f) => f.t)).toEqual([]);
     expect(await textReport(page, "[data-shell]")).toEqual({
@@ -73,7 +77,7 @@ for (const id of PAGES) {
   });
 }
 
-test("Enter carries the typed text to the valley and sends nothing", async ({ page }) => {
+test("the ask opens by its circle and by the slash key and sends nothing", async ({ page }) => {
   const sent: string[] = [];
   page.on("request", (r: Request) => {
     // opening the demo copy of the seed case is the one write a page makes before anything is asked
@@ -81,12 +85,19 @@ test("Enter carries the typed text to the valley and sends nothing", async ({ pa
       sent.push(`${r.method()} ${r.url()}`);
   });
   await page.goto("/instruments/layers");
-  const input = page.locator("[data-command] input");
-  await input.fill("Is the valley floor greener since 2019?");
-  await input.press("Enter");
-  await expect.poll(() => new URL(page.url()).pathname).toBe("/");
-  expect(await page.evaluate(() => sessionStorage.getItem("siterra.valleyQuestion"))).toBe(
-    "Is the valley floor greener since 2019?",
-  );
+  await expect(page.locator("[data-sheet]").first()).toBeVisible();
+  const ask = page.locator("[data-ask]");
+  const input = page.locator("input[name='question']");
+  await ask.click();
+  await expect(input).toBeFocused();
+  await input.pressSequentially("Is the valley floor greener since 2019?");
+  await expect(input).toHaveValue("Is the valley floor greener since 2019?");
+  await page.keyboard.press("Escape");
+  await expect(ask).toHaveAttribute("aria-expanded", "false");
+  await page.locator("body").click({ position: { x: 20, y: 450 } });
+  await page.keyboard.press("/");
+  await expect(input).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(ask).toHaveAttribute("aria-expanded", "false");
   expect(sent).toEqual([]);
 });

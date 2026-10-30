@@ -39,7 +39,8 @@ export function InstrumentRainfallScatter() {
   const record = useInstrument("rainfall_scatter");
   const [data, setData] = useState<ScatterData | null>(null);
   const [loadFailed, setFailed] = useState(false);
-  const failed = loadFailed || record.status === "failed";
+  // an instrument the case holds no spec for cannot be drawn
+  const failed = loadFailed || record.status === "failed" || record.status === "absent";
   const view = record.status === "ready" ? record.view : null;
   const descriptionId = useId();
 

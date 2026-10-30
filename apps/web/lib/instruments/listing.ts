@@ -22,9 +22,14 @@ export type InstrumentsLoad =
   | { status: "invalid"; issues: string[] }
   | { status: "failed"; httpStatus: number };
 
-/** The instrument specs of one case at its current revision. */
-export async function loadInstruments(caseId: string, fetchImpl: Fetch): Promise<InstrumentsLoad> {
-  const res = await fetchImpl(`/api/cases/${encodeURIComponent(caseId)}/instruments`, {
+/** The instrument specs of one case at its current revision, or as of a given revision. */
+export async function loadInstruments(
+  caseId: string,
+  fetchImpl: Fetch,
+  revision?: number,
+): Promise<InstrumentsLoad> {
+  const at = revision === undefined ? "" : `?revision=${String(revision)}`;
+  const res = await fetchImpl(`/api/cases/${encodeURIComponent(caseId)}/instruments${at}`, {
     credentials: "same-origin",
     headers: { accept: "application/json" },
   });

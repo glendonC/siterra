@@ -35,7 +35,8 @@ export function InstrumentPixelAnatomy({
   } | null>(null);
   const [loadFailed, setFailed] = useState(false);
   const record = useInstrument("pixel_anatomy");
-  const failed = loadFailed || record.status === "failed";
+  // an instrument the case holds no spec for cannot be drawn
+  const failed = loadFailed || record.status === "failed" || record.status === "absent";
   const view = record.status === "ready" ? record.view : null;
   const caption = view?.spec.caption ?? null;
   const descriptionId = useId();

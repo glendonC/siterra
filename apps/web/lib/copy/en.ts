@@ -492,6 +492,7 @@ export const en = {
   "instrument.shell.cutaway": { text: "Cutaway", kind: "label" },
   "instrument.shell.pixel": { text: "Pixel", kind: "label" },
   "instrument.shell.rainfall": { text: "Rainfall", kind: "label" },
+  "instrument.shell.field": { text: "Field plan", kind: "label" },
   "instrument.shell.command": { text: "Ask or challenge", kind: "label" },
 
   // Instruments: the pixel anatomy (approved specimen C). Every number comes from the pixel's data file; the species
@@ -641,6 +642,56 @@ export const en = {
     text: "Rainfall slope {slope} NDVI per 100 mm, 95% {lower} to {upper}.",
     kind: "ui",
   },
+  // Instruments: the field plan. Explanations, statuses and checks come from the branch merge the field plan spec
+  // names; every check is proposed, nothing is scheduled
+  "instrument.fieldPlan.description": {
+    text: "The explanations the branch merge weighed, with the status it gave each, and the proposed field checks that would tell the open ones apart.",
+    kind: "ui",
+  },
+  "instrument.fieldPlan.failed": {
+    text: "Field plan not loaded. Reload the page to retry.",
+    kind: "ui",
+  },
+  "instrument.fieldPlan.none": {
+    text: "No field plan yet. One is proposed when a question's explanation branches are merged.",
+    kind: "ui",
+  },
+  "instrument.fieldPlan.proposed": { text: "Proposed", kind: "label" },
+  "instrument.fieldPlan.reason.failed": {
+    text: "A prediction it needs failed on adequate data.",
+    kind: "ui",
+  },
+  "instrument.fieldPlan.reason.tooFew.one": {
+    text: "Not enough data yet: {have} period of data, {need} are needed to rule it out.",
+    kind: "ui",
+  },
+  "instrument.fieldPlan.reason.tooFew": {
+    text: "Not enough data yet: {have} periods of data, {need} are needed to rule it out.",
+    kind: "ui",
+  },
+  "instrument.fieldPlan.reason.noneRecorded": { text: "No predictions were recorded.", kind: "ui" },
+  "instrument.fieldPlan.reason.noneTestable": {
+    text: "No prediction can be tested with the record yet.",
+    kind: "ui",
+  },
+  "instrument.fieldPlan.reason.allMet": {
+    text: "Every testable prediction is met, {n} of {of}.",
+    kind: "ui",
+  },
+  "instrument.fieldPlan.separates": { text: "Tells apart {pairs}", kind: "label" },
+  "instrument.fieldPlan.only": {
+    text: "The only proposed check that tells {a} from {b}",
+    kind: "label",
+  },
+  "instrument.fieldPlan.pair": { text: "{a} and {b}", kind: "label" },
+  "instrument.fieldPlan.unseparated.none": {
+    text: "Every pair of open explanations has a proposed check that tells them apart.",
+    kind: "ui",
+  },
+  "instrument.fieldPlan.unseparated": {
+    text: "No proposed check tells these apart: {pairs}.",
+    kind: "ui",
+  },
   "instrument.scatter.gate": {
     text: "The interval includes zero, so the rainfall-adjusted trend's precondition is not met.",
     kind: "ui",
@@ -649,6 +700,74 @@ export const en = {
     text: "Contains modified Copernicus Sentinel data 2025. MODIS MOD13Q1 v6.1, NASA LP DAAC. © ESA WorldCover project 2021, CC BY 4.0. Catchment from Copernicus DEM GLO-30.",
     kind: "ui",
   },
+
+  // The overview (approved specimen D4) at /valley: the relief inside an arc, five findings on it, the proposed field
+  // check on the land and the ask. Every number, the case question, the place's name and its area come from the
+  // records; the findings' captions name what each number is
+  "overview.description": {
+    text: "A relief model of the valley catchment inside one arc. Each point on the arc is a finding with its number. The circle on the arc's lower left opens the ask.",
+    kind: "ui",
+  },
+  "overview.keys": {
+    text: "Enter opens a finding's instrument beside the land; Esc returns to the overview. The slash key opens the ask.",
+    kind: "ui",
+  },
+  "overview.findings": { text: "Findings", kind: "heading" },
+  "overview.finding.catchment.1": { text: "NDVI per decade, March to June,", kind: "label" },
+  "overview.finding.catchment.2": { text: "{from} to {to}", kind: "label" },
+  "overview.finding.band.1": { text: "NDVI per decade below {limit} m", kind: "label" },
+  "overview.finding.pixel.1": { text: "NDVI per decade in one pixel", kind: "label" },
+  "overview.finding.pixel.2": { text: "at the valley floor edge", kind: "label" },
+  "overview.finding.rain.1": { text: "R squared, September to May rain", kind: "label" },
+  "overview.finding.rain.2": { text: "against March to June greenness", kind: "label" },
+  "overview.finding.fdr.1": { text: "of the area greening after a", kind: "label" },
+  "overview.finding.fdr.2": { text: "false discovery rate check", kind: "label" },
+  "overview.field": { text: "Proposed field check, not measured", kind: "label", honesty: true },
+  "overview.pixel": { text: "This pixel", kind: "label" },
+  "overview.key.tree": { text: "Tree cover", kind: "label" },
+  "overview.key.crop": { text: "Cropland or built-up, {year}", kind: "label" },
+  // the opened finding's record (D4's opened node): a kicker, the number, its caption, the season chart and its
+  // line, the published context in the record's display text with its sources, and the way to the full instrument
+  "overview.record.pixel": { text: "One pixel at the valley floor edge", kind: "label" },
+  "overview.record.band": { text: "Below {limit} m", kind: "label" },
+  "overview.record.catchment": { text: "Valley catchment", kind: "label" },
+  "overview.record.caption": {
+    text: "NDVI per decade, March to June, {from} to {to}",
+    kind: "label",
+  },
+  "overview.record.theilSen": {
+    text: "Theil-Sen line, interval at 95%: {lower} to {upper}. One point per season, the March to June mean.",
+    kind: "ui",
+  },
+  "overview.record.ols": {
+    text: "Least squares line, interval at 95%: {lower} to {upper}. One point per season, the March to June mean.",
+    kind: "ui",
+  },
+  "overview.record.scatter": {
+    text: "One point per season; the line is the straight-line fit across them.",
+    kind: "ui",
+  },
+  "overview.record.ndvi": { text: "NDVI", kind: "label" },
+  "overview.record.rain": { text: "September to May, mm", kind: "label" },
+  "overview.record.context": { text: "Published context", kind: "label" },
+  "overview.record.open": { text: "Open Instrument", kind: "link" },
+  "overview.cite": { text: "{authors} {year}, {venue}, p. {page}", kind: "label" },
+  "overview.cite.pages": { text: "{authors} {year}, {venue}, pp. {pages}", kind: "label" },
+  "overview.cite.noPage": { text: "{authors} {year}, {venue}", kind: "label" },
+  "overview.cite.etAl": { text: "{name} et al.", kind: "label" },
+  "overview.cite.two": { text: "{a} and {b}", kind: "label" },
+  "overview.back": { text: "Back to Overview", kind: "button" },
+  "overview.failed": { text: "Overview not loaded. Reload the page to retry.", kind: "ui" },
+
+  // The ask: a matte circle that opens a fade from the bottom with the question typed in large type. Enter sends it
+  // on the overview (the same commission as the valley's command line) and carries it to the overview from an
+  // instrument, sending nothing there; the activity line shows only after Enter, from the session's log
+  "ask.circle": { text: "ask", kind: "label" },
+  "ask.open": { text: "Ask Siterra", kind: "button" },
+  "ask.close": { text: "Close Ask", kind: "button" },
+  // the activity line: the step running with the model and route that served it (the activity panel's badge)
+  "ask.taskModel": { text: "{model}: {task}, {status}", kind: "ui" },
+  "ask.task": { text: "{task}, {status}", kind: "ui" },
 } as const satisfies Record<string, Message>;
 
 export type MessageId = keyof typeof en;

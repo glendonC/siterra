@@ -1,5 +1,5 @@
-/* The briefing shell around one instrument, in the Obsidian tokens: a quiet text switcher at the top right and the
-   command line at the bottom centre, as the approved specimens draw it. No pills, no panels down the sides. */
+/* The briefing shell around one instrument, in the Obsidian tokens: a quiet text switcher at the top right; the ask
+   (components/overview/Ask.module.css) rests at the bottom centre. No pills, no panels down the sides. */
 
 .shell {
   position: fixed;
@@ -38,53 +38,4 @@
 .view:focus-visible {
   outline: 1px solid var(--hairline);
   outline-offset: 3px;
-}
-
-.command {
-  position: absolute;
-  left: 50%;
-  z-index: 10;
-  height: 44px;
-  transform: translateX(-50%);
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 0 16px;
-  box-sizing: border-box;
-  border: 1px solid var(--hairline-quiet);
-  border-radius: 8px;
-  background: var(--bg-canvas);
-}
-
-.glyph {
-  font-family: var(--font-mono);
-  font-size: 15px;
-  color: var(--text-tertiary);
-}
-
-.sep {
-  width: 1px;
-  height: 18px;
-  background: var(--hairline-quiet);
-}
-
-.input {
-  flex: 1;
-  min-width: 0;
-  padding: 0;
-  border: 0;
-  outline: 0;
-  background: transparent;
-  color: var(--text-primary);
-  font-family: var(--font-sans);
-  font-size: 16px;
-  line-height: 22px;
-}
-
-.input::placeholder {
-  color: var(--text-tertiary);
-}
-
-.command:focus-within {
-  border-color: var(--hairline);
 }

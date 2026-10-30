@@ -82,12 +82,13 @@ export function viewBack(azimuth: number, elevation: number): Vec3 {
 
 /**
  * A stage on a canvas. With `fov` (vertical, degrees, at the design size) the camera is perspective; at other
- * sizes the field of view and the shift are scaled so that the picture fits as an orthographic one would.
+ * sizes the field of view and the shift are scaled so that the picture fits as an orthographic one would. With
+ * `alpha` the canvas is transparent and the background colour is not drawn.
  */
 export function createStage(
   canvas: HTMLCanvasElement,
   background: string,
-  opts: { fov?: number } = {},
+  opts: { fov?: number; alpha?: boolean } = {},
 ): Stage {
   // every colour is the sRGB value the tokens write, as in CSS
   ColorManagement.enabled = false;
@@ -95,12 +96,15 @@ export function createStage(
     canvas,
     antialias: true,
     powerPreference: "high-performance",
+    // a stage over its own ground (the overview) clears to transparent
+    alpha: opts.alpha ?? false,
   });
   renderer.outputColorSpace = LinearSRGBColorSpace;
   renderer.toneMapping = NoToneMapping;
   renderer.setPixelRatio(window.devicePixelRatio);
   const scene = new Scene();
-  scene.background = new Color(background);
+  if (opts.alpha) renderer.setClearColor(0x000000, 0);
+  else scene.background = new Color(background);
   const camera =
     opts.fov === undefined
       ? new OrthographicCamera(-1, 1, 1, -1, 1, 4000)

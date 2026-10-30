@@ -1,0 +1,167 @@
+/* The opened finding's record (approved specimen D4, css/d4.css .inst, .evid, .midcap, .frost) in the tokens of
+   app/obsidian.css, on the overview's 1440 x 900 stage. Every text is 12 px or larger. */
+
+.record {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+/* a frosted field behind the record: the land behind it blurs and darkens, with no edge and no box */
+.frost {
+  position: absolute;
+  pointer-events: none;
+  backdrop-filter: blur(18px) saturate(0.6);
+  background: var(--ov-frost);
+  mask-image: var(--ov-frost-mask);
+}
+
+.inst {
+  position: absolute;
+  left: 800px;
+  top: 120px;
+  width: 560px;
+  perspective: 1500px;
+}
+
+.plane {
+  transform: rotateY(-14deg) rotateX(2deg);
+  transform-origin: 0% 40%;
+}
+
+.k {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: 0.02em;
+  color: var(--ov-kicker);
+}
+
+.big {
+  margin-top: 10px;
+  font-weight: 300;
+  font-size: 76px;
+  line-height: 80px;
+  letter-spacing: -0.025em;
+  font-variant-numeric: lining-nums;
+  color: var(--ov-bright);
+}
+
+.cap {
+  margin: 4px 0 0;
+  font-size: 15px;
+  line-height: 22px;
+  color: var(--ov-cap);
+}
+
+.chart {
+  display: block;
+  margin-top: 22px;
+  overflow: visible;
+}
+
+.chart text {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  fill: var(--ov-ink-3);
+}
+
+.grid {
+  stroke: var(--ov-grid);
+  stroke-width: 1;
+}
+
+.fit {
+  stroke: var(--ov-green);
+  stroke-width: 1.6;
+}
+
+.point {
+  fill: var(--ov-point);
+}
+
+.ci {
+  margin-top: 10px;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--ov-ci);
+}
+
+.open {
+  display: inline-block;
+  margin-top: 14px;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  border-bottom: 1px solid var(--hairline);
+  pointer-events: auto;
+}
+
+.open:hover,
+.open:focus-visible {
+  color: var(--text-primary);
+  border-bottom-color: var(--text-secondary);
+}
+
+.open:focus-visible {
+  outline: 1px solid var(--ov-focus);
+  outline-offset: 4px;
+}
+/* D4 set the evidence at 676 px over a 10 px credit; the 12 px credit runs a line taller, so the evidence sits higher */
+.evid {
+  position: absolute;
+  left: 1012px;
+  top: 620px;
+  width: 380px;
+  transform: perspective(1500px) rotateY(-7deg);
+  transform-origin: 0% 50%;
+}
+
+.q {
+  margin: 0;
+  font-size: 15px;
+  line-height: 23px;
+  color: var(--ov-evid);
+}
+
+.cite {
+  margin: 10px 0 0;
+  font-size: 12px;
+  line-height: 17px;
+  color: var(--ov-ink-3);
+}
+
+.ref {
+  display: block;
+}
+
+.connector {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.dotted {
+  fill: none;
+  stroke: var(--ov-connector);
+  stroke-width: 1;
+  stroke-dasharray: 1.5 4;
+}
+
+.end {
+  fill: var(--ov-connector-end);
+}
+
+.midcap {
+  position: absolute;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: 0.02em;
+  color: var(--ov-kicker);
+  white-space: nowrap;
+}

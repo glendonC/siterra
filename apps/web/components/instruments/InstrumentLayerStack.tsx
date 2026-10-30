@@ -160,7 +160,8 @@ export function InstrumentLayerStack({ base = VALLEY_FIXTURES }: { base?: string
   const [data, setData] = useState<LayerStackData | null>(null);
   const [loadFailed, setFailed] = useState(false);
   const record = useInstrument("layer_stack");
-  const failed = loadFailed || record.status === "failed";
+  // an instrument the case holds no spec for cannot be drawn
+  const failed = loadFailed || record.status === "failed" || record.status === "absent";
   const view = record.status === "ready" ? record.view : null;
   const snapshot = record.status === "ready" ? record.snapshot : null;
   const caption = view?.spec.caption ?? null;

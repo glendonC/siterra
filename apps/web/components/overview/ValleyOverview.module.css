@@ -1,0 +1,438 @@
+/* The overview (approved specimen D4, css/d4.css) in the tokens of app/obsidian.css. The words sit on a 1440 x 900
+   stage scaled to fit (the page sets its transform from the scene's layout); the canvases fill the frame. */
+
+.root {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: var(--bg-canvas);
+  color: var(--ov-ink);
+  font-family: var(--font-sans);
+  font-synthesis: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* the ground: Obsidian with a lifted centre where the model stands, inside the arc, and darker corners */
+.ground {
+  position: absolute;
+  inset: 0;
+  background: var(--ov-ground);
+}
+
+.layer {
+  position: absolute;
+  inset: 0;
+}
+
+.canvas,
+.blur {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+}
+
+.blur {
+  opacity: 0;
+}
+
+.cornerfade {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  background: var(--ov-cornerfade);
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.hud {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1440px;
+  height: 900px;
+  transform-origin: 0 0;
+  pointer-events: none;
+}
+
+.lift {
+  position: absolute;
+  inset: 0;
+}
+
+/* nothing on the arc shows before the first layout places it */
+.layer:not([data-placed]) .lift,
+.layer:not([data-placed]) [data-ask] {
+  visibility: hidden;
+}
+
+.marks {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.wire {
+  stroke: var(--ov-wire);
+  stroke-width: 1;
+  opacity: 0;
+}
+
+/* brand and the case question, top left */
+.brand {
+  position: absolute;
+  left: 48px;
+  top: 38px;
+}
+
+.word {
+  font-weight: 500;
+  font-size: 15px;
+  line-height: 20px;
+  letter-spacing: 0.02em;
+  color: var(--ov-ink);
+}
+
+.question {
+  margin-top: 6px;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--ov-ink-3);
+  max-width: 440px;
+}
+
+/* a finding on the arc: the number with its circled arrow, then a short caption. At rest the numeral is grey; hover
+   (--hov 0 to 1) brings it to full ink, fills the arrow, brightens the halo and draws the hairline from the dot */
+.findings {
+  position: absolute;
+  inset: 0;
+}
+
+.finding {
+  --hov: 0;
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: block;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.finding[data-side="left"] {
+  text-align: right;
+}
+
+.finding:focus {
+  outline: none;
+}
+
+.finding:focus-visible .value {
+  outline: 1px solid var(--ov-focus);
+  outline-offset: 4px;
+}
+
+.numeral {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 300;
+  font-size: 33px;
+  line-height: 38px;
+  letter-spacing: -0.01em;
+  font-variant-numeric: lining-nums;
+  color: color-mix(in srgb, var(--ov-bright) calc(var(--hov) * 100%), var(--ov-numeral));
+}
+
+.finding[data-side="left"] .numeral {
+  justify-content: flex-end;
+}
+
+.caption {
+  display: block;
+  font-size: 13px;
+  line-height: 18px;
+  color: color-mix(in srgb, var(--ov-caption-hover) calc(var(--hov) * 100%), var(--ov-caption));
+}
+
+.numeral + .caption {
+  margin-top: 3px;
+}
+
+.arrow {
+  flex: none;
+  width: 19px;
+  height: 19px;
+  overflow: visible;
+  margin-top: 3px;
+}
+
+.arrow circle {
+  fill: color-mix(in srgb, var(--ov-bright) calc(var(--hov) * 100%), transparent);
+  stroke: currentColor;
+  stroke-width: 1;
+  opacity: calc(0.75 + 0.25 * var(--hov));
+}
+
+.arrow path {
+  fill: none;
+  stroke: color-mix(in srgb, var(--bg-canvas) calc(var(--hov) * 100%), currentColor);
+  stroke-width: 1.3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.dot {
+  --hov: 0;
+  position: absolute;
+  width: 0;
+  height: 0;
+}
+
+.dot i {
+  position: absolute;
+  left: 0;
+  top: 0;
+  border-radius: 50%;
+}
+
+.halo {
+  width: 26px;
+  height: 26px;
+  opacity: calc(0.3 + 0.5 * var(--hov));
+  transform: translate(-50%, -50%) scale(calc(1 + 0.55 * var(--hov)));
+}
+
+.core {
+  width: 6px;
+  height: 6px;
+  transform: translate(-50%, -50%) scale(calc(1 + 0.25 * var(--hov)));
+}
+
+.green .core {
+  background: var(--ov-green);
+}
+
+.green .halo {
+  background: var(--ov-halo-green);
+}
+
+.blue .core {
+  background: var(--ov-blue);
+}
+
+.blue .halo {
+  background: var(--ov-halo-blue);
+}
+
+/* the proposed field check on the land: an amber ring, and its tag with a dark halo over the lit flank; the button is
+   a 24 px target centred on the point */
+.field {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 24px;
+  height: 24px;
+  margin: -12px 0 0 -12px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.field:focus {
+  outline: none;
+}
+
+.field:focus-visible .fieldTag {
+  outline: 1px solid var(--ov-focus);
+  outline-offset: 3px;
+}
+
+.ring {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 9px;
+  height: 9px;
+  border: 1.5px solid var(--accent);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-sizing: border-box;
+}
+
+.fieldTag {
+  position: absolute;
+  left: 24px;
+  top: 18px;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--ov-amber-tag);
+  white-space: nowrap;
+  text-shadow: var(--ov-halo-dark);
+}
+
+.tagArrow {
+  width: 15px;
+  height: 15px;
+  vertical-align: -3px;
+  margin-left: 4px;
+  overflow: visible;
+}
+
+.tagArrow circle,
+.tagArrow path {
+  fill: none;
+  stroke: var(--ov-amber-arrow);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.tagArrow circle {
+  stroke-width: 1;
+}
+
+.tagArrow path {
+  stroke-width: 1.3;
+}
+
+.pixTag {
+  position: absolute;
+  width: 0;
+  height: 0;
+  opacity: 0;
+}
+
+.pixTag span {
+  position: absolute;
+  left: 0;
+  top: -22px;
+  transform: translateX(-50%);
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--ov-bright);
+  white-space: nowrap;
+  text-shadow: var(--ov-halo-dark);
+}
+
+/* the place, bottom left */
+.place {
+  position: absolute;
+  left: 48px;
+  bottom: 40px;
+}
+
+.layer[data-opened] .place {
+  text-shadow: var(--ov-halo-place);
+}
+
+.name {
+  font-weight: 300;
+  font-size: 30px;
+  line-height: 34px;
+  letter-spacing: -0.005em;
+  color: var(--ov-ink);
+}
+
+.sub {
+  margin-top: 6px;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--ov-ink-2);
+}
+
+.key {
+  margin-top: 10px;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--ov-ink-3);
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  background: var(--ov-cover-tree);
+  margin-right: 7px;
+  vertical-align: -1px;
+}
+
+.crop {
+  background: var(--ov-cover-crop);
+}
+
+/* licence credits, bottom right (12 px, the instruments' smallest text) */
+.credit {
+  position: absolute;
+  right: 48px;
+  bottom: 40px;
+  width: 430px;
+  margin: 0;
+  text-align: right;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--ov-ink-4);
+}
+
+.failed {
+  position: absolute;
+  left: 48px;
+  top: 96px;
+  margin: 0;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--text-secondary);
+}
+
+/* the way back from an opened record, top right (the corner every specimen leaves empty) */
+.back {
+  position: absolute;
+  pointer-events: auto;
+  top: 36px;
+  right: 48px;
+  z-index: 10;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--text-tertiary);
+  cursor: pointer;
+}
+
+.back:hover,
+.back:focus-visible {
+  color: var(--text-secondary);
+}
+
+.back:focus-visible {
+  outline: 1px solid var(--hairline);
+  outline-offset: 3px;
+}
