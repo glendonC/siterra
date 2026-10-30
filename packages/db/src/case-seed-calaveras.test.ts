@@ -125,7 +125,7 @@ describe("the Calaveras Creek seed", () => {
     const instruments = calaveras.seed?.instruments ?? [];
     expect(instruments.map((i) => i.id)).toEqual(["inst_rainfall_scatter_creek"]);
     expect(instruments[0]?.caption.ink).toBe(
-      "October to April rainfall and February to May greenness move together with an R squared of 0.181.",
+      "R squared 0.181 between October to April rainfall and February to May greenness.",
     );
     expect(JSON.stringify(instruments)).not.toMatch(/ait_bouguemez/);
   });

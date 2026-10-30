@@ -157,7 +157,7 @@
         }
       },
       "caption": {
-        "ink": "October to April rainfall and February to May greenness move together with an R squared of {r2}.",
+        "ink": "R squared {r2} between October to April rainfall and February to May greenness.",
         "grey": "A straight-line fit across seasons; it measures how closely the two move together and says nothing about why.",
         "claimKind": "model_estimate",
         "citationIds": ["meas_rainfall_fit_r_squared_catchment_feb_may"],

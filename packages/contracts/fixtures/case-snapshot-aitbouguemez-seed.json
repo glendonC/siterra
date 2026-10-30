@@ -175200,6 +175200,20 @@
                 "bundleId": "bundle_relief_ait_bouguemez",
                 "assetKey": "elevation_surface_bin_header"
               }
+            },
+            {
+              "role": "land_cover_raster",
+              "asset": {
+                "bundleId": "bundle_land_cover_ait_bouguemez",
+                "assetKey": "land_cover_png"
+              }
+            },
+            {
+              "role": "land_cover_header",
+              "asset": {
+                "bundleId": "bundle_land_cover_ait_bouguemez",
+                "assetKey": "land_cover_png_header"
+              }
             }
           ]
         },
@@ -175222,7 +175236,8 @@
             "bundle_terrain_strata_ait_bouguemez",
             "bundle_season_trend_long_record_ait_bouguemez",
             "bundle_snow_cover_by_band_ait_bouguemez",
-            "bundle_drainage_network_ait_bouguemez"
+            "bundle_drainage_network_ait_bouguemez",
+            "bundle_land_cover_ait_bouguemez"
           ],
           "methodId": "instrument_composer",
           "methodVersion": "1",
@@ -175305,6 +175320,10 @@
             },
             {
               "entityId": "bundle_drainage_network_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_land_cover_ait_bouguemez",
               "revision": 1
             },
             {
@@ -175652,6 +175671,13 @@
               "asset": {
                 "bundleId": "bundle_terrain_strata_ait_bouguemez",
                 "assetKey": "analysis_geometry"
+              }
+            },
+            {
+              "role": "trend_cells",
+              "asset": {
+                "bundleId": "bundle_pixel_trend_long_record_ait_bouguemez",
+                "assetKey": "trend_cells"
               }
             }
           ],

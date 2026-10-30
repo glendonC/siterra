@@ -58,6 +58,15 @@ describe("the Calaveras Creek configuration", () => {
     }
   });
 
+  it("words the rainfall scatter without choosing a direction or a strength for the fit", () => {
+    const rule = config?.instruments?.find((r) => r.id === "rainfall_scatter_creek");
+    const ink = rule?.from === "parameters" ? rule.caption.ink : "";
+    expect(ink).toBe(
+      "R squared {r2} between October to April rainfall and February to May greenness.",
+    );
+    expect(ink).not.toMatch(/together|explain|little|strong|weak|modest/);
+  });
+
   it("states no date of the dam's history: the retrieved sources do not support the years", () => {
     for (const e of config?.explanations ?? []) expect(e.statement).not.toMatch(/\d/);
   });

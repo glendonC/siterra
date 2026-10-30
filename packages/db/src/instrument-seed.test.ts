@@ -147,6 +147,7 @@ describe("the instruments the case seed composes", () => {
       ["pixel_spectra", "pixel_anatomy", "pixel_spectra"],
       ["pixel_series", "pixel_anatomy", "pixel_series"],
       ["catchment_outline", "terrain_strata", "analysis_geometry"],
+      ["trend_cells", "pixel_trend_long_record", "trend_cells"],
     ]);
     expect(roles("inst_cross_section_valley").slice(0, 3)).toEqual([
       ["transect_summary", "transects", "terrain_transects"],
@@ -173,6 +174,16 @@ describe("the instruments the case seed composes", () => {
       "drainage_segments",
       "relief_grid",
       "relief_grid_header",
+      "land_cover_raster",
+      "land_cover_header",
+    ]);
+    expect(
+      roles("inst_cross_section_valley")
+        .slice(5)
+        .map((r) => [r[1], r[2]]),
+    ).toEqual([
+      ["land_cover", "land_cover_png"],
+      ["land_cover", "land_cover_png_header"],
     ]);
     // The web-ready display assets of SCIENCE-GEO's S7, by their bundle and key
     expect(
