@@ -1,6 +1,7 @@
 import { expect, test, type Page, type Request } from "@playwright/test";
 
-// The journey at "/" lands on the overview (approved specimen D4): the skip link goes straight to it, a returning
+// The journey at "/" lands on the overview (approved specimen D4): Enter on the opening, Enter on the globe, then
+// the dive ends on it; a returning
 // visitor's reload goes straight to it, the old arrival's rail and cards no longer render, and the only write the
 // page makes is the one demo session it opens on a first visit. Enter is never pressed in the ask here.
 test.use({ storageState: { cookies: [], origins: [] }, viewport: { width: 1440, height: 900 } });
@@ -24,14 +25,16 @@ async function overview(page: Page) {
   await expect(page.locator("[data-arrival-settled]")).toHaveCount(0);
 }
 
-test("the skip link lands on the overview, and a reload returns straight to it", async ({
+test("the opening, the globe and the dive land on the overview, and a reload returns straight to it", async ({
   page,
 }) => {
   const sent = writes(page);
   await page.goto("/");
   await expect(page.locator("[data-opening]")).toBeVisible({ timeout: 60_000 });
-  await page.getByRole("link", { name: "Skip to Map" }).click();
-  await expect(page.locator("[data-phase=arrival]")).toBeVisible();
+  await page.keyboard.press("Enter");
+  await expect(page.locator("[data-phase=globe]")).toBeVisible();
+  await page.keyboard.press("Enter");
+  await expect(page.locator("[data-phase=arrival]")).toBeVisible({ timeout: 90_000 });
   await overview(page);
   // the MapLibre valley is unmounted once the overview has faded in
   await expect(page.locator(".maplibregl-map")).toHaveCount(0);

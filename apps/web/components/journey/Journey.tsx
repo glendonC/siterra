@@ -1,20 +1,18 @@
 "use client";
 
 // The sequence as one view: the opening over the globe's limb, the globe, the dive and the arrival on the
-// overview (approved specimen D4, the Valley view at /valley); the opening's skip link goes straight to the
-// overview. One clock drives both renderers: the ported globe (WebGL2) and the MapLibre valley, which fades in at
+// overview (approved specimen D4, the Valley view at /valley). One clock drives both renderers: the ported globe (WebGL2) and the MapLibre valley, which fades in at
 // the dive's relief rise; the globe renderer is then disposed so only MapLibre's context runs. At the arrival the
 // overview fades in over the MapLibre valley once its land is drawn, and the MapLibre valley is then unmounted, so
 // the old arrival's rail, cards, legend and notices do not render here.
 
 import type * as maplibregl from "maplibre-gl";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { en, format } from "../../lib/copy/en";
 import { crestCurve, findCrest } from "../../lib/globe/crest";
 import { viewToMapCamera } from "../../lib/globe/drive";
 import { R_KM, globeCamera, project } from "../../lib/globe/frame";
 import { polygonPath, rangePath, ringPoints, ringRho } from "../../lib/globe/overlay";
-import { regionPack } from "../../lib/pack/regionPack";
 import { OUTLET } from "../../lib/stage/arrival";
 import { widthFitScale } from "../../lib/stage/camera";
 import { loadGlobe, type GlobeAssets } from "../../lib/globe/grids";
@@ -73,19 +71,11 @@ export function Journey({
       setValleyGone(true);
     }, HANDOVER_MS);
   }, []);
-  const pack = useMemo(() => regionPack(snapshot), [snapshot]);
 
   const now = () => (performance.now() - t0.current) / 1000;
 
   const onShown = useCallback(() => {
     if (moments.current.beats.length === 0) moments.current.beats.push(now());
-  }, []);
-  // the skip link: straight to the overview; the frame loop stops and the MapLibre valley is not shown
-  const skipped = useRef(false);
-  const onSkip = useCallback(() => {
-    skipped.current = true;
-    setValleyGone(true);
-    setPhase("arrival");
   }, []);
   const onOpen = useCallback(() => {
     moments.current.press ??= now();
@@ -135,11 +125,6 @@ export function Journey({
       });
 
     const frame = () => {
-      if (skipped.current) {
-        renderer?.dispose(true);
-        renderer = undefined;
-        return;
-      }
       raf = requestAnimationFrame(frame);
       if (!ready) return;
       const w = el.clientWidth;
@@ -288,15 +273,15 @@ export function Journey({
         </>
       ) : null}
       {phase === "opening" ? (
-        <Opening
-          question={arrival.question}
-          pack={pack}
-          onOpen={onOpen}
-          onSkip={onSkip}
-          onShown={onShown}
+        <Opening question={arrival.question} onOpen={onOpen} onShown={onShown} />
+      ) : null}
+      {phase === "globe" ? (
+        <GlobePage
+          valleyName={arrival.valleyName}
+          regionName={arrival.regionName}
+          onDive={onDive}
         />
       ) : null}
-      {phase === "globe" ? <GlobePage packName={pack.name} onDive={onDive} /> : null}
       {phase === "opening" || phase === "globe" ? (
         <p className={styles.legend}>
           <i className={styles.legendSwatch} aria-hidden="true" />

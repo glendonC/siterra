@@ -1,32 +1,24 @@
-// The opening page's words: what Siterra is, how it works, and the question it opens on. The question is
-// the case record's own (EnvironmentalCase.objective), so the page names no place itself.
+// The opening page's words: the case's own question (EnvironmentalCase.objective), one sentence of what Siterra does,
+// the one action, and how it works behind a quiet button. The page names no place itself: the question does.
 
-import { STAGES } from "../activity/activity";
 import { en } from "../copy/en";
 
 export interface OpeningCopy {
   title: string;
-  what: string;
-  stagesLabel: string;
-  /** The engine's five stage names, in order. */
-  stages: string[];
-  how: string;
-  questionLabel: string;
   question: string;
+  what: string;
   action: string;
-  skip: string;
+  howButton: string;
+  how: string;
 }
 
 export function openingCopy(question: string): OpeningCopy {
   return {
     title: en["opening.title"].text,
-    what: en["opening.what"].text,
-    stagesLabel: en["opening.stages"].text,
-    stages: STAGES.map((s) => s.label),
-    how: en["opening.how"].text,
-    questionLabel: en["opening.question"].text,
     question,
+    what: en["opening.what"].text,
     action: en["opening.action"].text,
-    skip: en["opening.skip"].text,
+    howButton: en["opening.howButton"].text,
+    how: en["opening.how"].text,
   };
 }

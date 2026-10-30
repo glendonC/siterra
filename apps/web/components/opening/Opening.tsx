@@ -1,24 +1,19 @@
 "use client";
 
-// The opening page: one screen over the globe's limb saying what Siterra does and the case it opens on,
-// then one action into the globe, and a skip link straight to the map. Enter opens, unless a control has
-// focus and handles its own Enter.
+// The opening page: three things over the globe's limb (the lead's decision 7, 30 Oct 2026): the case's question
+// large, one sentence of what Siterra does, and one action into the globe with its Enter chip. How it works waits
+// behind a quiet button. Enter opens, unless a control has focus and handles its own Enter.
 
-import { useEffect } from "react";
-import { en } from "../../lib/copy/en";
+import { useEffect, useId, useState } from "react";
 import { openingCopy } from "../../lib/opening/opening";
-import type { RegionPack } from "../../lib/pack/regionPack";
 import { LIMB } from "../../lib/globe/views";
+import { Control } from "../controls/Control";
 import styles from "./Opening.module.css";
 
 export interface OpeningProps {
   /** The case's question, from its record. */
   question: string;
-  /** The Region Pack the case loads: its name and status show under the question. */
-  pack: Pick<RegionPack, "name" | "status">;
   onOpen: () => void;
-  /** The skip link: straight to the map, without the globe and the dive. */
-  onSkip: () => void;
   /** Told once the page shows, so the globe behind can follow. */
   onShown?: () => void;
 }
@@ -27,8 +22,10 @@ export interface OpeningProps {
 const PAPER_TOP = 58;
 const LIMB_AIR = 34;
 
-export function Opening({ question, pack, onOpen, onSkip, onShown }: OpeningProps) {
+export function Opening({ question, onOpen, onShown }: OpeningProps) {
   const copy = openingCopy(question);
+  const [how, setHow] = useState(false);
+  const howId = useId();
 
   useEffect(() => {
     onShown?.();
@@ -50,50 +47,30 @@ export function Opening({ question, pack, onOpen, onSkip, onShown }: OpeningProp
 
   return (
     <div className={styles.opening} data-opening>
+      <p className={styles.brand}>{copy.title}</p>
       <div className={styles.paper} style={{ height: LIMB[0] - PAPER_TOP - LIMB_AIR }}>
         <article className={styles.beat}>
-          <h1 className={styles.sentence}>{copy.title}</h1>
+          <h1 className={styles.question}>{copy.question}</h1>
           <p className={styles.what}>{copy.what}</p>
-          <div className={styles.stagesBlock}>
-            <span className={styles.label}>{copy.stagesLabel}</span>
-            <ol className={styles.stages} data-stages>
-              {copy.stages.map((s) => (
-                <li key={s}>{s}</li>
-              ))}
-            </ol>
-          </div>
-          <p className={styles.how}>{copy.how}</p>
-          <p className={styles.caseLine}>
-            <span className={styles.label}>{copy.questionLabel}</span>
-            {copy.question}
-          </p>
-          <p className={styles.caseLine} data-pack>
-            <span className={styles.label}>{en["pack.title"].text}</span>
-            {pack.name}
-            <span className={styles.status}>{pack.status}</span>
-          </p>
           <p className={styles.action}>
-            <button
-              type="button"
-              className={styles.actionButton}
-              onClick={onOpen}
-              aria-keyshortcuts="Enter"
-            >
-              <kbd className={styles.glyph} aria-hidden="true">
-                ↵
-              </kbd>
+            <Control variant="primary" keyHint="↵" keyShortcut="Enter" onClick={onOpen}>
               {copy.action}
-            </button>
-            <a
-              href="#arrival"
-              className={styles.skip}
-              onClick={(e) => {
-                e.preventDefault();
-                onSkip();
+            </Control>
+          </p>
+          <p className={styles.howLine}>
+            <Control
+              variant="quiet"
+              aria-expanded={how}
+              aria-controls={howId}
+              onClick={() => {
+                setHow((v) => !v);
               }}
             >
-              {copy.skip}
-            </a>
+              {copy.howButton}
+            </Control>
+          </p>
+          <p id={howId} className={styles.how} hidden={!how} data-how>
+            {copy.how}
           </p>
         </article>
       </div>

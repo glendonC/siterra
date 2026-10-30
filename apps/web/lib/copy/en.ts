@@ -16,10 +16,11 @@ export interface Message {
 }
 
 export const en = {
-  // Opening page: one screen. The case question comes from the case record
+  // Opening page: the case question (from its record), one sentence of what Siterra does, one action; how it works
+  // waits behind a quiet button
   "opening.title": { text: "Siterra", kind: "heading" },
   "opening.what": {
-    text: "An environmental analysis engine for communities and organizations with no specialist to ask.",
+    text: "Siterra weighs a question about the land against satellite records and published studies, and says what they leave open.",
     kind: "ui",
   },
   // only the brief task waits for a person (awaiting_review); a visitor's results are never reviewed by one
@@ -28,9 +29,8 @@ export const en = {
     kind: "ui",
   },
 
-  "opening.question": { text: "Question", kind: "heading" },
-  "opening.action": { text: "Open Region Pack", kind: "button" },
-  "opening.skip": { text: "Skip to Map", kind: "link" },
+  "opening.action": { text: "Explore the Valley", kind: "button" },
+  "opening.howButton": { text: "How It Works", kind: "button" },
 
   // The engine's five stages (ADR-0043 amendment, proposed). ADR-0023 bars causal diagnosis, so stage 3
   // tests hypotheses; precedents are published studies; nothing is verified in the field yet
@@ -39,32 +39,18 @@ export const en = {
   "stage.hypothesis_testing": { text: "Hypothesis Testing", kind: "heading" },
   "stage.interventions_precedents": { text: "Interventions & Precedents", kind: "heading" },
   "stage.field_verification": { text: "Field Verification", kind: "heading" },
-  "opening.stages": { text: "Five Stages", kind: "heading" },
-
-  // The Region Pack the case loads (lib/pack/regionPack.ts): every value comes from the case record
-  "pack.title": { text: "Region Pack", kind: "heading" },
-  "pack.status": { text: "{data} · {field}", kind: "heading" },
-  "pack.windowValue": { text: "{first} to {last}, {n} months", kind: "ui" },
-  // a bundle's status "validated" is the automated data checks, not field validation
-  "pack.checksValue": {
-    text: "{passed} of {total} bundles passed automated data checks.",
-    kind: "ui",
-  },
-  "pack.realData": { text: "Real Data", kind: "heading" },
-  "pack.checksPending": { text: "Checks Pending", kind: "heading" },
-  "pack.checksFailed": { text: "Checks Failed", kind: "heading" },
-  "pack.fieldUnverified": { text: "Field Unverified", kind: "heading" },
-  "pack.verifiedOutcome": { text: "Verified Outcome Recorded", kind: "heading" },
 
   // Globe and dive (approved hero study A4; place and range names come from the case record)
   "globe.range": { text: "{range}", kind: "label" },
-  "globe.pack": { text: "Region Pack: {name}", kind: "ui" },
+  // the place the globe turns to, in the record's words: the valley, then its region
+  "globe.place": { text: "{valley} · {region}", kind: "heading" },
+  "globe.go": { text: "Go to the Valley", kind: "button" },
+  // a mouse action is said in words, never drawn as a key
+  "globe.drag": { text: "drag to turn", kind: "ui" },
   "globe.legend": {
     text: "Rangeland biomes, potential extent (Rangelands Atlas method)",
     kind: "ui",
   },
-  "globe.turn": { text: "Turn", kind: "heading" },
-  "globe.dragKey": { text: "Drag", kind: "heading" },
   "dive.highAtlas": { text: "{subrange}", kind: "label" },
   "credit.globe": {
     text: "Globe relief: produced using Copernicus WorldDEM™-90 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved",
@@ -776,6 +762,11 @@ export type MessageId = keyof typeof en;
  * the rules it may break.
  */
 export const LINT_ALLOWLIST: Partial<Record<MessageId, { rules: string[]; reason: string }>> = {
+  "globe.go": {
+    rules: ["VT-48"],
+    reason:
+      "The lead's wording for the globe's one action (decision 8, 30 Oct 2026): four short words that read as one.",
+  },
   "instrument.credit.modisNdvi": {
     rules: ["VT-08"],
     reason:

@@ -1,0 +1,68 @@
+/* The one control style: pill, 1 px hairline (ink at about 16%), a faint fill on hover and focus, IBM Plex Sans
+   13 px, a key chip inside. The primary variant carries a slightly stronger line; the quiet variant has no line until
+   hovered. Colours come from the theme's control tokens. */
+
+.control {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 30px;
+  padding: 0 12px;
+  border: 1px solid var(--control-line);
+  border-radius: 999px;
+  background: transparent;
+  font: 400 13px / 18px var(--font-sans);
+  color: var(--control-ink);
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  pointer-events: auto;
+  transition:
+    background-color 120ms ease-out,
+    border-color 120ms ease-out;
+}
+
+.control:hover,
+.control:focus-visible {
+  background: var(--control-fill);
+  border-color: var(--control-line-strong);
+}
+
+.control:focus-visible {
+  outline: 1px solid var(--control-line-strong);
+  outline-offset: 2px;
+}
+
+.primary {
+  height: 36px;
+  padding: 0 8px 0 16px;
+  border-color: var(--control-line-strong);
+  font-weight: 500;
+}
+
+.quiet {
+  border-color: transparent;
+  color: var(--control-grey);
+}
+
+.quiet:hover,
+.quiet:focus-visible {
+  color: var(--control-ink);
+}
+
+.label {
+  display: inline-block;
+}
+
+.key {
+  display: inline-grid;
+  place-items: center;
+  min-width: 22px;
+  height: 20px;
+  padding: 0 5px;
+  border: 1px solid var(--control-line);
+  border-radius: 5px;
+  font: 500 11px / 1 var(--font-mono);
+  color: var(--control-grey);
+  background: var(--control-chip);
+}

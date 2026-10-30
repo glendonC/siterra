@@ -8,6 +8,13 @@
   --bg-surface: #141c20;
   --bg-overlay: #1b262b;
   --text-primary: #ebf0f1;
+  /* the one control style (components/controls): hairline at ink 16%, a faint fill on hover and focus */
+  --control-line: rgb(235 240 241 / 0.16);
+  --control-line-strong: rgb(235 240 241 / 0.3);
+  --control-fill: rgb(235 240 241 / 0.06);
+  --control-chip: rgb(235 240 241 / 0.04);
+  --control-ink: #ebf0f1;
+  --control-grey: #b7c4c8;
   --text-secondary: #b7c4c8;
   --text-tertiary: #8e9da2;
   --hairline: rgb(235 240 241 / 0.34);

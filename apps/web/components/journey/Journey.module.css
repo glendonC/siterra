@@ -144,47 +144,17 @@
   bottom: 34px;
   transform: translateX(-50%);
   display: flex;
-  gap: 22px;
-  margin: 0;
-  padding: 6px 14px;
-  list-style: none;
-  border-radius: 10px;
+  align-items: center;
+  gap: 18px;
+  padding: 6px 8px 6px 6px;
+  border-radius: 999px;
   background: var(--paper);
 }
 
-.hint,
+/* the mouse hint, in words */
 .quiet {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  padding: 0;
-  border: 0;
-  background: none;
-  font: 500 14px / 20px var(--font-sans);
-  color: var(--ink);
-  cursor: pointer;
-}
-
-.quiet {
+  font: 400 13px / 18px var(--font-sans);
   color: var(--grey);
-  cursor: default;
-}
-
-.hint:focus-visible {
-  outline: 2px solid var(--ink);
-  outline-offset: 2px;
-}
-
-.glyph {
-  display: inline-grid;
-  place-items: center;
-  min-width: 28px;
-  height: 26px;
-  padding: 0 7px;
-  border: 1px solid var(--rule-strong);
-  border-radius: 5px;
-  font: 500 13px / 1 var(--font-mono);
-  background: var(--card);
 }
 
 .credit {

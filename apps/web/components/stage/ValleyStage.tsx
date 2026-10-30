@@ -971,20 +971,23 @@ export function ValleyStage({
         </div>
       ))}
       {view === "flat" && mapRef.current ? <FlatFrame map={mapRef.current} /> : null}
-      <ul
-        className={styles.srOnly}
-        aria-label={format("arrival.valleyName", { valley: valleyName })}
-      >
-        <li>{format("arrival.region", { region: regionName })}</li>
-        <li>
-          {format("arrival.studyArea", { area: areaKm2 })} {en["arrival.studyAreaLimit"].text}
-        </li>
-        {outlet ? <li>{en["arrival.outlet"].text}</li> : null}
-        {places.map((p) => (
-          <li key={p.id}>{p.name}</li>
-        ))}
-        <li>{format("stage.relief", { factor: ARRIVAL_EXAGGERATION })}</li>
-      </ul>
+      {/* the land's names for a screen reader, only when the land shows them */}
+      {labels ? (
+        <ul
+          className={styles.srOnly}
+          aria-label={format("arrival.valleyName", { valley: valleyName })}
+        >
+          <li>{format("arrival.region", { region: regionName })}</li>
+          <li>
+            {format("arrival.studyArea", { area: areaKm2 })} {en["arrival.studyAreaLimit"].text}
+          </li>
+          {outlet ? <li>{en["arrival.outlet"].text}</li> : null}
+          {places.map((p) => (
+            <li key={p.id}>{p.name}</li>
+          ))}
+          <li>{format("stage.relief", { factor: ARRIVAL_EXAGGERATION })}</li>
+        </ul>
+      ) : null}
       {failed ? (
         <p className={styles.error} role="alert">
           {en["stage.mapFailed"].text}

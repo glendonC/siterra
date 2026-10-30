@@ -6,6 +6,13 @@
   color-scheme: light;
   --paper: #f2efea;
   --ink: #2b2925;
+  /* the one control style (components/controls): hairline at ink 16%, a faint fill on hover and focus */
+  --control-line: rgb(43 41 37 / 0.16);
+  --control-line-strong: rgb(43 41 37 / 0.3);
+  --control-fill: rgb(43 41 37 / 0.05);
+  --control-chip: rgb(43 41 37 / 0.03);
+  --control-ink: #2b2925;
+  --control-grey: #6b6762;
   --grey: #6b6762;
   --shadow-tint: #788693;
   --accent: #b5561f;
