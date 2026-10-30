@@ -43,7 +43,7 @@
    "rel": "child",
    "href": "./bundle_land_cover_calaveras_creek/collection.json",
    "type": "application/json",
-   "file:checksum": "12200803e49f1229d0641ee3b4238e0b862f2bb1edcc4a6b4e9a201449b7658f38be"
+   "file:checksum": "1220a085d97c1f7517d61452636353c4e80a75105be3a3431c5620aa140615ebd82c"
   },
   {
    "rel": "child",
@@ -85,7 +85,7 @@
    "rel": "child",
    "href": "./bundle_relief_calaveras_creek/collection.json",
    "type": "application/json",
-   "file:checksum": "1220a5f21387f86a25755b8e04800b50f30c931cdefeb23e274b4d81f954f566b56a"
+   "file:checksum": "12206e2eae9a2b925bf08df0ed37e569878ece6b9b10a7699a7ba83bf2dfef33922e"
   },
   {
    "rel": "child",
@@ -127,7 +127,7 @@
    "rel": "child",
    "href": "./bundle_terrain_strata_calaveras_creek/collection.json",
    "type": "application/json",
-   "file:checksum": "1220323ab8e6695e7bf0297356f650993f669f11668480c067fe72c3064791f46065"
+   "file:checksum": "12208fc80c7c61f421583a6887cd5d89407569fdbb2a26c59c731888f45e2a53a4fa"
   },
   {
    "rel": "child",

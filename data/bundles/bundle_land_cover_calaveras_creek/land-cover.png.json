@@ -1,0 +1,69 @@
+{
+ "crs": "EPSG:32610",
+ "transform": [
+  10.0,
+  0.0,
+  600200.0,
+  0.0,
+  -10.0,
+  4151760.0
+ ],
+ "shape": [
+  2730,
+  3318
+ ],
+ "dtype": "uint8",
+ "origin": "top left corner of the top left cell; row 0 is north",
+ "nodata": 0,
+ "format": "indexed PNG, 8 bit, palette index = value, index 0 transparent (nodata)",
+ "values": {
+  "10": "tree cover",
+  "20": "shrubland",
+  "30": "grassland",
+  "40": "cropland",
+  "50": "built-up",
+  "60": "bare or sparse vegetation",
+  "80": "permanent water"
+ },
+ "palette_rgb": {
+  "10": [
+   0,
+   100,
+   0
+  ],
+  "20": [
+   255,
+   187,
+   34
+  ],
+  "30": [
+   255,
+   255,
+   76
+  ],
+  "40": [
+   240,
+   150,
+   255
+  ],
+  "50": [
+   250,
+   0,
+   0
+  ],
+  "60": [
+   180,
+   180,
+   180
+  ],
+  "80": [
+   0,
+   100,
+   200
+  ]
+ },
+ "source_asset": "land_cover",
+ "source_sha256": "593864b23081653cceeec5bb994eb923637968fb2e3223498532096d2b1580f3",
+ "source_band": 1,
+ "verified": "the decoded PNG indices equal the GeoTIFF values cell for cell"
+}

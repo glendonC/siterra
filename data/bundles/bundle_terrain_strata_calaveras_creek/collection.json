@@ -38,7 +38,7 @@
    "roles": [
     "processor"
    ],
-   "processing:lineage": "Copernicus DEM GLO-30 2021 tile, bilinear to 30 m EPSG:32610, Horn slope and aspect, equal-area elevation terciles, aspect quadrants, level below 5 degrees; WorldCover 2021 classes 40 and 50 excluded; water zone: largest connected body of WorldCover classes [80] inside the catchment plus 250 m (band 4)",
+   "processing:lineage": "Copernicus DEM GLO-30 2021 tile, bilinear to 30 m EPSG:32610, Horn slope and aspect, equal-area elevation terciles, aspect quadrants, level below 5 degrees; WorldCover 2021 classes 40 and 50 excluded; water zone: largest connected body of WorldCover classes [80] inside the catchment plus 250 m (band 4) Web-ready derived assets (elevation-band.png) are copies of the canonical GeoTIFF values written by science/pipeline/web-assets.py.",
    "processing:software": {
     "siterra-science": "0.1.0+uncommitted",
     "python": "3.12.9",
@@ -130,6 +130,26 @@
    ],
    "file:checksum": "122053427f54302a47ea9598ad2d76ccbaef9d5dfe25b8c005cab12017220ab4ac35",
    "file:size": 454267
+  },
+  "elevation_band_png": {
+   "href": "./elevation-band.png",
+   "type": "image/png",
+   "title": "Elevation band 1 to 3 as an indexed PNG (web copy of band 1 of strata)",
+   "roles": [
+    "data"
+   ],
+   "file:checksum": "1220ade182efc583bcc2a439cbb835087845fa2da18f3332cf0d2d538f1768f11168",
+   "file:size": 33985
+  },
+  "elevation_band_png_header": {
+   "href": "./elevation-band.png.json",
+   "type": "application/json",
+   "title": "Header of elevation-band.png: CRS, transform, shape, palette",
+   "roles": [
+    "data"
+   ],
+   "file:checksum": "122047902bf37fdcec2173193199eb37e8eae66c905954232f35f39ea6977b971fab",
+   "file:size": 772
   }
  },
  "created": "2026-10-30T17:16:09Z",

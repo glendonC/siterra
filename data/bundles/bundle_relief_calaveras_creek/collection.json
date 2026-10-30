@@ -24,7 +24,7 @@
    "roles": [
     "processor"
    ],
-   "processing:lineage": "The Copernicus DEM GLO-30 (2021) tile resampled once, bilinear, to the 30 m EPSG:32610 grid of the terrain strata with a one-cell margin; cells outside the catchment and its ring are nodata (science/pipeline/surface-bundles.py)",
+   "processing:lineage": "The Copernicus DEM GLO-30 (2021) tile resampled once, bilinear, to the 30 m EPSG:32610 grid of the terrain strata with a one-cell margin; cells outside the catchment and its ring are nodata (science/pipeline/surface-bundles.py) Web-ready derived assets (elevation-surface.bin) are copies of the canonical GeoTIFF values written by science/pipeline/web-assets.py.",
    "processing:software": {
     "siterra-science": "0.1.0",
     "python": "3.12.9",
@@ -108,6 +108,26 @@
    ],
    "file:checksum": "12206d89c27a34e55393f49b038dc7637cdf07bf5f7e11d2b9f694257ee780e20e2e",
    "file:size": 813957
+  },
+  "elevation_surface_bin": {
+   "href": "./elevation-surface.bin",
+   "type": "application/octet-stream",
+   "title": "Elevation surface as a little-endian float32 grid, row 0 north (web copy of elevation_surface)",
+   "roles": [
+    "data"
+   ],
+   "file:checksum": "12202d84b608ac4e7acd2343c3c7f974c4dc443fc71561a353caec57e7599aa22ec4",
+   "file:size": 4041984
+  },
+  "elevation_surface_bin_header": {
+   "href": "./elevation-surface.bin.json",
+   "type": "application/json",
+   "title": "Header of elevation-surface.bin: CRS, transform, shape, nodata",
+   "roles": [
+    "data"
+   ],
+   "file:checksum": "12204188db95f5514de49d77d5df4c0b1b7bb34ca83ad16f45a13d5934050479cfe4",
+   "file:size": 478
   }
  },
  "created": "2026-10-30T18:40:00Z",
@@ -201,7 +221,7 @@
    "href": "../bundle_terrain_strata_calaveras_creek/collection.json",
    "type": "application/json",
    "title": "Terrain strata bundle bundle_terrain_strata_calaveras_creek",
-   "file:checksum": "1220323ab8e6695e7bf0297356f650993f669f11668480c067fe72c3064791f46065"
+   "file:checksum": "12208fc80c7c61f421583a6887cd5d89407569fdbb2a26c59c731888f45e2a53a4fa"
   },
   {
    "rel": "derived_from",
