@@ -104,6 +104,25 @@ describe("a catalog shared by several places", () => {
     expect(ids).not.toContain("bundle_relief_other_place");
   });
 
+  it("does not let a stale checksum of another place's bundle block this case", () => {
+    const dir = withOtherPlaceBundle(1);
+    const collectionPath = join(dir, "bundle_relief_other_place", "collection.json");
+    const collection = readJson(collectionPath);
+    writeFileSync(
+      collectionPath,
+      `${JSON.stringify({ ...collection, title: "Changed" }, null, 2)}\n`,
+    );
+    expect(importCatalog({ ...context, catalogDir: dir }).issues).toEqual([]);
+    const own = importCatalog({
+      ...context,
+      catalogDir: dir,
+      geoSelections: [{ ...geoSelection, id: "geo_other_place_catchment" }],
+    });
+    expect(own.issues.map((i) => i.message)).toContain(
+      "file:checksum does not match ./bundle_relief_other_place/collection.json",
+    );
+  });
+
   it("imports the bundles of the case's own GeoSelection and one of the other place when that is the case's", () => {
     const own = importCatalog({
       ...context,

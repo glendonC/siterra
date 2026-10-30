@@ -99,6 +99,18 @@ function polygonOf(geojson: unknown): unknown {
   return geojson;
 }
 
+/** The id of the GeoSelection a collection names, or undefined when the file does not say. */
+function geoSelectionIdOf(collectionPath: string): string | undefined {
+  try {
+    const geo = (readJson(collectionPath) as { "siterra:geo_selection"?: { id?: unknown } })[
+      "siterra:geo_selection"
+    ];
+    return typeof geo?.id === "string" ? geo.id : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 /** Imports the child bundles of the catalog that belong to the case's GeoSelections, against its geometry and sources. */
 export function importCatalog(context: ImportContext): ImportResult {
   const catalogPath = join(context.catalogDir, "catalog.json");
@@ -120,21 +132,20 @@ export function importCatalog(context: ImportContext): ImportResult {
       });
       continue;
     }
+    // A catalog is shared by the places of the repository: a bundle of another place's GeoSelection
+    // is not this case's to import, and a defect of it (a stale checksum, say) is not this case's
+    // either; the case that owns it reports it. A bundle that names this case's GeoSelection at
+    // another revision is still refused by importBundle.
+    const geoId = geoSelectionIdOf(collectionPath);
+    if (geoId !== undefined && !context.geoSelections.some((g) => g.id === geoId)) {
+      continue;
+    }
     if (child["file:checksum"] !== sha256Multihash(readFileSync(collectionPath))) {
       issues.push({
         bundleId: childId,
         path: "catalog.json/links",
         message: `file:checksum does not match ${child.href}`,
       });
-      continue;
-    }
-    // A catalog is shared by the places of the repository: a bundle of another place's GeoSelection
-    // is not this case's to import. A bundle that names this case's GeoSelection at another
-    // revision is still refused by importBundle.
-    const geoId = (readJson(collectionPath) as { "siterra:geo_selection"?: { id?: unknown } })[
-      "siterra:geo_selection"
-    ]?.id;
-    if (typeof geoId === "string" && !context.geoSelections.some((g) => g.id === geoId)) {
       continue;
     }
     const result = importBundle(context, collectionPath);

@@ -48,6 +48,38 @@ describe("readCaseSeed seedDir", () => {
     expect(result.issues.map((i) => i.path)).toContain(`${dir}/context-features.json`);
   });
 
+  it("reads the measurement rows and the evidence statements from the chosen folder", () => {
+    for (const name of ["measurement-rows.json", "evidence-statements.json"]) {
+      const dir = copiedSeedDir();
+      const path = join(dir, name);
+      const file = JSON.parse(readFileSync(path, "utf8")) as { caseId: string };
+      writeFileSync(path, JSON.stringify({ ...file, caseId: "case_other" }));
+      const result = readCaseSeed({ ...args, seedDir: dir });
+      expect(result.issues.map((i) => i.path)).toContain(`${dir}/${name}`);
+    }
+  });
+
+  it("run-seed reads the folder --seed-dir names: a tampered copy is refused", () => {
+    const dir = copiedSeedDir();
+    const path = join(dir, "measurement-rows.json");
+    const file = JSON.parse(readFileSync(path, "utf8")) as { caseId: string };
+    writeFileSync(path, JSON.stringify({ ...file, caseId: "case_other" }));
+    expect(() =>
+      execFileSync(
+        process.execPath,
+        [
+          join(repoDir, "packages/db/src/run-seed.ts"),
+          "fixture",
+          "concept",
+          join(dir, "out.json"),
+          "--seed-dir",
+          dir,
+        ],
+        { cwd: repoDir, stdio: "pipe" },
+      ),
+    ).toThrow();
+  });
+
   it("fails plainly when the folder has no case.json", () => {
     expect(() => readCaseSeed({ ...args, seedDir: "data/no-such-place" })).toThrow(/case\.json/);
   });
