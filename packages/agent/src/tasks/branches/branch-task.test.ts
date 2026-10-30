@@ -35,6 +35,7 @@ import type { CommitOutcome } from "../commit.ts";
 import type {
   BranchMergeRecord,
   CommitDraft,
+  EvidenceRecord,
   ExplanationBranchRecord,
   HypothesisRecord,
   InstrumentSpecRecord,
@@ -132,6 +133,7 @@ async function run(
     replies?: Record<string, unknown[]>;
     outcome?: CommitOutcome;
     noCommitNow?: boolean;
+    committedEvidence?: EvidenceRecord[];
   } = {},
 ): Promise<Run> {
   const store = options.store ?? branchStore();
@@ -164,6 +166,7 @@ async function run(
       tools: caseToolRegistry(view, CASE_ID),
       newEvidenceId: () => "ev_test_unused",
       now: () => AT,
+      ...(options.committedEvidence ? { committedEvidence: options.committedEvidence } : {}),
       ...(options.noCommitNow
         ? {}
         : {
@@ -458,6 +461,66 @@ describe("the field plan instrument is written in the commit that writes the mer
     expect(task && "outputEntityIds" in task ? task.outputEntityIds : []).toContain(
       "inst_field_plan_test",
     );
+  });
+
+  const evidence = (id: string, claimKind: EvidenceRecord["claimKind"]): EvidenceRecord => ({
+    recordType: "Evidence",
+    id,
+    revision: 1,
+    createdAt: AT.toISOString(),
+    updatedAt: AT.toISOString(),
+    caseId: CASE_ID,
+    statement: "A synthetic statement.",
+    claimKind,
+    status: "accepted",
+    geoSelectionId: null,
+    periodIds: [],
+    measurementIds: [],
+    provenance: {
+      sourceLocators: [],
+      dataBundleIds: [],
+      methodId: null,
+      methodVersion: null,
+      inputVersions: [],
+      generatedByTaskId: null,
+      generatedAt: AT.toISOString(),
+      verificationStatus: "computed_checked",
+      limitations: [],
+    },
+    interpretation: null,
+    uncertainty: "Not quantified.",
+    reviewDecisionIds: [],
+  });
+
+  it("cites Evidence an earlier task of the command committed, which the store's view predates", async () => {
+    const committed = evidence("ev_test_committed", "observation");
+    const { commit } = await run({
+      store: withRule(),
+      replies: open,
+      committedEvidence: [committed],
+    });
+    const hypothesis = commit.upserts.find(
+      (r): r is HypothesisRecord => r.recordType === "Hypothesis",
+    );
+    expect(hypothesis?.supportingEvidenceIds).toContain("ev_test_committed");
+    expect(specsOf(commit)[0]?.caption.citationIds).toContain("ev_test_committed");
+  });
+
+  it("cites the accepted field requirements of the case, from the store and from the command", async () => {
+    const store = withRule();
+    store.evidence.push(evidence("ev_test_gap_stored", "field_requirement"));
+    const { commit } = await run({
+      store,
+      replies: open,
+      committedEvidence: [
+        evidence("ev_test_gap_committed", "field_requirement"),
+        { ...evidence("ev_test_gap_other_case", "field_requirement"), caseId: "case_other" },
+      ],
+    });
+    expect(specsOf(commit)[0]?.caption.citationIds).toEqual(
+      expect.arrayContaining(["ev_test_gap_stored", "ev_test_gap_committed"]),
+    );
+    expect(specsOf(commit)[0]?.caption.citationIds).not.toContain("ev_test_gap_other_case");
   });
 
   it("writes the next revision of the spec a case already holds", async () => {
