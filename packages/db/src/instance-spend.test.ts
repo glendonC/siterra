@@ -167,4 +167,61 @@ describe("submitCommand with an instance spend cap", () => {
     });
     expect(again).toEqual({ status: "existing", command });
   });
+
+  it("reserves a running command's cap like an accepted one", async () => {
+    const spent = await liveSpendMicroUsd(pool);
+    const p = policy(spent + 500_000);
+    const running = created((await submit(p)).outcome);
+    await setCommandStatus(pool, running.id, "running");
+    expect((await submit(p)).outcome).toEqual({ status: "budget_exhausted" });
+    await setCommandStatus(pool, running.id, "succeeded");
+    expect((await submit(p)).outcome.status).toBe("created");
+  });
+
+  it("waits for the spend lock, so two requests never both take the last room", async () => {
+    const holder = await pool.connect();
+    try {
+      await holder.query("begin");
+      await holder.query("select pg_advisory_xact_lock(hashtext('siterra_instance_spend'))");
+      const pending = submit(policy((await liveSpendMicroUsd(pool)) + 500_000));
+      const early = await Promise.race([
+        pending.then(() => "answered"),
+        new Promise<string>((resolve) => {
+          setTimeout(() => {
+            resolve("waiting");
+          }, 400);
+        }),
+      ]);
+      expect(early).toBe("waiting");
+      await holder.query("commit");
+      expect((await pending).outcome.status).toBe("created");
+    } finally {
+      holder.release();
+    }
+  });
+
+  it("settles six commands at once with room for one into one created and five refused", async () => {
+    const ids = [1, 2, 3, 4, 5, 6].map((i) => `case_example_race${String(i).padStart(3, "0")}`);
+    for (const id of ids) await createCase(pool, exampleCase(id), owner);
+    const spent = await liveSpendMicroUsd(pool);
+    const out = await Promise.all(
+      ids.map((caseId, i) =>
+        submitCommand(pool, {
+          caseId,
+          ownerScopeId: owner,
+          request: exampleCommandRequest(`instance-race-${String(i).padStart(4, "0")}`),
+          spendCap: policy(spent + 500_000),
+        }),
+      ),
+    );
+    const statuses = out.map((o) => o.status);
+    expect(statuses.filter((status) => status === "created")).toHaveLength(1);
+    expect(statuses.filter((status) => status === "budget_exhausted")).toHaveLength(5);
+  });
+});
+
+describe("the price of a billed call without one", () => {
+  it("is USD 0.025", () => {
+    expect(UNPRICED_LIVE_CALL_MICRO_USD).toBe(25_000);
+  });
 });
