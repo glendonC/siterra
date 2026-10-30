@@ -12,4 +12,4 @@ The earlier concept prototype, component gallery, motion storyboard and wirefram
 
 ## Third-party material
 
-The light-theme NDVI ramp in the tokens uses the published cmocean "speed" colormap (MIT license). IBM Plex is licensed under the SIL Open Font License 1.1. The production app self-hosts its map assets and fonts ([map assets](../research/technology/map-assets.md)). AffectUI Pro components were studied for patterns only; no Pro code is in this repository ([ADR-0044](../docs/decisions/0044-build-the-interface-on-shadcn-with-base-ui-and-mit-components.md)).
+The light-theme NDVI ramp in the tokens uses the published cmocean "speed" colormap (MIT license). IBM Plex is licensed under the SIL Open Font License 1.1. The production app self-hosts its map assets and fonts ([map assets](../research/technology/map-assets.md)). AffectUI Pro components were studied for patterns only; no Pro code is in this repository (ADR-0044).

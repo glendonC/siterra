@@ -1,6 +1,6 @@
 # Map assets
 
-The public map assets the interface loads from its own origin ([ADR-0018](../../docs/decisions/0018-self-host-the-regional-map-bundle.md), [deployment view](../../docs/architecture/07-deployment-view.md)): the daylight globe's relief and dot grid, the rangeland biomes layer, the valley terrain for the contours and the arrival, and the summer true-colour drape. Every file is listed with its size and SHA-256 in [`manifest.json`](manifest.json). All of them are display assets: no number on a screen or in a chart is read from them.
+The public map assets the interface loads from its own origin (ADR-0018, [deployment view](../../docs/architecture/07-deployment-view.md)): the daylight globe's relief and dot grid, the rangeland biomes layer, the valley terrain for the contours and the arrival, and the summer true-colour drape. Every file is listed with its size and SHA-256 in [`manifest.json`](manifest.json). All of them are display assets: no number on a screen or in a chart is read from them.
 
 | Layer | Files | Size (bytes) | Status | Credit on screen |
 |---|---|---|---|---|

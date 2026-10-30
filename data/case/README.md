@@ -1,6 +1,6 @@
 # Case seed
 
-The seed of the Aït Bouguemez grazing case (`case_aitbouguemez`): what the seed loader reads to start the case record. Owned by the science and map data lane ([delivery plan](../../docs/project/delivery-plan.md)); layout in the [building block view](../../docs/architecture/05-building-block-view.md).
+The seed of the Aït Bouguemez grazing case (`case_aitbouguemez`): what the seed loader reads to start the case record. Owned by the science and map data lane; layout in the [building block view](../../docs/architecture/05-building-block-view.md).
 
 | File | Holds |
 |---|---|

@@ -33,7 +33,7 @@ Siterra is structured as a TypeScript, React, MapLibre GL, and PostgreSQL monore
 
 ## STAC Observation Bundles and Recipes
 
-The reference study area is the Aït Bouguemez valley catchment in Morocco's Central High Atlas (`geo_ait_bouguemez_catchment`, 417.04 km² geodesic, delineated at native 30 m from Copernicus DEM GLO-30 upstream of Assif n Bou Guemez). All 11 validated bundles in [`data/bundles/catalog.json`](data/bundles/catalog.json) carry SHA-256 multihash asset pins, pipeline lockfiles, and automated reproduction checks:
+The reference study area is the Aït Bouguemez valley catchment in Morocco's Central High Atlas (`geo_ait_bouguemez_catchment`, 417.04 km² geodesic, delineated at native 30 m from Copernicus DEM GLO-30 upstream of Assif n Bou Guemez). All validated bundles in [`data/bundles/catalog.json`](data/bundles/catalog.json) carry SHA-256 multihash asset pins, pipeline lockfiles, and automated reproduction checks:
 
 | Bundle / Recipe | Sensor & Inputs | Resolution & Window | Method & Output |
 |---|---|---|---|
