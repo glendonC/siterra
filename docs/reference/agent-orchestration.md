@@ -173,3 +173,12 @@ Milestones are facts: "Retrieved 6 of 7 sources" only when six retrievals succee
 ## Naïve and other runtimes
 
 Omit from P0 and P1 [D]. Siterra needs a short, bounded, read-only evidence pipeline, not company identities, wallets or unrestricted computers, and an extra runtime adds account, policy and failure surface without improving case results (TECH-24 to TECH-26). Extension point: an `ExecutionBackend` interface that accepts the same typed task envelope and normalizes events, with PostgreSQL staying authoritative. Reconsider only after the baseline passes acceptance.
+
+## Evaluation harness: the offline suites
+
+`pnpm eval` (`apps/worker/eval/`) runs the suites that need no model and writes `eval-reports/eval-<date>.json` and `.md` (ignored by Git; the header names the route, model, corpus manifest hash, catalog hash and date). It exits 1 when a bar it can state is not held. The model suites of [evaluation](evaluation.md) (claim typing, schema adherence on first pass, first-pass numeric provenance rate) need a named run and are not part of it yet.
+
+- **Extraction fidelity** (`data/case/gold/extraction.jsonl`): each excerpt hashes to its recorded `excerpt_sha256` after the shared normalisation; where the stored source text exists (`SITERRA_CORPUS_TEXT_DIR`, or `$SITERRA_CORPUS_TEXT_ROOT/data/interim/corpus`), the stored page or snapshot hashes to the recorded value, the excerpt is found verbatim on its cited page (or, for a withheld one, at its offsets), and an excerpt found only on another page is counted apart. An item whose source text is not stored here is counted as not checkable, never as located. Items are reported as signed or unsigned: the set is scored as model drafts until a person signs it.
+- **Numeric gold** (`data/case/gold/numeric.jsonl`): each value, unit and status equals the case's Measurement for the same bundle, period and metric, and the recorded collection hash equals the hash of the bundle the case holds.
+- **Numeric provenance validator**: each gold value written into a sentence is accepted, and the same sentence with the last digit of the value moved on by one is refused.
+

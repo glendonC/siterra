@@ -18,6 +18,7 @@
     "build:web": "pnpm --filter @siterra/web build",
     "start:web": "pnpm --filter @siterra/web start:deploy",
     "start:worker": "node apps/worker/lib/main.ts",
+    "eval": "node apps/worker/eval/run.ts",
     "check:pf05": "node packages/db/src/run-pf05-local.ts"
   },
   "devDependencies": {
