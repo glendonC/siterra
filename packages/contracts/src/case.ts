@@ -10,7 +10,7 @@ import {
   missingIsAValue,
 } from "./rules.ts";
 
-export const caseSchemaVersion = "1.18.0";
+export const caseSchemaVersion = "1.19.0";
 /** Every schemaVersion string this contract accepts (the earlier ones of the same MAJOR stay valid). */
 export const acceptedCaseSchemaVersions = [
   "1.2.0",
@@ -30,8 +30,9 @@ export const acceptedCaseSchemaVersions = [
   "1.16.0",
   "1.17.0",
   "1.18.0",
+  "1.19.0",
 ] as const;
-export const caseSchemaId = "https://siterra.invalid/schemas/case/1.18.0/case.schema.json";
+export const caseSchemaId = "https://siterra.invalid/schemas/case/1.19.0/case.schema.json";
 
 export const EntityVersion = z.strictObject({
   entityId: entityId,
@@ -611,6 +612,7 @@ export const FieldMeasurement = z.strictObject({
   fieldRole: text({ min: 1, max: 120 }),
   resolvesGapIds: uniqueArray(entityId),
   discriminatesHypothesisIds: uniqueArray(entityId),
+  fieldCheckId: z.string().regex(new RegExp("^[a-z][a-z0-9_]{0,39}$")).optional(),
 });
 export type FieldMeasurement = z.infer<typeof FieldMeasurement>;
 
@@ -730,6 +732,7 @@ export const Command = z.strictObject({
     "1.16.0",
     "1.17.0",
     "1.18.0",
+    "1.19.0",
   ]),
   id: entityId,
   caseId: entityId,
@@ -851,6 +854,7 @@ export const Event = z.strictObject({
     "1.16.0",
     "1.17.0",
     "1.18.0",
+    "1.19.0",
   ]),
   id: entityId,
   caseId: entityId,
@@ -1371,6 +1375,7 @@ export const CaseSnapshot = z.strictObject({
     "1.16.0",
     "1.17.0",
     "1.18.0",
+    "1.19.0",
   ]),
   case: EnvironmentalCase,
   records: RecordCollections,
@@ -1398,6 +1403,7 @@ export const Commit = z.strictObject({
     "1.16.0",
     "1.17.0",
     "1.18.0",
+    "1.19.0",
   ]),
   id: entityId,
   caseId: entityId,

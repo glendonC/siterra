@@ -10,6 +10,7 @@ import type {
   ClaimKind,
   CommitDraft,
   EntityVersion,
+  BranchMergeRecord,
   EvidenceRecord,
   HypothesisRecord,
   InterventionRecord,
@@ -53,6 +54,8 @@ export interface EvidenceTaskDeps {
   committedHypotheses?: readonly HypothesisRecord[];
   /** Interventions committed earlier in this command, for the same reason. */
   committedInterventions?: readonly InterventionRecord[];
+  /** Explanation branch merges committed earlier in this command: the field checks a plan serves. */
+  committedBranchMerges?: readonly BranchMergeRecord[];
   now: () => Date;
   model?: string;
   signal?: AbortSignal;

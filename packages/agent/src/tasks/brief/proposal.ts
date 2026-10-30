@@ -102,6 +102,7 @@ export const ProposePackage = z.strictObject({
           fieldRole: z.string(),
           resolvesGapIds: z.array(z.string()),
           discriminatesHypothesisIds: z.array(z.string()),
+          fieldCheckId: z.string().nullable(),
         }),
       ),
       deferredGaps: z.array(z.strictObject({ gapId: z.string(), reason: z.string() })),
@@ -221,6 +222,16 @@ export interface PackageContext {
   hypothesisIds: ReadonlySet<string>;
   measurements: ReadonlyMap<string, MeasurementRecord>;
   years: YearSpan | null;
+  /**
+   * The case's strata bundle and the stratum keys its own list holds. When present a stratum key
+   * outside the list is refused; absent, the case has no strata bundle and the plan names its own.
+   */
+  strata?: { bundleId: string; keys: ReadonlySet<string> };
+  /**
+   * The field checks of the explanation branch merge committed in this command. A measurement
+   * names one of them; when there is no merge, none.
+   */
+  fieldCheckIds?: ReadonlySet<string>;
 }
 
 export function validatePackageProposal(
@@ -285,6 +296,13 @@ export function validatePackageProposal(
       add("schema", `${at}.key`, "A stratum key is lower case letters, digits and _, at most 40.");
     tooLong(`${at}.label`, st.label, PLAN_CHARS.label);
     tooLong(`${at}.definition`, st.definition, PLAN_CHARS.definition);
+    if (context.strata && !context.strata.keys.has(st.key)) {
+      add(
+        "unknown_reference",
+        `${at}.key`,
+        `${st.key} is not a stratum of the case's strata bundle. Use one of: ${[...context.strata.keys].sort().join(", ")}.`,
+      );
+    }
   });
   plan.measurements.forEach((m, j) => {
     const at = `$.action.fieldPlan.measurements[${j}]`;
@@ -292,6 +310,20 @@ export function validatePackageProposal(
     tooLong(`${at}.method`, m.method, PLAN_CHARS.method);
     tooLong(`${at}.season`, m.season, PLAN_CHARS.season);
     tooLong(`${at}.fieldRole`, m.fieldRole, PLAN_CHARS.fieldRole);
+    const checks = context.fieldCheckIds ?? new Set<string>();
+    if (checks.size > 0 && (m.fieldCheckId === null || !checks.has(m.fieldCheckId))) {
+      add(
+        "unknown_reference",
+        `${at}.fieldCheckId`,
+        `Name the field check this measurement serves, one of: ${[...checks].sort().join(", ")}.`,
+      );
+    } else if (checks.size === 0 && m.fieldCheckId !== null) {
+      add(
+        "unknown_reference",
+        `${at}.fieldCheckId`,
+        "No explanation merge holds a field check in this command: use null.",
+      );
+    }
   });
   plan.deferredGaps.forEach((g, j) => {
     tooLong(`$.action.fieldPlan.deferredGaps[${j}].reason`, g.reason, PLAN_CHARS.reason);
@@ -319,7 +351,14 @@ export function validatePackageProposal(
       kind: action.kind,
       fieldPlan: {
         ...plan,
-        strata: plan.strata.map((st) => ({ ...st, dataBundleId: null })),
+        strata: plan.strata.map((st) => ({
+          ...st,
+          dataBundleId: context.strata?.bundleId ?? null,
+        })),
+        measurements: plan.measurements.map(({ fieldCheckId, ...m }) => ({
+          ...m,
+          ...(fieldCheckId === null ? {} : { fieldCheckId }),
+        })),
       },
     },
     { openGapIds: context.openGapIds, hypothesisIds: context.hypothesisIds },

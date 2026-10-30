@@ -11,13 +11,14 @@ import { describe, expect, it } from "vitest";
 import { MetaAdapter } from "../../model/adapter.ts";
 import { strictSubsetIssues } from "../../model/strict-schema.ts";
 import type { ModelTransport } from "../../model/transport.ts";
-import { AT, CASE_ID, queuedTask, testStore } from "../../testing/case-fixture.ts";
+import { AT, CASE_ID, bundle, queuedTask, testStore } from "../../testing/case-fixture.ts";
 import { answerStep, syntheticTransport } from "../../testing/replay-steps.ts";
 import type { MemoryCaseStore } from "../../tools/store.ts";
 import { caseToolRegistry } from "../../tools/registry.ts";
-import type { EvidenceRecord, InterventionRecord } from "../records.ts";
+import type { BranchMergeRecord, EvidenceRecord, InterventionRecord } from "../records.ts";
 import { PACKAGE_TEXT, runBriefPackageTask } from "./brief-task.ts";
 import { packageOutputSchema, validatePackageProposal } from "./proposal.ts";
+import type { PackageContext } from "./proposal.ts";
 
 // Synthetic evidence, a synthetic candidate response and synthetic replays; nothing here is a plan
 // anyone has made or a review anyone has asked for.
@@ -131,6 +132,7 @@ function plan(extra: Record<string, unknown> = {}) {
         fieldRole: "Local field team",
         resolvesGapIds: ["ev_test_need"],
         discriminatesHypothesisIds: [],
+        fieldCheckId: null,
       },
     ],
     deferredGaps: [],
@@ -195,9 +197,14 @@ function proposal(
   };
 }
 
-function check(value: unknown, openGapIds: string[] = ["ev_test_need"]) {
+function check(
+  value: unknown,
+  openGapIds: string[] = ["ev_test_need"],
+  extra: Partial<PackageContext> = {},
+) {
   const store = testStore();
   return validatePackageProposal(JSON.stringify(value), {
+    ...extra,
     evidence: new Map([OBS, NEED, GAP2].map((e) => [e.id, e])),
     interventions: new Map([[REST.id, REST]]),
     openGapIds: new Set(openGapIds),
@@ -206,8 +213,8 @@ function check(value: unknown, openGapIds: string[] = ["ev_test_need"]) {
     years: { first: 2022, last: 2022 },
   });
 }
-const codes = (value: unknown, openGapIds?: string[]) =>
-  check(value, openGapIds).issues.map((i) => `${i.code} ${i.path}`);
+const codes = (value: unknown, openGapIds?: string[], extra?: Partial<PackageContext>) =>
+  check(value, openGapIds, extra).issues.map((i) => `${i.code} ${i.path}`);
 
 describe("propose_package validation", () => {
   it("accepts a draft plan and a brief whose lines cite matching evidence", () => {
@@ -450,12 +457,73 @@ describe("propose_package validation", () => {
   });
 });
 
+// The plan ties to the land: strata keys come from the case's strata bundle and a measurement
+// names the field check of the explanation merge it serves.
+describe("the strata and field checks of the plan", () => {
+  const STRATA = {
+    bundleId: "bundle_test_strata",
+    keys: new Set(["elevation_high", "elevation_low"]),
+  };
+  const onBand = (extra: Record<string, unknown> = {}) =>
+    plan({
+      strata: [{ key: "elevation_high", label: "Upper third", definition: "The highest third." }],
+      measurements: [
+        {
+          ...plan().measurements[0],
+          stratumKeys: ["elevation_high"],
+          fieldCheckId: "herd_records",
+          ...extra,
+        },
+      ],
+    });
+  const withPlan = (fieldPlan: unknown) => proposal({ action: { fieldPlan } });
+  const merged: Partial<PackageContext> = {
+    strata: STRATA,
+    fieldCheckIds: new Set(["herd_records", "local_rain_records"]),
+  };
+
+  it("accepts a stratum key of the strata bundle and a field check of the merge", () => {
+    expect(codes(withPlan(onBand()), undefined, merged)).toEqual([]);
+  });
+
+  it("refuses a stratum key the strata bundle does not list, and names the keys it does", () => {
+    const found = check(withPlan(plan()), undefined, merged).issues;
+    expect(found.map((i) => `${i.code} ${i.path}`)).toContain(
+      "unknown_reference $.action.fieldPlan.strata[0].key",
+    );
+    expect(found.find((i) => i.path.endsWith("strata[0].key"))?.message).toContain(
+      "elevation_high",
+    );
+  });
+
+  it("refuses a field check the merge does not hold, or none when the merge holds some", () => {
+    const path = "unknown_reference $.action.fieldPlan.measurements[0].fieldCheckId";
+    expect(codes(withPlan(onBand({ fieldCheckId: "soil_survey" })), undefined, merged)).toEqual([
+      path,
+    ]);
+    expect(codes(withPlan(onBand({ fieldCheckId: null })), undefined, merged)).toEqual([path]);
+  });
+
+  it("allows no field check when no merge is in the command, and refuses one then", () => {
+    const noMerge = { strata: STRATA };
+    expect(codes(withPlan(onBand({ fieldCheckId: null })), undefined, noMerge)).toEqual([]);
+    expect(codes(withPlan(onBand()), undefined, noMerge)).toEqual([
+      "unknown_reference $.action.fieldPlan.measurements[0].fieldCheckId",
+    ]);
+  });
+
+  it("leaves a case without a strata bundle with its own stratum keys", () => {
+    expect(codes(withPlan(plan()), undefined, {})).toEqual([]);
+  });
+});
+
 async function run(
   store: MemoryCaseStore,
   answer: unknown,
   committedInterventions = [REST],
   sentOutputLimits: unknown[] = [],
   missingInputs: string[] = [],
+  extraDeps: { committedBranchMerges?: BranchMergeRecord[]; sentTexts?: string[] } = {},
 ) {
   const replay = syntheticTransport([answerStep(JSON.stringify(answer))]);
   const transport: ModelTransport = {
@@ -463,6 +531,7 @@ async function run(
     replayOrigin: replay.replayOrigin,
     open: (body, signal) => {
       sentOutputLimits.push(body.max_output_tokens);
+      extraDeps.sentTexts?.push(JSON.stringify(body.input));
       return replay.open(body, signal);
     },
   };
@@ -492,6 +561,9 @@ async function run(
       newEvidenceId: () => `ev_test_${String((n += 1))}`,
       newRecordId: (prefix) => `${prefix}_test_${String((n += 1))}`,
       committedInterventions,
+      ...(extraDeps.committedBranchMerges
+        ? { committedBranchMerges: extraDeps.committedBranchMerges }
+        : {}),
       now: () => AT,
     },
   );
@@ -631,5 +703,138 @@ describe("brief_package task", () => {
     );
     expect(brief).toMatchObject({ status: "draft", reviewDecisionIds: [] });
     expect(commit.upserts.some((r) => r.recordType === "ReviewDecision")).toBe(false);
+  });
+});
+
+describe("brief_package task: the plan tied to the land", () => {
+  const MERGE: BranchMergeRecord = {
+    recordType: "BranchMerge",
+    id: "merge_test_one",
+    revision: 1,
+    createdAt: AT.toISOString(),
+    updatedAt: AT.toISOString(),
+    caseId: CASE_ID,
+    commandId: "cmd_test_commission",
+    taskId: "task_test_branches",
+    rulesVersion: "merge@2",
+    predictionsCaseRevision: 3,
+    branches: [
+      {
+        branchId: "branch_test_rain",
+        branchRevision: 1,
+        explanationId: "rainfall",
+        status: "consistent",
+        reason: "Every necessary prediction was met.",
+      },
+    ],
+    conflicts: [],
+    fieldPlan: {
+      measurements: [
+        {
+          fieldCheckId: "grazing_exclosure",
+          label: "Grazing Exclosure",
+          separates: [["grazing", "rainfall"]],
+          onlySeparates: [["grazing", "rainfall"]],
+        },
+      ],
+      unseparated: [],
+    },
+    provenance: {
+      sourceLocators: [],
+      dataBundleIds: [],
+      methodId: null,
+      methodVersion: null,
+      inputVersions: [],
+      generatedByTaskId: "task_test_branches",
+      generatedAt: AT.toISOString(),
+      verificationStatus: "computed_checked",
+      limitations: [],
+    },
+  };
+  const tied = () =>
+    proposal({
+      action: {
+        fieldPlan: plan({
+          strata: [
+            { key: "elevation_high", label: "Upper third", definition: "The highest third." },
+          ],
+          measurements: [
+            {
+              ...plan().measurements[0],
+              stratumKeys: ["elevation_high"],
+              fieldCheckId: "grazing_exclosure",
+            },
+          ],
+        }),
+      },
+    });
+  function tiedStore(): MemoryCaseStore {
+    const store = testStore();
+    store.evidence.push(OBS, NEED);
+    store.bundles.push(
+      bundle({ id: "bundle_test_strata", methodId: "terrain_strata", methodVersion: "1.1.0" }),
+    );
+    const config = store.analysisConfigs.get(CASE_ID);
+    if (!config) throw new Error("the test store has no configuration");
+    store.analysisConfigs.set(CASE_ID, {
+      ...config,
+      trendSummary: {
+        recipe: { recipeId: "restrend_long_record", version: "1.0.0" },
+        strata: ["catchment", "elevation_high", "elevation_low"],
+      },
+    });
+    return store;
+  }
+
+  it("shows the model the strata keys and the field checks, and stores the bundle and the check on the plan", async () => {
+    const sent: string[] = [];
+    const { loop, commit } = await run(tiedStore(), tied(), [REST], [], [], {
+      committedBranchMerges: [MERGE],
+      sentTexts: sent,
+    });
+    expect(loop.status).toBe("accepted");
+    const [action] = commit.upserts.filter((r) => r.recordType === "OperationalAction");
+    if (action?.recordType !== "OperationalAction") throw new Error("no action");
+    expect(action.fieldPlan?.strata).toMatchObject([
+      { key: "elevation_high", dataBundleId: "bundle_test_strata" },
+    ]);
+    expect(action.fieldPlan?.measurements[0]?.fieldCheckId).toBe("grazing_exclosure");
+    const shown = sent.join("");
+    expect(shown).toContain("elevation_low");
+    expect(shown).toContain("grazing_exclosure");
+    expect(shown).toContain("bundle_test_strata");
+  });
+
+  it("repairs a plan that names a stratum or a field check outside those lists, then fails it when it repeats", async () => {
+    const { loop, commit } = await run(tiedStore(), proposal(), [REST], [], [], {
+      committedBranchMerges: [MERGE],
+    });
+    expect(loop.status).not.toBe("accepted");
+    expect(commit.upserts.some((r) => r.recordType === "OperationalAction")).toBe(false);
+  });
+
+  it("ties the plan only to a validated strata bundle: a failed or superseded one binds nothing", async () => {
+    for (const status of ["failed", "superseded", "processing"] as const) {
+      const store = tiedStore();
+      store.bundles.length = 0;
+      store.bundles.push(bundle({ id: "bundle_test_strata", methodId: "terrain_strata", status }));
+      const { commit } = await run(store, proposal());
+      const [action] = commit.upserts.filter((r) => r.recordType === "OperationalAction");
+      if (action?.recordType !== "OperationalAction") throw new Error("no action");
+      expect(action.fieldPlan?.strata[0], status).toMatchObject({
+        key: "upper_band",
+        dataBundleId: null,
+      });
+    }
+  });
+
+  it("stores no check and no bundle for a case without a strata bundle or a merge", async () => {
+    const store = testStore();
+    store.evidence.push(OBS, NEED);
+    const { commit } = await run(store, proposal());
+    const [action] = commit.upserts.filter((r) => r.recordType === "OperationalAction");
+    if (action?.recordType !== "OperationalAction") throw new Error("no action");
+    expect(action.fieldPlan?.strata[0]?.dataBundleId).toBeNull();
+    expect(action.fieldPlan?.measurements[0]).not.toHaveProperty("fieldCheckId");
   });
 });

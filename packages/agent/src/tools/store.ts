@@ -5,6 +5,7 @@ import type {
   DataBundleRecord,
   EventRecordRowRecord,
   EvidenceRecord,
+  BranchMergeRecord,
   ExplanationBranchRecord,
   HypothesisRecord,
   InterventionRecord,
@@ -148,6 +149,8 @@ export interface CaseStore {
     caseId: string,
     ids: readonly string[],
   ): Promise<ExplanationBranchRecord[]>;
+  /** Current revisions of the given explanation branch merges; unknown IDs are absent. */
+  readBranchMerges(caseId: string, ids: readonly string[]): Promise<BranchMergeRecord[]>;
 }
 
 export class MemoryCaseStore implements CaseStore {
@@ -165,6 +168,7 @@ export class MemoryCaseStore implements CaseStore {
   readonly eventRows: EventRecordRowRecord[] = [];
   readonly analysisConfigs = new Map<string, CaseAnalysisConfig>();
   readonly branches: ExplanationBranchRecord[] = [];
+  readonly branchMerges: BranchMergeRecord[] = [];
   readonly instrumentSpecs: InstrumentSpecRecord[] = [];
   readonly instrumentComponents: CanvasComponentRecord[] = [];
   readonly geoSelections: { caseId: string; id: string; revision: number }[] = [];
@@ -210,6 +214,16 @@ export class MemoryCaseStore implements CaseStore {
       if (b.caseId !== caseId || !ids.includes(b.id)) continue;
       const seen = latest.get(b.id);
       if (!seen || seen.revision < b.revision) latest.set(b.id, b);
+    }
+    return Promise.resolve([...latest.values()]);
+  }
+
+  readBranchMerges(caseId: string, ids: readonly string[]): Promise<BranchMergeRecord[]> {
+    const latest = new Map<string, BranchMergeRecord>();
+    for (const m of this.branchMerges) {
+      if (m.caseId !== caseId || !ids.includes(m.id)) continue;
+      const seen = latest.get(m.id);
+      if (!seen || seen.revision < m.revision) latest.set(m.id, m);
     }
     return Promise.resolve([...latest.values()]);
   }

@@ -411,6 +411,53 @@ describe("runCommand on synthetic replays", () => {
     );
   });
 
+  it("hands the explanation merge its branches committed to the brief package, and to no task that does not follow them", async () => {
+    const plan = {
+      interpretation: "The command asks for a package on the valley.",
+      tasks: [
+        {
+          key: "compare",
+          kind: "explanation_branches",
+          question: "Which explanations does the record leave standing?",
+          dependsOn: [],
+          inputRefs: [],
+        },
+        {
+          key: "package",
+          kind: "brief_package",
+          question: "What should be checked in the field?",
+          dependsOn: [],
+          inputRefs: [],
+        },
+      ],
+      clarifyingQuestion: null,
+    };
+    const seen: { merges: string[]; checks: string[] }[] = [];
+    const spy: TaskExecutor = (input, taskDeps) => {
+      const merges = (taskDeps.committedBranchMerges ?? []).map((m) => m.id);
+      seen.push({
+        merges,
+        checks: (taskDeps.committedBranchMerges ?? []).flatMap((m) =>
+          (m.fieldPlan?.measurements ?? []).map((c) => c.fieldCheckId),
+        ),
+      });
+      return EXECUTORS.brief_package
+        ? EXECUTORS.brief_package(input, taskDeps)
+        : Promise.reject(new Error("no brief executor"));
+    };
+    const transport = routes([answerStep(JSON.stringify(plan))], []);
+    const { deps: d } = deps(transport, { executors: { ...EXECUTORS, brief_package: spy } });
+    const outcome = await runCommand(
+      { planTask: PLAN_TASK, expectedCaseRevision: 3, snapshot: SNAPSHOT },
+      d,
+    );
+    expect(outcome.tasks.map((t) => t.kind)).toEqual(["explanation_branches", "brief_package"]);
+    // The plan validator made the package wait for the branches, so it was handed their merge.
+    expect(seen).toHaveLength(1);
+    expect(seen[0]?.merges).toHaveLength(1);
+    expect(seen[0]?.checks).toEqual(["grazing_exclosure"]);
+  });
+
   it("RL-02 the brief package still runs after a quantitative task fails, with the failed task named", async () => {
     const plan = {
       interpretation: "The command asks for a field-scoping package for the valley.",

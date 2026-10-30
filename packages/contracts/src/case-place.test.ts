@@ -22,7 +22,7 @@ const ok = (value: unknown) => EnvironmentalCase.safeParse(value).success;
 
 describe("contracts 1.18: the place a case is about", () => {
   it("accepts 1.18.0 and every earlier version of the same MAJOR", () => {
-    expect(caseSchemaVersion).toBe("1.18.0");
+    expect(acceptedCaseSchemaVersions).toContain("1.18.0");
     expect(acceptedCaseSchemaVersions).toContain(caseSchemaVersion);
     for (const earlier of ["1.2.0", "1.16.0", "1.17.0"]) {
       expect(acceptedCaseSchemaVersions).toContain(earlier);

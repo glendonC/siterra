@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://siterra.invalid/schemas/case/1.18.0/case.schema.json",
+  "$id": "https://siterra.invalid/schemas/case/1.19.0/case.schema.json",
   "title": "Siterra case contracts",
   "description": "Records of one Siterra case as stored and exchanged between the web application, the worker and the browser. The root validates a case snapshot, a command, an event or an atomic commit proposal; $defs holds the record types. Cross-record semantics that JSON Schema cannot express are specified in docs/reference/data-contracts.md.",
   "oneOf": [
@@ -2848,7 +2848,8 @@
             "1.15.0",
             "1.16.0",
             "1.17.0",
-            "1.18.0"
+            "1.18.0",
+            "1.19.0"
           ],
           "description": "Contract version the instance was written against; producers write the newest, and earlier versions of the same MAJOR stay valid."
         },
@@ -2953,7 +2954,8 @@
             "1.15.0",
             "1.16.0",
             "1.17.0",
-            "1.18.0"
+            "1.18.0",
+            "1.19.0"
           ],
           "description": "Contract version the instance was written against; producers write the newest, and earlier versions of the same MAJOR stay valid."
         },
@@ -3337,7 +3339,8 @@
             "1.15.0",
             "1.16.0",
             "1.17.0",
-            "1.18.0"
+            "1.18.0",
+            "1.19.0"
           ],
           "description": "Contract version the instance was written against; producers write the newest, and earlier versions of the same MAJOR stay valid."
         },
@@ -3385,7 +3388,8 @@
             "1.15.0",
             "1.16.0",
             "1.17.0",
-            "1.18.0"
+            "1.18.0",
+            "1.19.0"
           ],
           "description": "Contract version the instance was written against; producers write the newest, and earlier versions of the same MAJOR stay valid."
         },
@@ -4386,6 +4390,11 @@
           "minItems": 0,
           "uniqueItems": true,
           "description": "Hypotheses this measurement would tell apart."
+        },
+        "fieldCheckId": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,39}$",
+          "description": "Added in 1.19.0, optional: the field check of the explanation branch merge that this measurement serves (BranchFieldPlan.measurements[].fieldCheckId). A package made before 1.19.0 names none."
         }
       }
     },

@@ -10,6 +10,7 @@ import type {
   ExplanationBranchRecord,
   HypothesisRecord,
   InstrumentSpecRecord,
+  BranchMergeRecord,
   InterventionRecord,
   MeasurementRecord,
 } from "@siterra/agent";
@@ -51,6 +52,8 @@ export interface SnapshotView {
     eventRecordRowRecords?: EventRecordRowRecord[];
     /** Explanation branches, so a resumed branch task scores what it committed; absent means none. */
     explanationBranchRecords?: ExplanationBranchRecord[];
+    /** Explanation branch merges, so a resumed package reads the field checks of its merge; absent means none. */
+    branchMergeRecords?: BranchMergeRecord[];
     /** Areas (GeoSelection), for the field plan the branch task composes; absent means none. */
     geoSelectionRecords?: { id: string; revision: number }[];
     /** Instrument specs, for the instrument composition task; absent means none. */
@@ -104,6 +107,7 @@ export function snapshotStore(
   store.interventions.push(...(snapshot.records.interventionRecords ?? []));
   store.eventRows.push(...(snapshot.records.eventRecordRowRecords ?? []));
   store.branches.push(...(snapshot.records.explanationBranchRecords ?? []));
+  store.branchMerges.push(...(snapshot.records.branchMergeRecords ?? []));
   store.instrumentSpecs.push(...(snapshot.records.instrumentSpecRecords ?? []));
   store.geoSelections.push(
     ...(snapshot.records.geoSelectionRecords ?? []).map((g) => ({

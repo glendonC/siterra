@@ -40,17 +40,32 @@ export const FIELD_REQUIREMENT_KINDS: readonly PlannableKind[] = [
   "livelihood_governance",
 ];
 
-/** The plan with every brief_package task depending on every task that can commit a gap. */
+/**
+ * The plan with every brief_package task depending on every task that can commit a gap, and on
+ * the explanation branches and the candidate responses, and every intervention_feasibility task
+ * depending on the explanation branches: the responses and the package read the merge, its
+ * hypotheses and its field checks, so they run after it.
+ */
 function withBriefDependencies(plan: PlanProposal): PlanProposal {
-  const gapKeys = plan.tasks
-    .filter((t) => FIELD_REQUIREMENT_KINDS.includes(t.kind))
-    .map((t) => t.key);
+  const keysOf = (kinds: readonly PlannableKind[]) =>
+    plan.tasks.filter((t) => kinds.includes(t.kind)).map((t) => t.key);
+  const gapKeys = keysOf(FIELD_REQUIREMENT_KINDS);
+  const branchKeys = keysOf(["explanation_branches"]);
+  const responseKeys = keysOf(["intervention_feasibility"]);
+  const joined = (own: readonly string[], more: readonly string[], self: string) => [
+    ...new Set([...own, ...more.filter((k) => k !== self)]),
+  ];
   return {
     ...plan,
     tasks: plan.tasks.map((t) =>
       t.kind === "brief_package"
-        ? { ...t, dependsOn: [...new Set([...t.dependsOn, ...gapKeys])] }
-        : t,
+        ? {
+            ...t,
+            dependsOn: joined(t.dependsOn, [...gapKeys, ...branchKeys, ...responseKeys], t.key),
+          }
+        : t.kind === "intervention_feasibility"
+          ? { ...t, dependsOn: joined(t.dependsOn, branchKeys, t.key) }
+          : t,
     ),
   };
 }

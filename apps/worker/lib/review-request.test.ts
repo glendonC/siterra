@@ -105,6 +105,7 @@ const PACKAGE = {
           fieldRole: "Local field team",
           resolvesGapIds: ["ev_test_need"],
           discriminatesHypothesisIds: [],
+          fieldCheckId: null,
         },
       ],
       deferredGaps: [],

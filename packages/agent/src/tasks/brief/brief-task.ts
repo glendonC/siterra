@@ -37,7 +37,7 @@ const INSTRUCTIONS = `You prepare a draft field-validation plan and a decision b
 
 Rules:
 - action: a field-validation plan with a title, a description, resources by kind with a short label and no quantity, and the evidence and candidate responses it rests on.
-- action.fieldPlan: the objective and the decision it informs; strata as kinds of place (a lower-case key, a label and a definition), never sampling points or coordinates; measurements, each with what, method, season, the stratum keys, the field role (a role, not a person), and the open gap IDs it resolves or the hypothesis IDs it discriminates; every open gap that no measurement resolves goes in deferredGaps with a reason; permissions and consultation steps before any field work, each as a noun phrase ("Consultation with the commune council on the access calendar"; "Permission from the commune, to be established").
+- action.fieldPlan: the objective and the decision it informs; strata as kinds of place (a lower-case key, a label and a definition), never sampling points or coordinates; when the case records list strataKeys, a stratum key is one of them and no other; measurements, each with what, method, season, the stratum keys, the field role (a role, not a person), the fieldCheckId of the case records' fieldChecks that it serves (null when the records list none), and the open gap IDs it resolves or the hypothesis IDs it discriminates; every open gap that no measurement resolves goes in deferredGaps with a reason; permissions and consultation steps before any field work, each as a noun phrase ("Consultation with the commune council on the access calendar"; "Permission from the commune, to be established").
 - brief: lines for known, uncertain, nextMeasurements (what, method, season, stratum, role and the gap it resolves), stakeholderRoles (roles, not people), preparedActions, authorizationRequired and nextSteps. Every line cites evidence IDs; its claimKind matches the evidence it cites. Known lines are observations or published context; nextMeasurements and authorizationRequired lines are field requirements. A line among the uncertain ones may be a hypothesis.
 - reviewRoles: the roles whose review to request: scientific, community_livelihood or program_coordination. Siterra writes each request itself; you write no comment.
 - Never claim or ask for outreach or agreement: nothing was contacted, written, called, visited, sent or delivered, and no one agreed, approved, granted, permitted, signed or authorized anything. Never direct or advise: no must, should, ought to, need to or have to, and no sentence that opens with a command.
@@ -61,7 +61,10 @@ const uniqueTrimmed = (values: readonly string[]): string[] => [
 ];
 
 /** The validated plan as the action stores it: trimmed text, unique lists, strata without a bundle. */
-function fieldPlanRecord(plan: ProposePackage["action"]["fieldPlan"]): FieldPlan {
+function fieldPlanRecord(
+  plan: ProposePackage["action"]["fieldPlan"],
+  strataBundleId: string | null,
+): FieldPlan {
   return {
     objective: plan.objective.trim(),
     decisionInformed: plan.decisionInformed.trim(),
@@ -69,7 +72,7 @@ function fieldPlanRecord(plan: ProposePackage["action"]["fieldPlan"]): FieldPlan
       key: st.key,
       label: st.label.trim(),
       definition: st.definition.trim(),
-      dataBundleId: null,
+      dataBundleId: strataBundleId,
     })),
     measurements: plan.measurements.map((m) => ({
       what: m.what.trim(),
@@ -79,6 +82,7 @@ function fieldPlanRecord(plan: ProposePackage["action"]["fieldPlan"]): FieldPlan
       fieldRole: m.fieldRole.trim(),
       resolvesGapIds: [...new Set(m.resolvesGapIds)],
       discriminatesHypothesisIds: [...new Set(m.discriminatesHypothesisIds)],
+      ...(m.fieldCheckId === null ? {} : { fieldCheckId: m.fieldCheckId }),
     })),
     deferredGaps: plan.deferredGaps.map((g) => ({ gapId: g.gapId, reason: g.reason.trim() })),
     permissions: uniqueTrimmed(plan.permissions),
@@ -134,6 +138,24 @@ async function inputs(task: TaskRecord, deps: EvidenceTaskDeps) {
   for (const h of await deps.store.readHypotheses(task.caseId, [...hypothesisIds])) {
     if (h.caseId === task.caseId) hypotheses.set(h.id, h);
   }
+  // The field checks of the explanation merge committed in this command (the latest one), and the
+  // case's strata: the bundle that holds them and the keys the case configuration lists for it.
+  const merge = [...(deps.committedBranchMerges ?? [])]
+    .filter((m) => m.caseId === task.caseId)
+    .sort((a, b) => a.createdAt.localeCompare(b.createdAt) || a.id.localeCompare(b.id))
+    .at(-1);
+  const fieldChecks = (merge?.fieldPlan?.measurements ?? []).map((m) => ({
+    fieldCheckId: m.fieldCheckId,
+    label: m.label,
+  }));
+  const strataBundle = (await deps.store.listBundles(task.caseId))
+    .filter((b) => b.status === "validated" && b.methodId === "terrain_strata")
+    .sort((a, b) => a.id.localeCompare(b.id))[0];
+  const strataKeys = (await deps.store.readAnalysisConfig(task.caseId))?.trendSummary?.strata;
+  const strata =
+    strataBundle && strataKeys && strataKeys.length > 0
+      ? { bundleId: strataBundle.id, keys: new Set(strataKeys) }
+      : undefined;
   const evidenceIds = [
     ...new Set([
       ...ids.filter((id) => id.startsWith("ev_")),
@@ -148,7 +170,7 @@ async function inputs(task: TaskRecord, deps: EvidenceTaskDeps) {
   ]) {
     if (e.caseId === task.caseId && e.status === "accepted") evidence.set(e.id, e);
   }
-  return { interventions, hypotheses, evidence, openGapIds, hypothesisIds };
+  return { interventions, hypotheses, evidence, openGapIds, hypothesisIds, fieldChecks, strata };
 }
 
 export async function runBriefPackageTask(
@@ -156,10 +178,8 @@ export async function runBriefPackageTask(
   deps: EvidenceTaskDeps,
 ): Promise<BriefPackageTaskResult> {
   const { task } = input;
-  const { interventions, hypotheses, evidence, openGapIds, hypothesisIds } = await inputs(
-    task,
-    deps,
-  );
+  const { interventions, hypotheses, evidence, openGapIds, hypothesisIds, fieldChecks, strata } =
+    await inputs(task, deps);
   const measurementIds = [...new Set([...evidence.values()].flatMap((e) => e.measurementIds))];
   const measurements = new Map<string, MeasurementRecord>(
     (await deps.store.readMeasurementsById(task.caseId, measurementIds)).map((m) => [m.id, m]),
@@ -188,6 +208,8 @@ export async function runBriefPackageTask(
       measurementIds: e.measurementIds,
     })),
     openGapIds: [...openGapIds].sort(),
+    ...(strata ? { strataBundleId: strata.bundleId, strataKeys: [...strata.keys].sort() } : {}),
+    ...(fieldChecks.length > 0 ? { fieldChecks } : {}),
     ...(task.missingInputs.length > 0 ? { missingInputs: task.missingInputs } : {}),
   };
 
@@ -217,6 +239,8 @@ export async function runBriefPackageTask(
         hypothesisIds,
         measurements,
         years,
+        ...(strata ? { strata } : {}),
+        fieldCheckIds: new Set(fieldChecks.map((c) => c.fieldCheckId)),
       }),
     taskId: task.id,
     trace: deps.trace,
@@ -335,7 +359,7 @@ export async function runBriefPackageTask(
       reviewDecisionIds: requests.map((r) => r.id),
       authorizationMode: "demo_only",
       externalExecutionEnabled: false,
-      fieldPlan: fieldPlanRecord(value.action.fieldPlan),
+      fieldPlan: fieldPlanRecord(value.action.fieldPlan, strata?.bundleId ?? null),
       remainingConditions: [
         ...new Set([
           ...[...value.action.fieldPlan.permissions, ...value.action.fieldPlan.consultationSteps]
