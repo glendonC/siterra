@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 // The opening: one screen that says what Siterra does, names the model, asks the case's own question, and
-// offers the action into the globe and a skip link straight to the map.
+// offers the action into the globe and a skip link straight to the arrival, the overview.
 test.use({ storageState: { cookies: [], origins: [] } });
 
 test("one opening screen with the case's question, and the skip link goes straight to the map", async ({
@@ -36,8 +36,12 @@ test("one opening screen with the case's question, and the skip link goes straig
   await expect(page.getByRole("link", { name: "Skip to Map" })).toBeFocused();
   await page.keyboard.press("Enter");
   await expect(page.locator("[data-phase=arrival]")).toBeVisible();
-  await expect(page.locator("[data-arrival-settled=true]")).toBeVisible({ timeout: 60_000 });
-  await expect(page.locator("#command-input")).toHaveValue(objective);
+  // the arrival is the overview (approved specimen D4) with the case's question and its five findings
+  await expect(page.locator("[data-overview-root]")).toHaveAttribute("data-ready", "", {
+    timeout: 60_000,
+  });
+  await expect(page.locator("[data-overview]")).toContainText(objective);
+  await expect(page.locator("[data-finding]")).toHaveCount(5);
 });
 
 test("Enter on the opening goes on to the globe", async ({ page }) => {

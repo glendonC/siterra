@@ -1,9 +1,11 @@
 "use client";
 
-// The sequence as one view: the opening over the globe's limb, the globe, the dive and the arrival; the
-// opening's skip link goes straight to the arrival. One clock drives both renderers: the ported globe
-// (WebGL2) and the MapLibre valley, which fades in at the dive's relief rise; the globe renderer is then
-// disposed so only MapLibre's context runs.
+// The sequence as one view: the opening over the globe's limb, the globe, the dive and the arrival on the
+// overview (approved specimen D4, the Valley view at /valley); the opening's skip link goes straight to the
+// overview. One clock drives both renderers: the ported globe (WebGL2) and the MapLibre valley, which fades in at
+// the dive's relief rise; the globe renderer is then disposed so only MapLibre's context runs. At the arrival the
+// overview fades in over the MapLibre valley once its land is drawn, and the MapLibre valley is then unmounted, so
+// the old arrival's rail, cards, legend and notices do not render here.
 
 import type * as maplibregl from "maplibre-gl";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -23,8 +25,13 @@ import { GlobePage } from "./GlobePage";
 import type { CaseSnapshot } from "@siterra/contracts";
 import type { MapBundle } from "../../lib/map/bundle";
 import type { ReadyArrival } from "../../lib/projection/arrival";
+import { InstrumentRecords } from "../instruments/InstrumentRecords";
+import { ValleyOverview } from "../overview/ValleyOverview";
 import { ArrivalView } from "../views/ArrivalView";
 import styles from "./Journey.module.css";
+
+/** The cross-fade from the MapLibre valley to the overview (ms); Journey.module.css .overview matches it. */
+const HANDOVER_MS = 800;
 
 export interface JourneyProps {
   /** The valley's and the globe's assets, from the one map bundle. */
@@ -57,6 +64,15 @@ export function Journey({
   const t0 = useRef(0);
   const moments = useRef<Moments>({ beats: [] });
   const [phase, setPhase] = useState<Phase>("opening");
+  // the overview has drawn its land; then the MapLibre valley is gone
+  const [overviewShown, setOverviewShown] = useState(false);
+  const [valleyGone, setValleyGone] = useState(false);
+  const onSettled = useCallback(() => {
+    setOverviewShown(true);
+    window.setTimeout(() => {
+      setValleyGone(true);
+    }, HANDOVER_MS);
+  }, []);
   const pack = useMemo(() => regionPack(snapshot), [snapshot]);
 
   const now = () => (performance.now() - t0.current) / 1000;
@@ -64,11 +80,11 @@ export function Journey({
   const onShown = useCallback(() => {
     if (moments.current.beats.length === 0) moments.current.beats.push(now());
   }, []);
-  // the skip link: straight to the arrival; the frame loop stops and the valley shows at its pose
+  // the skip link: straight to the overview; the frame loop stops and the MapLibre valley is not shown
   const skipped = useRef(false);
   const onSkip = useCallback(() => {
     skipped.current = true;
-    if (valley.current) valley.current.style.opacity = "1";
+    setValleyGone(true);
     setPhase("arrival");
   }, []);
   const onOpen = useCallback(() => {
@@ -230,16 +246,25 @@ export function Journey({
 
   return (
     <div className={styles.journey} data-phase={phase}>
-      <div ref={valley} id="arrival" className={styles.valley} aria-hidden={phase !== "arrival"}>
-        <ArrivalView
-          assets={valleyAssets}
-          contourArea={contourArea}
-          arrival={arrival}
-          snapshot={snapshot}
-          chrome={phase === "arrival"}
-          onMap={onMap}
-        />
-      </div>
+      {valleyGone ? null : (
+        <div ref={valley} className={styles.valley} aria-hidden="true">
+          <ArrivalView
+            assets={valleyAssets}
+            contourArea={contourArea}
+            arrival={arrival}
+            snapshot={snapshot}
+            chrome={false}
+            onMap={onMap}
+          />
+        </div>
+      )}
+      {phase === "arrival" ? (
+        <div id="arrival" className={styles.overview} data-shown={overviewShown ? "" : undefined}>
+          <InstrumentRecords snapshot={snapshot}>
+            <ValleyOverview onSettled={onSettled} />
+          </InstrumentRecords>
+        </div>
+      ) : null}
       {phase !== "arrival" ? (
         <>
           <canvas ref={canvas} className={styles.globe} aria-hidden="true" />

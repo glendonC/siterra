@@ -2,7 +2,8 @@
 
 // The case records the instruments draw: the case the valley opens (?case=, or the visitor's demo copy of the seed
 // case) and its instrument specs from GET /api/cases/:id/instruments, opened once per page and shared by the
-// instruments inside the shell. A page can be handed records instead (the lane's preview).
+// instruments inside the shell. A page can be handed records instead (the lane's preview), or the case it has
+// already opened (the journey at "/"), so only the listing is read and no second demo session starts.
 
 import type { CaseSnapshot, InstrumentListing, InstrumentView } from "@siterra/contracts";
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
@@ -25,12 +26,31 @@ const Refresh = createContext<(snapshot: CaseSnapshot) => void>(() => undefined)
 
 /** One open per page: an effect that runs twice (React's development check) shares the first request. */
 let opening: Promise<CaseInstruments> | undefined;
+/** The listing of a case already open, once per case revision. */
+const listings = new Map<string, Promise<CaseInstruments>>();
+
+function listingOf(snapshot: CaseSnapshot): Promise<CaseInstruments> {
+  const key = `${snapshot.case.id}@${String(snapshot.case.revision)}`;
+  let p = listings.get(key);
+  if (!p) {
+    p = loadInstruments(
+      snapshot.case.id,
+      (input, init) => fetch(input, init),
+      snapshot.case.revision,
+    ).then((r) => (r.status === "ready" ? { status: "ready", snapshot, listing: r.listing } : r));
+    listings.set(key, p);
+  }
+  return p;
+}
 
 export function InstrumentRecords({
   records,
+  snapshot,
   children,
 }: {
   records?: { snapshot: CaseSnapshot; listing: InstrumentListing };
+  /** The case the page has already opened: only its instrument listing is read. */
+  snapshot?: CaseSnapshot;
   children: ReactNode;
 }) {
   const [state, setState] = useState<InstrumentRecordsState>(
@@ -40,13 +60,15 @@ export function InstrumentRecords({
     if (records) return;
     let live = true;
     const caseId = new URLSearchParams(window.location.search).get("case") ?? undefined;
-    opening ??= openInstruments(
-      caseId,
-      (input, init) => fetch(input, init),
-      viewerStorage(),
-      Date.now(),
-    );
-    opening
+    const open = snapshot
+      ? listingOf(snapshot)
+      : (opening ??= openInstruments(
+          caseId,
+          (input, init) => fetch(input, init),
+          viewerStorage(),
+          Date.now(),
+        ));
+    open
       .then((r) => {
         if (!live) return;
         if (r.status === "ready")
@@ -63,7 +85,7 @@ export function InstrumentRecords({
     return () => {
       live = false;
     };
-  }, [records]);
+  }, [records, snapshot]);
   const refresh = useCallback((snapshot: CaseSnapshot) => {
     const revision = snapshot.case.revision;
     loadInstruments(snapshot.case.id, (input, init) => fetch(input, init), revision)

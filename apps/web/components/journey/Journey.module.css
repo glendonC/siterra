@@ -16,6 +16,18 @@
   opacity: 1;
 }
 
+/* the overview fades in over the MapLibre valley once its land is drawn (HANDOVER_MS in Journey.tsx) */
+.overview {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.8s ease;
+}
+
+.overview[data-shown] {
+  opacity: 1;
+}
+
 .globe {
   position: absolute;
   inset: 0;

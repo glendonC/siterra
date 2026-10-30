@@ -90,20 +90,31 @@ const CREDITS: MessageId[] = [
   "instrument.credit.dem",
 ];
 
-export function ValleyOverview() {
+export function ValleyOverview({
+  onSettled,
+}: {
+  /** Once the land is drawn and the words placed, or the overview has failed (the journey's cross-fade). */
+  onSettled?: () => void;
+}) {
   return (
     <div className={styles.root} data-theme="obsidian" data-overview>
       <div className={styles.ground} aria-hidden="true" />
-      <OverviewRecords />
+      <OverviewRecords onSettled={onSettled} />
     </div>
   );
 }
 
-function OverviewRecords() {
+function OverviewRecords({ onSettled }: { onSettled: (() => void) | undefined }) {
   const records = useInstrumentRecords();
+  const failed = records.status === "failed";
+  useEffect(() => {
+    if (failed) onSettled?.();
+  }, [failed, onSettled]);
   if (records.status === "ready")
-    return <OverviewReady snapshot={records.snapshot} listing={records.listing} />;
-  if (records.status !== "failed") return null;
+    return (
+      <OverviewReady snapshot={records.snapshot} listing={records.listing} onSettled={onSettled} />
+    );
+  if (!failed) return null;
   return (
     <p className={styles.failed} role="status">
       {en["overview.failed"].text}
@@ -121,9 +132,11 @@ interface Live {
 function OverviewReady({
   snapshot,
   listing,
+  onSettled,
 }: {
   snapshot: CaseSnapshot;
   listing: InstrumentListing;
+  onSettled: (() => void) | undefined;
 }) {
   const { findings: all, bandLimit } = useMemo(
     () => findingsFrom(snapshot, listing),
@@ -471,6 +484,11 @@ function OverviewReady({
     raf.current = requestAnimationFrame(frame);
   }, [frame]);
 
+  const settled = useRef(onSettled);
+  settled.current = onSettled;
+  useEffect(() => {
+    if (failed) settled.current?.();
+  }, [failed]);
   const arcKey = findings.map((f) => `${f.id}@${String(f.clock)}`).join(" ");
   const bandLimitM = bandLimit?.value ?? null;
   // mount the scene once the data is in
@@ -505,6 +523,7 @@ function OverviewReady({
         root.dataset.arcGap = g.arc.toFixed(1);
         root.dataset.askGap = (g.distanceAt(at.ask) - ASK_R).toFixed(1);
         root.dataset.ready = "";
+        settled.current?.();
       })
       .catch((e: unknown) => {
         console.error("Overview gaps not measured", e);

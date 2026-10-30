@@ -1,13 +1,15 @@
 "use client";
 
 // Loads the map bundle (the globe's and the valley's assets) and the case, then runs the sequence. A
-// visitor who has been here goes straight back to their case at the arrival.
+// visitor who has been here goes straight back to their case on the overview (approved specimen D4), with the
+// case already open, so only its instrument listing is read.
 
 import { en } from "../../lib/copy/en";
 import { CaseNotice } from "../case/CaseNotice";
 import { useArrivalCase } from "../case/useArrivalCase";
 import { useMapBundle } from "../map/useMapBundle";
-import { ArrivalView } from "../views/ArrivalView";
+import { InstrumentRecords } from "../instruments/InstrumentRecords";
+import { ValleyOverview } from "../overview/ValleyOverview";
 import { Journey } from "./Journey";
 
 export function JourneyPage() {
@@ -21,13 +23,9 @@ export function JourneyPage() {
     return <CaseNotice badge="case.coverageRequired" message="case.noBoundary" />;
   if (c.resumed)
     return (
-      <ArrivalView
-        assets={map.bundle.valley}
-        contourArea={map.bundle.contours}
-        settle
-        arrival={c.arrival}
-        snapshot={c.snapshot}
-      />
+      <InstrumentRecords snapshot={c.snapshot}>
+        <ValleyOverview />
+      </InstrumentRecords>
     );
   return (
     <Journey
