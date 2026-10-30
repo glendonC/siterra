@@ -78,12 +78,19 @@ def main():
     par = {p["name"]: p["default"] for p in reg["parameters"]}
     min_clear = par["min_clear_share"]
     assert sorted(p for p in next(p for p in reg["parameters"] if p["name"] == "ndsi_threshold")["allowed"]) == [0.2, 0.4]
-    months = month_list(*rc["months"])
+    sample = rc.get("sampleMonthsFrom")  # an applicability check over a sample of months instead of the whole record
+    sa = cfg["recipes"][sample] if sample else None
+    months = [tuple(map(int, m.split("-"))) for m in sa["sampleMonths"]] if sample else month_list(*rc["months"])
     primary_set = next(b["id"] for b in rc["elevationBandSets"] if b.get("primary"))
-    now = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    computed = [a.split("=", 1)[1] for a in sys.argv if a.startswith("--computed=")]
+    now = computed[0] if computed else datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
-    rec_name, rec = modis_record.search_record(raw)
-    gaps = modis_record.archive_gaps(raw, rec_name, rec)
+    if sample:
+        rec_name, rec = modis_record.merged_search_record(raw)
+        gaps = None
+    else:
+        rec_name, rec = modis_record.search_record(raw)
+        gaps = modis_record.archive_gaps(raw, rec_name, rec)
     sidecars = {iid.split(".")[1]: json.load(open(os.path.join(raw, iid + ".json"))) for iid in rec["kept"]}
     grids = {(tuple(s["assets"][ASSET]["transform"]), s["assets"][ASSET]["window"]["width"], s["assets"][ASSET]["window"]["height"])
              for s in sidecars.values()}
@@ -108,6 +115,8 @@ def main():
         d = item_date(key)
         by_month.setdefault((d.year, d.month), []).append(key)
     rows = {n: [] for n in names}
+    tot_clear = np.zeros(len(names))
+    tot_snow = {t: np.zeros(len(names)) for t in THRESHOLDS}
     for (y, m) in months:
         keys = sorted(by_month.get((y, m), []))
         acc = {"clear": np.zeros(len(names)), **{t: np.zeros(len(names)) for t in THRESHOLDS}}
@@ -122,6 +131,9 @@ def main():
             acc["clear"] += np.tensordot(Wm, clear.astype(np.float64), axes=([1, 2], [0, 1]))
             for t, thr in THRESHOLDS.items():
                 acc[t] += np.tensordot(Wm, (clear & (v >= thr)).astype(np.float64), axes=([1, 2], [0, 1]))
+        tot_clear += acc["clear"]
+        for t in THRESHOLDS:
+            tot_snow[t] += acc[t]
         for i, n in enumerate(names):
             possible = len(keys) * Wtot[i]
             row = {"month": f"{y}-{m:02d}", "product_days": len(keys)}
@@ -135,7 +147,7 @@ def main():
             rows[n].append(row)
 
     # independent rerun of one month: fresh reads, nearest-neighbour resampling to the analysis grid, cell means
-    ry, rm = months[-1][0], 1
+    ry, rm = months[-1] if sample else (months[-1][0], 1)
     rkeys = sorted(by_month.get((ry, rm), []))
     atr, ashp, _ = place_config.analysis_grid(cfg)
     prim = sets[primary_set]
@@ -178,6 +190,29 @@ def main():
                 absent.append(key)
             d += datetime.timedelta(days=1)
     gap_text = modis_record.gap_sentence(absent, gaps, "day")
+    applicability = None
+    if sample:
+        tkey = f"ndsi_{sa['threshold']['ndsiSnowCover'] / 100:g}"
+        assert tkey in THRESHOLDS, tkey
+        limit = 0.01
+        per_band = {}
+        for b in sets[primary_set]:
+            i = names.index(b[0])
+            share = float(tot_snow[tkey][i] / tot_clear[i]) if tot_clear[i] > 0 else None
+            per_band[b[0]] = {"label": b[1], "clear_weighted_pixel_days": round(float(tot_clear[i]), 1),
+                              "snow_weighted_pixel_days": round(float(tot_snow[tkey][i]), 1),
+                              "snow_share_of_clear": None if share is None else round(share, 6)}
+        shares = [v["snow_share_of_clear"] for v in per_band.values()]
+        not_applicable = all(x is not None and x < limit for x in shares)
+        applicability = {
+            "decision": "not_applicable" if not_applicable else "run_full_recipe",
+            "rule": sa["decision"], "threshold": tkey, "share_limit": limit, "primary_band_set": primary_set,
+            "per_band": per_band, "sample_months": [f"{y}-{m:02d}" for y, m in months], "sampleRule": sa["sampleRule"],
+            "reason": (f"In every elevation band of the {primary_set} set fewer than {limit * 100:g} per cent of the clear catchment-pixel-days "
+                       f"in the sample have NDSI snow cover of {sa['threshold']['ndsiSnowCover']} or more" if not_applicable else
+                       f"At least one elevation band of the {primary_set} set has {limit * 100:g} per cent or more clear days with NDSI snow cover "
+                       f"of {sa['threshold']['ndsiSnowCover']} or more in the sample"),
+            "sample_note": sa["note"]}
     checks = [
         {"name": "recompute_sample_period", "passed": bool(rerun_ok),
          "detail": (f"Month {ry}-{rm:02d} rerun independently for the {primary_set} bands: {len(rkeys)} daily windows read again from "
@@ -193,7 +228,7 @@ def main():
                    "a value of at least 100 t. Fractions are shares of 10 m analysis-cell-weighted pixel-days, 0 to 1."},
         {"name": "qa_join_coverage", "passed": True,
          "detail": (f"All {len(sidecars)} daily windows share one {mshape[1]} x {mshape[0]} pixel grid; {days_total} of {cal_days} "
-                    f"calendar days from {months[0][0]}-{months[0][1]:02d} to {months[-1][0]}-{months[-1][1]:02d} have a Terra product "
+                    f"calendar days " + (f"in the {len(months)} sample months " if sample else f"from {months[0][0]}-{months[0][1]:02d} to {months[-1][0]}-{months[-1][1]:02d} ") + "have a Terra product "
                     f"on Planetary Computer. {gap_text} Catchment months below the clear share minimum or without a product: "
                     f"{n_insuff} of {len(months)}.")},
         {"name": "period_alignment", "passed": True,
@@ -240,11 +275,12 @@ def main():
         "months": {"first": f"{months[0][0]}-{months[0][1]:02d}", "last": f"{months[-1][0]}-{months[-1][1]:02d}", "count": len(months)},
         "series_layout": "each list holds one value per month from the first month on; null where the clear share is below the minimum or there is no product",
         "default_threshold": "ndsi_0.2", "min_clear_share": min_clear, "band_set": primary_set,
+        **({"applicability": applicability, "sample_months_only": True} if sample else {}),
         "series": series,
         "product_days": [r["product_days"] for r in rows["catchment"]],
         "archive_gaps": gap_text,
         "full_tables": "snow-cover-by-band-tables.json",
-        "limitations": reg["standardLimitations"],
+        "limitations": sa["limitations"] if sample else reg["standardLimitations"],
     }
     spath = os.path.join(bdir, "snow-cover-by-band.json")
     tpath = os.path.join(bdir, "snow-cover-by-band-tables.json")
@@ -258,7 +294,11 @@ def main():
     lic += [l for l in strata_col["links"] if l["rel"] == "license"]
     attribution = [MODIS_CITATION.format(first=first_item.split(".")[1], last=last_item.split(".")[1], tile=first_item.split(".")[2], date=access)]
     attribution += [a for a in strata_col["siterra:attribution"] if a not in attribution]
-    desc = (f"Precomputed result of recipe {RECIPE} {reg['version']} for {cfg['title']}: the monthly snow-covered share of each "
+    desc = (f"Applicability check of recipe {RECIPE} {reg['version']} for {cfg['title']} over {len(months)} sample winter months "
+            f"({sa['sampleRule']}), from {days_total} daily Terra MOD10A1 v6.1 products (500 m): decision "
+            f"{applicability['decision'].replace('_', ' ')}. {applicability['reason']}. This is not the recipe's result for the whole record; "
+            f"the monthly values are those of the sample months only.\n\n" + " ".join(sa["limitations"])) if sample else (
+            f"Precomputed result of recipe {RECIPE} {reg['version']} for {cfg['title']}: the monthly snow-covered share of each "
             f"elevation band from {months[0][0]}-{months[0][1]:02d} to {months[-1][0]}-{months[-1][1]:02d}, from {days_total} daily "
             f"Terra MOD10A1 v6.1 products (500 m), at NDSI thresholds 0.2 and 0.4, with the clear share of each band and month. "
             f"Band sets: {', '.join(f'{sid} (' + ', '.join(b[1] for b in bs) + ')' for sid, bs in sets.items())}. Observation; "
@@ -268,7 +308,8 @@ def main():
         "type": "Collection", "stac_version": "1.1.0",
         "stac_extensions": ["https://stac-extensions.github.io/processing/v1.3.0/schema.json",
                             "https://stac-extensions.github.io/file/v2.1.0/schema.json", EXT],
-        "id": bid, "title": f"Monthly snow cover by elevation band, {months[0][0]} to {months[-1][0]} ({RECIPE} {reg['version']})",
+        "id": bid, "title": (f"Snow applicability check over {len(months)} winter months ({RECIPE} {reg['version']})" if sample else
+                                    f"Monthly snow cover by elevation band, {months[0][0]} to {months[-1][0]} ({RECIPE} {reg['version']})"),
         "description": desc, "license": "other",
         "providers": [
             {"name": "NASA National Snow and Ice Data Center Distributed Active Archive Center", "roles": ["producer", "licensor"],
@@ -304,12 +345,12 @@ def main():
         "siterra:geo_selection": strata_col["siterra:geo_selection"],
         "siterra:method": {"id": RECIPE, "version": reg["version"], "analysis_crs": cfg["analysisCrs"],
                            "parameters": {"place_configuration": f"science/places/{os.path.basename(place)} revision {cfg['configRevision']}, sha256 {cfg['_sha256']}",
-                                          "months": rc["months"], "elevation_band_sets": rc["elevationBandSets"],
+                                          "months": [f"{y}-{m:02d}" for y, m in months] if sample else rc["months"], "elevation_band_sets": rc["elevationBandSets"],
                                           "ndsi_thresholds": [v / 100 for v in THRESHOLDS.values()], "min_clear_share": min_clear,
                                           "stored_precision": f"fractions at {FRACTION_DECIMALS} decimals"},
                            "reference_period": None, "operation_order": reg["formula"]},
         "siterra:attribution": attribution,
-        "siterra:limitations": reg["standardLimitations"],
+        "siterra:limitations": sa["limitations"] if sample else reg["standardLimitations"],
         "siterra:checks": checks,
         "links": [{"rel": "root", "href": "../catalog.json", "type": "application/json"},
                   {"rel": "parent", "href": "../catalog.json", "type": "application/json"},
