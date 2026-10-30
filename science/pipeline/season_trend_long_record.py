@@ -204,7 +204,7 @@ def main():
     rc = cfg["recipes"][RECIPE]
     rc_pix = cfg["recipes"][rc["growingWindowsFrom"]]
     reg = {r["recipeId"]: r for r in json.load(open(reg_path))["recipes"]}[RECIPE]
-    reg["standardLimitations"] = rc.get("limitations", reg["standardLimitations"])  # a place states its own where the registry's name another place
+    reg = place_config.localize(cfg, reg)  # a place states its own wording where the registry's would name another place
     par = {p["name"]: p["default"] for p in reg["parameters"]}
     min_share = par["min_composite_share"]
     min_area = par["min_area_coverage"]

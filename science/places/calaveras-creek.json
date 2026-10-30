@@ -3,7 +3,7 @@
   "title": "Calaveras Creek catchment",
   "areaNoun": "creek catchment",
   "note": "Place configuration read by the long-record pipeline scripts. Everything that is specific to one place lives here; the scripts hold none of it. A value changed here after a result was read is a new configuration revision labelled post hoc in the recipe result. This is the second place built through the pipeline (the first is Ait Bouguemez); every window, rule and threshold below was written before any MODIS, CHIRPS or Sentinel value of this catchment was read, and before any land cover, strata or trend of it was computed.",
-  "configRevision": 8,
+  "configRevision": 9,
   "revisions": [
     {"revision": 1, "date": "2026-10-30", "change": "First configuration: the frozen geometry and its delineation rule, the analysis grid, the DEM pin, the land cover source and read window, the rainfall window, the strata layers with the reservoir zone rule, and the restrend_long_record, snow_cover_by_band, pixel_trend_long_record and season_trend_long_record windows with their basis. Strata, land cover and drainage checksums are pinned in later revisions, after those layers are built."},
     {"revision": 2, "date": "2026-10-30", "change": "POST HOC to revision 1, made after the revision 1 reservoir zone had been drawn and inspected and before any trend, rainfall or season value of this catchment was computed: the zone is now the largest connected WorldCover water body plus 250 m instead of every water body plus 250 m. The revision 1 rule gave a zone of 8.05 per cent of the catchment, made mostly of 250 m circles around 72 small stock ponds (73 connected water bodies, the largest 4.56 km2 of 4.84 km2 of mapped water), which is not the reservoir basin the rule was written for. Nothing else changed."},
@@ -12,7 +12,8 @@
     {"revision": 5, "date": "2026-10-30", "change": "Added a documentary basis to the restrend_long_record window rationale: the SFPUC Alameda Creek Watershed Rangeland Management Plan (March 2026, read in full on 2026-10-30) states that the majority of rainfall in the watershed falls between October and April, which is the rainfall window registered in revision 1. Text only; no window, month or threshold changed, and no MODIS or CHIRPS value of this catchment had been read."},
     {"revision": 6, "date": "2026-10-30", "change": "Added drainage_network (the conditioned flow direction and fill depth rasters of the catchment freeze and their report, pinned by checksum, the freeze input point and the registered height surface), written before this pipeline built any drainage segment. The rasters are the ones the freeze wrote (identical on a second run). No value of revisions 1 to 5 changed."},
     {"revision": 7, "date": "2026-10-30", "change": "POST HOC to revision 1: the frozen catchment is replaced by geometry revision 2, made after the drainage network recompute check failed on revision 1 and before any trend, rainfall or season value of this catchment was computed. Revision 1 was the pysheds catchment function's cells (339,432); the same flow direction raster, traced cell by cell with the public D8 functions that the drainage builder uses, has 339,447 cells that reach the outlet (the 15 cells the pysheds function left out are boundary cells, 0.014 km2). Revision 2 is the D8 trace, polygonized 4-connected with the largest piece kept (the outlet cell, joined to the catchment only diagonally, is the one cell left out), 257.455 km2 geodesic, 0.57 per cent above the 256 km2 USGS publishes. The conditioned rasters are unchanged. The strata, land cover and relief layers were rebuilt on the new geometry and their checksums replaced here."},
-    {"revision": 8, "date": "2026-10-30", "change": "Added each trend recipe's own limitations (recipes.<recipe>.limitations): the registry's standard limitations for restrend_long_record, pixel_trend_long_record and season_trend_long_record name the first place (agdal closure, spiny xerophytic vegetation, snow on upper slopes, gauges in the valley), so this place states its own, keeping the registry's place-independent bullets word for word. Text only: written after the restrend and season trend bundles were first built from the registry's text; those bundles are rebuilt with these limitations and no number in them changes."}
+    {"revision": 8, "date": "2026-10-30", "change": "Added each trend recipe's own limitations (recipes.<recipe>.limitations): the registry's standard limitations for restrend_long_record, pixel_trend_long_record and season_trend_long_record name the first place (agdal closure, spiny xerophytic vegetation, snow on upper slopes, gauges in the valley), so this place states its own, keeping the registry's place-independent bullets word for word. Text only: written after the restrend and season trend bundles were first built from the registry's text; those bundles are rebuilt with these limitations and no number in them changes."},
+    {"revision": 9, "date": "2026-10-30", "change": "Stated this place's own wording for land_cover_classes and drainage_network where the registry's would name another place (cropland and built-up shares, the reservoir and canopy, grazing lease, the conditioning window and freeze). No value changed. The unread rainfall.tileSizePx key (512; chirps_fetch.py and chirps-bundle.py fix the CHIRPS tile at 512 in code) was dropped."}
   ],
   "geometry": {
     "id": "geo_calaveras_creek_catchment",
@@ -114,7 +115,6 @@
     "rawWindow": {"row0": 447, "row1": 456, "col0": 1160, "col1": 1172},
     "rawWindowRule": "the CHIRPS 0.05 degree cells that touch the catchment bounding box (rows 449 to 454, columns 1162 to 1170 of the 7200 x 2400 grid whose origin is 180 W, 60 N) plus a two-cell margin, as for the first place",
     "monthlyBundle": "bundle_chirps_monthly_calaveras_creek",
-    "tileSizePx": 512,
     "resolutionNote": "Native 0.05 degree grid, about 4.4 km east to west by 5.5 km north to south here",
     "gaugeNote": "No rain gauge in or near the catchment was compared with these values.",
     "independentRecompute": {
@@ -174,6 +174,10 @@
       ]
     },
     "pixel_trend_long_record": {
+      "formulaText": {
+        "8": "Connected areas: 8-connected groups of pixels sharing a false discovery rate direction (primary) or a per-pixel interval direction (sensitivity), of at least minClusterPixels pixels (Calaveras Creek: 4, about 21 ha). For each: pixel count, catchment area in km2, centroid (longitude, latitude) weighted by catchment cells, median elevation of its catchment cells, land cover and aspect shares, median slope and its range. Every downward area is listed; upward areas are counted with the five largest listed",
+        "9": "Display: for each window, the Theil-Sen slope in NDVI per decade averaged into the fixed EPSG:3857 grid of the map overviews (pixelM metres), painted with the light-theme data.ndvi-departure arms on the fixed domain of the configuration (Calaveras Creek: -0.05 to +0.05 per decade, unpainted within 0.0025 of zero, t = (|d| - neutral) / (domain - neutral) clamped to 0..1, opacity 0.10 + 0.70 t, t in steps). No direction or false discovery rate class is drawn on the display"
+      },
       "seasonYears": [2000, 2025],
       "growingWindows": [
         {"id": "feb_may", "months": [2, 3, 4, 5], "primary": true},
@@ -203,6 +207,9 @@
       "windowRationale": "The three growing windows are those of restrend_long_record. June to September is the dry-season window: it follows the annual grasses' peak and drying, so it shows where green vegetation persists through the dry months (trees, irrigated or riparian ground, the reservoir edge) and is the summer half of the season contrast. It was added on 2026-10-30 before any June to September greenness value of this catchment was computed; the first place's June to September window was chosen for a different reason (the founder's description of its summer grazing season). minClusterPixels, the display domain and the neutral band are those of pixel_trend_long_record 1.0.0 and were not tuned to this place."
     },
     "season_trend_long_record": {
+      "formulaText": {
+        "6": "Season contrast: D_s(y) = Y_s(y, spring) - Y_s(y, summer) with the spring and summer windows of the configuration (Calaveras Creek: feb_may and jun_sep); ordinary least squares slope of D on the year with the 95% t interval and the autocorrelation-adjusted interval, and the Theil-Sen slope. An interval entirely above zero means spring greenness rose faster (or fell slower) than summer greenness; entirely below zero, the reverse"
+      },
       "growingWindowsFrom": "pixel_trend_long_record",
       "seasonYearsFrom": "pixel_trend_long_record",
       "strata": ["catchment", "elevation_band", "aspect_class", "reservoir_zone"],
@@ -222,7 +229,27 @@
       ],
       "contrastRationale": "February to May and June to September share no month, so the contrast compares the growing part of the year with the dry season."
     },
+    "land_cover_classes": {
+      "limitations": [
+        "ESA WorldCover 2021 is a single 2021 map classified from satellite data at 10 m: its classes can differ from the ground, and the class of one cell is not a field observation.",
+        "Tree cover may include open woodland and savanna as well as dense woodland. Cropland (0.07% of the catchment) and built-up land (0.09%) are almost absent in this map; the class 'cropland or built-up' is excluded from the sampling strata, never read as low vegetation. No class is a pasture, grazing lease or management unit.",
+        "Areas are cell counts times 100 m2 in {analysisCrs}, not geodesic areas, and cells on the polygon's boundary are counted where their centre lies inside it.",
+        "The catchment is a hydrological analysis extent, not a pasture, grazing lease or management boundary."
+      ]
+    },
     "drainage_network": {
+      "limitations": [
+        "The network is drawn from a 30 m surface model, not mapped on the ground: trees, buildings, steep walls and radar artefacts distort the surface, and the D8 path can leave the real channel. No stream was checked in the field.",
+        "A segment is drawn wherever 1.0 km2 or more drains to a cell. The network's extent and length follow that threshold; it is not a measured channel head, and it does not separate streams that run all year from streams that run only after rain or snowmelt.",
+        "Depression filling and flat resolution route flow across closed hollows and the reservoir, and the surface model includes tree canopy, so some segments run where the 30 m surface rises along the line. Those segments are flagged, their heights are stored unchanged, and the line says nothing about how water moves there.",
+        "Upstream area counts the cells that drain to a point along D8 paths on the filled surface. It is not the share of rain that reaches the point, and it ignores irrigation canals, withdrawals and groundwater.",
+        "Strahler order counts how channels join. It says nothing about channel size, discharge or whether water is present.",
+        "Heights are metres above the EGM2008 geoid from the Copernicus DEM GLO-30 surface model, whose stated absolute vertical accuracy is under 4 m (90% linear error) and relative vertical accuracy under 2 m on slopes up to 20% and under 4 m above, as arithmetic means with local deviations possible (Copernicus DEM Product Handbook 5.0).",
+        "The catchment is a hydrological analysis extent, not a pasture, grazing lease or management boundary."
+      ],
+      "formulaText": {
+        "0": "Conditioning (a private step, as the catchment freeze geo_calaveras_creek_catchment revision 2, recorded in the conditioning report): Copernicus DEM GLO-30 (2021) on its native 1 arc-second EPSG:4326 grid over the window 121.95 to 121.40 W and 37.15 to 37.56 N; pysheds 0.5 fill_pits, fill_depressions and resolve_flats; D8 flow direction with codes 64, 128, 1, 2, 4, 8, 16, 32 for north, north-east, east, south-east, south, south-west, west and north-west. Stored: the direction of each cell and the depression fill depth (fill_depressions(fill_pits(DEM)) minus DEM, m), cropped to the catchment's bounding box plus 8 cells"
+      },
       "conditioning": {
         "note": "Made by a private step (pysheds 0.5 is GPL-3.0-or-later, so the step stays out of the public pipeline, as the catchment freeze script does): the elevation tile named above, window 121.95 to 121.40 W and 37.15 to 37.56 N on its native 1 arc-second grid, fill_pits, fill_depressions, resolve_flats, D8 flow direction with codes 64, 128, 1, 2, 4, 8, 16, 32 for north, north-east, east, south-east, south, south-west, west and north-west, then the two rasters cropped to the catchment bounding box plus 8 cells. The same run froze the catchment polygon of the geometry block.",
         "freezeInputPoint": {"lat": 37.50194444, "lon": -121.8183333},

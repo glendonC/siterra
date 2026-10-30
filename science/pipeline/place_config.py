@@ -256,6 +256,20 @@ def pixel_weights(cfg, masks, dst_crs, dst_transform, dst_shape):
     return out
 
 
+def localize(cfg, reg):
+    """The registry entry with the place's own wording: {analysisCrs} in the formula, the limitations and the parameters is the place's CRS, a
+    `formulaText` map in the recipe's block (list index to text) replaces those formula lines, and a `limitations` list in the block
+    replaces the registry's. A place states its own where the registry's would name another place."""
+    rc = cfg["recipes"].get(reg["recipeId"], {})
+    sub = lambda t: t.replace("{analysisCrs}", cfg["analysisCrs"])
+    out = dict(reg)
+    out["formula"] = [sub(rc.get("formulaText", {}).get(str(i), t)) for i, t in enumerate(reg["formula"])]
+    out["standardLimitations"] = [sub(t) for t in rc.get("limitations", reg["standardLimitations"])]
+    out["parameters"] = [{**p, "default": sub(p["default"]) if isinstance(p["default"], str) else p["default"],
+                          "allowed": [sub(v) if isinstance(v, str) else v for v in p["allowed"]]} for p in reg["parameters"]]
+    return out
+
+
 if __name__ == "__main__":
     import unittest
 

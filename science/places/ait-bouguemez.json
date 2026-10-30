@@ -3,7 +3,7 @@
   "title": "Ait Bouguemez valley catchment",
   "areaNoun": "valley catchment",
   "note": "Place configuration read by the long-record pipeline scripts. Everything that is specific to one place lives here; the scripts hold none of it. A value changed here after a result was read is a new configuration revision labelled post hoc in the recipe result.",
-  "configRevision": 9,
+  "configRevision": 10,
   "revisions": [
     {"revision": 1, "date": "2026-10-28", "change": "First configuration: geometry, strata, DEM, rainfall window, restrend_long_record and snow_cover_by_band."},
     {"revision": 2, "date": "2026-10-28", "change": "Added landCover, pixel_trend_long_record and season_trend_long_record, written before any per-pixel slope, land-cover summary or June to September greenness value was computed. No value of revision 1 changed."},
@@ -25,7 +25,8 @@
    "date": "2026-10-30",
    "change": "Restated in the configuration what the strata, land cover and rainfall builders had written into their code for this valley, so that a second place can supply its own: the WorldCover read window, the DEM ETag, the strata limitations, the area noun used in titles, and the rainfall independent recompute source, resolution note and gauge note. No value of revision 1 to 7 changed; the committed bundles rebuild from it identical except the two fields that name the configuration revision and its checksum."
   },
-    {"revision": 9, "date": "2026-10-30", "change": "Added pixel_seasons (registry 1.12.0): the March to June mean NDVI of every catchment pixel in every season, from the composites and the filter of pixel_trend_long_record, written before any per-season value was stored. No value of revision 1 to 8 changed."}
+    {"revision": 9, "date": "2026-10-30", "change": "Added pixel_seasons (registry 1.12.0): the March to June mean NDVI of every catchment pixel in every season, from the composites and the filter of pixel_trend_long_record, written before any per-season value was stored. No value of revision 1 to 8 changed."},
+    {"revision": 10, "date": "2026-10-30", "change": "Restated in the configuration the wording of terrain_relief, land_cover_classes and drainage_network that the registry carried for this valley (the lower gorge, orchards, agdal, the conditioning window), so that the registry can be place-neutral and a second place can state its own. No word changed: the committed bundles rebuild from it identical except the two fields that name the configuration revision and its checksum. The unread rainfall.tileSizePx key (512; chirps_fetch.py and chirps-bundle.py fix the CHIRPS tile at 512 in code) was dropped."}
   ],
   "geometry": {
     "id": "geo_ait_bouguemez_catchment",
@@ -109,7 +110,6 @@
     "dataset": "CHIRPS v3.0 monthly final",
     "rawWindow": {"row0": 562, "row1": 572, "col0": 3467, "col1": 3479},
     "monthlyBundle": "bundle_chirps_monthly_ait_bouguemez",
-    "tileSizePx": 512,
     "resolutionNote": "Native 0.05 degree grid, about 4.7 km east to west by 5.5 km north to south here",
     "gaugeNote": "No rain gauge in or near the valley was compared with these values.",
     "independentRecompute": {
@@ -175,7 +175,35 @@
       "slopeCheckTolerancePerDecade": 1e-06,
       "rationale": "Registered 2026-10-30 at the lead's request for a time-lapse of the valley through the seasons: the March to June mean NDVI of every catchment pixel in every season from 2000 to 2025, stored from the same composites, reliability filter and rounding as pixel_trend_long_record, so the slope it stores can be recomputed from them."
     },
+    "terrain_relief": {
+      "limitations": [
+        "The surface is a 30 m surface model, not the ground: trees, buildings, steep walls and radar artefacts distort it, and narrow gorges such as the lower gorge near the outlet are not resolved. Heights are metres above the EGM2008 geoid with the DEM's stated vertical accuracy (Copernicus DEM Product Handbook 5.0).",
+        "Each height is a bilinear resampling of the 1 arc-second tile onto a 30 m grid in EPSG:32629; it is not a measured height at that cell centre, and the 10 m analysis cells inherit the height of their 30 m cell.",
+        "The cells outside the catchment that the layer keeps are a one-cell ring for interpolation near the boundary; they are not part of the analysis area.",
+        "The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary."
+      ]
+    },
+    "land_cover_classes": {
+      "limitations": [
+        "ESA WorldCover 2021 is a single 2021 map classified from satellite data at 10 m: its classes can differ from the ground, and the class of one cell is not a field observation.",
+        "Tree cover on the valley floor may include orchards; cropland is a small share of the catchment in this map (the class 'cropland or built-up' is excluded from the sampling strata, never read as low vegetation). No class is a pasture, agdal or management unit.",
+        "Areas are cell counts times 100 m2 in EPSG:32629, not geodesic areas, and cells on the polygon's boundary are counted where their centre lies inside it.",
+        "The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary."
+      ]
+    },
     "drainage_network": {
+      "limitations": [
+        "The network is drawn from a 30 m surface model, not mapped on the ground: trees, buildings, steep walls and radar artefacts distort the surface, and the D8 path can leave the real channel. No stream was checked in the field.",
+        "A segment is drawn wherever 1.0 km2 or more drains to a cell. The network's extent and length follow that threshold; it is not a measured channel head, and it does not separate streams that run all year from streams that run only after rain or snowmelt.",
+        "Depression filling and flat resolution route flow across closed hollows and the lower gorge, so some segments run where the 30 m surface rises along the line. Those segments are flagged, their heights are stored unchanged, and the line says nothing about how water moves there.",
+        "Upstream area counts the cells that drain to a point along D8 paths on the filled surface. It is not the share of rain that reaches the point, and it ignores irrigation canals, withdrawals and groundwater.",
+        "Strahler order counts how channels join. It says nothing about channel size, discharge or whether water is present.",
+        "Heights are metres above the EGM2008 geoid from the Copernicus DEM GLO-30 surface model, whose stated absolute vertical accuracy is under 4 m (90% linear error) and relative vertical accuracy under 2 m on slopes up to 20% and under 4 m above, as arithmetic means with local deviations possible (Copernicus DEM Product Handbook 5.0).",
+        "The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary."
+      ],
+      "formulaText": {
+        "0": "Conditioning (a private step, as the catchment freeze geo_ait_bouguemez_catchment revision 1): Copernicus DEM GLO-30 (2021) on its native 1 arc-second EPSG:4326 grid, window 6.70 to 6.001 W and 31.40 to 31.85 N; pysheds 0.5 fill_pits, fill_depressions and resolve_flats; D8 flow direction with codes 64, 128, 1, 2, 4, 8, 16, 32 for north, north-east, east, south-east, south, south-west, west and north-west. Stored: the direction of each cell and the depression fill depth (fill_depressions(fill_pits(DEM)) minus DEM, m), cropped to the catchment's bounding box plus 8 cells"
+      },
       "conditioning": {
         "note": "Made by a private step (pysheds 0.5 is GPL-3.0-or-later, so the step stays out of the public pipeline, as the catchment freeze script does): the elevation tile named above, window 6.70 to 6.001 W and 31.40 to 31.85 N on its native 1 arc-second grid, fill_pits, fill_depressions, resolve_flats, D8 flow direction with codes 64, 128, 1, 2, 4, 8, 16, 32 for north, north-east, east, south-east, south, south-west, west and north-west, cropped to the catchment's bounding box plus 8 cells. The step reproduced the freeze: the cells that drain to the snapped outlet equal the frozen polygon's cells, 513,974 of 513,974, 0 differ. The public builder reads the two rasters from the bundle's assets; its first build reads them from data/interim/drainage/ and the checksums must match.",
         "freezeInputPoint": {"lat": 31.637197, "lon": -6.5365},

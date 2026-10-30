@@ -43,7 +43,7 @@ def main():
     rc = cfg["recipes"][RECIPE]
     trc = cfg["recipes"][TREND_RECIPE]
     regs = {r["recipeId"]: r for r in json.load(open(reg_path))["recipes"]}
-    reg, treg = regs[RECIPE], regs[TREND_RECIPE]
+    reg, treg = place_config.localize(cfg, regs[RECIPE]), regs[TREND_RECIPE]
     par = {p["name"]: p["default"] for p in reg["parameters"]}
     kept, min_share, min_seasons = par["pixel_reliability_kept"], par["min_composite_share"], par["min_seasons"]
     decimals, tol = par["value_decimals"], par["slope_check_tolerance_per_decade"]

@@ -122,7 +122,7 @@ def main():
     cfg = place_config.load(place, repo)
     rc = cfg["recipes"][RECIPE]
     reg = {r["recipeId"]: r for r in json.load(open(reg_path))["recipes"]}[RECIPE]
-    reg["standardLimitations"] = rc.get("limitations", reg["standardLimitations"])  # a place states its own where the registry's name another place
+    reg = place_config.localize(cfg, reg)  # a place states its own wording where the registry's would name another place
     par = {p["name"]: p["default"] for p in reg["parameters"]}
     kept_default, min_share = par["pixel_reliability_kept"], par["min_composite_share"]
     min_area, min_seasons, level = par["min_area_coverage"], par["min_seasons"], par["interval_level"]

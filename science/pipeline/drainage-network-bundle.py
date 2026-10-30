@@ -274,7 +274,7 @@ def main():
     cfg = place_config.load(place, repo)
     use_place(cfg)
     place_config.check_dem(cfg, dem)
-    reg = [r for r in json.load(open(registry))["recipes"] if r["recipeId"] == RECIPE][0]
+    reg = place_config.localize(cfg, [r for r in json.load(open(registry))["recipes"] if r["recipeId"] == RECIPE][0])
     bid = f"bundle_{RECIPE}_{cfg['placeId']}"
     bdir = os.path.join(bundles, bid)
     if os.path.exists(bdir):

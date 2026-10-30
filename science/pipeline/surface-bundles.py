@@ -200,7 +200,7 @@ def main():
     use_place(cfg)
     recipe, bid, variable = BUNDLES[which]
     bid = bid.format(place=cfg["placeId"])
-    reg = next(r for r in json.load(open(registry))["recipes"] if r["recipeId"] == recipe)
+    reg = place_config.localize(cfg, next(r for r in json.load(open(registry))["recipes"] if r["recipeId"] == recipe))
     params = {p["name"]: p["default"] for p in reg["parameters"]}
     params["_heights_from"] = heights
     bdir = os.path.join(bundles, bid)
