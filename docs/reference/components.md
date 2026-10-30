@@ -365,6 +365,8 @@ A component in `loading` binds the task IDs that will produce its records, so it
 
 Added in contracts 1.10.0 ([explanation branches](data-contracts.md#explanation-branches)). The visual design and the copy belong to the UI lane.
 
+On screen it is the field plan instrument (`/instruments/field`, every check labeled Proposed) and the overview's results view. The earlier `/stage` view, which listed branches beside the map and placed them as pins on the terrain, is retired: no branch is drawn on the land, since no branch record carries a place.
+
 | | |
 |---|---|
 | Question | Which explanations does the record leave open, by which committed predictions, and which field check would separate them? |

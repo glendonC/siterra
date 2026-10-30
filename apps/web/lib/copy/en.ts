@@ -41,12 +41,7 @@ export const en = {
 
   // The Region Pack the case loads (lib/pack/regionPack.ts): every value comes from the case record
   "pack.title": { text: "Region Pack", kind: "heading" },
-  "pack.layers": { text: "Data Layers", kind: "heading" },
-  "pack.window": { text: "Observation Window", kind: "heading" },
-  "pack.checks": { text: "Checks", kind: "heading" },
-  "pack.statusLabel": { text: "Status", kind: "heading" },
   "pack.status": { text: "{data} · {field}", kind: "heading" },
-  "pack.button": { text: "Region Pack · {status}", kind: "heading" },
   "pack.windowValue": { text: "{first} to {last}, {n} months", kind: "ui" },
   // a bundle's status "validated" is the automated data checks, not field validation
   "pack.checksValue": {
@@ -58,10 +53,6 @@ export const en = {
   "pack.checksFailed": { text: "Checks Failed", kind: "heading" },
   "pack.fieldUnverified": { text: "Field Unverified", kind: "heading" },
   "pack.verifiedOutcome": { text: "Verified Outcome Recorded", kind: "heading" },
-  "pack.realDataDetail": {
-    text: "Real Data: every layer is a measured dataset that passed automated data checks. Field Unverified: no outcome has been checked on the ground.",
-    kind: "ui",
-  },
 
   // Globe and dive (approved hero study A4; place and range names come from the case record)
   "globe.range": { text: "{range}", kind: "label" },
@@ -89,22 +80,12 @@ export const en = {
     honesty: true,
   },
   "arrival.outlet": { text: "Outlet: the whole catchment drains here", kind: "label" },
-  "arrival.start": { text: "Run Assessment", kind: "button" },
-  "arrival.readFlat": { text: "Flat Map View", kind: "button" },
-  "stage.resetView": { text: "Reset View", kind: "button" },
 
   // Text view (the flat listing)
-  "flat.title": { text: "Text View", kind: "heading" },
-  "flat.close": { text: "Close", kind: "button" },
-  "flat.skip": { text: "Text View", kind: "link" },
   "flat.lonW": { text: "{deg}° W", kind: "label" },
   "flat.latN": { text: "{deg}° N", kind: "label" },
   "flat.km": { text: "{n} km", kind: "label" },
   "flat.m": { text: "{n} m", kind: "label" },
-  "flat.place": { text: "Place", kind: "heading" },
-  "flat.question": { text: "Question", kind: "heading" },
-  "flat.notes": { text: "Notes", kind: "heading" },
-  "flat.sources": { text: "Sources", kind: "heading" },
 
   // Task status words (microcopy section 6)
   "task.queued": { text: "Queued", kind: "heading" },
@@ -116,7 +97,6 @@ export const en = {
   "task.cancelled": { text: "Canceled", kind: "heading" },
   "task.awaiting_review": { text: "Awaiting Review", kind: "heading" },
   "work.planning": { text: "Planned tasks: {n}.", kind: "ui" },
-  "work.stop": { text: "Stop", kind: "button" },
   "work.received": { text: "Request received.", kind: "ui" },
   // accepted evidence only; three words so the completed card stays within its 45 (VC-04)
   "work.complete": { text: "Complete. Findings: {n}.", kind: "ui" },
@@ -159,8 +139,6 @@ export const en = {
   },
 
   // Activity panel (microcopy section 20: panel title, empty state, model badge)
-  "activity.title": { text: "Activity", kind: "heading" },
-  "activity.empty": { text: "No events for this request.", kind: "ui" },
   "activity.model": { text: "{model} · {route}", kind: "heading" },
   "activity.route.synthetic": { text: "Synthetic Replay", kind: "heading" },
   "activity.route.recorded": { text: "Recorded Replay", kind: "heading" },
@@ -175,10 +153,6 @@ export const en = {
     kind: "ui",
   },
   "activity.cause": { text: "Cause: {cause}", kind: "ui" },
-  "activity.synthetic": { text: "Synthetic Replay · No Live Model", kind: "heading" },
-  "activity.recorded": { text: "Recorded Replay", kind: "heading" },
-  "activity.pace": { text: "Reading pace: 1 event per {seconds} s.", kind: "ui" },
-  "activity.showAll": { text: "Show All Steps", kind: "button" },
   // the check that rejected a proposal, by its validation issue code (ValidationResult)
   "rule.schema": { text: "wrong shape", kind: "ui" },
   "rule.unknown_reference": { text: "cites a record that does not exist", kind: "ui" },
@@ -255,39 +229,6 @@ export const en = {
     kind: "ui",
     honesty: true,
   },
-  "flat.legend": { text: "Map Legend", kind: "heading" },
-  // one label, its state in aria-expanded (voice and tone: a toggle keeps one label)
-  "legend.toggle": { text: "Map Legend", kind: "button" },
-
-  // Sources and notices
-  "notices.data": { text: "Data Credits", kind: "heading" },
-  "notices.map": { text: "Map & Imagery", kind: "heading" },
-  "notices.places": { text: "Place Credits", kind: "heading" },
-  "notices.fonts": { text: "Fonts", kind: "heading" },
-  "notices.software": { text: "Software", kind: "heading" },
-  "notice.maplibre": { text: "MapLibre GL JS, BSD 3-Clause License", kind: "link" },
-  "notice.maplibreContour": {
-    text: "maplibre-contour, BSD 3-Clause License, with the licences of the code it includes",
-    kind: "link",
-  },
-  "notice.three": { text: "three.js, MIT License", kind: "link" },
-  "notices.keys": { text: "Keyboard", kind: "heading" },
-  "notices.singleKeys": { text: "Single-Key Shortcuts", kind: "heading" },
-  "notices.singleKeysDetail": {
-    text: "F toggles Flat Map View. / focuses the command line. Turning these off leaves ↵ and Esc on.",
-    kind: "ui",
-  },
-  "notice.relief": {
-    text: "Relief: © Mapterhorn; produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved.",
-    kind: "ui",
-  },
-  "notice.imagery": {
-    text: "Imagery: contains modified Copernicus Sentinel data 2025. A Sentinel-2 summer 2025 view, display only: no number is read from it.",
-    kind: "ui",
-  },
-  "notice.fontSans": { text: "IBM Plex Sans, SIL Open Font License 1.1", kind: "link" },
-  "notice.fontMono": { text: "IBM Plex Mono, SIL Open Font License 1.1", kind: "link" },
-
   // Opening a case
   "case.notFound": {
     text: "Case not available to this session. Open the home page to start a new session.",
@@ -304,29 +245,7 @@ export const en = {
     kind: "ui",
   },
 
-  // Command line and next-step actions (IU-03, 28 Oct copy standard)
-  "command.label": { text: "Question", kind: "heading" },
-  "command.challengeQuestion": {
-    text: "Could a dry year explain this instead?",
-    kind: "ui",
-  },
-  "command.areaChip": { text: "Area · {area}", kind: "heading" },
-  "command.periodChip": { text: "Period · {period}", kind: "heading" },
-  "action.investigate": { text: "Investigate", kind: "button" },
-  "action.challenge": { text: "Challenge", kind: "button" },
-  "action.trace": { text: "Trace", kind: "button" },
-  "action.flat": { text: "Flat", kind: "button" },
-  "action.brief": { text: "Brief", kind: "button" },
-
-  // Findings and citations (IU-02, TR-01, TR-04)
-  "findings.heading": { text: "Accepted Findings", kind: "heading" },
-  "findings.close": { text: "Close", kind: "button" },
-  "findings.excerpt": { text: "Source Excerpt", kind: "heading" },
-  "findings.measurement": { text: "Measurement Record", kind: "heading" },
-
   // Explanation branches and field plan (CMP-23, DF-09)
-  "branches.heading": { text: "Explanation Branches", kind: "heading" },
-  "branches.locked": { text: "Predictions Locked · Rev {rev}", kind: "heading" },
   "branches.status.predicted": { text: "Predictions Locked", kind: "heading" },
   "branches.status.consistent": { text: "Consistent", kind: "heading" },
   "branches.status.contradicted": { text: "Contradicted", kind: "heading" },
@@ -335,12 +254,8 @@ export const en = {
   "branches.outcome.not_met": { text: "Not Met", kind: "heading" },
   "branches.outcome.not_testable": { text: "Not Testable", kind: "heading" },
   "branches.outcome.pending": { text: "Committed", kind: "heading" },
-  "branches.fieldPlan": { text: "Field Verification", kind: "heading" },
-  "branches.separates": { text: "Separates: {pairs}.", kind: "ui" },
-  "branches.unseparated": { text: "Not separated by configured checks: {pairs}.", kind: "ui" },
 
   // Trace drill-down (CMP-16, TR-02, TR-05, TR-06)
-  "trace.heading": { text: "Execution Trace", kind: "heading" },
   "trace.summary": {
     text: "Models: {models}. Tools: {tools}. Checks: {accepted} accepted, {rejected} rejected.",
     kind: "ui",
@@ -349,22 +264,11 @@ export const en = {
 
   // Stage notes
   "stage.relief": { text: "Vertical Exaggeration ×{factor}", kind: "heading" },
-  "stage.north": { text: "N", kind: "heading" },
-  "stage.northName": { text: "North", kind: "ui" },
-  "stage.imagery": { text: "Imagery: Sentinel-2, summer 2025, display only", kind: "ui" },
-  "stage.sources": { text: "Sources & Notices", kind: "link" },
-  "stage.mapFailed": {
-    text: "Map not loaded. All map content is listed below as text.",
-    kind: "ui",
-  },
+  // no text listing follows it any more (the /stage view and its listing are retired)
+  "stage.mapFailed": { text: "Map not loaded. Reload the page to retry.", kind: "ui" },
 
   // Credits
-  "credit.terrain": { text: "© Mapterhorn. Copernicus WorldDEM-30.", kind: "ui" },
-  "credit.rainfall": { text: "CHIRPS v3.0, accessed 27 Oct 2026.", kind: "ui" },
-  "credit.imagery": { text: "Contains modified Copernicus Sentinel data 2019-2025.", kind: "ui" },
   "credit.outletInput": { text: "© OpenStreetMap contributors.", kind: "ui" },
-  // microcopy section 1a credit.valley.plan: added while mapped cropland and buildings show
-  "credit.worldcover": { text: "© ESA WorldCover project.", kind: "ui" },
 
   // Mode
   "mode.live": { text: "Live", kind: "heading" },
@@ -378,23 +282,6 @@ export const en = {
     kind: "ui",
   },
   "mode.simulated": { text: "Simulated Answer", kind: "heading" },
-  // The scope popover the mode line opens (microcopy section 2, PC-04)
-  "scope.name": { text: "Scope", kind: "heading" },
-  "scope.will": { text: "In Scope", kind: "heading" },
-  "scope.will1": { text: "Plan the assessment and read published research", kind: "ui" },
-  "scope.will2": {
-    text: "Load satellite and rainfall observations for the analysis area",
-    kind: "ui",
-  },
-  "scope.will3": {
-    text: "Test hypotheses against the records; unresolved ones stay open",
-    kind: "ui",
-  },
-  "scope.will4": { text: "Draft a field verification plan and its required reviews", kind: "ui" },
-  "scope.willNot": { text: "Out of Scope", kind: "heading" },
-  "scope.willNot1": { text: "Contact anyone, spend money, or publish anything", kind: "ui" },
-  "scope.willNot2": { text: "Make or authorize land-management decisions", kind: "ui" },
-  "scope.willNot3": { text: "Claim consent, partnerships, or outcomes", kind: "ui" },
   "mode.concept": { text: "Concept Prototype", kind: "heading" },
   "mode.conceptDetail": {
     text: "Model steps are synthetic examples, not live model output. The rainfall and vegetation records are measured.",
@@ -887,25 +774,6 @@ export type MessageId = keyof typeof en;
  * the rules it may break.
  */
 export const LINT_ALLOWLIST: Partial<Record<MessageId, { rules: string[]; reason: string }>> = {
-  "notice.relief": {
-    rules: ["VT-03", "VT-08"],
-    reason: "Copernicus WorldDEM-30 licence notice, kept in the wording the licence requires.",
-  },
-  "notice.fontSans": {
-    rules: ["VT-08", "VT-48"],
-    reason:
-      "IBM and SIL are the names of the font's maker and its licence's publisher; the link names the font and its licence in full.",
-  },
-  "notice.maplibre": {
-    rules: ["VT-08", "VT-48"],
-    reason:
-      "BSD is part of the licence's name, the BSD 3-Clause License; the link names the library and its licence in full.",
-  },
-  "notice.maplibreContour": {
-    rules: ["VT-08", "VT-09", "VT-48"],
-    reason:
-      "maplibre-contour is the package's own lower-case name; the link names it, its licence and the bundled licences in full.",
-  },
   "instrument.credit.modisNdvi": {
     rules: ["VT-08"],
     reason:
@@ -930,23 +798,9 @@ export const LINT_ALLOWLIST: Partial<Record<MessageId, { rules: string[]; reason
     reason:
       "MODIS is the instrument's name and LP DAAC the archive's; the credit carries the data licences' required wording.",
   },
-  "notice.three": {
-    rules: ["VT-08", "VT-09"],
-    reason:
-      "three.js is the library's own lower-case name, and MIT is part of the licence's name, the MIT License; the link names both in full.",
-  },
-  "notice.fontMono": {
-    rules: ["VT-08", "VT-48"],
-    reason:
-      "IBM and SIL are the names of the font's maker and its licence's publisher; the link names the font and its licence in full.",
-  },
   "credit.globe": {
     rules: ["VT-03", "VT-08"],
     reason: "Copernicus WorldDEM-90 licence notice, kept in the wording the licence requires.",
-  },
-  "credit.imagery": {
-    rules: ["VT-03"],
-    reason: "Copernicus attribution wording, kept as the licence states it with the year range.",
   },
 };
 

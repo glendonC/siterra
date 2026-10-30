@@ -1,6 +1,6 @@
 "use client";
 
-// The overview's ask, sent the way the valley's command line sends it (components/views/ArrivalView.tsx): one case
+// The overview's ask, sent the way the valley's command line sent it (lib/case/command.ts): one case
 // kept current by useCaseSession, the request built by commissionRequest from the viewer's words (or the case
 // question when they typed none) and sent by submitCommand, one at a time. Nothing is sent before Enter. After
 // Enter the activity line follows the session's event log (askLine): a replay started here plays at the valley's

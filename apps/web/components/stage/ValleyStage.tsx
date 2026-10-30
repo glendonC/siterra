@@ -8,7 +8,6 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import { useEffect, useRef, useState } from "react";
 import type { BudgetLine } from "../../lib/budget/measure";
 import { en, format, isHonesty, type MessageId } from "../../lib/copy/en";
-import type { BranchView, CertaintyMark } from "../../lib/projection/branches";
 import type { LandPoint } from "../../lib/projection/places";
 import { ARRIVAL_EXAGGERATION, ARRIVAL_POSE, VALLEY_NAME_REFERENCE } from "../../lib/stage/arrival";
 import type { MapBundle } from "../../lib/map/bundle";
@@ -99,15 +98,6 @@ const LABEL_FAMILY = '"IBM Plex Sans Variable", "IBM Plex Sans", sans-serif';
 interface Stem {
   id: string;
   name: string;
-  x: number;
-  y: number;
-}
-
-interface BranchPin {
-  branchId: string;
-  label: string;
-  statusLabel: string;
-  mark: CertaintyMark;
   x: number;
   y: number;
 }
@@ -248,10 +238,6 @@ export interface ValleyStageProps {
   onMoved?: (moved: boolean) => void;
   /** Called when the map's compass bearing changes so the North instrument stays accurate. */
   onBearing?: (bearingDeg: number) => void;
-  /** Explanation branches to project as terrain pins (CMP-23). */
-  branches?: readonly BranchView[];
-  selectedBranchId?: string | null;
-  onSelectBranch?: (branchId: string) => void;
 }
 
 export function ValleyStage({
@@ -277,13 +263,9 @@ export function ValleyStage({
   resetSeq = 0,
   onMoved,
   onBearing,
-  branches = [],
-  selectedBranchId,
-  onSelectBranch,
 }: ValleyStageProps) {
   const container = useRef<HTMLDivElement>(null);
   const [stems, setStems] = useState<Stem[]>([]);
-  const [branchPins, setBranchPins] = useState<BranchPin[]>([]);
   const [failed, setFailed] = useState(false);
   const [idle, setIdle] = useState(false);
   const [ground, setGround] = useState<GroundText[]>([]);
@@ -298,8 +280,6 @@ export function ValleyStage({
   placesRef.current = places;
   const outletRef = useRef(outlet);
   outletRef.current = outlet;
-  const branchesRef = useRef(branches);
-  branchesRef.current = branches;
 
   const [arrived, setArrived] = useState(false);
   const [settled, setSettled] = useState(false);
@@ -753,30 +733,11 @@ export function ValleyStage({
           ...(o ? [{ id: "outlet", name: en["arrival.outlet"].text, ...at(o.lon, o.lat) }] : []),
           ...placesRef.current.map((p) => ({ id: p.id, name: p.name, ...at(p.lon, p.lat) })),
         ];
-        const nextPins: BranchPin[] = branchesRef.current.flatMap((b) =>
-          b.pin
-            ? [
-                {
-                  branchId: b.branchId,
-                  label: b.label,
-                  statusLabel: b.statusLabel,
-                  mark: b.mark,
-                  ...at(b.pin.lon, b.pin.lat),
-                },
-              ]
-            : [],
-        );
         // skip React work when nothing moved (render fires every frame)
-        const key = JSON.stringify([
-          placedGround.map((g) => g.transform),
-          nextStems,
-          nextPins,
-          nextOutline,
-        ]);
+        const key = JSON.stringify([placedGround.map((g) => g.transform), nextStems, nextOutline]);
         if (key === last) return;
         last = key;
         setStems(nextStems);
-        setBranchPins(nextPins);
         setGround(placedGround);
         setOutline(nextOutline);
         onOutlineRef.current?.(pts.flatMap((p) => (p ? [{ x: p.x, y: p.y }] : [])));
@@ -935,10 +896,6 @@ export function ValleyStage({
     // callers pass the record's geometry once (memoized), so the map is built once per case revision
   }, [assets, contourArea, catchment, valleyName, regionName, areaKm2, onIdle, onMap, settleKey]);
 
-  useEffect(() => {
-    mapRef.current?.triggerRepaint();
-  }, [branches]);
-
   return (
     <div
       className={styles.stage}
@@ -1014,24 +971,6 @@ export function ValleyStage({
         </div>
       ))}
       {view === "flat" && mapRef.current ? <FlatFrame map={mapRef.current} /> : null}
-      {(labels && oblique ? branchPins : []).map((pin) => (
-        <button
-          key={pin.branchId}
-          type="button"
-          className={styles.branchPin}
-          style={{ left: pin.x, top: pin.y }}
-          data-branch-pin={pin.branchId}
-          data-certainty-mark={pin.mark}
-          data-selected={selectedBranchId === pin.branchId ? "true" : "false"}
-          onClick={() => {
-            onSelectBranch?.(pin.branchId);
-          }}
-        >
-          <span className={styles.pinLabel}>
-            {pin.label} · {pin.statusLabel}
-          </span>
-        </button>
-      ))}
       <ul
         className={styles.srOnly}
         aria-label={format("arrival.valleyName", { valley: valleyName })}

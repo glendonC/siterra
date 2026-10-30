@@ -27,7 +27,7 @@ import type { MapBundle } from "../../lib/map/bundle";
 import type { ReadyArrival } from "../../lib/projection/arrival";
 import { InstrumentRecords } from "../instruments/InstrumentRecords";
 import { ValleyOverview } from "../overview/ValleyOverview";
-import { ArrivalView } from "../views/ArrivalView";
+import { ValleyStage } from "../stage/ValleyStage";
 import styles from "./Journey.module.css";
 
 /** The cross-fade from the MapLibre valley to the overview (ms); Journey.module.css .overview matches it. */
@@ -248,13 +248,17 @@ export function Journey({
     <div className={styles.journey} data-phase={phase}>
       {valleyGone ? null : (
         <div ref={valley} className={styles.valley} aria-hidden="true">
-          <ArrivalView
+          <ValleyStage
             assets={valleyAssets}
             contourArea={contourArea}
-            arrival={arrival}
-            snapshot={snapshot}
-            chrome={false}
+            catchment={arrival.catchment}
+            valleyName={arrival.valleyName}
+            regionName={arrival.regionName}
+            areaKm2={arrival.areaKm2}
+            places={arrival.land.places}
+            outlet={arrival.land.outlet}
             onMap={onMap}
+            labels={false}
           />
         </div>
       )}
