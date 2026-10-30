@@ -8,6 +8,7 @@
 // The page (React) owns the words; every render hands it the screen positions it needs (design px at 1440 x 900).
 
 import {
+  CanvasTexture,
   Color,
   LinearFilter,
   LinearMipmapLinearFilter,
@@ -44,6 +45,7 @@ import {
   type ArcSpan,
 } from "../arc";
 import type { OverviewData } from "../data";
+import { slopeColour } from "../footprint";
 import type { FindingId } from "../findings";
 import {
   bakeLight,
@@ -91,6 +93,16 @@ const DRAPE = { step: 7.5, over: 4 } as const;
 const PIXEL_CLOCK = 52;
 const TURN = (ND.az - OV.az) / Math.sin((PIXEL_CLOCK * Math.PI) / 180);
 
+/**
+ * How far the arc, its labels and the ask step back (0 to 1) while the visitor has turned the land or brought it
+ * closer: by a turn of 18 degrees, or a quarter closer, they are gone; R brings them back with the overview's pose.
+ */
+export function awayOf(v: { zoom?: number; turn?: number }): number {
+  const turned = Math.abs(v.turn ?? 0) / 18;
+  const closer = Math.max(0, 1 / (v.zoom ?? 1) - 1) * 4;
+  return Math.min(1, Math.max(turned, closer));
+}
+
 const DEG = Math.PI / 180;
 const rad = (d: number) => d * DEG;
 
@@ -99,6 +111,15 @@ const rad = (d: number) => d * DEG;
  * proposed walking routes.
  */
 export type Selection = FindingId | "field" | "results" | "routes";
+
+/** The side a selection's record opens on: a finding on the arc's left opens on the left, the land easing right. */
+export const sideOf = (sel: Selection | null, clock: number | undefined): "left" | "right" =>
+  sel !== null && sel !== "field" && sel !== "results" && sel !== "routes" && (clock ?? 0) > 180
+    ? "left"
+    : "right";
+
+/** The findings about the whole catchment: their view keeps the land whole and unblurred, with no swing. */
+const WHOLE = new Set<Selection>(["catchment", "fdr", "rain", "results"]);
 
 export interface SceneState {
   /** Opening of the selection: 0 rest, 1 opened. */
@@ -248,14 +269,78 @@ export function mountOverview(
     fadePow: 2.2,
   });
   scene.add(wall.mesh);
-  scene.add(
-    stage.lines.lines([rim.map(([E, N]) => frame.v(E, N, sample(E, N) + 5))], {
-      color: C.catchmentLine,
-      opacity: 0.32,
-      width: 1,
-      closed: true,
-    }),
-  );
+  const outlineLine = stage.lines.lines([rim.map(([E, N]) => frame.v(E, N, sample(E, N) + 5))], {
+    color: C.catchmentLine,
+    opacity: 0.32,
+    width: 1,
+    closed: true,
+  });
+  scene.add(outlineLine);
+
+  // ---------- the findings' footprints, painted over the relief grid (row 0 north), from the case's assets ----------
+  const paint = (
+    draw: (ctx: CanvasRenderingContext2D, px: (E: number, N: number) => [number, number]) => void,
+  ) => {
+    const k = 2;
+    const cv = document.createElement("canvas");
+    cv.width = g.width * k;
+    cv.height = g.height * k;
+    const ctx = cv.getContext("2d");
+    if (!ctx) return null;
+    draw(ctx, (E, N) => [((E - g.E0) / g.res) * k, ((g.N0 - N) / g.res) * k]);
+    const tex = new CanvasTexture(cv);
+    tex.flipY = false;
+    tex.colorSpace = NoColorSpace;
+    tex.minFilter = LinearFilter;
+    tex.magFilter = LinearFilter;
+    tex.needsUpdate = true;
+    return tex;
+  };
+  const ring = (ctx: CanvasRenderingContext2D, pts: [number, number][]) => {
+    ctx.beginPath();
+    pts.forEach(([x, y], i) => {
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    });
+    ctx.closePath();
+  };
+  // every cell's continuous March to June slope on the asset's own fixed scale (never a significance class)
+  const slopeData = data.footprints.slope;
+  const slopeTex = slopeData
+    ? paint((ctx, px) => {
+        for (const c of slopeData.cells) {
+          ring(
+            ctx,
+            c.corners.map(([E, N]) => px(E, N)),
+          );
+          ctx.fillStyle = slopeColour(c.slope, slopeData.domain, slopeData.neutral);
+          ctx.fill();
+        }
+      })
+    : null;
+  // the CHIRPS cells over the land, shaded by the share of each inside the catchment, each with its edge
+  const rainData = data.footprints.rain;
+  const rainTex = rainData
+    ? paint((ctx, px) => {
+        for (const c of rainData) {
+          ring(
+            ctx,
+            c.ring.map(([E, N]) => px(E, N)),
+          );
+          ctx.globalAlpha = 0.06 + 0.28 * Math.min(1, c.inside);
+          ctx.fillStyle = C.rainCell;
+          ctx.fill();
+          // dashed edges, so the cells' grid never reads as the drainage lines
+          ctx.globalAlpha = 1;
+          ctx.lineWidth = 7;
+          ctx.setLineDash([26, 18]);
+          ctx.strokeStyle = C.rainCell;
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+        ctx.globalAlpha = 1;
+      })
+    : null;
   const WIDTHS = [0.7, 0.9, 1.2, 1.6, 2.0];
   const OPACITY = [0.55, 0.7, 0.85, 0.9, 0.95];
   for (const o of [1, 2, 3, 4, 5]) {
@@ -506,12 +591,20 @@ export function mountOverview(
     if (known) return known;
     const az = OV.az + TURN * Math.sin(rad(clockOf(sel)));
     const place = sel === "pixel" || sel === "field" ? TP : sel === "band" ? TB : null;
+    // a whole-catchment finding keeps the overview's bearing (no swing); the land eases away from its record's side
+    const left = sideOf(sel, clockOf(sel)) === "left";
     const v =
       sel === "routes" && RC
         ? routesView(RC)
         : place
           ? pointAt(place, az)
-          : fitLand(az, ND.el, WIDE.fh, WIDE.cx, WIDE.cy);
+          : fitLand(
+              WHOLE.has(sel) ? OV.az : az,
+              ND.el,
+              WIDE.fh,
+              left ? design.width - WIDE.cx : WIDE.cx,
+              WIDE.cy,
+            );
     views.set(sel, v);
     return v;
   };
@@ -544,15 +637,15 @@ export function mountOverview(
   let DRW = 1;
   let ROLL = 0;
   const fpx = design.height / 2 / Math.tan(rad(FOV / 2));
-  const placeDial = (e: number, targetDist: number, selClock: number) => {
+  const placeDial = (e: number, targetDist: number, selClock: number, left: boolean) => {
     camera.updateMatrixWorld();
     camera.getWorldDirection(fwd);
     camR.setFromMatrixColumn(camera.matrixWorld, 0).normalize();
     camU.setFromMatrixColumn(camera.matrixWorld, 1).normalize();
-    const cx = lerp(DIAL.cx, DIAL1.cx, e);
+    const cx = lerp(DIAL.cx, left ? design.width - DIAL1.cx : DIAL1.cx, e);
     const cy = lerp(DIAL.cy, DIAL1.cy, e);
     const r = lerp(DIAL.r, DIAL1.r, e);
-    const yaw = rad(lerp(0, DIAL1.yaw, e));
+    const yaw = rad(lerp(0, left ? -DIAL1.yaw : DIAL1.yaw, e));
     const depth = targetDist + DIAL.back;
     const { width, height } = stage.size();
     const px = fit.ox + cx * fit.scale;
@@ -563,7 +656,8 @@ export function mountOverview(
     DR = camR.clone().multiplyScalar(Math.cos(yaw)).addScaledVector(fwd, Math.sin(yaw)).normalize();
     DU = camU.clone();
     DRW = (r * depth) / fpx;
-    ROLL = (90 - selClock) * e;
+    // the opened finding rolls round to face its record: to 3 o'clock for a record on the right, 9 for the left
+    ROLL = ((left ? 270 : 90) - selClock) * e;
   };
   const dialAt = (clock: number): Vec3 =>
     arr(
@@ -726,7 +820,7 @@ export function mountOverview(
     updateFit();
     sync();
     const { e, view, selClock } = current;
-    placeDial(e, view.distance, selClock);
+    placeDial(e, view.distance, selClock, sideOf(state.sel, selClock) === "left");
     const span = spanAt(state.s, state.k, state.o, selClock);
     buildDial(span);
     r2.render(scene2, camera);
@@ -736,7 +830,10 @@ export function mountOverview(
     if (state.sel === "routes" && routeProbe.length) {
       const b = bbox(routeProbe.map(project));
       depthOfField(e, fit.oy + (b.y0 - 28) * fit.scale, fit.oy + (b.y1 + 28) * fit.scale);
-    } else depthOfField(e, focus - 70, focus + 56);
+    } else if (state.sel === "pixel" || state.sel === "field")
+      depthOfField(e, focus - 70, focus + 56);
+    // the whole catchment and the band are what those findings are about: nothing of them is blurred
+    else depthOfField(0, 0, 0);
     if (gapWaiters.length) {
       const gaps = landGaps();
       for (const w of gapWaiters) w(gaps);
@@ -871,6 +968,16 @@ export function mountOverview(
           d.edgeMat.dashScale = scale;
         }
       }
+      // the opened finding's footprint on the land
+      const fp = next.sel === "fdr" ? slopeTex : next.sel === "rain" ? rainTex : null;
+      if (fp) relief.uniforms.uOver.value = fp;
+      relief.uniforms.uOverA.value = fp ? 0.92 * e : 0;
+      relief.uniforms.uBandAt.value = bandLimitM ?? 0;
+      relief.uniforms.uBandA.value = next.sel === "band" && bandLimitM !== null ? 0.9 * e : 0;
+      outlineLine.material.opacity = lerp(0.32, next.sel === "catchment" ? 0.95 : 0.32, e);
+      outlineLine.material.linewidth = lerp(1, next.sel === "catchment" ? 2 : 1, e);
+      // the arc steps back while the visitor has turned the land or brought it closer, so the land never crosses it
+      dialMat.opacity = 1 - awayOf(next);
       if (pixelLine) {
         const on = next.sel === "pixel" || next.sel === "field";
         pixelLine.material.opacity = on ? Math.min(0.999, clamp01((e - 0.55) / 0.45)) : 0;
@@ -895,6 +1002,8 @@ export function mountOverview(
         d.mat.dispose();
         d.edgeMat.dispose();
       }
+      slopeTex?.dispose();
+      rainTex?.dispose();
       for (const o of scene2.children)
         if (o instanceof Mesh && o.material instanceof ShaderMaterial) o.material.dispose();
       r2.dispose();

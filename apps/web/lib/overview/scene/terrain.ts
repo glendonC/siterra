@@ -95,6 +95,10 @@ uniform vec3 uFog;          // near, far (km from the camera), max mix
 uniform float uDim;         // 1 normal; lower dims the land (the ask open)
 uniform vec3 uRimC;
 uniform float uRimA, uSmooth;
+uniform sampler2D uOver;    // a finding's footprint painted on the land (RGBA, row 0 north, over uOverRect)
+uniform vec4 uOverRect;
+uniform float uOverA;       // 0 none, 1 the footprint shown
+uniform float uBandAt, uBandA; // a band below this height (m) lit, the rest stepped back (0 to 1)
 varying vec3 vWorld;
 void main() {
   vec2 xz = vWorld.xz;
@@ -128,6 +132,19 @@ void main() {
   vec3 col = alb * (uLight * diff + uAmbient * ao * sky) + uSky * pow(1.0 - n.y, 2.0) * 0.06 * ao;
   // channel floors a touch darker, crests a touch lighter (from the relief itself)
   col *= 1.0 - clamp(lap / 220.0, -0.05, 0.05);
+
+  // a finding's footprint on the land, lit by the land's own light so the relief still reads through it
+  if (uOverA > 0.001) {
+    vec2 ou = (xz - uOverRect.xy) / (uOverRect.zw - uOverRect.xy);
+    vec4 ov = texture(uOver, ou);
+    float shade = 0.5 + 0.5 * clamp(diff * 1.1 + 0.3 * sky, 0.0, 1.0);
+    col = mix(col, ov.rgb * shade, ov.a * uOverA);
+  }
+  // the band a finding is about lit, the rest of the land stepped back
+  if (uBandA > 0.001) {
+    float inBand = 1.0 - smoothstep(uBandAt - 6.0, uBandAt + 6.0, h);
+    col *= mix(1.0, mix(0.42, 1.12, inBand), uBandA);
+  }
 
   float c250 = contour(h, 250.0, 0.9);
   float c1000 = contour(h, 1000.0, 1.2);
@@ -304,6 +321,10 @@ export interface ReliefOptions {
   limitAt?: number;
 }
 
+/** No footprint: one transparent texel. */
+const EMPTY_OVERLAY = new DataTexture(new Uint8Array([0, 0, 0, 0]), 1, 1, RGBAFormat);
+EMPTY_OVERLAY.needsUpdate = true;
+
 export function createRelief(
   H: Float32Array,
   g: Grid,
@@ -373,6 +394,11 @@ export function createRelief(
     uRimC: { value: hexVec(c.rimC) },
     uRimA: { value: o.rimA },
     uSmooth: { value: o.smooth },
+    uOver: { value: EMPTY_OVERLAY as Texture },
+    uOverRect: { value: new Vector4(...frame.rect(g)) },
+    uOverA: { value: 0 },
+    uBandAt: { value: 0 },
+    uBandA: { value: 0 },
   };
   const material = new ShaderMaterial({
     vertexShader: RELIEF_VERT,

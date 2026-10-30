@@ -28,7 +28,9 @@ import {
   EXAG,
   OVERVIEW_DESIGN as DESIGN,
   ROUTE_QUIET,
+  awayOf,
   mountOverview,
+  sideOf,
   type OverviewLayout,
   type OverviewScene,
   type Selection,
@@ -108,6 +110,31 @@ const CREDITS: MessageId[] = [
 ];
 /** The data's short names for the one visible line. */
 const SHORT: MessageId[] = ["source.modis", "source.chirps", "source.worldcover", "source.dem"];
+
+/** What the land shows while a finding is open: its footprint, only when its asset was read. */
+function onLandOf(sel: Selection, data: OverviewData | null, bandLimit: string): string | null {
+  if (!data) return null;
+  switch (sel) {
+    case "catchment":
+      return en["overview.onLand.catchment"].text;
+    case "fdr":
+      return data.footprints.slope
+        ? format("overview.onLand.fdr", {
+            n: new Intl.NumberFormat("en").format(data.footprints.slope.cells.length),
+          })
+        : null;
+    case "band":
+      return bandLimit ? format("overview.onLand.band", { limit: bandLimit }) : null;
+    case "rain":
+      return data.footprints.rain
+        ? format("overview.onLand.rain", { n: data.footprints.rain.length })
+        : null;
+    case "pixel":
+      return data.pixel ? en["overview.onLand.pixel"].text : null;
+    default:
+      return null;
+  }
+}
 
 /** The last crumb while something is open: the finding's own number with a few words, or what opened. */
 function crumbOf(sel: Selection, findings: readonly Finding[], bandLimit: string): string {
@@ -284,6 +311,8 @@ function OverviewReady({
   const routesRef = useRef<HTMLButtonElement>(null);
   /** The route picked in the opened list (hovered or focused), if any. */
   const pickRef = useRef<string | null>(null);
+  /** True while the sources panel is open: the labels it covers are dimmed. */
+  const panelRef = useRef(false);
   const endRefs = useRef(new Map<string, HTMLElement>());
   const startRef = useRef<HTMLDivElement>(null);
   const dotRefs = useRef(new Map<FindingId, HTMLDivElement>());
@@ -411,7 +440,10 @@ function OverviewReady({
       const hv = f.id === hov.current ? h : 0;
       const other = f.id !== hov.current ? h : 0;
       const lower = place.dot.y > layout.centre.y + 40;
+      // the arc's words step back while the visitor has turned the land or brought it closer (R brings them back)
+      const aw = awayOf(camRef.current);
       let op =
+        (1 - aw) *
         (1 - 0.38 * other) *
         (1 - 0.3 * k) *
         lerp(1, isSel ? 0 : 0.3, e) *
@@ -437,6 +469,13 @@ function OverviewReady({
         // the routes opened leave no ring label behind, not even a blurred trace
         if (hit || place.behind || out || selected === "routes") op *= 1 - e;
       }
+      // what the sources panel covers is dimmed while it is open
+      const panelEl = panelRef.current ? document.querySelector("[data-sources-panel]") : null;
+      if (panelEl) {
+        const p = toDesign(panelEl, fit.scale);
+        const lr = { l: at.x, t: at.y, r: at.x + label.offsetWidth, b: at.y + label.offsetHeight };
+        if (lr.l < p.right && p.left < lr.r && lr.t < p.bottom && p.top < lr.b) op *= 0.25;
+      }
       label.style.opacity = op.toFixed(3);
       label.style.filter = e > 0.01 ? `blur(${(2.4 * e).toFixed(2)}px)` : "none";
       label.style.setProperty("--hov", hv.toFixed(3));
@@ -449,7 +488,11 @@ function OverviewReady({
           ? 0
           : isSel
             ? 1
-            : (1 - 0.38 * other) * (1 - 0.3 * k) * (1 - 0.6 * e) * place.onArc
+            : (1 - awayOf(camRef.current)) *
+              (1 - 0.38 * other) *
+              (1 - 0.3 * k) *
+              (1 - 0.6 * e) *
+              place.onArc
       ).toFixed(3);
       if (wire) wire.style.opacity = (hv * (1 - e)).toFixed(3);
     }
@@ -462,7 +505,11 @@ function OverviewReady({
     const big = bigRef.current ? toDesign(bigRef.current, fit.scale) : null;
     if (sw) {
       if (sp && big) {
-        const tx = big.left - 14;
+        // the hairline meets the number on the side it faces: its left edge for a record on the right
+        const tx =
+          sideOf(selected, findingsRef.current.find((f) => f.id === selected)?.clock) === "left"
+            ? big.right + 14
+            : big.left - 14;
         const ty = big.top + (big.bottom - big.top) * 0.55;
         const L = Math.hypot(tx - sp.dot.x, ty - sp.dot.y) || 1;
         sw.setAttribute("x1", (sp.dot.x + ((tx - sp.dot.x) * 9) / L).toFixed(2));
@@ -478,8 +525,9 @@ function OverviewReady({
     if (circle) {
       circle.style.left = `${layout.ask.x.toFixed(2)}px`;
       circle.style.top = `${layout.ask.y.toFixed(2)}px`;
-      circle.style.opacity = (1 - away).toFixed(3);
-      circle.style.visibility = away > 0.99 ? "hidden" : "visible";
+      const gone = Math.max(away, awayOf(camRef.current));
+      circle.style.opacity = (1 - gone).toFixed(3);
+      circle.style.visibility = gone > 0.99 ? "hidden" : "visible";
       circle.style.transform = `translateY(${(-LIFT * oe).toFixed(2)}px) scale(${(1 + 0.04 * Math.max(k, oe)).toFixed(4)})`;
     }
     // the land marks: the proposed field check, and the opened pixel's name
@@ -738,6 +786,10 @@ function OverviewReady({
     [setCam],
   );
   const [panel, setPanel] = useState(false);
+  useEffect(() => {
+    panelRef.current = panel;
+    go();
+  }, [panel, go]);
   const toOpening = useCallback(() => {
     window.location.assign(OPENING_HREF);
   }, []);
@@ -1053,6 +1105,13 @@ function OverviewReady({
                 fieldCaption={instrumentOf(listing, "field_plan")?.spec.caption ?? null}
                 pixelNote={data?.pixel?.note ?? null}
                 areaLabel={names.areaLabel}
+                side={sideOf(sel, selFinding?.clock)}
+                onLand={onLandOf(sel, data, bandLimit?.display ?? "")}
+                slopeKey={
+                  sel === "fdr" && data?.footprints.slope
+                    ? { domain: data.footprints.slope.domain }
+                    : null
+                }
                 refs={{
                   root: recRef,
                   inst: instRef,

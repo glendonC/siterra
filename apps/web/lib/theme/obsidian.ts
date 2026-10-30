@@ -120,6 +120,8 @@ export const overviewColours = {
   arcLit: [0.769, 0.839, 0.859] as Channels,
   /** The opened pixel's footprint on the land. */
   footprint: "#f4f7f8",
+  /** The rain finding's CHIRPS cells over the land: the rain tone of the arc's blue dot. */
+  rainCell: "#86b6da",
   /** The proposed walking routes: the one warm amber, for a proposed thing. */
   route: obsidian.accent,
   drainage: modelColours.drainage,

@@ -679,6 +679,22 @@ export const en = {
   // the opened finding's record (D4's opened node): a kicker, the number, its caption, the season chart and its
   // line, the published context in the record's display text with its sources, and the way to the full instrument
   "overview.record.pixel": { text: "One pixel", kind: "label" },
+  // what the land shows while a finding is open (decision 6): its footprint, from the case's own assets
+  "overview.onLand.catchment": { text: "On the land: the catchment's edge.", kind: "ui" },
+
+  "overview.onLand.fdr": {
+    text: "On the land: every cell's March to June trend. The share comes from the false discovery rate check over all {n} cells; the map marks no cell as significant.",
+    kind: "ui",
+    honesty: true,
+  },
+
+  "overview.onLand.band": { text: "On the land: the area below {limit} m, lit.", kind: "ui" },
+  "overview.onLand.rain": {
+    text: "On the land: the {n} rainfall cells, darker where more of the cell lies inside the catchment.",
+    kind: "ui",
+  },
+  "overview.onLand.pixel": { text: "On the land: the pixel's outline.", kind: "ui" },
+  "overview.slopeKey": { text: "NDVI per decade, March to June", kind: "label" },
   "overview.record.band": { text: "Below {limit} m", kind: "label" },
   "overview.record.caption": {
     text: "NDVI per decade, March to June, {from} to {to}",

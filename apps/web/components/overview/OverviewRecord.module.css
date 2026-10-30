@@ -39,6 +39,8 @@
 }
 
 .big {
+  /* as wide as the number, so the hairline from the arc meets the number itself on either side */
+  width: fit-content;
   margin-top: 10px;
   font-weight: 300;
   font-size: 76px;
@@ -155,4 +157,54 @@
   letter-spacing: 0.02em;
   color: var(--ov-kicker);
   white-space: nowrap;
+}
+
+/* a record that opens on the left (its finding sits on the arc's left): the column and the context mirrored */
+.record[data-side="left"] .inst {
+  left: 88px;
+}
+
+.record[data-side="left"] .plane {
+  transform: rotateY(14deg) rotateX(2deg);
+  transform-origin: 100% 40%;
+}
+
+.record[data-side="left"] .evid {
+  left: 88px;
+  transform: perspective(1500px) rotateY(7deg);
+  transform-origin: 100% 50%;
+}
+
+/* the fixed slope scale the land is painted on */
+.slopeKey {
+  display: grid;
+  grid-template-columns: 220px auto;
+  column-gap: 12px;
+  align-items: center;
+  margin-top: 12px;
+}
+
+.slopeBar {
+  display: block;
+  height: 6px;
+  border-radius: 1px;
+}
+
+.slopeTicks {
+  grid-row: 2;
+  display: flex;
+  justify-content: space-between;
+  width: 220px;
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 16px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-tertiary);
+}
+
+.slopeLabel {
+  grid-row: 1 / span 2;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--text-tertiary);
 }

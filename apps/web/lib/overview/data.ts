@@ -18,6 +18,7 @@ import {
   type TerrainMeta,
 } from "../instruments/valley/fixtures";
 import { outlineRing } from "../instruments/valley/outline";
+import { rainCellsFrom, slopeCellsFrom, type RainCell, type SlopeCells } from "./footprint";
 import { routesFrom, type RouteLine } from "./routes";
 
 type Fetch = (input: string, init?: RequestInit) => Promise<Response>;
@@ -33,6 +34,8 @@ export interface OverviewData {
   rivers: Rivers;
   /** The case's proposed walking routes (none when the case holds none). */
   routes: RouteLine[];
+  /** The findings' footprints from the layer stack spec's assets; null where an asset could not be read. */
+  footprints: { slope: SlopeCells | null; rain: RainCell[] | null };
   /** The pixel the field check is proposed at: its four corners and its centre (EPSG:32629), when the case has it. */
   pixel: {
     footprint: [number, number][];
@@ -71,6 +74,24 @@ export async function loadOverviewData(
   const p = layers.spec.parameters;
   if (p.kind !== "layer_stack") throw new Error(`Not a layer stack spec: ${p.kind}`);
   const meta = await json(`${base}terrain-meta.json`, terrainMetaSchema, signal);
+  const rainRef = p.layers.find((l) => l.layer === "rainfall")?.data;
+  const optional = <T>(read: () => Promise<T>): Promise<T | null> =>
+    read().catch((e: unknown) => {
+      if (signal?.aborted) throw e;
+      console.error("Overview footprint not read", e);
+      return null;
+    });
+  const [slope, rain] = await Promise.all([
+    optional(async () =>
+      slopeCellsFrom(
+        await readJsonAsset(layers, drawnAsset(layers, "trend_cells"), fetchImpl, signal),
+      ),
+    ),
+    optional(async () => {
+      if (!rainRef) throw new Error("the layer stack spec names no rainfall layer");
+      return rainCellsFrom(await readJsonAsset(layers, rainRef, fetchImpl, signal));
+    }),
+  ]);
   const [relief, landcover, outline, casePixel] = await Promise.all([
     loadRelief(base, meta, signal),
     bitmap(`${base}landcover-10m.png`, fetchImpl, signal),
@@ -88,6 +109,7 @@ export async function loadOverviewData(
     ring: outlineRing(outline),
     rivers: riversFrom(snapshot, p.drainageFeatureIds),
     routes: routesFrom(snapshot),
+    footprints: { slope, rain },
     pixel:
       footprint && casePixel
         ? {

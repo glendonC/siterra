@@ -17,6 +17,7 @@ import { chartScale, yearTicks, type SeasonChart } from "../../lib/overview/reco
 import type { RecordData } from "../../lib/overview/record-data";
 import type { Selection } from "../../lib/overview/scene/overview";
 import { ControlLink } from "../controls/Control";
+import { pixelColours as C } from "../../lib/theme/obsidian";
 import styles from "./OverviewRecord.module.css";
 
 /** The full instrument each record opens. */
@@ -145,6 +146,9 @@ export function OverviewRecord({
   fieldCaption,
   pixelNote,
   areaLabel,
+  side,
+  onLand,
+  slopeKey,
   refs,
 }: {
   sel: Exclude<Selection, "results" | "routes">;
@@ -162,6 +166,12 @@ export function OverviewRecord({
   pixelNote: string | null;
   /** The record's name for its area ("Valley catchment"), the kicker of a finding over the whole area. */
   areaLabel: string;
+  /** The side it opens on: the side its finding sits on the arc (decision 6). */
+  side: "left" | "right";
+  /** What the land shows while it is open (its footprint), in the catalog's words. */
+  onLand: string | null;
+  /** The fixed slope scale the land is painted on, when it is. */
+  slopeKey: { domain: number } | null;
   refs: RecordRefs;
 }) {
   const [from, to] = SEASON_TREND_YEARS;
@@ -186,7 +196,7 @@ export function OverviewRecord({
     chart && finding ? format("overview.record.caption", { from, to }) : caption.join(" ");
   const context = data?.context ?? null;
   return (
-    <div ref={refs.root} className={styles.record} data-record={sel}>
+    <div ref={refs.root} className={styles.record} data-record={sel} data-side={side}>
       <div ref={refs.frost} className={styles.frost} aria-hidden="true" />
       <section ref={refs.inst} className={styles.inst}>
         <div className={styles.plane}>
@@ -207,6 +217,12 @@ export function OverviewRecord({
           {chart ? <SeasonsChart chart={chart} /> : null}
           {data?.scatter ? <RainScatter data={data.scatter} /> : null}
           {ci ? <div className={styles.ci}>{ci}</div> : null}
+          {slopeKey ? <SlopeKey domain={slopeKey.domain} /> : null}
+          {onLand ? (
+            <div className={styles.note} data-on-land>
+              {onLand}
+            </div>
+          ) : null}
           {sel === "pixel" && pixelNote ? (
             <div className={styles.note} data-pixel-note>
               {pixelNote}
@@ -239,6 +255,26 @@ export function OverviewRecord({
           </section>
         </>
       ) : null}
+    </div>
+  );
+}
+
+/** The fixed scale the land's slope is painted on: browning arm, the neutral middle, greening arm. */
+function SlopeKey({ domain }: { domain: number }) {
+  const stops = [...[...C.slopeBelow].reverse(), C.slopeNeutral, ...C.slopeAbove];
+  return (
+    <div className={styles.slopeKey} data-slope-key>
+      <span
+        className={styles.slopeBar}
+        style={{ background: `linear-gradient(90deg, ${stops.join(", ")})` }}
+        aria-hidden="true"
+      />
+      <span className={styles.slopeTicks}>
+        <span>{signed(-domain, 2)}</span>
+        <span>0</span>
+        <span>{signed(domain, 2)}</span>
+      </span>
+      <span className={styles.slopeLabel}>{en["overview.slopeKey"].text}</span>
     </div>
   );
 }

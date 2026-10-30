@@ -79,3 +79,40 @@ test("a flat instrument offers no view control and no R", async ({ page }) => {
     "SSources",
   ]);
 });
+
+test("a finding opens on its own side with its footprint named, and a turned land clears the arc", async ({
+  page,
+}) => {
+  await page.goto("/valley");
+  await expect(page.locator("[data-overview-root]")).toHaveAttribute("data-ready", "", {
+    timeout: 60_000,
+  });
+  // 24.7% sits on the arc's left: its record opens on the left, with the slope key and what the land shows
+  await page.locator("[data-finding='fdr']").click();
+  const left = page.locator("[data-record='fdr']");
+  await expect(left).toHaveAttribute("data-side", "left");
+  await expect(left.locator("[data-slope-key]")).toBeVisible();
+  await expect(left.locator("[data-on-land]")).toContainText(
+    "The share comes from the false discovery rate check over all 8,094 cells; the map marks no cell as significant.",
+  );
+  await page.keyboard.press("Escape");
+  await expect(page.locator("[data-record]")).toHaveCount(0);
+  // the pixel sits on the right: its record opens on the right
+  await page.locator("[data-finding='pixel']").click();
+  await expect(page.locator("[data-record='pixel']")).toHaveAttribute("data-side", "right");
+  await page.keyboard.press("Escape");
+  await expect(page.locator("[data-record]")).toHaveCount(0);
+  // a turned land: the ask steps back; R brings it back
+  const ask = page.locator("[data-ask]");
+  await page.mouse.move(900, 500);
+  await page.mouse.down();
+  for (let i = 0; i < 20; i++) await page.mouse.move(900 - i * 8, 500);
+  await page.mouse.up();
+  await expect
+    .poll(() => ask.evaluate((el) => Number(getComputedStyle(el).opacity)))
+    .toBeLessThan(0.05);
+  await page.keyboard.press("r");
+  await expect
+    .poll(() => ask.evaluate((el) => Number(getComputedStyle(el).opacity)))
+    .toBeGreaterThan(0.95);
+});
