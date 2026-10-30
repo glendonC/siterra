@@ -3,9 +3,11 @@
   "title": "Calaveras Creek catchment",
   "areaNoun": "creek catchment",
   "note": "Place configuration read by the long-record pipeline scripts. Everything that is specific to one place lives here; the scripts hold none of it. A value changed here after a result was read is a new configuration revision labelled post hoc in the recipe result. This is the second place built through the pipeline (the first is Ait Bouguemez); every window, rule and threshold below was written before any MODIS, CHIRPS or Sentinel value of this catchment was read, and before any land cover, strata or trend of it was computed.",
-  "configRevision": 1,
+  "configRevision": 3,
   "revisions": [
-    {"revision": 1, "date": "2026-10-30", "change": "First configuration: the frozen geometry and its delineation rule, the analysis grid, the DEM pin, the land cover source and read window, the rainfall window, the strata layers with the reservoir zone rule, and the restrend_long_record, snow_cover_by_band, pixel_trend_long_record and season_trend_long_record windows with their basis. Strata, land cover and drainage checksums are pinned in later revisions, after those layers are built."}
+    {"revision": 1, "date": "2026-10-30", "change": "First configuration: the frozen geometry and its delineation rule, the analysis grid, the DEM pin, the land cover source and read window, the rainfall window, the strata layers with the reservoir zone rule, and the restrend_long_record, snow_cover_by_band, pixel_trend_long_record and season_trend_long_record windows with their basis. Strata, land cover and drainage checksums are pinned in later revisions, after those layers are built."},
+    {"revision": 2, "date": "2026-10-30", "change": "POST HOC to revision 1, made after the revision 1 reservoir zone had been drawn and inspected and before any trend, rainfall or season value of this catchment was computed: the zone is now the largest connected WorldCover water body plus 250 m instead of every water body plus 250 m. The revision 1 rule gave a zone of 8.05 per cent of the catchment, made mostly of 250 m circles around 72 small stock ponds (73 connected water bodies, the largest 4.56 km2 of 4.84 km2 of mapped water), which is not the reservoir basin the rule was written for. Nothing else changed."},
+    {"revision": 3, "date": "2026-10-30", "change": "Pinned the land cover layer and the strata layer by checksum after they were built from revision 2 (strata.tif has the four bands described by the strata block). No value of revision 1 or 2 changed."}
   ],
   "geometry": {
     "id": "geo_calaveras_creek_catchment",
@@ -32,6 +34,7 @@
   "strata": {
     "bundle": "bundle_terrain_strata_calaveras_creek",
     "asset": "strata.tif",
+    "sha256": "53427f54302a47ea9598ad2d76ccbaef9d5dfe25b8c005cab12017220ab4ac35",
     "layers": [
       {
         "band": 1,
@@ -58,13 +61,15 @@
       "band": 4,
       "worldcoverClasses": [80],
       "bufferM": 250,
-      "rationale": "Calaveras Dam was declared seismically unsafe in 2001, the reservoir was held at a fraction of its capacity, the replacement dam was built from 2011 and the reservoir was refilled afterwards (search results from SFPUC and Regional Water Board documents on 30 Oct 2026; refill years not confirmed). Greenness on ground that was exposed or flooded in different years is not comparable with the rest of the catchment, so the reservoir zone is a stratum of its own and the headline trends are also reported outside it. The zone is the WorldCover 2021 permanent water class inside the catchment plus 250 m (one MODIS pixel); fixed here before any land cover or trend of this catchment was computed."
+      "selection": "largest_connected_body",
+      "connectivity": 8,
+      "rationale": "Calaveras Dam was declared seismically unsafe in 2001, the reservoir was held at a fraction of its capacity, the replacement dam was built from 2011 and the reservoir was refilled afterwards (search results from SFPUC and Regional Water Board documents on 30 Oct 2026; refill years not confirmed). Greenness on ground that was exposed or flooded in different years is not comparable with the rest of the catchment, so the reservoir zone is a stratum of its own and the headline trends are also reported outside it. The zone is the largest connected (8-neighbour) WorldCover 2021 permanent water body inside the catchment plus 250 m (one MODIS pixel); revision 1 used every water body and was changed in revision 2, see the revision list. The largest body is taken to be Calaveras Reservoir from its size (4.56 km2) and its position at the catchment's downstream end; that identification was not checked against a source."
     },
     "limitations": [
       "The DEM is a surface model: trees and buildings raise it; radar artefacts are possible in narrow gorges.",
       "WorldCover 2021 is a 2021 context mask, not a record of earlier land cover: oak woodland and savanna may be mapped as tree cover or as grassland, and the reservoir is mapped as the water seen in 2021 imagery.",
       "Strata organize field sampling; they are not vegetation types, pasture units or management boundaries.",
-      "The reservoir zone is mapped water plus 250 m. It removes the reservoir basin only approximately and says nothing about the water level in any year."
+      "The reservoir zone is the largest mapped water body plus 250 m. It removes the reservoir basin only approximately and says nothing about the water level in any year; small stock ponds are not in it."
     ]
   },
   "elevation": {
@@ -80,6 +85,7 @@
     "dataset": "ESA WorldCover 10 m 2021 v200",
     "source": "https://esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N36W123_Map.tif",
     "path": "data/interim/worldcover-calaveras/worldcover-2021.tif",
+    "sha256": "1d7a909f48039fe194837ac27925a128e482fbed4fbf08d93bb9eabaa9c8befc",
     "readWindow": [-121.92, 37.20, -121.44, 37.56],
     "readWindowRule": "the catchment bounding box (-121.86653, 37.25764, -121.49486, 37.50708) widened by 0.05 degrees and rounded outward to 0.01 degrees",
     "madeBy": "science/pipeline/worldcover-grid.py: the tile read by HTTP range request (no account), nearest neighbour onto the analysis grid",
