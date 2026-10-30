@@ -60,7 +60,7 @@ shutil.copyfile(lock, os.path.join(bdir, "uv.lock"))
 now = computed[0] if computed else datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 q1, q2 = info["elevation_band_boundaries_m"]
 WZ = info.get("water_zone")  # terrain_strata 1.1.0: band 4 and its parameters when the place configuration has strata.waterZone
-METHOD_VERSION = "1.1.0" if WZ else "1.0.0"
+METHOD_VERSION = next(r["version"] for r in json.load(open(os.path.join(repo, "science/recipes/registry.json")))["recipes"] if r["recipeId"] == "terrain_strata")  # the registry's: a place without a water zone has three bands under 1.1.0, water_zone none
 checks = [
     {"name": "units_and_scale", "passed": True, "detail": f"Elevation in metres from the pinned DEM; band boundaries {q1} m and {q2} m; aspect classes in degrees from north"},
     {"name": "nodata_not_zero", "passed": True, "detail": "0 means outside the catchment in every band; no class uses 0"},
