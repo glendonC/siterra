@@ -13,6 +13,7 @@ import type {
   DataBundle,
   Evidence,
   GeoSelection,
+  Hypothesis,
   InstrumentRule,
   InstrumentSpec,
   Measurement,
@@ -48,6 +49,8 @@ export type ComposeInputs = {
   measurements: readonly Measurement[];
   evidence: readonly Evidence[];
   branchMerges: readonly BranchMerge[];
+  /** The hypotheses the branch task wrote; a field plan cites the records the merge's hypotheses rest on. */
+  hypotheses?: readonly Hypothesis[];
   /** True when the bundle's collection lists the asset key (the db layer answers from the manifest). */
   hasAsset: (ref: BundleAssetRef) => boolean;
   now: string;
@@ -293,10 +296,24 @@ export function composeInstruments(inputs: ComposeInputs): ComposeResult {
       const merge = [...merges.values()]
         .filter((m) => m.fieldPlan !== undefined)
         .sort((a, b) => (a.id < b.id ? 1 : -1))[0];
-      const gaps = [...evidence.values()]
-        .filter((e) => e.claimKind === "field_requirement" && e.status === "accepted")
-        .map((e) => e.id)
-        .sort();
+      // What the plan cites: the records the merge's own hypotheses rest on (the Measurements their
+      // scores read and the Evidence they weigh), and the accepted field requirements of the case.
+      const restsOn = (inputs.hypotheses ?? [])
+        .filter((h) => merge !== undefined && h.provenance.generatedByTaskId === merge.taskId)
+        .flatMap((h) => [
+          ...(h.measurementIds ?? []).filter((id) => measurements.has(id)),
+          ...[...h.supportingEvidenceIds, ...h.contradictingEvidenceIds].filter((id) =>
+            evidence.has(id),
+          ),
+        ]);
+      const gaps = [
+        ...new Set([
+          ...restsOn,
+          ...[...evidence.values()]
+            .filter((e) => e.claimKind === "field_requirement" && e.status === "accepted")
+            .map((e) => e.id),
+        ]),
+      ].sort();
       parameters = {
         kind: "field_plan",
         geoSelectionId: inputs.geoSelectionId,
@@ -306,7 +323,9 @@ export function composeInstruments(inputs: ComposeInputs): ComposeResult {
       };
       if (merge === undefined) reasons.push("The case holds no branch merge with a field plan");
       if (gaps.length === 0)
-        reasons.push("The case holds no accepted field_requirement Evidence for the plan to cite");
+        reasons.push(
+          "The case holds nothing for the plan to cite: no hypothesis of the merge rests on a record of the case and no field requirement is accepted",
+        );
       caption = {
         ink: rule.caption.ink,
         grey: rule.caption.grey,

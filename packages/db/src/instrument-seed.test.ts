@@ -1,4 +1,7 @@
 import { fileURLToPath } from "node:url";
+import { readFileSync } from "node:fs";
+import { BranchMerge, Evidence, Hypothesis } from "@siterra/contracts";
+import { composeInstruments } from "@siterra/domain";
 import { analysisConfigFor } from "@siterra/domain/cases";
 import { describe, expect, it } from "vitest";
 import { instrumentReferencedIds, uncitedInstrumentInputs } from "@siterra/domain";
@@ -161,6 +164,49 @@ describe("the instruments the case seed composes", () => {
     const shifted =
       measurements.get("meas_pixel_anatomy_ndvi_mix_tree_cover_plus20_2025_06")?.value ?? 0;
     expect(shifted).toBeGreaterThan(mix);
+  });
+
+  it("composes the field plan from the recorded live run's merge and the records its hypotheses rest on", () => {
+    const recorded = JSON.parse(
+      readFileSync(
+        fileURLToPath(
+          new URL(
+            "../../contracts/fixtures/recorded-live-run-2026-10-28-branch-merge.json",
+            import.meta.url,
+          ),
+        ),
+        "utf8",
+      ),
+    ) as { records: Record<string, unknown[]> };
+    const config = analysisConfigFor("case_aitbouguemez");
+    if (config === null || seed === null) throw new Error("the case has no configuration");
+    const result = composeInstruments({
+      caseId: "case_aitbouguemez",
+      config,
+      openExplanationIds: config.explanations.map((e) => e.id),
+      geoSelectionId: seed.geoSelections[0]?.id ?? "",
+      geoSelections: seed.geoSelections,
+      dataBundles: seed.bundles.map((b) => b.dataBundle),
+      contextFeatures: seed.contextFeatures,
+      measurements: [...measurements.values()],
+      evidence: [
+        ...seed.evidence,
+        ...(recorded.records["evidenceRecords"] ?? []).map((r) => Evidence.parse(r)),
+      ],
+      branchMerges: (recorded.records["branchMergeRecords"] ?? []).map((r) => BranchMerge.parse(r)),
+      hypotheses: (recorded.records["hypothesisRecords"] ?? []).map((r) => Hypothesis.parse(r)),
+      hasAsset: () => true,
+      now: "2026-10-29T20:00:00Z",
+    });
+    const plan = result.specs.find((s) => s.id === "inst_field_plan_valley");
+    expect(plan?.parameters).toMatchObject({
+      kind: "field_plan",
+      branchMergeId: "merge_35d821154a3396cb0178d137b087040b",
+      actionId: null,
+    });
+    expect(plan?.caption.citationIds.length).toBeGreaterThan(0);
+    expect(plan?.caption.citationIds.length).toBeLessThanOrEqual(8);
+    expect(plan?.caption.claimKind).toBe("field_requirement");
   });
 
   it("report the rules that wait on inputs the seed lacks, with the reason, and write no spec for them", () => {
