@@ -83,6 +83,9 @@ test("opens a finding's record on its side and Esc returns", async ({ page }) =>
   // the pixel: its number, its season chart and context, and the way to the full instrument
   await page.locator("[data-finding='pixel']").click();
   await expect(page.locator("[data-record='pixel']")).toContainText("+0.0570");
+  await expect(page.locator("[data-record='pixel'] [data-pixel-note]")).toHaveText(
+    "This pixel is an illustration chosen by judgment, not a sample.",
+  );
   await expect(page.locator("[data-record='pixel'] svg circle").first()).toBeAttached({
     timeout: 30_000,
   });

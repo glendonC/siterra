@@ -286,6 +286,8 @@ export function mountPixel(
       y0 + H + 36,
       W,
     );
+    // the bundle's own words for how this pixel was chosen: an illustration, not a sample
+    place(div("note", stage, d.selection.note), x0, y0 + H + 60, W).dataset.pixelNote = "";
     ring = [x0 + cx, y0 + cy];
   }
 

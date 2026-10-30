@@ -924,6 +924,7 @@ function OverviewReady({
                 data={sel === "field" ? null : (recordData[sel] ?? null)}
                 reasons={reasons}
                 fieldCaption={instrumentOf(listing, "field_plan")?.spec.caption ?? null}
+                pixelNote={data?.pixel?.note ?? null}
                 refs={{
                   root: recRef,
                   inst: instRef,

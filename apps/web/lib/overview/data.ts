@@ -39,6 +39,8 @@ export interface OverviewData {
     centre: [number, number];
     /** Its own March to June seasons and Theil-Sen line, for the opened record. */
     series: PixelData["series"];
+    /** The bundle's note on how it was chosen ("an illustration chosen by judgment, not a sample"). */
+    note: string;
   } | null;
 }
 
@@ -88,7 +90,12 @@ export async function loadOverviewData(
     routes: routesFrom(snapshot),
     pixel:
       footprint && casePixel
-        ? { footprint, centre: centreOf(footprint), series: casePixel.pixel.series }
+        ? {
+            footprint,
+            centre: centreOf(footprint),
+            series: casePixel.pixel.series,
+            note: casePixel.pixel.selection.note,
+          }
         : null,
   };
 }

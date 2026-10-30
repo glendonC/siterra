@@ -21,6 +21,10 @@
       "sha256": "882f04ed853bbb47b642d455427014623ddf2d9d086ce7212abc5e97ae1b9b30"
     }
   ],
+  "selection": {
+    "note": "This pixel is an illustration chosen by judgment, not a sample.",
+    "chosenBy": "The 28 October specimen build, by a disclosed judgment: rank 3 of the candidates of the rule below. Ranks 1 and 2 lie in the lower gorge along a meandering riparian strip; this is the first candidate on the edge of the main valley floor, where the floor of tree cover and cropland meets the open slope in one straight boundary."
+  },
   "pixel": {
     "modis_tile": "h17v05",
     "tile_row": 4005,

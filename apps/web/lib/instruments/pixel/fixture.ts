@@ -116,6 +116,7 @@ export function pixelFixture(src: Sources, sources: { path: string; sha256: stri
     trend: { slope_per_decade: number };
     composition: { code: number; cells: number }[];
     june_ndvi: { count_min: number; count_max: number };
+    selection: { note: string; chosen_by: string };
   };
   const cells = src[`${B}/pixel-cells.json`] as Cells;
   const spectra = src[`${B}/pixel-spectra.json`] as {
@@ -151,6 +152,7 @@ export function pixelFixture(src: Sources, sources: { path: string; sha256: stri
   const g = cells.grid;
   return {
     sources,
+    selection: { note: anatomy.selection.note, chosenBy: anatomy.selection.chosen_by },
     pixel: {
       modis_tile: anatomy.pixel.modis_tile,
       tile_row: anatomy.pixel.tile_row,

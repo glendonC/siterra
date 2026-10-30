@@ -15,6 +15,8 @@ export const pixelSchema = z.object({
   sources: z
     .array(z.object({ path: z.string(), sha256: z.string().regex(/^[0-9a-f]{64}$/) }))
     .min(1),
+  /** Why this pixel: the bundle's selection note and how it was chosen, word for word. */
+  selection: z.object({ note: z.string().min(1), chosenBy: z.string().min(1) }),
   pixel: z.object({
     modis_tile: z.string(),
     tile_row: z.number().int(),

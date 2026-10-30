@@ -22,10 +22,12 @@ export const en = {
     text: "An environmental analysis engine for communities and organizations with no specialist to ask.",
     kind: "ui",
   },
+  // only the brief task waits for a person (awaiting_review); a visitor's results are never reviewed by one
   "opening.how": {
-    text: "Meta Muse Spark plans the tasks and reads published sources. Code computes every number and checks every quote against its source. A person reviews every result. Siterra sends, spends and decides nothing.",
+    text: "Meta Muse Spark plans the tasks and reads published sources. Code computes every number, checks every quote against its source and marks what it could not check. Siterra sends, spends and decides nothing.",
     kind: "ui",
   },
+
   "opening.question": { text: "Question", kind: "heading" },
   "opening.action": { text: "Open Region Pack", kind: "button" },
   "opening.skip": { text: "Skip to Map", kind: "link" },

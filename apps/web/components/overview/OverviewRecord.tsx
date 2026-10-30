@@ -143,6 +143,7 @@ export function OverviewRecord({
   data,
   reasons,
   fieldCaption,
+  pixelNote,
   refs,
 }: {
   sel: Exclude<Selection, "results" | "routes">;
@@ -156,6 +157,8 @@ export function OverviewRecord({
   reasons: string[];
   /** The field plan's caption once the composer opens one; it replaces the blocked reasons. */
   fieldCaption: { ink: string; grey: string } | null;
+  /** The pixel bundle's note on how the pixel was chosen, shown with the pixel's record. */
+  pixelNote: string | null;
   refs: RecordRefs;
 }) {
   const [from, to] = SEASON_TREND_YEARS;
@@ -201,6 +204,11 @@ export function OverviewRecord({
           {chart ? <SeasonsChart chart={chart} /> : null}
           {data?.scatter ? <RainScatter data={data.scatter} /> : null}
           {ci ? <div className={styles.ci}>{ci}</div> : null}
+          {sel === "pixel" && pixelNote ? (
+            <div className={styles.note} data-pixel-note>
+              {pixelNote}
+            </div>
+          ) : null}
           <Link ref={refs.link} className={styles.open} href={INSTRUMENT_HREF[sel]}>
             {en["overview.record.open"].text}
           </Link>

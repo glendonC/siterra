@@ -25,6 +25,10 @@ test("keeps within the approved specimen's budget", async ({ page }) => {
   await expect(page.locator(`${ROOT} [class*='credit']`)).toContainText(
     "Produced using Copernicus WorldDEM-30",
   );
+  // the bundle's own note on how the pixel was chosen
+  await expect(page.locator(`${ROOT} [data-pixel-note]`)).toHaveText(
+    "This pixel is an illustration chosen by judgment, not a sample.",
+  );
 });
 
 test("places every panel without crowding the text", async ({ page }) => {

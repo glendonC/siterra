@@ -88,6 +88,14 @@
   color: var(--ov-ci);
 }
 
+/* the pixel bundle's note on how the pixel was chosen: small and grey, under the trend line */
+.note {
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--text-tertiary);
+}
+
 .open {
   display: inline-block;
   margin-top: 14px;
