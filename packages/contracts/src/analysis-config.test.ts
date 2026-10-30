@@ -255,3 +255,23 @@ describe("case analysis configuration: instrument rules", () => {
     expect(withRules({ ...fieldPlan, parameters: scatter.parameters })).toBe(false);
   });
 });
+
+describe("the configuration note", () => {
+  it("is optional, and accepts one to six hundred characters of text", () => {
+    expect(CaseAnalysisConfig.safeParse(OTHER_PLACE).success).toBe(true);
+    expect(
+      CaseAnalysisConfig.safeParse({ ...OTHER_PLACE, note: "Drafted from the schema alone." })
+        .success,
+    ).toBe(true);
+    expect(CaseAnalysisConfig.safeParse({ ...OTHER_PLACE, note: "x".repeat(600) }).success).toBe(
+      true,
+    );
+  });
+
+  it("refuses an empty note and one over six hundred characters", () => {
+    expect(CaseAnalysisConfig.safeParse({ ...OTHER_PLACE, note: "" }).success).toBe(false);
+    expect(CaseAnalysisConfig.safeParse({ ...OTHER_PLACE, note: "x".repeat(601) }).success).toBe(
+      false,
+    );
+  });
+});

@@ -11,5 +11,7 @@ export default defineConfig({
       "apps/*/components/**/*.test.tsx",
     ],
     environment: "node",
+    // The seed tests read every bundle of a place; with 150 files running at once the default 5 s is not enough.
+    testTimeout: 30_000,
   },
 });

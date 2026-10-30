@@ -1,0 +1,55 @@
+{
+ "seedVersion": 1,
+ "caseId": "case_calaveras_creek",
+ "description": "Case seed for the Calaveras Creek grazing case, the second place: the frozen analysis geometry, the validated bundle catalog (shared with the first place) and the corpus manifest. Loaded with run-seed.ts --seed-dir data/case/calaveras-creek. This file asserts no measured result and no field visit.",
+ "case": {
+  "title": "Grazing and the reservoir catchment of Calaveras Creek",
+  "objective": "Is grazing changing the rangeland of the Calaveras Creek catchment?",
+  "description": "Reported: the catchment's rangeland is managed for grazing, and the dam of its reservoir was replaced. Not established: whether vegetation has changed, or why.",
+  "unresolvedQuestions": [
+   "Whether vegetation has changed, or why."
+  ],
+  "place": {
+   "name": "Calaveras Creek catchment",
+   "region": "Diablo Range, California"
+  }
+ },
+ "geoSelection": {
+  "id": "geo_calaveras_creek_catchment",
+  "revision": 2,
+  "label": "Creek catchment (hydrological analysis extent), not a grazing lease, parcel or management boundary",
+  "geometryStatus": "analysis_ready",
+  "boundaryRole": "hydrological_unit",
+  "crs": "EPSG:4326",
+  "geometry": {
+   "path": "science/places/calaveras-creek.geometry.geojson",
+   "sha256": "745fb73a2dadb7284074eb6c0b607f390975a70592a7d968588ea083882faa9d",
+   "sameAs": "analysis-geometry.geojson in every Calaveras Creek bundle of data/bundles/ (byte-identical)"
+  },
+  "areaM2": 257455062,
+  "areaMethod": "Geodesic area of the frozen polygon on the WGS84 ellipsoid, 257,455,062 m2 (area_m2_geodesic of the geometry file)",
+  "selectionMethod": "Native 30 m delineation from Copernicus DEM GLO-30 (2021 release): every cell whose D8 path reaches the outlet snapped from the USGS stream gauge 11173500 input point; rule and acceptance check in science/places/calaveras-creek.json (geometry.delineationRule)",
+  "limitations": [
+   "Not expert-reviewed.",
+   "A hydrological analysis extent, not a grazing lease, parcel or management boundary."
+  ],
+  "otherAreas": [
+   {
+    "areaM2": 257337253,
+    "method": "Planar area of the frozen polygon in EPSG:32610 (UTM 10N)"
+   },
+   {
+    "areaM2": 257339500,
+    "method": "Count of 10 m analysis pixels whose centres fall inside the frozen polygon, EPSG:32610; the area_m2 of each bundle's siterra:geo_selection"
+   }
+  ]
+ },
+ "bundles": {
+  "catalog": "data/bundles/catalog.json",
+  "catalogSha256": "131297d7d318a2d264139f01ccf7544dfa313253f89fa59d6d00589a349f87f9"
+ },
+ "corpus": {
+  "manifest": "data/case/corpus-manifest-calaveras-creek.json",
+  "manifestSha256": "e20256857c361ffe9065360a872fb4a9a45a6b9c0d7c0d243c3e40c708b6e10c"
+ }
+}

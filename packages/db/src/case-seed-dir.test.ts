@@ -98,5 +98,5 @@ describe("readCaseSeed seedDir", () => {
     expect(out("chosen.json", ["--seed-dir", defaultSeedDir])).toBe(
       out("plain.json", ["http://127.0.0.1:1/assets"]),
     );
-  });
+  }, 30_000);
 });

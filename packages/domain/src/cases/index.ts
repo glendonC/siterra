@@ -1,14 +1,16 @@
 import { CaseAnalysisConfig } from "@siterra/contracts";
 
 import aitBouguemez from "./case_aitbouguemez.json" with { type: "json" };
+import calaverasCreek from "./case_calaverascreek.json" with { type: "json" };
 
 // Case analysis configurations, one JSON file per place, each parsed against the contract when the
 // module loads so a malformed configuration fails at start, not in the middle of a command. A new
 // place is a new file and one line below.
 
-export const caseAnalysisConfigs: readonly CaseAnalysisConfig[] = [aitBouguemez].map((c) =>
-  CaseAnalysisConfig.parse(c),
-);
+export const caseAnalysisConfigs: readonly CaseAnalysisConfig[] = [
+  aitBouguemez,
+  calaverasCreek,
+].map((c) => CaseAnalysisConfig.parse(c));
 
 const byCase = new Map(caseAnalysisConfigs.map((c) => [c.caseId, c]));
 

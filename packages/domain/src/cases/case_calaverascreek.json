@@ -1,0 +1,189 @@
+{
+  "configVersion": 1,
+  "caseId": "case_calaveras_creek",
+  "areaLabel": "catchment",
+  "note": "The five explanation statements were drafted by a process that was given only this schema, the first place's file and the corpus titles, and did not read the Calaveras Creek bundles or any of its trend values, to a rule written first: no statement assumes a direction of change and none states a year. The platform lane had seen the headline restrend and pixel values of this catchment (the catchment trend was downward) before that draft was made; it did not write the statements.",
+  "seriesPairs": [
+    {
+      "id": "vegetation_rainfall",
+      "a": {
+        "label": "vegetation departure",
+        "metrics": ["ndvi_departure_area_median", "ndvi_departure_area_median_leave_one_year_out"],
+        "methodId": "monthly_departure"
+      },
+      "b": {
+        "label": "rainfall departure",
+        "metrics": ["precipitation_departure_from_1991_2020_mean"],
+        "methodId": "chirps_monthly_catchment_total",
+        "storedDecimals": 2
+      },
+      "windowsMonths": [0, 1, 2, 3],
+      "minAlignedMonths": 12
+    }
+  ],
+  "fieldChecks": [
+    {
+      "id": "local_rain_records",
+      "label": "Local Rain Records",
+      "method": "Rain gauge records near the catchment for each wet season, to set beside the satellite rainfall.",
+      "basis": "Platform lane's configured judgment for this place; no domain expert has reviewed it (the first place's review is in docs/explanation/scientific-basis.md)",
+      "separates": [
+        ["rainfall", "grazing"],
+        ["rainfall", "dam_history"],
+        ["rainfall", "land_cover_change"],
+        ["rainfall", "data_artefact"]
+      ]
+    },
+    {
+      "id": "grazing_records",
+      "label": "Grazing Records",
+      "method": "Animal numbers, seasons and pastures grazed from the land manager's lease or permit records, and any rangeland monitoring data.",
+      "basis": "Platform lane's configured judgment for this place; no domain expert has reviewed it (the first place's review is in docs/explanation/scientific-basis.md)",
+      "separates": [
+        ["grazing", "rainfall"],
+        ["grazing", "dam_history"],
+        ["grazing", "land_cover_change"],
+        ["grazing", "data_artefact"]
+      ]
+    },
+    {
+      "id": "reservoir_records",
+      "label": "Reservoir Records",
+      "method": "The reservoir's water level and storage by year, and the dates of the work on its dam.",
+      "basis": "Platform lane's configured judgment for this place; no domain expert has reviewed it (the first place's review is in docs/explanation/scientific-basis.md)",
+      "separates": [
+        ["dam_history", "rainfall"],
+        ["dam_history", "grazing"],
+        ["dam_history", "land_cover_change"],
+        ["dam_history", "data_artefact"]
+      ]
+    },
+    {
+      "id": "land_cover_history",
+      "label": "Land Cover History",
+      "method": "Dated aerial images or field mapping of woodland, shrub and grass cover, set beside the 2021 land cover map.",
+      "basis": "Platform lane's configured judgment for this place; no domain expert has reviewed it (the first place's review is in docs/explanation/scientific-basis.md)",
+      "separates": [
+        ["land_cover_change", "rainfall"],
+        ["land_cover_change", "grazing"],
+        ["land_cover_change", "dam_history"],
+        ["land_cover_change", "data_artefact"]
+      ]
+    },
+    {
+      "id": "scene_inspection",
+      "label": "Scene Inspection",
+      "method": "Independent manual inspection of the source scenes and repeat processing.",
+      "basis": "Platform lane's configured judgment for this place; no domain expert has reviewed it (the first place's review is in docs/explanation/scientific-basis.md)",
+      "separates": [
+        ["data_artefact", "rainfall"],
+        ["data_artefact", "grazing"],
+        ["data_artefact", "dam_history"],
+        ["data_artefact", "land_cover_change"]
+      ]
+    }
+  ],
+  "rainfallSeason": {
+    "id": "wet_season",
+    "label": "October to April wet season",
+    "startMonth": 10,
+    "endMonth": 4,
+    "recipe": {
+      "recipeId": "season_summary",
+      "version": "1.0.0"
+    }
+  },
+  "explanations": [
+    {
+      "id": "rainfall",
+      "label": "Rainfall",
+      "statement": "Rainfall in the wet season before each scene could have raised or lowered vegetation greenness in the catchment, depending on whether that season was wetter or drier than usual."
+    },
+    {
+      "id": "grazing",
+      "label": "Grazing",
+      "statement": "Grazing on the catchment's rangeland, managed under a rangeland management plan, could have changed vegetation greenness, raising or lowering it depending on how the grazing was carried out."
+    },
+    {
+      "id": "dam_history",
+      "label": "Dam history",
+      "statement": "The history of Calaveras Reservoir and Calaveras Dam, including the replacement of the dam, could have shaped vegetation greenness nearby, raising or lowering it through construction work, water levels or ground disturbance."
+    },
+    {
+      "id": "land_cover_change",
+      "label": "Land cover change",
+      "statement": "A change in what covers the ground, such as brush, trees, bare soil or buildings replacing grass, or the reverse, could have raised or lowered measured greenness in parts of the catchment."
+    },
+    {
+      "id": "data_artefact",
+      "label": "Data artefact",
+      "statement": "Fewer clear scenes, the satellite's overpass time or the way the images were processed could have made measured greenness look higher or lower without any change in the vegetation."
+    }
+  ],
+  "trendSummary": {
+    "recipe": {
+      "recipeId": "restrend_long_record",
+      "version": "1.0.0"
+    },
+    "strata": [
+      "catchment",
+      "elevation_low",
+      "elevation_mid",
+      "elevation_high",
+      "aspect_north",
+      "aspect_east",
+      "aspect_south",
+      "aspect_west",
+      "aspect_level",
+      "reservoir_zone",
+      "outside_reservoir_zone"
+    ]
+  },
+  "instruments": [
+    {
+      "from": "parameters",
+      "id": "rainfall_scatter_creek",
+      "whenExplanationIds": ["rainfall"],
+      "parameters": {
+        "kind": "rainfall_scatter",
+        "geoSelectionId": "geo_calaveras_creek_catchment",
+        "seasons": {
+          "bundleId": "bundle_restrend_long_record_calaveras_creek",
+          "assetKey": "restrend_tables"
+        },
+        "fit": {
+          "bundleId": "bundle_restrend_long_record_calaveras_creek",
+          "assetKey": "restrend_long_record"
+        }
+      },
+      "caption": {
+        "ink": "October to April rainfall and February to May greenness move together with an R squared of {r2}.",
+        "grey": "A straight-line fit across seasons; it measures how closely the two move together and says nothing about why.",
+        "claimKind": "model_estimate",
+        "citationIds": ["meas_rainfall_fit_r_squared_catchment_feb_may"],
+        "numbers": {
+          "r2": {
+            "measurementId": "meas_rainfall_fit_r_squared_catchment_feb_may",
+            "part": "value",
+            "decimals": 3
+          }
+        }
+      }
+    },
+    {
+      "from": "branch_merge",
+      "id": "field_plan_creek",
+      "whenExplanationIds": [
+        "rainfall",
+        "grazing",
+        "dam_history",
+        "land_cover_change",
+        "data_artefact"
+      ],
+      "caption": {
+        "ink": "A field plan is proposed for the explanations the record leaves open.",
+        "grey": "Proposed only: no visit is scheduled and no access or permission is implied."
+      }
+    }
+  ]
+}

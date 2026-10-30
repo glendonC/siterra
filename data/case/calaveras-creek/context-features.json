@@ -1,0 +1,25 @@
+{
+ "contextFeaturesVersion": 1,
+ "caseId": "case_calaveras_creek",
+ "description": "Located features the case views name on the land. Each records where its position comes from. They are not evidence: no statement, measurement or hypothesis rests on them.",
+ "features": [
+  {
+   "id": "ctx_catchment_outlet",
+   "name": "Catchment outlet",
+   "role": "outlet",
+   "lonLat": [
+    -121.8191667,
+    37.5025
+   ],
+   "method": "Outlet of the frozen catchment revision 2 (outlet_snapped in science/places/calaveras-creek.geometry.geojson): the USGS stream gauge 11173500 input point 37.50194444 N, 121.8183333 W snapped to the cell of maximum flow accumulation within 120 m on the conditioned DEM (delineation rule in science/places/calaveras-creek.json)",
+   "datasetId": "Copernicus DEM GLO-30 (2021 release); USGS site service, stream gauge 11173500, one coordinate as the outlet input",
+   "sourceIds": [],
+   "attribution": "produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved; Catchment derived by Siterra from Copernicus DEM GLO-30 (2021 release)",
+   "license": "Copernicus DEM licence (data-sources-and-methods.md, terrain)",
+   "limitations": [
+    "The point all of the catchment drains to on the 1 arc-second DEM grid; not a gauge reading and not a surveyed point.",
+    "Its input is one coordinate from the USGS site service; the gauge's records were not used."
+   ]
+  }
+ ]
+}

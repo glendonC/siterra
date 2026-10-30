@@ -96,6 +96,46 @@ describe("a catalog shared by several places", () => {
     return dir;
   }
 
+  function withBundleFile(text: string): string {
+    const dir = copyCatalog();
+    const broken = join(dir, "bundle_relief_broken");
+    cpSync(join(dir, "bundle_relief_ait_bouguemez"), broken, { recursive: true });
+    const collectionPath = join(broken, "collection.json");
+    writeFileSync(collectionPath, text);
+    const catalogPath = join(dir, "catalog.json");
+    const catalog = readJson(catalogPath);
+    const links = catalog["links"] as Json[];
+    const template = links.find(
+      (l) => l["rel"] === "child" && String(l["href"]).includes("bundle_relief_ait_bouguemez"),
+    ) as Json;
+    links.push({
+      ...template,
+      href: "./bundle_relief_broken/collection.json",
+      "file:checksum": sha256Multihash(readFileSync(collectionPath)),
+    });
+    writeFileSync(catalogPath, `${JSON.stringify(catalog, null, 2)}\n`);
+    return dir;
+  }
+
+  it("does not skip a collection it cannot read: the import stops on it instead of passing over it", () => {
+    expect(() => importCatalog({ ...context, catalogDir: withBundleFile("{ not json") })).toThrow();
+  });
+
+  it("does not skip a collection whose GeoSelection has no text id, so the case reports it", () => {
+    const collection = readJson(join(catalogDir, "bundle_relief_ait_bouguemez", "collection.json"));
+    collection["id"] = "bundle_relief_broken";
+    collection["siterra:geo_selection"] = {
+      ...(collection["siterra:geo_selection"] as Json),
+      id: 7,
+    };
+    const result = importCatalog({
+      ...context,
+      catalogDir: withBundleFile(JSON.stringify(collection)),
+    });
+    expect(result.issues.length).toBeGreaterThan(0);
+    expect(result.bundles.map((b) => b.dataBundle.id)).not.toContain("bundle_relief_broken");
+  });
+
   it("leaves out the bundles of another place's GeoSelection without an issue", () => {
     const result = importCatalog({ ...context, catalogDir: withOtherPlaceBundle(1) });
     expect(result.issues).toEqual([]);
