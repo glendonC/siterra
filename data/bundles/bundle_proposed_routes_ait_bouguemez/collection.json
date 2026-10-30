@@ -1,0 +1,278 @@
+{
+ "type": "Collection",
+ "stac_version": "1.1.0",
+ "stac_extensions": [
+  "https://stac-extensions.github.io/processing/v1.3.0/schema.json",
+  "https://stac-extensions.github.io/file/v2.1.0/schema.json",
+  "https://siterra.invalid/schemas/stac/siterra/1.1.0/schema.json"
+ ],
+ "id": "bundle_proposed_routes_ait_bouguemez",
+ "title": "Proposed walking routes (proposed_routes 1.0.0)",
+ "description": "Precomputed result of recipe proposed_routes 1.0.0 for Ait Bouguemez valley catchment: 4 proposed walking routes from Tabant to field check sites (the pixel the case opens and the nearest grazing-land cell of each elevation band), least time under Tobler's hiking function on the 30 m surface, site_pixel_h17v05r4005c2178: 0.6 km, climb 16 m, about 12 min; site_band_1: 0.5 km, climb 128 m, about 24 min; site_band_2: 3.9 km, climb 563 m, about 142 min; site_band_3: 6.6 km, climb 1057 m, about 251 min. Proposed route, access unconfirmed; not a surveyed path. Model estimate.\n\nProposed route, access unconfirmed: each line is the least-time walk over a 30 m surface model under Tobler's hiking function with a slope cap, not a surveyed path, not a track on the ground and not a safe or permitted route. The surface model smooths gorges and walls and cannot see cliffs, scree, snow, river crossings, fences, fields or irrigation channels; no route was checked on the ground or on imagery for obstacles. Times are one way on trackless ground for an adult at Tobler's speed (times 0.6), with no load, rest, weather or snow; they are model estimates, not observed journey times, and real walking times can differ widely. Climb and descent are sums over unsmoothed 30 m heights, so they include surface noise and are larger than a smoothed profile would give. The sites are chosen by a rule (the pixel the case opens and the nearest grazing-land cell of each elevation band), not by a sampling design, a management unit or an agreement with anyone; reaching a site needs local agreement, land access and permission that no route establishes. The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary.",
+ "license": "other",
+ "providers": [
+  {
+   "name": "Copernicus DEM GLO-30 (European Union, ESA; DLR e.V. and Airbus Defence and Space)",
+   "roles": [
+    "producer",
+    "licensor"
+   ]
+  },
+  {
+   "name": "ESA WorldCover consortium",
+   "roles": [
+    "producer",
+    "licensor"
+   ],
+   "url": "https://esa-worldcover.org/"
+  },
+  {
+   "name": "Siterra science pipeline",
+   "roles": [
+    "processor"
+   ],
+   "processing:lineage": "Least-time paths (Dijkstra, Tobler's hiking function times 0.6, 8 neighbour moves, slope cap 0.70) over the 30 m elevation surface of the relief bundle from the Tabant node to sites chosen by a registered rule (science/pipeline/routes-bundle.py)",
+   "processing:software": {
+    "siterra-science": "0.1.0",
+    "python": "3.12.9",
+    "numpy": "2.5.4",
+    "rasterio": "1.5.2",
+    "gdal": "3.12.2",
+    "pyproj": "3.8.0",
+    "shapely": "2.2.0"
+   }
+  }
+ ],
+ "extent": {
+  "spatial": {
+   "bbox": [
+    [
+     -6.54125,
+     31.49430555555556,
+     -6.142083333333333,
+     31.75652777777778
+    ]
+   ]
+  },
+  "temporal": {
+   "interval": [
+    [
+     "2021-01-01T00:00:00Z",
+     null
+    ]
+   ]
+  }
+ },
+ "assets": {
+  "analysis_geometry": {
+   "href": "./analysis-geometry.geojson",
+   "type": "application/geo+json",
+   "title": "Frozen analysis geometry geo_ait_bouguemez_catchment, revision 1",
+   "roles": [
+    "metadata"
+   ],
+   "file:checksum": "1220ac506ece626b6844d759b56aa60a10248c8c0ea5e206f9a28eb436a892a4d47f",
+   "file:size": 119623
+  },
+  "proposed_routes": {
+   "href": "./proposed-routes.geojson",
+   "type": "application/geo+json",
+   "title": "One 3D LineString per proposed route ([lon, lat, elevation], metres above the EGM2008 geoid); proposed route, access unconfirmed",
+   "roles": [
+    "data"
+   ],
+   "file:checksum": "12209e2357c1d86a29352465dc6b389ecb0e563e20082e4298f6afe0894d22735092",
+   "file:size": 11333
+  }
+ },
+ "created": "2026-10-30T00:18:28Z",
+ "siterra:status": "validated",
+ "siterra:variable": "proposed_route",
+ "siterra:dataset": {
+  "id": "copernicus-dem-glo-30",
+  "version": "2021",
+  "access_route": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N31_00_W007_00_DEM/Copernicus_DSM_COG_10_N31_00_W007_00_DEM.tif",
+  "resolution_note": "30 m EPSG:32629 elevation surface of the relief bundle; land cover 10 m"
+ },
+ "siterra:geo_selection": {
+  "id": "geo_ait_bouguemez_catchment",
+  "revision": 1,
+  "boundary_role": "hydrological_unit",
+  "area_m2": 417360300,
+  "area_method": "Count of 10 m analysis pixels whose centres fall inside the frozen polygon, EPSG:32629"
+ },
+ "siterra:method": {
+  "id": "proposed_routes",
+  "version": "1.0.0",
+  "analysis_crs": "EPSG:32629",
+  "parameters": {
+   "place_configuration": "science/places/ait-bouguemez.json revision 7, sha256 0572fdf93be9e880dd07182b75c30b514e81169f87fcda634f368237a972d8e6",
+   "tobler_a_kmh": 6.0,
+   "tobler_b": 3.5,
+   "tobler_offset": 0.05,
+   "off_path_factor": 0.6,
+   "slope_cap": 0.7,
+   "water_cells_min": 5,
+   "duration_tolerance": 0.005,
+   "origin": {
+    "id": "ctx_tabant",
+    "name": "Tabant",
+    "from": "data/case/context-features.json feature ctx_tabant (the acceptance point, lon -6.42007, lat 31.65873)",
+    "lonLat": [
+     -6.42007,
+     31.65873
+    ]
+   },
+   "targets": {
+    "pixel": {
+     "bundle": "bundle_pixel_anatomy_ait_bouguemez",
+     "pixelId": "h17v05r4005c2178",
+     "use": "the pixel centre (the proposed grassland transect of specimen C lies inside this pixel)"
+    },
+    "perBand": {
+     "bandSet": {
+      "fromStrataLayer": "elevation_band"
+     },
+     "cornersInsidePolygon": true,
+     "landCoverGroup": "lc_grazing_possible",
+     "landCoverShareMin": 0.8,
+     "order": "straight-line distance from the origin to the MODIS cell centre, ascending, then row, then column",
+     "reachable": true
+    }
+   }
+  },
+  "reference_period": null,
+  "operation_order": [
+   "Surface: the 30 m EPSG:32629 elevation surface of the relief bundle (cells inside the frozen polygon only); a cell centre is a node",
+   "Moves: from a node to each of its 8 neighbours (4 along the axes, 4 diagonal); the horizontal length is 30 m or 30 m times the square root of 2. (The entry first listed 16 neighbours with knight moves; before any route was computed the unit tests showed that a knight move steps over a one cell wide wall or gully whose cells it never tests, so the move set is the 8 neighbours.)",
+   "Slope: S = (z_to - z_from) / horizontal length, from the stored heights, not rounded; a move with |S| above 0.70 (about 35 degrees) is not allowed",
+   "Speed: W = 6 exp(-3.5 |S + 0.05|) km/h (Tobler 1993), times 0.6 because there is no path on the surface model; time of a move = horizontal length / W. Down a gentle slope (S near -0.05) is the fastest, steep up and steep down are slow. One way, no load, no rest, no stops",
+   "Water: a node is not allowed when at least 5 of the 9 land cover cells (10 m, WorldCover class 80 permanent water) in its 30 m cell are water",
+   "Origin: the node whose centre is nearest the origin point of the place configuration (ctx_tabant, the freeze acceptance point), ties by row then column; target nodes: the node nearest the target point, same ties",
+   "Route: Dijkstra from the origin over all allowed nodes and moves, the heap ordered by cost then node index so ties are fixed; the route is the stored sequence of node centres from the origin to the target with its height, unsmoothed, 0.1 m",
+   "Targets: (1) the centre of the pixel the pixel anatomy bundle names; (2 to 4) for each elevation band of the strata bundle (band of the cell centre's height), the MODIS cell of the pixel trend bundle's cells asset that, in order of straight-line distance from the origin to its centre (then row, then column), first meets: all four corners inside the frozen polygon, at least 0.8 of its 10 m cells in the lc_grazing_possible land cover group (shrubland, grassland, bare or sparse vegetation), and a finite cost from the origin",
+   "Per route: horizontal length (m, sum of move lengths), straight-line distance, detour ratio, climb and descent (m, sum of positive and negative height steps of the stored vertices), time (h, the sum of move times), vertex count, the largest slope of any move",
+   "Acceptance checks, all stored with the bundle: for every allowed move from every node the cost-to-reach values obey d(to) <= d(from) + cost (no shorter route exists, whatever the search); every stored route starts at the origin node, ends at the target node, uses only allowed moves, and its move times sum to the target's cost-to-reach; every stored vertex is a node centre to 0.01 m; the duration recomputed from the stored vertices (heights to 0.1 m) is within 0.5% of the stored time; two runs give identical files apart from the computed time"
+  ]
+ },
+ "siterra:attribution": [
+  "Catchment and strata derived by Siterra from Copernicus DEM GLO-30 (2021 release)",
+  "produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved",
+  "The organisations in charge of the Copernicus programme by law or by delegation do not incur any liability for any use of the Copernicus WorldDEM-30",
+  "© ESA WorldCover project / Contains modified Copernicus Sentinel data (2021) processed by ESA WorldCover consortium",
+  "ESA WorldCover 2021 v200 (Zanaga et al. 2022), CC BY 4.0, https://doi.org/10.5281/zenodo.7254221"
+ ],
+ "siterra:limitations": [
+  "Proposed route, access unconfirmed: each line is the least-time walk over a 30 m surface model under Tobler's hiking function with a slope cap, not a surveyed path, not a track on the ground and not a safe or permitted route.",
+  "The surface model smooths gorges and walls and cannot see cliffs, scree, snow, river crossings, fences, fields or irrigation channels; no route was checked on the ground or on imagery for obstacles.",
+  "Times are one way on trackless ground for an adult at Tobler's speed (times 0.6), with no load, rest, weather or snow; they are model estimates, not observed journey times, and real walking times can differ widely.",
+  "Climb and descent are sums over unsmoothed 30 m heights, so they include surface noise and are larger than a smoothed profile would give.",
+  "The sites are chosen by a rule (the pixel the case opens and the nearest grazing-land cell of each elevation band), not by a sampling design, a management unit or an agreement with anyone; reaching a site needs local agreement, land access and permission that no route establishes.",
+  "The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary."
+ ],
+ "siterra:checks": [
+  {
+   "name": "recompute_sample_period",
+   "passed": true,
+   "detail": "Recomputed over the whole cost-to-reach field and from the stored lines. Of all allowed moves from reached nodes, 0 would lower a node's cost-to-reach, so no shorter route exists under the stated cost function; per route: wrong ends 0, moves not allowed 0, move times not summing to the cost-to-reach 0, vertices off a node centre by more than 0.01 m 0, duration recomputed from the stored lon, lat and 0.1 m heights differing from the stored time by more than 0.5% 0 (deviations [0.00047, 9e-05, 6e-05, 9e-05]). The whole computation run twice in one process is identical: True."
+  },
+  {
+   "name": "units_and_scale",
+   "passed": true,
+   "detail": "Lengths are metres along the line (horizontal, EPSG:32629 node centres), climb in metres from 0.1 m heights, time in hours under Tobler's function times 0.6 (one way, no load, no rest); coordinates are decimal degrees (EPSG:4326, 7 decimals) with elevation in metres above the EGM2008 geoid."
+  },
+  {
+   "name": "nodata_not_zero",
+   "passed": true,
+   "detail": "Nodes outside the catchment and mostly water nodes are never entered; no route value is 0 as a stand-in for missing, and a route whose target cannot be reached stops the build."
+  },
+  {
+   "name": "attribution_present",
+   "passed": true,
+   "detail": "The Copernicus DEM notices (Article 6(b) and 6(c)), the liability statement and the ESA WorldCover citation are in siterra:attribution."
+  },
+  {
+   "name": "visual_inspection_sample",
+   "passed": true,
+   "detail": "Rendered the four proposed routes over a hillshade of the relief bundle (routes.png, Tabant marked by a square and each site by a ring): every line starts at Tabant on the valley floor edge and ends at its site; the short routes to the pixel and to the band 1 site cross open ground, the long routes follow the valley floor and then climb, with switchback-like zigzags on the steepest slopes, which is how the slope cap and Tobler's function shape a trackless route; no line leaves the catchment or crosses the lake. The lines were not compared with imagery, tracks or cliffs, and none was checked on the ground."
+  }
+ ],
+ "links": [
+  {
+   "rel": "root",
+   "href": "../catalog.json",
+   "type": "application/json"
+  },
+  {
+   "rel": "parent",
+   "href": "../catalog.json",
+   "type": "application/json"
+  },
+  {
+   "rel": "derived_from",
+   "href": "../bundle_relief_ait_bouguemez/collection.json",
+   "type": "application/json",
+   "title": "bundle_relief_ait_bouguemez",
+   "file:checksum": "12200e42ad34b7cd7aa180f24008445c691bfdc83808bb6a2c6225d9dcee934e720d"
+  },
+  {
+   "rel": "derived_from",
+   "href": "../bundle_land_cover_ait_bouguemez/collection.json",
+   "type": "application/json",
+   "title": "bundle_land_cover_ait_bouguemez",
+   "file:checksum": "1220a44268fb82b7d2808ba97d700556b428dc579f0335f1eef3166b1056e4da9cb8"
+  },
+  {
+   "rel": "derived_from",
+   "href": "../bundle_pixel_trend_long_record_ait_bouguemez/collection.json",
+   "type": "application/json",
+   "title": "bundle_pixel_trend_long_record_ait_bouguemez",
+   "file:checksum": "1220696c5ad4fcd400f8ad84bda55e7c16628c8cd11ff8707e59277cfea1d1cc7c26"
+  },
+  {
+   "rel": "derived_from",
+   "href": "../bundle_terrain_strata_ait_bouguemez/collection.json",
+   "type": "application/json",
+   "title": "bundle_terrain_strata_ait_bouguemez",
+   "file:checksum": "1220e7892bc96d951fbe7c89d256bf719931af5f6a1fec40f843dcef44040b8346d1"
+  },
+  {
+   "rel": "derived_from",
+   "href": "../bundle_pixel_anatomy_ait_bouguemez/collection.json",
+   "type": "application/json",
+   "title": "bundle_pixel_anatomy_ait_bouguemez (the pixel target)",
+   "file:checksum": "12201d8aa0b2dd58ca14e8adaca36e672f5587f394a80f9f4e2731882c202d480e9e"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N31_00_W007_00_DEM/Copernicus_DSM_COG_10_N31_00_W007_00_DEM.tif",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Copernicus_DSM_COG_10_N31_00_W007_00_DEM.tif (41,088,635 bytes, ETag 7260ba223188db19ee7390f60c998048)",
+   "file:checksum": "1220024f00066f44b6c04c26ab5c22ef8d355f6dc77052206d96c9a9c04f66b9c61e"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N30W009_Map.tif",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "ESA WorldCover 2021 v200 tile N30W009 (ETag \"ef642c82c2f5c1f8db62f0bca36708db-14\")",
+   "siterra:retrieved_datetime": "2026-10-27T14:35:34Z"
+  },
+  {
+   "rel": "license",
+   "href": "https://dataspace.copernicus.eu/sites/default/files/media/files/2025-06/copernicus_contributing_mission_data_access_v2_cop_dem_licenses.pdf",
+   "title": "Licence for Copernicus DEM instance COP-DEM-GLO-30-F Global 30m Full, Free & Open"
+  },
+  {
+   "rel": "license",
+   "href": "https://creativecommons.org/licenses/by/4.0/",
+   "title": "ESA WorldCover: CC BY 4.0"
+  },
+  {
+   "rel": "processing-software",
+   "href": "./uv.lock",
+   "type": "application/toml",
+   "title": "Pipeline lockfile (uv)",
+   "file:checksum": "12205154d57a84dcb8f1eb5f992923d7589a669b8dc669edf140f607ff2740733aff"
+  }
+ ]
+}
