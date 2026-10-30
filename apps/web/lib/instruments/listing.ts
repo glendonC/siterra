@@ -122,3 +122,31 @@ export async function readJsonAsset(
 ): Promise<unknown> {
   return JSON.parse(new TextDecoder().decode(await readAsset(view, ref, fetchImpl, signal)));
 }
+
+/** The asset a spec draws in a role (drawnAssets, contracts 1.16.0), as a reference to read. */
+export function drawnAsset(view: InstrumentView, role: string): BundleAssetRef {
+  const p = view.spec.parameters;
+  const found = "drawnAssets" in p ? p.drawnAssets?.find((d) => d.role === role) : undefined;
+  if (found === undefined)
+    throw new AssetUnavailable(
+      { bundleId: "none", assetKey: "none" },
+      `no drawn asset in role ${role}`,
+    );
+  return found.asset;
+}
+
+/**
+ * Where an available asset lives in the repository's bundles and its sha256, as the recompute-tested fixture
+ * builders name their sources (data/bundles/<bundle>/<file>).
+ */
+export function bundleSource(
+  view: InstrumentView,
+  ref: BundleAssetRef,
+): { path: string; sha256: string } {
+  const asset = assetOf(view, ref);
+  if (asset.status !== "available" || asset.href === null || asset.checksum === null)
+    throw new AssetUnavailable(ref, asset.status);
+  // /api/case-assets/<bundle>/<content hash>/<path in the bundle>
+  const file = asset.href.split("/").slice(5).join("/");
+  return { path: `data/bundles/${ref.bundleId}/${file}`, sha256: asset.checksum.slice(4) };
+}

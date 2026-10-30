@@ -1,10 +1,10 @@
 // The pixel anatomy's data (approved specimen C): one MODIS 250 m pixel at three scales plus the measured class
 // spectra, the pixel's own season record and the proposed field check, copied from the S3 bundle
 // (bundle_pixel_anatomy_ait_bouguemez) and the season trend tables by lib/instruments/pixel/fixture.ts, which the
-// fixture test recomputes. The locator draws the valley fixtures' trend cells; the colours are the theme's.
+// fixture test recomputes. The page builds the same data from the case's assets (case.ts); public/instruments/pixel/
+// pixel.json stays as the test input that build is checked against. The colours are the theme's.
 
 import { z } from "zod";
-import { json } from "../valley/fixtures";
 
 const xy = z.tuple([z.number(), z.number()]);
 const reflectance = z.record(z.string(), z.number());
@@ -83,8 +83,3 @@ export const pixelSchema = z.object({
 });
 
 export type PixelData = z.infer<typeof pixelSchema>;
-
-/** The pixel's data file and the locator raster beside it. */
-export async function loadPixelData(url: string, signal?: AbortSignal): Promise<PixelData> {
-  return json(url, pixelSchema, signal);
-}

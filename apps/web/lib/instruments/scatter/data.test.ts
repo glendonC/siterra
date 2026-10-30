@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { fixed } from "../format";
-import { scatterFrom } from "./data";
+import { SCATTER, scatterFrom } from "./data";
 
 // The rainfall scatter from the restrend bundle's two files, as the rainfall scatter spec names them.
 
@@ -27,6 +27,21 @@ describe("scatterFrom", () => {
     expect(d.seasons).toHaveLength(26);
     expect(d.period).toEqual([2000, 2025]);
     expect(d.seasons[0]).toEqual({ year: 2000, ndvi: 0.19614, rain_mm: 570.17 });
+  });
+
+  it("takes every total from the September to May window, never the November to April one", () => {
+    expect(SCATTER.rainfallWindow).toBe("sep_may");
+    const rows = (
+      tables as {
+        rainfall: { stratum: string; rainfall_window: string; year: number; rainfall_mm: number }[];
+      }
+    ).rainfall.filter((r) => r.stratum === "catchment");
+    for (const s of d.seasons) {
+      const at = (w: string) => rows.find((r) => r.year === s.year && r.rainfall_window === w);
+      expect(s.rain_mm).toBe(at("sep_may")?.rainfall_mm);
+      const other = rows.find((r) => r.year === s.year && r.rainfall_window !== "sep_may");
+      if (other) expect(other.rainfall_mm).not.toBe(s.rain_mm);
+    }
   });
 
   it("carries the fit the summary states: R squared 0.037, a slope interval that holds zero", () => {

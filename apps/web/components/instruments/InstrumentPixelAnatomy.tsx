@@ -3,31 +3,26 @@
 // The pixel anatomy (approved specimen C): one MODIS 250 m pixel opened into its 10 m Sentinel-2 cells, the measured
 // class spectra, its own season record, a labelled linear mix model with movable class boundaries (drag, or focus a
 // boundary and use the arrow keys; Home returns to the measured shares) and a proposed, dashed field check. The
-// panels are drawn by lib/instruments/pixel/scene.ts on a 1440 x 900 stage scaled to fit. The caption is the pixel
-// anatomy spec's, as the case records carry it.
+// panels are drawn by lib/instruments/pixel/scene.ts on a 1440 x 900 stage scaled to fit. The caption and the
+// pixel's data are the pixel anatomy spec's, read from the case (lib/instruments/pixel/case.ts); the locator's
+// trend cells (a GeoTIFF in the bundle) and the cited statements stay on their tested fixtures until the bundle's
+// display asset and the Evidence wording land.
 
 import { useEffect, useId, useRef, useState } from "react";
 import { en } from "../../lib/copy/en";
-import { loadPixelData, type PixelData } from "../../lib/instruments/pixel/data";
+import { loadCasePixel } from "../../lib/instruments/pixel/case";
+import type { PixelData } from "../../lib/instruments/pixel/data";
 import { PIXEL_DESIGN, mountPixel, type PixelLocator } from "../../lib/instruments/pixel/scene";
 import { statementsSchema, type Statements } from "../../lib/instruments/valley/cutaway-data";
-import {
-  VALLEY_FIXTURES,
-  catchmentSchema,
-  json,
-  trendCellsSchema,
-} from "../../lib/instruments/valley/fixtures";
+import { VALLEY_FIXTURES, json, trendCellsSchema } from "../../lib/instruments/valley/fixtures";
 import styles from "./InstrumentPixelAnatomy.module.css";
 import { useInstrument } from "./InstrumentRecords";
 
 export function InstrumentPixelAnatomy({
-  data: dataUrl = "/instruments/pixel/pixel.json",
   valley = VALLEY_FIXTURES,
   state = "measured",
 }: {
-  /** The pixel's data file. */
-  data?: string;
-  /** The valley fixtures: the statements, and the trend cells and catchment outline the locator draws. */
+  /** The valley fixtures: the statements, and the trend cells the locator draws. */
   valley?: string;
   /** The model's opening shares: as measured, or the bundle's example shift. */
   state?: "measured" | "shifted";
@@ -41,19 +36,20 @@ export function InstrumentPixelAnatomy({
   const [loadFailed, setFailed] = useState(false);
   const record = useInstrument("pixel_anatomy");
   const failed = loadFailed || record.status === "failed";
-  const caption = record.status === "ready" ? record.view.spec.caption : null;
+  const view = record.status === "ready" ? record.view : null;
+  const caption = view?.spec.caption ?? null;
   const descriptionId = useId();
 
   useEffect(() => {
+    if (!view) return;
     const ac = new AbortController();
     Promise.all([
-      loadPixelData(dataUrl, ac.signal),
+      loadCasePixel(view, (input, init) => fetch(input, init), ac.signal),
       json(`${valley}statements.json`, statementsSchema, ac.signal),
       json(`${valley}trend-cells.json`, trendCellsSchema, ac.signal),
-      json(`${valley}catchment.json`, catchmentSchema, ac.signal),
     ]).then(
-      ([pixel, statements, trend, catchment]) => {
-        setLoaded({ pixel, statements, locator: { cells: trend.cells, ring: catchment.ring } });
+      ([{ pixel, ring }, statements, trend]) => {
+        setLoaded({ pixel, statements, locator: { cells: trend.cells, ring } });
       },
       () => {
         if (!ac.signal.aborted) setFailed(true);
@@ -62,7 +58,7 @@ export function InstrumentPixelAnatomy({
     return () => {
       ac.abort();
     };
-  }, [dataUrl, valley]);
+  }, [view, valley]);
 
   useEffect(() => {
     const stage = stageRef.current;

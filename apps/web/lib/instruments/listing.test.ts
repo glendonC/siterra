@@ -1,6 +1,3 @@
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
-import type { CaseSnapshot, InstrumentListing } from "@siterra/contracts";
 import { describe, expect, it } from "vitest";
 import {
   AssetUnavailable,
@@ -9,63 +6,14 @@ import {
   readAsset,
   readJsonAsset,
 } from "./listing";
+import { bundleFiles, seed, seedListing } from "./seed-listing";
 
-// The listing the API would return for the seed case: its four specs, each named asset resolved to its bundle file
-// with the checksum the bundle's collection lists.
+// The seed case's listing as the API would return it (seed-listing.ts).
 
-const REPO = join(import.meta.dirname, "..", "..", "..", "..");
-const seed = JSON.parse(
-  readFileSync(
-    join(
-      import.meta.dirname,
-      "..",
-      "..",
-      "..",
-      "..",
-      "packages",
-      "contracts",
-      "fixtures",
-      "case-snapshot-aitbouguemez-seed.json",
-    ),
-    "utf8",
-  ),
-) as CaseSnapshot;
-const BUNDLES = join(REPO, "data", "bundles");
-const collection = (bundleId: string) =>
-  JSON.parse(readFileSync(join(BUNDLES, bundleId, "collection.json"), "utf8")) as {
-    assets: Record<string, { href: string; "file:checksum": string; "file:size": number }>;
-  };
-const refsOf = (value: unknown): { bundleId: string; assetKey: string }[] =>
-  value !== null && typeof value === "object"
-    ? "bundleId" in value && "assetKey" in value
-      ? [value as { bundleId: string; assetKey: string }]
-      : Object.values(value).flatMap(refsOf)
-    : [];
-
-const listing = {
-  caseId: seed.case.id,
-  caseRevision: seed.case.revision,
-  instruments: (seed.records.instrumentSpecRecords ?? []).map((spec) => ({
-    spec,
-    components: [],
-    assets: refsOf(spec.parameters).map((ref) => {
-      const a = collection(ref.bundleId).assets[ref.assetKey];
-      return {
-        ...ref,
-        status: "available",
-        href: `/files/${ref.bundleId}/${a?.href.replace("./", "") ?? "?"}`,
-        contentType: "application/json",
-        checksum: a?.["file:checksum"] ?? null,
-        size: a?.["file:size"] ?? null,
-      };
-    }),
-  })),
-} as InstrumentListing;
-
+const listing = seedListing;
 const reply = (status: number, body?: unknown) =>
   new Response(body === undefined ? null : JSON.stringify(body), { status });
-const files = (path: string) =>
-  Promise.resolve(new Response(readFileSync(join(BUNDLES, path.replace("/files/", "")))));
+const files = bundleFiles;
 
 describe("loadInstruments", () => {
   it("returns the seed case's specs parsed by the shared contract", async () => {

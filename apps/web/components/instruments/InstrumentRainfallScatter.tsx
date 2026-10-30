@@ -226,6 +226,7 @@ export function InstrumentRainfallScatter() {
               <p className={styles.sideNote}>
                 {format("instrument.scatter.slope", {
                   slope: signed(data.fit.slope_per_100_mm, 4),
+                  // the bundle stores the interval per mm; per 100 mm is its two ends times 100
                   lower: signed(data.fit.lower * 100, 4),
                   upper: signed(data.fit.upper * 100, 4),
                 })}
