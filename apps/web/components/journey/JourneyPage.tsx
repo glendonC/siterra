@@ -28,13 +28,5 @@ export function JourneyPage() {
         <ValleyOverview />
       </InstrumentRecords>
     );
-  return (
-    <Journey
-      valleyAssets={map.bundle.valley}
-      contourArea={map.bundle.contours}
-      globeAssets={map.bundle.globe}
-      arrival={c.arrival}
-      snapshot={c.snapshot}
-    />
-  );
+  return <Journey globeAssets={map.bundle.globe} arrival={c.arrival} snapshot={c.snapshot} />;
 }

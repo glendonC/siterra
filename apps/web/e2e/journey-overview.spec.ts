@@ -1,9 +1,9 @@
 import { expect, test, type Page, type Request } from "@playwright/test";
 
-// The journey at "/" lands on the overview (approved specimen D4): Enter on the opening, Enter on the globe, then
-// the dive ends on it; a returning
-// visitor's reload goes straight to it, the old arrival's rail and cards no longer render, and the only write the
-// page makes is the one demo session it opens on a first visit. Enter is never pressed in the ask here.
+// The journey at "/" lands on the overview (approved specimen D4) as one world (decision 11): Enter on the opening,
+// Enter on the globe, the camera goes down onto the case's point and the overview's own land rises there; no MapLibre
+// valley is ever drawn. A returning visitor's reload goes straight to the overview, and the only write the page makes
+// is the one demo session it opens on a first visit. Enter is never pressed in the ask here.
 test.use({ storageState: { cookies: [], origins: [] }, viewport: { width: 1440, height: 900 } });
 
 /** Every request other than a GET. */
@@ -25,7 +25,7 @@ async function overview(page: Page) {
   await expect(page.locator("[data-arrival-settled]")).toHaveCount(0);
 }
 
-test("the opening, the globe and the dive land on the overview, and a reload returns straight to it", async ({
+test("the opening, the globe and the zoom land on the overview, and a reload returns straight to it", async ({
   page,
 }) => {
   const sent = writes(page);
@@ -33,10 +33,19 @@ test("the opening, the globe and the dive land on the overview, and a reload ret
   await expect(page.locator("[data-opening]")).toBeVisible({ timeout: 60_000 });
   await page.keyboard.press("Enter");
   await expect(page.locator("[data-phase=globe]")).toBeVisible();
+  // the overview waits under the globe, out of reach: no key on the globe reaches it
+  await expect(page.locator("#arrival")).toHaveAttribute("inert", "");
+  await page.keyboard.press("/");
+  await expect(page.locator("[data-ask]")).toHaveAttribute("aria-expanded", "false");
   await page.keyboard.press("Enter");
-  await expect(page.locator("[data-phase=arrival]")).toBeVisible({ timeout: 90_000 });
+  await expect(page.locator("[data-phase=zoom]")).toBeVisible();
+  // the case's card stays on screen as the camera goes down, without its action
+  await expect(page.locator("[data-case-card]")).toBeVisible();
+  await expect(page.locator("[data-case-card] button")).toHaveCount(0);
+  await expect(page.locator("[data-phase=rest]")).toBeVisible({ timeout: 90_000 });
   await overview(page);
-  // the MapLibre valley is unmounted once the overview has faded in
+  await expect(page.locator("[data-overview-root]")).not.toHaveAttribute("data-arriving", "");
+  // no MapLibre valley is drawn at any point
   await expect(page.locator(".maplibregl-map")).toHaveCount(0);
   expect(sent).toEqual(["POST /api/demo-sessions"]);
 
@@ -46,4 +55,29 @@ test("the opening, the globe and the dive land on the overview, and a reload ret
   await overview(page);
   await expect(page.locator("[data-phase]")).toHaveCount(0);
   expect(sent).toEqual([]);
+});
+
+test("Esc during the arrival ends it at once on the overview", async ({ page }) => {
+  await page.goto("/?start");
+  await expect(page.locator("[data-opening]")).toBeVisible({ timeout: 60_000 });
+  await page.keyboard.press("Enter");
+  await expect(page.locator("[data-phase=globe]")).toBeVisible();
+  await page.keyboard.press("Enter");
+  await expect(page.locator("[data-phase=zoom]")).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page.locator("[data-phase=rest]")).toBeVisible({ timeout: 60_000 });
+  await overview(page);
+  await expect(page.locator("[data-case-card]")).toHaveCount(0);
+});
+
+test("under reduced motion Open cuts straight to the overview", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/?start");
+  await expect(page.locator("[data-opening]")).toBeVisible({ timeout: 60_000 });
+  await page.keyboard.press("Enter");
+  await expect(page.locator("[data-phase=globe]")).toBeVisible();
+  await page.keyboard.press("Enter");
+  await expect(page.locator("[data-phase=zoom]")).toHaveCount(0);
+  await expect(page.locator("[data-phase=rest]")).toBeVisible({ timeout: 60_000 });
+  await overview(page);
 });

@@ -10,8 +10,9 @@ describe("globe palette", () => {
     expect(vec3("#dcd4c9")).toBe("vec3(0.863, 0.831, 0.788)");
   });
 
-  it("puts the palette into the globe shader", () => {
-    expect(GLOBE_FS).toContain("const vec3 PAPER = vec3(0.949, 0.937, 0.918)");
+  it("puts the Obsidian globe palette into the shader: the ground is the overview's #0b1012", () => {
+    expect(GLOBE_FS).toContain("const vec3 PAPER = vec3(0.043, 0.063, 0.071)");
+    expect(GLOBE_FS).toContain("BIOME = ");
     expect(GLOBE_FS.startsWith("#version 300 es")).toBe(true);
   });
 

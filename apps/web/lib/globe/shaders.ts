@@ -1,10 +1,10 @@
-// Shader source for the globe on paper, ported unchanged from the design lane's approved hero study A4
-// (gl4.js, 27 Oct 2026; our own code). The globe is ray traced per pixel against the unit sphere: relief,
-// dots sized by elevation, contour lines drawn outward from the case, the rising relief, and the rangeland
-// biomes lit. Edit the look in one place: here. The palette is generated from the daylight tokens, which
-// hold the same values the study wrote by hand (paper 0.949, 0.937, 0.918 and so on).
+// Shader source for the globe, ported from the design lane's approved hero study A4 (gl4.js, 27 Oct 2026; our own
+// code). The globe is ray traced per pixel against the unit sphere: relief, dots sized by elevation, contour lines
+// drawn outward from the case, the rising relief, and the rangeland biomes lit. Edit the look in one place: here.
+// The palette is the Obsidian globe's (lib/theme/obsidian globeColours, decision 11): the names keep the study's
+// roles, PAPER being the ground the globe stands on and fades to.
 
-import { daylight } from "../theme/daylight";
+import { globeColours as G } from "../theme/obsidian";
 
 /** A "#rrggbb" token as a GLSL vec3 of sRGB values, three decimals. */
 export function vec3(hex: string): string {
@@ -18,11 +18,10 @@ const HEAD = `#version 300 es
 precision highp float;
 precision highp sampler2D;
 `;
-// The daylight palette (design language 1.3): paper, ink, grey, the cool shadow tint, the accent (light and line only); the
-// land's albedo and key light are DESIGN B's.
+// The ground, the dots' light ink and grey, the cool body tint, the land's albedo and the biomes' warm tone.
 const PALETTE = `
-const vec3 PAPER = ${vec3(daylight.paper)}, INK = ${vec3(daylight.ink)}, GREY = ${vec3(daylight.grey)};
-const vec3 SHADOW = ${vec3(daylight.shadowTint)}, ALBEDO = ${vec3(daylight.albedo)};
+const vec3 PAPER = ${vec3(G.ground)}, INK = ${vec3(G.ink)}, GREY = ${vec3(G.grey)};
+const vec3 SHADOW = ${vec3(G.shadow)}, ALBEDO = ${vec3(G.albedo)}, BIOME = ${vec3(G.biome)};
 `;
 const CONTOUR = `
 float contourLine(float h, float interval, float widthPx, float fadeLo, float fadeHi) {
@@ -142,12 +141,11 @@ void main() {
       dg = mix(mean, dg, smoothstep(u_limb.x, u_limb.y, facing));
       ground = mix(ground, dg, u_mode.y);
     }
-    // the rangeland biomes lit: inside them the warm light pool of the valley, outside the land takes paper haze
+    // the rangeland biomes: a warm tone inside them on the dark ground; outside them the land sinks toward the ground
     float share = texture(u_layer, vec2((ll.x + 180.0) / 360.0, (90.0 - ll.y) / 180.0)).r * land;
     float lk = u_layerK * smoothstep(0.15, 0.6, share);
-    ground *= mix(vec3(1.0), vec3(1.10, 1.07, 1.02), lk);
+    ground = mix(ground, BIOME, 0.26 * lk);
     ground = mix(ground, PAPER, 0.30 * u_layerK * land * (1.0 - smoothstep(0.15, 0.6, share)) * (1.0 - u_mode.y * 0.5));
-    if (u_mode.y > 0.001) ground = mix(ground, ground * vec3(1.03, 1.0, 0.93) + vec3(0.02, 0.012, 0.0), lk * u_mode.y);
     // contour lines, drawn outward from the case
     if (u_cont.w > 0.001) {
       float ang = acos(clamp(dot(p, u_case), -1.0, 1.0));

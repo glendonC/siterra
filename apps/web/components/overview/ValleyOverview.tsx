@@ -148,21 +148,43 @@ function crumbOf(sel: Selection, findings: readonly Finding[], bandLimit: string
   }
 }
 
+/**
+ * The arrival from the globe (decision 11), given by the journey: the overview is mounted while the globe shows,
+ * draws its land at rest out of sight, and when `run` is set plays its arrival: the camera comes down from straight
+ * above the case's point (`from`, CSS px) to the overview's pose while the land rises, then the arc draws on, then
+ * the findings and the chrome fade in. `skip` ends it at once (Esc, Enter, reduced motion). Until it has ended no key
+ * reaches the overview but Esc and Enter, which skip.
+ */
+export interface OverviewIntro {
+  run: boolean;
+  skip: boolean;
+  from: { x: number; y: number } | null;
+  onDone: () => void;
+}
+
 export function ValleyOverview({
   onSettled,
+  intro,
 }: {
-  /** Once the land is drawn and the words placed, or the overview has failed (the journey's cross-fade). */
+  /** Once the land is drawn and the words placed, or the overview has failed (the journey waits on it). */
   onSettled?: () => void;
+  intro?: OverviewIntro;
 }) {
   return (
     <div className={styles.root} data-theme="obsidian" data-overview>
       <div className={styles.ground} aria-hidden="true" />
-      <OverviewRecords onSettled={onSettled} />
+      <OverviewRecords onSettled={onSettled} intro={intro} />
     </div>
   );
 }
 
-function OverviewRecords({ onSettled }: { onSettled: (() => void) | undefined }) {
+function OverviewRecords({
+  onSettled,
+  intro,
+}: {
+  onSettled: (() => void) | undefined;
+  intro: OverviewIntro | undefined;
+}) {
   const records = useInstrumentRecords();
   const failed = records.status === "failed";
   useEffect(() => {
@@ -170,7 +192,12 @@ function OverviewRecords({ onSettled }: { onSettled: (() => void) | undefined })
   }, [failed, onSettled]);
   if (records.status === "ready")
     return (
-      <OverviewReady snapshot={records.snapshot} listing={records.listing} onSettled={onSettled} />
+      <OverviewReady
+        snapshot={records.snapshot}
+        listing={records.listing}
+        onSettled={onSettled}
+        intro={intro}
+      />
     );
   if (!failed) return null;
   return (
@@ -192,15 +219,29 @@ interface Live {
 const ZOOM = { min: 0.55, max: 1.8 } as const;
 const TURN_MAX = 60;
 
+/** The arrival's steps (s): the land rising as the camera comes down, the arc drawing on, the findings fading in. */
+const ARRIVE_S = { rise: 1.5, arc: 0.5, appear: 0.4 } as const;
+
 function OverviewReady({
   snapshot,
   listing,
   onSettled,
+  intro,
 }: {
   snapshot: CaseSnapshot;
   listing: InstrumentListing;
   onSettled: (() => void) | undefined;
+  intro: OverviewIntro | undefined;
 }) {
+  // the arrival's clock: when it began, and how far the findings and the chrome have come in (1 at rest)
+  const introRef = useRef(intro);
+  introRef.current = intro;
+  const arrival = useRef<{ t0: number | null; done: boolean }>({
+    t0: null,
+    done: intro === undefined,
+  });
+  const appearRef = useRef(intro === undefined ? 1 : 0);
+  const [arriving, setArriving] = useState(intro !== undefined);
   const { findings: all, bandLimit } = useMemo(
     () => findingsFrom(snapshot, listing),
     [snapshot, listing],
@@ -390,8 +431,11 @@ function OverviewReady({
     const oe = ease(o);
     const selected = selRef.current;
     const hud = hudRef.current;
-    if (hud)
+    if (hud) {
       hud.style.transform = `translate(${fit.ox.toFixed(2)}px, ${fit.oy.toFixed(2)}px) scale(${fit.scale.toFixed(5)})`;
+      // the arrival: the words on the land and round the arc come in once the arc is drawn
+      hud.style.opacity = appearRef.current < 1 ? appearRef.current.toFixed(3) : "";
+    }
     const lift = `translateY(${(-LIFT * oe * fit.scale).toFixed(2)}px)`;
     for (const c of [landRef.current, arcRef.current, blurRef.current])
       if (c) c.style.transform = lift;
@@ -610,7 +654,31 @@ function OverviewReady({
       selRef.current = null;
       setSel(null);
     }
-    scene.render({ ...l, ...camRef.current, sel: selRef.current, route: pickRef.current });
+    // the arrival from the globe: the camera comes down and the land rises, the arc draws on, the findings come in
+    let arrive: { rise: number; arcDraw: number; from?: { x: number; y: number } } | null = null;
+    const I = introRef.current;
+    const A = arrival.current;
+    if (I && !A.done && I.run) {
+      A.t0 ??= t;
+      const el = I.skip ? Infinity : (t - A.t0) / 1000;
+      const rise = clamp01(el / ARRIVE_S.rise);
+      const arcDraw = clamp01((el - ARRIVE_S.rise) / ARRIVE_S.arc);
+      appearRef.current = clamp01((el - ARRIVE_S.rise - 0.5 * ARRIVE_S.arc) / ARRIVE_S.appear);
+      arrive = { rise, arcDraw, ...(I.from ? { from: I.from } : {}) };
+      if (appearRef.current >= 1) {
+        A.done = true;
+        arrive = null;
+        setArriving(false);
+        I.onDone();
+      } else moving = true;
+    }
+    scene.render({
+      ...l,
+      ...camRef.current,
+      sel: selRef.current,
+      route: pickRef.current,
+      ...(arrive ?? {}),
+    });
     raf.current = moving ? requestAnimationFrame(frame) : 0;
   }, []);
   const go = useCallback(() => {
@@ -618,6 +686,12 @@ function OverviewReady({
     last.current = performance.now();
     raf.current = requestAnimationFrame(frame);
   }, [frame]);
+  // the arrival starts, or is skipped, when the journey says so
+  const introRun = intro?.run ?? false;
+  const introSkip = intro?.skip ?? false;
+  useEffect(() => {
+    if (introRun || introSkip) go();
+  }, [introRun, introSkip, go]);
 
   const settled = useRef(onSettled);
   settled.current = onSettled;
@@ -801,6 +875,8 @@ function OverviewReady({
   // Esc goes back one level: the panel, then what is open, then the opening; R resets; S the sources
   useEffect(() => {
     const onKey = (ev: KeyboardEvent) => {
+      // while the arrival plays no key reaches the overview; Esc and Enter end it (the journey says skip)
+      if (arriving) return;
       if (askOpen || typing(ev)) return;
       if (ev.key === "Escape") {
         ev.preventDefault();
@@ -819,7 +895,7 @@ function OverviewReady({
     return () => {
       window.removeEventListener("keydown", onKey);
     };
-  }, [askOpen, panel, back, reset, toOpening]);
+  }, [arriving, askOpen, panel, back, reset, toOpening]);
   // drag on the land turns it, the wheel zooms
   useEffect(() => {
     const root = rootRef.current;
@@ -924,6 +1000,7 @@ function OverviewReady({
       ref={rootRef}
       className={styles.layer}
       data-overview-root
+      data-arriving={arriving ? "" : undefined}
       data-case-revision={snapshot.case.revision}
     >
       <p id={descriptionId} className={styles.srOnly}>
@@ -1133,6 +1210,7 @@ function OverviewReady({
         {data ? (
           <Ask
             variant="arc"
+            keysOff={arriving}
             open={askOpen}
             onOpen={onAskOpen}
             onClose={onAskClose}

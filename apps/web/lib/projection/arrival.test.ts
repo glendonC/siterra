@@ -76,7 +76,7 @@ describe("arrival from the seed case", () => {
     expect(p.valleyName).toBe("Aït Bouguemez valley");
     expect(p.regionName).toBe("High Atlas Mountains, Morocco");
     expect("rangeName" in p).toBe(false);
-    expect(p.subrangeName).toBe("High Atlas Mountains");
+    expect("subrangeName" in p).toBe(false);
     expect(p.areaKm2).toBe("417.0");
     expect(p.modeLines).toEqual({ label: "mode.concept", detail: "mode.conceptDetail" });
   });

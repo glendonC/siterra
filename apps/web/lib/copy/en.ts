@@ -53,7 +53,6 @@ export const en = {
   "source.chirps": { text: "CHIRPS", kind: "label" },
   "source.geonames": { text: "GeoNames", kind: "label" },
   "source.sentinel": { text: "Copernicus Sentinel-2", kind: "label" },
-  "source.mapterhorn": { text: "Mapterhorn", kind: "label" },
   "source.studies": { text: "{n} published studies", kind: "label" },
   "opening.howButton": { text: "How It Works", kind: "button" },
 
@@ -78,12 +77,10 @@ export const en = {
     text: "Rangeland biomes, potential extent (Rangelands Atlas method)",
     kind: "ui",
   },
-  "dive.highAtlas": { text: "{subrange}", kind: "label" },
   "credit.globe": {
     text: "Globe relief: produced using Copernicus WorldDEM™-90 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved",
     kind: "ui",
   },
-  "credit.dive": { text: "Dive relief: © Mapterhorn (Copernicus GLO-30)", kind: "ui" },
 
   // Arrival (valley and region names come from the case record)
   "arrival.valleyName": { text: "{valley}", kind: "label" },

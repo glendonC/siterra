@@ -129,4 +129,12 @@
     rgb(0 0 0 / 0.7) 82%,
     transparent 100%
   );
+
+  /* the journey (opening and globe) in the Obsidian palette (decision 11): the roles its styles name, now dark */
+  --paper: #0b1012;
+  --ink: #ebf0f1;
+  --grey: #9aa6ab;
+  --paper-halo: 0 0 2px #0b1012, 0 0 2px #0b1012, 0 0 3px #0b1012;
+  --biome-fill: #3a3226;
+  --biome-edge: rgb(224 122 58 / 0.45);
 }

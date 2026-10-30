@@ -21,11 +21,14 @@ export function GlobePage({
   cases,
   cardRef,
   onOpen,
+  opened = false,
 }: {
   cases: GlobeCase[];
   /** The card the journey places beside the case's point (today the listing holds one case). */
   cardRef: Ref<HTMLDivElement>;
   onOpen: () => void;
+  /** True once the case is being opened: the card stays with its place and question, without the action or hints. */
+  opened?: boolean;
 }) {
   return (
     <div className={styles.page}>
@@ -37,16 +40,20 @@ export function GlobePage({
                 {format("globe.place", { place: c.place, region: c.region })}
               </p>
               <p className={styles.caseQuestion}>{c.question}</p>
-              <Control variant="primary" keyHint="↵" keyShortcut="Enter" onClick={onOpen}>
-                {en["globe.open"].text}
-              </Control>
+              {opened ? null : (
+                <Control variant="primary" keyHint="↵" keyShortcut="Enter" onClick={onOpen}>
+                  {en["globe.open"].text}
+                </Control>
+              )}
             </div>
           </li>
         ))}
       </ul>
-      <div className={styles.hints}>
-        <span className={styles.quiet}>{en["globe.drag"].text}</span>
-      </div>
+      {opened ? null : (
+        <div className={styles.hints}>
+          <span className={styles.quiet}>{en["globe.drag"].text}</span>
+        </div>
+      )}
     </div>
   );
 }

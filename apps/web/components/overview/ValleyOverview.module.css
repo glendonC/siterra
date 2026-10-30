@@ -479,3 +479,15 @@
   line-height: 18px;
   color: var(--text-secondary);
 }
+
+/* the arrival from the globe (decision 11): the chrome waits until the findings are in, then comes in with them */
+.layer :is([data-crumbs], [data-view-control], .place),
+.layer > :has(> [data-key-legend]) {
+  transition: opacity 0.45s ease;
+}
+
+.layer[data-arriving] :is([data-crumbs], [data-view-control], .place),
+.layer[data-arriving] > :has(> [data-key-legend]) {
+  opacity: 0;
+  pointer-events: none;
+}

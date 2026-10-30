@@ -129,3 +129,18 @@ export const overviewColours = {
 
 /** A CSS mask stop: black at an alpha (0 to 1); a mask reads only the alpha. */
 export const maskAt = (alpha: number) => `rgb(0 0 0 / ${alpha.toFixed(3)})`;
+
+/**
+ * The globe in the Obsidian palette (decision 11, 30 Oct 2026: one palette from the first screen): the ground the
+ * overview stands on, light dots for the land, a cool body tint so the sphere reads against the ground, the
+ * overview's own albedo and key light, and a warm tone for the rangeland biomes.
+ */
+export const globeColours = {
+  ground: obsidian.canvas,
+  ink: "#c9d4d7",
+  grey: "#46545a",
+  shadow: "#3a4b53",
+  albedo: overviewColours.reliefAlbedo,
+  keyLight: overviewColours.keyLight,
+  biome: "#8f6d45",
+} as const;

@@ -181,6 +181,12 @@ export function createStage(
       camera.up.set(0, 1, 0);
       controls.target.set(target[0], target[1], target[2]);
       camera.lookAt(controls.target);
+      // the far plane keeps the land in view however far the camera stands (the overview's arrival from the globe
+      // starts thousands of km out); the near plane follows so the depth keeps its precision
+      if (camera instanceof PerspectiveCamera) {
+        camera.far = Math.max(4000, distance * 2);
+        camera.near = Math.max(0.5, distance / 8000);
+      }
       frustum();
       camera.updateMatrixWorld();
       controls.update();

@@ -21,12 +21,6 @@ export const ARRIVAL_POSE: OrbitPose = {
 export const ARRIVAL_LIGHT = { azimuthDeg: 224.1, altitudeDeg: 34.2 } as const;
 
 /**
- * Snapped outlet of catchment revision 1 (freeze record), for the globe and the dive only, which run before
- * the case is open. The arrival draws the outlet from the case's ContextFeature record.
- */
-export const OUTLET = { lon: -6.5372222, lat: 31.6377778 } as const;
-
-/**
  * Layout reference for the valley name (the approved u07 placement): the name sits east of this point. Not
  * drawn; the villages on the land come from the case's ContextFeature records.
  */

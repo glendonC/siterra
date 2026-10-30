@@ -1,87 +1,77 @@
 "use client";
 
-// The sequence as one view: the opening over the globe's limb, the globe, the dive and the arrival on the
-// overview (approved specimen D4, the Valley view at /valley). One clock drives both renderers: the ported globe (WebGL2) and the MapLibre valley, which fades in at
-// the dive's relief rise; the globe renderer is then disposed so only MapLibre's context runs. At the arrival the
-// overview fades in over the MapLibre valley once its land is drawn, and the MapLibre valley is then unmounted, so
-// the old arrival's rail, cards, legend and notices do not render here.
+// The sequence as one world (decision 11, 30 Oct 2026): the opening over the globe's limb, the globe with the case's
+// card, then Open: the camera zooms straight down onto the case's point while the earth sinks into the ground, and
+// the case's own land, the overview's (approved specimen D4), rises out of that ground under the point while its
+// camera comes down to the overview's pose without a cut; then the arc draws on and the findings come in. One palette
+// (Obsidian) from the first screen; one picture of the place at a time; the case's card stays on screen until the
+// land takes its place. Esc or Enter ends the arrival at once; under reduced motion Open cuts to the overview.
 
-import type * as maplibregl from "maplibre-gl";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { en, format } from "../../lib/copy/en";
 import { crestCurve, findCrest } from "../../lib/globe/crest";
-import { viewToMapCamera } from "../../lib/globe/drive";
-import { R_KM, globeCamera, project } from "../../lib/globe/frame";
+import { R_KM, globeCamera, project, unit } from "../../lib/globe/frame";
 import { polygonPath, rangePath, ringPoints, ringRho } from "../../lib/globe/overlay";
-import { unit } from "../../lib/globe/frame";
-import { widthFitScale } from "../../lib/stage/camera";
 import { loadGlobe, type GlobeAssets } from "../../lib/globe/grids";
 import { GlobeRenderer } from "../../lib/globe/renderer";
-import { KEY, endView, globeStateAt, sunFor, type Moments } from "../../lib/globe/timeline";
-import { arrivalPose, centreOf } from "../../lib/land/arrival-pose";
-import { bandLimitsOf } from "../../lib/land/record";
+import { KEY, globeStateAt, sunFor, type Moments } from "../../lib/globe/timeline";
+import { centreOf } from "../../lib/land/geometry";
 import { Opening } from "../opening/Opening";
 import { GlobePage } from "./GlobePage";
 import type { CaseSnapshot } from "@siterra/contracts";
-import type { MapBundle } from "../../lib/map/bundle";
 import type { ReadyArrival } from "../../lib/projection/arrival";
 import { InstrumentRecords } from "../instruments/InstrumentRecords";
 import { ValleyOverview } from "../overview/ValleyOverview";
-import { ValleyStage } from "../stage/ValleyStage";
 import { KeyLegend, SourcesLine, SourcesPanel, typing } from "../controls/ScreenChrome";
 import styles from "./Journey.module.css";
 
-/** The cross-fade from the MapLibre valley to the overview (ms); Journey.module.css .overview matches it. */
-const HANDOVER_MS = 800;
-
 export interface JourneyProps {
-  /** The valley's and the globe's assets, from the one map bundle. */
-  valleyAssets: MapBundle["valley"];
-  contourArea?: MapBundle["contours"];
+  /** The globe's assets, from the map bundle. */
   globeAssets: GlobeAssets;
   /** The case's arrival, projected from its record. */
   arrival: ReadyArrival;
   snapshot: CaseSnapshot;
 }
 
-type Phase = "opening" | "globe" | "dive" | "arrival";
+/** opening, globe; zoom: Open pressed, the camera going down; land: the overview's own arrival; rest. */
+type Phase = "opening" | "globe" | "zoom" | "land" | "rest";
 
-export function Journey({
-  valleyAssets,
-  contourArea,
-  globeAssets,
-  arrival,
-  snapshot,
-}: JourneyProps) {
+export function Journey({ globeAssets, arrival, snapshot }: JourneyProps) {
   const canvas = useRef<HTMLCanvasElement>(null);
-  const valley = useRef<HTMLDivElement>(null);
-  const map = useRef<maplibregl.Map | null>(null);
   const ring = useRef<SVGPathElement>(null);
   const rangeLine = useRef<SVGPathElement>(null);
   const rangeText = useRef<SVGTextPathElement>(null);
   const rangeGroup = useRef<SVGTextElement>(null);
   const casePoint = useRef<HTMLDivElement>(null);
   const caseCard = useRef<HTMLDivElement>(null);
-  // the case's place on the sphere: its outlet from the record, else its catchment's centre; the dive ends on the
-  // arrival pose made from the case's own outline and band limits, and the land fades to paper round its centre
+  // the case's place on the sphere: its outlet from the record, else its catchment's centre; the earth sinks into the
+  // ground round the catchment's centre
   const outline = arrival.catchment.geometry.coordinates[0] ?? [];
   const centre = centreOf(outline);
   const outlet = arrival.land.outlet ?? centre;
   const outletRef = useRef(outlet);
   outletRef.current = outlet;
-  const pose = useMemo(() => arrivalPose(outline, bandLimitsOf(snapshot)), [outline, snapshot]);
-  const endRef = useRef(endView(pose));
-  endRef.current = endView(pose);
   const fadeRef = useRef(unit(centre.lon, centre.lat));
   fadeRef.current = unit(centre.lon, centre.lat);
-  const valleyName = useRef<HTMLDivElement>(null);
   const t0 = useRef(0);
   const moments = useRef<Moments>({ beats: [] });
   const [phase, setPhase] = useState<Phase>("opening");
+  // where the case's point stood on screen when the globe handed over (CSS px), and whether to end the arrival at once
+  const [from, setFrom] = useState<{ x: number; y: number } | null>(null);
+  const [skip, setSkip] = useState(false);
+  // the overview has drawn its land at rest, out of sight: the arrival can begin
+  const [landReady, setLandReady] = useState(false);
+  const onLandReady = useCallback(() => {
+    setLandReady(true);
+  }, []);
+  const onArrived = useCallback(() => {
+    setPhase("rest");
+  }, []);
+
   // the credits sit behind one Sources button (S) with the data's short names always visible (decision 5)
   const [sourcesOpen, setSourcesOpen] = useState(false);
   useEffect(() => {
-    if (phase === "arrival") return;
+    if (phase !== "opening" && phase !== "globe") return;
     const onKey = (e: KeyboardEvent) => {
       if (typing(e)) return;
       if (e.key === "s" || e.key === "S") {
@@ -94,17 +84,9 @@ export function Journey({
       window.removeEventListener("keydown", onKey);
     };
   }, [phase]);
-  // the overview has drawn its land; then the MapLibre valley is gone
-  const [overviewShown, setOverviewShown] = useState(false);
-  const [valleyGone, setValleyGone] = useState(false);
-  const onSettled = useCallback(() => {
-    setOverviewShown(true);
-    window.setTimeout(() => {
-      setValleyGone(true);
-    }, HANDOVER_MS);
-  }, []);
 
   const now = () => (performance.now() - t0.current) / 1000;
+  const reduced = useRef(false);
 
   const onShown = useCallback(() => {
     if (moments.current.beats.length === 0) moments.current.beats.push(now());
@@ -113,16 +95,17 @@ export function Journey({
     moments.current.press ??= now();
     setPhase("globe");
   }, []);
-  const onMap = useCallback((m: maplibregl.Map) => {
-    map.current = m;
-  }, []);
-
   const onDive = useCallback(() => {
     moments.current.dive ??= now();
-    setPhase("dive");
+    setSourcesOpen(false);
+    // under reduced motion Open cuts straight to the overview
+    if (reduced.current) {
+      setSkip(true);
+      setPhase("land");
+    } else setPhase("zoom");
   }, []);
 
-  // the globe page: Enter dives (a focused button handles its own Enter)
+  // the globe page: Enter opens the case (a focused button handles its own Enter)
   useEffect(() => {
     if (phase !== "globe") return;
     const onKey = (e: KeyboardEvent) => {
@@ -137,11 +120,28 @@ export function Journey({
     };
   }, [phase, onDive]);
 
+  // while the camera goes down and the land arrives, Esc or Enter ends it at once
+  useEffect(() => {
+    if (phase !== "zoom" && phase !== "land") return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape" && e.key !== "Enter") return;
+      e.preventDefault();
+      setSkip(true);
+      setPhase("land");
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [phase]);
+
+  // the globe: one clock from the opening to the moment the earth has sunk into the ground under the case's point
+  const globeOn = phase === "opening" || phase === "globe" || phase === "zoom";
   useEffect(() => {
     const el = canvas.current;
-    if (!el) return;
-    t0.current = performance.now();
-    const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!el || !globeOn) return;
+    if (t0.current === 0) t0.current = performance.now();
+    reduced.current = matchMedia("(prefers-reduced-motion: reduce)").matches;
     let renderer: GlobeRenderer | undefined = new GlobeRenderer(el);
     let raf = 0;
     let ready = false;
@@ -158,40 +158,13 @@ export function Journey({
 
     const frame = () => {
       raf = requestAnimationFrame(frame);
-      if (!ready) return;
+      if (!ready || !renderer) return;
       const w = el.clientWidth;
       const h = el.clientHeight;
       const o = outletRef.current;
       const caseV = unit(o.lon, o.lat);
-      const s = globeStateAt(now(), moments.current, reduced, o, endRef.current);
-      // the same width fit as the arrival, on both renderers, so the cross-fade lines up
-      const v = { ...s.view, distance: s.view.distance * widthFitScale(w, h) };
-
-      // the valley follows the same camera from its first visible frame to the arrival pose
-      const m = map.current;
-      if (valley.current) valley.current.style.opacity = String(s.valleyOpacity);
-      if (m && s.valleyOpacity > 0) {
-        const c = viewToMapCamera(v, h);
-        m.jumpTo({
-          center: c.center,
-          zoom: c.zoom,
-          pitch: c.pitch,
-          bearing: c.bearing,
-          elevation: c.elevation,
-        });
-        m.setTerrain({ source: "terrain", exaggeration: Math.max(s.valleyExaggeration, 0.001) });
-      }
-      if (s.done) {
-        cancelAnimationFrame(raf);
-        setPhase("arrival");
-        return;
-      }
-      if (renderer && s.globeDone) {
-        // the valley covers the globe: give its context back so only MapLibre's runs
-        renderer.dispose(true);
-        renderer = undefined;
-        el.style.opacity = "0";
-      }
+      const s = globeStateAt(now(), moments.current, reduced.current, o);
+      const v = s.view;
       const cam = globeCamera(
         {
           lon: v.lon,
@@ -206,21 +179,18 @@ export function Journey({
         },
         w / h,
       );
-      if (renderer) {
-        const dpr = devicePixelRatio || 1;
-        renderer.resize(Math.round(w * dpr), Math.round(h * dpr));
-        renderer.draw({
-          ...s.uniforms,
-          cam,
-          sun: sunFor(cam, s.sunK),
-          key: KEY,
-          caseV,
-          fadeC: fadeRef.current,
-        });
-        el.style.opacity = String(1 - s.valleyOpacity);
-      }
+      const dpr = devicePixelRatio || 1;
+      renderer.resize(Math.round(w * dpr), Math.round(h * dpr));
+      renderer.draw({
+        ...s.uniforms,
+        cam,
+        sun: sunFor(cam, s.sunK),
+        key: KEY,
+        caseV,
+        fadeC: fadeRef.current,
+      });
 
-      // the overlay: the case ring and point, the range name, and the valley's name late in the dive
+      // the overlay: the case ring and point, the range name
       const ringD = polygonPath(cam.vp, ringPoints(caseV, o.lon, ringRho(v.distance)), w, h);
       if (ring.current) {
         ring.current.setAttribute("d", ringD ?? "");
@@ -238,7 +208,7 @@ export function Journey({
           : "";
         casePoint.current.style.opacity = String(cs ? s.ringOpacity : 0);
       }
-      // the case's card stands beside its point while the globe shows (with one case it opens by itself)
+      // the case's card stands beside its point (with one case it opens by itself) and goes down with it
       if (caseCard.current) {
         caseCard.current.style.transform = cs
           ? `translate(${(cs[0] + 22).toFixed(1)}px, ${(cs[1] - 28).toFixed(1)}px)`
@@ -246,61 +216,63 @@ export function Journey({
         caseCard.current.style.visibility = cs && s.ringOpacity > 0.05 ? "visible" : "hidden";
         caseCard.current.style.opacity = String(cs ? s.ringOpacity : 0);
       }
-      if (valleyName.current) {
-        valleyName.current.style.transform = cs
-          ? `translate(${(cs[0] + 18).toFixed(1)}px, ${(cs[1] - 9).toFixed(1)}px)`
-          : "";
-        valleyName.current.style.opacity = String(cs ? s.valleyNameOpacity : 0);
-      }
       const rd =
         s.rangeOpacity > 0.001 && curve.length ? rangePath(cam.vp, curve, w, h) : undefined;
       if (rd) rangeLine.current?.setAttribute("d", rd);
       if (rangeText.current) {
-        const name =
-          s.rangeName === 0
-            ? format("globe.range", { range: arrival.regionName })
-            : format("dive.highAtlas", { subrange: arrival.subrangeName });
+        const name = format("globe.range", { range: arrival.regionName });
         if (rangeText.current.textContent !== name) rangeText.current.textContent = name;
       }
       if (rangeGroup.current) rangeGroup.current.style.opacity = String(rd ? s.rangeOpacity : 0);
+      // the earth has sunk into the ground under the point: the land takes over from here
+      if (s.done) {
+        setFrom(cs ? { x: cs[0], y: cs[1] } : { x: w / 2, y: h / 2 });
+        setPhase((p) => (p === "zoom" ? "land" : p));
+      }
     };
     raf = requestAnimationFrame(frame);
     return () => {
       cancelAnimationFrame(raf);
       renderer?.dispose();
+      renderer = undefined;
     };
-  }, [globeAssets, arrival.regionName, arrival.subrangeName]);
+  }, [globeOn, globeAssets, arrival.regionName]);
+
+  // the land arrives once the globe has handed over and the overview has drawn its land
+  const run = (phase === "land" || phase === "rest") && landReady;
+  const landing = phase === "land" && run && !skip;
+  // the overview is mounted from the globe page on, so its land is drawn by the time the camera reaches the point
+  const overviewOn = phase !== "opening";
 
   return (
-    <div className={styles.journey} data-phase={phase}>
-      {valleyGone ? null : (
-        <div ref={valley} className={styles.valley} aria-hidden="true">
-          <ValleyStage
-            assets={valleyAssets}
-            contourArea={contourArea}
-            catchment={arrival.catchment}
-            valleyName={arrival.valleyName}
-            regionName={arrival.regionName}
-            areaKm2={arrival.areaKm2}
-            areaLabel={arrival.areaLabel}
-            places={arrival.land.places}
-            outlet={arrival.land.outlet}
-            pose={pose}
-            onMap={onMap}
-            labels={false}
-          />
-        </div>
-      )}
-      {phase === "arrival" ? (
-        <div id="arrival" className={styles.overview} data-shown={overviewShown ? "" : undefined}>
+    <div
+      className={styles.journey}
+      data-theme="obsidian"
+      data-phase={phase}
+      data-landing={landing ? "" : undefined}
+    >
+      {globeOn || phase === "land" ? (
+        // the globe lies under the overview: once disposed it keeps its last frame, the bare ground
+        <canvas ref={canvas} className={styles.globe} aria-hidden="true" />
+      ) : null}
+      {overviewOn ? (
+        <div
+          id="arrival"
+          className={styles.overview}
+          data-shown={run ? "" : undefined}
+          aria-hidden={run ? undefined : true}
+          inert={!run}
+        >
           <InstrumentRecords snapshot={snapshot}>
-            <ValleyOverview onSettled={onSettled} />
+            <ValleyOverview
+              onSettled={onLandReady}
+              intro={{ run, skip, from, onDone: onArrived }}
+            />
           </InstrumentRecords>
         </div>
       ) : null}
-      {phase !== "arrival" ? (
+      {globeOn || (phase === "land" && !(run && skip)) ? (
         <>
-          <canvas ref={canvas} className={styles.globe} aria-hidden="true" />
           <svg className={styles.overlay} aria-hidden="true">
             <defs>
               <path id="range-path" ref={rangeLine} d="M0 0" />
@@ -310,53 +282,47 @@ export function Journey({
               <textPath ref={rangeText} href="#range-path" startOffset="50%" textAnchor="middle" />
             </text>
           </svg>
-          <div ref={casePoint} className={styles.casePoint} aria-hidden="true" />
-          <div ref={valleyName} className={styles.diveName} aria-hidden="true">
-            {format("arrival.valleyName", { valley: arrival.valleyName })}
-          </div>
         </>
       ) : null}
+      {phase !== "opening" && phase !== "rest" && !(run && skip) ? (
+        // the case's point and card: on the globe, going down with the camera, and kept over the ground until the
+        // land has taken their place
+        <div className={styles.handover}>
+          <div ref={casePoint} className={styles.casePoint} aria-hidden="true" />
+          <GlobePage
+            cases={[
+              {
+                id: arrival.caseId,
+                place: arrival.valleyName,
+                region: arrival.regionName,
+                question: arrival.question,
+              },
+            ]}
+            cardRef={caseCard}
+            onOpen={onDive}
+            opened={phase !== "globe"}
+          />
+        </div>
+      ) : null}
       {phase === "opening" ? <Opening onOpen={onOpen} onShown={onShown} /> : null}
-      {phase === "globe" ? (
-        <GlobePage
-          cases={[
-            {
-              id: arrival.caseId,
-              place: arrival.valleyName,
-              region: arrival.regionName,
-              question: arrival.question,
-            },
-          ]}
-          cardRef={caseCard}
-          onOpen={onDive}
-        />
-      ) : null}
       {phase === "opening" || phase === "globe" ? (
-        <p className={styles.legend}>
-          <i className={styles.legendSwatch} aria-hidden="true" />
-          {en["globe.legend"].text}
-        </p>
-      ) : null}
-      {phase !== "arrival" ? (
-        <JourneySources dive={phase === "dive"} open={sourcesOpen} onToggle={setSourcesOpen} />
+        <>
+          <p className={styles.legend}>
+            <i className={styles.legendSwatch} aria-hidden="true" />
+            {en["globe.legend"].text}
+          </p>
+          <JourneySources open={sourcesOpen} onToggle={setSourcesOpen} />
+        </>
       ) : null}
     </div>
   );
 }
 
-/** The globe's and the dive's credits behind one Sources button, their short names always visible. */
-function JourneySources({
-  dive,
-  open,
-  onToggle,
-}: {
-  dive: boolean;
-  open: boolean;
-  onToggle: (open: boolean) => void;
-}) {
+/** The globe's credits behind one Sources button, their short names always visible. */
+function JourneySources({ open, onToggle }: { open: boolean; onToggle: (open: boolean) => void }) {
   const sources = {
-    lines: [en["credit.globe"].text, ...(dive ? [en["credit.dive"].text] : [])],
-    short: [en["source.dem"].text, ...(dive ? [en["source.mapterhorn"].text] : [])],
+    lines: [en["credit.globe"].text],
+    short: [en["source.dem"].text],
   };
   return (
     <>

@@ -74,3 +74,18 @@ export function landFrame(ring: Ring, range: ReliefRange): LandFrame {
     kmScale: extentKm(ring) / D4_EXTENT_KM,
   };
 }
+
+/** The outline's centre: the mean of its vertices, the first counted once when the ring closes. */
+export function centreOf(ring: Ring): { lon: number; lat: number } {
+  const [first] = ring;
+  const last = ring[ring.length - 1];
+  const pts =
+    ring.length > 1 && first && last && first[0] === last[0] && first[1] === last[1]
+      ? ring.slice(0, -1)
+      : ring;
+  const n = pts.length || 1;
+  return {
+    lon: pts.reduce((s, p) => s + (p[0] ?? 0), 0) / n,
+    lat: pts.reduce((s, p) => s + (p[1] ?? 0), 0) / n,
+  };
+}

@@ -13,6 +13,8 @@ import styles from "./Ask.module.css";
 export interface AskProps {
   /** "arc": D4's 112 px circle, placed by the page on the arc's start; "rest": a 44 px circle at the bottom centre. */
   variant: "arc" | "rest";
+  /** True while no key may open or close it (the overview's arrival from the globe). */
+  keysOff?: boolean;
   open: boolean;
   onOpen: () => void;
   onClose: () => void;
@@ -36,6 +38,7 @@ const typing = (t: EventTarget | null) =>
 
 export function Ask({
   variant,
+  keysOff = false,
   open,
   onOpen,
   onClose,
@@ -54,6 +57,7 @@ export function Ask({
   // Esc closes it from anywhere while it is open
   useEffect(() => {
     const onKey = (ev: KeyboardEvent) => {
+      if (keysOff) return;
       if (open) {
         if (ev.key !== "Escape") return;
         ev.preventDefault();
@@ -68,7 +72,7 @@ export function Ask({
     return () => {
       window.removeEventListener("keydown", onKey);
     };
-  }, [open, onOpen, onClose]);
+  }, [keysOff, open, onOpen, onClose]);
 
   // open, the typing goes to the question; closed, the focus leaves it
   useEffect(() => {

@@ -1,4 +1,4 @@
-/* The globe canvas lies over the valley until the dive's relief rise; both fill the frame. */
+/* One world on one ground (decision 11): the globe, then the overview's own land rising out of the same ground. */
 
 .journey {
   position: fixed;
@@ -6,26 +6,33 @@
   background: var(--paper);
 }
 
-.valley {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-}
-
-.journey[data-phase="arrival"] .valley {
-  opacity: 1;
-}
-
-/* the overview fades in over the MapLibre valley once its land is drawn (HANDOVER_MS in Journey.tsx) */
+/* the overview is mounted under the globe while the globe shows; once the earth has sunk into the ground it comes
+   up over that ground (its own ground is the same dark), and its land then rises */
 .overview {
   position: absolute;
   inset: 0;
   opacity: 0;
-  transition: opacity 0.8s ease;
+  transition: opacity 0.12s ease;
 }
 
 .overview[data-shown] {
   opacity: 1;
+}
+
+/* the case's point, ring and card stay over the ground until the land has taken their place */
+.handover {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.handover,
+.overlay {
+  transition: opacity 0.6s ease 0.3s;
+}
+
+.journey[data-landing] :is(.handover, .overlay) {
+  opacity: 0;
 }
 
 .globe {
@@ -79,19 +86,6 @@
   pointer-events: none;
 }
 
-.diveName {
-  position: absolute;
-  left: 0;
-  top: 0;
-  font: 500 13px / 18px var(--font-sans);
-  letter-spacing: 0.06em;
-  color: var(--ink);
-  white-space: nowrap;
-  text-shadow: var(--paper-halo);
-  opacity: 0;
-  pointer-events: none;
-}
-
 /* The globe's page (DESIGN a5 hud4.css). */
 
 .page {
@@ -121,7 +115,7 @@
   padding: 14px 16px 16px;
   border: 1px solid var(--control-line);
   border-radius: 12px;
-  background: var(--paper);
+  background: var(--bg-surface);
   box-shadow: var(--control-shadow);
   pointer-events: auto;
   visibility: hidden;

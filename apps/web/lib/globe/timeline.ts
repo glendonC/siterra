@@ -1,12 +1,10 @@
-// What the globe shows at a time t, as a pure function of the clock and the moments the viewer acted:
-// the limb under the opening's beats, the turn to North Africa when the action is pressed, then the dive to
-// the arrival pose. Ported from the design lane's hero study A4 (app4.js frame()); the dive ends on the
-// MapLibre valley, which fades in where the study's valley block faded in (dive 2.5 to 3.1 s).
+// What the globe shows at a time t, as a pure function of the clock and the moments the viewer acted: the limb
+// under the opening's beats, the turn to the case when the action is pressed, then the zoom into the case, after
+// which the overview's own land takes over (decision 11). Ported from the design lane's hero study A4 (app4.js
+// frame()).
 
-import { ARRIVAL_POSE } from "../stage/arrival";
-import type { OrbitPose } from "../stage/camera";
-import { daylight } from "../theme/daylight";
-import { R_KM, localFrame, unit, type GlobeCamera, type Vec3 } from "./frame";
+import { globeColours } from "../theme/obsidian";
+import { R_KM, localFrame, type GlobeCamera, type Vec3 } from "./frame";
 import type { GlobeFrame } from "./renderer";
 import {
   ARRIVE,
@@ -26,14 +24,13 @@ export interface Moments {
   beats: number[];
   /** Seconds at which the action appeared (the limb rises). */
   action?: number;
-  /** Seconds at which the action was pressed (the globe turns North Africa to the centre). */
+  /** Seconds at which the action was pressed (the globe turns the case toward the centre). */
   press?: number;
   /** Seconds at which the dive started. */
   dive?: number;
 }
 
 export const TURN_S = 2.0;
-export const DIVE_S = 4.4;
 /** The approved recording's moments (hero study A4). */
 export const RECORDING: Required<Moments> = {
   beats: [0.6, 7.6, 14.6, 21.6],
@@ -45,7 +42,6 @@ export const RECORDING: Required<Moments> = {
 const clamp = (v: number, a = 0, b = 1) => Math.max(a, Math.min(b, v));
 const lerp = (a: number, b: number, k: number) => a + (b - a) * k;
 const LIN = (x: number) => x;
-const RAD = Math.PI / 180;
 
 /** Progress of a step that starts at t0 and lasts dur, eased; a 150 ms cut under reduced motion. */
 export function progress(
@@ -59,58 +55,34 @@ export function progress(
   return reduced ? clamp((t - t0) / 0.15) : ease(clamp((t - t0) / dur));
 }
 
-/** An arrival pose as the dive's end view (target height in the x2 frame, km). */
-export function endView(pose: OrbitPose): View {
-  return {
-    lon: pose.target.lon,
-    lat: pose.target.lat,
-    tz: pose.targetHeightM / 1000,
-    bearing: pose.cameraBearingFromTargetDeg,
-    pitch: pose.elevationDeg,
-    distance: pose.distanceM / 1000,
-    fov: pose.verticalFovDeg,
-    shiftX: 0,
-    shiftY: 0,
-    rows: 1,
-  };
-}
-
-/** The dive's end on the valley: the approved arrival pose (tests; a case's own comes from lib/land/arrival-pose). */
-export const V_END: View = endView(ARRIVAL_POSE);
-
 export interface GlobeState {
   view: View;
-  /** Everything the renderer needs except the camera and the sun, which follow from the view. */
   uniforms: Omit<GlobeFrame, "cam" | "sun" | "key" | "caseV" | "fadeC">;
-  /** 0 to 1: how far the dive has moved the light from the camera's front-left to the valley's light. */
+  /** 0 to 1: how far the light has turned from the camera's front-left to the land's light (0 on the globe). */
   sunK: number;
-  /** Opacity of the MapLibre valley over the globe. */
-  valleyOpacity: number;
-  /** Terrain exaggeration for the MapLibre valley while the relief rises (0 to 2). */
-  valleyExaggeration: number;
   /** Opacity of the case ring and point. */
   ringOpacity: number;
-  /** The range name along the Atlas: which name (0 the Atlas, 1 the High Atlas) and its opacity. */
-  rangeName: 0 | 1;
+  /** Opacity of the range name along the range's crest. */
   rangeOpacity: number;
-  /** Opacity of the valley's name beside the case late in the dive. */
-  valleyNameOpacity: number;
-  /** True once the valley covers the globe, so the globe renderer can be disposed. */
-  globeDone: boolean;
-  /** True once the camera rests on the arrival pose: the arrival begins. */
+  /** True once the camera rests over the case and the earth has sunk into the ground: the land takes over. */
   done: boolean;
 }
 
+/** The zoom into the case (decision 11): Open to the land's handover (s). */
+export const ZOOM_S = 1.4;
+/** The camera's height over the case when the earth has sunk into the ground (km). */
+const ZOOM_END_KM = 1500;
+
 /**
- * The camera and overlays at time t. The dive turns toward the case's own outlet (from its record); the dive's end
- * pose (V_END, from this case's arrival camera) is still this case's own.
+ * The camera and overlays at time t. Open (the dive) zooms straight down onto the case's own outlet, north up, while
+ * the earth sinks into the ground round it, so that the screen holds only the ground and the case's ring and point
+ * when the land takes over (decision 11: one land object on one camera path; the land is the overview's own).
  */
 export function globeStateAt(
   t: number,
   m: Moments,
   reduced = false,
   outlet: { lon: number; lat: number } = { lon: -6.5372222, lat: 31.6377778 },
-  end: View = V_END,
 ): GlobeState {
   const p = (t0: number | undefined, dur: number, ease = ARRIVE) =>
     progress(t, t0, dur, ease, reduced);
@@ -129,18 +101,16 @@ export function globeStateAt(
 
   const u = m.dive === undefined ? -1 : t - m.dive;
   const diving = u >= 0;
-  const x = clamp(u / DIVE_S);
   if (diving) {
-    const s = 0.5 * x + 0.5 * x * x * (3 - 2 * x); // the logarithmic fall, eased at both ends
-    const toCase = p(m.dive, 1.6, CAM);
-    const tilt = p((m.dive ?? 0) + 2.8, 1.6, CAM);
+    const toCase = p(m.dive, 1.1, CAM);
+    const down = p(m.dive, ZOOM_S, CAM);
     view = {
-      lon: lerp(lerp(vGlobe.lon, outlet.lon, toCase), end.lon, tilt),
-      lat: lerp(lerp(vGlobe.lat, outlet.lat, toCase), end.lat, tilt),
-      tz: lerp(0, end.tz, tilt),
-      bearing: lerp(180, end.bearing, tilt),
-      pitch: lerp(90, end.pitch, tilt),
-      distance: Math.exp(lerp(Math.log(vGlobe.distance), Math.log(end.distance), s)),
+      lon: lerp(vGlobe.lon, outlet.lon, toCase),
+      lat: lerp(vGlobe.lat, outlet.lat, toCase),
+      tz: 0,
+      bearing: 180,
+      pitch: 90,
+      distance: Math.exp(lerp(Math.log(vGlobe.distance), Math.log(ZOOM_END_KM), down)),
       fov: FOV,
       shiftX: 0,
       shiftY: 0,
@@ -150,55 +120,33 @@ export function globeStateAt(
   const d0 = m.dive ?? 0;
   const pd = (from: number, dur: number, ease = ARRIVE) => (diving ? p(d0 + from, dur, ease) : 0);
 
-  const rise = pd(2.2, 1.2, CAM);
-  const dotsK = 1 - pd(1.2, 0.8, LIN);
-  const contK = pd(1.0, 0.4, LIN) * (1 - pd(3.4, 1.0, LIN));
-  const revealKm = diving
-    ? u >= 2.2
-      ? 1e5
-      : pd(1.0, 1.2, LIN) * 3.2 * view.distance * Math.tan((FOV / 2) * RAD) * 1.8
-    : 0;
+  // the earth sinks into the ground round the case at the end of the zoom, slowly then fast, so the land rises out
+  // of the ground right after the last dots go (lead, 30 Oct: the empty beat between them about 0.25 s at most)
+  const sink = pd(0.6, ZOOM_S - 0.6, (x) => x * x * x);
   const level = clamp(Math.log2(view.distance / 160), 0, 8);
-  const kf = pd(2.4, 1.6, CAM);
-  const fadeIn = lerp(2000, 24, kf);
-  const fadeOut = lerp(4000, 52, kf);
-  const fadeOn = pd(2.0, 0.6, LIN);
-  const hazeK = 0.55 * pd(3.4, 1.0, LIN);
   // dots about 7 px apart where the view looks; behind the opening the visible cap is the limb, so rows halve there
   const N = (view.rows * Math.PI) / ((7 * view.distance) / (F_PX * R_KM));
   const lv = Math.log2(N / 150);
   const na = 150 * 2 ** Math.floor(lv);
-  const layerK = p((beats[0] ?? 0) + 0.6, 1.2) * (diving ? 1 - pd(0, 0.8, LIN) : 1);
+  const layerK = p((beats[0] ?? 0) + 0.6, 1.2) * (1 - pd(0, 0.6, LIN));
 
   return {
     view,
     uniforms: {
       layerK,
-      mode: [0, dotsK, 0, rise],
-      // relief exaggerated for legibility at altitude, and exactly 2.0 once the valley is drawn over it
-      exag: rise * 2.0 * lerp(clamp(Math.sqrt(view.distance / 66), 1, 6), 1, pd(2.5, 0.6, LIN)),
+      mode: [0, 1, 0, 0],
+      exag: 0,
       dots: [na, na * 2, ARRIVE(clamp((lv - Math.floor(lv) - 0.3) / 0.4)), 1],
-      cont: [level, revealKm / R_KM, (0.25 * revealKm) / R_KM + 1e-4, contK],
-      fade: [fadeIn / R_KM, fadeOut / R_KM, fadeOn],
-      haze: [70 / R_KM, 190 / R_KM, hazeK],
+      cont: [level, 0, 1e-4, 0],
+      fade: [0, 1 / R_KM, sink],
+      haze: [70 / R_KM, 190 / R_KM, 0],
       grat: 0.045 * (1 - p(m.press, 0.6)),
       limb: [clamp((2 * view.rows) / 7, 0.08, 0.5), clamp((4 * view.rows) / 7, 0.2, 0.7)],
     },
-    sunK: pd(1.6, 1.8, CAM),
-    valleyOpacity: pd(2.5, 0.6, LIN),
-    valleyExaggeration: 2 * rise,
-    ringOpacity: p((m.press ?? Infinity) + 2.0, 0.3, LIN) * (diving ? 1 - pd(3.6, 0.6, LIN) : 1),
-    rangeName: diving && u >= 0.6 ? 1 : 0,
-    rangeOpacity:
-      p((m.press ?? Infinity) + 2.3, 0.6) *
-      (diving
-        ? u < 0.6
-          ? 1 - pd(0.45, 0.15, LIN)
-          : pd(0.6, 0.2, LIN) * (1 - pd(2.2, 0.2, LIN))
-        : 1),
-    valleyNameOpacity: pd(2.4, 0.3, LIN) * (1 - pd(3.6, 0.5, LIN)),
-    globeDone: diving && u >= 3.1,
-    done: diving && u >= DIVE_S - 1e-6, // clock sums like 34 + 4.4 - 34 fall just short
+    sunK: 0,
+    ringOpacity: p((m.press ?? Infinity) + 2.0, 0.3, LIN),
+    rangeOpacity: p((m.press ?? Infinity) + 2.3, 0.6) * (1 - pd(0, 0.3, LIN)),
+    done: diving && u >= ZOOM_S - 1e-6, // clock sums like 34 + 1.4 - 34 fall just short
   };
 }
 
@@ -230,15 +178,9 @@ export function sunFor(cam: GlobeCamera, sunK: number): Vec3 {
 }
 
 /** DESIGN B's key light (the keyLight token) as sRGB values, unchanged through the dive. */
-export const KEY: Vec3 = hexChannels(daylight.keyLight);
+export const KEY: Vec3 = hexChannels(globeColours.keyLight);
 
 function hexChannels(hex: string): Vec3 {
   const n = parseInt(hex.slice(1), 16);
   return [((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255];
 }
-
-/** The case on the sphere: the catchment outlet. */
-export const CASE_V: Vec3 = unit(-6.5372222, 31.6377778);
-
-/** The centre the land fades to paper around: the catchment centre (handoff arrival-camera.json). */
-export const FADE_V: Vec3 = unit(-6.359132, 31.651677);

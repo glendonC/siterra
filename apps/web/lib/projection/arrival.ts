@@ -27,8 +27,6 @@ export type ArrivalProjection =
       /** Mountain region and country derived from the case's source records; the globe's case card and its range
        * line both use it, so the two never name the region differently. */
       regionName: string;
-      /** Subrange label for the dive sequence. */
-      subrangeName: string;
       modeLines: ModeLines;
       /** Data credits from the case's bundles, for Sources and notices. */
       dataCredits: string[];
@@ -49,7 +47,6 @@ export type ArrivalProjection =
       valleyName: string;
       areaLabel: string;
       regionName: string;
-      subrangeName: string;
       modeLines: ModeLines;
       mode: MessageId;
       limitations: string[];
@@ -85,12 +82,11 @@ function activeSelection(s: CaseSnapshot): GeoSelection | undefined {
   return s.records.geoSelectionRecords.find((g) => g.id === id);
 }
 
-/** Extracts the study valley, mountain subrange and country from the case and source records. */
+/** Extracts the study valley and its mountain region and country from the case and source records. */
 export function placeNamesFromCase(s: CaseSnapshot): {
   valleyName: string;
   areaLabel: string;
   regionName: string;
-  subrangeName: string;
 } {
   const valleyMatch = /\bin the\s+(.+)$/i.exec(s.case.title);
   const valleyName = valleyMatch?.[1]?.trim() ?? s.case.title;
@@ -104,14 +100,13 @@ export function placeNamesFromCase(s: CaseSnapshot): {
       const country = m[2].trim();
       const subrangeName = /\bMountains\b/i.test(sub) ? sub : `${sub} Mountains`;
       const regionName = `${subrangeName}, ${country}`;
-      return { valleyName, areaLabel, regionName, subrangeName };
+      return { valleyName, areaLabel, regionName };
     }
   }
   return {
     valleyName,
     areaLabel,
     regionName: s.case.title,
-    subrangeName: s.case.title,
   };
 }
 

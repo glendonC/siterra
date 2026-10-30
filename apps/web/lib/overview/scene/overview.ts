@@ -72,6 +72,8 @@ const FOV = 26;
  * land's height on screen, the widest it may be inside the arc, and the centre of its box (design px).
  */
 const OV = { az: 52, el: 34, fh: 640, fw: 700, cx: 731, cy: 494 } as const;
+/** The land's size (design px across) where the arrival from the globe begins: about the case's ring. */
+const INTRO_PX = 30;
 /** The least clearance (design px) of the land's rim from the arc at rest: D4's 57 and a margin for the walls. */
 const ARC_CLEAR = 64;
 /** D4's opened pixel: bearing, elevation, distance (km) and where its centre lands on screen. */
@@ -143,6 +145,14 @@ export interface SceneState {
   turn?: number;
   /** The finding opening or open (kept while it closes). */
   sel: Selection | null;
+  /**
+   * The arrival from the globe (decision 11), 0 to 1 each; absent at rest. `rise`: the camera moves on one path from
+   * straight above the case's point (`from`, CSS px on the canvas, the land as small as the point's ring) to the
+   * overview's pose while the land rises out of the dark; `arcDraw`: how much of the arc is drawn.
+   */
+  rise?: number;
+  arcDraw?: number;
+  from?: { x: number; y: number };
 }
 
 export interface Point {
@@ -353,18 +363,21 @@ export function mountOverview(
     : null;
   const WIDTHS = [0.7, 0.9, 1.2, 1.6, 2.0];
   const OPACITY = [0.55, 0.7, 0.85, 0.9, 0.95];
+  // the rivers, kept with their resting opacity so the arrival can bring them up with the land
+  const riverLines: { line: { material: { opacity: number } }; rest: number }[] = [];
   for (const o of [1, 2, 3, 4, 5]) {
     const pls = data.rivers.reaches
       .filter((q) => q.order === o)
       .map((r) => r.pts.map(([E, N, h]) => frame.v(E, N, h + 4)));
-    if (pls.length)
-      scene.add(
-        stage.lines.lines(pls, {
-          color: C.drainage[o - 1] ?? C.catchmentLine,
-          width: WIDTHS[o - 1] ?? 1,
-          opacity: OPACITY[o - 1] ?? 1,
-        }),
-      );
+    if (pls.length) {
+      const line = stage.lines.lines(pls, {
+        color: C.drainage[o - 1] ?? C.catchmentLine,
+        width: WIDTHS[o - 1] ?? 1,
+        opacity: OPACITY[o - 1] ?? 1,
+      });
+      riverLines.push({ line, rest: OPACITY[o - 1] ?? 1 });
+      scene.add(line);
+    }
   }
   // the opened pixel's true footprint on the land (D4 nodeScene)
   const pixelPts: Vec3[] = [];
@@ -575,6 +588,33 @@ export function mountOverview(
     fh *= (DIAL.r - ARC_CLEAR) / Math.max(DIAL.r - c, DIAL.r - ARC_CLEAR + 1);
     view0 = fitLand(az0, OV.el, fh, OV.cx, OV.cy);
   }
+  /**
+   * Where the arrival begins: straight above the land (north up, as the globe looked down on it), the land as small
+   * as the case's ring on the globe (INTRO_PX across) and centred on its point, given in CSS px on the canvas.
+   */
+  let introAt: { key: string; view: View } | null = null;
+  const introView = (from: { x: number; y: number }): View => {
+    const key = `${from.x.toFixed(1)},${from.y.toFixed(1)},${fit.scale.toFixed(4)}`;
+    if (introAt?.key === key) return introAt.view;
+    const top = { target: T0, azimuth: 180, elevation: 88, shift: [0, 0] as [number, number] };
+    let distance = view0.distance;
+    for (let it = 0; it < 8; it++) {
+      set({ ...top, distance });
+      const b = landBox();
+      distance *= Math.max(b.x1 - b.x0, b.y1 - b.y0) / INTRO_PX;
+    }
+    set({ ...top, distance });
+    const b = landBox();
+    const dx = (from.x - fit.ox) / fit.scale;
+    const dy = (from.y - fit.oy) / fit.scale;
+    const view: View = {
+      ...top,
+      distance,
+      shift: [dx - (b.x0 + b.x1) / 2, dy - (b.y0 + b.y1) / 2],
+    };
+    introAt = { key, view };
+    return view;
+  };
   /** A view closed in on one place on the land, put at (ND.x, ND.y). */
   const pointAt = (target: Vec3, az: number): View => {
     const v: View = {
@@ -866,7 +906,8 @@ export function mountOverview(
     sync();
     const { e, view, selClock } = current;
     placeDial(e, view.distance, selClock, sideOf(state.sel, selClock) === "left");
-    const span = spanAt(state.s, state.k, state.o, selClock);
+    const drawnSpan = spanAt(state.s, state.k, state.o, selClock);
+    const span = { ...drawnSpan, end: drawnSpan.end * (state.arcDraw ?? 1) };
     buildDial(span);
     r2.render(scene2, camera);
     const target = state.sel ? viewFor(state.sel).target : view0.target;
@@ -975,7 +1016,14 @@ export function mountOverview(
       state = next;
       const e = ease(next.s);
       const v1 = next.sel ? viewFor(next.sel) : view0;
-      const at = viewAt(view0, v1, e);
+      const rise = next.rise ?? 1;
+      const at =
+        rise < 1 && next.from
+          ? viewAt(introView(next.from), viewAt(view0, v1, e), ease(rise))
+          : viewAt(view0, v1, e);
+      // the land rises out of the table as the camera comes down to it
+      scene.scale.y = Math.max(0.01, sstep(0.2, 1, rise));
+      scene.updateMatrixWorld();
       const view = {
         ...at,
         distance: at.distance * (next.zoom ?? 1),
@@ -983,13 +1031,16 @@ export function mountOverview(
       };
       set(view);
       current = { e, view, selClock: clockOf(next.sel) };
+      // the fog stands where it stands at rest; during the arrival it moves with the camera (the same distances in
+      // front of and behind the land as at rest), so the land is not lost in it while the camera is far
+      const fogAt = rise < 1 ? view.distance / view0.distance : 1;
       relief.uniforms.uFog.value.set(
-        lerp(view0.distance - 8, v1.distance - 4, e),
-        lerp(view0.distance + 34, v1.distance + 40, e),
+        lerp(view0.distance - 8, v1.distance - 4, e) * fogAt,
+        lerp(view0.distance + 34, v1.distance + 40, e) * fogAt,
         lerp(0.32, 0.42, e),
       );
-      // the land steps back a little while the ask is open
-      const dim = 1 - 0.15 * ease(next.o);
+      // the land steps back a little while the ask is open; during the arrival it comes up out of the dark
+      const dim = (1 - 0.15 * ease(next.o)) * sstep(0, 0.18, rise);
       relief.uniforms.uDim.value = dim;
       wall.uniforms.uDim.value = dim;
       // the routes: lifted while their entry is hovered and when opened, a little quieter under another opened record;
@@ -1019,7 +1070,9 @@ export function mountOverview(
       relief.uniforms.uOverA.value = fp ? 0.92 * e : 0;
       relief.uniforms.uBandAt.value = bandLimitM ?? 0;
       relief.uniforms.uBandA.value = next.sel === "band" && bandLimitM !== null ? 0.9 * e : 0;
-      outlineLine.material.opacity = lerp(0.32, next.sel === "catchment" ? 0.95 : 0.32, e);
+      outlineLine.material.opacity =
+        lerp(0.32, next.sel === "catchment" ? 0.95 : 0.32, e) * sstep(0, 0.18, rise);
+      for (const r of riverLines) r.line.material.opacity = r.rest * sstep(0, 0.18, rise);
       outlineLine.material.linewidth = lerp(1, next.sel === "catchment" ? 2 : 1, e);
       // the arc steps back while the visitor has turned the land or brought it closer, so the land never crosses it
       dialMat.opacity = 1 - awayOf(next);
