@@ -83,6 +83,12 @@
   },
   {
    "rel": "child",
+   "href": "./bundle_pixel_seasons_calaveras_creek/collection.json",
+   "type": "application/json",
+   "file:checksum": "1220c754d2ebe4651e979f485ccfbb8beef073d5317670270972e4bf1af9069b320d"
+  },
+  {
+   "rel": "child",
    "href": "./bundle_pixel_trend_long_record_ait_bouguemez/collection.json",
    "type": "application/json",
    "file:checksum": "1220696c5ad4fcd400f8ad84bda55e7c16628c8cd11ff8707e59277cfea1d1cc7c26"
@@ -176,6 +182,12 @@
    "href": "./bundle_transects_ait_bouguemez/collection.json",
    "type": "application/json",
    "file:checksum": "122081ac3bcc025dcfc8b1b7fc2a75316fe8111f2c442ab826ac2ef8bd3a2058f62f"
+  },
+  {
+   "rel": "child",
+   "href": "./bundle_transects_calaveras_creek/collection.json",
+   "type": "application/json",
+   "file:checksum": "1220de1ba705280b653ea6f3bc30836cfbe0474847f40b396004e2c992ddab5f09ab"
   }
  ],
  "stac_extensions": [

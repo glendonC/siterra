@@ -1,0 +1,223 @@
+{
+ "recipeId": "terrain_transects",
+ "version": "1.1.0",
+ "computed": "2026-10-30T19:23:15Z",
+ "place": {
+  "placeId": "calaveras_creek",
+  "configRevision": 11,
+  "config_sha256": "05eba74afc89119432d33f05ed49edf3420a2923b654eb9e0e2329c4a19dafe3"
+ },
+ "claim_kind": "observation",
+ "native_resolution": "30 m EPSG:32610 grid of the terrain strata for heights, 10 m WorldCover cells for land cover, samples every 30 m",
+ "units": {
+  "distance": "m along the line from its first point",
+  "elevation": "m above the EGM2008 geoid",
+  "band": "strata elevation band 1 to 3",
+  "km_in_band": "km"
+ },
+ "band_boundaries_m": [
+  697.8,
+  842.4
+ ],
+ "valley_floor_rule": "none: no valley floor range is configured for this place, so no line has a valley floor segment",
+ "transects": {
+  "reservoir_meridian": {
+   "label": "North-south section along the meridian through the Calaveras Reservoir",
+   "kind": "meridian_through_point",
+   "rule": "The meridian (line of constant longitude) through the Calaveras Reservoir, clipped to the frozen polygon: the part that contains it, from its northernmost to its southernmost point; distance runs from north to south.",
+   "from": [
+    -121.8182,
+    37.5031944
+   ],
+   "to": [
+    -121.8182,
+    37.4354167
+   ],
+   "ends": {
+    "north_lat": 37.503194,
+    "south_lat": 37.435417
+   },
+   "length_m": 7522.4,
+   "samples": 252,
+   "step_m": 30.0,
+   "elevation_m": {
+    "lowest": {
+     "distance_m": 150.0,
+     "elevation_m": 152.2
+    },
+    "highest": {
+     "distance_m": 7522.4,
+     "elevation_m": 436.5
+    }
+   },
+   "band_crossings": [],
+   "km_in_band": {
+    "1": 7.522,
+    "2": 0.0,
+    "3": 0.0
+   },
+   "land_cover_share": {
+    "outside the analysis area": 0.002,
+    "tree cover": 0.2154,
+    "grassland": 0.3878,
+    "built-up": 0.016,
+    "bare or sparse vegetation": 0.0399,
+    "permanent water bodies": 0.339
+   },
+   "land_cover_runs": 33,
+   "valley_floor": null,
+   "reference_points": [
+    {
+     "name": "the Calaveras Reservoir",
+     "distance_m": 3344.5,
+     "elevation_m": 212.0
+    }
+   ],
+   "samples_inside_polygon": 252
+  },
+  "valley_axis": {
+   "label": "Long profile from the outlet to the head along the longest flow path of the drainage network",
+   "kind": "longest_flow_path",
+   "rule": "The longest flow path of the drainage network from the outlet to a head: at each confluence the upstream segment with the longer way up, ties by the larger upstream area and then the lower segment number; distance runs from the outlet.",
+   "from": [
+    -121.8191667,
+    37.5025
+   ],
+   "to": [
+    -121.5319444,
+    37.2691667
+   ],
+   "ends": {
+    "segments": [
+     "seg_001",
+     "seg_002",
+     "seg_003",
+     "seg_004",
+     "seg_005",
+     "seg_006",
+     "seg_007",
+     "seg_008",
+     "seg_009",
+     "seg_010",
+     "seg_011",
+     "seg_012",
+     "seg_013",
+     "seg_014",
+     "seg_015",
+     "seg_016",
+     "seg_017",
+     "seg_018",
+     "seg_019",
+     "seg_020",
+     "seg_021",
+     "seg_022",
+     "seg_023",
+     "seg_024",
+     "seg_025",
+     "seg_026",
+     "seg_027",
+     "seg_029",
+     "seg_030",
+     "seg_032",
+     "seg_035",
+     "seg_036",
+     "seg_037",
+     "seg_046",
+     "seg_049",
+     "seg_070"
+    ]
+   },
+   "length_m": 51697.6,
+   "samples": 1725,
+   "step_m": 30.0,
+   "elevation_m": {
+    "lowest": {
+     "distance_m": 0.0,
+     "elevation_m": 151.9
+    },
+    "highest": {
+     "distance_m": 51630.0,
+     "elevation_m": 773.3
+    }
+   },
+   "band_crossings": [
+    {
+     "boundary_m": 697.8,
+     "distance_m": 44643.3,
+     "direction": "rising"
+    }
+   ],
+   "km_in_band": {
+    "1": 44.643,
+    "2": 7.054,
+    "3": 0.0
+   },
+   "land_cover_share": {
+    "tree cover": 0.4576,
+    "shrubland": 0.0046,
+    "grassland": 0.4107,
+    "cropland": 0.0006,
+    "built-up": 0.0041,
+    "bare or sparse vegetation": 0.0157,
+    "permanent water bodies": 0.1068
+   },
+   "land_cover_runs": 205,
+   "valley_floor": null,
+   "reference_points": [
+    {
+     "name": "outlet",
+     "distance_m": 0.0,
+     "elevation_m": 151.9
+    },
+    {
+     "name": "head",
+     "distance_m": 51697.6,
+     "elevation_m": 773.3
+    }
+   ],
+   "samples_inside_polygon": 1725
+  }
+ },
+ "samples_asset": "transect_samples",
+ "lines_asset": "transect_lines",
+ "strata_band_agreement": {
+  "inside_samples": 1977,
+  "compared": 1976,
+  "differing": 5,
+  "no_strata_cell": 1,
+  "largest_distance_to_a_boundary_m_among_differing": 1.2,
+  "note": "The strata raster gives each 10 m cell the band of its 30 m cell; the profile gives the band of the sample's own interpolated height."
+ },
+ "checks": {
+  "recompute_sample_period": true,
+  "units_and_scale": true,
+  "nodata_not_zero": true,
+  "attribution_present": true,
+  "visual_inspection_sample": true
+ },
+ "limitations": [
+  "A profile is read from a 30 m surface model: trees, buildings, steep walls and radar artefacts distort it, and narrow gorges are not resolved. Heights are metres above the EGM2008 geoid with the DEM's stated vertical accuracy (Copernicus DEM Product Handbook 5.0).",
+  "Samples are 30 m apart, so a band crossing or a land cover boundary is placed to within about 15 m, and a feature narrower than 30 m can fall between samples.",
+  "Land cover is ESA WorldCover 2021 at 10 m, a single 2021 map applied to the line: tree cover may include open woodland and savanna, and no class is a pasture, grazing lease or management unit.",
+  "An elevation band is a stratum that organises sampling, cut from the elevation distribution of the catchment; it is not a vegetation type, a grazing zone or a management boundary.",
+  "The valley axis is the longest flow path of a D8 network, which follows the main channel, not the centre line of the valley; its profile inherits the limits of the drainage network, including places where the surface rises along the line.",
+  "Over the reservoir the surface model gives the water surface, not the bed, so the section does not show the depth of the water.",
+  "The catchment is a hydrological analysis extent, not a pasture, grazing lease or management boundary."
+ ],
+ "forbidden_phrases": [
+  "significant",
+  "significantly",
+  "degradation detected",
+  "grazing impact",
+  "overgrazing",
+  "caused by",
+  "proves",
+  "recovery",
+  "forecast",
+  "pasture improvement",
+  "pasture decline",
+  "encroachment",
+  "flood risk",
+  "water supply"
+ ]
+}
