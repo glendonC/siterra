@@ -30,6 +30,7 @@ export const BundleVariable = z.enum([
   "pixel_anatomy",
   "elevation_surface",
   "optical_clear_share",
+  "proposed_route",
 ]);
 export const PeriodStatus = z.enum(["available", "insufficient", "missing"]);
 export const QualityFlag = z.enum([
