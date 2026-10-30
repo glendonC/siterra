@@ -113,6 +113,12 @@
   },
   {
    "rel": "child",
+   "href": "./bundle_terrain_strata_calaveras_creek/collection.json",
+   "type": "application/json",
+   "file:checksum": "1220323ab8e6695e7bf0297356f650993f669f11668480c067fe72c3064791f46065"
+  },
+  {
+   "rel": "child",
    "href": "./bundle_transects_ait_bouguemez/collection.json",
    "type": "application/json",
    "file:checksum": "122081ac3bcc025dcfc8b1b7fc2a75316fe8111f2c442ab826ac2ef8bd3a2058f62f"
