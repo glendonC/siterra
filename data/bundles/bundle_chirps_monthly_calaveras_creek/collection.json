@@ -1,0 +1,3244 @@
+{
+ "type": "Collection",
+ "stac_version": "1.1.0",
+ "stac_extensions": [
+  "https://stac-extensions.github.io/processing/v1.3.0/schema.json",
+  "https://stac-extensions.github.io/file/v2.1.0/schema.json",
+  "https://siterra.invalid/schemas/stac/siterra/1.0.0/schema.json"
+ ],
+ "id": "bundle_chirps_monthly_calaveras_creek",
+ "title": "Catchment rainfall, CHIRPS v3.0 monthly",
+ "description": "Monthly rainfall totals over the Calaveras Creek catchment (geo_calaveras_creek_catchment revision 2) from CHIRPS v3.0 final, 2019-01 to 2025-12, on its native 0.05 degree grid: 23 cells touch the catchment, 0 lie fully inside, fractions sum to 10.48 cells. Each Item gives the area-weighted catchment total and its departure from the 1991 to 2020 mean of the same calendar month, in mm, with every cell's value in cell-values.json.\n\nA grid cell is not a rain gauge; values are not compared with any station here. Item geometries are the catchment simplified to one DEM pixel (1/3600 degree); the exact frozen geometry is the analysis_geometry asset.",
+ "license": "other",
+ "providers": [
+  {
+   "name": "Climate Hazards Center, UC Santa Barbara",
+   "roles": [
+    "producer",
+    "licensor"
+   ],
+   "url": "https://www.chc.ucsb.edu/data/chirps3"
+  },
+  {
+   "name": "Climate Hazards Center data server",
+   "roles": [
+    "host"
+   ],
+   "url": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/"
+  },
+  {
+   "name": "Siterra science pipeline",
+   "roles": [
+    "processor"
+   ],
+   "processing:lineage": "Range reads of one full-resolution tile per monthly CHIRPS v3.0 final global COG; native cells intersecting the frozen catchment weighted by area inside it (EPSG:32610); catchment totals; 1991-2020 same-month means; departures (docs/reference/observation-preprocessing.md section 5).",
+   "processing:software": {
+    "siterra-science": "0.1.0+uncommitted",
+    "python": "3.12.9",
+    "shapely": "2.2.0",
+    "pyproj": "3.8.0",
+    "rasterio": "1.5.2",
+    "gdal": "3.12.2"
+   }
+  }
+ ],
+ "extent": {
+  "spatial": {
+   "bbox": [
+    [
+     -121.866528,
+     37.257639,
+     -121.494861,
+     37.507083
+    ]
+   ]
+  },
+  "temporal": {
+   "interval": [
+    [
+     "2019-01-01T00:00:00Z",
+     "2025-12-31T23:59:59Z"
+    ]
+   ]
+  }
+ },
+ "summaries": {
+  "siterra:period_status": [
+   "available"
+  ]
+ },
+ "assets": {
+  "analysis_geometry": {
+   "href": "./analysis-geometry.geojson",
+   "type": "application/geo+json",
+   "title": "Frozen analysis geometry geo_calaveras_creek_catchment, revision 2",
+   "roles": [
+    "metadata"
+   ],
+   "file:checksum": "1220745fb73a2dadb7284074eb6c0b607f390975a70592a7d968588ea083882faa9d",
+   "file:size": 141566
+  },
+  "rainfall_cells": {
+   "href": "./rainfall-cells.geojson",
+   "type": "application/geo+json",
+   "title": "Native CHIRPS 0.05 degree cells touching the catchment, with fraction inside, weight and 1991-2020 monthly means",
+   "roles": [
+    "data"
+   ],
+   "file:checksum": "12203906519c4c33433dd234f68d291289aff915ce6ff29cbcb85a5817cdfc3ec787",
+   "file:size": 18332
+  }
+ },
+ "created": "2026-10-30T20:50:00Z",
+ "siterra:status": "validated",
+ "siterra:variable": "precipitation_monthly_total",
+ "siterra:dataset": {
+  "id": "CHIRPS-3.0-monthly-final",
+  "version": "3.0",
+  "access_route": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.YYYY.MM.cog by HTTP range request",
+  "resolution_note": "Native 0.05 degree grid, about 4.4 km east to west by 5.5 km north to south here"
+ },
+ "siterra:geo_selection": {
+  "id": "geo_calaveras_creek_catchment",
+  "revision": 2,
+  "boundary_role": "hydrological_unit",
+  "area_m2": 257337253,
+  "area_method": "Planar area of the frozen polygon in EPSG:32610 (UTM 10N)"
+ },
+ "siterra:method": {
+  "id": "chirps_monthly_catchment_total",
+  "version": "0.1.0",
+  "analysis_crs": "EPSG:32610",
+  "parameters": {
+   "grid_deg": 0.05,
+   "cell_selection": "every native cell whose square intersects the analysis geometry",
+   "weight": "cell area inside the geometry / geometry area, planar EPSG:32610",
+   "nodata": "-9999 or negative values are missing; a month with any missing touched cell has no total",
+   "reference_years_required": 30,
+   "departure_unit": "mm",
+   "percent_of_normal": false,
+   "products": "final only",
+   "recompute_tolerance_mm": 0.01
+  },
+  "reference_period": {
+   "start": "1991-01-01",
+   "end_exclusive": "2021-01-01",
+   "kind": "climate_normal"
+  },
+  "operation_order": [
+   "read the window of each monthly final COG (one tile per month by HTTP range)",
+   "select native cells intersecting the frozen geometry and compute their area weights in EPSG:32610",
+   "compute the area-weighted catchment total per month",
+   "compute the 1991 to 2020 mean of catchment totals for each calendar month, requiring all 30 years",
+   "subtract the same-month mean to get the departure in mm"
+  ]
+ },
+ "siterra:attribution": [
+  "CHIRPS v3.0, Climate Hazards Center, UC Santa Barbara, https://doi.org/10.15780/G2JQ0P, accessed 2026-10-30",
+  "Catchment derived by Siterra from Copernicus DEM GLO-30 (2021 release)",
+  "Produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved",
+  "The organisations in charge of the Copernicus programme by law or by delegation do not incur any liability for any use of the Copernicus WorldDEM-30"
+ ],
+ "siterra:limitations": [
+  "Rainfall is shown on its native 0.05 degree grid: 23 cells touch the catchment and 0 lie fully inside. A cell value is an estimate for the whole cell, not a gauge reading.",
+  "No rain gauge in or near the catchment was compared with these values.",
+  "CHIRPS v3.0 fills missing satellite data with ERA5 and adjusts stations for gauge undercatch, so it is overall wetter than v2.0; never splice v2 and v3.",
+  "The 1991 to 2020 mean is a reference for departures, not a drought index; no SPI or percent of normal is computed.",
+  "Snowfall and snowmelt timing are not represented by a monthly precipitation total."
+ ],
+ "siterra:checks": [
+  {
+   "name": "recompute_sample_period",
+   "passed": true,
+   "detail": "period_2022-04 recomputed from the separate CHIRPS v3.0 global GeoTIFF (https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/tifs/chirps-v3.0.2022.04.tif) read by GDAL 3.12.2: 27.5328 mm vs pipeline value 27.5328 mm (stored 27.53 mm), difference 0.000000 mm, tolerance 0.01 mm"
+  },
+  {
+   "name": "nodata_not_zero",
+   "passed": true,
+   "detail": "No-data (-9999) and negative values are treated as missing, never zero. Touched cells with no value across 1991-01 to 2025-12: 0"
+  },
+  {
+   "name": "units_and_scale",
+   "passed": true,
+   "detail": "Values are float32 mm per month with no scale or offset. The COGs carry no unit tag; the official monthly NetCDF of the same product declares units = mm/month on precip (header read 2026-10-27)"
+  },
+  {
+   "name": "period_alignment",
+   "passed": true,
+   "detail": "Each Item's period ID matches the file month in its source URL; STAC bounds run from the first to the last second of the month; final products only (no /prelim/ path)"
+  },
+  {
+   "name": "attribution_present",
+   "passed": true,
+   "detail": "CHIRPS DOI and access date, and the Copernicus DEM notice for the geometry, are in siterra:attribution"
+  },
+  {
+   "name": "visual_inspection_sample",
+   "passed": true,
+   "detail": "Cells, cell values, fractions and the catchment outline were drawn for period_2022-04 and period_2023-03 and inspected by the science lane on 2026-10-30: the outline lies inside the union of the 23 touched cells, interior cells have fractions 0.81 to 0.98, edge cells have small fractions down to a sliver of 0.00 on the north-west corner, values vary smoothly between neighbours, and in period_2023-03 (131 to 249 mm) the south-eastern cells were wetter than the north-western ones while in period_2022-04 (14 to 39 mm) the same side was also the wetter."
+  }
+ ],
+ "links": [
+  {
+   "rel": "root",
+   "href": "../catalog.json",
+   "type": "application/json"
+  },
+  {
+   "rel": "parent",
+   "href": "../catalog.json",
+   "type": "application/json"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2019-01/period_2019-01.json",
+   "type": "application/geo+json",
+   "file:checksum": "1220ead99dbcaf0a9aa047a54764f955aa287420ea252e31cd7c2d2cb23e438e0865"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2019-02/period_2019-02.json",
+   "type": "application/geo+json",
+   "file:checksum": "12202a8ee92d1188aee57d7d940af69d1ee66898b328d5023243f7289caf7b214c8a"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2019-03/period_2019-03.json",
+   "type": "application/geo+json",
+   "file:checksum": "122035c03b188ac7654f69d987481fb60dbeb5e6531f2f18f53e7a744ad0efa7f1f9"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2019-04/period_2019-04.json",
+   "type": "application/geo+json",
+   "file:checksum": "1220f370293151ecf784021de92971e669c5937b8e0e8965cf1dc70aa8af80bf9773"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2019-05/period_2019-05.json",
+   "type": "application/geo+json",
+   "file:checksum": "1220f21b68678adf3afb60e50db4cbd6dc6de548965562418d1442cc350211040b9f"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2019-06/period_2019-06.json",
+   "type": "application/geo+json",
+   "file:checksum": "122008e4a998987cbaf170b7054452ec63112b69ade270a5ee82c69ec33851ee016c"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2019-07/period_2019-07.json",
+   "type": "application/geo+json",
+   "file:checksum": "12205b30de5a45909b2e76dfc7082608e595e11b04ab64bfea0abf3be8faf2145815"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2019-08/period_2019-08.json",
+   "type": "application/geo+json",
+   "file:checksum": "1220d5cea7c410de108a583f55c96c851f9f671fc87d62ddd1f7327f74482990d210"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2019-09/period_2019-09.json",
+   "type": "application/geo+json",
+   "file:checksum": "1220c52124720b0d9c127a47cf1bdde807434db4122c2eab45b6c1606c4d201119b6"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2019-10/period_2019-10.json",
+   "type": "application/geo+json",
+   "file:checksum": "1220bcce4751e6aaa01cefb37b45e8af17031e4c4d4d2d77263e54ed817448d9ad59"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2019-11/period_2019-11.json",
+   "type": "application/geo+json",
+   "file:checksum": "1220d8fd9a09685bde27742726cdba217ebf2432092a63f5c315fd90431b1c3c18ca"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2019-12/period_2019-12.json",
+   "type": "application/geo+json",
+   "file:checksum": "1220c430e060447ab8d176239a12421b3886b933b1f72ba1e5a2b37279134396ed1c"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2020-01/period_2020-01.json",
+   "type": "application/geo+json",
+   "file:checksum": "122008150eaabc266230443e9879e9fd4e699a7bb0f6ee46d780111f7b27a8aba7b7"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2020-02/period_2020-02.json",
+   "type": "application/geo+json",
+   "file:checksum": "122041518bdec29760beda86a32f27ad49c3ddd1c94b46eb503518a5e7e8e7824689"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2020-03/period_2020-03.json",
+   "type": "application/geo+json",
+   "file:checksum": "1220a6ab7df833e936a71d6f689670563a12dd735cfdf08e2268fdb903219f414398"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2020-04/period_2020-04.json",
+   "type": "application/geo+json",
+   "file:checksum": "122090405769bb961f88714c0eef5428e7b178986daadb95ec74d6861a1d106e636b"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2020-05/period_2020-05.json",
+   "type": "application/geo+json",
+   "file:checksum": "12209688e50abedaea81a0a39d5c54a7e743e6654059f530a4ef71bbc088a5235152"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2020-06/period_2020-06.json",
+   "type": "application/geo+json",
+   "file:checksum": "12201375b0f918d0c88e83da9ff6756e71f1bf30abf6747b0d359edd93ba31cf284b"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2020-07/period_2020-07.json",
+   "type": "application/geo+json",
+   "file:checksum": "1220abf7216cd0a90835f6fbb5481226b4a3df98b9e5ab496a172be7ad95d3f007d8"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2020-08/period_2020-08.json",
+   "type": "application/geo+json",
+   "file:checksum": "1220154129fc2d003efd194df4b32c9ceb33849241ad0aafcb3fb094e6ce926512bc"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2020-09/period_2020-09.json",
+   "type": "application/geo+json",
+   "file:checksum": "1220862b88be77132d9e57f624110d4423e298b01c1842544cfa484c031dc4917f04"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2020-10/period_2020-10.json",
+   "type": "application/geo+json",
+   "file:checksum": "1220bd23f18d9591b54e0f6584d2ba579e6c8cd640ae4e33db2eeb7d242105992358"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2020-11/period_2020-11.json",
+   "type": "application/geo+json",
+   "file:checksum": "1220fc91deb64ede541508b8d3d46529b2d2c04037eb6a9ea4e33c959e08b4f49725"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2020-12/period_2020-12.json",
+   "type": "application/geo+json",
+   "file:checksum": "1220b8b73a9eb333cdbf1ce2812cf99d713f2aedc3702970ce69e66f6fa6422a66d6"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2021-01/period_2021-01.json",
+   "type": "application/geo+json",
+   "file:checksum": "12209f84c0473fcdda14bbbcd17c1594de131e4c6ac88fd8666262b9206138e8a551"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2021-02/period_2021-02.json",
+   "type": "application/geo+json",
+   "file:checksum": "12203ec8cfce29b2cac2c1669756de08dba69ae148b5721e7a60eec6114005fcb94c"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2021-03/period_2021-03.json",
+   "type": "application/geo+json",
+   "file:checksum": "1220eb2a6ee5b67bde8640e939d0ffc579f211cdc9183cf4185f511c097309a2b1e1"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2021-04/period_2021-04.json",
+   "type": "application/geo+json",
+   "file:checksum": "1220f968c1887ef1bc266f1003dd85572622136050b353b3a3141ad75df89e211a4f"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2021-05/period_2021-05.json",
+   "type": "application/geo+json",
+   "file:checksum": "122018e8e4b8f765454929ee70d512b267e3d6e2df6c5a1145e9ed51df8535ea44fe"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2021-06/period_2021-06.json",
+   "type": "application/geo+json",
+   "file:checksum": "1220d44ba9c8228b0d6c6d11786bd3b16615c17119fe7d4e399e58cbdadaeeb97cee"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2021-07/period_2021-07.json",
+   "type": "application/geo+json",
+   "file:checksum": "12208399beeecde1bc2b8704fc62474f12066197fd275edbc4bd1f2c00c0d136e07a"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2021-08/period_2021-08.json",
+   "type": "application/geo+json",
+   "file:checksum": "12200f3cf4a0ead4c294e611c073941d02a9e9fe3a180987780b28aaebf284aa4f02"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2021-09/period_2021-09.json",
+   "type": "application/geo+json",
+   "file:checksum": "1220a18aa7e7adb2b01b6bad6db7188e32bb449e770ff902b32583b44bd360e4861d"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2021-10/period_2021-10.json",
+   "type": "application/geo+json",
+   "file:checksum": "12207fb3c419bf43edc3401670be17f65c72f5c8ac004c93e012b1390c6d91990b6e"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2021-11/period_2021-11.json",
+   "type": "application/geo+json",
+   "file:checksum": "122041bebf5c4faf793674d1f684ddecf89312248558d3bd613d4afbf8dc26ea09fc"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2021-12/period_2021-12.json",
+   "type": "application/geo+json",
+   "file:checksum": "1220433d850d8c63f7b8d2624b509f1a3439e73277f68a7c0403d6dd0cf1af164c9e"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2022-01/period_2022-01.json",
+   "type": "application/geo+json",
+   "file:checksum": "1220fa248f87d22af4b8323b5e85ab6484f76b755889df9f882736bf34eeca552fec"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2022-02/period_2022-02.json",
+   "type": "application/geo+json",
+   "file:checksum": "1220eae457b09636c94d48b4c2a21e2e8885ab60f4a176b5d07d348e730d26152eef"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2022-03/period_2022-03.json",
+   "type": "application/geo+json",
+   "file:checksum": "122044d5806713e9bdf3009ef1097f5d555363fd2223881b1b3333265c88673d9244"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2022-04/period_2022-04.json",
+   "type": "application/geo+json",
+   "file:checksum": "1220ecba12261cf7832a4e71955a608d2aa4ce5694992baf3b47985d63244c7d4cd3"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2022-05/period_2022-05.json",
+   "type": "application/geo+json",
+   "file:checksum": "1220c695b0d5165437ecf9d9697cdee269b36868c907f9218fe0a1b2ea25e0b38edd"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2022-06/period_2022-06.json",
+   "type": "application/geo+json",
+   "file:checksum": "12205cc323fdcdfadadb5ee0055ab9cf13d01c6f06d090e25345d093e6fb7ad76e8e"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2022-07/period_2022-07.json",
+   "type": "application/geo+json",
+   "file:checksum": "1220cad7cc974cd83f35524d32c3e57999301fceec00d9954f35a9e8b7b37d75aba4"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2022-08/period_2022-08.json",
+   "type": "application/geo+json",
+   "file:checksum": "122041d41c2d181eaf576474e10db8764f4d2802897a172f92bb039929fffdc56419"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2022-09/period_2022-09.json",
+   "type": "application/geo+json",
+   "file:checksum": "1220f7015cb5682e9e55c8ad29021ab75aca57ea9eae0110c49be383df4c171d2480"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2022-10/period_2022-10.json",
+   "type": "application/geo+json",
+   "file:checksum": "1220340be4f8e8a342d441a8a5dc5047759cfe300d3e7e1ff8ac6676d204d03c1626"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2022-11/period_2022-11.json",
+   "type": "application/geo+json",
+   "file:checksum": "122048a29f37085443db1ff2fbd355ecd8a515b938bc16615f491b3b607bb0956dee"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2022-12/period_2022-12.json",
+   "type": "application/geo+json",
+   "file:checksum": "12205d42273580b42e3f23c897145ea0598d380065dc057e1f7b33427fe4851239ad"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2023-01/period_2023-01.json",
+   "type": "application/geo+json",
+   "file:checksum": "12205ba172d010156c9c8802a9b32f926d14889f010cb3a48b1d7aa65a04175f355c"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2023-02/period_2023-02.json",
+   "type": "application/geo+json",
+   "file:checksum": "12207d7745a315bc4e61245adc16e59f9ed16c92334d167ec30857d6f24f43acb8fa"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2023-03/period_2023-03.json",
+   "type": "application/geo+json",
+   "file:checksum": "12203330373850db7862ccb72dba678f0f7c7707381a6b9542771b4696bbcc86c9bc"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2023-04/period_2023-04.json",
+   "type": "application/geo+json",
+   "file:checksum": "12203718b1a85219924307459cab008995994ba2884af43930fa642b108ac1a7034e"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2023-05/period_2023-05.json",
+   "type": "application/geo+json",
+   "file:checksum": "12203435b8ef0b3446262df970b05f718689dbe106fbd079ad292dcbed46d9081b0c"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2023-06/period_2023-06.json",
+   "type": "application/geo+json",
+   "file:checksum": "1220c3840e9155614c23a1963aefac00b986044818a0592fc40cdc8f09da0472205e"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2023-07/period_2023-07.json",
+   "type": "application/geo+json",
+   "file:checksum": "1220f7ce6e858abef7acdb9b10c0047b56e37b05a17e0d8e3b94d8c08308ffa89164"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2023-08/period_2023-08.json",
+   "type": "application/geo+json",
+   "file:checksum": "12208c748cca1f06faa4c32fafcf97ad1953df4657767f507559c3961bf8aa7a404c"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2023-09/period_2023-09.json",
+   "type": "application/geo+json",
+   "file:checksum": "1220887e775edf93c3462d4edb927f63425b5f174f27047e9295deb6429c837f1a0c"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2023-10/period_2023-10.json",
+   "type": "application/geo+json",
+   "file:checksum": "1220dd7efc83c472fd609cfea2328cdd6c78415c8de9a37bb495a74e23c56a9d3531"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2023-11/period_2023-11.json",
+   "type": "application/geo+json",
+   "file:checksum": "1220974ec8ce9e6ae0b8af5aec33f84810561eb589076c13531b0243d0d408ee1c54"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2023-12/period_2023-12.json",
+   "type": "application/geo+json",
+   "file:checksum": "1220dd6c962904724f8a746e03b0067558bd76d226e3ac5207ab3742b4bd95f0ac06"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2024-01/period_2024-01.json",
+   "type": "application/geo+json",
+   "file:checksum": "1220f08c944a91cbe03037a92fea9fc4f76a043f4656cfb6020e5a83638db4ab0973"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2024-02/period_2024-02.json",
+   "type": "application/geo+json",
+   "file:checksum": "122011250330a63049e6ebb836b05e1f13fc2166281a492441f2325d84d67cc37216"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2024-03/period_2024-03.json",
+   "type": "application/geo+json",
+   "file:checksum": "1220409300417ce2354a43b99133ddc92945c304e5f29007fb70fc89c1ea8140bbf1"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2024-04/period_2024-04.json",
+   "type": "application/geo+json",
+   "file:checksum": "12208ed265e45aca7a6330a3c57c187609b3f6b656889e17bb954d724745baea4ca4"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2024-05/period_2024-05.json",
+   "type": "application/geo+json",
+   "file:checksum": "12208d7012736662705a715d3e0653dc6d21785b50ff0009fe752031c035c013adc3"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2024-06/period_2024-06.json",
+   "type": "application/geo+json",
+   "file:checksum": "122063c260e406b9135ed64b338a0f98e8367e198a9fbebdca1bffb6b817e4b59596"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2024-07/period_2024-07.json",
+   "type": "application/geo+json",
+   "file:checksum": "1220e7835513cdc3175c2fd30dd13a12f79d88ff67867589cc4eb4d1eb0ea3bb6091"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2024-08/period_2024-08.json",
+   "type": "application/geo+json",
+   "file:checksum": "122060d9cc5b3796d372a247edf6dc77aabb8b3bfe19afd4d2cc2563969f1292b38a"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2024-09/period_2024-09.json",
+   "type": "application/geo+json",
+   "file:checksum": "1220b140b9fd3fc84cda36aa1cb8eb07db91dcf01ea4679e4b3985b606cf962a8cc0"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2024-10/period_2024-10.json",
+   "type": "application/geo+json",
+   "file:checksum": "12203f50eb4de35008df186586b83ba441b521155fd991f2fd6d28eade73989d8d5d"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2024-11/period_2024-11.json",
+   "type": "application/geo+json",
+   "file:checksum": "1220beaffbbee091175906805ae97efb84ebf0dada2d6b7b7436c699b2f731354938"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2024-12/period_2024-12.json",
+   "type": "application/geo+json",
+   "file:checksum": "12205d8a97b785eca0c09103400f8adac2b834b931c614772361edcaf29fc4b737a2"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2025-01/period_2025-01.json",
+   "type": "application/geo+json",
+   "file:checksum": "1220c89a646349719604c0538c360c21c151b09e22cc1649fccf366a4d24e46adbfc"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2025-02/period_2025-02.json",
+   "type": "application/geo+json",
+   "file:checksum": "1220dc9c1c30ee8654e399106bc02430f7ff960e13963f2eaa8beb5f21c8e7c5944e"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2025-03/period_2025-03.json",
+   "type": "application/geo+json",
+   "file:checksum": "1220690545b841f2b4ae5145823f4c5ab87961241565abe4004624d890ec64473831"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2025-04/period_2025-04.json",
+   "type": "application/geo+json",
+   "file:checksum": "1220f37511fc76d103030c7adc6d539432d00dae9be78a424ca9e205f15d9d6356f8"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2025-05/period_2025-05.json",
+   "type": "application/geo+json",
+   "file:checksum": "12201ff23bbf40506669a5c0df64dd872758879f6a00dbc00f32a355d50d4855e1e1"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2025-06/period_2025-06.json",
+   "type": "application/geo+json",
+   "file:checksum": "122017d0c979741cabbff0570d8f268de49b60c04eea79cdb6a1016bec59aeebd4e3"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2025-07/period_2025-07.json",
+   "type": "application/geo+json",
+   "file:checksum": "1220a8ab5dae689c8c0001534a5bdd27dc9b358970d17f1dbb45f4b4ebdbabe8c062"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2025-08/period_2025-08.json",
+   "type": "application/geo+json",
+   "file:checksum": "122083e1f5174d22a86bcbbaa7a76423edfddcf18f4941e8eee3462d3c91afe49591"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2025-09/period_2025-09.json",
+   "type": "application/geo+json",
+   "file:checksum": "12201079b9a6363e7c97896cc993505f5c3203028d014779a7b8c22a35834bda9659"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2025-10/period_2025-10.json",
+   "type": "application/geo+json",
+   "file:checksum": "1220e70336f82d210e61d77215f3ba41546a9cd7b6e9d9010f40e46eacfaae338bae"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2025-11/period_2025-11.json",
+   "type": "application/geo+json",
+   "file:checksum": "12209324bc34647c7be9b46eb27840d52ca958e772b603138bc4661691cc1e9989b2"
+  },
+  {
+   "rel": "item",
+   "href": "./period_2025-12/period_2025-12.json",
+   "type": "application/geo+json",
+   "file:checksum": "1220a52076a08a21c797d6688ec8669a7c70c69f13852a543e5054b304822a196068"
+  },
+  {
+   "rel": "license",
+   "href": "https://creativecommons.org/licenses/by/4.0/",
+   "title": "CHIRPS v3: Creative Commons Attribution 4.0 (the CHC also states a public domain dedication)"
+  },
+  {
+   "rel": "license",
+   "href": "https://dataspace.copernicus.eu/sites/default/files/media/files/2025-06/copernicus_contributing_mission_data_access_v2_cop_dem_licenses.pdf",
+   "title": "Licence for Copernicus DEM instance COP-DEM-GLO-30-F Global 30m Full, Free & Open (analysis geometry)"
+  },
+  {
+   "rel": "cite-as",
+   "href": "https://doi.org/10.15780/G2JQ0P",
+   "title": "CHIRPS v3 data repository DOI"
+  },
+  {
+   "rel": "cite-as",
+   "href": "https://doi.org/10.1038/s41597-026-07096-4",
+   "title": "Funk et al. (2026), Scientific Data 13, 718: the CHIRPS v3 paper"
+  },
+  {
+   "rel": "processing-software",
+   "href": "./uv.lock",
+   "type": "application/toml",
+   "title": "Pipeline lockfile (uv)",
+   "file:checksum": "12205154d57a84dcb8f1eb5f992923d7589a669b8dc669edf140f607ff2740733aff"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1991.01.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1991.01.cog (ETag \"67be0b7d-1c029b0\"; tile sha256 3522de59e24cca049db0132e232ff1740a64c639f3d6d3edfefc6ca123c650b7)",
+   "siterra:retrieved_datetime": "2026-10-30T17:18:26Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1991.02.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1991.02.cog (ETag \"67be0b80-1bd8251\"; tile sha256 f9b45d8e89b96797e67ed5fa5f5a23693c9dfa7780b1f3b75cbe7a3856970c17)",
+   "siterra:retrieved_datetime": "2026-10-30T17:18:29Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1991.03.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1991.03.cog (ETag \"67be0b83-1c65989\"; tile sha256 20a0cd6afba37d484be3aaeb4bf3e6032fb9fac5456bdb2307563ff0ea121785)",
+   "siterra:retrieved_datetime": "2026-10-30T17:18:32Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1991.04.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1991.04.cog (ETag \"67be0b86-1be218d\"; tile sha256 1d5e5c3bc8cc849e13b0054c3385be586a14b2cf866fd0af0a94128e91e65fae)",
+   "siterra:retrieved_datetime": "2026-10-30T17:18:35Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1991.05.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1991.05.cog (ETag \"67be0b89-1cf4838\"; tile sha256 f8cefb52d6824f5dbbaf44524b03d7ba00fc4161216845872bbeb81a5a3c9aa1)",
+   "siterra:retrieved_datetime": "2026-10-30T17:18:37Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1991.06.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1991.06.cog (ETag \"67be0b8c-1cba351\"; tile sha256 f05dca0477682f7005315dcb69a4014cd1f80df1b5dc78026e1df354357ed4f6)",
+   "siterra:retrieved_datetime": "2026-10-30T17:18:40Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1991.07.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1991.07.cog (ETag \"67be0b8f-1d4f84d\"; tile sha256 bc37a87b1bd3fa17e49ffcf3c8076beea89892bb5ddfafc93756749168af5850)",
+   "siterra:retrieved_datetime": "2026-10-30T17:18:47Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1991.08.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1991.08.cog (ETag \"67be0b92-1d07cd7\"; tile sha256 75e7061c49733ebf2a656fe1d369c115271a583a383ce4e62ecfd75bc9eb6c30)",
+   "siterra:retrieved_datetime": "2026-10-30T17:18:49Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1991.09.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1991.09.cog (ETag \"67be0b95-1cfc7e0\"; tile sha256 218c3a4d66fe628073ed30188cae1711588e4b776183d916276ea04bc7295d27)",
+   "siterra:retrieved_datetime": "2026-10-30T17:18:52Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1991.10.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1991.10.cog (ETag \"67be0b99-1c4d359\"; tile sha256 15445180f6c3acb23cde6327ad62b434ef8e77e9612ee26288a49c566f311b5c)",
+   "siterra:retrieved_datetime": "2026-10-30T17:18:54Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1991.11.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1991.11.cog (ETag \"67be0b9b-1c23688\"; tile sha256 39f44597a6e9d662eb73ede0633ba1bed0d86cb47366e1c4820ba1afa2525b0d)",
+   "siterra:retrieved_datetime": "2026-10-30T17:18:57Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1991.12.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1991.12.cog (ETag \"67be0b9e-1c8271b\"; tile sha256 7623197f1f5ea7366abcb2ee122986664aa80fe1781e79a5c419a526d97aa686)",
+   "siterra:retrieved_datetime": "2026-10-30T17:18:59Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1992.01.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1992.01.cog (ETag \"67be0ba1-1b89abf\"; tile sha256 68e497d504c045d09444906ebf721d00df5c4f6400fc0495b680b4cd3daf0cec)",
+   "siterra:retrieved_datetime": "2026-10-30T17:19:01Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1992.02.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1992.02.cog (ETag \"67be0ba4-1b7df16\"; tile sha256 9ca4a70aaf4ead78b74df47a628e9869f162d3ba5e4d4ced65f60fffeb1cff71)",
+   "siterra:retrieved_datetime": "2026-10-30T17:19:05Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1992.03.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1992.03.cog (ETag \"67be0ba8-1d4a2fb\"; tile sha256 bf54e1af452bceef31f66fda4790be79c367a5dc0ba9b3595afebf453a2e7205)",
+   "siterra:retrieved_datetime": "2026-10-30T17:19:07Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1992.04.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1992.04.cog (ETag \"67be0bab-1ce1cab\"; tile sha256 fface85d77edc4c5c9113284faa897036fda8ffc34b5ac3378179093d76d2406)",
+   "siterra:retrieved_datetime": "2026-10-30T17:19:10Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1992.05.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1992.05.cog (ETag \"67be0bae-1d2e288\"; tile sha256 e04405752c4bf939095958d90b3d3a7b65c29f07c4ee2ce7424ab711e799c346)",
+   "siterra:retrieved_datetime": "2026-10-30T17:19:12Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1992.06.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1992.06.cog (ETag \"67be0bb1-1cad54c\"; tile sha256 66f11551b58504790b3c16778427f1e33b69b0475e63941a03c126286db31ecc)",
+   "siterra:retrieved_datetime": "2026-10-30T17:19:14Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1992.07.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1992.07.cog (ETag \"67be0bb4-1dc0007\"; tile sha256 154f4822af860cee302979c828def739b13f417362540e6329c7aeade0c5270e)",
+   "siterra:retrieved_datetime": "2026-10-30T17:19:17Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1992.08.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1992.08.cog (ETag \"67be0bb7-1d477c1\"; tile sha256 e555f67097d28117d6e217b5abcd714e4d18aaed8631db135b5ce6dab462156a)",
+   "siterra:retrieved_datetime": "2026-10-30T17:19:21Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1992.09.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1992.09.cog (ETag \"67be0bba-1d2b1ed\"; tile sha256 9d85f5ef02eae38656a74a36382abb17e856f852d3056cbcf95bfbee51a8fac5)",
+   "siterra:retrieved_datetime": "2026-10-30T17:19:23Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1992.10.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1992.10.cog (ETag \"67be0bbd-1c21128\"; tile sha256 5f87327d0caffccc8ce3cc2642a7a61bb4980ad8b0cfc9aad5f23f5a420637d8)",
+   "siterra:retrieved_datetime": "2026-10-30T17:19:25Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1992.11.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1992.11.cog (ETag \"67be0bc1-1c0bd93\"; tile sha256 8617cae335531d5002907e72a36ba20ba78166ec6e3ec6cb050807abbd1c0adc)",
+   "siterra:retrieved_datetime": "2026-10-30T17:19:27Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1992.12.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1992.12.cog (ETag \"67be0bc4-1c53395\"; tile sha256 5a56a4a325be412770d6d08ad9b9be83cafe28245528c219f5ffd2eabfd7d560)",
+   "siterra:retrieved_datetime": "2026-10-30T17:19:30Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1993.01.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1993.01.cog (ETag \"67be0bc7-1bf7bfe\"; tile sha256 49f231715986e7b03238e4a8f907c35eb2038160c7c1e66aca9376266a39ced5)",
+   "siterra:retrieved_datetime": "2026-10-30T17:19:33Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1993.02.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1993.02.cog (ETag \"67be0bca-1b65575\"; tile sha256 13eff93cfca46882be5dfe5d0292528ba2a80d7d816681cd86cd1c1b9a60bdb1)",
+   "siterra:retrieved_datetime": "2026-10-30T17:19:35Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1993.03.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1993.03.cog (ETag \"67be0bcd-1c4b511\"; tile sha256 1caf89db534cece81100a533d91885e72c0402f210c38d95bf83123ba384bc9b)",
+   "siterra:retrieved_datetime": "2026-10-30T17:19:38Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1993.04.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1993.04.cog (ETag \"67be0bd0-1c986d4\"; tile sha256 9c088e8eb303d2bff0742f98781c6c4f79c25faf4de441fe7583f18d7780b4e3)",
+   "siterra:retrieved_datetime": "2026-10-30T17:19:40Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1993.05.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1993.05.cog (ETag \"67be0bd3-1d0b5d1\"; tile sha256 e6a0011e97a0fe0d7d0d0ee3003f815f74ba6c86aa7cef947c2758b7501b5dce)",
+   "siterra:retrieved_datetime": "2026-10-30T17:19:43Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1993.06.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1993.06.cog (ETag \"67be0bd6-1c70b16\"; tile sha256 0d8e271ea000613b8f3466c8b0fd61444bd47e7e925699ac6d6274ee0cfd07b7)",
+   "siterra:retrieved_datetime": "2026-10-30T17:19:45Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1993.07.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1993.07.cog (ETag \"67be0bd9-1d2d304\"; tile sha256 021e7a23346a6ed27a5aad858eafd93a712fb5ec0068a3755ebaac9991f546c0)",
+   "siterra:retrieved_datetime": "2026-10-30T17:19:48Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1993.08.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1993.08.cog (ETag \"67be0bdc-1d8a26e\"; tile sha256 31990a4d6504fdcb80ccbc186d410e7eabf37720461d0fa9a5e23794316583ee)",
+   "siterra:retrieved_datetime": "2026-10-30T17:19:50Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1993.09.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1993.09.cog (ETag \"67be0bdf-1d29610\"; tile sha256 533aeb7740acaff4146e42768d91a7597a17052ccc1ffea03d27b246426f08e0)",
+   "siterra:retrieved_datetime": "2026-10-30T17:19:52Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1993.10.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1993.10.cog (ETag \"67be0be3-1cbaf1d\"; tile sha256 911474a882b536df5033cdeebaf02d77a2d10909f26cc1c3bf569e775f1f4f2c)",
+   "siterra:retrieved_datetime": "2026-10-30T17:19:55Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1993.11.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1993.11.cog (ETag \"67be0be6-1ceed0e\"; tile sha256 a44c739a1e9462563cf646d5b1ffb7c4b9810cd3b7eb41563c75cc69379aab26)",
+   "siterra:retrieved_datetime": "2026-10-30T17:20:00Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1993.12.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1993.12.cog (ETag \"67be0be9-1c6b78d\"; tile sha256 59e206aca5a15ee6d882941d0fb7b7749d06ee09688f60779fd556a5cc078d8e)",
+   "siterra:retrieved_datetime": "2026-10-30T17:20:04Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1994.01.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1994.01.cog (ETag \"67be0bec-1b78a7e\"; tile sha256 f8751fcfcca14f3fa62832cfaacdd490524c7fa136151d7cd0edab877d806c75)",
+   "siterra:retrieved_datetime": "2026-10-30T17:20:06Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1994.02.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1994.02.cog (ETag \"67be0bef-1ac00ec\"; tile sha256 ec57fb03858261584d929c5b105bb9fd3818e6328b53cc0f4b8a9d8d075b7617)",
+   "siterra:retrieved_datetime": "2026-10-30T17:20:14Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1994.03.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1994.03.cog (ETag \"67be0bf2-1b700bb\"; tile sha256 c5f1b7693bfee7fe8bb094e6c0c82e0491aa1db8908dd87104455f58b63c8711)",
+   "siterra:retrieved_datetime": "2026-10-30T17:20:16Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1994.04.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1994.04.cog (ETag \"67be0bf5-1cb3829\"; tile sha256 a8e868e2a059e458bf1f99a08212cfe29ef057803e15749a0051ee4f8328bbb0)",
+   "siterra:retrieved_datetime": "2026-10-30T17:20:18Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1994.05.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1994.05.cog (ETag \"67be0bf8-1c28011\"; tile sha256 ada2e8d6a7ac6e0a5a4821fd8f544b8803f4bfa6ce0c0d8a74b1731fe5bfc57f)",
+   "siterra:retrieved_datetime": "2026-10-30T17:20:21Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1994.06.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1994.06.cog (ETag \"67be0bfb-1c34025\"; tile sha256 3a6b08d314f7ab2fcb5756a73d76917e36c92c0f64265517c13ae0274861e7a9)",
+   "siterra:retrieved_datetime": "2026-10-30T17:20:23Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1994.07.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1994.07.cog (ETag \"67be0bfe-1d433fe\"; tile sha256 154a2e81745b0ca7bee10d03e7de7a18cb1cca2ec769e8060db3816c234670db)",
+   "siterra:retrieved_datetime": "2026-10-30T17:20:26Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1994.08.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1994.08.cog (ETag \"67be0c01-1d11065\"; tile sha256 742acf979216e9ae4908f55142f3eddaf69b20f5ab33c2bfc1bcc99a09773600)",
+   "siterra:retrieved_datetime": "2026-10-30T17:20:28Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1994.09.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1994.09.cog (ETag \"67be0c04-1d8fdad\"; tile sha256 861b17652bb775646ab8eca4ab48298aa2f95c45677172597071e340cecd8b40)",
+   "siterra:retrieved_datetime": "2026-10-30T17:20:30Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1994.10.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1994.10.cog (ETag \"67be0c07-1ceaee6\"; tile sha256 ed052a0d51be54db0e99e43a0a8c81501f9708370ca2d9537a2eb190d2023b8e)",
+   "siterra:retrieved_datetime": "2026-10-30T17:20:33Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1994.11.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1994.11.cog (ETag \"67be0c0a-1c3f578\"; tile sha256 74a5a786c6b22b6727286b064a8db2317e402ecec81e322f524dfb451eabb6d9)",
+   "siterra:retrieved_datetime": "2026-10-30T17:20:35Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1994.12.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1994.12.cog (ETag \"67be0c0d-1c6280e\"; tile sha256 537380242448b1aec8fac069305e714aba298dabf4fc36b72a6d0c040f047486)",
+   "siterra:retrieved_datetime": "2026-10-30T17:20:38Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1995.01.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1995.01.cog (ETag \"67be0c10-1ae3d18\"; tile sha256 51fb54ec508fe804b6ff73afa79852499f512bfe7df79b5d56e924aa32a25edf)",
+   "siterra:retrieved_datetime": "2026-10-30T17:20:40Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1995.02.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1995.02.cog (ETag \"67be0c13-1a941c8\"; tile sha256 faa5c4bd2e67dbc3a2307c200f94b6c2dda4c820ce98bf129cd4fdae60f4ab28)",
+   "siterra:retrieved_datetime": "2026-10-30T17:20:43Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1995.03.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1995.03.cog (ETag \"67be0c16-1c68058\"; tile sha256 c38bc5070437ed700069887adbab4067d8310ed257dbc463bbd7f93976b3d1bf)",
+   "siterra:retrieved_datetime": "2026-10-30T17:20:45Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1995.04.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1995.04.cog (ETag \"67be0c19-1cbf9df\"; tile sha256 3d569181749e8d468c21e0d532cccdedc8a869e2a4c8c9a1cc9f03433187c9c3)",
+   "siterra:retrieved_datetime": "2026-10-30T17:20:47Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1995.05.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1995.05.cog (ETag \"67be0c1c-1c6c61f\"; tile sha256 87314385bb21cf0723cbcb2d0e6cd2e901280f61e654bbc123ea23b14e30368a)",
+   "siterra:retrieved_datetime": "2026-10-30T17:20:49Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1995.06.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1995.06.cog (ETag \"67be0c1f-1c78333\"; tile sha256 7ff69ed277847891e7d8823b3cea721cf38ccc3bae373eed33d464a17a861c85)",
+   "siterra:retrieved_datetime": "2026-10-30T17:20:52Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1995.07.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1995.07.cog (ETag \"67be0c22-1d40a59\"; tile sha256 7560aac414249c8bfe3b7ffa469f75f0e656ab700f14accb8abcc105a1cacb52)",
+   "siterra:retrieved_datetime": "2026-10-30T17:20:54Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1995.08.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1995.08.cog (ETag \"67be0c25-1d39e47\"; tile sha256 0e5cf1c9d5bcb4d17ec635136f5c70920e3a739c225470125c32c46afda61875)",
+   "siterra:retrieved_datetime": "2026-10-30T17:20:57Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1995.09.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1995.09.cog (ETag \"67be0c29-1d6dcce\"; tile sha256 d8cf7c4a019e5eb24b4a7ba7ddc654a67bee668947b1e68664f9608946376017)",
+   "siterra:retrieved_datetime": "2026-10-30T17:21:00Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1995.10.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1995.10.cog (ETag \"67be0c2b-1c70ebb\"; tile sha256 7dbae29fc43b4c2071c92a4fe2b192d8cd4023b958bb732295b9728d4174619c)",
+   "siterra:retrieved_datetime": "2026-10-30T17:21:02Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1995.11.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1995.11.cog (ETag \"67be0c2e-1bc635e\"; tile sha256 1faefa4f81b815f326d48d4d9292f1dd60fa14436c7ecefbb0ab9619fb7a49e1)",
+   "siterra:retrieved_datetime": "2026-10-30T17:21:04Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1995.12.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1995.12.cog (ETag \"67be0c31-1ca33cd\"; tile sha256 87ffa694b6c9b42e1c235ff6232eb1c3ab4f4298564a04e318b38d75bb6e38fa)",
+   "siterra:retrieved_datetime": "2026-10-30T17:21:07Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1996.01.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1996.01.cog (ETag \"67be0c34-1b6c321\"; tile sha256 84a1371df9b6bb5f87b5c6d593b4ebdeed40b647689d275d0e717f980a6373bb)",
+   "siterra:retrieved_datetime": "2026-10-30T17:21:15Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1996.02.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1996.02.cog (ETag \"67be0c37-1b9eeac\"; tile sha256 4fc536197039003544a55d92192e6a3eb1394f27c30b28008e5bcfddc53d2b35)",
+   "siterra:retrieved_datetime": "2026-10-30T17:21:17Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1996.03.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1996.03.cog (ETag \"67be0c3b-1be4628\"; tile sha256 4c67076a07586a6711ae403b38bd854659c99691ac781a0d5d3062d31048bd7f)",
+   "siterra:retrieved_datetime": "2026-10-30T17:21:25Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1996.04.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1996.04.cog (ETag \"67be0c3d-1bd6edd\"; tile sha256 d48f2f6c4337ff6f90d98dae636acc3e6bc397c9c08e7d70d4a5b9321d5f01df)",
+   "siterra:retrieved_datetime": "2026-10-30T17:21:27Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1996.05.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1996.05.cog (ETag \"67be0c41-1ca5247\"; tile sha256 b983d92375cdcd90df4bd5ade8c9aacdfe773a16ba157139fa0381c7a6adcb02)",
+   "siterra:retrieved_datetime": "2026-10-30T17:21:30Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1996.06.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1996.06.cog (ETag \"67be0c44-1c87201\"; tile sha256 d8619d025cad1939428af73269d5b7fdb2026a91c60e25e50ea9081a3263feff)",
+   "siterra:retrieved_datetime": "2026-10-30T17:21:32Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1996.07.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1996.07.cog (ETag \"67be0c47-1d03de8\"; tile sha256 01f22f61bb315abf32ba7a8c2dfa664f013d2aab1e1b639423713dee17e39477)",
+   "siterra:retrieved_datetime": "2026-10-30T17:21:40Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1996.08.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1996.08.cog (ETag \"67be0c4a-1d07560\"; tile sha256 c51b6b99fb05828f7817d4fafad92493d0da623a28ac5a0852240d1605a3d974)",
+   "siterra:retrieved_datetime": "2026-10-30T17:21:42Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1996.09.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1996.09.cog (ETag \"67be0c4d-1d62f4b\"; tile sha256 9fa213fe7ee7de10ad6115c67c38174d36149d4c8680b5385db83dc1e1f8adf0)",
+   "siterra:retrieved_datetime": "2026-10-30T17:21:44Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1996.10.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1996.10.cog (ETag \"67be0c50-1ca7e0f\"; tile sha256 1051e5f226b2f3b4ceef93bd40295952921dce7fb1314ce81bf3c4b5f58fb0f0)",
+   "siterra:retrieved_datetime": "2026-10-30T17:21:46Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1996.11.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1996.11.cog (ETag \"67be0c54-1b9903c\"; tile sha256 6b1ecf4de72438333e7fa0e9f6d2f3c75438a07b23e661b7dfe66adcdd989e57)",
+   "siterra:retrieved_datetime": "2026-10-30T17:21:48Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1996.12.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1996.12.cog (ETag \"67be0c57-1c14df7\"; tile sha256 979712df759908c1d1a9d067dbe94bdd1a76473a80efbe77bce25e63469b678d)",
+   "siterra:retrieved_datetime": "2026-10-30T17:21:51Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1997.01.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1997.01.cog (ETag \"67be0c5a-1bf5032\"; tile sha256 3d0b9edde62db3aa36a77c2f39abc156ca12d0dfd90802e2b52b7a1843429947)",
+   "siterra:retrieved_datetime": "2026-10-30T17:21:53Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1997.02.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1997.02.cog (ETag \"67be0c5d-19ccf11\"; tile sha256 c3ffb7cd43c9d88412015212e5d623d95c6761b5ffcc3fc66f9186a46a877ac9)",
+   "siterra:retrieved_datetime": "2026-10-30T17:21:56Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1997.03.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1997.03.cog (ETag \"67be0c61-1ba4686\"; tile sha256 8f0e159374a60b1a38f1da8f360930191ca51c88bf626c83cd9584780686b083)",
+   "siterra:retrieved_datetime": "2026-10-30T17:21:58Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1997.04.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1997.04.cog (ETag \"67be0c64-1b8a3c4\"; tile sha256 222f78b2225fabcf54c755116e19f0286b3161e6f61e2bbc8ef0b7395db3f81a)",
+   "siterra:retrieved_datetime": "2026-10-30T17:22:01Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1997.05.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1997.05.cog (ETag \"67be0c67-1cdf854\"; tile sha256 5b9dfb5bb90a428e5be872cdcb6a010bd121cfdefab860df19d9d2809445a02d)",
+   "siterra:retrieved_datetime": "2026-10-30T17:22:03Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1997.06.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1997.06.cog (ETag \"67be0c6a-1d3c25e\"; tile sha256 6f484e7a2c9256a4b7df7f4c614d4bea34ffecbdd6038e44b4ac341372fad1a3)",
+   "siterra:retrieved_datetime": "2026-10-30T17:22:05Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1997.07.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1997.07.cog (ETag \"67be0c6e-1d271f7\"; tile sha256 808518f952e97437e03c69a90ad9afda4d3a2695e705d8ab320408f66b43fa24)",
+   "siterra:retrieved_datetime": "2026-10-30T17:22:07Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1997.08.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1997.08.cog (ETag \"67be0c71-1dbf58c\"; tile sha256 5ffb29ef1c0506777e417db0cda35e43a88f604731aaf8ef2c0935f50bed9b86)",
+   "siterra:retrieved_datetime": "2026-10-30T17:22:10Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1997.09.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1997.09.cog (ETag \"67be0c74-1d7ef48\"; tile sha256 14a9f30ce34cfe3e031370a1aa52d236b376d610d535f215abfdd5482021700e)",
+   "siterra:retrieved_datetime": "2026-10-30T17:22:12Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1997.10.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1997.10.cog (ETag \"67be0c78-1ce408b\"; tile sha256 4a890f2a666ce7ffde5fd6f053e66159a44caac6fbeb7e36db8e143c7e007418)",
+   "siterra:retrieved_datetime": "2026-10-30T17:22:14Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1997.11.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1997.11.cog (ETag \"67be0c7b-1cbe81f\"; tile sha256 167239e8707ca1dc29154a2dfa9c48043500429927817905fdd000e2e2b96255)",
+   "siterra:retrieved_datetime": "2026-10-30T17:22:17Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1997.12.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1997.12.cog (ETag \"67be0c7e-1c97a44\"; tile sha256 588d066901d97c263a5e6ab820b93c0a0222ce0214e2c3acb9508be5083ea999)",
+   "siterra:retrieved_datetime": "2026-10-30T17:22:20Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1998.01.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1998.01.cog (ETag \"67be0c81-1cecac2\"; tile sha256 d6d62fa2fb0479c107c1a61633466bab27a36ec999e9b2b8d5817bd2cf03b493)",
+   "siterra:retrieved_datetime": "2026-10-30T17:22:23Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1998.02.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1998.02.cog (ETag \"67be0c84-1bf8cb9\"; tile sha256 1236e691dc514ae9da51f1238ab87aaaf5e02da5cfa744fccbd42b9453e767f2)",
+   "siterra:retrieved_datetime": "2026-10-30T17:22:25Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1998.03.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1998.03.cog (ETag \"67be0c87-1c65a2d\"; tile sha256 bc5cc594d63cc85a0cbe6e64342358c799de8ac25c4ad79ff26cc178aef224ef)",
+   "siterra:retrieved_datetime": "2026-10-30T17:22:28Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1998.04.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1998.04.cog (ETag \"67be0c8b-1ca27a7\"; tile sha256 6cc7280fd8d13eb8536c864fee4ba6e1fdd5329f0a13d570738c4d0676b07508)",
+   "siterra:retrieved_datetime": "2026-10-30T17:22:30Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1998.05.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1998.05.cog (ETag \"67be0c8e-1d631bf\"; tile sha256 3ba0edcf47df8435ee65e2aba9a68d3d589d85a5d6f2cdf7e4b4ad9babaabd58)",
+   "siterra:retrieved_datetime": "2026-10-30T17:22:32Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1998.06.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1998.06.cog (ETag \"67be0c91-1c8c0c7\"; tile sha256 90d1f6a64484c477988e3eae06ed61b92e85b2288b070b6161a0dcd09286affd)",
+   "siterra:retrieved_datetime": "2026-10-30T17:22:34Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1998.07.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1998.07.cog (ETag \"67be0c94-1d001ad\"; tile sha256 5e142476ab7f6402675c51b3167c177484cc142a872baaaa85c7adfbe1a1d722)",
+   "siterra:retrieved_datetime": "2026-10-30T17:22:36Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1998.08.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1998.08.cog (ETag \"67be0c97-1d4f983\"; tile sha256 64b5c76cfbc2cce0b92eed8ad22dd8eb16749dae673d309cd7b38bf12b0f525c)",
+   "siterra:retrieved_datetime": "2026-10-30T17:22:39Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1998.09.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1998.09.cog (ETag \"67be0c9b-1d9d931\"; tile sha256 432c091ba064aa0dc66078a4ed74b9caf8a23e5db4e7a0fc1ef3ea494ba64cbf)",
+   "siterra:retrieved_datetime": "2026-10-30T17:22:41Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1998.10.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1998.10.cog (ETag \"67be0c9e-1c9a5c9\"; tile sha256 f72334d1b2d274700a86ba312a2486444e0c5fb29bb02aaf073ccc14fd271926)",
+   "siterra:retrieved_datetime": "2026-10-30T17:22:43Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1998.11.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1998.11.cog (ETag \"67be0ca1-1b9c116\"; tile sha256 91676b7a6f28d3e83c5bb15042606090d85002b8249f2949f5d86327030d70f8)",
+   "siterra:retrieved_datetime": "2026-10-30T17:22:45Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1998.12.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1998.12.cog (ETag \"67be0ca4-1c13b96\"; tile sha256 7fe5876b3fb937ff98d2aae036c3c59cbf853f375ac60aab31d0a498fec6a80c)",
+   "siterra:retrieved_datetime": "2026-10-30T17:22:48Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1999.01.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1999.01.cog (ETag \"67be0ca7-1bcd6db\"; tile sha256 f9f1b962dc0e2d1a3bac3fc5182d84b6358988a7087a783d11b908be3db85476)",
+   "siterra:retrieved_datetime": "2026-10-30T17:22:50Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1999.02.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1999.02.cog (ETag \"67be0caa-1bd64a7\"; tile sha256 c25acb0a73b2496e9de4f7d9c9db3adb9804f7e99701c0a061f2464474f7983d)",
+   "siterra:retrieved_datetime": "2026-10-30T17:22:52Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1999.03.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1999.03.cog (ETag \"67be0cad-1b02401\"; tile sha256 26b03b80b97ad5b6f02acd9ba3724b3346c1858d0415a128db5b34c437ff1ff5)",
+   "siterra:retrieved_datetime": "2026-10-30T17:22:55Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1999.04.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1999.04.cog (ETag \"67be0cb1-1bbce20\"; tile sha256 16555a987252c8e4548dd6906baac3a365cbce516fe60d931530795940ec69f3)",
+   "siterra:retrieved_datetime": "2026-10-30T17:22:57Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1999.05.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1999.05.cog (ETag \"67be0cb4-1c1653d\"; tile sha256 168e9c2cfd808a418d0988b23643c614cbf938ce36c8ce3977a375c6c092a6d6)",
+   "siterra:retrieved_datetime": "2026-10-30T17:22:59Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1999.06.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1999.06.cog (ETag \"67be0cb7-1c35a22\"; tile sha256 53b3e378cfc5ecdb7631034d7f0d222680ad568157832bc92e48d9ffe4b9776d)",
+   "siterra:retrieved_datetime": "2026-10-30T17:23:01Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1999.07.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1999.07.cog (ETag \"67be0cba-1d0d83d\"; tile sha256 577a972a162c725172e53018f6bbf6f43bfd31fab34f71f3b6629cb7b74649c3)",
+   "siterra:retrieved_datetime": "2026-10-30T17:23:04Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1999.08.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1999.08.cog (ETag \"67be0cbe-1d4c4cd\"; tile sha256 87242e033694ff82fb96ffce830c09eea3948c08765b7dbbea68ebe35a5bfff2)",
+   "siterra:retrieved_datetime": "2026-10-30T17:23:06Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1999.09.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1999.09.cog (ETag \"67be0cc1-1d65cb5\"; tile sha256 299b58b05ba881bb55b67cbbe7325c948cd50dd8434d9dda7db84beb0a21c319)",
+   "siterra:retrieved_datetime": "2026-10-30T17:23:10Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1999.10.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1999.10.cog (ETag \"67be0cc4-1d20d4b\"; tile sha256 68bf4a5ff47f0a0e270d6431ebfbf046e95f4af16772096bdb7ead11fd769d98)",
+   "siterra:retrieved_datetime": "2026-10-30T17:23:12Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1999.11.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1999.11.cog (ETag \"67be0cc7-1c78f29\"; tile sha256 00f43c74a99ad2ff8f4e867a7cbe5ccf5211eb3d14f9f366bb2f9ff4289f0a05)",
+   "siterra:retrieved_datetime": "2026-10-30T17:23:14Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.1999.12.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.1999.12.cog (ETag \"67be0cca-1bdcba2\"; tile sha256 7669fa013b859e720b6cf2e57e6f0a6a0dd6df8770c780eecf3c2616a5b8754b)",
+   "siterra:retrieved_datetime": "2026-10-30T17:23:17Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2000.01.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2000.01.cog (ETag \"67be0cce-1bd155a\"; tile sha256 97f952526746254b201385ca4df482b2e05a2911df6c8c7ffe14f31273bbaad2)",
+   "siterra:retrieved_datetime": "2026-10-30T17:23:19Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2000.02.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2000.02.cog (ETag \"67be0cd1-1a03767\"; tile sha256 c76c5fa01e3350c44cc3a4785fd124315378c48ceb0af0c8981af36b78c4b653)",
+   "siterra:retrieved_datetime": "2026-10-30T17:23:21Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2000.03.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2000.03.cog (ETag \"67be0cd4-1b80d44\"; tile sha256 bfadb7220be68ba03ff56c0023b58c2a96a17600c5bc889ca0d47e9e69f160c5)",
+   "siterra:retrieved_datetime": "2026-10-30T17:23:23Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2000.04.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2000.04.cog (ETag \"67be0cd8-1c500b6\"; tile sha256 b4562121cd23d6ce2c8c035425711e702917c99b273f3a5466e31431323235ff)",
+   "siterra:retrieved_datetime": "2026-10-30T17:23:26Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2000.05.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2000.05.cog (ETag \"67be0cdb-1c5a0f6\"; tile sha256 37889912ac1e344c84b6aaa99aff71497cbfe43fcf81d27cf5e71e42c9f802d6)",
+   "siterra:retrieved_datetime": "2026-10-30T17:23:28Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2000.06.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2000.06.cog (ETag \"67be0cdf-1c6c18a\"; tile sha256 7c04df7072be92759b12330f60707a2e0b3ea11e408a1b161e79530154f28f47)",
+   "siterra:retrieved_datetime": "2026-10-30T17:23:31Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2000.07.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2000.07.cog (ETag \"67be0ce2-1cffe6b\"; tile sha256 2b7e79516cc856b057a165cf1d9d084ddbbc8c55cf83c707596522611b207548)",
+   "siterra:retrieved_datetime": "2026-10-30T17:23:33Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2000.08.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2000.08.cog (ETag \"67be0ce5-1cfefd0\"; tile sha256 e9d235b79f200a3b20d393e410328fed7c2f76f76c09b73cccbaa9d8b7755d2b)",
+   "siterra:retrieved_datetime": "2026-10-30T17:23:35Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2000.09.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2000.09.cog (ETag \"67be0ce8-1d71349\"; tile sha256 f30549cb6a67fd0d327cfca0a8ff30fb04ba51d1e7edbb9f894963c4d5f2cea4)",
+   "siterra:retrieved_datetime": "2026-10-30T17:23:38Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2000.10.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2000.10.cog (ETag \"67be0cec-1d69520\"; tile sha256 5f76b449d99474cbb985f0f386f053794a9c4330030ba0f674595b7f9ca3d3aa)",
+   "siterra:retrieved_datetime": "2026-10-30T17:23:40Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2000.11.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2000.11.cog (ETag \"67be0cef-1d3c8d0\"; tile sha256 c412b23dc338f9afb8228b5f6ab5adccadf6a3cc1183b44f742108350f64160c)",
+   "siterra:retrieved_datetime": "2026-10-30T17:23:43Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2000.12.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2000.12.cog (ETag \"67be0cf2-1d0eb1b\"; tile sha256 e9a6a3f39063b05bbc25caa99e85539475c474a32925ffac2a1c1ff1fcdc9108)",
+   "siterra:retrieved_datetime": "2026-10-30T17:23:45Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2001.01.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2001.01.cog (ETag \"67be0cf5-1bff4db\"; tile sha256 a390bf91c8263ee00d2fe347d21d60fe9a954d456eb85c49714d60d0411b1b3b)",
+   "siterra:retrieved_datetime": "2026-10-30T17:23:48Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2001.02.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2001.02.cog (ETag \"67be0cf9-1cad355\"; tile sha256 b9efde40e5a9d56277f1fcb4a8bdb58afba4ca093c1870bffe45d102c37b379c)",
+   "siterra:retrieved_datetime": "2026-10-30T17:23:51Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2001.03.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2001.03.cog (ETag \"67be0cfc-1c96263\"; tile sha256 5d070d494a0b5c5c5a7388305da5e23ff9cdd12e3e9e31ded0b6478fae42feed)",
+   "siterra:retrieved_datetime": "2026-10-30T17:23:53Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2001.04.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2001.04.cog (ETag \"67be0cff-1ca9fef\"; tile sha256 0f7a70eee422e486e891e011bb1909a1fba1b360143c02cab36a7ad4e2464740)",
+   "siterra:retrieved_datetime": "2026-10-30T17:23:55Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2001.05.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2001.05.cog (ETag \"67be0d02-1c5ebe3\"; tile sha256 b16519fa85d882b64adae6fdf849d07f811011fc9fe21c2807f83630cfda2941)",
+   "siterra:retrieved_datetime": "2026-10-30T17:23:58Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2001.06.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2001.06.cog (ETag \"67be0d05-1c37562\"; tile sha256 f7fc5b5e5a7f72c21fdfc9b51058d6aef747f60b925f4e995e19dbab75dfa175)",
+   "siterra:retrieved_datetime": "2026-10-30T17:24:00Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2001.07.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2001.07.cog (ETag \"67be0d08-1d78207\"; tile sha256 baf6e57a851757b793535e6261fbcab7203431da47527f6eed8a4160c3d55b72)",
+   "siterra:retrieved_datetime": "2026-10-30T17:24:02Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2001.08.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2001.08.cog (ETag \"67be0d0c-1d981b0\"; tile sha256 66d9195823f7c2eac0cc25d982cf674d798209abc89b71af65492b3edaeab11c)",
+   "siterra:retrieved_datetime": "2026-10-30T17:24:05Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2001.09.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2001.09.cog (ETag \"67be0d0f-1d86a25\"; tile sha256 229c7ca73139ab4626b129cca39e69d4fc1d38e15389818b34825188b5702ac3)",
+   "siterra:retrieved_datetime": "2026-10-30T17:24:07Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2001.10.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2001.10.cog (ETag \"67be0d12-1cc4b77\"; tile sha256 0ff8e5e64f783549e32c1906a07e4d1feffe14ae253183fc6ec3350c5579908b)",
+   "siterra:retrieved_datetime": "2026-10-30T17:24:09Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2001.11.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2001.11.cog (ETag \"67be0d15-1c0fe85\"; tile sha256 647c56af111b38dc2ce9b230bd084479476c1a8a54bdd67608c5c63a103863a2)",
+   "siterra:retrieved_datetime": "2026-10-30T17:24:11Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2001.12.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2001.12.cog (ETag \"67be0d18-1d16539\"; tile sha256 2318f51d5a100fc39f75680848cb138ed9fb1e3505ce734d11a0adbf5309c306)",
+   "siterra:retrieved_datetime": "2026-10-30T17:24:19Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2002.01.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2002.01.cog (ETag \"67be0d1c-1c8e139\"; tile sha256 a8dcf87f4f9f5830cfbd5b957b2828e12a06c03d5bff1c3bd55d08bc7e5a0545)",
+   "siterra:retrieved_datetime": "2026-10-30T17:24:21Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2002.02.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2002.02.cog (ETag \"67be0d1f-1cc7ff9\"; tile sha256 55c2e9e0cd2e475d94d25430f67581ba69264102ef59e037536507b627ec12be)",
+   "siterra:retrieved_datetime": "2026-10-30T17:24:24Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2002.03.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2002.03.cog (ETag \"67be0d23-1d58c9c\"; tile sha256 a9448a83c0df9d8a784786f43340b9951bff9a54435ec93070975dcd434142b9)",
+   "siterra:retrieved_datetime": "2026-10-30T17:24:37Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2002.04.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2002.04.cog (ETag \"67be0d26-1cf6e9b\"; tile sha256 6ba3139ddc9163fdccd1ff228b00ad183486930daf09d54ceeb11544783a3100)",
+   "siterra:retrieved_datetime": "2026-10-30T17:24:39Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2002.05.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2002.05.cog (ETag \"67be0d29-1c7069a\"; tile sha256 d54f7563165da41bd67f6c85c9079d5c44f7af7ac4dc6583232dffac00975f71)",
+   "siterra:retrieved_datetime": "2026-10-30T17:24:41Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2002.06.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2002.06.cog (ETag \"67be0d2c-1c6ffcb\"; tile sha256 8673bc5fae88306222cfc44570a805d7983793f84fc8b90439506686c31c7065)",
+   "siterra:retrieved_datetime": "2026-10-30T17:24:44Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2002.07.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2002.07.cog (ETag \"67be0d2f-1d4a8b5\"; tile sha256 ce15ec794e1d114f23df1f56d34284383f0d97b7fe0f8ab177d23c8697dd13f3)",
+   "siterra:retrieved_datetime": "2026-10-30T17:24:46Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2002.08.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2002.08.cog (ETag \"67be0d32-1d94f20\"; tile sha256 f29618725d689e3155080343a5ecda9134cf99f4122980b64cd1e21d972d24b7)",
+   "siterra:retrieved_datetime": "2026-10-30T17:24:48Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2002.09.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2002.09.cog (ETag \"67be0d36-1db5d63\"; tile sha256 e4289351a0597f2deadc1dd069a5eceb82aac30b1e7b2f66d006cf0182f1fa9c)",
+   "siterra:retrieved_datetime": "2026-10-30T17:24:50Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2002.10.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2002.10.cog (ETag \"67be0d39-1d634fc\"; tile sha256 e6657a445cd6b7b53f68c394908db78f183e692f90ed671d78bed647af8f4960)",
+   "siterra:retrieved_datetime": "2026-10-30T17:24:52Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2002.11.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2002.11.cog (ETag \"67be0d3c-1c7cc9d\"; tile sha256 40f110f3b973b4ba39cd159488480e89ef984d5ed85dc3ac156046886798f036)",
+   "siterra:retrieved_datetime": "2026-10-30T17:24:55Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2002.12.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2002.12.cog (ETag \"67be0d40-1d5bc92\"; tile sha256 99c7f1b3ed2c62deb5be1bc770528b999ff1ec1dcb273bbdad415a383809728c)",
+   "siterra:retrieved_datetime": "2026-10-30T17:24:57Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2003.01.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2003.01.cog (ETag \"67be0d43-1c2d4a6\"; tile sha256 681f1c9f1add60b5ad0f67ee21bf6e40a6cc4be413e574fe75de648c16166bcb)",
+   "siterra:retrieved_datetime": "2026-10-30T17:25:00Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2003.02.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2003.02.cog (ETag \"67be0d46-1caa30a\"; tile sha256 9f98be66f1f17f8b655b9af23f289ce2c46e034dadae485c3634b0bf2bbfb04e)",
+   "siterra:retrieved_datetime": "2026-10-30T17:25:02Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2003.03.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2003.03.cog (ETag \"67be0d4a-1c3181e\"; tile sha256 f000f3d854c929492dd2ffaab7606b097ba58da3847fde1e32e6b41cfebf2a92)",
+   "siterra:retrieved_datetime": "2026-10-30T17:25:04Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2003.04.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2003.04.cog (ETag \"67be0d4d-1d2d450\"; tile sha256 9cbcb0c62427561d29f5548fd88527779c92fc34393c55d42d5ccba21ad6ae06)",
+   "siterra:retrieved_datetime": "2026-10-30T17:25:07Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2003.05.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2003.05.cog (ETag \"67be0d50-1cfaf9b\"; tile sha256 aa5f4c9dfe9cb28397d9087a5555548325434b8cc84f2cfc7676293dc1b17817)",
+   "siterra:retrieved_datetime": "2026-10-30T17:25:09Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2003.06.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2003.06.cog (ETag \"67be0d53-1d2601a\"; tile sha256 2b84cd7fe0bf95c540fadc94fd956150acc47dab35a34756f5a580dd004f5501)",
+   "siterra:retrieved_datetime": "2026-10-30T17:25:11Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2003.07.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2003.07.cog (ETag \"67be0d56-1da5f18\"; tile sha256 f5a216af80eecc86beb154b446ec112f7414dbfd893694a56e620ea7cf55bdb9)",
+   "siterra:retrieved_datetime": "2026-10-30T17:25:13Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2003.08.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2003.08.cog (ETag \"67be0d5a-1da55e5\"; tile sha256 dd573017297a6ebd988750b25251b2c05ad90f583a835dfddda55a3141ecaef4)",
+   "siterra:retrieved_datetime": "2026-10-30T17:25:15Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2003.09.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2003.09.cog (ETag \"67be0d5d-1d749e3\"; tile sha256 5f9a1ba3ce534f08970cbd58372e74538735c6cc49c2d6a6d4417bfda48f8da6)",
+   "siterra:retrieved_datetime": "2026-10-30T17:25:18Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2003.10.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2003.10.cog (ETag \"67be0d61-1d60436\"; tile sha256 16b90b1b542fc2a38bfb4db23f7c46d2c4784ae7b212ab93ebe5b33258615451)",
+   "siterra:retrieved_datetime": "2026-10-30T17:25:20Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2003.11.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2003.11.cog (ETag \"67be0d64-1cdace0\"; tile sha256 faf83eb3fafd93c730ba8ef52c32960024d5b722d642804b70fc00e764af60c6)",
+   "siterra:retrieved_datetime": "2026-10-30T17:25:22Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2003.12.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2003.12.cog (ETag \"67be0d67-1ca6b29\"; tile sha256 b3ae22c321aef325638b8dbc62b1f94dc2d7f27a70889f843174acc2384ce14d)",
+   "siterra:retrieved_datetime": "2026-10-30T17:25:25Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2004.01.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2004.01.cog (ETag \"67be0d6a-1cd98c8\"; tile sha256 2d01b32282ce294016b4dd3dcb3adc81875ced2b51130db0764cd9556626c8fa)",
+   "siterra:retrieved_datetime": "2026-10-30T17:25:27Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2004.02.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2004.02.cog (ETag \"67be0d6e-1c96065\"; tile sha256 fd240271efa033d7e080d8753eb21ddfe6710253ae58e37393f89e7743364636)",
+   "siterra:retrieved_datetime": "2026-10-30T17:25:29Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2004.03.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2004.03.cog (ETag \"67be0d72-1ce9176\"; tile sha256 9fd88cbb78a8874188d3a8fc4f0bfdb30330664cf004c7efa9a6433d3024eb33)",
+   "siterra:retrieved_datetime": "2026-10-30T17:25:32Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2004.04.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2004.04.cog (ETag \"67be0d75-1ce4455\"; tile sha256 1e5202212930d5e54b21de0a3e37d16ae307ffd86bb964ca478af184b4cd87e2)",
+   "siterra:retrieved_datetime": "2026-10-30T17:25:34Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2004.05.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2004.05.cog (ETag \"67be0d78-1c011c5\"; tile sha256 31364cbb0cd83ce34df5fdd8a5da3fde4f5843a70d8bb9fcb942ae3ebc71b505)",
+   "siterra:retrieved_datetime": "2026-10-30T17:25:37Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2004.06.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2004.06.cog (ETag \"67be0d7b-1c90234\"; tile sha256 f83781f31f67ba19b294228f38ddf4b89fad471377e25fb38f6cb1bb09874000)",
+   "siterra:retrieved_datetime": "2026-10-30T17:25:39Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2004.07.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2004.07.cog (ETag \"67be0d7e-1d4fed8\"; tile sha256 85eca9af78fe2858d94d8022fe455e7cae05b41ed8b5328f576b9bcdc8cdec05)",
+   "siterra:retrieved_datetime": "2026-10-30T17:25:53Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2004.08.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2004.08.cog (ETag \"67be0d82-1d550da\"; tile sha256 199eb069052e88ea0b82e7a4e1902f0e140b7e063600bd3eab4661280dbe5f7c)",
+   "siterra:retrieved_datetime": "2026-10-30T17:26:00Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2004.09.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2004.09.cog (ETag \"67be0d85-1d3c22b\"; tile sha256 db4823144610536e4a1ace81a910fd57f11622da4816a175d1369fcb80e1fb2d)",
+   "siterra:retrieved_datetime": "2026-10-30T17:26:08Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2004.10.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2004.10.cog (ETag \"67be0d88-1d11522\"; tile sha256 c60ebbf18f935d9a0380be67eb27c737485c5c0f31360a9043f32ba932a89ea5)",
+   "siterra:retrieved_datetime": "2026-10-30T17:26:10Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2004.11.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2004.11.cog (ETag \"67be0d8b-1ccf3eb\"; tile sha256 47678fbd6d1f9e6dd48ede19c78073c1c9ecb0fb247cebd038a6bd5e5400164b)",
+   "siterra:retrieved_datetime": "2026-10-30T17:26:13Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2004.12.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2004.12.cog (ETag \"67be0d8e-1cc890d\"; tile sha256 85e3900cacd8fdb010a6d5c7484c462100233382accdc70aefe34579b7002858)",
+   "siterra:retrieved_datetime": "2026-10-30T17:26:15Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2005.01.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2005.01.cog (ETag \"67be0d92-1bcc9c1\"; tile sha256 785e00496ad12fa3239930327d10eb70550206952a276566a76144d874187236)",
+   "siterra:retrieved_datetime": "2026-10-30T17:26:17Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2005.02.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2005.02.cog (ETag \"67be0d95-1c2c323\"; tile sha256 ce29e08bbe65d3c640e12fa264326abf60df0dfe6997b2d24a5d8d886e390df9)",
+   "siterra:retrieved_datetime": "2026-10-30T17:26:20Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2005.03.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2005.03.cog (ETag \"67be0d98-1cb75b1\"; tile sha256 0b8d00c686592ebbaa35a367a16203139c6b80d1eb553d9ab00034086f310df9)",
+   "siterra:retrieved_datetime": "2026-10-30T17:26:28Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2005.04.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2005.04.cog (ETag \"67be0d9b-1d5bfc1\"; tile sha256 3d02e8734e6f7166b2d9e0c7bac065db9d888bdba49b8eb659396503c81b07f7)",
+   "siterra:retrieved_datetime": "2026-10-30T17:26:31Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2005.05.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2005.05.cog (ETag \"67be0d9e-1d111b5\"; tile sha256 13458673b4ab9623bf77516631168d31cbce1015d4b5178de86b39472ace0546)",
+   "siterra:retrieved_datetime": "2026-10-30T17:26:33Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2005.06.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2005.06.cog (ETag \"67be0da1-1d23333\"; tile sha256 dc8e8ac30f7b078693a96a029683e17ee7933920342b6fef6c90c4d7365cab5f)",
+   "siterra:retrieved_datetime": "2026-10-30T17:26:35Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2005.07.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2005.07.cog (ETag \"67be0da5-1d1874c\"; tile sha256 0283c1d79558a8cff45d6f48657979b7ba42e8e8177568ba0a888a67d6b70116)",
+   "siterra:retrieved_datetime": "2026-10-30T17:26:38Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2005.08.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2005.08.cog (ETag \"67be0da8-1d7734c\"; tile sha256 1cb17597429c4c7eb3ebb6e8b092129b19211df089c28e7723d8281ce25fdefb)",
+   "siterra:retrieved_datetime": "2026-10-30T17:26:41Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2005.09.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2005.09.cog (ETag \"67be0dac-1d91ac1\"; tile sha256 901d896071b0e9328484b97588881ba358ef2b4681afe369f15af0103e354ad3)",
+   "siterra:retrieved_datetime": "2026-10-30T17:26:49Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2005.10.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2005.10.cog (ETag \"67be0daf-1cfd40c\"; tile sha256 a1cbf54bcd6a24b010adb3181ca092746b5095960ec1c41113cff8c35f896aa7)",
+   "siterra:retrieved_datetime": "2026-10-30T17:26:52Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2005.11.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2005.11.cog (ETag \"67be0db2-1c70c5b\"; tile sha256 cb905ea26f0c06ad3c3f6f912ad5bbe35ff152f003a92f4ad8b59fe8460f8158)",
+   "siterra:retrieved_datetime": "2026-10-30T17:26:54Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2005.12.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2005.12.cog (ETag \"67be0db5-1c4f5aa\"; tile sha256 e8a3cf4023a37f15af854d4b6ab474db8d956cddc856140809347b706f540129)",
+   "siterra:retrieved_datetime": "2026-10-30T17:26:56Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2006.01.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2006.01.cog (ETag \"67be0db9-1d30b37\"; tile sha256 76f05b2b09ff98fd1f35a6188bade285a605e243d79c7115badb8a9513cb0608)",
+   "siterra:retrieved_datetime": "2026-10-30T17:26:59Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2006.02.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2006.02.cog (ETag \"67be0dbc-1d356d1\"; tile sha256 7fc5fa89ad86275176f5e7968ca7cf7a677cf97b66204643171b5cb9bb07aacb)",
+   "siterra:retrieved_datetime": "2026-10-30T17:27:01Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2006.03.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2006.03.cog (ETag \"67be0dc0-1c2e573\"; tile sha256 df023b9d4fc634029ccacd9a2c69780d58ed0256e1c7e08fdcb285e4bbdda973)",
+   "siterra:retrieved_datetime": "2026-10-30T17:27:03Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2006.04.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2006.04.cog (ETag \"67be0dc4-1cd4393\"; tile sha256 2f4e2082dee57398a8f09ed210882622ffda30386ed1c681951df975fda75bac)",
+   "siterra:retrieved_datetime": "2026-10-30T17:27:06Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2006.05.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2006.05.cog (ETag \"67be0dc7-1cfcdb9\"; tile sha256 abc1426ca0a78c0ecbadfb756772b0556eb6d6345f34b0be456e14d637c3c51e)",
+   "siterra:retrieved_datetime": "2026-10-30T17:27:08Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2006.06.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2006.06.cog (ETag \"67be0dca-1cc1baa\"; tile sha256 3ac4acf59349c51734508f45c74f50f0776c08be93b157d725e34e180a12915c)",
+   "siterra:retrieved_datetime": "2026-10-30T17:27:10Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2006.07.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2006.07.cog (ETag \"67be0dce-1d6ec5b\"; tile sha256 36043270681cc61e3b6966f161606d5757f4ea7ce587da0812f5683e57de6264)",
+   "siterra:retrieved_datetime": "2026-10-30T17:27:12Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2006.08.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2006.08.cog (ETag \"67be0dd1-1da60c1\"; tile sha256 8d5a611d612d1ec7bba7f3a78f02f44b27b447f43ab270ce41e1c265d383b912)",
+   "siterra:retrieved_datetime": "2026-10-30T17:27:15Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2006.09.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2006.09.cog (ETag \"67be0dd5-1db5bca\"; tile sha256 82cffb03a33b16615edd959324166dff42b924fa8171c8a702469792a11730fe)",
+   "siterra:retrieved_datetime": "2026-10-30T17:27:17Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2006.10.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2006.10.cog (ETag \"67be0dd8-1dbcfe9\"; tile sha256 325acf587ce7a3e7d92fc7858e7f3b3a8e1d35af990554634329e3df2b8393ef)",
+   "siterra:retrieved_datetime": "2026-10-30T17:27:19Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2006.11.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2006.11.cog (ETag \"67be0ddb-1cb0b00\"; tile sha256 980efd1172ca0a2ac596cd014f038067e98c02b8bc2c944e79fd09d11dc072d5)",
+   "siterra:retrieved_datetime": "2026-10-30T17:27:21Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2006.12.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2006.12.cog (ETag \"67be0dde-1cb9c53\"; tile sha256 ae8a75b8d10ceae2dbd96afb60d0014d608b0362649821a9d270829ad0cd6318)",
+   "siterra:retrieved_datetime": "2026-10-30T17:27:24Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2007.01.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2007.01.cog (ETag \"67be0de2-1c2897b\"; tile sha256 37834bcd733c17927ea84d6523ab84118beccd3b513ccdda262bc84f95f6da68)",
+   "siterra:retrieved_datetime": "2026-10-30T17:27:27Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2007.02.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2007.02.cog (ETag \"67be0de5-1d0395e\"; tile sha256 25ca9991ffb6cd07b30e1a1ed20b40bf7cc80e939cacc48b1dc5426690a15660)",
+   "siterra:retrieved_datetime": "2026-10-30T17:27:29Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2007.03.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2007.03.cog (ETag \"67be0de8-1c64271\"; tile sha256 ab0e1e4f03a2430cf9797e4ba2c23e79779b2cbc48dc9033374030882fea9033)",
+   "siterra:retrieved_datetime": "2026-10-30T17:27:31Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2007.04.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2007.04.cog (ETag \"67be0deb-1d313fc\"; tile sha256 7e1c53117050ed1f398885dfd99d0d5874975befd7ed529f7f00874382dbc0fd)",
+   "siterra:retrieved_datetime": "2026-10-30T17:27:34Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2007.05.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2007.05.cog (ETag \"67be0dee-1ccf80a\"; tile sha256 eb02cc87aba01b71cde611aec7b7aecc885c2ea7898dd715440cb57083fbddaf)",
+   "siterra:retrieved_datetime": "2026-10-30T17:27:36Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2007.06.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2007.06.cog (ETag \"67be0df1-1cbaa96\"; tile sha256 e0b82c83c6fe8bb6641b7d57768b1018861a29ebf26fbcc60b66182fae7aec49)",
+   "siterra:retrieved_datetime": "2026-10-30T17:27:38Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2007.07.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2007.07.cog (ETag \"67be0df4-1d5c733\"; tile sha256 2db54c541ea6cdc7a08f25450d5fb6f2753a5f65af51a018dc347dd54464270e)",
+   "siterra:retrieved_datetime": "2026-10-30T17:27:40Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2007.08.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2007.08.cog (ETag \"67be0df7-1d952c4\"; tile sha256 e6f1d6213c17b932be373e1fb7898e2faa27cdfef2a43531b91e3193ccd8649d)",
+   "siterra:retrieved_datetime": "2026-10-30T17:27:42Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2007.09.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2007.09.cog (ETag \"67be0dfb-1d599c8\"; tile sha256 795c86735954fd1760c7bae7f692796e2a8d900c94929f88eab2d387d6794884)",
+   "siterra:retrieved_datetime": "2026-10-30T17:27:45Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2007.10.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2007.10.cog (ETag \"67be0dfe-1cb02f4\"; tile sha256 8ab0eee59ab542bc7eb282273656a557d3f15d59cfb842364b041e81f565479c)",
+   "siterra:retrieved_datetime": "2026-10-30T17:27:47Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2007.11.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2007.11.cog (ETag \"67be0e01-1c4ec36\"; tile sha256 74eb947e11e3487cb2c7447b2b4be7883d933df4b6f9fb315b578256a8cbe442)",
+   "siterra:retrieved_datetime": "2026-10-30T17:27:50Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2007.12.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2007.12.cog (ETag \"67be0e04-1cb05a4\"; tile sha256 12bf676502278a7bd2050a00ee522b58d26f7523f8bf1f35070a060c1addc694)",
+   "siterra:retrieved_datetime": "2026-10-30T17:27:52Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2008.01.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2008.01.cog (ETag \"67be0e07-1c2bca8\"; tile sha256 a2d9bc52caee2936b594ac67b84ae539717e593fc4d76d866437c1dd46940d4e)",
+   "siterra:retrieved_datetime": "2026-10-30T17:27:54Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2008.02.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2008.02.cog (ETag \"67be0e0b-1b270ee\"; tile sha256 8dc6bc4a05bde52a92ba3ca069e121217f106030218b114df8b1293dfdedfcf9)",
+   "siterra:retrieved_datetime": "2026-10-30T17:27:56Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2008.03.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2008.03.cog (ETag \"67be0e0e-1c08179\"; tile sha256 85a35868939304a1e165396f8c3774c3f5f305d19735e3a36a374d18eca0697c)",
+   "siterra:retrieved_datetime": "2026-10-30T17:27:59Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2008.04.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2008.04.cog (ETag \"67be0e11-1cf7660\"; tile sha256 ec73ea6cd810979672d09d27ec2bdc863c8b467060956b8845ea1e5b25ef8a2c)",
+   "siterra:retrieved_datetime": "2026-10-30T17:28:01Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2008.05.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2008.05.cog (ETag \"67be0e14-1cfc588\"; tile sha256 ebf6f6f0fa414c9d42064aa3768bcdfc134bf85c694f09208fc1e0e5bf83ed70)",
+   "siterra:retrieved_datetime": "2026-10-30T17:28:03Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2008.06.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2008.06.cog (ETag \"67be0e17-1c664e1\"; tile sha256 0700592ccf3d042941db0942b8d91ab4d4bdf362503ae6ddf89ec56dce0035f8)",
+   "siterra:retrieved_datetime": "2026-10-30T17:28:06Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2008.07.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2008.07.cog (ETag \"67be0e1b-1d20d00\"; tile sha256 14b884173465cfc81d68e0834ee3e5c4dbedcf30f24768b6636970c9abfdabb0)",
+   "siterra:retrieved_datetime": "2026-10-30T17:28:09Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2008.08.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2008.08.cog (ETag \"67be0e1e-1d442cf\"; tile sha256 93fdb486c34efaf5b4407baeedb27c4d18e98fc1e393bee39eb357318ec42885)",
+   "siterra:retrieved_datetime": "2026-10-30T17:28:11Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2008.09.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2008.09.cog (ETag \"67be0e21-1d92e26\"; tile sha256 dd72552b85610c29cd6a6eb09b111dff84ddcf9f27ea28de85b870a32e6c9c5c)",
+   "siterra:retrieved_datetime": "2026-10-30T17:28:13Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2008.10.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2008.10.cog (ETag \"67be0e24-1d44d02\"; tile sha256 34a214b7424cda95d68c42089447bc78fe025bad6deed69e8e95a7ba7cc3a953)",
+   "siterra:retrieved_datetime": "2026-10-30T17:28:15Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2008.11.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2008.11.cog (ETag \"67be0e27-1c7f68e\"; tile sha256 e66825eaa6859fa500262aced84b031684b9daa1b008dd703695055c8865c8ff)",
+   "siterra:retrieved_datetime": "2026-10-30T17:28:17Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2008.12.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2008.12.cog (ETag \"67be0e2b-1cd1519\"; tile sha256 75fbc056a82f77ce9f6792b756c31823d871ca7b05559f3c899d3501ce759d99)",
+   "siterra:retrieved_datetime": "2026-10-30T17:28:20Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2009.01.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2009.01.cog (ETag \"67be0e2e-1d65921\"; tile sha256 efda81b86bb12e9e7de3670a4f56d3430e0b04d2418727d46b548eaa6117e9fb)",
+   "siterra:retrieved_datetime": "2026-10-30T17:28:22Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2009.02.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2009.02.cog (ETag \"67be0e31-1c56da5\"; tile sha256 32ed1cff599a113c14394b60c5aaac06140a0d18022d1f0e95f0d286685a2f6f)",
+   "siterra:retrieved_datetime": "2026-10-30T17:28:24Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2009.03.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2009.03.cog (ETag \"67be0e34-1cf1b8b\"; tile sha256 d53c4a2a024953e671700b48b8cce57c52b077fad296dc917a7b44c199f483fa)",
+   "siterra:retrieved_datetime": "2026-10-30T17:28:27Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2009.04.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2009.04.cog (ETag \"67be0e37-1cd6e6f\"; tile sha256 e6752f28ea1babb4608352fa9da2d0c044d1b4f8404d3835fb8c7590d046be67)",
+   "siterra:retrieved_datetime": "2026-10-30T17:28:29Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2009.05.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2009.05.cog (ETag \"67be0e3b-1d188a5\"; tile sha256 7864f283a6ef2ceb5925fabf72ef48e55372dec3a3344c5abffc0ac4fdfd37ed)",
+   "siterra:retrieved_datetime": "2026-10-30T17:28:32Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2009.06.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2009.06.cog (ETag \"67be0e3e-1d49547\"; tile sha256 d89f7dd23185aeace14cb97153406b06b26c8d400ab88a810d9059b04dc37322)",
+   "siterra:retrieved_datetime": "2026-10-30T17:28:34Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2009.07.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2009.07.cog (ETag \"67be0e41-1d6efbb\"; tile sha256 58bc73c58723542d419d69e8c1e8946616522a2f7a1d5e1d2a4f7046268925e0)",
+   "siterra:retrieved_datetime": "2026-10-30T17:28:37Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2009.08.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2009.08.cog (ETag \"67be0e44-1d4e36e\"; tile sha256 696cdd7a1ffd0d0c97656cd0274d8dbd76244b74ac0909ff67bf710c83a6d483)",
+   "siterra:retrieved_datetime": "2026-10-30T17:28:39Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2009.09.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2009.09.cog (ETag \"67be0e47-1dc5ffd\"; tile sha256 558dae1da6acf2666c511e3f65cc2c5d50d3a1132b0da5bec3e5b5e74d68d4fa)",
+   "siterra:retrieved_datetime": "2026-10-30T17:28:41Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2009.10.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2009.10.cog (ETag \"67be0e4a-1d291c5\"; tile sha256 d8492728458d2a4f01ad41f6312dcc0ffc10757083c30aa7cbd0658cadf2d5b7)",
+   "siterra:retrieved_datetime": "2026-10-30T17:28:44Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2009.11.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2009.11.cog (ETag \"67be0e4d-1d33bfa\"; tile sha256 4951389a5e187a0b7a8a8881e8bc04813f0aa5d9638b477fddfcfb8780dde6b4)",
+   "siterra:retrieved_datetime": "2026-10-30T17:28:46Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2009.12.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2009.12.cog (ETag \"67be0e51-1d0401b\"; tile sha256 e3bb44466bee608e07d07fd529798936b860ddaf4a9d50db16bd9c6e12636016)",
+   "siterra:retrieved_datetime": "2026-10-30T17:28:48Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2010.01.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2010.01.cog (ETag \"67be0e54-1ca984b\"; tile sha256 a8a8904a1234ea962428269030075c044aab09970b41fa39aae11873246985a0)",
+   "siterra:retrieved_datetime": "2026-10-30T17:28:51Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2010.02.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2010.02.cog (ETag \"67be0e57-1bda11d\"; tile sha256 89453fcea731bcb8a43b9152c8558a56a501bb424c9da28ec3c1b4ba44a556df)",
+   "siterra:retrieved_datetime": "2026-10-30T17:28:53Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2010.03.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2010.03.cog (ETag \"67be0e5a-1c7acc8\"; tile sha256 22aa4fe0aebd890c5e748b42f890864fffec42b5a5b871aed48d46b40a0effdf)",
+   "siterra:retrieved_datetime": "2026-10-30T17:28:55Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2010.04.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2010.04.cog (ETag \"67be0e5e-1d55cd8\"; tile sha256 536f38f7272c25ee6ffe73973d27b83b99160d05d5b141cd780e49ad458c0117)",
+   "siterra:retrieved_datetime": "2026-10-30T17:28:57Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2010.05.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2010.05.cog (ETag \"67be0e61-1cfaea0\"; tile sha256 33e6254360fd67eec0681fceddb97f3d749c7ba0884e9d0d1ecf5f5662eb88eb)",
+   "siterra:retrieved_datetime": "2026-10-30T17:29:00Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2010.06.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2010.06.cog (ETag \"67be0e64-1cb2741\"; tile sha256 1fbf74dff7bb90e304e00ee379a916e4d7429f11ccb13ef163245d65d15429cf)",
+   "siterra:retrieved_datetime": "2026-10-30T17:29:02Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2010.07.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2010.07.cog (ETag \"67be0e68-1d2a466\"; tile sha256 f080f7e9290feec6e493e5288dcd36442e3d2e70e601f5f2edc6f568fb7fb1a0)",
+   "siterra:retrieved_datetime": "2026-10-30T17:29:04Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2010.08.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2010.08.cog (ETag \"67be0e6b-1d721bb\"; tile sha256 26d782f0c5155e1a32c3498dc9b7c6fe9d71d16744a3e1b658994fea93e6592d)",
+   "siterra:retrieved_datetime": "2026-10-30T17:29:06Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2010.09.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2010.09.cog (ETag \"67be0e6e-1d83dca\"; tile sha256 168d3a6093a43b4706fc93e458830266777e71705ba8b59c3586551ae5e26fde)",
+   "siterra:retrieved_datetime": "2026-10-30T17:29:09Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2010.10.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2010.10.cog (ETag \"67be0e71-1d44aef\"; tile sha256 59c9547f0135bdd26ffc276d4eee062587bcae547b92cd59e8c368bacc2dfa66)",
+   "siterra:retrieved_datetime": "2026-10-30T17:29:12Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2010.11.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2010.11.cog (ETag \"67be0e74-1bb8dc0\"; tile sha256 0143b97f4e0c444f18b4080b99393c018bc1796abd5bab399e02c0350fffce31)",
+   "siterra:retrieved_datetime": "2026-10-30T17:29:15Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2010.12.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2010.12.cog (ETag \"67be0e78-1c07c0c\"; tile sha256 d8cb0548d1e6ef5971e9a5ca4831d178ff3b5adecc8380d30140be906d1bc184)",
+   "siterra:retrieved_datetime": "2026-10-30T17:29:18Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2011.01.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2011.01.cog (ETag \"67be0e7b-1c3eb1c\"; tile sha256 2016a0ce37d8fb2a8bf212c7c7d660d06dc4ffc138bc7d11ecec65ad835f96be)",
+   "siterra:retrieved_datetime": "2026-10-30T17:29:21Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2011.02.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2011.02.cog (ETag \"67be0e7e-1c0c91e\"; tile sha256 72535f1ba29052214098ca1813ba9fd96eedd3eb29178c3db5ef3c2d72f7e584)",
+   "siterra:retrieved_datetime": "2026-10-30T17:29:24Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2011.03.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2011.03.cog (ETag \"67be0e81-1b9e9f1\"; tile sha256 cc153742293b6e6ead32f8186fb141497927271f5e21ae7139eb6975e8c5efb1)",
+   "siterra:retrieved_datetime": "2026-10-30T17:29:27Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2011.04.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2011.04.cog (ETag \"67be0e84-1cece67\"; tile sha256 9b2ad2efe8afc5c8c69e51f6fa94e81cf1a8d583a144fcd4608bf36892df7c62)",
+   "siterra:retrieved_datetime": "2026-10-30T17:29:29Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2011.05.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2011.05.cog (ETag \"67be0e87-1d13377\"; tile sha256 f346cea08d93fab9eb8dd1c75368796eaa4ef900a4eac9b481c4e97327e9c615)",
+   "siterra:retrieved_datetime": "2026-10-30T17:29:31Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2011.06.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2011.06.cog (ETag \"67be0e8a-1cd63e7\"; tile sha256 f2e747a2d63e05ff8055e661750a45f99f1f78bbd0598d114efad512ef22f5df)",
+   "siterra:retrieved_datetime": "2026-10-30T17:29:34Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2011.07.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2011.07.cog (ETag \"67be0e8e-1d7b14f\"; tile sha256 948c7a2323225c0277be7c2dbc90c09df3396ed6e21b27be3718b246fc217bce)",
+   "siterra:retrieved_datetime": "2026-10-30T17:29:36Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2011.08.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2011.08.cog (ETag \"67be0e91-1d99536\"; tile sha256 1e5d4aaf488acfd2e8636dc72cd36115aa71eb21c5a7b3b12779de5715e45b6e)",
+   "siterra:retrieved_datetime": "2026-10-30T17:29:38Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2011.09.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2011.09.cog (ETag \"67be0e94-1d51fa4\"; tile sha256 e77891d4f872e1a166c9af2ac7e9b94c6c808c86336960d74094b663fe23aa27)",
+   "siterra:retrieved_datetime": "2026-10-30T17:29:40Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2011.10.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2011.10.cog (ETag \"67be0e98-1d4818d\"; tile sha256 7fb2fe0f1c68947118c4e2a9292e82fdf47440f2ec97cae69686cc9a5e728b7d)",
+   "siterra:retrieved_datetime": "2026-10-30T17:29:42Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2011.11.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2011.11.cog (ETag \"67be0e9b-1c2557e\"; tile sha256 b883ef275e651bd8e9c5f727eb853749e44fb2f649e26f4e63a92dbfce53d370)",
+   "siterra:retrieved_datetime": "2026-10-30T17:29:44Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2011.12.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2011.12.cog (ETag \"67be0e9e-1b583a3\"; tile sha256 c083d0983fdeb1b701443b8ed480de9ad9e64484bf4173a0b4522cb7f20776a8)",
+   "siterra:retrieved_datetime": "2026-10-30T17:29:46Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2012.01.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2012.01.cog (ETag \"67be0ea1-1a8502b\"; tile sha256 603d76f5ad4a75bf725f4dd3a0d35d54a72030cc9cfdeac59547a8703c96c9f6)",
+   "siterra:retrieved_datetime": "2026-10-30T17:29:48Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2012.02.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2012.02.cog (ETag \"67be0ea4-1b897fc\"; tile sha256 f2b48319f135cccb931f9448430d35312e6eca0d941a339385fe95a311e3e7c3)",
+   "siterra:retrieved_datetime": "2026-10-30T17:29:50Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2012.03.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2012.03.cog (ETag \"67be0ea7-1ca83b6\"; tile sha256 66d10c3e53c90234cb9172f3a5541187653e7ca694a560edee5365a05787e456)",
+   "siterra:retrieved_datetime": "2026-10-30T17:29:53Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2012.04.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2012.04.cog (ETag \"67be0eab-1ce25e0\"; tile sha256 efac01e696f207d1e40e85f8c2af92bdeccf725d3c4911d52a99547a907da24b)",
+   "siterra:retrieved_datetime": "2026-10-30T17:29:55Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2012.05.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2012.05.cog (ETag \"67be0eae-1cce77b\"; tile sha256 1f750c5b8fcf178626772d034d421633bd5864114e57caf80b81db0f4df491e0)",
+   "siterra:retrieved_datetime": "2026-10-30T17:29:57Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2012.06.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2012.06.cog (ETag \"67be0eb2-1cafb32\"; tile sha256 d2c398e22fdeda8c93c2eac95034d50050342ec0410ebbbe2f66e6fc187e3059)",
+   "siterra:retrieved_datetime": "2026-10-30T17:29:59Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2012.07.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2012.07.cog (ETag \"67be0eb5-1d1e4a1\"; tile sha256 aa9f879fcef4ed21701c8eb78503ca0dcc83fefb9b6470ea71e0d46cf8a0e3e3)",
+   "siterra:retrieved_datetime": "2026-10-30T17:30:01Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2012.08.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2012.08.cog (ETag \"67be0eb8-1d6d4b7\"; tile sha256 6aea2b8088533d6ce69e94e716a79e91d92f7c7ca668b90f3d1e55969052eadc)",
+   "siterra:retrieved_datetime": "2026-10-30T17:30:03Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2012.09.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2012.09.cog (ETag \"67be0ebb-1d92dd7\"; tile sha256 815d71fca19f6ca23e9196ce3ed19101630ec371b0a682eaa052f40a3f8282ce)",
+   "siterra:retrieved_datetime": "2026-10-30T17:30:06Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2012.10.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2012.10.cog (ETag \"67be0ebf-1daf97a\"; tile sha256 5500114fb4799060db979c35e943a749187feb4bd6ee671aaac31fb2ec90bc61)",
+   "siterra:retrieved_datetime": "2026-10-30T17:30:08Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2012.11.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2012.11.cog (ETag \"67be0ec2-1d11776\"; tile sha256 323912ded1b06543a8aebf5aa742ea86c325108fb979b7ad36aff168532cfc7a)",
+   "siterra:retrieved_datetime": "2026-10-30T17:30:10Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2012.12.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2012.12.cog (ETag \"67be0ec5-1d0cce4\"; tile sha256 4d7617c52003c58d52f663aed49b929a404dadf8f037f837b2821d7f2d741956)",
+   "siterra:retrieved_datetime": "2026-10-30T17:30:12Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2013.01.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2013.01.cog (ETag \"67be0ec8-1cf464b\"; tile sha256 3cd41f06b05609a8b034353458c21ae9ea3577d37494f313ab4baffacfa3e40b)",
+   "siterra:retrieved_datetime": "2026-10-30T17:30:14Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2013.02.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2013.02.cog (ETag \"67be0ecc-1c352b1\"; tile sha256 c75412bc72499b52b5c8b59a831aafdcba1f5da63d173d1fbb3edd84b4a10b86)",
+   "siterra:retrieved_datetime": "2026-10-30T17:30:16Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2013.03.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2013.03.cog (ETag \"67be0ecf-1cfbecb\"; tile sha256 c69f16a40e115e7ed75e4ee7eb16c5c0e797f43ec3b6bcf1b6bc5ed4d2cddd56)",
+   "siterra:retrieved_datetime": "2026-10-30T17:30:18Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2013.04.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2013.04.cog (ETag \"67be0ed2-1ca35ce\"; tile sha256 3bef748ba0d2a34134d1e2ec622bd2ec996867d8bac90ce4c687ec20caf8a6bf)",
+   "siterra:retrieved_datetime": "2026-10-30T17:30:21Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2013.05.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2013.05.cog (ETag \"67be0ed6-1c9be6f\"; tile sha256 b5d5ae0937d9cc2835e5ad51021f0e3d1a414d1179bdfa2d53827fa48931dae6)",
+   "siterra:retrieved_datetime": "2026-10-30T17:30:23Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2013.06.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2013.06.cog (ETag \"67be0eda-1cadcb1\"; tile sha256 9dad52c8ec4a643b590c11a051d2ab6dcbbec622f2fd051b293c772e939995bc)",
+   "siterra:retrieved_datetime": "2026-10-30T17:30:25Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2013.07.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2013.07.cog (ETag \"67be0edd-1d7f7a0\"; tile sha256 56a5b183ca5ac1ae5b2a3cb3a94fc019778402255c129d60be1fe9c2f9ae2e06)",
+   "siterra:retrieved_datetime": "2026-10-30T17:30:28Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2013.08.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2013.08.cog (ETag \"67be0ee1-1d81d59\"; tile sha256 85af3685516f1effb98e507d03a9441828c5ead6073f120747b553984d592e01)",
+   "siterra:retrieved_datetime": "2026-10-30T17:30:30Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2013.09.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2013.09.cog (ETag \"67be0ee4-1d8a223\"; tile sha256 3da45e9c9ddfcd505421401de27db76811762c15c5b4b7456dc60ba20c2c0db4)",
+   "siterra:retrieved_datetime": "2026-10-30T17:30:33Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2013.10.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2013.10.cog (ETag \"67be0ee7-1c691bb\"; tile sha256 a99236d367ede90c229f7247c374f6efc46b281267bb141562561523d23ec64a)",
+   "siterra:retrieved_datetime": "2026-10-30T17:30:35Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2013.11.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2013.11.cog (ETag \"67be0eea-1cfbac9\"; tile sha256 ec20cf29e3722ea073c1fe5082f4ed074f84ced1e371382abe6a60719a1c385d)",
+   "siterra:retrieved_datetime": "2026-10-30T17:30:37Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2013.12.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2013.12.cog (ETag \"67be0eee-1c81749\"; tile sha256 1b98526eaa5b8635fece46168096a847f3e8b1e1dbbc8586bc72c7e4ee05cd09)",
+   "siterra:retrieved_datetime": "2026-10-30T17:30:39Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2014.01.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2014.01.cog (ETag \"67be0ef1-1c64ded\"; tile sha256 8871194dd8393faeafdea38aa5f6abb1d20318de777633fff552c8d517775e1b)",
+   "siterra:retrieved_datetime": "2026-10-30T17:30:41Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2014.02.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2014.02.cog (ETag \"67be0ef4-1bb1de1\"; tile sha256 d6890b7c9d57e8521d06a8f1026020c35b4ac9432d4b97513c543bc0de7aabed)",
+   "siterra:retrieved_datetime": "2026-10-30T17:30:43Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2014.03.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2014.03.cog (ETag \"67be0ef7-1ca88e0\"; tile sha256 6e8ca1a8a510e73f6553ed978b386dd77e2357af5ac4beb7d84746d4085b3123)",
+   "siterra:retrieved_datetime": "2026-10-30T17:30:45Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2014.04.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2014.04.cog (ETag \"67be0efb-1d16751\"; tile sha256 53ff1a005c31b91a115899f6c77eb0ae5f0625a2a0f94fb35b9351caab032109)",
+   "siterra:retrieved_datetime": "2026-10-30T17:30:47Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2014.05.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2014.05.cog (ETag \"67be0efe-1d930d3\"; tile sha256 a7b90988e7c06d0d43fc9137e586a9c81b96464c669cfd36ec77dd87b8357ab4)",
+   "siterra:retrieved_datetime": "2026-10-30T17:30:49Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2014.06.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2014.06.cog (ETag \"67be0f01-1c9c788\"; tile sha256 76de3792cc26f04bc6a4e79ea8aff340a76a8533b0be401e9a293bba6d3cd69e)",
+   "siterra:retrieved_datetime": "2026-10-30T17:30:51Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2014.07.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2014.07.cog (ETag \"67be0f05-1d46196\"; tile sha256 069cc6d08747b03cf1d388eac86d622dc08a42a9470c7eb6b484e152d03bb774)",
+   "siterra:retrieved_datetime": "2026-10-30T17:30:53Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2014.08.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2014.08.cog (ETag \"67be0f08-1d58e1a\"; tile sha256 013bf0ac681c7d71611d7dc8496e1217ed4e5d6c7f9b5ff2e10d836da4d74df6)",
+   "siterra:retrieved_datetime": "2026-10-30T17:30:55Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2014.09.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2014.09.cog (ETag \"67be0f0b-1d8bb93\"; tile sha256 e2d794bdcdf4674145fa326076544f8a3286378d2d61bc99aab993030c9b8432)",
+   "siterra:retrieved_datetime": "2026-10-30T17:30:57Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2014.10.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2014.10.cog (ETag \"67be0f0e-1d24476\"; tile sha256 591d0ccf88ce806fae8f0f784384d55e3ce8300b9847a0a11ce63696cd6e2770)",
+   "siterra:retrieved_datetime": "2026-10-30T17:31:00Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2014.11.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2014.11.cog (ETag \"67be0f11-1cf6b72\"; tile sha256 1aab45a84103fc0fde101e3e5295a5dc44a846163f53261841071e8d408ace78)",
+   "siterra:retrieved_datetime": "2026-10-30T17:31:02Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2014.12.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2014.12.cog (ETag \"67be0f14-1c10dbb\"; tile sha256 2ec236f47ed02cb98c09feb1db432a1dd05d6dd97c2ef1185fd02f22c41e71aa)",
+   "siterra:retrieved_datetime": "2026-10-30T17:31:04Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2015.01.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2015.01.cog (ETag \"67be0f18-1cd2c7d\"; tile sha256 dfc0184008f88f1f1d4cf42b29cf838e6831a6f634654d870a30f295eb6b0d5a)",
+   "siterra:retrieved_datetime": "2026-10-30T17:31:06Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2015.02.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2015.02.cog (ETag \"67be0f1b-1ce7d5b\"; tile sha256 4e61fa743e20a268410391865cd8062330c15c539d7c8452d8ce0118c18e852c)",
+   "siterra:retrieved_datetime": "2026-10-30T17:31:08Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2015.03.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2015.03.cog (ETag \"67be0f1e-1d1ad46\"; tile sha256 9164c8edfbfa374f97027a940caeb17c51f12854e07d287908ea7bac99c34da7)",
+   "siterra:retrieved_datetime": "2026-10-30T17:31:10Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2015.04.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2015.04.cog (ETag \"67be0f21-1c046c2\"; tile sha256 e6cf69794164d7f3f62ccd1da9183f3d4bfbd349c1a802d43c86145e878440a9)",
+   "siterra:retrieved_datetime": "2026-10-30T17:31:13Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2015.05.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2015.05.cog (ETag \"67be0f25-1cdfc54\"; tile sha256 038b7cfafb6007277ef208d651de554742eec1c34a861300c7b16747aa6db900)",
+   "siterra:retrieved_datetime": "2026-10-30T17:31:15Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2015.06.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2015.06.cog (ETag \"67be0f28-1cbd377\"; tile sha256 de9c1cf073ad7ddcb40dd39a3f47107ed163a7c5e5efe7572352a59979e5f3ff)",
+   "siterra:retrieved_datetime": "2026-10-30T17:31:17Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2015.07.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2015.07.cog (ETag \"67be0f2c-1d679a6\"; tile sha256 b903fe4786ee4835f9e2c0f687e069c27e8a6c25f57cb51b599a7dc69d9ced83)",
+   "siterra:retrieved_datetime": "2026-10-30T17:31:19Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2015.08.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2015.08.cog (ETag \"67be0f30-1dc3d34\"; tile sha256 7fcf6447939ac2b317c3b14414ab395a4bdf8fbc91d822a7751ec0e2c4779036)",
+   "siterra:retrieved_datetime": "2026-10-30T17:31:22Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2015.09.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2015.09.cog (ETag \"67be0f33-1dce16b\"; tile sha256 d3eb7093e553f45ff6caf325818ecbc5add696249be631250d742b23f02588df)",
+   "siterra:retrieved_datetime": "2026-10-30T17:31:24Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2015.10.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2015.10.cog (ETag \"67be0f36-1daac7e\"; tile sha256 e2db8ed6353498cc937ebc5e3eb37792baf5253a042c3a1120732365e567f3cf)",
+   "siterra:retrieved_datetime": "2026-10-30T17:31:27Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2015.11.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2015.11.cog (ETag \"67be0f3a-1c921c5\"; tile sha256 af6823aa8702e3397794eb30bbe6ed686a5646812a5370f3c4b87f246e1cc2f4)",
+   "siterra:retrieved_datetime": "2026-10-30T17:31:29Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2015.12.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2015.12.cog (ETag \"67be0f3d-1c9611f\"; tile sha256 760b324460968e7197c8857e6b33b5ceb647861b53a9e2c1d2f3d2a8e2bb8efd)",
+   "siterra:retrieved_datetime": "2026-10-30T17:31:31Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2016.01.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2016.01.cog (ETag \"67be0f40-1c58260\"; tile sha256 7c44a33b4cfe7f529cffb2abe566e8bb83d3678fdec97c4a49859de4a3ebdef9)",
+   "siterra:retrieved_datetime": "2026-10-30T17:31:34Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2016.02.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2016.02.cog (ETag \"67be0f44-1ba7a7a\"; tile sha256 6fe1adc2634bbe55a6cd7b7f90c44df7eda6a3f9153faf9b09eda692098317e9)",
+   "siterra:retrieved_datetime": "2026-10-30T17:31:36Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2016.03.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2016.03.cog (ETag \"67be0f47-1d745ed\"; tile sha256 959501f997797af3efb0f788a1917617e818f81ca79c5dafaf6662e4cac14a21)",
+   "siterra:retrieved_datetime": "2026-10-30T17:31:38Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2016.04.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2016.04.cog (ETag \"67be0f4a-1d598f0\"; tile sha256 5f0d3fee985657c9e5d57c80a72725e2f3cf2a7eed7ec13441269f9a372dd158)",
+   "siterra:retrieved_datetime": "2026-10-30T17:31:46Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2016.05.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2016.05.cog (ETag \"67be0f4e-1d42559\"; tile sha256 50d81cca6e45faba6cb0d8026a3dd54efe7f5b13f787346d8f57861843a08d25)",
+   "siterra:retrieved_datetime": "2026-10-30T17:31:48Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2016.06.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2016.06.cog (ETag \"67be0f51-1cbbcf9\"; tile sha256 698a3134b2caa4ef27247e177dbd8ae92018318b586a342aa447b9c8ade31108)",
+   "siterra:retrieved_datetime": "2026-10-30T17:31:50Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2016.07.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2016.07.cog (ETag \"67be0f54-1d6630b\"; tile sha256 979f6f03936acd81dea3bc914097a58208ebbdebef6b9b7718d3caf0ee523b37)",
+   "siterra:retrieved_datetime": "2026-10-30T17:31:52Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2016.08.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2016.08.cog (ETag \"67be0f58-1d855a3\"; tile sha256 9bcac9f5ca7a51de986929b23f6a89bb6aef514927164aa97bcc80d9ed36a0a6)",
+   "siterra:retrieved_datetime": "2026-10-30T17:31:54Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2016.09.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2016.09.cog (ETag \"67be0f5c-1d6d0cb\"; tile sha256 84534364bdcb39b0aa3b0317190924567f5b39a7d25935aa55310a40694228cc)",
+   "siterra:retrieved_datetime": "2026-10-30T17:31:56Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2016.10.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2016.10.cog (ETag \"67be0f60-1cfeeae\"; tile sha256 7d0679b0ad0e99da812a49e1ba58a9e0e3484651e474fcdb2d78663be99bf86f)",
+   "siterra:retrieved_datetime": "2026-10-30T17:31:58Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2016.11.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2016.11.cog (ETag \"67be0f63-1d17fb2\"; tile sha256 e8b8e4da983154cfad0f31da944635ca169af815daf6e915f0c1bb56dcaddcf2)",
+   "siterra:retrieved_datetime": "2026-10-30T17:32:00Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2016.12.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2016.12.cog (ETag \"67be0f66-1cf8538\"; tile sha256 0df18d1a76a23350ae73a27b69279f48ae29057d5c0e7e8d54f717ae941feb6d)",
+   "siterra:retrieved_datetime": "2026-10-30T17:32:02Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2017.01.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2017.01.cog (ETag \"67be0f6a-1ca4cc3\"; tile sha256 b113d6260015910d3b821eecc7291d6b772cd2e32a165f78aa7287a92efe5e28)",
+   "siterra:retrieved_datetime": "2026-10-30T17:32:10Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2017.02.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2017.02.cog (ETag \"67be0f6d-1c1e071\"; tile sha256 5c550ebdee89c8ddd509bc4381c77aeb70aaabcbf4c36b596b0fee9cd74e967c)",
+   "siterra:retrieved_datetime": "2026-10-30T17:32:12Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2017.03.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2017.03.cog (ETag \"67be0f70-1a9b422\"; tile sha256 7bec0bf5d48de10505bf45ac2f49ba04e89029122caa34b41e71a6308165cd44)",
+   "siterra:retrieved_datetime": "2026-10-30T17:32:15Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2017.04.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2017.04.cog (ETag \"67be0f74-1cf4806\"; tile sha256 049cd66c53a790536a46ef1de41d31c63844da1c091b6ac2efe672daa7406c66)",
+   "siterra:retrieved_datetime": "2026-10-30T17:32:17Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2017.05.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2017.05.cog (ETag \"67be0f77-1d69b60\"; tile sha256 562d62f909848b2e94e80db4e2aebb2233e8520606ffddcc14652e9af8a80fc6)",
+   "siterra:retrieved_datetime": "2026-10-30T17:32:19Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2017.06.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2017.06.cog (ETag \"67be0f7a-1d1cf8c\"; tile sha256 ea61a8deedf49f0a233a0f9745a7fca91167e5e892c3a4c97062c22a0efa5857)",
+   "siterra:retrieved_datetime": "2026-10-30T17:32:21Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2017.07.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2017.07.cog (ETag \"67be0f7e-1d16add\"; tile sha256 b6dded6aa6927413c83ae0078814655bb45ad719d65e6e5b964941ecdd18a055)",
+   "siterra:retrieved_datetime": "2026-10-30T17:32:29Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2017.08.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2017.08.cog (ETag \"67be0f81-1d790df\"; tile sha256 de1bdb6821633a3a40174fabc652657ea5d6625c5dcf3c0ee4797bd2ecc8cd2e)",
+   "siterra:retrieved_datetime": "2026-10-30T17:32:37Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2017.09.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2017.09.cog (ETag \"67be0f84-1d8855a\"; tile sha256 d6b48d0c560fa858d4ec185607d323232b948243325cb2274261bbe1283f2ff6)",
+   "siterra:retrieved_datetime": "2026-10-30T17:32:39Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2017.10.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2017.10.cog (ETag \"67be0f88-1ca112d\"; tile sha256 2ee9af0de5a27b3b43739fcf5f0af2c28780453af364b1927387c984ef1a0a06)",
+   "siterra:retrieved_datetime": "2026-10-30T17:32:47Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2017.11.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2017.11.cog (ETag \"67be0f8b-1c5a2db\"; tile sha256 156485c24a0082d03b0ed1d7c3598d5ff78c40692a1ec029568217bfaa2e517f)",
+   "siterra:retrieved_datetime": "2026-10-30T17:32:49Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2017.12.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2017.12.cog (ETag \"67be0f8e-1cef0f3\"; tile sha256 3e4c048b4659347127e5ffa74ca4e21758316057ca56f221b0161e37b4a1f0b5)",
+   "siterra:retrieved_datetime": "2026-10-30T17:33:02Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2018.01.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2018.01.cog (ETag \"67be0f92-1c14629\"; tile sha256 418298d787250d65f1af0b404e9639663825c8731c074615544e548946ebf505)",
+   "siterra:retrieved_datetime": "2026-10-30T17:33:04Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2018.02.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2018.02.cog (ETag \"67be0f95-1cb6033\"; tile sha256 93b52c134363941b5630d4305ddd5c1ccb0a641994837722b7c0a4024eb32609)",
+   "siterra:retrieved_datetime": "2026-10-30T17:33:07Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2018.03.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2018.03.cog (ETag \"67be0f99-1c9d07d\"; tile sha256 ca76984b1d042b32afdd536ac6aa94f13a44e5f483939a6134d281f5f1b873fa)",
+   "siterra:retrieved_datetime": "2026-10-30T17:33:09Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2018.04.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2018.04.cog (ETag \"67be0f9c-1caeb79\"; tile sha256 8c69840b9847b558b8db55a4da86385aae7f226817fa6b95bc972f1fddd0fc5d)",
+   "siterra:retrieved_datetime": "2026-10-30T17:33:11Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2018.05.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2018.05.cog (ETag \"67be0fa0-1d41549\"; tile sha256 54c1999a0918c26b61dd73be7b948ddf6d8c559facb568c29b4b0e44065bec1d)",
+   "siterra:retrieved_datetime": "2026-10-30T17:33:13Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2018.06.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2018.06.cog (ETag \"67be0fa3-1ccd220\"; tile sha256 51bfd6038d7553db516c91cb5c1f2d81c2e405015e0f43028a0cf611e06b4260)",
+   "siterra:retrieved_datetime": "2026-10-30T17:33:15Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2018.07.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2018.07.cog (ETag \"67be0fa7-1d4444f\"; tile sha256 b03d929107db9c25207f7c288b63aa8847e82b117e58022fa5bb0628f1167b50)",
+   "siterra:retrieved_datetime": "2026-10-30T17:33:17Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2018.08.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2018.08.cog (ETag \"67be0faa-1dcd92f\"; tile sha256 e6ebe65aebec4c6aa0de05a4f17371f8aa69a3d67d0fd365fcb0a3d75b6254b0)",
+   "siterra:retrieved_datetime": "2026-10-30T17:33:19Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2018.09.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2018.09.cog (ETag \"67be0fad-1dd03ac\"; tile sha256 7d0e95ef22ce3d62c7005c21e1c429369935f5c487ccd312afb855a880eb777c)",
+   "siterra:retrieved_datetime": "2026-10-30T17:33:21Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2018.10.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2018.10.cog (ETag \"67be0fb1-1dc83ba\"; tile sha256 183bde262f7bc55415912d94843211437a3357fa9b7d7216754f30903d20ab20)",
+   "siterra:retrieved_datetime": "2026-10-30T17:33:23Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2018.11.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2018.11.cog (ETag \"67be0fb4-1d7fdd6\"; tile sha256 5cf3efc7ff5c212cf638ad647828647f7f196a376f0594f020b60b65b008f8b0)",
+   "siterra:retrieved_datetime": "2026-10-30T17:33:25Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2018.12.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2018.12.cog (ETag \"67be0fb8-1cb8476\"; tile sha256 acd8d1acf7aae0b0957a90bb228590942770cdcc9455a665536b16e092de14c1)",
+   "siterra:retrieved_datetime": "2026-10-30T17:33:28Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2019.01.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2019.01.cog (ETag \"67be0fbb-1cdd7db\"; tile sha256 36fdd1f161dc1778223fe4db35e0f00411294438b235aa220f72c4fd96f4be66)",
+   "siterra:retrieved_datetime": "2026-10-30T17:33:30Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2019.02.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2019.02.cog (ETag \"67be0fbe-1cb0c34\"; tile sha256 fe171b493aa8465ca3d904f68e82e07eeaa71701451f41bc91fbfbb07e0789ba)",
+   "siterra:retrieved_datetime": "2026-10-30T17:33:33Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2019.03.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2019.03.cog (ETag \"67be0fc1-1bcc779\"; tile sha256 9ad0bb67f0de97f2cb0d104aee295132e36660b67e01af3d9cd96cc628ac462a)",
+   "siterra:retrieved_datetime": "2026-10-30T17:33:35Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2019.04.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2019.04.cog (ETag \"67be0fc5-1cf7774\"; tile sha256 c3b06b32a37c66986c1eafc63aa6b14520cbcba7d72330828b18eccc76e57931)",
+   "siterra:retrieved_datetime": "2026-10-30T17:33:37Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2019.05.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2019.05.cog (ETag \"67be0fc9-1d21704\"; tile sha256 1fb761681a2c847d5b2dbc03b93db4ada920fb6315b1cdba6e506d49a17a204b)",
+   "siterra:retrieved_datetime": "2026-10-30T17:33:40Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2019.06.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2019.06.cog (ETag \"67be0fcc-1ccaeaf\"; tile sha256 5718da1d21280f963eb721718f0e1ddd95d48bf40a2cf41c400e8834e6d138d2)",
+   "siterra:retrieved_datetime": "2026-10-30T17:33:42Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2019.07.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2019.07.cog (ETag \"67be0fcf-1d68bfa\"; tile sha256 42e2a9650df5cc33ee29bd37eafc33acc7e2a9856bbd677523a32e9f71ada7c2)",
+   "siterra:retrieved_datetime": "2026-10-30T17:33:44Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2019.08.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2019.08.cog (ETag \"67be0fd3-1d923a1\"; tile sha256 3f34cf2f9e27e8eebe5a30fd644552cfd05821352c9670972c2abb8ee5f7260e)",
+   "siterra:retrieved_datetime": "2026-10-30T17:33:46Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2019.09.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2019.09.cog (ETag \"67be0fd6-1d8a67e\"; tile sha256 85e6638fd1f8b6bfb1b82ab32bdca34d5efa654f8d17c7375990b8319b6a3410)",
+   "siterra:retrieved_datetime": "2026-10-30T17:33:49Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2019.10.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2019.10.cog (ETag \"67be0fda-1d26f24\"; tile sha256 3d6df145f4e86c2f4b5997c2e26d2f9719c5264d36506b1a65ba5c8ecb05bf05)",
+   "siterra:retrieved_datetime": "2026-10-30T17:33:51Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2019.11.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2019.11.cog (ETag \"67be0fdd-1ca90de\"; tile sha256 c19e94640e757b402ad41c8c9900f4732c86efbb6a2cb8a163979452d5dac25b)",
+   "siterra:retrieved_datetime": "2026-10-30T17:33:53Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2019.12.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2019.12.cog (ETag \"67be0fe0-1c70c97\"; tile sha256 ef5dfceae538b1a0e7ac1f62e15fffabe83c1b94454296ecb99af8c84ca9da33)",
+   "siterra:retrieved_datetime": "2026-10-30T17:33:57Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2020.01.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2020.01.cog (ETag \"67be0fe4-1b798c3\"; tile sha256 777efcdb33bdc547baca16821a57e046c98772e07e7e95afe78c962aedd40005)",
+   "siterra:retrieved_datetime": "2026-10-30T17:33:59Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2020.02.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2020.02.cog (ETag \"67be0fe7-1b6ec3c\"; tile sha256 85fc961978346549ed572bd68bd25102f887a5fec256d53889d5321b80f92d53)",
+   "siterra:retrieved_datetime": "2026-10-30T17:34:01Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2020.03.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2020.03.cog (ETag \"67be0fea-1b6c154\"; tile sha256 95111b1ef5aef199506a9a95050a3ecc8ff6655107d50c504437b2105615f9c2)",
+   "siterra:retrieved_datetime": "2026-10-30T17:34:03Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2020.04.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2020.04.cog (ETag \"67be0fed-1c41a45\"; tile sha256 7e0f3c80faad5397b4af0c66f2f769041cdae1a835dda4ad738c9a04974d1fc4)",
+   "siterra:retrieved_datetime": "2026-10-30T17:34:05Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2020.05.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2020.05.cog (ETag \"67be0ff0-1cd8ffb\"; tile sha256 0eb97790247d3c14310a7151ca4fb7403c77118eee8e41833bfca55bccd96321)",
+   "siterra:retrieved_datetime": "2026-10-30T17:34:08Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2020.06.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2020.06.cog (ETag \"67be0ff4-1c97fb7\"; tile sha256 31a1d39127ee545158b7beff3d0c4197baca16de58257ab60f31d67f44515ade)",
+   "siterra:retrieved_datetime": "2026-10-30T17:34:10Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2020.07.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2020.07.cog (ETag \"67be0ff7-1d387c1\"; tile sha256 f66ffe0684e96b5b40a3424fe12b19732dd4ae418c234f88e820e9304f41caf4)",
+   "siterra:retrieved_datetime": "2026-10-30T17:34:12Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2020.08.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2020.08.cog (ETag \"67be0ffb-1d524c5\"; tile sha256 28eb9c348ceeb0a62241a43f311e174407dd28945bf1492bc6e44370350129c3)",
+   "siterra:retrieved_datetime": "2026-10-30T17:34:14Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2020.09.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2020.09.cog (ETag \"67be0ffe-1d6f2a2\"; tile sha256 cfd27a667536c864f78e1a30a66efd54eaff9e53166c41c8e0d41925f6c2208d)",
+   "siterra:retrieved_datetime": "2026-10-30T17:34:16Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2020.10.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2020.10.cog (ETag \"67be1001-1c4ea61\"; tile sha256 1a9877064b4ec5f2168f4f945c860a95dadde5cc6bf51a11860e09cdde4a663b)",
+   "siterra:retrieved_datetime": "2026-10-30T17:34:18Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2020.11.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2020.11.cog (ETag \"67be1005-1c26ef6\"; tile sha256 f2ed2674d45b5571bd3e326d9ff4dde968c3c43bb27252cad1f16702d93fc359)",
+   "siterra:retrieved_datetime": "2026-10-30T17:34:20Z"
+  },
+  {
+   "rel": "derived_from",
+   "href": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs/chirps-v3.0.2020.12.cog",
+   "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+   "title": "Reference input chirps-v3.0.2020.12.cog (ETag \"67be1008-1ac1ad6\"; tile sha256 785fbf28baba7309e3eaa6b7980e7419bc14406a458f0c6c5cfdd6e2ad45b399)",
+   "siterra:retrieved_datetime": "2026-10-30T17:34:23Z"
+  }
+ ]
+}

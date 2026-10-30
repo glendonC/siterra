@@ -23,6 +23,12 @@
   },
   {
    "rel": "child",
+   "href": "./bundle_chirps_monthly_calaveras_creek/collection.json",
+   "type": "application/json",
+   "file:checksum": "1220c60f155971cd659183e58b656dcb73630bb6daebdb86a54dd1f6a24dabd44b28"
+  },
+  {
+   "rel": "child",
    "href": "./bundle_coverage_summary_ait_bouguemez/collection.json",
    "type": "application/json",
    "file:checksum": "12207d048ee324fbf94f5c4606d2e5f1121de5c0a45335b5812ce8ba3668d3084423"
