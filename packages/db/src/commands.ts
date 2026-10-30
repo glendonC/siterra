@@ -2,12 +2,15 @@ import { Command, type CommandRequest, caseSchemaVersion } from "@siterra/contra
 import { canonicalJson, eventMessages, newId, sha256Hex } from "@siterra/domain";
 import { type Pool, inTransaction, lockCase, notifyEvents } from "./client.ts";
 import { insertEvents, setLastSequence } from "./events.ts";
+import { type InstanceSpendPolicy, spendAllows } from "./instance-spend.ts";
 
 export type SubmitOutcome =
   | { status: "created"; command: Command }
   | { status: "existing"; command: Command }
   | { status: "key_reused" }
   | { status: "quota_exhausted" }
+  /** The instance's cap on live model spend would be passed by one more command. */
+  | { status: "budget_exhausted" }
   | { status: "revision_ahead"; currentRevision: number }
   | { status: "not_found" };
 
@@ -29,6 +32,8 @@ export async function submitCommand(
     request: CommandRequest;
     /** Commands the case may hold (demo sessions); a repeated key still returns its command. */
     maxCommands?: number | null;
+    /** The instance's cap on live model spend; absent or without a cap decides nothing. */
+    spendCap?: InstanceSpendPolicy;
     now?: Date;
   },
 ): Promise<SubmitOutcome> {
@@ -64,6 +69,9 @@ export async function submitCommand(
       request.context.caseRevision > locked.revision
     ) {
       return { status: "revision_ahead", currentRevision: locked.revision };
+    }
+    if (args.spendCap && !(await spendAllows(tx, args.spendCap))) {
+      return { status: "budget_exhausted" };
     }
     const commandId = newId("cmd");
     const planTaskId = newId("task");

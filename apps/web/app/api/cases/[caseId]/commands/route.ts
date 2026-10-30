@@ -2,7 +2,7 @@ import { CommandRequest } from "@siterra/contracts";
 import { submitCommand } from "@siterra/db";
 import { database } from "../../../database.ts";
 import { json, problem, schemaIssues } from "../../../problem.ts";
-import { demoConfig } from "../../../demo-config.ts";
+import { demoConfig, instanceSpendPolicy } from "../../../demo-config.ts";
 import { fromApplicationOrigin, requestSession } from "../../../session.ts";
 
 export const dynamic = "force-dynamic";
@@ -36,6 +36,7 @@ export async function POST(
     ownerScopeId: owner,
     request: parsed.data,
     maxCommands: session.kind === "demo" ? demoConfig().commandQuota : null,
+    spendCap: instanceSpendPolicy(),
   });
   switch (outcome.status) {
     case "created":
@@ -44,6 +45,12 @@ export async function POST(
       return json(outcome.command, 200);
     case "quota_exhausted":
       return problem(429, "quota_exhausted", "This demo session has used its commands");
+    case "budget_exhausted":
+      return problem(
+        429,
+        "quota_exhausted",
+        "This instance has reached its limit for live model questions. Try again later.",
+      );
     case "key_reused":
       return problem(422, "idempotency_key_reused");
     case "revision_ahead":

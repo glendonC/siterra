@@ -6,5 +6,6 @@ export * from "./instruments-compose.ts";
 export * from "./instruments.ts";
 export * from "./messages.ts";
 export * from "./result-key.ts";
+export * from "./spend.ts";
 export * from "./staleness.ts";
 export * from "./test-cover.ts";

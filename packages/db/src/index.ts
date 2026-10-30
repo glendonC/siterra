@@ -12,6 +12,7 @@ export * from "./demo-sessions.ts";
 export * from "./events.ts";
 export * from "./case-origin.ts";
 export * from "./instruments.ts";
+export * from "./instance-spend.ts";
 export * from "./lineage.ts";
 export * from "./listener.ts";
 export * from "./map-assets.ts";

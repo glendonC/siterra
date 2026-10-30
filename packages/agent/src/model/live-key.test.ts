@@ -1,3 +1,5 @@
+import { fileURLToPath } from "node:url";
+
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { runObservationTask } from "../tasks/observation/observation-task.ts";
@@ -7,7 +9,7 @@ import { caseToolRegistry } from "../tools/registry.ts";
 import { MetaAdapter } from "./adapter.ts";
 import { KeychainError, readKeychainKey } from "./keychain.ts";
 import type { SecurityRunner } from "./keychain.ts";
-import { LIVE_APPROVAL_VALUE, chooseTransport } from "./route.ts";
+import { LIVE_APPROVAL_VALUE, RouteConfigError, chooseTransport } from "./route.ts";
 import { inspect } from "node:util";
 
 import { KEY_REMOVED, scrubError, scrubSecrets } from "./secrets.ts";
@@ -88,9 +90,56 @@ describe("route key source", () => {
     chooseTransport(LIVE, { readKeychain });
     chooseTransport({ ...LIVE, SITERRA_KEYCHAIN_SERVICE: "other-service" }, { readKeychain });
     expect(readKeychain.mock.calls).toEqual([["siterra-meta-model-api"], ["other-service"]]);
-    const fromEnv = vi.fn(() => FAKE_KEY);
-    chooseTransport({ ...LIVE, MODEL_API_KEY: "LLM_1_fromEnvironment" }, { readKeychain: fromEnv });
-    expect(fromEnv).not.toHaveBeenCalled();
+  });
+
+  it("refuses an environment key unless the hosted flag SITERRA_KEY_SOURCE=env is set", () => {
+    const readKeychain = vi.fn(() => FAKE_KEY);
+    for (const env of [
+      { ...LIVE, MODEL_API_KEY: FAKE_KEY },
+      { ...LIVE, MODEL_API_KEY: FAKE_KEY, SITERRA_KEY_SOURCE: "keychain" },
+    ]) {
+      let caught: unknown;
+      try {
+        chooseTransport(env, { readKeychain });
+      } catch (error) {
+        caught = error;
+      }
+      expect(caught).toBeInstanceOf(RouteConfigError);
+      expect(String(caught)).toMatch(/SITERRA_KEY_SOURCE=env/);
+      expect(String(caught)).not.toContain(FAKE_KEY);
+    }
+    expect(readKeychain).not.toHaveBeenCalled();
+  });
+
+  it("with SITERRA_KEY_SOURCE=env the key comes from the environment alone, never the Keychain", () => {
+    const readKeychain = vi.fn(() => FAKE_KEY);
+    const hosted = { ...LIVE, SITERRA_KEY_SOURCE: "env" };
+    expect(chooseTransport({ ...hosted, MODEL_API_KEY: FAKE_KEY }, { readKeychain })).toBeDefined();
+    expect(readKeychain).not.toHaveBeenCalled();
+    for (const env of [hosted, { ...hosted, MODEL_API_KEY: "  " }]) {
+      expect(() => chooseTransport(env, { readKeychain })).toThrow(/MODEL_API_KEY/);
+    }
+    expect(readKeychain).not.toHaveBeenCalled();
+  });
+
+  it("refuses a key source it does not know", () => {
+    const readKeychain = vi.fn(() => FAKE_KEY);
+    expect(() =>
+      chooseTransport({ ...LIVE, SITERRA_KEY_SOURCE: "file" }, { readKeychain }),
+    ).toThrow(/unknown SITERRA_KEY_SOURCE/);
+    expect(readKeychain).not.toHaveBeenCalled();
+  });
+
+  it("the replay route ignores the key source and the environment key alike", () => {
+    expect(
+      chooseTransport({
+        SITERRA_MODEL_ROUTE: "replay",
+        SITERRA_REPLAY_FILE: fileURLToPath(
+          new URL("./fixtures/structured-completed.json", import.meta.url),
+        ),
+        MODEL_API_KEY: FAKE_KEY,
+      }),
+    ).toBeDefined();
   });
 
   it("OPENAI_LOG=debug cannot make the client log a failed request (b63 note)", async () => {
