@@ -20,6 +20,7 @@ export const PROPOSAL_NAMES: ReadonlySet<ToolName> = new Set([
   "propose_hypotheses",
   "propose_interventions",
   "propose_package",
+  "propose_instruments",
   "propose_layout",
   "request_review",
 ]);

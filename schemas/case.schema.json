@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://siterra.invalid/schemas/case/1.14.0/case.schema.json",
+  "$id": "https://siterra.invalid/schemas/case/1.15.0/case.schema.json",
   "title": "Siterra case contracts",
   "description": "Records of one Siterra case as stored and exchanged between the web application, the worker and the browser. The root validates a case snapshot, a command, an event or an atomic commit proposal; $defs holds the record types. Cross-record semantics that JSON Schema cannot express are specified in docs/reference/data-contracts.md.",
   "oneOf": [
@@ -868,9 +868,10 @@
             "explanation_branches",
             "intervention_feasibility",
             "brief_package",
+            "instrument_composition",
             "validation"
           ],
-          "description": "explanation_branches added in 1.9.0; it replaces hypothesis_comparison in new plans, and hypothesis_comparison stays valid for earlier records."
+          "description": "explanation_branches added in 1.9.0; it replaces hypothesis_comparison in new plans, and hypothesis_comparison stays valid for earlier records. instrument_composition added in 1.15.0: made by host code, never planned by the model; it orders the instruments the composer returns and may rewrite their two caption sentences under the host validators."
         },
         "question": {
           "type": "string",
@@ -928,6 +929,7 @@
               "propose_predictions",
               "propose_interventions",
               "propose_package",
+              "propose_instruments",
               "propose_layout",
               "request_review"
             ]
@@ -2821,7 +2823,8 @@
             "1.11.0",
             "1.12.0",
             "1.13.0",
-            "1.14.0"
+            "1.14.0",
+            "1.15.0"
           ],
           "description": "Contract version the instance was written against; producers write the newest, and earlier versions of the same MAJOR stay valid."
         },
@@ -2922,7 +2925,8 @@
             "1.11.0",
             "1.12.0",
             "1.13.0",
-            "1.14.0"
+            "1.14.0",
+            "1.15.0"
           ],
           "description": "Contract version the instance was written against; producers write the newest, and earlier versions of the same MAJOR stay valid."
         },
@@ -3302,7 +3306,8 @@
             "1.11.0",
             "1.12.0",
             "1.13.0",
-            "1.14.0"
+            "1.14.0",
+            "1.15.0"
           ],
           "description": "Contract version the instance was written against; producers write the newest, and earlier versions of the same MAJOR stay valid."
         },
@@ -3346,7 +3351,8 @@
             "1.11.0",
             "1.12.0",
             "1.13.0",
-            "1.14.0"
+            "1.14.0",
+            "1.15.0"
           ],
           "description": "Contract version the instance was written against; producers write the newest, and earlier versions of the same MAJOR stay valid."
         },
@@ -3580,6 +3586,7 @@
             "propose_predictions",
             "propose_interventions",
             "propose_package",
+            "propose_instruments",
             "propose_layout",
             "request_review"
           ]

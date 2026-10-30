@@ -268,3 +268,25 @@ describe("excerpt check (TR-04 rule)", () => {
     }
   });
 });
+
+describe("unprovenNumbers: digits in any script", () => {
+  const allowed = [0.9];
+  it("reads fullwidth digits as the ASCII digits they stand for", () => {
+    // U+FF10 U+FF0E U+FF19 is "0.9" in fullwidth form
+    expect(unprovenNumbers("The share was \uFF10.\uFF19.", allowed, [], null)).toEqual([]);
+    expect(unprovenNumbers("The share was \uFF10.\uFF15.", allowed, [], null)).not.toEqual([]);
+  });
+
+  it("refuses a decimal digit of another script, which no record can account for", () => {
+    // U+0660 U+066B U+0669 is Arabic-Indic zero, decimal separator, nine
+    expect(unprovenNumbers("The share was \u0660\u066B\u0669.", allowed, [], null)).not.toEqual([]);
+    expect(unprovenNumbers("The share was \u0969.", [9], [], null)).not.toEqual([]);
+  });
+
+  it("leaves ordinary text and ASCII numbers as they were", () => {
+    expect(unprovenNumbers("Greenness was 0.9 in March.", allowed, [], null)).toEqual([]);
+    expect(unprovenNumbers("No number here, only words: caf\u00E9.", allowed, [], null)).toEqual(
+      [],
+    );
+  });
+});

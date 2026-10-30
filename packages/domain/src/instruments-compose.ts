@@ -27,6 +27,11 @@ import {
 } from "./instruments.ts";
 import { prohibitedHits, unprovenNumbers } from "./validators/index.ts";
 
+/** The phrases of `text` that the shared prohibited-claim rules match (empty when it makes none). */
+export function prohibitedHitsIn(text: string): string[] {
+  return prohibitedHits(text).map((hit) => hit.phrase);
+}
+
 export const composerMethodId = "instrument_composer";
 export const composerMethodVersion = "1";
 
@@ -76,7 +81,7 @@ export function roundHalfAwayFromZero(value: number, decimals: number, shift = 0
 
 const slot = /\{([a-z][a-z0-9_]{0,29})\}/g;
 /** The words the case copy bans on screen (the bundles' forbidden list), beyond the validators' claim rules. */
-const bannedWords =
+export const captionBannedWords =
   /\b(?:significant(?:ly)?|degradation detected|grazing impact|overgrazing|caused by|proves?|recovery|forecast|pasture improvement|pasture decline|encroachment)\b/i;
 const pointRoles = new Set(["outlet", "settlement", "settlement_locator", "viewpoint", "summit"]);
 
@@ -344,7 +349,7 @@ export function composeInstruments(inputs: ComposeInputs): ComposeResult {
     ] as const) {
       for (const hit of prohibitedHits(sentence))
         reasons.push(`The ${label} sentence holds a prohibited phrase: ${hit.phrase}`);
-      const banned = bannedWords.exec(sentence);
+      const banned = captionBannedWords.exec(sentence);
       if (banned !== null) reasons.push(`The ${label} sentence holds a banned word: ${banned[0]}`);
       const unproven = unprovenNumbers(sentence, allowed, [], null);
       if (unproven.length > 0)

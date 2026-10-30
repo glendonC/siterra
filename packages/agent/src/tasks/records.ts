@@ -1,12 +1,14 @@
 import type {
   Brief,
   BranchMerge,
+  CanvasComponent,
   DataBundle,
   ExplanationBranch,
   EntityVersion as ContractEntityVersion,
   Evidence,
   EventRecordRow,
   Hypothesis,
+  InstrumentSpec,
   Intervention,
   Measurement,
   OperationalAction,
@@ -27,6 +29,8 @@ export type EntityVersion = ContractEntityVersion;
 export type TaskKind = Task["kind"];
 export type TaskStatus = Task["status"];
 export type TaskRecord = Task;
+export type InstrumentSpecRecord = InstrumentSpec;
+export type CanvasComponentRecord = CanvasComponent;
 export type SourceLocator = ContractSourceLocator;
 export type Provenance = ContractProvenance;
 export type Uncertainty = ContractUncertainty;
@@ -68,6 +72,8 @@ export interface CommitDraft {
     | RelationshipRecord
     | ExplanationBranchRecord
     | BranchMergeRecord
+    | InstrumentSpecRecord
+    | CanvasComponentRecord
   )[];
   events: TraceEventDraft[];
 }

@@ -1,6 +1,6 @@
 {
   "recordType": "CaseSnapshot",
-  "schemaVersion": "1.14.0",
+  "schemaVersion": "1.15.0",
   "case": {
     "recordType": "EnvironmentalCase",
     "id": "case_aitbouguemez",

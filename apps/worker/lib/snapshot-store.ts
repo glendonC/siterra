@@ -1,12 +1,15 @@
 import { MemoryCaseStore } from "@siterra/agent";
+import { isInstrumentKind } from "@siterra/contracts";
 import { analysisConfigFor } from "@siterra/domain/cases";
 import type {
+  CanvasComponentRecord,
   CaseSummary,
   DataBundleRecord,
   EventRecordRowRecord,
   EvidenceRecord,
   ExplanationBranchRecord,
   HypothesisRecord,
+  InstrumentSpecRecord,
   InterventionRecord,
   MeasurementRecord,
 } from "@siterra/agent";
@@ -48,6 +51,10 @@ export interface SnapshotView {
     eventRecordRowRecords?: EventRecordRowRecord[];
     /** Explanation branches, so a resumed branch task scores what it committed; absent means none. */
     explanationBranchRecords?: ExplanationBranchRecord[];
+    /** Instrument specs, for the instrument composition task; absent means none. */
+    instrumentSpecRecords?: InstrumentSpecRecord[];
+    /** Canvas components; the instrument ones are kept, so a re-ordering writes the next revision. */
+    canvasComponentRecords?: CanvasComponentRecord[];
   };
 }
 
@@ -94,6 +101,12 @@ export function snapshotStore(
   store.interventions.push(...(snapshot.records.interventionRecords ?? []));
   store.eventRows.push(...(snapshot.records.eventRecordRowRecords ?? []));
   store.branches.push(...(snapshot.records.explanationBranchRecords ?? []));
+  store.instrumentSpecs.push(...(snapshot.records.instrumentSpecRecords ?? []));
+  store.instrumentComponents.push(
+    ...(snapshot.records.canvasComponentRecords ?? []).filter((c) =>
+      isInstrumentKind(c.componentKind),
+    ),
+  );
   if (analyses) {
     store.recipes.push(...analyses.recipes);
     store.recipeResults.push(...analyses.results.map((r) => ({ ...r, caseId })));
