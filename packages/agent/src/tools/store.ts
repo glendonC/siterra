@@ -125,6 +125,8 @@ export interface CaseStore {
   readHypotheses(caseId: string, ids: readonly string[]): Promise<HypothesisRecord[]>;
   /** Current revisions of the given interventions; unknown IDs are absent. */
   readInterventions(caseId: string, ids: readonly string[]): Promise<InterventionRecord[]>;
+  /** The ID and revision of every area (GeoSelection) of the case. */
+  listGeoSelections(caseId: string): Promise<{ id: string; revision: number }[]>;
   /** IDs of the case's accepted field_requirement Evidence: the open gaps a field plan covers. */
   listOpenGapIds(caseId: string): Promise<string[]>;
   /** IDs of every hypothesis of the case. */
@@ -165,6 +167,15 @@ export class MemoryCaseStore implements CaseStore {
   readonly branches: ExplanationBranchRecord[] = [];
   readonly instrumentSpecs: InstrumentSpecRecord[] = [];
   readonly instrumentComponents: CanvasComponentRecord[] = [];
+  readonly geoSelections: { caseId: string; id: string; revision: number }[] = [];
+
+  listGeoSelections(caseId: string): Promise<{ id: string; revision: number }[]> {
+    return Promise.resolve(
+      this.geoSelections
+        .filter((g) => g.caseId === caseId)
+        .map(({ id, revision }) => ({ id, revision })),
+    );
+  }
 
   listInstrumentComponents(caseId: string): Promise<CanvasComponentRecord[]> {
     const latest = new Map<string, CanvasComponentRecord>();
