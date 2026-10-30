@@ -1,0 +1,260 @@
+{
+ "type": "Collection",
+ "stac_version": "1.1.0",
+ "stac_extensions": [
+  "https://stac-extensions.github.io/processing/v1.3.0/schema.json",
+  "https://stac-extensions.github.io/file/v2.1.0/schema.json",
+  "https://siterra.invalid/schemas/stac/siterra/1.1.0/schema.json"
+ ],
+ "id": "bundle_species_occurrences_ait_bouguemez",
+ "title": "Recorded life in the catchment: GBIF occurrence records (species_occurrences 1.0.0)",
+ "description": "Precomputed result of recipe species_occurrences 1.0.0 for Ait Bouguemez valley catchment: of 1141 GBIF occurrence records with a coordinate inside the query polygon, 53 lie outside the catchment, 456 were dropped by licence, and 632 records under CC0 or CC BY 4.0 are kept (544 animals, 88 plants), from 22 datasets, requested on 2026-10-30. Named plants: Astragalus armatus: 0 kept; Thymus satureioides: 0 kept; Thymelaea virgata: 0 kept; Euphorbia nicaeensis: 0 kept. Recorded here, not presence or abundance.\n\nEach record says an organism was recorded at a place and time by someone, as a human observation, a preserved specimen, a fossil specimen, a machine observation or another basis; a fossil specimen records an organism of an earlier age, not a living one. It is not a measurement of presence or abundance: the same species can be common and unrecorded, or rare and recorded often. Records follow where people look. Roads, villages, trails, reserves and the habits of a few observers shape where records fall, and a quiet area is not an empty one. Years reflect recording effort. A rise or fall in records per year follows the arrival of observation apps, surveys and datasets, not the organisms, and the counts by year are not a trend. Coordinates are as recorded with their stated uncertainty, which is missing for some records and larger than the catchment for others; a kept record is inside the catchment polygon at its recorded point only. Only records under CC0 1.0 or CC BY 4.0 are kept; records under other licences were dropped and are counted, so the kept records are a part of what GBIF holds here. Each dataset is credited to its publisher. The request was made on a stated date; GBIF records are added, corrected and withdrawn over time, so a later request can give other counts. A zero for a named plant means no kept record under that name inside the catchment, not that the plant is absent, and names can be recorded under synonyms.",
+ "license": "other",
+ "providers": [
+  {
+   "name": "GBIF, the Global Biodiversity Information Facility",
+   "roles": [
+    "host"
+   ],
+   "url": "https://www.gbif.org"
+  },
+  {
+   "name": "Siterra science pipeline",
+   "roles": [
+    "processor"
+   ],
+   "processing:lineage": "Anonymous reads of the GBIF occurrence search API (4 pages of up to 300 records, the species match and the dataset and organization records) on 2026-10-30, tested against the exact catchment polygon and filtered to CC0 and CC BY 4.0, stored without any field that names a person (science/pipeline/gbif-fetch.py, species-occurrences-bundle.py)",
+   "processing:software": {
+    "siterra-science": "0.1.0",
+    "python": "3.12.9",
+    "numpy": "2.5.4",
+    "pyproj": "3.8.0",
+    "shapely": "2.2.0"
+   }
+  }
+ ],
+ "extent": {
+  "spatial": {
+   "bbox": [
+    [
+     -6.54125,
+     31.49430555555556,
+     -6.142083333333333,
+     31.75652777777778
+    ]
+   ]
+  },
+  "temporal": {
+   "interval": [
+    [
+     "1864-01-01T00:00:00Z",
+     "2025-12-31T23:59:59Z"
+    ]
+   ]
+  }
+ },
+ "assets": {
+  "analysis_geometry": {
+   "href": "./analysis-geometry.geojson",
+   "type": "application/geo+json",
+   "title": "Frozen analysis geometry geo_ait_bouguemez_catchment, revision 1",
+   "roles": [
+    "metadata"
+   ],
+   "file:checksum": "1220ac506ece626b6844d759b56aa60a10248c8c0ea5e206f9a28eb436a892a4d47f",
+   "file:size": 119623
+  },
+  "species_occurrences": {
+   "href": "./species-occurrences.json",
+   "type": "application/json",
+   "title": "Summary: the request, records read, dropped by polygon and by licence, kept, counts by group, class, basis of record and year, datasets, named plants (the result read_recipe_result returns)",
+   "roles": [
+    "data"
+   ],
+   "file:checksum": "1220eaf100f9433cd9c0a3fe1e6af0c70a5816d99a3a6ae811adce658750aa8c3aab",
+   "file:size": 21708
+  },
+  "occurrences": {
+   "href": "./occurrences.json",
+   "type": "application/json",
+   "title": "Kept records as columns (GBIF id, taxon, year, event date, basis of record, latitude, longitude, uncertainty in metres, dataset, licence) joined to taxon, dataset, basis and licence tables",
+   "roles": [
+    "data"
+   ],
+   "file:checksum": "12205b577d6738935bb6adc8988977a46102b8b8484136c302b0e24c1a4193d79444",
+   "file:size": 74692
+  }
+ },
+ "created": "2026-10-30T20:23:52Z",
+ "siterra:status": "validated",
+ "siterra:variable": "species_occurrences",
+ "siterra:dataset": {
+  "id": "gbif-occurrence-search",
+  "version": "v1",
+  "access_route": "https://api.gbif.org/v1/occurrence/search with geometry, hasCoordinate, hasGeospatialIssue and occurrenceStatus (anonymous)",
+  "resolution_note": "Point records with a stated coordinate uncertainty; no grid; one record is one occurrence"
+ },
+ "siterra:geo_selection": {
+  "id": "geo_ait_bouguemez_catchment",
+  "revision": 1,
+  "boundary_role": "hydrological_unit",
+  "area_m2": 417360300,
+  "area_method": "Count of 10 m analysis pixels whose centres fall inside the frozen polygon, EPSG:32629"
+ },
+ "siterra:method": {
+  "id": "species_occurrences",
+  "version": "1.0.0",
+  "analysis_crs": "EPSG:32629",
+  "parameters": {
+   "place_configuration": "science/places/ait-bouguemez.json revision 12, sha256 146436d42ed06174ae4ca3126824147bd9146e940b12e323239b6bbaa6a24d61",
+   "filters": {
+    "geometry": "POLYGON((-6.54297 31.61731,-6.53908 31.60953,-6.53686 31.60842,-6.51075 31.60786,-6.50936 31.59508,-6.50492 31.58342,-6.50464 31.57481,-6.50214 31.57075,-6.50492 31.56797,-6.50686 31.55853,-6.50881 31.55658,-6.50853 31.55047,-6.51436 31.54853,-6.51436 31.54425,-6.51103 31.54036,-6.50936 31.53397,-6.50547 31.53203,-6.49853 31.53175,-6.49381 31.52869,-6.49325 31.52175,-6.49158 31.51897,-6.49242 31.51258,-6.48992 31.51064,-6.49075 31.50481,-6.48825 31.49953,-6.48631 31.49786,-6.47714 31.49675,-6.47631 31.49481,-6.47019 31.49258,-6.45647 31.49231,-6.44897 31.49592,-6.44675 31.50064,-6.44675 31.50603,-6.45647 31.51131,-6.45814 31.52047,-6.45064 31.53981,-6.45092 31.54536,-6.42564 31.55675,-6.42481 31.57019,-6.43008 31.57631,-6.42897 31.58242,-6.42981 31.58853,-6.43147 31.58964,-6.42814 31.59314,-6.42147 31.59481,-6.42036 31.59842,-6.41731 31.59897,-6.41342 31.60286,-6.40286 31.60397,-6.40175 31.60731,-6.38397 31.60703,-6.36897 31.61147,-6.35786 31.61731,-6.32119 31.62397,-6.30981 31.62814,-6.30758 31.63119,-6.29231 31.63703,-6.29008 31.63953,-6.28008 31.64036,-6.26453 31.64675,-6.25842 31.65092,-6.25008 31.65314,-6.24675 31.65647,-6.23258 31.65897,-6.22897 31.66175,-6.22231 31.66314,-6.20953 31.66342,-6.18592 31.66703,-6.18453 31.66786,-6.18286 31.67981,-6.17508 31.68258,-6.17481 31.68675,-6.17231 31.69036,-6.16592 31.69175,-6.16119 31.69092,-6.15703 31.69453,-6.14869 31.69564,-6.14008 31.70286,-6.14064 31.71019,-6.14536 31.71408,-6.14647 31.72158,-6.15147 31.72603,-6.15036 31.73936,-6.16592 31.75714,-6.18297 31.75547,-6.18353 31.75131,-6.18797 31.74881,-6.18992 31.74353,-6.19603 31.74075,-6.19758 31.74186,-6.20036 31.75158,-6.20342 31.75381,-6.21897 31.75408,-6.21953 31.75714,-6.22397 31.75853,-6.23131 31.75825,-6.23908 31.75519,-6.25158 31.75575,-6.26325 31.74853,-6.27131 31.74547,-6.27592 31.74908,-6.27675 31.75269,-6.27925 31.75492,-6.28492 31.75492,-6.28797 31.75325,-6.29353 31.75408,-6.29731 31.75242,-6.29981 31.75492,-6.30575 31.75519,-6.32408 31.74297,-6.33464 31.74131,-6.34464 31.73575,-6.34936 31.73547,-6.35186 31.73297,-6.35908 31.73297,-6.36547 31.73103,-6.36742 31.72825,-6.37464 31.72658,-6.37547 31.72519,-6.38325 31.72242,-6.39019 31.72214,-6.40992 31.71464,-6.41686 31.71381,-6.41964 31.71131,-6.42881 31.70936,-6.43492 31.70547,-6.44381 31.70297,-6.44464 31.69547,-6.45714 31.68881,-6.45881 31.68492,-6.46269 31.68325,-6.46603 31.67908,-6.47547 31.67547,-6.48631 31.66825,-6.49047 31.66769,-6.49075 31.66353,-6.49742 31.65853,-6.49742 31.65325,-6.50242 31.64686,-6.51325 31.64186,-6.52119 31.64353,-6.53575 31.64325,-6.54019 31.63936,-6.53936 31.63353,-6.54158 31.63325,-6.54297 31.61731))",
+    "hasCoordinate": "true",
+    "hasGeospatialIssue": "false",
+    "occurrenceStatus": "PRESENT"
+   },
+   "licences_kept": [
+    "CC0_1_0",
+    "CC_BY_4_0"
+   ],
+   "query_polygon": {
+    "bufferDeg": 0.002,
+    "simplifyDeg": 0.001,
+    "decimals": 5,
+    "maxChars": 6000,
+    "rule": "The frozen polygon buffered by 0.002 degrees (mitred) and simplified at 0.001 degrees, exterior ring only and counter-clockwise: an outward fit for the URL. The run stops unless it contains the frozen polygon. Records are then tested against the exact frozen polygon."
+   },
+   "named_taxa": [
+    "Astragalus armatus",
+    "Thymus satureioides",
+    "Thymelaea virgata",
+    "Euphorbia nicaeensis"
+   ],
+   "page_limit": 300,
+   "retrieved": "2026-10-30T19:28:20Z"
+  },
+  "reference_period": null,
+  "operation_order": [
+   "Query: GET https://api.gbif.org/v1/occurrence/search with geometry = the query polygon (WKT, counter-clockwise exterior ring, 5 decimals), hasCoordinate = true, hasGeospatialIssue = false, occurrenceStatus = PRESENT, limit = 300, offset in steps of 300 until every record is read; no account. Query polygon: the frozen polygon buffered by the configured distance in degrees and simplified at the configured tolerance, an outward fit so that no record inside the frozen polygon can be missed (the run stops unless the query polygon contains the frozen polygon and its text fits the configured length)",
+   "Large queries: when the whole query polygon matches more than 10,000 records (the search API pages slowly at deep offsets) it is cut into rectangles by repeated halving until each matches at most 10,000, each part read in pages of 300 with a repeated geometry parameter; a rectangle that still matches more at the smallest size (many records at one point) is split by dataset key and then by year, and the run stops unless the parts add up to its count; the union is the same set and records are deduplicated by GBIF id; the count of unique records read must equal the count GBIF reports for the whole query polygon (read with limit 0)",
+   "Keep: a record is kept when its coordinates lie inside or on the exact frozen polygon and its licence is CC0 1.0 or CC BY 4.0. Every other record is counted, never stored: outside the exact polygon, and by licence (CC BY-NC, unspecified or any other)",
+   "Stored per kept record, and only these: GBIF id, scientific name, species, kingdom, class, order, family, year, event date as the record gives it, basis of record, decimal latitude and longitude, coordinate uncertainty in metres (null when the record gives none, never 0), dataset key, dataset title, publisher, licence. No field that names a person (recordedBy, identifiedBy, rights holder and the like) is read into the bundle",
+   "Datasets: for each dataset key among the kept records, its title, DOI and publishing organisation from the GBIF dataset and organization endpoints, the kept records per licence, and the attribution line built from them; the attribution of the bundle lists every dataset",
+   "Named taxa: each name in the place configuration is matched with GET /v1/species/match (the match, its key, type and status are stored) and queried with the same filters and taxonKey = the match key; the counts (read, outside the polygon, dropped by licence, kept) are stored even when they are zero, with the kept record ids",
+   "Summary: the kept records by group (animals = kingdom Animalia, plants = Plantae, fungi = Fungi, other), by class, by basis of record and by year (and records without a year), by dataset, the dropped counts by reason, the records with no coordinate uncertainty and with an uncertainty above 1,000 m",
+   "Acceptance checks, all stored with the bundle: the count GBIF reports for the first page equals the records read; every kept record lies inside the exact polygon; every kept record has an allowed licence; the counts by group, basis, class and dataset each add up to the kept records; no stored field names a person; the bundle rebuilds from the stored raw response with identical files apart from the computed time"
+  ]
+ },
+ "siterra:attribution": [
+  "The International Barcode of Life Consortium. International Barcode of Life project (iBOL). Occurrence dataset, 12 records kept, licence CC-BY-4.0 (12). https://doi.org/10.15468/inygc6. Accessed through GBIF.org on 2026-10-30.",
+  "United Herbaria of the University and ETH Zurich (Z+ZT). United Herbaria of the University and ETH Zurich. Occurrence dataset, 1 records kept, licence CC-BY-4.0 (1). https://doi.org/10.15468/tjvqci. Accessed through GBIF.org on 2026-10-30.",
+  "Centro Internacional de Agricultura Tropical - CIAT. A global database for the distributions of crop wild relatives. Occurrence dataset, 17 records kept, licence CC-BY-4.0 (17). https://doi.org/10.15468/jyrthk. Accessed through GBIF.org on 2026-10-30.",
+  "Pl@ntNet. Pl@ntNet automatically identified occurrences. Occurrence dataset, 11 records kept, licence CC-BY-4.0 (11). https://doi.org/10.15468/mma2ec. Accessed through GBIF.org on 2026-10-30.",
+  "Cornell Lab of Ornithology. EOD – eBird Observation Dataset. Occurrence dataset, 503 records kept, licence CC-BY-4.0 (503). https://doi.org/10.15468/aomfnb. Accessed through GBIF.org on 2026-10-30.",
+  "iNaturalist.org. iNaturalist Research-grade Observations. Occurrence dataset, 44 records kept, licence CC-BY-4.0 (44). https://doi.org/10.15468/ab3s5x. Accessed through GBIF.org on 2026-10-30.",
+  "Birda. Birda - Global Observation Dataset. Occurrence dataset, 13 records kept, licence CC-BY-4.0 (13). https://doi.org/10.15468/6kud7x. Accessed through GBIF.org on 2026-10-30.",
+  "Pl@ntNet. Pl@ntNet observations. Occurrence dataset, 2 records kept, licence CC-BY-4.0 (2). https://doi.org/10.15468/gtebaa. Accessed through GBIF.org on 2026-10-30.",
+  "Missouri Botanical Garden. Tropicos MO Specimen Data. Occurrence dataset, 1 records kept, licence CC-BY-4.0 (1). https://doi.org/10.15468/hja69f. Accessed through GBIF.org on 2026-10-30.",
+  "Natural History Museum. Natural History Museum (London) Collection Specimens. Occurrence dataset, 3 records kept, licence CC0-1.0 (3). https://doi.org/10.5519/qd.dyj48ok9. Accessed through GBIF.org on 2026-10-30.",
+  "Natural History Museum, Vienna. Natural History Museum, Vienna - Herbarium W. Occurrence dataset, 2 records kept, licence CC-BY-4.0 (2). https://doi.org/10.15468/5sl7sh. Accessed through GBIF.org on 2026-10-30.",
+  "Botanic Garden and Botanical Museum Berlin. Herbarium Berolinense, Berlin (B). Occurrence dataset, 1 records kept, licence CC0-1.0 (1). https://doi.org/10.15468/dlwwhz. Accessed through GBIF.org on 2026-10-30.",
+  "Institut Scientifique, Mohamed V University. Herbarium specimens of Institut Scientifique Mohamed V university (RAB). Occurrence dataset, 1 records kept, licence CC-BY-4.0 (1). https://doi.org/10.15468/48pwft. Accessed through GBIF.org on 2026-10-30.",
+  "Baylor University, Mayborn Museum Complex. Baylor University Herbarium. Occurrence dataset, 2 records kept, licence CC0-1.0 (2). https://doi.org/10.15468/78jqq4. Accessed through GBIF.org on 2026-10-30.",
+  "Royal Botanic Gardens, Kew. Royal Botanic Gardens, Kew - Herbarium Specimens. Occurrence dataset, 3 records kept, licence CC-BY-4.0 (3). https://doi.org/10.15468/ly60bx. Accessed through GBIF.org on 2026-10-30.",
+  "European Nucleotide Archive (EMBL-EBI). INSDC Sequences. Occurrence dataset, 3 records kept, licence CC-BY-4.0 (3). https://doi.org/10.15468/sbmztx. Accessed through GBIF.org on 2026-10-30.",
+  "Research Institute for Nature and Forest (INBO). BOP_RODENT - Rodent specialized birds of prey (Circus, Asio, Buteo) in Flanders (Belgium). Occurrence dataset, 2 records kept, licence CC0-1.0 (2). https://doi.org/10.5281/zenodo.23340023. Accessed through GBIF.org on 2026-10-30.",
+  "Institute of Dendrology, Polish Academy of Sciences (ID PAN). Juniperus occurrences from research collections of the Institute of Dendrology, Polish Academy of Sciences. Occurrence dataset, 3 records kept, licence CC-BY-4.0 (3). https://doi.org/10.15468/hr7rsc. Accessed through GBIF.org on 2026-10-30.",
+  "Universidad de Huelva. Eurasian otter (Lutra lutra) occurrence in Morocco. Occurrence dataset, 1 records kept, licence CC-BY-4.0 (1). https://doi.org/10.15470/xyzeiv. Accessed through GBIF.org on 2026-10-30.",
+  "Zoologische Staatssammlung München/Staatliche Naturwissenschaftliche Sammlungen Bayerns. Zoologische Staatssammlung Muenchen - International Barcode of Life (iBOL) - Barcode of Life Project Specimen Data. Occurrence dataset, 4 records kept, licence CC-BY-4.0 (4). https://doi.org/10.15468/tfpnkp. Accessed through GBIF.org on 2026-10-30.",
+  "Swiss Natural History Collections - SwissNatColl. General Herbarium – Cryptogamy & Phanerogamy (CJBG-G) of Jardin botanique de Genève. Occurrence dataset, 2 records kept, licence CC-BY-4.0 (2). https://doi.org/10.15468/rvjdu1. Accessed through GBIF.org on 2026-10-30.",
+  "California Academy of Sciences. CAS Botany (BOT). Occurrence dataset, 1 records kept, licence CC0-1.0 (1). https://doi.org/10.15468/7gudyo. Accessed through GBIF.org on 2026-10-30.",
+  "Occurrence records from GBIF.org (accessed 2026-10-30) through the GBIF occurrence search API; each record keeps the licence of its dataset (CC0 1.0 or CC BY 4.0); see https://www.gbif.org/citation-guidelines."
+ ],
+ "siterra:limitations": [
+  "Each record says an organism was recorded at a place and time by someone, as a human observation, a preserved specimen, a fossil specimen, a machine observation or another basis; a fossil specimen records an organism of an earlier age, not a living one. It is not a measurement of presence or abundance: the same species can be common and unrecorded, or rare and recorded often.",
+  "Records follow where people look. Roads, villages, trails, reserves and the habits of a few observers shape where records fall, and a quiet area is not an empty one.",
+  "Years reflect recording effort. A rise or fall in records per year follows the arrival of observation apps, surveys and datasets, not the organisms, and the counts by year are not a trend.",
+  "Coordinates are as recorded with their stated uncertainty, which is missing for some records and larger than the catchment for others; a kept record is inside the catchment polygon at its recorded point only.",
+  "Only records under CC0 1.0 or CC BY 4.0 are kept; records under other licences were dropped and are counted, so the kept records are a part of what GBIF holds here. Each dataset is credited to its publisher.",
+  "The request was made on a stated date; GBIF records are added, corrected and withdrawn over time, so a later request can give other counts.",
+  "A zero for a named plant means no kept record under that name inside the catchment, not that the plant is absent, and names can be recorded under synonyms."
+ ],
+ "siterra:checks": [
+  {
+   "name": "recompute_sample_period",
+   "passed": true,
+   "detail": "GBIF reports 1141 records for the query on its first page and 1141 unique records were read (equal); 53 lie outside the exact catchment polygon, 456 inside it were dropped by licence (CC-BY-NC-4.0 456), 632 kept; all 632 stored coordinates lie inside or on the polygon; every stored licence is CC0-1.0 or CC-BY-4.0 (True); the counts by group, basis of record, class and dataset each add up to 632 ({'group': 632, 'basis': 632, 'class': 632, 'dataset': 632}); no stored text carries a person field name (none); the build run twice from the stored raw response gives identical records: True."
+  },
+  {
+   "name": "units_and_scale",
+   "passed": true,
+   "detail": "Coordinates are decimal degrees (GBIF decimalLatitude and decimalLongitude, WGS84), 6 decimals; uncertainty_m is metres as the record states it; year is a calendar year; a record count is one GBIF occurrence, not an individual organism."
+  },
+  {
+   "name": "nodata_not_zero",
+   "passed": true,
+   "detail": "A record without a coordinate uncertainty or a year stores null: 575 of 632 have no uncertainty and 24 no year; 0 state an uncertainty of exactly 0 m and are stored as stated. A named plant with no kept record is reported as 0 with its match, never omitted."
+  },
+  {
+   "name": "qa_join_coverage",
+   "passed": true,
+   "detail": "Every kept record joins to one taxon, one dataset, one basis of record and one licence; 179 taxa, 22 datasets with their title, publisher and DOI; GBIF datasets read 34, publishers 21."
+  },
+  {
+   "name": "period_alignment",
+   "passed": true,
+   "detail": "Where a record gives both a year and an event date the year equals the first four characters of the date: 0 differ. Years run 1864 to 2025; counts by year reflect recording effort."
+  },
+  {
+   "name": "attribution_present",
+   "passed": true,
+   "detail": "siterra:attribution holds one line for each of the 22 datasets (publisher, title, records kept, licence, DOI, access date) and the GBIF line."
+  },
+  {
+   "name": "visual_inspection_sample",
+   "passed": true,
+   "detail": "Read on 2026-10-30: the summary (632 kept records, 544 animals and 88 plants, 22 datasets; 503 of the records come from one bird-observation dataset, so the animal count follows where and when birders recorded) and four stored records (two eBird records of the same bird at one point on neighbouring days in 2012, a 2021 eBird record, a 2025 iNaturalist record with 5 m uncertainty); no stored field or dataset title names a person; the four named plants give zero kept records (Thymus satureioides and Euphorbia nicaeensis each have one record under CC BY-NC, dropped by licence; Thymus satureioides matched GBIF's accepted spelling Thymus saturejoides, a FUZZY match, stored as such); 575 of 632 records give no coordinate uncertainty and 6 give more than 1,000 m."
+  }
+ ],
+ "links": [
+  {
+   "rel": "root",
+   "href": "../catalog.json",
+   "type": "application/json"
+  },
+  {
+   "rel": "parent",
+   "href": "../catalog.json",
+   "type": "application/json"
+  },
+  {
+   "rel": "derived_from",
+   "href": "../bundle_terrain_strata_ait_bouguemez/collection.json",
+   "type": "application/json",
+   "title": "Terrain strata bundle bundle_terrain_strata_ait_bouguemez (the geometry)",
+   "file:checksum": "1220d78c5c708866192daeb5ab9dbd2ad8eea4e31c9252c611c8b9aeaecfb6daee04"
+  },
+  {
+   "rel": "license",
+   "href": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "title": "CC0 1.0 (records of datasets under CC0)"
+  },
+  {
+   "rel": "license",
+   "href": "https://creativecommons.org/licenses/by/4.0/",
+   "title": "CC BY 4.0 (records of datasets under CC BY; credit each dataset)"
+  },
+  {
+   "rel": "cite-as",
+   "href": "https://www.gbif.org/citation-guidelines",
+   "title": "GBIF citation guidelines"
+  },
+  {
+   "rel": "processing-software",
+   "href": "./uv.lock",
+   "type": "application/toml",
+   "title": "Pipeline lockfile (uv)",
+   "file:checksum": "12205154d57a84dcb8f1eb5f992923d7589a669b8dc669edf140f607ff2740733aff"
+  }
+ ]
+}

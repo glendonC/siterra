@@ -1,0 +1,546 @@
+{
+ "recipeId": "species_occurrences",
+ "version": "1.0.0",
+ "computed": "2026-10-30T20:23:52Z",
+ "claim_kind": "observation",
+ "place": {
+  "placeId": "ait_bouguemez",
+  "configRevision": 12,
+  "config_sha256": "146436d42ed06174ae4ca3126824147bd9146e940b12e323239b6bbaa6a24d61"
+ },
+ "request": {
+  "endpoint": "https://api.gbif.org/v1/occurrence/search",
+  "retrieved": "2026-10-30T19:28:20Z",
+  "filters": {
+   "geometry": "POLYGON((-6.54297 31.61731,-6.53908 31.60953,-6.53686 31.60842,-6.51075 31.60786,-6.50936 31.59508,-6.50492 31.58342,-6.50464 31.57481,-6.50214 31.57075,-6.50492 31.56797,-6.50686 31.55853,-6.50881 31.55658,-6.50853 31.55047,-6.51436 31.54853,-6.51436 31.54425,-6.51103 31.54036,-6.50936 31.53397,-6.50547 31.53203,-6.49853 31.53175,-6.49381 31.52869,-6.49325 31.52175,-6.49158 31.51897,-6.49242 31.51258,-6.48992 31.51064,-6.49075 31.50481,-6.48825 31.49953,-6.48631 31.49786,-6.47714 31.49675,-6.47631 31.49481,-6.47019 31.49258,-6.45647 31.49231,-6.44897 31.49592,-6.44675 31.50064,-6.44675 31.50603,-6.45647 31.51131,-6.45814 31.52047,-6.45064 31.53981,-6.45092 31.54536,-6.42564 31.55675,-6.42481 31.57019,-6.43008 31.57631,-6.42897 31.58242,-6.42981 31.58853,-6.43147 31.58964,-6.42814 31.59314,-6.42147 31.59481,-6.42036 31.59842,-6.41731 31.59897,-6.41342 31.60286,-6.40286 31.60397,-6.40175 31.60731,-6.38397 31.60703,-6.36897 31.61147,-6.35786 31.61731,-6.32119 31.62397,-6.30981 31.62814,-6.30758 31.63119,-6.29231 31.63703,-6.29008 31.63953,-6.28008 31.64036,-6.26453 31.64675,-6.25842 31.65092,-6.25008 31.65314,-6.24675 31.65647,-6.23258 31.65897,-6.22897 31.66175,-6.22231 31.66314,-6.20953 31.66342,-6.18592 31.66703,-6.18453 31.66786,-6.18286 31.67981,-6.17508 31.68258,-6.17481 31.68675,-6.17231 31.69036,-6.16592 31.69175,-6.16119 31.69092,-6.15703 31.69453,-6.14869 31.69564,-6.14008 31.70286,-6.14064 31.71019,-6.14536 31.71408,-6.14647 31.72158,-6.15147 31.72603,-6.15036 31.73936,-6.16592 31.75714,-6.18297 31.75547,-6.18353 31.75131,-6.18797 31.74881,-6.18992 31.74353,-6.19603 31.74075,-6.19758 31.74186,-6.20036 31.75158,-6.20342 31.75381,-6.21897 31.75408,-6.21953 31.75714,-6.22397 31.75853,-6.23131 31.75825,-6.23908 31.75519,-6.25158 31.75575,-6.26325 31.74853,-6.27131 31.74547,-6.27592 31.74908,-6.27675 31.75269,-6.27925 31.75492,-6.28492 31.75492,-6.28797 31.75325,-6.29353 31.75408,-6.29731 31.75242,-6.29981 31.75492,-6.30575 31.75519,-6.32408 31.74297,-6.33464 31.74131,-6.34464 31.73575,-6.34936 31.73547,-6.35186 31.73297,-6.35908 31.73297,-6.36547 31.73103,-6.36742 31.72825,-6.37464 31.72658,-6.37547 31.72519,-6.38325 31.72242,-6.39019 31.72214,-6.40992 31.71464,-6.41686 31.71381,-6.41964 31.71131,-6.42881 31.70936,-6.43492 31.70547,-6.44381 31.70297,-6.44464 31.69547,-6.45714 31.68881,-6.45881 31.68492,-6.46269 31.68325,-6.46603 31.67908,-6.47547 31.67547,-6.48631 31.66825,-6.49047 31.66769,-6.49075 31.66353,-6.49742 31.65853,-6.49742 31.65325,-6.50242 31.64686,-6.51325 31.64186,-6.52119 31.64353,-6.53575 31.64325,-6.54019 31.63936,-6.53936 31.63353,-6.54158 31.63325,-6.54297 31.61731))",
+   "hasCoordinate": "true",
+   "hasGeospatialIssue": "false",
+   "occurrenceStatus": "PRESENT"
+  },
+  "query_polygon_wkt": "POLYGON((-6.54297 31.61731,-6.53908 31.60953,-6.53686 31.60842,-6.51075 31.60786,-6.50936 31.59508,-6.50492 31.58342,-6.50464 31.57481,-6.50214 31.57075,-6.50492 31.56797,-6.50686 31.55853,-6.50881 31.55658,-6.50853 31.55047,-6.51436 31.54853,-6.51436 31.54425,-6.51103 31.54036,-6.50936 31.53397,-6.50547 31.53203,-6.49853 31.53175,-6.49381 31.52869,-6.49325 31.52175,-6.49158 31.51897,-6.49242 31.51258,-6.48992 31.51064,-6.49075 31.50481,-6.48825 31.49953,-6.48631 31.49786,-6.47714 31.49675,-6.47631 31.49481,-6.47019 31.49258,-6.45647 31.49231,-6.44897 31.49592,-6.44675 31.50064,-6.44675 31.50603,-6.45647 31.51131,-6.45814 31.52047,-6.45064 31.53981,-6.45092 31.54536,-6.42564 31.55675,-6.42481 31.57019,-6.43008 31.57631,-6.42897 31.58242,-6.42981 31.58853,-6.43147 31.58964,-6.42814 31.59314,-6.42147 31.59481,-6.42036 31.59842,-6.41731 31.59897,-6.41342 31.60286,-6.40286 31.60397,-6.40175 31.60731,-6.38397 31.60703,-6.36897 31.61147,-6.35786 31.61731,-6.32119 31.62397,-6.30981 31.62814,-6.30758 31.63119,-6.29231 31.63703,-6.29008 31.63953,-6.28008 31.64036,-6.26453 31.64675,-6.25842 31.65092,-6.25008 31.65314,-6.24675 31.65647,-6.23258 31.65897,-6.22897 31.66175,-6.22231 31.66314,-6.20953 31.66342,-6.18592 31.66703,-6.18453 31.66786,-6.18286 31.67981,-6.17508 31.68258,-6.17481 31.68675,-6.17231 31.69036,-6.16592 31.69175,-6.16119 31.69092,-6.15703 31.69453,-6.14869 31.69564,-6.14008 31.70286,-6.14064 31.71019,-6.14536 31.71408,-6.14647 31.72158,-6.15147 31.72603,-6.15036 31.73936,-6.16592 31.75714,-6.18297 31.75547,-6.18353 31.75131,-6.18797 31.74881,-6.18992 31.74353,-6.19603 31.74075,-6.19758 31.74186,-6.20036 31.75158,-6.20342 31.75381,-6.21897 31.75408,-6.21953 31.75714,-6.22397 31.75853,-6.23131 31.75825,-6.23908 31.75519,-6.25158 31.75575,-6.26325 31.74853,-6.27131 31.74547,-6.27592 31.74908,-6.27675 31.75269,-6.27925 31.75492,-6.28492 31.75492,-6.28797 31.75325,-6.29353 31.75408,-6.29731 31.75242,-6.29981 31.75492,-6.30575 31.75519,-6.32408 31.74297,-6.33464 31.74131,-6.34464 31.73575,-6.34936 31.73547,-6.35186 31.73297,-6.35908 31.73297,-6.36547 31.73103,-6.36742 31.72825,-6.37464 31.72658,-6.37547 31.72519,-6.38325 31.72242,-6.39019 31.72214,-6.40992 31.71464,-6.41686 31.71381,-6.41964 31.71131,-6.42881 31.70936,-6.43492 31.70547,-6.44381 31.70297,-6.44464 31.69547,-6.45714 31.68881,-6.45881 31.68492,-6.46269 31.68325,-6.46603 31.67908,-6.47547 31.67547,-6.48631 31.66825,-6.49047 31.66769,-6.49075 31.66353,-6.49742 31.65853,-6.49742 31.65325,-6.50242 31.64686,-6.51325 31.64186,-6.52119 31.64353,-6.53575 31.64325,-6.54019 31.63936,-6.53936 31.63353,-6.54158 31.63325,-6.54297 31.61731))",
+  "query_polygon_rule": "The frozen polygon buffered by 0.002 degrees (mitred) and simplified at 0.001 degrees, exterior ring only and counter-clockwise: an outward fit for the URL. The run stops unless it contains the frozen polygon. Records are then tested against the exact frozen polygon.",
+  "page_limit": 300,
+  "licence_in_request": false,
+  "gbif_count_for_query": 1141,
+  "pages": 4
+ },
+ "counts": {
+  "read": 1141,
+  "outside_exact_polygon": 53,
+  "dropped_by_licence": {
+   "CC-BY-NC-4.0": 456
+  },
+  "dropped_by_licence_total": 456,
+  "kept": 632,
+  "licences_kept": [
+   "CC0-1.0",
+   "CC-BY-4.0"
+  ]
+ },
+ "by_group": {
+  "animals": 544,
+  "plants": 88
+ },
+ "by_kingdom": {
+  "Animalia": 544,
+  "Plantae": 88
+ },
+ "by_class": {
+  "Animalia / Aves": 519,
+  "Plantae / Magnoliopsida": 71,
+  "Animalia / Insecta": 21,
+  "Plantae / Liliopsida": 8,
+  "Plantae / Pinopsida": 7,
+  "Animalia / Squamata": 3,
+  "Animalia / Mammalia": 1,
+  "Plantae / Polypodiopsida": 1,
+  "Plantae / unassigned": 1
+ },
+ "by_basis_of_record": {
+  "HUMAN_OBSERVATION": 574,
+  "PRESERVED_SPECIMEN": 27,
+  "OCCURRENCE": 17,
+  "MATERIAL_SAMPLE": 12,
+  "MACHINE_OBSERVATION": 2
+ },
+ "by_year": {
+  "1864": 2,
+  "1923": 1,
+  "1951": 1,
+  "1985": 2,
+  "2000": 2,
+  "2002": 3,
+  "2003": 3,
+  "2005": 8,
+  "2006": 5,
+  "2007": 2,
+  "2011": 1,
+  "2012": 195,
+  "2013": 56,
+  "2014": 6,
+  "2016": 81,
+  "2017": 4,
+  "2018": 1,
+  "2019": 16,
+  "2020": 4,
+  "2021": 70,
+  "2022": 6,
+  "2023": 6,
+  "2024": 72,
+  "2025": 61
+ },
+ "records_without_year": 24,
+ "coordinate_uncertainty": {
+  "records_without": 575,
+  "records_above_1000_m": 6,
+  "records_stated_zero": 0
+ },
+ "datasets": [
+  {
+   "key": "040c5662-da76-4782-a48e-cdea1892d14c",
+   "title": "International Barcode of Life project (iBOL)",
+   "doi": "10.15468/inygc6",
+   "publisher": "The International Barcode of Life Consortium",
+   "publisher_key": "b3bf3a83-1f68-4541-a03f-330d30d567f5",
+   "dataset_licence_url": "http://creativecommons.org/licenses/by/4.0/legalcode",
+   "records": 12,
+   "by_licence": {
+    "CC-BY-4.0": 12
+   },
+   "by_basis": {
+    "MATERIAL_SAMPLE": 12
+   }
+  },
+  {
+   "key": "064508e2-255e-4d82-9f13-05d73476cc03",
+   "title": "United Herbaria of the University and ETH Zurich",
+   "doi": "10.15468/tjvqci",
+   "publisher": "United Herbaria of the University and ETH Zurich (Z+ZT)",
+   "publisher_key": "605e7170-1123-11d9-8433-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/licenses/by/4.0/legalcode",
+   "records": 1,
+   "by_licence": {
+    "CC-BY-4.0": 1
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 1
+   }
+  },
+  {
+   "key": "07044577-bd82-4089-9f3a-f4a9d2170b2e",
+   "title": "A global database for the distributions of crop wild relatives",
+   "doi": "10.15468/jyrthk",
+   "publisher": "Centro Internacional de Agricultura Tropical - CIAT",
+   "publisher_key": "fee3882f-5360-4f01-a1ca-767c48fa629c",
+   "dataset_licence_url": "http://creativecommons.org/licenses/by/4.0/legalcode",
+   "records": 17,
+   "by_licence": {
+    "CC-BY-4.0": 17
+   },
+   "by_basis": {
+    "OCCURRENCE": 17
+   }
+  },
+  {
+   "key": "14d5676a-2c54-4f94-9023-1e8dcd822aa0",
+   "title": "Pl@ntNet automatically identified occurrences",
+   "doi": "10.15468/mma2ec",
+   "publisher": "Pl@ntNet",
+   "publisher_key": "da86174a-a605-43a4-a5e8-53d484152cd3",
+   "dataset_licence_url": "http://creativecommons.org/licenses/by/4.0/legalcode",
+   "records": 11,
+   "by_licence": {
+    "CC-BY-4.0": 11
+   },
+   "by_basis": {
+    "HUMAN_OBSERVATION": 11
+   }
+  },
+  {
+   "key": "4fa7b334-ce0d-4e88-aaae-2e0c138d049e",
+   "title": "EOD – eBird Observation Dataset",
+   "doi": "10.15468/aomfnb",
+   "publisher": "Cornell Lab of Ornithology",
+   "publisher_key": "e2e717bf-551a-4917-bdc9-4fa0f342c530",
+   "dataset_licence_url": "http://creativecommons.org/licenses/by/4.0/legalcode",
+   "records": 503,
+   "by_licence": {
+    "CC-BY-4.0": 503
+   },
+   "by_basis": {
+    "HUMAN_OBSERVATION": 503
+   }
+  },
+  {
+   "key": "50c9509d-22c7-4a22-a47d-8c48425ef4a7",
+   "title": "iNaturalist Research-grade Observations",
+   "doi": "10.15468/ab3s5x",
+   "publisher": "iNaturalist.org",
+   "publisher_key": "28eb1a3f-1c15-4a95-931a-4af90ecb574d",
+   "dataset_licence_url": "http://creativecommons.org/licenses/by-nc/4.0/legalcode",
+   "records": 44,
+   "by_licence": {
+    "CC-BY-4.0": 44
+   },
+   "by_basis": {
+    "HUMAN_OBSERVATION": 44
+   }
+  },
+  {
+   "key": "6ff8b3b0-ef0f-4f79-a310-5a5615c6aa0b",
+   "title": "Birda - Global Observation Dataset",
+   "doi": "10.15468/6kud7x",
+   "publisher": "Birda",
+   "publisher_key": "0c6d40e3-5d96-4a2d-9342-b02833aaa766",
+   "dataset_licence_url": "http://creativecommons.org/licenses/by-nc/4.0/legalcode",
+   "records": 13,
+   "by_licence": {
+    "CC-BY-4.0": 13
+   },
+   "by_basis": {
+    "HUMAN_OBSERVATION": 13
+   }
+  },
+  {
+   "key": "7a3679ef-5582-4aaa-81f0-8c2545cafc81",
+   "title": "Pl@ntNet observations",
+   "doi": "10.15468/gtebaa",
+   "publisher": "Pl@ntNet",
+   "publisher_key": "da86174a-a605-43a4-a5e8-53d484152cd3",
+   "dataset_licence_url": "http://creativecommons.org/licenses/by/4.0/legalcode",
+   "records": 2,
+   "by_licence": {
+    "CC-BY-4.0": 2
+   },
+   "by_basis": {
+    "HUMAN_OBSERVATION": 2
+   }
+  },
+  {
+   "key": "7bd65a7a-f762-11e1-a439-00145eb45e9a",
+   "title": "Tropicos MO Specimen Data",
+   "doi": "10.15468/hja69f",
+   "publisher": "Missouri Botanical Garden",
+   "publisher_key": "90fd6680-349f-11d8-aa2d-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/licenses/by/4.0/legalcode",
+   "records": 1,
+   "by_licence": {
+    "CC-BY-4.0": 1
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 1
+   }
+  },
+  {
+   "key": "7e380070-f762-11e1-a439-00145eb45e9a",
+   "title": "Natural History Museum (London) Collection Specimens",
+   "doi": "10.5519/qd.dyj48ok9",
+   "publisher": "Natural History Museum",
+   "publisher_key": "19456090-b49a-11d8-abeb-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 3,
+   "by_licence": {
+    "CC0-1.0": 3
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 3
+   }
+  },
+  {
+   "key": "7f5260c2-f762-11e1-a439-00145eb45e9a",
+   "title": "Natural History Museum, Vienna - Herbarium W",
+   "doi": "10.15468/5sl7sh",
+   "publisher": "Natural History Museum, Vienna",
+   "publisher_key": "4e11d750-bafb-11d9-8e53-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/licenses/by/4.0/legalcode",
+   "records": 2,
+   "by_licence": {
+    "CC-BY-4.0": 2
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 2
+   }
+  },
+  {
+   "key": "85714c48-f762-11e1-a439-00145eb45e9a",
+   "title": "Herbarium Berolinense, Berlin (B)",
+   "doi": "10.15468/dlwwhz",
+   "publisher": "Botanic Garden and Botanical Museum Berlin",
+   "publisher_key": "57254bd0-8256-11d8-b7ed-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 1,
+   "by_licence": {
+    "CC0-1.0": 1
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 1
+   }
+  },
+  {
+   "key": "a837f452-43bc-4c6f-bb2d-db47b931df6d",
+   "title": "Herbarium specimens of Institut Scientifique Mohamed V university (RAB)",
+   "doi": "10.15468/48pwft",
+   "publisher": "Institut Scientifique, Mohamed V University",
+   "publisher_key": "899dccde-1e1b-4da0-953d-3be7d31f2da7",
+   "dataset_licence_url": "http://creativecommons.org/licenses/by/4.0/legalcode",
+   "records": 1,
+   "by_licence": {
+    "CC-BY-4.0": 1
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 1
+   }
+  },
+  {
+   "key": "abba37fc-a9c3-4de2-bba2-7f929abc937d",
+   "title": "Baylor University Herbarium",
+   "doi": "10.15468/78jqq4",
+   "publisher": "Baylor University, Mayborn Museum Complex",
+   "publisher_key": "471aeb39-799a-44c5-9824-dfe65413b83c",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 2,
+   "by_licence": {
+    "CC0-1.0": 2
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 2
+   }
+  },
+  {
+   "key": "cd6e21c8-9e8a-493a-8a76-fbf7862069e5",
+   "title": "Royal Botanic Gardens, Kew - Herbarium Specimens",
+   "doi": "10.15468/ly60bx",
+   "publisher": "Royal Botanic Gardens, Kew",
+   "publisher_key": "061b4f20-f241-11da-a328-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/licenses/by/4.0/legalcode",
+   "records": 3,
+   "by_licence": {
+    "CC-BY-4.0": 3
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 3
+   }
+  },
+  {
+   "key": "d8cd16ba-bb74-4420-821e-083f2bac17c2",
+   "title": "INSDC Sequences",
+   "doi": "10.15468/sbmztx",
+   "publisher": "European Nucleotide Archive (EMBL-EBI)",
+   "publisher_key": "ada9d123-ddb4-467d-8891-806ea8d94230",
+   "dataset_licence_url": "http://creativecommons.org/licenses/by/4.0/legalcode",
+   "records": 3,
+   "by_licence": {
+    "CC-BY-4.0": 3
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 3
+   }
+  },
+  {
+   "key": "e2fb42ca-e408-4aa2-a7bd-a9bb4ddcc83a",
+   "title": "BOP_RODENT - Rodent specialized birds of prey (Circus, Asio, Buteo) in Flanders (Belgium)",
+   "doi": "10.5281/zenodo.23340023",
+   "publisher": "Research Institute for Nature and Forest (INBO)",
+   "publisher_key": "1cd669d0-80ea-11de-a9d0-f1765f95f18b",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 2,
+   "by_licence": {
+    "CC0-1.0": 2
+   },
+   "by_basis": {
+    "MACHINE_OBSERVATION": 2
+   }
+  },
+  {
+   "key": "ef062cb4-8ff4-46c4-b926-f5e4063973ab",
+   "title": "Juniperus occurrences from research collections of the Institute of Dendrology, Polish Academy of Sciences",
+   "doi": "10.15468/hr7rsc",
+   "publisher": "Institute of Dendrology, Polish Academy of Sciences (ID PAN)",
+   "publisher_key": "f7259790-9300-11da-8596-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/licenses/by/4.0/legalcode",
+   "records": 3,
+   "by_licence": {
+    "CC-BY-4.0": 3
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 3
+   }
+  },
+  {
+   "key": "f1cf65f2-b028-48cc-bc5d-d9baf96da827",
+   "title": "Eurasian otter (Lutra lutra) occurrence in Morocco",
+   "doi": "10.15470/xyzeiv",
+   "publisher": "Universidad de Huelva",
+   "publisher_key": "37ec4ca1-fb42-4e11-939e-dafa4aa78e9e",
+   "dataset_licence_url": "http://creativecommons.org/licenses/by/4.0/legalcode",
+   "records": 1,
+   "by_licence": {
+    "CC-BY-4.0": 1
+   },
+   "by_basis": {
+    "HUMAN_OBSERVATION": 1
+   }
+  },
+  {
+   "key": "f29ab192-5964-40ae-a397-fa48ffdf0661",
+   "title": "Zoologische Staatssammlung Muenchen - International Barcode of Life (iBOL) - Barcode of Life Project Specimen Data",
+   "doi": "10.15468/tfpnkp",
+   "publisher": "Zoologische Staatssammlung München/Staatliche Naturwissenschaftliche Sammlungen Bayerns",
+   "publisher_key": "0e2ae538-4332-4f41-bfee-8aa2c693d2a9",
+   "dataset_licence_url": "http://creativecommons.org/licenses/by/4.0/legalcode",
+   "records": 4,
+   "by_licence": {
+    "CC-BY-4.0": 4
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 4
+   }
+  },
+  {
+   "key": "f577c9f3-ae71-4278-b6bf-512ba1dfaa21",
+   "title": "General Herbarium – Cryptogamy & Phanerogamy (CJBG-G) of Jardin botanique de Genève",
+   "doi": "10.15468/rvjdu1",
+   "publisher": "Swiss Natural History Collections - SwissNatColl",
+   "publisher_key": "9661d20d-86b6-4485-8948-f3c86b022fa7",
+   "dataset_licence_url": "http://creativecommons.org/licenses/by/4.0/legalcode",
+   "records": 2,
+   "by_licence": {
+    "CC-BY-4.0": 2
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 2
+   }
+  },
+  {
+   "key": "f934f8e2-32ca-46a7-b2f8-b032a4740454",
+   "title": "CAS Botany (BOT)",
+   "doi": "10.15468/7gudyo",
+   "publisher": "California Academy of Sciences",
+   "publisher_key": "66522820-055c-11d8-b84e-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 1,
+   "by_licence": {
+    "CC0-1.0": 1
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 1
+   }
+  }
+ ],
+ "named_taxa": [
+  {
+   "name": "Astragalus armatus",
+   "source": "SCI-03",
+   "match": {
+    "usageKey": 5345597,
+    "scientificName": "Astragalus armatus Willd.",
+    "canonicalName": "Astragalus armatus",
+    "rank": "SPECIES",
+    "status": "ACCEPTED",
+    "matchType": "EXACT",
+    "confidence": 99,
+    "kingdom": "Plantae",
+    "family": "Fabaceae"
+   },
+   "gbif_reports_in_query": 0,
+   "read": 0,
+   "outside_polygon": 0,
+   "dropped_by_licence": {},
+   "kept": 0,
+   "kept_gbif_ids": [],
+   "kept_in_records": true
+  },
+  {
+   "name": "Thymus satureioides",
+   "source": "SCI-03",
+   "match": {
+    "usageKey": 7306681,
+    "scientificName": "Thymus saturejoides Coss.",
+    "canonicalName": "Thymus saturejoides",
+    "rank": "SPECIES",
+    "status": "ACCEPTED",
+    "matchType": "FUZZY",
+    "confidence": 96,
+    "kingdom": "Plantae",
+    "family": "Lamiaceae"
+   },
+   "gbif_reports_in_query": 1,
+   "read": 1,
+   "outside_polygon": 0,
+   "dropped_by_licence": {
+    "CC-BY-NC-4.0": 1
+   },
+   "kept": 0,
+   "kept_gbif_ids": [],
+   "kept_in_records": true
+  },
+  {
+   "name": "Thymelaea virgata",
+   "source": "SCI-03",
+   "match": {
+    "usageKey": 7311314,
+    "scientificName": "Thymelaea virgata (Desf.) Endl.",
+    "canonicalName": "Thymelaea virgata",
+    "rank": "SPECIES",
+    "status": "ACCEPTED",
+    "matchType": "EXACT",
+    "confidence": 99,
+    "kingdom": "Plantae",
+    "family": "Thymelaeaceae"
+   },
+   "gbif_reports_in_query": 0,
+   "read": 0,
+   "outside_polygon": 0,
+   "dropped_by_licence": {},
+   "kept": 0,
+   "kept_gbif_ids": [],
+   "kept_in_records": true
+  },
+  {
+   "name": "Euphorbia nicaeensis",
+   "source": "SCI-03",
+   "match": {
+    "usageKey": 3065819,
+    "scientificName": "Euphorbia nicaeensis All.",
+    "canonicalName": "Euphorbia nicaeensis",
+    "rank": "SPECIES",
+    "status": "ACCEPTED",
+    "matchType": "EXACT",
+    "confidence": 97,
+    "kingdom": "Plantae",
+    "family": "Euphorbiaceae"
+   },
+   "gbif_reports_in_query": 1,
+   "read": 1,
+   "outside_polygon": 0,
+   "dropped_by_licence": {
+    "CC-BY-NC-4.0": 1
+   },
+   "kept": 0,
+   "kept_gbif_ids": [],
+   "kept_in_records": true
+  }
+ ],
+ "named_taxa_reason": "The four plants that SCI-03 names; each is queried by name with the same filters and reported even when the answer is zero.",
+ "occurrences_asset": "occurrences",
+ "limitations": [
+  "Each record says an organism was recorded at a place and time by someone, as a human observation, a preserved specimen, a fossil specimen, a machine observation or another basis; a fossil specimen records an organism of an earlier age, not a living one. It is not a measurement of presence or abundance: the same species can be common and unrecorded, or rare and recorded often.",
+  "Records follow where people look. Roads, villages, trails, reserves and the habits of a few observers shape where records fall, and a quiet area is not an empty one.",
+  "Years reflect recording effort. A rise or fall in records per year follows the arrival of observation apps, surveys and datasets, not the organisms, and the counts by year are not a trend.",
+  "Coordinates are as recorded with their stated uncertainty, which is missing for some records and larger than the catchment for others; a kept record is inside the catchment polygon at its recorded point only.",
+  "Only records under CC0 1.0 or CC BY 4.0 are kept; records under other licences were dropped and are counted, so the kept records are a part of what GBIF holds here. Each dataset is credited to its publisher.",
+  "The request was made on a stated date; GBIF records are added, corrected and withdrawn over time, so a later request can give other counts.",
+  "A zero for a named plant means no kept record under that name inside the catchment, not that the plant is absent, and names can be recorded under synonyms."
+ ],
+ "forbidden_phrases": [
+  "population",
+  "abundance",
+  "decline",
+  "lives here",
+  "absent",
+  "extinct",
+  "significant",
+  "caused by",
+  "proves"
+ ]
+}

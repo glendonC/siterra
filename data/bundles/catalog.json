@@ -167,6 +167,18 @@
   },
   {
    "rel": "child",
+   "href": "./bundle_species_occurrences_ait_bouguemez/collection.json",
+   "type": "application/json",
+   "file:checksum": "12207c20e1b579d1075d6e3911568fde42ba52cee8240f00b580c1f8079006827819"
+  },
+  {
+   "rel": "child",
+   "href": "./bundle_species_occurrences_calaveras_creek/collection.json",
+   "type": "application/json",
+   "file:checksum": "12208af77fe940a0e76f01268a20055569bca00e0d94e236de7d18bc7b928271eef3"
+  },
+  {
+   "rel": "child",
    "href": "./bundle_terrain_strata_ait_bouguemez/collection.json",
    "type": "application/json",
    "file:checksum": "1220d78c5c708866192daeb5ab9dbd2ad8eea4e31c9252c611c8b9aeaecfb6daee04"
