@@ -262,6 +262,35 @@ describe("the location bar", () => {
     expect(location([item({})], dir)?.held).toBe(false);
   });
 
+  describe("each condition alone, beside an excerpt that is found", () => {
+    const good = item({ id: "gx-SCI-99-good" });
+
+    it("an excerpt found on no page", () => {
+      const gone = item({
+        id: "gx-SCI-99-gone",
+        excerpt: "never said",
+        excerpt_sha256: sha("never said"),
+      });
+      const r = extractionSuite([good, gone], corpus());
+      expect(r).toMatchObject({ located: 1, notLocated: 1, locatedOnOtherPage: 0, textChanged: 0 });
+      expect(location([good, gone], corpus())?.held).toBe(false);
+    });
+
+    it("an excerpt found only on another page", () => {
+      const moved = item({ id: "gx-SCI-99-moved", page: 1, text_sha256: sha("Other page.") });
+      const r = extractionSuite([good, moved], corpus());
+      expect(r).toMatchObject({ located: 1, notLocated: 0, locatedOnOtherPage: 1, textChanged: 0 });
+      expect(location([good, moved], corpus())?.held).toBe(false);
+    });
+
+    it("a cited page whose text hash changed while the excerpt is still in it", () => {
+      const drifted = item({ id: "gx-SCI-99-drifted", text_sha256: sha("an earlier extraction") });
+      const r = extractionSuite([good, drifted], corpus());
+      expect(r).toMatchObject({ located: 2, notLocated: 0, locatedOnOtherPage: 0, textChanged: 1 });
+      expect(location([good, drifted], corpus())?.held).toBe(false);
+    });
+  });
+
   it("does not hold when the excerpt is only on another page", () => {
     expect(location([item({ page: 1, text_sha256: sha("Other page.") })], corpus())?.held).toBe(
       false,
