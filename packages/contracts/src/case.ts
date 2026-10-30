@@ -10,7 +10,7 @@ import {
   missingIsAValue,
 } from "./rules.ts";
 
-export const caseSchemaVersion = "1.19.0";
+export const caseSchemaVersion = "1.20.0";
 /** Every schemaVersion string this contract accepts (the earlier ones of the same MAJOR stay valid). */
 export const acceptedCaseSchemaVersions = [
   "1.2.0",
@@ -31,8 +31,9 @@ export const acceptedCaseSchemaVersions = [
   "1.17.0",
   "1.18.0",
   "1.19.0",
+  "1.20.0",
 ] as const;
-export const caseSchemaId = "https://siterra.invalid/schemas/case/1.19.0/case.schema.json";
+export const caseSchemaId = "https://siterra.invalid/schemas/case/1.20.0/case.schema.json";
 
 export const EntityVersion = z.strictObject({
   entityId: entityId,
@@ -246,6 +247,7 @@ export const Task = z.strictObject({
       "compare_series",
       "list_recipes",
       "read_recipe_result",
+      "search_occurrences",
       "read_event_record",
       "compare_events",
       "propose_plan",
@@ -733,6 +735,7 @@ export const Command = z.strictObject({
     "1.17.0",
     "1.18.0",
     "1.19.0",
+    "1.20.0",
   ]),
   id: entityId,
   caseId: entityId,
@@ -783,6 +786,7 @@ export const ToolCallInfo = z.strictObject({
     "compare_series",
     "list_recipes",
     "read_recipe_result",
+    "search_occurrences",
     "read_event_record",
     "compare_events",
     "propose_plan",
@@ -855,6 +859,7 @@ export const Event = z.strictObject({
     "1.17.0",
     "1.18.0",
     "1.19.0",
+    "1.20.0",
   ]),
   id: entityId,
   caseId: entityId,
@@ -1376,6 +1381,7 @@ export const CaseSnapshot = z.strictObject({
     "1.17.0",
     "1.18.0",
     "1.19.0",
+    "1.20.0",
   ]),
   case: EnvironmentalCase,
   records: RecordCollections,
@@ -1404,6 +1410,7 @@ export const Commit = z.strictObject({
     "1.17.0",
     "1.18.0",
     "1.19.0",
+    "1.20.0",
   ]),
   id: entityId,
   caseId: entityId,

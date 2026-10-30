@@ -5,6 +5,7 @@ import {
   readRecipeResultTool,
 } from "./analysis-tools.ts";
 import { compareEventsTool, readEventRecordTool } from "./event-tools.ts";
+import { searchOccurrencesTool } from "./occurrence-tools.ts";
 import { readCaseTool, readDatasetManifestTool, summarizeObservationsTool } from "./read-tools.ts";
 import { readSourceTool, searchSourcesTool } from "./source-tools.ts";
 import type { SearchBudget } from "./source-tools.ts";
@@ -70,5 +71,6 @@ export function caseToolRegistry(
     readRecipeResultTool(store, caseId) as ToolHandler<never>,
     readEventRecordTool(store, caseId) as ToolHandler<never>,
     compareEventsTool(store, caseId) as ToolHandler<never>,
+    searchOccurrencesTool(store, caseId) as ToolHandler<never>,
   ]);
 }

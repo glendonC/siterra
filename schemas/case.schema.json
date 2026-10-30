@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://siterra.invalid/schemas/case/1.19.0/case.schema.json",
+  "$id": "https://siterra.invalid/schemas/case/1.20.0/case.schema.json",
   "title": "Siterra case contracts",
   "description": "Records of one Siterra case as stored and exchanged between the web application, the worker and the browser. The root validates a case snapshot, a command, an event or an atomic commit proposal; $defs holds the record types. Cross-record semantics that JSON Schema cannot express are specified in docs/reference/data-contracts.md.",
   "oneOf": [
@@ -942,6 +942,7 @@
               "compare_series",
               "list_recipes",
               "read_recipe_result",
+              "search_occurrences",
               "read_event_record",
               "compare_events",
               "propose_plan",
@@ -2849,7 +2850,8 @@
             "1.16.0",
             "1.17.0",
             "1.18.0",
-            "1.19.0"
+            "1.19.0",
+            "1.20.0"
           ],
           "description": "Contract version the instance was written against; producers write the newest, and earlier versions of the same MAJOR stay valid."
         },
@@ -2955,7 +2957,8 @@
             "1.16.0",
             "1.17.0",
             "1.18.0",
-            "1.19.0"
+            "1.19.0",
+            "1.20.0"
           ],
           "description": "Contract version the instance was written against; producers write the newest, and earlier versions of the same MAJOR stay valid."
         },
@@ -3340,7 +3343,8 @@
             "1.16.0",
             "1.17.0",
             "1.18.0",
-            "1.19.0"
+            "1.19.0",
+            "1.20.0"
           ],
           "description": "Contract version the instance was written against; producers write the newest, and earlier versions of the same MAJOR stay valid."
         },
@@ -3389,7 +3393,8 @@
             "1.16.0",
             "1.17.0",
             "1.18.0",
-            "1.19.0"
+            "1.19.0",
+            "1.20.0"
           ],
           "description": "Contract version the instance was written against; producers write the newest, and earlier versions of the same MAJOR stay valid."
         },
@@ -3615,6 +3620,7 @@
             "compare_series",
             "list_recipes",
             "read_recipe_result",
+            "search_occurrences",
             "read_event_record",
             "compare_events",
             "propose_plan",

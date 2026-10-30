@@ -158,6 +158,7 @@ describe("plan task on synthetic replays", () => {
       "summarize_observations",
       "list_recipes",
       "read_recipe_result",
+      "search_occurrences",
       "propose_evidence",
     ]);
     expect(commit.events.map((e) => e.kind)).toEqual([

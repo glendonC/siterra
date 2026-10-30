@@ -14,8 +14,7 @@ const ok = (value: unknown) => FieldMeasurement.safeParse(value).success;
 
 describe("contracts 1.19: the field check a field measurement serves", () => {
   it("accepts 1.19.0 and every earlier version of the same MAJOR", () => {
-    expect(caseSchemaVersion).toBe("1.19.0");
-    for (const version of [caseSchemaVersion, "1.2.0", "1.17.0", "1.18.0"]) {
+    for (const version of [caseSchemaVersion, "1.2.0", "1.17.0", "1.18.0", "1.19.0"]) {
       expect(acceptedCaseSchemaVersions).toContain(version);
     }
   });
