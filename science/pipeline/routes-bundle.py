@@ -261,7 +261,7 @@ def main():
     assets = {
         "analysis_geometry": bc.plain_asset(bdir, "analysis-geometry.geojson", "application/geo+json", f"Frozen analysis geometry {cfg['geometry']['id']}, revision {cfg['geometry']['revision']}", ["metadata"]),
         RECIPE: bc.plain_asset(bdir, "proposed-routes.json", "application/json", "Sites, cost function and each route's length, climb and time, all labelled proposed route, access unconfirmed (the result read_recipe_result returns)", ["data"]),
-        "proposed_routes": bc.plain_asset(bdir, "proposed-routes.geojson", "application/geo+json", "One 3D LineString per proposed route ([lon, lat, elevation], metres above the EGM2008 geoid); proposed route, access unconfirmed", ["data"]),
+        "route_lines": bc.plain_asset(bdir, "proposed-routes.geojson", "application/geo+json", "One 3D LineString per proposed route ([lon, lat, elevation], metres above the EGM2008 geoid); proposed route, access unconfirmed", ["data"]),
     }
     desc = (f"Precomputed result of recipe {RECIPE} {reg['version']} for {cfg['title']}: {len(routes_out)} proposed walking routes from Tabant to field check sites (the pixel the case opens and the "
             "nearest grazing-land cell of each elevation band), least time under Tobler's hiking function on the 30 m surface, "
