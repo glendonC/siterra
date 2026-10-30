@@ -75,6 +75,16 @@
    "file:size": 119623
   },
   "proposed_routes": {
+   "href": "./proposed-routes.json",
+   "type": "application/json",
+   "title": "Sites, cost function and each route's length, climb and time, all labelled proposed route, access unconfirmed (the result read_recipe_result returns)",
+   "roles": [
+    "data"
+   ],
+   "file:checksum": "12204509ddaf0c9c50f1232cd3d96b2d9006f3e5a09b5ba1988a374523f0743e16e7",
+   "file:size": 6958
+  },
+  "route_lines": {
    "href": "./proposed-routes.geojson",
    "type": "application/geo+json",
    "title": "One 3D LineString per proposed route ([lon, lat, elevation], metres above the EGM2008 geoid); proposed route, access unconfirmed",
