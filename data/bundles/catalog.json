@@ -83,6 +83,12 @@
   },
   {
    "rel": "child",
+   "href": "./bundle_relief_calaveras_creek/collection.json",
+   "type": "application/json",
+   "file:checksum": "1220a5f21387f86a25755b8e04800b50f30c931cdefeb23e274b4d81f954f566b56a"
+  },
+  {
+   "rel": "child",
    "href": "./bundle_restrend_long_record_ait_bouguemez/collection.json",
    "type": "application/json",
    "file:checksum": "1220e534312abe72fb9eb83c007406ee6e56b255e64443b24ccd3fd2db1af073a036"
