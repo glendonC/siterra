@@ -17,6 +17,7 @@ import type {
 import { isInstrumentKind } from "@siterra/contracts";
 import { composeInstruments, instrumentAssetRefs } from "@siterra/domain";
 import { analysisConfigFor } from "@siterra/domain/cases";
+import { analysisCaseIdOf } from "./case-origin.ts";
 import { type CaseAssetFile, resolveBundleAsset } from "./case-assets.ts";
 import { type Pool, inTransaction } from "./client.ts";
 
@@ -32,7 +33,7 @@ async function composition(
   args: { caseId: string; bundlesDir: string | null },
   asOf: number,
 ): Promise<Pick<InstrumentListing, "blocked" | "notOpened"> | null> {
-  const config = analysisConfigFor(args.caseId);
+  const config = analysisConfigFor(await analysisCaseIdOf(tx, args.caseId));
   if (config === null) return null;
   const types = [
     "GeoSelection",

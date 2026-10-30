@@ -65,6 +65,12 @@
   },
   {
    "rel": "child",
+   "href": "./bundle_proposed_routes_ait_bouguemez/collection.json",
+   "type": "application/json",
+   "file:checksum": "122030f304a62a03246e3d788510d0112203c2db98c13f3da20672a93607199b16d2"
+  },
+  {
+   "rel": "child",
    "href": "./bundle_relief_ait_bouguemez/collection.json",
    "type": "application/json",
    "file:checksum": "12200e42ad34b7cd7aa180f24008445c691bfdc83808bb6a2c6225d9dcee934e720d"

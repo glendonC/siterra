@@ -62,6 +62,7 @@ export function snapshotStore(
   snapshot: SnapshotView,
   corpus: Corpus,
   analyses: Analyses | null = null,
+  analysisCaseId: string = snapshot.case.id,
 ): MemoryCaseStore {
   const store = new MemoryCaseStore();
   const caseId = snapshot.case.id;
@@ -74,7 +75,7 @@ export function snapshotStore(
     activeGeoSelectionId: snapshot.case.activeGeoSelectionId,
     unresolvedQuestions: snapshot.case.unresolvedQuestions,
   });
-  const config = analysisConfigFor(caseId);
+  const config = analysisConfigFor(analysisCaseId);
   if (config) store.analysisConfigs.set(caseId, config);
   store.bundles.push(...snapshot.records.dataBundleRecords);
   store.measurements.push(...snapshot.records.measurementRecords);

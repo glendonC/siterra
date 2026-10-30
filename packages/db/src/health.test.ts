@@ -29,7 +29,7 @@ describe("deployment health: database, migrations, worker heartbeat and outbox b
     expect(await readHealth(pool)).toEqual({
       status: "degraded",
       database: "ok",
-      migrations: { expected: 4, pending: [] },
+      migrations: { expected: 5, pending: [] },
       worker: { status: "none", lastSeenAt: null },
       outbox: { pending: 0, oldestPendingSeconds: null },
     });
@@ -69,7 +69,7 @@ describe("deployment health: database, migrations, worker heartbeat and outbox b
     expect(await readHealth(pool)).toEqual({
       status: "unavailable",
       database: "ok",
-      migrations: { expected: 4, pending: ["worker-heartbeat"] },
+      migrations: { expected: 5, pending: ["worker-heartbeat"] },
       worker: null,
       outbox: null,
     });

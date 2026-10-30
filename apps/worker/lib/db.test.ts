@@ -1,6 +1,12 @@
 import { ReplayTransport, parseReplayFile } from "@siterra/agent";
 import type { ReplayStep } from "@siterra/agent";
-import { createCase, eventsOfCommand, readSnapshot, submitCommand } from "@siterra/db";
+import {
+  createCase,
+  eventsOfCommand,
+  readSnapshot,
+  startDemoSession,
+  submitCommand,
+} from "@siterra/db";
 import { exampleCase, exampleCommandRequest, freshDatabase } from "@siterra/db/testing";
 import type { TestDatabase } from "@siterra/db/testing";
 import { newId } from "@siterra/domain";
@@ -123,5 +129,23 @@ describe("plan job on PostgreSQL", () => {
       },
     );
     expect(again).toEqual({ status: "skipped", reason: "already_terminal" });
+  });
+});
+
+describe("the snapshot names the case whose analysis configuration applies", () => {
+  it("is the case itself for a stored case and the seed for a demo copy", async () => {
+    const own = await workerDb(db.pool).readSnapshot(CASE_ID);
+    expect(own?.analysisCaseId).toBe(CASE_ID);
+    const outcome = await startDemoSession(db.pool, {
+      seedCaseId: CASE_ID,
+      seedOwnerScopeId: OWNER,
+      ttlSeconds: 3600,
+      maxActiveSessions: 100,
+      maxPerMinute: 1000,
+    });
+    if (outcome.status !== "created") throw new Error(`demo copy: ${outcome.status}`);
+    const copy = await workerDb(db.pool).readSnapshot(outcome.caseId);
+    expect(copy?.case.id).toBe(outcome.caseId);
+    expect(copy?.analysisCaseId).toBe(CASE_ID);
   });
 });

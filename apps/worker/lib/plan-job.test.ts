@@ -79,6 +79,8 @@ const EMPTY_CORPUS: Corpus = { sources: [], passages: [], missing: [] };
 
 class FakeDb implements WorkerDb {
   readonly commits = new MemoryCommitApi(3);
+  /** The case whose analysis configuration applies; the seed's ID when this case is a demo copy. */
+  analysisCaseId = "case_test";
   readonly events: EventDraftRecord[] = [];
   readonly statuses: CommandView["status"][] = [];
   cancel = false;
@@ -110,6 +112,7 @@ class FakeDb implements WorkerDb {
   readSnapshot(caseId: string): Promise<WorkerSnapshot | null> {
     if (caseId !== "case_test") return Promise.resolve(null);
     return Promise.resolve({
+      analysisCaseId: this.analysisCaseId,
       case: {
         id: caseId,
         revision: this.commits.caseRevision,
@@ -232,6 +235,51 @@ describe("plan job", () => {
     expect(again.status === "ran" && again.outcome.status).toBe("failed");
     expect(db.commits.tasks).toEqual(tasks);
     expect(db.statuses).toEqual(["failed"]);
+  });
+
+  describe("a demo copy runs with the seed's analysis configuration", () => {
+    const configSeen = async (analysisCaseId: string): Promise<(string | undefined)[]> => {
+      const seen: (string | undefined)[] = [];
+      const capture: TaskExecutor = async (input, taskDeps) => {
+        seen.push((await taskDeps.store.readAnalysisConfig(input.task.caseId))?.caseId);
+        return {
+          commit: {
+            caseId: input.task.caseId,
+            commandId: input.task.commandId,
+            taskId: input.task.id,
+            expectedCaseRevision: input.expectedCaseRevision,
+            idempotencyKey: `test-${input.task.id}-${String(input.task.revision)}`,
+            inputVersions: [],
+            upserts: [
+              {
+                ...input.task,
+                revision: input.task.revision + 1,
+                status: "succeeded",
+                finishedAt: AT.toISOString(),
+              },
+            ],
+            events: [],
+          },
+        };
+      };
+      const db = new FakeDb();
+      db.analysisCaseId = analysisCaseId;
+      await handlePlanJob(JOB, {
+        ...deps(db, [answer(JSON.stringify(PLAN))]),
+        executors: { brief_package: capture },
+      });
+      return seen;
+    };
+
+    it("gives the task store the configuration of the seed the case was copied from", async () => {
+      const seen = await configSeen("case_aitbouguemez");
+      expect(seen.length).toBeGreaterThan(0);
+      expect(new Set(seen)).toEqual(new Set(["case_aitbouguemez"]));
+    });
+
+    it("gives a case with no origin and no configuration of its own none", async () => {
+      expect(new Set(await configSeen("case_test"))).toEqual(new Set([undefined]));
+    });
   });
 
   describe("AF-03 a job delivered again after a worker crash resumes the command", () => {

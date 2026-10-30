@@ -54,6 +54,7 @@ Recipes run in the offline pipeline and are stored as derived bundles whose `met
 | `terrain_relief` | What is the height of the ground at every 30 m cell of the catchment? | One-band float32 surface on the 30 m EPSG:32629 grid that the strata, drainage and transect heights use, the catchment cells plus a one-cell ring, with its summary ([entry](#relief-recipe-entry)) | Observation | P2 |
 | `land_cover_classes` | Which WorldCover 2021 class covers each 10 m cell of the catchment, and how much does each class cover? | The class layer on the 10 m analysis grid and the class table with cell counts, areas and shares ([entry](#land-cover-recipe-entry)) | Observation | P2 |
 | `optical_visibility_by_band` | In each month, what share of each elevation band's 10 m cells has a clear Sentinel-2 observation? | Per band and month the share of cells with at least one (and at least three) clear dates, with the winter months December to March summarised ([entry](#optical-visibility-recipe-entry)) | Observation | P2 |
+| `proposed_routes` | Which walking line takes the least time from Tabant to each candidate field check site, and how long, steep and far is it? | One 3D line per site with length, climb and time under Tobler's hiking function on the 30 m surface, labelled proposed route, access unconfirmed ([entry](#proposed-routes-recipe-entry)) | Model estimate | P2 |
 
 ## Season summary and the near-normal band
 
@@ -278,6 +279,24 @@ Both entries were registered in full on 2026-10-28: `restrend_long_record` befor
 | Standard limitations (verbatim) | In the registry: a clear share says how often a band was seen, not how much was covered by snow or cloud; it depends on the scene classification; bands organise sampling; 28 winter months |
 | Forbidden phrases | As `drainage_network` |
 | References | SCI-13, SCI-07 in the [source register](../../research/science/source-register.md) |
+
+## Proposed routes recipe entry
+
+`proposed_routes` was registered in full on 2026-10-29, before this pipeline computed any route. It tests no hypothesis. The field plan of the case names no places (its field checks are not locations), so the sites come from a rule written first: the pixel the case already opens, and for each elevation band the grazing-land MODIS cell nearest to Tabant that the cost function can reach. Every line is a proposed route over a 30 m surface model, access unconfirmed, and not a surveyed path. The machine-readable form is `science/recipes/registry.json`; the origin, the pixel and the target rule's thresholds are in `science/places/ait-bouguemez.json` (revision 7).
+
+| `proposed_routes` 1.0.0 | Value |
+|---|---|
+| Inputs | The relief, land cover, terrain strata, pixel trend (cells) and pixel anatomy bundles, the frozen polygon, the place configuration |
+| Cost function | Tobler's hiking function (SCI-169), speed W = 6 exp(-3.5 abs(S + 0.05)) km/h with S the slope of the move, times 0.6 off path; time of a move is its horizontal length over W; moves with abs(S) above 0.70 (about 35 degrees) are not allowed; nodes that are mostly permanent water are not allowed; one way, no load, no rest |
+| Moves | The 8 neighbours of a 30 m node (the first draft listed 16 with knight moves; before any route was computed the tests showed a knight move can step over a one cell wide wall, so it was dropped); Dijkstra from the Tabant node with ties fixed by cost then node index |
+| Sites | The centre of pixel h17v05 row 4005 column 2178; for each elevation band the nearest MODIS cell to Tabant with all corners inside the polygon, at least 0.8 grazing-possible land cover and a finite cost |
+| Per route | Horizontal length, straight-line distance, detour ratio, climb, descent, time, vertex count, largest move slope; the line is the node centres with unsmoothed heights to 0.1 m |
+| Parameters | Method only: `tobler_a_kmh` 6.0, `tobler_b` 3.5, `tobler_offset` 0.05, `off_path_factor` 0.6, `slope_cap` 0.7, `water_cells_min` 5, `duration_tolerance` 0.005 |
+| Checks | No move shortens any cost-to-reach value (so no shorter route exists); each route starts and ends at its nodes, uses allowed moves, sums to its cost-to-reach; every vertex is a node centre; recomputed duration within 0.5%; two runs give identical files |
+| Outputs | `route_time_h`, `route_length_m`, `route_climb_m`; claim kind `model_estimate`; uncertainty `not_quantified` |
+| Standard limitations (verbatim) | In the registry: proposed route, access unconfirmed, not a surveyed path; the surface model cannot see cliffs, scree, snow, rivers, fences or fields; times are model estimates for an adult on trackless ground; climb is summed over unsmoothed heights; sites come from a rule and need local agreement; the catchment is a hydrological extent |
+| Forbidden phrases | As `drainage_network` |
+| References | SCI-169, SCI-168, SCI-12, SCI-13 in the [source register](../../research/science/source-register.md) |
 
 ## Forecasting policy
 

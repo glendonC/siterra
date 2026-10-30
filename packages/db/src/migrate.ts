@@ -13,6 +13,7 @@ export const migrations = [
   "trace-and-outbox",
   "pg-boss-schema",
   "worker-heartbeat",
+  "case-origin",
 ] as const;
 
 export function migrationSql(name: string): string {

@@ -48,6 +48,8 @@ export interface CommandView {
 }
 
 export interface WorkerSnapshot extends SnapshotView {
+  /** The case ID whose analysis configuration applies: the seed of a demo copy, else the case itself. */
+  analysisCaseId: string;
   records: Omit<SnapshotView["records"], "sourceRecords"> & {
     geoSelectionRecords: { id: string; revision: number; label?: string }[];
     sourceRecords: { id: string; revision: number; title?: string; accessStatus?: string }[];
@@ -287,7 +289,7 @@ export async function handlePlanJob(job: PlanJob, deps: PlanJobDeps): Promise<Pl
       },
       {
         transport: deps.transport,
-        store: snapshotStore(snapshot, deps.corpus, deps.analyses ?? null),
+        store: snapshotStore(snapshot, deps.corpus, deps.analyses ?? null, snapshot.analysisCaseId),
         commits,
         trace: sink,
         newTaskId: () => deps.newId("task"),
