@@ -41,6 +41,12 @@
   },
   {
    "rel": "child",
+   "href": "./bundle_land_cover_calaveras_creek/collection.json",
+   "type": "application/json",
+   "file:checksum": "12200803e49f1229d0641ee3b4238e0b862f2bb1edcc4a6b4e9a201449b7658f38be"
+  },
+  {
+   "rel": "child",
    "href": "./bundle_ndvi_departure_ait_bouguemez/collection.json",
    "type": "application/json",
    "file:checksum": "122053660ae1449f41ece290b3b6f19cc28d13de790bf88826bb866d194903abae7a"
