@@ -32,7 +32,7 @@
    "roles": [
     "processor"
    ],
-   "processing:lineage": "The ESA WorldCover 2021 v200 class map read for the catchment and placed on the 10 m analysis grid (nearest neighbour, science/pipeline/worldcover-grid.py), clipped to the frozen polygon, with its class table (science/pipeline/surface-bundles.py)",
+   "processing:lineage": "The ESA WorldCover 2021 v200 class map read for the catchment and placed on the 10 m analysis grid (nearest neighbour, science/pipeline/worldcover-grid.py), clipped to the frozen polygon, with its class table (science/pipeline/surface-bundles.py) Web-ready derived assets (land-cover.png) are copies of the canonical GeoTIFF values written by science/pipeline/web-assets.py.",
    "processing:software": {
     "siterra-science": "0.1.0",
     "python": "3.12.9",
@@ -116,6 +116,26 @@
    ],
    "file:checksum": "1220836d6a20f0033dde866ac380be379bec1d44de6b42219e6038b470f93ba4ed70",
    "file:size": 464656
+  },
+  "land_cover_png": {
+   "href": "./land-cover.png",
+   "type": "image/png",
+   "title": "WorldCover 2021 class codes as an indexed PNG (web copy of land_cover)",
+   "roles": [
+    "data"
+   ],
+   "file:checksum": "1220818e5ef859c3b42bc2745fc05d8e48e36e436f13265dad9e85c043c928daec84",
+   "file:size": 276134
+  },
+  "land_cover_png_header": {
+   "href": "./land-cover.png.json",
+   "type": "application/json",
+   "title": "Header of land-cover.png: CRS, transform, shape, palette",
+   "roles": [
+    "data"
+   ],
+   "file:checksum": "1220400f108b99f244397919b551b5a03e057fa3234cd0e2b9801404bd523d3f1340",
+   "file:size": 991
   }
  },
  "created": "2026-10-29T13:39:12Z",
@@ -206,7 +226,7 @@
    "href": "../bundle_terrain_strata_ait_bouguemez/collection.json",
    "type": "application/json",
    "title": "Terrain strata bundle bundle_terrain_strata_ait_bouguemez (excluded layer, for a check)",
-   "file:checksum": "1220857e69c5d1ddbe846b8022836f888254f3f818251b9e3e4ffba8748bae07241d"
+   "file:checksum": "1220e7892bc96d951fbe7c89d256bf719931af5f6a1fec40f843dcef44040b8346d1"
   },
   {
    "rel": "derived_from",

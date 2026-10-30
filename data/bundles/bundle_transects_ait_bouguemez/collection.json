@@ -230,14 +230,14 @@
    "href": "../bundle_terrain_strata_ait_bouguemez/collection.json",
    "type": "application/json",
    "title": "Terrain strata bundle bundle_terrain_strata_ait_bouguemez",
-   "file:checksum": "1220857e69c5d1ddbe846b8022836f888254f3f818251b9e3e4ffba8748bae07241d"
+   "file:checksum": "1220e7892bc96d951fbe7c89d256bf719931af5f6a1fec40f843dcef44040b8346d1"
   },
   {
    "rel": "derived_from",
    "href": "../bundle_drainage_network_ait_bouguemez/collection.json",
    "type": "application/json",
    "title": "Drainage network bundle bundle_drainage_network_ait_bouguemez (the valley axis)",
-   "file:checksum": "12205f984cb2dab28034108c2a7582305f6397a7932eaf3ee1a669aea50b462a88f2"
+   "file:checksum": "1220338ea189958395b14af06b52bc662d4e7b59d36dddf9c12eeaac4891ab3b687a"
   },
   {
    "rel": "derived_from",
