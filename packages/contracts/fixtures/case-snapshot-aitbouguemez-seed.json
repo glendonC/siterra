@@ -13357,6 +13357,77 @@
       },
       {
         "recordType": "DataBundle",
+        "id": "bundle_proposed_routes_ait_bouguemez",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "label": "Proposed walking routes (proposed_routes 1.0.0)",
+        "status": "validated",
+        "datasetId": "copernicus-dem-glo-30",
+        "datasetVersion": "2021",
+        "sourceIds": [],
+        "geoSelectionId": "geo_ait_bouguemez_catchment",
+        "geoRevision": 1,
+        "periodIds": [],
+        "methodId": "proposed_routes",
+        "methodVersion": "1.0.0",
+        "manifestUri": "/api/case-assets/bundle_proposed_routes_ait_bouguemez/122030f304a62a03246e3d788510d0112203c2db98c13f3da20672a93607199b16d2/collection.json",
+        "contentHash": "122030f304a62a03246e3d788510d0112203c2db98c13f3da20672a93607199b16d2",
+        "license": "Licence for Copernicus DEM instance COP-DEM-GLO-30-F Global 30m Full, Free & Open; ESA WorldCover: CC BY 4.0",
+        "attribution": "Catchment and strata derived by Siterra from Copernicus DEM GLO-30 (2021 release); produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved; The organisations in charge of the Copernicus programme by law or by delegation do not incur any liability for any use of the Copernicus WorldDEM-30; © ESA WorldCover project / Contains modified Copernicus Sentinel data (2021) processed by ESA WorldCover consortium; ESA WorldCover 2021 v200 (Zanaga et al. 2022), CC BY 4.0, https://doi.org/10.5281/zenodo.7254221",
+        "provenance": {
+          "sourceLocators": [],
+          "dataBundleIds": [
+            "bundle_relief_ait_bouguemez",
+            "bundle_land_cover_ait_bouguemez",
+            "bundle_pixel_trend_long_record_ait_bouguemez",
+            "bundle_terrain_strata_ait_bouguemez",
+            "bundle_pixel_anatomy_ait_bouguemez"
+          ],
+          "methodId": "proposed_routes",
+          "methodVersion": "1.0.0",
+          "inputVersions": [
+            {
+              "entityId": "geo_ait_bouguemez_catchment",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_relief_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_land_cover_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_pixel_trend_long_record_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_terrain_strata_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_pixel_anatomy_ait_bouguemez",
+              "revision": 1
+            }
+          ],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-30T00:18:28Z",
+          "verificationStatus": "computed_checked",
+          "limitations": [
+            "Proposed route, access unconfirmed: each line is the least-time walk over a 30 m surface model under Tobler's hiking function with a slope cap, not a surveyed path, not a track on the ground and not a safe or permitted route.",
+            "The surface model smooths gorges and walls and cannot see cliffs, scree, snow, river crossings, fences, fields or irrigation channels; no route was checked on the ground or on imagery for obstacles.",
+            "Times are one way on trackless ground for an adult at Tobler's speed (times 0.6), with no load, rest, weather or snow; they are model estimates, not observed journey times, and real walking times can differ widely.",
+            "Climb and descent are sums over unsmoothed 30 m heights, so they include surface noise and are larger than a smoothed profile would give.",
+            "The sites are chosen by a rule (the pixel the case opens and the nearest grazing-land cell of each elevation band), not by a sampling design, a management unit or an agreement with anyone; reaching a site needs local agreement, land access and permission that no route establishes.",
+            "The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary."
+          ]
+        }
+      },
+      {
+        "recordType": "DataBundle",
         "id": "bundle_relief_ait_bouguemez",
         "revision": 1,
         "createdAt": "2026-10-28T20:42:35.015Z",

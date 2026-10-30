@@ -1,0 +1,271 @@
+{
+ "recipeId": "proposed_routes",
+ "version": "1.0.0",
+ "computed": "2026-10-30T00:18:28Z",
+ "place": {
+  "placeId": "ait_bouguemez",
+  "configRevision": 7,
+  "config_sha256": "0572fdf93be9e880dd07182b75c30b514e81169f87fcda634f368237a972d8e6"
+ },
+ "claim_kind": "model_estimate",
+ "label": "proposed route, access unconfirmed",
+ "not": "not a surveyed path, not a track on the ground, not a safe or permitted route",
+ "origin": {
+  "id": "ctx_tabant",
+  "name": "Tabant",
+  "from": "data/case/context-features.json feature ctx_tabant (the acceptance point, lon -6.42007, lat 31.65873)",
+  "lonLat": [
+   -6.42007,
+   31.65873
+  ],
+  "node_centre_lon_lat": [
+   -6.4201624,
+   31.6587646
+  ]
+ },
+ "cost_function": {
+  "name": "Tobler's hiking function (SCI-169)",
+  "speed_kmh": "6 exp(-3.5 abs(S + 0.05)) times 0.6 off path",
+  "slope_cap": 0.7,
+  "moves": "8 neighbours of a 30 m node",
+  "grid_m": 30.0,
+  "time": "horizontal length over speed, one way, no load, no rest",
+  "water": "nodes with at least 5 of 9 WorldCover water cells are not entered",
+  "parameters": {
+   "tobler_a_kmh": 6.0,
+   "tobler_b": 3.5,
+   "tobler_offset": 0.05,
+   "off_path_factor": 0.6,
+   "slope_cap": 0.7,
+   "water_cells_min": 5,
+   "duration_tolerance": 0.005
+  }
+ },
+ "surface_nodes": 464636,
+ "water_nodes_excluded": 872,
+ "sites": [
+  {
+   "id": "site_pixel_h17v05r4005c2178",
+   "kind": "pixel",
+   "rule": "centre of the pixel the pixel anatomy bundle names",
+   "lon_lat": [
+    -6.416024,
+    31.655208
+   ],
+   "pixel_id": "h17v05r4005c2178",
+   "band": 1,
+   "node_row_col": [
+    390,
+    394
+   ]
+  },
+  {
+   "id": "site_band_1",
+   "kind": "band",
+   "rule": "nearest MODIS cell to the origin that meets the band rule",
+   "lon_lat": [
+    -6.418903,
+    31.661458
+   ],
+   "band": 1,
+   "modis_cell": {
+    "row": 48,
+    "col": 57
+   },
+   "straight_line_to_origin_m": 322.2,
+   "grazing_possible_share": 0.9383,
+   "cells_10m": 535,
+   "march_june_slope_per_decade": 0.01588,
+   "node_row_col": [
+    367,
+    385
+   ]
+  },
+  {
+   "id": "site_band_2",
+   "kind": "band",
+   "rule": "nearest MODIS cell to the origin that meets the band rule",
+   "lon_lat": [
+    -6.436608,
+    31.634375
+   ],
+   "band": 2,
+   "modis_cell": {
+    "row": 61,
+    "col": 49
+   },
+   "straight_line_to_origin_m": 3124.1,
+   "grazing_possible_share": 0.8617,
+   "cells_10m": 535,
+   "march_june_slope_per_decade": 0.00209,
+   "node_row_col": [
+    468,
+    331
+   ]
+  },
+  {
+   "id": "site_band_3",
+   "kind": "band",
+   "rule": "nearest MODIS cell to the origin that meets the band rule",
+   "lon_lat": [
+    -6.452169,
+    31.682291
+   ],
+   "band": 3,
+   "modis_cell": {
+    "row": 38,
+    "col": 44
+   },
+   "straight_line_to_origin_m": 4012.7,
+   "grazing_possible_share": 1.0,
+   "cells_10m": 538,
+   "march_june_slope_per_decade": 0.00802,
+   "node_row_col": [
+    292,
+    278
+   ]
+  }
+ ],
+ "routes": [
+  {
+   "route_id": "route_tabant_pixel_h17v05r4005c2178",
+   "label": "proposed route, access unconfirmed",
+   "target_id": "site_pixel_h17v05r4005c2178",
+   "length_m": 551.5,
+   "straight_line_m": 551.5,
+   "detour_ratio": 1.0,
+   "climb_m": 16.4,
+   "descent_m": 11.0,
+   "time_h": 0.205,
+   "time_minutes": 12,
+   "vertices": 14,
+   "largest_move_slope": 0.17,
+   "from": {
+    "lon": -6.4201624,
+    "lat": 31.6587646,
+    "elevation_m": 1858.1
+   },
+   "to": {
+    "lon": -6.4161501,
+    "lat": 31.6551663,
+    "elevation_m": 1863.5
+   }
+  },
+  {
+   "route_id": "route_tabant_band_1",
+   "label": "proposed route, access unconfirmed",
+   "target_id": "site_band_1",
+   "length_m": 501.8,
+   "straight_line_m": 323.1,
+   "detour_ratio": 1.553,
+   "climb_m": 127.5,
+   "descent_m": 0.0,
+   "time_h": 0.408,
+   "time_minutes": 24,
+   "vertices": 14,
+   "largest_move_slope": 0.357,
+   "from": {
+    "lon": -6.4201624,
+    "lat": 31.6587646,
+    "elevation_m": 1858.1
+   },
+   "to": {
+    "lon": -6.4188231,
+    "lat": 31.6614429,
+    "elevation_m": 1985.6
+   }
+  },
+  {
+   "route_id": "route_tabant_band_2",
+   "label": "proposed route, access unconfirmed",
+   "target_id": "site_band_2",
+   "length_m": 3888.3,
+   "straight_line_m": 3114.9,
+   "detour_ratio": 1.248,
+   "climb_m": 562.9,
+   "descent_m": 58.9,
+   "time_h": 2.37,
+   "time_minutes": 142,
+   "vertices": 107,
+   "largest_move_slope": 0.381,
+   "from": {
+    "lon": -6.4201624,
+    "lat": 31.6587646,
+    "elevation_m": 1858.1
+   },
+   "to": {
+    "lon": -6.4366444,
+    "lat": 31.6344772,
+    "elevation_m": 2362.1
+   }
+  },
+  {
+   "route_id": "route_tabant_band_3",
+   "label": "proposed route, access unconfirmed",
+   "target_id": "site_band_3",
+   "length_m": 6558.3,
+   "straight_line_m": 4006.3,
+   "detour_ratio": 1.637,
+   "climb_m": 1057.3,
+   "descent_m": 63.3,
+   "time_h": 4.186,
+   "time_minutes": 251,
+   "vertices": 196,
+   "largest_move_slope": 0.418,
+   "from": {
+    "lon": -6.4201624,
+    "lat": 31.6587646,
+    "elevation_m": 1858.1
+   },
+   "to": {
+    "lon": -6.4520957,
+    "lat": 31.6824031,
+    "elevation_m": 2852.1
+   }
+  }
+ ],
+ "units": {
+  "length_m": "m horizontal along the line",
+  "climb_m": "m, sum of rises of the stored 0.1 m heights",
+  "time_h": "hours, model estimate",
+  "elevation_m": "m above the EGM2008 geoid"
+ },
+ "checks": {
+  "shorter_route_violations": 0,
+  "bad_ends": 0,
+  "disallowed_moves": 0,
+  "time_mismatch": 0,
+  "vertex_off_centre": 0,
+  "duration_outside_tolerance": 0,
+  "duration_deviation_by_route": [
+   0.00047,
+   9e-05,
+   6e-05,
+   9e-05
+  ]
+ },
+ "limitations": [
+  "Proposed route, access unconfirmed: each line is the least-time walk over a 30 m surface model under Tobler's hiking function with a slope cap, not a surveyed path, not a track on the ground and not a safe or permitted route.",
+  "The surface model smooths gorges and walls and cannot see cliffs, scree, snow, river crossings, fences, fields or irrigation channels; no route was checked on the ground or on imagery for obstacles.",
+  "Times are one way on trackless ground for an adult at Tobler's speed (times 0.6), with no load, rest, weather or snow; they are model estimates, not observed journey times, and real walking times can differ widely.",
+  "Climb and descent are sums over unsmoothed 30 m heights, so they include surface noise and are larger than a smoothed profile would give.",
+  "The sites are chosen by a rule (the pixel the case opens and the nearest grazing-land cell of each elevation band), not by a sampling design, a management unit or an agreement with anyone; reaching a site needs local agreement, land access and permission that no route establishes.",
+  "The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary."
+ ],
+ "forbidden_phrases": [
+  "significant",
+  "significantly",
+  "degradation detected",
+  "grazing impact",
+  "overgrazing",
+  "caused by",
+  "proves",
+  "recovery",
+  "forecast",
+  "pasture improvement",
+  "pasture decline",
+  "encroachment",
+  "flood risk",
+  "water supply"
+ ]
+}
