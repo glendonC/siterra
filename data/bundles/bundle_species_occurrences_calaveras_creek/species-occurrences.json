@@ -1,0 +1,2167 @@
+{
+ "recipeId": "species_occurrences",
+ "version": "1.0.0",
+ "computed": "2026-10-30T20:23:52Z",
+ "claim_kind": "observation",
+ "place": {
+  "placeId": "calaveras_creek",
+  "configRevision": 13,
+  "config_sha256": "62e1a49c090b789e8040ef80e8335ed0405e0ce160b6eace2772110290a0f165"
+ },
+ "request": {
+  "endpoint": "https://api.gbif.org/v1/occurrence/search",
+  "retrieved": "2026-10-30T20:14:26Z",
+  "filters": {
+   "geometry": "POLYGON((-121.86825 37.48425,-121.86492 37.48092,-121.86547 37.47564,-121.85714 37.47036,-121.85464 37.46397,-121.84547 37.46203,-121.84103 37.44925,-121.83464 37.44508,-121.83436 37.43786,-121.82297 37.43536,-121.81825 37.43008,-121.80742 37.43036,-121.80297 37.42592,-121.79464 37.42453,-121.79075 37.42203,-121.79158 37.41647,-121.78881 37.41342,-121.78119 37.41342,-121.77397 37.41953,-121.76436 37.41508,-121.75175 37.41536,-121.74175 37.42397,-121.73575 37.41953,-121.73714 37.39897,-121.72047 37.39342,-121.71797 37.37981,-121.70325 37.37675,-121.69547 37.36758,-121.69408 37.35425,-121.68519 37.34092,-121.68297 37.32675,-121.67269 37.31786,-121.66297 37.31619,-121.66297 37.31314,-121.65825 37.31119,-121.65908 37.30508,-121.63242 37.29786,-121.63075 37.28731,-121.62742 37.28619,-121.62908 37.27258,-121.61492 37.26786,-121.61186 37.26147,-121.60314 37.26036,-121.60175 37.26953,-121.59758 37.27092,-121.56425 37.26869,-121.55908 37.28008,-121.55325 37.26925,-121.54575 37.26342,-121.53353 37.25925,-121.53158 37.25592,-121.52397 37.25564,-121.52258 37.26158,-121.52814 37.28842,-121.51508 37.28731,-121.49619 37.30147,-121.49286 37.32381,-121.52619 37.33686,-121.53119 37.34186,-121.54519 37.34075,-121.55508 37.33242,-121.55981 37.33714,-121.56231 37.34825,-121.57481 37.35103,-121.58842 37.36936,-121.58897 37.37575,-121.60008 37.37964,-121.60592 37.38881,-121.62703 37.39047,-121.63147 37.39436,-121.63092 37.40158,-121.63842 37.41019,-121.64953 37.41047,-121.65731 37.41881,-121.66758 37.41881,-121.68092 37.43964,-121.69064 37.44131,-121.69314 37.44825,-121.70758 37.45186,-121.72064 37.46492,-121.73203 37.46631,-121.74175 37.47075,-121.74619 37.47686,-121.76175 37.48103,-121.76369 37.48686,-121.78036 37.49103,-121.79175 37.48853,-121.79369 37.49658,-121.79908 37.49686,-121.80175 37.49381,-121.80231 37.50269,-121.82019 37.50547,-121.82592 37.49908,-121.82981 37.50714,-121.84325 37.50908,-121.86797 37.49603,-121.86825 37.48425))",
+   "hasCoordinate": "true",
+   "hasGeospatialIssue": "false",
+   "occurrenceStatus": "PRESENT"
+  },
+  "query_polygon_wkt": "POLYGON((-121.86825 37.48425,-121.86492 37.48092,-121.86547 37.47564,-121.85714 37.47036,-121.85464 37.46397,-121.84547 37.46203,-121.84103 37.44925,-121.83464 37.44508,-121.83436 37.43786,-121.82297 37.43536,-121.81825 37.43008,-121.80742 37.43036,-121.80297 37.42592,-121.79464 37.42453,-121.79075 37.42203,-121.79158 37.41647,-121.78881 37.41342,-121.78119 37.41342,-121.77397 37.41953,-121.76436 37.41508,-121.75175 37.41536,-121.74175 37.42397,-121.73575 37.41953,-121.73714 37.39897,-121.72047 37.39342,-121.71797 37.37981,-121.70325 37.37675,-121.69547 37.36758,-121.69408 37.35425,-121.68519 37.34092,-121.68297 37.32675,-121.67269 37.31786,-121.66297 37.31619,-121.66297 37.31314,-121.65825 37.31119,-121.65908 37.30508,-121.63242 37.29786,-121.63075 37.28731,-121.62742 37.28619,-121.62908 37.27258,-121.61492 37.26786,-121.61186 37.26147,-121.60314 37.26036,-121.60175 37.26953,-121.59758 37.27092,-121.56425 37.26869,-121.55908 37.28008,-121.55325 37.26925,-121.54575 37.26342,-121.53353 37.25925,-121.53158 37.25592,-121.52397 37.25564,-121.52258 37.26158,-121.52814 37.28842,-121.51508 37.28731,-121.49619 37.30147,-121.49286 37.32381,-121.52619 37.33686,-121.53119 37.34186,-121.54519 37.34075,-121.55508 37.33242,-121.55981 37.33714,-121.56231 37.34825,-121.57481 37.35103,-121.58842 37.36936,-121.58897 37.37575,-121.60008 37.37964,-121.60592 37.38881,-121.62703 37.39047,-121.63147 37.39436,-121.63092 37.40158,-121.63842 37.41019,-121.64953 37.41047,-121.65731 37.41881,-121.66758 37.41881,-121.68092 37.43964,-121.69064 37.44131,-121.69314 37.44825,-121.70758 37.45186,-121.72064 37.46492,-121.73203 37.46631,-121.74175 37.47075,-121.74619 37.47686,-121.76175 37.48103,-121.76369 37.48686,-121.78036 37.49103,-121.79175 37.48853,-121.79369 37.49658,-121.79908 37.49686,-121.80175 37.49381,-121.80231 37.50269,-121.82019 37.50547,-121.82592 37.49908,-121.82981 37.50714,-121.84325 37.50908,-121.86797 37.49603,-121.86825 37.48425))",
+  "query_polygon_rule": "The frozen polygon buffered by 0.002 degrees (mitred) and simplified at 0.001 degrees, exterior ring only and counter-clockwise: an outward fit for the URL. The run stops unless it contains the frozen polygon. Records are then tested against the exact frozen polygon.",
+  "page_limit": 300,
+  "licence_in_request": false,
+  "gbif_count_for_query": 63990,
+  "pages": 263
+ },
+ "counts": {
+  "read": 63990,
+  "outside_exact_polygon": 5675,
+  "dropped_by_licence": {
+   "CC-BY-NC-4.0": 8175
+  },
+  "dropped_by_licence_total": 8175,
+  "kept": 50140,
+  "licences_kept": [
+   "CC0-1.0",
+   "CC-BY-4.0"
+  ]
+ },
+ "by_group": {
+  "animals": 48348,
+  "plants": 1616,
+  "fungi": 112,
+  "other": 64
+ },
+ "by_kingdom": {
+  "Animalia": 48348,
+  "Plantae": 1616,
+  "Fungi": 112,
+  "Chromista": 56,
+  "Protozoa": 4,
+  "unassigned": 3,
+  "Viruses": 1
+ },
+ "by_class": {
+  "Animalia / Aves": 39091,
+  "Animalia / Elasmobranchii": 4126,
+  "Animalia / Insecta": 2073,
+  "Plantae / Magnoliopsida": 1321,
+  "Animalia / Bivalvia": 990,
+  "Animalia / unassigned": 888,
+  "Animalia / Mammalia": 628,
+  "Plantae / Liliopsida": 185,
+  "Animalia / Amphibia": 142,
+  "Animalia / Squamata": 141,
+  "Animalia / Gastropoda": 137,
+  "Fungi / Lecanoromycetes": 66,
+  "Plantae / Bryopsida": 55,
+  "Animalia / Arachnida": 49,
+  "Chromista / Globothalamea": 35,
+  "Animalia / Malacostraca": 24,
+  "Plantae / Pinopsida": 24,
+  "Animalia / Ostracoda": 22,
+  "Plantae / Polypodiopsida": 17,
+  "Fungi / Agaricomycetes": 15,
+  "Animalia / Scaphopoda": 11,
+  "Animalia / Maxillopoda": 10,
+  "Chromista / Bacillariophyceae": 8,
+  "Fungi / Pucciniomycetes": 8,
+  "Chromista / unassigned": 7,
+  "Animalia / Diplopoda": 6,
+  "Animalia / Echinoidea": 6,
+  "Chromista / Tubothalamea": 6,
+  "Fungi / Taphrinomycetes": 6,
+  "Plantae / Lycopodiopsida": 6,
+  "Fungi / Exobasidiomycetes": 4,
+  "Fungi / Leotiomycetes": 4,
+  "Protozoa / Lobosa": 4,
+  "Fungi / Sordariomycetes": 3,
+  "Fungi / Tremellomycetes": 3,
+  "Plantae / Charophyceae": 3,
+  "Plantae / Marchantiopsida": 3,
+  "unassigned / unassigned": 3,
+  "Animalia / Chromadorea": 2,
+  "Fungi / Dothideomycetes": 2,
+  "Animalia / Chilopoda": 1,
+  "Animalia / Testudines": 1,
+  "Fungi / Eurotiomycetes": 1,
+  "Plantae / Polytrichopsida": 1,
+  "Plantae / Trebouxiophyceae": 1,
+  "Viruses / Caudoviricetes": 1
+ },
+ "by_basis_of_record": {
+  "HUMAN_OBSERVATION": 40125,
+  "FOSSIL_SPECIMEN": 6258,
+  "PRESERVED_SPECIMEN": 3509,
+  "OCCURRENCE": 157,
+  "MATERIAL_SAMPLE": 85,
+  "MATERIAL_CITATION": 6
+ },
+ "by_year": {
+  "1875": 2,
+  "1890": 1,
+  "1891": 2,
+  "1892": 26,
+  "1893": 12,
+  "1894": 15,
+  "1895": 118,
+  "1896": 4,
+  "1897": 20,
+  "1898": 10,
+  "1900": 3,
+  "1901": 26,
+  "1902": 7,
+  "1903": 27,
+  "1904": 5,
+  "1905": 45,
+  "1906": 6,
+  "1907": 16,
+  "1908": 15,
+  "1909": 13,
+  "1911": 2,
+  "1912": 1,
+  "1913": 11,
+  "1914": 8,
+  "1917": 3,
+  "1920": 4,
+  "1921": 11,
+  "1922": 24,
+  "1923": 5,
+  "1925": 9,
+  "1926": 8,
+  "1927": 1,
+  "1928": 3,
+  "1929": 3,
+  "1930": 10,
+  "1931": 5,
+  "1932": 22,
+  "1933": 49,
+  "1934": 88,
+  "1935": 38,
+  "1936": 71,
+  "1937": 1,
+  "1938": 191,
+  "1939": 15,
+  "1940": 57,
+  "1941": 106,
+  "1942": 7,
+  "1943": 40,
+  "1944": 1,
+  "1945": 40,
+  "1946": 11,
+  "1947": 14,
+  "1948": 10,
+  "1949": 7,
+  "1950": 42,
+  "1951": 26,
+  "1952": 18,
+  "1953": 17,
+  "1954": 25,
+  "1955": 64,
+  "1956": 65,
+  "1957": 27,
+  "1958": 12,
+  "1959": 5,
+  "1960": 112,
+  "1961": 69,
+  "1962": 6,
+  "1963": 23,
+  "1964": 17,
+  "1965": 25,
+  "1966": 24,
+  "1967": 16,
+  "1968": 9,
+  "1969": 144,
+  "1970": 96,
+  "1971": 14,
+  "1972": 102,
+  "1973": 89,
+  "1974": 198,
+  "1975": 84,
+  "1976": 122,
+  "1977": 182,
+  "1978": 41,
+  "1979": 67,
+  "1980": 77,
+  "1981": 13,
+  "1982": 164,
+  "1983": 57,
+  "1984": 61,
+  "1985": 57,
+  "1986": 124,
+  "1987": 144,
+  "1988": 1,
+  "1989": 5,
+  "1990": 3,
+  "1991": 1,
+  "1992": 47,
+  "1993": 497,
+  "1994": 379,
+  "1995": 80,
+  "1996": 229,
+  "1997": 456,
+  "1998": 75,
+  "1999": 170,
+  "2000": 90,
+  "2001": 40,
+  "2002": 202,
+  "2003": 172,
+  "2004": 172,
+  "2005": 78,
+  "2006": 388,
+  "2007": 448,
+  "2008": 526,
+  "2009": 477,
+  "2010": 928,
+  "2011": 755,
+  "2012": 1474,
+  "2013": 1366,
+  "2014": 2408,
+  "2015": 1186,
+  "2016": 955,
+  "2017": 1384,
+  "2018": 1225,
+  "2019": 1958,
+  "2020": 3854,
+  "2021": 4735,
+  "2022": 3282,
+  "2023": 2951,
+  "2024": 2712,
+  "2025": 4183,
+  "2026": 59
+ },
+ "records_without_year": 6502,
+ "coordinate_uncertainty": {
+  "records_without": 46672,
+  "records_above_1000_m": 1811,
+  "records_stated_zero": 0
+ },
+ "datasets": [
+  {
+   "key": "040c5662-da76-4782-a48e-cdea1892d14c",
+   "title": "International Barcode of Life project (iBOL)",
+   "doi": "10.15468/inygc6",
+   "publisher": "The International Barcode of Life Consortium",
+   "publisher_key": "b3bf3a83-1f68-4541-a03f-330d30d567f5",
+   "dataset_licence_url": "http://creativecommons.org/licenses/by/4.0/legalcode",
+   "records": 55,
+   "by_licence": {
+    "CC-BY-4.0": 55
+   },
+   "by_basis": {
+    "MATERIAL_SAMPLE": 55
+   }
+  },
+  {
+   "key": "042051f6-e602-4281-8ac3-d683811f0631",
+   "title": "Virginia Polytechnic Institute and State University Insect Collection",
+   "doi": "10.15468/m2htqa",
+   "publisher": "Virginia Tech Insect Collection",
+   "publisher_key": "5a9d868e-77e2-4efd-ade6-069f66b84a35",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 1,
+   "by_licence": {
+    "CC0-1.0": 1
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 1
+   }
+  },
+  {
+   "key": "07044577-bd82-4089-9f3a-f4a9d2170b2e",
+   "title": "A global database for the distributions of crop wild relatives",
+   "doi": "10.15468/jyrthk",
+   "publisher": "Centro Internacional de Agricultura Tropical - CIAT",
+   "publisher_key": "fee3882f-5360-4f01-a1ca-767c48fa629c",
+   "dataset_licence_url": "http://creativecommons.org/licenses/by/4.0/legalcode",
+   "records": 152,
+   "by_licence": {
+    "CC-BY-4.0": 152
+   },
+   "by_basis": {
+    "OCCURRENCE": 152
+   }
+  },
+  {
+   "key": "09435c69-7ec7-46f4-b52f-5131baa10143",
+   "title": "Cornell University Insect Collection (CUIC)",
+   "doi": "10.15468/w9b6ap",
+   "publisher": "Cornell University Insect Collection (CUIC)",
+   "publisher_key": "c1c50c16-d4fa-4fc7-85ae-86ede81f1f8f",
+   "dataset_licence_url": "http://creativecommons.org/licenses/by/4.0/legalcode",
+   "records": 2,
+   "by_licence": {
+    "CC-BY-4.0": 2
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 2
+   }
+  },
+  {
+   "key": "09c4287e-e6d5-4552-a07f-bff8a00833d8",
+   "title": "MVZ Herp Collection (Arctos)",
+   "doi": "10.15468/pi1mts",
+   "publisher": "Museum of Vertebrate Zoology",
+   "publisher_key": "8edbbde0-055e-11d8-b850-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 108,
+   "by_licence": {
+    "CC0-1.0": 108
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 108
+   }
+  },
+  {
+   "key": "0d8d90f4-973a-46a1-9ea1-55b0c7b222ea",
+   "title": "San Diego Natural History Museum Terrestrial Invertebrate Collection",
+   "doi": "10.15468/dpyqml",
+   "publisher": "San Diego Natural History Museum",
+   "publisher_key": "8a471700-4ce8-11db-b80e-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 28,
+   "by_licence": {
+    "CC0-1.0": 28
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 28
+   }
+  },
+  {
+   "key": "0daed095-478a-4af6-abf5-18acb790fbb2",
+   "title": "MVZ Mammal Collection (Arctos)",
+   "doi": "10.15468/uwudf9",
+   "publisher": "Museum of Vertebrate Zoology",
+   "publisher_key": "8edbbde0-055e-11d8-b850-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 149,
+   "by_licence": {
+    "CC0-1.0": 149
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 149
+   }
+  },
+  {
+   "key": "0f6a3163-4efb-47ab-a4f1-2f548098665f",
+   "title": "University of Cincinnati, Margaret H. Fulford Herbarium - Vascular Plants",
+   "doi": "10.15468/bhgpmq",
+   "publisher": "Margaret H. Fulford Herbarium, University of Cincinnati (CINC)",
+   "publisher_key": "925267b2-870b-409e-8a81-d044d6eb6c2f",
+   "dataset_licence_url": "http://creativecommons.org/licenses/by/4.0/legalcode",
+   "records": 1,
+   "by_licence": {
+    "CC-BY-4.0": 1
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 1
+   }
+  },
+  {
+   "key": "10e44c48-0839-4a20-86d5-f0e23ae2e366",
+   "title": "Bee Biology and Systematics Laboratory",
+   "doi": "10.15468/anyror",
+   "publisher": "USDA-ARS Pollinating Insect-Biology, Management, Systematics Research",
+   "publisher_key": "1e26a630-7203-11dc-a0d8-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/licenses/by/4.0/legalcode",
+   "records": 95,
+   "by_licence": {
+    "CC-BY-4.0": 95
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 95
+   }
+  },
+  {
+   "key": "1154759f-b989-4888-b670-4c960f4c1871",
+   "title": "Gilbert M. Smith Herbarium",
+   "doi": "10.15468/n4hfmc",
+   "publisher": "Hopkins Marine Station",
+   "publisher_key": "27f165a4-51ed-41f9-b328-d97c807f0cb5",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 1,
+   "by_licence": {
+    "CC0-1.0": 1
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 1
+   }
+  },
+  {
+   "key": "11f969bf-b187-4edf-9d0a-ed25375e8f96",
+   "title": "Review of the bee subgenus Lasioglossum (Hemihalictus) in western North America (Hymenoptera: Halictidae)",
+   "doi": "10.15468/6qsut5",
+   "publisher": "European Journal of Taxonomy",
+   "publisher_key": "a064f300-1bc8-41ea-9364-b864ef4e8938",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 6,
+   "by_licence": {
+    "CC0-1.0": 6
+   },
+   "by_basis": {
+    "MATERIAL_CITATION": 6
+   }
+  },
+  {
+   "key": "13b70480-bd69-11dd-b15f-b8a03c50a862",
+   "title": "AntWeb",
+   "doi": "10.15468/wqmjjt",
+   "publisher": "California Academy of Sciences",
+   "publisher_key": "66522820-055c-11d8-b84e-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/licenses/by/4.0/legalcode",
+   "records": 8,
+   "by_licence": {
+    "CC-BY-4.0": 8
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 8
+   }
+  },
+  {
+   "key": "14d5676a-2c54-4f94-9023-1e8dcd822aa0",
+   "title": "Pl@ntNet automatically identified occurrences",
+   "doi": "10.15468/mma2ec",
+   "publisher": "Pl@ntNet",
+   "publisher_key": "da86174a-a605-43a4-a5e8-53d484152cd3",
+   "dataset_licence_url": "http://creativecommons.org/licenses/by/4.0/legalcode",
+   "records": 4,
+   "by_licence": {
+    "CC-BY-4.0": 4
+   },
+   "by_basis": {
+    "HUMAN_OBSERVATION": 4
+   }
+  },
+  {
+   "key": "14f3151a-e95d-493c-a40d-d9938ef62954",
+   "title": "CAS Entomology (ENT)",
+   "doi": "10.15468/3ibpmo",
+   "publisher": "California Academy of Sciences",
+   "publisher_key": "66522820-055c-11d8-b84e-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 235,
+   "by_licence": {
+    "CC0-1.0": 235
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 235
+   }
+  },
+  {
+   "key": "15f819bd-6612-4447-854b-14d12ee1022d",
+   "title": "Naturalis Biodiversity Center (NL) - Botany",
+   "doi": "10.15468/ib5ypt",
+   "publisher": "Naturalis Biodiversity Center",
+   "publisher_key": "396d5f30-dea9-11db-8ab4-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 1,
+   "by_licence": {
+    "CC0-1.0": 1
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 1
+   }
+  },
+  {
+   "key": "1a9d08bb-9e2c-4540-8f7f-3205846b6ddc",
+   "title": "UTEP Plants (Arctos)",
+   "doi": "10.15468/yhb6ky",
+   "publisher": "University of Texas at El Paso Biodiversity Collections",
+   "publisher_key": "52c8f620-1816-11da-9544-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 2,
+   "by_licence": {
+    "CC0-1.0": 2
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 2
+   }
+  },
+  {
+   "key": "1d04e739-98a9-4e16-9970-8f8f3bf9e9e3",
+   "title": "KUBI Mammalogy Collection",
+   "doi": "10.15468/a3woj7",
+   "publisher": "University of Kansas Biodiversity Institute",
+   "publisher_key": "b554c320-0560-11d8-b851-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/licenses/by/4.0/legalcode",
+   "records": 2,
+   "by_licence": {
+    "CC-BY-4.0": 2
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 2
+   }
+  },
+  {
+   "key": "1e61b812-b2ec-43d0-bdbb-8534a761f74c",
+   "title": "Canadian Museum of Nature Herbarium",
+   "doi": "10.15468/kowta4",
+   "publisher": "Canadian Museum of Nature",
+   "publisher_key": "a41250f0-7c3e-11d8-a19c-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/licenses/by/4.0/legalcode",
+   "records": 2,
+   "by_licence": {
+    "CC-BY-4.0": 2
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 2
+   }
+  },
+  {
+   "key": "26098c25-8f7f-4c71-97ac-1d3db181c65e",
+   "title": "NMNH Material Samples (USNM)",
+   "doi": "10.15468/jb9tdf",
+   "publisher": "National Museum of Natural History, Smithsonian Institution",
+   "publisher_key": "bc092ff0-02e4-11dc-991f-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 21,
+   "by_licence": {
+    "CC0-1.0": 21
+   },
+   "by_basis": {
+    "MATERIAL_SAMPLE": 21
+   }
+  },
+  {
+   "key": "27ba04cd-45b9-4f5c-b032-d1bcc584fbdd",
+   "title": "La colección briológica del Herbario Nacional (MEXU). Actualización 2000",
+   "doi": "10.15468/xlsimn",
+   "publisher": "Comisión nacional para el conocimiento y uso de la biodiversidad",
+   "publisher_key": "ff90b050-c256-11db-b71b-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/licenses/by/4.0/legalcode",
+   "records": 1,
+   "by_licence": {
+    "CC-BY-4.0": 1
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 1
+   }
+  },
+  {
+   "key": "2e6298fb-d9d7-4915-b69d-890b5aaf91df",
+   "title": "The Lepidopterists' Society Season Summary",
+   "doi": "10.15468/jo1wfa",
+   "publisher": "The Lepidopterists' Society Season Summary",
+   "publisher_key": "4cd08c7c-fd56-48d0-ab05-aac38aa4457e",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 1,
+   "by_licence": {
+    "CC0-1.0": 1
+   },
+   "by_basis": {
+    "HUMAN_OBSERVATION": 1
+   }
+  },
+  {
+   "key": "323b0e80-5e4b-4cc4-936a-d93fc8cae9bc",
+   "title": "C.P. Gillette Museum of Arthropod Diversity",
+   "doi": "10.15468/k0aett",
+   "publisher": "Colorado State University, C.P. Gillette Museum of Arthropod Diversity",
+   "publisher_key": "0d923068-1cec-44de-8b78-33a51fb0cacd",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 15,
+   "by_licence": {
+    "CC0-1.0": 15
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 15
+   }
+  },
+  {
+   "key": "35720b3e-aded-4b83-b4f1-967f1d457d6a",
+   "title": "CUMV Mammal Collection",
+   "doi": "10.15468/kkgkne",
+   "publisher": "Cornell University Museum of Vertebrates",
+   "publisher_key": "cf9ceb80-9f3d-11da-b791-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 6,
+   "by_licence": {
+    "CC0-1.0": 6
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 6
+   }
+  },
+  {
+   "key": "378c96e5-4652-4e2a-9592-74bd71798f33",
+   "title": "Washington State University, Charles R. Conner Museum Bird Specimens (Arctos)",
+   "doi": "10.15468/69rrkk",
+   "publisher": "Charles R. Conner Museum",
+   "publisher_key": "7c7b6440-94d1-11dd-bdb1-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/licenses/by/4.0/legalcode",
+   "records": 6,
+   "by_licence": {
+    "CC-BY-4.0": 6
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 6
+   }
+  },
+  {
+   "key": "393b8c26-e4e0-4dd0-a218-93fc074ebf4e",
+   "title": "INSDC Host Organism Sequences",
+   "doi": "10.15468/e97kmy",
+   "publisher": "European Nucleotide Archive (EMBL-EBI)",
+   "publisher_key": "ada9d123-ddb4-467d-8891-806ea8d94230",
+   "dataset_licence_url": "http://creativecommons.org/licenses/by/4.0/legalcode",
+   "records": 1,
+   "by_licence": {
+    "CC-BY-4.0": 1
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 1
+   }
+  },
+  {
+   "key": "3abe0ed3-371f-49ab-bc4f-ac1887e04983",
+   "title": "Kenneth S. Norris Center for Natural History, University of California, Santa Cruz (UCSC) Mammal specimens (Arctos)",
+   "doi": "10.15468/papslg",
+   "publisher": "Kenneth S. Norris Center for Natural History",
+   "publisher_key": "f753171f-d38a-44fd-af85-40818746b336",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 1,
+   "by_licence": {
+    "CC0-1.0": 1
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 1
+   }
+  },
+  {
+   "key": "3ee66eb3-4786-4bda-b7f1-c145b1a57a6b",
+   "title": "Delaware Museum of Nature and Science – Mollusks",
+   "doi": "10.15468/lfwzak",
+   "publisher": "Delaware Museum of Nature & Science",
+   "publisher_key": "a42867f0-813a-11dc-82e0-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 1,
+   "by_licence": {
+    "CC0-1.0": 1
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 1
+   }
+  },
+  {
+   "key": "41fc5c40-5e81-496f-9733-6b5681b3b7a5",
+   "title": "Field Museum of Natural History (Zoology) Mammal Collection",
+   "doi": "10.15468/n4zgxw",
+   "publisher": "Field Museum",
+   "publisher_key": "7b8aff00-a9f8-11d8-944b-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 91,
+   "by_licence": {
+    "CC0-1.0": 91
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 91
+   }
+  },
+  {
+   "key": "42836bba-b141-41ef-b89a-b877258c82ea",
+   "title": "(Appendix 8) Distribution of barnacles, bivalves, gastropods, and calcified worm tubes in sediment samples collected between 1995 and 2010 in the San Francisco Bay coastal system",
+   "doi": "10.1594/pangaea.804521",
+   "publisher": "PANGAEA - Data Publisher for Earth & Environmental Science",
+   "publisher_key": "d5778510-eb28-11da-8629-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/licenses/by/4.0/legalcode",
+   "records": 23,
+   "by_licence": {
+    "CC-BY-4.0": 23
+   },
+   "by_basis": {
+    "HUMAN_OBSERVATION": 23
+   }
+  },
+  {
+   "key": "44bcde48-ac71-46f2-bf73-24fc3c008b6c",
+   "title": "CAS Invertebrate Zoology (IZ)",
+   "doi": "10.15468/tiac99",
+   "publisher": "California Academy of Sciences",
+   "publisher_key": "66522820-055c-11d8-b84e-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 10,
+   "by_licence": {
+    "CC0-1.0": 10
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 10
+   }
+  },
+  {
+   "key": "4aba74ef-8fe5-4f03-af31-9b57d0a80d08",
+   "title": "Wisconsin State Herbarium, Fungi",
+   "doi": "10.15468/wmhgbn",
+   "publisher": "University of Wisconsin - Madison",
+   "publisher_key": "d6bd7c74-ff29-48f8-b5f5-e9dc1afff3db",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 6,
+   "by_licence": {
+    "CC0-1.0": 6
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 6
+   }
+  },
+  {
+   "key": "4c3b15bd-c98f-448c-9556-810fd82e8e30",
+   "title": "University of Georgia Collection of Arthropods",
+   "doi": "10.15468/rsljus",
+   "publisher": "University of Georgia Collection of Arthropods",
+   "publisher_key": "062447f7-40ec-42af-9622-ee9170752dc3",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 2,
+   "by_licence": {
+    "CC0-1.0": 2
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 2
+   }
+  },
+  {
+   "key": "4ce8e3f9-2546-4af1-b28d-e2eadf05dfd4",
+   "title": "National Herbarium of Victoria (MEL) AVH data",
+   "doi": "10.15468/rhzrxw",
+   "publisher": "Royal Botanic Gardens Victoria",
+   "publisher_key": "215fad6d-884d-4127-9635-fad209824cdf",
+   "dataset_licence_url": "http://creativecommons.org/licenses/by/4.0/legalcode",
+   "records": 5,
+   "by_licence": {
+    "CC-BY-4.0": 5
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 5
+   }
+  },
+  {
+   "key": "4f29b6ab-20c0-4479-8795-4915bedcebd1",
+   "title": "CAS Ornithology (ORN)",
+   "doi": "10.15468/ozz2u5",
+   "publisher": "California Academy of Sciences",
+   "publisher_key": "66522820-055c-11d8-b84e-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 67,
+   "by_licence": {
+    "CC0-1.0": 67
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 67
+   }
+  },
+  {
+   "key": "4fa7b334-ce0d-4e88-aaae-2e0c138d049e",
+   "title": "EOD – eBird Observation Dataset",
+   "doi": "10.15468/aomfnb",
+   "publisher": "Cornell Lab of Ornithology",
+   "publisher_key": "e2e717bf-551a-4917-bdc9-4fa0f342c530",
+   "dataset_licence_url": "http://creativecommons.org/licenses/by/4.0/legalcode",
+   "records": 38533,
+   "by_licence": {
+    "CC-BY-4.0": 38533
+   },
+   "by_basis": {
+    "HUMAN_OBSERVATION": 38533
+   }
+  },
+  {
+   "key": "50c9509d-22c7-4a22-a47d-8c48425ef4a7",
+   "title": "iNaturalist Research-grade Observations",
+   "doi": "10.15468/ab3s5x",
+   "publisher": "iNaturalist.org",
+   "publisher_key": "28eb1a3f-1c15-4a95-931a-4af90ecb574d",
+   "dataset_licence_url": "http://creativecommons.org/licenses/by-nc/4.0/legalcode",
+   "records": 1466,
+   "by_licence": {
+    "CC0-1.0": 633,
+    "CC-BY-4.0": 833
+   },
+   "by_basis": {
+    "HUMAN_OBSERVATION": 1466
+   }
+  },
+  {
+   "key": "5678b0b3-450b-4513-82e1-2b32c3c50b54",
+   "title": "University of Lethbridge Herbarium (LEA)",
+   "doi": "10.5886/wrt547hq",
+   "publisher": "University of Lethbridge",
+   "publisher_key": "e18ccd87-6e1d-4e4d-850d-b3138d007eb7",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 4,
+   "by_licence": {
+    "CC0-1.0": 4
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 4
+   }
+  },
+  {
+   "key": "58d0f326-2e85-4d0a-a744-571461220f00",
+   "title": "University of California Museum of Paleontology",
+   "doi": "10.15468/bxpyo3",
+   "publisher": "Berkeley Natural History Museums",
+   "publisher_key": "0dc9c7a0-b5c6-11d9-a0b8-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/licenses/by/4.0/legalcode",
+   "records": 6258,
+   "by_licence": {
+    "CC-BY-4.0": 6258
+   },
+   "by_basis": {
+    "FOSSIL_SPECIMEN": 6258
+   }
+  },
+  {
+   "key": "5a6538b8-e35c-46c4-8978-6858a657a75f",
+   "title": "Cornell University Plant Pathology Herbarium",
+   "doi": "10.15468/xzn5g5",
+   "publisher": "Cornell Plant Pathology Herbarium (CUP)",
+   "publisher_key": "a26dde42-dd82-4d07-a763-353ab27fc02c",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 2,
+   "by_licence": {
+    "CC0-1.0": 2
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 2
+   }
+  },
+  {
+   "key": "5b1129a0-0461-46e5-a55c-9195be29c0ff",
+   "title": "Natural History Museum of Utah, Garrett Herbarium",
+   "doi": "10.15468/pteehh",
+   "publisher": "Natural History Museum of Utah (UMNH)",
+   "publisher_key": "2d6267a0-0561-11d8-b851-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/licenses/by/4.0/legalcode",
+   "records": 1,
+   "by_licence": {
+    "CC-BY-4.0": 1
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 1
+   }
+  },
+  {
+   "key": "5d283bb6-64dd-4626-8b3b-a4e8db5415c3",
+   "title": "Essig Museum of Entomology",
+   "doi": "10.15468/0saucj",
+   "publisher": "Berkeley Natural History Museums",
+   "publisher_key": "0dc9c7a0-b5c6-11d9-a0b8-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/licenses/by/4.0/legalcode",
+   "records": 661,
+   "by_licence": {
+    "CC-BY-4.0": 661
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 661
+   }
+  },
+  {
+   "key": "5d6c10bd-ea31-4363-8b79-58c96d859f5b",
+   "title": "CAS Ichthyology (ICH)",
+   "doi": "10.15468/efh2ib",
+   "publisher": "California Academy of Sciences",
+   "publisher_key": "66522820-055c-11d8-b84e-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 15,
+   "by_licence": {
+    "CC0-1.0": 15
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 15
+   }
+  },
+  {
+   "key": "62ad511d-d298-4fd7-80e7-f5d5bd32299e",
+   "title": "MVZ Bird Observations (Arctos)",
+   "doi": "10.15468/olcyq4",
+   "publisher": "Museum of Vertebrate Zoology",
+   "publisher_key": "8edbbde0-055e-11d8-b850-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 2,
+   "by_licence": {
+    "CC0-1.0": 2
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 2
+   }
+  },
+  {
+   "key": "62cccd4d-eafc-4287-a070-5701aa6ef4a2",
+   "title": "UCSB - University of California Santa Barbara Herbarium",
+   "doi": "10.15468/qpxmw0",
+   "publisher": "Cheadle Center for Biodiversity and Ecological Restoration",
+   "publisher_key": "cae7b6c7-669a-4261-9a34-6e8cdc16a125",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 19,
+   "by_licence": {
+    "CC0-1.0": 19
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 19
+   }
+  },
+  {
+   "key": "68513375-3aa5-4f6f-9975-d97d56c21d61",
+   "title": "Illinois Natural History Survey Insect Collection",
+   "doi": "10.15468/eol0pe",
+   "publisher": "Illinois Natural History Survey",
+   "publisher_key": "fd0038d0-3e7b-11d9-8439-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/licenses/by/4.0/legalcode",
+   "records": 359,
+   "by_licence": {
+    "CC-BY-4.0": 359
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 359
+   }
+  },
+  {
+   "key": "689d12fc-aac8-4203-bace-4e64d3d61b89",
+   "title": "Idaho State University, Ray J. Davis Herbarium Vascular Plants",
+   "doi": "10.15468/p5554y",
+   "publisher": "Consortium of Pacific Northwest Herbaria",
+   "publisher_key": "6567af74-d231-4588-a123-5d0b7a095fda",
+   "dataset_licence_url": "http://creativecommons.org/licenses/by/4.0/legalcode",
+   "records": 1,
+   "by_licence": {
+    "CC0-1.0": 1
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 1
+   }
+  },
+  {
+   "key": "69c47699-3edb-4cba-ae57-a331011c31e8",
+   "title": "College of Southern Nevada; Wesley E. Niles Herbarium",
+   "doi": "10.15468/5cr9za",
+   "publisher": "College of Southern Nevada",
+   "publisher_key": "0013cf92-0e5a-4ca6-95e2-ad288ce83a0b",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 2,
+   "by_licence": {
+    "CC0-1.0": 2
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 2
+   }
+  },
+  {
+   "key": "6ce7290f-47f6-4046-8356-371f5b6749df",
+   "title": "CAS Mammalogy (MAM)",
+   "doi": "10.15468/dhbozg",
+   "publisher": "California Academy of Sciences",
+   "publisher_key": "66522820-055c-11d8-b84e-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 181,
+   "by_licence": {
+    "CC0-1.0": 181
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 181
+   }
+  },
+  {
+   "key": "6ec3c7f5-6233-48f6-b36a-06b867edbadd",
+   "title": "CAS Entomology Type (TYPE)",
+   "doi": "10.15468/gak5hc",
+   "publisher": "California Academy of Sciences",
+   "publisher_key": "66522820-055c-11d8-b84e-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 2,
+   "by_licence": {
+    "CC0-1.0": 2
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 2
+   }
+  },
+  {
+   "key": "6ff8b3b0-ef0f-4f79-a310-5a5615c6aa0b",
+   "title": "Birda - Global Observation Dataset",
+   "doi": "10.15468/6kud7x",
+   "publisher": "Birda",
+   "publisher_key": "0c6d40e3-5d96-4a2d-9342-b02833aaa766",
+   "dataset_licence_url": "http://creativecommons.org/licenses/by-nc/4.0/legalcode",
+   "records": 2,
+   "by_licence": {
+    "CC-BY-4.0": 2
+   },
+   "by_basis": {
+    "HUMAN_OBSERVATION": 2
+   }
+  },
+  {
+   "key": "7489daf3-cce0-43bd-b34a-e562702c909b",
+   "title": "(Appendix 7) Distribution of diatoms and ostracods in sediment samples collected between 1995 and 2010 in the San Francisco Bay coastal system",
+   "doi": "10.1594/pangaea.804489",
+   "publisher": "PANGAEA - Data Publisher for Earth & Environmental Science",
+   "publisher_key": "d5778510-eb28-11da-8629-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/licenses/by/4.0/legalcode",
+   "records": 28,
+   "by_licence": {
+    "CC-BY-4.0": 28
+   },
+   "by_basis": {
+    "HUMAN_OBSERVATION": 28
+   }
+  },
+  {
+   "key": "75018539-6328-41de-b875-7c2e61dc1635",
+   "title": "SBMNH Vertebrate Zoology",
+   "doi": "10.15468/amfnkq",
+   "publisher": "Santa Barbara Museum of Natural History",
+   "publisher_key": "78678140-1815-11da-9544-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 1,
+   "by_licence": {
+    "CC0-1.0": 1
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 1
+   }
+  },
+  {
+   "key": "750b7bfc-3577-4b26-8aaf-3e4be9f0d639",
+   "title": "Arizona State University Hasbrouck Insect Collection",
+   "doi": "10.15468/vv6k58",
+   "publisher": "Arizona State University Biocollections",
+   "publisher_key": "814cdfb5-d4f8-4453-815f-ea5df98e76bf",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 9,
+   "by_licence": {
+    "CC0-1.0": 9
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 9
+   }
+  },
+  {
+   "key": "76dd8f0d-2daa-4a69-9fcd-55e04230334a",
+   "title": "CM Herps Collection",
+   "doi": "10.15468/lxe6h4",
+   "publisher": "Carnegie Museums",
+   "publisher_key": "c1da06f0-580e-11dc-8a9e-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 6,
+   "by_licence": {
+    "CC0-1.0": 6
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 6
+   }
+  },
+  {
+   "key": "77711782-d6c0-4b82-9772-3f6f181add46",
+   "title": "Royal Ontario Museum - Ornithology",
+   "doi": "10.5886/lhh5ro",
+   "publisher": "Royal Ontario Museum",
+   "publisher_key": "ff418020-1d67-11d9-8435-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/licenses/by/4.0/legalcode",
+   "records": 1,
+   "by_licence": {
+    "CC-BY-4.0": 1
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 1
+   }
+  },
+  {
+   "key": "7827f68d-c981-4023-bace-288a03434044",
+   "title": "Intermountain Herbarium (Vasc. & Algae)",
+   "doi": "10.15468/t43wjj",
+   "publisher": "Utah State University",
+   "publisher_key": "4c0e9f60-c489-11d8-bf60-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 6,
+   "by_licence": {
+    "CC0-1.0": 6
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 6
+   }
+  },
+  {
+   "key": "7931dcab-94f1-46ce-8092-56e4335423de",
+   "title": "Field Museum of Natural History (Zoology) Insect, Arachnid and Myriapod Collection",
+   "doi": "10.15468/0ywfpc",
+   "publisher": "Field Museum",
+   "publisher_key": "7b8aff00-a9f8-11d8-944b-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 3,
+   "by_licence": {
+    "CC0-1.0": 3
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 3
+   }
+  },
+  {
+   "key": "7a25f7aa-03fb-4322-aaeb-66719e1a9527",
+   "title": "LACM Vertebrate Collection",
+   "doi": "10.15468/77rmwd",
+   "publisher": "Natural History Museum of Los Angeles County",
+   "publisher_key": "493fe050-055d-11d8-b84f-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 16,
+   "by_licence": {
+    "CC0-1.0": 16
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 16
+   }
+  },
+  {
+   "key": "7bd65a7a-f762-11e1-a439-00145eb45e9a",
+   "title": "Tropicos MO Specimen Data",
+   "doi": "10.15468/hja69f",
+   "publisher": "Missouri Botanical Garden",
+   "publisher_key": "90fd6680-349f-11d8-aa2d-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/licenses/by/4.0/legalcode",
+   "records": 3,
+   "by_licence": {
+    "CC-BY-4.0": 3
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 3
+   }
+  },
+  {
+   "key": "7fd2f6e2-f762-11e1-a439-00145eb45e9a",
+   "title": "Computarización del Herbario ENCB, IPN. Fase IV. Base de datos de la familia Pinaceae y de distintas familias de la clase Magnoliopsida depositadas en el Herbario de la Escuela Nacional de Ciencias Biológicas, IPN",
+   "doi": "10.15468/sl8svt",
+   "publisher": "Comisión nacional para el conocimiento y uso de la biodiversidad",
+   "publisher_key": "ff90b050-c256-11db-b71b-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/licenses/by/4.0/legalcode",
+   "records": 5,
+   "by_licence": {
+    "CC-BY-4.0": 5
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 5
+   }
+  },
+  {
+   "key": "808d54a7-9884-4b1c-8112-39522fe004d4",
+   "title": "Miami University Turrell Herbarium - Vascular Plants",
+   "doi": "10.15468/vzkvuf",
+   "publisher": "W.S. Turrell Herbarium (MU)",
+   "publisher_key": "b81636e9-2a0d-4020-a7a7-6e13f2721db1",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 1,
+   "by_licence": {
+    "CC0-1.0": 1
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 1
+   }
+  },
+  {
+   "key": "821cc27a-e3bb-4bc5-ac34-89ada245069d",
+   "title": "NMNH Extant Specimen Records (USNM, US)",
+   "doi": "10.15468/hnhrg3",
+   "publisher": "National Museum of Natural History, Smithsonian Institution",
+   "publisher_key": "bc092ff0-02e4-11dc-991f-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 28,
+   "by_licence": {
+    "CC0-1.0": 28
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 28
+   }
+  },
+  {
+   "key": "830eb5d0-f762-11e1-a439-00145eb45e9a",
+   "title": "UWBM Mammalogy Collection (Arctos)",
+   "doi": "10.15468/qziy3w",
+   "publisher": "University of Washington Burke Museum",
+   "publisher_key": "06fcbbf0-0562-11d8-b851-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 2,
+   "by_licence": {
+    "CC0-1.0": 2
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 2
+   }
+  },
+  {
+   "key": "8310f570-f762-11e1-a439-00145eb45e9a",
+   "title": "University of Washington Herbarium (WTU) - Vascular Plant Collection",
+   "doi": "10.15468/plngb6",
+   "publisher": "University of Washington Burke Museum",
+   "publisher_key": "06fcbbf0-0562-11d8-b851-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/licenses/by/4.0/legalcode",
+   "records": 16,
+   "by_licence": {
+    "CC0-1.0": 16
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 16
+   }
+  },
+  {
+   "key": "843df0c4-f762-11e1-a439-00145eb45e9a",
+   "title": "Provincial Museum of Alberta, Edmonton, AB, Canada. Birds (Aves)",
+   "doi": "10.15468/xule8i",
+   "publisher": "Canadian Biodiversity Information Facility",
+   "publisher_key": "09871350-0a23-11d8-b854-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/licenses/by/4.0/legalcode",
+   "records": 1,
+   "by_licence": {
+    "CC-BY-4.0": 1
+   },
+   "by_basis": {
+    "OCCURRENCE": 1
+   }
+  },
+  {
+   "key": "84ab7b76-f762-11e1-a439-00145eb45e9a",
+   "title": "Triplehorn Insect Collection, The Ohio State University",
+   "doi": "10.15468/efb17f",
+   "publisher": "Museum of Biological Diversity, The Ohio State University",
+   "publisher_key": "5ffa575c-fcd4-4583-9611-545f67b04316",
+   "dataset_licence_url": "http://creativecommons.org/licenses/by/4.0/legalcode",
+   "records": 10,
+   "by_licence": {
+    "CC-BY-4.0": 10
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 10
+   }
+  },
+  {
+   "key": "852628c6-f762-11e1-a439-00145eb45e9a",
+   "title": "TNHC Herpetology Collection",
+   "doi": "10.15468/xrorih",
+   "publisher": "University of Texas at Austin, Biodiversity Collections",
+   "publisher_key": "3c6ad080-bdbe-11da-ac59-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 7,
+   "by_licence": {
+    "CC0-1.0": 7
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 7
+   }
+  },
+  {
+   "key": "85378a64-2fbc-4a48-a6b4-9f421ad48f8a",
+   "title": "New Mexico State Collection of Arthropods",
+   "doi": "10.15468/nn3cel",
+   "publisher": "New Mexico State Collection of Arthropods",
+   "publisher_key": "da461951-0c82-4ce1-a0b7-5327bc84c638",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 1,
+   "by_licence": {
+    "CC0-1.0": 1
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 1
+   }
+  },
+  {
+   "key": "85802736-f762-11e1-a439-00145eb45e9a",
+   "title": "United States National Plant Germplasm System Collection",
+   "doi": "10.15468/ce7fox",
+   "publisher": "USDA Agricultural Research Service (ARS)",
+   "publisher_key": "9ae75ccd-0ee8-4dd4-a412-3bbcc3ed4b26",
+   "dataset_licence_url": "http://creativecommons.org/licenses/by/4.0/legalcode",
+   "records": 2,
+   "by_licence": {
+    "CC-BY-4.0": 2
+   },
+   "by_basis": {
+    "OCCURRENCE": 2
+   }
+  },
+  {
+   "key": "861e6afe-f762-11e1-a439-00145eb45e9a",
+   "title": "Harvard University Herbaria: All Records",
+   "doi": "10.15468/o3pvnh",
+   "publisher": "Harvard University Herbaria",
+   "publisher_key": "485ff490-e3b7-11db-9acc-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/licenses/by/4.0/legalcode",
+   "records": 1,
+   "by_licence": {
+    "CC-BY-4.0": 1
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 1
+   }
+  },
+  {
+   "key": "868a8d7e-b9d1-4458-a5f6-71311971fbe5",
+   "title": "Carl W. Sharsmith Herbarium at San Jose State University - Bryophytes",
+   "doi": "10.15468/55yjnt",
+   "publisher": "San Jose State University",
+   "publisher_key": "75bf5fec-40fa-43ae-919f-c43bd7ce25c9",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 29,
+   "by_licence": {
+    "CC0-1.0": 29
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 29
+   }
+  },
+  {
+   "key": "8935e64a-f762-11e1-a439-00145eb45e9a",
+   "title": "UCM Amphibian and Reptile Collection (Arctos)",
+   "doi": "10.15468/1llmgl",
+   "publisher": "University of Colorado Museum of Natural History",
+   "publisher_key": "4cadac10-3e7b-11d9-8439-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 4,
+   "by_licence": {
+    "CC0-1.0": 4
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 4
+   }
+  },
+  {
+   "key": "89c53edb-0fac-4118-bdc0-d70ca50953dc",
+   "title": "Kathryn Kalmbach Herbarium",
+   "doi": "10.15468/axrelr",
+   "publisher": "Kathryn Kalmbach Herbarium (Denver Botanic Gardens)",
+   "publisher_key": "36488347-eceb-40ed-b687-406f3601d8cb",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 3,
+   "by_licence": {
+    "CC0-1.0": 3
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 3
+   }
+  },
+  {
+   "key": "8a43c2b7-5976-457d-9f35-a232655efdcc",
+   "title": "Field Museum of Natural History (Botany) Bryophyte Collection",
+   "doi": "10.15468/pyjtoc",
+   "publisher": "Field Museum",
+   "publisher_key": "7b8aff00-a9f8-11d8-944b-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 6,
+   "by_licence": {
+    "CC0-1.0": 6
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 6
+   }
+  },
+  {
+   "key": "8a6232d7-f93e-45a3-8b16-556aa732cd39",
+   "title": "Northern Arizona University - Arthropod Collection",
+   "doi": "10.15468/du1hci",
+   "publisher": "Northern Arizona University",
+   "publisher_key": "218f5cbc-bc3e-4a8e-84ee-9281a54cd9e3",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 2,
+   "by_licence": {
+    "CC0-1.0": 2
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 2
+   }
+  },
+  {
+   "key": "8aa57fb1-a290-467f-a578-77ec8cbe76b6",
+   "title": "University of Idaho, Stillinger Herbarium Vascular Plants",
+   "doi": "10.15468/8htpvx",
+   "publisher": "Consortium of Pacific Northwest Herbaria",
+   "publisher_key": "6567af74-d231-4588-a123-5d0b7a095fda",
+   "dataset_licence_url": "http://creativecommons.org/licenses/by/4.0/legalcode",
+   "records": 5,
+   "by_licence": {
+    "CC0-1.0": 5
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 5
+   }
+  },
+  {
+   "key": "8be43f9b-52e7-47d4-be3e-dbcc066d70ab",
+   "title": "WFVZ Bird Collections",
+   "doi": "10.15468/hqrtbv",
+   "publisher": "Western Foundation of Vertebrate Zoology",
+   "publisher_key": "80960f60-ad5e-11da-9c37-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 25,
+   "by_licence": {
+    "CC0-1.0": 25
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 25
+   }
+  },
+  {
+   "key": "8c04889e-a0ad-4f39-8623-06aa9cf0131d",
+   "title": "Patterns of widespread decline in North American bumble bees",
+   "doi": "10.15468/kjpwz1",
+   "publisher": "USDA-ARS Pollinating Insect-Biology, Management, Systematics Research",
+   "publisher_key": "1e26a630-7203-11dc-a0d8-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/licenses/by/4.0/legalcode",
+   "records": 5,
+   "by_licence": {
+    "CC-BY-4.0": 5
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 5
+   }
+  },
+  {
+   "key": "8eddc200-f535-4c65-9b4d-f723eafe607e",
+   "title": "PSM Vertebrates Collection",
+   "doi": "10.15468/3oaz5o",
+   "publisher": "Puget Sound Museum of Natural History",
+   "publisher_key": "f56c5f80-055c-11d8-b84e-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 3,
+   "by_licence": {
+    "CC0-1.0": 3
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 3
+   }
+  },
+  {
+   "key": "90c853e6-56bd-480b-8e8f-6285c3f8d42b",
+   "title": "Field Museum of Natural History (Botany) Seed Plant Collection",
+   "doi": "10.15468/nxnqzf",
+   "publisher": "Field Museum",
+   "publisher_key": "7b8aff00-a9f8-11d8-944b-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 12,
+   "by_licence": {
+    "CC0-1.0": 12
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 12
+   }
+  },
+  {
+   "key": "95c80a78-f762-11e1-a439-00145eb45e9a",
+   "title": "R. L. McGregor Herbarium Lichen Collection",
+   "doi": "10.15468/0xlhx0",
+   "publisher": "University of Kansas Biodiversity Institute",
+   "publisher_key": "b554c320-0560-11d8-b851-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/licenses/by/4.0/legalcode",
+   "records": 1,
+   "by_licence": {
+    "CC-BY-4.0": 1
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 1
+   }
+  },
+  {
+   "key": "95c938a8-f762-11e1-a439-00145eb45e9a",
+   "title": "R. L. McGregor Herbarium Vascular Plants Collection",
+   "doi": "10.15468/htptzr",
+   "publisher": "University of Kansas Biodiversity Institute",
+   "publisher_key": "b554c320-0560-11d8-b851-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/licenses/by/4.0/legalcode",
+   "records": 11,
+   "by_licence": {
+    "CC-BY-4.0": 11
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 11
+   }
+  },
+  {
+   "key": "963f12d0-f762-11e1-a439-00145eb45e9a",
+   "title": "Botany Division, Yale Peabody Museum",
+   "doi": "10.15468/hrztgn",
+   "publisher": "Yale University Peabody Museum",
+   "publisher_key": "2e167bb0-4441-11db-9ba2-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 1,
+   "by_licence": {
+    "CC0-1.0": 1
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 1
+   }
+  },
+  {
+   "key": "96404cc2-f762-11e1-a439-00145eb45e9a",
+   "title": "Entomology Division, Yale Peabody Museum",
+   "doi": "10.15468/95waq3",
+   "publisher": "Yale University Peabody Museum",
+   "publisher_key": "2e167bb0-4441-11db-9ba2-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 10,
+   "by_licence": {
+    "CC0-1.0": 10
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 10
+   }
+  },
+  {
+   "key": "96596036-f762-11e1-a439-00145eb45e9a",
+   "title": "Collection Arachnology SMF",
+   "doi": "10.15468/fiz2j5",
+   "publisher": "Senckenberg",
+   "publisher_key": "c76cf030-2a95-11da-9cc1-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/licenses/by/4.0/legalcode",
+   "records": 1,
+   "by_licence": {
+    "CC-BY-4.0": 1
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 1
+   }
+  },
+  {
+   "key": "9ce52ff6-01b6-44a2-b617-9bc2ee8e8cd1",
+   "title": "MVZ Egg and Nest Collection (Arctos)",
+   "doi": "10.15468/a7zswp",
+   "publisher": "Museum of Vertebrate Zoology",
+   "publisher_key": "8edbbde0-055e-11d8-b850-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 4,
+   "by_licence": {
+    "CC0-1.0": 4
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 4
+   }
+  },
+  {
+   "key": "a36438d0-bec7-4b7b-9bfa-2c31e7610c39",
+   "title": "Bell Museum plants",
+   "doi": "10.15468/bihrxd",
+   "publisher": "University of Minnesota Bell Museum",
+   "publisher_key": "927f1e70-cf74-11d8-bf68-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 3,
+   "by_licence": {
+    "CC0-1.0": 3
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 3
+   }
+  },
+  {
+   "key": "a65a0ff8-46f0-43e6-bb0c-b0ef1602484a",
+   "title": "(Appendix 2) Distribution of generalized biologic, anthropogenic, and volcanic constituents in sediment samples collected between 1995 and 2010 in the San Francisco Bay coastal system",
+   "doi": "10.1594/pangaea.804479",
+   "publisher": "PANGAEA - Data Publisher for Earth & Environmental Science",
+   "publisher_key": "d5778510-eb28-11da-8629-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/licenses/by/4.0/legalcode",
+   "records": 9,
+   "by_licence": {
+    "CC-BY-4.0": 9
+   },
+   "by_basis": {
+    "HUMAN_OBSERVATION": 9
+   }
+  },
+  {
+   "key": "a79c2b50-6c8a-11de-8226-b8a03c50a862",
+   "title": "Queensland Museum provider for OZCAM",
+   "doi": "10.15468/lotsye",
+   "publisher": "Queensland Museum",
+   "publisher_key": "f9d3db7d-6ee9-4fbf-bd4c-e5d0f0bd26c6",
+   "dataset_licence_url": "http://creativecommons.org/licenses/by/4.0/legalcode",
+   "records": 1,
+   "by_licence": {
+    "CC-BY-4.0": 1
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 1
+   }
+  },
+  {
+   "key": "a8ee9bc6-5914-427d-9fba-f8545250ac34",
+   "title": "CUMV Amphibian and Reptile Collection",
+   "doi": "10.15468/emivh3",
+   "publisher": "Cornell University Museum of Vertebrates",
+   "publisher_key": "cf9ceb80-9f3d-11da-b791-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 1,
+   "by_licence": {
+    "CC0-1.0": 1
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 1
+   }
+  },
+  {
+   "key": "a92de2e1-647c-43f2-a8b7-ab1c1a6453dd",
+   "title": "University of South Carolina, A. C. Moore Herbarium Vascular Plant Collection",
+   "doi": "10.15468/fmj4at",
+   "publisher": "University of South Carolina",
+   "publisher_key": "3124bdd8-b38c-46f0-b354-5e1d2c2cd9d2",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 1,
+   "by_licence": {
+    "CC0-1.0": 1
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 1
+   }
+  },
+  {
+   "key": "a9ae9ece-e753-4fb9-8595-a37d0f5aa59c",
+   "title": "SDNHM Mammology Collection",
+   "doi": "10.15468/estih7",
+   "publisher": "San Diego Natural History Museum",
+   "publisher_key": "8a471700-4ce8-11db-b80e-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 5,
+   "by_licence": {
+    "CC0-1.0": 5
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 5
+   }
+  },
+  {
+   "key": "aae308f4-9f9c-4cdd-b4ef-c026f48be551",
+   "title": "Snow Entomological Museum Collection",
+   "doi": "10.15468/fhntpy",
+   "publisher": "University of Kansas Biodiversity Institute",
+   "publisher_key": "b554c320-0560-11d8-b851-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/licenses/by/4.0/legalcode",
+   "records": 1,
+   "by_licence": {
+    "CC-BY-4.0": 1
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 1
+   }
+  },
+  {
+   "key": "aec6d756-3aa8-465e-83fd-4f6ee83e693e",
+   "title": "Field Museum of Natural History (Botany) Lichen Collection",
+   "doi": "10.15468/sc258x",
+   "publisher": "Field Museum",
+   "publisher_key": "7b8aff00-a9f8-11d8-944b-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 40,
+   "by_licence": {
+    "CC0-1.0": 40
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 40
+   }
+  },
+  {
+   "key": "afc30a94-6107-488a-b9c0-ba9c4fa68b7c",
+   "title": "Field Museum of Natural History (Zoology) Fish Collection",
+   "doi": "10.15468/alz7wu",
+   "publisher": "Field Museum",
+   "publisher_key": "7b8aff00-a9f8-11d8-944b-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 1,
+   "by_licence": {
+    "CC0-1.0": 1
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 1
+   }
+  },
+  {
+   "key": "b349f235-926d-43ff-b6f7-fc3c1928f581",
+   "title": "Distribución potencial de las especies de anfibios y reptiles en categoría de riesgo de México",
+   "doi": "10.15468/mdqurs",
+   "publisher": "Comisión nacional para el conocimiento y uso de la biodiversidad",
+   "publisher_key": "ff90b050-c256-11db-b71b-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/licenses/by/4.0/legalcode",
+   "records": 11,
+   "by_licence": {
+    "CC-BY-4.0": 11
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 11
+   }
+  },
+  {
+   "key": "b5cdf794-8fa4-4a85-8b26-755d087bf531",
+   "title": "The vascular plants collection (P) at the Herbarium of the Muséum national d'Histoire Naturelle (MNHN - Paris)",
+   "doi": "10.15468/nc6rxy",
+   "publisher": "MNHN - Museum national d'Histoire naturelle",
+   "publisher_key": "2cd829bb-b713-433d-99cf-64bef11e5b3e",
+   "dataset_licence_url": "http://creativecommons.org/licenses/by/4.0/legalcode",
+   "records": 7,
+   "by_licence": {
+    "CC-BY-4.0": 7
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 7
+   }
+  },
+  {
+   "key": "c13173f5-f372-4b1b-815f-2cd4f6f963a0",
+   "title": "Mejoramiento de los modelos de distribución de especies de plantas amenazadas de México (Orchidaceae, Pinaceae, Cupressaceae, Taxaceae, Podocarpaceae) a través de información de sensores remotos y medidas espaciales de incertidumbre en los modelos-conUFZ*",
+   "doi": "10.15468/r2wj29",
+   "publisher": "Comisión nacional para el conocimiento y uso de la biodiversidad",
+   "publisher_key": "ff90b050-c256-11db-b71b-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/licenses/by/4.0/legalcode",
+   "records": 7,
+   "by_licence": {
+    "CC-BY-4.0": 7
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 7
+   }
+  },
+  {
+   "key": "c21cd435-718a-4069-b503-776bf0e22b96",
+   "title": "Delaware Museum of Nature & Science — Birds",
+   "doi": "10.15468/b63cw6",
+   "publisher": "Delaware Museum of Nature & Science",
+   "publisher_key": "a42867f0-813a-11dc-82e0-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 293,
+   "by_licence": {
+    "CC0-1.0": 293
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 293
+   }
+  },
+  {
+   "key": "c43384a9-8d9d-40c0-8cda-40ad47d2d69d",
+   "title": "Harold W. Manter Laboratory of Parasitology Collection (HWML) Parasite Collection (Arctos)",
+   "doi": "10.15468/kfgfzr",
+   "publisher": "University of Nebraska State Museum",
+   "publisher_key": "9b049850-d958-11da-9047-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 1,
+   "by_licence": {
+    "CC0-1.0": 1
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 1
+   }
+  },
+  {
+   "key": "c9076cd3-349f-4068-a5c7-bc34449c3916",
+   "title": "MSB Bird Collection (Arctos)",
+   "doi": "10.15468/fyumof",
+   "publisher": "Museum of Southwestern Biology",
+   "publisher_key": "939ed180-aa7b-11db-8edf-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 1,
+   "by_licence": {
+    "CC0-1.0": 1
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 1
+   }
+  },
+  {
+   "key": "cafff6a5-1fa4-4a90-a2b3-f3db78b93d02",
+   "title": "WELT Herbarium at Museum of New Zealand Te Papa Tongarewa",
+   "doi": "10.15468/5ensp7",
+   "publisher": "Museum of New Zealand Te Papa Tongarewa",
+   "publisher_key": "afae4f45-b85e-4a0e-9d93-f30f044e8140",
+   "dataset_licence_url": "http://creativecommons.org/licenses/by/4.0/legalcode",
+   "records": 2,
+   "by_licence": {
+    "CC-BY-4.0": 2
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 2
+   }
+  },
+  {
+   "key": "cd6e21c8-9e8a-493a-8a76-fbf7862069e5",
+   "title": "Royal Botanic Gardens, Kew - Herbarium Specimens",
+   "doi": "10.15468/ly60bx",
+   "publisher": "Royal Botanic Gardens, Kew",
+   "publisher_key": "061b4f20-f241-11da-a328-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/licenses/by/4.0/legalcode",
+   "records": 1,
+   "by_licence": {
+    "CC-BY-4.0": 1
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 1
+   }
+  },
+  {
+   "key": "cece4fc2-1fec-4bb5-a335-7252548e3f0b",
+   "title": "CAS Herpetology (HERP)",
+   "doi": "10.15468/bvoyqy",
+   "publisher": "California Academy of Sciences",
+   "publisher_key": "66522820-055c-11d8-b84e-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 103,
+   "by_licence": {
+    "CC0-1.0": 103
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 103
+   }
+  },
+  {
+   "key": "cf6a5ca0-c9ca-4d99-85df-598bc118226d",
+   "title": "University of California, Davis, Center for Plant Diversity - Lichens",
+   "doi": "10.15468/tneeju",
+   "publisher": "University of California, Davis",
+   "publisher_key": "f0b6a090-a4c6-11d8-9534-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 2,
+   "by_licence": {
+    "CC0-1.0": 2
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 2
+   }
+  },
+  {
+   "key": "d01d75ac-09d3-464f-8b0f-0a4ddecd6c10",
+   "title": "Academy of Natural Sciences of Drexel University",
+   "doi": "10.15468/p9ybag",
+   "publisher": "Academy of Natural Sciences",
+   "publisher_key": "f9b67ad0-9c9b-11d9-b9db-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 1,
+   "by_licence": {
+    "CC0-1.0": 1
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 1
+   }
+  },
+  {
+   "key": "d1a3b128-b406-46bb-a6d1-f3591dcc8a7b",
+   "title": "USDA United States National Fungus Collections",
+   "doi": "10.15468/w78rwb",
+   "publisher": "USDA-ARS US National Fungus Collection",
+   "publisher_key": "e43cf4b8-849e-4fac-b075-e652d019d2cf",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 2,
+   "by_licence": {
+    "CC0-1.0": 2
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 2
+   }
+  },
+  {
+   "key": "d415c253-4d61-4459-9d25-4015b9084fb0",
+   "title": "The New York Botanical Garden Herbarium (NY)",
+   "doi": "10.15468/6e8nje",
+   "publisher": "The New York Botanical Garden",
+   "publisher_key": "ae447c50-b8a8-11d8-92a4-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 2,
+   "by_licence": {
+    "CC0-1.0": 2
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 2
+   }
+  },
+  {
+   "key": "d4aea86c-bd2c-4526-ab57-c6a98dc057e5",
+   "title": "William F. Barr Entomological Museum",
+   "doi": "10.15468/j9epez",
+   "publisher": "University of Idaho William F Barr Entomological Museum",
+   "publisher_key": "4e595938-859e-4e3f-a960-91d5d6fd640a",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 1,
+   "by_licence": {
+    "CC0-1.0": 1
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 1
+   }
+  },
+  {
+   "key": "d6cc311c-c5ab-4f23-9a20-10514f9eb9c4",
+   "title": "USGS Nonindigenous Aquatic Species database",
+   "doi": "10.15468/ijccz9",
+   "publisher": "United States Geological Survey",
+   "publisher_key": "c3ad790a-d426-4ac1-8e32-da61f81f0117",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 2,
+   "by_licence": {
+    "CC0-1.0": 2
+   },
+   "by_basis": {
+    "OCCURRENCE": 2
+   }
+  },
+  {
+   "key": "d883d764-4522-4928-bdf7-4d6f0aae2ebd",
+   "title": "Santa Barbara Museum of Natural History Entomology Collection",
+   "doi": "10.15468/74wfv6",
+   "publisher": "Santa Barbara Museum of Natural History",
+   "publisher_key": "78678140-1815-11da-9544-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 3,
+   "by_licence": {
+    "CC0-1.0": 3
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 3
+   }
+  },
+  {
+   "key": "d8cd16ba-bb74-4420-821e-083f2bac17c2",
+   "title": "INSDC Sequences",
+   "doi": "10.15468/sbmztx",
+   "publisher": "European Nucleotide Archive (EMBL-EBI)",
+   "publisher_key": "ada9d123-ddb4-467d-8891-806ea8d94230",
+   "dataset_licence_url": "http://creativecommons.org/licenses/by/4.0/legalcode",
+   "records": 20,
+   "by_licence": {
+    "CC-BY-4.0": 20
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 11,
+    "MATERIAL_SAMPLE": 9
+   }
+  },
+  {
+   "key": "dce00a1f-f6b4-4e11-9771-92c62c40ad80",
+   "title": "KUBI Herpetology Collection",
+   "doi": "10.15468/ubdwdc",
+   "publisher": "University of Kansas Biodiversity Institute",
+   "publisher_key": "b554c320-0560-11d8-b851-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/licenses/by/4.0/legalcode",
+   "records": 3,
+   "by_licence": {
+    "CC-BY-4.0": 3
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 3
+   }
+  },
+  {
+   "key": "de4500ba-fe61-4a51-a0c6-e01c3016c6eb",
+   "title": "Louisiana State University, Shirley C. Tucker Herbarium - Lichens",
+   "doi": "10.15468/cepqls",
+   "publisher": "Louisiana State University Herbarium",
+   "publisher_key": "38a69420-bd2a-11dd-b15e-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 5,
+   "by_licence": {
+    "CC0-1.0": 5
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 5
+   }
+  },
+  {
+   "key": "e053ff53-c156-4e2e-b9b5-4462e9625424",
+   "title": "Tropicos Specimens Non-MO",
+   "doi": "10.15468/rxbp4w",
+   "publisher": "Missouri Botanical Garden",
+   "publisher_key": "90fd6680-349f-11d8-aa2d-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/licenses/by/4.0/legalcode",
+   "records": 8,
+   "by_licence": {
+    "CC-BY-4.0": 8
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 8
+   }
+  },
+  {
+   "key": "e05fd4c2-4d77-4c50-880e-1b22096af300",
+   "title": "Arizona State University Vascular Plant Herbarium",
+   "doi": "10.15468/a2o8vy",
+   "publisher": "Arizona State University Biocollections",
+   "publisher_key": "814cdfb5-d4f8-4453-815f-ea5df98e76bf",
+   "dataset_licence_url": "http://creativecommons.org/licenses/by/4.0/legalcode",
+   "records": 4,
+   "by_licence": {
+    "CC-BY-4.0": 4
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 4
+   }
+  },
+  {
+   "key": "e36d0997-2f51-4718-b684-16ec092ecd82",
+   "title": "University of Arizona Insect Collection",
+   "doi": "10.15468/hzkbpg",
+   "publisher": "University of Arizona Insect Collection",
+   "publisher_key": "618d6bf6-81a4-47b0-85c0-0a6981b4e5ef",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 3,
+   "by_licence": {
+    "CC0-1.0": 3
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 3
+   }
+  },
+  {
+   "key": "e3b959d6-fcbe-4a28-a166-e4a807c340a0",
+   "title": "MVZ Bird Collection (Arctos)",
+   "doi": "10.15468/r1woj3",
+   "publisher": "Museum of Vertebrate Zoology",
+   "publisher_key": "8edbbde0-055e-11d8-b850-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 41,
+   "by_licence": {
+    "CC0-1.0": 41
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 41
+   }
+  },
+  {
+   "key": "e4d3fc77-1d94-495b-96ff-3fe8b8f7a3bd",
+   "title": "hymenoptera",
+   "doi": "10.15468/mvtuf5",
+   "publisher": "American Museum of Natural History",
+   "publisher_key": "ccd1ddc0-6c21-11de-8224-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/licenses/by/4.0/legalcode",
+   "records": 132,
+   "by_licence": {
+    "CC-BY-4.0": 132
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 132
+   }
+  },
+  {
+   "key": "e5d9d04e-ffd1-4395-9b10-76034f0c619c",
+   "title": "Deaver Herbarium (Northern Arizona University)",
+   "doi": "10.15468/b7tfpa",
+   "publisher": "Northern Arizona University",
+   "publisher_key": "218f5cbc-bc3e-4a8e-84ee-9281a54cd9e3",
+   "dataset_licence_url": "http://creativecommons.org/licenses/by/4.0/legalcode",
+   "records": 2,
+   "by_licence": {
+    "CC-BY-4.0": 2
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 2
+   }
+  },
+  {
+   "key": "ec0ad39f-3370-4d51-a663-cb27abd2a6bb",
+   "title": "LACM Malacology",
+   "doi": "10.15468/xxm2eb",
+   "publisher": "Natural History Museum of Los Angeles County",
+   "publisher_key": "493fe050-055d-11d8-b84f-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 1,
+   "by_licence": {
+    "CC0-1.0": 1
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 1
+   }
+  },
+  {
+   "key": "f1a4ce9a-97cd-4d35-bf5e-561f2f1c6d91",
+   "title": "Xerces Society - Bumble Bee Watch",
+   "doi": "10.15468/t4rau8",
+   "publisher": "United States Geological Survey",
+   "publisher_key": "c3ad790a-d426-4ac1-8e32-da61f81f0117",
+   "dataset_licence_url": "http://creativecommons.org/licenses/by/4.0/legalcode",
+   "records": 12,
+   "by_licence": {
+    "CC-BY-4.0": 12
+   },
+   "by_basis": {
+    "HUMAN_OBSERVATION": 12
+   }
+  },
+  {
+   "key": "f3f03cbf-1a01-4739-ae15-c1355b8c2dbf",
+   "title": "Carnegie Museum of Natural History Herbarium",
+   "doi": "10.15468/d51v1f",
+   "publisher": "Carnegie Museums",
+   "publisher_key": "c1da06f0-580e-11dc-8a9e-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 6,
+   "by_licence": {
+    "CC0-1.0": 6
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 6
+   }
+  },
+  {
+   "key": "f4a44701-7d70-4f6d-8479-4f27680dcf2f",
+   "title": "(Appendix 4) Distribution of benthic foraminifers, living, dead, and total assemblage counts, and faunal diversity in sediment samples collected between 1995 and 2010 in the San Francisco Bay coastal system",
+   "doi": "10.1594/pangaea.804483",
+   "publisher": "PANGAEA - Data Publisher for Earth & Environmental Science",
+   "publisher_key": "d5778510-eb28-11da-8629-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/licenses/by/4.0/legalcode",
+   "records": 47,
+   "by_licence": {
+    "CC-BY-4.0": 47
+   },
+   "by_basis": {
+    "HUMAN_OBSERVATION": 47
+   }
+  },
+  {
+   "key": "f934f8e2-32ca-46a7-b2f8-b032a4740454",
+   "title": "CAS Botany (BOT)",
+   "doi": "10.15468/7gudyo",
+   "publisher": "California Academy of Sciences",
+   "publisher_key": "66522820-055c-11d8-b84e-b8a03c50a862",
+   "dataset_licence_url": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+   "records": 468,
+   "by_licence": {
+    "CC0-1.0": 468
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 468
+   }
+  },
+  {
+   "key": "fb9863f4-68cf-4e90-bc4d-2b15bdebf889",
+   "title": "Entomologische Sammlung (ETHZ-ENT) of Eidgenössische Technische Hochschule Zürich",
+   "doi": "10.15468/9jutqw",
+   "publisher": "Swiss Natural History Collections - SwissNatColl",
+   "publisher_key": "9661d20d-86b6-4485-8948-f3c86b022fa7",
+   "dataset_licence_url": "http://creativecommons.org/licenses/by/4.0/legalcode",
+   "records": 1,
+   "by_licence": {
+    "CC-BY-4.0": 1
+   },
+   "by_basis": {
+    "PRESERVED_SPECIMEN": 1
+   }
+  }
+ ],
+ "named_taxa": [],
+ "named_taxa_reason": "No source of the corpus of this place names a plant to look for by name, and the four plants of the first place's source are not Californian; none is queried.",
+ "occurrences_asset": "occurrences",
+ "limitations": [
+  "Each record says an organism was recorded at a place and time by someone, as a human observation, a preserved specimen, a fossil specimen, a machine observation or another basis; a fossil specimen records an organism of an earlier age, not a living one. It is not a measurement of presence or abundance: the same species can be common and unrecorded, or rare and recorded often.",
+  "Records follow where people look. Roads, villages, trails, reserves and the habits of a few observers shape where records fall, and a quiet area is not an empty one.",
+  "Years reflect recording effort. A rise or fall in records per year follows the arrival of observation apps, surveys and datasets, not the organisms, and the counts by year are not a trend.",
+  "Coordinates are as recorded with their stated uncertainty, which is missing for some records and larger than the catchment for others; a kept record is inside the catchment polygon at its recorded point only.",
+  "Only records under CC0 1.0 or CC BY 4.0 are kept; records under other licences were dropped and are counted, so the kept records are a part of what GBIF holds here. Each dataset is credited to its publisher.",
+  "The request was made on a stated date; GBIF records are added, corrected and withdrawn over time, so a later request can give other counts.",
+  "A zero for a named plant means no kept record under that name inside the catchment, not that the plant is absent, and names can be recorded under synonyms."
+ ],
+ "forbidden_phrases": [
+  "population",
+  "abundance",
+  "decline",
+  "lives here",
+  "absent",
+  "extinct",
+  "significant",
+  "caused by",
+  "proves"
+ ]
+}

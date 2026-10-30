@@ -3,7 +3,7 @@
   "title": "Ait Bouguemez valley catchment",
   "areaNoun": "valley catchment",
   "note": "Place configuration read by the long-record pipeline scripts. Everything that is specific to one place lives here; the scripts hold none of it. A value changed here after a result was read is a new configuration revision labelled post hoc in the recipe result.",
-  "configRevision": 11,
+  "configRevision": 12,
   "revisions": [
     {"revision": 1, "date": "2026-10-28", "change": "First configuration: geometry, strata, DEM, rainfall window, restrend_long_record and snow_cover_by_band."},
     {"revision": 2, "date": "2026-10-28", "change": "Added landCover, pixel_trend_long_record and season_trend_long_record, written before any per-pixel slope, land-cover summary or June to September greenness value was computed. No value of revision 1 changed."},
@@ -27,7 +27,8 @@
   },
     {"revision": 9, "date": "2026-10-30", "change": "Added pixel_seasons (registry 1.12.0): the March to June mean NDVI of every catchment pixel in every season, from the composites and the filter of pixel_trend_long_record, written before any per-season value was stored. No value of revision 1 to 8 changed."},
     {"revision": 10, "date": "2026-10-30", "change": "Restated in the configuration the wording of terrain_relief, land_cover_classes and drainage_network that the registry carried for this valley (the lower gorge, orchards, agdal, the conditioning window), so that the registry can be place-neutral and a second place can state its own. No word changed: the committed bundles rebuild from it identical except the two fields that name the configuration revision and its checksum. The unread rainfall.tileSizePx key (512; chirps_fetch.py and chirps-bundle.py fix the CHIRPS tile at 512 in code) was dropped."},
-    {"revision": 11, "date": "2026-10-30", "change": "Restated in the configuration the wording of terrain_transects that the registry carried for this valley (the lines through Tabant, the band boundaries, the expected ends of the brief, the valley floor rule and the limitations), so that terrain_transects 1.1.0 can be place-neutral. No word changed: the committed transects bundle rebuilds from it identical except the fields that name the configuration revision and its checksum."}
+    {"revision": 11, "date": "2026-10-30", "change": "Restated in the configuration the wording of terrain_transects that the registry carried for this valley (the lines through Tabant, the band boundaries, the expected ends of the brief, the valley floor rule and the limitations), so that terrain_transects 1.1.0 can be place-neutral. No word changed: the committed transects bundle rebuilds from it identical except the fields that name the configuration revision and its checksum."},
+    {"revision": 12, "date": "2026-10-30", "change": "Added species_occurrences (registry 1.15.0): the query polygon rule, the GBIF filters, the licences kept and the named plants, written before any GBIF record was requested for this place. No value of an earlier revision changed."}
   ],
   "geometry": {
     "id": "geo_ait_bouguemez_catchment",
@@ -264,6 +265,50 @@
       "valleyFloor": {"maxElevationM": 2200,
     "ruleText": "contiguous samples around the lowest sample with elevation at most {max:.0f} m, the upper limit of the published valley floor (1800 to 2200 m, SCI-19)", "source": "SCI-19: valley floor 1800 to 2200 m"},
       "rationale": "The step, the recompute tolerance and the height surface are fixed in science/recipes/registry.json (terrain_transects 1.0.0) before the first build; this block holds the lines, the Tabant coordinates (GeoNames, as in research/geospatial/study-area.md) and the published valley floor range."
+    },
+    "species_occurrences": {
+      "bundleId": "bundle_species_occurrences_ait_bouguemez",
+      "queryPolygon": {
+        "bufferDeg": 0.002,
+        "simplifyDeg": 0.001,
+        "decimals": 5,
+        "maxChars": 6000,
+        "rule": "The frozen polygon buffered by 0.002 degrees (mitred) and simplified at 0.001 degrees, exterior ring only and counter-clockwise: an outward fit for the URL. The run stops unless it contains the frozen polygon. Records are then tested against the exact frozen polygon."
+      },
+      "filters": {
+        "hasCoordinate": true,
+        "hasGeospatialIssue": false,
+        "occurrenceStatus": "PRESENT",
+        "licenceInRequest": false
+      },
+      "licencesKept": [
+        "CC0_1_0",
+        "CC_BY_4_0"
+      ],
+      "namedTaxa": [
+        {
+          "name": "Astragalus armatus",
+          "source": "SCI-03",
+          "note": "palatable species herders report as lost"
+        },
+        {
+          "name": "Thymus satureioides",
+          "source": "SCI-03",
+          "note": "palatable species herders report as lost"
+        },
+        {
+          "name": "Thymelaea virgata",
+          "source": "SCI-03",
+          "note": "unpalatable plant herders report as spreading"
+        },
+        {
+          "name": "Euphorbia nicaeensis",
+          "source": "SCI-03",
+          "note": "unpalatable plant herders report as spreading"
+        }
+      ],
+      "namedTaxaReason": "The four plants that SCI-03 names; each is queried by name with the same filters and reported even when the answer is zero.",
+      "rationale": "Registered 2026-10-30, before any GBIF record was requested for either place, at the founder's request to add recorded life (the lead's brief of that day gives the filters, the fields and the licences)."
     },
     "pixel_anatomy": {
       "bundleId": "bundle_pixel_anatomy_ait_bouguemez",

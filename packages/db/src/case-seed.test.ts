@@ -64,6 +64,7 @@ describe("the case seed in data/case/", () => {
       "bundle_season_summary_ait_bouguemez",
       "bundle_season_trend_long_record_ait_bouguemez",
       "bundle_snow_cover_by_band_ait_bouguemez",
+      "bundle_species_occurrences_ait_bouguemez",
       "bundle_terrain_strata_ait_bouguemez",
       "bundle_transects_ait_bouguemez",
     ]);

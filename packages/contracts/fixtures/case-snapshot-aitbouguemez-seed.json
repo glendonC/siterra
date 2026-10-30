@@ -13893,6 +13893,58 @@
       },
       {
         "recordType": "DataBundle",
+        "id": "bundle_species_occurrences_ait_bouguemez",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "label": "Recorded life in the catchment: GBIF occurrence records (species_occurrences 1.0.0)",
+        "status": "validated",
+        "datasetId": "gbif-occurrence-search",
+        "datasetVersion": "v1",
+        "sourceIds": [],
+        "geoSelectionId": "geo_ait_bouguemez_catchment",
+        "geoRevision": 1,
+        "periodIds": [],
+        "methodId": "species_occurrences",
+        "methodVersion": "1.0.0",
+        "manifestUri": "/api/case-assets/bundle_species_occurrences_ait_bouguemez/12207c20e1b579d1075d6e3911568fde42ba52cee8240f00b580c1f8079006827819/collection.json",
+        "contentHash": "12207c20e1b579d1075d6e3911568fde42ba52cee8240f00b580c1f8079006827819",
+        "license": "CC0 1.0 (records of datasets under CC0); CC BY 4.0 (records of datasets under CC BY; credit each dataset)",
+        "attribution": "The International Barcode of Life Consortium. International Barcode of Life project (iBOL). Occurrence dataset, 12 records kept, licence CC-BY-4.0 (12). https://doi.org/10.15468/inygc6. Accessed through GBIF.org on 2026-10-30.; United Herbaria of the University and ETH Zurich (Z+ZT). United Herbaria of the University and ETH Zurich. Occurrence dataset, 1 records kept, licence CC-BY-4.0 (1). https://doi.org/10.15468/tjvqci. Accessed through GBIF.org on 2026-10-30.; Centro Internacional de Agricultura Tropical - CIAT. A global database for the distributions of crop wild relatives. Occurrence dataset, 17 records kept, licence CC-BY-4.0 (17). https://doi.org/10.15468/jyrthk. Accessed through GBIF.org on 2026-10-30.; Pl@ntNet. Pl@ntNet automatically identified occurrences. Occurrence dataset, 11 records kept, licence CC-BY-4.0 (11). https://doi.org/10.15468/mma2ec. Accessed through GBIF.org on 2026-10-30.; Cornell Lab of Ornithology. EOD – eBird Observation Dataset. Occurrence dataset, 503 records kept, licence CC-BY-4.0 (503). https://doi.org/10.15468/aomfnb. Accessed through GBIF.org on 2026-10-30.; iNaturalist.org. iNaturalist Research-grade Observations. Occurrence dataset, 44 records kept, licence CC-BY-4.0 (44). https://doi.org/10.15468/ab3s5x. Accessed through GBIF.org on 2026-10-30.; Birda. Birda - Global Observation Dataset. Occurrence dataset, 13 records kept, licence CC-BY-4.0 (13). https://doi.org/10.15468/6kud7x. Accessed through GBIF.org on 2026-10-30.; Pl@ntNet. Pl@ntNet observations. Occurrence dataset, 2 records kept, licence CC-BY-4.0 (2). https://doi.org/10.15468/gtebaa. Accessed through GBIF.org on 2026-10-30.; Missouri Botanical Garden. Tropicos MO Specimen Data. Occurrence dataset, 1 records kept, licence CC-BY-4.0 (1). https://doi.org/10.15468/hja69f. Accessed through GBIF.org on 2026-10-30.; Natural History Museum. Natural History Museum (London) Collection Specimens. Occurrence dataset, 3 records kept, licence CC0-1.0 (3). https://doi.org/10.5519/qd.dyj48ok9. Accessed through GBIF.org on 2026-10-30.; Natural History Museum, Vienna. Natural History Museum, Vienna - Herbarium W. Occurrence dataset, 2 records kept, licence CC-BY-4.0 (2). https://doi.org/10.15468/5sl7sh. Accessed through GBIF.org on 2026-10-30.; Botanic Garden and Botanical Museum Berlin. Herbarium Berolinense, Berlin (B). Occurrence dataset, 1 records kept, licence CC0-1.0 (1). https://doi.org/10.15468/dlwwhz. Accessed through GBIF.org on 2026-10-30.; Institut Scientifique, Mohamed V University. Herbarium specimens of Institut Scientifique Mohamed V university (RAB). Occurrence dataset, 1 records kept, licence CC-BY-4.0 (1). https://doi.org/10.15468/48pwft. Accessed through GBIF.org on 2026-10-30.; Baylor University, Mayborn Museum Complex. Baylor University Herbarium. Occurrence dataset, 2 records kept, licence CC0-1.0 (2). https://doi.org/10.15468/78jqq4. Accessed through GBIF.org on 2026-10-30.; Royal Botanic Gardens, Kew. Royal Botanic Gardens, Kew - Herbarium Specimens. Occurrence dataset, 3 records kept, licence CC-BY-4.0 (3). https://doi.org/10.15468/ly60bx. Accessed through GBIF.org on 2026-10-30.; European Nucleotide Archive (EMBL-EBI). INSDC Sequences. Occurrence dataset, 3 records kept, licence CC-BY-4.0 (3). https://doi.org/10.15468/sbmztx. Accessed through GBIF.org on 2026-10-30.; Research Institute for Nature and Forest (INBO). BOP_RODENT - Rodent specialized birds of prey (Circus, Asio, Buteo) in Flanders (Belgium). Occurrence dataset, 2 records kept, licence CC0-1.0 (2). https://doi.org/10.5281/zenodo.23340023. Accessed through GBIF.org on 2026-10-30.; Institute of Dendrology, Polish Academy of Sciences (ID PAN). Juniperus occurrences from research collections of the Institute of Dendrology, Polish Academy of Sciences. Occurrence dataset, 3 records kept, licence CC-BY-4.0 (3). https://doi.org/10.15468/hr7rsc. Accessed through GBIF.org on 2026-10-30.; Universidad de Huelva. Eurasian otter (Lutra lutra) occurrence in Morocco. Occurrence dataset, 1 records kept, licence CC-BY-4.0 (1). https://doi.org/10.15470/xyzeiv. Accessed through GBIF.org on 2026-10-30.; Zoologische Staatssammlung München/Staatliche Naturwissenschaftliche Sammlungen Bayerns. Zoologische Staatssammlung Muenchen - International Barcode of Life (iBOL) - Barcode of Life Project Specimen Data. Occurrence dataset, 4 records kept, licence CC-BY-4.0 (4). https://doi.org/10.15468/tfpnkp. Accessed through GBIF.org on 2026-10-30.; Swiss Natural History Collections - SwissNatColl. General Herbarium – Cryptogamy & Phanerogamy (CJBG-G) of Jardin botanique de Genève. Occurrence dataset, 2 records kept, licence CC-BY-4.0 (2). https://doi.org/10.15468/rvjdu1. Accessed through GBIF.org on 2026-10-30.; California Academy of Sciences. CAS Botany (BOT). Occurrence dataset, 1 records kept, licence CC0-1.0 (1). https://doi.org/10.15468/7gudyo. Accessed through GBIF.org on 2026-10-30.; Occurrence records from GBIF.org (accessed 2026-10-30) through the GBIF occurrence search API; each record keeps the licence of its dataset (CC0 1.0 or CC BY 4.0); see https://www.gbif.org/citation-guidelines.",
+        "provenance": {
+          "sourceLocators": [],
+          "dataBundleIds": [
+            "bundle_terrain_strata_ait_bouguemez"
+          ],
+          "methodId": "species_occurrences",
+          "methodVersion": "1.0.0",
+          "inputVersions": [
+            {
+              "entityId": "geo_ait_bouguemez_catchment",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_terrain_strata_ait_bouguemez",
+              "revision": 1
+            }
+          ],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-30T20:23:52Z",
+          "verificationStatus": "computed_checked",
+          "limitations": [
+            "Each record says an organism was recorded at a place and time by someone, as a human observation, a preserved specimen, a fossil specimen, a machine observation or another basis; a fossil specimen records an organism of an earlier age, not a living one. It is not a measurement of presence or abundance: the same species can be common and unrecorded, or rare and recorded often.",
+            "Records follow where people look. Roads, villages, trails, reserves and the habits of a few observers shape where records fall, and a quiet area is not an empty one.",
+            "Years reflect recording effort. A rise or fall in records per year follows the arrival of observation apps, surveys and datasets, not the organisms, and the counts by year are not a trend.",
+            "Coordinates are as recorded with their stated uncertainty, which is missing for some records and larger than the catchment for others; a kept record is inside the catchment polygon at its recorded point only.",
+            "Only records under CC0 1.0 or CC BY 4.0 are kept; records under other licences were dropped and are counted, so the kept records are a part of what GBIF holds here. Each dataset is credited to its publisher.",
+            "The request was made on a stated date; GBIF records are added, corrected and withdrawn over time, so a later request can give other counts.",
+            "A zero for a named plant means no kept record under that name inside the catchment, not that the plant is absent, and names can be recorded under synonyms."
+          ]
+        }
+      },
+      {
+        "recordType": "DataBundle",
         "id": "bundle_terrain_strata_ait_bouguemez",
         "revision": 1,
         "createdAt": "2026-10-28T20:42:35.015Z",
