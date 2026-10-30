@@ -101,6 +101,12 @@
   },
   {
    "rel": "child",
+   "href": "./bundle_restrend_long_record_calaveras_creek/collection.json",
+   "type": "application/json",
+   "file:checksum": "12207a74389fc74deb4c06fa3385c181c851b05f05778ff8fe874ad8489bb8a7f9dc"
+  },
+  {
+   "rel": "child",
    "href": "./bundle_s2_ndvi_monthly_ait_bouguemez/collection.json",
    "type": "application/json",
    "file:checksum": "1220091ac5c9e2c46acc35f07d2725001b9ebe7d2a9ca69abcbeed61993e9ab29c67"

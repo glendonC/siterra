@@ -1,0 +1,344 @@
+{
+ "type": "Collection",
+ "stac_version": "1.1.0",
+ "stac_extensions": [
+  "https://stac-extensions.github.io/processing/v1.3.0/schema.json",
+  "https://stac-extensions.github.io/file/v2.1.0/schema.json",
+  "https://siterra.invalid/schemas/stac/siterra/1.1.0/schema.json"
+ ],
+ "id": "bundle_restrend_long_record_calaveras_creek",
+ "title": "Rainfall-adjusted MODIS greenness trend, 2000 to 2025 (restrend_long_record 1.0.0)",
+ "description": "Precomputed result of recipe restrend_long_record 1.0.0 for Calaveras Creek catchment: growing-season MODIS NDVI (MOD13Q1 v6.1, 250 m) regressed on antecedent CHIRPS v3.0 rainfall for each season 2000 to 2025, for the catchment and each terrain stratum, and the trend of what is left (the residual, a departure of greenness from the value expected from rainfall). Model estimate. Catchment, February to May greenness against October (previous year) to April rainfall, 26 seasons: +0.0104 NDVI per 100 mm of rain (95% interval +0.0011 to +0.0198, R squared 0.18). Rainfall-adjusted residual trend -0.0208 NDVI per decade (95% interval -0.0378 to -0.0038); the interval lies entirely below zero.\n\nThe rainfall-adjusted residual still holds everything else that changes greenness: temperature, snow, irrigation, orchards and fields, grazing, fire, and sensor or orbit changes. It is not a measure of grazing impact or of degradation. Trend methods can miss real change: in simulations for southern Africa, 30 to 40% degradation was needed before a trend showed under a rainfall-driven increase, and the residual method broke down at about 20% degradation (Wessels et al. 2012). An interval that includes zero is not evidence of no change. Each 250 m MODIS pixel mixes surfaces; stratum values weight pixels by how much of the stratum falls inside them, so a mixed pixel counts toward more than one stratum. Rainfall comes from 5 km CHIRPS grid cells, not from gauges in the valley, and snowfall is counted with rain. Each stratum and window pair has its own interval. With many shown together, some intervals will exclude zero by chance alone. Terra's overpass has drifted earlier since 2020, from 10:30 to about 9:06 mean local time by December 2025 (NASA): later seasons are seen with a lower sun and longer shadows in mountain terrain, which may shift NDVI without any change on the ground. The windows were fixed before the MODIS values were read; other windows can give other slopes, which is why all registered windows are stored together.",
+ "license": "other",
+ "providers": [
+  {
+   "name": "NASA Land Processes Distributed Active Archive Center",
+   "roles": [
+    "producer",
+    "licensor"
+   ],
+   "url": "https://doi.org/10.5067/MODIS/MOD13Q1.061"
+  },
+  {
+   "name": "Microsoft Planetary Computer",
+   "roles": [
+    "host"
+   ],
+   "url": "https://planetarycomputer.microsoft.com/dataset/modis-13Q1-061"
+  },
+  {
+   "name": "Climate Hazards Center, UC Santa Barbara",
+   "roles": [
+    "producer",
+    "licensor"
+   ],
+   "url": "https://www.chc.ucsb.edu/data/chirps3"
+  },
+  {
+   "name": "Climate Hazards Center data server",
+   "roles": [
+    "host"
+   ],
+   "url": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/"
+  },
+  {
+   "name": "Siterra science pipeline",
+   "roles": [
+    "processor"
+   ],
+   "processing:lineage": "Anonymous SAS-signed range reads of MOD13Q1 v6.1 NDVI and pixel reliability windows over the frozen geometry from Planetary Computer (584 Terra composites); CHIRPS v3.0 monthly windows; growing-season means per pixel; stratum means weighted by 10 m analysis cells; least squares fits and trend intervals (science/pipeline/restrend-bundle.py, trend_stats.py).",
+   "processing:software": {
+    "siterra-science": "0.1.0",
+    "python": "3.12.9",
+    "numpy": "2.5.4",
+    "rasterio": "1.5.2",
+    "gdal": "3.12.2"
+   }
+  }
+ ],
+ "extent": {
+  "spatial": {
+   "bbox": [
+    [
+     -121.86652777777778,
+     37.25763888888889,
+     -121.4948611111111,
+     37.50708333333334
+    ]
+   ]
+  },
+  "temporal": {
+   "interval": [
+    [
+     "1999-10-01T00:00:00Z",
+     "2025-06-30T23:59:59Z"
+    ]
+   ]
+  }
+ },
+ "assets": {
+  "analysis_geometry": {
+   "href": "./analysis-geometry.geojson",
+   "type": "application/geo+json",
+   "title": "Frozen analysis geometry geo_calaveras_creek_catchment, revision 2",
+   "roles": [
+    "metadata"
+   ],
+   "file:checksum": "1220745fb73a2dadb7284074eb6c0b607f390975a70592a7d968588ea083882faa9d",
+   "file:size": 141566
+  },
+  "restrend_long_record": {
+   "href": "./restrend-long-record.json",
+   "type": "application/json",
+   "title": "Summary: rainfall slopes and residual trends with intervals per stratum and window (the result read_recipe_result returns)",
+   "roles": [
+    "data"
+   ],
+   "file:checksum": "122016b149426ef79e33eb28f54d744823f2e8ad0aad9fd4eddfe531b8d4e441ba98",
+   "file:size": 47518
+  },
+  "restrend_tables": {
+   "href": "./restrend-long-record-tables.json",
+   "type": "application/json",
+   "title": "Full tables: every season value, window rainfall, residual, fit and sensitivity, both reliability sets",
+   "roles": [
+    "data"
+   ],
+   "file:checksum": "12203c09d5993621c9aa66ae7429445a2430a4792d93a48245f483e1bbd3bf464e8f",
+   "file:size": 500414
+  }
+ },
+ "created": "2026-10-30T17:38:10Z",
+ "siterra:status": "validated",
+ "siterra:variable": "ndvi_departure",
+ "siterra:dataset": {
+  "id": "modis-13Q1-061",
+  "version": "6.1",
+  "access_route": "https://planetarycomputer.microsoft.com/api/stac/v1 collection modis-13Q1-061, assets 250m_16_days_NDVI and 250m_16_days_pixel_reliability, anonymous SAS-signed COG range reads",
+  "resolution_note": "Native 250 m MODIS sinusoidal grid (231.66 m cells), 16-day composites; rainfall on the 0.05 degree CHIRPS v3.0 grid"
+ },
+ "siterra:geo_selection": {
+  "id": "geo_calaveras_creek_catchment",
+  "revision": 2,
+  "boundary_role": "hydrological_unit",
+  "area_m2": 257339500,
+  "area_method": "Count of 10 m analysis pixels whose centres fall inside the frozen polygon, EPSG:32610"
+ },
+ "siterra:method": {
+  "id": "restrend_long_record",
+  "version": "1.0.0",
+  "analysis_crs": "EPSG:32610",
+  "parameters": {
+   "place_configuration": "science/places/calaveras-creek.json revision 7, sha256 1e3fedd50119c22e0fa46c8b2de27488c52157d8ff9347ccdcae5aefb7411489",
+   "season_years": [
+    2000,
+    2025
+   ],
+   "growing_windows": [
+    {
+     "id": "feb_may",
+     "months": [
+      2,
+      3,
+      4,
+      5
+     ],
+     "primary": true
+    },
+    {
+     "id": "jan_apr",
+     "months": [
+      1,
+      2,
+      3,
+      4
+     ]
+    },
+    {
+     "id": "mar_jun",
+     "months": [
+      3,
+      4,
+      5,
+      6
+     ]
+    }
+   ],
+   "rainfall_windows": [
+    {
+     "id": "oct_apr",
+     "start": {
+      "month": 10,
+      "yearOffset": -1
+     },
+     "end": {
+      "month": 4,
+      "yearOffset": 0
+     },
+     "primary": true
+    }
+   ],
+   "strata": [
+    "catchment",
+    "elevation_low",
+    "elevation_mid",
+    "elevation_high",
+    "aspect_north",
+    "aspect_east",
+    "aspect_south",
+    "aspect_west",
+    "aspect_level",
+    "reservoir_zone",
+    "outside_reservoir_zone"
+   ],
+   "pixel_reliability_kept": {
+    "reliability_0_1": [
+     0,
+     1
+    ],
+    "reliability_0": [
+     0
+    ]
+   },
+   "min_composite_share": 0.5,
+   "min_area_coverage": 0.7,
+   "min_seasons": 15,
+   "interval_level": 0.95,
+   "fit_on_stored_values": "NDVI season values stored at 5 decimals and rainfall at 2; fits use the stored values",
+   "lag1_pairs": "adjacent years both present",
+   "theil_sen_ranks": "rounded to the nearest integer"
+  },
+  "reference_period": null,
+  "operation_order": [
+   "NDVI(p, c) = DN / 10000 for Terra MOD13Q1 v6.1 composite c and 250 m pixel p, kept only where the composite's pixel reliability is 0 (good) or 1 (marginal) and -0.2 <= NDVI <= 1.0; reliability 2 (snow or ice), 3 (cloudy) and fill are not observed",
+   "Composites of season y and growing window W: the 16-day composite periods of the MODIS calendar (start days of year 1, 17, ..., 353) that start in a month of W in year y; a period with no Terra product in the archive read counts as a composite with nothing kept and is listed in the result",
+   "G(p, y, W) = mean of the kept NDVI(p, c) over the season's composites, defined only when at least half of the season's composite periods (rounded up) are kept at p",
+   "w_s(p) = number of 10 m analysis cells of stratum s whose centre falls in pixel p; the catchment is the stratum of all analysis cells",
+   "Y_s(y, W) = sum over p of w_s(p) G(p, y, W) / sum over p of w_s(p), over the pixels where G is defined; withheld when those pixels hold less than 70% of the stratum's weight",
+   "P_s(y, R) = rainfall total over rainfall window R ending in season y: for each month of R, the CHIRPS v3.0 monthly values of the 0.05 degree cells weighted by the number of 10 m analysis cells of stratum s whose centre falls in each cell, summed over the months",
+   "Rainfall fit: Y = a + b P by ordinary least squares over the n seasons with both values; b is reported with its 95% interval from the t distribution with n - 2 degrees of freedom, and R squared",
+   "e(y) = Y(y) - (a + b P(y)), the rainfall-adjusted residual of season y",
+   "Residual trend d = ordinary least squares slope of e on the season year (NDVI per year), with the 95% t interval (n - 2 degrees of freedom)",
+   "Autocorrelation-adjusted interval: the same slope with standard error scaled by sqrt((n - 2) / (n_eff - 2)), n_eff = n (1 - r1) / (1 + r1), r1 the lag-1 autocorrelation of the trend-fit residuals, n_eff = n when r1 <= 0, t quantile with n_eff - 2 degrees of freedom; withheld when n_eff < 3 (Santer et al. 2000)",
+   "Theil-Sen slope of e on the season year (median of pairwise slopes) with Sen's 95% interval from the ranks (N - C) / 2 and (N + C) / 2 + 1 of the N sorted pairwise slopes, C = 1.96 sqrt(n (n - 1) (2n + 5) / 18), no tie correction (Sen 1968)",
+   "Side by side: the ordinary least squares slope and 95% t interval of Y alone (unadjusted greenness) and of P alone (rainfall) on the season year",
+   "Precondition: when the 95% interval of b does not lie entirely above zero, the result for that stratum and window pair is labelled precondition_not_met; the residual trend is still stored but is not described as rainfall-adjusted",
+   "Direction wording: an interval entirely above zero is described as upward, entirely below zero as downward, otherwise as including zero (no direction stated)"
+  ]
+ },
+ "siterra:attribution": [
+  "Didan, K. (2021). MODIS/Terra Vegetation Indices 16-Day L3 Global 250m SIN Grid V061. NASA Land Processes Distributed Active Archive Center. https://doi.org/10.5067/MODIS/MOD13Q1.061. Tile h08v05, A2000049 to A2025353, read from Microsoft Planetary Computer, accessed 2026-10-30",
+  "CHIRPS v3.0, Climate Hazards Center, UC Santa Barbara, https://doi.org/10.15780/G2JQ0P, accessed 2026-10-30",
+  "Catchment derived by Siterra from Copernicus DEM GLO-30 (2021 release)",
+  "Produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved",
+  "The organisations in charge of the Copernicus programme by law or by delegation do not incur any liability for any use of the Copernicus WorldDEM-30",
+  "Catchment and strata derived by Siterra from Copernicus DEM GLO-30 (2021 release)",
+  "produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved",
+  "© ESA WorldCover project / Contains modified Copernicus Sentinel data (2021) processed by ESA WorldCover consortium",
+  "ESA WorldCover 2021 v200 (Zanaga et al. 2022), CC BY 4.0, https://doi.org/10.5281/zenodo.7254221"
+ ],
+ "siterra:limitations": [
+  "The rainfall-adjusted residual still holds everything else that changes greenness: temperature, snow, irrigation, orchards and fields, grazing, fire, and sensor or orbit changes. It is not a measure of grazing impact or of degradation.",
+  "Trend methods can miss real change: in simulations for southern Africa, 30 to 40% degradation was needed before a trend showed under a rainfall-driven increase, and the residual method broke down at about 20% degradation (Wessels et al. 2012). An interval that includes zero is not evidence of no change.",
+  "Each 250 m MODIS pixel mixes surfaces; stratum values weight pixels by how much of the stratum falls inside them, so a mixed pixel counts toward more than one stratum.",
+  "Rainfall comes from 5 km CHIRPS grid cells, not from gauges in the valley, and snowfall is counted with rain.",
+  "Each stratum and window pair has its own interval. With many shown together, some intervals will exclude zero by chance alone.",
+  "Terra's overpass has drifted earlier since 2020, from 10:30 to about 9:06 mean local time by December 2025 (NASA): later seasons are seen with a lower sun and longer shadows in mountain terrain, which may shift NDVI without any change on the ground.",
+  "The windows were fixed before the MODIS values were read; other windows can give other slopes, which is why all registered windows are stored together."
+ ],
+ "siterra:checks": [
+  {
+   "name": "recompute_sample_period",
+   "passed": true,
+   "detail": "Season 2025 (feb_may, catchment) rerun independently: 8 composites read again from Planetary Computer with a fresh token; windows identical to the stored ones: True. Season mean resampled to the 10 m analysis grid by nearest neighbour and averaged over the catchment cells: 0.576185 against the stored 0.57618 (tolerance 0.0001); coverage 1.0000 against 1.0000 (tolerance 0.001). Rainfall: catchment window totals from 10 m cell weights against the published area weights of bundle_chirps_monthly_calaveras_creek (rainfall-cells.geojson), largest relative difference 0.0019% over every window and season (tolerance 2%)."
+  },
+  {
+   "name": "nodata_not_zero",
+   "passed": true,
+   "detail": "NDVI fill (-3000) and values outside -0.2 to 1.0 are not observed; pixel reliability other than [0, 1] (primary) or [0] (sensitivity), including fill 255, is not observed; a composite period absent from Planetary Computer counts as nothing kept. A missing CHIRPS month or cell leaves the window total undefined."
+  },
+  {
+   "name": "units_and_scale",
+   "passed": true,
+   "detail": "Every stored NDVI window is int16 with nodata -3000 and GDAL scale 10000 (physical value = DN / 10000), and every item's raster:bands scale is 0.0001. Pixel reliability windows are uint8 with nodata 255, except 4 stored as int8 with nodata -1 (the product's own fill); classes 0 to 3 mean the same in both, and only listed classes are kept. Rainfall in mm per window."
+  },
+  {
+   "name": "qa_join_coverage",
+   "passed": true,
+   "detail": "All 584 composites share one window grid for NDVI and pixel reliability (301 x 125 pixels); stratum weights count 10 m analysis cells per MODIS pixel and per CHIRPS cell. In the registered growing windows: 4 composite periods absent from Planetary Computer (A2000001, A2000017, A2000033, A2023049); on 2026-10-30 NASA CMR listed 1 of them (held by the NASA archive, which needs an Earthdata login, not used); 3 are missing there too."
+  },
+  {
+   "name": "period_alignment",
+   "passed": true,
+   "detail": "A composite belongs to a season when its 16-day period starts in a month of the growing window of that year; rainfall windows end in the season's year as configured (start and end month with year offsets)."
+  },
+  {
+   "name": "attribution_present",
+   "passed": true,
+   "detail": "MOD13Q1 v6.1 citation with DOI, subset and access date, the CHIRPS v3.0 attribution and the Copernicus DEM notices are in siterra:attribution"
+  }
+ ],
+ "links": [
+  {
+   "rel": "root",
+   "href": "../catalog.json",
+   "type": "application/json"
+  },
+  {
+   "rel": "parent",
+   "href": "../catalog.json",
+   "type": "application/json"
+  },
+  {
+   "rel": "derived_from",
+   "href": "../bundle_chirps_monthly_calaveras_creek/collection.json",
+   "type": "application/json",
+   "title": "Rainfall bundle bundle_chirps_monthly_calaveras_creek (rainfall-cells.geojson used for the rainfall cross-check)",
+   "file:checksum": "1220c60f155971cd659183e58b656dcb73630bb6daebdb86a54dd1f6a24dabd44b28"
+  },
+  {
+   "rel": "derived_from",
+   "href": "../bundle_terrain_strata_calaveras_creek/collection.json",
+   "type": "application/json",
+   "title": "Terrain strata bundle bundle_terrain_strata_calaveras_creek",
+   "file:checksum": "1220131bcd8461757de7c05c82466402af7b0ff487aa56d1b70a59aa1333ea3ad1ed"
+  },
+  {
+   "rel": "license",
+   "href": "https://www.earthdata.nasa.gov/engage/open-data-services-software-policies/data-use-guidance",
+   "title": "MOD13Q1 v6.1: NASA data use guidance (NASA-led mission data without a marked restriction are CC0; citation strongly urged)"
+  },
+  {
+   "rel": "license",
+   "href": "https://creativecommons.org/licenses/by/4.0/",
+   "title": "ESA WorldCover: CC BY 4.0"
+  },
+  {
+   "rel": "license",
+   "href": "https://dataspace.copernicus.eu/sites/default/files/media/files/2025-06/copernicus_contributing_mission_data_access_v2_cop_dem_licenses.pdf",
+   "title": "Licence for Copernicus DEM instance COP-DEM-GLO-30-F Global 30m Full, Free & Open"
+  },
+  {
+   "rel": "cite-as",
+   "href": "https://doi.org/10.5067/MODIS/MOD13Q1.061",
+   "title": "Didan (2021), MOD13Q1 v6.1 data set DOI"
+  },
+  {
+   "rel": "cite-as",
+   "href": "https://doi.org/10.15780/G2JQ0P",
+   "title": "CHIRPS v3 data repository DOI"
+  },
+  {
+   "rel": "cite-as",
+   "href": "https://doi.org/10.1038/s41597-026-07096-4",
+   "title": "Funk et al. (2026), Scientific Data 13, 718: the CHIRPS v3 paper"
+  },
+  {
+   "rel": "processing-software",
+   "href": "./uv.lock",
+   "type": "application/toml",
+   "title": "Pipeline lockfile (uv)",
+   "file:checksum": "12205154d57a84dcb8f1eb5f992923d7589a669b8dc669edf140f607ff2740733aff"
+  }
+ ]
+}
