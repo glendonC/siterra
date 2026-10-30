@@ -1,0 +1,173 @@
+{
+  "placeId": "calaveras_creek",
+  "title": "Calaveras Creek catchment",
+  "areaNoun": "creek catchment",
+  "note": "Place configuration read by the long-record pipeline scripts. Everything that is specific to one place lives here; the scripts hold none of it. A value changed here after a result was read is a new configuration revision labelled post hoc in the recipe result. This is the second place built through the pipeline (the first is Ait Bouguemez); every window, rule and threshold below was written before any MODIS, CHIRPS or Sentinel value of this catchment was read, and before any land cover, strata or trend of it was computed.",
+  "configRevision": 1,
+  "revisions": [
+    {"revision": 1, "date": "2026-10-30", "change": "First configuration: the frozen geometry and its delineation rule, the analysis grid, the DEM pin, the land cover source and read window, the rainfall window, the strata layers with the reservoir zone rule, and the restrend_long_record, snow_cover_by_band, pixel_trend_long_record and season_trend_long_record windows with their basis. Strata, land cover and drainage checksums are pinned in later revisions, after those layers are built."}
+  ],
+  "geometry": {
+    "id": "geo_calaveras_creek_catchment",
+    "revision": 1,
+    "boundaryRole": "hydrological_unit",
+    "label": "Creek catchment (hydrological analysis extent), not a grazing lease, parcel or management boundary",
+    "path": "science/places/calaveras-creek.geometry.geojson",
+    "sha256": "10b9be7d7a71bc0162e684240359e4cdb433567a62f2c29eee979268777f85da",
+    "delineationRule": "Cells that drain to the USGS stream gauge 11173500 (Calaveras Creek near Sunol, input point 37.50194444 N, 121.8183333 W from the USGS site service), on Copernicus DEM GLO-30 (2021) conditioned by fill_pits, fill_depressions and resolve_flats, D8 flow direction, the input point snapped to the maximum flow accumulation within 120 m (geodesic, cell centres), the catchment polygonized 4-connected, dissolved, largest piece kept. Accepted only if its geodesic area is within 5 per cent of the 256 km2 USGS publishes for the gauge (written before the delineation was run). Result: 257.44 km2 geodesic, 0.6 per cent above the published area.",
+    "attribution": [
+      "Catchment derived by Siterra from Copernicus DEM GLO-30 (2021 release)",
+      "Produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved",
+      "The organisations in charge of the Copernicus programme by law or by delegation do not incur any liability for any use of the Copernicus WorldDEM-30"
+    ],
+    "licenceLinks": [
+      {
+        "href": "https://dataspace.copernicus.eu/sites/default/files/media/files/2025-06/copernicus_contributing_mission_data_access_v2_cop_dem_licenses.pdf",
+        "title": "Licence for Copernicus DEM instance COP-DEM-GLO-30-F Global 30m Full, Free & Open (analysis geometry and strata)"
+      }
+    ]
+  },
+  "analysisCrs": "EPSG:32610",
+  "analysisGridM": 10,
+  "strata": {
+    "bundle": "bundle_terrain_strata_calaveras_creek",
+    "asset": "strata.tif",
+    "layers": [
+      {
+        "band": 1,
+        "name": "elevation_band",
+        "classes": {"1": "elevation_low", "2": "elevation_mid", "3": "elevation_high"},
+        "labelsFromBundleParameter": "boundaries_m"
+      },
+      {
+        "band": 2,
+        "name": "aspect_class",
+        "classes": {"1": "aspect_north", "2": "aspect_east", "3": "aspect_south", "4": "aspect_west", "5": "aspect_level"},
+        "labels": {"1": "north-facing", "2": "east-facing", "3": "south-facing", "4": "west-facing", "5": "level (slope below 5 degrees)"}
+      },
+      {
+        "band": 4,
+        "name": "reservoir_zone",
+        "classes": {"1": "reservoir_zone", "2": "outside_reservoir_zone"},
+        "labels": {"1": "within 250 m of mapped reservoir water", "2": "farther than 250 m from mapped reservoir water"}
+      }
+    ],
+    "excludedBand": 3,
+    "excludedLabel": "WorldCover 2021 cropland or built-up",
+    "waterZone": {
+      "band": 4,
+      "worldcoverClasses": [80],
+      "bufferM": 250,
+      "rationale": "Calaveras Dam was declared seismically unsafe in 2001, the reservoir was held at a fraction of its capacity, the replacement dam was built from 2011 and the reservoir was refilled afterwards (search results from SFPUC and Regional Water Board documents on 30 Oct 2026; refill years not confirmed). Greenness on ground that was exposed or flooded in different years is not comparable with the rest of the catchment, so the reservoir zone is a stratum of its own and the headline trends are also reported outside it. The zone is the WorldCover 2021 permanent water class inside the catchment plus 250 m (one MODIS pixel); fixed here before any land cover or trend of this catchment was computed."
+    },
+    "limitations": [
+      "The DEM is a surface model: trees and buildings raise it; radar artefacts are possible in narrow gorges.",
+      "WorldCover 2021 is a 2021 context mask, not a record of earlier land cover: oak woodland and savanna may be mapped as tree cover or as grassland, and the reservoir is mapped as the water seen in 2021 imagery.",
+      "Strata organize field sampling; they are not vegetation types, pasture units or management boundaries.",
+      "The reservoir zone is mapped water plus 250 m. It removes the reservoir basin only approximately and says nothing about the water level in any year."
+    ]
+  },
+  "elevation": {
+    "dem": "Copernicus DEM GLO-30, 2021 release",
+    "url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N37_00_W122_00_DEM/Copernicus_DSM_COG_10_N37_00_W122_00_DEM.tif",
+    "sha256": "15d21273ae3d94c3ef19aa6abaef47d5f78bf4ac24e682d131c01bb8b5101db2",
+    "bytes": 47669564,
+    "etag": "3511fc51aad7c82e5b25fb6576e8b3da",
+    "gridM": 30,
+    "resampling": "bilinear"
+  },
+  "landCover": {
+    "dataset": "ESA WorldCover 10 m 2021 v200",
+    "source": "https://esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N36W123_Map.tif",
+    "path": "data/interim/worldcover-calaveras/worldcover-2021.tif",
+    "readWindow": [-121.92, 37.20, -121.44, 37.56],
+    "readWindowRule": "the catchment bounding box (-121.86653, 37.25764, -121.49486, 37.50708) widened by 0.05 degrees and rounded outward to 0.01 degrees",
+    "madeBy": "science/pipeline/worldcover-grid.py: the tile read by HTTP range request (no account), nearest neighbour onto the analysis grid",
+    "classes": {"10": "tree cover", "20": "shrubland", "30": "grassland", "40": "cropland", "50": "built-up", "60": "bare or sparse vegetation", "80": "permanent water"},
+    "groups": [
+      {"id": "lc_grazing_possible", "classes": [20, 30, 60], "label": "grassland, shrubland, or bare or sparse vegetation (land cover that can carry grazing; not a pasture map)"},
+      {"id": "lc_grassland", "classes": [30], "label": "grassland"},
+      {"id": "lc_bare_sparse", "classes": [60], "label": "bare or sparse vegetation"},
+      {"id": "lc_shrubland", "classes": [20], "label": "shrubland"},
+      {"id": "lc_tree_cover", "classes": [10], "label": "tree cover (may include oak woodland and savanna, which can also be grazed)"},
+      {"id": "lc_cropland_built", "classes": [40, 50], "label": "cropland or built-up"}
+    ],
+    "attribution": [
+      "© ESA WorldCover project / Contains modified Copernicus Sentinel data (2021) processed by ESA WorldCover consortium",
+      "ESA WorldCover 10 m 2021 v200, Zanaga et al. (2022), https://doi.org/10.5281/zenodo.7254221, CC BY 4.0"
+    ],
+    "licence": {"href": "https://creativecommons.org/licenses/by/4.0/", "title": "ESA WorldCover 2021 v200: CC BY 4.0"}
+  },
+  "rainfall": {
+    "dataset": "CHIRPS v3.0 monthly final",
+    "rawWindow": {"row0": 447, "row1": 456, "col0": 1160, "col1": 1172},
+    "rawWindowRule": "the CHIRPS 0.05 degree cells that touch the catchment bounding box (rows 449 to 454, columns 1162 to 1170 of the 7200 x 2400 grid whose origin is 180 W, 60 N) plus a two-cell margin, as for the first place",
+    "monthlyBundle": "bundle_chirps_monthly_calaveras_creek",
+    "tileSizePx": 512,
+    "resolutionNote": "Native 0.05 degree grid, about 4.4 km east to west by 5.5 km north to south here",
+    "gaugeNote": "No rain gauge in or near the catchment was compared with these values.",
+    "independentRecompute": {
+      "year": 2022, "month": 4,
+      "urlTemplate": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/tifs/chirps-v3.0.{year}.{month:02d}.tif",
+      "regionName": "global",
+      "bounds": [-122.0, 37.10, -121.40, 37.70]
+    }
+  },
+  "recipes": {
+    "restrend_long_record": {
+      "seasonYears": [2000, 2025],
+      "growingWindows": [
+        {"id": "feb_may", "months": [2, 3, 4, 5], "primary": true},
+        {"id": "jan_apr", "months": [1, 2, 3, 4]},
+        {"id": "mar_jun", "months": [3, 4, 5, 6]}
+      ],
+      "rainfallWindows": [
+        {"id": "oct_apr", "start": {"month": 10, "yearOffset": -1}, "end": {"month": 4, "yearOffset": 0}, "primary": true}
+      ],
+      "strata": ["catchment", "elevation_band", "aspect_class", "reservoir_zone"],
+      "windowRationale": "Fixed by the science lane on 2026-10-30 before any MODIS NDVI or CHIRPS value of this catchment was read. In a Mediterranean winter-rain climate the annual grasses germinate with the first autumn rains, grow slowly through winter, grow fast in spring and reach their peak standing crop before the dry season (UC ANR Publication 8018, Becchetti et al. 2016, which a search summary describes as naming these phases: break of season with the first fall rains, winter growth, rapid spring growth, peak forage production; the publication itself was not read, so the month boundaries are the lane's reading of the phases and not figures taken from it). February to May is therefore the primary window, spanning the end of winter growth to the peak and the start of drying; January to April is the earlier and March to June the later sensitivity window, and March to June is also the first place's primary window, kept so the two places can be compared. October to April is the rainfall window: it runs from the first autumn rains to the end of the main wet season (Gennet et al. 2017, PLoS ONE, describe the northern Diablo Range as a Mediterranean climate with cool wet winters and hot dry summers and do not give the months). A single rainfall window is registered; no sensitivity rainfall window was chosen."
+    },
+    "snow_cover_by_band": {
+      "months": ["2001-01", "2025-12"],
+      "elevationBandSets": [
+        {"id": "fixed_500m", "edgesM": [500, 1000], "primary": true},
+        {"id": "terrain_strata", "fromStrataLayer": "elevation_band"}
+      ],
+      "fixedBandRule": "The edges are the multiples of 500 m that lie at least 250 m above the catchment's lowest DEM height and at least 250 m below its highest. The rule was formulated after the first place's edges (2000 to 3500 m, lowest 1465 m, highest 4007 m) were known and reproduces them exactly; for this catchment (147.2 to 1329.5 m) it gives 500 m and 1000 m.",
+      "applicability": "This recipe is not run for the full record here. Its use in this place is limited to the pre-registered applicability check in snowApplicability below; the band sets are kept because the pixel and season trend recipes read the fixed band set from this entry."
+    },
+    "snowApplicability": {
+      "note": "Written 2026-10-30 before any MOD10A1 value of this catchment was read. The first place's snow recipe needs 9,300 daily products for 2001 to 2025; the catchment's highest height is 1,330 m in a Mediterranean climate, so the lane checks a sample of winter months before deciding whether the full recipe applies.",
+      "sampleMonths": ["2005-12", "2006-01", "2006-02", "2010-12", "2011-01", "2011-02", "2015-12", "2016-01", "2016-02", "2020-12", "2021-01", "2021-02"],
+      "sampleRule": "December to February of the winters 2005/06, 2010/11, 2015/16 and 2020/21: four winters five years apart across the record",
+      "threshold": {"ndsiSnowCover": 40, "clearProductDays": "MOD10A1 NDSI_Snow_Cover values 0 to 100 only (cloud, no decision and other flag values are not clear)"},
+      "decision": "The snow recipe is recorded as not applicable if, in every elevation band of the fixed band set, fewer than 1 per cent of the clear catchment-pixel-days in the sample have NDSI snow cover of 40 or more. Otherwise the full recipe is run. The decision, its reason and the sample's limits are stored with the result."
+    },
+    "pixel_trend_long_record": {
+      "seasonYears": [2000, 2025],
+      "growingWindows": [
+        {"id": "feb_may", "months": [2, 3, 4, 5], "primary": true},
+        {"id": "jan_apr", "months": [1, 2, 3, 4]},
+        {"id": "mar_jun", "months": [3, 4, 5, 6]},
+        {"id": "jun_sep", "months": [6, 7, 8, 9]}
+      ],
+      "areaGroups": {
+        "strataLayers": ["elevation_band", "aspect_class", "reservoir_zone"],
+        "elevationBandSet": {"recipe": "snow_cover_by_band", "id": "fixed_500m"},
+        "landCoverGroups": true
+      },
+      "minClusterPixels": 4,
+      "display": {"domainPerDecade": [-0.05, 0.05], "neutralPerDecade": 0.0025, "pixelM": 30, "steps": 16},
+      "windowRationale": "The three growing windows are those of restrend_long_record. June to September is the dry-season window: it follows the annual grasses' peak and drying, so it shows where green vegetation persists through the dry months (trees, irrigated or riparian ground, the reservoir edge) and is the summer half of the season contrast. It was added on 2026-10-30 before any June to September greenness value of this catchment was computed; the first place's June to September window was chosen for a different reason (the founder's description of its summer grazing season). minClusterPixels, the display domain and the neutral band are those of pixel_trend_long_record 1.0.0 and were not tuned to this place."
+    },
+    "season_trend_long_record": {
+      "growingWindowsFrom": "pixel_trend_long_record",
+      "seasonYearsFrom": "pixel_trend_long_record",
+      "strata": ["catchment", "elevation_band", "aspect_class", "reservoir_zone"],
+      "elevationBandSet": {"recipe": "snow_cover_by_band", "id": "fixed_500m"},
+      "landCoverGroups": true,
+      "contrast": {"spring": "feb_may", "summer": "jun_sep"},
+      "contrastRationale": "February to May and June to September share no month, so the contrast compares the growing part of the year with the dry season."
+    }
+  }
+}
