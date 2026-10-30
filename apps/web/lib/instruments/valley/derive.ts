@@ -1,9 +1,17 @@
 // The valley instruments' figures built from the bundle files the case serves, by the rules the fixtures were made
 // with (fixtures.test.ts recomputes the fixtures by the same rules): the March to June season trend per stratum, and
-// the mean monthly snow-covered share per band. Pure; the cutaway and the layer stack run them on the assets their
+// the mean monthly snow-covered share per band, and each CHIRPS cell's September to May reference total. Pure; the cutaway and the layer stack run them on the assets their
 // specs name.
 
-import { figuresSchema, snowSchema, type Figures, type Snow } from "./fixtures";
+import {
+  figuresSchema,
+  rainCellsSchema,
+  snowSchema,
+  type Figures,
+  type RainCells,
+  type Snow,
+} from "./fixtures";
+import { lonLatToUtm } from "./utm";
 
 const STRATA = ["catchment", "elevation_low", "elevation_mid", "elevation_high"] as const;
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -72,4 +80,49 @@ export function snowFrom(tables: unknown): Snow {
     }),
   );
   return snowSchema.parse({ months: MONTHS, bands });
+}
+
+/** The months of the September to May window, as the CHIRPS cells' reference means key them. */
+const SEP_MAY = ["09", "10", "11", "12", "01", "02", "03", "04", "05"];
+
+/**
+ * Each CHIRPS cell's September to May mean rainfall, 1991 to 2020 (the sum of its nine monthly means, to 0.1 mm),
+ * with its corners in EPSG:32629 metres (0.1 m) and its share of the catchment, from the rainfall cells GeoJSON.
+ */
+export function rainCellsFrom(geojson: unknown): RainCells {
+  const g = geojson as {
+    features: {
+      geometry: { coordinates: number[][][] };
+      properties: {
+        cell_id: string;
+        fraction_inside: number;
+        weight: number;
+        reference_mm_1991_2020: Record<string, number>;
+      };
+    }[];
+  };
+  const cells = g.features.map((f) => {
+    const p = f.properties;
+    const ring = f.geometry.coordinates[0] ?? [];
+    return {
+      id: p.cell_id,
+      corners: ring.slice(0, 4).map(([lon, lat]) => {
+        const [e, n] = lonLatToUtm(lon ?? Number.NaN, lat ?? Number.NaN, 29);
+        return [round(e, 1), round(n, 1)];
+      }),
+      sep_may_mm: round(
+        SEP_MAY.reduce((sum, m) => sum + (p.reference_mm_1991_2020[m] ?? Number.NaN), 0),
+        1,
+      ),
+      fraction_inside: p.fraction_inside,
+      weight: p.weight,
+    };
+  });
+  const mm = cells.map((c) => c.sep_may_mm);
+  return rainCellsSchema.parse({
+    count: cells.length,
+    min_mm: Math.min(...mm),
+    max_mm: Math.max(...mm),
+    cells,
+  });
 }

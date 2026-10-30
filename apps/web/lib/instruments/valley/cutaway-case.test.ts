@@ -3,8 +3,8 @@ import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { instrumentOf } from "../listing";
 import { bundleFiles, seed, seedListing } from "../seed-listing";
-import { loadCutawayData } from "./cutaway-data";
-import { catchmentSchema, figuresSchema, snowSchema } from "./fixtures";
+import { loadCutawayData, placesSchema } from "./cutaway-data";
+import { catchmentSchema, figuresSchema, riversSchema, snowSchema } from "./fixtures";
 import { cutawayTransectSchema } from "./transect";
 
 // The cutaway read from the case draws what the fixtures drew: the section line, band trends, snow shares and
@@ -34,5 +34,31 @@ describe("loadCutawayData", () => {
     );
     expect(d.snow).toEqual(snowSchema.parse(fixture("snow.json")));
     expect(d.catchment.ring).toEqual(catchmentSchema.parse(fixture("catchment.json")).ring);
+    // the place is the case's own Tabant, as places.json copied it
+    expect(d.places.places).toEqual(placesSchema.parse(fixture("places.json")).places);
+  });
+
+  it("draws the case's drainage features: the fixture's 233 reaches, vertex for vertex", async () => {
+    vi.stubGlobal("fetch", serve);
+    const view = instrumentOf(seedListing, "cross_section");
+    if (view === undefined) throw new Error("no cross section in the seed");
+    const d = await loadCutawayData(view, seed, BASE, serve);
+    const old = riversSchema.parse(fixture("rivers.json"));
+    const byOrder = (r: { reaches: { order: number }[] }) =>
+      [1, 2, 3, 4, 5].map((o) => r.reaches.filter((x) => x.order === o).length);
+    expect(d.rivers.reaches).toHaveLength(233);
+    expect(byOrder(d.rivers)).toEqual(byOrder(old));
+    // every fixture reach is a case reach of the same order, vertex for vertex within the 0.1 m both round to
+    const near = (p: number[], q: number[]) =>
+      p.every((v, i) => Math.abs(v - (q[i] ?? Infinity)) <= 0.1 + 1e-6);
+    for (const r of old.reaches) {
+      const match = d.rivers.reaches.find(
+        (g) =>
+          g.order === r.order &&
+          g.pts.length === r.pts.length &&
+          g.pts.every((q, i) => near(q, r.pts[i] ?? [])),
+      );
+      expect(match, JSON.stringify(r.pts[0])).toBeDefined();
+    }
   });
 });

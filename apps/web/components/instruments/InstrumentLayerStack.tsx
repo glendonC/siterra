@@ -15,9 +15,9 @@ import {
   SNOW_YEARS,
   VALLEY_FIXTURES,
   WORLDCOVER,
-  loadLayerStackData,
   type LayerStackData,
 } from "../../lib/instruments/valley/fixtures";
+import { loadLayerStackData } from "../../lib/instruments/valley/layer-stack-data";
 import { RAIN_RANGE } from "../../lib/instruments/valley/palette";
 import {
   LAYER_STACK_DESIGN,
@@ -161,19 +161,27 @@ export function InstrumentLayerStack({ base = VALLEY_FIXTURES }: { base?: string
   const [loadFailed, setFailed] = useState(false);
   const record = useInstrument("layer_stack");
   const failed = loadFailed || record.status === "failed";
-  const caption = record.status === "ready" ? record.view.spec.caption : null;
+  const view = record.status === "ready" ? record.view : null;
+  const snapshot = record.status === "ready" ? record.snapshot : null;
+  const caption = view?.spec.caption ?? null;
   const lead = caption ? splitFigure(caption.ink) : null;
   const keysId = useId();
 
   useEffect(() => {
+    if (!view || !snapshot) return;
     const ac = new AbortController();
-    loadLayerStackData(base, ac.signal).then(setData, () => {
-      if (!ac.signal.aborted) setFailed(true);
-    });
+    loadLayerStackData(view, snapshot, base, (input, init) => fetch(input, init), ac.signal).then(
+      setData,
+      (e: unknown) => {
+        if (ac.signal.aborted) return;
+        console.error("Layer stack not loaded", e);
+        setFailed(true);
+      },
+    );
     return () => {
       ac.abort();
     };
-  }, [base]);
+  }, [view, snapshot, base]);
 
   useEffect(() => {
     const canvas = canvasRef.current;

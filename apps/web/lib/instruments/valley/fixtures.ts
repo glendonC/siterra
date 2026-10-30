@@ -1,6 +1,8 @@
-// The valley instruments' data until the case record API serves it: fixtures in public/instruments/valley,
-// copied from the approved specimens. Each names its source by its path in this repository, with the sha256
-// where the source is a bundle file; fixtures.test.ts recomputes them from data/bundles.
+// The valley fixtures in public/instruments/valley, copied from the approved specimens. The pages still read the
+// relief, the trend cells, the layout and the statements from here until the bundles' display assets and the
+// record's display statements land; the rest are the test inputs the case builders (derive.ts, context.ts,
+// outline.ts) are checked against. Each names its source by its path in this repository, with the sha256 where the
+// source is a bundle file; fixtures.test.ts recomputes them from data/bundles.
 
 import { z } from "zod";
 
@@ -149,12 +151,11 @@ export interface LayerStackData {
   meta: TerrainMeta;
   /** The 30 m relief, row 0 north, metres. */
   relief: Float32Array<ArrayBuffer>;
-  catchment: Catchment;
+  catchment: Pick<Catchment, "ring">;
   rivers: Rivers;
   trend: TrendCells;
   rain: RainCells;
   snow: Snow;
-  figures: Figures;
   layout: LayerStackLayout;
 }
 
@@ -176,23 +177,4 @@ export async function loadRelief(
   if (buf.byteLength !== meta.relief.width * meta.relief.height * 4)
     throw new Error(`${meta.relief.file}: ${String(buf.byteLength)} bytes`);
   return new Float32Array(buf);
-}
-
-/** The JSON and relief fixtures specimen A reads; the two data textures load with the scene. */
-export async function loadLayerStackData(
-  base = VALLEY_FIXTURES,
-  signal?: AbortSignal,
-): Promise<LayerStackData> {
-  const meta = await json(`${base}terrain-meta.json`, terrainMetaSchema, signal);
-  const [relief, catchment, rivers, trend, rain, snow, figures, layout] = await Promise.all([
-    loadRelief(base, meta, signal),
-    json(`${base}catchment.json`, catchmentSchema, signal),
-    json(`${base}rivers.json`, riversSchema, signal),
-    json(`${base}trend-cells.json`, trendCellsSchema, signal),
-    json(`${base}rain-cells.json`, rainCellsSchema, signal),
-    json(`${base}snow.json`, snowSchema, signal),
-    json(`${base}figures.json`, figuresSchema, signal),
-    json(`${base}layout-a.json`, layoutSchema, signal),
-  ]);
-  return { meta, relief, catchment, rivers, trend, rain, snow, figures, layout };
 }

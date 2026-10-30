@@ -1,8 +1,8 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { seasonTrendFrom, snowFrom } from "./derive";
-import { figuresSchema, snowSchema } from "./fixtures";
+import { rainCellsFrom, seasonTrendFrom, snowFrom } from "./derive";
+import { figuresSchema, rainCellsSchema, snowSchema } from "./fixtures";
 
 // The builders the instruments run on the case's assets give the committed fixtures exactly.
 
@@ -26,5 +26,12 @@ describe("snowFrom", () => {
   it("gives snow.json from the snow tables", () => {
     const tables = bundle("bundle_snow_cover_by_band_ait_bouguemez/snow-cover-by-band-tables.json");
     expect(snowFrom(tables)).toEqual(snowSchema.parse(fixture("snow.json")));
+  });
+});
+
+describe("rainCellsFrom", () => {
+  it("gives rain-cells.json from the CHIRPS rainfall cells", () => {
+    const geo = bundle("bundle_chirps_monthly_ait_bouguemez/rainfall-cells.geojson");
+    expect(rainCellsFrom(geo)).toEqual(rainCellsSchema.parse(fixture("rain-cells.json")));
   });
 });
