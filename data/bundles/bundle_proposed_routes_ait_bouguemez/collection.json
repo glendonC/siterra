@@ -223,35 +223,35 @@
    "href": "../bundle_relief_ait_bouguemez/collection.json",
    "type": "application/json",
    "title": "bundle_relief_ait_bouguemez",
-   "file:checksum": "12200e42ad34b7cd7aa180f24008445c691bfdc83808bb6a2c6225d9dcee934e720d"
+   "file:checksum": "1220cb487ec3a0b65cc6ee6ac87410371bc490cf970ab573e8f5938027f5ea7eaeec"
   },
   {
    "rel": "derived_from",
    "href": "../bundle_land_cover_ait_bouguemez/collection.json",
    "type": "application/json",
    "title": "bundle_land_cover_ait_bouguemez",
-   "file:checksum": "1220a44268fb82b7d2808ba97d700556b428dc579f0335f1eef3166b1056e4da9cb8"
+   "file:checksum": "12206551cb38c74b629c21e5a7fd3ca8a2caac993f99a0f0c09da77ede7604ecacb0"
   },
   {
    "rel": "derived_from",
    "href": "../bundle_pixel_trend_long_record_ait_bouguemez/collection.json",
    "type": "application/json",
    "title": "bundle_pixel_trend_long_record_ait_bouguemez",
-   "file:checksum": "1220696c5ad4fcd400f8ad84bda55e7c16628c8cd11ff8707e59277cfea1d1cc7c26"
+   "file:checksum": "12206c665b94ebe0263f381e16da1326ef51e4d088964adc841c928e73c0cc1a1cf8"
   },
   {
    "rel": "derived_from",
    "href": "../bundle_terrain_strata_ait_bouguemez/collection.json",
    "type": "application/json",
    "title": "bundle_terrain_strata_ait_bouguemez",
-   "file:checksum": "1220e7892bc96d951fbe7c89d256bf719931af5f6a1fec40f843dcef44040b8346d1"
+   "file:checksum": "1220d78c5c708866192daeb5ab9dbd2ad8eea4e31c9252c611c8b9aeaecfb6daee04"
   },
   {
    "rel": "derived_from",
    "href": "../bundle_pixel_anatomy_ait_bouguemez/collection.json",
    "type": "application/json",
    "title": "bundle_pixel_anatomy_ait_bouguemez (the pixel target)",
-   "file:checksum": "12201d8aa0b2dd58ca14e8adaca36e672f5587f394a80f9f4e2731882c202d480e9e"
+   "file:checksum": "1220ba5b7b3d0d724b78d3ba7044fee37f7c839a610c7ea4b25383dbe1ff6f1d2cee"
   },
   {
    "rel": "derived_from",

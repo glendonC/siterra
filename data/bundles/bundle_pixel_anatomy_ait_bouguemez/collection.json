@@ -485,14 +485,14 @@
    "href": "../bundle_terrain_strata_ait_bouguemez/collection.json",
    "type": "application/json",
    "title": "Terrain strata bundle bundle_terrain_strata_ait_bouguemez",
-   "file:checksum": "1220e7892bc96d951fbe7c89d256bf719931af5f6a1fec40f843dcef44040b8346d1"
+   "file:checksum": "1220d78c5c708866192daeb5ab9dbd2ad8eea4e31c9252c611c8b9aeaecfb6daee04"
   },
   {
    "rel": "derived_from",
    "href": "../bundle_pixel_trend_long_record_ait_bouguemez/collection.json",
    "type": "application/json",
    "title": "Pixel trend bundle bundle_pixel_trend_long_record_ait_bouguemez",
-   "file:checksum": "1220696c5ad4fcd400f8ad84bda55e7c16628c8cd11ff8707e59277cfea1d1cc7c26"
+   "file:checksum": "12206c665b94ebe0263f381e16da1326ef51e4d088964adc841c928e73c0cc1a1cf8"
   },
   {
    "rel": "derived_from",

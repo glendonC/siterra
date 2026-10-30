@@ -1,11 +1,11 @@
 {
  "recipeId": "terrain_transects",
- "version": "1.0.1",
- "computed": "2026-10-29T10:03:38Z",
+ "version": "1.1.0",
+ "computed": "2026-10-30T19:29:12Z",
  "place": {
   "placeId": "ait_bouguemez",
-  "configRevision": 4,
-  "config_sha256": "b92594aec1c274ee4612381c10d2a1a01dbe9702927937f05b9840615fef4697"
+  "configRevision": 12,
+  "config_sha256": "146436d42ed06174ae4ca3126824147bd9146e940b12e323239b6bbaa6a24d61"
  },
  "claim_kind": "observation",
  "native_resolution": "30 m EPSG:32629 grid of the terrain strata for heights, 10 m WorldCover cells for land cover, samples every 30 m",

@@ -319,14 +319,14 @@
    "href": "../bundle_terrain_strata_ait_bouguemez/collection.json",
    "type": "application/json",
    "title": "Terrain strata bundle bundle_terrain_strata_ait_bouguemez",
-   "file:checksum": "1220e7892bc96d951fbe7c89d256bf719931af5f6a1fec40f843dcef44040b8346d1"
+   "file:checksum": "1220d78c5c708866192daeb5ab9dbd2ad8eea4e31c9252c611c8b9aeaecfb6daee04"
   },
   {
    "rel": "derived_from",
    "href": "../bundle_restrend_long_record_ait_bouguemez/collection.json",
    "type": "application/json",
    "title": "Rainfall-adjusted long-record bundle bundle_restrend_long_record_ait_bouguemez",
-   "file:checksum": "1220e534312abe72fb9eb83c007406ee6e56b255e64443b24ccd3fd2db1af073a036"
+   "file:checksum": "12208c2b2276307ec8dee76085f3cce1401f6a0f535a7b25e0567f1a7e423d0af118"
   },
   {
    "rel": "license",
