@@ -14,10 +14,11 @@ import { viewToMapCamera } from "../../lib/globe/drive";
 import { R_KM, globeCamera, project } from "../../lib/globe/frame";
 import { polygonPath, rangePath, ringPoints, ringRho } from "../../lib/globe/overlay";
 import { OUTLET } from "../../lib/stage/arrival";
+import { unit } from "../../lib/globe/frame";
 import { widthFitScale } from "../../lib/stage/camera";
 import { loadGlobe, type GlobeAssets } from "../../lib/globe/grids";
 import { GlobeRenderer } from "../../lib/globe/renderer";
-import { CASE_V, FADE_V, KEY, globeStateAt, sunFor, type Moments } from "../../lib/globe/timeline";
+import { FADE_V, KEY, globeStateAt, sunFor, type Moments } from "../../lib/globe/timeline";
 import { Opening } from "../opening/Opening";
 import { GlobePage } from "./GlobePage";
 import type { CaseSnapshot } from "@siterra/contracts";
@@ -26,6 +27,7 @@ import type { ReadyArrival } from "../../lib/projection/arrival";
 import { InstrumentRecords } from "../instruments/InstrumentRecords";
 import { ValleyOverview } from "../overview/ValleyOverview";
 import { ValleyStage } from "../stage/ValleyStage";
+import { KeyLegend, SourcesLine, SourcesPanel, typing } from "../controls/ScreenChrome";
 import styles from "./Journey.module.css";
 
 /** The cross-fade from the MapLibre valley to the overview (ms); Journey.module.css .overview matches it. */
@@ -58,10 +60,31 @@ export function Journey({
   const rangeText = useRef<SVGTextPathElement>(null);
   const rangeGroup = useRef<SVGTextElement>(null);
   const casePoint = useRef<HTMLDivElement>(null);
+  const caseCard = useRef<HTMLDivElement>(null);
+  // the case's place on the sphere: its outlet from the record (the stored outlet only when the record has none)
+  const outlet = arrival.land.outlet ?? OUTLET;
+  const outletRef = useRef(outlet);
+  outletRef.current = outlet;
   const valleyName = useRef<HTMLDivElement>(null);
   const t0 = useRef(0);
   const moments = useRef<Moments>({ beats: [] });
   const [phase, setPhase] = useState<Phase>("opening");
+  // the credits sit behind one Sources button (S) with the data's short names always visible (decision 5)
+  const [sourcesOpen, setSourcesOpen] = useState(false);
+  useEffect(() => {
+    if (phase === "arrival") return;
+    const onKey = (e: KeyboardEvent) => {
+      if (typing(e)) return;
+      if (e.key === "s" || e.key === "S") {
+        e.preventDefault();
+        setSourcesOpen((o) => !o);
+      } else if (e.key === "Escape") setSourcesOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [phase]);
   // the overview has drawn its land; then the MapLibre valley is gone
   const [overviewShown, setOverviewShown] = useState(false);
   const [valleyGone, setValleyGone] = useState(false);
@@ -117,7 +140,7 @@ export function Journey({
     loadGlobe(globeAssets)
       .then((g) => {
         renderer?.setGlobe(g);
-        curve = crestCurve(findCrest(g.world), OUTLET);
+        curve = crestCurve(findCrest(g.world), outletRef.current);
         ready = true;
       })
       .catch((e: unknown) => {
@@ -129,7 +152,9 @@ export function Journey({
       if (!ready) return;
       const w = el.clientWidth;
       const h = el.clientHeight;
-      const s = globeStateAt(now(), moments.current, reduced);
+      const o = outletRef.current;
+      const caseV = unit(o.lon, o.lat);
+      const s = globeStateAt(now(), moments.current, reduced, o);
       // the same width fit as the arrival, on both renderers, so the cross-fade lines up
       const v = { ...s.view, distance: s.view.distance * widthFitScale(w, h) };
 
@@ -180,22 +205,22 @@ export function Journey({
           cam,
           sun: sunFor(cam, s.sunK),
           key: KEY,
-          caseV: CASE_V,
+          caseV,
           fadeC: FADE_V,
         });
         el.style.opacity = String(1 - s.valleyOpacity);
       }
 
       // the overlay: the case ring and point, the range name, and the valley's name late in the dive
-      const ringD = polygonPath(cam.vp, ringPoints(CASE_V, OUTLET.lon, ringRho(v.distance)), w, h);
+      const ringD = polygonPath(cam.vp, ringPoints(caseV, o.lon, ringRho(v.distance)), w, h);
       if (ring.current) {
         ring.current.setAttribute("d", ringD ?? "");
         ring.current.style.opacity = String(s.ringOpacity);
       }
       const lifted: [number, number, number] = [
-        CASE_V[0] * (1 + 3 / R_KM),
-        CASE_V[1] * (1 + 3 / R_KM),
-        CASE_V[2] * (1 + 3 / R_KM),
+        caseV[0] * (1 + 3 / R_KM),
+        caseV[1] * (1 + 3 / R_KM),
+        caseV[2] * (1 + 3 / R_KM),
       ];
       const cs = project(cam.vp, lifted, w, h);
       if (casePoint.current) {
@@ -203,6 +228,14 @@ export function Journey({
           ? `translate(${cs[0].toFixed(1)}px, ${cs[1].toFixed(1)}px)`
           : "";
         casePoint.current.style.opacity = String(cs ? s.ringOpacity : 0);
+      }
+      // the case's card stands beside its point while the globe shows (with one case it opens by itself)
+      if (caseCard.current) {
+        caseCard.current.style.transform = cs
+          ? `translate(${(cs[0] + 22).toFixed(1)}px, ${(cs[1] - 28).toFixed(1)}px)`
+          : "";
+        caseCard.current.style.visibility = cs && s.ringOpacity > 0.05 ? "visible" : "hidden";
+        caseCard.current.style.opacity = String(cs ? s.ringOpacity : 0);
       }
       if (valleyName.current) {
         valleyName.current.style.transform = cs
@@ -240,6 +273,7 @@ export function Journey({
             valleyName={arrival.valleyName}
             regionName={arrival.regionName}
             areaKm2={arrival.areaKm2}
+            areaLabel={arrival.areaLabel}
             places={arrival.land.places}
             outlet={arrival.land.outlet}
             onMap={onMap}
@@ -272,14 +306,19 @@ export function Journey({
           </div>
         </>
       ) : null}
-      {phase === "opening" ? (
-        <Opening question={arrival.question} onOpen={onOpen} onShown={onShown} />
-      ) : null}
+      {phase === "opening" ? <Opening onOpen={onOpen} onShown={onShown} /> : null}
       {phase === "globe" ? (
         <GlobePage
-          valleyName={arrival.valleyName}
-          regionName={arrival.regionName}
-          onDive={onDive}
+          cases={[
+            {
+              id: arrival.caseId,
+              place: arrival.valleyName,
+              region: arrival.regionName,
+              question: arrival.question,
+            },
+          ]}
+          cardRef={caseCard}
+          onOpen={onDive}
         />
       ) : null}
       {phase === "opening" || phase === "globe" ? (
@@ -289,16 +328,50 @@ export function Journey({
         </p>
       ) : null}
       {phase !== "arrival" ? (
-        <p className={styles.credit}>
-          {phase === "dive" ? (
-            <>
-              {en["credit.dive"].text}
-              <br />
-            </>
-          ) : null}
-          {en["credit.globe"].text}
-        </p>
+        <JourneySources dive={phase === "dive"} open={sourcesOpen} onToggle={setSourcesOpen} />
       ) : null}
     </div>
+  );
+}
+
+/** The globe's and the dive's credits behind one Sources button, their short names always visible. */
+function JourneySources({
+  dive,
+  open,
+  onToggle,
+}: {
+  dive: boolean;
+  open: boolean;
+  onToggle: (open: boolean) => void;
+}) {
+  const sources = {
+    lines: [en["credit.globe"].text, ...(dive ? [en["credit.dive"].text] : [])],
+    short: [en["source.dem"].text, ...(dive ? [en["source.mapterhorn"].text] : [])],
+  };
+  return (
+    <>
+      <KeyLegend
+        entries={[
+          {
+            chip: "S",
+            shortcut: "S",
+            label: en["chrome.key.sources"].text,
+            onPress: () => {
+              onToggle(!open);
+            },
+            pressed: open,
+          },
+        ]}
+      >
+        <SourcesLine sources={sources} />
+      </KeyLegend>
+      <SourcesPanel
+        sources={sources}
+        open={open}
+        onClose={() => {
+          onToggle(false);
+        }}
+      />
+    </>
   );
 }

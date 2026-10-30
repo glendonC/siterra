@@ -95,7 +95,16 @@ export interface GlobeState {
   done: boolean;
 }
 
-export function globeStateAt(t: number, m: Moments, reduced = false): GlobeState {
+/**
+ * The camera and overlays at time t. The dive turns toward the case's own outlet (from its record); the dive's end
+ * pose (V_END, from this case's arrival camera) is still this case's own.
+ */
+export function globeStateAt(
+  t: number,
+  m: Moments,
+  reduced = false,
+  outlet: { lon: number; lat: number } = { lon: -6.5372222, lat: 31.6377778 },
+): GlobeState {
   const p = (t0: number | undefined, dur: number, ease = ARRIVE) =>
     progress(t, t0, dur, ease, reduced);
   const beats = m.beats;
@@ -108,7 +117,6 @@ export function globeStateAt(t: number, m: Moments, reduced = false): GlobeState
   const u = m.dive === undefined ? -1 : t - m.dive;
   const diving = u >= 0;
   const x = clamp(u / DIVE_S);
-  const outlet = { lon: -6.5372222, lat: 31.6377778 };
   if (diving) {
     const s = 0.5 * x + 0.5 * x * x * (3 - 2 * x); // the logarithmic fall, eased at both ends
     const toCase = p(m.dive, 1.6, CAM);

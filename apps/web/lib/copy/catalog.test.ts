@@ -37,10 +37,12 @@ describe("message catalog (VC-06)", () => {
 
 describe("format", () => {
   it("fills placeholders from values", () => {
-    expect(format("arrival.studyArea", { area: "417.0" })).toBe("Valley catchment: 417.0 km²");
+    expect(format("arrival.studyArea", { label: "Valley catchment", area: "417.0" })).toBe(
+      "Valley catchment: 417.0 km²",
+    );
   });
 
   it("leaves a missing placeholder visible", () => {
-    expect(format("arrival.studyArea")).toBe("Valley catchment: {area} km²");
+    expect(format("arrival.studyArea")).toBe("{label}: {area} km²");
   });
 });

@@ -15,6 +15,7 @@ import type { PixelData } from "../../lib/instruments/pixel/data";
 import { PIXEL_DESIGN, mountPixel, type PixelLocator } from "../../lib/instruments/pixel/scene";
 import { placedStatements, type PlacedStatements } from "../../lib/instruments/placed-statements";
 import { VALLEY_FIXTURES, json, trendCellsSchema } from "../../lib/instruments/valley/fixtures";
+import { useShellSources } from "./ShellContext";
 import styles from "./InstrumentPixelAnatomy.module.css";
 import { useInstrument } from "./InstrumentRecords";
 
@@ -35,6 +36,16 @@ export function InstrumentPixelAnatomy({
   } | null>(null);
   const [loadFailed, setFailed] = useState(false);
   const record = useInstrument("pixel_anatomy");
+  // its credits sit behind the shell's S; the data's short names stay visible
+  useShellSources({
+    lines: [en["instrument.pixel.credit"].text, `${en["instrument.credit.dem"].text}.`],
+    short: [
+      en["source.sentinel"].text,
+      en["source.modis"].text,
+      en["source.worldcover"].text,
+      en["source.dem"].text,
+    ],
+  });
   // an instrument the case holds no spec for cannot be drawn
   const failed = loadFailed || record.status === "failed" || record.status === "absent";
   const view = record.status === "ready" ? record.view : null;

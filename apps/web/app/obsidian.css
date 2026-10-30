@@ -15,6 +15,7 @@
   --control-chip: rgb(235 240 241 / 0.04);
   --control-ink: #ebf0f1;
   --control-grey: #b7c4c8;
+  --control-shadow: 0 8px 24px rgb(0 0 0 / 0.35);
   --text-secondary: #b7c4c8;
   --text-tertiary: #8e9da2;
   --hairline: rgb(235 240 241 / 0.34);

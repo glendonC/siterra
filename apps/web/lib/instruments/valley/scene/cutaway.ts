@@ -8,7 +8,7 @@
 import { PerspectiveCamera, Vector3 } from "three";
 import { smoothRing } from "../../../stage/smooth";
 import { modelColours, obsidian, sheetColours } from "../../../theme/obsidian";
-import { SECTION_PLACE, type CutawayData } from "../cutaway-data";
+import type { CutawayData } from "../cutaway-data";
 import { BAND_LIMITS_M } from "../fixtures";
 import { makeFrame, makeHeightSampler, type Vec3 } from "../frame";
 import { openRing, signedArea, type Point } from "../geometry";
@@ -248,7 +248,8 @@ export async function mountCutaway(
     0,
     line.d.findIndex((dm) => dm >= (line.d[last] ?? 0) - HIGH_SLOPE_FROM_END_M),
   );
-  const named = places.places.find((p) => p.id === SECTION_PLACE);
+  // the place the section names: the first named place the cross section spec lists (placeFeatureIds)
+  const named = places.places[0];
   let place: CutawayMarks["place"] = null;
   if (named) {
     const [E, N] = lonLatToUtm(named.lonLat[0], named.lonLat[1], 29);

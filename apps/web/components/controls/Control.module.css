@@ -62,7 +62,7 @@
   padding: 0 5px;
   border: 1px solid var(--control-line);
   border-radius: 5px;
-  font: 500 11px / 1 var(--font-mono);
+  font: 500 12px / 1 var(--font-mono);
   color: var(--control-grey);
   background: var(--control-chip);
 }

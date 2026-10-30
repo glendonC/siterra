@@ -28,7 +28,7 @@ for (const id of PAGES) {
   test(`frames the ${id} instrument with the switcher and the ask`, async ({ page }) => {
     await page.goto(`/instruments/${id}`);
     await expect(page.locator(READY[id]).first()).toBeVisible();
-    const nav = page.locator("nav");
+    const nav = page.locator("nav[aria-label='Instruments']");
     await expect(nav.locator("a")).toHaveCount(6);
     await expect(nav.locator("a[aria-current='page']")).toHaveCount(1);
     await expect(nav.locator("a").first()).toHaveAttribute("href", "/valley");

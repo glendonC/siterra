@@ -91,22 +91,11 @@
 }
 
 /* brand and the case question, top left */
-.brand {
+/* the case question, under the breadcrumb (components/controls/ScreenChrome) */
+.question {
   position: absolute;
   left: 48px;
-  top: 38px;
-}
-
-.word {
-  font-weight: 500;
-  font-size: 15px;
-  line-height: 20px;
-  letter-spacing: 0.02em;
-  color: var(--ov-ink);
-}
-
-.question {
-  margin-top: 6px;
+  top: 74px;
   font-size: 13px;
   line-height: 18px;
   color: var(--ov-ink-3);
@@ -478,19 +467,6 @@
   text-shadow: var(--ov-halo-dark);
 }
 
-/* licence credits, bottom right (12 px, the instruments' smallest text) */
-.credit {
-  position: absolute;
-  right: 48px;
-  bottom: 40px;
-  width: 430px;
-  margin: 0;
-  text-align: right;
-  font-size: 12px;
-  line-height: 16px;
-  color: var(--ov-ink-4);
-}
-
 .failed {
   position: absolute;
   left: 48px;
@@ -499,32 +475,4 @@
   font-size: 13px;
   line-height: 18px;
   color: var(--text-secondary);
-}
-
-/* the way back from an opened record, top right (the corner every specimen leaves empty) */
-.back {
-  position: absolute;
-  pointer-events: auto;
-  top: 36px;
-  right: 48px;
-  z-index: 10;
-  margin: 0;
-  padding: 0;
-  border: 0;
-  background: none;
-  font-family: var(--font-sans);
-  font-size: 13px;
-  line-height: 18px;
-  color: var(--text-tertiary);
-  cursor: pointer;
-}
-
-.back:hover,
-.back:focus-visible {
-  color: var(--text-secondary);
-}
-
-.back:focus-visible {
-  outline: 1px solid var(--hairline);
-  outline-offset: 3px;
 }

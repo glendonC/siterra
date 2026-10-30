@@ -7,7 +7,7 @@
 // placed after every render so they follow the model when it is turned. The caption is the cross section spec's,
 // as the case records carry it.
 
-import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
+import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { en, format, type MessageId } from "../../lib/copy/en";
 import { splitFigure } from "../../lib/instruments/caption";
 import { metres, percent, signed } from "../../lib/instruments/format";
@@ -22,6 +22,7 @@ import {
   type CutawayScene,
 } from "../../lib/instruments/valley/scene/cutaway";
 import { cssColour, obsidian, sheetColours } from "../../lib/theme/obsidian";
+import { useShellSources, useShellView, type ViewHandle } from "./ShellContext";
 import styles from "./InstrumentCutaway.module.css";
 import { useInstrument } from "./InstrumentRecords";
 
@@ -105,6 +106,15 @@ export function InstrumentCutaway({
   const endRefs = useRef<(HTMLDivElement | null)[]>([]);
   const scaleRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<CutawayScene | null>(null);
+  // the shell's view control and key R reset and zoom this view
+  const viewHandle = useMemo<ViewHandle>(
+    () => ({
+      reset: () => sceneRef.current?.reset(),
+      zoomBy: (f: number) => sceneRef.current?.stage.zoomBy(f),
+    }),
+    [],
+  );
+  useShellView(viewHandle);
   const [data, setData] = useState<CutawayData | null>(null);
   const [placeName, setPlaceName] = useState<string | null>(null);
   const [loadFailed, setFailed] = useState(false);
@@ -262,6 +272,23 @@ export function InstrumentCutaway({
         ...data.places.places.map((p) => p.attribution),
       ]
     : [];
+  // every credit in full behind the shell's S, numbered as the chips cite them; the data's short names stay visible
+  useShellSources(
+    data
+      ? {
+          lines: credits,
+          short: [
+            en["source.modis"].text,
+            en["source.worldcover"].text,
+            en["source.dem"].text,
+            ...(data.places.places.length ? [en["source.geonames"].text] : []),
+            ...(data.statements.sources.length
+              ? [format("source.studies", { n: data.statements.sources.length })]
+              : []),
+          ],
+        }
+      : null,
+  );
 
   return (
     <div className={styles.root} data-theme="obsidian" data-instrument="cutaway">
@@ -414,15 +441,6 @@ export function InstrumentCutaway({
           <div ref={scaleRef} className={styles.scaleNote} data-scale-note>
             {format("instrument.layers.scale", { value: CUTAWAY_EXAG })}
           </div>
-          <p className={styles.credit}>
-            {credits.map((text, i) => (
-              <span key={text}>
-                <b>{i + 1}</b>
-                {"\u00a0"}
-                {text}
-              </span>
-            ))}
-          </p>
         </>
       )}
     </div>

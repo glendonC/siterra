@@ -111,6 +111,9 @@ export interface SceneState {
   r: number;
   /** One route picked in the opened list (its context feature id): it is lifted and the others quieted. */
   route?: string | null;
+  /** The visitor's own view: a factor on the camera's distance and a turn of its bearing (degrees). */
+  zoom?: number;
+  turn?: number;
   /** The finding opening or open (kept while it closes). */
   sel: Selection | null;
 }
@@ -830,7 +833,12 @@ export function mountOverview(
       state = next;
       const e = ease(next.s);
       const v1 = next.sel ? viewFor(next.sel) : view0;
-      const view = viewAt(view0, v1, e);
+      const at = viewAt(view0, v1, e);
+      const view = {
+        ...at,
+        distance: at.distance * (next.zoom ?? 1),
+        azimuth: at.azimuth + (next.turn ?? 0),
+      };
       set(view);
       current = { e, view, selClock: clockOf(next.sel) };
       relief.uniforms.uFog.value.set(

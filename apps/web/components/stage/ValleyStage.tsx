@@ -203,6 +203,8 @@ export interface ValleyStageProps {
   regionName: string;
   /** Its area in km² to one decimal, from the record. */
   areaKm2: string;
+  /** The record's name for that area ("Valley catchment"). */
+  areaLabel: string;
   /** Villages on stems, from the case's ContextFeature records. */
   places: LandPoint[];
   /** The outlet from its ContextFeature record; no beam and no outlet stem without one. */
@@ -247,6 +249,7 @@ export function ValleyStage({
   valleyName,
   regionName,
   areaKm2,
+  areaLabel,
   places,
   outlet,
   onIdle,
@@ -639,7 +642,11 @@ export function ValleyStage({
       { text: format("arrival.region", { region: regionName }), size: 0.28, weight: 500 },
     ];
     const studyLines: LabelLine[] = [
-      { text: format("arrival.studyArea", { area: areaKm2 }), size: 0.33, weight: 500 },
+      {
+        text: format("arrival.studyArea", { label: areaLabel, area: areaKm2 }),
+        size: 0.33,
+        weight: 500,
+      },
       { text: en["arrival.studyAreaLimit"].text, size: 0.22, weight: 500 },
     ];
     const budgetLines = (ids: MessageId[], texts: LabelLine[]): BudgetLine[] =>
@@ -894,7 +901,18 @@ export function ValleyStage({
       map?.remove();
     };
     // callers pass the record's geometry once (memoized), so the map is built once per case revision
-  }, [assets, contourArea, catchment, valleyName, regionName, areaKm2, onIdle, onMap, settleKey]);
+  }, [
+    assets,
+    contourArea,
+    catchment,
+    valleyName,
+    regionName,
+    areaKm2,
+    areaLabel,
+    onIdle,
+    onMap,
+    settleKey,
+  ]);
 
   return (
     <div
@@ -979,7 +997,8 @@ export function ValleyStage({
         >
           <li>{format("arrival.region", { region: regionName })}</li>
           <li>
-            {format("arrival.studyArea", { area: areaKm2 })} {en["arrival.studyAreaLimit"].text}
+            {format("arrival.studyArea", { label: areaLabel, area: areaKm2 })}{" "}
+            {en["arrival.studyAreaLimit"].text}
           </li>
           {outlet ? <li>{en["arrival.outlet"].text}</li> : null}
           {places.map((p) => (

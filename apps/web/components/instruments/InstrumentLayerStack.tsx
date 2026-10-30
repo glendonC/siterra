@@ -5,7 +5,15 @@
 // three.js (lib/instruments/valley/scene/layer-stack.ts); the words around it are HTML, placed after every render
 // so they follow the model when it is turned. The caption is the layer stack spec's, as the case records carry it.
 
-import { useEffect, useId, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
+import {
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+  type KeyboardEvent,
+  type ReactNode,
+} from "react";
 import { en, format, type MessageId } from "../../lib/copy/en";
 import { splitFigure } from "../../lib/instruments/caption";
 import { metres, percent, signed } from "../../lib/instruments/format";
@@ -28,6 +36,7 @@ import {
   type SheetId,
 } from "../../lib/instruments/valley/scene/layer-stack";
 import { obsidian, sheetColours } from "../../lib/theme/obsidian";
+import { useShellSources, useShellView, type ViewHandle } from "./ShellContext";
 import styles from "./InstrumentLayerStack.module.css";
 import { useInstrument } from "./InstrumentRecords";
 
@@ -60,6 +69,8 @@ const CREDITS: MessageId[] = [
   "instrument.credit.worldcover",
   "instrument.credit.dem",
 ];
+/** The data's short names for the shell's one visible line. */
+const SHORT: MessageId[] = ["source.modis", "source.chirps", "source.worldcover", "source.dem"];
 
 const gradient = (stops: readonly string[]) => `linear-gradient(90deg, ${stops.join(", ")})`;
 const TREND_KEY = [
@@ -157,6 +168,19 @@ export function InstrumentLayerStack({ base = VALLEY_FIXTURES }: { base?: string
   const dotRefs = useRef<(SVGCircleElement | null)[]>([]);
   const scaleRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<LayerStackScene | null>(null);
+  // the shell's view control and key R reset and zoom this view; its sources sit behind the shell's S
+  const viewHandle = useMemo<ViewHandle>(
+    () => ({
+      reset: () => sceneRef.current?.reset(),
+      zoomBy: (f: number) => sceneRef.current?.stage.zoomBy(f),
+    }),
+    [],
+  );
+  useShellView(viewHandle);
+  useShellSources({
+    lines: CREDITS.map((id) => en[id].text),
+    short: SHORT.map((id) => en[id].text),
+  });
   const [data, setData] = useState<LayerStackData | null>(null);
   const [loadFailed, setFailed] = useState(false);
   const record = useInstrument("layer_stack");
@@ -347,13 +371,6 @@ export function InstrumentLayerStack({ base = VALLEY_FIXTURES }: { base?: string
           <div ref={scaleRef} className={styles.scaleNote} data-scale-note>
             {format("instrument.layers.scale", { value: LAYER_STACK_EXAG })}
           </div>
-          <p className={styles.credit}>
-            {CREDITS.map((id, i) => (
-              <span key={id}>
-                <b>{i + 1}</b> {en[id].text}
-              </span>
-            ))}
-          </p>
         </>
       )}
     </div>

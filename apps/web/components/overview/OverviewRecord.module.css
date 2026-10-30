@@ -96,26 +96,9 @@
   color: var(--text-tertiary);
 }
 
+/* the way to the full instrument: the one control style (components/controls), set under the record */
 .open {
-  display: inline-block;
   margin-top: 14px;
-  font-size: 13px;
-  line-height: 18px;
-  color: var(--text-secondary);
-  text-decoration: none;
-  border-bottom: 1px solid var(--hairline);
-  pointer-events: auto;
-}
-
-.open:hover,
-.open:focus-visible {
-  color: var(--text-primary);
-  border-bottom-color: var(--text-secondary);
-}
-
-.open:focus-visible {
-  outline: 1px solid var(--ov-focus);
-  outline-offset: 4px;
 }
 /* D4 set the evidence at 676 px over a 10 px credit; the 12 px credit runs a line taller, so the evidence sits higher */
 .evid {

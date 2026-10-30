@@ -7,7 +7,6 @@
 // land with no edge and no box. The page places the frost, the dotted line and the hairline from the finding's dot
 // (ValleyOverview's apply); every value here comes from the case.
 
-import Link from "next/link";
 import type { Ref } from "react";
 import { en, format } from "../../lib/copy/en";
 import { signed } from "../../lib/instruments/format";
@@ -17,6 +16,7 @@ import type { Finding } from "../../lib/overview/findings";
 import { chartScale, yearTicks, type SeasonChart } from "../../lib/overview/record";
 import type { RecordData } from "../../lib/overview/record-data";
 import type { Selection } from "../../lib/overview/scene/overview";
+import { ControlLink } from "../controls/Control";
 import styles from "./OverviewRecord.module.css";
 
 /** The full instrument each record opens. */
@@ -144,6 +144,7 @@ export function OverviewRecord({
   reasons,
   fieldCaption,
   pixelNote,
+  areaLabel,
   refs,
 }: {
   sel: Exclude<Selection, "results" | "routes">;
@@ -159,6 +160,8 @@ export function OverviewRecord({
   fieldCaption: { ink: string; grey: string } | null;
   /** The pixel bundle's note on how the pixel was chosen, shown with the pixel's record. */
   pixelNote: string | null;
+  /** The record's name for its area ("Valley catchment"), the kicker of a finding over the whole area. */
+  areaLabel: string;
   refs: RecordRefs;
 }) {
   const [from, to] = SEASON_TREND_YEARS;
@@ -169,7 +172,7 @@ export function OverviewRecord({
         ? en["overview.record.pixel"].text
         : sel === "band"
           ? format("overview.record.band", { limit: bandLimit })
-          : en["overview.record.catchment"].text;
+          : areaLabel;
   const chart = data?.chart ?? null;
   const ci = chart
     ? format(chart.fit === "theil_sen" ? "overview.record.theilSen" : "overview.record.ols", {
@@ -209,9 +212,9 @@ export function OverviewRecord({
               {pixelNote}
             </div>
           ) : null}
-          <Link ref={refs.link} className={styles.open} href={INSTRUMENT_HREF[sel]}>
+          <ControlLink ref={refs.link} className={styles.open} href={INSTRUMENT_HREF[sel]}>
             {en["overview.record.open"].text}
-          </Link>
+          </ControlLink>
         </div>
       </section>
       {context ? (

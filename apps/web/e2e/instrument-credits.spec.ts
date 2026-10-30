@@ -1,8 +1,8 @@
 import { expect, test } from "@playwright/test";
 
-// The data credits on every current screen (ported from the retired /stage credit-line check): the overview names
-// the four sources it draws (MODIS NDVI, CHIRPS, WorldCover, the Copernicus DEM), inside the frame with its side
-// margin, at the layouts the acceptance criteria name; each data instrument shows its credit line inside the frame.
+// The data credits on every current screen (decision 5, 30 Oct 2026): one short line of the data's names stays
+// visible inside the frame, and every credit and licence in full sits behind the Sources button (S), on the overview
+// at the layouts the acceptance criteria name and on each data instrument.
 
 const OVERVIEW = [
   "MODIS MOD13Q1 v6.1, NASA LP DAAC",
@@ -11,11 +11,22 @@ const OVERVIEW = [
   "Produced using Copernicus WorldDEM-30",
 ];
 
+const inFrame = (
+  box: { x: number; y: number; width: number; height: number } | null,
+  vw: number,
+  vh: number,
+) => {
+  expect(box).not.toBeNull();
+  expect(box?.x ?? -1).toBeGreaterThanOrEqual(24);
+  expect((box?.x ?? 0) + (box?.width ?? 0)).toBeLessThanOrEqual(vw - 24);
+  expect((box?.y ?? 0) + (box?.height ?? 0)).toBeLessThanOrEqual(vh);
+};
+
 for (const viewport of [
   { width: 1440, height: 900 },
   { width: 1280, height: 800 },
 ]) {
-  test(`the overview credits its four sources inside the frame at ${String(viewport.width)}x${String(viewport.height)}`, async ({
+  test(`the overview names its data and keeps every credit behind Sources at ${String(viewport.width)}x${String(viewport.height)}`, async ({
     page,
   }) => {
     await page.setViewportSize(viewport);
@@ -23,27 +34,34 @@ for (const viewport of [
     await expect(page.locator("[data-overview-root]")).toHaveAttribute("data-ready", "", {
       timeout: 60_000,
     });
-    const credit = page.locator("[data-overview-root] [class*='credit']");
-    for (const text of OVERVIEW) await expect(credit).toContainText(text);
-    const box = await credit.boundingBox();
-    expect(box).not.toBeNull();
-    expect(box?.x ?? -1).toBeGreaterThanOrEqual(24);
-    expect((box?.x ?? 0) + (box?.width ?? 0)).toBeLessThanOrEqual(viewport.width - 24);
-    expect((box?.y ?? 0) + (box?.height ?? 0)).toBeLessThanOrEqual(viewport.height);
+    const line = page.locator("[data-sources-line]");
+    await expect(line).toHaveText("Data: NASA MODIS, CHIRPS, ESA WorldCover, Copernicus DEM");
+    inFrame(await line.boundingBox(), viewport.width, viewport.height);
+    await page.locator("[data-key-legend] [data-key='S']").click();
+    const panel = page.locator("[data-sources-panel]");
+    for (const text of OVERVIEW) await expect(panel).toContainText(text);
+    inFrame(await panel.boundingBox(), viewport.width, viewport.height);
+    // no credit anywhere is set in monospace
+    expect(await panel.evaluate((el) => getComputedStyle(el).fontFamily)).not.toMatch(/mono/i);
   });
 }
 
-for (const name of ["layers", "cutaway", "pixel", "rainfall"]) {
-  test(`the ${name} instrument shows its credit line inside the frame`, async ({ page }) => {
+for (const [name, credit] of [
+  ["layers", "CHIRPS v3.0"],
+  ["cutaway", "Auclair et al. 2011"],
+  ["pixel", "Copernicus WorldDEM-30"],
+  ["rainfall", "CHIRPS v3.0"],
+] as const) {
+  test(`the ${name} instrument names its data and keeps its credits behind Sources`, async ({
+    page,
+  }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto(`/instruments/${name}`);
-    const credit = page.locator(`[data-instrument='${name}'] [class*='credit']`).first();
-    await expect(credit).toBeVisible({ timeout: 60_000 });
-    await expect(credit).not.toHaveText("");
-    const box = await credit.boundingBox();
-    expect(box).not.toBeNull();
-    expect(box?.x ?? -1).toBeGreaterThanOrEqual(0);
-    expect((box?.x ?? 0) + (box?.width ?? 0)).toBeLessThanOrEqual(1440);
-    expect((box?.y ?? 0) + (box?.height ?? 0)).toBeLessThanOrEqual(900);
+    const line = page.locator("[data-sources-line]");
+    await expect(line).toBeVisible({ timeout: 60_000 });
+    await expect(line).toHaveText(/^Data: .+/);
+    inFrame(await line.boundingBox(), 1440, 900);
+    await page.keyboard.press("s");
+    await expect(page.locator("[data-sources-panel]")).toContainText(credit);
   });
 }

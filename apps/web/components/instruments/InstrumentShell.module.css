@@ -1,5 +1,6 @@
-/* The briefing shell around one instrument, in the Obsidian tokens: a quiet text switcher at the top right; the ask
-   (components/overview/Ask.module.css) rests at the bottom centre. No pills, no panels down the sides. */
+/* The briefing shell around one instrument, in the Obsidian tokens: the breadcrumb at the top left and a quiet text
+   switcher at the top right over a 64 px band, the instrument in the stage area below it, the ask
+   (components/overview/Ask.module.css) resting at the bottom centre, the keys and sources at the bottom right. */
 
 .shell {
   position: fixed;
@@ -9,9 +10,18 @@
   -webkit-font-smoothing: antialiased;
 }
 
+/* the instrument fits its 1440 x 900 design into the area under the breadcrumb */
+.stage {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 64px;
+  bottom: 0;
+}
+
 .switcher {
   position: absolute;
-  top: 36px;
+  top: 34px;
   right: 48px;
   z-index: 10;
   display: flex;

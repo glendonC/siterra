@@ -200,7 +200,7 @@ describe("departureLegend", () => {
       flagsNote: "Cloud screening used the scene classification only.",
       excluded:
         "Hatched: cropland and buildings mapped by ESA WorldCover in 2021, left out of the field-sampling strata. Their departure is still drawn.",
-      note: "No cropland mask is applied: valley-floor fields and orchards are included.",
+      note: "No cropland mask is applied: irrigated fields and orchards are included.",
       method:
         "Sentinel-2 L2A, monthly median NDVI, cloud and snow masked. Method monthly_departure 1.0.0.",
       cells:
@@ -267,9 +267,7 @@ describe("departureLegend", () => {
     expect(l.excluded).not.toMatch(/mask/i);
     expect(l.excluded).toContain("left out of the field-sampling strata");
     expect(l.excluded).toContain("still drawn");
-    expect(l.note).toBe(
-      "No cropland mask is applied: valley-floor fields and orchards are included.",
-    );
+    expect(l.note).toBe("No cropland mask is applied: irrigated fields and orchards are included.");
   });
 
   it("names no hatch when none is drawn", () => {

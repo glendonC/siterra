@@ -61,6 +61,8 @@ export interface Stage {
   setPerspectiveView(view: PerspectiveView): void;
   /** The current bearing and elevation, after any orbit. */
   angles(): { azimuth: number; elevation: number };
+  /** Moves the camera along its line to the target: a factor below 1 closer, above 1 farther (the view control). */
+  zoomBy(factor: number): void;
   render(): void;
   /** Screen position (CSS px, from the canvas's top left) of a model point. */
   project(p: Vec3): { x: number; y: number };
@@ -203,6 +205,18 @@ export function createStage(
         azimuth: (Math.atan2(v.x, -v.z) / DEG + 360) % 360,
         elevation: Math.asin(Math.min(1, Math.max(-1, v.y))) / DEG,
       };
+    },
+    zoomBy(factor) {
+      if (camera instanceof PerspectiveCamera) {
+        v.copy(camera.position).sub(controls.target).multiplyScalar(factor);
+        camera.position.copy(controls.target).add(v);
+      } else {
+        camera.zoom = Math.min(8, Math.max(0.25, camera.zoom / factor));
+        camera.updateProjectionMatrix();
+      }
+      camera.updateMatrixWorld();
+      controls.update();
+      render();
     },
     render,
     project(p) {

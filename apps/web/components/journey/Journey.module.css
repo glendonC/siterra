@@ -106,13 +106,38 @@
   pointer-events: auto;
 }
 
-.oneCase {
-  position: absolute;
-  left: 40px;
-  top: 36px;
+/* each case's card beside its point (Destiny's manner): place and region, the case's question, one action */
+.cases {
   margin: 0;
-  font: 500 var(--type-place-size) / 18px var(--font-sans);
-  letter-spacing: var(--type-place-tracking);
+  padding: 0;
+  list-style: none;
+}
+
+.caseCard {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 360px;
+  padding: 14px 16px 16px;
+  border: 1px solid var(--control-line);
+  border-radius: 12px;
+  background: var(--paper);
+  box-shadow: var(--control-shadow);
+  pointer-events: auto;
+  visibility: hidden;
+}
+
+.casePlace {
+  margin: 0;
+  font: 500 13px / 18px var(--font-sans);
+  color: var(--ink);
+}
+
+.caseQuestion {
+  margin: 6px 0 14px;
+  font: 400 17px / 24px var(--font-sans);
+  color: var(--ink);
+  text-wrap: pretty;
 }
 
 .legend {
@@ -154,18 +179,5 @@
 /* the mouse hint, in words */
 .quiet {
   font: 400 13px / 18px var(--font-sans);
-  color: var(--grey);
-}
-
-.credit {
-  position: absolute;
-  right: 32px;
-  bottom: 10px;
-  margin: 0;
-  padding: 2px 8px;
-  border-radius: 4px;
-  background: var(--paper);
-  text-align: right;
-  font: 400 var(--type-credit-size) / 14px var(--font-mono);
   color: var(--grey);
 }

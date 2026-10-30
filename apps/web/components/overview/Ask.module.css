@@ -224,25 +224,28 @@
   white-space: nowrap;
 }
 
-/* a completed request's findings count: the way to its results */
+/* a completed request's findings count: the way to its results, in the one control style (components/controls) */
 .findings {
+  display: inline-flex;
+  align-items: center;
+  height: 26px;
   margin: 0;
-  padding: 0;
-  border: 0;
-  border-bottom: 1px solid var(--hairline);
+  padding: 0 10px;
+  border: 1px solid var(--control-line);
+  border-radius: 999px;
   background: none;
   font: inherit;
-  color: var(--text-secondary);
+  color: var(--control-ink);
   cursor: pointer;
 }
 
 .findings:hover,
 .findings:focus-visible {
-  color: var(--text-primary);
-  border-bottom-color: var(--text-secondary);
+  background: var(--control-fill);
+  border-color: var(--control-line-strong);
 }
 
 .findings:focus-visible {
-  outline: 1px solid var(--ov-focus);
-  outline-offset: 3px;
+  outline: 1px solid var(--control-line-strong);
+  outline-offset: 2px;
 }

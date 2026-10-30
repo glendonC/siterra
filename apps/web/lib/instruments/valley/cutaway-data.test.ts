@@ -2,7 +2,10 @@ import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { SECTION_PLACE, placesSchema } from "./cutaway-data";
+import { placesSchema } from "./cutaway-data";
+
+/** The place the seed case's cross section spec names first (its placeFeatureIds). */
+const SECTION_PLACE = "ctx_tabant";
 import { SEASON_TREND_YEARS, figuresSchema, snowSchema } from "./fixtures";
 import { PLACE_ON_LINE_M, cutawayTransectSchema, nearestSample, transectFixture } from "./transect";
 import { lonLatToUtm } from "./utm";

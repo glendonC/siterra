@@ -13,6 +13,7 @@
   --control-chip: rgb(43 41 37 / 0.03);
   --control-ink: #2b2925;
   --control-grey: #6b6762;
+  --control-shadow: 0 8px 24px rgb(43 41 37 / 0.08);
   --grey: #6b6762;
   --shadow-tint: #788693;
   --accent: #b5561f;

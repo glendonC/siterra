@@ -993,6 +993,12 @@ export function mountPixel(
     reset.className = c("textButton");
     reset.type = "button";
     reset.textContent = en["instrument.pixel.model.reset"].text;
+    // Home does the same: its chip sits inside, as on every control
+    const chip = document.createElement("kbd");
+    chip.textContent = "Home";
+    chip.setAttribute("aria-hidden", "true");
+    reset.appendChild(chip);
+    reset.setAttribute("aria-keyshortcuts", "Home");
     reset.addEventListener("click", () => {
       shares = { ...measured };
       redraw();
@@ -1048,8 +1054,7 @@ export function mountPixel(
     svg("circle", { cx: ex, cy: ey, r: 2, fill: obsidian.accent }, g);
   }
 
-  const credit = `${en["instrument.pixel.credit"].text} ${en["instrument.credit.dem"].text}.`;
-  place(div("credit", stage, credit), 40, L.creditY, 1360);
+  // the credits sit behind the shell's Sources (InstrumentPixelAnatomy registers them)
   stage.appendChild(overlay);
   draw();
 

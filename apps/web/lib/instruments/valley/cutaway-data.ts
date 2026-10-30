@@ -24,9 +24,6 @@ import {
 import { outlineRing } from "./outline";
 import { cutawayTransectSchema, transectFixture, type CutawayTransect } from "./transect";
 
-/** The place the section passes through, by its case record context feature. */
-export const SECTION_PLACE = "ctx_tabant";
-
 export const placesSchema = z.object({
   source: z.literal("data/case/context-features.json"),
   sha256: z.string().regex(/^[0-9a-f]{64}$/),

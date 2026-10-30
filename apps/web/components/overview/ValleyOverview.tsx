@@ -44,6 +44,16 @@ import {
   useInstrumentRecords,
   useRecordsRefresh,
 } from "../instruments/InstrumentRecords";
+import {
+  Breadcrumb,
+  KeyLegend,
+  OPENING_HREF,
+  SourcesLine,
+  SourcesPanel,
+  ViewControl,
+  typing,
+  type KeyEntry,
+} from "../controls/ScreenChrome";
 import { Ask } from "./Ask";
 import { OverviewRecord } from "./OverviewRecord";
 import { OverviewResults } from "./OverviewResults";
@@ -70,7 +80,7 @@ function captionOf(id: FindingId, bandLimit: string): string[] {
     case "band":
       return [format("overview.finding.band.1", { limit: bandLimit })];
     case "pixel":
-      return [en["overview.finding.pixel.1"].text, en["overview.finding.pixel.2"].text];
+      return [en["overview.finding.pixel.1"].text];
     case "rain":
       return [en["overview.finding.rain.1"].text, en["overview.finding.rain.2"].text];
     case "fdr":
@@ -96,6 +106,25 @@ const CREDITS: MessageId[] = [
   "instrument.credit.worldcover",
   "instrument.credit.dem",
 ];
+/** The data's short names for the one visible line. */
+const SHORT: MessageId[] = ["source.modis", "source.chirps", "source.worldcover", "source.dem"];
+
+/** The last crumb while something is open: the finding's own number with a few words, or what opened. */
+function crumbOf(sel: Selection, findings: readonly Finding[], bandLimit: string): string {
+  const f = findings.find((x) => x.id === sel);
+  switch (sel) {
+    case "field":
+      return en["overview.crumb.field"].text;
+    case "routes":
+      return en["overview.crumb.routes"].text;
+    case "results":
+      return en["overview.crumb.results"].text;
+    case "band":
+      return format("overview.crumb.band", { value: f?.display ?? "", limit: bandLimit });
+    default:
+      return format(`overview.crumb.${sel}` as MessageId, { value: f?.display ?? "" });
+  }
+}
 
 export function ValleyOverview({
   onSettled,
@@ -136,6 +165,10 @@ interface Live {
   o: number;
   r: number;
 }
+
+/** The visitor's own view: a factor on the camera's distance and a turn of its bearing (degrees). */
+const ZOOM = { min: 0.55, max: 1.8 } as const;
+const TURN_MAX = 60;
 
 function OverviewReady({
   snapshot,
@@ -232,7 +265,8 @@ function OverviewReady({
   const hudRef = useRef<HTMLDivElement>(null);
   const liftRef = useRef<HTMLDivElement>(null);
   const cornerRef = useRef<HTMLDivElement>(null);
-  const backRef = useRef<HTMLButtonElement>(null);
+  const camRef = useRef({ zoom: 1, turn: 0 });
+  const [moved, setMoved] = useState(false);
   const recRef = useRef<HTMLDivElement>(null);
   const instRef = useRef<HTMLElement>(null);
   const bigRef = useRef<HTMLDivElement>(null);
@@ -438,7 +472,6 @@ function OverviewReady({
       }
       sw.style.opacity = sp && big ? cc.toFixed(3) : "0";
     }
-    if (backRef.current) backRef.current.style.opacity = cc.toFixed(3);
     // the ask circle sits on the arc's start; it steps away as the space moves toward a finding
     const away = ease(clamp01(s / 0.55));
     const circle = askCircleRef.current;
@@ -529,7 +562,7 @@ function OverviewReady({
       selRef.current = null;
       setSel(null);
     }
-    scene.render({ ...l, sel: selRef.current, route: pickRef.current });
+    scene.render({ ...l, ...camRef.current, sel: selRef.current, route: pickRef.current });
     raf.current = moving ? requestAnimationFrame(frame) : 0;
   }, []);
   const go = useCallback(() => {
@@ -566,7 +599,7 @@ function OverviewReady({
     }
     sceneRef.current = scene;
     scene.onLayout(apply);
-    scene.render({ ...live.current, sel: selRef.current });
+    scene.render({ ...live.current, ...camRef.current, sel: selRef.current });
     // the arc's and the ask circle's clearance from the land, as the specimen measured them
     scene
       .measureGaps()
@@ -687,18 +720,89 @@ function OverviewReady({
       window.setTimeout(() => askCircleRef.current?.focus({ preventScroll: true }), DUR.s * 1000);
     else if (was) labelRefs.current.get(was)?.focus({ preventScroll: true });
   }, [go]);
+  // the visitor's own view: zoom (scroll or the view control) and turn (drag), both undone by R
+  const setCam = useCallback(
+    (next: { zoom?: number; turn?: number }) => {
+      const c = camRef.current;
+      c.zoom = Math.min(ZOOM.max, Math.max(ZOOM.min, next.zoom ?? c.zoom));
+      c.turn = Math.min(TURN_MAX, Math.max(-TURN_MAX, next.turn ?? c.turn));
+      setMoved(Math.abs(c.zoom - 1) > 1e-3 || Math.abs(c.turn) > 0.1);
+      go();
+    },
+    [go],
+  );
+  const zoomBy = useCallback(
+    (f: number) => {
+      setCam({ zoom: camRef.current.zoom * f });
+    },
+    [setCam],
+  );
+  const [panel, setPanel] = useState(false);
+  const toOpening = useCallback(() => {
+    window.location.assign(OPENING_HREF);
+  }, []);
+  // R: the overview's pose again, closing what is open
+  const reset = useCallback(() => {
+    if (selRef.current) back();
+    setCam({ zoom: 1, turn: 0 });
+  }, [back, setCam]);
+  // Esc goes back one level: the panel, then what is open, then the opening; R resets; S the sources
   useEffect(() => {
     const onKey = (ev: KeyboardEvent) => {
-      if (ev.key === "Escape" && !askOpen && selRef.current) {
+      if (askOpen || typing(ev)) return;
+      if (ev.key === "Escape") {
         ev.preventDefault();
-        back();
+        if (panel) setPanel(false);
+        else if (selRef.current) back();
+        else toOpening();
+      } else if (ev.key === "r" || ev.key === "R") {
+        ev.preventDefault();
+        reset();
+      } else if (ev.key === "s" || ev.key === "S") {
+        ev.preventDefault();
+        setPanel((p) => !p);
       }
     };
     window.addEventListener("keydown", onKey);
     return () => {
       window.removeEventListener("keydown", onKey);
     };
-  }, [askOpen, back]);
+  }, [askOpen, panel, back, reset, toOpening]);
+  // drag on the land turns it, the wheel zooms
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root) return;
+    let from: number | null = null;
+    const onDown = (e: PointerEvent) => {
+      const t = e.target as HTMLElement;
+      if (e.button !== 0 || t.closest("button, a, input, textarea, [role='dialog']")) return;
+      from = e.clientX;
+    };
+    const onMove = (e: PointerEvent) => {
+      if (from === null) return;
+      const dx = e.clientX - from;
+      from = e.clientX;
+      setCam({ turn: camRef.current.turn - dx * 0.2 });
+    };
+    const onUp = () => {
+      from = null;
+    };
+    const onWheel = (e: WheelEvent) => {
+      if ((e.target as HTMLElement).closest("[role='dialog'], ul, ol")) return;
+      e.preventDefault();
+      setCam({ zoom: camRef.current.zoom * Math.exp(e.deltaY * 0.0015) });
+    };
+    root.addEventListener("pointerdown", onDown);
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+    root.addEventListener("wheel", onWheel, { passive: false });
+    return () => {
+      root.removeEventListener("pointerdown", onDown);
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      root.removeEventListener("wheel", onWheel);
+    };
+  }, [setCam]);
   useEffect(() => {
     goal.current.o = askOpen ? 1 : 0;
     go();
@@ -729,9 +833,34 @@ function OverviewReady({
     const order = routesLoad.status === "ready" ? routesLoad.record.order : undefined;
     return new Map(inBundleOrder(data?.routes ?? [], order).map((r, i) => [r.id, i + 1]));
   }, [data, routesLoad]);
-  const credits: string[] = CREDITS.map((id) => en[id].text);
-  if (sel === "routes" && origin) credits.push(origin.attribution);
-  const credit = `${credits.join(". ")}.`;
+  // every credit in full behind S; the data's short names stay visible (GeoNames while the routes name Tabant)
+  const named = sel === "routes" ? origin : null;
+  const sourceSet = {
+    lines: [...CREDITS.map((id) => en[id].text), ...(named ? [named.attribution] : [])],
+    short: [...SHORT.map((id) => en[id].text), ...(named ? [en["source.geonames"].text] : [])],
+  };
+  const keys: KeyEntry[] = [
+    {
+      chip: "Esc",
+      shortcut: "Escape",
+      label: en["chrome.key.back"].text,
+      onPress: () => {
+        if (selRef.current) back();
+        else toOpening();
+      },
+    },
+    { chip: "R", shortcut: "R", label: en["chrome.key.reset"].text, onPress: reset },
+    { chip: "/", shortcut: "/", label: en["chrome.key.ask"].text, onPress: onAskOpen },
+    {
+      chip: "S",
+      shortcut: "S",
+      label: en["chrome.key.sources"].text,
+      onPress: () => {
+        setPanel((p) => !p);
+      },
+      pressed: panel,
+    },
+  ];
   const selFinding =
     sel && sel !== "field" && sel !== "results" && sel !== "routes"
       ? (findings.find((f) => f.id === sel) ?? null)
@@ -753,10 +882,7 @@ function OverviewReady({
       <canvas ref={arcRef} className={styles.canvas} aria-hidden="true" />
       <div ref={cornerRef} className={styles.cornerfade} aria-hidden="true" />
       <div ref={hudRef} className={styles.hud}>
-        <header className={styles.brand}>
-          <div className={styles.word}>{en["opening.title"].text}</div>
-          <div className={styles.question}>{snapshot.case.objective}</div>
-        </header>
+        <div className={styles.question}>{snapshot.case.objective}</div>
         <div ref={liftRef} className={styles.lift}>
           <svg className={styles.marks} aria-hidden="true">
             {findings.map((f) => (
@@ -850,7 +976,9 @@ function OverviewReady({
         <footer className={styles.place}>
           <div className={styles.name}>{names.valleyName}</div>
           {area !== null ? (
-            <div className={styles.sub}>{format("arrival.studyArea", { area })}</div>
+            <div className={styles.sub}>
+              {format("arrival.studyArea", { label: names.areaLabel, area })}
+            </div>
           ) : null}
           <div className={styles.key}>
             <span>
@@ -892,7 +1020,6 @@ function OverviewReady({
             </button>
           ) : null}
         </footer>
-        <p className={styles.credit}>{credit}</p>
         {failed ? (
           <p className={styles.failed} role="status">
             {en["overview.failed"].text}
@@ -925,6 +1052,7 @@ function OverviewReady({
                 reasons={reasons}
                 fieldCaption={instrumentOf(listing, "field_plan")?.spec.caption ?? null}
                 pixelNote={data?.pixel?.note ?? null}
+                areaLabel={names.areaLabel}
                 refs={{
                   root: recRef,
                   inst: instRef,
@@ -937,15 +1065,6 @@ function OverviewReady({
                 }}
               />
             ) : null}
-            <button
-              ref={backRef}
-              type="button"
-              className={styles.back}
-              onClick={back}
-              aria-keyshortcuts="Escape"
-            >
-              {en["overview.back"].text}
-            </button>
           </>
         ) : null}
         {data ? (
@@ -966,6 +1085,38 @@ function OverviewReady({
           />
         ) : null}
       </div>
+      <Breadcrumb
+        onBack={() => {
+          if (selRef.current) back();
+          else toOpening();
+        }}
+        crumbs={[
+          { label: en["opening.title"].text, onSelect: toOpening },
+          sel ? { label: names.valleyName, onSelect: back } : { label: names.valleyName },
+          ...(sel ? [{ label: crumbOf(sel, findings, bandLimit?.display ?? "") }] : []),
+        ]}
+      />
+      {data ? (
+        <>
+          <ViewControl
+            onReset={reset}
+            onZoom={(f) => {
+              zoomBy(f);
+            }}
+          />
+          <KeyLegend entries={keys}>
+            <SourcesLine sources={sourceSet} />
+          </KeyLegend>
+          <SourcesPanel
+            sources={sourceSet}
+            open={panel}
+            onClose={() => {
+              setPanel(false);
+            }}
+          />
+        </>
+      ) : null}
+      <span hidden data-view-moved={moved ? "" : undefined} />
     </div>
   );
 }

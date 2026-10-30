@@ -21,7 +21,8 @@ export function JourneyPage() {
   if (map.status === "loading" || c.status === "opening") return null;
   if (c.arrival.kind !== "ready")
     return <CaseNotice badge="case.coverageRequired" message="case.noBoundary" />;
-  if (c.resumed)
+  // the Siterra crumb (?start) shows the opening even to a visitor who has been here
+  if (c.resumed && !new URLSearchParams(window.location.search).has("start"))
     return (
       <InstrumentRecords snapshot={c.snapshot}>
         <ValleyOverview />

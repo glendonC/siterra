@@ -121,10 +121,10 @@ test("opens a finding's record on its side and Esc returns", async ({ page }) =>
     await expect(record).toHaveCount(0);
   }
 
-  // the way back by its button
+  // the way back by the breadcrumb's valley crumb
   await page.locator("[data-finding='pixel']").click();
   await expect(page.locator("[data-record='pixel']")).toBeVisible();
-  await page.getByRole("button", { name: "Back to Overview" }).click();
+  await page.locator("[data-crumbs]").getByRole("button", { name: "Aït Bouguemez valley" }).click();
   await expect(record).toHaveCount(0);
   expect(sent).toEqual([]);
 });
@@ -180,7 +180,7 @@ test("the proposed routes lie on the land, lift on hover, open with the bundle's
     await expect(page.locator(`[data-route-end='${member}']`)).toHaveText(n);
   await expect(page.locator("[data-route-start]")).toHaveText("Tabant");
   await expect.poll(() => opacity(page, "[data-route-start]")).toBe(1);
-  await expect(page.getByText("GeoNames, CC BY 4.0", { exact: false })).toBeAttached();
+  await expect(page.locator("[data-sources-line]")).toContainText("GeoNames");
   for (const label of await page.locator("[data-finding]").all())
     expect(await label.evaluate((el) => Number((el as HTMLElement).style.opacity))).toBe(0);
   // the routes stay sharp: the land is blurred outside them, every end is shown

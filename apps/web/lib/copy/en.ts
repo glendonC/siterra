@@ -29,7 +29,32 @@ export const en = {
     kind: "ui",
   },
 
-  "opening.action": { text: "Explore the Valley", kind: "button" },
+  "opening.action": { text: "Choose a Place", kind: "button" },
+  // the controls every screen after the opening shares (decisions 2 to 5): the breadcrumb, the keys that work now,
+  // the sources behind one button with the data's short names always visible, and the view control
+  "chrome.crumbs": { text: "Location in the case", kind: "ui" },
+  "chrome.back": { text: "Back", kind: "button" },
+  "chrome.keys": { text: "Keys that work now", kind: "ui" },
+  "chrome.key.back": { text: "Back", kind: "button" },
+  "chrome.key.reset": { text: "Reset View", kind: "button" },
+  "chrome.key.ask": { text: "Ask", kind: "button" },
+  "chrome.key.sources": { text: "Sources", kind: "button" },
+  "chrome.sources": { text: "Sources", kind: "heading" },
+  "chrome.close": { text: "Close", kind: "button" },
+  "chrome.view": { text: "View", kind: "ui" },
+  "chrome.reset": { text: "Reset View", kind: "button" },
+  "chrome.zoomIn": { text: "Zoom In", kind: "button" },
+  "chrome.zoomOut": { text: "Zoom Out", kind: "button" },
+  "chrome.data": { text: "Data: {names}", kind: "ui" },
+  // the data's short names for that line
+  "source.dem": { text: "Copernicus DEM", kind: "label" },
+  "source.worldcover": { text: "ESA WorldCover", kind: "label" },
+  "source.modis": { text: "NASA MODIS", kind: "label" },
+  "source.chirps": { text: "CHIRPS", kind: "label" },
+  "source.geonames": { text: "GeoNames", kind: "label" },
+  "source.sentinel": { text: "Copernicus Sentinel-2", kind: "label" },
+  "source.mapterhorn": { text: "Mapterhorn", kind: "label" },
+  "source.studies": { text: "{n} published studies", kind: "label" },
   "opening.howButton": { text: "How It Works", kind: "button" },
 
   // The engine's five stages (ADR-0043 amendment, proposed). ADR-0023 bars causal diagnosis, so stage 3
@@ -42,9 +67,11 @@ export const en = {
 
   // Globe and dive (approved hero study A4; place and range names come from the case record)
   "globe.range": { text: "{range}", kind: "label" },
-  // the place the globe turns to, in the record's words: the valley, then its region
-  "globe.place": { text: "{valley} · {region}", kind: "heading" },
-  "globe.go": { text: "Go to the Valley", kind: "button" },
+  // each case on the globe has a card beside its point (Destiny's manner): the place and region in the record's
+  // words, the case's own question, and the one action into it
+  "globe.place": { text: "{place} · {region}", kind: "heading" },
+  "globe.open": { text: "Open", kind: "button" },
+  "globe.cases": { text: "Cases on the globe", kind: "ui" },
   // a mouse action is said in words, never drawn as a key
   "globe.drag": { text: "drag to turn", kind: "ui" },
   "globe.legend": {
@@ -61,7 +88,7 @@ export const en = {
   // Arrival (valley and region names come from the case record)
   "arrival.valleyName": { text: "{valley}", kind: "label" },
   "arrival.region": { text: "{region}", kind: "label" },
-  "arrival.studyArea": { text: "Valley catchment: {area} km²", kind: "label" },
+  "arrival.studyArea": { text: "{label}: {area} km²", kind: "label" },
   "arrival.studyAreaLimit": {
     text: "Not a pasture, agdal, or management boundary.",
     kind: "ui",
@@ -198,7 +225,7 @@ export const en = {
     kind: "ui",
   },
   "legend.ndvi.note": {
-    text: "No cropland mask is applied: valley-floor fields and orchards are included.",
+    text: "No cropland mask is applied: irrigated fields and orchards are included.",
     kind: "ui",
     honesty: true,
   },
@@ -280,7 +307,7 @@ export const en = {
   // Instruments: the layer stack (approved specimen A). Figures, years and limits come from the record's fixtures
   // (lib/instruments/valley/fixtures.ts); credits are numbered by the sheet they serve
   "instrument.layers.description": {
-    text: "A relief model of the valley catchment with its drainage lines. Above it are five sheets: the March to June vegetation trend, rainfall, snow cover, land cover on the valley floor, and the three elevation bands.",
+    text: "A relief model of the catchment with its drainage lines. Above it are five sheets: the March to June vegetation trend, rainfall, snow cover, land cover, and the three elevation bands.",
     kind: "ui",
   },
   "instrument.layers.keys": {
@@ -337,7 +364,7 @@ export const en = {
   // name and the two published statements with their sources come from their own fixtures, not from here
   // (lib/instruments/valley/cutaway-data.ts)
   "instrument.cutaway.description": {
-    text: "The valley catchment cut north to south through {place}. Its section face shows the true elevation profile and the two band limits. Beside each band are its March to June vegetation trend and its monthly snow cover.",
+    text: "The catchment cut north to south through {place}. Its section face shows the true elevation profile and the two band limits. Beside each band are its March to June vegetation trend and its monthly snow cover.",
     kind: "ui",
   },
   "instrument.cutaway.keys": {
@@ -362,7 +389,7 @@ export const en = {
   // Instruments: the briefing shell around them. Enter in the command line opens the valley with the typed text in
   // the valley's command line, sending nothing
   "instrument.shell.nav": { text: "Instruments", kind: "label" },
-  "instrument.shell.valley": { text: "Valley", kind: "label" },
+  "instrument.shell.valley": { text: "Overview", kind: "label" },
   "instrument.shell.layers": { text: "Layers", kind: "label" },
   "instrument.shell.cutaway": { text: "Cutaway", kind: "label" },
   "instrument.shell.pixel": { text: "Pixel", kind: "label" },
@@ -606,7 +633,7 @@ export const en = {
   // check on the land and the ask. Every number, the case question, the place's name and its area come from the
   // records; the findings' captions name what each number is
   "overview.description": {
-    text: "A relief model of the valley catchment inside one arc. Each point on the arc is a finding with its number. The circle on the arc's lower left opens the ask.",
+    text: "A relief model of the catchment inside one arc. Each point on the arc is a finding with its number. The circle on the arc's lower left opens the ask.",
     kind: "ui",
   },
   "overview.keys": {
@@ -618,7 +645,6 @@ export const en = {
   "overview.finding.catchment.2": { text: "{from} to {to}", kind: "label" },
   "overview.finding.band.1": { text: "NDVI per decade below {limit} m", kind: "label" },
   "overview.finding.pixel.1": { text: "NDVI per decade in one pixel", kind: "label" },
-  "overview.finding.pixel.2": { text: "at the valley floor edge", kind: "label" },
   "overview.finding.rain.1": { text: "R squared, September to May rain", kind: "label" },
   "overview.finding.rain.2": { text: "against March to June greenness", kind: "label" },
   "overview.finding.fdr.1": { text: "of the area greening after a", kind: "label" },
@@ -652,9 +678,8 @@ export const en = {
   "overview.key.crop": { text: "Cropland or built-up, {year}", kind: "label" },
   // the opened finding's record (D4's opened node): a kicker, the number, its caption, the season chart and its
   // line, the published context in the record's display text with its sources, and the way to the full instrument
-  "overview.record.pixel": { text: "One pixel at the valley floor edge", kind: "label" },
+  "overview.record.pixel": { text: "One pixel", kind: "label" },
   "overview.record.band": { text: "Below {limit} m", kind: "label" },
-  "overview.record.catchment": { text: "Valley catchment", kind: "label" },
   "overview.record.caption": {
     text: "NDVI per decade, March to June, {from} to {to}",
     kind: "label",
@@ -680,7 +705,15 @@ export const en = {
   "overview.cite.noPage": { text: "{authors} {year}, {venue}", kind: "label" },
   "overview.cite.etAl": { text: "{name} et al.", kind: "label" },
   "overview.cite.two": { text: "{a} and {b}", kind: "label" },
-  "overview.back": { text: "Back to Overview", kind: "button" },
+  // the breadcrumb's last crumb while something is open: the finding's number from the record with a few words
+  "overview.crumb.catchment": { text: "{value} over the catchment", kind: "label" },
+  "overview.crumb.band": { text: "{value} below {limit} m", kind: "label" },
+  "overview.crumb.pixel": { text: "{value} in one pixel", kind: "label" },
+  "overview.crumb.rain": { text: "{value} rain and greenness", kind: "label" },
+  "overview.crumb.fdr": { text: "{value} greening", kind: "label" },
+  "overview.crumb.field": { text: "Proposed field check", kind: "label" },
+  "overview.crumb.routes": { text: "Proposed walking routes", kind: "label" },
+  "overview.crumb.results": { text: "Findings", kind: "label" },
   "overview.failed": { text: "Overview not loaded. Reload the page to retry.", kind: "ui" },
 
   // The ask: a matte circle that opens a fade from the bottom with the question typed in large type. Enter sends it
@@ -762,11 +795,12 @@ export type MessageId = keyof typeof en;
  * the rules it may break.
  */
 export const LINT_ALLOWLIST: Partial<Record<MessageId, { rules: string[]; reason: string }>> = {
-  "globe.go": {
-    rules: ["VT-48"],
+  "source.modis": {
+    rules: ["VT-08"],
     reason:
-      "The lead's wording for the globe's one action (decision 8, 30 Oct 2026): four short words that read as one.",
+      "MODIS is the instrument's name; the short line names the data as its provider and instrument.",
   },
+
   "instrument.credit.modisNdvi": {
     rules: ["VT-08"],
     reason:

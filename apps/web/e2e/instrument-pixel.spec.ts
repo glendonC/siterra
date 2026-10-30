@@ -22,9 +22,13 @@ test("keeps within the approved specimen's budget", async ({ page }) => {
   expect(heads.sort()).toEqual(["01", "02", "03", "04", "05", "06"]);
   await expect(page.locator(`${ROOT} [class*='roFigure']`)).toHaveCount(1);
   // the catchment outline and the band limit come from the DEM, so its licence notice shows
-  await expect(page.locator(`${ROOT} [class*='credit']`)).toContainText(
+  await expect(page.locator("[data-sources-line]")).toContainText("Copernicus DEM");
+  await page.keyboard.press("s");
+  await expect(page.locator("[data-sources-panel]")).toContainText(
     "Produced using Copernicus WorldDEM-30",
   );
+  await page.keyboard.press("Escape");
+  await expect(page.locator("[data-sources-panel]")).toHaveCount(0);
   // the bundle's own note on how the pixel was chosen
   await expect(page.locator(`${ROOT} [data-pixel-note]`)).toHaveText(
     "This pixel is an illustration chosen by judgment, not a sample.",

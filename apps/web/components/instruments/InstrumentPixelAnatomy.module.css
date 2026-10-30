@@ -266,15 +266,38 @@
   color: var(--text-secondary);
 }
 
+/* the one control style (components/controls): pill, hairline, faint fill on hover and focus, its key's chip inside */
 .textButton {
-  padding: 0;
-  border: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 24px;
+  padding: 0 4px 0 10px;
+  border: 1px solid var(--control-line);
+  border-radius: 999px;
   background: none;
-  color: var(--text-secondary);
-  font: 400 12px/16px var(--font-sans);
-  text-decoration: underline;
-  text-underline-offset: 3px;
+  color: var(--control-ink);
+  font: 400 13px / 18px var(--font-sans);
   cursor: pointer;
+}
+
+.textButton:hover,
+.textButton:focus-visible {
+  background: var(--control-fill);
+  border-color: var(--control-line-strong);
+}
+
+.textButton kbd {
+  display: inline-grid;
+  place-items: center;
+  min-width: 20px;
+  height: 18px;
+  padding: 0 4px;
+  border: 1px solid var(--control-line);
+  border-radius: 4px;
+  font: 500 12px / 1 var(--font-mono);
+  color: var(--control-grey);
+  background: var(--control-chip);
 }
 
 .credit {

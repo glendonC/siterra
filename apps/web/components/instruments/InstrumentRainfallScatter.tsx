@@ -12,6 +12,7 @@ import { fixed, signed } from "../../lib/instruments/format";
 import { readJsonAsset } from "../../lib/instruments/listing";
 import { scatterFrom, type ScatterData } from "../../lib/instruments/scatter/data";
 import { obsidian, pixelColours as C } from "../../lib/theme/obsidian";
+import { useShellSources } from "./ShellContext";
 import styles from "./InstrumentRainfallScatter.module.css";
 import { useInstrument } from "./InstrumentRecords";
 
@@ -37,6 +38,11 @@ export function InstrumentRainfallScatter() {
   const rootRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const record = useInstrument("rainfall_scatter");
+  // its credits sit behind the shell's S; the data's short names stay visible
+  useShellSources({
+    lines: CREDITS.map((id) => en[id].text),
+    short: [en["source.chirps"].text, en["source.modis"].text],
+  });
   const [data, setData] = useState<ScatterData | null>(null);
   const [loadFailed, setFailed] = useState(false);
   // an instrument the case holds no spec for cannot be drawn
@@ -236,15 +242,6 @@ export function InstrumentRainfallScatter() {
                 <p className={styles.sideNote}>{en["instrument.scatter.gate"].text}</p>
               )}
             </div>
-            <p className={styles.credit}>
-              {CREDITS.map((id, i) => (
-                <span key={id}>
-                  <b>{i + 1}</b>
-                  {"\u00a0"}
-                  {en[id].text}
-                </span>
-              ))}
-            </p>
           </>
         )}
       </div>

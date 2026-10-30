@@ -22,6 +22,8 @@ export type ArrivalProjection =
       question: string;
       /** Study valley name derived from the case record. */
       valleyName: string;
+      /** How the record names its area ("Valley catchment"), from the active GeoSelection's label. */
+      areaLabel: string;
       /** Mountain region and country derived from the case's source records. */
       regionName: string;
       /** Range label for the globe overview. */
@@ -46,6 +48,7 @@ export type ArrivalProjection =
       caseRevision: number;
       question: string;
       valleyName: string;
+      areaLabel: string;
       regionName: string;
       rangeName: string;
       subrangeName: string;
@@ -87,12 +90,16 @@ function activeSelection(s: CaseSnapshot): GeoSelection | undefined {
 /** Extracts the study valley, mountain subrange, range, and country from the case and source records. */
 export function placeNamesFromCase(s: CaseSnapshot): {
   valleyName: string;
+  areaLabel: string;
   regionName: string;
   rangeName: string;
   subrangeName: string;
 } {
   const valleyMatch = /\bin the\s+(.+)$/i.exec(s.case.title);
   const valleyName = valleyMatch?.[1]?.trim() ?? s.case.title;
+  // the record's own name for its area: the active GeoSelection's label before its qualifying parenthesis
+  const label = activeSelection(s)?.label ?? "";
+  const areaLabel = label.replace(/\s*\(.*$/, "").trim() || valleyName;
   for (const src of s.records.sourceRecords) {
     const m = /\(([^(),]+),\s*([^(),]+)\)/.exec(src.title);
     if (m?.[1] && m[2]) {
@@ -103,11 +110,12 @@ export function placeNamesFromCase(s: CaseSnapshot): {
       const broader = sub.replace(/^\S+\s+/, "");
       const broaderMountains = /\bMountains\b/i.test(broader) ? broader : `${broader} Mountains`;
       const rangeName = `${broaderMountains}, ${country}`;
-      return { valleyName, regionName, rangeName, subrangeName };
+      return { valleyName, areaLabel, regionName, rangeName, subrangeName };
     }
   }
   return {
     valleyName,
+    areaLabel,
     regionName: s.case.title,
     rangeName: s.case.title,
     subrangeName: s.case.title,
