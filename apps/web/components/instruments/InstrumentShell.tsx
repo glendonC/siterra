@@ -1,7 +1,7 @@
 "use client";
 
 // The briefing shell around one instrument: the instrument's own caption stays at the top left where its specimen
-// puts it; the shell adds a quiet switcher between Valley, Layers, Cutaway and Pixel at the top right (the corner
+// puts it; the shell adds a quiet switcher between Valley, Layers, Cutaway, Pixel and Rainfall at the top right (the corner
 // every specimen leaves empty) and the command line at the bottom centre, 480 x 44 at y 796 of the 1440 x 900
 // design. Enter carries the typed text to the valley's command line and opens the valley; nothing is sent. The
 // instruments inside read their specs from the case records the shell opens (InstrumentRecords).
@@ -14,13 +14,14 @@ import { carryQuestion } from "../../lib/shell/handoff";
 import { InstrumentRecords } from "./InstrumentRecords";
 import styles from "./InstrumentShell.module.css";
 
-export type InstrumentId = "layers" | "cutaway" | "pixel";
+export type InstrumentId = "layers" | "cutaway" | "pixel" | "rainfall";
 
 const VIEWS: { id: InstrumentId | "valley"; href: string; label: MessageId }[] = [
   { id: "valley", href: "/", label: "instrument.shell.valley" },
   { id: "layers", href: "/instruments/layers", label: "instrument.shell.layers" },
   { id: "cutaway", href: "/instruments/cutaway", label: "instrument.shell.cutaway" },
   { id: "pixel", href: "/instruments/pixel", label: "instrument.shell.pixel" },
+  { id: "rainfall", href: "/instruments/rainfall", label: "instrument.shell.rainfall" },
 ];
 
 /**

@@ -12,12 +12,13 @@ test.use({ viewport: { width: 1440, height: 900 } });
 const CMD = { x: 480, y: 796, width: 480, height: 44 };
 const CLEAR = 24;
 const CREDIT_GAP = 16;
-const PAGES = ["layers", "cutaway", "pixel"] as const;
+const PAGES = ["layers", "cutaway", "pixel", "rainfall"] as const;
 /** An element each instrument shows once its words are placed. */
 const READY: Record<(typeof PAGES)[number], string> = {
   layers: "[data-sheet]",
   cutaway: "[data-band]",
   pixel: "[role='slider']",
+  rainfall: "[data-season]",
 };
 
 for (const id of PAGES) {
@@ -25,7 +26,7 @@ for (const id of PAGES) {
     await page.goto(`/instruments/${id}`);
     await expect(page.locator(READY[id]).first()).toBeVisible();
     const nav = page.locator("nav");
-    await expect(nav.locator("a")).toHaveCount(4);
+    await expect(nav.locator("a")).toHaveCount(5);
     await expect(nav.locator("a[aria-current='page']")).toHaveCount(1);
     expect(await page.locator("[data-command]").boundingBox()).toEqual(CMD);
     const frags = await page.evaluate(() => {

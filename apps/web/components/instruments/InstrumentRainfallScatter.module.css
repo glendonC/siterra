@@ -1,0 +1,163 @@
+/* The rainfall scatter, in the Obsidian tokens of app/obsidian.css and the type of the pixel anatomy (specimen C):
+   a 1440 x 900 stage scaled to fit, the caption at the top left, the plot, a side column, the credit line. */
+
+.root {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--bg-canvas);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-kerning: normal;
+  -webkit-font-smoothing: antialiased;
+}
+
+.stage {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1440px;
+  height: 900px;
+  transform-origin: 0 0;
+}
+
+.stage > div {
+  position: absolute;
+}
+
+.caption {
+  position: absolute;
+  left: 40px;
+  top: 24px;
+  width: 820px;
+  margin: 0;
+  font-size: 20px;
+  line-height: 28px;
+  text-wrap: pretty;
+}
+
+.ink {
+  color: var(--text-primary);
+}
+
+.grey {
+  color: var(--text-tertiary);
+}
+
+.chip {
+  display: inline-block;
+  min-width: 18px;
+  height: 18px;
+  margin: 0 0 0 6px;
+  padding: 0 5px;
+  border-radius: 4px;
+  background: var(--bg-overlay);
+  font: 500 12px/18px var(--font-mono);
+  color: var(--text-secondary);
+  text-align: center;
+  vertical-align: 3px;
+}
+
+.plot {
+  position: absolute;
+  left: 0;
+  top: 0;
+  overflow: visible;
+}
+
+.tick {
+  font-size: 12px;
+  font-family: var(--font-sans);
+  fill: var(--text-tertiary);
+}
+
+.driest,
+.fitLabel {
+  font-size: 12px;
+  line-height: 16px;
+  white-space: nowrap;
+  color: var(--text-secondary);
+}
+
+.axisX,
+.axisY {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.axisX {
+  text-align: center;
+}
+
+.side p {
+  margin: 0 0 12px;
+}
+
+.sideFigure {
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: 500;
+}
+
+.sideKey {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--text-secondary);
+}
+
+.key {
+  flex: none;
+}
+
+.sideNote {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--text-tertiary);
+}
+
+/* the attribution line: 16 px under the shell's command line, as the specimens set it */
+.credit {
+  position: absolute;
+  left: 48px;
+  right: 48px;
+  top: 856px;
+  margin: 0;
+  text-align: center;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--text-tertiary);
+  text-wrap: balance;
+}
+
+.credit span + span {
+  margin-left: 0.6em;
+}
+
+.credit b {
+  font-weight: 500;
+  font-family: var(--font-mono);
+  color: var(--text-secondary);
+}
+
+.failed {
+  position: absolute;
+  left: 40px;
+  top: 24px;
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

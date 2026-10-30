@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import type { CaseSnapshot } from "@siterra/contracts";
 import { describe, expect, it } from "vitest";
-import { splitFigure } from "./caption";
+import { keepTogether, splitFigure } from "./caption";
 
 const seed = JSON.parse(
   readFileSync(
@@ -38,5 +38,17 @@ describe("splitFigure", () => {
   it("keeps a caption that opens with words whole", () => {
     const pixel = ink("inst_pixel_anatomy_valley");
     expect(splitFigure(pixel)).toEqual({ figure: null, rest: pixel });
+  });
+});
+
+describe("keepTogether", () => {
+  const NB = String.fromCharCode(0xa0);
+  it("keeps R squared and each figure with its unit on one line, and nothing else changes", () => {
+    const ink = "rainfall explains little of greenness (R squared 0.037) at 421 mm and 2,317 m.";
+    const set = keepTogether(ink);
+    expect(set).toBe(
+      `rainfall explains little of greenness (R${NB}squared 0.037) at 421${NB}mm and 2,317${NB}m.`,
+    );
+    expect(set.split(NB).join(" ")).toBe(ink);
   });
 });

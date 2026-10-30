@@ -490,6 +490,7 @@ export const en = {
   "instrument.shell.layers": { text: "Layers", kind: "label" },
   "instrument.shell.cutaway": { text: "Cutaway", kind: "label" },
   "instrument.shell.pixel": { text: "Pixel", kind: "label" },
+  "instrument.shell.rainfall": { text: "Rainfall", kind: "label" },
   "instrument.shell.command": { text: "Ask or challenge", kind: "label" },
 
   // Instruments: the pixel anatomy (approved specimen C). Every number comes from the pixel's data file; the species
@@ -614,6 +615,35 @@ export const en = {
   "instrument.pixel.ref.page": { text: "{id}, p. {page}", kind: "label" },
   "instrument.pixel.ref.pages": { text: "{id}, pp. {page}", kind: "label" },
   "instrument.pixel.failed": { text: "Pixel not loaded. Reload the page to retry.", kind: "ui" },
+
+  // Instruments: the rainfall scatter. Every total here is a September to May total and says so; seasons, the fit
+  // and the driest seasons come from the restrend bundle files the rainfall scatter spec names
+  "instrument.scatter.description": {
+    text: "The catchment's seasons as points: March to June greenness against the September to May rainfall before each, a straight-line fit, the four driest seasons ringed.",
+    kind: "ui",
+  },
+  "instrument.scatter.failed": {
+    text: "Rainfall scatter not loaded. Reload the page to retry.",
+    kind: "ui",
+  },
+  "instrument.scatter.axis.rain": { text: "September to May rainfall, mm", kind: "label" },
+  "instrument.scatter.axis.ndvi": { text: "March to June NDVI, catchment mean", kind: "label" },
+  "instrument.scatter.fit": { text: "Straight-line fit, R squared {r2}", kind: "label" },
+  "instrument.scatter.driest": { text: "{year}, {mm} mm", kind: "label" },
+  "instrument.scatter.seasons": { text: "{n} seasons, {from} to {to}", kind: "label" },
+  "instrument.scatter.key.season": { text: "One season", kind: "label" },
+  "instrument.scatter.key.driest": {
+    text: "The four driest September to May totals",
+    kind: "label",
+  },
+  "instrument.scatter.slope": {
+    text: "Rainfall slope {slope} NDVI per 100 mm, 95% {lower} to {upper}.",
+    kind: "ui",
+  },
+  "instrument.scatter.gate": {
+    text: "The interval includes zero, so the rainfall-adjusted trend's precondition is not met.",
+    kind: "ui",
+  },
   "instrument.pixel.credit": {
     text: "Contains modified Copernicus Sentinel data 2025. MODIS MOD13Q1 v6.1, NASA LP DAAC. © ESA WorldCover project 2021, CC BY 4.0. Catchment from Copernicus DEM GLO-30.",
     kind: "ui",

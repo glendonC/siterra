@@ -2,7 +2,13 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import type { CaseSnapshot, InstrumentListing } from "@siterra/contracts";
 import { describe, expect, it } from "vitest";
-import { AssetUnavailable, instrumentOf, loadInstruments, readJsonAsset } from "./listing";
+import {
+  AssetUnavailable,
+  instrumentOf,
+  loadInstruments,
+  readAsset,
+  readJsonAsset,
+} from "./listing";
 
 // The listing the API would return for the seed case: its four specs, each named asset resolved to its bundle file
 // with the checksum the bundle's collection lists.
@@ -108,5 +114,50 @@ describe("readJsonAsset", () => {
         Promise.resolve(new Response("{}")),
       ),
     ).rejects.toBeInstanceOf(AssetUnavailable);
+  });
+});
+
+describe("instrumentOf", () => {
+  it("passes over a spec that is not ready", () => {
+    const stale = {
+      ...listing,
+      instruments: listing.instruments.map((v) =>
+        v.spec.parameters.kind === "rainfall_scatter"
+          ? { ...v, spec: { ...v.spec, status: "stale" as const } }
+          : v,
+      ),
+    };
+    expect(instrumentOf(stale, "rainfall_scatter")).toBeUndefined();
+    expect(instrumentOf(stale, "layer_stack")).toBeDefined();
+  });
+});
+
+describe("readAsset", () => {
+  it("names why an asset the listing marks unavailable is not read, and fetches nothing", async () => {
+    const view = instrumentOf(listing, "rainfall_scatter");
+    if (view === undefined) throw new Error("no rainfall scatter in the seed");
+    const ref = view.spec.parameters.fit;
+    const missing = {
+      ...view,
+      assets: view.assets.map((a) =>
+        a.assetKey === ref.assetKey
+          ? {
+              ...a,
+              status: "file_unavailable" as const,
+              href: null,
+              contentType: null,
+              checksum: null,
+              size: null,
+            }
+          : a,
+      ),
+    };
+    let fetched = 0;
+    const read = readAsset(missing, ref, () => {
+      fetched++;
+      return Promise.resolve(new Response("{}"));
+    });
+    await expect(read).rejects.toMatchObject({ reason: "file_unavailable" });
+    expect(fetched).toBe(0);
   });
 });

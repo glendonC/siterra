@@ -1,0 +1,32 @@
+import { expect, test } from "@playwright/test";
+import { textReport } from "./instrument-text";
+
+// The rainfall scatter at its design size: one point per season (26), the four driest September to May totals
+// ringed and labelled, the fit's R squared, every total labelled with its window, and no line of text overlapping
+// another, under 12 CSS px or outside the frame.
+
+test.use({ viewport: { width: 1440, height: 900 } });
+
+const ROOT = "[data-instrument='rainfall']";
+
+test("draws the 26 seasons, rings the four driest and states the fit", async ({ page }) => {
+  await page.goto("/instruments/rainfall");
+  await expect(page.locator(`${ROOT} [data-season]`)).toHaveCount(26);
+  const driest = await page
+    .locator(`${ROOT} [data-driest]`)
+    .evaluateAll((els) => els.map((e) => e.getAttribute("data-driest")));
+  expect(driest).toEqual(["2001", "2024", "2016", "2023"]);
+  const text = (await page.locator(ROOT).innerText()).replace(/\s+/g, " ");
+  expect(text).toContain("R squared 0.037");
+  expect(text).toContain("September to May rainfall, mm");
+  for (const label of ["2001, 369 mm", "2024, 391 mm", "2016, 419 mm", "2023, 421 mm"])
+    expect(text).toContain(label);
+  // the case's November to April totals never show here
+  expect(text).not.toContain("November to April");
+});
+
+test("places the plot and its words without crowding the text", async ({ page }) => {
+  await page.goto("/instruments/rainfall");
+  await expect(page.locator(`${ROOT} [data-season]`)).toHaveCount(26);
+  expect(await textReport(page, ROOT)).toEqual({ overlaps: [], small: [], outside: [] });
+});
