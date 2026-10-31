@@ -136,6 +136,29 @@ test("opens a finding's record on its side and Esc returns", async ({ page }) =>
   expect(sent).toEqual([]);
 });
 
+test("a trend card says what a dot is, and its published context opens beside it from a toggle under the card", async ({
+  page,
+}) => {
+  await ready(page);
+  await page.locator("[data-finding='pixel']").click();
+  const record = page.locator("[data-record='pixel']");
+  await expect.poll(() => opacity(page, "[data-record]")).toBe(1);
+  await expect(record.locator("[data-season-dot]")).toHaveText("Each dot, one season's mean");
+  // closed, the toggle waits under the card's actions (AUDIT's U28 advisory: it stood at the stage's left edge)
+  const toggle = record.locator("[data-context-toggle]");
+  await expect(toggle).toHaveAttribute("aria-expanded", "false");
+  const actions = await record.locator("[data-actions]").boundingBox();
+  const closed = await toggle.boundingBox();
+  if (!actions || !closed) throw new Error("the actions or the toggle");
+  expect(Math.abs(closed.x - actions.x)).toBeLessThan(24);
+  expect(closed.y).toBeGreaterThanOrEqual(actions.y + actions.height);
+  expect(closed.y - (actions.y + actions.height)).toBeLessThan(40);
+  await toggle.click();
+  await expect(toggle).toHaveAttribute("aria-expanded", "true");
+  await expect(record.locator("section").last()).toBeVisible();
+  expect(await textReport(page, "[data-record]")).toEqual({ overlaps: [], small: [], outside: [] });
+});
+
 test("Enter on an opened card runs the action its Enter chip names, however the card was opened", async ({
   page,
 }) => {
@@ -165,12 +188,14 @@ test("the pixel opens in place: its cards stand round its risen cells, 02 paints
   await expect(page).toHaveURL(/\/instruments\/pixel$/);
   const view = page.locator("[data-instrument='pixel'][data-around]");
   await expect(view).toBeVisible();
-  // the pixel is the subject: three cards open round it (with the caption's), 01, 04 and 06 wait as chips; one
-  // leader from each card or chip to the pixel on the land
-  await expect(view.locator("[data-card]:visible")).toHaveCount(4);
+  // the pixel is the subject: at rest only the caption and 02 are open (decision 16, U28b), 01, 03, 04, 05 and 06
+  // wait as chips; one leader from each card or chip to the pixel on the land
+  await expect(view.locator("[data-card]:visible")).toHaveCount(2);
   await expect(view.locator("[data-chip]")).toHaveText([
     "01Locate",
+    "03Measured Spectra",
     "04Season Record",
+    "05Linear Mix Model",
     "06Field Check",
   ]);
   await expect(view.locator("[data-leaders] line")).toHaveCount(6, { timeout: 10_000 });
@@ -187,7 +212,7 @@ test("the pixel opens in place: its cards stand round its risen cells, 02 paints
   await expect(view.locator("[data-card='06']")).toBeHidden();
   // no opened chip's card covers another card's words: each in turn, the text report clean and its back clear of
   // every other open card's back
-  for (const id of ["01", "04", "06"]) {
+  for (const id of ["01", "03", "04", "05", "06"]) {
     const c = view.locator(`[data-chip='${id}']`);
     await c.click();
     await expect(view.locator(`[data-card='${id}']`)).toBeVisible();
@@ -260,7 +285,10 @@ for (const [w, h] of [
     await page.locator("[data-finding='pixel']").click();
     await page.locator("[data-record] [data-actions] a").first().click();
     const view = page.locator("[data-instrument='pixel'][data-around]");
+    // 05, the lowest card on the right, opened from its chip beside 02
+    await view.locator("[data-chip='05']").click();
     await expect(view.locator("[data-card='05']")).toBeVisible();
+    await expect(view.locator("[data-card='02']")).toBeVisible();
     const boxes = await view.locator("[data-card]:visible").evaluateAll((els) =>
       els.map((e) => {
         const r = e.getBoundingClientRect();

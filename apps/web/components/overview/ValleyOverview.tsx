@@ -105,7 +105,10 @@ function captionOf(f: Finding, bandLimit: string): string[] {
     case "rain":
       return [en["overview.finding.rain.1"].text];
     case "fdr":
-      return [en["overview.finding.fdr.1"].text, en["overview.finding.fdr.2"].text];
+      return [
+        format("overview.finding.fdr.1", { direction: directionWord(f) }),
+        en["overview.finding.fdr.2"].text,
+      ];
   }
 }
 
@@ -138,6 +141,17 @@ function onLandOf(sel: Selection, data: OverviewData | null): string | null {
 }
 
 /** The last crumb while something is open: the finding's own number with a few words, or what opened. */
+/** The fdr share's direction in words, from its Measurement's metric. */
+function directionWord(f: Finding | undefined | null): string {
+  return en[
+    f?.direction === "up"
+      ? "overview.fdr.up"
+      : f?.direction === "down"
+        ? "overview.fdr.down"
+        : "overview.fdr.none"
+  ].text;
+}
+
 function crumbOf(sel: Selection, findings: readonly Finding[], bandLimit: string): string {
   const f = findings.find((x) => x.id === sel);
   switch (sel) {
@@ -149,6 +163,8 @@ function crumbOf(sel: Selection, findings: readonly Finding[], bandLimit: string
       return en["overview.crumb.results"].text;
     case "band":
       return format("overview.crumb.band", { value: f?.display ?? "", limit: bandLimit });
+    case "fdr":
+      return format("overview.crumb.fdr", { value: f?.display ?? "", direction: directionWord(f) });
     default:
       return format(`overview.crumb.${sel}` as MessageId, { value: f?.display ?? "" });
   }
@@ -504,7 +520,18 @@ function OverviewReady({
     const evid = evidRef.current;
     const link = linkRef.current?.parentElement ?? null;
     const svg = connectorRef.current;
-    if (evid && link && svg) {
+    const mid = midcapRef.current;
+    if (evid?.hidden && link && svg) {
+      // the context closed: its toggle waits under the card's actions, with no dotted line (AUDIT's U28 advisory:
+      // placed from the hidden context's empty box it stood at the stage's left edge)
+      const lb = toDesign(link, scale);
+      svg.style.visibility = "hidden";
+      if (mid) {
+        mid.style.left = `${lb.left.toFixed(1)}px`;
+        mid.style.top = `${(lb.bottom + 14).toFixed(1)}px`;
+      }
+    } else if (evid && link && svg) {
+      svg.style.visibility = "";
       const eb = toDesign(evid, scale);
       const lb = toDesign(link, scale);
       const sx = eb.left + 20;
@@ -521,7 +548,6 @@ function OverviewReady({
       c0?.setAttribute("cy", sy.toFixed(1));
       c1?.setAttribute("cx", sx.toFixed(1));
       c1?.setAttribute("cy", ey.toFixed(1));
-      const mid = midcapRef.current;
       if (mid) {
         mid.style.left = `${(sx + 12).toFixed(1)}px`;
         mid.style.top = `${((sy + ey) / 2 - 8).toFixed(1)}px`;
@@ -1644,6 +1670,7 @@ function OverviewReady({
           // the season as the trend asset states it
           window: data?.footprints.slope?.window ?? "",
           share: shown("fdr"),
+          direction: directionWord(findings.find((x) => x.id === "fdr")),
         });
       case "rain":
         return format("overview.lift.rain", {
@@ -1884,6 +1911,7 @@ function OverviewReady({
                 actions={cardActions}
                 onOpen={openInPlace}
                 onBack={back}
+                onContextToggle={go}
                 refs={{
                   root: recRef,
                   inst: instRef,

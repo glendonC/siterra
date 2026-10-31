@@ -2,12 +2,21 @@
 
 // The cutaway (approved specimen B): the catchment cut north to south through Tabant, the section face as the hero.
 // Against the face at each elevation band's height: the band's name, its March to June trend and its monthly snow
-// cover, on one hairline each; the two published statements next to what they describe; the ruler, the limits and
+// cover, on one hairline each; the two published statements as numbered chips next to what they describe, each
+// opening its words on focus or hover (decision 16, U28b); the ruler, the limits and
 // the place on the model. The scene is three.js (lib/instruments/valley/scene/cutaway.ts); the words are HTML,
 // placed after every render so they follow the model when it is turned. The caption is the cross section spec's,
 // as the case records carry it.
 
-import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent } from "react";
+import {
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+  type KeyboardEvent,
+  type RefObject,
+} from "react";
 import { en, format, type MessageId } from "../../lib/copy/en";
 import { bandLimitsOf } from "../../lib/land/record";
 import { splitFigure } from "../../lib/instruments/caption";
@@ -58,6 +67,10 @@ const TURN: Record<string, [number, number]> = {
 type Anchor =
   "left-middle" | "left-top" | "right-middle" | "right-bottom" | "center-top" | "center-bottom";
 
+/** The published statements, numbered top to bottom as they stand on the section. */
+const STATEMENTS = ["upper_slope", "valley_floor"] as const;
+type StatementId = (typeof STATEMENTS)[number];
+
 /** Puts an element's anchor point at (x, y) and shows it. */
 function place(e: HTMLElement | null, x: number, y: number, anchor: Anchor) {
   if (!e) return null;
@@ -96,12 +109,12 @@ export function InstrumentCutaway({ teardown }: { teardown?: Teardown } = {}) {
   const snowRef = useRef<HTMLDivElement>(null);
   const limitRefs = useRef<(HTMLDivElement | null)[]>([]);
   const tickRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const upperRef = useRef<HTMLParagraphElement>(null);
+  const upperRef = useRef<HTMLDivElement>(null);
   const upperStemRef = useRef<SVGLineElement>(null);
   const upperDotRef = useRef<SVGCircleElement>(null);
   const placeRef = useRef<HTMLDivElement>(null);
   const placeTickRef = useRef<SVGLineElement>(null);
-  const floorRef = useRef<HTMLParagraphElement>(null);
+  const floorRef = useRef<HTMLDivElement>(null);
   const floorStemRef = useRef<SVGLineElement>(null);
   const endRefs = useRef<(HTMLDivElement | null)[]>([]);
   const scaleRef = useRef<HTMLDivElement>(null);
@@ -118,6 +131,8 @@ export function InstrumentCutaway({ teardown }: { teardown?: Teardown } = {}) {
   useShellView(viewHandle);
   const [data, setData] = useState<CutawayData | null>(null);
   const [placeName, setPlaceName] = useState<string | null>(null);
+  // the statement whose words are open (its chip focused or under the pointer); at rest both wait as chips
+  const [openStatement, setOpenStatement] = useState<StatementId | null>(null);
   const [loadFailed, setFailed] = useState(false);
   const record = useInstrument("cross_section");
   // the cross section spec draws no land cover raster yet: the layer stack's is read in its place
@@ -187,14 +202,13 @@ export function InstrumentCutaway({ teardown }: { teardown?: Teardown } = {}) {
       [yL, yU].forEach((y, i) =>
         place(limitRefs.current[i] ?? null, south.x - 8, y - 2, "right-bottom"),
       );
-      // upper rangelands above the high slopes at the south end, on a short stem down to the profile
+      // upper rangelands above the high slopes at the south end, on a short stem down to the profile: its chip right
+      // over the stem, its words (when open) ending at the south end
       const hp = P(marks.highSlope);
-      const ur = place(
-        upperRef.current,
-        Math.min(width - 16, south.x + 210),
-        yTop - 18,
-        "right-bottom",
-      );
+      const upperOpen = upperRef.current?.hasAttribute("data-open") ?? false;
+      const ur = upperOpen
+        ? place(upperRef.current, Math.min(width - 16, south.x + 210), yTop - 18, "right-bottom")
+        : place(upperRef.current, hp.x, yTop - 18, "center-bottom");
       if (ur) line(upperStemRef.current, hp.x, hp.y - 4, hp.x, ur.bottom + 3);
       dot(upperDotRef.current, hp.x, hp.y - 3);
       // the ruler's labels left of its long ticks
@@ -240,10 +254,11 @@ export function InstrumentCutaway({ teardown }: { teardown?: Teardown } = {}) {
     };
   }, [data, caption, kick]);
 
-  // the place's label appears after the scene has found it on the line; lay the words out again then
+  // the place's label appears after the scene has found it on the line, and a statement opens or closes; lay the
+  // words out again then
   useEffect(() => {
     sceneRef.current?.stage.render();
-  }, [placeName]);
+  }, [placeName, openStatement]);
 
   const onKeyDown = (e: KeyboardEvent<HTMLCanvasElement>) => {
     const scene = sceneRef.current;
@@ -272,6 +287,50 @@ export function InstrumentCutaway({ teardown }: { teardown?: Teardown } = {}) {
           {n}
         </span>
       ));
+  // a statement on the section: its numbered chip, and its words with their source chips while it is open
+  const statementAt = (
+    id: StatementId,
+    ref: RefObject<HTMLDivElement | null>,
+    className: string,
+  ) => {
+    const n = STATEMENTS.indexOf(id) + 1;
+    const open = openStatement === id;
+    const close = () => {
+      setOpenStatement((o) => (o === id ? null : o));
+    };
+    return (
+      <div ref={ref} className={className} data-statement={id} data-open={open ? "" : undefined}>
+        <button
+          type="button"
+          className={styles.statementChip}
+          aria-expanded={open}
+          aria-label={format("instrument.cutaway.statement", { n })}
+          data-statement-chip={id}
+          onFocus={() => {
+            setOpenStatement(id);
+          }}
+          onBlur={close}
+          onPointerEnter={() => {
+            setOpenStatement(id);
+          }}
+          onPointerLeave={(e) => {
+            if (document.activeElement !== e.currentTarget) close();
+          }}
+          onClick={() => {
+            setOpenStatement(id);
+          }}
+        >
+          {n}
+        </button>
+        {open ? (
+          <span className={styles.statementText} data-statement-text>
+            {statement(id)?.text}
+            {chips(id)}
+          </span>
+        ) : null}
+      </div>
+    );
+  };
   const credits = data
     ? [
         ...CREDITS_BEFORE.map((id) => en[id].text),
@@ -426,27 +485,13 @@ export function InstrumentCutaway({ teardown }: { teardown?: Teardown } = {}) {
               {format("instrument.cutaway.metres", { value: metres(e) })}
             </div>
           ))}
-          <p
-            ref={upperRef}
-            className={`${styles.statement} ${styles.side}`}
-            data-statement="upper_slope"
-          >
-            {statement("upper_slope")?.text}
-            {chips("upper_slope")}
-          </p>
+          {statementAt("upper_slope", upperRef, `${styles.statement} ${styles.side}`)}
           {placeName && (
             <div ref={placeRef} className={styles.place} data-place>
               {placeName}
             </div>
           )}
-          <p
-            ref={floorRef}
-            className={`${styles.statement} ${styles.onWallText}`}
-            data-statement="valley_floor"
-          >
-            {statement("valley_floor")?.text}
-            {chips("valley_floor")}
-          </p>
+          {statementAt("valley_floor", floorRef, `${styles.statement} ${styles.onWallText}`)}
           {(["instrument.cutaway.north", "instrument.cutaway.south"] as const).map((id, i) => (
             <div
               key={id}

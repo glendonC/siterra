@@ -165,6 +165,7 @@ export function OverviewRecord({
   actions,
   onOpen,
   onBack,
+  onContextToggle,
   wide = false,
   refs,
 }: {
@@ -194,15 +195,20 @@ export function OverviewRecord({
   /** Opens a view in place, taking the land apart (decision 12); true when it did, so the link does not load. */
   onOpen?: (href: string) => boolean;
   onBack?: () => void;
+  /** The published context opened or closed: the page places the card's words again. */
+  onContextToggle?: () => void;
   /** The rain card opened wide: its seasons compared with rainfall, rising beside the rain-tinted land. */
   wide?: boolean;
   refs: RecordRefs;
 }) {
-  // the published context, closed each time a record opens
+  // the published context, closed each time a record opens; the page lays the card out again when it opens or closes
   const [contextOpen, setContextOpen] = useState(false);
   useEffect(() => {
     setContextOpen(false);
   }, [sel]);
+  useEffect(() => {
+    onContextToggle?.();
+  }, [contextOpen, onContextToggle]);
   // the finding's own season and years, from its measurement's period (U25)
   const { window, from, to } = seasonWords(finding?.period ?? null);
   const kicker =
@@ -251,6 +257,11 @@ export function OverviewRecord({
           {chart ? <SeasonsChart chart={chart} /> : null}
           {data?.scatter ? <RainScatter data={data.scatter} wide={wide} /> : null}
           {ci ? <div className={styles.ci}>{ci}</div> : null}
+          {chart ? (
+            <div className={styles.ci} data-season-dot>
+              {en["overview.record.dot"].text}
+            </div>
+          ) : null}
           {slopeKey ? <SlopeKey domain={slopeKey.domain} window={window} /> : null}
           {onLand ? (
             <div className={styles.note} data-on-land>

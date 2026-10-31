@@ -54,6 +54,24 @@ describe("findingsFrom (seed case)", () => {
     ]);
   });
 
+  it("names the share's direction from its Measurement's metric: upward greening, downward browning", () => {
+    expect(byId.fdr?.direction).toBe("up");
+    const at = (metric: string) => {
+      const records = {
+        ...seed.records,
+        measurementRecords: seed.records.measurementRecords.map((m) =>
+          m.id === byId.fdr?.measurementId ? { ...m, metric } : m,
+        ),
+      };
+      return findingsFrom({ ...seed, records }, seedListing).findings.find((f) => f.id === "fdr")
+        ?.direction;
+    };
+    expect(at("area_share_downward_fdr")).toBe("down");
+    expect(at("area_share_fdr")).toBeNull();
+    // a trend has no share direction
+    expect(byId.catchment?.direction).toBeNull();
+  });
+
   it("leaves out a finding whose Measurement has no value", () => {
     const records = {
       ...seed.records,

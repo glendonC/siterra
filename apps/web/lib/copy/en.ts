@@ -384,6 +384,7 @@ export const en = {
   "instrument.cutaway.metres": { text: "{value} m", kind: "label" },
   "instrument.cutaway.north": { text: "N", kind: "label" },
   "instrument.cutaway.south": { text: "S", kind: "label" },
+  "instrument.cutaway.statement": { text: "Published statement {n}", kind: "label" },
 
   // Instruments: the briefing shell around them. Enter in the command line opens the valley with the typed text in
   // the valley's command line, sending nothing
@@ -546,6 +547,12 @@ export const en = {
   "instrument.scatter.driest": { text: "{year}, {mm} mm", kind: "label" },
   "instrument.scatter.seasons": { text: "{n} seasons, {from} to {to}", kind: "label" },
   "instrument.scatter.key.season": { text: "One season", kind: "label" },
+  "instrument.scatter.why": {
+    text: "The fit says nothing about why.",
+    kind: "label",
+    honesty: true,
+  },
+  "instrument.scatter.more": { text: "Fit and interval", kind: "label" },
   "instrument.scatter.key.driest": {
     text: "The four driest {window} totals",
     kind: "label",
@@ -656,7 +663,11 @@ export const en = {
   "overview.finding.band.1": { text: "NDVI per decade below {limit} m", kind: "label" },
   "overview.finding.pixel.1": { text: "NDVI per decade, one pixel", kind: "label" },
   "overview.finding.rain.1": { text: "R squared with rainfall", kind: "label" },
-  "overview.finding.fdr.1": { text: "of the area greening", kind: "label" },
+  // the share's direction from its Measurement's metric (AUDIT's U28 advisory: every place said greening)
+  "overview.finding.fdr.1": { text: "of the area {direction}", kind: "label" },
+  "overview.fdr.up": { text: "greening", kind: "label" },
+  "overview.fdr.down": { text: "browning", kind: "label" },
+  "overview.fdr.none": { text: "with a trend", kind: "label" },
   "overview.finding.fdr.2": { text: "after a false discovery rate check", kind: "label" },
   "overview.field": { text: "Proposed field check, not measured", kind: "label", honesty: true },
   "overview.pixel": { text: "This pixel", kind: "label" },
@@ -695,7 +706,7 @@ export const en = {
   // what the land shows while a finding is open (decision 6): its footprint, from the case's own assets
 
   "overview.lift.trend": {
-    text: "{n} cells, {window}; {share} of the area greening after a false discovery rate check",
+    text: "{n} cells, {window}; {share} of the area {direction} after a false discovery rate check",
     kind: "ui",
   },
   "overview.lift.rain": {
@@ -718,9 +729,10 @@ export const en = {
     text: "NDVI per decade, {window}, {from} to {to}",
     kind: "label",
   },
-  // decision 16: the card's interval is its fit and its numbers; how the seasons were averaged is in Sources
+  // decision 16: the card's interval is its fit and its numbers, and one short line says what a dot is
   "overview.record.theilSen": { text: "Theil-Sen, 95%: {lower} to {upper}", kind: "label" },
   "overview.record.ols": { text: "Least squares, 95%: {lower} to {upper}", kind: "label" },
+  "overview.record.dot": { text: "Each dot, one season's mean", kind: "label" },
   "overview.onLand.fdrRule": {
     text: "The map marks no cell as significant.",
     kind: "ui",
@@ -749,7 +761,7 @@ export const en = {
   "overview.crumb.band": { text: "{value} below {limit} m", kind: "label" },
   "overview.crumb.pixel": { text: "{value} in one pixel", kind: "label" },
   "overview.crumb.rain": { text: "{value} rain and greenness", kind: "label" },
-  "overview.crumb.fdr": { text: "{value} greening", kind: "label" },
+  "overview.crumb.fdr": { text: "{value} {direction}", kind: "label" },
   "overview.crumb.field": { text: "Proposed field check", kind: "label" },
   "overview.crumb.routes": { text: "Proposed walking routes", kind: "label" },
   "overview.crumb.results": { text: "Findings", kind: "label" },

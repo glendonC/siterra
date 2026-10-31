@@ -102,10 +102,10 @@ export interface StageBox {
 }
 
 /**
- * The pixel opened in place (stage px; U27, the lead's 16:15 judgment): the risen pixel is the subject in the middle;
- * three cards stay open round it (the caption and 02 in the left column, 03 at the top right, 05 at the bottom right),
- * and 01, 04 and 06 wait as small chips on their leaders under the caption; a chip opens its card in 02's slot on
- * focus or a click, so no card stands over another card or over the pixel.
+ * The pixel opened in place (stage px; U27, the lead's 16:15 judgment; U28b, decision 16): the risen pixel is the
+ * subject in the middle; at rest only the caption and 02 stay open in the left column, and 01, 03, 04, 05 and 06 wait
+ * as small chips on their leaders under the caption. On focus or a click, 01, 04 and 06 open their card in 02's slot;
+ * 03 opens at the top right and 05 at the bottom right, so no card stands over another card or over the pixel.
  */
 export const AROUND = {
   column: { x: 40, w: 400 },
@@ -1251,12 +1251,14 @@ export function mountPixel(
   draw();
 
   // in place: each part's frosted back fitted to what it holds, then the left column laid out from the caption's own
-  // height (each place's caption is its own length): the caption, the chips 01, 04 and 06 in one row, and one slot
-  // that holds 02, or the card of the chip that is open in 02's stead, so no card ever stands over another card or
-  // over the pixel (decision 14; the lead, 16:47); 03 and 05 keep the right side
+  // height (each place's caption is its own length): the caption, the chips in one row, and one slot that holds 02,
+  // or the card of the chip that is open in 02's stead, so no card ever stands over another card or over the pixel
+  // (decision 14; the lead, 16:47); 03 and 05 open on the right side, where 02 can stay
   const CHIPS = [
     ["01", "instrument.pixel.locate"],
+    ["03", "instrument.pixel.spectra"],
     ["04", "instrument.pixel.series"],
+    ["05", "instrument.pixel.model"],
     ["06", "instrument.pixel.field"],
   ] as const;
   const SLOT = new Set(["02", "01", "04", "06"]);
@@ -1319,15 +1321,22 @@ export function mountPixel(
       div("title", b, en[title].text);
       row.appendChild(b);
       chipButtons.set(id, b);
-      // a click toggles its card; the keyboard's focus opens it; leaving the chip closes it
+      // a click toggles its card; the keyboard's focus opens it; leaving the chip closes it, unless focus goes into
+      // its card (05's bar and reset), and leaving the card for anything but its chip closes it too
+      const card = parts.get(id)?.div;
+      const stays = (to: EventTarget | null) =>
+        to instanceof Node && (to === b || (card?.contains(to) ?? false));
       b.addEventListener("click", () => {
         show(opened === id ? null : id);
       });
       b.addEventListener("focus", () => {
         if (b.matches(":focus-visible")) show(id);
       });
-      b.addEventListener("blur", () => {
-        if (opened === id) show(null);
+      b.addEventListener("blur", (e) => {
+        if (opened === id && !stays(e.relatedTarget)) show(null);
+      });
+      card?.addEventListener("focusout", (e) => {
+        if (opened === id && !stays(e.relatedTarget)) show(null);
       });
     }
     for (const [id, b] of chipButtons)
@@ -1361,9 +1370,9 @@ export function mountPixel(
       if (p) p.div.style.display = cid === id ? "" : "none";
       chipButtons.get(cid)?.setAttribute("aria-expanded", String(cid === id));
     }
-    // an opened chip's card takes 02's place in the slot
+    // an opened chip's card in the left column takes 02's place in the slot
     const p02 = parts.get("02");
-    if (p02) p02.div.style.display = id === null ? "" : "none";
+    if (p02) p02.div.style.display = id !== null && SLOT.has(id) ? "none" : "";
     setPixelBox(lastPixel);
   }
 
@@ -1379,7 +1388,7 @@ export function mountPixel(
     if (!around || !box) return;
     const mid: Pt = [(box.x0 + box.x1) / 2, (box.y0 + box.y1) / 2];
     const from: Pt[] = (["01", "02", "03", "04", "05", "06"] as const).flatMap((id) => {
-      if (id === "02" && opened !== null) return [];
+      if (id === "02" && opened !== null && SLOT.has(opened)) return [];
       const waiting = chipBox.get(id);
       const b = waiting && opened !== id ? waiting : partBox.get(id);
       return b ? [near(mid, b)] : [];

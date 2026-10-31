@@ -41,7 +41,19 @@ export interface Finding {
   display: string;
   /** The measurement's period as its record names it: its years and season window (U25: every place its own). */
   period: Period | null;
+  /** A share's direction as its Measurement's metric names it (upward greening, downward browning); null otherwise. */
+  direction: "up" | "down" | null;
 }
+
+/** The direction a share's metric names ("area_share_upward_fdr"); none for any other metric. */
+const directionOf = (plan: Plan, metric: string): Finding["direction"] =>
+  plan.form !== "share"
+    ? null
+    : /(^|_)upward(_|$)/.test(metric)
+      ? "up"
+      : /(^|_)downward(_|$)/.test(metric)
+        ? "down"
+        : null;
 
 const FORMS: Record<Plan["form"], (v: number) => string> = {
   // a trend per decade, signed, 4 decimals; R squared, 3 decimals; a share as a per cent, 1 decimal
@@ -79,6 +91,7 @@ export function findingsFrom(snapshot: CaseSnapshot, listing: InstrumentListing)
       value: m.value,
       display: FORMS[plan.form](m.value),
       period: periodOf(m.periodId),
+      direction: directionOf(plan, m.metric),
     });
   }
   // the band's limit: the elevation band limit among the cross section's citations
