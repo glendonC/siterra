@@ -42779,6 +42779,538 @@
       },
       {
         "recordType": "Measurement",
+        "id": "meas_species_records_animals_catchment",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "metric": "species_records_in_group",
+        "value": 544,
+        "unit": "records",
+        "status": "available",
+        "missingReason": null,
+        "geoSelectionId": "geo_ait_bouguemez_catchment",
+        "geoRevision": 1,
+        "periodId": "period_1864-2025",
+        "dataBundleId": "bundle_species_occurrences_ait_bouguemez",
+        "aggregation": "Number of the kept GBIF occurrence records whose taxon is in the group animals (by_group.animals). A count of records, not abundance.",
+        "validPixelCount": null,
+        "totalPixelCount": null,
+        "validFraction": null,
+        "spatialResolutionM": null,
+        "uncertainty": {
+          "kind": "not_quantified",
+          "lower": null,
+          "upper": null,
+          "level": null,
+          "method": null
+        },
+        "provenance": {
+          "sourceLocators": [],
+          "dataBundleIds": [
+            "bundle_terrain_strata_ait_bouguemez"
+          ],
+          "methodId": "species_occurrences",
+          "methodVersion": "1.0.0",
+          "inputVersions": [
+            {
+              "entityId": "geo_ait_bouguemez_catchment",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_terrain_strata_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_species_occurrences_ait_bouguemez",
+              "revision": 1
+            }
+          ],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-30T20:23:52Z",
+          "verificationStatus": "computed_checked",
+          "limitations": [
+            "Each record says an organism was recorded at a place and time by someone, as a human observation, a preserved specimen, a fossil specimen, a machine observation or another basis; a fossil specimen records an organism of an earlier age, not a living one. It is not a measurement of presence or abundance: the same species can be common and unrecorded, or rare and recorded often.",
+            "Records follow where people look. Roads, villages, trails, reserves and the habits of a few observers shape where records fall, and a quiet area is not an empty one.",
+            "Years reflect recording effort. A rise or fall in records per year follows the arrival of observation apps, surveys and datasets, not the organisms, and the counts by year are not a trend.",
+            "Coordinates are as recorded with their stated uncertainty, which is missing for some records and larger than the catchment for others; a kept record is inside the catchment polygon at its recorded point only.",
+            "Only records under CC0 1.0 or CC BY 4.0 are kept; records under other licences were dropped and are counted, so the kept records are a part of what GBIF holds here. Each dataset is credited to its publisher.",
+            "The request was made on a stated date; GBIF records are added, corrected and withdrawn over time, so a later request can give other counts.",
+            "A zero for a named plant means no kept record under that name inside the catchment, not that the plant is absent, and names can be recorded under synonyms."
+          ]
+        },
+        "source": {
+          "assetKey": "species_occurrences",
+          "jsonPointer": "/by_group/animals",
+          "stratum": "catchment",
+          "claimKind": "observation",
+          "period": {
+            "start": "1864",
+            "end": "2025",
+            "window": null
+          },
+          "lowerJsonPointer": null,
+          "upperJsonPointer": null
+        }
+      },
+      {
+        "recordType": "Measurement",
+        "id": "meas_species_records_kept_catchment",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "metric": "species_records_kept",
+        "value": 632,
+        "unit": "records",
+        "status": "available",
+        "missingReason": null,
+        "geoSelectionId": "geo_ait_bouguemez_catchment",
+        "geoRevision": 1,
+        "periodId": "period_1864-2025",
+        "dataBundleId": "bundle_species_occurrences_ait_bouguemez",
+        "aggregation": "Number of GBIF occurrence records kept in the stored bundle: inside the catchment polygon and under a CC0 or CC BY licence (counts.kept). A count of records, not abundance.",
+        "validPixelCount": null,
+        "totalPixelCount": null,
+        "validFraction": null,
+        "spatialResolutionM": null,
+        "uncertainty": {
+          "kind": "not_quantified",
+          "lower": null,
+          "upper": null,
+          "level": null,
+          "method": null
+        },
+        "provenance": {
+          "sourceLocators": [],
+          "dataBundleIds": [
+            "bundle_terrain_strata_ait_bouguemez"
+          ],
+          "methodId": "species_occurrences",
+          "methodVersion": "1.0.0",
+          "inputVersions": [
+            {
+              "entityId": "geo_ait_bouguemez_catchment",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_terrain_strata_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_species_occurrences_ait_bouguemez",
+              "revision": 1
+            }
+          ],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-30T20:23:52Z",
+          "verificationStatus": "computed_checked",
+          "limitations": [
+            "Each record says an organism was recorded at a place and time by someone, as a human observation, a preserved specimen, a fossil specimen, a machine observation or another basis; a fossil specimen records an organism of an earlier age, not a living one. It is not a measurement of presence or abundance: the same species can be common and unrecorded, or rare and recorded often.",
+            "Records follow where people look. Roads, villages, trails, reserves and the habits of a few observers shape where records fall, and a quiet area is not an empty one.",
+            "Years reflect recording effort. A rise or fall in records per year follows the arrival of observation apps, surveys and datasets, not the organisms, and the counts by year are not a trend.",
+            "Coordinates are as recorded with their stated uncertainty, which is missing for some records and larger than the catchment for others; a kept record is inside the catchment polygon at its recorded point only.",
+            "Only records under CC0 1.0 or CC BY 4.0 are kept; records under other licences were dropped and are counted, so the kept records are a part of what GBIF holds here. Each dataset is credited to its publisher.",
+            "The request was made on a stated date; GBIF records are added, corrected and withdrawn over time, so a later request can give other counts.",
+            "A zero for a named plant means no kept record under that name inside the catchment, not that the plant is absent, and names can be recorded under synonyms."
+          ]
+        },
+        "source": {
+          "assetKey": "species_occurrences",
+          "jsonPointer": "/counts/kept",
+          "stratum": "catchment",
+          "claimKind": "observation",
+          "period": {
+            "start": "1864",
+            "end": "2025",
+            "window": null
+          },
+          "lowerJsonPointer": null,
+          "upperJsonPointer": null
+        }
+      },
+      {
+        "recordType": "Measurement",
+        "id": "meas_species_records_named_astragalus_armatus",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "metric": "species_records_of_named_taxon",
+        "value": 0,
+        "unit": "records",
+        "status": "available",
+        "missingReason": null,
+        "geoSelectionId": "geo_ait_bouguemez_catchment",
+        "geoRevision": 1,
+        "periodId": "period_1864-2025",
+        "dataBundleId": "bundle_species_occurrences_ait_bouguemez",
+        "aggregation": "Number of the kept GBIF occurrence records of Astragalus armatus, a plant named by SCI-03, in the stored bundle (named_taxa[0].kept); zero means no record in the stored bundle. A count of records, not abundance.",
+        "validPixelCount": null,
+        "totalPixelCount": null,
+        "validFraction": null,
+        "spatialResolutionM": null,
+        "uncertainty": {
+          "kind": "not_quantified",
+          "lower": null,
+          "upper": null,
+          "level": null,
+          "method": null
+        },
+        "provenance": {
+          "sourceLocators": [],
+          "dataBundleIds": [
+            "bundle_terrain_strata_ait_bouguemez"
+          ],
+          "methodId": "species_occurrences",
+          "methodVersion": "1.0.0",
+          "inputVersions": [
+            {
+              "entityId": "geo_ait_bouguemez_catchment",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_terrain_strata_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_species_occurrences_ait_bouguemez",
+              "revision": 1
+            }
+          ],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-30T20:23:52Z",
+          "verificationStatus": "computed_checked",
+          "limitations": [
+            "Each record says an organism was recorded at a place and time by someone, as a human observation, a preserved specimen, a fossil specimen, a machine observation or another basis; a fossil specimen records an organism of an earlier age, not a living one. It is not a measurement of presence or abundance: the same species can be common and unrecorded, or rare and recorded often.",
+            "Records follow where people look. Roads, villages, trails, reserves and the habits of a few observers shape where records fall, and a quiet area is not an empty one.",
+            "Years reflect recording effort. A rise or fall in records per year follows the arrival of observation apps, surveys and datasets, not the organisms, and the counts by year are not a trend.",
+            "Coordinates are as recorded with their stated uncertainty, which is missing for some records and larger than the catchment for others; a kept record is inside the catchment polygon at its recorded point only.",
+            "Only records under CC0 1.0 or CC BY 4.0 are kept; records under other licences were dropped and are counted, so the kept records are a part of what GBIF holds here. Each dataset is credited to its publisher.",
+            "The request was made on a stated date; GBIF records are added, corrected and withdrawn over time, so a later request can give other counts.",
+            "A zero for a named plant means no kept record under that name inside the catchment, not that the plant is absent, and names can be recorded under synonyms."
+          ]
+        },
+        "source": {
+          "assetKey": "species_occurrences",
+          "jsonPointer": "/named_taxa/0/kept",
+          "stratum": "named_astragalus_armatus",
+          "claimKind": "observation",
+          "period": {
+            "start": "1864",
+            "end": "2025",
+            "window": null
+          },
+          "lowerJsonPointer": null,
+          "upperJsonPointer": null
+        }
+      },
+      {
+        "recordType": "Measurement",
+        "id": "meas_species_records_named_euphorbia_nicaeensis",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "metric": "species_records_of_named_taxon",
+        "value": 0,
+        "unit": "records",
+        "status": "available",
+        "missingReason": null,
+        "geoSelectionId": "geo_ait_bouguemez_catchment",
+        "geoRevision": 1,
+        "periodId": "period_1864-2025",
+        "dataBundleId": "bundle_species_occurrences_ait_bouguemez",
+        "aggregation": "Number of the kept GBIF occurrence records of Euphorbia nicaeensis, a plant named by SCI-03, in the stored bundle (named_taxa[3].kept); zero means no record in the stored bundle. A count of records, not abundance.",
+        "validPixelCount": null,
+        "totalPixelCount": null,
+        "validFraction": null,
+        "spatialResolutionM": null,
+        "uncertainty": {
+          "kind": "not_quantified",
+          "lower": null,
+          "upper": null,
+          "level": null,
+          "method": null
+        },
+        "provenance": {
+          "sourceLocators": [],
+          "dataBundleIds": [
+            "bundle_terrain_strata_ait_bouguemez"
+          ],
+          "methodId": "species_occurrences",
+          "methodVersion": "1.0.0",
+          "inputVersions": [
+            {
+              "entityId": "geo_ait_bouguemez_catchment",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_terrain_strata_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_species_occurrences_ait_bouguemez",
+              "revision": 1
+            }
+          ],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-30T20:23:52Z",
+          "verificationStatus": "computed_checked",
+          "limitations": [
+            "Each record says an organism was recorded at a place and time by someone, as a human observation, a preserved specimen, a fossil specimen, a machine observation or another basis; a fossil specimen records an organism of an earlier age, not a living one. It is not a measurement of presence or abundance: the same species can be common and unrecorded, or rare and recorded often.",
+            "Records follow where people look. Roads, villages, trails, reserves and the habits of a few observers shape where records fall, and a quiet area is not an empty one.",
+            "Years reflect recording effort. A rise or fall in records per year follows the arrival of observation apps, surveys and datasets, not the organisms, and the counts by year are not a trend.",
+            "Coordinates are as recorded with their stated uncertainty, which is missing for some records and larger than the catchment for others; a kept record is inside the catchment polygon at its recorded point only.",
+            "Only records under CC0 1.0 or CC BY 4.0 are kept; records under other licences were dropped and are counted, so the kept records are a part of what GBIF holds here. Each dataset is credited to its publisher.",
+            "The request was made on a stated date; GBIF records are added, corrected and withdrawn over time, so a later request can give other counts.",
+            "A zero for a named plant means no kept record under that name inside the catchment, not that the plant is absent, and names can be recorded under synonyms."
+          ]
+        },
+        "source": {
+          "assetKey": "species_occurrences",
+          "jsonPointer": "/named_taxa/3/kept",
+          "stratum": "named_euphorbia_nicaeensis",
+          "claimKind": "observation",
+          "period": {
+            "start": "1864",
+            "end": "2025",
+            "window": null
+          },
+          "lowerJsonPointer": null,
+          "upperJsonPointer": null
+        }
+      },
+      {
+        "recordType": "Measurement",
+        "id": "meas_species_records_named_thymelaea_virgata",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "metric": "species_records_of_named_taxon",
+        "value": 0,
+        "unit": "records",
+        "status": "available",
+        "missingReason": null,
+        "geoSelectionId": "geo_ait_bouguemez_catchment",
+        "geoRevision": 1,
+        "periodId": "period_1864-2025",
+        "dataBundleId": "bundle_species_occurrences_ait_bouguemez",
+        "aggregation": "Number of the kept GBIF occurrence records of Thymelaea virgata, a plant named by SCI-03, in the stored bundle (named_taxa[2].kept); zero means no record in the stored bundle. A count of records, not abundance.",
+        "validPixelCount": null,
+        "totalPixelCount": null,
+        "validFraction": null,
+        "spatialResolutionM": null,
+        "uncertainty": {
+          "kind": "not_quantified",
+          "lower": null,
+          "upper": null,
+          "level": null,
+          "method": null
+        },
+        "provenance": {
+          "sourceLocators": [],
+          "dataBundleIds": [
+            "bundle_terrain_strata_ait_bouguemez"
+          ],
+          "methodId": "species_occurrences",
+          "methodVersion": "1.0.0",
+          "inputVersions": [
+            {
+              "entityId": "geo_ait_bouguemez_catchment",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_terrain_strata_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_species_occurrences_ait_bouguemez",
+              "revision": 1
+            }
+          ],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-30T20:23:52Z",
+          "verificationStatus": "computed_checked",
+          "limitations": [
+            "Each record says an organism was recorded at a place and time by someone, as a human observation, a preserved specimen, a fossil specimen, a machine observation or another basis; a fossil specimen records an organism of an earlier age, not a living one. It is not a measurement of presence or abundance: the same species can be common and unrecorded, or rare and recorded often.",
+            "Records follow where people look. Roads, villages, trails, reserves and the habits of a few observers shape where records fall, and a quiet area is not an empty one.",
+            "Years reflect recording effort. A rise or fall in records per year follows the arrival of observation apps, surveys and datasets, not the organisms, and the counts by year are not a trend.",
+            "Coordinates are as recorded with their stated uncertainty, which is missing for some records and larger than the catchment for others; a kept record is inside the catchment polygon at its recorded point only.",
+            "Only records under CC0 1.0 or CC BY 4.0 are kept; records under other licences were dropped and are counted, so the kept records are a part of what GBIF holds here. Each dataset is credited to its publisher.",
+            "The request was made on a stated date; GBIF records are added, corrected and withdrawn over time, so a later request can give other counts.",
+            "A zero for a named plant means no kept record under that name inside the catchment, not that the plant is absent, and names can be recorded under synonyms."
+          ]
+        },
+        "source": {
+          "assetKey": "species_occurrences",
+          "jsonPointer": "/named_taxa/2/kept",
+          "stratum": "named_thymelaea_virgata",
+          "claimKind": "observation",
+          "period": {
+            "start": "1864",
+            "end": "2025",
+            "window": null
+          },
+          "lowerJsonPointer": null,
+          "upperJsonPointer": null
+        }
+      },
+      {
+        "recordType": "Measurement",
+        "id": "meas_species_records_named_thymus_satureioides",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "metric": "species_records_of_named_taxon",
+        "value": 0,
+        "unit": "records",
+        "status": "available",
+        "missingReason": null,
+        "geoSelectionId": "geo_ait_bouguemez_catchment",
+        "geoRevision": 1,
+        "periodId": "period_1864-2025",
+        "dataBundleId": "bundle_species_occurrences_ait_bouguemez",
+        "aggregation": "Number of the kept GBIF occurrence records of Thymus satureioides, a plant named by SCI-03, in the stored bundle (named_taxa[1].kept); zero means no record in the stored bundle. A count of records, not abundance.",
+        "validPixelCount": null,
+        "totalPixelCount": null,
+        "validFraction": null,
+        "spatialResolutionM": null,
+        "uncertainty": {
+          "kind": "not_quantified",
+          "lower": null,
+          "upper": null,
+          "level": null,
+          "method": null
+        },
+        "provenance": {
+          "sourceLocators": [],
+          "dataBundleIds": [
+            "bundle_terrain_strata_ait_bouguemez"
+          ],
+          "methodId": "species_occurrences",
+          "methodVersion": "1.0.0",
+          "inputVersions": [
+            {
+              "entityId": "geo_ait_bouguemez_catchment",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_terrain_strata_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_species_occurrences_ait_bouguemez",
+              "revision": 1
+            }
+          ],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-30T20:23:52Z",
+          "verificationStatus": "computed_checked",
+          "limitations": [
+            "Each record says an organism was recorded at a place and time by someone, as a human observation, a preserved specimen, a fossil specimen, a machine observation or another basis; a fossil specimen records an organism of an earlier age, not a living one. It is not a measurement of presence or abundance: the same species can be common and unrecorded, or rare and recorded often.",
+            "Records follow where people look. Roads, villages, trails, reserves and the habits of a few observers shape where records fall, and a quiet area is not an empty one.",
+            "Years reflect recording effort. A rise or fall in records per year follows the arrival of observation apps, surveys and datasets, not the organisms, and the counts by year are not a trend.",
+            "Coordinates are as recorded with their stated uncertainty, which is missing for some records and larger than the catchment for others; a kept record is inside the catchment polygon at its recorded point only.",
+            "Only records under CC0 1.0 or CC BY 4.0 are kept; records under other licences were dropped and are counted, so the kept records are a part of what GBIF holds here. Each dataset is credited to its publisher.",
+            "The request was made on a stated date; GBIF records are added, corrected and withdrawn over time, so a later request can give other counts.",
+            "A zero for a named plant means no kept record under that name inside the catchment, not that the plant is absent, and names can be recorded under synonyms."
+          ]
+        },
+        "source": {
+          "assetKey": "species_occurrences",
+          "jsonPointer": "/named_taxa/1/kept",
+          "stratum": "named_thymus_satureioides",
+          "claimKind": "observation",
+          "period": {
+            "start": "1864",
+            "end": "2025",
+            "window": null
+          },
+          "lowerJsonPointer": null,
+          "upperJsonPointer": null
+        }
+      },
+      {
+        "recordType": "Measurement",
+        "id": "meas_species_records_plants_catchment",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "metric": "species_records_in_group",
+        "value": 88,
+        "unit": "records",
+        "status": "available",
+        "missingReason": null,
+        "geoSelectionId": "geo_ait_bouguemez_catchment",
+        "geoRevision": 1,
+        "periodId": "period_1864-2025",
+        "dataBundleId": "bundle_species_occurrences_ait_bouguemez",
+        "aggregation": "Number of the kept GBIF occurrence records whose taxon is in the group plants (by_group.plants). A count of records, not abundance.",
+        "validPixelCount": null,
+        "totalPixelCount": null,
+        "validFraction": null,
+        "spatialResolutionM": null,
+        "uncertainty": {
+          "kind": "not_quantified",
+          "lower": null,
+          "upper": null,
+          "level": null,
+          "method": null
+        },
+        "provenance": {
+          "sourceLocators": [],
+          "dataBundleIds": [
+            "bundle_terrain_strata_ait_bouguemez"
+          ],
+          "methodId": "species_occurrences",
+          "methodVersion": "1.0.0",
+          "inputVersions": [
+            {
+              "entityId": "geo_ait_bouguemez_catchment",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_terrain_strata_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_species_occurrences_ait_bouguemez",
+              "revision": 1
+            }
+          ],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-30T20:23:52Z",
+          "verificationStatus": "computed_checked",
+          "limitations": [
+            "Each record says an organism was recorded at a place and time by someone, as a human observation, a preserved specimen, a fossil specimen, a machine observation or another basis; a fossil specimen records an organism of an earlier age, not a living one. It is not a measurement of presence or abundance: the same species can be common and unrecorded, or rare and recorded often.",
+            "Records follow where people look. Roads, villages, trails, reserves and the habits of a few observers shape where records fall, and a quiet area is not an empty one.",
+            "Years reflect recording effort. A rise or fall in records per year follows the arrival of observation apps, surveys and datasets, not the organisms, and the counts by year are not a trend.",
+            "Coordinates are as recorded with their stated uncertainty, which is missing for some records and larger than the catchment for others; a kept record is inside the catchment polygon at its recorded point only.",
+            "Only records under CC0 1.0 or CC BY 4.0 are kept; records under other licences were dropped and are counted, so the kept records are a part of what GBIF holds here. Each dataset is credited to its publisher.",
+            "The request was made on a stated date; GBIF records are added, corrected and withdrawn over time, so a later request can give other counts.",
+            "A zero for a named plant means no kept record under that name inside the catchment, not that the plant is absent, and names can be recorded under synonyms."
+          ]
+        },
+        "source": {
+          "assetKey": "species_occurrences",
+          "jsonPointer": "/by_group/plants",
+          "stratum": "catchment",
+          "claimKind": "observation",
+          "period": {
+            "start": "1864",
+            "end": "2025",
+            "window": null
+          },
+          "lowerJsonPointer": null,
+          "upperJsonPointer": null
+        }
+      },
+      {
+        "recordType": "Measurement",
         "id": "meas_transect_band_limit_lower_2021",
         "revision": 1,
         "createdAt": "2026-10-28T20:42:35.015Z",

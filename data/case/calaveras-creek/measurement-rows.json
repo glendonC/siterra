@@ -493,6 +493,141 @@
    },
    "periodId": "period_2021",
    "spatialResolutionM": 10
+  },
+  {
+   "rowId": "species_records_kept_catchment",
+   "pointer": "/counts/kept",
+   "metric": "species_records_kept",
+   "unit": "records",
+   "aggregation": "Number of GBIF occurrence records kept in the stored bundle: inside the catchment polygon and under a CC0 or CC BY licence (counts.kept). A count of records, not abundance.",
+   "uncertainty": {
+    "kind": "not_quantified"
+   },
+   "usedBy": [
+    "search_occurrences: the count beside the records the tool returns, for the recorded-here wording"
+   ],
+   "bundleId": "bundle_species_occurrences_calaveras_creek",
+   "assetKey": "species_occurrences",
+   "lowerPointer": null,
+   "upperPointer": null,
+   "claimKindPointer": "/claim_kind",
+   "claimKind": "observation",
+   "stratum": "catchment",
+   "period": {
+    "start": "1875",
+    "end": "2026",
+    "window": null
+   },
+   "periodId": "period_1875-2026",
+   "spatialResolutionM": null
+  },
+  {
+   "rowId": "species_records_animals_catchment",
+   "pointer": "/by_group/animals",
+   "metric": "species_records_in_group",
+   "unit": "records",
+   "aggregation": "Number of the kept GBIF occurrence records whose taxon is in the group animals (by_group.animals). A count of records, not abundance.",
+   "uncertainty": {
+    "kind": "not_quantified"
+   },
+   "usedBy": [
+    "search_occurrences: the count beside the records the tool returns, for the recorded-here wording"
+   ],
+   "bundleId": "bundle_species_occurrences_calaveras_creek",
+   "assetKey": "species_occurrences",
+   "lowerPointer": null,
+   "upperPointer": null,
+   "claimKindPointer": "/claim_kind",
+   "claimKind": "observation",
+   "stratum": "catchment",
+   "period": {
+    "start": "1875",
+    "end": "2026",
+    "window": null
+   },
+   "periodId": "period_1875-2026",
+   "spatialResolutionM": null
+  },
+  {
+   "rowId": "species_records_plants_catchment",
+   "pointer": "/by_group/plants",
+   "metric": "species_records_in_group",
+   "unit": "records",
+   "aggregation": "Number of the kept GBIF occurrence records whose taxon is in the group plants (by_group.plants). A count of records, not abundance.",
+   "uncertainty": {
+    "kind": "not_quantified"
+   },
+   "usedBy": [
+    "search_occurrences: the count beside the records the tool returns, for the recorded-here wording"
+   ],
+   "bundleId": "bundle_species_occurrences_calaveras_creek",
+   "assetKey": "species_occurrences",
+   "lowerPointer": null,
+   "upperPointer": null,
+   "claimKindPointer": "/claim_kind",
+   "claimKind": "observation",
+   "stratum": "catchment",
+   "period": {
+    "start": "1875",
+    "end": "2026",
+    "window": null
+   },
+   "periodId": "period_1875-2026",
+   "spatialResolutionM": null
+  },
+  {
+   "rowId": "species_records_fungi_catchment",
+   "pointer": "/by_group/fungi",
+   "metric": "species_records_in_group",
+   "unit": "records",
+   "aggregation": "Number of the kept GBIF occurrence records whose taxon is in the group fungi (by_group.fungi). A count of records, not abundance.",
+   "uncertainty": {
+    "kind": "not_quantified"
+   },
+   "usedBy": [
+    "search_occurrences: the count beside the records the tool returns, for the recorded-here wording"
+   ],
+   "bundleId": "bundle_species_occurrences_calaveras_creek",
+   "assetKey": "species_occurrences",
+   "lowerPointer": null,
+   "upperPointer": null,
+   "claimKindPointer": "/claim_kind",
+   "claimKind": "observation",
+   "stratum": "catchment",
+   "period": {
+    "start": "1875",
+    "end": "2026",
+    "window": null
+   },
+   "periodId": "period_1875-2026",
+   "spatialResolutionM": null
+  },
+  {
+   "rowId": "species_records_other_catchment",
+   "pointer": "/by_group/other",
+   "metric": "species_records_in_group",
+   "unit": "records",
+   "aggregation": "Number of the kept GBIF occurrence records whose taxon is in the group other (by_group.other). A count of records, not abundance.",
+   "uncertainty": {
+    "kind": "not_quantified"
+   },
+   "usedBy": [
+    "search_occurrences: the count beside the records the tool returns, for the recorded-here wording"
+   ],
+   "bundleId": "bundle_species_occurrences_calaveras_creek",
+   "assetKey": "species_occurrences",
+   "lowerPointer": null,
+   "upperPointer": null,
+   "claimKindPointer": "/claim_kind",
+   "claimKind": "observation",
+   "stratum": "catchment",
+   "period": {
+    "start": "1875",
+    "end": "2026",
+    "window": null
+   },
+   "periodId": "period_1875-2026",
+   "spatialResolutionM": null
   }
  ]
 }
