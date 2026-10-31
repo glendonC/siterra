@@ -99,6 +99,8 @@ uniform sampler2D uOver;    // a finding's footprint painted on the land (RGBA, 
 uniform vec4 uOverRect;
 uniform float uOverA;       // 0 none, 1 the footprint shown
 uniform float uBandAt, uBandA; // a band below this height (m) lit, the rest stepped back (0 to 1)
+uniform float uRangeLo, uRangeHi, uRangeA; // a proposed field check's band between two heights (m), lit (UI-2)
+uniform vec3 uRangeC;       // its colour: the accent, for a proposed thing
 varying vec3 vWorld;
 void main() {
   vec2 xz = vWorld.xz;
@@ -144,6 +146,13 @@ void main() {
   if (uBandA > 0.001) {
     float inBand = 1.0 - smoothstep(uBandAt - 6.0, uBandAt + 6.0, h);
     col *= mix(1.0, mix(0.42, 1.12, inBand), uBandA);
+  }
+
+  // the band a proposed field check stands on, in the accent, the rest stepped back (the next-steps package)
+  if (uRangeA > 0.001) {
+    float inRange = smoothstep(uRangeLo - 6.0, uRangeLo + 6.0, h) * (1.0 - smoothstep(uRangeHi - 6.0, uRangeHi + 6.0, h));
+    col *= mix(1.0, mix(0.5, 1.0, inRange), uRangeA);
+    col = mix(col, uRangeC * (0.35 + 0.65 * diff), inRange * 0.42 * uRangeA);
   }
 
   float c250 = contour(h, 250.0, 0.9);
@@ -399,6 +408,10 @@ export function createRelief(
     uOverA: { value: 0 },
     uBandAt: { value: 0 },
     uBandA: { value: 0 },
+    uRangeLo: { value: -1e5 },
+    uRangeHi: { value: 1e5 },
+    uRangeA: { value: 0 },
+    uRangeC: { value: new Vector3(0, 0, 0) },
   };
   const material = new ShaderMaterial({
     vertexShader: RELIEF_VERT,

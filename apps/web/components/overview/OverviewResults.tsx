@@ -19,6 +19,8 @@ import {
 } from "../../lib/overview/results";
 import type { Action } from "../../lib/overview/actions";
 import { ActionList } from "./ActionList";
+import { Control } from "../controls/Control";
+import { pkg } from "../../lib/copy/package";
 import styles from "./OverviewResults.module.css";
 
 export interface ResultsRefs {
@@ -32,6 +34,7 @@ export function OverviewResults({
   snapshot,
   commandId,
   onOpen,
+  onPackage,
   actions,
   onBack,
   refs,
@@ -40,6 +43,8 @@ export function OverviewResults({
   commandId: string;
   /** Opens the field plan in place over the land (decision 13); true when it did, so the link does not load. */
   onOpen?: (href: string) => boolean;
+  /** Opens the question's next-steps package in place (UI-2); absent when its command committed none. */
+  onPackage?: () => void;
   /** What can be done from here, from what the record offers (decision 15). */
   actions: readonly Action[];
   onBack?: () => void;
@@ -107,6 +112,20 @@ export function OverviewResults({
               );
             })}
           </ul>
+          {onPackage ? (
+            // the question's next-steps package, when its command committed one (UI-2): the card's Enter
+            <div className={styles.package}>
+              <Control
+                variant="primary"
+                keyHint="Enter"
+                keyShortcut="Enter"
+                onClick={onPackage}
+                data-open-package=""
+              >
+                {pkg["package.open"].text}
+              </Control>
+            </div>
+          ) : null}
           <ActionList
             actions={actions}
             {...(onOpen ? { onOpen } : {})}

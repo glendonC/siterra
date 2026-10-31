@@ -141,3 +141,8 @@
   margin-top: 14px;
   pointer-events: auto;
 }
+
+/* the next-steps package's Enter, above the card's other actions (UI-2) */
+.package {
+  margin-top: 18px;
+}
