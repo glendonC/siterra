@@ -13250,7 +13250,7 @@
         "createdAt": "2026-10-28T20:42:35.015Z",
         "updatedAt": "2026-10-28T20:42:35.015Z",
         "caseId": "case_aitbouguemez",
-        "label": "One MODIS pixel opened into its 10 m cells (pixel_anatomy 1.0.0)",
+        "label": "One MODIS pixel opened into its 10 m cells (pixel_anatomy 1.1.0)",
         "status": "validated",
         "datasetId": "sentinel-2-l2a",
         "datasetVersion": "05.11",
@@ -13259,9 +13259,9 @@
         "geoRevision": 1,
         "periodIds": [],
         "methodId": "pixel_anatomy",
-        "methodVersion": "1.0.0",
-        "manifestUri": "/api/case-assets/bundle_pixel_anatomy_ait_bouguemez/1220ba5b7b3d0d724b78d3ba7044fee37f7c839a610c7ea4b25383dbe1ff6f1d2cee/collection.json",
-        "contentHash": "1220ba5b7b3d0d724b78d3ba7044fee37f7c839a610c7ea4b25383dbe1ff6f1d2cee",
+        "methodVersion": "1.1.0",
+        "manifestUri": "/api/case-assets/bundle_pixel_anatomy_ait_bouguemez/1220efc70c6e40bf8390367661146e021b611e715a36506e4dcdeddcbb4dbcd722ee/collection.json",
+        "contentHash": "1220efc70c6e40bf8390367661146e021b611e715a36506e4dcdeddcbb4dbcd722ee",
         "license": "MOD13Q1 v6.1: NASA data use guidance (NASA-led mission data without a marked restriction are CC0; citation strongly urged); Licence for Copernicus DEM instance COP-DEM-GLO-30-F Global 30m Full, Free & Open; ESA WorldCover: CC BY 4.0; Legal notice on the use of Copernicus Sentinel data and service information (SCI-18)",
         "attribution": "Contains modified Copernicus Sentinel data 2025; Didan, K. (2021). MODIS/Terra Vegetation Indices 16-Day L3 Global 250m SIN Grid V061. NASA Land Processes Distributed Active Archive Center. https://doi.org/10.5067/MODIS/MOD13Q1.061. Tile h17v05, A2000049 to A2025353, read from Microsoft Planetary Computer, accessed 2026-10-28; Catchment and strata derived by Siterra from Copernicus DEM GLO-30 (2021 release); produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved; The organisations in charge of the Copernicus programme by law or by delegation do not incur any liability for any use of the Copernicus WorldDEM-30; © ESA WorldCover project / Contains modified Copernicus Sentinel data (2021) processed by ESA WorldCover consortium; ESA WorldCover 2021 v200 (Zanaga et al. 2022), CC BY 4.0, https://doi.org/10.5281/zenodo.7254221; ESA WorldCover 10 m 2021 v200, Zanaga et al. (2022), https://doi.org/10.5281/zenodo.7254221, CC BY 4.0",
         "provenance": {
@@ -13272,7 +13272,7 @@
             "bundle_s2_ndvi_monthly_ait_bouguemez"
           ],
           "methodId": "pixel_anatomy",
-          "methodVersion": "1.0.0",
+          "methodVersion": "1.1.0",
           "inputVersions": [
             {
               "entityId": "geo_ait_bouguemez_catchment",
@@ -13292,7 +13292,7 @@
             }
           ],
           "generatedByTaskId": null,
-          "generatedAt": "2026-10-29T11:09:47Z",
+          "generatedAt": "2026-10-30T23:29:41Z",
           "verificationStatus": "computed_checked",
           "limitations": [
             "One pixel is an illustration, not a sample: it was chosen by judgment among the candidates of a rule (the selection record gives their number and its rank), and it says nothing about other pixels.",
@@ -13427,8 +13427,8 @@
         "periodIds": [],
         "methodId": "proposed_routes",
         "methodVersion": "1.0.0",
-        "manifestUri": "/api/case-assets/bundle_proposed_routes_ait_bouguemez/1220421e7baa2d80f4df177fc4869e5dc0c0d74c9cac0436e2736832261be2df9cba/collection.json",
-        "contentHash": "1220421e7baa2d80f4df177fc4869e5dc0c0d74c9cac0436e2736832261be2df9cba",
+        "manifestUri": "/api/case-assets/bundle_proposed_routes_ait_bouguemez/122029e23ae9750ca7d95c2bdf815be9217f9ef139ecad82e604b6765a16cf9c5817/collection.json",
+        "contentHash": "122029e23ae9750ca7d95c2bdf815be9217f9ef139ecad82e604b6765a16cf9c5817",
         "license": "Licence for Copernicus DEM instance COP-DEM-GLO-30-F Global 30m Full, Free & Open; ESA WorldCover: CC BY 4.0",
         "attribution": "Catchment and strata derived by Siterra from Copernicus DEM GLO-30 (2021 release); produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved; The organisations in charge of the Copernicus programme by law or by delegation do not incur any liability for any use of the Copernicus WorldDEM-30; © ESA WorldCover project / Contains modified Copernicus Sentinel data (2021) processed by ESA WorldCover consortium; ESA WorldCover 2021 v200 (Zanaga et al. 2022), CC BY 4.0, https://doi.org/10.5281/zenodo.7254221",
         "provenance": {
@@ -35856,7 +35856,7 @@
             "bundle_s2_ndvi_monthly_ait_bouguemez"
           ],
           "methodId": "pixel_anatomy",
-          "methodVersion": "1.0.0",
+          "methodVersion": "1.1.0",
           "inputVersions": [
             {
               "entityId": "geo_ait_bouguemez_catchment",
@@ -35880,7 +35880,7 @@
             }
           ],
           "generatedByTaskId": null,
-          "generatedAt": "2026-10-29T11:09:47Z",
+          "generatedAt": "2026-10-30T23:29:41Z",
           "verificationStatus": "computed_checked",
           "limitations": [
             "One pixel is an illustration, not a sample: it was chosen by judgment among the candidates of a rule (the selection record gives their number and its rank), and it says nothing about other pixels.",
@@ -35942,7 +35942,7 @@
             "bundle_s2_ndvi_monthly_ait_bouguemez"
           ],
           "methodId": "pixel_anatomy",
-          "methodVersion": "1.0.0",
+          "methodVersion": "1.1.0",
           "inputVersions": [
             {
               "entityId": "geo_ait_bouguemez_catchment",
@@ -35966,7 +35966,7 @@
             }
           ],
           "generatedByTaskId": null,
-          "generatedAt": "2026-10-29T11:09:47Z",
+          "generatedAt": "2026-10-30T23:29:41Z",
           "verificationStatus": "computed_checked",
           "limitations": [
             "One pixel is an illustration, not a sample: it was chosen by judgment among the candidates of a rule (the selection record gives their number and its rank), and it says nothing about other pixels.",
@@ -36028,7 +36028,7 @@
             "bundle_s2_ndvi_monthly_ait_bouguemez"
           ],
           "methodId": "pixel_anatomy",
-          "methodVersion": "1.0.0",
+          "methodVersion": "1.1.0",
           "inputVersions": [
             {
               "entityId": "geo_ait_bouguemez_catchment",
@@ -36052,7 +36052,7 @@
             }
           ],
           "generatedByTaskId": null,
-          "generatedAt": "2026-10-29T11:09:47Z",
+          "generatedAt": "2026-10-30T23:29:41Z",
           "verificationStatus": "computed_checked",
           "limitations": [
             "One pixel is an illustration, not a sample: it was chosen by judgment among the candidates of a rule (the selection record gives their number and its rank), and it says nothing about other pixels.",
@@ -36114,7 +36114,7 @@
             "bundle_s2_ndvi_monthly_ait_bouguemez"
           ],
           "methodId": "pixel_anatomy",
-          "methodVersion": "1.0.0",
+          "methodVersion": "1.1.0",
           "inputVersions": [
             {
               "entityId": "geo_ait_bouguemez_catchment",
@@ -36138,7 +36138,7 @@
             }
           ],
           "generatedByTaskId": null,
-          "generatedAt": "2026-10-29T11:09:47Z",
+          "generatedAt": "2026-10-30T23:29:41Z",
           "verificationStatus": "computed_checked",
           "limitations": [
             "One pixel is an illustration, not a sample: it was chosen by judgment among the candidates of a rule (the selection record gives their number and its rank), and it says nothing about other pixels.",
@@ -36200,7 +36200,7 @@
             "bundle_s2_ndvi_monthly_ait_bouguemez"
           ],
           "methodId": "pixel_anatomy",
-          "methodVersion": "1.0.0",
+          "methodVersion": "1.1.0",
           "inputVersions": [
             {
               "entityId": "geo_ait_bouguemez_catchment",
@@ -36224,7 +36224,7 @@
             }
           ],
           "generatedByTaskId": null,
-          "generatedAt": "2026-10-29T11:09:47Z",
+          "generatedAt": "2026-10-30T23:29:41Z",
           "verificationStatus": "computed_checked",
           "limitations": [
             "One pixel is an illustration, not a sample: it was chosen by judgment among the candidates of a rule (the selection record gives their number and its rank), and it says nothing about other pixels.",
@@ -36286,7 +36286,7 @@
             "bundle_s2_ndvi_monthly_ait_bouguemez"
           ],
           "methodId": "pixel_anatomy",
-          "methodVersion": "1.0.0",
+          "methodVersion": "1.1.0",
           "inputVersions": [
             {
               "entityId": "geo_ait_bouguemez_catchment",
@@ -36310,7 +36310,7 @@
             }
           ],
           "generatedByTaskId": null,
-          "generatedAt": "2026-10-29T11:09:47Z",
+          "generatedAt": "2026-10-30T23:29:41Z",
           "verificationStatus": "computed_checked",
           "limitations": [
             "One pixel is an illustration, not a sample: it was chosen by judgment among the candidates of a rule (the selection record gives their number and its rank), and it says nothing about other pixels.",
@@ -36372,7 +36372,7 @@
             "bundle_s2_ndvi_monthly_ait_bouguemez"
           ],
           "methodId": "pixel_anatomy",
-          "methodVersion": "1.0.0",
+          "methodVersion": "1.1.0",
           "inputVersions": [
             {
               "entityId": "geo_ait_bouguemez_catchment",
@@ -36396,7 +36396,7 @@
             }
           ],
           "generatedByTaskId": null,
-          "generatedAt": "2026-10-29T11:09:47Z",
+          "generatedAt": "2026-10-30T23:29:41Z",
           "verificationStatus": "computed_checked",
           "limitations": [
             "One pixel is an illustration, not a sample: it was chosen by judgment among the candidates of a rule (the selection record gives their number and its rank), and it says nothing about other pixels.",
@@ -36458,7 +36458,7 @@
             "bundle_s2_ndvi_monthly_ait_bouguemez"
           ],
           "methodId": "pixel_anatomy",
-          "methodVersion": "1.0.0",
+          "methodVersion": "1.1.0",
           "inputVersions": [
             {
               "entityId": "geo_ait_bouguemez_catchment",
@@ -36482,7 +36482,7 @@
             }
           ],
           "generatedByTaskId": null,
-          "generatedAt": "2026-10-29T11:09:47Z",
+          "generatedAt": "2026-10-30T23:29:41Z",
           "verificationStatus": "computed_checked",
           "limitations": [
             "One pixel is an illustration, not a sample: it was chosen by judgment among the candidates of a rule (the selection record gives their number and its rank), and it says nothing about other pixels.",
@@ -36544,7 +36544,7 @@
             "bundle_s2_ndvi_monthly_ait_bouguemez"
           ],
           "methodId": "pixel_anatomy",
-          "methodVersion": "1.0.0",
+          "methodVersion": "1.1.0",
           "inputVersions": [
             {
               "entityId": "geo_ait_bouguemez_catchment",
@@ -36568,7 +36568,7 @@
             }
           ],
           "generatedByTaskId": null,
-          "generatedAt": "2026-10-29T11:09:47Z",
+          "generatedAt": "2026-10-30T23:29:41Z",
           "verificationStatus": "computed_checked",
           "limitations": [
             "One pixel is an illustration, not a sample: it was chosen by judgment among the candidates of a rule (the selection record gives their number and its rank), and it says nothing about other pixels.",
@@ -36630,7 +36630,7 @@
             "bundle_s2_ndvi_monthly_ait_bouguemez"
           ],
           "methodId": "pixel_anatomy",
-          "methodVersion": "1.0.0",
+          "methodVersion": "1.1.0",
           "inputVersions": [
             {
               "entityId": "geo_ait_bouguemez_catchment",
@@ -36654,7 +36654,7 @@
             }
           ],
           "generatedByTaskId": null,
-          "generatedAt": "2026-10-29T11:09:47Z",
+          "generatedAt": "2026-10-30T23:29:41Z",
           "verificationStatus": "computed_checked",
           "limitations": [
             "One pixel is an illustration, not a sample: it was chosen by judgment among the candidates of a rule (the selection record gives their number and its rank), and it says nothing about other pixels.",
@@ -36716,7 +36716,7 @@
             "bundle_s2_ndvi_monthly_ait_bouguemez"
           ],
           "methodId": "pixel_anatomy",
-          "methodVersion": "1.0.0",
+          "methodVersion": "1.1.0",
           "inputVersions": [
             {
               "entityId": "geo_ait_bouguemez_catchment",
@@ -36740,7 +36740,7 @@
             }
           ],
           "generatedByTaskId": null,
-          "generatedAt": "2026-10-29T11:09:47Z",
+          "generatedAt": "2026-10-30T23:29:41Z",
           "verificationStatus": "computed_checked",
           "limitations": [
             "One pixel is an illustration, not a sample: it was chosen by judgment among the candidates of a rule (the selection record gives their number and its rank), and it says nothing about other pixels.",
@@ -36802,7 +36802,7 @@
             "bundle_s2_ndvi_monthly_ait_bouguemez"
           ],
           "methodId": "pixel_anatomy",
-          "methodVersion": "1.0.0",
+          "methodVersion": "1.1.0",
           "inputVersions": [
             {
               "entityId": "geo_ait_bouguemez_catchment",
@@ -36826,7 +36826,7 @@
             }
           ],
           "generatedByTaskId": null,
-          "generatedAt": "2026-10-29T11:09:47Z",
+          "generatedAt": "2026-10-30T23:29:41Z",
           "verificationStatus": "computed_checked",
           "limitations": [
             "One pixel is an illustration, not a sample: it was chosen by judgment among the candidates of a rule (the selection record gives their number and its rank), and it says nothing about other pixels.",
@@ -36888,7 +36888,7 @@
             "bundle_s2_ndvi_monthly_ait_bouguemez"
           ],
           "methodId": "pixel_anatomy",
-          "methodVersion": "1.0.0",
+          "methodVersion": "1.1.0",
           "inputVersions": [
             {
               "entityId": "geo_ait_bouguemez_catchment",
@@ -36912,7 +36912,7 @@
             }
           ],
           "generatedByTaskId": null,
-          "generatedAt": "2026-10-29T11:09:47Z",
+          "generatedAt": "2026-10-30T23:29:41Z",
           "verificationStatus": "computed_checked",
           "limitations": [
             "One pixel is an illustration, not a sample: it was chosen by judgment among the candidates of a rule (the selection record gives their number and its rank), and it says nothing about other pixels.",
@@ -36974,7 +36974,7 @@
             "bundle_s2_ndvi_monthly_ait_bouguemez"
           ],
           "methodId": "pixel_anatomy",
-          "methodVersion": "1.0.0",
+          "methodVersion": "1.1.0",
           "inputVersions": [
             {
               "entityId": "geo_ait_bouguemez_catchment",
@@ -36998,7 +36998,7 @@
             }
           ],
           "generatedByTaskId": null,
-          "generatedAt": "2026-10-29T11:09:47Z",
+          "generatedAt": "2026-10-30T23:29:41Z",
           "verificationStatus": "computed_checked",
           "limitations": [
             "One pixel is an illustration, not a sample: it was chosen by judgment among the candidates of a rule (the selection record gives their number and its rank), and it says nothing about other pixels.",
@@ -37060,7 +37060,7 @@
             "bundle_s2_ndvi_monthly_ait_bouguemez"
           ],
           "methodId": "pixel_anatomy",
-          "methodVersion": "1.0.0",
+          "methodVersion": "1.1.0",
           "inputVersions": [
             {
               "entityId": "geo_ait_bouguemez_catchment",
@@ -37084,7 +37084,7 @@
             }
           ],
           "generatedByTaskId": null,
-          "generatedAt": "2026-10-29T11:09:47Z",
+          "generatedAt": "2026-10-30T23:29:41Z",
           "verificationStatus": "computed_checked",
           "limitations": [
             "One pixel is an illustration, not a sample: it was chosen by judgment among the candidates of a rule (the selection record gives their number and its rank), and it says nothing about other pixels.",
