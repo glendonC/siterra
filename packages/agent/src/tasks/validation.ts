@@ -33,7 +33,13 @@ export interface ValidationResult {
  * with a failure code ends the task with that code and gets no repair turn (out of scope).
  */
 export type Checked<T> =
-  | { ok: true; value: T; issues: ValidationIssue[] }
+  | {
+      ok: true;
+      value: T;
+      issues: ValidationIssue[];
+      /** A partial result whose issues a repair turn can fix; the loop takes its one repair turn. */
+      repair?: boolean;
+    }
   | { ok: false; issues: ValidationIssue[]; failureCode?: string };
 
 /** Formats a parser path as `$.tasks[0].kind`. */
