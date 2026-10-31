@@ -227,7 +227,13 @@ export function OverviewRecord({
       })
     : null;
   const capText =
-    chart && finding ? format("overview.record.caption", { window, from, to }) : caption.join(" ");
+    chart && finding
+      ? format("overview.record.caption", { window, from, to })
+      : sel === "rain"
+        ? en["overview.record.rainCaption"].text
+        : sel === "fdr"
+          ? [...caption, en["overview.finding.fdr.2"].text].join(", ")
+          : caption.join(" ");
   const context = data?.context ?? null;
   return (
     <div

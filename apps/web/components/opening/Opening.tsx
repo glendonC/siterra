@@ -50,6 +50,9 @@ export function Opening({ onOpen, onShown }: OpeningProps) {
       <div className={styles.paper} style={{ height: LIMB[0] - PAPER_TOP - LIMB_AIR }}>
         <article className={styles.beat}>
           <h1 className={styles.question}>{copy.what}</h1>
+          <p className={styles.what} data-opening-subline>
+            {copy.subline}
+          </p>
           <p className={styles.action}>
             <Control variant="primary" keyHint="↵" keyShortcut="Enter" onClick={onOpen}>
               {copy.action}

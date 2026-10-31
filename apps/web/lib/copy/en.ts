@@ -16,11 +16,14 @@ export interface Message {
 }
 
 export const en = {
-  // Opening page: the case question (from its record), one sentence of what Siterra does, one action; how it works
-  // waits behind a quiet button
+  // Opening page: what Siterra does, one action into the globe, and how it works on request (decisions 7 and 10)
   "opening.title": { text: "Siterra", kind: "heading" },
   "opening.what": {
-    text: "Siterra weighs a question about the land against satellite records and published studies, and says what they leave open.",
+    text: "Environmental intelligence, put to work.",
+    kind: "ui",
+  },
+  "opening.subline": {
+    text: "Give an environmental problem to an AI team. It checks 25 years of satellite records, tests every cause, and hands back a field plan.",
     kind: "ui",
   },
   // only the brief task waits for a person (awaiting_review); a visitor's results are never reviewed by one
@@ -50,11 +53,11 @@ export const en = {
   "chrome.data": { text: "Data: {names}", kind: "ui" },
   // the drawn relief's vertical exaggeration, after the data's names where land is drawn (decision 16)
   "chrome.relief": { text: "Relief ×{value}", kind: "label" },
-  // the mode line at the top right of every screen after the opening (U32, PC-04, DQ-02): the case's mode from the
-  // record, then while a question's run is on the screen, where that run comes from
-  "chrome.mode.concept": { text: "Concept case", kind: "label", honesty: true },
-  "chrome.mode.replay": { text: "Replay case", kind: "label", honesty: true },
-  "chrome.mode.live": { text: "Live case", kind: "label" },
+  // the mode line at the top right of every screen after the opening (U32, U33, PC-04, DQ-02): plain scope pill
+  // opening what Siterra does not do, and while a question's run is on the screen, where that run comes from
+  "chrome.mode.concept": { text: "What Siterra won't do", kind: "label", honesty: true },
+  "chrome.mode.replay": { text: "What Siterra won't do", kind: "label", honesty: true },
+  "chrome.mode.live": { text: "What Siterra won't do", kind: "label", honesty: true },
   "chrome.mode.run.live": { text: "Live", kind: "label" },
   "chrome.mode.run.replay": { text: "Replay", kind: "label", honesty: true },
   // its popover: what Siterra does not do (the three items exactly) and who reviews
@@ -697,11 +700,11 @@ export const en = {
     kind: "ui",
   },
   "overview.findings": { text: "Findings", kind: "heading" },
-  // decision 16: one short line under each number; the season and years are in the opened card
-  "overview.finding.catchment.1": { text: "NDVI per decade, catchment", kind: "label" },
-  "overview.finding.band.1": { text: "NDVI per decade below {limit} m", kind: "label" },
-  "overview.finding.pixel.1": { text: "NDVI per decade, one pixel", kind: "label" },
-  "overview.finding.rain.1": { text: "R squared with rainfall", kind: "label" },
+  // decision 16 & U33: plain words first under each number; the season, years and test details are in the opened card
+  "overview.finding.catchment.1": { text: "Whole area greenness trend", kind: "label" },
+  "overview.finding.band.1": { text: "Below {limit} m trend", kind: "label" },
+  "overview.finding.pixel.1": { text: "One 250 m square", kind: "label" },
+  "overview.finding.rain.1": { text: "Explained by rainfall", kind: "label" },
   // the share's direction from its Measurement's metric (AUDIT's U28 advisory: every place said greening)
   "overview.finding.fdr.1": { text: "of the area {direction}", kind: "label" },
   "overview.fdr.up": { text: "greening", kind: "label" },
@@ -711,7 +714,7 @@ export const en = {
   "overview.fdr.share": { text: "{value} {direction}", kind: "label" },
   "overview.fdr.both": { text: "{first}, {second}", kind: "label" },
   "overview.finding.fdr.pair.1": {
-    text: "of the area after a false discovery rate check",
+    text: "of the area",
     kind: "label",
   },
   "overview.lift.trend.pair": {
@@ -807,9 +810,10 @@ export const en = {
   "overview.slopeKey": { text: "NDVI per decade, {window}", kind: "label" },
   "overview.record.band": { text: "Below {limit} m", kind: "label" },
   "overview.record.caption": {
-    text: "NDVI per decade, {window}, {from} to {to}",
+    text: "Greenness change ({window}, {from} to {to}), in NDVI per decade",
     kind: "label",
   },
+  "overview.record.rainCaption": { text: "Explained by rainfall (R squared)", kind: "label" },
   // decision 16: the card's interval is its fit and its numbers, and one short line says what a dot is
   "overview.record.theilSen": { text: "Theil-Sen, 95%: {lower} to {upper}", kind: "label" },
   "overview.record.ols": { text: "Least squares, 95%: {lower} to {upper}", kind: "label" },
@@ -864,6 +868,7 @@ export const en = {
   "ask.circle": { text: "ask", kind: "label" },
   "ask.open": { text: "Ask Siterra", kind: "button" },
   "ask.close": { text: "Close Ask", kind: "button" },
+  "ask.prompts.kicker": { text: "Ask Siterra to investigate", kind: "label" },
   // the activity line: the step running with the model and route that served it (the activity panel's badge)
   "ask.taskModel": { text: "{model}: {task}, {status}", kind: "ui" },
   "ask.task": { text: "{task}, {status}", kind: "ui" },
@@ -942,6 +947,21 @@ export type MessageId = keyof typeof en;
  * the rules it may break.
  */
 export const LINT_ALLOWLIST: Partial<Record<MessageId, { rules: string[]; reason: string }>> = {
+  "chrome.mode.concept": {
+    rules: ["VT-43"],
+    reason:
+      "The founder's replan names the scope pill 'What Siterra won't do' in plain conversational words.",
+  },
+  "chrome.mode.replay": {
+    rules: ["VT-43"],
+    reason:
+      "The founder's replan names the scope pill 'What Siterra won't do' in plain conversational words.",
+  },
+  "chrome.mode.live": {
+    rules: ["VT-43"],
+    reason:
+      "The founder's replan names the scope pill 'What Siterra won't do' in plain conversational words.",
+  },
   "overview.open.cutaway": {
     rules: ["VT-48"],
     reason: "The lead's decision 13 names each record's action by what the visitor will see.",

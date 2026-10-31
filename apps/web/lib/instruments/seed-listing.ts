@@ -17,6 +17,10 @@ export const seed = JSON.parse(
   ),
 ) as CaseSnapshot;
 
+const seedConfig = JSON.parse(
+  readFileSync(join(REPO, "packages", "domain", "src", "cases", "case_aitbouguemez.json"), "utf8"),
+) as { suggestedQuestions?: InstrumentListing["suggestedQuestions"] };
+
 const collection = (bundleId: string) =>
   JSON.parse(readFileSync(join(BUNDLES, bundleId, "collection.json"), "utf8")) as {
     assets: Record<string, { href: string; "file:checksum": string; "file:size": number }>;
@@ -34,6 +38,7 @@ const HASH = "seed";
 export const seedListing = {
   caseId: seed.case.id,
   caseRevision: seed.case.revision,
+  suggestedQuestions: seedConfig.suggestedQuestions ?? [],
   instruments: (seed.records.instrumentSpecRecords ?? []).map((spec) => ({
     spec,
     components: [],

@@ -227,14 +227,14 @@
 .scope {
   position: absolute;
   right: 0;
-  top: 40px;
-  width: 300px;
-  padding: 12px 14px;
+  top: 34px;
+  width: 288px;
+  padding: 8px 12px;
   border: 1px solid var(--control-line);
   border-radius: 12px;
   background: var(--bg-overlay);
   color: var(--control-ink);
-  font: 400 13px / 19px var(--font-sans);
+  font: 400 12px / 15.5px var(--font-sans);
 }
 
 .scope p {
@@ -242,6 +242,6 @@
 }
 
 .scope p + p {
-  margin-top: 6px;
+  margin-top: 4px;
   color: var(--control-grey);
 }

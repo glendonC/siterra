@@ -515,8 +515,16 @@ test("the ask opens and closes by its circle and by the slash key, and sends not
   await ready(page);
   const ask = page.locator("[data-ask]");
   const input = page.locator("input[name='question']");
+  await expect(page.locator("[data-suggested-question]")).toHaveCount(3);
+  await expect(page.locator("[data-ask-prompts]")).toContainText("Ask Siterra to investigate");
   await ask.click();
   await expect(input).toBeFocused();
+  await expect(page.locator("[data-ask-suggestion]")).toHaveCount(3);
+  expect(await textReport(page, "[data-overview-root]")).toEqual({
+    overlaps: [],
+    small: [],
+    outside: [],
+  });
   await input.pressSequentially("Why is the valley floor greener?");
   await expect(input).toHaveValue("Why is the valley floor greener?");
   // the activity line shows only after Enter

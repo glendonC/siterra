@@ -26,7 +26,7 @@ const shownModeLines = (page: Page) =>
 const expectOneShown = async (page: Page, where: string) => {
   await expect
     .poll(() => shownModeLines(page), { message: where, timeout: 15_000 })
-    .toEqual(["Concept case"]);
+    .toEqual(["What Siterra won't do"]);
 };
 
 test("on arrival, one click on the mode line lists what Siterra does not do; Esc closes it and stays", async ({
@@ -183,7 +183,7 @@ test("a replayed run says Replay on the mode line, clear of the run's own note",
   expect(words).toContain("replay");
   expect(words).not.toContain("live");
   // the case's mode and the run's source are two elements, so their text runs together here
-  await expect.poll(() => shownModeLines(page)).toEqual(["Concept caseReplay"]);
+  await expect.poll(() => shownModeLines(page)).toEqual(["What Siterra won't doReplay"]);
   const a = await line.boundingBox();
   const b = await note.boundingBox();
   expect(a && b && (b.y >= a.y + a.height || b.x >= a.x + a.width || b.x + b.width <= a.x)).toBe(
@@ -197,6 +197,6 @@ test("a live run says Live on the mode line", async ({ page }) => {
   await expect(page.locator("[data-run-status]").first()).toBeVisible({ timeout: 30_000 });
   const line = page.locator("[data-mode-line]");
   await expect(line).toHaveAttribute("data-run", "live", { timeout: 30_000 });
-  await expect.poll(() => shownModeLines(page)).toEqual(["Concept caseLive"]);
+  await expect.poll(() => shownModeLines(page)).toEqual(["What Siterra won't doLive"]);
   await expect(page.getByText("Replayed run, no model called now")).toHaveCount(0);
 });

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { seed, seedListing } from "../instruments/seed-listing";
-import { FINDINGS, findingsFrom } from "./findings";
+import { captionOf, FINDINGS, findingsFrom } from "./findings";
 
 // The findings' numbers are the Measurements the instrument specs cite, formatted as the instruments format them.
 describe("findingsFrom (seed case)", () => {
@@ -118,5 +118,16 @@ describe("findingsFrom (seed case)", () => {
     };
     const ids = findingsFrom({ ...seed, records }, seedListing).findings.map((f) => f.id);
     expect(ids).not.toContain("rain");
+  });
+
+  it("writes each arc caption in plain words first without analyst terms at rest", () => {
+    const limit = bandLimit?.display ?? "";
+    expect(findings.map((f) => [f.id, captionOf(f, limit)])).toEqual([
+      ["catchment", ["Whole area greenness trend"]],
+      ["band", ["Below 2,317 m trend"]],
+      ["pixel", ["One 250 m square"]],
+      ["rain", ["Explained by rainfall"]],
+      ["fdr", ["of the area greening"]],
+    ]);
   });
 });

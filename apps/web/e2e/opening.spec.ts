@@ -12,7 +12,10 @@ test("the opening says what Siterra does and offers one action, how it works on 
   await page.goto("/");
   const opening = page.locator("[data-opening]");
   await expect(opening).toBeVisible({ timeout: 60_000 });
-  await expect(opening.locator("h1")).toHaveText(/^Siterra weighs a question about the land/);
+  await expect(opening.locator("h1")).toHaveText("Environmental intelligence, put to work.");
+  await expect(opening.locator("[data-opening-subline]")).toHaveText(
+    "Give an environmental problem to an AI team. It checks 25 years of satellite records, tests every cause, and hands back a field plan.",
+  );
   await expect(opening.getByRole("button")).toHaveText(["Choose a Place↵", "How It Works"]);
   const how = opening.locator("[data-how]");
   await expect(how).toBeHidden();

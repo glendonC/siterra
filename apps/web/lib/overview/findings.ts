@@ -98,6 +98,24 @@ export function sharesWords(f: Pick<Finding, "display" | "direction" | "pair">):
     : one;
 }
 
+/** Each finding's caption lines under its number on the arc: plain words first, with the season and years in the opened card. */
+export function captionOf(f: Finding, bandLimit: string): string[] {
+  switch (f.id) {
+    case "catchment":
+      return [en["overview.finding.catchment.1"].text];
+    case "band":
+      return [format("overview.finding.band.1", { limit: bandLimit })];
+    case "pixel":
+      return [en["overview.finding.pixel.1"].text];
+    case "rain":
+      return [en["overview.finding.rain.1"].text];
+    case "fdr":
+      return f.pair
+        ? [en["overview.finding.fdr.pair.1"].text]
+        : [format("overview.finding.fdr.1", { direction: directionWord(f.direction) })];
+  }
+}
+
 /** The share the caption cites after a share, when it names the other direction (U25b). */
 function pairOf(
   snapshot: CaseSnapshot,

@@ -76,7 +76,7 @@ test("the second place shows both of its area shares, each with its direction", 
   const fdr = page.locator("[data-finding='fdr']");
   await expect(fdr).toContainText("greening", { timeout: 60_000 });
   await expect(fdr).toContainText("browning");
-  await expect(fdr).toContainText("of the area after a false discovery rate check");
+  await expect(fdr).toContainText("of the area");
 });
 
 test("the second place's pixel asks its own question, not the first place's", async ({ page }) => {

@@ -107,6 +107,11 @@
 .findings {
   position: absolute;
   inset: 0;
+  transition: opacity 0.15s ease;
+}
+
+.root:has([data-scope-popover]) .findings {
+  opacity: 0.25;
 }
 
 .finding {

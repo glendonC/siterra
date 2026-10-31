@@ -5,8 +5,11 @@ import { openingCopy } from "./opening";
 describe("openingCopy", () => {
   const c = openingCopy();
 
-  it("says in one sentence what Siterra does, and offers one action: choosing a place", () => {
-    expect(c.what.split(/(?<=\.)\s/)).toHaveLength(1);
+  it("says what Siterra does with its subline, and offers one action: choosing a place", () => {
+    expect(c.what).toBe("Environmental intelligence, put to work.");
+    expect(c.subline).toBe(
+      "Give an environmental problem to an AI team. It checks 25 years of satellite records, tests every cause, and hands back a field plan.",
+    );
     expect(c.action).toBe("Choose a Place");
   });
 
@@ -21,6 +24,7 @@ describe("openingCopy", () => {
   it("names no place, no case and no internal name: places come only from records", () => {
     for (const id of [
       "opening.what",
+      "opening.subline",
       "opening.how",
       "opening.action",
       "opening.howButton",

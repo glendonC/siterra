@@ -44,6 +44,7 @@ import {
 import { shouldReopen } from "../../lib/overview/ask-line";
 import { loadOverviewData, type OverviewData } from "../../lib/overview/data";
 import {
+  captionOf,
   directionWord,
   findingsFrom,
   sharesWords,
@@ -113,28 +114,6 @@ const DUR = { s: 1.0, h: 0.3, k: 0.25, o: 0.7, r: 0.3 } as const;
 const LIFT = 34;
 /** The ask circle's radius on the arc (design px). */
 const ASK_R = 56;
-
-/** Each finding's caption lines under its number. */
-function captionOf(f: Finding, bandLimit: string): string[] {
-  // one short line under each number (decision 16): the season and years are in the opened card
-  switch (f.id) {
-    case "catchment":
-      return [en["overview.finding.catchment.1"].text];
-    case "band":
-      return [format("overview.finding.band.1", { limit: bandLimit })];
-    case "pixel":
-      return [en["overview.finding.pixel.1"].text];
-    case "rain":
-      return [en["overview.finding.rain.1"].text];
-    case "fdr":
-      return f.pair
-        ? [en["overview.finding.fdr.pair.1"].text]
-        : [
-            format("overview.finding.fdr.1", { direction: directionWord(f.direction) }),
-            en["overview.finding.fdr.2"].text,
-          ];
-  }
-}
 
 /** The circled arrow: a hairline circle with an arrow pointing outward along the finding's angle. */
 function Arrow({ deg, className }: { deg: number; className: string | undefined }) {
@@ -528,6 +507,7 @@ function OverviewReady({
   const firstResultRef = useRef<HTMLLIElement>(null);
   const askCircleRef = useRef<HTMLButtonElement>(null);
   const askBesideRef = useRef<HTMLParagraphElement>(null);
+  const askPromptsRef = useRef<HTMLDivElement>(null);
   const fieldRef = useRef<HTMLButtonElement>(null);
   const fieldTagRef = useRef<HTMLSpanElement>(null);
   const pixTagRef = useRef<HTMLDivElement>(null);
@@ -894,22 +874,28 @@ function OverviewReady({
     }
     // the ask circle sits on the arc's start; it steps away as the space moves toward a finding
     const away = ease(clamp01(s / 0.55));
+    const askGone = Math.max(away, awayOf(camRef.current), pkgQuiet ? 1 : 0);
     const circle = askCircleRef.current;
     if (circle) {
       circle.style.left = `${layout.ask.x.toFixed(2)}px`;
       circle.style.top = `${layout.ask.y.toFixed(2)}px`;
-      const gone = Math.max(away, awayOf(camRef.current), pkgQuiet ? 1 : 0);
-      circle.style.opacity = (1 - gone).toFixed(3);
-      circle.style.visibility = gone > 0.99 ? "hidden" : "visible";
+      circle.style.opacity = (1 - askGone).toFixed(3);
+      circle.style.visibility = askGone > 0.99 ? "hidden" : "visible";
       circle.style.transform = `translateY(${(-LIFT * oe).toFixed(2)}px) scale(${(1 + 0.04 * Math.max(k, oe)).toFixed(4)})`;
     }
     const beside = askBesideRef.current;
     if (beside) {
       beside.style.left = `${layout.ask.x.toFixed(2)}px`;
       beside.style.top = `${layout.ask.y.toFixed(2)}px`;
-      beside.style.opacity = (1 - Math.max(away, awayOf(camRef.current), pkgQuiet ? 1 : 0)).toFixed(
-        3,
-      );
+      beside.style.opacity = (1 - askGone).toFixed(3);
+    }
+    const prompts = askPromptsRef.current;
+    if (prompts) {
+      const shown = prompts.hasAttribute("data-shown");
+      const op = shown ? (1 - askGone) * (1 - oe) : 0;
+      prompts.style.opacity = op.toFixed(3);
+      prompts.style.visibility = op < 0.01 ? "hidden" : "visible";
+      prompts.style.pointerEvents = op < 0.5 ? "none" : "auto";
     }
     // the land marks: the proposed field check, and the opened pixel's name
     const field = fieldRef.current;
@@ -2393,6 +2379,11 @@ function OverviewReady({
             onHover={setAskHover}
             circleRef={askCircleRef}
             besideRef={askBesideRef}
+            suggestions={listing.suggestedQuestions}
+            showPromptsAtRest={
+              !sel && !atWork && !tear && !panel && !lifeOn && !arriving && ask.activity === null
+            }
+            promptsRef={askPromptsRef}
           />
         ) : null}
       </div>
