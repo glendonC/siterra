@@ -43,7 +43,13 @@ import {
 } from "../../lib/overview/actions";
 import { shouldReopen } from "../../lib/overview/ask-line";
 import { loadOverviewData, type OverviewData } from "../../lib/overview/data";
-import { findingsFrom, type Finding, type FindingId } from "../../lib/overview/findings";
+import {
+  directionWord,
+  findingsFrom,
+  sharesWords,
+  type Finding,
+  type FindingId,
+} from "../../lib/overview/findings";
 import {
   EXAG,
   ROUTE_QUIET,
@@ -110,10 +116,12 @@ function captionOf(f: Finding, bandLimit: string): string[] {
     case "rain":
       return [en["overview.finding.rain.1"].text];
     case "fdr":
-      return [
-        format("overview.finding.fdr.1", { direction: directionWord(f) }),
-        en["overview.finding.fdr.2"].text,
-      ];
+      return f.pair
+        ? [en["overview.finding.fdr.pair.1"].text]
+        : [
+            format("overview.finding.fdr.1", { direction: directionWord(f.direction) }),
+            en["overview.finding.fdr.2"].text,
+          ];
   }
 }
 
@@ -146,17 +154,6 @@ function onLandOf(sel: Selection, data: OverviewData | null): string | null {
 }
 
 /** The last crumb while something is open: the finding's own number with a few words, or what opened. */
-/** The fdr share's direction in words, from its Measurement's metric. */
-function directionWord(f: Finding | undefined | null): string {
-  return en[
-    f?.direction === "up"
-      ? "overview.fdr.up"
-      : f?.direction === "down"
-        ? "overview.fdr.down"
-        : "overview.fdr.none"
-  ].text;
-}
-
 function crumbOf(sel: Selection, findings: readonly Finding[], bandLimit: string): string {
   const f = findings.find((x) => x.id === sel);
   switch (sel) {
@@ -171,7 +168,7 @@ function crumbOf(sel: Selection, findings: readonly Finding[], bandLimit: string
     case "band":
       return format("overview.crumb.band", { value: f?.display ?? "", limit: bandLimit });
     case "fdr":
-      return format("overview.crumb.fdr", { value: f?.display ?? "", direction: directionWord(f) });
+      return f ? sharesWords(f) : "";
     default:
       return format(`overview.crumb.${sel}` as MessageId, { value: f?.display ?? "" });
   }
@@ -1831,14 +1828,20 @@ function OverviewReady({
     const shown = (f: FindingId) => findings.find((x) => x.id === f)?.display ?? "";
     const count = (n: number) => new Intl.NumberFormat("en").format(n);
     switch (id) {
-      case "trend":
-        return format("overview.lift.trend", {
-          n: count(data?.footprints.slope?.cells.length ?? 0),
-          // the season as the trend asset states it
-          window: data?.footprints.slope?.window ?? "",
-          share: shown("fdr"),
-          direction: directionWord(findings.find((x) => x.id === "fdr")),
-        });
+      case "trend": {
+        const fdr = findings.find((x) => x.id === "fdr");
+        const n = count(data?.footprints.slope?.cells.length ?? 0);
+        // the season as the trend asset states it
+        const window = data?.footprints.slope?.window ?? "";
+        return fdr?.pair
+          ? format("overview.lift.trend.pair", { n, window, shares: sharesWords(fdr) })
+          : format("overview.lift.trend", {
+              n,
+              window,
+              share: shown("fdr"),
+              direction: directionWord(fdr?.direction),
+            });
+      }
       case "rain":
         return format("overview.lift.rain", {
           n: count(data?.footprints.rain?.length ?? 0),
@@ -2240,7 +2243,21 @@ function FindingMark({
         onClick={onOpen}
       >
         <span ref={numeralRef} className={styles.numeral}>
-          <span className={styles.value}>{f.display}</span>
+          {f.pair ? (
+            // both shares, each from its own Measurement, each with its direction (U25b)
+            <span className={`${styles.value} ${styles.pair}`}>
+              <span>
+                {f.display}
+                <span className={styles.shareWord}>{directionWord(f.direction)}</span>
+              </span>
+              <span>
+                {f.pair.display}
+                <span className={styles.shareWord}>{directionWord(f.pair.direction)}</span>
+              </span>
+            </span>
+          ) : (
+            <span className={styles.value}>{f.display}</span>
+          )}
           <Arrow deg={f.clock} className={styles.arrow} />
         </span>
         {caption.map((line) => (

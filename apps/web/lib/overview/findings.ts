@@ -3,6 +3,7 @@
 // written here: a finding whose spec or Measurement the case does not hold is left out, not filled in.
 
 import type { CaseSnapshot, InstrumentListing, InstrumentSpec } from "@siterra/contracts";
+import { en, format } from "../copy/en";
 import { metres, percent, fixed, signed } from "../instruments/format";
 import { instrumentOf } from "../instruments/listing";
 import { periodOf, type Period } from "../land/season";
@@ -43,6 +44,11 @@ export interface Finding {
   period: Period | null;
   /** A share's direction as its Measurement's metric names it (upward greening, downward browning); null otherwise. */
   direction: "up" | "down" | null;
+  /**
+   * The opposite share, where the caption cites it next (a direction-neutral place's record holds both): its own
+   * Measurement, displayed as the first is; null otherwise.
+   */
+  pair: { measurementId: string; display: string; direction: "up" | "down" | null } | null;
 }
 
 /** The direction a share's metric names ("area_share_upward_fdr"); none for any other metric. */
@@ -63,6 +69,50 @@ const FORMS: Record<Plan["form"], (v: number) => string> = {
 };
 
 type Measurement = CaseSnapshot["records"]["measurementRecords"][number];
+
+/** A share's direction in words: greening, browning, or with a trend. */
+export function directionWord(direction: Finding["direction"] | undefined): string {
+  return en[
+    direction === "up"
+      ? "overview.fdr.up"
+      : direction === "down"
+        ? "overview.fdr.down"
+        : "overview.fdr.none"
+  ].text;
+}
+
+/** A share finding as words: "24.7% greening", or both shares where the record holds both (U25b). */
+export function sharesWords(f: Pick<Finding, "display" | "direction" | "pair">): string {
+  const one = format("overview.fdr.share", {
+    value: f.display,
+    direction: directionWord(f.direction),
+  });
+  return f.pair
+    ? format("overview.fdr.both", {
+        first: one,
+        second: format("overview.fdr.share", {
+          value: f.pair.display,
+          direction: directionWord(f.pair.direction),
+        }),
+      })
+    : one;
+}
+
+/** The share the caption cites after a share, when it names the other direction (U25b). */
+function pairOf(
+  snapshot: CaseSnapshot,
+  plan: Plan,
+  id: string | undefined,
+  firstMetric: string,
+): Finding["pair"] {
+  if (plan.form !== "share") return null;
+  const m = measurement(snapshot, id);
+  if (!m || m.value === null) return null;
+  const direction = directionOf(plan, m.metric);
+  const first = directionOf(plan, firstMetric);
+  if (direction === null || first === null || direction === first) return null;
+  return { measurementId: m.id, display: FORMS.share(m.value), direction };
+}
 
 function measurement(snapshot: CaseSnapshot, id: string | undefined): Measurement | undefined {
   const m = snapshot.records.measurementRecords.find((x) => x.id === id);
@@ -92,13 +142,18 @@ export function findingsFrom(snapshot: CaseSnapshot, listing: InstrumentListing)
       display: FORMS[plan.form](m.value),
       period: periodOf(m.periodId),
       direction: directionOf(plan, m.metric),
+      pair: pairOf(snapshot, plan, view?.spec.caption.citationIds[plan.citation + 1], m.metric),
     });
   }
-  // the band's limit: the elevation band limit among the cross section's citations
+  // the band's limit: the one the cross section's caption cites, a band limit or the transect's crossing of it
+  // (P7b-9 names the transect's crossing apart from the strata's limits)
   const section = instrumentOf(listing, "cross_section");
   const limit = section?.spec.caption.citationIds
     .map((id) => measurement(snapshot, id))
-    .find((m) => m?.metric === "elevation_band_limit");
+    .find(
+      (m) =>
+        m?.metric === "elevation_band_limit" || m?.metric === "transect_band_crossing_boundary",
+    );
   return {
     findings,
     bandLimit:

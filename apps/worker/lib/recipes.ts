@@ -1,7 +1,8 @@
+import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 
-import type { DataBundleRecord, RecipeEntry, RecipeResult } from "@siterra/agent";
+import type { DataBundleRecord, OccurrenceSet, RecipeEntry, RecipeResult } from "@siterra/agent";
 
 // The recipe registry (science/recipes/registry.json) and each recipe bundle's stored result (the
 // data asset of data/bundles/<bundle>/collection.json). Results are read as stored; the worker
@@ -10,6 +11,8 @@ import type { DataBundleRecord, RecipeEntry, RecipeResult } from "@siterra/agent
 export interface Analyses {
   recipes: RecipeEntry[];
   results: RecipeResult[];
+  /** The stored occurrences of each species_occurrences bundle, checksum verified; the case is added by the store. */
+  occurrences: Omit<OccurrenceSet, "caseId">[];
   /** The registry path or recipe bundles whose JSON result file could not be read. */
   missing: string[];
 }
@@ -19,7 +22,10 @@ interface Registry {
 }
 
 interface Collection {
-  assets?: Record<string, { href?: string; roles?: string[]; type?: string }>;
+  assets?: Record<
+    string,
+    { href?: string; roles?: string[]; type?: string; "file:checksum"?: string }
+  >;
 }
 
 /**
@@ -49,7 +55,7 @@ export async function loadAnalyses(
     registry = JSON.parse(await readFile(join(repoRoot, registryPath), "utf8")) as Registry;
   } catch {
     // No registry: list_recipes then lists nothing, and the gap is reported, not hidden.
-    return { recipes: [], results: [], missing: [registryPath] };
+    return { recipes: [], results: [], occurrences: [], missing: [registryPath] };
   }
   const recipes = registry.recipes.map((r) => ({
     recipeId: r.recipeId,
@@ -63,6 +69,7 @@ export async function loadAnalyses(
   const known = new Set(recipes.map((r) => r.recipeId));
   const results: RecipeResult[] = [];
   const missing: string[] = [];
+  const occurrences: Omit<OccurrenceSet, "caseId">[] = [];
   for (const bundle of bundles) {
     if (bundle.status !== "validated" || !known.has(bundle.methodId)) continue;
     try {
@@ -93,6 +100,24 @@ export async function loadAnalyses(
         continue;
       }
       const result = JSON.parse(await readFile(join(dir, data.href), "utf8")) as unknown;
+      if (bundle.methodId === "species_occurrences") {
+        const asset = collection.assets?.["occurrences"];
+        if (!asset?.href) throw new Error("no occurrences asset");
+        const bytes = await readFile(join(dir, asset.href));
+        const expected = asset["file:checksum"];
+        const actual = `1220${createHash("sha256").update(bytes).digest("hex")}`;
+        if (expected !== actual) throw new Error("occurrences asset does not match its checksum");
+        const stored = JSON.parse(bytes.toString("utf8")) as {
+          columns: OccurrenceSet["columns"];
+          tables: OccurrenceSet["tables"];
+        };
+        occurrences.push({
+          bundleId: bundle.id,
+          bundleRevision: bundle.revision,
+          columns: stored.columns,
+          tables: stored.tables,
+        });
+      }
       results.push({
         bundleId: bundle.id,
         recipeId: bundle.methodId,
@@ -103,5 +128,5 @@ export async function loadAnalyses(
       missing.push(bundle.id);
     }
   }
-  return { recipes, results, missing };
+  return { recipes, results, occurrences, missing };
 }

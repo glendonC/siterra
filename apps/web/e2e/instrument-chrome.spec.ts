@@ -93,7 +93,9 @@ test("a finding opens on its own side with its footprint named, and a turned lan
   await expect(left).toHaveAttribute("data-side", "left");
   await expect(left.locator("[data-slope-key]")).toBeVisible();
   // decision 16: the card keeps the trend map's rule; the land shows the cells
-  await expect(left.locator("[data-on-land]")).toHaveText("The map marks no cell as significant.");
+  await expect(left.locator("[data-on-land]")).toHaveText(
+    "Colors show each cell's trend, not which cells pass the check.",
+  );
   // no ring label stays while a record is open, and the case question steps aside for a record on the left
   const opacity = (sel: string) =>
     page.locator(sel).evaluate((el) => Number(getComputedStyle(el).opacity));

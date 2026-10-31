@@ -250,8 +250,8 @@ describe("rain-cells.json", () => {
       const cell = rain.cells.find((c) => c.id === p.cell_id);
       const sum = SEP_MAY.reduce((s, m) => s + (p.reference_mm_1991_2020[m] ?? Number.NaN), 0);
       expect(
-        roundsTo(cell?.sep_may_mm, sum, 1),
-        `${p.cell_id} ${String(cell?.sep_may_mm)} ${sum}`,
+        roundsTo(cell?.window_mm, sum, 1),
+        `${p.cell_id} ${String(cell?.window_mm)} ${sum}`,
       ).toBe(true);
       expect(cell?.fraction_inside, p.cell_id).toBe(p.fraction_inside);
     }
@@ -259,8 +259,8 @@ describe("rain-cells.json", () => {
 
   it("falls inside the sheet's display range", () => {
     for (const c of rain.cells) {
-      expect(c.sep_may_mm).toBeGreaterThanOrEqual(RAIN_RANGE.lo);
-      expect(c.sep_may_mm).toBeLessThanOrEqual(RAIN_RANGE.hi);
+      expect(c.window_mm).toBeGreaterThanOrEqual(RAIN_RANGE.lo);
+      expect(c.window_mm).toBeLessThanOrEqual(RAIN_RANGE.hi);
     }
   });
 });

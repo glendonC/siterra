@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import type { FieldPlan } from "@siterra/contracts";
 import { eventMessages } from "@siterra/domain";
 
+import { hypothesisIdFor } from "../branches/branch-task.ts";
 import { caseYearSpan } from "../evidence/proposal.ts";
 import type { EvidenceTaskDeps, EvidenceTaskInput } from "../evidence/evidence-task.ts";
 import { runTaskLoop } from "../loop.ts";
@@ -37,7 +38,7 @@ const INSTRUCTIONS = `You prepare a draft field-validation plan and a decision b
 
 Rules:
 - action: a field-validation plan with a title, a description, resources by kind with a short label and no quantity, and the evidence and candidate responses it rests on.
-- action.fieldPlan: the objective and the decision it informs; strata as kinds of place (a lower-case key, a label and a definition), never sampling points or coordinates; when the case records list strataKeys, a stratum key is one of them and no other; measurements, each with what, method, season, the stratum keys, the field role (a role, not a person), the fieldCheckId of the case records' fieldChecks that it serves (null when the records list none), and the open gap IDs it resolves or the hypothesis IDs it discriminates; every open gap that no measurement resolves goes in deferredGaps with a reason; permissions and consultation steps before any field work, each as a noun phrase ("Consultation with the commune council on the access calendar"; "Permission from the commune, to be established").
+- action.fieldPlan: the objective and the decision it informs; strata as kinds of place (a lower-case key, a label and a definition), never sampling points or coordinates; when the case records list strataKeys, a stratum key is one of them and no other; measurements, each with what, method, season, the stratum keys, the field role (a role, not a person), the fieldCheckId of the case records' fieldChecks that it serves, only when that check separates a pair of the explanations (explanationId of the hypotheses it discriminates) this measurement tells apart, else null (null as well when the records list no check), and the open gap IDs it resolves or the hypothesis IDs it discriminates; every open gap that no measurement resolves goes in deferredGaps with a reason; permissions and consultation steps before any field work, each as a noun phrase ("Consultation with the commune council on the access calendar"; "Permission from the commune, to be established").
 - brief: lines for known, uncertain, nextMeasurements (what, method, season, stratum, role and the gap it resolves), stakeholderRoles (roles, not people), preparedActions, authorizationRequired and nextSteps. Every line cites evidence IDs; its claimKind matches the evidence it cites. Known lines are observations or published context; nextMeasurements and authorizationRequired lines are field requirements. A line among the uncertain ones may be a hypothesis.
 - reviewRoles: the roles whose review to request: scientific, community_livelihood or program_coordination. Siterra writes each request itself; you write no comment.
 - Never claim or ask for outreach or agreement: nothing was contacted, written, called, visited, sent or delivered, and no one agreed, approved, granted, permitted, signed or authorized anything. Never direct or advise: no must, should, ought to, need to or have to, and no sentence that opens with a command.
@@ -147,7 +148,17 @@ async function inputs(task: TaskRecord, deps: EvidenceTaskDeps) {
   const fieldChecks = (merge?.fieldPlan?.measurements ?? []).map((m) => ({
     fieldCheckId: m.fieldCheckId,
     label: m.label,
+    separates: m.separates,
   }));
+  // What decides whether a check fits a measurement: the explanation of each hypothesis of the
+  // merge. The branch task names a branch's hypothesis from its task and explanation alone
+  // (hypothesisIdFor), so the merge is enough; the branches themselves are not in the job-start store.
+  const explanationOfHypothesis = new Map(
+    (merge?.branches ?? []).map(
+      (b) => [hypothesisIdFor(merge?.taskId ?? "", b.explanationId), b.explanationId] as const,
+    ),
+  );
+  const separates = new Map(fieldChecks.map((c) => [c.fieldCheckId, c.separates] as const));
   const strataBundle = (await deps.store.listBundles(task.caseId))
     .filter((b) => b.status === "validated" && b.methodId === "terrain_strata")
     .sort((a, b) => a.id.localeCompare(b.id))[0];
@@ -170,7 +181,17 @@ async function inputs(task: TaskRecord, deps: EvidenceTaskDeps) {
   ]) {
     if (e.caseId === task.caseId && e.status === "accepted") evidence.set(e.id, e);
   }
-  return { interventions, hypotheses, evidence, openGapIds, hypothesisIds, fieldChecks, strata };
+  return {
+    interventions,
+    hypotheses,
+    evidence,
+    openGapIds,
+    hypothesisIds,
+    fieldChecks,
+    strata,
+    explanationOfHypothesis,
+    separates,
+  };
 }
 
 export async function runBriefPackageTask(
@@ -178,8 +199,18 @@ export async function runBriefPackageTask(
   deps: EvidenceTaskDeps,
 ): Promise<BriefPackageTaskResult> {
   const { task } = input;
-  const { interventions, hypotheses, evidence, openGapIds, hypothesisIds, fieldChecks, strata } =
-    await inputs(task, deps);
+  const {
+    interventions,
+    hypotheses,
+    evidence,
+    openGapIds,
+    hypothesisIds,
+    fieldChecks,
+    strata,
+    explanationOfHypothesis,
+    separates,
+  } = await inputs(task, deps);
+  let turns = 0;
   const measurementIds = [...new Set([...evidence.values()].flatMap((e) => e.measurementIds))];
   const measurements = new Map<string, MeasurementRecord>(
     (await deps.store.readMeasurementsById(task.caseId, measurementIds)).map((m) => [m.id, m]),
@@ -200,6 +231,9 @@ export async function runBriefPackageTask(
       hypothesisId: h.id,
       statement: h.statement,
       status: h.status,
+      ...(explanationOfHypothesis.has(h.id)
+        ? { explanationId: explanationOfHypothesis.get(h.id) }
+        : {}),
     })),
     evidence: [...evidence.values()].map((e) => ({
       evidenceId: e.id,
@@ -241,6 +275,16 @@ export async function runBriefPackageTask(
         years,
         ...(strata ? { strata } : {}),
         fieldCheckIds: new Set(fieldChecks.map((c) => c.fieldCheckId)),
+        // A check that does not fit goes back for the repair turn, then is set to null.
+        ...(fieldChecks.length > 0
+          ? {
+              checkFit: {
+                mode: (turns += 1) === 1 ? ("refuse" as const) : ("clear" as const),
+                explanationOfHypothesis,
+                separates,
+              },
+            }
+          : {}),
       }),
     taskId: task.id,
     trace: deps.trace,

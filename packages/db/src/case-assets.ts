@@ -65,6 +65,9 @@ function listBundle(bundleDir: string, collectionChecksum: string): Listed {
     const path = add("", asset, "application/octet-stream");
     if (path !== null) keys.set(key, path);
   }
+  // The collection itself is addressable by the key "collection" (a bundle that lists an asset of
+  // that name keeps it), so a value the manifest states, such as a method parameter, can be read.
+  if (!keys.has("collection")) keys.set("collection", "collection.json");
   for (const link of (collection["links"] ?? []) as StacFile[]) {
     if (link.rel !== "item") continue;
     add("", link, "application/geo+json");

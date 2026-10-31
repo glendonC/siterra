@@ -135,6 +135,9 @@ const CELL_RISE = 0.22;
  */
 const PIXEL_GAP = { x0: 495, y0: 200, x1: 820, y1: 830 };
 const PIXEL_ELEVATION = 52;
+/** A pixel this much taller than wide on screen is seen end on; the camera looks down on it instead (U25b). */
+const TALL_PIXEL = 1.8;
+const PIXEL_TOP = 75;
 
 /**
  * A finding, the field check on the land, the ask's results (which move as the whole catchment's finding), or the
@@ -827,26 +830,36 @@ export function mountOverview(
   const pixelView = (tp: Vec3): View => {
     if (pixelSolved) return pixelSolved;
     const pts = pixelPts.flatMap((p): Vec3[] => [p, [p[0], p[1] + CELL_RISE, p[2]]]);
-    const v: View = {
-      target: [tp[0], tp[1] + CELL_RISE / 2, tp[2]],
-      azimuth: azN,
-      elevation: PIXEL_ELEVATION,
-      distance: 3,
-      shift: [0, 0],
-    };
     const gw = PIXEL_GAP.x1 - PIXEL_GAP.x0;
     const gh = PIXEL_GAP.y1 - PIXEL_GAP.y0;
-    for (let it = 0; it < 8 && pts.length; it++) {
-      set(v);
-      const b = bbox(pts.map(project));
-      v.distance *= Math.max((b.x1 - b.x0) / gw, (b.y1 - b.y0) / gh);
-      v.shift = [
-        v.shift[0] + ((PIXEL_GAP.x0 + PIXEL_GAP.x1) / 2 - (b.x0 + b.x1) / 2),
-        v.shift[1] + ((PIXEL_GAP.y0 + PIXEL_GAP.y1) / 2 - (b.y0 + b.y1) / 2),
-      ];
-    }
-    pixelSolved = v;
-    return v;
+    // the view from one bearing: the distance and lens shift that fit the pixel and its cells in PIXEL_GAP
+    const solve = (elevation: number): { v: View; tall: number } => {
+      const v: View = {
+        target: [tp[0], tp[1] + CELL_RISE / 2, tp[2]],
+        azimuth: azN,
+        elevation,
+        distance: 3,
+        shift: [0, 0],
+      };
+      let tall = 1;
+      for (let it = 0; it < 8 && pts.length; it++) {
+        set(v);
+        const b = bbox(pts.map(project));
+        tall = (b.y1 - b.y0) / Math.max(b.x1 - b.x0, 1);
+        v.distance *= Math.max((b.x1 - b.x0) / gw, (b.y1 - b.y0) / gh);
+        v.shift = [
+          v.shift[0] + ((PIXEL_GAP.x0 + PIXEL_GAP.x1) / 2 - (b.x0 + b.x1) / 2),
+          v.shift[1] + ((PIXEL_GAP.y0 + PIXEL_GAP.y1) / 2 - (b.y0 + b.y1) / 2),
+        ];
+      }
+      return { v, tall };
+    };
+    // from the overview's own bearing; a pixel seen end on down a slope (much taller than wide on screen, U25b) is
+    // looked down on instead, so its footprint reads in plan (the lead's U25b judgment)
+    let best = solve(PIXEL_ELEVATION);
+    if (best.tall > TALL_PIXEL) best = solve(PIXEL_TOP);
+    pixelSolved = best.v;
+    return best.v;
   };
 
   // the band below the lower limit: the mean place of the catchment's relief cells under it

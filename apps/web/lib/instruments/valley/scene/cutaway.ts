@@ -34,8 +34,26 @@ import { contactShadow, createRelief, createWall, hexVec, lightFrom } from "./te
 import { landFrame } from "../../../land/geometry";
 import { bitmapTexture, heightTexture } from "./textures";
 
-/** Vertical exaggeration of the model; the view states it. */
+/** The least vertical exaggeration of the model; the view states the one it uses. */
 export const CUTAWAY_EXAG = 2.5;
+/** The most: beyond it the relief's own 30 m noise stands up as spikes behind the face. */
+const CUTAWAY_EXAG_MAX = 8;
+/** The section's drawn height over its length that the vertical scale aims at (U25b: a low, long place's section is
+ * not a flat strip). */
+const PROFILE_RATIO = 0.3;
+
+/**
+ * The cut's vertical scale from the section's own extent (its height above the ruler's base over its length): the
+ * one that draws it PROFILE_RATIO as high as it is long, to the nearest half, between CUTAWAY_EXAG and
+ * CUTAWAY_EXAG_MAX.
+ */
+export function cutawayExag(data: Pick<CutawayData, "catchment" | "range" | "transect">): number {
+  const { base } = cutawayRuler(data);
+  const span = Math.max(Math.max(...data.transect.h) - base, 1);
+  const length = Math.max(data.transect.d.at(-1) ?? 0, 1);
+  const wanted = Math.round(((PROFILE_RATIO * length) / span) * 2) / 2;
+  return Math.min(CUTAWAY_EXAG_MAX, Math.max(CUTAWAY_EXAG, wanted));
+}
 /** The size the view was solved at, in CSS px; other sizes scale the picture to fit. */
 export const CUTAWAY_DESIGN = { width: 1440, height: 900 } as const;
 /** Camera elevation above the horizon and vertical field of view, degrees, as specimen B. */
@@ -117,7 +135,7 @@ function buildCutaway(canvas: HTMLCanvasElement, data: CutawayData): CutawayScen
   const g = meta.relief;
   const RULER = cutawayRuler(data);
   const BASE = RULER.base;
-  const frame = makeFrame(meta.frame, { exag: CUTAWAY_EXAG, base: BASE });
+  const frame = makeFrame(meta.frame, { exag: cutawayExag(data), base: BASE });
   const sample = makeHeightSampler(H, g);
   const hTex = heightTexture(H, g);
   const aRect = frame.rect(meta.analysis);

@@ -310,6 +310,378 @@
    },
    "periodId": "period_2021",
    "spatialResolutionM": null
+  },
+  {
+   "rowId": "trend_unadjusted_elevation_low_feb_may",
+   "pointer": "/results/4/ols/slope_per_decade",
+   "metric": "ndvi_trend_unadjusted_per_decade",
+   "unit": "NDVI per decade",
+   "aggregation": "Least squares slope per decade of growing-season NDVI on season year over the elevation band, 2000 to 2025 (ols.slope_per_decade).",
+   "uncertainty": {
+    "kind": "interval",
+    "level": 0.95,
+    "method": "95% interval (level 0.95) of the ordinary least squares slope of growing-season NDVI on season year (ols block)."
+   },
+   "usedBy": [],
+   "bundleId": "bundle_season_trend_long_record_calaveras_creek",
+   "assetKey": "season_trend_long_record",
+   "lowerPointer": "/results/4/ols/lower_per_decade",
+   "upperPointer": "/results/4/ols/upper_per_decade",
+   "claimKindPointer": "/claim_kind/trends_and_contrasts",
+   "claimKind": "model_estimate",
+   "stratum": "elevation_low",
+   "period": {
+    "start": "2000",
+    "end": "2025",
+    "window": "feb_may"
+   },
+   "periodId": "period_2000-2025_feb_may",
+   "spatialResolutionM": 250
+  },
+  {
+   "rowId": "trend_unadjusted_elevation_mid_feb_may",
+   "pointer": "/results/8/ols/slope_per_decade",
+   "metric": "ndvi_trend_unadjusted_per_decade",
+   "unit": "NDVI per decade",
+   "aggregation": "Least squares slope per decade of growing-season NDVI on season year over the elevation band, 2000 to 2025 (ols.slope_per_decade).",
+   "uncertainty": {
+    "kind": "interval",
+    "level": 0.95,
+    "method": "95% interval (level 0.95) of the ordinary least squares slope of growing-season NDVI on season year (ols block)."
+   },
+   "usedBy": [],
+   "bundleId": "bundle_season_trend_long_record_calaveras_creek",
+   "assetKey": "season_trend_long_record",
+   "lowerPointer": "/results/8/ols/lower_per_decade",
+   "upperPointer": "/results/8/ols/upper_per_decade",
+   "claimKindPointer": "/claim_kind/trends_and_contrasts",
+   "claimKind": "model_estimate",
+   "stratum": "elevation_mid",
+   "period": {
+    "start": "2000",
+    "end": "2025",
+    "window": "feb_may"
+   },
+   "periodId": "period_2000-2025_feb_may",
+   "spatialResolutionM": 250
+  },
+  {
+   "rowId": "trend_unadjusted_elevation_high_feb_may",
+   "pointer": "/results/12/ols/slope_per_decade",
+   "metric": "ndvi_trend_unadjusted_per_decade",
+   "unit": "NDVI per decade",
+   "aggregation": "Least squares slope per decade of growing-season NDVI on season year over the elevation band, 2000 to 2025 (ols.slope_per_decade).",
+   "uncertainty": {
+    "kind": "interval",
+    "level": 0.95,
+    "method": "95% interval (level 0.95) of the ordinary least squares slope of growing-season NDVI on season year (ols block)."
+   },
+   "usedBy": [],
+   "bundleId": "bundle_season_trend_long_record_calaveras_creek",
+   "assetKey": "season_trend_long_record",
+   "lowerPointer": "/results/12/ols/lower_per_decade",
+   "upperPointer": "/results/12/ols/upper_per_decade",
+   "claimKindPointer": "/claim_kind/trends_and_contrasts",
+   "claimKind": "model_estimate",
+   "stratum": "elevation_high",
+   "period": {
+    "start": "2000",
+    "end": "2025",
+    "window": "feb_may"
+   },
+   "periodId": "period_2000-2025_feb_may",
+   "spatialResolutionM": 250
+  },
+  {
+   "rowId": "transect_band_limit_lower_2021",
+   "pointer": "/transects/valley_axis/band_crossings/0/boundary_m",
+   "metric": "transect_band_crossing_boundary",
+   "unit": "m",
+   "aggregation": "Elevation at which the long profile along the longest flow path crosses from the lowest to the middle elevation band (band_crossings.boundary_m).",
+   "uncertainty": {
+    "kind": "not_quantified"
+   },
+   "usedBy": [],
+   "bundleId": "bundle_transects_calaveras_creek",
+   "assetKey": "terrain_transects",
+   "lowerPointer": null,
+   "upperPointer": null,
+   "claimKindPointer": "/claim_kind",
+   "claimKind": "observation",
+   "stratum": "transect_band_crossing_lower",
+   "period": {
+    "start": "2021",
+    "end": "2021",
+    "window": null
+   },
+   "periodId": "period_2021",
+   "spatialResolutionM": 30
+  },
+  {
+   "rowId": "pixel_anatomy_trend_feb_may_pixel",
+   "pointer": "/trend/slope_per_decade",
+   "metric": "ndvi_pixel_trend_theil_sen_per_decade",
+   "unit": "NDVI per decade",
+   "aggregation": "Theil-Sen slope per decade of the chosen 250 m MODIS pixel's own February to May NDVI, 2000 to 2025 (trend.slope_per_decade).",
+   "uncertainty": {
+    "kind": "interval",
+    "level": 0.95,
+    "method": "Sen 95% interval of the Theil-Sen slope of the pixel's own series (trend.lower_per_decade, trend.upper_per_decade)."
+   },
+   "usedBy": [],
+   "bundleId": "bundle_pixel_anatomy_calaveras_creek",
+   "assetKey": "pixel_anatomy",
+   "lowerPointer": "/trend/lower_per_decade",
+   "upperPointer": "/trend/upper_per_decade",
+   "claimKindPointer": "/trend/claim_kind",
+   "claimKind": "model_estimate",
+   "stratum": "h08v05r1268c1573",
+   "period": {
+    "start": "2000",
+    "end": "2025",
+    "window": "feb_may"
+   },
+   "periodId": "period_2000-2025_feb_may",
+   "spatialResolutionM": 250
+  },
+  {
+   "rowId": "pixel_anatomy_share_tree_cover_2021",
+   "pointer": "/composition/0/share",
+   "metric": "land_cover_share",
+   "unit": "share of the pixel's 10 m cells (0 to 1)",
+   "aggregation": "Share of the chosen pixel's 10 m cells in the land cover class (composition[0].share).",
+   "uncertainty": {
+    "kind": "not_quantified"
+   },
+   "usedBy": [],
+   "bundleId": "bundle_pixel_anatomy_calaveras_creek",
+   "assetKey": "pixel_anatomy",
+   "lowerPointer": null,
+   "upperPointer": null,
+   "claimKindPointer": "/claim_kinds/composition_and_spectra",
+   "claimKind": "observation",
+   "stratum": "pixel_tree_cover",
+   "period": {
+    "start": "2021",
+    "end": "2021",
+    "window": null
+   },
+   "periodId": "period_2021",
+   "spatialResolutionM": 10
+  },
+  {
+   "rowId": "pixel_anatomy_share_grassland_2021",
+   "pointer": "/composition/2/share",
+   "metric": "land_cover_share",
+   "unit": "share of the pixel's 10 m cells (0 to 1)",
+   "aggregation": "Share of the chosen pixel's 10 m cells in the land cover class (composition[2].share).",
+   "uncertainty": {
+    "kind": "not_quantified"
+   },
+   "usedBy": [],
+   "bundleId": "bundle_pixel_anatomy_calaveras_creek",
+   "assetKey": "pixel_anatomy",
+   "lowerPointer": null,
+   "upperPointer": null,
+   "claimKindPointer": "/claim_kinds/composition_and_spectra",
+   "claimKind": "observation",
+   "stratum": "pixel_grassland",
+   "period": {
+    "start": "2021",
+    "end": "2021",
+    "window": null
+   },
+   "periodId": "period_2021",
+   "spatialResolutionM": 10
+  },
+  {
+   "rowId": "species_records_kept_catchment",
+   "pointer": "/counts/kept",
+   "metric": "species_records_kept",
+   "unit": "records",
+   "aggregation": "Number of GBIF occurrence records kept in the stored bundle: inside the catchment polygon and under a CC0 or CC BY licence (counts.kept). A count of records, not abundance.",
+   "uncertainty": {
+    "kind": "not_quantified"
+   },
+   "usedBy": [
+    "search_occurrences: the count beside the records the tool returns, for the recorded-here wording"
+   ],
+   "bundleId": "bundle_species_occurrences_calaveras_creek",
+   "assetKey": "species_occurrences",
+   "lowerPointer": null,
+   "upperPointer": null,
+   "claimKindPointer": "/claim_kind",
+   "claimKind": "observation",
+   "stratum": "catchment",
+   "period": {
+    "start": "1875",
+    "end": "2026",
+    "window": null
+   },
+   "periodId": "period_1875-2026",
+   "spatialResolutionM": null
+  },
+  {
+   "rowId": "species_records_animals_catchment",
+   "pointer": "/by_group/animals",
+   "metric": "species_records_in_group",
+   "unit": "records",
+   "aggregation": "Number of the kept GBIF occurrence records whose taxon is in the group animals (by_group.animals). A count of records, not abundance.",
+   "uncertainty": {
+    "kind": "not_quantified"
+   },
+   "usedBy": [
+    "search_occurrences: the count beside the records the tool returns, for the recorded-here wording"
+   ],
+   "bundleId": "bundle_species_occurrences_calaveras_creek",
+   "assetKey": "species_occurrences",
+   "lowerPointer": null,
+   "upperPointer": null,
+   "claimKindPointer": "/claim_kind",
+   "claimKind": "observation",
+   "stratum": "catchment",
+   "period": {
+    "start": "1875",
+    "end": "2026",
+    "window": null
+   },
+   "periodId": "period_1875-2026",
+   "spatialResolutionM": null
+  },
+  {
+   "rowId": "species_records_plants_catchment",
+   "pointer": "/by_group/plants",
+   "metric": "species_records_in_group",
+   "unit": "records",
+   "aggregation": "Number of the kept GBIF occurrence records whose taxon is in the group plants (by_group.plants). A count of records, not abundance.",
+   "uncertainty": {
+    "kind": "not_quantified"
+   },
+   "usedBy": [
+    "search_occurrences: the count beside the records the tool returns, for the recorded-here wording"
+   ],
+   "bundleId": "bundle_species_occurrences_calaveras_creek",
+   "assetKey": "species_occurrences",
+   "lowerPointer": null,
+   "upperPointer": null,
+   "claimKindPointer": "/claim_kind",
+   "claimKind": "observation",
+   "stratum": "catchment",
+   "period": {
+    "start": "1875",
+    "end": "2026",
+    "window": null
+   },
+   "periodId": "period_1875-2026",
+   "spatialResolutionM": null
+  },
+  {
+   "rowId": "species_records_fungi_catchment",
+   "pointer": "/by_group/fungi",
+   "metric": "species_records_in_group",
+   "unit": "records",
+   "aggregation": "Number of the kept GBIF occurrence records whose taxon is in the group fungi (by_group.fungi). A count of records, not abundance.",
+   "uncertainty": {
+    "kind": "not_quantified"
+   },
+   "usedBy": [
+    "search_occurrences: the count beside the records the tool returns, for the recorded-here wording"
+   ],
+   "bundleId": "bundle_species_occurrences_calaveras_creek",
+   "assetKey": "species_occurrences",
+   "lowerPointer": null,
+   "upperPointer": null,
+   "claimKindPointer": "/claim_kind",
+   "claimKind": "observation",
+   "stratum": "catchment",
+   "period": {
+    "start": "1875",
+    "end": "2026",
+    "window": null
+   },
+   "periodId": "period_1875-2026",
+   "spatialResolutionM": null
+  },
+  {
+   "rowId": "species_records_other_catchment",
+   "pointer": "/by_group/other",
+   "metric": "species_records_in_group",
+   "unit": "records",
+   "aggregation": "Number of the kept GBIF occurrence records whose taxon is in the group other (by_group.other). A count of records, not abundance.",
+   "uncertainty": {
+    "kind": "not_quantified"
+   },
+   "usedBy": [
+    "search_occurrences: the count beside the records the tool returns, for the recorded-here wording"
+   ],
+   "bundleId": "bundle_species_occurrences_calaveras_creek",
+   "assetKey": "species_occurrences",
+   "lowerPointer": null,
+   "upperPointer": null,
+   "claimKindPointer": "/claim_kind",
+   "claimKind": "observation",
+   "stratum": "catchment",
+   "period": {
+    "start": "1875",
+    "end": "2026",
+    "window": null
+   },
+   "periodId": "period_1875-2026",
+   "spatialResolutionM": null
+  },
+  {
+   "rowId": "strata_band_limit_lower_2021",
+   "pointer": "/siterra:method/parameters/boundaries_m/0",
+   "metric": "elevation_band_limit",
+   "unit": "m",
+   "aggregation": "Elevation of the boundary between the lowest and the middle elevation band, as the terrain strata bundle defines the bands (equal-area terciles of the catchment's DEM heights); a band definition, not a transect crossing (siterra:method.parameters.boundaries_m[0]).",
+   "uncertainty": {
+    "kind": "not_quantified"
+   },
+   "usedBy": [
+    "the elevation band limits the cross section and the layer stack read"
+   ],
+   "bundleId": "bundle_terrain_strata_calaveras_creek",
+   "assetKey": "collection",
+   "lowerPointer": null,
+   "upperPointer": null,
+   "claimKindPointer": null,
+   "claimKind": "observation",
+   "stratum": "elevation_band_limit_lower",
+   "period": {
+    "start": "2021",
+    "end": "2021",
+    "window": null
+   },
+   "periodId": "period_2021",
+   "spatialResolutionM": 30
+  },
+  {
+   "rowId": "strata_band_limit_upper_2021",
+   "pointer": "/siterra:method/parameters/boundaries_m/1",
+   "metric": "elevation_band_limit",
+   "unit": "m",
+   "aggregation": "Elevation of the boundary between the middle and the highest elevation band, as the terrain strata bundle defines the bands (equal-area terciles of the catchment's DEM heights); a band definition, not a transect crossing (siterra:method.parameters.boundaries_m[1]).",
+   "uncertainty": {
+    "kind": "not_quantified"
+   },
+   "usedBy": [
+    "the elevation band limits the cross section and the layer stack read"
+   ],
+   "bundleId": "bundle_terrain_strata_calaveras_creek",
+   "assetKey": "collection",
+   "lowerPointer": null,
+   "upperPointer": null,
+   "claimKindPointer": null,
+   "claimKind": "observation",
+   "stratum": "elevation_band_limit_upper",
+   "period": {
+    "start": "2021",
+    "end": "2021",
+    "window": null
+   },
+   "periodId": "period_2021",
+   "spatialResolutionM": 30
   }
  ]
 }

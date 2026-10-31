@@ -72,6 +72,43 @@ describe("findingsFrom (seed case)", () => {
     expect(byId.catchment?.direction).toBeNull();
   });
 
+  it("shows the opposite share beside the first where the caption cites both (direction-neutral places)", () => {
+    expect(byId.fdr?.pair).toBeNull();
+    const up = seed.records.measurementRecords.find((m) => m.id === byId.fdr?.measurementId);
+    if (!up) throw new Error("no fdr measurement");
+    const down = {
+      ...up,
+      id: "meas_test_downward_share",
+      metric: "area_share_downward_fdr",
+      value: 0.031,
+    };
+    const listing = {
+      ...seedListing,
+      instruments: seedListing.instruments.map((v) =>
+        v.spec.parameters.kind === "layer_stack"
+          ? {
+              ...v,
+              spec: {
+                ...v.spec,
+                caption: {
+                  ...v.spec.caption,
+                  citationIds: [...v.spec.caption.citationIds, down.id],
+                },
+              },
+            }
+          : v,
+      ),
+    };
+    const records = {
+      ...seed.records,
+      measurementRecords: [...seed.records.measurementRecords, down],
+    };
+    const fdr = findingsFrom({ ...seed, records }, listing).findings.find((f) => f.id === "fdr");
+    expect(fdr?.display).toBe("24.7%");
+    expect(fdr?.direction).toBe("up");
+    expect(fdr?.pair).toEqual({ measurementId: down.id, display: "3.1%", direction: "down" });
+  });
+
   it("leaves out a finding whose Measurement has no value", () => {
     const records = {
       ...seed.records,

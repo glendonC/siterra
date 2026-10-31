@@ -26,7 +26,7 @@ import type { Vec3 } from "../../lib/instruments/valley/frame";
 import { SNOW_YEARS } from "../../lib/instruments/valley/fixtures";
 import { snowColour } from "../../lib/instruments/valley/palette";
 import {
-  CUTAWAY_EXAG,
+  cutawayExag,
   cutawayRuler,
   mountCutaway,
   type CutawayScene,
@@ -183,20 +183,32 @@ export function InstrumentCutaway({ teardown }: { teardown?: Teardown } = {}) {
       const yU = P(marks.southLimits[1]).y;
       // each band's block against the face at the middle of its band, on a short hairline
       const colX = south.x + 28;
-      const ys = [(yTop + yU) / 2, (yU + yL) / 2, yL + (yL - yU) / 2];
+      const at = [(yTop + yU) / 2, (yU + yL) / 2, yL + (yL - yU) / 2];
+      // a low place's bands are a few px apart on the face: each block keeps at least its own height below the one
+      // above it (U25b), its hairline still from its own band's middle
+      const BLOCK = 58;
+      const ys = at.slice();
+      for (let i = 1; i < ys.length; i++) ys[i] = Math.max(ys[i] ?? 0, (ys[i - 1] ?? 0) + BLOCK);
       ys.forEach((y, i) => {
+        const from = at[i] ?? y;
         place(bandRefs.current[i] ?? null, colX, y, "left-middle");
-        line(bandLeaderRefs.current[i] ?? null, south.x + 1, y, colX - 6, y);
-        dot(bandDotRefs.current[i] ?? null, south.x + 1, y);
+        line(bandLeaderRefs.current[i] ?? null, south.x + 1, from, colX - 6, y);
+        dot(bandDotRefs.current[i] ?? null, south.x + 1, from);
       });
-      // the month initials under the lowest strip, the snow key under them
+      // the month initials under the lowest strip, the snow key under them; where the snow recipe does not apply, the
+      // one line that says so under the lowest band
       const strip = stripRef.current;
+      const lowest = bandRefs.current[BANDS.length - 1] ?? null;
       const root = canvas.parentElement;
       if (strip && root) {
         const sr = strip.getBoundingClientRect();
         const rr = root.getBoundingClientRect();
         const m = place(monthsRef.current, sr.left - rr.left, sr.bottom - rr.top + 3, "left-top");
         if (m) place(snowRef.current, sr.left - rr.left, m.bottom + 8, "left-top");
+      } else if (lowest && root) {
+        const lr = lowest.getBoundingClientRect();
+        const rr = root.getBoundingClientRect();
+        place(snowRef.current, lr.left - rr.left, lr.bottom - rr.top + 8, "left-top");
       }
       // the two limits, labelled on the face just above each line near the south edge
       [yL, yU].forEach((y, i) =>
@@ -293,6 +305,8 @@ export function InstrumentCutaway({ teardown }: { teardown?: Teardown } = {}) {
     ref: RefObject<HTMLDivElement | null>,
     className: string,
   ) => {
+    // a place whose record publishes no such statement shows no chip for it (U25b)
+    if (!statement(id)) return null;
     const n = STATEMENTS.indexOf(id) + 1;
     const open = openStatement === id;
     const close = () => {
@@ -408,10 +422,16 @@ export function InstrumentCutaway({ teardown }: { teardown?: Teardown } = {}) {
                 />
               </g>
             ))}
-            <line ref={upperStemRef} stroke={obsidian.leaderQuiet} strokeWidth={1} />
-            <circle ref={upperDotRef} r={2} fill={obsidian.leaderDot} />
+            {statement("upper_slope") ? (
+              <>
+                <line ref={upperStemRef} stroke={obsidian.leaderQuiet} strokeWidth={1} />
+                <circle ref={upperDotRef} r={2} fill={obsidian.leaderDot} />
+              </>
+            ) : null}
             {placeName && <line ref={placeTickRef} stroke={obsidian.leaderDot} strokeWidth={1} />}
-            <line ref={floorStemRef} stroke={obsidian.leaderOnWall} strokeWidth={1} />
+            {statement("valley_floor") ? (
+              <line ref={floorStemRef} stroke={obsidian.leaderOnWall} strokeWidth={1} />
+            ) : null}
           </svg>
           <p className={styles.brief}>
             {lead.figure !== null && <span className={styles.fig}>{lead.figure}</span>}
@@ -435,34 +455,48 @@ export function InstrumentCutaway({ teardown }: { teardown?: Teardown } = {}) {
                 <b>{signed(data.figures.season_trend[id].per_decade, 4)}</b>{" "}
                 {en["instrument.cutaway.band.unit"].text}
               </div>
-              <span ref={i === BANDS.length - 1 ? stripRef : undefined} className={styles.strip}>
-                {(data.snow.bands[id]?.monthly_mean ?? []).map((v, m) => (
-                  <i
-                    key={data.snow.months[m] ?? m}
-                    title={`${data.snow.months[m] ?? ""} ${percent(v, 0)}`}
-                    style={{ background: cssColour(snowColour(v)) }}
-                  />
-                ))}
-              </span>
+              {data.snow ? (
+                <span ref={i === BANDS.length - 1 ? stripRef : undefined} className={styles.strip}>
+                  {(data.snow.bands[id]?.monthly_mean ?? []).map((v, m) => (
+                    <i
+                      key={data.snow?.months[m] ?? m}
+                      title={`${data.snow?.months[m] ?? ""} ${percent(v, 0)}`}
+                      style={{ background: cssColour(snowColour(v)) }}
+                    />
+                  ))}
+                </span>
+              ) : null}
             </div>
           ))}
-          <div ref={monthsRef} className={styles.months} aria-hidden="true">
-            {data.snow.months.map((m) => (
-              <span key={m}>{m.charAt(0)}</span>
-            ))}
-          </div>
-          <div ref={snowRef} className={styles.snowKey}>
-            <div>{en["instrument.cutaway.snow"].text}</div>
-            <div>
-              {format("instrument.cutaway.snow.years", { from: SNOW_YEARS[0], to: SNOW_YEARS[1] })}
-              <span className={styles.rampKey}>
-                <span>{0}</span>
-                <i style={{ background: SNOW_KEY }} />
-                <span>{percent(1, 0)}</span>
-              </span>
-              <span className={styles.chip}>{2}</span>
+          {data.snow ? (
+            <>
+              <div ref={monthsRef} className={styles.months} aria-hidden="true">
+                {data.snow.months.map((m) => (
+                  <span key={m}>{m.charAt(0)}</span>
+                ))}
+              </div>
+              <div ref={snowRef} className={styles.snowKey}>
+                <div>{en["instrument.cutaway.snow"].text}</div>
+                <div>
+                  {format("instrument.cutaway.snow.years", {
+                    from: SNOW_YEARS[0],
+                    to: SNOW_YEARS[1],
+                  })}
+                  <span className={styles.rampKey}>
+                    <span>{0}</span>
+                    <i style={{ background: SNOW_KEY }} />
+                    <span>{percent(1, 0)}</span>
+                  </span>
+                  <span className={styles.chip}>{2}</span>
+                </div>
+              </div>
+            </>
+          ) : (
+            // the snow summary records the recipe as not applicable here: no snow is drawn, and the line says why
+            <div ref={snowRef} className={styles.snowKey} data-no-snow>
+              {en["instrument.cutaway.noSnow"].text}
             </div>
-          </div>
+          )}
           {data.limits.map((e, i) => (
             <div
               key={e}
@@ -504,7 +538,7 @@ export function InstrumentCutaway({ teardown }: { teardown?: Teardown } = {}) {
             </div>
           ))}
           <div ref={scaleRef} className={styles.scaleNote} data-scale-note>
-            {format("instrument.layers.scale", { value: CUTAWAY_EXAG })}
+            {format("instrument.layers.scale", { value: cutawayExag(data) })}
           </div>
         </>
       )}

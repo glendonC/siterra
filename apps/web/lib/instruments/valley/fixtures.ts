@@ -79,7 +79,8 @@ export const rainCellsSchema = z.object({
     z.object({
       id: z.string(),
       corners: z.array(xy).length(4),
-      sep_may_mm: z.number(),
+      /** The cell's mean rainfall over its layer stack's window (September to May for the first place). */
+      window_mm: z.number(),
       fraction_inside: z.number(),
       weight: z.number(),
     }),
@@ -161,7 +162,8 @@ export interface LayerStackData {
   rivers: Rivers;
   trend: TrendCells;
   rain: RainCells;
-  snow: Snow;
+  /** The snow shares, when the spec names a snow layer (a place whose snow recipe does not apply has none). */
+  snow: Snow | null;
 }
 
 export async function json<T>(url: string, schema: z.ZodType<T>, signal?: AbortSignal): Promise<T> {

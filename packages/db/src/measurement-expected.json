@@ -650,6 +650,69 @@
       "decimals": 4,
       "part": "value",
       "source": "specimen C pixel/provenance.json: 46% tree cover and cropland = 215 tree cover and 32 cropland cells of 537 (S3 handover: tree cover 215 (40.0%), cropland 32 (6.0%))"
+    },
+    {
+      "rowId": "species_records_kept_catchment",
+      "printed": 632,
+      "decimals": 0,
+      "part": "value",
+      "source": "species-occurrences.json of bundle_species_occurrences_ait_bouguemez, field counts.kept (the pipeline's own summary count)"
+    },
+    {
+      "rowId": "species_records_animals_catchment",
+      "printed": 544,
+      "decimals": 0,
+      "part": "value",
+      "source": "species-occurrences.json of bundle_species_occurrences_ait_bouguemez, field by_group.animals (the pipeline's own summary count)"
+    },
+    {
+      "rowId": "species_records_plants_catchment",
+      "printed": 88,
+      "decimals": 0,
+      "part": "value",
+      "source": "species-occurrences.json of bundle_species_occurrences_ait_bouguemez, field by_group.plants (the pipeline's own summary count)"
+    },
+    {
+      "rowId": "species_records_named_astragalus_armatus",
+      "printed": 0,
+      "decimals": 0,
+      "part": "value",
+      "source": "species-occurrences.json of bundle_species_occurrences_ait_bouguemez, field named_taxa.0.kept (the pipeline's own summary count)"
+    },
+    {
+      "rowId": "species_records_named_thymus_satureioides",
+      "printed": 0,
+      "decimals": 0,
+      "part": "value",
+      "source": "species-occurrences.json of bundle_species_occurrences_ait_bouguemez, field named_taxa.1.kept (the pipeline's own summary count)"
+    },
+    {
+      "rowId": "species_records_named_thymelaea_virgata",
+      "printed": 0,
+      "decimals": 0,
+      "part": "value",
+      "source": "species-occurrences.json of bundle_species_occurrences_ait_bouguemez, field named_taxa.2.kept (the pipeline's own summary count)"
+    },
+    {
+      "rowId": "species_records_named_euphorbia_nicaeensis",
+      "printed": 0,
+      "decimals": 0,
+      "part": "value",
+      "source": "species-occurrences.json of bundle_species_occurrences_ait_bouguemez, field named_taxa.3.kept (the pipeline's own summary count)"
+    },
+    {
+      "rowId": "strata_band_limit_lower_2021",
+      "printed": 2316.8,
+      "decimals": 1,
+      "part": "value",
+      "source": "collection.json of bundle_terrain_strata_ait_bouguemez, siterra:method.parameters.boundaries_m[0] (the pipeline's own band boundary)"
+    },
+    {
+      "rowId": "strata_band_limit_upper_2021",
+      "printed": 2815.2,
+      "decimals": 1,
+      "part": "value",
+      "source": "collection.json of bundle_terrain_strata_ait_bouguemez, siterra:method.parameters.boundaries_m[1] (the pipeline's own band boundary)"
     }
   ]
 }

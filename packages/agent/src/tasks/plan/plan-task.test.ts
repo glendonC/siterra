@@ -138,7 +138,8 @@ describe("plan task on synthetic replays", () => {
     expect(commit.expectedCaseRevision).toBe(3);
     const [planAfter, ...planned] = commit.upserts as TaskRecord[];
     expect(planAfter).toMatchObject({ id: "task_test_plan", revision: 2, status: "succeeded" });
-    expect(planned).toHaveLength(5);
+    // Four tasks of the plan and the candidate responses the host adds (plan@4).
+    expect(planned).toHaveLength(6);
     expect(planned.every((t) => t.status === "queued")).toBe(true);
     expect(planAfter?.outputEntityIds).toEqual(planned.map((t) => t.id));
 
@@ -149,6 +150,9 @@ describe("plan task on synthetic replays", () => {
       byKind.get("livelihood_governance")?.id,
     ]);
     expect(byKind.get("explanation_branches")?.allowedTools).toEqual(["propose_predictions"]);
+    expect(byKind.get("intervention_feasibility")?.dependsOnTaskIds).toEqual([
+      byKind.get("explanation_branches")?.id,
+    ]);
     expect(byKind.get("observation_analysis")?.inputVersions).toEqual([
       { entityId: "bundle_test_ndvi", revision: 2 },
       { entityId: "geo_test_catchment", revision: 1 },
@@ -158,10 +162,11 @@ describe("plan task on synthetic replays", () => {
       "summarize_observations",
       "list_recipes",
       "read_recipe_result",
+      "search_occurrences",
       "propose_evidence",
     ]);
     expect(commit.events.map((e) => e.kind)).toEqual([
-      ...Array<string>(5).fill("task.queued"),
+      ...Array<string>(6).fill("task.queued"),
       "task.succeeded",
     ]);
 
@@ -315,7 +320,7 @@ describe("plan scope (SA-10, proposed)", () => {
   };
 
   it("the planner prompt carries the scope rule under a new version", () => {
-    expect(PLAN_PROMPT_VERSION).toBe("plan@3");
+    expect(PLAN_PROMPT_VERSION).toBe("plan@4");
     expect(PLAN_INSTRUCTIONS).toContain("land, water and vegetation");
     expect(PLAN_INSTRUCTIONS).toContain('"Out of scope."');
   });
@@ -393,7 +398,7 @@ describe("plan scope (SA-10, proposed)", () => {
         answerStep(JSON.stringify(GOOD_PLAN)),
       ]);
       expect(loop.status, text).toBe("accepted");
-      expect(commit.upserts, text).toHaveLength(6);
+      expect(commit.upserts, text).toHaveLength(7);
     }
   });
 });
@@ -459,6 +464,7 @@ describe("plan validator", () => {
       "obs",
       "src",
       "liv",
+      "responses",
     ]);
     // A gap-adding task that waits for the brief would make a cycle, so the plan is refused.
     const looped = {
@@ -499,6 +505,90 @@ describe("plan validator", () => {
       ],
     };
     expect(codes(looped)).toEqual(["limit $.tasks"]);
+  });
+
+  describe("the candidate responses are added by the host (plan@4)", () => {
+    const base = (tasks: ReturnType<typeof task>[]) => ({
+      interpretation: "The command asks for a package.",
+      tasks,
+      clarifyingQuestion: null,
+    });
+    const kindsOf = (plan: unknown) => {
+      const r = check(plan);
+      return r.ok ? r.value.tasks.map((t) => [t.key, t.kind, t.dependsOn]) : r.issues;
+    };
+
+    it("adds one intervention_feasibility task after the branches to a plan with branches and a brief", () => {
+      const plan = base([
+        task("obs", "observation_analysis"),
+        task("branches", "explanation_branches", ["obs"]),
+        task("brief", "brief_package"),
+      ]);
+      expect(kindsOf(plan)).toEqual([
+        ["obs", "observation_analysis", []],
+        ["branches", "explanation_branches", ["obs"]],
+        ["brief", "brief_package", ["obs", "branches", "responses"]],
+        ["responses", "intervention_feasibility", ["branches"]],
+      ]);
+      const r = check(plan);
+      const added = r.ok ? r.value.tasks.find((t) => t.key === "responses") : undefined;
+      expect(added?.question).toBe(
+        "Which responses could be prepared from what the record shows, and what must be checked first?",
+      );
+      expect(added?.inputRefs).toEqual([]);
+    });
+
+    it("adds nothing when the plan already has the responses, no branches or no brief", () => {
+      const has = base([
+        task("branches", "explanation_branches"),
+        task("mine", "intervention_feasibility", ["branches"]),
+        task("brief", "brief_package"),
+      ]);
+      expect(
+        (kindsOf(has) as unknown[][]).filter((t) => t[1] === "intervention_feasibility"),
+      ).toHaveLength(1);
+      for (const tasks of [
+        [task("obs", "observation_analysis"), task("brief", "brief_package")],
+        [task("obs", "observation_analysis"), task("branches", "explanation_branches")],
+      ]) {
+        expect(
+          (kindsOf(base(tasks)) as unknown[][]).some((t) => t[1] === "intervention_feasibility"),
+        ).toBe(false);
+      }
+    });
+
+    it("picks a free key when the model already used 'responses'", () => {
+      const plan = base([
+        task("responses", "source_research"),
+        task("branches", "explanation_branches"),
+        task("brief", "brief_package"),
+      ]);
+      const keys = (kindsOf(plan) as unknown[][]).map((t) => t[0]);
+      expect(keys).toContain("responses_2");
+      expect(new Set(keys).size).toBe(keys.length);
+    });
+
+    it("leaves room for it: a plan of the most tasks with branches and a brief is refused with the reason", () => {
+      const filler = Array.from({ length: 6 }, (_, i) => task(`s${String(i)}`, "source_research"));
+      const full = base([
+        ...filler,
+        task("branches", "explanation_branches"),
+        task("brief", "brief_package"),
+      ]);
+      expect(codes(full)).toEqual(["limit $.tasks"]);
+      const found = check(full);
+      expect(found.ok ? "" : found.issues[0]?.message).toContain("adds the candidate responses");
+      const fits = base([
+        ...filler.slice(0, 5),
+        task("branches", "explanation_branches"),
+        task("brief", "brief_package"),
+      ]);
+      expect((kindsOf(fits) as unknown[][]).length).toBe(8);
+    });
+
+    it("tells the planner it may leave the responses out", () => {
+      expect(PLAN_INSTRUCTIONS).toContain("Siterra adds it");
+    });
   });
 
   it("names exactly the kinds whose specs can commit a field requirement", () => {

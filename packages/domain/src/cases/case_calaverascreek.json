@@ -142,6 +142,436 @@
   "instruments": [
     {
       "from": "parameters",
+      "id": "layer_stack_creek",
+      "whenExplanationIds": ["rainfall", "land_cover_change"],
+      "parameters": {
+        "kind": "layer_stack",
+        "geoSelectionId": "geo_calaveras_creek_catchment",
+        "relief": {
+          "bundleId": "bundle_relief_calaveras_creek",
+          "assetKey": "elevation_surface"
+        },
+        "layers": [
+          {
+            "layer": "vegetation_trend",
+            "data": {
+              "bundleId": "bundle_pixel_trend_long_record_calaveras_creek",
+              "assetKey": "pixel_trend_grid_feb_may"
+            }
+          },
+          {
+            "layer": "rainfall",
+            "data": {
+              "bundleId": "bundle_chirps_monthly_calaveras_creek",
+              "assetKey": "rainfall_cells"
+            }
+          },
+          {
+            "layer": "land_cover",
+            "data": {
+              "bundleId": "bundle_land_cover_calaveras_creek",
+              "assetKey": "land_cover"
+            }
+          },
+          {
+            "layer": "elevation_bands",
+            "data": {
+              "bundleId": "bundle_terrain_strata_calaveras_creek",
+              "assetKey": "strata"
+            }
+          }
+        ],
+        "drainageFeatureIds": [
+          "ctx_drainage_order_1",
+          "ctx_drainage_order_2",
+          "ctx_drainage_order_3",
+          "ctx_drainage_order_4"
+        ],
+        "placeFeatureIds": ["ctx_catchment_outlet"],
+        "selectedLayer": "vegetation_trend",
+        "rainfallWindow": {
+          "id": "oct_apr",
+          "start": {
+            "month": "october",
+            "year": "previous_year"
+          },
+          "end": {
+            "month": "april",
+            "year": "same_year"
+          }
+        },
+        "drawnAssets": [
+          {
+            "role": "trend_summary",
+            "asset": {
+              "bundleId": "bundle_season_trend_long_record_calaveras_creek",
+              "assetKey": "season_trend_long_record"
+            }
+          },
+          {
+            "role": "pixel_trend_summary",
+            "asset": {
+              "bundleId": "bundle_pixel_trend_long_record_calaveras_creek",
+              "assetKey": "pixel_trend_long_record"
+            }
+          },
+          {
+            "role": "rainfall_fit",
+            "asset": {
+              "bundleId": "bundle_restrend_long_record_calaveras_creek",
+              "assetKey": "restrend_long_record"
+            }
+          },
+          {
+            "role": "catchment_outline",
+            "asset": {
+              "bundleId": "bundle_terrain_strata_calaveras_creek",
+              "assetKey": "analysis_geometry"
+            }
+          },
+          {
+            "role": "drainage_segments",
+            "asset": {
+              "bundleId": "bundle_drainage_network_calaveras_creek",
+              "assetKey": "drainage_lines"
+            }
+          },
+          {
+            "role": "relief_grid",
+            "asset": {
+              "bundleId": "bundle_relief_calaveras_creek",
+              "assetKey": "elevation_surface_bin"
+            }
+          },
+          {
+            "role": "relief_grid_header",
+            "asset": {
+              "bundleId": "bundle_relief_calaveras_creek",
+              "assetKey": "elevation_surface_bin_header"
+            }
+          },
+          {
+            "role": "land_cover_raster",
+            "asset": {
+              "bundleId": "bundle_land_cover_calaveras_creek",
+              "assetKey": "land_cover_png"
+            }
+          },
+          {
+            "role": "land_cover_header",
+            "asset": {
+              "bundleId": "bundle_land_cover_calaveras_creek",
+              "assetKey": "land_cover_png_header"
+            }
+          },
+          {
+            "role": "elevation_band_raster",
+            "asset": {
+              "bundleId": "bundle_terrain_strata_calaveras_creek",
+              "assetKey": "elevation_band_png"
+            }
+          },
+          {
+            "role": "elevation_band_header",
+            "asset": {
+              "bundleId": "bundle_terrain_strata_calaveras_creek",
+              "assetKey": "elevation_band_png_header"
+            }
+          },
+          {
+            "role": "trend_cells",
+            "asset": {
+              "bundleId": "bundle_pixel_trend_long_record_calaveras_creek",
+              "assetKey": "trend_cells"
+            }
+          }
+        ]
+      },
+      "caption": {
+        "ink": "{trend} NDVI per decade, February to May, {start} to {end}",
+        "grey": "After a false discovery rate check the area with a rising trend is {up} and with a falling trend {down}.",
+        "claimKind": "model_estimate",
+        "citationIds": [
+          "meas_trend_unadjusted_catchment_feb_may",
+          "meas_pixel_trend_upward_fdr_share_catchment_feb_may",
+          "meas_pixel_trend_downward_fdr_share_catchment_feb_may"
+        ],
+        "numbers": {
+          "trend": {
+            "measurementId": "meas_trend_unadjusted_catchment_feb_may",
+            "part": "value",
+            "decimals": 4,
+            "style": "signed"
+          },
+          "start": {
+            "measurementId": "meas_trend_unadjusted_catchment_feb_may",
+            "part": "period_start",
+            "decimals": 0
+          },
+          "end": {
+            "measurementId": "meas_trend_unadjusted_catchment_feb_may",
+            "part": "period_end",
+            "decimals": 0
+          },
+          "up": {
+            "measurementId": "meas_pixel_trend_upward_fdr_share_catchment_feb_may",
+            "part": "value",
+            "decimals": 1,
+            "style": "percent"
+          },
+          "down": {
+            "measurementId": "meas_pixel_trend_downward_fdr_share_catchment_feb_may",
+            "part": "value",
+            "decimals": 1,
+            "style": "percent"
+          }
+        }
+      }
+    },
+    {
+      "from": "parameters",
+      "id": "cross_section_creek",
+      "whenExplanationIds": ["dam_history", "land_cover_change"],
+      "parameters": {
+        "kind": "cross_section",
+        "geoSelectionId": "geo_calaveras_creek_catchment",
+        "transectFeatureId": "ctx_transect_valley_axis",
+        "relief": {
+          "bundleId": "bundle_relief_calaveras_creek",
+          "assetKey": "elevation_surface"
+        },
+        "profile": {
+          "bundleId": "bundle_transects_calaveras_creek",
+          "assetKey": "transect_samples"
+        },
+        "bands": {
+          "bundleId": "bundle_terrain_strata_calaveras_creek",
+          "assetKey": "strata"
+        },
+        "bandTrends": {
+          "bundleId": "bundle_season_trend_long_record_calaveras_creek",
+          "assetKey": "season_trend_long_record"
+        },
+        "snow": {
+          "bundleId": "bundle_snow_cover_by_band_calaveras_creek",
+          "assetKey": "snow_cover_tables"
+        },
+        "drainageFeatureIds": [
+          "ctx_drainage_order_1",
+          "ctx_drainage_order_2",
+          "ctx_drainage_order_3",
+          "ctx_drainage_order_4"
+        ],
+        "placeFeatureIds": ["ctx_catchment_outlet"],
+        "statements": [],
+        "drawnAssets": [
+          {
+            "role": "transect_summary",
+            "asset": {
+              "bundleId": "bundle_transects_calaveras_creek",
+              "assetKey": "terrain_transects"
+            }
+          },
+          {
+            "role": "catchment_outline",
+            "asset": {
+              "bundleId": "bundle_terrain_strata_calaveras_creek",
+              "assetKey": "analysis_geometry"
+            }
+          },
+          {
+            "role": "drainage_segments",
+            "asset": {
+              "bundleId": "bundle_drainage_network_calaveras_creek",
+              "assetKey": "drainage_lines"
+            }
+          },
+          {
+            "role": "relief_grid",
+            "asset": {
+              "bundleId": "bundle_relief_calaveras_creek",
+              "assetKey": "elevation_surface_bin"
+            }
+          },
+          {
+            "role": "relief_grid_header",
+            "asset": {
+              "bundleId": "bundle_relief_calaveras_creek",
+              "assetKey": "elevation_surface_bin_header"
+            }
+          },
+          {
+            "role": "land_cover_raster",
+            "asset": {
+              "bundleId": "bundle_land_cover_calaveras_creek",
+              "assetKey": "land_cover_png"
+            }
+          },
+          {
+            "role": "land_cover_header",
+            "asset": {
+              "bundleId": "bundle_land_cover_calaveras_creek",
+              "assetKey": "land_cover_png_header"
+            }
+          },
+          {
+            "role": "snow_summary",
+            "asset": {
+              "bundleId": "bundle_snow_cover_by_band_calaveras_creek",
+              "assetKey": "snow_cover_by_band"
+            }
+          }
+        ]
+      },
+      "caption": {
+        "ink": "{low} NDVI per decade below {limit} m, February to May, {start} to {end}",
+        "grey": "Band averages over the whole catchment, with their {level} intervals; the middle and upper bands are shown beside it.",
+        "claimKind": "model_estimate",
+        "citationIds": [
+          "meas_trend_unadjusted_elevation_low_feb_may",
+          "meas_trend_unadjusted_elevation_mid_feb_may",
+          "meas_trend_unadjusted_elevation_high_feb_may",
+          "meas_transect_band_limit_lower_2021"
+        ],
+        "numbers": {
+          "low": {
+            "measurementId": "meas_trend_unadjusted_elevation_low_feb_may",
+            "part": "value",
+            "decimals": 4,
+            "style": "signed"
+          },
+          "limit": {
+            "measurementId": "meas_transect_band_limit_lower_2021",
+            "part": "value",
+            "decimals": 0,
+            "style": "grouped"
+          },
+          "start": {
+            "measurementId": "meas_trend_unadjusted_elevation_low_feb_may",
+            "part": "period_start",
+            "decimals": 0
+          },
+          "end": {
+            "measurementId": "meas_trend_unadjusted_elevation_low_feb_may",
+            "part": "period_end",
+            "decimals": 0
+          },
+          "level": {
+            "measurementId": "meas_trend_unadjusted_elevation_low_feb_may",
+            "part": "level",
+            "decimals": 0,
+            "style": "percent"
+          }
+        }
+      }
+    },
+    {
+      "from": "parameters",
+      "id": "pixel_anatomy_creek",
+      "whenExplanationIds": ["land_cover_change"],
+      "parameters": {
+        "kind": "pixel_anatomy",
+        "geoSelectionId": "geo_calaveras_creek_catchment",
+        "locator": {
+          "bundleId": "bundle_pixel_trend_long_record_calaveras_creek",
+          "assetKey": "pixel_trend_grid_feb_may"
+        },
+        "anatomy": {
+          "bundleId": "bundle_pixel_anatomy_calaveras_creek",
+          "assetKey": "pixel_anatomy"
+        },
+        "bandSeries": {
+          "bundleId": "bundle_season_trend_long_record_calaveras_creek",
+          "assetKey": "season_trend_tables"
+        },
+        "contextEvidenceIds": [],
+        "question": "What is one pixel's trend made of?",
+        "drawnAssets": [
+          {
+            "role": "pixel_cells",
+            "asset": {
+              "bundleId": "bundle_pixel_anatomy_calaveras_creek",
+              "assetKey": "pixel_cells"
+            }
+          },
+          {
+            "role": "pixel_spectra",
+            "asset": {
+              "bundleId": "bundle_pixel_anatomy_calaveras_creek",
+              "assetKey": "pixel_spectra"
+            }
+          },
+          {
+            "role": "pixel_series",
+            "asset": {
+              "bundleId": "bundle_pixel_anatomy_calaveras_creek",
+              "assetKey": "pixel_series"
+            }
+          },
+          {
+            "role": "catchment_outline",
+            "asset": {
+              "bundleId": "bundle_terrain_strata_calaveras_creek",
+              "assetKey": "analysis_geometry"
+            }
+          },
+          {
+            "role": "trend_cells",
+            "asset": {
+              "bundleId": "bundle_pixel_trend_long_record_calaveras_creek",
+              "assetKey": "trend_cells"
+            }
+          }
+        ]
+      },
+      "caption": {
+        "ink": "This {res} m pixel's own trend is {trend} NDVI per decade, February to May, {start} to {end}.",
+        "grey": "Its land cover cells are {tree} tree cover and {grass} grassland by land cover class; the mix of its own spectra is drawn beside the measured value.",
+        "claimKind": "model_estimate",
+        "citationIds": [
+          "meas_pixel_anatomy_trend_feb_may_pixel",
+          "meas_pixel_anatomy_share_tree_cover_2021",
+          "meas_pixel_anatomy_share_grassland_2021"
+        ],
+        "numbers": {
+          "trend": {
+            "measurementId": "meas_pixel_anatomy_trend_feb_may_pixel",
+            "part": "value",
+            "decimals": 4,
+            "style": "signed"
+          },
+          "start": {
+            "measurementId": "meas_pixel_anatomy_trend_feb_may_pixel",
+            "part": "period_start",
+            "decimals": 0
+          },
+          "end": {
+            "measurementId": "meas_pixel_anatomy_trend_feb_may_pixel",
+            "part": "period_end",
+            "decimals": 0
+          },
+          "res": {
+            "measurementId": "meas_pixel_anatomy_trend_feb_may_pixel",
+            "part": "resolution_m",
+            "decimals": 0
+          },
+          "tree": {
+            "measurementId": "meas_pixel_anatomy_share_tree_cover_2021",
+            "part": "value",
+            "decimals": 0,
+            "style": "percent"
+          },
+          "grass": {
+            "measurementId": "meas_pixel_anatomy_share_grassland_2021",
+            "part": "value",
+            "decimals": 0,
+            "style": "percent"
+          }
+        }
+      }
+    },
+    {
+      "from": "parameters",
       "id": "rainfall_scatter_creek",
       "whenExplanationIds": ["rainfall"],
       "parameters": {

@@ -124,6 +124,7 @@ export function snapshotStore(
   if (analyses) {
     store.recipes.push(...analyses.recipes);
     store.recipeResults.push(...analyses.results.map((r) => ({ ...r, caseId })));
+    store.occurrenceSets.push(...analyses.occurrences.map((o) => ({ ...o, caseId })));
   }
   return store;
 }

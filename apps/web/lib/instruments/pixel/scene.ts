@@ -76,6 +76,8 @@ const L = {
   /** Two lines with the DEM notice, starting where the specimens' credit does (16 px under the command line). */
   creditY: 856,
 };
+/** The widest a view of 02's cells may be (the first place's 28 cells at 8 px). */
+const MULT_W = 224;
 /** In place, 02's paint buttons stand this far under its title, and its key under them (U28c: no empty card). */
 const PAINT_ROW = 34;
 /** The bar's size and the readout's offset in 05. */
@@ -192,6 +194,8 @@ export function mountPixel(
    * in their own words; the catalog's notes only when the record gives none.
    */
   tips: readonly [string | null, string | null] = [null, null],
+  /** The pixel's question as the case's record states it (P7b-10); the catalog's neutral one when it states none. */
+  question: string | null = null,
 ): PixelScene {
   const c = (...names: string[]) => names.map((n) => cls[n] ?? n).join(" ");
   const svg = <K extends keyof SVGElementTagNameMap>(tag: K, attrs: Attrs, parent: Element) => {
@@ -251,9 +255,12 @@ export function mountPixel(
     b.appendChild(t);
     return b;
   };
+  // a cell's size in 02's three views: the first place's 8 px, smaller where a place's grid is larger, so each view
+  // keeps within its 224 px column (U25b: Calaveras Creek's pixel spans 54 columns by 26 rows)
+  const cellPx = Math.min(L.cellPx, MULT_W / Math.max(d.grid.rows, d.grid.cols));
   const toGrid = ([x, y]: readonly [number, number]): Pt => [
-    ((x - d.grid.origin_x) / 10) * L.cellPx,
-    ((d.grid.origin_y - y) / 10) * L.cellPx,
+    ((x - d.grid.origin_x) / 10) * cellPx,
+    ((d.grid.origin_y - y) / 10) * cellPx,
   ];
   const ndviColour = (v: number | null) => {
     if (v === null) return C.noValue;
@@ -302,7 +309,7 @@ export function mountPixel(
       L.caption.y,
       around ? AROUND.column.w : L.caption.w,
     );
-    div("captionKey", cap, en["instrument.pixel.question"].text);
+    div("captionKey", cap, question ?? en["instrument.pixel.question"].text);
     const p = div("captionStatement", cap);
     const ink = document.createElement("span");
     ink.className = c("ink");
@@ -433,7 +440,8 @@ export function mountPixel(
   }
 
   // 02: the pixel as its 10 m cells in three aligned views, cells outside it veiled
-  const size = d.grid.cols * L.cellPx;
+  const size = d.grid.cols * cellPx;
+  const tall = d.grid.rows * cellPx;
   const fp = d.pixel.footprint_utm29n.map(toGrid);
   const multiples: { x: number; g: SVGGElement }[] = [];
   {
@@ -496,8 +504,8 @@ export function mountPixel(
         place(div("multTitle", stage, titles[i]), x, L.multY - 18, size);
         const cv = document.createElement("canvas");
         cv.width = Math.round(size * dpr);
-        cv.height = Math.round(size * dpr);
-        place(cv, x, L.multY, size, size);
+        cv.height = Math.round(tall * dpr);
+        place(cv, x, L.multY, size, tall);
         stage.appendChild(cv);
         const ctx = cv.getContext("2d");
         const paint = painters[i];
@@ -506,20 +514,22 @@ export function mountPixel(
           for (let r = 0; r < d.grid.rows; r++)
             for (let k = 0; k < d.grid.cols; k++) {
               ctx.fillStyle = paint(r, k);
-              ctx.fillRect(k * L.cellPx, r * L.cellPx, L.cellPx, L.cellPx);
+              ctx.fillRect(k * cellPx, r * cellPx, cellPx, cellPx);
             }
           ctx.strokeStyle = C.cellLine;
           ctx.lineWidth = 1 / dpr;
           ctx.beginPath();
           for (let k = 1; k < d.grid.cols; k++) {
-            ctx.moveTo(k * L.cellPx, 0);
-            ctx.lineTo(k * L.cellPx, size);
-            ctx.moveTo(0, k * L.cellPx);
-            ctx.lineTo(size, k * L.cellPx);
+            ctx.moveTo(k * cellPx, 0);
+            ctx.lineTo(k * cellPx, tall);
+          }
+          for (let k = 1; k < d.grid.rows; k++) {
+            ctx.moveTo(0, k * cellPx);
+            ctx.lineTo(size, k * cellPx);
           }
           ctx.stroke();
           ctx.beginPath();
-          ctx.rect(0, 0, size, size);
+          ctx.rect(0, 0, size, tall);
           ctx.moveTo(...(fp[0] ?? [0, 0]));
           for (let k = 1; k < 4; k++) ctx.lineTo(...(fp[k] ?? [0, 0]));
           ctx.closePath();
@@ -571,7 +581,7 @@ export function mountPixel(
         );
     }
     // the key of each view under it; in place, the key of the paint the cells carry, under the buttons
-    const ny0 = around ? p2.y + PAINT_ROW + 40 : L.multY + size + 10;
+    const ny0 = around ? p2.y + PAINT_ROW + 40 : L.multY + tall + 10;
     const kx = (i: number) => (around ? p2.x : (L.multiples[i] ?? p2.x));
     const keyOf = (e: Element, paint: CellPaint) => {
       if (around) e.setAttribute("data-paint-key", paint);
@@ -775,9 +785,18 @@ export function mountPixel(
     const bottom = L.rowB + 160;
     const xs = (y: number) =>
       left + ((y - locator.period[0]) / (locator.period[1] - locator.period[0])) * (right - left);
-    const ys = (v: number) => bottom - ((v - 0.2) / 0.4) * (bottom - top);
+    // the first place's 0.2 to 0.6 where its seasons fit; otherwise the place's own range in 0.1 steps (U25b)
+    const all = [...s.band, ...s.pixel].map((p) => p.ndvi);
+    const fits = Math.min(...all) >= 0.2 && Math.max(...all) <= 0.6;
+    const lo = fits ? 0.2 : Math.floor(Math.min(...all) * 10) / 10;
+    const hi = fits ? 0.6 : Math.max(lo + 0.4, Math.ceil(Math.max(...all) * 10) / 10);
+    const ys = (v: number) => bottom - ((v - lo) / (hi - lo)) * (bottom - top);
     const g = svg("g", {}, overlay);
-    for (const v of [0.2, 0.3, 0.4, 0.5, 0.6]) {
+    const steps = Math.round((hi - lo) * 10);
+    for (const v of Array.from(
+      { length: steps + 1 },
+      (_, i) => Math.round((lo + i / 10) * 10) / 10,
+    )) {
       svg("line", { x1: left, x2: right, y1: ys(v), y2: ys(v), stroke: C.gridLine }, g);
       text(g, left - 6, ys(v) + 4, v.toFixed(1), t12("ink3", "end"));
     }

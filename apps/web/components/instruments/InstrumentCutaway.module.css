@@ -157,6 +157,12 @@
   color: var(--text-tertiary);
 }
 
+/* where the snow recipe does not apply: one line, wrapped to the band column's width */
+.snowKey[data-no-snow] {
+  width: 240px;
+  white-space: normal;
+}
+
 .snowKey {
   white-space: nowrap;
   font-size: 12px;

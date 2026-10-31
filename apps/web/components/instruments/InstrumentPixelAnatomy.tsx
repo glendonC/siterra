@@ -91,6 +91,9 @@ export function InstrumentPixelAnatomy({
   const view = record.status === "ready" ? record.view : null;
   const snapshot = record.status === "ready" ? record.snapshot : null;
   const caption = view?.spec.caption ?? null;
+  // the pixel's question as the case's record states it (P7b-10, contracts 1.22.0); null where it states none
+  const params = view?.spec.parameters;
+  const question = params?.kind === "pixel_anatomy" ? (params.question ?? null) : null;
   const descriptionId = useId();
 
   useEffect(() => {
@@ -159,6 +162,7 @@ export function InstrumentPixelAnatomy({
           }
         : null,
       tipsOf(caption.citationIds, snapshot),
+      question,
     );
     sceneRef.current = scene;
     // in place, the leaders follow the pixel on the land
@@ -226,7 +230,7 @@ export function InstrumentPixelAnatomy({
       sceneRef.current = null;
       scene.dispose();
     };
-  }, [loaded, caption, state, snapshot]);
+  }, [loaded, caption, state, snapshot, question]);
   const paint = around?.paint;
   useEffect(() => {
     if (paint) sceneRef.current?.setPaint(paint);

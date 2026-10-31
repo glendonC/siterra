@@ -46,7 +46,8 @@ export interface CutawayData {
   limits: readonly [number, number];
   catchment: Pick<Catchment, "ring">;
   rivers: Rivers;
-  snow: Snow;
+  /** The snow shares; null where the spec's snow summary records the snow recipe as not applicable (P7b-8). */
+  snow: Snow | null;
   figures: Pick<Figures, "season_trend">;
   transect: CutawayTransect;
   places: { places: Place[] };
@@ -73,14 +74,27 @@ export async function loadCutawayData(
   const summary = drawnAsset(view, "transect_summary");
   const read = (ref: Parameters<typeof readJsonAsset>[1]) =>
     readJsonAsset(view, ref, fetchImpl, signal);
-  const [land, samples, terrain, trends, snow, outline] = await Promise.all([
+  // the snow summary the spec draws (P7b-8, role snow_summary) records whether the snow recipe applies here; a spec
+  // that draws none is read as before
+  const summaryRef = (() => {
+    try {
+      return drawnAsset(view, "snow_summary");
+    } catch {
+      return null;
+    }
+  })();
+  const [land, samples, terrain, trends, snow, outline, snowSummary] = await Promise.all([
     readTerrain([view, ...landFrom], fetchImpl, signal),
     read(p.profile),
     read(summary),
     read(p.bandTrends),
     read(p.snow),
     read(drawnAsset(view, "catchment_outline")),
+    summaryRef ? read(summaryRef) : Promise.resolve(null),
   ]);
+  const snowApplies =
+    (snowSummary as { applicability?: { decision?: string } } | null)?.applicability?.decision !==
+    "not_applicable";
   const transect = cutawayTransectSchema.parse(
     transectFixture(
       samples as never,
@@ -101,7 +115,7 @@ export async function loadCutawayData(
     landcover: land.landcover,
     catchment: { ring: outlineRing(outline, land.zone) },
     rivers: riversFrom(snapshot, p.drainageFeatureIds, land.zone),
-    snow: snowFrom(snow),
+    snow: snowApplies ? snowFrom(snow) : null,
     figures: { season_trend: seasonTrendFrom(trends) },
     transect,
     places: { places: placesFrom(snapshot, p.placeFeatureIds) },

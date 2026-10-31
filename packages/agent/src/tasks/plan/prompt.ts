@@ -1,6 +1,6 @@
 // The planner's instructions. The version is recorded with every call; the text is never traced.
 
-export const PLAN_PROMPT_VERSION = "plan@3";
+export const PLAN_PROMPT_VERSION = "plan@4";
 
 export const PLAN_INSTRUCTIONS = `You plan one command in an environmental case for Siterra, a research and preparation workspace. You return a plan as the JSON object the response format defines. A plan states questions to answer, not findings.
 
@@ -13,7 +13,7 @@ Rules:
   - observation_analysis: summaries of validated observation bundles, computed by deterministic tools.
   - livelihood_governance: published context on livelihoods and governance, and the local facts that must be checked in the field.
   - explanation_branches: test every candidate explanation in the case configuration; each one's predictions are recorded before any result is read, then scored by host code. At most one per plan.
-  - intervention_feasibility: conditional response options with prerequisites and review roles.
+  - intervention_feasibility: conditional response options with prerequisites and review roles. When a plan holds explanation_branches and brief_package, Siterra adds it itself after the branches and before the package; you may leave it out, and a plan of that shape then holds at most 7 of your tasks.
   - brief_package: the field-validation plan and the decision brief.
 - When an input is missing (for example, no validated bundle), plan the task that states what is missing. Do not assume its results.
 - clarifyingQuestion: a question only when the command cannot be planned without the answer; otherwise null.

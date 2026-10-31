@@ -25,11 +25,11 @@ import {
   type LayerStackData,
 } from "../../lib/instruments/valley/fixtures";
 import { loadLayerStackData } from "../../lib/instruments/valley/layer-stack-data";
-import { RAIN_RANGE } from "../../lib/instruments/valley/palette";
+import { rainRangeOf } from "../../lib/instruments/valley/palette";
 import {
   LAYER_STACK_DESIGN,
   LAYER_STACK_EXAG,
-  SHEETS,
+  sheetsOf,
   mountLayerStack,
   type LayerStackScene,
   type SheetId,
@@ -91,20 +91,22 @@ function sheetKey(id: SheetId, d: LayerStackData): ReactNode {
         </>
       );
     }
-    case "rain":
+    case "rain": {
+      const range = rainRangeOf(d.rain.cells);
       return (
         <>
-          <span>{RAIN_RANGE.lo}</span>
+          <span>{range.lo}</span>
           <i className={styles.ramp} style={{ background: gradient(sheetColours.rain) }} />
           <span>
             {format("instrument.sheet.rain.key", {
-              value: RAIN_RANGE.hi,
+              value: range.hi,
               from: RAIN_REFERENCE_YEARS[0],
               to: RAIN_REFERENCE_YEARS[1],
             })}
           </span>
         </>
       );
+    }
     case "snow":
       return (
         <>
@@ -338,7 +340,7 @@ export function InstrumentLayerStack({ teardown }: { teardown?: StackTeardown } 
       {data && caption && lead && !failed && (
         <>
           <svg className={styles.leaders} aria-hidden="true">
-            {SHEETS.map((id, i) => {
+            {sheetsOf(data).map((id, i) => {
               const stroke = id === SELECTED ? obsidian.accent : obsidian.leaderQuiet;
               return (
                 <g key={id}>
@@ -368,7 +370,7 @@ export function InstrumentLayerStack({ teardown }: { teardown?: StackTeardown } 
               <span className={styles.chip}>{1}</span>
             </span>
           </p>
-          {SHEETS.map((id, i) => (
+          {sheetsOf(data).map((id, i) => (
             <div
               key={id}
               ref={(e) => {

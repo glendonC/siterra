@@ -8,7 +8,7 @@ import {
   instrumentSpecIssues,
   uncitedInstrumentInputs,
 } from "./instruments.ts";
-import { displayTextIssues } from "./instruments-compose.ts";
+import { displayTextIssues, questionIssues } from "./instruments-compose.ts";
 
 const example = Commit.parse(
   JSON.parse(
@@ -335,6 +335,42 @@ describe("assets an instrument draws (contracts 1.16)", () => {
     expect(instrumentReferencedIds(s)).toContain("bundle_example_outline");
     expect(uncitedInstrumentInputs(s)).toContain("bundle_example_outline");
     expect(uncitedInstrumentInputs(spec("rainfall_scatter"))).toEqual([]);
+  });
+});
+
+describe("the question a pixel anatomy asks (contracts 1.22)", () => {
+  const withQuestion = (question: string | undefined) =>
+    ({
+      ...spec("pixel_anatomy").parameters,
+      ...(question === undefined ? {} : { question }),
+    }) as InstrumentSpec["parameters"];
+
+  it("accepts a question in plain words, or none", () => {
+    expect(questionIssues(withQuestion("What is one pixel's trend made of?"))).toEqual([]);
+    expect(
+      questionIssues(withQuestion("Why can a pixel get greener while its pasture does not?")),
+    ).toEqual([]);
+    expect(questionIssues(withQuestion(undefined))).toEqual([]);
+  });
+
+  it("refuses a statement, a number, a banned word and a prohibited phrase", () => {
+    expect(questionIssues(withQuestion("One pixel's trend is made of cells."))[0]).toContain(
+      "question mark",
+    );
+    expect(questionIssues(withQuestion("Is 1 pixel enough?"))[0]).toContain("digit");
+    expect(questionIssues(withQuestion("Is this change significant?"))[0]).toContain(
+      "banned word: significant",
+    );
+    expect(questionIssues(withQuestion("Does overgrazing explain it?"))[0]).toContain(
+      "banned word: overgrazing",
+    );
+    expect(
+      questionIssues(withQuestion("What proves the trend?")).some((i) => i.includes("banned word")),
+    ).toBe(true);
+  });
+
+  it("asks nothing of any other kind of instrument", () => {
+    expect(questionIssues(spec("cross_section").parameters)).toEqual([]);
   });
 });
 

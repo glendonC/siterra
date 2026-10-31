@@ -6,6 +6,7 @@ import { analysisConfigFor } from "@siterra/domain/cases";
 import { describe, expect, it } from "vitest";
 import { instrumentReferencedIds, uncitedInstrumentInputs } from "@siterra/domain";
 import { readCaseSeed } from "./case-seed.ts";
+import { statedRainfallWindow } from "./rainfall-window-testing.ts";
 
 const repoDir = fileURLToPath(new URL("../../../", import.meta.url));
 const { seed, issues, blocked } = readCaseSeed({
@@ -131,6 +132,63 @@ describe("the instruments the case seed composes", () => {
     expect(shown).not.toContain("SCI-03 says that herders");
   });
 
+  it("states the rainfall window the rain layer sums: the one the trend bundle states as its primary (sep_may for the valley)", () => {
+    const layers = seed?.instruments.find((s) => s.id === "inst_layer_stack_valley")?.parameters;
+    if (layers?.kind !== "layer_stack") throw new Error("not a layer stack");
+    const restrend = JSON.parse(
+      readFileSync(
+        fileURLToPath(
+          new URL(
+            "../../../data/bundles/bundle_restrend_long_record_ait_bouguemez/restrend-long-record.json",
+            import.meta.url,
+          ),
+        ),
+        "utf8",
+      ),
+    ) as Parameters<typeof statedRainfallWindow>[0];
+    expect(layers.rainfallWindow).toEqual(statedRainfallWindow(restrend));
+    expect(layers.rainfallWindow?.id).toBe("sep_may");
+  });
+
+  it("carries the pixel's question as words: the approved specimen C wording for the valley", () => {
+    const anatomy = seed?.instruments.find((s) => s.id === "inst_pixel_anatomy_valley")?.parameters;
+    if (anatomy?.kind !== "pixel_anatomy") throw new Error("not a pixel anatomy");
+    expect(anatomy.question).toBe("Why can a pixel get greener while its pasture does not?");
+  });
+
+  it("blocks the pixel anatomy when its question holds a banned word, with the word named", () => {
+    const config = analysisConfigFor("case_aitbouguemez");
+    if (config === null || seed === null) throw new Error("the case has no configuration");
+    const rules = (config.instruments ?? []).map((r) =>
+      r.id === "pixel_anatomy_valley" &&
+      r.from === "parameters" &&
+      r.parameters.kind === "pixel_anatomy"
+        ? {
+            ...r,
+            parameters: { ...r.parameters, question: "Is the change in this pixel significant?" },
+          }
+        : r,
+    );
+    const result = composeInstruments({
+      caseId: "case_aitbouguemez",
+      config: { ...config, instruments: rules },
+      openExplanationIds: config.explanations.map((e) => e.id),
+      geoSelectionId: seed.geoSelections[0]?.id ?? "",
+      geoSelections: seed.geoSelections,
+      dataBundles: seed.bundles.map((b) => b.dataBundle),
+      contextFeatures: seed.contextFeatures,
+      measurements: [...measurements.values()],
+      evidence: seed.evidence,
+      branchMerges: [],
+      hypotheses: [],
+      hasAsset: () => true,
+      now: "2026-10-30T20:00:00Z",
+    });
+    expect(result.specs.some((x) => x.id === "inst_pixel_anatomy_valley")).toBe(false);
+    const blocked = result.blocked.find((b) => b.ruleId === "pixel_anatomy_valley");
+    expect(blocked?.reasons.join(" ")).toContain("banned word: significant");
+  });
+
   it("name every asset an instrument draws, so no client builds an address from a hash", () => {
     const roles = (id: string) => {
       const p = seed?.instruments.find((s) => s.id === id)?.parameters;
@@ -176,6 +234,7 @@ describe("the instruments the case seed composes", () => {
       "relief_grid_header",
       "land_cover_raster",
       "land_cover_header",
+      "snow_summary",
     ]);
     expect(
       roles("inst_cross_section_valley")
@@ -184,6 +243,7 @@ describe("the instruments the case seed composes", () => {
     ).toEqual([
       ["land_cover", "land_cover_png"],
       ["land_cover", "land_cover_png_header"],
+      ["snow_cover_by_band", "snow_cover_by_band"],
     ]);
     // The web-ready display assets of SCIENCE-GEO's S7, by their bundle and key
     expect(
@@ -200,6 +260,27 @@ describe("the instruments the case seed composes", () => {
       ["pixel_trend_long_record", "trend_cells"],
     ]);
     expect(roles("inst_rainfall_scatter_valley")).toEqual([]);
+  });
+
+  it("name the snow result of the first place on its cross section: the recipe ran in full, so the result carries no not-applicable decision", () => {
+    const section = seed?.instruments.find((s) => s.id === "inst_cross_section_valley")?.parameters;
+    if (section?.kind !== "cross_section") throw new Error("not a cross section");
+    expect(section.drawnAssets?.find((d) => d.role === "snow_summary")?.asset).toEqual({
+      bundleId: "bundle_snow_cover_by_band_ait_bouguemez",
+      assetKey: "snow_cover_by_band",
+    });
+    const result = JSON.parse(
+      readFileSync(
+        fileURLToPath(
+          new URL(
+            "../../../data/bundles/bundle_snow_cover_by_band_ait_bouguemez/snow-cover-by-band.json",
+            import.meta.url,
+          ),
+        ),
+        "utf8",
+      ),
+    ) as { applicability?: { decision?: string } };
+    expect(result.applicability?.decision ?? "applicable").toBe("applicable");
   });
 
   it("guard the words 'greener' and 'every interval lies above zero' with held claims on the records", () => {

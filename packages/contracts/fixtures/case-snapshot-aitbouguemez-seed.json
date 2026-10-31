@@ -1,6 +1,6 @@
 {
   "recordType": "CaseSnapshot",
-  "schemaVersion": "1.19.0",
+  "schemaVersion": "1.22.0",
   "case": {
     "recordType": "EnvironmentalCase",
     "id": "case_aitbouguemez",
@@ -13250,7 +13250,7 @@
         "createdAt": "2026-10-28T20:42:35.015Z",
         "updatedAt": "2026-10-28T20:42:35.015Z",
         "caseId": "case_aitbouguemez",
-        "label": "One MODIS pixel opened into its 10 m cells (pixel_anatomy 1.0.0)",
+        "label": "One MODIS pixel opened into its 10 m cells (pixel_anatomy 1.1.0)",
         "status": "validated",
         "datasetId": "sentinel-2-l2a",
         "datasetVersion": "05.11",
@@ -13259,9 +13259,9 @@
         "geoRevision": 1,
         "periodIds": [],
         "methodId": "pixel_anatomy",
-        "methodVersion": "1.0.0",
-        "manifestUri": "/api/case-assets/bundle_pixel_anatomy_ait_bouguemez/1220ba5b7b3d0d724b78d3ba7044fee37f7c839a610c7ea4b25383dbe1ff6f1d2cee/collection.json",
-        "contentHash": "1220ba5b7b3d0d724b78d3ba7044fee37f7c839a610c7ea4b25383dbe1ff6f1d2cee",
+        "methodVersion": "1.1.0",
+        "manifestUri": "/api/case-assets/bundle_pixel_anatomy_ait_bouguemez/1220efc70c6e40bf8390367661146e021b611e715a36506e4dcdeddcbb4dbcd722ee/collection.json",
+        "contentHash": "1220efc70c6e40bf8390367661146e021b611e715a36506e4dcdeddcbb4dbcd722ee",
         "license": "MOD13Q1 v6.1: NASA data use guidance (NASA-led mission data without a marked restriction are CC0; citation strongly urged); Licence for Copernicus DEM instance COP-DEM-GLO-30-F Global 30m Full, Free & Open; ESA WorldCover: CC BY 4.0; Legal notice on the use of Copernicus Sentinel data and service information (SCI-18)",
         "attribution": "Contains modified Copernicus Sentinel data 2025; Didan, K. (2021). MODIS/Terra Vegetation Indices 16-Day L3 Global 250m SIN Grid V061. NASA Land Processes Distributed Active Archive Center. https://doi.org/10.5067/MODIS/MOD13Q1.061. Tile h17v05, A2000049 to A2025353, read from Microsoft Planetary Computer, accessed 2026-10-28; Catchment and strata derived by Siterra from Copernicus DEM GLO-30 (2021 release); produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved; The organisations in charge of the Copernicus programme by law or by delegation do not incur any liability for any use of the Copernicus WorldDEM-30; © ESA WorldCover project / Contains modified Copernicus Sentinel data (2021) processed by ESA WorldCover consortium; ESA WorldCover 2021 v200 (Zanaga et al. 2022), CC BY 4.0, https://doi.org/10.5281/zenodo.7254221; ESA WorldCover 10 m 2021 v200, Zanaga et al. (2022), https://doi.org/10.5281/zenodo.7254221, CC BY 4.0",
         "provenance": {
@@ -13272,7 +13272,7 @@
             "bundle_s2_ndvi_monthly_ait_bouguemez"
           ],
           "methodId": "pixel_anatomy",
-          "methodVersion": "1.0.0",
+          "methodVersion": "1.1.0",
           "inputVersions": [
             {
               "entityId": "geo_ait_bouguemez_catchment",
@@ -13292,7 +13292,7 @@
             }
           ],
           "generatedByTaskId": null,
-          "generatedAt": "2026-10-29T11:09:47Z",
+          "generatedAt": "2026-10-30T23:29:41Z",
           "verificationStatus": "computed_checked",
           "limitations": [
             "One pixel is an illustration, not a sample: it was chosen by judgment among the candidates of a rule (the selection record gives their number and its rank), and it says nothing about other pixels.",
@@ -13427,8 +13427,8 @@
         "periodIds": [],
         "methodId": "proposed_routes",
         "methodVersion": "1.0.0",
-        "manifestUri": "/api/case-assets/bundle_proposed_routes_ait_bouguemez/1220421e7baa2d80f4df177fc4869e5dc0c0d74c9cac0436e2736832261be2df9cba/collection.json",
-        "contentHash": "1220421e7baa2d80f4df177fc4869e5dc0c0d74c9cac0436e2736832261be2df9cba",
+        "manifestUri": "/api/case-assets/bundle_proposed_routes_ait_bouguemez/122029e23ae9750ca7d95c2bdf815be9217f9ef139ecad82e604b6765a16cf9c5817/collection.json",
+        "contentHash": "122029e23ae9750ca7d95c2bdf815be9217f9ef139ecad82e604b6765a16cf9c5817",
         "license": "Licence for Copernicus DEM instance COP-DEM-GLO-30-F Global 30m Full, Free & Open; ESA WorldCover: CC BY 4.0",
         "attribution": "Catchment and strata derived by Siterra from Copernicus DEM GLO-30 (2021 release); produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved; The organisations in charge of the Copernicus programme by law or by delegation do not incur any liability for any use of the Copernicus WorldDEM-30; © ESA WorldCover project / Contains modified Copernicus Sentinel data (2021) processed by ESA WorldCover consortium; ESA WorldCover 2021 v200 (Zanaga et al. 2022), CC BY 4.0, https://doi.org/10.5281/zenodo.7254221",
         "provenance": {
@@ -13888,6 +13888,58 @@
             "Each 500 m pixel is called snow-covered or not as a whole; patchy snow, thin snow and snow on shaded slopes can be missed.",
             "Snow cover is not snow depth or water: it says nothing about how much water the snow holds.",
             "Terra's overpass has drifted earlier since 2020, from 10:30 to about 9:06 mean local time by December 2025 (NASA), so later years are seen with a lower sun and longer shadows, which may change snow detection on steep slopes."
+          ]
+        }
+      },
+      {
+        "recordType": "DataBundle",
+        "id": "bundle_species_occurrences_ait_bouguemez",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "label": "Recorded life in the catchment: GBIF occurrence records (species_occurrences 1.0.0)",
+        "status": "validated",
+        "datasetId": "gbif-occurrence-search",
+        "datasetVersion": "v1",
+        "sourceIds": [],
+        "geoSelectionId": "geo_ait_bouguemez_catchment",
+        "geoRevision": 1,
+        "periodIds": [],
+        "methodId": "species_occurrences",
+        "methodVersion": "1.0.0",
+        "manifestUri": "/api/case-assets/bundle_species_occurrences_ait_bouguemez/12207c20e1b579d1075d6e3911568fde42ba52cee8240f00b580c1f8079006827819/collection.json",
+        "contentHash": "12207c20e1b579d1075d6e3911568fde42ba52cee8240f00b580c1f8079006827819",
+        "license": "CC0 1.0 (records of datasets under CC0); CC BY 4.0 (records of datasets under CC BY; credit each dataset)",
+        "attribution": "The International Barcode of Life Consortium. International Barcode of Life project (iBOL). Occurrence dataset, 12 records kept, licence CC-BY-4.0 (12). https://doi.org/10.15468/inygc6. Accessed through GBIF.org on 2026-10-30.; United Herbaria of the University and ETH Zurich (Z+ZT). United Herbaria of the University and ETH Zurich. Occurrence dataset, 1 records kept, licence CC-BY-4.0 (1). https://doi.org/10.15468/tjvqci. Accessed through GBIF.org on 2026-10-30.; Centro Internacional de Agricultura Tropical - CIAT. A global database for the distributions of crop wild relatives. Occurrence dataset, 17 records kept, licence CC-BY-4.0 (17). https://doi.org/10.15468/jyrthk. Accessed through GBIF.org on 2026-10-30.; Pl@ntNet. Pl@ntNet automatically identified occurrences. Occurrence dataset, 11 records kept, licence CC-BY-4.0 (11). https://doi.org/10.15468/mma2ec. Accessed through GBIF.org on 2026-10-30.; Cornell Lab of Ornithology. EOD – eBird Observation Dataset. Occurrence dataset, 503 records kept, licence CC-BY-4.0 (503). https://doi.org/10.15468/aomfnb. Accessed through GBIF.org on 2026-10-30.; iNaturalist.org. iNaturalist Research-grade Observations. Occurrence dataset, 44 records kept, licence CC-BY-4.0 (44). https://doi.org/10.15468/ab3s5x. Accessed through GBIF.org on 2026-10-30.; Birda. Birda - Global Observation Dataset. Occurrence dataset, 13 records kept, licence CC-BY-4.0 (13). https://doi.org/10.15468/6kud7x. Accessed through GBIF.org on 2026-10-30.; Pl@ntNet. Pl@ntNet observations. Occurrence dataset, 2 records kept, licence CC-BY-4.0 (2). https://doi.org/10.15468/gtebaa. Accessed through GBIF.org on 2026-10-30.; Missouri Botanical Garden. Tropicos MO Specimen Data. Occurrence dataset, 1 records kept, licence CC-BY-4.0 (1). https://doi.org/10.15468/hja69f. Accessed through GBIF.org on 2026-10-30.; Natural History Museum. Natural History Museum (London) Collection Specimens. Occurrence dataset, 3 records kept, licence CC0-1.0 (3). https://doi.org/10.5519/qd.dyj48ok9. Accessed through GBIF.org on 2026-10-30.; Natural History Museum, Vienna. Natural History Museum, Vienna - Herbarium W. Occurrence dataset, 2 records kept, licence CC-BY-4.0 (2). https://doi.org/10.15468/5sl7sh. Accessed through GBIF.org on 2026-10-30.; Botanic Garden and Botanical Museum Berlin. Herbarium Berolinense, Berlin (B). Occurrence dataset, 1 records kept, licence CC0-1.0 (1). https://doi.org/10.15468/dlwwhz. Accessed through GBIF.org on 2026-10-30.; Institut Scientifique, Mohamed V University. Herbarium specimens of Institut Scientifique Mohamed V university (RAB). Occurrence dataset, 1 records kept, licence CC-BY-4.0 (1). https://doi.org/10.15468/48pwft. Accessed through GBIF.org on 2026-10-30.; Baylor University, Mayborn Museum Complex. Baylor University Herbarium. Occurrence dataset, 2 records kept, licence CC0-1.0 (2). https://doi.org/10.15468/78jqq4. Accessed through GBIF.org on 2026-10-30.; Royal Botanic Gardens, Kew. Royal Botanic Gardens, Kew - Herbarium Specimens. Occurrence dataset, 3 records kept, licence CC-BY-4.0 (3). https://doi.org/10.15468/ly60bx. Accessed through GBIF.org on 2026-10-30.; European Nucleotide Archive (EMBL-EBI). INSDC Sequences. Occurrence dataset, 3 records kept, licence CC-BY-4.0 (3). https://doi.org/10.15468/sbmztx. Accessed through GBIF.org on 2026-10-30.; Research Institute for Nature and Forest (INBO). BOP_RODENT - Rodent specialized birds of prey (Circus, Asio, Buteo) in Flanders (Belgium). Occurrence dataset, 2 records kept, licence CC0-1.0 (2). https://doi.org/10.5281/zenodo.23340023. Accessed through GBIF.org on 2026-10-30.; Institute of Dendrology, Polish Academy of Sciences (ID PAN). Juniperus occurrences from research collections of the Institute of Dendrology, Polish Academy of Sciences. Occurrence dataset, 3 records kept, licence CC-BY-4.0 (3). https://doi.org/10.15468/hr7rsc. Accessed through GBIF.org on 2026-10-30.; Universidad de Huelva. Eurasian otter (Lutra lutra) occurrence in Morocco. Occurrence dataset, 1 records kept, licence CC-BY-4.0 (1). https://doi.org/10.15470/xyzeiv. Accessed through GBIF.org on 2026-10-30.; Zoologische Staatssammlung München/Staatliche Naturwissenschaftliche Sammlungen Bayerns. Zoologische Staatssammlung Muenchen - International Barcode of Life (iBOL) - Barcode of Life Project Specimen Data. Occurrence dataset, 4 records kept, licence CC-BY-4.0 (4). https://doi.org/10.15468/tfpnkp. Accessed through GBIF.org on 2026-10-30.; Swiss Natural History Collections - SwissNatColl. General Herbarium – Cryptogamy & Phanerogamy (CJBG-G) of Jardin botanique de Genève. Occurrence dataset, 2 records kept, licence CC-BY-4.0 (2). https://doi.org/10.15468/rvjdu1. Accessed through GBIF.org on 2026-10-30.; California Academy of Sciences. CAS Botany (BOT). Occurrence dataset, 1 records kept, licence CC0-1.0 (1). https://doi.org/10.15468/7gudyo. Accessed through GBIF.org on 2026-10-30.; Occurrence records from GBIF.org (accessed 2026-10-30) through the GBIF occurrence search API; each record keeps the licence of its dataset (CC0 1.0 or CC BY 4.0); see https://www.gbif.org/citation-guidelines.",
+        "provenance": {
+          "sourceLocators": [],
+          "dataBundleIds": [
+            "bundle_terrain_strata_ait_bouguemez"
+          ],
+          "methodId": "species_occurrences",
+          "methodVersion": "1.0.0",
+          "inputVersions": [
+            {
+              "entityId": "geo_ait_bouguemez_catchment",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_terrain_strata_ait_bouguemez",
+              "revision": 1
+            }
+          ],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-30T20:23:52Z",
+          "verificationStatus": "computed_checked",
+          "limitations": [
+            "Each record says an organism was recorded at a place and time by someone, as a human observation, a preserved specimen, a fossil specimen, a machine observation or another basis; a fossil specimen records an organism of an earlier age, not a living one. It is not a measurement of presence or abundance: the same species can be common and unrecorded, or rare and recorded often.",
+            "Records follow where people look. Roads, villages, trails, reserves and the habits of a few observers shape where records fall, and a quiet area is not an empty one.",
+            "Years reflect recording effort. A rise or fall in records per year follows the arrival of observation apps, surveys and datasets, not the organisms, and the counts by year are not a trend.",
+            "Coordinates are as recorded with their stated uncertainty, which is missing for some records and larger than the catchment for others; a kept record is inside the catchment polygon at its recorded point only.",
+            "Only records under CC0 1.0 or CC BY 4.0 are kept; records under other licences were dropped and are counted, so the kept records are a part of what GBIF holds here. Each dataset is credited to its publisher.",
+            "The request was made on a stated date; GBIF records are added, corrected and withdrawn over time, so a later request can give other counts.",
+            "A zero for a named plant means no kept record under that name inside the catchment, not that the plant is absent, and names can be recorded under synonyms."
           ]
         }
       },
@@ -35804,7 +35856,7 @@
             "bundle_s2_ndvi_monthly_ait_bouguemez"
           ],
           "methodId": "pixel_anatomy",
-          "methodVersion": "1.0.0",
+          "methodVersion": "1.1.0",
           "inputVersions": [
             {
               "entityId": "geo_ait_bouguemez_catchment",
@@ -35828,7 +35880,7 @@
             }
           ],
           "generatedByTaskId": null,
-          "generatedAt": "2026-10-29T11:09:47Z",
+          "generatedAt": "2026-10-30T23:29:41Z",
           "verificationStatus": "computed_checked",
           "limitations": [
             "One pixel is an illustration, not a sample: it was chosen by judgment among the candidates of a rule (the selection record gives their number and its rank), and it says nothing about other pixels.",
@@ -35890,7 +35942,7 @@
             "bundle_s2_ndvi_monthly_ait_bouguemez"
           ],
           "methodId": "pixel_anatomy",
-          "methodVersion": "1.0.0",
+          "methodVersion": "1.1.0",
           "inputVersions": [
             {
               "entityId": "geo_ait_bouguemez_catchment",
@@ -35914,7 +35966,7 @@
             }
           ],
           "generatedByTaskId": null,
-          "generatedAt": "2026-10-29T11:09:47Z",
+          "generatedAt": "2026-10-30T23:29:41Z",
           "verificationStatus": "computed_checked",
           "limitations": [
             "One pixel is an illustration, not a sample: it was chosen by judgment among the candidates of a rule (the selection record gives their number and its rank), and it says nothing about other pixels.",
@@ -35976,7 +36028,7 @@
             "bundle_s2_ndvi_monthly_ait_bouguemez"
           ],
           "methodId": "pixel_anatomy",
-          "methodVersion": "1.0.0",
+          "methodVersion": "1.1.0",
           "inputVersions": [
             {
               "entityId": "geo_ait_bouguemez_catchment",
@@ -36000,7 +36052,7 @@
             }
           ],
           "generatedByTaskId": null,
-          "generatedAt": "2026-10-29T11:09:47Z",
+          "generatedAt": "2026-10-30T23:29:41Z",
           "verificationStatus": "computed_checked",
           "limitations": [
             "One pixel is an illustration, not a sample: it was chosen by judgment among the candidates of a rule (the selection record gives their number and its rank), and it says nothing about other pixels.",
@@ -36062,7 +36114,7 @@
             "bundle_s2_ndvi_monthly_ait_bouguemez"
           ],
           "methodId": "pixel_anatomy",
-          "methodVersion": "1.0.0",
+          "methodVersion": "1.1.0",
           "inputVersions": [
             {
               "entityId": "geo_ait_bouguemez_catchment",
@@ -36086,7 +36138,7 @@
             }
           ],
           "generatedByTaskId": null,
-          "generatedAt": "2026-10-29T11:09:47Z",
+          "generatedAt": "2026-10-30T23:29:41Z",
           "verificationStatus": "computed_checked",
           "limitations": [
             "One pixel is an illustration, not a sample: it was chosen by judgment among the candidates of a rule (the selection record gives their number and its rank), and it says nothing about other pixels.",
@@ -36148,7 +36200,7 @@
             "bundle_s2_ndvi_monthly_ait_bouguemez"
           ],
           "methodId": "pixel_anatomy",
-          "methodVersion": "1.0.0",
+          "methodVersion": "1.1.0",
           "inputVersions": [
             {
               "entityId": "geo_ait_bouguemez_catchment",
@@ -36172,7 +36224,7 @@
             }
           ],
           "generatedByTaskId": null,
-          "generatedAt": "2026-10-29T11:09:47Z",
+          "generatedAt": "2026-10-30T23:29:41Z",
           "verificationStatus": "computed_checked",
           "limitations": [
             "One pixel is an illustration, not a sample: it was chosen by judgment among the candidates of a rule (the selection record gives their number and its rank), and it says nothing about other pixels.",
@@ -36234,7 +36286,7 @@
             "bundle_s2_ndvi_monthly_ait_bouguemez"
           ],
           "methodId": "pixel_anatomy",
-          "methodVersion": "1.0.0",
+          "methodVersion": "1.1.0",
           "inputVersions": [
             {
               "entityId": "geo_ait_bouguemez_catchment",
@@ -36258,7 +36310,7 @@
             }
           ],
           "generatedByTaskId": null,
-          "generatedAt": "2026-10-29T11:09:47Z",
+          "generatedAt": "2026-10-30T23:29:41Z",
           "verificationStatus": "computed_checked",
           "limitations": [
             "One pixel is an illustration, not a sample: it was chosen by judgment among the candidates of a rule (the selection record gives their number and its rank), and it says nothing about other pixels.",
@@ -36320,7 +36372,7 @@
             "bundle_s2_ndvi_monthly_ait_bouguemez"
           ],
           "methodId": "pixel_anatomy",
-          "methodVersion": "1.0.0",
+          "methodVersion": "1.1.0",
           "inputVersions": [
             {
               "entityId": "geo_ait_bouguemez_catchment",
@@ -36344,7 +36396,7 @@
             }
           ],
           "generatedByTaskId": null,
-          "generatedAt": "2026-10-29T11:09:47Z",
+          "generatedAt": "2026-10-30T23:29:41Z",
           "verificationStatus": "computed_checked",
           "limitations": [
             "One pixel is an illustration, not a sample: it was chosen by judgment among the candidates of a rule (the selection record gives their number and its rank), and it says nothing about other pixels.",
@@ -36406,7 +36458,7 @@
             "bundle_s2_ndvi_monthly_ait_bouguemez"
           ],
           "methodId": "pixel_anatomy",
-          "methodVersion": "1.0.0",
+          "methodVersion": "1.1.0",
           "inputVersions": [
             {
               "entityId": "geo_ait_bouguemez_catchment",
@@ -36430,7 +36482,7 @@
             }
           ],
           "generatedByTaskId": null,
-          "generatedAt": "2026-10-29T11:09:47Z",
+          "generatedAt": "2026-10-30T23:29:41Z",
           "verificationStatus": "computed_checked",
           "limitations": [
             "One pixel is an illustration, not a sample: it was chosen by judgment among the candidates of a rule (the selection record gives their number and its rank), and it says nothing about other pixels.",
@@ -36492,7 +36544,7 @@
             "bundle_s2_ndvi_monthly_ait_bouguemez"
           ],
           "methodId": "pixel_anatomy",
-          "methodVersion": "1.0.0",
+          "methodVersion": "1.1.0",
           "inputVersions": [
             {
               "entityId": "geo_ait_bouguemez_catchment",
@@ -36516,7 +36568,7 @@
             }
           ],
           "generatedByTaskId": null,
-          "generatedAt": "2026-10-29T11:09:47Z",
+          "generatedAt": "2026-10-30T23:29:41Z",
           "verificationStatus": "computed_checked",
           "limitations": [
             "One pixel is an illustration, not a sample: it was chosen by judgment among the candidates of a rule (the selection record gives their number and its rank), and it says nothing about other pixels.",
@@ -36578,7 +36630,7 @@
             "bundle_s2_ndvi_monthly_ait_bouguemez"
           ],
           "methodId": "pixel_anatomy",
-          "methodVersion": "1.0.0",
+          "methodVersion": "1.1.0",
           "inputVersions": [
             {
               "entityId": "geo_ait_bouguemez_catchment",
@@ -36602,7 +36654,7 @@
             }
           ],
           "generatedByTaskId": null,
-          "generatedAt": "2026-10-29T11:09:47Z",
+          "generatedAt": "2026-10-30T23:29:41Z",
           "verificationStatus": "computed_checked",
           "limitations": [
             "One pixel is an illustration, not a sample: it was chosen by judgment among the candidates of a rule (the selection record gives their number and its rank), and it says nothing about other pixels.",
@@ -36664,7 +36716,7 @@
             "bundle_s2_ndvi_monthly_ait_bouguemez"
           ],
           "methodId": "pixel_anatomy",
-          "methodVersion": "1.0.0",
+          "methodVersion": "1.1.0",
           "inputVersions": [
             {
               "entityId": "geo_ait_bouguemez_catchment",
@@ -36688,7 +36740,7 @@
             }
           ],
           "generatedByTaskId": null,
-          "generatedAt": "2026-10-29T11:09:47Z",
+          "generatedAt": "2026-10-30T23:29:41Z",
           "verificationStatus": "computed_checked",
           "limitations": [
             "One pixel is an illustration, not a sample: it was chosen by judgment among the candidates of a rule (the selection record gives their number and its rank), and it says nothing about other pixels.",
@@ -36750,7 +36802,7 @@
             "bundle_s2_ndvi_monthly_ait_bouguemez"
           ],
           "methodId": "pixel_anatomy",
-          "methodVersion": "1.0.0",
+          "methodVersion": "1.1.0",
           "inputVersions": [
             {
               "entityId": "geo_ait_bouguemez_catchment",
@@ -36774,7 +36826,7 @@
             }
           ],
           "generatedByTaskId": null,
-          "generatedAt": "2026-10-29T11:09:47Z",
+          "generatedAt": "2026-10-30T23:29:41Z",
           "verificationStatus": "computed_checked",
           "limitations": [
             "One pixel is an illustration, not a sample: it was chosen by judgment among the candidates of a rule (the selection record gives their number and its rank), and it says nothing about other pixels.",
@@ -36836,7 +36888,7 @@
             "bundle_s2_ndvi_monthly_ait_bouguemez"
           ],
           "methodId": "pixel_anatomy",
-          "methodVersion": "1.0.0",
+          "methodVersion": "1.1.0",
           "inputVersions": [
             {
               "entityId": "geo_ait_bouguemez_catchment",
@@ -36860,7 +36912,7 @@
             }
           ],
           "generatedByTaskId": null,
-          "generatedAt": "2026-10-29T11:09:47Z",
+          "generatedAt": "2026-10-30T23:29:41Z",
           "verificationStatus": "computed_checked",
           "limitations": [
             "One pixel is an illustration, not a sample: it was chosen by judgment among the candidates of a rule (the selection record gives their number and its rank), and it says nothing about other pixels.",
@@ -36922,7 +36974,7 @@
             "bundle_s2_ndvi_monthly_ait_bouguemez"
           ],
           "methodId": "pixel_anatomy",
-          "methodVersion": "1.0.0",
+          "methodVersion": "1.1.0",
           "inputVersions": [
             {
               "entityId": "geo_ait_bouguemez_catchment",
@@ -36946,7 +36998,7 @@
             }
           ],
           "generatedByTaskId": null,
-          "generatedAt": "2026-10-29T11:09:47Z",
+          "generatedAt": "2026-10-30T23:29:41Z",
           "verificationStatus": "computed_checked",
           "limitations": [
             "One pixel is an illustration, not a sample: it was chosen by judgment among the candidates of a rule (the selection record gives their number and its rank), and it says nothing about other pixels.",
@@ -37008,7 +37060,7 @@
             "bundle_s2_ndvi_monthly_ait_bouguemez"
           ],
           "methodId": "pixel_anatomy",
-          "methodVersion": "1.0.0",
+          "methodVersion": "1.1.0",
           "inputVersions": [
             {
               "entityId": "geo_ait_bouguemez_catchment",
@@ -37032,7 +37084,7 @@
             }
           ],
           "generatedByTaskId": null,
-          "generatedAt": "2026-10-29T11:09:47Z",
+          "generatedAt": "2026-10-30T23:29:41Z",
           "verificationStatus": "computed_checked",
           "limitations": [
             "One pixel is an illustration, not a sample: it was chosen by judgment among the candidates of a rule (the selection record gives their number and its rank), and it says nothing about other pixels.",
@@ -42727,12 +42779,676 @@
       },
       {
         "recordType": "Measurement",
-        "id": "meas_transect_band_limit_lower_2021",
+        "id": "meas_species_records_animals_catchment",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "metric": "species_records_in_group",
+        "value": 544,
+        "unit": "records",
+        "status": "available",
+        "missingReason": null,
+        "geoSelectionId": "geo_ait_bouguemez_catchment",
+        "geoRevision": 1,
+        "periodId": "period_1864-2025",
+        "dataBundleId": "bundle_species_occurrences_ait_bouguemez",
+        "aggregation": "Number of the kept GBIF occurrence records whose taxon is in the group animals (by_group.animals). A count of records, not abundance.",
+        "validPixelCount": null,
+        "totalPixelCount": null,
+        "validFraction": null,
+        "spatialResolutionM": null,
+        "uncertainty": {
+          "kind": "not_quantified",
+          "lower": null,
+          "upper": null,
+          "level": null,
+          "method": null
+        },
+        "provenance": {
+          "sourceLocators": [],
+          "dataBundleIds": [
+            "bundle_terrain_strata_ait_bouguemez"
+          ],
+          "methodId": "species_occurrences",
+          "methodVersion": "1.0.0",
+          "inputVersions": [
+            {
+              "entityId": "geo_ait_bouguemez_catchment",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_terrain_strata_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_species_occurrences_ait_bouguemez",
+              "revision": 1
+            }
+          ],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-30T20:23:52Z",
+          "verificationStatus": "computed_checked",
+          "limitations": [
+            "Each record says an organism was recorded at a place and time by someone, as a human observation, a preserved specimen, a fossil specimen, a machine observation or another basis; a fossil specimen records an organism of an earlier age, not a living one. It is not a measurement of presence or abundance: the same species can be common and unrecorded, or rare and recorded often.",
+            "Records follow where people look. Roads, villages, trails, reserves and the habits of a few observers shape where records fall, and a quiet area is not an empty one.",
+            "Years reflect recording effort. A rise or fall in records per year follows the arrival of observation apps, surveys and datasets, not the organisms, and the counts by year are not a trend.",
+            "Coordinates are as recorded with their stated uncertainty, which is missing for some records and larger than the catchment for others; a kept record is inside the catchment polygon at its recorded point only.",
+            "Only records under CC0 1.0 or CC BY 4.0 are kept; records under other licences were dropped and are counted, so the kept records are a part of what GBIF holds here. Each dataset is credited to its publisher.",
+            "The request was made on a stated date; GBIF records are added, corrected and withdrawn over time, so a later request can give other counts.",
+            "A zero for a named plant means no kept record under that name inside the catchment, not that the plant is absent, and names can be recorded under synonyms."
+          ]
+        },
+        "source": {
+          "assetKey": "species_occurrences",
+          "jsonPointer": "/by_group/animals",
+          "stratum": "catchment",
+          "claimKind": "observation",
+          "period": {
+            "start": "1864",
+            "end": "2025",
+            "window": null
+          },
+          "lowerJsonPointer": null,
+          "upperJsonPointer": null
+        }
+      },
+      {
+        "recordType": "Measurement",
+        "id": "meas_species_records_kept_catchment",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "metric": "species_records_kept",
+        "value": 632,
+        "unit": "records",
+        "status": "available",
+        "missingReason": null,
+        "geoSelectionId": "geo_ait_bouguemez_catchment",
+        "geoRevision": 1,
+        "periodId": "period_1864-2025",
+        "dataBundleId": "bundle_species_occurrences_ait_bouguemez",
+        "aggregation": "Number of GBIF occurrence records kept in the stored bundle: inside the catchment polygon and under a CC0 or CC BY licence (counts.kept). A count of records, not abundance.",
+        "validPixelCount": null,
+        "totalPixelCount": null,
+        "validFraction": null,
+        "spatialResolutionM": null,
+        "uncertainty": {
+          "kind": "not_quantified",
+          "lower": null,
+          "upper": null,
+          "level": null,
+          "method": null
+        },
+        "provenance": {
+          "sourceLocators": [],
+          "dataBundleIds": [
+            "bundle_terrain_strata_ait_bouguemez"
+          ],
+          "methodId": "species_occurrences",
+          "methodVersion": "1.0.0",
+          "inputVersions": [
+            {
+              "entityId": "geo_ait_bouguemez_catchment",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_terrain_strata_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_species_occurrences_ait_bouguemez",
+              "revision": 1
+            }
+          ],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-30T20:23:52Z",
+          "verificationStatus": "computed_checked",
+          "limitations": [
+            "Each record says an organism was recorded at a place and time by someone, as a human observation, a preserved specimen, a fossil specimen, a machine observation or another basis; a fossil specimen records an organism of an earlier age, not a living one. It is not a measurement of presence or abundance: the same species can be common and unrecorded, or rare and recorded often.",
+            "Records follow where people look. Roads, villages, trails, reserves and the habits of a few observers shape where records fall, and a quiet area is not an empty one.",
+            "Years reflect recording effort. A rise or fall in records per year follows the arrival of observation apps, surveys and datasets, not the organisms, and the counts by year are not a trend.",
+            "Coordinates are as recorded with their stated uncertainty, which is missing for some records and larger than the catchment for others; a kept record is inside the catchment polygon at its recorded point only.",
+            "Only records under CC0 1.0 or CC BY 4.0 are kept; records under other licences were dropped and are counted, so the kept records are a part of what GBIF holds here. Each dataset is credited to its publisher.",
+            "The request was made on a stated date; GBIF records are added, corrected and withdrawn over time, so a later request can give other counts.",
+            "A zero for a named plant means no kept record under that name inside the catchment, not that the plant is absent, and names can be recorded under synonyms."
+          ]
+        },
+        "source": {
+          "assetKey": "species_occurrences",
+          "jsonPointer": "/counts/kept",
+          "stratum": "catchment",
+          "claimKind": "observation",
+          "period": {
+            "start": "1864",
+            "end": "2025",
+            "window": null
+          },
+          "lowerJsonPointer": null,
+          "upperJsonPointer": null
+        }
+      },
+      {
+        "recordType": "Measurement",
+        "id": "meas_species_records_named_astragalus_armatus",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "metric": "species_records_of_named_taxon",
+        "value": 0,
+        "unit": "records",
+        "status": "available",
+        "missingReason": null,
+        "geoSelectionId": "geo_ait_bouguemez_catchment",
+        "geoRevision": 1,
+        "periodId": "period_1864-2025",
+        "dataBundleId": "bundle_species_occurrences_ait_bouguemez",
+        "aggregation": "Number of the kept GBIF occurrence records of Astragalus armatus, a plant named by SCI-03, in the stored bundle (named_taxa[0].kept); zero means no record in the stored bundle. A count of records, not abundance.",
+        "validPixelCount": null,
+        "totalPixelCount": null,
+        "validFraction": null,
+        "spatialResolutionM": null,
+        "uncertainty": {
+          "kind": "not_quantified",
+          "lower": null,
+          "upper": null,
+          "level": null,
+          "method": null
+        },
+        "provenance": {
+          "sourceLocators": [],
+          "dataBundleIds": [
+            "bundle_terrain_strata_ait_bouguemez"
+          ],
+          "methodId": "species_occurrences",
+          "methodVersion": "1.0.0",
+          "inputVersions": [
+            {
+              "entityId": "geo_ait_bouguemez_catchment",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_terrain_strata_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_species_occurrences_ait_bouguemez",
+              "revision": 1
+            }
+          ],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-30T20:23:52Z",
+          "verificationStatus": "computed_checked",
+          "limitations": [
+            "Each record says an organism was recorded at a place and time by someone, as a human observation, a preserved specimen, a fossil specimen, a machine observation or another basis; a fossil specimen records an organism of an earlier age, not a living one. It is not a measurement of presence or abundance: the same species can be common and unrecorded, or rare and recorded often.",
+            "Records follow where people look. Roads, villages, trails, reserves and the habits of a few observers shape where records fall, and a quiet area is not an empty one.",
+            "Years reflect recording effort. A rise or fall in records per year follows the arrival of observation apps, surveys and datasets, not the organisms, and the counts by year are not a trend.",
+            "Coordinates are as recorded with their stated uncertainty, which is missing for some records and larger than the catchment for others; a kept record is inside the catchment polygon at its recorded point only.",
+            "Only records under CC0 1.0 or CC BY 4.0 are kept; records under other licences were dropped and are counted, so the kept records are a part of what GBIF holds here. Each dataset is credited to its publisher.",
+            "The request was made on a stated date; GBIF records are added, corrected and withdrawn over time, so a later request can give other counts.",
+            "A zero for a named plant means no kept record under that name inside the catchment, not that the plant is absent, and names can be recorded under synonyms."
+          ]
+        },
+        "source": {
+          "assetKey": "species_occurrences",
+          "jsonPointer": "/named_taxa/0/kept",
+          "stratum": "named_astragalus_armatus",
+          "claimKind": "observation",
+          "period": {
+            "start": "1864",
+            "end": "2025",
+            "window": null
+          },
+          "lowerJsonPointer": null,
+          "upperJsonPointer": null
+        }
+      },
+      {
+        "recordType": "Measurement",
+        "id": "meas_species_records_named_euphorbia_nicaeensis",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "metric": "species_records_of_named_taxon",
+        "value": 0,
+        "unit": "records",
+        "status": "available",
+        "missingReason": null,
+        "geoSelectionId": "geo_ait_bouguemez_catchment",
+        "geoRevision": 1,
+        "periodId": "period_1864-2025",
+        "dataBundleId": "bundle_species_occurrences_ait_bouguemez",
+        "aggregation": "Number of the kept GBIF occurrence records of Euphorbia nicaeensis, a plant named by SCI-03, in the stored bundle (named_taxa[3].kept); zero means no record in the stored bundle. A count of records, not abundance.",
+        "validPixelCount": null,
+        "totalPixelCount": null,
+        "validFraction": null,
+        "spatialResolutionM": null,
+        "uncertainty": {
+          "kind": "not_quantified",
+          "lower": null,
+          "upper": null,
+          "level": null,
+          "method": null
+        },
+        "provenance": {
+          "sourceLocators": [],
+          "dataBundleIds": [
+            "bundle_terrain_strata_ait_bouguemez"
+          ],
+          "methodId": "species_occurrences",
+          "methodVersion": "1.0.0",
+          "inputVersions": [
+            {
+              "entityId": "geo_ait_bouguemez_catchment",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_terrain_strata_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_species_occurrences_ait_bouguemez",
+              "revision": 1
+            }
+          ],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-30T20:23:52Z",
+          "verificationStatus": "computed_checked",
+          "limitations": [
+            "Each record says an organism was recorded at a place and time by someone, as a human observation, a preserved specimen, a fossil specimen, a machine observation or another basis; a fossil specimen records an organism of an earlier age, not a living one. It is not a measurement of presence or abundance: the same species can be common and unrecorded, or rare and recorded often.",
+            "Records follow where people look. Roads, villages, trails, reserves and the habits of a few observers shape where records fall, and a quiet area is not an empty one.",
+            "Years reflect recording effort. A rise or fall in records per year follows the arrival of observation apps, surveys and datasets, not the organisms, and the counts by year are not a trend.",
+            "Coordinates are as recorded with their stated uncertainty, which is missing for some records and larger than the catchment for others; a kept record is inside the catchment polygon at its recorded point only.",
+            "Only records under CC0 1.0 or CC BY 4.0 are kept; records under other licences were dropped and are counted, so the kept records are a part of what GBIF holds here. Each dataset is credited to its publisher.",
+            "The request was made on a stated date; GBIF records are added, corrected and withdrawn over time, so a later request can give other counts.",
+            "A zero for a named plant means no kept record under that name inside the catchment, not that the plant is absent, and names can be recorded under synonyms."
+          ]
+        },
+        "source": {
+          "assetKey": "species_occurrences",
+          "jsonPointer": "/named_taxa/3/kept",
+          "stratum": "named_euphorbia_nicaeensis",
+          "claimKind": "observation",
+          "period": {
+            "start": "1864",
+            "end": "2025",
+            "window": null
+          },
+          "lowerJsonPointer": null,
+          "upperJsonPointer": null
+        }
+      },
+      {
+        "recordType": "Measurement",
+        "id": "meas_species_records_named_thymelaea_virgata",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "metric": "species_records_of_named_taxon",
+        "value": 0,
+        "unit": "records",
+        "status": "available",
+        "missingReason": null,
+        "geoSelectionId": "geo_ait_bouguemez_catchment",
+        "geoRevision": 1,
+        "periodId": "period_1864-2025",
+        "dataBundleId": "bundle_species_occurrences_ait_bouguemez",
+        "aggregation": "Number of the kept GBIF occurrence records of Thymelaea virgata, a plant named by SCI-03, in the stored bundle (named_taxa[2].kept); zero means no record in the stored bundle. A count of records, not abundance.",
+        "validPixelCount": null,
+        "totalPixelCount": null,
+        "validFraction": null,
+        "spatialResolutionM": null,
+        "uncertainty": {
+          "kind": "not_quantified",
+          "lower": null,
+          "upper": null,
+          "level": null,
+          "method": null
+        },
+        "provenance": {
+          "sourceLocators": [],
+          "dataBundleIds": [
+            "bundle_terrain_strata_ait_bouguemez"
+          ],
+          "methodId": "species_occurrences",
+          "methodVersion": "1.0.0",
+          "inputVersions": [
+            {
+              "entityId": "geo_ait_bouguemez_catchment",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_terrain_strata_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_species_occurrences_ait_bouguemez",
+              "revision": 1
+            }
+          ],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-30T20:23:52Z",
+          "verificationStatus": "computed_checked",
+          "limitations": [
+            "Each record says an organism was recorded at a place and time by someone, as a human observation, a preserved specimen, a fossil specimen, a machine observation or another basis; a fossil specimen records an organism of an earlier age, not a living one. It is not a measurement of presence or abundance: the same species can be common and unrecorded, or rare and recorded often.",
+            "Records follow where people look. Roads, villages, trails, reserves and the habits of a few observers shape where records fall, and a quiet area is not an empty one.",
+            "Years reflect recording effort. A rise or fall in records per year follows the arrival of observation apps, surveys and datasets, not the organisms, and the counts by year are not a trend.",
+            "Coordinates are as recorded with their stated uncertainty, which is missing for some records and larger than the catchment for others; a kept record is inside the catchment polygon at its recorded point only.",
+            "Only records under CC0 1.0 or CC BY 4.0 are kept; records under other licences were dropped and are counted, so the kept records are a part of what GBIF holds here. Each dataset is credited to its publisher.",
+            "The request was made on a stated date; GBIF records are added, corrected and withdrawn over time, so a later request can give other counts.",
+            "A zero for a named plant means no kept record under that name inside the catchment, not that the plant is absent, and names can be recorded under synonyms."
+          ]
+        },
+        "source": {
+          "assetKey": "species_occurrences",
+          "jsonPointer": "/named_taxa/2/kept",
+          "stratum": "named_thymelaea_virgata",
+          "claimKind": "observation",
+          "period": {
+            "start": "1864",
+            "end": "2025",
+            "window": null
+          },
+          "lowerJsonPointer": null,
+          "upperJsonPointer": null
+        }
+      },
+      {
+        "recordType": "Measurement",
+        "id": "meas_species_records_named_thymus_satureioides",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "metric": "species_records_of_named_taxon",
+        "value": 0,
+        "unit": "records",
+        "status": "available",
+        "missingReason": null,
+        "geoSelectionId": "geo_ait_bouguemez_catchment",
+        "geoRevision": 1,
+        "periodId": "period_1864-2025",
+        "dataBundleId": "bundle_species_occurrences_ait_bouguemez",
+        "aggregation": "Number of the kept GBIF occurrence records of Thymus satureioides, a plant named by SCI-03, in the stored bundle (named_taxa[1].kept); zero means no record in the stored bundle. A count of records, not abundance.",
+        "validPixelCount": null,
+        "totalPixelCount": null,
+        "validFraction": null,
+        "spatialResolutionM": null,
+        "uncertainty": {
+          "kind": "not_quantified",
+          "lower": null,
+          "upper": null,
+          "level": null,
+          "method": null
+        },
+        "provenance": {
+          "sourceLocators": [],
+          "dataBundleIds": [
+            "bundle_terrain_strata_ait_bouguemez"
+          ],
+          "methodId": "species_occurrences",
+          "methodVersion": "1.0.0",
+          "inputVersions": [
+            {
+              "entityId": "geo_ait_bouguemez_catchment",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_terrain_strata_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_species_occurrences_ait_bouguemez",
+              "revision": 1
+            }
+          ],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-30T20:23:52Z",
+          "verificationStatus": "computed_checked",
+          "limitations": [
+            "Each record says an organism was recorded at a place and time by someone, as a human observation, a preserved specimen, a fossil specimen, a machine observation or another basis; a fossil specimen records an organism of an earlier age, not a living one. It is not a measurement of presence or abundance: the same species can be common and unrecorded, or rare and recorded often.",
+            "Records follow where people look. Roads, villages, trails, reserves and the habits of a few observers shape where records fall, and a quiet area is not an empty one.",
+            "Years reflect recording effort. A rise or fall in records per year follows the arrival of observation apps, surveys and datasets, not the organisms, and the counts by year are not a trend.",
+            "Coordinates are as recorded with their stated uncertainty, which is missing for some records and larger than the catchment for others; a kept record is inside the catchment polygon at its recorded point only.",
+            "Only records under CC0 1.0 or CC BY 4.0 are kept; records under other licences were dropped and are counted, so the kept records are a part of what GBIF holds here. Each dataset is credited to its publisher.",
+            "The request was made on a stated date; GBIF records are added, corrected and withdrawn over time, so a later request can give other counts.",
+            "A zero for a named plant means no kept record under that name inside the catchment, not that the plant is absent, and names can be recorded under synonyms."
+          ]
+        },
+        "source": {
+          "assetKey": "species_occurrences",
+          "jsonPointer": "/named_taxa/1/kept",
+          "stratum": "named_thymus_satureioides",
+          "claimKind": "observation",
+          "period": {
+            "start": "1864",
+            "end": "2025",
+            "window": null
+          },
+          "lowerJsonPointer": null,
+          "upperJsonPointer": null
+        }
+      },
+      {
+        "recordType": "Measurement",
+        "id": "meas_species_records_plants_catchment",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "metric": "species_records_in_group",
+        "value": 88,
+        "unit": "records",
+        "status": "available",
+        "missingReason": null,
+        "geoSelectionId": "geo_ait_bouguemez_catchment",
+        "geoRevision": 1,
+        "periodId": "period_1864-2025",
+        "dataBundleId": "bundle_species_occurrences_ait_bouguemez",
+        "aggregation": "Number of the kept GBIF occurrence records whose taxon is in the group plants (by_group.plants). A count of records, not abundance.",
+        "validPixelCount": null,
+        "totalPixelCount": null,
+        "validFraction": null,
+        "spatialResolutionM": null,
+        "uncertainty": {
+          "kind": "not_quantified",
+          "lower": null,
+          "upper": null,
+          "level": null,
+          "method": null
+        },
+        "provenance": {
+          "sourceLocators": [],
+          "dataBundleIds": [
+            "bundle_terrain_strata_ait_bouguemez"
+          ],
+          "methodId": "species_occurrences",
+          "methodVersion": "1.0.0",
+          "inputVersions": [
+            {
+              "entityId": "geo_ait_bouguemez_catchment",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_terrain_strata_ait_bouguemez",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_species_occurrences_ait_bouguemez",
+              "revision": 1
+            }
+          ],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-30T20:23:52Z",
+          "verificationStatus": "computed_checked",
+          "limitations": [
+            "Each record says an organism was recorded at a place and time by someone, as a human observation, a preserved specimen, a fossil specimen, a machine observation or another basis; a fossil specimen records an organism of an earlier age, not a living one. It is not a measurement of presence or abundance: the same species can be common and unrecorded, or rare and recorded often.",
+            "Records follow where people look. Roads, villages, trails, reserves and the habits of a few observers shape where records fall, and a quiet area is not an empty one.",
+            "Years reflect recording effort. A rise or fall in records per year follows the arrival of observation apps, surveys and datasets, not the organisms, and the counts by year are not a trend.",
+            "Coordinates are as recorded with their stated uncertainty, which is missing for some records and larger than the catchment for others; a kept record is inside the catchment polygon at its recorded point only.",
+            "Only records under CC0 1.0 or CC BY 4.0 are kept; records under other licences were dropped and are counted, so the kept records are a part of what GBIF holds here. Each dataset is credited to its publisher.",
+            "The request was made on a stated date; GBIF records are added, corrected and withdrawn over time, so a later request can give other counts.",
+            "A zero for a named plant means no kept record under that name inside the catchment, not that the plant is absent, and names can be recorded under synonyms."
+          ]
+        },
+        "source": {
+          "assetKey": "species_occurrences",
+          "jsonPointer": "/by_group/plants",
+          "stratum": "catchment",
+          "claimKind": "observation",
+          "period": {
+            "start": "1864",
+            "end": "2025",
+            "window": null
+          },
+          "lowerJsonPointer": null,
+          "upperJsonPointer": null
+        }
+      },
+      {
+        "recordType": "Measurement",
+        "id": "meas_strata_band_limit_lower_2021",
         "revision": 1,
         "createdAt": "2026-10-28T20:42:35.015Z",
         "updatedAt": "2026-10-28T20:42:35.015Z",
         "caseId": "case_aitbouguemez",
         "metric": "elevation_band_limit",
+        "value": 2316.8,
+        "unit": "m",
+        "status": "available",
+        "missingReason": null,
+        "geoSelectionId": "geo_ait_bouguemez_catchment",
+        "geoRevision": 1,
+        "periodId": "period_2021",
+        "dataBundleId": "bundle_terrain_strata_ait_bouguemez",
+        "aggregation": "Elevation of the boundary between the lowest and the middle elevation band, as the terrain strata bundle defines the bands (equal-area terciles of the catchment's DEM heights); a band definition, not a transect crossing (siterra:method.parameters.boundaries_m[0]).",
+        "validPixelCount": null,
+        "totalPixelCount": null,
+        "validFraction": null,
+        "spatialResolutionM": 30,
+        "uncertainty": {
+          "kind": "not_quantified",
+          "lower": null,
+          "upper": null,
+          "level": null,
+          "method": null
+        },
+        "provenance": {
+          "sourceLocators": [],
+          "dataBundleIds": [],
+          "methodId": "terrain_strata",
+          "methodVersion": "1.1.0",
+          "inputVersions": [
+            {
+              "entityId": "geo_ait_bouguemez_catchment",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_terrain_strata_ait_bouguemez",
+              "revision": 1
+            }
+          ],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-30T19:44:31Z",
+          "verificationStatus": "unverified",
+          "limitations": [
+            "The DEM is a surface model: trees and buildings raise it; radar artefacts are possible in narrow gorges.",
+            "WorldCover 2021 is a 2021 context mask: it maps only 1.1% of the catchment as cropland, and much of the green valley floor is mapped as tree cover, which may include orchards.",
+            "Strata organize field sampling; they are not vegetation types, pasture units or management boundaries."
+          ]
+        },
+        "source": {
+          "assetKey": "collection",
+          "jsonPointer": "/siterra:method/parameters/boundaries_m/0",
+          "stratum": "elevation_band_limit_lower",
+          "claimKind": "observation",
+          "period": {
+            "start": "2021",
+            "end": "2021",
+            "window": null
+          },
+          "lowerJsonPointer": null,
+          "upperJsonPointer": null
+        }
+      },
+      {
+        "recordType": "Measurement",
+        "id": "meas_strata_band_limit_upper_2021",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "metric": "elevation_band_limit",
+        "value": 2815.2,
+        "unit": "m",
+        "status": "available",
+        "missingReason": null,
+        "geoSelectionId": "geo_ait_bouguemez_catchment",
+        "geoRevision": 1,
+        "periodId": "period_2021",
+        "dataBundleId": "bundle_terrain_strata_ait_bouguemez",
+        "aggregation": "Elevation of the boundary between the middle and the highest elevation band, as the terrain strata bundle defines the bands (equal-area terciles of the catchment's DEM heights); a band definition, not a transect crossing (siterra:method.parameters.boundaries_m[1]).",
+        "validPixelCount": null,
+        "totalPixelCount": null,
+        "validFraction": null,
+        "spatialResolutionM": 30,
+        "uncertainty": {
+          "kind": "not_quantified",
+          "lower": null,
+          "upper": null,
+          "level": null,
+          "method": null
+        },
+        "provenance": {
+          "sourceLocators": [],
+          "dataBundleIds": [],
+          "methodId": "terrain_strata",
+          "methodVersion": "1.1.0",
+          "inputVersions": [
+            {
+              "entityId": "geo_ait_bouguemez_catchment",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_terrain_strata_ait_bouguemez",
+              "revision": 1
+            }
+          ],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-30T19:44:31Z",
+          "verificationStatus": "unverified",
+          "limitations": [
+            "The DEM is a surface model: trees and buildings raise it; radar artefacts are possible in narrow gorges.",
+            "WorldCover 2021 is a 2021 context mask: it maps only 1.1% of the catchment as cropland, and much of the green valley floor is mapped as tree cover, which may include orchards.",
+            "Strata organize field sampling; they are not vegetation types, pasture units or management boundaries."
+          ]
+        },
+        "source": {
+          "assetKey": "collection",
+          "jsonPointer": "/siterra:method/parameters/boundaries_m/1",
+          "stratum": "elevation_band_limit_upper",
+          "claimKind": "observation",
+          "period": {
+            "start": "2021",
+            "end": "2021",
+            "window": null
+          },
+          "lowerJsonPointer": null,
+          "upperJsonPointer": null
+        }
+      },
+      {
+        "recordType": "Measurement",
+        "id": "meas_transect_band_limit_lower_2021",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "metric": "transect_band_crossing_boundary",
         "value": 2316.8,
         "unit": "m above the EGM2008 geoid",
         "status": "available",
@@ -42795,7 +43511,7 @@
         "source": {
           "assetKey": "terrain_transects",
           "jsonPointer": "/transects/tabant_meridian/band_crossings/0/boundary_m",
-          "stratum": "elevation_band_limit_lower",
+          "stratum": "transect_band_crossing_lower",
           "claimKind": "observation",
           "period": {
             "start": "2021",
@@ -42813,7 +43529,7 @@
         "createdAt": "2026-10-28T20:42:35.015Z",
         "updatedAt": "2026-10-28T20:42:35.015Z",
         "caseId": "case_aitbouguemez",
-        "metric": "elevation_band_limit",
+        "metric": "transect_band_crossing_boundary",
         "value": 2815.2,
         "unit": "m above the EGM2008 geoid",
         "status": "available",
@@ -42876,7 +43592,7 @@
         "source": {
           "assetKey": "terrain_transects",
           "jsonPointer": "/transects/tabant_meridian/band_crossings/2/boundary_m",
-          "stratum": "elevation_band_limit_upper",
+          "stratum": "transect_band_crossing_upper",
           "claimKind": "observation",
           "period": {
             "start": "2021",
@@ -175214,6 +175930,13 @@
                 "bundleId": "bundle_land_cover_ait_bouguemez",
                 "assetKey": "land_cover_png_header"
               }
+            },
+            {
+              "role": "snow_summary",
+              "asset": {
+                "bundleId": "bundle_snow_cover_by_band_ait_bouguemez",
+                "assetKey": "snow_cover_by_band"
+              }
             }
           ]
         },
@@ -175501,7 +176224,18 @@
                 "assetKey": "trend_cells"
               }
             }
-          ]
+          ],
+          "rainfallWindow": {
+            "id": "sep_may",
+            "start": {
+              "month": "september",
+              "year": "previous_year"
+            },
+            "end": {
+              "month": "may",
+              "year": "same_year"
+            }
+          }
         },
         "caption": {
           "ink": "+0.0091 NDVI per decade, March to June, 2000 to 2025",
@@ -175694,7 +176428,8 @@
                 "ev_upper_rangelands_vegetation_sci19"
               ]
             }
-          ]
+          ],
+          "question": "Why can a pixel get greener while its pasture does not?"
         },
         "caption": {
           "ink": "This 250 m pixel at the valley floor edge got greener by +0.0570 NDVI per decade from 2000 to 2025.",

@@ -384,6 +384,13 @@ export const en = {
   "instrument.cutaway.metres": { text: "{value} m", kind: "label" },
   "instrument.cutaway.north": { text: "N", kind: "label" },
   "instrument.cutaway.south": { text: "S", kind: "label" },
+  // the snow summary records the snow recipe as not applicable (the place's sampled winters show almost no snow); it
+  // is not a finding that snow never falls
+  "instrument.cutaway.noSnow": {
+    text: "No snow drawn: the sampled winters showed almost none.",
+    kind: "label",
+    honesty: true,
+  },
   "instrument.cutaway.statement": { text: "Published statement {n}", kind: "label" },
 
   // Instruments: the briefing shell around them. Enter in the command line opens the valley with the typed text in
@@ -398,8 +405,9 @@ export const en = {
 
   // Instruments: the pixel anatomy (approved specimen C). Every number comes from the pixel's data file; the species
   // statements and their sources come from the statements fixture
+  // the neutral question, shown only when the case's record states none (P7b-10 states each place's own)
   "instrument.pixel.question": {
-    text: "Why can a pixel get greener while its pasture does not?",
+    text: "What is one pixel's trend made of?",
     kind: "ui",
   },
   "instrument.pixel.source.trend": {
@@ -668,6 +676,17 @@ export const en = {
   "overview.fdr.up": { text: "greening", kind: "label" },
   "overview.fdr.down": { text: "browning", kind: "label" },
   "overview.fdr.none": { text: "with a trend", kind: "label" },
+  // a direction-neutral place's record holds both shares: both are shown, each from its own Measurement (U25b)
+  "overview.fdr.share": { text: "{value} {direction}", kind: "label" },
+  "overview.fdr.both": { text: "{first}, {second}", kind: "label" },
+  "overview.finding.fdr.pair.1": {
+    text: "of the area after a false discovery rate check",
+    kind: "label",
+  },
+  "overview.lift.trend.pair": {
+    text: "{n} cells, {window}; {shares} after a false discovery rate check",
+    kind: "ui",
+  },
   "overview.finding.fdr.2": { text: "after a false discovery rate check", kind: "label" },
   "overview.field": { text: "Proposed field check, not measured", kind: "label", honesty: true },
   "overview.pixel": { text: "This pixel", kind: "label" },
@@ -733,8 +752,9 @@ export const en = {
   "overview.record.theilSen": { text: "Theil-Sen, 95%: {lower} to {upper}", kind: "label" },
   "overview.record.ols": { text: "Least squares, 95%: {lower} to {upper}", kind: "label" },
   "overview.record.dot": { text: "Each dot, one season's mean", kind: "label" },
+  // what the slope colours on the land are, and are not (the lead's U25b must-fix: no finding read into the map)
   "overview.onLand.fdrRule": {
-    text: "The map marks no cell as significant.",
+    text: "Colors show each cell's trend, not which cells pass the check.",
     kind: "ui",
     honesty: true,
   },

@@ -12,7 +12,7 @@ import { en, format } from "../../lib/copy/en";
 import { signed } from "../../lib/instruments/format";
 import type { ScatterData } from "../../lib/instruments/scatter/data";
 import { seasonWords, windowWords } from "../../lib/land/season";
-import type { Finding } from "../../lib/overview/findings";
+import { directionWord, type Finding } from "../../lib/overview/findings";
 import { chartScale, yearTicks, type SeasonChart } from "../../lib/overview/record";
 import type { RecordData } from "../../lib/overview/record-data";
 import type { Selection } from "../../lib/overview/scene/overview";
@@ -243,7 +243,17 @@ export function OverviewRecord({
           <div className={styles.k}>{kicker}</div>
           {finding ? (
             <div ref={refs.big} className={styles.big}>
-              {finding.display}
+              {finding.pair ? (
+                // both shares, each from its own Measurement, each with its direction (U25b)
+                <>
+                  {finding.display}
+                  <span className={styles.shareWord}>{directionWord(finding.direction)}</span>
+                  {finding.pair.display}
+                  <span className={styles.shareWord}>{directionWord(finding.pair.direction)}</span>
+                </>
+              ) : (
+                finding.display
+              )}
             </div>
           ) : null}
           {finding ? <div className={styles.cap}>{capText}</div> : null}

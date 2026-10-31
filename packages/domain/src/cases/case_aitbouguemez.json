@@ -225,6 +225,17 @@
         ],
         "placeFeatureIds": ["ctx_catchment_outlet", "ctx_tabant", "ctx_ait_ouchi_locator"],
         "selectedLayer": "vegetation_trend",
+        "rainfallWindow": {
+          "id": "sep_may",
+          "start": {
+            "month": "september",
+            "year": "previous_year"
+          },
+          "end": {
+            "month": "may",
+            "year": "same_year"
+          }
+        },
         "drawnAssets": [
           {
             "role": "trend_summary",
@@ -454,6 +465,13 @@
               "bundleId": "bundle_land_cover_ait_bouguemez",
               "assetKey": "land_cover_png_header"
             }
+          },
+          {
+            "role": "snow_summary",
+            "asset": {
+              "bundleId": "bundle_snow_cover_by_band_ait_bouguemez",
+              "assetKey": "snow_cover_by_band"
+            }
           }
         ]
       },
@@ -539,6 +557,7 @@
           "ev_herder_reported_species_change_sci03",
           "ev_upper_rangelands_vegetation_sci19"
         ],
+        "question": "Why can a pixel get greener while its pasture does not?",
         "drawnAssets": [
           {
             "role": "pixel_cells",

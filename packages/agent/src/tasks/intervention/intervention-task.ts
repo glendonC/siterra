@@ -35,6 +35,10 @@ export const INTERVENTION_PROMPT_VERSION = "intervention_feasibility@1";
  * The deferral option's fixed text, descriptive like every response text (no imperative to the
  * community; lead after b39). DESIGN holds the catalog rows.
  */
+/** Written by host code on a response whose model cited a hypothesis and no Evidence (even after repair). */
+export const NO_SOURCE_NOTE =
+  "No source cited: this response rests on a hypothesis and cites no Evidence.";
+
 export const DEFERRAL_TEXT = {
   description:
     "No change until the field check reports what it finds; the candidate responses are then compared again.",
@@ -128,6 +132,7 @@ export async function runInterventionTask(
     statement: e.statement,
   }));
 
+  let turns = 0;
   const loop = await runTaskLoop({
     adapter: deps.adapter,
     request: {
@@ -145,8 +150,16 @@ export async function runInterventionTask(
       },
     ],
     tools: deps.tools.forTask(task.allowedTools),
+    // The first answer must cite Evidence for every response; on the repair turn a response that
+    // still rests on a hypothesis alone is accepted and marked.
     validate: (text) =>
-      validateInterventionProposal(text, { evidence, hypotheses, measurements, years }),
+      validateInterventionProposal(text, {
+        evidence,
+        hypotheses,
+        measurements,
+        years,
+        noSource: (turns += 1) === 1 ? "refuse" : "mark",
+      }),
     taskId: task.id,
     trace: deps.trace,
     now: deps.now,
@@ -194,6 +207,7 @@ export async function runInterventionTask(
           ...replayLimitation(deps.adapter.route, deps.adapter.replayOrigin),
           "A candidate response, not a recommendation; nothing is decided or authorized.",
           "No benefit, outcome or effect is estimated.",
+          ...(a.noSource ? [NO_SOURCE_NOTE] : []),
         ],
       },
     };

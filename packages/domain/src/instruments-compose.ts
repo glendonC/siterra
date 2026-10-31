@@ -298,6 +298,25 @@ export function displayTextIssues(
   return issues;
 }
 
+/**
+ * The question a pixel anatomy asks (contracts 1.22.0): one question in the case's approved words,
+ * with no number, no prohibited phrase and no banned word. It is configuration text, never a model's.
+ */
+export function questionIssues(parameters: InstrumentSpec["parameters"]): string[] {
+  if (parameters.kind !== "pixel_anatomy" || parameters.question === undefined) return [];
+  const text = parameters.question;
+  const issues: string[] = [];
+  if (!text.trim().endsWith("?"))
+    issues.push(`The question "${text}" does not end with a question mark`);
+  if (/\d/.test(text)) issues.push(`The question "${text}" holds a digit`);
+  for (const hit of prohibitedHits(text)) {
+    issues.push(`The question "${text}" holds a prohibited phrase: ${hit.phrase}`);
+  }
+  const banned = captionBannedWords.exec(text);
+  if (banned !== null) issues.push(`The question "${text}" holds a banned word: ${banned[0]}`);
+  return issues;
+}
+
 export function composeInstruments(inputs: ComposeInputs): ComposeResult {
   const rules = inputs.config.instruments ?? [];
   const open = new Set(inputs.openExplanationIds);
@@ -407,6 +426,7 @@ export function composeInstruments(inputs: ComposeInputs): ComposeResult {
       }
     }
     reasons.push(...displayTextIssues(parameters, evidence));
+    reasons.push(...questionIssues(parameters));
     for (const ref of instrumentAssetRefs({ parameters })) {
       if (bundles.has(ref.bundleId) && !inputs.hasAsset(ref))
         reasons.push(`The bundle ${ref.bundleId} lists no asset ${ref.assetKey}`);
