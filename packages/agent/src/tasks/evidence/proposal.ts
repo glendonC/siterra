@@ -13,6 +13,7 @@ import type { CaseStore, StoredSource } from "../../tools/store.ts";
 import type { ClaimKind, DataBundleRecord, MeasurementRecord } from "../records.ts";
 import { issue, jsonPath } from "../validation.ts";
 import type { Checked, ValidationIssue } from "../validation.ts";
+import { toolNameMessage, toolNamesIn } from "./tool-names.ts";
 
 // propose_evidence (docs/reference/data-contracts.md#tool-argument-contracts): the schema is
 // ProposeEvidence from packages/contracts. Items are validated one by one; valid items commit and rejected ones are listed,
@@ -214,6 +215,7 @@ export async function validateEvidenceProposal(
 
   const accepted: AcceptedItem[] = [];
   const issues: ValidationIssue[] = [];
+  const repair = { toolNamed: false };
   items.forEach((item, i) => {
     const at = `$.items[${i}]`;
     const itemIssues: ValidationIssue[] = [];
@@ -337,6 +339,10 @@ export async function validateEvidenceProposal(
       for (const hit of prohibitedHits(text)) {
         itemIssues.push(issue("prohibited_claim", path, `"${hit.phrase}" ${hit.reason}.`));
       }
+      for (const name of toolNamesIn(text)) {
+        itemIssues.push(issue("prohibited_claim", path, toolNameMessage(name)));
+        repair.toolNamed = true;
+      }
       for (const rule of context.textRules ?? []) {
         const reason = rule.check(text, years);
         if (reason !== null) itemIssues.push(issue("prohibited_claim", path, reason));
@@ -358,5 +364,9 @@ export async function validateEvidenceProposal(
     });
   });
 
-  return accepted.length > 0 ? { ok: true, value: accepted, issues } : { ok: false, issues };
+  // A finding that names a tool is rejected whole; the other findings stand, and the proposal gets
+  // its one repair turn so that the rejected one can be written again (P9g).
+  return accepted.length > 0
+    ? { ok: true, value: accepted, issues, ...(repair.toolNamed ? { repair: true } : {}) }
+    : { ok: false, issues };
 }

@@ -65,6 +65,11 @@ export interface LoopOptions<T> {
   maxRounds?: number;
   /** Records the model and validation events concern, such as one explanation branch (TR-07). */
   entityIds?: readonly string[];
+  /**
+   * Whether the repaired value of a partial result is kept over the first one; the default keeps it.
+   * A task whose value is a list keeps the first when the repair returned fewer items.
+   */
+  keepRepaired?: (first: T, repaired: T) => boolean;
 }
 
 function repairText(issues: readonly ValidationIssue[], outputText: string): string {
@@ -93,6 +98,9 @@ export async function runTaskLoop<T>(options: LoopOptions<T>): Promise<LoopResul
   let lastRoundRead = false;
   let askedToPropose = false;
   const blocked = new Map<string, string>();
+  // A partial result the validator asked to repair, held while the repair turn runs: the repair
+  // can only add to it, so a repair that fails leaves it standing.
+  let held: { value: T; validation: ValidationResult } | null = null;
 
   const done = (status: LoopStatus, failureCode: string | null, value: T | null = null) => ({
     status,
@@ -103,6 +111,12 @@ export async function runTaskLoop<T>(options: LoopOptions<T>): Promise<LoopResul
     repaired,
     blockedInputs: [...blocked.values()],
   });
+  // The end of a loop whose model call or repair failed: a held partial result still stands.
+  const settle = (status: LoopStatus, failureCode: string | null) => {
+    if (held === null) return done(status, failureCode);
+    validation = held.validation;
+    return done("accepted", null, held.value);
+  };
   // A stop that names its cause (a spend guard stop) passes it as a string abort reason.
   const cancelCode = (): string =>
     typeof signal.reason === "string" ? signal.reason : "cancelled";
@@ -143,12 +157,12 @@ export async function runTaskLoop<T>(options: LoopOptions<T>): Promise<LoopResul
       validation: null,
     });
 
-    if (call.status === "refused") return done("refused", "model_refused");
+    if (call.status === "refused") return settle("refused", "model_refused");
     if (call.status === "incomplete")
-      return done("incomplete", call.incompleteReason ?? "incomplete");
+      return settle("incomplete", call.incompleteReason ?? "incomplete");
     if (call.status === "failed") {
       if (call.errorCode === "cancelled") return done("cancelled", cancelCode());
-      return done("model_failed", call.errorCode ?? "model_failed");
+      return settle("model_failed", call.errorCode ?? "model_failed");
     }
 
     lastRoundRead = call.toolCalls.length > 0;
@@ -186,14 +200,28 @@ export async function runTaskLoop<T>(options: LoopOptions<T>): Promise<LoopResul
       tool: null,
       validation,
     });
-    if (checked.ok) return done("accepted", null, checked.value);
+    if (checked.ok) {
+      if (checked.repair === true && checked.issues.length > 0 && !repaired && round < maxRounds) {
+        held = { value: checked.value, validation };
+        repaired = true;
+        input.push({ kind: "replay", items: call.replayItems });
+        input.push({ kind: "user_text", text: repairText(checked.issues, call.outputText) });
+        continue;
+      }
+      if (held !== null && options.keepRepaired?.(held.value, checked.value) === false) {
+        validation = held.validation;
+        return done("accepted", null, held.value);
+      }
+      return done("accepted", null, checked.value);
+    }
+    if (held !== null) return settle("rejected", "validation_rejected");
     if (checked.failureCode) return done("rejected", checked.failureCode);
     if (repaired) return done("rejected", "validation_rejected");
     repaired = true;
     input.push({ kind: "replay", items: call.replayItems });
     input.push({ kind: "user_text", text: repairText(checked.issues, call.outputText) });
   }
-  return done("round_limit", "round_limit");
+  return settle("round_limit", "round_limit");
 }
 
 async function runTool(

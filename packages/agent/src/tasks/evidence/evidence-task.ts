@@ -187,6 +187,8 @@ export async function runEvidenceTask(
         allowedClaimKinds: spec.claimKinds,
         ...(spec.textRules ? { textRules: spec.textRules } : {}),
       }),
+    // A repair that returns fewer findings than the first proposal accepted keeps the first.
+    keepRepaired: (first, repaired) => repaired.length >= first.length,
     taskId: task.id,
     trace: deps.trace,
     now: deps.now,
