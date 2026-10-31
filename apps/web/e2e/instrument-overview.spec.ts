@@ -135,7 +135,7 @@ test("opens a finding's record on its side and Esc returns", async ({ page }) =>
   await expect(open).toHaveAttribute("aria-keyshortcuts", "Enter");
   await expect(record.locator("[data-actions] > *")).toHaveText([
     "Open This PixelEnter",
-    "See the Five LayersL",
+    "See the LayersL",
     "BackEsc",
   ]);
   await expect.poll(() => opacity(page, "[data-record]")).toBe(1);
@@ -550,3 +550,22 @@ test("a question carried from an instrument opens the ask with it, sending nothi
   await expect(page.locator("[data-ask-activity]")).toHaveCount(0);
   expect(sent).toEqual([]);
 });
+
+for (const [w, h] of [
+  [1440, 900],
+  [1280, 800],
+] as const)
+  test(`the ask keeps the case's own question fully visible while it is typed, at ${String(w)} x ${String(h)} (U30)`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: w, height: h });
+    await ready(page);
+    const question = (await page.locator("[data-case-question]").first().innerText()).trim();
+    await page.keyboard.press("/");
+    await page.keyboard.type(question);
+    const input = page.locator("input[name='question']");
+    await expect(input).toHaveValue(question);
+    // nothing scrolled out of the field: the whole question fits it
+    expect(await input.evaluate((e) => e.scrollWidth - e.clientWidth)).toBeLessThanOrEqual(1);
+    expect(await input.evaluate((e) => e.scrollLeft)).toBe(0);
+  });

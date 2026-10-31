@@ -164,3 +164,16 @@ test("no drawing gets a non-number through the journey, the overview, a card and
   expect(await nonNumbers()).toEqual([]);
   expect(errors).toEqual([]);
 });
+
+test("the globe credits the rangeland layer it draws: Resolve's ecoregions, CC BY 4.0 (U30)", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await expect(page.locator("[data-opening]")).toBeVisible({ timeout: 60_000 });
+  // the layer and its credit from the opening on
+  await expect(page.getByText("Resolve Ecoregions")).toBeVisible();
+  await page.keyboard.press("Enter");
+  await expect(page.locator("[data-phase=globe]")).toBeVisible();
+  await page.keyboard.press("s");
+  await expect(page.getByText("Ecoregions 2017 © Resolve, CC BY 4.0")).toBeVisible();
+});

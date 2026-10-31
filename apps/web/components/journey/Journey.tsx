@@ -378,11 +378,12 @@ export function Journey({ globeAssets, arrival, snapshot }: JourneyProps) {
   );
 }
 
-/** The globe's credits behind one Sources button, their short names always visible. */
+/** The globe's credits behind one Sources button, their short names always visible: the relief, and the rangeland
+ * biomes layer drawn on it (U30: Resolve's CC BY 4.0 credit wherever the layer is shown). */
 function JourneySources({ open, onToggle }: { open: boolean; onToggle: (open: boolean) => void }) {
   const sources = {
-    lines: [en["credit.globe"].text],
-    short: [en["source.dem"].text],
+    lines: [en["credit.globe"].text, en["credit.resolve"].text],
+    short: [en["source.dem"].text, en["source.resolve"].text],
   };
   return (
     <>

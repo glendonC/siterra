@@ -99,6 +99,9 @@ export const en = {
     text: "Rangeland biomes, potential extent (Rangelands Atlas method)",
     kind: "ui",
   },
+  // the rangeland biomes layer's credit, as data/map/licences/resolve-ecoregions-2017.md gives it (U30)
+  "credit.resolve": { text: "Ecoregions 2017 © Resolve, CC BY 4.0", kind: "ui" },
+  "source.resolve": { text: "Resolve Ecoregions", kind: "label" },
   "credit.globe": {
     text: "Globe relief: produced using Copernicus WorldDEM™-90 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved",
     kind: "ui",
@@ -401,7 +404,8 @@ export const en = {
   // Instruments: the briefing shell around them. Enter in the command line opens the valley with the typed text in
   // the valley's command line, sending nothing
   // each view's name in the breadcrumb, in plain words (decision 13)
-  "instrument.shell.layers": { text: "Five layers", kind: "label" },
+  // no count: a place's record names its own layers (the second place has four; U30)
+  "instrument.shell.layers": { text: "Layers", kind: "label" },
   "instrument.shell.cutaway": { text: "Cut through", kind: "label" },
   "instrument.shell.pixel": { text: "This pixel", kind: "label" },
   "instrument.shell.rainfall": { text: "Rainfall", kind: "label" },
@@ -805,7 +809,7 @@ export const en = {
   "overview.record.rain": { text: "{window}, mm", kind: "label" },
   "overview.record.context": { text: "Published context", kind: "label" },
   // each record's one action, named by what the visitor will see (decision 13)
-  "overview.open.layers": { text: "See the Five Layers", kind: "button" },
+  "overview.open.layers": { text: "See the Layers", kind: "button" },
   "overview.open.cutaway": { text: "Cut Through the Land", kind: "button" },
   "overview.open.pixel": { text: "Open This Pixel", kind: "button" },
   "overview.open.rainfall": { text: "Compare with Rainfall", kind: "button" },
@@ -919,10 +923,6 @@ export type MessageId = keyof typeof en;
  * the rules it may break.
  */
 export const LINT_ALLOWLIST: Partial<Record<MessageId, { rules: string[]; reason: string }>> = {
-  "overview.open.layers": {
-    rules: ["VT-48"],
-    reason: "The lead's decision 13 names each record's action by what the visitor will see.",
-  },
   "overview.open.cutaway": {
     rules: ["VT-48"],
     reason: "The lead's decision 13 names each record's action by what the visitor will see.",

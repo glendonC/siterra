@@ -5,7 +5,7 @@
 // large light type; Esc closes it. Enter hands the text to the page (the overview sends it; an instrument carries it
 // to the overview). The activity line shows only once the page passes one, after Enter.
 
-import { useEffect, useRef, type CSSProperties, type Ref } from "react";
+import { useEffect, useLayoutEffect, useRef, type CSSProperties, type Ref } from "react";
 import { en, format } from "../../lib/copy/en";
 import type { AskLine } from "../../lib/overview/ask-line";
 import styles from "./Ask.module.css";
@@ -37,6 +37,9 @@ export interface AskProps {
 const typing = (t: EventTarget | null) =>
   t instanceof HTMLElement &&
   (t.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(t.tagName));
+
+/** The smallest type a long question steps down to before it would scroll (U30). */
+const ASK_MIN_PX = 24;
 
 export function Ask({
   variant,
@@ -78,6 +81,22 @@ export function Ask({
   }, [keysOff, open, onOpen, onClose]);
 
   // open, the typing goes to the question; closed, the focus leaves it
+  // a long question stays whole on its one line: the type steps down to fit the field, from 46 px to 24 px (U30)
+  useLayoutEffect(() => {
+    const el = inputRef.current;
+    if (!el) return;
+    el.style.fontSize = "";
+    if (!text || el.clientWidth < 1) return;
+    const full = parseFloat(getComputedStyle(el).fontSize) || 46;
+    const ctx = document.createElement("canvas").getContext("2d");
+    if (!ctx) return;
+    const cs = getComputedStyle(el);
+    ctx.font = `${cs.fontWeight} ${String(full)}px ${cs.fontFamily}`;
+    const width = ctx.measureText(text).width * 1.02;
+    if (width <= el.clientWidth) return;
+    el.style.fontSize = `${String(Math.max(ASK_MIN_PX, Math.floor((full * el.clientWidth) / width)))}px`;
+    el.scrollLeft = 0;
+  }, [text, open]);
   useEffect(() => {
     if (open) inputRef.current?.focus();
     else inputRef.current?.blur();
