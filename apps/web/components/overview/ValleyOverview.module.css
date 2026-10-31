@@ -635,3 +635,14 @@
   color: var(--ov-ink-2);
   white-space: pre-line;
 }
+
+/* a question at work (U29): the run takes the arc; the findings' numbers wait until it is put away (Esc) */
+.layer[data-at-work] :is(.findings, [data-wire]) {
+  opacity: 0 !important;
+  pointer-events: none;
+}
+
+/* while it runs, the run's own cards say what runs; the ask's line gives way to the run's count */
+.layer[data-at-work="running"] [data-ask-beside] {
+  visibility: hidden !important;
+}

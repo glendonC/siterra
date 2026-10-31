@@ -274,6 +274,16 @@ export interface OverviewLayout {
   anchor: Point | null;
   /** What the opened finding's card must not cover: the whole land, the band's place, or the pixel's footprint. */
   subject: { x0: number; y0: number; x1: number; y1: number };
+  /**
+   * The drawn arc on screen, a point every 2 degrees from its start (where the ask rests) clockwise over its span: a
+   * live question's run is drawn along it (U29, specimen R).
+   */
+  arcAt: Point[];
+  /**
+   * The catchment's left-most rim point in the land's middle band on screen: where a run's proposed check for the
+   * whole catchment is anchored (U29).
+   */
+  rimLeft: Point | null;
   /** The pixel and its risen cells on screen while it is opened (U27), for the checks that no card covers it. */
   pixelBox: { x0: number; y0: number; x1: number; y1: number } | null;
   /** Each package field check's band's mean place on the land, where its marker stands (UI-2); empty otherwise. */
@@ -1415,6 +1425,18 @@ export function mountOverview(
       landBox: lb,
       anchor: anchorOf(state.sel, lb),
       subject: subjectOf(state.sel, lb),
+      arcAt: Array.from({ length: Math.floor(SPAN / 2) + 1 }, (_, i) =>
+        project(dialAt(ARC.a0 + i * 2)),
+      ),
+      rimLeft: (() => {
+        // the left-most rim point in the land's middle band, so a card there stands beside the land, not its tip
+        const pts = rimTop.map(project);
+        const mid = pts.filter(
+          (q) => q.y >= lb.y0 + 0.35 * (lb.y1 - lb.y0) && q.y <= lb.y0 + 0.65 * (lb.y1 - lb.y0),
+        );
+        const from = mid.length ? mid : pts;
+        return from.length ? from.reduce((b, q) => (q.x < b.x ? q : b)) : null;
+      })(),
       pixelBox:
         (state.split ?? 0) > 0.5 && pixelPts.length
           ? bbox(pixelPts.flatMap((p) => [project(p), project([p[0], p[1] + CELL_RISE, p[2]])]))

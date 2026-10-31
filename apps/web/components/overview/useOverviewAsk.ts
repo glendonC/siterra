@@ -7,7 +7,7 @@
 // reading pace (usePacedLog). The session's snapshot is handed back so the page can reopen its records when a
 // commit advances the case revision.
 
-import type { CaseSnapshot } from "@siterra/contracts";
+import type { CaseSnapshot, Event } from "@siterra/contracts";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { replayOrigin } from "../../lib/activity/activity";
 import { commandRunning } from "../../lib/card/work";
@@ -25,6 +25,8 @@ export interface OverviewAsk {
   send: (typed: string) => void;
   /** The case as the session holds it now. */
   snapshot: CaseSnapshot;
+  /** The session's events as they reach the page (a replay at reading pace): the run's own stream (U29). */
+  events: readonly Event[];
 }
 
 export function useOverviewAsk(initial: CaseSnapshot): OverviewAsk {
@@ -76,5 +78,5 @@ export function useOverviewAsk(initial: CaseSnapshot): OverviewAsk {
     [snapshot, paced.log, paced.pacing, commandId, sent, notice],
   );
 
-  return { activity, send, snapshot, commandId };
+  return { activity, send, snapshot, commandId, events: paced.log.events };
 }

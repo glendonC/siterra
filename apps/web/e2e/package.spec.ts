@@ -192,7 +192,8 @@ test("from a question's results, What to Do Next opens the package on the land, 
   await page.keyboard.press("/");
   await page.keyboard.type("What should happen next?");
   await page.keyboard.press("Enter");
-  await page.locator("[data-ask-findings]").click();
+  // the run takes the arc (U29); once it is done its question card opens the findings
+  await page.locator("[data-run-open-findings]").click();
   // the results offer the package as their Enter
   const open = page.locator("[data-open-package]");
   await expect(open).toHaveText("What to Do NextEnter");
