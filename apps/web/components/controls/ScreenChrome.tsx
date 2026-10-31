@@ -6,7 +6,7 @@
 // sources behind one of them (S) with one short line of the data's names always visible, and a small view control
 // (reset, zoom out, zoom in) for screens with a 3D view. Words come from the catalog, colours from the theme tokens.
 
-import { useEffect, useId, useRef, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { en, format } from "../../lib/copy/en";
 import { Control, KeyChip } from "./Control";
 import styles from "./ScreenChrome.module.css";
@@ -51,6 +51,72 @@ export function Breadcrumb({ crumbs, onBack }: { crumbs: Crumb[]; onBack: () => 
         ))}
       </ol>
     </nav>
+  );
+}
+
+/** The case's mode as its record states it. */
+export type CaseMode = "live" | "replay" | "concept";
+
+/**
+ * The mode line at the top right (U32, PC-04, DQ-02): the case's mode from its record and, while a question's run is
+ * on the screen, where that run comes from (its own source: live, or a replay). One click opens what Siterra does not
+ * do; Esc, a second click or a click elsewhere closes it.
+ */
+export function ModeLine({ mode, run = null }: { mode: CaseMode; run?: "live" | "replay" | null }) {
+  const [open, setOpen] = useState(false);
+  const id = useId();
+  const button = useRef<HTMLButtonElement>(null);
+  const box = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    // a click anywhere outside the mode line closes the popover
+    const onDown = (e: PointerEvent) => {
+      if (e.target instanceof Node && box.current?.contains(e.target)) return;
+      setOpen(false);
+    };
+    // in the capture phase, so the Esc that closes the popover is not also the screen's Esc
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      setOpen(false);
+      button.current?.focus({ preventScroll: true });
+    };
+    window.addEventListener("keydown", onKey, true);
+    window.addEventListener("pointerdown", onDown, true);
+    return () => {
+      window.removeEventListener("keydown", onKey, true);
+      window.removeEventListener("pointerdown", onDown, true);
+    };
+  }, [open]);
+  return (
+    <div ref={box} className={styles.mode} data-mode-line={mode} data-run={run ?? undefined}>
+      <button
+        ref={button}
+        type="button"
+        className={styles.modeButton}
+        aria-expanded={open}
+        aria-controls={open ? id : undefined}
+        onClick={() => {
+          setOpen((o) => !o);
+        }}
+      >
+        <span>{en[`chrome.mode.${mode}`].text}</span>
+        {run ? <span className={styles.modeRun}>{en[`chrome.mode.run.${run}`].text}</span> : null}
+      </button>
+      {open ? (
+        <div
+          id={id}
+          className={styles.scope}
+          role="dialog"
+          aria-labelledby={`${id}-not`}
+          data-scope-popover
+        >
+          <p id={`${id}-not`}>{en["chrome.scope.not"].text}</p>
+          <p>{en["chrome.scope.review"].text}</p>
+        </div>
+      ) : null}
+    </div>
   );
 }
 

@@ -76,6 +76,7 @@ import {
 } from "../instruments/InstrumentRecords";
 import {
   Breadcrumb,
+  ModeLine,
   KeyLegend,
   OPENING_HREF,
   SourcesLine,
@@ -2395,6 +2396,10 @@ function OverviewReady({
           />
         ) : null}
       </div>
+      <ModeLine
+        mode={snapshot.case.mode}
+        run={run?.sourceKnown ? (run.replay ? "replay" : "live") : null}
+      />
       <Breadcrumb
         onBack={() => {
           if (selRef.current) back();

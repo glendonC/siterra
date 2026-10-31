@@ -209,7 +209,8 @@
 .recording {
   position: absolute;
   right: 48px;
-  top: 40px;
+  /* under the mode line on the breadcrumb's row (U32) */
+  top: 76px;
   text-align: right;
 }
 

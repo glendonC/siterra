@@ -50,6 +50,25 @@ export const en = {
   "chrome.data": { text: "Data: {names}", kind: "ui" },
   // the drawn relief's vertical exaggeration, after the data's names where land is drawn (decision 16)
   "chrome.relief": { text: "Relief ×{value}", kind: "label" },
+  // the mode line at the top right of every screen after the opening (U32, PC-04, DQ-02): the case's mode from the
+  // record, then while a question's run is on the screen, where that run comes from
+  "chrome.mode.concept": { text: "Concept case", kind: "label", honesty: true },
+  "chrome.mode.replay": { text: "Replay case", kind: "label", honesty: true },
+  "chrome.mode.live": { text: "Live case", kind: "label" },
+  "chrome.mode.run.live": { text: "Live", kind: "label" },
+  "chrome.mode.run.replay": { text: "Replay", kind: "label", honesty: true },
+  // its popover: what Siterra does not do (the three items exactly) and who reviews
+  "chrome.scope.not": {
+    text: "Siterra does not contact people, spend money or make land decisions.",
+    kind: "ui",
+    honesty: true,
+  },
+  // true for a visitor too: nothing a visitor's run makes is reviewed, so it stays a draft
+  "chrome.scope.review": {
+    text: "Every result is a draft until a person reviews it.",
+    kind: "ui",
+    honesty: true,
+  },
   // the data's short names for that line
   "source.dem": { text: "Copernicus DEM", kind: "label" },
   "source.worldcover": { text: "ESA WorldCover", kind: "label" },

@@ -60,6 +60,9 @@ export interface RunModel {
   done: boolean;
   /** Replayed runs say so: "recorded" outputs of a real run, or a "synthetic" replay; null for a live run. */
   replay: "recorded" | "synthetic" | null;
+  /** Whether any event has said where the run comes from yet (its usage names the provider): until then `replay`
+   * being null does not mean live. */
+  sourceKnown: boolean;
   tasks: RunTask[];
   findings: RunFinding[];
   branches: RunBranch[];
@@ -116,8 +119,10 @@ export function runModel(
     return t;
   };
   let replay: RunModel["replay"] = null;
+  let sourceKnown = false;
   for (const e of own) {
     const t = task(e);
+    if (e.usage) sourceKnown = true;
     if (e.usage?.provider === "replay") replay = e.usage.replayOrigin ?? "synthetic";
     if (!t) continue;
     const start = () => {
@@ -210,6 +215,7 @@ export function runModel(
     nowMs: last ? ms(last) : 0,
     done: own.some((e) => e.kind === "command.completed"),
     replay,
+    sourceKnown,
     tasks: [...tasks.values()],
     findings,
     branches,

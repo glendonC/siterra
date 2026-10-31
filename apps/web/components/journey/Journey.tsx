@@ -23,7 +23,7 @@ import type { CaseSnapshot } from "@siterra/contracts";
 import type { ReadyArrival } from "../../lib/projection/arrival";
 import { InstrumentRecords } from "../instruments/InstrumentRecords";
 import { ValleyOverview } from "../overview/ValleyOverview";
-import { KeyLegend, SourcesLine, SourcesPanel, typing } from "../controls/ScreenChrome";
+import { KeyLegend, ModeLine, SourcesLine, SourcesPanel, typing } from "../controls/ScreenChrome";
 import styles from "./Journey.module.css";
 
 export interface JourneyProps {
@@ -372,6 +372,7 @@ export function Journey({ globeAssets, arrival, snapshot }: JourneyProps) {
             {en["globe.legend"].text}
           </p>
           <JourneySources open={sourcesOpen} onToggle={setSourcesOpen} />
+          {phase === "globe" ? <ModeLine mode={snapshot.case.mode} /> : null}
         </>
       ) : null}
     </div>

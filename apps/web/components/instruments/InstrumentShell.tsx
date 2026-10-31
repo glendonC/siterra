@@ -15,6 +15,7 @@ import { placeNamesFromCase } from "../../lib/projection/arrival";
 import { carryQuestion } from "../../lib/shell/handoff";
 import {
   Breadcrumb,
+  ModeLine,
   KeyLegend,
   OPENING_HREF,
   SourcesLine,
@@ -199,6 +200,7 @@ function ShellChrome({
 
   return (
     <>
+      {records.status === "ready" ? <ModeLine mode={records.snapshot.case.mode} /> : null}
       <Breadcrumb
         onBack={back}
         crumbs={[

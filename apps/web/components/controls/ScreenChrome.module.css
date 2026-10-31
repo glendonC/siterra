@@ -182,3 +182,66 @@
 .relief {
   margin-left: 14px;
 }
+
+/* the mode line at the top right (U32): a quiet pill on the breadcrumb's row, its popover under it */
+.mode {
+  position: absolute;
+  right: 40px;
+  top: 28px;
+  z-index: 20;
+  pointer-events: auto;
+}
+
+.modeButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 30px;
+  padding: 0 12px;
+  border: 1px solid var(--control-line);
+  border-radius: 999px;
+  background: none;
+  font: 400 13px / 18px var(--font-sans);
+  color: var(--control-grey);
+  cursor: pointer;
+}
+
+.modeButton:hover,
+.modeButton:focus-visible,
+.modeButton[aria-expanded="true"] {
+  color: var(--control-ink);
+  background: var(--control-fill);
+}
+
+.modeButton:focus-visible {
+  outline: 1px solid var(--control-line-strong);
+}
+
+/* the run's source, set apart by a hairline rather than a separator character */
+.modeRun {
+  padding-left: 8px;
+  border-left: 1px solid var(--control-line);
+  color: var(--control-ink);
+}
+
+.scope {
+  position: absolute;
+  right: 0;
+  top: 40px;
+  width: 300px;
+  padding: 12px 14px;
+  border: 1px solid var(--control-line);
+  border-radius: 12px;
+  background: var(--bg-overlay);
+  color: var(--control-ink);
+  font: 400 13px / 19px var(--font-sans);
+}
+
+.scope p {
+  margin: 0;
+}
+
+.scope p + p {
+  margin-top: 6px;
+  color: var(--control-grey);
+}
