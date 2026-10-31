@@ -96,7 +96,7 @@ export const pkg = {
   },
   "package.deferred": { text: "Left for Later", kind: "heading" },
   "package.fromPlan": {
-    text: "From the field plan Siterra drafted; a person reviews it.",
+    text: "From the field plan Siterra drafted, for a person to review.",
     kind: "ui",
     honesty: true,
   },

@@ -150,6 +150,16 @@ async function stubbedRun(page: Page, live: boolean) {
   });
   // no run, no run word
   await expect(page.locator("[data-mode-line]")).not.toHaveAttribute("data-run", /./);
+  // every run word the mode line shows from here on, in order (AUDIT's sampler: never Live before Replay)
+  await page.evaluate(() => {
+    const seen: string[] = [];
+    (window as unknown as { runWords: string[] }).runWords = seen;
+    new MutationObserver((records) => {
+      for (const r of records)
+        if (r.target instanceof Element && r.target.hasAttribute("data-mode-line"))
+          seen.push(r.target.getAttribute("data-run") ?? "-");
+    }).observe(document.body, { subtree: true, attributes: true, attributeFilter: ["data-run"] });
+  });
   await page.keyboard.press("/");
   await page.keyboard.type("Why is the valley floor greener?");
   await page.keyboard.press("Enter");
@@ -165,6 +175,13 @@ test("a replayed run says Replay on the mode line, clear of the run's own note",
   await expect(note).toBeVisible({ timeout: 30_000 });
   const line = page.locator("[data-mode-line]");
   await expect(line).toHaveAttribute("data-run", "replay");
+  // from Enter until the run settles, the line never said Live
+  await expect(page.locator("[data-overview-root][data-at-work='done']")).toHaveCount(1, {
+    timeout: 60_000,
+  });
+  const words = await page.evaluate(() => (window as unknown as { runWords: string[] }).runWords);
+  expect(words).toContain("replay");
+  expect(words).not.toContain("live");
   // the case's mode and the run's source are two elements, so their text runs together here
   await expect.poll(() => shownModeLines(page)).toEqual(["Concept caseReplay"]);
   const a = await line.boundingBox();
