@@ -304,10 +304,11 @@ export async function runBriefPackageTask(
   if (accepted) {
     const { value } = accepted;
     const cited = accepted.evidence;
+    // Every candidate response of the command is in the package, whichever the model cited: host
+    // code lists them all in the order of their IDs, so none is ranked (P9f).
+    const shown = [...interventions.values()].sort((x, y) => x.id.localeCompare(y.id));
     // Every ID the brief cites is an input version, so a revised input stales it (PLATFORM 32).
-    const briefHypotheses = [
-      ...new Set(accepted.interventions.flatMap((r) => r.hypothesisIds)),
-    ].flatMap((id) => {
+    const briefHypotheses = [...new Set(shown.flatMap((r) => r.hypothesisIds))].flatMap((id) => {
       const h = hypotheses.get(id);
       return h ? [h] : [];
     });
@@ -318,7 +319,7 @@ export async function runBriefPackageTask(
       methodVersion: null,
       inputVersions: [
         ...cited.map((e) => ({ entityId: e.id, revision: e.revision })),
-        ...accepted.interventions.map((r) => ({ entityId: r.id, revision: r.revision })),
+        ...shown.map((r) => ({ entityId: r.id, revision: r.revision })),
         ...briefHypotheses.map((h) => ({ entityId: h.id, revision: h.revision })),
       ],
       generatedByTaskId: task.id,
@@ -331,7 +332,7 @@ export async function runBriefPackageTask(
     // no dependency the coordinator named as failed.
     const missing = [
       ...task.missingInputs,
-      ...(accepted.interventions.length === 0 ? [PACKAGE_TEXT.missingIntervention] : []),
+      ...(shown.length === 0 ? [PACKAGE_TEXT.missingIntervention] : []),
       ...(value.brief.nextMeasurements.some((l) =>
         l.evidenceIds.some((id) => evidence.get(id)?.claimKind === "field_requirement"),
       )
@@ -396,7 +397,7 @@ export async function runBriefPackageTask(
       kind: value.action.kind,
       status: ready ? "awaiting_review" : "blocked",
       evidenceIds: [...new Set(value.action.evidenceIds)],
-      interventionIds: accepted.interventions.map((r) => r.id),
+      interventionIds: shown.map((r) => r.id),
       dependsOnActionIds: [],
       resourceRequirementIds: resources.map((r) => r.id),
       requiredReviewRoles: roles,
@@ -439,7 +440,7 @@ export async function runBriefPackageTask(
       sourceCaseRevision: input.expectedCaseRevision,
       evidenceIds: cited.map((e) => e.id),
       hypothesisIds: briefHypotheses.map((h) => h.id),
-      interventionIds: accepted.interventions.map((r) => r.id),
+      interventionIds: shown.map((r) => r.id),
       actionIds: [actionId],
       ...sections,
       reviewDecisionIds: requests.map((r) => r.id),

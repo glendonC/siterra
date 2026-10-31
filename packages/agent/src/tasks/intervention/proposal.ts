@@ -95,8 +95,8 @@ export interface AcceptedIntervention {
   hypotheses: HypothesisRecord[];
   /** True when the response cites a hypothesis but no Evidence (accepted on the repaired turn only). */
   noSource: boolean;
-  /** Cited ids the task could not use, left out on the repaired turn. */
-  dropped: string[];
+  /** Cited ids the task could not use, left out on the repaired turn, with why. */
+  dropped: { id: string; reason: "unavailable" | "contradicted" }[];
 }
 
 export interface InterventionContext {
@@ -246,7 +246,7 @@ export function validateInterventionProposal(
   const issues: ValidationIssue[] = [];
   const titles = new Set<string>();
   const uncited = new Set<number>();
-  const droppedOf = new Map<number, string[]>();
+  const droppedOf = new Map<number, { id: string; reason: "unavailable" | "contradicted" }[]>();
   items.forEach((item, i) => {
     const at = `$.items[${i}]`;
     const own: ValidationIssue[] = [];
@@ -305,11 +305,11 @@ export function validateInterventionProposal(
     // On the repaired turn an id the task cannot use is left out, not refused (P9e); on the first it
     // goes back with the batch.
     const leave = context.noSource === "mark";
-    const dropped: string[] = [];
+    const dropped: { id: string; reason: "unavailable" | "contradicted" }[] = [];
     const evidence = item.evidenceIds.flatMap((id, j) => {
       const e = context.evidence.get(id);
       if (!e) {
-        if (leave) dropped.push(id);
+        if (leave) dropped.push({ id, reason: "unavailable" });
         else {
           add(
             "unknown_reference",
@@ -324,7 +324,7 @@ export function validateInterventionProposal(
     const hypotheses = item.hypothesisIds.flatMap((id, j) => {
       const h = context.hypotheses.get(id);
       if (!h) {
-        if (leave) dropped.push(id);
+        if (leave) dropped.push({ id, reason: "unavailable" });
         else {
           add(
             "unknown_reference",
@@ -336,7 +336,7 @@ export function validateInterventionProposal(
       }
       // proposes_response means "if the explanation holds"; a contradicted or stale one does not.
       if (h.status === "inconsistent" || h.status === "stale") {
-        if (leave) dropped.push(id);
+        if (leave) dropped.push({ id, reason: "contradicted" });
         else {
           add(
             "claim_kind",

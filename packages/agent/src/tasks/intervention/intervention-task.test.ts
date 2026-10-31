@@ -16,6 +16,7 @@ import {
   DEFERRAL_TEXT,
   LEFT_OUT_NOTE,
   NO_SOURCE_NOTE,
+  UNUSABLE_HYPOTHESIS_NOTE,
   runInterventionTask,
 } from "./intervention-task.ts";
 import {
@@ -331,8 +332,8 @@ describe("propose_interventions validation", () => {
         [1, 1, false],
       ]);
       expect(result.ok && result.value[0]?.dropped).toEqual([
-        "ev_test_not_available",
-        "hyp_test_contra",
+        { id: "ev_test_not_available", reason: "unavailable" },
+        { id: "hyp_test_contra", reason: "contradicted" },
       ]);
     });
 
@@ -342,7 +343,9 @@ describe("propose_interventions validation", () => {
       expect(result.issues).toEqual([]);
       expect(result.ok && result.value[0]?.item.evidenceIds).toEqual(["ev_test_need"]);
       expect(result.ok && result.value[0]?.noSource).toBe(false);
-      expect(result.ok && result.value[0]?.dropped).toEqual(["ev_test_not_available"]);
+      expect(result.ok && result.value[0]?.dropped).toEqual([
+        { id: "ev_test_not_available", reason: "unavailable" },
+      ]);
     });
   });
 
@@ -474,7 +477,7 @@ describe("intervention_feasibility task", () => {
           tools: caseToolRegistry(store, CASE_ID),
           newEvidenceId: () => `ev_test_${String((n += 1))}`,
           newRecordId: (prefix) => `${prefix}_test_${String((n += 1))}`,
-          committedHypotheses: [HYP],
+          committedHypotheses: [HYP, CONTRA],
           now: () => AT,
         },
       );
@@ -530,6 +533,24 @@ describe("intervention_feasibility task", () => {
         expect(r.provenance.limitations).toContain(NO_SOURCE_NOTE);
         expect(r.provenance.limitations).toContain(LEFT_OUT_NOTE);
       }
+    });
+
+    it("words an unavailable record and a contradicted hypothesis apart", async () => {
+      const mixed = (title: string, extra: Record<string, unknown>) =>
+        option({ title, evidenceIds: ["ev_test_need"], ...extra });
+      const answer = [
+        mixed("Gone evidence", { evidenceIds: ["ev_test_need", "ev_test_not_available"] }),
+        mixed("Contradicted hypothesis", { hypothesisIds: ["hyp_test_contra"] }),
+      ];
+      const { loop, commit } = await runWith([answer, answer]);
+      expect(loop.status).toBe("accepted");
+      const rows = interventionsOf(commit).filter((r) => !/^Defer/.test(r.title));
+      const gone = rows.find((r) => r.title === "Gone evidence");
+      const contradicted = rows.find((r) => r.title === "Contradicted hypothesis");
+      expect(gone?.provenance.limitations).toContain(LEFT_OUT_NOTE);
+      expect(gone?.provenance.limitations).not.toContain(UNUSABLE_HYPOTHESIS_NOTE);
+      expect(contradicted?.provenance.limitations).toContain(UNUSABLE_HYPOTHESIS_NOTE);
+      expect(contradicted?.provenance.limitations).not.toContain(LEFT_OUT_NOTE);
     });
 
     it("the first answer that cites an unusable record is still sent back, not kept", async () => {

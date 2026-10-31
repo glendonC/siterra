@@ -26,8 +26,8 @@ test("live: commission, stream, Observations and reload on the Model API route",
   page,
   baseURL,
 }) => {
-  // the command's wall clock is 180 s (P0_LIMITS); the arrival and the reload need time on top
-  test.setTimeout(300_000);
+  // the command's wall clock is 300 s (P0_LIMITS); the arrival and the reload need time on top
+  test.setTimeout(420_000);
   const start = await page.request.post("/api/demo-sessions", {
     headers: { origin: baseURL ?? "" },
   });
@@ -48,7 +48,7 @@ test("live: commission, stream, Observations and reload on the Model API route",
   await expect(card).toContainText(
     "Is grazing changing the shared pastures of the Aït Bouguemez valley?",
   );
-  await expect(card).toContainText("Request complete", { timeout: 200_000 });
+  await expect(card).toContainText("Request complete", { timeout: 330_000 });
   await expect(card).toContainText("Observations");
   await expect(card).toContainText(
     "Catchment rainfall, CHIRPS v3.0 monthly: 84 of 84 months observed, Jan 2019 to Dec 2025",
