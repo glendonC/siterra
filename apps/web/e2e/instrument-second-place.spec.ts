@@ -93,3 +93,39 @@ test("the first place's pixel asks the question its record states", async ({ pag
     { timeout: 60_000 },
   );
 });
+
+test("the second place's field check card has no context step and no species line, its record publishing none", async ({
+  page,
+}) => {
+  await page.goto("/valley?case=case_calaveras_creek");
+  await expect(page.locator("[data-overview-root][data-ready]")).toBeAttached({ timeout: 90_000 });
+  await page.locator("[data-finding='pixel']").click();
+  await page.locator("[data-record] [data-actions] a").first().click();
+  const view = page.locator("[data-instrument='pixel'][data-around]");
+  await view.locator("[data-chip='06']").click();
+  const card = view.locator("[data-part='06']");
+  await expect(card).toContainText("Proposed field check. Not measured.");
+  await expect(card.getByText("Records plant cover by species and palatability")).toBeVisible();
+  await expect(card.locator("[data-field-context-step]")).toHaveCount(0);
+  await expect(card).not.toContainText("No spectrum");
+});
+
+test("a view opened in place keeps the place in the address, so a reload stays on the second place", async ({
+  page,
+}) => {
+  test.setTimeout(180_000);
+  await page.goto("/valley?case=case_calaveras_creek");
+  await expect(page.locator("[data-overview-root][data-ready]")).toBeAttached({ timeout: 90_000 });
+  await page.locator("[data-finding='rain']").click();
+  await page.locator("[data-record] [data-actions] a").nth(1).click();
+  await expect(page).toHaveURL(/\/instruments\/layers\?case=case_calaveras_creek$/, {
+    timeout: 15_000,
+  });
+  await page.reload();
+  await expect(page.locator("[data-crumbs]").last()).toContainText("Calaveras Creek catchment", {
+    timeout: 90_000,
+  });
+  await expect(page).toHaveURL(/case=case_calaveras_creek/);
+  await page.keyboard.press("Escape");
+  await expect(page).toHaveURL(/\/valley\?case=case_calaveras_creek$/, { timeout: 15_000 });
+});

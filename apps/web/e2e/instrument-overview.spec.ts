@@ -375,6 +375,8 @@ test("the opened pixel's field check card keeps its proposal and transect, the r
   await view.locator("[data-chip='06']").click();
   const card = view.locator("[data-part='06']");
   await expect(card).toContainText("Proposed field check. Not measured.");
+  // the method line stands with the transect's at rest (U28e)
+  await expect(card.getByText("Records plant cover by species and palatability")).toBeVisible();
   const step = card.locator("[data-field-context-step]");
   await expect(step).toHaveAttribute("aria-expanded", "false");
   await expect(card.locator("[data-field-context]")).toBeHidden();

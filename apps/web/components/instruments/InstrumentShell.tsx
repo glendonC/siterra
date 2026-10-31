@@ -40,8 +40,9 @@ const VIEW_NAME: Record<InstrumentId, MessageId> = {
   field: "instrument.shell.field",
 };
 
+// a full load; the way back to the overview keeps the address's query (the place, ?case=), so it opens the same place
 const go = (href: string) => {
-  window.location.assign(href);
+  window.location.assign(href === "/valley" ? href + window.location.search : href);
 };
 
 export function InstrumentShell({

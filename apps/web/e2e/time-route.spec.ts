@@ -32,9 +32,13 @@ test("the second place opens See It Over Time over its own drawn land, with no f
   await page.goto("/instruments/time?case=case_calaveras_creek");
   const view = page.locator("[data-time-view]");
   await expect(view).toBeVisible({ timeout: 90_000 });
-  await expect(page).toHaveURL(/\/instruments\/time(\?|$)/);
+  await expect(page).toHaveURL(/\/instruments\/time\?case=case_calaveras_creek$/);
   await expect(view).toContainText("No snow layer");
   expect(await page.locator("body").innerText()).not.toMatch(/Aït Bouguemez|March to June/);
+  // a reload opens it again on the second place (UI-2: the address keeps the case)
+  await page.reload();
+  await expect(view).toBeVisible({ timeout: 90_000 });
+  await expect(view).toContainText("No snow layer");
 });
 
 test("a case whose land is not drawn stays on its overview, under the overview's address", async ({

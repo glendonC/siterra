@@ -971,13 +971,26 @@ export function mountPixel(
       L.rowB + 110,
       w,
     );
-    // in place (the lead's U28d), the card is its title, the proposal, the transect and its one line; what it would
-    // record and the published context wait behind a step inside the card
-    const behind = around ? place(div("fieldContext", stage), x0, L.rowB + 160, w) : null;
+    // what the check would record: the method line, with the transect's (the lead's U28e)
+    const records = place(
+      div("recordsItem", stage, en["instrument.pixel.field.records"].text),
+      x0,
+      L.rowB + 126,
+      w,
+    );
+    // the published context only where the record publishes it; the no-spectrum line only after statements that name
+    // species (U28e: a place whose record publishes none shows neither)
+    const hasContext = statements.statements.length > 0;
+    // in place (the lead's U28d), the card is its title, the proposal, the transect and its lines; the published
+    // context waits behind a step inside the card
+    // the step under the method line, however many lines it wraps to in the card's width
+    const stepY = L.rowB + 126 + records.offsetHeight + 8;
+    const behind =
+      around && hasContext ? place(div("fieldContext", stage), x0, stepY + 32, w) : null;
     if (behind) {
       behind.style.display = "none";
       behind.dataset.fieldContext = "";
-      const step = place(document.createElement("button"), x0, L.rowB + 128);
+      const step = place(document.createElement("button"), x0, stepY);
       step.type = "button";
       step.className = c("textButton", "contextStep");
       step.textContent = en["overview.record.context"].text;
@@ -993,8 +1006,9 @@ export function mountPixel(
         g.setAttribute("display", open ? "none" : "inline");
         g.style.visibility = open ? "hidden" : "";
         transectNote.style.display = open ? "none" : "";
-        place(step, x0, open ? L.rowB + 52 : L.rowB + 128);
-        place(behind, x0, open ? L.rowB + 84 : L.rowB + 160, w);
+        records.style.display = open ? "none" : "";
+        place(step, x0, open ? L.rowB + 52 : stepY);
+        place(behind, x0, open ? L.rowB + 84 : stepY + 32, w);
         // opened, it ends above the ask disc on the arc (decision 13) and scrolls inside the card if it needs more
         behind.style.maxHeight = "";
         // the ask disc on screen (another page's disc may wait off it)
@@ -1009,8 +1023,6 @@ export function mountPixel(
         refit("06");
       });
     }
-    const records = div("recordsItem", behind ?? stage, en["instrument.pixel.field.records"].text);
-    if (!behind) place(records, x0, L.rowB + 126, w);
     // each context statement as the record's display text, its sources after it in parentheses
     const ref = (st: PlacedStatements["statements"][number]) => {
       const refs = st.cites
@@ -1028,12 +1040,14 @@ export function mountPixel(
         .join("; ");
       return format("instrument.pixel.ref", { text: st.text.replace(/\.$/, ""), refs });
     };
-    const citation = div(
-      "citation",
-      behind ?? stage,
-      [...statements.statements.map(ref), en["instrument.pixel.field.noSpectrum"].text].join(" "),
-    );
-    if (!behind) place(citation, x0, L.rowB + 168, w);
+    if (hasContext) {
+      const citation = div(
+        "citation",
+        behind ?? stage,
+        [...statements.statements.map(ref), en["instrument.pixel.field.noSpectrum"].text].join(" "),
+      );
+      if (!behind) place(citation, x0, L.rowB + 168, w);
+    }
     const [sx, sy] = toGrid(t.start_utm29n);
     const [ex, ey] = toGrid(t.end_utm29n);
     const cg = multiples[2]?.g;

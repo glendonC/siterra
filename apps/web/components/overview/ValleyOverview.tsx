@@ -264,8 +264,10 @@ const PIXEL_HREF = VIEW_HREF.pixel;
  * shown (a view reopened by the browser's Back), so history never holds the same place twice in a row.
  */
 function goTo(href: string): void {
-  if (window.location.pathname === href) window.history.replaceState(null, "", href);
-  else window.history.pushState(null, "", href);
+  // the address keeps its query (the place, ?case=), so a reload opens the same place (UI-2's catch)
+  const to = href + window.location.search;
+  if (window.location.pathname === href) window.history.replaceState(null, "", to);
+  else window.history.pushState(null, "", to);
 }
 const SPLIT_S = { in: 1.9, back: 1.2 } as const;
 
