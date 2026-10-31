@@ -31,7 +31,6 @@ import { InstrumentRainfallScatter } from "../instruments/InstrumentRainfallScat
 import { InstrumentShell } from "../instruments/InstrumentShell";
 import { instrumentOf } from "../../lib/instruments/listing";
 import { WORLDCOVER } from "../../lib/instruments/valley/fixtures";
-import { seasonWords } from "../../lib/land/season";
 import { clamp01, ease, labelAt, labelSide, lerp, wireTo } from "../../lib/overview/arc";
 import {
   VIEW_HREF,
@@ -95,20 +94,16 @@ const ASK_R = 56;
 
 /** Each finding's caption lines under its number. */
 function captionOf(f: Finding, bandLimit: string): string[] {
-  // the finding's own season and years, as its measurement's period names them (U25)
-  const { window, from, to } = seasonWords(f.period);
+  // one short line under each number (decision 16): the season and years are in the opened card
   switch (f.id) {
     case "catchment":
-      return [
-        format("overview.finding.catchment.1", { window }),
-        format("overview.finding.catchment.2", { from, to }),
-      ];
+      return [en["overview.finding.catchment.1"].text];
     case "band":
       return [format("overview.finding.band.1", { limit: bandLimit })];
     case "pixel":
       return [en["overview.finding.pixel.1"].text];
     case "rain":
-      return [en["overview.finding.rain.1"].text, format("overview.finding.rain.2", { window })];
+      return [en["overview.finding.rain.1"].text];
     case "fdr":
       return [en["overview.finding.fdr.1"].text, en["overview.finding.fdr.2"].text];
   }
@@ -135,35 +130,11 @@ const CREDITS: MessageId[] = [
 /** The data's short names for the one visible line. */
 const SHORT: MessageId[] = ["source.modis", "source.chirps", "source.worldcover", "source.dem"];
 
-/** What the land shows while a finding is open: its footprint, only when its asset was read. */
-function onLandOf(
-  sel: Selection,
-  data: OverviewData | null,
-  bandLimit: string,
-  finding: Finding | null,
-): string | null {
-  if (!data) return null;
-  switch (sel) {
-    case "catchment":
-      return en["overview.onLand.catchment"].text;
-    case "fdr":
-      return data.footprints.slope
-        ? format("overview.onLand.fdr", {
-            n: new Intl.NumberFormat("en").format(data.footprints.slope.cells.length),
-            window: seasonWords(finding?.period ?? null).window,
-          })
-        : null;
-    case "band":
-      return bandLimit ? format("overview.onLand.band", { limit: bandLimit }) : null;
-    case "rain":
-      return data.footprints.rain
-        ? format("overview.onLand.rain", { n: data.footprints.rain.length })
-        : null;
-    case "pixel":
-      return data.pixel ? en["overview.onLand.pixel"].text : null;
-    default:
-      return null;
-  }
+/** What the card says of the land while a finding is open: only the trend map's rule, when its asset was read. */
+function onLandOf(sel: Selection, data: OverviewData | null): string | null {
+  // decision 16: the lit land shows its footprint and the hover names it; only the trend map's rule stays in words
+  if (sel === "fdr") return data?.footprints.slope ? en["overview.onLand.fdrRule"].text : null;
+  return null;
 }
 
 /** The last crumb while something is open: the finding's own number with a few words, or what opened. */
@@ -1832,17 +1803,6 @@ function OverviewReady({
               </div>
             ) : null}
             {/* the key describes the drawn land: none without a land view (U25) */}
-            <div className={styles.key} hidden={layers === undefined}>
-              <span>
-                <i className={styles.swatch} aria-hidden="true" />
-                {en["overview.key.tree"].text}
-              </span>
-              <span>
-                <i className={`${styles.swatch} ${styles.crop}`} aria-hidden="true" />
-                {format("overview.key.crop", { year: WORLDCOVER.year })}
-              </span>
-              <span>{format("instrument.layers.scale", { value: EXAG })}</span>
-            </div>
           </div>
           {data && data.routes.length ? (
             <button
@@ -1914,7 +1874,7 @@ function OverviewReady({
                 pixelNote={data?.pixel?.note ?? null}
                 areaLabel={names.areaLabel}
                 side={sideOf(sel, selFinding?.clock)}
-                onLand={onLandOf(sel, data, bandLimit?.display ?? "", selFinding)}
+                onLand={onLandOf(sel, data)}
                 slopeKey={
                   sel === "fdr" && data?.footprints.slope
                     ? { domain: data.footprints.slope.domain }
@@ -1991,7 +1951,8 @@ function OverviewReady({
             }}
           />
           <KeyLegend entries={keys}>
-            <SourcesLine sources={sourceSet} />
+            {/* the relief's exaggeration said on the data line where the land is drawn (decision 16) */}
+            <SourcesLine sources={layers ? { ...sourceSet, relief: EXAG } : sourceSet} />
           </KeyLegend>
           <SourcesPanel
             sources={sourceSet}

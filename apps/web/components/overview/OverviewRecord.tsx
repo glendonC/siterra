@@ -7,7 +7,7 @@
 // land with no edge and no box. The page places the frost, the dotted line and the hairline from the finding's dot
 // (ValleyOverview's apply); every value here comes from the case.
 
-import type { CSSProperties, Ref } from "react";
+import { useEffect, useState, type CSSProperties, type Ref } from "react";
 import { en, format } from "../../lib/copy/en";
 import { signed } from "../../lib/instruments/format";
 import type { ScatterData } from "../../lib/instruments/scatter/data";
@@ -198,6 +198,11 @@ export function OverviewRecord({
   wide?: boolean;
   refs: RecordRefs;
 }) {
+  // the published context, closed each time a record opens
+  const [contextOpen, setContextOpen] = useState(false);
+  useEffect(() => {
+    setContextOpen(false);
+  }, [sel]);
   // the finding's own season and years, from its measurement's period (U25)
   const { window, from, to } = seasonWords(finding?.period ?? null);
   const kicker =
@@ -213,11 +218,8 @@ export function OverviewRecord({
     ? format(chart.fit === "theil_sen" ? "overview.record.theilSen" : "overview.record.ols", {
         lower: signed(chart.lower, 4),
         upper: signed(chart.upper, 4),
-        window,
       })
-    : data?.scatter
-      ? en["overview.record.scatter"].text
-      : null;
+    : null;
   const capText =
     chart && finding ? format("overview.record.caption", { window, from, to }) : caption.join(" ");
   const context = data?.context ?? null;
@@ -277,10 +279,21 @@ export function OverviewRecord({
             <circle className={styles.end} r="2" />
             <circle className={styles.end} r="2" />
           </svg>
+          {/* decision 16: the published context waits behind its kicker, a step the visitor takes */}
           <div ref={refs.midcap} className={styles.midcap}>
-            {en["overview.record.context"].text}
+            <button
+              type="button"
+              className={styles.contextToggle}
+              aria-expanded={contextOpen}
+              data-context-toggle
+              onClick={() => {
+                setContextOpen((o) => !o);
+              }}
+            >
+              {en["overview.record.context"].text}
+            </button>
           </div>
-          <section ref={refs.evid} className={styles.evid}>
+          <section ref={refs.evid} className={styles.evid} hidden={!contextOpen}>
             <p className={styles.q}>{context.text}</p>
             <p className={styles.cite}>
               {context.references.map((line) => (

@@ -113,3 +113,24 @@
   margin-top: 14px;
   pointer-events: auto;
 }
+
+/* the step to the routes' limits and cost function (decision 16) */
+.method {
+  margin-top: 10px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--ov-ink-2);
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.method:hover,
+.method:focus-visible {
+  color: var(--ov-ink);
+}

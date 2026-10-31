@@ -286,11 +286,16 @@ export function mountPixel(
     ink.textContent = caption.ink;
     p.appendChild(ink);
     p.appendChild(chip(1, tips[0] ?? en["instrument.pixel.source.trend"].text));
-    const grey = document.createElement("span");
-    grey.className = c("grey");
-    grey.textContent = ` ${caption.grey}`;
-    p.appendChild(grey);
-    p.appendChild(chip(2, tips[1] ?? en["instrument.pixel.source.spectra"].text));
+    const note2 = tips[1] ?? en["instrument.pixel.source.spectra"].text;
+    // in place (decision 16) the caption is its ink sentence; the grey one waits in its source chip's note
+    if (around) p.appendChild(chip(2, `${caption.grey} ${note2}`));
+    else {
+      const grey = document.createElement("span");
+      grey.className = c("grey");
+      grey.textContent = ` ${caption.grey}`;
+      p.appendChild(grey);
+      p.appendChild(chip(2, note2));
+    }
   }
 
   // 01, compact: the catchment's March to June slope, the pixel marked, a 5 km bar and the key
@@ -420,12 +425,15 @@ export function mountPixel(
       p2.w,
       "02",
       "instrument.pixel.cells",
-      format(around ? "instrument.pixel.cells.detailLand" : "instrument.pixel.cells.detail", {
-        tile: d.pixel.modis_tile,
-        row: d.pixel.tile_row,
-        col: d.pixel.tile_col,
-        cells: int(d.pixel.analysis_cells),
-      }),
+      // in place the land shows the cells; the card is its paint buttons and the active key (decision 16)
+      around
+        ? undefined
+        : format("instrument.pixel.cells.detail", {
+            tile: d.pixel.modis_tile,
+            row: d.pixel.tile_row,
+            col: d.pixel.tile_col,
+            cells: int(d.pixel.analysis_cells),
+          }),
     );
     const titles = [
       en["instrument.pixel.cells.truecolour"].text,
@@ -597,10 +605,12 @@ export function mountPixel(
       w,
       "03",
       "instrument.pixel.spectra",
-      format("instrument.pixel.spectra.detail", {
-        date: day(d.spectra.datetime),
-        cells: d.spectra.cells_kept,
-      }),
+      around
+        ? undefined
+        : format("instrument.pixel.spectra.detail", {
+            date: day(d.spectra.datetime),
+            cells: d.spectra.cells_kept,
+          }),
     );
     const left = x0 + 34;
     const right = x0 + w - 4;
@@ -640,7 +650,14 @@ export function mountPixel(
     text(g, left + wA, bottom + 16, "900", t12("ink3", "end"));
     text(g, left + wA + gap, bottom + 16, "1600", t12("ink3"));
     text(g, right, bottom + 16, "2200", t12("ink3", "end"));
-    text(g, right, bottom + 32, en["instrument.pixel.spectra.axis"].text, t12("ink3", "end"));
+    // in place the axis's break is drawn, not said (decision 16)
+    text(
+      g,
+      right,
+      bottom + 32,
+      en[around ? "instrument.pixel.spectra.axisShort" : "instrument.pixel.spectra.axis"].text,
+      t12("ink3", "end"),
+    );
     const bx = left + wA + gap / 2;
     svg("line", { x1: bx - 5, y1: bottom + 4, x2: bx - 1, y2: bottom - 4, stroke: C.axis }, g);
     svg("line", { x1: bx + 1, y1: bottom + 4, x2: bx + 5, y2: bottom - 4, stroke: C.axis }, g);
@@ -984,11 +1001,22 @@ export function mountPixel(
     const x0 = L.col2.x + ASK_CLEAR;
     const w = L.col2.w - ASK_CLEAR;
     panelHead(x0, y5, w, "05", "instrument.pixel.model");
-    place(div("modelLabel", stage, en["instrument.pixel.model.label"].text), x0, y5 + 22, w);
+    // in place, the model's one line is what it is not (decision 16); the rest is the standalone page's
+    place(
+      div(
+        "modelLabel",
+        stage,
+        en[around ? "instrument.pixel.model.labelShort" : "instrument.pixel.model.label"].text,
+      ),
+      x0,
+      y5 + 22,
+      w,
+    );
     const bx = x0;
     const by = y5 + 112;
     const g = svg("g", {}, overlay);
-    place(div("barCaption", stage, en["instrument.pixel.model.bar"].text), bx, y5 + 64, BAR.w);
+    if (!around)
+      place(div("barCaption", stage, en["instrument.pixel.model.bar"].text), bx, y5 + 64, BAR.w);
     const barG = svg("g", {}, g);
     const tickG = svg("g", {}, g);
     let acc = 0;
@@ -1048,7 +1076,9 @@ export function mountPixel(
       div(
         "roKey",
         readout,
-        format("instrument.pixel.model.key", { date: day(d.spectra.datetime) }),
+        around
+          ? en["instrument.pixel.model.keyShort"].text
+          : format("instrument.pixel.model.key", { date: day(d.spectra.datetime) }),
       );
       const figRow = div("roFigRow", readout);
       div("roFigure", figRow, fixed(nd, 2));
@@ -1057,18 +1087,24 @@ export function mountPixel(
         figRow,
         format("instrument.pixel.model.delta", { value: change(nd - nd0, 2) }),
       );
-      div(
-        "roGloss",
-        readout,
-        format("instrument.pixel.model.gloss", {
-          red: fixed(refl["B04"] ?? 0, 2),
-          nir: fixed(refl["B08"] ?? 0, 2),
-        }),
-      );
+      if (!around)
+        div(
+          "roGloss",
+          readout,
+          format("instrument.pixel.model.gloss", {
+            red: fixed(refl["B04"] ?? 0, 2),
+            nir: fixed(refl["B08"] ?? 0, 2),
+          }),
+        );
       div(
         "roMeasured",
         readout,
-        format("instrument.pixel.model.measured", { value: fixed(d.spectra.measured_ndvi, 2) }),
+        format(
+          around ? "instrument.pixel.model.measuredShort" : "instrument.pixel.model.measured",
+          {
+            value: fixed(d.spectra.measured_ndvi, 2),
+          },
+        ),
       );
       spectra.draw(refl, nd);
     };
@@ -1129,12 +1165,13 @@ export function mountPixel(
       });
       handles.push(h);
     }
-    place(
-      div("barCaption nowrap", stage, en["instrument.pixel.model.drag"].text),
-      bx,
-      by + BAR.h + 46,
-      BAR.w,
-    );
+    if (!around)
+      place(
+        div("barCaption nowrap", stage, en["instrument.pixel.model.drag"].text),
+        bx,
+        by + BAR.h + 46,
+        BAR.w,
+      );
     const reset = place(document.createElement("button"), bx, by + BAR.h + 66);
     reset.className = c("textButton");
     reset.type = "button";
@@ -1150,7 +1187,13 @@ export function mountPixel(
       redraw();
     });
     stage.appendChild(reset);
-    place(div("meaning", stage, en["instrument.pixel.model.meaning"].text), bx, by + BAR.h + 96, w);
+    if (!around)
+      place(
+        div("meaning", stage, en["instrument.pixel.model.meaning"].text),
+        bx,
+        by + BAR.h + 96,
+        w,
+      );
     return redraw;
   })();
 

@@ -228,3 +228,22 @@
     opacity: 1;
   }
 }
+
+/* the published context's kicker as the step that opens it (decision 16) */
+.contextToggle {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.contextToggle:hover,
+.contextToggle:focus-visible {
+  color: var(--ov-ink);
+}

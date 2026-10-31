@@ -7,7 +7,7 @@
 // land. Hovering or focusing a route lifts its line
 // and end on the land and quiets the others.
 
-import type { Ref } from "react";
+import { useState, type Ref } from "react";
 import { en, format } from "../../lib/copy/en";
 import {
   inBundleOrder,
@@ -28,6 +28,16 @@ export interface RoutesRefs {
 
 export type RoutesLoad =
   { status: "loading" } | { status: "ready"; record: RoutesRecord } | { status: "failed" };
+
+/**
+ * A route's title without the words the column's own title says ("Proposed route to the pixel the case opens" reads
+ * "The pixel the case opens"); a title in another form stays as the record has it.
+ */
+function destinationOf(title: string): string {
+  const m = /^proposed (?:walking )?route to (.+)$/i.exec(title);
+  const d = m?.[1];
+  return d ? d.charAt(0).toUpperCase() + d.slice(1) : title;
+}
 
 export function OverviewRoutes({
   routes,
@@ -50,6 +60,10 @@ export function OverviewRoutes({
 }) {
   const record = load.status === "ready" ? load.record : null;
   const list = inBundleOrder(routes, record?.order);
+  // decision 16: the routes' limits and cost function wait behind a step
+  const [methodOpen, setMethodOpen] = useState(false);
+  const ends = new Set(list.map((r) => r.end));
+  const sharedEnd = list.length > 1 && ends.size === 1 ? (list[0]?.end ?? null) : null;
   return (
     <div ref={refs.root} className={styles.routes} data-record="routes">
       <div ref={refs.frost} className={styles.frost} aria-hidden="true" />
@@ -60,10 +74,7 @@ export function OverviewRoutes({
             <>
               {" "}
               <span className={styles.grey}>
-                {format("overview.routes.grey", {
-                  origin: record.cost.origin,
-                  not: record.cost.not,
-                })}
+                {format("overview.routes.grey", { origin: record.cost.origin })}
               </span>
             </>
           ) : null}
@@ -97,14 +108,14 @@ export function OverviewRoutes({
                   <span className={styles.num} data-route-number>
                     {i + 1}
                   </span>
-                  {r.title}
+                  {destinationOf(r.title)}
                 </span>
                 {f ? (
                   <span className={styles.figures} data-route-figures>
                     {format("overview.routes.figures", f)}
                   </span>
                 ) : null}
-                {r.end ? (
+                {r.end && !sharedEnd ? (
                   <span className={styles.end}>
                     <i className={styles.site} aria-hidden="true" />
                     {r.end}
@@ -114,14 +125,39 @@ export function OverviewRoutes({
             );
           })}
         </ul>
-        {record ? (
-          <p className={styles.cost} data-routes-cost>
-            {format("overview.routes.cost", {
-              name: record.cost.name,
-              factor: record.cost.offPath,
-              time: record.cost.time,
-            })}
+        {/* every route's end is the same kind of site: said once, under the list */}
+        {sharedEnd ? (
+          <p className={styles.end} data-routes-end>
+            <i className={styles.site} aria-hidden="true" />
+            {sharedEnd}
           </p>
+        ) : null}
+        {record ? (
+          <>
+            <button
+              type="button"
+              className={styles.method}
+              aria-expanded={methodOpen}
+              data-routes-method
+              onClick={() => {
+                setMethodOpen((o) => !o);
+              }}
+            >
+              {en["overview.routes.method"].text}
+            </button>
+            <div hidden={!methodOpen}>
+              <p className={styles.cost} data-routes-not>
+                {format("overview.routes.not", { not: record.cost.not })}
+              </p>
+              <p className={styles.cost} data-routes-cost>
+                {format("overview.routes.cost", {
+                  name: record.cost.name,
+                  factor: record.cost.offPath,
+                  time: record.cost.time,
+                })}
+              </p>
+            </div>
+          </>
         ) : null}
         {load.status === "failed" ? (
           <p className={styles.cost} role="status">

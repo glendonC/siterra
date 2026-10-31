@@ -79,13 +79,6 @@ const TREND_KEY = [
   ...sheetColours.trendAbove,
 ];
 
-function question(id: SheetId, d: LayerStackData): string {
-  const [from, to] = d.trend.period;
-  return id === "trend"
-    ? format("instrument.sheet.trend.question", { from, to })
-    : en[`instrument.sheet.${id}.question`].text;
-}
-
 function sheetKey(id: SheetId, d: LayerStackData): ReactNode {
   switch (id) {
     case "trend": {
@@ -395,7 +388,6 @@ export function InstrumentLayerStack({ teardown }: { teardown?: StackTeardown } 
                 <span className={styles.name}>{en[NAME[id]].text}</span>
                 <span className={styles.chip}>{i + 1}</span>
               </div>
-              <p className={styles.question}>{question(id, data)}</p>
               <div className={styles.key}>{sheetKey(id, data)}</div>
             </div>
           ))}

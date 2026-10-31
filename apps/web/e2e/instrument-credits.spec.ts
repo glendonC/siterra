@@ -35,7 +35,9 @@ for (const viewport of [
       timeout: 60_000,
     });
     const line = page.locator("[data-sources-line]");
-    await expect(line).toHaveText("Data: NASA MODIS, CHIRPS, ESA WorldCover, Copernicus DEM");
+    await expect(line).toHaveText(/^Data: NASA MODIS, CHIRPS, ESA WorldCover, Copernicus DEM/);
+    // the drawn relief's exaggeration is said on the data line (decision 16)
+    await expect(line.locator("[data-relief]")).toHaveText("Relief ×2.5");
     inFrame(await line.boundingBox(), viewport.width, viewport.height);
     await page.locator("[data-key-legend] [data-key='S']").click();
     const panel = page.locator("[data-sources-panel]");

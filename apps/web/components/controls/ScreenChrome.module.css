@@ -177,3 +177,8 @@
   bottom: 67px;
   transform: translateX(-100%);
 }
+
+/* the drawn relief's exaggeration, its own field after the data's names (decision 16) */
+.relief {
+  margin-left: 14px;
+}

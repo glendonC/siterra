@@ -319,7 +319,7 @@ test("the proposed routes lie on the land, lift on hover, open with the bundle's
   await expect(ends).toHaveCount(4);
   const end = (member: string) => opacity(page, `[data-route-end='${member}']`);
   const entry = page.locator("[data-routes-entry]");
-  await expect(entry).toHaveText("Proposed walking routes, access unconfirmed");
+  await expect(entry).toHaveText("Proposed routes, access unconfirmed");
   // at rest the ends are quiet; hovering the one entry lifts every route
   await expect.poll(() => end("route_tabant_band_3")).toBeCloseTo(0.75, 2);
   await entry.hover();
@@ -329,21 +329,25 @@ test("the proposed routes lie on the land, lift on hover, open with the bundle's
   await entry.click();
   const record = page.locator("[data-record='routes']");
   await expect(record.locator("[data-route]")).toHaveCount(4);
+  // decision 16: one line per route; "one way" and "model estimates" said once in the caption
+  await expect(record.locator("[data-routes-caption]")).toContainText("one way. Model estimates.");
   await expect(record.locator("[data-route-figures]")).toHaveText([
-    "550 m, climb 20 m, estimated 12 min one way",
-    "500 m, climb 130 m, estimated 24 min one way",
-    "3.9 km, climb 560 m, estimated 2 h 20 min one way",
-    "6.6 km, climb 1,060 m, estimated 4 h 10 min one way",
+    "550 m, climb 20 m, 12 min",
+    "500 m, climb 130 m, 24 min",
+    "3.9 km, climb 560 m, 2 h 20 min",
+    "6.6 km, climb 1,060 m, 4 h 10 min",
   ]);
-  await expect(record.locator("[data-route]").first()).toContainText(
-    "Proposed route to the pixel the case opens",
-  );
+  await expect(record.locator("[data-route]").first()).toContainText("The pixel the case opens");
   await expect(record.locator("[data-route='route_tabant_band_2']")).toContainText(
-    "Proposed route to elevation band 2",
+    "Elevation band 2",
   );
-  await expect(record.locator("[data-route='route_tabant_band_2']")).toContainText(
+  await expect(record.locator("[data-routes-end]")).toHaveText(
     "Candidate site chosen by a stated rule",
   );
+  // the limits and the cost function wait behind their step
+  await expect(record.locator("[data-routes-cost]")).toBeHidden();
+  await record.locator("[data-routes-method]").click();
+  await expect(record.locator("[data-routes-not]")).toContainText("Model estimates, not");
   await expect(record.locator("[data-routes-cost]")).toHaveText(
     "Cost function: Tobler's hiking function, times 0.6 off path; horizontal length over speed, one way, no load, no rest.",
   );
