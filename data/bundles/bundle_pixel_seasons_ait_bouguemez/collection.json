@@ -9,7 +9,7 @@
  ],
  "id": "bundle_pixel_seasons_ait_bouguemez",
  "title": "Per-pixel MODIS greenness in every season, 2000 to 2025 (pixel_seasons 1.0.0)",
- "description": "Precomputed result of recipe pixel_seasons 1.0.0 for Ait Bouguemez valley catchment: the March to June mean NDVI of each of the 8094 250 m Terra MOD13Q1 v6.1 pixels that have a Theil-Sen slope in pixel_trend_long_record, for each of the 26 seasons 2000 to 2025, from the same composites, reliability filter and rounding. The Theil-Sen slope recomputed from these values equals the stored slope of every pixel (largest difference 3.7e-09 NDVI per decade). A web copy holds one value grid per season.\n\nEach value is one 250 m MODIS pixel's mean over the composites of one growing window that passed the reliability filter, not a measurement of any field, pasture or plant. A season where fewer than half of the periods were kept at a pixel has no value there. NDVI measures how green the ground looks from above, not forage, palatability or species. Spring windows include snow-covered ground at the upper pixels in some seasons; earlier or later melt can move a season's value with no change in the plants. Terra's overpass has drifted earlier since 2020, from 10:30 to about 9:06 mean local time by December 2025 (NASA): later seasons are seen with a lower sun and longer shadows in mountain terrain, which may shift NDVI without any change on the ground. Composites from 12 July 2025 to the end of 2025 are absent from Planetary Computer; a season window that includes them holds fewer composites. The values are an input to pixel_trend_long_record, not a second analysis. A run of high or low seasons seen when stepping through them is not a trend or a cause; the slope, its interval and the false discovery rate check are in pixel_trend_long_record.",
+ "description": "Precomputed result of recipe pixel_seasons 1.0.0 for Ait Bouguemez valley catchment: the March to June mean NDVI of each of the 8094 250 m Terra MOD13Q1 v6.1 pixels that have a Theil-Sen slope in pixel_trend_long_record, for each of the 26 seasons 2000 to 2025, from the same composites, reliability filter and rounding. The Theil-Sen slope recomputed from these values equals the stored slope of every pixel (largest difference 3.7e-09 NDVI per decade). Includes Pettitt (1979) single change-point timing and a regional scan across the window and terrain strata. A web copy holds one value grid per season.\n\nEach value is one 250 m MODIS pixel's mean over the composites of one growing window that passed the reliability filter, not a measurement of any field, pasture or plant. A season where fewer than half of the periods were kept at a pixel has no value there. NDVI measures how green the ground looks from above, not forage, palatability or species. Spring windows include snow-covered ground at the upper pixels in some seasons; earlier or later melt can move a season's value with no change in the plants. Terra's overpass has drifted earlier since 2020, from 10:30 to about 9:06 mean local time by December 2025 (NASA): later seasons are seen with a lower sun and longer shadows in mountain terrain, which may shift NDVI without any change on the ground. Composites from 12 July 2025 to the end of 2025 are absent from Planetary Computer; a season window that includes them holds fewer composites. The values are an input to pixel_trend_long_record, not a second analysis. A run of high or low seasons seen when stepping through them is not a trend or a cause; the slope, its interval and the false discovery rate check are in pixel_trend_long_record.",
  "license": "other",
  "providers": [
   {
@@ -32,7 +32,7 @@
    "roles": [
     "processor"
    ],
-   "processing:lineage": "The cached MOD13Q1 v6.1 NDVI and pixel reliability windows of pixel_trend_long_record (584 Terra composites, no new download); growing-window season means per pixel as in that recipe, stored as a float32 GeoTIFF and a web array, and the Theil-Sen slope recomputed from them for every pixel (science/pipeline/pixel_seasons.py).",
+   "processing:lineage": "The cached MOD13Q1 v6.1 NDVI and pixel reliability windows of pixel_trend_long_record (584 Terra composites, no new download); growing-window season means per pixel as in that recipe, stored as a float32 GeoTIFF and a web array, the Theil-Sen slope recomputed from them for every pixel, Pettitt (1979) single change-point timing, and the regional scan (science/pipeline/pixel_seasons.py).",
    "processing:software": {
     "siterra-science": "0.1.0",
     "python": "3.12.9",
@@ -78,12 +78,12 @@
   "pixel_seasons": {
    "href": "./pixel-seasons.json",
    "type": "application/json",
-   "title": "Summary: per-season counts and statistics, the slope check against the trend raster, absent composites (the result read_recipe_result returns)",
+   "title": "Summary: per-season counts and statistics, the slope check against the trend raster, Pettitt change-point timing, regional scan, absent composites (the result read_recipe_result returns)",
    "roles": [
     "data"
    ],
-   "file:checksum": "122088fe01d54dadf9f4bc179c62b8d2c4b50356bcb66d44801d6aa56e83ebb32deb",
-   "file:size": 6466
+   "file:checksum": "12209a3eea9e89547caacffe33060b1d6af27115042fc24fd53fae0fcff91e6f5b5d",
+   "file:size": 117235
   },
   "pixel_seasons_grid": {
    "href": "./pixel-seasons.tif",
@@ -116,7 +116,7 @@
    "file:size": 2471
   }
  },
- "created": "2026-10-30T18:57:26Z",
+ "created": "2026-10-31T16:28:57Z",
  "siterra:status": "validated",
  "siterra:variable": "ndvi_departure",
  "siterra:dataset": {
@@ -137,7 +137,7 @@
   "version": "1.0.0",
   "analysis_crs": "EPSG:32629",
   "parameters": {
-   "place_configuration": "science/places/ait-bouguemez.json revision 9, sha256 22950415d7f0473d7aa0f0d04aafa2f19454da29fec75e3c62c74476939ed569",
+   "place_configuration": "science/places/ait-bouguemez.json revision 13, sha256 d37f674d71e85ad7f7f0bf9b6b065142c14430507579633c1c3f8cf64ff6c17b",
    "season_years": [
     2000,
     2025
@@ -159,7 +159,9 @@
    "min_composite_share": 0.5,
    "min_seasons": 15,
    "value_decimals": 5,
-   "slope_check_tolerance_per_decade": 1e-06
+   "slope_check_tolerance_per_decade": 1e-06,
+   "changepoint_min_segment": 4,
+   "changepoint_fdr_q": 0.05
   },
   "reference_period": null,
   "operation_order": [
@@ -168,7 +170,9 @@
    "Values: G(p, y, W) rounded to 5 decimals in the precision of the array it is computed in (float64), for every MOD13Q1 pixel holding at least one 10 m analysis cell of the catchment, for every season year; an undefined G is stored as no value, never as zero",
    "Stored forms: a GeoTIFF on the native MOD13Q1 grid with one float32 band per season year (nodata NaN); a web copy, a little-endian float32 array of shape seasons x rows x columns, season 0 the first season year, row 0 north, NaN for no value, with a JSON header (CRS, transform, shape, season years, pixel counts). Each is read back and must equal the computed values cell for cell",
    "Check against the stored trend: for every pixel with at least min_seasons defined seasons, the Theil-Sen slope of the stored values on the year (the pixel_trend_long_record method, NDVI per decade) is compared with band 1 of the pixel_trend_long_record GeoTIFF of the same window; the largest absolute difference must be at most 1e-6 NDVI per decade and the set of pixels with a slope, and each pixel's number of seasons (band 4), must be identical. Any difference stops the run",
-   "Summary: per season, the number of pixels with a value, and the mean, median and the 5th and 95th percentiles over those pixels (unweighted by cells); the composite periods absent from the archive read, from the same record as pixel_trend_long_record"
+   "Change-point timing: for every tested trend pixel with at least min_seasons defined seasons, the Pettitt (1979) non-parametric single change-point test over its ordered (year, G) series with at least changepoint_min_segment seasons in each segment (candidate split index t in [changepoint_min_segment, T - changepoint_min_segment], change_year = years[t], U_{t,T} = sum_{i<t, j>=t} sgn(G_j - G_i), K_T = max |U_{t,T}| with ties broken toward the earliest split, p = min(1, 2 exp(-6 K_T^2 / (T^3 + T^2)))), with Benjamini-Hochberg false discovery rate at q = changepoint_fdr_q across tested catchment pixels; stores per-year change-point counts, median change years, and the per-cell change_year array aligned with trend_cells",
+   "Regional scan: over the full cached MOD13Q1 window (in_window vs in_catchment) and over the place's terrain strata (from place_config.stratum_masks and pixel_trend_long_record), ranks zones by false discovery rate (FDR q = 0.05) trend share, Pettitt change-point FDR share and median Theil-Sen slope per decade, with a plain-language record summary per zone",
+   "Summary: per season, the number of pixels with a value, and the mean, median and the 5th and 95th percentiles over those pixels (unweighted by cells); change_timing and regional_scan; the composite periods absent from the archive read, from the same record as pixel_trend_long_record"
   ]
  },
  "siterra:attribution": [
@@ -192,7 +196,7 @@
   {
    "name": "recompute_sample_period",
    "passed": true,
-   "detail": "The Theil-Sen slope of the stored values of all 8094 trend pixels, recomputed from the web array, equals band 1 of the bundle_pixel_trend_long_record_ait_bouguemez raster for mar_jun: largest difference 3.69e-09 NDVI per decade (tolerance 1e-06); the pixels with a slope and every pixel's season count are identical."
+   "detail": "The Theil-Sen slope of the stored values of all 8094 trend pixels, recomputed from the web array, equals band 1 of the bundle_pixel_trend_long_record_ait_bouguemez raster for mar_jun: largest difference 3.69e-09 NDVI per decade (tolerance 1e-06); the pixels with a slope and every pixel's season count are identical. Pettitt (1979) single change-point timing (minimum segment 4 seasons, BH-FDR q = 0.05) and the regional scan across 23056 window pixels and 3 terrain zones are verified."
   },
   {
    "name": "units_and_scale",
