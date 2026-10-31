@@ -27,6 +27,10 @@ async function words(page: Page): Promise<number> {
 test("the recorded run at work: one running task's card, its findings so far, and a recording that says so", async ({
   page,
 }) => {
+  test.skip(
+    process.env.SITERRA_WEB_SERVER === "production",
+    "the harness page is development only",
+  );
   test.setTimeout(180_000);
   await page.goto("/run/preview?at=60000");
   const work = page.locator("[data-at-work]").first();
@@ -47,6 +51,10 @@ test("the recorded run at work: one running task's card, its findings so far, an
 test("the recorded run settled: its count and time, the open explanations first, the proposed check; Enter reads the findings", async ({
   page,
 }) => {
+  test.skip(
+    process.env.SITERRA_WEB_SERVER === "production",
+    "the harness page is development only",
+  );
   test.setTimeout(180_000);
   await page.goto("/run/preview?at=101121");
   const work = page.locator("[data-at-work]").first();
