@@ -177,3 +177,19 @@ export const timeColours = {
   noValue: "#3b4245",
   hatch: "#bfbebb",
 } as const;
+
+/**
+ * Recorded life on the land (UI-2): one quiet tone per group for the same-size dots (pale, so the land and the
+ * findings stay first), and the one warm accent for the selected mark's stem and ring only.
+ */
+export const lifeColours = {
+  bird: "#a9c3cf",
+  plant: "#b7c9a0",
+  insect: "#c4b3d6",
+  other: "#c9c9c4",
+  mixed: "#e6e4de",
+  halo: "#0b1214",
+  core: "#ffffff",
+  stem: obsidian.accent,
+  ring: obsidian.accent,
+} as const;
