@@ -75,8 +75,8 @@ describe("the Calaveras Creek seed", () => {
     const metrics = measurements.map((m) => m.metric);
     const count = (metric: string) => metrics.filter((m) => m === metric).length;
     expect(count("ndvi_rainfall_adjusted_trend_per_decade")).toBe(3);
+    expect(count("ndvi_trend_unadjusted_per_decade")).toBe(4);
     for (const metric of [
-      "ndvi_trend_unadjusted_per_decade",
       "rainfall_fit_r_squared",
       "ndvi_pixel_trend_median_per_decade",
       "area_share_downward_fdr",
@@ -124,12 +124,115 @@ describe("the Calaveras Creek seed", () => {
 
   it("composes the rainfall scatter from the place's configuration, its R squared read from the bundle", () => {
     expect(calaveras.seed?.evidence).toEqual([]);
-    const instruments = calaveras.seed?.instruments ?? [];
-    expect(instruments.map((i) => i.id)).toEqual(["inst_rainfall_scatter_creek"]);
-    expect(instruments[0]?.caption.ink).toBe(
+    const scatter = calaveras.seed?.instruments.find((i) => i.id === "inst_rainfall_scatter_creek");
+    expect(scatter?.caption.ink).toBe(
       "R squared 0.181 between October to April rainfall and February to May greenness.",
     );
-    expect(JSON.stringify(instruments)).not.toMatch(/ait_bouguemez/);
+    expect(JSON.stringify(calaveras.seed?.instruments)).not.toMatch(/ait_bouguemez/);
+  });
+
+  describe("the instruments of the land (layer stack, cross section, pixel anatomy)", () => {
+    const read = (bundle: string, file: string): unknown =>
+      JSON.parse(
+        readFileSync(`${repoDir}data/bundles/bundle_${bundle}_calaveras_creek/${file}`, "utf8"),
+      );
+    /** The number a path of keys and indexes names in a parsed file; it throws when there is none. */
+    const at = (document: unknown, ...path: (string | number)[]): number => {
+      let node: unknown = document;
+      for (const key of path) {
+        node = (node as Record<string | number, unknown> | undefined)?.[key];
+      }
+      if (typeof node !== "number") throw new Error(`no number at ${path.join("/")}`);
+      return node;
+    };
+    const signed = (v: number) => `${v > 0 ? "+" : ""}${v.toFixed(4)}`;
+    const instruments = calaveras.seed?.instruments ?? [];
+    const spec = (id: string) => instruments.find((i) => i.id === id);
+
+    it("composes all three from the Calaveras bundles, with only the field plan blocked until a merge exists", () => {
+      expect(instruments.map((i) => i.id)).toEqual([
+        "inst_layer_stack_creek",
+        "inst_cross_section_creek",
+        "inst_pixel_anatomy_creek",
+        "inst_rainfall_scatter_creek",
+      ]);
+      expect(calaveras.blocked.map((b) => [b.ruleId, b.kind])).toEqual([
+        ["field_plan_creek", "field_plan"],
+      ]);
+      expect(JSON.stringify(instruments)).not.toMatch(/ait_bouguemez/);
+    });
+
+    it("words each caption from the stored numbers, with no direction chosen in the words", () => {
+      const trend = read("restrend_long_record", "restrend-long-record.json");
+      const season = read("season_trend_long_record", "season-trend-long-record.json");
+      const transects = read("transects", "terrain-transects.json");
+      const anatomy = read("pixel_anatomy", "pixel-anatomy.json");
+      expect(spec("inst_layer_stack_creek")?.caption.ink).toBe(
+        `${signed(at(trend, "headline", "catchment", "unadjusted_trend_per_decade", 0))} NDVI per decade, February to May, 2000 to 2025`,
+      );
+      expect(spec("inst_cross_section_creek")?.caption.ink).toBe(
+        `${signed(at(season, "results", 4, "ols", "slope_per_decade"))} NDVI per decade below ${String(Math.round(at(transects, "transects", "valley_axis", "band_crossings", 0, "boundary_m")))} m, February to May, 2000 to 2025`,
+      );
+      expect(spec("inst_pixel_anatomy_creek")?.caption.ink).toBe(
+        `The own trend of this 250 m pixel is ${signed(at(anatomy, "trend", "slope_per_decade"))} NDVI per decade, February to May, 2000 to 2025.`,
+      );
+      expect(spec("inst_pixel_anatomy_creek")?.caption.grey).toContain(
+        `${String(Math.round(at(anatomy, "composition", 0, "share") * 100))}% tree cover and ${String(Math.round(at(anatomy, "composition", 2, "share") * 100))}% grassland`,
+      );
+      const words = instruments
+        .filter((i) => i.id !== "inst_rainfall_scatter_creek")
+        .map((i) => `${i.caption.ink} ${i.caption.grey}`)
+        .join(" ");
+      expect(words).not.toMatch(
+        /greener|browner|degrad|declin|improv|recover|above zero|below zero|every interval/i,
+      );
+      // The layer stack names both directions of change it counts, not one.
+      const grey = spec("inst_layer_stack_creek")?.caption.grey ?? "";
+      expect(grey).toContain("rising");
+      expect(grey).toContain("falling");
+    });
+
+    it("leaves snow cover out of the layer stack (the recipe does not apply here) and draws the place's own assets", () => {
+      const layers = spec("inst_layer_stack_creek")?.parameters;
+      if (layers?.kind !== "layer_stack") throw new Error("not a layer stack");
+      expect(layers.layers.map((l) => l.layer)).toEqual([
+        "vegetation_trend",
+        "rainfall",
+        "land_cover",
+        "elevation_bands",
+      ]);
+      expect(layers.drainageFeatureIds).toEqual([
+        "ctx_drainage_order_1",
+        "ctx_drainage_order_2",
+        "ctx_drainage_order_3",
+        "ctx_drainage_order_4",
+      ]);
+      const section = spec("inst_cross_section_creek")?.parameters;
+      if (section?.kind !== "cross_section") throw new Error("not a cross section");
+      expect(section.transectFeatureId).toBe("ctx_transect_valley_axis");
+      expect(section.statements).toEqual([]);
+      for (const p of [layers, section]) {
+        for (const d of p.drawnAssets ?? []) {
+          expect(d.asset.bundleId, d.role).toMatch(/_calaveras_creek$/);
+        }
+      }
+      const roles = (id: string) => {
+        const p = spec(id)?.parameters;
+        return p !== undefined && p.kind !== "field_plan"
+          ? (p.drawnAssets ?? []).map((d) => d.role)
+          : [];
+      };
+      expect(roles("inst_layer_stack_creek")).toContain("land_cover_raster");
+      expect(roles("inst_layer_stack_creek")).toContain("trend_cells");
+      expect(roles("inst_cross_section_creek")).toContain("land_cover_header");
+      expect(roles("inst_pixel_anatomy_creek")).toEqual([
+        "pixel_cells",
+        "pixel_spectra",
+        "pixel_series",
+        "catchment_outline",
+        "trend_cells",
+      ]);
+    });
   });
 });
 
