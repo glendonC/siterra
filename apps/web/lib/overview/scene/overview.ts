@@ -38,7 +38,12 @@ import { landFrame } from "../../land/geometry";
 import type { LandPose } from "../../land/handoff";
 import { createStage, type PerspectiveView } from "../../instruments/valley/scene/stage";
 import { heightTexture } from "../../instruments/valley/scene/textures";
-import { liftColours as LC, maskAt, overviewColours as C } from "../../theme/obsidian";
+import {
+  liftColours as LC,
+  maskAt,
+  overviewColours as C,
+  timeColours as TC,
+} from "../../theme/obsidian";
 import { createLift, type LiftLayer } from "./lift";
 import { cellColour, type CellPaint } from "../../instruments/pixel/paint";
 import {
@@ -140,7 +145,7 @@ const PIXEL_ELEVATION = 52;
  * A finding, the field check on the land, the ask's results (which move as the whole catchment's finding), or the
  * proposed walking routes.
  */
-export type Selection = FindingId | "field" | "results" | "routes" | "package";
+export type Selection = FindingId | "field" | "results" | "routes" | "package" | "time";
 
 /** The side a selection's record opens on: a finding on the arc's left opens on the left, the land easing right. */
 export const sideOf = (sel: Selection | null, clock: number | undefined): "left" | "right" =>
@@ -149,7 +154,7 @@ export const sideOf = (sel: Selection | null, clock: number | undefined): "left"
     : "right";
 
 /** The findings about the whole catchment: their view keeps the land whole and unblurred, with no swing. */
-const WHOLE = new Set<Selection>(["catchment", "fdr", "rain", "results", "package"]);
+const WHOLE = new Set<Selection>(["catchment", "fdr", "rain", "results", "package", "time"]);
 
 export interface SceneState {
   /** Opening of the selection: 0 rest, 1 opened. */
@@ -198,6 +203,12 @@ export interface SceneState {
   lit?: number | null;
   /** The package's land eased aside for its cards, 0 centred to 1 aside (UI-2). */
   aside?: number;
+  /**
+   * See It Over Time (UI-2): a canvas the view paints over the relief grid (overlayGrid), bound as the land's
+   * footprint while `sel` is "time" (a new version is uploaded), and the month's snow by elevation band.
+   */
+  overlay?: { canvas: HTMLCanvasElement; version: number } | null;
+  snow?: { limits: readonly [number, number]; shares: readonly [number, number, number] } | null;
   /** The arc stays out (UI-2: from the results to the package, and while it opens). */
   quiet?: boolean;
 }
@@ -249,6 +260,8 @@ export interface OverviewLayout {
   pixelBox: { x0: number; y0: number; x1: number; y1: number } | null;
   /** Each package field check's band's mean place on the land, where its marker stands (UI-2); empty otherwise. */
   stands: ({ at: Point; behind: boolean } | null)[];
+  /** See It Over Time (UI-2): a lit rim point of each elevation band, lowest first, where its label's leader ends. */
+  bandEdges: (Point | null)[];
 }
 
 export interface Gaps {
@@ -278,6 +291,8 @@ export interface OverviewScene {
   render(state: SceneState): void;
   /** The land under a point of the land canvas (CSS px from its top left), or null where the ray meets no land. */
   probe(x: number, y: number): LandProbe | null;
+  /** The relief grid an overlay is painted on (UI-2): its size in canvas px and a UTM point's place on it. */
+  overlayGrid(): { width: number; height: number; px: (E: number, N: number) => [number, number] };
   /** Where the land stands on screen now and how it is seen and lit, for the view it is handed to. */
   handoff(): LandPose;
   onLayout(f: (layout: OverviewLayout) => void): void;
@@ -364,8 +379,9 @@ export function mountOverview(
     smooth: 0.55,
   });
   scene.add(relief.mesh);
-  // the package's lit band takes the accent, the colour of a proposed thing (UI-2)
+  // the package's lit band takes the accent, the colour of a proposed thing (UI-2); snow is the time view's white
   relief.uniforms.uRangeC.value = hexVec(C.route);
+  relief.uniforms.uSnowC.value = hexVec(TC.snow);
   const rim = smoothRing(data.ring, 2);
   const wall = createWall(rim, sample, frame, {
     outward: signedArea(rim) > 0 ? -1 : 1,
@@ -880,6 +896,43 @@ export function mountOverview(
     rangePlaces.set(key, at);
     return at;
   };
+  // See It Over Time (UI-2): the view's overlay canvas as a texture, and each band's rim points for its label
+  let overlayTex: { canvas: HTMLCanvasElement; tex: CanvasTexture; version: number } | null = null;
+  const overlayOf = (o: NonNullable<SceneState["overlay"]>): CanvasTexture => {
+    if (overlayTex?.canvas !== o.canvas) {
+      overlayTex?.tex.dispose();
+      const tex = new CanvasTexture(o.canvas);
+      tex.flipY = false;
+      tex.colorSpace = NoColorSpace;
+      tex.minFilter = LinearFilter;
+      tex.magFilter = LinearFilter;
+      overlayTex = { canvas: o.canvas, tex, version: -1 };
+    }
+    if (overlayTex.version !== o.version) {
+      overlayTex.tex.needsUpdate = true;
+      overlayTex.version = o.version;
+    }
+    return overlayTex.tex;
+  };
+  const rimByHeight = rim
+    .filter((_, i) => i % 3 === 0)
+    .map(([E, N]) => ({ h: sample(E, N), p: frame.v(E, N, sample(E, N)) }));
+  /** The right-most visible rim point of each band on screen, so a label's leader never crosses the land. */
+  const bandEdgesOf = (st: SceneState): OverviewLayout["bandEdges"] => {
+    if (st.sel !== "time" || !st.snow) return [];
+    const [lo, hi] = st.snow.limits;
+    const inBand = (h: number, b: number) =>
+      b === 0 ? h < lo : b === 1 ? h >= lo && h < hi : h >= hi;
+    return [0, 1, 2].map((b) => {
+      let best: Point | null = null;
+      for (const r of rimByHeight) {
+        if (!inBand(r.h, b) || occluded(r.p)) continue;
+        const q = project(r.p);
+        if (!best || q.x > best.x) best = q;
+      }
+      return best;
+    });
+  };
   /** Where each package field check's marker stands on screen (UI-2): its band's mean place on the land. */
   const standsOf = (st: SceneState): OverviewLayout["stands"] =>
     st.sel !== "package"
@@ -919,19 +972,21 @@ export function mountOverview(
     // a whole-catchment finding keeps the overview's bearing (no swing); the land eases away from its record's side
     const left = sideOf(sel, clockOf(sel)) === "left";
     const v =
-      sel === "package"
-        ? fitLand(az0, ND.el, PKG.fh, PKG.cx, PKG.cy)
-        : sel === "routes" && RC
-          ? routesView(RC)
-          : place
-            ? pointAt(place, az)
-            : fitLand(
-                WHOLE.has(sel) ? az0 : az,
-                ND.el,
-                WIDE.fh,
-                left ? design.width - WIDE.cx : WIDE.cx,
-                WIDE.cy,
-              );
+      sel === "time"
+        ? view0
+        : sel === "package"
+          ? fitLand(az0, ND.el, PKG.fh, PKG.cx, PKG.cy)
+          : sel === "routes" && RC
+            ? routesView(RC)
+            : place
+              ? pointAt(place, az)
+              : fitLand(
+                  WHOLE.has(sel) ? az0 : az,
+                  ND.el,
+                  WIDE.fh,
+                  left ? design.width - WIDE.cx : WIDE.cx,
+                  WIDE.cy,
+                );
     views.set(sel, v);
     return v;
   };
@@ -940,6 +995,7 @@ export function mountOverview(
   viewFor("field");
   viewFor("results");
   viewFor("package");
+  viewFor("time");
   if (RC) viewFor("routes");
   set(view0);
   const viewAt = (v0: View, v1: View, e: number): View => {
@@ -1227,6 +1283,7 @@ export function mountOverview(
           ? bbox(pixelPts.flatMap((p) => [project(p), project([p[0], p[1] + CELL_RISE, p[2]])]))
           : null,
       stands: standsOf(state),
+      bandEdges: bandEdgesOf(state),
     };
     for (const l of listeners) l(layout);
   });
@@ -1401,6 +1458,17 @@ export function mountOverview(
 
   return {
     probe,
+    overlayGrid() {
+      const k = 2;
+      return {
+        width: g.width * k,
+        height: g.height * k,
+        px: (E: number, N: number): [number, number] => [
+          ((E - g.E0) / g.res) * k,
+          ((g.N0 - N) / g.res) * k,
+        ],
+      };
+    },
     render(next) {
       state = next;
       const e = ease(next.s);
@@ -1494,7 +1562,16 @@ export function mountOverview(
       // the opened finding's footprint on the land
       const fp = next.sel === "fdr" ? slopeTex : next.sel === "rain" ? rainTex : null;
       if (fp) relief.uniforms.uOver.value = fp;
-      relief.uniforms.uOverA.value = fp ? 0.92 * e : 0;
+      // See It Over Time (UI-2): the view's own overlay, and the month's snow by band
+      const tOv = next.sel === "time" && next.overlay ? overlayOf(next.overlay) : null;
+      if (tOv) relief.uniforms.uOver.value = tOv;
+      relief.uniforms.uOverA.value = fp ? 0.92 * e : tOv ? 0.96 * e : 0;
+      const snow = next.sel === "time" ? (next.snow ?? null) : null;
+      relief.uniforms.uSnowA.value = snow ? e : 0;
+      if (snow) {
+        relief.uniforms.uSnowLimits.value.set(snow.limits[0], snow.limits[1]);
+        relief.uniforms.uSnow.value.set(snow.shares[0], snow.shares[1], snow.shares[2]);
+      }
       relief.uniforms.uBandAt.value = bandLimitM ?? 0;
       relief.uniforms.uBandA.value = next.sel === "band" && bandLimitM !== null ? 0.9 * e : 0;
       // the package's pointed field check's band (UI-2)
@@ -1510,7 +1587,7 @@ export function mountOverview(
       // the arc steps back while the visitor has turned the land or brought it closer, so the land never crosses it
       dialMat.opacity = 1 - awayOf(next);
       // the package's words stand where the arc runs: the arc steps out while it is open (UI-2)
-      if (next.sel === "package") dialMat.opacity *= 1 - e;
+      if (next.sel === "package" || next.sel === "time") dialMat.opacity *= 1 - e;
       if (next.quiet) dialMat.opacity = 0;
       if (pixelLine) {
         const on = next.sel === "pixel" || next.sel === "field";

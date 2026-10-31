@@ -157,3 +157,23 @@ export const liftColours = {
   bandMid: "#5f7883",
   bandHigh: "#8ea4ad",
 } as const;
+
+/**
+ * "See It Over Time" (specimen T, UI-2): the growing-season greenness ramp from the land's own neutral albedo through
+ * olive to the irrigated floor's deep green (stops at 0 to 1 of the place's own domain), the snow white, and the
+ * no-value tone with its hatch (the dark theme's no-observation token).
+ */
+export const timeColours = {
+  ramp: [
+    [0.0, "#80807c"],
+    [0.15, "#a2a39d"],
+    [0.3, "#a6a894"],
+    [0.45, "#9fa87f"],
+    [0.6, "#87a166"],
+    [0.75, "#639452"],
+    [1.0, "#357a47"],
+  ] as readonly (readonly [number, string])[],
+  snow: "#eef3f5",
+  noValue: "#3b4245",
+  hatch: "#bfbebb",
+} as const;

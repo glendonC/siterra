@@ -6,7 +6,7 @@
 
 import type { MessageId } from "../copy/en";
 
-export type ViewKind = "layers" | "cutaway" | "pixel" | "rainfall" | "field";
+export type ViewKind = "layers" | "cutaway" | "pixel" | "rainfall" | "field" | "time";
 
 /** The instrument kind in the record's listing behind each view. */
 export const VIEW_INSTRUMENT: Record<ViewKind, string> = {
@@ -15,6 +15,8 @@ export const VIEW_INSTRUMENT: Record<ViewKind, string> = {
   pixel: "pixel_anatomy",
   rainfall: "rainfall_scatter",
   field: "field_plan",
+  // See It Over Time (UI-2) is offered where the case holds a pixel seasons bundle, not by an instrument spec
+  time: "",
 };
 
 export const VIEW_HREF: Record<ViewKind, string> = {
@@ -23,6 +25,7 @@ export const VIEW_HREF: Record<ViewKind, string> = {
   pixel: "/instruments/pixel",
   rainfall: "/instruments/rainfall",
   field: "/instruments/field",
+  time: "/instruments/time",
 };
 
 /** Each view's action, named by what the visitor will see (decision 13). */
@@ -32,15 +35,17 @@ export const VIEW_LABEL: Record<ViewKind, MessageId> = {
   pixel: "overview.open.pixel",
   rainfall: "overview.open.rainfall",
   field: "overview.open.field",
+  time: "overview.open.time",
 };
 
 /** The letter for each view's verb, the same everywhere; a view without one is offered only as the primary. */
-export const VIEW_KEY: Record<ViewKind, "L" | "C" | "P" | "F" | null> = {
+export const VIEW_KEY: Record<ViewKind, "L" | "C" | "P" | "F" | "T" | null> = {
   layers: "L",
   cutaway: "C",
   pixel: "P",
   rainfall: null,
   field: "F",
+  time: "T",
 };
 
 /** A thing on the land: an opened finding's record, or a part under the cursor. */
@@ -58,9 +63,10 @@ export type Thing =
 
 /** The views a thing leads to, its own first, then the next nearest. */
 const LEADS: Record<Thing, readonly ViewKind[]> = {
-  catchment: ["layers", "cutaway"],
-  fdr: ["layers", "cutaway"],
-  band: ["cutaway", "layers"],
+  // the trend findings also lead to See It Over Time (UI-2, key T), second after their own view
+  catchment: ["layers", "time", "cutaway"],
+  fdr: ["layers", "time", "cutaway"],
+  band: ["cutaway", "time", "layers"],
   pixel: ["pixel", "layers"],
   rain: ["rainfall", "layers"],
   field: ["field"],
@@ -72,7 +78,7 @@ const LEADS: Record<Thing, readonly ViewKind[]> = {
 
 export interface Action {
   /** The key chip: Enter for the primary action, the verb's letter, or Esc. */
-  key: "Enter" | "L" | "C" | "P" | "F" | "Esc";
+  key: "Enter" | "L" | "C" | "P" | "F" | "T" | "Esc";
   /** The view it opens; null for Back. */
   view: ViewKind | null;
   label: MessageId;
