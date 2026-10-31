@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { InstrumentAsset, InstrumentListing } from "./api.ts";
+import { InstrumentAsset, InstrumentListing, PlanReviewDecisionRequest } from "./api.ts";
 
 const available = {
   bundleId: "bundle_example_restrend",
@@ -95,6 +95,43 @@ describe("InstrumentListing: the rules the composer could not open", () => {
     ).toBe(false);
     expect(
       InstrumentListing.safeParse({ ...base, blocked: [{ ...blocked, html: "<b>x</b>" }] }).success,
+    ).toBe(false);
+  });
+
+  it("carries up to 3 suggestedQuestions and validates PlanReviewDecisionRequest", () => {
+    expect(
+      InstrumentListing.safeParse({
+        ...base,
+        suggestedQuestions: [
+          {
+            id: "valley_greener",
+            question: "Is grazing changing the shared pastures of the Aït Bouguemez valley?",
+            measurementId: "meas_trend_unadjusted_catchment_mar_jun",
+          },
+        ],
+      }).success,
+    ).toBe(true);
+    expect(
+      PlanReviewDecisionRequest.safeParse({
+        decision: "approved",
+        note: "Ready to take to the assembly.",
+      }).success,
+    ).toBe(true);
+    expect(
+      PlanReviewDecisionRequest.safeParse({
+        decision: "changes_requested",
+      }).success,
+    ).toBe(true);
+    expect(
+      PlanReviewDecisionRequest.safeParse({
+        decision: "approved",
+        note: "x".repeat(501),
+      }).success,
+    ).toBe(false);
+    expect(
+      PlanReviewDecisionRequest.safeParse({
+        decision: "rejected",
+      }).success,
     ).toBe(false);
   });
 });

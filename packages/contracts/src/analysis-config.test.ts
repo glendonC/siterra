@@ -274,4 +274,46 @@ describe("the configuration note", () => {
       false,
     );
   });
+
+  it("accepts up to 3 unique suggestedQuestions and refuses duplicate IDs or >3", () => {
+    const validQuestions = [
+      {
+        id: "valley_greener",
+        question: "Is grazing changing the shared pastures of the Aït Bouguemez valley?",
+        measurementId: "meas_trend_unadjusted_catchment_mar_jun",
+      },
+      {
+        id: "pixel_trees",
+        question: "Why can a pixel get greener while its pasture does not?",
+        measurementId: "meas_pixel_anatomy_share_tree_cover_2021",
+      },
+      {
+        id: "rainfall_change",
+        question: "How much of the valley's greenness change does wet-season rainfall explain?",
+        measurementId: "meas_rainfall_fit_r_squared_catchment_mar_jun",
+      },
+    ];
+    expect(
+      CaseAnalysisConfig.safeParse({ ...OTHER_PLACE, suggestedQuestions: validQuestions }).success,
+    ).toBe(true);
+    expect(
+      CaseAnalysisConfig.safeParse({
+        ...OTHER_PLACE,
+        suggestedQuestions: [
+          ...validQuestions,
+          {
+            id: "fourth_question",
+            question: "What else is changing?",
+            measurementId: "meas_trend_unadjusted_catchment_mar_jun",
+          },
+        ],
+      }).success,
+    ).toBe(false);
+    expect(
+      CaseAnalysisConfig.safeParse({
+        ...OTHER_PLACE,
+        suggestedQuestions: [validQuestions[0], validQuestions[0]],
+      }).success,
+    ).toBe(false);
+  });
 });

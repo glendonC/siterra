@@ -370,6 +370,75 @@
         }
       }
     },
+    "/api/cases/{caseId}/review-decisions": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/CaseId"
+        }
+      ],
+      "post": {
+        "operationId": "recordPlanReviewDecision",
+        "tags": [
+          "reviews"
+        ],
+        "summary": "Record a plan review decision",
+        "description": "Records a reviewer's decision (approved or changes_requested, with an optional note up to 500 characters) on the case's latest Brief and OperationalAction records in demo mode, keeping externalExecutionEnabled false and sending nothing externally.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlanReviewDecisionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Decision recorded.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "case.schema.json#/$defs/ReviewDecision"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "The idempotencyKey was used before with the same request; the existing decision is returned.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "case.schema.json#/$defs/ReviewDecision"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "description": "The idempotencyKey was used before with a different request (code idempotency_key_reused).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Unexpected"
+          }
+        }
+      }
+    },
     "/api/cases/{caseId}/trace": {
       "parameters": [
         {
@@ -1110,6 +1179,33 @@
           }
         }
       },
+      "PlanReviewDecisionRequest": {
+        "description": "Body of a plan review decision on the case's latest Brief and OperationalAction.",
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "decision"
+        ],
+        "properties": {
+          "decision": {
+            "description": "Decision to record on the plan.",
+            "type": "string",
+            "enum": [
+              "approved",
+              "changes_requested"
+            ]
+          },
+          "note": {
+            "description": "Optional reviewer note up to 500 characters.",
+            "type": "string",
+            "maxLength": 500
+          },
+          "idempotencyKey": {
+            "$ref": "case.schema.json#/$defs/Command/properties/idempotencyKey",
+            "description": "Optional UUID per decision; reused unchanged on retry."
+          }
+        }
+      },
       "CaseStreamItem": {
         "description": "One message of the event stream after text/event-stream parsing (fields data, event, id, retry). Comment lines are not messages.",
         "oneOf": [
@@ -1790,6 +1886,34 @@
             "items": {
               "type": "string",
               "minLength": 1
+            }
+          },
+          "suggestedQuestions": {
+            "type": "array",
+            "maxItems": 3,
+            "description": "Suggested starter questions from the case configuration whose cited records are available in the case.",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "id",
+                "question",
+                "measurementId"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9_]{0,63}$"
+                },
+                "question": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200
+                },
+                "measurementId": {
+                  "$ref": "case.schema.json#/$defs/EntityVersion/properties/entityId"
+                }
+              }
             }
           }
         }

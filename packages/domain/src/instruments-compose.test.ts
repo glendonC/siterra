@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import {
   type ComposeInputs,
   composeInstruments,
+  composeSuggestedQuestions,
   roundHalfAwayFromZero,
 } from "./instruments-compose.ts";
 
@@ -729,5 +730,36 @@ describe("composeInstruments", () => {
       entityId: "merge_example_1",
       revision: 4,
     });
+  });
+
+  it("validates suggestedQuestions against case records and rejects missing citations or banned words", () => {
+    const validQ = {
+      id: "valley_greener",
+      question: "Is grazing changing the shared pastures of the Aït Bouguemez valley?",
+      measurementId: "meas_example_r2",
+    };
+    const missingRecordQ = {
+      id: "missing_citation",
+      question: "Why can a pixel get greener while its pasture does not?",
+      measurementId: "meas_example_missing",
+    };
+    const bannedWordQ = {
+      id: "banned_word",
+      question: "Does this show significant overgrazing in the valley?",
+      measurementId: "meas_example_r2",
+    };
+    const result = composeSuggestedQuestions(
+      { suggestedQuestions: [validQ, missingRecordQ, bannedWordQ] },
+      {
+        measurements: [measurement("meas_example_r2", 0.0268)],
+        evidence: [],
+      },
+    );
+    expect(result.suggestedQuestions).toEqual([validQ]);
+    expect(result.issues).toEqual([
+      "suggested question missing_citation: cited record meas_example_missing is not in the case",
+      'suggested question banned_word: banned word "significant"',
+      'suggested question banned_word: banned word "overgrazing"',
+    ]);
   });
 });

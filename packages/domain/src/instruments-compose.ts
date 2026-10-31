@@ -17,6 +17,7 @@ import type {
   InstrumentRule,
   InstrumentSpec,
   Measurement,
+  SuggestedQuestion,
 } from "@siterra/contracts";
 import { InstrumentSpec as InstrumentSpecSchema } from "@siterra/contracts";
 
@@ -315,6 +316,54 @@ export function questionIssues(parameters: InstrumentSpec["parameters"]): string
   const banned = captionBannedWords.exec(text);
   if (banned !== null) issues.push(`The question "${text}" holds a banned word: ${banned[0]}`);
   return issues;
+}
+
+/**
+ * Validates suggested starter questions from the case configuration against the case's records and
+ * wording rules. Rejects any question whose cited record is not in the case (as an available
+ * Measurement or an Evidence record) or that holds a digit, prohibited phrase or banned word.
+ */
+export function composeSuggestedQuestions(
+  config: Pick<CaseAnalysisConfig, "suggestedQuestions">,
+  input: {
+    measurements: readonly Pick<Measurement, "id" | "status">[];
+    evidence: readonly Pick<Evidence, "id">[];
+  },
+): { suggestedQuestions: SuggestedQuestion[]; issues: string[] } {
+  const availableMeasurements = new Set(
+    input.measurements.filter((m) => m.status === "available").map((m) => m.id),
+  );
+  const evidenceIds = new Set(input.evidence.map((e) => e.id));
+  const suggestedQuestions: SuggestedQuestion[] = [];
+  const issues: string[] = [];
+
+  for (const q of config.suggestedQuestions ?? []) {
+    const qIssues: string[] = [];
+    if (!q.question.trim().endsWith("?")) {
+      qIssues.push(`suggested question ${q.id}: question does not end with '?'`);
+    }
+    if (/\d/.test(q.question)) {
+      qIssues.push(`suggested question ${q.id}: question holds a digit`);
+    }
+    for (const hit of prohibitedHits(q.question)) {
+      qIssues.push(`suggested question ${q.id}: prohibited phrase "${hit.phrase}"`);
+    }
+    for (const match of q.question.matchAll(new RegExp(captionBannedWords.source, "gi"))) {
+      qIssues.push(`suggested question ${q.id}: banned word "${match[0]}"`);
+    }
+    if (!availableMeasurements.has(q.measurementId) && !evidenceIds.has(q.measurementId)) {
+      qIssues.push(
+        `suggested question ${q.id}: cited record ${q.measurementId} is not in the case`,
+      );
+    }
+    if (qIssues.length === 0) {
+      suggestedQuestions.push(q);
+    } else {
+      issues.push(...qIssues);
+    }
+  }
+
+  return { suggestedQuestions, issues };
 }
 
 export function composeInstruments(inputs: ComposeInputs): ComposeResult {

@@ -2,9 +2,11 @@
 // written: a person with a session records one role's decision on exact entity versions at the
 // current case revision. Task commits cannot write one (commit.ts, review_not_permitted).
 import {
+  Brief,
   EnvironmentalCase,
   type EntityVersion,
-  type OperationalAction,
+  OperationalAction,
+  type PlanReviewDecisionRequest,
   ReviewDecision,
   type ReviewRequest,
   type ValidationResult,
@@ -240,4 +242,197 @@ async function prepareActionIfReviewed(
     new Map([...actions.values()].map((a) => [a.id, a.status])),
     now,
   );
+}
+
+export type PlanReviewOutcome =
+  | { status: "created"; review: ReviewDecision }
+  | { status: "replayed"; review: ReviewDecision }
+  | { status: "idempotency_conflict" }
+  | { status: "not_found" };
+
+/**
+ * Records a reviewer's plan decision ("approved" or "changes_requested", with an optional note up
+ * to 500 characters) on the case's latest Brief and/or OperationalAction in demo mode, keeping
+ * externalExecutionEnabled false and sending nothing externally.
+ */
+export async function recordPlanReviewDecision(
+  pool: Pool,
+  args: {
+    caseId: string;
+    ownerScopeId: string;
+    request: PlanReviewDecisionRequest;
+    now?: Date;
+  },
+): Promise<PlanReviewOutcome> {
+  const { caseId, request } = args;
+  const now = (args.now ?? new Date()).toISOString();
+  const idempotencyKey = request.idempotencyKey ?? newId("idem");
+  const requestHash = sha256Hex(
+    canonicalJson({ decision: request.decision, note: request.note ?? null }),
+  );
+  return inTransaction(pool, async (tx) => {
+    const locked = await lockCase(tx, caseId);
+    if (locked === null || locked.ownerScopeId !== args.ownerScopeId) {
+      return { status: "not_found" };
+    }
+    if (request.idempotencyKey !== undefined) {
+      const prior = await tx.query<{ record: ReviewDecision; request_hash: string }>(
+        "select record, request_hash from review_records where case_id = $1 and idempotency_key = $2",
+        [caseId, request.idempotencyKey],
+      );
+      const found = prior.rows[0];
+      if (found !== undefined) {
+        return found.request_hash === requestHash
+          ? { status: "replayed", review: found.record }
+          : { status: "idempotency_conflict" };
+      }
+    }
+
+    const latestRows = await tx.query<{ record_type: string; record: unknown }>(
+      `select distinct on (record_type) record_type, record
+       from records
+       where case_id = $1 and record_type in ('Brief', 'OperationalAction')
+       order by record_type, revision desc, entity_id desc`,
+      [caseId],
+    );
+    const latestBrief = latestRows.rows.find((r) => r.record_type === "Brief")?.record as
+      Brief | undefined;
+    const latestAction = latestRows.rows.find((r) => r.record_type === "OperationalAction")
+      ?.record as OperationalAction | undefined;
+
+    const reviewedEntityVersions: EntityVersion[] = [
+      ...(latestBrief !== undefined
+        ? [{ entityId: latestBrief.id, revision: latestBrief.revision }]
+        : []),
+      ...(latestAction !== undefined
+        ? [{ entityId: latestAction.id, revision: latestAction.revision }]
+        : []),
+    ];
+    if (reviewedEntityVersions.length === 0) {
+      reviewedEntityVersions.push({ entityId: caseId, revision: locked.revision });
+    }
+
+    const trimmedNote = request.note?.trim() ?? "";
+    const comments =
+      trimmedNote.length > 0
+        ? trimmedNote
+        : request.decision === "approved"
+          ? "Approved in plan review."
+          : "Changes requested in plan review.";
+
+    const review = ReviewDecision.parse({
+      recordType: "ReviewDecision",
+      id: newId("rev"),
+      revision: 1,
+      createdAt: now,
+      updatedAt: now,
+      caseId,
+      actionId: latestAction?.id ?? null,
+      reviewedEntityVersions,
+      caseRevisionReviewed: locked.revision,
+      role: "program_coordination",
+      actorId: null,
+      authorityStatus: "not_established",
+      mode: "demo",
+      status: request.decision,
+      decisionAt: now,
+      conditions: [],
+      comments,
+      stale: false,
+    });
+
+    await tx.query(
+      `insert into review_records (case_id, entity_id, revision, idempotency_key, request_hash, record)
+       values ($1, $2, 1, $3, $4, $5)`,
+      [caseId, review.id, idempotencyKey, requestHash, JSON.stringify(review)],
+    );
+
+    let caseRevision = locked.revision;
+    const updatedEntityIds: string[] = [review.id];
+    if (latestBrief !== undefined || latestAction !== undefined) {
+      caseRevision = locked.revision + 1;
+      if (latestBrief !== undefined) {
+        const updatedBrief = Brief.parse({
+          ...latestBrief,
+          revision: latestBrief.revision + 1,
+          updatedAt: now,
+          status: request.decision === "approved" ? "prepared" : "ready_for_review",
+          reviewDecisionIds: [...new Set([...latestBrief.reviewDecisionIds, review.id])],
+        });
+        await tx.query(
+          `insert into records (case_id, entity_id, revision, record_type, record, commit_id, case_revision)
+           values ($1, $2, $3, 'Brief', $4, null, $5)`,
+          [
+            caseId,
+            updatedBrief.id,
+            updatedBrief.revision,
+            JSON.stringify(updatedBrief),
+            caseRevision,
+          ],
+        );
+        updatedEntityIds.push(updatedBrief.id);
+      }
+      if (latestAction !== undefined) {
+        const updatedAction = OperationalAction.parse({
+          ...latestAction,
+          revision: latestAction.revision + 1,
+          updatedAt: now,
+          externalExecutionEnabled: false,
+          reviewDecisionIds: [...new Set([...latestAction.reviewDecisionIds, review.id])],
+        });
+        await tx.query(
+          `insert into records (case_id, entity_id, revision, record_type, record, commit_id, case_revision)
+           values ($1, $2, $3, 'OperationalAction', $4, null, $5)`,
+          [
+            caseId,
+            updatedAction.id,
+            updatedAction.revision,
+            JSON.stringify(updatedAction),
+            caseRevision,
+          ],
+        );
+        updatedEntityIds.push(updatedAction.id);
+      }
+      const caseRecord = EnvironmentalCase.parse({
+        ...(locked.record as EnvironmentalCase),
+        revision: caseRevision,
+        updatedAt: now,
+      });
+      await tx.query(
+        "update cases set revision = $2, record = $3, updated_at = now() where id = $1",
+        [caseId, caseRevision, JSON.stringify(caseRecord)],
+      );
+      await tx.query("insert into case_revisions (case_id, revision, record) values ($1, $2, $3)", [
+        caseId,
+        caseRevision,
+        JSON.stringify(caseRecord),
+      ]);
+    }
+
+    const { lastSequence } = await insertEvents(
+      tx,
+      { ...locked, revision: caseRevision },
+      [
+        {
+          occurredAt: now,
+          kind: "review.recorded",
+          commandId: null,
+          taskId: null,
+          entityIds: updatedEntityIds,
+          message: eventMessages.reviewRecorded(review.role, request.decision),
+          dedupeKey: `review.recorded:${review.id}`,
+          resultStatus: null,
+          tool: null,
+          usage: null,
+          validation: null,
+          spanId: null,
+          parentSpanId: null,
+        },
+      ],
+      caseRevision,
+    );
+    await setLastSequence(tx, caseId, lastSequence);
+    await notifyEvents(tx, caseId);
+    return { status: "created", review };
+  });
 }

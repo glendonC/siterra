@@ -615,5 +615,22 @@
         "grey": "Proposed only: no visit is scheduled and no access or permission is implied."
       }
     }
+  ],
+  "suggestedQuestions": [
+    {
+      "id": "creek_trend",
+      "question": "What is changing in the rangeland of the Calaveras Creek catchment, and why?",
+      "measurementId": "meas_trend_unadjusted_catchment_feb_may"
+    },
+    {
+      "id": "creek_pixel",
+      "question": "What is one pixel's trend made of?",
+      "measurementId": "meas_pixel_anatomy_share_tree_cover_2021"
+    },
+    {
+      "id": "creek_rainfall",
+      "question": "How closely do October to April rainfall and February to May greenness move together?",
+      "measurementId": "meas_rainfall_fit_r_squared_catchment_feb_may"
+    }
   ]
 }
