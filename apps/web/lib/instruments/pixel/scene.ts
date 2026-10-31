@@ -55,9 +55,12 @@ export interface PixelLocator {
   cells: readonly (readonly number[])[];
   ring: readonly (readonly number[])[];
   period: readonly [number, number];
+  /** The trend's season as its asset words it, or null. */
+  window: string | null;
   scale: { domain: number; neutral: number };
   /** The record's lower elevation band limit (m), the top of the pixel's band. */
-  bandTop: number;
+  /** The record's lower elevation band limit (m), or null when the record holds no two limits. */
+  bandTop: number | null;
 }
 
 const L = {
@@ -101,25 +104,23 @@ export interface StageBox {
 /**
  * The pixel opened in place (stage px; U27, the lead's 16:15 judgment): the risen pixel is the subject in the middle;
  * three cards stay open round it (the caption and 02 in the left column, 03 at the top right, 05 at the bottom right),
- * and 01, 04 and 06 wait as small chips on their leaders in the left column, opening beside it on focus or a click.
+ * and 01, 04 and 06 wait as small chips on their leaders under the caption; a chip opens its card in 02's slot on
+ * focus or a click, so no card stands over another card or over the pixel.
  */
 export const AROUND = {
   column: { x: 40, w: 400 },
-  /** 02's top in the left column, under the caption. */
+  /** 02's top in the left column, under the caption (where it is built; the layout moves it under the chips). */
   cellsY: 236,
-  /** The chips' first row and spacing. */
-  chipY: 486,
-  chipStep: 40,
+  /** The width of a chip's card in the slot (06 is narrowed to it, clear of the ask disc). */
+  slotW: 280,
   /**
-   * How far each panel moves from its place in the standalone grid. An opened chip's card stands in the free strip
-   * right of the left column (its content from x 484, y 150), over the land and the pixel's edge but never over
-   * another card's words (the lead, 16:4x).
+   * How far 03 and 05 move from their place in the standalone grid (the left column's parts are placed by the layout).
    */
   shift: {
-    "01": [444, -2],
-    "04": [444, -380],
-    "05": [370, -30],
-    "06": [-572, -380],
+    // 03 stands higher and 05 with it, so neither back touches the other and 05 stays clear of the data line in
+    // windows lower than 900 px (AUDIT's U27 advisory)
+    "03": [0, -52],
+    "05": [370, -64],
   } as Record<string, readonly [number, number]>,
 };
 
@@ -163,6 +164,11 @@ export function mountPixel(
   locator: PixelLocator,
   cls: PixelClasses,
   around: PixelAround | null = null,
+  /**
+   * The caption's two source notes, from the record (U25): what its first citation and its model citation measure,
+   * in their own words; the catalog's notes only when the record gives none.
+   */
+  tips: readonly [string | null, string | null] = [null, null],
 ): PixelScene {
   const c = (...names: string[]) => names.map((n) => cls[n] ?? n).join(" ");
   const svg = <K extends keyof SVGElementTagNameMap>(tag: K, attrs: Attrs, parent: Element) => {
@@ -279,12 +285,12 @@ export function mountPixel(
     ink.className = c("ink");
     ink.textContent = caption.ink;
     p.appendChild(ink);
-    p.appendChild(chip(1, en["instrument.pixel.source.trend"].text));
+    p.appendChild(chip(1, tips[0] ?? en["instrument.pixel.source.trend"].text));
     const grey = document.createElement("span");
     grey.className = c("grey");
     grey.textContent = ` ${caption.grey}`;
     p.appendChild(grey);
-    p.appendChild(chip(2, en["instrument.pixel.source.spectra"].text));
+    p.appendChild(chip(2, tips[1] ?? en["instrument.pixel.source.spectra"].text));
   }
 
   // 01, compact: the catchment's March to June slope, the pixel marked, a 5 km bar and the key
@@ -383,7 +389,11 @@ export function mountPixel(
       div(
         "note nowrap",
         stage,
-        format("instrument.pixel.locate.key", { from: locator.period[0], to: locator.period[1] }),
+        format("instrument.pixel.locate.key", {
+          window: locator.window ?? en["season.unstated"].text,
+          from: locator.period[0],
+          to: locator.period[1],
+        }),
       ),
       x0,
       y0 + H + 36,
@@ -792,13 +802,15 @@ export function mountPixel(
       text(g, right + 8, ys(lp.ndvi) + 4, en["instrument.pixel.series.pixel"].text, t12("ink2"));
     if (lb) {
       text(g, right + 8, ys(lb.ndvi) - 2, en["instrument.pixel.series.band"].text, t12("ink3"));
-      text(
-        g,
-        right + 8,
-        ys(lb.ndvi) + 13,
-        format("instrument.pixel.m", { value: metres(locator.bandTop) }),
-        t12("ink3"),
-      );
+      // the band's height as the record states it; a record without its limits names the band alone
+      if (locator.bandTop !== null)
+        text(
+          g,
+          right + 8,
+          ys(lb.ndvi) + 13,
+          format("instrument.pixel.m", { value: metres(locator.bandTop) }),
+          t12("ink3"),
+        );
     }
     const t = s.pixel_theil_sen;
     place(
@@ -822,7 +834,8 @@ export function mountPixel(
   {
     const { div: stage, g: overlay } = part("06");
     const x0 = L.col3.x;
-    const w = L.col3.w;
+    // in place 06 opens in the left column's slot: narrow enough to pass beside the ask disc
+    const w = around ? AROUND.slotW : L.col3.w;
     const t = d.transect;
     panelHead(x0, L.rowB, w, "06", "instrument.pixel.field");
     place(div("proposed", stage, en["instrument.pixel.field.proposed"].text), x0, L.rowB + 22, w);
@@ -1194,15 +1207,21 @@ export function mountPixel(
   stage.appendChild(overlay);
   draw();
 
-  // in place: each part's frosted back fitted to what it holds, the part moved to its place, and 01, 04 and 06 as
-  // chips that open their card beside the column
+  // in place: each part's frosted back fitted to what it holds, then the left column laid out from the caption's own
+  // height (each place's caption is its own length): the caption, the chips 01, 04 and 06 in one row, and one slot
+  // that holds 02, or the card of the chip that is open in 02's stead, so no card ever stands over another card or
+  // over the pixel (decision 14; the lead, 16:47); 03 and 05 keep the right side
   const CHIPS = [
     ["01", "instrument.pixel.locate"],
     ["04", "instrument.pixel.series"],
     ["06", "instrument.pixel.field"],
   ] as const;
+  const SLOT = new Set(["02", "01", "04", "06"]);
+  const natural = new Map<string, StageBox>();
+  const shiftOf = new Map<string, readonly [number, number]>();
   const partBox = new Map<string, StageBox>();
   const chipBox = new Map<string, StageBox>();
+  const chipButtons = new Map<string, HTMLButtonElement>();
   let opened: string | null = null;
   let lastPixel: StageBox | null = null;
   if (around) {
@@ -1237,28 +1256,17 @@ export function mountPixel(
       );
       back.dataset.card = id;
       p.div.insertBefore(back, p.div.firstChild);
-      const [dx, dy] = AROUND.shift[id] ?? [0, 0];
-      p.div.style.transform = `translate(${String(dx)}px, ${String(dy)}px)`;
-      partBox.set(id, {
-        x0: b.x0 - 12 + dx,
-        y0: b.y0 - top + dy,
-        x1: b.x1 + 12 + dx,
-        y1: b.y1 + 12 + dy,
-      });
+      natural.set(id, { x0: b.x0 - 12, y0: b.y0 - top, x1: b.x1 + 12, y1: b.y1 + 12 });
     }
-  }
-  const chipButtons = new Map<string, HTMLButtonElement>();
-  const show = (id: string | null) => {
-    opened = id;
-    for (const [cid] of CHIPS) {
-      const p = parts.get(cid);
-      if (p) p.div.style.display = cid === id ? "" : "none";
-      chipButtons.get(cid)?.setAttribute("aria-expanded", String(cid === id));
-    }
-    setPixelBox(lastPixel);
-  };
-  if (around) {
-    CHIPS.forEach(([id, title], i) => {
+    // the chips in one row under the caption
+    const cap = natural.get("caption");
+    const row = place(
+      div("chipRow", stage),
+      AROUND.column.x,
+      (cap?.y1 ?? AROUND.cellsY - 40) + 14,
+      AROUND.column.w,
+    );
+    for (const [id, title] of CHIPS) {
       const b = document.createElement("button");
       b.type = "button";
       b.className = c("textButton", "partChip");
@@ -1266,10 +1274,7 @@ export function mountPixel(
       b.setAttribute("aria-expanded", "false");
       div("num", b, id);
       div("title", b, en[title].text);
-      const y = AROUND.chipY + i * AROUND.chipStep;
-      place(b, AROUND.column.x, y);
-      stage.appendChild(b);
-      chipBox.set(id, { x0: AROUND.column.x, y0: y, x1: AROUND.column.x + 220, y1: y + 28 });
+      row.appendChild(b);
       chipButtons.set(id, b);
       // a click toggles its card; the keyboard's focus opens it; leaving the chip closes it
       b.addEventListener("click", () => {
@@ -1281,9 +1286,42 @@ export function mountPixel(
       b.addEventListener("blur", () => {
         if (opened === id) show(null);
       });
+    }
+    for (const [id, b] of chipButtons)
+      chipBox.set(id, {
+        x0: row.offsetLeft + b.offsetLeft,
+        y0: row.offsetTop + b.offsetTop,
+        x1: row.offsetLeft + b.offsetLeft + b.offsetWidth,
+        y1: row.offsetTop + b.offsetTop + b.offsetHeight,
+      });
+    // the slot under the chips: 02, or an opened chip's card, with its back's top left at the column's
+    const slotY = row.offsetTop + row.offsetHeight + 14;
+    for (const [id, nb] of natural) {
+      const sh: readonly [number, number] = SLOT.has(id)
+        ? [AROUND.column.x - 12 - nb.x0, slotY - nb.y0]
+        : (AROUND.shift[id] ?? [0, 0]);
+      shiftOf.set(id, sh);
       const p = parts.get(id);
-      if (p) p.div.style.zIndex = "2";
-    });
+      if (p) p.div.style.transform = `translate(${String(sh[0])}px, ${String(sh[1])}px)`;
+      partBox.set(id, {
+        x0: nb.x0 + sh[0],
+        y0: nb.y0 + sh[1],
+        x1: nb.x1 + sh[0],
+        y1: nb.y1 + sh[1],
+      });
+    }
+  }
+  function show(id: string | null) {
+    opened = id;
+    for (const [cid] of CHIPS) {
+      const p = parts.get(cid);
+      if (p) p.div.style.display = cid === id ? "" : "none";
+      chipButtons.get(cid)?.setAttribute("aria-expanded", String(cid === id));
+    }
+    // an opened chip's card takes 02's place in the slot
+    const p02 = parts.get("02");
+    if (p02) p02.div.style.display = id === null ? "" : "none";
+    setPixelBox(lastPixel);
   }
 
   // in place: one hairline from each open card, or each waiting chip, to the pixel on the land
@@ -1298,6 +1336,7 @@ export function mountPixel(
     if (!around || !box) return;
     const mid: Pt = [(box.x0 + box.x1) / 2, (box.y0 + box.y1) / 2];
     const from: Pt[] = (["01", "02", "03", "04", "05", "06"] as const).flatMap((id) => {
+      if (id === "02" && opened !== null) return [];
       const waiting = chipBox.get(id);
       const b = waiting && opened !== id ? waiting : partBox.get(id);
       return b ? [near(mid, b)] : [];
@@ -1317,8 +1356,12 @@ export function mountPixel(
   const setPaint = (paint: CellPaint) => {
     for (const b of stage.querySelectorAll<HTMLButtonElement>("[data-paint]"))
       b.setAttribute("aria-pressed", String(b.dataset.paint === paint));
-    for (const k of stage.querySelectorAll("[data-paint-key]"))
-      k.setAttribute("display", k.getAttribute("data-paint-key") === paint ? "inline" : "none");
+    // hidden as well as not displayed: a range still measures text in an svg group whose display is none
+    for (const k of stage.querySelectorAll<HTMLElement | SVGElement>("[data-paint-key]")) {
+      const on = k.getAttribute("data-paint-key") === paint;
+      k.setAttribute("display", on ? "inline" : "none");
+      k.style.visibility = on ? "" : "hidden";
+    }
   };
   if (around) {
     setPaint(around.paint);

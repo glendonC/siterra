@@ -74,11 +74,33 @@ describe("arrival from the seed case", () => {
     if (p.kind !== "ready") return;
     expect(p.question).toBe("Is grazing changing the shared pastures of the Aït Bouguemez valley?");
     expect(p.valleyName).toBe("Aït Bouguemez valley");
-    expect(p.regionName).toBe("High Atlas Mountains, Morocco");
+    // the record's own place, not a name read out of a source's title
+    expect(p.regionName).toBe("Central High Atlas, Morocco");
     expect("rangeName" in p).toBe(false);
     expect("subrangeName" in p).toBe(false);
     expect(p.areaKm2).toBe("417.0");
     expect(p.modeLines).toEqual({ label: "mode.concept", detail: "mode.conceptDetail" });
+  });
+});
+
+describe("a second place's names (U25)", () => {
+  it("come from the case record's place, never from the first place or the case title", async () => {
+    const seed = CaseSnapshot.parse(
+      (await import("../../../../packages/contracts/fixtures/case-snapshot-aitbouguemez-seed.json"))
+        .default,
+    );
+    const second = {
+      ...seed,
+      case: {
+        ...seed.case,
+        title: "Grazing and the reservoir catchment of Calaveras Creek",
+        place: { name: "Calaveras Creek catchment", region: "Diablo Range, California" },
+      },
+    };
+    const p = projectArrival(second);
+    if (p.kind !== "ready") throw new Error(p.kind);
+    expect(p.valleyName).toBe("Calaveras Creek catchment");
+    expect(p.regionName).toBe("Diablo Range, California");
   });
 });
 

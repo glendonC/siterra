@@ -210,6 +210,16 @@ test("the pixel opens in place: its cards stand round its risen cells, 02 paints
     );
     const mine = boxes.find((b) => b.id === id);
     if (!mine) throw new Error(`card ${id}`);
+    // nor over its subject, the risen pixel (decision 14)
+    const [px0 = 0, py0 = 0, px1 = 0, py1 = 0] = ((await view.getAttribute("data-pixel-box")) ?? "")
+      .split(",")
+      .map(Number);
+    expect(px1 - px0).toBeGreaterThan(100);
+    expect(
+      Math.max(0, Math.min(mine.x1, px1) - Math.max(mine.x0, px0)) *
+        Math.max(0, Math.min(mine.y1, py1) - Math.max(mine.y0, py0)),
+      `${id} over the pixel`,
+    ).toBe(0);
     for (const b of boxes)
       if (b.id !== id)
         expect(
@@ -235,6 +245,69 @@ test("the pixel opens in place: its cards stand round its risen cells, 02 paints
   await page.keyboard.press("Escape");
   await expect(page).toHaveURL(/\/valley$/);
   await expect(page.locator("[data-instrument='pixel']")).toHaveCount(0);
+});
+
+for (const [w, h] of [
+  [1440, 900],
+  [1440, 800],
+  [1280, 720],
+] as const)
+  test(`the pixel's open cards touch neither each other nor the data line at ${String(w)} x ${String(h)}`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: w, height: h });
+    await ready(page);
+    await page.locator("[data-finding='pixel']").click();
+    await page.locator("[data-record] [data-actions] a").first().click();
+    const view = page.locator("[data-instrument='pixel'][data-around]");
+    await expect(view.locator("[data-card='05']")).toBeVisible();
+    const boxes = await view.locator("[data-card]:visible").evaluateAll((els) =>
+      els.map((e) => {
+        const r = e.getBoundingClientRect();
+        return {
+          id: e.getAttribute("data-card"),
+          x0: r.left,
+          y0: r.top,
+          x1: r.right,
+          y1: r.bottom,
+        };
+      }),
+    );
+    for (const a of boxes)
+      for (const b of boxes)
+        if (a.id !== null && b.id !== null && a.id < b.id)
+          expect(
+            Math.max(0, Math.min(a.x1, b.x1) - Math.max(a.x0, b.x0)) *
+              Math.max(0, Math.min(a.y1, b.y1) - Math.max(a.y0, b.y0)),
+            `${a.id} and ${b.id}`,
+          ).toBe(0);
+    const line = await page.locator("[data-sources-line]:visible").first().boundingBox();
+    const c05 = boxes.find((b) => b.id === "05");
+    if (!line || !c05) throw new Error("the data line or card 05");
+    expect(c05.y1).toBeLessThanOrEqual(line.y);
+  });
+
+test("the browser's Back reopens a view left by Esc, and Back again plays it back to the land", async ({
+  page,
+}) => {
+  await ready(page);
+  await page.locator("[data-finding='band']").click();
+  await page.locator("[data-record] [data-actions] a").first().click();
+  await expect(page).toHaveURL(/\/instruments\/cutaway$/);
+  await expect(page.locator("[data-instrument='cutaway'] [data-band]").first()).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page).toHaveURL(/\/valley$/);
+  await expect(page.locator("[data-instrument='cutaway']")).toHaveCount(0, { timeout: 10_000 });
+  // Back: the address and the view agree again
+  await page.goBack();
+  await expect(page).toHaveURL(/\/instruments\/cutaway$/);
+  await expect(page.locator("[data-instrument='cutaway'] [data-band]").first()).toBeVisible({
+    timeout: 10_000,
+  });
+  // Back again: to the land, the view played back
+  await page.goBack();
+  await expect(page).toHaveURL(/\/valley$/);
+  await expect(page.locator("[data-instrument='cutaway']")).toHaveCount(0, { timeout: 10_000 });
 });
 
 test("the proposed routes lie on the land, lift on hover, open with the bundle's figures, and Esc returns", async ({

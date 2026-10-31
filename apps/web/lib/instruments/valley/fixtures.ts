@@ -6,12 +6,7 @@
 
 import { z } from "zod";
 
-/** Where the browser reads the fixtures: the app's own origin. */
-export const VALLEY_FIXTURES = "/instruments/valley/";
-
 // Record values the fixtures carry only in their sources' names; fixtures.test.ts checks each against its bundle.
-/** The equal-area elevation band limits (m): the strata bundle's siterra:method.parameters.boundaries_m. */
-export const BAND_LIMITS_M = [2316.8, 2815.2] as const;
 /** The CHIRPS reference period of the rain cells: their reference_mm_1991_2020 monthly means. */
 export const RAIN_REFERENCE_YEARS = [1991, 2020] as const;
 /** The seasons of the March to June trends in figures.json: the season trend bundle's period. */
@@ -65,6 +60,8 @@ const trendCell = z.tuple([
 export const trendCellsSchema = z.object({
   /** First and last season of the record. */
   period: z.tuple([z.number().int(), z.number().int()]),
+  /** The season the slopes are over, as the asset words it ("March to June"); absent in older fixtures. */
+  window: z.string().optional(),
   display_scale: z.object({
     domain_per_decade: z.tuple([z.number(), z.number()]),
     neutral_per_decade: z.number().nonnegative(),

@@ -7,10 +7,18 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import { en, format } from "../../lib/copy/en";
+import { windowWords } from "../../lib/land/season";
 import { keepTogether } from "../../lib/instruments/caption";
 import { fixed, signed } from "../../lib/instruments/format";
 import { readJsonAsset } from "../../lib/instruments/listing";
-import { scatterFrom, type ScatterData } from "../../lib/instruments/scatter/data";
+import {
+  NDVI_STEPS,
+  RAIN_STEPS,
+  axisRange,
+  scatterFrom,
+  type AxisRange,
+  type ScatterData,
+} from "../../lib/instruments/scatter/data";
 import { obsidian, pixelColours as C } from "../../lib/theme/obsidian";
 import { useShellSources } from "./ShellContext";
 import styles from "./InstrumentRainfallScatter.module.css";
@@ -23,14 +31,10 @@ export const SCATTER_DESIGN = { width: 1440, height: 900 } as const;
  * the arc (decision 13), which every view keeps clear.
  */
 const PLOT = { left: 540, right: 1010, top: 168, bottom: 680 } as const;
-const RAIN = { lo: 300, hi: 1000, step: 100 } as const;
-const NDVI = { lo: 0.18, hi: 0.23, step: 0.01 } as const;
 const SIDE = { x: 1064, w: 336 } as const;
+/** Before the seasons are read: the axes stand empty. */
+const NO_AXIS: AxisRange = { lo: 0, hi: 1, step: 1 };
 
-const xs = (mm: number) =>
-  PLOT.left + ((mm - RAIN.lo) / (RAIN.hi - RAIN.lo)) * (PLOT.right - PLOT.left);
-const ys = (v: number) =>
-  PLOT.bottom - ((v - NDVI.lo) / (NDVI.hi - NDVI.lo)) * (PLOT.bottom - PLOT.top);
 const ticks = (r: { lo: number; hi: number; step: number }) =>
   Array.from({ length: Math.round((r.hi - r.lo) / r.step) + 1 }, (_, i) => r.lo + i * r.step);
 const mm = (v: number) => String(Math.round(v));
@@ -97,6 +101,28 @@ export function InstrumentRainfallScatter() {
   }, []);
 
   const caption = view?.spec.caption;
+  // the bundle's own windows in words (U25: each place its own season and rainfall window)
+  const words = {
+    growing: windowWords(data?.windows.growing) ?? en["season.unstated"].text,
+    rainfall: windowWords(data?.windows.rainfall) ?? en["season.unstated"].text,
+  };
+  // the axes from the place's own seasons (U25, item f)
+  const RAIN = data
+    ? axisRange(
+        data.seasons.map((s) => s.rain_mm),
+        RAIN_STEPS,
+      )
+    : NO_AXIS;
+  const NDVI = data
+    ? axisRange(
+        data.seasons.map((s) => s.ndvi),
+        NDVI_STEPS,
+      )
+    : NO_AXIS;
+  const xs = (v: number) =>
+    PLOT.left + ((v - RAIN.lo) / (RAIN.hi - RAIN.lo)) * (PLOT.right - PLOT.left);
+  const ys = (v: number) =>
+    PLOT.bottom - ((v - NDVI.lo) / (NDVI.hi - NDVI.lo)) * (PLOT.bottom - PLOT.top);
   const line = data
     ? ([RAIN.lo, RAIN.hi] as const).map((x) => [
         xs(x),
@@ -198,13 +224,13 @@ export function InstrumentRainfallScatter() {
               {format("instrument.scatter.fit", { r2: fixed(data.fit.r_squared, 3) })}
             </div>
             <div className={styles.axisY} style={{ left: PLOT.left, top: PLOT.top - 30 }}>
-              {en["instrument.scatter.axis.ndvi"].text}
+              {format("instrument.scatter.axis.ndvi", { window: words.growing })}
             </div>
             <div
               className={styles.axisX}
               style={{ left: PLOT.left, top: PLOT.bottom + 40, width: PLOT.right - PLOT.left }}
             >
-              {en["instrument.scatter.axis.rain"].text}
+              {format("instrument.scatter.axis.rain", { window: words.rainfall })}
             </div>
             <div className={styles.side} style={{ left: SIDE.x, top: PLOT.top, width: SIDE.w }}>
               <p className={styles.sideFigure}>
@@ -231,7 +257,7 @@ export function InstrumentRainfallScatter() {
                     strokeWidth={1.25}
                   />
                 </svg>
-                {en["instrument.scatter.key.driest"].text}
+                {format("instrument.scatter.key.driest", { window: words.rainfall })}
               </p>
               <p className={styles.sideNote}>
                 {format("instrument.scatter.slope", {

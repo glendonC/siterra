@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { fixed } from "../format";
-import { SCATTER, scatterFrom } from "./data";
+import { NDVI_STEPS, RAIN_STEPS, axisRange, scatterFrom } from "./data";
 
 // The rainfall scatter from the restrend bundle's two files, as the rainfall scatter spec names them.
 
@@ -29,8 +29,8 @@ describe("scatterFrom", () => {
     expect(d.seasons[0]).toEqual({ year: 2000, ndvi: 0.19614, rain_mm: 570.17 });
   });
 
-  it("takes every total from the September to May window, never the November to April one", () => {
-    expect(SCATTER.rainfallWindow).toBe("sep_may");
+  it("takes every total from the bundle's primary window (September to May here), never the November to April one", () => {
+    expect(d.windows).toEqual({ growing: "mar_jun", rainfall: "sep_may" });
     const rows = (
       tables as {
         rainfall: { stratum: string; rainfall_window: string; year: number; rainfall_mm: number }[];
@@ -64,5 +64,58 @@ describe("scatterFrom", () => {
   it("refuses a summary that disagrees with the tables", () => {
     const other = { headline: { catchment: { rainfall_fit_r_squared: 0.5, n: 26 } } };
     expect(() => scatterFrom(tables, other)).toThrow();
+  });
+});
+
+describe("scatterFrom on the second place (U25)", () => {
+  const C = join(B, "..", "bundle_restrend_long_record_calaveras_creek");
+  const c = scatterFrom(
+    JSON.parse(readFileSync(join(C, "restrend-long-record-tables.json"), "utf8")),
+    JSON.parse(readFileSync(join(C, "restrend-long-record.json"), "utf8")),
+  );
+  it("draws Calaveras Creek's own windows, February to May against October to April", () => {
+    expect(c.windows).toEqual({ growing: "feb_may", rainfall: "oct_apr" });
+    expect(c.seasons.length).toBeGreaterThan(14);
+    expect(c.period).toEqual([2000, 2025]);
+  });
+});
+
+describe("the scatter's axes from each place's own values (U25)", () => {
+  it("give the first place the approved axes", () => {
+    expect(
+      axisRange(
+        d.seasons.map((s) => s.rain_mm),
+        RAIN_STEPS,
+      ),
+    ).toEqual({ lo: 300, hi: 1000, step: 100 });
+    expect(
+      axisRange(
+        d.seasons.map((s) => s.ndvi),
+        NDVI_STEPS,
+      ),
+    ).toEqual({ lo: 0.18, hi: 0.23, step: 0.01 });
+  });
+
+  it("hold every season of the second place inside them", () => {
+    const C = join(B, "..", "bundle_restrend_long_record_calaveras_creek");
+    const c = scatterFrom(
+      JSON.parse(readFileSync(join(C, "restrend-long-record-tables.json"), "utf8")),
+      JSON.parse(readFileSync(join(C, "restrend-long-record.json"), "utf8")),
+    );
+    const rain = axisRange(
+      c.seasons.map((s) => s.rain_mm),
+      RAIN_STEPS,
+    );
+    const ndvi = axisRange(
+      c.seasons.map((s) => s.ndvi),
+      NDVI_STEPS,
+    );
+    for (const s of c.seasons) {
+      expect(s.rain_mm).toBeGreaterThanOrEqual(rain.lo);
+      expect(s.rain_mm).toBeLessThanOrEqual(rain.hi);
+      expect(s.ndvi).toBeGreaterThanOrEqual(ndvi.lo);
+      expect(s.ndvi).toBeLessThanOrEqual(ndvi.hi);
+    }
+    expect((rain.hi - rain.lo) / rain.step).toBeLessThanOrEqual(8);
   });
 });

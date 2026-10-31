@@ -5,6 +5,7 @@
 import type { CaseSnapshot, InstrumentListing, InstrumentSpec } from "@siterra/contracts";
 import { metres, percent, fixed, signed } from "../instruments/format";
 import { instrumentOf } from "../instruments/listing";
+import { periodOf, type Period } from "../land/season";
 
 export type FindingId = "catchment" | "band" | "pixel" | "rain" | "fdr";
 export type InstrumentKind = InstrumentSpec["parameters"]["kind"];
@@ -38,6 +39,8 @@ export interface Finding {
   measurementId: string;
   value: number;
   display: string;
+  /** The measurement's period as its record names it: its years and season window (U25: every place its own). */
+  period: Period | null;
 }
 
 const FORMS: Record<Plan["form"], (v: number) => string> = {
@@ -75,6 +78,7 @@ export function findingsFrom(snapshot: CaseSnapshot, listing: InstrumentListing)
       measurementId: m.id,
       value: m.value,
       display: FORMS[plan.form](m.value),
+      period: periodOf(m.periodId),
     });
   }
   // the band's limit: the elevation band limit among the cross section's citations

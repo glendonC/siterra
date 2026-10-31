@@ -382,3 +382,10 @@
   border-color: var(--control-line-strong);
   background: var(--control-fill);
 }
+
+/* the chips in one row under the caption */
+.chipRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}

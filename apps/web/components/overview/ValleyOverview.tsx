@@ -30,7 +30,8 @@ import { InstrumentPixelAnatomy } from "../instruments/InstrumentPixelAnatomy";
 import { InstrumentRainfallScatter } from "../instruments/InstrumentRainfallScatter";
 import { InstrumentShell } from "../instruments/InstrumentShell";
 import { instrumentOf } from "../../lib/instruments/listing";
-import { SEASON_TREND_YEARS, WORLDCOVER } from "../../lib/instruments/valley/fixtures";
+import { WORLDCOVER } from "../../lib/instruments/valley/fixtures";
+import { seasonWords } from "../../lib/land/season";
 import { clamp01, ease, labelAt, labelSide, lerp, wireTo } from "../../lib/overview/arc";
 import {
   VIEW_HREF,
@@ -93,12 +94,13 @@ const LIFT = 34;
 const ASK_R = 56;
 
 /** Each finding's caption lines under its number. */
-function captionOf(id: FindingId, bandLimit: string): string[] {
-  const [from, to] = SEASON_TREND_YEARS;
-  switch (id) {
+function captionOf(f: Finding, bandLimit: string): string[] {
+  // the finding's own season and years, as its measurement's period names them (U25)
+  const { window, from, to } = seasonWords(f.period);
+  switch (f.id) {
     case "catchment":
       return [
-        en["overview.finding.catchment.1"].text,
+        format("overview.finding.catchment.1", { window }),
         format("overview.finding.catchment.2", { from, to }),
       ];
     case "band":
@@ -106,7 +108,7 @@ function captionOf(id: FindingId, bandLimit: string): string[] {
     case "pixel":
       return [en["overview.finding.pixel.1"].text];
     case "rain":
-      return [en["overview.finding.rain.1"].text, en["overview.finding.rain.2"].text];
+      return [en["overview.finding.rain.1"].text, format("overview.finding.rain.2", { window })];
     case "fdr":
       return [en["overview.finding.fdr.1"].text, en["overview.finding.fdr.2"].text];
   }
@@ -134,7 +136,12 @@ const CREDITS: MessageId[] = [
 const SHORT: MessageId[] = ["source.modis", "source.chirps", "source.worldcover", "source.dem"];
 
 /** What the land shows while a finding is open: its footprint, only when its asset was read. */
-function onLandOf(sel: Selection, data: OverviewData | null, bandLimit: string): string | null {
+function onLandOf(
+  sel: Selection,
+  data: OverviewData | null,
+  bandLimit: string,
+  finding: Finding | null,
+): string | null {
   if (!data) return null;
   switch (sel) {
     case "catchment":
@@ -143,6 +150,7 @@ function onLandOf(sel: Selection, data: OverviewData | null, bandLimit: string):
       return data.footprints.slope
         ? format("overview.onLand.fdr", {
             n: new Intl.NumberFormat("en").format(data.footprints.slope.cells.length),
+            window: seasonWords(finding?.period ?? null).window,
           })
         : null;
     case "band":
@@ -254,6 +262,14 @@ const IDLE = { wait: 4, up: 0.7, hold: 2.2, down: 0.7, gap: 0.9 } as const;
 const IDLE_LIFTS: boolean = process.env.NEXT_PUBLIC_SITERRA_IDLE_LIFTS === "on";
 /** The instruments the overview opens in place (decision 12), and the pixel's split and its play back (s). */
 const PIXEL_HREF = VIEW_HREF.pixel;
+/**
+ * The address for what is on screen: a new history entry, or the current one replaced when the address is already
+ * shown (a view reopened by the browser's Back), so history never holds the same place twice in a row.
+ */
+function goTo(href: string): void {
+  if (window.location.pathname === href) window.history.replaceState(null, "", href);
+  else window.history.pushState(null, "", href);
+}
 const SPLIT_S = { in: 1.9, back: 1.2 } as const;
 
 function OverviewReady({
@@ -858,7 +874,7 @@ function OverviewReady({
       // the pixel's panels arrive while its last cells are still settling: no empty frame between them
       if (P.k >= 0.8 && !tearRef.current?.shown) {
         setTear((p) => (p ? { ...p, shown: true } : p));
-        window.history.pushState(null, "", PIXEL_HREF);
+        goTo(PIXEL_HREF);
       }
       if (P.k === 1) P.dir = 0;
       else moving = true;
@@ -869,7 +885,7 @@ function OverviewReady({
         cellPaintRef.current = "rgb";
         setCellPaint("rgb");
         setTear(null);
-        window.history.pushState(null, "", "/valley");
+        goTo("/valley");
       } else moving = true;
     }
     // the idle lifts: the cycle runs while the overview is quiet at rest; any input lets the layer settle
@@ -961,7 +977,7 @@ function OverviewReady({
         (Object.keys(VIEW_HREF) as ViewKind[]).find((k) => VIEW_HREF[k] === href) ?? null;
       if (kind === "rainfall" && selRef.current === "rain") {
         setRainWide(true);
-        window.history.pushState(null, "", href);
+        goTo(href);
         return true;
       }
       if (!kind || tearRef.current) return false;
@@ -976,7 +992,7 @@ function OverviewReady({
           stood: true,
           cut: true,
         });
-        window.history.pushState(null, "", href);
+        goTo(href);
         return true;
       }
       if (kind === "pixel") {
@@ -1007,7 +1023,7 @@ function OverviewReady({
         });
         window.setTimeout(() => {
           setTear((p) => (p ? { ...p, shown: true } : p));
-          window.history.pushState(null, "", href);
+          goTo(href);
         }, 260);
         go();
         return true;
@@ -1033,7 +1049,7 @@ function OverviewReady({
   const onStackDrawn = useCallback(() => {
     setTear((p) => (p ? { ...p, shown: true } : p));
     const t = tearRef.current;
-    window.history.pushState(null, "", t ? VIEW_HREF[t.kind] : VIEW_HREF.layers);
+    goTo(t ? VIEW_HREF[t.kind] : VIEW_HREF.layers);
   }, []);
   const onStackStood = useCallback(() => {
     setTear((p) => (p ? { ...p, stood: true } : p));
@@ -1044,14 +1060,14 @@ function OverviewReady({
     if (!t) return;
     if (t.cut) {
       setTear(null);
-      window.history.pushState(null, "", "/valley");
+      goTo("/valley");
       return;
     }
     if (t.kind === "rainfall" || t.kind === "field") {
       setTear({ ...t, shown: false, back: true });
       window.setTimeout(() => {
         setTear(null);
-        window.history.pushState(null, "", "/valley");
+        goTo("/valley");
         go();
       }, 450);
       return;
@@ -1071,7 +1087,7 @@ function OverviewReady({
   const onStackBack = useCallback(() => {
     exitRef.current = { ...exitRef.current, dir: -1, k: 1 };
     setTear(null);
-    window.history.pushState(null, "", "/valley");
+    goTo("/valley");
     go();
   }, [go]);
   const teardownOf = (t: NonNullable<typeof tear>) => ({
@@ -1082,9 +1098,15 @@ function OverviewReady({
     onBack: onStackBack,
   });
   useEffect(() => {
+    // the browser's Back and Forward: leaving a view's address plays the view back; coming to one opens it in place
     const onPop = () => {
       const t = tearRef.current;
-      if (t && window.location.pathname !== VIEW_HREF[t.kind]) backInPlace();
+      const path = window.location.pathname;
+      if (t) {
+        if (path !== VIEW_HREF[t.kind]) backInPlace();
+        return;
+      }
+      if (Object.values<string>(VIEW_HREF).includes(path)) openRef.current(path);
     };
     window.addEventListener("popstate", onPop);
     return () => {
@@ -1309,7 +1331,7 @@ function OverviewReady({
         if (panel) setPanel(false);
         else if (rainWideRef.current) {
           setRainWide(false);
-          window.history.pushState(null, "", "/valley");
+          goTo("/valley");
         } else if (selRef.current) back();
         else toOpening();
       } else if (ev.key === "Enter" || /^[a-zA-Z]$/.test(ev.key)) {
@@ -1776,7 +1798,7 @@ function OverviewReady({
                   <FindingMark
                     key={f.id}
                     finding={f}
-                    caption={captionOf(f.id, bandLimit?.display ?? "")}
+                    caption={captionOf(f, bandLimit?.display ?? "")}
                     describedBy={descriptionId}
                     dotRef={(el) => {
                       if (el) dotRefs.current.set(f.id, el);
@@ -1809,7 +1831,8 @@ function OverviewReady({
                 {format("arrival.studyArea", { label: names.areaLabel, area })}
               </div>
             ) : null}
-            <div className={styles.key}>
+            {/* the key describes the drawn land: none without a land view (U25) */}
+            <div className={styles.key} hidden={layers === undefined}>
               <span>
                 <i className={styles.swatch} aria-hidden="true" />
                 {en["overview.key.tree"].text}
@@ -1851,8 +1874,9 @@ function OverviewReady({
           ) : null}
         </footer>
         {failed ? (
-          <p className={styles.failed} role="status">
-            {en["overview.failed"].text}
+          <p className={styles.failed} role="status" data-overview-failed>
+            {/* a record without a land view is a blocked state, not a failure to retry (U25) */}
+            {en[layers === undefined ? "overview.noLand" : "overview.failed"].text}
           </p>
         ) : null}
         {sel ? (
@@ -1882,7 +1906,7 @@ function OverviewReady({
               <OverviewRecord
                 sel={sel}
                 finding={selFinding}
-                caption={selFinding ? captionOf(selFinding.id, bandLimit?.display ?? "") : []}
+                caption={selFinding ? captionOf(selFinding, bandLimit?.display ?? "") : []}
                 bandLimit={bandLimit?.display ?? ""}
                 data={sel === "field" ? null : (recordData[sel] ?? null)}
                 reasons={reasons}
@@ -1890,7 +1914,7 @@ function OverviewReady({
                 pixelNote={data?.pixel?.note ?? null}
                 areaLabel={names.areaLabel}
                 side={sideOf(sel, selFinding?.clock)}
-                onLand={onLandOf(sel, data, bandLimit?.display ?? "")}
+                onLand={onLandOf(sel, data, bandLimit?.display ?? "", selFinding)}
                 slopeKey={
                   sel === "fdr" && data?.footprints.slope
                     ? { domain: data.footprints.slope.domain }
@@ -1949,7 +1973,7 @@ function OverviewReady({
                       label: crumbOf(sel, findings, bandLimit?.display ?? ""),
                       onSelect: () => {
                         setRainWide(false);
-                        window.history.pushState(null, "", "/valley");
+                        goTo("/valley");
                       },
                     }
                   : { label: crumbOf(sel, findings, bandLimit?.display ?? "") },

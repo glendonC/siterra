@@ -96,7 +96,8 @@
   font-family: var(--font-sans);
 }
 
-.page button {
+.page button,
+.page a {
   pointer-events: auto;
 }
 
@@ -174,4 +175,55 @@
 .quiet {
   font: 400 13px / 18px var(--font-sans);
   color: var(--grey);
+}
+
+/* another place the visitor can open (U25): a quieter point than the case's, its name beside it */
+.otherPlace {
+  pointer-events: auto;
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: -7px 0 0 -3px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 14px;
+  text-decoration: none;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+}
+
+.otherPlace:hover,
+.otherPlace:focus-visible {
+  color: var(--text-primary);
+}
+
+.otherDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--text-secondary);
+  box-shadow: 0 0 0 1.5px var(--paper);
+}
+
+/* the other places the case listing holds, beside the hint (U25): each a link to its own journey */
+.others {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.others a {
+  color: var(--text-secondary);
+  text-decoration: none;
+}
+
+.others a:hover,
+.others a:focus-visible {
+  color: var(--text-primary);
 }

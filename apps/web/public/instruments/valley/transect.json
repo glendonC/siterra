@@ -2,11 +2,11 @@
   "sources": [
     {
       "path": "data/bundles/bundle_transects_ait_bouguemez/transect-samples.json",
-      "sha256": "3e8cb47fd0e1cd4c00feb8be6853149ae8893fd9ddebec01cc998c44b5134623"
+      "sha256": "e7f1c52e9335e93a16583f7c4d35a13acda20174d4e4bbf966a8e3adc1232fe5"
     },
     {
       "path": "data/bundles/bundle_transects_ait_bouguemez/terrain-transects.json",
-      "sha256": "2fdab92d9133a11a94e43a4fcaff8aba913054243173dfdc7996a4a3e0e70cdc"
+      "sha256": "f97171c8e48152d3d4e796982ee2bb07591bd27470bf1f30a97dd7c8ac041475"
     }
   ],
   "transect": "tabant_meridian",

@@ -35,17 +35,31 @@ export async function loadSnapshot(caseId: string, fetchImpl: Fetch): Promise<Ca
 interface DemoCopy {
   caseId: string;
   expiresAt: string;
+  /** The seed case it is a copy of, when the visitor named one (U25: a second place opens its own copy). */
+  seedCaseId?: string;
 }
 
 const DEMO_KEY = "siterra.demoCase";
 
-/** Starts a demo session and returns its case, or undefined if none could start. */
-export async function startDemoSession(fetchImpl: Fetch): Promise<DemoCopy | undefined> {
-  const res = await fetchImpl("/api/demo-sessions", { method: "POST", credentials: "same-origin" });
+/**
+ * Starts a demo session, on a copy of the named seed case or of the default one, and returns its case, or undefined
+ * if none could start (a name that is not a seed case is refused).
+ */
+export async function startDemoSession(
+  fetchImpl: Fetch,
+  seedCaseId?: string,
+): Promise<DemoCopy | undefined> {
+  const res = await fetchImpl("/api/demo-sessions", {
+    method: "POST",
+    credentials: "same-origin",
+    ...(seedCaseId === undefined
+      ? {}
+      : { headers: { "content-type": "application/json" }, body: JSON.stringify({ seedCaseId }) }),
+  });
   if (res.status !== 201) return undefined;
   const body = (await res.json()) as { caseId?: unknown; expiresAt?: unknown };
   return typeof body.caseId === "string" && typeof body.expiresAt === "string"
-    ? { caseId: body.caseId, expiresAt: body.expiresAt }
+    ? { caseId: body.caseId, expiresAt: body.expiresAt, ...(seedCaseId ? { seedCaseId } : {}) }
     : undefined;
 }
 
@@ -55,7 +69,11 @@ function readDemo(storage: Storage | undefined, now: number): DemoCopy | undefin
     return typeof d?.caseId === "string" &&
       typeof d.expiresAt === "string" &&
       Date.parse(d.expiresAt) > now
-      ? { caseId: d.caseId, expiresAt: d.expiresAt }
+      ? {
+          caseId: d.caseId,
+          expiresAt: d.expiresAt,
+          ...(typeof d.seedCaseId === "string" ? { seedCaseId: d.seedCaseId } : {}),
+        }
       : undefined;
   } catch {
     return undefined;
@@ -74,8 +92,9 @@ async function openDemo(
   fetchImpl: Fetch,
   storage: Storage | undefined,
   fallback: CaseLoad,
+  seedCaseId?: string,
 ): Promise<CaseLoad> {
-  const demo = await startDemoSession(fetchImpl);
+  const demo = await startDemoSession(fetchImpl, seedCaseId);
   if (!demo) return fallback;
   writeDemo(storage, demo);
   const load = await loadSnapshot(demo.caseId, fetchImpl);
@@ -94,11 +113,20 @@ export async function openCase(
   now: number,
 ): Promise<CaseLoad> {
   const unauthenticated: CaseLoad = { status: "unauthenticated" };
-  const named = caseId ?? readDemo(storage, now)?.caseId;
+  const stored = readDemo(storage, now);
+  // a seed case named in the address opens this visitor's own copy of it, while that copy lasts
+  const copy = caseId !== undefined && stored?.seedCaseId === caseId ? stored.caseId : undefined;
+  const named = copy ?? caseId ?? stored?.caseId;
   if (named === undefined) return openDemo(fetchImpl, storage, unauthenticated);
   const first = await loadSnapshot(named, fetchImpl);
   if (first.status === "ready") return { ...first, resumed: true };
-  if (first.status !== "unauthenticated" && !(caseId === undefined && first.status === "not_found"))
-    return first;
+  if (first.status !== "unauthenticated" && first.status !== "not_found") return first;
+  // a named seed case gets its own copy, whether the visitor has no session (401) or a session on another copy
+  // (404); a named case that is no seed case stays not found, and without a session gets the default copy
+  if (caseId !== undefined) {
+    const own = await openDemo(fetchImpl, storage, first, caseId);
+    if (own.status === "ready") return own;
+    if (first.status === "not_found") return first;
+  }
   return openDemo(fetchImpl, storage, first);
 }

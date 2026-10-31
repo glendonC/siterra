@@ -14,6 +14,7 @@ import { R_KM, globeCamera, project, unit } from "../../lib/globe/frame";
 import { polygonPath, rangePath, ringPoints, ringRho } from "../../lib/globe/overlay";
 import { loadGlobe, type GlobeAssets } from "../../lib/globe/grids";
 import { GlobeRenderer } from "../../lib/globe/renderer";
+import { otherPlaces, placeHref, type OtherPlace } from "../../lib/globe/places";
 import { KEY, globeStateAt, sunFor, type Moments } from "../../lib/globe/timeline";
 import { centreOf } from "../../lib/land/geometry";
 import { Opening } from "../opening/Opening";
@@ -44,6 +45,25 @@ export function Journey({ globeAssets, arrival, snapshot }: JourneyProps) {
   const rangeGroup = useRef<SVGTextElement>(null);
   const casePoint = useRef<HTMLDivElement>(null);
   const caseCard = useRef<HTMLDivElement>(null);
+  // the other places the seed-case listing holds (U25, item k), each a point the visitor can open instead
+  const [others, setOthers] = useState<OtherPlace[]>([]);
+  const othersRef = useRef<OtherPlace[]>([]);
+  othersRef.current = others;
+  const otherEls = useRef(new Map<string, HTMLAnchorElement>());
+  useEffect(() => {
+    const ac = new AbortController();
+    fetch("/api/seed-cases", { signal: ac.signal, headers: { accept: "application/json" } })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((json: unknown) => {
+        setOthers(otherPlaces(json, arrival.valleyName));
+      })
+      .catch(() => {
+        // without the listing the globe shows the one case
+      });
+    return () => {
+      ac.abort();
+    };
+  }, [arrival.valleyName]);
   // the case's place on the sphere: its outlet from the record, else its catchment's centre; the earth sinks into the
   // ground round the catchment's centre
   const outline = arrival.catchment.geometry.coordinates[0] ?? [];
@@ -208,6 +228,25 @@ export function Journey({ globeAssets, arrival, snapshot }: JourneyProps) {
           : "";
         casePoint.current.style.opacity = String(cs ? s.ringOpacity : 0);
       }
+      // the other places, on the globe's lit side only, as the case's point fades
+      for (const op of othersRef.current) {
+        const el = otherEls.current.get(op.caseId);
+        if (!el) continue;
+        const ov = unit(op.lon, op.lat);
+        const lift: [number, number, number] = [
+          ov[0] * (1 + 3 / R_KM),
+          ov[1] * (1 + 3 / R_KM),
+          ov[2] * (1 + 3 / R_KM),
+        ];
+        const ps = project(cam.vp, lift, w, h);
+        // the far side of the earth hides it: the point faces away from the camera
+        const e = cam.eye;
+        const facing = ov[0] * (e[0] - ov[0]) + ov[1] * (e[1] - ov[1]) + ov[2] * (e[2] - ov[2]) > 0;
+        const shown = ps && facing ? s.ringOpacity : 0;
+        el.style.transform = ps ? `translate(${ps[0].toFixed(1)}px, ${ps[1].toFixed(1)}px)` : "";
+        el.style.opacity = shown.toFixed(3);
+        el.style.visibility = shown > 0.05 ? "visible" : "hidden";
+      }
       // the case's card stands beside its point (with one case it opens by itself) and goes down with it
       if (caseCard.current) {
         caseCard.current.style.transform = cs
@@ -289,6 +328,24 @@ export function Journey({ globeAssets, arrival, snapshot }: JourneyProps) {
         // land has taken their place
         <div className={styles.handover}>
           <div ref={casePoint} className={styles.casePoint} aria-hidden="true" />
+          {phase === "globe"
+            ? others.map((op) => (
+                <a
+                  key={op.caseId}
+                  ref={(el) => {
+                    if (el) otherEls.current.set(op.caseId, el);
+                    else otherEls.current.delete(op.caseId);
+                  }}
+                  className={styles.otherPlace}
+                  href={placeHref(op.caseId)}
+                  data-globe-place={op.caseId}
+                  aria-label={format("globe.openPlace", { place: op.name, region: op.region })}
+                >
+                  <i className={styles.otherDot} aria-hidden="true" />
+                  <span>{op.name}</span>
+                </a>
+              ))
+            : null}
           <GlobePage
             cases={[
               {
@@ -298,6 +355,7 @@ export function Journey({ globeAssets, arrival, snapshot }: JourneyProps) {
                 question: arrival.question,
               },
             ]}
+            others={others}
             cardRef={caseCard}
             onOpen={onDive}
             opened={phase !== "globe"}

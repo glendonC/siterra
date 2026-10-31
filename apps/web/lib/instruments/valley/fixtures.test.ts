@@ -2,8 +2,9 @@ import { createHash } from "node:crypto";
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { bandLimitsOf } from "../../land/record";
+import { seed } from "../seed-listing";
 import {
-  BAND_LIMITS_M,
   RAIN_REFERENCE_YEARS,
   SNOW_YEARS,
   WORLDCOVER,
@@ -85,11 +86,11 @@ describe("valley fixtures", () => {
 });
 
 describe("record values named in code", () => {
-  it("band limits are the strata bundle's boundaries", () => {
+  it("the record's band limits are the strata bundle's boundaries", () => {
     const c = bundle("bundle_terrain_strata_ait_bouguemez/collection.json") as {
       "siterra:method": { parameters: { boundaries_m: number[] } };
     };
-    expect(c["siterra:method"].parameters.boundaries_m).toEqual(BAND_LIMITS_M);
+    expect(c["siterra:method"].parameters.boundaries_m).toEqual(bandLimitsOf(seed));
   });
 
   it("the rain reference period is the one the CHIRPS cells' monthly means name", () => {

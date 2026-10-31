@@ -11,7 +11,7 @@ import type { CSSProperties, Ref } from "react";
 import { en, format } from "../../lib/copy/en";
 import { signed } from "../../lib/instruments/format";
 import type { ScatterData } from "../../lib/instruments/scatter/data";
-import { SEASON_TREND_YEARS } from "../../lib/instruments/valley/fixtures";
+import { seasonWords, windowWords } from "../../lib/land/season";
 import type { Finding } from "../../lib/overview/findings";
 import { chartScale, yearTicks, type SeasonChart } from "../../lib/overview/record";
 import type { RecordData } from "../../lib/overview/record-data";
@@ -39,8 +39,8 @@ export interface RecordRefs {
 }
 
 function SeasonsChart({ chart }: { chart: SeasonChart }) {
-  const first = chart.seasons[0]?.year ?? SEASON_TREND_YEARS[0];
-  const last = chart.seasons[chart.seasons.length - 1]?.year ?? SEASON_TREND_YEARS[1];
+  const first = chart.seasons[0]?.year ?? 0;
+  const last = chart.seasons[chart.seasons.length - 1]?.year ?? first;
   const { lo, hi, ticks } = chartScale(chart.seasons.map((s) => s.ndvi));
   const digits = ticks.some((t) => Math.round(t * 10) !== t * 10) ? 2 : 1;
   const X = (x: number) =>
@@ -119,7 +119,10 @@ function RainScatter({ data, wide = false }: { data: ScatterData; wide?: boolean
         </text>
       ))}
       <text x={CHART.w - CHART.pr} y={H - 4} textAnchor="end">
-        {en["overview.record.rain"].text}
+        {/* the rainfall window the bundle's primary analysis uses, in words (U25) */}
+        {format("overview.record.rain", {
+          window: windowWords(data.windows.rainfall) ?? en["season.unstated"].text,
+        })}
       </text>
       <text x={CHART.pl - 8} y={CHART.pt - 2} textAnchor="end">
         {en["overview.record.ndvi"].text}
@@ -195,7 +198,8 @@ export function OverviewRecord({
   wide?: boolean;
   refs: RecordRefs;
 }) {
-  const [from, to] = SEASON_TREND_YEARS;
+  // the finding's own season and years, from its measurement's period (U25)
+  const { window, from, to } = seasonWords(finding?.period ?? null);
   const kicker =
     sel === "field"
       ? en["overview.field"].text
@@ -209,12 +213,13 @@ export function OverviewRecord({
     ? format(chart.fit === "theil_sen" ? "overview.record.theilSen" : "overview.record.ols", {
         lower: signed(chart.lower, 4),
         upper: signed(chart.upper, 4),
+        window,
       })
     : data?.scatter
       ? en["overview.record.scatter"].text
       : null;
   const capText =
-    chart && finding ? format("overview.record.caption", { from, to }) : caption.join(" ");
+    chart && finding ? format("overview.record.caption", { window, from, to }) : caption.join(" ");
   const context = data?.context ?? null;
   return (
     <div
@@ -244,7 +249,7 @@ export function OverviewRecord({
           {chart ? <SeasonsChart chart={chart} /> : null}
           {data?.scatter ? <RainScatter data={data.scatter} wide={wide} /> : null}
           {ci ? <div className={styles.ci}>{ci}</div> : null}
-          {slopeKey ? <SlopeKey domain={slopeKey.domain} /> : null}
+          {slopeKey ? <SlopeKey domain={slopeKey.domain} window={window} /> : null}
           {onLand ? (
             <div className={styles.note} data-on-land>
               {onLand}
@@ -292,7 +297,7 @@ export function OverviewRecord({
 }
 
 /** The fixed scale the land's slope is painted on: browning arm, the neutral middle, greening arm. */
-function SlopeKey({ domain }: { domain: number }) {
+function SlopeKey({ domain, window }: { domain: number; window: string }) {
   const stops = [...[...C.slopeBelow].reverse(), C.slopeNeutral, ...C.slopeAbove];
   return (
     <div className={styles.slopeKey} data-slope-key>
@@ -306,7 +311,7 @@ function SlopeKey({ domain }: { domain: number }) {
         <span>0</span>
         <span>{signed(domain, 2)}</span>
       </span>
-      <span className={styles.slopeLabel}>{en["overview.slopeKey"].text}</span>
+      <span className={styles.slopeLabel}>{format("overview.slopeKey", { window })}</span>
     </div>
   );
 }

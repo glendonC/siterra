@@ -15,6 +15,7 @@ import {
   type ReactNode,
 } from "react";
 import { en, format, type MessageId } from "../../lib/copy/en";
+import { bandLimitsOf } from "../../lib/land/record";
 import { splitFigure } from "../../lib/instruments/caption";
 import { metres, percent, signed } from "../../lib/instruments/format";
 import {
@@ -331,7 +332,14 @@ export function InstrumentLayerStack({ teardown }: { teardown?: StackTeardown } 
       </p>
       {failed && (
         <p className={styles.failed} role="status">
-          {en["instrument.layers.failed"].text}
+          {/* a record without its two band limits is a blocked state, not a failure (AUDIT's U23 advisory) */}
+          {
+            en[
+              record.status === "ready" && bandLimitsOf(record.snapshot) === null
+                ? "instrument.noBandLimits"
+                : "instrument.layers.failed"
+            ].text
+          }
         </p>
       )}
       {data && caption && lead && !failed && (

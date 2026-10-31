@@ -121,6 +121,7 @@ export function trendCellsFrom(json: unknown): TrendCells {
   if (t.median_slope_per_decade === undefined) throw new Error("trend_cells states no median");
   return {
     period: t.period,
+    ...(t.window ? { window: t.window } : {}),
     display_scale: t.display_scale,
     count: t.count,
     median: t.median_slope_per_decade,

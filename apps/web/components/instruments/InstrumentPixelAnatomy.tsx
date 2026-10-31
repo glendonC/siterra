@@ -8,6 +8,7 @@
 // statements are the spec's context display texts with the sources of their Evidence (contracts 1.17.0); the
 // locator's trend cells (a GeoTIFF in the bundle) stay on their tested fixture until the bundle's display asset lands.
 
+import type { CaseSnapshot } from "@siterra/contracts";
 import { useEffect, useId, useRef, useState } from "react";
 import { en } from "../../lib/copy/en";
 import { loadCasePixel } from "../../lib/instruments/pixel/case";
@@ -27,6 +28,19 @@ import { trendCellsFrom } from "../../lib/overview/footprint";
 import { useShellSources } from "./ShellContext";
 import styles from "./InstrumentPixelAnatomy.module.css";
 import { useInstrument } from "./InstrumentRecords";
+
+/**
+ * The caption's two source notes from the record (U25): the first citation's own description of what it measures,
+ * and the last one's (the mix model); none when the record holds no such measurement.
+ */
+function tipsOf(
+  ids: readonly string[],
+  snapshot: CaseSnapshot | null,
+): readonly [string | null, string | null] {
+  const note = (id: string | undefined) =>
+    snapshot?.records.measurementRecords.find((m) => m.id === id)?.aggregation ?? null;
+  return [note(ids[0]), note(ids[ids.length - 1])];
+}
 
 export function InstrumentPixelAnatomy({
   state = "measured",
@@ -93,13 +107,9 @@ export function InstrumentPixelAnatomy({
           snapshot,
           display.map((d, i) => ({ id: String(i), display: d })),
         );
-        // the pixel's band is named by the record's lower limit; without it the page cannot be drawn
+        // the pixel's band is named by the record's lower limit; a record without its two limits names the band
+        // alone (AUDIT's U23 advisory), the rest of the page is drawn
         const limits = bandLimitsOf(snapshot);
-        if (!limits) {
-          console.error("The record holds no two elevation band limits");
-          setFailed(true);
-          return;
-        }
         setLoaded({
           pixel,
           statements,
@@ -107,7 +117,8 @@ export function InstrumentPixelAnatomy({
             cells: trend.cells,
             ring,
             period: trend.period,
-            bandTop: limits[0],
+            window: trend.window ?? null,
+            bandTop: limits?.[0] ?? null,
             scale: {
               domain: Math.max(...trend.display_scale.domain_per_decade.map(Math.abs)),
               neutral: trend.display_scale.neutral_per_decade,
@@ -144,6 +155,7 @@ export function InstrumentPixelAnatomy({
             },
           }
         : null,
+      tipsOf(caption.citationIds, snapshot),
     );
     sceneRef.current = scene;
     // in place, the leaders follow the pixel on the land
@@ -166,6 +178,10 @@ export function InstrumentPixelAnatomy({
       if (key !== lastBox) {
         lastBox = key;
         scene.setPixelBox(box);
+        // where the pixel stands on screen, for the layout checks that no card covers it
+        root.dataset.pixelBox = cb
+          ? [cb.x0, cb.y0, cb.x1, cb.y1].map((v) => v.toFixed(0)).join(",")
+          : "";
       }
       raf = requestAnimationFrame(follow);
     };
@@ -197,7 +213,7 @@ export function InstrumentPixelAnatomy({
       sceneRef.current = null;
       scene.dispose();
     };
-  }, [loaded, caption, state]);
+  }, [loaded, caption, state, snapshot]);
   const paint = around?.paint;
   useEffect(() => {
     if (paint) sceneRef.current?.setPaint(paint);
