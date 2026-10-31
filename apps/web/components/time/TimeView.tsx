@@ -248,6 +248,10 @@ export function TimeView({
         const step = (e.shiftKey ? 12 : 1) * (e.key === "ArrowRight" ? 1 : -1);
         goTo(Math.min(restOn(pos.current) + step, last));
         e.preventDefault();
+      } else if (e.key === "Home" || e.key === "End") {
+        // the slider's ends: the first season's January, or the trend at the end of the track
+        goTo(e.key === "Home" ? 0 : last + TREND_SPAN);
+        e.preventDefault();
       }
     };
     window.addEventListener("keydown", onKey);

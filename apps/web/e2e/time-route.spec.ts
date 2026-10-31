@@ -33,3 +33,37 @@ test("a case whose land is not drawn stays on its overview, under the overview's
   await expect(page).toHaveURL(/\/valley\?case=case_calaveras_creek$/);
   await expect(page.locator("[data-time-view]")).toHaveCount(0);
 });
+
+test("reloading inside See It Over Time opens it again over the drawn land; Home and End go to the track's ends", async ({
+  page,
+}) => {
+  test.setTimeout(180_000);
+  await page.goto("/valley");
+  await expect(page.locator("[data-overview-root]")).toHaveAttribute("data-ready", "", {
+    timeout: 90_000,
+  });
+  await page.locator("[data-finding='catchment']").click();
+  await page.mouse.move(720, 120);
+  await page.keyboard.press("t");
+  const view = page.locator("[data-time-view]");
+  await expect(view).toBeVisible({ timeout: 10_000 });
+  await expect(page).toHaveURL(/\/instruments\/time$/);
+  await page.reload();
+  await expect(page.locator("[data-overview-root]")).toHaveAttribute("data-ready", "", {
+    timeout: 90_000,
+  });
+  await expect(view).toBeVisible({ timeout: 10_000 });
+  await expect(page).toHaveURL(/\/instruments\/time$/);
+  const slider = view.getByRole("slider");
+  await page.keyboard.press("Space");
+  await page.keyboard.press("Home");
+  await expect(slider).toHaveAttribute("aria-valuenow", "0");
+  await page.keyboard.press("End");
+  await expect(slider).toHaveAttribute(
+    "aria-valuenow",
+    (await slider.getAttribute("aria-valuemax")) ?? "",
+  );
+  await page.keyboard.press("Escape");
+  await expect(view).toHaveCount(0, { timeout: 10_000 });
+  await expect(page).toHaveURL(/\/valley$/);
+});
