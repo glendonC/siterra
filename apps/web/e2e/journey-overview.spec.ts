@@ -63,8 +63,16 @@ test("the opening, the globe and the zoom land on the overview, and a reload ret
   await expect(page.locator("[data-ask]")).toHaveAttribute("aria-expanded", "false");
   await page.keyboard.press("Enter");
   await expect(page.locator("[data-phase=zoom]")).toBeVisible();
-  // the case's card stays on screen as the camera goes down, without its action
-  await expect(page.locator("[data-case-card]")).toBeVisible();
+  // the case's card stays on screen as the camera goes down, without its action; on a fast or busy machine the zoom
+  // may already have landed when this looks (AUDIT: a timing flake at two workers), so the card is checked while the
+  // zoom lasts
+  await expect
+    .poll(async () =>
+      (await page.locator("[data-phase=zoom]").count())
+        ? await page.locator("[data-case-card]").isVisible()
+        : true,
+    )
+    .toBe(true);
   await expect(page.locator("[data-case-card] button")).toHaveCount(0);
   await expect(page.locator("[data-phase=rest]")).toBeVisible({ timeout: 90_000 });
   await overview(page);

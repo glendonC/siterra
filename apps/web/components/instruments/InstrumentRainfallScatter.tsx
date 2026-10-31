@@ -52,6 +52,9 @@ export function InstrumentRainfallScatter() {
   });
   const [data, setData] = useState<ScatterData | null>(null);
   const [loadFailed, setFailed] = useState(false);
+  // the fit's caveat in full, its slope and interval, and the gate wait behind one step (decision 16, U28b)
+  const [more, setMore] = useState(false);
+  const moreId = useId();
   // an instrument the case holds no spec for cannot be drawn
   const failed = loadFailed || record.status === "failed" || record.status === "absent";
   const view = record.status === "ready" ? record.view : null;
@@ -147,7 +150,9 @@ export function InstrumentRainfallScatter() {
               <span className={styles.ink}>{keepTogether(caption.ink)}</span>
               <span className={styles.chip}>1</span>
               <span className={styles.chip}>2</span>{" "}
-              <span className={styles.grey}>{keepTogether(caption.grey)}</span>
+              <span className={styles.grey} data-scatter-why>
+                {en["instrument.scatter.why"].text}
+              </span>
             </p>
             <svg
               className={styles.plot}
@@ -242,12 +247,6 @@ export function InstrumentRainfallScatter() {
               </p>
               <p className={styles.sideKey}>
                 <svg className={styles.key} width={20} height={16} aria-hidden="true">
-                  <circle cx={10} cy={8} r={4} fill={C.series} />
-                </svg>
-                {en["instrument.scatter.key.season"].text}
-              </p>
-              <p className={styles.sideKey}>
-                <svg className={styles.key} width={20} height={16} aria-hidden="true">
                   <circle
                     cx={10}
                     cy={8}
@@ -259,17 +258,38 @@ export function InstrumentRainfallScatter() {
                 </svg>
                 {format("instrument.scatter.key.driest", { window: words.rainfall })}
               </p>
-              <p className={styles.sideNote}>
-                {format("instrument.scatter.slope", {
-                  slope: signed(data.fit.slope_per_100_mm, 4),
-                  // the bundle stores the interval per mm; per 100 mm is its two ends times 100
-                  lower: signed(data.fit.lower * 100, 4),
-                  upper: signed(data.fit.upper * 100, 4),
-                })}
-              </p>
-              {data.status === "precondition_not_met" && (
-                <p className={styles.sideNote}>{en["instrument.scatter.gate"].text}</p>
-              )}
+              <button
+                type="button"
+                className={styles.more}
+                aria-expanded={more}
+                aria-controls={moreId}
+                data-scatter-more
+                onClick={() => {
+                  setMore((m) => !m);
+                }}
+              >
+                {en["instrument.scatter.more"].text}
+              </button>
+              <div id={moreId} hidden={!more} data-scatter-details>
+                <p className={styles.sideKey}>
+                  <svg className={styles.key} width={20} height={16} aria-hidden="true">
+                    <circle cx={10} cy={8} r={4} fill={C.series} />
+                  </svg>
+                  {en["instrument.scatter.key.season"].text}
+                </p>
+                <p className={styles.sideNote}>{keepTogether(caption.grey)}</p>
+                <p className={styles.sideNote}>
+                  {format("instrument.scatter.slope", {
+                    slope: signed(data.fit.slope_per_100_mm, 4),
+                    // the bundle stores the interval per mm; per 100 mm is its two ends times 100
+                    lower: signed(data.fit.lower * 100, 4),
+                    upper: signed(data.fit.upper * 100, 4),
+                  })}
+                </p>
+                {data.status === "precondition_not_met" && (
+                  <p className={styles.sideNote}>{en["instrument.scatter.gate"].text}</p>
+                )}
+              </div>
             </div>
           </>
         )}

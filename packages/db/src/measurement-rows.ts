@@ -12,36 +12,46 @@ const id = z.string().regex(/^[a-z][a-z0-9_]*$/);
 const pointer = z.string().regex(/^(\/[^/]*)+$/);
 const yearOrMonth = z.string().regex(/^[0-9]{4}(-[0-9]{2})?$/);
 
-export const MeasurementRow = z.strictObject({
-  rowId: id,
-  bundleId: z.string(),
-  assetKey: z.string().min(1),
-  pointer,
-  lowerPointer: pointer.nullable(),
-  upperPointer: pointer.nullable(),
-  claimKindPointer: pointer,
-  claimKind: z.string().min(1),
-  metric: id,
-  unit: z.string().min(1),
-  aggregation: z.string().min(1),
-  stratum: z.string().min(1),
-  period: z.strictObject({
-    start: yearOrMonth,
-    end: yearOrMonth,
-    window: z.string().min(1).nullable(),
-  }),
-  periodId: z.string(),
-  uncertainty: z.discriminatedUnion("kind", [
-    z.strictObject({
-      kind: z.literal("interval"),
-      level: z.number().gt(0).lt(1),
-      method: z.string().min(1),
+export const MeasurementRow = z
+  .strictObject({
+    rowId: id,
+    bundleId: z.string(),
+    assetKey: z.string().min(1),
+    pointer,
+    lowerPointer: pointer.nullable(),
+    upperPointer: pointer.nullable(),
+    /**
+     * Where the asset states the claim kind. Null only on the bundle's own collection, the one
+     * document that cannot state one: the row then states it and nothing is read back.
+     */
+    claimKindPointer: pointer.nullable(),
+    claimKind: z.string().min(1),
+    metric: id,
+    unit: z.string().min(1),
+    aggregation: z.string().min(1),
+    stratum: z.string().min(1),
+    period: z.strictObject({
+      start: yearOrMonth,
+      end: yearOrMonth,
+      window: z.string().min(1).nullable(),
     }),
-    z.strictObject({ kind: z.literal("not_quantified") }),
-  ]),
-  spatialResolutionM: z.number().gt(0).nullable(),
-  usedBy: z.array(z.string().min(1)),
-});
+    periodId: z.string(),
+    uncertainty: z.discriminatedUnion("kind", [
+      z.strictObject({
+        kind: z.literal("interval"),
+        level: z.number().gt(0).lt(1),
+        method: z.string().min(1),
+      }),
+      z.strictObject({ kind: z.literal("not_quantified") }),
+    ]),
+    spatialResolutionM: z.number().gt(0).nullable(),
+    usedBy: z.array(z.string().min(1)),
+  })
+  .refine((row) => row.claimKindPointer !== null || row.assetKey === "collection", {
+    message: "Only a row on the bundle's collection may leave the claim kind pointer null",
+    path: ["claimKindPointer"],
+  });
+
 export type MeasurementRow = z.infer<typeof MeasurementRow>;
 
 export const MeasurementRowsFile = z.strictObject({
@@ -139,7 +149,8 @@ export function readMeasurementRows(args: {
       issue(`${path} does not name a finite number in ${row.assetKey}`);
       return null;
     };
-    const claimKind = readPointer(document, row.claimKindPointer);
+    const claimKind =
+      row.claimKindPointer === null ? row.claimKind : readPointer(document, row.claimKindPointer);
     if (claimKind !== row.claimKind) {
       issue(
         `Claim kind at ${row.claimKindPointer} is ${JSON.stringify(claimKind)}, not ${row.claimKind}`,

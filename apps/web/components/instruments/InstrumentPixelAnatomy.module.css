@@ -389,3 +389,16 @@
   flex-wrap: wrap;
   gap: 8px;
 }
+
+/* in place, 06's step to what the check would record and its published context (U28d) */
+.contextStep {
+  padding: 0 10px;
+}
+
+.fieldContext {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+  pointer-events: auto;
+}

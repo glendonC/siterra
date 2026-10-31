@@ -76,6 +76,10 @@ const L = {
   /** Two lines with the DEM notice, starting where the specimens' credit does (16 px under the command line). */
   creditY: 856,
 };
+/** The widest a view of 02's cells may be (the first place's 28 cells at 8 px). */
+const MULT_W = 224;
+/** In place, 02's paint buttons stand this far under its title, and its key under them (U28c: no empty card). */
+const PAINT_ROW = 34;
 /** The bar's size and the readout's offset in 05. */
 const BAR = { w: 300, h: 24, readout: 324 };
 /** 05 starts this far into its column, so the ask disc's place on the arc (decision 13) stays clear in this view. */
@@ -93,6 +97,27 @@ export interface PixelAround {
   onPaint: (paint: CellPaint) => void;
 }
 
+/**
+ * Where the opened pixel's cards point on the land (U28c), each an outline or a point: its place (the footprint on the
+ * land), its risen cells, and the field check's point.
+ */
+export interface PixelAnchors {
+  place: readonly (readonly [number, number])[];
+  cells: readonly (readonly [number, number])[];
+  field: readonly (readonly [number, number])[];
+}
+
+/** Each card's own anchor (the lead's U28c): 02 on the cells grid, 03, 04 and 05 on the pixel, 06 on its field
+ * check's point, 01 on the pixel's place. */
+const ANCHOR_OF: Record<string, keyof PixelAnchors> = {
+  "01": "place",
+  "02": "cells",
+  "03": "cells",
+  "04": "cells",
+  "05": "cells",
+  "06": "field",
+};
+
 /** A box on the 1440 x 900 stage. */
 export interface StageBox {
   x0: number;
@@ -102,10 +127,10 @@ export interface StageBox {
 }
 
 /**
- * The pixel opened in place (stage px; U27, the lead's 16:15 judgment): the risen pixel is the subject in the middle;
- * three cards stay open round it (the caption and 02 in the left column, 03 at the top right, 05 at the bottom right),
- * and 01, 04 and 06 wait as small chips on their leaders under the caption; a chip opens its card in 02's slot on
- * focus or a click, so no card stands over another card or over the pixel.
+ * The pixel opened in place (stage px; U27, the lead's 16:15 judgment; U28b, decision 16): the risen pixel is the
+ * subject in the middle; at rest only the caption and 02 stay open in the left column, and 01, 03, 04, 05 and 06 wait
+ * as small chips on their leaders under the caption. On focus or a click, 01, 04 and 06 open their card in 02's slot;
+ * 03 opens at the top right and 05 at the bottom right, so no card stands over another card or over the pixel.
  */
 export const AROUND = {
   column: { x: 40, w: 400 },
@@ -125,8 +150,8 @@ export const AROUND = {
 };
 
 export interface PixelScene {
-  /** In place: where the pixel stands on the stage now, for the cards' leaders. */
-  setPixelBox(box: StageBox | null): void;
+  /** In place: where the pixel stands on the stage now, and where each card's leader ends. */
+  setPixelBox(box: StageBox | null, anchors?: PixelAnchors | null): void;
   /** In place: the paint the land's cells carry. */
   setPaint(paint: CellPaint): void;
   /** Sets some class shares (by WorldCover code) and redraws the model. */
@@ -169,6 +194,8 @@ export function mountPixel(
    * in their own words; the catalog's notes only when the record gives none.
    */
   tips: readonly [string | null, string | null] = [null, null],
+  /** The pixel's question as the case's record states it (P7b-10); the catalog's neutral one when it states none. */
+  question: string | null = null,
 ): PixelScene {
   const c = (...names: string[]) => names.map((n) => cls[n] ?? n).join(" ");
   const svg = <K extends keyof SVGElementTagNameMap>(tag: K, attrs: Attrs, parent: Element) => {
@@ -228,9 +255,12 @@ export function mountPixel(
     b.appendChild(t);
     return b;
   };
+  // a cell's size in 02's three views: the first place's 8 px, smaller where a place's grid is larger, so each view
+  // keeps within its 224 px column (U25b: Calaveras Creek's pixel spans 54 columns by 26 rows)
+  const cellPx = Math.min(L.cellPx, MULT_W / Math.max(d.grid.rows, d.grid.cols));
   const toGrid = ([x, y]: readonly [number, number]): Pt => [
-    ((x - d.grid.origin_x) / 10) * L.cellPx,
-    ((d.grid.origin_y - y) / 10) * L.cellPx,
+    ((x - d.grid.origin_x) / 10) * cellPx,
+    ((d.grid.origin_y - y) / 10) * cellPx,
   ];
   const ndviColour = (v: number | null) => {
     if (v === null) return C.noValue;
@@ -279,7 +309,7 @@ export function mountPixel(
       L.caption.y,
       around ? AROUND.column.w : L.caption.w,
     );
-    div("captionKey", cap, en["instrument.pixel.question"].text);
+    div("captionKey", cap, question ?? en["instrument.pixel.question"].text);
     const p = div("captionStatement", cap);
     const ink = document.createElement("span");
     ink.className = c("ink");
@@ -410,7 +440,8 @@ export function mountPixel(
   }
 
   // 02: the pixel as its 10 m cells in three aligned views, cells outside it veiled
-  const size = d.grid.cols * L.cellPx;
+  const size = d.grid.cols * cellPx;
+  const tall = d.grid.rows * cellPx;
   const fp = d.pixel.footprint_utm29n.map(toGrid);
   const multiples: { x: number; g: SVGGElement }[] = [];
   {
@@ -454,7 +485,7 @@ export function mountPixel(
     // in place the land's own cells are the picture: the three views become the paint they carry
     const PAINTS: CellPaint[] = ["rgb", "ndvi", "class"];
     if (around) {
-      const row = place(div("paintRow", stage), p2.x, p2.y + 82, p2.w);
+      const row = place(div("paintRow", stage), p2.x, p2.y + PAINT_ROW, p2.w);
       L.multiples.forEach((_, i) => {
         const b = document.createElement("button");
         b.type = "button";
@@ -473,8 +504,8 @@ export function mountPixel(
         place(div("multTitle", stage, titles[i]), x, L.multY - 18, size);
         const cv = document.createElement("canvas");
         cv.width = Math.round(size * dpr);
-        cv.height = Math.round(size * dpr);
-        place(cv, x, L.multY, size, size);
+        cv.height = Math.round(tall * dpr);
+        place(cv, x, L.multY, size, tall);
         stage.appendChild(cv);
         const ctx = cv.getContext("2d");
         const paint = painters[i];
@@ -483,20 +514,22 @@ export function mountPixel(
           for (let r = 0; r < d.grid.rows; r++)
             for (let k = 0; k < d.grid.cols; k++) {
               ctx.fillStyle = paint(r, k);
-              ctx.fillRect(k * L.cellPx, r * L.cellPx, L.cellPx, L.cellPx);
+              ctx.fillRect(k * cellPx, r * cellPx, cellPx, cellPx);
             }
           ctx.strokeStyle = C.cellLine;
           ctx.lineWidth = 1 / dpr;
           ctx.beginPath();
           for (let k = 1; k < d.grid.cols; k++) {
-            ctx.moveTo(k * L.cellPx, 0);
-            ctx.lineTo(k * L.cellPx, size);
-            ctx.moveTo(0, k * L.cellPx);
-            ctx.lineTo(size, k * L.cellPx);
+            ctx.moveTo(k * cellPx, 0);
+            ctx.lineTo(k * cellPx, tall);
+          }
+          for (let k = 1; k < d.grid.rows; k++) {
+            ctx.moveTo(0, k * cellPx);
+            ctx.lineTo(size, k * cellPx);
           }
           ctx.stroke();
           ctx.beginPath();
-          ctx.rect(0, 0, size, size);
+          ctx.rect(0, 0, size, tall);
           ctx.moveTo(...(fp[0] ?? [0, 0]));
           for (let k = 1; k < 4; k++) ctx.lineTo(...(fp[k] ?? [0, 0]));
           ctx.closePath();
@@ -548,7 +581,7 @@ export function mountPixel(
         );
     }
     // the key of each view under it; in place, the key of the paint the cells carry, under the buttons
-    const ny0 = around ? p2.y + 128 : L.multY + size + 10;
+    const ny0 = around ? p2.y + PAINT_ROW + 40 : L.multY + tall + 10;
     const kx = (i: number) => (around ? p2.x : (L.multiples[i] ?? p2.x));
     const keyOf = (e: Element, paint: CellPaint) => {
       if (around) e.setAttribute("data-paint-key", paint);
@@ -752,9 +785,18 @@ export function mountPixel(
     const bottom = L.rowB + 160;
     const xs = (y: number) =>
       left + ((y - locator.period[0]) / (locator.period[1] - locator.period[0])) * (right - left);
-    const ys = (v: number) => bottom - ((v - 0.2) / 0.4) * (bottom - top);
+    // the first place's 0.2 to 0.6 where its seasons fit; otherwise the place's own range in 0.1 steps (U25b)
+    const all = [...s.band, ...s.pixel].map((p) => p.ndvi);
+    const fits = Math.min(...all) >= 0.2 && Math.max(...all) <= 0.6;
+    const lo = fits ? 0.2 : Math.floor(Math.min(...all) * 10) / 10;
+    const hi = fits ? 0.6 : Math.max(lo + 0.4, Math.ceil(Math.max(...all) * 10) / 10);
+    const ys = (v: number) => bottom - ((v - lo) / (hi - lo)) * (bottom - top);
     const g = svg("g", {}, overlay);
-    for (const v of [0.2, 0.3, 0.4, 0.5, 0.6]) {
+    const steps = Math.round((hi - lo) * 10);
+    for (const v of Array.from(
+      { length: steps + 1 },
+      (_, i) => Math.round((lo + i / 10) * 10) / 10,
+    )) {
       svg("line", { x1: left, x2: right, y1: ys(v), y2: ys(v), stroke: C.gridLine }, g);
       text(g, left - 6, ys(v) + 4, v.toFixed(1), t12("ink3", "end"));
     }
@@ -919,7 +961,7 @@ export function mountPixel(
       format("instrument.pixel.m", { value: 1 }),
       t12("ink3", "middle"),
     );
-    place(
+    const transectNote = place(
       div(
         "note nowrap",
         stage,
@@ -929,12 +971,46 @@ export function mountPixel(
       L.rowB + 110,
       w,
     );
-    place(
-      div("recordsItem nowrap", stage, en["instrument.pixel.field.records"].text),
-      x0,
-      L.rowB + 126,
-      w,
-    );
+    // in place (the lead's U28d), the card is its title, the proposal, the transect and its one line; what it would
+    // record and the published context wait behind a step inside the card
+    const behind = around ? place(div("fieldContext", stage), x0, L.rowB + 160, w) : null;
+    if (behind) {
+      behind.style.display = "none";
+      behind.dataset.fieldContext = "";
+      const step = place(document.createElement("button"), x0, L.rowB + 128);
+      step.type = "button";
+      step.className = c("textButton", "contextStep");
+      step.textContent = en["overview.record.context"].text;
+      step.setAttribute("aria-expanded", "false");
+      step.dataset.fieldContextStep = "";
+      stage.appendChild(step);
+      step.addEventListener("click", () => {
+        const open = behind.style.display === "none";
+        behind.style.display = open ? "" : "none";
+        step.setAttribute("aria-expanded", String(open));
+        // opened, the context takes the transect's place under the proposal; closed, the transect comes back
+        // hidden as well as not displayed: a range still measures text in an svg group whose display is none
+        g.setAttribute("display", open ? "none" : "inline");
+        g.style.visibility = open ? "hidden" : "";
+        transectNote.style.display = open ? "none" : "";
+        place(step, x0, open ? L.rowB + 52 : L.rowB + 128);
+        place(behind, x0, open ? L.rowB + 84 : L.rowB + 160, w);
+        // opened, it ends above the ask disc on the arc (decision 13) and scrolls inside the card if it needs more
+        behind.style.maxHeight = "";
+        // the ask disc on screen (another page's disc may wait off it)
+        const disc = [...document.querySelectorAll("[data-ask]")]
+          .map((e) => e.getBoundingClientRect())
+          .find((q) => q.width > 0 && q.right > 0 && q.left < window.innerWidth);
+        const r = behind.getBoundingClientRect();
+        if (open && disc && r.right > disc.left && r.bottom > disc.top - 12) {
+          const k = r.height / Math.max(behind.offsetHeight, 1) || 1;
+          behind.style.maxHeight = `${String(Math.max(48, (disc.top - 12 - r.top) / k))}px`;
+        }
+        refit("06");
+      });
+    }
+    const records = div("recordsItem", behind ?? stage, en["instrument.pixel.field.records"].text);
+    if (!behind) place(records, x0, L.rowB + 126, w);
     // each context statement as the record's display text, its sources after it in parentheses
     const ref = (st: PlacedStatements["statements"][number]) => {
       const refs = st.cites
@@ -952,16 +1028,12 @@ export function mountPixel(
         .join("; ");
       return format("instrument.pixel.ref", { text: st.text.replace(/\.$/, ""), refs });
     };
-    place(
-      div(
-        "citation",
-        stage,
-        [...statements.statements.map(ref), en["instrument.pixel.field.noSpectrum"].text].join(" "),
-      ),
-      x0,
-      L.rowB + 168,
-      w,
+    const citation = div(
+      "citation",
+      behind ?? stage,
+      [...statements.statements.map(ref), en["instrument.pixel.field.noSpectrum"].text].join(" "),
     );
+    if (!behind) place(citation, x0, L.rowB + 168, w);
     const [sx, sy] = toGrid(t.start_utm29n);
     const [ex, ey] = toGrid(t.end_utm29n);
     const cg = multiples[2]?.g;
@@ -1082,11 +1154,16 @@ export function mountPixel(
       );
       const figRow = div("roFigRow", readout);
       div("roFigure", figRow, fixed(nd, 2));
-      div(
-        "roDelta",
-        figRow,
-        format("instrument.pixel.model.delta", { value: change(nd - nd0, 2) }),
+      // the change only once the shares have moved from the measured mix (the lead's U28d: no cryptic 0.00 at rest)
+      const moved = order.some(
+        (code) => Math.abs((shares[code] ?? 0) - (measured[code] ?? 0)) > 1e-9,
       );
+      if (moved)
+        div(
+          "roDelta",
+          figRow,
+          format("instrument.pixel.model.delta", { value: change(nd - nd0, 2) }),
+        );
       if (!around)
         div(
           "roGloss",
@@ -1251,12 +1328,14 @@ export function mountPixel(
   draw();
 
   // in place: each part's frosted back fitted to what it holds, then the left column laid out from the caption's own
-  // height (each place's caption is its own length): the caption, the chips 01, 04 and 06 in one row, and one slot
-  // that holds 02, or the card of the chip that is open in 02's stead, so no card ever stands over another card or
-  // over the pixel (decision 14; the lead, 16:47); 03 and 05 keep the right side
+  // height (each place's caption is its own length): the caption, the chips in one row, and one slot that holds 02,
+  // or the card of the chip that is open in 02's stead, so no card ever stands over another card or over the pixel
+  // (decision 14; the lead, 16:47); 03 and 05 open on the right side, where 02 can stay
   const CHIPS = [
     ["01", "instrument.pixel.locate"],
+    ["03", "instrument.pixel.spectra"],
     ["04", "instrument.pixel.series"],
+    ["05", "instrument.pixel.model"],
     ["06", "instrument.pixel.field"],
   ] as const;
   const SLOT = new Set(["02", "01", "04", "06"]);
@@ -1267,40 +1346,57 @@ export function mountPixel(
   const chipButtons = new Map<string, HTMLButtonElement>();
   let opened: string | null = null;
   let lastPixel: StageBox | null = null;
-  if (around) {
-    for (const [id, p] of parts) {
-      const b = { x0: Infinity, y0: Infinity, x1: -Infinity, y1: -Infinity };
-      const grow = (x0: number, y0: number, x1: number, y1: number) => {
-        if (x1 - x0 < 1 || y1 - y0 < 1) return;
-        b.x0 = Math.min(b.x0, x0);
-        b.y0 = Math.min(b.y0, y0);
-        b.x1 = Math.max(b.x1, x1);
-        b.y1 = Math.max(b.y1, y1);
-      };
-      for (const el of p.div.children)
-        if (el instanceof HTMLElement)
+  // a part's frosted back fitted to what it shows now (a key another paint hides takes no room), made once
+  const fitBack = (id: string, p: { div: HTMLElement; g: Element }) => {
+    const b = { x0: Infinity, y0: Infinity, x1: -Infinity, y1: -Infinity };
+    const grow = (x0: number, y0: number, x1: number, y1: number) => {
+      if (x1 - x0 < 1 || y1 - y0 < 1) return;
+      b.x0 = Math.min(b.x0, x0);
+      b.y0 = Math.min(b.y0, y0);
+      b.x1 = Math.max(b.x1, x1);
+      b.y1 = Math.max(b.y1, y1);
+    };
+    let back: HTMLDivElement | null = null;
+    for (const el of p.div.children)
+      if (el instanceof HTMLElement) {
+        if (el.dataset.card !== undefined) back = el as HTMLDivElement;
+        else if (el.style.visibility !== "hidden" && el.style.display !== "none")
           grow(
             el.offsetLeft,
             el.offsetTop,
             el.offsetLeft + el.offsetWidth,
             el.offsetTop + el.offsetHeight,
           );
-      const bb = (p.g as SVGSVGElement).getBBox();
-      grow(bb.x, bb.y, bb.x + bb.width, bb.y + bb.height);
-      if (!Number.isFinite(b.x0)) continue;
-      // the caption's card starts just above its question, clear of the case question over it
-      const top = id === "caption" ? 4 : 12;
-      const back = place(
-        div("card", p.div),
-        b.x0 - 12,
-        b.y0 - top,
-        b.x1 - b.x0 + 24,
-        b.y1 - b.y0 + top + 12,
-      );
+      }
+    const bb = (p.g as SVGSVGElement).getBBox();
+    grow(bb.x, bb.y, bb.x + bb.width, bb.y + bb.height);
+    if (!Number.isFinite(b.x0)) return;
+    // the caption's card starts just above its question, clear of the case question over it
+    const top = id === "caption" ? 4 : 12;
+    if (!back) {
+      back = div("card", p.div);
       back.dataset.card = id;
       p.div.insertBefore(back, p.div.firstChild);
-      natural.set(id, { x0: b.x0 - 12, y0: b.y0 - top, x1: b.x1 + 12, y1: b.y1 + 12 });
     }
+    place(back, b.x0 - 12, b.y0 - top, b.x1 - b.x0 + 24, b.y1 - b.y0 + top + 12);
+    natural.set(id, { x0: b.x0 - 12, y0: b.y0 - top, x1: b.x1 + 12, y1: b.y1 + 12 });
+    const sh = shiftOf.get(id);
+    if (sh)
+      partBox.set(id, {
+        x0: b.x0 - 12 + sh[0],
+        y0: b.y0 - top + sh[1],
+        x1: b.x1 + 12 + sh[0],
+        y1: b.y1 + 12 + sh[1],
+      });
+  };
+  if (around) {
+    // 02's key as its paint shows it, before its back is fitted
+    for (const k of stage.querySelectorAll<HTMLElement | SVGElement>("[data-paint-key]")) {
+      const on = k.getAttribute("data-paint-key") === around.paint;
+      k.setAttribute("display", on ? "inline" : "none");
+      k.style.visibility = on ? "" : "hidden";
+    }
+    for (const [id, p] of parts) fitBack(id, p);
     // the chips in one row under the caption
     const cap = natural.get("caption");
     const row = place(
@@ -1319,15 +1415,22 @@ export function mountPixel(
       div("title", b, en[title].text);
       row.appendChild(b);
       chipButtons.set(id, b);
-      // a click toggles its card; the keyboard's focus opens it; leaving the chip closes it
+      // a click toggles its card; the keyboard's focus opens it; leaving the chip closes it, unless focus goes into
+      // its card (05's bar and reset), and leaving the card for anything but its chip closes it too
+      const card = parts.get(id)?.div;
+      const stays = (to: EventTarget | null) =>
+        to instanceof Node && (to === b || (card?.contains(to) ?? false));
       b.addEventListener("click", () => {
         show(opened === id ? null : id);
       });
       b.addEventListener("focus", () => {
         if (b.matches(":focus-visible")) show(id);
       });
-      b.addEventListener("blur", () => {
-        if (opened === id) show(null);
+      b.addEventListener("blur", (e) => {
+        if (opened === id && !stays(e.relatedTarget)) show(null);
+      });
+      card?.addEventListener("focusout", (e) => {
+        if (opened === id && !stays(e.relatedTarget)) show(null);
       });
     }
     for (const [id, b] of chipButtons)
@@ -1361,38 +1464,74 @@ export function mountPixel(
       if (p) p.div.style.display = cid === id ? "" : "none";
       chipButtons.get(cid)?.setAttribute("aria-expanded", String(cid === id));
     }
-    // an opened chip's card takes 02's place in the slot
+    // an opened chip's card in the left column takes 02's place in the slot
     const p02 = parts.get("02");
-    if (p02) p02.div.style.display = id === null ? "" : "none";
+    if (p02) p02.div.style.display = id !== null && SLOT.has(id) ? "none" : "";
     setPixelBox(lastPixel);
   }
 
-  // in place: one hairline from each open card, or each waiting chip, to the pixel on the land
+  // in place (U28c): a waiting chip has no leader; each open card has one hairline from its edge to its own anchor on
+  // the land (ANCHOR_OF), ending on that outline or point, never on a bare point beside it
   const leaders = svg("g", { "data-leaders": "" }, overlay);
   const near = (p: Pt, b: StageBox): Pt => [
     Math.min(b.x1, Math.max(b.x0, p[0])),
     Math.min(b.y1, Math.max(b.y0, p[1])),
   ];
-  function setPixelBox(box: StageBox | null) {
+  const middle = (pts: readonly (readonly [number, number])[]): Pt => [
+    pts.reduce((s, q) => s + q[0], 0) / pts.length,
+    pts.reduce((s, q) => s + q[1], 0) / pts.length,
+  ];
+  // the point of a closed outline nearest p (an outline of one point is that point)
+  const onOutline = (p: Pt, pts: readonly (readonly [number, number])[]): Pt => {
+    let best: Pt = [pts[0]?.[0] ?? 0, pts[0]?.[1] ?? 0];
+    let bd = Infinity;
+    for (let i = 0; i < pts.length; i++) {
+      const a = pts[i] ?? [0, 0];
+      const b = pts[(i + 1) % pts.length] ?? a;
+      const dx = b[0] - a[0];
+      const dy = b[1] - a[1];
+      const l2 = dx * dx + dy * dy;
+      const t =
+        l2 > 0 ? Math.min(1, Math.max(0, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / l2)) : 0;
+      const q: Pt = [a[0] + dx * t, a[1] + dy * t];
+      const d = Math.hypot(q[0] - p[0], q[1] - p[1]);
+      if (d < bd) {
+        bd = d;
+        best = q;
+      }
+    }
+    return best;
+  };
+  let lastAnchors: PixelAnchors | null = null;
+  // a card's back fitted again to what it shows now (02's key, 06's step), and the leaders with it
+  function refit(id: string) {
+    const p = parts.get(id);
+    if (!around || !p) return;
+    fitBack(id, p);
+    setPixelBox(lastPixel);
+  }
+  function setPixelBox(box: StageBox | null, anchors?: PixelAnchors | null) {
     lastPixel = box;
+    if (anchors !== undefined) lastAnchors = anchors;
     leaders.replaceChildren();
-    if (!around || !box) return;
-    const mid: Pt = [(box.x0 + box.x1) / 2, (box.y0 + box.y1) / 2];
-    const from: Pt[] = (["01", "02", "03", "04", "05", "06"] as const).flatMap((id) => {
-      if (id === "02" && opened !== null) return [];
-      const waiting = chipBox.get(id);
-      const b = waiting && opened !== id ? waiting : partBox.get(id);
-      return b ? [near(mid, b)] : [];
-    });
-    for (const a of from) {
-      const b = near(a, box);
-      if (Math.hypot(b[0] - a[0], b[1] - a[1]) < 6) continue;
+    if (!around || !box || !lastAnchors) return;
+    const open = (["02", "01", "03", "04", "05", "06"] as const).filter((id) =>
+      id === "02" ? !(opened !== null && SLOT.has(opened)) : opened === id,
+    );
+    for (const id of open) {
+      const b = partBox.get(id);
+      const kind = ANCHOR_OF[id];
+      const outline = kind ? lastAnchors[kind] : [];
+      if (!b || !outline.length) continue;
+      const a = near(middle(outline), b);
+      const e = onOutline(a, outline);
+      if (Math.hypot(e[0] - a[0], e[1] - a[1]) < 6) continue;
       svg(
         "line",
-        { x1: a[0], y1: a[1], x2: b[0], y2: b[1], stroke: C.connector, "stroke-width": 0.75 },
+        { x1: a[0], y1: a[1], x2: e[0], y2: e[1], stroke: C.connector, "stroke-width": 0.75 },
         leaders,
-      );
-      svg("circle", { cx: b[0], cy: b[1], r: 2, fill: C.connector }, leaders);
+      ).dataset.leader = id;
+      svg("circle", { cx: e[0], cy: e[1], r: 2, fill: C.connector }, leaders);
     }
   }
   // the pressed paint, and only its key under the buttons
@@ -1405,6 +1544,8 @@ export function mountPixel(
       k.setAttribute("display", on ? "inline" : "none");
       k.style.visibility = on ? "" : "hidden";
     }
+    // 02's back holds the key it shows now, and its leader follows
+    refit("02");
   };
   if (around) {
     setPaint(around.paint);

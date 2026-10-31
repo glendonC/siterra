@@ -2,19 +2,19 @@
   "sources": [
     {
       "path": "data/bundles/bundle_pixel_anatomy_ait_bouguemez/pixel-anatomy.json",
-      "sha256": "fb7631f73d776e921655b6705f858472cda236e461dac6487dc443ba7548ee1b"
+      "sha256": "ebca50acafde41b5fa1f8191f0bd740f94f7e611802afefb66b701246bad64ef"
     },
     {
       "path": "data/bundles/bundle_pixel_anatomy_ait_bouguemez/pixel-cells.json",
-      "sha256": "77dfa7ade4b730b4976c23becfd50a87f592857766cd6024ae58e9e6509af375"
+      "sha256": "e40400e7df69d2d634494383f62e11b342ddf1579b8fc11174be0a8472034d94"
     },
     {
       "path": "data/bundles/bundle_pixel_anatomy_ait_bouguemez/pixel-series.json",
-      "sha256": "d028684ae68dad54dd73bd5eacdcd63ad9e792898794db10df6b10273ed24a41"
+      "sha256": "b934a86d121281e40fbdc5f70b9e13498ce57f4b48445049c6f9138e9cc88137"
     },
     {
       "path": "data/bundles/bundle_pixel_anatomy_ait_bouguemez/pixel-spectra.json",
-      "sha256": "f024b5a7aa8611aba230dc323c7a639217046d0cc2824e2548ed6ddb4c1ecd0a"
+      "sha256": "4d08e7da8dc52d3a25c1e5215d13f7e8aa660d971e9ba3286690f0137572a701"
     },
     {
       "path": "data/bundles/bundle_season_trend_long_record_ait_bouguemez/season-trend-long-record-tables.json",

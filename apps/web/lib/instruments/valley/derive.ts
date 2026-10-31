@@ -92,11 +92,45 @@ export function snowFrom(tables: unknown): Snow {
 /** The months of the September to May window, as the CHIRPS cells' reference means key them. */
 const SEP_MAY = ["09", "10", "11", "12", "01", "02", "03", "04", "05"];
 
+const MONTH_NAMES = [
+  "january",
+  "february",
+  "march",
+  "april",
+  "may",
+  "june",
+  "july",
+  "august",
+  "september",
+  "october",
+  "november",
+  "december",
+] as const;
+
 /**
- * Each CHIRPS cell's September to May mean rainfall, 1991 to 2020 (the sum of its nine monthly means, to 0.1 mm),
- * with its corners in the zone's UTM metres (0.1 m) and its share of the catchment, from the rainfall cells GeoJSON.
+ * The months a layer stack's rainfall window sums (contracts 1.21.0 rainfallWindow, P7b-7), from its start month to
+ * its end month across the year end, as the CHIRPS cells' reference means key them ("09" ... "05").
  */
-export function rainCellsFrom(geojson: unknown, zone: number): RainCells {
+export function windowMonths(window: {
+  start: { month: (typeof MONTH_NAMES)[number] };
+  end: { month: (typeof MONTH_NAMES)[number] };
+}): string[] {
+  const a = MONTH_NAMES.indexOf(window.start.month);
+  const b = MONTH_NAMES.indexOf(window.end.month);
+  const n = ((b - a + 12) % 12) + 1;
+  return Array.from({ length: n }, (_, i) => String(((a + i) % 12) + 1).padStart(2, "0"));
+}
+
+/**
+ * Each CHIRPS cell's mean rainfall over the window's months, 1991 to 2020 (the sum of its monthly means, to 0.1 mm;
+ * September to May unless the spec states its window), with its corners in the zone's UTM metres (0.1 m) and its
+ * share of the catchment, from the rainfall cells GeoJSON.
+ */
+export function rainCellsFrom(
+  geojson: unknown,
+  zone: number,
+  months: readonly string[] = SEP_MAY,
+): RainCells {
   const g = geojson as {
     features: {
       geometry: { coordinates: number[][][] };
@@ -117,15 +151,15 @@ export function rainCellsFrom(geojson: unknown, zone: number): RainCells {
         const [e, n] = lonLatToUtm(lon ?? Number.NaN, lat ?? Number.NaN, zone);
         return [round(e, 1), round(n, 1)];
       }),
-      sep_may_mm: round(
-        SEP_MAY.reduce((sum, m) => sum + (p.reference_mm_1991_2020[m] ?? Number.NaN), 0),
+      window_mm: round(
+        months.reduce((sum, m) => sum + (p.reference_mm_1991_2020[m] ?? Number.NaN), 0),
         1,
       ),
       fraction_inside: p.fraction_inside,
       weight: p.weight,
     };
   });
-  const mm = cells.map((c) => c.sep_may_mm);
+  const mm = cells.map((c) => c.window_mm);
   return rainCellsSchema.parse({
     count: cells.length,
     min_mm: Math.min(...mm),

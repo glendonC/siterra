@@ -12,7 +12,7 @@ import type {
   InterventionRecord,
   RelationshipRecord,
 } from "../records.ts";
-import { DEFERRAL_TEXT, runInterventionTask } from "./intervention-task.ts";
+import { DEFERRAL_TEXT, NO_SOURCE_NOTE, runInterventionTask } from "./intervention-task.ts";
 import {
   interventionOutputSchema,
   responseTextIssues,
@@ -132,9 +132,10 @@ const MODEL_DEFER = option({
   description: "Hold any change until the field check names who decides and when.",
 });
 
-function check(items: unknown[]) {
+function check(items: unknown[], noSource?: "refuse" | "mark") {
   const store = testStore();
   return validateInterventionProposal(JSON.stringify({ items }), {
+    ...(noSource ? { noSource } : {}),
     evidence: new Map([OBS, NEED].map((e) => [e.id, e])),
     hypotheses: new Map([HYP, CONTRA].map((h) => [h.id, h])),
     measurements: new Map(store.measurements.map((m) => [m.id, m])),
@@ -265,6 +266,39 @@ describe("propose_interventions validation", () => {
     expect(codes([OTHER, OTHER])).toEqual(["schema $.items[1].title"]);
   });
 
+  describe("a response rests on at least one Evidence id", () => {
+    const hypothesisOnly = () => option({ evidenceIds: [] });
+
+    it("refuses a response that cites a hypothesis but no Evidence, and the batch with it, so the model repairs it", () => {
+      const result = check([hypothesisOnly(), OTHER]);
+      expect(result.ok).toBe(false);
+      expect(result.issues.map((i) => `${i.code} ${i.path}`)).toEqual([
+        "claim_kind $.items[0].evidenceIds",
+      ]);
+      expect(result.issues[0]?.message).toContain("hypothesis alone");
+    });
+
+    it("on the repaired turn accepts it and marks it, so the record says no source was cited", () => {
+      const result = check([hypothesisOnly(), OTHER], "mark");
+      expect(result.issues).toEqual([]);
+      expect(result.ok && result.value.map((a) => a.noSource)).toEqual([true, false]);
+    });
+
+    it("marks nothing for a response that cites Evidence, in either turn", () => {
+      for (const mode of ["refuse", "mark"] as const) {
+        const result = check([option(), OTHER], mode);
+        expect(result.ok && result.value.map((a) => a.noSource)).toEqual([false, false]);
+      }
+    });
+
+    it("still needs something to rest on: neither Evidence nor a hypothesis is refused in both turns", () => {
+      for (const mode of ["refuse", "mark"] as const) {
+        const result = check([option({ evidenceIds: [], hypothesisIds: [] }), OTHER], mode);
+        expect(result.issues.map((i) => i.path)).toContain("$.items[0].evidenceIds");
+      }
+    });
+  });
+
   it("the host deferral text passes the rules it holds the model to (b39 note)", () => {
     const none = { allowed: [], periods: [], excerpts: [] };
     for (const text of [
@@ -364,5 +398,79 @@ describe("intervention_feasibility task", () => {
     expect(commit.events[0]?.message).toBe(
       "Intervention feasibility prepared 3 candidate responses, not ranked.",
     );
+  });
+
+  describe("a response with no Evidence id", () => {
+    async function runWith(answers: unknown[]) {
+      const store = testStore();
+      store.evidence.push(OBS, NEED);
+      let n = 0;
+      return runInterventionTask(
+        {
+          task: queuedTask({
+            id: "task_test_interventions",
+            kind: "intervention_feasibility",
+            inputVersions: [{ entityId: "ev_test_need", revision: 1 }],
+            allowedTools: ["read_evidence", "read_source", "propose_interventions"],
+          }),
+          expectedCaseRevision: 4,
+        },
+        {
+          adapter: new MetaAdapter({
+            transport: syntheticTransport(
+              answers.map((a) => answerStep(JSON.stringify({ items: a }))),
+            ),
+            sleep: () => Promise.resolve(),
+          }),
+          trace: { emit: () => undefined },
+          store,
+          tools: caseToolRegistry(store, CASE_ID),
+          newEvidenceId: () => `ev_test_${String((n += 1))}`,
+          newRecordId: (prefix) => `${prefix}_test_${String((n += 1))}`,
+          committedHypotheses: [HYP],
+          now: () => AT,
+        },
+      );
+    }
+    const titled = (title: string, extra: Record<string, unknown> = {}) =>
+      option({ title, evidenceIds: [], ...extra });
+    const interventionsOf = (commit: { upserts: unknown[] }) =>
+      commit.upserts.filter(
+        (r): r is InterventionRecord => (r as { recordType: string }).recordType === "Intervention",
+      );
+
+    it("gets one repair turn: a repaired answer that cites Evidence carries no mark", async () => {
+      const { loop, commit } = await runWith([
+        [titled("First hypothesis only"), OTHER],
+        [option(), OTHER],
+      ]);
+      expect(loop.status).toBe("accepted");
+      expect(loop.repaired).toBe(true);
+      const rows = interventionsOf(commit).filter((r) => !/^Defer/.test(r.title));
+      expect(rows.map((r) => r.evidenceIds.length > 0)).toEqual([true, true]);
+      expect(rows.some((r) => r.provenance.limitations.includes(NO_SOURCE_NOTE))).toBe(false);
+    });
+
+    it("is accepted after the repair turn and marked 'no source cited' when it still cites no Evidence", async () => {
+      const { loop, commit } = await runWith([
+        [titled("Hypothesis only A"), OTHER],
+        [titled("Hypothesis only A"), OTHER],
+      ]);
+      expect(loop.status).toBe("accepted");
+      const rows = interventionsOf(commit).filter((r) => !/^Defer/.test(r.title));
+      const marked = rows.find((r) => r.title === "Hypothesis only A");
+      expect(marked?.evidenceIds).toEqual([]);
+      expect(marked?.provenance.limitations).toContain(NO_SOURCE_NOTE);
+      const other = rows.find((r) => r.title !== "Hypothesis only A");
+      expect(other?.provenance.limitations).not.toContain(NO_SOURCE_NOTE);
+      // The host's own deferral cites the field requirement and is never marked.
+      const deferral = interventionsOf(commit).find((r) => /^Defer/.test(r.title));
+      expect(deferral?.provenance.limitations).not.toContain(NO_SOURCE_NOTE);
+    });
+
+    it("is not accepted at once: with one turn of answers it is repaired, not marked", async () => {
+      const { loop } = await runWith([[titled("Hypothesis only B"), OTHER]]);
+      expect(loop.status).not.toBe("accepted");
+    });
   });
 });

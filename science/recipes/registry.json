@@ -1,7 +1,7 @@
 {
-  "registryVersion": "1.14.0",
+  "registryVersion": "1.16.0",
   "registered": "2026-10-27",
-  "note": "Recipe registry. What was fixed before any data: only the catalog rows in docs/reference/analysis-recipes.md (question, method in one line, output kind) for coverage_summary, monthly_departure and aligned_antecedent, and the full season_summary entry (registered 2026-10-27 before any event comparison). The detailed formulas and parameters of coverage_summary, monthly_departure, aligned_antecedent and terrain_strata were written together with their first run on 2026-10-27, so they are not pre-registered. From now on, changing a formula, parameter or window after results are read is a new version labeled post hoc. Registry 1.2.0 (2026-10-28) adds restrend_long_record and snow_cover_by_band, each fully registered before its data was summarized; their place-specific windows and band sets are in science/places/. The inspector renders method cards from an entry and the bundle manifest that holds its result. References are IDs in research/science/source-register.md. Registry 1.3.0 (2026-10-28) adds pixel_trend_long_record and season_trend_long_record, registered before any per-pixel slope, land-cover summary or June to September greenness value was computed (the stratum results of restrend_long_record had been read). Registry 1.4.0 (2026-10-29) adds drainage_network, registered before this pipeline built any network; its smoothing and height rules were carried over from the 29 October specimen build, which had run them first. Registry 1.5.0 (2026-10-29) adds terrain_transects, registered before this pipeline sampled any line; the Tabant meridian is specimen B's section and the rest was written by the science lane. Registry 1.6.0 (2026-10-29) adds pixel_anatomy, registered before this pipeline built any pixel anatomy; the pixel and its scene come from the 28 October specimen build and the scene rule was written afterwards to name that choice. Registry 1.7.0 (2026-10-29) adds terrain_relief and land_cover_classes, registered before this pipeline wrote any relief or land cover layer; both repeat grids that earlier bundles already use. Registry 1.8.0 (2026-10-29) adds optical_visibility_by_band, registered before this pipeline wrote any per-band clear share (the upper band's winter figures had been probed and match the lead's checks). Registry 1.9.0 (2026-10-29) adds proposed_routes, registered before this pipeline computed any route; the field plan names no places, so its sites come from a rule written first. Registry 1.10.0 (2026-10-30) revises terrain_strata to 1.1.0 (an optional water zone band, written for the second place before any of its layers was computed). Registry 1.11.0 (2026-10-30) revises snow_cover_by_band to 1.1.0 (an applicability mode over a sample of months, written for the second place before any of its snow values was read). Registry 1.12.0 (2026-10-30) adds pixel_seasons, registered before any per-season pixel value was written to a table or grid; it stores the season values that pixel_trend_long_record computed and kept only as a count. Registry 1.13.0 (2026-10-30) makes the wording of terrain_relief, land_cover_classes and drainage_network place-neutral: {analysisCrs} stands for the place's CRS, and wording that named the first place (the lower gorge, orchards, agdal, the conditioning window) moved into that place's configuration, which restates it word for word; no recipe version and no method changes. Registry 1.14.0 (2026-10-30) revises terrain_transects to 1.1.0 (optional expected ends and valley floor, place-neutral wording), written for the second place before any of its profiles was sampled.",
+  "note": "Recipe registry. What was fixed before any data: only the catalog rows in docs/reference/analysis-recipes.md (question, method in one line, output kind) for coverage_summary, monthly_departure and aligned_antecedent, and the full season_summary entry (registered 2026-10-27 before any event comparison). The detailed formulas and parameters of coverage_summary, monthly_departure, aligned_antecedent and terrain_strata were written together with their first run on 2026-10-27, so they are not pre-registered. From now on, changing a formula, parameter or window after results are read is a new version labeled post hoc. Registry 1.2.0 (2026-10-28) adds restrend_long_record and snow_cover_by_band, each fully registered before its data was summarized; their place-specific windows and band sets are in science/places/. The inspector renders method cards from an entry and the bundle manifest that holds its result. References are IDs in research/science/source-register.md. Registry 1.3.0 (2026-10-28) adds pixel_trend_long_record and season_trend_long_record, registered before any per-pixel slope, land-cover summary or June to September greenness value was computed (the stratum results of restrend_long_record had been read). Registry 1.4.0 (2026-10-29) adds drainage_network, registered before this pipeline built any network; its smoothing and height rules were carried over from the 29 October specimen build, which had run them first. Registry 1.5.0 (2026-10-29) adds terrain_transects, registered before this pipeline sampled any line; the Tabant meridian is specimen B's section and the rest was written by the science lane. Registry 1.6.0 (2026-10-29) adds pixel_anatomy, registered before this pipeline built any pixel anatomy; the pixel and its scene come from the 28 October specimen build and the scene rule was written afterwards to name that choice. Registry 1.7.0 (2026-10-29) adds terrain_relief and land_cover_classes, registered before this pipeline wrote any relief or land cover layer; both repeat grids that earlier bundles already use. Registry 1.8.0 (2026-10-29) adds optical_visibility_by_band, registered before this pipeline wrote any per-band clear share (the upper band's winter figures had been probed and match the lead's checks). Registry 1.9.0 (2026-10-29) adds proposed_routes, registered before this pipeline computed any route; the field plan names no places, so its sites come from a rule written first. Registry 1.10.0 (2026-10-30) revises terrain_strata to 1.1.0 (an optional water zone band, written for the second place before any of its layers was computed). Registry 1.11.0 (2026-10-30) revises snow_cover_by_band to 1.1.0 (an applicability mode over a sample of months, written for the second place before any of its snow values was read). Registry 1.12.0 (2026-10-30) adds pixel_seasons, registered before any per-season pixel value was written to a table or grid; it stores the season values that pixel_trend_long_record computed and kept only as a count. Registry 1.13.0 (2026-10-30) makes the wording of terrain_relief, land_cover_classes and drainage_network place-neutral: {analysisCrs} stands for the place's CRS, and wording that named the first place (the lower gorge, orchards, agdal, the conditioning window) moved into that place's configuration, which restates it word for word; no recipe version and no method changes. Registry 1.14.0 (2026-10-30) revises terrain_transects to 1.1.0 (optional expected ends and valley floor, place-neutral wording), written for the second place before any of its profiles was sampled. Registry 1.15.0 (2026-10-30) adds species_occurrences, registered before any GBIF record was requested for either place. Registry 1.16.0 (2026-10-30) revises pixel_anatomy to 1.1.0 (place-neutral, with window-scoped Sentinel-2 inputs and a rule-chosen pixel), written for the second place before any of its candidates was listed.",
   "recipes": [
     {
       "recipeId": "coverage_summary",
@@ -1296,6 +1296,170 @@
       "formulaPlain": "For each 250 m MODIS pixel, the average greenness of the growing window is stored for every season since 2000, exactly as the trend recipe computed it. The stored values are checked by recomputing each pixel's slope from them and comparing with the trend result."
     },
     {
+      "recipeId": "species_occurrences",
+      "version": "1.0.0",
+      "title": "Species records from GBIF inside the catchment",
+      "question": "Which organisms have been recorded in public GBIF occurrence records inside the catchment, by group and by how they were recorded, and which datasets hold them?",
+      "operation": "occurrence_records",
+      "implementation": {
+        "language": "python",
+        "package": "siterra-science",
+        "version": "0.1.0"
+      },
+      "inputs": [
+        "gbif_occurrence_search_v1",
+        "frozen_catchment_geometry",
+        "place_configuration"
+      ],
+      "registration": "Full entry registered 2026-10-30 before any occurrence record was requested for either place. The query is fixed here and in the place configuration: the frozen catchment polygon (simplified outward to fit a URL, then every record tested against the exact polygon), hasCoordinate true, hasGeospatialIssue false, occurrenceStatus PRESENT, no licence filter in the request (so the records dropped by licence can be counted), and then only CC0 and CC BY 4.0 records are kept. The lead's brief, at the founder's request ('add recorded life'), gave the filters and the fields. Before this registration the science lane probed the API once with a rectangle around the first place (one count with limit 0 and one record, to see the field names and that the call needs no account); nothing from that probe is used.",
+      "formula": [
+        "Query: GET https://api.gbif.org/v1/occurrence/search with geometry = the query polygon (WKT, counter-clockwise exterior ring, 5 decimals), hasCoordinate = true, hasGeospatialIssue = false, occurrenceStatus = PRESENT, limit = 300, offset in steps of 300 until every record is read; no account. Query polygon: the frozen polygon buffered by the configured distance in degrees and simplified at the configured tolerance, an outward fit so that no record inside the frozen polygon can be missed (the run stops unless the query polygon contains the frozen polygon and its text fits the configured length)",
+        "Large queries: when the whole query polygon matches more than 10,000 records (the search API pages slowly at deep offsets) it is cut into rectangles by repeated halving until each matches at most 10,000, each part read in pages of 300 with a repeated geometry parameter; a rectangle that still matches more at the smallest size (many records at one point) is split by dataset key and then by year, and the run stops unless the parts add up to its count; the union is the same set and records are deduplicated by GBIF id; the count of unique records read must equal the count GBIF reports for the whole query polygon (read with limit 0)",
+    "Keep: a record is kept when its coordinates lie inside or on the exact frozen polygon and its licence is CC0 1.0 or CC BY 4.0. Every other record is counted, never stored: outside the exact polygon, and by licence (CC BY-NC, unspecified or any other)",
+        "Stored per kept record, and only these: GBIF id, scientific name, species, kingdom, class, order, family, year, event date as the record gives it, basis of record, decimal latitude and longitude, coordinate uncertainty in metres (null when the record gives none, never 0), dataset key, dataset title, publisher, licence. No field that names a person (recordedBy, identifiedBy, rights holder and the like) is read into the bundle",
+        "Datasets: for each dataset key among the kept records, its title, DOI and publishing organisation from the GBIF dataset and organization endpoints, the kept records per licence, and the attribution line built from them; the attribution of the bundle lists every dataset",
+        "Named taxa: each name in the place configuration is matched with GET /v1/species/match (the match, its key, type and status are stored) and queried with the same filters and taxonKey = the match key; the counts (read, outside the polygon, dropped by licence, kept) are stored even when they are zero, with the kept record ids",
+        "Summary: the kept records by group (animals = kingdom Animalia, plants = Plantae, fungi = Fungi, other), by class, by basis of record and by year (and records without a year), by dataset, the dropped counts by reason, the records with no coordinate uncertainty and with an uncertainty above 1,000 m",
+        "Acceptance checks, all stored with the bundle: the count GBIF reports for the first page equals the records read; every kept record lies inside the exact polygon; every kept record has an allowed licence; the counts by group, basis, class and dataset each add up to the kept records; no stored field names a person; the bundle rebuilds from the stored raw response with identical files apart from the computed time"
+      ],
+      "parameters": [
+        {
+          "name": "has_coordinate",
+          "role": "method",
+          "allowed": [
+            true
+          ],
+          "default": true
+        },
+        {
+          "name": "has_geospatial_issue",
+          "role": "method",
+          "allowed": [
+            false
+          ],
+          "default": false
+        },
+        {
+          "name": "occurrence_status",
+          "role": "method",
+          "allowed": [
+            "PRESENT"
+          ],
+          "default": "PRESENT"
+        },
+        {
+          "name": "licences_kept",
+          "role": "method",
+          "allowed": [
+            [
+              "CC0_1_0",
+              "CC_BY_4_0"
+            ]
+          ],
+          "default": [
+            "CC0_1_0",
+            "CC_BY_4_0"
+          ]
+        },
+        {
+          "name": "page_limit",
+          "role": "method",
+          "allowed": [
+            300
+          ],
+          "default": 300
+        },
+        {
+          "name": "query_buffer_deg",
+          "role": "method",
+          "allowed": [
+            "queryPolygon.bufferDeg of the place configuration"
+          ],
+          "default": "queryPolygon.bufferDeg of the place configuration"
+        },
+        {
+          "name": "query_simplify_deg",
+          "role": "method",
+          "allowed": [
+            "queryPolygon.simplifyDeg of the place configuration"
+          ],
+          "default": "queryPolygon.simplifyDeg of the place configuration"
+        },
+        {
+          "name": "named_taxa",
+          "role": "scope",
+          "allowed": [
+            "namedTaxa of the place configuration (may be empty)"
+          ],
+          "default": "namedTaxa of the place configuration"
+        }
+      ],
+      "sensitivitySet": [],
+      "applicability": [
+        {
+          "check": "the frozen geometry named in the place configuration, checksum matching",
+          "minimum": "1 geometry"
+        },
+        {
+          "check": "the first response gives the count of records the request matches",
+          "minimum": "1 response; otherwise the run stops"
+        }
+      ],
+      "outputs": [
+        {
+          "metric": "occurrence_records",
+          "unit": "1",
+          "claimKind": "observation",
+          "uncertaintyKind": "not_quantified"
+        },
+        {
+          "metric": "records_by_group",
+          "unit": "1",
+          "claimKind": "observation",
+          "uncertaintyKind": "not_quantified"
+        }
+      ],
+      "assumptions": [
+        "GBIF's own filters (coordinate present, no geospatial issue, status present) remove records that cannot be placed",
+        "A record with a stated coordinate uncertainty larger than the catchment may lie outside it; it is kept as recorded and the uncertainty is stored"
+      ],
+      "failureModes": [
+        "Records follow where people look: roads, villages, trails, reserves and observer habits shape the map, so a count is not how many organisms are there",
+        "Years reflect recording effort (the arrival of an observation app or of a survey), not a change in the organisms",
+        "A zero for a named plant means no kept GBIF record under that name here, not that the plant is absent",
+        "A name can be recorded under a synonym or a misidentification; the match is stored but not checked"
+      ],
+      "standardLimitations": [
+        "Each record says an organism was recorded at a place and time by someone, as a human observation, a preserved specimen, a fossil specimen, a machine observation or another basis; a fossil specimen records an organism of an earlier age, not a living one. It is not a measurement of presence or abundance: the same species can be common and unrecorded, or rare and recorded often.",
+        "Records follow where people look. Roads, villages, trails, reserves and the habits of a few observers shape where records fall, and a quiet area is not an empty one.",
+        "Years reflect recording effort. A rise or fall in records per year follows the arrival of observation apps, surveys and datasets, not the organisms, and the counts by year are not a trend.",
+        "Coordinates are as recorded with their stated uncertainty, which is missing for some records and larger than the catchment for others; a kept record is inside the catchment polygon at its recorded point only.",
+        "Only records under CC0 1.0 or CC BY 4.0 are kept; records under other licences were dropped and are counted, so the kept records are a part of what GBIF holds here. Each dataset is credited to its publisher.",
+        "The request was made on a stated date; GBIF records are added, corrected and withdrawn over time, so a later request can give other counts.",
+        "A zero for a named plant means no kept record under that name inside the catchment, not that the plant is absent, and names can be recorded under synonyms."
+      ],
+      "allowedComponents": [
+        "recorded life",
+        "method card"
+      ],
+      "forbiddenPhrases": [
+        "population",
+        "abundance",
+        "decline",
+        "lives here",
+        "absent",
+        "extinct",
+        "significant",
+        "caused by",
+        "proves"
+      ],
+      "references": [
+        "SCI-03"
+      ],
+      "priority": "P2",
+      "formulaPlain": "Public GBIF records of organisms with a coordinate inside the catchment are read for the place, only those under CC0 or CC BY are kept, and they are counted by group and by how they were recorded, with each dataset credited. The four plants a source names are searched by name and reported even when there are none."
+    },
+    {
       "recipeId": "season_trend_long_record",
       "version": "1.0.0",
       "title": "Greenness trends by season window, stratum and land cover over the MODIS record",
@@ -1811,7 +1975,7 @@
     },
     {
       "recipeId": "pixel_anatomy",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "title": "One MODIS pixel opened into its 10 m cells",
       "question": "What fills one 250 m MODIS pixel: which land cover classes, how green each class looked on one clear day, whether a linear mix of those classes accounts for the pixel's greenness, and how the pixel's own March to June greenness moved over about 25 seasons?",
       "operation": "pixel_anatomy",
@@ -1830,16 +1994,17 @@
         "place_configuration"
       ],
       "registration": "Full entry registered 2026-10-29, before this pipeline built any pixel anatomy. The pixel (MOD13Q1 h17v05, row 4005, column 2178) and its scene (S2B_29SQR_20250611_0_L2A) were chosen by the 28 October specimen build: the pixel by a disclosed judgment among the top candidates of a rule written before the list, the scene as the clearest June 2025 date on the preferred orbit. The scene rule below (the latest of the fully clear scenes on that orbit) was written afterwards to name that choice in general, and the science lane had read the specimen's numbers (class NDVI 0.80 tree cover, 0.86 cropland, 0.17 grassland, 0.08 bare or sparse; pixel 0.4766; model 0.4450; series slope +0.05702) before writing it, so it is not blind. No hypothesis is tested: the recipe describes one pixel. Place-specific values are in science/places/<place>.json, revision 5.",
+      "postHocNote": "Version 1.1.0 (2026-10-30) makes the recipe place-neutral for the second place, written before any of its candidates was listed: the series window, the raw MODIS folder, the Sentinel-2 bundle and the CRS come from the place configuration, the candidate rule may list directions in order, the Sentinel-2 monthly median, date count and true colour may be built for the pixel's display window alone (pixel-anatomy-inputs.py) and are read on the display window's own grid, a pixel may be chosen by the rule's first candidate instead of by judgment, and the field names of the summary carry no place (footprint_corners with footprint_corners_crs, month_ndvi). The wording that named the first place moved into its configuration, which restates it word for word. No computation of 1.0.0 changed for a place that configures the same inputs.",
       "formula": [
-        "Pixel: a MODIS tile pixel named by its tile, row and column (h17v05, row 4005, column 2178); its position in the pixel trend bundle's native grid follows from the sinusoidal tile lattice; its footprint is the pixel's square in the MODIS sinusoidal grid (231.66 m), which is a four-sided shape in EPSG:32629",
-        "Cells: the 10 m cells of the strata's EPSG:32629 analysis grid whose centres lie inside the frozen polygon and, transformed to the sinusoidal grid, inside the footprint (the cell to pixel rule of place_config.cell_pixel_index). The display window is the bounding box of those cells plus 1 cell on every side, widened so that its edges lie on 20 m",
+        "Pixel: a MODIS tile pixel named by its tile, row and column (h17v05, row 4005, column 2178); its position in the pixel trend bundle's native grid follows from the sinusoidal tile lattice; its footprint is the pixel's square in the MODIS sinusoidal grid (231.66 m), which is a four-sided shape in {analysisCrs}",
+        "Cells: the 10 m cells of the strata's {analysisCrs} analysis grid whose centres lie inside the frozen polygon and, transformed to the sinusoidal grid, inside the footprint (the cell to pixel rule of place_config.cell_pixel_index). The display window is the bounding box of those cells plus 1 cell on every side, widened so that its edges lie on 20 m",
         "Per cell: the ESA WorldCover 2021 v200 class; the Sentinel-2 monthly median NDVI and the count of dates behind it for the configured month; the true colour of the shared display composite (display only, never used in a number); whether the cell is inside the footprint and the polygon",
         "Scene: among the Earth Search items cached for the pixel's Sentinel-2 tile and the configured month, those on the configured relative orbit with data over every footprint cell; the one with the largest share of footprint cells whose scene classification (SCL) is 4 or 5, ties by the latest date. Every candidate's share is stored",
         "Extracts: for that scene, the windows of B02, B03, B04, B05, B06, B07, B08, B8A, B11, B12 and SCL that cover the display window (10 m bands at 10 m; 20 m bands and SCL at 20 m), as read (uint16 digital numbers, uint8 SCL), each with its source address, COG window and sha256",
         "Spectra: reflectance = DN / 10000 with no offset; the 20 m bands and SCL repeated 2 x 2 onto the 10 m cells; a footprint cell is kept when its SCL is 4 or 5 and every band's DN is above 0. Per WorldCover class of the footprint: the median, 25th and 75th percentile of the kept cells' reflectance in each band and the number of kept cells. The pixel's measured values: the mean reflectance of all kept cells in each band, the NDVI of the mean red (B04) and near-infrared (B08), and the median and mean of the cell NDVI",
         "Mix model (modelled, not measured): the share of class k is s_k = footprint cells of class k / footprint cells; the mixed reflectance in band b is R(b) = sum over k of s_k times the class median M_k(b); modelled NDVI = (R(B08) - R(B04)) / (R(B08) + R(B04)). Stored with the difference from the measured pixel NDVI, and with the same formula for a reference shift of 20 percentage points of the footprint from grassland to tree cover (an example of the control, not an observation)",
-        "Series: the pixel's season greenness G(p, y) for March to June of each year 2000 to 2025, recomputed from the MOD13Q1 windows with the registered functions of pixel_trend_long_record (pixel reliability 0 and 1 kept, at least half of the 16-day periods kept, values to 5 decimals), and its Theil-Sen slope per decade with Sen's 95% interval; the builder stops unless slope and interval equal the pixel trend bundle's table at 5 decimals",
-        "Selection record: the pixels that meet the specimen's rule (Sen interval entirely above zero in March to June, every footprint cell inside the catchment, tree cover plus cropland 0.25 to 0.60 of the cells, grassland plus shrubland plus bare or sparse at least 0.35, built-up at most 0.05, at least half of the cells on sloping ground), ranked by the lower bound of the interval; stored with their number, the top five and the pixel's rank",
+        "Series: the pixel's season greenness G(p, y) for the series window (the window of the candidate rule of the place configuration) of each season year of the pixel trend recipe, recomputed from the MOD13Q1 windows with the registered functions of pixel_trend_long_record (pixel reliability 0 and 1 kept, at least half of the 16-day periods kept, values to 5 decimals), and its Theil-Sen slope per decade with Sen's 95% interval; the builder stops unless slope and interval equal the pixel trend bundle's table at 5 decimals",
+        "Selection record: the pixels that meet the candidate rule of the place configuration (the direction of Sen's interval in the series window, taken from the configured directions in order, the first that has a candidate; every footprint cell inside the catchment; the configured shares of tree cover plus cropland, of grassland plus shrubland plus bare or sparse land, of built-up land and of sloping ground), ranked by the bound of the interval nearest zero (the lower bound, highest first, for upward; the upper bound, lowest first, for downward); stored with their number, the top five and the pixel's rank",
         "Acceptance checks, all stored with the bundle: the cell to pixel rule reproduces the table's analysis_cells for every one of the pixels and the footprint count of this pixel; every extract's sha256 equals its record; the extracts cover the display window; no kept cell has red or near-infrared reflectance above 1.0; class cell counts add up to the footprint; the series reproduces the table; the scene is the one the scene rule gives; two runs give identical files apart from the computed time"
       ],
       "parameters": [
@@ -1907,9 +2072,9 @@
           "name": "series_window",
           "role": "method",
           "allowed": [
-            "mar_jun"
+            "the window of the candidate rule of the place configuration (Ait Bouguemez: mar_jun)"
           ],
-          "default": "mar_jun"
+          "default": "the window of the candidate rule of the place configuration"
         }
       ],
       "sensitivitySet": [],
@@ -1962,13 +2127,13 @@
         "The footprint of a MODIS pixel is a nominal square, and cells near its edge also belong to its neighbours"
       ],
       "standardLimitations": [
-        "One pixel is an illustration, not a sample: it was chosen by judgment among the candidates of a rule (the selection record gives their number and its rank), and it says nothing about other pixels.",
+        "One pixel is an illustration, not a sample: it was chosen among the candidates of a rule, or by judgment where the selection record says so (the record gives their number and its rank), and it says nothing about other pixels.",
         "The class spectra come from one clear day, the cells of each class inside this pixel, and one 2021 land cover map. They are not typical spectra of the classes, and a 10 m cell at the edge of a class mixes surfaces.",
         "The mix model assumes the pixel's reflectance is the share-weighted sum of its class medians. It ignores shadow, slope and variation inside a class, so its NDVI is modelled, not measured, and it differs from the measured pixel NDVI by the amount stored.",
-        "NDVI measures how green the ground looks from above, not forage, palatability or species: in Ait Bouguemez and the Central High Atlas, upper rangelands are dominated by spiny xerophytic vegetation over reduced short grasslands (SCI-19, p. 2), and on the valley floor tree cover may include orchards (SCI-03, pp. 5, 9 to 10).",
-        "The 26-season series is the pixel's own March to June greenness, not adjusted for rainfall. Its trend is a descriptive Theil-Sen slope with Sen's 95% interval, and no p-value or false discovery rate class is stored for one pixel (SCI-52).",
+        "NDVI measures how green the ground looks from above, not forage, palatability or species.",
+        "The series is the pixel's own greenness for the window of the selection record, not adjusted for rainfall. Its trend is a descriptive Theil-Sen slope with Sen's 95% interval, and no p-value or false discovery rate class is stored for one pixel (SCI-52).",
         "Terra's overpass has drifted earlier since 2020, from 10:30 to about 9:06 mean local time by December 2025 (NASA), so later seasons are seen with a lower sun and longer shadows in mountain terrain, which may shift NDVI without any change on the ground.",
-        "The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary."
+        "The catchment is a hydrological analysis extent, not a pasture or management boundary."
       ],
       "allowedComponents": [
         "pixel anatomy",

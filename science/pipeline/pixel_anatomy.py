@@ -154,18 +154,34 @@ def shifted_shares(shares, frm, to, points):
     return out
 
 
-def is_candidate(t, rule):
-    """Whether a pixel table row meets the candidate rule of the place configuration."""
+def directions(rule):
+    """The directions of a candidate rule in the order they are tried: directionOrder, or the single direction of the first place's rule."""
+    return list(rule.get("directionOrder") or [rule["direction"]])
+
+
+def is_candidate(t, rule, direction=None):
+    """Whether a pixel table row meets the candidate rule of the place configuration in `direction` (default: the rule's own)."""
+    d = direction or rule.get("direction") or directions(rule)[0]
     s = t["wc_shares"]
-    return bool(t["direction"] == rule["direction"] and t["lower_per_decade"] > 0 and (t["fully_inside"] or not rule["fullyInsideCatchment"])
+    bound = t["lower_per_decade"] > 0 if d == "upward" else t["upper_per_decade"] < 0
+    return bool(t["direction"] == d and bound and (t["fully_inside"] or not rule["fullyInsideCatchment"])
                 and rule["treeCoverPlusCropland"][0] <= s["10"] + s["40"] <= rule["treeCoverPlusCropland"][1]
                 and s["20"] + s["30"] + s["60"] >= rule["grasslandShrublandBareOrSparseMin"]
                 and s["50"] <= rule["builtUpMax"] and t["sloping_share"] >= rule["slopingCellsMin"])
 
 
-def rank_candidates(table, rule):
-    """Candidate rows ranked by the lower bound of the Sen interval, highest first (ties by row and column)."""
-    return sorted((t for t in table if is_candidate(t, rule)), key=lambda t: (-t["lower_per_decade"], t["row"], t["col"]))
+def rank_candidates(table, rule, direction=None):
+    """Candidate rows ranked by the bound of the Sen interval nearest zero (the lower bound, highest first, for upward; the upper
+    bound, lowest first, for downward), ties by row and column."""
+    d = direction or rule.get("direction") or directions(rule)[0]
+    key = (lambda t: (-t["lower_per_decade"], t["row"], t["col"])) if d == "upward" else (lambda t: (t["upper_per_decade"], t["row"], t["col"]))
+    return sorted((t for t in table if is_candidate(t, rule, d)), key=key)
+
+
+def chosen_direction(table, rule):
+    """The first direction of the rule that has a candidate (the first direction when none has)."""
+    ds = directions(rule)
+    return next((d for d in ds if any(is_candidate(t, rule, d) for t in table)), ds[0])
 
 
 if __name__ == "__main__":

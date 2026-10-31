@@ -2,11 +2,11 @@ import { createHash } from "node:crypto";
 import { expect, test, type Page } from "@playwright/test";
 import { SYNTHETIC_LIFE_BUNDLE, syntheticOccurrences } from "../lib/life/fixtures/occurrences";
 
-// Recorded life on the land (UI-2), against the SYNTHETIC fixture in the stored asset's format until the real species
-// bundles reach this branch: the case's snapshot is given one validated species_occurrences bundle and its asset is
-// served with the checksum the read API serves. G shows the layer (off by default), its card counts what is drawn and
-// what is not, the point under the cursor shows its stem, glyph and card, Enter steps through its records, Esc steps
-// back, and G hides the layer again.
+// Recorded life on the land (UI-2). On the first place's own stored GBIF bundle: G shows the layer (off by default)
+// with its counts, a point under the cursor opens its card, Enter reads its first record. On the SYNTHETIC fixture in
+// the stored asset's format (it takes the real bundle's place in the case's snapshot, its asset served with the
+// checksum the read API serves): every line of the cards, the fossil specimen counted and not drawn, Esc steps back,
+// G hides the layer. Without a species bundle no key is offered.
 
 test.use({ viewport: { width: 1440, height: 900 } });
 
@@ -23,6 +23,10 @@ async function withSyntheticLife(page: Page) {
     const snap = (await res.json()) as {
       records: { dataBundleRecords: Record<string, unknown>[] };
     };
+    // the fixture takes the place of the case's own species bundle
+    snap.records.dataBundleRecords = snap.records.dataBundleRecords.filter(
+      (b) => b.methodId !== "species_occurrences",
+    );
     const base = snap.records.dataBundleRecords.find((b) => b.status === "validated");
     if (base)
       snap.records.dataBundleRecords.push({
@@ -39,7 +43,52 @@ async function withSyntheticLife(page: Page) {
   });
 }
 
-test("G shows recorded life on the land; a point's stem, glyph and card; Enter steps its records; G hides it", async ({
+async function withoutLife(page: Page) {
+  await page.route("**/api/cases/*", async (route) => {
+    if (route.request().method() !== "GET") return route.fallback();
+    const res = await route.fetch();
+    if (!res.ok()) return route.fulfill({ response: res });
+    const snap = (await res.json()) as {
+      records: { dataBundleRecords: Record<string, unknown>[] };
+    };
+    snap.records.dataBundleRecords = snap.records.dataBundleRecords.filter(
+      (b) => b.methodId !== "species_occurrences",
+    );
+    return route.fulfill({ response: res, json: snap });
+  });
+}
+
+test("G shows the first place's own recorded life; a point's card; Enter reads its first record", async ({
+  page,
+}) => {
+  test.setTimeout(180_000);
+  await page.goto("/valley");
+  await expect(page.locator("[data-overview-root]")).toHaveAttribute("data-ready", "", {
+    timeout: 90_000,
+  });
+  const layer = page.locator("[data-life-layer]");
+  await expect(layer).toHaveCount(0);
+  await page.mouse.move(720, 60);
+  await page.keyboard.press("g");
+  await expect(layer).toBeVisible({ timeout: 20_000 });
+  // the stored bundle's kept records, the points they stand on and the years they span; no fossil specimen kept here
+  const card = layer.locator("section").first();
+  await expect(card).toContainText("632 records at 119 points, 1864 to 2025");
+  await expect(card).not.toContainText("fossil");
+  await expect(layer).toHaveAttribute("data-first-at", /\d/);
+  const [x, y] = ((await layer.getAttribute("data-first-at")) ?? "0,0").split(",").map(Number);
+  await page.mouse.move(x ?? 0, y ?? 0);
+  const point = layer.locator("[data-life-point]");
+  await expect(point).toBeVisible();
+  await expect(point).toContainText("Recorded here");
+  await expect(point).toContainText(/\d+ records?/);
+  await page.keyboard.press("Enter");
+  await expect(point).toContainText(/^1 of \d+/);
+  // GBIF joins the data line while the layer shows
+  await expect(page.locator("body")).toContainText("GBIF");
+});
+
+test("on the synthetic fixture: every card line; Enter steps the records, Esc steps back; G hides the layer", async ({
   page,
 }) => {
   test.setTimeout(180_000);
@@ -94,6 +143,7 @@ test("recorded life stays on over time, and a case without a species bundle offe
   page,
 }) => {
   test.setTimeout(180_000);
+  await withoutLife(page);
   await page.goto("/valley");
   await expect(page.locator("[data-overview-root]")).toHaveAttribute("data-ready", "", {
     timeout: 90_000,
@@ -102,7 +152,7 @@ test("recorded life stays on over time, and a case without a species bundle offe
   await page.keyboard.press("g");
   await expect(page.locator("[data-life-layer]")).toHaveCount(0);
 
-  await withSyntheticLife(page);
+  await page.unrouteAll({ behavior: "wait" });
   await page.reload();
   await expect(page.locator("[data-overview-root]")).toHaveAttribute("data-ready", "", {
     timeout: 90_000,

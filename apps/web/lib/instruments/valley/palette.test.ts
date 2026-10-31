@@ -1,6 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { sheetColours } from "../../theme/obsidian";
-import { hexRgb, ramp, rainColour, snowColour, trendRgba } from "./palette";
+import {
+  RAIN_RANGE,
+  hexRgb,
+  ramp,
+  rainColour,
+  rainRangeOf,
+  snowColour,
+  trendRgba,
+} from "./palette";
 
 const scale = { domain: 0.05, neutral: 0.0025 };
 
@@ -47,5 +55,12 @@ describe("rainColour and snowColour", () => {
     expect(rainColour(850)).toEqual(hexRgb(sheetColours.rain[3]));
     expect(snowColour(0)).toEqual(hexRgb(sheetColours.snow[0]));
     expect(snowColour(1)).toEqual(hexRgb(sheetColours.snow[3]));
+  });
+});
+
+describe("rainRangeOf (U25b)", () => {
+  it("keeps the first place's range where its cells fit, and widens to another place's own totals", () => {
+    expect(rainRangeOf([{ window_mm: 536.9 }, { window_mm: 843 }])).toBe(RAIN_RANGE);
+    expect(rainRangeOf([{ window_mm: 412.3 }, { window_mm: 618.4 }])).toEqual({ lo: 400, hi: 650 });
   });
 });

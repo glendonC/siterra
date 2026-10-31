@@ -112,6 +112,13 @@ describe("the profile", () => {
       { cover: "crop", from_m: 140, to_m: 150 },
     ]);
   });
+  it("draws no runs where the transect states no valley floor (U25b)", () => {
+    expect(
+      floorCoverRuns(
+        line({ valley_floor: null, land_cover_runs: [{ class: 10, from_m: 0, to_m: 90 }] }),
+      ),
+    ).toEqual([]);
+  });
 });
 
 describe("transectFixture", () => {

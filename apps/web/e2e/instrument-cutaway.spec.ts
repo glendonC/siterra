@@ -40,6 +40,27 @@ test("places the bands and statements without crowding the text", async ({ page 
   expect(await textReport(page, ROOT)).toEqual({ overlaps: [], small: [], outside: [] });
 });
 
+test("each published statement waits as a numbered chip and opens its words on focus", async ({
+  page,
+}) => {
+  await page.goto("/instruments/cutaway");
+  const chips = page.locator(`${ROOT} [data-statement-chip]`);
+  await expect(chips).toHaveText(["1", "2"]);
+  // at rest no statement's words are on the section (decision 16)
+  await expect(page.locator(`${ROOT} [data-statement-text]`)).toHaveCount(0);
+  for (const id of ["upper_slope", "valley_floor"]) {
+    const chip = page.locator(`${ROOT} [data-statement-chip='${id}']`);
+    await chip.focus();
+    await expect(chip).toHaveAttribute("aria-expanded", "true");
+    const words = page.locator(`${ROOT} [data-statement='${id}'] [data-statement-text]`);
+    await expect(words).toBeVisible();
+    expect((await words.innerText()).length).toBeGreaterThan(20);
+    expect(await textReport(page, ROOT)).toEqual({ overlaps: [], small: [], outside: [] });
+    await chip.blur();
+    await expect(words).toHaveCount(0);
+  }
+});
+
 test("turns with the arrow keys and returns with Home", async ({ page }) => {
   await page.goto("/instruments/cutaway");
   await expect(page.locator(`${ROOT} [data-band]`).first()).toBeVisible();

@@ -43,7 +43,13 @@ import {
 } from "../../lib/overview/actions";
 import { shouldReopen } from "../../lib/overview/ask-line";
 import { loadOverviewData, type OverviewData } from "../../lib/overview/data";
-import { findingsFrom, type Finding, type FindingId } from "../../lib/overview/findings";
+import {
+  directionWord,
+  findingsFrom,
+  sharesWords,
+  type Finding,
+  type FindingId,
+} from "../../lib/overview/findings";
 import {
   EXAG,
   ROUTE_QUIET,
@@ -53,6 +59,7 @@ import {
   type OverviewLayout,
   type LiftId,
   type OverviewScene,
+  type Point,
   type SceneState,
   type Selection,
 } from "../../lib/overview/scene/overview";
@@ -115,7 +122,12 @@ function captionOf(f: Finding, bandLimit: string): string[] {
     case "rain":
       return [en["overview.finding.rain.1"].text];
     case "fdr":
-      return [en["overview.finding.fdr.1"].text, en["overview.finding.fdr.2"].text];
+      return f.pair
+        ? [en["overview.finding.fdr.pair.1"].text]
+        : [
+            format("overview.finding.fdr.1", { direction: directionWord(f.direction) }),
+            en["overview.finding.fdr.2"].text,
+          ];
   }
 }
 
@@ -163,6 +175,8 @@ function crumbOf(sel: Selection, findings: readonly Finding[], bandLimit: string
       return tm["time.crumb"].text;
     case "band":
       return format("overview.crumb.band", { value: f?.display ?? "", limit: bandLimit });
+    case "fdr":
+      return f ? sharesWords(f) : "";
     default:
       return format(`overview.crumb.${sel}` as MessageId, { value: f?.display ?? "" });
   }
@@ -567,7 +581,18 @@ function OverviewReady({
     const evid = evidRef.current;
     const link = linkRef.current?.parentElement ?? null;
     const svg = connectorRef.current;
-    if (evid && link && svg) {
+    const mid = midcapRef.current;
+    if (evid?.hidden && link && svg) {
+      // the context closed: its toggle waits under the card's actions, with no dotted line (AUDIT's U28 advisory:
+      // placed from the hidden context's empty box it stood at the stage's left edge)
+      const lb = toDesign(link, scale);
+      svg.style.visibility = "hidden";
+      if (mid) {
+        mid.style.left = `${lb.left.toFixed(1)}px`;
+        mid.style.top = `${(lb.bottom + 14).toFixed(1)}px`;
+      }
+    } else if (evid && link && svg) {
+      svg.style.visibility = "";
       const eb = toDesign(evid, scale);
       const lb = toDesign(link, scale);
       const sx = eb.left + 20;
@@ -584,7 +609,6 @@ function OverviewReady({
       c0?.setAttribute("cy", sy.toFixed(1));
       c1?.setAttribute("cx", sx.toFixed(1));
       c1?.setAttribute("cy", ey.toFixed(1));
-      const mid = midcapRef.current;
       if (mid) {
         mid.style.left = `${(sx + 12).toFixed(1)}px`;
         mid.style.top = `${((sy + ey) / 2 - 8).toFixed(1)}px`;
@@ -1967,6 +1991,19 @@ function OverviewReady({
                   y1: h.top + b.y1 * k,
                 };
               },
+              // where each card's leader ends (U28c): the pixel's place, its risen cells, the field check's point
+              anchors: () => {
+                const L = lastLayout.current;
+                const h = hudRef.current?.getBoundingClientRect();
+                if (!L?.pixelPlace || !L.pixelCells || !h) return null;
+                const k = L.fit.scale;
+                const at = (p: Point): [number, number] => [h.left + p.x * k, h.top + p.y * k];
+                return {
+                  place: L.pixelPlace.map(at),
+                  cells: L.pixelCells.map(at),
+                  field: L.field ? [at(L.field)] : L.pixelPlace.map(at),
+                };
+              },
             }}
           />
         );
@@ -1995,13 +2032,20 @@ function OverviewReady({
     const shown = (f: FindingId) => findings.find((x) => x.id === f)?.display ?? "";
     const count = (n: number) => new Intl.NumberFormat("en").format(n);
     switch (id) {
-      case "trend":
-        return format("overview.lift.trend", {
-          n: count(data?.footprints.slope?.cells.length ?? 0),
-          // the season as the trend asset states it
-          window: data?.footprints.slope?.window ?? "",
-          share: shown("fdr"),
-        });
+      case "trend": {
+        const fdr = findings.find((x) => x.id === "fdr");
+        const n = count(data?.footprints.slope?.cells.length ?? 0);
+        // the season as the trend asset states it
+        const window = data?.footprints.slope?.window ?? "";
+        return fdr?.pair
+          ? format("overview.lift.trend.pair", { n, window, shares: sharesWords(fdr) })
+          : format("overview.lift.trend", {
+              n,
+              window,
+              share: shown("fdr"),
+              direction: directionWord(fdr?.direction),
+            });
+      }
       case "rain":
         return format("overview.lift.rain", {
           n: count(data?.footprints.rain?.length ?? 0),
@@ -2242,6 +2286,7 @@ function OverviewReady({
                 actions={cardActions}
                 onOpen={openInPlace}
                 onBack={back}
+                onContextToggle={go}
                 refs={{
                   root: recRef,
                   inst: instRef,
@@ -2411,7 +2456,21 @@ function FindingMark({
         onClick={onOpen}
       >
         <span ref={numeralRef} className={styles.numeral}>
-          <span className={styles.value}>{f.display}</span>
+          {f.pair ? (
+            // both shares, each from its own Measurement, each with its direction (U25b)
+            <span className={`${styles.value} ${styles.pair}`}>
+              <span>
+                {f.display}
+                <span className={styles.shareWord}>{directionWord(f.direction)}</span>
+              </span>
+              <span>
+                {f.pair.display}
+                <span className={styles.shareWord}>{directionWord(f.pair.direction)}</span>
+              </span>
+            </span>
+          ) : (
+            <span className={styles.value}>{f.display}</span>
+          )}
           <Arrow deg={f.clock} className={styles.arrow} />
         </span>
         {caption.map((line) => (

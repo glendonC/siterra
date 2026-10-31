@@ -18,6 +18,47 @@ function writes(page: Page): string[] {
   return sent;
 }
 
+/** Each pixel leader that passes over a visible word, other than at its own card's edge (the lead's U28c). */
+const leadersOverText = (page: Page) =>
+  page.evaluate(() => {
+    const view = document.querySelector("[data-instrument='pixel']");
+    if (!view) return ["no view"];
+    const words: { r: DOMRect; card: string | null }[] = [];
+    const w = document.createTreeWalker(view, NodeFilter.SHOW_TEXT);
+    for (let n = w.nextNode(); n; n = w.nextNode()) {
+      const el = n.parentElement;
+      if (!el || !n.textContent?.trim()) continue;
+      const cs = getComputedStyle(el);
+      if (cs.visibility === "hidden" || el.closest("[style*='display: none']")) continue;
+      const r = document.createRange();
+      r.selectNodeContents(n);
+      const card = el.closest("[data-part]")?.getAttribute("data-part") ?? null;
+      for (const g of r.getClientRects())
+        if (g.width > 1 && g.height > 1) words.push({ r: g, card });
+    }
+    const hits: string[] = [];
+    for (const line of view.querySelectorAll<SVGLineElement>("[data-leaders] line")) {
+      const id = line.dataset.leader ?? "";
+      const m = line.getScreenCTM();
+      if (!m) continue;
+      const at = (x: number, y: number) => new DOMPoint(x, y).matrixTransform(m);
+      const a = at(line.x1.baseVal.value, line.y1.baseVal.value);
+      const b = at(line.x2.baseVal.value, line.y2.baseVal.value);
+      for (let i = 1; i < 60; i++) {
+        const x = a.x + ((b.x - a.x) * i) / 60;
+        const y = a.y + ((b.y - a.y) * i) / 60;
+        const hit = words.find(
+          (q) => q.card !== id && x > q.r.left && x < q.r.right && y > q.r.top && y < q.r.bottom,
+        );
+        if (hit) {
+          hits.push(`${id} over ${String(hit.card)}`);
+          break;
+        }
+      }
+    }
+    return hits;
+  });
+
 async function ready(page: Page) {
   await page.goto("/valley");
   // the land is drawn, measured and the words placed (the light bake takes about a second)
@@ -136,6 +177,29 @@ test("opens a finding's record on its side and Esc returns", async ({ page }) =>
   expect(sent).toEqual([]);
 });
 
+test("a trend card says what a dot is, and its published context opens beside it from a toggle under the card", async ({
+  page,
+}) => {
+  await ready(page);
+  await page.locator("[data-finding='pixel']").click();
+  const record = page.locator("[data-record='pixel']");
+  await expect.poll(() => opacity(page, "[data-record]")).toBe(1);
+  await expect(record.locator("[data-season-dot]")).toHaveText("Each dot, one season's mean");
+  // closed, the toggle waits under the card's actions (AUDIT's U28 advisory: it stood at the stage's left edge)
+  const toggle = record.locator("[data-context-toggle]");
+  await expect(toggle).toHaveAttribute("aria-expanded", "false");
+  const actions = await record.locator("[data-actions]").boundingBox();
+  const closed = await toggle.boundingBox();
+  if (!actions || !closed) throw new Error("the actions or the toggle");
+  expect(Math.abs(closed.x - actions.x)).toBeLessThan(24);
+  expect(closed.y).toBeGreaterThanOrEqual(actions.y + actions.height);
+  expect(closed.y - (actions.y + actions.height)).toBeLessThan(40);
+  await toggle.click();
+  await expect(toggle).toHaveAttribute("aria-expanded", "true");
+  await expect(record.locator("section").last()).toBeVisible();
+  expect(await textReport(page, "[data-record]")).toEqual({ overlaps: [], small: [], outside: [] });
+});
+
 test("Enter on an opened card runs the action its Enter chip names, however the card was opened", async ({
   page,
 }) => {
@@ -165,15 +229,20 @@ test("the pixel opens in place: its cards stand round its risen cells, 02 paints
   await expect(page).toHaveURL(/\/instruments\/pixel$/);
   const view = page.locator("[data-instrument='pixel'][data-around]");
   await expect(view).toBeVisible();
-  // the pixel is the subject: three cards open round it (with the caption's), 01, 04 and 06 wait as chips; one
-  // leader from each card or chip to the pixel on the land
-  await expect(view.locator("[data-card]:visible")).toHaveCount(4);
+  // the pixel is the subject: at rest only the caption and 02 are open (decision 16, U28b), 01, 03, 04, 05 and 06
+  // wait as chips; one leader from each card or chip to the pixel on the land
+  await expect(view.locator("[data-card]:visible")).toHaveCount(2);
   await expect(view.locator("[data-chip]")).toHaveText([
     "01Locate",
+    "03Measured Spectra",
     "04Season Record",
+    "05Linear Mix Model",
     "06Field Check",
   ]);
-  await expect(view.locator("[data-leaders] line")).toHaveCount(6, { timeout: 10_000 });
+  // at rest one leader, 02's to the risen cells; a waiting chip has none (U28c), and no leader crosses any words
+  await expect(view.locator("[data-leaders] line")).toHaveCount(1, { timeout: 10_000 });
+  await expect(view.locator("[data-leaders] line[data-leader='02']")).toHaveCount(1);
+  expect(await leadersOverText(page)).toEqual([]);
   // a chip opens its card beside the column, and closes it again
   const chip = view.locator("[data-chip='06']");
   await chip.click();
@@ -187,10 +256,16 @@ test("the pixel opens in place: its cards stand round its risen cells, 02 paints
   await expect(view.locator("[data-card='06']")).toBeHidden();
   // no opened chip's card covers another card's words: each in turn, the text report clean and its back clear of
   // every other open card's back
-  for (const id of ["01", "04", "06"]) {
+  for (const id of ["01", "03", "04", "05", "06"]) {
     const c = view.locator(`[data-chip='${id}']`);
     await c.click();
     await expect(view.locator(`[data-card='${id}']`)).toBeVisible();
+    // its own leader, with 02's beside it when 02 keeps its slot (03 and 05 open on the right)
+    await expect(view.locator(`[data-leaders] line[data-leader='${id}']`)).toHaveCount(1);
+    await expect(view.locator("[data-leaders] line")).toHaveCount(
+      id === "03" || id === "05" ? 2 : 1,
+    );
+    expect(await leadersOverText(page), `${id}'s leaders`).toEqual([]);
     expect(await textReport(page, "[data-instrument='pixel']")).toEqual({
       overlaps: [],
       small: [],
@@ -260,7 +335,10 @@ for (const [w, h] of [
     await page.locator("[data-finding='pixel']").click();
     await page.locator("[data-record] [data-actions] a").first().click();
     const view = page.locator("[data-instrument='pixel'][data-around]");
+    // 05, the lowest card on the right, opened from its chip beside 02
+    await view.locator("[data-chip='05']").click();
     await expect(view.locator("[data-card='05']")).toBeVisible();
+    await expect(view.locator("[data-card='02']")).toBeVisible();
     const boxes = await view.locator("[data-card]:visible").evaluateAll((els) =>
       els.map((e) => {
         const r = e.getBoundingClientRect();
@@ -286,6 +364,45 @@ for (const [w, h] of [
     if (!line || !c05) throw new Error("the data line or card 05");
     expect(c05.y1).toBeLessThanOrEqual(line.y);
   });
+
+test("the opened pixel's field check card keeps its proposal and transect, the rest behind its step", async ({
+  page,
+}) => {
+  await ready(page);
+  await page.locator("[data-finding='pixel']").click();
+  await page.locator("[data-record] [data-actions] a").first().click();
+  const view = page.locator("[data-instrument='pixel'][data-around]");
+  await view.locator("[data-chip='06']").click();
+  const card = view.locator("[data-part='06']");
+  await expect(card).toContainText("Proposed field check. Not measured.");
+  const step = card.locator("[data-field-context-step]");
+  await expect(step).toHaveAttribute("aria-expanded", "false");
+  await expect(card.locator("[data-field-context]")).toBeHidden();
+  await step.click();
+  await expect(step).toHaveAttribute("aria-expanded", "true");
+  await expect(card.locator("[data-field-context]")).toBeVisible();
+  await expect(card.locator("[data-field-context]")).toContainText(
+    "El Aayadi et al. 2026, pp. 7 to 8",
+  );
+  // the card stays open while its step is used, clear of the ask disc, and nothing crowds
+  await expect(view.locator("[data-card='06']")).toBeVisible();
+  const back = await view.locator("[data-card='06']").boundingBox();
+  // the disc on screen (the overview's own waits off it while the view stands)
+  const disc = await page.locator("[data-ask]").last().boundingBox();
+  if (!back || !disc) throw new Error("card 06 or the ask disc");
+  expect(
+    Math.max(0, Math.min(back.x + back.width, disc.x + disc.width) - Math.max(back.x, disc.x)) *
+      Math.max(0, Math.min(back.y + back.height, disc.y + disc.height) - Math.max(back.y, disc.y)),
+  ).toBe(0);
+  expect(await textReport(page, "[data-instrument='pixel']")).toEqual({
+    overlaps: [],
+    small: [],
+    outside: [],
+  });
+  // and its context reads whole at this size, not cut off inside the card
+  const ctx = card.locator("[data-field-context]");
+  expect(await ctx.evaluate((e) => e.scrollHeight - e.clientHeight)).toBeLessThanOrEqual(1);
+});
 
 test("the browser's Back reopens a view left by Esc, and Back again plays it back to the land", async ({
   page,

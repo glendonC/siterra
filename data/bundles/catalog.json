@@ -73,7 +73,13 @@
    "rel": "child",
    "href": "./bundle_pixel_anatomy_ait_bouguemez/collection.json",
    "type": "application/json",
-   "file:checksum": "1220ba5b7b3d0d724b78d3ba7044fee37f7c839a610c7ea4b25383dbe1ff6f1d2cee"
+   "file:checksum": "1220efc70c6e40bf8390367661146e021b611e715a36506e4dcdeddcbb4dbcd722ee"
+  },
+  {
+   "rel": "child",
+   "href": "./bundle_pixel_anatomy_calaveras_creek/collection.json",
+   "type": "application/json",
+   "file:checksum": "1220ef0f71bd2132aadba3c37326248da9d883e602532cfa42116bf184c7decd1c51"
   },
   {
    "rel": "child",
@@ -103,7 +109,7 @@
    "rel": "child",
    "href": "./bundle_proposed_routes_ait_bouguemez/collection.json",
    "type": "application/json",
-   "file:checksum": "1220421e7baa2d80f4df177fc4869e5dc0c0d74c9cac0436e2736832261be2df9cba"
+   "file:checksum": "122029e23ae9750ca7d95c2bdf815be9217f9ef139ecad82e604b6765a16cf9c5817"
   },
   {
    "rel": "child",
@@ -164,6 +170,18 @@
    "href": "./bundle_snow_cover_by_band_calaveras_creek/collection.json",
    "type": "application/json",
    "file:checksum": "1220fcb7d599a49f32c02b0dc6a221169dc179b8e3d35e6877dcc0ea9e14eaea95f5"
+  },
+  {
+   "rel": "child",
+   "href": "./bundle_species_occurrences_ait_bouguemez/collection.json",
+   "type": "application/json",
+   "file:checksum": "12207c20e1b579d1075d6e3911568fde42ba52cee8240f00b580c1f8079006827819"
+  },
+  {
+   "rel": "child",
+   "href": "./bundle_species_occurrences_calaveras_creek/collection.json",
+   "type": "application/json",
+   "file:checksum": "12208af77fe940a0e76f01268a20055569bca00e0d94e236de7d18bc7b928271eef3"
   },
   {
    "rel": "child",

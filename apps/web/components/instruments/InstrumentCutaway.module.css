@@ -157,6 +157,12 @@
   color: var(--text-tertiary);
 }
 
+/* where the snow recipe does not apply: one line, wrapped to the band column's width */
+.snowKey[data-no-snow] {
+  width: 240px;
+  white-space: normal;
+}
+
 .snowKey {
   white-space: nowrap;
   font-size: 12px;
@@ -200,16 +206,51 @@
   color: var(--text-secondary);
 }
 
-.side {
+.side[data-open] {
   width: 460px;
   text-align: right;
 }
 
 .onWallText {
-  width: 540px;
   text-align: center;
   font-weight: 500;
   color: var(--ink-on-wall);
+}
+
+.onWallText[data-open] {
+  width: 540px;
+}
+
+/* a published statement waits as a numbered chip on the section (decision 16); its words open beside it */
+.statementChip {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 1px solid var(--control-line);
+  border-radius: 50%;
+  background: var(--bg-canvas);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 22px;
+  text-align: center;
+  color: var(--control-ink);
+  text-shadow: none;
+  cursor: pointer;
+  pointer-events: auto;
+  vertical-align: middle;
+}
+
+.statementChip:hover,
+.statementChip:focus-visible,
+.statementChip[aria-expanded="true"] {
+  background: var(--control-fill);
+  border-color: var(--control-line-strong);
+}
+
+.statementText {
+  display: block;
+  margin-top: 6px;
 }
 
 .onWallText .chip {

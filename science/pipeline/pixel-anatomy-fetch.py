@@ -33,6 +33,7 @@ ENV = dict(GDAL_DISABLE_READDIR_ON_OPEN="EMPTY_DIR", GDAL_HTTP_MAX_RETRY="6", GD
 ASSETS = [("blue", "B02"), ("green", "B03"), ("red", "B04"), ("rededge1", "B05"), ("rededge2", "B06"), ("rededge3", "B07"),
           ("nir", "B08"), ("nir08", "B8A"), ("swir16", "B11"), ("swir22", "B12"), ("scl", "SCL")]
 HOST = "https://sentinel-cogs.s3.us-west-2.amazonaws.com/"
+CRS = None  # the analysis CRS of the place configuration, set by main()
 
 
 def sha256(path):
@@ -44,9 +45,9 @@ def sha256(path):
 
 
 def read_window(href, x0, y0, H, W):
-    """The window of a UTM 29N COG that covers the display window (x0, y0 is its upper left corner, H x W 10 m cells)."""
+    """The window of a COG in the analysis CRS that covers the display window (x0, y0 is its upper left corner, H x W 10 m cells)."""
     with rasterio.open("/vsicurl/" + href) as s:
-        assert s.crs.to_epsg() == 32629
+        assert s.crs.to_string() == CRS, (s.crs.to_string(), CRS)
         res = abs(s.transform.a)
         col_off, row_off = (x0 - s.transform.c) / res, (s.transform.f - y0) / res
         assert col_off == int(col_off) and row_off == int(row_off), (href, col_off, row_off)
@@ -59,7 +60,9 @@ def main():
     place, repo, pid, interim, out_dir = sys.argv[1:6]
     if os.path.exists(out_dir):
         raise SystemExit(f"{out_dir} exists; it must not")
+    global CRS
     cfg = place_config.load(place, repo)
+    CRS = cfg["analysisCrs"]
     pc = cfg["recipes"]["pixel_anatomy"]
     pcfg = next(p for p in pc["pixels"] if p["id"] == pid) if any(p["id"] == pid for p in pc["pixels"]) else None
     sc = pc["scene"]
@@ -114,7 +117,7 @@ def main():
             assert href == red_href[: -len("B04.tif")] + f"{name}.tif", (href, name)
             arr, res, cog_shape, win = read_window(href, x0, y0, H, W)
             path = os.path.join(out_dir, f"{item['id']}_{name}.tif")
-            profile = dict(driver="GTiff", width=win["width"], height=win["height"], count=1, dtype=arr.dtype, crs="EPSG:32629",
+            profile = dict(driver="GTiff", width=win["width"], height=win["height"], count=1, dtype=arr.dtype, crs=CRS,
                            transform=Affine(res, 0, x0, 0, -res, y0), nodata=0, compress="deflate")
             with rasterio.open(path, "w", **profile) as o:
                 o.write(arr, 1)
@@ -127,7 +130,7 @@ def main():
     pr = item["properties"]
     out = {
         "pixel": pid, "read_utc": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "display_window": {"crs": "EPSG:32629", "origin_x": x0, "origin_y": y0, "rows": H, "cols": W, "analysis_grid_row0": r0,
+        "display_window": {"crs": CRS, "origin_x": x0, "origin_y": y0, "rows": H, "cols": W, "analysis_grid_row0": r0,
                            "analysis_grid_col0": c0, "cell_m": 10},
         "scene_rule": {"tile": sc["tile"], "month": sc["month"], "relative_orbit": sc["relativeOrbit"],
                        "rule": "largest share of footprint cells with SCL 4 or 5 among scenes on the orbit with data over every footprint cell; ties by the latest date",

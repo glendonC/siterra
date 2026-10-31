@@ -158,5 +158,7 @@ export {
   runExplanationBranchesTask,
 } from "./tasks/branches/branch-task.ts";
 export { buildCatalog, catalogView, coveredSeasons } from "./tasks/branches/catalog.ts";
+export { OCCURRENCE_WORDING, searchOccurrencesTool } from "./tools/occurrence-tools.ts";
+export type { OccurrenceSet } from "./tools/store.ts";
 export type { BranchCatalog, PairCatalog, SideCatalog } from "./tasks/branches/catalog.ts";
 export { GRAMMAR, PREDICTION_LIMITS, validatePredictions } from "./tasks/branches/proposal.ts";

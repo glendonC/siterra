@@ -50,8 +50,23 @@ export function trendRgba(v: number, scale: TrendScale): Rgba {
 /** The rain sheet's display range (mm, September to May): it holds all 33 cells, 536.9 to 843.0 mm. */
 export const RAIN_RANGE = { lo: 500, hi: 850 } as const;
 
-export const rainColour = (mm: number): Rgb =>
-  ramp(sheetColours.rain, (mm - RAIN_RANGE.lo) / (RAIN_RANGE.hi - RAIN_RANGE.lo));
+/**
+ * A place's rain sheet range: the first place's where its cells fit in it; otherwise the cells' own lowest and highest
+ * totals, widened to the next 50 mm (U25b: another place's window holds other totals).
+ */
+export function rainRangeOf(cells: readonly { window_mm: number }[]): { lo: number; hi: number } {
+  const mm = cells.map((c) => c.window_mm);
+  const min = Math.min(...mm);
+  const max = Math.max(...mm);
+  if (!mm.length || (min >= RAIN_RANGE.lo && max <= RAIN_RANGE.hi)) return RAIN_RANGE;
+  return {
+    lo: Math.floor(min / 50) * 50,
+    hi: Math.max(Math.ceil(max / 50) * 50, Math.floor(min / 50) * 50 + 50),
+  };
+}
+
+export const rainColour = (mm: number, range: { lo: number; hi: number } = RAIN_RANGE): Rgb =>
+  ramp(sheetColours.rain, (mm - range.lo) / (range.hi - range.lo));
 
 /** A snow-covered share, 0 to 1. */
 export const snowColour = (share: number): Rgb => ramp(sheetColours.snow, share);

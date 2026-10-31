@@ -5,6 +5,7 @@ import { instrumentOf } from "../listing";
 import { bundleFiles, seed, seedListing, seedTerrain } from "../seed-listing";
 import { loadCutawayData, placesSchema } from "./cutaway-data";
 import { catchmentSchema, figuresSchema, riversSchema, snowSchema } from "./fixtures";
+import { cutawayExag } from "./scene/cutaway";
 import { cutawayTransectSchema } from "./transect";
 
 // The cutaway read from the case draws what the fixtures drew: the section line, band trends, snow shares and
@@ -36,6 +37,19 @@ describe("loadCutawayData", () => {
     expect(d.catchment.ring).toEqual(catchmentSchema.parse(fixture("catchment.json")).ring);
     // the place is the case's own Tabant, as places.json copied it
     expect(d.places.places).toEqual(placesSchema.parse(fixture("places.json")).places);
+  });
+
+  it("draws the first place at 2.5x and a low, long section taller, from the section's own extent (U25b)", async () => {
+    vi.stubGlobal("fetch", serve);
+    const view = instrumentOf(seedListing, "cross_section");
+    if (view === undefined) throw new Error("no cross section in the seed");
+    const d = await loadCutawayData(view, seed, [], serve, undefined, seedTerrain);
+    expect(cutawayExag(d)).toBe(2.5);
+    // the same heights over a line four times as long: a flatter section, drawn taller, in half steps
+    const long = { ...d, transect: { ...d.transect, d: d.transect.d.map((x) => x * 4) } };
+    const exag = cutawayExag(long);
+    expect(exag).toBeGreaterThan(2.5);
+    expect(exag * 2).toBe(Math.round(exag * 2));
   });
 
   it("draws the case's drainage features: the fixture's 233 reaches, vertex for vertex", async () => {

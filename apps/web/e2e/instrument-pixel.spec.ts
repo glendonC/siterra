@@ -49,12 +49,17 @@ test("moves a class boundary with the keys and returns to the measured shares", 
   const measured = await values(page);
   const figure = page.locator(`${ROOT} [class*='roFigure']`);
   const before = await figure.textContent();
+  // at the measured shares no change line (U28d); once a boundary moves, the change in model NDVI from the mix
+  const delta = page.locator(`${ROOT} [class*='roDelta']`);
+  await expect(delta).toHaveCount(0);
   await sliders(page).nth(1).focus();
   for (let k = 0; k < 4; k++) await page.keyboard.press("Shift+ArrowLeft");
   await expect.poll(() => values(page)).not.toEqual(measured);
   await expect(figure).not.toHaveText(before ?? "");
+  await expect(delta).toContainText("in model NDVI from the measured mix");
   await page.keyboard.press("Home");
   await expect.poll(() => values(page)).toEqual(measured);
+  await expect(delta).toHaveCount(0);
   await sliders(page).nth(1).press("Shift+ArrowLeft");
   await page.locator(`${ROOT} button[class*='textButton']`).click();
   await expect.poll(() => values(page)).toEqual(measured);

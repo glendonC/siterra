@@ -1,7 +1,8 @@
 import { expect, test } from "@playwright/test";
 
 // See It Over Time by its own address (UI-2): /instruments/time is the overview, which opens the land's seasons in
-// place once the land is drawn; Esc returns to the overview at /valley. A case whose land is not drawn stays on the
+// place once the land is drawn; Esc returns to the overview at /valley. The second place opens it over its own drawn
+// land (U25b: both places' records hold their land views); a case whose record holds no land view stays on its
 // overview, and the address says so.
 
 test.use({ viewport: { width: 1440, height: 900 } });
@@ -24,10 +25,28 @@ test("the address opens See It Over Time in place over the drawn land, and Esc r
   await expect(page).toHaveURL(/\/valley$/);
 });
 
+test("the second place opens See It Over Time over its own drawn land, with no first-place words", async ({
+  page,
+}) => {
+  test.setTimeout(180_000);
+  await page.goto("/instruments/time?case=case_calaveras_creek");
+  const view = page.locator("[data-time-view]");
+  await expect(view).toBeVisible({ timeout: 90_000 });
+  await expect(page).toHaveURL(/\/instruments\/time(\?|$)/);
+  await expect(view).toContainText("No snow layer");
+  expect(await page.locator("body").innerText()).not.toMatch(/Aït Bouguemez|March to June/);
+});
+
 test("a case whose land is not drawn stays on its overview, under the overview's address", async ({
   page,
 }) => {
   test.setTimeout(120_000);
+  // a synthetic case whose record holds no land view: the case's instrument listing answered with no instruments
+  await page.route("**/api/cases/*/instruments*", async (route) => {
+    const res = await route.fetch();
+    const body = (await res.json()) as Record<string, unknown>;
+    await route.fulfill({ response: res, json: { ...body, instruments: [] } });
+  });
   await page.goto("/instruments/time?case=case_calaveras_creek");
   await expect(page.locator("[data-overview-failed]")).toBeVisible({ timeout: 60_000 });
   await expect(page).toHaveURL(/\/valley\?case=case_calaveras_creek$/);
@@ -66,4 +85,32 @@ test("reloading inside See It Over Time opens it again over the drawn land; Home
   await page.keyboard.press("Escape");
   await expect(view).toHaveCount(0, { timeout: 10_000 });
   await expect(page).toHaveURL(/\/valley$/);
+});
+
+test("a case whose land is drawn but holds no pixel seasons stays on its drawn overview, under the overview's address", async ({
+  page,
+}) => {
+  test.setTimeout(180_000);
+  // the case's own snapshot without its pixel seasons bundle: See It Over Time has nothing of the case's to play
+  await page.route("**/api/cases/*", async (route) => {
+    if (route.request().method() !== "GET") return route.fallback();
+    const res = await route.fetch();
+    if (!res.ok()) return route.fulfill({ response: res });
+    const snap = (await res.json()) as {
+      records: { dataBundleRecords: { methodId: string }[] };
+    };
+    snap.records.dataBundleRecords = snap.records.dataBundleRecords.filter(
+      (b) => b.methodId !== "pixel_seasons",
+    );
+    return route.fulfill({ response: res, json: snap });
+  });
+  await page.goto("/instruments/time");
+  await expect(page.locator("[data-overview-root]")).toHaveAttribute("data-ready", "", {
+    timeout: 90_000,
+  });
+  await expect(page).toHaveURL(/\/valley$/);
+  await expect(page.locator("[data-time-view]")).toHaveCount(0);
+  // and Back has no entry that would open it
+  await page.goBack().catch(() => undefined);
+  await expect(page.locator("[data-time-view]")).toHaveCount(0);
 });

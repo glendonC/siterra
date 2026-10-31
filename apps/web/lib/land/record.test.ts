@@ -13,7 +13,7 @@ describe("bandLimitsOf", () => {
       records: {
         ...seed.records,
         measurementRecords: seed.records.measurementRecords.filter(
-          (m) => m.id !== "meas_transect_band_limit_upper_2021",
+          (m) => m.id !== "meas_strata_band_limit_upper_2021",
         ),
       },
     };

@@ -120,7 +120,12 @@ describe("drought-challenge tools on the real seed", () => {
 
   it("a missing registry lists no recipes and is reported", async () => {
     const empty = await loadAnalyses("/nonexistent-siterra-root", []);
-    expect(empty).toEqual({ recipes: [], results: [], missing: ["science/recipes/registry.json"] });
+    expect(empty).toEqual({
+      recipes: [],
+      results: [],
+      occurrences: [],
+      missing: ["science/recipes/registry.json"],
+    });
   });
 
   it("read_recipe_result returns season_summary as stored, labelled precomputed analysis", async () => {

@@ -93,6 +93,8 @@ export interface AcceptedIntervention {
   item: InterventionItem;
   evidence: EvidenceRecord[];
   hypotheses: HypothesisRecord[];
+  /** True when the response cites a hypothesis but no Evidence (accepted on the repaired turn only). */
+  noSource: boolean;
 }
 
 export interface InterventionContext {
@@ -103,6 +105,12 @@ export interface InterventionContext {
   /** Measurements the cited evidence rests on, for numeric provenance. */
   measurements: ReadonlyMap<string, MeasurementRecord>;
   years: YearSpan | null;
+  /**
+   * What a response with no Evidence id gets. "refuse" (the first turn): the whole batch goes back for
+   * one repair turn. "mark" (the repaired turn): it is accepted and the record says no source was
+   * cited. A response that cites neither Evidence nor a hypothesis is refused in both. Default refuse.
+   */
+  noSource?: "refuse" | "mark";
 }
 
 function numbersOf(m: MeasurementRecord): number[] {
@@ -235,6 +243,7 @@ export function validateInterventionProposal(
   const accepted: AcceptedIntervention[] = [];
   const issues: ValidationIssue[] = [];
   const titles = new Set<string>();
+  const uncited = new Set<number>();
   items.forEach((item, i) => {
     const at = `$.items[${i}]`;
     const own: ValidationIssue[] = [];
@@ -323,8 +332,18 @@ export function validateInterventionProposal(
       }
       return [h];
     });
-    if (item.evidenceIds.length + item.hypothesisIds.length === 0)
+    if (item.evidenceIds.length + item.hypothesisIds.length === 0) {
       add("claim_kind", "evidenceIds", "Cite the evidence or hypotheses the response rests on.");
+    } else if (item.evidenceIds.length === 0) {
+      uncited.add(i);
+      if (context.noSource !== "mark") {
+        add(
+          "claim_kind",
+          "evidenceIds",
+          "Cite at least one accepted Evidence id the response rests on; a hypothesis alone is not a source.",
+        );
+      }
+    }
 
     const cited = citedNumbers(evidence, context.measurements);
     const texts: [string, string][] = [
@@ -339,7 +358,10 @@ export function validateInterventionProposal(
     }
 
     if (own.length > 0) issues.push(...own);
-    else accepted.push({ item: { ...item, title }, evidence, hypotheses });
+    else
+      accepted.push({ item: { ...item, title }, evidence, hypotheses, noSource: uncited.has(i) });
   });
+  // One response without a source sends the whole batch back for the repair turn.
+  if (uncited.size > 0 && context.noSource !== "mark") return { ok: false, issues };
   return accepted.length > 0 ? { ok: true, value: accepted, issues } : { ok: false, issues };
 }

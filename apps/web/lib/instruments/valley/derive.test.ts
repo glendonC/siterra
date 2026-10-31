@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { rainCellsFrom, seasonTrendFrom, snowFrom } from "./derive";
+import { rainCellsFrom, seasonTrendFrom, snowFrom, windowMonths } from "./derive";
 import { figuresSchema, rainCellsSchema, snowSchema } from "./fixtures";
 
 // The builders the instruments run on the case's assets give the committed fixtures exactly.
@@ -55,5 +55,28 @@ describe("rainCellsFrom", () => {
   it("gives rain-cells.json from the CHIRPS rainfall cells", () => {
     const geo = bundle("bundle_chirps_monthly_ait_bouguemez/rainfall-cells.geojson");
     expect(rainCellsFrom(geo, 29)).toEqual(rainCellsSchema.parse(fixture("rain-cells.json")));
+  });
+});
+
+describe("windowMonths (P7b-7 rainfallWindow)", () => {
+  it("names the months a window sums, across the year end", () => {
+    expect(
+      windowMonths({
+        start: { month: "september" },
+        end: { month: "may" },
+      }),
+    ).toEqual(["09", "10", "11", "12", "01", "02", "03", "04", "05"]);
+    expect(
+      windowMonths({
+        start: { month: "october" },
+        end: { month: "april" },
+      }),
+    ).toEqual(["10", "11", "12", "01", "02", "03", "04"]);
+    expect(windowMonths({ start: { month: "march" }, end: { month: "june" } })).toEqual([
+      "03",
+      "04",
+      "05",
+      "06",
+    ]);
   });
 });

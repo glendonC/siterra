@@ -120,6 +120,28 @@
   color: var(--text-tertiary);
 }
 
+/* the step to the fit's caveat in full, its interval and its gate */
+.more {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  margin: 0 0 12px;
+  padding: 0 10px;
+  border: 1px solid var(--control-line);
+  border-radius: 999px;
+  background: none;
+  color: var(--control-ink);
+  font: 400 13px / 18px var(--font-sans);
+  cursor: pointer;
+}
+
+.more:hover,
+.more:focus-visible,
+.more[aria-expanded="true"] {
+  background: var(--control-fill);
+  border-color: var(--control-line-strong);
+}
+
 /* the attribution line: 16 px under the shell's command line, as the specimens set it */
 .credit {
   position: absolute;

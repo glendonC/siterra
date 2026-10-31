@@ -33,6 +33,15 @@
   color: var(--ov-kicker);
 }
 
+/* a share's direction beside its number, where a place shows both shares (U25b) */
+.shareWord {
+  margin: 0 16px 0 8px;
+  font-size: 17px;
+  font-weight: 400;
+  letter-spacing: 0;
+  color: var(--ov-caption);
+}
+
 .big {
   /* as wide as the number, so the hairline from the arc meets the number itself on either side */
   width: fit-content;

@@ -67,7 +67,8 @@
   font-size: 14px;
   line-height: 20px;
   color: var(--text-secondary);
-  white-space: nowrap;
+  /* wraps inside the brief, clear of the plates (U25b: a place's longer caption) */
+  white-space: normal;
 }
 
 .chip {

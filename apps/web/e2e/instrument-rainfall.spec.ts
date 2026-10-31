@@ -25,8 +25,32 @@ test("draws the 26 seasons, rings the four driest and states the fit", async ({ 
   expect(text).not.toContain("November to April");
 });
 
-test("places the plot and its words without crowding the text", async ({ page }) => {
+test("places the plot and its words without crowding the text, at rest and with the fit's details open", async ({
+  page,
+}) => {
   await page.goto("/instruments/rainfall");
   await expect(page.locator(`${ROOT} [data-season]`)).toHaveCount(26);
   expect(await textReport(page, ROOT)).toEqual({ overlaps: [], small: [], outside: [] });
+  await page.locator(`${ROOT} [data-scatter-more]`).click();
+  await expect(page.locator(`${ROOT} [data-scatter-details]`)).toBeVisible();
+  expect(await textReport(page, ROOT)).toEqual({ overlaps: [], small: [], outside: [] });
+});
+
+test("keeps one short line on what the fit cannot say; the caveat, interval and gate wait behind a step", async ({
+  page,
+}) => {
+  await page.goto("/instruments/rainfall");
+  await expect(page.locator(`${ROOT} [data-season]`)).toHaveCount(26);
+  await expect(page.locator(`${ROOT} [data-scatter-why]`)).toHaveText(
+    "The fit says nothing about why.",
+  );
+  const details = page.locator(`${ROOT} [data-scatter-details]`);
+  await expect(details).toBeHidden();
+  const more = page.locator(`${ROOT} [data-scatter-more]`);
+  await expect(more).toHaveAttribute("aria-expanded", "false");
+  await more.click();
+  await expect(more).toHaveAttribute("aria-expanded", "true");
+  await expect(details).toContainText("95%");
+  await expect(details).toContainText("says nothing about why");
+  await expect(details).toContainText("precondition is not met");
 });

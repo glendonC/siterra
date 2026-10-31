@@ -82,6 +82,41 @@ export interface RecipeResult {
   result: unknown;
 }
 
+/**
+ * The kept GBIF occurrences of a species_occurrences bundle, as its occurrences asset stores them:
+ * columns of equal length joined to the taxon, dataset, basis and licence tables.
+ */
+export interface OccurrenceSet {
+  caseId: string;
+  bundleId: string;
+  bundleRevision: number;
+  columns: {
+    gbif_id: number[];
+    taxon: number[];
+    year: (number | null)[];
+    event_date: (string | null)[];
+    basis_of_record: number[];
+    lat: number[];
+    lon: number[];
+    uncertainty_m: (number | null)[];
+    dataset: number[];
+    license: number[];
+  };
+  tables: {
+    taxa: {
+      scientific_name: string;
+      species: string;
+      kingdom: string;
+      class: string;
+      order: string;
+      family: string;
+    }[];
+    datasets: { key: string; title: string; publisher: string; doi: string | null }[];
+    basis_of_record: string[];
+    license: string[];
+  };
+}
+
 export interface CaseStore {
   /** The current ready instrument specs of the case, as the composer returned them. */
   listInstrumentSpecs(caseId: string): Promise<InstrumentSpecRecord[]>;
@@ -151,6 +186,8 @@ export interface CaseStore {
   ): Promise<ExplanationBranchRecord[]>;
   /** Current revisions of the given explanation branch merges; unknown IDs are absent. */
   readBranchMerges(caseId: string, ids: readonly string[]): Promise<BranchMergeRecord[]>;
+  /** The stored occurrences of each species_occurrences bundle of the case; none when it holds none. */
+  listOccurrenceSets(caseId: string): Promise<OccurrenceSet[]>;
 }
 
 export class MemoryCaseStore implements CaseStore {
@@ -169,6 +206,7 @@ export class MemoryCaseStore implements CaseStore {
   readonly analysisConfigs = new Map<string, CaseAnalysisConfig>();
   readonly branches: ExplanationBranchRecord[] = [];
   readonly branchMerges: BranchMergeRecord[] = [];
+  readonly occurrenceSets: OccurrenceSet[] = [];
   readonly instrumentSpecs: InstrumentSpecRecord[] = [];
   readonly instrumentComponents: CanvasComponentRecord[] = [];
   readonly geoSelections: { caseId: string; id: string; revision: number }[] = [];
@@ -216,6 +254,10 @@ export class MemoryCaseStore implements CaseStore {
       if (!seen || seen.revision < b.revision) latest.set(b.id, b);
     }
     return Promise.resolve([...latest.values()]);
+  }
+
+  listOccurrenceSets(caseId: string): Promise<OccurrenceSet[]> {
+    return Promise.resolve(this.occurrenceSets.filter((s) => s.caseId === caseId));
   }
 
   readBranchMerges(caseId: string, ids: readonly string[]): Promise<BranchMergeRecord[]> {

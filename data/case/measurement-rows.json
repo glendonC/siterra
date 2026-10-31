@@ -1461,10 +1461,10 @@
       "upperPointer": null,
       "claimKindPointer": "/claim_kind",
       "claimKind": "observation",
-      "metric": "elevation_band_limit",
+      "metric": "transect_band_crossing_boundary",
       "unit": "m above the EGM2008 geoid",
       "aggregation": "The lower elevation band limit that the meridian crosses (tabant_meridian.band_crossings[0].boundary_m), the equal-area tercile limit of the terrain strata.",
-      "stratum": "elevation_band_limit_lower",
+      "stratum": "transect_band_crossing_lower",
       "period": {
         "start": "2021",
         "end": "2021",
@@ -1488,10 +1488,10 @@
       "upperPointer": null,
       "claimKindPointer": "/claim_kind",
       "claimKind": "observation",
-      "metric": "elevation_band_limit",
+      "metric": "transect_band_crossing_boundary",
       "unit": "m above the EGM2008 geoid",
       "aggregation": "The upper elevation band limit that the meridian crosses (tabant_meridian.band_crossings[2].boundary_m), the equal-area tercile limit of the terrain strata.",
-      "stratum": "elevation_band_limit_upper",
+      "stratum": "transect_band_crossing_upper",
       "period": {
         "start": "2021",
         "end": "2021",
@@ -1559,6 +1559,249 @@
       "usedBy": [
         "specimen C: 46% tree cover and cropland (pixel/provenance.json caption element)"
       ]
+    },
+    {
+      "rowId": "species_records_kept_catchment",
+      "pointer": "/counts/kept",
+      "metric": "species_records_kept",
+      "unit": "records",
+      "aggregation": "Number of GBIF occurrence records kept in the stored bundle: inside the catchment polygon and under a CC0 or CC BY licence (counts.kept). A count of records, not abundance.",
+      "uncertainty": {
+        "kind": "not_quantified"
+      },
+      "usedBy": [
+        "search_occurrences: the count beside the records the tool returns, for the recorded-here wording"
+      ],
+      "bundleId": "bundle_species_occurrences_ait_bouguemez",
+      "assetKey": "species_occurrences",
+      "lowerPointer": null,
+      "upperPointer": null,
+      "claimKindPointer": "/claim_kind",
+      "claimKind": "observation",
+      "stratum": "catchment",
+      "period": {
+        "start": "1864",
+        "end": "2025",
+        "window": null
+      },
+      "periodId": "period_1864-2025",
+      "spatialResolutionM": null
+    },
+    {
+      "rowId": "species_records_animals_catchment",
+      "pointer": "/by_group/animals",
+      "metric": "species_records_in_group",
+      "unit": "records",
+      "aggregation": "Number of the kept GBIF occurrence records whose taxon is in the group animals (by_group.animals). A count of records, not abundance.",
+      "uncertainty": {
+        "kind": "not_quantified"
+      },
+      "usedBy": [
+        "search_occurrences: the count beside the records the tool returns, for the recorded-here wording"
+      ],
+      "bundleId": "bundle_species_occurrences_ait_bouguemez",
+      "assetKey": "species_occurrences",
+      "lowerPointer": null,
+      "upperPointer": null,
+      "claimKindPointer": "/claim_kind",
+      "claimKind": "observation",
+      "stratum": "catchment",
+      "period": {
+        "start": "1864",
+        "end": "2025",
+        "window": null
+      },
+      "periodId": "period_1864-2025",
+      "spatialResolutionM": null
+    },
+    {
+      "rowId": "species_records_plants_catchment",
+      "pointer": "/by_group/plants",
+      "metric": "species_records_in_group",
+      "unit": "records",
+      "aggregation": "Number of the kept GBIF occurrence records whose taxon is in the group plants (by_group.plants). A count of records, not abundance.",
+      "uncertainty": {
+        "kind": "not_quantified"
+      },
+      "usedBy": [
+        "search_occurrences: the count beside the records the tool returns, for the recorded-here wording"
+      ],
+      "bundleId": "bundle_species_occurrences_ait_bouguemez",
+      "assetKey": "species_occurrences",
+      "lowerPointer": null,
+      "upperPointer": null,
+      "claimKindPointer": "/claim_kind",
+      "claimKind": "observation",
+      "stratum": "catchment",
+      "period": {
+        "start": "1864",
+        "end": "2025",
+        "window": null
+      },
+      "periodId": "period_1864-2025",
+      "spatialResolutionM": null
+    },
+    {
+      "rowId": "species_records_named_astragalus_armatus",
+      "pointer": "/named_taxa/0/kept",
+      "metric": "species_records_of_named_taxon",
+      "unit": "records",
+      "aggregation": "Number of the kept GBIF occurrence records of Astragalus armatus, a plant named by SCI-03, in the stored bundle (named_taxa[0].kept); zero means no record in the stored bundle. A count of records, not abundance.",
+      "uncertainty": {
+        "kind": "not_quantified"
+      },
+      "usedBy": [
+        "search_occurrences: the count beside the records the tool returns, for the recorded-here wording"
+      ],
+      "bundleId": "bundle_species_occurrences_ait_bouguemez",
+      "assetKey": "species_occurrences",
+      "lowerPointer": null,
+      "upperPointer": null,
+      "claimKindPointer": "/claim_kind",
+      "claimKind": "observation",
+      "stratum": "named_astragalus_armatus",
+      "period": {
+        "start": "1864",
+        "end": "2025",
+        "window": null
+      },
+      "periodId": "period_1864-2025",
+      "spatialResolutionM": null
+    },
+    {
+      "rowId": "species_records_named_thymus_satureioides",
+      "pointer": "/named_taxa/1/kept",
+      "metric": "species_records_of_named_taxon",
+      "unit": "records",
+      "aggregation": "Number of the kept GBIF occurrence records of Thymus satureioides, a plant named by SCI-03, in the stored bundle (named_taxa[1].kept); zero means no record in the stored bundle. A count of records, not abundance.",
+      "uncertainty": {
+        "kind": "not_quantified"
+      },
+      "usedBy": [
+        "search_occurrences: the count beside the records the tool returns, for the recorded-here wording"
+      ],
+      "bundleId": "bundle_species_occurrences_ait_bouguemez",
+      "assetKey": "species_occurrences",
+      "lowerPointer": null,
+      "upperPointer": null,
+      "claimKindPointer": "/claim_kind",
+      "claimKind": "observation",
+      "stratum": "named_thymus_satureioides",
+      "period": {
+        "start": "1864",
+        "end": "2025",
+        "window": null
+      },
+      "periodId": "period_1864-2025",
+      "spatialResolutionM": null
+    },
+    {
+      "rowId": "species_records_named_thymelaea_virgata",
+      "pointer": "/named_taxa/2/kept",
+      "metric": "species_records_of_named_taxon",
+      "unit": "records",
+      "aggregation": "Number of the kept GBIF occurrence records of Thymelaea virgata, a plant named by SCI-03, in the stored bundle (named_taxa[2].kept); zero means no record in the stored bundle. A count of records, not abundance.",
+      "uncertainty": {
+        "kind": "not_quantified"
+      },
+      "usedBy": [
+        "search_occurrences: the count beside the records the tool returns, for the recorded-here wording"
+      ],
+      "bundleId": "bundle_species_occurrences_ait_bouguemez",
+      "assetKey": "species_occurrences",
+      "lowerPointer": null,
+      "upperPointer": null,
+      "claimKindPointer": "/claim_kind",
+      "claimKind": "observation",
+      "stratum": "named_thymelaea_virgata",
+      "period": {
+        "start": "1864",
+        "end": "2025",
+        "window": null
+      },
+      "periodId": "period_1864-2025",
+      "spatialResolutionM": null
+    },
+    {
+      "rowId": "species_records_named_euphorbia_nicaeensis",
+      "pointer": "/named_taxa/3/kept",
+      "metric": "species_records_of_named_taxon",
+      "unit": "records",
+      "aggregation": "Number of the kept GBIF occurrence records of Euphorbia nicaeensis, a plant named by SCI-03, in the stored bundle (named_taxa[3].kept); zero means no record in the stored bundle. A count of records, not abundance.",
+      "uncertainty": {
+        "kind": "not_quantified"
+      },
+      "usedBy": [
+        "search_occurrences: the count beside the records the tool returns, for the recorded-here wording"
+      ],
+      "bundleId": "bundle_species_occurrences_ait_bouguemez",
+      "assetKey": "species_occurrences",
+      "lowerPointer": null,
+      "upperPointer": null,
+      "claimKindPointer": "/claim_kind",
+      "claimKind": "observation",
+      "stratum": "named_euphorbia_nicaeensis",
+      "period": {
+        "start": "1864",
+        "end": "2025",
+        "window": null
+      },
+      "periodId": "period_1864-2025",
+      "spatialResolutionM": null
+    },
+    {
+      "rowId": "strata_band_limit_lower_2021",
+      "pointer": "/siterra:method/parameters/boundaries_m/0",
+      "metric": "elevation_band_limit",
+      "unit": "m",
+      "aggregation": "Elevation of the boundary between the lowest and the middle elevation band, as the terrain strata bundle defines the bands (equal-area terciles of the catchment's DEM heights); a band definition, not a transect crossing (siterra:method.parameters.boundaries_m[0]).",
+      "uncertainty": {
+        "kind": "not_quantified"
+      },
+      "usedBy": [
+        "the elevation band limits the cross section and the layer stack read"
+      ],
+      "bundleId": "bundle_terrain_strata_ait_bouguemez",
+      "assetKey": "collection",
+      "lowerPointer": null,
+      "upperPointer": null,
+      "claimKindPointer": null,
+      "claimKind": "observation",
+      "stratum": "elevation_band_limit_lower",
+      "period": {
+        "start": "2021",
+        "end": "2021",
+        "window": null
+      },
+      "periodId": "period_2021",
+      "spatialResolutionM": 30
+    },
+    {
+      "rowId": "strata_band_limit_upper_2021",
+      "pointer": "/siterra:method/parameters/boundaries_m/1",
+      "metric": "elevation_band_limit",
+      "unit": "m",
+      "aggregation": "Elevation of the boundary between the middle and the highest elevation band, as the terrain strata bundle defines the bands (equal-area terciles of the catchment's DEM heights); a band definition, not a transect crossing (siterra:method.parameters.boundaries_m[1]).",
+      "uncertainty": {
+        "kind": "not_quantified"
+      },
+      "usedBy": [
+        "the elevation band limits the cross section and the layer stack read"
+      ],
+      "bundleId": "bundle_terrain_strata_ait_bouguemez",
+      "assetKey": "collection",
+      "lowerPointer": null,
+      "upperPointer": null,
+      "claimKindPointer": null,
+      "claimKind": "observation",
+      "stratum": "elevation_band_limit_upper",
+      "period": {
+        "start": "2021",
+        "end": "2021",
+        "window": null
+      },
+      "periodId": "period_2021",
+      "spatialResolutionM": 30
     }
   ]
 }

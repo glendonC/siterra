@@ -17,6 +17,7 @@ import type { CellPaint } from "../../lib/instruments/pixel/paint";
 import {
   PIXEL_DESIGN,
   mountPixel,
+  type PixelAnchors,
   type PixelLocator,
   type PixelScene,
   type StageBox,
@@ -56,6 +57,8 @@ export function InstrumentPixelAnatomy({
     paint: CellPaint;
     onPaint: (paint: CellPaint) => void;
     pixelBox: () => StageBox | null;
+    /** Where each card's leader ends, in client px: the pixel's place, its risen cells, the field check's point. */
+    anchors: () => PixelAnchors | null;
   };
 }) {
   const stageRef = useRef<HTMLDivElement>(null);
@@ -88,6 +91,9 @@ export function InstrumentPixelAnatomy({
   const view = record.status === "ready" ? record.view : null;
   const snapshot = record.status === "ready" ? record.snapshot : null;
   const caption = view?.spec.caption ?? null;
+  // the pixel's question as the case's record states it (P7b-10, contracts 1.22.0); null where it states none
+  const params = view?.spec.parameters;
+  const question = params?.kind === "pixel_anatomy" ? (params.question ?? null) : null;
   const descriptionId = useId();
 
   useEffect(() => {
@@ -156,6 +162,7 @@ export function InstrumentPixelAnatomy({
           }
         : null,
       tipsOf(caption.citationIds, snapshot),
+      question,
     );
     sceneRef.current = scene;
     // in place, the leaders follow the pixel on the land
@@ -174,10 +181,20 @@ export function InstrumentPixelAnatomy({
             y1: (cb.y1 - sr.top) / k,
           }
         : null;
-      const key = box ? [box.x0, box.y0, box.x1, box.y1].map((v) => v.toFixed(0)).join(",") : "";
+      const ca = aroundRef.current?.anchors() ?? null;
+      const toStage = (pts: readonly (readonly [number, number])[]) =>
+        pts.map(([x, y]): [number, number] => [(x - sr.left) / k, (y - sr.top) / k]);
+      const anchors = ca
+        ? { place: toStage(ca.place), cells: toStage(ca.cells), field: toStage(ca.field) }
+        : null;
+      const key = box
+        ? [box.x0, box.y0, box.x1, box.y1, ...(anchors?.cells[0] ?? [])]
+            .map((v) => v.toFixed(0))
+            .join(",")
+        : "";
       if (key !== lastBox) {
         lastBox = key;
-        scene.setPixelBox(box);
+        scene.setPixelBox(box, anchors);
         // where the pixel stands on screen, for the layout checks that no card covers it
         root.dataset.pixelBox = cb
           ? [cb.x0, cb.y0, cb.x1, cb.y1].map((v) => v.toFixed(0)).join(",")
@@ -213,7 +230,7 @@ export function InstrumentPixelAnatomy({
       sceneRef.current = null;
       scene.dispose();
     };
-  }, [loaded, caption, state, snapshot]);
+  }, [loaded, caption, state, snapshot, question]);
   const paint = around?.paint;
   useEffect(() => {
     if (paint) sceneRef.current?.setPaint(paint);

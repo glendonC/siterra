@@ -30,7 +30,8 @@ export const cutawayTransectSchema = z
     N: z.array(z.number()),
     h: z.array(z.number()),
     land_cover_runs: z.array(run),
-    valley_floor: z.object({ from_m: z.number(), to_m: z.number() }),
+    // null where the place's transect states no valley floor (U25b: Calaveras Creek's valley axis)
+    valley_floor: z.object({ from_m: z.number(), to_m: z.number() }).nullable(),
   })
   .refine(
     (t) => t.E.length === t.d.length && t.N.length === t.d.length && t.h.length === t.d.length,
@@ -52,7 +53,10 @@ interface SamplesBundle {
   >;
 }
 interface TerrainBundle {
-  transects: Record<string, { label: string; valley_floor: { from_m: number; to_m: number } }>;
+  transects: Record<
+    string,
+    { label: string; valley_floor: { from_m: number; to_m: number } | null }
+  >;
 }
 
 const tenth = (v: number) => Math.round(v * 10) / 10;
@@ -84,7 +88,9 @@ export function transectFixture(
       from_m: r.from_m,
       to_m: r.to_m,
     })),
-    valley_floor: { from_m: t.valley_floor.from_m, to_m: t.valley_floor.to_m },
+    valley_floor: t.valley_floor
+      ? { from_m: t.valley_floor.from_m, to_m: t.valley_floor.to_m }
+      : null,
   };
 }
 
@@ -197,8 +203,9 @@ export interface CoverRun {
   to_m: number;
 }
 
-/** Tree cover and cropland or built-up runs along the line, clipped to the valley floor. */
+/** Tree cover and cropland or built-up runs along the line, clipped to the valley floor; none where it states none. */
 export function floorCoverRuns(t: CutawayTransect): CoverRun[] {
+  if (!t.valley_floor) return [];
   const { from_m: lo, to_m: hi } = t.valley_floor;
   const out: CoverRun[] = [];
   for (const r of t.land_cover_runs) {

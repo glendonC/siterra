@@ -19,15 +19,21 @@ import type { PlanProposal, PlannableKind } from "./proposal.ts";
  * docs/reference/agent-orchestration.md, within the Task.allowedTools enum of the case contracts.
  */
 export const TOOLS_BY_KIND: Readonly<Record<PlannableKind, readonly ToolName[]>> = {
-  source_research: ["search_sources", "read_source", "propose_evidence"],
+  source_research: ["search_sources", "read_source", "search_occurrences", "propose_evidence"],
   observation_analysis: [
     "read_dataset_manifest",
     "summarize_observations",
     "list_recipes",
     "read_recipe_result",
+    "search_occurrences",
     "propose_evidence",
   ],
-  livelihood_governance: ["search_sources", "read_source", "propose_evidence"],
+  livelihood_governance: [
+    "search_sources",
+    "read_source",
+    "search_occurrences",
+    "propose_evidence",
+  ],
   explanation_branches: ["propose_predictions"],
   intervention_feasibility: ["read_evidence", "read_source", "propose_interventions"],
   brief_package: ["read_case", "propose_package", "request_review", "propose_layout"],

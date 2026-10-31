@@ -1,8 +1,8 @@
 """Render a pixel anatomy bundle for the visual inspection check.
 
 Usage: python -I render-pixel-anatomy.py <bundle_dir> <out.png>
-Panels: the cells coloured by WorldCover class (the footprint's cells bright, the margin dim), the June NDVI of each cell, the
-display true colour, the class spectra of the scene in ten bands with the pixel's mean, and the pixel's March to June series
+Panels: the cells coloured by WorldCover class (the footprint's cells bright, the margin dim), the month NDVI of each cell, the
+display true colour, the class spectra of the scene in ten bands with the pixel's mean, and the pixel's own series
 with its Theil-Sen line. For inspection only.
 """
 import json
@@ -45,7 +45,7 @@ def ramp(v):
 
 x1, x2, x3, y0 = 20, 20 + W * S + 30, 20 + 2 * (W * S + 30), 40
 grid(x1, y0, lambda r, c: dim(CLS.get(cells["worldcover"][r][c], (255, 0, 255)), cells["inside"][r][c]), "WorldCover class (footprint cells bright)")
-grid(x2, y0, lambda r, c: dim(ramp(cells["ndvi_median"][r][c]), cells["inside"][r][c]), "June 2025 NDVI median (red low, green high)")
+grid(x2, y0, lambda r, c: dim(ramp(cells["ndvi_median"][r][c]), cells["inside"][r][c]), f"{(summ.get('month_ndvi') or summ['june_ndvi'])['month']} NDVI median (red low, green high)")
 grid(x3, y0, lambda r, c: dim(tuple(cells["truecolour_rgb"][r][c]), cells["inside"][r][c]), "true colour (display only)")
 
 # spectra
@@ -66,7 +66,7 @@ for i, b in enumerate(bands):
 
 # series
 sx0, sy0, sw, sh = 840, 560, 620, 300
-d.text((sx0, sy0 - 20), f"pixel March to June greenness, {summ['trend']['seasons']} seasons: {summ['trend']['slope_per_decade']:+.4f} per decade "
+d.text((sx0, sy0 - 20), f"pixel greenness in {summ['trend']['window']}, {summ['trend']['seasons']} seasons: {summ['trend']['slope_per_decade']:+.4f} per decade "
        f"[{summ['trend']['lower_per_decade']:+.4f}, {summ['trend']['upper_per_decade']:+.4f}]", fill=(220, 220, 220))
 d.rectangle([sx0, sy0, sx0 + sw, sy0 + sh], outline=(60, 70, 75))
 pts = [(s["year"], s["ndvi"]) for s in ser["seasons"] if s["ndvi"] is not None]

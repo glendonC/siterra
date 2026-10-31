@@ -162,6 +162,20 @@
   color: color-mix(in srgb, var(--ov-caption-hover) calc(var(--hov) * 100%), var(--ov-caption));
 }
 
+/* both shares, one over the other, each with its direction beside its number (U25b) */
+.pair {
+  display: flex;
+  flex-direction: column;
+}
+
+.shareWord {
+  margin: 0 12px 0 6px;
+  font-size: 15px;
+  font-weight: 400;
+  letter-spacing: 0;
+  color: var(--ov-caption);
+}
+
 .numeral + .caption {
   margin-top: 3px;
 }

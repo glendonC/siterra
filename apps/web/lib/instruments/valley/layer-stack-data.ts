@@ -9,7 +9,7 @@ import { readCaseTerrain, type ReadTerrain } from "../../land/terrain";
 import { trendCellsFrom } from "../../overview/footprint";
 import { drawnAsset, readJsonAsset } from "../listing";
 import { riversFrom } from "./context";
-import { rainCellsFrom, snowFrom } from "./derive";
+import { rainCellsFrom, snowFrom, windowMonths } from "./derive";
 import type { LayerStackData } from "./fixtures";
 import { outlineRing } from "./outline";
 
@@ -31,12 +31,14 @@ export async function loadLayerStackData(
   };
   const read = (ref: Parameters<typeof readJsonAsset>[1]) =>
     readJsonAsset(view, ref, fetchImpl, signal);
+  // the snow sheet only where the spec names a snow layer (U25b: the record decides which sheets stand)
+  const snowLayer = p.layers.find((l) => l.layer === "snow_cover");
   const [land, trend, outline, rain, snow] = await Promise.all([
     readTerrain([view], fetchImpl, signal, { bands: true }),
     readJsonAsset(view, drawnAsset(view, "trend_cells"), fetchImpl, signal).then(trendCellsFrom),
     read(drawnAsset(view, "catchment_outline")),
     read(layer("rainfall")),
-    read(layer("snow_cover")),
+    snowLayer ? read(snowLayer.data) : Promise.resolve(null),
   ]);
   const limits = bandLimitsOf(snapshot);
   if (!limits) throw new Error("The record holds no two elevation band limits");
@@ -51,7 +53,12 @@ export async function loadLayerStackData(
     catchment: { ring: outlineRing(outline, land.zone) },
     rivers: riversFrom(snapshot, p.drainageFeatureIds, land.zone),
     trend,
-    rain: rainCellsFrom(rain, land.zone),
-    snow: snowFrom(snow),
+    // the window the spec states (P7b-7); September to May where it states none
+    rain: rainCellsFrom(
+      rain,
+      land.zone,
+      p.rainfallWindow ? windowMonths(p.rainfallWindow) : undefined,
+    ),
+    snow: snow === null ? null : snowFrom(snow),
   };
 }

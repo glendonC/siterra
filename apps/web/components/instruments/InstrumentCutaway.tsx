@@ -2,12 +2,21 @@
 
 // The cutaway (approved specimen B): the catchment cut north to south through Tabant, the section face as the hero.
 // Against the face at each elevation band's height: the band's name, its March to June trend and its monthly snow
-// cover, on one hairline each; the two published statements next to what they describe; the ruler, the limits and
+// cover, on one hairline each; the two published statements as numbered chips next to what they describe, each
+// opening its words on focus or hover (decision 16, U28b); the ruler, the limits and
 // the place on the model. The scene is three.js (lib/instruments/valley/scene/cutaway.ts); the words are HTML,
 // placed after every render so they follow the model when it is turned. The caption is the cross section spec's,
 // as the case records carry it.
 
-import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent } from "react";
+import {
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+  type KeyboardEvent,
+  type RefObject,
+} from "react";
 import { en, format, type MessageId } from "../../lib/copy/en";
 import { bandLimitsOf } from "../../lib/land/record";
 import { splitFigure } from "../../lib/instruments/caption";
@@ -17,7 +26,7 @@ import type { Vec3 } from "../../lib/instruments/valley/frame";
 import { SNOW_YEARS } from "../../lib/instruments/valley/fixtures";
 import { snowColour } from "../../lib/instruments/valley/palette";
 import {
-  CUTAWAY_EXAG,
+  cutawayExag,
   cutawayRuler,
   mountCutaway,
   type CutawayScene,
@@ -58,6 +67,10 @@ const TURN: Record<string, [number, number]> = {
 type Anchor =
   "left-middle" | "left-top" | "right-middle" | "right-bottom" | "center-top" | "center-bottom";
 
+/** The published statements, numbered top to bottom as they stand on the section. */
+const STATEMENTS = ["upper_slope", "valley_floor"] as const;
+type StatementId = (typeof STATEMENTS)[number];
+
 /** Puts an element's anchor point at (x, y) and shows it. */
 function place(e: HTMLElement | null, x: number, y: number, anchor: Anchor) {
   if (!e) return null;
@@ -96,12 +109,12 @@ export function InstrumentCutaway({ teardown }: { teardown?: Teardown } = {}) {
   const snowRef = useRef<HTMLDivElement>(null);
   const limitRefs = useRef<(HTMLDivElement | null)[]>([]);
   const tickRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const upperRef = useRef<HTMLParagraphElement>(null);
+  const upperRef = useRef<HTMLDivElement>(null);
   const upperStemRef = useRef<SVGLineElement>(null);
   const upperDotRef = useRef<SVGCircleElement>(null);
   const placeRef = useRef<HTMLDivElement>(null);
   const placeTickRef = useRef<SVGLineElement>(null);
-  const floorRef = useRef<HTMLParagraphElement>(null);
+  const floorRef = useRef<HTMLDivElement>(null);
   const floorStemRef = useRef<SVGLineElement>(null);
   const endRefs = useRef<(HTMLDivElement | null)[]>([]);
   const scaleRef = useRef<HTMLDivElement>(null);
@@ -118,6 +131,8 @@ export function InstrumentCutaway({ teardown }: { teardown?: Teardown } = {}) {
   useShellView(viewHandle);
   const [data, setData] = useState<CutawayData | null>(null);
   const [placeName, setPlaceName] = useState<string | null>(null);
+  // the statement whose words are open (its chip focused or under the pointer); at rest both wait as chips
+  const [openStatement, setOpenStatement] = useState<StatementId | null>(null);
   const [loadFailed, setFailed] = useState(false);
   const record = useInstrument("cross_section");
   // the cross section spec draws no land cover raster yet: the layer stack's is read in its place
@@ -168,33 +183,44 @@ export function InstrumentCutaway({ teardown }: { teardown?: Teardown } = {}) {
       const yU = P(marks.southLimits[1]).y;
       // each band's block against the face at the middle of its band, on a short hairline
       const colX = south.x + 28;
-      const ys = [(yTop + yU) / 2, (yU + yL) / 2, yL + (yL - yU) / 2];
+      const at = [(yTop + yU) / 2, (yU + yL) / 2, yL + (yL - yU) / 2];
+      // a low place's bands are a few px apart on the face: each block keeps at least its own height below the one
+      // above it (U25b), its hairline still from its own band's middle
+      const BLOCK = 58;
+      const ys = at.slice();
+      for (let i = 1; i < ys.length; i++) ys[i] = Math.max(ys[i] ?? 0, (ys[i - 1] ?? 0) + BLOCK);
       ys.forEach((y, i) => {
+        const from = at[i] ?? y;
         place(bandRefs.current[i] ?? null, colX, y, "left-middle");
-        line(bandLeaderRefs.current[i] ?? null, south.x + 1, y, colX - 6, y);
-        dot(bandDotRefs.current[i] ?? null, south.x + 1, y);
+        line(bandLeaderRefs.current[i] ?? null, south.x + 1, from, colX - 6, y);
+        dot(bandDotRefs.current[i] ?? null, south.x + 1, from);
       });
-      // the month initials under the lowest strip, the snow key under them
+      // the month initials under the lowest strip, the snow key under them; where the snow recipe does not apply, the
+      // one line that says so under the lowest band
       const strip = stripRef.current;
+      const lowest = bandRefs.current[BANDS.length - 1] ?? null;
       const root = canvas.parentElement;
       if (strip && root) {
         const sr = strip.getBoundingClientRect();
         const rr = root.getBoundingClientRect();
         const m = place(monthsRef.current, sr.left - rr.left, sr.bottom - rr.top + 3, "left-top");
         if (m) place(snowRef.current, sr.left - rr.left, m.bottom + 8, "left-top");
+      } else if (lowest && root) {
+        const lr = lowest.getBoundingClientRect();
+        const rr = root.getBoundingClientRect();
+        place(snowRef.current, lr.left - rr.left, lr.bottom - rr.top + 8, "left-top");
       }
       // the two limits, labelled on the face just above each line near the south edge
       [yL, yU].forEach((y, i) =>
         place(limitRefs.current[i] ?? null, south.x - 8, y - 2, "right-bottom"),
       );
-      // upper rangelands above the high slopes at the south end, on a short stem down to the profile
+      // upper rangelands above the high slopes at the south end, on a short stem down to the profile: its chip right
+      // over the stem, its words (when open) ending at the south end
       const hp = P(marks.highSlope);
-      const ur = place(
-        upperRef.current,
-        Math.min(width - 16, south.x + 210),
-        yTop - 18,
-        "right-bottom",
-      );
+      const upperOpen = upperRef.current?.hasAttribute("data-open") ?? false;
+      const ur = upperOpen
+        ? place(upperRef.current, Math.min(width - 16, south.x + 210), yTop - 18, "right-bottom")
+        : place(upperRef.current, hp.x, yTop - 18, "center-bottom");
       if (ur) line(upperStemRef.current, hp.x, hp.y - 4, hp.x, ur.bottom + 3);
       dot(upperDotRef.current, hp.x, hp.y - 3);
       // the ruler's labels left of its long ticks
@@ -240,10 +266,11 @@ export function InstrumentCutaway({ teardown }: { teardown?: Teardown } = {}) {
     };
   }, [data, caption, kick]);
 
-  // the place's label appears after the scene has found it on the line; lay the words out again then
+  // the place's label appears after the scene has found it on the line, and a statement opens or closes; lay the
+  // words out again then
   useEffect(() => {
     sceneRef.current?.stage.render();
-  }, [placeName]);
+  }, [placeName, openStatement]);
 
   const onKeyDown = (e: KeyboardEvent<HTMLCanvasElement>) => {
     const scene = sceneRef.current;
@@ -272,6 +299,52 @@ export function InstrumentCutaway({ teardown }: { teardown?: Teardown } = {}) {
           {n}
         </span>
       ));
+  // a statement on the section: its numbered chip, and its words with their source chips while it is open
+  const statementAt = (
+    id: StatementId,
+    ref: RefObject<HTMLDivElement | null>,
+    className: string,
+  ) => {
+    // a place whose record publishes no such statement shows no chip for it (U25b)
+    if (!statement(id)) return null;
+    const n = STATEMENTS.indexOf(id) + 1;
+    const open = openStatement === id;
+    const close = () => {
+      setOpenStatement((o) => (o === id ? null : o));
+    };
+    return (
+      <div ref={ref} className={className} data-statement={id} data-open={open ? "" : undefined}>
+        <button
+          type="button"
+          className={styles.statementChip}
+          aria-expanded={open}
+          aria-label={format("instrument.cutaway.statement", { n })}
+          data-statement-chip={id}
+          onFocus={() => {
+            setOpenStatement(id);
+          }}
+          onBlur={close}
+          onPointerEnter={() => {
+            setOpenStatement(id);
+          }}
+          onPointerLeave={(e) => {
+            if (document.activeElement !== e.currentTarget) close();
+          }}
+          onClick={() => {
+            setOpenStatement(id);
+          }}
+        >
+          {n}
+        </button>
+        {open ? (
+          <span className={styles.statementText} data-statement-text>
+            {statement(id)?.text}
+            {chips(id)}
+          </span>
+        ) : null}
+      </div>
+    );
+  };
   const credits = data
     ? [
         ...CREDITS_BEFORE.map((id) => en[id].text),
@@ -349,10 +422,16 @@ export function InstrumentCutaway({ teardown }: { teardown?: Teardown } = {}) {
                 />
               </g>
             ))}
-            <line ref={upperStemRef} stroke={obsidian.leaderQuiet} strokeWidth={1} />
-            <circle ref={upperDotRef} r={2} fill={obsidian.leaderDot} />
+            {statement("upper_slope") ? (
+              <>
+                <line ref={upperStemRef} stroke={obsidian.leaderQuiet} strokeWidth={1} />
+                <circle ref={upperDotRef} r={2} fill={obsidian.leaderDot} />
+              </>
+            ) : null}
             {placeName && <line ref={placeTickRef} stroke={obsidian.leaderDot} strokeWidth={1} />}
-            <line ref={floorStemRef} stroke={obsidian.leaderOnWall} strokeWidth={1} />
+            {statement("valley_floor") ? (
+              <line ref={floorStemRef} stroke={obsidian.leaderOnWall} strokeWidth={1} />
+            ) : null}
           </svg>
           <p className={styles.brief}>
             {lead.figure !== null && <span className={styles.fig}>{lead.figure}</span>}
@@ -376,34 +455,48 @@ export function InstrumentCutaway({ teardown }: { teardown?: Teardown } = {}) {
                 <b>{signed(data.figures.season_trend[id].per_decade, 4)}</b>{" "}
                 {en["instrument.cutaway.band.unit"].text}
               </div>
-              <span ref={i === BANDS.length - 1 ? stripRef : undefined} className={styles.strip}>
-                {(data.snow.bands[id]?.monthly_mean ?? []).map((v, m) => (
-                  <i
-                    key={data.snow.months[m] ?? m}
-                    title={`${data.snow.months[m] ?? ""} ${percent(v, 0)}`}
-                    style={{ background: cssColour(snowColour(v)) }}
-                  />
-                ))}
-              </span>
+              {data.snow ? (
+                <span ref={i === BANDS.length - 1 ? stripRef : undefined} className={styles.strip}>
+                  {(data.snow.bands[id]?.monthly_mean ?? []).map((v, m) => (
+                    <i
+                      key={data.snow?.months[m] ?? m}
+                      title={`${data.snow?.months[m] ?? ""} ${percent(v, 0)}`}
+                      style={{ background: cssColour(snowColour(v)) }}
+                    />
+                  ))}
+                </span>
+              ) : null}
             </div>
           ))}
-          <div ref={monthsRef} className={styles.months} aria-hidden="true">
-            {data.snow.months.map((m) => (
-              <span key={m}>{m.charAt(0)}</span>
-            ))}
-          </div>
-          <div ref={snowRef} className={styles.snowKey}>
-            <div>{en["instrument.cutaway.snow"].text}</div>
-            <div>
-              {format("instrument.cutaway.snow.years", { from: SNOW_YEARS[0], to: SNOW_YEARS[1] })}
-              <span className={styles.rampKey}>
-                <span>{0}</span>
-                <i style={{ background: SNOW_KEY }} />
-                <span>{percent(1, 0)}</span>
-              </span>
-              <span className={styles.chip}>{2}</span>
+          {data.snow ? (
+            <>
+              <div ref={monthsRef} className={styles.months} aria-hidden="true">
+                {data.snow.months.map((m) => (
+                  <span key={m}>{m.charAt(0)}</span>
+                ))}
+              </div>
+              <div ref={snowRef} className={styles.snowKey}>
+                <div>{en["instrument.cutaway.snow"].text}</div>
+                <div>
+                  {format("instrument.cutaway.snow.years", {
+                    from: SNOW_YEARS[0],
+                    to: SNOW_YEARS[1],
+                  })}
+                  <span className={styles.rampKey}>
+                    <span>{0}</span>
+                    <i style={{ background: SNOW_KEY }} />
+                    <span>{percent(1, 0)}</span>
+                  </span>
+                  <span className={styles.chip}>{2}</span>
+                </div>
+              </div>
+            </>
+          ) : (
+            // the snow summary records the recipe as not applicable here: no snow is drawn, and the line says why
+            <div ref={snowRef} className={styles.snowKey} data-no-snow>
+              {en["instrument.cutaway.noSnow"].text}
             </div>
-          </div>
+          )}
           {data.limits.map((e, i) => (
             <div
               key={e}
@@ -426,27 +519,13 @@ export function InstrumentCutaway({ teardown }: { teardown?: Teardown } = {}) {
               {format("instrument.cutaway.metres", { value: metres(e) })}
             </div>
           ))}
-          <p
-            ref={upperRef}
-            className={`${styles.statement} ${styles.side}`}
-            data-statement="upper_slope"
-          >
-            {statement("upper_slope")?.text}
-            {chips("upper_slope")}
-          </p>
+          {statementAt("upper_slope", upperRef, `${styles.statement} ${styles.side}`)}
           {placeName && (
             <div ref={placeRef} className={styles.place} data-place>
               {placeName}
             </div>
           )}
-          <p
-            ref={floorRef}
-            className={`${styles.statement} ${styles.onWallText}`}
-            data-statement="valley_floor"
-          >
-            {statement("valley_floor")?.text}
-            {chips("valley_floor")}
-          </p>
+          {statementAt("valley_floor", floorRef, `${styles.statement} ${styles.onWallText}`)}
           {(["instrument.cutaway.north", "instrument.cutaway.south"] as const).map((id, i) => (
             <div
               key={id}
@@ -459,7 +538,7 @@ export function InstrumentCutaway({ teardown }: { teardown?: Teardown } = {}) {
             </div>
           ))}
           <div ref={scaleRef} className={styles.scaleNote} data-scale-note>
-            {format("instrument.layers.scale", { value: CUTAWAY_EXAG })}
+            {format("instrument.layers.scale", { value: cutawayExag(data) })}
           </div>
         </>
       )}

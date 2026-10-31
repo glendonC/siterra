@@ -232,6 +232,38 @@ export interface PackageContext {
    * names one of them; when there is no merge, none.
    */
   fieldCheckIds?: ReadonlySet<string>;
+  /**
+   * The data that decides whether a named field check fits its measurement (P9d): the explanation of
+   * each hypothesis and the pairs each check separates. "refuse" (the first turn) sends an unfit
+   * check back for repair; "clear" (the repaired turn) sets it to null. Absent, fit is not asked.
+   */
+  checkFit?: {
+    mode: "refuse" | "clear";
+    explanationOfHypothesis: ReadonlyMap<string, string>;
+    separates: ReadonlyMap<string, readonly (readonly [string, string])[]>;
+  };
+}
+
+/**
+ * A field check fits a measurement when the explanations the measurement tells apart (those of the
+ * hypotheses it discriminates) hold a pair the check separates: two explanations, both of a pair the
+ * check separates; one explanation, a member of such a pair; none, no fit.
+ */
+export function checkFitsMeasurement(
+  hypothesisIds: readonly string[],
+  separates: readonly (readonly [string, string])[],
+  explanationOfHypothesis: ReadonlyMap<string, string>,
+): boolean {
+  const told = new Set(
+    hypothesisIds.flatMap((id) => {
+      const e = explanationOfHypothesis.get(id);
+      return e === undefined ? [] : [e];
+    }),
+  );
+  if (told.size === 0) return false;
+  return told.size >= 2
+    ? separates.some(([a, b]) => told.has(a) && told.has(b))
+    : separates.some(([a, b]) => told.has(a) || told.has(b));
 }
 
 export function validatePackageProposal(
@@ -311,12 +343,31 @@ export function validatePackageProposal(
     tooLong(`${at}.season`, m.season, PLAN_CHARS.season);
     tooLong(`${at}.fieldRole`, m.fieldRole, PLAN_CHARS.fieldRole);
     const checks = context.fieldCheckIds ?? new Set<string>();
-    if (checks.size > 0 && (m.fieldCheckId === null || !checks.has(m.fieldCheckId))) {
+    if (checks.size > 0 && m.fieldCheckId !== null && !checks.has(m.fieldCheckId)) {
       add(
         "unknown_reference",
         `${at}.fieldCheckId`,
-        `Name the field check this measurement serves, one of: ${[...checks].sort().join(", ")}.`,
+        `${m.fieldCheckId} is not a field check of the explanation merge. Use one of: ${[...checks].sort().join(", ")}, or null when none fits this measurement.`,
       );
+    } else if (
+      checks.size > 0 &&
+      m.fieldCheckId !== null &&
+      context.checkFit &&
+      !checkFitsMeasurement(
+        m.discriminatesHypothesisIds,
+        context.checkFit.separates.get(m.fieldCheckId) ?? [],
+        context.checkFit.explanationOfHypothesis,
+      )
+    ) {
+      if (context.checkFit.mode === "clear") {
+        m.fieldCheckId = null;
+      } else {
+        add(
+          "coverage",
+          `${at}.fieldCheckId`,
+          `${m.fieldCheckId} does not fit this measurement: the explanations it tells apart (through the hypotheses it discriminates) are not a pair that check separates. Use the check that separates them, or null.`,
+        );
+      }
     } else if (checks.size === 0 && m.fieldCheckId !== null) {
       add(
         "unknown_reference",

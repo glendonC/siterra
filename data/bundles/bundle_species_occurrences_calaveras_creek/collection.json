@@ -1,0 +1,359 @@
+{
+ "type": "Collection",
+ "stac_version": "1.1.0",
+ "stac_extensions": [
+  "https://stac-extensions.github.io/processing/v1.3.0/schema.json",
+  "https://stac-extensions.github.io/file/v2.1.0/schema.json",
+  "https://siterra.invalid/schemas/stac/siterra/1.1.0/schema.json"
+ ],
+ "id": "bundle_species_occurrences_calaveras_creek",
+ "title": "Recorded life in the catchment: GBIF occurrence records (species_occurrences 1.0.0)",
+ "description": "Precomputed result of recipe species_occurrences 1.0.0 for Calaveras Creek catchment: of 63990 GBIF occurrence records with a coordinate inside the query polygon, 5675 lie outside the catchment, 8175 were dropped by licence, and 50140 records under CC0 or CC BY 4.0 are kept (48348 animals, 1616 plants, 112 fungi, 64 other), from 126 datasets, requested on 2026-10-30. Recorded here, not presence or abundance.\n\nEach record says an organism was recorded at a place and time by someone, as a human observation, a preserved specimen, a fossil specimen, a machine observation or another basis; a fossil specimen records an organism of an earlier age, not a living one. It is not a measurement of presence or abundance: the same species can be common and unrecorded, or rare and recorded often. Records follow where people look. Roads, villages, trails, reserves and the habits of a few observers shape where records fall, and a quiet area is not an empty one. Years reflect recording effort. A rise or fall in records per year follows the arrival of observation apps, surveys and datasets, not the organisms, and the counts by year are not a trend. Coordinates are as recorded with their stated uncertainty, which is missing for some records and larger than the catchment for others; a kept record is inside the catchment polygon at its recorded point only. Only records under CC0 1.0 or CC BY 4.0 are kept; records under other licences were dropped and are counted, so the kept records are a part of what GBIF holds here. Each dataset is credited to its publisher. The request was made on a stated date; GBIF records are added, corrected and withdrawn over time, so a later request can give other counts. A zero for a named plant means no kept record under that name inside the catchment, not that the plant is absent, and names can be recorded under synonyms.",
+ "license": "other",
+ "providers": [
+  {
+   "name": "GBIF, the Global Biodiversity Information Facility",
+   "roles": [
+    "host"
+   ],
+   "url": "https://www.gbif.org"
+  },
+  {
+   "name": "Siterra science pipeline",
+   "roles": [
+    "processor"
+   ],
+   "processing:lineage": "Anonymous reads of the GBIF occurrence search API (263 pages of up to 300 records, the species match and the dataset and organization records) on 2026-10-30, tested against the exact catchment polygon and filtered to CC0 and CC BY 4.0, stored without any field that names a person (science/pipeline/gbif-fetch.py, species-occurrences-bundle.py)",
+   "processing:software": {
+    "siterra-science": "0.1.0",
+    "python": "3.12.9",
+    "numpy": "2.5.4",
+    "pyproj": "3.8.0",
+    "shapely": "2.2.0"
+   }
+  }
+ ],
+ "extent": {
+  "spatial": {
+   "bbox": [
+    [
+     -121.86652777777778,
+     37.25763888888889,
+     -121.4948611111111,
+     37.50708333333334
+    ]
+   ]
+  },
+  "temporal": {
+   "interval": [
+    [
+     "1875-01-01T00:00:00Z",
+     "2026-12-31T23:59:59Z"
+    ]
+   ]
+  }
+ },
+ "assets": {
+  "analysis_geometry": {
+   "href": "./analysis-geometry.geojson",
+   "type": "application/geo+json",
+   "title": "Frozen analysis geometry geo_calaveras_creek_catchment, revision 2",
+   "roles": [
+    "metadata"
+   ],
+   "file:checksum": "1220745fb73a2dadb7284074eb6c0b607f390975a70592a7d968588ea083882faa9d",
+   "file:size": 141566
+  },
+  "species_occurrences": {
+   "href": "./species-occurrences.json",
+   "type": "application/json",
+   "title": "Summary: the request, records read, dropped by polygon and by licence, kept, counts by group, class, basis of record and year, datasets, named plants (the result read_recipe_result returns)",
+   "roles": [
+    "data"
+   ],
+   "file:checksum": "1220eedb5db1cf465f376e5d2d1e63f5da0d7ac8308e7b2379d54c623439b275ae91",
+   "file:size": 69924
+  },
+  "occurrences": {
+   "href": "./occurrences.json",
+   "type": "application/json",
+   "title": "Kept records as columns (GBIF id, taxon, year, event date, basis of record, latitude, longitude, uncertainty in metres, dataset, licence) joined to taxon, dataset, basis and licence tables",
+   "roles": [
+    "data"
+   ],
+   "file:checksum": "12205e4905185f503f1d9dab7be1ec26556668b869c72dfe6467b5cb8d477ee550f3",
+   "file:size": 3586103
+  }
+ },
+ "created": "2026-10-30T20:23:52Z",
+ "siterra:status": "validated",
+ "siterra:variable": "species_occurrences",
+ "siterra:dataset": {
+  "id": "gbif-occurrence-search",
+  "version": "v1",
+  "access_route": "https://api.gbif.org/v1/occurrence/search with geometry, hasCoordinate, hasGeospatialIssue and occurrenceStatus (anonymous)",
+  "resolution_note": "Point records with a stated coordinate uncertainty; no grid; one record is one occurrence"
+ },
+ "siterra:geo_selection": {
+  "id": "geo_calaveras_creek_catchment",
+  "revision": 2,
+  "boundary_role": "hydrological_unit",
+  "area_m2": 257339500,
+  "area_method": "Count of 10 m analysis pixels whose centres fall inside the frozen polygon, EPSG:32610"
+ },
+ "siterra:method": {
+  "id": "species_occurrences",
+  "version": "1.0.0",
+  "analysis_crs": "EPSG:32610",
+  "parameters": {
+   "place_configuration": "science/places/calaveras-creek.json revision 13, sha256 62e1a49c090b789e8040ef80e8335ed0405e0ce160b6eace2772110290a0f165",
+   "filters": {
+    "geometry": "POLYGON((-121.86825 37.48425,-121.86492 37.48092,-121.86547 37.47564,-121.85714 37.47036,-121.85464 37.46397,-121.84547 37.46203,-121.84103 37.44925,-121.83464 37.44508,-121.83436 37.43786,-121.82297 37.43536,-121.81825 37.43008,-121.80742 37.43036,-121.80297 37.42592,-121.79464 37.42453,-121.79075 37.42203,-121.79158 37.41647,-121.78881 37.41342,-121.78119 37.41342,-121.77397 37.41953,-121.76436 37.41508,-121.75175 37.41536,-121.74175 37.42397,-121.73575 37.41953,-121.73714 37.39897,-121.72047 37.39342,-121.71797 37.37981,-121.70325 37.37675,-121.69547 37.36758,-121.69408 37.35425,-121.68519 37.34092,-121.68297 37.32675,-121.67269 37.31786,-121.66297 37.31619,-121.66297 37.31314,-121.65825 37.31119,-121.65908 37.30508,-121.63242 37.29786,-121.63075 37.28731,-121.62742 37.28619,-121.62908 37.27258,-121.61492 37.26786,-121.61186 37.26147,-121.60314 37.26036,-121.60175 37.26953,-121.59758 37.27092,-121.56425 37.26869,-121.55908 37.28008,-121.55325 37.26925,-121.54575 37.26342,-121.53353 37.25925,-121.53158 37.25592,-121.52397 37.25564,-121.52258 37.26158,-121.52814 37.28842,-121.51508 37.28731,-121.49619 37.30147,-121.49286 37.32381,-121.52619 37.33686,-121.53119 37.34186,-121.54519 37.34075,-121.55508 37.33242,-121.55981 37.33714,-121.56231 37.34825,-121.57481 37.35103,-121.58842 37.36936,-121.58897 37.37575,-121.60008 37.37964,-121.60592 37.38881,-121.62703 37.39047,-121.63147 37.39436,-121.63092 37.40158,-121.63842 37.41019,-121.64953 37.41047,-121.65731 37.41881,-121.66758 37.41881,-121.68092 37.43964,-121.69064 37.44131,-121.69314 37.44825,-121.70758 37.45186,-121.72064 37.46492,-121.73203 37.46631,-121.74175 37.47075,-121.74619 37.47686,-121.76175 37.48103,-121.76369 37.48686,-121.78036 37.49103,-121.79175 37.48853,-121.79369 37.49658,-121.79908 37.49686,-121.80175 37.49381,-121.80231 37.50269,-121.82019 37.50547,-121.82592 37.49908,-121.82981 37.50714,-121.84325 37.50908,-121.86797 37.49603,-121.86825 37.48425))",
+    "hasCoordinate": "true",
+    "hasGeospatialIssue": "false",
+    "occurrenceStatus": "PRESENT"
+   },
+   "licences_kept": [
+    "CC0_1_0",
+    "CC_BY_4_0"
+   ],
+   "query_polygon": {
+    "bufferDeg": 0.002,
+    "simplifyDeg": 0.002,
+    "decimals": 5,
+    "maxChars": 6000,
+    "rule": "The frozen polygon buffered by 0.002 degrees (mitred) and simplified at 0.001 degrees, exterior ring only and counter-clockwise: an outward fit for the URL. The run stops unless it contains the frozen polygon. Records are then tested against the exact frozen polygon."
+   },
+   "named_taxa": [],
+   "page_limit": 300,
+   "retrieved": "2026-10-30T20:14:26Z"
+  },
+  "reference_period": null,
+  "operation_order": [
+   "Query: GET https://api.gbif.org/v1/occurrence/search with geometry = the query polygon (WKT, counter-clockwise exterior ring, 5 decimals), hasCoordinate = true, hasGeospatialIssue = false, occurrenceStatus = PRESENT, limit = 300, offset in steps of 300 until every record is read; no account. Query polygon: the frozen polygon buffered by the configured distance in degrees and simplified at the configured tolerance, an outward fit so that no record inside the frozen polygon can be missed (the run stops unless the query polygon contains the frozen polygon and its text fits the configured length)",
+   "Large queries: when the whole query polygon matches more than 10,000 records (the search API pages slowly at deep offsets) it is cut into rectangles by repeated halving until each matches at most 10,000, each part read in pages of 300 with a repeated geometry parameter; a rectangle that still matches more at the smallest size (many records at one point) is split by dataset key and then by year, and the run stops unless the parts add up to its count; the union is the same set and records are deduplicated by GBIF id; the count of unique records read must equal the count GBIF reports for the whole query polygon (read with limit 0)",
+   "Keep: a record is kept when its coordinates lie inside or on the exact frozen polygon and its licence is CC0 1.0 or CC BY 4.0. Every other record is counted, never stored: outside the exact polygon, and by licence (CC BY-NC, unspecified or any other)",
+   "Stored per kept record, and only these: GBIF id, scientific name, species, kingdom, class, order, family, year, event date as the record gives it, basis of record, decimal latitude and longitude, coordinate uncertainty in metres (null when the record gives none, never 0), dataset key, dataset title, publisher, licence. No field that names a person (recordedBy, identifiedBy, rights holder and the like) is read into the bundle",
+   "Datasets: for each dataset key among the kept records, its title, DOI and publishing organisation from the GBIF dataset and organization endpoints, the kept records per licence, and the attribution line built from them; the attribution of the bundle lists every dataset",
+   "Named taxa: each name in the place configuration is matched with GET /v1/species/match (the match, its key, type and status are stored) and queried with the same filters and taxonKey = the match key; the counts (read, outside the polygon, dropped by licence, kept) are stored even when they are zero, with the kept record ids",
+   "Summary: the kept records by group (animals = kingdom Animalia, plants = Plantae, fungi = Fungi, other), by class, by basis of record and by year (and records without a year), by dataset, the dropped counts by reason, the records with no coordinate uncertainty and with an uncertainty above 1,000 m",
+   "Acceptance checks, all stored with the bundle: the count GBIF reports for the first page equals the records read; every kept record lies inside the exact polygon; every kept record has an allowed licence; the counts by group, basis, class and dataset each add up to the kept records; no stored field names a person; the bundle rebuilds from the stored raw response with identical files apart from the computed time"
+  ]
+ },
+ "siterra:attribution": [
+  "The International Barcode of Life Consortium. International Barcode of Life project (iBOL). Occurrence dataset, 55 records kept, licence CC-BY-4.0 (55). https://doi.org/10.15468/inygc6. Accessed through GBIF.org on 2026-10-30.",
+  "Virginia Tech Insect Collection. Virginia Polytechnic Institute and State University Insect Collection. Occurrence dataset, 1 records kept, licence CC0-1.0 (1). https://doi.org/10.15468/m2htqa. Accessed through GBIF.org on 2026-10-30.",
+  "Centro Internacional de Agricultura Tropical - CIAT. A global database for the distributions of crop wild relatives. Occurrence dataset, 152 records kept, licence CC-BY-4.0 (152). https://doi.org/10.15468/jyrthk. Accessed through GBIF.org on 2026-10-30.",
+  "Cornell University Insect Collection (CUIC). Cornell University Insect Collection (CUIC). Occurrence dataset, 2 records kept, licence CC-BY-4.0 (2). https://doi.org/10.15468/w9b6ap. Accessed through GBIF.org on 2026-10-30.",
+  "Museum of Vertebrate Zoology. MVZ Herp Collection (Arctos). Occurrence dataset, 108 records kept, licence CC0-1.0 (108). https://doi.org/10.15468/pi1mts. Accessed through GBIF.org on 2026-10-30.",
+  "San Diego Natural History Museum. San Diego Natural History Museum Terrestrial Invertebrate Collection. Occurrence dataset, 28 records kept, licence CC0-1.0 (28). https://doi.org/10.15468/dpyqml. Accessed through GBIF.org on 2026-10-30.",
+  "Museum of Vertebrate Zoology. MVZ Mammal Collection (Arctos). Occurrence dataset, 149 records kept, licence CC0-1.0 (149). https://doi.org/10.15468/uwudf9. Accessed through GBIF.org on 2026-10-30.",
+  "Margaret H. Fulford Herbarium, University of Cincinnati (CINC). University of Cincinnati, Margaret H. Fulford Herbarium - Vascular Plants. Occurrence dataset, 1 records kept, licence CC-BY-4.0 (1). https://doi.org/10.15468/bhgpmq. Accessed through GBIF.org on 2026-10-30.",
+  "USDA-ARS Pollinating Insect-Biology, Management, Systematics Research. Bee Biology and Systematics Laboratory. Occurrence dataset, 95 records kept, licence CC-BY-4.0 (95). https://doi.org/10.15468/anyror. Accessed through GBIF.org on 2026-10-30.",
+  "Hopkins Marine Station. Gilbert M. Smith Herbarium. Occurrence dataset, 1 records kept, licence CC0-1.0 (1). https://doi.org/10.15468/n4hfmc. Accessed through GBIF.org on 2026-10-30.",
+  "European Journal of Taxonomy. Review of the bee subgenus Lasioglossum (Hemihalictus) in western North America (Hymenoptera: Halictidae). Occurrence dataset, 6 records kept, licence CC0-1.0 (6). https://doi.org/10.15468/6qsut5. Accessed through GBIF.org on 2026-10-30.",
+  "California Academy of Sciences. AntWeb. Occurrence dataset, 8 records kept, licence CC-BY-4.0 (8). https://doi.org/10.15468/wqmjjt. Accessed through GBIF.org on 2026-10-30.",
+  "Pl@ntNet. Pl@ntNet automatically identified occurrences. Occurrence dataset, 4 records kept, licence CC-BY-4.0 (4). https://doi.org/10.15468/mma2ec. Accessed through GBIF.org on 2026-10-30.",
+  "California Academy of Sciences. CAS Entomology (ENT). Occurrence dataset, 235 records kept, licence CC0-1.0 (235). https://doi.org/10.15468/3ibpmo. Accessed through GBIF.org on 2026-10-30.",
+  "Naturalis Biodiversity Center. Naturalis Biodiversity Center (NL) - Botany. Occurrence dataset, 1 records kept, licence CC0-1.0 (1). https://doi.org/10.15468/ib5ypt. Accessed through GBIF.org on 2026-10-30.",
+  "University of Texas at El Paso Biodiversity Collections. UTEP Plants (Arctos). Occurrence dataset, 2 records kept, licence CC0-1.0 (2). https://doi.org/10.15468/yhb6ky. Accessed through GBIF.org on 2026-10-30.",
+  "University of Kansas Biodiversity Institute. KUBI Mammalogy Collection. Occurrence dataset, 2 records kept, licence CC-BY-4.0 (2). https://doi.org/10.15468/a3woj7. Accessed through GBIF.org on 2026-10-30.",
+  "Canadian Museum of Nature. Canadian Museum of Nature Herbarium. Occurrence dataset, 2 records kept, licence CC-BY-4.0 (2). https://doi.org/10.15468/kowta4. Accessed through GBIF.org on 2026-10-30.",
+  "National Museum of Natural History, Smithsonian Institution. NMNH Material Samples (USNM). Occurrence dataset, 21 records kept, licence CC0-1.0 (21). https://doi.org/10.15468/jb9tdf. Accessed through GBIF.org on 2026-10-30.",
+  "Comisión nacional para el conocimiento y uso de la biodiversidad. La colección briológica del Herbario Nacional (MEXU). Actualización 2000. Occurrence dataset, 1 records kept, licence CC-BY-4.0 (1). https://doi.org/10.15468/xlsimn. Accessed through GBIF.org on 2026-10-30.",
+  "The Lepidopterists' Society Season Summary. The Lepidopterists' Society Season Summary. Occurrence dataset, 1 records kept, licence CC0-1.0 (1). https://doi.org/10.15468/jo1wfa. Accessed through GBIF.org on 2026-10-30.",
+  "Colorado State University, C.P. Gillette Museum of Arthropod Diversity. C.P. Gillette Museum of Arthropod Diversity. Occurrence dataset, 15 records kept, licence CC0-1.0 (15). https://doi.org/10.15468/k0aett. Accessed through GBIF.org on 2026-10-30.",
+  "Cornell University Museum of Vertebrates. CUMV Mammal Collection. Occurrence dataset, 6 records kept, licence CC0-1.0 (6). https://doi.org/10.15468/kkgkne. Accessed through GBIF.org on 2026-10-30.",
+  "Charles R. Conner Museum. Washington State University, Charles R. Conner Museum Bird Specimens (Arctos). Occurrence dataset, 6 records kept, licence CC-BY-4.0 (6). https://doi.org/10.15468/69rrkk. Accessed through GBIF.org on 2026-10-30.",
+  "European Nucleotide Archive (EMBL-EBI). INSDC Host Organism Sequences. Occurrence dataset, 1 records kept, licence CC-BY-4.0 (1). https://doi.org/10.15468/e97kmy. Accessed through GBIF.org on 2026-10-30.",
+  "Kenneth S. Norris Center for Natural History. Kenneth S. Norris Center for Natural History, University of California, Santa Cruz (UCSC) Mammal specimens (Arctos). Occurrence dataset, 1 records kept, licence CC0-1.0 (1). https://doi.org/10.15468/papslg. Accessed through GBIF.org on 2026-10-30.",
+  "Delaware Museum of Nature & Science. Delaware Museum of Nature and Science – Mollusks. Occurrence dataset, 1 records kept, licence CC0-1.0 (1). https://doi.org/10.15468/lfwzak. Accessed through GBIF.org on 2026-10-30.",
+  "Field Museum. Field Museum of Natural History (Zoology) Mammal Collection. Occurrence dataset, 91 records kept, licence CC0-1.0 (91). https://doi.org/10.15468/n4zgxw. Accessed through GBIF.org on 2026-10-30.",
+  "PANGAEA - Data Publisher for Earth & Environmental Science. (Appendix 8) Distribution of barnacles, bivalves, gastropods, and calcified worm tubes in sediment samples collected between 1995 and 2010 in the San Francisco Bay coastal system. Occurrence dataset, 23 records kept, licence CC-BY-4.0 (23). https://doi.org/10.1594/pangaea.804521. Accessed through GBIF.org on 2026-10-30.",
+  "California Academy of Sciences. CAS Invertebrate Zoology (IZ). Occurrence dataset, 10 records kept, licence CC0-1.0 (10). https://doi.org/10.15468/tiac99. Accessed through GBIF.org on 2026-10-30.",
+  "University of Wisconsin - Madison. Wisconsin State Herbarium, Fungi. Occurrence dataset, 6 records kept, licence CC0-1.0 (6). https://doi.org/10.15468/wmhgbn. Accessed through GBIF.org on 2026-10-30.",
+  "University of Georgia Collection of Arthropods. University of Georgia Collection of Arthropods. Occurrence dataset, 2 records kept, licence CC0-1.0 (2). https://doi.org/10.15468/rsljus. Accessed through GBIF.org on 2026-10-30.",
+  "Royal Botanic Gardens Victoria. National Herbarium of Victoria (MEL) AVH data. Occurrence dataset, 5 records kept, licence CC-BY-4.0 (5). https://doi.org/10.15468/rhzrxw. Accessed through GBIF.org on 2026-10-30.",
+  "California Academy of Sciences. CAS Ornithology (ORN). Occurrence dataset, 67 records kept, licence CC0-1.0 (67). https://doi.org/10.15468/ozz2u5. Accessed through GBIF.org on 2026-10-30.",
+  "Cornell Lab of Ornithology. EOD – eBird Observation Dataset. Occurrence dataset, 38533 records kept, licence CC-BY-4.0 (38533). https://doi.org/10.15468/aomfnb. Accessed through GBIF.org on 2026-10-30.",
+  "iNaturalist.org. iNaturalist Research-grade Observations. Occurrence dataset, 1466 records kept, licence CC-BY-4.0 (833), CC0-1.0 (633). https://doi.org/10.15468/ab3s5x. Accessed through GBIF.org on 2026-10-30.",
+  "University of Lethbridge. University of Lethbridge Herbarium (LEA). Occurrence dataset, 4 records kept, licence CC0-1.0 (4). https://doi.org/10.5886/wrt547hq. Accessed through GBIF.org on 2026-10-30.",
+  "Berkeley Natural History Museums. University of California Museum of Paleontology. Occurrence dataset, 6258 records kept, licence CC-BY-4.0 (6258). https://doi.org/10.15468/bxpyo3. Accessed through GBIF.org on 2026-10-30.",
+  "Cornell Plant Pathology Herbarium (CUP). Cornell University Plant Pathology Herbarium. Occurrence dataset, 2 records kept, licence CC0-1.0 (2). https://doi.org/10.15468/xzn5g5. Accessed through GBIF.org on 2026-10-30.",
+  "Natural History Museum of Utah (UMNH). Natural History Museum of Utah, Garrett Herbarium. Occurrence dataset, 1 records kept, licence CC-BY-4.0 (1). https://doi.org/10.15468/pteehh. Accessed through GBIF.org on 2026-10-30.",
+  "Berkeley Natural History Museums. Essig Museum of Entomology. Occurrence dataset, 661 records kept, licence CC-BY-4.0 (661). https://doi.org/10.15468/0saucj. Accessed through GBIF.org on 2026-10-30.",
+  "California Academy of Sciences. CAS Ichthyology (ICH). Occurrence dataset, 15 records kept, licence CC0-1.0 (15). https://doi.org/10.15468/efh2ib. Accessed through GBIF.org on 2026-10-30.",
+  "Museum of Vertebrate Zoology. MVZ Bird Observations (Arctos). Occurrence dataset, 2 records kept, licence CC0-1.0 (2). https://doi.org/10.15468/olcyq4. Accessed through GBIF.org on 2026-10-30.",
+  "Cheadle Center for Biodiversity and Ecological Restoration. UCSB - University of California Santa Barbara Herbarium. Occurrence dataset, 19 records kept, licence CC0-1.0 (19). https://doi.org/10.15468/qpxmw0. Accessed through GBIF.org on 2026-10-30.",
+  "Illinois Natural History Survey. Illinois Natural History Survey Insect Collection. Occurrence dataset, 359 records kept, licence CC-BY-4.0 (359). https://doi.org/10.15468/eol0pe. Accessed through GBIF.org on 2026-10-30.",
+  "Consortium of Pacific Northwest Herbaria. Idaho State University, Ray J. Davis Herbarium Vascular Plants. Occurrence dataset, 1 records kept, licence CC0-1.0 (1). https://doi.org/10.15468/p5554y. Accessed through GBIF.org on 2026-10-30.",
+  "College of Southern Nevada. College of Southern Nevada; Wesley E. Niles Herbarium. Occurrence dataset, 2 records kept, licence CC0-1.0 (2). https://doi.org/10.15468/5cr9za. Accessed through GBIF.org on 2026-10-30.",
+  "California Academy of Sciences. CAS Mammalogy (MAM). Occurrence dataset, 181 records kept, licence CC0-1.0 (181). https://doi.org/10.15468/dhbozg. Accessed through GBIF.org on 2026-10-30.",
+  "California Academy of Sciences. CAS Entomology Type (TYPE). Occurrence dataset, 2 records kept, licence CC0-1.0 (2). https://doi.org/10.15468/gak5hc. Accessed through GBIF.org on 2026-10-30.",
+  "Birda. Birda - Global Observation Dataset. Occurrence dataset, 2 records kept, licence CC-BY-4.0 (2). https://doi.org/10.15468/6kud7x. Accessed through GBIF.org on 2026-10-30.",
+  "PANGAEA - Data Publisher for Earth & Environmental Science. (Appendix 7) Distribution of diatoms and ostracods in sediment samples collected between 1995 and 2010 in the San Francisco Bay coastal system. Occurrence dataset, 28 records kept, licence CC-BY-4.0 (28). https://doi.org/10.1594/pangaea.804489. Accessed through GBIF.org on 2026-10-30.",
+  "Santa Barbara Museum of Natural History. SBMNH Vertebrate Zoology. Occurrence dataset, 1 records kept, licence CC0-1.0 (1). https://doi.org/10.15468/amfnkq. Accessed through GBIF.org on 2026-10-30.",
+  "Arizona State University Biocollections. Arizona State University Hasbrouck Insect Collection. Occurrence dataset, 9 records kept, licence CC0-1.0 (9). https://doi.org/10.15468/vv6k58. Accessed through GBIF.org on 2026-10-30.",
+  "Carnegie Museums. CM Herps Collection. Occurrence dataset, 6 records kept, licence CC0-1.0 (6). https://doi.org/10.15468/lxe6h4. Accessed through GBIF.org on 2026-10-30.",
+  "Royal Ontario Museum. Royal Ontario Museum - Ornithology. Occurrence dataset, 1 records kept, licence CC-BY-4.0 (1). https://doi.org/10.5886/lhh5ro. Accessed through GBIF.org on 2026-10-30.",
+  "Utah State University. Intermountain Herbarium (Vasc. & Algae). Occurrence dataset, 6 records kept, licence CC0-1.0 (6). https://doi.org/10.15468/t43wjj. Accessed through GBIF.org on 2026-10-30.",
+  "Field Museum. Field Museum of Natural History (Zoology) Insect, Arachnid and Myriapod Collection. Occurrence dataset, 3 records kept, licence CC0-1.0 (3). https://doi.org/10.15468/0ywfpc. Accessed through GBIF.org on 2026-10-30.",
+  "Natural History Museum of Los Angeles County. LACM Vertebrate Collection. Occurrence dataset, 16 records kept, licence CC0-1.0 (16). https://doi.org/10.15468/77rmwd. Accessed through GBIF.org on 2026-10-30.",
+  "Missouri Botanical Garden. Tropicos MO Specimen Data. Occurrence dataset, 3 records kept, licence CC-BY-4.0 (3). https://doi.org/10.15468/hja69f. Accessed through GBIF.org on 2026-10-30.",
+  "Comisión nacional para el conocimiento y uso de la biodiversidad. Computarización del Herbario ENCB, IPN. Fase IV. Base de datos de la familia Pinaceae y de distintas familias de la clase Magnoliopsida depositadas en el Herbario de la Escuela Nacional de Ciencias Biológicas, IPN. Occurrence dataset, 5 records kept, licence CC-BY-4.0 (5). https://doi.org/10.15468/sl8svt. Accessed through GBIF.org on 2026-10-30.",
+  "W.S. Turrell Herbarium (MU). Miami University Turrell Herbarium - Vascular Plants. Occurrence dataset, 1 records kept, licence CC0-1.0 (1). https://doi.org/10.15468/vzkvuf. Accessed through GBIF.org on 2026-10-30.",
+  "National Museum of Natural History, Smithsonian Institution. NMNH Extant Specimen Records (USNM, US). Occurrence dataset, 28 records kept, licence CC0-1.0 (28). https://doi.org/10.15468/hnhrg3. Accessed through GBIF.org on 2026-10-30.",
+  "University of Washington Burke Museum. UWBM Mammalogy Collection (Arctos). Occurrence dataset, 2 records kept, licence CC0-1.0 (2). https://doi.org/10.15468/qziy3w. Accessed through GBIF.org on 2026-10-30.",
+  "University of Washington Burke Museum. University of Washington Herbarium (WTU) - Vascular Plant Collection. Occurrence dataset, 16 records kept, licence CC0-1.0 (16). https://doi.org/10.15468/plngb6. Accessed through GBIF.org on 2026-10-30.",
+  "Canadian Biodiversity Information Facility. Provincial Museum of Alberta, Edmonton, AB, Canada. Birds (Aves). Occurrence dataset, 1 records kept, licence CC-BY-4.0 (1). https://doi.org/10.15468/xule8i. Accessed through GBIF.org on 2026-10-30.",
+  "Museum of Biological Diversity, The Ohio State University. Triplehorn Insect Collection, The Ohio State University. Occurrence dataset, 10 records kept, licence CC-BY-4.0 (10). https://doi.org/10.15468/efb17f. Accessed through GBIF.org on 2026-10-30.",
+  "University of Texas at Austin, Biodiversity Collections. TNHC Herpetology Collection. Occurrence dataset, 7 records kept, licence CC0-1.0 (7). https://doi.org/10.15468/xrorih. Accessed through GBIF.org on 2026-10-30.",
+  "New Mexico State Collection of Arthropods. New Mexico State Collection of Arthropods. Occurrence dataset, 1 records kept, licence CC0-1.0 (1). https://doi.org/10.15468/nn3cel. Accessed through GBIF.org on 2026-10-30.",
+  "USDA Agricultural Research Service (ARS). United States National Plant Germplasm System Collection. Occurrence dataset, 2 records kept, licence CC-BY-4.0 (2). https://doi.org/10.15468/ce7fox. Accessed through GBIF.org on 2026-10-30.",
+  "Harvard University Herbaria. Harvard University Herbaria: All Records. Occurrence dataset, 1 records kept, licence CC-BY-4.0 (1). https://doi.org/10.15468/o3pvnh. Accessed through GBIF.org on 2026-10-30.",
+  "San Jose State University. Carl W. Sharsmith Herbarium at San Jose State University - Bryophytes. Occurrence dataset, 29 records kept, licence CC0-1.0 (29). https://doi.org/10.15468/55yjnt. Accessed through GBIF.org on 2026-10-30.",
+  "University of Colorado Museum of Natural History. UCM Amphibian and Reptile Collection (Arctos). Occurrence dataset, 4 records kept, licence CC0-1.0 (4). https://doi.org/10.15468/1llmgl. Accessed through GBIF.org on 2026-10-30.",
+  "Kathryn Kalmbach Herbarium (Denver Botanic Gardens). Kathryn Kalmbach Herbarium. Occurrence dataset, 3 records kept, licence CC0-1.0 (3). https://doi.org/10.15468/axrelr. Accessed through GBIF.org on 2026-10-30.",
+  "Field Museum. Field Museum of Natural History (Botany) Bryophyte Collection. Occurrence dataset, 6 records kept, licence CC0-1.0 (6). https://doi.org/10.15468/pyjtoc. Accessed through GBIF.org on 2026-10-30.",
+  "Northern Arizona University. Northern Arizona University - Arthropod Collection. Occurrence dataset, 2 records kept, licence CC0-1.0 (2). https://doi.org/10.15468/du1hci. Accessed through GBIF.org on 2026-10-30.",
+  "Consortium of Pacific Northwest Herbaria. University of Idaho, Stillinger Herbarium Vascular Plants. Occurrence dataset, 5 records kept, licence CC0-1.0 (5). https://doi.org/10.15468/8htpvx. Accessed through GBIF.org on 2026-10-30.",
+  "Western Foundation of Vertebrate Zoology. WFVZ Bird Collections. Occurrence dataset, 25 records kept, licence CC0-1.0 (25). https://doi.org/10.15468/hqrtbv. Accessed through GBIF.org on 2026-10-30.",
+  "USDA-ARS Pollinating Insect-Biology, Management, Systematics Research. Patterns of widespread decline in North American bumble bees. Occurrence dataset, 5 records kept, licence CC-BY-4.0 (5). https://doi.org/10.15468/kjpwz1. Accessed through GBIF.org on 2026-10-30.",
+  "Puget Sound Museum of Natural History. PSM Vertebrates Collection. Occurrence dataset, 3 records kept, licence CC0-1.0 (3). https://doi.org/10.15468/3oaz5o. Accessed through GBIF.org on 2026-10-30.",
+  "Field Museum. Field Museum of Natural History (Botany) Seed Plant Collection. Occurrence dataset, 12 records kept, licence CC0-1.0 (12). https://doi.org/10.15468/nxnqzf. Accessed through GBIF.org on 2026-10-30.",
+  "University of Kansas Biodiversity Institute. R. L. McGregor Herbarium Lichen Collection. Occurrence dataset, 1 records kept, licence CC-BY-4.0 (1). https://doi.org/10.15468/0xlhx0. Accessed through GBIF.org on 2026-10-30.",
+  "University of Kansas Biodiversity Institute. R. L. McGregor Herbarium Vascular Plants Collection. Occurrence dataset, 11 records kept, licence CC-BY-4.0 (11). https://doi.org/10.15468/htptzr. Accessed through GBIF.org on 2026-10-30.",
+  "Yale University Peabody Museum. Botany Division, Yale Peabody Museum. Occurrence dataset, 1 records kept, licence CC0-1.0 (1). https://doi.org/10.15468/hrztgn. Accessed through GBIF.org on 2026-10-30.",
+  "Yale University Peabody Museum. Entomology Division, Yale Peabody Museum. Occurrence dataset, 10 records kept, licence CC0-1.0 (10). https://doi.org/10.15468/95waq3. Accessed through GBIF.org on 2026-10-30.",
+  "Senckenberg. Collection Arachnology SMF. Occurrence dataset, 1 records kept, licence CC-BY-4.0 (1). https://doi.org/10.15468/fiz2j5. Accessed through GBIF.org on 2026-10-30.",
+  "Museum of Vertebrate Zoology. MVZ Egg and Nest Collection (Arctos). Occurrence dataset, 4 records kept, licence CC0-1.0 (4). https://doi.org/10.15468/a7zswp. Accessed through GBIF.org on 2026-10-30.",
+  "University of Minnesota Bell Museum. Bell Museum plants. Occurrence dataset, 3 records kept, licence CC0-1.0 (3). https://doi.org/10.15468/bihrxd. Accessed through GBIF.org on 2026-10-30.",
+  "PANGAEA - Data Publisher for Earth & Environmental Science. (Appendix 2) Distribution of generalized biologic, anthropogenic, and volcanic constituents in sediment samples collected between 1995 and 2010 in the San Francisco Bay coastal system. Occurrence dataset, 9 records kept, licence CC-BY-4.0 (9). https://doi.org/10.1594/pangaea.804479. Accessed through GBIF.org on 2026-10-30.",
+  "Queensland Museum. Queensland Museum provider for OZCAM. Occurrence dataset, 1 records kept, licence CC-BY-4.0 (1). https://doi.org/10.15468/lotsye. Accessed through GBIF.org on 2026-10-30.",
+  "Cornell University Museum of Vertebrates. CUMV Amphibian and Reptile Collection. Occurrence dataset, 1 records kept, licence CC0-1.0 (1). https://doi.org/10.15468/emivh3. Accessed through GBIF.org on 2026-10-30.",
+  "University of South Carolina. University of South Carolina, A. C. Moore Herbarium Vascular Plant Collection. Occurrence dataset, 1 records kept, licence CC0-1.0 (1). https://doi.org/10.15468/fmj4at. Accessed through GBIF.org on 2026-10-30.",
+  "San Diego Natural History Museum. SDNHM Mammology Collection. Occurrence dataset, 5 records kept, licence CC0-1.0 (5). https://doi.org/10.15468/estih7. Accessed through GBIF.org on 2026-10-30.",
+  "University of Kansas Biodiversity Institute. Snow Entomological Museum Collection. Occurrence dataset, 1 records kept, licence CC-BY-4.0 (1). https://doi.org/10.15468/fhntpy. Accessed through GBIF.org on 2026-10-30.",
+  "Field Museum. Field Museum of Natural History (Botany) Lichen Collection. Occurrence dataset, 40 records kept, licence CC0-1.0 (40). https://doi.org/10.15468/sc258x. Accessed through GBIF.org on 2026-10-30.",
+  "Field Museum. Field Museum of Natural History (Zoology) Fish Collection. Occurrence dataset, 1 records kept, licence CC0-1.0 (1). https://doi.org/10.15468/alz7wu. Accessed through GBIF.org on 2026-10-30.",
+  "Comisión nacional para el conocimiento y uso de la biodiversidad. Distribución potencial de las especies de anfibios y reptiles en categoría de riesgo de México. Occurrence dataset, 11 records kept, licence CC-BY-4.0 (11). https://doi.org/10.15468/mdqurs. Accessed through GBIF.org on 2026-10-30.",
+  "MNHN - Museum national d'Histoire naturelle. The vascular plants collection (P) at the Herbarium of the Muséum national d'Histoire Naturelle (MNHN - Paris). Occurrence dataset, 7 records kept, licence CC-BY-4.0 (7). https://doi.org/10.15468/nc6rxy. Accessed through GBIF.org on 2026-10-30.",
+  "Comisión nacional para el conocimiento y uso de la biodiversidad. Mejoramiento de los modelos de distribución de especies de plantas amenazadas de México (Orchidaceae, Pinaceae, Cupressaceae, Taxaceae, Podocarpaceae) a través de información de sensores remotos y medidas espaciales de incertidumbre en los modelos-conUFZ*. Occurrence dataset, 7 records kept, licence CC-BY-4.0 (7). https://doi.org/10.15468/r2wj29. Accessed through GBIF.org on 2026-10-30.",
+  "Delaware Museum of Nature & Science. Delaware Museum of Nature & Science — Birds. Occurrence dataset, 293 records kept, licence CC0-1.0 (293). https://doi.org/10.15468/b63cw6. Accessed through GBIF.org on 2026-10-30.",
+  "University of Nebraska State Museum. Harold W. Manter Laboratory of Parasitology Collection (HWML) Parasite Collection (Arctos). Occurrence dataset, 1 records kept, licence CC0-1.0 (1). https://doi.org/10.15468/kfgfzr. Accessed through GBIF.org on 2026-10-30.",
+  "Museum of Southwestern Biology. MSB Bird Collection (Arctos). Occurrence dataset, 1 records kept, licence CC0-1.0 (1). https://doi.org/10.15468/fyumof. Accessed through GBIF.org on 2026-10-30.",
+  "Museum of New Zealand Te Papa Tongarewa. WELT Herbarium at Museum of New Zealand Te Papa Tongarewa. Occurrence dataset, 2 records kept, licence CC-BY-4.0 (2). https://doi.org/10.15468/5ensp7. Accessed through GBIF.org on 2026-10-30.",
+  "Royal Botanic Gardens, Kew. Royal Botanic Gardens, Kew - Herbarium Specimens. Occurrence dataset, 1 records kept, licence CC-BY-4.0 (1). https://doi.org/10.15468/ly60bx. Accessed through GBIF.org on 2026-10-30.",
+  "California Academy of Sciences. CAS Herpetology (HERP). Occurrence dataset, 103 records kept, licence CC0-1.0 (103). https://doi.org/10.15468/bvoyqy. Accessed through GBIF.org on 2026-10-30.",
+  "University of California, Davis. University of California, Davis, Center for Plant Diversity - Lichens. Occurrence dataset, 2 records kept, licence CC0-1.0 (2). https://doi.org/10.15468/tneeju. Accessed through GBIF.org on 2026-10-30.",
+  "Academy of Natural Sciences. Academy of Natural Sciences of Drexel University. Occurrence dataset, 1 records kept, licence CC0-1.0 (1). https://doi.org/10.15468/p9ybag. Accessed through GBIF.org on 2026-10-30.",
+  "USDA-ARS US National Fungus Collection. USDA United States National Fungus Collections. Occurrence dataset, 2 records kept, licence CC0-1.0 (2). https://doi.org/10.15468/w78rwb. Accessed through GBIF.org on 2026-10-30.",
+  "The New York Botanical Garden. The New York Botanical Garden Herbarium (NY). Occurrence dataset, 2 records kept, licence CC0-1.0 (2). https://doi.org/10.15468/6e8nje. Accessed through GBIF.org on 2026-10-30.",
+  "University of Idaho William F Barr Entomological Museum. William F. Barr Entomological Museum. Occurrence dataset, 1 records kept, licence CC0-1.0 (1). https://doi.org/10.15468/j9epez. Accessed through GBIF.org on 2026-10-30.",
+  "United States Geological Survey. USGS Nonindigenous Aquatic Species database. Occurrence dataset, 2 records kept, licence CC0-1.0 (2). https://doi.org/10.15468/ijccz9. Accessed through GBIF.org on 2026-10-30.",
+  "Santa Barbara Museum of Natural History. Santa Barbara Museum of Natural History Entomology Collection. Occurrence dataset, 3 records kept, licence CC0-1.0 (3). https://doi.org/10.15468/74wfv6. Accessed through GBIF.org on 2026-10-30.",
+  "European Nucleotide Archive (EMBL-EBI). INSDC Sequences. Occurrence dataset, 20 records kept, licence CC-BY-4.0 (20). https://doi.org/10.15468/sbmztx. Accessed through GBIF.org on 2026-10-30.",
+  "University of Kansas Biodiversity Institute. KUBI Herpetology Collection. Occurrence dataset, 3 records kept, licence CC-BY-4.0 (3). https://doi.org/10.15468/ubdwdc. Accessed through GBIF.org on 2026-10-30.",
+  "Louisiana State University Herbarium. Louisiana State University, Shirley C. Tucker Herbarium - Lichens. Occurrence dataset, 5 records kept, licence CC0-1.0 (5). https://doi.org/10.15468/cepqls. Accessed through GBIF.org on 2026-10-30.",
+  "Missouri Botanical Garden. Tropicos Specimens Non-MO. Occurrence dataset, 8 records kept, licence CC-BY-4.0 (8). https://doi.org/10.15468/rxbp4w. Accessed through GBIF.org on 2026-10-30.",
+  "Arizona State University Biocollections. Arizona State University Vascular Plant Herbarium. Occurrence dataset, 4 records kept, licence CC-BY-4.0 (4). https://doi.org/10.15468/a2o8vy. Accessed through GBIF.org on 2026-10-30.",
+  "University of Arizona Insect Collection. University of Arizona Insect Collection. Occurrence dataset, 3 records kept, licence CC0-1.0 (3). https://doi.org/10.15468/hzkbpg. Accessed through GBIF.org on 2026-10-30.",
+  "Museum of Vertebrate Zoology. MVZ Bird Collection (Arctos). Occurrence dataset, 41 records kept, licence CC0-1.0 (41). https://doi.org/10.15468/r1woj3. Accessed through GBIF.org on 2026-10-30.",
+  "American Museum of Natural History. hymenoptera. Occurrence dataset, 132 records kept, licence CC-BY-4.0 (132). https://doi.org/10.15468/mvtuf5. Accessed through GBIF.org on 2026-10-30.",
+  "Northern Arizona University. Deaver Herbarium (Northern Arizona University). Occurrence dataset, 2 records kept, licence CC-BY-4.0 (2). https://doi.org/10.15468/b7tfpa. Accessed through GBIF.org on 2026-10-30.",
+  "Natural History Museum of Los Angeles County. LACM Malacology. Occurrence dataset, 1 records kept, licence CC0-1.0 (1). https://doi.org/10.15468/xxm2eb. Accessed through GBIF.org on 2026-10-30.",
+  "United States Geological Survey. Xerces Society - Bumble Bee Watch. Occurrence dataset, 12 records kept, licence CC-BY-4.0 (12). https://doi.org/10.15468/t4rau8. Accessed through GBIF.org on 2026-10-30.",
+  "Carnegie Museums. Carnegie Museum of Natural History Herbarium. Occurrence dataset, 6 records kept, licence CC0-1.0 (6). https://doi.org/10.15468/d51v1f. Accessed through GBIF.org on 2026-10-30.",
+  "PANGAEA - Data Publisher for Earth & Environmental Science. (Appendix 4) Distribution of benthic foraminifers, living, dead, and total assemblage counts, and faunal diversity in sediment samples collected between 1995 and 2010 in the San Francisco Bay coastal system. Occurrence dataset, 47 records kept, licence CC-BY-4.0 (47). https://doi.org/10.1594/pangaea.804483. Accessed through GBIF.org on 2026-10-30.",
+  "California Academy of Sciences. CAS Botany (BOT). Occurrence dataset, 468 records kept, licence CC0-1.0 (468). https://doi.org/10.15468/7gudyo. Accessed through GBIF.org on 2026-10-30.",
+  "Swiss Natural History Collections - SwissNatColl. Entomologische Sammlung (ETHZ-ENT) of Eidgenössische Technische Hochschule Zürich. Occurrence dataset, 1 records kept, licence CC-BY-4.0 (1). https://doi.org/10.15468/9jutqw. Accessed through GBIF.org on 2026-10-30.",
+  "Occurrence records from GBIF.org (accessed 2026-10-30) through the GBIF occurrence search API; each record keeps the licence of its dataset (CC0 1.0 or CC BY 4.0); see https://www.gbif.org/citation-guidelines."
+ ],
+ "siterra:limitations": [
+  "Each record says an organism was recorded at a place and time by someone, as a human observation, a preserved specimen, a fossil specimen, a machine observation or another basis; a fossil specimen records an organism of an earlier age, not a living one. It is not a measurement of presence or abundance: the same species can be common and unrecorded, or rare and recorded often.",
+  "Records follow where people look. Roads, villages, trails, reserves and the habits of a few observers shape where records fall, and a quiet area is not an empty one.",
+  "Years reflect recording effort. A rise or fall in records per year follows the arrival of observation apps, surveys and datasets, not the organisms, and the counts by year are not a trend.",
+  "Coordinates are as recorded with their stated uncertainty, which is missing for some records and larger than the catchment for others; a kept record is inside the catchment polygon at its recorded point only.",
+  "Only records under CC0 1.0 or CC BY 4.0 are kept; records under other licences were dropped and are counted, so the kept records are a part of what GBIF holds here. Each dataset is credited to its publisher.",
+  "The request was made on a stated date; GBIF records are added, corrected and withdrawn over time, so a later request can give other counts.",
+  "A zero for a named plant means no kept record under that name inside the catchment, not that the plant is absent, and names can be recorded under synonyms."
+ ],
+ "siterra:checks": [
+  {
+   "name": "recompute_sample_period",
+   "passed": true,
+   "detail": "GBIF reports 63990 records for the query on its first page and 63990 unique records were read (equal); 5675 lie outside the exact catchment polygon, 8175 inside it were dropped by licence (CC-BY-NC-4.0 8175), 50140 kept; all 50140 stored coordinates lie inside or on the polygon; every stored licence is CC0-1.0 or CC-BY-4.0 (True); the counts by group, basis of record, class and dataset each add up to 50140 ({'group': 50140, 'basis': 50140, 'class': 50140, 'dataset': 50140}); no stored text carries a person field name (none); the build run twice from the stored raw response gives identical records: True."
+  },
+  {
+   "name": "units_and_scale",
+   "passed": true,
+   "detail": "Coordinates are decimal degrees (GBIF decimalLatitude and decimalLongitude, WGS84), 6 decimals; uncertainty_m is metres as the record states it; year is a calendar year; a record count is one GBIF occurrence, not an individual organism."
+  },
+  {
+   "name": "nodata_not_zero",
+   "passed": true,
+   "detail": "A record without a coordinate uncertainty or a year stores null: 46672 of 50140 have no uncertainty and 6502 no year; 0 state an uncertainty of exactly 0 m and are stored as stated. A named plant with no kept record is reported as 0 with its match, never omitted."
+  },
+  {
+   "name": "qa_join_coverage",
+   "passed": true,
+   "detail": "Every kept record joins to one taxon, one dataset, one basis of record and one licence; 1861 taxa, 126 datasets with their title, publisher and DOI; GBIF datasets read 200, publishers 82."
+  },
+  {
+   "name": "period_alignment",
+   "passed": true,
+   "detail": "Where a record gives both a year and an event date the year equals the first four characters of the date: 0 differ. Years run 1875 to 2026; counts by year reflect recording effort."
+  },
+  {
+   "name": "attribution_present",
+   "passed": true,
+   "detail": "siterra:attribution holds one line for each of the 126 datasets (publisher, title, records kept, licence, DOI, access date) and the GBIF line."
+  },
+  {
+   "name": "visual_inspection_sample",
+   "passed": true,
+   "detail": "Read on 2026-10-30: the summary (50,140 kept records of 63,990 read: 48,348 animals, 1,616 plants, 112 fungi, 64 other; 126 datasets) and the largest datasets. One bird-observation dataset holds 38,533 records (77%), so the animal count follows where and when birders recorded; 6,258 records are fossil specimens of one museum (shark teeth, foraminifera and the like, basis FOSSIL_SPECIMEN) and are not living organisms; 6,502 records have no year, and the last year, 2026, is partial. No stored field names a person; some dataset titles are institutions named after a person (for example a herbarium) and are credited as titled. 46,672 of the kept records give no coordinate uncertainty and 1,811 give more than 1,000 m. No plant is queried by name for this place."
+  }
+ ],
+ "links": [
+  {
+   "rel": "root",
+   "href": "../catalog.json",
+   "type": "application/json"
+  },
+  {
+   "rel": "parent",
+   "href": "../catalog.json",
+   "type": "application/json"
+  },
+  {
+   "rel": "derived_from",
+   "href": "../bundle_terrain_strata_calaveras_creek/collection.json",
+   "type": "application/json",
+   "title": "Terrain strata bundle bundle_terrain_strata_calaveras_creek (the geometry)",
+   "file:checksum": "1220469c24e0c5e81c1dfb0cc51262a6a2018d3b1a857e70be166adcccf757a90198"
+  },
+  {
+   "rel": "license",
+   "href": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "title": "CC0 1.0 (records of datasets under CC0)"
+  },
+  {
+   "rel": "license",
+   "href": "https://creativecommons.org/licenses/by/4.0/",
+   "title": "CC BY 4.0 (records of datasets under CC BY; credit each dataset)"
+  },
+  {
+   "rel": "cite-as",
+   "href": "https://www.gbif.org/citation-guidelines",
+   "title": "GBIF citation guidelines"
+  },
+  {
+   "rel": "processing-software",
+   "href": "./uv.lock",
+   "type": "application/toml",
+   "title": "Pipeline lockfile (uv)",
+   "file:checksum": "12205154d57a84dcb8f1eb5f992923d7589a669b8dc669edf140f607ff2740733aff"
+  }
+ ]
+}

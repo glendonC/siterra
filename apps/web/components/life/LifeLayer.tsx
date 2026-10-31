@@ -41,6 +41,8 @@ export interface LifeMount {
 
 /** How near the cursor must come to a dot to take it (CSS px). */
 const PICK = 9;
+/** The point's card width (CSS px, as LifeLayer.module.css sets it). */
+const CARD_W = 320;
 /** The stem from a focused dot up to its glyph (CSS px). */
 const STEM = 54;
 
@@ -217,8 +219,9 @@ export function LifeLayer({
     : [];
   const datasets = point ? new Set(point.records.map((i) => o.records[i]?.dataset)).size : 0;
   const top = f ? { x: f.at.x, y: f.at.y - STEM } : null;
-  // the card stands beside the glyph on the side away from the land's middle, so it covers as little land as it can
-  const right = f ? f.at.x >= (root.current?.clientWidth ?? 1440) / 2 : true;
+  // the card stands to the right of the glyph, where nothing of the overview's left side (the ask, the readout) is;
+  // to the left only where the right edge leaves no room
+  const right = f ? f.at.x + CARD_W + 64 <= (root.current?.clientWidth ?? 1440) : true;
   const cardAt = top
     ? right
       ? `translate(${top.x + 22}px, ${top.y - 14}px)`

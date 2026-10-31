@@ -19,7 +19,7 @@ import { smoothRing } from "../../../stage/smooth";
 import type { LayerStackData } from "../fixtures";
 import { makeFrame, makeHeightSampler, type Rect, type Vec3 } from "../frame";
 import { clipConvex, openRing, signedArea, type Point } from "../geometry";
-import { rainColour, trendRgba, type Rgba } from "../palette";
+import { rainColour, rainRangeOf, trendRgba, type Rgba } from "../palette";
 import { RASTER_MODE, polyMesh, rasterSheet, sheetPlane } from "./sheets";
 import { createStage, type Stage } from "./stage";
 import { contactShadow, createRelief, createWall, hexVec, lightFrom } from "./terrain";
@@ -46,11 +46,18 @@ const DRAINAGE_WIDTH = [0.9, 1.15, 1.6, 2.1, 2.6] as const;
 export type SheetId = "trend" | "rain" | "snow" | "cover" | "bands";
 export const SHEETS: readonly SheetId[] = ["trend", "rain", "snow", "cover", "bands"];
 
+/** The sheets a place's data has, in SHEETS order: no snow sheet where the spec names no snow layer. */
+export function sheetsOf(data: { snow: unknown }): SheetId[] {
+  return SHEETS.filter((id) => id !== "snow" || data.snow !== null);
+}
+
 export interface LayerStackScene {
   stage: Stage;
-  /** Each sheet's height in the model now, in the order of SHEETS (they move while the land is taken apart). */
+  /** The sheets drawn (sheetsOf); sheetY and sheetIn are in their order. */
+  sheets: readonly SheetId[];
+  /** Each sheet's height in the model now, in the order of `sheets` (they move while the land is taken apart). */
   sheetY: readonly number[];
-  /** How far each sheet has come off the land (0 to 1, in the order of SHEETS); all 1 at rest. */
+  /** How far each sheet has come off the land (0 to 1, in the order of `sheets`); all 1 at rest. */
   sheetIn: readonly number[];
   /**
    * The land taken apart (decision 12): at 0 the overview's land as the overview showed it (its pose, its height
@@ -141,7 +148,9 @@ function buildLayerStack(canvas: HTMLCanvasElement, data: LayerStackData): Layer
     domain: trend.display_scale.domain_per_decade[1],
     neutral: trend.display_scale.neutral_per_decade,
   };
-  const shares = SNOW_BANDS.map((b) => snow.bands[b]?.monthly_mean[SNOW_MONTH] ?? 0);
+  const shares = SNOW_BANDS.map((b) => snow?.bands[b]?.monthly_mean[SNOW_MONTH] ?? 0);
+  const ids = sheetsOf(data);
+  const rainRange = rainRangeOf(rain.cells);
   const build: Record<SheetId, (y: number) => Object3D> = {
     trend: (y) =>
       polyMesh(
@@ -160,7 +169,7 @@ function buildLayerStack(canvas: HTMLCanvasElement, data: LayerStackData): Layer
             c.corners.map(([E, N]): Point => [frame.x(E), frame.z(N)]),
             plate,
           ),
-          rgba: [...rainColour(c.sep_may_mm), 0.66] as Rgba,
+          rgba: [...rainColour(c.window_mm, rainRange), 0.66] as Rgba,
         }))
         .filter((p) => p.c.length >= 3);
       group.add(polyMesh(polys, y, { renderOrder: 20 }));
@@ -176,11 +185,11 @@ function buildLayerStack(canvas: HTMLCanvasElement, data: LayerStackData): Layer
     cover: (y) => rasterSheet(rasterRect, y, RASTER_MODE.cover, ctx, { renderOrder: 20 }),
     bands: (y) => rasterSheet(rasterRect, y, RASTER_MODE.bands, ctx, { renderOrder: 20 }),
   };
-  const restY = SHEETS.map((_, i) => L.sheet_y_km[i] ?? 0);
+  const restY = ids.map((_, i) => L.sheet_y_km[i] ?? 0);
   const sheetY = restY.slice();
-  const sheetIn = SHEETS.map(() => 1);
+  const sheetIn = ids.map(() => 1);
   const sheets: { group: Group; mats: { m: Material; a: number }[] }[] = [];
-  SHEETS.forEach((id, i) => {
+  ids.forEach((id, i) => {
     const y = restY[i] ?? 0;
     const group = new Group();
     sheets.push({ group, mats: [] });
@@ -381,6 +390,7 @@ function buildLayerStack(canvas: HTMLCanvasElement, data: LayerStackData): Layer
 
   return {
     stage,
+    sheets: ids,
     sheetY,
     sheetIn,
     setIntro,
