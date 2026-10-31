@@ -21,7 +21,6 @@ const ok = (value: unknown) => LayerStackParameters.safeParse(value).success;
 
 describe("contracts 1.21: the rainfall window of a layer stack", () => {
   it("accepts 1.21.0 and every earlier version of the same MAJOR", () => {
-    expect(caseSchemaVersion).toBe("1.21.0");
     for (const earlier of ["1.2.0", "1.19.0", "1.20.0", caseSchemaVersion]) {
       expect(acceptedCaseSchemaVersions).toContain(earlier);
     }

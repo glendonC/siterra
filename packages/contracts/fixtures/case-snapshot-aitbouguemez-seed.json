@@ -1,6 +1,6 @@
 {
   "recordType": "CaseSnapshot",
-  "schemaVersion": "1.21.0",
+  "schemaVersion": "1.22.0",
   "case": {
     "recordType": "EnvironmentalCase",
     "id": "case_aitbouguemez",
@@ -176428,7 +176428,8 @@
                 "ev_upper_rangelands_vegetation_sci19"
               ]
             }
-          ]
+          ],
+          "question": "Why can a pixel get greener while its pasture does not?"
         },
         "caption": {
           "ink": "This 250 m pixel at the valley floor edge got greener by +0.0570 NDVI per decade from 2000 to 2025.",

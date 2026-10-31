@@ -10,7 +10,7 @@ import {
   missingIsAValue,
 } from "./rules.ts";
 
-export const caseSchemaVersion = "1.21.0";
+export const caseSchemaVersion = "1.22.0";
 /** Every schemaVersion string this contract accepts (the earlier ones of the same MAJOR stay valid). */
 export const acceptedCaseSchemaVersions = [
   "1.2.0",
@@ -33,8 +33,9 @@ export const acceptedCaseSchemaVersions = [
   "1.19.0",
   "1.20.0",
   "1.21.0",
+  "1.22.0",
 ] as const;
-export const caseSchemaId = "https://siterra.invalid/schemas/case/1.21.0/case.schema.json";
+export const caseSchemaId = "https://siterra.invalid/schemas/case/1.22.0/case.schema.json";
 
 export const EntityVersion = z.strictObject({
   entityId: entityId,
@@ -738,6 +739,7 @@ export const Command = z.strictObject({
     "1.19.0",
     "1.20.0",
     "1.21.0",
+    "1.22.0",
   ]),
   id: entityId,
   caseId: entityId,
@@ -863,6 +865,7 @@ export const Event = z.strictObject({
     "1.19.0",
     "1.20.0",
     "1.21.0",
+    "1.22.0",
   ]),
   id: entityId,
   caseId: entityId,
@@ -1342,6 +1345,7 @@ export const PixelAnatomyParameters = z.strictObject({
   contextEvidenceIds: uniqueArray(entityId).max(4),
   drawnAssets: DrawnAssets.optional(),
   contextDisplay: z.array(DisplayText).max(4).optional(),
+  question: text({ min: 1, max: 120 }).optional(),
 });
 export type PixelAnatomyParameters = z.infer<typeof PixelAnatomyParameters>;
 
@@ -1425,6 +1429,7 @@ export const CaseSnapshot = z.strictObject({
     "1.19.0",
     "1.20.0",
     "1.21.0",
+    "1.22.0",
   ]),
   case: EnvironmentalCase,
   records: RecordCollections,
@@ -1455,6 +1460,7 @@ export const Commit = z.strictObject({
     "1.19.0",
     "1.20.0",
     "1.21.0",
+    "1.22.0",
   ]),
   id: entityId,
   caseId: entityId,

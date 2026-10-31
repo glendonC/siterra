@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://siterra.invalid/schemas/case/1.21.0/case.schema.json",
+  "$id": "https://siterra.invalid/schemas/case/1.22.0/case.schema.json",
   "title": "Siterra case contracts",
   "description": "Records of one Siterra case as stored and exchanged between the web application, the worker and the browser. The root validates a case snapshot, a command, an event or an atomic commit proposal; $defs holds the record types. Cross-record semantics that JSON Schema cannot express are specified in docs/reference/data-contracts.md.",
   "oneOf": [
@@ -2852,7 +2852,8 @@
             "1.18.0",
             "1.19.0",
             "1.20.0",
-            "1.21.0"
+            "1.21.0",
+            "1.22.0"
           ],
           "description": "Contract version the instance was written against; producers write the newest, and earlier versions of the same MAJOR stay valid."
         },
@@ -2960,7 +2961,8 @@
             "1.18.0",
             "1.19.0",
             "1.20.0",
-            "1.21.0"
+            "1.21.0",
+            "1.22.0"
           ],
           "description": "Contract version the instance was written against; producers write the newest, and earlier versions of the same MAJOR stay valid."
         },
@@ -3347,7 +3349,8 @@
             "1.18.0",
             "1.19.0",
             "1.20.0",
-            "1.21.0"
+            "1.21.0",
+            "1.22.0"
           ],
           "description": "Contract version the instance was written against; producers write the newest, and earlier versions of the same MAJOR stay valid."
         },
@@ -3398,7 +3401,8 @@
             "1.18.0",
             "1.19.0",
             "1.20.0",
-            "1.21.0"
+            "1.21.0",
+            "1.22.0"
           ],
           "description": "Contract version the instance was written against; producers write the newest, and earlier versions of the same MAJOR stay valid."
         },
@@ -5637,6 +5641,12 @@
           },
           "maxItems": 4,
           "description": "Added in 1.17.0, optional: the wording shown for the context statements of the pixel."
+        },
+        "question": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120,
+          "description": "Added in 1.22.0, optional: the question the pixel anatomy asks, in the case's approved words (host-written configuration text, a named exception to the rule that parameters hold no free text; the composer checks it for banned and prohibited words)."
         }
       },
       "required": [

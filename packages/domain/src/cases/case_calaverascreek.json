@@ -485,6 +485,7 @@
           "assetKey": "season_trend_tables"
         },
         "contextEvidenceIds": [],
+        "question": "What is one pixel's trend made of?",
         "drawnAssets": [
           {
             "role": "pixel_cells",
@@ -524,7 +525,7 @@
         ]
       },
       "caption": {
-        "ink": "The own trend of this {res} m pixel is {trend} NDVI per decade, February to May, {start} to {end}.",
+        "ink": "This {res} m pixel's own trend is {trend} NDVI per decade, February to May, {start} to {end}.",
         "grey": "Its land cover cells are {tree} tree cover and {grass} grassland by land cover class; the mix of its own spectra is drawn beside the measured value.",
         "claimKind": "model_estimate",
         "citationIds": [

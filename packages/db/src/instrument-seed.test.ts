@@ -150,6 +150,45 @@ describe("the instruments the case seed composes", () => {
     expect(layers.rainfallWindow?.id).toBe("sep_may");
   });
 
+  it("carries the pixel's question as words: the approved specimen C wording for the valley", () => {
+    const anatomy = seed?.instruments.find((s) => s.id === "inst_pixel_anatomy_valley")?.parameters;
+    if (anatomy?.kind !== "pixel_anatomy") throw new Error("not a pixel anatomy");
+    expect(anatomy.question).toBe("Why can a pixel get greener while its pasture does not?");
+  });
+
+  it("blocks the pixel anatomy when its question holds a banned word, with the word named", () => {
+    const config = analysisConfigFor("case_aitbouguemez");
+    if (config === null || seed === null) throw new Error("the case has no configuration");
+    const rules = (config.instruments ?? []).map((r) =>
+      r.id === "pixel_anatomy_valley" &&
+      r.from === "parameters" &&
+      r.parameters.kind === "pixel_anatomy"
+        ? {
+            ...r,
+            parameters: { ...r.parameters, question: "Is the change in this pixel significant?" },
+          }
+        : r,
+    );
+    const result = composeInstruments({
+      caseId: "case_aitbouguemez",
+      config: { ...config, instruments: rules },
+      openExplanationIds: config.explanations.map((e) => e.id),
+      geoSelectionId: seed.geoSelections[0]?.id ?? "",
+      geoSelections: seed.geoSelections,
+      dataBundles: seed.bundles.map((b) => b.dataBundle),
+      contextFeatures: seed.contextFeatures,
+      measurements: [...measurements.values()],
+      evidence: seed.evidence,
+      branchMerges: [],
+      hypotheses: [],
+      hasAsset: () => true,
+      now: "2026-10-30T20:00:00Z",
+    });
+    expect(result.specs.some((x) => x.id === "inst_pixel_anatomy_valley")).toBe(false);
+    const blocked = result.blocked.find((b) => b.ruleId === "pixel_anatomy_valley");
+    expect(blocked?.reasons.join(" ")).toContain("banned word: significant");
+  });
+
   it("name every asset an instrument draws, so no client builds an address from a hash", () => {
     const roles = (id: string) => {
       const p = seed?.instruments.find((s) => s.id === id)?.parameters;

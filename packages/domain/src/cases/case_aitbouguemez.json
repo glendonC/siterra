@@ -557,6 +557,7 @@
           "ev_herder_reported_species_change_sci03",
           "ev_upper_rangelands_vegetation_sci19"
         ],
+        "question": "Why can a pixel get greener while its pasture does not?",
         "drawnAssets": [
           {
             "role": "pixel_cells",

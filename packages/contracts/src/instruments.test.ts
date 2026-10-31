@@ -427,8 +427,11 @@ describe("contracts 1.11: parameters cannot carry a value, a coordinate, a URL o
         found.push(`${path}: an open object`);
       }
       // The one named exception (contracts 1.17.0): the host-written display wording of a placed
-      // statement, at most 200 characters, checked against the cited excerpts (INST-08).
-      const hostWrittenText = path.endsWith("-> DisplayText/text") && n["maxLength"] === 200;
+      // statement, at most 200 characters, checked against the cited excerpts (INST-08), and (contracts
+      // 1.22.0) the question a pixel anatomy asks, at most 120 characters, checked by the composer.
+      const hostWrittenText =
+        (path.endsWith("-> DisplayText/text") && n["maxLength"] === 200) ||
+        (path.endsWith("PixelAnatomyParameters/question") && n["maxLength"] === 120);
       if (
         types.includes("string") &&
         !("pattern" in n) &&

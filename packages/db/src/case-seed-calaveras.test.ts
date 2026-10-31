@@ -175,7 +175,7 @@ describe("the Calaveras Creek seed", () => {
         `${signed(at(season, "results", 4, "ols", "slope_per_decade"))} NDVI per decade below ${String(Math.round(at(transects, "transects", "valley_axis", "band_crossings", 0, "boundary_m")))} m, February to May, 2000 to 2025`,
       );
       expect(spec("inst_pixel_anatomy_creek")?.caption.ink).toBe(
-        `The own trend of this 250 m pixel is ${signed(at(anatomy, "trend", "slope_per_decade"))} NDVI per decade, February to May, 2000 to 2025.`,
+        `This 250 m pixel's own trend is ${signed(at(anatomy, "trend", "slope_per_decade"))} NDVI per decade, February to May, 2000 to 2025.`,
       );
       expect(spec("inst_pixel_anatomy_creek")?.caption.grey).toContain(
         `${String(Math.round(at(anatomy, "composition", 0, "share") * 100))}% tree cover and ${String(Math.round(at(anatomy, "composition", 2, "share") * 100))}% grassland`,
@@ -191,6 +191,12 @@ describe("the Calaveras Creek seed", () => {
       const grey = spec("inst_layer_stack_creek")?.caption.grey ?? "";
       expect(grey).toContain("rising");
       expect(grey).toContain("falling");
+    });
+
+    it("carries the pixel's question as words, neutral about the direction of change", () => {
+      const anatomy = spec("inst_pixel_anatomy_creek")?.parameters;
+      if (anatomy?.kind !== "pixel_anatomy") throw new Error("not a pixel anatomy");
+      expect(anatomy.question).toBe("What is one pixel's trend made of?");
     });
 
     it("states the rainfall window the rain layer sums: the one the trend bundle states as its primary", () => {
