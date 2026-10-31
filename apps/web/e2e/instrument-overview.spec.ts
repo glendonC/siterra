@@ -365,6 +365,45 @@ for (const [w, h] of [
     expect(c05.y1).toBeLessThanOrEqual(line.y);
   });
 
+test("the opened pixel's field check card keeps its proposal and transect, the rest behind its step", async ({
+  page,
+}) => {
+  await ready(page);
+  await page.locator("[data-finding='pixel']").click();
+  await page.locator("[data-record] [data-actions] a").first().click();
+  const view = page.locator("[data-instrument='pixel'][data-around]");
+  await view.locator("[data-chip='06']").click();
+  const card = view.locator("[data-part='06']");
+  await expect(card).toContainText("Proposed field check. Not measured.");
+  const step = card.locator("[data-field-context-step]");
+  await expect(step).toHaveAttribute("aria-expanded", "false");
+  await expect(card.locator("[data-field-context]")).toBeHidden();
+  await step.click();
+  await expect(step).toHaveAttribute("aria-expanded", "true");
+  await expect(card.locator("[data-field-context]")).toBeVisible();
+  await expect(card.locator("[data-field-context]")).toContainText(
+    "El Aayadi et al. 2026, pp. 7 to 8",
+  );
+  // the card stays open while its step is used, clear of the ask disc, and nothing crowds
+  await expect(view.locator("[data-card='06']")).toBeVisible();
+  const back = await view.locator("[data-card='06']").boundingBox();
+  // the disc on screen (the overview's own waits off it while the view stands)
+  const disc = await page.locator("[data-ask]").last().boundingBox();
+  if (!back || !disc) throw new Error("card 06 or the ask disc");
+  expect(
+    Math.max(0, Math.min(back.x + back.width, disc.x + disc.width) - Math.max(back.x, disc.x)) *
+      Math.max(0, Math.min(back.y + back.height, disc.y + disc.height) - Math.max(back.y, disc.y)),
+  ).toBe(0);
+  expect(await textReport(page, "[data-instrument='pixel']")).toEqual({
+    overlaps: [],
+    small: [],
+    outside: [],
+  });
+  // and its context reads whole at this size, not cut off inside the card
+  const ctx = card.locator("[data-field-context]");
+  expect(await ctx.evaluate((e) => e.scrollHeight - e.clientHeight)).toBeLessThanOrEqual(1);
+});
+
 test("the browser's Back reopens a view left by Esc, and Back again plays it back to the land", async ({
   page,
 }) => {

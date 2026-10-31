@@ -961,7 +961,7 @@ export function mountPixel(
       format("instrument.pixel.m", { value: 1 }),
       t12("ink3", "middle"),
     );
-    place(
+    const transectNote = place(
       div(
         "note nowrap",
         stage,
@@ -971,12 +971,46 @@ export function mountPixel(
       L.rowB + 110,
       w,
     );
-    place(
-      div("recordsItem nowrap", stage, en["instrument.pixel.field.records"].text),
-      x0,
-      L.rowB + 126,
-      w,
-    );
+    // in place (the lead's U28d), the card is its title, the proposal, the transect and its one line; what it would
+    // record and the published context wait behind a step inside the card
+    const behind = around ? place(div("fieldContext", stage), x0, L.rowB + 160, w) : null;
+    if (behind) {
+      behind.style.display = "none";
+      behind.dataset.fieldContext = "";
+      const step = place(document.createElement("button"), x0, L.rowB + 128);
+      step.type = "button";
+      step.className = c("textButton", "contextStep");
+      step.textContent = en["overview.record.context"].text;
+      step.setAttribute("aria-expanded", "false");
+      step.dataset.fieldContextStep = "";
+      stage.appendChild(step);
+      step.addEventListener("click", () => {
+        const open = behind.style.display === "none";
+        behind.style.display = open ? "" : "none";
+        step.setAttribute("aria-expanded", String(open));
+        // opened, the context takes the transect's place under the proposal; closed, the transect comes back
+        // hidden as well as not displayed: a range still measures text in an svg group whose display is none
+        g.setAttribute("display", open ? "none" : "inline");
+        g.style.visibility = open ? "hidden" : "";
+        transectNote.style.display = open ? "none" : "";
+        place(step, x0, open ? L.rowB + 52 : L.rowB + 128);
+        place(behind, x0, open ? L.rowB + 84 : L.rowB + 160, w);
+        // opened, it ends above the ask disc on the arc (decision 13) and scrolls inside the card if it needs more
+        behind.style.maxHeight = "";
+        // the ask disc on screen (another page's disc may wait off it)
+        const disc = [...document.querySelectorAll("[data-ask]")]
+          .map((e) => e.getBoundingClientRect())
+          .find((q) => q.width > 0 && q.right > 0 && q.left < window.innerWidth);
+        const r = behind.getBoundingClientRect();
+        if (open && disc && r.right > disc.left && r.bottom > disc.top - 12) {
+          const k = r.height / Math.max(behind.offsetHeight, 1) || 1;
+          behind.style.maxHeight = `${String(Math.max(48, (disc.top - 12 - r.top) / k))}px`;
+        }
+        refit("06");
+      });
+    }
+    const records = div("recordsItem", behind ?? stage, en["instrument.pixel.field.records"].text);
+    if (!behind) place(records, x0, L.rowB + 126, w);
     // each context statement as the record's display text, its sources after it in parentheses
     const ref = (st: PlacedStatements["statements"][number]) => {
       const refs = st.cites
@@ -994,16 +1028,12 @@ export function mountPixel(
         .join("; ");
       return format("instrument.pixel.ref", { text: st.text.replace(/\.$/, ""), refs });
     };
-    place(
-      div(
-        "citation",
-        stage,
-        [...statements.statements.map(ref), en["instrument.pixel.field.noSpectrum"].text].join(" "),
-      ),
-      x0,
-      L.rowB + 168,
-      w,
+    const citation = div(
+      "citation",
+      behind ?? stage,
+      [...statements.statements.map(ref), en["instrument.pixel.field.noSpectrum"].text].join(" "),
     );
+    if (!behind) place(citation, x0, L.rowB + 168, w);
     const [sx, sy] = toGrid(t.start_utm29n);
     const [ex, ey] = toGrid(t.end_utm29n);
     const cg = multiples[2]?.g;
@@ -1124,11 +1154,16 @@ export function mountPixel(
       );
       const figRow = div("roFigRow", readout);
       div("roFigure", figRow, fixed(nd, 2));
-      div(
-        "roDelta",
-        figRow,
-        format("instrument.pixel.model.delta", { value: change(nd - nd0, 2) }),
+      // the change only once the shares have moved from the measured mix (the lead's U28d: no cryptic 0.00 at rest)
+      const moved = order.some(
+        (code) => Math.abs((shares[code] ?? 0) - (measured[code] ?? 0)) > 1e-9,
       );
+      if (moved)
+        div(
+          "roDelta",
+          figRow,
+          format("instrument.pixel.model.delta", { value: change(nd - nd0, 2) }),
+        );
       if (!around)
         div(
           "roGloss",
@@ -1468,6 +1503,13 @@ export function mountPixel(
     return best;
   };
   let lastAnchors: PixelAnchors | null = null;
+  // a card's back fitted again to what it shows now (02's key, 06's step), and the leaders with it
+  function refit(id: string) {
+    const p = parts.get(id);
+    if (!around || !p) return;
+    fitBack(id, p);
+    setPixelBox(lastPixel);
+  }
   function setPixelBox(box: StageBox | null, anchors?: PixelAnchors | null) {
     lastPixel = box;
     if (anchors !== undefined) lastAnchors = anchors;
@@ -1503,11 +1545,7 @@ export function mountPixel(
       k.style.visibility = on ? "" : "hidden";
     }
     // 02's back holds the key it shows now, and its leader follows
-    const p02 = parts.get("02");
-    if (around && p02) {
-      fitBack("02", p02);
-      setPixelBox(lastPixel);
-    }
+    refit("02");
   };
   if (around) {
     setPaint(around.paint);

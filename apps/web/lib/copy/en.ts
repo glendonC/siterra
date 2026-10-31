@@ -500,7 +500,10 @@ export const en = {
     text: "Model NDVI, mix of the {date} class medians",
     kind: "label",
   },
-  "instrument.pixel.model.delta": { text: "{value} from measured shares", kind: "label" },
+  "instrument.pixel.model.delta": {
+    text: "{value} in model NDVI from the measured mix",
+    kind: "label",
+  },
   "instrument.pixel.model.gloss": { text: "Mixed red {red} and near-infrared {nir}.", kind: "ui" },
   "instrument.pixel.model.measured": {
     text: "Measured {value} on the same date (mean of cells).",
