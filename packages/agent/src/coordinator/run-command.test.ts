@@ -451,7 +451,12 @@ describe("runCommand on synthetic replays", () => {
       { planTask: PLAN_TASK, expectedCaseRevision: 3, snapshot: SNAPSHOT },
       d,
     );
-    expect(outcome.tasks.map((t) => t.kind)).toEqual(["explanation_branches", "brief_package"]);
+    // The host added the candidate responses (plan@4); with no reply routed for them they fail and the package still runs.
+    expect(outcome.tasks.map((t) => t.kind)).toEqual([
+      "explanation_branches",
+      "brief_package",
+      "intervention_feasibility",
+    ]);
     // The plan validator made the package wait for the branches, so it was handed their merge.
     expect(seen).toHaveLength(1);
     expect(seen[0]?.merges).toHaveLength(1);

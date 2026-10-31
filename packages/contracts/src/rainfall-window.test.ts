@@ -46,6 +46,7 @@ describe("contracts 1.21: the rainfall window of a layer stack", () => {
       { ...window, end: { month: "avril", year: "same_year" } },
       { ...window, start: { month: "October", year: "previous_year" } },
       { ...window, end: { month: "april", year: "next_year" } },
+      { ...window, start: { month: "october", year: "next_year" } },
       { ...window, end: { month: "april", year: -1 } },
       { ...window, id: "Oct Apr" },
       { ...window, label: "October to April" },

@@ -40,6 +40,38 @@ export const FIELD_REQUIREMENT_KINDS: readonly PlannableKind[] = [
   "livelihood_governance",
 ];
 
+/** The question of the responses task the host adds (plan@4); written by code, not by the model. */
+export const HOST_RESPONSES_QUESTION =
+  "Which responses could be prepared from what the record shows, and what must be checked first?";
+
+/** True when the plan holds branches and a package but no candidate responses task: the host adds one. */
+function needsHostResponses(plan: PlanProposal): boolean {
+  const has = (kind: PlannableKind) => plan.tasks.some((t) => t.kind === kind);
+  return has("explanation_branches") && has("brief_package") && !has("intervention_feasibility");
+}
+
+/** The plan with a candidate responses task after the branches when it lacks one (plan@4). */
+function withHostResponses(plan: PlanProposal): PlanProposal {
+  if (!needsHostResponses(plan)) return plan;
+  const taken = new Set(plan.tasks.map((t) => t.key));
+  let key = "responses";
+  for (let n = 2; taken.has(key); n += 1) key = `responses_${String(n)}`;
+  const branchKeys = plan.tasks.filter((t) => t.kind === "explanation_branches").map((t) => t.key);
+  return {
+    ...plan,
+    tasks: [
+      ...plan.tasks,
+      {
+        key,
+        kind: "intervention_feasibility",
+        question: HOST_RESPONSES_QUESTION,
+        dependsOn: branchKeys,
+        inputRefs: [],
+      },
+    ],
+  };
+}
+
 /**
  * The plan with every brief_package task depending on every task that can commit a gap, and on
  * the explanation branches and the candidate responses, and every intervention_feasibility task
@@ -203,6 +235,14 @@ export function validatePlanProposal(
   }
   if (plan.tasks.length > maxTasks) {
     issues.push(issue("limit", "$.tasks", `A plan holds at most ${maxTasks} tasks.`));
+  } else if (plan.tasks.length === maxTasks && needsHostResponses(plan)) {
+    issues.push(
+      issue(
+        "limit",
+        "$.tasks",
+        `A plan with explanation branches and a brief holds at most ${maxTasks - 1} tasks of your own, because Siterra adds the candidate responses.`,
+      ),
+    );
   }
 
   const keys = new Set<string>();
@@ -276,7 +316,7 @@ export function validatePlanProposal(
   if (cycle) issues.push(issue("limit", "$.tasks", `Dependency cycle: ${cycle.join(" -> ")}.`));
   if (issues.length > 0) return { ok: false, issues };
 
-  const ordered = withBriefDependencies(plan);
+  const ordered = withBriefDependencies(withHostResponses(plan));
   const after = findCycle(ordered.tasks);
   if (after) {
     return {
