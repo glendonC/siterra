@@ -539,7 +539,7 @@ describe("runCommand on synthetic replays", () => {
               stratumKeys: ["elevation_high"],
               fieldRole: "Local field team",
               resolvesGapIds: ["ev_test_02"],
-              discriminatesHypothesisIds: [],
+              discriminatesHypothesisIds: [hypothesisIdFor("task_test_02", "rainfall")],
               fieldCheckId: "grazing_exclosure",
             },
           ],

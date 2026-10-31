@@ -15,7 +15,13 @@ import { AT, CASE_ID, bundle, queuedTask, testStore } from "../../testing/case-f
 import { answerStep, syntheticTransport } from "../../testing/replay-steps.ts";
 import type { MemoryCaseStore } from "../../tools/store.ts";
 import { caseToolRegistry } from "../../tools/registry.ts";
-import type { BranchMergeRecord, EvidenceRecord, InterventionRecord } from "../records.ts";
+import type {
+  BranchMergeRecord,
+  EvidenceRecord,
+  HypothesisRecord,
+  InterventionRecord,
+} from "../records.ts";
+import { hypothesisIdFor } from "../branches/branch-task.ts";
 import { PACKAGE_TEXT, runBriefPackageTask } from "./brief-task.ts";
 import { packageOutputSchema, validatePackageProposal } from "./proposal.ts";
 import type { PackageContext } from "./proposal.ts";
@@ -204,13 +210,13 @@ function check(
 ) {
   const store = testStore();
   return validatePackageProposal(JSON.stringify(value), {
-    ...extra,
     evidence: new Map([OBS, NEED, GAP2].map((e) => [e.id, e])),
     interventions: new Map([[REST.id, REST]]),
     openGapIds: new Set(openGapIds),
     hypothesisIds: new Set(["hyp_test_rain"]),
     measurements: new Map(store.measurements.map((m) => [m.id, m])),
     years: { first: 2022, last: 2022 },
+    ...extra,
   });
 }
 const codes = (value: unknown, openGapIds?: string[], extra?: Partial<PackageContext>) =>
@@ -496,12 +502,132 @@ describe("the strata and field checks of the plan", () => {
     );
   });
 
-  it("refuses a field check the merge does not hold, or none when the merge holds some", () => {
+  it("refuses a field check the merge does not hold, and accepts none: a measurement may serve no check", () => {
     const path = "unknown_reference $.action.fieldPlan.measurements[0].fieldCheckId";
     expect(codes(withPlan(onBand({ fieldCheckId: "soil_survey" })), undefined, merged)).toEqual([
       path,
     ]);
-    expect(codes(withPlan(onBand({ fieldCheckId: null })), undefined, merged)).toEqual([path]);
+    expect(codes(withPlan(onBand({ fieldCheckId: null })), undefined, merged)).toEqual([]);
+  });
+
+  describe("a field check stands only when it fits the measurement (P9d)", () => {
+    // The checks and hypotheses of a run: each hypothesis belongs to an explanation, each check
+    // separates pairs of explanations. A measurement tells apart the explanations of the
+    // hypotheses it discriminates.
+    const fit = (mode: "refuse" | "clear"): NonNullable<PackageContext["checkFit"]> => ({
+      mode,
+      explanationOfHypothesis: new Map([
+        ["hyp_rain", "rainfall"],
+        ["hyp_graze", "grazing"],
+        ["hyp_land", "land_use"],
+        ["hyp_snow", "snow_terrain"],
+      ]),
+      separates: new Map<string, readonly (readonly [string, string])[]>([
+        [
+          "local_rain_records",
+          [
+            ["land_use", "rainfall"],
+            ["rainfall", "snow_terrain"],
+          ],
+        ],
+        [
+          "orchard_history",
+          [
+            ["land_use", "rainfall"],
+            ["land_use", "snow_terrain"],
+          ],
+        ],
+      ]),
+    });
+    const ctx = (mode: "refuse" | "clear"): Partial<PackageContext> => ({
+      strata: STRATA,
+      fieldCheckIds: new Set(["local_rain_records", "orchard_history"]),
+      checkFit: fit(mode),
+    });
+    const measuring = (hypotheses: string[], fieldCheckId: string | null) =>
+      withPlan(onBand({ fieldCheckId, discriminatesHypothesisIds: hypotheses }));
+    const fieldPath = "coverage $.action.fieldPlan.measurements[0].fieldCheckId";
+    // hypothesisIds must exist in the case to pass the plan rule (DF-06): give the context them.
+    const withHyps = (mode: "refuse" | "clear"): Partial<PackageContext> => ({
+      ...ctx(mode),
+      hypothesisIds: new Set(["hyp_rain", "hyp_graze", "hyp_land", "hyp_snow"]),
+    });
+
+    it("stands when the explanations the measurement tells apart include a pair the check separates", () => {
+      expect(
+        codes(
+          measuring(["hyp_land", "hyp_rain"], "orchard_history"),
+          undefined,
+          withHyps("refuse"),
+        ),
+      ).toEqual([]);
+      expect(
+        codes(
+          measuring(["hyp_rain", "hyp_snow"], "local_rain_records"),
+          undefined,
+          withHyps("refuse"),
+        ),
+      ).toEqual([]);
+    });
+
+    it("stands for a measurement on one explanation that the check separates from another", () => {
+      expect(
+        codes(measuring(["hyp_rain"], "local_rain_records"), undefined, withHyps("refuse")),
+      ).toEqual([]);
+      expect(
+        codes(measuring(["hyp_land"], "orchard_history"), undefined, withHyps("refuse")),
+      ).toEqual([]);
+    });
+
+    it("is refused, first turn, when no pair the measurement tells apart is one the check separates", () => {
+      expect(
+        codes(measuring(["hyp_graze"], "local_rain_records"), undefined, withHyps("refuse")),
+      ).toEqual([fieldPath]);
+      expect(
+        codes(
+          measuring(["hyp_rain", "hyp_snow"], "orchard_history"),
+          undefined,
+          withHyps("refuse"),
+        ),
+      ).toEqual([fieldPath]);
+      expect(codes(measuring([], "local_rain_records"), undefined, withHyps("refuse"))).toEqual([
+        fieldPath,
+      ]);
+    });
+
+    it("is set to null on the repaired turn, with no issue, and the rest of the plan is kept", () => {
+      const result = check(
+        measuring(["hyp_graze"], "local_rain_records"),
+        undefined,
+        withHyps("clear"),
+      );
+      expect(result.issues).toEqual([]);
+      expect(
+        result.ok && result.value.value.action.fieldPlan.measurements[0]?.fieldCheckId,
+      ).toBeNull();
+      expect(result.ok && result.value.value.action.fieldPlan.measurements[0]?.stratumKeys).toEqual(
+        ["elevation_high"],
+      );
+    });
+
+    it("leaves a fitting check alone on the repaired turn, and a null as it is", () => {
+      const fitting = check(
+        measuring(["hyp_land", "hyp_rain"], "orchard_history"),
+        undefined,
+        withHyps("clear"),
+      );
+      expect(fitting.ok && fitting.value.value.action.fieldPlan.measurements[0]?.fieldCheckId).toBe(
+        "orchard_history",
+      );
+      const none = check(measuring(["hyp_graze"], null), undefined, withHyps("refuse"));
+      expect(none.issues).toEqual([]);
+    });
+
+    it("asks nothing of fit without the merge's data", () => {
+      expect(
+        codes(withPlan(onBand({ discriminatesHypothesisIds: [] })), undefined, merged),
+      ).toEqual([]);
+    });
   });
 
   it("allows no field check when no merge is in the command, and refuses one then", () => {
@@ -523,9 +649,15 @@ async function run(
   committedInterventions = [REST],
   sentOutputLimits: unknown[] = [],
   missingInputs: string[] = [],
-  extraDeps: { committedBranchMerges?: BranchMergeRecord[]; sentTexts?: string[] } = {},
+  extraDeps: {
+    committedBranchMerges?: BranchMergeRecord[];
+    sentTexts?: string[];
+    moreAnswers?: unknown[];
+  } = {},
 ) {
-  const replay = syntheticTransport([answerStep(JSON.stringify(answer))]);
+  const replay = syntheticTransport(
+    [answer, ...(extraDeps.moreAnswers ?? [])].map((a) => answerStep(JSON.stringify(a))),
+  );
   const transport: ModelTransport = {
     route: replay.route,
     replayOrigin: replay.replayOrigin,
@@ -726,6 +858,13 @@ describe("brief_package task: the plan tied to the land", () => {
         status: "consistent",
         reason: "Every necessary prediction was met.",
       },
+      {
+        branchId: "branch_test_land",
+        branchRevision: 1,
+        explanationId: "land_use",
+        status: "cannot_be_assessed",
+        reason: "A necessary prediction could not be assessed.",
+      },
     ],
     conflicts: [],
     fieldPlan: {
@@ -762,15 +901,33 @@ describe("brief_package task: the plan tied to the land", () => {
             {
               ...plan().measurements[0],
               stratumKeys: ["elevation_high"],
+              discriminatesHypothesisIds: [hypothesisIdFor(MERGE.taskId, "rainfall")],
               fieldCheckId: "grazing_exclosure",
             },
           ],
         }),
       },
     });
+  const hypothesisOf = (explanation = "rainfall"): HypothesisRecord => ({
+    recordType: "Hypothesis",
+    id: hypothesisIdFor(MERGE.taskId, explanation),
+    revision: 1,
+    createdAt: AT.toISOString(),
+    updatedAt: AT.toISOString(),
+    caseId: CASE_ID,
+    statement: "Lower rainfall lowered greenness.",
+    status: "consistent",
+    supportingEvidenceIds: ["ev_test_obs"],
+    contradictingEvidenceIds: [],
+    missingEvidence: [],
+    alternativeHypothesisIds: [],
+    assessment: "Consistent with available evidence.",
+    provenance: MERGE.provenance,
+  });
   function tiedStore(): MemoryCaseStore {
     const store = testStore();
     store.evidence.push(OBS, NEED);
+    store.hypotheses.push(hypothesisOf(), hypothesisOf("land_use"));
     store.bundles.push(
       bundle({ id: "bundle_test_strata", methodId: "terrain_strata", methodVersion: "1.1.0" }),
     );
@@ -811,6 +968,87 @@ describe("brief_package task: the plan tied to the land", () => {
     });
     expect(loop.status).not.toBe("accepted");
     expect(commit.upserts.some((r) => r.recordType === "OperationalAction")).toBe(false);
+  });
+
+  const unfit = () =>
+    proposal({
+      action: {
+        fieldPlan: plan({
+          strata: [
+            { key: "elevation_high", label: "Upper third", definition: "The highest third." },
+          ],
+          measurements: [
+            {
+              ...plan().measurements[0],
+              stratumKeys: ["elevation_high"],
+              discriminatesHypothesisIds: [],
+              fieldCheckId: "grazing_exclosure",
+            },
+          ],
+        }),
+      },
+    });
+  const checkOf = (commit: { upserts: unknown[] }) => {
+    const action = commit.upserts.find(
+      (
+        r,
+      ): r is {
+        recordType: "OperationalAction";
+        fieldPlan?: { measurements: { fieldCheckId?: string }[] };
+      } => (r as { recordType: string }).recordType === "OperationalAction",
+    );
+    return action?.fieldPlan?.measurements[0]?.fieldCheckId;
+  };
+
+  it("sends a check that does not fit back for one repair turn, and keeps the repaired one", async () => {
+    const { loop, commit } = await run(tiedStore(), unfit(), [REST], [], [], {
+      committedBranchMerges: [MERGE],
+      moreAnswers: [tied()],
+    });
+    expect(loop.status).toBe("accepted");
+    expect(loop.repaired).toBe(true);
+    expect(checkOf(commit)).toBe("grazing_exclosure");
+  });
+
+  it("reads the explanation of each hypothesis from the merge: a land use measurement does not fit the grazing check", async () => {
+    const onLand = () =>
+      proposal({
+        action: {
+          fieldPlan: plan({
+            strata: [
+              { key: "elevation_high", label: "Upper third", definition: "The highest third." },
+            ],
+            measurements: [
+              {
+                ...plan().measurements[0],
+                stratumKeys: ["elevation_high"],
+                discriminatesHypothesisIds: [hypothesisIdFor(MERGE.taskId, "land_use")],
+                fieldCheckId: "grazing_exclosure",
+              },
+            ],
+          }),
+        },
+      });
+    const { loop, commit } = await run(tiedStore(), onLand(), [REST], [], [], {
+      committedBranchMerges: [MERGE],
+      moreAnswers: [onLand()],
+    });
+    expect(loop.status).toBe("accepted");
+    expect(loop.repaired).toBe(true);
+    expect(checkOf(commit)).toBeUndefined();
+  });
+
+  it("sets a check that still does not fit to null after the repair turn: the plan is kept, the check is not", async () => {
+    const { loop, commit } = await run(tiedStore(), unfit(), [REST], [], [], {
+      committedBranchMerges: [MERGE],
+      moreAnswers: [unfit()],
+    });
+    expect(loop.status).toBe("accepted");
+    expect(loop.repaired).toBe(true);
+    expect(checkOf(commit)).toBeUndefined();
+    const [action] = commit.upserts.filter((r) => r.recordType === "OperationalAction");
+    if (action?.recordType !== "OperationalAction") throw new Error("no action");
+    expect(action.fieldPlan?.measurements[0]?.stratumKeys).toEqual(["elevation_high"]);
   });
 
   it("ties the plan only to a validated strata bundle: a failed or superseded one binds nothing", async () => {
