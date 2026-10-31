@@ -28,7 +28,7 @@ test("the printable brief holds every part, its sources and limits, in the dayli
   await expect(brief).toHaveAttribute("data-ready", "", { timeout: 60_000 });
   const text = await brief.innerText();
   for (const heading of [
-    "What to Do Next",
+    "Your Plan",
     "Known",
     "Uncertain",
     "Measure Next",
@@ -77,6 +77,24 @@ async function briefingWords(page: Page): Promise<number> {
   });
 }
 
+/** Words the Verdict scorecard shows at rest outside chrome and the focused cause's opened detail (decision 16). */
+async function verdictWords(page: Page): Promise<number> {
+  return page.evaluate(() => {
+    const root = document.querySelector("[data-record='results']");
+    if (!root) return 0;
+    const walk = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    let n = 0;
+    for (let t = walk.nextNode(); t; t = walk.nextNode()) {
+      const el = t.parentElement;
+      if (!el || el.closest("[data-action-prompt], [data-chrome], [data-verdict-detail]")) continue;
+      const cs = getComputedStyle(el);
+      if (cs.visibility === "hidden" || cs.display === "none") continue;
+      n += ((t.textContent ?? "").trim().match(/\S+/g) ?? []).length;
+    }
+    return n;
+  });
+}
+
 test("the briefing arrives with one headline, steps through five cards by key, and leaves on Esc", async ({
   page,
 }) => {
@@ -92,12 +110,15 @@ test("the briefing arrives with one headline, steps through five cards by key, a
   );
   await page.goto(`/brief/preview?case=${caseId}`);
   await expect(page.locator("[data-ready]")).toBeAttached({ timeout: 60_000 });
+  await page.evaluate(() => {
+    localStorage.clear();
+  });
   await page.keyboard.press("Enter");
   const briefing = page.locator("[data-package-briefing]");
   await expect(briefing).toHaveAttribute("data-state", "in");
   // the arrival: one headline, no card, within the text budget
   await expect(briefing).toHaveAttribute("data-step", "arrival");
-  await expect(briefing.getByRole("heading", { level: 2 })).toHaveText(/^What to do next: /);
+  await expect(briefing.getByRole("heading", { level: 2 })).toHaveText(/^Your plan: /);
   await expect(briefing).toContainText("Nothing sent or authorized.");
   await expect(briefing.locator("[data-card]")).toHaveCount(0);
   expect(await briefingWords(page)).toBeLessThanOrEqual(40);
@@ -110,8 +131,30 @@ test("the briefing arrives with one headline, steps through five cards by key, a
     const id = (await card.getAttribute("data-card")) ?? "";
     if (seen.at(-1) !== id) seen.push(id);
     expect(await card.locator("li").count()).toBeLessThanOrEqual(3);
+    expect(await briefingWords(page), `step ${id}`).toBeLessThanOrEqual(40);
   }
   expect(seen).toEqual(["known", "open", "checks", "responses", "approve"]);
+  // on the final approval step, Next [Space] is hidden and interactive review actions record the review decision
+  await expect(briefing.locator("[data-step-next]")).toHaveCount(0);
+  await expect(briefing.locator("[data-needs-you]")).toHaveText("Needs you");
+  await expect(briefing.locator("[data-review-approve]")).toHaveText("Approve the PlanEnter");
+  await expect(briefing.locator("[data-review-ask-changes]")).toHaveText("Ask for ChangesA");
+  await page.keyboard.press("Enter");
+  await expect(briefing.locator("[data-review-badge='approved']")).toHaveText("Prepared");
+  await expect(briefing.locator("[data-review-recorded='approved']")).toHaveText(
+    "Plan approved (recorded on this case; nothing is sent externally)",
+  );
+  expect(await briefingWords(page)).toBeLessThanOrEqual(40);
+  // asking for changes opens the optional reviewer note and records changes_requested
+  await page.keyboard.press("a");
+  await expect(briefing.locator("[data-review-recorded='changes_requested']")).toHaveText(
+    "Changes requested (recorded on this case; nothing is sent externally)",
+  );
+  await briefing.locator("[data-review-note]").fill("Check upper pasture dates first");
+  await briefing.locator("[data-review-record-changes]").click();
+  await expect(briefing.locator("[data-review-note-shown]")).toContainText(
+    "Check upper pasture dates first",
+  );
   // pointing at a line offers its source beside it (decision 15)
   await briefing.locator("[data-card] li").first().hover();
   await expect(page.locator("[data-action-prompt]").getByRole("button").first()).toHaveText(
@@ -125,7 +168,7 @@ test("the briefing arrives with one headline, steps through five cards by key, a
   await expect(briefing).toHaveCount(0);
 });
 
-test("from a question's results, What to Do Next opens the package on the land, and Esc returns", async ({
+test("from a question's results, Your Plan opens the package on the land, and Esc returns", async ({
   page,
 }) => {
   test.setTimeout(180_000);
@@ -194,28 +237,53 @@ test("from a question's results, What to Do Next opens the package on the land, 
   await page.keyboard.press("Enter");
   // the run takes the arc (U29); once it is done its question card opens the findings
   await page.locator("[data-run-open-findings]").click();
+  // Scene 6 Verdict shows all 5 tested causes with plain status, and expands only the focused cause at a time
+  await expect(page.locator("[data-verdict-cause]")).toHaveCount(5);
+  await expect(page.locator("[data-verdict-detail]")).toHaveCount(1);
+  await expect(page.locator("[data-verdict-reason]")).toHaveCount(1);
+  await expect(page.locator("[data-verdict-prediction]")).toHaveCount(1);
+  expect(await verdictWords(page)).toBeLessThanOrEqual(40);
+  // the card takes the focus once it is drawn; ArrowDown steps through causes, and Enter opens Your Plan
+  await expect(page.locator("[data-result]").first()).toBeFocused();
+  await page.keyboard.press("ArrowDown");
+  await page.keyboard.press("ArrowDown");
+  await expect(page.locator("[data-verdict-reason]")).toContainText(
+    "orchard history needs a field check.",
+  );
+  await page.keyboard.press("ArrowUp");
+  await page.keyboard.press("ArrowUp");
   // the results offer the package as their Enter
   const open = page.locator("[data-open-package]");
-  await expect(open).toHaveText("What to Do NextEnter");
-  // the card takes the focus once it is drawn; Enter then is the card's Enter
-  await expect(page.locator("[data-result]").first()).toBeFocused();
+  await expect(open).toHaveText("Your PlanEnter");
   await page.mouse.move(720, 120);
   await page.keyboard.press("Enter");
   const briefing = page.locator("[data-package-briefing][data-land]");
   await expect(briefing).toHaveAttribute("data-state", "in", { timeout: 10_000 });
-  await expect(page.getByRole("navigation").getByText("What to Do Next")).toBeVisible();
+  await expect(page.getByRole("navigation").getByText("Your Plan")).toBeVisible();
   // the arrival: the headline and the markers on their bands, nothing else
   await expect(briefing).toHaveAttribute("data-step", "arrival");
-  await expect(briefing.getByRole("heading", { level: 2 })).toHaveText(/^What to do next: /);
+  await expect(briefing.getByRole("heading", { level: 2 })).toHaveText(/^Your plan: /);
   // Space opens the first card beside the land
   await page.keyboard.press("Space");
   await expect(briefing.locator("[data-card='known']")).toBeVisible();
+  // step to the final approval card, approve the plan, and verify the exported brief reflects it
+  await briefing.getByRole("button", { name: "Who Must Approve" }).click();
+  await expect(briefing.locator("[data-card='approve']")).toBeVisible();
+  await expect(briefing.locator("[data-step-next]")).toHaveCount(0);
+  await briefing.locator("[data-review-approve]").click();
+  await expect(briefing.locator("[data-review-recorded='approved']")).toHaveText(
+    "Plan approved (recorded on this case; nothing is sent externally)",
+  );
   // the overview's legend carries the brief's export while the package is open, and E opens it
   await expect(page.getByText("Export Brief")).toBeVisible();
   const popup = page.waitForEvent("popup");
   await page.keyboard.press("e");
   const exported = await popup;
   await expect(exported).toHaveURL(/\/brief\?case=.*&brief=/);
+  await expect(exported.locator("[data-brief-review-status]")).toHaveText(
+    "Plan approved (recorded on this case; nothing is sent externally)",
+  );
+  await expect(exported.locator("[data-brief]")).not.toContainText("Awaiting Review");
   await exported.close();
   // Esc returns to the overview at rest
   await page.keyboard.press("Escape");

@@ -12,10 +12,17 @@
 // authorizes anything.
 
 import type { CaseSnapshot } from "@siterra/contracts";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { pformat, pkg, type PackageMessageId } from "../../lib/copy/package";
 import { rangeOfKey, type HeightRange } from "../../lib/package/bands";
 import type { PackageView } from "../../lib/package/package";
+import {
+  reviewMessageOf,
+  submitReviewDecision,
+  viewRecordedReview,
+  type RecordedReviewDecision,
+  type ReviewChoice,
+} from "../../lib/package/review";
 import {
   checkLines,
   nextOf,
@@ -176,17 +183,66 @@ export function PackageBriefing({
   }, [land]);
 
   const briefHref = `/brief?case=${encodeURIComponent(snapshot.case.id)}&brief=${encodeURIComponent(view.briefId)}`;
-  const { bind, layer } = usePrompt(view.sources, open, onClose, onOpen, !land);
+  const { bind, layer, activeKey } = usePrompt(view.sources, open, onClose, onOpen, !land);
+  const [decision, setDecision] = useState<RecordedReviewDecision | null>(null);
+  const [noteOpen, setNoteOpen] = useState(false);
+  const [noteDraft, setNoteDraft] = useState("");
+
+  useEffect(() => {
+    const sync = () => {
+      const existing = viewRecordedReview(snapshot.case.id, view);
+      setDecision(existing);
+      if (existing?.note) setNoteDraft(existing.note);
+    };
+    sync();
+    window.addEventListener("siterra:review-decision", sync);
+    return () => {
+      window.removeEventListener("siterra:review-decision", sync);
+    };
+  }, [snapshot.case.id, view]);
+
+  const recordReview = useCallback(
+    async (status: ReviewChoice, note = "") => {
+      const actionId =
+        snapshot.records.briefRecords.find((b) => b.id === view.briefId)?.actionIds[0] ?? null;
+      const recorded = await submitReviewDecision({
+        caseId: snapshot.case.id,
+        briefId: view.briefId,
+        actionId,
+        caseRevision: snapshot.case.revision,
+        status,
+        note,
+      });
+      setDecision(recorded);
+    },
+    [snapshot.case.id, snapshot.case.revision, snapshot.records.briefRecords, view.briefId],
+  );
 
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (typing(e) || e.metaKey || e.ctrlKey || e.altKey) return;
+      if (typing(e)) {
+        if (e.key === "Escape" && noteOpen) {
+          setNoteOpen(false);
+          e.preventDefault();
+          e.stopPropagation();
+        }
+        return;
+      }
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
       if (e.key === " " || e.key === "ArrowRight" || e.key === "ArrowDown") {
         setAt((c) => forward(steps, c));
         e.preventDefault();
       } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
         setAt((c) => back(steps, c));
+        e.preventDefault();
+      } else if (e.key === "Enter" && step?.id === "approve" && !activeKey) {
+        setNoteOpen(false);
+        void recordReview("approved", "");
+        e.preventDefault();
+      } else if ((e.key === "a" || e.key === "A") && step?.id === "approve") {
+        setNoteOpen(true);
+        void recordReview("changes_requested", noteDraft);
         e.preventDefault();
       } else if (e.key === "e" || e.key === "E") {
         // E exports the printable brief beside the page, wherever the briefing is mounted (AUDIT, 30 Oct 20:09)
@@ -198,7 +254,7 @@ export function PackageBriefing({
     return () => {
       window.removeEventListener("keydown", onKey);
     };
-  }, [open, steps, briefHref]);
+  }, [open, steps, briefHref, step?.id, activeKey, noteOpen, noteDraft, recordReview]);
 
   if (!present) return null;
   const checks = view.measures.length || view.measureNext.length;
@@ -221,6 +277,12 @@ export function PackageBriefing({
       : null;
   const from = { x: card.side === "right" ? card.x - 12 : card.x + CARD_W + 12, y: card.y + 22 };
   const pageKey = at ? `${String(at.step)}:${String(at.page)}` : "arrival";
+  const effectiveStatus = decision
+    ? decision.status === "approved"
+      ? "prepared"
+      : "draft"
+    : view.status;
+  const hasNext = at === null || at.step < steps.length - 1;
 
   return (
     <div
@@ -243,7 +305,7 @@ export function PackageBriefing({
           })}
         </h2>
         <p className={styles.status}>
-          <span className={styles.statusWord}>{t(`package.status.${view.status}`)}</span>
+          <span className={styles.statusWord}>{t(`package.status.${effectiveStatus}`)}</span>
           <span>{t("steps.nothingSent")}</span>
           {view.mode !== "live" ? <span>{t(`package.mode.${view.mode}`)}</span> : null}
         </p>
@@ -295,9 +357,18 @@ export function PackageBriefing({
         >
           <p className={styles.kicker}>
             <span>{pformat("steps.of", { n: (at?.step ?? 0) + 1, total: steps.length })}</span>
-            {/* while a card is open the headline steps back; the replay label stays, here */}
-            {view.mode !== "live" ? (
-              <span className={styles.kickerMode}>
+            {step.id === "approve" && !decision ? (
+              <span className={styles.needsYou} data-needs-you="">
+                {t("steps.needsYou")}
+              </span>
+            ) : null}
+            {step.id === "approve" && decision ? (
+              <span className={styles.statusWord} data-review-badge={decision.status}>
+                {t(`package.status.${effectiveStatus}`)}
+              </span>
+            ) : null}
+            {step.id !== "approve" && view.mode !== "live" ? (
+              <span className={styles.kickerMode} data-chrome="">
                 {view.mode === "replay" ? t("steps.replay") : t(`package.mode.${view.mode}`)}
               </span>
             ) : null}
@@ -313,6 +384,102 @@ export function PackageBriefing({
                   </li>
                 ))}
               </ul>
+              {step.id === "approve" ? (
+                <div className={styles.reviewBox} data-review-section="">
+                  {decision ? (
+                    <p
+                      className={styles.reviewStatus}
+                      role="status"
+                      data-review-recorded={decision.status}
+                    >
+                      {reviewMessageOf(decision.status)}
+                    </p>
+                  ) : null}
+                  {decision?.status === "changes_requested" && decision.note && !noteOpen ? (
+                    <p className={styles.reviewNoteText} data-review-note-shown="">
+                      {pformat("review.recordedNote", { note: decision.note })}
+                    </p>
+                  ) : null}
+                  {noteOpen ? (
+                    <form
+                      className={styles.noteForm}
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        void recordReview("changes_requested", noteDraft);
+                        setNoteOpen(false);
+                      }}
+                    >
+                      <label className={styles.noteLabel}>
+                        <span>{t("review.note.label")}</span>
+                        <input
+                          type="text"
+                          className={styles.noteInput}
+                          value={noteDraft}
+                          placeholder={t("review.note.placeholder")}
+                          data-review-note=""
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setNoteDraft(val);
+                            void recordReview("changes_requested", val);
+                          }}
+                        />
+                      </label>
+                      <div className={styles.reviewActions} data-review-actions="">
+                        <Control
+                          variant="primary"
+                          keyHint="Enter"
+                          keyShortcut="Enter"
+                          data-review-record-changes=""
+                          onClick={() => {
+                            void recordReview("changes_requested", noteDraft);
+                            setNoteOpen(false);
+                          }}
+                        >
+                          {t("review.recordChanges")}
+                        </Control>
+                        <Control
+                          keyHint="Enter"
+                          keyShortcut="Enter"
+                          data-review-approve=""
+                          onClick={() => {
+                            setNoteOpen(false);
+                            void recordReview("approved", "");
+                          }}
+                        >
+                          {t("review.approve")}
+                        </Control>
+                      </div>
+                    </form>
+                  ) : (
+                    <div className={styles.reviewActions} data-review-actions="">
+                      {decision?.status !== "approved" ? (
+                        <Control
+                          variant="primary"
+                          keyHint="Enter"
+                          keyShortcut="Enter"
+                          data-review-approve=""
+                          onClick={() => {
+                            void recordReview("approved", "");
+                          }}
+                        >
+                          {t("review.approve")}
+                        </Control>
+                      ) : null}
+                      <Control
+                        keyHint="A"
+                        keyShortcut="A"
+                        data-review-ask-changes=""
+                        onClick={() => {
+                          setNoteOpen(true);
+                          void recordReview("changes_requested", noteDraft);
+                        }}
+                      >
+                        {t("review.askChanges")}
+                      </Control>
+                    </div>
+                  )}
+                </div>
+              ) : null}
             </>
           ) : null}
           {page.kind === "check" && view.measures[page.measure] ? (
@@ -359,7 +526,7 @@ export function PackageBriefing({
             </li>
           ))}
         </ol>
-        <span className={styles.keys}>
+        <span className={styles.keys} data-chrome="">
           {at !== null ? (
             <Control
               variant="quiet"
@@ -372,17 +539,19 @@ export function PackageBriefing({
               {t("steps.previous")}
             </Control>
           ) : null}
-          <Control
-            variant="primary"
-            keyHint="Space"
-            keyShortcut="Space"
-            data-step-next=""
-            onClick={() => {
-              setAt((c) => forward(steps, c));
-            }}
-          >
-            {at === null ? t("steps.begin") : t("steps.next")}
-          </Control>
+          {hasNext ? (
+            <Control
+              variant="primary"
+              keyHint="Space"
+              keyShortcut="Space"
+              data-step-next=""
+              onClick={() => {
+                setAt((c) => forward(steps, c));
+              }}
+            >
+              {at === null ? t("steps.begin") : t("steps.next")}
+            </Control>
+          ) : null}
         </span>
       </nav>
       {layer}
@@ -414,7 +583,7 @@ function CheckCard({ n, view, onLand }: { n: number; view: PackageView; onLand: 
 function Tags({ chips }: { chips: number[] }) {
   if (chips.length === 0) return null;
   return (
-    <span className={styles.tags}>
+    <span className={styles.tags} data-chrome="">
       {chips.map((n) => (
         <span key={n} className={styles.tagN} aria-label={pformat("briefing.chip", { n })}>
           {n}

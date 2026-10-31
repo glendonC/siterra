@@ -6,8 +6,8 @@ import type { Message } from "./en";
 
 export const pkg = {
   // the card and the button in the results that opens it
-  "package.title": { text: "What to Do Next", kind: "heading" },
-  "package.open": { text: "What to Do Next", kind: "button" },
+  "package.title": { text: "Your Plan", kind: "heading" },
+  "package.open": { text: "Your Plan", kind: "button" },
   "package.nothingSent": {
     text: "A draft for review. Nothing has been sent, scheduled or authorized.",
     kind: "ui",
@@ -184,7 +184,7 @@ export const pkg = {
   "prompt.label": { text: "Actions for this item", kind: "ui" },
   "prompt.read": { text: "Read the Source", kind: "button" },
   // the briefing you step through (decision 16): a headline on arrival, then five steps, one card at a time
-  "steps.headline": { text: "What to do next: {checks} before any decision", kind: "ui" },
+  "steps.headline": { text: "Your plan: {checks} before any decision", kind: "ui" },
   "steps.count.one": { text: "one field check", kind: "label" },
   "steps.count.many": { text: "{n} field checks", kind: "label" },
   "steps.known": { text: "Known So Far", kind: "heading" },
@@ -192,6 +192,7 @@ export const pkg = {
   "steps.checks": { text: "The Field Checks", kind: "heading" },
   "steps.responses": { text: "Candidate Responses", kind: "heading" },
   "steps.approve": { text: "Who Must Approve", kind: "heading" },
+  "steps.needsYou": { text: "Needs you", kind: "label" },
   "steps.of": { text: "{n} of {total}", kind: "label" },
   "steps.begin": { text: "Begin", kind: "button" },
   "steps.next": { text: "Next", kind: "button" },
@@ -202,11 +203,36 @@ export const pkg = {
   "steps.noSource": { text: "No source cited", kind: "label", honesty: true },
   "steps.nothingSent": { text: "Nothing sent or authorized.", kind: "label", honesty: true },
   "steps.counter": { text: "Steps of the briefing", kind: "ui" },
+  // the verdict (Scene 6): the 5 tested causes with plain status, one-line reason, and prediction before looking
+  "verdict.title": { text: "Verdict", kind: "heading" },
+  "verdict.caption": { text: "{count} causes tested against the record.", kind: "ui" },
+  "verdict.predicted": { text: "Predicted before looking", kind: "label" },
+  "verdict.status.consistent": { text: "Supported by the record", kind: "label" },
+  "verdict.status.contradicted": { text: "Contradicted by the record", kind: "label" },
+  "verdict.status.cannot_be_assessed": { text: "Cannot be told from space", kind: "label" },
+  // the approval step (Scene 7, 7F): interactive review actions recorded on the case only
+  "review.approve": { text: "Approve the Plan", kind: "button" },
+  "review.askChanges": { text: "Ask for Changes", kind: "button" },
+  "review.recordChanges": { text: "Record Changes", kind: "button" },
+  "review.note.label": { text: "Reviewer note (optional)", kind: "label" },
+  "review.note.placeholder": { text: "Short note for the case record", kind: "ui" },
+  "review.approved": {
+    text: "Plan approved (recorded on this case; nothing is sent externally)",
+    kind: "ui",
+    honesty: true,
+  },
+  "review.changesRequested": {
+    text: "Changes requested (recorded on this case; nothing is sent externally)",
+    kind: "ui",
+    honesty: true,
+  },
+  "review.recordedNote": { text: "Reviewer note: {note}", kind: "ui" },
+  "review.recordedHeading": { text: "Recorded Decision", kind: "heading" },
   // the controls and their keys
   "package.export": { text: "Export Brief", kind: "button" },
 
   // the printable brief (daylight palette)
-  "brief.title": { text: "What to Do Next", kind: "heading" },
+  "brief.title": { text: "Your Plan", kind: "heading" },
   "brief.kicker": { text: "Next-steps package prepared by Siterra", kind: "ui" },
   "brief.question": { text: "Question", kind: "label" },
   "brief.print": { text: "Print Brief", kind: "button" },
@@ -228,17 +254,25 @@ export const PACKAGE_LINT_ALLOWLIST: Partial<
   Record<PackageMessageId, { rules: string[]; reason: string }>
 > = {
   "package.title": {
-    rules: ["VT-48"],
+    rules: ["VT-45"],
     reason:
-      "The founder's and the lead's name for the package; four short words read as one title.",
+      "Scene 7 in the replan names the package 'Your Plan' so the visitor knows the decision is theirs.",
   },
   "package.open": {
-    rules: ["VT-48"],
-    reason: "The button names the card it opens, with the card's own title.",
+    rules: ["VT-45"],
+    reason: "The primary button in Scene 6 names 'Your Plan' to match Scene 7's title.",
+  },
+  "steps.headline": {
+    rules: ["VT-45"],
+    reason: "Scene 7 arrival headline uses 'Your plan' as specified in the replan.",
+  },
+  "steps.needsYou": {
+    rules: ["VT-45"],
+    reason: "The final approval step is labeled 'Needs you' in the replan (7F).",
   },
   "brief.title": {
-    rules: ["VT-48"],
-    reason: "The printed brief carries the same title as the card it exports.",
+    rules: ["VT-45"],
+    reason: "The printed brief carries the same 'Your Plan' title as the briefing it exports.",
   },
 };
 

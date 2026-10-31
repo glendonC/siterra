@@ -1,0 +1,96 @@
+/* Scene 6 Verdict list inside OverviewResults (UI-2): 5 tested causes with plain status, one-line reason,
+   and prediction written before looking, using the obsidian tokens of app/obsidian.css. */
+
+.list {
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: auto;
+}
+
+.cause {
+  margin: 0;
+  padding: 8px 12px;
+  border: 1px solid var(--hairline);
+  border-radius: 6px;
+  background: var(--bg-overlay);
+  outline: none;
+  cursor: pointer;
+  transition: border-color 180ms ease-out;
+}
+
+.cause[data-open] {
+  padding: 10px 12px;
+  border-color: var(--text-tertiary);
+}
+
+.cause:focus-visible {
+  outline: 1px solid var(--ov-focus);
+  outline-offset: 2px;
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.detail {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid var(--hairline-quiet);
+}
+
+.name {
+  font-size: 14px;
+  line-height: 18px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.status {
+  padding: 1px 8px;
+  border: 1px solid var(--hairline-quiet);
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 15px;
+  letter-spacing: 0.02em;
+  color: var(--text-secondary);
+}
+
+.status[data-status="consistent"] {
+  border-color: var(--ov-green);
+  color: var(--ov-green);
+}
+
+.status[data-status="cannot_be_assessed"] {
+  border-color: var(--ov-amber-tag);
+  color: var(--ov-amber-tag);
+}
+
+.status[data-status="contradicted"] {
+  color: var(--text-tertiary);
+}
+
+.reason {
+  margin: 4px 0 0;
+  font-size: 13px;
+  line-height: 17px;
+  color: var(--text-primary);
+}
+
+.prediction {
+  margin: 2px 0 0;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--text-secondary);
+}
+
+.predLabel {
+  color: var(--text-tertiary);
+}
