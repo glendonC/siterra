@@ -43311,12 +43311,144 @@
       },
       {
         "recordType": "Measurement",
-        "id": "meas_transect_band_limit_lower_2021",
+        "id": "meas_strata_band_limit_lower_2021",
         "revision": 1,
         "createdAt": "2026-10-28T20:42:35.015Z",
         "updatedAt": "2026-10-28T20:42:35.015Z",
         "caseId": "case_aitbouguemez",
         "metric": "elevation_band_limit",
+        "value": 2316.8,
+        "unit": "m",
+        "status": "available",
+        "missingReason": null,
+        "geoSelectionId": "geo_ait_bouguemez_catchment",
+        "geoRevision": 1,
+        "periodId": "period_2021",
+        "dataBundleId": "bundle_terrain_strata_ait_bouguemez",
+        "aggregation": "Elevation of the boundary between the lowest and the middle elevation band, as the terrain strata bundle defines the bands (equal-area terciles of the catchment's DEM heights); a band definition, not a transect crossing (siterra:method.parameters.boundaries_m[0]).",
+        "validPixelCount": null,
+        "totalPixelCount": null,
+        "validFraction": null,
+        "spatialResolutionM": 30,
+        "uncertainty": {
+          "kind": "not_quantified",
+          "lower": null,
+          "upper": null,
+          "level": null,
+          "method": null
+        },
+        "provenance": {
+          "sourceLocators": [],
+          "dataBundleIds": [],
+          "methodId": "terrain_strata",
+          "methodVersion": "1.1.0",
+          "inputVersions": [
+            {
+              "entityId": "geo_ait_bouguemez_catchment",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_terrain_strata_ait_bouguemez",
+              "revision": 1
+            }
+          ],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-30T19:44:31Z",
+          "verificationStatus": "unverified",
+          "limitations": [
+            "The DEM is a surface model: trees and buildings raise it; radar artefacts are possible in narrow gorges.",
+            "WorldCover 2021 is a 2021 context mask: it maps only 1.1% of the catchment as cropland, and much of the green valley floor is mapped as tree cover, which may include orchards.",
+            "Strata organize field sampling; they are not vegetation types, pasture units or management boundaries."
+          ]
+        },
+        "source": {
+          "assetKey": "collection",
+          "jsonPointer": "/siterra:method/parameters/boundaries_m/0",
+          "stratum": "elevation_band_limit_lower",
+          "claimKind": "observation",
+          "period": {
+            "start": "2021",
+            "end": "2021",
+            "window": null
+          },
+          "lowerJsonPointer": null,
+          "upperJsonPointer": null
+        }
+      },
+      {
+        "recordType": "Measurement",
+        "id": "meas_strata_band_limit_upper_2021",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "metric": "elevation_band_limit",
+        "value": 2815.2,
+        "unit": "m",
+        "status": "available",
+        "missingReason": null,
+        "geoSelectionId": "geo_ait_bouguemez_catchment",
+        "geoRevision": 1,
+        "periodId": "period_2021",
+        "dataBundleId": "bundle_terrain_strata_ait_bouguemez",
+        "aggregation": "Elevation of the boundary between the middle and the highest elevation band, as the terrain strata bundle defines the bands (equal-area terciles of the catchment's DEM heights); a band definition, not a transect crossing (siterra:method.parameters.boundaries_m[1]).",
+        "validPixelCount": null,
+        "totalPixelCount": null,
+        "validFraction": null,
+        "spatialResolutionM": 30,
+        "uncertainty": {
+          "kind": "not_quantified",
+          "lower": null,
+          "upper": null,
+          "level": null,
+          "method": null
+        },
+        "provenance": {
+          "sourceLocators": [],
+          "dataBundleIds": [],
+          "methodId": "terrain_strata",
+          "methodVersion": "1.1.0",
+          "inputVersions": [
+            {
+              "entityId": "geo_ait_bouguemez_catchment",
+              "revision": 1
+            },
+            {
+              "entityId": "bundle_terrain_strata_ait_bouguemez",
+              "revision": 1
+            }
+          ],
+          "generatedByTaskId": null,
+          "generatedAt": "2026-10-30T19:44:31Z",
+          "verificationStatus": "unverified",
+          "limitations": [
+            "The DEM is a surface model: trees and buildings raise it; radar artefacts are possible in narrow gorges.",
+            "WorldCover 2021 is a 2021 context mask: it maps only 1.1% of the catchment as cropland, and much of the green valley floor is mapped as tree cover, which may include orchards.",
+            "Strata organize field sampling; they are not vegetation types, pasture units or management boundaries."
+          ]
+        },
+        "source": {
+          "assetKey": "collection",
+          "jsonPointer": "/siterra:method/parameters/boundaries_m/1",
+          "stratum": "elevation_band_limit_upper",
+          "claimKind": "observation",
+          "period": {
+            "start": "2021",
+            "end": "2021",
+            "window": null
+          },
+          "lowerJsonPointer": null,
+          "upperJsonPointer": null
+        }
+      },
+      {
+        "recordType": "Measurement",
+        "id": "meas_transect_band_limit_lower_2021",
+        "revision": 1,
+        "createdAt": "2026-10-28T20:42:35.015Z",
+        "updatedAt": "2026-10-28T20:42:35.015Z",
+        "caseId": "case_aitbouguemez",
+        "metric": "transect_band_crossing_boundary",
         "value": 2316.8,
         "unit": "m above the EGM2008 geoid",
         "status": "available",
@@ -43379,7 +43511,7 @@
         "source": {
           "assetKey": "terrain_transects",
           "jsonPointer": "/transects/tabant_meridian/band_crossings/0/boundary_m",
-          "stratum": "elevation_band_limit_lower",
+          "stratum": "transect_band_crossing_lower",
           "claimKind": "observation",
           "period": {
             "start": "2021",
@@ -43397,7 +43529,7 @@
         "createdAt": "2026-10-28T20:42:35.015Z",
         "updatedAt": "2026-10-28T20:42:35.015Z",
         "caseId": "case_aitbouguemez",
-        "metric": "elevation_band_limit",
+        "metric": "transect_band_crossing_boundary",
         "value": 2815.2,
         "unit": "m above the EGM2008 geoid",
         "status": "available",
@@ -43460,7 +43592,7 @@
         "source": {
           "assetKey": "terrain_transects",
           "jsonPointer": "/transects/tabant_meridian/band_crossings/2/boundary_m",
-          "stratum": "elevation_band_limit_upper",
+          "stratum": "transect_band_crossing_upper",
           "claimKind": "observation",
           "period": {
             "start": "2021",

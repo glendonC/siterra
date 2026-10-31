@@ -395,7 +395,7 @@
   {
    "rowId": "transect_band_limit_lower_2021",
    "pointer": "/transects/valley_axis/band_crossings/0/boundary_m",
-   "metric": "elevation_band_limit",
+   "metric": "transect_band_crossing_boundary",
    "unit": "m",
    "aggregation": "Elevation at which the long profile along the longest flow path crosses from the lowest to the middle elevation band (band_crossings.boundary_m).",
    "uncertainty": {
@@ -408,7 +408,7 @@
    "upperPointer": null,
    "claimKindPointer": "/claim_kind",
    "claimKind": "observation",
-   "stratum": "elevation_band_limit_lower",
+   "stratum": "transect_band_crossing_lower",
    "period": {
     "start": "2021",
     "end": "2021",
@@ -628,6 +628,60 @@
    },
    "periodId": "period_1875-2026",
    "spatialResolutionM": null
+  },
+  {
+   "rowId": "strata_band_limit_lower_2021",
+   "pointer": "/siterra:method/parameters/boundaries_m/0",
+   "metric": "elevation_band_limit",
+   "unit": "m",
+   "aggregation": "Elevation of the boundary between the lowest and the middle elevation band, as the terrain strata bundle defines the bands (equal-area terciles of the catchment's DEM heights); a band definition, not a transect crossing (siterra:method.parameters.boundaries_m[0]).",
+   "uncertainty": {
+    "kind": "not_quantified"
+   },
+   "usedBy": [
+    "the elevation band limits the cross section and the layer stack read"
+   ],
+   "bundleId": "bundle_terrain_strata_calaveras_creek",
+   "assetKey": "collection",
+   "lowerPointer": null,
+   "upperPointer": null,
+   "claimKindPointer": null,
+   "claimKind": "observation",
+   "stratum": "elevation_band_limit_lower",
+   "period": {
+    "start": "2021",
+    "end": "2021",
+    "window": null
+   },
+   "periodId": "period_2021",
+   "spatialResolutionM": 30
+  },
+  {
+   "rowId": "strata_band_limit_upper_2021",
+   "pointer": "/siterra:method/parameters/boundaries_m/1",
+   "metric": "elevation_band_limit",
+   "unit": "m",
+   "aggregation": "Elevation of the boundary between the middle and the highest elevation band, as the terrain strata bundle defines the bands (equal-area terciles of the catchment's DEM heights); a band definition, not a transect crossing (siterra:method.parameters.boundaries_m[1]).",
+   "uncertainty": {
+    "kind": "not_quantified"
+   },
+   "usedBy": [
+    "the elevation band limits the cross section and the layer stack read"
+   ],
+   "bundleId": "bundle_terrain_strata_calaveras_creek",
+   "assetKey": "collection",
+   "lowerPointer": null,
+   "upperPointer": null,
+   "claimKindPointer": null,
+   "claimKind": "observation",
+   "stratum": "elevation_band_limit_upper",
+   "period": {
+    "start": "2021",
+    "end": "2021",
+    "window": null
+   },
+   "periodId": "period_2021",
+   "spatialResolutionM": 30
   }
  ]
 }
