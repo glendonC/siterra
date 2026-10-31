@@ -20,6 +20,28 @@ describe("seasonTrendFrom", () => {
       figuresSchema.parse(fixture("figures.json")).season_trend,
     );
   });
+
+  it("reads the second place's own primary window, February to May (U25)", () => {
+    const summary = bundle(
+      "bundle_season_trend_long_record_calaveras_creek/season-trend-long-record.json",
+    ) as {
+      primary: { growing_window: string; reliability: string };
+      results: {
+        stratum: string;
+        growing_window: string;
+        reliability: string;
+        ols: { slope_per_decade: number };
+      }[];
+    };
+    expect(summary.primary.growing_window).toBe("feb_may");
+    const row = summary.results.find(
+      (r) =>
+        r.stratum === "catchment" &&
+        r.growing_window === "feb_may" &&
+        r.reliability === summary.primary.reliability,
+    );
+    expect(seasonTrendFrom(summary).catchment.per_decade).toBe(row?.ols.slope_per_decade);
+  });
 });
 
 describe("snowFrom", () => {

@@ -25,6 +25,30 @@ async function overview(page: Page) {
   await expect(page.locator("[data-arrival-settled]")).toHaveCount(0);
 }
 
+test("the globe offers the other places the case listing holds, each opening its own journey (U25)", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await expect(page.locator("[data-opening]")).toBeVisible({ timeout: 60_000 });
+  await page.keyboard.press("Enter");
+  await expect(page.locator("[data-phase=globe]")).toBeVisible();
+  const other = page.locator("[data-other-place='case_calaveras_creek']");
+  await expect(other).toHaveText("Calaveras Creek catchment · Diablo Range, California");
+  await expect(other).toHaveAttribute("href", "/?case=case_calaveras_creek&start");
+  await other.click();
+  await expect(page.locator("[data-opening]")).toBeVisible({ timeout: 60_000 });
+  await page.keyboard.press("Enter");
+  await expect(page.locator("[data-phase=globe]")).toBeVisible();
+  await expect(page.locator("[data-case-card]")).toContainText(
+    "Calaveras Creek catchment · Diablo Range, California",
+  );
+  await expect(page.locator("[data-case-card]")).toContainText(
+    "Is grazing changing the rangeland of the Calaveras Creek catchment?",
+  );
+  // and the first place is offered from there in turn
+  await expect(page.locator("[data-other-place='case_aitbouguemez']")).toBeVisible();
+});
+
 test("the opening, the globe and the zoom land on the overview, and a reload returns straight to it", async ({
   page,
 }) => {

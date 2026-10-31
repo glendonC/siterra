@@ -19,9 +19,13 @@ const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "
 const NDSI = "ndsi_0.2";
 const SNOW_DECIMALS = 4;
 
-/** Each stratum's March to June OLS slope and 95% interval per decade (season trend summary, reliability 0 and 1). */
+/**
+ * Each stratum's OLS slope and 95% interval per decade over the summary's own primary growing window and reliability
+ * (U25: March to June for the first place, February to May for Calaveras Creek).
+ */
 export function seasonTrendFrom(summary: unknown): Figures["season_trend"] {
   const s = summary as {
+    primary?: { growing_window: string; reliability: string };
     results: {
       stratum: string;
       growing_window: string;
@@ -29,14 +33,17 @@ export function seasonTrendFrom(summary: unknown): Figures["season_trend"] {
       ols: { slope_per_decade: number; lower_per_decade: number; upper_per_decade: number };
     }[];
   };
+  const P = s.primary;
+  if (!P) throw new Error("The season trend summary states no primary window");
   const of = (stratum: string) => {
     const row = s.results.find(
       (r) =>
         r.stratum === stratum &&
-        r.growing_window === "mar_jun" &&
-        r.reliability === "reliability_0_1",
+        r.growing_window === P.growing_window &&
+        r.reliability === P.reliability,
     );
-    if (!row) throw new Error(`The season trend summary has no March to June row for ${stratum}`);
+    if (!row)
+      throw new Error(`The season trend summary has no ${P.growing_window} row for ${stratum}`);
     return {
       per_decade: row.ols.slope_per_decade,
       lower: row.ols.lower_per_decade,

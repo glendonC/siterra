@@ -1,6 +1,6 @@
 {
   "source": "data/bundles/bundle_snow_cover_by_band_ait_bouguemez/snow-cover-by-band-tables.json",
-  "sha256": "658f75ac5e5d7f0c06d2179dcdc2ca89792549ce1d728202b03ce56f07323db2",
+  "sha256": "0d3d2dcc5d81117c35436a6fce33c8dd68490df6cf62d93a909dfa209d25e369",
   "threshold": "NDSI 0.2 (the bundle default)",
   "value": "mean over 2001 to 2025 of the monthly share of clear-day 500 m pixels that are snow-covered; months whose status is not 'available' are left out (the count of years used is listed)",
   "months": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],

@@ -24,6 +24,7 @@ interface Cells {
     worldcover: number[][];
     ndvi_median: (number | null)[][];
     truecolour_rgb: [number, number, number][][];
+    crs?: string;
   };
   ndvi_month: string;
 }
@@ -32,9 +33,12 @@ interface Sources {
   [path: string]: unknown;
 }
 
-const B = "data/bundles/bundle_pixel_anatomy_ait_bouguemez";
-const TABLES =
-  "data/bundles/bundle_season_trend_long_record_ait_bouguemez/season-trend-long-record-tables.json";
+/** A source by its file name, wherever the place's bundle lies (U25r: every place's bundle holds the same files). */
+function fileNamed(src: Sources, sources: readonly { path: string }[], name: string): unknown {
+  const path = sources.find((s) => s.path.endsWith(`/${name}`))?.path;
+  if (path === undefined || !(path in src)) throw new Error(`The pixel anatomy has no ${name}`);
+  return src[path];
+}
 
 const median = (v: readonly number[]) => {
   const r = [...v].sort((a, b) => a - b);
@@ -105,21 +109,33 @@ export function proposeTransect(cells: Cells) {
 
 /** The page's data file, from the bundle files and the season tables keyed by their repository paths. */
 export function pixelFixture(src: Sources, sources: { path: string; sha256: string }[]) {
-  const anatomy = src[`${B}/pixel-anatomy.json`] as {
+  // the bundle's 1.0.0 and 1.1.0 names (U25r): 1.1.0 states the footprint's CRS beside its corners and names the
+  // month's NDVI by its month; 1.0.0 named both after the first place (utm29n, june)
+  const anatomy = fileNamed(src, sources, "pixel-anatomy.json") as {
     pixel: {
       modis_tile: string;
       tile_row: number;
       tile_col: number;
       footprint_cells: number;
-      footprint_corners_utm29n: [number, number][];
+      footprint_corners?: [number, number][];
+      footprint_corners_crs?: string;
+      footprint_corners_utm29n?: [number, number][];
     };
     trend: { slope_per_decade: number };
     composition: { code: number; cells: number }[];
-    june_ndvi: { count_min: number; count_max: number };
+    month_ndvi?: { count_min: number; count_max: number };
+    june_ndvi?: { count_min: number; count_max: number };
     selection: { note: string; chosen_by: string };
   };
-  const cells = src[`${B}/pixel-cells.json`] as Cells;
-  const spectra = src[`${B}/pixel-spectra.json`] as {
+  const cells = fileNamed(src, sources, "pixel-cells.json") as Cells;
+  const footprint = anatomy.pixel.footprint_corners ?? anatomy.pixel.footprint_corners_utm29n;
+  if (!footprint) throw new Error("The pixel anatomy states no footprint corners");
+  const fpCrs = anatomy.pixel.footprint_corners_crs;
+  if (fpCrs !== undefined && cells.grid.crs !== undefined && fpCrs !== cells.grid.crs)
+    throw new Error(`The footprint's CRS ${fpCrs} is not the cells' grid CRS ${cells.grid.crs}`);
+  const monthNdvi = anatomy.month_ndvi ?? anatomy.june_ndvi;
+  if (!monthNdvi) throw new Error("The pixel anatomy states no month NDVI counts");
+  const spectra = fileNamed(src, sources, "pixel-spectra.json") as {
     datetime: string;
     cells_inside_kept: number;
     bands: string[];
@@ -132,11 +148,13 @@ export function pixelFixture(src: Sources, sources: { path: string; sha256: stri
     }[];
     pixel_measured: { mean_reflectance: Record<string, number>; ndvi_of_mean_red_nir: number };
   };
-  const series = src[`${B}/pixel-series.json`] as {
+  const series = fileNamed(src, sources, "pixel-series.json") as {
+    /** The season the series is over ("mar_jun", "feb_may"); absent, the first place's. */
+    window?: string;
     seasons: Season[];
     theil_sen: { slope_per_decade: number; lower_per_decade: number; upper_per_decade: number };
   };
-  const tables = src[TABLES] as {
+  const tables = fileNamed(src, sources, "season-trend-long-record-tables.json") as {
     seasons: {
       stratum: string;
       growing_window: string;
@@ -158,7 +176,7 @@ export function pixelFixture(src: Sources, sources: { path: string; sha256: stri
       tile_row: anatomy.pixel.tile_row,
       tile_col: anatomy.pixel.tile_col,
       analysis_cells: total,
-      footprint_utm29n: anatomy.pixel.footprint_corners_utm29n,
+      footprint_utm29n: footprint,
       trend_mar_jun: { slope_per_decade: anatomy.trend.slope_per_decade },
     },
     grid: {
@@ -171,7 +189,7 @@ export function pixelFixture(src: Sources, sources: { path: string; sha256: stri
       worldcover: g.worldcover,
     },
     ndvi_month: cells.ndvi_month,
-    ndvi_inside: { count_min: anatomy.june_ndvi.count_min, count_max: anatomy.june_ndvi.count_max },
+    ndvi_inside: { count_min: monthNdvi.count_min, count_max: monthNdvi.count_max },
     classes: CLASS_ORDER.map((code) => {
       const k = spectra.classes.find((c) => c.code === code);
       return {
@@ -199,7 +217,7 @@ export function pixelFixture(src: Sources, sources: { path: string; sha256: stri
         .filter(
           (s) =>
             s.stratum === "elevation_low" &&
-            s.growing_window === "mar_jun" &&
+            s.growing_window === (series.window ?? "mar_jun") &&
             s.reliability === "reliability_0_1",
         )
         .map((s) => ({ year: s.year, ndvi: s.ndvi })),

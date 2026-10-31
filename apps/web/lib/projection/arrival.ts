@@ -88,11 +88,15 @@ export function placeNamesFromCase(s: CaseSnapshot): {
   areaLabel: string;
   regionName: string;
 } {
+  // the record's own place when it names one (U25: every place reads by its own names); an older record without
+  // one keeps the reading of its title and sources
+  const place = s.case.place;
   const valleyMatch = /\bin the\s+(.+)$/i.exec(s.case.title);
-  const valleyName = valleyMatch?.[1]?.trim() ?? s.case.title;
+  const valleyName = place?.name ?? valleyMatch?.[1]?.trim() ?? s.case.title;
   // the record's own name for its area: the active GeoSelection's label before its qualifying parenthesis
   const label = activeSelection(s)?.label ?? "";
   const areaLabel = label.replace(/\s*\(.*$/, "").trim() || valleyName;
+  if (place) return { valleyName, areaLabel, regionName: place.region };
   for (const src of s.records.sourceRecords) {
     const m = /\(([^(),]+),\s*([^(),]+)\)/.exec(src.title);
     if (m?.[1] && m[2]) {

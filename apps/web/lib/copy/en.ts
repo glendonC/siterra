@@ -46,6 +46,8 @@ export const en = {
   "chrome.zoomIn": { text: "Zoom In", kind: "button" },
   "chrome.zoomOut": { text: "Zoom Out", kind: "button" },
   "chrome.data": { text: "Data: {names}", kind: "ui" },
+  // the drawn relief's vertical exaggeration, after the data's names where land is drawn (decision 16)
+  "chrome.relief": { text: "Relief ×{value}", kind: "label" },
   // the data's short names for that line
   "source.dem": { text: "Copernicus DEM", kind: "label" },
   "source.worldcover": { text: "ESA WorldCover", kind: "label" },
@@ -69,7 +71,23 @@ export const en = {
   // each case on the globe has a card beside its point (Destiny's manner): the place and region in the record's
   // words, the case's own question, and the one action into it
   "globe.place": { text: "{place} · {region}", kind: "heading" },
+  "month.jan": { text: "January", kind: "label" },
+  "month.feb": { text: "February", kind: "label" },
+  "month.mar": { text: "March", kind: "label" },
+  "month.apr": { text: "April", kind: "label" },
+  "month.may": { text: "May", kind: "label" },
+  "month.jun": { text: "June", kind: "label" },
+  "month.jul": { text: "July", kind: "label" },
+  "month.aug": { text: "August", kind: "label" },
+  "month.sep": { text: "September", kind: "label" },
+  "month.oct": { text: "October", kind: "label" },
+  "month.nov": { text: "November", kind: "label" },
+  "month.dec": { text: "December", kind: "label" },
+  "season.window": { text: "{from} to {to}", kind: "label" },
+  "season.unstated": { text: "the recorded season", kind: "label" },
   "globe.open": { text: "Open", kind: "button" },
+  "globe.openPlace": { text: "Open {place}, {region}", kind: "ui" },
+  "globe.others": { text: "Other places", kind: "label" },
   "globe.cases": { text: "Cases on the globe", kind: "ui" },
   // a mouse action is said in words, never drawn as a key
   "globe.drag": { text: "drag to turn", kind: "ui" },
@@ -308,7 +326,7 @@ export const en = {
   // Instruments: the layer stack (approved specimen A). Figures, years and limits come from the record's fixtures
   // (lib/instruments/valley/fixtures.ts); credits are numbered by the sheet they serve
   "instrument.layers.description": {
-    text: "A relief model of the catchment with its drainage lines. Above it are five sheets: the March to June vegetation trend, rainfall, snow cover, land cover, and the three elevation bands.",
+    text: "A relief model of the catchment with its drainage lines. Above it are five sheets: the vegetation trend, rainfall, snow cover, land cover, and the three elevation bands.",
     kind: "ui",
   },
   "instrument.layers.keys": {
@@ -318,36 +336,16 @@ export const en = {
   "instrument.layers.scale": { text: "Vertical scale {value}×", kind: "label" },
   "instrument.layers.failed": { text: "Layers not loaded. Reload the page to retry.", kind: "ui" },
   "instrument.sheet.trend": { text: "Vegetation Trend", kind: "heading" },
-  "instrument.sheet.trend.question": {
-    text: "Where did greenness change, {from} to {to}?",
-    kind: "ui",
-  },
   "instrument.sheet.trend.key": { text: "{value} NDVI per decade", kind: "label" },
   "instrument.sheet.rain": { text: "Rainfall", kind: "heading" },
-  "instrument.sheet.rain.question": {
-    text: "Where does more rain fall, September to May?",
-    kind: "ui",
-  },
   "instrument.sheet.rain.key": { text: "{value} mm, {from} to {to} mean", kind: "label" },
   "instrument.sheet.snow": { text: "Snow Cover", kind: "heading" },
   // the sheet shows February (SNOW_MONTH in lib/instruments/valley/scene/layer-stack.ts)
-  "instrument.sheet.snow.question": {
-    text: "How snowy is each 500 m band in February?",
-    kind: "ui",
-  },
   "instrument.sheet.snow.key": { text: "{value}, mean of {from} to {to}", kind: "label" },
   "instrument.sheet.cover": { text: "Land Cover", kind: "heading" },
-  "instrument.sheet.cover.question": {
-    text: "Where are the fields, buildings and trees?",
-    kind: "ui",
-  },
   "instrument.sheet.cover.crop": { text: "cropland or built-up", kind: "label" },
   "instrument.sheet.cover.tree": { text: "tree cover, {year}, {res} m", kind: "label" },
   "instrument.sheet.bands": { text: "Elevation Bands", kind: "heading" },
-  "instrument.sheet.bands.question": {
-    text: "Which equal-area third is each place in?",
-    kind: "ui",
-  },
   "instrument.sheet.bands.key": { text: "limits at {lower} m and {upper} m", kind: "label" },
   "instrument.credit.modisNdvi": { text: "MODIS MOD13Q1 v6.1, NASA LP DAAC", kind: "ui" },
   "instrument.credit.chirps": {
@@ -365,7 +363,7 @@ export const en = {
   // name and the two published statements with their sources come from their own fixtures, not from here
   // (lib/instruments/valley/cutaway-data.ts)
   "instrument.cutaway.description": {
-    text: "The catchment cut north to south through {place}. Its section face shows the true elevation profile and the two band limits. Beside each band are its March to June vegetation trend and its monthly snow cover.",
+    text: "The catchment cut north to south through {place}. Its section face shows the true elevation profile and the two band limits. Beside each band are its vegetation trend and its monthly snow cover.",
     kind: "ui",
   },
   "instrument.cutaway.keys": {
@@ -404,17 +402,17 @@ export const en = {
     kind: "ui",
   },
   "instrument.pixel.source.trend": {
-    text: "MODIS MOD13Q1 v6.1 (Didan 2021), per-pixel Theil-Sen trend, March to June 2000 to 2025, Siterra pixel_trend_long_record 1.0.0; ESA WorldCover 2021 v200 (Zanaga et al. 2022).",
+    text: "MODIS MOD13Q1 v6.1 (Didan 2021), per-pixel Theil-Sen trend, Siterra pixel_trend_long_record; ESA WorldCover v200 (Zanaga et al. 2022).",
     kind: "ui",
   },
   "instrument.pixel.source.spectra": {
-    text: "Sentinel-2 L2A S2B_29SQR_20250611_0_L2A, 11 Jun 2025, Earth Search sentinel-cogs; herders' reports of palatable species lost (SCI-03, pp. 7 to 8).",
+    text: "Sentinel-2 L2A class spectra measured in the pixel's own cells, Earth Search sentinel-cogs.",
     kind: "ui",
   },
   "instrument.pixel.chip": { text: "Source {n}: {text}", kind: "label" },
   "instrument.pixel.locate": { text: "Locate", kind: "heading" },
   "instrument.pixel.locate.key": {
-    text: "NDVI per decade, March to June {from} to {to}",
+    text: "NDVI per decade, {window} {from} to {to}",
     kind: "label",
   },
   "instrument.pixel.km": { text: "{value} km", kind: "label" },
@@ -455,6 +453,7 @@ export const en = {
   "instrument.pixel.spectra.reflectance": { text: "Reflectance", kind: "label" },
   "instrument.pixel.spectra.red": { text: "Red B04", kind: "label" },
   "instrument.pixel.spectra.nir": { text: "Near-infrared B08", kind: "label" },
+  "instrument.pixel.spectra.axisShort": { text: "Wavelength, nm", kind: "label" },
   "instrument.pixel.spectra.axis": {
     text: "Wavelength, nm (axis broken at 900 to 1500)",
     kind: "label",
@@ -474,6 +473,13 @@ export const en = {
   "instrument.pixel.model.label": {
     text: "Model: linear mix of measured class spectra from this pixel. Not a measurement of plant species.",
     kind: "ui",
+  },
+  "instrument.pixel.model.keyShort": { text: "Model NDVI", kind: "label" },
+  "instrument.pixel.model.measuredShort": { text: "Measured {value}", kind: "label" },
+  "instrument.pixel.model.labelShort": {
+    text: "A linear mix of this pixel's class spectra. Not a measurement of plant species.",
+    kind: "ui",
+    honesty: true,
   },
   "instrument.pixel.model.bar": {
     text: "Class shares in the model; ticks mark the measured shares.",
@@ -524,24 +530,24 @@ export const en = {
   "instrument.pixel.ref.pages": { text: "{id}, pp. {page}", kind: "label" },
   "instrument.pixel.failed": { text: "Pixel not loaded. Reload the page to retry.", kind: "ui" },
 
-  // Instruments: the rainfall scatter. Every total here is a September to May total and says so; seasons, the fit
-  // and the driest seasons come from the restrend bundle files the rainfall scatter spec names
+  // Instruments: the rainfall scatter. Every total here is the bundle's primary rainfall window and says so (its window
+  // in words, U25); seasons, the fit and the driest seasons come from the restrend bundle files the spec names
   "instrument.scatter.description": {
-    text: "The catchment's seasons as points: March to June greenness against the September to May rainfall before each, a straight-line fit, the four driest seasons ringed.",
+    text: "The catchment's seasons as points: each season's greenness against the rainfall before it, a straight-line fit, the four driest seasons ringed.",
     kind: "ui",
   },
   "instrument.scatter.failed": {
     text: "Rainfall scatter not loaded. Reload the page to retry.",
     kind: "ui",
   },
-  "instrument.scatter.axis.rain": { text: "September to May rainfall, mm", kind: "label" },
-  "instrument.scatter.axis.ndvi": { text: "March to June NDVI, catchment mean", kind: "label" },
+  "instrument.scatter.axis.rain": { text: "{window} rainfall, mm", kind: "label" },
+  "instrument.scatter.axis.ndvi": { text: "{window} NDVI, catchment mean", kind: "label" },
   "instrument.scatter.fit": { text: "Straight-line fit, R squared {r2}", kind: "label" },
   "instrument.scatter.driest": { text: "{year}, {mm} mm", kind: "label" },
   "instrument.scatter.seasons": { text: "{n} seasons, {from} to {to}", kind: "label" },
   "instrument.scatter.key.season": { text: "One season", kind: "label" },
   "instrument.scatter.key.driest": {
-    text: "The four driest September to May totals",
+    text: "The four driest {window} totals",
     kind: "label",
   },
   "instrument.scatter.slope": {
@@ -645,29 +651,32 @@ export const en = {
     kind: "ui",
   },
   "overview.findings": { text: "Findings", kind: "heading" },
-  "overview.finding.catchment.1": { text: "NDVI per decade, March to June,", kind: "label" },
-  "overview.finding.catchment.2": { text: "{from} to {to}", kind: "label" },
+  // decision 16: one short line under each number; the season and years are in the opened card
+  "overview.finding.catchment.1": { text: "NDVI per decade, catchment", kind: "label" },
   "overview.finding.band.1": { text: "NDVI per decade below {limit} m", kind: "label" },
-  "overview.finding.pixel.1": { text: "NDVI per decade in one pixel", kind: "label" },
-  "overview.finding.rain.1": { text: "R squared, September to May rain", kind: "label" },
-  "overview.finding.rain.2": { text: "against March to June greenness", kind: "label" },
-  "overview.finding.fdr.1": { text: "of the area greening after a", kind: "label" },
-  "overview.finding.fdr.2": { text: "false discovery rate check", kind: "label" },
+  "overview.finding.pixel.1": { text: "NDVI per decade, one pixel", kind: "label" },
+  "overview.finding.rain.1": { text: "R squared with rainfall", kind: "label" },
+  "overview.finding.fdr.1": { text: "of the area greening", kind: "label" },
+  "overview.finding.fdr.2": { text: "after a false discovery rate check", kind: "label" },
   "overview.field": { text: "Proposed field check, not measured", kind: "label", honesty: true },
   "overview.pixel": { text: "This pixel", kind: "label" },
   // the proposed walking routes (U12): the entry, and the opened column; numbers and route names come from the record
   "overview.routes": {
-    text: "Proposed walking routes, access unconfirmed",
+    text: "Proposed routes, access unconfirmed",
     kind: "label",
     honesty: true,
   },
+  // decision 16: the column says where the routes start and what kind of figure they are; their limits in full and
+  // the cost function wait behind "Method and Limits"
   "overview.routes.grey": {
-    text: "From {origin}. Model estimates, {not}.",
+    text: "From {origin}, one way. Model estimates.",
     kind: "ui",
     honesty: true,
   },
+  "overview.routes.not": { text: "Model estimates, {not}.", kind: "ui", honesty: true },
+  "overview.routes.method": { text: "Method and Limits", kind: "button" },
   "overview.routes.figures": {
-    text: "{length}, climb {climb}, estimated {time} one way",
+    text: "{length}, climb {climb}, {time}",
     kind: "label",
   },
   "overview.routes.cost": {
@@ -684,20 +693,7 @@ export const en = {
   // line, the published context in the record's display text with its sources, and the way to the full instrument
   "overview.record.pixel": { text: "One pixel", kind: "label" },
   // what the land shows while a finding is open (decision 6): its footprint, from the case's own assets
-  "overview.onLand.catchment": { text: "On the land: the catchment's edge.", kind: "ui" },
 
-  "overview.onLand.fdr": {
-    text: "On the land: every cell's March to June trend. The share comes from the false discovery rate check over all {n} cells; the map marks no cell as significant.",
-    kind: "ui",
-    honesty: true,
-  },
-
-  "overview.onLand.band": { text: "On the land: the area below {limit} m, lit.", kind: "ui" },
-  "overview.onLand.rain": {
-    text: "On the land: the {n} rainfall cells, darker where more of the cell lies inside the catchment.",
-    kind: "ui",
-  },
-  "overview.onLand.pixel": { text: "On the land: the pixel's outline.", kind: "ui" },
   "overview.lift.trend": {
     text: "{n} cells, {window}; {share} of the area greening after a false discovery rate check",
     kind: "ui",
@@ -716,26 +712,26 @@ export const en = {
   "overview.hover.band.mid": { text: "Middle third, {lower} to {upper} m", kind: "ui" },
   "overview.hover.band.high": { text: "Highest third, {limit} m and above", kind: "ui" },
   "overview.hover.drainage": { text: "Drainage line, order {order}", kind: "label" },
-  "overview.slopeKey": { text: "NDVI per decade, March to June", kind: "label" },
+  "overview.slopeKey": { text: "NDVI per decade, {window}", kind: "label" },
   "overview.record.band": { text: "Below {limit} m", kind: "label" },
   "overview.record.caption": {
-    text: "NDVI per decade, March to June, {from} to {to}",
+    text: "NDVI per decade, {window}, {from} to {to}",
     kind: "label",
   },
-  "overview.record.theilSen": {
-    text: "Theil-Sen line, interval at 95%: {lower} to {upper}. One point per season, the March to June mean.",
+  // decision 16: the card's interval is its fit and its numbers; how the seasons were averaged is in Sources
+  "overview.record.theilSen": { text: "Theil-Sen, 95%: {lower} to {upper}", kind: "label" },
+  "overview.record.ols": { text: "Least squares, 95%: {lower} to {upper}", kind: "label" },
+  "overview.onLand.fdrRule": {
+    text: "The map marks no cell as significant.",
     kind: "ui",
-  },
-  "overview.record.ols": {
-    text: "Least squares line, interval at 95%: {lower} to {upper}. One point per season, the March to June mean.",
-    kind: "ui",
+    honesty: true,
   },
   "overview.record.scatter": {
     text: "One point per season; the line is the straight-line fit across them.",
     kind: "ui",
   },
   "overview.record.ndvi": { text: "NDVI", kind: "label" },
-  "overview.record.rain": { text: "September to May, mm", kind: "label" },
+  "overview.record.rain": { text: "{window}, mm", kind: "label" },
   "overview.record.context": { text: "Published context", kind: "label" },
   // each record's one action, named by what the visitor will see (decision 13)
   "overview.open.layers": { text: "See the Five Layers", kind: "button" },
@@ -758,6 +754,14 @@ export const en = {
   "overview.crumb.routes": { text: "Proposed walking routes", kind: "label" },
   "overview.crumb.results": { text: "Findings", kind: "label" },
   "overview.failed": { text: "Overview not loaded. Reload the page to retry.", kind: "ui" },
+  "instrument.noBandLimits": {
+    text: "This case's record holds no two elevation band limits, so this view is not drawn.",
+    kind: "ui",
+  },
+  "overview.noLand": {
+    text: "This case's record holds no view of its land yet, so the land is not drawn.",
+    kind: "ui",
+  },
 
   // The ask: a matte circle that opens a fade from the bottom with the question typed in large type. Enter sends it
   // on the overview (the same commission as the valley's command line) and carries it to the overview from an

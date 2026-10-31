@@ -6,6 +6,7 @@
 // mouse hint is said in words. The journey moves the card with its point each frame (cardRef); no place is written here.
 
 import type { Ref } from "react";
+import { placeHref, type OtherPlace } from "../../lib/globe/places";
 import { en, format } from "../../lib/copy/en";
 import { Control } from "../controls/Control";
 import styles from "./Journey.module.css";
@@ -19,10 +20,13 @@ export interface GlobeCase {
 
 export function GlobePage({
   cases,
+  others = [],
   cardRef,
   onOpen,
   opened = false,
 }: {
+  /** The other places the seed-case listing holds (U25): each opens its own journey, wherever the globe stands. */
+  others?: readonly OtherPlace[];
   cases: GlobeCase[];
   /** The card the journey places beside the case's point (today the listing holds one case). */
   cardRef: Ref<HTMLDivElement>;
@@ -52,6 +56,16 @@ export function GlobePage({
       {opened ? null : (
         <div className={styles.hints}>
           <span className={styles.quiet}>{en["globe.drag"].text}</span>
+          {others.length ? (
+            <nav className={styles.others} aria-label={en["globe.others"].text}>
+              <span className={styles.quiet}>{en["globe.others"].text}</span>
+              {others.map((p) => (
+                <a key={p.caseId} href={placeHref(p.caseId)} data-other-place={p.caseId}>
+                  {format("globe.place", { place: p.name, region: p.region })}
+                </a>
+              ))}
+            </nav>
+          ) : null}
         </div>
       )}
     </div>

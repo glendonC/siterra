@@ -95,6 +95,8 @@ export interface SourceSet {
   lines: string[];
   /** The data's short names for the one visible line ("Copernicus DEM", "ESA WorldCover"). */
   short: string[];
+  /** The drawn relief's vertical exaggeration, said on the data line where land is drawn (decision 16). */
+  relief?: number;
 }
 
 /** The one short line of the data's names, always visible. */
@@ -103,6 +105,11 @@ export function SourcesLine({ sources }: { sources: SourceSet }) {
   return (
     <p className={styles.dataLine} data-sources-line>
       {format("chrome.data", { names: sources.short.join(", ") })}
+      {sources.relief === undefined ? null : (
+        <span className={styles.relief} data-relief>
+          {format("chrome.relief", { value: sources.relief })}
+        </span>
+      )}
     </p>
   );
 }

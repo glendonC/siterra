@@ -15,6 +15,7 @@ import {
   type ReactNode,
 } from "react";
 import { en, format, type MessageId } from "../../lib/copy/en";
+import { bandLimitsOf } from "../../lib/land/record";
 import { splitFigure } from "../../lib/instruments/caption";
 import { metres, percent, signed } from "../../lib/instruments/format";
 import {
@@ -77,13 +78,6 @@ const TREND_KEY = [
   sheetColours.trendKeyNeutral,
   ...sheetColours.trendAbove,
 ];
-
-function question(id: SheetId, d: LayerStackData): string {
-  const [from, to] = d.trend.period;
-  return id === "trend"
-    ? format("instrument.sheet.trend.question", { from, to })
-    : en[`instrument.sheet.${id}.question`].text;
-}
 
 function sheetKey(id: SheetId, d: LayerStackData): ReactNode {
   switch (id) {
@@ -331,7 +325,14 @@ export function InstrumentLayerStack({ teardown }: { teardown?: StackTeardown } 
       </p>
       {failed && (
         <p className={styles.failed} role="status">
-          {en["instrument.layers.failed"].text}
+          {/* a record without its two band limits is a blocked state, not a failure (AUDIT's U23 advisory) */}
+          {
+            en[
+              record.status === "ready" && bandLimitsOf(record.snapshot) === null
+                ? "instrument.noBandLimits"
+                : "instrument.layers.failed"
+            ].text
+          }
         </p>
       )}
       {data && caption && lead && !failed && (
@@ -387,7 +388,6 @@ export function InstrumentLayerStack({ teardown }: { teardown?: StackTeardown } 
                 <span className={styles.name}>{en[NAME[id]].text}</span>
                 <span className={styles.chip}>{i + 1}</span>
               </div>
-              <p className={styles.question}>{question(id, data)}</p>
               <div className={styles.key}>{sheetKey(id, data)}</div>
             </div>
           ))}

@@ -92,9 +92,8 @@ test("a finding opens on its own side with its footprint named, and a turned lan
   const left = page.locator("[data-record='fdr']");
   await expect(left).toHaveAttribute("data-side", "left");
   await expect(left.locator("[data-slope-key]")).toBeVisible();
-  await expect(left.locator("[data-on-land]")).toContainText(
-    "The share comes from the false discovery rate check over all 8,094 cells; the map marks no cell as significant.",
-  );
+  // decision 16: the card keeps the trend map's rule; the land shows the cells
+  await expect(left.locator("[data-on-land]")).toHaveText("The map marks no cell as significant.");
   // no ring label stays while a record is open, and the case question steps aside for a record on the left
   const opacity = (sel: string) =>
     page.locator(sel).evaluate((el) => Number(getComputedStyle(el).opacity));

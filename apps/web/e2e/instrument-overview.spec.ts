@@ -210,6 +210,16 @@ test("the pixel opens in place: its cards stand round its risen cells, 02 paints
     );
     const mine = boxes.find((b) => b.id === id);
     if (!mine) throw new Error(`card ${id}`);
+    // nor over its subject, the risen pixel (decision 14)
+    const [px0 = 0, py0 = 0, px1 = 0, py1 = 0] = ((await view.getAttribute("data-pixel-box")) ?? "")
+      .split(",")
+      .map(Number);
+    expect(px1 - px0).toBeGreaterThan(100);
+    expect(
+      Math.max(0, Math.min(mine.x1, px1) - Math.max(mine.x0, px0)) *
+        Math.max(0, Math.min(mine.y1, py1) - Math.max(mine.y0, py0)),
+      `${id} over the pixel`,
+    ).toBe(0);
     for (const b of boxes)
       if (b.id !== id)
         expect(
@@ -237,6 +247,69 @@ test("the pixel opens in place: its cards stand round its risen cells, 02 paints
   await expect(page.locator("[data-instrument='pixel']")).toHaveCount(0);
 });
 
+for (const [w, h] of [
+  [1440, 900],
+  [1440, 800],
+  [1280, 720],
+] as const)
+  test(`the pixel's open cards touch neither each other nor the data line at ${String(w)} x ${String(h)}`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: w, height: h });
+    await ready(page);
+    await page.locator("[data-finding='pixel']").click();
+    await page.locator("[data-record] [data-actions] a").first().click();
+    const view = page.locator("[data-instrument='pixel'][data-around]");
+    await expect(view.locator("[data-card='05']")).toBeVisible();
+    const boxes = await view.locator("[data-card]:visible").evaluateAll((els) =>
+      els.map((e) => {
+        const r = e.getBoundingClientRect();
+        return {
+          id: e.getAttribute("data-card"),
+          x0: r.left,
+          y0: r.top,
+          x1: r.right,
+          y1: r.bottom,
+        };
+      }),
+    );
+    for (const a of boxes)
+      for (const b of boxes)
+        if (a.id !== null && b.id !== null && a.id < b.id)
+          expect(
+            Math.max(0, Math.min(a.x1, b.x1) - Math.max(a.x0, b.x0)) *
+              Math.max(0, Math.min(a.y1, b.y1) - Math.max(a.y0, b.y0)),
+            `${a.id} and ${b.id}`,
+          ).toBe(0);
+    const line = await page.locator("[data-sources-line]:visible").first().boundingBox();
+    const c05 = boxes.find((b) => b.id === "05");
+    if (!line || !c05) throw new Error("the data line or card 05");
+    expect(c05.y1).toBeLessThanOrEqual(line.y);
+  });
+
+test("the browser's Back reopens a view left by Esc, and Back again plays it back to the land", async ({
+  page,
+}) => {
+  await ready(page);
+  await page.locator("[data-finding='band']").click();
+  await page.locator("[data-record] [data-actions] a").first().click();
+  await expect(page).toHaveURL(/\/instruments\/cutaway$/);
+  await expect(page.locator("[data-instrument='cutaway'] [data-band]").first()).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page).toHaveURL(/\/valley$/);
+  await expect(page.locator("[data-instrument='cutaway']")).toHaveCount(0, { timeout: 10_000 });
+  // Back: the address and the view agree again
+  await page.goBack();
+  await expect(page).toHaveURL(/\/instruments\/cutaway$/);
+  await expect(page.locator("[data-instrument='cutaway'] [data-band]").first()).toBeVisible({
+    timeout: 10_000,
+  });
+  // Back again: to the land, the view played back
+  await page.goBack();
+  await expect(page).toHaveURL(/\/valley$/);
+  await expect(page.locator("[data-instrument='cutaway']")).toHaveCount(0, { timeout: 10_000 });
+});
+
 test("the proposed routes lie on the land, lift on hover, open with the bundle's figures, and Esc returns", async ({
   page,
 }) => {
@@ -246,7 +319,7 @@ test("the proposed routes lie on the land, lift on hover, open with the bundle's
   await expect(ends).toHaveCount(4);
   const end = (member: string) => opacity(page, `[data-route-end='${member}']`);
   const entry = page.locator("[data-routes-entry]");
-  await expect(entry).toHaveText("Proposed walking routes, access unconfirmed");
+  await expect(entry).toHaveText("Proposed routes, access unconfirmed");
   // at rest the ends are quiet; hovering the one entry lifts every route
   await expect.poll(() => end("route_tabant_band_3")).toBeCloseTo(0.75, 2);
   await entry.hover();
@@ -256,21 +329,25 @@ test("the proposed routes lie on the land, lift on hover, open with the bundle's
   await entry.click();
   const record = page.locator("[data-record='routes']");
   await expect(record.locator("[data-route]")).toHaveCount(4);
+  // decision 16: one line per route; "one way" and "model estimates" said once in the caption
+  await expect(record.locator("[data-routes-caption]")).toContainText("one way. Model estimates.");
   await expect(record.locator("[data-route-figures]")).toHaveText([
-    "550 m, climb 20 m, estimated 12 min one way",
-    "500 m, climb 130 m, estimated 24 min one way",
-    "3.9 km, climb 560 m, estimated 2 h 20 min one way",
-    "6.6 km, climb 1,060 m, estimated 4 h 10 min one way",
+    "550 m, climb 20 m, 12 min",
+    "500 m, climb 130 m, 24 min",
+    "3.9 km, climb 560 m, 2 h 20 min",
+    "6.6 km, climb 1,060 m, 4 h 10 min",
   ]);
-  await expect(record.locator("[data-route]").first()).toContainText(
-    "Proposed route to the pixel the case opens",
-  );
+  await expect(record.locator("[data-route]").first()).toContainText("The pixel the case opens");
   await expect(record.locator("[data-route='route_tabant_band_2']")).toContainText(
-    "Proposed route to elevation band 2",
+    "Elevation band 2",
   );
-  await expect(record.locator("[data-route='route_tabant_band_2']")).toContainText(
+  await expect(record.locator("[data-routes-end]")).toHaveText(
     "Candidate site chosen by a stated rule",
   );
+  // the limits and the cost function wait behind their step
+  await expect(record.locator("[data-routes-cost]")).toBeHidden();
+  await record.locator("[data-routes-method]").click();
+  await expect(record.locator("[data-routes-not]")).toContainText("Model estimates, not");
   await expect(record.locator("[data-routes-cost]")).toHaveText(
     "Cost function: Tobler's hiking function, times 0.6 off path; horizontal length over speed, one way, no load, no rest.",
   );
