@@ -1,0 +1,242 @@
+/* A question at work on the overview (U29, specimen R), in the tokens of app/obsidian.css (no colour literal here).
+   Design px (the hud). The arc is the run's clock with its lanes; words only for what runs now and what the run
+   settled (decision 16): the question beside the ask disc, two running tasks at most, the explanations at the right,
+   the proposed check in amber on its leader to the catchment, a recording's note at the top right edge. */
+
+.atWork {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  color: var(--ov-ink);
+}
+
+.marks {
+  position: absolute;
+  inset: 0;
+  width: 1440px;
+  height: 900px;
+  overflow: visible;
+}
+
+.tick {
+  stroke: var(--ov-ink-3);
+  stroke-width: 1;
+}
+
+.lane {
+  fill: none;
+  stroke: var(--ov-ink-2);
+  stroke-width: 1.25;
+  opacity: 0.8;
+}
+
+/* heavier while its own model call runs (the specimen) */
+.laneCalling {
+  fill: none;
+  stroke: var(--ov-bright);
+  stroke-width: 2.5;
+}
+
+.taskDot {
+  fill: var(--ov-ink-2);
+}
+
+.head {
+  fill: var(--ov-bright);
+}
+
+.leader {
+  stroke: var(--ov-ink-3);
+  stroke-width: 1;
+}
+
+.checkLeader {
+  stroke: var(--ov-amber-tag);
+  stroke-width: 1;
+}
+
+.checkFoot {
+  fill: none;
+  stroke: var(--ov-amber-tag);
+  stroke-width: 1.5;
+}
+
+.taskCard {
+  position: absolute;
+  transform: translate(0, -50%);
+  white-space: nowrap;
+  text-shadow: var(--ov-halo-dark);
+}
+
+.taskCard[data-side="left"] {
+  transform: translate(-100%, -50%);
+  text-align: right;
+}
+
+.taskName {
+  display: block;
+  font-size: 15px;
+  line-height: 20px;
+}
+
+.taskLine {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--ov-ink-2);
+}
+
+/* the question beside the ask disc, set to its left like the specimen */
+.question {
+  position: absolute;
+  /* the room left of the ask disc, inside the screen's 40 px margin */
+  width: 290px;
+  text-align: right;
+  text-shadow: var(--ov-halo-dark);
+}
+
+.asked {
+  margin: 0 0 8px;
+  font-size: 26px;
+  font-weight: 300;
+  line-height: 31px;
+}
+
+.sofar {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--ov-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.open {
+  display: flex;
+  justify-content: flex-end;
+  margin: 10px 0 0;
+  pointer-events: auto;
+}
+
+.counts {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin: 6px 0 0;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--ov-ink-2);
+}
+
+.countItem {
+  white-space: nowrap;
+}
+
+.mark {
+  margin-right: 5px;
+  color: var(--ov-ink);
+}
+
+.branches {
+  position: absolute;
+  /* clear of the arc's right side (about x 1095 at 1440 x 900) */
+  right: 44px;
+  top: 300px;
+  width: 266px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  pointer-events: auto;
+  text-shadow: var(--ov-halo-dark);
+}
+
+.branch {
+  padding: 5px 0;
+  transition: opacity 0.6s ease;
+  animation: deal 380ms cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
+}
+
+.branch[data-status="contradicted"] {
+  opacity: 0.45;
+}
+
+.branchRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 15px;
+  line-height: 20px;
+}
+
+.branchWord {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--ov-ink-2);
+}
+
+.reason {
+  display: block;
+  margin-top: 4px;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--ov-ink-2);
+}
+
+.check {
+  position: absolute;
+  width: 170px;
+  text-align: right;
+  text-shadow: var(--ov-halo-dark);
+  animation: deal 420ms cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
+}
+
+.checkKicker {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--ov-amber-tag);
+}
+
+.checkLabel {
+  margin: 2px 0 0;
+  font-size: 17px;
+  line-height: 22px;
+  color: var(--ov-amber-tag);
+}
+
+.recording {
+  position: absolute;
+  right: 48px;
+  top: 40px;
+  text-align: right;
+}
+
+.recTitle {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+.recDetail {
+  margin: 2px 0 0;
+  font-size: 12px;
+  line-height: 17px;
+  color: var(--ov-ink-2);
+}
+
+@keyframes deal {
+  from {
+    opacity: 0;
+    transform: translateX(10px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .branch,
+  .check {
+    animation: none;
+  }
+}

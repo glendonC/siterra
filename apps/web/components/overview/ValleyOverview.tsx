@@ -12,7 +12,7 @@
 // places them from each render's layout, as the specimen's setState did.
 
 import type { CaseSnapshot, InstrumentListing } from "@siterra/contracts";
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import { useCallback, useContext, useEffect, useId, useMemo, useRef, useState } from "react";
 import { en, format, type MessageId } from "../../lib/copy/en";
 import { metres } from "../../lib/instruments/format";
 import type { LandPose } from "../../lib/land/handoff";
@@ -86,7 +86,11 @@ import {
 } from "../controls/ScreenChrome";
 import { Ask } from "./Ask";
 import type { CellPaint } from "../../lib/instruments/pixel/paint";
+import { runModel } from "../../lib/run/model";
+import { RecordedRunContext, lengthOf, revealed, useRecordedClock } from "../../lib/run/recorded";
+import { shortCitation } from "../../lib/overview/results";
 import { ActionList } from "./ActionList";
+import { AtWork } from "./AtWork";
 import { OverviewRecord } from "./OverviewRecord";
 import { OverviewResults } from "./OverviewResults";
 import { OverviewRoutes, type RoutesLoad } from "./OverviewRoutes";
@@ -374,6 +378,35 @@ function OverviewReady({
     () => (pkgBrief ? packageView(ask.snapshot, pkgBrief.id) : undefined),
     [ask.snapshot, pkgBrief],
   );
+  // a question at work (U29, specimen R): after Enter the run takes the arc, live from its own events
+  const [atWork, setAtWork] = useState(false);
+  const atWorkRef = useRef(atWork);
+  atWorkRef.current = atWork;
+  const askRun = useMemo(
+    () => (ask.commandId ? runModel(ask.snapshot, ask.events, ask.commandId) : null),
+    [ask.snapshot, ask.events, ask.commandId],
+  );
+  // a recorded run in place of the ask's live stream: the development harness only, and it says it is a recording
+  const recorded = useContext(RecordedRunContext);
+  const recClock = useRecordedClock(recorded);
+  const recRun = useMemo(
+    () =>
+      recorded
+        ? runModel(recorded.snapshot, revealed(recorded, recClock), recorded.commandId)
+        : null,
+    [recorded, recClock],
+  );
+  const run = recRun ?? askRun;
+  // a recorded run is at work from the start; the ask's own run once its question is sent
+  const atWorkShown = atWork || recorded !== null;
+  const [runArc, setRunArc] = useState<{
+    arc: Point[];
+    land: OverviewLayout["landBox"];
+    rimLeft: Point | null;
+  } | null>(null);
+  // the question as the visitor sent it, for the run's card beside the ask disc
+  const [sentText, setSentText] = useState("");
+  const runArcKey = useRef("");
   const refresh = useRecordsRefresh();
   const reopening = useRef<number | null>(null);
   useEffect(() => {
@@ -709,6 +742,14 @@ function OverviewReady({
         },
       };
       for (const f of standSubs.current) f(at);
+    }
+    // the drawn arc for a run at work, kept only when it moved
+    const a0 = layout.arcAt[0];
+    const a1 = layout.arcAt[layout.arcAt.length - 1];
+    const key = a0 && a1 ? [a0.x, a0.y, a1.x, a1.y].map((v) => v.toFixed(0)).join(",") : "";
+    if (key !== runArcKey.current) {
+      runArcKey.current = key;
+      setRunArc({ arc: layout.arcAt, land: layout.landBox, rimLeft: layout.rimLeft });
     }
     const { s, h, k, o } = live.current;
     const { fit, e } = layout;
@@ -1626,6 +1667,7 @@ function OverviewReady({
           setRainWide(false);
           goTo("/valley");
         } else if (selRef.current) back();
+        else if (atWorkRef.current) setAtWork(false);
         else toOpening();
       } else if (ev.key === "Enter" || /^[a-zA-Z]$/.test(ev.key)) {
         // the action keys of the opened card, or of the label under the cursor (decision 15); Enter on a focused
@@ -2069,6 +2111,7 @@ function OverviewReady({
       data-overview-root
       data-arriving={arriving ? "" : undefined}
       data-tearing={tear !== null ? "" : undefined}
+      data-at-work={atWorkShown && run && !sel ? (run.done ? "done" : "running") : undefined}
       data-covered={tear?.shown ? (tear.kind === "pixel" ? "land" : "") : undefined}
       data-case-revision={snapshot.case.revision}
     >
@@ -2083,6 +2126,29 @@ function OverviewReady({
         <div ref={questionRef} className={styles.question} data-case-question>
           {snapshot.case.objective}
         </div>
+        {atWorkShown && run && !sel && runArc ? (
+          <AtWork
+            run={run}
+            arc={runArc.arc}
+            question={recorded?.question ?? sentText}
+            onFindings={() => {
+              open("results");
+            }}
+            rimLeft={runArc.rimLeft}
+            {...(recorded
+              ? {
+                  nowMs: recClock,
+                  recording: { speed: recorded.speed, length: lengthOf(recorded) },
+                }
+              : {})}
+            sourceName={(id) => {
+              const src = (recorded?.snapshot ?? ask.snapshot).records.sourceRecords.find(
+                (x) => x.id === id,
+              );
+              return src ? shortCitation(src) : en["results.unknownSource"].text;
+            }}
+          />
+        ) : null}
         <div ref={liftRef} className={styles.lift}>
           <svg className={styles.marks} aria-hidden="true">
             {findings.map((f) => (
@@ -2312,7 +2378,13 @@ function OverviewReady({
             onClose={onAskClose}
             text={askText}
             onText={setAskText}
-            onEnter={ask.send}
+            onEnter={(text) => {
+              // the run takes the arc; the ask closes so the land and the arc can show it
+              setAtWork(true);
+              setSentText(text);
+              setAskOpen(false);
+              ask.send(text);
+            }}
             activity={ask.activity}
             onFindings={() => {
               open("results");
