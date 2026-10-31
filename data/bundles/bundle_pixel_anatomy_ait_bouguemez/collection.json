@@ -8,8 +8,8 @@
   "https://siterra.invalid/schemas/stac/siterra/1.1.0/schema.json"
  ],
  "id": "bundle_pixel_anatomy_ait_bouguemez",
- "title": "One MODIS pixel opened into its 10 m cells (pixel_anatomy 1.0.0)",
- "description": "Precomputed result of recipe pixel_anatomy 1.0.0 for MODIS pixel h17v05r4005c2178 of Ait Bouguemez valley catchment (bundle row 51, column 58, centre 31.655208 N, 6.416024 W): 537 cells of 10 m, tree cover 215 cells (40.0%), grassland 254 cells (47.3%), cropland 32 cells (6.0%), bare or sparse vegetation 36 cells (6.7%). Class spectra from S2B_29SQR_20250611_0_L2A (2025-06-11); the pixel's measured NDVI on that day is 0.4766, a linear mix of the class medians (modelled) gives 0.4450; its own March to June greenness over 26 seasons has a Theil-Sen slope of +0.0570 NDVI per decade (95% interval +0.0374 to +0.0845). The pixel is an illustration chosen by judgment (rank 3 of 391 candidates), not a sample.\n\nOne pixel is an illustration, not a sample: it was chosen by judgment among the candidates of a rule (the selection record gives their number and its rank), and it says nothing about other pixels. The class spectra come from one clear day, the cells of each class inside this pixel, and one 2021 land cover map. They are not typical spectra of the classes, and a 10 m cell at the edge of a class mixes surfaces. The mix model assumes the pixel's reflectance is the share-weighted sum of its class medians. It ignores shadow, slope and variation inside a class, so its NDVI is modelled, not measured, and it differs from the measured pixel NDVI by the amount stored. NDVI measures how green the ground looks from above, not forage, palatability or species: in Ait Bouguemez and the Central High Atlas, upper rangelands are dominated by spiny xerophytic vegetation over reduced short grasslands (SCI-19, p. 2), and on the valley floor tree cover may include orchards (SCI-03, pp. 5, 9 to 10). The 26-season series is the pixel's own March to June greenness, not adjusted for rainfall. Its trend is a descriptive Theil-Sen slope with Sen's 95% interval, and no p-value or false discovery rate class is stored for one pixel (SCI-52). Terra's overpass has drifted earlier since 2020, from 10:30 to about 9:06 mean local time by December 2025 (NASA), so later seasons are seen with a lower sun and longer shadows in mountain terrain, which may shift NDVI without any change on the ground. The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary.",
+ "title": "One MODIS pixel opened into its 10 m cells (pixel_anatomy 1.1.0)",
+ "description": "Precomputed result of recipe pixel_anatomy 1.1.0 for MODIS pixel h17v05r4005c2178 of Ait Bouguemez valley catchment (bundle row 51, column 58, centre 31.655208 N, 6.416024 W): 537 cells of 10 m, tree cover 215 cells (40.0%), grassland 254 cells (47.3%), cropland 32 cells (6.0%), bare or sparse vegetation 36 cells (6.7%). Class spectra from S2B_29SQR_20250611_0_L2A (2025-06-11); the pixel's measured NDVI on that day is 0.4766, a linear mix of the class medians (modelled) gives 0.4450; its own March to June greenness over 26 seasons has a Theil-Sen slope of +0.0570 NDVI per decade (95% interval +0.0374 to +0.0845). The pixel is an illustration chosen by judgment (rank 3 of 391 candidates), not a sample.\n\nOne pixel is an illustration, not a sample: it was chosen by judgment among the candidates of a rule (the selection record gives their number and its rank), and it says nothing about other pixels. The class spectra come from one clear day, the cells of each class inside this pixel, and one 2021 land cover map. They are not typical spectra of the classes, and a 10 m cell at the edge of a class mixes surfaces. The mix model assumes the pixel's reflectance is the share-weighted sum of its class medians. It ignores shadow, slope and variation inside a class, so its NDVI is modelled, not measured, and it differs from the measured pixel NDVI by the amount stored. NDVI measures how green the ground looks from above, not forage, palatability or species: in Ait Bouguemez and the Central High Atlas, upper rangelands are dominated by spiny xerophytic vegetation over reduced short grasslands (SCI-19, p. 2), and on the valley floor tree cover may include orchards (SCI-03, pp. 5, 9 to 10). The 26-season series is the pixel's own March to June greenness, not adjusted for rainfall. Its trend is a descriptive Theil-Sen slope with Sen's 95% interval, and no p-value or false discovery rate class is stored for one pixel (SCI-52). Terra's overpass has drifted earlier since 2020, from 10:30 to about 9:06 mean local time by December 2025 (NASA), so later seasons are seen with a lower sun and longer shadows in mountain terrain, which may shift NDVI without any change on the ground. The catchment is a hydrological analysis extent, not a pasture, agdal or management boundary.",
  "license": "other",
  "providers": [
   {
@@ -126,8 +126,8 @@
    "roles": [
     "data"
    ],
-   "file:checksum": "1220fb7631f73d776e921655b6705f858472cda236e461dac6487dc443ba7548ee1b",
-   "file:size": 14517
+   "file:checksum": "1220ebca50acafde41b5fa1f8191f0bd740f94f7e611802afefb66b701246bad64ef",
+   "file:size": 14553
   },
   "pixel_cells": {
    "href": "./pixel-cells.json",
@@ -136,7 +136,7 @@
    "roles": [
     "data"
    ],
-   "file:checksum": "122077dfa7ade4b730b4976c23becfd50a87f592857766cd6024ae58e9e6509af375",
+   "file:checksum": "1220e40400e7df69d2d634494383f62e11b342ddf1579b8fc11174be0a8472034d94",
    "file:size": 21419
   },
   "pixel_spectra": {
@@ -146,7 +146,7 @@
    "roles": [
     "data"
    ],
-   "file:checksum": "1220f024b5a7aa8611aba230dc323c7a639217046d0cc2824e2548ed6ddb4c1ecd0a",
+   "file:checksum": "12204d08e7da8dc52d3a25c1e5215d13f7e8aa660d971e9ba3286690f0137572a701",
    "file:size": 15355
   },
   "pixel_series": {
@@ -156,7 +156,7 @@
    "roles": [
     "data"
    ],
-   "file:checksum": "1220d028684ae68dad54dd73bd5eacdcd63ad9e792898794db10df6b10273ed24a41",
+   "file:checksum": "1220b934a86d121281e40fbdc5f70b9e13498ce57f4b48445049c6f9138e9cc88137",
    "file:size": 7613
   },
   "scene_record": {
@@ -335,7 +335,7 @@
    "file:size": 1145
   }
  },
- "created": "2026-10-29T11:09:47Z",
+ "created": "2026-10-30T23:29:41Z",
  "siterra:status": "validated",
  "siterra:variable": "pixel_anatomy",
  "siterra:dataset": {
@@ -353,10 +353,10 @@
  },
  "siterra:method": {
   "id": "pixel_anatomy",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "analysis_crs": "EPSG:32629",
   "parameters": {
-   "place_configuration": "science/places/ait-bouguemez.json revision 5, sha256 8dd58b05777039e64773148647bcefd408a8b49d8dc54465830918e31caef7ec",
+   "place_configuration": "science/places/ait-bouguemez.json revision 13, sha256 d37f674d71e85ad7f7f0bf9b6b065142c14430507579633c1c3f8cf64ff6c17b",
    "pixel": "h17v05r4005c2178",
    "window_margin_cells": 1,
    "scl_kept": [

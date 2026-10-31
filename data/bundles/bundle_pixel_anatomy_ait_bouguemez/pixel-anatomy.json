@@ -1,11 +1,11 @@
 {
  "recipeId": "pixel_anatomy",
- "version": "1.0.0",
- "computed": "2026-10-29T11:09:47Z",
+ "version": "1.1.0",
+ "computed": "2026-10-30T23:29:41Z",
  "place": {
   "placeId": "ait_bouguemez",
-  "configRevision": 5,
-  "config_sha256": "8dd58b05777039e64773148647bcefd408a8b49d8dc54465830918e31caef7ec"
+  "configRevision": 13,
+  "config_sha256": "d37f674d71e85ad7f7f0bf9b6b065142c14430507579633c1c3f8cf64ff6c17b"
  },
  "claim_kinds": {
   "composition_and_spectra": "observation",
@@ -42,7 +42,7 @@
     31.654167
    ]
   ],
-  "footprint_corners_utm29n": [
+  "footprint_corners": [
    [
     744891.24,
     3505232.54
@@ -60,6 +60,7 @@
     3505001.85
    ]
   ],
+  "footprint_corners_crs": "EPSG:32629",
   "footprint_cells": 537,
   "catchment_cells": 537
  },
@@ -117,7 +118,7 @@
    "3": 0
   }
  },
- "june_ndvi": {
+ "month_ndvi": {
   "month": "2025-06",
   "cells_with_value": 537,
   "median_of_cells": 0.5463,
