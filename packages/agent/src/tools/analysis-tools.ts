@@ -1,3 +1,4 @@
+import { asEntityId, inferStratumFromText } from "@siterra/contracts";
 import type { CaseAnalysisConfig, SeriesPair } from "@siterra/contracts";
 import { z } from "zod";
 
@@ -106,6 +107,17 @@ export function compareSeriesTool(store: CaseStore, caseId: string): ToolHandler
     },
     summarize: (args) =>
       `${args.a.bundleId} ${args.a.metric} against ${args.b.bundleId} ${args.b.metric}`,
+    target: (args) => ({
+      kind: "land",
+      stratumId:
+        inferStratumFromText(args.a.metric) ?? inferStratumFromText(args.a.bundleId) ?? "catchment",
+      bundleId: asEntityId(args.a.bundleId),
+      recipeId: "aligned_antecedent",
+      sourceId: null,
+      pages: [],
+      sections: [],
+      queryTerms: [],
+    }),
     datasetIds: (args) => [args.a.bundleId, args.b.bundleId],
     run: async (args) => {
       const pair = configuredPair(await store.readAnalysisConfig(caseId), args);
@@ -205,6 +217,16 @@ export function readEvidenceTool(store: CaseStore, caseId: string): ToolHandler<
     },
     summarize: (args) =>
       `${args.evidenceIds.length} evidence ${args.evidenceIds.length === 1 ? "record" : "records"}`,
+    target: () => ({
+      kind: "case",
+      stratumId: null,
+      bundleId: null,
+      recipeId: null,
+      sourceId: null,
+      pages: [],
+      sections: [],
+      queryTerms: [],
+    }),
     run: async (args) => {
       const found = await store.readEvidence(caseId, [...new Set(args.evidenceIds)]);
       const records = found.map((e) => ({
@@ -238,6 +260,16 @@ export function listRecipesTool(store: CaseStore, caseId: string): ToolHandler<L
     parameters: argumentSchema(ListRecipesArgs),
     parse: (args) => parseWith(ListRecipesArgs, args),
     summarize: () => "recipe catalog",
+    target: () => ({
+      kind: "bundle",
+      stratumId: null,
+      bundleId: null,
+      recipeId: null,
+      sourceId: null,
+      pages: [],
+      sections: [],
+      queryTerms: [],
+    }),
     run: async () => {
       const recipes = await store.listRecipes(caseId);
       const bundles = await store.listBundles(caseId);
@@ -293,6 +325,16 @@ export function readRecipeResultTool(
     parameters: argumentSchema(ReadRecipeArgs),
     parse: (args) => parseWith(ReadRecipeArgs, args),
     summarize: (args) => `${args.recipeId} ${args.version} from ${args.bundleId}`,
+    target: (args) => ({
+      kind: "land",
+      stratumId: inferStratumFromText(args.bundleId) ?? "catchment",
+      bundleId: asEntityId(args.bundleId),
+      recipeId: args.recipeId.length >= 1 ? args.recipeId : null,
+      sourceId: null,
+      pages: [],
+      sections: [],
+      queryTerms: [],
+    }),
     datasetIds: (args) => [args.bundleId],
     run: async (args) => {
       const bundle = await store.readBundle(caseId, args.bundleId);

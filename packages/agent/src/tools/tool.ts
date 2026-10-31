@@ -1,4 +1,4 @@
-import type { Task } from "@siterra/contracts";
+import type { Task, ToolCallTarget } from "@siterra/contracts";
 
 import type { JsonSchema } from "../model/types.ts";
 
@@ -35,6 +35,8 @@ export interface ToolHandler<A = unknown> {
   parse(args: unknown): ParsedArgs<A>;
   /** Sanitized, human-readable summary for the trace (at most 500 characters), written by code. */
   summarize(args: A): string;
+  /** Structured target for the Phase 2 AI View (Agent Tree, Agent Cursors, Thinking State). */
+  target?(args: A): ToolCallTarget | null;
   /** Throws `ToolFailure` for an expected refusal (unknown bundle, stale revision). */
   run(args: A, signal: AbortSignal): Promise<ToolOutput>;
   /**

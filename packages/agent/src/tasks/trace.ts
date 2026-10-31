@@ -1,3 +1,5 @@
+import type { ToolCallTarget } from "@siterra/contracts";
+
 import type { ModelCallResult, ModelRoute, ReplayOrigin } from "../model/types.ts";
 import type { ToolName } from "../tools/tool.ts";
 import type { ValidationResult } from "./validation.ts";
@@ -47,6 +49,7 @@ export interface ToolCallDraft {
   resultEntityIds: string[];
   errorCode: string | null;
   attempt: number;
+  target?: ToolCallTarget | null;
 }
 
 export interface TraceEventDraft {

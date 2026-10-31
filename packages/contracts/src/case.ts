@@ -778,6 +778,18 @@ export const ModelUsage = z.strictObject({
 });
 export type ModelUsage = z.infer<typeof ModelUsage>;
 
+export const ToolCallTarget = z.strictObject({
+  kind: z.enum(["land", "source", "bundle", "case"]),
+  stratumId: z.string().min(1).nullable(),
+  bundleId: entityId.nullable(),
+  recipeId: z.string().min(1).nullable(),
+  sourceId: entityId.nullable(),
+  pages: z.array(z.int().min(1)),
+  sections: z.array(z.string().min(1)),
+  queryTerms: z.array(z.string().min(1)),
+});
+export type ToolCallTarget = z.infer<typeof ToolCallTarget>;
+
 export const ToolCallInfo = z.strictObject({
   name: z.enum([
     "read_case",
@@ -811,6 +823,7 @@ export const ToolCallInfo = z.strictObject({
   resultEntityIds: z.array(entityId),
   errorCode: z.string().min(1).nullable(),
   attempt: z.int().min(1).max(3),
+  target: ToolCallTarget.nullable().optional(),
 });
 export type ToolCallInfo = z.infer<typeof ToolCallInfo>;
 
@@ -1539,6 +1552,7 @@ export const caseDefinitions = {
   CaseSnapshot,
   Commit,
   Uncertainty,
+  ToolCallTarget,
   ToolCallInfo,
   ModelUsage,
   ValidationResult,
