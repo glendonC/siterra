@@ -438,8 +438,6 @@ export function PackageBriefing({
                           {t("review.recordChanges")}
                         </Control>
                         <Control
-                          keyHint="Enter"
-                          keyShortcut="Enter"
                           data-review-approve=""
                           onClick={() => {
                             setNoteOpen(false);

@@ -61,10 +61,10 @@ describe("verdictOf", () => {
       expect(c.prediction.length).toBeGreaterThan(10);
       expect(c.reason.length).toBeGreaterThan(10);
       expect(c.prediction).not.toMatch(
-        /\b(?:period_|season_|branch_|merge@|ndvi_departure|snow_suspected|terrain_shadow_suspected|low_scene_count|vegetation_rainfall|elevation_low|elevation_high)\b/,
+        /\b(?:period_|season_|branch_|merge@|ndvi_departure|snow_suspected|terrain_shadow_suspected|low_scene_count|vegetation_rainfall|elevation_low|elevation_high)[A-Za-z0-9_-]*\b/,
       );
       expect(c.reason).not.toMatch(
-        /\b(?:period_|season_|branch_|merge@|ndvi_departure|snow_suspected|terrain_shadow_suspected|low_scene_count|vegetation_rainfall|elevation_low|elevation_high|p[1-4])\b/,
+        /\b(?:period_|season_|branch_|merge@|ndvi_departure|snow_suspected|terrain_shadow_suspected|low_scene_count|vegetation_rainfall|elevation_low|elevation_high|p[1-4])[A-Za-z0-9_-]*\b/,
       );
       expect(c.prediction).not.toMatch(/[\u2013\u2014]/);
       expect(c.reason).not.toMatch(/[\u2013\u2014]/);
@@ -90,10 +90,10 @@ describe("verdictOf", () => {
     ]);
     for (const c of v?.causes ?? []) {
       expect(c.prediction).not.toMatch(
-        /\b(?:period_|season_|branch_|merge@|ndvi_departure|snow_suspected|terrain_shadow_suspected|low_scene_count|vegetation_rainfall|elevation_low|elevation_high)\b/,
+        /\b(?:period_|season_|branch_|merge@|ndvi_departure|snow_suspected|terrain_shadow_suspected|low_scene_count|vegetation_rainfall|elevation_low|elevation_high)[A-Za-z0-9_-]*\b/,
       );
       expect(c.reason).not.toMatch(
-        /\b(?:period_|season_|branch_|merge@|ndvi_departure|snow_suspected|terrain_shadow_suspected|low_scene_count|vegetation_rainfall|elevation_low|elevation_high|p[1-4])\b/,
+        /\b(?:period_|season_|branch_|merge@|ndvi_departure|snow_suspected|terrain_shadow_suspected|low_scene_count|vegetation_rainfall|elevation_low|elevation_high|p[1-4])[A-Za-z0-9_-]*\b/,
       );
     }
   });

@@ -41,11 +41,22 @@ test("the recorded run at work: one running task's card, its findings so far, an
   await expect(work.locator("[data-run-status]")).toHaveText("Findings so far: 17");
   await expect(work.locator("[data-run-card]")).toHaveCount(1);
   await expect(work.locator("[data-run-card]")).toContainText("Livelihoods & Governance");
+  await expect(work.locator("[data-agent-tree]")).toBeVisible();
+  await expect(work.locator("[data-agent-cursor]")).toHaveCount(1);
+  await expect(work.locator("[data-agent-cursor]")).toContainText("Reading El Aayadi et al. 2026");
   await expect(work.locator("[data-run-replay]")).toContainText("Recorded run, 30 Oct 2026");
   await expect(work.locator("[data-run-branches]")).toHaveCount(0);
   const n = await words(page);
   expect(n).toBeGreaterThan(10);
   expect(n).toBeLessThanOrEqual(40);
+  // Following one agent opens its Steps card with searched chips and ordered steps, and dims sibling lanes
+  await page.keyboard.press(" ");
+  await expect(work.locator("[data-agent-thinking]")).toBeVisible();
+  await expect(work.locator("[data-thinking-chip]")).toContainText(["Herrera 2024"]);
+  await expect(work.locator("[data-thinking-step]").first()).toContainText(
+    "Searching published sources",
+  );
+  await expect(work.locator("[data-run-task][data-dimmed]")).not.toHaveCount(0);
 });
 
 test("the recorded run settled: its count and time, the open explanations first, the proposed check; Enter reads the findings", async ({
@@ -72,6 +83,7 @@ test("the recorded run settled: its count and time, the open explanations first,
   ]);
   await expect(work.locator("[data-run-check]")).toContainText("Local Rain Records");
   await expect(work.locator("[data-run-card]")).toHaveCount(0);
+  await expect(work.locator("[data-agent-review] [data-needs-you]")).toHaveText("Needs You");
   const n = await words(page);
   expect(n).toBeGreaterThan(20);
   expect(n).toBeLessThanOrEqual(45);

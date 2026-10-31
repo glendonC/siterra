@@ -9,6 +9,14 @@ export interface Pt {
   y: number;
 }
 
+export interface CursorSlot {
+  task: RunTask;
+  at: Pt;
+  targetKind: "land" | "bundle" | "source";
+  stratumId: string | null;
+  label: string;
+}
+
 /**
  * How far round the arc a moment is (0 to 1): the run's length once done, or a recording's known length throughout;
  * while a live run runs, room ahead of now.
@@ -73,4 +81,72 @@ export function lanesOf(tasks: readonly RunTask[], nowMs: number): Map<string, n
     lanes.set(t.id, lane);
   }
   return lanes;
+}
+
+function anchorForTarget(
+  centre: Pt,
+  radius: number,
+  targetKind: "land" | "bundle" | "source",
+  stratumId: string | null,
+  occurrenceIndex: number,
+): Pt {
+  if (targetKind === "source") {
+    return {
+      x: centre.x - radius * 0.44 + occurrenceIndex * 30,
+      y: centre.y - radius * 0.44 - occurrenceIndex * 34,
+    };
+  }
+  switch (stratumId) {
+    case "valley_floor":
+      return {
+        x: centre.x - radius * 0.16 + occurrenceIndex * 28,
+        y: centre.y + radius * 0.1 + occurrenceIndex * 34,
+      };
+    case "mid_slope":
+      return {
+        x: centre.x + radius * 0.16 + occurrenceIndex * 28,
+        y: centre.y - radius * 0.06 + occurrenceIndex * 34,
+      };
+    case "upper_basin":
+      return {
+        x: centre.x + radius * 0.22 + occurrenceIndex * 28,
+        y: centre.y - radius * 0.22 + occurrenceIndex * 34,
+      };
+    case "water_zone":
+      return {
+        x: centre.x - radius * 0.22 + occurrenceIndex * 28,
+        y: centre.y + radius * 0.16 + occurrenceIndex * 34,
+      };
+    default:
+      return {
+        x: centre.x + radius * 0.14 + occurrenceIndex * 28,
+        y: centre.y - radius * 0.14 + occurrenceIndex * 34,
+      };
+  }
+}
+
+/** Agent cursors on the land and sources, placed deterministically from running tasks' tool events. */
+export function cursorPointsOf(
+  tasks: readonly RunTask[],
+  centre: Pt,
+  radius: number,
+): CursorSlot[] {
+  const bucketCounts = new Map<string, number>();
+  const cursors: CursorSlot[] = [];
+  for (const task of tasks) {
+    if (task.state !== "running" || !task.activeTarget || !task.activeLabel) continue;
+    const kind = task.activeTarget.kind;
+    if (kind !== "land" && kind !== "bundle" && kind !== "source") continue;
+    const key = `${kind}:${task.activeTarget.stratumId ?? ""}`;
+    const idx = bucketCounts.get(key) ?? 0;
+    bucketCounts.set(key, idx + 1);
+    cursors.push({
+      task,
+      at: anchorForTarget(centre, radius, kind, task.activeTarget.stratumId, idx),
+      targetKind: kind,
+      stratumId: task.activeTarget.stratumId,
+      label: task.activeLabel,
+    });
+  }
+  return cursors;
 }
