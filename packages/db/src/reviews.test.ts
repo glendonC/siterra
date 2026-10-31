@@ -4,7 +4,7 @@ import { createCase } from "./cases.ts";
 import type { Pool } from "./client.ts";
 import { applyCommit } from "./commit.ts";
 import { eventsAfter } from "./events.ts";
-import { consultationCondition, recordReview } from "./reviews.ts";
+import { consultationCondition, recordPlanReviewDecision, recordReview } from "./reviews.ts";
 import { readSnapshot } from "./snapshot.ts";
 import { type TestDatabase, freshDatabase } from "./test-database.ts";
 import { at, exampleCase, exampleCommit } from "./test-records.ts";
@@ -226,5 +226,109 @@ describe("SA-03 (action part): an action is prepared only when its completable r
 
     const late = await decide("prepare-0004", { decision: "changes_requested" });
     expect(late.status).toBe("stale");
+  });
+
+  it("recordPlanReviewDecision records approved or changes_requested on the latest Brief/OperationalAction keeping externalExecutionEnabled false", async () => {
+    const planCase = exampleCase("case_example_plan_review");
+    await createCase(pool, planCase, owner);
+    const planAction = { ...action(1), caseId: planCase.id, id: "act_example_plan_1" };
+    const planBrief = {
+      recordType: "Brief" as const,
+      id: "brief_example_plan_1",
+      revision: 1,
+      createdAt: at,
+      updatedAt: at,
+      caseId: planCase.id,
+      title: "Example assembly brief",
+      status: "ready_for_review" as const,
+      sourceCaseRevision: 1,
+      evidenceIds: [],
+      hypothesisIds: [],
+      interventionIds: [],
+      actionIds: [planAction.id],
+      known: [],
+      uncertain: [],
+      nextMeasurements: [],
+      stakeholderRoles: [],
+      preparedActions: [],
+      authorizationRequired: [],
+      nextSteps: [],
+      reviewDecisionIds: [],
+      limitations: [],
+      mode: "concept" as const,
+      provenance: {
+        sourceLocators: [],
+        dataBundleIds: [],
+        methodId: null,
+        methodVersion: null,
+        inputVersions: [],
+        generatedByTaskId: null,
+        generatedAt: at,
+        verificationStatus: "unverified" as const,
+        limitations: [],
+      },
+    };
+    const committed = await applyCommit(
+      pool,
+      exampleCommit(planCase, {
+        id: "commit_example_plan_review",
+        expected: 1,
+        upserts: [planAction, planBrief],
+      }),
+    );
+    expect(committed.status).toBe("committed");
+
+    const approved = await recordPlanReviewDecision(pool, {
+      caseId: planCase.id,
+      ownerScopeId: owner,
+      request: {
+        decision: "approved",
+        note: "Reviewed by the assembly representative.",
+        idempotencyKey: "plan-review-0001",
+      },
+    });
+    expect(approved.status).toBe("created");
+    if (approved.status !== "created") throw new Error(approved.status);
+    expect(approved.review.status).toBe("approved");
+    expect(approved.review.comments).toBe("Reviewed by the assembly representative.");
+    expect(approved.review.actionId).toBe(planAction.id);
+    expect(approved.review.reviewedEntityVersions).toEqual([
+      { entityId: planBrief.id, revision: 1 },
+      { entityId: planAction.id, revision: 1 },
+    ]);
+
+    const replayed = await recordPlanReviewDecision(pool, {
+      caseId: planCase.id,
+      ownerScopeId: owner,
+      request: {
+        decision: "approved",
+        note: "Reviewed by the assembly representative.",
+        idempotencyKey: "plan-review-0001",
+      },
+    });
+    expect(replayed.status).toBe("replayed");
+
+    const snapshot = await readSnapshot(pool, planCase.id, owner);
+    const updatedAction = snapshot?.records.operationalActionRecords[0];
+    const updatedBrief = snapshot?.records.briefRecords[0];
+    expect(updatedAction?.externalExecutionEnabled).toBe(false);
+    expect(updatedAction?.reviewDecisionIds).toContain(approved.review.id);
+    expect(updatedBrief?.reviewDecisionIds).toContain(approved.review.id);
+    expect(updatedBrief?.status).toBe("prepared");
+
+    const changes = await recordPlanReviewDecision(pool, {
+      caseId: planCase.id,
+      ownerScopeId: owner,
+      request: {
+        decision: "changes_requested",
+        note: "Check herd records before seasonal calendar.",
+      },
+    });
+    expect(changes.status).toBe("created");
+    const snapshotAfter = await readSnapshot(pool, planCase.id, owner);
+    expect(snapshotAfter?.records.operationalActionRecords[0]?.externalExecutionEnabled).toBe(
+      false,
+    );
+    expect(snapshotAfter?.records.briefRecords[0]?.status).toBe("ready_for_review");
   });
 });

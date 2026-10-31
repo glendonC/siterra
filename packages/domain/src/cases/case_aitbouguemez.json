@@ -666,5 +666,22 @@
         "grey": "Proposed only: no visit is scheduled and no access or permission is implied."
       }
     }
+  ],
+  "suggestedQuestions": [
+    {
+      "id": "valley_greener",
+      "question": "Is grazing changing the shared pastures of the Aït Bouguemez valley?",
+      "measurementId": "meas_trend_unadjusted_catchment_mar_jun"
+    },
+    {
+      "id": "pixel_trees",
+      "question": "Why can a pixel get greener while its pasture does not?",
+      "measurementId": "meas_pixel_anatomy_share_tree_cover_2021"
+    },
+    {
+      "id": "rainfall_change",
+      "question": "How much of the valley's greenness change does wet-season rainfall explain?",
+      "measurementId": "meas_rainfall_fit_r_squared_catchment_mar_jun"
+    }
   ]
 }

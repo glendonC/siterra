@@ -1,6 +1,7 @@
 // Request and response bodies that schemas/openapi.json adds to the case records: the command and
 // review requests, problem details, the stream reset message, the trace and the usage response.
 import { z } from "zod";
+import { SuggestedQuestion } from "./analysis-config.ts";
 import {
   BundleAssetRef,
   CanvasComponent,
@@ -35,6 +36,19 @@ export const ReviewRequest = z.strictObject({
   idempotencyKey: Command.shape.idempotencyKey,
 });
 export type ReviewRequest = z.infer<typeof ReviewRequest>;
+
+export const PlanReviewDecisionRequest = z.strictObject({
+  decision: z.enum(["approved", "changes_requested"]),
+  note: z
+    .string()
+    .max(500)
+    .refine((s: string) => !s.includes("\u0000"), {
+      error: "Must not contain null bytes",
+    })
+    .optional(),
+  idempotencyKey: Command.shape.idempotencyKey.optional(),
+});
+export type PlanReviewDecisionRequest = z.infer<typeof PlanReviewDecisionRequest>;
 
 export const ProblemCode = z.enum([
   "invalid_request",
@@ -208,5 +222,7 @@ export const InstrumentListing = z.strictObject({
     .optional(),
   /** The rules whose explanations are not in play, so the composer did not try them. */
   notOpened: z.array(z.string().min(1)).optional(),
+  /** Up to 3 starter questions from the case configuration whose cited records are available in the case. */
+  suggestedQuestions: z.array(SuggestedQuestion).max(3).optional(),
 });
 export type InstrumentListing = z.infer<typeof InstrumentListing>;

@@ -242,6 +242,13 @@ export const InstrumentRule = z.discriminatedUnion("from", [
 ]);
 export type InstrumentRule = z.infer<typeof InstrumentRule>;
 
+export const SuggestedQuestion = z.strictObject({
+  id: configKey,
+  question: text({ min: 1, max: 200 }),
+  measurementId: entityId,
+});
+export type SuggestedQuestion = z.infer<typeof SuggestedQuestion>;
+
 export const CaseAnalysisConfig = z
   .strictObject({
     configVersion: z.literal(analysisConfigVersion),
@@ -283,6 +290,15 @@ export const CaseAnalysisConfig = z
       .refine(
         uniqueBy((r: InstrumentRule) => r.id),
         { error: "Instrument rule IDs must be unique" },
+      )
+      .optional(),
+    /** Up to 3 starter questions whose cited measurements or evidence exist in the case seed. */
+    suggestedQuestions: z
+      .array(SuggestedQuestion)
+      .max(3)
+      .refine(
+        uniqueBy((q: SuggestedQuestion) => q.id),
+        { error: "Suggested question IDs must be unique" },
       )
       .optional(),
   })
