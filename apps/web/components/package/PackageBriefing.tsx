@@ -25,6 +25,7 @@ import {
   type Step,
   type StepId,
 } from "../../lib/package/steps";
+import { LABEL_DROP, labelWidth, layoutMarkers } from "../../lib/package/markers";
 import { Control } from "../controls/Control";
 import { usePrompt } from "./ActionPrompt";
 import styles from "./PackageBriefing.module.css";
@@ -206,6 +207,11 @@ export function PackageBriefing({
     return k === null ? null : (stands?.points[k] ?? null);
   };
   const card = cardAt(stands, vw);
+  // the land's labels are the checks' numbers only; the card names the open check (the lead, package 1f)
+  const markers = layoutMarkers(
+    view.measures.map((_, i) => markerOf(i)),
+    (members) => labelWidth(members.length, null),
+  );
   // the leader: from the card's near edge to the top of the marker it is about, else to the land's near edge
   const litMarker = lit === null ? null : markerOf(lit);
   const target = litMarker
@@ -243,22 +249,31 @@ export function PackageBriefing({
         </p>
       </header>
 
-      {view.measures.map((m, i) => {
-        const p = markerOf(i);
-        if (!p) return null;
+      {/* one marker per anchor, its label the checks' numbers, the open check's in bold (package 1f) */}
+      {markers.map((g) => {
+        const open = lit !== null && g.members.includes(lit) ? lit : null;
         return (
           <div
-            key={i}
+            key={g.members.join("-")}
             className={styles.marker}
-            data-on={lit === i ? "" : undefined}
-            data-behind={p.behind ? "" : undefined}
-            style={{ transform: `translate(${p.x.toFixed(1)}px, ${p.y.toFixed(1)}px)` }}
+            data-on={open !== null ? "" : undefined}
+            data-behind={g.at.behind ? "" : undefined}
+            data-marker={g.members.map((i) => String(i + 1)).join(" ")}
+            style={{ transform: `translate(${g.at.x.toFixed(1)}px, ${g.at.y.toFixed(1)}px)` }}
           >
-            <span className={styles.stem} />
+            <span className={styles.stem} style={{ height: `${String(g.stem)}px` }} />
             <span className={styles.foot} />
-            <span className={styles.markerLabel}>
-              <span className={styles.n}>{String(i + 1).padStart(2, "0")}</span>
-              <span>{m.what}</span>
+            <span
+              className={styles.markerLabel}
+              style={{ bottom: `${String(g.stem - LABEL_DROP)}px` }}
+              data-flip={g.flip ? "" : undefined}
+              data-marker-label=""
+            >
+              {g.members.map((i) => (
+                <span key={i} className={styles.n} data-open={i === open ? "" : undefined}>
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+              ))}
             </span>
           </div>
         );

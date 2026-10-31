@@ -159,6 +159,17 @@
   color: var(--accent);
 }
 
+/* the open check's label stands left of its stem when its card stands at the right */
+.markerLabel[data-flip] {
+  left: auto;
+  right: 8px;
+}
+
+/* a marker shared by several checks names them by number; the open check's number reads brighter */
+.markerLabel .n[data-open] {
+  font-weight: 600;
+}
+
 /* the hairline from the card to what it is about */
 .leader {
   position: absolute;
