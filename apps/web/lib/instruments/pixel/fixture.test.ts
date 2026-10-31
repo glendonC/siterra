@@ -84,3 +84,49 @@ describe("the derived parts", () => {
     ).toBe(-1999);
   });
 });
+
+describe("the pixel anatomy bundle's two versions (U25r)", () => {
+  // 1.1.0 renamed the place-specific fields: footprint_corners with footprint_corners_crs beside it (was
+  // footprint_corners_utm29n) and month_ndvi (was june_ndvi); the reader takes either, and each file by its name
+  const files = Object.fromEntries(fixture.sources.map((s) => [s.path, read(s.path)]));
+  const renamed = (crs: string) => {
+    const src = structuredClone(files) as Record<string, Record<string, unknown>>;
+    const a = src[`${B}/pixel-anatomy.json`] as {
+      version: string;
+      pixel: Record<string, unknown>;
+      june_ndvi?: unknown;
+      month_ndvi?: unknown;
+    };
+    a.version = "1.1.0";
+    a.pixel.footprint_corners = a.pixel.footprint_corners_utm29n;
+    a.pixel.footprint_corners_crs = crs;
+    delete a.pixel.footprint_corners_utm29n;
+    a.month_ndvi = a.june_ndvi;
+    delete a.june_ndvi;
+    return src;
+  };
+
+  it("reads the 1.1.0 names the same as the 1.0 names", () => {
+    expect(pixelFixture(renamed("EPSG:32629") as never, fixture.sources)).toEqual(
+      pixelFixture(files as never, fixture.sources),
+    );
+  });
+
+  it("refuses a footprint stated in another CRS than the cells' grid", () => {
+    expect(() => pixelFixture(renamed("EPSG:32610") as never, fixture.sources)).toThrow(/CRS/);
+  });
+
+  it("finds each file by its name, wherever the place's bundle lies", () => {
+    const moved = Object.fromEntries(
+      Object.entries(files).map(([p, v]) => [p.replace("ait_bouguemez", "another_place"), v]),
+    );
+    const sources = fixture.sources.map((s) => ({
+      ...s,
+      path: s.path.replace("ait_bouguemez", "another_place"),
+    }));
+    expect(pixelFixture(moved as never, sources)).toEqual({
+      ...pixelFixture(files as never, fixture.sources),
+      sources,
+    });
+  });
+});
