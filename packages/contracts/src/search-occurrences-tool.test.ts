@@ -31,7 +31,6 @@ const task = {
 
 describe("contracts 1.20: the occurrence search tool", () => {
   it("accepts 1.20.0 and every earlier version of the same MAJOR", () => {
-    expect(caseSchemaVersion).toBe("1.20.0");
     for (const earlier of ["1.2.0", "1.12.0", "1.19.0", caseSchemaVersion]) {
       expect(acceptedCaseSchemaVersions).toContain(earlier);
     }

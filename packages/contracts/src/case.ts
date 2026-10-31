@@ -10,7 +10,7 @@ import {
   missingIsAValue,
 } from "./rules.ts";
 
-export const caseSchemaVersion = "1.20.0";
+export const caseSchemaVersion = "1.21.0";
 /** Every schemaVersion string this contract accepts (the earlier ones of the same MAJOR stay valid). */
 export const acceptedCaseSchemaVersions = [
   "1.2.0",
@@ -32,8 +32,9 @@ export const acceptedCaseSchemaVersions = [
   "1.18.0",
   "1.19.0",
   "1.20.0",
+  "1.21.0",
 ] as const;
-export const caseSchemaId = "https://siterra.invalid/schemas/case/1.20.0/case.schema.json";
+export const caseSchemaId = "https://siterra.invalid/schemas/case/1.21.0/case.schema.json";
 
 export const EntityVersion = z.strictObject({
   entityId: entityId,
@@ -736,6 +737,7 @@ export const Command = z.strictObject({
     "1.18.0",
     "1.19.0",
     "1.20.0",
+    "1.21.0",
   ]),
   id: entityId,
   caseId: entityId,
@@ -860,6 +862,7 @@ export const Event = z.strictObject({
     "1.18.0",
     "1.19.0",
     "1.20.0",
+    "1.21.0",
   ]),
   id: entityId,
   caseId: entityId,
@@ -1288,6 +1291,45 @@ export const LayerStackParameters = z.strictObject({
     .enum(["vegetation_trend", "rainfall", "snow_cover", "land_cover", "elevation_bands"])
     .nullable(),
   drawnAssets: DrawnAssets.optional(),
+  rainfallWindow: z
+    .strictObject({
+      id: z.string().regex(new RegExp("^[a-z][a-z0-9_]{0,39}$")),
+      start: z.strictObject({
+        month: z.enum([
+          "january",
+          "february",
+          "march",
+          "april",
+          "may",
+          "june",
+          "july",
+          "august",
+          "september",
+          "october",
+          "november",
+          "december",
+        ]),
+        year: z.enum(["previous_year", "same_year"]),
+      }),
+      end: z.strictObject({
+        month: z.enum([
+          "january",
+          "february",
+          "march",
+          "april",
+          "may",
+          "june",
+          "july",
+          "august",
+          "september",
+          "october",
+          "november",
+          "december",
+        ]),
+        year: z.enum(["previous_year", "same_year"]),
+      }),
+    })
+    .optional(),
 });
 export type LayerStackParameters = z.infer<typeof LayerStackParameters>;
 
@@ -1382,6 +1424,7 @@ export const CaseSnapshot = z.strictObject({
     "1.18.0",
     "1.19.0",
     "1.20.0",
+    "1.21.0",
   ]),
   case: EnvironmentalCase,
   records: RecordCollections,
@@ -1411,6 +1454,7 @@ export const Commit = z.strictObject({
     "1.18.0",
     "1.19.0",
     "1.20.0",
+    "1.21.0",
   ]),
   id: entityId,
   caseId: entityId,

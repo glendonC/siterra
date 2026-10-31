@@ -225,6 +225,17 @@
         ],
         "placeFeatureIds": ["ctx_catchment_outlet", "ctx_tabant", "ctx_ait_ouchi_locator"],
         "selectedLayer": "vegetation_trend",
+        "rainfallWindow": {
+          "id": "sep_may",
+          "start": {
+            "month": "september",
+            "year": "previous_year"
+          },
+          "end": {
+            "month": "may",
+            "year": "same_year"
+          }
+        },
         "drawnAssets": [
           {
             "role": "trend_summary",

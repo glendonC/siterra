@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { readCaseSeed } from "./case-seed.ts";
+import { statedRainfallWindow } from "./rainfall-window-testing.ts";
 import type { Pool } from "./client.ts";
 import { startDemoSession } from "./demo-sessions.ts";
 import { listSeedCases } from "./seed-cases.ts";
@@ -190,6 +191,16 @@ describe("the Calaveras Creek seed", () => {
       const grey = spec("inst_layer_stack_creek")?.caption.grey ?? "";
       expect(grey).toContain("rising");
       expect(grey).toContain("falling");
+    });
+
+    it("states the rainfall window the rain layer sums: the one the trend bundle states as its primary", () => {
+      const layers = spec("inst_layer_stack_creek")?.parameters;
+      if (layers?.kind !== "layer_stack") throw new Error("not a layer stack");
+      const restrend = read("restrend_long_record", "restrend-long-record.json") as Parameters<
+        typeof statedRainfallWindow
+      >[0];
+      expect(layers.rainfallWindow).toEqual(statedRainfallWindow(restrend));
+      expect(layers.rainfallWindow?.id).toBe("oct_apr");
     });
 
     it("leaves snow cover out of the layer stack (the recipe does not apply here) and draws the place's own assets", () => {

@@ -6,6 +6,7 @@ import { analysisConfigFor } from "@siterra/domain/cases";
 import { describe, expect, it } from "vitest";
 import { instrumentReferencedIds, uncitedInstrumentInputs } from "@siterra/domain";
 import { readCaseSeed } from "./case-seed.ts";
+import { statedRainfallWindow } from "./rainfall-window-testing.ts";
 
 const repoDir = fileURLToPath(new URL("../../../", import.meta.url));
 const { seed, issues, blocked } = readCaseSeed({
@@ -129,6 +130,24 @@ describe("the instruments the case seed composes", () => {
     const shown = JSON.stringify([section, pixel]);
     expect(shown).not.toContain("15,000");
     expect(shown).not.toContain("SCI-03 says that herders");
+  });
+
+  it("states the rainfall window the rain layer sums: the one the trend bundle states as its primary (sep_may for the valley)", () => {
+    const layers = seed?.instruments.find((s) => s.id === "inst_layer_stack_valley")?.parameters;
+    if (layers?.kind !== "layer_stack") throw new Error("not a layer stack");
+    const restrend = JSON.parse(
+      readFileSync(
+        fileURLToPath(
+          new URL(
+            "../../../data/bundles/bundle_restrend_long_record_ait_bouguemez/restrend-long-record.json",
+            import.meta.url,
+          ),
+        ),
+        "utf8",
+      ),
+    ) as Parameters<typeof statedRainfallWindow>[0];
+    expect(layers.rainfallWindow).toEqual(statedRainfallWindow(restrend));
+    expect(layers.rainfallWindow?.id).toBe("sep_may");
   });
 
   it("name every asset an instrument draws, so no client builds an address from a hash", () => {

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://siterra.invalid/schemas/case/1.20.0/case.schema.json",
+  "$id": "https://siterra.invalid/schemas/case/1.21.0/case.schema.json",
   "title": "Siterra case contracts",
   "description": "Records of one Siterra case as stored and exchanged between the web application, the worker and the browser. The root validates a case snapshot, a command, an event or an atomic commit proposal; $defs holds the record types. Cross-record semantics that JSON Schema cannot express are specified in docs/reference/data-contracts.md.",
   "oneOf": [
@@ -2851,7 +2851,8 @@
             "1.17.0",
             "1.18.0",
             "1.19.0",
-            "1.20.0"
+            "1.20.0",
+            "1.21.0"
           ],
           "description": "Contract version the instance was written against; producers write the newest, and earlier versions of the same MAJOR stay valid."
         },
@@ -2958,7 +2959,8 @@
             "1.17.0",
             "1.18.0",
             "1.19.0",
-            "1.20.0"
+            "1.20.0",
+            "1.21.0"
           ],
           "description": "Contract version the instance was written against; producers write the newest, and earlier versions of the same MAJOR stay valid."
         },
@@ -3344,7 +3346,8 @@
             "1.17.0",
             "1.18.0",
             "1.19.0",
-            "1.20.0"
+            "1.20.0",
+            "1.21.0"
           ],
           "description": "Contract version the instance was written against; producers write the newest, and earlier versions of the same MAJOR stay valid."
         },
@@ -3394,7 +3397,8 @@
             "1.17.0",
             "1.18.0",
             "1.19.0",
-            "1.20.0"
+            "1.20.0",
+            "1.21.0"
           ],
           "description": "Contract version the instance was written against; producers write the newest, and earlier versions of the same MAJOR stay valid."
         },
@@ -5409,6 +5413,90 @@
         },
         "drawnAssets": {
           "$ref": "#/$defs/DrawnAssets"
+        },
+        "rainfallWindow": {
+          "type": "object",
+          "description": "Added in 1.21.0, optional: the rainfall window the rain layer sums the CHIRPS months of, as the place's long-record trend bundle states it (windows.rainfall): an ID and the first and last month, each with the year it falls in relative to the season year. Fixed words only, like every instrument parameter; the label is derived from the months.",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "start",
+            "end"
+          ],
+          "properties": {
+            "id": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]{0,39}$"
+            },
+            "start": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "month",
+                "year"
+              ],
+              "properties": {
+                "month": {
+                  "type": "string",
+                  "enum": [
+                    "january",
+                    "february",
+                    "march",
+                    "april",
+                    "may",
+                    "june",
+                    "july",
+                    "august",
+                    "september",
+                    "october",
+                    "november",
+                    "december"
+                  ]
+                },
+                "year": {
+                  "type": "string",
+                  "enum": [
+                    "previous_year",
+                    "same_year"
+                  ]
+                }
+              }
+            },
+            "end": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "month",
+                "year"
+              ],
+              "properties": {
+                "month": {
+                  "type": "string",
+                  "enum": [
+                    "january",
+                    "february",
+                    "march",
+                    "april",
+                    "may",
+                    "june",
+                    "july",
+                    "august",
+                    "september",
+                    "october",
+                    "november",
+                    "december"
+                  ]
+                },
+                "year": {
+                  "type": "string",
+                  "enum": [
+                    "previous_year",
+                    "same_year"
+                  ]
+                }
+              }
+            }
+          }
         }
       },
       "required": [

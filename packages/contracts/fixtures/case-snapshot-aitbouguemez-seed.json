@@ -1,6 +1,6 @@
 {
   "recordType": "CaseSnapshot",
-  "schemaVersion": "1.20.0",
+  "schemaVersion": "1.21.0",
   "case": {
     "recordType": "EnvironmentalCase",
     "id": "case_aitbouguemez",
@@ -175553,7 +175553,18 @@
                 "assetKey": "trend_cells"
               }
             }
-          ]
+          ],
+          "rainfallWindow": {
+            "id": "sep_may",
+            "start": {
+              "month": "september",
+              "year": "previous_year"
+            },
+            "end": {
+              "month": "may",
+              "year": "same_year"
+            }
+          }
         },
         "caption": {
           "ink": "+0.0091 NDVI per decade, March to June, 2000 to 2025",
