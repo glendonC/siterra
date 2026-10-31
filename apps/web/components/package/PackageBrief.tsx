@@ -10,6 +10,11 @@ import { useEffect, useMemo, useState } from "react";
 import { openCase } from "../../lib/case/load";
 import { pformat, pkg, type PackageMessageId } from "../../lib/copy/package";
 import { packageView, type PackageLine, type PackageView } from "../../lib/package/package";
+import {
+  reviewMessageOf,
+  viewRecordedReview,
+  type RecordedReviewDecision,
+} from "../../lib/package/review";
 import { viewerStorage } from "../../lib/shell/preferences";
 import { Control } from "../controls/Control";
 import styles from "./PackageBrief.module.css";
@@ -51,7 +56,26 @@ export function PackageBriefPage() {
 
 export function PackageBrief({ snapshot, briefId }: { snapshot: CaseSnapshot; briefId: string }) {
   const view = useMemo(() => packageView(snapshot, briefId), [snapshot, briefId]);
+  const [decision, setDecision] = useState<RecordedReviewDecision | null>(null);
+  useEffect(() => {
+    if (!view) return;
+    const sync = () => {
+      setDecision(viewRecordedReview(snapshot.case.id, view));
+    };
+    sync();
+    window.addEventListener("storage", sync);
+    window.addEventListener("siterra:review-decision", sync);
+    return () => {
+      window.removeEventListener("storage", sync);
+      window.removeEventListener("siterra:review-decision", sync);
+    };
+  }, [snapshot.case.id, view]);
   if (!view) return <p className={styles.state}>{t("brief.missing")}</p>;
+  const effectiveStatus = decision
+    ? decision.status === "approved"
+      ? "prepared"
+      : "draft"
+    : view.status;
   return (
     <div className={styles.scroller}>
       <article className={styles.page} data-brief={view.briefId} data-ready="">
@@ -75,11 +99,23 @@ export function PackageBrief({ snapshot, briefId }: { snapshot: CaseSnapshot; br
             <dd>{snapshot.case.objective}</dd>
           </dl>
           <p className={styles.status}>
-            <span className={styles.statusWord}>{t(`package.status.${view.status}`)}</span>
-            {view.actionStatus ? <span>{t(`package.action.${view.actionStatus}`)}</span> : null}
+            <span className={styles.statusWord}>{t(`package.status.${effectiveStatus}`)}</span>
+            {decision ? (
+              <span data-brief-review-status="" data-brief-review-decision={decision.status}>
+                {reviewMessageOf(decision.status)}
+              </span>
+            ) : null}
+            {!decision && view.actionStatus ? (
+              <span>{t(`package.action.${view.actionStatus}`)}</span>
+            ) : null}
             {view.mode !== "live" ? <span>{t(`package.mode.${view.mode}`)}</span> : null}
             <span>{pformat("package.revision", { n: view.preparedOn })}</span>
           </p>
+          {decision?.note ? (
+            <p className={styles.origin} data-brief-review-note="">
+              {pformat("review.recordedNote", { note: decision.note })}
+            </p>
+          ) : null}
           <p className={styles.honest}>{t("package.nothingSent")}</p>
         </header>
 
@@ -272,7 +308,9 @@ export function PackageBrief({ snapshot, briefId }: { snapshot: CaseSnapshot; br
                 {view.reviews.map((r, i) => (
                   <li key={i}>
                     <span>{t(`package.role.${r.role}`)}</span>
-                    <span className={styles.kind}>{t(`package.review.${r.status}`)}</span>
+                    <span className={styles.kind}>
+                      {t(`package.review.${decision?.status ?? r.status}`)}
+                    </span>
                   </li>
                 ))}
               </ul>

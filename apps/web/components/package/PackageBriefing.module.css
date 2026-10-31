@@ -231,6 +231,7 @@
 .briefing:not([data-step="arrival"]) .headline,
 .briefing:not([data-step="arrival"]) .status {
   opacity: 0;
+  visibility: hidden;
 }
 
 .title {
@@ -383,4 +384,71 @@
   margin-left: 8px;
   font-size: 12px;
   color: var(--text-tertiary);
+}
+
+.needsYou {
+  color: var(--accent);
+}
+
+.reviewBox {
+  margin: 14px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--hairline-quiet);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.reviewActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.reviewStatus {
+  margin: 0;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--text-primary);
+}
+
+.reviewNoteText {
+  margin: 0;
+  font-size: 12px;
+  line-height: 17px;
+  color: var(--text-secondary);
+}
+
+.noteForm {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.noteLabel {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--text-secondary);
+}
+
+.noteInput {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 6px 9px;
+  border: 1px solid var(--hairline);
+  border-radius: 4px;
+  background: var(--bg-overlay);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--text-primary);
+}
+
+.noteInput:focus-visible {
+  outline: 1px solid var(--ov-focus);
+  outline-offset: 2px;
 }

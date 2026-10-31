@@ -37,13 +37,13 @@ export const words = (s: string): number => (s.trim().match(/\S+/g) ?? []).lengt
  * Lines packed into pages in their own order: a page takes lines while it holds at most CARD_LINES and CARD_WORDS
  * words; a single line longer than the budget is a page by itself, whole.
  */
-export function pagesOf(lines: readonly StepLine[]): Page[] {
+export function pagesOf(lines: readonly StepLine[], maxWords = CARD_WORDS): Page[] {
   const pages: Page[] = [];
   let cur: StepLine[] = [];
   let n = 0;
   for (const l of lines) {
     const w = words(l.text);
-    if (cur.length > 0 && (cur.length >= CARD_LINES || n + w > CARD_WORDS)) {
+    if (cur.length > 0 && (cur.length >= CARD_LINES || n + w > maxWords)) {
       pages.push({ kind: "lines", lines: cur });
       cur = [];
       n = 0;
@@ -68,7 +68,7 @@ function responsePages(rs: readonly PackageResponse[]): Page[] {
 
 /** The five steps the record can fill, in the briefing's order; a step with nothing in the record is left out. */
 export function stepsOf(view: PackageView): Step[] {
-  const approve = pagesOf(asLines(view.authorization));
+  const approve = pagesOf(asLines(view.authorization), 15);
   const steps: Step[] = [
     { id: "known", pages: pagesOf(asLines(view.known)) },
     { id: "open", pages: pagesOf(asLines(view.uncertain)) },
