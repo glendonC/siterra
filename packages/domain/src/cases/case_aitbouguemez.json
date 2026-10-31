@@ -465,6 +465,13 @@
               "bundleId": "bundle_land_cover_ait_bouguemez",
               "assetKey": "land_cover_png_header"
             }
+          },
+          {
+            "role": "snow_summary",
+            "asset": {
+              "bundleId": "bundle_snow_cover_by_band_ait_bouguemez",
+              "assetKey": "snow_cover_by_band"
+            }
           }
         ]
       },

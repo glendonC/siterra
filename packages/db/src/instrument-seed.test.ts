@@ -195,6 +195,7 @@ describe("the instruments the case seed composes", () => {
       "relief_grid_header",
       "land_cover_raster",
       "land_cover_header",
+      "snow_summary",
     ]);
     expect(
       roles("inst_cross_section_valley")
@@ -203,6 +204,7 @@ describe("the instruments the case seed composes", () => {
     ).toEqual([
       ["land_cover", "land_cover_png"],
       ["land_cover", "land_cover_png_header"],
+      ["snow_cover_by_band", "snow_cover_by_band"],
     ]);
     // The web-ready display assets of SCIENCE-GEO's S7, by their bundle and key
     expect(
@@ -219,6 +221,27 @@ describe("the instruments the case seed composes", () => {
       ["pixel_trend_long_record", "trend_cells"],
     ]);
     expect(roles("inst_rainfall_scatter_valley")).toEqual([]);
+  });
+
+  it("name the snow result of the first place on its cross section: the recipe ran in full, so the result carries no not-applicable decision", () => {
+    const section = seed?.instruments.find((s) => s.id === "inst_cross_section_valley")?.parameters;
+    if (section?.kind !== "cross_section") throw new Error("not a cross section");
+    expect(section.drawnAssets?.find((d) => d.role === "snow_summary")?.asset).toEqual({
+      bundleId: "bundle_snow_cover_by_band_ait_bouguemez",
+      assetKey: "snow_cover_by_band",
+    });
+    const result = JSON.parse(
+      readFileSync(
+        fileURLToPath(
+          new URL(
+            "../../../data/bundles/bundle_snow_cover_by_band_ait_bouguemez/snow-cover-by-band.json",
+            import.meta.url,
+          ),
+        ),
+        "utf8",
+      ),
+    ) as { applicability?: { decision?: string } };
+    expect(result.applicability?.decision ?? "applicable").toBe("applicable");
   });
 
   it("guard the words 'greener' and 'every interval lies above zero' with held claims on the records", () => {

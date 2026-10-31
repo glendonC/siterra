@@ -236,6 +236,18 @@ describe("the Calaveras Creek seed", () => {
       expect(roles("inst_layer_stack_creek")).toContain("land_cover_raster");
       expect(roles("inst_layer_stack_creek")).toContain("trend_cells");
       expect(roles("inst_cross_section_creek")).toContain("land_cover_header");
+      // The cross section names the snow bundle's result asset, which states whether the recipe applies.
+      const crossSection = spec("inst_cross_section_creek")?.parameters;
+      if (crossSection?.kind !== "cross_section") throw new Error("not a cross section");
+      expect(crossSection.drawnAssets?.find((d) => d.role === "snow_summary")?.asset).toEqual({
+        bundleId: "bundle_snow_cover_by_band_calaveras_creek",
+        assetKey: "snow_cover_by_band",
+      });
+      const result = read("snow_cover_by_band", "snow-cover-by-band.json") as {
+        applicability?: { decision?: string; share_limit?: number };
+      };
+      expect(result.applicability?.decision).toBe("not_applicable");
+      expect(typeof result.applicability?.share_limit).toBe("number");
       expect(roles("inst_pixel_anatomy_creek")).toEqual([
         "pixel_cells",
         "pixel_spectra",

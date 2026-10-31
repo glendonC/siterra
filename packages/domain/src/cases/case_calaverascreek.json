@@ -413,6 +413,13 @@
               "bundleId": "bundle_land_cover_calaveras_creek",
               "assetKey": "land_cover_png_header"
             }
+          },
+          {
+            "role": "snow_summary",
+            "asset": {
+              "bundleId": "bundle_snow_cover_by_band_calaveras_creek",
+              "assetKey": "snow_cover_by_band"
+            }
           }
         ]
       },
