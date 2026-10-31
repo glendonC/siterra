@@ -152,6 +152,9 @@ describe("plan task on synthetic replays", () => {
     expect(byKind.get("explanation_branches")?.allowedTools).toEqual(["propose_predictions"]);
     expect(byKind.get("intervention_feasibility")?.dependsOnTaskIds).toEqual([
       byKind.get("explanation_branches")?.id,
+      byKind.get("source_research")?.id,
+      byKind.get("observation_analysis")?.id,
+      byKind.get("livelihood_governance")?.id,
     ]);
     expect(byKind.get("observation_analysis")?.inputVersions).toEqual([
       { entityId: "bundle_test_ndvi", revision: 2 },
@@ -491,7 +494,8 @@ describe("plan validator", () => {
     };
     const r = check(plan);
     const depends = (key: string) => r.ok && r.value.tasks.find((t) => t.key === key)?.dependsOn;
-    expect(depends("responses")).toEqual(["branches"]);
+    // The responses read the Evidence the command's gap-adding tasks committed, so they follow them.
+    expect(depends("responses")).toEqual(["obs", "branches"]);
     expect(depends("brief")).toEqual(["obs", "branches", "responses"]);
     expect(depends("branches")).toEqual(["obs"]);
     // The branches wait for nothing the package adds: a cycle through them is refused.
@@ -528,7 +532,7 @@ describe("plan validator", () => {
         ["obs", "observation_analysis", []],
         ["branches", "explanation_branches", ["obs"]],
         ["brief", "brief_package", ["obs", "branches", "responses"]],
-        ["responses", "intervention_feasibility", ["branches"]],
+        ["responses", "intervention_feasibility", ["branches", "obs"]],
       ]);
       const r = check(plan);
       const added = r.ok ? r.value.tasks.find((t) => t.key === "responses") : undefined;

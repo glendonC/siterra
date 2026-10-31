@@ -39,6 +39,14 @@ export const INTERVENTION_PROMPT_VERSION = "intervention_feasibility@1";
 export const NO_SOURCE_NOTE =
   "No source cited: this response rests on a hypothesis and cites no Evidence.";
 
+/** Written by host code when a cited record was not available to the task and was left out. */
+export const LEFT_OUT_NOTE =
+  "A record this response cited was not available to this task and was left out.";
+
+/** Written by host code when a cited hypothesis is contradicted or stale and was left out. */
+export const UNUSABLE_HYPOTHESIS_NOTE =
+  "A hypothesis this response cited is contradicted or stale and was left out.";
+
 export const DEFERRAL_TEXT = {
   description:
     "No change until the field check reports what it finds; the candidate responses are then compared again.",
@@ -208,6 +216,8 @@ export async function runInterventionTask(
           "A candidate response, not a recommendation; nothing is decided or authorized.",
           "No benefit, outcome or effect is estimated.",
           ...(a.noSource ? [NO_SOURCE_NOTE] : []),
+          ...(a.dropped.some((d) => d.reason === "unavailable") ? [LEFT_OUT_NOTE] : []),
+          ...(a.dropped.some((d) => d.reason === "contradicted") ? [UNUSABLE_HYPOTHESIS_NOTE] : []),
         ],
       },
     };

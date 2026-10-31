@@ -838,6 +838,79 @@ describe("brief_package task", () => {
   });
 });
 
+describe("brief_package task: every candidate response of the command is cited (P9f)", () => {
+  const second: InterventionRecord = {
+    ...REST,
+    id: "int_test_monitor",
+    title: "Participatory monitoring before any access change",
+  };
+  const third: InterventionRecord = {
+    ...REST,
+    id: "int_test_aaa",
+    title: "Defer until the field check",
+  };
+  const idsOf = (commit: { upserts: unknown[] }) => {
+    const action = commit.upserts.find(
+      (r): r is { recordType: "OperationalAction"; interventionIds: string[] } =>
+        (r as { recordType: string }).recordType === "OperationalAction",
+    );
+    const brief = commit.upserts.find(
+      (r): r is { recordType: "Brief"; interventionIds: string[]; status: string } =>
+        (r as { recordType: string }).recordType === "Brief",
+    );
+    return {
+      action: action?.interventionIds,
+      brief: brief?.interventionIds,
+      status: brief?.status,
+    };
+  };
+
+  it("cites all of them in the action and the brief when the model cites one, in the order of their IDs, none ranked", async () => {
+    const store = testStore();
+    store.evidence.push(OBS, NEED);
+    const { commit } = await run(store, proposal(), [second, REST, third]);
+    const ids = idsOf(commit);
+    expect(ids.action).toEqual(["int_test_aaa", "int_test_monitor", "int_test_rest"]);
+    expect(ids.brief).toEqual(ids.action);
+    expect(ids.status).toBe("ready_for_review");
+  });
+
+  it("cites all of them when the model cites a different one or none, and the package stays ready", async () => {
+    for (const cited of [["int_test_monitor"], []]) {
+      const store = testStore();
+      store.evidence.push(OBS, NEED);
+      const { commit } = await run(store, proposal({ action: { interventionIds: cited } }), [
+        REST,
+        second,
+      ]);
+      const ids = idsOf(commit);
+      expect(ids.action, cited.join()).toEqual(["int_test_monitor", "int_test_rest"]);
+      expect(ids.brief, cited.join()).toEqual(ids.action);
+      expect(ids.status, cited.join()).toBe("ready_for_review");
+    }
+  });
+
+  it("is not ready with no candidate response at all, and cites none", async () => {
+    const store = testStore();
+    store.evidence.push(OBS, NEED);
+    const { commit } = await run(store, proposal({ action: { interventionIds: [] } }), []);
+    const ids = idsOf(commit);
+    expect(ids.action).toEqual([]);
+    expect(ids.status).not.toBe("ready_for_review");
+  });
+
+  it("lists every response among the inputs the records rest on, so a revised one stales them", async () => {
+    const store = testStore();
+    store.evidence.push(OBS, NEED);
+    const { commit } = await run(store, proposal(), [REST, second]);
+    const brief = commit.upserts.find((r) => r.recordType === "Brief");
+    if (brief?.recordType !== "Brief") throw new Error("no brief");
+    expect(brief.provenance.inputVersions.map((v) => v.entityId)).toEqual(
+      expect.arrayContaining(["int_test_rest", "int_test_monitor"]),
+    );
+  });
+});
+
 describe("brief_package task: the plan tied to the land", () => {
   const MERGE: BranchMergeRecord = {
     recordType: "BranchMerge",

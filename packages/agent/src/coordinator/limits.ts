@@ -15,7 +15,7 @@ export interface CommandLimits {
 export const P0_LIMITS: CommandLimits = {
   maxTasks: 8,
   maxConcurrentModelCalls: 2,
-  wallClockMs: 180_000,
+  wallClockMs: 300_000,
   spendCapMicroUsd: COMMAND_SPEND_CAP_MICRO_USD,
 };
 

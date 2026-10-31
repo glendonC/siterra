@@ -96,7 +96,7 @@ function withBriefDependencies(plan: PlanProposal): PlanProposal {
             dependsOn: joined(t.dependsOn, [...gapKeys, ...branchKeys, ...responseKeys], t.key),
           }
         : t.kind === "intervention_feasibility"
-          ? { ...t, dependsOn: joined(t.dependsOn, branchKeys, t.key) }
+          ? { ...t, dependsOn: joined(t.dependsOn, [...gapKeys, ...branchKeys], t.key) }
           : t,
     ),
   };

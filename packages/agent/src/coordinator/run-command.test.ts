@@ -745,6 +745,449 @@ describe("runCommand on synthetic replays", () => {
     expect(seen).toEqual([["merge_test_resumed"]]);
   });
 
+  it("gives the candidate responses the Evidence the command's other tasks committed, though the plan names no dependency for them (founder instance smoke 2)", async () => {
+    const plan = {
+      interpretation: "The command asks which responses could be prepared for the valley.",
+      tasks: [
+        {
+          key: "livelihoods",
+          kind: "livelihood_governance",
+          question: "Who sets pasture rules?",
+          dependsOn: [],
+          inputRefs: [],
+        },
+        {
+          key: "compare",
+          kind: "explanation_branches",
+          question: "Which explanations does the record leave standing?",
+          dependsOn: ["livelihoods"],
+          inputRefs: [],
+        },
+        {
+          key: "responses",
+          kind: "intervention_feasibility",
+          question: "Which responses could be prepared?",
+          dependsOn: [],
+          inputRefs: [],
+        },
+      ],
+      clarifyingQuestion: null,
+    };
+    // Sequential tasks, so the IDs are fixed: ev_test_01 and 02 (livelihoods), then int_test_03;
+    // the branch hypotheses take IDs fixed by their task (task_test_02) and explanation.
+    const rainfall = hypothesisIdFor("task_test_02", "rainfall");
+    const transport = routes(
+      [answerStep(JSON.stringify(plan))],
+      [
+        [
+          "You prepare candidate responses",
+          syntheticTransport([
+            answerStep(
+              JSON.stringify({
+                items: [
+                  {
+                    title: "Negotiated seasonal rest within existing institutions",
+                    description:
+                      "If the field check names who decides closures, a seasonal rest could be discussed with them.",
+                    assumptions: ["The existing institutions set closure dates."],
+                    ecologicalConsiderations: [],
+                    livelihoodConsiderations: [],
+                    fieldValidationNeeded: ["Who decides the closure dates."],
+                    requiredReviewRoles: ["community_livelihood"],
+                    evidenceIds: ["ev_test_02"],
+                    hypothesisIds: [rainfall],
+                  },
+                  {
+                    title: "Participatory monitoring before any access change",
+                    description:
+                      "Once the roles are known, the institutions could monitor the upper band before any access change.",
+                    assumptions: ["The institutions take part in monitoring."],
+                    ecologicalConsiderations: [],
+                    livelihoodConsiderations: [],
+                    fieldValidationNeeded: ["Which institutions could take part in monitoring."],
+                    requiredReviewRoles: ["program_coordination"],
+                    evidenceIds: ["ev_test_02"],
+                    hypothesisIds: [],
+                  },
+                ],
+              }),
+            ),
+          ]),
+        ],
+      ],
+    );
+    const { deps: d, commits } = deps(transport);
+    const outcome = await runCommand(
+      { planTask: PLAN_TASK, expectedCaseRevision: 3, snapshot: SNAPSHOT },
+      d,
+    );
+    expect(outcome.tasks.map((t) => `${t.kind} ${t.status}`)).toEqual([
+      "livelihood_governance succeeded",
+      "explanation_branches succeeded",
+      "intervention_feasibility succeeded",
+    ]);
+    expect([...commits.interventions.values()]).toMatchObject([
+      { id: "int_test_03", hypothesisIds: [rainfall], evidenceIds: ["ev_test_02"] },
+      { id: "int_test_04", hypothesisIds: [], evidenceIds: ["ev_test_02"] },
+      { id: "int_test_05", title: "Defer until the field check", evidenceIds: ["ev_test_02"] },
+    ]);
+    expect(
+      [...commits.relationships.values()]
+        .filter((r) => r.toEntityId === "int_test_03" || r.fromEntityId === "int_test_03")
+        .map((r) => `${r.fromEntityId} ${r.kind} ${r.toEntityId}`),
+    ).toEqual([
+      `${rainfall} proposes_response int_test_03`,
+      "int_test_03 requires_verification ev_test_02",
+    ]);
+    // Model-written records say they came from a synthetic replay; the host-written deferral says
+    // it is host text instead.
+    const synthetic = "Written from a synthetic replay, not a model output or a live model call.";
+    for (const r of [
+      ...commits.evidence.values(),
+      ...commits.hypotheses.values(),
+      ...[...commits.interventions.values()].filter((r) => r.id !== "int_test_05"),
+    ]) {
+      expect(r.provenance.limitations, r.id).toContain(synthetic);
+    }
+    expect(commits.interventions.get("int_test_05")?.provenance.limitations[0]).toMatch(
+      /^Fixed text written by Siterra's host code, not by a model/,
+    );
+  });
+
+  it("hands the explanation merge its branches committed to the brief package, and to no task that does not follow them", async () => {
+    const plan = {
+      interpretation: "The command asks for a package on the valley.",
+      tasks: [
+        {
+          key: "compare",
+          kind: "explanation_branches",
+          question: "Which explanations does the record leave standing?",
+          dependsOn: [],
+          inputRefs: [],
+        },
+        {
+          key: "package",
+          kind: "brief_package",
+          question: "What should be checked in the field?",
+          dependsOn: [],
+          inputRefs: [],
+        },
+      ],
+      clarifyingQuestion: null,
+    };
+    const seen: { merges: string[]; checks: string[] }[] = [];
+    const spy: TaskExecutor = (input, taskDeps) => {
+      const merges = (taskDeps.committedBranchMerges ?? []).map((m) => m.id);
+      seen.push({
+        merges,
+        checks: (taskDeps.committedBranchMerges ?? []).flatMap((m) =>
+          (m.fieldPlan?.measurements ?? []).map((c) => c.fieldCheckId),
+        ),
+      });
+      return EXECUTORS.brief_package
+        ? EXECUTORS.brief_package(input, taskDeps)
+        : Promise.reject(new Error("no brief executor"));
+    };
+    const transport = routes([answerStep(JSON.stringify(plan))], []);
+    const { deps: d } = deps(transport, { executors: { ...EXECUTORS, brief_package: spy } });
+    const outcome = await runCommand(
+      { planTask: PLAN_TASK, expectedCaseRevision: 3, snapshot: SNAPSHOT },
+      d,
+    );
+    // The host added the candidate responses (plan@4); with no reply routed for them they fail and the package still runs.
+    expect(outcome.tasks.map((t) => t.kind)).toEqual([
+      "explanation_branches",
+      "brief_package",
+      "intervention_feasibility",
+    ]);
+    // The plan validator made the package wait for the branches, so it was handed their merge.
+    expect(seen).toHaveLength(1);
+    expect(seen[0]?.merges).toHaveLength(1);
+    expect(seen[0]?.checks).toEqual(["grazing_exclosure"]);
+  });
+
+  it("a whole question: the livelihood facts, the explanation branches, the candidate responses and the package, tied to the strata and the merge's field check (synthetic replay)", async () => {
+    const plan = {
+      interpretation: "The command asks what could be checked in the field in the valley.",
+      tasks: [
+        {
+          key: "livelihoods",
+          kind: "livelihood_governance",
+          question: "Who sets pasture rules?",
+          dependsOn: [],
+          inputRefs: [],
+        },
+        {
+          key: "compare",
+          kind: "explanation_branches",
+          question: "Which explanations does the record leave standing?",
+          dependsOn: ["livelihoods"],
+          inputRefs: [],
+        },
+        {
+          key: "responses",
+          kind: "intervention_feasibility",
+          question: "Which responses could be prepared?",
+          dependsOn: ["livelihoods"],
+          inputRefs: [],
+        },
+        {
+          key: "package",
+          kind: "brief_package",
+          question: "What should be checked in the field?",
+          dependsOn: [],
+          inputRefs: [],
+        },
+      ],
+      clarifyingQuestion: null,
+    };
+    const response = {
+      title: "Negotiated seasonal rest within existing institutions",
+      description:
+        "If the field check names who decides closures, a seasonal rest could be discussed with them.",
+      assumptions: ["The existing institutions set closure dates."],
+      ecologicalConsiderations: [],
+      livelihoodConsiderations: [],
+      fieldValidationNeeded: ["Who decides the closure dates."],
+      requiredReviewRoles: ["community_livelihood"],
+      evidenceIds: ["ev_test_02"],
+      hypothesisIds: [hypothesisIdFor("task_test_02", "rainfall")],
+    };
+    const line = (text: string, claimKind: string, evidenceIds: string[]) => ({
+      text,
+      claimKind,
+      evidenceIds,
+    });
+    const brief = {
+      action: {
+        kind: "field_validation_plan",
+        title: "Field check of who decides closure dates",
+        description:
+          "Find out who decides the closure dates in the upper band, to inform which candidate response the reviewers consider.",
+        fieldPlan: {
+          objective: "Find out who decides the closure dates in the upper band.",
+          decisionInformed: "Which candidate response the reviewers consider.",
+          strata: [
+            {
+              key: "elevation_high",
+              label: "Upper third",
+              definition: "The highest third of the catchment.",
+            },
+          ],
+          measurements: [
+            {
+              what: "Who decides the closure dates",
+              method: "Interviews with institution roles",
+              season: "Spring",
+              stratumKeys: ["elevation_high"],
+              fieldRole: "Local field team",
+              resolvesGapIds: ["ev_test_02"],
+              discriminatesHypothesisIds: [hypothesisIdFor("task_test_02", "rainfall")],
+              fieldCheckId: "grazing_exclosure",
+            },
+          ],
+          deferredGaps: [],
+          permissions: ["Permission from the commune, to be established."],
+          consultationSteps: ["Consultation with the local pasture institution."],
+        },
+        resources: [{ kind: "local_information", label: "Who decides closure dates" }],
+        evidenceIds: ["ev_test_02"],
+        interventionIds: ["int_test_03"],
+      },
+      brief: {
+        known: [
+          line("The report states a seasonal closure of 3 months.", "scientific_context", [
+            "ev_test_01",
+          ]),
+        ],
+        uncertain: [
+          line("Whether the closure dates explain the April values.", "hypothesis", ["ev_test_01"]),
+        ],
+        nextMeasurements: [
+          line(
+            "Who decides the closure dates; interviews with institution roles; spring; upper third; local team.",
+            "field_requirement",
+            ["ev_test_02"],
+          ),
+        ],
+        stakeholderRoles: [
+          line("The local pasture institution and the program team.", "field_requirement", [
+            "ev_test_02",
+          ]),
+        ],
+        preparedActions: [],
+        authorizationRequired: [
+          line("Any visit waits for the local institution's own decision.", "field_requirement", [
+            "ev_test_02",
+          ]),
+        ],
+        nextSteps: [],
+      },
+      reviewRoles: ["scientific", "community_livelihood"],
+    };
+    const transport = routes(
+      [answerStep(JSON.stringify(plan))],
+      [
+        [
+          "You prepare candidate responses",
+          syntheticTransport([
+            answerStep(
+              JSON.stringify({
+                items: [
+                  response,
+                  {
+                    ...response,
+                    title: "Participatory monitoring before any access change",
+                    description:
+                      "Once the roles are known, the institutions could monitor the upper band before any access change.",
+                    hypothesisIds: [],
+                    requiredReviewRoles: ["program_coordination"],
+                  },
+                ],
+              }),
+            ),
+          ]),
+        ],
+        [
+          "You prepare a draft field-validation plan",
+          syntheticTransport([answerStep(JSON.stringify(brief))]),
+        ],
+      ],
+    );
+    const store = addBranchRecord(testStore());
+    store.bundles.push(
+      bundle({ id: "bundle_test_strata", methodId: "terrain_strata", methodVersion: "1.1.0" }),
+    );
+    const config = store.analysisConfigs.get("case_test_valley");
+    if (!config) throw new Error("no configuration");
+    store.analysisConfigs.set("case_test_valley", {
+      ...config,
+      trendSummary: {
+        recipe: { recipeId: "restrend_long_record", version: "1.0.0" },
+        strata: ["catchment", "elevation_high", "elevation_low"],
+      },
+    });
+    const { deps: d, commits } = deps(transport, { store });
+    const outcome = await runCommand(
+      { planTask: PLAN_TASK, expectedCaseRevision: 3, snapshot: SNAPSHOT },
+      d,
+    );
+    expect(outcome.tasks.map((t) => `${t.kind} ${t.status}`)).toEqual([
+      "livelihood_governance succeeded",
+      "explanation_branches succeeded",
+      "intervention_feasibility succeeded",
+      "brief_package succeeded",
+    ]);
+    const packages = [...commits.packages.values()];
+    const action = packages.find((r) => r.recordType === "OperationalAction");
+    if (action?.recordType !== "OperationalAction") throw new Error("no action");
+    // Tied to the land: the strata bundle, a stratum of its list and the merge's field check.
+    expect(action.fieldPlan?.strata).toMatchObject([
+      { key: "elevation_high", dataBundleId: "bundle_test_strata" },
+    ]);
+    expect(action.fieldPlan?.measurements[0]?.fieldCheckId).toBe("grazing_exclosure");
+    // Nothing is sent, scheduled or authorized: the action is a draft awaiting review.
+    expect(action).toMatchObject({
+      externalExecutionEnabled: false,
+      authorizationMode: "demo_only",
+      status: "awaiting_review",
+    });
+    expect(packages.find((r) => r.recordType === "Brief")).toMatchObject({
+      status: "ready_for_review",
+    });
+    // The records say they came from a synthetic replay.
+    const synthetic = "Written from a synthetic replay, not a model output or a live model call.";
+    for (const r of [...commits.interventions.values()].filter((r) => r.id === "int_test_03")) {
+      expect(r.provenance.limitations).toContain(synthetic);
+    }
+  });
+
+  it("a resumed command hands the package the merge its finished branch task committed before the crash", async () => {
+    const merge = {
+      recordType: "BranchMerge" as const,
+      id: "merge_test_resumed",
+      revision: 1,
+      createdAt: AT.toISOString(),
+      updatedAt: AT.toISOString(),
+      caseId: PLAN_TASK.caseId,
+      commandId: PLAN_TASK.commandId,
+      taskId: "task_test_branches",
+      rulesVersion: "merge@2",
+      predictionsCaseRevision: 3,
+      branches: [
+        {
+          branchId: "branch_test_rain",
+          branchRevision: 1,
+          explanationId: "rainfall",
+          status: "consistent" as const,
+          reason: "Every necessary prediction was met.",
+        },
+      ],
+      conflicts: [],
+      fieldPlan: {
+        measurements: [
+          {
+            fieldCheckId: "grazing_exclosure",
+            label: "Grazing Exclosure",
+            separates: [["grazing", "rainfall"]] as [string, string][],
+            onlySeparates: [["grazing", "rainfall"]] as [string, string][],
+          },
+        ],
+        unseparated: [],
+      },
+      provenance: {
+        sourceLocators: [],
+        dataBundleIds: [],
+        methodId: null,
+        methodVersion: null,
+        inputVersions: [],
+        generatedByTaskId: "task_test_branches",
+        generatedAt: AT.toISOString(),
+        verificationStatus: "computed_checked" as const,
+        limitations: [],
+      },
+    };
+    const finished: TaskRecord = {
+      ...PLAN_TASK,
+      id: "task_test_branches",
+      kind: "explanation_branches",
+      status: "succeeded",
+      outputEntityIds: [merge.id],
+      allowedTools: ["propose_predictions"],
+    };
+    const waiting: TaskRecord = {
+      ...PLAN_TASK,
+      id: "task_test_package",
+      kind: "brief_package",
+      status: "queued",
+      dependsOnTaskIds: [finished.id],
+      allowedTools: ["read_case", "propose_package", "request_review", "propose_layout"],
+    };
+    const seen: string[][] = [];
+    const spy: TaskExecutor = (input, taskDeps) => {
+      seen.push((taskDeps.committedBranchMerges ?? []).map((m) => m.id));
+      return EXECUTORS.brief_package
+        ? EXECUTORS.brief_package(input, taskDeps)
+        : Promise.reject(new Error("no brief executor"));
+    };
+    const store = addBranchRecord(testStore());
+    store.branchMerges.push(merge);
+    const { deps: d } = deps(routes([], []), {
+      store,
+      executors: { ...EXECUTORS, brief_package: spy },
+    });
+    await runCommand(
+      {
+        planTask: { ...PLAN_TASK, status: "succeeded" },
+        expectedCaseRevision: 3,
+        snapshot: SNAPSHOT,
+        resume: { tasks: [finished, waiting], attempt: 2, spentMicroUsd: 0 },
+      },
+      d,
+    );
+    expect(seen).toEqual([["merge_test_resumed"]]);
+  });
+
   it("RL-02 the brief package still runs after a quantitative task fails, with the failed task named", async () => {
     const plan = {
       interpretation: "The command asks for a field-scoping package for the valley.",

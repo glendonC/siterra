@@ -95,6 +95,8 @@ export interface AcceptedIntervention {
   hypotheses: HypothesisRecord[];
   /** True when the response cites a hypothesis but no Evidence (accepted on the repaired turn only). */
   noSource: boolean;
+  /** Cited ids the task could not use, left out on the repaired turn, with why. */
+  dropped: { id: string; reason: "unavailable" | "contradicted" }[];
 }
 
 export interface InterventionContext {
@@ -244,6 +246,7 @@ export function validateInterventionProposal(
   const issues: ValidationIssue[] = [];
   const titles = new Set<string>();
   const uncited = new Set<number>();
+  const droppedOf = new Map<number, { id: string; reason: "unavailable" | "contradicted" }[]>();
   items.forEach((item, i) => {
     const at = `$.items[${i}]`;
     const own: ValidationIssue[] = [];
@@ -299,14 +302,21 @@ export function validateInterventionProposal(
     if (new Set(item.requiredReviewRoles).size !== item.requiredReviewRoles.length)
       add("schema", "requiredReviewRoles", "Each review role appears once.");
 
+    // On the repaired turn an id the task cannot use is left out, not refused (P9e); on the first it
+    // goes back with the batch.
+    const leave = context.noSource === "mark";
+    const dropped: { id: string; reason: "unavailable" | "contradicted" }[] = [];
     const evidence = item.evidenceIds.flatMap((id, j) => {
       const e = context.evidence.get(id);
       if (!e) {
-        add(
-          "unknown_reference",
-          `evidenceIds[${j}]`,
-          `${id} is not accepted evidence available to this task.`,
-        );
+        if (leave) dropped.push({ id, reason: "unavailable" });
+        else {
+          add(
+            "unknown_reference",
+            `evidenceIds[${j}]`,
+            `${id} is not accepted evidence available to this task.`,
+          );
+        }
         return [];
       }
       return [e];
@@ -314,35 +324,43 @@ export function validateInterventionProposal(
     const hypotheses = item.hypothesisIds.flatMap((id, j) => {
       const h = context.hypotheses.get(id);
       if (!h) {
-        add(
-          "unknown_reference",
-          `hypothesisIds[${j}]`,
-          `${id} is not a hypothesis available to this task.`,
-        );
+        if (leave) dropped.push({ id, reason: "unavailable" });
+        else {
+          add(
+            "unknown_reference",
+            `hypothesisIds[${j}]`,
+            `${id} is not a hypothesis available to this task.`,
+          );
+        }
         return [];
       }
       // proposes_response means "if the explanation holds"; a contradicted or stale one does not.
       if (h.status === "inconsistent" || h.status === "stale") {
-        add(
-          "claim_kind",
-          `hypothesisIds[${j}]`,
-          `${id} is ${h.status === "stale" ? "stale" : "contradicted by available evidence"}; a candidate response cannot rest on it.`,
-        );
+        if (leave) dropped.push({ id, reason: "contradicted" });
+        else {
+          add(
+            "claim_kind",
+            `hypothesisIds[${j}]`,
+            `${id} is ${h.status === "stale" ? "stale" : "contradicted by available evidence"}; a candidate response cannot rest on it.`,
+          );
+        }
         return [];
       }
       return [h];
     });
-    if (item.evidenceIds.length + item.hypothesisIds.length === 0) {
+    if (leave) {
+      // Whatever is left is kept; a response with no Evidence left says so in its record.
+      if (evidence.length === 0) uncited.add(i);
+      droppedOf.set(i, dropped);
+    } else if (item.evidenceIds.length + item.hypothesisIds.length === 0) {
       add("claim_kind", "evidenceIds", "Cite the evidence or hypotheses the response rests on.");
     } else if (item.evidenceIds.length === 0) {
       uncited.add(i);
-      if (context.noSource !== "mark") {
-        add(
-          "claim_kind",
-          "evidenceIds",
-          "Cite at least one accepted Evidence id the response rests on; a hypothesis alone is not a source.",
-        );
-      }
+      add(
+        "claim_kind",
+        "evidenceIds",
+        "Cite at least one accepted Evidence id the response rests on; a hypothesis alone is not a source.",
+      );
     }
 
     const cited = citedNumbers(evidence, context.measurements);
@@ -358,8 +376,22 @@ export function validateInterventionProposal(
     }
 
     if (own.length > 0) issues.push(...own);
-    else
-      accepted.push({ item: { ...item, title }, evidence, hypotheses, noSource: uncited.has(i) });
+    else {
+      accepted.push({
+        item: leave
+          ? {
+              ...item,
+              title,
+              evidenceIds: evidence.map((e) => e.id),
+              hypothesisIds: hypotheses.map((h) => h.id),
+            }
+          : { ...item, title },
+        evidence,
+        hypotheses,
+        noSource: uncited.has(i),
+        dropped: droppedOf.get(i) ?? [],
+      });
+    }
   });
   // One response without a source sends the whole batch back for the repair turn.
   if (uncited.size > 0 && context.noSource !== "mark") return { ok: false, issues };
