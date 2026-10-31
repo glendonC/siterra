@@ -181,6 +181,8 @@ export function Journey({ globeAssets, arrival, snapshot }: JourneyProps) {
       if (!ready || !renderer) return;
       const w = el.clientWidth;
       const h = el.clientHeight;
+      // the globe at no size (hidden under the overview) draws nothing: its projection would be NaN (U28f)
+      if (w < 1 || h < 1) return;
       const o = outletRef.current;
       const caseV = unit(o.lon, o.lat);
       const s = globeStateAt(now(), moments.current, reduced.current, o);

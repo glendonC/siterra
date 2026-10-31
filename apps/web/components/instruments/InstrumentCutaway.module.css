@@ -330,6 +330,15 @@
   transition: opacity 0.45s ease;
 }
 
-.root[data-tearing] > :not(canvas) {
+.root[data-tearing] > :not(canvas, .brief) {
   opacity: 0;
+}
+
+/* the quiet line while the section is still drawn (U28f) */
+.drawing {
+  display: block;
+  margin-top: 6px;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--text-tertiary);
 }

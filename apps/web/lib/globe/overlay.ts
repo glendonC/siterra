@@ -29,7 +29,14 @@ export function ringPoints(c: Vec3, lonDeg: number, rho: number, n = 72): Vec3[]
 /** Angular radius that keeps the ring 12 CSS px wide on screen at a view distance in km. */
 export const ringRho = (distanceKm: number) => (12 * distanceKm) / (F_PX * R_KM);
 
-/** An SVG path through screen points, closed, or undefined if any point is behind the camera. */
+/** Whether a projected point is a point: a globe drawn at no size projects to NaN (U28f: the lead's console errors). */
+const finite = (p: readonly number[] | undefined): p is [number, number, number] =>
+  p !== undefined && Number.isFinite(p[0]) && Number.isFinite(p[1]);
+
+/**
+ * An SVG path through screen points, closed, or undefined if any point is behind the camera or not a number (the
+ * globe at no size, while it waits under the overview).
+ */
 export function polygonPath(
   vp: Float32Array,
   pts: Vec3[],
@@ -37,12 +44,8 @@ export function polygonPath(
   h: number,
 ): string | undefined {
   const s = pts.map((p) => project(vp, p, w, h));
-  if (s.some((p) => !p)) return undefined;
-  return (
-    s
-      .map((p, i) => `${i ? "L" : "M"}${(p?.[0] ?? 0).toFixed(1)} ${(p?.[1] ?? 0).toFixed(1)}`)
-      .join(" ") + " Z"
-  );
+  if (!s.every(finite)) return undefined;
+  return s.map((p, i) => `${i ? "L" : "M"}${p[0].toFixed(1)} ${p[1].toFixed(1)}`).join(" ") + " Z";
 }
 
 /** The range name's path: a quadratic through the curve's ends, bent to pass through its middle. */
@@ -62,7 +65,7 @@ export function rangePath(
   const p0 = at(0);
   const pm = at(0.5);
   const p2 = at(1);
-  if (!p0 || !pm || !p2) return undefined;
+  if (!finite(p0) || !finite(pm) || !finite(p2)) return undefined;
   const cx = 2 * pm[0] - (p0[0] + p2[0]) / 2;
   const cy = 2 * pm[1] - (p0[1] + p2[1]) / 2;
   return `M${p0[0].toFixed(1)} ${p0[1].toFixed(1)} Q${cx.toFixed(1)} ${cy.toFixed(1)} ${p2[0].toFixed(1)} ${p2[1].toFixed(1)}`;

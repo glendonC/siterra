@@ -75,3 +75,13 @@ test("turns with the arrow keys and returns with Home", async ({ page }) => {
     .poll(async () => (await bandTops(page)).every((t, i) => Math.abs(t - (before[i] ?? t)) <= 0.5))
     .toBe(true);
 });
+
+test("the headline comes in at once, with a quiet line while the section is drawn (U28f)", async ({
+  page,
+}) => {
+  await page.goto("/instruments/cutaway");
+  const root = page.locator(ROOT);
+  await expect(root.locator("[data-cut-headline]")).toBeVisible({ timeout: 10_000 });
+  await expect(root.locator("[data-band]").first()).toBeVisible({ timeout: 60_000 });
+  await expect(root.locator("[data-cut-drawing]")).toHaveCount(0);
+});

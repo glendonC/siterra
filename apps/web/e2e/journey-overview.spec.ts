@@ -113,3 +113,54 @@ test("under reduced motion Open cuts straight to the overview", async ({ page })
   await expect(page.locator("[data-phase=rest]")).toBeVisible({ timeout: 60_000 });
   await overview(page);
 });
+
+test("no drawing gets a non-number through the journey, the overview, a card and the cut (U28f), at 800 x 600", async ({
+  page,
+}) => {
+  test.setTimeout(240_000);
+  await page.setViewportSize({ width: 800, height: 600 });
+  // the browser reports an attribute that is not a number ('<path> attribute d: Expected number, "MNaN ...')
+  const errors: string[] = [];
+  page.on("console", (m) => {
+    if (m.type() === "error" && /Expected number|NaN/.test(m.text()))
+      errors.push(m.text().slice(0, 120));
+  });
+  const nonNumbers = () =>
+    page.evaluate(() =>
+      [...document.querySelectorAll("svg *")].flatMap((e) =>
+        [...e.attributes]
+          .filter((a) => /NaN|Infinity/.test(a.value))
+          .map((a) => `${e.tagName} ${a.name}`),
+      ),
+    );
+  await page.goto("/");
+  await expect(page.locator("[data-opening]")).toBeVisible({ timeout: 60_000 });
+  await page.keyboard.press("Enter");
+  await expect(page.locator("[data-phase=globe]")).toBeVisible();
+  await page.keyboard.press("Enter");
+  await expect(page.locator("[data-phase=rest]")).toBeVisible({ timeout: 90_000 });
+  await overview(page);
+  await page.waitForTimeout(1500);
+  expect(await nonNumbers()).toEqual([]);
+  // a hidden browser pane gives every element no size (the lead's walk): hide the page a moment, then show it again
+  await page.evaluate(() => {
+    document.documentElement.style.display = "none";
+  });
+  await page.waitForTimeout(1200);
+  await page.evaluate(() => {
+    document.documentElement.style.display = "";
+  });
+  await page.waitForTimeout(800);
+  expect(await nonNumbers()).toEqual([]);
+  await page.locator("[data-finding='band']").click();
+  await expect(page.locator("[data-record='band']")).toBeVisible();
+  await page.waitForTimeout(1200);
+  expect(await nonNumbers()).toEqual([]);
+  await page.locator("[data-record] [data-actions] a").first().click();
+  await expect(page.locator("[data-instrument='cutaway'] [data-band]").first()).toBeVisible({
+    timeout: 60_000,
+  });
+  await page.waitForTimeout(1500);
+  expect(await nonNumbers()).toEqual([]);
+  expect(errors).toEqual([]);
+});

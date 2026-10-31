@@ -391,6 +391,7 @@ export const en = {
     kind: "label",
     honesty: true,
   },
+  "instrument.cutaway.drawing": { text: "Drawing the section", kind: "label" },
   "instrument.cutaway.statement": { text: "Published statement {n}", kind: "label" },
 
   // Instruments: the briefing shell around them. Enter in the command line opens the valley with the typed text in

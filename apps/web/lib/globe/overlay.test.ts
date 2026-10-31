@@ -32,6 +32,27 @@ describe("paths", () => {
     expect(d?.endsWith("Z")).toBe(true);
   });
 
+  it("draws no path with a non-number in it when the globe has no height (hidden behind the overview)", () => {
+    // the lead's walk: 'path d: Expected number, MNaN 0.0 LNaN 0.0' while the globe drew at zero height
+    const flat = globeCamera(
+      { lon: -6.5, lat: 31.6, bearing: 180, pitch: 60, distance: 18000, fov: 22 },
+      0 / 0,
+    );
+    const ring = polygonPath(
+      flat.vp,
+      ringPoints(unit(-6.537, 31.638), -6.537, ringRho(18000)),
+      0,
+      0,
+    );
+    const curve: [number, number][] = [
+      [-9, 31],
+      [-6.5, 31.6],
+      [-4, 32],
+    ];
+    const range = rangePath(flat.vp, curve, 0, 0);
+    for (const d of [ring, range]) expect(d ?? "").not.toMatch(/NaN|Infinity/);
+  });
+
   it("draws one quadratic for the range name", () => {
     const curve: [number, number][] = [
       [-9, 31],

@@ -401,6 +401,23 @@ export function InstrumentCutaway({ teardown }: { teardown?: Teardown } = {}) {
           }
         </p>
       )}
+      {/* the headline at once, from the record's caption (the lead's U28f: no bare land while the section's assets
+          arrive); a quiet line while the section is still drawn */}
+      {caption && lead && !failed && (
+        <p className={styles.brief} data-cut-headline>
+          {lead.figure !== null && <span className={styles.fig}>{lead.figure}</span>}
+          <span className={styles.unit}>{lead.rest}</span>
+          <span className={styles.qual}>
+            {caption.grey}
+            <span className={styles.chip}>{1}</span>
+          </span>
+          {!data || tearing ? (
+            <span className={styles.drawing} data-cut-drawing>
+              {en["instrument.cutaway.drawing"].text}
+            </span>
+          ) : null}
+        </p>
+      )}
       {data && caption && lead && !failed && (
         <>
           <svg className={styles.leaders} aria-hidden="true">
@@ -433,14 +450,6 @@ export function InstrumentCutaway({ teardown }: { teardown?: Teardown } = {}) {
               <line ref={floorStemRef} stroke={obsidian.leaderOnWall} strokeWidth={1} />
             ) : null}
           </svg>
-          <p className={styles.brief}>
-            {lead.figure !== null && <span className={styles.fig}>{lead.figure}</span>}
-            <span className={styles.unit}>{lead.rest}</span>
-            <span className={styles.qual}>
-              {caption.grey}
-              <span className={styles.chip}>{1}</span>
-            </span>
-          </p>
           {BANDS.map((id, i) => (
             <div
               key={id}
