@@ -1,0 +1,310 @@
+/* The printable brief in the daylight tokens of app/daylight.css (no colour literal here, VC-01): paper, ink, one
+   accent for the status word, hairline rules between sections. A4 on paper with the print button hidden. */
+
+/* the app's body does not scroll (globals.css); the brief scrolls in its own layer, with no native bar */
+.scroller {
+  position: fixed;
+  inset: 0;
+  overflow-y: auto;
+  scrollbar-width: none;
+  background: var(--paper);
+}
+
+.scroller::-webkit-scrollbar {
+  display: none;
+}
+
+.page {
+  box-sizing: border-box;
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 56px 56px 72px;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 21px;
+}
+
+.state {
+  margin: 120px auto;
+  max-width: 560px;
+  color: var(--grey);
+  font-family: var(--font-sans);
+}
+
+.tools {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 24px;
+}
+
+.head {
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--rule-strong);
+}
+
+.kicker {
+  margin: 0;
+  font-size: 12px;
+  color: var(--grey);
+}
+
+.title {
+  margin: 4px 0 0;
+  font-size: 32px;
+  font-weight: 500;
+  line-height: 38px;
+  letter-spacing: -0.01em;
+}
+
+.subject {
+  margin: 6px 0 0;
+  font-size: 17px;
+  line-height: 24px;
+}
+
+.meta {
+  display: grid;
+  grid-template-columns: 96px 1fr;
+  gap: 4px 16px;
+  margin: 16px 0 0;
+}
+
+.meta dt,
+.pairs dt,
+.pair dt {
+  color: var(--grey);
+}
+
+.meta dd,
+.pairs dd,
+.pair dd {
+  margin: 0;
+}
+
+.status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin: 16px 0 0;
+  font-size: 12px;
+  color: var(--grey);
+}
+
+.statusWord {
+  padding: 1px 8px;
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  color: var(--ink);
+}
+
+.honest,
+.origin {
+  margin: 8px 0 0;
+  font-size: 12px;
+  line-height: 17px;
+  color: var(--grey);
+}
+
+.section {
+  padding: 20px 0 4px;
+}
+
+.h2,
+.h3 {
+  break-after: avoid;
+}
+
+.table tr,
+.pairs {
+  break-inside: avoid;
+}
+
+.twoUp {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 40px;
+  border-top: 1px solid var(--rule);
+}
+
+.twoUp + .section,
+.section + .section,
+.section + .twoUp,
+.head + .twoUp {
+  border-top: 1px solid var(--rule);
+}
+
+.h2 {
+  margin: 0 0 10px;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+.h3 {
+  margin: 14px 0 6px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.lines,
+.plain,
+.reviews {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lines li {
+  margin: 0 0 10px;
+  break-inside: avoid;
+}
+
+.claim {
+  display: block;
+  font-size: 11px;
+  line-height: 15px;
+  color: var(--grey);
+}
+
+.text {
+  margin: 0;
+}
+
+.refs {
+  margin-left: 3px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--grey);
+}
+
+.pairs {
+  display: grid;
+  grid-template-columns: 96px 1fr;
+  gap: 4px 16px;
+  margin: 8px 0 12px;
+}
+
+.pair {
+  display: contents;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 8px 0 0;
+  font-size: 13px;
+  line-height: 19px;
+}
+
+.table th {
+  padding: 6px 8px 6px 0;
+  border-bottom: 1px solid var(--rule-strong);
+  font-weight: 500;
+  text-align: left;
+  color: var(--grey);
+}
+
+.table td {
+  padding: 8px 8px 8px 0;
+  border-bottom: 1px solid var(--rule);
+  vertical-align: top;
+}
+
+.n {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--grey);
+}
+
+.kind {
+  color: var(--grey);
+}
+
+.sub {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  line-height: 17px;
+  color: var(--grey);
+}
+
+.place {
+  display: block;
+  margin-bottom: 6px;
+}
+
+.plain li {
+  margin: 0 0 6px;
+}
+
+.responses {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
+.response {
+  break-inside: avoid;
+  border-top: 1px solid var(--rule);
+}
+
+.response:first-child {
+  border-top: 0;
+}
+
+.reviews li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 0;
+  border-top: 1px solid var(--rule);
+}
+
+.sources {
+  margin: 0;
+  padding-left: 22px;
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.sources li {
+  margin: 0 0 8px;
+}
+
+.foot {
+  margin-top: 32px;
+  padding-top: 12px;
+  border-top: 1px solid var(--rule-strong);
+  font-size: 12px;
+  color: var(--grey);
+}
+
+@page {
+  size: A4;
+  margin: 16mm 14mm;
+}
+
+@media print {
+  :global(html),
+  :global(body) {
+    height: auto;
+    overflow: visible;
+  }
+
+  .scroller {
+    position: static;
+    overflow: visible;
+    background: none;
+  }
+
+  .tools {
+    display: none;
+  }
+
+  .page {
+    max-width: none;
+    padding: 0;
+    background: none;
+  }
+}

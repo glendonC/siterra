@@ -1,0 +1,6 @@
+/* The development harness's ground: the obsidian canvas, nothing else. */
+.ground {
+  position: fixed;
+  inset: 0;
+  background: var(--bg-canvas);
+}

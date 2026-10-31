@@ -94,6 +94,8 @@ const ND = { az: 40, el: 33, dist: 42, x: 360, y: 600 } as const;
  * clear of the record on the right.
  */
 const WIDE = { fh: 560, cx: 300, cy: 470 } as const;
+/** The next-steps package's view (UI-2): the whole land in the briefing's middle column (design px). */
+const PKG = { fh: 540, cx: 720, cy: 478, aside: 190 } as const;
 /**
  * The routes opened: the view of the pixel's side, a little higher, closed in until every route fits the box (design
  * px) on the left, clear of the arc and of the column on the right.
@@ -138,7 +140,7 @@ const PIXEL_ELEVATION = 52;
  * A finding, the field check on the land, the ask's results (which move as the whole catchment's finding), or the
  * proposed walking routes.
  */
-export type Selection = FindingId | "field" | "results" | "routes";
+export type Selection = FindingId | "field" | "results" | "routes" | "package";
 
 /** The side a selection's record opens on: a finding on the arc's left opens on the left, the land easing right. */
 export const sideOf = (sel: Selection | null, clock: number | undefined): "left" | "right" =>
@@ -147,7 +149,7 @@ export const sideOf = (sel: Selection | null, clock: number | undefined): "left"
     : "right";
 
 /** The findings about the whole catchment: their view keeps the land whole and unblurred, with no swing. */
-const WHOLE = new Set<Selection>(["catchment", "fdr", "rain", "results"]);
+const WHOLE = new Set<Selection>(["catchment", "fdr", "rain", "results", "package"]);
 
 export interface SceneState {
   /** Opening of the selection: 0 rest, 1 opened. */
@@ -187,6 +189,17 @@ export interface SceneState {
   cellPaint?: CellPaint;
   /** One evidence layer lifted off the land at rest (decision 12): which, and how far (0 down to 1 up). */
   lift?: { layer: LiftId; k: number } | null;
+  /**
+   * The next-steps package open (UI-2): the height range (m) of each field check's band, in the package's order
+   * (null bounds are the land's lowest and highest), and the one lit in the accent. Read only while `sel` is
+   * "package".
+   */
+  ranges?: readonly { lo: number | null; hi: number | null }[];
+  lit?: number | null;
+  /** The package's land eased aside for its cards, 0 centred to 1 aside (UI-2). */
+  aside?: number;
+  /** The arc stays out (UI-2: from the results to the package, and while it opens). */
+  quiet?: boolean;
 }
 
 /** The layers the overview can lift: each one the case's own (the trend cells, the CHIRPS cells, the land cover, the bands). */
@@ -234,6 +247,8 @@ export interface OverviewLayout {
   subject: { x0: number; y0: number; x1: number; y1: number };
   /** The pixel and its risen cells on screen while it is opened (U27), for its cards' leaders; null otherwise. */
   pixelBox: { x0: number; y0: number; x1: number; y1: number } | null;
+  /** Each package field check's band's mean place on the land, where its marker stands (UI-2); empty otherwise. */
+  stands: ({ at: Point; behind: boolean } | null)[];
 }
 
 export interface Gaps {
@@ -349,6 +364,8 @@ export function mountOverview(
     smooth: 0.55,
   });
   scene.add(relief.mesh);
+  // the package's lit band takes the accent, the colour of a proposed thing (UI-2)
+  relief.uniforms.uRangeC.value = hexVec(C.route);
   const rim = smoothRing(data.ring, 2);
   const wall = createWall(rim, sample, frame, {
     outward: signedArea(rim) > 0 ? -1 : 1,
@@ -842,6 +859,35 @@ export function mountOverview(
       }
     if (n) TB = frame.v(sE / n, sN / n, sample(sE / n, sN / n));
   }
+  // the package's bands (UI-2): the mean place of the relief cells between two heights, solved once per range
+  const rangePlaces = new Map<string, Vec3 | null>();
+  const rangePlace = (lo: number | null, hi: number | null): Vec3 | null => {
+    const key = `${String(lo)}:${String(hi)}`;
+    if (rangePlaces.has(key)) return rangePlaces.get(key) ?? null;
+    let sE = 0;
+    let sN = 0;
+    let n = 0;
+    for (let j = 0; j < g.height; j++)
+      for (let i = 0; i < g.width; i++) {
+        const k = j * g.width + i;
+        const h = H[k] ?? NaN;
+        if (!M30[k] || !(h >= (lo ?? -Infinity)) || !(h < (hi ?? Infinity))) continue;
+        sE += g.E0 + (i + 0.5) * g.res;
+        sN += g.N0 - (j + 0.5) * g.res;
+        n++;
+      }
+    const at = n ? frame.v(sE / n, sN / n, sample(sE / n, sN / n)) : null;
+    rangePlaces.set(key, at);
+    return at;
+  };
+  /** Where each package field check's marker stands on screen (UI-2): its band's mean place on the land. */
+  const standsOf = (st: SceneState): OverviewLayout["stands"] =>
+    st.sel !== "package"
+      ? []
+      : (st.ranges ?? []).map((r) => {
+          const p = rangePlace(r.lo, r.hi);
+          return p ? { at: project(p), behind: occluded(p) } : null;
+        });
   const clockOf = (sel: Selection | null) =>
     findings.find(
       (f) => f.id === (sel === "field" ? "pixel" : sel === "results" ? "catchment" : sel),
@@ -873,17 +919,19 @@ export function mountOverview(
     // a whole-catchment finding keeps the overview's bearing (no swing); the land eases away from its record's side
     const left = sideOf(sel, clockOf(sel)) === "left";
     const v =
-      sel === "routes" && RC
-        ? routesView(RC)
-        : place
-          ? pointAt(place, az)
-          : fitLand(
-              WHOLE.has(sel) ? az0 : az,
-              ND.el,
-              WIDE.fh,
-              left ? design.width - WIDE.cx : WIDE.cx,
-              WIDE.cy,
-            );
+      sel === "package"
+        ? fitLand(az0, ND.el, PKG.fh, PKG.cx, PKG.cy)
+        : sel === "routes" && RC
+          ? routesView(RC)
+          : place
+            ? pointAt(place, az)
+            : fitLand(
+                WHOLE.has(sel) ? az0 : az,
+                ND.el,
+                WIDE.fh,
+                left ? design.width - WIDE.cx : WIDE.cx,
+                WIDE.cy,
+              );
     views.set(sel, v);
     return v;
   };
@@ -891,6 +939,7 @@ export function mountOverview(
   for (const f of findings) viewFor(f.id);
   viewFor("field");
   viewFor("results");
+  viewFor("package");
   if (RC) viewFor("routes");
   set(view0);
   const viewAt = (v0: View, v1: View, e: number): View => {
@@ -1177,6 +1226,7 @@ export function mountOverview(
         (state.split ?? 0) > 0.5 && pixelPts.length
           ? bbox(pixelPts.flatMap((p) => [project(p), project([p[0], p[1] + CELL_RISE, p[2]])]))
           : null,
+      stands: standsOf(state),
     };
     for (const l of listeners) l(layout);
   });
@@ -1383,6 +1433,11 @@ export function mountOverview(
       const dolly = Math.tan(rad(FOV / 2)) / Math.tan(rad((FOV * fovK) / 2));
       const view = {
         ...at,
+        // the package's land eases aside while one of its cards is open (UI-2)
+        shift: [
+          at.shift[0] - (next.sel === "package" ? (next.aside ?? 0) * PKG.aside * e : 0),
+          at.shift[1],
+        ] as [number, number],
         distance: at.distance * (next.zoom ?? 1) * dolly,
         azimuth: at.azimuth + (next.turn ?? 0),
       };
@@ -1442,12 +1497,21 @@ export function mountOverview(
       relief.uniforms.uOverA.value = fp ? 0.92 * e : 0;
       relief.uniforms.uBandAt.value = bandLimitM ?? 0;
       relief.uniforms.uBandA.value = next.sel === "band" && bandLimitM !== null ? 0.9 * e : 0;
+      // the package's pointed field check's band (UI-2)
+      const rg =
+        next.sel === "package" && next.lit != null ? (next.ranges?.[next.lit] ?? null) : null;
+      relief.uniforms.uRangeLo.value = rg?.lo ?? -1e5;
+      relief.uniforms.uRangeHi.value = rg?.hi ?? 1e5;
+      relief.uniforms.uRangeA.value = rg ? 0.9 * e : 0;
       outlineLine.material.opacity =
         lerp(0.32, next.sel === "catchment" ? 0.95 : 0.32, e) * sstep(0, 0.18, rise);
       for (const r of riverLines) r.line.material.opacity = r.rest * sstep(0, 0.18, rise);
       outlineLine.material.linewidth = lerp(1, next.sel === "catchment" ? 2 : 1, e);
       // the arc steps back while the visitor has turned the land or brought it closer, so the land never crosses it
       dialMat.opacity = 1 - awayOf(next);
+      // the package's words stand where the arc runs: the arc steps out while it is open (UI-2)
+      if (next.sel === "package") dialMat.opacity *= 1 - e;
+      if (next.quiet) dialMat.opacity = 0;
       if (pixelLine) {
         const on = next.sel === "pixel" || next.sel === "field";
         pixelLine.material.opacity = on ? Math.min(0.999, clamp01((e - 0.55) / 0.45)) : 0;

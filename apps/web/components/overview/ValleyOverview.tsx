@@ -83,6 +83,10 @@ import { OverviewRecord } from "./OverviewRecord";
 import { OverviewResults } from "./OverviewResults";
 import { OverviewRoutes, type RoutesLoad } from "./OverviewRoutes";
 import { useOverviewAsk } from "./useOverviewAsk";
+import { PackageBriefing, type LandMount, type Stands } from "../package/PackageBriefing";
+import { pkg } from "../../lib/copy/package";
+import type { HeightRange } from "../../lib/package/bands";
+import { commandBrief, packageView } from "../../lib/package/package";
 import styles from "./ValleyOverview.module.css";
 
 /** Seconds for each move: the opening, a finding's hover, the ask circle's hover, the ask opening, the routes' hover. */
@@ -168,6 +172,8 @@ function crumbOf(sel: Selection, findings: readonly Finding[], bandLimit: string
       return en["overview.crumb.routes"].text;
     case "results":
       return en["overview.crumb.results"].text;
+    case "package":
+      return pkg["package.title"].text;
     case "band":
       return format("overview.crumb.band", { value: f?.display ?? "", limit: bandLimit });
     default:
@@ -290,17 +296,16 @@ function OverviewReady({
   // the amber mark stands for the case's own field plan: none is drawn until the composer has opened one
   const planned = instrumentOf(listing, "field_plan") !== undefined;
   // the views the record holds ready: what any action on the land may offer (decision 15)
-  const offered = useMemo(
-    () =>
-      new Set(
-        (Object.keys(VIEW_INSTRUMENT) as ViewKind[]).filter((v) =>
-          listing.instruments.some(
-            (x) => x.spec.parameters.kind === VIEW_INSTRUMENT[v] && x.spec.status === "ready",
-          ),
+  const offered = useMemo(() => {
+    const views = new Set(
+      (Object.keys(VIEW_INSTRUMENT) as ViewKind[]).filter((v) =>
+        listing.instruments.some(
+          (x) => x.spec.parameters.kind === VIEW_INSTRUMENT[v] && x.spec.status === "ready",
         ),
       ),
-    [listing],
-  );
+    );
+    return views;
+  }, [listing, snapshot]);
   const names = placeNamesFromCase(snapshot);
   const area = catchmentAreaKm2(snapshot);
   const reasons = useBlockedReasons("field_plan");
@@ -347,6 +352,15 @@ function OverviewReady({
   // the ask; when the session's case revision moves past the records', the records are reopened for it and the
   // findings, the records and the field plan follow without a reload
   const ask = useOverviewAsk(snapshot);
+  // the question's next-steps package, when its command committed one (UI-2)
+  const pkgBrief = useMemo(
+    () => (ask.commandId ? commandBrief(ask.snapshot, ask.commandId) : undefined),
+    [ask.snapshot, ask.commandId],
+  );
+  const pkgView = useMemo(
+    () => (pkgBrief ? packageView(ask.snapshot, pkgBrief.id) : undefined),
+    [ask.snapshot, pkgBrief],
+  );
   const refresh = useRecordsRefresh();
   const reopening = useRef<number | null>(null);
   useEffect(() => {
@@ -426,7 +440,10 @@ function OverviewReady({
   const selRef = useRef<Selection | null>(null);
   const [sel, setSel] = useState<Selection | null>(null);
   // what can be done with the opened finding, beside its card (decision 15)
-  const cardActions = useMemo(() => (sel ? actionsFor(sel, offered, true) : []), [sel, offered]);
+  const cardActions = useMemo(
+    () => (sel && sel !== "package" ? actionsFor(sel, offered, true) : []),
+    [sel, offered],
+  );
   const cardActionsRef = useRef<readonly Action[]>(cardActions);
   cardActionsRef.current = cardActions;
   // the part of the land under the cursor, its actions, and whether its label shows
@@ -470,6 +487,16 @@ function OverviewReady({
   const routesRef = useRef<HTMLButtonElement>(null);
   /** The route picked in the opened list (hovered or focused), if any. */
   const pickRef = useRef<string | null>(null);
+  // the next-steps package open on the land (UI-2): the band it lights, and who follows its stand point
+  const pkgRangesRef = useRef<{ ranges: HeightRange[]; lit: number | null }>({
+    ranges: [],
+    lit: null,
+  });
+  // the package's land eased aside for its cards: where it is and where it is going (0 centred, 1 aside)
+  const pkgAsideRef = useRef({ k: 0, goal: 0 });
+  // from the results to the package: the overview's own words stay out through the whole handover
+  const pkgHandoff = useRef(false);
+  const standSubs = useRef(new Set<(s: Stands) => void>());
   /** True while the sources panel is open: the labels it covers are dimmed. */
   const panelRef = useRef(false);
   const endRefs = useRef(new Map<string, HTMLElement>());
@@ -578,15 +605,41 @@ function OverviewReady({
   // the specimen's setState, for the words: places every label, dot, hairline and mark from the scene's layout
   const apply = useCallback((layout: OverviewLayout) => {
     lastLayout.current = layout;
+    // the package's markers follow their bands' places on the land (UI-2)
+    if (standSubs.current.size) {
+      const k = layout.fit.scale;
+      const at: Stands = {
+        points: layout.stands.map((st) =>
+          st
+            ? {
+                x: layout.fit.ox + st.at.x * k,
+                y: layout.fit.oy + st.at.y * k,
+                behind: st.behind,
+              }
+            : null,
+        ),
+        box: {
+          x0: layout.fit.ox + layout.landBox.x0 * k,
+          y0: layout.fit.oy + layout.landBox.y0 * k,
+          x1: layout.fit.ox + layout.landBox.x1 * k,
+          y1: layout.fit.oy + layout.landBox.y1 * k,
+        },
+      };
+      for (const f of standSubs.current) f(at);
+    }
     const { s, h, k, o } = live.current;
     const { fit, e } = layout;
+    // from the results to the package and while it opens, the overview's words, ask and arc stay out (UI-2)
+    const pkgQuiet = pkgHandoff.current || (selRef.current === "package" && goal.current.s === 1);
     const oe = ease(o);
     const selected = selRef.current;
     const hud = hudRef.current;
     if (hud) {
       hud.style.transform = `translate(${fit.ox.toFixed(2)}px, ${fit.oy.toFixed(2)}px) scale(${fit.scale.toFixed(5)})`;
       // the arrival: the words on the land and round the arc come in once the arc is drawn
-      const shown = appearRef.current * (1 - exitRef.current.away);
+      // the package's words take the land's place round it: the overview's own words and dots step out (UI-2)
+      const pkgAway = pkgQuiet ? 1 : selected === "package" ? clamp01(s * 1.4) : 0;
+      const shown = appearRef.current * (1 - exitRef.current.away) * (1 - pkgAway);
       hud.style.opacity = shown < 1 ? shown.toFixed(3) : "";
     }
     const lift = `translateY(${(-LIFT * oe * fit.scale).toFixed(2)}px)`;
@@ -714,7 +767,7 @@ function OverviewReady({
     if (circle) {
       circle.style.left = `${layout.ask.x.toFixed(2)}px`;
       circle.style.top = `${layout.ask.y.toFixed(2)}px`;
-      const gone = Math.max(away, awayOf(camRef.current));
+      const gone = Math.max(away, awayOf(camRef.current), pkgQuiet ? 1 : 0);
       circle.style.opacity = (1 - gone).toFixed(3);
       circle.style.visibility = gone > 0.99 ? "hidden" : "visible";
       circle.style.transform = `translateY(${(-LIFT * oe).toFixed(2)}px) scale(${(1 + 0.04 * Math.max(k, oe)).toFixed(4)})`;
@@ -723,7 +776,9 @@ function OverviewReady({
     if (beside) {
       beside.style.left = `${layout.ask.x.toFixed(2)}px`;
       beside.style.top = `${layout.ask.y.toFixed(2)}px`;
-      beside.style.opacity = (1 - Math.max(away, awayOf(camRef.current))).toFixed(3);
+      beside.style.opacity = (1 - Math.max(away, awayOf(camRef.current), pkgQuiet ? 1 : 0)).toFixed(
+        3,
+      );
     }
     // the land marks: the proposed field check, and the opened pixel's name
     const field = fieldRef.current;
@@ -825,6 +880,13 @@ function OverviewReady({
       const step = dt / (key === "s" && X.dir === 1 ? 0.35 : DUR[key]);
       l[key] = Math.abs(d) <= step ? gl[key] : l[key] + Math.sign(d) * step;
       if (l[key] !== gl[key]) moving = true;
+    }
+    // the package's land eases aside while one of its cards is open (UI-2)
+    const PA = pkgAsideRef.current;
+    if (PA.k !== PA.goal) {
+      const step = dt / 0.7;
+      PA.k = Math.abs(PA.goal - PA.k) <= step ? PA.goal : PA.k + Math.sign(PA.goal - PA.k) * step;
+      moving = true;
     }
     // a closed finding is let go once the space is back at rest
     if (l.s === 0 && gl.s === 0 && selRef.current) {
@@ -941,6 +1003,10 @@ function OverviewReady({
       cellPaint: cellPaintRef.current,
       ...(X.away > 0 ? { arcDraw: 1 - X.away } : {}),
       lift,
+      aside: ease(pkgAsideRef.current.k),
+      ranges: pkgRangesRef.current.ranges,
+      lit: pkgRangesRef.current.lit,
+      quiet: pkgHandoff.current || (selRef.current === "package" && goal.current.s === 1),
       ...(arrive ?? {}),
     });
     raf.current = moving ? requestAnimationFrame(frame) : 0;
@@ -1163,7 +1229,15 @@ function OverviewReady({
     setRecordData({});
   }, [listing.caseRevision]);
   useEffect(() => {
-    if (!sel || sel === "field" || sel === "results" || sel === "routes" || recordData[sel]) return;
+    if (
+      !sel ||
+      sel === "field" ||
+      sel === "results" ||
+      sel === "routes" ||
+      sel === "package" ||
+      recordData[sel]
+    )
+      return;
     const id = sel;
     const ac = new AbortController();
     loadRecord(id, listing, snapshot, data?.pixel?.series ?? null, undefined, ac.signal).then(
@@ -1240,6 +1314,10 @@ function OverviewReady({
   };
   const back = useCallback(() => {
     const was = selRef.current;
+    if (was === "package") {
+      setPkgShown(false);
+      pkgAsideRef.current.goal = 0;
+    }
     setRainWide(false);
     goal.current.s = 0;
     go();
@@ -1248,8 +1326,54 @@ function OverviewReady({
     else if (was === "results")
       // the ask circle comes back with the overview
       window.setTimeout(() => askCircleRef.current?.focus({ preventScroll: true }), DUR.s * 1000);
+    else if (was === "package")
+      window.setTimeout(() => askCircleRef.current?.focus({ preventScroll: true }), DUR.s * 1000);
     else if (was) labelRefs.current.get(was)?.focus({ preventScroll: true });
   }, [go]);
+  // the next-steps package (UI-2): the results close, then the package opens over the same land
+  const [pkgShown, setPkgShown] = useState(false);
+  const pkgOpenRef = useRef<(() => void) | null>(null);
+  const openPackage = useCallback(() => {
+    pkgHandoff.current = true;
+    if (selRef.current === "results") back();
+    const tryOpen = () => {
+      if (selRef.current) {
+        window.setTimeout(tryOpen, 60);
+        return;
+      }
+      open("package");
+      pkgHandoff.current = false;
+      // decision 14d: the land settles and its band lights first, then the package's words arrive
+      window.setTimeout(
+        () => {
+          if (selRef.current === "package") setPkgShown(true);
+        },
+        reducedMotion.current ? 0 : DUR.s * 700,
+      );
+    };
+    tryOpen();
+  }, [back]);
+  const pkgLand = useMemo<LandMount>(
+    () => ({
+      limits: bandLimitsOf(snapshot),
+      onRanges: (ranges, lit) => {
+        pkgRangesRef.current = { ranges, lit };
+        go();
+      },
+      onAside: (aside) => {
+        pkgAsideRef.current.goal = aside ? 1 : 0;
+        go();
+      },
+      subscribe: (f) => {
+        standSubs.current.add(f);
+        go();
+        return () => {
+          standSubs.current.delete(f);
+        };
+      },
+    }),
+    [snapshot, go],
+  );
   // the visitor's own view: zoom (scroll or the view control) and turn (drag), both undone by R
   const setCam = useCallback(
     (next: { zoom?: number; turn?: number }) => {
@@ -1319,6 +1443,11 @@ function OverviewReady({
         const t = ev.target as HTMLElement | null;
         // (a finding's own label keeps the focus while its card opens: Enter there is the card's Enter)
         if (ev.key === "Enter" && t?.closest("a, button") && !t.closest("[data-finding]")) return;
+        if (ev.key === "Enter" && pkgOpenRef.current) {
+          ev.preventDefault();
+          pkgOpenRef.current();
+          return;
+        }
         const list = selRef.current
           ? cardActionsRef.current
           : hoverShown.current
@@ -1568,7 +1697,23 @@ function OverviewReady({
     lines: [...CREDITS.map((id) => en[id].text), ...(named ? [named.attribution] : [])],
     short: [...SHORT.map((id) => en[id].text), ...(named ? [en["source.geonames"].text] : [])],
   };
+  const pkgHref =
+    sel === "package" && pkgBrief
+      ? `/brief?case=${encodeURIComponent(ask.snapshot.case.id)}&brief=${encodeURIComponent(pkgBrief.id)}`
+      : null;
   const keys: KeyEntry[] = [
+    ...(pkgHref
+      ? [
+          {
+            chip: "E",
+            shortcut: "E",
+            label: pkg["package.export"].text,
+            onPress: () => {
+              window.open(pkgHref, "_blank", "noopener");
+            },
+          },
+        ]
+      : []),
     {
       chip: "Esc",
       shortcut: "Escape",
@@ -1639,6 +1784,14 @@ function OverviewReady({
       ? (findings.find((f) => f.id === sel) ?? null)
       : null;
   const results = sel === "results" ? ask.commandId : null;
+  // the question's next-steps package, when its command committed one (UI-2): Enter on the results opens it, and
+  // the field plan the results also lead to keeps its own letter
+  const resultsActions = pkgView
+    ? cardActions.map((a) =>
+        a.key === "Enter" && a.view === "field" ? { ...a, key: "F" as const } : a,
+      )
+    : cardActions;
+  pkgOpenRef.current = sel === "results" && pkgView ? openPackage : null;
   // a lifted layer's status, from the record: the cells read, the finding it carries, the band limits
   const limits = bandLimitsOf(snapshot);
   const liftStatus = (id: LiftId): string => {
@@ -1862,7 +2015,8 @@ function OverviewReady({
                 snapshot={ask.snapshot}
                 commandId={results}
                 onOpen={openInPlace}
-                actions={cardActions}
+                {...(pkgView ? { onPackage: openPackage } : {})}
+                actions={resultsActions}
                 onBack={back}
                 refs={{ root: recRef, inst: instRef, frost: frostRef, first: firstResultRef }}
               />
@@ -1878,7 +2032,7 @@ function OverviewReady({
                 refs={{ root: recRef, inst: instRef, frost: frostRef, first: firstResultRef }}
               />
             ) : null}
-            {sel !== "results" && sel !== "routes" ? (
+            {sel !== "results" && sel !== "routes" && sel !== "package" ? (
               <OverviewRecord
                 sel={sel}
                 finding={selFinding}
@@ -1980,6 +2134,16 @@ function OverviewReady({
             }}
           />
         </>
+      ) : null}
+      {sel === "package" && pkgView && !tear ? (
+        <PackageBriefing
+          snapshot={ask.snapshot}
+          view={pkgView}
+          open={pkgShown}
+          onClose={back}
+          onOpen={openInPlace}
+          land={pkgLand}
+        />
       ) : null}
       {tear ? (
         <div

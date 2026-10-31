@@ -1,0 +1,368 @@
+/* The next-steps briefing over the land (decision 16), in the tokens of app/obsidian.css (no colour literal here,
+   VC-01). Few words, large enough to read: a headline at 28 px, one card at a time with its title at 22 px and its
+   lines at 17 px. The amber is the proposed: the markers' dashed stems, the lit band, "Proposed field check". The
+   card arrives after its leader draws; it never stands over the land. */
+
+.briefing {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  pointer-events: none;
+}
+
+.briefing > * {
+  pointer-events: auto;
+}
+
+.head,
+.marker,
+.counter {
+  opacity: 0;
+  transition: opacity 360ms ease-out;
+}
+
+.briefing[data-state="in"] .head,
+.briefing[data-state="in"] .marker,
+.briefing[data-state="in"] .counter {
+  opacity: 1;
+}
+
+.briefing[data-state="in"] .head {
+  transition-delay: 120ms;
+}
+
+.briefing[data-state="in"] .marker {
+  transition-delay: 380ms;
+}
+
+.briefing[data-state="in"] .counter {
+  transition-delay: 640ms;
+}
+
+.briefing[data-state="out"] * {
+  transition-delay: 0ms !important;
+  transition-duration: 180ms !important;
+}
+
+.n {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--text-tertiary);
+}
+
+/* the headline under the breadcrumb, where the case question keeps its place */
+.head {
+  position: absolute;
+  left: 44px;
+  top: 72px;
+  width: 760px;
+}
+
+.question {
+  margin: 0;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--text-tertiary);
+}
+
+.headline {
+  margin: 26px 0 0 12px;
+  font-size: 28px;
+  font-weight: 400;
+  line-height: 34px;
+  letter-spacing: -0.005em;
+}
+
+.status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  align-items: center;
+  margin: 12px 0 0 12px;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--text-tertiary);
+}
+
+.statusWord {
+  padding: 1px 9px;
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  color: var(--text-primary);
+}
+
+/* a field check on its band: an amber dashed stem rising from its place, its number and name at the top */
+.marker {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.marker[data-behind] .stem {
+  opacity: 0.45;
+}
+
+.stem {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 132px;
+  border-left: 1px dashed var(--accent);
+  opacity: 0.9;
+  transition: opacity 240ms ease-out;
+}
+
+.marker[data-on] .stem {
+  opacity: 1;
+  border-left-style: solid;
+}
+
+.foot {
+  position: absolute;
+  left: -5px;
+  top: -5px;
+  width: 10px;
+  height: 10px;
+  border: 1px solid var(--accent);
+  border-radius: 50%;
+}
+
+.marker[data-on] .foot {
+  background: var(--accent);
+}
+
+.markerLabel {
+  position: absolute;
+  left: 8px;
+  bottom: 118px;
+  display: inline-flex;
+  gap: 6px;
+  align-items: baseline;
+  white-space: nowrap;
+  font-size: 14px;
+  line-height: 18px;
+  color: var(--accent);
+  text-shadow:
+    0 0 2px var(--bg-canvas),
+    0 0 5px var(--bg-canvas),
+    0 0 10px var(--bg-canvas),
+    0 0 16px var(--bg-canvas);
+}
+
+.markerLabel .n {
+  color: var(--accent);
+}
+
+/* the hairline from the card to what it is about */
+.leader {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.leader line {
+  stroke: var(--hairline);
+  stroke-width: 1;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: draw 260ms cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+}
+
+@keyframes draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* one card at a time: words on the ground, no box (specimens A and C), arriving after its leader */
+.card {
+  position: absolute;
+  animation: arrive 300ms cubic-bezier(0.2, 0.7, 0.2, 1) 180ms both;
+}
+
+@keyframes arrive {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+.kicker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--text-tertiary);
+}
+
+.kickerMode {
+  font-family: var(--font-sans);
+}
+
+/* while a card is open the headline and its status step back (decision 16a: under about 40 words a frame) */
+.headline,
+.status {
+  transition: opacity 260ms ease-out;
+}
+
+.briefing:not([data-step="arrival"]) .headline,
+.briefing:not([data-step="arrival"]) .status {
+  opacity: 0;
+}
+
+.title {
+  margin: 6px 0 0;
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 28px;
+}
+
+.lines,
+.responses {
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lines li,
+.responses li {
+  margin: 0 0 12px;
+  font-size: 17px;
+  line-height: 25px;
+  color: var(--text-secondary);
+  text-wrap: pretty;
+  outline: none;
+  cursor: default;
+}
+
+.lines li[data-active],
+.responses li[data-active] {
+  color: var(--text-primary);
+}
+
+.lines li:focus-visible,
+.responses li:focus-visible {
+  outline: 1px solid var(--ov-focus);
+  outline-offset: 4px;
+}
+
+.responses li {
+  display: grid;
+  grid-template-columns: 22px 1fr;
+}
+
+.note,
+.proposed {
+  margin: 4px 0 0;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--text-tertiary);
+}
+
+.proposed {
+  color: var(--accent);
+}
+
+.tags {
+  display: inline-flex;
+  gap: 3px;
+  margin-left: 8px;
+  vertical-align: 2px;
+}
+
+.tagN {
+  min-width: 16px;
+  height: 16px;
+  padding: 0 3px;
+  border: 1px solid var(--hairline-quiet);
+  border-radius: 2px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  line-height: 14px;
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+/* the step counter at the left edge, with the key that moves it */
+.counter {
+  position: absolute;
+  left: 56px;
+  bottom: 104px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.dots {
+  display: flex;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* one short bar per step, no numerals: the current one in ink, the done ones half, the rest quiet */
+.dot {
+  width: 22px;
+  height: 14px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.dot::before {
+  content: "";
+  display: block;
+  height: 2px;
+  margin-top: 6px;
+  background: var(--hairline-quiet);
+}
+
+.dot[data-done]::before {
+  background: var(--hairline);
+}
+
+.dot[aria-current="step"]::before {
+  background: var(--text-primary);
+}
+
+.dot:hover::before,
+.dot:focus-visible::before {
+  background: var(--text-secondary);
+}
+
+.dot:focus-visible {
+  outline: none;
+}
+
+.keys {
+  display: inline-flex;
+  gap: 8px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .head,
+  .marker,
+  .counter {
+    transition: none;
+  }
+
+  .card,
+  .leader line {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+}
