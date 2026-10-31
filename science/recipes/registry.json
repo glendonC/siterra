@@ -1164,7 +1164,9 @@
         "Values: G(p, y, W) rounded to 5 decimals in the precision of the array it is computed in (float64), for every MOD13Q1 pixel holding at least one 10 m analysis cell of the catchment, for every season year; an undefined G is stored as no value, never as zero",
         "Stored forms: a GeoTIFF on the native MOD13Q1 grid with one float32 band per season year (nodata NaN); a web copy, a little-endian float32 array of shape seasons x rows x columns, season 0 the first season year, row 0 north, NaN for no value, with a JSON header (CRS, transform, shape, season years, pixel counts). Each is read back and must equal the computed values cell for cell",
         "Check against the stored trend: for every pixel with at least min_seasons defined seasons, the Theil-Sen slope of the stored values on the year (the pixel_trend_long_record method, NDVI per decade) is compared with band 1 of the pixel_trend_long_record GeoTIFF of the same window; the largest absolute difference must be at most 1e-6 NDVI per decade and the set of pixels with a slope, and each pixel's number of seasons (band 4), must be identical. Any difference stops the run",
-        "Summary: per season, the number of pixels with a value, and the mean, median and the 5th and 95th percentiles over those pixels (unweighted by cells); the composite periods absent from the archive read, from the same record as pixel_trend_long_record"
+        "Change-point timing: for every tested trend pixel with at least min_seasons defined seasons, the Pettitt (1979) non-parametric single change-point test over its ordered (year, G) series with at least changepoint_min_segment seasons in each segment (candidate split index t in [changepoint_min_segment, T - changepoint_min_segment], change_year = years[t], U_{t,T} = sum_{i<t, j>=t} sgn(G_j - G_i), K_T = max |U_{t,T}| with ties broken toward the earliest split, p = min(1, 2 exp(-6 K_T^2 / (T^3 + T^2)))), with Benjamini-Hochberg false discovery rate at q = changepoint_fdr_q across tested catchment pixels; stores per-year change-point counts, median change years, and the per-cell change_year array aligned with trend_cells",
+        "Regional scan: over the full cached MOD13Q1 window (in_window vs in_catchment) and over the place's terrain strata (from place_config.stratum_masks and pixel_trend_long_record), ranks zones by false discovery rate (FDR q = 0.05) trend share, Pettitt change-point FDR share and median Theil-Sen slope per decade, with a plain-language record summary per zone",
+        "Summary: per season, the number of pixels with a value, and the mean, median and the 5th and 95th percentiles over those pixels (unweighted by cells); change_timing and regional_scan; the composite periods absent from the archive read, from the same record as pixel_trend_long_record"
       ],
       "parameters": [
         {
@@ -1212,6 +1214,22 @@
             1e-06
           ],
           "default": 1e-06
+        },
+        {
+          "name": "changepoint_min_segment",
+          "role": "method",
+          "allowed": [
+            4
+          ],
+          "default": 4
+        },
+        {
+          "name": "changepoint_fdr_q",
+          "role": "method",
+          "allowed": [
+            0.05
+          ],
+          "default": 0.05
         },
         {
           "name": "season_years",

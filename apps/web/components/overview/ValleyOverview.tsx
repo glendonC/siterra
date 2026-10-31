@@ -102,7 +102,7 @@ import { pkg } from "../../lib/copy/package";
 import type { HeightRange } from "../../lib/package/bands";
 import { commandBrief, packageView } from "../../lib/package/package";
 import { tm } from "../../lib/copy/time";
-import { timeSourcesOf } from "../../lib/time/load";
+import { loadScanTimingSummary, timeSourcesOf, type ScanTimingSummary } from "../../lib/time/load";
 import { TimeView, type TimeFrame, type TimeMount } from "../time/TimeView";
 import { lifeSourceOf } from "../../lib/life/load";
 import { LifeLayer, type LifeFrame, type LifeMount } from "../life/LifeLayer";
@@ -597,23 +597,15 @@ function OverviewReady({
     const evid = evidRef.current;
     const link = linkRef.current?.parentElement ?? null;
     const svg = connectorRef.current;
-    const mid = midcapRef.current;
-    if (evid?.hidden && link && svg) {
-      // the context closed: its toggle waits under the card's actions, with no dotted line (AUDIT's U28 advisory:
-      // placed from the hidden context's empty box it stood at the stage's left edge)
-      const lb = toDesign(link, scale);
+    if (evid?.hidden && svg) {
       svg.style.visibility = "hidden";
-      if (mid) {
-        mid.style.left = `${lb.left.toFixed(1)}px`;
-        mid.style.top = `${(lb.bottom + 14).toFixed(1)}px`;
-      }
     } else if (evid && link && svg) {
       svg.style.visibility = "";
       const eb = toDesign(evid, scale);
       const lb = toDesign(link, scale);
       const sx = eb.left + 20;
-      const sy = lb.bottom + 16;
-      const ey = eb.top - 16;
+      const sy = lb.bottom + 8;
+      const ey = eb.top - 8;
       svg
         .querySelector("path")
         ?.setAttribute(
@@ -625,14 +617,10 @@ function OverviewReady({
       c0?.setAttribute("cy", sy.toFixed(1));
       c1?.setAttribute("cx", sx.toFixed(1));
       c1?.setAttribute("cy", ey.toFixed(1));
-      if (mid) {
-        mid.style.left = `${(sx + 12).toFixed(1)}px`;
-        mid.style.top = `${((sy + ey) / 2 - 8).toFixed(1)}px`;
-      }
     }
   };
 
-  // where the opened finding's card stands: beside its anchor, by free space, following the camera (decision 14)
+  // where the opened finding's card stands: beside its anchor, in the open half of the viewport clear of the 3D terrain (decision 14)
   const cardSide = useRef<CardSide | null>(null);
   const cardBox = useRef<CardBox | null>(null);
   const placeCardNow = (layout: OverviewLayout, selected: Selection | null) => {
@@ -645,20 +633,29 @@ function OverviewReady({
     if (!inst || !layout.anchor) return;
     const w = inst.offsetWidth;
     const h = inst.offsetHeight;
-    const { box, side } = placeCard(layout.anchor, w, h, layout.subject, cardSide.current);
+    const avoid = {
+      x0: Math.min(layout.subject.x0, layout.landBox.x0),
+      y0: Math.min(layout.subject.y0, layout.landBox.y0),
+      x1: Math.max(layout.subject.x1, layout.landBox.x1),
+      y1: Math.max(layout.subject.y1, layout.landBox.y1),
+    };
+    const { box: raw, side } = placeCard(layout.anchor, w, h, avoid, cardSide.current);
     cardSide.current = side;
+    const isRight = side === "right" || side === "upRight" || side === "downRight";
+    const x0 = isRight
+      ? Math.min(1400 - w, Math.max(raw.x0, avoid.x1 + 72, w > 560 ? 640 : 680))
+      : Math.max(40, Math.min(raw.x1, avoid.x0 - 72, 680) - w);
+    const ev = evidRef.current;
+    const eh = ev && !ev.hidden ? ev.offsetHeight : 0;
+    const totalH = eh > 0 ? h + 20 + eh : h;
+    const y0 = Math.max(110, Math.min(836 - totalH, Math.round((900 - totalH) * 0.44)));
+    const box = { x0, y0, x1: x0 + w, y1: y0 + h };
     cardBox.current = box;
     inst.style.left = `${box.x0.toFixed(1)}px`;
     inst.style.top = `${box.y0.toFixed(1)}px`;
-    // the published context under the card, or over it where there is no room below
-    const ev = evidRef.current;
     if (ev) {
-      const eh = ev.offsetHeight;
-      // room for the "Published context" kicker between the card's actions and the context
-      const below = box.y1 + 40;
-      const y = below + eh <= 860 ? below : Math.max(110, box.y0 - 40 - eh);
       ev.style.left = `${box.x0.toFixed(1)}px`;
-      ev.style.top = `${y.toFixed(1)}px`;
+      ev.style.top = `${(box.y1 + 20).toFixed(1)}px`;
     }
   };
 
@@ -1426,7 +1423,23 @@ function OverviewReady({
   }, [sel, recordData, listing, snapshot, data]);
   // the routes' figures and cost function, read from their bundle through the read API once the land is in
   const [routesLoad, setRoutesLoad] = useState<RoutesLoad>({ status: "loading" });
+  const [scanTiming, setScanTiming] = useState<ScanTimingSummary | null>(null);
   const caseId = snapshot.case.id;
+  useEffect(() => {
+    const src = timeSourcesOf(snapshot);
+    if (!src) return;
+    const ac = new AbortController();
+    loadScanTimingSummary(caseId, src.seasons, (i, init) => fetch(i, init), ac.signal).then(
+      setScanTiming,
+      (e: unknown) => {
+        if (ac.signal.aborted) return;
+        console.error("Scan timing not loaded", e);
+      },
+    );
+    return () => {
+      ac.abort();
+    };
+  }, [caseId, snapshot]);
   useEffect(() => {
     if (!data?.routes.length) return;
     const ac = new AbortController();
@@ -1448,7 +1461,7 @@ function OverviewReady({
   // the record's words are placed with the next frame
   useEffect(() => {
     go();
-  }, [sel, recordData, routesLoad, go]);
+  }, [sel, recordData, routesLoad, scanTiming, go]);
 
   // ---------- interaction ----------
   const hover = (id: FindingId, on: boolean) => {
@@ -1975,7 +1988,6 @@ function OverviewReady({
         else toOpening();
       },
     },
-    { chip: "R", shortcut: "R", label: en["chrome.key.reset"].text, onPress: reset },
     { chip: "/", shortcut: "/", label: en["chrome.key.ask"].text, onPress: onAskOpen },
     {
       chip: "S",
@@ -2337,6 +2349,7 @@ function OverviewReady({
                     ? { domain: data.footprints.slope.domain }
                     : null
                 }
+                scanTiming={sel === "band" || sel === "fdr" ? scanTiming : null}
                 wide={rainWide && sel === "rain"}
                 actions={cardActions}
                 onOpen={openInPlace}
@@ -2379,10 +2392,11 @@ function OverviewReady({
             onHover={setAskHover}
             circleRef={askCircleRef}
             besideRef={askBesideRef}
-            suggestions={listing.suggestedQuestions}
-            showPromptsAtRest={
-              !sel && !atWork && !tear && !panel && !lifeOn && !arriving && ask.activity === null
-            }
+            suggestions={(listing.suggestedQuestions ?? []).filter(
+              (q) =>
+                q.question.trim().toLowerCase() !== snapshot.case.objective.trim().toLowerCase(),
+            )}
+            showPromptsAtRest={false}
             promptsRef={askPromptsRef}
           />
         ) : null}

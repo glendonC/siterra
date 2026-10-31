@@ -17,6 +17,8 @@ import { chartScale, yearTicks, type SeasonChart } from "../../lib/overview/reco
 import type { RecordData } from "../../lib/overview/record-data";
 import type { Selection } from "../../lib/overview/scene/overview";
 import type { Action } from "../../lib/overview/actions";
+import { labelShown } from "../../lib/time/data";
+import type { ScanTimingSummary } from "../../lib/time/load";
 import { ActionList } from "./ActionList";
 import { pixelColours as C } from "../../lib/theme/obsidian";
 import styles from "./OverviewRecord.module.css";
@@ -162,6 +164,7 @@ export function OverviewRecord({
   side,
   onLand,
   slopeKey,
+  scanTiming = null,
   actions,
   onOpen,
   onBack,
@@ -190,6 +193,8 @@ export function OverviewRecord({
   onLand: string | null;
   /** The fixed slope scale the land is painted on, when it is. */
   slopeKey: { domain: number } | null;
+  /** Regional scan (7B) and Pettitt change-point timing (7C) for band and fdr cards. */
+  scanTiming?: ScanTimingSummary | null;
   /** What can be done with this finding, from what the record offers (decision 15). */
   actions: readonly Action[];
   /** Opens a view in place, taking the land apart (decision 12); true when it did, so the link does not load. */
@@ -235,6 +240,31 @@ export function OverviewRecord({
           ? [...caption, en["overview.finding.fdr.2"].text].join(", ")
           : caption.join(" ");
   const context = data?.context ?? null;
+  const scanLine = (() => {
+    if (!scanTiming) return null;
+    const rs = scanTiming.regionalScan;
+    const top = rs.zones.find((z) => z.rank === 1) ?? rs.zones[0];
+    const nfmt = (n: number) => new Intl.NumberFormat("en").format(n);
+    const inside = (rs.inCatchment.upwardTrendFdrShare * 100).toFixed(1);
+    const outside = (rs.outsideCatchment.upwardTrendFdrShare * 100).toFixed(1);
+    if (top && top.upwardChangepointFdrPixels > 0 && top.medianChangeYear !== null) {
+      return format("overview.record.regionalScan", {
+        total: nfmt(rs.windowTestedPixels),
+        inside,
+        outside,
+        outsideCount: nfmt(rs.outsideCatchment.testedPixels),
+        rank: top.rank,
+        zone: labelShown(top.label),
+        year: top.medianChangeYear,
+      });
+    }
+    return format("overview.record.regionalScanNoShift", {
+      total: nfmt(rs.windowTestedPixels),
+      inside,
+      outside,
+      outsideCount: nfmt(rs.outsideCatchment.testedPixels),
+    });
+  })();
   return (
     <div
       ref={refs.root}
@@ -272,16 +302,22 @@ export function OverviewRecord({
             : null}
           {chart ? <SeasonsChart chart={chart} /> : null}
           {data?.scatter ? <RainScatter data={data.scatter} wide={wide} /> : null}
-          {ci ? <div className={styles.ci}>{ci}</div> : null}
-          {chart ? (
-            <div className={styles.ci} data-season-dot>
-              {en["overview.record.dot"].text}
+          {ci || chart ? (
+            <div className={styles.ci}>
+              {ci ? <span>{ci}</span> : null}
+              {ci && chart ? <span aria-hidden="true"> · </span> : null}
+              {chart ? <span data-season-dot>{en["overview.record.dot"].text}</span> : null}
             </div>
           ) : null}
           {slopeKey ? <SlopeKey domain={slopeKey.domain} window={window} /> : null}
           {onLand ? (
             <div className={styles.note} data-on-land>
               {onLand}
+            </div>
+          ) : null}
+          {scanLine ? (
+            <div className={styles.note} data-regional-scan-summary="">
+              {scanLine}
             </div>
           ) : null}
           {sel === "pixel" && pixelNote ? (
@@ -291,35 +327,42 @@ export function OverviewRecord({
           ) : null}
           {wide ? null : (
             <ActionList
-              actions={actions}
+              actions={actions.filter((a) => a.view !== null)}
               {...(onOpen ? { onOpen } : {})}
               {...(onBack ? { onBack } : {})}
               primaryRef={refs.link}
+              trailing={
+                context ? (
+                  <button
+                    type="button"
+                    className={styles.contextToggle}
+                    aria-expanded={contextOpen}
+                    data-context-toggle
+                    onClick={() => {
+                      setContextOpen((o) => !o);
+                    }}
+                  >
+                    {en["overview.record.context"].text}
+                  </button>
+                ) : null
+              }
             />
           )}
         </div>
       </section>
       {context ? (
         <>
-          <svg ref={refs.connector} className={styles.connector} aria-hidden="true">
+          <svg
+            ref={refs.connector}
+            className={styles.connector}
+            aria-hidden="true"
+            style={{ display: contextOpen ? undefined : "none" }}
+          >
             <path className={styles.dotted} />
             <circle className={styles.end} r="2" />
             <circle className={styles.end} r="2" />
           </svg>
-          {/* decision 16: the published context waits behind its kicker, a step the visitor takes */}
-          <div ref={refs.midcap} className={styles.midcap}>
-            <button
-              type="button"
-              className={styles.contextToggle}
-              aria-expanded={contextOpen}
-              data-context-toggle
-              onClick={() => {
-                setContextOpen((o) => !o);
-              }}
-            >
-              {en["overview.record.context"].text}
-            </button>
-          </div>
+          <div ref={refs.midcap} className={styles.midcap} hidden />
           <section ref={refs.evid} className={styles.evid} hidden={!contextOpen}>
             <p className={styles.q}>{context.text}</p>
             <p className={styles.cite}>

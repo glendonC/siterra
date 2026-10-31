@@ -85,13 +85,13 @@
    "rel": "child",
    "href": "./bundle_pixel_seasons_ait_bouguemez/collection.json",
    "type": "application/json",
-   "file:checksum": "1220b1a8f9d9a10ceb021a9fcc289a6d202459af8c76af0174fddabddce9a10b5fba"
+   "file:checksum": "1220c7ce4cbe43a16cacd739e06bd8ffee210dcaea239678b99f436797944a6df9e0"
   },
   {
    "rel": "child",
    "href": "./bundle_pixel_seasons_calaveras_creek/collection.json",
    "type": "application/json",
-   "file:checksum": "1220c754d2ebe4651e979f485ccfbb8beef073d5317670270972e4bf1af9069b320d"
+   "file:checksum": "12201718ef4f7fd1a0874113dea164a47d7d3155ee751014cc2bf772a8f674696c7f"
   },
   {
    "rel": "child",

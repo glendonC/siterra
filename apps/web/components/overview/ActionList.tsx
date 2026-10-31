@@ -4,7 +4,7 @@
 // clickable, Enter first, Esc Back last. `still` draws the same list without controls, for the label that follows
 // the cursor (its keys work; a plain click on the land runs Enter).
 
-import type { Ref } from "react";
+import type { ReactNode, Ref } from "react";
 import { en } from "../../lib/copy/en";
 import { VIEW_HREF, type Action } from "../../lib/overview/actions";
 import { Control, ControlLink, KeyChip } from "../controls/Control";
@@ -16,6 +16,7 @@ export function ActionList({
   onBack,
   primaryRef,
   still = false,
+  trailing,
   className,
 }: {
   actions: readonly Action[];
@@ -24,9 +25,10 @@ export function ActionList({
   onBack?: () => void;
   primaryRef?: Ref<HTMLAnchorElement>;
   still?: boolean;
+  trailing?: ReactNode;
   className?: string;
 }) {
-  if (!actions.length) return null;
+  if (!actions.length && !trailing) return null;
   if (still)
     return (
       <span className={`${styles.still} ${className ?? ""}`} data-actions>
@@ -62,6 +64,7 @@ export function ActionList({
           </Control>
         ),
       )}
+      {trailing}
     </div>
   );
 }

@@ -6,7 +6,7 @@
 import type { Message } from "./en";
 
 export const lf = {
-  "life.layer": { text: "Recorded Life", kind: "heading" },
+  "life.layer": { text: "Species", kind: "heading" },
   "life.region": { text: "Where living things were recorded on this land", kind: "ui" },
   "life.limit": { text: "Recorded here, not presence or abundance.", kind: "ui", honesty: true },
   "life.summary": { text: "{records} records at {points} points, {from} to {to}", kind: "label" },

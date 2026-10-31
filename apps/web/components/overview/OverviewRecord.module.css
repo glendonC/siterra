@@ -20,9 +20,9 @@
 /* the card beside its subject on the land (decision 14): placed each frame by the page, flat and compact */
 .inst {
   position: absolute;
-  left: 800px;
+  left: 680px;
   top: 120px;
-  width: 420px;
+  width: 540px;
 }
 
 .k {
@@ -111,7 +111,7 @@
   position: absolute;
   left: 1012px;
   top: 620px;
-  width: 420px;
+  width: 480px;
   isolation: isolate;
 }
 
@@ -238,21 +238,31 @@
   }
 }
 
-/* the published context's kicker as the step that opens it (decision 16) */
+/* the published context pill on the card's action row (decision 16) */
 .contextToggle {
-  padding: 0;
-  border: 0;
-  background: none;
-  font: inherit;
-  letter-spacing: inherit;
-  color: inherit;
-  text-decoration: underline dotted;
-  text-underline-offset: 3px;
+  display: inline-flex;
+  align-items: center;
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--control-line);
+  border-radius: 999px;
+  background: transparent;
+  font: 400 13px / 18px var(--font-sans);
+  color: var(--control-grey);
+  white-space: nowrap;
   cursor: pointer;
   pointer-events: auto;
+  transition:
+    background-color 120ms ease-out,
+    border-color 120ms ease-out,
+    color 120ms ease-out;
 }
 
 .contextToggle:hover,
-.contextToggle:focus-visible {
-  color: var(--ov-ink);
+.contextToggle:focus-visible,
+.contextToggle[aria-expanded="true"] {
+  color: var(--control-ink);
+  background: var(--control-fill);
+  border-color: var(--control-line-strong);
+  outline: none;
 }

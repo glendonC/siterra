@@ -1,3 +1,4 @@
+import { asEntityId } from "@siterra/contracts";
 import type { SeasonWindow } from "@siterra/contracts";
 import { z } from "zod";
 
@@ -113,6 +114,16 @@ export function readEventRecordTool(store: CaseStore, caseId: string): ToolHandl
     },
     summarize: (args) =>
       `event bundle ${args.bundleId} revision ${args.bundleRevision}, ${args.periodIds.length} ${args.periodIds.length === 1 ? "period" : "periods"}`,
+    target: (args) => ({
+      kind: "bundle",
+      stratumId: null,
+      bundleId: asEntityId(args.bundleId),
+      recipeId: null,
+      sourceId: null,
+      pages: [],
+      sections: [],
+      queryTerms: [],
+    }),
     datasetIds: (args) => [args.bundleId],
     run: async (args) => {
       const bundle = await validatedEventBundle(store, caseId, args.bundleId, args.bundleRevision);
@@ -213,6 +224,16 @@ export function compareEventsTool(store: CaseStore, caseId: string): ToolHandler
     },
     summarize: (args) =>
       `${args.eventRowIds.length} event ${args.eventRowIds.length === 1 ? "row" : "rows"} against ${args.rainfallBundleId}`,
+    target: (args) => ({
+      kind: "land",
+      stratumId: "catchment",
+      bundleId: asEntityId(args.rainfallBundleId),
+      recipeId: "season_summary",
+      sourceId: null,
+      pages: [],
+      sections: [],
+      queryTerms: [],
+    }),
     datasetIds: (args) => [args.eventBundleId, args.rainfallBundleId],
     run: async (args) => {
       const config = await store.readAnalysisConfig(caseId);

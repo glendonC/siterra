@@ -177,11 +177,9 @@ function ShellChrome({
     };
   }, [askOpen, panel, view, sources, back, reset, tearing]);
 
+  // "chrome.key.reset" is shown in ViewControl rather than duplicated in KeyLegend.
   const entries: KeyEntry[] = [
     { chip: "Esc", shortcut: "Escape", label: en["chrome.key.back"].text, onPress: back },
-    ...(view
-      ? [{ chip: "R", shortcut: "R", label: en["chrome.key.reset"].text, onPress: reset }]
-      : []),
     { chip: "/", shortcut: "/", label: en["chrome.key.ask"].text, onPress: onOpen },
     ...(sources
       ? [

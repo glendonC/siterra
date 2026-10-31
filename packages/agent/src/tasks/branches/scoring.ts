@@ -1,4 +1,5 @@
-import type { CaseAnalysisConfig, Prediction } from "@siterra/contracts";
+import { enrichToolCallTarget } from "@siterra/contracts";
+import type { CaseAnalysisConfig, Prediction, ToolCallTarget } from "@siterra/contracts";
 import type {
   CoMovementRecord,
   ScoringRecord,
@@ -49,10 +50,11 @@ async function traced<T extends { resultEntityIds: string[] }>(
   trace: LoadTrace,
   name: ToolCallDraft["name"],
   argumentSummary: string,
+  target: ToolCallTarget | null,
   run: () => Promise<T>,
 ): Promise<T> {
   const startedAt = trace.now();
-  const base = { name, startedAt: startedAt.toISOString(), argumentSummary, attempt: 1 };
+  const base = { name, startedAt: startedAt.toISOString(), argumentSummary, attempt: 1, target };
   const emit = (
     kind: "tool.started" | "tool.completed",
     tool: ToolCallDraft,
@@ -93,6 +95,7 @@ async function traced<T extends { resultEntityIds: string[] }>(
         durationMs: ended.getTime() - startedAt.getTime(),
         resultEntityIds: ids,
         errorCode,
+        target: enrichToolCallTarget(target, ids),
       },
       messages.toolCompleted(name, status, ids.length),
     );
@@ -247,8 +250,12 @@ export async function readScoringRecord(
         },
       };
       try {
-        const result = await traced(trace, compare.name, compare.summarize(args), () =>
-          compare.run(args, signal),
+        const result = await traced(
+          trace,
+          compare.name,
+          compare.summarize(args),
+          compare.target?.(args) ?? null,
+          () => compare.run(args, signal),
         );
         const output = result.output as CompareOutput;
         for (const id of result.resultEntityIds) measurementIds.add(id);

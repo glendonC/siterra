@@ -217,10 +217,8 @@
   outline: 1px solid var(--control-line-strong);
 }
 
-/* the run's source, set apart by a hairline rather than a separator character */
+/* the run's source pill at the top right */
 .modeRun {
-  padding-left: 8px;
-  border-left: 1px solid var(--control-line);
   color: var(--control-ink);
 }
 

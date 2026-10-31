@@ -17,19 +17,10 @@ export interface Crumb {
   onSelect?: () => void;
 }
 
-/** "← Siterra / Aït Bouguemez valley / 24.7% greening": the back pill goes to the level above the last crumb. */
-export function Breadcrumb({ crumbs, onBack }: { crumbs: Crumb[]; onBack: () => void }) {
+/** "Siterra / Aït Bouguemez valley / 24.7% greening": each parent crumb navigates back to its level ("chrome.back"). */
+export function Breadcrumb({ crumbs }: { crumbs: Crumb[]; onBack?: () => void }) {
   return (
     <nav className={styles.crumbs} aria-label={en["chrome.crumbs"].text} data-crumbs>
-      <Control
-        className={styles.back}
-        keyHint="Esc"
-        keyShortcut="Escape"
-        aria-label={en["chrome.back"].text}
-        onClick={onBack}
-      >
-        <span aria-hidden="true">←</span>
-      </Control>
       <ol className={styles.trail}>
         {crumbs.map((c, i) => (
           <li key={`${String(i)}-${c.label}`} className={styles.crumb}>
@@ -58,15 +49,16 @@ export function Breadcrumb({ crumbs, onBack }: { crumbs: Crumb[]; onBack: () => 
 export type CaseMode = "live" | "replay" | "concept";
 
 /**
- * The mode line at the top right (U32, PC-04, DQ-02): the case's mode from its record and, while a question's run is
- * on the screen, where that run comes from (its own source: live, or a replay). One click opens what Siterra does not
- * do; Esc, a second click or a click elsewhere closes it.
+ * The mode line at the top right (U32, PC-04, DQ-02): shown while a question's run is on the screen to state where
+ * that run comes from (live, or a replay). One click opens what Siterra does not do; Esc, a second click or a click
+ * elsewhere closes it.
  */
 export function ModeLine({ mode, run = null }: { mode: CaseMode; run?: "live" | "replay" | null }) {
   const [open, setOpen] = useState(false);
   const id = useId();
   const button = useRef<HTMLButtonElement>(null);
   const box = useRef<HTMLDivElement>(null);
+  // Catalog keys `chrome.mode.${mode}` ("chrome.mode.live", "chrome.mode.replay", "chrome.mode.concept") reserved.
   useEffect(() => {
     if (!open) return;
     // a click anywhere outside the mode line closes the popover
@@ -89,8 +81,9 @@ export function ModeLine({ mode, run = null }: { mode: CaseMode; run?: "live" | 
       window.removeEventListener("pointerdown", onDown, true);
     };
   }, [open]);
+  if (!run) return null;
   return (
-    <div ref={box} className={styles.mode} data-mode-line={mode} data-run={run ?? undefined}>
+    <div ref={box} className={styles.mode} data-mode-line={mode} data-run={run}>
       <button
         ref={button}
         type="button"
@@ -101,8 +94,7 @@ export function ModeLine({ mode, run = null }: { mode: CaseMode; run?: "live" | 
           setOpen((o) => !o);
         }}
       >
-        <span>{en[`chrome.mode.${mode}`].text}</span>
-        {run ? <span className={styles.modeRun}>{en[`chrome.mode.run.${run}`].text}</span> : null}
+        <span className={styles.modeRun}>{en[`chrome.mode.run.${run}`].text}</span>
       </button>
       {open ? (
         <div

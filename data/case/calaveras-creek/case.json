@@ -46,7 +46,7 @@
  },
  "bundles": {
   "catalog": "data/bundles/catalog.json",
-  "catalogSha256": "27f32346251245675485f3b892f54597aa340f7c1fab04279b42be8ba3aeeac8"
+  "catalogSha256": "540c312ed8d00278887bffcd778e06a3d0c3b85184eb0071aae07c412bddc64e"
  },
  "corpus": {
   "manifest": "data/case/corpus-manifest-calaveras-creek.json",

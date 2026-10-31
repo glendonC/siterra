@@ -359,44 +359,45 @@
   flex: 1 1 auto;
 }
 
-/* suggested question pills below the large input when the ask is open (U33b) */
+/* suggested question rows below the large input when the ask is open (U33b) */
 .openSuggestions {
   position: absolute;
-  left: 340px;
-  top: 128px;
-  width: 520px;
+  left: 50%;
+  top: 136px;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: min(760px, calc(100% - 96px));
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  align-items: flex-start;
+  gap: 6px;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
 .openSuggestionBtn {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
-  width: 100%;
-  height: 28px;
-  padding: 0 10px;
-  border: 1px solid var(--control-line);
-  border-radius: 999px;
-  background: var(--bg-overlay);
-  color: var(--control-ink);
-  font: 400 12.5px / 16px var(--font-sans);
+  gap: 10px;
+  padding: 4px 8px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ov-ink-2);
+  font: 400 13px / 18px var(--font-sans);
   text-align: left;
   white-space: nowrap;
   cursor: pointer;
   transition:
-    background 0.2s ease,
-    border-color 0.2s ease;
+    color 0.18s ease,
+    background 0.18s ease;
 }
 
 .openSuggestionBtn:hover,
 .openSuggestionBtn:focus-visible {
+  color: var(--control-ink);
   background: var(--control-fill);
-  border-color: var(--control-line-strong);
   outline: none;
 }
 

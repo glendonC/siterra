@@ -5,14 +5,18 @@
 
 import type { CaseSnapshot } from "@siterra/contracts";
 import {
+  changeTimingFrom,
   domainOf,
   driestFrom,
   pixelCellsFrom,
+  regionalScanFrom,
   seasonCubeFrom,
   snowFrom,
   strataFrom,
+  type ChangeTiming,
   type DrySeason,
   type PixelCell,
+  type RegionalScan,
   type SeasonCube,
   type SnowBands,
   type StratumSeries,
@@ -73,9 +77,32 @@ export interface TimeData {
   snow: SnowBands | null;
   driest: DrySeason[];
   strata: StratumSeries[];
+  changeTiming: ChangeTiming;
+  regionalScan: RegionalScan;
+}
+
+export interface ScanTimingSummary {
+  changeTiming: ChangeTiming;
+  regionalScan: RegionalScan;
 }
 
 const json = (b: ArrayBuffer) => JSON.parse(new TextDecoder().decode(b)) as unknown;
+
+/** Change-point timing (7C) and regional scan summary (7B) from the case's pixel_seasons bundle. */
+export async function loadScanTimingSummary(
+  caseId: string,
+  seasonsBundleId: string,
+  fetchImpl: Fetch,
+  signal?: AbortSignal,
+): Promise<ScanTimingSummary> {
+  const summaryJson = json(
+    await readAsset(caseId, seasonsBundleId, "pixel_seasons", fetchImpl, signal),
+  );
+  return {
+    changeTiming: changeTimingFrom(summaryJson),
+    regionalScan: regionalScanFrom(summaryJson),
+  };
+}
 
 /** Everything the view plays, read from the case's own bundles. */
 export async function loadTimeData(
@@ -101,10 +128,11 @@ export async function loadTimeData(
   };
   const scale = cellsJson.display_scale;
   if (!scale) throw new Error("trend_cells states no display scale");
+  const summaryJson = json(summary);
   return {
     cube: seasonCubeFrom(bin, json(header)),
     cells: pixelCellsFrom(cellsJson),
-    domain: domainOf(json(summary)),
+    domain: domainOf(summaryJson),
     trendScale: {
       domain: Math.max(...scale.domain_per_decade.map(Math.abs)),
       neutral: scale.neutral_per_decade,
@@ -112,5 +140,7 @@ export async function loadTimeData(
     snow: snow ? snowFrom(json(snow[0]), json(snow[1])) : null,
     driest: driestFrom(json(restrend)),
     strata: strataFrom(json(seasonTrend)),
+    changeTiming: changeTimingFrom(summaryJson),
+    regionalScan: regionalScanFrom(summaryJson),
   };
 }

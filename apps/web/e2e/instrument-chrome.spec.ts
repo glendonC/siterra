@@ -20,10 +20,9 @@ test("the overview: breadcrumb, Esc one level at a time, R resets the view, S th
   });
   expect(await crumbs(page)).toEqual(["Siterra", "Aït Bouguemez valley"]);
   await expect(page.locator("[data-key-legend] [data-key]")).toHaveText([
-    // recorded life's key, where the case holds a species bundle (UI-2)
-    "GRecorded Life",
+    // species sightings key, where the case holds a species bundle (UI-2)
+    "GSpecies",
     "EscBack",
-    "RReset View",
     "/Ask",
     "SSources",
   ]);
@@ -45,8 +44,8 @@ test("the overview: breadcrumb, Esc one level at a time, R resets the view, S th
   await page.keyboard.press("Escape");
   await expect(page.locator("[data-sources-panel]")).toHaveCount(0);
   await expect(page.locator("[data-overview-root]")).toBeVisible();
-  // at the top level, the back arrow returns to the opening
-  await page.locator("[data-crumbs]").getByRole("button", { name: "Back" }).click();
+  // at the top level, the Siterra crumb returns to the opening
+  await page.locator("[data-crumbs]").getByRole("button", { name: "Siterra" }).click();
   await expect(page.locator("[data-opening]")).toBeVisible({ timeout: 60_000 });
 });
 
@@ -59,7 +58,6 @@ test("an instrument: breadcrumb to its place, R and the view control on a 3D vie
   await expect(page.locator("[data-view-control]")).toBeVisible();
   await expect(page.locator("[data-key-legend] [data-key]")).toHaveText([
     "EscBack",
-    "RReset View",
     "/Ask",
     "SSources",
   ]);

@@ -3601,6 +3601,79 @@
         }
       }
     },
+    "ToolCallTarget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "stratumId",
+        "bundleId",
+        "recipeId",
+        "sourceId",
+        "pages",
+        "sections",
+        "queryTerms"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "land",
+            "source",
+            "bundle",
+            "case"
+          ]
+        },
+        "stratumId": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "bundleId": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "recipeId": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "sourceId": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[a-z][a-z0-9_]*_[A-Za-z0-9][A-Za-z0-9_-]{1,79}$"
+        },
+        "pages": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "sections": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "queryTerms": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
     "ToolCallInfo": {
       "type": "object",
       "additionalProperties": false,
@@ -3693,6 +3766,16 @@
           "type": "integer",
           "minimum": 1,
           "maximum": 3
+        },
+        "target": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ToolCallTarget"
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       }
     },

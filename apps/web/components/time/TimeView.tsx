@@ -306,6 +306,21 @@ export function TimeView({
                 window: data.cube.window.label,
               })}
             </p>
+            <p className={styles.timing} data-change-timing="">
+              {data.changeTiming.upwardFdrPixels > 0 && data.changeTiming.medianYearUpward !== null
+                ? tformat("time.changeTiming", {
+                    year: data.changeTiming.medianYearUpward,
+                    count: new Intl.NumberFormat("en").format(data.changeTiming.upwardFdrPixels),
+                  })
+                : t("time.changeTimingNone")}
+            </p>
+            <p className={styles.scan} data-regional-scan="">
+              {tformat("time.regionalScan", {
+                total: new Intl.NumberFormat("en").format(data.regionalScan.windowTestedPixels),
+                inside: (data.regionalScan.inCatchment.upwardTrendFdrShare * 100).toFixed(1),
+                outside: (data.regionalScan.outsideCatchment.upwardTrendFdrShare * 100).toFixed(1),
+              })}
+            </p>
           </>
         ) : (
           <>
@@ -337,6 +352,7 @@ export function TimeView({
             const p = edges[i];
             if (!p) return null;
             const share = snowAt?.[i] ?? null;
+            const zone = data.regionalScan.zones.find((z) => z.group === b.id);
             return (
               <div
                 key={b.id}
@@ -351,6 +367,21 @@ export function TimeView({
                     {inTrend
                       ? signed(b.slopePerDecade ?? 0, 4)
                       : fmt(b.ndvi.get(year) ?? Number.NaN, 3)}
+                    {inTrend &&
+                    zone &&
+                    zone.upwardChangepointFdrPixels > 0 &&
+                    zone.medianChangeYear !== null ? (
+                      <span
+                        className={styles.bandTiming}
+                        data-band-change-year={zone.medianChangeYear}
+                      >
+                        {" "}
+                        {tformat("time.bandTiming", {
+                          rank: zone.rank,
+                          year: zone.medianChangeYear,
+                        })}
+                      </span>
+                    ) : null}
                     {!inTrend && share !== null && share >= 0.005 ? (
                       <span className={styles.snow}>
                         {" "}
@@ -429,6 +460,21 @@ export function TimeView({
               style={{ left: `${(((d.year - firstYear) * 12 + 2) / span) * 100}%` }}
             />
           ))}
+          {data.changeTiming.medianYearUpward !== null && data.changeTiming.upwardFdrPixels > 0 ? (
+            <span
+              className={styles.changeMark}
+              data-change-year-mark={data.changeTiming.medianYearUpward}
+              style={{
+                left: `${(((data.changeTiming.medianYearUpward - firstYear) * 12) / span) * 100}%`,
+              }}
+            >
+              {!inTrend && Math.abs(year - data.changeTiming.medianYearUpward) <= 3 ? null : (
+                <span className={styles.changeMarkLabel}>
+                  {tformat("time.changeYearMark", { year: data.changeTiming.medianYearUpward })}
+                </span>
+              )}
+            </span>
+          ) : null}
           {data.cube.seasons
             .filter((y) => y % 10 === 0)
             .map((y) => (

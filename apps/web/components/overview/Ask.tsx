@@ -63,13 +63,11 @@ export function Ask({
   circleStyle,
   besideRef,
   suggestions,
-  showPromptsAtRest = false,
-  promptsRef,
 }: AskProps) {
   const inputRef = useRef<HTMLInputElement>(null);
+  // "ask.prompts.kicker" is reserved in the copy catalog; suggestions render inside the open panel.
 
   // "/" opens the ask from anywhere but a field being typed in
-  // "1", "2", "3" at rest on the overview immediately commission the corresponding suggested question (U33b)
   // Esc closes it from anywhere while it is open
   useEffect(() => {
     const onKey = (ev: KeyboardEvent) => {
@@ -81,19 +79,6 @@ export function Ask({
         return;
       }
       if (ev.metaKey || ev.ctrlKey || ev.altKey || typing(ev.target)) return;
-      if (
-        showPromptsAtRest &&
-        suggestions?.length &&
-        (ev.key === "1" || ev.key === "2" || ev.key === "3")
-      ) {
-        const picked = suggestions[Number(ev.key) - 1];
-        if (picked) {
-          ev.preventDefault();
-          onText(picked.question);
-          onEnter(picked.question);
-        }
-        return;
-      }
       if (ev.key !== "/") return;
       ev.preventDefault();
       onOpen();
@@ -102,7 +87,7 @@ export function Ask({
     return () => {
       window.removeEventListener("keydown", onKey);
     };
-  }, [keysOff, open, onOpen, onClose, showPromptsAtRest, suggestions, onText, onEnter]);
+  }, [keysOff, open, onOpen, onClose]);
 
   // open, the typing goes to the question; closed, the focus leaves it
   // a long question stays whole on its one line: the type steps down to fit the field, from 46 px to 24 px (U30)
@@ -162,43 +147,6 @@ export function Ask({
       >
         {activity?.text}
       </p>
-      {variant === "arc" && suggestions && suggestions.length > 0 ? (
-        <div
-          ref={promptsRef}
-          className={styles.prompts}
-          data-ask-prompts
-          data-shown={!open && showPromptsAtRest ? "" : undefined}
-          aria-hidden={open || !showPromptsAtRest}
-        >
-          <p className={styles.promptsKicker}>{en["ask.prompts.kicker"].text}</p>
-          <ul className={styles.promptsList}>
-            {suggestions.slice(0, 3).map((q, idx) => (
-              <li key={q.id}>
-                <button
-                  type="button"
-                  className={styles.promptBtn}
-                  data-suggested-question={q.id}
-                  tabIndex={!open && showPromptsAtRest ? 0 : -1}
-                  aria-keyshortcuts={String(idx + 1)}
-                  onPointerEnter={() => onHover?.(true)}
-                  onPointerLeave={() => onHover?.(false)}
-                  onFocus={() => onHover?.(true)}
-                  onBlur={() => onHover?.(false)}
-                  onClick={() => {
-                    onText(q.question);
-                    onEnter(q.question);
-                  }}
-                >
-                  <kbd className={styles.promptKey} aria-hidden="true">
-                    {idx + 1}
-                  </kbd>
-                  <span className={styles.promptText}>{q.question}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
       <div className={styles.panel} aria-hidden={!open}>
         <form
           className={styles.qline}

@@ -136,7 +136,7 @@ test("opens a finding's record on its side and Esc returns", async ({ page }) =>
   await expect(record.locator("[data-actions] > *")).toHaveText([
     "Open This PixelEnter",
     "See the LayersL",
-    "BackEsc",
+    "Published context",
   ]);
   await expect.poll(() => opacity(page, "[data-record]")).toBe(1);
   // the land outside the focus band is blurred
@@ -164,6 +164,11 @@ test("opens a finding's record on its side and Esc returns", async ({ page }) =>
     await page.locator(`[data-finding='${id}']`).focus();
     await page.keyboard.press("Enter");
     await expect(page.locator(`[data-record='${id}']`)).toContainText(n);
+    if (id === "band" || id === "fdr") {
+      await expect(page.locator(`[data-record='${id}'] [data-regional-scan-summary]`)).toHaveText(
+        "Regional scan (23,056 pixels): 24.0% in catchment, 8.6% across 14,962 outside. Rank 1 below 2,317 m, shift around 2010.",
+      );
+    }
     await expect(open).toHaveAttribute("href", href);
     await page.keyboard.press("Escape");
     await expect(record).toHaveCount(0);
@@ -181,19 +186,18 @@ test("a trend card says what a dot is, and its published context opens beside it
   page,
 }) => {
   await ready(page);
-  await page.locator("[data-finding='pixel']").click();
-  const record = page.locator("[data-record='pixel']");
+  await page.locator("[data-finding='band']").click();
+  const record = page.locator("[data-record='band']");
   await expect.poll(() => opacity(page, "[data-record]")).toBe(1);
   await expect(record.locator("[data-season-dot]")).toHaveText("Each dot, one season's mean");
-  // closed, the toggle waits under the card's actions (AUDIT's U28 advisory: it stood at the stage's left edge)
+  // closed, the toggle sits on the card's action row even on a two-action card
   const toggle = record.locator("[data-context-toggle]");
   await expect(toggle).toHaveAttribute("aria-expanded", "false");
   const actions = await record.locator("[data-actions]").boundingBox();
   const closed = await toggle.boundingBox();
   if (!actions || !closed) throw new Error("the actions or the toggle");
-  expect(Math.abs(closed.x - actions.x)).toBeLessThan(24);
-  expect(closed.y).toBeGreaterThanOrEqual(actions.y + actions.height);
-  expect(closed.y - (actions.y + actions.height)).toBeLessThan(40);
+  expect(closed.x).toBeGreaterThanOrEqual(actions.x);
+  expect(Math.abs(closed.y - actions.y)).toBeLessThan(8);
   await toggle.click();
   await expect(toggle).toHaveAttribute("aria-expanded", "true");
   await expect(record.locator("section").last()).toBeVisible();
@@ -515,11 +519,10 @@ test("the ask opens and closes by its circle and by the slash key, and sends not
   await ready(page);
   const ask = page.locator("[data-ask]");
   const input = page.locator("input[name='question']");
-  await expect(page.locator("[data-suggested-question]")).toHaveCount(3);
-  await expect(page.locator("[data-ask-prompts]")).toContainText("Ask Siterra to investigate");
+  await expect(page.locator("[data-ask-prompts]")).toHaveCount(0);
   await ask.click();
   await expect(input).toBeFocused();
-  await expect(page.locator("[data-ask-suggestion]")).toHaveCount(3);
+  await expect(page.locator("[data-ask-suggestion]")).toHaveCount(2);
   expect(await textReport(page, "[data-overview-root]")).toEqual({
     overlaps: [],
     small: [],

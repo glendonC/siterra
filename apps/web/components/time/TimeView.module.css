@@ -36,7 +36,7 @@
   position: absolute;
   left: 56px;
   top: 300px;
-  width: 300px;
+  width: 340px;
 }
 
 .kicker {
@@ -78,6 +78,22 @@
   font-size: 15px;
   line-height: 21px;
   color: var(--text-secondary);
+}
+
+.timing {
+  margin: 14px 0 0;
+  padding-left: 12px;
+  border-left: 2px solid var(--ov-green);
+  font-size: 14px;
+  line-height: 19px;
+  color: var(--text-primary);
+}
+
+.scan {
+  margin: 8px 0 0;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--text-tertiary);
 }
 
 /* a band's label on a hairline from its lit edge on the land */
@@ -132,6 +148,14 @@
 .snow {
   font-size: 14px;
   color: var(--text-secondary);
+}
+
+.bandTiming {
+  margin-left: 6px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--ov-green);
 }
 
 .key {
@@ -213,6 +237,27 @@
   height: 3px;
   background: var(--text-tertiary);
   pointer-events: none;
+}
+
+.changeMark {
+  position: absolute;
+  bottom: 0;
+  width: 0;
+  height: 12px;
+  border-left: 2px solid var(--ov-green);
+  pointer-events: none;
+}
+
+.changeMarkLabel {
+  position: absolute;
+  bottom: 11px;
+  left: 0;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 15px;
+  color: var(--ov-green);
 }
 
 .head {

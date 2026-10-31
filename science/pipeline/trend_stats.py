@@ -1,5 +1,5 @@
-"""Least squares fits, t intervals, the AR(1) effective sample size, the Theil-Sen slope, the Mann-Kendall test and the
-Benjamini-Hochberg procedure, in plain Python.
+"""Least squares fits, t intervals, the AR(1) effective sample size, the Theil-Sen slope, the Mann-Kendall test, the
+Pettitt single change-point test and the Benjamini-Hochberg procedure, in plain Python.
 
 No SciPy in the pinned environment: the Student t distribution is computed from the regularized incomplete beta
 function (continued fraction, Numerical Recipes 6.4) and its quantile by bisection. Run this file to check the t
@@ -152,6 +152,39 @@ def mann_kendall(y):
     return {"s": s, "var_s": var, "z": z, "p": normal_two_sided_p(z)}
 
 
+def pettitt_change_point(years, y, min_segment=4):
+    """Non-parametric single change-point test (Pettitt 1979, Applied Statistics 28(2):126-135) over ordered (years, y)
+    of length T >= 2 * min_segment. Evaluates U_{t,T} = sum_{i=0}^{t-1} sum_{j=t}^{T-1} sgn(y_j - y_i) for candidate split
+    indices t in [min_segment, T - min_segment], where y[:t] is before the change and y[t:] is from change_year = years[t]
+    onward. Ties in |U_{t,T}| break toward the earliest split."""
+    T = len(y)
+    if len(years) != T or T < 2 * min_segment:
+        raise ValueError(f"years and y must have equal length T >= {2 * min_segment}")
+    u = 0
+    t_star, u_star, k_star = min_segment, 0, -1
+    for t in range(1, T - min_segment + 1):
+        yi = y[t - 1]
+        u += sum((yj > yi) - (yj < yi) for yj in y)
+        if t >= min_segment and abs(u) > k_star:
+            t_star, u_star, k_star = t, u, abs(u)
+    before_mean = sum(y[:t_star]) / t_star
+    after_mean = sum(y[t_star:]) / (T - t_star)
+    step = after_mean - before_mean
+    dir_str = "upward" if u_star > 0 else ("downward" if u_star < 0 else "none")
+    p = min(1.0, 2.0 * math.exp(-6.0 * (k_star * k_star) / (T * T * T + T * T)))
+    return {
+        "change_year": int(years[t_star]),
+        "split_index": int(t_star),
+        "before_mean": float(before_mean),
+        "after_mean": float(after_mean),
+        "step_change": float(step),
+        "direction": dir_str,
+        "u_stat": int(u_star),
+        "k_stat": int(k_star),
+        "p": float(p),
+    }
+
+
 def benjamini_hochberg(pvals, q):
     """True for each p that the Benjamini-Hochberg step-up procedure rejects at false discovery rate q."""
     m = len(pvals)
@@ -200,4 +233,18 @@ if __name__ == "__main__":
     assert mk["s"] == 5 and abs(mk["var_s"] - 23 / 3) < 1e-12 and abs(mk["p"] - 0.1486) < 1e-4, mk
     assert benjamini_hochberg([0.01, 0.04, 0.03, 0.2], 0.05) == [True, False, False, False]
     assert benjamini_hochberg([0.04, 0.01, 0.03, 0.02], 0.05) == [True, True, True, True]
+    # Pettitt (1979): 10 seasons 2000..2009 with step upward at 2005 (split t=5: 5 low values < 5 high values -> U = 25)
+    yrs_cp = list(range(2000, 2010))
+    y_up = [0.20, 0.21, 0.19, 0.22, 0.20, 0.45, 0.47, 0.44, 0.46, 0.48]
+    cp_up = pettitt_change_point(yrs_cp, y_up, min_segment=4)
+    p_expected = min(1.0, 2.0 * math.exp(-6.0 * (25 ** 2) / (10 ** 3 + 10 ** 2)))
+    assert cp_up["change_year"] == 2005 and cp_up["split_index"] == 5, cp_up
+    assert cp_up["u_stat"] == 25 and cp_up["k_stat"] == 25 and cp_up["direction"] == "upward", cp_up
+    assert abs(cp_up["before_mean"] - 0.204) < 1e-12 and abs(cp_up["after_mean"] - 0.46) < 1e-12, cp_up
+    assert abs(cp_up["step_change"] - 0.256) < 1e-12 and abs(cp_up["p"] - p_expected) < 1e-12, cp_up
+    # Downward step at 2004 (split t=4: 4 high values > 6 low values -> U = -24)
+    y_dn = [0.50, 0.52, 0.49, 0.51, 0.22, 0.20, 0.21, 0.19, 0.23, 0.21]
+    cp_dn = pettitt_change_point(yrs_cp, y_dn, min_segment=4)
+    assert cp_dn["change_year"] == 2004 and cp_dn["split_index"] == 4, cp_dn
+    assert cp_dn["u_stat"] == -24 and cp_dn["k_stat"] == 24 and cp_dn["direction"] == "downward", cp_dn
     print("trend_stats self-check passed")

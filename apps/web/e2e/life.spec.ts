@@ -100,7 +100,7 @@ test("on the synthetic fixture: every card line; Enter steps the records, Esc st
   // off by default; the key legend offers it where the case holds a species bundle
   const layer = page.locator("[data-life-layer]");
   await expect(layer).toHaveCount(0);
-  await expect(page.getByRole("button", { name: /Recorded Life/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: /Species/ })).toBeVisible();
   await page.mouse.move(720, 60);
   await page.keyboard.press("g");
   await expect(layer).toBeVisible({ timeout: 10_000 });
@@ -148,7 +148,7 @@ test("recorded life stays on over time, and a case without a species bundle offe
   await expect(page.locator("[data-overview-root]")).toHaveAttribute("data-ready", "", {
     timeout: 90_000,
   });
-  await expect(page.getByRole("button", { name: /Recorded Life/ })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /Species/ })).toHaveCount(0);
   await page.keyboard.press("g");
   await expect(page.locator("[data-life-layer]")).toHaveCount(0);
 

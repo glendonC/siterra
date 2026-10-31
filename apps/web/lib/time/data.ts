@@ -246,3 +246,158 @@ export function strataFrom(json: unknown): StratumSeries[] {
       };
     });
 }
+
+const changeTimingSchema = z.object({
+  change_timing: z.object({
+    method: z.string(),
+    tested_pixel_count: z.number().int(),
+    upward_changepoint_fdr_count: z.number().int(),
+    downward_changepoint_fdr_count: z.number().int(),
+    median_change_year_upward: z.number().int().nullable(),
+    median_change_year_all_upward: z.number().int().nullable(),
+    cells_change_year: z.array(z.number().int()),
+    by_change_year: z.array(
+      z.object({
+        year: z.number().int(),
+        upward_trend_fdr_pixels: z.number().int(),
+        upward_changepoint_fdr_pixels: z.number().int(),
+      }),
+    ),
+  }),
+});
+
+export interface ChangeTimingYear {
+  year: number;
+  upwardTrendFdrPixels: number;
+  upwardChangepointFdrPixels: number;
+}
+
+export interface ChangeTiming {
+  method: string;
+  testedPixels: number;
+  upwardFdrPixels: number;
+  downwardFdrPixels: number;
+  medianYearUpward: number | null;
+  medianYearAllUpward: number | null;
+  cellsChangeYear: number[];
+  byYear: ChangeTimingYear[];
+}
+
+/** Pettitt (1979) single change-point timing from the pixel seasons summary (7C). */
+export function changeTimingFrom(summary: unknown): ChangeTiming {
+  const { change_timing: ct } = changeTimingSchema.parse(summary);
+  return {
+    method: ct.method,
+    testedPixels: ct.tested_pixel_count,
+    upwardFdrPixels: ct.upward_changepoint_fdr_count,
+    downwardFdrPixels: ct.downward_changepoint_fdr_count,
+    medianYearUpward: ct.upward_changepoint_fdr_count > 0 ? ct.median_change_year_upward : null,
+    medianYearAllUpward: ct.median_change_year_all_upward,
+    cellsChangeYear: ct.cells_change_year,
+    byYear: ct.by_change_year.map((row) => ({
+      year: row.year,
+      upwardTrendFdrPixels: row.upward_trend_fdr_pixels,
+      upwardChangepointFdrPixels: row.upward_changepoint_fdr_pixels,
+    })),
+  };
+}
+
+const regionalScanSchema = z.object({
+  regional_scan: z.object({
+    window_total_pixels: z.number().int(),
+    window_vs_catchment: z.object({
+      in_window: z.object({
+        tested_pixels: z.number().int(),
+      }),
+      in_catchment: z.object({
+        tested_pixels: z.number().int(),
+        upward_trend_fdr_pixel_share: z.number(),
+        upward_trend_fdr_pixels: z.number().int(),
+        median_slope_per_decade: z.number(),
+      }),
+      outside_catchment: z.object({
+        tested_pixels: z.number().int(),
+        upward_trend_fdr_pixel_share: z.number(),
+        upward_trend_fdr_pixels: z.number().int(),
+        median_slope_per_decade: z.number(),
+      }),
+    }),
+    zones: z.array(
+      z.object({
+        group: z.string(),
+        label: z.string(),
+        rank: z.number().int(),
+        upward_trend_fdr_share: z.number(),
+        upward_changepoint_fdr_share: z.number(),
+        upward_changepoint_fdr_pixels: z.number().int(),
+        median_change_year: z.number().int().nullable(),
+        median_change_year_fdr_pixels: z.number().int().nullable().optional(),
+        median_slope_per_decade: z.number(),
+      }),
+    ),
+  }),
+});
+
+export interface RegionalScanZone {
+  group: string;
+  label: string;
+  rank: number;
+  upwardTrendFdrShare: number;
+  upwardChangepointFdrShare: number;
+  upwardChangepointFdrPixels: number;
+  medianChangeYear: number | null;
+  medianSlopePerDecade: number;
+}
+
+export interface RegionalScan {
+  windowTotalPixels: number;
+  windowTestedPixels: number;
+  inCatchment: {
+    testedPixels: number;
+    upwardTrendFdrShare: number;
+    upwardTrendFdrPixels: number;
+    medianSlopePerDecade: number;
+  };
+  outsideCatchment: {
+    testedPixels: number;
+    upwardTrendFdrShare: number;
+    upwardTrendFdrPixels: number;
+    medianSlopePerDecade: number;
+  };
+  zones: RegionalScanZone[];
+}
+
+/** Regional window scan and ranked terrain zones from the pixel seasons summary (7B). */
+export function regionalScanFrom(summary: unknown): RegionalScan {
+  const { regional_scan: rs } = regionalScanSchema.parse(summary);
+  const wvc = rs.window_vs_catchment;
+  return {
+    windowTotalPixels: rs.window_total_pixels,
+    windowTestedPixels: wvc.in_window.tested_pixels,
+    inCatchment: {
+      testedPixels: wvc.in_catchment.tested_pixels,
+      upwardTrendFdrShare: wvc.in_catchment.upward_trend_fdr_pixel_share,
+      upwardTrendFdrPixels: wvc.in_catchment.upward_trend_fdr_pixels,
+      medianSlopePerDecade: wvc.in_catchment.median_slope_per_decade,
+    },
+    outsideCatchment: {
+      testedPixels: wvc.outside_catchment.tested_pixels,
+      upwardTrendFdrShare: wvc.outside_catchment.upward_trend_fdr_pixel_share,
+      upwardTrendFdrPixels: wvc.outside_catchment.upward_trend_fdr_pixels,
+      medianSlopePerDecade: wvc.outside_catchment.median_slope_per_decade,
+    },
+    zones: rs.zones.map((z) => ({
+      group: z.group,
+      label: z.label,
+      rank: z.rank,
+      upwardTrendFdrShare: z.upward_trend_fdr_share,
+      upwardChangepointFdrShare: z.upward_changepoint_fdr_share,
+      upwardChangepointFdrPixels: z.upward_changepoint_fdr_pixels,
+      medianChangeYear:
+        z.upward_changepoint_fdr_pixels > 0
+          ? (z.median_change_year_fdr_pixels ?? z.median_change_year)
+          : null,
+      medianSlopePerDecade: z.median_slope_per_decade,
+    })),
+  };
+}

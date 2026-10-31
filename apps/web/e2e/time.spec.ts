@@ -40,6 +40,18 @@ test("a trend finding opens See It Over Time with T; it plays, pauses on a month
   // the readout names the season and the catchment's stored value; three band labels stand beside the land
   await expect(view.locator("[data-year]")).toHaveText(/^20\d\d$/);
   await expect(view.getByText(/NDVI, the catchment$/)).toBeVisible();
+  await expect(view.locator("[data-change-year-mark='2011']")).toContainText("shift 2011");
+  // End jumps to the trend end of the track: change-point timing (7C) and regional scan (7B) show
+  await page.keyboard.press("End");
+  await expect(view.locator("[data-change-timing]")).toHaveText(
+    "Shift began around 2011 (1,165 pixels)",
+  );
+  await expect(view.locator("[data-regional-scan]")).toHaveText(
+    "Regional scan (23,056 pixels): 24.0% in catchment, 8.6% outside",
+  );
+  await expect(view.locator("[data-band-change-year='2010']")).toContainText("rank 1, since 2010");
+  await expect(view.locator("[data-band-change-year='2011']")).toContainText("rank 2, since 2011");
+  await expect(view.locator("[data-band-change-year='2014']")).toContainText("rank 3, since 2014");
   // Esc returns to the overview
   await page.keyboard.press("Escape");
   await expect(view).toHaveCount(0, { timeout: 10_000 });

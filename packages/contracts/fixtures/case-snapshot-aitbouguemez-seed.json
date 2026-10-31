@@ -13322,8 +13322,8 @@
         "periodIds": [],
         "methodId": "pixel_seasons",
         "methodVersion": "1.0.0",
-        "manifestUri": "/api/case-assets/bundle_pixel_seasons_ait_bouguemez/1220b1a8f9d9a10ceb021a9fcc289a6d202459af8c76af0174fddabddce9a10b5fba/collection.json",
-        "contentHash": "1220b1a8f9d9a10ceb021a9fcc289a6d202459af8c76af0174fddabddce9a10b5fba",
+        "manifestUri": "/api/case-assets/bundle_pixel_seasons_ait_bouguemez/1220c7ce4cbe43a16cacd739e06bd8ffee210dcaea239678b99f436797944a6df9e0/collection.json",
+        "contentHash": "1220c7ce4cbe43a16cacd739e06bd8ffee210dcaea239678b99f436797944a6df9e0",
         "license": "MOD13Q1 v6.1: NASA data use guidance (NASA-led mission data without a marked restriction are CC0; citation strongly urged)",
         "attribution": "Didan, K. (2021). MODIS/Terra Vegetation Indices 16-Day L3 Global 250m SIN Grid V061. NASA Land Processes Distributed Active Archive Center. https://doi.org/10.5067/MODIS/MOD13Q1.061. Tile h17v05, A2000049 to A2025353, read from Microsoft Planetary Computer, accessed 2026-10-28; Catchment and strata derived by Siterra from Copernicus DEM GLO-30 (2021 release); produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved; The organisations in charge of the Copernicus programme by law or by delegation do not incur any liability for any use of the Copernicus WorldDEM-30; © ESA WorldCover project / Contains modified Copernicus Sentinel data (2021) processed by ESA WorldCover consortium; ESA WorldCover 2021 v200 (Zanaga et al. 2022), CC BY 4.0, https://doi.org/10.5281/zenodo.7254221; ESA WorldCover 10 m 2021 v200, Zanaga et al. (2022), https://doi.org/10.5281/zenodo.7254221, CC BY 4.0",
         "provenance": {
@@ -13344,7 +13344,7 @@
             }
           ],
           "generatedByTaskId": null,
-          "generatedAt": "2026-10-30T18:57:26Z",
+          "generatedAt": "2026-10-31T16:28:57Z",
           "verificationStatus": "computed_checked",
           "limitations": [
             "Each value is one 250 m MODIS pixel's mean over the composites of one growing window that passed the reliability filter, not a measurement of any field, pasture or plant. A season where fewer than half of the periods were kept at a pixel has no value there.",

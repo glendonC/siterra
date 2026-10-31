@@ -27,6 +27,21 @@ export const tm = {
   },
   "time.dryKey": { text: "Driest seasons", kind: "label" },
   "time.trendTick": { text: "trend", kind: "label" },
+  "time.changeYearMark": { text: "shift {year}", kind: "label" },
+  "time.changeTiming": {
+    text: "Shift began around {year} ({count} pixels)",
+    kind: "label",
+  },
+  "time.changeTimingNone": {
+    text: "No lasting shift year (0 pixels pass change-point check)",
+    kind: "label",
+    honesty: true,
+  },
+  "time.regionalScan": {
+    text: "Regional scan ({total} pixels): {inside}% in catchment, {outside}% outside",
+    kind: "label",
+  },
+  "time.bandTiming": { text: "rank {rank}, since {year}", kind: "label" },
   "time.play": { text: "Play", kind: "button" },
   "time.pause": { text: "Pause", kind: "button" },
   "time.playhead": { text: "Season and month", kind: "ui" },

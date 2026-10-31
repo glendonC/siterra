@@ -43,7 +43,7 @@ export const en = {
   "chrome.key.ask": { text: "Ask", kind: "button" },
   "chrome.key.sources": { text: "Sources", kind: "button" },
   // recorded life on the land (UI-2): its key in the legend
-  "chrome.key.life": { text: "Recorded Life", kind: "button" },
+  "chrome.key.life": { text: "Species", kind: "button" },
   "chrome.sources": { text: "Sources", kind: "heading" },
   "chrome.close": { text: "Close", kind: "button" },
   "chrome.view": { text: "View", kind: "ui" },
@@ -831,6 +831,15 @@ export const en = {
   "overview.record.ndvi": { text: "NDVI", kind: "label" },
   "overview.record.rain": { text: "{window}, mm", kind: "label" },
   "overview.record.context": { text: "Published context", kind: "label" },
+  "overview.record.regionalScan": {
+    text: "Regional scan ({total} pixels): {inside}% in catchment, {outside}% across {outsideCount} outside. Rank {rank} {zone}, shift around {year}.",
+    kind: "ui",
+  },
+  "overview.record.regionalScanNoShift": {
+    text: "Regional scan ({total} pixels): {inside}% in catchment, {outside}% across {outsideCount} outside. No lasting shift year.",
+    kind: "ui",
+    honesty: true,
+  },
   // each record's one action, named by what the visitor will see (decision 13)
   "overview.open.layers": { text: "See the Layers", kind: "button" },
   "overview.open.cutaway": { text: "Cut Through the Land", kind: "button" },
