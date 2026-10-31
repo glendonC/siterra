@@ -5,6 +5,7 @@ import type { ModelTransport, ResponsesBody, TransportStream } from "../model/tr
 import { AT, CASE_ID, queuedTask, testStore } from "../testing/case-fixture.ts";
 import { answerStep, syntheticTransport, toolCallStep } from "../testing/replay-steps.ts";
 import { caseToolRegistry } from "../tools/registry.ts";
+import { readSourceTool } from "../tools/source-tools.ts";
 import { PROPOSAL_ROUNDS } from "./loop.ts";
 import { runObservationTask } from "./observation/observation-task.ts";
 import type { TraceEventDraft } from "./trace.ts";
@@ -79,7 +80,7 @@ async function run(model: ReadingModel) {
   );
   const offered = model.bodies.map((b) => b["tools"] !== undefined);
   const ran = events.filter((e) => e.kind === "tool.completed").length;
-  return { loop, offered, ran };
+  return { loop, offered, ran, events };
 }
 
 describe("task loop, the last rounds are for the proposal", () => {
@@ -91,6 +92,50 @@ describe("task loop, the last rounds are for the proposal", () => {
     expect(ran).toBe(4);
     expect(loop.status).toBe("accepted");
     expect(JSON.stringify(model.bodies[4]?.["input"])).toContain("No tool calls are left");
+  });
+
+  it("emits structured ToolCallTarget on tool.started and tool.completed", async () => {
+    const { events } = await run(new ReadingModel([GOOD]));
+    const started = events.find((e) => e.kind === "tool.started");
+    const completed = events.find((e) => e.kind === "tool.completed");
+    expect(started?.tool?.target).toEqual({
+      kind: "land",
+      stratumId: "catchment",
+      bundleId: "bundle_test_ndvi",
+      recipeId: null,
+      sourceId: null,
+      pages: [],
+      sections: [],
+      queryTerms: [],
+    });
+    expect(completed?.tool?.target).toEqual({
+      kind: "land",
+      stratumId: "catchment",
+      bundleId: "bundle_test_ndvi",
+      recipeId: null,
+      sourceId: null,
+      pages: [],
+      sections: [],
+      queryTerms: [],
+    });
+
+    const readSource = readSourceTool(testStore(), CASE_ID);
+    const parsedSource = readSource.parse({
+      sourceId: "src_SCI-127",
+      document: null,
+      pages: [7],
+      sections: [],
+    });
+    expect(parsedSource.ok && readSource.target?.(parsedSource.value)).toEqual({
+      kind: "source",
+      stratumId: null,
+      bundleId: null,
+      recipeId: null,
+      sourceId: "src_SCI-127",
+      pages: [7],
+      sections: [],
+      queryTerms: [],
+    });
   });
 
   it("the proposal keeps its one repair turn, also without tools", async () => {

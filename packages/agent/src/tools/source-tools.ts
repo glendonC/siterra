@@ -1,3 +1,4 @@
+import { asEntityId } from "@siterra/contracts";
 import { z } from "zod";
 
 import { formatLocator } from "@siterra/domain/validators";
@@ -64,6 +65,16 @@ export function searchSourcesTool(
       return parsed;
     },
     summarize: (args) => `query of ${termsOf(args.query).length} terms`,
+    target: (args) => ({
+      kind: "source",
+      stratumId: null,
+      bundleId: null,
+      recipeId: null,
+      sourceId: null,
+      pages: [],
+      sections: [],
+      queryTerms: termsOf(args.query),
+    }),
     run: async (args) => {
       if (budget.remaining <= 0)
         throw new ToolFailure("search_budget_exhausted", "no searches left for this command");
@@ -144,6 +155,16 @@ export function readSourceTool(store: CaseStore, caseId: string): ToolHandler<Re
     },
     summarize: (args) =>
       `source ${args.sourceId}, ${args.pages.length + args.sections.length} ${args.pages.length + args.sections.length === 1 ? "passage" : "passages"}`,
+    target: (args) => ({
+      kind: "source",
+      stratumId: null,
+      bundleId: null,
+      recipeId: null,
+      sourceId: asEntityId(args.sourceId),
+      pages: args.pages.filter((p) => Number.isInteger(p) && p >= 1),
+      sections: args.sections.filter((s) => s.length >= 1),
+      queryTerms: [],
+    }),
     run: async (args) => {
       const source = await store.readSource(caseId, args.sourceId);
       if (!source)

@@ -1,3 +1,5 @@
+import { enrichToolCallTarget } from "@siterra/contracts";
+
 import type { MetaAdapter } from "../model/adapter.ts";
 import type { InputItem, ModelCallResult, ModelRequest, ToolCall } from "../model/types.ts";
 import { ToolFailure } from "../tools/tool.ts";
@@ -265,11 +267,13 @@ async function runTool(
     args = undefined;
   }
   const parsed = handler.parse(args);
+  const initialTarget = parsed.ok ? (handler.target?.(parsed.value) ?? null) : null;
   const base = {
     name: handler.name,
     startedAt: startedAt.toISOString(),
     argumentSummary: parsed.ok ? handler.summarize(parsed.value) : "Arguments did not validate.",
     attempt: 1,
+    target: initialTarget,
   };
   emit(
     "tool.started",
@@ -298,6 +302,7 @@ async function runTool(
         durationMs: ended.getTime() - startedAt.getTime(),
         resultEntityIds: ids,
         errorCode,
+        target: enrichToolCallTarget(initialTarget, ids),
       },
       messages.toolCompleted(handler.name, status, ids.length),
     );

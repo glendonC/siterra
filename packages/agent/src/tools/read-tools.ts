@@ -1,3 +1,4 @@
+import { asEntityId, inferRecipeFromBundleId, inferStratumFromText } from "@siterra/contracts";
 import { z } from "zod";
 
 import type { MeasurementRecord } from "../tasks/records.ts";
@@ -24,6 +25,16 @@ export function readCaseTool(store: CaseStore, caseId: string): ToolHandler<Read
     parameters: argumentSchema(ReadCaseArgs),
     parse: (args) => parseWith(ReadCaseArgs, args),
     summarize: () => "current case",
+    target: () => ({
+      kind: "case",
+      stratumId: null,
+      bundleId: null,
+      recipeId: null,
+      sourceId: null,
+      pages: [],
+      sections: [],
+      queryTerms: [],
+    }),
     run: async () => {
       const summary = await store.readCase(caseId);
       if (!summary) throw new ToolFailure("unknown_case", "the case was not found");
@@ -46,6 +57,16 @@ export function readDatasetManifestTool(
     parameters: argumentSchema(ManifestArgs),
     parse: (args) => parseWith(ManifestArgs, args),
     summarize: (args) => `bundle ${args.bundleId}`,
+    target: (args) => ({
+      kind: "bundle",
+      stratumId: inferStratumFromText(args.bundleId),
+      bundleId: asEntityId(args.bundleId),
+      recipeId: inferRecipeFromBundleId(args.bundleId),
+      sourceId: null,
+      pages: [],
+      sections: [],
+      queryTerms: [],
+    }),
     datasetIds: (args) => [args.bundleId],
     run: async (args) => {
       const bundle = await store.readBundle(caseId, args.bundleId);
@@ -123,6 +144,19 @@ export function summarizeObservationsTool(
     },
     summarize: (args) =>
       `bundle ${args.bundleId} revision ${args.bundleRevision}, ${args.periodIds.length} ${args.periodIds.length === 1 ? "period" : "periods"}${args.metric ? `, ${args.metric}` : ""}`,
+    target: (args) => ({
+      kind: "land",
+      stratumId:
+        (args.metric ? inferStratumFromText(args.metric) : null) ??
+        inferStratumFromText(args.bundleId) ??
+        "catchment",
+      bundleId: asEntityId(args.bundleId),
+      recipeId: inferRecipeFromBundleId(args.bundleId),
+      sourceId: null,
+      pages: [],
+      sections: [],
+      queryTerms: [],
+    }),
     datasetIds: (args) => [args.bundleId],
     run: async (args) => {
       const bundle = await store.readBundle(caseId, args.bundleId);

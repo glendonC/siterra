@@ -144,6 +144,18 @@ export function searchOccurrencesTool(store: CaseStore, caseId: string): ToolHan
     parse: (args) => parseWith(SearchArgs, args),
     summarize: (args) =>
       `occurrences matching ${args.query ?? "any name"}, ${args.group ?? "any group"}, at most ${String(args.limit)}`,
+    target: (args) => ({
+      kind: "land",
+      stratumId: "catchment",
+      bundleId: null,
+      recipeId: "species_occurrences",
+      sourceId: null,
+      pages: [],
+      sections: [],
+      queryTerms: [args.query, args.group]
+        .filter((v): v is string => v !== null && v.trim().length > 0)
+        .map((v) => v.trim()),
+    }),
     run: async (args) => {
       if (args.query === null && args.group === null) {
         throw new ToolFailure("empty_search", "give a name, a family or a group to search for");
