@@ -101,6 +101,10 @@ uniform float uOverA;       // 0 none, 1 the footprint shown
 uniform float uBandAt, uBandA; // a band below this height (m) lit, the rest stepped back (0 to 1)
 uniform float uRangeLo, uRangeHi, uRangeA; // a proposed field check's band between two heights (m), lit (UI-2)
 uniform vec3 uRangeC;       // its colour: the accent, for a proposed thing
+uniform vec2 uSnowLimits;   // the two elevation band limits (m), for snow by band (UI-2, See It Over Time)
+uniform vec3 uSnow;         // each band's share under snow that month, lowest band first (0 to 1)
+uniform float uSnowA;
+uniform vec3 uSnowC;
 varying vec3 vWorld;
 void main() {
   vec2 xz = vWorld.xz;
@@ -153,6 +157,14 @@ void main() {
     float inRange = smoothstep(uRangeLo - 6.0, uRangeLo + 6.0, h) * (1.0 - smoothstep(uRangeHi - 6.0, uRangeHi + 6.0, h));
     col *= mix(1.0, mix(0.5, 1.0, inRange), uRangeA);
     col = mix(col, uRangeC * (0.35 + 0.65 * diff), inRange * 0.42 * uRangeA);
+  }
+
+  // a month's snow, each band's measured share spread evenly over that band (where in the band it lay is not drawn)
+  if (uSnowA > 0.001) {
+    float b0 = 1.0 - smoothstep(uSnowLimits.x - 6.0, uSnowLimits.x + 6.0, h);
+    float b2 = smoothstep(uSnowLimits.y - 6.0, uSnowLimits.y + 6.0, h);
+    float share = uSnow.x * b0 + uSnow.y * (1.0 - b0 - b2) + uSnow.z * b2;
+    col = mix(col, uSnowC * (0.45 + 0.55 * clamp(diff * 1.1 + 0.3 * sky, 0.0, 1.0)), clamp(share, 0.0, 1.0) * 0.85 * uSnowA);
   }
 
   float c250 = contour(h, 250.0, 0.9);
@@ -412,6 +424,10 @@ export function createRelief(
     uRangeHi: { value: 1e5 },
     uRangeA: { value: 0 },
     uRangeC: { value: new Vector3(0, 0, 0) },
+    uSnowLimits: { value: new Vector2(0, 0) },
+    uSnow: { value: new Vector3(0, 0, 0) },
+    uSnowA: { value: 0 },
+    uSnowC: { value: new Vector3(1, 1, 1) },
   };
   const material = new ShaderMaterial({
     vertexShader: RELIEF_VERT,

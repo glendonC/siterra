@@ -60,6 +60,7 @@ import {
   type LiftId,
   type OverviewScene,
   type Point,
+  type SceneState,
   type Selection,
 } from "../../lib/overview/scene/overview";
 import { catchmentAreaKm2 } from "../../lib/overview/record";
@@ -94,6 +95,9 @@ import { PackageBriefing, type LandMount, type Stands } from "../package/Package
 import { pkg } from "../../lib/copy/package";
 import type { HeightRange } from "../../lib/package/bands";
 import { commandBrief, packageView } from "../../lib/package/package";
+import { tm } from "../../lib/copy/time";
+import { timeSourcesOf } from "../../lib/time/load";
+import { TimeView, type TimeFrame, type TimeMount } from "../time/TimeView";
 import styles from "./ValleyOverview.module.css";
 
 /** Seconds for each move: the opening, a finding's hover, the ask circle's hover, the ask opening, the routes' hover. */
@@ -165,6 +169,8 @@ function crumbOf(sel: Selection, findings: readonly Finding[], bandLimit: string
       return en["overview.crumb.results"].text;
     case "package":
       return pkg["package.title"].text;
+    case "time":
+      return tm["time.crumb"].text;
     case "band":
       return format("overview.crumb.band", { value: f?.display ?? "", limit: bandLimit });
     case "fdr":
@@ -305,6 +311,8 @@ function OverviewReady({
         ),
       ),
     );
+    // See It Over Time (UI-2): offered where the case holds its own pixel seasons (timeSourcesOf)
+    if (timeSourcesOf(snapshot)) views.add("time");
     return views;
   }, [listing, snapshot]);
   const names = placeNamesFromCase(snapshot);
@@ -395,7 +403,8 @@ function OverviewReady({
   // Esc can play the stack back into this same land. `from` is the land's pose once the overview has let it go.
   const [tear, setTear] = useState<{
     /** The layer stack peels out of the land; the pixel splits into its cells. */
-    kind: ViewKind;
+    // a view opened as an instrument over the land (See It Over Time opens as a selection instead, UI-2)
+    kind: Exclude<ViewKind, "time">;
     /** The opened finding's crumb ("24.7% greening"), named in the view's breadcrumb. */
     crumb: string | null;
     from: LandPose | null;
@@ -442,7 +451,7 @@ function OverviewReady({
   const [sel, setSel] = useState<Selection | null>(null);
   // what can be done with the opened finding, beside its card (decision 15)
   const cardActions = useMemo(
-    () => (sel && sel !== "package" ? actionsFor(sel, offered, true) : []),
+    () => (sel && sel !== "package" && sel !== "time" ? actionsFor(sel, offered, true) : []),
     [sel, offered],
   );
   const cardActionsRef = useRef<readonly Action[]>(cardActions);
@@ -493,8 +502,16 @@ function OverviewReady({
     ranges: [],
     lit: null,
   });
+  // See It Over Time (UI-2): what the view paints on the land and the month's snow, and who follows the band edges
+  const timeRef = useRef<{ overlay: SceneState["overlay"]; snow: SceneState["snow"] }>({
+    overlay: null,
+    snow: null,
+  });
+  const timeSubs = useRef(new Set<(f: TimeFrame) => void>());
   // the package's land eased aside for its cards: where it is and where it is going (0 centred, 1 aside)
   const pkgAsideRef = useRef({ k: 0, goal: 0 });
+  // back(), for handlers declared before it (the browser's Back leaving See It Over Time)
+  const backRef = useRef<() => void>(() => undefined);
   // from the results to the package: the overview's own words stay out through the whole handover
   const pkgHandoff = useRef(false);
   const standSubs = useRef(new Set<(s: Stands) => void>());
@@ -616,6 +633,17 @@ function OverviewReady({
   // the specimen's setState, for the words: places every label, dot, hairline and mark from the scene's layout
   const apply = useCallback((layout: OverviewLayout) => {
     lastLayout.current = layout;
+    // See It Over Time's band labels follow their bands' lit edges (UI-2)
+    if (timeSubs.current.size) {
+      const k = layout.fit.scale;
+      const f: TimeFrame = {
+        edges: layout.bandEdges.map((p) =>
+          p ? { x: layout.fit.ox + p.x * k, y: layout.fit.oy + p.y * k } : null,
+        ),
+        e: layout.e,
+      };
+      for (const g of timeSubs.current) g(f);
+    }
     // the package's markers follow their bands' places on the land (UI-2)
     if (standSubs.current.size) {
       const k = layout.fit.scale;
@@ -641,7 +669,9 @@ function OverviewReady({
     const { s, h, k, o } = live.current;
     const { fit, e } = layout;
     // from the results to the package and while it opens, the overview's words, ask and arc stay out (UI-2)
-    const pkgQuiet = pkgHandoff.current || (selRef.current === "package" && goal.current.s === 1);
+    const pkgQuiet =
+      pkgHandoff.current ||
+      ((selRef.current === "package" || selRef.current === "time") && goal.current.s === 1);
     const oe = ease(o);
     const selected = selRef.current;
     const hud = hudRef.current;
@@ -649,7 +679,11 @@ function OverviewReady({
       hud.style.transform = `translate(${fit.ox.toFixed(2)}px, ${fit.oy.toFixed(2)}px) scale(${fit.scale.toFixed(5)})`;
       // the arrival: the words on the land and round the arc come in once the arc is drawn
       // the package's words take the land's place round it: the overview's own words and dots step out (UI-2)
-      const pkgAway = pkgQuiet ? 1 : selected === "package" ? clamp01(s * 1.4) : 0;
+      const pkgAway = pkgQuiet
+        ? 1
+        : selected === "package" || selected === "time"
+          ? clamp01(s * 1.4)
+          : 0;
       const shown = appearRef.current * (1 - exitRef.current.away) * (1 - pkgAway);
       hud.style.opacity = shown < 1 ? shown.toFixed(3) : "";
     }
@@ -1015,9 +1049,13 @@ function OverviewReady({
       ...(X.away > 0 ? { arcDraw: 1 - X.away } : {}),
       lift,
       aside: ease(pkgAsideRef.current.k),
+      overlay: timeRef.current.overlay,
+      snow: timeRef.current.snow,
       ranges: pkgRangesRef.current.ranges,
       lit: pkgRangesRef.current.lit,
-      quiet: pkgHandoff.current || (selRef.current === "package" && goal.current.s === 1),
+      quiet:
+        pkgHandoff.current ||
+        ((selRef.current === "package" || selRef.current === "time") && goal.current.s === 1),
       ...(arrive ?? {}),
     });
     raf.current = moving ? requestAnimationFrame(frame) : 0;
@@ -1036,6 +1074,24 @@ function OverviewReady({
     (href: string): boolean => {
       const kind =
         (Object.keys(VIEW_HREF) as ViewKind[]).find((k) => VIEW_HREF[k] === href) ?? null;
+      if (kind === "time") {
+        // See It Over Time (UI-2): the finding's card closes, then the land plays its seasons in place
+        const fromSel = selRef.current;
+        // like the package: the overview's own words, ask and arc stay out through the handover
+        pkgHandoff.current = true;
+        if (fromSel && fromSel !== "time") back();
+        const tryOpen = () => {
+          if (selRef.current) {
+            window.setTimeout(tryOpen, 60);
+            return;
+          }
+          open("time");
+          pkgHandoff.current = false;
+          goTo(href);
+        };
+        tryOpen();
+        return true;
+      }
       if (kind === "rainfall" && selRef.current === "rain") {
         setRainWide(true);
         goTo(href);
@@ -1167,6 +1223,11 @@ function OverviewReady({
         if (path !== VIEW_HREF[t.kind]) backInPlace();
         return;
       }
+      // See It Over Time is a selection over the land (UI-2): leaving its address closes it
+      if (selRef.current === "time" && path !== VIEW_HREF.time) {
+        backRef.current();
+        return;
+      }
       if (Object.values<string>(VIEW_HREF).includes(path)) openRef.current(path);
     };
     window.addEventListener("popstate", onPop);
@@ -1184,6 +1245,13 @@ function OverviewReady({
 
   const settled = useRef(onSettled);
   settled.current = onSettled;
+  const timeAtArrival = useRef(false);
+  // See It Over Time by its own address, on a case whose land is not drawn: the address says what is on screen
+  useEffect(() => {
+    if (!failed || timeAtArrival.current || window.location.pathname !== VIEW_HREF.time) return;
+    timeAtArrival.current = true;
+    window.history.replaceState(null, "", `/valley${window.location.search}`);
+  }, [failed]);
   useEffect(() => {
     if (failed) settled.current?.();
   }, [failed]);
@@ -1222,6 +1290,13 @@ function OverviewReady({
         root.dataset.askGap = (g.distanceAt(at.ask) - ASK_R).toFixed(1);
         root.dataset.ready = "";
         settled.current?.();
+        // See It Over Time by its own address (UI-2): once drawn, the land plays its seasons in place
+        if (!timeAtArrival.current && window.location.pathname === VIEW_HREF.time) {
+          timeAtArrival.current = true;
+          if (offeredRef.current.has("time") && !selRef.current) openRef.current(VIEW_HREF.time);
+          // a case that cannot play its seasons: the address says what is on screen, with no entry to come back to
+          else window.history.replaceState(null, "", `/valley${window.location.search}`);
+        }
       })
       .catch((e: unknown) => {
         console.error("Overview gaps not measured", e);
@@ -1252,6 +1327,7 @@ function OverviewReady({
       sel === "results" ||
       sel === "routes" ||
       sel === "package" ||
+      sel === "time" ||
       recordData[sel]
     )
       return;
@@ -1335,6 +1411,8 @@ function OverviewReady({
       setPkgShown(false);
       pkgAsideRef.current.goal = 0;
     }
+    // See It Over Time has its own address (UI-2): closing it returns to the overview's
+    if (was === "time" && window.location.pathname === VIEW_HREF.time) goTo("/valley");
     setRainWide(false);
     goal.current.s = 0;
     go();
@@ -1343,7 +1421,7 @@ function OverviewReady({
     else if (was === "results")
       // the ask circle comes back with the overview
       window.setTimeout(() => askCircleRef.current?.focus({ preventScroll: true }), DUR.s * 1000);
-    else if (was === "package")
+    else if (was === "package" || was === "time")
       window.setTimeout(() => askCircleRef.current?.focus({ preventScroll: true }), DUR.s * 1000);
     else if (was) labelRefs.current.get(was)?.focus({ preventScroll: true });
   }, [go]);
@@ -1370,6 +1448,24 @@ function OverviewReady({
     };
     tryOpen();
   }, [back]);
+  // See It Over Time (UI-2): the overlay grid it paints on, what it sets on the land, and each frame's band edges
+  const timeMount = useMemo<TimeMount>(
+    () => ({
+      grid: () => sceneRef.current?.overlayGrid() ?? null,
+      push: (overlay, snow) => {
+        timeRef.current = { overlay, snow };
+        go();
+      },
+      subscribe: (f) => {
+        timeSubs.current.add(f);
+        go();
+        return () => {
+          timeSubs.current.delete(f);
+        };
+      },
+    }),
+    [go],
+  );
   const pkgLand = useMemo<LandMount>(
     () => ({
       limits: bandLimitsOf(snapshot),
@@ -1391,6 +1487,7 @@ function OverviewReady({
     }),
     [snapshot, go],
   );
+  backRef.current = back;
   // the visitor's own view: zoom (scroll or the view control) and turn (drag), both undone by R
   const setCam = useCallback(
     (next: { zoom?: number; turn?: number }) => {
@@ -2060,7 +2157,7 @@ function OverviewReady({
                 refs={{ root: recRef, inst: instRef, frost: frostRef, first: firstResultRef }}
               />
             ) : null}
-            {sel !== "results" && sel !== "routes" && sel !== "package" ? (
+            {sel !== "results" && sel !== "routes" && sel !== "package" && sel !== "time" ? (
               <OverviewRecord
                 sel={sel}
                 finding={selFinding}
@@ -2165,6 +2262,7 @@ function OverviewReady({
           />
         </>
       ) : null}
+      {sel === "time" && !tear ? <TimeView snapshot={snapshot} open mount={timeMount} /> : null}
       {sel === "package" && pkgView && !tear ? (
         <PackageBriefing
           snapshot={ask.snapshot}

@@ -774,6 +774,7 @@ export const en = {
   "overview.open.pixel": { text: "Open This Pixel", kind: "button" },
   "overview.open.rainfall": { text: "Compare with Rainfall", kind: "button" },
   "overview.open.field": { text: "See the Field Plan", kind: "button" },
+  "overview.open.time": { text: "See It Over Time", kind: "button" },
   "overview.cite": { text: "{authors} {year}, {venue}, p. {page}", kind: "label" },
   "overview.cite.pages": { text: "{authors} {year}, {venue}, pp. {pages}", kind: "label" },
   "overview.cite.noPage": { text: "{authors} {year}, {venue}", kind: "label" },
@@ -893,6 +894,10 @@ export const LINT_ALLOWLIST: Partial<Record<MessageId, { rules: string[]; reason
   "overview.open.field": {
     rules: ["VT-48"],
     reason: "The lead's decision 13 names each record's action by what the visitor will see.",
+  },
+  "overview.open.time": {
+    rules: ["VT-48"],
+    reason: "The lead named this action (decision 15 adds T): it says what the visitor will see.",
   },
   "source.modis": {
     rules: ["VT-08"],
