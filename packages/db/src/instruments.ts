@@ -15,7 +15,11 @@ import type {
   Measurement,
 } from "@siterra/contracts";
 import { isInstrumentKind } from "@siterra/contracts";
-import { composeInstruments, instrumentAssetRefs } from "@siterra/domain";
+import {
+  composeInstruments,
+  composeSuggestedQuestions,
+  instrumentAssetRefs,
+} from "@siterra/domain";
 import { analysisConfigFor } from "@siterra/domain/cases";
 import { analysisCaseIdOf } from "./case-origin.ts";
 import { type CaseAssetFile, resolveBundleAsset } from "./case-assets.ts";
@@ -32,7 +36,7 @@ async function composition(
   tx: Tx,
   args: { caseId: string; bundlesDir: string | null },
   asOf: number,
-): Promise<Pick<InstrumentListing, "blocked" | "notOpened"> | null> {
+): Promise<Pick<InstrumentListing, "blocked" | "notOpened" | "suggestedQuestions"> | null> {
   const config = analysisConfigFor(await analysisCaseIdOf(tx, args.caseId));
   if (config === null) return null;
   const types = [
@@ -59,6 +63,8 @@ async function composition(
     [args.caseId],
   );
   const bundles = of<DataBundle>("DataBundle");
+  const measurements = of<Measurement>("Measurement");
+  const evidence = of<Evidence>("Evidence");
   const result = composeInstruments({
     caseId: args.caseId,
     config,
@@ -67,8 +73,8 @@ async function composition(
     geoSelections: of<GeoSelection>("GeoSelection"),
     dataBundles: bundles,
     contextFeatures: of<ContextFeature>("ContextFeature"),
-    measurements: of<Measurement>("Measurement"),
-    evidence: of<Evidence>("Evidence"),
+    measurements,
+    evidence,
     branchMerges: of<BranchMerge>("BranchMerge"),
     hypotheses: of<Hypothesis>("Hypothesis"),
     hasAsset: (ref) => {
@@ -86,9 +92,14 @@ async function composition(
     },
     now: "1970-01-01T00:00:00.000Z",
   });
+  const { suggestedQuestions } = composeSuggestedQuestions(config, {
+    measurements,
+    evidence,
+  });
   return {
     blocked: result.blocked.map((b) => ({ ruleId: b.ruleId, kind: b.kind, reasons: b.reasons })),
     notOpened: result.notOpened,
+    ...(config.suggestedQuestions !== undefined ? { suggestedQuestions } : {}),
   };
 }
 

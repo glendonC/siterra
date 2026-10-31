@@ -101,4 +101,26 @@ describe("case analysis configurations", () => {
       for (const b of ids.slice(i + 1)) expect(separated).toContain(key(a, b));
     }
   });
+
+  it("the valley defines 3 suggested questions citing real seed measurements and passing domain validation", async () => {
+    const { composeSuggestedQuestions } = await import("../instruments-compose.ts");
+    const valley = analysisConfigFor("case_aitbouguemez");
+    expect(valley?.suggestedQuestions?.length).toBe(3);
+    const rows = JSON.parse(
+      readFileSync(
+        fileURLToPath(new URL("../../../../data/case/measurement-rows.json", import.meta.url)),
+        "utf8",
+      ),
+    ) as { rows: { rowId: string }[] };
+    const measurements = rows.rows.map((r) => ({
+      id: `meas_${r.rowId}`,
+      status: "available" as const,
+    }));
+    const checked = composeSuggestedQuestions(
+      { suggestedQuestions: valley?.suggestedQuestions },
+      { measurements, evidence: [] },
+    );
+    expect(checked.issues).toEqual([]);
+    expect(checked.suggestedQuestions).toEqual(valley?.suggestedQuestions);
+  });
 });

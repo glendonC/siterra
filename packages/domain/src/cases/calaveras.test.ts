@@ -134,4 +134,22 @@ describe("the Calaveras Creek configuration", () => {
     expect(methods).toContain(pair?.b.methodId);
     expect(methods).not.toContain(config?.rainfallSeason.recipe.recipeId);
   });
+
+  it("defines 3 direction-neutral suggested questions citing real Calaveras seed measurements", async () => {
+    const { composeSuggestedQuestions } = await import("../instruments-compose.ts");
+    expect(config?.suggestedQuestions?.length).toBe(3);
+    const rows = readJson(join(repoDir, "data/case/calaveras-creek/measurement-rows.json")) as {
+      rows: { rowId: string }[];
+    };
+    const measurements = rows.rows.map((r) => ({
+      id: `meas_${r.rowId}`,
+      status: "available" as const,
+    }));
+    const checked = composeSuggestedQuestions(
+      { suggestedQuestions: config?.suggestedQuestions },
+      { measurements, evidence: [] },
+    );
+    expect(checked.issues).toEqual([]);
+    expect(checked.suggestedQuestions).toEqual(config?.suggestedQuestions);
+  });
 });

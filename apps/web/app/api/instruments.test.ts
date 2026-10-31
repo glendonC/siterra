@@ -152,6 +152,98 @@ describe("GET /api/cases/:caseId/instruments", () => {
     expect((await listing("", { cookie: otherCookie })).status).toBe(404);
     expect((await listing("", { cookie }, "case_example_missing")).status).toBe(404);
   });
+
+  it("exposes validated suggestedQuestions on GET /api/cases/:caseId/instruments for a configured case", async () => {
+    const aitRecord = exampleCase("case_aitbouguemez");
+    await createCase(db.pool, aitRecord, "owner_example");
+    const measTrend = {
+      recordType: "Measurement" as const,
+      id: "meas_trend_unadjusted_catchment_mar_jun",
+      revision: 1,
+      createdAt: "2026-10-26T16:00:00Z",
+      updatedAt: "2026-10-26T16:00:00Z",
+      caseId: "case_aitbouguemez",
+      metric: "ndvi_trend_slope",
+      value: 0.002,
+      unit: "1/yr",
+      status: "available" as const,
+      missingReason: null,
+      geoSelectionId: "geo_example_guard",
+      geoRevision: 1,
+      periodId: "period_example_2000_2025",
+      dataBundleId: bundleId,
+      aggregation: "median",
+      validPixelCount: 100,
+      totalPixelCount: 100,
+      validFraction: 1,
+      spatialResolutionM: 250,
+      uncertainty: {
+        kind: "not_quantified" as const,
+        lower: null,
+        upper: null,
+        level: null,
+        method: null,
+      },
+      provenance: {
+        sourceLocators: [],
+        dataBundleIds: [bundleId],
+        methodId: "restrend_long_record",
+        methodVersion: "1.0.0",
+        inputVersions: [{ entityId: bundleId, revision: 1 }],
+        generatedByTaskId: null,
+        generatedAt: "2026-10-26T16:00:00Z",
+        verificationStatus: "computed_checked" as const,
+        limitations: [],
+      },
+    };
+    const measPixel = {
+      ...measTrend,
+      id: "meas_pixel_anatomy_share_tree_cover_2021",
+      metric: "tree_cover_share",
+      value: 0.25,
+      unit: "1",
+    };
+    const measRain = {
+      ...measTrend,
+      id: "meas_rainfall_fit_r_squared_catchment_mar_jun",
+      metric: "r_squared",
+      value: 0.0268,
+      unit: "1",
+    };
+    await applyCommit(
+      db.pool,
+      exampleCommit(aitRecord, {
+        id: "commit_ait_questions",
+        expected: 1,
+        upserts: [
+          { ...exampleBundle("case_aitbouguemez", bundleId, 1), contentHash },
+          measTrend,
+          measPixel,
+          measRain,
+        ],
+      }),
+    );
+    const res = await listing("", { cookie }, "case_aitbouguemez");
+    expect(res.status).toBe(200);
+    const body = InstrumentListing.parse(await res.json());
+    expect(body.suggestedQuestions).toEqual([
+      {
+        id: "valley_greener",
+        question: "Is grazing changing the shared pastures of the Aït Bouguemez valley?",
+        measurementId: "meas_trend_unadjusted_catchment_mar_jun",
+      },
+      {
+        id: "pixel_trees",
+        question: "Why can a pixel get greener while its pasture does not?",
+        measurementId: "meas_pixel_anatomy_share_tree_cover_2021",
+      },
+      {
+        id: "rainfall_change",
+        question: "How much of the valley's greenness change does wet-season rainfall explain?",
+        measurementId: "meas_rainfall_fit_r_squared_catchment_mar_jun",
+      },
+    ]);
+  });
 });
 
 describe("GET /api/cases/:caseId/bundles/:bundleId/assets/:assetKey", () => {

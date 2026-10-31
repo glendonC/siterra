@@ -24,6 +24,7 @@ import type * as CancelRoute from "./commands/[commandId]/cancel/route.ts";
 import type * as DemoRoute from "./demo-sessions/route.ts";
 import type * as TraceRoute from "./cases/[caseId]/trace/route.ts";
 import type * as ReviewsRoute from "./cases/[caseId]/reviews/route.ts";
+import type * as ReviewDecisionsRoute from "./cases/[caseId]/review-decisions/route.ts";
 
 let db: TestDatabase;
 let pool: Pool;
@@ -40,6 +41,7 @@ type Routes = {
   demo: typeof DemoRoute;
   trace: typeof TraceRoute;
   reviews: typeof ReviewsRoute;
+  reviewDecisions: typeof ReviewDecisionsRoute;
 };
 let routes: Routes;
 
@@ -62,6 +64,7 @@ beforeAll(async () => {
     demo: await import("./demo-sessions/route.ts"),
     trace: await import("./cases/[caseId]/trace/route.ts"),
     reviews: await import("./cases/[caseId]/reviews/route.ts"),
+    reviewDecisions: await import("./cases/[caseId]/review-decisions/route.ts"),
   };
   await createCase(pool, exampleCase(caseId), owner);
   cookie = `${sessionCookieName}=${await createSession(pool, { ownerScopeId: owner, kind: "local", ttlSeconds: 3600 })}`;
@@ -415,5 +418,63 @@ describe("POST /api/cases/:id/reviews", () => {
     );
     expect(stale.status).toBe(409);
     expect(((await stale.json()) as { code: string }).code).toBe("stale_versions");
+  });
+});
+
+describe("POST /api/cases/:id/review-decisions", () => {
+  it("records approved or changes_requested with optional note <= 500 chars and keeps externalExecutionEnabled false", async () => {
+    const path = `/api/cases/${caseId}/review-decisions`;
+    const created = await routes.reviewDecisions.POST(
+      post(path, {
+        decision: "approved",
+        note: "Approved to present at the assembly.",
+        idempotencyKey: "api-plan-review-0001",
+      }),
+      params({ caseId }),
+    );
+    expect(created.status).toBe(201);
+    const body = (await created.json()) as {
+      id: string;
+      status: string;
+      comments: string;
+      mode: string;
+      authorityStatus: string;
+    };
+    expect(body.status).toBe("approved");
+    expect(body.comments).toBe("Approved to present at the assembly.");
+    expect(body.mode).toBe("demo");
+    expect(body.authorityStatus).toBe("not_established");
+
+    const replayed = await routes.reviewDecisions.POST(
+      post(path, {
+        decision: "approved",
+        note: "Approved to present at the assembly.",
+        idempotencyKey: "api-plan-review-0001",
+      }),
+      params({ caseId }),
+    );
+    expect(replayed.status).toBe(200);
+
+    const changes = await routes.reviewDecisions.POST(
+      post(path, {
+        decision: "changes_requested",
+        note: "Add transect timing note.",
+      }),
+      params({ caseId }),
+    );
+    expect(changes.status).toBe(201);
+    expect(((await changes.json()) as { status: string }).status).toBe("changes_requested");
+
+    const invalid = await routes.reviewDecisions.POST(
+      post(path, { decision: "approved", note: "x".repeat(501) }),
+      params({ caseId }),
+    );
+    expect(invalid.status).toBe(400);
+
+    const noSession = await routes.reviewDecisions.POST(
+      post(path, { decision: "approved" }, { cookie: "" }),
+      params({ caseId }),
+    );
+    expect(noSession.status).toBe(401);
   });
 });
