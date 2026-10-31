@@ -200,11 +200,12 @@ const uniq = (v: readonly string[]) => [...new Set(v.map((s) => s.trim()).filter
 
 /** The package the Brief holds, with the records it names; undefined when the record holds no such Brief. */
 /**
- * Whether a measurement's link to the merge's field check is shown. Hidden for now: the record's fieldCheckId is
- * checked only for membership in the merge, not for fit (AUDIT on Package live 2, 30 Oct), so the link could state a
- * false tie. It is shown again once PLATFORM's fit rule (P9d) is merged (the lead, 20:47).
+ * Whether a measurement's link to the merge's field check is shown. Shown since PLATFORM's fit rule (P9d) is merged:
+ * the record keeps a measurement's fieldCheckId only where the explanations it tells apart meet the pairs the check
+ * separates, so a link in the record means they share at least one question (the lead, 20:58). The exported brief
+ * prints it in those words; the step cards leave it out for good (text budget).
  */
-export const FIELD_CHECK_LINKS_SHOWN = false;
+export const FIELD_CHECK_LINKS_SHOWN = true;
 
 export function packageView(
   snapshot: CaseSnapshot,

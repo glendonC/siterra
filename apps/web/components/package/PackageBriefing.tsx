@@ -258,7 +258,7 @@ export function PackageBriefing({
             <span className={styles.foot} />
             <span className={styles.markerLabel}>
               <span className={styles.n}>{String(i + 1).padStart(2, "0")}</span>
-              <span>{m.fieldCheck?.label ?? m.what}</span>
+              <span>{m.what}</span>
             </span>
           </div>
         );
@@ -301,12 +301,7 @@ export function PackageBriefing({
             </>
           ) : null}
           {page.kind === "check" && view.measures[page.measure] ? (
-            <CheckCard
-              n={page.measure}
-              view={view}
-              onLand={ranges[page.measure] !== null}
-              bindLine={(chips) => bind({ key: `${pageKey}-check`, chips })}
-            />
+            <CheckCard n={page.measure} view={view} onLand={ranges[page.measure] !== null} />
           ) : null}
           {page.kind === "responses" ? (
             <>
@@ -380,17 +375,7 @@ export function PackageBriefing({
   );
 }
 
-function CheckCard({
-  n,
-  view,
-  onLand,
-  bindLine,
-}: {
-  n: number;
-  view: PackageView;
-  onLand: boolean;
-  bindLine: (chips: number[]) => object;
-}) {
+function CheckCard({ n, view, onLand }: { n: number; view: PackageView; onLand: boolean }) {
   const m = view.measures[n];
   if (!m) return null;
   return (
@@ -402,12 +387,6 @@ function CheckCard({
         {checkLines(m).map((l, i) => (
           <li key={i}>{l}</li>
         ))}
-        {m.fieldCheck ? (
-          <li {...bindLine(m.chips)}>
-            {pformat("steps.settles", { label: m.fieldCheck.label })}
-            <Tags chips={m.chips} />
-          </li>
-        ) : null}
       </ul>
       <p className={styles.proposed}>
         {t("briefing.proposed")}
