@@ -12,7 +12,12 @@ import type {
   InterventionRecord,
   RelationshipRecord,
 } from "../records.ts";
-import { DEFERRAL_TEXT, NO_SOURCE_NOTE, runInterventionTask } from "./intervention-task.ts";
+import {
+  DEFERRAL_TEXT,
+  LEFT_OUT_NOTE,
+  NO_SOURCE_NOTE,
+  runInterventionTask,
+} from "./intervention-task.ts";
 import {
   interventionOutputSchema,
   responseTextIssues,
@@ -291,11 +296,53 @@ describe("propose_interventions validation", () => {
       }
     });
 
-    it("still needs something to rest on: neither Evidence nor a hypothesis is refused in both turns", () => {
-      for (const mode of ["refuse", "mark"] as const) {
-        const result = check([option({ evidenceIds: [], hypothesisIds: [] }), OTHER], mode);
-        expect(result.issues.map((i) => i.path)).toContain("$.items[0].evidenceIds");
+    it("on the first turn, neither Evidence nor a hypothesis, or an id the task cannot use, is refused", () => {
+      for (const extra of [
+        { evidenceIds: [], hypothesisIds: [] },
+        { evidenceIds: ["ev_test_not_available"] },
+        { hypothesisIds: ["hyp_test_contra"] },
+      ]) {
+        // The other response is fine, so the batch stands without the refused one, issues named.
+        const result = check([option(extra), OTHER], "refuse");
+        expect(result.issues.length, JSON.stringify(extra)).toBeGreaterThan(0);
+        expect(result.ok && result.value.length, JSON.stringify(extra)).toBe(1);
+        // When every response is refused, the batch goes back for the repair turn.
+        const none = check(
+          [option(extra), option({ ...extra, title: "Second response" })],
+          "refuse",
+        );
+        expect(none.ok, JSON.stringify(extra)).toBe(false);
       }
+    });
+
+    it("on the repaired turn leaves out an id the task cannot use and keeps the response marked", () => {
+      const unusable = {
+        evidenceIds: ["ev_test_not_available"],
+        hypothesisIds: ["hyp_test_contra"],
+      };
+      const result = check([option(unusable), OTHER], "mark");
+      expect(result.issues).toEqual([]);
+      expect(result.ok && result.value[0]?.item.evidenceIds).toEqual([]);
+      expect(result.ok && result.value[0]?.item.hypothesisIds).toEqual([]);
+      expect(
+        result.ok && result.value.map((a) => [a.evidence.length, a.hypotheses.length, a.noSource]),
+      ).toEqual([
+        [0, 0, true],
+        [1, 1, false],
+      ]);
+      expect(result.ok && result.value[0]?.dropped).toEqual([
+        "ev_test_not_available",
+        "hyp_test_contra",
+      ]);
+    });
+
+    it("on the repaired turn keeps the usable ids beside the left-out ones, and marks it only when no Evidence is left", () => {
+      const mixed = { evidenceIds: ["ev_test_need", "ev_test_not_available"] };
+      const result = check([option(mixed), OTHER], "mark");
+      expect(result.issues).toEqual([]);
+      expect(result.ok && result.value[0]?.item.evidenceIds).toEqual(["ev_test_need"]);
+      expect(result.ok && result.value[0]?.noSource).toBe(false);
+      expect(result.ok && result.value[0]?.dropped).toEqual(["ev_test_not_available"]);
     });
   });
 
@@ -466,6 +513,30 @@ describe("intervention_feasibility task", () => {
       // The host's own deferral cites the field requirement and is never marked.
       const deferral = interventionsOf(commit).find((r) => /^Defer/.test(r.title));
       expect(deferral?.provenance.limitations).not.toContain(NO_SOURCE_NOTE);
+    });
+
+    it("keeps the responses when the repaired answer still cites records the task cannot use (the founder instance smoke 2)", async () => {
+      const unusable = (title: string) =>
+        option({ title, evidenceIds: ["ev_01M67YYTDZ1FNW68J4J9CXCPPM"], hypothesisIds: [] });
+      const { loop, commit } = await runWith([
+        [unusable("Unusable A"), unusable("Unusable B")],
+        [unusable("Unusable A"), unusable("Unusable B")],
+      ]);
+      expect(loop.status).toBe("accepted");
+      const rows = interventionsOf(commit).filter((r) => !/^Defer/.test(r.title));
+      expect(rows.map((r) => r.title)).toEqual(["Unusable A", "Unusable B"]);
+      for (const r of rows) {
+        expect(r.evidenceIds).toEqual([]);
+        expect(r.provenance.limitations).toContain(NO_SOURCE_NOTE);
+        expect(r.provenance.limitations).toContain(LEFT_OUT_NOTE);
+      }
+    });
+
+    it("the first answer that cites an unusable record is still sent back, not kept", async () => {
+      const unusable = (title: string) =>
+        option({ title, evidenceIds: ["ev_01M67YYTDZ1FNW68J4J9CXCPPM"], hypothesisIds: [] });
+      const { loop } = await runWith([[unusable("Unusable A"), unusable("Unusable B")]]);
+      expect(loop.status).not.toBe("accepted");
     });
 
     it("is not accepted at once: with one turn of answers it is repaired, not marked", async () => {
