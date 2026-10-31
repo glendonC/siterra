@@ -659,6 +659,92 @@ describe("runCommand on synthetic replays", () => {
     }
   });
 
+  it("a resumed command hands the package the merge its finished branch task committed before the crash", async () => {
+    const merge = {
+      recordType: "BranchMerge" as const,
+      id: "merge_test_resumed",
+      revision: 1,
+      createdAt: AT.toISOString(),
+      updatedAt: AT.toISOString(),
+      caseId: PLAN_TASK.caseId,
+      commandId: PLAN_TASK.commandId,
+      taskId: "task_test_branches",
+      rulesVersion: "merge@2",
+      predictionsCaseRevision: 3,
+      branches: [
+        {
+          branchId: "branch_test_rain",
+          branchRevision: 1,
+          explanationId: "rainfall",
+          status: "consistent" as const,
+          reason: "Every necessary prediction was met.",
+        },
+      ],
+      conflicts: [],
+      fieldPlan: {
+        measurements: [
+          {
+            fieldCheckId: "grazing_exclosure",
+            label: "Grazing Exclosure",
+            separates: [["grazing", "rainfall"]] as [string, string][],
+            onlySeparates: [["grazing", "rainfall"]] as [string, string][],
+          },
+        ],
+        unseparated: [],
+      },
+      provenance: {
+        sourceLocators: [],
+        dataBundleIds: [],
+        methodId: null,
+        methodVersion: null,
+        inputVersions: [],
+        generatedByTaskId: "task_test_branches",
+        generatedAt: AT.toISOString(),
+        verificationStatus: "computed_checked" as const,
+        limitations: [],
+      },
+    };
+    const finished: TaskRecord = {
+      ...PLAN_TASK,
+      id: "task_test_branches",
+      kind: "explanation_branches",
+      status: "succeeded",
+      outputEntityIds: [merge.id],
+      allowedTools: ["propose_predictions"],
+    };
+    const waiting: TaskRecord = {
+      ...PLAN_TASK,
+      id: "task_test_package",
+      kind: "brief_package",
+      status: "queued",
+      dependsOnTaskIds: [finished.id],
+      allowedTools: ["read_case", "propose_package", "request_review", "propose_layout"],
+    };
+    const seen: string[][] = [];
+    const spy: TaskExecutor = (input, taskDeps) => {
+      seen.push((taskDeps.committedBranchMerges ?? []).map((m) => m.id));
+      return EXECUTORS.brief_package
+        ? EXECUTORS.brief_package(input, taskDeps)
+        : Promise.reject(new Error("no brief executor"));
+    };
+    const store = addBranchRecord(testStore());
+    store.branchMerges.push(merge);
+    const { deps: d } = deps(routes([], []), {
+      store,
+      executors: { ...EXECUTORS, brief_package: spy },
+    });
+    await runCommand(
+      {
+        planTask: { ...PLAN_TASK, status: "succeeded" },
+        expectedCaseRevision: 3,
+        snapshot: SNAPSHOT,
+        resume: { tasks: [finished, waiting], attempt: 2, spentMicroUsd: 0 },
+      },
+      d,
+    );
+    expect(seen).toEqual([["merge_test_resumed"]]);
+  });
+
   it("RL-02 the brief package still runs after a quantitative task fails, with the failed task named", async () => {
     const plan = {
       interpretation: "The command asks for a field-scoping package for the valley.",

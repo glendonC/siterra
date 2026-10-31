@@ -267,4 +267,67 @@ describe("search_occurrences", () => {
     const tools = caseToolRegistry(storeWith(set()), CASE_ID).forTask(["search_occurrences"]);
     expect(tools.map((t) => t.name)).toEqual(["search_occurrences"]);
   });
+
+  it("ignores an occurrence set whose bundle is not a species_occurrences bundle, even when validated", async () => {
+    const store = storeWith(set());
+    store.bundles.length = 0;
+    store.bundles.push(
+      bundle({ id: "bundle_test_species", revision: 1, methodId: "season_summary", periodIds: [] }),
+    );
+    await expect(search(store, { query: "thymus", group: null, limit: 5 })).rejects.toMatchObject({
+      code: "no_occurrences",
+    });
+  });
+
+  it("gives the note only when no set matched: one set with a match and one without leaves it out", async () => {
+    const second = set({ bundleId: "bundle_test_species_two", bundleRevision: 1 });
+    second.columns.taxon = second.columns.taxon.map(() => 1);
+    const store = storeWith(set(), second);
+    store.bundles.push(
+      bundle({
+        id: "bundle_test_species_two",
+        revision: 1,
+        methodId: "species_occurrences",
+        periodIds: [],
+      }),
+    );
+    const out = (await search(store, { query: "thymus", group: null, limit: 5 })).output as Out;
+    expect(out.results.map((r) => [r.bundleId, r.matchedRecords])).toEqual([
+      ["bundle_test_species", 2],
+      ["bundle_test_species_two", 0],
+    ]);
+    expect(out.note).toBeNull();
+  });
+
+  it("lists the twenty taxa with the most records and counts every matching record", async () => {
+    const many = set();
+    many.tables.taxa = Array.from({ length: 25 }, (_, i) => ({
+      scientific_name: `Genus sp${String(i).padStart(2, "0")}`,
+      species: `Genus sp${String(i).padStart(2, "0")}`,
+      kingdom: "Plantae",
+      class: "C",
+      order: "O",
+      family: "F",
+    }));
+    many.columns = {
+      gbif_id: Array.from({ length: 25 }, (_, i) => 100 + i),
+      taxon: Array.from({ length: 25 }, (_, i) => i),
+      year: Array.from({ length: 25 }, () => 2020),
+      event_date: Array.from({ length: 25 }, () => "2020-01-01"),
+      basis_of_record: Array.from({ length: 25 }, () => 0),
+      lat: Array.from({ length: 25 }, () => 31),
+      lon: Array.from({ length: 25 }, () => -6),
+      uncertainty_m: Array.from({ length: 25 }, () => null),
+      dataset: Array.from({ length: 25 }, () => 0),
+      license: Array.from({ length: 25 }, () => 0),
+    };
+    const out = (await search(storeWith(many), { query: "genus", group: null, limit: 25 }))
+      .output as Out;
+    expect(out.results[0]?.matchedRecords).toBe(25);
+    expect(out.results[0]?.taxa).toHaveLength(20);
+    expect(out.results[0]?.taxa.map((t) => t.scientificName)).toEqual(
+      Array.from({ length: 20 }, (_, i) => `Genus sp${String(i).padStart(2, "0")}`),
+    );
+    expect(out.results[0]?.records).toHaveLength(25);
+  });
 });

@@ -1051,6 +1051,76 @@ describe("brief_package task: the plan tied to the land", () => {
     expect(action.fieldPlan?.measurements[0]?.stratumKeys).toEqual(["elevation_high"]);
   });
 
+  it("reads the field checks of the latest merge when the command holds two", async () => {
+    const older: BranchMergeRecord = {
+      ...MERGE,
+      id: "merge_test_old",
+      createdAt: "2026-10-27T19:00:00.000Z",
+      fieldPlan: {
+        measurements: [
+          {
+            fieldCheckId: "old_check",
+            label: "Old Check",
+            separates: [["grazing", "rainfall"]],
+            onlySeparates: [["grazing", "rainfall"]],
+          },
+        ],
+        unseparated: [],
+      },
+    };
+    for (const merges of [
+      [older, MERGE],
+      [MERGE, older],
+    ]) {
+      const sent: string[] = [];
+      const { loop, commit } = await run(tiedStore(), tied(), [REST], [], [], {
+        committedBranchMerges: merges,
+        sentTexts: sent,
+      });
+      expect(loop.status).toBe("accepted");
+      expect(checkOf(commit)).toBe("grazing_exclosure");
+      expect(sent.join("")).not.toContain("old_check");
+    }
+  });
+
+  it("binds the first of two validated strata bundles by ID, whatever their order", async () => {
+    for (const order of [
+      ["a", "b"],
+      ["b", "a"],
+    ]) {
+      const store = tiedStore();
+      store.bundles.length = 0;
+      for (const k of order) {
+        store.bundles.push(
+          bundle({
+            id: `bundle_test_strata_${k}`,
+            methodId: "terrain_strata",
+            methodVersion: "1.1.0",
+          }),
+        );
+      }
+      const { commit } = await run(store, tied(), [REST], [], [], {
+        committedBranchMerges: [MERGE],
+      });
+      const [action] = commit.upserts.filter((r) => r.recordType === "OperationalAction");
+      if (action?.recordType !== "OperationalAction") throw new Error("no action");
+      expect(action.fieldPlan?.strata[0]?.dataBundleId).toBe("bundle_test_strata_a");
+    }
+  });
+
+  it("leaves the plan's own stratum keys and no bundle when the configuration lists no strata for the case", async () => {
+    const store = tiedStore();
+    const config = store.analysisConfigs.get(CASE_ID);
+    if (!config) throw new Error("no configuration");
+    const { trendSummary: _dropped, ...withoutTrend } = config;
+    store.analysisConfigs.set(CASE_ID, withoutTrend);
+    const { loop, commit } = await run(store, proposal(), [REST]);
+    expect(loop.status).toBe("accepted");
+    const [action] = commit.upserts.filter((r) => r.recordType === "OperationalAction");
+    if (action?.recordType !== "OperationalAction") throw new Error("no action");
+    expect(action.fieldPlan?.strata[0]).toMatchObject({ key: "upper_band", dataBundleId: null });
+  });
+
   it("ties the plan only to a validated strata bundle: a failed or superseded one binds nothing", async () => {
     for (const status of ["failed", "superseded", "processing"] as const) {
       const store = tiedStore();
