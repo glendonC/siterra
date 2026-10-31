@@ -1,7 +1,7 @@
-/* A question at work on the overview (U29, specimen R), in the tokens of app/obsidian.css (no colour literal here).
-   Design px (the hud). The arc is the run's clock with its lanes; words only for what runs now and what the run
-   settled (decision 16): the question beside the ask disc, two running tasks at most, the explanations at the right,
-   the proposed check in amber on its leader to the catchment, a recording's note at the top right edge. */
+/* A question at work on the overview (U29, specimen R, upgraded for Section 8 AI View), in the tokens of
+   app/obsidian.css (no colour literal here). Design px (the hud). The arc is the run's clock with its lanes; the
+   Agent Tree sits at the left edge; Agent Cursors sit on the land strata and sources; and the Steps card opens at
+   the right when following one agent. */
 
 .atWork {
   position: absolute;
@@ -21,6 +21,14 @@
 .tick {
   stroke: var(--ov-ink-3);
   stroke-width: 1;
+}
+
+.laneGroup {
+  transition: opacity 220ms var(--ease-out);
+}
+
+.laneGroup[data-dimmed] {
+  opacity: 0.22;
 }
 
 .lane {
@@ -61,30 +69,504 @@
   stroke-width: 1.5;
 }
 
-.taskCard {
+/* Section 8: Agent Tree (frameless D4 typographic hierarchy at the left edge) */
+.agentTree {
   position: absolute;
-  transform: translate(0, -50%);
-  white-space: nowrap;
+  left: 40px;
+  top: 108px;
+  width: 236px;
+  padding: 0;
+  border: none;
+  background: transparent;
   text-shadow: var(--ov-halo-dark);
+  pointer-events: auto;
+  animation: deal 300ms cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
 }
 
-.taskCard[data-side="left"] {
-  transform: translate(-100%, -50%);
-  text-align: right;
+.treeHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-bottom: 6px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--hairline-quiet);
 }
 
-.taskName {
-  display: block;
-  font-size: 15px;
-  line-height: 20px;
+.treeTitle {
+  color: var(--ov-ink-3);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
-.taskLine {
-  display: block;
-  font-family: var(--font-mono);
-  font-size: 12px;
-  line-height: 16px;
+.treeToggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 26px;
+  padding: 0 11px;
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  background: var(--bg-overlay);
   color: var(--ov-ink-2);
+  font: inherit;
+  font-size: 11px;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.treeToggle:hover,
+.treeToggle:focus-visible {
+  border-color: var(--ov-focus);
+  color: var(--ov-bright);
+  outline: none;
+}
+
+.treeSummary {
+  margin: 6px 0 0;
+  color: var(--ov-ink-2);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.treeList {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.treeNode {
+  transition: opacity 180ms var(--ease-out);
+}
+
+.treeNode[data-dimmed] {
+  opacity: 0.34;
+}
+
+.treeNodeBtn {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  width: 100%;
+  min-height: 28px;
+  padding: 3px 6px;
+  border: none;
+  border-left: 2px solid transparent;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.treeNode[data-selected] .treeNodeBtn {
+  border-left-color: var(--ov-amber-tag);
+}
+
+.treeNodeBtn:hover,
+.treeNodeBtn:focus-visible {
+  border-left-color: var(--ov-focus);
+  outline: none;
+}
+
+.treeDot {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  margin-top: 5px;
+  border-radius: 999px;
+  background: var(--ov-ink-3);
+}
+
+.treeDot[data-state="running"] {
+  background: var(--ov-amber-tag);
+}
+
+.treeDot[data-state="succeeded"] {
+  background: var(--ov-green);
+}
+
+.treeDot[data-state="partial"],
+.treeDot[data-state="failed"],
+.treeDot[data-state="review"] {
+  background: var(--ov-amber-tag);
+}
+
+.treeNodeBody {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  flex: 1;
+}
+
+.treeNodeTop {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.treeNodeName {
+  color: var(--ov-bright);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.treeNodeState {
+  flex: none;
+  color: var(--ov-ink-3);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  line-height: 1.15;
+}
+
+.treeNodeState[data-state="running"] {
+  color: var(--ov-amber-tag);
+}
+
+.treeNodeState[data-state="succeeded"] {
+  color: var(--ov-ink-2);
+}
+
+.treeNodeMeta {
+  color: var(--ov-ink-3);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
+}
+
+.treeReviewRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 4px;
+  padding: 6px 6px 2px;
+  border-top: 1px solid var(--hairline-quiet);
+}
+
+.treeReviewLabel {
+  flex: 1;
+  color: var(--ov-bright);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.needsYouPill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 24px;
+  padding: 0 10px;
+  border: 1px solid var(--ov-amber-tag);
+  border-radius: 999px;
+  color: var(--ov-amber-tag);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.treeFoot {
+  display: flex;
+  align-items: center;
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid var(--hairline-quiet);
+}
+
+.followBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 26px;
+  padding: 0 12px;
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  background: var(--bg-overlay);
+  color: var(--ov-ink-2);
+  font: inherit;
+  font-size: 11px;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.followBtn:hover,
+.followBtn:focus-visible {
+  border-color: var(--ov-focus);
+  color: var(--ov-bright);
+  outline: none;
+}
+
+/* Section 8: Agent Cursors on the Land / Sources */
+.agentCursor {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  transform: translate(-5px, -50%);
+  pointer-events: auto;
+  cursor: pointer;
+  transition: opacity 200ms var(--ease-out);
+  animation: deal 260ms cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
+}
+
+.agentCursor[data-dimmed] {
+  opacity: 0.22;
+}
+
+.cursorPin {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border: 1.5px solid var(--bg-overlay);
+  border-radius: 999px;
+  background: var(--ov-amber-tag);
+}
+
+.cursorPin[data-target-kind="land"],
+.cursorPin[data-target-kind="bundle"] {
+  background: var(--ov-green);
+}
+
+.cursorFlag {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  max-width: 224px;
+  padding: 5px 10px;
+  border: 1px solid var(--hairline);
+  border-radius: 6px;
+  background: var(--bg-overlay);
+  backdrop-filter: blur(10px);
+  text-align: left;
+}
+
+.agentCursor[data-selected] .cursorFlag,
+.agentCursor:hover .cursorFlag,
+.agentCursor:focus-visible .cursorFlag {
+  border-color: var(--ov-focus);
+}
+
+.cursorTask {
+  color: var(--ov-ink-3);
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 1.15;
+}
+
+.cursorLabel {
+  color: var(--ov-bright);
+  font-size: 11px;
+  line-height: 1.25;
+}
+
+/* Section 8: Per-agent Steps / Thinking State (frameless D4 typographic hierarchy at the right) */
+.thinkingCard {
+  position: absolute;
+  right: 40px;
+  top: 140px;
+  width: 280px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  text-shadow: var(--ov-halo-dark);
+  pointer-events: auto;
+  animation: deal 260ms cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
+}
+
+.thinkingHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--hairline-quiet);
+}
+
+.thinkingKicker {
+  color: var(--ov-ink-3);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.thinkingHeaderRight {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.thinkingBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 26px;
+  padding: 0 11px;
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  background: var(--bg-overlay);
+  color: var(--ov-amber-tag);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.thinkingBadge[data-state="done"] {
+  color: var(--ov-green);
+}
+
+.thinkingClose {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 26px;
+  padding: 0 11px;
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  background: var(--bg-overlay);
+  color: var(--ov-ink-2);
+  font: inherit;
+  font-size: 11px;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.thinkingClose:hover,
+.thinkingClose:focus-visible {
+  border-color: var(--ov-focus);
+  color: var(--ov-bright);
+  outline: none;
+}
+
+.thinkingTitle {
+  margin: 8px 0 0;
+  color: var(--ov-bright);
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.25;
+}
+
+.thinkingMeta {
+  margin: 2px 0 0;
+  color: var(--ov-ink-2);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.thinkingBlock {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--hairline-quiet);
+}
+
+.thinkingSublabel {
+  margin: 0 0 6px;
+  color: var(--ov-ink-3);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.chipList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 10px;
+  border: 1px solid var(--hairline-quiet);
+  border-radius: 999px;
+  background: var(--bg-overlay);
+  color: var(--ov-ink-2);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  line-height: 1;
+}
+
+.stepList {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.stepRow {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 12px;
+  line-height: 1.3;
+}
+
+.stepDot {
+  flex: none;
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--ov-ink-3);
+}
+
+.stepDot[data-status="running"] {
+  background: var(--ov-amber-tag);
+}
+
+.stepDot[data-status="succeeded"] {
+  background: var(--ov-green);
+}
+
+.stepDot[data-status="failed"] {
+  background: var(--ov-amber-tag);
+}
+
+.stepLabel {
+  flex: 1;
+  color: var(--ov-ink);
+}
+
+.stepTime {
+  flex: none;
+  color: var(--ov-ink-3);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-variant-numeric: tabular-nums;
 }
 
 /* the question beside the ask disc, set to its left like the specimen */
@@ -236,6 +718,9 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .agentTree,
+  .agentCursor,
+  .thinkingCard,
   .branch,
   .check {
     animation: none;

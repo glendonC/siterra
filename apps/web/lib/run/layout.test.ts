@@ -14,6 +14,11 @@ const task = (id: string, start: number, end: number | null): RunTask => ({
   queuedMs: start,
   startMs: start,
   endMs: end,
+  costMicroUsd: null,
+  steps: [],
+  searchedChips: [],
+  activeTarget: null,
+  activeLabel: null,
 });
 
 describe("the run's place on the arc (U29)", () => {

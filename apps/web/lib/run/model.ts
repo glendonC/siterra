@@ -3,12 +3,32 @@
 // records or the event log through the app's own rules (task names, model names, verification words); nothing is
 // computed for show. Events the page has not been given yet do not exist here, so a paced replay unfolds in order.
 
-import type { CaseSnapshot, Event } from "@siterra/contracts";
+import {
+  resolveToolCallTarget,
+  type CaseSnapshot,
+  type Event,
+  type ToolCallInfo,
+  type ToolCallTarget,
+} from "@siterra/contracts";
 import { modelName } from "../activity/activity";
-import type { MessageId } from "../copy/en";
-import { commandFindings, commandMerge, sourceKey, verificationOf } from "../overview/results";
+import { en, format, type MessageId } from "../copy/en";
+import {
+  commandFindings,
+  commandMerge,
+  shortCitation,
+  sourceKey,
+  verificationOf,
+} from "../overview/results";
 
 export type RunTaskState = "queued" | "running" | "succeeded" | "partial" | "failed" | "cancelled";
+
+export interface RunTaskStep {
+  id: string;
+  ms: number;
+  status: "running" | "succeeded" | "failed";
+  label: string;
+  target: ToolCallTarget | null;
+}
 
 export interface RunTask {
   id: string;
@@ -25,6 +45,16 @@ export interface RunTask {
   queuedMs: number;
   startMs: number | null;
   endMs: number | null;
+  /** Stored usage cost in micro-USD when present; null when no positive cost is stored. */
+  costMicroUsd: number | null;
+  /** Ordered steps from the task's own events so far. */
+  steps: RunTaskStep[];
+  /** Distinct human-readable source citations or dataset names touched by the task's tool calls so far. */
+  searchedChips: string[];
+  /** Target of the task's active or latest tool call while running (null before any tool call or after completion). */
+  activeTarget: ToolCallTarget | null;
+  /** Plain-language activity line for the task's active cursor while running. */
+  activeLabel: string | null;
 }
 
 export type Landing = "land" | "source" | "unchecked";
@@ -72,6 +102,10 @@ export interface RunModel {
   } | null;
   /** The field plan's proposed checks, once the merge carries one. */
   checks: { label: string; ms: number }[];
+  /** Total stored cost in micro-USD across tasks when present; null when no positive cost is stored. */
+  totalCostMicroUsd: number | null;
+  /** True when the run has completed and has a plan or field checks awaiting human review. */
+  needsReview: boolean;
 }
 
 const END: Partial<Record<Event["kind"], RunTaskState>> = {
@@ -80,6 +114,129 @@ const END: Partial<Record<Event["kind"], RunTaskState>> = {
   "task.failed": "failed",
   "task.cancelled": "cancelled",
 };
+
+const STRATUM_KEY: Record<string, MessageId> = {
+  valley_floor: "run.stratum.valley_floor",
+  mid_slope: "run.stratum.mid_slope",
+  upper_basin: "run.stratum.upper_basin",
+  water_zone: "run.stratum.water_zone",
+  catchment: "run.stratum.catchment",
+};
+
+function stratumLabel(stratumId: string | null): string {
+  const key = stratumId ? STRATUM_KEY[stratumId] : undefined;
+  return en[key ?? "run.stratum.catchment"].text;
+}
+
+function citeSource(snapshot: CaseSnapshot, sourceId: string): string {
+  const src = snapshot.records.sourceRecords.find((s) => s.id === sourceId);
+  return src ? shortCitation(src) : en["results.unknownSource"].text;
+}
+
+function bundleChip(snapshot: CaseSnapshot, bundleId: string): string {
+  const rec = snapshot.records.dataBundleRecords.find((b) => b.id === bundleId);
+  if (rec?.label) return rec.label;
+  if (bundleId.includes("s2_ndvi")) return en["source.sentinel"].text;
+  if (bundleId.includes("chirps")) return en["source.chirps"].text;
+  if (bundleId.includes("ndvi_departure") || bundleId.includes("modis"))
+    return en["source.modis"].text;
+  if (bundleId.includes("worldcover")) return en["source.worldcover"].text;
+  if (bundleId.includes("dem")) return en["source.dem"].text;
+  return en["results.unknownBundle"].text;
+}
+
+function refineTarget(tool: ToolCallInfo, taskQuestion: string): ToolCallTarget {
+  const base = resolveToolCallTarget(tool) ?? {
+    kind: "case" as const,
+    stratumId: null,
+    bundleId: null,
+    recipeId: null,
+    sourceId: null,
+    pages: [],
+    sections: [],
+    queryTerms: [],
+  };
+  if (
+    (base.kind === "land" || base.kind === "bundle") &&
+    base.stratumId === "catchment" &&
+    base.bundleId?.includes("ndvi_departure") &&
+    /valley[_ ]floor/i.test(taskQuestion)
+  ) {
+    return { ...base, kind: "land", stratumId: "valley_floor" };
+  }
+  return base;
+}
+
+function toolStepLabel(snapshot: CaseSnapshot, tool: ToolCallInfo, target: ToolCallTarget): string {
+  if (tool.name === "read_source") {
+    const source = target.sourceId
+      ? citeSource(snapshot, target.sourceId)
+      : en["results.unknownSource"].text;
+    if (target.pages.length > 0) {
+      return format("run.step.readSourcePage", { source, page: target.pages[0] ?? 1 });
+    }
+    return format("run.step.readSource", { source });
+  }
+  if (tool.name === "search_sources") {
+    if (target.queryTerms.length > 0) {
+      return format("run.step.searchSourcesTerms", {
+        terms: target.queryTerms.slice(0, 3).join(", "),
+      });
+    }
+    return en["run.step.searchSources"].text;
+  }
+  if (tool.name === "compare_series") {
+    return en["run.step.compareSeries"].text;
+  }
+  if (tool.name === "read_recipe_result" || tool.name === "list_recipes") {
+    if (target.stratumId && target.stratumId !== "catchment") {
+      return format("run.step.readStratum", { stratum: stratumLabel(target.stratumId) });
+    }
+    return en["run.step.checkRecipe"].text;
+  }
+  if (tool.name === "summarize_observations" || tool.name === "read_dataset_manifest") {
+    if (target.stratumId && target.stratumId !== "catchment") {
+      return format("run.step.readStratum", { stratum: stratumLabel(target.stratumId) });
+    }
+    if (target.bundleId?.includes("chirps")) return en["run.step.readRainfall"].text;
+    if (target.bundleId?.includes("ndvi")) return en["run.step.readGreenness"].text;
+    return en["run.step.readCatchment"].text;
+  }
+  if (tool.name === "search_occurrences") {
+    return en["run.step.searchOccurrences"].text;
+  }
+  if (tool.name === "read_case") {
+    return en["run.step.readCase"].text;
+  }
+  return en["run.step.propose"].text;
+}
+
+function recordStep(
+  steps: RunTaskStep[],
+  ms: number,
+  status: RunTaskStep["status"],
+  label: string,
+  target: ToolCallTarget | null,
+): void {
+  const existing = steps.find((s) => s.label === label);
+  if (existing) {
+    existing.ms = ms;
+    if (existing.status !== "failed") existing.status = status;
+    if (target) existing.target = target;
+    return;
+  }
+  steps.push({
+    id: `step-${String(steps.length + 1)}`,
+    ms,
+    status,
+    label,
+    target,
+  });
+}
+
+function addChip(chips: string[], chip: string): void {
+  if (chip && !chips.includes(chip)) chips.push(chip);
+}
 
 /** The run of `commandId` from the events given so far and the case's records. */
 export function runModel(
@@ -96,11 +253,13 @@ export function runModel(
   for (const e of own) for (const id of e.entityIds) if (!seen.has(id)) seen.set(id, ms(e));
 
   const tasks = new Map<string, RunTask>();
+  const taskQuestions = new Map<string, string>();
   const task = (e: Event): RunTask | null => {
     if (!e.taskId) return null;
     let t = tasks.get(e.taskId);
     if (!t) {
       const rec = snapshot.records.taskRecords.find((x) => x.id === e.taskId);
+      taskQuestions.set(e.taskId, rec?.question ?? "");
       t = {
         id: e.taskId,
         kind: rec?.kind ?? "plan",
@@ -113,6 +272,11 @@ export function runModel(
         queuedMs: ms(e),
         startMs: null,
         endMs: null,
+        costMicroUsd: null,
+        steps: [],
+        searchedChips: [],
+        activeTarget: null,
+        activeLabel: null,
       };
       tasks.set(e.taskId, t);
     }
@@ -131,6 +295,22 @@ export function runModel(
         t.state = "running";
       }
     };
+    const question = taskQuestions.get(t.id) ?? "";
+    const collectTool = (tool: ToolCallInfo, stepStatus: RunTaskStep["status"]) => {
+      const target = refineTarget(tool, question);
+      const label = toolStepLabel(snapshot, tool, target);
+      recordStep(t.steps, ms(e), stepStatus, label, target);
+      if (target.sourceId) addChip(t.searchedChips, citeSource(snapshot, target.sourceId));
+      for (const id of tool.resultEntityIds) {
+        if (id.startsWith("src_")) addChip(t.searchedChips, citeSource(snapshot, id));
+      }
+      if (target.bundleId) addChip(t.searchedChips, bundleChip(snapshot, target.bundleId));
+      for (const term of target.queryTerms) addChip(t.searchedChips, term);
+      if (target.kind === "land" || target.kind === "bundle" || target.kind === "source") {
+        t.activeTarget = target;
+        t.activeLabel = label;
+      }
+    };
     switch (e.kind) {
       case "task.started":
         start();
@@ -140,15 +320,50 @@ export function runModel(
         start();
         t.running += 1;
         if (e.usage) t.model = modelName(e.usage.model);
+        if (t.kind === "plan") {
+          recordStep(t.steps, ms(e), "running", en["run.step.plan"].text, null);
+        } else if (t.kind === "explanation_branches" && t.steps.length === 0) {
+          recordStep(t.steps, ms(e), "running", en["run.step.branches"].text, null);
+        }
         break;
       case "model.completed":
         t.running = Math.max(0, t.running - 1);
         t.calls += 1;
-        if (e.usage) t.model = modelName(e.usage.model);
+        if (e.usage) {
+          t.model = modelName(e.usage.model);
+          const c = e.usage.estimatedCostMicroUsd;
+          if (typeof c === "number" && c > 0) {
+            t.costMicroUsd = (t.costMicroUsd ?? 0) + c;
+          }
+        }
+        if (t.kind === "plan") {
+          recordStep(t.steps, ms(e), "succeeded", en["run.step.plan"].text, null);
+        } else if (t.kind === "explanation_branches") {
+          recordStep(t.steps, ms(e), "succeeded", en["run.step.branches"].text, null);
+        }
+        break;
+      case "tool.started":
+        start();
+        if (e.tool) collectTool(e.tool, "running");
         break;
       case "tool.completed":
         t.tools += 1;
-        if (e.tool && e.tool.status !== "succeeded") t.failedTools += 1;
+        if (e.tool) {
+          const ok = e.tool.status === "succeeded";
+          if (!ok) t.failedTools += 1;
+          collectTool(e.tool, ok ? "succeeded" : "failed");
+        }
+        break;
+      case "validation.completed":
+        if (e.validation) {
+          recordStep(
+            t.steps,
+            ms(e),
+            e.validation.outcome === "accepted" ? "succeeded" : "failed",
+            en["run.step.validated"].text,
+            null,
+          );
+        }
         break;
       default: {
         const end = END[e.kind];
@@ -157,6 +372,11 @@ export function runModel(
           t.state = end;
           t.endMs = ms(e);
           t.running = 0;
+          t.activeTarget = null;
+          t.activeLabel = null;
+          for (const s of t.steps) {
+            if (s.status === "running") s.status = end === "failed" ? "failed" : "succeeded";
+          }
         }
       }
     }
@@ -208,21 +428,42 @@ export function runModel(
   const counts = { contradicted: 0, consistent: 0, cannot_be_assessed: 0 };
   for (const b of scored?.branches ?? []) counts[b.status] += 1;
 
+  const taskList = [...tasks.values()];
+  let totalCost = 0;
+  let hasCost = false;
+  for (const t of taskList) {
+    if (t.costMicroUsd !== null && t.costMicroUsd > 0) {
+      totalCost += t.costMicroUsd;
+      hasCost = true;
+    }
+  }
+  const done = own.some((e) => e.kind === "command.completed");
+  const checks =
+    scored && mergeMs !== undefined
+      ? (scored.fieldPlan?.measurements ?? []).map((m) => ({ label: m.label, ms: mergeMs }))
+      : [];
+  const needsReview =
+    done &&
+    (checks.length > 0 ||
+      snapshot.records.briefRecords.length > 0 ||
+      snapshot.records.taskRecords.some(
+        (tr) => tr.commandId === commandId && tr.status === "awaiting_review",
+      ));
+
   const last = own.at(-1);
   return {
     commandId,
     acceptedAt: accepted?.occurredAt ?? null,
     nowMs: last ? ms(last) : 0,
-    done: own.some((e) => e.kind === "command.completed"),
+    done,
     replay,
     sourceKnown,
-    tasks: [...tasks.values()],
+    tasks: taskList,
     findings,
     branches,
     merge: scored && mergeMs !== undefined ? { ms: mergeMs, counts } : null,
-    checks:
-      scored && mergeMs !== undefined
-        ? (scored.fieldPlan?.measurements ?? []).map((m) => ({ label: m.label, ms: mergeMs }))
-        : [],
+    checks,
+    totalCostMicroUsd: hasCost ? totalCost : null,
+    needsReview,
   };
 }
