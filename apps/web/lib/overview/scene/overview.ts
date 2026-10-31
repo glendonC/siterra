@@ -245,10 +245,16 @@ export interface OverviewLayout {
   anchor: Point | null;
   /** What the opened finding's card must not cover: the whole land, the band's place, or the pixel's footprint. */
   subject: { x0: number; y0: number; x1: number; y1: number };
-  /** The pixel and its risen cells on screen while it is opened (U27), for its cards' leaders; null otherwise. */
+  /** The pixel and its risen cells on screen while it is opened (U27), for the checks that no card covers it. */
   pixelBox: { x0: number; y0: number; x1: number; y1: number } | null;
   /** Each package field check's band's mean place on the land, where its marker stands (UI-2); empty otherwise. */
   stands: ({ at: Point; behind: boolean } | null)[];
+  /**
+   * While the pixel is opened, where its cards' leaders end (U28c): its place on the land (the footprint's outline) and
+   * its risen cells (the same outline lifted); null otherwise.
+   */
+  pixelPlace: Point[] | null;
+  pixelCells: Point[] | null;
 }
 
 export interface Gaps {
@@ -1227,6 +1233,11 @@ export function mountOverview(
           ? bbox(pixelPts.flatMap((p) => [project(p), project([p[0], p[1] + CELL_RISE, p[2]])]))
           : null,
       stands: standsOf(state),
+      pixelPlace: (state.split ?? 0) > 0.5 && pixelPts.length ? pixelPts.map(project) : null,
+      pixelCells:
+        (state.split ?? 0) > 0.5 && pixelPts.length
+          ? pixelPts.map((p) => project([p[0], p[1] + CELL_RISE, p[2]]))
+          : null,
     };
     for (const l of listeners) l(layout);
   });

@@ -53,6 +53,7 @@ import {
   type OverviewLayout,
   type LiftId,
   type OverviewScene,
+  type Point,
   type Selection,
 } from "../../lib/overview/scene/overview";
 import { catchmentAreaKm2 } from "../../lib/overview/record";
@@ -1787,6 +1788,19 @@ function OverviewReady({
                   y0: h.top + b.y0 * k,
                   x1: h.left + b.x1 * k,
                   y1: h.top + b.y1 * k,
+                };
+              },
+              // where each card's leader ends (U28c): the pixel's place, its risen cells, the field check's point
+              anchors: () => {
+                const L = lastLayout.current;
+                const h = hudRef.current?.getBoundingClientRect();
+                if (!L?.pixelPlace || !L.pixelCells || !h) return null;
+                const k = L.fit.scale;
+                const at = (p: Point): [number, number] => [h.left + p.x * k, h.top + p.y * k];
+                return {
+                  place: L.pixelPlace.map(at),
+                  cells: L.pixelCells.map(at),
+                  field: L.field ? [at(L.field)] : L.pixelPlace.map(at),
                 };
               },
             }}

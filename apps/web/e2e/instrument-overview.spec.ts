@@ -18,6 +18,47 @@ function writes(page: Page): string[] {
   return sent;
 }
 
+/** Each pixel leader that passes over a visible word, other than at its own card's edge (the lead's U28c). */
+const leadersOverText = (page: Page) =>
+  page.evaluate(() => {
+    const view = document.querySelector("[data-instrument='pixel']");
+    if (!view) return ["no view"];
+    const words: { r: DOMRect; card: string | null }[] = [];
+    const w = document.createTreeWalker(view, NodeFilter.SHOW_TEXT);
+    for (let n = w.nextNode(); n; n = w.nextNode()) {
+      const el = n.parentElement;
+      if (!el || !n.textContent?.trim()) continue;
+      const cs = getComputedStyle(el);
+      if (cs.visibility === "hidden" || el.closest("[style*='display: none']")) continue;
+      const r = document.createRange();
+      r.selectNodeContents(n);
+      const card = el.closest("[data-part]")?.getAttribute("data-part") ?? null;
+      for (const g of r.getClientRects())
+        if (g.width > 1 && g.height > 1) words.push({ r: g, card });
+    }
+    const hits: string[] = [];
+    for (const line of view.querySelectorAll<SVGLineElement>("[data-leaders] line")) {
+      const id = line.dataset.leader ?? "";
+      const m = line.getScreenCTM();
+      if (!m) continue;
+      const at = (x: number, y: number) => new DOMPoint(x, y).matrixTransform(m);
+      const a = at(line.x1.baseVal.value, line.y1.baseVal.value);
+      const b = at(line.x2.baseVal.value, line.y2.baseVal.value);
+      for (let i = 1; i < 60; i++) {
+        const x = a.x + ((b.x - a.x) * i) / 60;
+        const y = a.y + ((b.y - a.y) * i) / 60;
+        const hit = words.find(
+          (q) => q.card !== id && x > q.r.left && x < q.r.right && y > q.r.top && y < q.r.bottom,
+        );
+        if (hit) {
+          hits.push(`${id} over ${String(hit.card)}`);
+          break;
+        }
+      }
+    }
+    return hits;
+  });
+
 async function ready(page: Page) {
   await page.goto("/valley");
   // the land is drawn, measured and the words placed (the light bake takes about a second)
@@ -198,7 +239,10 @@ test("the pixel opens in place: its cards stand round its risen cells, 02 paints
     "05Linear Mix Model",
     "06Field Check",
   ]);
-  await expect(view.locator("[data-leaders] line")).toHaveCount(6, { timeout: 10_000 });
+  // at rest one leader, 02's to the risen cells; a waiting chip has none (U28c), and no leader crosses any words
+  await expect(view.locator("[data-leaders] line")).toHaveCount(1, { timeout: 10_000 });
+  await expect(view.locator("[data-leaders] line[data-leader='02']")).toHaveCount(1);
+  expect(await leadersOverText(page)).toEqual([]);
   // a chip opens its card beside the column, and closes it again
   const chip = view.locator("[data-chip='06']");
   await chip.click();
@@ -216,6 +260,12 @@ test("the pixel opens in place: its cards stand round its risen cells, 02 paints
     const c = view.locator(`[data-chip='${id}']`);
     await c.click();
     await expect(view.locator(`[data-card='${id}']`)).toBeVisible();
+    // its own leader, with 02's beside it when 02 keeps its slot (03 and 05 open on the right)
+    await expect(view.locator(`[data-leaders] line[data-leader='${id}']`)).toHaveCount(1);
+    await expect(view.locator("[data-leaders] line")).toHaveCount(
+      id === "03" || id === "05" ? 2 : 1,
+    );
+    expect(await leadersOverText(page), `${id}'s leaders`).toEqual([]);
     expect(await textReport(page, "[data-instrument='pixel']")).toEqual({
       overlaps: [],
       small: [],
