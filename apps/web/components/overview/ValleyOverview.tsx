@@ -1221,6 +1221,13 @@ function OverviewReady({
 
   const settled = useRef(onSettled);
   settled.current = onSettled;
+  const timeAtArrival = useRef(false);
+  // See It Over Time by its own address, on a case whose land is not drawn: the address says what is on screen
+  useEffect(() => {
+    if (!failed || timeAtArrival.current || window.location.pathname !== VIEW_HREF.time) return;
+    timeAtArrival.current = true;
+    window.history.replaceState(null, "", `/valley${window.location.search}`);
+  }, [failed]);
   useEffect(() => {
     if (failed) settled.current?.();
   }, [failed]);
@@ -1259,6 +1266,13 @@ function OverviewReady({
         root.dataset.askGap = (g.distanceAt(at.ask) - ASK_R).toFixed(1);
         root.dataset.ready = "";
         settled.current?.();
+        // See It Over Time by its own address (UI-2): once drawn, the land plays its seasons in place
+        if (!timeAtArrival.current && window.location.pathname === VIEW_HREF.time) {
+          timeAtArrival.current = true;
+          if (offeredRef.current.has("time") && !selRef.current) openRef.current(VIEW_HREF.time);
+          // a case that cannot play its seasons: the address says what is on screen, with no entry to come back to
+          else window.history.replaceState(null, "", `/valley${window.location.search}`);
+        }
       })
       .catch((e: unknown) => {
         console.error("Overview gaps not measured", e);
