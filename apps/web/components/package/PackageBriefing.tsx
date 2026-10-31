@@ -317,7 +317,11 @@ export function PackageBriefing({
                     <span className={styles.n}>{String.fromCharCode(65 + i)}</span>
                     <span>
                       {r.title}
-                      <Tags chips={r.chips} />
+                      {r.chips.length > 0 ? (
+                        <Tags chips={r.chips} />
+                      ) : (
+                        <span className={styles.noSource}>{t("steps.noSource")}</span>
+                      )}
                     </span>
                   </li>
                 ))}

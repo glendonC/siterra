@@ -199,7 +199,18 @@ class Chips {
 const uniq = (v: readonly string[]) => [...new Set(v.map((s) => s.trim()).filter(Boolean))];
 
 /** The package the Brief holds, with the records it names; undefined when the record holds no such Brief. */
-export function packageView(snapshot: CaseSnapshot, briefId: string): PackageView | undefined {
+/**
+ * Whether a measurement's link to the merge's field check is shown. Hidden for now: the record's fieldCheckId is
+ * checked only for membership in the merge, not for fit (AUDIT on Package live 2, 30 Oct), so the link could state a
+ * false tie. It is shown again once PLATFORM's fit rule (P9d) is merged (the lead, 20:47).
+ */
+export const FIELD_CHECK_LINKS_SHOWN = false;
+
+export function packageView(
+  snapshot: CaseSnapshot,
+  briefId: string,
+  { fieldCheckLinks = FIELD_CHECK_LINKS_SHOWN }: { fieldCheckLinks?: boolean } = {},
+): PackageView | undefined {
   const r: Records = snapshot.records;
   const brief = latest(r.briefRecords).find((b) => b.id === briefId);
   if (!brief) return undefined;
@@ -256,7 +267,7 @@ export function packageView(snapshot: CaseSnapshot, briefId: string): PackageVie
         return p ? [p] : [];
       }),
       fieldCheck:
-        m.fieldCheckId && checkLabel !== undefined
+        fieldCheckLinks && m.fieldCheckId && checkLabel !== undefined
           ? { id: m.fieldCheckId, label: checkLabel }
           : null,
       answers: m.resolvesGapIds.flatMap((id) => statement(id) ?? []),

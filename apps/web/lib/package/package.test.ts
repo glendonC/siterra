@@ -9,7 +9,7 @@ import {
   withSyntheticPackage,
   type RecordedRun,
 } from "./fixtures/synthetic";
-import { commandBrief, packageView, placesOnLand } from "./package";
+import { commandBrief, FIELD_CHECK_LINKS_SHOWN, packageView, placesOnLand } from "./package";
 
 // The recorded 28 Oct run (a test input) and the synthetic package written on it (fixtures/synthetic.ts).
 const run = (
@@ -118,8 +118,14 @@ describe("packageView", () => {
     expect(placesOnLand(view).map((p) => p.key)).toEqual(["elevation_high"]);
   });
 
-  it("names the field check each measurement's record names, with the merge's label", () => {
-    expect(view.measures.map((m) => m.fieldCheck)).toEqual([
+  it("hides the field check link until its fit is checked", () => {
+    expect(FIELD_CHECK_LINKS_SHOWN).toBe(false);
+    expect(view.measures.map((m) => m.fieldCheck)).toEqual([null, null]);
+  });
+
+  it("names the field check each measurement's record names, with the merge's label, when links are shown", () => {
+    const linked = packageView(now.snapshot, now.briefId, { fieldCheckLinks: true });
+    expect(linked?.measures.map((m) => m.fieldCheck)).toEqual([
       { id: "herd_records", label: "Herd Records" },
       { id: "orchard_history", label: "Orchard History" },
     ]);

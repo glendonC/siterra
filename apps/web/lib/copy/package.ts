@@ -199,6 +199,7 @@ export const pkg = {
   "steps.noneRanked": { text: "None is ranked or recommended.", kind: "ui", honesty: true },
   "steps.offLand": { text: "A kind of place, not drawn on the land.", kind: "ui", honesty: true },
   "steps.replay": { text: "Replayed, not a live run", kind: "label", honesty: true },
+  "steps.noSource": { text: "No source cited", kind: "label", honesty: true },
   "steps.nothingSent": { text: "Nothing sent or authorized.", kind: "label", honesty: true },
   "steps.counter": { text: "Steps of the briefing", kind: "ui" },
   // the controls and their keys

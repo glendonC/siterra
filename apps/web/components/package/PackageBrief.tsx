@@ -189,6 +189,9 @@ export function PackageBrief({ snapshot, briefId }: { snapshot: CaseSnapshot; br
                   <p className={styles.text}>
                     {r.description}
                     <Refs chips={r.chips} />
+                    {r.chips.length === 0 ? (
+                      <span className={styles.sub}>{pkg["steps.noSource"].text}</span>
+                    ) : null}
                   </p>
                   <dl className={styles.pairs}>
                     {(
