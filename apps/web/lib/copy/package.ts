@@ -82,7 +82,8 @@ export const pkg = {
   "package.how": { text: "How", kind: "label" },
   "package.who": { text: "Who", kind: "label" },
   "package.answers": { text: "Answers", kind: "label" },
-  "package.fieldCheck": { text: "Serves the field check: {label}", kind: "label" },
+  // a link that passed PLATFORM's fit rule (P9d): the measurement and the check share at least one explanation pair
+  "package.fieldCheck": { text: "Shares a question with the field check: {label}", kind: "label" },
   "package.place.text": {
     text: "A kind of place, not drawn on the land",
     kind: "label",
@@ -195,7 +196,6 @@ export const pkg = {
   "steps.begin": { text: "Begin", kind: "button" },
   "steps.next": { text: "Next", kind: "button" },
   "steps.previous": { text: "Previous", kind: "button" },
-  "steps.settles": { text: "Serves the field check: {label}", kind: "label" },
   "steps.noneRanked": { text: "None is ranked or recommended.", kind: "ui", honesty: true },
   "steps.offLand": { text: "A kind of place, not drawn on the land.", kind: "ui", honesty: true },
   "steps.replay": { text: "Replayed, not a live run", kind: "label", honesty: true },

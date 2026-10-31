@@ -20,6 +20,8 @@ test("the overview: breadcrumb, Esc one level at a time, R resets the view, S th
   });
   expect(await crumbs(page)).toEqual(["Siterra", "Aït Bouguemez valley"]);
   await expect(page.locator("[data-key-legend] [data-key]")).toHaveText([
+    // recorded life's key, where the case holds a species bundle (UI-2)
+    "GRecorded Life",
     "EscBack",
     "RReset View",
     "/Ask",

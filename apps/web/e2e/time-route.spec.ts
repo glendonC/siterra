@@ -90,3 +90,31 @@ test("reloading inside See It Over Time opens it again over the drawn land; Home
   await expect(view).toHaveCount(0, { timeout: 10_000 });
   await expect(page).toHaveURL(/\/valley$/);
 });
+
+test("a case whose land is drawn but holds no pixel seasons stays on its drawn overview, under the overview's address", async ({
+  page,
+}) => {
+  test.setTimeout(180_000);
+  // the case's own snapshot without its pixel seasons bundle: See It Over Time has nothing of the case's to play
+  await page.route("**/api/cases/*", async (route) => {
+    if (route.request().method() !== "GET") return route.fallback();
+    const res = await route.fetch();
+    if (!res.ok()) return route.fulfill({ response: res });
+    const snap = (await res.json()) as {
+      records: { dataBundleRecords: { methodId: string }[] };
+    };
+    snap.records.dataBundleRecords = snap.records.dataBundleRecords.filter(
+      (b) => b.methodId !== "pixel_seasons",
+    );
+    return route.fulfill({ response: res, json: snap });
+  });
+  await page.goto("/instruments/time");
+  await expect(page.locator("[data-overview-root]")).toHaveAttribute("data-ready", "", {
+    timeout: 90_000,
+  });
+  await expect(page).toHaveURL(/\/valley$/);
+  await expect(page.locator("[data-time-view]")).toHaveCount(0);
+  // and Back has no entry that would open it
+  await page.goBack().catch(() => undefined);
+  await expect(page.locator("[data-time-view]")).toHaveCount(0);
+});

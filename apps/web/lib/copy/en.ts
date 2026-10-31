@@ -39,6 +39,8 @@ export const en = {
   "chrome.key.reset": { text: "Reset View", kind: "button" },
   "chrome.key.ask": { text: "Ask", kind: "button" },
   "chrome.key.sources": { text: "Sources", kind: "button" },
+  // recorded life on the land (UI-2): its key in the legend
+  "chrome.key.life": { text: "Recorded Life", kind: "button" },
   "chrome.sources": { text: "Sources", kind: "heading" },
   "chrome.close": { text: "Close", kind: "button" },
   "chrome.view": { text: "View", kind: "ui" },
@@ -54,6 +56,8 @@ export const en = {
   "source.modis": { text: "NASA MODIS", kind: "label" },
   "source.chirps": { text: "CHIRPS", kind: "label" },
   "source.geonames": { text: "GeoNames", kind: "label" },
+  // recorded life's records, in the short sources line while the layer shows (UI-2)
+  "source.gbif": { text: "GBIF", kind: "label" },
   "source.sentinel": { text: "Copernicus Sentinel-2", kind: "label" },
   "source.studies": { text: "{n} published studies", kind: "label" },
   "opening.howButton": { text: "How It Works", kind: "button" },
@@ -899,6 +903,11 @@ export const LINT_ALLOWLIST: Partial<Record<MessageId, { rules: string[]; reason
   "overview.open.time": {
     rules: ["VT-48"],
     reason: "The lead named this action (decision 15 adds T): it says what the visitor will see.",
+  },
+  "source.gbif": {
+    rules: ["VT-08"],
+    reason:
+      "GBIF is the data source's own name, written as it writes it, like NASA and ESA in the credits.",
   },
   "source.modis": {
     rules: ["VT-08"],

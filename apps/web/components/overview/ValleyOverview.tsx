@@ -98,6 +98,8 @@ import { commandBrief, packageView } from "../../lib/package/package";
 import { tm } from "../../lib/copy/time";
 import { timeSourcesOf } from "../../lib/time/load";
 import { TimeView, type TimeFrame, type TimeMount } from "../time/TimeView";
+import { lifeSourceOf } from "../../lib/life/load";
+import { LifeLayer, type LifeFrame, type LifeMount } from "../life/LifeLayer";
 import styles from "./ValleyOverview.module.css";
 
 /** Seconds for each move: the opening, a finding's hover, the ask circle's hover, the ask opening, the routes' hover. */
@@ -510,6 +512,23 @@ function OverviewReady({
     snow: null,
   });
   const timeSubs = useRef(new Set<(f: TimeFrame) => void>());
+  // recorded life (UI-2): a global layer, off by default, where the case holds a species bundle; its dots, the point
+  // in focus and its ring, who follows its frames, and whether a point holds the cursor (the land's label stands aside)
+  const lifeBundle = useMemo(() => lifeSourceOf(snapshot), [snapshot]);
+  const [lifeOn, setLifeOn] = useState(false);
+  const lifeRef = useRef<{
+    on: boolean;
+    points: Parameters<OverviewScene["setLife"]>[0];
+    focus: number | null;
+    ring: number | null;
+  }>({ on: false, points: null, focus: null, ring: null });
+  lifeRef.current.on = lifeOn;
+  const lifeSubs = useRef(new Set<(f: LifeFrame) => void>());
+  const lifeHot = useRef(false);
+  // the land's hover label, hidden at once when a recorded point takes the cursor (set by the hover effect)
+  const hideHoverRef = useRef<() => void>(() => undefined);
+  const lifeBundleRef = useRef(lifeBundle);
+  lifeBundleRef.current = lifeBundle;
   // the package's land eased aside for its cards: where it is and where it is going (0 centred, 1 aside)
   const pkgAsideRef = useRef({ k: 0, goal: 0 });
   // back(), for handlers declared before it (the browser's Back leaving See It Over Time)
@@ -645,6 +664,29 @@ function OverviewReady({
         e: layout.e,
       };
       for (const g of timeSubs.current) g(f);
+    }
+    // recorded life's dots and the point in focus, in CSS px over the overview (UI-2)
+    if (lifeSubs.current.size) {
+      const k = layout.fit.scale;
+      const { ox, oy } = layout.fit;
+      const src = layout.lifeAt;
+      let at: Float32Array | null = null;
+      if (src) {
+        at = new Float32Array(src.length);
+        for (let i = 0; i < src.length; i += 2) {
+          at[i] = ox + (src[i] ?? 0) * k;
+          at[i + 1] = oy + (src[i + 1] ?? 0) * k;
+        }
+      }
+      const fc = layout.lifeFocus;
+      const css = (p: { x: number; y: number }) => ({ x: ox + p.x * k, y: oy + p.y * k });
+      const f: LifeFrame = {
+        at,
+        focus: fc
+          ? { at: css(fc.at), behind: fc.behind, ring: fc.ring ? fc.ring.map(css) : null }
+          : null,
+      };
+      for (const g of lifeSubs.current) g(f);
     }
     // the package's markers follow their bands' places on the land (UI-2)
     if (standSubs.current.size) {
@@ -1053,6 +1095,9 @@ function OverviewReady({
       aside: ease(pkgAsideRef.current.k),
       overlay: timeRef.current.overlay,
       snow: timeRef.current.snow,
+      life: lifeRef.current.on ? 1 : 0,
+      lifeFocus: lifeRef.current.focus,
+      lifeRing: lifeRef.current.ring,
       ranges: pkgRangesRef.current.ranges,
       lit: pkgRangesRef.current.lit,
       quiet:
@@ -1279,6 +1324,8 @@ function OverviewReady({
       return;
     }
     sceneRef.current = scene;
+    // recorded life's dots, if read before this scene was drawn (UI-2)
+    scene.setLife(lifeRef.current.points);
     scene.onLayout(apply);
     scene.render({ ...live.current, ...camRef.current, sel: selRef.current });
     // the arc's and the ask circle's clearance from the land, as the specimen measured them
@@ -1468,6 +1515,34 @@ function OverviewReady({
     }),
     [go],
   );
+  // recorded life (UI-2): the dots it draws, the point in focus, and each frame's places
+  const lifeMount = useMemo<LifeMount>(
+    () => ({
+      set: (points) => {
+        lifeRef.current.points = points;
+        sceneRef.current?.setLife(points);
+        go();
+      },
+      focus: (index, ring) => {
+        if (index !== null) hideHoverRef.current();
+        lifeRef.current.focus = index;
+        lifeRef.current.ring = ring;
+        go();
+      },
+      subscribe: (f) => {
+        lifeSubs.current.add(f);
+        go();
+        return () => {
+          lifeSubs.current.delete(f);
+        };
+      },
+      hot: lifeHot,
+    }),
+    [go],
+  );
+  useEffect(() => {
+    go();
+  }, [lifeOn, go]);
   const pkgLand = useMemo<LandMount>(
     () => ({
       limits: bandLimitsOf(snapshot),
@@ -1575,6 +1650,14 @@ function OverviewReady({
           openInPlace(VIEW_HREF[a.view]);
           return;
         }
+        // recorded life, on the overview at rest and over time (UI-2)
+        if ((ev.key === "g" || ev.key === "G") && lifeBundleRef.current) {
+          if (!selRef.current || selRef.current === "time") {
+            ev.preventDefault();
+            setLifeOn((v) => !v);
+          }
+          return;
+        }
         if (ev.key === "r" || ev.key === "R") {
           ev.preventDefault();
           reset();
@@ -1653,6 +1736,7 @@ function OverviewReady({
       hoverSide.current = null;
       hoverShown.current = false;
     };
+    hideHoverRef.current = hide;
     const show = () => {
       raf = 0;
       const ev = last;
@@ -1665,6 +1749,7 @@ function OverviewReady({
       const t = ev.target as HTMLElement | null;
       const quiet =
         held ||
+        lifeHot.current ||
         selRef.current !== null ||
         tearRef.current !== null ||
         arrivingRef.current ||
@@ -1809,10 +1894,19 @@ function OverviewReady({
   }, [data, routesLoad]);
   // every credit in full behind S; the data's short names stay visible (GeoNames while the routes name Tabant)
   const named = sel === "routes" ? origin : null;
+  // recorded life's records credit their datasets through GBIF while the layer shows (UI-2)
+  const lifeCredit =
+    lifeOn && lifeBundle
+      ? (snapshot.records.dataBundleRecords.find((b) => b.id === lifeBundle) ?? null)
+      : null;
   const sourceSet = {
     lines: [...CREDITS.map((id) => en[id].text), ...(named ? [named.attribution] : [])],
     short: [...SHORT.map((id) => en[id].text), ...(named ? [en["source.geonames"].text] : [])],
   };
+  if (lifeCredit) {
+    sourceSet.lines.push(lifeCredit.attribution ?? lifeCredit.label);
+    sourceSet.short.push(en["source.gbif"].text);
+  }
   const pkgHref =
     sel === "package" && pkgBrief
       ? `/brief?case=${encodeURIComponent(ask.snapshot.case.id)}&brief=${encodeURIComponent(pkgBrief.id)}`
@@ -1827,6 +1921,19 @@ function OverviewReady({
             onPress: () => {
               window.open(pkgHref, "_blank", "noopener");
             },
+          },
+        ]
+      : []),
+    ...(lifeBundle && (!sel || sel === "time") && !tear
+      ? [
+          {
+            chip: "G",
+            shortcut: "G",
+            label: en["chrome.key.life"].text,
+            onPress: () => {
+              setLifeOn((v) => !v);
+            },
+            pressed: lifeOn,
           },
         ]
       : []),
@@ -2265,6 +2372,14 @@ function OverviewReady({
         </>
       ) : null}
       {sel === "time" && !tear ? <TimeView snapshot={snapshot} open mount={timeMount} /> : null}
+      {lifeBundle && data ? (
+        <LifeLayer
+          snapshot={snapshot}
+          zone={data.zone}
+          on={lifeOn && (!sel || sel === "time") && !tear}
+          mount={lifeMount}
+        />
+      ) : null}
       {sel === "package" && pkgView && !tear ? (
         <PackageBriefing
           snapshot={ask.snapshot}

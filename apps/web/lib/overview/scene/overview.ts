@@ -8,8 +8,12 @@
 // The page (React) owns the words; every render hands it the screen positions it needs (design px at 1440 x 900).
 
 import {
+  BufferGeometry,
   CanvasTexture,
   Color,
+  Float32BufferAttribute,
+  Points,
+  PointsMaterial,
   DynamicDrawUsage,
   Group,
   InstancedMesh,
@@ -40,6 +44,7 @@ import { createStage, type PerspectiveView } from "../../instruments/valley/scen
 import { heightTexture } from "../../instruments/valley/scene/textures";
 import {
   liftColours as LC,
+  lifeColours,
   maskAt,
   overviewColours as C,
   timeColours as TC,
@@ -115,6 +120,8 @@ const DASH = { dash: 6, gap: 4, w0: 1.5, w1: 2.2, a0: 0.85, a1: 1, edge: 1.6, ed
 export const ROUTE_QUIET = 0.35;
 /** Metres between two points where a route is draped on the drawn relief, and its height over it. */
 const DRAPE = { step: 7.5, over: 4 } as const;
+/** Recorded life's dots (UI-2): height over the drawn relief (m), size on screen (CSS px), vertices of a ring. */
+const LIFE = { over: 15, size: 9, ring: 72 } as const;
 /** The pixel's clock in D4: its turn (ND.az - OV.az) is the turn for a finding at that clock. */
 const PIXEL_CLOCK = 52;
 const TURN = (ND.az - OV.az) / Math.sin((PIXEL_CLOCK * Math.PI) / 180);
@@ -214,6 +221,14 @@ export interface SceneState {
   snow?: { limits: readonly [number, number]; shares: readonly [number, number, number] } | null;
   /** The arc stays out (UI-2: from the results to the package, and while it opens). */
   quiet?: boolean;
+  /**
+   * Recorded life (UI-2): the layer's dots shown, 0 to 1 (a global layer, off by default; drawn on the overview at
+   * rest and over time only), the one recorded point in focus (index into setLife's points) and the stated
+   * uncertainty (m) its ring shows, when there is one.
+   */
+  life?: number;
+  lifeFocus?: number | null;
+  lifeRing?: number | null;
 }
 
 /** The layers the overview can lift: each one the case's own (the trend cells, the CHIRPS cells, the land cover, the bands). */
@@ -271,6 +286,10 @@ export interface OverviewLayout {
   pixelCells: Point[] | null;
   /** See It Over Time (UI-2): a lit rim point of each elevation band, lowest first, where its label's leader ends. */
   bandEdges: (Point | null)[];
+  /** Recorded life (UI-2): every recorded point on screen (x, y pairs, design px) while the layer shows; else null. */
+  lifeAt: Float32Array | null;
+  /** The recorded point in focus: where it stands, whether the land hides it, and its uncertainty ring on the land. */
+  lifeFocus: { at: Point; behind: boolean; ring: Point[] | null } | null;
 }
 
 export interface Gaps {
@@ -302,6 +321,11 @@ export interface OverviewScene {
   probe(x: number, y: number): LandProbe | null;
   /** The relief grid an overlay is painted on (UI-2): its size in canvas px and a UTM point's place on it. */
   overlayGrid(): { width: number; height: number; px: (E: number, N: number) => [number, number] };
+  /**
+   * Recorded life (UI-2): the recorded points (the zone's metres) and each one's group tone, drawn as one layer of
+   * same-size dots draped on the relief and hidden by the land in front of them; null takes the layer away.
+   */
+  setLife(points: readonly { e: number; n: number; tone: string }[] | null): void;
   /** Where the land stands on screen now and how it is seen and lit, for the view it is handed to. */
   handoff(): LandPose;
   onLayout(f: (layout: OverviewLayout) => void): void;
@@ -707,6 +731,84 @@ export function mountOverview(
   const routeProbe = routePts.flatMap((pl) =>
     pl.filter((_, i) => i % 6 === 0 || i === pl.length - 1),
   );
+  // recorded life (UI-2): one same-size round dot per recorded point, a little over the drawn relief, depth-tested so
+  // the land in front hides it; its size never follows a count of records
+  const lifeDisc = (() => {
+    const c = document.createElement("canvas");
+    c.width = c.height = 64;
+    const x = c.getContext("2d");
+    if (x) {
+      x.fillStyle = lifeColours.halo;
+      x.beginPath();
+      x.arc(32, 32, 31, 0, Math.PI * 2);
+      x.fill();
+      // the core is white so each dot takes its group's tone from the vertex colour
+      x.fillStyle = lifeColours.core;
+      x.beginPath();
+      x.arc(32, 32, 21, 0, Math.PI * 2);
+      x.fill();
+    }
+    const t = new CanvasTexture(c);
+    t.colorSpace = LinearSRGBColorSpace;
+    return t;
+  })();
+  let life: {
+    pts: Vec3[];
+    ne: [number, number][];
+    obj: Points;
+    geo: BufferGeometry;
+    mat: PointsMaterial;
+  } | null = null;
+  const setLife: OverviewScene["setLife"] = (points) => {
+    if (life) {
+      scene.remove(life.obj);
+      life.geo.dispose();
+      life.mat.dispose();
+      life = null;
+    }
+    if (!points?.length) return;
+    const pts = points.map((p) => frame.v(p.e, p.n, meshHeight(p.e, p.n) + LIFE.over));
+    const geo = new BufferGeometry();
+    geo.setAttribute("position", new Float32BufferAttribute(pts.flat(), 3));
+    geo.setAttribute(
+      "color",
+      new Float32BufferAttribute(
+        points.flatMap((p) => {
+          const c = new Color(p.tone);
+          return [c.r, c.g, c.b];
+        }),
+        3,
+      ),
+    );
+    const mat = new PointsMaterial({
+      size: LIFE.size,
+      sizeAttenuation: false,
+      vertexColors: true,
+      map: lifeDisc,
+      alphaTest: 0.5,
+      transparent: true,
+      opacity: 0,
+      depthTest: true,
+      depthWrite: false,
+    });
+    const obj = new Points(geo, mat);
+    obj.frustumCulled = false;
+    obj.renderOrder = 7;
+    obj.visible = false;
+    scene.add(obj);
+    life = { pts, ne: points.map((p) => [p.e, p.n]), obj, geo, mat };
+  };
+  /** The focused point's stated uncertainty as a ring on the drawn relief (UI-2). */
+  const lifeRingOf = (k: number, r: number): Point[] | null => {
+    const at = life?.ne[k];
+    if (!at) return null;
+    return Array.from({ length: LIFE.ring + 1 }, (_, i) => {
+      const a = (i / LIFE.ring) * Math.PI * 2;
+      const E = at[0] + r * Math.cos(a);
+      const N = at[1] + r * Math.sin(a);
+      return project(frame.v(E, N, meshHeight(E, N) + LIFE.over));
+    });
+  };
 
   // ---------- design px and the screen ----------
   let fit = { scale: 1, ox: 0, oy: 0 };
@@ -1241,6 +1343,22 @@ export function mountOverview(
     return pts.reduce((b, q) => (q.x * toward > b.x * toward ? q : b));
   };
 
+  /** Recorded life's dots shown (UI-2): on the overview at rest and over time, faded out under any other record. */
+  const lifeShown = (st: SceneState): number => {
+    const on = st.life ?? 0;
+    if (!on) return 0;
+    const open = st.sel !== null && st.sel !== "time";
+    return on * (open ? 1 - ease(st.s) : 1) * (1 - (st.split ?? 0)) * (st.rise ?? 1);
+  };
+  const lifeScreen = (pts: readonly Vec3[]): Float32Array => {
+    const out = new Float32Array(pts.length * 2);
+    pts.forEach((p, i) => {
+      const q = project(p);
+      out[i * 2] = q.x;
+      out[i * 2 + 1] = q.y;
+    });
+    return out;
+  };
   // every render of the land (the page's, or the stage's own on a resize) draws the arc and hands out the layout
   stage.onRender(() => {
     updateFit();
@@ -1308,6 +1426,19 @@ export function mountOverview(
           ? pixelPts.map((p) => project([p[0], p[1] + CELL_RISE, p[2]]))
           : null,
       bandEdges: bandEdgesOf(state),
+      lifeAt: lifeShown(state) > 0.01 && life ? lifeScreen(life.pts) : null,
+      lifeFocus:
+        lifeShown(state) > 0.01 && life && state.lifeFocus != null && life.pts[state.lifeFocus]
+          ? (() => {
+              const k = state.lifeFocus;
+              const p = life.pts[k] as Vec3;
+              return {
+                at: project(p),
+                behind: occluded(p),
+                ring: state.lifeRing ? lifeRingOf(k, state.lifeRing) : null,
+              };
+            })()
+          : null,
     };
     for (const l of listeners) l(layout);
   });
@@ -1613,6 +1744,12 @@ export function mountOverview(
       // the package's words stand where the arc runs: the arc steps out while it is open (UI-2)
       if (next.sel === "package" || next.sel === "time") dialMat.opacity *= 1 - e;
       if (next.quiet) dialMat.opacity = 0;
+      // recorded life (UI-2): the layer's dots, stepping back with the land
+      if (life) {
+        const a = lifeShown(next);
+        life.mat.opacity = a * dim;
+        life.obj.visible = a > 0.01;
+      }
       if (pixelLine) {
         const on = next.sel === "pixel" || next.sel === "field";
         pixelLine.material.opacity = on ? Math.min(0.999, clamp01((e - 0.55) / 0.45)) : 0;
@@ -1620,6 +1757,7 @@ export function mountOverview(
       }
       stage.render();
     },
+    setLife,
     onLayout(f) {
       listeners.push(f);
     },

@@ -118,9 +118,14 @@ describe("packageView", () => {
     expect(placesOnLand(view).map((p) => p.key)).toEqual(["elevation_high"]);
   });
 
-  it("hides the field check link until its fit is checked", () => {
-    expect(FIELD_CHECK_LINKS_SHOWN).toBe(false);
-    expect(view.measures.map((m) => m.fieldCheck)).toEqual([null, null]);
+  it("shows the field check link the record keeps, now that its fit is checked (P9d)", () => {
+    expect(FIELD_CHECK_LINKS_SHOWN).toBe(true);
+    expect(view.measures.map((m) => m.fieldCheck?.id ?? null)).toEqual([
+      "herd_records",
+      "orchard_history",
+    ]);
+    const hidden = packageView(now.snapshot, now.briefId, { fieldCheckLinks: false });
+    expect(hidden?.measures.map((m) => m.fieldCheck)).toEqual([null, null]);
   });
 
   it("names the field check each measurement's record names, with the merge's label, when links are shown", () => {
