@@ -19,14 +19,16 @@ import {
   outward,
   type Pt,
 } from "../../lib/run/layout";
-import type { RunModel, RunTask, RunTaskState } from "../../lib/run/model";
+import type { RunModel, RunTask } from "../../lib/run/model";
+import {
+  AtWorkAgentTree,
+  AtWorkCursors,
+  AtWorkThinkingCard,
+  seconds,
+} from "./AtWorkPanels";
 import styles from "./AtWork.module.css";
 
-const LANE_PX = 14;
-/** Maximum steps shown at once in the right-hand Agent Steps panel so the layout stays balanced. */
-const MAX_VISIBLE_STEPS = 8;
-const seconds = (ms: number) => (Math.max(0, ms) / 1000).toFixed(1);
-const usd = (microUsd: number) => (microUsd / 1e6).toFixed(2);
+const LANE_PX = 0;
 
 /** A live run's clock between its events: the wall time since the command was accepted, never behind its last event.
  * A replay keeps its own events' times; a recording plays on its replay clock. */
@@ -61,15 +63,6 @@ const STATUS: Record<string, MessageId> = {
   cannot_be_assessed: "run.branch.cannot",
 };
 
-const TASK_STATE_WORD: Record<RunTaskState, MessageId> = {
-  queued: "task.queued",
-  running: "task.running",
-  succeeded: "task.done",
-  partial: "task.partial",
-  failed: "task.failed",
-  cancelled: "task.cancelled",
-};
-
 /** The day a run was asked, as the recording's note gives it ("30 Oct 2026"). */
 const dayOf = (iso: string | null) =>
   iso
@@ -88,21 +81,6 @@ function resolveTaskMatch(
   if (!key) return null;
   const found = tasks.find((t) => t.id === key || t.kind === key);
   return found?.id ?? null;
-}
-
-function taskMetaLine(t: RunTask, nowMs: number): string {
-  const dur = seconds((t.endMs ?? nowMs) - (t.startMs ?? t.queuedMs));
-  if (t.model && t.costMicroUsd !== null) {
-    return format("run.tree.metaCost", {
-      model: t.model,
-      time: dur,
-      cost: usd(t.costMicroUsd),
-    });
-  }
-  if (t.model) {
-    return format("run.tree.meta", { model: t.model, time: dur });
-  }
-  return format("run.tree.time", { time: dur });
 }
 
 export function AtWork({
@@ -134,9 +112,27 @@ export function AtWork({
 }) {
   const nowMs = useClock(run, fixedNow);
   const [hovered, setHovered] = useState<string | null>(null);
-  const [folded, setFolded] = useState(false);
-  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+  const [folded, setFolded] = useState(true);
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(() => {
+    const running = run.tasks.find((t) => t.state === "running" && t.steps.length > 0);
+    if (running) return running.id;
+    const withSteps =
+      run.tasks.find((t) => t.kind === "source_research" && t.steps.length > 0) ??
+      run.tasks.find((t) => t.kind === "observation_analysis" && t.steps.length > 0) ??
+      run.tasks.find((t) => t.steps.length > 0);
+    return withSteps?.id ?? null;
+  });
   const [stepsDismissed, setStepsDismissed] = useState(false);
+
+  useEffect(() => {
+    if (stepsDismissed || selectedTaskId !== null) return;
+    const candidate =
+      run.tasks.find((t) => t.state === "running" && t.steps.length > 0) ??
+      run.tasks.find((t) => t.kind === "source_research" && t.steps.length > 0) ??
+      run.tasks.find((t) => t.kind === "observation_analysis" && t.steps.length > 0) ??
+      run.tasks.find((t) => t.steps.length > 0);
+    if (candidate) setSelectedTaskId(candidate.id);
+  }, [run.tasks, selectedTaskId, stepsDismissed]);
 
   useEffect(() => {
     const param = new URLSearchParams(
@@ -166,7 +162,6 @@ export function AtWork({
     });
   }, [run.tasks]);
 
-  // once done, Enter opens the findings (before the overview's own keys); Space cycles followed agent
   const done = run.done;
   useEffect(() => {
     const onKey = (ev: KeyboardEvent) => {
@@ -209,7 +204,7 @@ export function AtWork({
   const head = at(nowMs, 0);
   const disc = arc[0] ?? { x: 0, y: 0 };
   const radius = Math.hypot(disc.x - centre.x, disc.y - centre.y) || 320;
-  const cursors = cursorPointsOf(run.tasks, centre, radius);
+  const cursors = cursorPointsOf(run.tasks, centre, radius, selectedTaskId);
 
   const count = (l: string) => run.findings.filter((f) => f.lands === l).length;
   const counts = [
@@ -222,24 +217,8 @@ export function AtWork({
   const checkAt = rimLeft ? { x: rimLeft.x - 28, y: Math.max(rimLeft.y - 22, 430) } : null;
   const selectedTask =
     selectedTaskId !== null ? (run.tasks.find((t) => t.id === selectedTaskId) ?? null) : null;
-  // While tasks are running and no agent is explicitly isolated, show the active running agent's steps on the right
-  const autoThinkingTask =
-    selectedTask === null && !run.done && !stepsDismissed
-      ? ([...run.tasks]
-          .filter((t) => t.state === "running" && t.steps.length > 0)
-          .sort(
-            (a, b) => b.steps.length - a.steps.length || (b.startMs ?? 0) - (a.startMs ?? 0),
-          )[0] ??
-        run.tasks.find((t) => t.state === "running") ??
-        null)
-      : null;
-  const thinkingTask = selectedTask ?? autoThinkingTask;
-  const selectedCursor =
-    selectedTask !== null ? (cursors.find((c) => c.task.id === selectedTask.id) ?? null) : null;
-  const doneCount = run.tasks.filter((t) => t.state === "succeeded").length;
-  const runningCount = run.tasks.filter((t) => t.state === "running").length;
+  const thinkingTask = !stepsDismissed ? selectedTask : null;
 
-  // a recording or a replay says so at the edge, with the chrome
   let note: ReactNode = null;
   if (recording)
     note = (
@@ -296,15 +275,6 @@ export function AtWork({
             </g>
           );
         })}
-        {selectedTask && selectedCursor ? (
-          <line
-            className={styles.leader}
-            x1={at(selectedTask.endMs ?? nowMs, lanes.get(selectedTask.id) ?? 0).x}
-            y1={at(selectedTask.endMs ?? nowMs, lanes.get(selectedTask.id) ?? 0).y}
-            x2={selectedCursor.at.x}
-            y2={selectedCursor.at.y}
-          />
-        ) : null}
         <circle className={styles.head} cx={head.x} cy={head.y} r={run.done ? 3 : 4.5} />
         {check && checkAt && rimLeft ? (
           <>
@@ -320,217 +290,33 @@ export function AtWork({
         ) : null}
       </svg>
 
-      {/* Section 8: Agent Tree at the left edge */}
-      {run.tasks.length > 0 ? (
-        <aside
-          className={styles.agentTree}
-          data-agent-tree=""
-          data-folded={folded ? "true" : "false"}
-          data-chrome=""
-        >
-          <div className={styles.treeHeader}>
-            <span className={styles.treeTitle}>{en["run.tree.title"].text}</span>
-            <button
-              type="button"
-              className={styles.treeToggle}
-              data-agent-tree-toggle=""
-              onClick={() => {
-                setFolded((f) => !f);
-              }}
-            >
-              {en[folded ? "run.tree.expand" : "run.tree.fold"].text}
-            </button>
-          </div>
-          {folded ? (
-            <p className={styles.treeSummary} data-agent-tree-summary="">
-              {run.done
-                ? format("run.tree.foldedDone", {
-                    total: run.tasks.length,
-                    time: seconds(nowMs),
-                  })
-                : format("run.tree.folded", {
-                    done: doneCount,
-                    total: run.tasks.length,
-                    running: runningCount,
-                  })}
-            </p>
-          ) : (
-            <>
-              <ol className={styles.treeList}>
-                {run.tasks.map((t) => {
-                  const isSelected = selectedTaskId === t.id;
-                  const isDimmed = selectedTaskId !== null && !isSelected;
-                  const isRunningCard =
-                    t.state === "running" &&
-                    !(t.kind === "explanation_branches" && run.branches.length > 0);
-                  return (
-                    <li
-                      key={t.id}
-                      className={styles.treeNode}
-                      data-agent-node={t.kind}
-                      data-agent-state={t.state}
-                      data-run-card={isRunningCard ? t.kind : undefined}
-                      data-selected={isSelected ? "" : undefined}
-                      data-dimmed={isDimmed ? "" : undefined}
-                    >
-                      <button
-                        type="button"
-                        className={styles.treeNodeBtn}
-                        onClick={() => {
-                          setStepsDismissed(false);
-                          setSelectedTaskId((cur) => (cur === t.id ? null : t.id));
-                        }}
-                      >
-                        <span className={styles.treeDot} data-state={t.state} />
-                        <span className={styles.treeNodeBody}>
-                          <span className={styles.treeNodeTop}>
-                            <span className={styles.treeNodeName}>
-                              {en[`task.kind.${t.kind}` as MessageId].text}
-                            </span>
-                            <span className={styles.treeNodeState} data-state={t.state}>
-                              {en[TASK_STATE_WORD[t.state]].text}
-                            </span>
-                          </span>
-                          {t.startMs !== null ? (
-                            <span className={styles.treeNodeMeta}>{taskMetaLine(t, nowMs)}</span>
-                          ) : null}
-                        </span>
-                      </button>
-                    </li>
-                  );
-                })}
-                {run.done && run.needsReview ? (
-                  <li className={styles.treeReviewRow} data-agent-review="">
-                    <span className={styles.treeDot} data-state="review" />
-                    <span className={styles.treeReviewLabel}>{en["run.tree.review"].text}</span>
-                    <span className={styles.needsYouPill} data-needs-you="">
-                      {en["run.tree.needsYou"].text}
-                    </span>
-                  </li>
-                ) : null}
-              </ol>
-              <div className={styles.treeFoot}>
-                <button
-                  type="button"
-                  className={styles.followBtn}
-                  data-agent-follow=""
-                  onClick={cycleFollow}
-                >
-                  <span>
-                    {en[selectedTaskId !== null ? "run.tree.followAll" : "run.tree.follow"].text}
-                  </span>
-                </button>
-              </div>
-            </>
-          )}
-        </aside>
-      ) : null}
+      <AtWorkAgentTree
+        run={run}
+        nowMs={nowMs}
+        folded={folded}
+        setFolded={setFolded}
+        selectedTaskId={selectedTaskId}
+        setSelectedTaskId={setSelectedTaskId}
+        setStepsDismissed={setStepsDismissed}
+        cycleFollow={cycleFollow}
+      />
 
-      {/* Section 8: Agent Cursors on the land strata and sources, strictly from real tool events */}
-      {cursors.map((c) => {
-        const isSelected = selectedTaskId === c.task.id;
-        const isDimmed = selectedTaskId !== null && !isSelected;
-        return (
-          <button
-            key={c.task.id}
-            type="button"
-            className={styles.agentCursor}
-            style={{ left: `${c.at.x.toFixed(1)}px`, top: `${c.at.y.toFixed(1)}px` }}
-            data-agent-cursor={c.task.kind}
-            data-target-kind={c.targetKind}
-            data-stratum={c.stratumId ?? undefined}
-            data-selected={isSelected ? "" : undefined}
-            data-dimmed={isDimmed ? "" : undefined}
-            data-chrome=""
-            onClick={() => {
-              setStepsDismissed(false);
-              setSelectedTaskId((cur) => (cur === c.task.id ? null : c.task.id));
-            }}
-          >
-            <span className={styles.cursorPin} data-target-kind={c.targetKind} />
-            <span className={styles.cursorFlag}>
-              <span className={styles.cursorTask}>
-                {en[`task.kind.${c.task.kind}` as MessageId].text}
-              </span>
-              <span className={styles.cursorLabel} data-cursor-label="">
-                {c.label}
-              </span>
-            </span>
-          </button>
-        );
-      })}
+      <AtWorkCursors
+        cursors={cursors}
+        selectedTaskId={selectedTaskId}
+        setSelectedTaskId={setSelectedTaskId}
+        setStepsDismissed={setStepsDismissed}
+      />
 
-      {/* Section 8: Per-agent Steps / Thinking State card at the right */}
       {thinkingTask ? (
-        <aside
-          className={styles.thinkingCard}
-          data-agent-thinking={thinkingTask.kind}
-          data-chrome=""
-        >
-          <div className={styles.thinkingHeader}>
-            <span className={styles.thinkingKicker}>{en["run.thinking.kicker"].text}</span>
-            <span className={styles.thinkingHeaderRight}>
-              <span
-                className={styles.thinkingBadge}
-                data-state={thinkingTask.endMs !== null ? "done" : "running"}
-              >
-                {
-                  en[
-                    thinkingTask.endMs !== null
-                      ? "run.thinking.finished"
-                      : TASK_STATE_WORD[thinkingTask.state]
-                  ].text
-                }
-              </span>
-              <button
-                type="button"
-                className={styles.thinkingClose}
-                data-thinking-close=""
-                onClick={() => {
-                  setSelectedTaskId(null);
-                  setStepsDismissed(true);
-                }}
-              >
-                {en["run.thinking.close"].text}
-              </button>
-            </span>
-          </div>
-          <p className={styles.thinkingTitle}>
-            {en[`task.kind.${thinkingTask.kind}` as MessageId].text}
-          </p>
-          <p className={styles.thinkingMeta}>{taskMetaLine(thinkingTask, nowMs)}</p>
-          {thinkingTask.searchedChips.length > 0 ? (
-            <div className={styles.thinkingBlock}>
-              <p className={styles.thinkingSublabel}>{en["run.thinking.searched"].text}</p>
-              <ul className={styles.chipList} data-thinking-chips="">
-                {thinkingTask.searchedChips.map((chip) => (
-                  <li key={chip} className={styles.chip} data-thinking-chip="">
-                    {chip}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ) : null}
-          {thinkingTask.steps.length > 0 ? (
-            <div className={styles.thinkingBlock}>
-              <p className={styles.thinkingSublabel}>{en["run.thinking.steps"].text}</p>
-              <ol className={styles.stepList} data-thinking-steps="">
-                {thinkingTask.steps.slice(-MAX_VISIBLE_STEPS).map((s) => (
-                  <li key={s.id} className={styles.stepRow} data-thinking-step={s.status}>
-                    <span className={styles.stepDot} data-status={s.status} />
-                    <span className={styles.stepLabel}>{s.label}</span>
-                    <span className={styles.stepTime}>
-                      {format("run.tree.time", { time: seconds(s.ms) })}
-                    </span>
-                  </li>
-                ))}
-              </ol>
-            </div>
-          ) : null}
-        </aside>
+        <AtWorkThinkingCard
+          thinkingTask={thinkingTask}
+          nowMs={nowMs}
+          setSelectedTaskId={setSelectedTaskId}
+          setStepsDismissed={setStepsDismissed}
+        />
       ) : null}
 
-      {/* the question beside the ask disc: its findings so far, then how many in how long, by their words */}
       <section
         className={styles.question}
         style={{
@@ -545,13 +331,6 @@ export function AtWork({
             ? format("run.findings", { n: run.findings.length, time: seconds(nowMs) })
             : format("run.sofar", { n: run.findings.length })}
         </p>
-        {run.done ? (
-          <div className={styles.open} data-action-prompt="">
-            <Control keyHint="↵" keyShortcut="Enter" onClick={onFindings} data-run-open-findings="">
-              {en["run.open"].text}
-            </Control>
-          </div>
-        ) : null}
         {counts.length ? (
           <p className={styles.counts} data-run-findings>
             {counts.map((c) => (
@@ -564,10 +343,22 @@ export function AtWork({
             ))}
           </p>
         ) : null}
+        {run.done ? (
+          <div className={styles.open} data-action-prompt="">
+            <Control
+              variant="quiet"
+              className={styles.openBtn}
+              keyHint="↵"
+              keyShortcut="Enter"
+              onClick={onFindings}
+              data-run-open-findings=""
+            >
+              {en["run.open"].text}
+            </Control>
+          </div>
+        ) : null}
       </section>
 
-      {/* explanations: sealed when written, scored when the merge commits; the contradicted step back; a reason on
-          hover */}
       {run.branches.length ? (
         <ul
           className={styles.branches}
@@ -605,7 +396,6 @@ export function AtWork({
         </ul>
       ) : null}
 
-      {/* the proposed field check, on its leader to the catchment it is for */}
       {check && checkAt ? (
         <section
           className={styles.check}
@@ -617,7 +407,6 @@ export function AtWork({
         </section>
       ) : null}
 
-      {/* a recording says so, at the edge with the chrome */}
       {note}
     </div>
   );

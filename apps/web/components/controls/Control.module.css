@@ -1,15 +1,16 @@
-/* The one control style: pill, 1 px hairline (ink at about 16%), a faint fill on hover and focus, IBM Plex Sans
-   13 px, a key chip inside. The primary variant carries a slightly stronger line; the quiet variant has no line until
-   hovered. Colours come from the theme's control tokens. */
+/* Two clean control patterns from the approved reference boards (Qoves + siterra-hero-board.png + Division 2):
+   1. Primary CTA (.primary): solid pill with clean text only — NEVER a squircle keycap inside a pill border.
+   2. Key-prompt control (.withKey): standalone crisp 22x22 square keycap next to plain unbordered text — NEVER an outer pill border wrapping both. */
 
 .control {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
-  height: 32px;
-  padding: 0 12px;
+  height: 34px;
+  padding: 0 14px;
   border: 1px solid var(--control-line);
-  border-radius: 999px;
+  border-radius: 2px;
   background: transparent;
   font: 400 13px / 18px var(--font-sans);
   color: var(--control-ink);
@@ -18,8 +19,10 @@
   cursor: pointer;
   pointer-events: auto;
   transition:
-    background-color 120ms ease-out,
-    border-color 120ms ease-out;
+    background-color 140ms ease-out,
+    border-color 140ms ease-out,
+    color 140ms ease-out,
+    opacity 140ms ease-out;
 }
 
 .control:hover,
@@ -33,11 +36,46 @@
   outline-offset: 2px;
 }
 
+/* Pattern A: solid geometric CTA, clean text only, no inner box */
 .primary {
-  height: 32px;
-  padding: 0 12px;
-  border-color: var(--control-line-strong);
-  font-weight: 500;
+  height: 36px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 2px;
+  background: var(--control-ink);
+  color: var(--paper);
+  font: 500 13px / 18px var(--font-sans);
+  letter-spacing: 0.01em;
+}
+
+.primary:hover,
+.primary:focus-visible {
+  background: var(--control-ink);
+  opacity: 0.88;
+}
+
+/* Pattern B (siterra-hero-board.png / Division 2): unbordered key-hint + label */
+.withKey {
+  height: 28px;
+  padding: 0 2px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--control-grey);
+}
+
+.withKey:hover,
+.withKey:focus-visible {
+  background: transparent;
+  border-color: transparent;
+  color: var(--control-ink);
+}
+
+.withKey:hover .key,
+.withKey:focus-visible .key {
+  border-color: var(--control-ink);
+  background: var(--control-fill);
+  color: var(--control-ink);
 }
 
 .quiet {
@@ -48,6 +86,8 @@
 .quiet:hover,
 .quiet:focus-visible {
   color: var(--control-ink);
+  background: transparent;
+  border-color: transparent;
 }
 
 .label {
@@ -58,11 +98,15 @@
   display: inline-grid;
   place-items: center;
   min-width: 22px;
-  height: 20px;
+  height: 22px;
   padding: 0 5px;
-  border: 1px solid var(--control-line);
-  border-radius: 5px;
+  border: 1px solid var(--control-line-strong);
+  border-radius: 2px;
   font: 500 12px / 1 var(--font-mono);
-  color: var(--control-grey);
-  background: var(--control-chip);
+  color: var(--control-ink);
+  background: transparent;
+  transition:
+    background-color 140ms ease-out,
+    border-color 140ms ease-out,
+    color 140ms ease-out;
 }

@@ -41,6 +41,8 @@ export interface GlobeFrame {
   haze?: Vec3;
   grat?: number;
   limb?: [number, number];
+  /** 0 = Obsidian dark palette, 1 = Daylight warm paper palette (siterra-hero-board.png). */
+  light?: number;
 }
 
 interface Program {
@@ -236,6 +238,7 @@ export class GlobeRenderer {
     gl.uniform3fv(P.u("u_haze"), f.haze ?? [10, 20, 0]);
     gl.uniform1f(P.u("u_grat"), f.grat ?? 0);
     gl.uniform2fv(P.u("u_limb"), f.limb ?? [0.28, 0.55]);
+    gl.uniform1f(P.u("u_light"), f.light ?? 0);
     gl.bindVertexArray(this.vao);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
   }

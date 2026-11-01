@@ -162,3 +162,40 @@ export function project(
   if (ww <= 0.001) return undefined;
   return [((x / ww) * 0.5 + 0.5) * w, (1 - ((y / ww) * 0.5 + 0.5)) * h, ww];
 }
+
+/**
+ * Unprojects a screen pixel (x, y) in a w × h viewport through the camera ray and intersects
+ * the unit sphere (r = 1), returning { lon, lat } in degrees on the front hemisphere, or null
+ * if the ray misses the globe limb.
+ */
+export function screenToLonLat(
+  cam: GlobeCamera,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+): { lon: number; lat: number } | null {
+  if (w <= 0 || h <= 0) return null;
+  const ndcX = (x / w) * 2 - 1;
+  const ndcY = 1 - (y / h) * 2;
+  const [f, aspect, sx, sy] = cam.proj;
+  const rx = ((ndcX - sx) * aspect) / f;
+  const ry = (ndcY - sy) / f;
+  const dir = norm([
+    cam.right[0] * rx + cam.upv[0] * ry - cam.back[0],
+    cam.right[1] * rx + cam.upv[1] * ry - cam.back[1],
+    cam.right[2] * rx + cam.upv[2] * ry - cam.back[2],
+  ]);
+  const e = cam.eye;
+  const b = e[0] * dir[0] + e[1] * dir[1] + e[2] * dir[2];
+  const c = e[0] * e[0] + e[1] * e[1] + e[2] * e[2] - 1;
+  const disc = b * b - c;
+  if (disc <= 0) return null;
+  const t = -b - Math.sqrt(disc);
+  if (t <= 0) return null;
+  const p = norm([e[0] + dir[0] * t, e[1] + dir[1] * t, e[2] + dir[2] * t]);
+  const lon = (Math.atan2(p[1], p[0]) * 180) / Math.PI;
+  const lat = (Math.asin(Math.max(-1, Math.min(1, p[2]))) * 180) / Math.PI;
+  return { lon, lat };
+}
+

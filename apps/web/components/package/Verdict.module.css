@@ -15,7 +15,7 @@
   margin: 0;
   padding: 8px 12px;
   border: 1px solid var(--hairline);
-  border-radius: 6px;
+  border-radius: 2px;
   background: var(--bg-overlay);
   outline: none;
   cursor: pointer;
@@ -55,10 +55,10 @@
 .status {
   padding: 1px 8px;
   border: 1px solid var(--hairline-quiet);
-  border-radius: 999px;
+  border-radius: 2px;
   font-family: var(--font-mono);
-  font-size: 11px;
-  line-height: 15px;
+  font-size: 12px;
+  line-height: 16px;
   letter-spacing: 0.02em;
   color: var(--text-secondary);
 }
@@ -93,4 +93,47 @@
 
 .predLabel {
   color: var(--text-tertiary);
+}
+
+.contextNode {
+  margin-top: 8px;
+  padding: 6px 10px;
+  border-left: 2px solid var(--accent);
+  background: var(--hairline-quiet);
+  border-radius: 0 4px 4px 0;
+}
+
+.contextHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.contextTag {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  color: var(--ov-amber-tag);
+}
+
+.contextCite {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--text-tertiary);
+}
+
+.contextText {
+  margin: 3px 0 0;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--text-secondary);
+}
+
+.nextCheck {
+  margin: 6px 0 0;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--text-secondary);
 }

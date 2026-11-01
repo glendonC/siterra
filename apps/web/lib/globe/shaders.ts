@@ -4,6 +4,7 @@
 // The palette is the Obsidian globe's (lib/theme/obsidian globeColours, decision 11): the names keep the study's
 // roles, PAPER being the ground the globe stands on and fades to.
 
+import { daylight } from "../theme/daylight";
 import { globeColours as G } from "../theme/obsidian";
 
 /** A "#rrggbb" token as a GLSL vec3 of sRGB values, three decimals. */
@@ -18,10 +19,13 @@ const HEAD = `#version 300 es
 precision highp float;
 precision highp sampler2D;
 `;
-// The ground, the dots' light ink and grey, the cool body tint, the land's albedo and the biomes' warm tone.
+// Both approved palettes: Obsidian dark (decision 11) and Daylight paper (hero study A4 / siterra-hero-board.png).
 const PALETTE = `
-const vec3 PAPER = ${vec3(G.ground)}, INK = ${vec3(G.ink)}, GREY = ${vec3(G.grey)};
-const vec3 SHADOW = ${vec3(G.shadow)}, ALBEDO = ${vec3(G.albedo)}, BIOME = ${vec3(G.biome)};
+const vec3 D_PAPER = ${vec3(G.ground)}, D_INK = ${vec3(G.ink)}, D_GREY = ${vec3(G.grey)};
+const vec3 D_SHADOW = ${vec3(G.shadow)}, D_ALBEDO = ${vec3(G.albedo)}, D_BIOME = ${vec3(G.biome)};
+const vec3 L_PAPER = ${vec3(daylight.paper)}, L_INK = ${vec3(daylight.ink)}, L_GREY = ${vec3(daylight.grey)};
+const vec3 L_SHADOW = ${vec3(daylight.shadowTint)}, L_ALBEDO = ${vec3(daylight.albedo)}, L_BIOME = vec3(0.855, 0.718, 0.545);
+uniform float u_light;
 `;
 const CONTOUR = `
 float contourLine(float h, float interval, float widthPx, float fadeLo, float fadeHi) {
@@ -86,6 +90,12 @@ vec3 dots(vec2 ll, float rows, float pxDeg) {
   return vec3(cov, land, e);
 }
 void main() {
+  vec3 PAPER = mix(D_PAPER, L_PAPER, u_light);
+  vec3 INK = mix(D_INK, L_INK, u_light);
+  vec3 GREY = mix(D_GREY, L_GREY, u_light);
+  vec3 SHADOW = mix(D_SHADOW, L_SHADOW, u_light);
+  vec3 ALBEDO = mix(D_ALBEDO, L_ALBEDO, u_light);
+  vec3 BIOME = mix(D_BIOME, L_BIOME, u_light);
   vec2 ndc = gl_FragCoord.xy / u_res * 2.0 - 1.0;
   vec3 dir = normalize(u_right * ((ndc.x - u_proj.z) * u_proj.y / u_proj.x) + u_up * ((ndc.y - u_proj.w) / u_proj.x) - u_back);
   float b = dot(u_eye, dir), c = dot(u_eye, u_eye) - 1.0, disc = b * b - c;

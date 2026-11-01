@@ -8,6 +8,7 @@
 import type { SuggestedQuestion } from "@siterra/contracts";
 import { useEffect, useLayoutEffect, useRef, type CSSProperties, type Ref } from "react";
 import { en, format } from "../../lib/copy/en";
+import { pkg } from "../../lib/copy/package";
 import type { AskLine } from "../../lib/overview/ask-line";
 import styles from "./Ask.module.css";
 
@@ -26,6 +27,11 @@ export interface AskProps {
   activity: AskLine | null;
   /** A completed request's "Findings: N" opens its results. */
   onFindings?: () => void;
+  /** Opens the case's next-steps plan (PackageBriefing) directly from Ask. */
+  onOpenPlan?: () => void;
+  /** Live web, literature & governance retrieval toggle state. */
+  liveSearch?: boolean;
+  onToggleLiveSearch?: (next: boolean) => void;
   /** The circle hovered or focused (the overview dims its findings a little). */
   onHover?: (on: boolean) => void;
   circleRef?: Ref<HTMLButtonElement>;
@@ -58,6 +64,9 @@ export function Ask({
   onEnter,
   activity,
   onFindings,
+  onOpenPlan,
+  liveSearch,
+  onToggleLiveSearch,
   onHover,
   circleRef,
   circleStyle,
@@ -65,7 +74,6 @@ export function Ask({
   suggestions,
 }: AskProps) {
   const inputRef = useRef<HTMLInputElement>(null);
-  // "ask.prompts.kicker" is reserved in the copy catalog; suggestions render inside the open panel.
 
   // "/" opens the ask from anywhere but a field being typed in
   // Esc closes it from anywhere while it is open
@@ -148,6 +156,50 @@ export function Ask({
         {activity?.text}
       </p>
       <div className={styles.panel} aria-hidden={!open}>
+        {(onToggleLiveSearch !== undefined || onFindings !== undefined || onOpenPlan !== undefined) && (
+          <div className={styles.modeBar} data-chrome>
+            {onToggleLiveSearch !== undefined ? (
+              <button
+                type="button"
+                className={styles.modePill}
+                data-ask-live-search
+                aria-pressed={Boolean(liveSearch)}
+                tabIndex={open ? 0 : -1}
+                onClick={() => onToggleLiveSearch(!liveSearch)}
+              >
+                {liveSearch ? pkg["verdict.live.on"].text : pkg["verdict.live.off"].text}
+              </button>
+            ) : null}
+            {onFindings !== undefined ? (
+              <button
+                type="button"
+                className={styles.modePill}
+                data-ask-open-verdict
+                tabIndex={open ? 0 : -1}
+                onClick={() => {
+                  onClose();
+                  onFindings();
+                }}
+              >
+                {pkg["verdict.open"].text}
+              </button>
+            ) : null}
+            {onOpenPlan !== undefined ? (
+              <button
+                type="button"
+                className={styles.modePill}
+                data-ask-open-plan
+                tabIndex={open ? 0 : -1}
+                onClick={() => {
+                  onClose();
+                  onOpenPlan();
+                }}
+              >
+                {pkg["package.open"].text}
+              </button>
+            ) : null}
+          </div>
+        )}
         <form
           className={styles.qline}
           autoComplete="off"

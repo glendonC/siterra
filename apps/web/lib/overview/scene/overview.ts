@@ -17,6 +17,8 @@ import {
   DynamicDrawUsage,
   Group,
   InstancedMesh,
+  LineBasicMaterial,
+  LineSegments,
   Matrix4,
   MeshBasicMaterial,
   PlaneGeometry,
@@ -120,8 +122,8 @@ const DASH = { dash: 6, gap: 4, w0: 1.5, w1: 2.2, a0: 0.85, a1: 1, edge: 1.6, ed
 export const ROUTE_QUIET = 0.35;
 /** Metres between two points where a route is draped on the drawn relief, and its height over it. */
 const DRAPE = { step: 7.5, over: 4 } as const;
-/** Recorded life's dots (UI-2): height over the drawn relief (m), size on screen (CSS px), vertices of a ring. */
-const LIFE = { over: 15, size: 9, ring: 72 } as const;
+/** Recorded life's 3D markers (UI-2): stem height over the drawn relief (m), crown beacon size (CSS px), vertices of a ring. */
+const LIFE = { over: 420, size: 10.5, baseSize: 5, ring: 72, footRing: 20, footRadiusM: 235 } as const;
 /** The pixel's clock in D4: its turn (ND.az - OV.az) is the turn for a finding at that clock. */
 const PIXEL_CLOCK = 52;
 const TURN = (ND.az - OV.az) / Math.sin((PIXEL_CLOCK * Math.PI) / 180);
@@ -741,8 +743,8 @@ export function mountOverview(
   const routeProbe = routePts.flatMap((pl) =>
     pl.filter((_, i) => i % 6 === 0 || i === pl.length - 1),
   );
-  // recorded life (UI-2): one same-size round dot per recorded point, a little over the drawn relief, depth-tested so
-  // the land in front hides it; its size never follows a count of records
+  // recorded life (UI-2): 3D diegetic bio-markers anchored to the DEM relief — terrain-conforming ground ring,
+  // vertical luminous stem rising from the true ground point, 3D sculptural diamond crystal, and crisp crown reticle
   const lifeDisc = (() => {
     const c = document.createElement("canvas");
     c.width = c.height = 64;
@@ -750,12 +752,17 @@ export function mountOverview(
     if (x) {
       x.fillStyle = lifeColours.halo;
       x.beginPath();
-      x.arc(32, 32, 31, 0, Math.PI * 2);
+      x.arc(32, 32, 24, 0, Math.PI * 2);
       x.fill();
-      // the core is white so each dot takes its group's tone from the vertex colour
+      x.strokeStyle = lifeColours.core;
+      x.lineWidth = 3.5;
+      x.beginPath();
+      x.arc(32, 32, 22, 0, Math.PI * 2);
+      x.stroke();
+      // the core is white so each marker takes its taxonomic group's tone from the vertex colour
       x.fillStyle = lifeColours.core;
       x.beginPath();
-      x.arc(32, 32, 21, 0, Math.PI * 2);
+      x.arc(32, 32, 11, 0, Math.PI * 2);
       x.fill();
     }
     const t = new CanvasTexture(c);
@@ -765,48 +772,198 @@ export function mountOverview(
   let life: {
     pts: Vec3[];
     ne: [number, number][];
-    obj: Points;
-    geo: BufferGeometry;
-    mat: PointsMaterial;
+    obj: Group;
+    geos: (BufferGeometry | LineSegmentsGeometry)[];
+    mats: { mat: PointsMaterial | LineMaterial | MeshBasicMaterial; baseOpacity: number }[];
+    lineMats: LineMaterial[];
   } | null = null;
   const setLife: OverviewScene["setLife"] = (points) => {
     if (life) {
       scene.remove(life.obj);
-      life.geo.dispose();
-      life.mat.dispose();
+      for (const g2 of life.geos) g2.dispose();
+      for (const m2 of life.mats) m2.mat.dispose();
       life = null;
     }
     if (!points?.length) return;
-    const pts = points.map((p) => frame.v(p.e, p.n, meshHeight(p.e, p.n) + LIFE.over));
-    const geo = new BufferGeometry();
-    geo.setAttribute("position", new Float32BufferAttribute(pts.flat(), 3));
-    geo.setAttribute(
-      "color",
-      new Float32BufferAttribute(
-        points.flatMap((p) => {
-          const c = new Color(p.tone);
-          return [c.r, c.g, c.b];
-        }),
-        3,
-      ),
-    );
-    const mat = new PointsMaterial({
+    const { width: sw, height: sh } = stage.size();
+    const stemRiseM = LIFE.over * lf.kmScale;
+    const footRadius = LIFE.footRadiusM * lf.kmScale;
+    const pts = points.map((p) => frame.v(p.e, p.n, meshHeight(p.e, p.n) + stemRiseM));
+    const bases = points.map((p) => frame.v(p.e, p.n, meshHeight(p.e, p.n) + 6));
+    const flatColors = points.flatMap((p) => {
+      const c = new Color(p.tone);
+      return [c.r, c.g, c.b];
+    });
+
+    // 1. Crown reticle beacons at the top of each 3D stem
+    const beaconGeo = new BufferGeometry();
+    beaconGeo.setAttribute("position", new Float32BufferAttribute(pts.flat(), 3));
+    beaconGeo.setAttribute("color", new Float32BufferAttribute(flatColors, 3));
+    const beaconMat = new PointsMaterial({
       size: LIFE.size,
       sizeAttenuation: false,
       vertexColors: true,
       map: lifeDisc,
-      alphaTest: 0.5,
+      alphaTest: 0.15,
       transparent: true,
       opacity: 0,
       depthTest: true,
       depthWrite: false,
     });
-    const obj = new Points(geo, mat);
-    obj.frustumCulled = false;
-    obj.renderOrder = 7;
+    const beaconObj = new Points(beaconGeo, beaconMat);
+    beaconObj.frustumCulled = false;
+    beaconObj.renderOrder = 9;
+
+    // 2. Ground contact nodes anchoring the foot of each stem on the terrain surface
+    const baseGeo = new BufferGeometry();
+    baseGeo.setAttribute("position", new Float32BufferAttribute(bases.flat(), 3));
+    baseGeo.setAttribute("color", new Float32BufferAttribute(flatColors, 3));
+    const baseMat = new PointsMaterial({
+      size: LIFE.baseSize,
+      sizeAttenuation: false,
+      vertexColors: true,
+      map: lifeDisc,
+      alphaTest: 0.15,
+      transparent: true,
+      opacity: 0,
+      depthTest: true,
+      depthWrite: false,
+    });
+    const baseObj = new Points(baseGeo, baseMat);
+    baseObj.frustumCulled = false;
+    baseObj.renderOrder = 6;
+
+    // 3. 3D vertical bio-stems rising from the terrain surface to each crown (LineSegments2 for Retina line width)
+    const stemPos: number[] = [];
+    const stemCol: number[] = [];
+    points.forEach((p, idx) => {
+      const b = bases[idx]!;
+      const t = pts[idx]!;
+      const c = new Color(p.tone);
+      stemPos.push(b[0], b[1], b[2], t[0], t[1], t[2]);
+      stemCol.push(c.r * 0.72, c.g * 0.72, c.b * 0.72, c.r, c.g, c.b);
+    });
+    const stemGeo = new LineSegmentsGeometry();
+    stemGeo.setPositions(stemPos);
+    stemGeo.setColors(stemCol);
+    const stemMat = new LineMaterial({
+      color: 0xffffff,
+      linewidth: 1.75,
+      vertexColors: true,
+      worldUnits: false,
+      transparent: true,
+      opacity: 0,
+      depthTest: true,
+      depthWrite: false,
+    });
+    stemMat.resolution.set(sw, sh);
+    const stemObj = new LineSegments2(stemGeo, stemMat);
+    stemObj.frustumCulled = false;
+    stemObj.renderOrder = 7;
+
+    // 4. 3D terrain-draped ground rings around each occurrence's true ground coordinate
+    const ringPos: number[] = [];
+    const ringCol: number[] = [];
+    points.forEach((p) => {
+      const c = new Color(p.tone);
+      for (let i = 0; i < LIFE.footRing; i++) {
+        const a0 = (i / LIFE.footRing) * Math.PI * 2;
+        const a1 = ((i + 1) / LIFE.footRing) * Math.PI * 2;
+        const e0 = p.e + footRadius * Math.cos(a0);
+        const n0 = p.n + footRadius * Math.sin(a0);
+        const e1 = p.e + footRadius * Math.cos(a1);
+        const n1 = p.n + footRadius * Math.sin(a1);
+        const v0 = frame.v(e0, n0, meshHeight(e0, n0) + 6);
+        const v1 = frame.v(e1, n1, meshHeight(e1, n1) + 6);
+        ringPos.push(v0[0], v0[1], v0[2], v1[0], v1[1], v1[2]);
+        ringCol.push(c.r * 0.88, c.g * 0.88, c.b * 0.88, c.r * 0.88, c.g * 0.88, c.b * 0.88);
+      }
+    });
+    const ringGeo = new LineSegmentsGeometry();
+    ringGeo.setPositions(ringPos);
+    ringGeo.setColors(ringCol);
+    const ringMat = new LineMaterial({
+      color: 0xffffff,
+      linewidth: 1.25,
+      vertexColors: true,
+      worldUnits: false,
+      transparent: true,
+      opacity: 0,
+      depthTest: true,
+      depthWrite: false,
+    });
+    ringMat.resolution.set(sw, sh);
+    const ringObj = new LineSegments2(ringGeo, ringMat);
+    ringObj.frustumCulled = false;
+    ringObj.renderOrder = 6;
+
+    // 5. 3D sculptural diamond crystals at each crown in world space
+    const prismPos: number[] = [];
+    const prismCol: number[] = [];
+    const rx = 0.095 * lf.kmScale;
+    const ry = 0.145 * lf.kmScale;
+    points.forEach((p, idx) => {
+      const [cx, cy, cz] = pts[idx]!;
+      const c = new Color(p.tone);
+      const top: Vec3 = [cx, cy + ry, cz];
+      const bot: Vec3 = [cx, cy - ry, cz];
+      const eq: Vec3[] = [
+        [cx + rx, cy, cz],
+        [cx, cy, cz + rx],
+        [cx - rx, cy, cz],
+        [cx, cy, cz - rx],
+      ];
+      for (let i = 0; i < 4; i++) {
+        const pA = eq[i]!;
+        const pB = eq[(i + 1) % 4]!;
+        const shadeTop = i % 2 === 0 ? 1.0 : 0.84;
+        const shadeBot = i % 2 === 0 ? 0.68 : 0.56;
+        prismPos.push(top[0], top[1], top[2], pA[0], pA[1], pA[2], pB[0], pB[1], pB[2]);
+        for (let k = 0; k < 3; k++) {
+          prismCol.push(
+            Math.min(1, c.r * shadeTop),
+            Math.min(1, c.g * shadeTop),
+            Math.min(1, c.b * shadeTop),
+          );
+        }
+        prismPos.push(bot[0], bot[1], bot[2], pB[0], pB[1], pB[2], pA[0], pA[1], pA[2]);
+        for (let k = 0; k < 3; k++) {
+          prismCol.push(c.r * shadeBot, c.g * shadeBot, c.b * shadeBot);
+        }
+      }
+    });
+    const prismGeo = new BufferGeometry();
+    prismGeo.setAttribute("position", new Float32BufferAttribute(prismPos, 3));
+    prismGeo.setAttribute("color", new Float32BufferAttribute(prismCol, 3));
+    const prismMat = new MeshBasicMaterial({
+      vertexColors: true,
+      transparent: true,
+      opacity: 0,
+      depthTest: true,
+      depthWrite: false,
+    });
+    const prismObj = new Mesh(prismGeo, prismMat);
+    prismObj.frustumCulled = false;
+    prismObj.renderOrder = 8;
+
+    const obj = new Group();
+    obj.add(ringObj, baseObj, stemObj, prismObj, beaconObj);
     obj.visible = false;
     scene.add(obj);
-    life = { pts, ne: points.map((p) => [p.e, p.n]), obj, geo, mat };
+    life = {
+      pts,
+      ne: points.map((p) => [p.e, p.n]),
+      obj,
+      geos: [beaconGeo, baseGeo, stemGeo, ringGeo, prismGeo],
+      mats: [
+        { mat: beaconMat, baseOpacity: 1 },
+        { mat: baseMat, baseOpacity: 0.85 },
+        { mat: stemMat, baseOpacity: 0.92 },
+        { mat: ringMat, baseOpacity: 0.72 },
+        { mat: prismMat, baseOpacity: 0.92 },
+      ],
+      lineMats: [stemMat, ringMat],
+    };
   };
   /** The focused point's stated uncertainty as a ring on the drawn relief (UI-2). */
   const lifeRingOf = (k: number, r: number): Point[] | null => {
@@ -816,7 +973,7 @@ export function mountOverview(
       const a = (i / LIFE.ring) * Math.PI * 2;
       const E = at[0] + r * Math.cos(a);
       const N = at[1] + r * Math.sin(a);
-      return project(frame.v(E, N, meshHeight(E, N) + LIFE.over));
+      return project(frame.v(E, N, meshHeight(E, N) + 12));
     });
   };
 
@@ -1321,6 +1478,9 @@ export function mountOverview(
         d.mat.resolution.set(width, height);
         d.edgeMat.resolution.set(width, height);
       }
+      if (life) {
+        for (const lm of life.lineMats) lm.resolution.set(width, height);
+      }
     }
     const glc = canvases.land;
     if (drawn.bw !== glc.width || drawn.bh !== glc.height) {
@@ -1766,10 +1926,10 @@ export function mountOverview(
       // the package's words stand where the arc runs: the arc steps out while it is open (UI-2)
       if (next.sel === "package" || next.sel === "time") dialMat.opacity *= 1 - e;
       if (next.quiet) dialMat.opacity = 0;
-      // recorded life (UI-2): the layer's dots, stepping back with the land
+      // recorded life (UI-2): the layer's 3D markers, stepping back with the land
       if (life) {
         const a = lifeShown(next);
-        life.mat.opacity = a * dim;
+        for (const m2 of life.mats) m2.mat.opacity = a * dim * m2.baseOpacity;
         life.obj.visible = a > 0.01;
       }
       if (pixelLine) {
@@ -1812,6 +1972,10 @@ export function mountOverview(
         d.geo.dispose();
         d.mat.dispose();
         d.edgeMat.dispose();
+      }
+      if (life) {
+        for (const g2 of life.geos) g2.dispose();
+        for (const m2 of life.mats) m2.mat.dispose();
       }
       slopeTex?.dispose();
       rainTex?.dispose();

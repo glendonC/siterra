@@ -1,7 +1,11 @@
-/* A question at work on the overview (U29, specimen R, upgraded for Section 8 AI View), in the tokens of
-   app/obsidian.css (no colour literal here). Design px (the hud). The arc is the run's clock with its lanes; the
-   Agent Tree sits at the left edge; Agent Cursors sit on the land strata and sources; and the Steps card opens at
-   the right when following one agent. */
+/* A question at work on the overview (U29, specimen R), in the tokens of app/obsidian.css (no colour literal here).
+   Diegetic spatial interface after The Division 2, Death Stranding, Westworld, Shadcn Trace and Prompt-Kit Steps:
+   - Information stands up from the dark matte model as thin light and open-air typography, never dark SaaS boxes.
+   - One horizon ring is the run's clock.
+   - Completed threads fold to a single quiet line by default; only the active thread (or Plan Review when settled)
+     sits on the 1 px vertical hairline trace spine at top-left.
+   - On the terrain, the active agent is a thin target ring, a 1 px hairline stem and unboxed floating typography.
+   - At the right, competing explanations and the on-demand Steps trace float directly on the obsidian canvas. */
 
 .atWork {
   position: absolute;
@@ -21,6 +25,7 @@
 .tick {
   stroke: var(--ov-ink-3);
   stroke-width: 1;
+  opacity: 0.45;
 }
 
 .laneGroup {
@@ -28,34 +33,29 @@
 }
 
 .laneGroup[data-dimmed] {
-  opacity: 0.22;
+  opacity: 0.2;
 }
 
 .lane {
   fill: none;
   stroke: var(--ov-ink-2);
   stroke-width: 1.25;
-  opacity: 0.8;
+  opacity: 0.65;
 }
 
-/* heavier while its own model call runs (the specimen) */
+/* heavier on the single horizon ring while its model call runs */
 .laneCalling {
   fill: none;
   stroke: var(--ov-bright);
-  stroke-width: 2.5;
+  stroke-width: 2.25;
 }
 
 .taskDot {
-  fill: var(--ov-ink-2);
+  fill: var(--ov-ink-3);
 }
 
 .head {
   fill: var(--ov-bright);
-}
-
-.leader {
-  stroke: var(--ov-ink-3);
-  stroke-width: 1;
 }
 
 .checkLeader {
@@ -69,96 +69,96 @@
   stroke-width: 1.5;
 }
 
-/* Section 8: Agent Tree (frameless D4 typographic hierarchy at the left edge) */
+/* ============================================================================
+   Top-Left: Borderless Hairline Trace Spine (Shadcn Trace / Division 2 / MagicOS)
+   ============================================================================ */
 .agentTree {
   position: absolute;
-  left: 40px;
-  top: 108px;
-  width: 236px;
+  left: 48px;
+  top: 158px;
+  width: 272px;
   padding: 0;
   border: none;
   background: transparent;
   text-shadow: var(--ov-halo-dark);
   pointer-events: auto;
-  animation: deal 300ms cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
+  animation: deal 220ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
 }
 
-.treeHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding-bottom: 6px;
-  margin-bottom: 4px;
-  border-bottom: 1px solid var(--hairline-quiet);
-}
-
-.treeTitle {
-  color: var(--ov-ink-3);
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.treeToggle {
+.treeSummaryBtn {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  height: 26px;
-  padding: 0 11px;
-  border: 1px solid var(--hairline);
-  border-radius: 999px;
-  background: var(--bg-overlay);
+  gap: 8px;
+  padding: 2px 0;
+  border: none;
+  background: transparent;
   color: var(--ov-ink-2);
-  font: inherit;
+  font-family: var(--font-mono);
   font-size: 11px;
-  line-height: 1;
-  white-space: nowrap;
+  line-height: 16px;
+  font-variant-numeric: tabular-nums;
   cursor: pointer;
+  transition: color 150ms ease;
 }
 
-.treeToggle:hover,
-.treeToggle:focus-visible {
-  border-color: var(--ov-focus);
+.treeSummaryBtn:hover,
+.treeSummaryBtn:focus-visible {
   color: var(--ov-bright);
   outline: none;
 }
 
-.treeSummary {
-  margin: 6px 0 0;
-  color: var(--ov-ink-2);
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-variant-numeric: tabular-nums;
+.treeSummaryDot {
+  flex: none;
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--ov-amber-tag);
+}
+
+.treeSummaryDot[data-done] {
+  background: var(--ov-green);
+}
+
+.treeSummaryText {
+  letter-spacing: 0.01em;
 }
 
 .treeList {
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: 1px;
-  margin: 0;
+  gap: 2px;
+  margin: 4px 0 0;
   padding: 0;
   list-style: none;
 }
 
+.treeList::before {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 6px;
+  bottom: 6px;
+  width: 1px;
+  background: var(--hairline-quiet);
+}
+
 .treeNode {
+  position: relative;
   transition: opacity 180ms var(--ease-out);
 }
 
 .treeNode[data-dimmed] {
-  opacity: 0.34;
+  opacity: 0.42;
 }
 
 .treeNodeBtn {
   display: flex;
   align-items: flex-start;
-  gap: 8px;
+  gap: 10px;
   width: 100%;
-  min-height: 28px;
-  padding: 3px 6px;
+  padding: 3px 0;
   border: none;
-  border-left: 2px solid transparent;
   background: transparent;
   color: inherit;
   font: inherit;
@@ -166,36 +166,41 @@
   cursor: pointer;
 }
 
-.treeNode[data-selected] .treeNodeBtn {
-  border-left-color: var(--ov-amber-tag);
+.treeNodeBtn:hover .treeNodeName,
+.treeNodeBtn:focus-visible .treeNodeName {
+  color: var(--ov-bright);
 }
 
-.treeNodeBtn:hover,
 .treeNodeBtn:focus-visible {
-  border-left-color: var(--ov-focus);
   outline: none;
 }
 
-.treeDot {
+.treeSpineCol {
+  position: relative;
+  z-index: 1;
   flex: none;
-  width: 6px;
-  height: 6px;
-  margin-top: 5px;
-  border-radius: 999px;
-  background: var(--ov-ink-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 5px;
+  height: 18px;
 }
 
-.treeDot[data-state="running"] {
-  background: var(--ov-amber-tag);
+.treeDot {
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--ov-ink-3);
 }
 
 .treeDot[data-state="succeeded"] {
   background: var(--ov-green);
 }
 
-.treeDot[data-state="partial"],
-.treeDot[data-state="failed"],
+.treeDot[data-state="running"],
 .treeDot[data-state="review"] {
+  width: 6px;
+  height: 6px;
   background: var(--ov-amber-tag);
 }
 
@@ -211,230 +216,244 @@
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: 8px;
+  gap: 10px;
 }
 
 .treeNodeName {
-  color: var(--ov-bright);
-  font-size: 12px;
-  font-weight: 500;
-  line-height: 1.2;
+  color: var(--ov-ink);
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 18px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.treeNodeName[data-state="running"] {
+  color: var(--ov-bright);
+  font-weight: 500;
+}
+
+.treeNodeName[data-state="queued"] {
+  color: var(--ov-ink-3);
+}
+
+.treeNodeScope {
+  color: var(--ov-ink-3);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 400;
 }
 
 .treeNodeState {
   flex: none;
   color: var(--ov-ink-3);
   font-family: var(--font-mono);
-  font-size: 10px;
-  line-height: 1.15;
+  font-size: 10.5px;
+  font-variant-numeric: tabular-nums;
 }
 
 .treeNodeState[data-state="running"] {
   color: var(--ov-amber-tag);
 }
 
-.treeNodeState[data-state="succeeded"] {
-  color: var(--ov-ink-2);
+.treeNodeActivity {
+  color: var(--ov-ink);
+  font-size: 12px;
+  line-height: 16px;
 }
 
 .treeNodeMeta {
   color: var(--ov-ink-3);
   font-family: var(--font-mono);
-  font-size: 10px;
-  line-height: 1.15;
+  font-size: 10.5px;
+  line-height: 15px;
   font-variant-numeric: tabular-nums;
 }
 
 .treeReviewRow {
+  position: relative;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin-top: 4px;
-  padding: 6px 6px 2px;
-  border-top: 1px solid var(--hairline-quiet);
+  align-items: baseline;
+  gap: 10px;
+  padding: 2px 0;
 }
 
 .treeReviewLabel {
   flex: 1;
-  color: var(--ov-bright);
-  font-size: 12px;
-  font-weight: 500;
+  color: var(--ov-ink);
+  font-size: 13px;
+  line-height: 18px;
 }
 
-.needsYouPill {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  height: 24px;
-  padding: 0 10px;
-  border: 1px solid var(--ov-amber-tag);
-  border-radius: 999px;
+.needsYouWord {
   color: var(--ov-amber-tag);
   font-family: var(--font-mono);
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  line-height: 1;
+  font-size: 11px;
+  line-height: 16px;
 }
 
 .treeFoot {
-  display: flex;
-  align-items: center;
-  margin-top: 6px;
-  padding-top: 6px;
-  border-top: 1px solid var(--hairline-quiet);
+  margin-top: 4px;
+  padding-left: 15px;
 }
 
 .followBtn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  height: 26px;
-  padding: 0 12px;
-  border: 1px solid var(--hairline);
-  border-radius: 999px;
-  background: var(--bg-overlay);
-  color: var(--ov-ink-2);
-  font: inherit;
-  font-size: 11px;
-  line-height: 1;
-  white-space: nowrap;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--ov-ink-3);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
   cursor: pointer;
 }
 
 .followBtn:hover,
 .followBtn:focus-visible {
-  border-color: var(--ov-focus);
   color: var(--ov-bright);
   outline: none;
 }
 
-/* Section 8: Agent Cursors on the Land / Sources */
+/* ============================================================================
+   Center: Diegetic Ground Target Ring & Unboxed Stem Callout (Westworld / Death Stranding)
+   ============================================================================ */
 .agentCursor {
   position: absolute;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 0;
   padding: 0;
   border: none;
   background: transparent;
   color: inherit;
   font: inherit;
-  transform: translate(-5px, -50%);
+  transform: translate(-7px, -50%);
   pointer-events: auto;
   cursor: pointer;
+  text-shadow: var(--ov-halo-dark);
   transition: opacity 200ms var(--ease-out);
-  animation: deal 260ms cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
+  animation: deal 260ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
 }
 
 .agentCursor[data-dimmed] {
   opacity: 0.22;
 }
 
-.cursorPin {
+.cursorRing {
   flex: none;
-  width: 10px;
-  height: 10px;
-  border: 1.5px solid var(--bg-overlay);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border: 1.5px solid var(--ov-amber-tag);
+  border-radius: 999px;
+  background: transparent;
+}
+
+.cursorRing[data-target-kind="land"],
+.cursorRing[data-target-kind="bundle"] {
+  border-color: var(--ov-green);
+}
+
+.cursorDot {
+  width: 4px;
+  height: 4px;
   border-radius: 999px;
   background: var(--ov-amber-tag);
 }
 
-.cursorPin[data-target-kind="land"],
-.cursorPin[data-target-kind="bundle"] {
+.cursorRing[data-target-kind="land"] .cursorDot,
+.cursorRing[data-target-kind="bundle"] .cursorDot {
   background: var(--ov-green);
 }
 
-.cursorFlag {
+.cursorStem {
+  flex: none;
+  width: 22px;
+  height: 1px;
+  background: var(--ov-amber-tag);
+}
+
+.cursorRing[data-target-kind="land"] + .cursorStem,
+.cursorRing[data-target-kind="bundle"] + .cursorStem {
+  background: var(--ov-green);
+}
+
+.cursorCallout {
   display: flex;
   flex-direction: column;
   gap: 1px;
-  max-width: 224px;
-  padding: 5px 10px;
-  border: 1px solid var(--hairline);
-  border-radius: 6px;
-  background: var(--bg-overlay);
-  backdrop-filter: blur(10px);
+  padding-left: 8px;
+  border: none;
+  background: transparent;
   text-align: left;
 }
 
-.agentCursor[data-selected] .cursorFlag,
-.agentCursor:hover .cursorFlag,
-.agentCursor:focus-visible .cursorFlag {
-  border-color: var(--ov-focus);
+.cursorTask {
+  color: var(--ov-amber-tag);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  line-height: 14px;
 }
 
-.cursorTask {
-  color: var(--ov-ink-3);
-  font-size: 9.5px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  line-height: 1.15;
+.cursorRing[data-target-kind="land"] ~ .cursorCallout .cursorTask,
+.cursorRing[data-target-kind="bundle"] ~ .cursorCallout .cursorTask {
+  color: var(--ov-green);
 }
 
 .cursorLabel {
   color: var(--ov-bright);
-  font-size: 11px;
-  line-height: 1.25;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 17px;
+  white-space: nowrap;
 }
 
-/* Section 8: Per-agent Steps / Thinking State (frameless D4 typographic hierarchy at the right) */
+/* ============================================================================
+   Right (On Demand via Space / Click): Open-Air Hairline Steps Trace (Shadcn Trace / Prompt-Kit)
+   ============================================================================ */
 .thinkingCard {
   position: absolute;
-  right: 40px;
-  top: 140px;
-  width: 280px;
+  right: 48px;
+  top: 136px;
+  width: 284px;
   padding: 0;
   border: none;
   background: transparent;
   text-shadow: var(--ov-halo-dark);
   pointer-events: auto;
-  animation: deal 260ms cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
+  animation: deal 220ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
 }
 
 .thinkingHeader {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
   gap: 8px;
   padding-bottom: 6px;
   border-bottom: 1px solid var(--hairline-quiet);
 }
 
+.thinkingHeaderLeft {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
 .thinkingKicker {
   color: var(--ov-ink-3);
+  font-family: var(--font-mono);
   font-size: 10px;
-  font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
-.thinkingHeaderRight {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
 .thinkingBadge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  height: 26px;
-  padding: 0 11px;
-  border: 1px solid var(--hairline);
-  border-radius: 999px;
-  background: var(--bg-overlay);
   color: var(--ov-amber-tag);
   font-family: var(--font-mono);
   font-size: 10.5px;
-  line-height: 1;
-  white-space: nowrap;
 }
 
 .thinkingBadge[data-state="done"] {
@@ -442,39 +461,38 @@
 }
 
 .thinkingClose {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  height: 26px;
-  padding: 0 11px;
-  border: 1px solid var(--hairline);
-  border-radius: 999px;
-  background: var(--bg-overlay);
-  color: var(--ov-ink-2);
-  font: inherit;
-  font-size: 11px;
-  line-height: 1;
-  white-space: nowrap;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--ov-ink-3);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
   cursor: pointer;
 }
 
 .thinkingClose:hover,
 .thinkingClose:focus-visible {
-  border-color: var(--ov-focus);
   color: var(--ov-bright);
   outline: none;
 }
 
+.thinkingIdentityBox {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 8px;
+}
+
 .thinkingTitle {
-  margin: 8px 0 0;
+  margin: 0;
   color: var(--ov-bright);
   font-size: 15px;
-  font-weight: 500;
-  line-height: 1.25;
+  font-weight: 400;
+  line-height: 20px;
 }
 
 .thinkingMeta {
-  margin: 2px 0 0;
+  margin: 0;
   color: var(--ov-ink-2);
   font-family: var(--font-mono);
   font-size: 11px;
@@ -482,62 +500,76 @@
 }
 
 .thinkingBlock {
-  margin-top: 10px;
-  padding-top: 8px;
-  border-top: 1px solid var(--hairline-quiet);
+  margin-top: 12px;
 }
 
 .thinkingSublabel {
-  margin: 0 0 6px;
+  margin: 0 0 5px;
   color: var(--ov-ink-3);
+  font-family: var(--font-mono);
   font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
 .chipList {
   display: flex;
   flex-wrap: wrap;
-  gap: 5px;
+  gap: 4px 10px;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
 .chip {
-  display: inline-flex;
-  align-items: center;
-  height: 24px;
-  padding: 0 10px;
-  border: 1px solid var(--hairline-quiet);
-  border-radius: 999px;
-  background: var(--bg-overlay);
-  color: var(--ov-ink-2);
+  color: var(--ov-ink);
   font-family: var(--font-mono);
-  font-size: 10.5px;
-  line-height: 1;
+  font-size: 11px;
+  line-height: 16px;
 }
 
 .stepList {
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 2px;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
+.stepList::before {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 7px;
+  bottom: 7px;
+  width: 1px;
+  background: var(--hairline-quiet);
+}
+
 .stepRow {
+  position: relative;
   display: flex;
   align-items: baseline;
-  gap: 8px;
-  font-size: 12px;
-  line-height: 1.3;
+  gap: 10px;
+  padding: 3px 0;
+  font-size: 12.5px;
+  line-height: 17px;
+}
+
+.stepRailCol {
+  position: relative;
+  z-index: 1;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 5px;
+  height: 14px;
 }
 
 .stepDot {
-  flex: none;
   width: 5px;
   height: 5px;
   border-radius: 999px;
@@ -545,6 +577,8 @@
 }
 
 .stepDot[data-status="running"] {
+  width: 6px;
+  height: 6px;
   background: var(--ov-amber-tag);
 }
 
@@ -561,6 +595,10 @@
   color: var(--ov-ink);
 }
 
+.stepRow[data-active] .stepLabel {
+  color: var(--ov-bright);
+}
+
 .stepTime {
   flex: none;
   color: var(--ov-ink-3);
@@ -569,11 +607,12 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* the question beside the ask disc, set to its left like the specimen */
+/* ============================================================================
+   Bottom-Left: The Question & Findings Count beside the Ask Disc
+   ============================================================================ */
 .question {
   position: absolute;
-  /* the room left of the ask disc, inside the screen's 40 px margin */
-  width: 290px;
+  width: 332px;
   text-align: right;
   text-shadow: var(--ov-halo-dark);
 }
@@ -583,6 +622,7 @@
   font-size: 26px;
   font-weight: 300;
   line-height: 31px;
+  color: var(--ov-bright);
 }
 
 .sofar {
@@ -593,22 +633,17 @@
   font-variant-numeric: tabular-nums;
 }
 
-.open {
-  display: flex;
-  justify-content: flex-end;
-  margin: 10px 0 0;
-  pointer-events: auto;
-}
-
 .counts {
   display: flex;
   justify-content: flex-end;
-  flex-wrap: wrap;
-  gap: 4px 14px;
+  flex-wrap: nowrap;
+  gap: 12px;
   margin: 6px 0 0;
-  font-size: 13px;
-  line-height: 18px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 16px;
   color: var(--ov-ink-2);
+  white-space: nowrap;
 }
 
 .countItem {
@@ -616,18 +651,35 @@
 }
 
 .mark {
-  margin-right: 5px;
+  margin-right: 4px;
+  font-size: 9px;
+  color: var(--ov-ink-3);
+}
+
+.open {
+  display: flex;
+  justify-content: flex-end;
+  margin: 8px 0 0;
+  pointer-events: auto;
+}
+
+.openBtn {
+  padding-right: 0;
   color: var(--ov-ink);
 }
 
+/* ============================================================================
+   Right (When Settled): Open-Air Competing Explanations (Specimen R / Division 2)
+   ============================================================================ */
 .branches {
   position: absolute;
-  /* clear of the arc's right side (about x 1095 at 1440 x 900) */
-  right: 44px;
-  top: 300px;
-  width: 266px;
+  right: 48px;
+  top: 296px;
+  width: 268px;
   margin: 0;
   padding: 0;
+  border: none;
+  background: transparent;
   list-style: none;
   pointer-events: auto;
   text-shadow: var(--ov-halo-dark);
@@ -635,26 +687,41 @@
 
 .branch {
   padding: 5px 0;
-  transition: opacity 0.6s ease;
-  animation: deal 380ms cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
+  transition: opacity 0.45s ease;
+  animation: deal 360ms cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
 }
 
 .branch[data-status="contradicted"] {
-  opacity: 0.45;
+  opacity: 0.42;
 }
 
 .branchRow {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
+  gap: 12px;
   font-size: 15px;
   line-height: 20px;
+  color: var(--ov-ink);
+}
+
+.branch[data-status="consistent"] .branchRow,
+.branch[data-status="cannot_be_assessed"] .branchRow {
+  color: var(--ov-bright);
 }
 
 .branchWord {
   font-family: var(--font-mono);
   font-size: 12px;
   color: var(--ov-ink-2);
+}
+
+.branch[data-status="consistent"] .branchWord {
+  color: var(--ov-green);
+}
+
+.branch[data-status="cannot_be_assessed"] .branchWord {
+  color: var(--ov-amber-tag);
 }
 
 .reason {
@@ -691,9 +758,9 @@
 .recording {
   position: absolute;
   right: 48px;
-  /* under the mode line on the breadcrumb's row (U32) */
   top: 76px;
   text-align: right;
+  text-shadow: var(--ov-halo-dark);
 }
 
 .recTitle {
@@ -713,7 +780,7 @@
 @keyframes deal {
   from {
     opacity: 0;
-    transform: translateX(10px);
+    transform: translateX(8px);
   }
 }
 

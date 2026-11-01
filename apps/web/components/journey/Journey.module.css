@@ -1,13 +1,12 @@
-/* One world on one ground (decision 11): the globe, then the overview's own land rising out of the same ground. */
+/* One world on one ground (decision 11): the globe in Paper or Obsidian, then the overview's 3D land rising out of the ground. */
 
 .journey {
   position: fixed;
   inset: 0;
   background: var(--paper);
+  transition: background-color 260ms ease;
 }
 
-/* the overview is mounted under the globe while the globe shows; once the earth has sunk into the ground it comes
-   up over that ground (its own ground is the same dark), and its land then rises */
 .overview {
   position: absolute;
   inset: 0;
@@ -19,7 +18,6 @@
   opacity: 1;
 }
 
-/* the case's point, ring and card stay over the ground until the land has taken their place */
 .handover {
   position: absolute;
   inset: 0;
@@ -41,9 +39,26 @@
   width: 100%;
   height: 100%;
   display: block;
+  touch-action: none;
+  transition:
+    opacity 600ms cubic-bezier(0.22, 1, 0.36, 1),
+    filter 600ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* The globe's overlay: the case ring and point in the accent, the range name along the Atlas. */
+/* Keep the 3D globe sharp, vivid, and interactive on the right spatial stage */
+.journey[data-phase="globe"] .globe {
+  opacity: 1;
+  filter: none;
+  cursor: grab;
+}
+
+.journey[data-phase="globe"] .globe[data-dragging] {
+  cursor: grabbing;
+}
+
+.journey[data-phase="globe"] .overlay {
+  opacity: 0.92;
+}
 
 .overlay {
   position: absolute;
@@ -56,18 +71,20 @@
 
 .ring {
   fill: none;
-  stroke: var(--accent);
-  stroke-width: 1.5;
+  stroke: var(--triad-blue);
+  stroke-width: 1.6;
+  stroke-dasharray: 4 2.5;
   opacity: 0;
 }
 
 .rangeText {
-  font: 500 12px var(--font-sans);
-  letter-spacing: 0.1em;
+  font: 500 10.5px var(--font-mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
   fill: var(--ink);
   paint-order: stroke;
   stroke: var(--paper);
-  stroke-width: 3px;
+  stroke-width: 3.5px;
   stroke-linejoin: round;
   opacity: 0;
 }
@@ -76,17 +93,36 @@
   position: absolute;
   left: 0;
   top: 0;
-  width: 6px;
-  height: 6px;
-  margin: -3px 0 0 -3px;
-  border-radius: 50%;
-  background: var(--accent);
+  width: 8px;
+  height: 8px;
+  margin: -4px 0 0 -4px;
+  border-radius: 2px;
+  background: var(--triad-blue);
   box-shadow: 0 0 0 1.5px var(--paper);
   opacity: 0;
   pointer-events: none;
+  display: grid;
+  place-items: center;
 }
 
-/* The globe's page (DESIGN a5 hud4.css). */
+.casePointPulse {
+  position: absolute;
+  inset: -6px;
+  border-radius: 4px;
+  border: 1.25px solid var(--triad-blue);
+  animation: targetPulseRing 2.4s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+@keyframes targetPulseRing {
+  0% {
+    transform: scale(0.55);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(2.3);
+    opacity: 0;
+  }
+}
 
 .page {
   position: absolute;
@@ -97,87 +133,826 @@
 }
 
 .page button,
-.page a {
+.page a,
+.page input,
+.page textarea {
   pointer-events: auto;
 }
 
-/* each case's card beside its point (Destiny's manner): place and region, the case's question, one action */
 .cases {
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.caseCard {
+/* ============================================================================
+   FLOATING SPATIAL MONUMENT TAG ON THE 3D GLOBE
+   ============================================================================ */
+
+.globeMonumentCard {
   position: absolute;
   left: 0;
   top: 0;
-  width: 360px;
-  padding: 14px 16px 16px;
-  border: 1px solid var(--control-line);
-  border-radius: 12px;
-  background: var(--bg-surface);
-  box-shadow: var(--control-shadow);
+  width: 310px;
+  padding: 11px 14px;
+  border-radius: 3px;
+  background: var(--keycap-bg, #252930);
+  color: var(--keycap-ink, #f4f2ed);
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.24);
   pointer-events: auto;
-  visibility: hidden;
+  cursor: pointer;
+  z-index: 18;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  transition: transform 160ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.globeMonumentCard:hover {
+  transform: translateY(-1px);
+}
+
+.globeMonumentCard::before {
+  content: "";
+  position: absolute;
+  left: -18px;
+  top: -10px;
+  width: 18px;
+  height: 22px;
+  border-left: 1px solid var(--triad-blue);
+  border-bottom: 1px solid var(--triad-blue);
+  opacity: 0.85;
+  pointer-events: none;
+}
+
+.monumentTopRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.monumentSignal {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.monumentSignalDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 1.5px;
+  background: var(--triad-blue);
+  flex-shrink: 0;
+}
+
+.monumentSignalDot[data-tone="yellow"] {
+  background: var(--triad-yellow);
+}
+
+.monumentKicker {
+  font: 400 9.5px / 13px var(--font-mono);
+  letter-spacing: 0.04em;
+  color: var(--keycap-ink, #f4f2ed);
+  opacity: 0.72;
+}
+
+.monumentActionPrompt {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font: 500 9px / 12px var(--font-mono);
+  letter-spacing: 0.06em;
+  color: var(--keycap-ink, #f4f2ed);
+}
+
+.monumentActionKey {
+  display: inline-grid;
+  place-items: center;
+  min-width: 16px;
+  height: 15px;
+  padding: 0 3px;
+  border-radius: 2px;
+  background: var(--triad-blue);
+  color: #ffffff;
+  font: 500 9px / 1 var(--font-mono);
 }
 
 .casePlace {
   margin: 0;
-  font: 500 13px / 18px var(--font-sans);
-  color: var(--ink);
+  font: 400 12.5px / 16.5px var(--font-sans);
+  color: var(--keycap-ink, #f4f2ed);
 }
 
 .caseQuestion {
-  margin: 6px 0 14px;
-  font: 400 17px / 24px var(--font-sans);
-  color: var(--ink);
-  text-wrap: pretty;
+  margin: 0;
+  font: 300 11.5px / 15.5px var(--font-sans);
+  color: var(--keycap-ink, #f4f2ed);
+  opacity: 0.8;
 }
 
-.legend {
+/* ============================================================================
+   SETUP STAGE & CLEAN TOP BAR
+   ============================================================================ */
+
+.setupStage {
   position: absolute;
-  left: 32px;
-  bottom: 40px;
-  margin: 0;
-  padding: 4px 8px;
-  border-radius: 6px;
-  background: var(--paper);
+  inset: 0;
+  z-index: 20;
+  pointer-events: none;
+}
+
+.detroitAtmosphere {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    var(--paper) 0%,
+    color-mix(in srgb, var(--paper) 94%, transparent) 42%,
+    color-mix(in srgb, var(--paper) 58%, transparent) 54%,
+    transparent 66%
+  );
+  z-index: -1;
+}
+
+.setupTopBar {
+  position: absolute;
+  top: 24px;
+  left: 40px;
+  right: 40px;
   display: flex;
+  align-items: center;
+  justify-content: space-between;
+  pointer-events: none;
+}
+
+.setupTopBar > * {
+  pointer-events: auto;
+}
+
+.setupBrandBtn {
+  display: inline-flex;
   align-items: center;
   gap: 10px;
-  font: 400 12px / 16px var(--font-sans);
-  color: var(--grey);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  transition: opacity 150ms ease;
 }
 
-.legendSwatch {
-  width: 18px;
-  height: 10px;
-  border-radius: 2px;
-  background: var(--biome-fill);
-  box-shadow: inset 0 0 0 1px var(--biome-edge);
+.setupBrandBtn:hover,
+.setupBrandBtn:focus-visible {
+  opacity: 0.78;
+  outline: none;
 }
 
-.hints {
-  position: absolute;
-  left: 50%;
-  bottom: 34px;
-  transform: translateX(-50%);
+.setupBrandMark {
+  width: 20px;
+  height: 20px;
+  color: var(--ink);
+  flex-shrink: 0;
+}
+
+.setupBrandName {
+  font: 300 20px / 24px var(--font-sans);
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.setupTopRight {
   display: flex;
   align-items: center;
-  gap: 18px;
-  padding: 6px 8px 6px 6px;
-  border-radius: 999px;
-  background: var(--paper);
 }
 
-/* the mouse hint, in words */
-.quiet {
-  font: 400 13px / 18px var(--font-sans);
+.setupThemeBtn {
+  display: inline-grid;
+  place-items: center;
+  width: 30px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--grey);
+  cursor: pointer;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease;
+}
+
+.setupThemeBtn:hover,
+.setupThemeBtn:focus-visible {
+  background: var(--keycap-bg, #252930);
+  color: var(--keycap-ink, #f4f2ed);
+  outline: none;
+}
+
+/* ============================================================================
+   DETROIT: BECOME HUMAN OPEN TYPOGRAPHIC FLOW (Zero Boxes, Zero Vertical Bars)
+   Inspired directly by Detroit: Become Human (Survey Results & Menu UI)
+   ============================================================================ */
+
+.dbhCanvas {
+  position: absolute;
+  left: 88px;
+  top: 148px;
+  width: 680px;
+  max-width: calc(100vw - 120px);
+  display: flex;
+  flex-direction: column;
+  gap: 46px;
+  perspective: 1100px;
+  transform-style: preserve-3d;
+  pointer-events: auto;
+}
+
+@keyframes dbhGlideIn {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 14px, -36px);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes dbhDepthForward {
+  from {
+    opacity: 0;
+    transform: translate3d(24px, 18px, -84px) rotateX(-3deg) rotateY(-5deg) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) rotateX(0deg) rotateY(0deg) scale(1);
+  }
+}
+
+.dbhStepOne {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  transform-origin: left top;
+  transform: translate3d(0, 0, 0) rotateX(0deg) rotateY(0deg) scale(1);
+  transition:
+    transform 460ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 360ms ease;
+  animation: dbhGlideIn 340ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* When Step 1 is completed, it recedes into background Z-depth while Step 2 steps into foreground focus */
+.dbhStepOne[data-completed] {
+  gap: 0;
+  opacity: 0.68;
+  transform: translate3d(-14px, -6px, -72px) rotateX(2deg) rotateY(4.5deg) scale(0.92);
+}
+
+.dbhStepOne[data-completed]:hover {
+  opacity: 0.96;
+  transform: translate3d(-6px, -3px, -32px) rotateX(1deg) rotateY(2deg) scale(0.96);
+}
+
+.dbhStepTwo {
+  margin-left: 76px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  transform-origin: left top;
+  animation: dbhDepthForward 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Step Header: Large 1/2 Fraction + Clean Question Beside It */
+.dbhStepHeader {
+  display: grid;
+  grid-template-columns: 96px 1fr;
+  align-items: start;
+  gap: 16px;
+}
+
+.dbhStepOne[data-completed] .dbhStepHeader {
+  cursor: pointer;
+}
+
+.dbhFraction {
+  display: inline-flex;
+  align-items: baseline;
+  font-family: var(--font-sans);
+  line-height: 0.9;
+  color: var(--triad-blue);
+  user-select: none;
+  transition:
+    transform 240ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 240ms ease;
+}
+
+.dbhFraction[data-tone="red"] {
+  color: var(--triad-red);
+}
+
+.dbhFractionNum {
+  font-weight: 500;
+  font-size: 46px;
+  letter-spacing: -0.03em;
+}
+
+.dbhFractionSlash {
+  font-weight: 200;
+  font-size: 44px;
+  letter-spacing: -0.02em;
+  opacity: 0.85;
+}
+
+/* Slightly calm the fraction of Step 1 once completed so Step 2 has primary focus */
+.dbhStepOne[data-completed] .dbhFraction {
+  opacity: 0.65;
+}
+
+.dbhStepHeadContent {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-top: 3px;
+}
+
+.dbhQuestion {
+  margin: 0;
+  font: 400 18px / 25px var(--font-sans);
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  transition: color 200ms ease;
+}
+
+.dbhStepOne[data-completed] .dbhQuestion {
+  font-weight: 300;
+  font-size: 16px;
+  line-height: 22px;
   color: var(--grey);
 }
 
-/* another place the visitor can open (U25): a quieter point than the case's, its name beside it */
+/* Completed Step 1 Answer Summary (Just like "YOUR ANSWER / YES" in Detroit Survey Results) */
+.dbhDoneSummaryBtn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  outline: none;
+  animation: dbhGlideIn 240ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.dbhDoneAnswerRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  white-space: nowrap;
+}
+
+.dbhDoneAnswerPrimary {
+  font: 500 14.5px / 20px var(--font-sans);
+  color: var(--ink);
+}
+
+.dbhDoneAnswerCoords {
+  font: 400 12px / 17px var(--font-mono);
+  color: var(--grey);
+}
+
+.dbhDoneChangePrompt {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font: 400 10.5px / 14px var(--font-mono);
+  letter-spacing: 0.06em;
+  color: var(--grey);
+  opacity: 0.68;
+  transition: opacity 150ms ease;
+}
+
+.dbhDoneSummaryBtn:hover .dbhDoneChangePrompt {
+  opacity: 1;
+  color: var(--ink);
+}
+
+/* Step 1 & Step 2 Bodies: Indented to align cleanly under the Question column */
+.dbhStepOneBody,
+.dbhStepTwoBody {
+  padding-left: 112px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  animation: dbhGlideIn 280ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Open Underline Input (Zero Box Fill, Smooth Animated Trace Line) */
+.dbhSearchSection,
+.dbhCustomQuestionWrap {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 500px;
+}
+
+.dbhUnderlineForm {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 0 11px;
+  border-bottom: 1px solid color-mix(in srgb, var(--ink) 18%, transparent);
+  transition: border-color 200ms ease;
+}
+
+.dbhInputTrace {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 1.5px;
+  background: var(--triad-blue);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+}
+
+.dbhUnderlineForm:focus-within .dbhInputTrace,
+.dbhUnderlineForm[data-active] .dbhInputTrace {
+  transform: scaleX(1);
+}
+
+@keyframes dbhTraceScan {
+  0% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.45;
+  }
+}
+
+.dbhUnderlineForm[data-searching] .dbhInputTrace {
+  animation: dbhTraceScan 900ms ease-in-out infinite;
+}
+
+.dbhUnderlineInput {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font: 300 15.5px / 22px var(--font-sans);
+  letter-spacing: -0.005em;
+  outline: none;
+}
+
+.dbhUnderlineInput::placeholder {
+  color: var(--grey);
+  opacity: 0.68;
+}
+
+.dbhInputRightGroup {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.dbhSearchingTag {
+  font: 400 10px / 14px var(--font-mono);
+  letter-spacing: 0.08em;
+  color: var(--triad-blue);
+  opacity: 0.85;
+}
+
+.dbhInlinePrompt {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: 500 10.5px / 14px var(--font-mono);
+  letter-spacing: 0.06em;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+/* Bare Option List (Zero Gray Boxes, Zero Left Prefixes, Indented Hover Details Below) */
+.dbhOptionList,
+.dbhQuestionList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dbhQuestionList {
+  gap: 16px;
+}
+
+@keyframes dbhItemReveal {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dbhPlaceListItem {
+  animation: dbhItemReveal 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(var(--item-idx, 0) * 32ms);
+}
+
+.dbhBareOption {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  padding: 2px 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  outline: none;
+  transition: transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.dbhBareQuestionOption {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  padding: 2px 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  outline: none;
+  transition: transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.dbhBareOption:hover,
+.dbhBareOption[data-highlighted],
+.dbhBareQuestionOption:hover {
+  transform: translateX(4px);
+}
+
+.dbhPlaceMainRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 14px;
+  width: 100%;
+}
+
+.dbhOptionLabel {
+  flex: 1;
+  font: 400 15px / 22px var(--font-sans);
+  color: var(--grey);
+  transition: color 160ms ease;
+}
+
+.dbhBareOption[data-highlighted] .dbhOptionLabel {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.dbhBareOption[data-selected]:not([data-highlighted]) .dbhOptionLabel {
+  color: color-mix(in srgb, var(--ink) 72%, var(--grey));
+}
+
+/* Indented Details Animated Below on Hover / Highlight */
+.dbhPlaceDetailWrap {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transform: translateY(-3px);
+  transition:
+    grid-template-rows 240ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 180ms ease,
+    transform 240ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.dbhBareOption[data-highlighted] .dbhPlaceDetailWrap {
+  grid-template-rows: 1fr;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.dbhPlaceDetailInner {
+  overflow: hidden;
+  padding-left: 16px;
+  font: 300 12.5px / 18px var(--font-sans);
+  color: var(--grey);
+  letter-spacing: 0.01em;
+}
+
+.dbhBareOption[data-highlighted] .dbhPlaceDetailInner {
+  padding-top: 3px;
+}
+
+.dbhInlineStatusRow {
+  padding: 4px 0;
+  font: 300 13.5px / 20px var(--font-sans);
+  color: var(--grey);
+  animation: dbhItemReveal 200ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.dbhQuestionOptionText {
+  flex: 1;
+  font: 400 15px / 22px var(--font-sans);
+  color: var(--grey);
+  transition: color 150ms ease;
+}
+
+.dbhBareQuestionOption:hover .dbhQuestionOptionText,
+.dbhBareQuestionOption[data-selected] .dbhQuestionOptionText {
+  color: var(--ink);
+}
+
+.dbhBareQuestionOption[data-selected] .dbhQuestionOptionText {
+  font-weight: 500;
+}
+
+/* Contextual Keycap on Option Hover / Active */
+.dbhOptionAction {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  opacity: 0;
+  transform: translateX(-4px);
+  flex-shrink: 0;
+  transition:
+    opacity 150ms ease,
+    transform 150ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.dbhActionWord {
+  font: 400 10.5px / 14px var(--font-mono);
+  letter-spacing: 0.06em;
+  color: var(--grey);
+}
+
+.dbhBareOption[data-highlighted] .dbhActionWord,
+.dbhBareQuestionOption[data-selected] .dbhActionWord {
+  color: var(--ink);
+}
+
+.dbhBareOption[data-highlighted] .dbhOptionAction,
+.dbhBareQuestionOption:hover .dbhOptionAction,
+.dbhBareQuestionOption:focus-visible .dbhOptionAction,
+.dbhBareQuestionOption[data-selected] .dbhOptionAction {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Squircle Keycaps */
+.keycapDark,
+.keycapBlue,
+.keycapRed {
+  display: inline-grid;
+  place-items: center;
+  min-width: 21px;
+  height: 19px;
+  padding: 0 5px;
+  border-radius: 2.5px;
+  background: var(--keycap-bg, #252930);
+  color: var(--keycap-ink, #f4f2ed);
+  font: 500 10px / 1 var(--font-mono);
+  text-shadow: none;
+  flex-shrink: 0;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease;
+}
+
+.keycapBlue {
+  background: var(--triad-blue);
+  color: #ffffff;
+}
+
+.keycapRed {
+  background: var(--triad-red);
+  color: #ffffff;
+}
+
+/* ============================================================================
+   RIGHT-STAGE CONTEXTUAL 3D GLOBE HUD & BOTTOM ACTION BAR
+   ============================================================================ */
+
+.globeContextualHud {
+  position: absolute;
+  left: 720px;
+  bottom: 26px;
+  display: inline-flex;
+  align-items: center;
+  gap: 20px;
+  pointer-events: none;
+}
+
+.globeHudItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font: 400 11px / 15px var(--font-sans);
+  color: var(--ink);
+  text-shadow: var(--paper-halo);
+}
+
+.globeHudKey {
+  display: inline-grid;
+  place-items: center;
+  min-width: 22px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 2.5px;
+  background: var(--keycap-bg, #252930);
+  color: var(--keycap-ink, #f4f2ed);
+  font: 500 9.5px / 1 var(--font-mono);
+  letter-spacing: 0.04em;
+  text-shadow: none;
+}
+
+.detroitBottomBar {
+  position: absolute;
+  right: 48px;
+  bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  pointer-events: auto;
+}
+
+.detroitKeyAction {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font: 400 11px / 15px var(--font-sans);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-shadow: var(--paper-halo);
+  cursor: pointer;
+  outline: none;
+  transition: opacity 140ms ease;
+}
+
+.detroitKeyAction:hover {
+  opacity: 0.74;
+}
+
+.detroitKeyCap,
+.detroitKeyCapPrimary {
+  display: inline-grid;
+  place-items: center;
+  min-width: 24px;
+  height: 22px;
+  padding: 0 6px;
+  background: var(--keycap-bg, #252930);
+  color: var(--keycap-ink, #f4f2ed);
+  font: 400 10px / 1 var(--font-mono);
+  border-radius: 2.5px;
+  text-shadow: none;
+}
+
+.detroitKeyCapPrimary {
+  background: var(--triad-blue);
+  color: #ffffff;
+}
+
+.srOnlyOthers {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Secondary studied case pins on the 3D globe */
 .otherPlace {
   pointer-events: auto;
   position: absolute;
@@ -185,45 +960,64 @@
   top: 0;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  margin: -7px 0 0 -3px;
-  color: var(--text-secondary);
-  font-size: 13px;
-  line-height: 14px;
+  gap: 6px;
+  padding: 2px 6px 2px 3px;
+  margin: -10px 0 0 -4px;
+  border-radius: 2.5px;
+  background: color-mix(in srgb, var(--paper) 88%, transparent);
+  color: var(--ink);
+  font: 400 11px / 14px var(--font-sans);
   text-decoration: none;
   white-space: nowrap;
   opacity: 0;
   visibility: hidden;
+  cursor: pointer;
+  transition: opacity 140ms ease;
 }
 
 .otherPlace:hover,
 .otherPlace:focus-visible {
-  color: var(--text-primary);
+  opacity: 1;
 }
 
 .otherDot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--text-secondary);
-  box-shadow: 0 0 0 1.5px var(--paper);
+  width: 5px;
+  height: 5px;
+  border-radius: 1.5px;
+  background: var(--triad-blue);
 }
 
-/* the other places the case listing holds, beside the hint (U25): each a link to its own journey */
-.others {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 13px;
-  line-height: 18px;
+.otherKeycap {
+  display: inline-grid;
+  place-items: center;
+  min-width: 16px;
+  height: 15px;
+  padding: 0 3px;
+  border-radius: 2px;
+  background: var(--keycap-bg, #252930);
+  color: var(--keycap-ink, #f4f2ed);
+  font: 500 9px / 1 var(--font-mono);
 }
 
-.others a {
-  color: var(--text-secondary);
-  text-decoration: none;
+@media (max-width: 1220px) {
+  .globeContextualHud {
+    display: none;
+  }
 }
 
-.others a:hover,
-.others a:focus-visible {
-  color: var(--text-primary);
+@media (max-width: 1020px) {
+  .dbhCanvas {
+    left: 24px;
+    right: 24px;
+    width: auto;
+  }
+
+  .dbhStepTwo {
+    margin-left: 0;
+  }
+
+  .dbhColumns {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
 }

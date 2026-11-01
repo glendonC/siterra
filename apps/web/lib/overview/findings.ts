@@ -98,21 +98,67 @@ export function sharesWords(f: Pick<Finding, "display" | "direction" | "pair">):
     : one;
 }
 
-/** Each finding's caption lines under its number on the arc: plain words first, with the season and years in the opened card. */
-export function captionOf(f: Finding, bandLimit: string): string[] {
+/** Each finding's caption lines under its number on the arc: plain words first, with dynamic scoping baseline context when allFindings is provided. */
+export function captionOf(
+  f: Finding,
+  bandLimit: string,
+  allFindings?: readonly Finding[],
+): string[] {
+  const line1 = (() => {
+    switch (f.id) {
+      case "catchment":
+        return en["overview.finding.catchment.1"].text;
+      case "band":
+        return format("overview.finding.band.1", { limit: bandLimit });
+      case "pixel":
+        return en["overview.finding.pixel.1"].text;
+      case "rain":
+        return en["overview.finding.rain.1"].text;
+      case "fdr":
+        return f.pair
+          ? en["overview.finding.fdr.pair.1"].text
+          : format("overview.finding.fdr.1", { direction: directionWord(f.direction) });
+    }
+  })();
+
+  if (!allFindings) return [line1];
+
+  const catchment = allFindings.find((x) => x.id === "catchment");
   switch (f.id) {
-    case "catchment":
-      return [en["overview.finding.catchment.1"].text];
-    case "band":
-      return [format("overview.finding.band.1", { limit: bandLimit })];
-    case "pixel":
-      return [en["overview.finding.pixel.1"].text];
-    case "rain":
-      return [en["overview.finding.rain.1"].text];
+    case "catchment": {
+      const pctDec = `${signed(f.value * 100, 2)}%/dec`;
+      const dir =
+        f.value > 0.0005
+          ? `${pctDec} · net greening masks upper-slope pressure`
+          : f.value < -0.0005
+            ? `${pctDec} · net browning across full watershed`
+            : `${pctDec} · near-stable watershed cover`;
+      return [line1, dir];
+    }
+    case "band": {
+      const pctDec = `${signed(f.value * 100, 2)}%/dec`;
+      const base = catchment?.value ?? 0;
+      const fasterPct =
+        Math.abs(base) > 0.0005
+          ? Math.round(((Math.abs(f.value) - Math.abs(base)) / Math.abs(base)) * 100)
+          : null;
+      const detail =
+        fasterPct !== null && fasterPct > 5
+          ? `${pctDec} · ${String(fasterPct)}% faster on irrigated valley floor`
+          : `${pctDec} · lower valley-floor & terrace zone`;
+      return [line1, detail];
+    }
+    case "pixel": {
+      const pctDec = `${signed(f.value * 100, 2)}%/dec`;
+      return [line1, `${pctDec} · mixes grass & shrubs (needs ground check)`];
+    }
+    case "rain": {
+      const pctRain = percent(f.value, 1);
+      const pctOther = percent(Math.max(0, 1 - f.value), 1);
+      return [line1, `${pctRain} rain · ${pctOther} land use, snowmelt & grazing`];
+    }
     case "fdr":
-      return f.pair
-        ? [en["overview.finding.fdr.pair.1"].text]
-        : [format("overview.finding.fdr.1", { direction: directionWord(f.direction) })];
+      return [line1, "Statistically confirmed cells (Benjamini-Hochberg FDR)"];
   }
 }
 

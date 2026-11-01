@@ -1,9 +1,12 @@
+import { createHash } from "node:crypto";
+import { existsSync, readFileSync } from "node:fs";
 import { findCaseBundleAsset } from "@siterra/db";
 import { bundlesDir } from "../../../../../../bundles-dir.ts";
 import { database } from "../../../../../../database.ts";
 import { fileResponse } from "../../../../../../file-response.ts";
 import { problem } from "../../../../../../problem.ts";
 import { requestOwner } from "../../../../../../session.ts";
+import { type CachedPlaceBundle, placeCachePath } from "../../../../../../../../lib/live-place/ingest.ts";
 
 export const dynamic = "force-dynamic";
 
@@ -30,6 +33,28 @@ export async function GET(
     bundlesDir: bundlesDir(),
   });
   if (file === null) {
+    if (caseId.startsWith("case_loc_") && assetKey === "occurrences") {
+      const cachePath = placeCachePath(caseId);
+      if (existsSync(cachePath)) {
+        try {
+          const cached = JSON.parse(readFileSync(cachePath, "utf8")) as CachedPlaceBundle;
+          if (cached.occurrences) {
+            const body = Buffer.from(JSON.stringify(cached.occurrences), "utf8");
+            const sha = createHash("sha256").update(body).digest("hex");
+            return new Response(body, {
+              status: 200,
+              headers: {
+                "Content-Type": "application/json",
+                ETag: `"sha256:${sha}"`,
+                "Cache-Control": "private, no-cache",
+              },
+            });
+          }
+        } catch {
+          // Fall through to 404
+        }
+      }
+    }
     return problem(404, "not_found");
   }
   return fileResponse(request, file, {

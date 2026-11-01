@@ -24,7 +24,7 @@ export interface SeasonChart {
   fit: "theil_sen" | "ols";
 }
 
-/** The March to June means of one stratum from the season trend tables (reliability 0 and 1, available seasons). */
+/** The growing-season means of one stratum from the season trend tables (reliability 0 and 1, available seasons). */
 export function stratumSeasons(tables: unknown, stratum: string): Season[] {
   const t = tables as {
     seasons?: {
@@ -36,15 +36,18 @@ export function stratumSeasons(tables: unknown, stratum: string): Season[] {
       status: string;
     }[];
   };
-  return (t.seasons ?? [])
-    .filter(
-      (s) =>
-        s.stratum === stratum &&
-        s.growing_window === "mar_jun" &&
-        s.reliability === "reliability_0_1" &&
-        s.status === "available" &&
-        s.ndvi !== null,
-    )
+  const candidates = (t.seasons ?? []).filter(
+    (s) =>
+      s.stratum === stratum &&
+      s.reliability === "reliability_0_1" &&
+      s.status === "available" &&
+      s.ndvi !== null,
+  );
+  const targetWindow = candidates.some((s) => s.growing_window === "mar_jun")
+    ? "mar_jun"
+    : candidates[0]?.growing_window;
+  return candidates
+    .filter((s) => !targetWindow || s.growing_window === targetWindow)
     .map((s) => ({ year: s.year, ndvi: s.ndvi ?? 0 }))
     .sort((a, b) => a.year - b.year);
 }

@@ -17,35 +17,26 @@ import { pformat, pkg, type PackageMessageId } from "../../lib/copy/package";
 import { rangeOfKey, type HeightRange } from "../../lib/package/bands";
 import type { PackageView } from "../../lib/package/package";
 import {
-  reviewMessageOf,
   submitReviewDecision,
   viewRecordedReview,
   type RecordedReviewDecision,
   type ReviewChoice,
 } from "../../lib/package/review";
 import {
-  checkLines,
   nextOf,
   previousOf,
   stepsOf,
   type Cursor,
   type Step,
-  type StepId,
 } from "../../lib/package/steps";
 import { LABEL_DROP, labelWidth, layoutMarkers } from "../../lib/package/markers";
 import { Control } from "../controls/Control";
 import { usePrompt } from "./ActionPrompt";
+import { PackageStepCard, TITLE } from "./PackageStepCard";
 import styles from "./PackageBriefing.module.css";
 
 const t = (id: PackageMessageId) => pkg[id].text;
 const LEAVE_MS = 260;
-const TITLE: Record<StepId, PackageMessageId> = {
-  known: "steps.known",
-  open: "steps.open",
-  checks: "steps.checks",
-  responses: "steps.responses",
-  approve: "steps.approve",
-};
 
 /** Where the overview's land stands on screen (CSS px), and each field check's marker point on it. */
 export interface Stands {
@@ -107,7 +98,6 @@ export function PackageBriefing({
 }) {
   const [present, setPresent] = useState(open);
   const steps = useMemo(() => stepsOf(view), [view]);
-  /** null: the arrival (the headline and the markers only); else the step and page shown. */
   const [at, setAt] = useState<Cursor | null>(null);
   const [stands, setStands] = useState<Stands | null>(null);
   const [vw, setVw] = useState(1440);
@@ -137,7 +127,6 @@ export function PackageBriefing({
     };
   }, []);
 
-  // each field check's height range on the land, and the one the card is about
   const ranges = useMemo(
     () =>
       view.measures.map(
@@ -152,13 +141,11 @@ export function PackageBriefing({
   const step = at ? steps[at.step] : undefined;
   const page = at ? step?.pages[at.page] : undefined;
   const lit = page?.kind === "check" ? page.measure : null;
-  /** A check's index among those with a place on the land (the scene's order), or null. */
   const landIndex = (i: number): number | null =>
     ranges[i] ? ranges.slice(0, i).filter((r) => r !== null).length : null;
   const onRanges = land?.onRanges;
   useEffect(() => {
     if (!onRanges) return;
-    // markers stand on every check's band; only the check the card is about lights its band
     const on = ranges.filter((r): r is HeightRange => r !== null);
     onRanges(open ? on : [], open && lit !== null ? landIndex(lit) : null);
   }, [onRanges, open, ranges, lit]);
@@ -166,7 +153,7 @@ export function PackageBriefing({
   useEffect(() => {
     onAside?.(open && at !== null);
   }, [onAside, open, at]);
-  // the markers' points, read every frame; React re-renders only when the land's box or a point moves a pixel
+
   useEffect(() => {
     if (!land) return;
     let last = "";
@@ -245,7 +232,6 @@ export function PackageBriefing({
         void recordReview("changes_requested", noteDraft);
         e.preventDefault();
       } else if (e.key === "e" || e.key === "E") {
-        // E exports the printable brief beside the page, wherever the briefing is mounted (AUDIT, 30 Oct 20:09)
         window.open(briefHref, "_blank", "noopener");
         e.preventDefault();
       }
@@ -263,12 +249,10 @@ export function PackageBriefing({
     return k === null ? null : (stands?.points[k] ?? null);
   };
   const card = cardAt(stands, vw);
-  // the land's labels are the checks' numbers only; the card names the open check (the lead, package 1f)
   const markers = layoutMarkers(
     view.measures.map((_, i) => markerOf(i)),
     (members) => labelWidth(members.length, null),
   );
-  // the leader: from the card's near edge to the top of the marker it is about, else to the land's near edge
   const litMarker = lit === null ? null : markerOf(lit);
   const target = litMarker
     ? { x: litMarker.x, y: litMarker.y - 96 }
@@ -293,7 +277,6 @@ export function PackageBriefing({
       data-step={step?.id ?? "arrival"}
     >
       <header className={styles.head}>
-        {/* the case question keeps its place under the breadcrumb, as on every view: chrome, not the briefing's words */}
         <p className={styles.question} data-chrome="">
           {snapshot.case.objective}
         </p>
@@ -311,7 +294,6 @@ export function PackageBriefing({
         </p>
       </header>
 
-      {/* one marker per anchor, its label the checks' numbers, the open check's in bold (package 1f) */}
       {markers.map((g) => {
         const open = lit !== null && g.members.includes(lit) ? lit : null;
         return (
@@ -348,163 +330,25 @@ export function PackageBriefing({
       ) : null}
 
       {step && page ? (
-        <section
-          key={pageKey}
-          className={styles.card}
-          style={{ left: card.x, top: card.y, width: CARD_W }}
-          aria-live="polite"
-          data-card={step.id}
-        >
-          <p className={styles.kicker}>
-            <span>{pformat("steps.of", { n: (at?.step ?? 0) + 1, total: steps.length })}</span>
-            {step.id === "approve" && !decision ? (
-              <span className={styles.needsYou} data-needs-you="">
-                {t("steps.needsYou")}
-              </span>
-            ) : null}
-            {step.id === "approve" && decision ? (
-              <span className={styles.statusWord} data-review-badge={decision.status}>
-                {t(`package.status.${effectiveStatus}`)}
-              </span>
-            ) : null}
-            {step.id !== "approve" && view.mode !== "live" ? (
-              <span className={styles.kickerMode} data-chrome="">
-                {view.mode === "replay" ? t("steps.replay") : t(`package.mode.${view.mode}`)}
-              </span>
-            ) : null}
-          </p>
-          {page.kind === "lines" ? (
-            <>
-              <h3 className={styles.title}>{t(TITLE[step.id])}</h3>
-              <ul className={styles.lines}>
-                {page.lines.map((l, i) => (
-                  <li key={i} {...bind({ key: `${pageKey}-${String(i)}`, chips: l.chips })}>
-                    {l.text}
-                    <Tags chips={l.chips} />
-                  </li>
-                ))}
-              </ul>
-              {step.id === "approve" ? (
-                <div className={styles.reviewBox} data-review-section="">
-                  {decision ? (
-                    <p
-                      className={styles.reviewStatus}
-                      role="status"
-                      data-review-recorded={decision.status}
-                    >
-                      {reviewMessageOf(decision.status)}
-                    </p>
-                  ) : null}
-                  {decision?.status === "changes_requested" && decision.note && !noteOpen ? (
-                    <p className={styles.reviewNoteText} data-review-note-shown="">
-                      {pformat("review.recordedNote", { note: decision.note })}
-                    </p>
-                  ) : null}
-                  {noteOpen ? (
-                    <form
-                      className={styles.noteForm}
-                      onSubmit={(e) => {
-                        e.preventDefault();
-                        void recordReview("changes_requested", noteDraft);
-                        setNoteOpen(false);
-                      }}
-                    >
-                      <label className={styles.noteLabel}>
-                        <span>{t("review.note.label")}</span>
-                        <input
-                          type="text"
-                          className={styles.noteInput}
-                          value={noteDraft}
-                          placeholder={t("review.note.placeholder")}
-                          data-review-note=""
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            setNoteDraft(val);
-                            void recordReview("changes_requested", val);
-                          }}
-                        />
-                      </label>
-                      <div className={styles.reviewActions} data-review-actions="">
-                        <Control
-                          variant="primary"
-                          keyHint="Enter"
-                          keyShortcut="Enter"
-                          data-review-record-changes=""
-                          onClick={() => {
-                            void recordReview("changes_requested", noteDraft);
-                            setNoteOpen(false);
-                          }}
-                        >
-                          {t("review.recordChanges")}
-                        </Control>
-                        <Control
-                          data-review-approve=""
-                          onClick={() => {
-                            setNoteOpen(false);
-                            void recordReview("approved", "");
-                          }}
-                        >
-                          {t("review.approve")}
-                        </Control>
-                      </div>
-                    </form>
-                  ) : (
-                    <div className={styles.reviewActions} data-review-actions="">
-                      {decision?.status !== "approved" ? (
-                        <Control
-                          variant="primary"
-                          keyHint="Enter"
-                          keyShortcut="Enter"
-                          data-review-approve=""
-                          onClick={() => {
-                            void recordReview("approved", "");
-                          }}
-                        >
-                          {t("review.approve")}
-                        </Control>
-                      ) : null}
-                      <Control
-                        keyHint="A"
-                        keyShortcut="A"
-                        data-review-ask-changes=""
-                        onClick={() => {
-                          setNoteOpen(true);
-                          void recordReview("changes_requested", noteDraft);
-                        }}
-                      >
-                        {t("review.askChanges")}
-                      </Control>
-                    </div>
-                  )}
-                </div>
-              ) : null}
-            </>
-          ) : null}
-          {page.kind === "check" && view.measures[page.measure] ? (
-            <CheckCard n={page.measure} view={view} onLand={ranges[page.measure] !== null} />
-          ) : null}
-          {page.kind === "responses" ? (
-            <>
-              <h3 className={styles.title}>{t(TITLE[step.id])}</h3>
-              <ol className={styles.responses}>
-                {page.responses.map((r, i) => (
-                  <li key={r.id} {...bind({ key: r.id, chips: r.chips })}>
-                    <span className={styles.n}>{String.fromCharCode(65 + i)}</span>
-                    <span>
-                      {r.title}
-                      {r.chips.length > 0 ? (
-                        <Tags chips={r.chips} />
-                      ) : (
-                        <span className={styles.noSource}>{t("steps.noSource")}</span>
-                      )}
-                    </span>
-                  </li>
-                ))}
-              </ol>
-              <p className={styles.note}>{t("steps.noneRanked")}</p>
-            </>
-          ) : null}
-        </section>
+        <PackageStepCard
+          step={step}
+          page={page}
+          pageKey={pageKey}
+          at={at}
+          totalSteps={steps.length}
+          view={view}
+          card={card}
+          cardWidth={CARD_W}
+          ranges={ranges}
+          decision={decision}
+          effectiveStatus={effectiveStatus}
+          noteOpen={noteOpen}
+          setNoteOpen={setNoteOpen}
+          noteDraft={noteDraft}
+          setNoteDraft={setNoteDraft}
+          recordReview={recordReview}
+          bind={bind}
+        />
       ) : null}
 
       <nav className={styles.counter} aria-label={t("steps.counter")}>
@@ -554,39 +398,5 @@ export function PackageBriefing({
       </nav>
       {layer}
     </div>
-  );
-}
-
-function CheckCard({ n, view, onLand }: { n: number; view: PackageView; onLand: boolean }) {
-  const m = view.measures[n];
-  if (!m) return null;
-  return (
-    <>
-      <h3 className={styles.title}>
-        <span className={styles.n}>{String(n + 1).padStart(2, "0")}</span> {m.what}
-      </h3>
-      <ul className={styles.lines}>
-        {checkLines(m).map((l, i) => (
-          <li key={i}>{l}</li>
-        ))}
-      </ul>
-      <p className={styles.proposed}>
-        {t("briefing.proposed")}
-        {onLand ? null : ` ${t("steps.offLand")}`}
-      </p>
-    </>
-  );
-}
-
-function Tags({ chips }: { chips: number[] }) {
-  if (chips.length === 0) return null;
-  return (
-    <span className={styles.tags} data-chrome="">
-      {chips.map((n) => (
-        <span key={n} className={styles.tagN} aria-label={pformat("briefing.chip", { n })}>
-          {n}
-        </span>
-      ))}
-    </span>
   );
 }

@@ -26,6 +26,8 @@ export type Page =
   | { kind: "check"; measure: number }
   | { kind: "responses"; responses: PackageResponse[] };
 
+export type StepPage = Page;
+
 export interface Step {
   id: StepId;
   pages: Page[];

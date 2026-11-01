@@ -17,6 +17,8 @@ export interface CursorSlot {
   label: string;
 }
 
+export type CursorPoint = CursorSlot;
+
 /**
  * How far round the arc a moment is (0 to 1): the run's length once done, or a recording's known length throughout;
  * while a live run runs, room ahead of now.
@@ -125,27 +127,43 @@ function anchorForTarget(
   }
 }
 
-/** Agent cursors on the land and sources, placed deterministically from running tasks' tool events. */
+/** Agent cursors on the land and sources, placed deterministically from running tasks' tool events (plus the selected task's latest target when inspecting a completed task). */
 export function cursorPointsOf(
   tasks: readonly RunTask[],
   centre: Pt,
   radius: number,
+  selectedTaskId?: string | null,
 ): CursorSlot[] {
   const bucketCounts = new Map<string, number>();
   const cursors: CursorSlot[] = [];
   for (const task of tasks) {
-    if (task.state !== "running" || !task.activeTarget || !task.activeLabel) continue;
-    const kind = task.activeTarget.kind;
+    let target = task.state === "running" ? task.activeTarget : null;
+    let label = task.state === "running" ? task.activeLabel : null;
+    if ((!target || !label) && selectedTaskId && task.id === selectedTaskId) {
+      const lastWithTarget = [...task.steps]
+        .reverse()
+        .find(
+          (s) =>
+            s.target &&
+            (s.target.kind === "land" || s.target.kind === "bundle" || s.target.kind === "source"),
+        );
+      if (lastWithTarget?.target) {
+        target = lastWithTarget.target;
+        label = lastWithTarget.label;
+      }
+    }
+    if (!target || !label) continue;
+    const kind = target.kind;
     if (kind !== "land" && kind !== "bundle" && kind !== "source") continue;
-    const key = `${kind}:${task.activeTarget.stratumId ?? ""}`;
+    const key = `${kind}:${target.stratumId ?? ""}`;
     const idx = bucketCounts.get(key) ?? 0;
     bucketCounts.set(key, idx + 1);
     cursors.push({
       task,
-      at: anchorForTarget(centre, radius, kind, task.activeTarget.stratumId, idx),
+      at: anchorForTarget(centre, radius, kind, target.stratumId, idx),
       targetKind: kind,
-      stratumId: task.activeTarget.stratumId,
-      label: task.activeLabel,
+      stratumId: target.stratumId,
+      label,
     });
   }
   return cursors;

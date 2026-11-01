@@ -112,7 +112,7 @@ export function globeStateAt(
       pitch: 90,
       distance: Math.exp(lerp(Math.log(vGlobe.distance), Math.log(ZOOM_END_KM), down)),
       fov: FOV,
-      shiftX: 0,
+      shiftX: lerp(vGlobe.shiftX, 0, toCase),
       shiftY: 0,
       rows: 1,
     };

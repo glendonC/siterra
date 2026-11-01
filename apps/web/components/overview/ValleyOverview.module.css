@@ -92,14 +92,374 @@
 
 /* brand and the case question, top left */
 /* the case question, under the breadcrumb (components/controls/ScreenChrome) */
+.scopingHeaderKicker {
+  position: absolute;
+  left: 48px;
+  top: 52px;
+  font: 500 12px / 16px var(--font-mono);
+  letter-spacing: 0.04em;
+  color: #1e82d8;
+  pointer-events: none;
+}
+
+.root[data-theme="obsidian"] .scopingHeaderKicker {
+  color: #54a8ff;
+}
+
 .question {
   position: absolute;
   left: 48px;
-  top: 74px;
-  font-size: 13px;
-  line-height: 18px;
+  top: 70px;
+  font-size: 14px;
+  line-height: 19px;
+  color: var(--ov-ink);
+  max-width: 580px;
+}
+
+.investigationModeBar {
+  position: absolute;
+  left: 48px;
+  top: 94px;
+  max-width: 580px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  row-gap: 3px;
+  column-gap: 7px;
+  pointer-events: auto;
+  z-index: 25;
+}
+
+.modeSwitchBtn {
+  padding: 2px 0;
+  border: 0;
+  border-bottom: 1px solid transparent;
+  background: transparent;
   color: var(--ov-ink-3);
-  max-width: 440px;
+  font: 400 12px / 16px var(--font-mono);
+  cursor: pointer;
+  outline: none;
+  transition:
+    color 140ms ease,
+    border-color 140ms ease;
+}
+
+.modeSwitchBtn:hover,
+.modeSwitchBtn:focus-visible {
+  color: var(--ov-ink);
+}
+
+.modeSwitchBtn[data-active] {
+  color: var(--ov-bright);
+  border-bottom-color: #1e82d8;
+}
+
+.modeSwitchSep {
+  font: 400 12px / 16px var(--font-mono);
+  color: var(--ov-ink-4);
+}
+
+/* Scoping Deliverable & Hypothesis Ledger Dock on the right between pixel (clock 52) and rain (clock 112) */
+.scopingBriefDock {
+  box-sizing: border-box;
+  position: absolute;
+  right: 84px;
+  top: 274px;
+  width: 320px;
+  padding: 8px 11px;
+  border: 1px solid var(--control-line);
+  border-left: 2px solid #1e82d8;
+  border-radius: 2px;
+  background: var(--bg-overlay);
+  backdrop-filter: blur(10px);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  pointer-events: auto;
+  z-index: 20;
+}
+
+.scopingDockHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.scopingDockKicker {
+  font: 600 12px / 15px var(--font-mono);
+  letter-spacing: 0.03em;
+  color: #1e82d8;
+  white-space: nowrap;
+}
+
+.root[data-theme="obsidian"] .scopingDockKicker {
+  color: #54a8ff;
+}
+
+.scopingDockTraceBtn {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: 500 12px / 15px var(--font-mono);
+  color: var(--ov-ink-2);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.scopingDockTraceBtn:hover {
+  color: var(--ov-bright);
+}
+
+.scopingDockSub {
+  font: 400 12px / 15px var(--font-sans);
+  color: var(--ov-ink-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.scopingVarianceBlock {
+  padding-top: 4px;
+  border-top: 1px solid var(--control-line);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.scopingVarianceLabels {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  font: 500 12px / 15px var(--font-sans);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.scopingVarianceRain {
+  color: var(--ov-blue);
+}
+
+.scopingVarianceLand {
+  color: var(--ov-green);
+}
+
+.scopingVarianceTrack {
+  display: flex;
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  overflow: hidden;
+  background: var(--control-line);
+  gap: 1px;
+}
+
+.scopingVarianceFillRain {
+  display: block;
+  height: 100%;
+  background: var(--ov-blue);
+}
+
+.scopingVarianceFillLand {
+  display: block;
+  height: 100%;
+  background: var(--ov-green);
+}
+
+.scopingDockSectionTitle {
+  padding-top: 4px;
+  border-top: 1px solid var(--control-line);
+  font: 600 12px / 15px var(--font-mono);
+  letter-spacing: 0.02em;
+  color: var(--ov-ink-2);
+  white-space: nowrap;
+}
+
+.scopingDockList {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.scopingDockRow {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  width: 100%;
+  padding: 1px 4px;
+  margin: 0 -4px;
+  border: 0;
+  border-left: 2px solid transparent;
+  border-radius: 2px;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  transition:
+    background 120ms ease,
+    border-color 120ms ease;
+}
+
+.scopingDockRow[data-active] {
+  border-left-color: #1e82d8;
+  background: color-mix(in srgb, #1e82d8 8%, transparent);
+}
+
+.scopingDockRow:hover .scopingDockText,
+.scopingDockRow[data-active] .scopingDockText {
+  color: var(--ov-bright);
+}
+
+.scopingDockCode {
+  flex: none;
+  font: 600 12px / 15px var(--font-mono);
+  color: var(--ov-green);
+}
+
+.scopingDockCodeWarn {
+  flex: none;
+  font: 600 12px / 15px var(--font-mono);
+  color: var(--ov-amber-tag);
+}
+
+.scopingDockText {
+  font: 400 12px / 15px var(--font-sans);
+  color: var(--ov-ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.scopingDockCallout {
+  padding: 5px 0 2px;
+  border: 0;
+  border-top: 1px solid var(--control-line);
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.scopingDockCalloutHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.scopingDockCalloutCite {
+  font: 500 12px / 15px var(--font-mono);
+  color: var(--ov-ink-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.scopingDockCalloutBtn {
+  flex: none;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: 500 12px / 15px var(--font-mono);
+  color: var(--triad-blue, #1d6fe8);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.root[data-theme="obsidian"] .scopingDockCalloutBtn {
+  color: #4d9bff;
+}
+
+.scopingDockCalloutBtn:hover {
+  color: var(--ov-bright);
+}
+
+.scopingDockCalloutExcerpt {
+  font: 300 12px / 15px var(--font-sans);
+  color: var(--ov-ink-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.scopingDockActions {
+  padding-top: 5px;
+  border-top: 1px solid var(--control-line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.scopingDockActionBtn,
+.scopingDockActionBtnPrimary {
+  padding: 1px 0;
+  border: 0;
+  background: transparent;
+  font: 400 12px / 15px var(--font-mono);
+  color: var(--ov-ink-2);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 140ms ease;
+}
+
+.scopingDockActionBtnPrimary {
+  color: var(--triad-blue, #1d6fe8);
+  font-weight: 500;
+}
+
+.root[data-theme="obsidian"] .scopingDockActionBtnPrimary {
+  color: #4d9bff;
+}
+
+.scopingDockActionBtn:hover,
+.scopingDockActionBtnPrimary:hover {
+  color: var(--ov-bright);
+}
+
+.hud:has([data-scoping-dock]) .liftLabel,
+.hud:has([data-scoping-dock]) .liftWire {
+  display: none;
+}
+
+.finding[style*="pointer-events: none"] {
+  visibility: hidden;
+}
+
+@media (max-width: 1360px), (max-height: 850px) {
+  .scopingBriefDock {
+    display: none;
+  }
+}
+
+.overviewThemeBtn {
+  position: fixed;
+  top: 24px;
+  right: 40px;
+  z-index: 50;
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ov-ink-2);
+  cursor: pointer;
+  outline: none;
+  transition: color 160ms ease;
+}
+
+.overviewThemeBtn:hover,
+.overviewThemeBtn:focus-visible {
+  color: var(--ov-bright);
+}
+
+.root[data-theme="light"] .arcCanvas {
+  filter: invert(0.76);
 }
 
 /* a finding on the arc: the number with its circled arrow, then a short caption. At rest the numeral is grey; hover
@@ -165,6 +525,14 @@
   font-size: 13px;
   line-height: 18px;
   color: color-mix(in srgb, var(--ov-caption-hover) calc(var(--hov) * 100%), var(--ov-caption));
+}
+
+.captionDetail {
+  display: block;
+  margin-top: 1px;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--ov-ink-3);
 }
 
 /* both shares, one over the other, each with its direction beside its number (U25b) */
@@ -397,10 +765,17 @@
 
 /* the proposed walking routes' one entry, under the key: D4's amber tag (12 px, the circled arrow) with a dashed
    amber stroke for the lines it names; hovering lifts the routes on the land, choosing it opens them */
+.placeEntries {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-top: 10px;
+}
+
 .routes {
   display: flex;
   align-items: center;
-  margin: 10px 0 0;
+  margin: 0;
   padding: 0;
   border: 0;
   background: none;
@@ -428,6 +803,46 @@
   height: 0;
   margin-right: 8px;
   border-top: 1.5px dashed var(--accent);
+}
+
+.verdictEntry {
+  display: flex;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--ov-ink-2);
+  white-space: nowrap;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: color 0.15s ease;
+}
+
+.verdictEntry:hover {
+  color: var(--ov-bright);
+}
+
+.verdictEntry:focus {
+  outline: none;
+}
+
+.verdictEntry:focus-visible {
+  outline: 1px solid var(--ov-focus);
+  outline-offset: 3px;
+}
+
+.verdictDot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin: 0 9px 0 4px;
+  border-radius: 50%;
+  border: 1.5px solid var(--ov-green);
+  box-sizing: border-box;
 }
 
 /* each route's end on the land: a hollow amber ring like the proposed field check's (D4's proposed mark), a touch

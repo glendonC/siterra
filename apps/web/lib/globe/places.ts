@@ -26,7 +26,7 @@ export function otherPlaces(json: unknown, current: string): OtherPlace[] {
   const parsed = listing.safeParse(json);
   if (!parsed.success) return [];
   return parsed.data.cases
-    .filter((c) => c.place.name !== current)
+    .filter((c) => c.place.name !== current && !c.caseId.startsWith("case_loc_"))
     .map((c) => ({
       caseId: c.caseId,
       name: c.place.name,

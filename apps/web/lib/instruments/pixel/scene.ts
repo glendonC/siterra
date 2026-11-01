@@ -899,7 +899,7 @@ export function mountPixel(
     panelHead(x0, L.rowB, w, "06", "instrument.pixel.field");
     place(div("proposed", stage, en["instrument.pixel.field.proposed"].text), x0, L.rowB + 22, w);
     const g = svg("g", { transform: `translate(${String(x0)},${String(L.rowB + 52)})` }, overlay);
-    const len = 250;
+    const len = around ? 200 : 250;
     const pxm = len / t.length_m;
     svg(
       "line",
@@ -938,7 +938,7 @@ export function mountPixel(
         format("instrument.pixel.m", { value: m }),
         t12("ink3", m === 0 ? "start" : m === 100 ? "end" : "middle"),
       );
-    const qx = len + 40;
+    const qx = len + (around ? 26 : 40);
     const qs = 30;
     svg(
       "rect",

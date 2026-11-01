@@ -2,6 +2,11 @@
 /.internal/
 /.local/
 /.lead/
+/.claude/
+/HANDOFF*
+/NOW*
+/*handoff*.md
+/*takeover*.md
 /data/raw/
 /data/interim/
 /design/private/

@@ -23,6 +23,9 @@ export interface OverviewAsk {
   /** The request sent from here, once accepted. */
   commandId: string | null;
   send: (typed: string) => void;
+  /** Whether live web, literature, and governance retrieval is enabled for questions sent from Ask. */
+  liveSearch: boolean;
+  setLiveSearch: (on: boolean) => void;
   /** The case as the session holds it now. */
   snapshot: CaseSnapshot;
   /** The session's events as they reach the page (a replay at reading pace): the run's own stream (U29). */
@@ -34,6 +37,7 @@ export function useOverviewAsk(initial: CaseSnapshot): OverviewAsk {
   const [sent, setSent] = useState(false);
   const [commandId, setCommandId] = useState<string | null>(null);
   const [notice, setNotice] = useState<MessageId | null>(null);
+  const [liveSearch, setLiveSearch] = useState(true);
   const submitting = useRef(false);
   const running = commandId !== null && commandRunning(snapshot, log, commandId);
   // a replayed request started here plays out at reading pace, as on the valley
@@ -52,7 +56,7 @@ export function useOverviewAsk(initial: CaseSnapshot): OverviewAsk {
       const body = commissionRequest(snapshot, text, crypto.randomUUID());
       submitCommand(snapshot.case.id, body, (input, init) => fetch(input, init))
         .then((r) => {
-          if (r.status === "refused")
+          if (r.status === "refused") {
             setNotice(
               r.code !== "quota_exhausted"
                 ? "work.refused"
@@ -60,7 +64,19 @@ export function useOverviewAsk(initial: CaseSnapshot): OverviewAsk {
                   ? "work.instanceLimit"
                   : "work.quotaUsed",
             );
-          else setCommandId(r.command.id);
+          } else {
+            setCommandId(r.command.id);
+            void fetch(
+              `/api/cases/${encodeURIComponent(snapshot.case.id)}/commands/${encodeURIComponent(r.command.id)}/complete`,
+              {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ liveSearch }),
+              },
+            ).catch(() => {
+              // Ignored when E2E tests intercept /commands with a synthetic command ID
+            });
+          }
         })
         .catch((e: unknown) => {
           console.error("Commission failed", e);
@@ -70,7 +86,7 @@ export function useOverviewAsk(initial: CaseSnapshot): OverviewAsk {
           submitting.current = false;
         });
     },
-    [running, paced.pacing, snapshot],
+    [running, paced.pacing, snapshot, liveSearch],
   );
 
   const activity = useMemo(
@@ -78,5 +94,13 @@ export function useOverviewAsk(initial: CaseSnapshot): OverviewAsk {
     [snapshot, paced.log, paced.pacing, commandId, sent, notice],
   );
 
-  return { activity, send, snapshot, commandId, events: paced.log.events };
+  return {
+    activity,
+    send,
+    liveSearch,
+    setLiveSearch,
+    snapshot,
+    commandId,
+    events: paced.log.events,
+  };
 }

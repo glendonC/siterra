@@ -91,16 +91,16 @@ export const limbView = (top: number, place: Place = FIRST_CASE): View => ({
   rows: 0.55,
 });
 
-/** The globe page round a case's place, 470 CSS px radius. */
+/** The globe page round a case's place: positioned on the right spatial stage alongside the left tactical step flow. */
 export const globeView = (place: Place): View => ({
   ...at(place, GLOBE_FROM_CASE),
   tz: 0,
   bearing: 180,
   pitch: 90,
-  distance: distFor(470),
+  distance: distFor(430),
   fov: FOV,
-  shiftX: 0,
-  shiftY: 0,
+  shiftX: 0.42,
+  shiftY: -0.02,
   rows: 1,
 });
 

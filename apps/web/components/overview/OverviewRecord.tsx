@@ -206,10 +206,10 @@ export function OverviewRecord({
   wide?: boolean;
   refs: RecordRefs;
 }) {
-  // the published context, closed each time a record opens; the page lays the card out again when it opens or closes
-  const [contextOpen, setContextOpen] = useState(false);
+  // the published context, shown by default as a Paper Specimen Card; the page lays the card out again when it toggles
+  const [contextOpen, setContextOpen] = useState(true);
   useEffect(() => {
-    setContextOpen(false);
+    setContextOpen(true);
   }, [sel]);
   useEffect(() => {
     onContextToggle?.();
@@ -363,8 +363,14 @@ export function OverviewRecord({
             <circle className={styles.end} r="2" />
           </svg>
           <div ref={refs.midcap} className={styles.midcap} hidden />
-          <section ref={refs.evid} className={styles.evid} hidden={!contextOpen}>
-            <p className={styles.q}>{context.text}</p>
+          <section ref={refs.evid} className={styles.evid} hidden={!contextOpen} data-paper-specimen="">
+            <div className={styles.paperHeader}>
+              <span className={styles.paperKicker}>{"PUBLISHED RESEARCH"}</span>
+              <span className={styles.paperBadge}>{"VERIFIED EXCERPT"}</span>
+            </div>
+            <p className={styles.q}>
+              <mark className={styles.excerptMark}>{context.text}</mark>
+            </p>
             <p className={styles.cite}>
               {context.references.map((line) => (
                 <span key={line} className={styles.ref}>

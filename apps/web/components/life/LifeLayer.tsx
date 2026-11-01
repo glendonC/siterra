@@ -219,13 +219,19 @@ export function LifeLayer({
     : [];
   const datasets = point ? new Set(point.records.map((i) => o.records[i]?.dataset)).size : 0;
   const top = f ? { x: f.at.x, y: f.at.y - STEM } : null;
-  // the card stands to the right of the glyph, where nothing of the overview's left side (the ask, the readout) is;
+  // the card stands to the right of the glyph, stepped out past the sunlit ridge into the dark margin where possible;
   // to the left only where the right edge leaves no room
-  const right = f ? f.at.x + CARD_W + 64 <= (root.current?.clientWidth ?? 1440) : true;
+  const vw = root.current?.clientWidth ?? 1440;
+  const right = f ? f.at.x + CARD_W + 140 <= vw : true;
+  const shelfX = top
+    ? right
+      ? Math.min(vw - CARD_W - 28, Math.max(top.x + 28, Math.min(948, top.x + 124)))
+      : Math.max(CARD_W + 28, Math.min(top.x - 28, Math.max(492, top.x - 124)))
+    : 0;
   const cardAt = top
     ? right
-      ? `translate(${top.x + 22}px, ${top.y - 14}px)`
-      : `translate(calc(${top.x - 22}px - 100%), ${top.y - 14}px)`
+      ? `translate(${shelfX}px, ${top.y - 10}px)`
+      : `translate(calc(${shelfX}px - 100%), ${top.y - 10}px)`
     : "";
 
   return (
@@ -266,6 +272,13 @@ export function LifeLayer({
               />
             ) : null}
             <line className={styles.stem} x1={f.at.x} y1={f.at.y} x2={top.x} y2={top.y + 11} />
+            <line
+              className={styles.stem}
+              x1={right ? top.x + 11 : top.x - 11}
+              y1={top.y}
+              x2={right ? shelfX - 8 : shelfX + 8}
+              y2={top.y}
+            />
             <circle className={styles.foot} cx={f.at.x} cy={f.at.y} r={5} />
           </svg>
           <span

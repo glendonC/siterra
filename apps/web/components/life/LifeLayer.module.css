@@ -105,11 +105,8 @@
   top: 0;
   width: 320px;
   box-sizing: border-box;
-  padding: 10px 12px 12px;
-  /* a dark plate, so the card reads over the relief it stands beside */
-  background: var(--bg-overlay);
-  border: 1px solid var(--hairline);
-  border-radius: 6px;
+  padding: 0;
+  text-shadow: var(--ov-halo-dark);
   pointer-events: auto;
   /* opacity only: the card's transform is its place beside the glyph */
   animation: fade 220ms ease-out both;

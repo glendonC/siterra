@@ -368,3 +368,5 @@ export function placesOnLand(view: PackageView): PackagePlace[] {
     for (const p of m.places) if (p.bundleId !== null && !seen.has(p.key)) seen.set(p.key, p);
   return [...seen.values()];
 }
+
+export { packageViewForCase } from "./package-fallback";

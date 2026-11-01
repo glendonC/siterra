@@ -11,8 +11,17 @@ import type {
 } from "@siterra/contracts";
 import { pformat, pkg } from "../copy/package";
 import { commandMerge } from "../overview/results";
+import { deriveBranchContext, verdictForCase } from "./verdict-context";
+
+export { verdictForCase };
 
 export type VerdictStatus = BranchMerge["branches"][number]["status"];
+
+export interface VerdictLocalContext {
+  title: string;
+  detail: string;
+  citation: string;
+}
 
 export interface VerdictCause {
   id: string;
@@ -22,6 +31,8 @@ export interface VerdictCause {
   statusText: string;
   prediction: string;
   reason: string;
+  localContext?: VerdictLocalContext | undefined;
+  nextCheck?: string | undefined;
 }
 
 export interface VerdictView {
@@ -246,6 +257,9 @@ function formatReason(
       if (shortSpan) {
         return `One month cannot rule this out from space; ${checkLabel} ${verb} a field check.`;
       }
+      if (branch?.statement && branch.statement.trim().length > 12) {
+        return plainVerdictText(branch.statement);
+      }
       return `Only a field check of ${checkLabel} on the ground can test this.`;
     }
     if (shortSpan) {
@@ -318,6 +332,7 @@ export function verdictOf(snapshot: CaseSnapshot, commandId: string): VerdictVie
         ? plainVerdictText(branch.statement)
         : label;
     const reason = formatReason(branch, mb, prediction, score);
+    const extra = deriveBranchContext(snapshot, branch, mb);
     return {
       id: mb.explanationId,
       branchId: mb.branchId,
@@ -326,6 +341,7 @@ export function verdictOf(snapshot: CaseSnapshot, commandId: string): VerdictVie
       statusText: statusTextOf(mb.status),
       prediction: predText,
       reason,
+      ...extra,
     };
   });
 

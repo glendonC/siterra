@@ -146,3 +146,103 @@
 .package {
   margin-top: 18px;
 }
+
+.tabs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+  pointer-events: auto;
+}
+
+.tab {
+  flex: none;
+  height: 26px;
+  padding: 0 9px;
+  border: 1px solid var(--hairline);
+  border-radius: 2px;
+  background: transparent;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition:
+    color 160ms ease,
+    border-color 160ms ease,
+    background 160ms ease;
+}
+
+.tab:hover,
+.tab:focus-visible {
+  color: var(--text-primary);
+  border-color: var(--text-secondary);
+  outline: none;
+}
+
+.tab[aria-pressed="true"] {
+  color: var(--text-primary);
+  border-color: var(--text-secondary);
+  background: var(--bg-overlay);
+}
+
+.livelihoodMatrix {
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: auto;
+}
+
+.livelihoodCard {
+  margin: 0;
+  padding: 9px 12px;
+  border: 1px solid var(--hairline);
+  border-left: 2px solid #1e82d8;
+  border-radius: 2px;
+  background: var(--bg-overlay);
+  cursor: pointer;
+  transition:
+    border-color 140ms ease,
+    background 140ms ease;
+}
+
+.livelihoodCard:hover {
+  border-color: var(--text-secondary);
+  border-left-color: #1e82d8;
+}
+
+.livelihoodHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.livelihoodTitle {
+  font-size: 13px;
+  line-height: 17px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.livelihoodBadge {
+  padding: 1px 6px;
+  border: 1px solid var(--hairline-quiet);
+  border-radius: 2px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 15px;
+  color: var(--ov-amber-tag);
+}
+
+.livelihoodBody {
+  margin: 4px 0 0;
+  font-size: 12.5px;
+  line-height: 17px;
+  color: var(--text-secondary);
+}
