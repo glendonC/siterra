@@ -2,8 +2,48 @@
    This file and lib/theme/obsidian.ts are the only places where the instruments' colour values are written
    (VC-01). It applies inside an element with data-theme="obsidian"; the daylight tokens stay as they are. */
 
+:root,
+:root[data-theme="light"],
+[data-theme="light"] {
+  /* Perceptual OKLCH Earth-system triad (Warm Paper #F2EFEA light mode) */
+  --triad-blue: #1D6FE8; /* oklch(56% 0.19 255) — Hydrosphere / Climate & Deterministic Code */
+  --triad-red: #D94838; /* oklch(57% 0.18 28) — Lithosphere / Livelihood Risk & Sensor Mixing */
+  --triad-yellow: #D48817; /* oklch(66% 0.15 74) — Sol / Field Transects & Primary Sources */
+  --triad-green: #1E824C; /* oklch(54% 0.13 152) — Biosphere / Confirmed Vegetation Signal */
+  --triad-blue-soft: rgb(29 111 232 / 0.12);
+  --triad-red-soft: rgb(217 72 56 / 0.12);
+  --triad-yellow-soft: rgb(212 136 23 / 0.12);
+  --triad-green-soft: rgb(30 130 76 / 0.12);
+
+  /* Inquiry stage atmosphere and keycaps in Warm Paper light mode */
+  --detroit-atmosphere:
+    linear-gradient(125deg, rgb(255 255 255 / 0.32) 0%, rgb(255 255 255 / 0) 48%),
+    linear-gradient(235deg, rgb(255 255 255 / 0.28) 10%, rgb(255 255 255 / 0) 55%),
+    radial-gradient(circle at 50% 50%, rgb(242 239 234 / 0.18), rgb(242 239 234 / 0.65));
+  --keycap-bg: #3d4248;
+  --keycap-ink: #ffffff;
+}
+
+:root[data-theme="obsidian"],
 [data-theme="obsidian"] {
   color-scheme: dark;
+  /* Perceptual OKLCH Earth-system triad (Obsidian #0E1013 dark mode) */
+  --triad-blue: #4D9BFF;
+  --triad-red: #F26B5B;
+  --triad-yellow: #F2B238;
+  --triad-green: #3DBE7A;
+  --triad-blue-soft: rgb(77 155 255 / 0.12);
+  --triad-red-soft: rgb(242 107 91 / 0.12);
+  --triad-yellow-soft: rgb(242 178 56 / 0.12);
+  --triad-green-soft: rgb(61 190 122 / 0.12);
+
+  /* Inquiry stage atmosphere and keycaps in Obsidian dark mode */
+  --detroit-atmosphere:
+    linear-gradient(125deg, rgb(255 255 255 / 0.03) 0%, rgb(0 0 0 / 0) 48%),
+    radial-gradient(circle at 50% 50%, rgb(11 15 18 / 0.25), rgb(11 15 18 / 0.72));
+  --keycap-bg: #2a3238;
+  --keycap-ink: #ebf0f1;
+
   --bg-canvas: #0b1012;
   --bg-surface: #141c20;
   --bg-overlay: #1b262b;
@@ -118,6 +158,23 @@
   --ov-connector-end: #c9d6da;
   /* a card standing on the land (U27): the ground, nearly opaque, the land faintly through it */
   --ov-card: rgb(11 16 18 / 0.8);
+  /* AffectUI Clean dark tokens for the Agent Tree, Cursors and Thinking/Plan inspector (Section 8) */
+  --tree-card-bg: rgb(18 26 30 / 0.92);
+  --tree-card-hover-bg: rgb(24 34 39 / 0.96);
+  --tree-card-active-bg: rgb(26 37 43 / 0.98);
+  --tree-card-ring: rgb(235 240 241 / 0.14);
+  --tree-card-ring-strong: rgb(235 240 241 / 0.28);
+  --tree-card-running-ring: rgb(234 165 124 / 0.55);
+  --tree-spine: rgb(134 182 218 / 0.42);
+  --tree-spine-active: rgb(234 165 124 / 0.82);
+  --pill-running-bg: rgb(234 165 124 / 0.14);
+  --pill-running-ring: rgb(234 165 124 / 0.42);
+  --pill-done-bg: rgb(134 201 161 / 0.13);
+  --pill-done-ring: rgb(134 201 161 / 0.36);
+  --pill-queued-bg: rgb(235 240 241 / 0.05);
+  --pill-queued-ring: rgb(235 240 241 / 0.12);
+  --inspector-bg: rgb(16 23 27 / 0.95);
+  --inspector-block-bg: rgb(11 16 18 / 0.55);
   --ov-frost: radial-gradient(
     ellipse 50% 50% at 50% 50%,
     rgb(11 16 18 / 0.88) 0%,
@@ -136,6 +193,11 @@
   --paper: #0b1012;
   --ink: #ebf0f1;
   --grey: #9aa6ab;
+  --rule: rgb(235 240 241 / 0.22);
+  --rule-strong: rgb(235 240 241 / 0.44);
+  --card: #141c20;
+  --card-glass: rgb(20 28 32 / 0.78);
+  --veil-read: rgb(11 16 18 / 0.76);
   --paper-halo: 0 0 2px #0b1012, 0 0 2px #0b1012, 0 0 3px #0b1012;
   --biome-fill: #3a3226;
   --biome-edge: rgb(224 122 58 / 0.45);

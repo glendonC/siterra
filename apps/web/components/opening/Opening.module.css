@@ -1,89 +1,1113 @@
-/* The opening page: three things above the globe's limb (decision 7): the case question at the opening size in an
-   860 px column, one sentence of what Siterra does at the command size, and the one action. How it works opens
-   under a quiet button. The question arrives faint and wide-tracked and tightens over 1 s; the rest follows. */
+/* The opening page:
+   - Unified filled-squircle keycap & badge language (matching Screen 2's [ESC] BACK and [↵] COMMISSION).
+   - Permanently anchored vertical layout so the carousel, statement, citations, and [↵] prompt never shift up/down between beats.
+   - Thin, clean two-tone typography (300 weight primary ink lead + muted slate continuation).
+   - Single-surface frosted blur editorial overlay (left hairline spec rows + right narrative with colored squircle badges & clickable links). */
+
 .opening {
+  --triad-blue-c: var(--triad-blue, #1d6fe8);
+  --triad-red-c: var(--triad-red, #d94838);
+  --triad-yellow-c: var(--triad-yellow, #d48817);
+  --triad-green-c: var(--triad-green, #1e824c);
+  --squircle-dark-bg: var(--keycap-bg, #3b4046);
+  --squircle-dark-ink: var(--keycap-ink, #ffffff);
+
   position: fixed;
   inset: 0;
   cursor: default;
+  pointer-events: none;
+}
+
+.opening button,
+.opening a {
+  pointer-events: auto;
+}
+
+.topBar {
+  position: absolute;
+  top: 24px;
+  left: 40px;
+  right: 40px;
+  z-index: 20;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
 }
 
 .brand {
-  position: absolute;
-  left: 40px;
-  top: 36px;
-  margin: 0;
-  font: 500 var(--type-place-size) / 18px var(--font-sans);
-  letter-spacing: var(--type-place-tracking);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--ink);
+  justify-self: start;
+}
+
+.brandMark {
+  width: 20px;
+  height: 20px;
+  color: var(--ink);
+  flex-shrink: 0;
+  transition: transform 360ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.brand:hover .brandMark {
+  transform: rotate(30deg);
+}
+
+.brandName {
+  font: 300 20px / 24px var(--font-sans);
+  letter-spacing: -0.02em;
   color: var(--ink);
 }
 
+/* Bare, borderless editorial navigation links — animated colored squircle on the left on hover/active */
+.topNav {
+  display: inline-flex;
+  align-items: center;
+  gap: 28px;
+  justify-self: center;
+}
+
+.topNavLink {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 2px;
+  border: 0;
+  background: transparent;
+  font: 400 13px / 18px var(--font-sans);
+  letter-spacing: -0.005em;
+  color: var(--grey);
+  cursor: pointer;
+  transition: color 180ms ease;
+}
+
+.topNavIndicator {
+  width: 7px;
+  height: 7px;
+  border-radius: 2px;
+  background: var(--triad-blue-c);
+  opacity: 0;
+  transform: scale(0.35) translateX(4px);
+  transition:
+    opacity 200ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.topNavLink[data-tone="blue"] .topNavIndicator {
+  background: var(--triad-blue-c);
+}
+
+.topNavLink[data-tone="red"] .topNavIndicator {
+  background: var(--triad-red-c);
+}
+
+.topNavLink[data-tone="yellow"] .topNavIndicator {
+  background: var(--triad-yellow-c);
+}
+
+.topNavLink[data-tone="green"] .topNavIndicator {
+  background: var(--triad-green-c);
+}
+
+.topNavLabel {
+  transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.topNavLink:hover,
+.topNavLink:focus,
+.topNavLink:focus-visible,
+.topNavLink[data-active] {
+  color: var(--ink);
+  outline: none;
+}
+
+.topNavLink:hover .topNavIndicator,
+.topNavLink:focus-visible .topNavIndicator,
+.topNavLink[data-active] .topNavIndicator {
+  opacity: 1;
+  transform: scale(1) translateX(0);
+}
+
+.topNavLink:hover .topNavLabel,
+.topNavLink[data-active] .topNavLabel {
+  transform: translateX(1px);
+}
+
+.topNavLink:focus-visible {
+  outline: none;
+  color: var(--ink);
+}
+
+.topRightWrap {
+  display: flex;
+  justify-content: flex-end;
+  justify-self: end;
+}
+
+/* Theme toggle: clean icon at rest, morphs into our dark squircle keycap on hover */
+.themeIconBtn {
+  display: inline-grid;
+  place-items: center;
+  width: 30px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--grey);
+  cursor: pointer;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease,
+    transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.themeIconBtn:hover,
+.themeIconBtn:focus-visible {
+  background: var(--squircle-dark-bg);
+  color: var(--squircle-dark-ink);
+  outline: none;
+}
+
+/* Permanently fixed editorial stage — never shifts vertically when globe limb or beat text changes */
 .paper {
   position: absolute;
-  left: 0;
-  right: 0;
-  top: 58px;
+  left: 32px;
+  right: 32px;
+  top: 118px;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.centerStack {
+  width: 790px;
+  max-width: calc(100vw - 64px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+/* 1. Permanently anchored carousel bar at the top of centerStack */
+.carouselBar {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  height: 22px;
+  margin: 0 0 20px;
+  flex-shrink: 0;
+}
+
+.carouselArrow {
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  border-radius: 2.5px;
+  background: transparent;
+  color: var(--grey);
+  cursor: pointer;
+  transition:
+    color 150ms ease,
+    background-color 150ms ease;
+}
+
+.carouselArrow:hover,
+.carouselArrow:focus-visible {
+  color: var(--ink);
+  background: color-mix(in srgb, var(--ink) 7%, transparent);
+  outline: none;
+}
+
+.marks {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.markItem {
+  display: flex;
+}
+
+.markBtn {
+  position: relative;
+  width: 42px;
+  height: 16px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.markBtn:focus,
+.markBtn:focus-visible {
+  outline: none;
+}
+
+.markTrack {
+  position: relative;
+  width: 100%;
+  height: 2.5px;
+  border-radius: 1.5px;
+  overflow: hidden;
+  background: var(--rule-strong);
+}
+
+.markFill {
+  display: block;
+  position: absolute;
+  inset: 0;
+  border-radius: 1.5px;
+  background: var(--triad-blue-c);
+  transform-origin: left center;
+  transform: scaleX(0);
+}
+
+.markFill[data-tone="blue"] {
+  background: var(--triad-blue-c);
+}
+
+.markFill[data-tone="red"] {
+  background: var(--triad-red-c);
+}
+
+.markFill[data-tone="yellow"] {
+  background: var(--triad-yellow-c);
+}
+
+.markFill[data-tone="green"] {
+  background: var(--triad-green-c);
+}
+
+.markBtn[data-state="done"] .markFill {
+  transform: scaleX(1);
+  opacity: 0.45;
+}
+
+.markBtn[data-state="current"] .markFill {
+  opacity: 1;
+  animation: fill linear forwards;
+}
+
+.markBtn[data-state="current"][data-paused] .markFill {
+  animation-play-state: paused;
+}
+
+/* 2. Strictly fixed-height statement stage (196px) so citations & [↵] below never move by 1px */
+.beatStage {
+  position: relative;
+  width: 100%;
+  height: 196px;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .beat {
-  width: 860px;
-  max-width: calc(100vw - 32px);
+  width: 810px;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   text-align: center;
+  will-change: transform, opacity, filter;
 }
 
-.question {
+.sentence {
   margin: 0;
-  font: 400 var(--type-opening-size) / var(--type-opening-line) var(--font-sans);
-  letter-spacing: -0.005em;
+  font: 300 30px / 39px var(--font-sans);
+  letter-spacing: -0.02em;
   text-wrap: balance;
+}
+
+.ink {
   color: var(--ink);
-  animation: settle 1s var(--ease-arrive) both;
+  font-weight: 300;
+  display: inline;
+  animation: beatGlide 460ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-.what,
-.how {
-  margin: 14px auto 0;
-  max-width: 640px;
-  font: 400 var(--type-command-size) / 24px var(--font-sans);
-  text-wrap: pretty;
+.grey {
   color: var(--grey);
-  animation: fade 300ms var(--ease-arrive) 250ms both;
+  font-weight: 300;
+  display: inline;
+  animation: beatGlide 520ms cubic-bezier(0.22, 1, 0.36, 1) 70ms both;
 }
 
-.how {
-  margin-top: 6px;
-  font-size: 15px;
-  line-height: 22px;
+/* 3. Quiet, borderless monospace source citation line at fixed vertical offset */
+.citationRow {
+  position: relative;
+  height: 20px;
+  margin: 14px 0 0;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  animation: beatGlide 460ms cubic-bezier(0.22, 1, 0.36, 1) 120ms both;
 }
 
-.action {
-  margin: 28px 0 0;
+.citationItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.citationSep {
+  color: var(--grey);
+  opacity: 0.6;
+  font: 400 12px / 16px var(--font-mono);
+}
+
+.citationLink {
+  padding: 2px 6px;
+  margin: -2px -6px;
+  border: 0;
+  border-radius: 2.5px;
+  background: transparent;
+  font: 400 12px / 16px var(--font-mono);
+  letter-spacing: 0.02em;
+  color: var(--grey);
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    color 140ms ease,
+    background-color 140ms ease;
+}
+
+.citationLink:hover,
+.citationLink:focus-visible {
+  color: var(--ink);
+  background: color-mix(in srgb, var(--ink) 7%, transparent);
+  outline: none;
+}
+
+/* Clean, opaque-frosted footnote card opens below the citation row while hiding the start prompt cleanly */
+.citationPreview {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 460px;
+  max-width: calc(100vw - 48px);
+  padding: 12px 16px;
+  border: 1px solid var(--rule-strong);
+  border-radius: 4px;
+  background: var(--bg-canvas, #f2efea);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.1);
+  text-align: left;
+  z-index: 40;
+  pointer-events: none;
+  animation: previewFade 150ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.citationPreviewHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.citationPreviewBadge {
+  display: inline-grid;
+  place-items: center;
+  padding: 2px 6px;
+  border-radius: 2.5px;
+  background: var(--triad-blue-c);
+  color: #ffffff;
+  font: 500 10px / 14px var(--font-mono);
+  letter-spacing: 0.04em;
+}
+
+.citationPreviewBadge[data-tone="red"] {
+  background: var(--triad-red-c);
+}
+
+.citationPreviewBadge[data-tone="yellow"] {
+  background: var(--triad-yellow-c);
+}
+
+.citationPreviewBadge[data-tone="green"] {
+  background: var(--triad-green-c);
+}
+
+.citationPreviewVenue {
+  font: 400 11px / 14px var(--font-mono);
+  color: var(--grey);
+}
+
+.citationPreviewTitle {
+  margin: 0 0 3px;
+  font: 400 12.5px / 17px var(--font-sans);
+  color: var(--ink);
+}
+
+.citationPreviewFinding {
+  margin: 0;
+  font: 300 12px / 16.5px var(--font-sans);
+  color: var(--grey);
+}
+
+/* 4. Filled-squircle [↵] PRESS ENTER TO START (matches Screen 2's [↵] COMMISSION button) */
+.startPromptWrap {
+  margin: 22px 0 0;
+  height: 28px;
+  flex-shrink: 0;
   display: flex;
   justify-content: center;
-  animation: fade 300ms var(--ease-arrive) 250ms both;
+  transition: opacity 140ms ease;
 }
 
-.howLine {
-  margin: 10px 0 0;
+.centerStack[data-citation-open] .startPromptWrap {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.startPrompt {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 2px 4px;
+  border: 0;
+  background: transparent;
+  font: 400 11.5px / 15px var(--font-sans);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink);
+  cursor: pointer;
+  transition: opacity 150ms ease;
+}
+
+.startPrompt:hover,
+.startPrompt:focus-visible {
+  opacity: 0.76;
+  outline: none;
+}
+
+.startGlyph {
+  display: inline-grid;
+  place-items: center;
+  min-width: 24px;
+  height: 22px;
+  padding: 0 6px;
+  border: 0;
+  border-radius: 2.5px;
+  background: var(--triad-blue-c);
+  color: #ffffff;
+  font: 400 11px / 1 var(--font-mono);
+  letter-spacing: 0;
+}
+
+.startText {
+  color: inherit;
+}
+
+/* ============================================================================
+   UNIFIED FROSTED-BLUR EDITORIAL PANEL (Same Theme Palette, Zero Jarring Box)
+   ============================================================================ */
+
+.docBlurOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: color-mix(in srgb, var(--bg-canvas, #f2efea) 88%, transparent);
+  backdrop-filter: blur(26px) saturate(1.06);
   display: flex;
+  align-items: flex-start;
   justify-content: center;
-  animation: fade 300ms var(--ease-arrive) 400ms both;
+  padding: 68px 48px 48px;
+  box-sizing: border-box;
+  pointer-events: auto;
+  animation: overlayFadeIn 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-@keyframes settle {
+.docSheet {
+  width: 100%;
+  max-width: 1060px;
+  height: min(690px, calc(100vh - 108px));
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  text-align: left;
+  animation: sheetGlideUp 280ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.docSheetTop {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--rule-strong);
+}
+
+.docSheetTabs {
+  display: inline-flex;
+  align-items: center;
+  gap: 26px;
+}
+
+.docSheetTab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  border: 0;
+  background: transparent;
+  font: 400 13px / 18px var(--font-sans);
+  color: var(--grey);
+  cursor: pointer;
+  outline: none;
+  transition: color 150ms ease;
+}
+
+.docSheetTab:focus,
+.docSheetTab:focus-visible {
+  outline: none;
+}
+
+.docSheetTabDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 2px;
+  background: var(--triad-blue-c);
+  opacity: 0.28;
+  transform: scale(0.75);
+  transition:
+    opacity 180ms ease,
+    transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.docSheetTab[data-tone="red"] .docSheetTabDot {
+  background: var(--triad-red-c);
+}
+
+.docSheetTab[data-tone="yellow"] .docSheetTabDot {
+  background: var(--triad-yellow-c);
+}
+
+.docSheetTab[data-tone="green"] .docSheetTabDot {
+  background: var(--triad-green-c);
+}
+
+.docSheetTab:hover,
+.docSheetTab:focus-visible,
+.docSheetTab[data-active] {
+  color: var(--ink);
+  outline: none;
+}
+
+.docSheetTab:hover .docSheetTabDot,
+.docSheetTab:focus-visible .docSheetTabDot,
+.docSheetTab[data-active] .docSheetTabDot {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* [ESC] CLOSE button matching Screen 2's dark squircle keycap */
+.docSheetClose {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: 400 11px / 15px var(--font-sans);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink);
+  cursor: pointer;
+  outline: none;
+  transition: opacity 140ms ease;
+}
+
+.docSheetClose:hover,
+.docSheetClose:focus-visible {
+  opacity: 0.72;
+  outline: none;
+}
+
+.docKeycap {
+  display: inline-grid;
+  place-items: center;
+  min-width: 28px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 2.5px;
+  background: var(--squircle-dark-bg);
+  color: var(--squircle-dark-ink);
+  font: 400 10px / 1 var(--font-mono);
+  letter-spacing: 0.02em;
+}
+
+/* Clean 2-column layout on the same frosted surface — strictly fixed height */
+.docSheetBody {
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+  display: grid;
+  grid-template-columns: 310px 1fr;
+  gap: 56px;
+  align-items: stretch;
+  overflow: hidden;
+}
+
+/* Left Column: Hairline Key-Value Specification Rows */
+.docSpecCol {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.docSpecColHeader {
+  padding-bottom: 4px;
+}
+
+.docSpecColKicker {
+  font: 400 11.5px / 16px var(--font-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--grey);
+}
+
+.docSpecList {
+  margin: 0;
+  padding: 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.docSpecRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 9px 0;
+  border-top: 1px solid var(--rule);
+}
+
+.docSpecLabel {
+  font: 300 12.5px / 17px var(--font-sans);
+  color: var(--grey);
+  white-space: nowrap;
+}
+
+.docSpecValGroup {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
+  text-align: right;
+}
+
+.docSpecValPrimary {
+  font: 400 12.5px / 17px var(--font-sans);
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+.docSpecValSub {
+  font: 300 11.5px / 16px var(--font-sans);
+  color: var(--grey);
+  white-space: nowrap;
+}
+
+/* Right Column: Thin Two-Tone Headline + Colored Squircle Badges + Clean Explanation */
+.docNarrativeCol {
+  height: 100%;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.docNarrativeLead {
+  margin: 0;
+  font: 300 23px / 32px var(--font-sans);
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+.docLeadInk {
+  color: var(--ink);
+  font-weight: 300;
+}
+
+.docLeadGrey {
+  color: var(--grey);
+  font-weight: 300;
+}
+
+.docPointsList {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--rule);
+}
+
+.docPointRow {
+  display: grid;
+  grid-template-columns: 36px 1fr;
+  align-items: start;
+  gap: 16px;
+  padding: 13px 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+/* Filled colored squircle number badge matching Screen 2's keycap style */
+.docPointNum {
+  display: inline-grid;
+  place-items: center;
+  min-width: 26px;
+  height: 22px;
+  padding: 0 5px;
+  border-radius: 2.5px;
+  background: var(--triad-blue-c);
+  color: #ffffff;
+  font: 500 10.5px / 1 var(--font-mono);
+  margin-top: 1px;
+}
+
+.docPointNum[data-tone="red"] {
+  background: var(--triad-red-c);
+}
+
+.docPointNum[data-tone="yellow"] {
+  background: var(--triad-yellow-c);
+}
+
+.docPointNum[data-tone="green"] {
+  background: var(--triad-green-c);
+}
+
+.docPointContent {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.docPointTitle {
+  margin: 0;
+  font: 400 15.5px / 21px var(--font-sans);
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+
+.docPointBody {
+  margin: 0;
+  font: 300 13.5px / 20px var(--font-sans);
+  color: var(--grey);
+}
+
+.docPointCite {
+  align-self: flex-start;
+  margin-top: 2px;
+  font: 400 11.5px / 16px var(--font-mono);
+  color: var(--triad-blue-c);
+  text-decoration: none;
+  transition: opacity 140ms ease;
+}
+
+.docPointCite:hover {
+  opacity: 0.75;
+  text-decoration: underline;
+}
+
+/* Sources list on the same clean frosted surface */
+.docSourcesList {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--rule);
+}
+
+.docSourceItem {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--rule);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.docSourceTop {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.docSourceCode {
+  display: inline-grid;
+  place-items: center;
+  padding: 2px 6px;
+  border-radius: 2.5px;
+  background: var(--triad-blue-c);
+  color: #ffffff;
+  font: 500 10px / 14px var(--font-mono);
+}
+
+.docSourceCode[data-tone="red"] {
+  background: var(--triad-red-c);
+}
+
+.docSourceCode[data-tone="yellow"] {
+  background: var(--triad-yellow-c);
+}
+
+.docSourceCode[data-tone="green"] {
+  background: var(--triad-green-c);
+}
+
+.docSourceAuthor {
+  font: 400 12px / 16px var(--font-mono);
+  color: var(--ink);
+}
+
+.docSourceDoi {
+  margin-left: auto;
+  font: 400 11.5px / 16px var(--font-mono);
+  color: var(--triad-blue-c);
+  text-decoration: none;
+}
+
+.docSourceDoi:hover {
+  text-decoration: underline;
+}
+
+.docSourceTitle {
+  margin: 0;
+  font: 400 13.5px / 19px var(--font-sans);
+}
+
+.docSourceNote {
+  margin: 0;
+  font: 300 12.5px / 18px var(--font-sans);
+  color: var(--grey);
+}
+
+/* ============================================================================
+   CLEAN BORDERLESS MULTI-MODEL ARCHITECTURE VIEW (Inside Architecture Tab)
+   ============================================================================ */
+
+.archDiagram {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--rule);
+}
+
+.archRouterBar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 13px 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.archRouterBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 2.5px;
+  background: var(--squircle-dark-bg);
+  color: var(--squircle-dark-ink);
+  font: 500 10px / 14px var(--font-mono);
+  letter-spacing: 0.06em;
+  flex-shrink: 0;
+}
+
+.archRouterMain {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.archRouterTitle {
+  font: 400 14px / 19px var(--font-sans);
+  color: var(--ink);
+}
+
+.archRouterSub {
+  font: 300 12px / 17px var(--font-sans);
+  color: var(--grey);
+}
+
+.archFlowLink {
+  margin-left: auto;
+  font: 400 11.5px / 16px var(--font-mono);
+  color: var(--triad-blue-c);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: opacity 140ms ease;
+}
+
+.archFlowLink:hover {
+  opacity: 0.75;
+  text-decoration: underline;
+}
+
+.archModelGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 28px;
+}
+
+.archModelCard {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.archModelHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.archModelIcon {
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 20px;
+  border-radius: 2.5px;
+  background: var(--triad-blue-c);
+  color: #ffffff;
+  flex-shrink: 0;
+}
+
+.archModelIcon[data-tone="red"] {
+  background: var(--triad-red-c);
+}
+
+.archModelIcon[data-tone="yellow"] {
+  background: var(--triad-yellow-c);
+}
+
+.archModelIcon[data-tone="green"] {
+  background: var(--triad-green-c);
+}
+
+.archModelName {
+  font: 400 14px / 19px var(--font-sans);
+  color: var(--ink);
+}
+
+.archModelSpec {
+  margin-left: auto;
+  font: 400 9.5px / 13px var(--font-mono);
+  letter-spacing: 0.05em;
+  color: var(--grey);
+}
+
+.archModelDesc {
+  margin: 0;
+  font: 300 12.5px / 18px var(--font-sans);
+  color: var(--grey);
+}
+
+.archGateBar {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding: 13px 0 4px;
+}
+
+.archGateHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.archGateLabel {
+  font: 500 10px / 14px var(--font-mono);
+  letter-spacing: 0.07em;
+  color: var(--grey);
+}
+
+.archGatePills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.archGatePill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font: 400 12px / 17px var(--font-sans);
+  color: var(--ink);
+}
+
+.archGateDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 1.5px;
+  background: var(--triad-blue-c);
+}
+
+.archGateDot[data-tone="red"] {
+  background: var(--triad-red-c);
+}
+
+.archGateDot[data-tone="yellow"] {
+  background: var(--triad-yellow-c);
+}
+
+.archGateDot[data-tone="green"] {
+  background: var(--triad-green-c);
+}
+
+@keyframes fill {
   from {
-    opacity: 0.15;
-    letter-spacing: 0.025em;
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes beatGlide {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+    filter: blur(2px);
   }
   to {
     opacity: 1;
-    letter-spacing: -0.005em;
+    transform: translateY(0);
+    filter: blur(0);
   }
 }
 
-@keyframes fade {
+@keyframes previewFade {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@keyframes overlayFadeIn {
   from {
     opacity: 0;
   }
@@ -92,12 +1116,51 @@
   }
 }
 
+@keyframes sheetGlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 900px) {
+  .docSheetBody {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+}
+
+@media (max-width: 760px) {
+  .topBar {
+    left: 20px;
+    right: 20px;
+  }
+
+  .topNav {
+    display: none;
+  }
+
+  .sentence {
+    font-size: 24px;
+    line-height: 32px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .question,
-  .what,
-  .how,
-  .action,
-  .howLine {
-    animation: fade 150ms linear both;
+  .ink,
+  .grey,
+  .citationRow,
+  .docBlurOverlay,
+  .docSheet {
+    animation: none;
+  }
+
+  .markBtn[data-state="current"] .markFill {
+    animation: none;
+    transform: scaleX(1);
   }
 }

@@ -18,8 +18,9 @@
   --shadow-tint: #788693;
   --accent: #b5561f;
   --card: #fdfdfc;
-  --rule: rgba(43, 41, 37, 0.16);
-  --rule-strong: rgba(43, 41, 37, 0.35);
+  --card-glass: rgba(253, 253, 252, 0.78);
+  --rule: rgba(43, 41, 37, 0.18);
+  --rule-strong: rgba(43, 41, 37, 0.36);
   --shadow-card: 0 1px 2px rgba(43, 41, 37, 0.08), 0 8px 28px rgba(43, 41, 37, 0.1);
   --shadow-island: 0 1px 2px rgba(43, 41, 37, 0.08), 0 8px 28px rgba(43, 41, 37, 0.1);
   --shadow-popover: 0 1px 2px rgba(43, 41, 37, 0.08), 0 6px 18px rgba(43, 41, 37, 0.1);
@@ -61,6 +62,135 @@
   /* Halo of names on the land */
   --paper-halo-ground: 0 0 3px #f2efea, 0 0 3px #f2efea, 0 0 4px #f2efea;
   --paper-halo: 0 0 2px #f2efea, 0 0 2px #f2efea, 0 0 3px #f2efea;
+
+  --hairline: rgb(43 41 37 / 0.28);
+  --hairline-quiet: rgb(43 41 37 / 0.14);
+  --ink-on-wall: #2b2925;
+  --hairline-on-wall: rgb(43 41 37 / 0.5);
+
+  /* Valley overview (specimen D4) in Daylight Paper (#f2efea) */
+  --ov-ground:
+    radial-gradient(
+      ellipse 38% 52% at 50% 50%,
+      rgb(255 253 250 / 0.72) 0%,
+      rgb(248 245 240 / 0.4) 44%,
+      rgb(242 239 234 / 0) 100%
+    ),
+    radial-gradient(ellipse 88% 82% at 50% 48%, rgb(242 239 234 / 0) 52%, rgb(225 220 212 / 0.55) 100%),
+    #f2efea;
+  --ov-ink: #2b2925;
+  --ov-ink-2: #524e49;
+  --ov-ink-3: #6b6762;
+  --ov-ink-4: #87837d;
+  --ov-bright: #181614;
+  --ov-numeral: #3d3a35;
+  --ov-caption: #5c5853;
+  --ov-caption-hover: #2b2925;
+  --ov-wire: rgb(43 41 37 / 0.38);
+  --ov-green: #22784b;
+  --ov-blue: #295e82;
+  --ov-halo-green: radial-gradient(circle, rgb(34 120 75 / 0.45) 0%, rgb(34 120 75 / 0) 68%);
+  --ov-halo-blue: radial-gradient(circle, rgb(41 94 130 / 0.45) 0%, rgb(41 94 130 / 0) 68%);
+  --ov-amber-tag: #9c4414;
+  --ov-amber-arrow: #9c4414;
+  --ov-halo-dark:
+    0 0 2px rgb(242 239 234 / 0.96), 0 0 5px rgb(242 239 234 / 0.92),
+    0 0 10px rgb(242 239 234 / 0.85);
+  --ov-halo-place: 0 0 10px rgb(242 239 234 / 0.94), 0 0 4px rgb(242 239 234 / 0.94);
+  --ov-cover-tree: #3a7543;
+  --ov-cover-crop: #6e944b;
+  --ov-cornerfade:
+    radial-gradient(
+      ellipse 42% 34% at 0% 100%,
+      rgb(242 239 234 / 0.92) 0%,
+      rgb(242 239 234 / 0.68) 45%,
+      rgb(242 239 234 / 0) 100%
+    ),
+    radial-gradient(
+      ellipse 46% 26% at 0% 0%,
+      rgb(242 239 234 / 0.94) 0%,
+      rgb(242 239 234 / 0.72) 50%,
+      rgb(242 239 234 / 0) 100%
+    );
+  --ov-focus: rgb(43 41 37 / 0.6);
+
+  /* Ask disc in Daylight */
+  --ask-disc: radial-gradient(
+    circle at 50% 58%,
+    #24464e 0%,
+    #2f5660 40%,
+    #466a73 80%,
+    #587b84 100%
+  );
+  --ask-disc-hover: radial-gradient(
+    circle at 50% 58%,
+    #1d3b42 0%,
+    #284d56 40%,
+    #3d616a 80%,
+    #4e727b 100%
+  );
+  --ask-disc-edge: radial-gradient(closest-side, #000 calc(100% - 1.5px), transparent 100%);
+  --ask-disc-deep: #24464e;
+  --ask-mark: #fdfdfc;
+  --ask-label: #f4f8f9;
+  --ask-label-hover: #ffffff;
+  --ask-veil:
+    radial-gradient(
+      ellipse 50% 36% at 50% 100%,
+      rgb(41 94 130 / 0.1) 0%,
+      rgb(41 94 130 / 0.03) 55%,
+      rgb(41 94 130 / 0) 100%
+    ),
+    radial-gradient(
+      ellipse 64% 100% at 50% 100%,
+      rgb(242 239 234 / 0.98) 0%,
+      rgb(242 239 234 / 0.94) 32%,
+      rgb(242 239 234 / 0.72) 60%,
+      rgb(242 239 234 / 0.25) 84%,
+      rgb(242 239 234 / 0) 100%
+    );
+  --ask-text: #2b2925;
+  --ask-caret: #b5561f;
+
+  /* Opened finding record and Agent Tree in Daylight */
+  --ov-kicker: #6b6762;
+  --ov-cap: #4f4b46;
+  --ov-ci: #6b6762;
+  --ov-evid: #2b2925;
+  --ov-point: #22784b;
+  --ov-grid: rgb(43 41 37 / 0.1);
+  --ov-connector: rgb(43 41 37 / 0.42);
+  --ov-connector-end: #524e49;
+  --ov-card: rgb(253 253 252 / 0.92);
+  --tree-card-bg: rgb(253 253 252 / 0.94);
+  --tree-card-hover-bg: rgb(255 255 255 / 0.98);
+  --tree-card-active-bg: rgb(255 255 255 / 1);
+  --tree-card-ring: rgb(43 41 37 / 0.16);
+  --tree-card-ring-strong: rgb(43 41 37 / 0.34);
+  --tree-card-running-ring: rgb(181 86 31 / 0.65);
+  --tree-spine: rgb(41 94 130 / 0.45);
+  --tree-spine-active: rgb(181 86 31 / 0.85);
+  --pill-running-bg: rgb(181 86 31 / 0.12);
+  --pill-running-ring: rgb(181 86 31 / 0.42);
+  --pill-done-bg: rgb(34 120 75 / 0.12);
+  --pill-done-ring: rgb(34 120 75 / 0.38);
+  --pill-queued-bg: rgb(43 41 37 / 0.05);
+  --pill-queued-ring: rgb(43 41 37 / 0.14);
+  --inspector-bg: rgb(253 253 252 / 0.96);
+  --inspector-block-bg: rgb(242 239 234 / 0.78);
+  --ov-frost: radial-gradient(
+    ellipse 50% 50% at 50% 50%,
+    rgb(242 239 234 / 0.92) 0%,
+    rgb(242 239 234 / 0.88) 70%,
+    rgb(242 239 234 / 0.48) 88%,
+    rgb(242 239 234 / 0) 100%
+  );
+  --ov-frost-mask: radial-gradient(
+    ellipse 50% 50% at 50% 50%,
+    #000 64%,
+    rgb(0 0 0 / 0.7) 82%,
+    transparent 100%
+  );
 
   --font-sans: "IBM Plex Sans Variable", "IBM Plex Sans", system-ui, sans-serif;
   --font-condensed:
