@@ -28,7 +28,14 @@ import { centreOf } from "../../lib/land/geometry";
 import { STORY_BEATS } from "../../lib/opening/beats";
 import { Opening } from "../opening/Opening";
 import { GlobePage, type CustomGlobeLocation, type GlobeCase } from "./GlobePage";
-import { namePoint, surfaceAt, type GeocodeHit } from "./globe-choice";
+import {
+  classifyPlace,
+  namePoint,
+  rangelandShareAt,
+  reliefAt,
+  surfaceAt,
+  type GeocodeHit,
+} from "./globe-choice";
 import type { CaseSnapshot } from "@siterra/contracts";
 import type { ReadyArrival } from "../../lib/projection/arrival";
 import { InstrumentRecords } from "../instruments/InstrumentRecords";
@@ -360,15 +367,24 @@ export function Journey({ globeAssets, arrival, snapshot }: JourneyProps) {
         if (ac.signal.aborted) return;
         const surface = surfaceAt(grids?.world, lon, lat);
         const named = namePoint({ lon, lat, surface, hit: h });
+        // the kind of place, only from the geocoder's kind and the globe's relief, land and rangeland grids
+        const placeKind = classifyPlace({
+          hit: h,
+          surface: named.surface,
+          relief: reliefAt(grids?.world, lon, lat),
+          rangelandShare: rangelandShareAt(grids?.layer, lon, lat),
+        });
         rangeNameRef.current = named.region || named.title;
         setCustomLocation({
           lon,
           lat,
           placeName: named.title,
           regionName: named.region,
+          named: Boolean(h?.name),
           resolving: false,
           surface: named.surface,
           investigable: named.investigable,
+          placeKind,
         });
       });
     },

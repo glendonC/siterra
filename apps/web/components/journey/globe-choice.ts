@@ -1,7 +1,7 @@
-// Choosing a place and a question on the globe: what the card shows in each step and what a picked point is called.
-// Every decision here comes from a real signal already at hand: the geocoder's class and type, and the globe's own
-// 0.08 degree land share grid (data/map/README.md). Nothing is invented; a point without a name is named by its
-// coordinates.
+// Choosing a place and a question on the globe: what the card shows in each step, what a picked point is called,
+// what kind of place it is, and which questions fit it. Every decision here comes from a real signal already at hand:
+// the geocoder's class and type, and the globe's own 0.08 degree land share and elevation grids and its rangeland
+// biome layer (data/map/README.md). Nothing is invented; a point without a name is named by its coordinates.
 
 /** The globe's world grid: elevation in metres and land share 0 to 1, interleaved, rows north to south. */
 export interface WorldGrid {
@@ -10,8 +10,18 @@ export interface WorldGrid {
   data: Float32Array;
 }
 
+/** The rangeland biome layer: each cell's share in the rangeland biomes, 0 to 255, rows north to south. */
+export interface BiomeLayer {
+  w: number;
+  h: number;
+  data: Uint8Array;
+}
+
 /** water: no land within the case's box (a live case spans 10 km each way); coast: some land; land: all land. */
 export type Surface = "land" | "coast" | "water" | "unknown";
+
+export type PlaceKind =
+  "city" | "coast" | "mountain-valley" | "mountain" | "rangeland" | "farmland" | "forest";
 
 /** The geocoder's answer for a point, or nothing when it had no name for it. */
 export interface GeocodeHit {
@@ -35,6 +45,7 @@ export function cardQuestion(step: 1 | 2, question: string): string | null {
 }
 
 const CASE_HALF_KM = 10;
+const RELIEF_HALF_CELLS = 3;
 const KM_PER_DEG = 111.32;
 
 function cellOf(grid: { w: number; h: number }, lon: number, lat: number): [number, number] {
@@ -81,6 +92,40 @@ export function surfaceAt(world: WorldGrid | null | undefined, lon: number, lat:
   return "coast";
 }
 
+/** Relief round the point (about 27 km each way) and where the point sits in it, 0 at the lowest cell, 1 the highest. */
+export function reliefAt(
+  world: WorldGrid | null | undefined,
+  lon: number,
+  lat: number,
+): { reliefM: number; position: number } | null {
+  if (!world) return null;
+  let min = Infinity;
+  let max = -Infinity;
+  for (const i of cellsAround(world, lon, lat, RELIEF_HALF_CELLS)) {
+    if ((world.data[i * 2 + 1] ?? 0) <= 0) continue;
+    const e = world.data[i * 2] ?? 0;
+    min = Math.min(min, e);
+    max = Math.max(max, e);
+  }
+  if (!Number.isFinite(min) || !Number.isFinite(max)) return null;
+  const [c, r] = cellOf(world, lon, lat);
+  const here = world.data[(r * world.w + c) * 2] ?? 0;
+  const reliefM = max - min;
+  return { reliefM, position: reliefM > 0 ? (here - min) / reliefM : 0 };
+}
+
+/** The point's share in the rangeland biomes, 0 to 1. */
+export function rangelandShareAt(
+  layer: BiomeLayer | null | undefined,
+  lon: number,
+  lat: number,
+): number | null {
+  if (!layer) return null;
+  const [c, r] = cellOf(layer, lon, lat);
+  const v = layer.data[r * layer.w + c];
+  return v === undefined ? null : v / 255;
+}
+
 const SEA_TYPES = new Set(["sea", "ocean"]);
 const WATER_NAME_TYPES = new Set(["sea", "ocean", "bay", "strait", "water", "gulf", "sound"]);
 
@@ -117,7 +162,7 @@ export function namePoint(input: {
       name &&
       (WATER_NAME_TYPES.has(hit?.osmType ?? "") || WATER_NAME_TYPES.has(hit?.addressType ?? ""))
         ? name
-        : "Open ocean";
+        : "Open water";
     return { title: waterName, region: "", surface, investigable: false };
   }
   if (name) return { title: name, region, surface, investigable: true };
@@ -125,6 +170,114 @@ export function namePoint(input: {
     return { title: `The point at ${coords}`, region, surface, investigable: false };
   const what = surface === "coast" ? "The coast" : "The land";
   return { title: `${what} at ${coords}`, region, surface, investigable: true };
+}
+
+const CITY_TYPES = new Set([
+  "city",
+  "town",
+  "suburb",
+  "borough",
+  "city_district",
+  "quarter",
+  "neighbourhood",
+  "residential",
+]);
+const FARM_TYPES = new Set(["farmland", "farmyard", "orchard", "vineyard", "meadow", "allotments"]);
+const FOREST_TYPES = new Set(["forest", "wood"]);
+
+/** The least relief, in metres over about 27 km each way, that makes the point mountain country. */
+export const MOUNTAIN_RELIEF_M = 1000;
+/** A point in the lower part of that relief sits in a valley rather than on the high ground. */
+export const VALLEY_POSITION = 0.6;
+/** A point at least this much in the rangeland biomes is rangeland. */
+export const RANGELAND_SHARE = 0.5;
+
+export interface PlaceSignals {
+  hit?: GeocodeHit | null;
+  surface: Surface;
+  relief?: { reliefM: number; position: number } | null;
+  rangelandShare?: number | null;
+}
+
+/** The kind of place, decided only from the signals given; null when none of them says. */
+export function classifyPlace(s: PlaceSignals): PlaceKind | null {
+  const cls = s.hit?.osmClass ?? "";
+  const types = [s.hit?.osmType ?? "", s.hit?.addressType ?? ""];
+  if (s.surface === "water" || s.surface === "unknown") return null;
+  if (
+    types.some((t) => CITY_TYPES.has(t)) &&
+    (cls === "place" || cls === "boundary" || cls === "landuse")
+  )
+    return "city";
+  if ((cls === "landuse" || cls === "natural") && types.some((t) => FOREST_TYPES.has(t)))
+    return "forest";
+  if (
+    (cls === "landuse" || cls === "place") &&
+    types.some((t) => FARM_TYPES.has(t) || t === "farm")
+  )
+    return "farmland";
+  if (s.surface === "coast") return "coast";
+  if (s.relief && s.relief.reliefM >= MOUNTAIN_RELIEF_M)
+    return s.relief.position < VALLEY_POSITION ? "mountain-valley" : "mountain";
+  if (s.rangelandShare != null && s.rangelandShare >= RANGELAND_SHARE) return "rangeland";
+  return null;
+}
+
+/** Where a question looks: "in Manhattan", or "around 21.88° N, 33.75° E" for a point with no name. */
+export interface QuestionPlace {
+  name?: string;
+  lat: number;
+  lon: number;
+}
+
+function shortName(raw: string): string {
+  return raw.split(",")[0]?.trim() ?? "";
+}
+
+/**
+ * Broad questions first, then two that fit the kind of place; a place of unknown kind gets the broad ones only. None
+ * presupposes a result: each asks whether, where or how much, never why something already measured happened.
+ */
+export function placeQuestions(place: QuestionPlace, kind: PlaceKind | null): string[] {
+  const name = place.name ? shortName(place.name) : "";
+  const coords = formatLatLon(place.lat, place.lon);
+  const inP = name ? `in ${name}` : `around ${coords}`;
+  const round = name ? `around ${name}` : `around ${coords}`;
+  const broad = [
+    `What are the biggest land cover changes ${inP} since 2000?`,
+    `Where is the land changing fastest ${inP}, and what is driving it?`,
+  ];
+  const fit: Record<PlaceKind, string[]> = {
+    city: [
+      `Has built-up land spread into the open land ${round} since 2000?`,
+      `Has vegetation cover inside ${name || `the area ${round}`} changed since 2000, and where?`,
+    ],
+    coast: [
+      `Has the shoreline ${round} moved since 2000?`,
+      `Has land use along the coast ${round} changed since 2000, and where?`,
+    ],
+    "mountain-valley": [
+      `Does land cover change differently on the valley floor ${round} than on the slopes above it?`,
+      `Does vegetation ${round} change differently with elevation?`,
+    ],
+    mountain: [
+      `Does vegetation ${round} change differently with elevation?`,
+      `Has the share of bare ground on the slopes ${round} changed since 2000?`,
+    ],
+    rangeland: [
+      `How closely does vegetation ${round} follow rainfall from year to year?`,
+      `Are there places ${round} where vegetation trends differ from what rainfall would suggest?`,
+    ],
+    farmland: [
+      `Has the area under cultivation ${round} changed since 2000?`,
+      `How much does the growing season ${round} vary from year to year?`,
+    ],
+    forest: [
+      `Has forest cover ${round} been lost or gained since 2000?`,
+      `Has the forest ${round} become more or less fragmented since 2000?`,
+    ],
+  };
+  return kind ? [...broad, ...fit[kind]] : broad;
 }
 
 /**

@@ -17,6 +17,8 @@ import {
   formatLatLon,
   launchFailure,
   launchStatus,
+  placeQuestions,
+  type PlaceKind,
   type Surface,
 } from "./globe-choice";
 import styles from "./Journey.module.css";
@@ -42,6 +44,10 @@ export interface CustomGlobeLocation {
   surface?: Surface;
   /** False in open water: no question is asked there. */
   investigable?: boolean;
+  /** Whether a source names the point; when not, its placeName is a coordinate label. */
+  named?: boolean;
+  /** The kind of place from real signals only, null when they do not say. */
+  placeKind?: PlaceKind | null;
   /** The geocoder's OpenStreetMap class, type and address type, when a search result brings them. */
   osmClass?: string;
   osmType?: string;
@@ -103,18 +109,9 @@ function lookupStudiedQuestions(c?: GlobeCase): readonly string[] | undefined {
   return undefined;
 }
 
-function shortPlaceName(raw: string): string {
-  const first = raw.split(",")[0]?.trim();
-  return first || raw.trim() || "this landscape";
-}
-
-function buildWorldQuestions(placeName: string): readonly string[] {
-  const short = shortPlaceName(placeName);
-  return [
-    `Is vegetation cover changing across ${short}, and how much does rainfall explain?`,
-    `Where do coarse satellite pixels hide local canopy or land-use shifts in ${short}?`,
-    `Which elevation bands and field routes in ${short} should be verified on foot?`,
-  ];
+/** A seed case was studied; a case built from a picked place was only started here before. */
+function caseOrigin(c: GlobeCase): string {
+  return (c.seedCaseId ?? c.id).startsWith("case_loc_") ? "Started before" : "Studied case";
 }
 
 function typing(target: EventTarget | null): boolean {
@@ -269,16 +266,31 @@ export function GlobePage({
 
   const questionsForCurrentPlace = useMemo(() => {
     if (customLocation) {
-      const label =
-        customLocation.placeName ||
-        cleanPlaceLabel(customLocation.placeName, customLocation.regionName) ||
-        formatLatLon(customLocation.lat, customLocation.lon);
-      return buildWorldQuestions(label);
+      // a point with no name is asked about by its coordinates, never by its "The land at" label
+      return placeQuestions(
+        {
+          ...(customLocation.named && customLocation.placeName
+            ? { name: customLocation.placeName }
+            : {}),
+          lat: customLocation.lat,
+          lon: customLocation.lon,
+        },
+        customLocation.placeKind ?? null,
+      );
     }
     const list = lookupStudiedQuestions(activeSavedCase);
     if (list && list.length > 0) return list;
     if (activeSavedCase?.question) {
-      return [activeSavedCase.question, ...buildWorldQuestions(activeSavedCase.place).slice(1)];
+      // a case started here before: its own question, then the broad ones (its kind is not known here)
+      const broad = placeQuestions(
+        {
+          name: activeSavedCase.place,
+          lat: activeSavedCase.lat ?? 0,
+          lon: activeSavedCase.lon ?? 0,
+        },
+        null,
+      );
+      return [activeSavedCase.question, ...broad.filter((q) => q !== activeSavedCase.question)];
     }
     return STUDIED_QUESTIONS_BY_SEED["ait-bouguemez"] ?? [];
   }, [customLocation, activeSavedCase]);
@@ -594,7 +606,7 @@ export function GlobePage({
                 activePlaceDisplay.coords,
                 customLocation.surface === "unknown"
                   ? "The globe could not check this point: pick a named place"
-                  : "Open water: pick a point on land or a coast",
+                  : "No land here: pick a point on land or a coast",
               ]
             : [activePlaceDisplay.coords, "Picked on 3D globe"];
         items.push({
@@ -619,7 +631,7 @@ export function GlobePage({
         items.push({
           key: `studied-${sc.seedCaseId ?? sc.id}`,
           title: sc.place,
-          detail: `${sc.region} · ${coords} · Studied case`,
+          detail: `${sc.region} · ${coords} · ${caseOrigin(sc)}`,
           isSelected,
           shortcutKey: isSelected ? "↵" : String(idx + 1),
           actionWord: isSelected ? "CONTINUE" : "SELECT",
@@ -656,7 +668,7 @@ export function GlobePage({
       items.push({
         key: `match-studied-${sc.seedCaseId ?? sc.id}`,
         title: sc.place,
-        detail: `${sc.region} · ${coords} · Studied case`,
+        detail: `${sc.region} · ${coords} · ${caseOrigin(sc)}`,
         isSelected: false,
         shortcutKey: "↵",
         actionWord: "SELECT",
@@ -731,7 +743,7 @@ export function GlobePage({
           const customName = customLocation
             ? cleanPlaceLabel(customLocation.placeName, customLocation.regionName)
             : "";
-          // open water reads with its coordinates, "Open ocean · 13.31° N, 19.35° W"
+          // open water reads with its coordinates, "Open water · 13.31° N, 19.35° W"
           const displayPlace = customLocation
             ? pointInWater && customName && !customName.includes("°")
               ? `${customName} · ${coordsLabel}`
@@ -1069,7 +1081,7 @@ export function GlobePage({
 
                 <div className={styles.dbhStepHeadContent}>
                   <h2 className={styles.dbhQuestion}>
-                    {"Focus on a specific question, or scan the whole catchment:"}
+                    {"Focus on a specific question, or scan the whole area:"}
                   </h2>
 
                   {/* once a start begins, step 2 folds to the chosen question, as step 1 folds to its place */}
