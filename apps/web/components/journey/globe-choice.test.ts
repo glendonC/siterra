@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { cardQuestion, namePoint, surfaceAt, type WorldGrid } from "./globe-choice";
+import {
+  cardQuestion,
+  launchFailure,
+  launchStatus,
+  namePoint,
+  surfaceAt,
+  type WorldGrid,
+} from "./globe-choice";
 
 describe("the globe card", () => {
   const q = "Is grazing changing the shared pastures of the Aït Bouguemez valley?";
@@ -123,5 +130,24 @@ describe("a true name for every point", () => {
       const { title, region } = namePoint({ lon: 10, lat: 10, surface, hit: null });
       expect(`${title} ${region}`).not.toMatch(/selected|catchment|custom global/i);
     }
+  });
+});
+
+describe("the starting state", () => {
+  it("says what a new place's start really does, with no progress figures", () => {
+    const status = launchStatus("new");
+    expect(status).toMatch(/terrain, climate records and sources/);
+    expect(status).not.toMatch(/\d|%/);
+  });
+
+  it("says a studied place opens on its land", () => {
+    expect(launchStatus("studied")).toBe("Going down to the land and opening the investigation");
+  });
+
+  it("names a failed start for what it is and offers no other place's case", () => {
+    expect(launchFailure(500)).toBe(
+      "This place could not be started (HTTP 500). Try again, or pick another place.",
+    );
+    expect(launchFailure(null)).toMatch(/could not be reached/);
   });
 });

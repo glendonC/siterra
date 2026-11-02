@@ -126,3 +126,20 @@ export function namePoint(input: {
   const what = surface === "coast" ? "The coast" : "The land";
   return { title: `${what} at ${coords}`, region, surface, investigable: true };
 }
+
+/**
+ * What a start is really doing. A new place's case is gathered first (terrain, climate records and literature
+ * sources, apps/web/lib/live-place/ingest.ts); a studied place's case already exists and the camera goes down to it.
+ */
+export function launchStatus(kind: "new" | "studied"): string {
+  return kind === "new"
+    ? "Gathering the terrain, climate records and sources for this place, then opening the investigation"
+    : "Going down to the land and opening the investigation";
+}
+
+/** Why a new place did not start, from the case service's HTTP status, or null when it could not be reached. */
+export function launchFailure(status: number | null): string {
+  if (status === null)
+    return "This place could not be started: Siterra could not be reached. Try again, or pick another place.";
+  return `This place could not be started (HTTP ${String(status)}). Try again, or pick another place.`;
+}

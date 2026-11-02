@@ -12,7 +12,13 @@ import {
 import { placeHref, type OtherPlace } from "../../lib/globe/places";
 import { en, format } from "../../lib/copy/en";
 import { SiterraMark, ThemeIcon } from "../opening/Opening";
-import { cardQuestion, formatLatLon, type Surface } from "./globe-choice";
+import {
+  cardQuestion,
+  formatLatLon,
+  launchFailure,
+  launchStatus,
+  type Surface,
+} from "./globe-choice";
 import styles from "./Journey.module.css";
 
 export interface GlobeCase {
@@ -214,6 +220,9 @@ export function GlobePage({
   const [geocodeResults, setGeocodeResults] = useState<GeocodeSuggestion[]>([]);
   const [searching, setSearching] = useState(false);
   const [launchingCustom, setLaunchingCustom] = useState(false);
+  // a start begun from this page: step 2 folds to its question and the large starting state says what is happening
+  const [launch, setLaunch] = useState<{ question: string; status: string } | null>(null);
+  const [launchError, setLaunchError] = useState<string | null>(null);
 
   const searchInputRef = useRef<HTMLInputElement | null>(null);
   const customQuestionRef = useRef<HTMLInputElement | null>(null);
@@ -398,6 +407,9 @@ export function GlobePage({
         questionsForCurrentPlace[qIdx] ||
         questionsForCurrentPlace[0]!;
       setLaunchingCustom(true);
+      setLaunchError(null);
+      setLaunch({ question: chosenQ, status: launchStatus("new") });
+      let failure: string;
       try {
         const res = await fetch("/api/cases/from-location", {
           method: "POST",
@@ -410,8 +422,9 @@ export function GlobePage({
             question: chosenQ,
           }),
         });
-        const data = (await res.json()) as { caseId?: string };
-        if (data.caseId) {
+        const data = (await res.json().catch(() => ({}))) as { caseId?: string };
+        if (res.ok && data.caseId) {
+          // the starting state stays up while the new case's page loads
           if (onLaunchCustomCase) {
             onLaunchCustomCase(data.caseId, chosenQ);
           } else {
@@ -419,14 +432,14 @@ export function GlobePage({
           }
           return;
         }
+        failure = launchFailure(res.status);
       } catch {
-        // Fallback to active saved case if offline
-      } finally {
-        setLaunchingCustom(false);
+        failure = launchFailure(null);
       }
-      if (activeSavedCase) {
-        onOpen(chosenQ, activeSavedCase, "run");
-      }
+      // never another place's case in its stead: the visitor sees that this place did not start
+      setLaunchingCustom(false);
+      setLaunch(null);
+      setLaunchError(failure);
     },
     [
       customLocation,
@@ -436,9 +449,17 @@ export function GlobePage({
       questionsForCurrentPlace,
       qIdx,
       onLaunchCustomCase,
-      activeSavedCase,
-      onOpen,
     ],
+  );
+
+  const startStudiedCase = useCallback(
+    (question: string) => {
+      if (!activeSavedCase) return;
+      setLaunchError(null);
+      setLaunch({ question, status: launchStatus("studied") });
+      onOpen(question, activeSavedCase, "run");
+    },
+    [activeSavedCase, onOpen],
   );
 
   const activeIdx = qIdx < questionsForCurrentPlace.length ? qIdx : 0;
@@ -449,19 +470,19 @@ export function GlobePage({
     questionsForCurrentPlace[0]!;
 
   const triggerLaunch = useCallback(() => {
-    if (!pointReady) return;
+    if (!pointReady || launch) return;
     if (customLocation) {
       void handleLaunchCustomLocation(activeQuestionText);
-    } else if (activeSavedCase) {
-      onOpen(activeQuestionText, activeSavedCase, "run");
+    } else {
+      startStudiedCase(activeQuestionText);
     }
   }, [
     pointReady,
+    launch,
     customLocation,
     handleLaunchCustomLocation,
     activeQuestionText,
-    activeSavedCase,
-    onOpen,
+    startStudiedCase,
   ]);
 
   const handleSelectStudiedCase = useCallback(
@@ -503,6 +524,8 @@ export function GlobePage({
     const onKey = (e: KeyboardEvent) => {
       if (typing(e.target)) return;
       if (e.altKey || e.ctrlKey || e.metaKey) return;
+      // a start is under way: nothing changes the place or the question now
+      if (launch) return;
 
       if (e.key === "/") {
         e.preventDefault();
@@ -552,6 +575,7 @@ export function GlobePage({
     return () => window.removeEventListener("keydown", onKey);
   }, [
     opened,
+    launch,
     activeStep,
     pointReady,
     studiedCases,
@@ -759,7 +783,15 @@ export function GlobePage({
                   {pointReady ? (
                     <span className={styles.monumentActionPrompt}>
                       <kbd className={styles.monumentActionKey}>{"↵"}</kbd>
-                      <span>{opened ? "DIVING" : activeStep === 1 ? "SELECT" : "START"}</span>
+                      <span>
+                        {opened
+                          ? "DIVING"
+                          : launch
+                            ? "STARTING"
+                            : activeStep === 1
+                              ? "SELECT"
+                              : "START"}
+                      </span>
                     </span>
                   ) : null}
                 </div>
@@ -823,7 +855,7 @@ export function GlobePage({
           {/* ====================================================================
               OPEN DETROIT: BECOME HUMAN FLOW (Zero Boxes, Zero Vertical Bars)
              ==================================================================== */}
-          <div className={styles.dbhCanvas}>
+          <div className={styles.dbhCanvas} data-launching={launch ? "" : undefined}>
             {/* STEP 1/2 */}
             <section
               className={styles.dbhStepOne}
@@ -1058,6 +1090,7 @@ export function GlobePage({
               <section
                 key="step-2-of-2"
                 className={styles.dbhStepTwo}
+                data-completed={launch ? "" : undefined}
                 aria-label={"Step 2 of 2: Investigation Question"}
               >
                 <div className={styles.dbhStepHeader}>
@@ -1074,10 +1107,23 @@ export function GlobePage({
                     <h2 className={styles.dbhQuestion}>
                       {"Focus on a specific question, or scan the whole catchment:"}
                     </h2>
+
+                    {/* once a start begins, step 2 folds to the chosen question, as step 1 folds to its place */}
+                    {launch ? (
+                      <p className={styles.dbhDoneAnswerRow} data-launch-question="">
+                        <span className={styles.dbhDoneAnswerPrimary}>{launch.question}</span>
+                      </p>
+                    ) : null}
                   </div>
                 </div>
 
+                {launch ? null : (
                 <div className={styles.dbhStepTwoBody}>
+                  {launchError ? (
+                    <p className={styles.dbhLaunchError} role="alert">
+                      {launchError}
+                    </p>
+                  ) : null}
                   <ul className={styles.dbhQuestionList} role="radiogroup">
                     {questionsForCurrentPlace.map((qText, i) => {
                       const isSelected =
@@ -1096,8 +1142,8 @@ export function GlobePage({
                               if (isSelected) {
                                 if (customLocation) {
                                   void handleLaunchCustomLocation(qText);
-                                } else if (activeSavedCase) {
-                                  onOpen(qText, activeSavedCase, "run");
+                                } else {
+                                  startStudiedCase(qText);
                                 }
                               }
                             }}
@@ -1106,8 +1152,8 @@ export function GlobePage({
                               setQIdx(i);
                               if (customLocation) {
                                 void handleLaunchCustomLocation(qText);
-                              } else if (activeSavedCase) {
-                                onOpen(qText, activeSavedCase, "run");
+                              } else {
+                                startStudiedCase(qText);
                               }
                             }}
                           >
@@ -1174,6 +1220,15 @@ export function GlobePage({
                     </div>
                   </div>
                 </div>
+                )}
+              </section>
+            ) : null}
+
+            {/* the start, large and calm: what is really happening, nothing more */}
+            {launch ? (
+              <section className={styles.dbhLaunch} role="status" data-launch="">
+                <p className={styles.dbhLaunchWord}>{"Starting"}</p>
+                <p className={styles.dbhLaunchStatus}>{launch.status}</p>
               </section>
             ) : null}
           </div>
@@ -1195,6 +1250,7 @@ export function GlobePage({
             <button
               type="button"
               className={styles.detroitKeyAction}
+              disabled={Boolean(launch)}
               onClick={() => {
                 if (activeStep === 2) {
                   setActiveStep(1);
@@ -1209,7 +1265,7 @@ export function GlobePage({
             <button
               type="button"
               className={styles.detroitKeyAction}
-              disabled={launchingCustom || !pointReady}
+              disabled={Boolean(launch) || !pointReady}
               onClick={triggerLaunch}
             >
               <kbd className={styles.detroitKeyCap}>{"SPACE"}</kbd>
@@ -1218,17 +1274,11 @@ export function GlobePage({
             <button
               type="button"
               className={styles.detroitKeyAction}
-              disabled={launchingCustom || !pointReady}
+              disabled={Boolean(launch) || !pointReady}
               onClick={handlePrimaryKeyOrAction}
             >
               <kbd className={styles.detroitKeyCapPrimary}>{"↵"}</kbd>
-              <span>
-                {launchingCustom
-                  ? "INITIALIZING..."
-                  : activeStep === 1
-                    ? "CHOOSE FOCUS"
-                    : "START INVESTIGATION"}
-              </span>
+              <span>{activeStep === 1 ? "CHOOSE FOCUS" : "START INVESTIGATION"}</span>
             </button>
           </div>
 

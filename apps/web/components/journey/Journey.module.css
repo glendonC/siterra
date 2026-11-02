@@ -548,6 +548,89 @@
   color: var(--ink);
 }
 
+/* Step 2 folds like step 1 once a start begins: its question small and grey, the chosen question beneath */
+.dbhStepTwo[data-completed] {
+  gap: 0;
+}
+
+.dbhStepTwo[data-completed] .dbhFraction {
+  opacity: 0.65;
+}
+
+.dbhStepTwo[data-completed] .dbhQuestion {
+  font-weight: 300;
+  font-size: 16px;
+  line-height: 22px;
+  color: var(--grey);
+}
+
+.dbhStepTwo[data-completed] .dbhDoneAnswerRow {
+  margin: 0;
+  white-space: normal;
+  animation: dbhGlideIn var(--duration-reveal, 220ms)
+    var(--easing-standard, cubic-bezier(0.22, 1, 0.36, 1)) both;
+}
+
+/* nothing on the steps answers a click while a start is under way */
+.dbhCanvas[data-launching] .dbhStepOne,
+.dbhCanvas[data-launching] .dbhStepTwo {
+  pointer-events: none;
+}
+
+/* The start: one large word at the step header's scale in its own accent, its status indented beneath */
+.dbhLaunch {
+  margin: 36px 0 0 152px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 560px;
+  animation: dbhDepthForward var(--duration-compose, 360ms)
+    var(--easing-standard, cubic-bezier(0.22, 1, 0.36, 1)) both;
+}
+
+.dbhLaunchWord {
+  margin: 0;
+  font: 500 46px / 0.9 var(--font-sans);
+  letter-spacing: -0.03em;
+  color: var(--triad-green);
+  text-shadow: var(--paper-halo);
+}
+
+.dbhLaunchStatus {
+  margin: 0;
+  padding-left: 40px;
+  font: 300 18px / 25px var(--font-sans);
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  text-shadow: var(--paper-halo);
+  animation: dbhLaunchBreath 2400ms ease-in-out infinite;
+}
+
+@keyframes dbhLaunchBreath {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.62;
+  }
+}
+
+.dbhLaunchError {
+  margin: 0;
+  max-width: 500px;
+  font: 400 14px / 20px var(--font-sans);
+  color: var(--triad-red);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dbhLaunch,
+  .dbhLaunchStatus,
+  .dbhStepTwo[data-completed] .dbhDoneAnswerRow {
+    animation: none;
+  }
+}
+
 /* Step 1 & Step 2 Bodies: Indented to align cleanly under the Question column */
 .dbhStepOneBody,
 .dbhStepTwoBody {
@@ -1096,6 +1179,10 @@
   }
 
   .dbhStepTwo {
+    margin-left: 0;
+  }
+
+  .dbhLaunch {
     margin-left: 0;
   }
 
