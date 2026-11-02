@@ -1,0 +1,557 @@
+{
+  "recorded": "2026-11-02",
+  "request": {
+    "collections": ["sentinel-2-l2a"],
+    "bbox": [-73.975, 40.775, -73.955, 40.79],
+    "datetime": "2025-11-02T12:00:00.000Z/2026-11-02T12:00:00.000Z",
+    "query": {
+      "eo:cloud_cover": {
+        "lt": 20
+      }
+    },
+    "limit": 1000
+  },
+  "note": "Planetary Computer STAC search response, trimmed to id, datetime, platform, eo:cloud_cover and sat:relative_orbit",
+  "features": [
+    {
+      "id": "S2B_MSIL2A_20261031T155409_R054_T18TWL_20261031T175545",
+      "properties": {
+        "datetime": "2026-10-31T15:54:09.024000Z",
+        "platform": "Sentinel-2B",
+        "eo:cloud_cover": 2.192943,
+        "sat:relative_orbit": 54
+      }
+    },
+    {
+      "id": "S2C_MSIL2A_20261026T155331_R054_T18TWL_20261026T202106",
+      "properties": {
+        "datetime": "2026-10-26T15:53:31.025000Z",
+        "platform": "Sentinel-2C",
+        "eo:cloud_cover": 0.081628,
+        "sat:relative_orbit": 54
+      }
+    },
+    {
+      "id": "S2C_MSIL2A_20261023T154311_R011_T18TWL_20261023T184809",
+      "properties": {
+        "datetime": "2026-10-23T15:43:11.025000Z",
+        "platform": "Sentinel-2C",
+        "eo:cloud_cover": 0.133644,
+        "sat:relative_orbit": 11
+      }
+    },
+    {
+      "id": "S2B_MSIL2A_20261021T155309_R054_T18TWL_20261021T192252",
+      "properties": {
+        "datetime": "2026-10-21T15:53:09.027000Z",
+        "platform": "Sentinel-2B",
+        "eo:cloud_cover": 17.800865,
+        "sat:relative_orbit": 54
+      }
+    },
+    {
+      "id": "S2B_MSIL2A_20261018T154239_R011_T18TWL_20261018T193541",
+      "properties": {
+        "datetime": "2026-10-18T15:42:39.024000Z",
+        "platform": "Sentinel-2B",
+        "eo:cloud_cover": 0.006246,
+        "sat:relative_orbit": 11
+      }
+    },
+    {
+      "id": "S2A_MSIL2A_20261015T154701_R011_T18TWL_20261015T220511",
+      "properties": {
+        "datetime": "2026-10-15T15:47:01.024000Z",
+        "platform": "Sentinel-2A",
+        "eo:cloud_cover": 1.544878,
+        "sat:relative_orbit": 11
+      }
+    },
+    {
+      "id": "S2A_MSIL2A_20261008T155701_R054_T18TWL_20261008T222459",
+      "properties": {
+        "datetime": "2026-10-08T15:57:01.024000Z",
+        "platform": "Sentinel-2A",
+        "eo:cloud_cover": 4.739851,
+        "sat:relative_orbit": 54
+      }
+    },
+    {
+      "id": "S2B_MSIL2A_20261008T154139_R011_T18TWL_20261008T210149",
+      "properties": {
+        "datetime": "2026-10-08T15:41:39.024000Z",
+        "platform": "Sentinel-2B",
+        "eo:cloud_cover": 1.640292,
+        "sat:relative_orbit": 11
+      }
+    },
+    {
+      "id": "S2C_MSIL2A_20261006T155131_R054_T18TWL_20261006T185302",
+      "properties": {
+        "datetime": "2026-10-06T15:51:31.025000Z",
+        "platform": "Sentinel-2C",
+        "eo:cloud_cover": 0.004113,
+        "sat:relative_orbit": 54
+      }
+    },
+    {
+      "id": "S2C_MSIL2A_20261003T154101_R011_T18TWL_20261003T185053",
+      "properties": {
+        "datetime": "2026-10-03T15:41:01.025000Z",
+        "platform": "Sentinel-2C",
+        "eo:cloud_cover": 0.37243,
+        "sat:relative_orbit": 11
+      }
+    },
+    {
+      "id": "S2A_MSIL2A_20260918T155701_R054_T18TWL_20260918T235909",
+      "properties": {
+        "datetime": "2026-09-18T15:57:01.024000Z",
+        "platform": "Sentinel-2A",
+        "eo:cloud_cover": 8.35842,
+        "sat:relative_orbit": 54
+      }
+    },
+    {
+      "id": "S2B_MSIL2A_20260918T153939_R011_T18TWL_20260918T205805",
+      "properties": {
+        "datetime": "2026-09-18T15:39:39.024000Z",
+        "platform": "Sentinel-2B",
+        "eo:cloud_cover": 14.424278,
+        "sat:relative_orbit": 11
+      }
+    },
+    {
+      "id": "S2B_MSIL2A_20260911T154929_R054_T18TWL_20260911T193426",
+      "properties": {
+        "datetime": "2026-09-11T15:49:29.024000Z",
+        "platform": "Sentinel-2B",
+        "eo:cloud_cover": 13.786496,
+        "sat:relative_orbit": 54
+      }
+    },
+    {
+      "id": "S2B_MSIL2A_20260908T153939_R011_T18TWL_20260908T193508",
+      "properties": {
+        "datetime": "2026-09-08T15:39:39.024000Z",
+        "platform": "Sentinel-2B",
+        "eo:cloud_cover": 12.841929,
+        "sat:relative_orbit": 11
+      }
+    },
+    {
+      "id": "S2A_MSIL2A_20260829T155711_R054_T18TWL_20260830T015313",
+      "properties": {
+        "datetime": "2026-08-29T15:57:11.024000Z",
+        "platform": "Sentinel-2A",
+        "eo:cloud_cover": 0.426893,
+        "sat:relative_orbit": 54
+      }
+    },
+    {
+      "id": "S2B_MSIL2A_20260829T153809_R011_T18TWL_20260829T193538",
+      "properties": {
+        "datetime": "2026-08-29T15:38:09.024000Z",
+        "platform": "Sentinel-2B",
+        "eo:cloud_cover": 0.069572,
+        "sat:relative_orbit": 11
+      }
+    },
+    {
+      "id": "S2B_MSIL2A_20260819T153809_R011_T18TWL_20260819T192743",
+      "properties": {
+        "datetime": "2026-08-19T15:38:09.024000Z",
+        "platform": "Sentinel-2B",
+        "eo:cloud_cover": 4.566865,
+        "sat:relative_orbit": 11
+      }
+    },
+    {
+      "id": "S2B_MSIL2A_20260812T154809_R054_T18TWL_20260812T194239",
+      "properties": {
+        "datetime": "2026-08-12T15:48:09.024000Z",
+        "platform": "Sentinel-2B",
+        "eo:cloud_cover": 0.040725,
+        "sat:relative_orbit": 54
+      }
+    },
+    {
+      "id": "S2A_MSIL2A_20260809T155711_R054_T18TWL_20260810T020018",
+      "properties": {
+        "datetime": "2026-08-09T15:57:11.024000Z",
+        "platform": "Sentinel-2A",
+        "eo:cloud_cover": 13.246785,
+        "sat:relative_orbit": 54
+      }
+    },
+    {
+      "id": "S2B_MSIL2A_20260809T153809_R011_T18TWL_20260809T193229",
+      "properties": {
+        "datetime": "2026-08-09T15:38:09.024000Z",
+        "platform": "Sentinel-2B",
+        "eo:cloud_cover": 10.68347,
+        "sat:relative_orbit": 11
+      }
+    },
+    {
+      "id": "S2C_MSIL2A_20260807T154811_R054_T18TWL_20260807T210317",
+      "properties": {
+        "datetime": "2026-08-07T15:48:11.025000Z",
+        "platform": "Sentinel-2C",
+        "eo:cloud_cover": 12.973893,
+        "sat:relative_orbit": 54
+      }
+    },
+    {
+      "id": "S2C_MSIL2A_20260804T153811_R011_T18TWL_20260804T204610",
+      "properties": {
+        "datetime": "2026-08-04T15:38:11.025000Z",
+        "platform": "Sentinel-2C",
+        "eo:cloud_cover": 18.629402,
+        "sat:relative_orbit": 11
+      }
+    },
+    {
+      "id": "S2C_MSIL2A_20260725T153811_R011_T18TWL_20260725T204456",
+      "properties": {
+        "datetime": "2026-07-25T15:38:11.025000Z",
+        "platform": "Sentinel-2C",
+        "eo:cloud_cover": 0.816281,
+        "sat:relative_orbit": 11
+      }
+    },
+    {
+      "id": "S2B_MSIL2A_20260723T154809_R054_T18TWL_20260723T193902",
+      "properties": {
+        "datetime": "2026-07-23T15:48:09.024000Z",
+        "platform": "Sentinel-2B",
+        "eo:cloud_cover": 4.303667,
+        "sat:relative_orbit": 54
+      }
+    },
+    {
+      "id": "S2A_MSIL2A_20260720T155711_R054_T18TWL_20260721T014152",
+      "properties": {
+        "datetime": "2026-07-20T15:57:11.024000Z",
+        "platform": "Sentinel-2A",
+        "eo:cloud_cover": 18.028571,
+        "sat:relative_orbit": 54
+      }
+    },
+    {
+      "id": "S2B_MSIL2A_20260720T153809_R011_T18TWL_20260720T205957",
+      "properties": {
+        "datetime": "2026-07-20T15:38:09.024000Z",
+        "platform": "Sentinel-2B",
+        "eo:cloud_cover": 14.207275,
+        "sat:relative_orbit": 11
+      }
+    },
+    {
+      "id": "S2C_MSIL2A_20260708T154811_R054_T18TWL_20260708T205503",
+      "properties": {
+        "datetime": "2026-07-08T15:48:11.025000Z",
+        "platform": "Sentinel-2C",
+        "eo:cloud_cover": 2.750439,
+        "sat:relative_orbit": 54
+      }
+    },
+    {
+      "id": "S2B_MSIL2A_20260703T154809_R054_T18TWL_20260703T193840",
+      "properties": {
+        "datetime": "2026-07-03T15:48:09.024000Z",
+        "platform": "Sentinel-2B",
+        "eo:cloud_cover": 3.595947,
+        "sat:relative_orbit": 54
+      }
+    },
+    {
+      "id": "S2A_MSIL2A_20260620T155711_R054_T18TWL_20260621T014809",
+      "properties": {
+        "datetime": "2026-06-20T15:57:11.024000Z",
+        "platform": "Sentinel-2A",
+        "eo:cloud_cover": 17.90314,
+        "sat:relative_orbit": 54
+      }
+    },
+    {
+      "id": "S2B_MSIL2A_20260620T153809_R011_T18TWL_20260620T193924",
+      "properties": {
+        "datetime": "2026-06-20T15:38:09.024000Z",
+        "platform": "Sentinel-2B",
+        "eo:cloud_cover": 10.546844,
+        "sat:relative_orbit": 11
+      }
+    },
+    {
+      "id": "S2B_MSIL2A_20260613T154809_R054_T18TWL_20260613T193831",
+      "properties": {
+        "datetime": "2026-06-13T15:48:09.024000Z",
+        "platform": "Sentinel-2B",
+        "eo:cloud_cover": 1.63849,
+        "sat:relative_orbit": 54
+      }
+    },
+    {
+      "id": "S2C_MSIL2A_20260608T154811_R054_T18TWL_20260608T205010",
+      "properties": {
+        "datetime": "2026-06-08T15:48:11.025000Z",
+        "platform": "Sentinel-2C",
+        "eo:cloud_cover": 19.975951,
+        "sat:relative_orbit": 54
+      }
+    },
+    {
+      "id": "S2B_MSIL2A_20260603T154809_R054_T18TWL_20260603T194014",
+      "properties": {
+        "datetime": "2026-06-03T15:48:09.024000Z",
+        "platform": "Sentinel-2B",
+        "eo:cloud_cover": 0.725939,
+        "sat:relative_orbit": 54
+      }
+    },
+    {
+      "id": "S2C_MSIL2A_20260526T153811_R011_T18TWL_20260526T204620",
+      "properties": {
+        "datetime": "2026-05-26T15:38:11.025000Z",
+        "platform": "Sentinel-2C",
+        "eo:cloud_cover": 14.444913,
+        "sat:relative_orbit": 11
+      }
+    },
+    {
+      "id": "S2A_MSIL2A_20260518T154711_R011_T18TWL_20260518T234117",
+      "properties": {
+        "datetime": "2026-05-18T15:47:11.024000Z",
+        "platform": "Sentinel-2A",
+        "eo:cloud_cover": 9.48623,
+        "sat:relative_orbit": 11
+      }
+    },
+    {
+      "id": "S2C_MSIL2A_20260516T153811_R011_T18TWL_20260516T204917",
+      "properties": {
+        "datetime": "2026-05-16T15:38:11.025000Z",
+        "platform": "Sentinel-2C",
+        "eo:cloud_cover": 4.07305,
+        "sat:relative_orbit": 11
+      }
+    },
+    {
+      "id": "S2B_MSIL2A_20260504T154809_R054_T18TWL_20260504T194337",
+      "properties": {
+        "datetime": "2026-05-04T15:48:09.024000Z",
+        "platform": "Sentinel-2B",
+        "eo:cloud_cover": 6.977433,
+        "sat:relative_orbit": 54
+      }
+    },
+    {
+      "id": "S2B_MSIL2A_20260501T153809_R011_T18TWL_20260501T193205",
+      "properties": {
+        "datetime": "2026-05-01T15:38:09.024000Z",
+        "platform": "Sentinel-2B",
+        "eo:cloud_cover": 3.076883,
+        "sat:relative_orbit": 11
+      }
+    },
+    {
+      "id": "S2B_MSIL2A_20260424T154809_R054_T18TWL_20260424T194345",
+      "properties": {
+        "datetime": "2026-04-24T15:48:09.024000Z",
+        "platform": "Sentinel-2B",
+        "eo:cloud_cover": 3.661689,
+        "sat:relative_orbit": 54
+      }
+    },
+    {
+      "id": "S2A_MSIL2A_20260421T155711_R054_T18TWL_20260422T000908",
+      "properties": {
+        "datetime": "2026-04-21T15:57:11.024000Z",
+        "platform": "Sentinel-2A",
+        "eo:cloud_cover": 5.602267,
+        "sat:relative_orbit": 54
+      }
+    },
+    {
+      "id": "S2B_MSIL2A_20260421T153809_R011_T18TWL_20260421T193125",
+      "properties": {
+        "datetime": "2026-04-21T15:38:09.024000Z",
+        "platform": "Sentinel-2B",
+        "eo:cloud_cover": 3.200345,
+        "sat:relative_orbit": 11
+      }
+    },
+    {
+      "id": "S2B_MSIL2A_20260411T153939_R011_T18TWL_20260411T193441",
+      "properties": {
+        "datetime": "2026-04-11T15:39:39.024000Z",
+        "platform": "Sentinel-2B",
+        "eo:cloud_cover": 5.978784,
+        "sat:relative_orbit": 11
+      }
+    },
+    {
+      "id": "S2C_MSIL2A_20260409T154811_R054_T18TWL_20260409T212521",
+      "properties": {
+        "datetime": "2026-04-09T15:48:11.025000Z",
+        "platform": "Sentinel-2C",
+        "eo:cloud_cover": 5.184695,
+        "sat:relative_orbit": 54
+      }
+    },
+    {
+      "id": "S2A_MSIL2A_20260408T154711_R011_T18TWL_20260408T234609",
+      "properties": {
+        "datetime": "2026-04-08T15:47:11.024000Z",
+        "platform": "Sentinel-2A",
+        "eo:cloud_cover": 8.633284,
+        "sat:relative_orbit": 11
+      }
+    },
+    {
+      "id": "S2C_MSIL2A_20260310T155101_R054_T18TWL_20260310T212409",
+      "properties": {
+        "datetime": "2026-03-10T15:51:01.024000Z",
+        "platform": "Sentinel-2C",
+        "eo:cloud_cover": 1.448466,
+        "sat:relative_orbit": 54
+      }
+    },
+    {
+      "id": "S2A_MSIL2A_20260309T154711_R011_T18TWL_20260309T222622",
+      "properties": {
+        "datetime": "2026-03-09T15:47:11.024000Z",
+        "platform": "Sentinel-2A",
+        "eo:cloud_cover": 0.006122,
+        "sat:relative_orbit": 11
+      }
+    },
+    {
+      "id": "S2C_MSIL2A_20260228T155211_R054_T18TWL_20260228T191009",
+      "properties": {
+        "datetime": "2026-02-28T15:52:11.025000Z",
+        "platform": "Sentinel-2C",
+        "eo:cloud_cover": 14.891806,
+        "sat:relative_orbit": 54
+      }
+    },
+    {
+      "id": "S2B_MSIL2A_20260213T155249_R054_T18TWL_20260213T193321",
+      "properties": {
+        "datetime": "2026-02-13T15:52:49.024000Z",
+        "platform": "Sentinel-2B",
+        "eo:cloud_cover": 0.456529,
+        "sat:relative_orbit": 54
+      }
+    },
+    {
+      "id": "S2C_MSIL2A_20260208T155421_R054_T18TWL_20260208T185712",
+      "properties": {
+        "datetime": "2026-02-08T15:54:21.025000Z",
+        "platform": "Sentinel-2C",
+        "eo:cloud_cover": 9.596565,
+        "sat:relative_orbit": 54
+      }
+    },
+    {
+      "id": "S2C_MSIL2A_20260205T154431_R011_T18TWL_20260205T185709",
+      "properties": {
+        "datetime": "2026-02-05T15:44:31.025000Z",
+        "platform": "Sentinel-2C",
+        "eo:cloud_cover": 0.347065,
+        "sat:relative_orbit": 11
+      }
+    },
+    {
+      "id": "S2C_MSIL2A_20260129T155511_R054_T18TWL_20260129T193112",
+      "properties": {
+        "datetime": "2026-01-29T15:55:11.025000Z",
+        "platform": "Sentinel-2C",
+        "eo:cloud_cover": 9.150098,
+        "sat:relative_orbit": 54
+      }
+    },
+    {
+      "id": "S2C_MSIL2A_20260116T154611_R011_T18TWL_20260116T190508",
+      "properties": {
+        "datetime": "2026-01-16T15:46:11.025000Z",
+        "platform": "Sentinel-2C",
+        "eo:cloud_cover": 2.47952,
+        "sat:relative_orbit": 11
+      }
+    },
+    {
+      "id": "S2B_MSIL2A_20260104T155549_R054_T18TWL_20260104T194359",
+      "properties": {
+        "datetime": "2026-01-04T15:55:49.024000Z",
+        "platform": "Sentinel-2B",
+        "eo:cloud_cover": 19.538397,
+        "sat:relative_orbit": 54
+      }
+    },
+    {
+      "id": "S2B_MSIL2A_20260101T154549_R011_T18TWL_20260101T193153",
+      "properties": {
+        "datetime": "2026-01-01T15:45:49.024000Z",
+        "platform": "Sentinel-2B",
+        "eo:cloud_cover": 6.09463,
+        "sat:relative_orbit": 11
+      }
+    },
+    {
+      "id": "S2B_MSIL2A_20251222T154559_R011_T18TWL_20251222T210607",
+      "properties": {
+        "datetime": "2025-12-22T15:45:59.024000Z",
+        "platform": "Sentinel-2B",
+        "eo:cloud_cover": 0.219804,
+        "sat:relative_orbit": 11
+      }
+    },
+    {
+      "id": "S2A_MSIL2A_20251212T155701_R054_T18TWL_20251212T190712",
+      "properties": {
+        "datetime": "2025-12-12T15:57:01.024000Z",
+        "platform": "Sentinel-2A",
+        "eo:cloud_cover": 1.741753,
+        "sat:relative_orbit": 54
+      }
+    },
+    {
+      "id": "S2B_MSIL2A_20251212T154549_R011_T18TWL_20251212T192422",
+      "properties": {
+        "datetime": "2025-12-12T15:45:49.024000Z",
+        "platform": "Sentinel-2B",
+        "eo:cloud_cover": 1.334678,
+        "sat:relative_orbit": 11
+      }
+    },
+    {
+      "id": "S2A_MSIL2A_20251129T154711_R011_T18TWL_20251129T182818",
+      "properties": {
+        "datetime": "2025-11-29T15:47:11.024000Z",
+        "platform": "Sentinel-2A",
+        "eo:cloud_cover": 7.226671,
+        "sat:relative_orbit": 11
+      }
+    },
+    {
+      "id": "S2A_MSIL2A_20251102T155711_R054_T18TWL_20251102T190015",
+      "properties": {
+        "datetime": "2025-11-02T15:57:11.024000Z",
+        "platform": "Sentinel-2A",
+        "eo:cloud_cover": 0.021013,
+        "sat:relative_orbit": 54
+      }
+    },
+    {
+      "id": "S2B_MSIL2A_20251102T154319_R011_T18TWL_20251102T193858",
+      "properties": {
+        "datetime": "2025-11-02T15:43:19.024000Z",
+        "platform": "Sentinel-2B",
+        "eo:cloud_cover": 0.005031,
+        "sat:relative_orbit": 11
+      }
+    }
+  ]
+}
