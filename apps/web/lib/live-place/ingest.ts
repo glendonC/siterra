@@ -13,6 +13,7 @@ import {
   TemporalObservation,
 } from "@siterra/contracts";
 import { type CaseSeedRecords, type Pool, loadSeedCase } from "@siterra/db";
+import { instrumentReferencedIds } from "@siterra/domain";
 import { formatCoordRegion, reverseGeocode } from "../../app/api/geocode/route.ts";
 import { fetchBiodiversityContext } from "./biodiversity-fetcher.ts";
 import {
@@ -179,7 +180,7 @@ export async function ingestLocationCase(
     if (!regionName) regionName = rev.region || formatCoordRegion(lat, lon);
   }
 
-  const { caseId, slug, hash6 } = deterministicCaseId(lon, lat, placeName);
+  const { caseId } = deterministicCaseId(lon, lat, placeName);
   const bbox = bboxAround(lon, lat);
 
   const existing = await pool.query<{ record: EnvironmentalCase }>(
@@ -230,6 +231,75 @@ export async function ingestLocationCase(
     }
   }
 
+  const built = await buildLiveCase({
+    lon,
+    lat,
+    placeName,
+    regionName,
+    question: input.question,
+    ownerScopeId,
+  });
+  const { outcome, seed, synth } = built;
+
+  // A record with rainfall unavailable is not cached, so the next ingest of this place asks the archive again
+  if (!built.rainUnavailable) {
+    try {
+      mkdirSync(dirname(cacheFile), { recursive: true });
+      const cachedBundle: CachedPlaceBundle = {
+        version: PLACE_CACHE_VERSION,
+        terrainVersion: built.terrainVersion,
+        outcome,
+        seed,
+        synth,
+        ...(built.occurrences ? { occurrences: built.occurrences } : {}),
+      };
+      writeFileSync(cacheFile, JSON.stringify(cachedBundle));
+    } catch {
+      // Non-fatal if cache write fails
+    }
+  }
+
+  try {
+    await loadSeedCase(pool, seed, ownerScopeId);
+    await persistSynthesizedPackage(pool, caseId, synth);
+    return { ...outcome, created: true };
+  } catch (err) {
+    if (err instanceof Error && /already exists/i.test(err.message)) {
+      await persistSynthesizedPackage(pool, caseId, synth);
+      return { ...outcome, created: false };
+    }
+    throw err;
+  }
+}
+
+/** A live place's whole record, built from the live sources; nothing is written or cached. */
+export interface LiveCaseBuild {
+  outcome: Omit<IngestPlaceOutcome, "created">;
+  seed: CaseSeedRecords;
+  synth: SynthesizedCasePackage;
+  /** Open-Meteo did not answer: the rainfall values are missing with a reason. */
+  rainUnavailable: boolean;
+  terrainVersion: number;
+  occurrences: Record<string, unknown> | null;
+}
+
+/**
+ * Fetches the live sources for a place and builds its case record and synthesized package, the
+ * same records an ingest writes (ingestLocationCase) and a re-ingest appends as new revisions.
+ */
+export async function buildLiveCase(input: {
+  lon: number;
+  lat: number;
+  placeName: string;
+  regionName: string;
+  question?: string | undefined;
+  ownerScopeId: string;
+  /** False keeps the model out of the build entirely (the re-ingest script). */
+  allowModel?: boolean | undefined;
+}): Promise<LiveCaseBuild> {
+  const { lon, lat, placeName, regionName, ownerScopeId } = input;
+  const { caseId, slug, hash6 } = deterministicCaseId(lon, lat, placeName);
+  const bbox = bboxAround(lon, lat);
   const now = new Date().toISOString();
   const geoId = `geo_loc_${slug}_${hash6}`;
   const [terrain, climate, oaSources, regionalCtx, govPolicy, bioCtx] = await Promise.all([
@@ -334,7 +404,6 @@ export async function ingestLocationCase(
   for (let yr = CLIMATE_START_YEAR; yr <= CLIMATE_END_YEAR; yr++) recordYears.push(yr);
   const rainByYear = new Map(climate.years.map((y) => [y.year, y] as const));
   const periodIds = recordYears.map((yr) => `period_${String(yr)}-06`);
-  const contentHash = `1220${createHash("sha256").update(`${bundleId}:${now}`).digest("hex")}`;
 
   const climateSource = climate.source;
   const era5SourceId = sources.find((s) => s.id.startsWith("src_era5_"))?.id ?? null;
@@ -664,7 +733,10 @@ export async function ingestLocationCase(
     methodId: "open_meteo_era5_watershed_series",
     methodVersion: "2.0.0",
     manifestUri: `/api/terrain/${caseId}`,
-    contentHash,
+    // a hash of what the bundle holds, so an unchanged rebuild hashes the same
+    contentHash: `1220${createHash("sha256")
+      .update(JSON.stringify(measurements.map((m) => [m.id, m.status, m.value, m.unit])))
+      .digest("hex")}`,
     license: "CC BY 4.0",
     attribution:
       "Elevation: AWS Terrain Tiles (Tilezen Terrarium), sources as listed in tilezen/joerd docs/attribution.md; Open-Meteo Historical Weather API, ERA5 reanalysis (CC BY 4.0); OpenStreetMap contributors (ODbL 1.0)",
@@ -877,20 +949,40 @@ export async function ingestLocationCase(
         citationIds: [mRainR2Id, mPrecipTrendId],
       },
     }),
-  ];
+  ].map((spec) =>
+    // each spec cites every record it names (INST-01), all at their first revision here
+    InstrumentSpec.parse({
+      ...spec,
+      provenance: {
+        ...spec.provenance,
+        inputVersions: [
+          ...new Map(
+            [
+              ...spec.provenance.inputVersions,
+              ...instrumentReferencedIds(spec).map((entityId) => ({ entityId, revision: 1 })),
+            ].map((v) => [v.entityId, v] as const),
+          ).values(),
+        ],
+      },
+    }),
+  );
 
-  const llmResult = await reasonOverCaseWithLlm({
-    placeName,
-    regionName,
-    lon,
-    lat,
-    minElevationM: terrain.minElevationM,
-    maxElevationM: terrain.maxElevationM,
-    areaKm2,
-    climate,
-    sources,
-    question,
-  });
+  // allowModel false never reaches the model, whatever key the environment or keychain holds
+  const llmResult =
+    input.allowModel === false
+      ? null
+      : await reasonOverCaseWithLlm({
+          placeName,
+          regionName,
+          lon,
+          lat,
+          minElevationM: terrain.minElevationM,
+          maxElevationM: terrain.maxElevationM,
+          areaKm2,
+          climate,
+          sources,
+          question,
+        });
 
   const synth = synthesizeLiveCaseSnapshot({
     caseId,
@@ -985,56 +1077,12 @@ export async function ingestLocationCase(
     instruments,
   };
 
-  // A record with rainfall unavailable is not cached, so the next ingest of this place asks the archive again
-  if (!rainUnavailable) {
-    try {
-      mkdirSync(dirname(cacheFile), { recursive: true });
-      const cachedBundle: CachedPlaceBundle = {
-        version: PLACE_CACHE_VERSION,
-        terrainVersion: terrain.version,
-        outcome: {
-          caseId,
-          placeName,
-          regionName,
-          question,
-          outlet: [lon, lat],
-          bbox,
-        },
-        seed,
-        synth,
-        ...(bioCtx.occurrencesPayload ? { occurrences: bioCtx.occurrencesPayload } : {}),
-      };
-      writeFileSync(cacheFile, JSON.stringify(cachedBundle));
-    } catch {
-      // Non-fatal if cache write fails
-    }
-  }
-
-  try {
-    await loadSeedCase(pool, seed, ownerScopeId);
-    await persistSynthesizedPackage(pool, caseId, synth);
-    return {
-      caseId,
-      created: true,
-      placeName,
-      regionName,
-      question,
-      outlet: [lon, lat],
-      bbox,
-    };
-  } catch (err) {
-    if (err instanceof Error && /already exists/i.test(err.message)) {
-      await persistSynthesizedPackage(pool, caseId, synth);
-      return {
-        caseId,
-        created: false,
-        placeName,
-        regionName,
-        question,
-        outlet: [lon, lat],
-        bbox,
-      };
-    }
-    throw err;
-  }
+  return {
+    outcome: { caseId, placeName, regionName, question, outlet: [lon, lat], bbox },
+    seed,
+    synth,
+    rainUnavailable,
+    terrainVersion: terrain.version,
+    occurrences: bioCtx.occurrencesPayload ?? null,
+  };
 }

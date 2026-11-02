@@ -1139,7 +1139,25 @@ export function synthesizeCasePackage(
       "Draft prepared by Siterra; nothing is sent, scheduled or authorized.",
     ],
     mode: llmResult ? "live" : "replay",
-    provenance: intProv,
+    provenance: {
+      ...intProv,
+      // the brief cites every evidence, hypothesis and intervention it names, at its revision, so it
+      // goes stale when any of them changes (commit.ts uncoveredBriefCitations)
+      inputVersions: [
+        ...new Map(
+          [
+            climateEv,
+            studyEv,
+            contextEv,
+            needUpper,
+            needValley,
+            ...llmVerifiedEvidence,
+            ...hypotheses.filter((h) => h.id !== hypArtefactId),
+            ...interventions,
+          ].map((r) => [r.id, { entityId: r.id, revision: r.revision }] as const),
+        ).values(),
+      ],
+    },
   });
 
   const task = Task.parse({
