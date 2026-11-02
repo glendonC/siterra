@@ -88,6 +88,8 @@ import {
 export const OVERVIEW_DESIGN = { width: 1440, height: 900 } as const;
 /** The vertical scale, and the elevation the model's y = 0 stands at (m). */
 export const EXAG = 2.5;
+/** The survey plan's accent, which the measurement front shares. */
+const SURVEY_ACCENT = "#2563eb";
 /** Vertical field of view at the design height (degrees). */
 const FOV = 26;
 /**
@@ -230,6 +232,11 @@ export interface SceneState {
    * "package".
    */
   ranges?: readonly { lo: number | null; hi: number | null }[];
+  /**
+   * The measurement front (UI-2, DESIGN v2): a hairline contour at `height` (m) rising through the relief's own
+   * heights, the survey grid and 50 m contours lit below it, at strength `a` (0 to 1). Absent or null: none.
+   */
+  scan?: { height: number; a: number } | null;
   lit?: number | null;
   /** The package's land eased aside for its cards, 0 centred to 1 aside (UI-2). */
   aside?: number;
@@ -439,6 +446,7 @@ export function mountOverview(
       fogC: C.fog,
       rimC: C.rim,
       waterC: C.drainage[0],
+      scanC: SURVEY_ACCENT,
     },
     coverA: 0.82,
     rimA: 0.22,
@@ -462,7 +470,7 @@ export function mountOverview(
     light,
     albedo: C.reliefAlbedo,
     line: C.contour,
-    accent: "#2563eb",
+    accent: SURVEY_ACCENT,
     yPlane: 0,
   });
   scene.add(surveyPlan.mesh);
@@ -1974,6 +1982,13 @@ export function mountOverview(
       if (snow) {
         relief.uniforms.uSnowLimits.value.set(snow.limits[0], snow.limits[1]);
         relief.uniforms.uSnow.value.set(snow.shares[0], snow.shares[1], snow.shares[2]);
+      }
+      const scanA = next.scan ? Math.max(0, Math.min(1, next.scan.a)) : 0;
+      relief.uniforms.uScanA.value = scanA;
+      surveyPlan.uniforms.uScanA.value = scanA;
+      if (next.scan) {
+        relief.uniforms.uScanH.value = next.scan.height;
+        surveyPlan.uniforms.uScanH.value = next.scan.height;
       }
       relief.uniforms.uBandAt.value = bandLimitM ?? 0;
       relief.uniforms.uBandA.value = next.sel === "band" && bandLimitM !== null ? 0.9 * e : 0;

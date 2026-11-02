@@ -1,6 +1,8 @@
+import { DataTexture, FloatType, RedFormat, Vector3 } from "three";
 import { describe, expect, it } from "vitest";
+import { makeFrame } from "../../instruments/valley/frame";
 import { centreOf } from "../data";
-import { maskOnRelief, signedArea, smoothRing } from "./terrain";
+import { createRelief, createSurveyPlan, maskOnRelief, signedArea, smoothRing } from "./terrain";
 
 describe("the overview's land helpers", () => {
   it("reads the catchment mask from the land cover raster's blue channel onto the relief cells", () => {
@@ -45,5 +47,65 @@ describe("the overview's land helpers", () => {
         [0, 2],
       ]),
     ).toEqual([2, 1]);
+  });
+});
+
+describe("the measurement front", () => {
+  const g = { E0: 0, N0: 60, res: 30, width: 2, height: 2 };
+  const frame = makeFrame({ origin_E: 30, origin_N: 30 }, { exag: 2.5, base: 0 });
+  const hTex = new DataTexture(new Float32Array(4), 2, 2, RedFormat, FloatType);
+  const light = {
+    dir: new Vector3(0, 1, 0),
+    color: new Vector3(1, 1, 1),
+    ambient: new Vector3(0.5, 0.5, 0.5),
+    sky: new Vector3(0.5, 0.6, 0.7),
+  };
+  const rect: [number, number, number, number] = [-0.03, -0.03, 0.03, 0.03];
+  const relief = createRelief(new Float32Array(4), g, frame, hTex, rect, {
+    hTex,
+    light,
+    lightMap: hTex,
+    colours: {
+      albedo: "#a6a8a3",
+      line: "#e9eef0",
+      treeC: "#5c8f63",
+      cropC: "#93b872",
+      limitC: [1, 1, 1],
+      fogC: "#10181b",
+      rimC: "#a9c9d4",
+      scanC: "#2563eb",
+    },
+    coverA: 0.8,
+    rimA: 0.2,
+    smooth: 0.5,
+  });
+  const plan = createSurveyPlan(g, frame, hTex, rect, {
+    hTex,
+    light,
+    albedo: "#a6a8a3",
+    line: "#e9eef0",
+  });
+  const fragOf = (m: { material: unknown }) =>
+    (m.material as { fragmentShader: string }).fragmentShader;
+
+  it("is off until it is driven: both shaders start with no front", () => {
+    expect(relief.uniforms.uScanA.value).toBe(0);
+    expect(plan.uniforms.uScanA.value).toBe(0);
+  });
+
+  it("touches a pixel only inside its own guard, so the default render is the render without it", () => {
+    for (const src of [fragOf(relief.mesh), fragOf(plan.mesh)]) {
+      const guard = src.indexOf("if (uScanA > 0.001) {");
+      expect(guard).toBeGreaterThan(0);
+      // the guarded block runs to the closing brace at its own indent
+      const end = src.indexOf("\n  }\n", guard);
+      const uses = [...src.matchAll(/uScanH/g)].map((m) => m.index);
+      const declaration = src.indexOf("uniform float uScanA, uScanH;");
+      for (const at of uses) {
+        if (at >= declaration && at < declaration + 40) continue;
+        expect(at).toBeGreaterThan(guard);
+        expect(at).toBeLessThan(end);
+      }
+    }
   });
 });

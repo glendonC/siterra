@@ -109,6 +109,8 @@ uniform vec3 uSnowC;
 uniform float uCarve;
 uniform sampler2D uWater;   // water's share of each relief cell (R, linear), a live place's mask; none elsewhere
 uniform vec3 uWaterC;
+uniform float uScanA, uScanH; // the measurement front (UI-2, DESIGN v2): its strength (0 none) and height (m)
+uniform vec3 uScanC;
 varying vec3 vWorld;
 void main() {
   vec2 xz = vWorld.xz;
@@ -197,6 +199,25 @@ void main() {
     float onCrossArm = majorGrid * (1.0 - smoothstep(0.06, 0.11, distToNode));
     vec3 surveyCol = mix(col, vec3(0.15, 0.39, 0.92), 0.18 + majorGrid * 0.32 + onCrossArm * 0.55);
     col = mix(col, surveyCol, planW);
+  }
+
+  // the measurement front: one hairline contour at the front's height rising through the relief's own heights,
+  // drawn the way the scene draws its contours; below it the survey grid and 50 m contours stay lit, settling with
+  // depth
+  if (uScanA > 0.001) {
+    float scD = abs(h - uScanH) / max(fwidth(h), 1e-3);
+    float scL = 1.0 - smoothstep(0.0, 1.7, scD);
+    float scW = h < uScanH ? exp((h - uScanH) / 260.0) : 0.0;
+    float spanKm = max(abs(uHRect.z - uHRect.x), abs(uHRect.w - uHRect.y));
+    float G = max(0.8, floor(spanKm / 7.0 * 2.0 + 0.5) / 2.0);
+    vec2 gC = xz / G; vec2 gF = abs(fract(gC - 0.5) - 0.5); vec2 gW = max(fwidth(gC), 1e-4);
+    vec2 gL = 1.0 - smoothstep(0.0, 1.2, gF / gW); float maj = max(gL.x, gL.y);
+    vec2 sC = gC * 4.0; vec2 sF = abs(fract(sC - 0.5) - 0.5); vec2 sW = max(fwidth(sC), 1e-4);
+    vec2 sL = 1.0 - smoothstep(0.0, 1.0, sF / sW); float mnr = max(sL.x, sL.y);
+    float node = maj * (1.0 - smoothstep(0.06, 0.11, max(gF.x, gF.y)));
+    float ink = clamp(maj * 0.6 + mnr * 0.25 + node * 0.7, 0.0, 1.0);
+    float cnt = contour(h, 50.0, 0.8);
+    col = mix(col, uScanC, clamp((ink * 0.75 + cnt * 0.45) * scW + scL * 0.85, 0.0, 0.9) * uScanA);
   }
 
   // a cool rim where slopes turn away from the eye, so the silhouette separates from the dark ground
@@ -355,6 +376,8 @@ export interface ReliefColours {
   rimC: string;
   /** Water bodies (a live place's water mask). */
   waterC?: string;
+  /** The measurement front's hairline and lit grid (the survey accent). */
+  scanC?: string;
 }
 
 export interface ReliefOptions {
@@ -476,6 +499,9 @@ export function createRelief(
     uCarve: { value: 1 },
     uWater: { value: o.water ?? NO_WATER },
     uWaterC: { value: hexVec(c.waterC ?? c.albedo) },
+    uScanA: { value: 0 },
+    uScanH: { value: 0 },
+    uScanC: { value: hexVec(c.scanC ?? c.line) },
   };
   const material = new ShaderMaterial({
     vertexShader: RELIEF_VERT,
@@ -682,6 +708,7 @@ uniform vec4 uPlanRect;
 uniform float uExag;
 uniform vec3 uL, uAlbedo, uLine, uAccent;
 uniform float uDim, uCarve, uGridStep;
+uniform float uScanA, uScanH; // the measurement front, as on the relief
 varying vec3 vWorld;
 
 float regionalElev(vec2 xz) {
@@ -760,6 +787,13 @@ void main() {
   float contourInk = clamp(c250 * 0.62 + c50 * 0.26, 0.0, 1.0);
   float gridInk = clamp(majorGrid * 0.48 + minorGrid * 0.15 + onCrossArm * 0.78, 0.0, 1.0);
   float hillInk = (1.0 - diff) * mix(0.22, 0.09, carveProgress);
+  if (uScanA > 0.001) {
+    float scD = abs(h - uScanH) / max(fwidth(h), 1e-3);
+    float scL = 1.0 - smoothstep(0.0, 1.7, scD);
+    float scW = h < uScanH ? exp((h - uScanH) / 260.0) : 0.0;
+    gridInk = clamp(gridInk * (1.0 + scW * 1.6 * uScanA) + scL * 0.8 * uScanA, 0.0, 1.0);
+    contourInk = clamp(contourInk * (1.0 + scW * 1.2 * uScanA), 0.0, 1.0);
+  }
 
   vec3 topoCol = mix(uLine * 0.75, uAlbedo, 0.35);
   vec3 col = topoCol;
@@ -827,6 +861,8 @@ export function createSurveyPlan(
     uDim: { value: 1 },
     uCarve: { value: 1 },
     uGridStep: { value: gridStep },
+    uScanA: { value: 0 },
+    uScanH: { value: 0 },
   };
   const material = new ShaderMaterial({
     vertexShader: PLAN_VERT,
