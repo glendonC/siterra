@@ -20,11 +20,7 @@ import {
   type Pt,
 } from "../../lib/run/layout";
 import type { RunModel, RunTask } from "../../lib/run/model";
-import {
-  AtWorkAgentTree,
-  AtWorkBottomThinkingBand,
-  AtWorkCursors,
-} from "./AtWorkPanels";
+import { AtWorkAgentTree, AtWorkBottomThinkingBand, AtWorkCursors } from "./AtWorkPanels";
 import styles from "./AtWork.module.css";
 
 const LANE_PX = 0;
@@ -115,15 +111,22 @@ export function AtWork({
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [stepsDismissed, setStepsDismissed] = useState(false);
 
+  const runningTask = run.tasks.find((t) => t.state === "running") ?? null;
   const activeOrRunningTask =
-    selectedTaskId !== null
-      ? (run.tasks.find((t) => t.id === selectedTaskId) ?? null)
-      : (run.tasks.find((t) => t.state === "running") ?? null);
+    runningTask ??
+    (selectedTaskId !== null
+      ? (run.tasks.find((t) => t.id === selectedTaskId && t.state !== "queued") ?? null)
+      : null);
 
   useEffect(() => {
     if (!onFocusTask) return;
     onFocusTask(activeOrRunningTask);
-  }, [activeOrRunningTask?.id, activeOrRunningTask?.kind, activeOrRunningTask?.sublabel, onFocusTask]);
+  }, [
+    activeOrRunningTask?.id,
+    activeOrRunningTask?.kind,
+    activeOrRunningTask?.sublabel,
+    onFocusTask,
+  ]);
 
   useEffect(() => {
     const param = new URLSearchParams(
@@ -169,19 +172,20 @@ export function AtWork({
         ev.preventDefault();
         cycleFollow();
       } else if (ev.key === "ArrowDown" || ev.key === "ArrowUp") {
-        if (run.tasks.length === 0) return;
+        const navTasks = run.tasks.filter((task) => task.state !== "queued");
+        if (navTasks.length === 0) return;
         ev.preventDefault();
         setStepsDismissed(false);
         const dir = ev.key === "ArrowDown" ? 1 : -1;
         setSelectedTaskId((cur) => {
-          const idx = cur ? run.tasks.findIndex((x) => x.id === cur) : -1;
+          const idx = cur ? navTasks.findIndex((x) => x.id === cur) : -1;
           const nextIdx =
             idx === -1
               ? dir > 0
                 ? 0
-                : run.tasks.length - 1
-              : (idx + dir + run.tasks.length) % run.tasks.length;
-          return run.tasks[nextIdx]?.id ?? null;
+                : navTasks.length - 1
+              : (idx + dir + navTasks.length) % navTasks.length;
+          return navTasks[nextIdx]?.id ?? null;
         });
       } else if (ev.key === "Escape" && selectedTaskId !== null) {
         ev.preventDefault();
@@ -281,9 +285,6 @@ export function AtWork({
       {/* Top left: the question (and, for a replay, where it comes from); T Thinking is in the command bar */}
       <header className={styles.topLeftHeader}>
         <section className={styles.question} data-run-question>
-          <span className={styles.questionCaret} data-chrome="" aria-hidden="true">
-            {"▸"}
-          </span>
           <h2 className={styles.asked}>{question}</h2>
         </section>
         {note}
@@ -303,16 +304,18 @@ export function AtWork({
         onFocusLayer={onFocusLayer}
       />
 
-      <AtWorkBottomThinkingBand
-        run={run}
-        nowMs={nowMs}
-        selectedTaskId={selectedTaskId}
-        setSelectedTaskId={setSelectedTaskId}
-        setStepsDismissed={setStepsDismissed}
-        hoveredBranch={hoveredBranch}
-        setHoveredBranch={setHoveredBranch}
-        onFocusCause={onFocusCause}
-      />
+      {run.done ? (
+        <AtWorkBottomThinkingBand
+          run={run}
+          nowMs={nowMs}
+          selectedTaskId={selectedTaskId}
+          setSelectedTaskId={setSelectedTaskId}
+          setStepsDismissed={setStepsDismissed}
+          hoveredBranch={hoveredBranch}
+          setHoveredBranch={setHoveredBranch}
+          onFocusCause={onFocusCause}
+        />
+      ) : null}
 
       <AtWorkCursors
         cursors={cursors}

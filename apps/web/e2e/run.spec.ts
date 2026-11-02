@@ -48,13 +48,18 @@ test("the recorded run at work: one running task's card, its findings so far, an
   const replay = work.locator("[data-run-replay]");
   await expect(replay).toHaveText("Replay of live run, 30 Oct 2026, shown 4× faster");
   await expect(replay).toBeVisible();
-  const [q, r] = await Promise.all([
+  const [q, r, treeBox] = await Promise.all([
     work.locator("[data-run-question]").boundingBox(),
     replay.boundingBox(),
+    work.locator("[data-agent-tree]").boundingBox(),
   ]);
   expect(q && r && r.width > 100 && r.y >= q.y + q.height - 1 && r.y < q.y + q.height + 24).toBe(
     true,
   );
+  expect(q && treeBox && Math.abs(treeBox.x - q.x) <= 2).toBe(true);
+  await expect(work.locator("[data-agent-state='queued']")).toHaveCount(0);
+  await expect(work.locator("[data-run-step-count]")).toHaveText("Step 5 of 7");
+  expect(await work.innerText()).not.toMatch(/[▸▾✓]/);
   expect(await replay.evaluate((el) => getComputedStyle(el).opacity)).toBe("1");
   await expect(page.locator("[data-mode-line]")).toHaveCount(0);
   await expect(page.getByText("Live", { exact: true })).toHaveCount(0);
@@ -62,13 +67,11 @@ test("the recorded run at work: one running task's card, its findings so far, an
   const n = await words(page);
   expect(n).toBeGreaterThan(10);
   expect(n).toBeLessThanOrEqual(40);
-  // Following one agent opens its Steps card with searched chips and ordered steps, and dims sibling lanes
+  // Following one agent opens its Steps card with searched chips and active step, and dims sibling lanes
   await page.keyboard.press(" ");
   await expect(work.locator("[data-agent-thinking]")).toBeVisible();
-  await expect(work.locator("[data-thinking-chip]")).toContainText(["Herrera 2024"]);
-  await expect(work.locator("[data-thinking-step]").first()).toContainText(
-    "Searching published sources",
-  );
+  await expect(work.locator("[data-thinking-chip]").first()).toContainText("Herrera 2024");
+  await expect(work.locator("[data-thinking-step]").first()).toContainText("Reading Herrera 2024");
   await expect(work.locator("[data-run-task][data-dimmed]")).not.toHaveCount(0);
 });
 

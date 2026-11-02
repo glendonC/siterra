@@ -6,7 +6,6 @@ import type { CursorPoint } from "../../lib/run/layout";
 import type { RunModel, RunTask, RunTaskState } from "../../lib/run/model";
 import styles from "./AtWork.module.css";
 
-const MAX_VISIBLE_STEPS = 6;
 export const seconds = (ms: number) => (Math.max(0, ms) / 1000).toFixed(1);
 export const usd = (microUsd: number) => (microUsd / 1e6).toFixed(2);
 
@@ -41,115 +40,46 @@ export function taskMetaLine(t: RunTask, nowMs: number): string {
   return format("run.tree.time", { time: dur });
 }
 
-export function agentAccentColor(_t: RunTask, _idx: number): string {
-  return "#2563eb";
+const TRIAD_BY_KIND: Record<string, string> = {
+  plan: "#1d6fe8",
+  observation_analysis: "#1e824c",
+  source_research: "#d48817",
+  livelihood_governance: "#d94838",
+  explanation_branches: "#1d6fe8",
+  field_check: "#1e824c",
+};
+
+const TRIAD_CYCLE = ["#1d6fe8", "#1e824c", "#d48817", "#d94838"] as const;
+
+export function agentAccentColor(t: RunTask, idx: number): string {
+  return TRIAD_BY_KIND[t.kind] ?? TRIAD_CYCLE[idx % TRIAD_CYCLE.length] ?? "#1d6fe8";
 }
 
-function AgentDomainGlyph({ task }: { task: RunTask }) {
-  if (task.kind === "plan") {
-    return (
-      <svg viewBox="0 0 16 16" fill="none" className={styles.squircleGlyph} aria-hidden="true">
-        <circle cx="8" cy="8" r="4.8" stroke="currentColor" strokeWidth="1.15" />
-        <path
-          d="M8 1.8V4.2M8 11.8V14.2M1.8 8H4.2M11.8 8H14.2"
-          stroke="currentColor"
-          strokeWidth="1.15"
-          strokeLinecap="round"
-        />
-        <circle cx="8" cy="8" r="1" fill="currentColor" />
-      </svg>
-    );
-  }
-  if (task.kind === "observation_analysis") {
-    if (task.sublabel?.toLowerCase().includes("rain")) {
-      return (
-        <svg viewBox="0 0 16 16" fill="none" className={styles.squircleGlyph} aria-hidden="true">
-          <path
-            d="M3.8 10.2V12.8M6.6 6.2V12.8M9.4 8.4V12.8M12.2 3.8V12.8"
-            stroke="currentColor"
-            strokeWidth="1.2"
-            strokeLinecap="round"
-          />
-        </svg>
-      );
+function humanTaskTitle(t: RunTask, duplicateKind: boolean, obsIdx: number): string {
+  switch (t.kind) {
+    case "plan":
+      return "Plan";
+    case "observation_analysis": {
+      if (!duplicateKind) return "Satellite & climate check";
+      const sub = (t.sublabel ?? "").toLowerCase();
+      if (sub.includes("rain") || obsIdx > 0) return "Rainfall & terrain check";
+      return "Satellite & vegetation check";
     }
-    return (
-      <svg viewBox="0 0 16 16" fill="none" className={styles.squircleGlyph} aria-hidden="true">
-        <path
-          d="M2.5 11.5L6.2 7.8L9.2 10L13.5 4.5"
-          stroke="currentColor"
-          strokeWidth="1.15"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        <circle cx="13.5" cy="4.5" r="1.2" fill="currentColor" />
-      </svg>
-    );
+    case "source_research":
+      return "Published sources";
+    case "livelihood_governance":
+      return en["task.kind.livelihood_governance"].text;
+    case "explanation_branches":
+      return "Competing explanations";
+    case "field_check":
+      return "Field verification plan";
+    case "instrument_composition":
+    case "view":
+    case "view_order":
+      return "Synthesis & view order";
+    default:
+      return en[`task.kind.${t.kind}` as MessageId].text;
   }
-  if (task.kind === "source_research") {
-    return (
-      <svg viewBox="0 0 16 16" fill="none" className={styles.squircleGlyph} aria-hidden="true">
-        <path
-          d="M3.2 4.8H12.8M3.2 8H12.8M3.2 11.2H8.8"
-          stroke="currentColor"
-          strokeWidth="1.15"
-          strokeLinecap="round"
-        />
-      </svg>
-    );
-  }
-  if (task.kind === "livelihood_governance") {
-    return (
-      <svg viewBox="0 0 16 16" fill="none" className={styles.squircleGlyph} aria-hidden="true">
-        <path
-          d="M8 2.6L13.4 8L8 13.4L2.6 8L8 2.6Z"
-          stroke="currentColor"
-          strokeWidth="1.15"
-          strokeLinejoin="round"
-        />
-        <path
-          d="M8 5.4L10.6 8L8 10.6L5.4 8L8 5.4Z"
-          stroke="currentColor"
-          strokeWidth="1"
-          strokeLinejoin="round"
-          opacity="0.65"
-        />
-      </svg>
-    );
-  }
-  if (task.kind === "explanation_branches") {
-    return (
-      <svg viewBox="0 0 16 16" fill="none" className={styles.squircleGlyph} aria-hidden="true">
-        <path
-          d="M3 8H7.2M7.2 8L11.8 4.2M7.2 8H13M7.2 8L11.8 11.8"
-          stroke="currentColor"
-          strokeWidth="1.15"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        <circle cx="12.2" cy="4.2" r="1.1" fill="currentColor" />
-        <circle cx="13" cy="8" r="1.1" fill="currentColor" />
-        <circle cx="12.2" cy="11.8" r="1.1" fill="currentColor" />
-      </svg>
-    );
-  }
-  return (
-    <svg viewBox="0 0 16 16" fill="none" className={styles.squircleGlyph} aria-hidden="true">
-      <path
-        d="M8 3.2L13.2 5.9L8 8.6L2.8 5.9L8 3.2Z"
-        stroke="currentColor"
-        strokeWidth="1.15"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M2.8 9.6L8 12.3L13.2 9.6"
-        stroke="currentColor"
-        strokeWidth="1.15"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
 }
 
 export function AtWorkAgentTree({
@@ -184,24 +114,56 @@ export function AtWorkAgentTree({
     kindCounts.set(t.kind, (kindCounts.get(t.kind) ?? 0) + 1);
   }
 
+  const runningTasks = run.tasks.filter(
+    (t) => t.state === "running" && !(t.kind === "explanation_branches" && run.branches.length > 0),
+  );
+  const primaryRunning =
+    runningTasks.length > 0
+      ? ((selectedTaskId ? runningTasks.find((t) => t.id === selectedTaskId) : null) ??
+        runningTasks[runningTasks.length - 1] ??
+        runningTasks[0] ??
+        null)
+      : null;
+
+  const nonQueuedTasks = run.tasks.filter((t) => t.state !== "queued");
   const visibleTasks = expandedAll
-    ? run.tasks
-    : run.tasks.filter((t) => t.state === "running" || selectedTaskId === t.id);
+    ? nonQueuedTasks
+    : nonQueuedTasks.filter((t) => t.state === "running" || selectedTaskId === t.id);
   const showTreeList = visibleTasks.length > 0 || (run.done && run.needsReview);
 
   const selectedTask =
     !stepsDismissed && selectedTaskId !== null
-      ? (run.tasks.find((t) => t.id === selectedTaskId) ?? null)
+      ? (nonQueuedTasks.find((t) => t.id === selectedTaskId) ?? null)
       : null;
+  const expandedTask = !stepsDismissed ? (selectedTask ?? primaryRunning) : null;
+
+  let obsSeen = 0;
 
   return (
-    <div className={styles.leftRailSystem} data-chrome="">
+    <div className={styles.leftRailSystem}>
       <aside
         className={styles.agentTree}
         data-agent-tree=""
         data-folded={expandedAll ? "false" : "true"}
-        data-chrome=""
       >
+        <div className={styles.thinkingHeader}>
+          <span
+            className={styles.thinkingWord}
+            data-active={!run.done ? "" : undefined}
+            data-chrome=""
+          >
+            {"Thinking"}
+          </span>
+          <span className={styles.thinkingTime} data-chrome="">
+            {format("run.tree.time", { time: seconds(nowMs) })}
+          </span>
+          {!run.done ? (
+            <span className={styles.srOnly} data-run-status>
+              {format("run.sofar", { n: run.findings.length })}
+            </span>
+          ) : null}
+        </div>
+
         {showTreeList ? (
           <ol className={styles.treeList}>
             {visibleTasks.map((t, idx) => {
@@ -211,17 +173,14 @@ export function AtWorkAgentTree({
               const isSelected = selectedTaskId === t.id;
               const isDimmed = selectedTaskId !== null && !isSelected;
               const isRunning = t.state === "running";
-              const elapsedMs = t.startMs !== null ? (t.endMs ?? nowMs) - t.startMs : 0;
-              const dur =
-                t.startMs !== null && elapsedMs >= 50
-                  ? format("run.tree.time", {
-                      time: seconds(elapsedMs),
-                    })
-                  : null;
-              const rightLabel = !isRunning && dur ? dur : en[TASK_STATE_WORD[t.state]].text;
+              const isPrimaryRunning = primaryRunning?.id === t.id;
+              const isExpanded = expandedTask?.id === t.id;
               const duplicateKind = (kindCounts.get(t.kind) ?? 0) > 1;
-              const scopeChip = t.sublabel ?? (duplicateKind ? (t.searchedChips[0] ?? null) : null);
-              const taskTitle = en[`task.kind.${t.kind}` as MessageId].text;
+              const obsIdx = t.kind === "observation_analysis" ? obsSeen++ : 0;
+              const taskTitle = humanTaskTitle(t, duplicateKind, obsIdx);
+              const shownChips = t.searchedChips.slice(0, 2);
+              const extraChipCount = Math.max(0, t.searchedChips.length - shownChips.length);
+              const summaryStep = t.steps.length > 0 ? (t.steps[t.steps.length - 1] ?? null) : null;
 
               return (
                 <li
@@ -233,60 +192,72 @@ export function AtWorkAgentTree({
                   data-agent-state={t.state}
                   data-root={isRoot ? "" : undefined}
                   data-selected={isSelected ? "" : undefined}
+                  data-expanded={isExpanded ? "" : undefined}
                   data-dimmed={isDimmed ? "" : undefined}
                 >
                   <button
                     type="button"
                     className={styles.treeNodeBtn}
-                    aria-label={`${taskTitle}${scopeChip ? ` (${scopeChip})` : ""}, ${rightLabel}`}
+                    aria-expanded={isExpanded}
+                    aria-label={taskTitle}
+                    data-run-card={isPrimaryRunning ? t.kind : undefined}
+                    data-chrome={isPrimaryRunning ? undefined : ""}
                     onClick={() => {
                       setStepsDismissed(false);
                       setSelectedTaskId((cur) => (cur === t.id ? null : t.id));
                     }}
                   >
                     <span
-                      className={styles.squircle}
+                      className={styles.treeNodeBullet}
                       data-state={t.state}
                       data-selected={isSelected ? "" : undefined}
-                    >
-                      <svg className={styles.squircleSvg} viewBox="0 0 32 32" aria-hidden="true">
-                        <rect
-                          className={styles.squircleTrack}
-                          x="0.75"
-                          y="0.75"
-                          width="30.5"
-                          height="30.5"
-                          rx="7"
-                          ry="7"
-                          pathLength="100"
-                        />
-                        {isRunning ? (
-                          <rect
-                            className={styles.squircleSweep}
-                            x="0.75"
-                            y="0.75"
-                            width="30.5"
-                            height="30.5"
-                            rx="7"
-                            ry="7"
-                            pathLength="100"
-                          />
-                        ) : null}
-                      </svg>
-                      <AgentDomainGlyph task={t} />
-                    </span>
+                      aria-hidden="true"
+                      data-chrome=""
+                    />
 
-                    {/* Hover pill tooltip (hidden at rest so the left rail stays a sleek icon column) */}
-                    <span className={styles.treeNodeTooltip} data-chrome="">
-                      <span className={styles.treeNodeName} data-state={t.state}>
-                        {taskTitle}
-                        {scopeChip ? `, ${scopeChip}` : ""}
-                      </span>
-                      <span className={styles.treeNodeState} data-state={t.state}>
-                        {rightLabel}
-                      </span>
+                    <span className={styles.treeNodeName} data-state={t.state}>
+                      {taskTitle}
                     </span>
                   </button>
+
+                  {isExpanded ? (
+                    <div
+                      className={styles.inlineTraceDetail}
+                      data-agent-thinking={t.kind}
+                      data-chrome=""
+                    >
+                      {shownChips.length > 0 ? (
+                        <div className={styles.thinkingChips}>
+                          {shownChips.map((chip) => (
+                            <span key={chip} className={styles.thinkingChip} data-thinking-chip="">
+                              {chip}
+                            </span>
+                          ))}
+                          {extraChipCount > 0 ? (
+                            <span className={styles.thinkingChip} data-thinking-chip="">
+                              {`+${String(extraChipCount)} more`}
+                            </span>
+                          ) : null}
+                        </div>
+                      ) : null}
+
+                      {summaryStep ? (
+                        <div
+                          className={styles.thinkingStep}
+                          data-thinking-step={summaryStep.status}
+                          data-active-shimmer={
+                            summaryStep.status === "running" || isRunning ? "" : undefined
+                          }
+                        >
+                          <span className={styles.thinkingStepLabel}>{summaryStep.label}</span>
+                        </div>
+                      ) : t.activeLabel ? (
+                        <p className={styles.inspectorLiveLine} data-active-shimmer="">
+                          {t.activeLabel}
+                        </p>
+                      ) : null}
+                    </div>
+                  ) : null}
                 </li>
               );
             })}
@@ -298,25 +269,10 @@ export function AtWorkAgentTree({
                 data-agent-node="review"
                 data-agent-state="review"
                 data-agent-review=""
+                data-chrome=""
               >
                 <div className={styles.treeNodeReview}>
-                  <span className={styles.squircle} data-state="review">
-                    <svg className={styles.squircleSvg} viewBox="0 0 32 32" aria-hidden="true">
-                      <rect
-                        className={styles.squircleTrack}
-                        x="0.75"
-                        y="0.75"
-                        width="30.5"
-                        height="30.5"
-                        rx="7"
-                        ry="7"
-                        pathLength="100"
-                      />
-                    </svg>
-                    <span className={styles.reviewExclaim} aria-hidden="true">
-                      !
-                    </span>
-                  </span>
+                  <span className={styles.treeNodeBullet} data-state="review" aria-hidden="true" />
                   <span className={styles.needsYouPill} data-needs-you="">
                     {en["run.tree.needsYou"].text}
                   </span>
@@ -325,84 +281,13 @@ export function AtWorkAgentTree({
             ) : null}
           </ol>
         ) : null}
-      </aside>
 
-      {selectedTask ? (
-        <div
-          className={styles.sideBlurInspector}
-          style={
-            {
-              "--agent-color": agentAccentColor(
-                selectedTask,
-                Math.max(
-                  0,
-                  run.tasks.findIndex((x) => x.id === selectedTask.id),
-                ),
-              ),
-            } as CSSProperties
-          }
-          data-agent-thinking={selectedTask.kind}
-          data-chrome=""
-        >
-          <div className={styles.inspectorHeader}>
-            <div className={styles.inspectorTitleBlock}>
-              <span className={styles.inspectorKicker}>
-                {en[`task.kind.${selectedTask.kind}` as MessageId].text}
-                {selectedTask.sublabel ? `, ${selectedTask.sublabel}` : ""}
-              </span>
-              {selectedTask.activeLabel ? (
-                <p className={styles.inspectorLiveLine}>{selectedTask.activeLabel}</p>
-              ) : null}
-            </div>
-            <button
-              type="button"
-              className={styles.inlineResetBtn}
-              data-agent-show-all=""
-              onClick={() => {
-                setSelectedTaskId(null);
-                setStepsDismissed(false);
-              }}
-            >
-              <kbd className={styles.keycapDark}>{"Esc"}</kbd>
-              <span>{en["run.tree.followAll"].text}</span>
-            </button>
+        {!run.done && run.tasks.length > 0 ? (
+          <div className={styles.thinkingFoot} data-run-step-count="" data-chrome="">
+            {`Step ${String(Math.max(1, nonQueuedTasks.length))} of ${String(run.tasks.length)}`}
           </div>
-
-          {selectedTask.searchedChips.length > 0 ? (
-            <div className={styles.thinkingChips}>
-              {selectedTask.searchedChips.map((chip) => (
-                <span key={chip} className={styles.thinkingChip} data-thinking-chip="">
-                  {chip}
-                </span>
-              ))}
-            </div>
-          ) : null}
-
-          {selectedTask.steps.length > 0 ? (
-            <ol className={styles.thinkingStepList}>
-              {selectedTask.steps.slice(-MAX_VISIBLE_STEPS).map((step) => (
-                <li key={step.id} className={styles.thinkingStep} data-thinking-step={step.status}>
-                  <span
-                    className={styles.thinkingStepDot}
-                    data-status={step.status}
-                    aria-hidden="true"
-                  />
-                  <span className={styles.thinkingStepLabel}>{step.label}</span>
-                  <span className={styles.thinkingStepTime}>
-                    {format("run.tree.time", { time: seconds(step.ms) })}
-                  </span>
-                </li>
-              ))}
-            </ol>
-          ) : null}
-
-          {selectedTask.startMs !== null ? (
-            <div className={styles.inlineMetaFooter}>
-              <span>{taskMetaLine(selectedTask, nowMs)}</span>
-            </div>
-          ) : null}
-        </div>
-      ) : null}
+        ) : null}
+      </aside>
     </div>
   );
 }

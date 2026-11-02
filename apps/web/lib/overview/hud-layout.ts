@@ -106,14 +106,20 @@ export function placeCardDom(
     x1: Math.max(layout.subject.x1, layout.landBox.x1),
     y1: Math.max(layout.subject.y1, layout.landBox.y1),
   };
-  const { box: raw, side } = placeCard(layout.anchor, w, h, avoid, prevSide);
-  const isRight = side === "right" || side === "upRight" || side === "downRight";
+  const { side } = placeCard(layout.anchor, w, h, avoid, prevSide);
+  const recSide = inst.parentElement?.getAttribute("data-side");
+  const isRight = recSide
+    ? recSide !== "left"
+    : side === "right" || side === "upRight" || side === "downRight";
   const x0 = isRight
-    ? Math.min(1400 - w, Math.max(raw.x0, avoid.x1 + 72, w > 560 ? 640 : 680))
-    : Math.max(40, Math.min(raw.x1, avoid.x0 - 72, 680) - w);
+    ? Math.min(1380 - w, Math.max(580, Math.round(layout.anchor.x + 92)))
+    : Math.max(60, Math.min(440, Math.round(layout.anchor.x - w - 92)));
   const eh = ev && !ev.hidden ? ev.offsetHeight : 0;
   const totalH = eh > 0 ? h + 20 + eh : h;
-  const y0 = Math.max(110, Math.min(836 - totalH, Math.round((900 - totalH) * 0.44)));
+  const y0 = Math.max(
+    110,
+    Math.min(820 - totalH, Math.round(Math.min((900 - totalH) * 0.42, layout.anchor.y - h * 0.55))),
+  );
   const box = { x0, y0, x1: x0 + w, y1: y0 + h };
   inst.style.left = `${box.x0.toFixed(1)}px`;
   inst.style.top = `${box.y0.toFixed(1)}px`;
@@ -121,7 +127,7 @@ export function placeCardDom(
     ev.style.left = `${box.x0.toFixed(1)}px`;
     ev.style.top = `${(box.y1 + 20).toFixed(1)}px`;
   }
-  return { box, side };
+  return { box, side: isRight ? "right" : "left" };
 }
 
 /** A lifted layer's status, from the record: the cells read, the finding it carries, the band limits. */

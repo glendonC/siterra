@@ -12,22 +12,25 @@ import { en, format } from "../../lib/copy/en";
 import { signed } from "../../lib/instruments/format";
 import type { ScatterData } from "../../lib/instruments/scatter/data";
 import { seasonWords, windowWords } from "../../lib/land/season";
-import { directionWord, type Finding } from "../../lib/overview/findings";
-import { chartScale, yearTicks, type SeasonChart } from "../../lib/overview/record";
+import {
+  recordHeadlineForFinding,
+  recordRowsForFinding,
+  type Finding,
+} from "../../lib/overview/findings";
+import { chartScale } from "../../lib/overview/record";
 import type { RecordData } from "../../lib/overview/record-data";
 import type { Selection } from "../../lib/overview/scene/overview";
 import type { Action } from "../../lib/overview/actions";
-import { labelShown } from "../../lib/time/data";
 import type { ScanTimingSummary } from "../../lib/time/load";
 import { ActionList } from "./ActionList";
 import { pixelColours as C } from "../../lib/theme/obsidian";
 import styles from "./OverviewRecord.module.css";
 
-/** D4's chart: 500 x 190 CSS px with its margins. */
-const CHART = { w: 420, h: 170, pl: 34, pr: 8, pt: 22, pb: 26 } as const;
+/** D4's chart: compact 420 x 154 CSS px with its margins so the slanted card and open context fit the frame. */
+const CHART = { w: 420, h: 154, pl: 34, pr: 8, pt: 20, pb: 28 } as const;
 const NARROW = CHART;
 /** The rain card opened wide (Compare with Rainfall). */
-const WIDE = { w: 620, h: 300, pl: 34, pr: 8, pt: 22, pb: 26 } as const;
+const WIDE = { w: 580, h: 270, pl: 34, pr: 8, pt: 20, pb: 28 } as const;
 
 export interface RecordRefs {
   root: Ref<HTMLDivElement>;
@@ -38,48 +41,6 @@ export interface RecordRefs {
   frost: Ref<HTMLDivElement>;
   connector: Ref<SVGSVGElement>;
   midcap: Ref<HTMLDivElement>;
-}
-
-function SeasonsChart({ chart }: { chart: SeasonChart }) {
-  const first = chart.seasons[0]?.year ?? 0;
-  const last = chart.seasons[chart.seasons.length - 1]?.year ?? first;
-  const { lo, hi, ticks } = chartScale(chart.seasons.map((s) => s.ndvi));
-  const digits = ticks.some((t) => Math.round(t * 10) !== t * 10) ? 2 : 1;
-  const X = (x: number) =>
-    CHART.pl + ((x - first) / (last - first || 1)) * (CHART.w - CHART.pl - CHART.pr);
-  const Y = (y: number) =>
-    CHART.pt + (1 - (y - lo) / (hi - lo || 1)) * (CHART.h - CHART.pt - CHART.pb);
-  const at = (x: number) => chart.intercept + (chart.slopePerDecade / 10) * x;
-  return (
-    <svg
-      className={styles.chart}
-      width={CHART.w}
-      height={CHART.h}
-      viewBox={`0 0 ${String(CHART.w)} ${String(CHART.h)}`}
-      aria-hidden="true"
-    >
-      {ticks.map((g) => (
-        <g key={g}>
-          <line className={styles.grid} x1={CHART.pl} x2={CHART.w - CHART.pr} y1={Y(g)} y2={Y(g)} />
-          <text x={CHART.pl - 8} y={Y(g) + 4} textAnchor="end">
-            {g.toFixed(digits)}
-          </text>
-        </g>
-      ))}
-      {yearTicks(first, last).map((yr) => (
-        <text key={yr} x={X(yr)} y={CHART.h - 6} textAnchor="middle">
-          {yr}
-        </text>
-      ))}
-      <text x={CHART.pl - 8} y={CHART.pt - 2} textAnchor="end">
-        {en["overview.record.ndvi"].text}
-      </text>
-      <line className={styles.fit} x1={X(first)} x2={X(last)} y1={Y(at(first))} y2={Y(at(last))} />
-      {chart.seasons.map((s) => (
-        <circle key={s.year} className={styles.point} cx={X(s.year)} cy={Y(s.ndvi)} r="2.6" />
-      ))}
-    </svg>
-  );
 }
 
 /** September to May rainfall (mm) across, March to June NDVI up, the straight-line fit across the seasons. */
@@ -156,17 +117,18 @@ function RainScatter({ data, wide = false }: { data: ScatterData; wide?: boolean
 export function OverviewRecord({
   sel,
   finding,
+  allFindings = [],
   caption,
   bandLimit,
   data,
   reasons,
   fieldCaption,
-  pixelNote,
+  pixelNote: _pixelNote,
   areaLabel,
   side,
   onLand,
   slopeKey,
-  scanTiming = null,
+  scanTiming: _scanTiming = null,
   actions,
   onOpen,
   onBack,
@@ -177,6 +139,8 @@ export function OverviewRecord({
   sel: Exclude<Selection, "results" | "routes">;
   /** The opened finding (none for the field check). */
   finding: Finding | null;
+  /** All findings on the case, so relative ratios and whole-area comparisons can be derived. */
+  allFindings?: readonly Finding[];
   caption: string[];
   bandLimit: string;
   /** The record's chart, scatter and context once read; null while reading. */
@@ -217,58 +181,22 @@ export function OverviewRecord({
     onContextToggle?.();
   }, [contextOpen, onContextToggle]);
   // the finding's own season and years, from its measurement's period (U25)
-  const { window, from, to } = seasonWords(finding?.period ?? null);
+  const { window } = seasonWords(finding?.period ?? null);
   const kicker =
     sel === "field"
       ? en["overview.field"].text
       : sel === "pixel"
-        ? en["overview.record.pixel"].text
+        ? "One 250 m square"
         : sel === "band"
           ? format("overview.record.band", { limit: bandLimit })
-          : areaLabel;
-  const chart = data?.chart ?? null;
-  const ci = chart
-    ? format(chart.fit === "theil_sen" ? "overview.record.theilSen" : "overview.record.ols", {
-        lower: signed(chart.lower, 4),
-        upper: signed(chart.upper, 4),
-      })
-    : null;
-  const capText =
-    chart && finding
-      ? format("overview.record.caption", { window, from, to })
-      : sel === "rain"
-        ? finding?.headline
-          ? caption.join(", ")
-          : en["overview.record.rainCaption"].text
-        : sel === "fdr"
-          ? [...caption, en["overview.finding.fdr.2"].text].join(", ")
-          : (caption[0] ?? caption.join(" "));
+          : sel === "rain" && finding?.subtitle?.startsWith("Nearest ")
+            ? finding.subtitle
+            : areaLabel;
+  const headline = finding
+    ? recordHeadlineForFinding(finding, allFindings, bandLimit)
+    : (caption[0] ?? "");
+  const rows = finding ? recordRowsForFinding(finding, allFindings, bandLimit) : [];
   const context = data?.context ?? null;
-  const scanLine = (() => {
-    if (!scanTiming) return null;
-    const rs = scanTiming.regionalScan;
-    const top = rs.zones.find((z) => z.rank === 1) ?? rs.zones[0];
-    const nfmt = (n: number) => new Intl.NumberFormat("en").format(n);
-    const inside = (rs.inCatchment.upwardTrendFdrShare * 100).toFixed(1);
-    const outside = (rs.outsideCatchment.upwardTrendFdrShare * 100).toFixed(1);
-    if (top && top.upwardChangepointFdrPixels > 0 && top.medianChangeYear !== null) {
-      return format("overview.record.regionalScan", {
-        total: nfmt(rs.windowTestedPixels),
-        inside,
-        outside,
-        outsideCount: nfmt(rs.outsideCatchment.testedPixels),
-        rank: top.rank,
-        zone: labelShown(top.label),
-        year: top.medianChangeYear,
-      });
-    }
-    return format("overview.record.regionalScanNoShift", {
-      total: nfmt(rs.windowTestedPixels),
-      inside,
-      outside,
-      outsideCount: nfmt(rs.outsideCatchment.testedPixels),
-    });
-  })();
   return (
     <div
       ref={refs.root}
@@ -279,24 +207,24 @@ export function OverviewRecord({
     >
       <div ref={refs.frost} className={styles.frost} aria-hidden="true" />
       <section ref={refs.inst} className={styles.inst}>
+        <div className={styles.glass} aria-hidden="true" />
         <div className={styles.plane}>
           <div className={styles.k}>{kicker}</div>
           {finding ? (
-            <div ref={refs.big} className={styles.big}>
-              {finding.pair ? (
-                // both shares, each from its own Measurement, each with its direction (U25b)
-                <>
-                  {finding.display}
-                  <span className={styles.shareWord}>{directionWord(finding.direction)}</span>
-                  {finding.pair.display}
-                  <span className={styles.shareWord}>{directionWord(finding.pair.direction)}</span>
-                </>
-              ) : (
-                finding.display
-              )}
+            <div ref={refs.big} className={styles.headline} data-record-headline="">
+              {headline}
             </div>
           ) : null}
-          {finding ? <div className={styles.cap}>{capText}</div> : null}
+          {rows.length > 0 ? (
+            <div className={styles.rows} data-record-rows="">
+              {rows.map((r) => (
+                <div key={r.label} className={styles.row} data-record-row="">
+                  <span className={styles.rowLabel}>{r.label}</span>
+                  <span className={styles.rowValue}>{r.value}</span>
+                </div>
+              ))}
+            </div>
+          ) : null}
           {sel === "field"
             ? (fieldCaption ? [fieldCaption.ink, fieldCaption.grey] : reasons).map((r) => (
                 <p key={r} className={styles.cap}>
@@ -304,37 +232,16 @@ export function OverviewRecord({
                 </p>
               ))
             : null}
-          {chart ? <SeasonsChart chart={chart} /> : null}
-          {data?.scatter ? <RainScatter data={data.scatter} wide={wide} /> : null}
-          {data &&
-          !chart &&
-          !data.scatter &&
-          (sel === "catchment" || sel === "band" || sel === "pixel" || sel === "rain") ? (
+          {wide && data?.scatter ? <RainScatter data={data.scatter} wide={wide} /> : null}
+          {finding?.missingReason ? (
             <div className={styles.note} data-not-measured="">
-              {finding?.missingReason ?? "Not measured yet"}
-            </div>
-          ) : null}
-          {ci || chart ? (
-            <div className={styles.ci}>
-              {ci ? <span>{ci}</span> : null}
-              {ci && chart ? <span aria-hidden="true">{", "}</span> : null}
-              {chart ? <span data-season-dot>{en["overview.record.dot"].text}</span> : null}
+              {finding.missingReason}
             </div>
           ) : null}
           {slopeKey ? <SlopeKey domain={slopeKey.domain} window={window} /> : null}
           {onLand ? (
             <div className={styles.note} data-on-land>
               {onLand}
-            </div>
-          ) : null}
-          {scanLine ? (
-            <div className={styles.note} data-regional-scan-summary="">
-              {scanLine}
-            </div>
-          ) : null}
-          {sel === "pixel" && pixelNote ? (
-            <div className={styles.note} data-pixel-note>
-              {pixelNote}
             </div>
           ) : null}
           {wide ? null : (

@@ -99,32 +99,107 @@
   text-shadow: var(--paper-halo);
 }
 
-/* ─── Sleek Icon-Only Left Squircle Rail + Feathered Side-Blur Inspector ─── */
+/* ─── Upright, Borderless Top-Left Thinking Trace (AffectUI / Globe Shimmer) ─── */
 
 .leftRailSystem {
   position: absolute;
-  top: 120px;
-  left: 40px;
+  top: calc(96px / var(--hud-scale, 1) - var(--hud-shift-y, 0px));
+  left: calc(40px / var(--hud-scale, 1) - var(--hud-shift-x, 0px));
   z-index: 9;
   display: flex;
+  flex-direction: column;
   align-items: flex-start;
-  gap: 16px;
+  max-width: 320px;
   pointer-events: none;
 }
 
-/* the replay line lengthens the header: the rail starts below it */
+/* the replay line lengthens the header: the trace starts below it */
 .atWork:has([data-run-replay]) .leftRailSystem {
-  top: 144px;
+  top: calc(118px / var(--hud-scale, 1) - var(--hud-shift-y, 0px));
 }
 
 .agentTree {
   position: relative;
   display: flex;
   flex-direction: column;
-  width: 34px;
+  width: 320px;
+  max-width: 320px;
   padding: 2px 0;
   pointer-events: auto;
   isolation: isolate;
+}
+
+.agentTree::before {
+  content: "";
+  position: absolute;
+  inset: -20px -28px;
+  z-index: -1;
+  pointer-events: none;
+  background: var(--ov-frost);
+  mask-image: var(--ov-frost-mask);
+  -webkit-mask-image: var(--ov-frost-mask);
+  backdrop-filter: blur(14px) saturate(1.08);
+  -webkit-backdrop-filter: blur(14px) saturate(1.08);
+}
+
+.thinkingHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0 0 8px;
+}
+
+.thinkingWord {
+  font: 600 15px / 20px var(--font-sans);
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+  text-shadow: var(--paper-halo);
+}
+
+.thinkingWord[data-active] {
+  background: linear-gradient(90deg, #57524a 0%, #1a1714 45%, #8a8378 55%, #57524a 100%);
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: none;
+  animation: affectShimmerSweep 2.4s linear infinite;
+}
+
+.thinkingTime {
+  font: 400 13px / 18px var(--font-sans);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-tertiary);
+  text-shadow: var(--paper-halo);
+}
+
+.thinkingStatusInline {
+  font: 400 12px / 16px var(--font-sans);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary);
+  text-shadow: var(--paper-halo);
+  margin-left: auto;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.thinkingFoot {
+  margin: 7px 0 0 15px;
+  font: 400 12px / 16px var(--font-sans);
+  color: var(--text-tertiary);
+  font-variant-numeric: tabular-nums;
+  text-shadow: var(--paper-halo);
 }
 
 .treeList {
@@ -138,182 +213,111 @@
 
 .treeNode {
   position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
   transition: opacity 150ms ease;
 }
 
 .treeNode[data-dimmed] {
-  opacity: 0.35;
+  opacity: 0.42;
 }
 
 .treeNodeBtn {
   position: relative;
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  padding: 0;
+  gap: 8px;
+  width: 100%;
+  padding: 1px 0;
   border: 0;
   background: transparent;
-  color: var(--text-primary);
+  color: var(--text-secondary);
+  text-align: left;
   cursor: pointer;
   outline: none;
+  text-shadow: var(--paper-halo);
 }
 
-/* ─── Precision Monochrome Squircle Tile with Hairline Perimeter Sweep ─── */
+.treeNodeBtn:disabled,
+.treeNodeBtn[aria-disabled="true"] {
+  opacity: 0.45;
+  cursor: default;
+  pointer-events: none;
+}
 
-.squircle {
-  position: relative;
-  width: 32px;
-  height: 32px;
-  border-radius: 7px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+.treeNodeBtn:hover:not(:disabled) .treeNodeName {
+  color: var(--text-primary);
+}
+
+.treeNodeBullet {
+  width: 7px;
+  height: 7px;
+  border-radius: 2px;
   flex-shrink: 0;
-  color: var(--text-primary);
-  background: transparent;
-  transition:
-    background 140ms ease,
-    color 140ms ease,
-    opacity 140ms ease;
+  background: var(--agent-color, #1d6fe8);
+  opacity: 0.6;
+  transition: opacity 150ms ease;
 }
 
-.treeNodeBtn:hover .squircle {
-  background: color-mix(in srgb, var(--text-primary) 5%, transparent);
-}
-
-.squircle[data-state="queued"] {
-  color: var(--text-tertiary);
-  opacity: 0.36;
-}
-
-.squircle[data-state="succeeded"] {
-  color: var(--text-primary);
-  opacity: 0.82;
-}
-
-.treeNodeBtn:hover .squircle[data-state="succeeded"] {
+.treeNodeBullet[data-state="running"],
+.treeNode[data-expanded] .treeNodeBullet,
+.treeNodeBtn:hover:not(:disabled) .treeNodeBullet {
   opacity: 1;
 }
 
-.squircle[data-state="running"] {
-  color: var(--text-primary);
-  background: color-mix(in srgb, var(--bg-canvas) 65%, transparent);
+.treeNodeBullet[data-state="queued"] {
+  background: rgba(26, 23, 20, 0.22);
+  opacity: 0.45;
+}
+
+.treeNodeBullet[data-state="review"] {
+  background: #d48817;
   opacity: 1;
-}
-
-.squircle[data-selected] {
-  background: var(--text-primary);
-  color: var(--bg-canvas);
-  opacity: 1;
-}
-
-.squircleSvg {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  overflow: visible;
-  pointer-events: none;
-}
-
-.squircleTrack {
-  fill: none;
-  stroke: color-mix(in srgb, var(--text-primary) 14%, transparent);
-  stroke-width: 1;
-  transition: stroke 140ms ease;
-}
-
-.squircle[data-state="queued"] .squircleTrack {
-  stroke: color-mix(in srgb, var(--text-primary) 10%, transparent);
-}
-
-.squircle[data-state="succeeded"] .squircleTrack {
-  stroke: color-mix(in srgb, var(--text-primary) 22%, transparent);
-}
-
-.treeNodeBtn:hover .squircle .squircleTrack {
-  stroke: color-mix(in srgb, var(--text-primary) 36%, transparent);
-}
-
-.squircle[data-selected] .squircleTrack {
-  stroke: var(--text-primary);
-  stroke-width: 1;
-}
-
-.squircleSweep {
-  fill: none;
-  stroke: var(--ov-blue);
-  stroke-width: 1.25;
-  stroke-linecap: round;
-  stroke-dasharray: 28 72;
-  animation: squircleEdgeSweep 1.6s linear infinite;
-}
-
-@keyframes squircleEdgeSweep {
-  from {
-    stroke-dashoffset: 100;
-  }
-  to {
-    stroke-dashoffset: 0;
-  }
-}
-
-.squircleGlyph {
-  width: 14px;
-  height: 14px;
-  position: relative;
-  z-index: 1;
-}
-
-.reviewExclaim {
-  font: 600 12px / 1 var(--font-mono);
-  color: var(--text-primary);
-}
-
-/* Hover-only tooltip pill next to squircle (hidden when side inspector is open or at rest) */
-.treeNodeTooltip {
-  position: absolute;
-  left: 42px;
-  top: 50%;
-  transform: translateY(-50%) translateX(-4px);
-  display: inline-flex;
-  align-items: baseline;
-  gap: 8px;
-  padding: 5px 10px;
-  border-radius: 6px;
-  border: 1px solid color-mix(in srgb, var(--text-primary) 12%, transparent);
-  background: color-mix(in srgb, var(--bg-canvas) 94%, transparent);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  white-space: nowrap;
-  opacity: 0;
-  pointer-events: none;
-  transition:
-    opacity 130ms ease,
-    transform 130ms ease;
-  z-index: 15;
-}
-
-.leftRailSystem:not(:has([data-agent-thinking])) .treeNodeBtn:hover .treeNodeTooltip,
-.leftRailSystem:not(:has([data-agent-thinking])) .treeNodeBtn:focus-visible .treeNodeTooltip {
-  opacity: 1;
-  transform: translateY(-50%) translateX(0);
 }
 
 .treeNodeName {
-  font: 500 12px / 16px var(--font-sans);
+  font: 400 13px / 18px var(--font-sans);
+  color: var(--text-secondary);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.treeNodeName[data-state="running"],
+.treeNode[data-expanded] .treeNodeName {
+  font-weight: 600;
   color: var(--text-primary);
 }
 
+.treeNodeName[data-state="queued"] {
+  color: var(--text-tertiary);
+}
+
+.treeNodeScope {
+  font: 400 12px / 16px var(--font-sans);
+  color: var(--text-tertiary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 96px;
+}
+
 .treeNodeState {
-  font: 400 12px / 16px var(--font-mono);
-  color: var(--text-secondary);
+  margin-left: auto;
+  font: 400 12px / 16px var(--font-sans);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-tertiary);
+  flex-shrink: 0;
 }
 
 .treeNodeReview {
   position: relative;
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 8px;
+  padding: 1px 0;
 }
 
 .needsYouPill {
@@ -323,93 +327,31 @@
   border-radius: 4px;
   background: #d97706;
   color: #ffffff;
-  font: 700 12px / 16px var(--font-mono);
-  letter-spacing: 0.02em;
+  font: 600 12px / 16px var(--font-sans);
+  letter-spacing: 0.01em;
   white-space: nowrap;
 }
 
-.keycapDark {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 18px;
-  height: 15px;
-  padding: 0 4px;
-  border-radius: 3px;
-  background: var(--control-fill);
-  color: var(--text-primary);
-  font: 600 12px / 1 var(--font-mono);
-}
+/* ─── Inline Accordion Detail beneath Expanded Step ─── */
 
-/* ─── Feathered Side-Blur Inspector (Death Stranding Filter Style) ─── */
-
-.sideBlurInspector {
-  position: relative;
-  isolation: isolate;
-  width: 344px;
-  padding: 14px 18px;
+.inlineTraceDetail {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  pointer-events: auto;
-  animation: sideInspectorIn 220ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.sideBlurInspector::before {
-  content: "";
-  position: absolute;
-  inset: -32px -40px;
-  z-index: -1;
-  pointer-events: none;
-  background: var(--ov-frost);
-  mask-image: var(--ov-frost-mask);
-  -webkit-mask-image: var(--ov-frost-mask);
-  backdrop-filter: blur(18px) saturate(1.12);
-  -webkit-backdrop-filter: blur(18px) saturate(1.12);
-}
-
-@keyframes sideInspectorIn {
-  from {
-    opacity: 0;
-    transform: translateX(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-.inspectorHeader {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 6px 10px;
-}
-
-/* the title keeps its line: the Esc hint drops under it rather than squeezing it */
-.inspectorTitleBlock {
-  display: flex;
-  flex: 1 1 220px;
-  flex-direction: column;
-  gap: 3px;
-  min-width: 0;
-}
-
-.inspectorKicker {
-  font: 600 12px / 16px var(--font-sans);
-  color: var(--agent-color, var(--ov-blue));
+  gap: 6px;
+  margin: 5px 0 2px 3px;
+  padding: 1px 0 1px 11px;
+  border-left: 1px solid rgba(26, 23, 20, 0.14);
 }
 
 .inspectorLiveLine {
   margin: 0;
-  font: 500 13px / 18px var(--font-sans);
+  font: 400 12.5px / 17px var(--font-sans);
   color: var(--text-primary);
 }
 
 .thinkingChips {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 5px;
 }
 
@@ -417,10 +359,13 @@
   display: inline-flex;
   align-items: center;
   padding: 2px 7px;
-  border-radius: 5px;
-  background: color-mix(in srgb, var(--agent-color, var(--ov-blue)) 12%, transparent);
-  color: var(--text-primary);
-  font: 500 12px / 16px var(--font-mono);
+  border-radius: 4px;
+  border: 1px solid rgba(26, 23, 20, 0.08);
+  background: rgba(26, 23, 20, 0.045);
+  color: var(--text-secondary);
+  font: 400 12px / 16px var(--font-sans);
+  white-space: nowrap;
+  text-shadow: none;
 }
 
 .thinkingStepList {
@@ -429,16 +374,15 @@
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 3px;
 }
 
 .thinkingStep {
-  display: grid;
-  grid-template-columns: 7px minmax(0, 1fr) auto;
-  align-items: baseline;
-  gap: 8px;
-  font: 400 12px / 16px var(--font-sans);
+  display: inline-block;
+  width: max-content;
+  font: 400 12.5px / 17px var(--font-sans);
   color: var(--text-secondary);
+  white-space: nowrap;
 }
 
 .thinkingStep[data-thinking-step="running"] {
@@ -446,22 +390,36 @@
   font-weight: 500;
 }
 
-.thinkingStepDot {
-  width: 5px;
-  height: 5px;
-  border-radius: 1.5px;
-  background: var(--text-tertiary);
-  transform: translateY(-1px);
+.thinkingStep[data-active-shimmer] .thinkingStepLabel,
+.inspectorLiveLine[data-active-shimmer] {
+  background: linear-gradient(90deg, #57524a 0%, #1a1714 45%, #8a8378 55%, #57524a 100%);
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: none;
+  animation: affectShimmerSweep 2.4s linear infinite;
 }
 
-.thinkingStepDot[data-status="done"],
-.thinkingStepDot[data-status="succeeded"] {
-  background: var(--agent-color, var(--ov-blue));
+@keyframes affectShimmerSweep {
+  from {
+    background-position: 100% 50%;
+  }
+  to {
+    background-position: -100% 50%;
+  }
 }
 
-.thinkingStepDot[data-status="running"] {
-  background: var(--agent-color, var(--ov-blue));
-  box-shadow: 0 0 6px var(--agent-color, var(--ov-blue));
+@media (prefers-reduced-motion: reduce) {
+  .thinkingWord[data-active],
+  .thinkingStep[data-active-shimmer] .thinkingStepLabel,
+  .inspectorLiveLine[data-active-shimmer] {
+    animation: none;
+    background: none;
+    -webkit-background-clip: border-box;
+    background-clip: border-box;
+    color: var(--text-primary);
+  }
 }
 
 .thinkingStepLabel {
@@ -471,37 +429,9 @@
 }
 
 .thinkingStepTime {
-  font: 400 12px / 16px var(--font-mono);
+  font: 400 12px / 16px var(--font-sans);
+  font-variant-numeric: tabular-nums;
   color: var(--text-tertiary);
-}
-
-.inlineMetaFooter {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding-top: 2px;
-  font: 400 12px / 16px var(--font-mono);
-  color: var(--text-tertiary);
-}
-
-.inlineResetBtn {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 2px 6px;
-  border: 0;
-  border-radius: 4px;
-  background: transparent;
-  color: var(--text-secondary);
-  font: 600 12px / 16px var(--font-mono);
-  letter-spacing: 0.02em;
-  cursor: pointer;
-  flex-shrink: 0;
-}
-
-.inlineResetBtn:hover {
-  color: var(--text-primary);
 }
 
 /* ─── Full-Width Bottom Feathered Band (Death Stranding Map Subtitle + Loader) ─── */
@@ -887,7 +817,7 @@
 
 /* the line under the question when the run on screen is a replay: where it comes from, in the header it belongs to */
 .replayLine {
-  margin: -4px 0 0 14px;
+  margin: -2px 0 0 0;
   font: 400 12px / 16px var(--font-mono);
   color: var(--text-secondary);
   text-shadow: var(--paper-halo);
