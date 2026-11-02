@@ -12,6 +12,7 @@ import {
 import { placeHref, type OtherPlace } from "../../lib/globe/places";
 import { en, format } from "../../lib/copy/en";
 import { SiterraMark, ThemeIcon } from "../opening/Opening";
+import { cardQuestion } from "./globe-choice";
 import styles from "./Journey.module.css";
 
 export interface GlobeCase {
@@ -677,6 +678,8 @@ export function GlobePage({
             ? cleanPlaceLabel(customLocation.placeName, customLocation.regionName) ||
               formatLatLon(customLocation.lat, customLocation.lon)
             : format("globe.place", { place: c.place, region: c.region });
+          // the card shows only the place while it is being chosen; the question joins it in step 2
+          const shownQuestion = cardQuestion(activeStep, activeQuestionText);
 
           return (
             <li key={c.id}>
@@ -705,7 +708,11 @@ export function GlobePage({
                   </span>
                 </div>
                 <p className={styles.casePlace}>{displayPlace}</p>
-                <p className={styles.caseQuestion}>{activeQuestionText}</p>
+                {shownQuestion ? (
+                  <p className={styles.caseQuestion} data-card-question="">
+                    {shownQuestion}
+                  </p>
+                ) : null}
               </div>
             </li>
           );
