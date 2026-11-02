@@ -223,4 +223,44 @@ describe("a finding's chart from the record", () => {
     // not the old invented band of half to one and a half times the slope
     expect(lower).not.toBeCloseTo(b * 0.5, 6);
   });
+
+  it("reads the rainfall scatter's growing and rainfall windows from the record's periods instead of hard-coding mar_jun and sep_may", () => {
+    const years = [2001, 2002, 2003, 2004];
+    const mm = [300, 420, 380, 510];
+    const ndvi = [0.2, 0.25, 0.22, 0.27];
+    const liveSnap = liveSnapshot([
+      ...years.map((y, i) => ({
+        ...season(y, ndvi[i] ?? 0),
+        periodId: `period_${String(y)}_may_aug`,
+      })),
+      ...years.map((y, i) => rain(y, mm[i] ?? 0)),
+      {
+        id: "m_precip_trend",
+        metric: "precipitation_trend_mm_per_decade",
+        periodId: "period_2000-2024_annual",
+        value: -12.4,
+      },
+    ]);
+    expect(fallbackRecordData("rain", liveSnap).scatter?.windows).toEqual({
+      growing: "may_aug",
+      rainfall: "annual",
+    });
+
+    const studiedSnap = liveSnapshot([
+      ...years.map((y, i) => ({
+        ...season(y, ndvi[i] ?? 0),
+        periodId: `period_${String(y)}_feb_may`,
+      })),
+      ...years.map((y, i) => ({
+        id: `m_rain_${String(y)}`,
+        metric: "rainfall_season_total",
+        periodId: `period_${String(y)}_oct_apr`,
+        value: mm[i] ?? 0,
+      })),
+    ]);
+    expect(fallbackRecordData("rain", studiedSnap).scatter?.windows).toEqual({
+      growing: "feb_may",
+      rainfall: "oct_apr",
+    });
+  });
 });

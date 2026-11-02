@@ -7,6 +7,8 @@ export interface NamedPeak {
 
 export interface HydrologyResult {
   streamPaths: [number, number][][];
+  /** The OpenStreetMap `waterway` tag of each path in `streamPaths`, in the same order. */
+  streamKinds: string[];
   namedWaterways: string[];
   namedPeaks: NamedPeak[];
   protectedAreas: string[];
@@ -48,6 +50,7 @@ export async function fetchRealHydrology(
 ): Promise<HydrologyResult> {
   const empty: HydrologyResult = {
     streamPaths: [],
+    streamKinds: [],
     namedWaterways: [],
     namedPeaks: [],
     protectedAreas: [],
@@ -66,7 +69,9 @@ export async function fetchRealHydrology(
   ].join("\n");
 
   const ac = new AbortController();
-  const timer = setTimeout(() => ac.abort(), 4500);
+  const timer = setTimeout(() => {
+    ac.abort();
+  }, 4500);
   try {
     const res = await fetch("https://overpass-api.de/api/interpreter", {
       method: "POST",
@@ -83,7 +88,7 @@ export async function fetchRealHydrology(
     const data = (await res.json()) as OverpassResponse;
     const elements = Array.isArray(data.elements) ? data.elements : [];
 
-    const candidateWays: Array<{ pts: [number, number][]; isRiver: boolean }> = [];
+    const candidateWays: Array<{ pts: [number, number][]; kind: string; isRiver: boolean }> = [];
     const waterwayNames = new Set<string>();
     const peakMap = new Map<string, NamedPeak>();
     const protectedSet = new Set<string>();
@@ -107,9 +112,11 @@ export async function fetchRealHydrology(
             }
           }
           if (pts.length >= 4) {
+            const kind = waterway?.trim() || "stream";
             candidateWays.push({
               pts,
-              isRiver: waterway === "river",
+              kind,
+              isRiver: kind === "river",
             });
           }
         }
@@ -147,8 +154,10 @@ export async function fetchRealHydrology(
       return b.pts.length - a.pts.length;
     });
 
+    const chosenWays = candidateWays.slice(0, 6);
     return {
-      streamPaths: candidateWays.slice(0, 6).map((w) => w.pts),
+      streamPaths: chosenWays.map((w) => w.pts),
+      streamKinds: chosenWays.map((w) => w.kind),
       namedWaterways: [...waterwayNames].slice(0, 15),
       namedPeaks: [...peakMap.values()].slice(0, 15),
       protectedAreas: [...protectedSet].slice(0, 10),

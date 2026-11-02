@@ -556,6 +556,18 @@ const isBandMeasurement = (x: { id: string; aggregation?: string | null }): bool
   return x.id.includes("_band_") || agg.includes("band") || agg.includes("below");
 };
 
+function windowOfPeriodId(periodId: string | null | undefined): string | null {
+  const m = /^period_\d{4}(?:-\d{4})?_([a-z]{3}_[a-z]{3}|annual)$/.exec(periodId ?? "");
+  return m?.[1] ?? null;
+}
+
+function windowOfMeasurement(
+  m: CaseSnapshot["records"]["measurementRecords"][number] | undefined,
+): string | null {
+  if (!m) return null;
+  return m.source?.period.window ?? windowOfPeriodId(m.periodId);
+}
+
 /** Two-sided 95% t quantile by degrees of freedom (table to 30, then conservative steps to the normal 1.96). */
 function t975(df: number): number {
   const T = [
@@ -681,7 +693,10 @@ export function fallbackRecordData(id: FindingId, snapshot: CaseSnapshot): Recor
   if (id === "rain") {
     const rainMap = new Map<number, number>();
     for (const m of snapshot.records.measurementRecords) {
-      if (m.metric === "precipitation_annual_mm" && m.value !== null) {
+      if (
+        (m.metric === "precipitation_annual_mm" || m.metric === "rainfall_season_total") &&
+        m.value !== null
+      ) {
         const yrMatch = m.periodId.match(/(\d{4})/) ?? m.id.match(/(\d{4})/);
         const yr = yrMatch?.[1] ? Number.parseInt(yrMatch[1], 10) : NaN;
         if (Number.isFinite(yr)) {
@@ -722,10 +737,28 @@ export function fallbackRecordData(id: FindingId, snapshot: CaseSnapshot): Recor
     const rSquared = r2M?.value ?? (syy > 0 ? (sxy * sxy) / (sxx * syy) : 0);
     const slopePer100 = slopePerMm * 100;
     const driest = [...seasons].sort((a, b) => a.rain_mm - b.rain_mm).slice(0, 4);
+    const growingWindow =
+      windowOfMeasurement(r2M) ??
+      windowOfMeasurement(
+        snapshot.records.measurementRecords.find(
+          (x) =>
+            (isTrendMetric(x.metric) || x.metric === "ndvi_growing_season_mean") &&
+            windowOfMeasurement(x) !== null,
+        ),
+      ) ??
+      "";
+    const rainfallWindow =
+      windowOfMeasurement(
+        snapshot.records.measurementRecords.find(
+          (x) =>
+            (x.metric.startsWith("precipitation_") || x.metric === "rainfall_season_total") &&
+            windowOfMeasurement(x) !== null,
+        ),
+      ) ?? "";
 
     const scatter: ScatterData = {
       period: [seasons[0]?.year ?? 0, seasons[n - 1]?.year ?? 0],
-      windows: { growing: "mar_jun", rainfall: "sep_may" },
+      windows: { growing: growingWindow, rainfall: rainfallWindow },
       seasons,
       fit: {
         intercept,

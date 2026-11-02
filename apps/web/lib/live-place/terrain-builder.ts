@@ -79,6 +79,8 @@ export interface TerrainFile {
   };
   streamPaths: [number, number][][];
   streamSource?: StreamSource;
+  /** Each mapped stream's OpenStreetMap `waterway` tag when `streamSource` is `"openstreetmap"`. */
+  streamKinds?: string[];
   landCoverGrid?: LandCoverGrid;
   namedWaterways?: string[];
   namedPeaks?: NamedPeak[];
@@ -792,6 +794,10 @@ export async function buildTerrainForBbox(
   const streamSource: StreamSource =
     hydrology.streamPaths.length > 0 ? "openstreetmap" : d8Channels.length > 0 ? "d8_dem" : "none";
   const streamPaths = hydrology.streamPaths.length > 0 ? hydrology.streamPaths : d8Channels;
+  const streamKinds =
+    streamSource === "openstreetmap" && hydrology.streamKinds.length === streamPaths.length
+      ? hydrology.streamKinds
+      : undefined;
 
   const satelliteMeta: SatelliteMeta = {
     ...(satellite.worldCoverItemId ? { worldCoverItemId: satellite.worldCoverItemId } : {}),
@@ -843,6 +849,7 @@ export async function buildTerrainForBbox(
     },
     streamPaths,
     streamSource,
+    ...(streamKinds ? { streamKinds } : {}),
     ...(satellite.landCoverGrid ? { landCoverGrid: satellite.landCoverGrid } : {}),
     ...(hydrology.namedWaterways.length > 0 ? { namedWaterways: hydrology.namedWaterways } : {}),
     ...(hydrology.namedPeaks.length > 0 ? { namedPeaks: hydrology.namedPeaks } : {}),

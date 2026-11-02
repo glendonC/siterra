@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { fetchRealHydrology } from "./hydrology-fetcher.ts";
 import { decodeRuns } from "./water-mask.ts";
 import { encodeRgbaPng } from "./satellite-fetcher.ts";
 import {
@@ -116,6 +117,40 @@ describe("terrain builder", () => {
     const mask = decodeRuns(terrain.waterMask?.runs ?? [], 256 * 256);
     expect(mask?.[128 * 256 + 10]).toBe(1);
     expect(mask?.[128 * 256 + 200]).toBe(0);
+  });
+
+  it("returns and stores each OpenStreetMap waterway's kind alongside its stream path", async () => {
+    const png = flatTile(310);
+    const way = (id: number, waterway: string, count: number, lat: number) => ({
+      type: "way",
+      id,
+      tags: { waterway, name: `Way ${String(id)}` },
+      geometry: Array.from({ length: count }, (_, i) => ({
+        lon: -93.6 + i * 0.02,
+        lat,
+      })),
+    });
+    const overpassJson = {
+      elements: [way(1, "canal", 4, 41.45), way(2, "stream", 6, 41.5), way(3, "river", 5, 41.55)],
+    };
+    globalThis.fetch = vi.fn((input: RequestInfo | URL) => {
+      const url = input instanceof Request ? input.url : input.toString();
+      if (url.includes("overpass-api.de")) {
+        return Promise.resolve(Response.json(overpassJson));
+      }
+      return Promise.resolve(
+        url.includes("/terrarium/")
+          ? new Response(new Uint8Array(png), { status: 200 })
+          : new Response("unavailable", { status: 503 }),
+      );
+    });
+    const bbox: [number, number, number, number] = [-93.62, 41.41, -93.38, 41.59];
+    const hydro = await fetchRealHydrology(bbox);
+    expect(hydro).toHaveProperty("streamKinds", ["river", "stream", "canal"]);
+    const terrain = await buildTerrainForBbox(bbox);
+    expect(terrain.streamSource).toBe("openstreetmap");
+    expect(terrain.streamPaths).toHaveLength(3);
+    expect(terrain.streamKinds).toEqual(["river", "stream", "canal"]);
   });
 });
 
