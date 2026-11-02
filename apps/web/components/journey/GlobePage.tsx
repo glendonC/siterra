@@ -12,7 +12,7 @@ import {
 import { placeHref, type OtherPlace } from "../../lib/globe/places";
 import { en, format } from "../../lib/copy/en";
 import { SiterraMark, ThemeIcon } from "../opening/Opening";
-import { cardQuestion } from "./globe-choice";
+import { cardQuestion, formatLatLon, type Surface } from "./globe-choice";
 import styles from "./Journey.module.css";
 
 export interface GlobeCase {
@@ -32,6 +32,14 @@ export interface CustomGlobeLocation {
   placeName?: string;
   regionName?: string;
   resolving?: boolean;
+  /** Open water, a coast or land, from the globe's land share grid round the point. */
+  surface?: Surface;
+  /** False in open water: no question is asked there. */
+  investigable?: boolean;
+  /** The geocoder's OpenStreetMap class, type and address type, when a search result brings them. */
+  osmClass?: string;
+  osmType?: string;
+  addressType?: string;
 }
 
 interface GeocodeSuggestion {
@@ -39,6 +47,9 @@ interface GeocodeSuggestion {
   region: string;
   lat: number;
   lon: number;
+  osmClass?: string;
+  osmType?: string;
+  addressType?: string;
 }
 
 const STUDIED_QUESTIONS_BY_SEED: Record<string, readonly string[]> = {
@@ -141,11 +152,7 @@ function parseCoordinateInput(raw: string): { lat: number; lon: number } | null 
   return null;
 }
 
-export function formatLatLon(lat: number, lon: number): string {
-  const ns = lat >= 0 ? "N" : "S";
-  const ew = lon >= 0 ? "E" : "W";
-  return `${Math.abs(lat).toFixed(2)}° ${ns}, ${Math.abs(lon).toFixed(2)}° ${ew}`;
-}
+export { formatLatLon };
 
 function cleanPlaceLabel(place?: string, region?: string): string {
   const p = (place ?? "").trim();
@@ -322,6 +329,9 @@ export function GlobePage({
           name?: string;
           lat?: string;
           lon?: string;
+          class?: string;
+          type?: string;
+          addresstype?: string;
           address?: Record<string, string>;
         }>;
         if (cancelled) return;
@@ -334,7 +344,7 @@ export function GlobePage({
             .split(",")
             .map((s) => s.trim())
             .filter(Boolean);
-          const name = item.name || parts[0] || q;
+          const name = item.name || parts[0] || formatLatLon(lat, lon);
           const country = item.address?.country || parts[parts.length - 1] || "";
           const state = item.address?.state || item.address?.region || parts[1] || "";
           const region = [state, country]
@@ -342,9 +352,12 @@ export function GlobePage({
             .join(", ");
           parsed.push({
             name,
-            region: region || "Worldwide",
+            region,
             lat,
             lon,
+            ...(item.class ? { osmClass: item.class } : {}),
+            ...(item.type ? { osmType: item.type } : {}),
+            ...(item.addresstype ? { addressType: item.addresstype } : {}),
           });
         }
         setGeocodeResults(parsed);
@@ -360,9 +373,25 @@ export function GlobePage({
     };
   }, [placeQuery]);
 
+  // a picked point goes on to step 2 once it has its name, and never from open water
+  const pointReady =
+    !customLocation || (!customLocation.resolving && customLocation.investigable !== false);
+  const pointInWater = customLocation?.investigable === false && !customLocation.resolving;
+  const [advanceWhenReady, setAdvanceWhenReady] = useState(false);
+
+  useEffect(() => {
+    if (!advanceWhenReady || !customLocation || customLocation.resolving) return;
+    setAdvanceWhenReady(false);
+    if (customLocation.investigable !== false) setActiveStep(2);
+  }, [advanceWhenReady, customLocation]);
+
+  useEffect(() => {
+    if (customLocation?.investigable === false) setActiveStep(1);
+  }, [customLocation]);
+
   const handleLaunchCustomLocation = useCallback(
     async (questionOverride?: string) => {
-      if (!customLocation || launchingCustom) return;
+      if (!customLocation || launchingCustom || !pointReady) return;
       const chosenQ =
         questionOverride ||
         customQuestionInput.trim() ||
@@ -402,6 +431,7 @@ export function GlobePage({
     [
       customLocation,
       launchingCustom,
+      pointReady,
       customQuestionInput,
       questionsForCurrentPlace,
       qIdx,
@@ -419,12 +449,14 @@ export function GlobePage({
     questionsForCurrentPlace[0]!;
 
   const triggerLaunch = useCallback(() => {
+    if (!pointReady) return;
     if (customLocation) {
       void handleLaunchCustomLocation(activeQuestionText);
     } else if (activeSavedCase) {
       onOpen(activeQuestionText, activeSavedCase, "run");
     }
   }, [
+    pointReady,
     customLocation,
     handleLaunchCustomLocation,
     activeQuestionText,
@@ -437,6 +469,7 @@ export function GlobePage({
       onSelectSavedCase?.(sc);
       setPlaceQuery("");
       setHighlightedPlaceIdx(null);
+      setAdvanceWhenReady(false);
       setActiveStep(2);
     },
     [onSelectSavedCase],
@@ -447,18 +480,18 @@ export function GlobePage({
       onSelectLocation?.(loc);
       setPlaceQuery("");
       setHighlightedPlaceIdx(null);
-      setActiveStep(2);
+      setAdvanceWhenReady(true);
     },
     [onSelectLocation],
   );
 
   const handlePrimaryKeyOrAction = useCallback(() => {
     if (activeStep === 1) {
-      setActiveStep(2);
+      if (pointReady) setActiveStep(2);
     } else {
       triggerLaunch();
     }
-  }, [activeStep, triggerLaunch]);
+  }, [activeStep, pointReady, triggerLaunch]);
 
   useEffect(() => {
     registerPrimaryAction?.(handlePrimaryKeyOrAction);
@@ -480,6 +513,7 @@ export function GlobePage({
 
       if (e.key === "?") {
         e.preventDefault();
+        if (!pointReady) return;
         setActiveStep(2);
         window.setTimeout(() => customQuestionRef.current?.focus(), 20);
         return;
@@ -519,6 +553,7 @@ export function GlobePage({
   }, [
     opened,
     activeStep,
+    pointReady,
     studiedCases,
     questionsForCurrentPlace.length,
     handleSelectStudiedCase,
@@ -551,18 +586,26 @@ export function GlobePage({
 
     if (!q) {
       if (customLocation) {
-        const detailParts = [
-          activePlaceDisplay.coords,
-          "Picked on 3D globe",
-        ].filter(Boolean);
+        const detailParts = customLocation.resolving
+          ? [activePlaceDisplay.coords, "Finding a name for this point"]
+          : pointInWater
+            ? [
+                activePlaceDisplay.coords,
+                customLocation.surface === "unknown"
+                  ? "The globe could not check this point: pick a named place"
+                  : "Open water: pick a point on land or a coast",
+              ]
+            : [activePlaceDisplay.coords, "Picked on 3D globe"];
         items.push({
           key: `custom-pin-${customLocation.lat.toFixed(3)}-${customLocation.lon.toFixed(3)}`,
           title: activePlaceDisplay.title,
-          detail: detailParts.join(" · "),
+          detail: detailParts.filter(Boolean).join(" · "),
           isSelected: true,
-          shortcutKey: "↵",
-          actionWord: "CONTINUE",
-          onSelect: () => setActiveStep(2),
+          shortcutKey: pointReady ? "↵" : "",
+          actionWord: pointReady ? "CONTINUE" : "",
+          onSelect: () => {
+            if (pointReady) setActiveStep(2);
+          },
         });
       }
 
@@ -595,13 +638,10 @@ export function GlobePage({
         isSelected: false,
         shortcutKey: "↵",
         actionWord: "SELECT",
-        onSelect: () =>
-          handleSelectWorldLocation({
-            lat: parsedCoords.lat,
-            lon: parsedCoords.lon,
-            placeName: coordLabel,
-            regionName: "Custom Global Coordinates",
-          }),
+        onSelect: () => {
+          // typed coordinates are named like a click on the globe: by the geocoder, the land grid or themselves
+          handleSelectWorldLocation({ lat: parsedCoords.lat, lon: parsedCoords.lon });
+        },
       });
     }
 
@@ -630,13 +670,17 @@ export function GlobePage({
         isSelected: false,
         shortcutKey: "↵",
         actionWord: "SELECT",
-        onSelect: () =>
+        onSelect: () => {
           handleSelectWorldLocation({
             lon: r.lon,
             lat: r.lat,
             placeName: r.name,
             regionName: r.region,
-          }),
+            ...(r.osmClass ? { osmClass: r.osmClass } : {}),
+            ...(r.osmType ? { osmType: r.osmType } : {}),
+            ...(r.addressType ? { addressType: r.addressType } : {}),
+          });
+        },
       });
     });
 
@@ -645,6 +689,8 @@ export function GlobePage({
     placeQuery,
     customLocation,
     activePlaceDisplay,
+    pointInWater,
+    pointReady,
     studiedCases,
     activeSavedCase?.id,
     parsedCoords,
@@ -674,9 +720,17 @@ export function GlobePage({
       {/* Floating Spatial Tag anchored to the 3D Globe Target Point */}
       <ul className={styles.cases} aria-label={en["globe.cases"].text}>
         {cases.slice(0, 1).map((c) => {
+          const coordsLabel = customLocation
+            ? formatLatLon(customLocation.lat, customLocation.lon)
+            : "";
+          const customName = customLocation
+            ? cleanPlaceLabel(customLocation.placeName, customLocation.regionName)
+            : "";
+          // open water reads with its coordinates, "Open ocean · 13.31° N, 19.35° W"
           const displayPlace = customLocation
-            ? cleanPlaceLabel(customLocation.placeName, customLocation.regionName) ||
-              formatLatLon(customLocation.lat, customLocation.lon)
+            ? pointInWater && customName && !customName.includes("°")
+              ? `${customName} · ${coordsLabel}`
+              : customName || coordsLabel
             : format("globe.place", { place: c.place, region: c.region });
           // the card shows only the place while it is being chosen; the question joins it in step 2
           const shownQuestion = cardQuestion(activeStep, activeQuestionText);
@@ -699,15 +753,24 @@ export function GlobePage({
                       data-tone={customLocation ? "yellow" : "blue"}
                     />
                     <span className={styles.monumentKicker}>
-                      {activePlaceDisplay.coords || "SELECTED TARGET"}
+                      {coordsLabel || activePlaceDisplay.coords}
                     </span>
                   </span>
-                  <span className={styles.monumentActionPrompt}>
-                    <kbd className={styles.monumentActionKey}>{"↵"}</kbd>
-                    <span>{opened ? "DIVING" : activeStep === 1 ? "SELECT" : "START"}</span>
-                  </span>
+                  {pointReady ? (
+                    <span className={styles.monumentActionPrompt}>
+                      <kbd className={styles.monumentActionKey}>{"↵"}</kbd>
+                      <span>{opened ? "DIVING" : activeStep === 1 ? "SELECT" : "START"}</span>
+                    </span>
+                  ) : null}
                 </div>
                 <p className={styles.casePlace}>{displayPlace}</p>
+                {pointInWater ? (
+                  <p className={styles.caseNote} data-card-note="">
+                    {customLocation.surface === "unknown"
+                      ? "The globe could not check this point. Pick a named place."
+                      : "Pick a point on land or a coast to ask a question here."}
+                  </p>
+                ) : null}
                 {shownQuestion ? (
                   <p className={styles.caseQuestion} data-card-question="">
                     {shownQuestion}
@@ -937,20 +1000,22 @@ export function GlobePage({
                                 <span className={styles.dbhOptionLabel}>
                                   {item.title}
                                 </span>
-                                <span className={styles.dbhOptionAction}>
-                                  <kbd
-                                    className={
-                                      isFocusedItem
-                                        ? styles.keycapBlue
-                                        : styles.keycapDark
-                                    }
-                                  >
-                                    {item.shortcutKey}
-                                  </kbd>
-                                  <span className={styles.dbhActionWord}>
-                                    {item.actionWord}
+                                {item.shortcutKey ? (
+                                  <span className={styles.dbhOptionAction}>
+                                    <kbd
+                                      className={
+                                        isFocusedItem
+                                          ? styles.keycapBlue
+                                          : styles.keycapDark
+                                      }
+                                    >
+                                      {item.shortcutKey}
+                                    </kbd>
+                                    <span className={styles.dbhActionWord}>
+                                      {item.actionWord}
+                                    </span>
                                   </span>
-                                </span>
+                                ) : null}
                               </span>
 
                               {/* Hover / Highlight Indented Details Animated Below */}
@@ -1144,7 +1209,7 @@ export function GlobePage({
             <button
               type="button"
               className={styles.detroitKeyAction}
-              disabled={launchingCustom}
+              disabled={launchingCustom || !pointReady}
               onClick={triggerLaunch}
             >
               <kbd className={styles.detroitKeyCap}>{"SPACE"}</kbd>
@@ -1153,7 +1218,7 @@ export function GlobePage({
             <button
               type="button"
               className={styles.detroitKeyAction}
-              disabled={launchingCustom}
+              disabled={launchingCustom || !pointReady}
               onClick={handlePrimaryKeyOrAction}
             >
               <kbd className={styles.detroitKeyCapPrimary}>{"↵"}</kbd>

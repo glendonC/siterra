@@ -251,6 +251,14 @@
   opacity: 0.8;
 }
 
+/* open water: the card asks for a point on land or a coast instead of a question */
+.caseNote {
+  margin: 0;
+  font: 400 11.5px / 15.5px var(--font-sans);
+  color: var(--keycap-ink, #f4f2ed);
+  opacity: 0.8;
+}
+
 /* ============================================================================
    SETUP STAGE & CLEAN TOP BAR
    ============================================================================ */
@@ -919,6 +927,12 @@
 
 .detroitKeyAction:hover {
   opacity: 0.74;
+}
+
+/* nothing to start yet: the point is in open water or its name is still being found */
+.detroitKeyAction:disabled {
+  opacity: 0.38;
+  cursor: default;
 }
 
 .detroitKeyCap,

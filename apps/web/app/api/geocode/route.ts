@@ -4,10 +4,30 @@ import { json, problem } from "../problem.ts";
 export const dynamic = "force-dynamic";
 
 export interface GeocodePlace {
+  /** The place's name; its coordinates when nothing names it (then named is false). */
   name: string;
   region: string;
   lon: number;
   lat: number;
+  /** False when no source names the point; absent on older answers. */
+  named?: boolean;
+  /** OpenStreetMap class, type and address type of the geocoder's hit, when it gave them. */
+  osmClass?: string;
+  osmType?: string;
+  addressType?: string;
+}
+
+/** The OpenStreetMap kind of a Nominatim hit, only the fields it gave. */
+function osmKind(row: {
+  class?: string;
+  type?: string;
+  addresstype?: string;
+}): Pick<GeocodePlace, "osmClass" | "osmType" | "addressType"> {
+  return {
+    ...(row.class ? { osmClass: row.class } : {}),
+    ...(row.type ? { osmType: row.type } : {}),
+    ...(row.addresstype ? { addressType: row.addresstype } : {}),
+  };
 }
 
 async function loadStoredPlaces(): Promise<GeocodePlace[]> {
@@ -48,6 +68,7 @@ async function loadStoredPlaces(): Promise<GeocodePlace[]> {
         region: r.region,
         lon: Number(r.lon.toFixed(5)),
         lat: Number(r.lat.toFixed(5)),
+        named: true,
       }));
   } catch {
     return [];
@@ -92,10 +113,11 @@ function parseCoordinateQuery(q: string): GeocodePlace | null {
     return null;
   }
   return {
-    name: "Coordinate catchment",
-    region: formatCoordRegion(lat, lon),
+    name: formatCoordRegion(lat, lon),
+    region: "",
     lon: Number(lon.toFixed(5)),
     lat: Number(lat.toFixed(5)),
+    named: false,
   };
 }
 
@@ -139,6 +161,7 @@ async function searchOpenMeteo(query: string): Promise<GeocodePlace[]> {
           regionParts.join(", ") || formatCoordRegion(item.latitude, item.longitude),
         lon: Number(item.longitude.toFixed(5)),
         lat: Number(item.latitude.toFixed(5)),
+        named: true,
       });
     }
     return out;
@@ -170,6 +193,9 @@ async function searchNominatim(query: string): Promise<GeocodePlace[]> {
       display_name?: string;
       lat?: string;
       lon?: string;
+      class?: string;
+      type?: string;
+      addresstype?: string;
       address?: Record<string, string | undefined>;
     }>;
     if (!Array.isArray(rows)) return [];
@@ -182,7 +208,8 @@ async function searchNominatim(query: string): Promise<GeocodePlace[]> {
         .split(",")
         .map((s) => s.trim())
         .filter(Boolean);
-      const name = (row.name?.trim() || parts[0] || "Selected catchment").slice(0, 80);
+      const given = (row.name?.trim() || parts[0] || "").slice(0, 80);
+      const name = given || formatCoordRegion(lat, lon);
       const stateOrRegion =
         row.address?.["state"] ||
         row.address?.["region"] ||
@@ -199,6 +226,8 @@ async function searchNominatim(query: string): Promise<GeocodePlace[]> {
         region,
         lon: Number(lon.toFixed(5)),
         lat: Number(lat.toFixed(5)),
+        named: Boolean(given),
+        ...osmKind(row),
       });
     }
     return out;
@@ -231,14 +260,17 @@ export async function reverseGeocode(lon: number, lat: number): Promise<GeocodeP
       region: nearbyKnown.region,
       lon: Number(lon.toFixed(5)),
       lat: Number(lat.toFixed(5)),
+      named: true,
     };
   }
 
+  // nothing names the point (Nominatim answers open sea and unclaimed land with an error): its coordinates do
   const fallback: GeocodePlace = {
-    name: "Selected catchment",
-    region: formatCoordRegion(lat, lon),
+    name: formatCoordRegion(lat, lon),
+    region: "",
     lon: Number(lon.toFixed(5)),
     lat: Number(lat.toFixed(5)),
+    named: false,
   };
   const ac = new AbortController();
   const timer = setTimeout(() => ac.abort(), 3500);
@@ -259,6 +291,9 @@ export async function reverseGeocode(lon: number, lat: number): Promise<GeocodeP
       error?: string;
       name?: string;
       display_name?: string;
+      class?: string;
+      type?: string;
+      addresstype?: string;
       address?: Record<string, string | undefined>;
     };
     if (data.error) return fallback;
@@ -283,8 +318,8 @@ export async function reverseGeocode(lon: number, lat: number): Promise<GeocodeP
       addr["city"] ||
       addr["county"] ||
       addr["state_district"] ||
-      displayParts[0] ||
-      "Selected catchment";
+      displayParts[0];
+    if (!rawName) return fallback;
     const state =
       addr["state"] || addr["region"] || addr["province"] || addr["county"] || displayParts[1];
     const country = addr["country"] || displayParts[displayParts.length - 1];
@@ -298,6 +333,8 @@ export async function reverseGeocode(lon: number, lat: number): Promise<GeocodeP
       region: cleanLatinName(region).slice(0, 100),
       lon: Number(lon.toFixed(5)),
       lat: Number(lat.toFixed(5)),
+      named: true,
+      ...osmKind(data),
     };
   } catch {
     return fallback;
@@ -316,16 +353,7 @@ export async function GET(request: Request): Promise<Response> {
     const coord = parseCoordinateQuery(q);
     if (coord) {
       const rev = await reverseGeocode(coord.lon, coord.lat);
-      return json({
-        results: [
-          {
-            name: rev.name === "Selected catchment" ? coord.name : rev.name,
-            region: rev.region,
-            lon: coord.lon,
-            lat: coord.lat,
-          },
-        ],
-      });
+      return json({ results: [{ ...rev, lon: coord.lon, lat: coord.lat }] });
     }
 
     const [meteo, nominatim, storedPlaces] = await Promise.all([

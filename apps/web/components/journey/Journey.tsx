@@ -27,12 +27,8 @@ import { CAM } from "../../lib/globe/views";
 import { centreOf } from "../../lib/land/geometry";
 import { STORY_BEATS } from "../../lib/opening/beats";
 import { Opening } from "../opening/Opening";
-import {
-  GlobePage,
-  formatLatLon,
-  type CustomGlobeLocation,
-  type GlobeCase,
-} from "./GlobePage";
+import { GlobePage, type CustomGlobeLocation, type GlobeCase } from "./GlobePage";
+import { namePoint, surfaceAt, type GeocodeHit } from "./globe-choice";
 import type { CaseSnapshot } from "@siterra/contracts";
 import type { ReadyArrival } from "../../lib/projection/arrival";
 import { InstrumentRecords } from "../instruments/InstrumentRecords";
@@ -59,39 +55,34 @@ const globeCenterForTarget = (lon: number, lat: number): { lon: number; lat: num
   lat: clampLat(lat - 6.6377778),
 });
 
-function extractReverseGeocode(
-  json: unknown,
-  lon: number,
-  lat: number,
-): { name: string; region: string } {
-  const fallback = formatLatLon(lat, lon);
-  if (!json || typeof json !== "object") {
-    return { name: fallback, region: "Selected coordinates" };
-  }
+/** The geocoder's hit from /api/geocode, or null when it named nothing there (named false, or no answer). */
+function extractReverseGeocode(json: unknown): GeocodeHit | null {
+  if (!json || typeof json !== "object") return null;
   const obj = json as Record<string, unknown>;
-  const firstResult =
+  const first =
     obj["result"] && typeof obj["result"] === "object"
       ? (obj["result"] as Record<string, unknown>)
       : Array.isArray(obj["results"]) && obj["results"][0] && typeof obj["results"][0] === "object"
         ? (obj["results"][0] as Record<string, unknown>)
-        : obj;
-  const placeObj =
-    firstResult["place"] && typeof firstResult["place"] === "object"
-      ? (firstResult["place"] as Record<string, unknown>)
-      : null;
-
-  const name =
-    (typeof firstResult["name"] === "string" && firstResult["name"].trim()) ||
-    (typeof firstResult["placeName"] === "string" && firstResult["placeName"].trim()) ||
-    (placeObj && typeof placeObj["name"] === "string" && placeObj["name"].trim()) ||
-    fallback;
-  const region =
-    (typeof firstResult["region"] === "string" && firstResult["region"].trim()) ||
-    (typeof firstResult["regionName"] === "string" && firstResult["regionName"].trim()) ||
-    (placeObj && typeof placeObj["region"] === "string" && placeObj["region"].trim()) ||
-    (typeof firstResult["country"] === "string" && firstResult["country"].trim()) ||
-    fallback;
-  return { name, region };
+        : null;
+  if (!first || first["named"] === false) return null;
+  const text = (k: string): string | undefined => {
+    const v = first[k];
+    return typeof v === "string" && v.trim() ? v.trim() : undefined;
+  };
+  const name = text("name");
+  if (!name) return null;
+  const region = text("region");
+  const osmClass = text("osmClass");
+  const osmType = text("osmType");
+  const addressType = text("addressType");
+  return {
+    name,
+    ...(region ? { region } : {}),
+    ...(osmClass ? { osmClass } : {}),
+    ...(osmType ? { osmType } : {}),
+    ...(addressType ? { addressType } : {}),
+  };
 }
 
 export function Journey({ globeAssets, arrival, snapshot }: JourneyProps) {
@@ -331,56 +322,65 @@ export function Journey({ globeAssets, arrival, snapshot }: JourneyProps) {
 
   const geocodeAbortRef = useRef<AbortController | null>(null);
 
+  // the globe's grids, once loaded: a picked point waits for them to tell open water from land
+  const globeWaitersRef = useRef<((g: GlobeData | null) => void)[]>([]);
+  const globeGrids = useCallback((): Promise<GlobeData | null> => {
+    if (globeDataRef.current) return Promise.resolve(globeDataRef.current);
+    return new Promise((resolve) => {
+      globeWaitersRef.current.push(resolve);
+      window.setTimeout(() => {
+        resolve(globeDataRef.current);
+      }, 10_000);
+    });
+  }, []);
+
+  // a picked point gets a true name: the geocoder's (a search result brings its own), the water body's, or its
+  // coordinates; open water is named and kept out of step 2
   const handleSelectCustomLocation = useCallback(
-    (loc: { lon: number; lat: number; placeName?: string; regionName?: string }) => {
+    (loc: CustomGlobeLocation) => {
       geocodeAbortRef.current?.abort();
+      const ac = new AbortController();
+      geocodeAbortRef.current = ac;
       const lon = wrapLon(loc.lon);
       const lat = clampLat(loc.lat);
-      const hasNames = Boolean(loc.placeName && loc.regionName);
-      const initialPlace = loc.placeName ?? formatLatLon(lat, lon);
-      const initialRegion = loc.regionName ?? "Resolving region...";
-      updateTargetGeometry(lon, lat, initialRegion);
-      setCustomLocation({
-        lon,
-        lat,
-        placeName: initialPlace,
-        regionName: initialRegion,
-        resolving: !hasNames,
-      });
+      updateTargetGeometry(lon, lat, "");
+      setCustomLocation({ lon, lat, resolving: true });
 
-      if (!hasNames) {
-        const ac = new AbortController();
-        geocodeAbortRef.current = ac;
-        fetch(`/api/geocode?lon=${String(lon)}&lat=${String(lat)}`, {
-          signal: ac.signal,
-          headers: { accept: "application/json" },
-        })
-          .then((r) => (r.ok ? r.json() : null))
-          .then((json: unknown) => {
-            if (ac.signal.aborted) return;
-            const resolved = extractReverseGeocode(json, lon, lat);
-            rangeNameRef.current = resolved.region;
-            setCustomLocation({
-              lon,
-              lat,
-              placeName: resolved.name,
-              regionName: resolved.region,
-              resolving: false,
-            });
+      const given: GeocodeHit | null = loc.placeName
+        ? {
+            name: loc.placeName,
+            ...(loc.regionName ? { region: loc.regionName } : {}),
+            ...(loc.osmClass ? { osmClass: loc.osmClass } : {}),
+            ...(loc.osmType ? { osmType: loc.osmType } : {}),
+            ...(loc.addressType ? { addressType: loc.addressType } : {}),
+          }
+        : null;
+      const hit: Promise<GeocodeHit | null> = given
+        ? Promise.resolve(given)
+        : fetch(`/api/geocode?lon=${String(lon)}&lat=${String(lat)}`, {
+            signal: ac.signal,
+            headers: { accept: "application/json" },
           })
-          .catch(() => {
-            if (ac.signal.aborted) return;
-            setCustomLocation({
-              lon,
-              lat,
-              placeName: formatLatLon(lat, lon),
-              regionName: "Selected coordinates",
-              resolving: false,
-            });
-          });
-      }
+            .then((r) => (r.ok ? r.json() : null))
+            .then((json: unknown) => extractReverseGeocode(json))
+            .catch(() => null);
+      void Promise.all([hit, globeGrids()]).then(([h, grids]) => {
+        if (ac.signal.aborted) return;
+        const surface = surfaceAt(grids?.world, lon, lat);
+        const named = namePoint({ lon, lat, surface, hit: h });
+        rangeNameRef.current = named.region || named.title;
+        setCustomLocation({
+          lon,
+          lat,
+          placeName: named.title,
+          regionName: named.region,
+          resolving: false,
+          surface: named.surface,
+          investigable: named.investigable,
+        });
+      });
     },
-    [updateTargetGeometry],
+    [updateTargetGeometry, globeGrids],
   );
 
   const handleSelectSavedCase = useCallback(
@@ -609,11 +609,13 @@ export function Journey({ globeAssets, arrival, snapshot }: JourneyProps) {
     loadGlobe(globeAssets)
       .then((g) => {
         globeDataRef.current = g;
+        for (const resolve of globeWaitersRef.current.splice(0)) resolve(g);
         renderer?.setGlobe(g);
         curveRef.current = crestCurve(findCrest(g.world, outletRef.current), outletRef.current);
         ready = true;
       })
       .catch((e: unknown) => {
+        for (const resolve of globeWaitersRef.current.splice(0)) resolve(null);
         console.error("Journey: globe data failed", e);
       });
 
