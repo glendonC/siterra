@@ -1,0 +1,148 @@
+{
+  "recorded": "2026-11-02",
+  "request": {
+    "collections": ["modis-13Q1-061"],
+    "bbox": [-74.1, 40.69, -73.83, 40.87],
+    "datetime": "2024-05-01T00:00:00Z/2024-08-31T23:59:59Z",
+    "limit": 200
+  },
+  "note": "Planetary Computer STAC search response, trimmed to id, collection, start_datetime, end_datetime and platform",
+  "features": [
+    {
+      "id": "MOD13Q1.A2024241.h12v04.061.2024258125653",
+      "collection": "modis-13Q1-061",
+      "properties": {
+        "start_datetime": "2024-08-28T00:00:00.000000Z",
+        "end_datetime": "2024-09-12T23:59:59.000000Z"
+      }
+    },
+    {
+      "id": "MYD13Q1.A2024233.h12v04.061.2024250022502",
+      "collection": "modis-13Q1-061",
+      "properties": {
+        "start_datetime": "2024-08-20T00:00:00.000000Z",
+        "end_datetime": "2024-09-04T23:59:59.000000Z"
+      }
+    },
+    {
+      "id": "MYD13Q1.A2024217.h12v04.061.2024239214547",
+      "collection": "modis-13Q1-061",
+      "properties": {
+        "start_datetime": "2024-08-04T00:00:00.000000Z",
+        "end_datetime": "2024-08-19T23:59:59.000000Z"
+      }
+    },
+    {
+      "id": "MOD13Q1.A2024209.h12v04.061.2024228025004",
+      "collection": "modis-13Q1-061",
+      "properties": {
+        "start_datetime": "2024-07-27T00:00:00.000000Z",
+        "end_datetime": "2024-08-11T23:59:59.000000Z"
+      }
+    },
+    {
+      "id": "MYD13Q1.A2024201.h12v04.061.2024222004042",
+      "collection": "modis-13Q1-061",
+      "properties": {
+        "start_datetime": "2024-07-19T00:00:00.000000Z",
+        "end_datetime": "2024-08-03T23:59:59.000000Z"
+      }
+    },
+    {
+      "id": "MOD13Q1.A2024193.h12v04.061.2024212093437",
+      "collection": "modis-13Q1-061",
+      "properties": {
+        "start_datetime": "2024-07-11T00:00:00.000000Z",
+        "end_datetime": "2024-07-26T23:59:59.000000Z"
+      }
+    },
+    {
+      "id": "MYD13Q1.A2024185.h12v04.061.2024207133018",
+      "collection": "modis-13Q1-061",
+      "properties": {
+        "start_datetime": "2024-07-03T00:00:00.000000Z",
+        "end_datetime": "2024-07-18T23:59:59.000000Z"
+      }
+    },
+    {
+      "id": "MOD13Q1.A2024177.h12v04.061.2024195022836",
+      "collection": "modis-13Q1-061",
+      "properties": {
+        "start_datetime": "2024-06-25T00:00:00.000000Z",
+        "end_datetime": "2024-07-10T23:59:59.000000Z"
+      }
+    },
+    {
+      "id": "MYD13Q1.A2024169.h12v04.061.2024186002832",
+      "collection": "modis-13Q1-061",
+      "properties": {
+        "start_datetime": "2024-06-17T00:00:00.000000Z",
+        "end_datetime": "2024-07-02T23:59:59.000000Z"
+      }
+    },
+    {
+      "id": "MOD13Q1.A2024161.h12v04.061.2024181211320",
+      "collection": "modis-13Q1-061",
+      "properties": {
+        "start_datetime": "2024-06-09T00:00:00.000000Z",
+        "end_datetime": "2024-06-24T23:59:59.000000Z"
+      }
+    },
+    {
+      "id": "MYD13Q1.A2024153.h12v04.061.2024177123538",
+      "collection": "modis-13Q1-061",
+      "properties": {
+        "start_datetime": "2024-06-01T00:00:00.000000Z",
+        "end_datetime": "2024-06-16T23:59:59.000000Z"
+      }
+    },
+    {
+      "id": "MOD13Q1.A2024145.h12v04.061.2024162173728",
+      "collection": "modis-13Q1-061",
+      "properties": {
+        "start_datetime": "2024-05-24T00:00:00.000000Z",
+        "end_datetime": "2024-06-08T23:59:59.000000Z"
+      }
+    },
+    {
+      "id": "MYD13Q1.A2024137.h12v04.061.2024157041025",
+      "collection": "modis-13Q1-061",
+      "properties": {
+        "start_datetime": "2024-05-16T00:00:00.000000Z",
+        "end_datetime": "2024-05-31T23:59:59.000000Z"
+      }
+    },
+    {
+      "id": "MOD13Q1.A2024129.h12v04.061.2024153222356",
+      "collection": "modis-13Q1-061",
+      "properties": {
+        "start_datetime": "2024-05-08T00:00:00.000000Z",
+        "end_datetime": "2024-05-23T23:59:59.000000Z"
+      }
+    },
+    {
+      "id": "MOD13Q1.A2024129.h12v04.061.2024148150935",
+      "collection": "modis-13Q1-061",
+      "properties": {
+        "start_datetime": "2024-05-08T00:00:00.000000Z",
+        "end_datetime": "2024-05-23T23:59:59.000000Z"
+      }
+    },
+    {
+      "id": "MYD13Q1.A2024121.h12v04.061.2024142155301",
+      "collection": "modis-13Q1-061",
+      "properties": {
+        "start_datetime": "2024-04-30T00:00:00.000000Z",
+        "end_datetime": "2024-05-15T23:59:59.000000Z"
+      }
+    },
+    {
+      "id": "MOD13Q1.A2024113.h12v04.061.2024133221609",
+      "collection": "modis-13Q1-061",
+      "properties": {
+        "start_datetime": "2024-04-22T00:00:00.000000Z",
+        "end_datetime": "2024-05-07T23:59:59.000000Z"
+      }
+    }
+  ]
+}
