@@ -1,0 +1,25 @@
+{
+  "recorded": "2026-11-02",
+  "request": {
+    "collections": ["3dep-seamless"],
+    "bbox": [-157.9555, 21.2171, -157.7611, 21.3967],
+    "limit": 50
+  },
+  "note": "Planetary Computer STAC search response, trimmed to id, datetime and gsd",
+  "features": [
+    {
+      "id": "n22w158-13",
+      "properties": {
+        "datetime": "2013-01-01T00:00:00Z",
+        "gsd": 10
+      }
+    },
+    {
+      "id": "n22w158-1",
+      "properties": {
+        "datetime": "2013-01-01T00:00:00Z",
+        "gsd": 30
+      }
+    }
+  ]
+}

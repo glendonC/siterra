@@ -652,7 +652,7 @@ export async function fetchVegetationSeries(
 ): Promise<LiveResult<VegetationSeries>> {
   const startedAt = Date.now();
   const now = opts.now?.() ?? new Date();
-  const t = withTimeout(opts.timeoutMs ?? 30_000, opts.signal);
+  const t = withTimeout(opts.timeoutMs ?? 20_000, opts.signal);
   try {
     const { stack, seasonWindow } = await fetchModisStack(bbox, ring, {
       ...opts,

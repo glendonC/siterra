@@ -1,7 +1,7 @@
 import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { cachedLive, liveCacheKey, readLiveCache } from "./live-cache.ts";
 import { type Bbox, type StacItem, modisWindowForBbox, parseNpy } from "./planetary.ts";
 import {
@@ -276,6 +276,35 @@ describe("fetchVegetationSeries", () => {
     });
     expect(r).toMatchObject({ status: "missing", source: "modis-13Q1-061", reason: "http_error" });
     expect(r).not.toHaveProperty("value");
+  });
+
+  it("caps a slow fetch at 20 s by default and returns a missing value with reason timeout", async () => {
+    vi.useFakeTimers();
+    try {
+      const slowFetch: typeof fetch = (_input, init) =>
+        new Promise<Response>((resolve, reject) => {
+          const timer = setTimeout(() => {
+            resolve(Response.json({ features: [] }));
+          }, 12_000);
+          init?.signal?.addEventListener(
+            "abort",
+            () => {
+              clearTimeout(timer);
+              reject(new DOMException("The operation was aborted.", "AbortError"));
+            },
+            { once: true },
+          );
+        });
+      const pending = fetchVegetationSeries(CENTRAL_PARK_BBOX, undefined, {
+        fetchImpl: slowFetch,
+        now: () => new Date("2026-11-02T12:00:00Z"),
+      });
+      await vi.advanceTimersByTimeAsync(25_000);
+      const r = await pending;
+      expect(r).toMatchObject({ status: "missing", source: "modis-13Q1-061", reason: "timeout" });
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
 
