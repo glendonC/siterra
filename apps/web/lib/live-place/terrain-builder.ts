@@ -38,6 +38,9 @@ export const TERRAIN_FILE_VERSION = 2;
 /** Elevation grid nodes a side: the overview's own 256 x 256 relief grid. */
 export const TERRAIN_GRID_SIZE = 256;
 
+/** Where the drawn drainage lines came from: mapped waterways, the DEM's D8 flow, or none. */
+export type StreamSource = "openstreetmap" | "d8_dem" | "none";
+
 /** Where the stored elevations came from. */
 export type ElevationSource = "terrarium_z12" | "terrarium_z11" | "open_meteo_16" | "synthetic";
 
@@ -57,8 +60,17 @@ export interface TerrainFile {
   waterMask?: { runs: number[]; source: WaterSource };
   /** Grid nodes that are land; minElevationM and maxElevationM are over these when there are any. */
   landCells?: number;
+  /** The outline's ring (lon, lat, counter-clockwise, closed); what it is says `outline`. */
   catchmentRing: [number, number][];
+  outline?: {
+    kind: OutlineKind;
+    /** Where the watershed drains out (watershed kinds). */
+    outlet?: [number, number];
+    /** Area inside the outline from the grid's nodes (km²). */
+    areaKm2: number;
+  };
   streamPaths: [number, number][][];
+  streamSource?: StreamSource;
   landCoverGrid?: LandCoverGrid;
   namedWaterways?: string[];
   namedPeaks?: NamedPeak[];
@@ -89,8 +101,7 @@ export function bboxAround(lon: number, lat: number): [number, number, number, n
   const maxLat = Math.min(84.95, Number((lat + dLat).toFixed(6)));
   return [minLon, minLat, maxLon, maxLat];
 }
-
-const D8_OFFSETS: ReadonlyArray<readonly [number, number, number]> = [
+const D8: ReadonlyArray<readonly [number, number, number]> = [
   [-1, 0, 1],
   [-1, 1, Math.SQRT2],
   [0, 1, 1],
@@ -101,272 +112,534 @@ const D8_OFFSETS: ReadonlyArray<readonly [number, number, number]> = [
   [-1, -1, Math.SQRT2],
 ];
 
-/**
- * Computes D8 flow directions and flow accumulation across the elevation grid after conditioning
- * subtle flats toward the basin outlet.
- */
-function computeD8Flow(
-  elevations: readonly number[],
-  width: number,
-  height: number,
-  outletRow: number,
-  outletCol: number,
-): {
-  flowTarget: Int32Array;
-  accumulation: Float32Array;
-} {
-  const n = width * height;
-  const cond = new Float64Array(n);
-  for (let r = 0; r < height; r++) {
-    for (let c = 0; c < width; c++) {
-      const idx = r * width + c;
-      const distToOutlet = Math.hypot(r - outletRow, c - outletCol);
-      cond[idx] = (elevations[idx] ?? 0) + distToOutlet * 0.05;
+/** The rise priority flood gives each filled cell over the cell it drains to, so flats drain (m). */
+const FILL_EPSILON_M = 1e-3;
+
+/** A binary min-heap of grid cells keyed by height, ties by insertion order. */
+class CellHeap {
+  private readonly keys: number[] = [];
+  private readonly cells: number[] = [];
+  private readonly order: number[] = [];
+  private count = 0;
+  get size(): number {
+    return this.keys.length;
+  }
+  push(cell: number, key: number): void {
+    this.keys.push(key);
+    this.cells.push(cell);
+    this.order.push(this.count++);
+    let i = this.keys.length - 1;
+    while (i > 0) {
+      const p = (i - 1) >> 1;
+      if (!this.less(i, p)) break;
+      this.swap(i, p);
+      i = p;
     }
   }
+  pop(): number {
+    const top = this.cells[0] ?? -1;
+    const lastKey = this.keys.pop() ?? 0;
+    const lastCell = this.cells.pop() ?? -1;
+    const lastOrder = this.order.pop() ?? 0;
+    if (this.keys.length > 0) {
+      this.keys[0] = lastKey;
+      this.cells[0] = lastCell;
+      this.order[0] = lastOrder;
+      let i = 0;
+      for (;;) {
+        const l = 2 * i + 1;
+        const r = l + 1;
+        let m = i;
+        if (l < this.keys.length && this.less(l, m)) m = l;
+        if (r < this.keys.length && this.less(r, m)) m = r;
+        if (m === i) break;
+        this.swap(i, m);
+        i = m;
+      }
+    }
+    return top;
+  }
+  private less(a: number, b: number): boolean {
+    const ka = this.keys[a] ?? 0;
+    const kb = this.keys[b] ?? 0;
+    return ka < kb || (ka === kb && (this.order[a] ?? 0) < (this.order[b] ?? 0));
+  }
+  private swap(a: number, b: number): void {
+    for (const arr of [this.keys, this.cells, this.order]) {
+      const t = arr[a] ?? 0;
+      arr[a] = arr[b] ?? 0;
+      arr[b] = t;
+    }
+  }
+}
 
-  const flowTarget = new Int32Array(n).fill(-1);
-  for (let r = 1; r < height - 1; r++) {
-    for (let c = 1; c < width - 1; c++) {
-      const idx = r * width + c;
-      const h0 = cond[idx] ?? 0;
-      let bestSlope = 0;
-      let bestTarget = -1;
-      for (const [dr, dc, dist] of D8_OFFSETS) {
-        const nr = r + dr;
-        const nc = c + dc;
-        if (nr < 0 || nr >= height || nc < 0 || nc >= width) continue;
-        const nIdx = nr * width + nc;
-        const drop = h0 - (cond[nIdx] ?? h0);
-        const slope = drop / dist;
-        if (slope > bestSlope) {
-          bestSlope = slope;
-          bestTarget = nIdx;
+/**
+ * Depression filling by priority flood with epsilon (Barnes, Lehman and Mulla 2014): from every cell where water
+ * leaves the grid (the box edge, and water bodies), each cell is raised to at least a hair above the cell it is
+ * reached from, so every land cell has a downhill path to an edge or to water. Returns the filled heights.
+ */
+export function priorityFloodFill(
+  elevations: readonly number[],
+  w: number,
+  h: number,
+  water: Uint8Array,
+): Float64Array {
+  const filled = new Float64Array(w * h);
+  const done = new Uint8Array(w * h);
+  const heap = new CellHeap();
+  for (let k = 0; k < w * h; k++) {
+    const r = Math.floor(k / w);
+    const c = k % w;
+    if (water[k] || r === 0 || c === 0 || r === h - 1 || c === w - 1) {
+      const v = elevations[k] ?? 0;
+      filled[k] = v;
+      done[k] = 1;
+      heap.push(k, v);
+    }
+  }
+  while (heap.size > 0) {
+    const k = heap.pop();
+    const r = Math.floor(k / w);
+    const c = k % w;
+    for (const [dr, dc] of D8) {
+      const rr = r + dr;
+      const cc = c + dc;
+      if (rr < 0 || rr >= h || cc < 0 || cc >= w) continue;
+      const nk = rr * w + cc;
+      if (done[nk]) continue;
+      done[nk] = 1;
+      const v = Math.max(elevations[nk] ?? 0, (filled[k] ?? 0) + FILL_EPSILON_M);
+      filled[nk] = v;
+      heap.push(nk, v);
+    }
+  }
+  return filled;
+}
+
+/**
+ * D8 flow on a filled grid: each land cell drains to its steepest downhill neighbour (drop over distance); water
+ * cells and cells with no lower neighbour (the box edge) drain out of the grid (-1).
+ */
+export function d8FlowTargets(
+  filled: Float64Array,
+  w: number,
+  h: number,
+  water: Uint8Array,
+): Int32Array {
+  const target = new Int32Array(w * h).fill(-1);
+  for (let r = 0; r < h; r++) {
+    for (let c = 0; c < w; c++) {
+      const k = r * w + c;
+      if (water[k]) continue;
+      let best = 0;
+      for (const [dr, dc, dist] of D8) {
+        const rr = r + dr;
+        const cc = c + dc;
+        if (rr < 0 || rr >= h || cc < 0 || cc >= w) continue;
+        const nk = rr * w + cc;
+        const slope = ((filled[k] ?? 0) - (filled[nk] ?? 0)) / dist;
+        if (slope > best) {
+          best = slope;
+          target[k] = nk;
         }
       }
-      flowTarget[idx] = bestTarget;
     }
   }
-
-  const order = Array.from({ length: n }, (_, i) => i).sort(
-    (a, b) => (cond[b] ?? 0) - (cond[a] ?? 0),
-  );
-  const accumulation = new Float32Array(n).fill(1);
-  for (const idx of order) {
-    const target = flowTarget[idx] ?? -1;
-    if (target >= 0 && target < n) {
-      accumulation[target] = (accumulation[target] ?? 1) + (accumulation[idx] ?? 1);
-    }
-  }
-
-  return { flowTarget, accumulation };
+  return target;
 }
 
-function smoothPolyline(pts: readonly [number, number][]): [number, number][] {
-  const first = pts[0];
-  const last = pts[pts.length - 1];
-  if (pts.length < 3 || !first || !last) return [...pts];
-  let curr: [number, number][] = [...pts];
-  for (let pass = 0; pass < 2; pass++) {
-    const next: [number, number][] = [first];
-    for (let i = 0; i < curr.length - 1; i++) {
-      const p0 = curr[i];
-      const p1 = curr[i + 1];
-      if (!p0 || !p1) continue;
-      next.push([
-        Number((0.75 * p0[0] + 0.25 * p1[0]).toFixed(6)),
-        Number((0.75 * p0[1] + 0.25 * p1[1]).toFixed(6)),
-      ]);
-      next.push([
-        Number((0.25 * p0[0] + 0.75 * p1[0]).toFixed(6)),
-        Number((0.25 * p0[1] + 0.75 * p1[1]).toFixed(6)),
-      ]);
-    }
-    next.push(last);
-    curr = next;
+/** Cells draining through each cell, itself included (a count of cells). */
+function flowAccumulation(target: Int32Array, filled: Float64Array): Float64Array {
+  const n = target.length;
+  const acc = new Float64Array(n).fill(1);
+  const order = Array.from({ length: n }, (_, i) => i).sort(
+    (a, b) => (filled[b] ?? 0) - (filled[a] ?? 0),
+  );
+  for (const k of order) {
+    const t = target[k] ?? -1;
+    if (t >= 0) acc[t] = (acc[t] ?? 0) + (acc[k] ?? 0);
   }
-  return curr;
+  return acc;
 }
 
 /**
- * Delineates a counter-clockwise watershed divide ring (~180 vertices) and extracts dendritic
- * stream reaches routed along the DEM grid.
+ * What the outline is. A watershed: everything draining through the outlet, all inside the box. A drainage area
+ * within the box: the same, but the box cuts it, so it is part of a larger watershed. Land within the box: where a
+ * watershed means little (the outlet's basin under MIN_BASIN_SHARE of the box's land, as on a coast or in a city
+ * by the water), the land around the point inside the box, clipped at the water.
  */
-function buildCatchmentAndStreams(
-  bbox: [number, number, number, number],
+export type OutlineKind = "watershed" | "drainage_within_box" | "land_within_box";
+
+/** A basin smaller than this share of the box's land is not shown as the place's outline. */
+export const MIN_BASIN_SHARE = 0.03;
+
+export interface Outline {
+  kind: OutlineKind;
+  /** Grid nodes inside the outline. */
+  region: Uint8Array;
+  /** The outlet node (watershed kinds), row-major index. */
+  outlet?: number;
+  /** D8 targets on the filled grid, for the channels. */
+  target: Int32Array;
+  acc: Float64Array;
+}
+
+/**
+ * The outline for the point at node `start` (the box centre is the chosen place). From the point, follow the D8
+ * flow downhill on the filled grid until it leaves the box or meets water; the last land cell is the outlet and the
+ * basin is every cell draining through it. A basin touching the box edge anywhere but at its outlet is cut by the
+ * box. A basin under MIN_BASIN_SHARE of the box's land falls back to the land within the box: the connected land
+ * (with any water it encloses) around the point, water that reaches the box edge left out.
+ */
+export function delineateOutline(
   elevations: readonly number[],
-  width: number,
-  height: number,
-): {
-  catchmentRing: [number, number][];
-  streamPaths: [number, number][][];
-  outletLonLat: [number, number];
-} {
-  const [minLon, minLat, maxLon, maxLat] = bbox;
-  const cx = (minLon + maxLon) / 2;
-  const cy = (minLat + maxLat) / 2;
-  const spanLon = maxLon - minLon;
-  const spanLat = maxLat - minLat;
-
-  const elevAtNorm = (nx: number, ny: number): number => {
-    const col = Math.max(0, Math.min(width - 1, Math.round((nx + 1) * 0.5 * (width - 1))));
-    const row = Math.max(0, Math.min(height - 1, Math.round((1 - (ny + 1) * 0.5) * (height - 1))));
-    return elevations[row * width + col] ?? 0;
+  w: number,
+  h: number,
+  water: Uint8Array,
+  start: number,
+): Outline {
+  const n = w * h;
+  const filled = priorityFloodFill(elevations, w, h, water);
+  const target = d8FlowTargets(filled, w, h, water);
+  const acc = flowAccumulation(target, filled);
+  const onEdge = (k: number) => {
+    const r = Math.floor(k / w);
+    const c = k % w;
+    return r === 0 || c === 0 || r === h - 1 || c === w - 1;
   };
+  let landCells = 0;
+  for (let k = 0; k < n; k++) if (!water[k]) landCells++;
 
-  const steps = 180;
-  let lowestAngle = -Math.PI * 0.65;
-  let lowestElev = Infinity;
-  for (let i = 0; i < 72; i++) {
-    const theta = (i / 72) * Math.PI * 2;
-    const e = elevAtNorm(0.7 * Math.cos(theta), 0.7 * Math.sin(theta));
-    if (e < lowestElev) {
-      lowestElev = e;
-      lowestAngle = theta;
-    }
-  }
-
-  const seedPhase = Math.abs(Math.sin(cx * 12.9898 + cy * 78.233)) * Math.PI * 2;
-  const rawRadii: number[] = [];
-  for (let i = 0; i < steps; i++) {
-    const theta = (i / steps) * Math.PI * 2;
-    const rel = theta - lowestAngle;
-    const elongation = 1.0 + 0.24 * Math.cos(rel * 2) - 0.11 * Math.cos(rel);
-    const subBasinLobes =
-      0.09 * Math.sin(rel * 3 + seedPhase) +
-      0.065 * Math.cos(rel * 5 - seedPhase * 0.7) +
-      0.04 * Math.sin(rel * 8 + seedPhase * 1.3);
-    const baseR = Math.max(0.42, Math.min(0.88, 0.68 * elongation + subBasinLobes));
-
-    let bestR = baseR;
-    let bestScore = -Infinity;
-    for (let dr = -0.14; dr <= 0.14; dr += 0.02) {
-      const rCand = Math.max(0.38, Math.min(0.9, baseR + dr));
-      const e = elevAtNorm(rCand * Math.cos(theta), rCand * Math.sin(theta));
-      const penalty = Math.abs(dr) * 110;
-      const score = e - penalty;
-      if (score > bestScore) {
-        bestScore = score;
-        bestR = rCand;
+  // the point itself, or the nearest land to it
+  let from = start;
+  if (water[from]) {
+    let best = Infinity;
+    const r0 = Math.floor(start / w);
+    const c0 = start % w;
+    for (let k = 0; k < n; k++) {
+      if (water[k]) continue;
+      const d = Math.hypot(Math.floor(k / w) - r0, (k % w) - c0);
+      if (d < best) {
+        best = d;
+        from = k;
       }
     }
-    rawRadii.push(bestR);
   }
 
-  const ring: [number, number][] = [];
-  for (let i = 0; i < steps; i++) {
-    let sum = 0;
-    let wSum = 0;
-    for (let k = -2; k <= 2; k++) {
-      const w = 3 - Math.abs(k);
-      const rVal = rawRadii[(i + k + steps) % steps] ?? 0.68;
-      sum += rVal * w;
-      wSum += w;
-    }
-    const theta = (i / steps) * Math.PI * 2;
-    const r = Math.max(0.38, Math.min(0.9, sum / wSum));
-    const lon = Number((cx + r * (spanLon * 0.5) * Math.cos(theta)).toFixed(6));
-    const lat = Number((cy + r * (spanLat * 0.5) * Math.sin(theta)).toFixed(6));
-    ring.push([lon, lat]);
-  }
-  if (ring[0]) {
-    ring.push([ring[0][0], ring[0][1]]);
+  let outlet = from;
+  const seen = new Set<number>();
+  for (;;) {
+    seen.add(outlet);
+    const t = target[outlet] ?? -1;
+    if (t < 0 || water[t] || seen.has(t)) break;
+    outlet = t;
   }
 
-  const outletRadius = 0.71 * 1.12 * 0.93;
-  const outletLon = Number(
-    (cx + outletRadius * (spanLon * 0.46) * Math.cos(lowestAngle)).toFixed(6),
-  );
-  const outletLat = Number(
-    (cy + outletRadius * (spanLat * 0.46) * Math.sin(lowestAngle)).toFixed(6),
-  );
-
-  const outletCol = Math.max(
-    2,
-    Math.min(
-      width - 3,
-      Math.round((1 + outletRadius * 0.88 * Math.cos(lowestAngle)) * 0.5 * (width - 1)),
-    ),
-  );
-  const outletRow = Math.max(
-    2,
-    Math.min(
-      height - 3,
-      Math.round((1 - outletRadius * 0.88 * Math.sin(lowestAngle)) * 0.5 * (height - 1)),
-    ),
-  );
-
-  const { flowTarget } = computeD8Flow(elevations, width, height, outletRow, outletCol);
-
-  const headAngle = lowestAngle + Math.PI;
-  const makeThalwegStream = (
-    startAngleOffset: number,
-    startRadius: number,
-    curveBias: number,
-  ): [number, number][] => {
-    const startTheta = headAngle + startAngleOffset;
-    const sx = startRadius * Math.cos(startTheta);
-    const sy = startRadius * Math.sin(startTheta);
-    const ex = outletRadius * 0.88 * Math.cos(lowestAngle);
-    const ey = outletRadius * 0.88 * Math.sin(lowestAngle);
-    const perpX = -Math.sin(lowestAngle);
-    const perpY = Math.cos(lowestAngle);
-
-    const startCol = Math.max(2, Math.min(width - 3, Math.round((sx + 1) * 0.5 * (width - 1))));
-    const startRow = Math.max(
-      2,
-      Math.min(height - 3, Math.round((1 - (sy + 1) * 0.5) * (height - 1))),
-    );
-    const d8Pts: [number, number][] = [];
-    const visited = new Set<number>();
-    let curr = startRow * width + startCol;
-    while (curr >= 0 && !visited.has(curr) && d8Pts.length < 48) {
-      visited.add(curr);
-      const r = Math.floor(curr / width);
-      const c = curr % width;
-      const lon = minLon + (c / (width - 1)) * spanLon;
-      const lat = maxLat - (r / (height - 1)) * spanLat;
-      d8Pts.push([Number(lon.toFixed(6)), Number(lat.toFixed(6))]);
-      if (Math.hypot(r - outletRow, c - outletCol) <= 2.2) break;
-      curr = flowTarget[curr] ?? -1;
-    }
-
-    const nPts = 28;
-    const rawPts: [number, number][] = [];
-    for (let k = 0; k < nPts; k++) {
-      const t = k / (nPts - 1);
-      const bend = Math.sin(t * Math.PI) * curveBias + Math.sin(t * Math.PI * 3) * 0.025;
-      const guideLon = cx + (sx + (ex - sx) * t + perpX * bend * (1 - t * 0.6)) * (spanLon * 0.5);
-      const guideLat = cy + (sy + (ey - sy) * t + perpY * bend * (1 - t * 0.6)) * (spanLat * 0.5);
-
-      const dPt =
-        d8Pts.length >= 8
-          ? d8Pts[Math.min(d8Pts.length - 1, Math.floor(t * (d8Pts.length - 1)))]
-          : undefined;
-      if (dPt) {
-        const wD8 = (1 - t) * 0.45;
-        rawPts.push([
-          Number((guideLon * (1 - wD8) + dPt[0] * wD8).toFixed(6)),
-          Number((guideLat * (1 - wD8) + dPt[1] * wD8).toFixed(6)),
-        ]);
-      } else {
-        rawPts.push([Number(guideLon.toFixed(6)), Number(guideLat.toFixed(6))]);
+  // every cell whose flow passes through the outlet
+  const upstream: number[][] = Array.from({ length: n }, () => []);
+  for (let k = 0; k < n; k++) {
+    const t = target[k] ?? -1;
+    if (t >= 0) upstream[t]?.push(k);
+  }
+  const basin = new Uint8Array(n);
+  const stack = [outlet];
+  basin[outlet] = 1;
+  let basinCells = 0;
+  let cut = false;
+  while (stack.length > 0) {
+    const k = stack.pop() ?? 0;
+    basinCells++;
+    if (k !== outlet && onEdge(k)) cut = true;
+    for (const u of upstream[k] ?? []) {
+      if (!basin[u]) {
+        basin[u] = 1;
+        stack.push(u);
       }
     }
-    return smoothPolyline(rawPts).slice(0, 32);
-  };
+  }
 
-  const streamPaths: [number, number][][] = [
-    makeThalwegStream(0, 0.64, 0.03),
-    makeThalwegStream(0.52, 0.58, 0.08),
-    makeThalwegStream(-0.48, 0.56, -0.07),
-  ];
+  if (landCells > 0 && basinCells >= MIN_BASIN_SHARE * landCells) {
+    return { kind: cut ? "drainage_within_box" : "watershed", region: basin, outlet, target, acc };
+  }
 
-  return {
-    catchmentRing: ring,
-    streamPaths,
-    outletLonLat: [outletLon, outletLat],
+  // land within the box: water reaching the box edge is outside; land and enclosed water around the point inside
+  const outerWater = new Uint8Array(n);
+  const ws: number[] = [];
+  for (let k = 0; k < n; k++) {
+    if (water[k] && onEdge(k)) {
+      outerWater[k] = 1;
+      ws.push(k);
+    }
+  }
+  while (ws.length > 0) {
+    const k = ws.pop() ?? 0;
+    const r = Math.floor(k / w);
+    const c = k % w;
+    for (const [dr, dc] of D8) {
+      const rr = r + dr;
+      const cc = c + dc;
+      if (rr < 0 || rr >= h || cc < 0 || cc >= w) continue;
+      const nk = rr * w + cc;
+      if (water[nk] && !outerWater[nk]) {
+        outerWater[nk] = 1;
+        ws.push(nk);
+      }
+    }
+  }
+  const region = new Uint8Array(n);
+  const rs = [from];
+  region[from] = 1;
+  while (rs.length > 0) {
+    const k = rs.pop() ?? 0;
+    const r = Math.floor(k / w);
+    const c = k % w;
+    for (const [dr, dc] of D8.filter(([dr2, dc2]) => dr2 === 0 || dc2 === 0)) {
+      const rr = r + dr;
+      const cc = c + dc;
+      if (rr < 0 || rr >= h || cc < 0 || cc >= w) continue;
+      const nk = rr * w + cc;
+      if (!outerWater[nk] && !region[nk]) {
+        region[nk] = 1;
+        rs.push(nk);
+      }
+    }
+  }
+  return { kind: "land_within_box", region, target, acc };
+}
+
+/**
+ * The outer boundary of a region of grid nodes as a closed ring in fractional (col, row): marching squares at the
+ * half-way level between nodes, the longest loop kept (holes and stray islands dropped), then Douglas-Peucker at
+ * `tolerance` cells so the 78 m staircase becomes straight runs, then points every `maxStep` cells at most along
+ * them. Counter-clockwise in (col, -row), first point repeated last.
+ */
+export function traceRing(
+  region: Uint8Array,
+  w: number,
+  h: number,
+  tolerance = 0.75,
+  maxStep = 2,
+): [number, number][] {
+  // pad by one so a region touching the grid edge still closes, along the edge nodes themselves
+  const at = (r: number, c: number) =>
+    r >= 0 && r < h && c >= 0 && c < w ? (region[r * w + c] ?? 0) : 0;
+  const key = (x: number, y: number) => `${String(Math.round(x * 2))},${String(Math.round(y * 2))}`;
+  const next = new Map<string, [number, number][]>();
+  const segs: Array<[[number, number], [number, number]]> = [];
+  for (let r = -1; r < h; r++) {
+    for (let c = -1; c < w; c++) {
+      const tl = at(r, c);
+      const tr = at(r, c + 1);
+      const br = at(r + 1, c + 1);
+      const bl = at(r + 1, c);
+      const code = tl * 8 + tr * 4 + br * 2 + bl;
+      if (code === 0 || code === 15) continue;
+      // edge midpoints, clamped to the grid so a region along the edge is cut along its edge nodes
+      const cl = (x: number, y: number): [number, number] => [
+        Math.max(0, Math.min(w - 1, x)),
+        Math.max(0, Math.min(h - 1, y)),
+      ];
+      const top = cl(c + 0.5, r);
+      const right = cl(c + 1, r + 0.5);
+      const bottom = cl(c + 0.5, r + 1);
+      const left = cl(c, r + 0.5);
+      const add = (a: [number, number], b: [number, number]) => {
+        if (key(...a) !== key(...b)) segs.push([a, b]);
+      };
+      // segments oriented with the region on their left in (col, row) screen space
+      switch (code) {
+        case 1:
+          add(bottom, left);
+          break;
+        case 2:
+          add(right, bottom);
+          break;
+        case 3:
+          add(right, left);
+          break;
+        case 4:
+          add(top, right);
+          break;
+        case 5:
+          add(top, left);
+          add(bottom, right);
+          break;
+        case 6:
+          add(top, bottom);
+          break;
+        case 7:
+          add(top, left);
+          break;
+        case 8:
+          add(left, top);
+          break;
+        case 9:
+          add(bottom, top);
+          break;
+        case 10:
+          add(left, bottom);
+          add(right, top);
+          break;
+        case 11:
+          add(right, top);
+          break;
+        case 12:
+          add(left, right);
+          break;
+        case 13:
+          add(bottom, right);
+          break;
+        case 14:
+          add(left, bottom);
+          break;
+        default:
+          break;
+      }
+    }
+  }
+  for (const [a, b] of segs) {
+    const list = next.get(key(...a)) ?? [];
+    list.push(b);
+    next.set(key(...a), list);
+  }
+  const loops: [number, number][][] = [];
+  for (const [a] of segs) {
+    const ka = key(...a);
+    if (!(next.get(ka)?.length ?? 0)) continue;
+    const loop: [number, number][] = [a];
+    let cur = a;
+    for (let guard = 0; guard < segs.length + 1; guard++) {
+      const list = next.get(key(...cur));
+      const nb = list?.pop();
+      if (!nb) break;
+      cur = nb;
+      loop.push(cur);
+      if (key(...cur) === ka) break;
+    }
+    if (loop.length > 3) loops.push(loop);
+  }
+  const areaOf = (ring: readonly [number, number][]) => {
+    let s = 0;
+    for (let i = 0; i < ring.length - 1; i++) {
+      const p = ring[i] ?? [0, 0];
+      const q = ring[i + 1] ?? [0, 0];
+      s += p[0] * -q[1] - q[0] * -p[1];
+    }
+    return s / 2;
   };
+  let outer: [number, number][] = [];
+  let outerArea = 0;
+  for (const loop of loops) {
+    const a = Math.abs(areaOf(loop));
+    if (a > outerArea) {
+      outerArea = a;
+      outer = loop;
+    }
+  }
+  if (outer.length < 4) return [];
+  const simple = douglasPeucker(outer, tolerance);
+  if (areaOf(simple) < 0) simple.reverse();
+  // then no segment longer than maxStep cells: the land's walls and its framing are drawn from the ring's vertices,
+  // so a long straight run would cut through the relief between two far vertices
+  const dense: [number, number][] = [];
+  for (let i = 0; i < simple.length - 1; i++) {
+    const a = simple[i] ?? [0, 0];
+    const b = simple[i + 1] ?? [0, 0];
+    const steps = Math.max(1, Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1]) / maxStep));
+    for (let k = 0; k < steps; k++) {
+      dense.push([a[0] + ((b[0] - a[0]) * k) / steps, a[1] + ((b[1] - a[1]) * k) / steps]);
+    }
+  }
+  const first = dense[0];
+  if (first) dense.push([first[0], first[1]]);
+  return dense;
+}
+
+function douglasPeucker(pts: readonly [number, number][], tol: number): [number, number][] {
+  if (pts.length < 3) return [...pts];
+  const keep = new Uint8Array(pts.length);
+  keep[0] = 1;
+  keep[pts.length - 1] = 1;
+  const stack: Array<[number, number]> = [[0, pts.length - 1]];
+  while (stack.length > 0) {
+    const [i0, i1] = stack.pop() ?? [0, 0];
+    const a = pts[i0] ?? [0, 0];
+    const b = pts[i1] ?? [0, 0];
+    const dx = b[0] - a[0];
+    const dy = b[1] - a[1];
+    const len = Math.hypot(dx, dy);
+    let worst = -1;
+    let worstD = tol;
+    for (let i = i0 + 1; i < i1; i++) {
+      const p = pts[i] ?? [0, 0];
+      const d =
+        len === 0
+          ? Math.hypot(p[0] - a[0], p[1] - a[1])
+          : Math.abs(dx * (a[1] - p[1]) - dy * (a[0] - p[0])) / len;
+      if (d > worstD) {
+        worstD = d;
+        worst = i;
+      }
+    }
+    if (worst > 0) {
+      keep[worst] = 1;
+      stack.push([i0, worst], [worst, i1]);
+    }
+  }
+  return pts.filter((_, i) => keep[i]);
+}
+
+/** Channels drain at least this area (km²) before they are drawn. */
+const CHANNEL_MIN_KM2 = 1;
+
+/**
+ * Drainage lines computed from the D8 flow inside a watershed outline: the main stem from the outlet up the
+ * largest upstream branch, then up to two tributaries joining it with the largest drainage, each followed while
+ * it drains at least CHANNEL_MIN_KM2. Computed from the DEM, not mapped streams. Fractional (col, row) paths.
+ */
+export function traceChannels(
+  outline: Outline,
+  w: number,
+  cellKm2: number,
+): Array<Array<[number, number]>> {
+  const { target, acc, region, outlet } = outline;
+  if (outlet === undefined) return [];
+  const minCells = Math.max(8, CHANNEL_MIN_KM2 / Math.max(1e-9, cellKm2));
+  const upstream = new Map<number, number[]>();
+  for (let k = 0; k < target.length; k++) {
+    const t = target[k] ?? -1;
+    if (t >= 0 && region[k]) {
+      const list = upstream.get(t) ?? [];
+      list.push(k);
+      upstream.set(t, list);
+    }
+  }
+  const climb = (from: number): number[] => {
+    const path = [from];
+    let cur = from;
+    for (;;) {
+      const ups = (upstream.get(cur) ?? []).filter((u) => (acc[u] ?? 0) >= minCells);
+      if (ups.length === 0) break;
+      ups.sort((a, b) => (acc[b] ?? 0) - (acc[a] ?? 0));
+      cur = ups[0] ?? cur;
+      path.push(cur);
+    }
+    return path;
+  };
+  if ((acc[outlet] ?? 0) < minCells) return [];
+  const main = climb(outlet);
+  const onMain = new Set(main);
+  const joins: Array<[number, number]> = [];
+  for (const k of main) {
+    for (const u of upstream.get(k) ?? []) {
+      if (!onMain.has(u) && (acc[u] ?? 0) >= minCells) joins.push([u, acc[u] ?? 0]);
+    }
+  }
+  joins.sort((a, b) => b[1] - a[1]);
+  const paths = [main, ...joins.slice(0, 2).map(([u]) => climb(u))];
+  return paths
+    .filter((p) => p.length >= 3)
+    .map((p) => p.reverse().map((k): [number, number] => [k % w, Math.floor(k / w)]));
 }
 
 /** WorldCover read for the same bbox by an earlier build, kept when a rebuild cannot reach Planetary Computer. */
@@ -426,20 +699,29 @@ export async function buildTerrainForBbox(
     maxElevationM = elevations.reduce((m, v) => Math.max(m, v), -Infinity);
   }
 
-  const { catchmentRing, streamPaths: d8StreamPaths } = buildCatchmentAndStreams(
-    bbox,
-    elevations,
-    targetSize,
-    targetSize,
-  );
+  // the outline: a watershed delineated from the chosen point (the box centre), or the land within the box
+  const toLonLat = ([col, row]: [number, number]): [number, number] => [
+    Number((minLon + (col / (targetSize - 1)) * (maxLon - minLon)).toFixed(6)),
+    Number((maxLat - (row / (targetSize - 1)) * (maxLat - minLat)).toFixed(6)),
+  ];
+  const centre = Math.round((targetSize - 1) / 2) * targetSize + Math.round((targetSize - 1) / 2);
+  const outline = delineateOutline(elevations, targetSize, targetSize, water.mask, centre);
+  const catchmentRing = traceRing(outline.region, targetSize, targetSize).map(toLonLat);
+  let outlineCells = 0;
+  for (const v of outline.region) outlineCells += v;
+  const cellKm2 =
+    ((maxLon - minLon) * 111.32 * Math.cos((cy * Math.PI) / 180) * (maxLat - minLat) * 111.32) /
+    ((targetSize - 1) * (targetSize - 1));
 
-  // Use real OpenStreetMap Overpass river/stream polylines when present, supplementing with D8 reaches if fewer than 2
-  const streamPaths =
-    hydrology.streamPaths.length >= 2
-      ? hydrology.streamPaths
-      : hydrology.streamPaths.length === 1
-        ? [...hydrology.streamPaths.slice(0, 1), ...d8StreamPaths.slice(0, 2)]
-        : d8StreamPaths;
+  // mapped OpenStreetMap waterways when Overpass has them; otherwise, inside a watershed, drainage lines computed
+  // from the D8 flow (none on land within the box, where they would mean little)
+  const d8Channels =
+    outline.kind === "land_within_box"
+      ? []
+      : traceChannels(outline, targetSize, cellKm2).map((p) => p.map(toLonLat));
+  const streamSource: StreamSource =
+    hydrology.streamPaths.length > 0 ? "openstreetmap" : d8Channels.length > 0 ? "d8_dem" : "none";
+  const streamPaths = hydrology.streamPaths.length > 0 ? hydrology.streamPaths : d8Channels;
 
   const satelliteMeta: SatelliteMeta = {
     ...(satellite.worldCoverItemId ? { worldCoverItemId: satellite.worldCoverItemId } : {}),
@@ -474,7 +756,20 @@ export async function buildTerrainForBbox(
     waterMask: { runs: encodeRuns(water.mask), source: water.source },
     landCells,
     catchmentRing,
+    outline: {
+      kind: outline.kind,
+      ...(outline.outlet !== undefined
+        ? {
+            outlet: toLonLat([
+              outline.outlet % targetSize,
+              Math.floor(outline.outlet / targetSize),
+            ]),
+          }
+        : {}),
+      areaKm2: Number((outlineCells * cellKm2).toFixed(1)),
+    },
     streamPaths,
+    streamSource,
     ...(satellite.landCoverGrid ? { landCoverGrid: satellite.landCoverGrid } : {}),
     ...(hydrology.namedWaterways.length > 0 ? { namedWaterways: hydrology.namedWaterways } : {}),
     ...(hydrology.namedPeaks.length > 0 ? { namedPeaks: hydrology.namedPeaks } : {}),
