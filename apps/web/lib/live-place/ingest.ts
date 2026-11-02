@@ -106,6 +106,94 @@ function readPlaceCache(path: string, terrainVersion: number): CachedPlaceBundle
     : null;
 }
 
+/** The outline's name, role, method and limits as the GeoSelection states them, from TerrainFile.outline. */
+export interface OutlineDescription {
+  label: string;
+  boundaryRole: "hydrological_unit" | "landscape_sample";
+  selectionMethod: string;
+  areaMethod: string;
+  limitations: string[];
+  areaKm2: number;
+  areaM2: number;
+  /** Whether the area is an upstream drainage area (a watershed, or the part of one inside the box). */
+  drains: boolean;
+}
+
+const ELEVATION_SOURCE_WORDS: Record<NonNullable<TerrainFile["elevationSource"]>, string> = {
+  terrarium_z12: "AWS Terrain Tiles (Terrarium encoding, zoom 12)",
+  terrarium_z11: "AWS Terrain Tiles (Terrarium encoding, zoom 11)",
+  open_meteo_16: "the Open-Meteo Elevation API (16 by 16 points, interpolated)",
+};
+
+export function describeOutline(
+  terrain: Pick<TerrainFile, "outline" | "elevationSource" | "catchmentRing">,
+  placeName: string,
+  lon: number,
+  lat: number,
+): OutlineDescription {
+  const box = `the 20 km box centred at ${lat.toFixed(4)}°, ${lon.toFixed(4)}°`;
+  const dem =
+    terrain.elevationSource === undefined
+      ? "an elevation grid whose source is not recorded"
+      : ELEVATION_SOURCE_WORDS[terrain.elevationSource];
+  const notSurveyed = "Not a surveyed watershed, legal parcel or management boundary.";
+  const kind = terrain.outline?.kind;
+  const areaKm2 =
+    terrain.outline?.areaKm2 ?? Number((polygonAreaM2(terrain.catchmentRing) / 1e6).toFixed(1));
+  const areaM2 = Math.round(areaKm2 * 1e6);
+  const areaMethod =
+    terrain.outline === undefined
+      ? `Geodesic polygon area on the WGS84 ellipsoid (${areaKm2.toFixed(1)} km²).`
+      : `Area of the elevation grid cells inside the outline (${areaKm2.toFixed(1)} km²).`;
+  if (kind === "watershed")
+    return {
+      label: `${placeName} watershed`,
+      boundaryRole: "hydrological_unit",
+      selectionMethod: `Within ${box}: everything draining through the outlet, traced by D8 flow on ${dem}; the whole watershed lies inside the box.`,
+      areaMethod,
+      limitations: [`Traced from ${dem}, not mapped.`, notSurveyed],
+      areaKm2,
+      areaM2,
+      drains: true,
+    };
+  if (kind === "drainage_within_box")
+    return {
+      label: "Drainage area within the 20 km box",
+      boundaryRole: "landscape_sample",
+      selectionMethod: `Within ${box}: the area draining through the outlet, traced by D8 flow on ${dem}; the box cuts it, so it is part of a larger watershed.`,
+      areaMethod,
+      limitations: [
+        "Part of a larger watershed: the box edge cuts the drainage area, so its area is a lower bound.",
+        `Traced from ${dem}, not mapped.`,
+        notSurveyed,
+      ],
+      areaKm2,
+      areaM2,
+      drains: true,
+    };
+  if (kind === "land_within_box")
+    return {
+      label: "Land within the 20 km box",
+      boundaryRole: "landscape_sample",
+      selectionMethod: `Within ${box}: the land around the point, clipped at water, from ${dem}. No watershed is drawn, because the basin through the point is a small share of the box's land.`,
+      areaMethod,
+      limitations: ["Not a watershed: the land around the chosen point inside the box.", notSurveyed],
+      areaKm2,
+      areaM2,
+      drains: false,
+    };
+  return {
+    label: "Area within the 20 km box",
+    boundaryRole: "landscape_sample",
+    selectionMethod: `Within ${box}, from ${dem}; how the outline was drawn is not recorded in this terrain file.`,
+    areaMethod,
+    limitations: ["How the outline was drawn is not recorded, so it is not called a watershed.", notSurveyed],
+    areaKm2,
+    areaM2,
+    drains: false,
+  };
+}
+
 function makeSlug(text: string): string {
   const cleaned = text
     .normalize("NFKD")
@@ -374,8 +462,8 @@ export async function buildLiveCase(input: {
     ...govPolicy.sources,
     ...bioCtx.sources,
   ];
-  const areaM2 = polygonAreaM2(terrain.catchmentRing);
-  const areaKm2 = Number((areaM2 / 1e6).toFixed(1));
+  const outline = describeOutline(terrain, placeName, lon, lat);
+  const { areaKm2, areaM2 } = outline;
 
   const geoSelection = GeoSelection.parse({
     recordType: "GeoSelection",
@@ -384,18 +472,16 @@ export async function buildLiveCase(input: {
     createdAt: now,
     updatedAt: now,
     caseId,
-    label: `${placeName} catchment (hydrological analysis extent)`,
+    label: outline.label,
     geometryStatus: "analysis_ready",
     geometry: { type: "Polygon", coordinates: [terrain.catchmentRing] },
     crs: "EPSG:4326",
-    boundaryRole: "hydrological_unit",
+    boundaryRole: outline.boundaryRole,
     boundarySourceIds: [sources[0]!.id],
-    selectionMethod: `12 km × 12 km watershed relief delineation centered at ${lat.toFixed(4)}°, ${lon.toFixed(4)}° from the terrain elevation grid (AWS Terrain Tiles, Terrarium encoding, when reachable).`,
+    selectionMethod: outline.selectionMethod,
     areaM2,
-    areaMethod: `Geodesic polygon area on WGS84 ellipsoid (${areaKm2.toFixed(1)} km²).`,
-    limitations: [
-      "Automated outline drawn from the terrain elevation grid; not a surveyed watershed, legal parcel or management boundary.",
-    ],
+    areaMethod: outline.areaMethod,
+    limitations: outline.limitations,
   });
 
   const bundleId = `bundle_loc_${slug}_${hash6}`;
@@ -606,6 +692,8 @@ export async function buildLiveCase(input: {
   }
 
   const summaryPeriodId = "period_2000-2024_mar_jun";
+  // the rainfall trend is fitted to calendar-year totals, not to a March to June window
+  const annualPeriodId = "period_2000-2024_annual";
   const mCatchmentTrendId = `meas_catchment_trend_${slug}_${hash6}`;
   const mPrecipTrendId = `meas_precip_trend_${slug}_${hash6}`;
   const mRainR2Id = `meas_rain_r2_${slug}_${hash6}`;
@@ -642,7 +730,7 @@ export async function buildLiveCase(input: {
           mPrecipTrendId,
           "precipitation_trend_mm_per_decade",
           "mm per decade",
-          summaryPeriodId,
+          annualPeriodId,
           `Ordinary least squares trend of calendar-year precipitation (${climateSource.window}), ${climateSource.label}: not measured.`,
           climate.unavailableReason ?? "Rainfall is not measured.",
         )
@@ -651,7 +739,7 @@ export async function buildLiveCase(input: {
           "precipitation_trend_mm_per_decade",
           climate.precipTrendMmPerDecade,
           "mm per decade",
-          summaryPeriodId,
+          annualPeriodId,
           `Ordinary least squares trend of calendar-year precipitation over ${String(precipYears)} years (${climateSource.window}), ${climateSource.label}.`,
           null,
           null,
@@ -701,18 +789,27 @@ export async function buildLiveCase(input: {
       NOT_QUANTIFIED,
       demProvenance,
     ),
-    makeMeasurement(
-      mAreaKm2Id,
-      "drainage_outlet_upstream_area",
-      areaKm2,
-      "km2",
-      summaryPeriodId,
-      `Geodesic area of the drawn catchment outline (${areaKm2.toFixed(1)} km²).`,
-      null,
-      null,
-      NOT_QUANTIFIED,
-      demProvenance,
-    ),
+    outline.drains
+      ? makeMeasurement(
+          mAreaKm2Id,
+          "drainage_outlet_upstream_area",
+          areaKm2,
+          "km2",
+          summaryPeriodId,
+          `${outline.label}: ${outline.areaMethod}`,
+          null,
+          null,
+          NOT_QUANTIFIED,
+          demProvenance,
+        )
+      : makeNotMeasured(
+          mAreaKm2Id,
+          "drainage_outlet_upstream_area",
+          "km2",
+          summaryPeriodId,
+          `Upstream drainage area for ${placeName}: not measured.`,
+          `No watershed is drawn here: the outline is ${outline.label.toLowerCase()} (${areaKm2.toFixed(1)} km²), not an upstream drainage area.`,
+        ),
   );
 
   const dataBundle = DataBundle.parse({
@@ -1030,7 +1127,7 @@ export async function buildLiveCase(input: {
     currentBriefId: synth.brief.id,
     unresolvedQuestions,
     permissionProfile: "research_and_preparation_only",
-    description: `Live-ingested environmental case for ${placeName} (${regionName}), centered at ${lat.toFixed(4)}°, ${lon.toFixed(4)}° (${areaKm2.toFixed(1)} km² watershed extent).`,
+    description: `Live-ingested environmental case for ${placeName} (${regionName}), centered at ${lat.toFixed(4)}°, ${lon.toFixed(4)}° (${outline.label}, ${areaKm2.toFixed(1)} km²).`,
   });
 
   const speciesBundleId = `bnd_species_${slug}_${hash6}`;

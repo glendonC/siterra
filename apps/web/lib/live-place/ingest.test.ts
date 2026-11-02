@@ -35,10 +35,10 @@ vi.mock("./terrain-builder.ts", () => ({
   bboxAround: (lon: number, lat: number) => [lon - 0.12, lat - 0.09, lon + 0.12, lat + 0.09],
   polygonAreaM2: () => 1.5e8,
   terrainCachePath: () => "/dev/null",
-  readOrBuildTerrain: vi.fn(() => Promise.resolve({ version: 1 })),
+  readOrBuildTerrain: vi.fn(() => Promise.resolve({ version: 2 })),
   buildTerrainForBbox: vi.fn((bbox: number[]) =>
     Promise.resolve({
-      version: 1,
+      version: 2,
       gridSize: 2,
       width: 2,
       height: 2,
@@ -53,6 +53,8 @@ vi.mock("./terrain-builder.ts", () => ({
         [bbox[0], bbox[1]],
       ],
       streamPaths: [],
+      elevationSource: "terrarium_z12",
+      outline: { kind: "land_within_box", areaKm2: 312.4 },
     }),
   ),
 }));
@@ -230,7 +232,7 @@ describe("live record for New York", () => {
     const first = await ingestNewYork();
     disk.placeCache = JSON.stringify({
       version: 2,
-      terrainVersion: 1,
+      terrainVersion: 2,
       outcome: { ...first.outcome, placeName: "Cached New York" },
       seed: first.seed,
       synth: cachedSynth(),
@@ -242,5 +244,80 @@ describe("live record for New York", () => {
       "seed",
     );
     expect(outcome.placeName).toBe("Cached New York");
+  });
+
+  it("names the outline by what the terrain drew, with its area and real elevation source", async () => {
+    const { seed, bundle } = await ingestNewYork();
+    const geo = seed.geoSelections[0];
+    expect(geo?.label).toBe("Land within the 20 km box");
+    expect(geo?.boundaryRole).toBe("landscape_sample");
+    expect(geo?.areaM2).toBe(312_400_000);
+    expect(geo?.selectionMethod).toContain("AWS Terrain Tiles (Terrarium encoding, zoom 12)");
+    expect(geo?.selectionMethod).toContain("the 20 km box centred at 40.7127°, -74.0060°");
+    // land within the box is not an upstream drainage area, so that value is missing with the reason
+    const area = bundle.measurements.find((m) => m.metric === "drainage_outlet_upstream_area");
+    expect(area?.status).toBe("missing");
+    expect(area?.missingReason).toMatch(/^No watershed is drawn here/);
+    expect(seed.caseRecord.description).toContain("Land within the 20 km box, 312.4 km²");
+  });
+
+  it("files the rainfall trend under a calendar-year period, not March to June", async () => {
+    const { bundle } = await ingestNewYork();
+    const trend = bundle.measurements.find((m) => m.metric === "precipitation_trend_mm_per_decade");
+    expect(trend?.periodId).toBe("period_2000-2024_annual");
+  });
+});
+
+describe("outline description", () => {
+  const ring: [number, number][] = [
+    [0, 0],
+    [0.1, 0],
+    [0.1, 0.1],
+    [0, 0],
+  ];
+  it("calls only a whole watershed a hydrological unit", async () => {
+    const { describeOutline } = await import("./ingest.ts");
+    const shed = describeOutline(
+      {
+        catchmentRing: ring,
+        elevationSource: "terrarium_z11",
+        outline: { kind: "watershed", outlet: [0.05, 0.01], areaKm2: 88.2 },
+      },
+      "Queenstown",
+      0.05,
+      0.05,
+    );
+    expect([shed.label, shed.boundaryRole, shed.areaKm2, shed.drains]).toEqual([
+      "Queenstown watershed",
+      "hydrological_unit",
+      88.2,
+      true,
+    ]);
+    expect(shed.selectionMethod).toContain("zoom 11");
+    const cut = describeOutline(
+      {
+        catchmentRing: ring,
+        elevationSource: "open_meteo_16",
+        outline: { kind: "drainage_within_box", areaKm2: 140 },
+      },
+      "Queenstown",
+      0.05,
+      0.05,
+    );
+    expect([cut.label, cut.boundaryRole, cut.drains]).toEqual([
+      "Drainage area within the 20 km box",
+      "landscape_sample",
+      true,
+    ]);
+    expect(cut.limitations[0]).toMatch(/part of a larger watershed/i);
+    expect(cut.selectionMethod).toContain("Open-Meteo Elevation API");
+  });
+
+  it("does not call an outline of unrecorded kind a watershed", async () => {
+    const { describeOutline } = await import("./ingest.ts");
+    const old = describeOutline({ catchmentRing: ring }, "Arkhust", 0.05, 0.05);
+    expect(old.boundaryRole).toBe("landscape_sample");
+    expect(old.label).not.toMatch(/watershed|catchment/i);
+    expect(old.selectionMethod).toContain("source is not recorded");
   });
 });
