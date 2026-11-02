@@ -1,4 +1,5 @@
 import { database } from "../database.ts";
+import { shortNameFrom } from "../../../components/journey/globe-choice.ts";
 import { json, problem } from "../problem.ts";
 
 export const dynamic = "force-dynamic";
@@ -15,6 +16,8 @@ export interface GeocodePlace {
   osmClass?: string;
   osmType?: string;
   addressType?: string;
+  /** A shorter everyday name for the same place, from Nominatim's name details. */
+  shortName?: string;
 }
 
 /** The OpenStreetMap kind of a Nominatim hit, only the fields it gave. */
@@ -28,6 +31,15 @@ function osmKind(row: {
     ...(row.type ? { osmType: row.type } : {}),
     ...(row.addresstype ? { addressType: row.addresstype } : {}),
   };
+}
+
+/** The short name, as a field only when there is one. */
+function shortOf(
+  details: Record<string, string | undefined> | undefined,
+  name: string,
+): Pick<GeocodePlace, "shortName"> {
+  const short = shortNameFrom(details, name);
+  return short ? { shortName: short } : {};
 }
 
 async function loadStoredPlaces(): Promise<GeocodePlace[]> {
@@ -179,7 +191,7 @@ async function searchNominatim(query: string): Promise<GeocodePlace[]> {
     ac.abort();
   }, 3500);
   try {
-    const url = `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&q=${encodeURIComponent(
+    const url = `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&namedetails=1&q=${encodeURIComponent(
       query,
     )}&limit=5`;
     const res = await fetch(url, {
@@ -199,6 +211,7 @@ async function searchNominatim(query: string): Promise<GeocodePlace[]> {
       class?: string;
       type?: string;
       addresstype?: string;
+      namedetails?: Record<string, string | undefined>;
       address?: Record<string, string | undefined>;
     }>;
     if (!Array.isArray(rows)) return [];
@@ -228,6 +241,7 @@ async function searchNominatim(query: string): Promise<GeocodePlace[]> {
         lat: Number(lat.toFixed(5)),
         named: Boolean(given),
         ...osmKind(row),
+        ...shortOf(row.namedetails, name),
       });
     }
     return out;
@@ -277,7 +291,7 @@ export async function reverseGeocode(lon: number, lat: number): Promise<GeocodeP
   try {
     const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${encodeURIComponent(
       String(lat),
-    )}&lon=${encodeURIComponent(String(lon))}&zoom=13&addressdetails=1`;
+    )}&lon=${encodeURIComponent(String(lon))}&zoom=13&addressdetails=1&namedetails=1`;
     const res = await fetch(url, {
       signal: ac.signal,
       headers: {
@@ -294,6 +308,7 @@ export async function reverseGeocode(lon: number, lat: number): Promise<GeocodeP
       class?: string;
       type?: string;
       addresstype?: string;
+      namedetails?: Record<string, string | undefined>;
       address?: Record<string, string | undefined>;
     };
     if (data.error) return fallback;
@@ -335,6 +350,7 @@ export async function reverseGeocode(lon: number, lat: number): Promise<GeocodeP
       lat: Number(lat.toFixed(5)),
       named: true,
       ...osmKind(data),
+      ...shortOf(data.namedetails, cleanLatinName(rawName)),
     };
   } catch {
     return fallback;

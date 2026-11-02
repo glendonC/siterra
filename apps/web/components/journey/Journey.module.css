@@ -588,31 +588,62 @@
     var(--easing-standard, cubic-bezier(0.22, 1, 0.36, 1)) both;
 }
 
+/* "Starting" in the light weight of the step fractions' slash; a band of light sweeps across it, about 2 s a pass, so
+   the start reads as alive without a figure that is not real. The halo is a drop shadow: a text shadow would paint
+   over the clipped sweep. */
 .dbhLaunchWord {
+  width: fit-content;
   margin: 0;
-  font: 500 46px / 0.9 var(--font-sans);
-  letter-spacing: -0.03em;
+  padding-bottom: 0.12em;
+  font: 200 46px / 0.9 var(--font-sans);
+  letter-spacing: -0.02em;
   color: var(--triad-green);
-  text-shadow: var(--paper-halo);
+  background: linear-gradient(
+      100deg,
+      var(--triad-green) 0%,
+      var(--triad-green) 42%,
+      color-mix(in srgb, var(--triad-green) 30%, var(--paper)) 50%,
+      var(--triad-green) 58%,
+      var(--triad-green) 100%
+    )
+    0 0 / 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 2px var(--paper));
+  animation: dbhLaunchSweep 2000ms linear infinite;
 }
 
+/* the status line carries a quieter, slower sweep of the same light */
 .dbhLaunchStatus {
+  width: fit-content;
   margin: 0;
   padding-left: 40px;
   font: 300 18px / 25px var(--font-sans);
   letter-spacing: -0.01em;
   color: var(--ink);
-  text-shadow: var(--paper-halo);
-  animation: dbhLaunchBreath 2400ms ease-in-out infinite;
+  background: linear-gradient(
+      100deg,
+      var(--ink) 0%,
+      var(--ink) 44%,
+      color-mix(in srgb, var(--ink) 55%, var(--paper)) 50%,
+      var(--ink) 56%,
+      var(--ink) 100%
+    )
+    0 0 / 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 2px var(--paper));
+  animation: dbhLaunchSweep 2600ms linear 300ms infinite;
 }
 
-@keyframes dbhLaunchBreath {
-  0%,
-  100% {
-    opacity: 1;
+@keyframes dbhLaunchSweep {
+  from {
+    background-position: 100% 0;
   }
-  50% {
-    opacity: 0.62;
+  to {
+    background-position: 0% 0;
   }
 }
 
@@ -625,9 +656,16 @@
 
 @media (prefers-reduced-motion: reduce) {
   .dbhLaunch,
-  .dbhLaunchStatus,
   .dbhStepTwo[data-completed] .dbhDoneAnswerRow {
     animation: none;
+  }
+
+  /* still: solid text, no sweep */
+  .dbhLaunchWord,
+  .dbhLaunchStatus {
+    animation: none;
+    background: none;
+    -webkit-text-fill-color: currentcolor;
   }
 }
 

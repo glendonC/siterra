@@ -68,6 +68,24 @@ describe("reverse geocoding a picked point", () => {
     });
   });
 
+  it("passes on the geocoder's shorter everyday name", async () => {
+    answer({
+      class: "boundary",
+      type: "administrative",
+      addresstype: "city",
+      name: "Kathmandu Metropolitan City",
+      display_name: "Kathmandu Metropolitan City, Kathmandu, Bagamati Province, Nepal",
+      namedetails: { "name:en": "Kathmandu Metropolitan City", "_place_name:en": "Kathmandu" },
+      address: {
+        city: "Kathmandu Metropolitan City",
+        state: "Bagamati Province",
+        country: "Nepal",
+      },
+    });
+    const p = await reverseGeocode(85.32, 27.71);
+    expect(p).toMatchObject({ name: "Kathmandu Metropolitan City", shortName: "Kathmandu" });
+  });
+
   it("keeps the Latin half of a bilingual name", async () => {
     answer({
       class: "place",

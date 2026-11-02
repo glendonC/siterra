@@ -8,6 +8,8 @@ import {
   placeQuestions,
   rangelandShareAt,
   reliefAt,
+  shortNameFrom,
+  startOutcome,
   surfaceAt,
   type PlaceKind,
   type WorldGrid,
@@ -320,5 +322,63 @@ describe("questions that fit the place", () => {
         expect(q.endsWith("?"), q).toBe(true);
       }
     }
+  });
+});
+
+describe("short place names inside questions", () => {
+  const kathmandu = {
+    name: "काठमाडौँ महानगरपालिका",
+    "name:en": "Kathmandu Metropolitan City",
+    "_place_name:en": "Kathmandu",
+    int_name: "Kathmandu",
+  };
+
+  it("takes the geocoder's shorter everyday name for the same place", () => {
+    expect(shortNameFrom(kathmandu, "Kathmandu Metropolitan City")).toBe("Kathmandu");
+    expect(shortNameFrom({ short_name: "NYC" }, "New York City")).toBe("NYC");
+  });
+
+  it("gives nothing when no shorter Latin name is given", () => {
+    expect(shortNameFrom(undefined, "Manhattan")).toBeUndefined();
+    expect(shortNameFrom({ int_name: "Manhattan" }, "Manhattan")).toBeUndefined();
+    expect(
+      shortNameFrom({ "_place_name:en": "काठमाडौं" }, "Kathmandu Metropolitan City"),
+    ).toBeUndefined();
+  });
+
+  it("uses the short name in every question", () => {
+    const qs = placeQuestions(
+      { name: "Kathmandu Metropolitan City", shortName: "Kathmandu", lat: 27.71, lon: 85.32 },
+      "city",
+    );
+    expect(qs).toHaveLength(4);
+    for (const q of qs) {
+      expect(q).toContain("Kathmandu");
+      expect(q).not.toContain("Metropolitan City");
+    }
+  });
+});
+
+describe("a new place's start", () => {
+  it("opens the place's own case when the service made it", () => {
+    expect(startOutcome(201, { caseId: "case_loc_new_york_ab12cd" })).toEqual({
+      caseId: "case_loc_new_york_ab12cd",
+    });
+    expect(startOutcome(200, { caseId: "case_loc_new_york_ab12cd", created: false })).toEqual({
+      caseId: "case_loc_new_york_ab12cd",
+    });
+  });
+
+  it("says the place did not start, and opens no other case, on a refusal or a bad answer", () => {
+    expect(startOutcome(500, {})).toEqual({ failure: launchFailure(500) });
+    expect(startOutcome(422, { caseId: "case_aitbouguemez" })).toEqual({
+      failure: launchFailure(422),
+    });
+    expect(startOutcome(200, null)).toEqual({ failure: launchFailure(200) });
+    expect(startOutcome(200, { caseId: "" })).toEqual({ failure: launchFailure(200) });
+  });
+
+  it("says Siterra could not be reached when the request fails", () => {
+    expect(startOutcome(null, null)).toEqual({ failure: launchFailure(null) });
   });
 });

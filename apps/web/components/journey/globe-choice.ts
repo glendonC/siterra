@@ -26,6 +26,8 @@ export type PlaceKind =
 /** The geocoder's answer for a point, or nothing when it had no name for it. */
 export interface GeocodeHit {
   name?: string;
+  /** A shorter everyday name for the same place, when the geocoder gives one ("Kathmandu"). */
+  shortName?: string;
   region?: string;
   /** OpenStreetMap class, type and address type as Nominatim reports them. */
   osmClass?: string;
@@ -226,6 +228,8 @@ export function classifyPlace(s: PlaceSignals): PlaceKind | null {
 /** Where a question looks: "in Manhattan", or "around 21.88° N, 33.75° E" for a point with no name. */
 export interface QuestionPlace {
   name?: string;
+  /** The geocoder's shorter name for the place, used inside questions when given. */
+  shortName?: string;
   lat: number;
   lon: number;
 }
@@ -235,11 +239,29 @@ function shortName(raw: string): string {
 }
 
 /**
+ * The shorter everyday name Nominatim gives in its name details for the same place (the place node a boundary is
+ * linked to, its short or international name), when it is shorter than the name and written in Latin letters;
+ * otherwise nothing. "Kathmandu" for "Kathmandu Metropolitan City".
+ */
+export function shortNameFrom(
+  details: Record<string, string | undefined> | null | undefined,
+  name: string,
+): string | undefined {
+  if (!details) return undefined;
+  for (const key of ["_place_name:en", "short_name:en", "short_name", "int_name"]) {
+    const v = details[key]?.trim();
+    if (v && v.length < name.trim().length && /^[\p{Script=Latin}\p{N}\s.'’()-]+$/u.test(v))
+      return v;
+  }
+  return undefined;
+}
+
+/**
  * Broad questions first, then two that fit the kind of place; a place of unknown kind gets the broad ones only. None
  * presupposes a result: each asks whether, where or how much, never why something already measured happened.
  */
 export function placeQuestions(place: QuestionPlace, kind: PlaceKind | null): string[] {
-  const name = place.name ? shortName(place.name) : "";
+  const name = place.shortName?.trim() || (place.name ? shortName(place.name) : "");
   const coords = formatLatLon(place.lat, place.lon);
   const inP = name ? `in ${name}` : `around ${coords}`;
   const round = name ? `around ${name}` : `around ${coords}`;
@@ -288,6 +310,23 @@ export function launchStatus(kind: "new" | "studied"): string {
   return kind === "new"
     ? "Gathering the terrain, climate records and sources for this place, then opening the investigation"
     : "Going down to the land and opening the investigation";
+}
+
+/** A new place's start, decided from the case service's answer: open its own case, or say why it did not start. */
+export type StartOutcome = { caseId: string } | { failure: string };
+
+/**
+ * The case service's answer to a start: its HTTP status (null when it could not be reached) and body. Only this
+ * place's own case opens; anything else is a failure the visitor sees, never another place's case in its stead.
+ */
+export function startOutcome(status: number | null, body: unknown): StartOutcome {
+  if (status === null) return { failure: launchFailure(null) };
+  const caseId =
+    body && typeof body === "object" && typeof (body as { caseId?: unknown }).caseId === "string"
+      ? (body as { caseId: string }).caseId.trim()
+      : "";
+  if (status >= 200 && status < 300 && caseId) return { caseId };
+  return { failure: launchFailure(status) };
 }
 
 /** Why a new place did not start, from the case service's HTTP status, or null when it could not be reached. */

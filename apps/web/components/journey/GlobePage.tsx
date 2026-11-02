@@ -15,10 +15,12 @@ import { SiterraMark, ThemeIcon } from "../opening/Opening";
 import {
   cardQuestion,
   formatLatLon,
-  launchFailure,
   launchStatus,
   placeQuestions,
+  shortNameFrom,
+  startOutcome,
   type PlaceKind,
+  type StartOutcome,
   type Surface,
 } from "./globe-choice";
 import styles from "./Journey.module.css";
@@ -46,6 +48,8 @@ export interface CustomGlobeLocation {
   investigable?: boolean;
   /** Whether a source names the point; when not, its placeName is a coordinate label. */
   named?: boolean;
+  /** The geocoder's shorter everyday name for the place, used inside questions. */
+  shortName?: string;
   /** The kind of place from real signals only, null when they do not say. */
   placeKind?: PlaceKind | null;
   /** The geocoder's OpenStreetMap class, type and address type, when a search result brings them. */
@@ -56,6 +60,7 @@ export interface CustomGlobeLocation {
 
 interface GeocodeSuggestion {
   name: string;
+  shortName?: string;
   region: string;
   lat: number;
   lon: number;
@@ -178,6 +183,7 @@ export function GlobePage({
   onSelectLocation,
   onLaunchCustomCase,
   registerPrimaryAction,
+  onStartingChange,
   theme = "light",
   onToggleTheme,
 }: {
@@ -196,6 +202,8 @@ export function GlobePage({
   onSelectLocation?: (loc: CustomGlobeLocation) => void;
   onLaunchCustomCase?: (caseId: string, question?: string) => void;
   registerPrimaryAction?: (fn: () => void) => void;
+  /** Told when a start begins or ends here, so the globe takes no new point under "Starting". */
+  onStartingChange?: (starting: boolean) => void;
   theme?: "light" | "obsidian";
   onToggleTheme?: () => void;
 }) {
@@ -272,6 +280,9 @@ export function GlobePage({
           ...(customLocation.named && customLocation.placeName
             ? { name: customLocation.placeName }
             : {}),
+          ...(customLocation.named && customLocation.shortName
+            ? { shortName: customLocation.shortName }
+            : {}),
           lat: customLocation.lat,
           lon: customLocation.lon,
         },
@@ -316,7 +327,7 @@ export function GlobePage({
       try {
         const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
           q,
-        )}&limit=5&addressdetails=1`;
+        )}&limit=5&addressdetails=1&namedetails=1`;
         const res = await fetch(url, {
           headers: { "Accept-Language": "en" },
         });
@@ -329,6 +340,7 @@ export function GlobePage({
           class?: string;
           type?: string;
           addresstype?: string;
+          namedetails?: Record<string, string>;
           address?: Record<string, string>;
         }>;
         if (stale()) return;
@@ -345,11 +357,13 @@ export function GlobePage({
           const country = item.address?.country || parts[parts.length - 1] || "";
           const state = item.address?.state || item.address?.region || parts[1] || "";
           const region = [state, country].filter((x) => x && x !== name).join(", ");
+          const short = shortNameFrom(item.namedetails, name);
           parsed.push({
             name,
             region,
             lat,
             lon,
+            ...(short ? { shortName: short } : {}),
             ...(item.class ? { osmClass: item.class } : {}),
             ...(item.type ? { osmType: item.type } : {}),
             ...(item.addresstype ? { addressType: item.addresstype } : {}),
@@ -398,7 +412,7 @@ export function GlobePage({
       setLaunchingCustom(true);
       setLaunchError(null);
       setLaunch({ question: chosenQ, status: launchStatus("new") });
-      let failure: string;
+      let outcome: StartOutcome;
       try {
         const res = await fetch("/api/cases/from-location", {
           method: "POST",
@@ -411,24 +425,23 @@ export function GlobePage({
             question: chosenQ,
           }),
         });
-        const data = (await res.json().catch(() => ({}))) as { caseId?: string };
-        if (res.ok && data.caseId) {
-          // the starting state stays up while the new case's page loads
-          if (onLaunchCustomCase) {
-            onLaunchCustomCase(data.caseId, chosenQ);
-          } else {
-            window.location.href = `/?case=${encodeURIComponent(data.caseId)}&dive=1&mode=run&q=${encodeURIComponent(chosenQ)}`;
-          }
-          return;
-        }
-        failure = launchFailure(res.status);
+        outcome = startOutcome(res.status, await res.json().catch(() => null));
       } catch {
-        failure = launchFailure(null);
+        outcome = startOutcome(null, null);
+      }
+      if ("caseId" in outcome) {
+        // the starting state stays up while the new case's page loads
+        if (onLaunchCustomCase) {
+          onLaunchCustomCase(outcome.caseId, chosenQ);
+        } else {
+          window.location.href = `/?case=${encodeURIComponent(outcome.caseId)}&dive=1&mode=run&q=${encodeURIComponent(chosenQ)}`;
+        }
+        return;
       }
       // never another place's case in its stead: the visitor sees that this place did not start
       setLaunchingCustom(false);
       setLaunch(null);
-      setLaunchError(failure);
+      setLaunchError(outcome.failure);
     },
     [
       customLocation,
@@ -506,6 +519,10 @@ export function GlobePage({
   useEffect(() => {
     registerPrimaryAction?.(handlePrimaryKeyOrAction);
   }, [registerPrimaryAction, handlePrimaryKeyOrAction]);
+
+  useEffect(() => {
+    onStartingChange?.(launch !== null);
+  }, [launch, onStartingChange]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -693,6 +710,7 @@ export function GlobePage({
             lat: r.lat,
             placeName: r.name,
             regionName: r.region,
+            ...(r.shortName ? { shortName: r.shortName } : {}),
             ...(r.osmClass ? { osmClass: r.osmClass } : {}),
             ...(r.osmType ? { osmType: r.osmType } : {}),
             ...(r.addressType ? { addressType: r.addressType } : {}),

@@ -80,12 +80,14 @@ function extractReverseGeocode(json: unknown): GeocodeHit | null {
   const name = text("name");
   if (!name) return null;
   const region = text("region");
+  const shortName = text("shortName");
   const osmClass = text("osmClass");
   const osmType = text("osmType");
   const addressType = text("addressType");
   return {
     name,
     ...(region ? { region } : {}),
+    ...(shortName ? { shortName } : {}),
     ...(osmClass ? { osmClass } : {}),
     ...(osmType ? { osmType } : {}),
     ...(addressType ? { addressType } : {}),
@@ -321,6 +323,12 @@ export function Journey({ globeAssets, arrival, snapshot }: JourneyProps) {
 
   const geocodeAbortRef = useRef<AbortController | null>(null);
 
+  // while a start is under way the globe takes no new point and no other place, so the card cannot change under it
+  const startingRef = useRef(false);
+  const onStartingChange = useCallback((starting: boolean) => {
+    startingRef.current = starting;
+  }, []);
+
   // the globe's grids, once loaded: a picked point waits for them to tell open water from land
   const globeWaitersRef = useRef<((g: GlobeData | null) => void)[]>([]);
   const globeGrids = useCallback((): Promise<GlobeData | null> => {
@@ -349,6 +357,7 @@ export function Journey({ globeAssets, arrival, snapshot }: JourneyProps) {
         ? {
             name: loc.placeName,
             ...(loc.regionName ? { region: loc.regionName } : {}),
+            ...(loc.shortName ? { shortName: loc.shortName } : {}),
             ...(loc.osmClass ? { osmClass: loc.osmClass } : {}),
             ...(loc.osmType ? { osmType: loc.osmType } : {}),
             ...(loc.addressType ? { addressType: loc.addressType } : {}),
@@ -381,6 +390,7 @@ export function Journey({ globeAssets, arrival, snapshot }: JourneyProps) {
           placeName: named.title,
           regionName: named.region,
           named: Boolean(h?.name),
+          ...(h?.shortName && named.investigable ? { shortName: h.shortName } : {}),
           resolving: false,
           surface: named.surface,
           investigable: named.investigable,
@@ -593,7 +603,7 @@ export function Journey({ globeAssets, arrival, snapshot }: JourneyProps) {
       const y = e.clientY - rect.top;
       const hit = screenToLonLat(cam, x, y, rect.width, rect.height);
       if (hit) {
-        handleSelectCustomLocation({ lon: hit.lon, lat: hit.lat });
+        if (!startingRef.current) handleSelectCustomLocation({ lon: hit.lon, lat: hit.lat });
       }
     },
     [phase, handleSelectCustomLocation],
@@ -887,7 +897,7 @@ export function Journey({ globeAssets, arrival, snapshot }: JourneyProps) {
                       onClick={(e) => {
                         if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
                         e.preventDefault();
-                        handleSelectSavedCase(sc);
+                        if (!startingRef.current) handleSelectSavedCase(sc);
                       }}
                     >
                       <i className={styles.otherDot} aria-hidden="true" />
@@ -911,6 +921,7 @@ export function Journey({ globeAssets, arrival, snapshot }: JourneyProps) {
               onBack={onBack}
               opened={phase !== "globe"}
               registerPrimaryAction={registerPrimaryAction}
+              onStartingChange={onStartingChange}
               theme={globeTheme}
               onToggleTheme={toggleGlobeTheme}
             />
