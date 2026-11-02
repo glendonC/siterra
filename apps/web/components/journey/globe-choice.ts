@@ -79,19 +79,44 @@ function caseHalfRows(grid: { h: number }): number {
   return Math.ceil(CASE_HALF_KM / KM_PER_DEG / (180 / grid.h));
 }
 
-/** Open water, a coast or land, from the land share in the cells a case at this point would span. */
-export function surfaceAt(world: WorldGrid | null | undefined, lon: number, lat: number): Surface {
-  if (!world) return "unknown";
+/** The land share grid as stored (data/map/globe/dots-land-*.uint8.bin.gz): 0 to 255 per cell, rows north to south. */
+export interface LandGrid {
+  w: number;
+  h: number;
+  data: Uint8Array;
+}
+
+function surfaceFrom(
+  grid: { w: number; h: number },
+  share: (i: number) => number,
+  lon: number,
+  lat: number,
+): Surface {
   let min = 1;
   let max = 0;
-  for (const i of cellsAround(world, lon, lat, caseHalfRows(world))) {
-    const share = world.data[i * 2 + 1] ?? 0;
-    min = Math.min(min, share);
-    max = Math.max(max, share);
+  for (const i of cellsAround(grid, lon, lat, caseHalfRows(grid))) {
+    min = Math.min(min, share(i));
+    max = Math.max(max, share(i));
   }
   if (max <= 0) return "water";
   if (min >= 1) return "land";
   return "coast";
+}
+
+/** Open water, a coast or land, from the land share in the cells a case at this point would span. */
+export function surfaceAt(world: WorldGrid | null | undefined, lon: number, lat: number): Surface {
+  if (!world) return "unknown";
+  return surfaceFrom(world, (i) => world.data[i * 2 + 1] ?? 0, lon, lat);
+}
+
+/** The same, from the stored land share file the server reads. */
+export function surfaceOfLand(
+  land: LandGrid | null | undefined,
+  lon: number,
+  lat: number,
+): Surface {
+  if (!land) return "unknown";
+  return surfaceFrom(land, (i) => (land.data[i] ?? 0) / 255, lon, lat);
 }
 
 /** Relief round the point (about 27 km each way) and where the point sits in it, 0 at the lowest cell, 1 the highest. */
