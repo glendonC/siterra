@@ -4,7 +4,12 @@ import { en, format, type MessageId } from "../../lib/copy/en";
 import { pkg } from "../../lib/copy/package";
 import { tm } from "../../lib/copy/time";
 import type { OverviewData } from "../../lib/overview/data";
-import { directionWord, sharesWords, type Finding } from "../../lib/overview/findings";
+import {
+  overviewLabelOf,
+  sharesWords,
+  type Finding,
+  type OverviewLabel,
+} from "../../lib/overview/findings";
 import type { Selection } from "../../lib/overview/scene/overview";
 import styles from "./ValleyOverview.module.css";
 
@@ -58,7 +63,8 @@ export function crumbOf(sel: Selection, findings: readonly Finding[], bandLimit:
 
 export function FindingMark({
   finding: f,
-  caption,
+  label: labelProp,
+  bandLimit = "",
   describedBy,
   dotRef,
   labelRef,
@@ -67,7 +73,9 @@ export function FindingMark({
   onOpen,
 }: {
   finding: Finding;
-  caption: string[];
+  caption?: string[];
+  label?: OverviewLabel;
+  bandLimit?: string;
   describedBy: string;
   dotRef: (el: HTMLDivElement | null) => void;
   labelRef: (el: HTMLButtonElement | null) => void;
@@ -75,9 +83,22 @@ export function FindingMark({
   onHover: (on: boolean) => void;
   onOpen: () => void;
 }) {
+  const hasStem = f.id === "band" || f.id === "pixel";
+  const label = labelProp ?? overviewLabelOf(f, bandLimit);
   return (
     <>
-      <div ref={dotRef} className={`${styles.dot} ${styles[f.tone] ?? ""}`} aria-hidden="true">
+      <div
+        ref={dotRef}
+        className={`${styles.dot} ${styles[f.tone] ?? ""}`}
+        data-point-stem={hasStem ? "" : undefined}
+        aria-hidden="true"
+      >
+        {hasStem ? (
+          <>
+            <i className={styles.stem} />
+            <i className={styles.footRing} />
+          </>
+        ) : null}
         <i className={styles.halo} />
         <i className={styles.core} />
       </div>
@@ -102,28 +123,9 @@ export function FindingMark({
         onClick={onOpen}
       >
         <span ref={numeralRef} className={styles.numeral}>
-          {f.pair ? (
-            // both shares, each from its own Measurement, each with its direction (U25b)
-            <span className={`${styles.value} ${styles.pair}`}>
-              <span>
-                {f.display}
-                <span className={styles.shareWord}>{directionWord(f.direction)}</span>
-              </span>
-              <span>
-                {f.pair.display}
-                <span className={styles.shareWord}>{directionWord(f.pair.direction)}</span>
-              </span>
-            </span>
-          ) : (
-            <span className={styles.value}>{f.display}</span>
-          )}
-          <Arrow deg={f.clock} className={styles.arrow} />
+          {label.title}
         </span>
-        {caption.map((line, i) => (
-          <span key={line} className={i === 0 ? styles.caption : styles.captionDetail}>
-            {line}
-          </span>
-        ))}
+        <span className={styles.caption}>{label.subtitle}</span>
       </button>
     </>
   );

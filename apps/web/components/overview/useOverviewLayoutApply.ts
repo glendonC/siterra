@@ -1,18 +1,10 @@
 "use client";
 
-import { useCallback, type Dispatch, type MutableRefObject, type RefObject, type SetStateAction } from "react";
-import {
-  nearestOnBox,
-  type Box as CardBox,
-  type Side as CardSide,
-} from "../../lib/overview/card";
+import { useCallback, type Dispatch, type RefObject, type SetStateAction } from "react";
+import { nearestOnBox, type Box as CardBox, type Side as CardSide } from "../../lib/overview/card";
 import { clamp01, ease, labelAt, labelSide, lerp, wireTo } from "../../lib/overview/arc";
 import { VIEW_HREF } from "../../lib/overview/actions";
-import {
-  placeCardDom,
-  placeRecordDom,
-  toDesignRect,
-} from "../../lib/overview/hud-layout";
+import { placeCardDom, placeRecordDom, toDesignRect } from "../../lib/overview/hud-layout";
 import type { Finding, FindingId } from "../../lib/overview/findings";
 import {
   ROUTE_QUIET,
@@ -61,61 +53,63 @@ export interface RunArcState {
 }
 
 export interface UseOverviewLayoutApplyArgs {
-  lastLayout: MutableRefObject<OverviewLayout | null>;
-  timeSubs: MutableRefObject<Set<(f: TimeFrame) => void>>;
-  lifeSubs: MutableRefObject<Set<(f: LifeFrame) => void>>;
-  standSubs: MutableRefObject<Set<(s: Stands) => void>>;
-  runArcKey: MutableRefObject<string>;
+  lastLayout: RefObject<OverviewLayout | null>;
+  timeSubs: RefObject<Set<(f: TimeFrame) => void>>;
+  lifeSubs: RefObject<Set<(f: LifeFrame) => void>>;
+  standSubs: RefObject<Set<(s: Stands) => void>>;
+  runArcKey: RefObject<string>;
   setRunArc: Dispatch<SetStateAction<RunArcState | null>>;
-  live: MutableRefObject<Live>;
-  goal: MutableRefObject<Live>;
-  pkgHandoff: MutableRefObject<boolean>;
-  selRef: MutableRefObject<Selection | null>;
+  live: RefObject<Live>;
+  goal: RefObject<Live>;
+  pkgHandoff: RefObject<boolean>;
+  selRef: RefObject<Selection | null>;
   setSel: Dispatch<SetStateAction<Selection | null>>;
   hudRef: RefObject<HTMLDivElement | null>;
-  appearRef: MutableRefObject<number>;
-  exitRef: MutableRefObject<{ dir: -1 | 0 | 1; k: number; away: number; narrow: boolean }>;
+  appearRef: RefObject<number>;
+  exitRef: RefObject<{ dir: -1 | 0 | 1; k: number; away: number; narrow: boolean }>;
   landRef: RefObject<HTMLCanvasElement | null>;
   arcRef: RefObject<HTMLCanvasElement | null>;
   blurRef: RefObject<HTMLCanvasElement | null>;
   liftRef: RefObject<HTMLDivElement | null>;
   instRef: RefObject<HTMLElement | null>;
   evidRef: RefObject<HTMLElement | null>;
-  cardSide: MutableRefObject<CardSide | null>;
-  cardBox: MutableRefObject<CardBox | null>;
+  cardSide: RefObject<CardSide | null>;
+  cardBox: RefObject<CardBox | null>;
   recRef: RefObject<HTMLDivElement | null>;
   linkRef: RefObject<HTMLAnchorElement | null>;
   frostRef: RefObject<HTMLDivElement | null>;
   connectorRef: RefObject<SVGSVGElement | null>;
   placeTextRef: RefObject<HTMLDivElement | null>;
   questionRef: RefObject<HTMLDivElement | null>;
-  findingsRef: MutableRefObject<readonly Finding[]>;
+  answerRef?: RefObject<HTMLDivElement | null>;
+  hatchRef?: RefObject<HTMLDivElement | null>;
+  findingsRef: RefObject<readonly Finding[]>;
   routesRef: RefObject<HTMLButtonElement | null>;
   verdictEntryRef: RefObject<HTMLButtonElement | null>;
-  dotRefs: MutableRefObject<Map<FindingId, HTMLDivElement>>;
-  labelRefs: MutableRefObject<Map<FindingId, HTMLButtonElement>>;
-  numeralRefs: MutableRefObject<Map<FindingId, HTMLSpanElement>>;
-  wireRefs: MutableRefObject<Map<FindingId, SVGLineElement>>;
-  hov: MutableRefObject<FindingId | null>;
-  camRef: MutableRefObject<{
+  dotRefs: RefObject<Map<FindingId, HTMLDivElement>>;
+  labelRefs: RefObject<Map<FindingId, HTMLButtonElement>>;
+  numeralRefs: RefObject<Map<FindingId, HTMLSpanElement>>;
+  wireRefs: RefObject<Map<FindingId, SVGLineElement>>;
+  hov: RefObject<FindingId | null>;
+  camRef: RefObject<{
     zoom: number;
     turn: number;
     pitch: number;
     panX: number;
     panY: number;
   }>;
-  panelRef: MutableRefObject<boolean>;
+  panelRef: RefObject<boolean>;
   selWireRef: RefObject<SVGLineElement | null>;
   askCircleRef: RefObject<HTMLButtonElement | null>;
   askBesideRef: RefObject<HTMLParagraphElement | null>;
   askPromptsRef: RefObject<HTMLDivElement | null>;
   fieldRef: RefObject<HTMLButtonElement | null>;
   fieldTagRef: RefObject<HTMLSpanElement | null>;
-  endRefs: MutableRefObject<Map<string, HTMLElement>>;
-  pickRef: MutableRefObject<string | null>;
+  endRefs: RefObject<Map<string, HTMLElement>>;
+  pickRef: RefObject<string | null>;
   liftLabelRef: RefObject<HTMLDivElement | null>;
   liftWireRef: RefObject<SVGLineElement | null>;
-  idle: MutableRefObject<{
+  idle: RefObject<{
     last: number;
     t0: number | null;
     layer: LiftId | null;
@@ -125,31 +119,31 @@ export interface UseOverviewLayoutApplyArgs {
   pixTagRef: RefObject<HTMLDivElement | null>;
   cornerRef: RefObject<HTMLDivElement | null>;
   rootRef: RefObject<HTMLDivElement | null>;
-  sceneRef: MutableRefObject<OverviewScene | null>;
-  raf: MutableRefObject<number>;
-  last: MutableRefObject<number>;
-  pkgAsideRef: MutableRefObject<{ k: number; goal: number }>;
-  tearRef: MutableRefObject<TearState | null>;
+  sceneRef: RefObject<OverviewScene | null>;
+  raf: RefObject<number>;
+  last: RefObject<number>;
+  pkgAsideRef: RefObject<{ k: number; goal: number }>;
+  tearRef: RefObject<TearState | null>;
   setTear: Dispatch<SetStateAction<TearState | null>>;
-  splitRef: MutableRefObject<{ dir: -1 | 0 | 1; k: number }>;
-  cellPaintRef: MutableRefObject<CellPaint>;
+  splitRef: RefObject<{ dir: -1 | 0 | 1; k: number }>;
+  cellPaintRef: RefObject<CellPaint>;
   setCellPaint: Dispatch<SetStateAction<CellPaint>>;
-  reducedMotion: MutableRefObject<boolean>;
-  askOpenRef: MutableRefObject<boolean>;
-  arrival: MutableRefObject<{ t0: number | null; done: boolean }>;
-  liftOrder: MutableRefObject<LiftId[]>;
-  liftShownRef: MutableRefObject<LiftId | null>;
+  reducedMotion: RefObject<boolean>;
+  askOpenRef: RefObject<boolean>;
+  arrival: RefObject<{ t0: number | null; done: boolean }>;
+  liftOrder: RefObject<LiftId[]>;
+  liftShownRef: RefObject<LiftId | null>;
   setLiftShown: Dispatch<SetStateAction<LiftId | null>>;
-  introRef: MutableRefObject<OverviewIntro | undefined>;
+  introRef: RefObject<OverviewIntro | undefined>;
   setArriving: Dispatch<SetStateAction<boolean>>;
-  timeRef: MutableRefObject<{ overlay: SceneState["overlay"]; snow: SceneState["snow"] }>;
-  lifeRef: MutableRefObject<{
+  timeRef: RefObject<{ overlay: SceneState["overlay"]; snow: SceneState["snow"] }>;
+  lifeRef: RefObject<{
     on: boolean;
     points: Parameters<OverviewScene["setLife"]>[0];
     focus: number | null;
     ring: number | null;
   }>;
-  pkgRangesRef: MutableRefObject<{ ranges: HeightRange[]; lit: number | null }>;
+  pkgRangesRef: RefObject<{ ranges: HeightRange[]; lit: number | null }>;
 }
 
 export function useOverviewLayoutApply(args: UseOverviewLayoutApplyArgs) {
@@ -182,6 +176,8 @@ export function useOverviewLayoutApply(args: UseOverviewLayoutApplyArgs) {
     connectorRef,
     placeTextRef,
     questionRef,
+    answerRef,
+    hatchRef,
     findingsRef,
     routesRef,
     verdictEntryRef,
@@ -354,14 +350,28 @@ export function useOverviewLayoutApply(args: UseOverviewLayoutApplyArgs) {
       placeText.style.visibility = e > 0.999 ? "hidden" : "visible";
     }
     const question = questionRef.current;
+    const leftSideOpen =
+      selected !== null &&
+      sideOf(selected, findingsRef.current.find((f) => f.id === selected)?.clock) === "left"
+        ? e
+        : 0;
     if (question) {
-      const left =
-        selected !== null &&
-        sideOf(selected, findingsRef.current.find((f) => f.id === selected)?.clock) === "left"
-          ? e
-          : 0;
-      question.style.opacity = (1 - left).toFixed(3);
-      question.style.visibility = left > 0.999 ? "hidden" : "visible";
+      question.style.opacity = (1 - leftSideOpen).toFixed(3);
+      question.style.visibility = leftSideOpen > 0.999 ? "hidden" : "visible";
+    }
+    const answer = answerRef?.current;
+    if (answer) {
+      answer.style.opacity = (1 - leftSideOpen).toFixed(3);
+      answer.style.visibility = leftSideOpen > 0.999 ? "hidden" : "visible";
+    }
+    const hatch = hatchRef?.current;
+    if (hatch) {
+      hatch.style.left = `${layout.landBox.x0.toFixed(1)}px`;
+      hatch.style.top = `${layout.landBox.y0.toFixed(1)}px`;
+      hatch.style.width = `${Math.max(0, layout.landBox.x1 - layout.landBox.x0).toFixed(1)}px`;
+      hatch.style.height = `${Math.max(0, layout.landBox.y1 - layout.landBox.y0).toFixed(1)}px`;
+      const hop = (1 - e) * (1 - awayOf(camRef.current));
+      hatch.style.opacity = (0.85 * hop).toFixed(3);
     }
     const routesEntry = routesRef.current;
     if (routesEntry) {
@@ -386,11 +396,16 @@ export function useOverviewLayoutApply(args: UseOverviewLayoutApplyArgs) {
       dot.style.top = `${place.dot.y.toFixed(2)}px`;
       const where = labelSide(place.ux, place.uy);
       label.dataset.side = where.side;
-      const at = labelAt(
-        place.dot,
-        { w: label.offsetWidth, h: label.offsetHeight, nh: numeral.offsetHeight },
-        where,
-      );
+      const at = place.label
+        ? {
+            x: where.side === "left" ? place.label.x - label.offsetWidth : place.label.x,
+            y: place.label.y - numeral.offsetHeight * 0.5,
+          }
+        : labelAt(
+            place.dot,
+            { w: label.offsetWidth, h: label.offsetHeight, nh: numeral.offsetHeight },
+            where,
+          );
       label.style.left = `${at.x.toFixed(2)}px`;
       label.style.top = `${at.y.toFixed(2)}px`;
       const nb = {
@@ -399,7 +414,14 @@ export function useOverviewLayoutApply(args: UseOverviewLayoutApplyArgs) {
         right: at.x + numeral.offsetLeft + numeral.offsetWidth,
         bottom: at.y + numeral.offsetTop + numeral.offsetHeight,
       };
-      const w = wireTo(place.dot, nb, where);
+      const w = place.label
+        ? {
+            x1: place.dot.x,
+            y1: place.dot.y,
+            x2: where.side === "left" ? at.x + label.offsetWidth + 8 : at.x - 8,
+            y2: at.y + numeral.offsetHeight * 0.5,
+          }
+        : wireTo(place.dot, nb, where);
       wire?.setAttribute("x1", w.x1.toFixed(2));
       wire?.setAttribute("y1", w.y1.toFixed(2));
       wire?.setAttribute("x2", w.x2.toFixed(2));
@@ -438,7 +460,13 @@ export function useOverviewLayoutApply(args: UseOverviewLayoutApplyArgs) {
               (1 - 0.6 * e) *
               place.onArc
       ).toFixed(3);
-      if (wire) wire.style.opacity = (hv * (1 - e)).toFixed(3);
+      if (wire)
+        wire.style.opacity = (
+          (0.28 + 0.72 * hv) *
+          (1 - e) *
+          (1 - aw) *
+          (isSel ? 1 : place.onArc)
+        ).toFixed(3);
     }
     const sw = selWireRef.current;
     const cardB = cardBox.current;

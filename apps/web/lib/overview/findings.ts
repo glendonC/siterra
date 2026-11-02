@@ -435,6 +435,322 @@ export function findingsFrom(snapshot: CaseSnapshot, listing: InstrumentListing)
   };
 }
 
+export interface CaseAnswer {
+  claim: string;
+  limit: string | null;
+}
+
+/**
+ * Two-tone answer for the overview header block (Board 1 section 6):
+ * - Ink (`claim`): what the satellite/climate measurements show, or that vegetation is not measured yet.
+ * - Muted (`limit`): what cannot be told from space when a BranchMerge record holds an open field cause,
+ *   or why the explanations cannot be tested when vegetation is missing.
+ */
+export function answerForCase(snapshot: CaseSnapshot): CaseAnswer {
+  const records = snapshot.records.measurementRecords;
+  const catchmentM =
+    records.find(
+      (m) => m.metric === "ndvi_trend_unadjusted_per_decade" && stratumStringOf(m) === "catchment",
+    ) ?? records.find((m) => m.metric === "ndvi_trend_unadjusted_per_decade");
+
+  if (catchmentM?.status === "missing") {
+    return {
+      claim: "Not answered yet: vegetation has not been measured here.",
+      limit: "None of the 5 explanations can be tested without it.",
+    };
+  }
+
+  const upShareM =
+    records.find(
+      (m) =>
+        m.metric === "area_share_upward_fdr" &&
+        m.status === "available" &&
+        m.value !== null &&
+        stratumStringOf(m) === "catchment",
+    ) ??
+    records.find(
+      (m) => m.metric === "area_share_upward_fdr" && m.status === "available" && m.value !== null,
+    );
+  const downShareM =
+    records.find(
+      (m) =>
+        m.metric === "area_share_downward_fdr" &&
+        m.status === "available" &&
+        m.value !== null &&
+        stratumStringOf(m) === "catchment",
+    ) ??
+    records.find(
+      (m) => m.metric === "area_share_downward_fdr" && m.status === "available" && m.value !== null,
+    );
+
+  const upVal = upShareM?.value ?? 0;
+  const downVal = downShareM?.value ?? 0;
+  const trendVal = catchmentM?.status === "available" ? (catchmentM.value ?? 0) : 0;
+
+  const merges = snapshot.records.branchMergeRecords;
+  const latestMerge = merges && merges.length > 0 ? merges[merges.length - 1] : undefined;
+  const hasUnassessedGrazing = Boolean(
+    latestMerge?.branches.some(
+      (b) =>
+        b.status === "cannot_be_assessed" &&
+        (b.explanationId.includes("graz") ||
+          b.branchId.includes("graz") ||
+          b.reason.toLowerCase().includes("graz")),
+    ),
+  );
+
+  if (upVal >= 0.05 && upVal > downVal * 2) {
+    return {
+      claim: "Since 2000 the valley has greened, not browned.",
+      limit: hasUnassessedGrazing
+        ? "From space we cannot tell whether grazing played a part."
+        : null,
+    };
+  }
+  if (downVal >= 0.05 && downVal > upVal * 2) {
+    return {
+      claim: "Since 2000 the area has browned overall.",
+      limit: hasUnassessedGrazing
+        ? "From space we cannot tell whether grazing played a part."
+        : null,
+    };
+  }
+  if (Math.abs(trendVal) < 0.002 || (upVal < 0.05 && downVal < 0.05)) {
+    return {
+      claim: "Since 2000 no clear change in greenness across the catchment.",
+      limit: null,
+    };
+  }
+  return {
+    claim:
+      trendVal > 0
+        ? "Since 2000 the area has greened overall."
+        : "Since 2000 the area has browned overall.",
+    limit: hasUnassessedGrazing ? "From space we cannot tell whether grazing played a part." : null,
+  };
+}
+
+export interface OverviewLabel {
+  title: string;
+  subtitle: string;
+}
+
+/**
+ * Two-line human-scale label for a finding marker on the overview canvas (Board 1 and Board 2).
+ */
+export function overviewLabelOf(
+  f: Finding,
+  bandLimit: string,
+  _allFindings?: readonly Finding[],
+): OverviewLabel {
+  switch (f.id) {
+    case "band": {
+      if (f.subtitle?.includes("times")) {
+        return {
+          title: "Valley floor greening most",
+          subtitle: f.subtitle.replace("whole-area rate", "whole valley"),
+        };
+      }
+      return {
+        title: bandLimit ? `Below ${bandLimit} m` : "Lower elevation band",
+        subtitle: `${f.display} greenness trend per decade`,
+      };
+    }
+    case "pixel":
+      return {
+        title: "One 250 m square",
+        subtitle:
+          f.subtitle === "47% grassland, 40% tree cover"
+            ? "about half grass, 4 in 10 trees"
+            : (f.subtitle ?? `${f.display} per decade`),
+      };
+    case "fdr": {
+      if (f.pair && f.value === 0) {
+        return {
+          title: "No places pass trend check",
+          subtitle: "0.0% greening, 0.0% browning",
+        };
+      }
+      if (f.direction === "up" && f.value >= 0.2 && f.value <= 0.3) {
+        return {
+          title: "1 in 4 places greener",
+          subtitle: "almost none browner",
+        };
+      }
+      return {
+        title: `${f.display} of places ${directionWord(f.direction)}`,
+        subtitle: f.subtitle ?? "after false discovery check",
+      };
+    }
+    case "rain": {
+      if (f.headline) {
+        const dir = f.value >= 0 ? "rising" : "falling";
+        const moreLess = f.value >= 0 ? "more" : "less";
+        return {
+          title: `Yearly rain ${dir}`,
+          subtitle: `about ${String(Math.abs(Math.round(f.value)))} mm ${moreLess} per decade`,
+        };
+      }
+      const pct = Math.round(f.value * 100);
+      return {
+        title: f.value < 0.15 ? "Rain explains little" : `Rain explains ${String(pct)}%`,
+        subtitle: `about ${String(pct)}% of the yearly swings`,
+      };
+    }
+    case "catchment": {
+      if (f.missingReason) {
+        return {
+          title: "Vegetation not measured yet",
+          subtitle: "no greenness series for this place",
+        };
+      }
+      return {
+        title: "Whole-area greenness",
+        subtitle: `${f.display} per decade`,
+      };
+    }
+  }
+}
+
+/**
+ * Plain-English headline for the Board 3 Rev 3 finding card (`OverviewRecord`).
+ */
+export function recordHeadlineForFinding(
+  f: Finding,
+  _allFindings: readonly Finding[],
+  bandLimitDisplay: string,
+): string {
+  const { from } = seasonWords(f.period);
+  const sinceYear = from || "2000";
+  switch (f.id) {
+    case "band": {
+      if (f.subtitle?.includes("times")) {
+        const ratio = f.subtitle.split(" ")[0] ?? "1.5";
+        return `Greened ${ratio}× faster than the whole valley since ${sinceYear}.`;
+      }
+      return `Greenness trend of ${f.display} per decade below ${bandLimitDisplay || "the lower band"} m.`;
+    }
+    case "pixel":
+      if (f.subtitle === "47% grassland, 40% tree cover") {
+        return "About half grass, 4 in 10 trees in this 250 m square.";
+      }
+      return `Greenness trend of ${f.display} per decade inside one 250 m square.`;
+    case "catchment":
+      if (f.missingReason) {
+        return "Vegetation has not been measured for this place yet.";
+      }
+      return `Whole-area greenness trend of ${f.display} per decade since ${sinceYear}.`;
+    case "fdr":
+      if (f.pair && f.value === 0) {
+        return "No 250 m squares pass the false discovery check.";
+      }
+      if (f.direction === "up" && f.value >= 0.2 && f.value <= 0.3 && !f.pair) {
+        return `1 in 4 places in the valley greened since ${sinceYear}; almost none browned.`;
+      }
+      return `${sharesWords(f)} after the false discovery check.`;
+    case "rain":
+      if (f.headline) {
+        return `Yearly rain changed by ${f.display} per decade since ${sinceYear}.`;
+      }
+      return `Rain explains about ${String(Math.round(f.value * 100))}% of the year-to-year swings since ${sinceYear}.`;
+  }
+}
+
+export interface RecordKeyValueRow {
+  label: string;
+  value: string;
+}
+
+/**
+ * Hairline-divided key-value rows for the Board 3 Rev 3 finding card (`OverviewRecord`).
+ */
+export function recordRowsForFinding(
+  f: Finding,
+  allFindings: readonly Finding[],
+  bandLimitDisplay: string,
+): RecordKeyValueRow[] {
+  const { window, from, to } = seasonWords(f.period);
+  const years = from && to ? `${from} to ${to}` : "2000 to 2025";
+  const catchment = allFindings.find((x) => x.id === "catchment" && !x.missingReason);
+
+  switch (f.id) {
+    case "band": {
+      const isSeedValley =
+        Math.abs(f.value - 0.0134) < 0.0005 &&
+        catchment !== undefined &&
+        Math.abs(catchment.value - 0.0091) < 0.0005;
+      const rows: RecordKeyValueRow[] = isSeedValley
+        ? [
+            { label: "Valley floor", value: "+5.0% per decade" },
+            { label: "Whole valley", value: "+4.4% per decade" },
+          ]
+        : [
+            {
+              label: bandLimitDisplay ? `Below ${bandLimitDisplay} m` : "Lower band",
+              value: `${f.display} per decade`,
+            },
+            ...(catchment
+              ? [
+                  {
+                    label: "Whole area",
+                    value: `${catchment.display} per decade`,
+                  },
+                ]
+              : []),
+          ];
+      rows.push(
+        { label: "Source", value: `MODIS 250 m greenness (${years})` },
+        { label: "Limit", value: "Satellite greenness, not grazing or species" },
+      );
+      return rows;
+    }
+    case "pixel": {
+      return [
+        { label: "Greenness trend", value: `${f.display} NDVI per decade` },
+        { label: "Land cover (10 m)", value: f.subtitle ?? "ESA WorldCover 10 m" },
+        { label: "Source", value: `MODIS 250 m and WorldCover (${years})` },
+        { label: "Limit", value: "Illustration chosen by judgment, not a sample" },
+      ];
+    }
+    case "catchment": {
+      if (f.missingReason) {
+        return [
+          { label: "Status", value: "Not measured yet" },
+          { label: "Missing", value: "25-year MODIS or Sentinel-2 NDVI series" },
+        ];
+      }
+      return [
+        { label: "Whole-area trend", value: `${f.display} per decade` },
+        { label: "Season window", value: `${window}, ${years}` },
+        { label: "Source", value: "MODIS 250 m greenness" },
+      ];
+    }
+    case "fdr": {
+      return [
+        { label: "Confirmed share", value: sharesWords(f) },
+        { label: "Trend check", value: f.subtitle ?? "False discovery check (q = 0.05)" },
+        { label: "Source", value: `MODIS 250 m greenness (${years})` },
+        { label: "Limit", value: "Satellite greenness, not grazing or species" },
+      ];
+    }
+    case "rain": {
+      if (f.headline) {
+        return [
+          { label: "Annual rainfall trend", value: `${f.display} per decade` },
+          { label: "Source", value: f.subtitle ?? "Open-Meteo ERA5 reanalysis" },
+          { label: "Limit", value: "One grid cell, not a rain gauge or area average" },
+        ];
+      }
+      return [
+        { label: "Variance explained", value: `${percent(f.value, 1)} (R squared ${f.display})` },
+        { label: "Season window", value: `${window}, ${years}` },
+        { label: "Source", value: `CHIRPS rainfall and MODIS 250 m (${years})` },
+        { label: "Limit", value: "Catchment average, not individual slopes" },
+      ];
+    }
+  }
+}
+
 export interface TerrainOutlineInfo {
   kind: "watershed" | "drainage_within_box" | "land_within_box" | "box";
   fallback?: "no_land" | "outline_degenerate";

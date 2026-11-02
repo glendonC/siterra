@@ -17,11 +17,14 @@ test("the second place's overview is its own: its land drawn from its own specs,
   await expect(root).toContainText(
     "Is grazing changing the rangeland of the Calaveras Creek catchment?",
   );
+  await expect(page.locator("[data-case-answer]")).toContainText(
+    "Since 2000 no clear change in greenness across the catchment.",
+  );
   await expect(root).toContainText("Creek catchment: 257.46 km²");
   // the record holds its land views now (P7b-6): the land is drawn with the findings its specs cite (U25b)
   await expect(page.locator("[data-overview-root][data-ready]")).toBeAttached({ timeout: 90_000 });
   await expect(page.locator("[data-overview-failed]")).toHaveCount(0);
-  await expect(page.locator("[data-finding]")).toHaveCount(5);
+  await expect(page.locator("[data-finding]")).toHaveCount(4);
   expect(await page.locator("body").innerText()).not.toMatch(FIRST);
 });
 
@@ -74,9 +77,8 @@ test("the second place shows both of its area shares, each with its direction", 
 }) => {
   await page.goto("/valley?case=case_calaveras_creek");
   const fdr = page.locator("[data-finding='fdr']");
-  await expect(fdr).toContainText("greening", { timeout: 60_000 });
-  await expect(fdr).toContainText("browning");
-  await expect(fdr).toContainText("of the area");
+  await expect(fdr).toContainText("No places pass trend check", { timeout: 60_000 });
+  await expect(fdr).toContainText("0.0% greening, 0.0% browning");
 });
 
 test("the second place's pixel asks its own question, not the first place's", async ({ page }) => {

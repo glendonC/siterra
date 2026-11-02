@@ -76,18 +76,21 @@ test("draws the land inside the arc with the case's findings", async ({ page }) 
   const root = page.locator("[data-overview-root]");
   expect(Number(await root.getAttribute("data-arc-gap"))).toBeGreaterThanOrEqual(57);
   expect(Number(await root.getAttribute("data-ask-gap"))).toBeGreaterThan(0);
-  await expect(page.locator("[data-finding]")).toHaveCount(5);
-  // the seed case's Measurements, as the instruments format them
-  const numbers: [string, string][] = [
-    ["catchment", "+0.0091"],
-    ["band", "+0.0134"],
-    ["pixel", "+0.0570"],
-    ["rain", "0.037"],
-    ["fdr", "24.7%"],
+  await expect(page.locator("[data-finding]")).toHaveCount(4);
+  // Board 1 human-scale two-line labels anchored on the terrain
+  const labels: [string, string, string][] = [
+    ["band", "Valley floor greening most", "1.5 times the whole valley"],
+    ["pixel", "One 250 m square", "about half grass, 4 in 10 trees"],
+    ["rain", "Rain explains little", "about 4% of the yearly swings"],
+    ["fdr", "1 in 4 places greener", "almost none browner"],
   ];
-  for (const [id, n] of numbers)
-    await expect(page.locator(`[data-finding='${id}']`)).toContainText(n);
-  await expect(page.locator("[data-finding='band']")).toContainText("2,317 m");
+  for (const [id, title, subtitle] of labels) {
+    await expect(page.locator(`[data-finding='${id}']`)).toContainText(title);
+    await expect(page.locator(`[data-finding='${id}']`)).toContainText(subtitle);
+  }
+  await expect(page.locator("[data-case-answer]")).toContainText(
+    "Since 2000 the valley has greened, not browned.",
+  );
   // the seed case holds no field plan, so no proposed field check is drawn on the land
   await expect(page.locator("[data-field-mark]")).toHaveCount(0);
   // the ask is a key in the command bar (HUD-2, decision A), not a circle on the arc
@@ -123,15 +126,14 @@ test("opens a finding's record on its side and Esc returns", async ({ page }) =>
   // the record's Enter action (decision 15): the first in its list, named by what the visitor will see
   const open = record.locator("[data-actions] a").first();
 
-  // the pixel: its number, its season chart and context, and the way to the full instrument
+  // the pixel: its plain-English headline, 2-column key-value rows, and the way to the full instrument
   await page.locator("[data-finding='pixel']").click();
-  await expect(page.locator("[data-record='pixel']")).toContainText("+0.0570");
-  await expect(page.locator("[data-record='pixel'] [data-pixel-note]")).toHaveText(
-    "This pixel is an illustration chosen by judgment, not a sample.",
+  await expect(page.locator("[data-record='pixel'] [data-record-headline]")).toContainText(
+    "About half grass, 4 in 10 trees in this 250 m square.",
   );
-  await expect(page.locator("[data-record='pixel'] svg circle").first()).toBeAttached({
-    timeout: 30_000,
-  });
+  await expect(page.locator("[data-record='pixel'] [data-record-rows]")).toContainText(
+    "+0.0570 NDVI per decade",
+  );
   await expect(open).toHaveAttribute("href", "/instruments/pixel");
   await expect(open).toHaveAttribute("aria-keyshortcuts", "Enter");
   await expect(record.locator("[data-actions] > *")).toHaveText([
@@ -156,20 +158,22 @@ test("opens a finding's record on its side and Esc returns", async ({ page }) =>
 
   // Enter on a focused finding opens it too
   const records: [string, string, string][] = [
-    ["band", "+0.0134", "/instruments/cutaway"],
-    ["catchment", "+0.0091", "/instruments/layers"],
-    ["fdr", "24.7%", "/instruments/layers"],
-    ["rain", "0.037", "/instruments/rainfall"],
+    ["band", "Greened 1.5× faster than the whole valley since 2000.", "/instruments/cutaway"],
+    [
+      "fdr",
+      "1 in 4 places in the valley greened since 2000; almost none browned.",
+      "/instruments/layers",
+    ],
+    [
+      "rain",
+      "Rain explains about 4% of the year-to-year swings since 2000.",
+      "/instruments/rainfall",
+    ],
   ];
-  for (const [id, n, href] of records) {
+  for (const [id, headline, href] of records) {
     await page.locator(`[data-finding='${id}']`).focus();
     await page.keyboard.press("Enter");
-    await expect(page.locator(`[data-record='${id}']`)).toContainText(n);
-    if (id === "band" || id === "fdr") {
-      await expect(page.locator(`[data-record='${id}'] [data-regional-scan-summary]`)).toHaveText(
-        "Regional scan (23,056 pixels): 24.0% in catchment, 8.6% across 14,962 outside. Rank 1 below 2,317 m, shift around 2010.",
-      );
-    }
+    await expect(page.locator(`[data-record='${id}']`)).toContainText(headline);
     await expect(open).toHaveAttribute("href", href);
     await page.keyboard.press("Escape");
     await expect(record).toHaveCount(0);
@@ -190,7 +194,8 @@ test("a trend card says what a dot is, and its published context opens beside it
   await page.locator("[data-finding='band']").click();
   const record = page.locator("[data-record='band']");
   await expect.poll(() => opacity(page, "[data-record]")).toBe(1);
-  await expect(record.locator("[data-season-dot]")).toHaveText("Each dot, one season's mean");
+  await expect(record.locator("[data-record-rows]")).toContainText("Valley floor+5.0% per decade");
+  await expect(record.locator("[data-record-rows]")).toContainText("Whole valley+4.4% per decade");
   // closed, the toggle sits on the card's action row even on a two-action card
   const toggle = record.locator("[data-context-toggle]");
   await expect(toggle).toHaveAttribute("aria-expanded", "false");

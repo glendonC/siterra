@@ -305,6 +305,8 @@ export interface FindingPlace {
   behind: boolean;
   /** 1 on the drawn arc, 0 past its drawn end. */
   onArc: number;
+  /** Anchored label position outside the land box (Board 1 / Board 2). */
+  label?: Point;
 }
 
 export interface OverviewLayout {
@@ -1635,17 +1637,79 @@ export function mountOverview(
       for (const w of gapWaiters) w(gaps);
       gapWaiters = [];
     }
+    const lb = landBox();
+    const rimPts = rimTop.map(project);
+    const rimAtY = (side: "left" | "right", yTarget: number): Point => {
+      const band = rimPts.filter((q) => Math.abs(q.y - yTarget) <= 95);
+      const from = band.length ? band : rimPts;
+      if (!from.length) return { x: side === "left" ? lb.x0 : lb.x1, y: yTarget };
+      return from.reduce((b, q) => (side === "left" ? (q.x < b.x ? q : b) : q.x > b.x ? q : b));
+    };
     const placed: OverviewLayout["findings"] = {};
     for (const f of findings) {
-      const p = dialAt(f.clock);
-      placed[f.id] = {
-        dot: project(p),
-        ...outward(f.clock, ROLL),
-        behind: occluded(p),
-        onArc: sstep(-2, 6, span.end - uOf(f.clock)),
-      };
+      const onArc = sstep(-2, 6, span.end - uOf(f.clock));
+      if (f.id === "band" && TB) {
+        const p = project(TB);
+        placed[f.id] = {
+          dot: { x: p.x, y: p.y - 26 },
+          ux: 1,
+          uy: 0,
+          behind: false,
+          onArc,
+          label: { x: Math.min(1120, Math.max(lb.x1 + 36, 980)), y: 300 },
+        };
+      } else if (f.id === "pixel" && TP) {
+        const p = project(TP);
+        placed[f.id] = {
+          dot: { x: p.x, y: p.y - 26 },
+          ux: 1,
+          uy: 0,
+          behind: false,
+          onArc,
+          label: { x: Math.min(1120, Math.max(lb.x1 + 36, 980)), y: 452 },
+        };
+      } else if (f.id === "rain") {
+        const yTarget = TB || TP ? 560 : 365;
+        placed[f.id] = {
+          dot: rimAtY("right", yTarget),
+          ux: 1,
+          uy: 0,
+          behind: false,
+          onArc,
+          label: { x: Math.min(1120, Math.max(lb.x1 + 36, 980)), y: yTarget },
+        };
+      } else if (f.id === "fdr") {
+        placed[f.id] = {
+          dot: rimAtY("left", 520),
+          ux: -1,
+          uy: 0,
+          behind: false,
+          onArc,
+          label: { x: Math.max(300, Math.min(lb.x0 - 36, 430)), y: 520 },
+        };
+      } else if (f.id === "catchment") {
+        placed[f.id] = {
+          dot: rimAtY("left", 470),
+          ux: -1,
+          uy: 0,
+          behind: false,
+          onArc,
+          label: { x: Math.max(300, Math.min(lb.x0 - 36, 430)), y: 470 },
+        };
+      } else {
+        const p = dialAt(f.clock);
+        placed[f.id] = {
+          dot: project(p),
+          ...outward(f.clock, ROLL),
+          behind: occluded(p),
+          onArc,
+        };
+      }
     }
-    const lb = landBox();
+    const selPlace =
+      state.sel && state.sel !== "field" && state.sel !== "results" && state.sel !== "routes"
+        ? placed[state.sel as FindingId]
+        : undefined;
     const layout: OverviewLayout = {
       fit,
       e,
@@ -1664,7 +1728,7 @@ export function mountOverview(
       routeStart: routeStart ? { at: project(routeStart), behind: occluded(routeStart) } : null,
       liftAt: liftHeight > 0.01 ? liftAnchor(liftHeight) : null,
       landBox: lb,
-      anchor: anchorOf(state.sel, lb),
+      anchor: selPlace ? selPlace.dot : anchorOf(state.sel, lb),
       subject: subjectOf(state.sel, lb),
       arcAt: Array.from({ length: Math.floor(SPAN / 2) + 1 }, (_, i) =>
         project(dialAt(ARC.a0 + i * 2)),

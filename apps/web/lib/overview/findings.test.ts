@@ -1,11 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { seed, seedListing } from "../instruments/seed-listing";
 import {
+  answerForCase,
   captionOf,
   FINDINGS,
   findingsFrom,
   outlineLabelOf,
+  overviewLabelOf,
   overviewVerdictForCase,
+  recordHeadlineForFinding,
+  recordRowsForFinding,
 } from "./findings";
 
 // The findings' numbers are the Measurements the instrument specs cite, formatted as the instruments format them.
@@ -310,5 +314,115 @@ describe("findingsFrom (seed case)", () => {
     const rainCause = verdict.causes.find((c) => c.id === "rainfall");
     expect(rainCause?.status).toBe("cannot_be_assessed");
     expect(rainCause?.statusText).toBe("Cannot be assessed with current data");
+  });
+
+  it("computes the two-tone answerForCase for greening, direction-neutral, and missing-vegetation cases", () => {
+    // Seed case without BranchMerge: only the measurement claim
+    const withoutMerge = {
+      ...seed,
+      records: { ...seed.records, branchMergeRecords: [] },
+    };
+    expect(answerForCase(withoutMerge)).toEqual({
+      claim: "Since 2000 the valley has greened, not browned.",
+      limit: null,
+    });
+
+    // Seed case with an unassessed grazing branch in BranchMerge
+    const withMerge = {
+      ...seed,
+      records: {
+        ...seed.records,
+        branchMergeRecords: [
+          {
+            recordType: "BranchMerge" as const,
+            id: "merge_test_1",
+            revision: 1,
+            createdAt: "2026-01-01T00:00:00Z",
+            updatedAt: "2026-01-01T00:00:00Z",
+            caseId: seed.case.id,
+            commandId: "cmd_test_1",
+            taskId: "task_test_1",
+            rulesVersion: "merge@1",
+            predictionsCaseRevision: seed.case.revision,
+            branches: [
+              {
+                branchId: "branch_grazing",
+                branchRevision: 1,
+                explanationId: "grazing",
+                status: "cannot_be_assessed" as const,
+                reason: "Grazing cannot be assessed from satellite greenness alone.",
+              },
+            ],
+            conflicts: [],
+            provenance: {
+              sourceLocators: [],
+              dataBundleIds: [],
+              methodId: null,
+              methodVersion: null,
+              inputVersions: [],
+              generatedByTaskId: null,
+              generatedAt: "2026-01-01T00:00:00Z",
+              verificationStatus: "computed_checked" as const,
+              limitations: [],
+            },
+          },
+        ],
+      },
+    };
+    expect(answerForCase(withMerge)).toEqual({
+      claim: "Since 2000 the valley has greened, not browned.",
+      limit: "From space we cannot tell whether grazing played a part.",
+    });
+
+    // Direction-neutral case (Calaveras Creek style: 0% upward and downward FDR share)
+    const neutralRecords = {
+      ...seed.records,
+      branchMergeRecords: [],
+      measurementRecords: seed.records.measurementRecords.map((m) =>
+        m.metric === "area_share_upward_fdr" || m.metric === "area_share_downward_fdr"
+          ? { ...m, value: 0 }
+          : m,
+      ),
+    };
+    expect(answerForCase({ ...seed, records: neutralRecords })).toEqual({
+      claim: "Since 2000 no clear change in greenness across the catchment.",
+      limit: null,
+    });
+
+    // Live place missing vegetation
+    const missingVegRecords = {
+      ...seed.records,
+      branchMergeRecords: [],
+      measurementRecords: seed.records.measurementRecords.map((m) =>
+        m.metric === "ndvi_trend_unadjusted_per_decade"
+          ? {
+              ...m,
+              value: null,
+              status: "missing" as const,
+              missingReason: "Requires a 25-year MODIS or Sentinel-2 growing-season NDVI series.",
+            }
+          : m,
+      ),
+    };
+    expect(answerForCase({ ...seed, records: missingVegRecords })).toEqual({
+      claim: "Not answered yet: vegetation has not been measured here.",
+      limit: "None of the 5 explanations can be tested without it.",
+    });
+  });
+
+  it("builds hairline-divided key-value rows and plain-English headlines for OverviewRecord from the case findings", () => {
+    const band = byId.band;
+    if (!band) throw new Error("missing band finding");
+    const limit = bandLimit?.display ?? "";
+    expect(overviewLabelOf(band, limit, findings)).toEqual({
+      title: "Valley floor greening most",
+      subtitle: "1.5 times the whole valley",
+    });
+    expect(recordHeadlineForFinding(band, findings, limit)).toBe(
+      "Greened 1.5× faster than the whole valley since 2000.",
+    );
+    const rows = recordRowsForFinding(band, findings, limit);
+    expect(rows[0]).toEqual({ label: "Valley floor", value: "+5.0% per decade" });
+    expect(rows[1]).toEqual({ label: "Whole valley", value: "+4.4% per decade" });
   });
 });

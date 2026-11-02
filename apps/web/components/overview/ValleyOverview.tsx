@@ -31,9 +31,11 @@ import { shouldReopen } from "../../lib/overview/ask-line";
 import { formatLiftStatus } from "../../lib/overview/hud-layout";
 import { fallbackRecordData } from "../../lib/overview/terrain";
 import {
+  answerForCase,
   captionOf,
   findingsFrom,
   outlineLabelOf,
+  overviewLabelOf,
   type FindingId,
 } from "../../lib/overview/findings";
 import {
@@ -285,6 +287,10 @@ function OverviewReady({
     () => all.filter((f) => f.id !== "band" || bandLimit !== null),
     [all, bandLimit],
   );
+  const canvasFindings = useMemo(
+    () => findings.filter((f) => f.id !== "catchment" || Boolean(f.missingReason)),
+    [findings],
+  );
   const planned = instrumentOf(listing, "field_plan") !== undefined;
   const offered = useMemo(() => {
     const views = new Set(
@@ -480,6 +486,8 @@ function OverviewReady({
   const blurRef = useRef<HTMLCanvasElement>(null);
   const placeTextRef = useRef<HTMLDivElement>(null);
   const questionRef = useRef<HTMLDivElement>(null);
+  const answerRef = useRef<HTMLDivElement>(null);
+  const hatchRef = useRef<HTMLDivElement>(null);
   const hudRef = useRef<HTMLDivElement>(null);
   const liftRef = useRef<HTMLDivElement>(null);
   const cornerRef = useRef<HTMLDivElement>(null);
@@ -543,8 +551,8 @@ function OverviewReady({
   const lastLayout = useRef<OverviewLayout | null>(null);
   const cardSide = useRef<CardSide | null>(null);
   const cardBox = useRef<CardBox | null>(null);
-  const findingsRef = useRef<readonly (typeof findings)[number][]>(findings);
-  findingsRef.current = findings;
+  const findingsRef = useRef<readonly (typeof findings)[number][]>(canvasFindings);
+  findingsRef.current = canvasFindings;
 
   const { apply, go } = useOverviewLayoutApply({
     lastLayout,
@@ -575,6 +583,8 @@ function OverviewReady({
     connectorRef,
     placeTextRef,
     questionRef,
+    answerRef,
+    hatchRef,
     findingsRef,
     routesRef,
     verdictEntryRef,
@@ -681,7 +691,7 @@ function OverviewReady({
   );
   const open = useCallback(
     (id: Selection) => {
-      if (selRef.current && selRef.current !== id) return;
+      if (selRef.current && selRef.current !== id && goal.current.s > 0) return;
       camRef.current = { zoom: 1, turn: 0, pitch: 0, panX: 0, panY: 0 };
       movedRef.current = false;
       setMoved(false);
@@ -1312,6 +1322,11 @@ function OverviewReady({
       : null);
   const liftStatusText =
     liftShown && data ? formatLiftStatus(liftShown, findings, data, limits) : "";
+  const caseAnswer = useMemo(() => answerForCase(ask.snapshot), [ask.snapshot]);
+  const catchmentMissing = useMemo(
+    () => findings.some((f) => f.id === "catchment" && Boolean(f.missingReason)),
+    [findings],
+  );
 
   return (
     <div
@@ -1334,6 +1349,15 @@ function OverviewReady({
       <div ref={hudRef} className={styles.hud}>
         <div ref={questionRef} className={styles.question} data-case-question>
           <span>{effectiveQuestion ?? snapshot.case.objective}</span>
+        </div>
+        <div ref={answerRef} className={styles.answer} data-case-answer>
+          <span className={styles.answerClaim}>{caseAnswer.claim}</span>
+          {caseAnswer.limit ? (
+            <>
+              {" "}
+              <span className={styles.answerLimit}>{caseAnswer.limit}</span>
+            </>
+          ) : null}
         </div>
         {atWorkShown && run && !sel && runArc ? (
           <AtWork
@@ -1373,8 +1397,16 @@ function OverviewReady({
           />
         ) : null}
         <div ref={liftRef} className={styles.lift}>
+          {catchmentMissing ? (
+            <div
+              ref={hatchRef}
+              className={styles.missingHatch}
+              data-missing-hatch
+              aria-hidden="true"
+            />
+          ) : null}
           <svg className={styles.marks} aria-hidden="true">
-            {findings.map((f) => (
+            {canvasFindings.map((f) => (
               <line
                 key={f.id}
                 className={styles.wire}
@@ -1459,10 +1491,12 @@ function OverviewReady({
           ) : null}
           <section className={styles.findings} aria-label={en["overview.findings"].text}>
             {data
-              ? findings.map((f) => (
+              ? canvasFindings.map((f) => (
                   <FindingMark
                     key={f.id}
                     finding={f}
+                    label={overviewLabelOf(f, bandLimit?.display ?? "", findings)}
+                    bandLimit={bandLimit?.display ?? ""}
                     caption={captionOf(f, bandLimit?.display ?? "", findings)}
                     describedBy={descriptionId}
                     dotRef={(el) => {
@@ -1532,6 +1566,7 @@ function OverviewReady({
               <OverviewRecord
                 sel={sel}
                 finding={selFinding}
+                allFindings={findings}
                 caption={
                   selFinding ? captionOf(selFinding, bandLimit?.display ?? "", findings) : []
                 }

@@ -57,7 +57,11 @@ export function useOverviewCameraDragWheel({
     let moved = false;
     const onDown = (e: PointerEvent) => {
       const t = e.target as HTMLElement;
-      if (t.closest("button, a, input, textarea, [role='dialog'], [data-agent-tree], [data-agent-thinking]"))
+      if (
+        t.closest(
+          "button, a, input, textarea, [role='dialog'], [data-agent-tree], [data-agent-thinking]",
+        )
+      )
         return;
       if (e.button !== 0 && e.button !== 1 && e.button !== 2) return;
       const pan = e.button === 1 || e.button === 2 || e.shiftKey;
@@ -94,7 +98,11 @@ export function useOverviewCameraDragWheel({
     };
     const onDblClick = (e: MouseEvent) => {
       const t = e.target as HTMLElement;
-      if (t.closest("button, a, input, textarea, [role='dialog'], [data-agent-tree], [data-agent-thinking]"))
+      if (
+        t.closest(
+          "button, a, input, textarea, [role='dialog'], [data-agent-tree], [data-agent-thinking]",
+        )
+      )
         return;
       const rect = root.getBoundingClientRect();
       const nx = (e.clientX - rect.left) / Math.max(1, rect.width) - 0.5;
@@ -107,7 +115,8 @@ export function useOverviewCameraDragWheel({
       });
     };
     const onWheel = (e: WheelEvent) => {
-      if ((e.target as HTMLElement).closest("[role='dialog'], ul, ol, [data-agent-thinking]")) return;
+      if ((e.target as HTMLElement).closest("[role='dialog'], ul, ol, [data-agent-thinking]"))
+        return;
       e.preventDefault();
       if (e.shiftKey) {
         const panScale = 0.018 * camRef.current.zoom;
@@ -194,6 +203,21 @@ export function useOverviewKeyboardShortcuts({
         } else if (selRef.current) back();
         else if (atWorkRef.current) setAtWork(false);
         else toOpening();
+      } else if (
+        ev.key === "Tab" &&
+        !ev.metaKey &&
+        !ev.ctrlKey &&
+        !ev.altKey &&
+        !selRef.current &&
+        !atWorkRef.current &&
+        !panel &&
+        (document.activeElement === document.body || document.activeElement === null)
+      ) {
+        const firstFinding = document.querySelector<HTMLElement>("[data-finding]");
+        if (firstFinding) {
+          ev.preventDefault();
+          firstFinding.focus({ preventScroll: true });
+        }
       } else if (ev.key === "Enter" || /^[a-zA-Z]$/.test(ev.key)) {
         // the action keys of the opened card, or of the label under the cursor (decision 15); Enter on a focused
         // control is the control's own
