@@ -158,6 +158,11 @@
   pointer-events: none;
 }
 
+/* the replay line lengthens the header: the rail starts below it */
+.atWork:has([data-run-replay]) .leftRailSystem {
+  top: 144px;
+}
+
 .agentTree {
   position: relative;
   display: flex;
@@ -922,21 +927,11 @@
   max-width: 210px;
 }
 
-/* Recording harness note kept in DOM for test verification but visually unobtrusive */
-.recording {
-  position: fixed;
-  left: 0;
-  bottom: 0;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  opacity: 0.01;
-  pointer-events: none;
-  user-select: none;
-}
-
-.recTitle,
-.recDetail {
-  margin: 0;
-  font-size: 1px;
+/* the line under the question when the run on screen is a replay: where it comes from, in the header it belongs to */
+.replayLine {
+  margin: -4px 0 0 14px;
+  font: 400 12px / 16px var(--font-mono);
+  color: var(--text-secondary);
+  text-shadow: var(--paper-halo);
+  pointer-events: auto;
 }

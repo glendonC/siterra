@@ -54,7 +54,6 @@ import {
 } from "../instruments/InstrumentRecords";
 import {
   Breadcrumb,
-  ModeLine,
   KeyLegend,
   OPENING_HREF,
   SourcesLine,
@@ -338,17 +337,17 @@ function OverviewReady({
   const [thinkingHidden, setThinkingHidden] = useState(false);
   const atWorkRef = useRef(atWork);
   atWorkRef.current = atWork;
-  const builtinRecorded = useMemo<RecordedRun>(() => {
-    return buildRecordedRunForCase(
-      snapshot,
-      effectiveQuestion ?? snapshot.case.objective,
-      3.5,
-      effectiveViewMode === "run" ? null : 120_000,
-    );
-  }, [snapshot, effectiveQuestion, effectiveViewMode]);
+  // this case's own recording, if it has one (shown settled unless the address asks to watch it run); none otherwise
+  const builtinRecorded = useMemo<RecordedRun | null>(
+    () => buildRecordedRunForCase(snapshot, 3.5, effectiveViewMode !== "run"),
+    [snapshot, effectiveViewMode],
+  );
   const atWorkShown = (atWork || recorded !== null) && !thinkingHidden;
+  const [sentText, setSentText] = useState("");
+  // the built-in recording stands in only while no question of the visitor's is on its way: once one is sent, the
+  // screen waits for that run's own events rather than playing someone else's
   const effectiveRecorded =
-    recorded ?? (atWorkShown && !ask.commandId ? builtinRecorded : null);
+    recorded ?? (atWorkShown && !ask.commandId && !sentText ? builtinRecorded : null);
   const effectiveRecClock = useRecordedClock(effectiveRecorded);
   const askRun = useMemo(
     () => (ask.commandId ? runModel(ask.snapshot, ask.events, ask.commandId) : null),
@@ -366,10 +365,15 @@ function OverviewReady({
     [effectiveRecorded, effectiveRecClock],
   );
   const fallbackCompletedRun = useMemo(
-    () => runModel(builtinRecorded.snapshot, builtinRecorded.events, builtinRecorded.commandId),
+    () =>
+      builtinRecorded
+        ? runModel(builtinRecorded.snapshot, builtinRecorded.events, builtinRecorded.commandId)
+        : null,
     [builtinRecorded],
   );
   const run = recRun ?? askRun;
+  // the thinking is offered only when this case has a run to show: its recording, or a question's own run
+  const thinkingRun = run ?? fallbackCompletedRun;
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -381,7 +385,7 @@ function OverviewReady({
       ) {
         return;
       }
-      if (e.key === "t" || e.key === "T") {
+      if ((e.key === "t" || e.key === "T") && thinkingRun) {
         e.preventDefault();
         if (atWorkShown) {
           setThinkingHidden(true);
@@ -395,9 +399,8 @@ function OverviewReady({
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [atWorkShown]);
+  }, [atWorkShown, thinkingRun]);
   const [runArc, setRunArc] = useState<RunArcState | null>(null);
-  const [sentText, setSentText] = useState("");
   const runArcKey = useRef("");
   const refresh = useRecordsRefresh();
   const reopening = useRef<number | null>(null);
@@ -1247,7 +1250,7 @@ function OverviewReady({
           </span>
           <span>{effectiveQuestion ?? snapshot.case.objective}</span>
         </div>
-        {!atWorkShown && !sel ? (
+        {!atWorkShown && !sel && thinkingRun ? (
           <button
             type="button"
             className={styles.thinkingClosedPill}
@@ -1258,7 +1261,7 @@ function OverviewReady({
             }}
           >
             <span className={styles.thinkingPillDot} aria-hidden="true" />
-            <span>{`${(run ?? fallbackCompletedRun).tasks.length} steps completed`}</span>
+            <span>{`${thinkingRun.tasks.length} steps completed`}</span>
             <span className={styles.thinkingPillAction}>Inspect thinking ▸</span>
             <kbd className={styles.thinkingPillKbd}>T</kbd>
           </button>
@@ -1591,10 +1594,6 @@ function OverviewReady({
           <ThemeIcon theme={theme} />
         </button>
       ) : null}
-      <ModeLine
-        mode={snapshot.case.mode}
-        run={run?.sourceKnown ? (run.replay ? "replay" : "live") : null}
-      />
       <Breadcrumb
         onBack={() => {
           if (selRef.current) back();

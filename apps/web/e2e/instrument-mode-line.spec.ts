@@ -2,10 +2,9 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { expect, test, type Page } from "@playwright/test";
 
-// The mode line (U32; PC-04 and DQ-02): every screen after the opening shows the case's mode from its record, one
-// click on it on arrival lists what Siterra does not do, Esc or a click elsewhere closes it, and a run says where it
-// comes from (Replay or Live) once its events say so. The demo cases are seeded in concept mode. Enter is pressed in
-// the ask only against a stubbed stream (no worker, no model).
+// Where a run comes from (DQ-02, as the founder decided on 2 Nov 2026): no mode line at the top right in any state and
+// no "Live" anywhere. A replay says so in one line under its question, starting with "Replay"; a live run carries no
+// label. Enter is pressed in the ask only against a stubbed stream (no worker, no model).
 
 test.use({ viewport: { width: 1440, height: 900 } });
 
@@ -88,7 +87,7 @@ async function stubbedRun(page: Page, live: boolean) {
   });
   // no run, no mode line
   await expect(page.locator("[data-mode-line]")).toHaveCount(0);
-  // every run word the mode line shows from here on, in order (AUDIT's sampler: never Live before Replay)
+  // every run word a mode line would show from here on (there should be none)
   await page.evaluate(() => {
     const seen: string[] = [];
     (window as unknown as { runWords: string[] }).runWords = seen;
@@ -115,36 +114,39 @@ async function stubbedRun(page: Page, live: boolean) {
   await expect(page.locator("[data-at-work]").first()).toBeVisible({ timeout: 20_000 });
 }
 
-test("a replayed run says Replay on the mode line, clear of the run's own note", async ({
+test("a replayed run says Replay under its question, and no mode line ever shows", async ({
   page,
 }) => {
   test.setTimeout(180_000);
   await stubbedRun(page, false);
-  const note = page.getByText("Replayed run, no model called now");
-  await expect(note).toBeVisible({ timeout: 30_000 });
-  const line = page.locator("[data-mode-line]");
-  await expect(line).toHaveAttribute("data-run", "replay");
-  // from Enter until the run settles, the line never said Live
+  const note = page.locator("[data-at-work] [data-run-replay]");
+  await expect(note).toHaveText("Replay of a synthetic run, no model called now", {
+    timeout: 30_000,
+  });
+  await expect(note).toBeVisible();
+  // the line sits in the header, under the question it belongs to
+  const [q, n] = await Promise.all([
+    page.locator("[data-at-work] [data-run-question]").boundingBox(),
+    note.boundingBox(),
+  ]);
+  expect(q && n && n.y >= q.y + q.height - 1 && n.y < q.y + q.height + 24).toBe(true);
   await expect(page.locator("[data-overview-root][data-at-work='done']")).toHaveCount(1, {
     timeout: 60_000,
   });
+  // from Enter until the run settled, no mode line appeared and nothing said Live
   const words = await page.evaluate(() => (window as unknown as { runWords: string[] }).runWords);
-  expect(words).toContain("replay");
-  expect(words).not.toContain("live");
-  await expect.poll(() => shownModeLines(page)).toEqual(["Replay"]);
-  const a = await line.boundingBox();
-  const b = await note.boundingBox();
-  expect(a && b && (b.y >= a.y + a.height || b.x >= a.x + a.width || b.x + b.width <= a.x)).toBe(
-    true,
-  );
+  expect(words).toEqual([]);
+  expect(await shownModeLines(page)).toEqual([]);
+  await expect(page.getByText("Live", { exact: true })).toHaveCount(0);
 });
 
-test("a live run says Live on the mode line", async ({ page }) => {
+test("a live run carries no label", async ({ page }) => {
   test.setTimeout(180_000);
   await stubbedRun(page, true);
   await expect(page.locator("[data-run-status]").first()).toBeVisible({ timeout: 30_000 });
-  const line = page.locator("[data-mode-line]");
-  await expect(line).toHaveAttribute("data-run", "live", { timeout: 30_000 });
-  await expect.poll(() => shownModeLines(page)).toEqual(["Live"]);
-  await expect(page.getByText("Replayed run, no model called now")).toHaveCount(0);
+  await expect(page.locator("[data-run-replay]")).toHaveCount(0);
+  expect(await shownModeLines(page)).toEqual([]);
+  await expect(page.getByText("Live", { exact: true })).toHaveCount(0);
+  const words = await page.evaluate(() => (window as unknown as { runWords: string[] }).runWords);
+  expect(words).toEqual([]);
 });

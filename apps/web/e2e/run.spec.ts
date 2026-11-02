@@ -44,7 +44,20 @@ test("the recorded run at work: one running task's card, its findings so far, an
   await expect(work.locator("[data-agent-tree]")).toBeVisible();
   await expect(work.locator("[data-agent-cursor]")).toHaveCount(1);
   await expect(work.locator("[data-agent-cursor]")).toContainText("Reading El Aayadi et al. 2026");
-  await expect(work.locator("[data-run-replay]")).toContainText("Recorded run, 30 Oct 2026");
+  // the recording says so in the header, under its question, where it is read; nothing calls it live
+  const replay = work.locator("[data-run-replay]");
+  await expect(replay).toHaveText("Replay of live run, 30 Oct 2026, shown 4× faster");
+  await expect(replay).toBeVisible();
+  const [q, r] = await Promise.all([
+    work.locator("[data-run-question]").boundingBox(),
+    replay.boundingBox(),
+  ]);
+  expect(q && r && r.width > 100 && r.y >= q.y + q.height - 1 && r.y < q.y + q.height + 24).toBe(
+    true,
+  );
+  expect(await replay.evaluate((el) => getComputedStyle(el).opacity)).toBe("1");
+  await expect(page.locator("[data-mode-line]")).toHaveCount(0);
+  await expect(page.getByText("Live", { exact: true })).toHaveCount(0);
   await expect(work.locator("[data-run-branches]")).toHaveCount(0);
   const n = await words(page);
   expect(n).toBeGreaterThan(10);
@@ -136,6 +149,30 @@ test("a question sent from the ask takes the arc from its own stream, and a repl
     "Why is the valley floor greener?",
   );
   await expect(work.locator("[data-run-replay]")).toContainText(
-    "Replayed run, no model called now",
+    "Replay of a synthetic run, no model called now",
   );
+});
+
+test("the thinking is the case's own run: the recording's question and measured length, and none for another place", async ({
+  page,
+}) => {
+  test.setTimeout(240_000);
+  await page.goto("/valley");
+  await expect(page.locator("[data-overview-root]")).toHaveAttribute("data-ready", "", {
+    timeout: 90_000,
+  });
+  await page.keyboard.press("t");
+  const work = page.locator("[data-at-work]").first();
+  await expect(work).toBeVisible({ timeout: 20_000 });
+  await expect(work.locator("[data-run-question]")).toHaveText(/Why is the valley floor greener\?/);
+  await expect(work.locator("[data-run-status]")).toHaveText("23 findings in 101.1 s");
+  await expect(work.locator("[data-run-replay]")).toBeVisible();
+
+  await page.goto("/valley?case=case_calaveras_creek");
+  await expect(page.locator("[data-overview-root][data-ready]")).toBeAttached({ timeout: 90_000 });
+  await expect(page.locator("[data-thinking-toggle]")).toHaveCount(0);
+  await page.keyboard.press("t");
+  await page.waitForTimeout(1500);
+  await expect(page.locator("[data-at-work]")).toHaveCount(0);
+  await expect(page.locator("[data-run-status]")).toHaveCount(0);
 });

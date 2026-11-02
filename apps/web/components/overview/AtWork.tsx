@@ -110,7 +110,9 @@ export function AtWork({
    * the edge. */
   recording?: { speed: number; length: number } | null;
 }) {
-  const nowMs = useClock(run, fixedNow);
+  const clock = useClock(run, fixedNow);
+  // once the run has completed, its time is the one it ran for (its last event), never a replay clock held past it
+  const nowMs = run.done ? run.nowMs : clock;
   const [hoveredBranch, setHoveredBranch] = useState<string | null>(null);
   const [folded, setFolded] = useState(true);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
@@ -218,25 +220,24 @@ export function AtWork({
   const check = run.checks[0] ?? null;
   const checkAt = rimLeft ? { x: rimLeft.x - 28, y: Math.max(rimLeft.y - 22, 430) } : null;
 
+  // a run that is not happening now says so in one line under its question (honesty strings; a live run says nothing)
   let note: ReactNode = null;
   if (recording)
     note = (
-      <aside className={styles.recording} data-chrome="" data-run-replay>
-        <p className={styles.recTitle}>
-          {format("run.recorded.title", { date: dayOf(run.acceptedAt) })}
-        </p>
-        <p className={styles.recDetail}>
-          {format("run.recorded.detail", { speed: recording.speed })}
-        </p>
-      </aside>
+      <p
+        className={styles.replayLine}
+        data-chrome=""
+        data-run-replay
+        title={en["run.recorded.detail"].text}
+      >
+        {format("run.recorded.title", { date: dayOf(run.acceptedAt), speed: recording.speed })}
+      </p>
     );
   else if (run.replay)
     note = (
-      <aside className={styles.recording} data-chrome="" data-run-replay>
-        <p className={styles.recTitle}>
-          {en[run.replay === "synthetic" ? "run.replayed" : "run.recorded"].text}
-        </p>
-      </aside>
+      <p className={styles.replayLine} data-chrome="" data-run-replay>
+        {en[run.replay === "synthetic" ? "run.replayed" : "run.recorded"].text}
+      </p>
     );
 
   return (
@@ -288,6 +289,7 @@ export function AtWork({
           </span>
           <h2 className={styles.asked}>{question}</h2>
         </section>
+        {note}
         {run.done && onToggleThinking ? (
           <button
             type="button"
@@ -336,8 +338,6 @@ export function AtWork({
         setSelectedTaskId={setSelectedTaskId}
         setStepsDismissed={setStepsDismissed}
       />
-
-      {note}
     </div>
   );
 }
