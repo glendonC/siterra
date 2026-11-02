@@ -595,7 +595,7 @@
   width: fit-content;
   margin: 0;
   padding-bottom: 0.12em;
-  font: 200 46px / 0.9 var(--font-sans);
+  font: 200 46px / 1.1 var(--font-sans);
   letter-spacing: -0.02em;
   color: var(--triad-green);
   background: linear-gradient(
