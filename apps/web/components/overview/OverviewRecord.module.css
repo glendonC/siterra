@@ -134,15 +134,15 @@
 }
 
 .paperKicker {
-  font: 500 11px / 15px var(--font-mono);
-  letter-spacing: 0.06em;
+  font: 500 12px / 16px var(--font-mono);
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   color: #5b5954;
 }
 
 .paperBadge {
-  font: 500 11px / 15px var(--font-mono);
-  letter-spacing: 0.05em;
+  font: 500 12px / 16px var(--font-mono);
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   color: #b45d14;
 }

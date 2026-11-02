@@ -295,12 +295,12 @@
 }
 
 .treeNodeName {
-  font: 500 11.5px / 15px var(--font-sans);
+  font: 500 12px / 16px var(--font-sans);
   color: var(--text-primary);
 }
 
 .treeNodeState {
-  font: 400 10.5px / 14px var(--font-mono);
+  font: 400 12px / 16px var(--font-mono);
   color: var(--text-secondary);
 }
 
@@ -318,7 +318,7 @@
   border-radius: 4px;
   background: #d97706;
   color: #ffffff;
-  font: 700 9px / 12px var(--font-mono);
+  font: 700 12px / 16px var(--font-mono);
   letter-spacing: 0.04em;
   text-transform: uppercase;
   white-space: nowrap;
@@ -334,7 +334,7 @@
   border-radius: 3px;
   background: var(--control-fill);
   color: var(--text-primary);
-  font: 600 9px / 1 var(--font-mono);
+  font: 600 12px / 1 var(--font-mono);
 }
 
 /* ─── Feathered Side-Blur Inspector (Death Stranding Filter Style) ─── */
@@ -377,13 +377,16 @@
 
 .inspectorHeader {
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 10px;
+  gap: 6px 10px;
 }
 
+/* the title keeps its line: the Esc hint drops under it rather than squeezing it */
 .inspectorTitleBlock {
   display: flex;
+  flex: 1 1 220px;
   flex-direction: column;
   gap: 3px;
   min-width: 0;
@@ -413,7 +416,7 @@
   border-radius: 5px;
   background: color-mix(in srgb, var(--agent-color, var(--ov-blue)) 12%, transparent);
   color: var(--text-primary);
-  font: 500 10.5px / 15px var(--font-mono);
+  font: 500 12px / 16px var(--font-mono);
 }
 
 .thinkingStepList {
@@ -464,7 +467,7 @@
 }
 
 .thinkingStepTime {
-  font: 400 10.5px / 14px var(--font-mono);
+  font: 400 12px / 16px var(--font-mono);
   color: var(--text-tertiary);
 }
 
@@ -474,7 +477,7 @@
   justify-content: space-between;
   gap: 8px;
   padding-top: 2px;
-  font: 400 10.5px / 14px var(--font-mono);
+  font: 400 12px / 16px var(--font-mono);
   color: var(--text-tertiary);
 }
 
@@ -487,8 +490,8 @@
   border-radius: 4px;
   background: transparent;
   color: var(--text-secondary);
-  font: 600 9.5px / 13px var(--font-mono);
-  letter-spacing: 0.04em;
+  font: 600 12px / 16px var(--font-mono);
+  letter-spacing: 0.02em;
   text-transform: uppercase;
   cursor: pointer;
   flex-shrink: 0;
@@ -593,7 +596,7 @@
 }
 
 .bottomAgentName {
-  font: 600 11.5px / 16px var(--font-mono);
+  font: 600 12px / 16px var(--font-mono);
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--agent-color, var(--ov-blue));
@@ -654,7 +657,7 @@
 }
 
 .mark {
-  font-size: 9px;
+  font-size: 12px;
   line-height: 1;
 }
 
@@ -678,7 +681,7 @@
 }
 
 .checkKicker {
-  font: 600 9.5px / 13px var(--font-mono);
+  font: 600 12px / 16px var(--font-mono);
   letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--ov-amber-tag);
@@ -689,8 +692,11 @@
   color: var(--text-primary);
 }
 
-/* Horizontal 5-Cause Strip inside Bottom Feathered Band */
+/* Horizontal 5-Cause Strip inside Bottom Feathered Band; it paints above the status row, so a cause's note (which opens
+   over that row) is not covered by it */
 .branches {
+  position: relative;
+  z-index: 2;
   margin: 2px 0 0;
   padding: 0;
   list-style: none;
@@ -724,7 +730,7 @@
 }
 
 .branchWord {
-  font: 500 10.5px / 14px var(--font-mono);
+  font: 500 12px / 16px var(--font-mono);
 }
 
 .branch[data-status="consistent"] {
@@ -755,11 +761,10 @@
   width: max-content;
   max-width: 300px;
   padding: 6px 10px;
-  border-radius: 7px;
-  background: color-mix(in srgb, var(--bg-canvas) 94%, transparent);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  font: 400 11.5px / 15.5px var(--font-sans);
+  border-radius: 6px;
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-popover);
+  font: 400 13px / 18px var(--font-sans);
   color: var(--text-primary);
   text-align: center;
   pointer-events: none;
@@ -838,7 +843,10 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  padding: 2px 6px;
+  padding: 3px 7px;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--bg-surface) 88%, transparent);
+  box-shadow: 0 1px 2px rgb(43 41 37 / 0.08);
   text-align: left;
   max-width: 220px;
   transition: opacity 160ms ease;
@@ -852,7 +860,7 @@
 }
 
 .cursorTask {
-  font: 600 9.5px / 12px var(--font-mono);
+  font: 600 12px / 16px var(--font-mono);
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--ov-blue);
@@ -864,7 +872,7 @@
 }
 
 .cursorLabel {
-  font: 500 11.5px / 15px var(--font-sans);
+  font: 500 12px / 16px var(--font-sans);
   color: var(--text-primary);
   text-shadow: var(--paper-halo);
   white-space: nowrap;
