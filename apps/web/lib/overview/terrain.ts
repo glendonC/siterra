@@ -322,52 +322,9 @@ export async function overviewDataFromTerrain(terrain: TerrainFile): Promise<Ove
   }
   const isWater = (idx: number) => (water[idx] ?? 0) >= 128;
 
-  // Project stream paths into UTM first so we can carve realistic incised valley thalwegs and side-ridge detail
-  const streamUtmPaths: [number, number][][] = terrain.streamPaths.map((path) =>
-    path.map(([lon, lat]) => lonLatToUtm(lon, lat, zone)),
-  );
-
-  // Ensure sufficient vertical relief contrast and multi-scale ridge/valley articulation so 3D shader normals,
-  // cast shadows, and 250 m contours read as sharp mountain topography (specimen D4)
-  let rawMin = Infinity;
-  let rawMax = -Infinity;
-  for (let i = 0; i < relief.length; i++) {
-    const v = relief[i] ?? 0;
-    if (v < rawMin) rawMin = v;
-    if (v > rawMax) rawMax = v;
-  }
-  const rawSpan = Math.max(1, rawMax - rawMin);
-  const targetMinSpan = 120;
-  const ampScale = rawSpan < targetMinSpan ? targetMinSpan / rawSpan : 1;
-  const channelHalfWidth = Math.max(60, squareSpan * 0.045);
-  const maxIncisionM = Math.min(18, Math.max(3, rawSpan * 0.025));
-
-  for (let r = 0; r < gridDim; r++) {
-    const N = N0 - (r + 0.5) * res;
-    for (let c = 0; c < gridDim; c++) {
-      const E = E0 + (c + 0.5) * res;
-      const idx = r * gridDim + c;
-      const baseH = rawMin + ((relief[idx] ?? rawMin) - rawMin) * ampScale;
-      if (isWater(idx)) {
-        relief[idx] = baseH;
-        continue;
-      }
-
-      // Gentle stream-channel incision along real thalweg paths (no synthetic sine-wave spur noise)
-      let minStreamDist = Infinity;
-      for (const sp of streamUtmPaths) {
-        for (let k = 0; k < sp.length; k += 2) {
-          const pt = sp[k];
-          if (!pt) continue;
-          const d = Math.hypot(E - pt[0], N - pt[1]);
-          if (d < minStreamDist) minStreamDist = d;
-        }
-      }
-      const channelFactor = Math.min(1, minStreamDist / channelHalfWidth);
-      const incision = (1 - channelFactor) * maxIncisionM;
-      relief[idx] = baseH - incision;
-    }
-  }
+  // The relief stays as measured (water drawn flat at its level above): no stretch of a low relief and no channel
+  // carved along the streams, so every height read off the land is the DEM's. The scene's vertical scale, chosen
+  // from the relief range, is the only exaggeration, and it is stated.
 
   // Compute the elevation range and median of the land inside the outline (water drawn, not counted)
   const insideHeights: number[] = [];

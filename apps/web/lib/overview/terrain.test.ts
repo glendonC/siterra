@@ -77,6 +77,33 @@ describe("terrain grid to overview relief", () => {
       expect(Math.abs(heightAt(lon) - (1000 + 500 * f))).toBeLessThanOrEqual(1.5 + perCell);
     }
   });
+
+  it("keeps low-relief land and cells along streams at their measured DEM heights without stretching or incision", async () => {
+    const t = eastRamp();
+    const size = 256;
+    for (let r = 0; r < size; r++)
+      for (let c = 0; c < size; c++)
+        t.elevations[r * size + c] = Number((200 + (30 * c) / (size - 1)).toFixed(1));
+    t.minElevationM = 200;
+    t.maxElevationM = 230;
+    const midLat = (BBOX[1] + BBOX[3]) / 2;
+    t.streamPaths = [
+      [
+        [BBOX[0], midLat],
+        [(BBOX[0] + BBOX[2]) / 2, midLat],
+        [BBOX[2], midLat],
+      ],
+    ];
+    t.streamSource = "openstreetmap";
+    const overview = await overviewDataFromTerrain(t);
+    expect(overview.range.min).toBeGreaterThanOrEqual(200);
+    expect(overview.range.max).toBeLessThanOrEqual(230);
+    const g = overview.meta.relief;
+    const [midE, midN] = lonLatToUtm((BBOX[0] + BBOX[2]) / 2, midLat, overview.zone);
+    const midCol = Math.round((midE - g.E0) / g.res - 0.5);
+    const midRow = Math.round((g.N0 - midN) / g.res - 0.5);
+    expect(overview.relief[midRow * g.width + midCol]).toBeCloseTo(215, 0);
+  });
 });
 
 describe("water in the overview", () => {

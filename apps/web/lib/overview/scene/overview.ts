@@ -38,7 +38,7 @@ import { LineMaterial } from "three/addons/lines/LineMaterial.js";
 import { LineSegments2 } from "three/addons/lines/LineSegments2.js";
 import { LineSegmentsGeometry } from "three/addons/lines/LineSegmentsGeometry.js";
 import { makeFrame, makeHeightSampler, type Vec3 } from "../../instruments/valley/frame";
-import { landFrame } from "../../land/geometry";
+import { extentKm, landFrame } from "../../land/geometry";
 import type { LandPose } from "../../land/handoff";
 import { createStage, type PerspectiveView } from "../../instruments/valley/scene/stage";
 import { heightTexture } from "../../instruments/valley/scene/textures";
@@ -90,6 +90,36 @@ export const OVERVIEW_DESIGN = { width: 1440, height: 900 } as const;
 export const EXAG = 2.5;
 /** The survey plan's accent, which the measurement front shares. */
 const SURVEY_ACCENT = "#2563eb";
+
+/** Relief at least this share of the land's diagonal is drawn at EXAG; flatter land is raised more, to MAX_EXAG. */
+const EXAG_REF_RATIO = 0.025;
+const MAX_EXAG = 6;
+
+/**
+ * The vertical scale a land is drawn at (display only; every height read off the land stays as measured): EXAG for
+ * a land whose relief is at least EXAG_REF_RATIO of its diagonal (the bundled valley, mountain places), raised for
+ * flatter land in proportion, up to MAX_EXAG, to one decimal so the stated factor is the one drawn.
+ */
+export function reliefExaggeration(reliefM: number, diagonalKm: number): number {
+  const ratio = Math.max(1e-6, reliefM) / Math.max(1e-3, diagonalKm * 1000);
+  return Math.round(Math.min(MAX_EXAG, Math.max(EXAG, (EXAG * EXAG_REF_RATIO) / ratio)) * 10) / 10;
+}
+
+/** Contour and index intervals (m) for a relief range: about eight lines across it, never wider than 250 and 1000. */
+export function contourSteps(reliefM: number): readonly [number, number] {
+  const steps: ReadonlyArray<readonly [number, number]> = [
+    [1, 5],
+    [2, 10],
+    [5, 25],
+    [10, 50],
+    [20, 100],
+    [25, 100],
+    [50, 250],
+    [100, 500],
+    [250, 1000],
+  ];
+  return steps.find(([c]) => c >= reliefM / 8) ?? [250, 1000];
+}
 /** Vertical field of view at the design height (degrees). */
 const FOV = 26;
 /**
@@ -413,7 +443,9 @@ export function mountOverview(
   const g = data.meta.relief;
   const a = data.meta.analysis;
   const H = data.relief;
-  const frame = makeFrame(data.meta.frame, { exag: EXAG, base: BASE });
+  const reliefM = Math.max(1, data.range.max - data.range.min);
+  const exag = reliefExaggeration(reliefM, extentKm(data.ring));
+  const frame = makeFrame(data.meta.frame, { exag, base: BASE });
   const sample = makeHeightSampler(H, g);
   const hTex = heightTexture(H, g);
   const lcTex = coverTexture(data.landcover);
@@ -430,13 +462,15 @@ export function mountOverview(
     ambient: hexVec(C.ambient).multiplyScalar(0.62),
     sky: hexVec(C.sky),
   };
-  const lightMap = bakeLight(H, g, M30, light.dir, { exag: EXAG, base: BASE, soft: 14 });
+  const lightMap = bakeLight(H, g, M30, light.dir, { exag, base: BASE, soft: 14 });
   const waterTex = data.water ? waterTexture(data.water, g) : null;
   const relief = createRelief(H, g, frame, lcTex, frame.rect(a), {
     hTex,
     light,
     lightMap,
     ...(waterTex ? { water: waterTex } : {}),
+    cellM: g.res,
+    contourStep: contourSteps(reliefM),
     colours: {
       albedo: C.reliefAlbedo,
       line: C.contour,
@@ -1475,7 +1509,7 @@ export function mountOverview(
       if (i < 0 || j < 0 || i >= g.width || j >= g.height || !M30[j * g.width + i]) continue;
       // the land is a slab: the surface and its 900 m edge hide what is behind; a line wholly under it does not
       const ty = frame.y(sample(E, N));
-      if (y < ty - (20 * EXAG) / 1000 && y > ty - (lf.wall * EXAG) / 1000) return true;
+      if (y < ty - (20 * exag) / 1000 && y > ty - (lf.wall * exag) / 1000) return true;
     }
     return false;
   };
@@ -2042,7 +2076,7 @@ export function mountOverview(
         azimuth: current.view.azimuth,
         elevation: current.view.elevation,
         light: [light.dir.x, light.dir.y, light.dir.z] as const,
-        exag: EXAG,
+        exag,
         lightMap: { map: lightMap, width: g.width, height: g.height },
       };
     },

@@ -91,6 +91,8 @@ uniform sampler2D uLM;      // baked from the relief: R soft cast shadow (1 lit)
 uniform float uExag;
 uniform vec3 uL, uLight, uAmbient, uSky, uAlbedo, uLine, uTreeC, uCropC, uLimitC;
 uniform float uContour, uIndex, uCoverA, uLimitA, uLimitAt;
+uniform float uCell;        // the relief grid's cell (m), for the normals
+uniform vec2 uStep;         // contour interval and index interval (m)
 uniform vec3 uFogC;
 uniform vec3 uFog;          // near, far (km from the camera), max mix
 uniform float uDim;         // 1 normal; lower dims the land (the ask open)
@@ -121,7 +123,7 @@ void main() {
   vec2 uv = hUV(xz);
   float h = hAt(uv);
   vec2 e = 1.0 / uTex;
-  float cell = 30.0;
+  float cell = uCell;
   float effExag = uExag * mix(0.28, 1.0, uCarve);
   float hl = hAt(uv - vec2(e.x, 0.0)), hr = hAt(uv + vec2(e.x, 0.0));
   float hn = hAt(uv - vec2(0.0, e.y)), hs = hAt(uv + vec2(0.0, e.y));
@@ -181,9 +183,9 @@ void main() {
     col = mix(col, uSnowC * (0.45 + 0.55 * clamp(diff * 1.1 + 0.3 * sky, 0.0, 1.0)), clamp(share, 0.0, 1.0) * 0.85 * uSnowA * (1.0 - wtr));
   }
 
-  float c250 = contour(h, 250.0, 0.9);
-  float c1000 = contour(h, 1000.0, 1.2);
-  float c50 = contour(h, 50.0, 0.75);
+  float c250 = contour(h, uStep.x, 0.9);
+  float c1000 = contour(h, uStep.y, 1.2);
+  float c50 = contour(h, uStep.x / 5.0, 0.75);
   col = mix(col, uLine, clamp(c250 * mix(0.55, uContour, uCarve) + c1000 * mix(0.65, uIndex, uCarve) + c50 * (1.0 - uCarve) * 0.25, 0.0, 1.0) * (0.55 + 0.45 * diff) * (1.0 - wtr));
   if (uLimitA > 0.001) col = mix(col, uLimitC, limitLine(h, uLimitAt, 1.0) * uLimitA * (1.0 - wtr));
 
@@ -394,6 +396,10 @@ export interface ReliefOptions {
   limitAt?: number;
   /** Water's share of each relief cell (R, the relief's grid), when the place has a water mask. */
   water?: Texture;
+  /** The relief grid's cell (m); 30 for the bundled 30 m reliefs. */
+  cellM?: number;
+  /** Contour and index contour intervals (m); 250 and 1000 by default. */
+  contourStep?: readonly [number, number];
 }
 
 /** No footprint: one transparent texel. */
@@ -470,6 +476,8 @@ export function createRelief(
     uAlbedo: { value: hexVec(c.albedo) },
     uLine: { value: hexVec(c.line) },
     uContour: { value: o.contour ?? 0.12 },
+    uCell: { value: o.cellM ?? 30 },
+    uStep: { value: new Vector2(o.contourStep?.[0] ?? 250, o.contourStep?.[1] ?? 1000) },
     uIndex: { value: o.index ?? 0.22 },
     uCoverA: { value: o.coverA },
     uTreeC: { value: hexVec(c.treeC) },

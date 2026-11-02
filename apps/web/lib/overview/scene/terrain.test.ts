@@ -2,6 +2,7 @@ import { DataTexture, FloatType, RedFormat, Vector3 } from "three";
 import { describe, expect, it } from "vitest";
 import { makeFrame } from "../../instruments/valley/frame";
 import { centreOf } from "../data";
+import { contourSteps, EXAG, reliefExaggeration } from "./overview";
 import { createRelief, createSurveyPlan, maskOnRelief, signedArea, smoothRing } from "./terrain";
 
 describe("the overview's land helpers", () => {
@@ -107,5 +108,77 @@ describe("the measurement front", () => {
         expect(at).toBeLessThan(end);
       }
     }
+  });
+});
+
+describe("relief exaggeration, cell size and contour intervals", () => {
+  const g = { E0: 0, N0: 60, res: 30, width: 2, height: 2 };
+  const frame = makeFrame({ origin_E: 30, origin_N: 30 }, { exag: 2.5, base: 0 });
+  const hTex = new DataTexture(new Float32Array(4), 2, 2, RedFormat, FloatType);
+  const light = {
+    dir: new Vector3(0, 1, 0),
+    color: new Vector3(1, 1, 1),
+    ambient: new Vector3(0.5, 0.5, 0.5),
+    sky: new Vector3(0.5, 0.6, 0.7),
+  };
+  const rect: [number, number, number, number] = [-0.03, -0.03, 0.03, 0.03];
+  const colours = {
+    albedo: "#a6a8a3",
+    line: "#e9eef0",
+    treeC: "#5c8f63",
+    cropC: "#93b872",
+    limitC: [1, 1, 1] as const,
+    fogC: "#10181b",
+    rimC: "#a9c9d4",
+    scanC: "#2563eb",
+  };
+
+  it("keeps EXAG 2.5 for Ait Bouguemez and mountain ranges, and raises gentle and flat places up to 6", () => {
+    // Ait Bouguemez (~1800 m over ~36 km), Queenstown (~1624 m over ~28 km), Anti-Atlas (~1080 m over ~28 km)
+    expect(reliefExaggeration(1800, 36)).toBe(EXAG);
+    expect(reliefExaggeration(1624, 28)).toBe(EXAG);
+    expect(reliefExaggeration(1080, 28)).toBe(EXAG);
+    // New York (~114 m over ~28 km) and Iowa plain (~52 m over ~28 km) read with raised display exaggeration, capped at 6
+    const nyExag = reliefExaggeration(114, 28);
+    expect(nyExag).toBeGreaterThan(EXAG);
+    expect(nyExag).toBeLessThanOrEqual(6);
+    expect(reliefExaggeration(52, 28)).toBe(6);
+  });
+
+  it("chooses contour and index intervals for the relief range, capped at 250 m and 1000 m", () => {
+    expect(contourSteps(1800)).toEqual([250, 1000]);
+    expect(contourSteps(1624)).toEqual([250, 1000]);
+    expect(contourSteps(1080)).toEqual([250, 1000]);
+    expect(contourSteps(114)).toEqual([20, 100]);
+    expect(contourSteps(52)).toEqual([10, 50]);
+    expect(contourSteps(6)).toEqual([1, 5]);
+  });
+
+  it("passes the relief grid's cell size and contour intervals into the relief shader uniforms", () => {
+    const bundled = createRelief(new Float32Array(4), g, frame, hTex, rect, {
+      hTex,
+      light,
+      lightMap: hTex,
+      colours,
+      coverA: 0.8,
+      rimA: 0.2,
+      smooth: 0.5,
+    });
+    expect(bundled.uniforms).toHaveProperty("uCell.value", 30);
+    expect([bundled.uniforms.uStep.value.x, bundled.uniforms.uStep.value.y]).toEqual([250, 1000]);
+
+    const live = createRelief(new Float32Array(4), g, frame, hTex, rect, {
+      hTex,
+      light,
+      lightMap: hTex,
+      cellM: 82.5,
+      contourStep: [10, 50],
+      colours,
+      coverA: 0.8,
+      rimA: 0.2,
+      smooth: 0.5,
+    });
+    expect(live.uniforms).toHaveProperty("uCell.value", 82.5);
+    expect([live.uniforms.uStep.value.x, live.uniforms.uStep.value.y]).toEqual([10, 50]);
   });
 });
