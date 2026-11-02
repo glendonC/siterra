@@ -1,7 +1,7 @@
 // Dynamic 3D terrain & overview data adapter for any ingested or static case on Earth.
 // Fetches the TerrainFile (256 x 256 since version 2) from /api/terrain/[caseId] and builds the complete OverviewData
 // (UTM relief Float32Array, WorldCover & elevation band ImageBitmaps, UTM catchment ring,
-// stream reach heights, slope/rain footprints, and fallback RecordData charts from the case snapshot)
+// stream reach heights, no slope or rain footprints (none measured), and RecordData from the case snapshot)
 // so ValleyOverview renders the 3D terrain and interactive findings of any place on Earth.
 
 import type { CaseSnapshot } from "@siterra/contracts";
@@ -10,7 +10,6 @@ import { lonLatToUtm } from "../instruments/valley/utm";
 import type { ScatterData, ScatterSeason } from "../instruments/scatter/data";
 import type { OverviewData } from "./data";
 import type { FindingId } from "./findings";
-import type { RainCell, SlopeCell, SlopeCells } from "./footprint";
 import { olsIntercept, reference, referencesOf, type Season, type SeasonChart } from "./record";
 import type { RecordData } from "./record-data";
 import { decodeRuns, waterBodies, type WaterSource } from "../live-place/water-mask";
@@ -68,6 +67,14 @@ export interface TerrainFile {
   landCells?: number;
   catchmentRing: [number, number][];
   streamPaths: [number, number][][];
+  /** Where the drainage lines came from, and each mapped line's OpenStreetMap waterway kind when it was kept. */
+  streamSource?: "openstreetmap" | "d8_dem" | "none";
+  streamKinds?: string[];
+  outline?: {
+    kind: "watershed" | "drainage_within_box" | "land_within_box";
+    outlet?: [number, number];
+    areaKm2: number;
+  };
   landCoverGrid?: LandCoverGrid;
   namedWaterways?: string[];
   namedPeaks?: NamedPeak[];
@@ -223,10 +230,7 @@ function sampleLandCoverChannel(
 /**
  * Converts a `TerrainFile` into a full `OverviewData` structure ready for `mountOverview`.
  */
-export async function overviewDataFromTerrain(
-  terrain: TerrainFile,
-  snapshot?: CaseSnapshot,
-): Promise<OverviewData> {
+export async function overviewDataFromTerrain(terrain: TerrainFile): Promise<OverviewData> {
   const [minLon, minLat, maxLon, maxLat] = terrain.bbox;
   const centerLon = (minLon + maxLon) / 2;
   const zone = Math.max(1, Math.min(60, Math.floor((centerLon + 180) / 6) + 1));
@@ -402,7 +406,6 @@ export async function overviewDataFromTerrain(
   const lcPixels = new Uint8ClampedArray(lcBuffer);
   const bandsBuffer = new ArrayBuffer(gridDim * gridDim * 4);
   const bandsPixels = new Uint8ClampedArray(bandsBuffer);
-  const spanH = Math.max(1, maxH - minH);
 
   const lcGrid = terrain.landCoverGrid;
   const hasRealLandCover =
@@ -435,35 +438,13 @@ export async function overviewDataFromTerrain(
         continue;
       }
 
-      let tree: number;
-      let crop: number;
-      if (hasRealLandCover) {
-        tree = sampleLandCoverChannel(lcGrid.tree, lcGrid.width, lcGrid.height, rNorm, cNorm);
-        crop = sampleLandCoverChannel(lcGrid.crop, lcGrid.width, lcGrid.height, rNorm, cNorm);
-      } else {
-        const tElev = (h - minH) / spanH;
-        const hW = relief[r * gridDim + Math.max(0, c - 1)] ?? h;
-        const hE = relief[r * gridDim + Math.min(gridDim - 1, c + 1)] ?? h;
-        const hN = relief[Math.max(0, r - 1) * gridDim + c] ?? h;
-        const hS = relief[Math.min(gridDim - 1, r + 1) * gridDim + c] ?? h;
-        const slope = Math.hypot((hE - hW) / (2 * res), (hN - hS) / (2 * res));
-        const concavity = hN + hS + hE + hW - 4 * h;
-
-        // G channel: valley-floor riparian corridor / irrigated bottomland in gentle concave lows
-        crop =
-          tElev < 0.24 && slope < 0.14 && concavity >= -1.2
-            ? Math.round((1 - tElev / 0.24) * Math.max(0, 1 - slope / 0.14) * 195)
-            : 0;
-        // R channel: montane woodland on mid-elevation slopes
-        tree =
-          tElev >= 0.22 && tElev <= 0.68 && slope >= 0.06 && slope <= 0.44 && concavity <= 1.8
-            ? Math.round(
-                Math.sin(((tElev - 0.22) / 0.46) * Math.PI) *
-                  Math.min(1, (slope - 0.04) / 0.18) *
-                  190,
-              )
-            : 0;
-      }
+      // WorldCover where it was read; without it no cover is drawn (none is guessed from the relief)
+      const tree = hasRealLandCover
+        ? sampleLandCoverChannel(lcGrid.tree, lcGrid.width, lcGrid.height, rNorm, cNorm)
+        : 0;
+      const crop = hasRealLandCover
+        ? sampleLandCoverChannel(lcGrid.crop, lcGrid.width, lcGrid.height, rNorm, cNorm)
+        : 0;
 
       lcPixels[p] = tree;
       lcPixels[p + 1] = crop;
@@ -493,10 +474,18 @@ export async function overviewDataFromTerrain(
     return relief[row * gridDim + col] ?? medianH;
   };
 
-  // Convert streamPaths into UTM Rivers with Strahler orders (main stem = 4, tributaries = 2..3)
+  // the drawn weight of each line, from what is known of it: a mapped waterway's OpenStreetMap kind (a river over a
+  // stream); for D8 channels, the main stem (the channel draining the most) over its tributaries; otherwise one
+  // weight for all, claiming no order that was not measured
+  const orderOf = (idx: number): number => {
+    const kind = terrain.streamKinds?.[idx];
+    if (kind !== undefined) return kind === "river" ? 4 : kind === "stream" ? 3 : 2;
+    if (terrain.streamSource === "d8_dem") return idx === 0 ? 4 : 3;
+    return 3;
+  };
   const reaches: Rivers["reaches"] = terrain.streamPaths
     .map((path, idx) => {
-      const order = idx === 0 ? 4 : idx === 1 ? 3 : 2;
+      const order = orderOf(idx);
       const pts: [number, number, number][] = path.map(([lon, lat]) => {
         const [E, N] = lonLatToUtm(lon, lat, zone);
         return [E, N, heightAtUtm(E, N)];
@@ -505,80 +494,8 @@ export async function overviewDataFromTerrain(
     })
     .filter((r) => r.pts.length >= 2);
 
-  // Build MODIS-like slope cells and CHIRPS-like rainfall cells inside the catchment so fdr and rain findings light the land
-  const baseSlope =
-    snapshot?.records.measurementRecords.find(
-      (m) =>
-        (m.metric === "ndvi_trend_per_decade" || m.metric === "ndvi_trend_unadjusted_per_decade") &&
-        !m.id.includes("_band_"),
-    )?.value ?? 0.015;
-  const slopeCells: SlopeCell[] = [];
-  const slopeGrid = 22;
-  const cellStep = squareSpan / slopeGrid;
-  for (let r = 0; r < slopeGrid; r++) {
-    const nTop = N0 - r * cellStep;
-    const nBot = nTop - cellStep;
-    const nMid = (nTop + nBot) / 2;
-    for (let c = 0; c < slopeGrid; c++) {
-      const eLeft = E0 + c * cellStep;
-      const eRight = eLeft + cellStep;
-      const eMid = (eLeft + eRight) / 2;
-      if (!pointInPolygon(ringUtm, eMid, nMid)) continue;
-      const h = heightAtUtm(eMid, nMid);
-      const tElev = (h - minH) / spanH;
-      const spatialWave = Math.sin(c * 0.55 + r * 0.4) * 0.018;
-      const cellSlope = baseSlope + (0.45 - tElev) * 0.028 + spatialWave;
-      slopeCells.push({
-        corners: [
-          [eLeft, nTop],
-          [eRight, nTop],
-          [eRight, nBot],
-          [eLeft, nBot],
-        ],
-        slope: Number(cellSlope.toFixed(4)),
-      });
-    }
-  }
-  const slopeFootprint: SlopeCells = {
-    cells: slopeCells,
-    domain: 0.05,
-    neutral: 0.005,
-    window: "March to June",
-  };
-
-  const rainCells: RainCell[] = [];
-  const rainGrid = 5;
-  const rainStep = squareSpan / rainGrid;
-  for (let r = 0; r < rainGrid; r++) {
-    const nTop = N0 - r * rainStep;
-    const nBot = nTop - rainStep;
-    for (let c = 0; c < rainGrid; c++) {
-      const eLeft = E0 + c * rainStep;
-      const eRight = eLeft + rainStep;
-      const corners: [number, number][] = [
-        [eLeft, nTop],
-        [eRight, nTop],
-        [eRight, nBot],
-        [eLeft, nBot],
-        [eLeft, nTop],
-      ];
-      let hits = 0;
-      for (let sr = 0; sr < 4; sr++) {
-        for (let sc = 0; sc < 4; sc++) {
-          const se = eLeft + ((sc + 0.5) / 4) * rainStep;
-          const sn = nBot + ((sr + 0.5) / 4) * rainStep;
-          if (pointInPolygon(ringUtm, se, sn)) hits++;
-        }
-      }
-      if (hits > 0) {
-        rainCells.push({
-          id: `rain_${String(r)}_${String(c)}`,
-          ring: corners,
-          inside: hits / 16,
-        });
-      }
-    }
-  }
+  // No slope or rainfall cells for a live place: no per-cell greenness trend or rainfall is measured for it, so its
+  // findings paint nothing on the land (the bundled cases' cells come from their own assets in data.ts)
 
   const meta: TerrainMeta = {
     frame: { origin_E: Math.round(centerE), origin_N: Math.round(centerN) },
@@ -614,10 +531,7 @@ export async function overviewDataFromTerrain(
     ring: ringUtm,
     rivers: { reaches },
     routes: [],
-    footprints: {
-      slope: slopeCells.length > 0 ? slopeFootprint : null,
-      rain: rainCells.length > 0 ? rainCells : null,
-    },
+    footprints: { slope: null, rain: null },
     pixel: null,
   };
 }
@@ -630,7 +544,7 @@ export async function loadValleyOverviewData(
   signal?: AbortSignal,
 ): Promise<OverviewData> {
   const terrain = await loadValleyTerrain(snapshot.case.id, signal);
-  return overviewDataFromTerrain(terrain, snapshot);
+  return overviewDataFromTerrain(terrain);
 }
 
 const isTrendMetric = (metric: string): boolean =>
@@ -641,16 +555,15 @@ const isBandMeasurement = (x: { id: string; aggregation?: string | null }): bool
   return x.id.includes("_band_") || agg.includes("band") || agg.includes("below");
 };
 
-function synthesizeSeasons(slopePerDecade: number, offset = 0): Season[] {
-  return Array.from({ length: 26 }, (_, i) => {
-    const year = 2000 + i;
-    const trend = ((year - 2012.5) / 10) * slopePerDecade;
-    const wave = Math.sin(i * 1.35) * 0.016 + Math.cos(i * 0.75) * 0.01;
-    return {
-      year,
-      ndvi: Number(Math.max(0.08, 0.24 + offset + trend + wave).toFixed(4)),
-    };
-  });
+/** Two-sided 95% t quantile by degrees of freedom (table to 30, then conservative steps to the normal 1.96). */
+function t975(df: number): number {
+  const T = [
+    12.706, 4.303, 3.182, 2.776, 2.571, 2.447, 2.365, 2.306, 2.262, 2.228, 2.201, 2.179, 2.16,
+    2.145, 2.131, 2.12, 2.11, 2.101, 2.093, 2.086, 2.08, 2.074, 2.069, 2.064, 2.06, 2.056, 2.052,
+    2.048, 2.045, 2.042,
+  ];
+  if (df < 1) return Infinity;
+  return T[df - 1] ?? (df <= 40 ? 2.021 : df <= 60 ? 2.0 : df <= 120 ? 1.98 : 1.96);
 }
 
 /**
@@ -730,54 +643,40 @@ export function fallbackRecordData(id: FindingId, snapshot: CaseSnapshot): Recor
       const year = yrMatch?.[1] ? Number.parseInt(yrMatch[1], 10) : NaN;
       return {
         year,
-        ndvi: m.value ?? 0.25,
+        ndvi: m.value ?? NaN,
       };
     })
-    .filter((s) => Number.isFinite(s.year))
+    .filter((s) => Number.isFinite(s.year) && Number.isFinite(s.ndvi))
     .sort((a, b) => a.year - b.year);
 
+  // charts only from what the record measured: the whole area's season series with its trend and the trend's
+  // interval; no band or pixel series is recorded for these places, and nothing stands in for a missing one
   if (id === "band" || id === "catchment" || id === "pixel") {
     const m =
-      snapshot.records.measurementRecords.find((x) => {
-        if (!isTrendMetric(x.metric)) return false;
-        if (id === "band") return isBandMeasurement(x);
-        if (id === "pixel") return x.id.includes("pixel") || x.geoSelectionId.includes("pixel");
-        return !isBandMeasurement(x);
-      }) ??
-      snapshot.records.measurementRecords.find(
-        (x) =>
-          isTrendMetric(x.metric) && (id === "band" ? isBandMeasurement(x) : !isBandMeasurement(x)),
-      ) ??
-      snapshot.records.measurementRecords.find((x) => isTrendMetric(x.metric));
-
-    const slopePerDecade = m?.value ?? 0.012;
-    const lower = m?.uncertainty.lower ?? slopePerDecade - 0.008;
-    const upper = m?.uncertainty.upper ?? slopePerDecade + 0.008;
-    const baseSeasons =
-      rawSeasons.length >= 2
-        ? rawSeasons
-        : synthesizeSeasons(slopePerDecade, id === "band" ? 0.02 : 0);
-    const seasons =
-      id === "band" && rawSeasons.length >= 2
-        ? baseSeasons.map((s, i) => ({
-            year: s.year,
-            ndvi: Number((s.ndvi + 0.02 + (i - baseSeasons.length / 2) * 0.0003).toFixed(4)),
-          }))
-        : baseSeasons;
+      id === "catchment"
+        ? snapshot.records.measurementRecords.find(
+            (x) => isTrendMetric(x.metric) && !isBandMeasurement(x) && x.value !== null,
+          )
+        : undefined;
+    const slopePerDecade = m?.value ?? null;
+    const lower = m?.uncertainty.lower ?? null;
+    const upper = m?.uncertainty.upper ?? null;
     const chart: SeasonChart | null =
-      seasons.length >= 2
+      rawSeasons.length >= 2 && slopePerDecade !== null && lower !== null && upper !== null
         ? {
-            seasons,
+            seasons: rawSeasons,
             slopePerDecade,
-            intercept: olsIntercept(seasons, slopePerDecade / 10),
+            intercept: olsIntercept(rawSeasons, slopePerDecade / 10),
             lower,
             upper,
-            fit: id === "pixel" ? "theil_sen" : "ols",
+            fit: "ols",
           }
         : null;
     return { chart, scatter: null, context };
   }
 
+  // the rainfall scatter only from seasons with both a recorded greenness and a recorded rainfall; its fit, interval
+  // and R squared computed from them (the record's own R squared when it states one)
   if (id === "rain") {
     const rainMap = new Map<number, number>();
     for (const m of snapshot.records.measurementRecords) {
@@ -789,24 +688,15 @@ export function fallbackRecordData(id: FindingId, snapshot: CaseSnapshot): Recor
         }
       }
     }
-    const baseSeasons = rawSeasons.length >= 2 ? rawSeasons : synthesizeSeasons(0.012);
-    const mappedSeasons: ScatterSeason[] = baseSeasons
+    const seasons: ScatterSeason[] = rawSeasons
       .map((s) => {
         const rain_mm = rainMap.get(s.year);
         return rain_mm !== undefined ? { year: s.year, ndvi: s.ndvi, rain_mm } : null;
       })
       .filter((x): x is ScatterSeason => x !== null);
-
-    const seasons: ScatterSeason[] =
-      mappedSeasons.length >= 3
-        ? mappedSeasons
-        : baseSeasons.map((s, i) => ({
-            year: s.year,
-            ndvi: s.ndvi,
-            rain_mm: Math.round(380 + (s.ndvi - 0.24) * 3200 + Math.sin(i * 1.9) * 55),
-          }));
-
     const n = seasons.length;
+    if (n < 3) return { chart: null, scatter: null, context };
+
     const meanX = seasons.reduce((acc, s) => acc + s.rain_mm, 0) / n;
     const meanY = seasons.reduce((acc, s) => acc + s.ndvi, 0) / n;
     let sxx = 0;
@@ -819,32 +709,32 @@ export function fallbackRecordData(id: FindingId, snapshot: CaseSnapshot): Recor
       sxy += dx * dy;
       syy += dy * dy;
     }
-    const slopePerMm = sxx > 0 ? sxy / sxx : 0.0001;
+    if (sxx <= 0) return { chart: null, scatter: null, context };
+    const slopePerMm = sxy / sxx;
     const intercept = meanY - slopePerMm * meanX;
+    let sse = 0;
+    for (const s of seasons) sse += (s.ndvi - (intercept + slopePerMm * s.rain_mm)) ** 2;
+    const halfWidth = t975(n - 2) * Math.sqrt(sse / Math.max(1, n - 2) / sxx) * 100;
     const r2M = snapshot.records.measurementRecords.find(
       (x) => x.metric === "rainfall_ndvi_r_squared" || x.metric === "rainfall_fit_r_squared",
     );
-    const rSquared =
-      r2M?.value ??
-      (sxx > 0 && syy > 0 ? Math.min(0.95, Math.max(0.05, (sxy * sxy) / (sxx * syy))) : 0.35);
+    const rSquared = r2M?.value ?? (syy > 0 ? (sxy * sxy) / (sxx * syy) : 0);
     const slopePer100 = slopePerMm * 100;
     const driest = [...seasons].sort((a, b) => a.rain_mm - b.rain_mm).slice(0, 4);
-    const firstYear = seasons[0]?.year ?? 2000;
-    const lastYear = seasons[seasons.length - 1]?.year ?? 2025;
 
     const scatter: ScatterData = {
-      period: [firstYear, lastYear],
+      period: [seasons[0]?.year ?? 0, seasons[n - 1]?.year ?? 0],
       windows: { growing: "mar_jun", rainfall: "sep_may" },
       seasons,
       fit: {
         intercept,
         slope_per_mm: slopePerMm,
         slope_per_100_mm: slopePer100,
-        lower: slopePer100 * 0.5,
-        upper: slopePer100 * 1.5,
+        lower: slopePer100 - halfWidth,
+        upper: slopePer100 + halfWidth,
         level: 0.95,
         r_squared: rSquared,
-        interval_above_zero: slopePerMm > 0,
+        interval_above_zero: slopePer100 - halfWidth > 0,
       },
       status: "available",
       driest,
