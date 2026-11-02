@@ -19,14 +19,15 @@ export async function writeStaleDependents(
   const writtenIds = args.written.map((w) => w.id);
   const current = await tx.query<{ record: CaseRecord }>(
     `select record from (
-       select distinct on (entity_id) entity_id, record from records
-       where case_id = $1 order by entity_id, revision desc
-     ) latest where not (entity_id = any($2::text[]))
-     union all
-     select record from (
-       select distinct on (entity_id) entity_id, record from review_records
-       where case_id = $1 order by entity_id, revision desc
-     ) latest_reviews where not (entity_id = any($2::text[]))`,
+       select distinct on (entity_id) entity_id, revision, record from (
+         select entity_id, revision, record from records
+         where case_id = $1 and not (entity_id = any($2::text[]))
+         union all
+         select entity_id, revision, record from review_records
+         where case_id = $1 and not (entity_id = any($2::text[]))
+       ) combined
+       order by entity_id, revision desc
+     ) latest`,
     [args.caseId, writtenIds],
   );
   // Only a material change stales dependents; compare each write with the revision before it.

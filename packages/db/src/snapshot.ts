@@ -81,14 +81,15 @@ export async function readSnapshot(
       }
       const records = await tx.query<{ record_type: keyof typeof collectionOf; record: never }>(
         `select record_type, record from (
-           select distinct on (entity_id) entity_id, record_type, record from records
-           where case_id = $1 order by entity_id, revision desc
-         ) latest
-         union all
-         select 'ReviewDecision', record from (
-           select distinct on (entity_id) entity_id, record from review_records
-           where case_id = $1 order by entity_id, revision desc
-         ) latest_reviews`,
+           select distinct on (entity_id) entity_id, revision, record_type, record from (
+             select entity_id, revision, record_type, record from records
+             where case_id = $1
+             union all
+             select entity_id, revision, 'ReviewDecision' as record_type, record from review_records
+             where case_id = $1
+           ) combined
+           order by entity_id, revision desc
+         ) latest`,
         [caseId],
       );
       const collections = emptyCollections();
