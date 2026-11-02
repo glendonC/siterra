@@ -1,15 +1,5 @@
 import { inflateSync } from "node:zlib";
 
-function seededNoise(seed: number): () => number {
-  let s = Math.floor(seed) >>> 0 || 1;
-  return () => {
-    s = (s + 0x6d2b79f5) >>> 0;
-    let t = Math.imul(s ^ (s >>> 15), 1 | s);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
 export function decodeTerrariumPng(bytes: Uint8Array): Float32Array | null {
   if (bytes.length < 33 || bytes[0] !== 137 || bytes[1] !== 80) return null;
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
@@ -390,58 +380,14 @@ export async function fetchOpenMeteoGrid(
         return body.elevation;
       }),
     );
-    const flat = responses.flat().map((v) => (Number.isFinite(v) ? v : 0));
-    const min = Math.min(...flat);
-    const max = Math.max(...flat);
-    if (max - min < 1) return null;
-    return flat;
+    // a missing value is a failed read, not 0 m; flat ground is real and returned as read
+    const flat = responses.flat();
+    return flat.every((v) => Number.isFinite(v)) ? flat : null;
   } catch {
     return null;
   } finally {
     clearTimeout(timer);
   }
-}
-
-export function synthesizeCoarseGrid(lon: number, lat: number, gridSize = 24): number[] {
-  const seed =
-    Math.abs(Math.round(lon * 10000) * 73856093) ^ Math.abs(Math.round(lat * 10000) * 19349663);
-  const rand = seededNoise(seed);
-  const axisAngle = rand() * Math.PI;
-  const cosA = Math.cos(axisAngle);
-  const sinA = Math.sin(axisAngle);
-  const baseElev = 650 + Math.round(Math.abs(Math.sin((lat * Math.PI) / 180)) * 950 + rand() * 550);
-  const reliefAmp = 780 + rand() * 680;
-  const p1 = rand() * Math.PI * 2;
-  const p2 = rand() * Math.PI * 2;
-  const p3 = rand() * Math.PI * 2;
-
-  const out: number[] = [];
-  for (let r = 0; r < gridSize; r++) {
-    const ny = (r / (gridSize - 1)) * 2 - 1;
-    for (let c = 0; c < gridSize; c++) {
-      const nx = (c / (gridSize - 1)) * 2 - 1;
-      const u = nx * cosA + ny * sinA;
-      const v = -nx * sinA + ny * cosA;
-      const meander = 0.14 * Math.sin(u * 2.4 + p1) + 0.06 * Math.cos(u * 4.8 + p2);
-      const dv = Math.abs(v - meander);
-      const valleyCross = Math.pow(dv, 1.25) * 0.78;
-      const valleyLong = (u + 1) * 0.22;
-      const ridge1 =
-        1 - Math.abs(Math.sin(u * 4.6 + v * 2.2 + p1) * Math.cos(v * 4.2 - u * 1.8 + p2));
-      const ridge2 =
-        1 - Math.abs(Math.sin(u * 9.2 - v * 6.4 + p2) * Math.cos(v * 8.5 + u * 5.1 + p3));
-      const sideCanyons = Math.pow(ridge1, 1.6) * 0.34 + Math.pow(ridge2, 1.8) * 0.16;
-      const h =
-        baseElev +
-        reliefAmp *
-          Math.max(
-            0,
-            valleyCross + valleyLong + sideCanyons * (0.35 + 0.65 * Math.min(1, dv * 1.4)),
-          );
-      out.push(Number(h.toFixed(1)));
-    }
-  }
-  return out;
 }
 
 export function interpolateGrid(

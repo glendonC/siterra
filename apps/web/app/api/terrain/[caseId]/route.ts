@@ -6,6 +6,10 @@ import {
   readOrBuildTerrain,
   terrainCachePath,
 } from "../../../../lib/live-place/ingest.ts";
+import {
+  ElevationUnavailableError,
+  TERRAIN_FILE_VERSION,
+} from "../../../../lib/live-place/terrain-builder.ts";
 import { database } from "../../database.ts";
 import { json, problem } from "../../problem.ts";
 
@@ -58,31 +62,41 @@ function extractBboxFromGeometry(geometry: unknown): [number, number, number, nu
   ];
 }
 
-async function readCachedTerrain(id: string): Promise<TerrainFile | null> {
+/**
+ * A cached terrain file: served when it is the current version; an older version is not served but its box is
+ * returned, so the rebuild covers the same ground (and keeps that box's land cover if a fetch fails).
+ */
+async function readCachedTerrain(
+  id: string,
+): Promise<{ current: TerrainFile | null; staleBbox: [number, number, number, number] | null }> {
   try {
     const raw = await readFile(terrainCachePath(id), "utf8");
-    const parsed = JSON.parse(raw) as TerrainFile;
-    const w = parsed?.width ?? parsed?.gridSize ?? 64;
-    const h = parsed?.height ?? parsed?.gridSize ?? 64;
-    if (
-      parsed &&
+    const parsed = JSON.parse(raw) as Omit<TerrainFile, "version"> & { version?: unknown };
+    const w = parsed.width || parsed.gridSize || 64;
+    const h = parsed.height || parsed.gridSize || 64;
+    const usable =
       w >= 16 &&
       h >= 16 &&
       Array.isArray(parsed.elevations) &&
       parsed.elevations.length === w * h &&
       Array.isArray(parsed.bbox) &&
-      parsed.bbox.length === 4
-    ) {
-      return { ...parsed, gridSize: w, width: w, height: h };
+      (parsed.bbox as unknown[]).length === 4;
+    if (!usable) return { current: null, staleBbox: null };
+    if (parsed.version === TERRAIN_FILE_VERSION) {
+      return {
+        current: { ...(parsed as TerrainFile), gridSize: w, width: w, height: h },
+        staleBbox: null,
+      };
     }
+    return { current: null, staleBbox: parsed.bbox };
   } catch {
     // Cache miss
   }
-  return null;
+  return { current: null, staleBbox: null };
 }
 
 /**
- * GET /api/terrain/:caseId: returns the 64x64 3D terrain mesh, catchmentRing, and streamPaths
+ * GET /api/terrain/:caseId: returns the 3D terrain grid (TerrainFile version 2), its outline ring and streamPaths
  * for any case (including demo session copies via origin_case_id or on-demand generation from
  * the case's GeoSelection).
  */
@@ -93,37 +107,34 @@ export async function GET(
   const { caseId } = await context.params;
   const db = database();
 
-  let originCaseId = caseId;
-  try {
-    originCaseId = await analysisCaseIdOf(db, caseId);
-  } catch {
-    originCaseId = caseId;
-  }
+  const originCaseId = await analysisCaseIdOf(db, caseId).catch(() => caseId);
 
   const cachedOrigin = await readCachedTerrain(originCaseId);
-  if (cachedOrigin) {
-    return json(cachedOrigin);
+  if (cachedOrigin.current) {
+    return json(cachedOrigin.current);
   }
   if (caseId !== originCaseId) {
     const cachedDirect = await readCachedTerrain(caseId);
-    if (cachedDirect) {
-      return json(cachedDirect);
+    if (cachedDirect.current) {
+      return json(cachedDirect.current);
     }
   }
 
-  let bbox: [number, number, number, number] | null = null;
-  try {
-    const { rows } = await db.query<{ record: { geometry?: unknown } }>(
-      `SELECT record FROM records
-       WHERE case_id IN ($1, $2) AND record_type = 'GeoSelection'
-       ORDER BY CASE WHEN case_id = $1 THEN 0 ELSE 1 END, revision DESC
-       LIMIT 1`,
-      [originCaseId, caseId],
-    );
-    const geom = rows[0]?.record?.geometry;
-    bbox = extractBboxFromGeometry(geom);
-  } catch {
-    bbox = null;
+  let bbox: [number, number, number, number] | null = cachedOrigin.staleBbox;
+  if (!bbox) {
+    try {
+      const { rows } = await db.query<{ record: { geometry?: unknown } }>(
+        `SELECT record FROM records
+         WHERE case_id IN ($1, $2) AND record_type = 'GeoSelection'
+         ORDER BY CASE WHEN case_id = $1 THEN 0 ELSE 1 END, revision DESC
+         LIMIT 1`,
+        [originCaseId, caseId],
+      );
+      const geom = rows[0]?.record.geometry;
+      bbox = extractBboxFromGeometry(geom);
+    } catch {
+      bbox = null;
+    }
   }
 
   if (!bbox) {
@@ -135,7 +146,7 @@ export async function GET(
          LIMIT 1`,
         [originCaseId, caseId],
       );
-      bbox = extractBboxFromGeometry(rows[0]?.record?.geometry);
+      bbox = extractBboxFromGeometry(rows[0]?.record.geometry);
     } catch {
       bbox = null;
     }
@@ -149,6 +160,9 @@ export async function GET(
     const terrain = await readOrBuildTerrain(originCaseId, bbox);
     return json(terrain);
   } catch (err) {
+    if (err instanceof ElevationUnavailableError) {
+      return problem(503, "internal_error", err.message);
+    }
     const detail = err instanceof Error ? err.message : "Failed to build terrain";
     return problem(500, "internal_error", detail);
   }

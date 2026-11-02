@@ -1,9 +1,10 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { decodeRuns } from "../overview/terrain.ts";
+import { decodeRuns } from "./water-mask.ts";
 import { encodeRgbaPng } from "./satellite-fetcher.ts";
 import {
   buildTerrainForBbox,
   delineateOutline,
+  ElevationUnavailableError,
   TERRAIN_FILE_VERSION,
   traceChannels,
   traceRing,
@@ -61,6 +62,26 @@ describe("terrain builder", () => {
     expect(Math.max(...lats)).toBeCloseTo(41.59, 3);
     expect(terrain.streamSource).toBe("none");
     expect(terrain.streamPaths).toEqual([]);
+  });
+
+  it("fails, saying so, when no elevation source can be read: no ground stands in for it", async () => {
+    globalThis.fetch = vi.fn(() => Promise.resolve(new Response("unavailable", { status: 503 })));
+    await expect(buildTerrainForBbox([-93.62, 41.41, -93.38, 41.59])).rejects.toBeInstanceOf(
+      ElevationUnavailableError,
+    );
+  });
+
+  it("builds from Open-Meteo's grid when Terrarium cannot be read, flat ground included, and labels it", async () => {
+    globalThis.fetch = vi.fn((input: RequestInfo | URL) => {
+      const url = input instanceof Request ? input.url : input.toString();
+      if (!url.includes("api.open-meteo.com/v1/elevation"))
+        return Promise.resolve(new Response("unavailable", { status: 503 }));
+      const n = (new URL(url).searchParams.get("latitude") ?? "").split(",").length;
+      return Promise.resolve(Response.json({ elevation: new Array<number>(n).fill(244) }));
+    });
+    const terrain = await buildTerrainForBbox([-93.62, 41.41, -93.38, 41.59]);
+    expect(terrain.elevationSource).toBe("open_meteo_16");
+    expect(new Set(terrain.elevations)).toEqual(new Set([244]));
   });
 
   it("keeps the same box's earlier WorldCover when a rebuild cannot reach it, and maps its water", async () => {

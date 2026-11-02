@@ -1,12 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
-import {
-  fetchOpenMeteoGrid,
-  fetchTerrariumGrid,
-  interpolateGrid,
-  synthesizeCoarseGrid,
-} from "./dem-grid.ts";
-import { buildWaterMask, encodeRuns, type WaterSource } from "../overview/terrain.ts";
+import { fetchOpenMeteoGrid, fetchTerrariumGrid, interpolateGrid } from "./dem-grid.ts";
+import { buildWaterMask, encodeRuns, type WaterSource } from "./water-mask.ts";
 import { type NamedPeak, fetchRealHydrology } from "./hydrology-fetcher.ts";
 import { type LandCoverGrid, fetchSatelliteLandCover } from "./satellite-fetcher.ts";
 
@@ -42,7 +37,17 @@ export const TERRAIN_GRID_SIZE = 256;
 export type StreamSource = "openstreetmap" | "d8_dem" | "none";
 
 /** Where the stored elevations came from. */
-export type ElevationSource = "terrarium_z12" | "terrarium_z11" | "open_meteo_16" | "synthetic";
+export type ElevationSource = "terrarium_z12" | "terrarium_z11" | "open_meteo_16";
+
+/** Neither elevation source could be read for the box: no land is drawn, and the failure says so. */
+export class ElevationUnavailableError extends Error {
+  constructor(bbox: readonly number[]) {
+    super(
+      `Elevation unavailable for ${bbox.map((v) => v.toFixed(4)).join(", ")}: the Terrarium tiles and the Open-Meteo elevation grid could not be read.`,
+    );
+    this.name = "ElevationUnavailableError";
+  }
+}
 
 export interface TerrainFile {
   version: 2;
@@ -50,13 +55,14 @@ export interface TerrainFile {
   width: number;
   height: number;
   bbox: [number, number, number, number];
+  /** Lowest and highest land elevation (m): water cells are left out (version 2), the whole grid if all is water. */
   minElevationM: number;
   maxElevationM: number;
   elevations: number[];
   elevationSource?: ElevationSource;
   /** Terrarium pixels replaced as defects before sampling (dem-grid.ts despikeMosaic), when the source is Terrarium. */
   despikedPixels?: number;
-  /** Water on the elevation grid's nodes (lib/overview/terrain.ts buildWaterMask, encodeRuns). */
+  /** Water on the elevation grid's nodes (water-mask.ts buildWaterMask, encodeRuns). */
   waterMask?: { runs: number[]; source: WaterSource };
   /** Grid nodes that are land; minElevationM and maxElevationM are over these when there are any. */
   landCells?: number;
@@ -654,7 +660,6 @@ export async function buildTerrainForBbox(
   earlier?: EarlierLandCover,
 ): Promise<TerrainFile> {
   const [minLon, minLat, maxLon, maxLat] = bbox;
-  const cx = (minLon + maxLon) / 2;
   const cy = (minLat + maxLat) / 2;
   const coarseSize = 16;
   const targetSize = TERRAIN_GRID_SIZE;
@@ -676,10 +681,12 @@ export async function buildTerrainForBbox(
     elevations = terrarium.elevations;
     elevationSource = terrarium.zoom === 12 ? "terrarium_z12" : "terrarium_z11";
   } else {
+    // Open-Meteo's elevation grid (16 x 16 points, Copernicus DEM 90 m) is coarse and labelled as such; with neither
+    // source there is no land to draw, and nothing stands in for it
     const liveCoarse = await fetchOpenMeteoGrid(bbox, coarseSize);
-    const coarse = liveCoarse ?? synthesizeCoarseGrid(cx, cy, coarseSize);
-    elevationSource = liveCoarse ? "open_meteo_16" : "synthetic";
-    elevations = interpolateGrid(coarse, coarseSize, targetSize);
+    if (!liveCoarse) throw new ElevationUnavailableError(bbox);
+    elevationSource = "open_meteo_16";
+    elevations = interpolateGrid(liveCoarse, coarseSize, targetSize);
   }
 
   // water is mapped once here; the elevations stay as measured, and the land's own range leaves water out
