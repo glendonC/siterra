@@ -35,6 +35,8 @@ export interface AskProps {
   /** The circle hovered or focused (the overview dims its findings a little). */
   onHover?: (on: boolean) => void;
   circleRef?: Ref<HTMLButtonElement>;
+  /** False: no circle on the screen (the overview, where "/ Ask" in the command bar opens the ask). */
+  disc?: boolean;
   circleStyle?: CSSProperties;
   /** The activity line beside the disc while the ask is closed (decision 14: a status stands beside its subject). */
   besideRef?: Ref<HTMLParagraphElement>;
@@ -70,6 +72,7 @@ export function Ask({
   onHover,
   circleRef,
   circleStyle,
+  disc = true,
   besideRef,
   suggestions,
 }: AskProps) {
@@ -122,29 +125,31 @@ export function Ask({
   return (
     <div className={styles.ask} data-variant={variant} data-open={open ? "" : undefined}>
       <div className={styles.veil} aria-hidden="true" />
-      <button
-        ref={circleRef}
-        type="button"
-        className={styles.disc}
-        style={circleStyle}
-        aria-label={open ? en["ask.close"].text : en["ask.open"].text}
-        aria-keyshortcuts="/"
-        aria-expanded={open}
-        data-ask
-        onClick={open ? onClose : onOpen}
-        onPointerEnter={() => onHover?.(true)}
-        onPointerLeave={() => onHover?.(false)}
-        onFocus={() => onHover?.(true)}
-        onBlur={() => onHover?.(false)}
-      >
-        <span className={styles.label} aria-hidden="true">
-          {en["ask.circle"].text}
-        </span>
-        <svg className={styles.plus} viewBox="-10 -10 20 20" aria-hidden="true">
-          <circle r="9" />
-          <path d="M-3.6 0 H3.6 M0 -3.6 V3.6" />
-        </svg>
-      </button>
+      {disc ? (
+        <button
+          ref={circleRef}
+          type="button"
+          className={styles.disc}
+          style={circleStyle}
+          aria-label={open ? en["ask.close"].text : en["ask.open"].text}
+          aria-keyshortcuts="/"
+          aria-expanded={open}
+          data-ask
+          onClick={open ? onClose : onOpen}
+          onPointerEnter={() => onHover?.(true)}
+          onPointerLeave={() => onHover?.(false)}
+          onFocus={() => onHover?.(true)}
+          onBlur={() => onHover?.(false)}
+        >
+          <span className={styles.label} aria-hidden="true">
+            {en["ask.circle"].text}
+          </span>
+          <svg className={styles.plus} viewBox="-10 -10 20 20" aria-hidden="true">
+            <circle r="9" />
+            <path d="M-3.6 0 H3.6 M0 -3.6 V3.6" />
+          </svg>
+        </button>
+      ) : null}
       <p
         ref={besideRef}
         className={styles.beside}

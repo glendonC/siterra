@@ -53,6 +53,15 @@ export const en = {
   "chrome.data": { text: "Data: {names}", kind: "ui" },
   // the drawn relief's vertical exaggeration, after the data's names where land is drawn (decision 16)
   "chrome.relief": { text: "Relief ×{value}", kind: "label" },
+  // with the credits: the land's height is drawn exaggerated, so its slopes look steeper than they are
+  "chrome.relief.note": {
+    text: "The land's height is drawn {value} times its true scale.",
+    kind: "ui",
+    honesty: true,
+  },
+  // the run's steps, by the name the run's view already has (VT-15: no "Thinking" for a machine)
+  "chrome.key.thinking": { text: "Agents at Work", kind: "button" },
+  "chrome.key.scope": { text: "Limits", kind: "button", honesty: true },
   // the mode line at the top right of every screen after the opening (U32, U33, PC-04, DQ-02): plain scope pill
   // opening what Siterra does not do, and while a question's run is on the screen, where that run comes from
   "chrome.mode.concept": { text: "What Siterra won't do", kind: "label", honesty: true },

@@ -90,7 +90,8 @@ test("draws the land inside the arc with the case's findings", async ({ page }) 
   await expect(page.locator("[data-finding='band']")).toContainText("2,317 m");
   // the seed case holds no field plan, so no proposed field check is drawn on the land
   await expect(page.locator("[data-field-mark]")).toHaveCount(0);
-  await expect(page.locator("[data-ask]")).toBeVisible();
+  // the ask is a key in the command bar (HUD-2, decision A), not a circle on the arc
+  await expect(page.locator("[data-key-legend] [data-key='/']")).toBeVisible();
   expect(await textReport(page, "[data-overview-root]")).toEqual({
     overlaps: [],
     small: [],
@@ -436,6 +437,10 @@ test("the browser's Back reopens a view left by Esc, and Back again plays it bac
 test("the proposed routes lie on the land, lift on hover, open with the bundle's figures, and Esc returns", async ({
   page,
 }) => {
+  test.fixme(
+    true,
+    "HUD-2 decision A removed the overview's bottom-left routes entry; routes return inside the finding or plan step that uses them (DESIGN lane)",
+  );
   const sent = writes(page);
   await ready(page);
   const ends = page.locator("[data-route-end]");
@@ -512,15 +517,15 @@ test("the proposed routes lie on the land, lift on hover, open with the bundle's
   expect(sent).toEqual([]);
 });
 
-test("the ask opens and closes by its circle and by the slash key, and sends nothing", async ({
+test("the ask opens from the command bar and by the slash key, closes by Esc, and sends nothing", async ({
   page,
 }) => {
   const sent = writes(page);
   await ready(page);
-  const ask = page.locator("[data-ask]");
+  const askOpen = page.locator("[data-variant='arc'][data-open]");
   const input = page.locator("input[name='question']");
   await expect(page.locator("[data-ask-prompts]")).toHaveCount(0);
-  await ask.click();
+  await page.locator("[data-key-legend] [data-key='/']").click();
   await expect(input).toBeFocused();
   await expect(page.locator("[data-ask-suggestion]")).toHaveCount(2);
   expect(await textReport(page, "[data-overview-root]")).toEqual({
@@ -533,15 +538,15 @@ test("the ask opens and closes by its circle and by the slash key, and sends not
   // the activity line shows only after Enter
   await expect(page.locator("[data-ask-activity]")).toHaveCount(0);
   await page.keyboard.press("Escape");
-  await expect(ask).toHaveAttribute("aria-expanded", "false");
+  await expect(askOpen).toHaveCount(0);
   await expect(input).not.toBeFocused();
 
   await page.locator("body").click({ position: { x: 20, y: 450 } });
   await page.keyboard.press("/");
   await expect(input).toBeFocused();
   await expect(input).toHaveValue("");
-  await ask.click();
-  await expect(ask).toHaveAttribute("aria-expanded", "false");
+  await page.keyboard.press("Escape");
+  await expect(askOpen).toHaveCount(0);
   expect(sent).toEqual([]);
 });
 

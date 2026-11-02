@@ -1,7 +1,6 @@
 "use client";
 
 import type { CSSProperties, Dispatch, SetStateAction } from "react";
-import { Control } from "../controls/Control";
 import { en, format, type MessageId } from "../../lib/copy/en";
 import type { CursorPoint } from "../../lib/run/layout";
 import type { RunModel, RunTask, RunTaskState } from "../../lib/run/model";
@@ -415,7 +414,6 @@ export function AtWorkBottomThinkingBand({
   setStepsDismissed,
   hoveredBranch,
   setHoveredBranch,
-  onFindings,
   onFocusCause,
 }: {
   run: RunModel;
@@ -425,7 +423,6 @@ export function AtWorkBottomThinkingBand({
   setStepsDismissed: Dispatch<SetStateAction<boolean>>;
   hoveredBranch: string | null;
   setHoveredBranch: Dispatch<SetStateAction<string | null>>;
-  onFindings: () => void;
   onFocusCause?: ((causeId: string) => void) | undefined;
 }) {
   const runningTasks = run.tasks.filter(
@@ -541,21 +538,6 @@ export function AtWorkBottomThinkingBand({
               <span className={styles.checkKicker}>{en["run.check.kicker"].text}</span>
               <span className={styles.checkLabel}>{check.label}</span>
             </section>
-          ) : null}
-
-          {run.done ? (
-            <div className={styles.open} data-action-prompt="">
-              <Control
-                variant="quiet"
-                className={styles.openBtn}
-                keyHint="↵"
-                keyShortcut="Enter"
-                onClick={onFindings}
-                data-run-open-findings=""
-              >
-                {en["run.open"].text}
-              </Control>
-            </div>
           ) : null}
         </div>
 

@@ -11,30 +11,57 @@ const crumbs = (page: Page) =>
     .locator("[data-crumbs] li")
     .evaluateAll((els) => els.map((e) => e.textContent.replace("/", "").trim()));
 
-test("the overview: breadcrumb, Esc one level at a time, R resets the view, S the sources", async ({
+test("the overview: one command bar, Esc one level at a time, R resets the view, S the sources, W the scope", async ({
   page,
 }) => {
   await page.goto("/valley");
   await expect(page.locator("[data-overview-root]")).toHaveAttribute("data-ready", "", {
     timeout: 60_000,
   });
-  expect(await crumbs(page)).toEqual(["Siterra", "Aït Bouguemez valley"]);
+  // no back button: the top left holds the place and its question; Esc is in the bar (HUD-2, decision A)
+  expect(await crumbs(page)).toEqual(["Aït Bouguemez valley"]);
+  await expect(page.locator("[data-crumbs] button")).toHaveCount(0);
   await expect(page.locator("[data-key-legend] [data-key]")).toHaveText([
+    "↵See the Findings",
+    "TAgents at Work",
     // species sightings key, where the case holds a species bundle (UI-2)
     "GSpecies",
-    "EscBack",
     "/Ask",
+    "RReset View",
     "SSources",
+    "WLimits",
+    "EscBack",
   ]);
+  // nothing else floats on the overview: no thinking pill, no data line, no ask circle, no view cluster, no
+  // bottom-left legend, no mode line
+  for (const gone of [
+    "[data-thinking-toggle]",
+    "[data-sources-line]",
+    "[data-ask]",
+    "[data-view-control]",
+    "[data-routes-entry]",
+    "[data-verdict-entry]",
+    "[data-mode-line]",
+  ])
+    await expect(page.locator(gone), gone).toHaveCount(0);
+  // W says what Siterra does not do; Esc closes it before anything else
+  await page.keyboard.press("w");
+  await expect(page.locator("[data-scope-popover]")).toContainText(
+    "Siterra does not contact people, spend money or make land decisions.",
+  );
+  await page.keyboard.press("Escape");
+  await expect(page.locator("[data-scope-popover]")).toHaveCount(0);
+  await expect(page.locator("[data-overview-root]")).toBeVisible();
   // a finding opens one level down; Esc comes back up
   await page.locator("[data-finding='fdr']").click();
   await expect(page.locator("[data-record='fdr']")).toBeVisible();
-  expect(await crumbs(page)).toEqual(["Siterra", "Aït Bouguemez valley", "24.7% greening"]);
+  expect(await crumbs(page)).toEqual(["Aït Bouguemez valley", "24.7% greening"]);
   await page.keyboard.press("Escape");
   await expect(page.locator("[data-record]")).toHaveCount(0);
-  expect(await crumbs(page)).toEqual(["Siterra", "Aït Bouguemez valley"]);
-  // the view control zooms; R puts the overview's pose back
-  await page.locator("[data-view-control]").getByRole("button", { name: "Zoom In" }).click();
+  expect(await crumbs(page)).toEqual(["Aït Bouguemez valley"]);
+  // the wheel zooms; R puts the overview's pose back
+  await page.mouse.move(720, 450);
+  await page.mouse.wheel(0, -400);
   await expect(page.locator("[data-view-moved]")).toHaveCount(1);
   await page.keyboard.press("r");
   await expect(page.locator("[data-view-moved]")).toHaveCount(0);
@@ -44,8 +71,8 @@ test("the overview: breadcrumb, Esc one level at a time, R resets the view, S th
   await page.keyboard.press("Escape");
   await expect(page.locator("[data-sources-panel]")).toHaveCount(0);
   await expect(page.locator("[data-overview-root]")).toBeVisible();
-  // at the top level, the Siterra crumb returns to the opening
-  await page.locator("[data-crumbs]").getByRole("button", { name: "Siterra" }).click();
+  // at the top level, Esc returns to the opening
+  await page.keyboard.press("Escape");
   await expect(page.locator("[data-opening]")).toBeVisible({ timeout: 60_000 });
 });
 
@@ -110,17 +137,13 @@ test("a finding opens on its own side with its footprint named, and a turned lan
   await expect.poll(() => opacity("[data-case-question]")).toBeGreaterThan(0.95);
   await page.keyboard.press("Escape");
   await expect(page.locator("[data-record]")).toHaveCount(0);
-  // a turned land: the ask steps back; R brings it back
-  const ask = page.locator("[data-ask]");
+  // a turned land clears the arc's labels; R brings the pose and the labels back
   await page.mouse.move(900, 500);
   await page.mouse.down();
   for (let i = 0; i < 20; i++) await page.mouse.move(900 - i * 8, 500);
   await page.mouse.up();
-  await expect
-    .poll(() => ask.evaluate((el) => Number(getComputedStyle(el).opacity)))
-    .toBeLessThan(0.05);
+  await expect(page.locator("[data-view-moved]")).toHaveCount(1);
   await page.keyboard.press("r");
-  await expect
-    .poll(() => ask.evaluate((el) => Number(getComputedStyle(el).opacity)))
-    .toBeGreaterThan(0.95);
+  await expect(page.locator("[data-view-moved]")).toHaveCount(0);
+  await expect.poll(() => opacity("[data-finding='band']")).toBeGreaterThan(0.95);
 });

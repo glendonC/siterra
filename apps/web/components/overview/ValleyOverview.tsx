@@ -56,9 +56,8 @@ import {
   Breadcrumb,
   KeyLegend,
   OPENING_HREF,
-  SourcesLine,
+  ScopeNote,
   SourcesPanel,
-  ViewControl,
   type KeyEntry,
 } from "../controls/ScreenChrome";
 import { Ask } from "./Ask";
@@ -385,13 +384,12 @@ function OverviewReady({
       ) {
         return;
       }
-      if ((e.key === "t" || e.key === "T") && thinkingRun) {
+      if ((e.key === "t" || e.key === "T") && thinkingRun && !selRef.current) {
         e.preventDefault();
         if (atWorkShown) {
           setThinkingHidden(true);
           setAtWork(false);
         } else {
-          if (selRef.current) backRef.current();
           setThinkingHidden(false);
           setAtWork(true);
         }
@@ -678,10 +676,6 @@ function OverviewReady({
     },
     [go],
   );
-  const hoverRoutes = (on: boolean) => {
-    goal.current.r = on ? 1 : 0;
-    go();
-  };
   const open = useCallback(
     (id: Selection) => {
       if (selRef.current && selRef.current !== id) return;
@@ -864,13 +858,8 @@ function OverviewReady({
     },
     [go],
   );
-  const zoomBy = useCallback(
-    (f: number) => {
-      setCam({ zoom: camRef.current.zoom * f });
-    },
-    [setCam],
-  );
   const [panel, setPanel] = useState(false);
+  const [scope, setScope] = useState(false);
   useOverviewIdleWake({
     reducedMotion,
     idle,
@@ -1165,7 +1154,45 @@ function OverviewReady({
     sel === "package" && (pkgBrief || pkgView)
       ? `/brief?case=${encodeURIComponent(ask.snapshot.case.id)}&brief=${encodeURIComponent(pkgBrief?.id ?? pkgView?.briefId ?? "")}`
       : null;
+  // the command bar (HUD-2, decision A): every action as a key and its label, only the ones that apply now, the
+  // screen's one action first
+  const seeFindings = () => {
+    setThinkingHidden(true);
+    setAtWork(false);
+    open("results");
+  };
+  const toggleThinking = () => {
+    if (atWorkShown) {
+      setThinkingHidden(true);
+      setAtWork(false);
+    } else {
+      setThinkingHidden(false);
+      setAtWork(true);
+    }
+  };
   const keys: KeyEntry[] = [
+    ...(!sel && (!atWorkShown || run?.done)
+      ? [
+          {
+            chip: "↵",
+            shortcut: "Enter",
+            label: en["run.open"].text,
+            onPress: seeFindings,
+            ...(atWorkShown ? { marker: "data-run-open-findings" } : {}),
+          },
+        ]
+      : []),
+    ...(thinkingRun && !sel
+      ? [
+          {
+            chip: "T",
+            shortcut: "T",
+            label: en["chrome.key.thinking"].text,
+            onPress: toggleThinking,
+            pressed: atWorkShown,
+          },
+        ]
+      : []),
     ...(pkgHref
       ? [
           {
@@ -1192,15 +1219,14 @@ function OverviewReady({
         ]
       : []),
     {
-      chip: "Esc",
-      shortcut: "Escape",
-      label: en["chrome.key.back"].text,
-      onPress: () => {
-        if (selRef.current) back();
-        else toOpening();
-      },
+      chip: "/",
+      shortcut: "/",
+      label: en["chrome.key.ask"].text,
+      onPress: onAskOpen,
     },
-    { chip: "/", shortcut: "/", label: en["chrome.key.ask"].text, onPress: onAskOpen },
+    ...(!atWorkShown && data
+      ? [{ chip: "R", shortcut: "R", label: en["chrome.key.reset"].text, onPress: reset }]
+      : []),
     {
       chip: "S",
       shortcut: "S",
@@ -1210,7 +1236,55 @@ function OverviewReady({
       },
       pressed: panel,
     },
+    {
+      chip: "W",
+      shortcut: "W",
+      label: en["chrome.key.scope"].text,
+      onPress: () => {
+        setScope((s) => !s);
+      },
+      pressed: scope,
+    },
+    {
+      chip: "Esc",
+      shortcut: "Escape",
+      label: en["chrome.key.back"].text,
+      onPress: () => {
+        if (selRef.current) back();
+        else toOpening();
+      },
+    },
   ];
+  const keysRef = useRef({ seeFindings, atWorkShown });
+  keysRef.current = { seeFindings, atWorkShown };
+  // Enter at rest opens the findings (at work, AtWork's own Enter does once the run is done); W the scope note
+  useEffect(() => {
+    const onKey = (ev: KeyboardEvent) => {
+      if (ev.metaKey || ev.ctrlKey || ev.altKey || askOpen || arriving || tear) return;
+      const t = ev.target;
+      if (
+        t instanceof HTMLElement &&
+        t.closest("input, textarea, select, a, button, [contenteditable]")
+      )
+        return;
+      if (ev.key === "w" || ev.key === "W") {
+        ev.preventDefault();
+        setScope((s) => !s);
+      } else if (
+        ev.key === "Enter" &&
+        !selRef.current &&
+        !keysRef.current.atWorkShown &&
+        !hoverShown.current
+      ) {
+        ev.preventDefault();
+        keysRef.current.seeFindings();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [askOpen, arriving, tear]);
 
   const selFinding =
     sel && sel !== "field" && sel !== "results" && sel !== "routes"
@@ -1250,22 +1324,6 @@ function OverviewReady({
           </span>
           <span>{effectiveQuestion ?? snapshot.case.objective}</span>
         </div>
-        {!atWorkShown && !sel && thinkingRun ? (
-          <button
-            type="button"
-            className={styles.thinkingClosedPill}
-            data-thinking-toggle="closed"
-            onClick={() => {
-              setThinkingHidden(false);
-              setAtWork(true);
-            }}
-          >
-            <span className={styles.thinkingPillDot} aria-hidden="true" />
-            <span>{`${thinkingRun.tasks.length} steps completed`}</span>
-            <span className={styles.thinkingPillAction}>Inspect thinking ▸</span>
-            <kbd className={styles.thinkingPillKbd}>T</kbd>
-          </button>
-        ) : null}
         {atWorkShown && run && !sel && runArc ? (
           <AtWork
             run={run}
@@ -1279,10 +1337,6 @@ function OverviewReady({
               setThinkingHidden(true);
               setAtWork(false);
               open("results");
-            }}
-            onToggleThinking={() => {
-              setThinkingHidden(true);
-              setAtWork(false);
             }}
             onFocusTask={focusTaskLayer}
             onFocusLayer={(l) => {
@@ -1434,52 +1488,6 @@ function OverviewReady({
               </div>
             ) : null}
           </div>
-          <div className={styles.placeEntries}>
-            {data && data.routes.length ? (
-              <button
-                ref={routesRef}
-                type="button"
-                className={styles.routes}
-                data-routes-entry
-                aria-expanded={sel === "routes"}
-                onPointerEnter={() => {
-                  hoverRoutes(true);
-                }}
-                onPointerLeave={() => {
-                  hoverRoutes(false);
-                }}
-                onFocus={() => {
-                  hoverRoutes(true);
-                }}
-                onBlur={() => {
-                  hoverRoutes(false);
-                }}
-                onClick={() => {
-                  open("routes");
-                }}
-              >
-                <i className={styles.dash} aria-hidden="true" />
-                {en["overview.routes"].text}
-                <Arrow deg={45} className={styles.tagArrow} />
-              </button>
-            ) : null}
-            {data ? (
-              <button
-                ref={verdictEntryRef}
-                type="button"
-                className={styles.verdictEntry}
-                data-verdict-entry
-                aria-expanded={sel === "results"}
-                onClick={() => {
-                  open("results");
-                }}
-              >
-                <i className={styles.verdictDot} aria-hidden="true" />
-                {pkg["verdict.open"].text}
-                <Arrow deg={45} className={styles.tagArrow} />
-              </button>
-            ) : null}
-          </div>
         </footer>
         {failed ? (
           <p className={styles.failed} role="status" data-overview-failed>
@@ -1572,6 +1580,7 @@ function OverviewReady({
             liveSearch={ask.liveSearch}
             onToggleLiveSearch={ask.setLiveSearch}
             onHover={setAskHover}
+            disc={false}
             circleRef={askCircleRef}
             besideRef={askBesideRef}
             suggestions={(listing.suggestedQuestions ?? []).filter(
@@ -1595,12 +1604,12 @@ function OverviewReady({
         </button>
       ) : null}
       <Breadcrumb
+        brand={false}
         onBack={() => {
           if (selRef.current) back();
           else toOpening();
         }}
         crumbs={[
-          { label: en["opening.title"].text, onSelect: toOpening },
           sel ? { label: names.valleyName, onSelect: back } : { label: names.valleyName },
           ...(sel
             ? [
@@ -1620,19 +1629,18 @@ function OverviewReady({
       />
       {data ? (
         <>
-          <ViewControl
-            onReset={reset}
-            onZoom={(f) => {
-              zoomBy(f);
+          <KeyLegend entries={keys} />
+          <ScopeNote
+            open={scope}
+            onClose={() => {
+              setScope(false);
             }}
           />
-          <KeyLegend entries={keys}>
-            <SourcesLine sources={layers ? { ...sourceSet, relief: EXAG } : sourceSet} />
-          </KeyLegend>
           <SourcesPanel
-            sources={sourceSet}
+            sources={layers ? { ...sourceSet, relief: EXAG } : sourceSet}
             open={panel}
-            side={sel && sideOf(sel, selFinding?.clock) === "right" ? "left" : "right"}
+            // the bottom left is clear of findings at rest; with a card open, the side the card is not on
+            side={sel && sideOf(sel, selFinding?.clock) === "left" ? "right" : "left"}
             onClose={() => {
               setPanel(false);
             }}

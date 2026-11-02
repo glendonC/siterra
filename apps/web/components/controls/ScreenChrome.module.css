@@ -213,6 +213,37 @@
   margin-top: 6px;
 }
 
+.panelNote {
+  margin: 10px 0 0;
+  font: 400 12px / 17px var(--font-sans);
+  color: var(--control-grey);
+}
+
+/* what Siterra does not do, above the command bar at the bottom right */
+.scopeNote {
+  position: absolute;
+  right: 40px;
+  bottom: 72px;
+  z-index: 30;
+  width: 320px;
+  padding: 10px 14px;
+  border: 1px solid var(--control-line);
+  border-radius: 12px;
+  background: var(--bg-overlay);
+  color: var(--control-ink);
+  font: 400 12px / 17px var(--font-sans);
+  pointer-events: auto;
+}
+
+.scopeNote p {
+  margin: 0;
+}
+
+.scopeNote p + p {
+  margin-top: 4px;
+  color: var(--control-grey);
+}
+
 .view {
   position: absolute;
   left: 50%;

@@ -305,6 +305,8 @@ export function useOverviewLayoutApply(args: UseOverviewLayoutApplyArgs) {
       const shiftY = fit.scale > 0 ? fit.oy / fit.scale : 0;
       hud.style.setProperty("--hud-shift-x", `${shiftX.toFixed(2)}px`);
       hud.style.setProperty("--hud-shift-y", `${shiftY.toFixed(2)}px`);
+      // the header under the place name is set in screen px, so it keeps its place below the (unscaled) name
+      hud.style.setProperty("--hud-scale", fit.scale.toFixed(5));
       const pkgAway = pkgQuiet
         ? 1
         : selected === "package" || selected === "time"

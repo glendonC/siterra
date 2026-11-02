@@ -65,8 +65,8 @@
 
 .topLeftHeader {
   position: absolute;
-  top: 58px;
-  left: 40px;
+  top: calc(62px / var(--hud-scale, 1) - var(--hud-shift-y, 0px));
+  left: calc(40px / var(--hud-scale, 1) - var(--hud-shift-x, 0px));
   z-index: 9;
   max-width: 540px;
   display: flex;
@@ -97,52 +97,6 @@
   letter-spacing: -0.005em;
   color: var(--text-secondary);
   text-shadow: var(--paper-halo);
-}
-
-.thinkingTogglePill {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 4px 10px 4px 8px;
-  border: 1px solid color-mix(in srgb, var(--text-primary) 14%, transparent);
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--bg-canvas) 82%, transparent);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  font: 500 11.5px / 15px var(--font-sans);
-  color: var(--text-secondary);
-  cursor: pointer;
-  pointer-events: auto;
-  transition: color 140ms ease, border-color 140ms ease, background 140ms ease;
-}
-
-.thinkingTogglePill:hover,
-.thinkingTogglePill:focus-visible {
-  color: var(--text-primary);
-  border-color: color-mix(in srgb, var(--text-primary) 28%, transparent);
-  background: color-mix(in srgb, var(--bg-canvas) 92%, transparent);
-  outline: none;
-}
-
-.thinkingToggleDot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--ov-blue);
-  flex-shrink: 0;
-}
-
-.thinkingToggleAction {
-  color: var(--text-primary);
-  font-weight: 500;
-}
-
-.thinkingToggleKbd {
-  padding: 1px 4px;
-  border-radius: 3px;
-  background: color-mix(in srgb, var(--text-primary) 7%, transparent);
-  font: 500 9.5px / 12px var(--font-mono);
-  color: var(--text-tertiary);
 }
 
 /* ─── Sleek Icon-Only Left Squircle Rail + Feathered Side-Blur Inspector ─── */
@@ -558,7 +512,8 @@
   align-items: center;
   justify-content: flex-end;
   gap: 9px;
-  padding: 36px 48px 26px;
+  /* clear of the command bar at the bottom right */
+  padding: 36px 48px 64px;
   pointer-events: none;
 }
 
@@ -731,15 +686,6 @@
 
 .checkLabel {
   font: 500 12.5px / 16px var(--font-sans);
-  color: var(--text-primary);
-}
-
-.open {
-  display: inline-flex;
-  align-items: center;
-}
-
-.openBtn {
   color: var(--text-primary);
 }
 

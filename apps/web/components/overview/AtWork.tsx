@@ -78,15 +78,12 @@ export function AtWork({
   nowMs: fixedNow,
   recording = null,
   onFindings,
-  onToggleThinking,
   onFocusTask,
   onFocusLayer,
   onFocusCause,
 }: {
   /** Opens the run's findings (the results), once it is done: the question card's Enter (decision 15). */
   onFindings: () => void;
-  /** Collapses/toggles the agent thinking overlay after completion so the user can switch freely between thinking and the 3D map. */
-  onToggleThinking?: () => void;
   /** Syncs the 3D terrain layer carve/lift with the active or selected agent task. */
   onFocusTask?: (task: RunTask | null) => void;
   /** Manually focuses a specific 3D terrain layer from the inline visual breakdown. */
@@ -281,7 +278,7 @@ export function AtWork({
         ) : null}
       </svg>
 
-      {/* Top-Left Question & Perplexity-Style Thinking Toggle under the Place Title */}
+      {/* Top left: the question (and, for a replay, where it comes from); T Thinking is in the command bar */}
       <header className={styles.topLeftHeader}>
         <section className={styles.question} data-run-question>
           <span className={styles.questionCaret} data-chrome="" aria-hidden="true">
@@ -290,20 +287,6 @@ export function AtWork({
           <h2 className={styles.asked}>{question}</h2>
         </section>
         {note}
-        {run.done && onToggleThinking ? (
-          <button
-            type="button"
-            className={styles.thinkingTogglePill}
-            data-thinking-toggle="open"
-            data-chrome=""
-            onClick={onToggleThinking}
-          >
-            <span className={styles.thinkingToggleDot} aria-hidden="true" />
-            <span>{`${run.tasks.length} steps completed`}</span>
-            <span className={styles.thinkingToggleAction}>Hide thinking</span>
-            <kbd className={styles.thinkingToggleKbd}>T</kbd>
-          </button>
-        ) : null}
       </header>
 
       <AtWorkAgentTree
@@ -328,7 +311,6 @@ export function AtWork({
         setStepsDismissed={setStepsDismissed}
         hoveredBranch={hoveredBranch}
         setHoveredBranch={setHoveredBranch}
-        onFindings={onFindings}
         onFocusCause={onFocusCause}
       />
 

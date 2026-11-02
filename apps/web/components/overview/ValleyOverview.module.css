@@ -93,8 +93,8 @@
 /* the case question, under the place title (components/controls/ScreenChrome) */
 .question {
   position: absolute;
-  left: calc(40px - var(--hud-shift-x, 0px));
-  top: calc(58px - var(--hud-shift-y, 0px));
+  left: calc(40px / var(--hud-scale, 1) - var(--hud-shift-x, 0px));
+  top: calc(62px / var(--hud-scale, 1) - var(--hud-shift-y, 0px));
   display: flex;
   align-items: baseline;
   gap: 7px;
@@ -111,56 +111,6 @@
   color: var(--ov-blue);
   flex-shrink: 0;
   transform: translateY(-1px);
-}
-
-.thinkingClosedPill {
-  position: absolute;
-  left: calc(40px - var(--hud-shift-x, 0px));
-  top: calc(84px - var(--hud-shift-y, 0px));
-  z-index: 15;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 4px 10px 4px 8px;
-  border: 1px solid color-mix(in srgb, var(--ov-ink) 14%, transparent);
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--bg-canvas) 82%, transparent);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  font: 500 11.5px / 15px var(--font-sans);
-  color: var(--ov-ink-2);
-  cursor: pointer;
-  pointer-events: auto;
-  transition: color 140ms ease, border-color 140ms ease, background 140ms ease;
-}
-
-.thinkingClosedPill:hover,
-.thinkingClosedPill:focus-visible {
-  color: var(--ov-ink);
-  border-color: color-mix(in srgb, var(--ov-ink) 28%, transparent);
-  background: color-mix(in srgb, var(--bg-canvas) 94%, transparent);
-  outline: none;
-}
-
-.thinkingPillDot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--ov-blue);
-  flex-shrink: 0;
-}
-
-.thinkingPillAction {
-  color: var(--ov-ink);
-  font-weight: 500;
-}
-
-.thinkingPillKbd {
-  padding: 1px 4px;
-  border-radius: 3px;
-  background: color-mix(in srgb, var(--ov-ink) 7%, transparent);
-  font: 500 9.5px / 12px var(--font-mono);
-  color: var(--ov-ink-3);
 }
 
 .finding[style*="pointer-events: none"] {
@@ -501,86 +451,6 @@
 
 /* the proposed walking routes' one entry, under the key: D4's amber tag (12 px, the circled arrow) with a dashed
    amber stroke for the lines it names; hovering lifts the routes on the land, choosing it opens them */
-.placeEntries {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  margin-top: 10px;
-}
-
-.routes {
-  display: flex;
-  align-items: center;
-  margin: 0;
-  padding: 0;
-  border: 0;
-  background: none;
-  font-family: var(--font-sans);
-  font-size: 12px;
-  line-height: 16px;
-  color: var(--ov-amber-tag);
-  white-space: nowrap;
-  cursor: pointer;
-  pointer-events: auto;
-}
-
-.routes:focus {
-  outline: none;
-}
-
-.routes:focus-visible {
-  outline: 1px solid var(--ov-focus);
-  outline-offset: 3px;
-}
-
-.dash {
-  display: inline-block;
-  width: 16px;
-  height: 0;
-  margin-right: 8px;
-  border-top: 1.5px dashed var(--accent);
-}
-
-.verdictEntry {
-  display: flex;
-  align-items: center;
-  margin: 0;
-  padding: 0;
-  border: 0;
-  background: none;
-  font-family: var(--font-sans);
-  font-size: 12px;
-  line-height: 16px;
-  color: var(--ov-ink-2);
-  white-space: nowrap;
-  cursor: pointer;
-  pointer-events: auto;
-  transition: color 0.15s ease;
-}
-
-.verdictEntry:hover {
-  color: var(--ov-bright);
-}
-
-.verdictEntry:focus {
-  outline: none;
-}
-
-.verdictEntry:focus-visible {
-  outline: 1px solid var(--ov-focus);
-  outline-offset: 3px;
-}
-
-.verdictDot {
-  display: inline-block;
-  width: 7px;
-  height: 7px;
-  margin: 0 9px 0 4px;
-  border-radius: 50%;
-  border: 1.5px solid var(--ov-green);
-  box-sizing: border-box;
-}
-
 /* each route's end on the land: a hollow amber ring like the proposed field check's (D4's proposed mark), a touch
    larger while the routes are lifted, with its number beside it once the routes are opened */
 .site {
@@ -794,9 +664,9 @@
   white-space: pre-line;
 }
 
-/* a question at work (U29): clean 3D terrain scan without the circular wire arc, bottom place block, or floating ask disc */
-.layer[data-at-work] :is(.findings, [data-wire], .question, .place, .placeEntries, .arcCanvas, .liftLabel, .liftWire),
-.layer[data-at-work] > :has(> [data-key-legend]) {
+/* a question at work (U29): clean 3D terrain scan without the circular wire arc or the bottom place block; the command
+   bar stays */
+.layer[data-at-work] :is(.findings, [data-wire], .question, .place, .arcCanvas, .liftLabel, .liftWire) {
   opacity: 0 !important;
   pointer-events: none !important;
 }

@@ -17,59 +17,73 @@ export interface Crumb {
   onSelect?: () => void;
 }
 
-/** "Siterra / Aït Bouguemez valley / 24.7% greening": each parent crumb navigates back to its level ("chrome.back"). */
-export function Breadcrumb({ crumbs }: { crumbs: Crumb[]; onBack?: () => void }) {
+/**
+ * "Siterra / Aït Bouguemez valley / 24.7% greening": each parent crumb navigates back to its level ("chrome.back").
+ * Without the brand crumb (the overview, where Esc in the command bar goes back), the trail starts at the place.
+ */
+export function Breadcrumb({
+  crumbs,
+  brand = true,
+}: {
+  crumbs: Crumb[];
+  onBack?: () => void;
+  brand?: boolean;
+}) {
+  const offset = brand ? 0 : 1;
   return (
     <nav className={styles.crumbs} aria-label={en["chrome.crumbs"].text} data-crumbs>
       <ol className={styles.trail}>
-        {crumbs.map((c, i) => (
-          <li
-            key={`${String(i)}-${c.label}`}
-            className={styles.crumb}
-            data-brand-crumb={i === 0 ? "" : undefined}
-            data-place-crumb={i === 1 ? "" : undefined}
-          >
-            {i > 1 ? (
-              <span className={styles.sep} aria-hidden="true">
-                /
-              </span>
-            ) : null}
-            {c.onSelect ? (
-              <button
-                type="button"
-                className={i === 0 ? styles.brandButton : styles.crumbButton}
-                onClick={c.onSelect}
-                title={i === 0 ? "Back to Globe" : undefined}
-              >
-                {i === 0 ? (
-                  <>
-                    <svg
-                      className={styles.backChevron}
-                      viewBox="0 0 14 14"
-                      fill="none"
-                      aria-hidden="true"
-                    >
-                      <path
-                        d="M9 2.75L4.75 7L9 11.25"
-                        stroke="currentColor"
-                        strokeWidth="1.25"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                    <span className={styles.srOnly}>{c.label}</span>
-                  </>
-                ) : (
-                  <span>{c.label}</span>
-                )}
-              </button>
-            ) : (
-              <span className={styles.here} aria-current="page">
-                {c.label}
-              </span>
-            )}
-          </li>
-        ))}
+        {crumbs.map((c, n) => {
+          const i = n + offset;
+          return (
+            <li
+              key={`${String(i)}-${c.label}`}
+              className={styles.crumb}
+              data-brand-crumb={i === 0 ? "" : undefined}
+              data-place-crumb={i === 1 ? "" : undefined}
+            >
+              {i > 1 ? (
+                <span className={styles.sep} aria-hidden="true">
+                  /
+                </span>
+              ) : null}
+              {c.onSelect ? (
+                <button
+                  type="button"
+                  className={i === 0 ? styles.brandButton : styles.crumbButton}
+                  onClick={c.onSelect}
+                  title={i === 0 ? "Back to Globe" : undefined}
+                >
+                  {i === 0 ? (
+                    <>
+                      <svg
+                        className={styles.backChevron}
+                        viewBox="0 0 14 14"
+                        fill="none"
+                        aria-hidden="true"
+                      >
+                        <path
+                          d="M9 2.75L4.75 7L9 11.25"
+                          stroke="currentColor"
+                          strokeWidth="1.25"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                      <span className={styles.srOnly}>{c.label}</span>
+                    </>
+                  ) : (
+                    <span>{c.label}</span>
+                  )}
+                </button>
+              ) : (
+                <span className={styles.here} aria-current="page">
+                  {c.label}
+                </span>
+              )}
+            </li>
+          );
+        })}
       </ol>
     </nav>
   );
@@ -150,6 +164,8 @@ export interface KeyEntry {
   label: string;
   onPress: () => void;
   pressed?: boolean;
+  /** A data attribute the entry's button carries (for an action that kept its marker when it moved into the bar). */
+  marker?: string;
 }
 
 /** The keys that work right now, each a button that does what its key does. */
@@ -167,6 +183,7 @@ export function KeyLegend({ entries, children }: { entries: KeyEntry[]; children
               aria-pressed={e.pressed}
               onClick={e.onPress}
               data-key={e.chip}
+              {...(e.marker ? { [e.marker]: "" } : {})}
             >
               <KeyChip>{e.chip}</KeyChip>
               <span>{e.label}</span>
@@ -209,6 +226,7 @@ export function SourcesPanel({
   onClose,
   side = "right",
 }: {
+  /** With `relief`, the drawn relief's exaggeration is said here, with the credits, rather than on the screen. */
   sources: SourceSet;
   open: boolean;
   onClose: () => void;
@@ -244,6 +262,37 @@ export function SourcesPanel({
           <li key={l}>{l}</li>
         ))}
       </ol>
+      {sources.relief === undefined ? null : (
+        <p className={styles.panelNote} data-relief>
+          {format("chrome.relief.note", { value: sources.relief })}
+        </p>
+      )}
+    </div>
+  );
+}
+
+/** What Siterra does not do, and who reviews (PC-04): one key in the command bar opens it; Esc or the key closes it. */
+export function ScopeNote({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const id = useId();
+  useEffect(() => {
+    if (!open) return;
+    // in the capture phase, so the Esc that closes the note is not also the screen's Esc
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      onClose();
+    };
+    window.addEventListener("keydown", onKey, true);
+    return () => {
+      window.removeEventListener("keydown", onKey, true);
+    };
+  }, [open, onClose]);
+  if (!open) return null;
+  return (
+    <div id={id} className={styles.scopeNote} role="note" data-scope-popover>
+      <p>{en["chrome.scope.not"].text}</p>
+      <p>{en["chrome.scope.review"].text}</p>
     </div>
   );
 }

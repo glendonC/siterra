@@ -170,9 +170,28 @@ test("the thinking is the case's own run: the recording's question and measured 
 
   await page.goto("/valley?case=case_calaveras_creek");
   await expect(page.locator("[data-overview-root][data-ready]")).toBeAttached({ timeout: 90_000 });
-  await expect(page.locator("[data-thinking-toggle]")).toHaveCount(0);
+  await expect(page.locator("[data-key-legend] [data-key='T']")).toHaveCount(0);
   await page.keyboard.press("t");
   await page.waitForTimeout(1500);
   await expect(page.locator("[data-at-work]")).toHaveCount(0);
   await expect(page.locator("[data-run-status]")).toHaveCount(0);
+});
+
+test("on an open card T is the card's own key: it opens Over Time and never switches the thinking on", async ({
+  page,
+}) => {
+  test.setTimeout(240_000);
+  await page.goto("/valley");
+  await expect(page.locator("[data-overview-root]")).toHaveAttribute("data-ready", "", {
+    timeout: 90_000,
+  });
+  await page.locator("[data-finding='band']").click();
+  await expect(page.locator("[data-record='band']")).toBeVisible();
+  await page.keyboard.press("t");
+  await expect(page.locator("[data-crumbs]")).toContainText("Over Time", { timeout: 20_000 });
+  await page.keyboard.press("Escape");
+  await expect(page.locator("[data-crumbs]")).not.toContainText("Over Time", { timeout: 20_000 });
+  await page.waitForTimeout(1500);
+  await expect(page.locator("[data-at-work]")).toHaveCount(0);
+  await expect(page.locator("[data-overview-root][data-at-work]")).toHaveCount(0);
 });

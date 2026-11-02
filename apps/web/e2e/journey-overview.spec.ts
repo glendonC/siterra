@@ -69,7 +69,8 @@ test("the opening, the globe and the zoom land on the overview, and a reload ret
   // the overview waits under the globe, out of reach: no key on the globe reaches it
   await expect(page.locator("#arrival")).toHaveAttribute("inert", "");
   await page.keyboard.press("/");
-  await expect(page.locator("[data-ask]")).toHaveAttribute("aria-expanded", "false");
+  // (the overview's ask has no circle now: it is closed while its panel is not open)
+  await expect(page.locator("[data-variant='arc'][data-open]")).toHaveCount(0);
   // "/" is the globe's own place search; leave it before choosing
   await page.evaluate(() => {
     (document.activeElement as HTMLElement | null)?.blur();
