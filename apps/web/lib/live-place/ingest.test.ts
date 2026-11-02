@@ -1,8 +1,23 @@
 import type * as NodeFs from "node:fs";
-import { writeFileSync } from "node:fs";
-import { buildTerrainForBbox } from "./terrain-builder.ts";
+import { readFileSync, writeFileSync } from "node:fs";
 import type { CaseSeedRecords, Pool } from "@siterra/db";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type * as LandcoverMod from "./landcover-change.ts";
+import {
+  classesFromCrop,
+  computeLandCoverChange,
+  fetchLandCoverChange,
+} from "./landcover-change.ts";
+import { type Bbox, parseNpy } from "./planetary.ts";
+import { buildTerrainForBbox } from "./terrain-builder.ts";
+import type * as VegetationMod from "./vegetation-series.ts";
+import {
+  REFERENCE_YEARS,
+  VEGETATION_LIMITATIONS,
+  VEGETATION_METHOD,
+  type VegetationSeries,
+  fetchVegetationSeries,
+} from "./vegetation-series.ts";
 
 // The live record for New York, ingested with the network and database stubbed: Open-Meteo answers with a
 // known daily archive, every other service is unreachable, and the seed handed to the database is captured.
@@ -26,6 +41,7 @@ vi.mock("node:fs", async (importOriginal) => {
       isPlaceCache(args[0]) ? (disk.placeCache ?? "") : fs.readFileSync(...args),
     mkdirSync: vi.fn(),
     writeFileSync: vi.fn(),
+    renameSync: vi.fn(),
   };
 });
 vi.mock("../../app/api/geocode/route.ts", () => ({
@@ -80,6 +96,30 @@ vi.mock("./biodiversity-fetcher.ts", () => ({
   ),
 }));
 vi.mock("./llm-reasoner.ts", () => ({ reasonOverCaseWithLlm: vi.fn(() => Promise.resolve(null)) }));
+vi.mock("./vegetation-series.ts", async (importOriginal) => ({
+  ...(await importOriginal<typeof VegetationMod>()),
+  fetchVegetationSeries: vi.fn(() =>
+    Promise.resolve({
+      status: "missing" as const,
+      source: "modis-13Q1-061" as const,
+      reason: "http_error" as const,
+      detail: "STAC search returned HTTP 503.",
+      elapsedMs: 1,
+    }),
+  ),
+}));
+vi.mock("./landcover-change.ts", async (importOriginal) => ({
+  ...(await importOriginal<typeof LandcoverMod>()),
+  fetchLandCoverChange: vi.fn(() =>
+    Promise.resolve({
+      status: "missing" as const,
+      source: "io-lulc-annual-v02" as const,
+      reason: "http_error" as const,
+      detail: "STAC search returned HTTP 503.",
+      elapsedMs: 1,
+    }),
+  ),
+}));
 
 function dailyArchive() {
   const time: string[] = [];
@@ -444,5 +484,269 @@ describe("ingest with a too-short outline ring", () => {
     expect(geo?.label).toBe("Area within the 20 km box");
     const geometry = geo?.geometry;
     expect(geometry?.type === "Polygon" ? geometry.coordinates[0]?.length : 0).toBe(5);
+  });
+});
+
+function sampleVegetationSeries(withheld = false): VegetationSeries {
+  const seasons = Array.from({ length: 25 }, (_, i) => ({
+    year: 2000 + i,
+    meanNdvi: Number((0.42 + i * 0.0012).toFixed(4)),
+    validPixelShare: Number((0.85 + (i % 5) * 0.02).toFixed(4)),
+    compositesKept: 8,
+    compositesExpected: 8,
+  }));
+  return {
+    window: {
+      months: [5, 6, 7, 8],
+      label: "May to August",
+      rule: "The four consecutive months with the highest mean NDVI on the mean seasonal cycle of 2003, 2012, 2021 (reference years fixed in code), chosen before any trend was computed; a window that crosses the year end belongs to the year it starts.",
+      referenceYears: [...REFERENCE_YEARS],
+      referenceCycle: [0.2, 0.22, 0.3, 0.41, 0.52, 0.58, 0.6, 0.55, 0.44, 0.33, 0.25, 0.21],
+    },
+    qaRule:
+      "Terra MOD13Q1 v6.1 only; NDVI = DN / 10000 kept where pixel reliability is 0 or 1 and -0.2 <= NDVI <= 1.0; a season's value per pixel is the mean of kept composites, defined when at least half of the window's 16-day periods are kept",
+    method: { ...VEGETATION_METHOD },
+    seasons,
+    yearsUsed: seasons.map((s) => s.year),
+    placePixels: 140,
+    analysisPixels: 112,
+    areaTrend: withheld
+      ? null
+      : {
+          perDecade: 0.012,
+          sen95PerDecade: [0.0085, 0.0155],
+          mannKendallP: 0.0012,
+          seasonsUsed: 25,
+        },
+    areaTrendWithheld: withheld
+      ? "Only 11 of 25 seasons had a value for at least 70% of the place's pixels; an area trend needs at least 15."
+      : null,
+    pixelShares: {
+      pixelsTested: 108,
+      upward: 0.3148,
+      downward: 0.0463,
+      includesZero: 0.6389,
+      fdrUpward: 0.2222,
+      fdrDownward: 0.0185,
+      fdrQ: 0.05,
+      chancePerDirection: 0.025,
+    },
+    grid: {
+      width: 14,
+      height: 10,
+      pixelSizeM: 231.656,
+      boundsSinusoidal: [0, 0, 1000, 1000],
+      inPlace: new Uint8Array(140).fill(1),
+      seasonMeans: new Float32Array(25 * 140).fill(0.45),
+      slopePerDecade: new Float32Array(140).fill(0.012),
+    },
+    unreadComposites: [],
+    limitations: [...VEGETATION_LIMITATIONS],
+  };
+}
+
+function sampleLandCoverChange() {
+  const fixture = (name: string) => readFileSync(new URL(`./fixtures/${name}`, import.meta.url));
+  const crop2017 = new Uint8Array(fixture("io-lulc-18t-2017-central-park.npy"));
+  const crop2023 = new Uint8Array(fixture("io-lulc-18t-2023-central-park.npy"));
+  const parseClasses = (bytes: Uint8Array) => {
+    const arr = parseNpy(bytes);
+    if (!arr) throw new Error("fixture did not parse");
+    return classesFromCrop(arr, 32, 32);
+  };
+  const c2017 = parseClasses(crop2017);
+  const c2023 = parseClasses(crop2023);
+  const bbox: Bbox = [-73.975, 40.775, -73.955, 40.79];
+  return computeLandCoverChange(
+    [2017, 2018, 2019, 2020, 2021, 2022, 2023].map((year) => ({
+      year,
+      itemIds: [`18T-${String(year)}`],
+      classes: year === 2017 ? c2017 : c2023,
+    })),
+    { width: 32, height: 32, bbox, inPlace: new Uint8Array(32 * 32).fill(1) },
+  );
+}
+
+describe("DATA 01 and DATA 02 wiring in ingest", () => {
+  it("wires measured MODIS vegetation and Impact Observatory land cover under a 20 s cap", async () => {
+    const vegSeries = sampleVegetationSeries(false);
+    const lcChange = sampleLandCoverChange();
+    vi.mocked(fetchVegetationSeries).mockResolvedValueOnce({
+      status: "measured",
+      value: vegSeries,
+      provenance: {
+        source: "modis-13Q1-061",
+        items: ["MOD13Q1.A2000129.h12v04.061.1", "MOD13Q1.A2024209.h12v04.061.1"],
+        window: { start: "2000-05-08", end: "2024-09-12" },
+        method: { id: "live_vegetation_trend", version: "1.0.0" },
+        retrievedAt: "2026-11-02T12:00:00.000Z",
+        elapsedMs: 120,
+      },
+    });
+    vi.mocked(fetchLandCoverChange).mockResolvedValueOnce({
+      status: "measured",
+      value: lcChange,
+      provenance: {
+        source: "io-lulc-annual-v02",
+        items: lcChange.years.flatMap((y) => y.itemIds),
+        window: { start: "2017-01-01", end: "2023-12-31" },
+        method: { id: "live_landcover_change", version: "1.0.0" },
+        retrievedAt: "2026-11-02T12:00:00.000Z",
+        elapsedMs: 85,
+      },
+    });
+
+    const { outcome, seed, bundle } = await ingestNewYork();
+
+    expect(vi.mocked(fetchVegetationSeries)).toHaveBeenCalledWith(
+      expect.any(Array),
+      undefined,
+      expect.objectContaining({ timeoutMs: 20_000 }),
+    );
+    expect(vi.mocked(fetchLandCoverChange)).toHaveBeenCalledWith(
+      expect.any(Array),
+      undefined,
+      expect.objectContaining({ timeoutMs: 20_000 }),
+    );
+
+    // 25 ndvi_growing_season_mean records with validFraction = validPixelShare
+    const ndviYearly = bundle.measurements.filter((m) => m.metric === "ndvi_growing_season_mean");
+    expect(ndviYearly).toHaveLength(25);
+    for (let i = 0; i < 25; i++) {
+      const m = ndviYearly[i];
+      const expected = vegSeries.seasons[i];
+      expect(m?.status).toBe("available");
+      expect(m?.value).toBe(expected?.meanNdvi);
+      expect(m?.validFraction).toBe(expected?.validPixelShare);
+      expect(m?.totalPixelCount).toBe(112);
+      expect(m?.aggregation).toContain("May to August");
+      expect(m?.aggregation).toContain("2003, 2012, 2021");
+      expect(m?.aggregation).toContain("pixel reliability is 0 or 1");
+      expect(m?.aggregation).toContain("112 analysis pixels");
+      expect(m?.aggregation).toContain("live_vegetation_trend@1.0.0");
+    }
+
+    // meas_catchment_trend from areaTrend (Sen slope, 95% interval, Mann-Kendall p)
+    const catchmentTrend = bundle.measurements.find((m) =>
+      m.id.startsWith("meas_catchment_trend_"),
+    );
+    expect(catchmentTrend?.status).toBe("available");
+    expect(catchmentTrend?.value).toBe(0.012);
+    expect(catchmentTrend?.periodId).toBe("period_2000-2024_may_aug");
+    expect(catchmentTrend?.uncertainty).toMatchObject({
+      kind: "interval",
+      lower: 0.0085,
+      upper: 0.0155,
+      level: 0.95,
+    });
+    expect(catchmentTrend?.uncertainty.method).toContain("0.0012");
+
+    // FDR shares (fdrUpward, fdrDownward)
+    const fdrUp = bundle.measurements.find((m) => m.metric === "area_share_upward_fdr");
+    const fdrDown = bundle.measurements.find((m) => m.metric === "area_share_downward_fdr");
+    expect(fdrUp?.status).toBe("available");
+    expect(fdrUp?.value).toBe(0.2222);
+    expect(fdrUp?.validPixelCount).toBe(108);
+    expect(fdrUp?.totalPixelCount).toBe(112);
+    expect(fdrDown?.status).toBe("available");
+    expect(fdrDown?.value).toBe(0.0185);
+
+    // Band trend and rainfall fit stay missing
+    const bandTrend = bundle.measurements.find((m) => m.id.startsWith("meas_band_low_"));
+    const rainR2 = bundle.measurements.find((m) => m.metric === "rainfall_fit_r_squared");
+    expect(bandTrend?.status).toBe("missing");
+    expect(bandTrend?.value).toBeNull();
+    expect(rainR2?.status).toBe("missing");
+    expect(rainR2?.value).toBeNull();
+
+    // Sources from LIVE_SOURCES
+    const modisSrc = seed.sources.find((s) => s.id.startsWith("src_modis_"));
+    expect(modisSrc?.accessStatus).toBe("retrieved");
+    expect(modisSrc?.notes.join(" ")).toContain("May to August");
+    expect(modisSrc?.notes.join(" ")).toContain("2003, 2012, 2021");
+    expect(modisSrc?.notes.join(" ")).toContain("112 analysis pixels");
+
+    // Land cover shares per year (2017 to 2023), change, and transitions with Impact Observatory source and limitation
+    const lulcSrc = seed.sources.find((s) => s.id.startsWith("src_lulc_"));
+    expect(lulcSrc?.accessStatus).toBe("retrieved");
+    expect(lulcSrc?.title).toContain("Impact Observatory 10 m annual LULC v02");
+    expect(lulcSrc?.license).toBe("CC BY 4.0");
+    expect(lulcSrc?.notes.join(" ")).toContain("2017, 2018, 2019, 2020, 2021, 2022, 2023");
+    expect(lulcSrc?.notes.join(" ")).toContain("live_landcover_change@1.0.0");
+    expect(lulcSrc?.notes.join(" ")).toMatch(
+      /difference in classification rather than a change on the ground/,
+    );
+
+    const lulcChange = bundle.measurements.find((m) => m.metric === "landcover_changed_share");
+    expect(lulcChange?.status).toBe("available");
+    expect(lulcChange?.value).toBe(0.0586);
+    expect(lulcChange?.provenance.limitations.join(" ")).toMatch(
+      /difference in classification rather than a change on the ground/,
+    );
+    const builtShares = bundle.measurements.filter(
+      (m) => m.metric === "landcover_share_built_area",
+    );
+    expect(builtShares).toHaveLength(7);
+    expect(builtShares[0]?.value).toBe(0.6865);
+    expect(builtShares[6]?.value).toBe(0.709);
+    const treesToBuilt = bundle.measurements.find(
+      (m) => m.metric === "landcover_transition_trees_to_built_area",
+    );
+    expect(treesToBuilt?.status).toBe("available");
+    expect(treesToBuilt?.value).toBe(0.0244);
+
+    // Default question asks about vegetation when measured, without presupposing greening or browning
+    expect(outcome.question).toBe(
+      "How have vegetation and rainfall changed in New York since 2000, and what land cover does it have?",
+    );
+  });
+
+  it("withholds meas_catchment_trend with areaTrendWithheld when areaTrend is null", async () => {
+    const vegWithheld = sampleVegetationSeries(true);
+    vi.mocked(fetchVegetationSeries).mockResolvedValueOnce({
+      status: "measured",
+      value: vegWithheld,
+      provenance: {
+        source: "modis-13Q1-061",
+        items: ["MOD13Q1.A2000129.h12v04.061.1"],
+        window: { start: "2000-05-08", end: "2024-09-12" },
+        method: { id: "live_vegetation_trend", version: "1.0.0" },
+        retrievedAt: "2026-11-02T12:00:00.000Z",
+        elapsedMs: 90,
+      },
+    });
+    const { bundle } = await ingestNewYork();
+    const catchmentTrend = bundle.measurements.find((m) =>
+      m.id.startsWith("meas_catchment_trend_"),
+    );
+    expect(catchmentTrend?.status).toBe("missing");
+    expect(catchmentTrend?.value).toBeNull();
+    expect(catchmentTrend?.missingReason).toBe(vegWithheld.areaTrendWithheld);
+  });
+
+  it("keeps values missing with DATA's timeout reason when the 20 s cap is exceeded", async () => {
+    vi.mocked(fetchVegetationSeries).mockResolvedValueOnce({
+      status: "missing",
+      source: "modis-13Q1-061",
+      reason: "timeout",
+      detail: "Timed out after 20000 ms.",
+      elapsedMs: 20_000,
+    });
+    vi.mocked(fetchLandCoverChange).mockResolvedValueOnce({
+      status: "missing",
+      source: "io-lulc-annual-v02",
+      reason: "timeout",
+      detail: "Timed out after 20000 ms.",
+      elapsedMs: 20_000,
+    });
+    const { bundle } = await ingestNewYork();
+    const catchmentTrend = bundle.measurements.find((m) =>
+      m.id.startsWith("meas_catchment_trend_"),
+    );
+    expect(catchmentTrend?.status).toBe("missing");
+    expect(catchmentTrend?.missingReason).toMatch(/20 s limit.*Timed out after 20000 ms/);
+    const lulcChange = bundle.measurements.find((m) => m.metric === "landcover_changed_share");
+    expect(lulcChange?.status).toBe("missing");
+    expect(lulcChange?.missingReason).toMatch(/20 s limit.*Timed out after 20000 ms/);
   });
 });

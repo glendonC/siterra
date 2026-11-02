@@ -5,6 +5,7 @@ import {
   ContextFeature,
   DataBundle,
   EnvironmentalCase,
+  Evidence,
   GeoSelection,
   InstrumentSpec,
   Measurement,
@@ -27,8 +28,16 @@ import {
 } from "./climate-series.ts";
 import { fetchRegionalContextAndGovernance } from "./context-fetcher.ts";
 import { fetchGovernmentPolicyAndOpenAccess } from "./government-policy-fetcher.ts";
+import {
+  IO_CLASS_LABELS,
+  type IoClass,
+  LANDCOVER_METHOD,
+  fetchLandCoverChange,
+} from "./landcover-change.ts";
 import { fetchOpenAlexSources, synthesizePlaceQuestionAndEvidence } from "./literature.ts";
+import { cachedLive, liveCacheKey } from "./live-cache.ts";
 import { reasonOverCaseWithLlm } from "./llm-reasoner.ts";
+import { type MissingValue, liveSource } from "./planetary.ts";
 import { buildSatelliteSourcesAndEvidence } from "./satellite-fetcher.ts";
 import { type SynthesizedCasePackage, synthesizeLiveCaseSnapshot } from "./snapshot-synthesizer.ts";
 import {
@@ -39,6 +48,7 @@ import {
   readOrBuildTerrain,
   terrainCachePath,
 } from "./terrain-builder.ts";
+import { VEGETATION_METHOD, fetchVegetationSeries } from "./vegetation-series.ts";
 
 export {
   type AnnualClimateSummary,
@@ -85,11 +95,12 @@ export const PLACE_CACHE_VERSION = 2;
 /**
  * The live pipeline's method and version, stamped on every live bundle; run-reingest.ts treats a case built by
  * any other version as stale. 1.0.0 made NDVI from rainfall; 2.0.0 records vegetation as not measured; 2.1.0
- * names the outline by what the terrain drew (watershed, drainage area or land within the box).
+ * names the outline by what the terrain drew (watershed, drainage area or land within the box); 2.2.0 wires
+ * MODIS MOD13Q1 v061 growing-season NDVI and Impact Observatory 10 m annual LULC v02 land-cover change.
  */
 export const LIVE_PIPELINE = {
   methodId: "open_meteo_era5_watershed_series",
-  version: "2.1.0",
+  version: "2.2.0",
 } as const;
 
 export interface CachedPlaceBundle {
@@ -110,10 +121,55 @@ function readPlaceCache(path: string, terrainVersion: number): CachedPlaceBundle
   const raw = JSON.parse(readFileSync(path, "utf8")) as {
     version?: unknown;
     terrainVersion?: unknown;
+    seed?: { bundles?: readonly { dataBundle?: { methodVersion?: unknown } }[] };
   };
-  return raw.version === PLACE_CACHE_VERSION && raw.terrainVersion === terrainVersion
+  const bundleVersion = raw.seed?.bundles?.[0]?.dataBundle?.methodVersion;
+  return raw.version === PLACE_CACHE_VERSION &&
+    raw.terrainVersion === terrainVersion &&
+    (bundleVersion === undefined || bundleVersion === LIVE_PIPELINE.version)
     ? (raw as CachedPlaceBundle)
     : null;
+}
+
+const MONTH_SHORT: Record<number, string> = {
+  1: "jan",
+  2: "feb",
+  3: "mar",
+  4: "apr",
+  5: "may",
+  6: "jun",
+  7: "jul",
+  8: "aug",
+  9: "sep",
+  10: "oct",
+  11: "nov",
+  12: "dec",
+};
+
+function growingPeriodId(months: readonly number[]): string {
+  const first = months[0];
+  const last = months[months.length - 1];
+  const a = first !== undefined ? MONTH_SHORT[first] : undefined;
+  const b = last !== undefined ? MONTH_SHORT[last] : undefined;
+  return a && b ? `period_2000-2024_${a}_${b}` : "period_2000-2024_mar_jun";
+}
+
+function describeVegetationMissing(res: MissingValue, fallback: string): string {
+  const spec = liveSource(res.source);
+  const title = spec?.title ?? "MODIS Terra MOD13Q1 v6.1";
+  if (res.reason === "timeout") {
+    return `Not measured: ${title} passed the 20 s limit (${res.detail})`;
+  }
+  return `Not measured: ${title} was not retrieved (${res.reason}: ${res.detail}). ${fallback}`;
+}
+
+function describeLandCoverMissing(res: MissingValue): string {
+  const spec = liveSource(res.source);
+  const title = spec?.title ?? "Impact Observatory 10 m annual LULC v02";
+  if (res.reason === "timeout") {
+    return `Not measured: ${title} passed the 20 s limit (${res.detail})`;
+  }
+  return `Not measured: ${title} was not retrieved (${res.reason}: ${res.detail}).`;
 }
 
 /** The outline's name, role, method and limits as the GeoSelection states them, from TerrainFile.outline. */
@@ -454,44 +510,51 @@ export async function buildLiveCase(input: {
   const bbox = bboxAround(lon, lat);
   const now = new Date().toISOString();
   const geoId = `geo_loc_${slug}_${hash6}`;
-  const [terrain, climate, oaSources, regionalCtx, govPolicy, bioCtx] = await Promise.all([
-    buildTerrainForBbox(bbox, caseId),
-    fetchHistoricalClimate(lon, lat),
-    fetchOpenAlexSources(caseId, slug, hash6, placeName, regionName, now),
-    fetchRegionalContextAndGovernance({
-      caseId,
-      slug,
-      hash6,
-      lon,
-      lat,
-      placeName,
-      regionName,
-      geoId,
-      now,
-    }),
-    fetchGovernmentPolicyAndOpenAccess({
-      caseId,
-      slug,
-      hash6,
-      placeName,
-      regionName,
-      geoId,
-      now,
-      question: input.question,
-    }),
-    fetchBiodiversityContext({
-      bbox,
-      lon,
-      lat,
-      caseId,
-      slug,
-      hash6,
-      placeName,
-      regionName,
-      geoId,
-      now,
-    }),
-  ]);
+  const [terrain, climate, vegetation, landCover, oaSources, regionalCtx, govPolicy, bioCtx] =
+    await Promise.all([
+      buildTerrainForBbox(bbox, caseId),
+      fetchHistoricalClimate(lon, lat),
+      cachedLive("vegetation", liveCacheKey(bbox, undefined, VEGETATION_METHOD.version), () =>
+        fetchVegetationSeries(bbox, undefined, { timeoutMs: 20_000 }),
+      ),
+      cachedLive("landcover", liveCacheKey(bbox, undefined, LANDCOVER_METHOD.version), () =>
+        fetchLandCoverChange(bbox, undefined, { timeoutMs: 20_000 }),
+      ),
+      fetchOpenAlexSources(caseId, slug, hash6, placeName, regionName, now),
+      fetchRegionalContextAndGovernance({
+        caseId,
+        slug,
+        hash6,
+        lon,
+        lat,
+        placeName,
+        regionName,
+        geoId,
+        now,
+      }),
+      fetchGovernmentPolicyAndOpenAccess({
+        caseId,
+        slug,
+        hash6,
+        placeName,
+        regionName,
+        geoId,
+        now,
+        question: input.question,
+      }),
+      fetchBiodiversityContext({
+        bbox,
+        lon,
+        lat,
+        caseId,
+        slug,
+        hash6,
+        placeName,
+        regionName,
+        geoId,
+        now,
+      }),
+    ]);
 
   const satRecords = terrain.satelliteMeta
     ? buildSatelliteSourcesAndEvidence({
@@ -505,6 +568,84 @@ export async function buildLiveCase(input: {
         satellite: terrain.satelliteMeta,
       })
     : { sources: [], evidence: [] };
+
+  const vegMeasured = vegetation.status === "measured";
+  const lulcMeasured = landCover.status === "measured";
+  const modisSpec = liveSource("modis-13Q1-061");
+  const lulcSpec = liveSource("io-lulc-annual-v02");
+  const modisTitle = modisSpec?.title ?? "MODIS Terra MOD13Q1 v6.1";
+  const modisLicense =
+    modisSpec?.license ??
+    "Openly shared without restriction (EOSDIS Data Use and Citation Guidance)";
+  const modisAttribution =
+    modisSpec?.attribution ??
+    "MOD13Q1 v6.1, NASA EOSDIS Land Processes DAAC, via Microsoft Planetary Computer";
+  const lulcTitle = "Impact Observatory 10 m annual LULC v02";
+  const lulcLicense = lulcSpec?.license ?? "CC BY 4.0";
+  const lulcAttribution =
+    lulcSpec?.attribution ?? "Land cover: Impact Observatory, Microsoft and Esri, CC BY 4.0";
+
+  const modisSource = Source.parse({
+    recordType: "Source",
+    id: `src_modis_${slug}_${hash6}`,
+    revision: 1,
+    createdAt: now,
+    updatedAt: now,
+    caseId,
+    title: `${modisTitle} growing-season NDVI series for ${placeName} (2000 to 2024)`,
+    url: "https://planetarycomputer.microsoft.com/dataset/modis-13Q1-061",
+    publisher: "NASA EOSDIS Land Processes DAAC via Microsoft Planetary Computer STAC",
+    authors: ["Didan, K.", "NASA LP DAAC"],
+    publicationDate: "2024-12-31",
+    language: "en",
+    accessedAt: now,
+    sourceKind: "official_dataset",
+    accessStatus: vegMeasured ? "retrieved" : "unavailable",
+    license: modisLicense,
+    redistributionStatus: "permitted",
+    contentHash: vegMeasured
+      ? `sha256:${createHash("sha256").update(`modis-13Q1-061:${caseId}:${VEGETATION_METHOD.version}`).digest("hex")}`
+      : null,
+    notes: vegMeasured
+      ? [
+          modisAttribution,
+          `Growing window: ${vegetation.value.window.label} (months ${vegetation.value.window.months.join(", ")}), reference years ${vegetation.value.window.referenceYears.join(", ")}.`,
+          `QA rule: ${vegetation.value.qaRule}. Coverage denominator: ${String(vegetation.value.analysisPixels)} analysis pixels of ${String(vegetation.value.placePixels)} place pixels (${String(vegetation.value.grid.pixelSizeM)} m sinusoidal grid).`,
+          `Method: ${vegetation.value.method.id}@${vegetation.value.method.version}.`,
+          ...vegetation.value.limitations,
+        ]
+      : [modisAttribution, describeVegetationMissing(vegetation, climate.vegetation.reason)],
+  });
+  const lulcSource = Source.parse({
+    recordType: "Source",
+    id: `src_lulc_${slug}_${hash6}`,
+    revision: 1,
+    createdAt: now,
+    updatedAt: now,
+    caseId,
+    title: `${lulcTitle} (${lulcSpec?.title ?? "10 m Annual Land Use Land Cover"}) for ${placeName} (2017 to 2023)`,
+    url: "https://planetarycomputer.microsoft.com/dataset/io-lulc-annual-v02",
+    publisher: "Impact Observatory / Microsoft Planetary Computer STAC",
+    authors: ["Impact Observatory", "Esri", "Microsoft Planetary Computer"],
+    publicationDate: "2024-12-31",
+    language: "en",
+    accessedAt: now,
+    sourceKind: "official_dataset",
+    accessStatus: lulcMeasured ? "retrieved" : "unavailable",
+    license: lulcLicense,
+    redistributionStatus: "permitted",
+    contentHash: lulcMeasured
+      ? `sha256:${createHash("sha256").update(`io-lulc-annual-v02:${caseId}:${LANDCOVER_METHOD.version}`).digest("hex")}`
+      : null,
+    notes: lulcMeasured
+      ? [
+          lulcAttribution,
+          `Annual 9-class land cover for ${landCover.value.years.map((y) => String(y.year)).join(", ")} (${String(landCover.value.comparedPoints)} compared points).`,
+          `Method: ${landCover.provenance.method.id}@${landCover.provenance.method.version}.`,
+          ...landCover.value.limitations,
+        ]
+      : [lulcAttribution, describeLandCoverMissing(landCover)],
+  });
 
   const rainUnavailable = climate.status !== "measured";
   const datasetSources = rainUnavailable
@@ -521,6 +662,8 @@ export async function buildLiveCase(input: {
     : oaSources;
   const sources = [
     ...datasetSources,
+    modisSource,
+    lulcSource,
     ...satRecords.sources,
     ...regionalCtx.contextSources,
     ...govPolicy.sources,
@@ -553,12 +696,18 @@ export async function buildLiveCase(input: {
   const recordYears: number[] = [];
   for (let yr = CLIMATE_START_YEAR; yr <= CLIMATE_END_YEAR; yr++) recordYears.push(yr);
   const rainByYear = new Map(climate.years.map((y) => [y.year, y] as const));
+  const vegByYear = new Map(
+    vegMeasured ? vegetation.value.seasons.map((s) => [s.year, s] as const) : [],
+  );
   const periodIds = recordYears.map((yr) => `period_${String(yr)}-06`);
 
   const climateSource = climate.source;
   const era5SourceId = sources.find((s) => s.id.startsWith("src_era5_"))?.id ?? null;
   const demSourceId = sources.find((s) => s.id.startsWith("src_dem_"))?.id ?? null;
-  const vegetationMissing = climate.vegetation.reason;
+  const vegetationMissing = vegMeasured
+    ? climate.vegetation.reason
+    : describeVegetationMissing(vegetation, climate.vegetation.reason);
+  const vegWindowLabel = vegMeasured ? vegetation.value.window.label : "growing season";
 
   const bundleProvenance: Provenance = {
     sourceLocators: [],
@@ -574,7 +723,18 @@ export async function buildLiveCase(input: {
         ? (climate.unavailableReason ?? "Rainfall is not measured.")
         : `Rainfall: ${climateSource.label} (${climateSource.window}).`,
       "Relief: the terrain elevation grid built for this place (AWS Terrain Tiles, Terrarium encoding, when reachable).",
-      vegetationMissing,
+      ...(vegMeasured
+        ? [
+            `Vegetation: ${modisTitle} (${vegWindowLabel}, reference years ${vegetation.value.window.referenceYears.join(", ")}; QA rule: ${vegetation.value.qaRule}; coverage denominator: ${String(vegetation.value.analysisPixels)} analysis pixels of ${String(vegetation.value.placePixels)} place pixels).`,
+            ...vegetation.value.limitations,
+          ]
+        : [vegetationMissing]),
+      ...(lulcMeasured
+        ? [
+            `Land cover: ${lulcTitle} (${String(landCover.value.firstYear)} to ${String(landCover.value.lastYear)}, ${lulcLicense}).`,
+            ...landCover.value.limitations,
+          ]
+        : []),
     ],
   };
 
@@ -624,6 +784,43 @@ export async function buildLiveCase(input: {
     verificationStatus: "unverified",
     limitations: [vegetationMissing],
   };
+  const vegProvenance: Provenance = vegMeasured
+    ? {
+        ...recordProvenance,
+        methodId: vegetation.value.method.id,
+        methodVersion: vegetation.value.method.version,
+        sourceLocators: [
+          {
+            sourceId: modisSource.id,
+            locator: `${modisTitle} 250 m NDVI, ${vegWindowLabel}, reference years ${vegetation.value.window.referenceYears.join(", ")}, QA rule: ${vegetation.value.qaRule}, coverage denominator: ${String(vegetation.value.analysisPixels)} analysis pixels of ${String(vegetation.value.placePixels)} place pixels`,
+            excerpt: null,
+          },
+        ],
+        limitations: [
+          `Growing window: ${vegWindowLabel} (reference years ${vegetation.value.window.referenceYears.join(", ")}).`,
+          `QA rule: ${vegetation.value.qaRule}. Coverage denominator: ${String(vegetation.value.analysisPixels)} analysis pixels of ${String(vegetation.value.placePixels)} place pixels.`,
+          ...vegetation.value.limitations,
+        ],
+      }
+    : notMeasuredProvenance;
+  const lulcProvenance: Provenance = lulcMeasured
+    ? {
+        ...recordProvenance,
+        methodId: landCover.provenance.method.id,
+        methodVersion: landCover.provenance.method.version,
+        sourceLocators: [
+          {
+            sourceId: lulcSource.id,
+            locator: `${lulcTitle}, annual maps ${String(landCover.value.firstYear)} to ${String(landCover.value.lastYear)}`,
+            excerpt: null,
+          },
+        ],
+        limitations: [
+          `${lulcTitle} (${String(landCover.value.firstYear)} to ${String(landCover.value.lastYear)}, ${lulcLicense}).`,
+          ...landCover.value.limitations,
+        ],
+      }
+    : notMeasuredProvenance;
 
   const makeMeasurement = (
     id: string,
@@ -636,6 +833,8 @@ export async function buildLiveCase(input: {
     spatialResolutionM: number | null,
     uncertainty: Measurement["uncertainty"] = NOT_QUANTIFIED,
     provenance: Provenance = recordProvenance,
+    totalPixelCount: number | null = validPixelCount,
+    validFraction: number | null = validPixelCount !== null ? 1 : null,
   ): Measurement =>
     Measurement.parse({
       recordType: "Measurement",
@@ -655,8 +854,8 @@ export async function buildLiveCase(input: {
       dataBundleId: bundleId,
       aggregation,
       validPixelCount,
-      totalPixelCount: validPixelCount,
-      validFraction: validPixelCount !== null ? 1 : null,
+      totalPixelCount,
+      validFraction,
       spatialResolutionM,
       uncertainty,
       provenance,
@@ -701,10 +900,14 @@ export async function buildLiveCase(input: {
 
   for (const year of recordYears) {
     const yrRow = rainByYear.get(year);
+    const vegYr = vegByYear.get(year);
     const pId = `period_${String(year)}-06`;
     const mPrecipId = `meas_precip_${slug}_${hash6}_${String(year)}`;
     const mNdviId = `meas_ndvi_${slug}_${hash6}_${String(year)}`;
     const rainAggregation = `Calendar-year total of daily precipitation (${String(year)}), ${climateSource.label}, nearest grid cell to ${placeName}.`;
+    const ndviAggregation = vegMeasured
+      ? `Growing-season mean NDVI (${String(year)}, ${vegWindowLabel}) across ${placeName}, ${modisTitle}; reference years ${vegetation.value.window.referenceYears.join(", ")}; QA rule: ${vegetation.value.qaRule}; coverage denominator: ${String(vegetation.value.analysisPixels)} analysis pixels of ${String(vegetation.value.placePixels)} place pixels; method ${vegetation.value.method.id}@${vegetation.value.method.version}.`
+      : `Growing-season vegetation index (${String(year)}) across ${placeName}: not measured.`;
     measurements.push(
       yrRow
         ? makeMeasurement(
@@ -728,13 +931,31 @@ export async function buildLiveCase(input: {
             climate.unavailableReason ??
               `Not measured: the archive returned days missing in ${String(year)}, so no total is given.`,
           ),
-      makeNotMeasured(
-        mNdviId,
-        "ndvi_growing_season_mean",
-        "NDVI",
-        pId,
-        `Growing-season vegetation index (${String(year)}) across ${placeName}: not measured.`,
-      ),
+      vegMeasured && vegYr && vegYr.meanNdvi !== null
+        ? makeMeasurement(
+            mNdviId,
+            "ndvi_growing_season_mean",
+            vegYr.meanNdvi,
+            "NDVI",
+            pId,
+            ndviAggregation,
+            Math.round(vegYr.validPixelShare * vegetation.value.analysisPixels),
+            vegetation.value.grid.pixelSizeM,
+            NOT_QUANTIFIED,
+            vegProvenance,
+            vegetation.value.analysisPixels,
+            vegYr.validPixelShare,
+          )
+        : makeNotMeasured(
+            mNdviId,
+            "ndvi_growing_season_mean",
+            "NDVI",
+            pId,
+            ndviAggregation,
+            vegMeasured
+              ? `Not measured: ${String(year)} ${vegWindowLabel} had valid pixel share ${String(vegYr?.validPixelShare ?? 0)} across ${placeName} (${modisTitle}, QA rule: ${vegetation.value.qaRule}, coverage denominator: ${String(vegetation.value.analysisPixels)} analysis pixels).`
+              : vegetationMissing,
+          ),
     );
     temporalObservations.push(
       TemporalObservation.parse({
@@ -761,7 +982,9 @@ export async function buildLiveCase(input: {
     );
   }
 
-  const summaryPeriodId = "period_2000-2024_mar_jun";
+  const summaryPeriodId = vegMeasured
+    ? growingPeriodId(vegetation.value.window.months)
+    : "period_2000-2024_mar_jun";
   // the rainfall trend is fitted to calendar-year totals, not to a March to June window
   const annualPeriodId = "period_2000-2024_annual";
   const mCatchmentTrendId = `meas_catchment_trend_${slug}_${hash6}`;
@@ -787,14 +1010,45 @@ export async function buildLiveCase(input: {
         }
       : NOT_QUANTIFIED;
 
+  const vegPixelsTested = vegMeasured ? (vegetation.value.pixelShares?.pixelsTested ?? null) : null;
+  const vegTestedFraction =
+    vegMeasured && vegPixelsTested !== null && vegetation.value.analysisPixels > 0
+      ? Number((vegPixelsTested / vegetation.value.analysisPixels).toFixed(4))
+      : null;
+
   measurements.push(
-    makeNotMeasured(
-      mCatchmentTrendId,
-      "ndvi_trend_unadjusted_per_decade",
-      "NDVI per decade",
-      summaryPeriodId,
-      `Vegetation trend per decade across ${placeName}: not measured.`,
-    ),
+    vegMeasured && vegetation.value.areaTrend
+      ? makeMeasurement(
+          mCatchmentTrendId,
+          "ndvi_trend_unadjusted_per_decade",
+          vegetation.value.areaTrend.perDecade,
+          "NDVI per decade",
+          summaryPeriodId,
+          `Theil-Sen slope of ${vegWindowLabel} mean NDVI across ${placeName} over ${String(vegetation.value.areaTrend.seasonsUsed)} seasons (2000 to 2024; Mann-Kendall p = ${vegetation.value.areaTrend.mannKendallP.toFixed(4)}), ${modisTitle}; reference years ${vegetation.value.window.referenceYears.join(", ")}; QA rule: ${vegetation.value.qaRule}; coverage denominator: ${String(vegetation.value.analysisPixels)} analysis pixels of ${String(vegetation.value.placePixels)} place pixels; method ${vegetation.value.method.id}@${vegetation.value.method.version}.`,
+          vegPixelsTested ?? vegetation.value.analysisPixels,
+          vegetation.value.grid.pixelSizeM,
+          {
+            kind: "interval",
+            lower: vegetation.value.areaTrend.sen95PerDecade[0],
+            upper: vegetation.value.areaTrend.sen95PerDecade[1],
+            level: 0.95,
+            method: `95% Sen confidence interval of the Theil-Sen slope over ${String(vegetation.value.areaTrend.seasonsUsed)} seasons (Mann-Kendall two-sided p = ${vegetation.value.areaTrend.mannKendallP.toFixed(4)}, ${vegetation.value.method.id}@${vegetation.value.method.version}).`,
+          },
+          vegProvenance,
+          vegetation.value.analysisPixels,
+          vegTestedFraction ?? 1,
+        )
+      : makeNotMeasured(
+          mCatchmentTrendId,
+          "ndvi_trend_unadjusted_per_decade",
+          "NDVI per decade",
+          summaryPeriodId,
+          `Vegetation trend per decade across ${placeName}: not measured.`,
+          vegMeasured
+            ? (vegetation.value.areaTrendWithheld ??
+                "Not measured: too few growing seasons met the coverage threshold.")
+            : vegetationMissing,
+        ),
     climate.precipTrendMmPerDecade === null
       ? makeNotMeasured(
           mPrecipTrendId,
@@ -822,30 +1076,65 @@ export async function buildLiveCase(input: {
       "dimensionless (R squared)",
       summaryPeriodId,
       "Share of yearly vegetation change that rainfall explains: not measured.",
-      `${vegetationMissing} Rainfall cannot be fitted against a vegetation series that does not exist.`,
+      vegMeasured
+        ? "Not measured: no regression fit of growing-season NDVI against rainfall has been computed for this place."
+        : `${vegetationMissing} Rainfall cannot be fitted against a vegetation series that does not exist.`,
     ),
-    makeNotMeasured(
-      mFdrUpId,
-      "area_share_upward_fdr",
-      "share of analysis cells (0 to 1)",
-      summaryPeriodId,
-      "Share of cells with a significant upward vegetation trend: not measured.",
-      `${vegetationMissing} No cell-level trend test has run.`,
-    ),
-    makeNotMeasured(
-      mFdrDownId,
-      "area_share_downward_fdr",
-      "share of analysis cells (0 to 1)",
-      summaryPeriodId,
-      "Share of cells with a significant downward vegetation trend: not measured.",
-      `${vegetationMissing} No cell-level trend test has run.`,
-    ),
+    vegMeasured && vegetation.value.pixelShares
+      ? makeMeasurement(
+          mFdrUpId,
+          "area_share_upward_fdr",
+          vegetation.value.pixelShares.fdrUpward,
+          "share of analysis cells (0 to 1)",
+          summaryPeriodId,
+          `Share of ${String(vegetation.value.analysisPixels)} analysis pixels (${String(vegetation.value.pixelShares.pixelsTested)} tested) with a Benjamini-Hochberg FDR-significant (q <= ${String(vegetation.value.pixelShares.fdrQ)}) upward growing-season NDVI trend (${vegWindowLabel}, 2000 to 2024), ${modisTitle}; reference years ${vegetation.value.window.referenceYears.join(", ")}; QA rule: ${vegetation.value.qaRule}; coverage denominator: ${String(vegetation.value.analysisPixels)} analysis pixels of ${String(vegetation.value.placePixels)} place pixels; method ${vegetation.value.method.id}@${vegetation.value.method.version}.`,
+          vegetation.value.pixelShares.pixelsTested,
+          vegetation.value.grid.pixelSizeM,
+          NOT_QUANTIFIED,
+          vegProvenance,
+          vegetation.value.analysisPixels,
+          vegTestedFraction,
+        )
+      : makeNotMeasured(
+          mFdrUpId,
+          "area_share_upward_fdr",
+          "share of analysis cells (0 to 1)",
+          summaryPeriodId,
+          "Share of cells with a significant upward vegetation trend: not measured.",
+          `${vegetationMissing} No cell-level trend test has run.`,
+        ),
+    vegMeasured && vegetation.value.pixelShares
+      ? makeMeasurement(
+          mFdrDownId,
+          "area_share_downward_fdr",
+          vegetation.value.pixelShares.fdrDownward,
+          "share of analysis cells (0 to 1)",
+          summaryPeriodId,
+          `Share of ${String(vegetation.value.analysisPixels)} analysis pixels (${String(vegetation.value.pixelShares.pixelsTested)} tested) with a Benjamini-Hochberg FDR-significant (q <= ${String(vegetation.value.pixelShares.fdrQ)}) downward growing-season NDVI trend (${vegWindowLabel}, 2000 to 2024), ${modisTitle}; reference years ${vegetation.value.window.referenceYears.join(", ")}; QA rule: ${vegetation.value.qaRule}; coverage denominator: ${String(vegetation.value.analysisPixels)} analysis pixels of ${String(vegetation.value.placePixels)} place pixels; method ${vegetation.value.method.id}@${vegetation.value.method.version}.`,
+          vegetation.value.pixelShares.pixelsTested,
+          vegetation.value.grid.pixelSizeM,
+          NOT_QUANTIFIED,
+          vegProvenance,
+          vegetation.value.analysisPixels,
+          vegTestedFraction,
+        )
+      : makeNotMeasured(
+          mFdrDownId,
+          "area_share_downward_fdr",
+          "share of analysis cells (0 to 1)",
+          summaryPeriodId,
+          "Share of cells with a significant downward vegetation trend: not measured.",
+          `${vegetationMissing} No cell-level trend test has run.`,
+        ),
     makeNotMeasured(
       mBandTrendId,
       "ndvi_trend_unadjusted_per_decade",
       "NDVI per decade",
       summaryPeriodId,
       `Vegetation trend below ${String(bandLimitM)} m: not measured.`,
+      vegMeasured
+        ? `Not measured: MODIS 250 m NDVI is not stratified by elevation band below ${String(bandLimitM)} m in this live build.`
+        : vegetationMissing,
     ),
     makeMeasurement(
       mBandLimitId,
@@ -882,6 +1171,121 @@ export async function buildLiveCase(input: {
         ),
   );
 
+  const lulcPeriodId = lulcMeasured
+    ? `period_${String(landCover.value.firstYear)}-${String(landCover.value.lastYear)}_annual`
+    : "period_2017-2023_annual";
+  const mLulcChangedId = `meas_lulc_change_${slug}_${hash6}`;
+  if (lulcMeasured) {
+    measurements.push(
+      makeMeasurement(
+        mLulcChangedId,
+        "landcover_changed_share",
+        landCover.value.changedShare,
+        "share of analysis cells (0 to 1)",
+        lulcPeriodId,
+        `Share of 10 m sample points (${String(landCover.value.comparedPoints)} compared) whose Impact Observatory annual land-cover class differed between ${String(landCover.value.firstYear)} and ${String(landCover.value.lastYear)} across ${placeName} (${lulcTitle}, ${lulcLicense}; method ${landCover.provenance.method.id}@${landCover.provenance.method.version}). ${landCover.value.limitations.join(" ")}`,
+        landCover.value.comparedPoints,
+        10,
+        NOT_QUANTIFIED,
+        lulcProvenance,
+      ),
+    );
+    const activeLulcClasses = (Object.keys(IO_CLASS_LABELS) as IoClass[]).filter((cls) =>
+      landCover.value.years.some((y) => y.shares[cls] > 0),
+    );
+    for (const yr of landCover.value.years) {
+      const yrPeriodId = `period_${String(yr.year)}_annual`;
+      const yrValidShare = Number((1 - yr.noReadingShare).toFixed(4));
+      const yrValidPixels = Math.round(yrValidShare * landCover.value.comparedPoints);
+      for (const cls of activeLulcClasses) {
+        const share = yr.shares[cls];
+        measurements.push(
+          makeMeasurement(
+            `meas_lulc_${cls}_${slug}_${hash6}_${String(yr.year)}`,
+            `landcover_share_${cls}`,
+            share,
+            "share of analysis cells (0 to 1)",
+            yrPeriodId,
+            `Share of 10 m sample points classified as ${IO_CLASS_LABELS[cls].toLowerCase()} in ${String(yr.year)} across ${placeName} (${lulcTitle}, ${lulcLicense}; method ${landCover.provenance.method.id}@${landCover.provenance.method.version}).`,
+            yrValidPixels,
+            10,
+            NOT_QUANTIFIED,
+            lulcProvenance,
+            landCover.value.comparedPoints,
+            yrValidShare,
+          ),
+        );
+      }
+    }
+    for (const tr of landCover.value.transitions.slice(0, 6)) {
+      measurements.push(
+        makeMeasurement(
+          `meas_lulc_tr_${tr.from}_${tr.to}_${slug}_${hash6}`,
+          `landcover_transition_${tr.from}_to_${tr.to}`,
+          tr.share,
+          "share of analysis cells (0 to 1)",
+          lulcPeriodId,
+          `Share of 10 m sample points classified as ${IO_CLASS_LABELS[tr.from].toLowerCase()} in ${String(landCover.value.firstYear)} and ${IO_CLASS_LABELS[tr.to].toLowerCase()} in ${String(landCover.value.lastYear)} across ${placeName} (${lulcTitle}, ${lulcLicense}; method ${landCover.provenance.method.id}@${landCover.provenance.method.version}). ${landCover.value.limitations[0] ?? ""}`,
+          landCover.value.comparedPoints,
+          10,
+          NOT_QUANTIFIED,
+          lulcProvenance,
+        ),
+      );
+    }
+  } else {
+    measurements.push(
+      makeNotMeasured(
+        mLulcChangedId,
+        "landcover_changed_share",
+        "share of analysis cells (0 to 1)",
+        lulcPeriodId,
+        `Share of 10 m sample points whose Impact Observatory annual land-cover class differed between 2017 and 2023 across ${placeName}: not measured.`,
+        describeLandCoverMissing(landCover),
+      ),
+    );
+  }
+
+  const lulcEvidence: Evidence[] = lulcMeasured
+    ? [
+        Evidence.parse({
+          recordType: "Evidence",
+          id: `ev_lulc_${slug}_${hash6}`,
+          revision: 1,
+          createdAt: now,
+          updatedAt: now,
+          caseId,
+          statement: (() => {
+            const lastYr = landCover.value.years[landCover.value.years.length - 1];
+            const topClasses = lastYr
+              ? (Object.entries(lastYr.shares) as [IoClass, number][])
+                  .filter(([, s]) => s >= 0.01)
+                  .sort((a, b) => b[1] - a[1])
+                  .slice(0, 3)
+                  .map(([k, s]) => `${IO_CLASS_LABELS[k].toLowerCase()} ${(s * 100).toFixed(1)}%`)
+                  .join(", ")
+              : "no dominant class";
+            const topTr = landCover.value.transitions[0];
+            const trWords = topTr
+              ? `largest mapped class difference ${IO_CLASS_LABELS[topTr.from].toLowerCase()} to ${IO_CLASS_LABELS[topTr.to].toLowerCase()} (${(topTr.share * 100).toFixed(1)}% of points)`
+              : "no class transition between the endpoint maps";
+            return `Impact Observatory 10 m annual land cover (${String(landCover.value.firstYear)} to ${String(landCover.value.lastYear)}) across ${placeName}: ${String(landCover.value.lastYear)} shares ${topClasses}; ${trWords}.`;
+          })(),
+          claimKind: "observation",
+          status: "accepted",
+          geoSelectionId: geoId,
+          periodIds: [lulcPeriodId],
+          measurementIds: [mLulcChangedId],
+          provenance: lulcProvenance,
+          interpretation: null,
+          uncertainty:
+            landCover.value.limitations[0] ??
+            "Each year is a composite of model predictions from Sentinel-2 imagery; a class change between two years can be a difference in classification rather than a change on the ground.",
+          reviewDecisionIds: [],
+        }),
+      ]
+    : [];
+
   const dataBundle = DataBundle.parse({
     recordType: "DataBundle",
     id: bundleId,
@@ -893,7 +1297,11 @@ export async function buildLiveCase(input: {
     status: "validated",
     datasetId: "Open-Meteo Historical Weather API (ERA5) & AWS Terrain Tiles (Terrarium)",
     datasetVersion: "2024.12",
-    sourceIds: sources.slice(0, 2).map((s) => s.id),
+    sourceIds: [
+      ...sources.slice(0, 2).map((s) => s.id),
+      ...(vegMeasured ? [modisSource.id] : []),
+      ...(lulcMeasured ? [lulcSource.id] : []),
+    ],
     geoSelectionId: geoId,
     geoRevision: 1,
     periodIds,
@@ -905,8 +1313,13 @@ export async function buildLiveCase(input: {
       .update(JSON.stringify(measurements.map((m) => [m.id, m.status, m.value, m.unit])))
       .digest("hex")}`,
     license: "CC BY 4.0",
-    attribution:
-      "Elevation: AWS Terrain Tiles (Tilezen Terrarium), sources as listed in tilezen/joerd docs/attribution.md; Open-Meteo Historical Weather API, ERA5 reanalysis (CC BY 4.0); OpenStreetMap contributors (ODbL 1.0)",
+    attribution: [
+      "Elevation: AWS Terrain Tiles (Tilezen Terrarium), sources as listed in tilezen/joerd docs/attribution.md",
+      "Open-Meteo Historical Weather API, ERA5 reanalysis (CC BY 4.0)",
+      ...(vegMeasured ? [modisAttribution] : []),
+      ...(lulcMeasured ? [lulcAttribution] : []),
+      "OpenStreetMap contributors (ODbL 1.0)",
+    ].join("; "),
     provenance: bundleProvenance,
   });
 
@@ -997,11 +1410,13 @@ export async function buildLiveCase(input: {
     recordProvenance,
     terrain,
     climate,
+    vegetation,
     sources,
   });
 
   const evidence = [
     ...baseEvidence,
+    ...lulcEvidence,
     ...satRecords.evidence,
     ...regionalCtx.contextEvidence,
     ...govPolicy.evidence,
@@ -1054,12 +1469,26 @@ export async function buildLiveCase(input: {
         placeFeatureIds: [settlementFeatureId],
         selectedLayer: "vegetation_trend",
       },
-      caption: {
-        ink: `Vegetation trend across ${placeName}: not measured.`,
-        grey: climate.vegetation.reason,
-        claimKind: "field_requirement",
-        citationIds: fdrCitations,
-      },
+      caption:
+        vegMeasured && vegetation.value.areaTrend
+          ? {
+              ink: `Growing-season NDVI trend ${vegetation.value.areaTrend.perDecade >= 0 ? "+" : ""}${vegetation.value.areaTrend.perDecade.toFixed(4)} per decade across ${placeName} (2000 to 2024, ${vegWindowLabel}).`,
+              grey: `${modisTitle}, ${String(vegetation.value.areaTrend.seasonsUsed)} seasons; upward FDR ${((vegetation.value.pixelShares?.fdrUpward ?? 0) * 100).toFixed(1)}%, downward FDR ${((vegetation.value.pixelShares?.fdrDownward ?? 0) * 100).toFixed(1)}% (${String(vegetation.value.pixelShares?.pixelsTested ?? vegetation.value.analysisPixels)} of ${String(vegetation.value.analysisPixels)} pixels).`.slice(
+                0,
+                240,
+              ),
+              claimKind: "observation",
+              citationIds: fdrCitations,
+            }
+          : {
+              ink: `Vegetation trend across ${placeName}: ${vegMeasured ? `withheld (${vegetation.value.areaTrendWithheld ?? "too few growing seasons"})` : "not measured"}.`,
+              grey: (vegMeasured
+                ? `${modisTitle} (${vegWindowLabel}, reference years ${vegetation.value.window.referenceYears.join(", ")}).`
+                : vegetationMissing
+              ).slice(0, 240),
+              claimKind: "field_requirement",
+              citationIds: fdrCitations,
+            },
     }),
     InstrumentSpec.parse({
       ...specBase,

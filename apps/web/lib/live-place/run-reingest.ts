@@ -24,6 +24,7 @@ import {
   readSnapshot,
 } from "@siterra/db";
 import { LIVE_PIPELINE, type LiveCaseBuild, buildLiveCase } from "./ingest.ts";
+import { VEGETATION_METHOD } from "./vegetation-series.ts";
 
 /** Times a rebuild stamps afresh; they do not make a record's content differ. */
 const TIME_FIELDS = new Set([
@@ -43,13 +44,18 @@ const EARLIER_DEFAULT_QUESTIONS: readonly RegExp[] = [
   /sustain the baseline stability of /,
   /driving the 25-year vegetation (?:greening|decline|browning) across /,
   /^Has vegetation across .+ changed since 2000, and (?:if so, how much does rainfall explain|what role do .+ and rainfall play)\?$/,
+  /^How has rainfall changed in .+ since 2000, and what land cover and water does it have\?$/,
+  /^What land cover, terrain and water does .+ have\?$/,
 ];
 
 /** Why a live case's record needs rebuilding; empty when it is current. */
 export function staleReasons(snapshot: CaseSnapshot): string[] {
   const reasons: string[] = [];
   const stated = snapshot.records.measurementRecords.filter(
-    (m) => VEGETATION_METRIC.test(m.metric) && m.status === "available",
+    (m) =>
+      VEGETATION_METRIC.test(m.metric) &&
+      m.status === "available" &&
+      m.provenance.methodId !== VEGETATION_METHOD.id,
   );
   if (stated.length > 0)
     reasons.push(`${String(stated.length)} vegetation values recorded as measured`);

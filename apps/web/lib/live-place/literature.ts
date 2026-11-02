@@ -1,7 +1,9 @@
 import { createHash } from "node:crypto";
 import { Evidence, type Provenance, Source } from "@siterra/contracts";
 import { type HistoricalClimateSummary, rainTrendText } from "./climate-series.ts";
+import type { LiveResult } from "./planetary.ts";
 import type { TerrainFile } from "./terrain-builder.ts";
+import type { VegetationSeries } from "./vegetation-series.ts";
 
 export interface OpenAlexWork {
   id?: string;
@@ -46,7 +48,7 @@ export function reconstructAbstract(
 
   const sentences = raw.match(/[^.!?]+[.!?]+/g);
   if (sentences && sentences.length > 0) {
-    const first = sentences[0]!.trim();
+    const first = sentences[0].trim();
     if (first.length <= 260) {
       const second = sentences[1]?.trim();
       if (second && first.length + 1 + second.length <= 260) {
@@ -64,7 +66,9 @@ export function reconstructAbstract(
 
 async function queryOpenAlexWorks(query: string): Promise<OpenAlexWork[]> {
   const ac = new AbortController();
-  const timer = setTimeout(() => ac.abort(), 4500);
+  const timer = setTimeout(() => {
+    ac.abort();
+  }, 4500);
   try {
     const url = `https://api.openalex.org/works?search=${encodeURIComponent(query)}&per-page=8`;
     const res = await fetch(url, {
@@ -186,8 +190,7 @@ export async function fetchOpenAlexSources(
     const pubDateRaw =
       work.publication_date ?? (work.publication_year ? String(work.publication_year) : null);
     const pubDate =
-      pubDateRaw &&
-      /^[0-9]{4}(-(0[1-9]|1[0-2])(-(0[1-9]|[12][0-9]|3[01]))?)?$/.test(pubDateRaw)
+      pubDateRaw && /^[0-9]{4}(-(0[1-9]|1[0-2])(-(0[1-9]|[12][0-9]|3[01]))?)?$/.test(pubDateRaw)
         ? pubDateRaw
         : null;
     const venue =
@@ -236,7 +239,8 @@ const THEME_PATTERNS: ReadonlyArray<{ label: string; regex: RegExp; exclude?: Re
   },
   {
     label: "water quality and nutrient runoff",
-    regex: /\b(water quality|algal bloom|eutrophic|phosphorus|nitrate|hypoxia|nutrient loading|wastewater)\b/i,
+    regex:
+      /\b(water quality|algal bloom|eutrophic|phosphorus|nitrate|hypoxia|nutrient loading|wastewater)\b/i,
   },
   {
     label: "snowpack and glacial melt",
@@ -270,10 +274,7 @@ const THEME_PATTERNS: ReadonlyArray<{ label: string; regex: RegExp; exclude?: Re
 ];
 
 export function detectLiteratureTheme(studySources: readonly Source[]): string | null {
-  const ordered = [
-    ...studySources.filter((s) => (s.notes[0]?.length ?? 0) > 40),
-    ...studySources,
-  ];
+  const ordered = [...studySources.filter((s) => (s.notes[0]?.length ?? 0) > 40), ...studySources];
   for (const s of ordered) {
     const text = `${s.title} ${s.notes[0] ?? ""}`;
     for (const { label, regex, exclude } of THEME_PATTERNS) {
@@ -304,6 +305,7 @@ export interface SynthesizePlaceQuestionInput {
   terrain: Pick<TerrainFile, "minElevationM" | "maxElevationM">;
   climate: HistoricalClimateSummary;
   sources: readonly Source[];
+  vegetation?: LiveResult<VegetationSeries> | undefined;
 }
 
 export interface SynthesizePlaceQuestionOutput {
@@ -340,14 +342,19 @@ export function synthesizePlaceQuestionAndEvidence(
     terrain,
     climate,
     sources,
+    vegetation,
   } = params;
 
   const studySources = sources.filter((s) => s.sourceKind === "peer_reviewed");
   const detectedTheme = detectLiteratureTheme(studySources);
 
-  // Only what the live record can answer, and no presumed result; vegetation change stays an open question
-  const defaultQuestion =
-    climate.status === "measured"
+  // Only what the live record can answer, and no presumed result; includes vegetation when measured
+  const vegMeasured = vegetation?.status === "measured";
+  const defaultQuestion = vegMeasured
+    ? climate.status === "measured"
+      ? `How have vegetation and rainfall changed in ${placeName} since 2000, and what land cover does it have?`
+      : `How has vegetation changed in ${placeName} since 2000, and what land cover and water does it have?`
+    : climate.status === "measured"
       ? `How has rainfall changed in ${placeName} since 2000, and what land cover and water does it have?`
       : `What land cover, terrain and water does ${placeName} have?`;
 
@@ -356,15 +363,13 @@ export function synthesizePlaceQuestionAndEvidence(
   const evStudyId = `ev_study_${slug}_${hash6}`;
   const evClimateId = `ev_climate_${slug}_${hash6}`;
 
-  const primaryStudy =
-    studySources.find((s) => (s.notes[0]?.length ?? 0) > 40) ?? studySources[0];
+  const primaryStudy = studySources.find((s) => (s.notes[0]?.length ?? 0) > 40) ?? studySources[0];
 
   let studyEvidence: Evidence;
   if (primaryStudy) {
     const verbatimExcerpt = (primaryStudy.notes[0] ?? primaryStudy.title).slice(0, 260);
     const firstAuthor = primaryStudy.authors[0] ?? "Published research";
-    const authorCite =
-      primaryStudy.authors.length > 1 ? `${firstAuthor} et al.` : firstAuthor;
+    const authorCite = primaryStudy.authors.length > 1 ? `${firstAuthor} et al.` : firstAuthor;
     const pubYear = primaryStudy.publicationDate?.slice(0, 4) ?? "recent";
     const themeClause = detectedTheme ? ` on ${detectedTheme}` : "";
 
@@ -406,7 +411,8 @@ export function synthesizePlaceQuestionAndEvidence(
       reviewDecisionIds: [],
     });
   } else {
-    const baselineDataset = sources[0]!;
+    const baselineDataset = sources[0];
+    if (!baselineDataset) throw new Error("at least one baseline dataset source is required");
     const excerpt = (baselineDataset.notes[0] ?? baselineDataset.title).slice(0, 260);
     studyEvidence = Evidence.parse({
       recordType: "Evidence",
@@ -453,6 +459,15 @@ export function synthesizePlaceQuestionAndEvidence(
       ? `, 95% interval ${climate.precipTrendLowerMmPerDecade.toFixed(1)} to ${climate.precipTrendUpperMmPerDecade.toFixed(1)}`
       : "";
 
+  const vegClause =
+    vegetation?.status === "measured"
+      ? vegetation.value.areaTrend !== null
+        ? `MODIS Terra MOD13Q1 v6.1 growing-season NDVI (${vegetation.value.window.label}, reference years ${vegetation.value.window.referenceYears.join(", ")}) changed by ${vegetation.value.areaTrend.perDecade >= 0 ? "+" : ""}${vegetation.value.areaTrend.perDecade.toFixed(4)} NDVI per decade (95% interval ${vegetation.value.areaTrend.sen95PerDecade[0].toFixed(4)} to ${vegetation.value.areaTrend.sen95PerDecade[1].toFixed(4)}, Mann-Kendall p = ${vegetation.value.areaTrend.mannKendallP.toFixed(4)}, ${String(vegetation.value.areaTrend.seasonsUsed)} seasons over ${String(vegetation.value.analysisPixels)} analysis pixels; method ${vegetation.value.method.id}@${vegetation.value.method.version}).`
+        : `MODIS Terra MOD13Q1 v6.1 growing-season NDVI (${vegetation.value.window.label}) trend is withheld: ${vegetation.value.areaTrendWithheld ?? "fewer than 15 seasons met the 70% coverage threshold"}.`
+      : signedRain === null
+        ? "Vegetation change is not measured either."
+        : "Vegetation change is not measured.";
+
   const climateEvidence = Evidence.parse({
     recordType: "Evidence",
     id: evClimateId,
@@ -462,16 +477,24 @@ export function synthesizePlaceQuestionAndEvidence(
     caseId,
     statement:
       signedRain === null
-        ? `${climate.unavailableReason ?? "Rainfall is not measured."} Vegetation change is not measured either.`
-        : `Annual precipitation at the reanalysis grid cell nearest ${placeName} changed by ${signedRain} mm per decade (${climate.source.window}, ${String(climate.years.length)} calendar years${rainInterval}). Vegetation change is not measured.`,
+        ? `${climate.unavailableReason ?? "Rainfall is not measured."} ${vegClause}`
+        : `Annual precipitation at the reanalysis grid cell nearest ${placeName} changed by ${signedRain} mm per decade (${climate.source.window}, ${String(climate.years.length)} calendar years${rainInterval}). ${vegClause}`,
     claimKind: signedRain === null ? "field_requirement" : "model_estimate",
     status: "accepted",
     geoSelectionId: geoId,
     periodIds,
-    measurementIds: [measurementIds.precipTrendId],
+    measurementIds:
+      vegetation?.status === "measured" && vegetation.value.areaTrend !== null
+        ? [measurementIds.precipTrendId, measurementIds.catchmentTrendId]
+        : [measurementIds.precipTrendId],
     provenance: {
       ...recordProvenance,
-      limitations: [`${climate.source.label} (${climate.source.window}).`, climate.vegetation.reason],
+      limitations: [
+        `${climate.source.label} (${climate.source.window}).`,
+        vegetation?.status === "measured"
+          ? `MODIS Terra MOD13Q1 v6.1 (${vegetation.value.window.label}, reference years ${vegetation.value.window.referenceYears.join(", ")}; QA rule: ${vegetation.value.qaRule}; coverage denominator: ${String(vegetation.value.analysisPixels)} analysis pixels of ${String(vegetation.value.placePixels)} place pixels; method ${vegetation.value.method.id}@${vegetation.value.method.version}).`
+          : climate.vegetation.reason,
+      ],
     },
     interpretation: null,
     uncertainty:
@@ -481,10 +504,16 @@ export function synthesizePlaceQuestionAndEvidence(
     reviewDecisionIds: [],
   });
 
-  const unresolvedQuestions = [
-    question,
-    `Has vegetation across ${placeName} changed since 2000? Not measured yet: it needs a satellite vegetation series.`,
-  ];
+  const unresolvedQuestions =
+    vegetation?.status === "measured" && vegetation.value.areaTrend !== null
+      ? [
+          question,
+          `What share of the ${vegetation.value.window.label} vegetation change in ${placeName} comes from rainfall versus local land use and stewardship?`,
+        ]
+      : [
+          question,
+          `Has vegetation across ${placeName} changed since 2000? Not measured yet: it needs a satellite vegetation series.`,
+        ];
 
   return {
     question,

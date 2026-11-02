@@ -11,9 +11,11 @@ import {
 } from "@siterra/db";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { buildLiveCase } from "./ingest.ts";
+import type * as LandcoverMod from "./landcover-change.ts";
 import { reasonOverCaseWithLlm } from "./llm-reasoner.ts";
 import { planReingestCommit, questionToKeep, runReingest, staleReasons } from "./run-reingest.ts";
 import { buildTerrainForBbox } from "./terrain-builder.ts";
+import type * as VegetationMod from "./vegetation-series.ts";
 
 // The re-ingest of live cases written before vegetation was recorded as not measured: which cases it
 // lists, which question it keeps, the commit it appends, and that it never reaches the model.
@@ -29,6 +31,7 @@ vi.mock("node:fs", async (importOriginal) => ({
   existsSync: () => false,
   mkdirSync: vi.fn(),
   writeFileSync: vi.fn(),
+  renameSync: vi.fn(),
 }));
 vi.mock("../../app/api/geocode/route.ts", () => ({
   reverseGeocode: vi.fn(),
@@ -81,6 +84,30 @@ vi.mock("./biodiversity-fetcher.ts", () => ({
 }));
 vi.mock("./llm-reasoner.ts", () => ({
   reasonOverCaseWithLlm: vi.fn(() => Promise.reject(new Error("the model was called"))),
+}));
+vi.mock("./vegetation-series.ts", async (importOriginal) => ({
+  ...(await importOriginal<typeof VegetationMod>()),
+  fetchVegetationSeries: vi.fn(() =>
+    Promise.resolve({
+      status: "missing" as const,
+      source: "modis-13Q1-061" as const,
+      reason: "http_error" as const,
+      detail: "STAC search returned HTTP 503.",
+      elapsedMs: 1,
+    }),
+  ),
+}));
+vi.mock("./landcover-change.ts", async (importOriginal) => ({
+  ...(await importOriginal<typeof LandcoverMod>()),
+  fetchLandCoverChange: vi.fn(() =>
+    Promise.resolve({
+      status: "missing" as const,
+      source: "io-lulc-annual-v02" as const,
+      reason: "http_error" as const,
+      detail: "STAC search returned HTTP 503.",
+      elapsedMs: 1,
+    }),
+  ),
 }));
 
 function dailyArchive() {
@@ -179,7 +206,7 @@ describe("re-ingest of earlier live cases", () => {
     expect(staleReasons(earlier)).toEqual([
       "25 vegetation values recorded as measured",
       "1 explanations judged against them",
-      "built by live pipeline 1.0.0, current 2.1.0",
+      "built by live pipeline 1.0.0, current 2.2.0",
     ]);
   });
 
@@ -234,10 +261,10 @@ describe("re-ingest of earlier live cases", () => {
     expect(proposal.upserts.map((r) => r.id)).toEqual([]);
   });
 
-  it("sees a case built before the outline labels as stale, so a rebuild relabels it", async () => {
+  it("sees a case built before the outline labels or DATA wiring as stale, so a rebuild updates it", async () => {
     const stored = await storedSnapshot();
-    for (const b of stored.records.dataBundleRecords) b.methodVersion = "2.0.0";
-    expect(staleReasons(stored)).toEqual(["built by live pipeline 2.0.0, current 2.1.0"]);
+    for (const b of stored.records.dataBundleRecords) b.methodVersion = "2.1.0";
+    expect(staleReasons(stored)).toEqual(["built by live pipeline 2.1.0, current 2.2.0"]);
   });
 
   it("reports a case that throws and carries on with the next one", async () => {
