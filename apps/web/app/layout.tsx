@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { SizeGate } from "../components/size-gate/SizeGate";
 import "@fontsource-variable/ibm-plex-sans";
 import "@fontsource/ibm-plex-mono/400.css";
 import "@fontsource/ibm-plex-mono/500.css";
@@ -14,7 +15,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <SizeGate />
+        {children}
+      </body>
     </html>
   );
 }

@@ -44,19 +44,24 @@ test("Enter on the opening goes on to the globe, where the case waits on its poi
 }) => {
   await page.goto("/");
   await expect(page.locator("[data-opening]")).toBeVisible({ timeout: 60_000 });
-  const caseId = await page.evaluate(
-    () =>
-      (JSON.parse(localStorage.getItem("siterra.demoCase") ?? "{}") as { caseId?: string }).caseId,
-  );
-  const record = await page.request.get(`/api/cases/${caseId ?? ""}`);
-  const objective = ((await record.json()) as { case: { objective: string } }).case.objective;
   await page.keyboard.press("Enter");
   await expect(page.locator("[data-phase=globe]")).toBeVisible();
   const card = page.locator("[data-case-card]");
   await expect(card).toBeVisible({ timeout: 30_000 });
-  await expect(card).toContainText(/^Aït Bouguemez valley · .+/);
-  await expect(card).toContainText(objective);
-  await expect(card.getByRole("button", { name: /Open/ })).toBeVisible();
-  await expect(page.getByText("drag to turn")).toBeVisible();
-  await expect(page.locator("kbd", { hasText: "Drag" })).toHaveCount(0);
+  await expect(card).toContainText(/Aït Bouguemez valley · .+/);
+  // step 1, the place: the card shows the place only, no question yet (UI-2)
+  await expect(page.getByRole("region", { name: "Step 1 of 2: Location" })).toBeVisible();
+  await expect(card.locator("[data-card-question]")).toHaveCount(0);
+  await expect(page.getByText("Rotate Earth")).toBeVisible();
+  // step 2, the question: the card carries the question chosen there
+  await page.keyboard.press("Enter");
+  await expect(
+    page.getByRole("region", { name: "Step 2 of 2: Investigation Question" }),
+  ).toBeVisible();
+  // the checked option's first span is its question
+  const chosen = (
+    await page.getByRole("radio", { checked: true }).locator("span").first().innerText()
+  ).trim();
+  expect(chosen.length).toBeGreaterThan(0);
+  await expect(card.locator("[data-card-question]")).toHaveText(chosen);
 });

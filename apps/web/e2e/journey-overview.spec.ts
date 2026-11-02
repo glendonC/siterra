@@ -15,6 +15,15 @@ function writes(page: Page): string[] {
   return sent;
 }
 
+/** The globe's two steps (UI-2): Enter takes the chosen place to step 2, the question; Enter again starts. */
+async function chooseAndStart(page: Page) {
+  await page.keyboard.press("Enter");
+  await expect(
+    page.getByRole("region", { name: "Step 2 of 2: Investigation Question" }),
+  ).toBeVisible();
+  await page.keyboard.press("Enter");
+}
+
 async function overview(page: Page) {
   await expect(page.locator("[data-overview-root]")).toHaveAttribute("data-ready", "", {
     timeout: 60_000,
@@ -61,7 +70,11 @@ test("the opening, the globe and the zoom land on the overview, and a reload ret
   await expect(page.locator("#arrival")).toHaveAttribute("inert", "");
   await page.keyboard.press("/");
   await expect(page.locator("[data-ask]")).toHaveAttribute("aria-expanded", "false");
-  await page.keyboard.press("Enter");
+  // "/" is the globe's own place search; leave it before choosing
+  await page.evaluate(() => {
+    (document.activeElement as HTMLElement | null)?.blur();
+  });
+  await chooseAndStart(page);
   await expect(page.locator("[data-phase=zoom]")).toBeVisible();
   // the case's card stays on screen as the camera goes down, without its action; on a fast or busy machine the zoom
   // may already have landed when this looks (AUDIT: a timing flake at two workers), so the card is checked while the
@@ -94,7 +107,7 @@ test("Esc during the arrival ends it at once on the overview", async ({ page }) 
   await expect(page.locator("[data-opening]")).toBeVisible({ timeout: 60_000 });
   await page.keyboard.press("Enter");
   await expect(page.locator("[data-phase=globe]")).toBeVisible();
-  await page.keyboard.press("Enter");
+  await chooseAndStart(page);
   await expect(page.locator("[data-phase=zoom]")).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(page.locator("[data-phase=rest]")).toBeVisible({ timeout: 60_000 });
@@ -108,17 +121,19 @@ test("under reduced motion Open cuts straight to the overview", async ({ page })
   await expect(page.locator("[data-opening]")).toBeVisible({ timeout: 60_000 });
   await page.keyboard.press("Enter");
   await expect(page.locator("[data-phase=globe]")).toBeVisible();
-  await page.keyboard.press("Enter");
+  await chooseAndStart(page);
   await expect(page.locator("[data-phase=zoom]")).toHaveCount(0);
   await expect(page.locator("[data-phase=rest]")).toBeVisible({ timeout: 60_000 });
   await overview(page);
 });
 
-test("no drawing gets a non-number through the journey, the overview, a card and the cut (U28f), at 800 x 600", async ({
+test("no drawing gets a non-number through the journey, the overview, a card and the cut (U28f), at 1024 x 600", async ({
   page,
 }) => {
   test.setTimeout(240_000);
-  await page.setViewportSize({ width: 800, height: 600 });
+  // the smallest window the app draws: below 1024 x 600 the size gate shows instead, since phones are gated for the
+  // hackathon (founder, 2 Nov)
+  await page.setViewportSize({ width: 1024, height: 600 });
   // the browser reports an attribute that is not a number ('<path> attribute d: Expected number, "MNaN ...')
   const errors: string[] = [];
   page.on("console", (m) => {
@@ -137,7 +152,7 @@ test("no drawing gets a non-number through the journey, the overview, a card and
   await expect(page.locator("[data-opening]")).toBeVisible({ timeout: 60_000 });
   await page.keyboard.press("Enter");
   await expect(page.locator("[data-phase=globe]")).toBeVisible();
-  await page.keyboard.press("Enter");
+  await chooseAndStart(page);
   await expect(page.locator("[data-phase=rest]")).toBeVisible({ timeout: 90_000 });
   await overview(page);
   await page.waitForTimeout(1500);

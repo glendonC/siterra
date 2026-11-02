@@ -54,6 +54,10 @@ export interface JourneyProps {
 /** opening, globe; zoom: Open pressed, the camera going down; land: the overview's own arrival; rest. */
 type Phase = "opening" | "globe" | "zoom" | "land" | "rest";
 
+/** The step column's right edge on the globe page (.dbhCanvas: 88 px in, 680 px wide) and a gap: no globe pin label
+ *  draws into the steps' text. */
+const STEP_COLUMN_RIGHT = 88 + 680 + 24;
+
 const wrapLon = (lon: number): number => ((((lon + 180) % 360) + 360) % 360) - 180;
 const clampLat = (lat: number): number => Math.max(-80, Math.min(80, lat));
 const shortDeltaLon = (from: number, to: number): number => ((to - from + 540) % 360) - 180;
@@ -774,7 +778,7 @@ export function Journey({ globeAssets, arrival, snapshot }: JourneyProps) {
           ps[1] <= cy + 140;
         const tooCloseToTarget = distToTarget < 95 || overlapsMonument;
         const onRightStage = ps
-          ? ps[0] >= 680 && ps[0] <= w - 40 && ps[1] >= 70 && ps[1] <= h - 110
+          ? ps[0] >= STEP_COLUMN_RIGHT && ps[0] <= w - 40 && ps[1] >= 70 && ps[1] <= h - 110
           : false;
         const shown =
           ps && facing && !isCurrentTarget && !tooCloseToTarget && onRightStage ? ringOpacity : 0;

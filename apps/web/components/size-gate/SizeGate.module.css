@@ -1,0 +1,30 @@
+.gate {
+  display: none;
+}
+
+@media (width < 1024px), (height < 600px) {
+  .gate {
+    position: fixed;
+    inset: 0;
+    z-index: 2147483647;
+    display: grid;
+    place-items: center;
+    padding: 32px;
+    background: var(--paper);
+    color: var(--ink);
+  }
+
+  /* the screen behind: not drawn and not reachable by keyboard */
+  .gate ~ * {
+    display: none !important;
+  }
+}
+
+.message {
+  max-width: 34ch;
+  margin: 0;
+  font: 300 18px / 26px var(--font-sans);
+  letter-spacing: -0.01em;
+  text-align: center;
+  text-wrap: balance;
+}

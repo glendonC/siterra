@@ -986,10 +986,11 @@
    RIGHT-STAGE CONTEXTUAL 3D GLOBE HUD & BOTTOM ACTION BAR
    ============================================================================ */
 
+/* the globe's mouse hints sit above the key bar, right-aligned with it, so the two rows never meet */
 .globeContextualHud {
   position: absolute;
-  left: 720px;
-  bottom: 26px;
+  right: 48px;
+  bottom: 62px;
   display: inline-flex;
   align-items: center;
   gap: 20px;
