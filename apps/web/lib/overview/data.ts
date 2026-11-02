@@ -27,6 +27,8 @@ export interface OverviewData {
   range: ReliefRange;
   /** The 10 m land cover raster: R tree cover, G cropland or built-up, B inside the catchment. */
   landcover: ImageBitmap;
+  /** The Sentinel-2 true-colour composite on the relief grid (row 0 north, RGBA, A inside the outline), when read for a live place. */
+  trueColour?: ImageBitmap;
   /** Water's share of each relief cell (0 to 255, row 0 north, the relief's grid), for a live place's terrain. */
   water?: Uint8Array<ArrayBuffer>;
   /** The equal-area elevation bands on the analysis grid (R low, G mid, B high), for the idle lifts. */

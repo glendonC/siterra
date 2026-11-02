@@ -180,5 +180,20 @@ describe("relief exaggeration, cell size and contour intervals", () => {
     });
     expect(live.uniforms).toHaveProperty("uCell.value", 82.5);
     expect([live.uniforms.uStep.value.x, live.uniforms.uStep.value.y]).toEqual([10, 50]);
+    expect(live.uniforms).toHaveProperty("uPhotoA.value", 0);
+
+    const photoTex = new DataTexture(new Uint8Array([40, 80, 50, 255]), 1, 1);
+    const draped = createRelief(new Float32Array(4), g, frame, hTex, rect, {
+      hTex,
+      light,
+      lightMap: hTex,
+      trueColour: photoTex,
+      colours,
+      coverA: 0.8,
+      rimA: 0.2,
+      smooth: 0.5,
+    });
+    expect(draped.uniforms).toHaveProperty("uPhoto.value", photoTex);
+    expect(draped.uniforms.uPhotoA.value).toBeGreaterThan(0);
   });
 });

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { lonLatToUtm } from "../instruments/valley/utm";
+import { encodeRgbaPng } from "../live-place/satellite-fetcher";
 import { encodeRuns } from "../live-place/water-mask";
 import type { CaseSnapshot } from "@siterra/contracts";
 import {
@@ -169,6 +170,41 @@ describe("nothing invented on a live place's land", () => {
     t.streamKinds = ["stream", "river", "canal"];
     const kinds = await overviewDataFromTerrain(t);
     expect(kinds.rivers.reaches.map((r) => r.order)).toEqual([3, 4, 2]);
+  });
+
+  it("decodes a terrain file's Sentinel-2 trueColour PNG onto the UTM relief grid inside the outline", async () => {
+    const t = eastRamp();
+    const rgba = new Uint8Array(16 * 16 * 4);
+    for (let p = 0; p < rgba.length; p += 4) {
+      rgba[p] = 62;
+      rgba[p + 1] = 114;
+      rgba[p + 2] = 74;
+      rgba[p + 3] = 255;
+    }
+    const png = encodeRgbaPng(16, 16, rgba);
+    t.trueColour = {
+      width: 16,
+      height: 16,
+      pngBase64: Buffer.from(png).toString("base64"),
+      itemIds: ["S2B_MSIL2A_20240715"],
+      datetime: "2024-07-15T15:38:19Z",
+      date: "2024-07-15",
+      platform: "Sentinel-2B",
+      sceneCloudPct: 2.1,
+      boxCloudPct: 0.4,
+      boxSnowPct: 0,
+      selectionRule: "growing_season_snow_free",
+      attribution: "Copernicus Sentinel-2 L2A",
+      selection: "Growing-season snow-free pass",
+    };
+    const overview = await overviewDataFromTerrain(t);
+    expect(overview.trueColour).toBeDefined();
+    expect(overview.trueColour?.width).toBe(256);
+    expect(overview.trueColour?.height).toBe(256);
+    const px = (overview.trueColour as unknown as { data?: Uint8ClampedArray }).data;
+    if (!px) throw new Error("no trueColour pixels");
+    const mid = (128 * 256 + 128) * 4;
+    expect([px[mid], px[mid + 1], px[mid + 2], px[mid + 3]]).toEqual([62, 114, 74, 255]);
   });
 });
 

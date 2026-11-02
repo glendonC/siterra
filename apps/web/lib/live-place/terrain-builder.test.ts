@@ -1,7 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import * as elevationSources from "./elevation-sources.ts";
 import { fetchRealHydrology } from "./hydrology-fetcher.ts";
+import * as imagery from "./imagery.ts";
 import { decodeRuns } from "./water-mask.ts";
-import { encodeRgbaPng } from "./satellite-fetcher.ts";
+import { buildSatelliteSourcesAndEvidence, encodeRgbaPng } from "./satellite-fetcher.ts";
 import {
   buildTerrainForBbox,
   delineateOutline,
@@ -41,7 +43,7 @@ describe("terrain builder", () => {
       return Promise.resolve(
         url.includes("/terrarium/")
           ? new Response(new Uint8Array(png), { status: 200 })
-          : new Response("unavailable", { status: 503 }),
+          : new Response("unavailable", { status: 404 }),
       );
     });
     const terrain = await buildTerrainForBbox([-93.62, 41.41, -93.38, 41.59]);
@@ -68,7 +70,7 @@ describe("terrain builder", () => {
   });
 
   it("fails, saying so, when no elevation source can be read: no ground stands in for it", async () => {
-    globalThis.fetch = vi.fn(() => Promise.resolve(new Response("unavailable", { status: 503 })));
+    globalThis.fetch = vi.fn(() => Promise.resolve(new Response("unavailable", { status: 404 })));
     await expect(buildTerrainForBbox([-93.62, 41.41, -93.38, 41.59])).rejects.toBeInstanceOf(
       ElevationUnavailableError,
     );
@@ -78,7 +80,7 @@ describe("terrain builder", () => {
     globalThis.fetch = vi.fn((input: RequestInfo | URL) => {
       const url = input instanceof Request ? input.url : input.toString();
       if (!url.includes("api.open-meteo.com/v1/elevation"))
-        return Promise.resolve(new Response("unavailable", { status: 503 }));
+        return Promise.resolve(new Response("unavailable", { status: 404 }));
       const n = (new URL(url).searchParams.get("latitude") ?? "").split(",").length;
       return Promise.resolve(Response.json({ elevation: new Array<number>(n).fill(244) }));
     });
@@ -94,7 +96,7 @@ describe("terrain builder", () => {
       return Promise.resolve(
         url.includes("/terrarium/")
           ? new Response(new Uint8Array(png), { status: 200 })
-          : new Response("unavailable", { status: 503 }),
+          : new Response("unavailable", { status: 404 }),
       );
     });
     const n = 64 * 64;
@@ -141,7 +143,7 @@ describe("terrain builder", () => {
       return Promise.resolve(
         url.includes("/terrarium/")
           ? new Response(new Uint8Array(png), { status: 200 })
-          : new Response("unavailable", { status: 503 }),
+          : new Response("unavailable", { status: 404 }),
       );
     });
     const bbox: [number, number, number, number] = [-93.62, 41.41, -93.38, 41.59];
@@ -151,6 +153,114 @@ describe("terrain builder", () => {
     expect(terrain.streamSource).toBe("openstreetmap");
     expect(terrain.streamPaths).toHaveLength(3);
     expect(terrain.streamKinds).toEqual(["river", "stream", "canal"]);
+  });
+
+  it("prefers a measured 3DEP or Copernicus DEM GLO-30 grid over Terrarium, fills sea gaps, and stores snow-free Sentinel-2 trueColour", async () => {
+    const bbox: [number, number, number, number] = [-74.124532, 40.622899, -73.887508, 40.802561];
+    const elevationsM = new Float32Array(256 * 256);
+    for (let r = 0; r < 256; r++) {
+      for (let c = 0; c < 256; c++) {
+        // West half is land (42.5 m), east strip (c >= 220) is a 3DEP sea gap (NaN)
+        elevationsM[r * 256 + c] = c >= 220 ? Number.NaN : 42.5;
+      }
+    }
+    vi.spyOn(elevationSources, "fetchElevation").mockResolvedValue({
+      status: "measured",
+      value: {
+        source: "3dep-seamless",
+        surface: "bare_earth",
+        nominalResolutionM: 10,
+        verticalDatum: "NAVD88",
+        bbox,
+        width: 256,
+        height: 256,
+        elevationsM,
+        noReadingShare: 36 / 256,
+        noReadingAtSeaShare: 1,
+        minM: 42.5,
+        maxM: 42.5,
+        itemIds: ["USGS_13_n41w075_20220718"],
+        attribution: "USGS 3D Elevation Program (3DEP) 1/3 arc-second (~10 m) bare-earth DEM",
+        tried: [{ source: "3dep-seamless", outcome: "used" }],
+      },
+      provenance: {
+        source: "3dep-seamless",
+        items: ["USGS_13_n41w075_20220718"],
+        window: { start: "2022-07-18", end: "2022-07-18" },
+        method: { id: "live_elevation", version: "1.0.0" },
+        retrievedAt: "2026-11-02T00:00:00Z",
+        elapsedMs: 12,
+      },
+    });
+    const tcRgba = new Uint8Array(16 * 16 * 4);
+    for (let p = 0; p < tcRgba.length; p += 4) {
+      tcRgba[p] = 48;
+      tcRgba[p + 1] = 96;
+      tcRgba[p + 2] = 52;
+      tcRgba[p + 3] = 255;
+    }
+    const tcPng = encodeRgbaPng(16, 16, tcRgba);
+    vi.spyOn(imagery, "fetchTrueColour").mockResolvedValue({
+      status: "measured",
+      value: {
+        itemIds: ["S2B_MSIL2A_20240715T153819_R011_T18TWL"],
+        datetime: "2024-07-15T15:38:19Z",
+        date: "2024-07-15",
+        platform: "Sentinel-2B",
+        sceneCloudPct: 2.1,
+        boxCloudPct: 0.4,
+        boxSnowPct: 0,
+        seasonMonths: [5, 6, 7, 8, 9],
+        selectionRule: "growing_season_snow_free",
+        bbox,
+        width: 16,
+        height: 16,
+        rgba: tcRgba,
+        png: tcPng,
+        attribution: "Copernicus Sentinel-2 L2A via Microsoft Planetary Computer",
+        selection: "Growing-season snow-free pass",
+      },
+      provenance: {
+        source: "sentinel-2-l2a",
+        items: ["S2B_MSIL2A_20240715T153819_R011_T18TWL"],
+        window: { start: "2024-07-15", end: "2024-07-15" },
+        method: { id: "live_true_colour", version: "1.0.0" },
+        retrievedAt: "2026-11-02T00:00:00Z",
+        elapsedMs: 18,
+      },
+    });
+    // Network calls for Overpass / WorldCover / Terrarium fail; 3DEP elevation and Sentinel-2 imagery are used
+    globalThis.fetch = vi.fn(() => Promise.resolve(new Response("unavailable", { status: 503 })));
+
+    const terrain = await buildTerrainForBbox(bbox);
+    expect(terrain.elevationModel?.source).toBe("3dep-seamless");
+    expect(terrain.elevationModel?.surface).toBe("bare_earth");
+    expect(terrain.elevationModel?.nominalResolutionM).toBe(10);
+    expect(terrain.elevationModel?.itemIds).toEqual(["USGS_13_n41w075_20220718"]);
+    expect(terrain.elevations.every((v) => Number.isFinite(v))).toBe(true);
+    expect(terrain.minElevationM).toBe(42.5);
+    expect(terrain.maxElevationM).toBe(42.5);
+    expect(terrain.trueColour?.itemIds).toEqual(["S2B_MSIL2A_20240715T153819_R011_T18TWL"]);
+    expect(terrain.trueColour?.selectionRule).toBe("growing_season_snow_free");
+    expect(terrain.trueColour?.pngBase64.length).toBeGreaterThan(20);
+    expect(terrain.satelliteMeta?.sentinel2ItemId).toBe("S2B_MSIL2A_20240715T153819_R011_T18TWL");
+    expect(terrain.satelliteMeta?.sentinel2CloudCover).toBe(0.4);
+    expect(terrain.satelliteMeta?.sentinel2SelectionRule).toBe("growing_season_snow_free");
+    expect(terrain.satelliteMeta?.elevationSourceId).toBe("3dep-seamless");
+
+    const satRecords = buildSatelliteSourcesAndEvidence({
+      caseId: "case_loc_new_york_317deb",
+      slug: "new_york",
+      hash6: "317deb",
+      placeName: "New York",
+      geoId: "geo_loc_new_york_317deb",
+      now: "2026-11-02T00:00:00.000Z",
+      satellite: terrain.satelliteMeta,
+    });
+    const demSrc = satRecords.sources.find((s) => s.id === "src_dem_new_york_317deb");
+    expect(demSrc?.title).toContain("USGS 3D Elevation Program (3DEP)");
+    const demEv = satRecords.evidence.find((e) => e.id === "ev_dem_new_york_317deb");
+    expect(demEv?.statement).toContain("bare-earth ground model");
   });
 });
 
@@ -269,7 +379,7 @@ describe("an outline that cannot be drawn", () => {
       return Promise.resolve(
         url.includes("/terrarium/")
           ? new Response(new Uint8Array(sea), { status: 200 })
-          : new Response("unavailable", { status: 503 }),
+          : new Response("unavailable", { status: 404 }),
       );
     });
     const bbox: [number, number, number, number] = [-46.980385, 0.925969, -46.800695, 1.105631];

@@ -111,6 +111,8 @@ uniform vec3 uSnowC;
 uniform float uCarve;
 uniform sampler2D uWater;   // water's share of each relief cell (R, linear), a live place's mask; none elsewhere
 uniform vec3 uWaterC;
+uniform sampler2D uPhoto;   // Sentinel-2 true-colour composite on the relief grid (RGBA, linear), when read
+uniform float uPhotoA;      // 0 none (the bundled specimen), >0 mixes the true-colour composite into the albedo
 uniform float uScanA, uScanH; // the measurement front (UI-2, DESIGN v2): its strength (0 none) and height (m)
 uniform vec3 uScanC;
 varying vec3 vWorld;
@@ -137,10 +139,14 @@ void main() {
   vec4 lm = texture(uLM, uv);
   float sh = mix(0.88, lm.r, uCarve), ao = mix(0.96, lm.g, uCarve);
 
-  // albedo: neutral ground, then the WorldCover classes (2021, 10 m) mixed in before the light
+  // albedo: neutral ground, then the WorldCover classes (2021, 10 m) and any snow-free Sentinel-2 true colour mixed in before the light
   vec3 alb = uAlbedo;
   alb = mix(alb, uCropC, mk.g * uCoverA);
   alb = mix(alb, uTreeC, mk.r * uCoverA);
+  if (uPhotoA > 0.001) {
+    vec4 ph = texture(uPhoto, uv);
+    alb = mix(alb, ph.rgb, ph.a * uPhotoA);
+  }
 
   float diff = max(dot(n, uL), 0.0) * sh;
   float sky = 0.5 + 0.5 * n.y;
@@ -396,6 +402,10 @@ export interface ReliefOptions {
   limitAt?: number;
   /** Water's share of each relief cell (R, the relief's grid), when the place has a water mask. */
   water?: Texture;
+  /** Snow-free growing-season Sentinel-2 true-colour composite on the relief grid, when read for a live place. */
+  trueColour?: Texture;
+  /** Mix weight (0 to 1) of the true-colour composite into the terrain albedo before lighting. */
+  photoA?: number;
   /** The relief grid's cell (m); 30 for the bundled 30 m reliefs. */
   cellM?: number;
   /** Contour and index contour intervals (m); 250 and 1000 by default. */
@@ -507,6 +517,8 @@ export function createRelief(
     uCarve: { value: 1 },
     uWater: { value: o.water ?? NO_WATER },
     uWaterC: { value: hexVec(c.waterC ?? c.albedo) },
+    uPhoto: { value: o.trueColour ?? EMPTY_OVERLAY },
+    uPhotoA: { value: o.trueColour ? (o.photoA ?? 0.38) : 0 },
     uScanA: { value: 0 },
     uScanH: { value: 0 },
     uScanC: { value: hexVec(c.scanC ?? c.line) },

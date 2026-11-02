@@ -1,9 +1,18 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fetchOpenMeteoGrid, fetchTerrariumGrid, interpolateGrid } from "./dem-grid.ts";
-import { buildWaterMask, encodeRuns, type WaterSource } from "./water-mask.ts";
+import * as elevationSources from "./elevation-sources.ts";
+import {
+  ELEVATION_METHOD,
+  type ElevationGrid,
+  type ElevationSourceId,
+} from "./elevation-sources.ts";
 import { type NamedPeak, fetchRealHydrology } from "./hydrology-fetcher.ts";
+import * as imagery from "./imagery.ts";
+import type { TrueColourImage, TrueColourSelectionRule } from "./imagery.ts";
+import { cachedLive, liveCacheKey } from "./live-cache.ts";
 import { type LandCoverGrid, fetchSatelliteLandCover } from "./satellite-fetcher.ts";
+import { buildWaterMask, encodeRuns, type WaterSource } from "./water-mask.ts";
 
 export { fetchOpenMeteoGrid, fetchTerrariumGrid };
 
@@ -16,9 +25,22 @@ export interface SatelliteMeta {
   worldCoverYear?: number;
   worldCoverTileUrl?: string;
   sentinel2ItemId?: string;
+  sentinel2ItemIds?: string[];
   sentinel2Datetime?: string;
+  sentinel2Date?: string;
   sentinel2CloudCover?: number;
+  sentinel2SceneCloudCover?: number;
+  sentinel2SnowCover?: number;
   sentinel2Platform?: string;
+  sentinel2SelectionRule?: TrueColourSelectionRule;
+  sentinel2Selection?: string;
+  sentinel2Attribution?: string;
+  elevationSourceId?: ElevationSourceId;
+  elevationSurface?: ElevationGrid["surface"];
+  elevationNominalResolutionM?: number;
+  elevationVerticalDatum?: string;
+  elevationItemIds?: string[];
+  elevationAttribution?: string;
   metaCanopyQuadKey?: string;
   metaCanopyTileUrl?: string;
   treeCoverPct?: number;
@@ -26,6 +48,35 @@ export interface SatelliteMeta {
   grasslandPct?: number;
   waterPct?: number;
   barePct?: number;
+}
+
+export interface ElevationModelMeta {
+  source: ElevationSourceId;
+  surface: ElevationGrid["surface"];
+  nominalResolutionM: number;
+  verticalDatum: string;
+  itemIds: string[];
+  attribution: string;
+  noReadingShare: number;
+  noReadingAtSeaShare: number | null;
+  tried: ElevationGrid["tried"];
+}
+
+export interface TerrainTrueColour {
+  width: number;
+  height: number;
+  /** Base64-encoded PNG (row 0 north, over bbox). */
+  pngBase64: string;
+  itemIds: string[];
+  datetime: string;
+  date: string;
+  platform: string;
+  sceneCloudPct: number;
+  boxCloudPct: number;
+  boxSnowPct: number;
+  selectionRule: TrueColourSelectionRule;
+  attribution: string;
+  selection: string;
 }
 
 /** Bumped when the stored grid changes meaning; readOrBuildTerrain rebuilds any other version in place. */
@@ -60,6 +111,10 @@ export interface TerrainFile {
   maxElevationM: number;
   elevations: number[];
   elevationSource?: ElevationSource;
+  /** Measured STAC DEM metadata (USGS 3DEP 1/3 arc-second bare-earth or Copernicus DEM GLO-30) when used. */
+  elevationModel?: ElevationModelMeta;
+  /** Snow-free growing-season Sentinel-2 L2A true-colour composite over bbox when retrieved. */
+  trueColour?: TerrainTrueColour;
   /** Terrarium pixels replaced as defects before sampling (dem-grid.ts despikeMosaic), when the source is Terrarium. */
   despikedPixels?: number;
   /** Water on the elevation grid's nodes (water-mask.ts buildWaterMask, encodeRuns). */
@@ -729,10 +784,24 @@ export async function buildTerrainForBbox(
   const coarseSize = 16;
   const targetSize = TERRAIN_GRID_SIZE;
 
-  const [terrarium, hydrology, fetched] = await Promise.all([
-    fetchTerrariumGrid(bbox, targetSize),
+  const fetchElev = () =>
+    caseId
+      ? cachedLive<ElevationGrid>(
+          "elevation",
+          liveCacheKey(bbox, undefined, `${ELEVATION_METHOD.version}@${String(targetSize)}`),
+          () => elevationSources.fetchElevation(bbox, targetSize, { timeoutMs: 12_000 }),
+        )
+      : elevationSources.fetchElevation(bbox, targetSize, { timeoutMs: 12_000 });
+  const fetchPhoto = () =>
+    caseId
+      ? imagery.cachedTrueColour(bbox, { size: targetSize, timeoutMs: 12_000 })
+      : imagery.fetchTrueColour(bbox, { size: targetSize, timeoutMs: 12_000 });
+
+  const [elevationResult, hydrology, fetched, trueColourResult] = await Promise.all([
+    fetchElev().catch(() => null),
     fetchRealHydrology(bbox),
     fetchSatelliteLandCover(bbox),
+    fetchPhoto().catch(() => null),
   ]);
   // the same box's WorldCover from an earlier build stands in when this fetch came back without it
   const satellite =
@@ -741,17 +810,40 @@ export async function buildTerrainForBbox(
       : fetched;
 
   let elevations: number[];
-  let elevationSource: ElevationSource;
-  if (terrarium) {
-    elevations = terrarium.elevations;
-    elevationSource = terrarium.zoom === 12 ? "terrarium_z12" : "terrarium_z11";
+  let elevationSource: ElevationSource | undefined;
+  let elevationModel: ElevationModelMeta | undefined;
+  let despikedPixels: number | undefined;
+
+  if (elevationResult?.status === "measured") {
+    const grid = elevationResult.value;
+    elevations = Array.from(grid.elevationsM, (v) =>
+      Number.isFinite(v) ? Number(v.toFixed(1)) : 0,
+    );
+    elevationModel = {
+      source: grid.source,
+      surface: grid.surface,
+      nominalResolutionM: grid.nominalResolutionM,
+      verticalDatum: grid.verticalDatum,
+      itemIds: grid.itemIds,
+      attribution: grid.attribution,
+      noReadingShare: grid.noReadingShare,
+      noReadingAtSeaShare: grid.noReadingAtSeaShare,
+      tried: grid.tried,
+    };
   } else {
-    // Open-Meteo's elevation grid (16 x 16 points, Copernicus DEM 90 m) is coarse and labelled as such; with neither
-    // source there is no land to draw, and nothing stands in for it
-    const liveCoarse = await fetchOpenMeteoGrid(bbox, coarseSize);
-    if (!liveCoarse) throw new ElevationUnavailableError(bbox);
-    elevationSource = "open_meteo_16";
-    elevations = interpolateGrid(liveCoarse, coarseSize, targetSize);
+    const terrarium = await fetchTerrariumGrid(bbox, targetSize);
+    if (terrarium) {
+      elevations = terrarium.elevations;
+      elevationSource = terrarium.zoom === 12 ? "terrarium_z12" : "terrarium_z11";
+      despikedPixels = terrarium.despikedPixels;
+    } else {
+      // Open-Meteo's elevation grid (16 x 16 points, Copernicus DEM 90 m) is coarse and labelled as such; with neither
+      // source there is no land to draw, and nothing stands in for it
+      const liveCoarse = await fetchOpenMeteoGrid(bbox, coarseSize);
+      if (!liveCoarse) throw new ElevationUnavailableError(bbox);
+      elevationSource = "open_meteo_16";
+      elevations = interpolateGrid(liveCoarse, coarseSize, targetSize);
+    }
   }
 
   // water is mapped once here; the elevations stay as measured, and the land's own range leaves water out
@@ -799,16 +891,62 @@ export async function buildTerrainForBbox(
       ? hydrology.streamKinds
       : undefined;
 
+  const tc: TrueColourImage | null =
+    trueColourResult?.status === "measured" ? trueColourResult.value : null;
+  const trueColour: TerrainTrueColour | undefined =
+    tc && tc.png.byteLength > 0
+      ? {
+          width: tc.width,
+          height: tc.height,
+          pngBase64: Buffer.from(tc.png).toString("base64"),
+          itemIds: tc.itemIds,
+          datetime: tc.datetime,
+          date: tc.date,
+          platform: tc.platform,
+          sceneCloudPct: tc.sceneCloudPct,
+          boxCloudPct: tc.boxCloudPct,
+          boxSnowPct: tc.boxSnowPct,
+          selectionRule: tc.selectionRule,
+          attribution: tc.attribution,
+          selection: tc.selection,
+        }
+      : undefined;
+
+  const s2ItemId = tc?.itemIds[0] ?? satellite.sentinel2ItemId;
+  const s2Datetime = tc?.datetime ?? satellite.sentinel2Datetime;
+  const s2CloudCover = tc?.boxCloudPct ?? satellite.sentinel2CloudCover;
+  const s2Platform = tc?.platform ?? satellite.sentinel2Platform;
+
   const satelliteMeta: SatelliteMeta = {
     ...(satellite.worldCoverItemId ? { worldCoverItemId: satellite.worldCoverItemId } : {}),
     ...(satellite.worldCoverYear !== undefined ? { worldCoverYear: satellite.worldCoverYear } : {}),
     ...(satellite.worldCoverTileUrl ? { worldCoverTileUrl: satellite.worldCoverTileUrl } : {}),
-    ...(satellite.sentinel2ItemId ? { sentinel2ItemId: satellite.sentinel2ItemId } : {}),
-    ...(satellite.sentinel2Datetime ? { sentinel2Datetime: satellite.sentinel2Datetime } : {}),
-    ...(satellite.sentinel2CloudCover !== undefined
-      ? { sentinel2CloudCover: satellite.sentinel2CloudCover }
+    ...(s2ItemId ? { sentinel2ItemId: s2ItemId } : {}),
+    ...(tc?.itemIds ? { sentinel2ItemIds: tc.itemIds } : {}),
+    ...(s2Datetime ? { sentinel2Datetime: s2Datetime } : {}),
+    ...(tc?.date ? { sentinel2Date: tc.date } : {}),
+    ...(s2CloudCover !== undefined ? { sentinel2CloudCover: s2CloudCover } : {}),
+    ...(tc
+      ? { sentinel2SceneCloudCover: tc.sceneCloudPct, sentinel2SnowCover: tc.boxSnowPct }
       : {}),
-    ...(satellite.sentinel2Platform ? { sentinel2Platform: satellite.sentinel2Platform } : {}),
+    ...(s2Platform ? { sentinel2Platform: s2Platform } : {}),
+    ...(tc
+      ? {
+          sentinel2SelectionRule: tc.selectionRule,
+          sentinel2Selection: tc.selection,
+          sentinel2Attribution: tc.attribution,
+        }
+      : {}),
+    ...(elevationModel
+      ? {
+          elevationSourceId: elevationModel.source,
+          elevationSurface: elevationModel.surface,
+          elevationNominalResolutionM: elevationModel.nominalResolutionM,
+          elevationVerticalDatum: elevationModel.verticalDatum,
+          elevationItemIds: elevationModel.itemIds,
+          elevationAttribution: elevationModel.attribution,
+        }
+      : {}),
     ...(satellite.metaCanopyQuadKey ? { metaCanopyQuadKey: satellite.metaCanopyQuadKey } : {}),
     ...(satellite.metaCanopyTileUrl ? { metaCanopyTileUrl: satellite.metaCanopyTileUrl } : {}),
     ...(satellite.treeCoverPct !== undefined ? { treeCoverPct: satellite.treeCoverPct } : {}),
@@ -827,8 +965,10 @@ export async function buildTerrainForBbox(
     minElevationM: Number(minElevationM.toFixed(1)),
     maxElevationM: Number(maxElevationM.toFixed(1)),
     elevations,
-    elevationSource,
-    ...(terrarium ? { despikedPixels: terrarium.despikedPixels } : {}),
+    ...(elevationSource ? { elevationSource } : {}),
+    ...(elevationModel ? { elevationModel } : {}),
+    ...(trueColour ? { trueColour } : {}),
+    ...(despikedPixels !== undefined ? { despikedPixels } : {}),
     waterMask: { runs: encodeRuns(water.mask), source: water.source },
     landCells,
     catchmentRing,

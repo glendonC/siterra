@@ -36,9 +36,22 @@ export interface SatelliteMeta {
   worldCoverYear?: number;
   worldCoverTileUrl?: string;
   sentinel2ItemId?: string;
+  sentinel2ItemIds?: string[];
   sentinel2Datetime?: string;
+  sentinel2Date?: string;
   sentinel2CloudCover?: number;
+  sentinel2SceneCloudCover?: number;
+  sentinel2SnowCover?: number;
   sentinel2Platform?: string;
+  sentinel2SelectionRule?: "growing_season_snow_free" | "year_clearest_fallback";
+  sentinel2Selection?: string;
+  sentinel2Attribution?: string;
+  elevationSourceId?: "3dep-seamless" | "cop-dem-glo-30";
+  elevationSurface?: "bare_earth" | "surface_model";
+  elevationNominalResolutionM?: number;
+  elevationVerticalDatum?: string;
+  elevationItemIds?: string[];
+  elevationAttribution?: string;
   metaCanopyQuadKey?: string;
   metaCanopyTileUrl?: string;
   treeCoverPct?: number;
@@ -46,6 +59,35 @@ export interface SatelliteMeta {
   grasslandPct?: number;
   waterPct?: number;
   barePct?: number;
+}
+
+export interface ElevationModelMeta {
+  source: "3dep-seamless" | "cop-dem-glo-30";
+  surface: "bare_earth" | "surface_model";
+  nominalResolutionM: number;
+  verticalDatum: string;
+  itemIds: string[];
+  attribution: string;
+  noReadingShare: number;
+  noReadingAtSeaShare: number | null;
+  tried: { source: "3dep-seamless" | "cop-dem-glo-30"; outcome: string; detail?: string }[];
+}
+
+export interface TerrainTrueColour {
+  width: number;
+  height: number;
+  /** Base64-encoded PNG (row 0 north, over bbox). */
+  pngBase64: string;
+  itemIds: string[];
+  datetime: string;
+  date: string;
+  platform: string;
+  sceneCloudPct: number;
+  boxCloudPct: number;
+  boxSnowPct: number;
+  selectionRule: "growing_season_snow_free" | "year_clearest_fallback";
+  attribution: string;
+  selection: string;
 }
 
 export interface TerrainFile {
@@ -60,6 +102,8 @@ export interface TerrainFile {
   maxElevationM: number;
   elevations: number[];
   elevationSource?: "terrarium_z12" | "terrarium_z11" | "open_meteo_16";
+  elevationModel?: ElevationModelMeta;
+  trueColour?: TerrainTrueColour;
   despikedPixels?: number;
   /** Water on the elevation grid's nodes as encodeRuns wrote it (version 2 files built after the water mask). */
   waterMask?: { runs: number[]; source: WaterSource };
@@ -223,6 +267,165 @@ function sampleLandCoverChannel(
   const v01 = arr[r0 * srcW + c1] ?? 0;
   const v10 = arr[r1 * srcW + c0] ?? 0;
   const v11 = arr[r1 * srcW + c1] ?? 0;
+  const top = v00 * (1 - tx) + v01 * tx;
+  const bot = v10 * (1 - tx) + v11 * tx;
+  return Math.max(0, Math.min(255, Math.round(top * (1 - ty) + bot * ty)));
+}
+
+function base64ToBytes(b64: string): Uint8Array<ArrayBuffer> {
+  const bin = atob(b64);
+  const out = new Uint8Array(new ArrayBuffer(bin.length));
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
+
+/**
+ * Decodes an 8-bit PNG from base64 into RGBA bytes in both the browser and Node test environments
+ * without importing Node-only modules.
+ */
+async function decodeTrueColourPng(
+  b64: string,
+): Promise<{ width: number; height: number; data: Uint8Array | Uint8ClampedArray } | null> {
+  let bytes: Uint8Array<ArrayBuffer>;
+  try {
+    bytes = base64ToBytes(b64);
+  } catch {
+    return null;
+  }
+  if (bytes.length < 33 || bytes[0] !== 137 || bytes[1] !== 80) return null;
+
+  if (
+    typeof Blob !== "undefined" &&
+    typeof createImageBitmap === "function" &&
+    typeof OffscreenCanvas !== "undefined"
+  ) {
+    try {
+      const bmp = await createImageBitmap(new Blob([bytes], { type: "image/png" }));
+      try {
+        const canvas = new OffscreenCanvas(bmp.width, bmp.height);
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          ctx.drawImage(bmp, 0, 0);
+          const img = ctx.getImageData(0, 0, bmp.width, bmp.height);
+          return { width: bmp.width, height: bmp.height, data: img.data };
+        }
+      } finally {
+        bmp.close();
+      }
+    } catch {
+      // Fall through to pure Web-API PNG decode
+    }
+  }
+
+  if (typeof DecompressionStream === "undefined") return null;
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  let width = 0;
+  let height = 0;
+  let bitDepth = 8;
+  let colorType = 6;
+  const idatParts: Uint8Array[] = [];
+  let offset = 8;
+  while (offset + 8 <= bytes.length) {
+    const len = view.getUint32(offset, false);
+    const type = String.fromCharCode(
+      bytes[offset + 4] ?? 0,
+      bytes[offset + 5] ?? 0,
+      bytes[offset + 6] ?? 0,
+      bytes[offset + 7] ?? 0,
+    );
+    const dataStart = offset + 8;
+    if (dataStart + len > bytes.length) break;
+    if (type === "IHDR" && len >= 10) {
+      width = view.getUint32(dataStart, false);
+      height = view.getUint32(dataStart + 4, false);
+      bitDepth = bytes[dataStart + 8] ?? 8;
+      colorType = bytes[dataStart + 9] ?? 6;
+    } else if (type === "IDAT") {
+      idatParts.push(bytes.subarray(dataStart, dataStart + len));
+    } else if (type === "IEND") {
+      break;
+    }
+    offset = dataStart + len + 4;
+  }
+  const bpp = colorType === 6 ? 4 : colorType === 2 ? 3 : 0;
+  if (width <= 0 || height <= 0 || bitDepth !== 8 || bpp === 0 || idatParts.length === 0) {
+    return null;
+  }
+  try {
+    const totalIdat = idatParts.reduce((s, p) => s + p.length, 0);
+    const compressed = new Uint8Array(new ArrayBuffer(totalIdat));
+    let pos = 0;
+    for (const p of idatParts) {
+      compressed.set(p, pos);
+      pos += p.length;
+    }
+    const ds = new DecompressionStream("deflate");
+    const writer = ds.writable.getWriter();
+    void writer.write(compressed);
+    void writer.close();
+    const raw = new Uint8Array(await new Response(ds.readable).arrayBuffer());
+    const stride = width * bpp;
+    if (raw.length < height * (1 + stride)) return null;
+    const recon = new Uint8Array(height * stride);
+    const paeth = (a: number, b: number, c: number): number => {
+      const p = a + b - c;
+      const pa = Math.abs(p - a);
+      const pb = Math.abs(p - b);
+      const pc = Math.abs(p - c);
+      return pa <= pb && pa <= pc ? a : pb <= pc ? b : c;
+    };
+    for (let r = 0; r < height; r++) {
+      const filter = raw[r * (1 + stride)] ?? 0;
+      const srcOff = r * (1 + stride) + 1;
+      const dstOff = r * stride;
+      for (let i = 0; i < stride; i++) {
+        const x = raw[srcOff + i] ?? 0;
+        const a = i >= bpp ? (recon[dstOff + i - bpp] ?? 0) : 0;
+        const b = r > 0 ? (recon[dstOff - stride + i] ?? 0) : 0;
+        const c = r > 0 && i >= bpp ? (recon[dstOff - stride + i - bpp] ?? 0) : 0;
+        let val = x;
+        if (filter === 1) val = (x + a) & 255;
+        else if (filter === 2) val = (x + b) & 255;
+        else if (filter === 3) val = (x + ((a + b) >> 1)) & 255;
+        else if (filter === 4) val = (x + paeth(a, b, c)) & 255;
+        recon[dstOff + i] = val;
+      }
+    }
+    const rgba = new Uint8Array(width * height * 4);
+    for (let i = 0; i < width * height; i++) {
+      const dst = i * 4;
+      const src = i * bpp;
+      rgba[dst] = recon[src] ?? 0;
+      rgba[dst + 1] = recon[src + 1] ?? 0;
+      rgba[dst + 2] = recon[src + 2] ?? 0;
+      rgba[dst + 3] = bpp === 4 ? (recon[src + 3] ?? 255) : 255;
+    }
+    return { width, height, data: rgba };
+  } catch {
+    return null;
+  }
+}
+
+function sampleRgbaChannel(
+  data: Uint8Array | Uint8ClampedArray,
+  srcW: number,
+  srcH: number,
+  rNorm: number,
+  cNorm: number,
+  channel: 0 | 1 | 2,
+): number {
+  const fy = Math.max(0, Math.min(srcH - 1, rNorm * (srcH - 1)));
+  const fx = Math.max(0, Math.min(srcW - 1, cNorm * (srcW - 1)));
+  const r0 = Math.floor(fy);
+  const c0 = Math.floor(fx);
+  const r1 = Math.min(srcH - 1, r0 + 1);
+  const c1 = Math.min(srcW - 1, c0 + 1);
+  const ty = fy - r0;
+  const tx = fx - c0;
+  const v00 = data[(r0 * srcW + c0) * 4 + channel] ?? 0;
+  const v01 = data[(r0 * srcW + c1) * 4 + channel] ?? 0;
+  const v10 = data[(r1 * srcW + c0) * 4 + channel] ?? 0;
+  const v11 = data[(r1 * srcW + c1) * 4 + channel] ?? 0;
   const top = v00 * (1 - tx) + v01 * tx;
   const bot = v10 * (1 - tx) + v11 * tx;
   return Math.max(0, Math.min(255, Math.round(top * (1 - ty) + bot * ty)));
@@ -420,9 +623,53 @@ export async function overviewDataFromTerrain(terrain: TerrainFile): Promise<Ove
     }
   }
 
-  const [landcover, bands] = await Promise.all([
+  const decodedPhoto = terrain.trueColour?.pngBase64
+    ? await decodeTrueColourPng(terrain.trueColour.pngBase64)
+    : null;
+  const tcPixels = decodedPhoto
+    ? new Uint8ClampedArray(new ArrayBuffer(gridDim * gridDim * 4))
+    : null;
+  if (decodedPhoto && tcPixels) {
+    for (let r = 0; r < gridDim; r++) {
+      for (let c = 0; c < gridDim; c++) {
+        const idx = r * gridDim + c;
+        if (insideFlags[idx] !== 1) continue;
+        const rNorm = Math.max(0, Math.min(1, (cellRow[idx] ?? 0) / Math.max(1, srcH - 1)));
+        const cNorm = Math.max(0, Math.min(1, (cellCol[idx] ?? 0) / Math.max(1, srcW - 1)));
+        const p = idx * 4;
+        tcPixels[p] = sampleRgbaChannel(
+          decodedPhoto.data,
+          decodedPhoto.width,
+          decodedPhoto.height,
+          rNorm,
+          cNorm,
+          0,
+        );
+        tcPixels[p + 1] = sampleRgbaChannel(
+          decodedPhoto.data,
+          decodedPhoto.width,
+          decodedPhoto.height,
+          rNorm,
+          cNorm,
+          1,
+        );
+        tcPixels[p + 2] = sampleRgbaChannel(
+          decodedPhoto.data,
+          decodedPhoto.width,
+          decodedPhoto.height,
+          rNorm,
+          cNorm,
+          2,
+        );
+        tcPixels[p + 3] = 255;
+      }
+    }
+  }
+
+  const [landcover, bands, trueColour] = await Promise.all([
     bitmapFromRgba(lcPixels, gridDim, gridDim),
     bitmapFromRgba(bandsPixels, gridDim, gridDim),
+    tcPixels ? bitmapFromRgba(tcPixels, gridDim, gridDim) : Promise.resolve(undefined),
   ]);
 
   // Helper to sample height from the relief grid at UTM (E, N)
@@ -484,6 +731,7 @@ export async function overviewDataFromTerrain(terrain: TerrainFile): Promise<Ove
       median: Math.round(medianH),
     },
     landcover,
+    ...(trueColour ? { trueColour } : {}),
     bands,
     ...(waterNodes ? { water } : {}),
     ring: ringUtm,

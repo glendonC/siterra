@@ -464,11 +464,13 @@ export function mountOverview(
   };
   const lightMap = bakeLight(H, g, M30, light.dir, { exag, base: BASE, soft: 14 });
   const waterTex = data.water ? waterTexture(data.water, g) : null;
+  const trueColourTex = data.trueColour ? coverTexture(data.trueColour) : null;
   const relief = createRelief(H, g, frame, lcTex, frame.rect(a), {
     hTex,
     light,
     lightMap,
     ...(waterTex ? { water: waterTex } : {}),
+    ...(trueColourTex ? { trueColour: trueColourTex } : {}),
     cellM: g.res,
     contourStep: contourSteps(reliefM),
     colours: {
@@ -2116,7 +2118,9 @@ export function mountOverview(
       stage.dispose();
       for (const t of [hTex, lcTex, lightMap]) t.dispose();
       waterTex?.dispose();
+      trueColourTex?.dispose();
       data.landcover.close();
+      data.trueColour?.close();
     },
   };
 }
