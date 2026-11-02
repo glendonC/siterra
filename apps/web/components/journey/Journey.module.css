@@ -593,7 +593,9 @@
    over the clipped sweep. */
 .dbhLaunchWord {
   width: fit-content;
-  margin: 0;
+  /* room below the baseline for the g, whose sweep paints only inside this box: line-height 1.1 instead of the
+     fractions' 0.9, the extra 0.2em taken back by the margins so nothing around it moves */
+  margin: -0.1em 0;
   padding-bottom: 0.12em;
   font: 200 46px / 1.1 var(--font-sans);
   letter-spacing: -0.02em;
