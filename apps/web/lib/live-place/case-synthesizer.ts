@@ -72,7 +72,7 @@ const SYNTH_MODEL = {
  * Synthesizes the complete competing-explanation tree (5 Hypotheses, 5 ExplanationBranches,
  * 1 BranchMerge) and next-steps decision package (3 Interventions grounded in local context,
  * 5 ResourceRequirements, 2 ReviewDecisions, 1 OperationalAction field plan, and 1 Brief)
- * for any location on Earth from its real DEM relief, 25-year ERA5 climate series, OpenAlex
+ * for any location on Earth from its terrain elevation grid, Open-Meteo rainfall series (ERA5 reanalysis), OpenAlex
  * peer-reviewed studies, and regional governance/stewardship records.
  */
 export function synthesizeCasePackage(
@@ -224,7 +224,7 @@ export function synthesizeCasePackage(
     measurementIds: [],
     provenance: {
       ...baseProv([
-        "Field requirement derived from valley-floor elevation band trends; local diversion and planting histories require field collection.",
+        "Field requirement derived from the competing valley-floor explanation; local diversion and planting histories require field collection.",
       ]),
       verificationStatus: "unverified",
       sourceLocators: contextEv.provenance.sourceLocators.slice(0, 1),
@@ -285,7 +285,7 @@ export function synthesizeCasePackage(
       assessment,
       provenance: {
         ...baseProv([
-          "A hypothesis is a candidate explanation; its status describes fit against the 25-year archive and published literature, not proof.",
+          "A hypothesis is a candidate explanation, not proof. No vegetation series is measured for this place, so none is judged against one.",
         ]),
         verificationStatus: "unverified",
       },
@@ -312,10 +312,10 @@ export function synthesizeCasePackage(
     makeHyp(
       hypGrazingId,
       grazingLlmHyp?.statement ||
-        `Changes in upland grazing pressure, rangeland rotation, or canopy disturbance above ${String(bandLimitM)} m shaped vegetation trends across ${placeName}.`,
+        `Changes in upland grazing pressure, rangeland rotation, or canopy disturbance above ${String(bandLimitM)} m changed vegetation there in ${placeName}.`,
       "inconclusive",
       grazingLlmHyp?.assessment ||
-        `Cannot be assessed from satellite series alone: requires local verification of seasonal grazing and stewardship schedules above ${String(bandLimitM)} m in ${placeName}.`,
+        `${noVegetation} Also missing: seasonal grazing and stewardship schedules above ${String(bandLimitM)} m in ${placeName}.`,
       [studyEv.id, ...llmVerifiedEvidence.slice(0, 1).map((e) => e.id)],
       [],
       [needUpper.statement],
@@ -326,38 +326,32 @@ export function synthesizeCasePackage(
         `Valley-floor land-use change, irrigation management, or parcel conversion below ${String(bandLimitM)} m changed vegetation there, apart from rainfall, in ${placeName}.`,
       "inconclusive",
       landLlmHyp?.assessment ||
-        `Cannot be assessed from remote sensing alone: requires local verification of valley-floor water diversions and parcel management below ${String(bandLimitM)} m.`,
-      [
-        ...new Set([
-          contextEv.id,
-          climateEv.id,
-          ...llmVerifiedEvidence.slice(1, 2).map((e) => e.id),
-        ]),
-      ],
+        `${noVegetation} Also missing: valley-floor water diversions and parcel management records below ${String(bandLimitM)} m.`,
+      [...new Set([contextEv.id, ...llmVerifiedEvidence.slice(1, 2).map((e) => e.id)])],
       [],
-      [needValley.statement],
+      [climate.vegetation.reason, needValley.statement],
     ),
     makeHyp(
       hypSnowId,
       snowLlmCause?.statement ||
-        `Elevation-dependent snowmelt timing, aspect shading, and topographic moisture retention across ${terrain.minElevationM.toFixed(0)}–${terrain.maxElevationM.toFixed(0)} m mediated vegetation response in ${placeName}.`,
+        `Elevation-dependent snowmelt timing, aspect shading, and topographic moisture retention across ${terrain.minElevationM.toFixed(0)} to ${terrain.maxElevationM.toFixed(0)} m shaped how vegetation responded to rainfall in ${placeName}.`,
       "inconclusive",
       snowLlmCause?.statusReason ||
-        `Open across the ${terrain.minElevationM.toFixed(0)}–${terrain.maxElevationM.toFixed(0)} m relief gradient: requires separating topographic moisture buffering from upland and valley-floor management.`,
-      [climateEv.id],
+        `${noVegetation} Separating topographic moisture across ${terrain.minElevationM.toFixed(0)} to ${terrain.maxElevationM.toFixed(0)} m from upland and valley-floor management also needs field checks.`,
       [],
-      [needUpper.statement],
+      [],
+      [climate.vegetation.reason, needUpper.statement],
     ),
     makeHyp(
       hypArtefactId,
       artefactLlmCause?.statement ||
-        `Sensor calibration drift, cloud-mask gaps, or reanalysis interpolation artefacts produced the apparent 25-year pattern in ${placeName} without real ecological change.`,
-      "inconsistent",
+        `Sensor calibration drift, cloud-mask gaps, or reanalysis interpolation artefacts would produce a vegetation signal in ${placeName} without real ecological change.`,
+      "inconclusive",
       artefactLlmCause?.statusReason ||
-        `Contradicted by 25 complete annual observation periods (2000–2024) with verified spatial coverage across ${placeName}.`,
+        `Cannot be assessed with current data. Missing: satellite scenes and their quality flags for ${placeName}.`,
       [],
-      [climateEv.id],
       [],
+      [climate.vegetation.reason],
     ),
   ];
 
@@ -403,7 +397,7 @@ export function synthesizeCasePackage(
       hypothesisId: params.hypothesisId,
       provenance: {
         ...baseProv([
-          "Scored by deterministic rules (merge@2) against the 25-year climate/relief bundle and retrieved literature.",
+          "Status set by the live synthesizer from what the record holds; no vegetation series is measured, so no prediction is scored.",
         ]),
         verificationStatus: "unverified",
       },
@@ -620,10 +614,10 @@ export function synthesizeCasePackage(
       explanationId: "data_artefact",
       label: "Data artefact",
       statement: artefactLlmCause?.statement || hypotheses[4]!.statement,
-      status: "contradicted",
+      status: "cannot_be_assessed",
       statusReason:
         artefactLlmCause?.statusReason ||
-        "25 complete annual observation seasons (2000–2024) are verified with no missing coverage flags.",
+        "Cannot be assessed with current data. Missing: satellite scenes and their quality flags.",
       hypothesisId: hypArtefactId,
       predictions: [
         {
@@ -650,10 +644,10 @@ export function synthesizeCasePackage(
       scores: [
         {
           predictionKey: "p1",
-          outcome: "not_met",
-          dataAdequate: true,
-          reasonCode: null,
-          observed: `low_scene_count is recorded for none of ${lastPeriod}.`,
+          outcome: "not_testable",
+          dataAdequate: false,
+          reasonCode: "no_quality_record",
+          observed: `Not measured: no satellite scenes or quality flags are recorded for ${lastPeriod}.`,
           measurementIds: [measurementIds.catchmentTrendId],
           dataBundleIds: [bundleId],
         },
@@ -722,7 +716,7 @@ export function synthesizeCasePackage(
     },
     provenance: {
       ...baseProv([
-        "Merged across the 5 competing causal branches using merge@2 rules.",
+        "Merged across the 5 competing explanations; none can be assessed until a vegetation series is measured.",
       ]),
       verificationStatus: "unverified",
       inputVersions: explanationBranches.map((b) => ({
@@ -803,7 +797,7 @@ export function synthesizeCasePackage(
       caseId,
       title:
         llmLandInt?.title ||
-        `Map valley-floor water use and parcel history below ${String(bandLimitM)} m against trend cells`,
+        `Map valley-floor water use and parcel history below ${String(bandLimitM)} m`,
       description:
         llmLandInt?.description ||
         `If landholders and local water authorities share parcel or diversion histories below ${String(bandLimitM)} m, set them beside a measured valley-floor vegetation series before weighing catchment-wide actions.`,
@@ -844,7 +838,7 @@ export function synthesizeCasePackage(
         llmDeferInt?.title || "Defer management changes until the two field checks report",
       description:
         llmDeferInt?.description ||
-        `Maintain current baseline monitoring in ${placeName} and take no management intervention until upland and valley-floor field checks separate the open explanations.`,
+        `Take no management intervention in ${placeName} until a vegetation series is measured and the upland and valley-floor field checks separate the open explanations.`,
       status: "candidate",
       assumptions: [
         "Both field checks can be completed within the next growing season.",
@@ -996,7 +990,7 @@ export function synthesizeCasePackage(
           ).slice(0, 290),
           method: (
             landCause?.fieldCheck.method ||
-            "Landholder and water-manager consultations aligned with 2000–2024 satellite trend cells"
+            "Landholder and water-manager consultations, later set beside a measured vegetation series"
           ).slice(0, 390),
           season: (landCause?.fieldCheck.seasonWindow || "Any season").slice(0, 110),
           stratumKeys: ["valley_bottom_fields"],
@@ -1033,7 +1027,7 @@ export function synthesizeCasePackage(
           ),
         ]
       : []),
-    line(climateEv.statement, "observation", [climateEv]),
+    line(climateEv.statement, climateEv.claimKind, [climateEv]),
     line(studyEv.statement, "scientific_context", [studyEv]),
     ...(contextEv.id !== studyEv.id
       ? [line(contextEv.statement, contextEv.claimKind, [contextEv])]
@@ -1067,13 +1061,18 @@ export function synthesizeCasePackage(
     known: knownLines,
     uncertain: [
       line(
-        `Whether upland management, valley-floor land use, or topographic moisture best explains the residual pattern in ${placeName} requires local field verification.`,
+        `Whether vegetation in ${placeName} has changed since 2000 is not measured; if it has, separating rainfall, upland management, valley-floor land use and topographic moisture needs that series and field checks.`,
         "hypothesis",
         [needUpper],
       ),
       line(needValley.statement, "field_requirement", [needValley]),
     ],
     nextMeasurements: [
+      line(
+        `A satellite vegetation series (NDVI, 2000 to 2024) across ${placeName}, to say whether vegetation changed at all.`,
+        "field_requirement",
+        [climateEv],
+      ),
       line(
         `Upland stewardship and grazing schedules above ${String(bandLimitM)} m, to separate upland management from terrain moisture.`,
         "field_requirement",
@@ -1132,7 +1131,7 @@ export function synthesizeCasePackage(
     ],
     reviewDecisionIds: reviewDecisions.map((r) => r.id),
     limitations: [
-      "Synthesized from 25-year ERA5/DEM series and indexed literature; field checks required before any intervention.",
+      "Built from the Open-Meteo rainfall series (ERA5 reanalysis), the terrain elevation grid and indexed literature. No vegetation series is measured; field checks are required before any intervention.",
       "Draft prepared by Siterra; nothing is sent, scheduled or authorized.",
     ],
     mode: llmResult ? "live" : "replay",
