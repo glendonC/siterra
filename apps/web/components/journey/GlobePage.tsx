@@ -6,8 +6,8 @@ import {
   useMemo,
   useRef,
   useState,
-  type FormEvent,
   type Ref,
+  type SyntheticEvent,
 } from "react";
 import { placeHref, type OtherPlace } from "../../lib/globe/places";
 import { en, format } from "../../lib/copy/en";
@@ -135,20 +135,13 @@ function parseCoordinateInput(raw: string): { lat: number; lon: number } | null 
     }
   }
   const cardinal =
-    /(\d+(?:\.\d+)?)\s*°?\s*([NSns])\s*[,;\s]+\s*(\d+(?:\.\d+)?)\s*°?\s*([EWew])/.exec(
-      cleaned,
-    );
+    /(\d+(?:\.\d+)?)\s*°?\s*([NSns])\s*[,;\s]+\s*(\d+(?:\.\d+)?)\s*°?\s*([EWew])/.exec(cleaned);
   if (cardinal) {
     const latMag = Number(cardinal[1]);
     const latDir = cardinal[2]?.toUpperCase();
     const lonMag = Number(cardinal[3]);
     const lonDir = cardinal[4]?.toUpperCase();
-    if (
-      Number.isFinite(latMag) &&
-      Number.isFinite(lonMag) &&
-      latMag <= 90 &&
-      lonMag <= 180
-    ) {
+    if (Number.isFinite(latMag) && Number.isFinite(lonMag) && latMag <= 90 && lonMag <= 180) {
       return {
         lat: latDir === "S" ? -latMag : latMag,
         lon: lonDir === "W" ? -lonMag : lonMag,
@@ -229,24 +222,16 @@ export function GlobePage({
 
   const studiedCases = useMemo(() => {
     const base =
-      savedCases.length > 0
-        ? savedCases
-        : allSavedCases.length > 0
-          ? allSavedCases
-          : cases;
+      savedCases.length > 0 ? savedCases : allSavedCases.length > 0 ? allSavedCases : cases;
     const filtered = base.filter(
-      (c) =>
-        !c.id.startsWith("case_loc_selected_") &&
-        !/^selected\b/i.test(c.place.trim()),
+      (c) => !c.id.startsWith("case_loc_selected_") && !/^selected\b/i.test(c.place.trim()),
     );
     return filtered.length > 0 ? filtered : base;
   }, [savedCases, allSavedCases, cases]);
 
   const activeSavedCase = useMemo(
     () =>
-      studiedCases.find(
-        (c) => c.id === selectedCaseId || c.seedCaseId === selectedCaseId,
-      ) ??
+      studiedCases.find((c) => c.id === selectedCaseId || c.seedCaseId === selectedCaseId) ??
       cases[0] ??
       studiedCases[0],
     [studiedCases, selectedCaseId, cases],
@@ -255,10 +240,7 @@ export function GlobePage({
   // Clean, non-duplicated place & coordinate summary
   const activePlaceDisplay = useMemo(() => {
     if (customLocation) {
-      const cleaned = cleanPlaceLabel(
-        customLocation.placeName,
-        customLocation.regionName,
-      );
+      const cleaned = cleanPlaceLabel(customLocation.placeName, customLocation.regionName);
       const coords = formatLatLon(customLocation.lat, customLocation.lon);
       const title = cleaned || coords;
       return {
@@ -296,23 +278,15 @@ export function GlobePage({
     const list = lookupStudiedQuestions(activeSavedCase);
     if (list && list.length > 0) return list;
     if (activeSavedCase?.question) {
-      return [
-        activeSavedCase.question,
-        ...buildWorldQuestions(activeSavedCase.place).slice(1),
-      ];
+      return [activeSavedCase.question, ...buildWorldQuestions(activeSavedCase.place).slice(1)];
     }
-    return STUDIED_QUESTIONS_BY_SEED["ait-bouguemez"]!;
+    return STUDIED_QUESTIONS_BY_SEED["ait-bouguemez"] ?? [];
   }, [customLocation, activeSavedCase]);
 
   useEffect(() => {
     setQIdx(0);
     setCustomQuestionInput("");
-  }, [
-    activeSavedCase?.id,
-    activeSavedCase?.seedCaseId,
-    customLocation?.lat,
-    customLocation?.lon,
-  ]);
+  }, [activeSavedCase?.id, activeSavedCase?.seedCaseId, customLocation?.lat, customLocation?.lon]);
 
   // Live worldwide geocoding search
   useEffect(() => {
@@ -323,8 +297,10 @@ export function GlobePage({
       return;
     }
     let cancelled = false;
+    // read through a function: the effect's cleanup flips it while a request is out
+    const stale = () => cancelled;
     setSearching(true);
-    const timer = window.setTimeout(async () => {
+    const search = async () => {
       try {
         const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
           q,
@@ -332,7 +308,7 @@ export function GlobePage({
         const res = await fetch(url, {
           headers: { "Accept-Language": "en" },
         });
-        if (!res.ok || cancelled) return;
+        if (!res.ok || stale()) return;
         const data = (await res.json()) as Array<{
           display_name?: string;
           name?: string;
@@ -343,7 +319,7 @@ export function GlobePage({
           addresstype?: string;
           address?: Record<string, string>;
         }>;
-        if (cancelled) return;
+        if (stale()) return;
         const parsed: GeocodeSuggestion[] = [];
         for (const item of data) {
           const lat = Number(item.lat);
@@ -356,9 +332,7 @@ export function GlobePage({
           const name = item.name || parts[0] || formatLatLon(lat, lon);
           const country = item.address?.country || parts[parts.length - 1] || "";
           const state = item.address?.state || item.address?.region || parts[1] || "";
-          const region = [state, country]
-            .filter((x) => x && x !== name)
-            .join(", ");
+          const region = [state, country].filter((x) => x && x !== name).join(", ");
           parsed.push({
             name,
             region,
@@ -373,8 +347,11 @@ export function GlobePage({
       } catch {
         // Ignore network errors cleanly
       } finally {
-        if (!cancelled) setSearching(false);
+        if (!stale()) setSearching(false);
       }
+    };
+    const timer = window.setTimeout(() => {
+      void search();
     }, 220);
     return () => {
       cancelled = true;
@@ -405,7 +382,7 @@ export function GlobePage({
         questionOverride ||
         customQuestionInput.trim() ||
         questionsForCurrentPlace[qIdx] ||
-        questionsForCurrentPlace[0]!;
+        (questionsForCurrentPlace[0] ?? "");
       setLaunchingCustom(true);
       setLaunchError(null);
       setLaunch({ question: chosenQ, status: launchStatus("new") });
@@ -467,7 +444,7 @@ export function GlobePage({
     customQuestionInput.trim() ||
     questionsForCurrentPlace[activeIdx] ||
     activeSavedCase?.question ||
-    questionsForCurrentPlace[0]!;
+    (questionsForCurrentPlace[0] ?? "");
 
   const triggerLaunch = useCallback(() => {
     if (!pointReady || launch) return;
@@ -572,7 +549,9 @@ export function GlobePage({
       }
     };
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+    };
   }, [
     opened,
     launch,
@@ -589,9 +568,7 @@ export function GlobePage({
     const q = placeQuery.trim().toLowerCase();
     if (!q) return [];
     return studiedCases.filter(
-      (sc) =>
-        sc.place.toLowerCase().includes(q) ||
-        sc.region.toLowerCase().includes(q),
+      (sc) => sc.place.toLowerCase().includes(q) || sc.region.toLowerCase().includes(q),
     );
   }, [studiedCases, placeQuery]);
 
@@ -646,7 +623,9 @@ export function GlobePage({
           isSelected,
           shortcutKey: isSelected ? "↵" : String(idx + 1),
           actionWord: isSelected ? "CONTINUE" : "SELECT",
-          onSelect: () => handleSelectStudiedCase(sc),
+          onSelect: () => {
+            handleSelectStudiedCase(sc);
+          },
         });
       });
 
@@ -681,7 +660,9 @@ export function GlobePage({
         isSelected: false,
         shortcutKey: "↵",
         actionWord: "SELECT",
-        onSelect: () => handleSelectStudiedCase(sc),
+        onSelect: () => {
+          handleSelectStudiedCase(sc);
+        },
       });
     });
 
@@ -725,7 +706,7 @@ export function GlobePage({
   ]);
 
   const handlePlaceSearchSubmit = useCallback(
-    (e: FormEvent) => {
+    (e: SyntheticEvent) => {
       e.preventDefault();
       const targetIdx =
         highlightedPlaceIdx !== null && displayedPlaceItems[highlightedPlaceIdx]
@@ -822,302 +803,285 @@ export function GlobePage({
       >
         <div className={styles.detroitAtmosphere} aria-hidden="true" />
 
-          {/* Clean Top Bar matching Opening.tsx */}
-          <header className={styles.setupTopBar}>
-            <button
-              type="button"
-              className={styles.setupBrandBtn}
-              onClick={onBack ?? onBackToOpening}
-              aria-label={"Return to Siterra opening page"}
-            >
-              <SiterraMark className={styles.setupBrandMark} />
-              <span className={styles.setupBrandName}>{en["opening.title"].text}</span>
-            </button>
+        {/* Clean Top Bar matching Opening.tsx */}
+        <header className={styles.setupTopBar}>
+          <button
+            type="button"
+            className={styles.setupBrandBtn}
+            onClick={onBack ?? onBackToOpening}
+            aria-label={"Return to Siterra opening page"}
+          >
+            <SiterraMark className={styles.setupBrandMark} />
+            <span className={styles.setupBrandName}>{en["opening.title"].text}</span>
+          </button>
 
-            <div className={styles.setupTopRight}>
-              {onToggleTheme ? (
-                <button
-                  type="button"
-                  className={styles.setupThemeBtn}
-                  onClick={onToggleTheme}
-                  aria-label={
-                    theme === "obsidian"
-                      ? "Switch to warm paper light mode"
-                      : "Switch to obsidian dark mode"
-                  }
-                >
-                  <ThemeIcon theme={theme} />
-                </button>
-              ) : null}
-            </div>
-          </header>
+          <div className={styles.setupTopRight}>
+            {onToggleTheme ? (
+              <button
+                type="button"
+                className={styles.setupThemeBtn}
+                onClick={onToggleTheme}
+                aria-label={
+                  theme === "obsidian"
+                    ? "Switch to warm paper light mode"
+                    : "Switch to obsidian dark mode"
+                }
+              >
+                <ThemeIcon theme={theme} />
+              </button>
+            ) : null}
+          </div>
+        </header>
 
-          {/* ====================================================================
+        {/* ====================================================================
               OPEN DETROIT: BECOME HUMAN FLOW (Zero Boxes, Zero Vertical Bars)
              ==================================================================== */}
-          <div className={styles.dbhCanvas} data-launching={launch ? "" : undefined}>
-            {/* STEP 1/2 */}
-            <section
-              className={styles.dbhStepOne}
-              data-completed={activeStep === 2 ? "" : undefined}
-              aria-label={"Step 1 of 2: Location"}
+        <div className={styles.dbhCanvas} data-launching={launch ? "" : undefined}>
+          {/* STEP 1/2 */}
+          <section
+            className={styles.dbhStepOne}
+            data-completed={activeStep === 2 ? "" : undefined}
+            aria-label={"Step 1 of 2: Location"}
+          >
+            <div
+              className={styles.dbhStepHeader}
+              onClick={() => {
+                if (activeStep === 2) setActiveStep(1);
+              }}
             >
-              <div
-                className={styles.dbhStepHeader}
-                onClick={() => {
-                  if (activeStep === 2) setActiveStep(1);
-                }}
-              >
-                <div className={styles.dbhFraction} aria-hidden="true">
-                  <span className={styles.dbhFractionNum}>{"1"}</span>
+              <div className={styles.dbhFraction} aria-hidden="true">
+                <span className={styles.dbhFractionNum}>{"1"}</span>
+                <span className={styles.dbhFractionSlash}>{"/2"}</span>
+              </div>
+
+              <div className={styles.dbhStepHeadContent}>
+                <h2 className={styles.dbhQuestion}>{"Where in the world are we investigating?"}</h2>
+
+                {/* When Step 1 is done, collapse all options and ONLY show the selected place in smaller "done" text */}
+                {activeStep === 2 ? (
+                  <button
+                    type="button"
+                    className={styles.dbhDoneSummaryBtn}
+                    onClick={() => {
+                      setActiveStep(1);
+                    }}
+                  >
+                    <span className={styles.dbhDoneAnswerRow}>
+                      <span className={styles.dbhDoneAnswerPrimary}>
+                        {activePlaceDisplay.title}
+                      </span>
+                      {activePlaceDisplay.coords ? (
+                        <span className={styles.dbhDoneAnswerCoords}>
+                          {activePlaceDisplay.coords}
+                        </span>
+                      ) : null}
+                      <span className={styles.dbhDoneChangePrompt}>
+                        <kbd className={styles.keycapDark}>{"⌫"}</kbd>
+                        <span>{"CHANGE"}</span>
+                      </span>
+                    </span>
+                  </button>
+                ) : null}
+              </div>
+            </div>
+
+            {/* Expanded Step 1 Body: Clean Input + Seamless Animated Place List Below */}
+            {activeStep === 1 ? (
+              <div className={styles.dbhStepOneBody}>
+                <div className={styles.dbhSearchSection}>
+                  <form
+                    onSubmit={handlePlaceSearchSubmit}
+                    className={styles.dbhUnderlineForm}
+                    data-active={placeQuery.trim() ? "" : undefined}
+                    data-searching={searching ? "" : undefined}
+                  >
+                    <kbd
+                      className={placeQuery.trim() ? styles.keycapBlue : styles.keycapDark}
+                      aria-hidden="true"
+                    >
+                      {"/"}
+                    </kbd>
+                    <input
+                      ref={searchInputRef}
+                      type="text"
+                      value={placeQuery}
+                      onChange={(e) => {
+                        setPlaceQuery(e.target.value);
+                        setHighlightedPlaceIdx(e.target.value.trim() ? 0 : null);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "ArrowDown") {
+                          e.preventDefault();
+                          if (displayedPlaceItems.length > 0) {
+                            setHighlightedPlaceIdx((prev) =>
+                              prev === null ? 0 : (prev + 1) % displayedPlaceItems.length,
+                            );
+                          }
+                        } else if (e.key === "ArrowUp") {
+                          e.preventDefault();
+                          if (displayedPlaceItems.length > 0) {
+                            setHighlightedPlaceIdx((prev) =>
+                              prev === null
+                                ? displayedPlaceItems.length - 1
+                                : (prev - 1 + displayedPlaceItems.length) %
+                                  displayedPlaceItems.length,
+                            );
+                          }
+                        } else if (e.key === "Escape" && placeQuery) {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setPlaceQuery("");
+                          setHighlightedPlaceIdx(null);
+                        }
+                      }}
+                      placeholder={
+                        "Search any place, valley, or coordinates (or click 3D globe)..."
+                      }
+                      className={styles.dbhUnderlineInput}
+                      aria-label={"Search any location or coordinates in the world"}
+                    />
+                    {placeQuery.trim() ? (
+                      <div className={styles.dbhInputRightGroup}>
+                        {searching ? (
+                          <span className={styles.dbhSearchingTag}>{"SEARCHING"}</span>
+                        ) : null}
+                        <button
+                          type="button"
+                          className={styles.dbhInlinePrompt}
+                          onClick={() => {
+                            setPlaceQuery("");
+                            setHighlightedPlaceIdx(null);
+                            searchInputRef.current?.focus();
+                          }}
+                        >
+                          <kbd className={styles.keycapDark}>{"ESC"}</kbd>
+                          <span>{"CLEAR"}</span>
+                        </button>
+                      </div>
+                    ) : null}
+                    <span className={styles.dbhInputTrace} aria-hidden="true" />
+                  </form>
+
+                  {/* Unified In-Place Animated List (Examples at rest, Live Worldwide Matches when typing) */}
+                  <ul
+                    className={styles.dbhOptionList}
+                    role="listbox"
+                    aria-label={"Locations"}
+                    onMouseLeave={() => {
+                      if (!placeQuery.trim()) {
+                        setHighlightedPlaceIdx(null);
+                      }
+                    }}
+                  >
+                    {displayedPlaceItems.map((item, idx) => {
+                      const isFocusedItem =
+                        highlightedPlaceIdx !== null
+                          ? highlightedPlaceIdx === idx
+                          : placeQuery.trim() !== ""
+                            ? idx === 0
+                            : item.isSelected;
+                      return (
+                        <li
+                          key={item.key}
+                          className={styles.dbhPlaceListItem}
+                          style={
+                            {
+                              "--item-idx": idx,
+                            } as React.CSSProperties
+                          }
+                        >
+                          <button
+                            type="button"
+                            role="option"
+                            aria-selected={isFocusedItem}
+                            data-selected={item.isSelected ? "" : undefined}
+                            data-highlighted={isFocusedItem ? "" : undefined}
+                            className={styles.dbhBareOption}
+                            onMouseEnter={() => {
+                              setHighlightedPlaceIdx(idx);
+                            }}
+                            onFocus={() => {
+                              setHighlightedPlaceIdx(idx);
+                            }}
+                            onClick={item.onSelect}
+                          >
+                            <span className={styles.dbhPlaceMainRow}>
+                              <span className={styles.dbhOptionLabel}>{item.title}</span>
+                              {item.shortcutKey ? (
+                                <span className={styles.dbhOptionAction}>
+                                  <kbd
+                                    className={
+                                      isFocusedItem ? styles.keycapBlue : styles.keycapDark
+                                    }
+                                  >
+                                    {item.shortcutKey}
+                                  </kbd>
+                                  <span className={styles.dbhActionWord}>{item.actionWord}</span>
+                                </span>
+                              ) : null}
+                            </span>
+
+                            {/* Hover / Highlight Indented Details Animated Below */}
+                            <span className={styles.dbhPlaceDetailWrap} aria-hidden="true">
+                              <span className={styles.dbhPlaceDetailInner}>{item.detail}</span>
+                            </span>
+                          </button>
+                        </li>
+                      );
+                    })}
+
+                    {placeQuery.trim().length >= 2 &&
+                    displayedPlaceItems.length === 0 &&
+                    searching ? (
+                      <li className={styles.dbhInlineStatusRow}>
+                        {"Searching worldwide locations..."}
+                      </li>
+                    ) : null}
+
+                    {placeQuery.trim().length >= 2 &&
+                    displayedPlaceItems.length === 0 &&
+                    !searching ? (
+                      <li className={styles.dbhInlineStatusRow}>
+                        {
+                          "No matching places found. Try coordinates (e.g. 31.64, -6.54) or click the 3D globe."
+                        }
+                      </li>
+                    ) : null}
+                  </ul>
+                </div>
+              </div>
+            ) : null}
+          </section>
+
+          {/* STEP 2/2: Only Appears Once Step 1/2 Is Chosen! */}
+          {activeStep === 2 ? (
+            <section
+              key="step-2-of-2"
+              className={styles.dbhStepTwo}
+              data-completed={launch ? "" : undefined}
+              aria-label={"Step 2 of 2: Investigation Question"}
+            >
+              <div className={styles.dbhStepHeader}>
+                <div className={styles.dbhFraction} data-tone="red" aria-hidden="true">
+                  <span className={styles.dbhFractionNum}>{"2"}</span>
                   <span className={styles.dbhFractionSlash}>{"/2"}</span>
                 </div>
 
                 <div className={styles.dbhStepHeadContent}>
                   <h2 className={styles.dbhQuestion}>
-                    {"Where in the world are we investigating?"}
+                    {"Focus on a specific question, or scan the whole catchment:"}
                   </h2>
 
-                  {/* When Step 1 is done, collapse all options and ONLY show the selected place in smaller "done" text */}
-                  {activeStep === 2 ? (
-                    <button
-                      type="button"
-                      className={styles.dbhDoneSummaryBtn}
-                      onClick={() => setActiveStep(1)}
-                    >
-                      <span className={styles.dbhDoneAnswerRow}>
-                        <span className={styles.dbhDoneAnswerPrimary}>
-                          {activePlaceDisplay.title}
-                        </span>
-                        {activePlaceDisplay.coords ? (
-                          <span className={styles.dbhDoneAnswerCoords}>
-                            {activePlaceDisplay.coords}
-                          </span>
-                        ) : null}
-                        <span className={styles.dbhDoneChangePrompt}>
-                          <kbd className={styles.keycapDark}>{"⌫"}</kbd>
-                          <span>{"CHANGE"}</span>
-                        </span>
-                      </span>
-                    </button>
+                  {/* once a start begins, step 2 folds to the chosen question, as step 1 folds to its place */}
+                  {launch ? (
+                    <p className={styles.dbhDoneAnswerRow} data-launch-question="">
+                      <span className={styles.dbhDoneAnswerPrimary}>{launch.question}</span>
+                    </p>
                   ) : null}
                 </div>
               </div>
 
-              {/* Expanded Step 1 Body — Clean Input + Seamless Animated Place List Below */}
-              {activeStep === 1 ? (
-                <div className={styles.dbhStepOneBody}>
-                  <div className={styles.dbhSearchSection}>
-                    <form
-                      onSubmit={handlePlaceSearchSubmit}
-                      className={styles.dbhUnderlineForm}
-                      data-active={placeQuery.trim() ? "" : undefined}
-                      data-searching={searching ? "" : undefined}
-                    >
-                      <kbd
-                        className={
-                          placeQuery.trim()
-                            ? styles.keycapBlue
-                            : styles.keycapDark
-                        }
-                        aria-hidden="true"
-                      >
-                        {"/"}
-                      </kbd>
-                      <input
-                        ref={searchInputRef}
-                        type="text"
-                        value={placeQuery}
-                        onChange={(e) => {
-                          setPlaceQuery(e.target.value);
-                          setHighlightedPlaceIdx(e.target.value.trim() ? 0 : null);
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === "ArrowDown") {
-                            e.preventDefault();
-                            if (displayedPlaceItems.length > 0) {
-                              setHighlightedPlaceIdx((prev) =>
-                                prev === null
-                                  ? 0
-                                  : (prev + 1) % displayedPlaceItems.length,
-                              );
-                            }
-                          } else if (e.key === "ArrowUp") {
-                            e.preventDefault();
-                            if (displayedPlaceItems.length > 0) {
-                              setHighlightedPlaceIdx((prev) =>
-                                prev === null
-                                  ? displayedPlaceItems.length - 1
-                                  : (prev - 1 + displayedPlaceItems.length) %
-                                    displayedPlaceItems.length,
-                              );
-                            }
-                          } else if (e.key === "Escape" && placeQuery) {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            setPlaceQuery("");
-                            setHighlightedPlaceIdx(null);
-                          }
-                        }}
-                        placeholder={
-                          "Search any place, valley, or coordinates (or click 3D globe)..."
-                        }
-                        className={styles.dbhUnderlineInput}
-                        aria-label={"Search any location or coordinates in the world"}
-                      />
-                      {placeQuery.trim() ? (
-                        <div className={styles.dbhInputRightGroup}>
-                          {searching ? (
-                            <span className={styles.dbhSearchingTag}>
-                              {"SEARCHING"}
-                            </span>
-                          ) : null}
-                          <button
-                            type="button"
-                            className={styles.dbhInlinePrompt}
-                            onClick={() => {
-                              setPlaceQuery("");
-                              setHighlightedPlaceIdx(null);
-                              searchInputRef.current?.focus();
-                            }}
-                          >
-                            <kbd className={styles.keycapDark}>{"ESC"}</kbd>
-                            <span>{"CLEAR"}</span>
-                          </button>
-                        </div>
-                      ) : null}
-                      <span className={styles.dbhInputTrace} aria-hidden="true" />
-                    </form>
-
-                    {/* Unified In-Place Animated List (Examples at rest, Live Worldwide Matches when typing) */}
-                    <ul
-                      className={styles.dbhOptionList}
-                      role="listbox"
-                      aria-label={"Locations"}
-                      onMouseLeave={() => {
-                        if (!placeQuery.trim()) {
-                          setHighlightedPlaceIdx(null);
-                        }
-                      }}
-                    >
-                      {displayedPlaceItems.map((item, idx) => {
-                        const isFocusedItem =
-                          highlightedPlaceIdx !== null
-                            ? highlightedPlaceIdx === idx
-                            : placeQuery.trim() !== ""
-                              ? idx === 0
-                              : item.isSelected;
-                        return (
-                          <li
-                            key={item.key}
-                            className={styles.dbhPlaceListItem}
-                            style={
-                              {
-                                "--item-idx": idx,
-                              } as React.CSSProperties
-                            }
-                          >
-                            <button
-                              type="button"
-                              role="option"
-                              aria-selected={isFocusedItem}
-                              data-selected={item.isSelected ? "" : undefined}
-                              data-highlighted={isFocusedItem ? "" : undefined}
-                              className={styles.dbhBareOption}
-                              onMouseEnter={() => setHighlightedPlaceIdx(idx)}
-                              onFocus={() => setHighlightedPlaceIdx(idx)}
-                              onClick={item.onSelect}
-                            >
-                              <span className={styles.dbhPlaceMainRow}>
-                                <span className={styles.dbhOptionLabel}>
-                                  {item.title}
-                                </span>
-                                {item.shortcutKey ? (
-                                  <span className={styles.dbhOptionAction}>
-                                    <kbd
-                                      className={
-                                        isFocusedItem
-                                          ? styles.keycapBlue
-                                          : styles.keycapDark
-                                      }
-                                    >
-                                      {item.shortcutKey}
-                                    </kbd>
-                                    <span className={styles.dbhActionWord}>
-                                      {item.actionWord}
-                                    </span>
-                                  </span>
-                                ) : null}
-                              </span>
-
-                              {/* Hover / Highlight Indented Details Animated Below */}
-                              <span
-                                className={styles.dbhPlaceDetailWrap}
-                                aria-hidden="true"
-                              >
-                                <span className={styles.dbhPlaceDetailInner}>
-                                  {item.detail}
-                                </span>
-                              </span>
-                            </button>
-                          </li>
-                        );
-                      })}
-
-                      {placeQuery.trim().length >= 2 &&
-                      displayedPlaceItems.length === 0 &&
-                      searching ? (
-                        <li className={styles.dbhInlineStatusRow}>
-                          {"Searching worldwide locations..."}
-                        </li>
-                      ) : null}
-
-                      {placeQuery.trim().length >= 2 &&
-                      displayedPlaceItems.length === 0 &&
-                      !searching ? (
-                        <li className={styles.dbhInlineStatusRow}>
-                          {"No matching places found — try coordinates (e.g. 31.64, -6.54) or click the 3D globe."}
-                        </li>
-                      ) : null}
-                    </ul>
-                  </div>
-                </div>
-              ) : null}
-            </section>
-
-            {/* STEP 2/2 — Only Appears Once Step 1/2 Is Chosen! */}
-            {activeStep === 2 ? (
-              <section
-                key="step-2-of-2"
-                className={styles.dbhStepTwo}
-                data-completed={launch ? "" : undefined}
-                aria-label={"Step 2 of 2: Investigation Question"}
-              >
-                <div className={styles.dbhStepHeader}>
-                  <div
-                    className={styles.dbhFraction}
-                    data-tone="red"
-                    aria-hidden="true"
-                  >
-                    <span className={styles.dbhFractionNum}>{"2"}</span>
-                    <span className={styles.dbhFractionSlash}>{"/2"}</span>
-                  </div>
-
-                  <div className={styles.dbhStepHeadContent}>
-                    <h2 className={styles.dbhQuestion}>
-                      {"Focus on a specific question, or scan the whole catchment:"}
-                    </h2>
-
-                    {/* once a start begins, step 2 folds to the chosen question, as step 1 folds to its place */}
-                    {launch ? (
-                      <p className={styles.dbhDoneAnswerRow} data-launch-question="">
-                        <span className={styles.dbhDoneAnswerPrimary}>{launch.question}</span>
-                      </p>
-                    ) : null}
-                  </div>
-                </div>
-
-                {launch ? null : (
+              {launch ? null : (
                 <div className={styles.dbhStepTwoBody}>
                   {launchError ? (
                     <p className={styles.dbhLaunchError} role="alert">
@@ -1126,8 +1090,7 @@ export function GlobePage({
                   ) : null}
                   <ul className={styles.dbhQuestionList} role="radiogroup">
                     {questionsForCurrentPlace.map((qText, i) => {
-                      const isSelected =
-                        customQuestionInput.trim() === "" && i === activeIdx;
+                      const isSelected = customQuestionInput.trim() === "" && i === activeIdx;
                       return (
                         <li key={qText}>
                           <button
@@ -1157,17 +1120,9 @@ export function GlobePage({
                               }
                             }}
                           >
-                            <span className={styles.dbhQuestionOptionText}>
-                              {qText}
-                            </span>
+                            <span className={styles.dbhQuestionOptionText}>{qText}</span>
                             <span className={styles.dbhOptionAction}>
-                              <kbd
-                                className={
-                                  isSelected
-                                    ? styles.keycapBlue
-                                    : styles.keycapDark
-                                }
-                              >
+                              <kbd className={isSelected ? styles.keycapBlue : styles.keycapDark}>
                                 {isSelected ? "↵" : String(i + 1)}
                               </kbd>
                               <span className={styles.dbhActionWord}>
@@ -1188,9 +1143,7 @@ export function GlobePage({
                     >
                       <kbd
                         className={
-                          customQuestionInput.trim()
-                            ? styles.keycapBlue
-                            : styles.keycapDark
+                          customQuestionInput.trim() ? styles.keycapBlue : styles.keycapDark
                         }
                         aria-hidden="true"
                       >
@@ -1200,19 +1153,16 @@ export function GlobePage({
                         ref={customQuestionRef}
                         type="text"
                         value={customQuestionInput}
-                        onChange={(e) => setCustomQuestionInput(e.target.value)}
+                        onChange={(e) => {
+                          setCustomQuestionInput(e.target.value);
+                        }}
                         onKeyDown={(e) => {
-                          if (
-                            e.key === "Enter" &&
-                            customQuestionInput.trim()
-                          ) {
+                          if (e.key === "Enter" && customQuestionInput.trim()) {
                             e.preventDefault();
                             triggerLaunch();
                           }
                         }}
-                        placeholder={
-                          "Or type your own question for this landscape..."
-                        }
+                        placeholder={"Or type your own question for this landscape..."}
                         className={styles.dbhUnderlineInput}
                         aria-label={"Type a custom investigation question"}
                       />
@@ -1220,81 +1170,77 @@ export function GlobePage({
                     </div>
                   </div>
                 </div>
-                )}
-              </section>
-            ) : null}
-
-            {/* the start, large and calm: what is really happening, nothing more */}
-            {launch ? (
-              <section className={styles.dbhLaunch} role="status" data-launch="">
-                <p className={styles.dbhLaunchWord}>{"Starting"}</p>
-                <p className={styles.dbhLaunchStatus}>{launch.status}</p>
-              </section>
-            ) : null}
-          </div>
-
-          {/* Right Stage Minimal Globe Action Prompts */}
-          <div className={styles.globeContextualHud} aria-label={"3D Globe controls"}>
-            <span className={styles.globeHudItem}>
-              <kbd className={styles.globeHudKey}>{"DRAG"}</kbd>
-              <span>{"Rotate Earth"}</span>
-            </span>
-            <span className={styles.globeHudItem}>
-              <kbd className={styles.globeHudKey}>{"CLICK"}</kbd>
-              <span>{"Pick any spot on Earth"}</span>
-            </span>
-          </div>
-
-          {/* Bottom-Right Detroit Controller Bar */}
-          <div className={styles.detroitBottomBar}>
-            <button
-              type="button"
-              className={styles.detroitKeyAction}
-              disabled={Boolean(launch)}
-              onClick={() => {
-                if (activeStep === 2) {
-                  setActiveStep(1);
-                } else {
-                  (onBack ?? onBackToOpening)?.();
-                }
-              }}
-            >
-              <kbd className={styles.detroitKeyCap}>{"ESC"}</kbd>
-              <span>{activeStep === 2 ? "CHANGE PLACE" : "BACK"}</span>
-            </button>
-            <button
-              type="button"
-              className={styles.detroitKeyAction}
-              disabled={Boolean(launch) || !pointReady}
-              onClick={triggerLaunch}
-            >
-              <kbd className={styles.detroitKeyCap}>{"SPACE"}</kbd>
-              <span>{"SCAN WHOLE AREA"}</span>
-            </button>
-            <button
-              type="button"
-              className={styles.detroitKeyAction}
-              disabled={Boolean(launch) || !pointReady}
-              onClick={handlePrimaryKeyOrAction}
-            >
-              <kbd className={styles.detroitKeyCapPrimary}>{"↵"}</kbd>
-              <span>{activeStep === 1 ? "CHOOSE FOCUS" : "START INVESTIGATION"}</span>
-            </button>
-          </div>
-
-          {others.length ? (
-            <nav className={styles.srOnlyOthers} aria-label={en["globe.others"].text}>
-              {others.map((p) => (
-                <a
-                  key={p.caseId}
-                  href={placeHref(p.caseId)}
-                  data-other-place={p.caseId}
-                >
-                  {format("globe.place", { place: p.name, region: p.region })}
-                </a>
-              ))}
-            </nav>
+              )}
+            </section>
           ) : null}
+
+          {/* the start, large and calm: what is really happening, nothing more */}
+          {launch ? (
+            <section className={styles.dbhLaunch} role="status" data-launch="">
+              <p className={styles.dbhLaunchWord}>{"Starting"}</p>
+              <p className={styles.dbhLaunchStatus}>{launch.status}</p>
+            </section>
+          ) : null}
+        </div>
+
+        {/* Right Stage Minimal Globe Action Prompts */}
+        <div className={styles.globeContextualHud} aria-label={"3D Globe controls"}>
+          <span className={styles.globeHudItem}>
+            <kbd className={styles.globeHudKey}>{"DRAG"}</kbd>
+            <span>{"Rotate Earth"}</span>
+          </span>
+          <span className={styles.globeHudItem}>
+            <kbd className={styles.globeHudKey}>{"CLICK"}</kbd>
+            <span>{"Pick any spot on Earth"}</span>
+          </span>
+        </div>
+
+        {/* Bottom-Right Detroit Controller Bar */}
+        <div className={styles.detroitBottomBar}>
+          <button
+            type="button"
+            className={styles.detroitKeyAction}
+            disabled={Boolean(launch)}
+            onClick={() => {
+              if (activeStep === 2) {
+                setActiveStep(1);
+              } else {
+                (onBack ?? onBackToOpening)?.();
+              }
+            }}
+          >
+            <kbd className={styles.detroitKeyCap}>{"ESC"}</kbd>
+            <span>{activeStep === 2 ? "CHANGE PLACE" : "BACK"}</span>
+          </button>
+          <button
+            type="button"
+            className={styles.detroitKeyAction}
+            disabled={Boolean(launch) || !pointReady}
+            onClick={triggerLaunch}
+          >
+            <kbd className={styles.detroitKeyCap}>{"SPACE"}</kbd>
+            <span>{"SCAN WHOLE AREA"}</span>
+          </button>
+          <button
+            type="button"
+            className={styles.detroitKeyAction}
+            disabled={Boolean(launch) || !pointReady}
+            onClick={handlePrimaryKeyOrAction}
+          >
+            <kbd className={styles.detroitKeyCapPrimary}>{"↵"}</kbd>
+            <span>{activeStep === 1 ? "CHOOSE FOCUS" : "START INVESTIGATION"}</span>
+          </button>
+        </div>
+
+        {others.length ? (
+          <nav className={styles.srOnlyOthers} aria-label={en["globe.others"].text}>
+            {others.map((p) => (
+              <a key={p.caseId} href={placeHref(p.caseId)} data-other-place={p.caseId}>
+                {format("globe.place", { place: p.name, region: p.region })}
+              </a>
+            ))}
+          </nav>
+        ) : null}
       </div>
     </div>
   );

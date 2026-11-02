@@ -123,7 +123,9 @@ function parseCoordinateQuery(q: string): GeocodePlace | null {
 
 async function searchOpenMeteo(query: string): Promise<GeocodePlace[]> {
   const ac = new AbortController();
-  const timer = setTimeout(() => ac.abort(), 3500);
+  const timer = setTimeout(() => {
+    ac.abort();
+  }, 3500);
   try {
     const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(
       query,
@@ -157,8 +159,7 @@ async function searchOpenMeteo(query: string): Promise<GeocodePlace[]> {
       );
       out.push({
         name: item.name.trim(),
-        region:
-          regionParts.join(", ") || formatCoordRegion(item.latitude, item.longitude),
+        region: regionParts.join(", ") || formatCoordRegion(item.latitude, item.longitude),
         lon: Number(item.longitude.toFixed(5)),
         lat: Number(item.latitude.toFixed(5)),
         named: true,
@@ -174,7 +175,9 @@ async function searchOpenMeteo(query: string): Promise<GeocodePlace[]> {
 
 async function searchNominatim(query: string): Promise<GeocodePlace[]> {
   const ac = new AbortController();
-  const timer = setTimeout(() => ac.abort(), 3500);
+  const timer = setTimeout(() => {
+    ac.abort();
+  }, 3500);
   try {
     const url = `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&q=${encodeURIComponent(
       query,
@@ -211,10 +214,7 @@ async function searchNominatim(query: string): Promise<GeocodePlace[]> {
       const given = (row.name?.trim() || parts[0] || "").slice(0, 80);
       const name = given || formatCoordRegion(lat, lon);
       const stateOrRegion =
-        row.address?.["state"] ||
-        row.address?.["region"] ||
-        row.address?.["county"] ||
-        parts[1];
+        row.address?.["state"] || row.address?.["region"] || row.address?.["county"] || parts[1];
       const country = row.address?.["country"] || parts[parts.length - 1];
       const region =
         [stateOrRegion, country]
@@ -240,9 +240,9 @@ async function searchNominatim(query: string): Promise<GeocodePlace[]> {
 
 function cleanLatinName(raw: string): string {
   const trimmed = raw.trim();
-  const bilingualMatch = /^([A-Za-z\u00C0-\u024F0-9'’\-\s.()]+?)\s+[^\u0000-\u024F\s].*$/.exec(
-    trimmed,
-  );
+  // a Latin name followed by the same name in another script: the first non-space character past U+024F
+  const bilingualMatch =
+    /^([A-Za-z\u00C0-\u024F0-9'’\-\s.()]+?)\s+(?!\s)[\u0250-\u{10FFFF}].*$/u.exec(trimmed);
   if (bilingualMatch?.[1]?.trim()) {
     return bilingualMatch[1].trim();
   }
@@ -251,9 +251,7 @@ function cleanLatinName(raw: string): string {
 
 export async function reverseGeocode(lon: number, lat: number): Promise<GeocodePlace> {
   const storedPlaces = await loadStoredPlaces();
-  const nearbyKnown = storedPlaces.find(
-    (p) => Math.hypot(p.lon - lon, p.lat - lat) < 0.08,
-  );
+  const nearbyKnown = storedPlaces.find((p) => Math.hypot(p.lon - lon, p.lat - lat) < 0.08);
   if (nearbyKnown) {
     return {
       name: nearbyKnown.name,
@@ -273,7 +271,9 @@ export async function reverseGeocode(lon: number, lat: number): Promise<GeocodeP
     named: false,
   };
   const ac = new AbortController();
-  const timer = setTimeout(() => ac.abort(), 3500);
+  const timer = setTimeout(() => {
+    ac.abort();
+  }, 3500);
   try {
     const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${encodeURIComponent(
       String(lat),
@@ -365,8 +365,7 @@ export async function GET(request: Request): Promise<Response> {
     const qLower = q.toLowerCase();
     const storedMatches = storedPlaces.filter(
       (item) =>
-        item.name.toLowerCase().includes(qLower) ||
-        item.region.toLowerCase().includes(qLower),
+        item.name.toLowerCase().includes(qLower) || item.region.toLowerCase().includes(qLower),
     );
 
     const merged: GeocodePlace[] = [];
@@ -384,7 +383,14 @@ export async function GET(request: Request): Promise<Response> {
   if (lonParam !== null && latParam !== null) {
     const lon = Number(lonParam);
     const lat = Number(latParam);
-    if (!Number.isFinite(lon) || !Number.isFinite(lat) || lon < -180 || lon > 180 || lat < -90 || lat > 90) {
+    if (
+      !Number.isFinite(lon) ||
+      !Number.isFinite(lat) ||
+      lon < -180 ||
+      lon > 180 ||
+      lat < -90 ||
+      lat > 90
+    ) {
       return problem(400, "invalid_request", "lon and lat must be valid WGS84 coordinates");
     }
     const result = await reverseGeocode(lon, lat);

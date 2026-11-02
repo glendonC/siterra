@@ -49,7 +49,7 @@ type Phase = "opening" | "globe" | "zoom" | "land" | "rest";
 
 const wrapLon = (lon: number): number => ((((lon + 180) % 360) + 360) % 360) - 180;
 const clampLat = (lat: number): number => Math.max(-80, Math.min(80, lat));
-const shortDeltaLon = (from: number, to: number): number => ((((to - from) + 540) % 360) - 180);
+const shortDeltaLon = (from: number, to: number): number => ((to - from + 540) % 360) - 180;
 const globeCenterForTarget = (lon: number, lat: number): { lon: number; lat: number } => ({
   lon: wrapLon(lon + 3.5372222),
   lat: clampLat(lat - 6.6377778),
@@ -164,10 +164,8 @@ export function Journey({ globeAssets, arrival, snapshot }: JourneyProps) {
         setOthers(parsedOthers);
 
         const rawCases =
-          json &&
-          typeof json === "object" &&
-          Array.isArray((json as { cases?: unknown[] }).cases)
-            ? ((json as { cases: unknown[] }).cases ?? [])
+          json && typeof json === "object" && Array.isArray((json as { cases?: unknown[] }).cases)
+            ? (json as { cases: unknown[] }).cases
             : [];
 
         let matchedSeedId: string | undefined;
@@ -197,11 +195,7 @@ export function Journey({ globeAssets, arrival, snapshot }: JourneyProps) {
           if (cid.startsWith("case_loc_selected_") || /^selected\b/i.test(pName)) continue;
           if (pName === arrival.valleyName) {
             matchedSeedId = cid;
-          } else if (
-            lonLat &&
-            typeof lonLat[0] === "number" &&
-            typeof lonLat[1] === "number"
-          ) {
+          } else if (lonLat && typeof lonLat[0] === "number" && typeof lonLat[1] === "number") {
             extraCases.push({
               id: cid,
               seedCaseId: cid,
@@ -220,9 +214,7 @@ export function Journey({ globeAssets, arrival, snapshot }: JourneyProps) {
           : initialCase;
         const merged = [updatedInitial, ...extraCases];
         setSeedSavedCases(merged);
-        setSelectedSavedCase((prev) =>
-          prev.id === initialCase.id ? updatedInitial : prev,
-        );
+        setSelectedSavedCase((prev) => (prev.id === initialCase.id ? updatedInitial : prev));
       })
       .catch(() => {
         // without the listing the globe shows the one case
@@ -656,9 +648,10 @@ export function Journey({ globeAssets, arrival, snapshot }: JourneyProps) {
         }
       }
 
-      const ringOpacity = rot.active && moments.current.dive === undefined
-        ? Math.max(s.ringOpacity, 1)
-        : s.ringOpacity;
+      const ringOpacity =
+        rot.active && moments.current.dive === undefined
+          ? Math.max(s.ringOpacity, 1)
+          : s.ringOpacity;
 
       const cam = globeCamera(
         {
@@ -691,9 +684,7 @@ export function Journey({ globeAssets, arrival, snapshot }: JourneyProps) {
 
       const e = cam.eye;
       const caseFacing =
-        caseV[0] * (e[0] - caseV[0]) +
-          caseV[1] * (e[1] - caseV[1]) +
-          caseV[2] * (e[2] - caseV[2]) >
+        caseV[0] * (e[0] - caseV[0]) + caseV[1] * (e[1] - caseV[1]) + caseV[2] * (e[2] - caseV[2]) >
         0;
 
       // the overlay: the case ring and point, the range name
@@ -746,8 +737,7 @@ export function Journey({ globeAssets, arrival, snapshot }: JourneyProps) {
           ov[2] * (1 + 3 / R_KM),
         ];
         const ps = project(cam.vp, lift, w, h);
-        const facing =
-          ov[0] * (e[0] - ov[0]) + ov[1] * (e[1] - ov[1]) + ov[2] * (e[2] - ov[2]) > 0;
+        const facing = ov[0] * (e[0] - ov[0]) + ov[1] * (e[1] - ov[1]) + ov[2] * (e[2] - ov[2]) > 0;
         const isCurrentTarget = activePinId === pinKey;
         const distToTarget = cs && ps ? Math.hypot(ps[0] - cs[0], ps[1] - cs[1]) : 999;
         const overlapsMonument =
@@ -757,8 +747,9 @@ export function Journey({ globeAssets, arrival, snapshot }: JourneyProps) {
           ps[1] >= cy - 28 &&
           ps[1] <= cy + 140;
         const tooCloseToTarget = distToTarget < 95 || overlapsMonument;
-        const onRightStage =
-          ps ? ps[0] >= 680 && ps[0] <= w - 40 && ps[1] >= 70 && ps[1] <= h - 110 : false;
+        const onRightStage = ps
+          ? ps[0] >= 680 && ps[0] <= w - 40 && ps[1] >= 70 && ps[1] <= h - 110
+          : false;
         const shown =
           ps && facing && !isCurrentTarget && !tooCloseToTarget && onRightStage ? ringOpacity : 0;
         pinEl.style.transform = ps ? `translate(${ps[0].toFixed(1)}px, ${ps[1].toFixed(1)}px)` : "";
@@ -846,7 +837,12 @@ export function Journey({ globeAssets, arrival, snapshot }: JourneyProps) {
               </defs>
               <path ref={ring} className={styles.ring} />
               <text ref={rangeGroup} className={styles.rangeText} dy="-1.5em">
-                <textPath ref={rangeText} href="#range-path" startOffset="50%" textAnchor="middle" />
+                <textPath
+                  ref={rangeText}
+                  href="#range-path"
+                  startOffset="50%"
+                  textAnchor="middle"
+                />
               </text>
             </svg>
           </>

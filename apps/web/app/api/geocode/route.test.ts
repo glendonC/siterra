@@ -68,6 +68,19 @@ describe("reverse geocoding a picked point", () => {
     });
   });
 
+  it("keeps the Latin half of a bilingual name", async () => {
+    answer({
+      class: "place",
+      type: "village",
+      name: "Aït Bou Oulli آيت بوأولى",
+      display_name: "Aït Bou Oulli آيت بوأولى, Azilal Province, Morocco",
+      address: { state: "Béni Mellal-Khénifra", country: "Morocco" },
+    });
+    const p = await reverseGeocode(-6.55, 31.63);
+    expect(p.name).toBe("Aït Bou Oulli");
+    expect(p.region).toBe("Béni Mellal-Khénifra, Morocco");
+  });
+
   it("answers typed coordinates with the reverse name, never a made-up catchment", async () => {
     answer({ error: "Unable to geocode" });
     const res = await GET(new Request("http://127.0.0.1/api/geocode?q=13.31,-19.35"));
