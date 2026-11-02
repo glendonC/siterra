@@ -123,7 +123,9 @@ function RainScatter({ data, wide = false }: { data: ScatterData; wide?: boolean
       <text x={CHART.w - CHART.pr} y={H - 4} textAnchor="end">
         {/* the rainfall window the bundle's primary analysis uses, in words (U25) */}
         {format("overview.record.rain", {
-          window: windowWords(data.windows.rainfall) ?? en["season.unstated"].text,
+          window:
+            windowWords(data.windows.rainfall === "annual" ? "jan_dec" : data.windows.rainfall) ??
+            en["season.unstated"].text,
         })}
       </text>
       <text x={CHART.pl - 8} y={CHART.pt - 2} textAnchor="end">
@@ -206,10 +208,10 @@ export function OverviewRecord({
   wide?: boolean;
   refs: RecordRefs;
 }) {
-  // the published context, shown by default as a Paper Specimen Card; the page lays the card out again when it toggles
-  const [contextOpen, setContextOpen] = useState(true);
+  // the published context behind its button; the page lays the card out again when it opens or closes
+  const [contextOpen, setContextOpen] = useState(false);
   useEffect(() => {
-    setContextOpen(true);
+    setContextOpen(false);
   }, [sel]);
   useEffect(() => {
     onContextToggle?.();
@@ -235,10 +237,12 @@ export function OverviewRecord({
     chart && finding
       ? format("overview.record.caption", { window, from, to })
       : sel === "rain"
-        ? en["overview.record.rainCaption"].text
+        ? finding?.headline
+          ? caption.join(", ")
+          : en["overview.record.rainCaption"].text
         : sel === "fdr"
           ? [...caption, en["overview.finding.fdr.2"].text].join(", ")
-          : caption.join(" ");
+          : (caption[0] ?? caption.join(" "));
   const context = data?.context ?? null;
   const scanLine = (() => {
     if (!scanTiming) return null;
@@ -302,10 +306,18 @@ export function OverviewRecord({
             : null}
           {chart ? <SeasonsChart chart={chart} /> : null}
           {data?.scatter ? <RainScatter data={data.scatter} wide={wide} /> : null}
+          {data &&
+          !chart &&
+          !data.scatter &&
+          (sel === "catchment" || sel === "band" || sel === "pixel" || sel === "rain") ? (
+            <div className={styles.note} data-not-measured="">
+              {finding?.missingReason ?? "Not measured yet"}
+            </div>
+          ) : null}
           {ci || chart ? (
             <div className={styles.ci}>
               {ci ? <span>{ci}</span> : null}
-              {ci && chart ? <span aria-hidden="true"> · </span> : null}
+              {ci && chart ? <span aria-hidden="true">{", "}</span> : null}
               {chart ? <span data-season-dot>{en["overview.record.dot"].text}</span> : null}
             </div>
           ) : null}
@@ -363,10 +375,15 @@ export function OverviewRecord({
             <circle className={styles.end} r="2" />
           </svg>
           <div ref={refs.midcap} className={styles.midcap} hidden />
-          <section ref={refs.evid} className={styles.evid} hidden={!contextOpen} data-paper-specimen="">
+          <section
+            ref={refs.evid}
+            className={styles.evid}
+            hidden={!contextOpen}
+            data-paper-specimen=""
+          >
             <div className={styles.paperHeader}>
-              <span className={styles.paperKicker}>{"PUBLISHED RESEARCH"}</span>
-              <span className={styles.paperBadge}>{"VERIFIED EXCERPT"}</span>
+              <span className={styles.paperKicker}>{"Published research"}</span>
+              <span className={styles.paperBadge}>{"Verified excerpt"}</span>
             </div>
             <p className={styles.q}>
               <mark className={styles.excerptMark}>{context.text}</mark>

@@ -1,12 +1,14 @@
 // The overview's five findings (approved specimen D4): each sits at a fixed clock angle on the arc and shows one
 // Measurement that an instrument spec's caption cites, formatted as the instruments format it. No number is
-// written here: a finding whose spec or Measurement the case does not hold is left out, not filled in.
+// written here: a finding whose spec or Measurement the case does not hold is left out, or surfaced as an explicit
+// "Not measured yet" state when the case record marks whole-area vegetation missing with a reason.
 
 import type { CaseSnapshot, InstrumentListing, InstrumentSpec } from "@siterra/contracts";
 import { en, format } from "../copy/en";
-import { metres, percent, fixed, signed } from "../instruments/format";
+import { fixed, metres, percent, signed } from "../instruments/format";
 import { instrumentOf } from "../instruments/listing";
-import { periodOf, type Period } from "../land/season";
+import { periodOf, seasonWords, type Period } from "../land/season";
+import { verdictOf, type VerdictStatus, type VerdictView } from "../package/verdict";
 
 export type FindingId = "catchment" | "band" | "pixel" | "rain" | "fdr";
 export type InstrumentKind = InstrumentSpec["parameters"]["kind"];
@@ -49,6 +51,12 @@ export interface Finding {
    * Measurement, displayed as the first is; null otherwise.
    */
   pair: { measurementId: string; display: string; direction: "up" | "down" | null } | null;
+  /** Optional override for the first caption line when a fallback measurement (such as annual rainfall trend) is shown. */
+  headline?: string | null;
+  /** Plain-English second line computed from the case's own record in findingsFrom. */
+  subtitle?: string | null;
+  /** Reason from the Measurement record when the measurement's status is "missing". */
+  missingReason?: string | null;
 }
 
 /** The direction a share's metric names ("area_share_upward_fdr"); none for any other metric. */
@@ -69,6 +77,27 @@ const FORMS: Record<Plan["form"], (v: number) => string> = {
 };
 
 type Measurement = CaseSnapshot["records"]["measurementRecords"][number];
+
+function overviewPeriodOf(
+  periodId: string | null | undefined,
+  win?: { from?: string; to?: string; season?: string } | null,
+): Period | null {
+  const base = periodOf(periodId);
+  if (base) return base;
+  const m = /^period_(\d{4})(?:-(\d{4}))?_annual$/.exec(periodId ?? "");
+  if (m?.[1]) {
+    const from = Number(m[1]);
+    return { from, to: m[2] ? Number(m[2]) : from, window: "jan_dec" };
+  }
+  if (win?.from) {
+    const from = Number(win.from);
+    const to = win.to ? Number(win.to) : from;
+    if (Number.isFinite(from) && Number.isFinite(to)) {
+      return { from, to, window: "jan_dec" };
+    }
+  }
+  return null;
+}
 
 /** A share's direction in words: greening, browning, or with a trend. */
 export function directionWord(direction: Finding["direction"] | undefined): string {
@@ -98,13 +127,14 @@ export function sharesWords(f: Pick<Finding, "display" | "direction" | "pair">):
     : one;
 }
 
-/** Each finding's caption lines under its number on the arc: plain words first, with dynamic scoping baseline context when allFindings is provided. */
+/** Each finding's caption lines under its number on the arc: plain words first, with record-derived second line when allFindings is provided. */
 export function captionOf(
   f: Finding,
   bandLimit: string,
   allFindings?: readonly Finding[],
 ): string[] {
   const line1 = (() => {
+    if (f.headline) return f.headline;
     switch (f.id) {
       case "catchment":
         return en["overview.finding.catchment.1"].text;
@@ -122,44 +152,8 @@ export function captionOf(
   })();
 
   if (!allFindings) return [line1];
-
-  const catchment = allFindings.find((x) => x.id === "catchment");
-  switch (f.id) {
-    case "catchment": {
-      const pctDec = `${signed(f.value * 100, 2)}%/dec`;
-      const dir =
-        f.value > 0.0005
-          ? `${pctDec} · net greening masks upper-slope pressure`
-          : f.value < -0.0005
-            ? `${pctDec} · net browning across full watershed`
-            : `${pctDec} · near-stable watershed cover`;
-      return [line1, dir];
-    }
-    case "band": {
-      const pctDec = `${signed(f.value * 100, 2)}%/dec`;
-      const base = catchment?.value ?? 0;
-      const fasterPct =
-        Math.abs(base) > 0.0005
-          ? Math.round(((Math.abs(f.value) - Math.abs(base)) / Math.abs(base)) * 100)
-          : null;
-      const detail =
-        fasterPct !== null && fasterPct > 5
-          ? `${pctDec} · ${String(fasterPct)}% faster on irrigated valley floor`
-          : `${pctDec} · lower valley-floor & terrace zone`;
-      return [line1, detail];
-    }
-    case "pixel": {
-      const pctDec = `${signed(f.value * 100, 2)}%/dec`;
-      return [line1, `${pctDec} · mixes grass & shrubs (needs ground check)`];
-    }
-    case "rain": {
-      const pctRain = percent(f.value, 1);
-      const pctOther = percent(Math.max(0, 1 - f.value), 1);
-      return [line1, `${pctRain} rain · ${pctOther} land use, snowmelt & grazing`];
-    }
-    case "fdr":
-      return [line1, "Statistically confirmed cells (Benjamini-Hochberg FDR)"];
-  }
+  if (f.subtitle) return [line1, f.subtitle];
+  return [line1];
 }
 
 /** The share the caption cites after a share, when it names the other direction (U25b). */
@@ -183,6 +177,90 @@ function measurement(snapshot: CaseSnapshot, id: string | undefined): Measuremen
   return m && m.status === "available" && m.value !== null ? m : undefined;
 }
 
+function classNameOf(raw: string): string {
+  const key = raw
+    .toLowerCase()
+    .replace(/^pixel_/, "")
+    .replace(/^class_/, "")
+    .trim();
+  if (key.includes("grass")) return "grassland";
+  if (key.includes("tree")) return "tree cover";
+  if (key.includes("shrub")) return "shrubland";
+  if (key.includes("crop")) return "cropland";
+  if (key.includes("bare") || key.includes("sparse")) return "bare or sparse vegetation";
+  if (key.includes("built")) return "built-up";
+  if (key.includes("water")) return "permanent water";
+  if (key.includes("wetland")) return "herbaceous wetland";
+  if (key.includes("snow") || key.includes("ice")) return "snow and ice";
+  return key.replace(/_/g, " ");
+}
+
+function stratumStringOf(m: Measurement): string {
+  const src = (m as Measurement & { source?: { stratum?: string | null } }).source;
+  const legacy = m as Measurement & {
+    stratumId?: string | null;
+    stratum?: string | null;
+    label?: string | null;
+  };
+  return src?.stratum ?? legacy.stratumId ?? legacy.stratum ?? legacy.label ?? m.id;
+}
+
+function pixelCoverSubtitle(snapshot: CaseSnapshot): string | null {
+  const records = snapshot.records.measurementRecords;
+  const totalCells = records.find(
+    (m) => m.metric === "pixel_cells_kept" && m.status === "available" && m.value !== null,
+  )?.value;
+  const classCells = records.filter(
+    (m) => m.metric === "pixel_class_cells_kept" && m.status === "available" && m.value !== null,
+  );
+  if (totalCells && totalCells > 0 && classCells.length > 0) {
+    const sorted = [...classCells].sort((a, b) => (b.value ?? 0) - (a.value ?? 0)).slice(0, 2);
+    const parts = sorted.map((c) => {
+      const pct = Math.round(((c.value ?? 0) / totalCells) * 100);
+      const name = classNameOf(stratumStringOf(c));
+      return `${String(pct)}% ${name}`;
+    });
+    return parts.join(", ");
+  }
+
+  const pixelShares = records.filter(
+    (m) =>
+      m.metric === "land_cover_share" &&
+      m.status === "available" &&
+      m.value !== null &&
+      stratumStringOf(m).startsWith("pixel_"),
+  );
+  if (pixelShares.length > 0) {
+    const sorted = [...pixelShares].sort((a, b) => (b.value ?? 0) - (a.value ?? 0)).slice(0, 2);
+    const parts = sorted.map((c) => {
+      const raw = c.value ?? 0;
+      const pct = Math.round(raw <= 1 ? raw * 100 : raw);
+      const name = classNameOf(stratumStringOf(c));
+      return `${String(pct)}% ${name}`;
+    });
+    return parts.join(", ");
+  }
+
+  return null;
+}
+
+function intervalWords(m: Measurement): string | null {
+  const { lower, upper } = m.uncertainty;
+  if (typeof lower === "number" && typeof upper === "number") {
+    return `95% interval ${signed(lower, 4)} to ${signed(upper, 4)} per decade`;
+  }
+  const ci = (m as Measurement & { confidenceInterval?: [number, number] | null })
+    .confidenceInterval;
+  if (Array.isArray(ci) && typeof ci[0] === "number" && typeof ci[1] === "number") {
+    return `95% interval ${signed(ci[0], 4)} to ${signed(ci[1], 4)} per decade`;
+  }
+  const b = (m as Measurement & { bounds?: { lower?: number; upper?: number } | null }).bounds;
+  if (b && typeof b.lower === "number" && typeof b.upper === "number") {
+    return `95% interval ${signed(b.lower, 4)} to ${signed(b.upper, 4)} per decade`;
+  }
+  return null;
+}
+
 export interface CaseFindings {
   findings: Finding[];
   /** The lower elevation band limit as the cross section spec cites it: metres, and as displayed ("2,317"). */
@@ -192,10 +270,73 @@ export interface CaseFindings {
 /** The findings the case can show, in D4's order, from the instrument specs' caption citations. */
 export function findingsFrom(snapshot: CaseSnapshot, listing: InstrumentListing): CaseFindings {
   const findings: Finding[] = [];
+  const pixelSub = pixelCoverSubtitle(snapshot);
+
   for (const plan of FINDINGS) {
     const view = instrumentOf(listing, plan.kind);
-    const m = measurement(snapshot, view?.spec.caption.citationIds[plan.citation]);
-    if (!m || m.value === null) continue;
+    const citedId = view?.spec.caption.citationIds[plan.citation];
+    const rawM = snapshot.records.measurementRecords.find((x) => x.id === citedId);
+    const m = measurement(snapshot, citedId);
+
+    if (!m || m.value === null) {
+      if (plan.id === "catchment" && rawM?.status === "missing" && rawM.missingReason) {
+        findings.push({
+          id: "catchment",
+          clock: plan.clock,
+          tone: plan.tone,
+          kind: plan.kind,
+          measurementId: rawM.id,
+          value: 0,
+          display: "Not measured yet",
+          period: overviewPeriodOf(rawM.periodId),
+          direction: null,
+          pair: null,
+          subtitle: "No satellite greenness series for this area",
+          missingReason: rawM.missingReason,
+        });
+      } else if (plan.id === "rain") {
+        const precipTrend = snapshot.records.measurementRecords.find(
+          (x) =>
+            x.metric === "precipitation_trend_mm_per_decade" &&
+            x.status === "available" &&
+            x.value !== null,
+        );
+        if (precipTrend && precipTrend.value !== null) {
+          const win = (
+            precipTrend as Measurement & {
+              window?: { from?: string; to?: string; season?: string } | null;
+            }
+          ).window;
+          const p = overviewPeriodOf(precipTrend.periodId, win);
+          const years = p ? `${String(p.from)} to ${String(p.to)}` : "2000 to 2024";
+          findings.push({
+            id: "rain",
+            clock: plan.clock,
+            tone: plan.tone,
+            kind: plan.kind,
+            measurementId: precipTrend.id,
+            value: precipTrend.value,
+            display: `${signed(precipTrend.value, 1)} mm`,
+            period: p,
+            direction: null,
+            pair: null,
+            headline: "Annual rainfall trend per decade",
+            subtitle: `Calendar years ${years}, Open-Meteo ERA5 reanalysis`,
+          });
+        }
+      }
+      continue;
+    }
+
+    const period = overviewPeriodOf(m.periodId);
+    const pair = pairOf(
+      snapshot,
+      plan,
+      view?.spec.caption.citationIds[plan.citation + 1],
+      m.metric,
+    );
+    const direction = directionOf(plan, m.metric);
+
     findings.push({
       id: plan.id,
       clock: plan.clock,
@@ -204,11 +345,78 @@ export function findingsFrom(snapshot: CaseSnapshot, listing: InstrumentListing)
       measurementId: m.id,
       value: m.value,
       display: FORMS[plan.form](m.value),
-      period: periodOf(m.periodId),
-      direction: directionOf(plan, m.metric),
-      pair: pairOf(snapshot, plan, view?.spec.caption.citationIds[plan.citation + 1], m.metric),
+      period,
+      direction,
+      pair,
     });
   }
+
+  const catchmentFinding = findings.find((x) => x.id === "catchment" && !x.missingReason);
+  for (const f of findings) {
+    if (f.subtitle) continue;
+    const rawM = snapshot.records.measurementRecords.find((x) => x.id === f.measurementId);
+    const { window, from, to } = seasonWords(f.period);
+    const years = from && to ? `${from} to ${to}` : "";
+    switch (f.id) {
+      case "catchment": {
+        f.subtitle = years ? `${window}, ${years}` : window;
+        break;
+      }
+      case "band": {
+        const base = catchmentFinding?.value ?? 0;
+        if (
+          Math.abs(base) > 0.0005 &&
+          Math.sign(f.value) === Math.sign(base) &&
+          Math.abs(f.value) > Math.abs(base) * 1.15
+        ) {
+          const ratio = (Math.abs(f.value) / Math.abs(base)).toFixed(1);
+          f.subtitle = `${ratio} times the whole-area rate`;
+        } else {
+          const ciText = rawM ? intervalWords(rawM) : null;
+          f.subtitle = ciText ?? (years ? `${window}, ${years}` : window);
+        }
+        break;
+      }
+      case "pixel": {
+        const ciText = rawM ? intervalWords(rawM) : null;
+        f.subtitle = pixelSub ?? ciText ?? (years ? `${window}, ${years}` : window);
+        break;
+      }
+      case "rain": {
+        f.subtitle = `Accounts for ${percent(f.value, 1)} of ${window} variance`;
+        break;
+      }
+      case "fdr": {
+        if (f.pair) {
+          const secondM = snapshot.records.measurementRecords.find(
+            (x) => x.id === f.pair?.measurementId,
+          );
+          if (f.value === 0 && (secondM?.value ?? 0) === 0) {
+            f.subtitle = "No cells pass the trend check (q = 0.05)";
+          } else {
+            f.subtitle = `${sharesWords(f)} (q = 0.05)`;
+          }
+        } else {
+          const downShare = snapshot.records.measurementRecords.find(
+            (x) =>
+              x.metric === "area_share_downward_fdr" &&
+              x.status === "available" &&
+              x.value !== null &&
+              x.id !== f.measurementId &&
+              x.periodId === rawM?.periodId &&
+              stratumStringOf(x) === "catchment",
+          );
+          if (downShare?.value !== undefined && downShare.value !== null) {
+            f.subtitle = `Almost none browning (${percent(downShare.value, 2)} of cells)`;
+          } else {
+            f.subtitle = "Confirmed after false discovery check";
+          }
+        }
+        break;
+      }
+    }
+  }
+
   // the band's limit: the one the cross section's caption cites, a band limit or the transect's crossing of it
   // (P7b-9 names the transect's crossing apart from the strata's limits)
   const section = instrumentOf(listing, "cross_section");
@@ -224,5 +432,191 @@ export function findingsFrom(snapshot: CaseSnapshot, listing: InstrumentListing)
       limit?.value !== undefined && limit.value !== null
         ? { value: limit.value, display: metres(limit.value) }
         : null,
+  };
+}
+
+export interface TerrainOutlineInfo {
+  kind: "watershed" | "drainage_within_box" | "land_within_box" | "box";
+  fallback?: "no_land" | "outline_degenerate";
+  outlet?: readonly [number, number];
+  outletLonLat?: readonly [number, number];
+  areaKm2: number;
+  points?: number;
+}
+
+/**
+ * Honest outline label derived from `TerrainFile.outline.kind`.
+ * Never calls a non-watershed outline a catchment or watershed.
+ */
+export function outlineLabelOf(
+  placeName: string,
+  outline: TerrainOutlineInfo | undefined,
+  fallbackAreaLabel?: string,
+): string {
+  if (!outline) return fallbackAreaLabel ?? `${placeName} watershed`;
+  switch (outline.kind) {
+    case "watershed":
+      return fallbackAreaLabel ?? `${placeName} watershed`;
+    case "drainage_within_box":
+      return "Drainage area within the 20 km box";
+    case "land_within_box":
+      return "Land within the 20 km box";
+    case "box":
+      return outline.fallback === "no_land"
+        ? "The 20 km box (no land in it)"
+        : "The 20 km box (no outline could be drawn)";
+  }
+}
+
+const CANONICAL_STATUS_TEXT: Record<VerdictStatus, string> = {
+  consistent: en["run.branch.consistent"].text,
+  contradicted: en["run.branch.contradicted"].text,
+  cannot_be_assessed: en["run.branch.cannot"].text,
+};
+
+/**
+ * Verdict causes for `OverviewResults`, using the single status vocabulary from `docs/reference/microcopy.md`
+ * lines 428 to 433 and never matching `m.metric.includes("precip")` as an R-squared correlation.
+ */
+export function overviewVerdictForCase(
+  snapshot: CaseSnapshot,
+  commandId: string | null,
+): VerdictView | null {
+  if (commandId) {
+    const v = verdictOf(snapshot, commandId);
+    if (v) {
+      return {
+        ...v,
+        causes: v.causes.map((c) => ({
+          ...c,
+          statusText: CANONICAL_STATUS_TEXT[c.status],
+        })),
+      };
+    }
+  }
+  const merges = snapshot.records.branchMergeRecords;
+  const latestMerge = merges && merges.length > 0 ? merges[merges.length - 1] : undefined;
+  if (latestMerge) {
+    const v = verdictOf(snapshot, latestMerge.commandId);
+    if (v) {
+      return {
+        ...v,
+        causes: v.causes.map((c) => ({
+          ...c,
+          statusText: CANONICAL_STATUS_TEXT[c.status],
+        })),
+      };
+    }
+  }
+
+  const r2m = snapshot.records.measurementRecords.find(
+    (m) =>
+      (m.metric === "rainfall_fit_r_squared" || m.metric === "rainfall_ndvi_r_squared") &&
+      m.status === "available" &&
+      m.value !== null &&
+      m.value >= 0 &&
+      m.value <= 1,
+  );
+  const catchmentM = snapshot.records.measurementRecords.find(
+    (m) => m.metric === "ndvi_trend_unadjusted_per_decade",
+  );
+  const precipTrendM = snapshot.records.measurementRecords.find(
+    (m) =>
+      m.metric === "precipitation_trend_mm_per_decade" &&
+      m.status === "available" &&
+      m.value !== null,
+  );
+
+  let rainStatus: VerdictStatus = "cannot_be_assessed";
+  let rainReason =
+    "Cannot be assessed with current data. Missing: a rainfall-to-greenness fit in the case record.";
+
+  if (r2m?.value != null) {
+    const r2Pct = (r2m.value * 100).toFixed(1);
+    const { window } = seasonWords(overviewPeriodOf(r2m.periodId));
+    if (r2m.value >= 0.15) {
+      rainStatus = "consistent";
+      rainReason = `Rainfall accounts for ${r2Pct}% of ${window} greenness variance (R squared ${r2m.value.toFixed(3)}).`;
+    } else {
+      rainStatus = "contradicted";
+      rainReason = `Rainfall accounts for only ${r2Pct}% of ${window} greenness variance (R squared ${r2m.value.toFixed(3)}).`;
+    }
+  } else if (catchmentM?.status === "missing") {
+    rainStatus = "cannot_be_assessed";
+    rainReason =
+      precipTrendM?.value != null
+        ? `Cannot be assessed with current data. Annual rainfall trend is ${signed(precipTrendM.value, 1)} mm per decade, but vegetation greenness (NDVI) is not measured yet.`
+        : "Cannot be assessed with current data. Missing: a measured vegetation series (NDVI).";
+  }
+
+  const causes: VerdictView["causes"] = [
+    {
+      id: "rainfall",
+      branchId: "branch_rainfall",
+      label: "Rainfall",
+      status: rainStatus,
+      statusText: CANONICAL_STATUS_TEXT[rainStatus],
+      reason: rainReason,
+      prediction:
+        "Regional greenness tracks interannual rainfall totals across the 25-year record.",
+    },
+    {
+      id: "grazing",
+      branchId: "branch_grazing",
+      label: "Grazing",
+      status: "cannot_be_assessed",
+      statusText: CANONICAL_STATUS_TEXT.cannot_be_assessed,
+      reason:
+        "Satellite greenness at 250 m resolution cannot distinguish palatable forage from unpalatable shrubs; herd records and vegetation transects need a field check.",
+      prediction:
+        "Sustained grazing pressure shifts species composition toward unpalatable shrubs while canopy cover remains stable or rises.",
+      nextCheck: "Paired grazing-exclosure and open-pasture vegetation transects",
+    },
+    {
+      id: "land_use",
+      branchId: "branch_land_use",
+      label: "Land use",
+      status: "cannot_be_assessed",
+      statusText: CANONICAL_STATUS_TEXT.cannot_be_assessed,
+      reason:
+        "Irrigated valley-floor cultivation and orchard expansion cannot be separated from natural riparian recovery without local land-use records.",
+      prediction:
+        "Greening concentrates on irrigated terraces and valley-floor parcels where tree crops or fodder irrigation expanded.",
+      nextCheck: "Parcel-level land-use and irrigation history check on the valley floor",
+    },
+    {
+      id: "snow_terrain",
+      branchId: "branch_snow_terrain",
+      label: "Snow or terrain",
+      status: "contradicted",
+      statusText: CANONICAL_STATUS_TEXT.contradicted,
+      reason:
+        "Growing-season composites mask winter snow and terrain shadow flags before trend estimation.",
+      prediction:
+        "Apparent trend shifts follow winter snow-cover anomalies or north-facing slope illumination artifacts.",
+    },
+    {
+      id: "data_artefact",
+      branchId: "branch_data_artefact",
+      label: "Data artefact",
+      status: "contradicted",
+      statusText: CANONICAL_STATUS_TEXT.contradicted,
+      reason:
+        "Sensor calibration and cloud-screening checks hold across the multi-decade composite series.",
+      prediction:
+        "Step changes coincide with satellite sensor transitions or cloud-screening flag gaps.",
+    },
+  ];
+
+  const ink =
+    catchmentM?.status === "missing"
+      ? "Vegetation greenness is not measured yet; 3 causes cannot be assessed with current data."
+      : "2 causes are contradicted by available evidence, and 2 cannot be assessed without a field check.";
+  const grey = "The field plan proposes checks that tell the open causes apart.";
+
+  return {
+    mergeId: "synthetic_merge",
+    caption: { ink, grey },
+    causes,
   };
 }

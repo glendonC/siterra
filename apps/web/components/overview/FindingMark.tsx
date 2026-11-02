@@ -43,6 +43,12 @@ export function crumbOf(sel: Selection, findings: readonly Finding[], bandLimit:
       return tm["time.crumb"].text;
     case "band":
       return format("overview.crumb.band", { value: f?.display ?? "", limit: bandLimit });
+    case "catchment":
+      if (f?.missingReason) return f.display;
+      return format("overview.crumb.catchment", { value: f?.display ?? "" });
+    case "rain":
+      if (f?.headline) return `${f.display} per decade rainfall`;
+      return format("overview.crumb.rain", { value: f?.display ?? "" });
     case "fdr":
       return f ? sharesWords(f) : "";
     default:

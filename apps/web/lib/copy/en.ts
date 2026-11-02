@@ -744,9 +744,10 @@ export const en = {
     honesty: true,
   },
   "run.branch.sealed": { text: "Predictions locked", kind: "label" },
-  "run.branch.consistent": { text: "Consistent", kind: "label" },
-  "run.branch.contradicted": { text: "Contradicted", kind: "label" },
-  "run.branch.cannot": { text: "Cannot be assessed", kind: "label" },
+  "run.branch.consistent": { text: "Consistent with available evidence", kind: "label" },
+  "run.branch.contradicted": { text: "Contradicted by available evidence", kind: "label" },
+  "run.branch.cannot": { text: "Cannot be assessed with current data", kind: "label" },
+  "run.branch.reassess": { text: "Needs reassessment", kind: "label" },
   "run.check": { text: "Proposed check: {label}", kind: "label", honesty: true },
   "run.sofar": { text: "Findings so far: {n}", kind: "label" },
   "run.findings": { text: "{n} findings in {time} s", kind: "label" },
@@ -903,7 +904,7 @@ export const en = {
   },
   // each record's one action, named by what the visitor will see (decision 13)
   "overview.open.layers": { text: "See the Layers", kind: "button" },
-  "overview.open.cutaway": { text: "Cut Through the Land", kind: "button" },
+  "overview.open.cutaway": { text: "Inspect Elevation Band", kind: "button" },
   "overview.open.pixel": { text: "Open This Pixel", kind: "button" },
   "overview.open.rainfall": { text: "Compare with Rainfall", kind: "button" },
   "overview.open.field": { text: "See the Field Plan", kind: "button" },
@@ -1031,10 +1032,6 @@ export const LINT_ALLOWLIST: Partial<Record<MessageId, { rules: string[]; reason
     rules: ["VT-43"],
     reason:
       "The founder's replan names the scope pill 'What Siterra won't do' in plain conversational words.",
-  },
-  "overview.open.cutaway": {
-    rules: ["VT-48"],
-    reason: "The lead's decision 13 names each record's action by what the visitor will see.",
   },
   "overview.open.field": {
     rules: ["VT-48"],

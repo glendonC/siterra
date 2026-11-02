@@ -174,7 +174,8 @@ export function AtWorkAgentTree({
   cycleFollow: () => void;
   follow?: boolean;
   stepsDismissed?: boolean;
-  onFocusLayer?: ((layer: "bands" | "cover" | "trend" | "rain" | "routes" | null) => void) | undefined;
+  onFocusLayer?:
+    ((layer: "bands" | "cover" | "trend" | "rain" | "routes" | null) => void) | undefined;
 }) {
   if (run.tasks.length === 0) return null;
 
@@ -219,8 +220,7 @@ export function AtWorkAgentTree({
                   : null;
               const rightLabel = !isRunning && dur ? dur : en[TASK_STATE_WORD[t.state]].text;
               const duplicateKind = (kindCounts.get(t.kind) ?? 0) > 1;
-              const scopeChip =
-                t.sublabel ?? (duplicateKind ? (t.searchedChips[0] ?? null) : null);
+              const scopeChip = t.sublabel ?? (duplicateKind ? (t.searchedChips[0] ?? null) : null);
               const taskTitle = en[`task.kind.${t.kind}` as MessageId].text;
 
               return (
@@ -238,7 +238,7 @@ export function AtWorkAgentTree({
                   <button
                     type="button"
                     className={styles.treeNodeBtn}
-                    aria-label={`${taskTitle}${scopeChip ? ` (${scopeChip})` : ""} — ${rightLabel}`}
+                    aria-label={`${taskTitle}${scopeChip ? ` (${scopeChip})` : ""}, ${rightLabel}`}
                     onClick={() => {
                       setStepsDismissed(false);
                       setSelectedTaskId((cur) => (cur === t.id ? null : t.id));
@@ -280,7 +280,7 @@ export function AtWorkAgentTree({
                     <span className={styles.treeNodeTooltip} data-chrome="">
                       <span className={styles.treeNodeName} data-state={t.state}>
                         {taskTitle}
-                        {scopeChip ? ` · ${scopeChip}` : ""}
+                        {scopeChip ? `, ${scopeChip}` : ""}
                       </span>
                       <span className={styles.treeNodeState} data-state={t.state}>
                         {rightLabel}
@@ -313,7 +313,9 @@ export function AtWorkAgentTree({
                         pathLength="100"
                       />
                     </svg>
-                    <span className={styles.reviewExclaim} aria-hidden="true">!</span>
+                    <span className={styles.reviewExclaim} aria-hidden="true">
+                      !
+                    </span>
                   </span>
                   <span className={styles.needsYouPill} data-needs-you="">
                     {en["run.tree.needsYou"].text}
@@ -332,7 +334,10 @@ export function AtWorkAgentTree({
             {
               "--agent-color": agentAccentColor(
                 selectedTask,
-                Math.max(0, run.tasks.findIndex((x) => x.id === selectedTask.id)),
+                Math.max(
+                  0,
+                  run.tasks.findIndex((x) => x.id === selectedTask.id),
+                ),
               ),
             } as CSSProperties
           }
@@ -343,7 +348,7 @@ export function AtWorkAgentTree({
             <div className={styles.inspectorTitleBlock}>
               <span className={styles.inspectorKicker}>
                 {en[`task.kind.${selectedTask.kind}` as MessageId].text}
-                {selectedTask.sublabel ? ` · ${selectedTask.sublabel}` : ""}
+                {selectedTask.sublabel ? `, ${selectedTask.sublabel}` : ""}
               </span>
               {selectedTask.activeLabel ? (
                 <p className={styles.inspectorLiveLine}>{selectedTask.activeLabel}</p>
@@ -358,7 +363,7 @@ export function AtWorkAgentTree({
                 setStepsDismissed(false);
               }}
             >
-              <kbd className={styles.keycapDark}>{"ESC"}</kbd>
+              <kbd className={styles.keycapDark}>{"Esc"}</kbd>
               <span>{en["run.tree.followAll"].text}</span>
             </button>
           </div>
@@ -376,11 +381,7 @@ export function AtWorkAgentTree({
           {selectedTask.steps.length > 0 ? (
             <ol className={styles.thinkingStepList}>
               {selectedTask.steps.slice(-MAX_VISIBLE_STEPS).map((step) => (
-                <li
-                  key={step.id}
-                  className={styles.thinkingStep}
-                  data-thinking-step={step.status}
-                >
+                <li key={step.id} className={styles.thinkingStep} data-thinking-step={step.status}>
                   <span
                     className={styles.thinkingStepDot}
                     data-status={step.status}
@@ -433,9 +434,15 @@ export function AtWorkBottomThinkingBand({
     runningTasks.length > 0
       ? ((selectedTaskId ? runningTasks.find((t) => t.id === selectedTaskId) : null) ??
         runningTasks[runningTasks.length - 1] ??
-        runningTasks[0]!)
+        runningTasks[0] ??
+        null)
       : null;
-  const primaryIdx = primary ? Math.max(0, run.tasks.findIndex((x) => x.id === primary.id)) : 0;
+  const primaryIdx = primary
+    ? Math.max(
+        0,
+        run.tasks.findIndex((x) => x.id === primary.id),
+      )
+    : 0;
   const accent = primary ? agentAccentColor(primary, primaryIdx) : "#2563eb";
 
   const count = (l: string) => run.findings.filter((f) => f.lands === l).length;
@@ -465,7 +472,10 @@ export function AtWorkBottomThinkingBand({
           <div className={styles.bottomRunningRow}>
             {runningTasks.map((t) => {
               const isPrimary = t.id === primary.id;
-              const idx = Math.max(0, run.tasks.findIndex((x) => x.id === t.id));
+              const idx = Math.max(
+                0,
+                run.tasks.findIndex((x) => x.id === t.id),
+              );
               const color = agentAccentColor(t, idx);
               if (!isPrimary) {
                 return (
@@ -565,7 +575,9 @@ export function AtWorkBottomThinkingBand({
                   >
                     <span className={styles.branchRow}>
                       <span>{b.label}</span>
-                      <span className={styles.branchWord}>{en[word].text}</span>
+                      <span className={styles.branchWord} data-chrome="">
+                        {en[word].text}
+                      </span>
                     </span>
                     {hoveredBranch === b.id && b.reason ? (
                       <span className={styles.reason}>{b.reason}</span>

@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { seed, seedListing } from "../instruments/seed-listing";
-import { captionOf, FINDINGS, findingsFrom } from "./findings";
+import {
+  captionOf,
+  FINDINGS,
+  findingsFrom,
+  outlineLabelOf,
+  overviewVerdictForCase,
+} from "./findings";
 
 // The findings' numbers are the Measurements the instrument specs cite, formatted as the instruments format them.
 describe("findingsFrom (seed case)", () => {
@@ -129,5 +135,180 @@ describe("findingsFrom (seed case)", () => {
       ["rain", ["Explained by rainfall"]],
       ["fdr", ["of the area greening"]],
     ]);
+  });
+
+  it("derives each finding's second line from the case record without multiplying NDVI by 100 as a percent", () => {
+    const limit = bandLimit?.display ?? "";
+    const lines = Object.fromEntries(findings.map((f) => [f.id, captionOf(f, limit, findings)]));
+    expect(lines.catchment).toEqual(["Whole area greenness trend", "March to June, 2000 to 2025"]);
+    expect(lines.band).toEqual(["Below 2,317 m trend", "1.5 times the whole-area rate"]);
+    expect(lines.pixel).toEqual(["One 250 m square", "47% grassland, 40% tree cover"]);
+    expect(lines.rain).toEqual([
+      "Explained by rainfall",
+      "Accounts for 3.7% of March to June variance",
+    ]);
+    expect(lines.fdr).toEqual(["of the area greening", "Almost none browning (0.09% of cells)"]);
+    for (const pair of Object.values(lines)) {
+      for (const s of pair) {
+        expect(s).not.toContain("%/dec");
+        expect(s).not.toContain("land use, snowmelt & grazing");
+        expect(s).not.toContain("net greening masks upper-slope pressure");
+        expect(s).not.toContain("mixes grass & shrubs");
+        expect(s).not.toContain("·");
+      }
+    }
+  });
+
+  it("computes different, honest subtitles for a browning place or a live place missing vegetation", () => {
+    // Live place where vegetation is missing but annual rainfall trend is measured:
+    const baseM = seed.records.measurementRecords[0];
+    if (!baseM) throw new Error("missing seed measurement");
+    const missingReason =
+      "Requires a 25-year MODIS or Sentinel-2 growing-season NDVI series; live ingestion currently fetches ERA5 climate and WorldCover 2021 only.";
+    const liveRecords = {
+      ...seed.records,
+      measurementRecords: [
+        ...seed.records.measurementRecords.map((m) =>
+          m.id === byId.catchment?.measurementId
+            ? { ...m, value: null, status: "missing" as const, missingReason }
+            : m.id === byId.rain?.measurementId
+              ? { ...m, value: null, status: "missing" as const, missingReason }
+              : { ...m, value: null, status: "missing" as const },
+        ),
+        {
+          ...baseM,
+          id: "meas_live_precip_trend",
+          caseId: "case_loc_queenstown_7e0699",
+          caseRevision: 2,
+          recipeId: "recipe_era5",
+          metric: "precipitation_trend_mm_per_decade",
+          unit: "mm per decade",
+          value: 13.9,
+          periodId: "period_2000-2024_annual",
+          status: "available" as const,
+          missingReason: null,
+        },
+      ],
+    };
+    const live = findingsFrom(
+      { ...seed, case: { ...seed.case, id: "case_loc_queenstown_7e0699" }, records: liveRecords },
+      seedListing,
+    );
+    const liveCatchment = live.findings.find((f) => f.id === "catchment");
+    if (!liveCatchment) throw new Error("missing catchment finding");
+    expect(liveCatchment.display).toBe("Not measured yet");
+    expect(liveCatchment.missingReason).toBe(missingReason);
+    expect(captionOf(liveCatchment, "", live.findings)).toEqual([
+      "Whole area greenness trend",
+      "No satellite greenness series for this area",
+    ]);
+    const liveRain = live.findings.find((f) => f.id === "rain");
+    if (!liveRain) throw new Error("missing rain finding");
+    expect(liveRain.display).toBe("+13.9 mm");
+    expect(captionOf(liveRain, "", live.findings)).toEqual([
+      "Annual rainfall trend per decade",
+      "Calendar years 2000 to 2024, Open-Meteo ERA5 reanalysis",
+    ]);
+  });
+
+  it("maps TerrainFile.outline.kind to honest outline labels without calling a box a watershed", () => {
+    expect(
+      outlineLabelOf("Aït Bouguemez", {
+        kind: "watershed",
+        outletLonLat: [-6.4, 31.6],
+        areaKm2: 511.8,
+        points: 120,
+      }),
+    ).toBe("Aït Bouguemez watershed");
+    expect(
+      outlineLabelOf("Queenstown", {
+        kind: "drainage_within_box",
+        outletLonLat: [168.66, -45.03],
+        areaKm2: 142.3,
+        points: 96,
+      }),
+    ).toBe("Drainage area within the 20 km box");
+    expect(
+      outlineLabelOf("Null Island", {
+        kind: "land_within_box",
+        outletLonLat: [0, 0],
+        areaKm2: 88.0,
+        points: 64,
+      }),
+    ).toBe("Land within the 20 km box");
+    expect(
+      outlineLabelOf("Point Nemo", {
+        kind: "box",
+        fallback: "no_land",
+        outletLonLat: [-123.39, -48.87],
+        areaKm2: 400,
+        points: 4,
+      }),
+    ).toBe("The 20 km box (no land in it)");
+    expect(
+      outlineLabelOf("Flat Plains", {
+        kind: "box",
+        fallback: "outline_degenerate",
+        outletLonLat: [10, 10],
+        areaKm2: 400,
+        points: 4,
+      }),
+    ).toBe("The 20 km box (no outline could be drawn)");
+  });
+
+  it("uses the canonical status vocabulary in overviewVerdictForCase and never emits a >100% correlation", () => {
+    const baseM = seed.records.measurementRecords[0];
+    if (!baseM) throw new Error("missing seed measurement");
+    const liveRecords = {
+      ...seed.records,
+      branchMergeRecords: [],
+      measurementRecords: [
+        {
+          ...baseM,
+          id: "meas_live_precip_mean",
+          caseId: "case_loc_queenstown_7e0699",
+          caseRevision: 2,
+          recipeId: "recipe_era5",
+          metric: "annual_precipitation_mean_mm",
+          unit: "mm",
+          value: 1154.2,
+          status: "available" as const,
+          missingReason: null,
+        },
+        {
+          ...baseM,
+          id: "meas_live_ndvi_missing",
+          caseId: "case_loc_queenstown_7e0699",
+          caseRevision: 2,
+          recipeId: "recipe_ndvi",
+          metric: "ndvi_trend_unadjusted_per_decade",
+          unit: "NDVI per decade",
+          value: null,
+          status: "missing" as const,
+          missingReason: "Requires a 25-year MODIS or Sentinel-2 growing-season NDVI series.",
+        },
+      ],
+    };
+    const verdict = overviewVerdictForCase(
+      { ...seed, case: { ...seed.case, id: "case_loc_queenstown_7e0699" }, records: liveRecords },
+      null,
+    );
+    if (!verdict) throw new Error("expected verdict");
+    const allowedStatuses = new Set([
+      "Predictions locked",
+      "Consistent with available evidence",
+      "Contradicted by available evidence",
+      "Cannot be assessed with current data",
+      "Needs reassessment",
+    ]);
+    for (const c of verdict.causes) {
+      expect(allowedStatuses.has(c.statusText)).toBe(true);
+      expect(c.reason).not.toContain("115.42");
+      expect(c.reason).not.toContain("27.54");
+      expect(c.reason).not.toContain("1154");
+    }
+    const rainCause = verdict.causes.find((c) => c.id === "rainfall");
+    expect(rainCause?.status).toBe("cannot_be_assessed");
+    expect(rainCause?.statusText).toBe("Cannot be assessed with current data");
   });
 });

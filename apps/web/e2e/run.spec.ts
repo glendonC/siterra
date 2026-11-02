@@ -88,11 +88,11 @@ test("the recorded run settled: its count and time, the open explanations first,
     "●7 checked◆7 computed○9 not yet checked",
   );
   await expect(work.locator("[data-run-branches] li")).toHaveText([
-    "RainfallConsistent",
-    "GrazingCannot be assessed",
-    "Land useContradicted",
-    "Data artefactContradicted",
-    "Snow or terrainContradicted",
+    "RainfallConsistent with available evidence",
+    "GrazingCannot be assessed with current data",
+    "Land useContradicted by available evidence",
+    "Data artefactContradicted by available evidence",
+    "Snow or terrainContradicted by available evidence",
   ]);
   await expect(work.locator("[data-run-check]")).toContainText("Local Rain Records");
   await expect(work.locator("[data-run-card]")).toHaveCount(0);

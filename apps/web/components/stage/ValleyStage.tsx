@@ -209,6 +209,8 @@ export interface ValleyStageProps {
   places: LandPoint[];
   /** The outlet from its ContextFeature record; no beam and no outlet stem without one. */
   outlet: LandPoint | undefined;
+  /** Outline kind from TerrainFile.outline.kind; `arrival.outlet` is shown only for a watershed. */
+  outlineKind?: "watershed" | "drainage_within_box" | "land_within_box" | "box";
   /** Called once the map has drawn the arrival frame with every tile loaded. */
   onIdle?: () => void;
   /** Called once the map has loaded, so the dive can drive its camera and relief frame by frame. */
@@ -252,6 +254,7 @@ export function ValleyStage({
   areaLabel,
   places,
   outlet,
+  outlineKind = "watershed",
   onIdle,
   onMap,
   onArrive,
@@ -283,6 +286,8 @@ export function ValleyStage({
   placesRef.current = places;
   const outletRef = useRef(outlet);
   outletRef.current = outlet;
+  const outlineKindRef = useRef(outlineKind);
+  outlineKindRef.current = outlineKind;
 
   const [arrived, setArrived] = useState(false);
   const [settled, setSettled] = useState(false);
@@ -735,7 +740,7 @@ export function ValleyStage({
               .map((p, i) => `${i ? "L" : "M"}${(p?.x ?? 0).toFixed(1)} ${(p?.y ?? 0).toFixed(1)}`)
               .join("") + "Z"
           : "";
-        const o = outletRef.current;
+        const o = outlineKindRef.current === "watershed" ? outletRef.current : undefined;
         const nextStems = [
           ...(o ? [{ id: "outlet", name: en["arrival.outlet"].text, ...at(o.lon, o.lat) }] : []),
           ...placesRef.current.map((p) => ({ id: p.id, name: p.name, ...at(p.lon, p.lat) })),

@@ -213,9 +213,14 @@ export const pkg = {
   "verdict.open": { text: "Explanations and context", kind: "label" },
   "verdict.live.on": { text: "Live web and literature: on", kind: "label" },
   "verdict.live.off": { text: "Case record only", kind: "label" },
-  "verdict.status.consistent": { text: "Supported by the record", kind: "label" },
-  "verdict.status.contradicted": { text: "Contradicted by the record", kind: "label" },
-  "verdict.status.cannot_be_assessed": { text: "Cannot be told from space", kind: "label" },
+  "verdict.status.locked": { text: "Predictions locked", kind: "label" },
+  "verdict.status.consistent": { text: "Consistent with available evidence", kind: "label" },
+  "verdict.status.contradicted": { text: "Contradicted by available evidence", kind: "label" },
+  "verdict.status.cannot_be_assessed": {
+    text: "Cannot be assessed with current data",
+    kind: "label",
+  },
+  "verdict.status.needs_reassessment": { text: "Needs reassessment", kind: "label" },
   // the approval step (Scene 7, 7F): interactive review actions recorded on the case only
   "review.approve": { text: "Approve the Plan", kind: "button" },
   "review.askChanges": { text: "Ask for Changes", kind: "button" },

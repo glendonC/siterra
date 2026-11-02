@@ -21,7 +21,7 @@ import type { Action } from "../../lib/overview/actions";
 import { ActionList } from "./ActionList";
 import { Control } from "../controls/Control";
 import { pformat, pkg } from "../../lib/copy/package";
-import { verdictForCase, verdictOf } from "../../lib/package/verdict";
+import { overviewVerdictForCase } from "../../lib/overview/findings";
 import verdictStyles from "../package/Verdict.module.css";
 import styles from "./OverviewResults.module.css";
 
@@ -70,10 +70,7 @@ export function OverviewResults({
     const seen = new Set(findings.map((e) => e.id));
     return [...findings, ...accepted.filter((e) => !seen.has(e.id))];
   }, [snapshot, findings]);
-  const verdict = useMemo(
-    () => verdictOf(snapshot, commandId) ?? verdictForCase(snapshot, commandId),
-    [snapshot, commandId],
-  );
+  const verdict = useMemo(() => overviewVerdictForCase(snapshot, commandId), [snapshot, commandId]);
   const shownFindings = verdict ? allAcceptedFindings : findings;
   const caption = useMemo(
     () =>
@@ -150,7 +147,7 @@ export function OverviewResults({
               </button>
             </div>
           ) : null}
-          {showVerdict && verdict ? (
+          {showVerdict ? (
             <>
               <div className={styles.k} data-chrome="">
                 {pkg["verdict.title"].text}
@@ -300,7 +297,7 @@ export function OverviewResults({
                         {"Pastoral Law 113-13 & National Drought Shock"}
                       </span>
                     </span>
-                    <span className={styles.livelihoodBadge}>{"Dahan et al. 2012 · FAO 2024"}</span>
+                    <span className={styles.livelihoodBadge}>{"Dahan et al. 2012, FAO 2024"}</span>
                   </div>
                   <p className={styles.livelihoodBody}>
                     {
@@ -324,7 +321,7 @@ export function OverviewResults({
                         {"Historical Policy Caution: 1917 Forest Decree"}
                       </span>
                     </span>
-                    <span className={styles.livelihoodBadge}>{"Davis 2005 · West et al. 2023"}</span>
+                    <span className={styles.livelihoodBadge}>{"Davis 2005, West et al. 2023"}</span>
                   </div>
                   <p className={styles.livelihoodBody}>
                     {

@@ -1,19 +1,17 @@
 "use client";
 
 import type { CaseSnapshot, InstrumentListing } from "@siterra/contracts";
-import {
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type MutableRefObject,
-  type RefObject,
-} from "react";
+import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import { instrumentOf } from "../../lib/instruments/listing";
 import { VIEW_HREF, type ViewKind } from "../../lib/overview/actions";
-import { buildOverviewSourceSet } from "../../lib/overview/credits";
+import { buildOverviewSourceSet, type ElevationSourceInput } from "../../lib/overview/credits";
 import { loadOverviewData, type OverviewData } from "../../lib/overview/data";
-import { fallbackRecordData, loadValleyOverviewData } from "../../lib/overview/terrain";
+import {
+  fallbackRecordData,
+  loadValleyTerrain,
+  overviewDataFromTerrain,
+  type TerrainFile,
+} from "../../lib/overview/terrain";
 import type { Finding, FindingId } from "../../lib/overview/findings";
 import {
   mountOverview,
@@ -35,20 +33,20 @@ export interface UseOverviewSceneDataArgs {
   snapshot: CaseSnapshot;
   listing: InstrumentListing;
   findings: readonly Finding[];
-  findingsRef: MutableRefObject<readonly Finding[]>;
+  findingsRef: RefObject<readonly Finding[]>;
   bandLimitM: number | null;
   sel: Selection | null;
-  selRef: MutableRefObject<Selection | null>;
+  selRef: RefObject<Selection | null>;
   landRef: RefObject<HTMLCanvasElement | null>;
   arcRef: RefObject<HTMLCanvasElement | null>;
   blurRef: RefObject<HTMLCanvasElement | null>;
   rootRef: RefObject<HTMLDivElement | null>;
-  sceneRef: MutableRefObject<OverviewScene | null>;
-  lastLayout: MutableRefObject<OverviewLayout | null>;
-  raf: MutableRefObject<number>;
-  live: MutableRefObject<Live>;
-  camRef: MutableRefObject<{ zoom: number; turn: number }>;
-  lifeRef: MutableRefObject<{
+  sceneRef: RefObject<OverviewScene | null>;
+  lastLayout: RefObject<OverviewLayout | null>;
+  raf: RefObject<number>;
+  live: RefObject<Live>;
+  camRef: RefObject<{ zoom: number; turn: number }>;
+  lifeRef: RefObject<{
     on: boolean;
     points: Parameters<OverviewScene["setLife"]>[0];
     focus: number | null;
@@ -56,9 +54,9 @@ export interface UseOverviewSceneDataArgs {
   }>;
   lifeOn: boolean;
   lifeBundle: string | null;
-  liftOrder: MutableRefObject<LiftId[]>;
-  offeredRef: MutableRefObject<Set<ViewKind>>;
-  openRef: MutableRefObject<(href: string) => boolean>;
+  liftOrder: RefObject<LiftId[]>;
+  offeredRef: RefObject<Set<ViewKind>>;
+  openRef: RefObject<(href: string) => boolean>;
   onSettled: (() => void) | undefined;
   apply: (layout: OverviewLayout) => void;
   go: () => void;
@@ -97,13 +95,15 @@ export function useOverviewSceneData(args: UseOverviewSceneDataArgs) {
   const pixel = instrumentOf(listing, "pixel_anatomy") ?? null;
 
   const [data, setData] = useState<OverviewData | null>(null);
+  const [terrainOutline, setTerrainOutline] = useState<TerrainFile["outline"]>(undefined);
+  const [elevationSource, setElevationSource] = useState<ElevationSourceInput | null>(null);
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     liftOrder.current = data
       ? [
           ...(data.footprints.slope ? (["trend"] as const) : []),
-          ...(data.footprints.rain ? (["rain"] as const) : []),
+          ...(data.footprints.rain && data.footprints.rain.length > 0 ? (["rain"] as const) : []),
           "cover" as const,
           ...(data.bands ? (["bands"] as const) : []),
         ]
@@ -124,17 +124,30 @@ export function useOverviewSceneData(args: UseOverviewSceneDataArgs) {
     const { layers: lyr, pixel: pxl, snapshot: snap } = sources.current;
     const ac = new AbortController();
     setFailed(false);
+    const loadFromTerrainApi = async () => {
+      const t = await loadValleyTerrain(snap.case.id, ac.signal);
+      if (!ac.signal.aborted) {
+        setTerrainOutline(t.outline);
+        setElevationSource(
+          t.elevationSource
+            ? { kind: t.elevationSource, despikedPixels: t.despikedPixels ?? 0 }
+            : null,
+        );
+      }
+      return overviewDataFromTerrain(t);
+    };
     const isDynamicCase =
       !lyr ||
       snap.case.id.startsWith("case_loc_") ||
       snap.records.dataBundleRecords.some((b) => b.id.startsWith("bundle_loc_")) ||
-      (lyr.spec.parameters.kind === "layer_stack" &&
-        lyr.spec.parameters.relief.bundleId.startsWith("bundle_loc_"));
+      lyr.spec.parameters.relief.bundleId.startsWith("bundle_loc_");
+    if (!isDynamicCase) {
+      setTerrainOutline(undefined);
+      setElevationSource(null);
+    }
     const promise = isDynamicCase
-      ? loadValleyOverviewData(snap, ac.signal)
-      : loadOverviewData(lyr, pxl, snap, undefined, ac.signal).catch(() =>
-          loadValleyOverviewData(snap, ac.signal),
-        );
+      ? loadFromTerrainApi()
+      : loadOverviewData(lyr, pxl, snap, undefined, ac.signal).catch(() => loadFromTerrainApi());
     promise.then(
       (d) => {
         if (ac.signal.aborted) return;
@@ -328,13 +341,14 @@ export function useOverviewSceneData(args: UseOverviewSceneDataArgs) {
       ? (snapshot.records.dataBundleRecords.find((b) => b.id === lifeBundle) ?? null)
       : null;
   const sourceSet = useMemo(
-    () => buildOverviewSourceSet(snapshot, named, lifeCredit),
-    [snapshot, named, lifeCredit],
+    () => buildOverviewSourceSet(snapshot, named, lifeCredit, elevationSource),
+    [snapshot, named, lifeCredit, elevationSource],
   );
 
   return {
     layers,
     data,
+    terrainOutline,
     failed,
     recordData,
     routesLoad,

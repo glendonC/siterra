@@ -50,7 +50,10 @@
   cursor: pointer;
   pointer-events: auto;
   -webkit-tap-highlight-color: transparent;
-  transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    transform 160ms ease;
 }
 
 /* the instruments' resting place: the bottom centre, in the band the command line kept clear (44 px tall, its bottom
@@ -127,7 +130,9 @@
   stroke: var(--ov-ink, #181816);
   stroke-opacity: 0.45;
   stroke-width: 1;
-  transition: fill 0.2s ease, stroke-opacity 0.2s ease;
+  transition:
+    fill 0.2s ease,
+    stroke-opacity 0.2s ease;
 }
 
 .plus path {
@@ -345,8 +350,7 @@
 .promptsKicker {
   margin: 0 0 8px;
   font: 500 12px / 16px var(--font-sans);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  letter-spacing: 0.02em;
   color: var(--ov-ink-3);
 }
 

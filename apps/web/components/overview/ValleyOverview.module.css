@@ -106,15 +106,12 @@
   text-shadow: var(--ov-halo-dark);
 }
 
-.questionCaret {
+.question::before {
+  content: "▸";
   font: 600 12px / 1 var(--font-mono);
   color: var(--ov-blue);
   flex-shrink: 0;
   transform: translateY(-1px);
-}
-
-.finding[style*="pointer-events: none"] {
-  visibility: hidden;
 }
 
 .overviewThemeBtn {
@@ -666,7 +663,8 @@
 
 /* a question at work (U29): clean 3D terrain scan without the circular wire arc or the bottom place block; the command
    bar stays */
-.layer[data-at-work] :is(.findings, [data-wire], .question, .place, .arcCanvas, .liftLabel, .liftWire) {
+.layer[data-at-work]
+  :is(.findings, [data-wire], .question, .place, .arcCanvas, .liftLabel, .liftWire) {
   opacity: 0 !important;
   pointer-events: none !important;
 }

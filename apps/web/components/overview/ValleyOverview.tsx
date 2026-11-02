@@ -33,6 +33,7 @@ import { fallbackRecordData } from "../../lib/overview/terrain";
 import {
   captionOf,
   findingsFrom,
+  outlineLabelOf,
   type FindingId,
 } from "../../lib/overview/findings";
 import {
@@ -309,7 +310,6 @@ function OverviewReady({
 
   const ask = useOverviewAsk(snapshot);
   const recorded = useContext(RecordedRunContext);
-  const recClock = useRecordedClock(recorded);
   const fallbackCommandId = useMemo(
     () =>
       ask.commandId ??
@@ -325,7 +325,7 @@ function OverviewReady({
       ask.snapshot.records.briefRecords.at(-1),
     [ask.snapshot, fallbackCommandId],
   );
-  const pkgView = useMemo(
+  const pkgView = useMemo<ReturnType<typeof packageView>>(
     () =>
       (pkgBrief ? packageView(ask.snapshot, pkgBrief.id) : undefined) ??
       packageViewForCase(ask.snapshot, fallbackCommandId ?? undefined),
@@ -396,7 +396,9 @@ function OverviewReady({
       }
     };
     window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+    };
   }, [atWorkShown, thinkingRun]);
   const [runArc, setRunArc] = useState<RunArcState | null>(null);
   const runArcKey = useRef("");
@@ -541,7 +543,7 @@ function OverviewReady({
   const lastLayout = useRef<OverviewLayout | null>(null);
   const cardSide = useRef<CardSide | null>(null);
   const cardBox = useRef<CardBox | null>(null);
-  const findingsRef = useRef<readonly typeof findings[number][]>(findings);
+  const findingsRef = useRef<readonly (typeof findings)[number][]>(findings);
   findingsRef.current = findings;
 
   const { apply, go } = useOverviewLayoutApply({
@@ -629,6 +631,7 @@ function OverviewReady({
   const {
     layers,
     data,
+    terrainOutline,
     failed,
     recordData,
     routesLoad,
@@ -892,10 +895,11 @@ function OverviewReady({
       idle.current.t0 = -1;
       if (explanationId === "rainfall") {
         goal.current.r = 0;
-        liftShownRef.current = "rain";
-        setLiftShown("rain");
-        idle.current.layer = "rain";
-        idle.current.k = 1;
+        const hasRain = Boolean(data?.footprints.rain?.length);
+        liftShownRef.current = hasRain ? "rain" : null;
+        setLiftShown(hasRain ? "rain" : null);
+        idle.current.layer = hasRain ? "rain" : null;
+        idle.current.k = hasRain ? 1 : 0;
         pkgRangesRef.current = { ranges: [], lit: null };
         camRef.current.zoom = 1.08;
         camRef.current.turn = 14;
@@ -932,17 +936,18 @@ function OverviewReady({
         go();
       } else if (explanationId === "data_artefact") {
         goal.current.r = 1;
-        liftShownRef.current = "trend";
-        setLiftShown("trend");
-        idle.current.layer = "trend";
-        idle.current.k = 1;
+        const hasTrend = Boolean(data?.footprints.slope);
+        liftShownRef.current = hasTrend ? "trend" : null;
+        setLiftShown(hasTrend ? "trend" : null);
+        idle.current.layer = hasTrend ? "trend" : null;
+        idle.current.k = hasTrend ? 1 : 0;
         pkgRangesRef.current = { ranges: [], lit: null };
         camRef.current.zoom = 1.32;
         camRef.current.turn = 22;
         go();
       }
     },
-    [bandLimit?.value, go],
+    [bandLimit?.value, data, go],
   );
 
   const focusLayer = useCallback(
@@ -997,7 +1002,8 @@ function OverviewReady({
         go();
       } else if (lens === "rain") {
         goal.current.r = 0;
-        if (manual) {
+        const hasRain = Boolean(data?.footprints.rain?.length);
+        if (manual && hasRain) {
           liftShownRef.current = "rain";
           setLiftShown("rain");
           idle.current.layer = "rain";
@@ -1008,7 +1014,8 @@ function OverviewReady({
         go();
       } else if (lens === "trend") {
         goal.current.r = 0;
-        if (manual) {
+        const hasTrend = Boolean(data?.footprints.slope);
+        if (manual && hasTrend) {
           liftShownRef.current = "trend";
           setLiftShown("trend");
           idle.current.layer = "trend";
@@ -1028,7 +1035,7 @@ function OverviewReady({
         pkgRangesRef.current = { ranges: [{ lo: 1800, hi: lim }], lit: 0 };
         applyCam(1.06, -6);
         go();
-      } else if (lens === "routes") {
+      } else {
         goal.current.r = 1;
         if (manual) {
           liftShownRef.current = "bands";
@@ -1041,7 +1048,7 @@ function OverviewReady({
         go();
       }
     },
-    [bandLimit?.value, go, setCam],
+    [bandLimit?.value, data, go, setCam],
   );
 
   const focusTaskLayer = useCallback(
@@ -1060,10 +1067,7 @@ function OverviewReady({
         focusLayer("cover", false);
       } else if (task.kind === "livelihood_governance") {
         focusLayer("routes", false);
-      } else if (
-        task.kind === "explanation_branches" ||
-        task.kind === "instrument_composition"
-      ) {
+      } else if (task.kind === "explanation_branches" || task.kind === "instrument_composition") {
         focusLayer("bands", false);
       }
     },
@@ -1298,6 +1302,16 @@ function OverviewReady({
     : cardActions;
   pkgOpenRef.current = sel === "results" && pkgView ? openPackage : null;
   const limits = bandLimitsOf(snapshot);
+  const effectiveAreaLabel = terrainOutline
+    ? outlineLabelOf(names.valleyName, terrainOutline, names.areaLabel)
+    : names.areaLabel;
+  const effectiveArea =
+    area ??
+    (terrainOutline
+      ? new Intl.NumberFormat("en", { maximumFractionDigits: 1 }).format(terrainOutline.areaKm2)
+      : null);
+  const liftStatusText =
+    liftShown && data ? formatLiftStatus(liftShown, findings, data, limits) : "";
 
   return (
     <div
@@ -1319,9 +1333,6 @@ function OverviewReady({
       <div ref={cornerRef} className={styles.cornerfade} aria-hidden="true" />
       <div ref={hudRef} className={styles.hud}>
         <div ref={questionRef} className={styles.question} data-case-question>
-          <span className={styles.questionCaret} aria-hidden="true">
-            {"▸"}
-          </span>
           <span>{effectiveQuestion ?? snapshot.case.objective}</span>
         </div>
         {atWorkShown && run && !sel && runArc ? (
@@ -1400,17 +1411,15 @@ function OverviewReady({
               <div
                 ref={liftLabelRef}
                 className={styles.liftLabel}
-                data-lift={liftShown ?? undefined}
+                data-lift={liftShown && liftStatusText ? liftShown : undefined}
                 aria-hidden="true"
               >
-                {liftShown ? (
+                {liftShown && liftStatusText ? (
                   <>
                     <span className={styles.liftName}>
                       {en[`instrument.sheet.${liftShown}`].text}
                     </span>
-                    <span className={styles.liftStatus}>
-                      {formatLiftStatus(liftShown, findings, data, limits)}
-                    </span>
+                    <span className={styles.liftStatus}>{liftStatusText}</span>
                   </>
                 ) : null}
               </div>
@@ -1482,9 +1491,9 @@ function OverviewReady({
         <footer className={styles.place}>
           <div ref={placeTextRef} data-place-text>
             <div className={styles.name}>{names.valleyName}</div>
-            {area !== null ? (
+            {effectiveArea !== null ? (
               <div className={styles.sub}>
-                {format("arrival.studyArea", { label: names.areaLabel, area })}
+                {format("arrival.studyArea", { label: effectiveAreaLabel, area: effectiveArea })}
               </div>
             ) : null}
           </div>
@@ -1523,13 +1532,17 @@ function OverviewReady({
               <OverviewRecord
                 sel={sel}
                 finding={selFinding}
-                caption={selFinding ? captionOf(selFinding, bandLimit?.display ?? "", findings) : []}
+                caption={
+                  selFinding ? captionOf(selFinding, bandLimit?.display ?? "", findings) : []
+                }
                 bandLimit={bandLimit?.display ?? ""}
-                data={sel === "field" ? null : (recordData[sel] ?? fallbackRecordData(sel, snapshot))}
+                data={
+                  sel === "field" ? null : (recordData[sel] ?? fallbackRecordData(sel, snapshot))
+                }
                 reasons={reasons}
                 fieldCaption={instrumentOf(listing, "field_plan")?.spec.caption ?? null}
                 pixelNote={data?.pixel?.note ?? null}
-                areaLabel={names.areaLabel}
+                areaLabel={effectiveAreaLabel}
                 side={sideOf(sel, selFinding?.clock)}
                 onLand={onLandOf(sel, data)}
                 slopeKey={

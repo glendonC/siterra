@@ -170,7 +170,10 @@
   flex-shrink: 0;
   color: var(--text-primary);
   background: transparent;
-  transition: background 140ms ease, color 140ms ease, opacity 140ms ease;
+  transition:
+    background 140ms ease,
+    color 140ms ease,
+    opacity 140ms ease;
 }
 
 .treeNodeBtn:hover .squircle {
@@ -284,7 +287,9 @@
   white-space: nowrap;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 130ms ease, transform 130ms ease;
+  transition:
+    opacity 130ms ease,
+    transform 130ms ease;
   z-index: 15;
 }
 
@@ -319,8 +324,7 @@
   background: #d97706;
   color: #ffffff;
   font: 700 12px / 16px var(--font-mono);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  letter-spacing: 0.02em;
   white-space: nowrap;
 }
 
@@ -492,7 +496,6 @@
   color: var(--text-secondary);
   font: 600 12px / 16px var(--font-mono);
   letter-spacing: 0.02em;
-  text-transform: uppercase;
   cursor: pointer;
   flex-shrink: 0;
 }
@@ -597,8 +600,7 @@
 
 .bottomAgentName {
   font: 600 12px / 16px var(--font-mono);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  letter-spacing: 0.02em;
   color: var(--agent-color, var(--ov-blue));
 }
 
@@ -682,8 +684,7 @@
 
 .checkKicker {
   font: 600 12px / 16px var(--font-mono);
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+  letter-spacing: 0.02em;
   color: var(--ov-amber-tag);
 }
 
@@ -715,7 +716,9 @@
   font: 400 12px / 16px var(--font-sans);
   color: var(--text-tertiary);
   cursor: pointer;
-  transition: background 150ms ease, transform 150ms ease;
+  transition:
+    background 150ms ease,
+    transform 150ms ease;
 }
 
 .branch:hover {
@@ -786,7 +789,9 @@
   pointer-events: auto;
   cursor: pointer;
   z-index: 7;
-  transition: opacity 180ms ease, transform 180ms ease;
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease;
 }
 
 .agentCursor:hover {
@@ -861,8 +866,7 @@
 
 .cursorTask {
   font: 600 12px / 16px var(--font-mono);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  letter-spacing: 0.02em;
   color: var(--ov-blue);
   text-shadow: var(--paper-halo);
 }
