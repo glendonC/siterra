@@ -317,8 +317,8 @@ export interface SynthesizePlaceQuestionOutput {
 
 /**
  * From the retrieved OpenAlex studies and the rainfall series:
- * 1) Phrases a place-specific default question that presupposes no result (no vegetation trend is measured)
- *    and names any local research theme;
+ * 1) Phrases a default question the live record can answer (rainfall since 2000, land cover, terrain and
+ *    water) that presupposes no result; a visitor's own question always wins;
  * 2) Construct Evidence records citing the verbatim abstract excerpt from the top peer-reviewed paper,
  *    or honestly reporting a local peer-reviewed literature gap when OpenAlex has 0 matching studies.
  */
@@ -345,9 +345,11 @@ export function synthesizePlaceQuestionAndEvidence(
   const studySources = sources.filter((s) => s.sourceKind === "peer_reviewed");
   const detectedTheme = detectLiteratureTheme(studySources);
 
-  const defaultQuestion = detectedTheme
-    ? `Has vegetation across ${placeName} changed since 2000, and what role do ${detectedTheme} and rainfall play?`
-    : `Has vegetation across ${placeName} changed since 2000, and if so, how much does rainfall explain?`;
+  // Only what the live record can answer, and no presumed result; vegetation change stays an open question
+  const defaultQuestion =
+    climate.status === "measured"
+      ? `How has rainfall changed in ${placeName} since 2000, and what land cover and water does it have?`
+      : `What land cover, terrain and water does ${placeName} have?`;
 
   const question = userQuestion?.trim() || defaultQuestion;
 
@@ -481,7 +483,7 @@ export function synthesizePlaceQuestionAndEvidence(
 
   const unresolvedQuestions = [
     question,
-    `How do elevation bands (${terrain.minElevationM.toFixed(0)}–${terrain.maxElevationM.toFixed(0)} m) and precipitation trends (${signedRain === null ? "rainfall not measured" : `${signedRain} mm/decade`}) interact across ${placeName}?`,
+    `Has vegetation across ${placeName} changed since 2000? Not measured yet: it needs a satellite vegetation series.`,
   ];
 
   return {

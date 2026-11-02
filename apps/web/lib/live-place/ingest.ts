@@ -928,7 +928,7 @@ export async function ingestLocationCase(
     revision: 1,
     createdAt: now,
     updatedAt: now,
-    title: `Watershed dynamics and land change in ${placeName}`,
+    title: `Land and water of ${placeName}`,
     objective: question,
     place: { name: placeName, region: regionName },
     status: "draft",
