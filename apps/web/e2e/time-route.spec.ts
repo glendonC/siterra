@@ -65,7 +65,7 @@ test("reloading inside See It Over Time opens it again over the drawn land; Home
   await expect(page.locator("[data-overview-root]")).toHaveAttribute("data-ready", "", {
     timeout: 90_000,
   });
-  await page.locator("[data-finding='catchment']").click();
+  await page.locator("[data-finding='fdr']").click();
   await page.mouse.move(720, 120);
   await page.keyboard.press("t");
   const view = page.locator("[data-time-view]");

@@ -137,17 +137,21 @@ export function useOverviewSceneData(args: UseOverviewSceneDataArgs) {
       return overviewDataFromTerrain(t);
     };
     const isDynamicCase =
-      !lyr ||
       snap.case.id.startsWith("case_loc_") ||
       snap.records.dataBundleRecords.some((b) => b.id.startsWith("bundle_loc_")) ||
-      lyr.spec.parameters.relief.bundleId.startsWith("bundle_loc_");
+      Boolean(lyr?.spec.parameters.relief.bundleId.startsWith("bundle_loc_"));
+    if (!lyr && !isDynamicCase) {
+      setFailed(true);
+      return;
+    }
     if (!isDynamicCase) {
       setTerrainOutline(undefined);
       setElevationSource(null);
     }
-    const promise = isDynamicCase
-      ? loadFromTerrainApi()
-      : loadOverviewData(lyr, pxl, snap, undefined, ac.signal).catch(() => loadFromTerrainApi());
+    const promise =
+      isDynamicCase || !lyr
+        ? loadFromTerrainApi()
+        : loadOverviewData(lyr, pxl, snap, undefined, ac.signal).catch(() => loadFromTerrainApi());
     promise.then(
       (d) => {
         if (ac.signal.aborted) return;

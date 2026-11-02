@@ -24,7 +24,7 @@ test("a first visit opens with the opening, and a reload returns to the visitor'
   await expect(page.locator("[data-overview-root]")).toHaveAttribute("data-ready", "", {
     timeout: 60_000,
   });
-  await expect(page.locator("[data-finding]")).toHaveCount(5);
+  await expect(page.locator("[data-finding]")).toHaveCount(4);
   await expect(page.locator("[data-phase]")).toHaveCount(0);
   // no new demo copy: only the visitor's own case is read (the session may read it again as events replay)
   expect(asked.length).toBeGreaterThan(0);

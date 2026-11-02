@@ -31,9 +31,9 @@ const run30 = JSON.parse(
 
 describe("verdictOf", () => {
   it("maps the three branch statuses to the exact plain-English strings", () => {
-    expect(statusTextOf("consistent")).toBe("Supported by the record");
-    expect(statusTextOf("contradicted")).toBe("Contradicted by the record");
-    expect(statusTextOf("cannot_be_assessed")).toBe("Cannot be told from space");
+    expect(statusTextOf("consistent")).toBe("Consistent with available evidence");
+    expect(statusTextOf("contradicted")).toBe("Contradicted by available evidence");
+    expect(statusTextOf("cannot_be_assessed")).toBe("Cannot be assessed with current data");
   });
 
   it("returns null when the command committed no branch merge", () => {
@@ -54,9 +54,9 @@ describe("verdictOf", () => {
     ]);
     for (const c of v?.causes ?? []) {
       expect([
-        "Supported by the record",
-        "Contradicted by the record",
-        "Cannot be told from space",
+        "Consistent with available evidence",
+        "Contradicted by available evidence",
+        "Cannot be assessed with current data",
       ]).toContain(c.statusText);
       expect(c.prediction.length).toBeGreaterThan(10);
       expect(c.reason.length).toBeGreaterThan(10);
@@ -77,16 +77,16 @@ describe("verdictOf", () => {
     );
   });
 
-  it("covers Supported by the record, Contradicted by the record, and Cannot be told from space on the 30 Oct recorded run", () => {
+  it("covers Consistent with available evidence, Contradicted by available evidence, and Cannot be assessed with current data on the 30 Oct recorded run", () => {
     const v = verdictOf(run30.snapshot, run30.commandId);
     expect(v).not.toBeNull();
     expect(v?.causes).toHaveLength(5);
     expect(v?.causes.map((c) => c.statusText)).toEqual([
-      "Supported by the record",
-      "Cannot be told from space",
-      "Contradicted by the record",
-      "Contradicted by the record",
-      "Contradicted by the record",
+      "Consistent with available evidence",
+      "Cannot be assessed with current data",
+      "Contradicted by available evidence",
+      "Contradicted by available evidence",
+      "Contradicted by available evidence",
     ]);
     for (const c of v?.causes ?? []) {
       expect(c.prediction).not.toMatch(

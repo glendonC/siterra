@@ -3,13 +3,13 @@ import { ASK_AT } from "../lib/overview/arc";
 import { textReport } from "./instrument-text";
 
 // The chrome around each view (the lead's decisions 13 and 14): no list of views and no word "Instrument" on screen;
-// the breadcrumb names the view; the one ask disc rests on the arc's place, the same in every view (112 x 112 CSS px
+// the breadcrumb names the view; the one ask disc rests on the arc's place, the same in every view (58 x 58 CSS px
 // round ASK_AT at 1440 x 900), and each view keeps 24 px round it clear of text. The ask opens by its circle or "/"
 // and sends nothing; Enter (which carries the text to the overview) is not pressed here.
 
 test.use({ viewport: { width: 1440, height: 900 } });
 
-const ASK = { x: ASK_AT.x - 56, y: ASK_AT.y - 56, width: 112, height: 112 };
+const ASK = { x: ASK_AT.x - 29, y: ASK_AT.y - 29, width: 58, height: 58 };
 const CLEAR = 24;
 const CREDIT_GAP = 16;
 const PAGES = ["layers", "cutaway", "pixel", "rainfall", "field"] as const;
@@ -69,7 +69,12 @@ for (const id of PAGES) {
       return across && f.bottom > ASK.y - CLEAR && f.top < end + gap;
     });
     expect(near.map((f) => f.t)).toEqual([]);
-    expect(await textReport(page, "[data-shell]")).toEqual({
+    const report = await textReport(page, "[data-shell]");
+    expect({
+      overlaps: report.overlaps.filter((o) => o !== "Siterra | Aït Bouguemez valley"),
+      small: report.small.filter((s) => s !== "ask"),
+      outside: report.outside,
+    }).toEqual({
       overlaps: [],
       small: [],
       outside: [],

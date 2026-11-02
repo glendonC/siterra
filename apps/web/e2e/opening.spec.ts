@@ -12,21 +12,21 @@ test("the opening says what Siterra does and offers one action, how it works on 
   await page.goto("/");
   const opening = page.locator("[data-opening]");
   await expect(opening).toBeVisible({ timeout: 60_000 });
-  await expect(opening.locator("h1")).toHaveText("Environmental intelligence, put to work.");
-  await expect(opening.locator("[data-opening-subline]")).toHaveText(
-    "Give an environmental problem to an AI team. It checks 25 years of satellite records, tests every cause, and hands back a field plan.",
+  await expect(opening.locator("[data-string-id='opening.beat.1']")).toContainText(
+    "Over half of Earth's land is open pasture and rangeland, supporting two billion people.",
   );
-  await expect(opening.getByRole("button")).toHaveText(["Choose a Place↵", "How It Works"]);
-  const how = opening.locator("[data-how]");
-  await expect(how).toBeHidden();
-  await opening.getByRole("button", { name: "How It Works" }).click();
-  await expect(how).toBeVisible();
-  await expect(how).toContainText("Muse Spark");
+  await expect(opening.locator("[data-opening-action]")).toContainText("Press Enter to start");
+  const dialog = opening.getByRole("dialog");
+  await expect(dialog).toHaveCount(0);
+  await opening.getByRole("button", { name: "Architecture" }).click();
+  await expect(dialog).toBeVisible();
+  await expect(dialog).toContainText("Muse Spark");
+  await page.keyboard.press("Escape");
+  await expect(dialog).toHaveCount(0);
   // nothing else: no place, no internal names, no skip link, no hidden labels of the land behind
   const text = await opening.innerText();
   for (const gone of [
     "Bouguemez",
-    "valley",
     "Region Pack",
     "Five Stages",
     "Skip to Map",

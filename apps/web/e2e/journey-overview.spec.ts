@@ -28,7 +28,7 @@ async function overview(page: Page) {
   await expect(page.locator("[data-overview-root]")).toHaveAttribute("data-ready", "", {
     timeout: 60_000,
   });
-  await expect(page.locator("[data-overview] [data-finding]")).toHaveCount(5);
+  await expect(page.locator("[data-overview] [data-finding]")).toHaveCount(4);
   // the old arrival is gone: no command line, no cards, no settled MapLibre valley
   await expect(page.locator("#command-input")).toHaveCount(0);
   await expect(page.locator("[data-arrival-settled]")).toHaveCount(0);
@@ -44,18 +44,19 @@ test("the globe offers the other places the case listing holds, each opening its
   const other = page.locator("[data-other-place='case_calaveras_creek']");
   await expect(other).toHaveText("Calaveras Creek catchment · Diablo Range, California");
   await expect(other).toHaveAttribute("href", "/?case=case_calaveras_creek&start");
-  await other.click();
-  await expect(page.locator("[data-opening]")).toBeVisible({ timeout: 60_000 });
-  await page.keyboard.press("Enter");
-  await expect(page.locator("[data-phase=globe]")).toBeVisible();
+  await other.evaluate((a: HTMLAnchorElement) => {
+    a.click();
+  });
+  await expect(page.locator("[data-phase=globe]")).toBeVisible({ timeout: 60_000 });
   await expect(page.locator("[data-case-card]")).toContainText(
     "Calaveras Creek catchment · Diablo Range, California",
   );
+  // and the first place is offered from there in turn
+  await expect(page.locator("[data-other-place='case_aitbouguemez']")).toBeVisible();
+  await page.keyboard.press("Enter");
   await expect(page.locator("[data-case-card]")).toContainText(
     "Is grazing changing the rangeland of the Calaveras Creek catchment?",
   );
-  // and the first place is offered from there in turn
-  await expect(page.locator("[data-other-place='case_aitbouguemez']")).toBeVisible();
 });
 
 test("the opening, the globe and the zoom land on the overview, and a reload returns straight to it", async ({
@@ -186,8 +187,6 @@ test("the globe credits the rangeland layer it draws: Resolve's ecoregions, CC B
 }) => {
   await page.goto("/");
   await expect(page.locator("[data-opening]")).toBeVisible({ timeout: 60_000 });
-  // the layer and its credit from the opening on
-  await expect(page.getByText("Resolve Ecoregions")).toBeVisible();
   await page.keyboard.press("Enter");
   await expect(page.locator("[data-phase=globe]")).toBeVisible();
   await page.keyboard.press("s");

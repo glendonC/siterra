@@ -84,7 +84,8 @@ test("G shows the first place's own recorded life; a point's card; Enter reads i
   await expect(point).toContainText(/\d+ records?/);
   await page.keyboard.press("Enter");
   await expect(point).toContainText(/^1 of \d+/);
-  // GBIF joins the data line while the layer shows
+  // GBIF joins the Sources dialog while the layer shows
+  await page.keyboard.press("s");
   await expect(page.locator("body")).toContainText("GBIF");
 });
 
@@ -157,7 +158,7 @@ test("recorded life stays on over time, and a case without a species bundle offe
   await expect(page.locator("[data-overview-root]")).toHaveAttribute("data-ready", "", {
     timeout: 90_000,
   });
-  await page.locator("[data-finding='catchment']").click();
+  await page.locator("[data-finding='fdr']").click();
   await page.mouse.move(720, 60);
   await page.keyboard.press("t");
   await expect(page.locator("[data-time-view]")).toBeVisible({ timeout: 10_000 });

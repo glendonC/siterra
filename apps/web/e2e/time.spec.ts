@@ -14,7 +14,7 @@ test("a trend finding opens See It Over Time with T; it plays, pauses on a month
   await expect(page.locator("[data-overview-root]")).toHaveAttribute("data-ready", "", {
     timeout: 90_000,
   });
-  await page.locator("[data-finding='catchment']").click();
+  await page.locator("[data-finding='fdr']").click();
   // the finding's card offers it with its letter (decision 15)
   await expect(page.locator("[data-record] [data-actions]")).toContainText("See It Over TimeT");
   await page.mouse.move(720, 120);
