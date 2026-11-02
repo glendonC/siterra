@@ -30,10 +30,7 @@ import { fetchGovernmentPolicyAndOpenAccess } from "./government-policy-fetcher.
 import { fetchOpenAlexSources, synthesizePlaceQuestionAndEvidence } from "./literature.ts";
 import { reasonOverCaseWithLlm } from "./llm-reasoner.ts";
 import { buildSatelliteSourcesAndEvidence } from "./satellite-fetcher.ts";
-import {
-  type SynthesizedCasePackage,
-  synthesizeLiveCaseSnapshot,
-} from "./snapshot-synthesizer.ts";
+import { type SynthesizedCasePackage, synthesizeLiveCaseSnapshot } from "./snapshot-synthesizer.ts";
 import {
   type TerrainFile,
   bboxAround,
@@ -85,6 +82,16 @@ export interface IngestPlaceOutcome {
 /** Version 2: vegetation values are recorded as not measured (version 1 records stated a rainfall-made NDVI). */
 export const PLACE_CACHE_VERSION = 2;
 
+/**
+ * The live pipeline's method and version, stamped on every live bundle; run-reingest.ts treats a case built by
+ * any other version as stale. 1.0.0 made NDVI from rainfall; 2.0.0 records vegetation as not measured; 2.1.0
+ * names the outline by what the terrain drew (watershed, drainage area or land within the box).
+ */
+export const LIVE_PIPELINE = {
+  methodId: "open_meteo_era5_watershed_series",
+  version: "2.1.0",
+} as const;
+
 export interface CachedPlaceBundle {
   version: typeof PLACE_CACHE_VERSION;
   /** The TerrainFile version the record was built from; a different terrain version makes the record stale. */
@@ -100,7 +107,10 @@ export interface CachedPlaceBundle {
  * records are not reused: band limits, areas and spans come from the terrain).
  */
 function readPlaceCache(path: string, terrainVersion: number): CachedPlaceBundle | null {
-  const raw = JSON.parse(readFileSync(path, "utf8")) as { version?: unknown; terrainVersion?: unknown };
+  const raw = JSON.parse(readFileSync(path, "utf8")) as {
+    version?: unknown;
+    terrainVersion?: unknown;
+  };
   return raw.version === PLACE_CACHE_VERSION && raw.terrainVersion === terrainVersion
     ? (raw as CachedPlaceBundle)
     : null;
@@ -115,6 +125,8 @@ export interface OutlineDescription {
   limitations: string[];
   areaKm2: number;
   areaM2: number;
+  /** The polygon ring the GeoSelection holds: the terrain's outline, or the box when that ring is unusable. */
+  ring: [number, number][];
   /** Whether the area is an upstream drainage area (a watershed, or the part of one inside the box). */
   drains: boolean;
 }
@@ -126,7 +138,7 @@ const ELEVATION_SOURCE_WORDS: Record<NonNullable<TerrainFile["elevationSource"]>
 };
 
 export function describeOutline(
-  terrain: Pick<TerrainFile, "outline" | "elevationSource" | "catchmentRing">,
+  terrain: Pick<TerrainFile, "outline" | "elevationSource" | "catchmentRing" | "bbox">,
   placeName: string,
   lon: number,
   lat: number,
@@ -137,12 +149,24 @@ export function describeOutline(
       ? "an elevation grid whose source is not recorded"
       : ELEVATION_SOURCE_WORDS[terrain.elevationSource];
   const notSurveyed = "Not a surveyed watershed, legal parcel or management boundary.";
-  const kind = terrain.outline?.kind;
-  const areaKm2 =
-    terrain.outline?.areaKm2 ?? Number((polygonAreaM2(terrain.catchmentRing) / 1e6).toFixed(1));
+  // A polygon ring needs four positions (three corners and the closing one); a shorter outline is not used
+  const ringUsable = terrain.catchmentRing.length >= 4;
+  const [minLon, minLat, maxLon, maxLat] = terrain.bbox;
+  const boxRing: [number, number][] = [
+    [minLon, minLat],
+    [maxLon, minLat],
+    [maxLon, maxLat],
+    [minLon, maxLat],
+    [minLon, minLat],
+  ];
+  const ring = ringUsable ? terrain.catchmentRing : boxRing;
+  const kind = ringUsable ? terrain.outline?.kind : undefined;
+  const fallback = ringUsable ? terrain.outline?.fallback : undefined;
+  const gridArea = ringUsable ? terrain.outline?.areaKm2 : undefined;
+  const areaKm2 = gridArea ?? Number((polygonAreaM2(ring) / 1e6).toFixed(1));
   const areaM2 = Math.round(areaKm2 * 1e6);
   const areaMethod =
-    terrain.outline === undefined
+    gridArea === undefined
       ? `Geodesic polygon area on the WGS84 ellipsoid (${areaKm2.toFixed(1)} km²).`
       : `Area of the elevation grid cells inside the outline (${areaKm2.toFixed(1)} km²).`;
   if (kind === "watershed")
@@ -154,6 +178,7 @@ export function describeOutline(
       limitations: [`Traced from ${dem}, not mapped.`, notSurveyed],
       areaKm2,
       areaM2,
+      ring,
       drains: true,
     };
   if (kind === "drainage_within_box")
@@ -169,27 +194,64 @@ export function describeOutline(
       ],
       areaKm2,
       areaM2,
+      ring,
       drains: true,
     };
   if (kind === "land_within_box")
     return {
       label: "Land within the 20 km box",
       boundaryRole: "landscape_sample",
-      selectionMethod: `Within ${box}: the land around the point, clipped at water, from ${dem}. No watershed is drawn, because the basin through the point is a small share of the box's land.`,
+      selectionMethod:
+        fallback === "outline_degenerate"
+          ? `Within ${box}: the land around the point, clipped at water, from ${dem}. No watershed is drawn, because the basin outline had too few cells to draw.`
+          : `Within ${box}: the land around the point, clipped at water, from ${dem}. No watershed is drawn, because the basin through the point is a small share of the box's land.`,
       areaMethod,
-      limitations: ["Not a watershed: the land around the chosen point inside the box.", notSurveyed],
+      limitations: [
+        "Not a watershed: the land around the chosen point inside the box.",
+        notSurveyed,
+      ],
       areaKm2,
       areaM2,
+      ring,
       drains: false,
     };
+  if (kind === "box") {
+    const noLand = fallback === "no_land";
+    return {
+      label: noLand ? "The 20 km box (no land in it)" : "The 20 km box (no outline could be drawn)",
+      boundaryRole: "landscape_sample",
+      selectionMethod: noLand
+        ? `All of ${box}, from ${dem}: no land was found in the box, so the box itself is the outline.`
+        : `All of ${box}, from ${dem}: no outline of the land or basin could be drawn, so the box itself stands in for it.`,
+      areaMethod,
+      limitations: [
+        noLand
+          ? "No land in the 20 km box: the whole box is water."
+          : "No outline could be drawn inside the box, so the record holds the whole box.",
+        notSurveyed,
+      ],
+      areaKm2,
+      areaM2,
+      ring,
+      drains: false,
+    };
+  }
   return {
     label: "Area within the 20 km box",
     boundaryRole: "landscape_sample",
-    selectionMethod: `Within ${box}, from ${dem}; how the outline was drawn is not recorded in this terrain file.`,
+    selectionMethod: ringUsable
+      ? `Within ${box}, from ${dem}; how the outline was drawn is not recorded in this terrain file.`
+      : `All of ${box}, from ${dem}. The drawn outline had fewer than four points, so the whole box stands in for it.`,
     areaMethod,
-    limitations: ["How the outline was drawn is not recorded, so it is not called a watershed.", notSurveyed],
+    limitations: [
+      ringUsable
+        ? "How the outline was drawn is not recorded, so it is not called a watershed."
+        : "No usable outline: the terrain's ring had fewer than four points, so the record holds the whole box.",
+      notSurveyed,
+    ],
     areaKm2,
     areaM2,
+    ring,
     drains: false,
   };
 }
@@ -367,6 +429,8 @@ export interface LiveCaseBuild {
   synth: SynthesizedCasePackage;
   /** Open-Meteo did not answer: the rainfall values are missing with a reason. */
   rainUnavailable: boolean;
+  /** The 20 km box holds no land (outline kind box, fallback no_land). */
+  noLand: boolean;
   terrainVersion: number;
   occurrences: Record<string, unknown> | null;
 }
@@ -474,10 +538,10 @@ export async function buildLiveCase(input: {
     caseId,
     label: outline.label,
     geometryStatus: "analysis_ready",
-    geometry: { type: "Polygon", coordinates: [terrain.catchmentRing] },
+    geometry: { type: "Polygon", coordinates: [outline.ring] },
     crs: "EPSG:4326",
     boundaryRole: outline.boundaryRole,
-    boundarySourceIds: [sources[0]!.id],
+    boundarySourceIds: sources[0] ? [sources[0].id] : [],
     selectionMethod: outline.selectionMethod,
     areaM2,
     areaMethod: outline.areaMethod,
@@ -499,8 +563,8 @@ export async function buildLiveCase(input: {
   const bundleProvenance: Provenance = {
     sourceLocators: [],
     dataBundleIds: [],
-    methodId: "open_meteo_era5_watershed_series",
-    methodVersion: "2.0.0",
+    methodId: LIVE_PIPELINE.methodId,
+    methodVersion: LIVE_PIPELINE.version,
     inputVersions: [{ entityId: geoId, revision: 1 }],
     generatedByTaskId: null,
     generatedAt: now,
@@ -543,7 +607,13 @@ export async function buildLiveCase(input: {
   const demProvenance: Provenance = {
     ...recordProvenance,
     sourceLocators: demSourceId
-      ? [{ sourceId: demSourceId, locator: "terrain elevation grid for the analysis box", excerpt: null }]
+      ? [
+          {
+            sourceId: demSourceId,
+            locator: "terrain elevation grid for the analysis box",
+            excerpt: null,
+          },
+        ]
       : [],
     limitations: [
       "Computed from the terrain elevation grid built for this place (AWS Terrain Tiles, Terrarium encoding, when reachable).",
@@ -823,12 +893,12 @@ export async function buildLiveCase(input: {
     status: "validated",
     datasetId: "Open-Meteo Historical Weather API (ERA5) & AWS Terrain Tiles (Terrarium)",
     datasetVersion: "2024.12",
-    sourceIds: [sources[0]!.id, sources[1]!.id],
+    sourceIds: sources.slice(0, 2).map((s) => s.id),
     geoSelectionId: geoId,
     geoRevision: 1,
     periodIds,
-    methodId: "open_meteo_era5_watershed_series",
-    methodVersion: "2.0.0",
+    methodId: LIVE_PIPELINE.methodId,
+    methodVersion: LIVE_PIPELINE.version,
     manifestUri: `/api/terrain/${caseId}`,
     // a hash of what the bundle holds, so an unchanged rebuild hashes the same
     contentHash: `1220${createHash("sha256")
@@ -850,7 +920,7 @@ export async function buildLiveCase(input: {
     updatedAt: now,
     caseId,
     crs: "EPSG:4326" as const,
-    sourceIds: [sources[0]!.id],
+    sourceIds: sources[0] ? [sources[0].id] : [],
   };
 
   const contextFeatures: ContextFeature[] = [
@@ -862,7 +932,8 @@ export async function buildLiveCase(input: {
       geometry: { type: "Point", coordinates: [lon, lat] },
       method: `Watershed pour point and coordinate anchor (${lat.toFixed(4)}°, ${lon.toFixed(4)}°) for ${placeName}.`,
       datasetId: "AWS Terrain Tiles (Terrarium); OpenStreetMap contributors",
-      attribution: "AWS Terrain Tiles (Tilezen Terrarium); outlet input © OpenStreetMap contributors",
+      attribution:
+        "AWS Terrain Tiles (Tilezen Terrarium); outlet input © OpenStreetMap contributors",
       license: "Terrain Tiles source licences (tilezen/joerd); ODbL-1.0",
       limitations: [
         "Hydrological analysis pour point on the DEM grid; not a surveyed stream gauge.",
@@ -890,15 +961,9 @@ export async function buildLiveCase(input: {
       geometry: {
         type: "LineString",
         coordinates: [
-          [
-            bbox[0] + (bbox[2] - bbox[0]) * 0.2,
-            bbox[1] + (bbox[3] - bbox[1]) * 0.2,
-          ],
+          [bbox[0] + (bbox[2] - bbox[0]) * 0.2, bbox[1] + (bbox[3] - bbox[1]) * 0.2],
           [lon, lat],
-          [
-            bbox[0] + (bbox[2] - bbox[0]) * 0.8,
-            bbox[1] + (bbox[3] - bbox[1]) * 0.8,
-          ],
+          [bbox[0] + (bbox[2] - bbox[0]) * 0.8, bbox[1] + (bbox[3] - bbox[1]) * 0.8],
         ],
       },
       method: `Cross-valley elevation profile across ${placeName} (${terrain.minElevationM.toFixed(0)} m to ${terrain.maxElevationM.toFixed(0)} m).`,
@@ -909,27 +974,31 @@ export async function buildLiveCase(input: {
     }),
   ];
 
-  const { question, unresolvedQuestions, evidence: baseEvidence, evStudyId } =
-    synthesizePlaceQuestionAndEvidence({
-      caseId,
-      slug,
-      hash6,
-      placeName,
-      regionName,
-      userQuestion: input.question,
-      now,
-      geoId,
-      periodIds,
-      measurementIds: {
-        catchmentTrendId: mCatchmentTrendId,
-        precipTrendId: mPrecipTrendId,
-        rainR2Id: mRainR2Id,
-      },
-      recordProvenance,
-      terrain,
-      climate,
-      sources,
-    });
+  const {
+    question,
+    unresolvedQuestions,
+    evidence: baseEvidence,
+    evStudyId,
+  } = synthesizePlaceQuestionAndEvidence({
+    caseId,
+    slug,
+    hash6,
+    placeName,
+    regionName,
+    userQuestion: input.question,
+    now,
+    geoId,
+    periodIds,
+    measurementIds: {
+      catchmentTrendId: mCatchmentTrendId,
+      precipTrendId: mPrecipTrendId,
+      rainR2Id: mRainR2Id,
+    },
+    recordProvenance,
+    terrain,
+    climate,
+    sources,
+  });
 
   const evidence = [
     ...baseEvidence,
@@ -1011,7 +1080,7 @@ export async function buildLiveCase(input: {
             evidenceId: evStudyId,
             placement: "valley_floor",
             display: {
-              text: evidence[0]!.statement.slice(0, 195),
+              text: (evidence[0]?.statement ?? "").slice(0, 195),
               evidenceIds: [evStudyId],
             },
           },
@@ -1109,8 +1178,7 @@ export async function buildLiveCase(input: {
     llmResult,
   });
 
-  const mode =
-    process.env["SITERRA_LIVE_APPROVED"] === "gate01-passed" ? "live" : "concept";
+  const mode = process.env["SITERRA_LIVE_APPROVED"] === "gate01-passed" ? "live" : "concept";
   const caseRecord = EnvironmentalCase.parse({
     recordType: "EnvironmentalCase",
     id: caseId,
@@ -1143,7 +1211,7 @@ export async function buildLiveCase(input: {
         status: "validated",
         datasetId: "GBIF Occurrence Download API",
         datasetVersion: now.slice(0, 10),
-        sourceIds: bioCtx.sources[0] ? [bioCtx.sources[0].id] : [sources[0]!.id],
+        sourceIds: bioCtx.sources[0] ? [bioCtx.sources[0].id] : sources[0] ? [sources[0].id] : [],
         geoSelectionId: geoId,
         geoRevision: 1,
         periodIds: [],
@@ -1174,11 +1242,13 @@ export async function buildLiveCase(input: {
     instruments,
   };
 
+  const noLand = terrain.outline?.kind === "box" && terrain.outline.fallback === "no_land";
   return {
     outcome: { caseId, placeName, regionName, question, outlet: [lon, lat], bbox },
     seed,
     synth,
     rainUnavailable,
+    noLand,
     terrainVersion: terrain.version,
     occurrences: bioCtx.occurrencesPayload ?? null,
   };

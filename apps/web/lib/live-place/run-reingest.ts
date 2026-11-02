@@ -18,11 +18,12 @@ import {
 import {
   type CommitProposal,
   CommitRejected,
+  type Pool,
   applyCommit,
   createPool,
   readSnapshot,
 } from "@siterra/db";
-import { type LiveCaseBuild, buildLiveCase } from "./ingest.ts";
+import { LIVE_PIPELINE, type LiveCaseBuild, buildLiveCase } from "./ingest.ts";
 
 /** Times a rebuild stamps afresh; they do not make a record's content differ. */
 const TIME_FIELDS = new Set([
@@ -57,10 +58,13 @@ export function staleReasons(snapshot: CaseSnapshot): string[] {
   );
   if (stated.length > 0 && judged.length > 0)
     reasons.push(`${String(judged.length)} explanations judged against them`);
-  const v1 = snapshot.records.dataBundleRecords.some(
-    (b) => b.methodId === "open_meteo_era5_watershed_series" && b.methodVersion === "1.0.0",
+  const earlier = snapshot.records.dataBundleRecords.find(
+    (b) => b.methodId === LIVE_PIPELINE.methodId && b.methodVersion !== LIVE_PIPELINE.version,
   );
-  if (v1) reasons.push("built by the version 1 live pipeline");
+  if (earlier)
+    reasons.push(
+      `built by live pipeline ${earlier.methodVersion}, current ${LIVE_PIPELINE.version}`,
+    );
   return reasons;
 }
 
@@ -254,78 +258,97 @@ export function planReingestCommit(
   };
 }
 
-async function main(argv: readonly string[]): Promise<number> {
+type Log = (line: string) => void;
+type CaseRow = { id: string; owner_scope_id: string };
+
+/** One case: list it, and with apply rebuild and commit it. False when it was skipped or refused. */
+async function reingestCase(pool: Pool, row: CaseRow, apply: boolean, log: Log): Promise<boolean> {
+  const snapshot = await readSnapshot(pool, row.id, row.owner_scope_id);
+  if (snapshot === null) return true;
+  const reasons = staleReasons(snapshot);
+  const place = snapshot.case.place?.name ?? snapshot.case.title;
+  if (reasons.length === 0) {
+    log(`  ${row.id} (${place}): current, nothing to do`);
+    return true;
+  }
+  const kept = questionToKeep(snapshot.case.objective);
+  log(
+    `  ${row.id} (${place}), revision ${String(snapshot.case.revision)}: ${reasons.join("; ")}; question ${kept === undefined ? "rebuilt (earlier default)" : "kept (the visitor's)"}`,
+  );
+  if (!apply) return true;
+
+  const outlet = (snapshot.records.contextFeatureRecords ?? []).find((f) => f.role === "outlet");
+  if (outlet?.geometry.type !== "Point") {
+    log("    skipped: no outlet point in the record");
+    return false;
+  }
+  const [lon, lat] = outlet.geometry.coordinates;
+  const built = await buildLiveCase({
+    lon,
+    lat,
+    placeName: place,
+    regionName: snapshot.case.place?.region ?? "",
+    question: kept,
+    ownerScopeId: row.owner_scope_id,
+    allowModel: false,
+  });
+  if (built.outcome.caseId !== row.id) {
+    log(`    skipped: the rebuild names ${built.outcome.caseId}, not ${row.id}`);
+    return false;
+  }
+  if (built.noLand) {
+    log("    skipped: no land in the 20 km box");
+    return false;
+  }
+  if (built.rainUnavailable) {
+    log("    skipped: Open-Meteo did not answer; run it again later");
+    return false;
+  }
+  const proposal = planReingestCommit(snapshot, built, new Date().toISOString());
+  try {
+    const outcome = await applyCommit(pool, proposal);
+    log(
+      outcome.status === "committed"
+        ? `    committed revision ${String(outcome.commit.newCaseRevision)}: ${String(proposal.upserts.length)} records revised`
+        : `    ${outcome.status}`,
+    );
+    return outcome.status === "committed" || outcome.status === "duplicate";
+  } catch (err) {
+    log(
+      `    refused: ${err instanceof CommitRejected ? `${err.code}: ` : ""}${err instanceof Error ? err.message : String(err)}`,
+    );
+    return false;
+  }
+}
+
+/**
+ * Lists the live cases (and with --apply rebuilds the stale ones). A case that throws is reported and the run
+ * carries on with the next one; the exit code is 1 when any case was skipped, refused or failed.
+ */
+export async function runReingest(
+  argv: readonly string[],
+  log: Log = console.log,
+): Promise<number> {
   const apply = argv.includes("--apply");
   const caseFlag = argv.indexOf("--case");
   const onlyCase = caseFlag === -1 ? undefined : argv[caseFlag + 1];
   if (caseFlag !== -1 && (onlyCase === undefined || onlyCase === "")) {
-    console.error("--case needs a case id");
+    log("--case needs a case id");
     return 2;
   }
   const pool = createPool();
   let failures = 0;
   try {
-    const rows = await pool.query<{ id: string; owner_scope_id: string }>(
+    const rows = await pool.query<CaseRow>(
       "select id, owner_scope_id from cases where id like 'case\\_loc\\_%' order by id",
     );
     const cases = rows.rows.filter((r) => onlyCase === undefined || r.id === onlyCase);
-    console.log(`${apply ? "Apply" : "Dry run"}: ${String(cases.length)} live cases`);
+    log(`${apply ? "Apply" : "Dry run"}: ${String(cases.length)} live cases`);
     for (const row of cases) {
-      const snapshot = await readSnapshot(pool, row.id, row.owner_scope_id);
-      if (snapshot === null) continue;
-      const reasons = staleReasons(snapshot);
-      const place = snapshot.case.place?.name ?? snapshot.case.title;
-      if (reasons.length === 0) {
-        console.log(`  ${row.id} (${place}): current, nothing to do`);
-        continue;
-      }
-      const kept = questionToKeep(snapshot.case.objective);
-      console.log(
-        `  ${row.id} (${place}), revision ${String(snapshot.case.revision)}: ${reasons.join("; ")}; question ${kept === undefined ? "rebuilt (earlier default)" : "kept (the visitor's)"}`,
-      );
-      if (!apply) continue;
-
-      const outlet = (snapshot.records.contextFeatureRecords ?? []).find(
-        (f) => f.role === "outlet",
-      );
-      if (outlet?.geometry.type !== "Point") {
-        console.log("    skipped: no outlet point in the record");
-        failures += 1;
-        continue;
-      }
-      const [lon, lat] = outlet.geometry.coordinates;
-      const built = await buildLiveCase({
-        lon,
-        lat,
-        placeName: place,
-        regionName: snapshot.case.place?.region ?? "",
-        question: kept,
-        ownerScopeId: row.owner_scope_id,
-        allowModel: false,
-      });
-      if (built.outcome.caseId !== row.id) {
-        console.log(`    skipped: the rebuild names ${built.outcome.caseId}, not ${row.id}`);
-        failures += 1;
-        continue;
-      }
-      if (built.rainUnavailable) {
-        console.log("    skipped: Open-Meteo did not answer; run it again later");
-        failures += 1;
-        continue;
-      }
-      const proposal = planReingestCommit(snapshot, built, new Date().toISOString());
       try {
-        const outcome = await applyCommit(pool, proposal);
-        console.log(
-          outcome.status === "committed"
-            ? `    committed revision ${String(outcome.commit.newCaseRevision)}: ${String(proposal.upserts.length)} records revised`
-            : `    ${outcome.status}`,
-        );
-        if (outcome.status !== "committed" && outcome.status !== "duplicate") failures += 1;
+        if (!(await reingestCase(pool, row, apply, log))) failures += 1;
       } catch (err) {
-        console.log(
-          `    refused: ${err instanceof CommitRejected ? `${err.code}: ` : ""}${err instanceof Error ? err.message : String(err)}`,
-        );
+        log(`  ${row.id}: failed: ${err instanceof Error ? err.message : String(err)}`);
         failures += 1;
       }
     }
@@ -335,4 +358,4 @@ async function main(argv: readonly string[]): Promise<number> {
   return failures === 0 ? 0 : 1;
 }
 
-if (import.meta.main) process.exitCode = await main(process.argv.slice(2));
+if (import.meta.main) process.exitCode = await runReingest(process.argv.slice(2));

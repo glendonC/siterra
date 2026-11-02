@@ -1,5 +1,6 @@
 import type * as NodeFs from "node:fs";
 import { writeFileSync } from "node:fs";
+import { buildTerrainForBbox } from "./terrain-builder.ts";
 import type { CaseSeedRecords, Pool } from "@siterra/db";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -275,11 +276,13 @@ describe("outline description", () => {
     [0.1, 0.1],
     [0, 0],
   ];
+  const bbox: [number, number, number, number] = [-0.07, -0.04, 0.17, 0.14];
   it("calls only a whole watershed a hydrological unit", async () => {
     const { describeOutline } = await import("./ingest.ts");
     const shed = describeOutline(
       {
         catchmentRing: ring,
+        bbox,
         elevationSource: "terrarium_z11",
         outline: { kind: "watershed", outlet: [0.05, 0.01], areaKm2: 88.2 },
       },
@@ -297,6 +300,7 @@ describe("outline description", () => {
     const cut = describeOutline(
       {
         catchmentRing: ring,
+        bbox,
         elevationSource: "open_meteo_16",
         outline: { kind: "drainage_within_box", areaKm2: 140 },
       },
@@ -315,9 +319,130 @@ describe("outline description", () => {
 
   it("does not call an outline of unrecorded kind a watershed", async () => {
     const { describeOutline } = await import("./ingest.ts");
-    const old = describeOutline({ catchmentRing: ring }, "Arkhust", 0.05, 0.05);
+    const old = describeOutline({ catchmentRing: ring, bbox }, "Arkhust", 0.05, 0.05);
     expect(old.boundaryRole).toBe("landscape_sample");
     expect(old.label).not.toMatch(/watershed|catchment/i);
     expect(old.selectionMethod).toContain("source is not recorded");
+  });
+
+  it("holds the box, not a broken polygon, when the outline ring is too short", async () => {
+    const { describeOutline } = await import("./ingest.ts");
+    const short = describeOutline(
+      {
+        catchmentRing: [
+          [0, 0],
+          [0.1, 0],
+          [0, 0],
+        ],
+        bbox,
+        elevationSource: "terrarium_z12",
+        outline: { kind: "watershed", areaKm2: 0.2 },
+      },
+      "Selected catchment",
+      0.05,
+      0.05,
+    );
+    expect([short.label, short.boundaryRole, short.drains]).toEqual([
+      "Area within the 20 km box",
+      "landscape_sample",
+      false,
+    ]);
+    expect(short.ring).toEqual([
+      [-0.07, -0.04],
+      [0.17, -0.04],
+      [0.17, 0.14],
+      [-0.07, 0.14],
+      [-0.07, -0.04],
+    ]);
+    expect(short.limitations[0]).toMatch(/fewer than four points/);
+    // the box's own polygon area (polygonAreaM2 is stubbed in this file), not the watershed's grid count
+    expect(short.areaMethod).toMatch(/^Geodesic polygon area/);
+  });
+
+  it("labels the box outline by why it fell back: no land or no outline could be drawn", async () => {
+    const { describeOutline } = await import("./ingest.ts");
+    const noLand = describeOutline(
+      {
+        catchmentRing: ring,
+        bbox,
+        elevationSource: "terrarium_z12",
+        outline: { kind: "box", fallback: "no_land", areaKm2: 400 },
+      },
+      "Selected catchment",
+      0.05,
+      0.05,
+    );
+    expect([noLand.label, noLand.boundaryRole, noLand.areaKm2, noLand.drains]).toEqual([
+      "The 20 km box (no land in it)",
+      "landscape_sample",
+      400,
+      false,
+    ]);
+    expect(noLand.limitations[0]).toMatch(/no land in the 20 km box/i);
+
+    const degenerateBox = describeOutline(
+      {
+        catchmentRing: ring,
+        bbox,
+        elevationSource: "terrarium_z12",
+        outline: { kind: "box", fallback: "outline_degenerate", areaKm2: 400 },
+      },
+      "Selected catchment",
+      0.05,
+      0.05,
+    );
+    expect([degenerateBox.label, degenerateBox.boundaryRole, degenerateBox.drains]).toEqual([
+      "The 20 km box (no outline could be drawn)",
+      "landscape_sample",
+      false,
+    ]);
+    expect(degenerateBox.limitations[0]).toMatch(/no outline could be drawn/i);
+
+    const degenerateLand = describeOutline(
+      {
+        catchmentRing: ring,
+        bbox,
+        elevationSource: "terrarium_z12",
+        outline: { kind: "land_within_box", fallback: "outline_degenerate", areaKm2: 185.4 },
+      },
+      "New York",
+      0.05,
+      0.05,
+    );
+    expect([degenerateLand.label, degenerateLand.boundaryRole, degenerateLand.drains]).toEqual([
+      "Land within the 20 km box",
+      "landscape_sample",
+      false,
+    ]);
+  });
+});
+
+describe("ingest with a too-short outline ring", () => {
+  it("records the box instead of throwing", async () => {
+    vi.mocked(buildTerrainForBbox).mockImplementationOnce((bbox) =>
+      Promise.resolve({
+        version: 2,
+        gridSize: 2,
+        width: 2,
+        height: 2,
+        bbox,
+        minElevationM: 0,
+        maxElevationM: 120,
+        elevations: [0, 40, 80, 120],
+        catchmentRing: [
+          [bbox[0], bbox[1]],
+          [bbox[2], bbox[1]],
+          [bbox[0], bbox[1]],
+        ],
+        streamPaths: [],
+        elevationSource: "terrarium_z12",
+        outline: { kind: "watershed", areaKm2: 0.2 },
+      }),
+    );
+    const { seed } = await ingestNewYork();
+    const geo = seed.geoSelections[0];
+    expect(geo?.label).toBe("Area within the 20 km box");
+    const geometry = geo?.geometry;
+    expect(geometry?.type === "Polygon" ? geometry.coordinates[0]?.length : 0).toBe(5);
   });
 });

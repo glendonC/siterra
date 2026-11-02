@@ -1,17 +1,28 @@
 import type * as NodeFs from "node:fs";
 import type { CaseSnapshot } from "@siterra/contracts";
 import type * as SiterraDb from "@siterra/db";
-import { CommitProposal, uncoveredBriefCitations, uncoveredInstrumentCitations } from "@siterra/db";
+import {
+  CommitProposal,
+  applyCommit,
+  createPool,
+  readSnapshot,
+  uncoveredBriefCitations,
+  uncoveredInstrumentCitations,
+} from "@siterra/db";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { buildLiveCase } from "./ingest.ts";
 import { reasonOverCaseWithLlm } from "./llm-reasoner.ts";
-import { planReingestCommit, questionToKeep, staleReasons } from "./run-reingest.ts";
+import { planReingestCommit, questionToKeep, runReingest, staleReasons } from "./run-reingest.ts";
+import { buildTerrainForBbox } from "./terrain-builder.ts";
 
 // The re-ingest of live cases written before vegetation was recorded as not measured: which cases it
 // lists, which question it keeps, the commit it appends, and that it never reaches the model.
 vi.mock("@siterra/db", async (importOriginal) => ({
   ...(await importOriginal<typeof SiterraDb>()),
   loadSeedCase: vi.fn(),
+  createPool: vi.fn(),
+  readSnapshot: vi.fn(),
+  applyCommit: vi.fn(),
 }));
 vi.mock("node:fs", async (importOriginal) => ({
   ...(await importOriginal<typeof NodeFs>()),
@@ -168,7 +179,7 @@ describe("re-ingest of earlier live cases", () => {
     expect(staleReasons(earlier)).toEqual([
       "25 vegetation values recorded as measured",
       "1 explanations judged against them",
-      "built by the version 1 live pipeline",
+      "built by live pipeline 1.0.0, current 2.1.0",
     ]);
   });
 
@@ -221,5 +232,89 @@ describe("re-ingest of earlier live cases", () => {
     const built = await rebuildNewYork("Is vegetation cover changing across New York?");
     const proposal = planReingestCommit(stored, built, "2026-11-02T16:00:00.000Z");
     expect(proposal.upserts.map((r) => r.id)).toEqual([]);
+  });
+
+  it("sees a case built before the outline labels as stale, so a rebuild relabels it", async () => {
+    const stored = await storedSnapshot();
+    for (const b of stored.records.dataBundleRecords) b.methodVersion = "2.0.0";
+    expect(staleReasons(stored)).toEqual(["built by live pipeline 2.0.0, current 2.1.0"]);
+  });
+
+  it("reports a case that throws and carries on with the next one", async () => {
+    const stale = await storedSnapshot();
+    for (const b of stale.records.dataBundleRecords) b.methodVersion = "2.0.0";
+    const id = stale.case.id;
+    vi.mocked(createPool).mockReturnValue({
+      query: vi.fn(() =>
+        Promise.resolve({
+          rows: [
+            { id, owner_scope_id: "seed" },
+            { id, owner_scope_id: "seed" },
+          ],
+        }),
+      ),
+      end: vi.fn(() => Promise.resolve()),
+    } as unknown as ReturnType<typeof createPool>);
+    vi.mocked(readSnapshot).mockResolvedValue(stale);
+    vi.mocked(applyCommit).mockResolvedValue({
+      status: "committed",
+      commit: { newCaseRevision: 2 },
+      rebasedFrom: null,
+    } as unknown as Awaited<ReturnType<typeof applyCommit>>);
+    // the first rebuild crashes as the founder's run did (an outline the record could not hold)
+    vi.mocked(buildTerrainForBbox).mockRejectedValueOnce(
+      new Error("Too small: expected array to have >=4 items"),
+    );
+
+    const lines: string[] = [];
+    const code = await runReingest(["--apply"], (line) => lines.push(line));
+
+    expect(code).toBe(1);
+    expect(lines).toContain(`  ${id}: failed: Too small: expected array to have >=4 items`);
+    expect(lines.filter((l) => l.startsWith("    committed revision 2"))).toHaveLength(1);
+    expect(vi.mocked(applyCommit)).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(reasonOverCaseWithLlm)).not.toHaveBeenCalled();
+  });
+
+  it("skips a case whose rebuilt outline is the 20 km box with no land in it", async () => {
+    const stale = await storedSnapshot();
+    for (const b of stale.records.dataBundleRecords) b.methodVersion = "2.0.0";
+    const id = stale.case.id;
+    vi.mocked(createPool).mockReturnValue({
+      query: vi.fn(() => Promise.resolve({ rows: [{ id, owner_scope_id: "seed" }] })),
+      end: vi.fn(() => Promise.resolve()),
+    } as unknown as ReturnType<typeof createPool>);
+    vi.mocked(readSnapshot).mockResolvedValue(stale);
+    vi.mocked(applyCommit).mockClear();
+    vi.mocked(buildTerrainForBbox).mockImplementationOnce((bbox) =>
+      Promise.resolve({
+        version: 2,
+        gridSize: 2,
+        width: 2,
+        height: 2,
+        bbox,
+        minElevationM: 0,
+        maxElevationM: 0,
+        elevations: [0, 0, 0, 0],
+        catchmentRing: [
+          [bbox[0], bbox[1]],
+          [bbox[2], bbox[1]],
+          [bbox[2], bbox[3]],
+          [bbox[0], bbox[3]],
+          [bbox[0], bbox[1]],
+        ],
+        streamPaths: [],
+        elevationSource: "terrarium_z12",
+        outline: { kind: "box", fallback: "no_land", areaKm2: 400 },
+      }),
+    );
+
+    const lines: string[] = [];
+    const code = await runReingest(["--apply"], (line) => lines.push(line));
+
+    expect(code).toBe(1);
+    expect(lines).toContain("    skipped: no land in the 20 km box");
+    expect(vi.mocked(applyCommit)).not.toHaveBeenCalled();
+    expect(vi.mocked(reasonOverCaseWithLlm)).not.toHaveBeenCalled();
   });
 });
