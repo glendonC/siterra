@@ -1,5 +1,5 @@
 // Dynamic 3D terrain & overview data adapter for any ingested or static case on Earth.
-// Fetches the 64x64 TerrainFile from /api/terrain/[caseId] and builds the complete OverviewData
+// Fetches the TerrainFile (256 x 256 since version 2) from /api/terrain/[caseId] and builds the complete OverviewData
 // (UTM relief Float32Array, WorldCover & elevation band ImageBitmaps, UTM catchment ring,
 // stream reach heights, slope/rain footprints, and fallback RecordData charts from the case snapshot)
 // so ValleyOverview renders the 3D terrain and interactive findings of any place on Earth.
@@ -49,7 +49,8 @@ export interface SatelliteMeta {
 }
 
 export interface TerrainFile {
-  version: 1;
+  /** 1: 96 x 96 nearest-pixel zoom 11 (rebuilt on read); 2: 256 x 256 bilinear zoom 12. */
+  version: 1 | 2;
   gridSize?: number;
   width: number;
   height: number;
@@ -57,6 +58,8 @@ export interface TerrainFile {
   minElevationM: number;
   maxElevationM: number;
   elevations: number[];
+  elevationSource?: "terrarium_z12" | "terrarium_z11" | "open_meteo_16" | "synthetic";
+  despikedPixels?: number;
   catchmentRing: [number, number][];
   streamPaths: [number, number][][];
   landCoverGrid?: LandCoverGrid;
@@ -76,7 +79,7 @@ function resolveCaseId(caseId?: string): string {
 }
 
 /**
- * Fetches the 64x64 3D terrain mesh, catchmentRing, and streamPaths for `caseId`
+ * Fetches the 3D terrain grid, catchmentRing, and streamPaths for `caseId`
  * (or the current `?case=` query param, defaulting to `case_aitbouguemez`).
  */
 export async function loadValleyTerrain(
@@ -94,7 +97,11 @@ export async function loadValleyTerrain(
   return (await res.json()) as TerrainFile;
 }
 
-function pointInPolygon(ring: readonly (readonly [number, number])[], x: number, y: number): boolean {
+function pointInPolygon(
+  ring: readonly (readonly [number, number])[],
+  x: number,
+  y: number,
+): boolean {
   let inside = false;
   for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
     const [xi, yi] = ring[i] ?? [0, 0];
@@ -106,49 +113,64 @@ function pointInPolygon(ring: readonly (readonly [number, number])[], x: number,
   return inside;
 }
 
-function cubicInterp(p0: number, p1: number, p2: number, p3: number, t: number): number {
-  const t2 = t * t;
-  const t3 = t2 * t;
-  return (
-    0.5 *
-    (2 * p1 +
-      (-p0 + p2) * t +
-      (2 * p0 - 5 * p1 + 4 * p2 - p3) * t2 +
-      (-p0 + 3 * p1 - 3 * p2 + p3) * t3)
-  );
+/**
+ * Maps a UTM point (E, N) in `zone` to fractional (col, row) on a lon/lat grid over bbox whose nodes sit on the
+ * bbox edges (col 0 west, row 0 north). Inverts lonLatToUtm by Newton steps from the bbox centre's Jacobian, which
+ * converges to well under a metre within a 20 km box.
+ */
+export function utmToGridMapper(
+  bbox: readonly [number, number, number, number],
+  zone: number,
+  width: number,
+  height: number,
+): (E: number, N: number) => [number, number] {
+  const [minLon, minLat, maxLon, maxLat] = bbox;
+  const lon0 = (minLon + maxLon) / 2;
+  const lat0 = (minLat + maxLat) / 2;
+  const d = 1e-4;
+  const [e0, n0] = lonLatToUtm(lon0, lat0, zone);
+  const [eLon, nLon] = lonLatToUtm(lon0 + d, lat0, zone);
+  const [eLat, nLat] = lonLatToUtm(lon0, lat0 + d, zone);
+  const a = (eLon - e0) / d;
+  const b = (eLat - e0) / d;
+  const c = (nLon - n0) / d;
+  const dd = (nLat - n0) / d;
+  const det = a * dd - b * c;
+  const spanLon = Math.max(1e-9, maxLon - minLon);
+  const spanLat = Math.max(1e-9, maxLat - minLat);
+  return (E, N) => {
+    let lon = lon0;
+    let lat = lat0;
+    for (let k = 0; k < 3; k++) {
+      const [e, n] = lonLatToUtm(lon, lat, zone);
+      const rE = E - e;
+      const rN = N - n;
+      lon += (dd * rE - b * rN) / det;
+      lat += (-c * rE + a * rN) / det;
+    }
+    return [((lon - minLon) / spanLon) * (width - 1), ((maxLat - lat) / spanLat) * (height - 1)];
+  };
 }
 
-function upsampleRelief(
+/** Bilinear value of a row-major grid at fractional (col, row), clamped to its edges. */
+function bilinearAt(
   src: readonly number[],
-  srcW: number,
-  srcH: number,
-  dstW: number,
-  dstH: number,
-): Float32Array<ArrayBuffer> {
-  const buf = new ArrayBuffer(dstW * dstH * 4);
-  const out = new Float32Array(buf);
-  const at = (r: number, c: number): number => {
-    const rr = Math.max(0, Math.min(srcH - 1, r));
-    const cc = Math.max(0, Math.min(srcW - 1, c));
-    return src[rr * srcW + cc] ?? 0;
-  };
-
-  for (let r = 0; r < dstH; r++) {
-    const gy = (r / (dstH - 1)) * (srcH - 1);
-    const r1 = Math.floor(gy);
-    const ty = gy - r1;
-    for (let c = 0; c < dstW; c++) {
-      const gx = (c / (dstW - 1)) * (srcW - 1);
-      const c1 = Math.floor(gx);
-      const tx = gx - c1;
-      const row0 = cubicInterp(at(r1 - 1, c1 - 1), at(r1 - 1, c1), at(r1 - 1, c1 + 1), at(r1 - 1, c1 + 2), tx);
-      const row1 = cubicInterp(at(r1, c1 - 1), at(r1, c1), at(r1, c1 + 1), at(r1, c1 + 2), tx);
-      const row2 = cubicInterp(at(r1 + 1, c1 - 1), at(r1 + 1, c1), at(r1 + 1, c1 + 1), at(r1 + 1, c1 + 2), tx);
-      const row3 = cubicInterp(at(r1 + 2, c1 - 1), at(r1 + 2, c1), at(r1 + 2, c1 + 1), at(r1 + 2, c1 + 2), tx);
-      out[r * dstW + c] = cubicInterp(row0, row1, row2, row3, ty);
-    }
-  }
-  return out;
+  w: number,
+  h: number,
+  col: number,
+  row: number,
+): number {
+  const fx = Math.max(0, Math.min(w - 1, col));
+  const fy = Math.max(0, Math.min(h - 1, row));
+  const c0 = Math.min(w - 2, Math.floor(fx));
+  const r0 = Math.min(h - 2, Math.floor(fy));
+  const tx = fx - c0;
+  const ty = fy - r0;
+  const v00 = src[r0 * w + c0] ?? 0;
+  const v01 = src[r0 * w + c0 + 1] ?? 0;
+  const v10 = src[(r0 + 1) * w + c0] ?? 0;
+  const v11 = src[(r0 + 1) * w + c0 + 1] ?? 0;
+  return (v00 * (1 - tx) + v01 * tx) * (1 - ty) + (v10 * (1 - tx) + v11 * tx) * ty;
 }
 
 async function bitmapFromRgba(
@@ -193,7 +215,7 @@ function sampleLandCoverChannel(
 }
 
 /**
- * Converts a 64x64 `TerrainFile` into a full `OverviewData` structure ready for `mountOverview`.
+ * Converts a `TerrainFile` into a full `OverviewData` structure ready for `mountOverview`.
  */
 export async function overviewDataFromTerrain(
   terrain: TerrainFile,
@@ -236,9 +258,23 @@ export async function overviewDataFromTerrain(
   const N0 = centerN + squareSpan / 2;
   const res = squareSpan / gridDim;
 
+  // each relief cell takes the DEM at its own place: the terrain grid is regular in lon/lat, the relief in UTM
   const srcW = terrain.width || terrain.gridSize || 64;
   const srcH = terrain.height || terrain.gridSize || 64;
-  const relief = upsampleRelief(terrain.elevations, srcW, srcH, gridDim, gridDim);
+  const toGrid = utmToGridMapper(terrain.bbox, zone, srcW, srcH);
+  const relief = new Float32Array(new ArrayBuffer(gridDim * gridDim * 4));
+  const cellCol = new Float32Array(gridDim * gridDim);
+  const cellRow = new Float32Array(gridDim * gridDim);
+  for (let r = 0; r < gridDim; r++) {
+    const N = N0 - (r + 0.5) * res;
+    for (let c = 0; c < gridDim; c++) {
+      const idx = r * gridDim + c;
+      const [col, row] = toGrid(E0 + (c + 0.5) * res, N);
+      cellCol[idx] = col;
+      cellRow[idx] = row;
+      relief[idx] = bilinearAt(terrain.elevations, srcW, srcH, col, row);
+    }
+  }
 
   // Project stream paths into UTM first so we can carve realistic incised valley thalwegs and side-ridge detail
   const streamUtmPaths: [number, number][][] = terrain.streamPaths.map((path) =>
@@ -271,7 +307,8 @@ export async function overviewDataFromTerrain(
       let minStreamDist = Infinity;
       for (const sp of streamUtmPaths) {
         for (let k = 0; k < sp.length; k += 2) {
-          const pt = sp[k]!;
+          const pt = sp[k];
+          if (!pt) continue;
           const d = Math.hypot(E - pt[0], N - pt[1]);
           if (d < minStreamDist) minStreamDist = d;
         }
@@ -308,8 +345,10 @@ export async function overviewDataFromTerrain(
   const minH = insideHeights[0] ?? 0;
   const maxH = insideHeights[insideHeights.length - 1] ?? minH + 500;
   const medianH = insideHeights[Math.floor(insideHeights.length * 0.5)] ?? (minH + maxH) / 2;
-  const lowBandLimit = insideHeights[Math.floor(insideHeights.length * 0.33)] ?? minH + (maxH - minH) * 0.33;
-  const highBandLimit = insideHeights[Math.floor(insideHeights.length * 0.67)] ?? minH + (maxH - minH) * 0.67;
+  const lowBandLimit =
+    insideHeights[Math.floor(insideHeights.length * 0.33)] ?? minH + (maxH - minH) * 0.33;
+  const highBandLimit =
+    insideHeights[Math.floor(insideHeights.length * 0.67)] ?? minH + (maxH - minH) * 0.67;
 
   // Build WorldCover + catchment mask RGBA bitmap and equal-area elevation bands RGBA bitmap
   const lcBuffer = new ArrayBuffer(gridDim * gridDim * 4);
@@ -329,10 +368,10 @@ export async function overviewDataFromTerrain(
     lcGrid.crop.length === lcGrid.width * lcGrid.height;
 
   for (let r = 0; r < gridDim; r++) {
-    const rNorm = r / (gridDim - 1);
     for (let c = 0; c < gridDim; c++) {
-      const cNorm = c / (gridDim - 1);
       const idx = r * gridDim + c;
+      const rNorm = Math.max(0, Math.min(1, (cellRow[idx] ?? 0) / Math.max(1, srcH - 1)));
+      const cNorm = Math.max(0, Math.min(1, (cellCol[idx] ?? 0) / Math.max(1, srcW - 1)));
       const p = idx * 4;
       const inside = insideFlags[idx] === 1;
       if (!inside) {
@@ -342,9 +381,9 @@ export async function overviewDataFromTerrain(
       }
       const h = relief[idx] ?? minH;
 
-      let tree = 0;
-      let crop = 0;
-      if (hasRealLandCover && lcGrid) {
+      let tree: number;
+      let crop: number;
+      if (hasRealLandCover) {
         tree = sampleLandCoverChannel(lcGrid.tree, lcGrid.width, lcGrid.height, rNorm, cNorm);
         crop = sampleLandCoverChannel(lcGrid.crop, lcGrid.width, lcGrid.height, rNorm, cNorm);
       } else {
@@ -620,11 +659,7 @@ export function fallbackRecordData(id: FindingId, snapshot: CaseSnapshot): Recor
       null);
   const resolvedRefs = referencesOf(snapshot, contextIds);
   const references =
-    resolvedRefs.length > 0
-      ? resolvedRefs
-      : peerSource
-        ? [reference(peerSource, ["1"])]
-        : [];
+    resolvedRefs.length > 0 ? resolvedRefs : peerSource ? [reference(peerSource, ["1"])] : [];
   const context =
     contextText && references.length > 0
       ? {
@@ -637,7 +672,7 @@ export function fallbackRecordData(id: FindingId, snapshot: CaseSnapshot): Recor
     .filter((m) => m.metric === "ndvi_growing_season_mean" && m.value !== null)
     .map((m) => {
       const yrMatch = m.periodId.match(/(\d{4})/) ?? m.id.match(/(\d{4})/);
-      const year = yrMatch ? Number.parseInt(yrMatch[1]!, 10) : NaN;
+      const year = yrMatch?.[1] ? Number.parseInt(yrMatch[1], 10) : NaN;
       return {
         year,
         ndvi: m.value ?? 0.25,
@@ -661,8 +696,8 @@ export function fallbackRecordData(id: FindingId, snapshot: CaseSnapshot): Recor
       snapshot.records.measurementRecords.find((x) => isTrendMetric(x.metric));
 
     const slopePerDecade = m?.value ?? 0.012;
-    const lower = m?.uncertainty?.lower ?? slopePerDecade - 0.008;
-    const upper = m?.uncertainty?.upper ?? slopePerDecade + 0.008;
+    const lower = m?.uncertainty.lower ?? slopePerDecade - 0.008;
+    const upper = m?.uncertainty.upper ?? slopePerDecade + 0.008;
     const baseSeasons =
       rawSeasons.length >= 2
         ? rawSeasons
@@ -693,14 +728,13 @@ export function fallbackRecordData(id: FindingId, snapshot: CaseSnapshot): Recor
     for (const m of snapshot.records.measurementRecords) {
       if (m.metric === "precipitation_annual_mm" && m.value !== null) {
         const yrMatch = m.periodId.match(/(\d{4})/) ?? m.id.match(/(\d{4})/);
-        const yr = yrMatch ? Number.parseInt(yrMatch[1]!, 10) : NaN;
+        const yr = yrMatch?.[1] ? Number.parseInt(yrMatch[1], 10) : NaN;
         if (Number.isFinite(yr)) {
           rainMap.set(yr, m.value);
         }
       }
     }
-    const baseSeasons =
-      rawSeasons.length >= 2 ? rawSeasons : synthesizeSeasons(0.012);
+    const baseSeasons = rawSeasons.length >= 2 ? rawSeasons : synthesizeSeasons(0.012);
     const mappedSeasons: ScatterSeason[] = baseSeasons
       .map((s) => {
         const rain_mm = rainMap.get(s.year);
@@ -736,7 +770,8 @@ export function fallbackRecordData(id: FindingId, snapshot: CaseSnapshot): Recor
       (x) => x.metric === "rainfall_ndvi_r_squared" || x.metric === "rainfall_fit_r_squared",
     );
     const rSquared =
-      r2M?.value ?? (sxx > 0 && syy > 0 ? Math.min(0.95, Math.max(0.05, (sxy * sxy) / (sxx * syy))) : 0.35);
+      r2M?.value ??
+      (sxx > 0 && syy > 0 ? Math.min(0.95, Math.max(0.05, (sxy * sxy) / (sxx * syy))) : 0.35);
     const slopePer100 = slopePerMm * 100;
     const driest = [...seasons].sort((a, b) => a.rain_mm - b.rain_mm).slice(0, 4);
     const firstYear = seasons[0]?.year ?? 2000;

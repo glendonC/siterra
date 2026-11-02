@@ -32,8 +32,16 @@ export interface SatelliteMeta {
   barePct?: number;
 }
 
+/** Bumped when the stored grid changes meaning; readOrBuildTerrain rebuilds any other version in place. */
+export const TERRAIN_FILE_VERSION = 2;
+/** Elevation grid nodes a side: the overview's own 256 x 256 relief grid. */
+export const TERRAIN_GRID_SIZE = 256;
+
+/** Where the stored elevations came from. */
+export type ElevationSource = "terrarium_z12" | "terrarium_z11" | "open_meteo_16" | "synthetic";
+
 export interface TerrainFile {
-  version: 1;
+  version: 2;
   gridSize: number;
   width: number;
   height: number;
@@ -41,6 +49,9 @@ export interface TerrainFile {
   minElevationM: number;
   maxElevationM: number;
   elevations: number[];
+  elevationSource?: ElevationSource;
+  /** Terrarium pixels replaced as defects before sampling (dem-grid.ts despikeMosaic), when the source is Terrarium. */
+  despikedPixels?: number;
   catchmentRing: [number, number][];
   streamPaths: [number, number][][];
   landCoverGrid?: LandCoverGrid;
@@ -147,13 +158,16 @@ function computeD8Flow(
 }
 
 function smoothPolyline(pts: readonly [number, number][]): [number, number][] {
-  if (pts.length < 3) return [...pts];
+  const first = pts[0];
+  const last = pts[pts.length - 1];
+  if (pts.length < 3 || !first || !last) return [...pts];
   let curr: [number, number][] = [...pts];
   for (let pass = 0; pass < 2; pass++) {
-    const next: [number, number][] = [curr[0]!];
+    const next: [number, number][] = [first];
     for (let i = 0; i < curr.length - 1; i++) {
-      const p0 = curr[i]!;
-      const p1 = curr[i + 1]!;
+      const p0 = curr[i];
+      const p1 = curr[i + 1];
+      if (!p0 || !p1) continue;
       next.push([
         Number((0.75 * p0[0] + 0.25 * p1[0]).toFixed(6)),
         Number((0.75 * p0[1] + 0.25 * p1[1]).toFixed(6)),
@@ -163,7 +177,7 @@ function smoothPolyline(pts: readonly [number, number][]): [number, number][] {
         Number((0.25 * p0[1] + 0.75 * p1[1]).toFixed(6)),
       ]);
     }
-    next.push(curr[curr.length - 1]!);
+    next.push(last);
     curr = next;
   }
   return curr;
@@ -191,10 +205,7 @@ function buildCatchmentAndStreams(
 
   const elevAtNorm = (nx: number, ny: number): number => {
     const col = Math.max(0, Math.min(width - 1, Math.round((nx + 1) * 0.5 * (width - 1))));
-    const row = Math.max(
-      0,
-      Math.min(height - 1, Math.round((1 - (ny + 1) * 0.5) * (height - 1))),
-    );
+    const row = Math.max(0, Math.min(height - 1, Math.round((1 - (ny + 1) * 0.5) * (height - 1))));
     return elevations[row * width + col] ?? 0;
   };
 
@@ -296,10 +307,7 @@ function buildCatchmentAndStreams(
     const perpX = -Math.sin(lowestAngle);
     const perpY = Math.cos(lowestAngle);
 
-    const startCol = Math.max(
-      2,
-      Math.min(width - 3, Math.round((sx + 1) * 0.5 * (width - 1))),
-    );
+    const startCol = Math.max(2, Math.min(width - 3, Math.round((sx + 1) * 0.5 * (width - 1))));
     const startRow = Math.max(
       2,
       Math.min(height - 3, Math.round((1 - (sy + 1) * 0.5) * (height - 1))),
@@ -326,9 +334,11 @@ function buildCatchmentAndStreams(
       const guideLon = cx + (sx + (ex - sx) * t + perpX * bend * (1 - t * 0.6)) * (spanLon * 0.5);
       const guideLat = cy + (sy + (ey - sy) * t + perpY * bend * (1 - t * 0.6)) * (spanLat * 0.5);
 
-      if (d8Pts.length >= 8) {
-        const dIdx = Math.min(d8Pts.length - 1, Math.floor(t * (d8Pts.length - 1)));
-        const dPt = d8Pts[dIdx]!;
+      const dPt =
+        d8Pts.length >= 8
+          ? d8Pts[Math.min(d8Pts.length - 1, Math.floor(t * (d8Pts.length - 1)))]
+          : undefined;
+      if (dPt) {
         const wD8 = (1 - t) * 0.45;
         rawPts.push([
           Number((guideLon * (1 - wD8) + dPt[0] * wD8).toFixed(6)),
@@ -362,7 +372,7 @@ export async function buildTerrainForBbox(
   const cx = (minLon + maxLon) / 2;
   const cy = (minLat + maxLat) / 2;
   const coarseSize = 16;
-  const targetSize = 96;
+  const targetSize = TERRAIN_GRID_SIZE;
 
   const [terrarium, hydrology, satellite] = await Promise.all([
     fetchTerrariumGrid(bbox, targetSize),
@@ -371,16 +381,19 @@ export async function buildTerrainForBbox(
   ]);
 
   let elevations: number[];
+  let elevationSource: ElevationSource;
   if (terrarium) {
-    elevations = terrarium;
+    elevations = terrarium.elevations;
+    elevationSource = terrarium.zoom === 12 ? "terrarium_z12" : "terrarium_z11";
   } else {
     const liveCoarse = await fetchOpenMeteoGrid(bbox, coarseSize);
     const coarse = liveCoarse ?? synthesizeCoarseGrid(cx, cy, coarseSize);
+    elevationSource = liveCoarse ? "open_meteo_16" : "synthetic";
     elevations = interpolateGrid(coarse, coarseSize, targetSize);
   }
 
-  let minElevationM = Math.min(...elevations);
-  let maxElevationM = Math.max(...elevations);
+  let minElevationM = elevations.reduce((m, v) => Math.min(m, v), Infinity);
+  let maxElevationM = elevations.reduce((m, v) => Math.max(m, v), -Infinity);
   if (maxElevationM - minElevationM < 15) {
     for (let i = 0; i < elevations.length; i++) {
       const r = Math.floor(i / targetSize);
@@ -389,8 +402,8 @@ export async function buildTerrainForBbox(
       const v = (r / (targetSize - 1)) * 2 - 1;
       elevations[i] = Number(((elevations[i] ?? 0) + (u * u + v * v) * 18).toFixed(1));
     }
-    minElevationM = Math.min(...elevations);
-    maxElevationM = Math.max(...elevations);
+    minElevationM = elevations.reduce((m, v) => Math.min(m, v), Infinity);
+    maxElevationM = elevations.reduce((m, v) => Math.max(m, v), -Infinity);
   }
 
   const { catchmentRing, streamPaths: d8StreamPaths } = buildCatchmentAndStreams(
@@ -405,7 +418,7 @@ export async function buildTerrainForBbox(
     hydrology.streamPaths.length >= 2
       ? hydrology.streamPaths
       : hydrology.streamPaths.length === 1
-        ? [hydrology.streamPaths[0]!, ...d8StreamPaths.slice(0, 2)]
+        ? [...hydrology.streamPaths.slice(0, 1), ...d8StreamPaths.slice(0, 2)]
         : d8StreamPaths;
 
   const satelliteMeta: SatelliteMeta = {
@@ -428,7 +441,7 @@ export async function buildTerrainForBbox(
   };
 
   const terrain: TerrainFile = {
-    version: 1,
+    version: TERRAIN_FILE_VERSION,
     gridSize: targetSize,
     width: targetSize,
     height: targetSize,
@@ -436,6 +449,8 @@ export async function buildTerrainForBbox(
     minElevationM: Number(minElevationM.toFixed(1)),
     maxElevationM: Number(maxElevationM.toFixed(1)),
     elevations,
+    elevationSource,
+    ...(terrarium ? { despikedPixels: terrarium.despikedPixels } : {}),
     catchmentRing,
     streamPaths,
     ...(satellite.landCoverGrid ? { landCoverGrid: satellite.landCoverGrid } : {}),
@@ -468,13 +483,15 @@ export async function readOrBuildTerrain(
   for (const path of [terrainCachePath(caseId), legacyTmpCachePath(caseId)]) {
     if (existsSync(path)) {
       try {
-        const raw = JSON.parse(readFileSync(path, "utf8")) as TerrainFile;
+        const raw = JSON.parse(readFileSync(path, "utf8")) as Partial<
+          Omit<TerrainFile, "version">
+        > & { version?: unknown };
         if (
-          raw.version === 1 &&
+          raw.version === TERRAIN_FILE_VERSION &&
           Array.isArray(raw.elevations) &&
-          raw.elevations.length === raw.width * raw.height
+          raw.elevations.length === (raw.width ?? 0) * (raw.height ?? 0)
         ) {
-          return raw;
+          return raw as TerrainFile;
         }
       } catch {
         // Regenerate below
