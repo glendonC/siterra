@@ -106,7 +106,7 @@ describe("Terrarium DEM sampling", () => {
     expect(await fetchTerrariumGrid([-7.0, 31.5, -6.79, 31.68])).toBeNull();
   });
 
-  it("replaces Terrarium defect pixels and scanlines but keeps a real cliff", () => {
+  it("replaces Terrarium defect pixels, scanlines and lone pits but keeps a real cliff", () => {
     const W = 64;
     const H = 64;
     const m = new Float32Array(W * H);
@@ -120,7 +120,10 @@ describe("Terrarium DEM sampling", () => {
       m[21 * W + i] = -1663.5;
     }
     m[50 * W + 10] = -823.6;
-    expect(despikeMosaic(m, W, H)).toBe(61);
+    // and smaller lone defects: a pit 51 m under ground at 2 to 4 m, and a needle 35 m over its neighbours
+    m[10 * W + 50] = (truth[10 * W + 50] ?? 0) - 55;
+    m[40 * W + 20] = (truth[40 * W + 20] ?? 0) + 35;
+    expect(despikeMosaic(m, W, H)).toBe(63);
     for (let k = 0; k < W * H; k++)
       expect(Math.abs((m[k] ?? 0) - (truth[k] ?? 0))).toBeLessThanOrEqual(1.5);
   });

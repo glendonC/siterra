@@ -17,8 +17,6 @@ import {
   DynamicDrawUsage,
   Group,
   InstancedMesh,
-  LineBasicMaterial,
-  LineSegments,
   Matrix4,
   MeshBasicMaterial,
   PlaneGeometry,
@@ -84,6 +82,7 @@ import {
   maskOnRelief,
   signedArea,
   smoothRing,
+  waterTexture,
 } from "./terrain";
 
 export const OVERVIEW_DESIGN = { width: 1440, height: 900 } as const;
@@ -124,7 +123,14 @@ export const ROUTE_QUIET = 0.35;
 /** Metres between two points where a route is draped on the drawn relief, and its height over it. */
 const DRAPE = { step: 7.5, over: 4 } as const;
 /** Recorded life's 3D markers (UI-2): stem height over the drawn relief (m), crown beacon size (CSS px), vertices of a ring. */
-const LIFE = { over: 420, size: 10.5, baseSize: 5, ring: 72, footRing: 20, footRadiusM: 235 } as const;
+const LIFE = {
+  over: 420,
+  size: 10.5,
+  baseSize: 5,
+  ring: 72,
+  footRing: 20,
+  footRadiusM: 235,
+} as const;
 /** The pixel's clock in D4: its turn (ND.az - OV.az) is the turn for a finding at that clock. */
 const PIXEL_CLOCK = 52;
 const TURN = (ND.az - OV.az) / Math.sin((PIXEL_CLOCK * Math.PI) / 180);
@@ -418,10 +424,12 @@ export function mountOverview(
     sky: hexVec(C.sky),
   };
   const lightMap = bakeLight(H, g, M30, light.dir, { exag: EXAG, base: BASE, soft: 14 });
+  const waterTex = data.water ? waterTexture(data.water, g) : null;
   const relief = createRelief(H, g, frame, lcTex, frame.rect(a), {
     hTex,
     light,
     lightMap,
+    ...(waterTex ? { water: waterTex } : {}),
     colours: {
       albedo: C.reliefAlbedo,
       line: C.contour,
@@ -430,6 +438,7 @@ export function mountOverview(
       limitC: C.bandLimit,
       fogC: C.fog,
       rimC: C.rim,
+      waterC: C.drainage[0],
     },
     coverA: 0.82,
     rimA: 0.22,
@@ -858,8 +867,9 @@ export function mountOverview(
     const stemPos: number[] = [];
     const stemCol: number[] = [];
     points.forEach((p, idx) => {
-      const b = bases[idx]!;
-      const t = pts[idx]!;
+      const b = bases[idx];
+      const t = pts[idx];
+      if (!b || !t) return;
       const c = new Color(p.tone);
       stemPos.push(b[0], b[1], b[2], t[0], t[1], t[2]);
       stemCol.push(c.r * 0.72, c.g * 0.72, c.b * 0.72, c.r, c.g, c.b);
@@ -924,7 +934,9 @@ export function mountOverview(
     const rx = 0.095 * lf.kmScale;
     const ry = 0.145 * lf.kmScale;
     points.forEach((p, idx) => {
-      const [cx, cy, cz] = pts[idx]!;
+      const at = pts[idx];
+      if (!at) return;
+      const [cx, cy, cz] = at;
       const c = new Color(p.tone);
       const top: Vec3 = [cx, cy + ry, cz];
       const bot: Vec3 = [cx, cy - ry, cz];
@@ -935,8 +947,9 @@ export function mountOverview(
         [cx, cy, cz - rx],
       ];
       for (let i = 0; i < 4; i++) {
-        const pA = eq[i]!;
-        const pB = eq[(i + 1) % 4]!;
+        const pA = eq[i];
+        const pB = eq[(i + 1) % 4];
+        if (!pA || !pB) continue;
         const shadeTop = i % 2 === 0 ? 1.0 : 0.84;
         const shadeBot = i % 2 === 0 ? 0.68 : 0.56;
         prismPos.push(top[0], top[1], top[2], pA[0], pA[1], pA[2], pB[0], pB[1], pB[2]);
@@ -1972,10 +1985,8 @@ export function mountOverview(
       relief.uniforms.uRangeA.value = rg ? 0.9 * e : 0;
       const planTraceBoost = 1 - sstep(0.42, 0.95, rise);
       outlineLine.material.opacity =
-        Math.max(
-          planTraceBoost * 0.92,
-          lerp(0.38, next.sel === "catchment" ? 0.95 : 0.38, e),
-        ) * sstep(0, 0.18, rise);
+        Math.max(planTraceBoost * 0.92, lerp(0.38, next.sel === "catchment" ? 0.95 : 0.38, e)) *
+        sstep(0, 0.18, rise);
       for (const r of riverLines) r.line.material.opacity = r.rest * sstep(0, 0.18, rise);
       outlineLine.material.linewidth = Math.max(
         1 + planTraceBoost * 1.1,
@@ -2055,6 +2066,7 @@ export function mountOverview(
       r2.dispose();
       stage.dispose();
       for (const t of [hTex, lcTex, lightMap]) t.dispose();
+      waterTex?.dispose();
       data.landcover.close();
     },
   };

@@ -6,6 +6,7 @@ import {
   interpolateGrid,
   synthesizeCoarseGrid,
 } from "./dem-grid.ts";
+import { buildWaterMask, encodeRuns, type WaterSource } from "../overview/terrain.ts";
 import { type NamedPeak, fetchRealHydrology } from "./hydrology-fetcher.ts";
 import { type LandCoverGrid, fetchSatelliteLandCover } from "./satellite-fetcher.ts";
 
@@ -52,6 +53,10 @@ export interface TerrainFile {
   elevationSource?: ElevationSource;
   /** Terrarium pixels replaced as defects before sampling (dem-grid.ts despikeMosaic), when the source is Terrarium. */
   despikedPixels?: number;
+  /** Water on the elevation grid's nodes (lib/overview/terrain.ts buildWaterMask, encodeRuns). */
+  waterMask?: { runs: number[]; source: WaterSource };
+  /** Grid nodes that are land; minElevationM and maxElevationM are over these when there are any. */
+  landCells?: number;
   catchmentRing: [number, number][];
   streamPaths: [number, number][][];
   landCoverGrid?: LandCoverGrid;
@@ -364,9 +369,16 @@ function buildCatchmentAndStreams(
   };
 }
 
+/** WorldCover read for the same bbox by an earlier build, kept when a rebuild cannot reach Planetary Computer. */
+export interface EarlierLandCover {
+  landCoverGrid: LandCoverGrid;
+  satelliteMeta?: SatelliteMeta;
+}
+
 export async function buildTerrainForBbox(
   bbox: [number, number, number, number],
   caseId?: string,
+  earlier?: EarlierLandCover,
 ): Promise<TerrainFile> {
   const [minLon, minLat, maxLon, maxLat] = bbox;
   const cx = (minLon + maxLon) / 2;
@@ -374,11 +386,16 @@ export async function buildTerrainForBbox(
   const coarseSize = 16;
   const targetSize = TERRAIN_GRID_SIZE;
 
-  const [terrarium, hydrology, satellite] = await Promise.all([
+  const [terrarium, hydrology, fetched] = await Promise.all([
     fetchTerrariumGrid(bbox, targetSize),
     fetchRealHydrology(bbox),
     fetchSatelliteLandCover(bbox),
   ]);
+  // the same box's WorldCover from an earlier build stands in when this fetch came back without it
+  const satellite =
+    !fetched.landCoverGrid && earlier
+      ? { ...earlier.satelliteMeta, ...fetched, landCoverGrid: earlier.landCoverGrid }
+      : fetched;
 
   let elevations: number[];
   let elevationSource: ElevationSource;
@@ -392,16 +409,19 @@ export async function buildTerrainForBbox(
     elevations = interpolateGrid(coarse, coarseSize, targetSize);
   }
 
-  let minElevationM = elevations.reduce((m, v) => Math.min(m, v), Infinity);
-  let maxElevationM = elevations.reduce((m, v) => Math.max(m, v), -Infinity);
-  if (maxElevationM - minElevationM < 15) {
-    for (let i = 0; i < elevations.length; i++) {
-      const r = Math.floor(i / targetSize);
-      const c = i % targetSize;
-      const u = (c / (targetSize - 1)) * 2 - 1;
-      const v = (r / (targetSize - 1)) * 2 - 1;
-      elevations[i] = Number(((elevations[i] ?? 0) + (u * u + v * v) * 18).toFixed(1));
-    }
+  // water is mapped once here; the elevations stay as measured, and the land's own range leaves water out
+  const water = buildWaterMask(elevations, targetSize, targetSize, satellite.landCoverGrid);
+  let landCells = 0;
+  let minElevationM = Infinity;
+  let maxElevationM = -Infinity;
+  for (let i = 0; i < elevations.length; i++) {
+    if (water.mask[i]) continue;
+    const v = elevations[i] ?? 0;
+    landCells++;
+    if (v < minElevationM) minElevationM = v;
+    if (v > maxElevationM) maxElevationM = v;
+  }
+  if (landCells === 0) {
     minElevationM = elevations.reduce((m, v) => Math.min(m, v), Infinity);
     maxElevationM = elevations.reduce((m, v) => Math.max(m, v), -Infinity);
   }
@@ -451,6 +471,8 @@ export async function buildTerrainForBbox(
     elevations,
     elevationSource,
     ...(terrarium ? { despikedPixels: terrarium.despikedPixels } : {}),
+    waterMask: { runs: encodeRuns(water.mask), source: water.source },
+    landCells,
     catchmentRing,
     streamPaths,
     ...(satellite.landCoverGrid ? { landCoverGrid: satellite.landCoverGrid } : {}),
@@ -480,6 +502,7 @@ export async function readOrBuildTerrain(
   caseId: string,
   bbox: [number, number, number, number],
 ): Promise<TerrainFile> {
+  let earlier: EarlierLandCover | undefined;
   for (const path of [terrainCachePath(caseId), legacyTmpCachePath(caseId)]) {
     if (existsSync(path)) {
       try {
@@ -493,12 +516,21 @@ export async function readOrBuildTerrain(
         ) {
           return raw as TerrainFile;
         }
+        const sameBox =
+          Array.isArray(raw.bbox) &&
+          raw.bbox.every((v, i) => Math.abs(v - (bbox[i] ?? NaN)) < 1e-6);
+        if (sameBox && raw.landCoverGrid && !earlier) {
+          earlier = {
+            landCoverGrid: raw.landCoverGrid,
+            ...(raw.satelliteMeta ? { satelliteMeta: raw.satelliteMeta } : {}),
+          };
+        }
       } catch {
         // Regenerate below
       }
     }
   }
-  return buildTerrainForBbox(bbox, caseId);
+  return buildTerrainForBbox(bbox, caseId, earlier);
 }
 
 /**

@@ -15,6 +15,7 @@ import {
   Mesh,
   OneFactor,
   OneMinusSrcAlphaFactor,
+  RedFormat,
   RGBAFormat,
   ShaderMaterial,
   UnsignedByteType,
@@ -106,6 +107,8 @@ uniform vec3 uSnow;         // each band's share under snow that month, lowest b
 uniform float uSnowA;
 uniform vec3 uSnowC;
 uniform float uCarve;
+uniform sampler2D uWater;   // water's share of each relief cell (R, linear), a live place's mask; none elsewhere
+uniform vec3 uWaterC;
 varying vec3 vWorld;
 void main() {
   vec2 xz = vWorld.xz;
@@ -141,6 +144,13 @@ void main() {
   // channel floors a touch darker, crests a touch lighter (from the relief itself)
   col *= 1.0 - clamp(lap / 220.0, -0.05, 0.05);
 
+  // water, flat at its level: the drainage tone under the same light with a little sky in it, no contours on it
+  float wtr = smoothstep(0.3, 0.7, texture(uWater, uv).r);
+  if (wtr > 0.001) {
+    vec3 wcol = uWaterC * (uLight * 0.42 + uAmbient * 0.9) + uSky * 0.1;
+    col = mix(col, wcol, wtr);
+  }
+
   // a finding's footprint on the land, lit by the land's own light so the relief still reads through it
   if (uOverA > 0.001) {
     vec2 ou = (xz - uOverRect.xy) / (uOverRect.zw - uOverRect.xy);
@@ -166,14 +176,14 @@ void main() {
     float b0 = 1.0 - smoothstep(uSnowLimits.x - 6.0, uSnowLimits.x + 6.0, h);
     float b2 = smoothstep(uSnowLimits.y - 6.0, uSnowLimits.y + 6.0, h);
     float share = uSnow.x * b0 + uSnow.y * (1.0 - b0 - b2) + uSnow.z * b2;
-    col = mix(col, uSnowC * (0.45 + 0.55 * clamp(diff * 1.1 + 0.3 * sky, 0.0, 1.0)), clamp(share, 0.0, 1.0) * 0.85 * uSnowA);
+    col = mix(col, uSnowC * (0.45 + 0.55 * clamp(diff * 1.1 + 0.3 * sky, 0.0, 1.0)), clamp(share, 0.0, 1.0) * 0.85 * uSnowA * (1.0 - wtr));
   }
 
   float c250 = contour(h, 250.0, 0.9);
   float c1000 = contour(h, 1000.0, 1.2);
   float c50 = contour(h, 50.0, 0.75);
-  col = mix(col, uLine, clamp(c250 * mix(0.55, uContour, uCarve) + c1000 * mix(0.65, uIndex, uCarve) + c50 * (1.0 - uCarve) * 0.25, 0.0, 1.0) * (0.55 + 0.45 * diff));
-  if (uLimitA > 0.001) col = mix(col, uLimitC, limitLine(h, uLimitAt, 1.0) * uLimitA);
+  col = mix(col, uLine, clamp(c250 * mix(0.55, uContour, uCarve) + c1000 * mix(0.65, uIndex, uCarve) + c50 * (1.0 - uCarve) * 0.25, 0.0, 1.0) * (0.55 + 0.45 * diff) * (1.0 - wtr));
+  if (uLimitA > 0.001) col = mix(col, uLimitC, limitLine(h, uLimitAt, 1.0) * uLimitA * (1.0 - wtr));
 
   // During Stage 1 (2D Survey Plan, uCarve < 1.0), overlay the Death Stranding survey grid & extraction tint
   if (uCarve < 0.999) {
@@ -343,6 +353,8 @@ export interface ReliefColours {
   limitC: Channels;
   fogC: string;
   rimC: string;
+  /** Water bodies (a live place's water mask). */
+  waterC?: string;
 }
 
 export interface ReliefOptions {
@@ -357,11 +369,27 @@ export interface ReliefOptions {
   index?: number;
   limitA?: number;
   limitAt?: number;
+  /** Water's share of each relief cell (R, the relief's grid), when the place has a water mask. */
+  water?: Texture;
 }
 
 /** No footprint: one transparent texel. */
 const EMPTY_OVERLAY = new DataTexture(new Uint8Array([0, 0, 0, 0]), 1, 1, RGBAFormat);
 EMPTY_OVERLAY.needsUpdate = true;
+/** No water: one texel of none. */
+const NO_WATER = new DataTexture(new Uint8Array([0]), 1, 1, RedFormat, UnsignedByteType);
+NO_WATER.needsUpdate = true;
+
+/** Water's share of each relief cell (0 to 255, row 0 north) as a linear-filtered texture on the relief grid. */
+export function waterTexture(water: Uint8Array<ArrayBuffer>, g: Grid): DataTexture {
+  const t = new DataTexture(water, g.width, g.height, RedFormat, UnsignedByteType);
+  t.minFilter = LinearFilter;
+  t.magFilter = LinearFilter;
+  t.unpackAlignment = 1;
+  t.flipY = false;
+  t.needsUpdate = true;
+  return t;
+}
 
 export function createRelief(
   H: Float32Array,
@@ -446,6 +474,8 @@ export function createRelief(
     uSnowA: { value: 0 },
     uSnowC: { value: new Vector3(1, 1, 1) },
     uCarve: { value: 1 },
+    uWater: { value: o.water ?? NO_WATER },
+    uWaterC: { value: hexVec(c.waterC ?? c.albedo) },
   };
   const material = new ShaderMaterial({
     vertexShader: RELIEF_VERT,
@@ -775,12 +805,7 @@ export function createSurveyPlan(
   const pz1 = cz + span * 0.5;
 
   const y = o.yPlane ?? 0;
-  const pos = new Float32Array([
-    px0, y, pz0,
-    px1, y, pz0,
-    px1, y, pz1,
-    px0, y, pz1,
-  ]);
+  const pos = new Float32Array([px0, y, pz0, px1, y, pz0, px1, y, pz1, px0, y, pz1]);
   const idx = new Uint16Array([0, 2, 1, 0, 3, 2]);
   const geometry = new BufferGeometry();
   geometry.setAttribute("position", new BufferAttribute(pos, 3));

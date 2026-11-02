@@ -167,17 +167,26 @@ const TERRARIUM_TIMEOUT_MS: Record<number, number> = { 12: 15_000, 11: 10_000 };
  * no pixel over 200 m, one over 150 m), so a pixel further than this from that median is a defect.
  */
 export const SPIKE_THRESHOLD_M = 200;
+/**
+ * Smaller defects stand alone: a pixel more than this below all eight of its neighbours, or above all eight. Real
+ * ground has none at zoom 12 (none over 20 m on the Matterhorn, the Grand Canyon, Yucatan's cenotes, Amsterdam,
+ * Queenstown, Iowa, the Anti-Atlas or Ait Bouguemez; New York has 24 pits and 8 peaks).
+ */
+export const LONE_THRESHOLD_M = 20;
 
 /**
- * Replaces each pixel of a W x H mosaic that sits more than thresholdM from the median of the other pixels in its
- * 5 x 5 window (clipped at the mosaic edge) by that median, judged on the values as read. Returns how many it
- * replaced. A defect band up to two rows or columns wide is caught; a wider one is not.
+ * Replaces Terrarium defects in a W x H mosaic, judged on the values as read in each of two passes: first each
+ * pixel more than SPIKE_THRESHOLD_M from the median of the other pixels in its 5 x 5 window (clipped at the mosaic
+ * edge) takes that median (a defect band up to two rows or columns wide is caught; a wider one is not); then each
+ * pixel more than LONE_THRESHOLD_M below or above all eight neighbours takes their median. Returns how many it
+ * replaced.
  */
 export function despikeMosaic(
   m: Float32Array,
   W: number,
   H: number,
   thresholdM = SPIKE_THRESHOLD_M,
+  loneM = LONE_THRESHOLD_M,
 ): number {
   const fixes: Array<[number, number]> = [];
   const nb: number[] = [];
@@ -201,7 +210,25 @@ export function despikeMosaic(
     }
   }
   for (const [k, v] of fixes) m[k] = v;
-  return fixes.length;
+
+  const lone: Array<[number, number]> = [];
+  for (let j = 1; j < H - 1; j++) {
+    for (let i = 1; i < W - 1; i++) {
+      nb.length = 0;
+      for (let dj = -1; dj <= 1; dj++) {
+        for (let di = -1; di <= 1; di++) {
+          if (di !== 0 || dj !== 0) nb.push(m[(j + dj) * W + i + di] ?? 0);
+        }
+      }
+      nb.sort((a, b) => a - b);
+      const v = m[j * W + i] ?? 0;
+      if (v < (nb[0] ?? v) - loneM || v > (nb[7] ?? v) + loneM) {
+        lone.push([j * W + i, ((nb[3] ?? 0) + (nb[4] ?? 0)) / 2]);
+      }
+    }
+  }
+  for (const [k, v] of lone) m[k] = v;
+  return fixes.length + lone.length;
 }
 
 export interface TerrariumGrid {
