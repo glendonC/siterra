@@ -10,6 +10,13 @@ import {
   latLonToMetaCanopyQuadKey,
 } from "./satellite-fetcher.ts";
 
+/** Answers every fetch from `respond`, given the request's URL. */
+function mockFetch(respond: (url: string) => Response): void {
+  globalThis.fetch = vi.fn((input: RequestInfo | URL) =>
+    Promise.resolve(respond(input instanceof Request ? input.url : input.toString())),
+  );
+}
+
 describe("earth-data live fetchers and 3D terrain adapter", () => {
   const originalFetch = globalThis.fetch;
 
@@ -52,8 +59,7 @@ describe("earth-data live fetchers and 3D terrain adapter", () => {
     }
     const pngBytes = encodeRgbaPng(width, height, rgba);
 
-    globalThis.fetch = vi.fn(async (input: RequestInfo | URL) => {
-      const url = typeof input === "string" ? input : input.toString();
+    mockFetch((url) => {
       if (url.includes("/api/stac/v1/search")) {
         return new Response(
           JSON.stringify({
@@ -91,7 +97,7 @@ describe("earth-data live fetchers and 3D terrain adapter", () => {
         });
       }
       return new Response("Not Found", { status: 404 });
-    }) as typeof fetch;
+    });
 
     const bbox: [number, number, number, number] = [-6.55, 31.55, -6.35, 31.75];
     const sat = await fetchSatelliteLandCover(bbox);
@@ -123,8 +129,10 @@ describe("earth-data live fetchers and 3D terrain adapter", () => {
       now: "2026-11-01T12:00:00.000Z",
       satellite: sat,
     });
-    expect(built.sources.length).toBe(3);
-    expect(built.evidence.length).toBe(3);
+    // WorldCover and Sentinel-2; no canopy record, since the canopy tile is named but never read
+    expect(built.sources.length).toBe(2);
+    expect(built.evidence.length).toBe(2);
+    expect(built.sources.some((x) => x.id.includes("meta_chm"))).toBe(false);
     for (const s of built.sources) {
       expect(() => Source.parse(s)).not.toThrow();
     }
@@ -134,8 +142,7 @@ describe("earth-data live fetchers and 3D terrain adapter", () => {
   });
 
   it("gracefully falls back when WorldCover crop endpoint fails", async () => {
-    globalThis.fetch = vi.fn(async (input: RequestInfo | URL) => {
-      const url = typeof input === "string" ? input : input.toString();
+    mockFetch((url) => {
       if (url.includes("/api/stac/v1/search")) {
         return new Response(
           JSON.stringify({
@@ -150,7 +157,7 @@ describe("earth-data live fetchers and 3D terrain adapter", () => {
         );
       }
       return new Response("Gateway Timeout", { status: 504 });
-    }) as typeof fetch;
+    });
 
     const sat = await fetchSatelliteLandCover([-6.55, 31.55, -6.35, 31.75]);
     expect(sat.worldCoverItemId).toBe("ESA_WorldCover_10m_2021_v200_N30W009");
@@ -158,7 +165,7 @@ describe("earth-data live fetchers and 3D terrain adapter", () => {
   });
 
   it("fetches Overpass waterways, peaks, and protected areas", async () => {
-    globalThis.fetch = vi.fn(async () => {
+    mockFetch(() => {
       return new Response(
         JSON.stringify({
           elements: [
@@ -190,7 +197,7 @@ describe("earth-data live fetchers and 3D terrain adapter", () => {
         }),
         { status: 200, headers: { "Content-Type": "application/json" } },
       );
-    }) as typeof fetch;
+    });
 
     const hydro = await fetchRealHydrology([-6.55, 31.55, -6.35, 31.75]);
     expect(hydro.streamPaths).toHaveLength(1);
@@ -209,7 +216,7 @@ describe("earth-data live fetchers and 3D terrain adapter", () => {
   });
 
   it("fetches GBIF species occurrences and builds schema-valid Source and Evidence", async () => {
-    globalThis.fetch = vi.fn(async () => {
+    mockFetch(() => {
       return new Response(
         JSON.stringify({
           count: 142,
@@ -248,7 +255,7 @@ describe("earth-data live fetchers and 3D terrain adapter", () => {
         }),
         { status: 200, headers: { "Content-Type": "application/json" } },
       );
-    }) as typeof fetch;
+    });
 
     const bio = await fetchBiodiversityContext({
       bbox: [-6.55, 31.55, -6.35, 31.75],

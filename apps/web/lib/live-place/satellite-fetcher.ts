@@ -44,10 +44,7 @@ export function latLonToMetaCanopyQuadKey(lat: number, lon: number, zoom = 9): s
   const x = Math.max(0, Math.min(n - 1, Math.floor(((clampedLon + 180) / 360) * n)));
   const y = Math.max(
     0,
-    Math.min(
-      n - 1,
-      Math.floor((0.5 - Math.log((1 + sinLat) / (1 - sinLat)) / (4 * Math.PI)) * n),
-    ),
+    Math.min(n - 1, Math.floor((0.5 - Math.log((1 + sinLat) / (1 - sinLat)) / (4 * Math.PI)) * n)),
   );
   let quadKey = "";
   for (let i = zoom; i > 0; i--) {
@@ -296,33 +293,145 @@ const WORLDCOVER_PALETTE: ReadonlyArray<{
   bareVal: number;
 }> = [
   // 10: Tree cover [0, 100, 0]
-  { bucket: "tree", r: 0, g: 100, b: 0, treeVal: 255, cropVal: 0, grassVal: 0, waterVal: 0, bareVal: 0 },
+  {
+    bucket: "tree",
+    r: 0,
+    g: 100,
+    b: 0,
+    treeVal: 255,
+    cropVal: 0,
+    grassVal: 0,
+    waterVal: 0,
+    bareVal: 0,
+  },
   // 95: Mangroves [0, 207, 117]
-  { bucket: "tree", r: 0, g: 207, b: 117, treeVal: 240, cropVal: 0, grassVal: 0, waterVal: 60, bareVal: 0 },
+  {
+    bucket: "tree",
+    r: 0,
+    g: 207,
+    b: 117,
+    treeVal: 240,
+    cropVal: 0,
+    grassVal: 0,
+    waterVal: 60,
+    bareVal: 0,
+  },
   // 20: Shrubland [255, 187, 34] -> woody shrub / dryland rangeland
-  { bucket: "grass", r: 255, g: 187, b: 34, treeVal: 85, cropVal: 0, grassVal: 210, waterVal: 0, bareVal: 0 },
+  {
+    bucket: "grass",
+    r: 255,
+    g: 187,
+    b: 34,
+    treeVal: 85,
+    cropVal: 0,
+    grassVal: 210,
+    waterVal: 0,
+    bareVal: 0,
+  },
   // 30: Grassland [255, 255, 76]
-  { bucket: "grass", r: 255, g: 255, b: 76, treeVal: 0, cropVal: 0, grassVal: 255, waterVal: 0, bareVal: 0 },
+  {
+    bucket: "grass",
+    r: 255,
+    g: 255,
+    b: 76,
+    treeVal: 0,
+    cropVal: 0,
+    grassVal: 255,
+    waterVal: 0,
+    bareVal: 0,
+  },
   // 100: Moss and lichen [250, 230, 160]
-  { bucket: "grass", r: 250, g: 230, b: 160, treeVal: 0, cropVal: 0, grassVal: 195, waterVal: 0, bareVal: 60 },
+  {
+    bucket: "grass",
+    r: 250,
+    g: 230,
+    b: 160,
+    treeVal: 0,
+    cropVal: 0,
+    grassVal: 195,
+    waterVal: 0,
+    bareVal: 60,
+  },
   // 40: Cropland [240, 150, 255]
-  { bucket: "crop", r: 240, g: 150, b: 255, treeVal: 0, cropVal: 255, grassVal: 0, waterVal: 0, bareVal: 0 },
+  {
+    bucket: "crop",
+    r: 240,
+    g: 150,
+    b: 255,
+    treeVal: 0,
+    cropVal: 255,
+    grassVal: 0,
+    waterVal: 0,
+    bareVal: 0,
+  },
   // 50: Built-up [250, 0, 0]
-  { bucket: "bare", r: 250, g: 0, b: 0, treeVal: 0, cropVal: 0, grassVal: 0, waterVal: 0, bareVal: 220 },
+  {
+    bucket: "bare",
+    r: 250,
+    g: 0,
+    b: 0,
+    treeVal: 0,
+    cropVal: 0,
+    grassVal: 0,
+    waterVal: 0,
+    bareVal: 220,
+  },
   // 60: Bare / sparse vegetation [180, 180, 180]
-  { bucket: "bare", r: 180, g: 180, b: 180, treeVal: 0, cropVal: 0, grassVal: 0, waterVal: 0, bareVal: 255 },
+  {
+    bucket: "bare",
+    r: 180,
+    g: 180,
+    b: 180,
+    treeVal: 0,
+    cropVal: 0,
+    grassVal: 0,
+    waterVal: 0,
+    bareVal: 255,
+  },
   // 70: Snow and ice [240, 240, 240]
-  { bucket: "bare", r: 240, g: 240, b: 240, treeVal: 0, cropVal: 0, grassVal: 0, waterVal: 0, bareVal: 255 },
+  {
+    bucket: "bare",
+    r: 240,
+    g: 240,
+    b: 240,
+    treeVal: 0,
+    cropVal: 0,
+    grassVal: 0,
+    waterVal: 0,
+    bareVal: 255,
+  },
   // 80: Permanent water bodies [0, 100, 200]
-  { bucket: "water", r: 0, g: 100, b: 200, treeVal: 0, cropVal: 0, grassVal: 0, waterVal: 255, bareVal: 0 },
+  {
+    bucket: "water",
+    r: 0,
+    g: 100,
+    b: 200,
+    treeVal: 0,
+    cropVal: 0,
+    grassVal: 0,
+    waterVal: 255,
+    bareVal: 0,
+  },
   // 90: Herbaceous wetland [0, 150, 160]
-  { bucket: "water", r: 0, g: 150, b: 160, treeVal: 0, cropVal: 50, grassVal: 120, waterVal: 230, bareVal: 0 },
+  {
+    bucket: "water",
+    r: 0,
+    g: 150,
+    b: 160,
+    treeVal: 0,
+    cropVal: 50,
+    grassVal: 120,
+    waterVal: 230,
+    bareVal: 0,
+  },
 ];
 
 export function classifyWorldCoverRgb(r: number, g: number, b: number) {
-  let best = WORLDCOVER_PALETTE[0]!;
+  const [first, ...rest] = WORLDCOVER_PALETTE;
+  if (!first) throw new Error("WorldCover palette is empty");
+  let best = first;
   let bestDist = Infinity;
-  for (const entry of WORLDCOVER_PALETTE) {
+  for (const entry of [first, ...rest]) {
     const dr = r - entry.r;
     const dg = g - entry.g;
     const db = b - entry.b;
@@ -335,11 +444,7 @@ export function classifyWorldCoverRgb(r: number, g: number, b: number) {
   return best;
 }
 
-function classifyWorldCoverPng(decoded: {
-  width: number;
-  height: number;
-  data: Uint8Array;
-}): {
+function classifyWorldCoverPng(decoded: { width: number; height: number; data: Uint8Array }): {
   grid: LandCoverGrid;
   treeCoverPct: number;
   croplandPct: number;
@@ -413,60 +518,51 @@ async function searchStacFeatures(
     Accept: "application/json",
     "User-Agent": "Siterra/1.0",
   };
-
-  // First try combined search (works with unit test mocks and single-backend STAC servers)
-  try {
-    const combinedRes = await fetch(url, {
-      method: "POST",
-      headers,
-      signal,
-      body: JSON.stringify({
-        collections: ["esa-worldcover", "sentinel-2-l2a"],
-        bbox,
-        limit: 6,
-      }),
-    });
-    if (combinedRes.ok) {
-      const data = (await combinedRes.json()) as StacSearchResponse;
-      if (Array.isArray(data.features) && data.features.length > 0) {
-        return data.features;
-      }
+  const search = async (body: object): Promise<StacFeature[]> => {
+    try {
+      const res = await fetch(url, { method: "POST", headers, signal, body: JSON.stringify(body) });
+      if (!res.ok) return [];
+      const data = (await res.json().catch(() => ({}))) as StacSearchResponse;
+      return Array.isArray(data.features) ? data.features : [];
+    } catch {
+      return [];
     }
-  } catch {
-    if (signal.aborted) return [];
-  }
+  };
 
-  // Planetary Computer production separates esa-worldcover and sentinel-2-l2a backends
-  const [wcRes, s2Res] = await Promise.all([
-    fetch(url, {
-      method: "POST",
-      headers,
-      signal,
-      body: JSON.stringify({ collections: ["esa-worldcover"], bbox, limit: 2 }),
-    }).catch(() => null),
-    fetch(url, {
-      method: "POST",
-      headers,
-      signal,
-      body: JSON.stringify({ collections: ["sentinel-2-l2a"], bbox, limit: 4 }),
-    }).catch(() => null),
+  // Planetary Computer serves esa-worldcover and sentinel-2-l2a from separate backends: ask each on its own, so a
+  // box spanning several WorldCover tiles gets every one (two years of up to four tiles), then the combined search
+  const [wc, s2] = await Promise.all([
+    search({ collections: ["esa-worldcover"], bbox, limit: 8 }),
+    search({ collections: ["sentinel-2-l2a"], bbox, limit: 4 }),
   ]);
+  const found =
+    wc.length + s2.length > 0
+      ? [...wc, ...s2]
+      : await search({ collections: ["esa-worldcover", "sentinel-2-l2a"], bbox, limit: 6 });
+  const seen = new Set<string>();
+  return found.filter((f) => {
+    const id = typeof f.id === "string" ? f.id : "";
+    if (seen.has(id)) return false;
+    seen.add(id);
+    return true;
+  });
+}
 
-  const features: StacFeature[] = [];
-  if (wcRes?.ok) {
-    const wcData = (await wcRes.json().catch(() => ({}))) as StacSearchResponse;
-    if (Array.isArray(wcData.features)) features.push(...wcData.features);
-  }
-  if (s2Res?.ok) {
-    const s2Data = (await s2Res.json().catch(() => ({}))) as StacSearchResponse;
-    if (Array.isArray(s2Data.features)) features.push(...s2Data.features);
-  }
-  return features;
+/** WorldCover crop size (px a side): about 78 m pixels over a 20 km box, the terrain grid's own spacing. */
+export const WORLDCOVER_GRID = 256;
+
+/** The year a WorldCover item maps, from its dates or its id. */
+function worldCoverYearOf(f: StacFeature): number | undefined {
+  const dateStr =
+    f.properties?.end_datetime ?? f.properties?.start_datetime ?? f.properties?.datetime ?? f.id;
+  const m = typeof dateStr === "string" ? /\b(20\d{2})\b/.exec(dateStr) : null;
+  return m?.[1] ? Number.parseInt(m[1], 10) : undefined;
 }
 
 /**
  * Queries Microsoft Planetary Computer STAC API for `esa-worldcover` and `sentinel-2-l2a`
- * items intersecting `bbox`, fetches + decodes the 64x64 ESA WorldCover crop PNG, and
+ * items intersecting `bbox`, crops every WorldCover item of the newest year over it (WORLDCOVER_GRID px a
+ * side), merges them (the first crop with a reading at a pixel wins) and decodes the classes, and
  * resolves the Meta AI DINOv2 + WRI 1-meter Global Canopy Height Map quadkey tile.
  */
 export async function fetchSatelliteLandCover(
@@ -479,7 +575,10 @@ export async function fetchSatelliteLandCover(
   const metaChmUrl = `https://dataforgood-fb-data.s3.amazonaws.com/forests/v1/alsgedi_global_v6_float/chm/${quadKey}.tif`;
 
   const ac = new AbortController();
-  const timer = setTimeout(() => ac.abort(), 4500);
+  const timer = setTimeout(() => {
+    ac.abort();
+  }, 4500);
+  let wcItems: StacFeature[];
 
   const result: SatelliteLandCoverResult = {
     metaCanopyQuadKey: quadKey,
@@ -488,11 +587,14 @@ export async function fetchSatelliteLandCover(
   };
   try {
     const features = await searchStacFeatures(bbox, ac.signal);
-    const wcFeature = features.find(
+    const wcFeatures = features.filter(
       (f) =>
         f.collection === "esa-worldcover" ||
         (typeof f.id === "string" && f.id.startsWith("ESA_WorldCover")),
     );
+    const newestYear = Math.max(...wcFeatures.map((f) => worldCoverYearOf(f) ?? 0));
+    wcItems = wcFeatures.filter((f) => (worldCoverYearOf(f) ?? 0) === newestYear);
+    const wcFeature = wcItems[0];
 
     const s2Features = features.filter(
       (f) =>
@@ -507,15 +609,8 @@ export async function fetchSatelliteLandCover(
 
     if (wcFeature?.id) {
       result.worldCoverItemId = wcFeature.id;
-      const dateStr =
-        wcFeature.properties?.end_datetime ??
-        wcFeature.properties?.start_datetime ??
-        wcFeature.properties?.datetime ??
-        wcFeature.id;
-      const yrMatch = dateStr.match(/\b(20\d{2})\b/);
-      if (yrMatch?.[1]) {
-        result.worldCoverYear = Number.parseInt(yrMatch[1], 10);
-      }
+      const year = worldCoverYearOf(wcFeature);
+      if (year !== undefined) result.worldCoverYear = year;
       const tileHref =
         wcFeature.assets?.["tilejson"]?.href ??
         wcFeature.assets?.["rendered_preview"]?.href ??
@@ -549,37 +644,55 @@ export async function fetchSatelliteLandCover(
   }
 
   const cropAc = new AbortController();
-  const cropTimer = setTimeout(() => cropAc.abort(), 4000);
+  const cropTimer = setTimeout(() => {
+    cropAc.abort();
+  }, 8000);
   try {
-    const itemEnc = encodeURIComponent(result.worldCoverItemId);
-    const bboxStr = `${minLon},${minLat},${maxLon},${maxLat}`;
-    const primaryCropUrl = `https://planetarycomputer.microsoft.com/api/data/v1/item/crop/esa-worldcover/${itemEnc}.png?assets=map&bbox=${bboxStr}&width=64&height=64&colormap_name=esa-worldcover`;
-    const titilerCropUrl = `https://planetarycomputer.microsoft.com/api/data/v1/item/crop/${bboxStr}/64x64.png?collection=esa-worldcover&item=${itemEnc}&assets=map&colormap_name=esa-worldcover`;
-
-    let pngBytes: Uint8Array | null = null;
-    for (const url of [titilerCropUrl, primaryCropUrl]) {
-      try {
-        const res = await fetch(url, { signal: cropAc.signal });
-        if (res.ok) {
-          pngBytes = new Uint8Array(await res.arrayBuffer());
-          break;
+    const bboxStr = `${String(minLon)},${String(minLat)},${String(maxLon)},${String(maxLat)}`;
+    const size = String(WORLDCOVER_GRID);
+    const cropOf = async (itemId: string) => {
+      const itemEnc = encodeURIComponent(itemId);
+      const primaryCropUrl = `https://planetarycomputer.microsoft.com/api/data/v1/item/crop/esa-worldcover/${itemEnc}.png?assets=map&bbox=${bboxStr}&width=${size}&height=${size}&colormap_name=esa-worldcover`;
+      const titilerCropUrl = `https://planetarycomputer.microsoft.com/api/data/v1/item/crop/${bboxStr}/${size}x${size}.png?collection=esa-worldcover&item=${itemEnc}&assets=map&colormap_name=esa-worldcover`;
+      for (const url of [titilerCropUrl, primaryCropUrl]) {
+        try {
+          const res = await fetch(url, { signal: cropAc.signal });
+          if (res.ok) return decodePngRgba(new Uint8Array(await res.arrayBuffer()));
+        } catch {
+          if (cropAc.signal.aborted) return null;
         }
-      } catch {
-        if (cropAc.signal.aborted) break;
       }
-    }
-
-    if (pngBytes) {
-      const decoded = decodePngRgba(pngBytes);
-      if (decoded && decoded.width > 0 && decoded.height > 0) {
-        const classified = classifyWorldCoverPng(decoded);
-        result.landCoverGrid = classified.grid;
-        result.treeCoverPct = classified.treeCoverPct;
-        result.croplandPct = classified.croplandPct;
-        result.grasslandPct = classified.grasslandPct;
-        result.waterPct = classified.waterPct;
-        result.barePct = classified.barePct;
+      return null;
+    };
+    const ids = wcItems.map((f) => f.id).filter((id): id is string => typeof id === "string");
+    const crops = (await Promise.all(ids.slice(0, 4).map(cropOf))).filter(
+      (d): d is NonNullable<typeof d> => d !== null && d.width > 0 && d.height > 0,
+    );
+    const first = crops[0];
+    if (first) {
+      // where the box spans several WorldCover tiles each crop reads only its own: the first with a reading wins
+      const merged = new Uint8Array(first.data);
+      const hasReading = (d: Uint8Array, p: number) =>
+        (d[p + 3] ?? 255) >= 16 && ((d[p] ?? 0) > 0 || (d[p + 1] ?? 0) > 0 || (d[p + 2] ?? 0) > 0);
+      for (const other of crops.slice(1)) {
+        if (other.width !== first.width || other.height !== first.height) continue;
+        for (let p = 0; p < merged.length; p += 4) {
+          if (!hasReading(merged, p) && hasReading(other.data, p)) {
+            merged.set(other.data.subarray(p, p + 4), p);
+          }
+        }
       }
+      const classified = classifyWorldCoverPng({
+        width: first.width,
+        height: first.height,
+        data: merged,
+      });
+      result.landCoverGrid = classified.grid;
+      result.treeCoverPct = classified.treeCoverPct;
+      result.croplandPct = classified.croplandPct;
+      result.grasslandPct = classified.grasslandPct;
+      result.waterPct = classified.waterPct;
+      result.barePct = classified.barePct;
     }
   } catch {
     // Gracefully return STAC metadata if crop endpoint times out or fails
@@ -799,94 +912,8 @@ export function buildSatelliteSourcesAndEvidence(
     }
   }
 
-  if (sat.metaCanopyQuadKey) {
-    const srcId = `src_sat_meta_chm_${slug}_${hash6}`;
-    const qk = sat.metaCanopyQuadKey;
-    const chmUrl =
-      sat.metaCanopyTileUrl ??
-      `https://dataforgood-fb-data.s3.amazonaws.com/forests/v1/alsgedi_global_v6_float/chm/${qk}.tif`;
-    const treeShareInfo =
-      typeof sat.treeCoverPct === "number"
-        ? ` (${sat.treeCoverPct.toFixed(1)}% woody canopy coverage in catchment window)`
-        : "";
-    const chmExcerpt = `Meta AI DINOv2 Vision Transformer & WRI 1 m Global Canopy Height Map tile ${qk} (alsgedi_global_v6_float) covering ${placeName}${treeShareInfo}, trained on spaceborne GEDI and airborne LiDAR to separate tree/orchard crowns from herbaceous ground cover.`;
-    const contentHash = `sha256:${createHash("sha256").update(chmExcerpt).digest("hex")}`;
-
-    const src = Source.safeParse({
-      recordType: "Source",
-      id: srcId,
-      revision: 1,
-      createdAt: now,
-      updatedAt: now,
-      caseId,
-      title: `Meta AI DINOv2 & WRI 1 m Global Canopy Height Map — QuadKey ${qk} (Tolan et al., 2024)`,
-      url: chmUrl,
-      publisher: "Meta AI Research & World Resources Institute (AWS Open Data)",
-      authors: [
-        "Jamie Tolan",
-        "Hung-I Yang",
-        "Benjamin Nosarzewski",
-        "Guillaume Couairon",
-        "Hervé Jégou",
-        "Camille Couprie",
-      ],
-      publicationDate: "2024-02-01",
-      language: "en",
-      accessedAt: now,
-      sourceKind: "official_dataset",
-      accessStatus: "retrieved",
-      license: "CC BY 4.0",
-      redistributionStatus: "permitted",
-      contentHash,
-      notes: [
-        chmExcerpt,
-        "Reference: Tolan et al. (2024), Remote Sensing of Environment, https://doi.org/10.1016/j.rse.2024.113988",
-      ],
-    });
-    if (src.success) {
-      sources.push(src.data);
-      const ev = Evidence.safeParse({
-        recordType: "Evidence",
-        id: `ev_sat_meta_chm_${slug}_${hash6}`,
-        revision: 1,
-        createdAt: now,
-        updatedAt: now,
-        caseId,
-        statement: `Meta AI DINOv2 1 m Canopy Height Map (quadkey ${qk}) for ${placeName}: ${chmExcerpt}`,
-        claimKind: "observation",
-        status: "accepted",
-        geoSelectionId: geoId,
-        periodIds: [],
-        measurementIds: [],
-        provenance: {
-          sourceLocators: [
-            {
-              sourceId: src.data.id,
-              locator: `quadkey ${qk} (alsgedi_global_v6_float)`,
-              excerpt: chmExcerpt,
-            },
-          ],
-          dataBundleIds: [],
-          methodId: "meta_dinov2_canopy_height_v6",
-          methodVersion: "1.0.0",
-          inputVersions: [{ entityId: src.data.id, revision: 1 }],
-          generatedByTaskId: null,
-          generatedAt: now,
-          verificationStatus: "source_checked",
-          limitations: [
-            "1 m canopy height inferred via DINOv2 self-supervised vision transformer from single-date RGB imagery; multi-year tree growth or pruning requires local dendrometric check.",
-          ],
-        },
-        interpretation: `Distinguishes perennial orchard and montane tree canopy structure from seasonal herbaceous flushes across ${placeName}.`,
-        uncertainty:
-          "Mean absolute height error ~2.8 m globally (Tolan et al., 2024); local stand density requires field quadrat validation.",
-        reviewDecisionIds: [],
-      });
-      if (ev.success) {
-        evidence.push(ev.data);
-      }
-    }
-  }
+  // No canopy Source or Evidence: the Meta and WRI canopy height tile is named (metaCanopyQuadKey) but never read, so
+  // nothing about it is retrieved or checked. It returns when a fetcher reads canopy values from the tile.
 
   return {
     sources,
