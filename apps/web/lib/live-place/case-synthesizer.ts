@@ -13,7 +13,7 @@ import {
   type Source,
   Task,
 } from "@siterra/contracts";
-import type { HistoricalClimateSummary } from "./climate-series.ts";
+import { type HistoricalClimateSummary, rainTrendText } from "./climate-series.ts";
 import type { LlmReasonerOutput } from "./llm-reasoner.ts";
 import type { TerrainFile } from "./terrain-builder.ts";
 
@@ -235,7 +235,11 @@ export function synthesizeCasePackage(
   });
 
   // No vegetation series is measured for live places: rainfall cannot be compared with it
-  const signedRain = `${climate.precipTrendMmPerDecade >= 0 ? "+" : ""}${climate.precipTrendMmPerDecade.toFixed(1)}`;
+  const signedRain = rainTrendText(climate);
+  const rainfallKnown =
+    signedRain === null
+      ? (climate.unavailableReason ?? "Rainfall is not measured either.")
+      : `Annual rainfall changed by ${signedRain} mm per decade (${climate.source.window}); a vegetation series would decide whether vegetation followed it.`;
   const noVegetation = "Cannot be assessed with current data. Missing: a measured vegetation series (NDVI).";
 
   const hypRainId = `hyp_rain_${slug}_${hash6}`;
@@ -304,7 +308,7 @@ export function synthesizeCasePackage(
         `Year-to-year rainfall explains most vegetation change across ${placeName}.`,
       "inconclusive",
       rainLlmHyp?.assessment ||
-        `${noVegetation} Annual rainfall changed by ${signedRain} mm per decade (${climate.source.window}); a vegetation series would decide whether vegetation followed it.`,
+        `${noVegetation} ${rainfallKnown}`,
       [],
       [],
       [climate.vegetation.reason],

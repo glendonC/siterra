@@ -1,6 +1,10 @@
 export const CLIMATE_START_YEAR = 2000;
 export const CLIMATE_END_YEAR = 2024;
 export const OPEN_METEO_ARCHIVE_URL = "https://archive-api.open-meteo.com/v1/archive";
+/** The 25-year daily archive takes about 3 s alone and longer beside the other ingest fetches. */
+export const OPEN_METEO_TIMEOUT_MS = 20_000;
+/** Fewer complete years than this and no trend is computed. */
+export const MIN_COMPLETE_YEARS = 20;
 
 /** One calendar year of the reanalysis series; a year enters only when every day of it is present. */
 export interface ClimateYearRow {
@@ -12,7 +16,7 @@ export interface ClimateYearRow {
 
 /** Where the yearly series came from, named so every value derived from it can cite it. */
 export interface ClimateSeriesSource {
-  kind: "open_meteo_archive" | "offline_seeded";
+  kind: "open_meteo_archive";
   label: string;
   url: string | null;
   window: string;
@@ -26,9 +30,12 @@ export interface VegetationNotMeasured {
 
 export interface HistoricalClimateSummary {
   source: ClimateSeriesSource;
+  /** "unavailable" when the archive did not answer: no rainfall value exists, and none is invented. */
+  status: "measured" | "unavailable";
+  unavailableReason: string | null;
   years: ClimateYearRow[];
-  /** Ordinary least squares slope of annual precipitation, mm per decade. */
-  precipTrendMmPerDecade: number;
+  /** Ordinary least squares slope of annual precipitation, mm per decade, or null when unavailable. */
+  precipTrendMmPerDecade: number | null;
   /** 95% interval of that slope (Student t on n minus 2 degrees of freedom), or null below 3 years. */
   precipTrendLowerMmPerDecade: number | null;
   precipTrendUpperMmPerDecade: number | null;
@@ -58,13 +65,23 @@ const T_975 = [
   2.045, 2.042,
 ];
 
-function seededNoise(seed: number): () => number {
-  let s = Math.floor(seed) >>> 0 || 1;
-  return () => {
-    s = (s + 0x6d2b79f5) >>> 0;
-    let t = Math.imul(s ^ (s >>> 15), 1 | s);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+/** The precipitation trend as signed text ("+141.5"), or null when rainfall is unavailable. */
+export function rainTrendText(climate: HistoricalClimateSummary): string | null {
+  const v = climate.precipTrendMmPerDecade;
+  return v === null ? null : `${v >= 0 ? "+" : ""}${v.toFixed(1)}`;
+}
+
+/** The blocked state: what is missing and why, with no series and no trend. */
+export function unavailableClimate(cause: string): HistoricalClimateSummary {
+  return {
+    source: OPEN_METEO_SOURCE,
+    status: "unavailable",
+    unavailableReason: `Source unavailable: the Open-Meteo Historical Weather API could not be retrieved (${cause}). Siterra did not use it, so rainfall is not measured for this place.`,
+    years: [],
+    precipTrendMmPerDecade: null,
+    precipTrendLowerMmPerDecade: null,
+    precipTrendUpperMmPerDecade: null,
+    vegetation: VEGETATION_NOT_MEASURED,
   };
 }
 
@@ -110,6 +127,8 @@ export function computeStatsFromAnnual(
 
   return {
     source,
+    status: "measured",
+    unavailableReason: null,
     years,
     precipTrendMmPerDecade: Number((slopeYr * 10).toFixed(2)),
     precipTrendLowerMmPerDecade: lower,
@@ -164,14 +183,18 @@ export function yearlyRowsFromDaily(daily: ArchiveDaily): ClimateYearRow[] {
 
 /**
  * Fetches daily precipitation and FAO reference evapotranspiration (2000 to 2024) from the
- * Open-Meteo historical archive (ERA5 reanalysis) and sums them into calendar years.
+ * Open-Meteo historical archive (ERA5 reanalysis) and sums them into calendar years. When the
+ * archive does not answer, the result is the unavailable state, never a stand-in series.
  */
 export async function fetchHistoricalClimate(
   lon: number,
   lat: number,
+  timeoutMs: number = OPEN_METEO_TIMEOUT_MS,
 ): Promise<HistoricalClimateSummary> {
   const ac = new AbortController();
-  const timer = setTimeout(() => ac.abort(), 5000);
+  const timer = setTimeout(() => {
+    ac.abort();
+  }, timeoutMs);
   try {
     const url = `${OPEN_METEO_ARCHIVE_URL}?latitude=${encodeURIComponent(
       String(lat),
@@ -182,33 +205,23 @@ export async function fetchHistoricalClimate(
       signal: ac.signal,
       headers: { Accept: "application/json", "User-Agent": "Siterra/1.0" },
     });
-    if (res.ok) {
-      const data = (await res.json()) as { daily?: ArchiveDaily };
-      const years = yearlyRowsFromDaily(data.daily ?? {});
-      if (years.length >= 20) return computeStatsFromAnnual(years, OPEN_METEO_SOURCE);
-    }
-  } catch {
-    // Fall back to the coordinate-seeded series below when offline
+    if (!res.ok) return unavailableClimate(`HTTP ${String(res.status)}`);
+    const data = (await res.json()) as { daily?: ArchiveDaily };
+    const years = yearlyRowsFromDaily(data.daily ?? {});
+    if (years.length < MIN_COMPLETE_YEARS)
+      return unavailableClimate(
+        `${String(years.length)} complete calendar years returned, ${String(MIN_COMPLETE_YEARS)} needed`,
+      );
+    return computeStatsFromAnnual(years, OPEN_METEO_SOURCE);
+  } catch (err) {
+    return unavailableClimate(
+      ac.signal.aborted
+        ? `no answer within ${String(Math.round(timeoutMs / 1000))} s`
+        : err instanceof Error
+          ? err.message
+          : "request failed",
+    );
   } finally {
     clearTimeout(timer);
   }
-
-  // Coordinate-seeded rainfall when Open-Meteo is unreachable: not data, and labeled as such
-  const rand = seededNoise(Math.round((lon + 180) * 10000 + (lat + 90) * 10000));
-  const meanP = 380 + Math.round(Math.abs(Math.cos((lat * Math.PI) / 180)) * 550);
-  const years: ClimateYearRow[] = [];
-  for (let yr = CLIMATE_START_YEAR; yr <= CLIMATE_END_YEAR; yr++) {
-    const anomaly = (rand() - 0.5) * meanP * 0.38;
-    years.push({
-      year: yr,
-      precipMm: Number(Math.max(40, meanP + anomaly).toFixed(1)),
-      et0Mm: null,
-    });
-  }
-  return computeStatsFromAnnual(years, {
-    kind: "offline_seeded",
-    label: "Coordinate-seeded placeholder series (Open-Meteo unreachable); not a measurement",
-    url: null,
-    window: `${String(CLIMATE_START_YEAR)} to ${String(CLIMATE_END_YEAR)}`,
-  });
 }

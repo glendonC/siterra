@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { Evidence, type Provenance, Source } from "@siterra/contracts";
-import type { HistoricalClimateSummary } from "./climate-series.ts";
+import { type HistoricalClimateSummary, rainTrendText } from "./climate-series.ts";
 import type { TerrainFile } from "./terrain-builder.ts";
 
 export interface OpenAlexWork {
@@ -445,7 +445,7 @@ export function synthesizePlaceQuestionAndEvidence(
     });
   }
 
-  const signedRain = `${climate.precipTrendMmPerDecade >= 0 ? "+" : ""}${climate.precipTrendMmPerDecade.toFixed(1)}`;
+  const signedRain = rainTrendText(climate);
   const rainInterval =
     climate.precipTrendLowerMmPerDecade !== null && climate.precipTrendUpperMmPerDecade !== null
       ? `, 95% interval ${climate.precipTrendLowerMmPerDecade.toFixed(1)} to ${climate.precipTrendUpperMmPerDecade.toFixed(1)}`
@@ -458,8 +458,11 @@ export function synthesizePlaceQuestionAndEvidence(
     createdAt: now,
     updatedAt: now,
     caseId,
-    statement: `Annual precipitation at the reanalysis grid cell nearest ${placeName} changed by ${signedRain} mm per decade (${climate.source.window}, ${String(climate.years.length)} calendar years${rainInterval}). Vegetation change is not measured.`,
-    claimKind: "model_estimate",
+    statement:
+      signedRain === null
+        ? `${climate.unavailableReason ?? "Rainfall is not measured."} Vegetation change is not measured either.`
+        : `Annual precipitation at the reanalysis grid cell nearest ${placeName} changed by ${signedRain} mm per decade (${climate.source.window}, ${String(climate.years.length)} calendar years${rainInterval}). Vegetation change is not measured.`,
+    claimKind: signedRain === null ? "field_requirement" : "model_estimate",
     status: "accepted",
     geoSelectionId: geoId,
     periodIds,
@@ -470,13 +473,15 @@ export function synthesizePlaceQuestionAndEvidence(
     },
     interpretation: null,
     uncertainty:
-      "Reanalysis for one grid cell, not a rain gauge; 95% Student t interval of the least squares slope.",
+      signedRain === null
+        ? "Not measured: the rainfall archive did not answer when this place was opened."
+        : "Reanalysis for one grid cell, not a rain gauge; 95% Student t interval of the least squares slope.",
     reviewDecisionIds: [],
   });
 
   const unresolvedQuestions = [
     question,
-    `How do elevation bands (${terrain.minElevationM.toFixed(0)}–${terrain.maxElevationM.toFixed(0)} m) and precipitation trends (${climate.precipTrendMmPerDecade >= 0 ? "+" : ""}${climate.precipTrendMmPerDecade.toFixed(1)} mm/decade) interact across ${placeName}?`,
+    `How do elevation bands (${terrain.minElevationM.toFixed(0)}–${terrain.maxElevationM.toFixed(0)} m) and precipitation trends (${signedRain === null ? "rainfall not measured" : `${signedRain} mm/decade`}) interact across ${placeName}?`,
   ];
 
   return {

@@ -9,6 +9,7 @@ import {
   InstrumentSpec,
   Measurement,
   type Provenance,
+  Source,
   TemporalObservation,
 } from "@siterra/contracts";
 import { type CaseSeedRecords, type Pool, loadSeedCase } from "@siterra/db";
@@ -17,8 +18,11 @@ import { fetchBiodiversityContext } from "./biodiversity-fetcher.ts";
 import {
   type AnnualClimateSummary,
   type ClimateYearRow,
+  CLIMATE_END_YEAR,
+  CLIMATE_START_YEAR,
   type HistoricalClimateSummary,
   fetchHistoricalClimate,
+  rainTrendText,
 } from "./climate-series.ts";
 import { fetchRegionalContextAndGovernance } from "./context-fetcher.ts";
 import { fetchGovernmentPolicyAndOpenAccess } from "./government-policy-fetcher.ts";
@@ -82,16 +86,23 @@ export const PLACE_CACHE_VERSION = 2;
 
 export interface CachedPlaceBundle {
   version: typeof PLACE_CACHE_VERSION;
+  /** The TerrainFile version the record was built from; a different terrain version makes the record stale. */
+  terrainVersion: number;
   outcome: Omit<IngestPlaceOutcome, "created">;
   seed: CaseSeedRecords;
   synth: SynthesizedCasePackage;
   occurrences?: Record<string, unknown>;
 }
 
-/** A place cache written by this version, or null for an older one (whose records are not reused). */
-function readPlaceCache(path: string): CachedPlaceBundle | null {
-  const raw = JSON.parse(readFileSync(path, "utf8")) as { version?: unknown };
-  return raw.version === PLACE_CACHE_VERSION ? (raw as CachedPlaceBundle) : null;
+/**
+ * A place cache written by this version over the same terrain version, or null for any other (whose
+ * records are not reused: band limits, areas and spans come from the terrain).
+ */
+function readPlaceCache(path: string, terrainVersion: number): CachedPlaceBundle | null {
+  const raw = JSON.parse(readFileSync(path, "utf8")) as { version?: unknown; terrainVersion?: unknown };
+  return raw.version === PLACE_CACHE_VERSION && raw.terrainVersion === terrainVersion
+    ? (raw as CachedPlaceBundle)
+    : null;
 }
 
 function makeSlug(text: string): string {
@@ -176,14 +187,14 @@ export async function ingestLocationCase(
     [caseId],
   );
   if ((existing.rowCount ?? 0) > 0 && existing.rows[0]) {
-    await readOrBuildTerrain(caseId, bbox);
+    const existingTerrain = await readOrBuildTerrain(caseId, bbox);
     const hasMerge = await pool.query(
       "select 1 from records where case_id = $1 and record_type = 'BranchMerge' limit 1",
       [caseId],
     );
     if ((hasMerge.rowCount ?? 0) === 0 && existsSync(placeCachePath(caseId))) {
       try {
-        const cached = readPlaceCache(placeCachePath(caseId));
+        const cached = readPlaceCache(placeCachePath(caseId), existingTerrain.version);
         if (cached) {
           await persistSynthesizedPackage(pool, caseId, cached.synth);
         }
@@ -207,9 +218,9 @@ export async function ingestLocationCase(
   const cacheFile = placeCachePath(caseId);
   if (existsSync(cacheFile)) {
     try {
-      const cached = readPlaceCache(cacheFile);
+      const cachedTerrain = await readOrBuildTerrain(caseId, bbox);
+      const cached = readPlaceCache(cacheFile, cachedTerrain.version);
       if (cached) {
-        await readOrBuildTerrain(caseId, bbox);
         await loadSeedCase(pool, cached.seed, ownerScopeId);
         await persistSynthesizedPackage(pool, caseId, cached.synth);
         return { ...cached.outcome, created: true };
@@ -273,8 +284,21 @@ export async function ingestLocationCase(
       })
     : { sources: [], evidence: [] };
 
+  const rainUnavailable = climate.status !== "measured";
+  const datasetSources = rainUnavailable
+    ? oaSources.map((s) =>
+        s.id.startsWith("src_era5_")
+          ? Source.parse({
+              ...s,
+              accessStatus: "unavailable",
+              contentHash: null,
+              notes: [...s.notes, climate.unavailableReason ?? "Not retrieved."],
+            })
+          : s,
+      )
+    : oaSources;
   const sources = [
-    ...oaSources,
+    ...datasetSources,
     ...satRecords.sources,
     ...regionalCtx.contextSources,
     ...govPolicy.sources,
@@ -305,11 +329,14 @@ export async function ingestLocationCase(
   });
 
   const bundleId = `bundle_loc_${slug}_${hash6}`;
-  const periodIds = climate.years.map((y) => `period_${String(y.year)}-06`);
+  // The record keeps one period per calendar year whether or not rainfall was retrieved for it
+  const recordYears: number[] = [];
+  for (let yr = CLIMATE_START_YEAR; yr <= CLIMATE_END_YEAR; yr++) recordYears.push(yr);
+  const rainByYear = new Map(climate.years.map((y) => [y.year, y] as const));
+  const periodIds = recordYears.map((yr) => `period_${String(yr)}-06`);
   const contentHash = `1220${createHash("sha256").update(`${bundleId}:${now}`).digest("hex")}`;
 
   const climateSource = climate.source;
-  const seededClimate = climateSource.kind !== "open_meteo_archive";
   const era5SourceId = sources.find((s) => s.id.startsWith("src_era5_"))?.id ?? null;
   const demSourceId = sources.find((s) => s.id.startsWith("src_dem_"))?.id ?? null;
   const vegetationMissing = climate.vegetation.reason;
@@ -322,9 +349,11 @@ export async function ingestLocationCase(
     inputVersions: [{ entityId: geoId, revision: 1 }],
     generatedByTaskId: null,
     generatedAt: now,
-    verificationStatus: seededClimate ? "unverified" : "computed_checked",
+    verificationStatus: "computed_checked",
     limitations: [
-      `Rainfall: ${climateSource.label} (${climateSource.window}).`,
+      rainUnavailable
+        ? (climate.unavailableReason ?? "Rainfall is not measured.")
+        : `Rainfall: ${climateSource.label} (${climateSource.window}).`,
       "Relief: the terrain elevation grid built for this place (AWS Terrain Tiles, Terrarium encoding, when reachable).",
       vegetationMissing,
     ],
@@ -342,7 +371,7 @@ export async function ingestLocationCase(
   const rainProvenance: Provenance = {
     ...recordProvenance,
     sourceLocators:
-      era5SourceId && !seededClimate
+      era5SourceId && !rainUnavailable
         ? [
             {
               sourceId: era5SourceId,
@@ -439,49 +468,61 @@ export async function ingestLocationCase(
       validFraction: null,
       spatialResolutionM: null,
       uncertainty: NOT_QUANTIFIED,
-      provenance: notMeasuredProvenance,
+      provenance: { ...notMeasuredProvenance, limitations: [missingReason] },
     });
 
   const temporalObservations: TemporalObservation[] = [];
   const measurements: Measurement[] = [];
 
-  for (const yrRow of climate.years) {
-    const pId = `period_${String(yrRow.year)}-06`;
-    const mPrecipId = `meas_precip_${slug}_${hash6}_${String(yrRow.year)}`;
-    const mNdviId = `meas_ndvi_${slug}_${hash6}_${String(yrRow.year)}`;
+  for (const year of recordYears) {
+    const yrRow = rainByYear.get(year);
+    const pId = `period_${String(year)}-06`;
+    const mPrecipId = `meas_precip_${slug}_${hash6}_${String(year)}`;
+    const mNdviId = `meas_ndvi_${slug}_${hash6}_${String(year)}`;
+    const rainAggregation = `Calendar-year total of daily precipitation (${String(year)}), ${climateSource.label}, nearest grid cell to ${placeName}.`;
     measurements.push(
-      makeMeasurement(
-        mPrecipId,
-        "precipitation_annual_mm",
-        yrRow.precipMm,
-        "mm",
-        pId,
-        `Calendar-year total of daily precipitation (${String(yrRow.year)}), ${climateSource.label}, nearest grid cell to ${placeName}.`,
-        null,
-        null,
-        NOT_QUANTIFIED,
-        rainProvenance,
-      ),
+      yrRow
+        ? makeMeasurement(
+            mPrecipId,
+            "precipitation_annual_mm",
+            yrRow.precipMm,
+            "mm",
+            pId,
+            rainAggregation,
+            null,
+            null,
+            NOT_QUANTIFIED,
+            rainProvenance,
+          )
+        : makeNotMeasured(
+            mPrecipId,
+            "precipitation_annual_mm",
+            "mm",
+            pId,
+            rainAggregation,
+            climate.unavailableReason ??
+              `Not measured: the archive returned days missing in ${String(year)}, so no total is given.`,
+          ),
       makeNotMeasured(
         mNdviId,
         "ndvi_growing_season_mean",
         "NDVI",
         pId,
-        `Growing-season vegetation index (${String(yrRow.year)}) across ${placeName}: not measured.`,
+        `Growing-season vegetation index (${String(year)}) across ${placeName}: not measured.`,
       ),
     );
     temporalObservations.push(
       TemporalObservation.parse({
         recordType: "TemporalObservation",
-        id: `obs_loc_${slug}_${hash6}_${String(yrRow.year)}`,
+        id: `obs_loc_${slug}_${hash6}_${String(year)}`,
         revision: 1,
         createdAt: now,
         updatedAt: now,
         caseId,
         periodId: pId,
-        startDate: `${String(yrRow.year)}-01-01`,
-        endDateExclusive: `${String(yrRow.year + 1)}-01-01`,
-        seasonDefinition: `Calendar year ${String(yrRow.year)} (UTC)`,
+        startDate: `${String(year)}-01-01`,
+        endDateExclusive: `${String(year + 1)}-01-01`,
+        seasonDefinition: `Calendar year ${String(year)} (UTC)`,
         geoSelectionId: geoId,
         geoRevision: 1,
         dataBundleId: bundleId,
@@ -489,7 +530,7 @@ export async function ingestLocationCase(
         mapAssetUri: null,
         mapAssetHash: null,
         mapStatus: "missing",
-        qualityFlags: seededClimate ? ["placeholder_series"] : [],
+        qualityFlags: [],
         provenance: rainProvenance,
       }),
     );
@@ -527,18 +568,27 @@ export async function ingestLocationCase(
       summaryPeriodId,
       `Vegetation trend per decade across ${placeName}: not measured.`,
     ),
-    makeMeasurement(
-      mPrecipTrendId,
-      "precipitation_trend_mm_per_decade",
-      climate.precipTrendMmPerDecade,
-      "mm per decade",
-      summaryPeriodId,
-      `Ordinary least squares trend of calendar-year precipitation over ${String(precipYears)} years (${climateSource.window}), ${climateSource.label}.`,
-      null,
-      null,
-      precipInterval,
-      rainProvenance,
-    ),
+    climate.precipTrendMmPerDecade === null
+      ? makeNotMeasured(
+          mPrecipTrendId,
+          "precipitation_trend_mm_per_decade",
+          "mm per decade",
+          summaryPeriodId,
+          `Ordinary least squares trend of calendar-year precipitation (${climateSource.window}), ${climateSource.label}: not measured.`,
+          climate.unavailableReason ?? "Rainfall is not measured.",
+        )
+      : makeMeasurement(
+          mPrecipTrendId,
+          "precipitation_trend_mm_per_decade",
+          climate.precipTrendMmPerDecade,
+          "mm per decade",
+          summaryPeriodId,
+          `Ordinary least squares trend of calendar-year precipitation over ${String(precipYears)} years (${climateSource.window}), ${climateSource.label}.`,
+          null,
+          null,
+          precipInterval,
+          rainProvenance,
+        ),
     makeNotMeasured(
       mRainR2Id,
       "rainfall_fit_r_squared",
@@ -736,7 +786,7 @@ export async function ingestLocationCase(
   };
 
   const fdrCitations = [mCatchmentTrendId, mFdrUpId, mFdrDownId];
-  const signedRain = `${climate.precipTrendMmPerDecade >= 0 ? "+" : ""}${climate.precipTrendMmPerDecade.toFixed(1)}`;
+  const signedRain = rainTrendText(climate);
   const specBase = {
     recordType: "InstrumentSpec" as const,
     revision: 1,
@@ -815,8 +865,14 @@ export async function ingestLocationCase(
         fit: { bundleId, assetKey: "rain_fit" },
       },
       caption: {
-        ink: `Annual rainfall trend ${signedRain} mm per decade; how much of vegetation change it explains is not measured.`,
-        grey: `${climate.source.label}, ${String(climate.years.length)} calendar years (${climate.source.window}).`.slice(0, 240),
+        ink:
+          signedRain === null
+            ? "Annual rainfall: not measured; how much of vegetation change it explains: not measured."
+            : `Annual rainfall trend ${signedRain} mm per decade; how much of vegetation change it explains is not measured.`,
+        grey: (signedRain === null
+          ? (climate.unavailableReason ?? "Rainfall is not measured.")
+          : `${climate.source.label}, ${String(climate.years.length)} calendar years (${climate.source.window}).`
+        ).slice(0, 240),
         claimKind: "model_estimate",
         citationIds: [mRainR2Id, mPrecipTrendId],
       },
@@ -929,25 +985,29 @@ export async function ingestLocationCase(
     instruments,
   };
 
-  try {
-    mkdirSync(dirname(cacheFile), { recursive: true });
-    const cachedBundle: CachedPlaceBundle = {
-      version: PLACE_CACHE_VERSION,
-      outcome: {
-        caseId,
-        placeName,
-        regionName,
-        question,
-        outlet: [lon, lat],
-        bbox,
-      },
-      seed,
-      synth,
-      ...(bioCtx.occurrencesPayload ? { occurrences: bioCtx.occurrencesPayload } : {}),
-    };
-    writeFileSync(cacheFile, JSON.stringify(cachedBundle));
-  } catch {
-    // Non-fatal if cache write fails
+  // A record with rainfall unavailable is not cached, so the next ingest of this place asks the archive again
+  if (!rainUnavailable) {
+    try {
+      mkdirSync(dirname(cacheFile), { recursive: true });
+      const cachedBundle: CachedPlaceBundle = {
+        version: PLACE_CACHE_VERSION,
+        terrainVersion: terrain.version,
+        outcome: {
+          caseId,
+          placeName,
+          regionName,
+          question,
+          outlet: [lon, lat],
+          bbox,
+        },
+        seed,
+        synth,
+        ...(bioCtx.occurrencesPayload ? { occurrences: bioCtx.occurrencesPayload } : {}),
+      };
+      writeFileSync(cacheFile, JSON.stringify(cachedBundle));
+    } catch {
+      // Non-fatal if cache write fails
+    }
   }
 
   try {

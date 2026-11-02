@@ -1,7 +1,7 @@
 import { spawnSync } from "node:child_process";
 import { userInfo } from "node:os";
 import type { Source } from "@siterra/contracts";
-import type { HistoricalClimateSummary } from "./climate-series.ts";
+import { type HistoricalClimateSummary, rainTrendText } from "./climate-series.ts";
 
 export const META_API_BASE_URL = "https://api.meta.ai/v1";
 export const META_API_HOST = "api.meta.ai";
@@ -118,8 +118,9 @@ export interface LlmReasonerInput {
   regionName: string;
   lon: number;
   lat: number;
-  minElevationM: number;
-  maxElevationM: number;
+  /** From the place's terrain grid, or null when it is not loaded. */
+  minElevationM: number | null;
+  maxElevationM: number | null;
   bandLimitM?: number | undefined;
   areaKm2?: number | undefined;
   climate: HistoricalClimateSummary;
@@ -816,7 +817,7 @@ export function buildMetaResponsesRequestBody(
 ): Record<string, unknown> {
   const safeMaxTokens = Math.max(MIN_MAX_OUTPUT_TOKENS, maxOutputTokens);
   const extremes = deriveClimateExtremes(input.climate);
-  const areaKm2 = input.areaKm2 ?? 144;
+  const rainTrend = rainTrendText(input.climate);
 
   const sourceLines = input.sources.slice(0, 10).map((s) => {
     const excerpt = s.notes[0] ?? s.title;
@@ -835,13 +836,17 @@ export function buildMetaResponsesRequestBody(
   const userPrompt = [
     `Place: ${input.placeName} (${input.regionName})`,
     `Coordinates: ${input.lat.toFixed(4)}°N, ${input.lon.toFixed(4)}°E`,
-    `Elevation Span: ${input.minElevationM.toFixed(0)} m to ${input.maxElevationM.toFixed(0)} m (Catchment Area: ${areaKm2.toFixed(1)} km²)`,
+    `Elevation Span: ${input.minElevationM === null || input.maxElevationM === null ? "not loaded" : `${input.minElevationM.toFixed(0)} m to ${input.maxElevationM.toFixed(0)} m`} (Catchment Area: ${input.areaKm2 === undefined ? "not loaded" : `${input.areaKm2.toFixed(1)} km²`})`,
     `Question: ${input.question?.trim() || `What is known, and what is not yet measured, about land and water across ${input.placeName}?`}`,
     "",
-    `Rainfall (${input.climate.source.label}, ${String(input.climate.years.length)} calendar years, ${input.climate.source.window}):`,
-    `- Precipitation trend: ${input.climate.precipTrendMmPerDecade >= 0 ? "+" : ""}${input.climate.precipTrendMmPerDecade.toFixed(1)} mm/decade${input.climate.precipTrendLowerMmPerDecade !== null && input.climate.precipTrendUpperMmPerDecade !== null ? ` (95% interval ${input.climate.precipTrendLowerMmPerDecade.toFixed(1)} to ${input.climate.precipTrendUpperMmPerDecade.toFixed(1)})` : ""}`,
-    `- Driest calendar years: ${extremes.droughtYears.join(", ")}`,
-    `- Wettest calendar years: ${extremes.wetYears.join(", ")}`,
+    ...(rainTrend === null
+      ? [`Rainfall: not measured. ${input.climate.unavailableReason ?? ""}`.trim()]
+      : [
+          `Rainfall (${input.climate.source.label}, ${String(input.climate.years.length)} calendar years, ${input.climate.source.window}):`,
+          `- Precipitation trend: ${rainTrend} mm/decade${input.climate.precipTrendLowerMmPerDecade !== null && input.climate.precipTrendUpperMmPerDecade !== null ? ` (95% interval ${input.climate.precipTrendLowerMmPerDecade.toFixed(1)} to ${input.climate.precipTrendUpperMmPerDecade.toFixed(1)})` : ""}`,
+          `- Driest calendar years: ${extremes.droughtYears.join(", ")}`,
+          `- Wettest calendar years: ${extremes.wetYears.join(", ")}`,
+        ]),
     "Not measured (state these as not measured; never estimate them): vegetation index (NDVI) values and trends, the share of vegetation change rainfall explains, temperature trend, soil moisture.",
     `- ${input.climate.vegetation.reason}`,
     "",

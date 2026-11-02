@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
 import {
   type BranchMerge,
   type Brief,
@@ -21,12 +22,15 @@ import {
 } from "@siterra/db";
 import {
   type HistoricalClimateSummary,
+  MIN_COMPLETE_YEARS,
   OPEN_METEO_SOURCE,
   computeStatsFromAnnual,
+  unavailableClimate,
 } from "../../../../../../../lib/live-place/climate-series.ts";
 import { fetchRegionalContextAndGovernance } from "../../../../../../../lib/live-place/context-fetcher.ts";
 import { fetchGovernmentPolicyAndOpenAccess } from "../../../../../../../lib/live-place/government-policy-fetcher.ts";
 import { fetchOpenAlexSources } from "../../../../../../../lib/live-place/literature.ts";
+import { terrainCachePath } from "../../../../../../../lib/live-place/terrain-builder.ts";
 import {
   choreographyForExplanation,
   reasonOverCaseWithLlm,
@@ -36,6 +40,21 @@ import { json, problem } from "../../../../../problem.ts";
 import { fromApplicationOrigin, requestSession } from "../../../../../session.ts";
 
 export const dynamic = "force-dynamic";
+
+/** The elevation span of the place's terrain grid, or null when no terrain file is cached for the case. */
+function terrainSpan(caseId: string): { minElevationM: number; maxElevationM: number } | null {
+  try {
+    const t = JSON.parse(readFileSync(terrainCachePath(caseId), "utf8")) as {
+      minElevationM?: unknown;
+      maxElevationM?: unknown;
+    };
+    return typeof t.minElevationM === "number" && typeof t.maxElevationM === "number"
+      ? { minElevationM: t.minElevationM, maxElevationM: t.maxElevationM }
+      : null;
+  } catch {
+    return null;
+  }
+}
 
 /**
  * The rainfall series as the case record holds it: only available yearly precipitation values, with
@@ -47,7 +66,6 @@ function extractClimateFromSnapshot(
     value: number | null;
     periodId: string;
     status: string;
-    provenance: { verificationStatus: string };
   }>,
 ): HistoricalClimateSummary {
   const rain = measurements.filter(
@@ -57,18 +75,9 @@ function extractClimateFromSnapshot(
     .map((m) => ({ year: Number(m.periodId.slice(7, 11)), precipMm: m.value ?? 0, et0Mm: null }))
     .filter((r) => Number.isInteger(r.year))
     .sort((a, b) => a.year - b.year);
-  const placeholder = rain.some((m) => m.provenance.verificationStatus === "unverified");
-  return computeStatsFromAnnual(
-    years,
-    placeholder
-      ? {
-          kind: "offline_seeded",
-          label: "Coordinate-seeded placeholder series (Open-Meteo unreachable); not a measurement",
-          url: null,
-          window: OPEN_METEO_SOURCE.window,
-        }
-      : OPEN_METEO_SOURCE,
-  );
+  return years.length < MIN_COMPLETE_YEARS
+    ? unavailableClimate(`the case record holds ${String(years.length)} rainfall years`)
+    : computeStatsFromAnnual(years, OPEN_METEO_SOURCE);
 }
 
 export async function POST(
@@ -212,16 +221,20 @@ export async function POST(
   const bandLimitMeas = (snap.records.measurementRecords ?? []).find(
     (m) => m.metric === "elevation_band_limit" && typeof m.value === "number",
   );
-  const bandLimitM = typeof bandLimitMeas?.value === "number" ? bandLimitMeas.value : 1200;
+  const areaMeas = snap.records.measurementRecords.find(
+    (m) => m.metric === "drainage_outlet_upstream_area" && typeof m.value === "number",
+  );
+  const span = terrainSpan(caseId);
 
   const llmResult = await reasonOverCaseWithLlm({
     placeName,
     regionName,
     lon,
     lat,
-    minElevationM: Math.max(0, Math.round(bandLimitM * 0.6)),
-    maxElevationM: Math.round(bandLimitM * 1.65),
-    bandLimitM,
+    minElevationM: span?.minElevationM ?? null,
+    maxElevationM: span?.maxElevationM ?? null,
+    ...(typeof bandLimitMeas?.value === "number" ? { bandLimitM: bandLimitMeas.value } : {}),
+    ...(typeof areaMeas?.value === "number" ? { areaKm2: areaMeas.value } : {}),
     climate,
     sources: allSources,
     question: cmd.record.text,
@@ -584,7 +597,11 @@ export async function POST(
   const visualChoreography =
     llmResult?.visualChoreography ??
     (["rainfall", "grazing", "land_use", "snow_terrain", "data_artefact"] as const).map((expId) =>
-      choreographyForExplanation(expId, bandLimitM),
+      choreographyForExplanation(
+        expId,
+        typeof bandLimitMeas?.value === "number" ? bandLimitMeas.value : undefined,
+        span ?? {},
+      ),
     );
 
   await setCommandStatus(db, commandId, "succeeded", [taskId, briefTaskId]);

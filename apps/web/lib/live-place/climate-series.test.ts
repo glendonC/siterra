@@ -56,8 +56,9 @@ describe("live climate series", () => {
       });
     const s = computeStatsFromAnnual(years);
     expect(s.precipTrendMmPerDecade).toBeCloseTo(30, 0);
-    expect(s.precipTrendLowerMmPerDecade ?? Infinity).toBeLessThan(s.precipTrendMmPerDecade);
-    expect(s.precipTrendUpperMmPerDecade ?? -Infinity).toBeGreaterThan(s.precipTrendMmPerDecade);
+    const trend = s.precipTrendMmPerDecade ?? NaN;
+    expect(s.precipTrendLowerMmPerDecade ?? Infinity).toBeLessThan(trend);
+    expect(s.precipTrendUpperMmPerDecade ?? -Infinity).toBeGreaterThan(trend);
   });
 
   it("names Open-Meteo as the source of a fetched series", async () => {
@@ -73,5 +74,57 @@ describe("live climate series", () => {
     expect(s.years).toHaveLength(25);
     expect(s.years.every((r) => !("ndvi" in r))).toBe(true);
     expect(s.vegetation.status).toBe("not_measured");
+  });
+
+  it("is a blocked state with no series when Open-Meteo does not answer", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() => Promise.reject(new Error("getaddrinfo ENOTFOUND archive-api.open-meteo.com"))),
+    );
+    const s = await fetchHistoricalClimate(-74.006, 40.713);
+    expect(s.status).toBe("unavailable");
+    expect(s.years).toEqual([]);
+    expect(s.precipTrendMmPerDecade).toBeNull();
+    expect(s.unavailableReason).toMatch(
+      /^Source unavailable: the Open-Meteo Historical Weather API/,
+    );
+    expect(s.unavailableReason).toContain("ENOTFOUND");
+  });
+
+  it("names the wait when the archive is too slow, instead of inventing a series", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(
+        (_url: string, init?: { signal?: AbortSignal }) =>
+          new Promise<Response>((_resolve, reject) => {
+            init?.signal?.addEventListener("abort", () => {
+              reject(new Error("aborted"));
+            });
+          }),
+      ),
+    );
+    const s = await fetchHistoricalClimate(-74.006, 40.713, 30);
+    expect(s.status).toBe("unavailable");
+    expect(s.unavailableReason).toContain("no answer within 0 s");
+    expect(s.years).toEqual([]);
+  });
+
+  it("is blocked when fewer than 20 complete years come back", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() =>
+        Promise.resolve(
+          new Response(
+            JSON.stringify({
+              daily: dailyArchive((date) => date.endsWith("-12-31") && date < "2010"),
+            }),
+            { status: 200 },
+          ),
+        ),
+      ),
+    );
+    const s = await fetchHistoricalClimate(-74.006, 40.713);
+    expect(s.status).toBe("unavailable");
+    expect(s.unavailableReason).toContain("15 complete calendar years returned, 20 needed");
   });
 });

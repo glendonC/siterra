@@ -453,4 +453,23 @@ describe("verifyLlmReasonerOutput & reasonOverCaseWithLlm", () => {
     expect(prompt).not.toMatch(/Temperature trend: [-+]?\d/);
     expect(prompt).not.toMatch(/R² \(/);
   });
+
+  it("says the elevation span and catchment area are not loaded instead of inventing them", () => {
+    const body = buildMetaResponsesRequestBody(
+      {
+        placeName: "New York",
+        regionName: "United States",
+        lon: -74.006,
+        lat: 40.713,
+        minElevationM: null,
+        maxElevationM: null,
+        climate: buildMockClimate(),
+        sources: sampleSources,
+      },
+      DEFAULT_META_MODEL,
+    );
+    const prompt = JSON.stringify(body["input"]);
+    expect(prompt).toContain("Elevation Span: not loaded (Catchment Area: not loaded)");
+    expect(prompt).not.toContain("144.0 km²");
+  });
 });
