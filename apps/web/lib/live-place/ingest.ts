@@ -660,8 +660,9 @@ export async function buildLiveCase(input: {
           : s,
       )
     : oaSources;
+  const satSourceIds = new Set(satRecords.sources.map((s) => s.id));
   const sources = [
-    ...datasetSources,
+    ...datasetSources.filter((s) => !satSourceIds.has(s.id)),
     modisSource,
     lulcSource,
     ...satRecords.sources,
