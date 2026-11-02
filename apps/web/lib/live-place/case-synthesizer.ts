@@ -133,7 +133,7 @@ export function synthesizeCasePackage(
         e.id.startsWith("ev_fr_"),
     ) ?? studyEv;
   const climateEv =
-    evidence.find((e) => e.claimKind === "observation") ?? evidence[evidence.length - 1]!;
+    evidence.find((e) => e.id.startsWith("ev_climate_")) ?? studyEv;
 
   const llmVerifiedEvidence: Evidence[] = [];
   if (llmResult?.verifiedFindings) {
@@ -234,21 +234,9 @@ export function synthesizeCasePackage(
     reviewDecisionIds: [],
   });
 
-  const rainConsistent = climate.rSquared >= 0.32;
-  const rainStatus = rainConsistent ? ("consistent" as const) : ("contradicted" as const);
-  const rainHypStatus = rainConsistent ? ("consistent" as const) : ("inconsistent" as const);
-  const trendDir =
-    climate.ndviTrendPerDecade >= 0.004
-      ? "increasing"
-      : climate.ndviTrendPerDecade <= -0.004
-        ? "decreasing"
-        : "flat";
-  const trendLabel =
-    trendDir === "increasing"
-      ? "greening"
-      : trendDir === "decreasing"
-        ? "browning"
-        : "baseline stability";
+  // No vegetation series is measured for live places: rainfall cannot be compared with it
+  const signedRain = `${climate.precipTrendMmPerDecade >= 0 ? "+" : ""}${climate.precipTrendMmPerDecade.toFixed(1)}`;
+  const noVegetation = "Cannot be assessed with current data. Missing: a measured vegetation series (NDVI).";
 
   const hypRainId = `hyp_rain_${slug}_${hash6}`;
   const hypGrazingId = `hyp_grazing_${slug}_${hash6}`;
@@ -313,15 +301,13 @@ export function synthesizeCasePackage(
     makeHyp(
       hypRainId,
       rainLlmHyp?.statement ||
-        `Multi-decadal precipitation trends (${climate.precipTrendMmPerDecade >= 0 ? "+" : ""}${climate.precipTrendMmPerDecade.toFixed(1)} mm/decade, R² = ${climate.rSquared.toFixed(3)}) are the primary driver of the ${trendLabel} across ${placeName}.`,
-      rainHypStatus,
+        `Year-to-year rainfall explains most vegetation change across ${placeName}.`,
+      "inconclusive",
       rainLlmHyp?.assessment ||
-        (rainConsistent
-          ? `Consistent with the 25-year ERA5 archive: seasonal precipitation explains R² = ${climate.rSquared.toFixed(3)} of interannual vegetation variance across ${placeName}.`
-          : `Contradicted as sole driver: precipitation explains only R² = ${climate.rSquared.toFixed(3)} of interannual variance while catchment NDVI shifts at ${climate.ndviTrendPerDecade >= 0 ? "+" : ""}${climate.ndviTrendPerDecade.toFixed(4)} per decade.`),
-      rainConsistent ? [climateEv.id] : [],
-      rainConsistent ? [] : [climateEv.id],
+        `${noVegetation} Annual rainfall changed by ${signedRain} mm per decade (${climate.source.window}); a vegetation series would decide whether vegetation followed it.`,
       [],
+      [],
+      [climate.vegetation.reason],
     ),
     makeHyp(
       hypGrazingId,
@@ -337,7 +323,7 @@ export function synthesizeCasePackage(
     makeHyp(
       hypLandId,
       landLlmHyp?.statement ||
-        `Valley-floor land-use change, irrigation management, or parcel conversion below ${String(bandLimitM)} m (${climate.lowBandTrendPerDecade >= 0 ? "+" : ""}${climate.lowBandTrendPerDecade.toFixed(4)} NDVI/decade) drove the observed shift in ${placeName}.`,
+        `Valley-floor land-use change, irrigation management, or parcel conversion below ${String(bandLimitM)} m changed vegetation there, apart from rainfall, in ${placeName}.`,
       "inconclusive",
       landLlmHyp?.assessment ||
         `Cannot be assessed from remote sensing alone: requires local verification of valley-floor water diversions and parcel management below ${String(bandLimitM)} m.`,
@@ -382,7 +368,6 @@ export function synthesizeCasePackage(
   const bArtefactId = `branch_artefact_${slug}_${hash6}`;
 
   const lastPeriod = periodIds[periodIds.length - 1] ?? "period_2024-06";
-  const coMoveCount = Math.max(4, Math.min(24, Math.round(climate.rSquared * 25)));
 
   const makeBranch = (params: {
     id: string;
@@ -434,12 +419,8 @@ export function synthesizeCasePackage(
       explanationId: "rainfall",
       label: "Rainfall",
       statement: rainCause?.statement || hypotheses[0]!.statement,
-      status: rainStatus,
-      statusReason:
-        rainCause?.statusReason ||
-        (rainConsistent
-          ? `Precipitation and vegetation moved together across ${String(coMoveCount)} of 25 seasons (R² = ${climate.rSquared.toFixed(3)}).`
-          : `Precipitation explains only R² = ${climate.rSquared.toFixed(3)} of variance (${climate.precipTrendMmPerDecade >= 0 ? "+" : ""}${climate.precipTrendMmPerDecade.toFixed(1)} mm/decade) and cannot account for the catchment trend alone.`),
+      status: "cannot_be_assessed",
+      statusReason: rainCause?.statusReason || `${noVegetation} Rainfall alone is known.`,
       hypothesisId: hypRainId,
       predictions: [
         {
@@ -466,10 +447,10 @@ export function synthesizeCasePackage(
       scores: [
         {
           predictionKey: "p1",
-          outcome: rainConsistent ? "met" : "not_met",
-          dataAdequate: true,
-          reasonCode: null,
-          observed: `Months with the same sign, 3-month window: ndvi_departure_area_median ${String(coMoveCount)} of 25.`,
+          outcome: "not_testable",
+          dataAdequate: false,
+          reasonCode: "value_not_available",
+          observed: "Not measured: no vegetation series to compare with rainfall.",
           measurementIds: [measurementIds.rainR2Id, measurementIds.precipTrendId],
           dataBundleIds: [bundleId],
         },
@@ -527,7 +508,7 @@ export function synthesizeCasePackage(
       status: "cannot_be_assessed",
       statusReason:
         landCause?.statusReason ||
-        `Valley floor below ${String(bandLimitM)} m shifts at ${climate.lowBandTrendPerDecade >= 0 ? "+" : ""}${climate.lowBandTrendPerDecade.toFixed(4)} NDVI/decade; separating parcel land use from climate requires local records.`,
+        `${noVegetation} Separating valley-floor land use below ${String(bandLimitM)} m from climate also needs local parcel and water records.`,
       hypothesisId: hypLandId,
       predictions: [
         {
@@ -544,9 +525,9 @@ export function synthesizeCasePackage(
             fieldCheckId: null,
             stratumId: "elevation_low",
             trendSeries: "unadjusted",
-            expected: climate.lowBandTrendPerDecade >= 0 ? "increasing" : "decreasing",
+            expected: null,
           },
-          wording: `Valley floor (< ${String(bandLimitM)} m) shows a distinct 2000–2024 vegetation trend (${climate.lowBandTrendPerDecade >= 0 ? "+" : ""}${climate.lowBandTrendPerDecade.toFixed(4)} per decade).`,
+          wording: `Vegetation below ${String(bandLimitM)} m changes differently from the slopes above it (2000 to 2024).`,
         },
         {
           key: "p2",
@@ -572,10 +553,10 @@ export function synthesizeCasePackage(
       scores: [
         {
           predictionKey: "p1",
-          outcome: "met",
-          dataAdequate: true,
-          reasonCode: null,
-          observed: `Unadjusted greenness trend in elevation_low (2000 to 2024) is ${climate.lowBandTrendPerDecade >= 0 ? "increasing" : "decreasing"}: ${climate.lowBandTrendPerDecade >= 0 ? "+" : ""}${climate.lowBandTrendPerDecade.toFixed(4)} per decade.`,
+          outcome: "not_testable",
+          dataAdequate: false,
+          reasonCode: "no_trend_record",
+          observed: `Not measured: no vegetation trend below ${String(bandLimitM)} m.`,
           measurementIds: [measurementIds.bandTrendId, measurementIds.bandLimitId],
           dataBundleIds: [bundleId],
         },
@@ -825,7 +806,7 @@ export function synthesizeCasePackage(
         `Map valley-floor water use and parcel history below ${String(bandLimitM)} m against trend cells`,
       description:
         llmLandInt?.description ||
-        `If landholders and local water authorities share parcel or diversion histories below ${String(bandLimitM)} m, overlay them against the ${climate.lowBandTrendPerDecade >= 0 ? "+" : ""}${climate.lowBandTrendPerDecade.toFixed(4)} NDVI/decade valley-floor cells before weighing catchment-wide actions.`,
+        `If landholders and local water authorities share parcel or diversion histories below ${String(bandLimitM)} m, set them beside a measured valley-floor vegetation series before weighing catchment-wide actions.`,
       status: "candidate",
       assumptions:
         llmLandInt && llmLandInt.assumptions.length > 0

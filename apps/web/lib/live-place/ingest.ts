@@ -77,12 +77,21 @@ export interface IngestPlaceOutcome {
   bbox: [number, number, number, number];
 }
 
+/** Version 2: vegetation values are recorded as not measured (version 1 records stated a rainfall-made NDVI). */
+export const PLACE_CACHE_VERSION = 2;
+
 export interface CachedPlaceBundle {
-  version: 1;
+  version: typeof PLACE_CACHE_VERSION;
   outcome: Omit<IngestPlaceOutcome, "created">;
   seed: CaseSeedRecords;
   synth: SynthesizedCasePackage;
   occurrences?: Record<string, unknown>;
+}
+
+/** A place cache written by this version, or null for an older one (whose records are not reused). */
+function readPlaceCache(path: string): CachedPlaceBundle | null {
+  const raw = JSON.parse(readFileSync(path, "utf8")) as { version?: unknown };
+  return raw.version === PLACE_CACHE_VERSION ? (raw as CachedPlaceBundle) : null;
 }
 
 function makeSlug(text: string): string {
@@ -174,8 +183,8 @@ export async function ingestLocationCase(
     );
     if ((hasMerge.rowCount ?? 0) === 0 && existsSync(placeCachePath(caseId))) {
       try {
-        const cached = JSON.parse(readFileSync(placeCachePath(caseId), "utf8")) as CachedPlaceBundle;
-        if (cached?.synth) {
+        const cached = readPlaceCache(placeCachePath(caseId));
+        if (cached) {
           await persistSynthesizedPackage(pool, caseId, cached.synth);
         }
       } catch {
@@ -198,8 +207,8 @@ export async function ingestLocationCase(
   const cacheFile = placeCachePath(caseId);
   if (existsSync(cacheFile)) {
     try {
-      const cached = JSON.parse(readFileSync(cacheFile, "utf8")) as CachedPlaceBundle;
-      if (cached?.version === 1 && cached.seed && cached.synth) {
+      const cached = readPlaceCache(cacheFile);
+      if (cached) {
         await readOrBuildTerrain(caseId, bbox);
         await loadSeedCase(pool, cached.seed, ownerScopeId);
         await persistSynthesizedPackage(pool, caseId, cached.synth);
@@ -287,11 +296,11 @@ export async function ingestLocationCase(
     crs: "EPSG:4326",
     boundaryRole: "hydrological_unit",
     boundarySourceIds: [sources[0]!.id],
-    selectionMethod: `12 km × 12 km watershed relief delineation centered at ${lat.toFixed(4)}°, ${lon.toFixed(4)}° from Copernicus GLO-30 DEM and Open-Meteo Elevation Grid.`,
+    selectionMethod: `12 km × 12 km watershed relief delineation centered at ${lat.toFixed(4)}°, ${lon.toFixed(4)}° from the terrain elevation grid (AWS Terrain Tiles, Terrarium encoding, when reachable).`,
     areaM2,
     areaMethod: `Geodesic polygon area on WGS84 ellipsoid (${areaKm2.toFixed(1)} km²).`,
     limitations: [
-      "Automated watershed boundary derived from 30 m / 90 m elevation grid; not a legal parcel or surveyed management boundary.",
+      "Automated outline drawn from the terrain elevation grid; not a surveyed watershed, legal parcel or management boundary.",
     ],
   });
 
@@ -299,17 +308,25 @@ export async function ingestLocationCase(
   const periodIds = climate.years.map((y) => `period_${String(y.year)}-06`);
   const contentHash = `1220${createHash("sha256").update(`${bundleId}:${now}`).digest("hex")}`;
 
+  const climateSource = climate.source;
+  const seededClimate = climateSource.kind !== "open_meteo_archive";
+  const era5SourceId = sources.find((s) => s.id.startsWith("src_era5_"))?.id ?? null;
+  const demSourceId = sources.find((s) => s.id.startsWith("src_dem_"))?.id ?? null;
+  const vegetationMissing = climate.vegetation.reason;
+
   const bundleProvenance: Provenance = {
     sourceLocators: [],
     dataBundleIds: [],
     methodId: "open_meteo_era5_watershed_series",
-    methodVersion: "1.0.0",
+    methodVersion: "2.0.0",
     inputVersions: [{ entityId: geoId, revision: 1 }],
     generatedByTaskId: null,
     generatedAt: now,
-    verificationStatus: "computed_checked",
+    verificationStatus: seededClimate ? "unverified" : "computed_checked",
     limitations: [
-      "Derived from ERA5 / Open-Meteo historical archive (2000–2024) and Copernicus DEM relief over the catchment.",
+      `Rainfall: ${climateSource.label} (${climateSource.window}).`,
+      "Relief: the terrain elevation grid built for this place (AWS Terrain Tiles, Terrarium encoding, when reachable).",
+      vegetationMissing,
     ],
   };
 
@@ -319,6 +336,39 @@ export async function ingestLocationCase(
       { entityId: geoId, revision: 1 },
       { entityId: bundleId, revision: 1 },
     ],
+  };
+
+  // Each value cites the source it was computed from, or says it was not measured
+  const rainProvenance: Provenance = {
+    ...recordProvenance,
+    sourceLocators:
+      era5SourceId && !seededClimate
+        ? [
+            {
+              sourceId: era5SourceId,
+              locator: `${climateSource.url ?? ""} daily precipitation_sum and et0_fao_evapotranspiration, nearest grid cell to ${lat.toFixed(4)}, ${lon.toFixed(4)}, ${climateSource.window}`,
+              excerpt: null,
+            },
+          ]
+        : [],
+    limitations: [
+      `${climateSource.label} (${climateSource.window}).`,
+      "Reanalysis values for one grid cell, not a rain gauge and not an average over the catchment.",
+    ],
+  };
+  const demProvenance: Provenance = {
+    ...recordProvenance,
+    sourceLocators: demSourceId
+      ? [{ sourceId: demSourceId, locator: "terrain elevation grid for the analysis box", excerpt: null }]
+      : [],
+    limitations: [
+      "Computed from the terrain elevation grid built for this place (AWS Terrain Tiles, Terrarium encoding, when reachable).",
+    ],
+  };
+  const notMeasuredProvenance: Provenance = {
+    ...recordProvenance,
+    verificationStatus: "unverified",
+    limitations: [vegetationMissing],
   };
 
   const makeMeasurement = (
@@ -331,6 +381,7 @@ export async function ingestLocationCase(
     validPixelCount: number | null,
     spatialResolutionM: number | null,
     uncertainty: Measurement["uncertainty"] = NOT_QUANTIFIED,
+    provenance: Provenance = recordProvenance,
   ): Measurement =>
     Measurement.parse({
       recordType: "Measurement",
@@ -354,7 +405,41 @@ export async function ingestLocationCase(
       validFraction: validPixelCount !== null ? 1 : null,
       spatialResolutionM,
       uncertainty,
-      provenance: recordProvenance,
+      provenance,
+    });
+
+  // A value nobody measured: status missing, no number, and the reason stated
+  const makeNotMeasured = (
+    id: string,
+    metric: string,
+    unit: string,
+    periodId: string,
+    aggregation: string,
+    missingReason: string = vegetationMissing,
+  ): Measurement =>
+    Measurement.parse({
+      recordType: "Measurement",
+      id,
+      revision: 1,
+      createdAt: now,
+      updatedAt: now,
+      caseId,
+      metric,
+      value: null,
+      unit,
+      status: "missing",
+      missingReason,
+      geoSelectionId: geoId,
+      geoRevision: 1,
+      periodId,
+      dataBundleId: bundleId,
+      aggregation,
+      validPixelCount: null,
+      totalPixelCount: null,
+      validFraction: null,
+      spatialResolutionM: null,
+      uncertainty: NOT_QUANTIFIED,
+      provenance: notMeasuredProvenance,
     });
 
   const temporalObservations: TemporalObservation[] = [];
@@ -371,19 +456,18 @@ export async function ingestLocationCase(
         yrRow.precipMm,
         "mm",
         pId,
-        `Annual precipitation total (${String(yrRow.year)}) across ${placeName}.`,
-        64,
-        1000,
+        `Calendar-year total of daily precipitation (${String(yrRow.year)}), ${climateSource.label}, nearest grid cell to ${placeName}.`,
+        null,
+        null,
+        NOT_QUANTIFIED,
+        rainProvenance,
       ),
-      makeMeasurement(
+      makeNotMeasured(
         mNdviId,
         "ndvi_growing_season_mean",
-        yrRow.ndvi,
         "NDVI",
         pId,
-        `Growing-season vegetation index (${String(yrRow.year)}) across ${placeName}.`,
-        4096,
-        250,
+        `Growing-season vegetation index (${String(yrRow.year)}) across ${placeName}: not measured.`,
       ),
     );
     temporalObservations.push(
@@ -395,9 +479,9 @@ export async function ingestLocationCase(
         updatedAt: now,
         caseId,
         periodId: pId,
-        startDate: `${String(yrRow.year)}-06-01`,
-        endDateExclusive: `${String(yrRow.year)}-07-01`,
-        seasonDefinition: `Annual growing season ${String(yrRow.year)} (UTC)`,
+        startDate: `${String(yrRow.year)}-01-01`,
+        endDateExclusive: `${String(yrRow.year + 1)}-01-01`,
+        seasonDefinition: `Calendar year ${String(yrRow.year)} (UTC)`,
         geoSelectionId: geoId,
         geoRevision: 1,
         dataBundleId: bundleId,
@@ -405,8 +489,8 @@ export async function ingestLocationCase(
         mapAssetUri: null,
         mapAssetHash: null,
         mapStatus: "missing",
-        qualityFlags: [],
-        provenance: recordProvenance,
+        qualityFlags: seededClimate ? ["placeholder_series"] : [],
+        provenance: rainProvenance,
       }),
     );
   }
@@ -423,24 +507,25 @@ export async function ingestLocationCase(
   const bandLimitM = Math.round(
     terrain.minElevationM + (terrain.maxElevationM - terrain.minElevationM) * 0.38,
   );
+  const precipYears = climate.years.length;
+  const precipInterval: Measurement["uncertainty"] =
+    climate.precipTrendLowerMmPerDecade !== null && climate.precipTrendUpperMmPerDecade !== null
+      ? {
+          kind: "interval",
+          lower: climate.precipTrendLowerMmPerDecade,
+          upper: climate.precipTrendUpperMmPerDecade,
+          level: 0.95,
+          method: `95% Student t interval of the ordinary least squares slope over ${String(precipYears)} calendar years.`,
+        }
+      : NOT_QUANTIFIED;
 
   measurements.push(
-    makeMeasurement(
+    makeNotMeasured(
       mCatchmentTrendId,
       "ndvi_trend_unadjusted_per_decade",
-      climate.ndviTrendPerDecade,
       "NDVI per decade",
       summaryPeriodId,
-      `Ordinary least squares slope per decade of growing-season vegetation index across ${placeName} (2000–2024).`,
-      4096,
-      250,
-      {
-        kind: "interval",
-        lower: climate.ndviLowerPerDecade,
-        upper: climate.ndviUpperPerDecade,
-        level: 0.95,
-        method: "95% confidence interval of ordinary least squares linear trend (2000–2024).",
-      },
+      `Vegetation trend per decade across ${placeName}: not measured.`,
     ),
     makeMeasurement(
       mPrecipTrendId,
@@ -448,49 +533,42 @@ export async function ingestLocationCase(
       climate.precipTrendMmPerDecade,
       "mm per decade",
       summaryPeriodId,
-      "25-year linear trend in annual precipitation (mm per decade, 2000–2024) from Open-Meteo / ERA5 archive.",
-      64,
-      1000,
+      `Ordinary least squares trend of calendar-year precipitation over ${String(precipYears)} years (${climateSource.window}), ${climateSource.label}.`,
+      null,
+      null,
+      precipInterval,
+      rainProvenance,
     ),
-    makeMeasurement(
+    makeNotMeasured(
       mRainR2Id,
       "rainfall_fit_r_squared",
-      climate.rSquared,
       "dimensionless (R squared)",
       summaryPeriodId,
-      "R squared of linear fit between seasonal precipitation and vegetation productivity over 25 seasons (2000–2024).",
-      null,
-      null,
+      "Share of yearly vegetation change that rainfall explains: not measured.",
+      `${vegetationMissing} Rainfall cannot be fitted against a vegetation series that does not exist.`,
     ),
-    makeMeasurement(
+    makeNotMeasured(
       mFdrUpId,
       "area_share_upward_fdr",
-      climate.upwardFdrShare,
       "share of analysis cells (0 to 1)",
       summaryPeriodId,
-      "Share of catchment cells with positive greening trend under FDR control (2000–2024).",
-      4096,
-      250,
+      "Share of cells with a significant upward vegetation trend: not measured.",
+      `${vegetationMissing} No cell-level trend test has run.`,
     ),
-    makeMeasurement(
+    makeNotMeasured(
       mFdrDownId,
       "area_share_downward_fdr",
-      climate.downwardFdrShare,
       "share of analysis cells (0 to 1)",
       summaryPeriodId,
-      "Share of catchment cells with downward browning trend under FDR control (2000–2024).",
-      4096,
-      250,
+      "Share of cells with a significant downward vegetation trend: not measured.",
+      `${vegetationMissing} No cell-level trend test has run.`,
     ),
-    makeMeasurement(
+    makeNotMeasured(
       mBandTrendId,
       "ndvi_trend_unadjusted_per_decade",
-      climate.lowBandTrendPerDecade,
       "NDVI per decade",
       summaryPeriodId,
-      `Valley-floor elevation band (< ${String(bandLimitM)} m) vegetation trend per decade (2000–2024).`,
-      1365,
-      250,
+      `Vegetation trend below ${String(bandLimitM)} m: not measured.`,
     ),
     makeMeasurement(
       mBandLimitId,
@@ -498,9 +576,11 @@ export async function ingestLocationCase(
       bandLimitM,
       "m",
       summaryPeriodId,
-      `Lower equal-area elevation band boundary (${String(bandLimitM)} m) from catchment DEM.`,
+      `Lower elevation band limit (${String(bandLimitM)} m): 38% of the way from the lowest to the highest point of the terrain grid.`,
       null,
-      30,
+      null,
+      NOT_QUANTIFIED,
+      demProvenance,
     ),
     makeMeasurement(
       mAreaKm2Id,
@@ -508,9 +588,11 @@ export async function ingestLocationCase(
       areaKm2,
       "km2",
       summaryPeriodId,
-      `Geodesic upstream catchment area (${areaKm2.toFixed(1)} km²).`,
+      `Geodesic area of the drawn catchment outline (${areaKm2.toFixed(1)} km²).`,
       null,
-      30,
+      null,
+      NOT_QUANTIFIED,
+      demProvenance,
     ),
   );
 
@@ -521,21 +603,21 @@ export async function ingestLocationCase(
     createdAt: now,
     updatedAt: now,
     caseId,
-    label: `25-Year Historical Climate & Relief Synthesis for ${placeName} (2000–2024)`,
+    label: `Rainfall series (${climate.source.window}) and relief for ${placeName}`,
     status: "validated",
-    datasetId: "ERA5 / Open-Meteo Historical Archive & Copernicus DEM GLO-30",
+    datasetId: "Open-Meteo Historical Weather API (ERA5) & AWS Terrain Tiles (Terrarium)",
     datasetVersion: "2024.12",
     sourceIds: [sources[0]!.id, sources[1]!.id],
     geoSelectionId: geoId,
     geoRevision: 1,
     periodIds,
     methodId: "open_meteo_era5_watershed_series",
-    methodVersion: "1.0.0",
+    methodVersion: "2.0.0",
     manifestUri: `/api/terrain/${caseId}`,
     contentHash,
     license: "CC BY 4.0",
     attribution:
-      "Copernicus DEM GLO-30 © DLR e.V. / Airbus Defence and Space GmbH provided under COPERNICUS by the EU and ESA; ERA5 / Open-Meteo Historical Weather API (CC BY 4.0); OpenStreetMap contributors (ODbL 1.0)",
+      "Elevation: AWS Terrain Tiles (Tilezen Terrarium), sources as listed in tilezen/joerd docs/attribution.md; Open-Meteo Historical Weather API, ERA5 reanalysis (CC BY 4.0); OpenStreetMap contributors (ODbL 1.0)",
     provenance: bundleProvenance,
   });
 
@@ -560,9 +642,9 @@ export async function ingestLocationCase(
       role: "outlet",
       geometry: { type: "Point", coordinates: [lon, lat] },
       method: `Watershed pour point and coordinate anchor (${lat.toFixed(4)}°, ${lon.toFixed(4)}°) for ${placeName}.`,
-      datasetId: "Copernicus DEM GLO-30; OpenStreetMap contributors",
-      attribution: "Copernicus DEM GLO-30; outlet input © OpenStreetMap contributors",
-      license: "Copernicus DEM licence; ODbL-1.0",
+      datasetId: "AWS Terrain Tiles (Terrarium); OpenStreetMap contributors",
+      attribution: "AWS Terrain Tiles (Tilezen Terrarium); outlet input © OpenStreetMap contributors",
+      license: "Terrain Tiles source licences (tilezen/joerd); ODbL-1.0",
       limitations: [
         "Hydrological analysis pour point on the DEM grid; not a surveyed stream gauge.",
       ],
@@ -601,9 +683,9 @@ export async function ingestLocationCase(
         ],
       },
       method: `Cross-valley elevation profile across ${placeName} (${terrain.minElevationM.toFixed(0)} m to ${terrain.maxElevationM.toFixed(0)} m).`,
-      datasetId: "Copernicus DEM GLO-30",
-      attribution: "Copernicus DEM GLO-30",
-      license: "CC BY 4.0",
+      datasetId: "AWS Terrain Tiles (Terrarium)",
+      attribution: "AWS Terrain Tiles (Tilezen Terrarium)",
+      license: "Terrain Tiles source licences (tilezen/joerd)",
       limitations: ["Analytical cross-section profile across the DEM grid."],
     }),
   ];
@@ -653,10 +735,8 @@ export async function ingestLocationCase(
     limitations: ["Composed from live watershed ingestion records."],
   };
 
-  const fdrCitations =
-    climate.downwardFdrShare > climate.upwardFdrShare
-      ? [mCatchmentTrendId, mFdrDownId, mFdrUpId]
-      : [mCatchmentTrendId, mFdrUpId, mFdrDownId];
+  const fdrCitations = [mCatchmentTrendId, mFdrUpId, mFdrDownId];
+  const signedRain = `${climate.precipTrendMmPerDecade >= 0 ? "+" : ""}${climate.precipTrendMmPerDecade.toFixed(1)}`;
   const specBase = {
     recordType: "InstrumentSpec" as const,
     revision: 1,
@@ -687,9 +767,9 @@ export async function ingestLocationCase(
         selectedLayer: "vegetation_trend",
       },
       caption: {
-        ink: `Catchment trend of ${climate.ndviTrendPerDecade >= 0 ? "+" : ""}${climate.ndviTrendPerDecade.toFixed(4)} NDVI per decade across ${placeName}.`,
-        grey: "25-year growing-season record (2000–2024) over the delineated watershed.",
-        claimKind: "model_estimate",
+        ink: `Vegetation trend across ${placeName}: not measured.`,
+        grey: climate.vegetation.reason,
+        claimKind: "field_requirement",
         citationIds: fdrCitations,
       },
     }),
@@ -719,9 +799,9 @@ export async function ingestLocationCase(
         ],
       },
       caption: {
-        ink: `Valley floor below ${bandLimitM.toLocaleString("en")} m shifts at ${climate.lowBandTrendPerDecade >= 0 ? "+" : ""}${climate.lowBandTrendPerDecade.toFixed(4)} NDVI per decade.`,
-        grey: `Elevation range ${terrain.minElevationM.toFixed(0)} m to ${terrain.maxElevationM.toFixed(0)} m across ${placeName}.`,
-        claimKind: "model_estimate",
+        ink: `Vegetation trend below ${bandLimitM.toLocaleString("en")} m: not measured.`,
+        grey: `Elevation range ${terrain.minElevationM.toFixed(0)} m to ${terrain.maxElevationM.toFixed(0)} m across ${placeName}, from the terrain elevation grid.`,
+        claimKind: "field_requirement",
         citationIds: [mBandTrendId, mBandLimitId],
       },
     }),
@@ -735,8 +815,8 @@ export async function ingestLocationCase(
         fit: { bundleId, assetKey: "rain_fit" },
       },
       caption: {
-        ink: `Rainfall explains R² = ${climate.rSquared.toFixed(3)} of interannual variance (${climate.precipTrendMmPerDecade >= 0 ? "+" : ""}${climate.precipTrendMmPerDecade.toFixed(1)} mm/decade).`,
-        grey: "25-year Open-Meteo / ERA5 precipitation record (2000–2024).",
+        ink: `Annual rainfall trend ${signedRain} mm per decade; how much of vegetation change it explains is not measured.`,
+        grey: `${climate.source.label}, ${String(climate.years.length)} calendar years (${climate.source.window}).`.slice(0, 240),
         claimKind: "model_estimate",
         citationIds: [mRainR2Id, mPrecipTrendId],
       },
@@ -852,7 +932,7 @@ export async function ingestLocationCase(
   try {
     mkdirSync(dirname(cacheFile), { recursive: true });
     const cachedBundle: CachedPlaceBundle = {
-      version: 1,
+      version: PLACE_CACHE_VERSION,
       outcome: {
         caseId,
         placeName,

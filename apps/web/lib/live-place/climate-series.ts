@@ -1,25 +1,65 @@
+export const CLIMATE_START_YEAR = 2000;
+export const CLIMATE_END_YEAR = 2024;
+export const OPEN_METEO_ARCHIVE_URL = "https://archive-api.open-meteo.com/v1/archive";
+
+/** One calendar year of the reanalysis series; a year enters only when every day of it is present. */
 export interface ClimateYearRow {
   year: number;
   precipMm: number;
-  ndvi: number;
+  /** FAO reference evapotranspiration total, or null when any day of the year is missing. */
+  et0Mm: number | null;
+}
+
+/** Where the yearly series came from, named so every value derived from it can cite it. */
+export interface ClimateSeriesSource {
+  kind: "open_meteo_archive" | "offline_seeded";
+  label: string;
+  url: string | null;
+  window: string;
+}
+
+/** No satellite vegetation series is fetched for live places, so no vegetation number exists. */
+export interface VegetationNotMeasured {
+  status: "not_measured";
+  reason: string;
 }
 
 export interface HistoricalClimateSummary {
+  source: ClimateSeriesSource;
   years: ClimateYearRow[];
+  /** Ordinary least squares slope of annual precipitation, mm per decade. */
   precipTrendMmPerDecade: number;
-  ndviTrendPerDecade: number;
-  ndviLowerPerDecade: number;
-  ndviUpperPerDecade: number;
-  lowBandTrendPerDecade: number;
-  rSquared: number;
-  upwardFdrShare: number;
-  downwardFdrShare: number;
+  /** 95% interval of that slope (Student t on n minus 2 degrees of freedom), or null below 3 years. */
+  precipTrendLowerMmPerDecade: number | null;
+  precipTrendUpperMmPerDecade: number | null;
+  vegetation: VegetationNotMeasured;
 }
 
 export type AnnualClimateSummary = HistoricalClimateSummary;
 
+export const VEGETATION_NOT_MEASURED: VegetationNotMeasured = {
+  status: "not_measured",
+  reason:
+    "Cannot measure vegetation change: no validated satellite observations for this area. No vegetation index (NDVI) value or trend is recorded.",
+};
+
+export const OPEN_METEO_SOURCE: ClimateSeriesSource = {
+  kind: "open_meteo_archive",
+  label:
+    "Open-Meteo Historical Weather API (ERA5 reanalysis), daily precipitation_sum and et0_fao_evapotranspiration",
+  url: OPEN_METEO_ARCHIVE_URL,
+  window: `${String(CLIMATE_START_YEAR)} to ${String(CLIMATE_END_YEAR)}`,
+};
+
+// Two-sided 95% Student t critical values for 1 to 30 degrees of freedom.
+const T_975 = [
+  12.706, 4.303, 3.182, 2.776, 2.571, 2.447, 2.365, 2.306, 2.262, 2.228, 2.201, 2.179, 2.16, 2.145,
+  2.131, 2.12, 2.11, 2.101, 2.093, 2.086, 2.08, 2.074, 2.069, 2.064, 2.06, 2.056, 2.052, 2.048,
+  2.045, 2.042,
+];
+
 function seededNoise(seed: number): () => number {
-  let s = (Math.floor(seed) >>> 0) || 1;
+  let s = Math.floor(seed) >>> 0 || 1;
   return () => {
     s = (s + 0x6d2b79f5) >>> 0;
     let t = Math.imul(s ^ (s >>> 15), 1 | s);
@@ -28,99 +68,103 @@ function seededNoise(seed: number): () => number {
   };
 }
 
-/**
- * Computes OLS linear trends (per decade), 95% confidence interval, rainfall-NDVI R²,
- * valley-floor band slope, and Benjamini-Hochberg FDR upward/downward cell shares
- * from the 25-year annual series (2000–2024).
- */
-export function computeStatsFromAnnual(years: ClimateYearRow[]): HistoricalClimateSummary {
-  const n = years.length || 1;
-  const meanYear = years.reduce((s, y) => s + y.year, 0) / n;
-  const meanPrecip = years.reduce((s, y) => s + y.precipMm, 0) / n;
-  const meanNdvi = years.reduce((s, y) => s + y.ndvi, 0) / n;
-
-  let sxx = 0;
-  let sxyPrecip = 0;
-  let sxyNdvi = 0;
-  let syyNdvi = 0;
-  let sPrecipPrecip = 0;
-  let sPrecipNdvi = 0;
-
-  for (const row of years) {
-    const dx = row.year - meanYear;
-    const dp = row.precipMm - meanPrecip;
-    const dn = row.ndvi - meanNdvi;
-    sxx += dx * dx;
-    sxyPrecip += dx * dp;
-    sxyNdvi += dx * dn;
-    syyNdvi += dn * dn;
-    sPrecipPrecip += dp * dp;
-    sPrecipNdvi += dp * dn;
-  }
-
-  const precipSlopeYr = sxx > 0 ? sxyPrecip / sxx : 0;
-  const ndviSlopeYr = sxx > 0 ? sxyNdvi / sxx : 0;
-  const precipTrendMmPerDecade = Number((precipSlopeYr * 10).toFixed(2));
-  const ndviTrendPerDecade = Number((ndviSlopeYr * 10).toFixed(4));
-
-  // Residual standard error for 95% confidence interval of NDVI trend (t_{0.975, df=23} = 2.069)
-  let ssr = 0;
-  for (const row of years) {
-    const pred = meanNdvi + ndviSlopeYr * (row.year - meanYear);
-    ssr += (row.ndvi - pred) ** 2;
-  }
-  const seSlopeDecade =
-    n > 2 && sxx > 0 ? Math.sqrt(ssr / (n - 2) / sxx) * 10 : 0.0045;
-  const halfWidth = Math.max(0.002, 2.069 * seSlopeDecade);
-  const ndviLowerPerDecade = Number((ndviTrendPerDecade - halfWidth).toFixed(4));
-  const ndviUpperPerDecade = Number((ndviTrendPerDecade + halfWidth).toFixed(4));
-
-  // Valley-floor riparian/irrigated band amplifies moisture trend relative to upland slopes
-  const lowBandOffset =
-    Math.abs(ndviTrendPerDecade) < 0.002 ? 0.0006 : Math.sign(ndviTrendPerDecade) * 0.0014;
-  const lowBandTrendPerDecade = Number((ndviTrendPerDecade * 1.24 + lowBandOffset).toFixed(4));
-
-  const r2Raw =
-    sPrecipPrecip > 0 && syyNdvi > 0
-      ? (sPrecipNdvi * sPrecipNdvi) / (sPrecipPrecip * syyNdvi)
-      : 0.14;
-  const rSquared = Number(Math.max(0.012, Math.min(0.92, r2Raw)).toFixed(3));
-
-  const signal = Math.min(0.45, Math.abs(ndviTrendPerDecade) * 12);
-  const upwardFdrShare = Number(
-    (ndviTrendPerDecade >= 0.002
-      ? 0.12 + signal
-      : ndviTrendPerDecade <= -0.002
-        ? Math.max(0.015, 0.07 - signal * 0.18)
-        : 0.065 + signal * 0.25
-    ).toFixed(3),
-  );
-  const downwardFdrShare = Number(
-    (ndviTrendPerDecade <= -0.002
-      ? 0.12 + signal
-      : ndviTrendPerDecade >= 0.002
-        ? Math.max(0.012, 0.05 - signal * 0.15)
-        : 0.055 + signal * 0.25
-    ).toFixed(3),
-  );
-
-  return {
-    years,
-    precipTrendMmPerDecade,
-    ndviTrendPerDecade,
-    ndviLowerPerDecade,
-    ndviUpperPerDecade,
-    lowBandTrendPerDecade,
-    rSquared,
-    upwardFdrShare,
-    downwardFdrShare,
-  };
+function daysInYear(year: number): number {
+  return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0 ? 366 : 365;
 }
 
 /**
- * Fetches 25-year (2000–2024) daily precipitation and reference evapotranspiration (ET0) from
- * the Open-Meteo / ERA5 historical archive and computes growing-season NDVI from the real
- * hydroclimatic water balance (Budyko aridity / moisture availability ratio) with no fabricated drift.
+ * The ordinary least squares precipitation trend per decade and its 95% interval over the given
+ * years. Nothing about vegetation is computed: no vegetation series exists for live places.
+ */
+export function computeStatsFromAnnual(
+  years: ClimateYearRow[],
+  source: ClimateSeriesSource = OPEN_METEO_SOURCE,
+): HistoricalClimateSummary {
+  const n = years.length;
+  const meanYear = n > 0 ? years.reduce((s, y) => s + y.year, 0) / n : 0;
+  const meanPrecip = n > 0 ? years.reduce((s, y) => s + y.precipMm, 0) / n : 0;
+
+  let sxx = 0;
+  let sxy = 0;
+  for (const row of years) {
+    const dx = row.year - meanYear;
+    sxx += dx * dx;
+    sxy += dx * (row.precipMm - meanPrecip);
+  }
+  const slopeYr = sxx > 0 ? sxy / sxx : 0;
+
+  let lower: number | null = null;
+  let upper: number | null = null;
+  if (n >= 3 && sxx > 0) {
+    let ssr = 0;
+    for (const row of years) {
+      const pred = meanPrecip + slopeYr * (row.year - meanYear);
+      ssr += (row.precipMm - pred) ** 2;
+    }
+    const df = n - 2;
+    const t = T_975[Math.min(df, T_975.length) - 1] ?? 2.042;
+    const half = t * Math.sqrt(ssr / df / sxx) * 10;
+    lower = Number((slopeYr * 10 - half).toFixed(2));
+    upper = Number((slopeYr * 10 + half).toFixed(2));
+  }
+
+  return {
+    source,
+    years,
+    precipTrendMmPerDecade: Number((slopeYr * 10).toFixed(2)),
+    precipTrendLowerMmPerDecade: lower,
+    precipTrendUpperMmPerDecade: upper,
+    vegetation: VEGETATION_NOT_MEASURED,
+  };
+}
+
+interface ArchiveDaily {
+  time?: string[];
+  precipitation_sum?: Array<number | null>;
+  et0_fao_evapotranspiration?: Array<number | null>;
+}
+
+/**
+ * Sums the archive's daily values into calendar years. A year whose precipitation has any missing
+ * day is left out rather than filled; its ET0 total is null when any ET0 day is missing.
+ */
+export function yearlyRowsFromDaily(daily: ArchiveDaily): ClimateYearRow[] {
+  const times = daily.time ?? [];
+  const precip = daily.precipitation_sum ?? [];
+  const et0 = daily.et0_fao_evapotranspiration ?? [];
+  const sums = new Map<number, { p: number; pDays: number; e: number; eDays: number }>();
+  for (let i = 0; i < times.length; i++) {
+    const yr = Number((times[i] ?? "").slice(0, 4));
+    if (!(yr >= CLIMATE_START_YEAR && yr <= CLIMATE_END_YEAR)) continue;
+    const acc = sums.get(yr) ?? { p: 0, pDays: 0, e: 0, eDays: 0 };
+    const pVal = precip[i];
+    const eVal = et0[i];
+    if (typeof pVal === "number" && Number.isFinite(pVal)) {
+      acc.p += pVal;
+      acc.pDays += 1;
+    }
+    if (typeof eVal === "number" && Number.isFinite(eVal)) {
+      acc.e += eVal;
+      acc.eDays += 1;
+    }
+    sums.set(yr, acc);
+  }
+  const rows: ClimateYearRow[] = [];
+  for (let yr = CLIMATE_START_YEAR; yr <= CLIMATE_END_YEAR; yr++) {
+    const acc = sums.get(yr);
+    if (!acc || acc.pDays !== daysInYear(yr)) continue;
+    rows.push({
+      year: yr,
+      precipMm: Number(acc.p.toFixed(1)),
+      et0Mm: acc.eDays === daysInYear(yr) ? Number(acc.e.toFixed(1)) : null,
+    });
+  }
+  return rows;
+}
+
+/**
+ * Fetches daily precipitation and FAO reference evapotranspiration (2000 to 2024) from the
+ * Open-Meteo historical archive (ERA5 reanalysis) and sums them into calendar years.
  */
 export async function fetchHistoricalClimate(
   lon: number,
@@ -129,137 +173,42 @@ export async function fetchHistoricalClimate(
   const ac = new AbortController();
   const timer = setTimeout(() => ac.abort(), 5000);
   try {
-    const url = `https://archive-api.open-meteo.com/v1/archive?latitude=${encodeURIComponent(
+    const url = `${OPEN_METEO_ARCHIVE_URL}?latitude=${encodeURIComponent(
       String(lat),
     )}&longitude=${encodeURIComponent(
       String(lon),
-    )}&start_date=2000-01-01&end_date=2024-12-31&daily=precipitation_sum,et0_fao_evapotranspiration&timezone=UTC`;
+    )}&start_date=${String(CLIMATE_START_YEAR)}-01-01&end_date=${String(CLIMATE_END_YEAR)}-12-31&daily=precipitation_sum,et0_fao_evapotranspiration&timezone=UTC`;
     const res = await fetch(url, {
       signal: ac.signal,
       headers: { Accept: "application/json", "User-Agent": "Siterra/1.0" },
     });
     if (res.ok) {
-      const data = (await res.json()) as {
-        daily?: {
-          time?: string[];
-          precipitation_sum?: Array<number | null>;
-          et0_fao_evapotranspiration?: Array<number | null>;
-        };
-      };
-      const times = data.daily?.time ?? [];
-      const precip = data.daily?.precipitation_sum ?? [];
-      const et0 = data.daily?.et0_fao_evapotranspiration ?? [];
-
-      if (times.length > 365 && times.length === precip.length) {
-        const precipByYear = new Map<number, number>();
-        const growPrecipByYear = new Map<number, number>();
-        const et0ByYear = new Map<number, number>();
-        const northHemisphere = lat >= 0;
-
-        for (let i = 0; i < times.length; i++) {
-          const dateStr = times[i] ?? "";
-          const yr = Number(dateStr.slice(0, 4));
-          const month = Number(dateStr.slice(5, 7));
-          const pVal = precip[i];
-          const eVal = et0[i];
-
-          if (yr >= 2000 && yr <= 2024) {
-            if (typeof pVal === "number" && Number.isFinite(pVal)) {
-              precipByYear.set(yr, (precipByYear.get(yr) ?? 0) + pVal);
-              const inGrowingSeason = northHemisphere
-                ? month >= 3 && month <= 8
-                : month >= 9 || month <= 2;
-              if (inGrowingSeason) {
-                growPrecipByYear.set(yr, (growPrecipByYear.get(yr) ?? 0) + pVal);
-              }
-            }
-            if (typeof eVal === "number" && Number.isFinite(eVal)) {
-              et0ByYear.set(yr, (et0ByYear.get(yr) ?? 0) + eVal);
-            }
-          }
-        }
-
-        if (precipByYear.size >= 20) {
-          const pVals = [...precipByYear.values()];
-          const meanP = pVals.reduce((a, b) => a + b, 0) / pVals.length || 500;
-          const stdP =
-            Math.sqrt(pVals.reduce((a, b) => a + (b - meanP) ** 2, 0) / pVals.length) || 90;
-
-          const eVals = [...et0ByYear.values()];
-          const meanEt0 =
-            eVals.length >= 20
-              ? eVals.reduce((a, b) => a + b, 0) / eVals.length
-              : Math.max(450, 1450 - Math.abs(lat) * 14);
-
-          // Compute annual moisture availability index M_t = P_eff(t) / ET0(t)
-          const moistureByYear = new Map<number, number>();
-          let prevP = precipByYear.get(2000) ?? meanP;
-          for (let yr = 2000; yr <= 2024; yr++) {
-            const pYr = precipByYear.get(yr) ?? meanP;
-            const gYr = growPrecipByYear.get(yr) ?? pYr * 0.55;
-            const etYr = Math.max(220, et0ByYear.get(yr) ?? meanEt0);
-            const pEff = 0.65 * pYr + 0.2 * gYr + 0.15 * prevP;
-            moistureByYear.set(yr, pEff / etYr);
-            prevP = pYr;
-          }
-
-          const mVals = [...moistureByYear.values()];
-          const meanM = mVals.reduce((a, b) => a + b, 0) / mVals.length || 0.45;
-          const stdM =
-            Math.sqrt(mVals.reduce((a, b) => a + (b - meanM) ** 2, 0) / mVals.length) || 0.08;
-
-          // Budyko-style mean vegetation baseline from local moisture index
-          const baseNdvi = Math.max(
-            0.12,
-            Math.min(0.76, 0.14 + 0.54 * (1 - Math.exp(-0.9 * meanM))),
-          );
-
-          const years: ClimateYearRow[] = [];
-          for (let yr = 2000; yr <= 2024; yr++) {
-            const p = Number((precipByYear.get(yr) ?? meanP).toFixed(1));
-            const m = moistureByYear.get(yr) ?? meanM;
-            const zP = (p - meanP) / stdP;
-            const zM = (m - meanM) / stdM;
-            // Pure hydroclimatic response: no artificial trend drift added
-            const ndvi = Number(
-              Math.max(0.08, Math.min(0.84, baseNdvi + 0.025 * zM + 0.015 * zP)).toFixed(4),
-            );
-            years.push({ year: yr, precipMm: p, ndvi });
-          }
-          return computeStatsFromAnnual(years);
-        }
-      }
+      const data = (await res.json()) as { daily?: ArchiveDaily };
+      const years = yearlyRowsFromDaily(data.daily ?? {});
+      if (years.length >= 20) return computeStatsFromAnnual(years, OPEN_METEO_SOURCE);
     }
   } catch {
-    // Fall back to deterministic coordinate-seeded series below when offline
+    // Fall back to the coordinate-seeded series below when offline
   } finally {
     clearTimeout(timer);
   }
 
-  // Deterministic coordinate-seeded synthesis if Open-Meteo is unreachable (offline)
+  // Coordinate-seeded rainfall when Open-Meteo is unreachable: not data, and labeled as such
   const rand = seededNoise(Math.round((lon + 180) * 10000 + (lat + 90) * 10000));
   const meanP = 380 + Math.round(Math.abs(Math.cos((lat * Math.PI) / 180)) * 550);
-  const baseNdvi = Math.max(0.18, Math.min(0.68, 0.22 + meanP * 0.00032));
-  const regimeRoll = rand();
-  // Balanced offline regime: ~1/3 stable (0), ~1/3 greening (+1), ~1/3 drying (-1)
-  const trendDir = regimeRoll < 0.34 ? 0 : regimeRoll < 0.67 ? 1 : -1;
   const years: ClimateYearRow[] = [];
-  for (let yr = 2000; yr <= 2024; yr++) {
+  for (let yr = CLIMATE_START_YEAR; yr <= CLIMATE_END_YEAR; yr++) {
     const anomaly = (rand() - 0.5) * meanP * 0.38;
-    const p = Number(Math.max(40, meanP + anomaly + (yr - 2012) * trendDir * 1.35).toFixed(1));
-    const ndvi = Number(
-      Math.max(
-        0.1,
-        Math.min(
-          0.8,
-          baseNdvi +
-            (anomaly / meanP) * 0.06 +
-            (yr - 2012) * trendDir * 0.0008 +
-            (rand() - 0.5) * 0.012,
-        ),
-      ).toFixed(4),
-    );
-    years.push({ year: yr, precipMm: p, ndvi });
+    years.push({
+      year: yr,
+      precipMm: Number(Math.max(40, meanP + anomaly).toFixed(1)),
+      et0Mm: null,
+    });
   }
-  return computeStatsFromAnnual(years);
+  return computeStatsFromAnnual(years, {
+    kind: "offline_seeded",
+    label: "Coordinate-seeded placeholder series (Open-Meteo unreachable); not a measurement",
+    url: null,
+    window: `${String(CLIMATE_START_YEAR)} to ${String(CLIMATE_END_YEAR)}`,
+  });
 }

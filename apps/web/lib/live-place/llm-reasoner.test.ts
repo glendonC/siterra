@@ -25,7 +25,7 @@ function buildMockClimate() {
     years.push({
       year: yr,
       precipMm: 460 - (yr - 2000) * 2.2,
-      ndvi: Number((0.41 - (yr - 2000) * 0.0014).toFixed(4)),
+      et0Mm: null,
     });
   }
   return computeStatsFromAnnual(years);
@@ -430,5 +430,27 @@ describe("verifyLlmReasonerOutput & reasonOverCaseWithLlm", () => {
     expect(res!.causes[0]!.visualFocus?.stageId).toBe("band");
     expect(res!.causes[0]!.visualFocus?.elevationBandM).toEqual([1800, 2317]);
     expect(res!.causes[0]!.visualFocus?.sourceId).toBe("src_ahansal_band_2");
+  });
+
+  it("gives the model the rainfall series with its source and names vegetation as not measured", () => {
+    const body = buildMetaResponsesRequestBody(
+      {
+        placeName: "Oued Ahansal",
+        regionName: "Azilal, Morocco",
+        lon: -6.42,
+        lat: 31.66,
+        minElevationM: 1800,
+        maxElevationM: 3200,
+        climate: buildMockClimate(),
+        sources: sampleSources,
+      },
+      DEFAULT_META_MODEL,
+    );
+    const prompt = JSON.stringify(body["input"]);
+    expect(prompt).toContain("Open-Meteo Historical Weather API");
+    expect(prompt).toContain("Not measured");
+    expect(prompt).not.toMatch(/[-+]?\d+\.\d+ NDVI/);
+    expect(prompt).not.toMatch(/Temperature trend: [-+]?\d/);
+    expect(prompt).not.toMatch(/R² \(/);
   });
 });

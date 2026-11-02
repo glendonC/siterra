@@ -85,7 +85,7 @@ async function queryOpenAlexWorks(query: string): Promise<OpenAlexWork[]> {
 }
 
 /**
- * Builds the official dataset sources (Copernicus DEM GLO-30 and ERA5 / Open-Meteo archive)
+ * Builds the official dataset sources (AWS Terrain Tiles elevation and the Open-Meteo ERA5 archive)
  * and performs two-stage OpenAlex retrieval for peer-reviewed regional studies.
  * Never fabricates a synthetic paper if OpenAlex returns 0 works.
  */
@@ -105,20 +105,20 @@ export async function fetchOpenAlexSources(
       createdAt: now,
       updatedAt: now,
       caseId,
-      title: `Copernicus DEM GLO-30 & Open-Meteo Elevation Grid for ${placeName} (${regionName})`,
-      url: "https://spacedata.copernicus.eu/collections/copernicus-digital-elevation-model",
-      publisher: "European Space Agency (ESA) / Open-Meteo Elevation API",
-      authors: ["European Space Agency", "Open-Meteo Contributors"],
-      publicationDate: "2024",
+      title: `AWS Terrain Tiles (Terrarium elevation) for ${placeName} (${regionName})`,
+      url: "https://registry.opendata.aws/terrain-tiles/",
+      publisher: "Tilezen / AWS Open Data",
+      authors: ["Tilezen contributors"],
+      publicationDate: null,
       language: "en",
       accessedAt: now,
       sourceKind: "official_dataset",
       accessStatus: "retrieved",
-      license: "Copernicus DEM Licence / CC BY 4.0",
+      license: "Source licences listed in tilezen/joerd docs/attribution.md",
       redistributionStatus: "permitted",
       contentHash: `sha256:${createHash("sha256").update(`dem:${caseId}`).digest("hex")}`,
       notes: [
-        `30 m digital elevation model and watershed relief grid sampled across ${placeName} (${regionName}).`,
+        `Terrarium-encoded elevation tiles at zoom 11, resampled to the terrain grid across ${placeName} (${regionName}).`,
       ],
     }),
     Source.parse({
@@ -128,7 +128,7 @@ export async function fetchOpenAlexSources(
       createdAt: now,
       updatedAt: now,
       caseId,
-      title: `ERA5 & Open-Meteo 25-Year Historical Climate Archive (2000–2024) for ${placeName} (${regionName})`,
+      title: `Open-Meteo Historical Weather API (ERA5 reanalysis), 2000 to 2024, for ${placeName} (${regionName})`,
       url: "https://open-meteo.com/en/docs/historical-weather-api",
       publisher: "Copernicus Climate Change Service (C3S) / Open-Meteo",
       authors: ["Hersbach, H.", "Bell, B.", "Berrisford, P.", "Open-Meteo Archive"],
@@ -141,7 +141,7 @@ export async function fetchOpenAlexSources(
       redistributionStatus: "permitted",
       contentHash: `sha256:${createHash("sha256").update(`era5:${caseId}`).digest("hex")}`,
       notes: [
-        `Daily and seasonal precipitation and evapotranspiration series from 2000-01-01 to 2024-12-31 for ${placeName}.`,
+        `Daily precipitation_sum and et0_fao_evapotranspiration from 2000-01-01 to 2024-12-31 at the grid cell nearest ${placeName}.`,
       ],
     }),
   ];
@@ -312,14 +312,13 @@ export interface SynthesizePlaceQuestionOutput {
   evidence: Evidence[];
   evStudyId: string;
   evClimateId: string;
-  trendRegime: "stable" | "greening" | "browning";
   detectedTheme: string | null;
 }
 
 /**
- * Inspects the 25-year satellite/climate trend and retrieved OpenAlex studies to:
- * 1) Synthesize a place-specific default question matching the real signal (stable, greening, or browning)
- *    and any local research theme;
+ * From the retrieved OpenAlex studies and the rainfall series:
+ * 1) Phrases a place-specific default question that presupposes no result (no vegetation trend is measured)
+ *    and names any local research theme;
  * 2) Construct Evidence records citing the verbatim abstract excerpt from the top peer-reviewed paper,
  *    or honestly reporting a local peer-reviewed literature gap when OpenAlex has 0 matching studies.
  */
@@ -346,27 +345,9 @@ export function synthesizePlaceQuestionAndEvidence(
   const studySources = sources.filter((s) => s.sourceKind === "peer_reviewed");
   const detectedTheme = detectLiteratureTheme(studySources);
 
-  const trendRegime: "stable" | "greening" | "browning" =
-    Math.abs(climate.ndviTrendPerDecade) < 0.004
-      ? "stable"
-      : climate.ndviTrendPerDecade >= 0.004
-        ? "greening"
-        : "browning";
-
-  let defaultQuestion: string;
-  if (trendRegime === "stable") {
-    defaultQuestion = detectedTheme
-      ? `How do ${detectedTheme}, seasonal rainfall, and elevation bands sustain the baseline stability of ${placeName}?`
-      : `How do seasonal rainfall and elevation bands sustain the baseline stability of ${placeName}?`;
-  } else if (trendRegime === "greening") {
-    defaultQuestion = detectedTheme
-      ? `Is ${detectedTheme} or shifting rainfall driving the 25-year vegetation greening across ${placeName}?`
-      : `Is shifting rainfall or valley-floor land use driving the 25-year vegetation greening across ${placeName}?`;
-  } else {
-    defaultQuestion = detectedTheme
-      ? `Is ${detectedTheme} or declining moisture driving the 25-year vegetation decline across ${placeName}?`
-      : `Is rainfall deficit or land-use pressure driving the 25-year vegetation browning across ${placeName}?`;
-  }
+  const defaultQuestion = detectedTheme
+    ? `Has vegetation across ${placeName} changed since 2000, and what role do ${detectedTheme} and rainfall play?`
+    : `Has vegetation across ${placeName} changed since 2000, and if so, how much does rainfall explain?`;
 
   const question = userQuestion?.trim() || defaultQuestion;
 
@@ -432,7 +413,7 @@ export function synthesizePlaceQuestionAndEvidence(
       createdAt: now,
       updatedAt: now,
       caseId,
-      statement: `OpenAlex indexes 0 local peer-reviewed studies specifically naming ${placeName} (${regionName}); baseline watershed assessment relies on the 25-year ERA5 climate archive and Copernicus GLO-30 DEM (${terrain.minElevationM.toFixed(0)} m to ${terrain.maxElevationM.toFixed(0)} m).`,
+      statement: `OpenAlex indexes 0 local peer-reviewed studies specifically naming ${placeName} (${regionName}); this record rests on the Open-Meteo rainfall series (ERA5 reanalysis) and the terrain elevation grid (${terrain.minElevationM.toFixed(0)} m to ${terrain.maxElevationM.toFixed(0)} m).`,
       claimKind: "scientific_context",
       status: "accepted",
       geoSelectionId: geoId,
@@ -464,12 +445,11 @@ export function synthesizePlaceQuestionAndEvidence(
     });
   }
 
-  const trendWord =
-    trendRegime === "stable"
-      ? `remains near baseline stability (${climate.ndviTrendPerDecade >= 0 ? "+" : ""}${climate.ndviTrendPerDecade.toFixed(4)} NDVI/decade)`
-      : trendRegime === "greening"
-        ? `shows a greening trend of +${climate.ndviTrendPerDecade.toFixed(4)} NDVI/decade`
-        : `shows a browning trend of ${climate.ndviTrendPerDecade.toFixed(4)} NDVI/decade`;
+  const signedRain = `${climate.precipTrendMmPerDecade >= 0 ? "+" : ""}${climate.precipTrendMmPerDecade.toFixed(1)}`;
+  const rainInterval =
+    climate.precipTrendLowerMmPerDecade !== null && climate.precipTrendUpperMmPerDecade !== null
+      ? `, 95% interval ${climate.precipTrendLowerMmPerDecade.toFixed(1)} to ${climate.precipTrendUpperMmPerDecade.toFixed(1)}`
+      : "";
 
   const climateEvidence = Evidence.parse({
     recordType: "Evidence",
@@ -478,21 +458,19 @@ export function synthesizePlaceQuestionAndEvidence(
     createdAt: now,
     updatedAt: now,
     caseId,
-    statement: `Across 2000–2024, vegetation in ${placeName} ${trendWord} while annual precipitation shifts at ${climate.precipTrendMmPerDecade >= 0 ? "+" : ""}${climate.precipTrendMmPerDecade.toFixed(1)} mm per decade (explaining R² = ${climate.rSquared.toFixed(3)} of interannual variance).`,
-    claimKind: "observation",
+    statement: `Annual precipitation at the reanalysis grid cell nearest ${placeName} changed by ${signedRain} mm per decade (${climate.source.window}, ${String(climate.years.length)} calendar years${rainInterval}). Vegetation change is not measured.`,
+    claimKind: "model_estimate",
     status: "accepted",
     geoSelectionId: geoId,
     periodIds,
-    measurementIds: [
-      ...new Set([
-        measurementIds.catchmentTrendId,
-        measurementIds.precipTrendId,
-        measurementIds.rainR2Id,
-      ]),
-    ],
-    provenance: recordProvenance,
+    measurementIds: [measurementIds.precipTrendId],
+    provenance: {
+      ...recordProvenance,
+      limitations: [`${climate.source.label} (${climate.source.window}).`, climate.vegetation.reason],
+    },
     interpretation: null,
-    uncertainty: "95% OLS interval over 25 annual seasons from ERA5 / Open-Meteo archive.",
+    uncertainty:
+      "Reanalysis for one grid cell, not a rain gauge; 95% Student t interval of the least squares slope.",
     reviewDecisionIds: [],
   });
 
@@ -507,7 +485,6 @@ export function synthesizePlaceQuestionAndEvidence(
     evidence: [studyEvidence, climateEvidence],
     evStudyId,
     evClimateId,
-    trendRegime,
     detectedTheme,
   };
 }

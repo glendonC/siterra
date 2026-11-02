@@ -38,7 +38,7 @@ function buildMockClimate() {
     years.push({
       year: yr,
       precipMm: 420 - (yr - 2000) * 2.5,
-      ndvi: Number((0.44 - (yr - 2000) * 0.0012).toFixed(4)),
+      et0Mm: null,
     });
   }
   return computeStatsFromAnnual(years);

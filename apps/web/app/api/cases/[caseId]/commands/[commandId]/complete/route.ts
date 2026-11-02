@@ -19,7 +19,11 @@ import {
   setCommandStatus,
   setLastSequence,
 } from "@siterra/db";
-import type { HistoricalClimateSummary } from "../../../../../../../lib/live-place/climate-series.ts";
+import {
+  type HistoricalClimateSummary,
+  OPEN_METEO_SOURCE,
+  computeStatsFromAnnual,
+} from "../../../../../../../lib/live-place/climate-series.ts";
 import { fetchRegionalContextAndGovernance } from "../../../../../../../lib/live-place/context-fetcher.ts";
 import { fetchGovernmentPolicyAndOpenAccess } from "../../../../../../../lib/live-place/government-policy-fetcher.ts";
 import { fetchOpenAlexSources } from "../../../../../../../lib/live-place/literature.ts";
@@ -33,47 +37,38 @@ import { fromApplicationOrigin, requestSession } from "../../../../../session.ts
 
 export const dynamic = "force-dynamic";
 
+/**
+ * The rainfall series as the case record holds it: only available yearly precipitation values, with
+ * the trend recomputed from them. Vegetation is not measured for live places, so none is passed on.
+ */
 function extractClimateFromSnapshot(
-  measurements: ReadonlyArray<{ metric: string; value: number | null; periodId: string }>,
+  measurements: ReadonlyArray<{
+    metric: string;
+    value: number | null;
+    periodId: string;
+    status: string;
+    provenance: { verificationStatus: string };
+  }>,
 ): HistoricalClimateSummary {
-  const findMetric = (name: string, fallback: number): number => {
-    const m = measurements.find((x) => x.metric === name && typeof x.value === "number");
-    return typeof m?.value === "number" ? m.value : fallback;
-  };
-
-  const precipTrendMmPerDecade = findMetric("precipitation_trend_mm_per_decade", -4.2);
-  const ndviTrendPerDecade = findMetric("ndvi_trend_unadjusted_per_decade", -0.0035);
-  const rSquared = findMetric("rainfall_fit_r_squared", 0.28);
-  const upwardFdrShare = findMetric("area_share_upward_fdr", 0.08);
-  const downwardFdrShare = findMetric("area_share_downward_fdr", 0.14);
-
-  const years = [];
-  for (let yr = 2000; yr <= 2024; yr++) {
-    const pId = `period_${String(yr)}-06`;
-    const pRow = measurements.find(
-      (m) => m.periodId === pId && m.metric === "precipitation_annual_mm",
-    );
-    const nRow = measurements.find(
-      (m) => m.periodId === pId && m.metric === "ndvi_growing_season_mean",
-    );
-    years.push({
-      year: yr,
-      precipMm: typeof pRow?.value === "number" ? pRow.value : 480,
-      ndvi: typeof nRow?.value === "number" ? nRow.value : 0.38,
-    });
-  }
-
-  return {
+  const rain = measurements.filter(
+    (m) => m.metric === "precipitation_annual_mm" && m.status === "available" && m.value !== null,
+  );
+  const years = rain
+    .map((m) => ({ year: Number(m.periodId.slice(7, 11)), precipMm: m.value ?? 0, et0Mm: null }))
+    .filter((r) => Number.isInteger(r.year))
+    .sort((a, b) => a.year - b.year);
+  const placeholder = rain.some((m) => m.provenance.verificationStatus === "unverified");
+  return computeStatsFromAnnual(
     years,
-    precipTrendMmPerDecade,
-    ndviTrendPerDecade,
-    ndviLowerPerDecade: Number((ndviTrendPerDecade - 0.004).toFixed(4)),
-    ndviUpperPerDecade: Number((ndviTrendPerDecade + 0.004).toFixed(4)),
-    lowBandTrendPerDecade: Number((ndviTrendPerDecade * 1.2).toFixed(4)),
-    rSquared,
-    upwardFdrShare,
-    downwardFdrShare,
-  };
+    placeholder
+      ? {
+          kind: "offline_seeded",
+          label: "Coordinate-seeded placeholder series (Open-Meteo unreachable); not a measurement",
+          url: null,
+          window: OPEN_METEO_SOURCE.window,
+        }
+      : OPEN_METEO_SOURCE,
+  );
 }
 
 export async function POST(

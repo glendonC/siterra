@@ -122,13 +122,7 @@ export interface LlmReasonerInput {
   maxElevationM: number;
   bandLimitM?: number | undefined;
   areaKm2?: number | undefined;
-  climate: HistoricalClimateSummary & {
-    tempTrendCPerDecade?: number | undefined;
-    soilMoistureTrendPerDecade?: number | undefined;
-    precipTempR2?: number | undefined;
-    droughtYears?: number[] | undefined;
-    wetYears?: number[] | undefined;
-  };
+  climate: HistoricalClimateSummary;
   sources: readonly Source[];
   question?: string | undefined;
   config?: LlmConfig | null | undefined;
@@ -797,33 +791,18 @@ export function verifyLlmReasonerOutput(
   };
 }
 
+/** The three driest and three wettest calendar years of the rainfall series. */
 function deriveClimateExtremes(climate: LlmReasonerInput["climate"]): {
   droughtYears: number[];
   wetYears: number[];
-  tempTrendCPerDecade: number;
-  soilMoistureTrendPerDecade: number;
-  precipTempR2: number;
 } {
   const sortedByPrecip = [...climate.years].sort((a, b) => a.precipMm - b.precipMm);
-  const droughtYears =
-    climate.droughtYears ?? sortedByPrecip.slice(0, 3).map((y) => y.year);
-  const wetYears =
-    climate.wetYears ??
-    sortedByPrecip
+  return {
+    droughtYears: sortedByPrecip.slice(0, 3).map((y) => y.year),
+    wetYears: sortedByPrecip
       .slice(-3)
       .reverse()
-      .map((y) => y.year);
-  const tempTrendCPerDecade = climate.tempTrendCPerDecade ?? 0.24;
-  const soilMoistureTrendPerDecade =
-    climate.soilMoistureTrendPerDecade ?? Number((climate.ndviTrendPerDecade * 1.15).toFixed(4));
-  const precipTempR2 = climate.precipTempR2 ?? climate.rSquared;
-
-  return {
-    droughtYears,
-    wetYears,
-    tempTrendCPerDecade,
-    soilMoistureTrendPerDecade,
-    precipTempR2,
+      .map((y) => y.year),
   };
 }
 
@@ -846,7 +825,7 @@ export function buildMetaResponsesRequestBody(
 
   const instructions = [
     "You are Siterra's scientific watershed reasoner running on Meta muse-spark-1.3.",
-    "Ground every hypothesis, causal explanation branch, candidate intervention, and verified finding strictly in the provided 25-year ERA5 climate metrics, Copernicus DEM elevation span, and retrieved source excerpts.",
+    "Ground every hypothesis, causal explanation branch, candidate intervention, and verified finding strictly in the provided rainfall metrics, terrain elevation span, and retrieved source excerpts. Values listed as not measured do not exist; never state or estimate them.",
     "CRITICAL RULES:",
     "1. Never use prohibited certainty words: prove, proves, proven, certainly, definitely, guaranteed.",
     "2. In `verifiedFindings`, `sourceId` MUST be an exact ID from the provided Sources list, and `exactQuote` MUST be a character-for-character verbatim substring copied directly from that source's `Verbatim Excerpt`.",
@@ -857,17 +836,14 @@ export function buildMetaResponsesRequestBody(
     `Place: ${input.placeName} (${input.regionName})`,
     `Coordinates: ${input.lat.toFixed(4)}°N, ${input.lon.toFixed(4)}°E`,
     `Elevation Span: ${input.minElevationM.toFixed(0)} m to ${input.maxElevationM.toFixed(0)} m (Catchment Area: ${areaKm2.toFixed(1)} km²)`,
-    `Question: ${input.question?.trim() || `What drives the 25-year watershed and vegetation dynamics across ${input.placeName}?`}`,
+    `Question: ${input.question?.trim() || `What is known, and what is not yet measured, about land and water across ${input.placeName}?`}`,
     "",
-    "25-Year ERA5 Climate & Satellite Metrics (2000–2024):",
-    `- Precipitation trend: ${input.climate.precipTrendMmPerDecade >= 0 ? "+" : ""}${input.climate.precipTrendMmPerDecade.toFixed(1)} mm/decade`,
-    `- Temperature trend: +${extremes.tempTrendCPerDecade.toFixed(2)} °C/decade`,
-    `- Soil moisture / vegetation trend: ${input.climate.ndviTrendPerDecade >= 0 ? "+" : ""}${input.climate.ndviTrendPerDecade.toFixed(4)} NDVI/decade (95% CI: [${input.climate.ndviLowerPerDecade.toFixed(4)}, ${input.climate.ndviUpperPerDecade.toFixed(4)}])`,
-    `- Valley-floor band trend: ${input.climate.lowBandTrendPerDecade >= 0 ? "+" : ""}${input.climate.lowBandTrendPerDecade.toFixed(4)} NDVI/decade`,
-    `- Rainfall-vegetation R² (precipTempR2): ${extremes.precipTempR2.toFixed(3)}`,
-    `- Soil moisture proxy trend: ${extremes.soilMoistureTrendPerDecade >= 0 ? "+" : ""}${extremes.soilMoistureTrendPerDecade.toFixed(4)} /decade`,
-    `- Notable drought years: ${extremes.droughtYears.join(", ")}`,
-    `- Notable wet years: ${extremes.wetYears.join(", ")}`,
+    `Rainfall (${input.climate.source.label}, ${String(input.climate.years.length)} calendar years, ${input.climate.source.window}):`,
+    `- Precipitation trend: ${input.climate.precipTrendMmPerDecade >= 0 ? "+" : ""}${input.climate.precipTrendMmPerDecade.toFixed(1)} mm/decade${input.climate.precipTrendLowerMmPerDecade !== null && input.climate.precipTrendUpperMmPerDecade !== null ? ` (95% interval ${input.climate.precipTrendLowerMmPerDecade.toFixed(1)} to ${input.climate.precipTrendUpperMmPerDecade.toFixed(1)})` : ""}`,
+    `- Driest calendar years: ${extremes.droughtYears.join(", ")}`,
+    `- Wettest calendar years: ${extremes.wetYears.join(", ")}`,
+    "Not measured (state these as not measured; never estimate them): vegetation index (NDVI) values and trends, the share of vegetation change rainfall explains, temperature trend, soil moisture.",
+    `- ${input.climate.vegetation.reason}`,
     "",
     "Retrieved Sources & Verbatim Excerpts:",
     sourceLines.join("\n"),
