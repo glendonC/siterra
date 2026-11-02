@@ -1,89 +1,150 @@
-/* The ask's results in the opened record's place (D4's .inst at 800, 120, 560 wide), in the tokens of
-   app/obsidian.css: the caption as the instruments set theirs, the findings list under it, kept above the credit. */
+/* ============================================================================
+   DIEGETIC HYPOTHESIS & LIVELIHOOD READOUT (Detroit: Become Human × AffectUI)
+   Zero SaaS boxes, zero rectangular card borders, zero vertical left stripes.
+   Open typographic rows in 3D perspective beside the sharp 3D valley terrain.
+   ============================================================================ */
 
 .results {
   position: absolute;
   inset: 0;
   pointer-events: none;
   visibility: hidden;
+  z-index: 18;
 }
 
+/* Soft localized right-side atmospheric readability veil — zero full-screen blur */
 .frost {
   position: absolute;
   pointer-events: none;
-  backdrop-filter: blur(18px) saturate(0.6);
-  background: var(--ov-frost);
-  mask-image: var(--ov-frost-mask);
+  backdrop-filter: none;
+  background: radial-gradient(
+    ellipse 56% 62% at 52% 48%,
+    rgb(242 239 234 / 0.88) 0%,
+    rgb(242 239 234 / 0.52) 55%,
+    rgb(242 239 234 / 0) 100%
+  );
+  mask-image: none;
+}
+
+:global([data-theme="obsidian"]) .frost {
+  background: radial-gradient(
+    ellipse 56% 62% at 52% 48%,
+    rgb(11 16 18 / 0.88) 0%,
+    rgb(11 16 18 / 0.52) 55%,
+    rgb(11 16 18 / 0) 100%
+  );
 }
 
 .inst {
   position: absolute;
-  left: 800px;
-  top: 120px;
-  width: 560px;
-  perspective: 1500px;
+  right: calc(56px - var(--hud-shift-x, 0px));
+  top: calc(84px - var(--hud-shift-y, 0px));
+  width: 556px;
+  perspective: 1100px;
 }
 
-/* flat and level when settled: the only tilt is the scene's own movement (lead, 2026-10-30) */
 .plane {
-  transform: none;
+  transform-style: preserve-3d;
+  transform: perspective(1100px) rotateY(-2.4deg) rotateX(0.5deg) translate3d(0, 0, 0);
+  transform-origin: right center;
 }
 
 .caption {
   margin: 0;
-  font-size: 20px;
-  line-height: 28px;
+  font: 500 22px / 29px var(--font-sans);
+  letter-spacing: -0.015em;
   text-wrap: pretty;
+  text-shadow: var(--ov-halo-dark);
 }
 
 .ink {
-  color: var(--text-primary);
+  color: var(--ov-bright);
 }
 
 .grey {
-  color: var(--text-tertiary);
+  color: var(--ov-ink-3);
+  font-weight: 400;
 }
 
 .k {
-  margin-top: 28px;
-  font-family: var(--font-mono);
-  font-size: 12px;
-  line-height: 16px;
-  letter-spacing: 0.02em;
-  color: var(--ov-kicker);
+  display: none;
 }
 
-/* the list stops above the credit; a long one scrolls */
+/* --- Open Typographic Tab Strip (Zero borders, zero underline bars) --- */
+.tabs {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin-top: 16px;
+  pointer-events: auto;
+}
+
+.tab {
+  position: relative;
+  appearance: none;
+  flex: none;
+  padding: 4px 0;
+  border: 0;
+  background: transparent;
+  font: 500 12px / 16px var(--font-mono);
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  color: var(--ov-ink-3);
+  text-shadow: var(--ov-halo-dark);
+  cursor: pointer;
+  outline: none;
+  transition: color 150ms ease;
+}
+
+.tab:hover,
+.tab:focus-visible {
+  color: var(--ov-ink);
+}
+
+.tab[aria-pressed="true"] {
+  color: #2b73e8;
+}
+
+/* --- Evidence & Context Stream --- */
 .list {
-  margin: 10px 0 0;
+  margin: 14px 0 0;
   padding: 0;
   list-style: none;
-  max-height: 440px;
+  max-height: 430px;
   overflow-y: auto;
+  scrollbar-width: none;
   pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.list::-webkit-scrollbar {
+  display: none;
 }
 
 .item {
   position: relative;
-  margin: 0 0 14px;
+  margin: 0;
+  padding: 6px 0;
   outline: none;
+  text-shadow: var(--ov-halo-dark);
 }
 
 .state {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 12px;
-  line-height: 16px;
-  color: var(--ov-ci);
+  font: 500 12px / 16px var(--font-mono);
+  color: #2b73e8;
 }
 
 .statement {
   display: -webkit-box;
-  margin-top: 2px;
-  font-size: 15px;
-  line-height: 21px;
-  color: var(--text-secondary);
+  margin-top: 3px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--ov-ink);
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   line-clamp: 2;
@@ -93,156 +154,119 @@
 .item:focus-within .statement,
 .item:hover .statement {
   display: block;
-  color: var(--text-primary);
-}
-
-.item:focus-visible {
-  outline: 1px solid var(--ov-focus);
-  outline-offset: 4px;
+  color: var(--ov-bright);
 }
 
 .chip {
-  display: inline-block;
+  display: inline-grid;
+  place-items: center;
   min-width: 18px;
-  height: 18px;
+  height: 17px;
   margin: 0;
   padding: 0 4px;
-  border: 1px solid var(--hairline);
-  border-radius: 3px;
-  background: none;
-  font-family: var(--font-mono);
-  font-size: 12px;
-  line-height: 16px;
-  text-align: center;
-  color: var(--text-secondary);
+  border: 0;
+  border-radius: 2.5px;
+  background: #252930;
+  font: 500 12px / 1 var(--font-mono);
+  color: #f4f2ed;
+  text-shadow: none !important;
   cursor: pointer;
 }
 
 .chip[aria-expanded="true"],
 .chip:hover,
 .chip:focus-visible {
-  color: var(--text-primary);
-  border-color: var(--text-secondary);
+  background: #2b73e8;
+  color: #ffffff;
 }
 
 .note {
   display: block;
   margin-top: 6px;
-  padding: 8px 10px;
-  border-radius: 4px;
-  background: var(--bg-overlay);
+  padding: 4px 0 2px;
   font-size: 12px;
   line-height: 17px;
-  color: var(--text-secondary);
+  color: var(--ov-ink-2);
 }
 
-/* the one action: the field plan, opened in place over the land (decision 13) */
-.open {
-  margin-top: 14px;
-  pointer-events: auto;
-}
-
-/* the next-steps package's Enter, above the card's other actions (UI-2) */
-.package {
-  margin-top: 18px;
-}
-
-.tabs {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 16px;
-  pointer-events: auto;
-}
-
-.tab {
-  flex: none;
-  height: 26px;
-  padding: 0 9px;
-  border: 1px solid var(--hairline);
-  border-radius: 2px;
-  background: transparent;
-  font-family: var(--font-mono);
-  font-size: 12px;
-  line-height: 16px;
-  letter-spacing: 0.01em;
-  white-space: nowrap;
-  color: var(--text-tertiary);
-  cursor: pointer;
-  transition:
-    color 160ms ease,
-    border-color 160ms ease,
-    background 160ms ease;
-}
-
-.tab:hover,
-.tab:focus-visible {
-  color: var(--text-primary);
-  border-color: var(--text-secondary);
-  outline: none;
-}
-
-.tab[aria-pressed="true"] {
-  color: var(--text-primary);
-  border-color: var(--text-secondary);
-  background: var(--bg-overlay);
-}
-
+/* --- Livelihood & Policy Audit Rows (Zero boxes, zero borders, zero lines) --- */
 .livelihoodMatrix {
-  margin: 14px 0 0;
+  margin: 12px 0 0;
   padding: 0;
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 14px;
   pointer-events: auto;
 }
 
 .livelihoodCard {
+  position: relative;
   margin: 0;
-  padding: 9px 12px;
-  border: 1px solid var(--hairline);
-  border-left: 2px solid #1e82d8;
-  border-radius: 2px;
-  background: var(--bg-overlay);
+  padding: 6px 4px 6px 0;
+  border: 0;
+  background: transparent;
   cursor: pointer;
-  transition:
-    border-color 140ms ease,
-    background 140ms ease;
+  text-shadow: var(--ov-halo-dark);
+  transition: transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .livelihoodCard:hover {
-  border-color: var(--text-secondary);
-  border-left-color: #1e82d8;
+  transform: translate3d(3px, 0, 4px);
 }
 
 .livelihoodHead {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: 8px;
+  gap: 10px;
+}
+
+.livelihoodHeadLeft {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 10px;
+  min-width: 0;
+}
+
+.livelihoodIndex {
+  font: 500 12px / 16px var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  color: #2b73e8;
 }
 
 .livelihoodTitle {
-  font-size: 13px;
-  line-height: 17px;
-  font-weight: 500;
-  color: var(--text-primary);
+  font: 500 14.5px / 19px var(--font-sans);
+  color: var(--ov-bright);
 }
 
 .livelihoodBadge {
-  padding: 1px 6px;
-  border: 1px solid var(--hairline-quiet);
-  border-radius: 2px;
-  font-family: var(--font-mono);
-  font-size: 12px;
-  line-height: 15px;
-  color: var(--ov-amber-tag);
+  flex-shrink: 0;
+  font: 500 12px / 16px var(--font-mono);
+  color: #d99b26;
 }
 
 .livelihoodBody {
-  margin: 4px 0 0;
-  font-size: 12.5px;
-  line-height: 17px;
-  color: var(--text-secondary);
+  margin: 4px 0 0 26px;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--ov-ink-2);
+}
+
+/* --- Bottom Action Bar --- */
+.bottomActionRow {
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.package {
+  margin: 0;
+  pointer-events: auto;
+}
+
+.openPlanBtn {
+  font-size: 14px;
 }

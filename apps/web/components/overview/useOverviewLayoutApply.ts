@@ -38,8 +38,8 @@ import type { TearState } from "./useOverviewTearInPlace";
 export const DUR = { s: 1.0, h: 0.3, k: 0.25, o: 0.7, r: 0.3 } as const;
 /** How far the land and the findings rise while the ask is open (design px). */
 export const LIFT = 34;
-/** The arrival's steps (s): the land rising as the camera comes down, the arc drawing on, the findings fading in. */
-const ARRIVE_S = { rise: 1.5, arc: 0.5, appear: 0.4 } as const;
+/** The arrival's steps (s): Stage 1 2D survey plan + Stage 2 3D carve-out extrusion, the arc drawing on, the findings fading in. */
+const ARRIVE_S = { rise: 2.2, arc: 0.45, appear: 0.35 } as const;
 /** The idle lifts' rhythm (s): quiet before the first, then each layer up, held, down, and a pause before the next. */
 export const IDLE = { wait: 4, up: 0.7, hold: 2.2, down: 0.7, gap: 0.9 } as const;
 const IDLE_LIFTS: boolean = process.env.NEXT_PUBLIC_SITERRA_IDLE_LIFTS === "on";
@@ -97,7 +97,13 @@ export interface UseOverviewLayoutApplyArgs {
   numeralRefs: MutableRefObject<Map<FindingId, HTMLSpanElement>>;
   wireRefs: MutableRefObject<Map<FindingId, SVGLineElement>>;
   hov: MutableRefObject<FindingId | null>;
-  camRef: MutableRefObject<{ zoom: number; turn: number }>;
+  camRef: MutableRefObject<{
+    zoom: number;
+    turn: number;
+    pitch: number;
+    panX: number;
+    panY: number;
+  }>;
   panelRef: MutableRefObject<boolean>;
   selWireRef: RefObject<SVGLineElement | null>;
   askCircleRef: RefObject<HTMLButtonElement | null>;
@@ -295,19 +301,27 @@ export function useOverviewLayoutApply(args: UseOverviewLayoutApplyArgs) {
     const hud = hudRef.current;
     if (hud) {
       hud.style.transform = `translate(${fit.ox.toFixed(2)}px, ${fit.oy.toFixed(2)}px) scale(${fit.scale.toFixed(5)})`;
+      const shiftX = fit.scale > 0 ? fit.ox / fit.scale : 0;
+      const shiftY = fit.scale > 0 ? fit.oy / fit.scale : 0;
+      hud.style.setProperty("--hud-shift-x", `${shiftX.toFixed(2)}px`);
+      hud.style.setProperty("--hud-shift-y", `${shiftY.toFixed(2)}px`);
       const pkgAway = pkgQuiet
         ? 1
         : selected === "package" || selected === "time"
           ? clamp01(s * 1.4)
           : 0;
-      const shown = appearRef.current * (1 - exitRef.current.away) * (1 - pkgAway);
+      const atWorkActive = rootRef.current?.hasAttribute("data-at-work") ?? false;
+      const baseAppear = atWorkActive ? 1 : appearRef.current;
+      const shown = baseAppear * (1 - exitRef.current.away) * (1 - pkgAway);
       hud.style.opacity = shown < 1 ? shown.toFixed(3) : "";
     }
     const lift = `translateY(${(-LIFT * oe * fit.scale).toFixed(2)}px)`;
     for (const c of [landRef.current, arcRef.current, blurRef.current])
       if (c) c.style.transform = lift;
-    if (liftRef.current)
+    if (liftRef.current) {
       liftRef.current.style.transform = `translateY(${(-LIFT * oe).toFixed(2)}px)`;
+      liftRef.current.style.opacity = appearRef.current < 1 ? appearRef.current.toFixed(3) : "";
+    }
 
     const cc = ease(clamp01((s - 0.25) / 0.45));
     const leadIn = ease(clamp01((s - 0.05) / 0.3));
@@ -627,6 +641,8 @@ export function useOverviewLayoutApply(args: UseOverviewLayoutApplyArgs) {
               ? 1 - (u - IDLE.up - IDLE.hold) / IDLE.down
               : 0;
       moving = true;
+    } else if (Q.t0 === -1 && Q.layer) {
+      Q.k = 1;
     } else {
       Q.t0 = null;
       if (Q.k > 0) {

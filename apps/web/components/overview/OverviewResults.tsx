@@ -124,7 +124,7 @@ export function OverviewResults({
                   setTab("verdict");
                 }}
               >
-                {pformat("verdict.tab.causes", { n: verdict.causes.length })}
+                <span>{pformat("verdict.tab.causes", { n: verdict.causes.length })}</span>
               </button>
               <button
                 type="button"
@@ -135,7 +135,7 @@ export function OverviewResults({
                   setTab("livelihoods");
                 }}
               >
-                {"Livelihood & Policy Audit (4)"}
+                <span>{"Livelihood & Policy Audit (4)"}</span>
               </button>
               <button
                 type="button"
@@ -146,13 +146,15 @@ export function OverviewResults({
                   setTab("findings");
                 }}
               >
-                {pformat("verdict.tab.context", { n: allAcceptedFindings.length })}
+                <span>{pformat("verdict.tab.context", { n: allAcceptedFindings.length })}</span>
               </button>
             </div>
           ) : null}
           {showVerdict && verdict ? (
             <>
-              <div className={styles.k}>{pkg["verdict.title"].text}</div>
+              <div className={styles.k} data-chrome="">
+                {pkg["verdict.title"].text}
+              </div>
               <ul className={verdictStyles.list} data-verdict-list="">
                 {verdict.causes.map((c, i) => {
                   const open = i === activeCauseIdx;
@@ -202,7 +204,12 @@ export function OverviewResults({
                       }}
                     >
                       <div className={verdictStyles.head}>
-                        <span className={verdictStyles.name}>{c.label}</span>
+                        <span className={verdictStyles.headLeft}>
+                          <span className={verdictStyles.causeIndex} data-chrome="">
+                            {String(i + 1).padStart(2, "0")}
+                          </span>
+                          <span className={verdictStyles.name}>{c.label}</span>
+                        </span>
                         <span
                           className={verdictStyles.status}
                           data-status={c.status}
@@ -252,7 +259,6 @@ export function OverviewResults({
             </>
           ) : showLivelihoods ? (
             <div data-chrome="">
-              <div className={styles.k}>{"PASTORAL LIVELIHOODS, POLICY & CUSTOMARY GOVERNANCE"}</div>
               <ul className={styles.livelihoodMatrix}>
                 <li
                   className={styles.livelihoodCard}
@@ -264,14 +270,17 @@ export function OverviewResults({
                   }}
                 >
                   <div className={styles.livelihoodHead}>
-                    <span className={styles.livelihoodTitle}>
-                      {"Customary Agdal Pasture Governance & Transhumance Shift"}
+                    <span className={styles.livelihoodHeadLeft}>
+                      <span className={styles.livelihoodIndex}>{"01"}</span>
+                      <span className={styles.livelihoodTitle}>
+                        {"Customary Agdal Pasture Rules & Grazing Shift"}
+                      </span>
                     </span>
                     <span className={styles.livelihoodBadge}>{"Blanco et al. 2015"}</span>
                   </div>
                   <p className={styles.livelihoodBody}>
                     {
-                      "Communal agdal rules regulate seasonal high-pasture opening dates, but winter transhumance abandonment and recurring droughts have shifted year-round livestock reliance onto valley-floor orchards, tree fodder, and lower slopes."
+                      "Communal agdal rules regulate high-pasture opening dates, while winter transhumance decline has shifted year-round livestock reliance onto valley-floor orchards and lower slopes."
                     }
                   </p>
                 </li>
@@ -285,14 +294,17 @@ export function OverviewResults({
                   }}
                 >
                   <div className={styles.livelihoodHead}>
-                    <span className={styles.livelihoodTitle}>
-                      {"Pastoral Law 113-13 & National Drought Shock (-40% Harvest)"}
+                    <span className={styles.livelihoodHeadLeft}>
+                      <span className={styles.livelihoodIndex}>{"02"}</span>
+                      <span className={styles.livelihoodTitle}>
+                        {"Pastoral Law 113-13 & National Drought Shock"}
+                      </span>
                     </span>
                     <span className={styles.livelihoodBadge}>{"Dahan et al. 2012 · FAO 2024"}</span>
                   </div>
                   <p className={styles.livelihoodBody}>
                     {
-                      "Under Morocco's Law 113-13 transhumance permit system and a 2024 cereal harvest >40% below average, restricting pasture access without verified forage baselines directly threatens smallholder herd survival."
+                      "Under Morocco's Law 113-13 permit framework and a 2024 cereal harvest >40% below average, restricting pasture access without verified forage baselines directly threatens smallholder herd survival."
                     }
                   </p>
                 </li>
@@ -306,14 +318,17 @@ export function OverviewResults({
                   }}
                 >
                   <div className={styles.livelihoodHead}>
-                    <span className={styles.livelihoodTitle}>
-                      {"Historical Policy Caution: 1917 Forest Decree & 26-Site Audit"}
+                    <span className={styles.livelihoodHeadLeft}>
+                      <span className={styles.livelihoodIndex}>{"03"}</span>
+                      <span className={styles.livelihoodTitle}>
+                        {"Historical Policy Caution: 1917 Forest Decree"}
+                      </span>
                     </span>
                     <span className={styles.livelihoodBadge}>{"Davis 2005 · West et al. 2023"}</span>
                   </div>
                   <p className={styles.livelihoodBody}>
                     {
-                      "Protectorate Morocco's 1917 forest decree banned pastoral grazing over deforestation claims later contradicted by fossil pollen, and synthetic-control audits across 26 modern conservation sites show top-down restrictions fail without local baselines."
+                      "Protectorate Morocco's 1917 decree banned pastoral grazing over deforestation claims later contradicted by fossil pollen, and 26-site audits show top-down restrictions fail without local baselines."
                     }
                   </p>
                 </li>
@@ -327,14 +342,17 @@ export function OverviewResults({
                   }}
                 >
                   <div className={styles.livelihoodHead}>
-                    <span className={styles.livelihoodTitle}>
-                      {"250 m Sensor Mixing Mandate: Why Ground Transects Precede Action"}
+                    <span className={styles.livelihoodHeadLeft}>
+                      <span className={styles.livelihoodIndex}>{"04"}</span>
+                      <span className={styles.livelihoodTitle}>
+                        {"250 m Sensor Mixing: Ground Walks Precede Action"}
+                      </span>
                     </span>
                     <span className={styles.livelihoodBadge}>{"Wessels et al. 2012"}</span>
                   </div>
                   <p className={styles.livelihoodBody}>
                     {
-                      "A +0.91%/decade catchment NDVI trend and +5.70%/decade 250 m pixel cannot distinguish nutritious forage grass from unpalatable thorny cushion shrubs. All 4 GPS field transects and Community & Livelihood sign-off are required before any rule change."
+                      "A 250 m satellite pixel cannot distinguish nutritious forage grass from unpalatable thorny cushion shrubs. All 4 GPS field walks and community sign-off are required before any rule change."
                     }
                   </p>
                 </li>
@@ -342,7 +360,9 @@ export function OverviewResults({
             </div>
           ) : (
             <>
-              <div className={styles.k}>{en["results.findings"].text}</div>
+              <div className={styles.k} data-chrome="">
+                {en["results.findings"].text}
+              </div>
               <ul className={styles.list}>
                 {shownFindings.map((e, i) => {
                   const n = chips[i] ?? null;
@@ -385,26 +405,28 @@ export function OverviewResults({
               </ul>
             </>
           )}
-          {onPackage ? (
-            // the question's next-steps package, when its command committed one (UI-2): the card's Enter
-            <div className={styles.package} data-chrome="">
-              <Control
-                variant="primary"
-                keyHint="Enter"
-                keyShortcut="Enter"
-                onClick={onPackage}
-                data-open-package=""
-              >
-                {pkg["package.open"].text}
-              </Control>
+          <div className={styles.bottomActionRow}>
+            {onPackage ? (
+              <div className={styles.package} data-chrome="">
+                <Control
+                  variant="quiet"
+                  className={styles.openPlanBtn}
+                  keyHint="Enter"
+                  keyShortcut="Enter"
+                  onClick={onPackage}
+                  data-open-package=""
+                >
+                  {pkg["package.open"].text}
+                </Control>
+              </div>
+            ) : null}
+            <div data-chrome="">
+              <ActionList
+                actions={actions}
+                {...(onOpen ? { onOpen } : {})}
+                {...(onBack ? { onBack } : {})}
+              />
             </div>
-          ) : null}
-          <div data-chrome="">
-            <ActionList
-              actions={actions}
-              {...(onOpen ? { onOpen } : {})}
-              {...(onBack ? { onBack } : {})}
-            />
           </div>
         </div>
       </section>

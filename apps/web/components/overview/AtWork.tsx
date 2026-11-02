@@ -1,15 +1,15 @@
 "use client";
 
 // A question at work on the overview (U29, the founder's specimen R "Muse Spark at work", upgraded for Section 8 AI
-// View), from the command's own event stream through the run model: the drawn arc is the run's clock from the ask
-// disc; each task runs along a lane (heavier while its model call runs); the Agent Tree at the left edge lists the
-// orchestrator and tasks with status, model, time and stored cost (plus "Needs you" when review is ready); Agent
-// Cursors sit on the land strata and source sector from real tool events; and selecting a task opens its Steps
-// card while dimming sibling lanes.
+// View):
+// - Top-left architectural header with place name and active question (▸ question)
+// - Sleek icon-only vertical squircle rail on the left with animated perimeter color sweep while running,
+//   and a feathered side-blur inspector on click / Space
+// - Full-width feathered bottom band with loader + live thinking stream while running, and settled summary +
+//   5 explanation cause pills + proposed field check + "See the Findings" CTA when done.
 
 import { useCallback, useEffect, useState, type ReactNode } from "react";
-import { Control } from "../controls/Control";
-import { en, format, type MessageId } from "../../lib/copy/en";
+import { en, format } from "../../lib/copy/en";
 import {
   along,
   centreOf,
@@ -22,9 +22,8 @@ import {
 import type { RunModel, RunTask } from "../../lib/run/model";
 import {
   AtWorkAgentTree,
+  AtWorkBottomThinkingBand,
   AtWorkCursors,
-  AtWorkThinkingCard,
-  seconds,
 } from "./AtWorkPanels";
 import styles from "./AtWork.module.css";
 
@@ -49,20 +48,6 @@ function useClock(run: RunModel, fixed: number | undefined): number {
   return Math.max(run.nowMs, wall - Date.parse(run.acceptedAt ?? ""));
 }
 
-/** The open explanations first, the contradicted after them (the reference study: what needs a person first). */
-const RANK: Record<string, number> = {
-  consistent: 0,
-  cannot_be_assessed: 1,
-  sealed: 2,
-  contradicted: 3,
-};
-
-const STATUS: Record<string, MessageId> = {
-  consistent: "run.branch.consistent",
-  contradicted: "run.branch.contradicted",
-  cannot_be_assessed: "run.branch.cannot",
-};
-
 /** The day a run was asked, as the recording's note gives it ("30 Oct 2026"). */
 const dayOf = (iso: string | null) =>
   iso
@@ -86,18 +71,33 @@ function resolveTaskMatch(
 export function AtWork({
   run,
   question,
+  placeName: _placeName,
   arc,
   rimLeft,
   sourceName: _sourceName,
   nowMs: fixedNow,
   recording = null,
   onFindings,
+  onToggleThinking,
+  onFocusTask,
+  onFocusLayer,
+  onFocusCause,
 }: {
   /** Opens the run's findings (the results), once it is done: the question card's Enter (decision 15). */
   onFindings: () => void;
+  /** Collapses/toggles the agent thinking overlay after completion so the user can switch freely between thinking and the 3D map. */
+  onToggleThinking?: () => void;
+  /** Syncs the 3D terrain layer carve/lift with the active or selected agent task. */
+  onFocusTask?: (task: RunTask | null) => void;
+  /** Manually focuses a specific 3D terrain layer from the inline visual breakdown. */
+  onFocusLayer?: (layer: "bands" | "cover" | "trend" | "rain" | "routes" | null) => void;
+  /** Focuses the 3D terrain layer corresponding to a hovered explanation cause. */
+  onFocusCause?: (causeId: string) => void;
   run: RunModel;
   /** The question the run answers, as it was asked. */
   question: string;
+  /** Optional place name for the top-left architectural header. */
+  placeName?: string;
   /** The drawn arc on screen (design px), a point every 2 degrees from the ask disc. */
   arc: readonly Pt[];
   /** The catchment's left-most rim point on screen (design px), where the proposed check is anchored. */
@@ -111,28 +111,20 @@ export function AtWork({
   recording?: { speed: number; length: number } | null;
 }) {
   const nowMs = useClock(run, fixedNow);
-  const [hovered, setHovered] = useState<string | null>(null);
+  const [hoveredBranch, setHoveredBranch] = useState<string | null>(null);
   const [folded, setFolded] = useState(true);
-  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(() => {
-    const running = run.tasks.find((t) => t.state === "running" && t.steps.length > 0);
-    if (running) return running.id;
-    const withSteps =
-      run.tasks.find((t) => t.kind === "source_research" && t.steps.length > 0) ??
-      run.tasks.find((t) => t.kind === "observation_analysis" && t.steps.length > 0) ??
-      run.tasks.find((t) => t.steps.length > 0);
-    return withSteps?.id ?? null;
-  });
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [stepsDismissed, setStepsDismissed] = useState(false);
 
+  const activeOrRunningTask =
+    selectedTaskId !== null
+      ? (run.tasks.find((t) => t.id === selectedTaskId) ?? null)
+      : (run.tasks.find((t) => t.state === "running") ?? null);
+
   useEffect(() => {
-    if (stepsDismissed || selectedTaskId !== null) return;
-    const candidate =
-      run.tasks.find((t) => t.state === "running" && t.steps.length > 0) ??
-      run.tasks.find((t) => t.kind === "source_research" && t.steps.length > 0) ??
-      run.tasks.find((t) => t.kind === "observation_analysis" && t.steps.length > 0) ??
-      run.tasks.find((t) => t.steps.length > 0);
-    if (candidate) setSelectedTaskId(candidate.id);
-  }, [run.tasks, selectedTaskId, stepsDismissed]);
+    if (!onFocusTask) return;
+    onFocusTask(activeOrRunningTask);
+  }, [activeOrRunningTask?.id, activeOrRunningTask?.kind, activeOrRunningTask?.sublabel, onFocusTask]);
 
   useEffect(() => {
     const param = new URLSearchParams(
@@ -157,7 +149,9 @@ export function AtWork({
     setSelectedTaskId((cur) => {
       if (cur === null) return pool[0]?.id ?? null;
       const idx = pool.findIndex((t) => t.id === cur);
-      if (idx === -1 || idx + 1 >= pool.length) return null;
+      if (idx === -1) return pool[0]?.id ?? null;
+      if (pool.length === 1) return null;
+      if (idx + 1 >= pool.length) return null;
       return pool[idx + 1]?.id ?? null;
     });
   }, [run.tasks]);
@@ -175,6 +169,21 @@ export function AtWork({
       } else if (ev.key === " ") {
         ev.preventDefault();
         cycleFollow();
+      } else if (ev.key === "ArrowDown" || ev.key === "ArrowUp") {
+        if (run.tasks.length === 0) return;
+        ev.preventDefault();
+        setStepsDismissed(false);
+        const dir = ev.key === "ArrowDown" ? 1 : -1;
+        setSelectedTaskId((cur) => {
+          const idx = cur ? run.tasks.findIndex((x) => x.id === cur) : -1;
+          const nextIdx =
+            idx === -1
+              ? dir > 0
+                ? 0
+                : run.tasks.length - 1
+              : (idx + dir + run.tasks.length) % run.tasks.length;
+          return run.tasks[nextIdx]?.id ?? null;
+        });
       } else if (ev.key === "Escape" && selectedTaskId !== null) {
         ev.preventDefault();
         setSelectedTaskId(null);
@@ -184,7 +193,7 @@ export function AtWork({
     return () => {
       window.removeEventListener("keydown", onKey, { capture: true });
     };
-  }, [done, onFindings, cycleFollow, selectedTaskId]);
+  }, [done, onFindings, cycleFollow, selectedTaskId, run.tasks]);
 
   if (arc.length < 3) return null;
   const centre = centreOf(arc);
@@ -206,18 +215,8 @@ export function AtWork({
   const radius = Math.hypot(disc.x - centre.x, disc.y - centre.y) || 320;
   const cursors = cursorPointsOf(run.tasks, centre, radius, selectedTaskId);
 
-  const count = (l: string) => run.findings.filter((f) => f.lands === l).length;
-  const counts = [
-    { n: count("source"), id: "run.count.checked" as const, mark: "●" },
-    { n: count("land"), id: "run.count.computed" as const, mark: "◆" },
-    { n: count("unchecked"), id: "run.count.unchecked" as const, mark: "○" },
-  ].filter((c) => c.n > 0);
-
   const check = run.checks[0] ?? null;
   const checkAt = rimLeft ? { x: rimLeft.x - 28, y: Math.max(rimLeft.y - 22, 430) } : null;
-  const selectedTask =
-    selectedTaskId !== null ? (run.tasks.find((t) => t.id === selectedTaskId) ?? null) : null;
-  const thinkingTask = !stepsDismissed ? selectedTask : null;
 
   let note: ReactNode = null;
   if (recording)
@@ -277,18 +276,33 @@ export function AtWork({
         })}
         <circle className={styles.head} cx={head.x} cy={head.y} r={run.done ? 3 : 4.5} />
         {check && checkAt && rimLeft ? (
-          <>
-            <line
-              className={styles.checkLeader}
-              x1={checkAt.x}
-              y1={checkAt.y + 9}
-              x2={rimLeft.x}
-              y2={rimLeft.y}
-            />
-            <circle className={styles.checkFoot} cx={rimLeft.x} cy={rimLeft.y} r={4} />
-          </>
+          <circle className={styles.checkFoot} cx={rimLeft.x} cy={rimLeft.y} r={4} />
         ) : null}
       </svg>
+
+      {/* Top-Left Question & Perplexity-Style Thinking Toggle under the Place Title */}
+      <header className={styles.topLeftHeader}>
+        <section className={styles.question} data-run-question>
+          <span className={styles.questionCaret} data-chrome="" aria-hidden="true">
+            {"▸"}
+          </span>
+          <h2 className={styles.asked}>{question}</h2>
+        </section>
+        {run.done && onToggleThinking ? (
+          <button
+            type="button"
+            className={styles.thinkingTogglePill}
+            data-thinking-toggle="open"
+            data-chrome=""
+            onClick={onToggleThinking}
+          >
+            <span className={styles.thinkingToggleDot} aria-hidden="true" />
+            <span>{`${run.tasks.length} steps completed`}</span>
+            <span className={styles.thinkingToggleAction}>Hide thinking</span>
+            <kbd className={styles.thinkingToggleKbd}>T</kbd>
+          </button>
+        ) : null}
+      </header>
 
       <AtWorkAgentTree
         run={run}
@@ -299,6 +313,21 @@ export function AtWork({
         setSelectedTaskId={setSelectedTaskId}
         setStepsDismissed={setStepsDismissed}
         cycleFollow={cycleFollow}
+        follow={selectedTaskId !== null}
+        stepsDismissed={stepsDismissed}
+        onFocusLayer={onFocusLayer}
+      />
+
+      <AtWorkBottomThinkingBand
+        run={run}
+        nowMs={nowMs}
+        selectedTaskId={selectedTaskId}
+        setSelectedTaskId={setSelectedTaskId}
+        setStepsDismissed={setStepsDismissed}
+        hoveredBranch={hoveredBranch}
+        setHoveredBranch={setHoveredBranch}
+        onFindings={onFindings}
+        onFocusCause={onFocusCause}
       />
 
       <AtWorkCursors
@@ -307,105 +336,6 @@ export function AtWork({
         setSelectedTaskId={setSelectedTaskId}
         setStepsDismissed={setStepsDismissed}
       />
-
-      {thinkingTask ? (
-        <AtWorkThinkingCard
-          thinkingTask={thinkingTask}
-          nowMs={nowMs}
-          setSelectedTaskId={setSelectedTaskId}
-          setStepsDismissed={setStepsDismissed}
-        />
-      ) : null}
-
-      <section
-        className={styles.question}
-        style={{
-          right: `${(1440 - disc.x + 78).toFixed(1)}px`,
-          bottom: `${(900 - disc.y - 40).toFixed(1)}px`,
-        }}
-        data-run-question
-      >
-        <h2 className={styles.asked}>{question}</h2>
-        <p className={styles.sofar} data-run-status>
-          {run.done
-            ? format("run.findings", { n: run.findings.length, time: seconds(nowMs) })
-            : format("run.sofar", { n: run.findings.length })}
-        </p>
-        {counts.length ? (
-          <p className={styles.counts} data-run-findings>
-            {counts.map((c) => (
-              <span key={c.id} className={styles.countItem} data-gather={c.id}>
-                <span className={styles.mark} aria-hidden="true">
-                  {c.mark}
-                </span>
-                {format(c.id, { n: c.n })}
-              </span>
-            ))}
-          </p>
-        ) : null}
-        {run.done ? (
-          <div className={styles.open} data-action-prompt="">
-            <Control
-              variant="quiet"
-              className={styles.openBtn}
-              keyHint="↵"
-              keyShortcut="Enter"
-              onClick={onFindings}
-              data-run-open-findings=""
-            >
-              {en["run.open"].text}
-            </Control>
-          </div>
-        ) : null}
-      </section>
-
-      {run.branches.length ? (
-        <ul
-          className={styles.branches}
-          style={thinkingTask ? { top: "496px" } : undefined}
-          data-run-branches
-        >
-          {[...run.branches]
-            .sort((a, b) => (RANK[a.status ?? "sealed"] ?? 2) - (RANK[b.status ?? "sealed"] ?? 2))
-            .map((b) => {
-              const word = b.status
-                ? (STATUS[b.status] ?? "run.branch.sealed")
-                : "run.branch.sealed";
-              return (
-                <li
-                  key={b.id}
-                  className={styles.branch}
-                  data-status={b.status ?? "sealed"}
-                  onPointerEnter={() => {
-                    setHovered(b.id);
-                  }}
-                  onPointerLeave={() => {
-                    setHovered((h) => (h === b.id ? null : h));
-                  }}
-                >
-                  <span className={styles.branchRow}>
-                    <span>{b.label}</span>
-                    <span className={styles.branchWord}>{en[word].text}</span>
-                  </span>
-                  {hovered === b.id && b.reason ? (
-                    <span className={styles.reason}>{b.reason}</span>
-                  ) : null}
-                </li>
-              );
-            })}
-        </ul>
-      ) : null}
-
-      {check && checkAt ? (
-        <section
-          className={styles.check}
-          style={{ right: `${(1440 - checkAt.x).toFixed(1)}px`, top: `${checkAt.y.toFixed(1)}px` }}
-          data-run-check
-        >
-          <p className={styles.checkKicker}>{en["run.check.kicker"].text}</p>
-          <p className={styles.checkLabel}>{check.label}</p>
-        </section>
-      ) : null}
 
       {note}
     </div>

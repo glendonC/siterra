@@ -36,26 +36,32 @@
   outline-offset: 2px;
 }
 
-/* Pattern A: solid geometric CTA, clean text only, no inner box */
+/* Pattern A: primary action with Signal Blue squircle keycap, zero outer box */
 .primary {
-  height: 36px;
-  padding: 0 18px;
+  height: 30px;
+  padding: 0 4px;
   border: 0;
-  border-radius: 2px;
-  background: var(--control-ink);
-  color: var(--paper);
-  font: 500 13px / 18px var(--font-sans);
+  border-radius: 0;
+  background: transparent;
+  color: var(--control-ink);
+  font: 500 13.5px / 18px var(--font-sans);
   letter-spacing: 0.01em;
 }
 
 .primary:hover,
 .primary:focus-visible {
-  background: var(--control-ink);
-  opacity: 0.88;
+  background: transparent;
+  color: #2b73e8;
 }
 
-/* Pattern B (siterra-hero-board.png / Division 2): unbordered key-hint + label */
+.primary .key {
+  background: #2b73e8;
+  color: #ffffff;
+}
+
+/* Pattern B: unbordered key-hint + label (flex-direction: row-reverse places keycap on the left visually while keeping label+key DOM text order) */
 .withKey {
+  flex-direction: row-reverse;
   height: 28px;
   padding: 0 2px;
   border: 0;
@@ -73,9 +79,8 @@
 
 .withKey:hover .key,
 .withKey:focus-visible .key {
-  border-color: var(--control-ink);
-  background: var(--control-fill);
-  color: var(--control-ink);
+  background: #2b73e8;
+  color: #ffffff;
 }
 
 .quiet {
@@ -97,16 +102,18 @@
 .key {
   display: inline-grid;
   place-items: center;
-  min-width: 22px;
-  height: 22px;
+  min-width: 19px;
+  height: 18px;
   padding: 0 5px;
-  border: 1px solid var(--control-line-strong);
-  border-radius: 2px;
-  font: 500 12px / 1 var(--font-mono);
-  color: var(--control-ink);
-  background: transparent;
+  border: 0;
+  border-radius: 2.5px;
+  font: 500 10px / 1 var(--font-mono);
+  letter-spacing: 0.03em;
+  color: #f4f2ed;
+  background: #252930;
+  text-shadow: none !important;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.22);
   transition:
     background-color 140ms ease-out,
-    border-color 140ms ease-out,
     color 140ms ease-out;
 }

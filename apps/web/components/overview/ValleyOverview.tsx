@@ -11,9 +11,9 @@
 // movement, the land under them kept sharp) with each route's figures from the bundle. The scene is drawn by lib/overview/scene; this component owns the words and
 // places them from each render's layout, as the specimen's setState did.
 
-import { Event, type CaseSnapshot, type InstrumentListing } from "@siterra/contracts";
+import { type CaseSnapshot, type InstrumentListing } from "@siterra/contracts";
 import { useCallback, useContext, useEffect, useId, useMemo, useRef, useState } from "react";
-import recordedRunRaw from "../../lib/run/fixtures/recorded-run.json";
+import { buildRecordedRunForCase } from "../../lib/run/case-run";
 import { ThemeIcon } from "../opening/Opening";
 import { en, format } from "../../lib/copy/en";
 import type { Box as CardBox, Side as CardSide } from "../../lib/overview/card";
@@ -218,9 +218,10 @@ function OverviewRecords({
   );
 }
 
-/** The visitor's own view: a factor on the camera's distance and a turn of its bearing (degrees). */
-const ZOOM = { min: 0.55, max: 1.8 } as const;
-const TURN_MAX = 60;
+/** The visitor's own view: zoom factor, 360° bearing turn, vertical pitch tilt, and horizontal pan. */
+const ZOOM = { min: 0.28, max: 2.2 } as const;
+const PITCH = { min: -22, max: 48 } as const;
+const PAN_MAX = 18;
 
 function OverviewReady({
   snapshot,
@@ -241,14 +242,42 @@ function OverviewReady({
   initialViewMode?: "run" | "briefing";
   commissionedQuestion?: string;
 }) {
-  const introRef = useRef(intro);
-  introRef.current = intro;
+  const urlRunMode = useMemo(() => {
+    if (typeof window === "undefined") return false;
+    return new URLSearchParams(window.location.search).get("mode") === "run";
+  }, []);
+  const urlQuestion = useMemo(() => {
+    if (typeof window === "undefined") return undefined;
+    const q = new URLSearchParams(window.location.search).get("q");
+    return q && q.trim() ? q.trim() : undefined;
+  }, []);
+  const effectiveQuestion = commissionedQuestion ?? urlQuestion;
+  const effectiveViewMode = initialViewMode ?? (urlRunMode ? "run" : undefined);
+
+  const [syntheticIntroDone, setSyntheticIntroDone] = useState(false);
+  const effectiveIntro = useMemo<OverviewIntro | undefined>(() => {
+    if (intro !== undefined) return intro;
+    if (urlRunMode && !syntheticIntroDone) {
+      return {
+        run: true,
+        skip: false,
+        from: null,
+        onDone: () => {
+          setSyntheticIntroDone(true);
+        },
+      };
+    }
+    return undefined;
+  }, [intro, urlRunMode, syntheticIntroDone]);
+
+  const introRef = useRef(effectiveIntro);
+  introRef.current = effectiveIntro;
   const arrival = useRef<{ t0: number | null; done: boolean }>({
     t0: null,
-    done: intro === undefined,
+    done: effectiveIntro === undefined,
   });
-  const appearRef = useRef(intro === undefined ? 1 : 0);
-  const [arriving, setArriving] = useState(intro !== undefined);
+  const appearRef = useRef(effectiveIntro === undefined ? 1 : 0);
+  const [arriving, setArriving] = useState(effectiveIntro !== undefined);
   const { findings: all, bandLimit } = useMemo(
     () => findingsFrom(snapshot, listing),
     [snapshot, listing],
@@ -305,21 +334,21 @@ function OverviewReady({
     [ask.snapshot, pkgBrief, fallbackCommandId],
   );
 
-  const [atWork, setAtWork] = useState(initialViewMode === "run");
+  const [atWork, setAtWork] = useState(effectiveViewMode === "run");
+  const [thinkingHidden, setThinkingHidden] = useState(false);
   const atWorkRef = useRef(atWork);
   atWorkRef.current = atWork;
-  const builtinRecorded = useMemo<RecordedRun>(
-    () => ({
-      commandId: recordedRunRaw.commandId,
-      question: commissionedQuestion ?? snapshot.case.objective ?? recordedRunRaw.question,
-      snapshot: recordedRunRaw.snapshot as unknown as CaseSnapshot,
-      events: (recordedRunRaw.events as unknown[]).map((e) => Event.parse(e)),
-      speed: 6,
-      at: 120_000,
-    }),
-    [commissionedQuestion, snapshot.case.objective],
-  );
-  const effectiveRecorded = recorded ?? (atWork && !ask.commandId ? builtinRecorded : null);
+  const builtinRecorded = useMemo<RecordedRun>(() => {
+    return buildRecordedRunForCase(
+      snapshot,
+      effectiveQuestion ?? snapshot.case.objective,
+      3.5,
+      effectiveViewMode === "run" ? null : 120_000,
+    );
+  }, [snapshot, effectiveQuestion, effectiveViewMode]);
+  const atWorkShown = (atWork || recorded !== null) && !thinkingHidden;
+  const effectiveRecorded =
+    recorded ?? (atWorkShown && !ask.commandId ? builtinRecorded : null);
   const effectiveRecClock = useRecordedClock(effectiveRecorded);
   const askRun = useMemo(
     () => (ask.commandId ? runModel(ask.snapshot, ask.events, ask.commandId) : null),
@@ -330,14 +359,43 @@ function OverviewReady({
       effectiveRecorded
         ? runModel(
             effectiveRecorded.snapshot,
-            revealed(effectiveRecorded, effectiveRecClock),
+            revealed(effectiveRecorded, Math.max(450, effectiveRecClock)),
             effectiveRecorded.commandId,
           )
         : null,
     [effectiveRecorded, effectiveRecClock],
   );
+  const fallbackCompletedRun = useMemo(
+    () => runModel(builtinRecorded.snapshot, builtinRecorded.events, builtinRecorded.commandId),
+    [builtinRecorded],
+  );
   const run = recRun ?? askRun;
-  const atWorkShown = atWork || recorded !== null;
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      const t = e.target;
+      if (
+        t instanceof HTMLElement &&
+        (t.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(t.tagName))
+      ) {
+        return;
+      }
+      if (e.key === "t" || e.key === "T") {
+        e.preventDefault();
+        if (atWorkShown) {
+          setThinkingHidden(true);
+          setAtWork(false);
+        } else {
+          if (selRef.current) backRef.current();
+          setThinkingHidden(false);
+          setAtWork(true);
+        }
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [atWorkShown]);
   const [runArc, setRunArc] = useState<RunArcState | null>(null);
   const [sentText, setSentText] = useState("");
   const runArcKey = useRef("");
@@ -422,8 +480,9 @@ function OverviewReady({
   const hudRef = useRef<HTMLDivElement>(null);
   const liftRef = useRef<HTMLDivElement>(null);
   const cornerRef = useRef<HTMLDivElement>(null);
-  const camRef = useRef({ zoom: 1, turn: 0 });
+  const camRef = useRef({ zoom: 1, turn: 0, pitch: 0, panX: 0, panY: 0 });
   const [moved, setMoved] = useState(false);
+  const movedRef = useRef(false);
   const recRef = useRef<HTMLDivElement>(null);
   const instRef = useRef<HTMLElement>(null);
   const bigRef = useRef<HTMLDivElement>(null);
@@ -560,8 +619,8 @@ function OverviewReady({
     pkgRangesRef,
   });
 
-  const introRun = intro?.run ?? false;
-  const introSkip = intro?.skip ?? false;
+  const introRun = effectiveIntro?.run ?? false;
+  const introSkip = effectiveIntro?.skip ?? false;
   useEffect(() => {
     if (introRun || introSkip) go();
   }, [introRun, introSkip, go]);
@@ -623,7 +682,8 @@ function OverviewReady({
   const open = useCallback(
     (id: Selection) => {
       if (selRef.current && selRef.current !== id) return;
-      camRef.current = { zoom: 1, turn: 0 };
+      camRef.current = { zoom: 1, turn: 0, pitch: 0, panX: 0, panY: 0 };
+      movedRef.current = false;
       setMoved(false);
       goal.current.h = 0;
       hov.current = null;
@@ -782,11 +842,21 @@ function OverviewReady({
   );
 
   const setCam = useCallback(
-    (next: { zoom?: number; turn?: number }) => {
+    (next: { zoom?: number; turn?: number; pitch?: number; panX?: number; panY?: number }) => {
       const c = camRef.current;
       c.zoom = Math.min(ZOOM.max, Math.max(ZOOM.min, next.zoom ?? c.zoom));
-      c.turn = Math.min(TURN_MAX, Math.max(-TURN_MAX, next.turn ?? c.turn));
-      setMoved(Math.abs(c.zoom - 1) > 1e-3 || Math.abs(c.turn) > 0.1);
+      const rawTurn = next.turn ?? c.turn;
+      c.turn = ((((rawTurn + 180) % 360) + 360) % 360) - 180;
+      c.pitch = Math.min(PITCH.max, Math.max(PITCH.min, next.pitch ?? c.pitch));
+      c.panX = Math.min(PAN_MAX, Math.max(-PAN_MAX, next.panX ?? c.panX));
+      c.panY = Math.min(PAN_MAX, Math.max(-PAN_MAX, next.panY ?? c.panY));
+      const isMoved =
+        Math.abs(c.zoom - 1) > 1e-3 ||
+        Math.abs(c.turn) > 0.1 ||
+        Math.abs(c.pitch) > 0.1 ||
+        Math.hypot(c.panX, c.panY) > 0.05;
+      movedRef.current = isMoved;
+      setMoved(isMoved);
       go();
     },
     [go],
@@ -811,7 +881,6 @@ function OverviewReady({
   const toOpening = useCallback(() => {
     window.location.assign(OPENING_HREF);
   }, []);
-  const [activeHypo, setActiveHypo] = useState<"H1" | "H2" | "H3" | "H4">("H2");
   const reset = useCallback(() => {
     if (selRef.current) back();
     goal.current.r = 0;
@@ -822,61 +891,13 @@ function OverviewReady({
     liftShownRef.current = null;
     setLiftShown(null);
     pkgRangesRef.current = { ranges: [], lit: null };
-    setCam({ zoom: 1, turn: 0 });
+    setCam({ zoom: 1, turn: 0, pitch: 0, panX: 0, panY: 0 });
   }, [back, setCam]);
-
-  const focusHypothesis = useCallback(
-    (id: "H1" | "H2" | "H3" | "H4") => {
-      setActiveHypo(id);
-      const lim = bandLimit?.value ?? 2317;
-      if (id === "H1") {
-        goal.current.r = 0;
-        setCam({ zoom: 1.08, turn: 14 });
-        liftShownRef.current = "rain";
-        setLiftShown("rain");
-        idle.current.layer = "rain";
-        idle.current.k = 1;
-        pkgRangesRef.current = { ranges: [], lit: null };
-        hover("rain", true);
-        go();
-      } else if (id === "H2") {
-        hover("rain", false);
-        setCam({ zoom: 1.18, turn: -26 });
-        liftShownRef.current = "bands";
-        setLiftShown("bands");
-        idle.current.layer = "bands";
-        idle.current.k = 1;
-        pkgRangesRef.current = { ranges: [{ lo: lim, hi: 3200 }], lit: 0 };
-        goal.current.r = 1;
-        go();
-      } else if (id === "H3") {
-        goal.current.r = 0;
-        setCam({ zoom: 1.22, turn: -16 });
-        liftShownRef.current = "cover";
-        setLiftShown("cover");
-        idle.current.layer = "cover";
-        idle.current.k = 1;
-        pkgRangesRef.current = { ranges: [{ lo: 1800, hi: lim }], lit: 0 };
-        hover("band", true);
-        go();
-      } else if (id === "H4") {
-        goal.current.r = 0;
-        setCam({ zoom: 1.32, turn: 22 });
-        liftShownRef.current = "trend";
-        setLiftShown("trend");
-        idle.current.layer = "trend";
-        idle.current.k = 1;
-        pkgRangesRef.current = { ranges: [], lit: null };
-        hover("pixel", true);
-        go();
-      }
-    },
-    [bandLimit?.value, go, setCam],
-  );
 
   const focusCauseFromLedger = useCallback(
     (explanationId: string) => {
       const lim = bandLimit?.value ?? 2317;
+      idle.current.t0 = -1;
       if (explanationId === "rainfall") {
         goal.current.r = 0;
         liftShownRef.current = "rain";
@@ -884,7 +905,8 @@ function OverviewReady({
         idle.current.layer = "rain";
         idle.current.k = 1;
         pkgRangesRef.current = { ranges: [], lit: null };
-        setCam({ zoom: 1.08, turn: 14 });
+        camRef.current.zoom = 1.08;
+        camRef.current.turn = 14;
         go();
       } else if (explanationId === "grazing") {
         goal.current.r = 1;
@@ -893,7 +915,8 @@ function OverviewReady({
         idle.current.layer = "bands";
         idle.current.k = 1;
         pkgRangesRef.current = { ranges: [{ lo: lim, hi: 3200 }], lit: 0 };
-        setCam({ zoom: 1.18, turn: -26 });
+        camRef.current.zoom = 1.18;
+        camRef.current.turn = -26;
         go();
       } else if (explanationId === "land_use") {
         goal.current.r = 0;
@@ -902,7 +925,8 @@ function OverviewReady({
         idle.current.layer = "cover";
         idle.current.k = 1;
         pkgRangesRef.current = { ranges: [{ lo: 1800, hi: lim }], lit: 0 };
-        setCam({ zoom: 1.22, turn: -16 });
+        camRef.current.zoom = 1.22;
+        camRef.current.turn = -16;
         go();
       } else if (explanationId === "snow_terrain") {
         goal.current.r = 0;
@@ -911,7 +935,8 @@ function OverviewReady({
         idle.current.layer = "bands";
         idle.current.k = 1;
         pkgRangesRef.current = { ranges: [{ lo: lim, hi: 3200 }], lit: 0 };
-        setCam({ zoom: 1.14, turn: -20 });
+        camRef.current.zoom = 1.14;
+        camRef.current.turn = -20;
         go();
       } else if (explanationId === "data_artefact") {
         goal.current.r = 1;
@@ -920,41 +945,138 @@ function OverviewReady({
         idle.current.layer = "trend";
         idle.current.k = 1;
         pkgRangesRef.current = { ranges: [], lit: null };
-        setCam({ zoom: 1.32, turn: 22 });
+        camRef.current.zoom = 1.32;
+        camRef.current.turn = 22;
+        go();
+      }
+    },
+    [bandLimit?.value, go],
+  );
+
+  const focusLayer = useCallback(
+    (lens: "bands" | "cover" | "trend" | "rain" | "routes" | null, manual = false) => {
+      const lim = bandLimit?.value ?? 2317;
+      const applyCam = (zoom: number, turn: number) => {
+        if (!arrival.current.done) return;
+        if (manual) {
+          setCam({ zoom, turn, pitch: 0, panX: 0, panY: 0 });
+        } else if (!movedRef.current) {
+          camRef.current.zoom = zoom;
+          camRef.current.turn = turn;
+        }
+      };
+      if (!lens) {
+        goal.current.r = 0;
+        liftShownRef.current = null;
+        setLiftShown(null);
+        idle.current.t0 = null;
+        idle.current.layer = null;
+        idle.current.k = 0;
+        pkgRangesRef.current = { ranges: [], lit: null };
+        applyCam(1, 0);
+        go();
+        return;
+      }
+      if (manual) {
+        idle.current.t0 = -1;
+      } else {
+        idle.current.t0 = null;
+        idle.current.layer = null;
+        idle.current.k = 0;
+        liftShownRef.current = null;
+        setLiftShown(null);
+      }
+      if (lens === "bands") {
+        goal.current.r = 0;
+        if (manual) {
+          liftShownRef.current = "bands";
+          setLiftShown("bands");
+          idle.current.layer = "bands";
+          idle.current.k = 1;
+        }
+        pkgRangesRef.current = {
+          ranges: [
+            { lo: 1800, hi: lim },
+            { lo: lim, hi: 3200 },
+          ],
+          lit: 0,
+        };
+        applyCam(1.06, -8);
+        go();
+      } else if (lens === "rain") {
+        goal.current.r = 0;
+        if (manual) {
+          liftShownRef.current = "rain";
+          setLiftShown("rain");
+          idle.current.layer = "rain";
+          idle.current.k = 1;
+        }
+        pkgRangesRef.current = { ranges: [], lit: null };
+        applyCam(1.04, 8);
+        go();
+      } else if (lens === "trend") {
+        goal.current.r = 0;
+        if (manual) {
+          liftShownRef.current = "trend";
+          setLiftShown("trend");
+          idle.current.layer = "trend";
+          idle.current.k = 1;
+        }
+        pkgRangesRef.current = { ranges: [], lit: null };
+        applyCam(1.08, 10);
+        go();
+      } else if (lens === "cover") {
+        goal.current.r = 0;
+        if (manual) {
+          liftShownRef.current = "cover";
+          setLiftShown("cover");
+          idle.current.layer = "cover";
+          idle.current.k = 1;
+        }
+        pkgRangesRef.current = { ranges: [{ lo: 1800, hi: lim }], lit: 0 };
+        applyCam(1.06, -6);
+        go();
+      } else if (lens === "routes") {
+        goal.current.r = 1;
+        if (manual) {
+          liftShownRef.current = "bands";
+          setLiftShown("bands");
+          idle.current.layer = "bands";
+          idle.current.k = 1;
+        }
+        pkgRangesRef.current = { ranges: [{ lo: lim, hi: 3200 }], lit: 0 };
+        applyCam(1.08, -12);
         go();
       }
     },
     [bandLimit?.value, go, setCam],
   );
 
-  const activeCallout = useMemo(() => {
-    if (activeHypo === "H1") {
-      return {
-        cite: "[CHIRPS-2.0] Funk 2015",
-        excerpt: "Funk et al. 2015 — wet-season R² = 0.037 (3.7% rain)",
-        target: "rain" as Selection,
-      };
-    }
-    if (activeHypo === "H3") {
-      return {
-        cite: "[MOD13Q1] Didan 2021",
-        excerpt: `Didan 2021 — <${bandLimit?.display ?? "2,317"} m irrigated floor (+1.34%/dec)`,
-        target: "band" as Selection,
-      };
-    }
-    if (activeHypo === "H4") {
-      return {
-        cite: "[ICARDA] Dahan 2012",
-        excerpt: "Dahan et al. 2012 — 250 m pixels mix shrub & grass",
-        target: "pixel" as Selection,
-      };
-    }
-    return {
-      cite: "[HECOL] Blanco 2015",
-      excerpt: "Blanco et al. 2015 — agdal dates & thorny cushion shrubs",
-      target: "results" as Selection,
-    };
-  }, [activeHypo, bandLimit?.display]);
+  const focusTaskLayer = useCallback(
+    (task: { kind: string; sublabel?: string | null } | null) => {
+      if (!task) return;
+      if (task.kind === "plan") {
+        focusLayer("bands", false);
+      } else if (task.sublabel === "Vegetation" || task.sublabel === "NDVI & trend recipes") {
+        focusLayer("trend", false);
+      } else if (
+        task.sublabel === "Rainfall & terrain" ||
+        task.sublabel === "Terrain strata & rainfall"
+      ) {
+        focusLayer("rain", false);
+      } else if (task.kind === "source_research") {
+        focusLayer("cover", false);
+      } else if (task.kind === "livelihood_governance") {
+        focusLayer("routes", false);
+      } else if (
+        task.kind === "explanation_branches" ||
+        task.kind === "instrument_composition"
+      ) {
+        focusLayer("bands", false);
+      }
+    },
+    [focusLayer],
+  );
 
   useOverviewKeyboardShortcuts({
     arriving,
@@ -1053,7 +1175,7 @@ function OverviewReady({
           },
         ]
       : []),
-    ...(lifeBundle && (!sel || sel === "time") && !tear
+    ...(lifeBundle && (!sel || sel === "time") && !tear && !atWorkShown
       ? [
           {
             chip: "G",
@@ -1119,297 +1241,51 @@ function OverviewReady({
       <canvas ref={arcRef} className={`${styles.canvas} ${styles.arcCanvas}`} aria-hidden="true" />
       <div ref={cornerRef} className={styles.cornerfade} aria-hidden="true" />
       <div ref={hudRef} className={styles.hud}>
-        {!sel && !tear ? (
-          <div className={styles.scopingHeaderKicker} data-chrome="">
-            {"SCOPING ENGAGEMENT DELIVERABLE · AUTONOMOUS ENVIRONMENTAL SERVICES"}
-          </div>
-        ) : null}
         <div ref={questionRef} className={styles.question} data-case-question>
-          {commissionedQuestion ?? snapshot.case.objective}
+          <span className={styles.questionCaret} aria-hidden="true">
+            {"▸"}
+          </span>
+          <span>{effectiveQuestion ?? snapshot.case.objective}</span>
         </div>
-        {!sel && !tear ? (
-          <nav
-            className={styles.investigationModeBar}
-            aria-label={"Scoping engagement deliverables"}
-            data-chrome=""
+        {!atWorkShown && !sel ? (
+          <button
+            type="button"
+            className={styles.thinkingClosedPill}
+            data-thinking-toggle="closed"
+            onClick={() => {
+              setThinkingHidden(false);
+              setAtWork(true);
+            }}
           >
-            <button
-              type="button"
-              className={styles.modeSwitchBtn}
-              data-active={!atWorkShown && !moved ? "" : undefined}
-              onClick={() => {
-                setAtWork(false);
-                reset();
-              }}
-            >
-              {`01 · Baseline (${String(findings.length)})`}
-            </button>
-            <span className={styles.modeSwitchSep} aria-hidden="true">
-              {"·"}
-            </span>
-            <button
-              type="button"
-              className={styles.modeSwitchBtn}
-              data-active={atWorkShown ? "" : undefined}
-              data-toggle-ai-trace=""
-              onClick={() => {
-                setAtWork((v) => !v);
-              }}
-            >
-              {"02 · 7-Agent Trace"}
-            </button>
-            <span className={styles.modeSwitchSep} aria-hidden="true">
-              {"·"}
-            </span>
-            <button
-              type="button"
-              className={styles.modeSwitchBtn}
-              onClick={() => {
-                setAtWork(false);
-                open("results");
-              }}
-            >
-              {"03 · Hypothesis & Livelihood Ledger"}
-            </button>
-            {data && data.routes.length > 0 ? (
-              <>
-                <span className={styles.modeSwitchSep} aria-hidden="true">
-                  {"·"}
-                </span>
-                <button
-                  type="button"
-                  className={styles.modeSwitchBtn}
-                  onPointerEnter={() => {
-                    hoverRoutes(true);
-                  }}
-                  onPointerLeave={() => {
-                    hoverRoutes(false);
-                  }}
-                  onClick={() => {
-                    setAtWork(false);
-                    open("routes");
-                  }}
-                >
-                  {`04 · GPS Routes (${String(data.routes.length)})`}
-                </button>
-              </>
-            ) : null}
-            {pkgView ? (
-              <>
-                <span className={styles.modeSwitchSep} aria-hidden="true">
-                  {"·"}
-                </span>
-                <button
-                  type="button"
-                  className={styles.modeSwitchBtn}
-                  onClick={() => {
-                    setAtWork(false);
-                    openPackage();
-                  }}
-                >
-                  {"05 · Role-Gated Brief"}
-                </button>
-              </>
-            ) : null}
-            {offered.has("time") ? (
-              <>
-                <span className={styles.modeSwitchSep} aria-hidden="true">
-                  {"·"}
-                </span>
-                <button
-                  type="button"
-                  className={styles.modeSwitchBtn}
-                  onClick={() => {
-                    setAtWork(false);
-                    open("time");
-                  }}
-                >
-                  {"06 · Time Series"}
-                </button>
-              </>
-            ) : null}
-          </nav>
-        ) : null}
-        {!sel && !tear && !atWorkShown && !askOpen && data ? (
-          <aside
-            className={styles.scopingBriefDock}
-            aria-label={"Scoping Engagement Deliverable Summary"}
-            data-scoping-dock=""
-            data-chrome=""
-          >
-            <div className={styles.scopingDockHead}>
-              <span className={styles.scopingDockKicker}>
-                {"SCOPING BRIEF · 7/7 VERIFIED"}
-              </span>
-              <button
-                type="button"
-                className={styles.scopingDockTraceBtn}
-                onClick={() => {
-                  setAtWork(true);
-                }}
-              >
-                {"Trace ↗"}
-              </button>
-            </div>
-            <div className={styles.scopingDockSub}>
-              {`Muse Spark 1.3 · deterministic code · ${String(snapshot.records.sourceRecords.length)} sources`}
-            </div>
-            <div className={styles.scopingVarianceBlock} data-variance-bar="">
-              <div className={styles.scopingVarianceLabels}>
-                <span className={styles.scopingVarianceRain}>{"3.7% Rain"}</span>
-                <span className={styles.scopingVarianceLand}>
-                  {"96.3% Land Use, Snowmelt & Grazing"}
-                </span>
-              </div>
-              <div className={styles.scopingVarianceTrack} aria-hidden="true">
-                <span className={styles.scopingVarianceFillRain} style={{ width: "3.7%" }} />
-                <span className={styles.scopingVarianceFillLand} style={{ width: "96.3%" }} />
-              </div>
-            </div>
-            <div className={styles.scopingDockSectionTitle}>
-              {"3D HYPOTHESIS & LIVELIHOOD FOCUS"}
-            </div>
-            <div className={styles.scopingDockList}>
-              <button
-                type="button"
-                className={styles.scopingDockRow}
-                data-hypothesis-stage="H1"
-                data-active={activeHypo === "H1" ? "" : undefined}
-                onPointerEnter={() => {
-                  focusHypothesis("H1");
-                }}
-                onFocus={() => {
-                  focusHypothesis("H1");
-                }}
-                onClick={() => {
-                  focusHypothesis("H1");
-                }}
-              >
-                <span className={styles.scopingDockCode}>{"H1"}</span>
-                <span className={styles.scopingDockText}>
-                  {"Rainfall (R² = 0.037 / 3.7%) · minor driver"}
-                </span>
-              </button>
-              <button
-                type="button"
-                className={styles.scopingDockRow}
-                data-hypothesis-stage="H2"
-                data-active={activeHypo === "H2" ? "" : undefined}
-                onPointerEnter={() => {
-                  focusHypothesis("H2");
-                }}
-                onFocus={() => {
-                  focusHypothesis("H2");
-                }}
-                onClick={() => {
-                  focusHypothesis("H2");
-                }}
-              >
-                <span className={styles.scopingDockCodeWarn}>{"H2"}</span>
-                <span className={styles.scopingDockText}>
-                  {`Grazing & Agdal (>${bandLimit?.display ?? "2,317"} m) · ground check`}
-                </span>
-              </button>
-              <button
-                type="button"
-                className={styles.scopingDockRow}
-                data-hypothesis-stage="H3"
-                data-active={activeHypo === "H3" ? "" : undefined}
-                onPointerEnter={() => {
-                  focusHypothesis("H3");
-                }}
-                onFocus={() => {
-                  focusHypothesis("H3");
-                }}
-                onClick={() => {
-                  focusHypothesis("H3");
-                }}
-              >
-                <span className={styles.scopingDockCode}>{"H3"}</span>
-                <span className={styles.scopingDockText}>
-                  {`Valley floor (<${bandLimit?.display ?? "2,317"} m) · +1.34%/dec irrigation`}
-                </span>
-              </button>
-              <button
-                type="button"
-                className={styles.scopingDockRow}
-                data-hypothesis-stage="H4"
-                data-active={activeHypo === "H4" ? "" : undefined}
-                onPointerEnter={() => {
-                  focusHypothesis("H4");
-                }}
-                onFocus={() => {
-                  focusHypothesis("H4");
-                }}
-                onClick={() => {
-                  focusHypothesis("H4");
-                }}
-              >
-                <span className={styles.scopingDockCodeWarn}>{"H4"}</span>
-                <span className={styles.scopingDockText}>
-                  {"250 m Sub-Pixel (+5.70%/dec) · shrub/grass mix"}
-                </span>
-              </button>
-            </div>
-            <div className={styles.scopingDockCallout} data-verified-source-callout={activeHypo}>
-              <div className={styles.scopingDockCalloutHead}>
-                <span className={styles.scopingDockCalloutCite}>{activeCallout.cite}</span>
-                <button
-                  type="button"
-                  className={styles.scopingDockCalloutBtn}
-                  data-open-stage-record={activeHypo}
-                  onClick={() => {
-                    open(activeCallout.target);
-                  }}
-                >
-                  {"Open Record ↗"}
-                </button>
-              </div>
-              <div className={styles.scopingDockCalloutExcerpt}>{activeCallout.excerpt}</div>
-            </div>
-            <div className={styles.scopingDockActions}>
-              <button
-                type="button"
-                className={styles.scopingDockActionBtn}
-                onClick={() => {
-                  open("results");
-                }}
-              >
-                {"Ledger ↗"}
-              </button>
-              <button
-                type="button"
-                className={styles.scopingDockActionBtn}
-                onClick={() => {
-                  open("routes");
-                }}
-              >
-                {`Routes (${String(data.routes.length)}) ↗`}
-              </button>
-              {pkgView ? (
-                <button
-                  type="button"
-                  className={styles.scopingDockActionBtnPrimary}
-                  onClick={openPackage}
-                >
-                  {"Decision Brief ↗"}
-                </button>
-              ) : null}
-            </div>
-          </aside>
+            <span className={styles.thinkingPillDot} aria-hidden="true" />
+            <span>{`${(run ?? fallbackCompletedRun).tasks.length} steps completed`}</span>
+            <span className={styles.thinkingPillAction}>Inspect thinking ▸</span>
+            <kbd className={styles.thinkingPillKbd}>T</kbd>
+          </button>
         ) : null}
         {atWorkShown && run && !sel && runArc ? (
           <AtWork
             run={run}
             arc={runArc.arc}
+            placeName={names.valleyName}
             question={
               effectiveRecorded?.question ??
-              (sentText || commissionedQuestion || snapshot.case.objective)
+              (sentText || effectiveQuestion || snapshot.case.objective)
             }
             onFindings={() => {
+              setThinkingHidden(true);
               setAtWork(false);
               open("results");
             }}
+            onToggleThinking={() => {
+              setThinkingHidden(true);
+              setAtWork(false);
+            }}
+            onFocusTask={focusTaskLayer}
+            onFocusLayer={(l) => {
+              focusLayer(l, true);
+            }}
+            onFocusCause={focusCauseFromLedger}
             rimLeft={runArc.rimLeft}
             {...(effectiveRecorded
               ? {
@@ -1769,7 +1645,7 @@ function OverviewReady({
         <LifeLayer
           snapshot={snapshot}
           zone={data.zone}
-          on={lifeOn && (!sel || sel === "time") && !tear}
+          on={lifeOn && (!sel || sel === "time") && !tear && !atWorkShown}
           mount={lifeMount}
         />
       ) : null}

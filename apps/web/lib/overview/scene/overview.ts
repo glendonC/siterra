@@ -77,6 +77,7 @@ import {
   channelVec,
   createOccluder,
   createRelief,
+  createSurveyPlan,
   createWall,
   hexVec,
   lightDir,
@@ -132,10 +133,18 @@ const TURN = (ND.az - OV.az) / Math.sin((PIXEL_CLOCK * Math.PI) / 180);
  * How far the arc, its labels and the ask step back (0 to 1) while the visitor has turned the land or brought it
  * closer: by a turn of 18 degrees, or a quarter closer, they are gone; R brings them back with the overview's pose.
  */
-export function awayOf(v: { zoom?: number; turn?: number }): number {
+export function awayOf(v: {
+  zoom?: number;
+  turn?: number;
+  pitch?: number;
+  panX?: number;
+  panY?: number;
+}): number {
   const turned = Math.abs(v.turn ?? 0) / 18;
+  const pitched = Math.abs(v.pitch ?? 0) / 14;
+  const panned = Math.hypot(v.panX ?? 0, v.panY ?? 0) / 1.5;
   const closer = Math.max(0, 1 / (v.zoom ?? 1) - 1) * 4;
-  return Math.min(1, Math.max(turned, closer));
+  return Math.min(1, Math.max(turned, pitched, panned, closer));
 }
 
 const DEG = Math.PI / 180;
@@ -179,9 +188,12 @@ export interface SceneState {
   r: number;
   /** One route picked in the opened list (its context feature id): it is lifted and the others quieted. */
   route?: string | null;
-  /** The visitor's own view: a factor on the camera's distance and a turn of its bearing (degrees). */
+  /** The visitor's own view: a factor on the camera's distance, a turn of its bearing, a pitch tilt, and a horizontal pan. */
   zoom?: number;
   turn?: number;
+  pitch?: number;
+  panX?: number;
+  panY?: number;
   /** The finding opening or open (kept while it closes). */
   sel: Selection | null;
   /**
@@ -436,6 +448,15 @@ export function mountOverview(
     fadePow: 2.2,
   });
   scene.add(wall.mesh);
+  const surveyPlan = createSurveyPlan(g, frame, lcTex, frame.rect(a), {
+    hTex,
+    light,
+    albedo: C.reliefAlbedo,
+    line: C.contour,
+    accent: "#2563eb",
+    yPlane: 0,
+  });
+  scene.add(surveyPlan.mesh);
   const outlineLine = stage.lines.lines([rim.map(([E, N]) => frame.v(E, N, sample(E, N) + 5))], {
     color: C.catchmentLine,
     opacity: 0.32,
@@ -506,8 +527,8 @@ export function mountOverview(
         ctx.globalAlpha = 1;
       })
     : null;
-  const WIDTHS = [0.7, 0.9, 1.2, 1.6, 2.0];
-  const OPACITY = [0.55, 0.7, 0.85, 0.9, 0.95];
+  const WIDTHS = [0.9, 1.2, 1.6, 2.1, 2.7];
+  const OPACITY = [0.65, 0.78, 0.88, 0.95, 1.0];
   // the rivers, kept with their resting opacity so the arrival can bring them up with the land
   const riverLines: { line: { material: { opacity: number } }; rest: number }[] = [];
   for (const o of [1, 2, 3, 4, 5]) {
@@ -1065,6 +1086,9 @@ export function mountOverview(
     fh *= (DIAL.r - ARC_CLEAR) / Math.max(DIAL.r - c, DIAL.r - ARC_CLEAR + 1);
     view0 = fitLand(az0, OV.el, fh, OV.cx, OV.cy);
   }
+  // Stage 1 2D Topographic Survey Plan view: looking nearly straight down (82 deg) at the regional 2D survey map
+  // before the camera pitches to 34 deg and extrudes the 3D carved terrain block out of the 2D plan.
+  const viewPlan = fitLand(az0, 82, fh * 0.96, OV.cx, OV.cy);
   /**
    * Where the arrival begins: straight above the land (north up, as the globe looked down on it), the land as small
    * as the case's ring on the globe (INTRO_PX across) and centred on its point, given in CSS px on the canvas.
@@ -1812,10 +1836,18 @@ export function mountOverview(
       const v1 = next.sel ? viewFor(next.sel) : view0;
       const rise = next.rise ?? 1;
       const splitK = clamp01(next.split ?? 0);
+      const destView = viewAt(view0, v1, e);
+      // Two-stage arrival choreography:
+      // Stage 1 (rise 0 -> 0.45): Globe zooms into the flat 2D Topographic Survey Plan (viewPlan, 82 deg top-down).
+      // Stage 2 (rise 0.45 -> 1.0): Camera pitches from 82 deg down to 34 deg while the 3D carved terrain block
+      // extrudes upward out of the 2D survey plan.
+      const planToCarveK = ease(sstep(0.45, 1.0, rise));
       const atRest =
-        rise < 1 && next.from
-          ? viewAt(introView(next.from), viewAt(view0, v1, e), ease(rise))
-          : viewAt(view0, v1, e);
+        rise < 1
+          ? rise < 0.45 && next.from
+            ? viewAt(introView(next.from), viewPlan, ease(clamp01(rise / 0.45)))
+            : viewAt(viewPlan, destView, planToCarveK)
+          : destView;
       // the pixel taken apart: the camera flies down to it from wherever it stood
       const at =
         splitK > 0 && TP
@@ -1828,23 +1860,42 @@ export function mountOverview(
           : atRest;
       paintCells(next.cellPaint ?? "rgb");
       placeCells(splitK);
-      // the land rises out of the table as the camera comes down to it
-      scene.scale.y = Math.max(0.01, sstep(0.2, 1, rise));
+      // Stage 1 holds the terrain flat on the 2D survey plan (0.015); Stage 2 extrudes the 3D carve-out (0.015 -> 1.0)
+      const carveShaderK = sstep(0.42, 0.96, rise);
+      const carveK = Math.max(0.015, carveShaderK);
+      scene.scale.y = carveK;
+      relief.uniforms.uCarve.value = carveShaderK;
+      surveyPlan.uniforms.uCarve.value = carveShaderK;
       scene.updateMatrixWorld();
       // handing the land to the layer stack: a narrower lens from farther back, the same picture size
       const exitK = ease(clamp01(next.exit ?? 0));
       const fovK = 1 - 0.9 * exitK;
       stage.setFovScale(fovK);
       const dolly = Math.tan(rad(FOV / 2)) / Math.tan(rad((FOV * fovK) / 2));
+      const az = at.azimuth + (next.turn ?? 0);
+      const el = Math.max(10, Math.min(84, at.elevation + (next.pitch ?? 0)));
+      const azRad = rad(az);
+      const panRight = next.panX ?? 0;
+      const panFwd = next.panY ?? 0;
+      const target: Vec3 =
+        panRight !== 0 || panFwd !== 0
+          ? [
+              at.target[0] + panRight * Math.cos(azRad) - panFwd * Math.sin(azRad),
+              at.target[1],
+              at.target[2] + panRight * Math.sin(azRad) + panFwd * Math.cos(azRad),
+            ]
+          : at.target;
       const view = {
         ...at,
+        target,
         // the package's land eases aside while one of its cards is open (UI-2)
         shift: [
           at.shift[0] - (next.sel === "package" ? (next.aside ?? 0) * PKG.aside * e : 0),
           at.shift[1],
         ] as [number, number],
         distance: at.distance * (next.zoom ?? 1) * dolly,
-        azimuth: at.azimuth + (next.turn ?? 0),
+        azimuth: az,
+        elevation: el,
       };
       set(view);
       current = { e, view, selClock: clockOf(next.sel) };
@@ -1863,6 +1914,7 @@ export function mountOverview(
       const dim = (1 - 0.15 * ease(next.o)) * sstep(0, 0.18, rise);
       relief.uniforms.uDim.value = dim;
       wall.uniforms.uDim.value = dim;
+      surveyPlan.uniforms.uDim.value = dim;
       // the routes: lifted while their entry is hovered and when opened, a little quieter under another opened record;
       // their dashes keep one length on screen at every distance
       if (routeDraw.length && RC) {
@@ -1896,6 +1948,7 @@ export function mountOverview(
       // the land under a lifted layer steps back a little, so the layer reads as lifted off it
       relief.uniforms.uDim.value *= 1 - 0.15 * liftA;
       wall.uniforms.uDim.value *= 1 - 0.15 * liftA;
+      surveyPlan.uniforms.uDim.value *= 1 - 0.15 * liftA;
       // the opened finding's footprint on the land
       const fp = next.sel === "fdr" ? slopeTex : next.sel === "rain" ? rainTex : null;
       if (fp) relief.uniforms.uOver.value = fp;
@@ -1917,10 +1970,17 @@ export function mountOverview(
       relief.uniforms.uRangeLo.value = rg?.lo ?? -1e5;
       relief.uniforms.uRangeHi.value = rg?.hi ?? 1e5;
       relief.uniforms.uRangeA.value = rg ? 0.9 * e : 0;
+      const planTraceBoost = 1 - sstep(0.42, 0.95, rise);
       outlineLine.material.opacity =
-        lerp(0.32, next.sel === "catchment" ? 0.95 : 0.32, e) * sstep(0, 0.18, rise);
+        Math.max(
+          planTraceBoost * 0.92,
+          lerp(0.38, next.sel === "catchment" ? 0.95 : 0.38, e),
+        ) * sstep(0, 0.18, rise);
       for (const r of riverLines) r.line.material.opacity = r.rest * sstep(0, 0.18, rise);
-      outlineLine.material.linewidth = lerp(1, next.sel === "catchment" ? 2 : 1, e);
+      outlineLine.material.linewidth = Math.max(
+        1 + planTraceBoost * 1.1,
+        lerp(1, next.sel === "catchment" ? 2 : 1, e),
+      );
       // the arc steps back while the visitor has turned the land or brought it closer, so the land never crosses it
       dialMat.opacity = 1 - awayOf(next);
       // the package's words stand where the arc runs: the arc steps out while it is open (UI-2)
@@ -1937,6 +1997,7 @@ export function mountOverview(
         pixelLine.material.opacity = on ? Math.min(0.999, clamp01((e - 0.55) / 0.45)) : 0;
         pixelLine.visible = on && e > 0.55;
       }
+      surveyPlan.mesh.visible = gapWaiters.length === 0;
       stage.render();
     },
     setLife,
@@ -1961,13 +2022,19 @@ export function mountOverview(
     },
     measureGaps() {
       return new Promise((resolve) => {
-        gapWaiters.push(resolve);
+        gapWaiters.push((g) => {
+          surveyPlan.mesh.visible = true;
+          resolve(g);
+        });
+        surveyPlan.mesh.visible = false;
         stage.render();
       });
     },
     dispose() {
       if (dialLine) dialLine.geometry.dispose();
       dialMat.dispose();
+      surveyPlan.mesh.geometry.dispose();
+      surveyPlan.mesh.material.dispose();
       for (const d of routeDraw) {
         d.geo.dispose();
         d.mat.dispose();

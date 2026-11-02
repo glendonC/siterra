@@ -391,9 +391,7 @@
 }
 
 .reviewBox {
-  margin: 14px 0 0;
-  padding-top: 12px;
-  border-top: 1px solid var(--hairline-quiet);
+  margin: 16px 0 0;
   display: flex;
   flex-direction: column;
   gap: 10px;

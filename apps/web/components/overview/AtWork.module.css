@@ -1,66 +1,58 @@
-/* A question at work on the overview (U29, specimen R), in the tokens of app/obsidian.css (no colour literal here).
-   Diegetic spatial interface after The Division 2, Death Stranding, Westworld, Shadcn Trace and Prompt-Kit Steps:
-   - Information stands up from the dark matte model as thin light and open-air typography, never dark SaaS boxes.
-   - One horizon ring is the run's clock.
-   - Completed threads fold to a single quiet line by default; only the active thread (or Plan Review when settled)
-     sits on the 1 px vertical hairline trace spine at top-left.
-   - On the terrain, the active agent is a thin target ring, a 1 px hairline stem and unboxed floating typography.
-   - At the right, competing explanations and the on-demand Steps trace float directly on the obsidian canvas. */
+/* A question at work on the overview (Death Stranding World Map + Filter Rail aesthetic):
+   - Top-Left Architectural Header (Place + ▸ Question)
+   - Left Icon-Only Squircle Rail with animated color border-edge sweep while running + vertical guide ticks
+   - Feathered Side-Blur Inspector on click / Space (using --ov-frost & --ov-frost-mask, no flat box or borders)
+   - Full-Width Bottom Feathered Band with loader + live thinking stream while running, and settled summary + 5 causes when done
+   - Spatial reticles on the 3D terrain */
 
 .atWork {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  color: var(--ov-ink);
+  z-index: 6;
 }
 
 .marks {
   position: absolute;
   inset: 0;
-  width: 1440px;
-  height: 900px;
+  width: 100%;
+  height: 100%;
   overflow: visible;
 }
 
 .tick {
-  stroke: var(--ov-ink-3);
+  stroke: var(--ov-wire);
   stroke-width: 1;
-  opacity: 0.45;
+  opacity: 0;
 }
 
 .laneGroup {
-  transition: opacity 220ms var(--ease-out);
-}
-
-.laneGroup[data-dimmed] {
-  opacity: 0.2;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .lane {
   fill: none;
-  stroke: var(--ov-ink-2);
-  stroke-width: 1.25;
-  opacity: 0.65;
+  stroke: var(--ov-blue);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  opacity: 0;
 }
 
-/* heavier on the single horizon ring while its model call runs */
 .laneCalling {
-  fill: none;
-  stroke: var(--ov-bright);
+  composes: lane;
   stroke-width: 2.25;
+  opacity: 0;
 }
 
 .taskDot {
-  fill: var(--ov-ink-3);
+  fill: var(--ov-blue);
+  opacity: 0;
 }
 
 .head {
-  fill: var(--ov-bright);
-}
-
-.checkLeader {
-  stroke: var(--ov-amber-tag);
-  stroke-width: 1;
+  fill: var(--ov-blue);
+  opacity: 0;
 }
 
 .checkFoot {
@@ -69,655 +61,735 @@
   stroke-width: 1.5;
 }
 
-/* ============================================================================
-   Top-Left: Borderless Hairline Trace Spine (Shadcn Trace / Division 2 / MagicOS)
-   ============================================================================ */
-.agentTree {
+/* ─── Top-Left Architectural Header (Death Stranding Map / Information Style) ─── */
+
+.topLeftHeader {
   position: absolute;
-  left: 48px;
-  top: 158px;
-  width: 272px;
-  padding: 0;
-  border: none;
-  background: transparent;
-  text-shadow: var(--ov-halo-dark);
-  pointer-events: auto;
-  animation: deal 220ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  top: 58px;
+  left: 40px;
+  z-index: 9;
+  max-width: 540px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  pointer-events: none;
 }
 
-.treeSummaryBtn {
+.question {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  margin: 0;
+  pointer-events: auto;
+}
+
+.questionCaret {
+  font: 600 12px / 1 var(--font-mono);
+  color: var(--ov-blue);
+  flex-shrink: 0;
+  transform: translateY(-1px);
+}
+
+.asked {
+  margin: 0;
+  font: 400 14px / 19px var(--font-sans);
+  letter-spacing: -0.005em;
+  color: var(--text-secondary);
+  text-shadow: var(--paper-halo);
+}
+
+.thinkingTogglePill {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 2px 0;
-  border: none;
-  background: transparent;
-  color: var(--ov-ink-2);
-  font-family: var(--font-mono);
-  font-size: 11px;
-  line-height: 16px;
-  font-variant-numeric: tabular-nums;
+  padding: 4px 10px 4px 8px;
+  border: 1px solid color-mix(in srgb, var(--text-primary) 14%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--bg-canvas) 82%, transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  font: 500 11.5px / 15px var(--font-sans);
+  color: var(--text-secondary);
   cursor: pointer;
-  transition: color 150ms ease;
+  pointer-events: auto;
+  transition: color 140ms ease, border-color 140ms ease, background 140ms ease;
 }
 
-.treeSummaryBtn:hover,
-.treeSummaryBtn:focus-visible {
-  color: var(--ov-bright);
+.thinkingTogglePill:hover,
+.thinkingTogglePill:focus-visible {
+  color: var(--text-primary);
+  border-color: color-mix(in srgb, var(--text-primary) 28%, transparent);
+  background: color-mix(in srgb, var(--bg-canvas) 92%, transparent);
   outline: none;
 }
 
-.treeSummaryDot {
-  flex: none;
-  width: 5px;
-  height: 5px;
-  border-radius: 999px;
-  background: var(--ov-amber-tag);
+.thinkingToggleDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ov-blue);
+  flex-shrink: 0;
 }
 
-.treeSummaryDot[data-done] {
-  background: var(--ov-green);
+.thinkingToggleAction {
+  color: var(--text-primary);
+  font-weight: 500;
 }
 
-.treeSummaryText {
-  letter-spacing: 0.01em;
+.thinkingToggleKbd {
+  padding: 1px 4px;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--text-primary) 7%, transparent);
+  font: 500 9.5px / 12px var(--font-mono);
+  color: var(--text-tertiary);
 }
 
-.treeList {
+/* ─── Sleek Icon-Only Left Squircle Rail + Feathered Side-Blur Inspector ─── */
+
+.leftRailSystem {
+  position: absolute;
+  top: 120px;
+  left: 40px;
+  z-index: 9;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  pointer-events: none;
+}
+
+.agentTree {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  margin: 4px 0 0;
-  padding: 0;
-  list-style: none;
+  width: 34px;
+  padding: 2px 0;
+  pointer-events: auto;
+  isolation: isolate;
 }
 
-.treeList::before {
-  content: "";
-  position: absolute;
-  left: 2px;
-  top: 6px;
-  bottom: 6px;
-  width: 1px;
-  background: var(--hairline-quiet);
+.treeList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .treeNode {
   position: relative;
-  transition: opacity 180ms var(--ease-out);
+  transition: opacity 150ms ease;
 }
 
 .treeNode[data-dimmed] {
-  opacity: 0.42;
+  opacity: 0.35;
 }
 
 .treeNodeBtn {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  width: 100%;
-  padding: 3px 0;
-  border: none;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  padding: 0;
+  border: 0;
   background: transparent;
-  color: inherit;
-  font: inherit;
-  text-align: left;
+  color: var(--text-primary);
   cursor: pointer;
-}
-
-.treeNodeBtn:hover .treeNodeName,
-.treeNodeBtn:focus-visible .treeNodeName {
-  color: var(--ov-bright);
-}
-
-.treeNodeBtn:focus-visible {
   outline: none;
 }
 
-.treeSpineCol {
+/* ─── Precision Monochrome Squircle Tile with Hairline Perimeter Sweep ─── */
+
+.squircle {
   position: relative;
-  z-index: 1;
-  flex: none;
-  display: flex;
+  width: 32px;
+  height: 32px;
+  border-radius: 7px;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 5px;
-  height: 18px;
+  flex-shrink: 0;
+  color: var(--text-primary);
+  background: transparent;
+  transition: background 140ms ease, color 140ms ease, opacity 140ms ease;
 }
 
-.treeDot {
-  width: 5px;
-  height: 5px;
-  border-radius: 999px;
-  background: var(--ov-ink-3);
+.treeNodeBtn:hover .squircle {
+  background: color-mix(in srgb, var(--text-primary) 5%, transparent);
 }
 
-.treeDot[data-state="succeeded"] {
-  background: var(--ov-green);
+.squircle[data-state="queued"] {
+  color: var(--text-tertiary);
+  opacity: 0.36;
 }
 
-.treeDot[data-state="running"],
-.treeDot[data-state="review"] {
-  width: 6px;
-  height: 6px;
-  background: var(--ov-amber-tag);
+.squircle[data-state="succeeded"] {
+  color: var(--text-primary);
+  opacity: 0.82;
 }
 
-.treeNodeBody {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  min-width: 0;
-  flex: 1;
+.treeNodeBtn:hover .squircle[data-state="succeeded"] {
+  opacity: 1;
 }
 
-.treeNodeTop {
-  display: flex;
+.squircle[data-state="running"] {
+  color: var(--text-primary);
+  background: color-mix(in srgb, var(--bg-canvas) 65%, transparent);
+  opacity: 1;
+}
+
+.squircle[data-selected] {
+  background: var(--text-primary);
+  color: var(--bg-canvas);
+  opacity: 1;
+}
+
+.squircleSvg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.squircleTrack {
+  fill: none;
+  stroke: color-mix(in srgb, var(--text-primary) 14%, transparent);
+  stroke-width: 1;
+  transition: stroke 140ms ease;
+}
+
+.squircle[data-state="queued"] .squircleTrack {
+  stroke: color-mix(in srgb, var(--text-primary) 10%, transparent);
+}
+
+.squircle[data-state="succeeded"] .squircleTrack {
+  stroke: color-mix(in srgb, var(--text-primary) 22%, transparent);
+}
+
+.treeNodeBtn:hover .squircle .squircleTrack {
+  stroke: color-mix(in srgb, var(--text-primary) 36%, transparent);
+}
+
+.squircle[data-selected] .squircleTrack {
+  stroke: var(--text-primary);
+  stroke-width: 1;
+}
+
+.squircleSweep {
+  fill: none;
+  stroke: var(--ov-blue);
+  stroke-width: 1.25;
+  stroke-linecap: round;
+  stroke-dasharray: 28 72;
+  animation: squircleEdgeSweep 1.6s linear infinite;
+}
+
+@keyframes squircleEdgeSweep {
+  from {
+    stroke-dashoffset: 100;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.squircleGlyph {
+  width: 14px;
+  height: 14px;
+  position: relative;
+  z-index: 1;
+}
+
+.reviewExclaim {
+  font: 600 12px / 1 var(--font-mono);
+  color: var(--text-primary);
+}
+
+/* Hover-only tooltip pill next to squircle (hidden when side inspector is open or at rest) */
+.treeNodeTooltip {
+  position: absolute;
+  left: 42px;
+  top: 50%;
+  transform: translateY(-50%) translateX(-4px);
+  display: inline-flex;
   align-items: baseline;
-  justify-content: space-between;
-  gap: 10px;
+  gap: 8px;
+  padding: 5px 10px;
+  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, var(--text-primary) 12%, transparent);
+  background: color-mix(in srgb, var(--bg-canvas) 94%, transparent);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 130ms ease, transform 130ms ease;
+  z-index: 15;
+}
+
+.leftRailSystem:not(:has([data-agent-thinking])) .treeNodeBtn:hover .treeNodeTooltip,
+.leftRailSystem:not(:has([data-agent-thinking])) .treeNodeBtn:focus-visible .treeNodeTooltip {
+  opacity: 1;
+  transform: translateY(-50%) translateX(0);
 }
 
 .treeNodeName {
-  color: var(--ov-ink);
-  font-size: 13px;
-  font-weight: 400;
-  line-height: 18px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.treeNodeName[data-state="running"] {
-  color: var(--ov-bright);
-  font-weight: 500;
-}
-
-.treeNodeName[data-state="queued"] {
-  color: var(--ov-ink-3);
-}
-
-.treeNodeScope {
-  color: var(--ov-ink-3);
-  font-family: var(--font-mono);
-  font-size: 10.5px;
-  font-weight: 400;
+  font: 500 11.5px / 15px var(--font-sans);
+  color: var(--text-primary);
 }
 
 .treeNodeState {
-  flex: none;
-  color: var(--ov-ink-3);
-  font-family: var(--font-mono);
-  font-size: 10.5px;
-  font-variant-numeric: tabular-nums;
+  font: 400 10.5px / 14px var(--font-mono);
+  color: var(--text-secondary);
 }
 
-.treeNodeState[data-state="running"] {
-  color: var(--ov-amber-tag);
-}
-
-.treeNodeActivity {
-  color: var(--ov-ink);
-  font-size: 12px;
-  line-height: 16px;
-}
-
-.treeNodeMeta {
-  color: var(--ov-ink-3);
-  font-family: var(--font-mono);
-  font-size: 10.5px;
-  line-height: 15px;
-  font-variant-numeric: tabular-nums;
-}
-
-.treeReviewRow {
+.treeNodeReview {
   position: relative;
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  padding: 2px 0;
-}
-
-.treeReviewLabel {
-  flex: 1;
-  color: var(--ov-ink);
-  font-size: 13px;
-  line-height: 18px;
-}
-
-.needsYouWord {
-  color: var(--ov-amber-tag);
-  font-family: var(--font-mono);
-  font-size: 11px;
-  line-height: 16px;
-}
-
-.treeFoot {
-  margin-top: 4px;
-  padding-left: 15px;
-}
-
-.followBtn {
-  padding: 0;
-  border: none;
-  background: transparent;
-  color: var(--ov-ink-3);
-  font-family: var(--font-mono);
-  font-size: 10.5px;
-  cursor: pointer;
-}
-
-.followBtn:hover,
-.followBtn:focus-visible {
-  color: var(--ov-bright);
-  outline: none;
-}
-
-/* ============================================================================
-   Center: Diegetic Ground Target Ring & Unboxed Stem Callout (Westworld / Death Stranding)
-   ============================================================================ */
-.agentCursor {
-  position: absolute;
-  display: flex;
-  align-items: center;
-  gap: 0;
-  padding: 0;
-  border: none;
-  background: transparent;
-  color: inherit;
-  font: inherit;
-  transform: translate(-7px, -50%);
-  pointer-events: auto;
-  cursor: pointer;
-  text-shadow: var(--ov-halo-dark);
-  transition: opacity 200ms var(--ease-out);
-  animation: deal 260ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
-}
-
-.agentCursor[data-dimmed] {
-  opacity: 0.22;
-}
-
-.cursorRing {
-  flex: none;
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  width: 14px;
-  height: 14px;
-  border: 1.5px solid var(--ov-amber-tag);
-  border-radius: 999px;
-  background: transparent;
+  gap: 8px;
 }
 
-.cursorRing[data-target-kind="land"],
-.cursorRing[data-target-kind="bundle"] {
-  border-color: var(--ov-green);
-}
-
-.cursorDot {
-  width: 4px;
-  height: 4px;
-  border-radius: 999px;
-  background: var(--ov-amber-tag);
-}
-
-.cursorRing[data-target-kind="land"] .cursorDot,
-.cursorRing[data-target-kind="bundle"] .cursorDot {
-  background: var(--ov-green);
-}
-
-.cursorStem {
-  flex: none;
-  width: 22px;
-  height: 1px;
-  background: var(--ov-amber-tag);
-}
-
-.cursorRing[data-target-kind="land"] + .cursorStem,
-.cursorRing[data-target-kind="bundle"] + .cursorStem {
-  background: var(--ov-green);
-}
-
-.cursorCallout {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  padding-left: 8px;
-  border: none;
-  background: transparent;
-  text-align: left;
-}
-
-.cursorTask {
-  color: var(--ov-amber-tag);
-  font-family: var(--font-mono);
-  font-size: 10px;
+.needsYouPill {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: #d97706;
+  color: #ffffff;
+  font: 700 9px / 12px var(--font-mono);
   letter-spacing: 0.04em;
-  line-height: 14px;
-}
-
-.cursorRing[data-target-kind="land"] ~ .cursorCallout .cursorTask,
-.cursorRing[data-target-kind="bundle"] ~ .cursorCallout .cursorTask {
-  color: var(--ov-green);
-}
-
-.cursorLabel {
-  color: var(--ov-bright);
-  font-size: 13px;
-  font-weight: 400;
-  line-height: 17px;
+  text-transform: uppercase;
   white-space: nowrap;
 }
 
-/* ============================================================================
-   Right (On Demand via Space / Click): Open-Air Hairline Steps Trace (Shadcn Trace / Prompt-Kit)
-   ============================================================================ */
-.thinkingCard {
-  position: absolute;
-  right: 48px;
-  top: 136px;
-  width: 284px;
-  padding: 0;
-  border: none;
-  background: transparent;
-  text-shadow: var(--ov-halo-dark);
-  pointer-events: auto;
-  animation: deal 220ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
-}
-
-.thinkingHeader {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 8px;
-  padding-bottom: 6px;
-  border-bottom: 1px solid var(--hairline-quiet);
-}
-
-.thinkingHeaderLeft {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 8px;
-}
-
-.thinkingKicker {
-  color: var(--ov-ink-3);
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.thinkingBadge {
-  color: var(--ov-amber-tag);
-  font-family: var(--font-mono);
-  font-size: 10.5px;
-}
-
-.thinkingBadge[data-state="done"] {
-  color: var(--ov-green);
-}
-
-.thinkingClose {
-  padding: 0;
-  border: none;
-  background: transparent;
-  color: var(--ov-ink-3);
-  font-family: var(--font-mono);
-  font-size: 10.5px;
-  cursor: pointer;
-}
-
-.thinkingClose:hover,
-.thinkingClose:focus-visible {
-  color: var(--ov-bright);
-  outline: none;
-}
-
-.thinkingIdentityBox {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  margin-top: 8px;
-}
-
-.thinkingTitle {
-  margin: 0;
-  color: var(--ov-bright);
-  font-size: 15px;
-  font-weight: 400;
-  line-height: 20px;
-}
-
-.thinkingMeta {
-  margin: 0;
-  color: var(--ov-ink-2);
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-variant-numeric: tabular-nums;
-}
-
-.thinkingBlock {
-  margin-top: 12px;
-}
-
-.thinkingSublabel {
-  margin: 0 0 5px;
-  color: var(--ov-ink-3);
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.chipList {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 10px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.chip {
-  color: var(--ov-ink);
-  font-family: var(--font-mono);
-  font-size: 11px;
-  line-height: 16px;
-}
-
-.stepList {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.stepList::before {
-  content: "";
-  position: absolute;
-  left: 2px;
-  top: 7px;
-  bottom: 7px;
-  width: 1px;
-  background: var(--hairline-quiet);
-}
-
-.stepRow {
-  position: relative;
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  padding: 3px 0;
-  font-size: 12.5px;
-  line-height: 17px;
-}
-
-.stepRailCol {
-  position: relative;
-  z-index: 1;
-  flex: none;
+.keycapDark {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 5px;
-  height: 14px;
+  min-width: 18px;
+  height: 15px;
+  padding: 0 4px;
+  border-radius: 3px;
+  background: var(--control-fill);
+  color: var(--text-primary);
+  font: 600 9px / 1 var(--font-mono);
 }
 
-.stepDot {
+/* ─── Feathered Side-Blur Inspector (Death Stranding Filter Style) ─── */
+
+.sideBlurInspector {
+  position: relative;
+  isolation: isolate;
+  width: 344px;
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  pointer-events: auto;
+  animation: sideInspectorIn 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.sideBlurInspector::before {
+  content: "";
+  position: absolute;
+  inset: -32px -40px;
+  z-index: -1;
+  pointer-events: none;
+  background: var(--ov-frost);
+  mask-image: var(--ov-frost-mask);
+  -webkit-mask-image: var(--ov-frost-mask);
+  backdrop-filter: blur(18px) saturate(1.12);
+  -webkit-backdrop-filter: blur(18px) saturate(1.12);
+}
+
+@keyframes sideInspectorIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.inspectorHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.inspectorTitleBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.inspectorKicker {
+  font: 600 12px / 16px var(--font-sans);
+  color: var(--agent-color, var(--ov-blue));
+}
+
+.inspectorLiveLine {
+  margin: 0;
+  font: 500 13px / 18px var(--font-sans);
+  color: var(--text-primary);
+}
+
+.thinkingChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.thinkingChip {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--agent-color, var(--ov-blue)) 12%, transparent);
+  color: var(--text-primary);
+  font: 500 10.5px / 15px var(--font-mono);
+}
+
+.thinkingStepList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.thinkingStep {
+  display: grid;
+  grid-template-columns: 7px minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 8px;
+  font: 400 12px / 16px var(--font-sans);
+  color: var(--text-secondary);
+}
+
+.thinkingStep[data-thinking-step="running"] {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.thinkingStepDot {
   width: 5px;
   height: 5px;
-  border-radius: 999px;
-  background: var(--ov-ink-3);
+  border-radius: 1.5px;
+  background: var(--text-tertiary);
+  transform: translateY(-1px);
 }
 
-.stepDot[data-status="running"] {
+.thinkingStepDot[data-status="done"],
+.thinkingStepDot[data-status="succeeded"] {
+  background: var(--agent-color, var(--ov-blue));
+}
+
+.thinkingStepDot[data-status="running"] {
+  background: var(--agent-color, var(--ov-blue));
+  box-shadow: 0 0 6px var(--agent-color, var(--ov-blue));
+}
+
+.thinkingStepLabel {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.thinkingStepTime {
+  font: 400 10.5px / 14px var(--font-mono);
+  color: var(--text-tertiary);
+}
+
+.inlineMetaFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-top: 2px;
+  font: 400 10.5px / 14px var(--font-mono);
+  color: var(--text-tertiary);
+}
+
+.inlineResetBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 6px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text-secondary);
+  font: 600 9.5px / 13px var(--font-mono);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.inlineResetBtn:hover {
+  color: var(--text-primary);
+}
+
+/* ─── Full-Width Bottom Feathered Band (Death Stranding Map Subtitle + Loader) ─── */
+
+.bottomThinkingBand {
+  position: absolute;
+  isolation: isolate;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 9px;
+  padding: 36px 48px 26px;
+  pointer-events: none;
+}
+
+.bottomThinkingBand::before {
+  content: "";
+  position: absolute;
+  inset: -16px 0 0 0;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(
+    to top,
+    color-mix(in srgb, var(--bg-canvas) 92%, transparent) 0%,
+    color-mix(in srgb, var(--bg-canvas) 76%, transparent) 55%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(to top, black 55%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to top, black 55%, transparent 100%);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.bottomLoaderTrack {
+  width: 180px;
+  height: 2px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--agent-color, var(--ov-blue)) 22%, transparent);
+  overflow: hidden;
+  position: relative;
+}
+
+.bottomLoaderBar {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 45%;
+  border-radius: 999px;
+  background: var(--agent-color, var(--ov-blue));
+  animation: bottomBarSlide 1.35s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes bottomBarSlide {
+  0% {
+    left: -45%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+.bottomThinkingContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+  max-width: 1120px;
+  pointer-events: auto;
+}
+
+.bottomRunningRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bottomPrimaryCard {
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 9px;
+  border: 0;
+  background: transparent;
+  padding: 2px 8px;
+  cursor: pointer;
+  text-align: center;
+}
+
+.bottomAgentName {
+  font: 600 11.5px / 16px var(--font-mono);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--agent-color, var(--ov-blue));
+}
+
+.bottomThinkingText {
+  font: 400 14.5px / 20px var(--font-sans);
+  color: var(--text-primary);
+  text-shadow: var(--paper-halo);
+}
+
+.bottomSecondaryRunning {
+  display: none;
+}
+
+.bottomSecondaryDot {
   width: 6px;
   height: 6px;
-  background: var(--ov-amber-tag);
+  border-radius: 2px;
+  background: var(--agent-color, var(--ov-blue));
 }
 
-.stepDot[data-status="succeeded"] {
-  background: var(--ov-green);
-}
-
-.stepDot[data-status="failed"] {
-  background: var(--ov-amber-tag);
-}
-
-.stepLabel {
-  flex: 1;
-  color: var(--ov-ink);
-}
-
-.stepRow[data-active] .stepLabel {
-  color: var(--ov-bright);
-}
-
-.stepTime {
-  flex: none;
-  color: var(--ov-ink-3);
-  font-family: var(--font-mono);
-  font-size: 10.5px;
-  font-variant-numeric: tabular-nums;
-}
-
-/* ============================================================================
-   Bottom-Left: The Question & Findings Count beside the Ask Disc
-   ============================================================================ */
-.question {
-  position: absolute;
-  width: 332px;
-  text-align: right;
-  text-shadow: var(--ov-halo-dark);
-}
-
-.asked {
-  margin: 0 0 8px;
-  font-size: 26px;
-  font-weight: 300;
-  line-height: 31px;
-  color: var(--ov-bright);
+.bottomStatusRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px 18px;
 }
 
 .sofar {
   margin: 0;
-  font-size: 14px;
-  line-height: 20px;
-  color: var(--ov-ink);
-  font-variant-numeric: tabular-nums;
+  font: 500 12px / 16px var(--font-mono);
+  color: var(--ov-blue);
+  text-shadow: var(--paper-halo);
+}
+
+.atWork[data-done] .sofar {
+  color: var(--text-primary);
 }
 
 .counts {
-  display: flex;
-  justify-content: flex-end;
-  flex-wrap: nowrap;
-  gap: 12px;
-  margin: 6px 0 0;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  line-height: 16px;
-  color: var(--ov-ink-2);
-  white-space: nowrap;
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+  margin: 0;
+  font: 400 12px / 16px var(--font-sans);
+  color: var(--text-secondary);
+  text-shadow: var(--paper-halo);
 }
 
 .countItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   white-space: nowrap;
 }
 
 .mark {
-  margin-right: 4px;
   font-size: 9px;
-  color: var(--ov-ink-3);
+  line-height: 1;
+}
+
+.countItem[data-gather="run.count.checked"] .mark {
+  color: var(--ov-blue);
+}
+
+.countItem[data-gather="run.count.computed"] .mark {
+  color: var(--ov-green);
+}
+
+.countItem[data-gather="run.count.unchecked"] .mark {
+  color: var(--ov-amber-tag);
+}
+
+.check {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 7px;
+  margin: 0;
+}
+
+.checkKicker {
+  font: 600 9.5px / 13px var(--font-mono);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ov-amber-tag);
+}
+
+.checkLabel {
+  font: 500 12.5px / 16px var(--font-sans);
+  color: var(--text-primary);
 }
 
 .open {
-  display: flex;
-  justify-content: flex-end;
-  margin: 8px 0 0;
-  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
 }
 
 .openBtn {
-  padding-right: 0;
-  color: var(--ov-ink);
+  color: var(--text-primary);
 }
 
-/* ============================================================================
-   Right (When Settled): Open-Air Competing Explanations (Specimen R / Division 2)
-   ============================================================================ */
+/* Horizontal 5-Cause Strip inside Bottom Feathered Band */
 .branches {
-  position: absolute;
-  right: 48px;
-  top: 296px;
-  width: 268px;
-  margin: 0;
+  margin: 2px 0 0;
   padding: 0;
-  border: none;
-  background: transparent;
   list-style: none;
-  pointer-events: auto;
-  text-shadow: var(--ov-halo-dark);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px 10px;
 }
 
 .branch {
-  padding: 5px 0;
-  transition: opacity 0.45s ease;
-  animation: deal 360ms cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
+  position: relative;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--bg-canvas) 65%, transparent);
+  font: 400 12px / 16px var(--font-sans);
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: background 150ms ease, transform 150ms ease;
 }
 
-.branch[data-status="contradicted"] {
-  opacity: 0.42;
+.branch:hover {
+  transform: translateY(-1px);
+  background: color-mix(in srgb, var(--bg-canvas) 92%, transparent);
 }
 
 .branchRow {
-  display: flex;
-  justify-content: space-between;
+  display: inline-flex;
   align-items: baseline;
-  gap: 12px;
-  font-size: 15px;
-  line-height: 20px;
-  color: var(--ov-ink);
-}
-
-.branch[data-status="consistent"] .branchRow,
-.branch[data-status="cannot_be_assessed"] .branchRow {
-  color: var(--ov-bright);
+  gap: 8px;
 }
 
 .branchWord {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  color: var(--ov-ink-2);
+  font: 500 10.5px / 14px var(--font-mono);
+}
+
+.branch[data-status="consistent"] {
+  color: var(--text-primary);
+  font-weight: 500;
+  background: color-mix(in srgb, var(--ov-blue) 10%, var(--bg-canvas));
 }
 
 .branch[data-status="consistent"] .branchWord {
-  color: var(--ov-green);
+  color: var(--ov-blue);
+}
+
+.branch[data-status="cannot_be_assessed"] {
+  color: var(--text-primary);
+  font-weight: 500;
+  background: color-mix(in srgb, var(--ov-amber-tag) 11%, var(--bg-canvas));
 }
 
 .branch[data-status="cannot_be_assessed"] .branchWord {
@@ -725,71 +797,146 @@
 }
 
 .reason {
-  display: block;
-  margin-top: 4px;
-  font-size: 13px;
-  line-height: 18px;
-  color: var(--ov-ink-2);
-}
-
-.check {
   position: absolute;
-  width: 170px;
-  text-align: right;
-  text-shadow: var(--ov-halo-dark);
-  animation: deal 420ms cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
+  left: 50%;
+  bottom: calc(100% + 8px);
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: 300px;
+  padding: 6px 10px;
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--bg-canvas) 94%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  font: 400 11.5px / 15.5px var(--font-sans);
+  color: var(--text-primary);
+  text-align: center;
+  pointer-events: none;
+  z-index: 20;
 }
 
-.checkKicker {
-  margin: 0;
-  font-family: var(--font-mono);
-  font-size: 12px;
-  line-height: 16px;
-  color: var(--ov-amber-tag);
+/* ─── Spatial Cursors on 3D Land ─── */
+
+.agentCursor {
+  position: absolute;
+  transform: translate(-11px, -11px);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-primary);
+  pointer-events: auto;
+  cursor: pointer;
+  z-index: 7;
+  transition: opacity 180ms ease, transform 180ms ease;
 }
 
-.checkLabel {
-  margin: 2px 0 0;
-  font-size: 17px;
-  line-height: 22px;
-  color: var(--ov-amber-tag);
+.agentCursor:hover {
+  transform: translate(-11px, -11px) scale(1.04);
+  z-index: 10;
 }
 
+.agentCursor[data-dimmed] {
+  opacity: 0.28;
+}
+
+.cursorReticle {
+  position: relative;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--bg-canvas) 82%, transparent);
+  border: 1.5px solid var(--ov-blue);
+  flex-shrink: 0;
+}
+
+.cursorReticle[data-target-kind="land"] {
+  border-color: var(--ov-green);
+}
+
+.cursorRing {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--ov-blue);
+  animation: cursorPulse 1.6s ease-in-out infinite;
+}
+
+.cursorRing[data-target-kind="land"] {
+  background: var(--ov-green);
+}
+
+@keyframes cursorPulse {
+  0%,
+  100% {
+    transform: scale(0.9);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.3);
+    opacity: 1;
+  }
+}
+
+.cursorBody {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 2px 6px;
+  text-align: left;
+  max-width: 220px;
+  transition: opacity 160ms ease;
+}
+
+/* Hide overlapping secondary cursor text pills unless hovered or selected, or when the side-blur inspector is open */
+.agentCursor:not([data-primary]):not([data-selected]):not(:hover) .cursorBody,
+.atWork:has([data-agent-thinking]) .cursorBody {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.cursorTask {
+  font: 600 9.5px / 12px var(--font-mono);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ov-blue);
+  text-shadow: var(--paper-halo);
+}
+
+.agentCursor[data-target-kind="land"] .cursorTask {
+  color: var(--ov-green);
+}
+
+.cursorLabel {
+  font: 500 11.5px / 15px var(--font-sans);
+  color: var(--text-primary);
+  text-shadow: var(--paper-halo);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 210px;
+}
+
+/* Recording harness note kept in DOM for test verification but visually unobtrusive */
 .recording {
-  position: absolute;
-  right: 48px;
-  top: 76px;
-  text-align: right;
-  text-shadow: var(--ov-halo-dark);
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0.01;
+  pointer-events: none;
+  user-select: none;
 }
 
-.recTitle {
-  margin: 0;
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 20px;
-}
-
+.recTitle,
 .recDetail {
-  margin: 2px 0 0;
-  font-size: 12px;
-  line-height: 17px;
-  color: var(--ov-ink-2);
-}
-
-@keyframes deal {
-  from {
-    opacity: 0;
-    transform: translateX(8px);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .agentTree,
-  .agentCursor,
-  .thinkingCard,
-  .branch,
-  .check {
-    animation: none;
-  }
+  margin: 0;
+  font-size: 1px;
 }

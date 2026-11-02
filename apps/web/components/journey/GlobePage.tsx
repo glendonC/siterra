@@ -385,7 +385,7 @@ export function GlobePage({
           if (onLaunchCustomCase) {
             onLaunchCustomCase(data.caseId, chosenQ);
           } else {
-            window.location.href = `/?case=${encodeURIComponent(data.caseId)}`;
+            window.location.href = `/?case=${encodeURIComponent(data.caseId)}&dive=1&mode=run&q=${encodeURIComponent(chosenQ)}`;
           }
           return;
         }
@@ -395,7 +395,7 @@ export function GlobePage({
         setLaunchingCustom(false);
       }
       if (activeSavedCase) {
-        onOpen(chosenQ, activeSavedCase, "briefing");
+        onOpen(chosenQ, activeSavedCase, "run");
       }
     },
     [
@@ -421,7 +421,7 @@ export function GlobePage({
     if (customLocation) {
       void handleLaunchCustomLocation(activeQuestionText);
     } else if (activeSavedCase) {
-      onOpen(activeQuestionText, activeSavedCase, "briefing");
+      onOpen(activeQuestionText, activeSavedCase, "run");
     }
   }, [
     customLocation,
@@ -481,6 +481,12 @@ export function GlobePage({
         e.preventDefault();
         setActiveStep(2);
         window.setTimeout(() => customQuestionRef.current?.focus(), 20);
+        return;
+      }
+
+      if (e.key === " ") {
+        e.preventDefault();
+        triggerLaunch();
         return;
       }
 
@@ -678,6 +684,7 @@ export function GlobePage({
                 ref={cardRef}
                 className={styles.globeMonumentCard}
                 data-case-card={c.id}
+                data-diving={opened ? "" : undefined}
                 onClick={() => {
                   if (!opened) handlePrimaryKeyOrAction();
                 }}
@@ -694,7 +701,7 @@ export function GlobePage({
                   </span>
                   <span className={styles.monumentActionPrompt}>
                     <kbd className={styles.monumentActionKey}>{"↵"}</kbd>
-                    <span>{activeStep === 1 ? "SELECT" : "START"}</span>
+                    <span>{opened ? "DIVING" : activeStep === 1 ? "SELECT" : "START"}</span>
                   </span>
                 </div>
                 <p className={styles.casePlace}>{displayPlace}</p>
@@ -705,9 +712,13 @@ export function GlobePage({
         })}
       </ul>
 
-      {opened ? null : (
-        <div className={styles.setupStage}>
-          <div className={styles.detroitAtmosphere} aria-hidden="true" />
+      <div
+        className={styles.setupStage}
+        data-opened={opened ? "" : undefined}
+        inert={opened}
+        aria-hidden={opened ? "true" : undefined}
+      >
+        <div className={styles.detroitAtmosphere} aria-hidden="true" />
 
           {/* Clean Top Bar matching Opening.tsx */}
           <header className={styles.setupTopBar}>
@@ -989,7 +1000,7 @@ export function GlobePage({
 
                   <div className={styles.dbhStepHeadContent}>
                     <h2 className={styles.dbhQuestion}>
-                      {"What question should Siterra investigate?"}
+                      {"Focus on a specific question, or scan the whole catchment:"}
                     </h2>
                   </div>
                 </div>
@@ -1010,6 +1021,13 @@ export function GlobePage({
                             onClick={() => {
                               setCustomQuestionInput("");
                               setQIdx(i);
+                              if (isSelected) {
+                                if (customLocation) {
+                                  void handleLaunchCustomLocation(qText);
+                                } else if (activeSavedCase) {
+                                  onOpen(qText, activeSavedCase, "run");
+                                }
+                              }
                             }}
                             onDoubleClick={() => {
                               setCustomQuestionInput("");
@@ -1017,7 +1035,7 @@ export function GlobePage({
                               if (customLocation) {
                                 void handleLaunchCustomLocation(qText);
                               } else if (activeSavedCase) {
-                                onOpen(qText, activeSavedCase, "briefing");
+                                onOpen(qText, activeSavedCase, "run");
                               }
                             }}
                           >
@@ -1120,6 +1138,15 @@ export function GlobePage({
               type="button"
               className={styles.detroitKeyAction}
               disabled={launchingCustom}
+              onClick={triggerLaunch}
+            >
+              <kbd className={styles.detroitKeyCap}>{"SPACE"}</kbd>
+              <span>{"SCAN WHOLE AREA"}</span>
+            </button>
+            <button
+              type="button"
+              className={styles.detroitKeyAction}
+              disabled={launchingCustom}
               onClick={handlePrimaryKeyOrAction}
             >
               <kbd className={styles.detroitKeyCapPrimary}>{"↵"}</kbd>
@@ -1127,7 +1154,7 @@ export function GlobePage({
                 {launchingCustom
                   ? "INITIALIZING..."
                   : activeStep === 1
-                    ? "CONTINUE"
+                    ? "CHOOSE FOCUS"
                     : "START INVESTIGATION"}
               </span>
             </button>
@@ -1146,8 +1173,7 @@ export function GlobePage({
               ))}
             </nav>
           ) : null}
-        </div>
-      )}
+      </div>
     </div>
   );
 }

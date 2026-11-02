@@ -11,7 +11,7 @@ const classOf = (variant: Variant, hasKey: boolean, extra?: string) =>
     styles.control,
     variant === "primary" ? styles.primary : "",
     variant === "quiet" ? styles.quiet : "",
-    hasKey && variant !== "primary" ? styles.withKey : "",
+    hasKey ? styles.withKey : "",
     extra ?? "",
   ]
     .filter(Boolean)
@@ -40,7 +40,7 @@ export function Control({
   variant?: Variant;
   ref?: Ref<HTMLButtonElement>;
 }) {
-  const showKey = Boolean(keyHint) && variant !== "primary";
+  const showKey = Boolean(keyHint);
   return (
     <button
       ref={ref}
@@ -49,8 +49,8 @@ export function Control({
       aria-keyshortcuts={keyShortcut}
       {...rest}
     >
-      {showKey ? <KeyChip>{keyHint}</KeyChip> : null}
       <span className={styles.label}>{children}</span>
+      {showKey ? <KeyChip>{keyHint}</KeyChip> : null}
     </button>
   );
 }
@@ -72,11 +72,11 @@ export function ControlLink({
   children: ReactNode;
   ref?: Ref<HTMLAnchorElement>;
 } & Omit<AnchorHTMLAttributes<HTMLAnchorElement>, "href">) {
-  const showKey = Boolean(keyHint) && variant !== "primary";
+  const showKey = Boolean(keyHint);
   return (
     <Link ref={ref} href={href} className={classOf(variant, showKey, className)} {...rest}>
-      {showKey ? <KeyChip>{keyHint}</KeyChip> : null}
       <span className={styles.label}>{children}</span>
+      {showKey ? <KeyChip>{keyHint}</KeyChip> : null}
     </Link>
   );
 }

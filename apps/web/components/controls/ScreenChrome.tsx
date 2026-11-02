@@ -23,15 +23,45 @@ export function Breadcrumb({ crumbs }: { crumbs: Crumb[]; onBack?: () => void })
     <nav className={styles.crumbs} aria-label={en["chrome.crumbs"].text} data-crumbs>
       <ol className={styles.trail}>
         {crumbs.map((c, i) => (
-          <li key={`${String(i)}-${c.label}`} className={styles.crumb}>
-            {i > 0 ? (
+          <li
+            key={`${String(i)}-${c.label}`}
+            className={styles.crumb}
+            data-brand-crumb={i === 0 ? "" : undefined}
+            data-place-crumb={i === 1 ? "" : undefined}
+          >
+            {i > 1 ? (
               <span className={styles.sep} aria-hidden="true">
                 /
               </span>
             ) : null}
             {c.onSelect ? (
-              <button type="button" className={styles.crumbButton} onClick={c.onSelect}>
-                {c.label}
+              <button
+                type="button"
+                className={i === 0 ? styles.brandButton : styles.crumbButton}
+                onClick={c.onSelect}
+                title={i === 0 ? "Back to Globe" : undefined}
+              >
+                {i === 0 ? (
+                  <>
+                    <svg
+                      className={styles.backChevron}
+                      viewBox="0 0 14 14"
+                      fill="none"
+                      aria-hidden="true"
+                    >
+                      <path
+                        d="M9 2.75L4.75 7L9 11.25"
+                        stroke="currentColor"
+                        strokeWidth="1.25"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                    <span className={styles.srOnly}>{c.label}</span>
+                  </>
+                ) : (
+                  <span>{c.label}</span>
+                )}
               </button>
             ) : (
               <span className={styles.here} aria-current="page">

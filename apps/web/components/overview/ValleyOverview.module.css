@@ -90,349 +90,81 @@
   opacity: 0;
 }
 
-/* brand and the case question, top left */
-/* the case question, under the breadcrumb (components/controls/ScreenChrome) */
-.scopingHeaderKicker {
-  position: absolute;
-  left: 48px;
-  top: 52px;
-  font: 500 12px / 16px var(--font-mono);
-  letter-spacing: 0.04em;
-  color: #1e82d8;
-  pointer-events: none;
-}
-
-.root[data-theme="obsidian"] .scopingHeaderKicker {
-  color: #54a8ff;
-}
-
+/* the case question, under the place title (components/controls/ScreenChrome) */
 .question {
   position: absolute;
-  left: 48px;
-  top: 70px;
-  font-size: 14px;
-  line-height: 19px;
-  color: var(--ov-ink);
-  max-width: 580px;
-}
-
-.investigationModeBar {
-  position: absolute;
-  left: 48px;
-  top: 94px;
-  max-width: 580px;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  row-gap: 3px;
-  column-gap: 7px;
-  pointer-events: auto;
-  z-index: 25;
-}
-
-.modeSwitchBtn {
-  padding: 2px 0;
-  border: 0;
-  border-bottom: 1px solid transparent;
-  background: transparent;
-  color: var(--ov-ink-3);
-  font: 400 12px / 16px var(--font-mono);
-  cursor: pointer;
-  outline: none;
-  transition:
-    color 140ms ease,
-    border-color 140ms ease;
-}
-
-.modeSwitchBtn:hover,
-.modeSwitchBtn:focus-visible {
-  color: var(--ov-ink);
-}
-
-.modeSwitchBtn[data-active] {
-  color: var(--ov-bright);
-  border-bottom-color: #1e82d8;
-}
-
-.modeSwitchSep {
-  font: 400 12px / 16px var(--font-mono);
-  color: var(--ov-ink-4);
-}
-
-/* Scoping Deliverable & Hypothesis Ledger Dock on the right between pixel (clock 52) and rain (clock 112) */
-.scopingBriefDock {
-  box-sizing: border-box;
-  position: absolute;
-  right: 84px;
-  top: 274px;
-  width: 320px;
-  padding: 8px 11px;
-  border: 1px solid var(--control-line);
-  border-left: 2px solid #1e82d8;
-  border-radius: 2px;
-  background: var(--bg-overlay);
-  backdrop-filter: blur(10px);
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  pointer-events: auto;
-  z-index: 20;
-}
-
-.scopingDockHead {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.scopingDockKicker {
-  font: 600 12px / 15px var(--font-mono);
-  letter-spacing: 0.03em;
-  color: #1e82d8;
-  white-space: nowrap;
-}
-
-.root[data-theme="obsidian"] .scopingDockKicker {
-  color: #54a8ff;
-}
-
-.scopingDockTraceBtn {
-  padding: 0;
-  border: 0;
-  background: transparent;
-  font: 500 12px / 15px var(--font-mono);
-  color: var(--ov-ink-2);
-  cursor: pointer;
-  white-space: nowrap;
-}
-
-.scopingDockTraceBtn:hover {
-  color: var(--ov-bright);
-}
-
-.scopingDockSub {
-  font: 400 12px / 15px var(--font-sans);
-  color: var(--ov-ink-3);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.scopingVarianceBlock {
-  padding-top: 4px;
-  border-top: 1px solid var(--control-line);
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.scopingVarianceLabels {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 6px;
-  font: 500 12px / 15px var(--font-sans);
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-
-.scopingVarianceRain {
-  color: var(--ov-blue);
-}
-
-.scopingVarianceLand {
-  color: var(--ov-green);
-}
-
-.scopingVarianceTrack {
-  display: flex;
-  width: 100%;
-  height: 4px;
-  border-radius: 2px;
-  overflow: hidden;
-  background: var(--control-line);
-  gap: 1px;
-}
-
-.scopingVarianceFillRain {
-  display: block;
-  height: 100%;
-  background: var(--ov-blue);
-}
-
-.scopingVarianceFillLand {
-  display: block;
-  height: 100%;
-  background: var(--ov-green);
-}
-
-.scopingDockSectionTitle {
-  padding-top: 4px;
-  border-top: 1px solid var(--control-line);
-  font: 600 12px / 15px var(--font-mono);
-  letter-spacing: 0.02em;
-  color: var(--ov-ink-2);
-  white-space: nowrap;
-}
-
-.scopingDockList {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.scopingDockRow {
+  left: calc(40px - var(--hud-shift-x, 0px));
+  top: calc(58px - var(--hud-shift-y, 0px));
   display: flex;
   align-items: baseline;
   gap: 7px;
-  width: 100%;
-  padding: 1px 4px;
-  margin: 0 -4px;
-  border: 0;
-  border-left: 2px solid transparent;
-  border-radius: 2px;
-  background: transparent;
-  text-align: left;
-  cursor: pointer;
-  white-space: nowrap;
-  overflow: hidden;
-  transition:
-    background 120ms ease,
-    border-color 120ms ease;
-}
-
-.scopingDockRow[data-active] {
-  border-left-color: #1e82d8;
-  background: color-mix(in srgb, #1e82d8 8%, transparent);
-}
-
-.scopingDockRow:hover .scopingDockText,
-.scopingDockRow[data-active] .scopingDockText {
-  color: var(--ov-bright);
-}
-
-.scopingDockCode {
-  flex: none;
-  font: 600 12px / 15px var(--font-mono);
-  color: var(--ov-green);
-}
-
-.scopingDockCodeWarn {
-  flex: none;
-  font: 600 12px / 15px var(--font-mono);
-  color: var(--ov-amber-tag);
-}
-
-.scopingDockText {
-  font: 400 12px / 15px var(--font-sans);
-  color: var(--ov-ink);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.scopingDockCallout {
-  padding: 5px 0 2px;
-  border: 0;
-  border-top: 1px solid var(--control-line);
-  background: transparent;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.scopingDockCalloutHead {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 6px;
-  white-space: nowrap;
-}
-
-.scopingDockCalloutCite {
-  font: 500 12px / 15px var(--font-mono);
+  font-size: 14px;
+  line-height: 19px;
+  letter-spacing: -0.005em;
   color: var(--ov-ink-2);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  max-width: 560px;
+  text-shadow: var(--ov-halo-dark);
 }
 
-.scopingDockCalloutBtn {
-  flex: none;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  font: 500 12px / 15px var(--font-mono);
-  color: var(--triad-blue, #1d6fe8);
-  cursor: pointer;
-  white-space: nowrap;
+.questionCaret {
+  font: 600 12px / 1 var(--font-mono);
+  color: var(--ov-blue);
+  flex-shrink: 0;
+  transform: translateY(-1px);
 }
 
-.root[data-theme="obsidian"] .scopingDockCalloutBtn {
-  color: #4d9bff;
-}
-
-.scopingDockCalloutBtn:hover {
-  color: var(--ov-bright);
-}
-
-.scopingDockCalloutExcerpt {
-  font: 300 12px / 15px var(--font-sans);
-  color: var(--ov-ink-3);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.scopingDockActions {
-  padding-top: 5px;
-  border-top: 1px solid var(--control-line);
-  display: flex;
+.thinkingClosedPill {
+  position: absolute;
+  left: calc(40px - var(--hud-shift-x, 0px));
+  top: calc(84px - var(--hud-shift-y, 0px));
+  z-index: 15;
+  display: inline-flex;
   align-items: center;
-  justify-content: space-between;
   gap: 8px;
-}
-
-.scopingDockActionBtn,
-.scopingDockActionBtnPrimary {
-  padding: 1px 0;
-  border: 0;
-  background: transparent;
-  font: 400 12px / 15px var(--font-mono);
+  padding: 4px 10px 4px 8px;
+  border: 1px solid color-mix(in srgb, var(--ov-ink) 14%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--bg-canvas) 82%, transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  font: 500 11.5px / 15px var(--font-sans);
   color: var(--ov-ink-2);
   cursor: pointer;
-  white-space: nowrap;
-  transition: color 140ms ease;
+  pointer-events: auto;
+  transition: color 140ms ease, border-color 140ms ease, background 140ms ease;
 }
 
-.scopingDockActionBtnPrimary {
-  color: var(--triad-blue, #1d6fe8);
+.thinkingClosedPill:hover,
+.thinkingClosedPill:focus-visible {
+  color: var(--ov-ink);
+  border-color: color-mix(in srgb, var(--ov-ink) 28%, transparent);
+  background: color-mix(in srgb, var(--bg-canvas) 94%, transparent);
+  outline: none;
+}
+
+.thinkingPillDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ov-blue);
+  flex-shrink: 0;
+}
+
+.thinkingPillAction {
+  color: var(--ov-ink);
   font-weight: 500;
 }
 
-.root[data-theme="obsidian"] .scopingDockActionBtnPrimary {
-  color: #4d9bff;
-}
-
-.scopingDockActionBtn:hover,
-.scopingDockActionBtnPrimary:hover {
-  color: var(--ov-bright);
-}
-
-.hud:has([data-scoping-dock]) .liftLabel,
-.hud:has([data-scoping-dock]) .liftWire {
-  display: none;
+.thinkingPillKbd {
+  padding: 1px 4px;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--ov-ink) 7%, transparent);
+  font: 500 9.5px / 12px var(--font-mono);
+  color: var(--ov-ink-3);
 }
 
 .finding[style*="pointer-events: none"] {
   visibility: hidden;
-}
-
-@media (max-width: 1360px), (max-height: 850px) {
-  .scopingBriefDock {
-    display: none;
-  }
 }
 
 .overviewThemeBtn {
@@ -712,11 +444,15 @@
   text-shadow: var(--ov-halo-dark);
 }
 
-/* the place, bottom left */
+/* the place, bottom left (place title is now in the top-left header, so hide duplicate placeText) */
 .place {
   position: absolute;
-  left: 48px;
-  bottom: 40px;
+  left: calc(40px - var(--hud-shift-x, 0px));
+  bottom: calc(32px - var(--hud-shift-y, 0px));
+}
+
+.place [data-place-text] {
+  display: none;
 }
 
 .layer[data-opened] .place {
@@ -920,7 +656,8 @@
   transition: opacity 0.45s ease;
 }
 
-.layer[data-arriving] :is([data-crumbs], [data-mode-line], [data-view-control], .place),
+.layer[data-arriving]:not([data-at-work]) [data-crumbs],
+.layer[data-arriving] :is([data-mode-line], [data-view-control], .place),
 .layer[data-arriving] > :has(> [data-key-legend]) {
   opacity: 0;
   pointer-events: none;
@@ -1057,10 +794,26 @@
   white-space: pre-line;
 }
 
-/* a question at work (U29): the run takes the arc; the findings' numbers wait until it is put away (Esc) */
-.layer[data-at-work] :is(.findings, [data-wire]) {
+/* a question at work (U29): clean 3D terrain scan without the circular wire arc, bottom place block, or floating ask disc */
+.layer[data-at-work] :is(.findings, [data-wire], .question, .place, .placeEntries, .arcCanvas, .liftLabel, .liftWire),
+.layer[data-at-work] > :has(> [data-key-legend]) {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+.layer[data-at-work]:not(:has([data-ask-input])) [data-ask] {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+.layer[data-at-work] :is([data-view-control], [data-mode-line]) {
   opacity: 0 !important;
   pointer-events: none;
+}
+
+.layer:has([data-record="results"]) .blur,
+.layer:has([data-record="results"]) .arcCanvas {
+  opacity: 0 !important;
 }
 
 /* while it runs, the run's own cards say what runs; the ask's line gives way to the run's count */

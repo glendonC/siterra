@@ -40,7 +40,7 @@ export interface LifeMount {
 }
 
 /** How near the cursor must come to a dot to take it (CSS px). */
-const PICK = 9;
+const PICK = 18;
 /** The point's card width (CSS px, as LifeLayer.module.css sets it). */
 const CARD_W = 320;
 /** The stem from a focused dot up to its glyph (CSS px). */
@@ -218,6 +218,51 @@ export function LifeLayer({
       )
     : [];
   const datasets = point ? new Set(point.records.map((i) => o.records[i]?.dataset)).size : 0;
+  const pointSpeciesNames = point
+    ? [
+        ...new Set(
+          point.records
+            .map((i) => {
+              const r = o.records[i];
+              if (!r) return null;
+              const tx = o.taxa[r.taxon];
+              return tx?.species ?? tx?.scientificName ?? null;
+            })
+            .filter(
+              (name): name is string =>
+                typeof name === "string" &&
+                name.length > 0 &&
+                !/presence|abundance|decline|increase|trend|common|rare/i.test(name),
+            ),
+        ),
+      ].slice(0, 3)
+    : [];
+
+  const groupRows = (["bird", "plant", "insect", "other"] as const)
+    .map((g) => {
+      const pts = data.points
+        .map((p, idx) => ({ p, idx }))
+        .filter((x) => x.p.group === g);
+      const spSet = new Set<string>();
+      for (const { p } of pts) {
+        for (const ri of p.records) {
+          const r = o.records[ri];
+          if (!r) continue;
+          const tx = o.taxa[r.taxon];
+          const name = tx?.species ?? tx?.scientificName;
+          if (name && !/presence|abundance|decline|increase|trend|common|rare/i.test(name)) {
+            spSet.add(name);
+          }
+        }
+      }
+      return {
+        group: g,
+        pointsCount: pts.length,
+        firstPointIdx: pts[0]?.idx ?? null,
+        examples: [...spSet].slice(0, 2),
+      };
+    })
+    .filter((row) => row.pointsCount > 0);
   const top = f ? { x: f.at.x, y: f.at.y - STEM } : null;
   // the card stands to the right of the glyph, stepped out past the sunlit ridge into the dark margin where possible;
   // to the left only where the right edge leaves no room
@@ -260,6 +305,39 @@ export function LifeLayer({
           </p>
         ) : null}
         <p className={styles.limit}>{t("life.limit")}</p>
+        {groupRows.length > 0 ? (
+          <ul className={styles.groupList}>
+            {groupRows.map((row) => (
+              <li key={row.group} className={styles.groupItem}>
+                <button
+                  type="button"
+                  className={styles.groupBtn}
+                  onClick={() => {
+                    if (row.firstPointIdx !== null) {
+                      setFocus(row.firstPointIdx);
+                      setReading(0);
+                    }
+                  }}
+                >
+                  <span
+                    className={styles.groupSwatch}
+                    style={{ background: lifeColours[row.group] }}
+                    aria-hidden="true"
+                  />
+                  <span className={styles.groupGlyphWrap} aria-hidden="true">
+                    <Glyph group={row.group} />
+                  </span>
+                  <span className={styles.groupText}>
+                    <span className={styles.groupName}>{t(`life.group.${row.group}`)}</span>
+                    {row.examples.length > 0 ? (
+                      <span className={styles.groupTaxa}>{row.examples.join(" · ")}</span>
+                    ) : null}
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : null}
       </section>
 
       {f && point && top && !f.behind ? (
@@ -353,6 +431,9 @@ export function LifeLayer({
             ) : (
               <>
                 <p className={styles.kicker}>{t("life.kicker")}</p>
+                {pointSpeciesNames.length > 0 ? (
+                  <p className={styles.speciesPreview}>{pointSpeciesNames.join(", ")}</p>
+                ) : null}
                 <p className={styles.line}>
                   {point.records.length === 1
                     ? lformat("life.pointOne", { years: yearsOf(point.years) })

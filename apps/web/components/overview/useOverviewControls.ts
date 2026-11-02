@@ -41,40 +41,96 @@ export function useOverviewCameraDragWheel({
   setCam,
 }: {
   rootRef: RefObject<HTMLDivElement | null>;
-  camRef: RefObject<{ zoom: number; turn: number }>;
-  setCam: (next: { zoom?: number; turn?: number }) => void;
+  camRef: RefObject<{ zoom: number; turn: number; pitch: number; panX: number; panY: number }>;
+  setCam: (next: {
+    zoom?: number;
+    turn?: number;
+    pitch?: number;
+    panX?: number;
+    panY?: number;
+  }) => void;
 }): void {
   useEffect(() => {
     const root = rootRef.current;
     if (!root) return;
-    let from: number | null = null;
+    let from: { x: number; y: number; pan: boolean } | null = null;
+    let moved = false;
     const onDown = (e: PointerEvent) => {
       const t = e.target as HTMLElement;
-      if (e.button !== 0 || t.closest("button, a, input, textarea, [role='dialog']")) return;
-      from = e.clientX;
+      if (t.closest("button, a, input, textarea, [role='dialog'], [data-agent-tree], [data-agent-thinking]"))
+        return;
+      if (e.button !== 0 && e.button !== 1 && e.button !== 2) return;
+      const pan = e.button === 1 || e.button === 2 || e.shiftKey;
+      from = { x: e.clientX, y: e.clientY, pan };
+      moved = false;
     };
     const onMove = (e: PointerEvent) => {
       if (from === null) return;
-      const dx = e.clientX - from;
-      from = e.clientX;
-      setCam({ turn: camRef.current.turn - dx * 0.2 });
+      const dx = e.clientX - from.x;
+      const dy = e.clientY - from.y;
+      if (Math.hypot(dx, dy) > 2) moved = true;
+      from = { x: e.clientX, y: e.clientY, pan: from.pan || e.shiftKey };
+      if (from.pan) {
+        const panScale = 0.022 * camRef.current.zoom;
+        setCam({
+          panX: camRef.current.panX - dx * panScale,
+          panY: camRef.current.panY + dy * panScale,
+        });
+      } else {
+        setCam({
+          turn: camRef.current.turn - dx * 0.22,
+          pitch: camRef.current.pitch + dy * 0.16,
+        });
+      }
     };
     const onUp = () => {
       from = null;
     };
+    const onContext = (e: MouseEvent) => {
+      if (moved) {
+        e.preventDefault();
+        moved = false;
+      }
+    };
+    const onDblClick = (e: MouseEvent) => {
+      const t = e.target as HTMLElement;
+      if (t.closest("button, a, input, textarea, [role='dialog'], [data-agent-tree], [data-agent-thinking]"))
+        return;
+      const rect = root.getBoundingClientRect();
+      const nx = (e.clientX - rect.left) / Math.max(1, rect.width) - 0.5;
+      const ny = (e.clientY - rect.top) / Math.max(1, rect.height) - 0.5;
+      const panScale = 12 * camRef.current.zoom;
+      setCam({
+        zoom: Math.max(0.32, camRef.current.zoom * 0.72),
+        panX: camRef.current.panX + nx * panScale,
+        panY: camRef.current.panY - ny * panScale,
+      });
+    };
     const onWheel = (e: WheelEvent) => {
-      if ((e.target as HTMLElement).closest("[role='dialog'], ul, ol")) return;
+      if ((e.target as HTMLElement).closest("[role='dialog'], ul, ol, [data-agent-thinking]")) return;
       e.preventDefault();
-      setCam({ zoom: camRef.current.zoom * Math.exp(e.deltaY * 0.0015) });
+      if (e.shiftKey) {
+        const panScale = 0.018 * camRef.current.zoom;
+        setCam({
+          panX: camRef.current.panX + e.deltaX * panScale,
+          panY: camRef.current.panY - e.deltaY * panScale,
+        });
+      } else {
+        setCam({ zoom: camRef.current.zoom * Math.exp(e.deltaY * 0.0015) });
+      }
     };
     root.addEventListener("pointerdown", onDown);
     window.addEventListener("pointermove", onMove);
     window.addEventListener("pointerup", onUp);
+    root.addEventListener("contextmenu", onContext);
+    root.addEventListener("dblclick", onDblClick);
     root.addEventListener("wheel", onWheel, { passive: false });
     return () => {
       root.removeEventListener("pointerdown", onDown);
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerup", onUp);
+      root.removeEventListener("contextmenu", onContext);
+      root.removeEventListener("dblclick", onDblClick);
       root.removeEventListener("wheel", onWheel);
     };
   }, [rootRef, camRef, setCam]);

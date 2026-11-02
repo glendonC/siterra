@@ -15,6 +15,7 @@ import { en, format, type MessageId } from "../copy/en";
 import {
   commandFindings,
   commandMerge,
+  readableStatement,
   shortCitation,
   sourceKey,
   verificationOf,
@@ -34,6 +35,14 @@ export interface RunTask {
   id: string;
   kind: string;
   state: RunTaskState;
+  /** Concise scope descriptor derived from the task's inputs (e.g. "NDVI & trend recipes" vs "Terrain & rainfall"). */
+  sublabel?: string | null;
+  /** Parent task IDs this task depends on in the orchestration DAG. */
+  dependsOnTaskIds?: readonly string[];
+  /** Human-readable bundle labels assigned to this task. */
+  bundleLabels?: readonly string[];
+  /** Human-readable source citations assigned to this task. */
+  sourceCitations?: readonly string[];
   /** The model the task called (its display name), once it has called one. */
   model: string | null;
   /** Model calls finished, and running now. */
@@ -68,6 +77,12 @@ export interface RunFinding {
   lands: Landing;
   /** The Source it gathers by, for a finding checked against one. */
   sourceId: string | null;
+  /** Short citation label for the source when present. */
+  citation?: string | null;
+  /** Authoritative verification status from provenance. */
+  verificationStatus?: "source_checked" | "computed_checked" | "unverified" | "expert_reviewed";
+  /** Authoritative summary statement from the Evidence record. */
+  summary?: string;
 }
 
 export interface RunBranch {
@@ -238,6 +253,24 @@ function addChip(chips: string[], chip: string): void {
   if (chip && !chips.includes(chip)) chips.push(chip);
 }
 
+function deriveTaskSublabel(
+  kind: string,
+  bundleIds: readonly string[],
+  _sourceIds: readonly string[],
+  question: string,
+): string | null {
+  if (kind === "observation_analysis") {
+    if (bundleIds.some((b) => b.includes("restrend") || b.includes("pixel_trend") || b.includes("ndvi_departure"))) {
+      return "Vegetation";
+    }
+    if (bundleIds.some((b) => b.includes("chirps") || b.includes("relief") || b.includes("terrain_strata"))) {
+      return "Rainfall & terrain";
+    }
+    return /valley[_ ]floor/i.test(question) ? "Valley floor" : "Catchment";
+  }
+  return null;
+}
+
 /** The run of `commandId` from the events given so far and the case's records. */
 export function runModel(
   snapshot: CaseSnapshot,
@@ -259,11 +292,24 @@ export function runModel(
     let t = tasks.get(e.taskId);
     if (!t) {
       const rec = snapshot.records.taskRecords.find((x) => x.id === e.taskId);
-      taskQuestions.set(e.taskId, rec?.question ?? "");
+      const q = rec?.question ?? "";
+      taskQuestions.set(e.taskId, q);
+      const inputIds = (rec?.inputVersions ?? []).map((iv) => iv.entityId);
+      const bIds = inputIds.filter((id) => id.startsWith("bundle_"));
+      const sIds = inputIds.filter((id) => id.startsWith("src_"));
+      const bLabels: string[] = [];
+      for (const bId of bIds) addChip(bLabels, bundleChip(snapshot, bId));
+      const sCites: string[] = [];
+      for (const sId of sIds) addChip(sCites, citeSource(snapshot, sId));
+      const kind = rec?.kind ?? "plan";
       t = {
         id: e.taskId,
-        kind: rec?.kind ?? "plan",
+        kind,
         state: "queued",
+        sublabel: deriveTaskSublabel(kind, bIds, sIds, q),
+        dependsOnTaskIds: rec?.dependsOnTaskIds ?? [],
+        bundleLabels: bLabels,
+        sourceCitations: sCites,
         model: null,
         calls: 0,
         running: 0,
@@ -393,6 +439,7 @@ export function runModel(
         : status === "source_checked"
           ? "source"
           : "unchecked";
+    const sId = lands === "source" ? sourceKey(ev) : null;
     return [
       {
         id: ev.id,
@@ -400,7 +447,10 @@ export function runModel(
         ms: at,
         word: verificationOf(ev),
         lands,
-        sourceId: lands === "source" ? sourceKey(ev) : null,
+        sourceId: sId,
+        citation: sId ? citeSource(snapshot, sId) : null,
+        verificationStatus: status,
+        summary: readableStatement(snapshot, ev.statement),
       },
     ];
   });

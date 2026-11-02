@@ -1,35 +1,49 @@
-/* Scene 6 Verdict list inside OverviewResults (UI-2): 5 tested causes with plain status, one-line reason,
-   and prediction written before looking, using the obsidian tokens of app/obsidian.css. */
+/* ============================================================================
+   DIEGETIC 5-CAUSE VERDICT LEDGER (Detroit: Become Human × Magic OS)
+   Zero rectangular boxes, zero row borders, zero underline bars.
+   Open typographic rows with 01–05 indices, indentation, and scale contrast.
+   ============================================================================ */
 
 .list {
-  margin: 10px 0 0;
+  margin: 14px 0 0;
   padding: 0;
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   pointer-events: auto;
 }
 
 .cause {
+  position: relative;
   margin: 0;
-  padding: 8px 12px;
-  border: 1px solid var(--hairline);
-  border-radius: 2px;
-  background: var(--bg-overlay);
+  padding: 8px 6px 8px 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
   outline: none;
   cursor: pointer;
-  transition: border-color 180ms ease-out;
+  text-shadow: var(--ov-halo-dark);
+  transition:
+    transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 150ms ease;
+}
+
+.cause:hover {
+  background: rgba(20, 24, 26, 0.035);
+}
+
+:global([data-theme="obsidian"]) .cause:hover {
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .cause[data-open] {
-  padding: 10px 12px;
-  border-color: var(--text-tertiary);
+  padding: 10px 6px 12px 0;
+  transform: translate3d(4px, 0, 6px);
 }
 
 .cause:focus-visible {
-  outline: 1px solid var(--ov-focus);
-  outline-offset: 2px;
+  outline: none;
 }
 
 .head {
@@ -39,101 +53,128 @@
   gap: 12px;
 }
 
-.detail {
-  margin-top: 6px;
-  padding-top: 6px;
-  border-top: 1px solid var(--hairline-quiet);
+.headLeft {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 12px;
+  min-width: 0;
+}
+
+.causeIndex {
+  font: 500 12px / 16px var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.03em;
+  color: var(--ov-ink-3);
+  transition: color 150ms ease;
+}
+
+.cause[data-open] .causeIndex,
+.cause:hover .causeIndex {
+  color: #2b73e8;
 }
 
 .name {
-  font-size: 14px;
-  line-height: 18px;
-  font-weight: 500;
-  color: var(--text-primary);
+  font: 500 16px / 21px var(--font-sans);
+  color: var(--ov-bright);
 }
 
 .status {
-  padding: 1px 8px;
-  border: 1px solid var(--hairline-quiet);
-  border-radius: 2px;
-  font-family: var(--font-mono);
-  font-size: 12px;
-  line-height: 16px;
-  letter-spacing: 0.02em;
-  color: var(--text-secondary);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: 500 12px / 16px var(--font-mono);
+  letter-spacing: 0.01em;
+  color: var(--ov-ink-3);
+  white-space: nowrap;
+}
+
+.status::before {
+  content: "○ ";
+  font-size: 10px;
 }
 
 .status[data-status="consistent"] {
-  border-color: var(--ov-green);
-  color: var(--ov-green);
+  color: #22784b;
+}
+
+.status[data-status="consistent"]::before {
+  content: "● ";
 }
 
 .status[data-status="cannot_be_assessed"] {
-  border-color: var(--ov-amber-tag);
-  color: var(--ov-amber-tag);
+  color: #d99b26;
+}
+
+.status[data-status="cannot_be_assessed"]::before {
+  content: "◆ ";
 }
 
 .status[data-status="contradicted"] {
-  color: var(--text-tertiary);
+  color: var(--ov-ink-3);
+}
+
+.detail {
+  margin: 8px 0 0 28px;
+  padding-top: 2px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
 }
 
 .reason {
-  margin: 4px 0 0;
-  font-size: 13px;
-  line-height: 17px;
-  color: var(--text-primary);
+  margin: 0;
+  font: 500 14.5px / 20px var(--font-sans);
+  color: var(--ov-bright);
 }
 
 .prediction {
-  margin: 2px 0 0;
-  font-size: 12px;
-  line-height: 16px;
-  color: var(--text-secondary);
+  margin: 0;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--ov-ink-2);
 }
 
 .predLabel {
-  color: var(--text-tertiary);
+  font: 500 12px / 16px var(--font-mono);
+  letter-spacing: 0.02em;
+  color: #2b73e8;
 }
 
+/* Open typographic local context note — zero border lines */
 .contextNode {
-  margin-top: 8px;
-  padding: 6px 10px;
-  border-left: 2px solid var(--accent);
-  background: var(--hairline-quiet);
-  border-radius: 0 4px 4px 0;
+  margin-top: 4px;
+  padding: 4px 0 2px;
+  border: 0;
+  background: transparent;
 }
 
 .contextHead {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: 8px;
+  gap: 10px;
 }
 
 .contextTag {
-  font-size: 12px;
-  line-height: 16px;
-  font-weight: 500;
-  color: var(--ov-amber-tag);
+  font: 500 12.5px / 16px var(--font-sans);
+  color: #d99b26;
 }
 
 .contextCite {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  line-height: 16px;
-  color: var(--text-tertiary);
+  font: 500 12px / 16px var(--font-mono);
+  color: var(--ov-ink-3);
 }
 
 .contextText {
   margin: 3px 0 0;
-  font-size: 12px;
-  line-height: 16px;
-  color: var(--text-secondary);
+  font-size: 12.5px;
+  line-height: 17px;
+  color: var(--ov-ink-2);
 }
 
 .nextCheck {
-  margin: 6px 0 0;
-  font-size: 12px;
-  line-height: 16px;
-  color: var(--text-secondary);
+  margin: 2px 0 0;
+  font-size: 12.5px;
+  line-height: 17.5px;
+  color: var(--ov-ink);
 }

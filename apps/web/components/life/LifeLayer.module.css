@@ -49,6 +49,80 @@
   color: var(--text-tertiary);
 }
 
+.groupList {
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.groupItem {
+  margin: 0;
+}
+
+.groupBtn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 6px 4px 2px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-primary);
+  text-align: left;
+  cursor: pointer;
+  transition: transform 150ms ease, opacity 150ms ease;
+}
+
+.groupBtn:hover {
+  transform: translateX(2px);
+}
+
+.groupSwatch {
+  width: 7px;
+  height: 7px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.groupGlyphWrap {
+  width: 16px;
+  height: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  opacity: 0.85;
+}
+
+.groupText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.groupName {
+  font: 500 12px / 15px var(--font-sans);
+  color: var(--text-primary);
+}
+
+.groupTaxa {
+  font: italic 400 11px / 14px var(--font-sans);
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.speciesPreview {
+  margin: 0 0 4px;
+  font: italic 500 13.5px / 18px var(--font-sans);
+  color: var(--text-primary);
+}
+
 .marks {
   position: absolute;
   inset: 0;

@@ -105,6 +105,7 @@ uniform vec2 uSnowLimits;   // the two elevation band limits (m), for snow by ba
 uniform vec3 uSnow;         // each band's share under snow that month, lowest band first (0 to 1)
 uniform float uSnowA;
 uniform vec3 uSnowC;
+uniform float uCarve;
 varying vec3 vWorld;
 void main() {
   vec2 xz = vWorld.xz;
@@ -116,17 +117,18 @@ void main() {
   float h = hAt(uv);
   vec2 e = 1.0 / uTex;
   float cell = 30.0;
+  float effExag = uExag * mix(0.28, 1.0, uCarve);
   float hl = hAt(uv - vec2(e.x, 0.0)), hr = hAt(uv + vec2(e.x, 0.0));
   float hn = hAt(uv - vec2(0.0, e.y)), hs = hAt(uv + vec2(0.0, e.y));
-  vec3 n1 = normalize(vec3(-(hr - hl) / (2.0 * cell) * uExag, 1.0, -(hs - hn) / (2.0 * cell) * uExag));
+  vec3 n1 = normalize(vec3(-(hr - hl) / (2.0 * cell) * effExag, 1.0, -(hs - hn) / (2.0 * cell) * effExag));
   // a second normal over 90 m, so the 30 m micro-relief reads as texture, not as hair
   float hl3 = hAt(uv - vec2(3.0 * e.x, 0.0)), hr3 = hAt(uv + vec2(3.0 * e.x, 0.0));
   float hn3 = hAt(uv - vec2(0.0, 3.0 * e.y)), hs3 = hAt(uv + vec2(0.0, 3.0 * e.y));
-  vec3 n3 = normalize(vec3(-(hr3 - hl3) / (6.0 * cell) * uExag, 1.0, -(hs3 - hn3) / (6.0 * cell) * uExag));
+  vec3 n3 = normalize(vec3(-(hr3 - hl3) / (6.0 * cell) * effExag, 1.0, -(hs3 - hn3) / (6.0 * cell) * effExag));
   vec3 n = normalize(mix(n1, n3, uSmooth));
   float lap = (hl + hr + hn + hs - 4.0 * h);
   vec4 lm = texture(uLM, uv);
-  float sh = lm.r, ao = lm.g;
+  float sh = mix(0.88, lm.r, uCarve), ao = mix(0.96, lm.g, uCarve);
 
   // albedo: neutral ground, then the WorldCover classes (2021, 10 m) mixed in before the light
   vec3 alb = uAlbedo;
@@ -169,8 +171,23 @@ void main() {
 
   float c250 = contour(h, 250.0, 0.9);
   float c1000 = contour(h, 1000.0, 1.2);
-  col = mix(col, uLine, clamp(c250 * uContour + c1000 * uIndex, 0.0, 1.0) * (0.55 + 0.45 * diff));
+  float c50 = contour(h, 50.0, 0.75);
+  col = mix(col, uLine, clamp(c250 * mix(0.55, uContour, uCarve) + c1000 * mix(0.65, uIndex, uCarve) + c50 * (1.0 - uCarve) * 0.25, 0.0, 1.0) * (0.55 + 0.45 * diff));
   if (uLimitA > 0.001) col = mix(col, uLimitC, limitLine(h, uLimitAt, 1.0) * uLimitA);
+
+  // During Stage 1 (2D Survey Plan, uCarve < 1.0), overlay the Death Stranding survey grid & extraction tint
+  if (uCarve < 0.999) {
+    float planW = 1.0 - uCarve;
+    vec2 gCoord = xz / 3.5;
+    vec2 gFract = abs(fract(gCoord - 0.5) - 0.5);
+    vec2 gFw = max(fwidth(gCoord), 1e-4);
+    vec2 gLine2 = 1.0 - smoothstep(0.0, 1.2, gFract / gFw);
+    float majorGrid = max(gLine2.x, gLine2.y);
+    float distToNode = max(gFract.x, gFract.y);
+    float onCrossArm = majorGrid * (1.0 - smoothstep(0.06, 0.11, distToNode));
+    vec3 surveyCol = mix(col, vec3(0.15, 0.39, 0.92), 0.18 + majorGrid * 0.32 + onCrossArm * 0.55);
+    col = mix(col, surveyCol, planW);
+  }
 
   // a cool rim where slopes turn away from the eye, so the silhouette separates from the dark ground
   vec3 vdir = normalize(cameraPosition - vWorld);
@@ -428,6 +445,7 @@ export function createRelief(
     uSnow: { value: new Vector3(0, 0, 0) },
     uSnowA: { value: 0 },
     uSnowC: { value: new Vector3(1, 1, 1) },
+    uCarve: { value: 1 },
   };
   const material = new ShaderMaterial({
     vertexShader: RELIEF_VERT,
@@ -451,10 +469,12 @@ attribute vec3 wallNormal;
 uniform float uExag, uBase;
 varying vec3 vN;
 varying float vFr;
+varying float vElev;
 void main() {
   vec3 p = vec3(position.x, (elev - uBase) * uExag / 1000.0, position.z);
   vFr = fr;
   vN = wallNormal;
+  vElev = elev;
   gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(p, 1.0);
 }
 `;
@@ -463,10 +483,24 @@ uniform vec3 uL, uLight, uAmbient, uAlbedo;
 uniform float uDim, uFadePow;
 varying vec3 vN;
 varying float vFr;
+varying float vElev;
+float wallContour(float h, float interval, float w) {
+  float c = (h + 0.37) / interval;
+  float fw = max(fwidth(c), 1e-5);
+  float l = 1.0 - smoothstep(0.0, w, abs(fract(c - 0.5) - 0.5) / fw);
+  return l * (1.0 - smoothstep(0.25, 0.6, fw));
+}
 void main() {
   vec3 n = normalize(vN);
   float diff = max(dot(n, uL), 0.0);
-  vec3 col = uAlbedo * (uLight * diff * 0.3 + uAmbient * 1.1);
+  vec3 col = uAlbedo * (uLight * diff * 0.42 + uAmbient * 1.12);
+  // geological & topographic elevation strata along the carved block wall
+  float c250 = wallContour(vElev, 250.0, 0.95);
+  float c75 = wallContour(vElev, 75.0, 0.7);
+  col = mix(col, col * 1.38, (c250 * 0.55 + c75 * 0.22) * vFr);
+  // crisp top-cut bevel right under the relief surface rim
+  float lip = smoothstep(0.88, 1.0, vFr);
+  col += uLight * lip * (0.08 + 0.12 * diff);
   // the edge of the slab dissolves downward: opaque at the land's rim, gone a little below it
   float a = pow(clamp(vFr, 0.0, 1.0), uFadePow);
   col *= uDim * (0.55 + 0.45 * vFr);
@@ -599,6 +633,193 @@ export function createOccluder(relief: Relief): Mesh {
   const mesh = new Mesh(relief.mesh.geometry, material);
   mesh.frustumCulled = false;
   return mesh;
+}
+
+const PLAN_VERT = /* glsl */ `
+varying vec3 vWorld;
+void main() {
+  vec4 wp = modelMatrix * vec4(position, 1.0);
+  vWorld = wp.xyz;
+  gl_Position = projectionMatrix * viewMatrix * wp;
+}
+`;
+
+const PLAN_FRAG = /* glsl */ `
+${HEIGHT_GLSL}
+uniform sampler2D uMask;
+uniform vec4 uMaskRect;
+uniform vec4 uPlanRect;
+uniform float uExag;
+uniform vec3 uL, uAlbedo, uLine, uAccent;
+uniform float uDim, uCarve, uGridStep;
+varying vec3 vWorld;
+
+float regionalElev(vec2 xz) {
+  vec2 uv = hUV(xz);
+  vec2 cUv = clamp(uv, 0.0, 1.0);
+  float baseH = hAt(cUv);
+  vec2 over = xz - mix(uHRect.xy, uHRect.zw, cUv);
+  float d = length(over);
+  if (d < 1e-3) return baseH;
+  // Smooth multi-octave regional ridge continuation outside the tight DEM box so contour lines remain continuous
+  float wave = sin(xz.x * 0.28 + xz.y * 0.19) * 140.0 + cos(xz.x * 0.61 - xz.y * 0.43) * 65.0;
+  return baseH + wave * smoothstep(0.0, 4.0, d);
+}
+
+void main() {
+  vec2 xz = vWorld.xz;
+  vec2 pu = (xz - uPlanRect.xy) / (uPlanRect.zw - uPlanRect.xy);
+  if (pu.x < 0.0 || pu.y < 0.0 || pu.x > 1.0 || pu.y > 1.0) discard;
+
+  // Radial + box feathering around the wide regional survey sheet
+  vec2 dBox = min(pu, 1.0 - pu);
+  float boxFade = smoothstep(0.02, 0.18, min(dBox.x, dBox.y));
+  float radDist = length((pu - 0.5) * vec2(1.04, 1.04));
+  float radFade = 1.0 - smoothstep(0.30, 0.49, radDist);
+  float edgeFade = boxFade * radFade;
+  if (edgeFade < 0.005) discard;
+
+  // Sample regional elevation & 2D hillshade across the entire surrounding survey sheet
+  float h = regionalElev(xz);
+  float stepX = 0.08;
+  float hl = regionalElev(xz - vec2(stepX, 0.0)), hr = regionalElev(xz + vec2(stepX, 0.0));
+  float hn = regionalElev(xz - vec2(0.0, stepX)), hs = regionalElev(xz + vec2(0.0, stepX));
+  vec3 n = normalize(vec3(-(hr - hl) / 160.0 * uExag, 1.0, -(hs - hn) / 160.0 * uExag));
+  float diff = clamp(dot(n, uL), 0.0, 1.0);
+
+  // Sample catchment mask & detect extraction perimeter on the 2D plan
+  vec2 mu = (xz - uMaskRect.xy) / (uMaskRect.zw - uMaskRect.xy);
+  float inMask = (mu.x >= 0.0 && mu.y >= 0.0 && mu.x <= 1.0 && mu.y <= 1.0) ? texture(uMask, mu).b : 0.0;
+  vec2 me = 2.4 / uTex;
+  float mL = (mu.x >= 0.0 && mu.y >= 0.0 && mu.x <= 1.0 && mu.y <= 1.0) ? texture(uMask, clamp(mu - vec2(me.x, 0.0), 0.0, 1.0)).b : 0.0;
+  float mR = (mu.x >= 0.0 && mu.y >= 0.0 && mu.x <= 1.0 && mu.y <= 1.0) ? texture(uMask, clamp(mu + vec2(me.x, 0.0), 0.0, 1.0)).b : 0.0;
+  float mN = (mu.x >= 0.0 && mu.y >= 0.0 && mu.x <= 1.0 && mu.y <= 1.0) ? texture(uMask, clamp(mu - vec2(0.0, me.y), 0.0, 1.0)).b : 0.0;
+  float mS = (mu.x >= 0.0 && mu.y >= 0.0 && mu.x <= 1.0 && mu.y <= 1.0) ? texture(uMask, clamp(mu + vec2(0.0, me.y), 0.0, 1.0)).b : 0.0;
+  float borderGrad = clamp((abs(mR - mL) + abs(mS - mN)) * 1.5, 0.0, 1.0);
+
+  // Topographic contour lines across the surrounding 2D survey region
+  float c250 = contour(h, 250.0, 1.15);
+  float c50 = contour(h, 50.0, 0.85);
+
+  // Death Stranding style cartographic coordinate grid + '+' intersection crosshairs
+  vec2 gCoord = xz / max(0.25, uGridStep);
+  vec2 gFract = abs(fract(gCoord - 0.5) - 0.5);
+  vec2 gFw = max(fwidth(gCoord), 1e-4);
+  vec2 gLine2 = 1.0 - smoothstep(0.0, 1.25, gFract / gFw);
+  float majorGrid = max(gLine2.x, gLine2.y);
+
+  // Sub-grid (4 subdivisions per major cell)
+  vec2 subCoord = gCoord * 4.0;
+  vec2 subFract = abs(fract(subCoord - 0.5) - 0.5);
+  vec2 subFw = max(fwidth(subCoord), 1e-4);
+  vec2 subLine2 = 1.0 - smoothstep(0.0, 1.05, subFract / subFw);
+  float minorGrid = max(subLine2.x, subLine2.y);
+
+  // '+' crosshair reticle ticks at major grid intersections
+  float distToNode = max(gFract.x, gFract.y);
+  float onCrossArm = majorGrid * (1.0 - smoothstep(0.06, 0.13, distToNode));
+
+  // Fade out the flat 2D interior & perimeter outline as the 3D carve-out extrudes upward (uCarve: 0 -> 1)
+  float carveProgress = clamp(uCarve, 0.0, 1.0);
+  float flatStage = 1.0 - smoothstep(0.12, 0.58, carveProgress);
+  float maskCutout = mix(1.0, 1.0 - inMask * 0.92, smoothstep(0.15, 0.65, carveProgress));
+  float flatBorder = borderGrad * flatStage;
+  float flatCatchmentFill = inMask * flatStage * 0.16;
+
+  // Cartographic feature weights: contours, survey grid, '+' crosshairs, subtle hillshade, and Stage 1 extraction perimeter
+  float contourInk = clamp(c250 * 0.62 + c50 * 0.26, 0.0, 1.0);
+  float gridInk = clamp(majorGrid * 0.48 + minorGrid * 0.15 + onCrossArm * 0.78, 0.0, 1.0);
+  float hillInk = (1.0 - diff) * mix(0.22, 0.09, carveProgress);
+
+  vec3 topoCol = mix(uLine * 0.75, uAlbedo, 0.35);
+  vec3 col = topoCol;
+  col = mix(col, uAccent, clamp(gridInk * 0.85 + flatCatchmentFill * 2.2, 0.0, 1.0));
+  col = mix(col, uAccent, flatBorder * 0.96);
+
+  float featureAlpha = clamp(
+    hillInk + contourInk * 0.58 + gridInk * 0.68 + flatCatchmentFill + flatBorder * 0.92,
+    0.0,
+    0.92
+  );
+  float planStrength = mix(0.98, 0.72, carveProgress);
+  float a = edgeFade * maskCutout * planStrength * featureAlpha;
+  col *= uDim;
+  gl_FragColor = vec4(col * a, a);
+}
+`;
+
+export function createSurveyPlan(
+  g: Grid,
+  frame: Frame,
+  maskTex: Texture,
+  maskRect: Rect,
+  o: {
+    hTex: DataTexture;
+    light: Light;
+    albedo: string;
+    line: string;
+    accent?: string;
+    yPlane?: number;
+    gridStepKm?: number;
+  },
+) {
+  const [hx0, hz0, hx1, hz1] = frame.rect(g);
+  const cx = (maskRect[0] + maskRect[2]) * 0.5;
+  const cz = (maskRect[1] + maskRect[3]) * 0.5;
+  const spanX = Math.max(Math.abs(hx1 - hx0), Math.abs(maskRect[2] - maskRect[0])) * 1.45;
+  const spanZ = Math.max(Math.abs(hz1 - hz0), Math.abs(maskRect[3] - maskRect[1])) * 1.45;
+  const span = Math.max(spanX, spanZ);
+  const px0 = cx - span * 0.5;
+  const px1 = cx + span * 0.5;
+  const pz0 = cz - span * 0.5;
+  const pz1 = cz + span * 0.5;
+
+  const y = o.yPlane ?? 0;
+  const pos = new Float32Array([
+    px0, y, pz0,
+    px1, y, pz0,
+    px1, y, pz1,
+    px0, y, pz1,
+  ]);
+  const idx = new Uint16Array([0, 2, 1, 0, 3, 2]);
+  const geometry = new BufferGeometry();
+  geometry.setAttribute("position", new BufferAttribute(pos, 3));
+  geometry.setIndex(new BufferAttribute(idx, 1));
+  const spanKm = Math.max(Math.abs(hx1 - hx0), Math.abs(hz1 - hz0));
+  const gridStep = o.gridStepKm ?? Math.max(0.8, Math.round((spanKm / 7) * 2) / 2);
+  const uniforms = {
+    uH: { value: o.hTex },
+    uTex: { value: new Vector2(g.width, g.height) },
+    uHRect: { value: new Vector4(hx0, hz0, hx1, hz1) },
+    uPlanRect: { value: new Vector4(px0, pz0, px1, pz1) },
+    uMask: { value: maskTex },
+    uMaskRect: { value: new Vector4(...maskRect) },
+    uExag: { value: frame.exag },
+    uL: { value: o.light.dir.clone() },
+    uAlbedo: { value: hexVec(o.albedo) },
+    uLine: { value: hexVec(o.line) },
+    uAccent: { value: hexVec(o.accent ?? "#2563eb") },
+    uDim: { value: 1 },
+    uCarve: { value: 1 },
+    uGridStep: { value: gridStep },
+  };
+  const material = new ShaderMaterial({
+    vertexShader: PLAN_VERT,
+    fragmentShader: PLAN_FRAG,
+    uniforms,
+    side: DoubleSide,
+    transparent: true,
+    depthWrite: false,
+    blending: CustomBlending,
+    blendSrc: OneFactor,
+    blendDst: OneMinusSrcAlphaFactor,
+    blendSrcAlpha: OneFactor,
+    blendDstAlpha: OneMinusSrcAlphaFactor,
+  });
+  const mesh = new Mesh(geometry, material);
+  mesh.frustumCulled = false;
+  mesh.renderOrder = -1;
+  return { mesh, uniforms };
 }
 
 /** Lightly smoothed ring (moving average over 2k + 1 vertices), its closing vertex dropped. */

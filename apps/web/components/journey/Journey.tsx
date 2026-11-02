@@ -435,18 +435,32 @@ export function Journey({ globeAssets, arrival, snapshot }: JourneyProps) {
     } else setPhase("zoom");
   }, []);
 
-  const [commissionMode, setCommissionMode] = useState<"run" | "briefing">("run");
-  const [commissionedQuestion, setCommissionedQuestion] = useState<string | undefined>(undefined);
+  const [commissionMode, setCommissionMode] = useState<"run" | "briefing">(() => {
+    if (typeof window !== "undefined") {
+      const m = new URLSearchParams(window.location.search).get("mode");
+      if (m === "briefing") return "briefing";
+    }
+    return "run";
+  });
+  const [commissionedQuestion, setCommissionedQuestion] = useState<string | undefined>(() => {
+    if (typeof window !== "undefined") {
+      const q = new URLSearchParams(window.location.search).get("q");
+      if (q && q.trim()) return q.trim();
+    }
+    return undefined;
+  });
 
   const handleOpenSavedCase = useCallback(
     (question?: string, chosen?: GlobeCase, mode: "run" | "briefing" = "run") => {
       const target = chosen ?? selectedSavedCase;
       setCommissionMode(mode);
-      if (question?.trim()) setCommissionedQuestion(question.trim());
+      const cleanQ = question?.trim();
+      if (cleanQ) setCommissionedQuestion(cleanQ);
       if (target.isCurrentArrival === false) {
         const targetId = target.seedCaseId ?? target.id;
+        const qParam = cleanQ ? `&q=${encodeURIComponent(cleanQ)}` : "";
         window.location.assign(
-          `/?case=${encodeURIComponent(targetId)}&dive=1&mode=${encodeURIComponent(mode)}`,
+          `/?case=${encodeURIComponent(targetId)}&dive=1&mode=${encodeURIComponent(mode)}${qParam}`,
         );
         return;
       }
@@ -779,8 +793,8 @@ export function Journey({ globeAssets, arrival, snapshot }: JourneyProps) {
   // the land arrives once the globe has handed over and the overview has drawn its land
   const run = (phase === "land" || phase === "rest") && landReady;
   const landing = phase === "land" && run && !skip;
-  // mount the 3D valley overview when diving into the valley so the globe selection screen stays lightweight
-  const overviewOn = phase === "zoom" || phase === "land" || phase === "rest";
+  // pre-mount the 3D valley overview while on the globe so diving into the valley has zero shader/mesh compile lag
+  const overviewOn = phase !== "opening";
 
   const activeTheme = globeTheme;
 

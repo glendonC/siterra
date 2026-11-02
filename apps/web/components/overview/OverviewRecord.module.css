@@ -131,20 +131,18 @@
   justify-content: space-between;
   gap: 10px;
   margin-bottom: 8px;
-  padding-bottom: 6px;
-  border-bottom: 1px solid rgba(20, 24, 26, 0.12);
 }
 
 .paperKicker {
-  font: 500 10.5px / 14px var(--font-mono);
-  letter-spacing: 0.07em;
+  font: 500 11px / 15px var(--font-mono);
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: #5b5954;
 }
 
 .paperBadge {
-  font: 500 10px / 14px var(--font-mono);
-  letter-spacing: 0.06em;
+  font: 500 11px / 15px var(--font-mono);
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   color: #b45d14;
 }
@@ -165,8 +163,6 @@
 
 .cite {
   margin: 10px 0 0;
-  padding-top: 8px;
-  border-top: 1px solid rgba(20, 24, 26, 0.1);
   font: 500 12px / 17px var(--font-sans);
   color: #3d3b37;
 }
