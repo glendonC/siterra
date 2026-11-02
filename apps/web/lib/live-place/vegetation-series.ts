@@ -21,6 +21,7 @@ import {
   mapLimited,
   missingFrom,
   modisWindowForBbox,
+  pointInRing,
   sinusoidalToLonLat,
   stacSearch,
   withTimeout,
@@ -430,16 +431,6 @@ export function computeVegetationSeries(stack: ModisStack, window: SeasonWindow)
     unreadComposites: [...stack.unread],
     limitations: [...VEGETATION_LIMITATIONS],
   };
-}
-
-function pointInRing(lon: number, lat: number, ring: Ring): boolean {
-  let inside = false;
-  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
-    const [xi, yi] = ring[i] ?? [0, 0];
-    const [xj, yj] = ring[j] ?? [0, 0];
-    if (yi > lat !== yj > lat && lon < ((xj - xi) * (lat - yi)) / (yj - yi) + xi) inside = !inside;
-  }
-  return inside;
 }
 
 /** 1 for each window pixel whose centre lies in the ring, or in the box when no ring is given. */

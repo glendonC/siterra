@@ -322,6 +322,31 @@ export function modisWindowForBbox(bbox: Bbox): SinusoidalWindow {
   };
 }
 
+/** Even-odd test of a lon/lat point against a closed or open ring. */
+export function pointInRing(lon: number, lat: number, ring: Ring): boolean {
+  let inside = false;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const [xi, yi] = ring[i] ?? [0, 0];
+    const [xj, yj] = ring[j] ?? [0, 0];
+    if (yi > lat !== yj > lat && lon < ((xj - xi) * (lat - yi)) / (yj - yi) + xi) inside = !inside;
+  }
+  return inside;
+}
+
+/** 1 for each cell of a north-up lon/lat grid over `bbox` whose centre lies in the ring, or every cell without one. */
+export function lonLatGridMask(bbox: Bbox, width: number, height: number, ring?: Ring): Uint8Array {
+  const mask = new Uint8Array(width * height);
+  const [minLon, minLat, maxLon, maxLat] = bbox;
+  for (let r = 0; r < height; r++) {
+    const lat = maxLat - ((r + 0.5) / height) * (maxLat - minLat);
+    for (let c = 0; c < width; c++) {
+      const lon = minLon + ((c + 0.5) / width) * (maxLon - minLon);
+      mask[r * width + c] = !ring || ring.length < 3 || pointInRing(lon, lat, ring) ? 1 : 0;
+    }
+  }
+  return mask;
+}
+
 export interface StacItem {
   id: string;
   collection?: string;

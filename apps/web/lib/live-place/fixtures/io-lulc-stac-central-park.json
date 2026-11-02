@@ -1,0 +1,74 @@
+{
+  "recorded": "2026-11-02",
+  "request": {
+    "collections": ["io-lulc-annual-v02"],
+    "bbox": [-73.975, 40.775, -73.955, 40.79],
+    "limit": 50
+  },
+  "note": "Planetary Computer STAC search response, trimmed to id, collection, start_datetime, end_datetime and io:tile_id",
+  "features": [
+    {
+      "id": "18T-2023",
+      "collection": "io-lulc-annual-v02",
+      "properties": {
+        "start_datetime": "2023-01-01T00:00:00.000000Z",
+        "end_datetime": "2024-01-01T00:00:00.000000Z",
+        "io:tile_id": "18T"
+      }
+    },
+    {
+      "id": "18T-2022",
+      "collection": "io-lulc-annual-v02",
+      "properties": {
+        "start_datetime": "2022-01-01T00:00:00.000000Z",
+        "end_datetime": "2023-01-01T00:00:00.000000Z",
+        "io:tile_id": "18T"
+      }
+    },
+    {
+      "id": "18T-2021",
+      "collection": "io-lulc-annual-v02",
+      "properties": {
+        "start_datetime": "2021-01-01T00:00:00.000000Z",
+        "end_datetime": "2022-01-01T00:00:00.000000Z",
+        "io:tile_id": "18T"
+      }
+    },
+    {
+      "id": "18T-2020",
+      "collection": "io-lulc-annual-v02",
+      "properties": {
+        "start_datetime": "2020-01-01T00:00:00.000000Z",
+        "end_datetime": "2021-01-01T00:00:00.000000Z",
+        "io:tile_id": "18T"
+      }
+    },
+    {
+      "id": "18T-2019",
+      "collection": "io-lulc-annual-v02",
+      "properties": {
+        "start_datetime": "2019-01-01T00:00:00.000000Z",
+        "end_datetime": "2020-01-01T00:00:00.000000Z",
+        "io:tile_id": "18T"
+      }
+    },
+    {
+      "id": "18T-2018",
+      "collection": "io-lulc-annual-v02",
+      "properties": {
+        "start_datetime": "2018-01-01T00:00:00.000000Z",
+        "end_datetime": "2019-01-01T00:00:00.000000Z",
+        "io:tile_id": "18T"
+      }
+    },
+    {
+      "id": "18T-2017",
+      "collection": "io-lulc-annual-v02",
+      "properties": {
+        "start_datetime": "2017-01-01T00:00:00.000000Z",
+        "end_datetime": "2018-01-01T00:00:00.000000Z",
+        "io:tile_id": "18T"
+      }
+    }
+  ]
+}
