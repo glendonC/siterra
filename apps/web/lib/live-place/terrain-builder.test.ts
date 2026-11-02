@@ -4,6 +4,8 @@ import { encodeRgbaPng } from "./satellite-fetcher.ts";
 import {
   buildTerrainForBbox,
   delineateOutline,
+  outlineRing,
+  type Outline,
   ElevationUnavailableError,
   TERRAIN_FILE_VERSION,
   traceChannels,
@@ -216,5 +218,54 @@ describe("outline ring", () => {
     expect(Math.max(...cols)).toBe(N - 1);
     expect(Math.min(...rows)).toBe(0);
     expect(Math.max(...rows)).toBe(N - 1);
+  });
+});
+
+describe("an outline that cannot be drawn", () => {
+  const closedAndValid = (ring: readonly [number, number][]) => {
+    expect(ring.length).toBeGreaterThanOrEqual(4);
+    expect(ring[0]).toEqual(ring.at(-1));
+  };
+
+  it("draws the box, saying so, for the founder's case whose box holds no land (1 N, 46.9 W, open sea)", async () => {
+    const sea = flatTile(0);
+    globalThis.fetch = vi.fn((input: RequestInfo | URL) => {
+      const url = input instanceof Request ? input.url : input.toString();
+      return Promise.resolve(
+        url.includes("/terrarium/")
+          ? new Response(new Uint8Array(sea), { status: 200 })
+          : new Response("unavailable", { status: 503 }),
+      );
+    });
+    const bbox: [number, number, number, number] = [-46.980385, 0.925969, -46.800695, 1.105631];
+    const terrain = await buildTerrainForBbox(bbox);
+    expect(terrain.outline?.kind).toBe("box");
+    expect(terrain.outline?.fallback).toBe("no_land");
+    closedAndValid(terrain.catchmentRing);
+    const lons = terrain.catchmentRing.map((p) => p[0]);
+    expect(Math.min(...lons)).toBeCloseTo(bbox[0], 5);
+    expect(Math.max(...lons)).toBeCloseTo(bbox[2], 5);
+  });
+
+  it("draws the box when the only land is one cell, and the land within the box when a basin is too small", () => {
+    const water = new Uint8Array(N * N).fill(1);
+    water[idx(32, 32)] = 0;
+    const islet: Outline = {
+      kind: "land_within_box",
+      region: new Uint8Array(N * N),
+      from: idx(32, 32),
+      target: new Int32Array(N * N).fill(-1),
+      acc: new Float64Array(N * N).fill(1),
+    };
+    islet.region[idx(32, 32)] = 1;
+    const a = outlineRing(islet, water, N, N);
+    expect([a.kind, a.fallback]).toEqual(["box", "outline_degenerate"]);
+    closedAndValid(a.ring);
+
+    const tiny: Outline = { ...islet, kind: "watershed", outlet: idx(32, 32) };
+    const b = outlineRing(tiny, dry(), N, N);
+    expect([b.kind, b.fallback]).toEqual(["land_within_box", "outline_degenerate"]);
+    expect(b.cells).toBe(N * N);
+    closedAndValid(b.ring);
   });
 });

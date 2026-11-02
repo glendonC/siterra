@@ -71,7 +71,8 @@ export interface TerrainFile {
   streamSource?: "openstreetmap" | "d8_dem" | "none";
   streamKinds?: string[];
   outline?: {
-    kind: "watershed" | "drainage_within_box" | "land_within_box";
+    kind: "watershed" | "drainage_within_box" | "land_within_box" | "box";
+    fallback?: "no_land" | "outline_degenerate";
     outlet?: [number, number];
     areaKm2: number;
   };

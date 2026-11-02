@@ -70,6 +70,8 @@ export interface TerrainFile {
   catchmentRing: [number, number][];
   outline?: {
     kind: OutlineKind;
+    /** Set when the delineated outline could not be drawn and a simpler one stands in, and why. */
+    fallback?: OutlineFallback;
     /** Where the watershed drains out (watershed kinds). */
     outlet?: [number, number];
     /** Area inside the outline from the grid's nodes (km²). */
@@ -274,7 +276,7 @@ function flowAccumulation(target: Int32Array, filled: Float64Array): Float64Arra
  * watershed means little (the outlet's basin under MIN_BASIN_SHARE of the box's land, as on a coast or in a city
  * by the water), the land around the point inside the box, clipped at the water.
  */
-export type OutlineKind = "watershed" | "drainage_within_box" | "land_within_box";
+export type OutlineKind = "watershed" | "drainage_within_box" | "land_within_box" | "box";
 
 /** A basin smaller than this share of the box's land is not shown as the place's outline. */
 export const MIN_BASIN_SHARE = 0.03;
@@ -285,6 +287,8 @@ export interface Outline {
   region: Uint8Array;
   /** The outlet node (watershed kinds), row-major index. */
   outlet?: number;
+  /** The land node the outline starts from: the point, or the land nearest it. */
+  from: number;
   /** D8 targets on the filled grid, for the channels. */
   target: Int32Array;
   acc: Float64Array;
@@ -365,10 +369,30 @@ export function delineateOutline(
   }
 
   if (landCells > 0 && basinCells >= MIN_BASIN_SHARE * landCells) {
-    return { kind: cut ? "drainage_within_box" : "watershed", region: basin, outlet, target, acc };
+    return {
+      kind: cut ? "drainage_within_box" : "watershed",
+      region: basin,
+      outlet,
+      from,
+      target,
+      acc,
+    };
   }
 
-  // land within the box: water reaching the box edge is outside; land and enclosed water around the point inside
+  return { kind: "land_within_box", region: landWithinBox(water, w, h, from), from, target, acc };
+}
+
+/**
+ * The land within the box around node `from`: water reaching the box edge is outside; the land and any water it
+ * encloses, connected to `from` (4 neighbours), inside.
+ */
+export function landWithinBox(water: Uint8Array, w: number, h: number, from: number): Uint8Array {
+  const n = w * h;
+  const onEdge = (k: number) => {
+    const r = Math.floor(k / w);
+    const c = k % w;
+    return r === 0 || c === 0 || r === h - 1 || c === w - 1;
+  };
   const outerWater = new Uint8Array(n);
   const ws: number[] = [];
   for (let k = 0; k < n; k++) {
@@ -410,7 +434,46 @@ export function delineateOutline(
       }
     }
   }
-  return { kind: "land_within_box", region, target, acc };
+  return region;
+}
+
+/** Why an outline fell back to the box itself: no land in it, or every outline traced too small to draw. */
+export type OutlineFallback = "no_land" | "outline_degenerate";
+
+/** An outline of fewer cells than this is not drawn as the place's outline. */
+export const MIN_OUTLINE_CELLS = 16;
+
+/**
+ * The ring a place is drawn and recorded with, never fewer than 4 points closed. The delineated outline when it
+ * traces to at least 4 points over at least MIN_OUTLINE_CELLS cells; if a watershed kind does not, the land within
+ * the box; if that does not either, or the box holds no land, the box itself, with the reason in `fallback`.
+ */
+export function outlineRing(
+  outline: Outline,
+  water: Uint8Array,
+  w: number,
+  h: number,
+): { kind: OutlineKind; ring: [number, number][]; cells: number; fallback?: OutlineFallback } {
+  const traced = (region: Uint8Array) => {
+    let cells = 0;
+    for (const v of region) cells += v;
+    const ring = cells >= MIN_OUTLINE_CELLS ? traceRing(region, w, h) : [];
+    return ring.length >= 4 ? { ring, cells } : null;
+  };
+  const box = (fallback: OutlineFallback) => ({
+    kind: "box" as const,
+    ring: traceRing(new Uint8Array(w * h).fill(1), w, h),
+    cells: w * h,
+    fallback,
+  });
+  if (!water.some((v) => v === 0)) return box("no_land");
+  const own = traced(outline.region);
+  if (own) return { kind: outline.kind, ...own };
+  if (outline.kind !== "land_within_box") {
+    const land = traced(landWithinBox(water, w, h, outline.from));
+    if (land) return { kind: "land_within_box", ...land, fallback: "outline_degenerate" };
+  }
+  return box("outline_degenerate");
 }
 
 /**
@@ -713,9 +776,9 @@ export async function buildTerrainForBbox(
   ];
   const centre = Math.round((targetSize - 1) / 2) * targetSize + Math.round((targetSize - 1) / 2);
   const outline = delineateOutline(elevations, targetSize, targetSize, water.mask, centre);
-  const catchmentRing = traceRing(outline.region, targetSize, targetSize).map(toLonLat);
-  let outlineCells = 0;
-  for (const v of outline.region) outlineCells += v;
+  const drawn = outlineRing(outline, water.mask, targetSize, targetSize);
+  const catchmentRing = drawn.ring.map(toLonLat);
+  const outlineCells = drawn.cells;
   const cellKm2 =
     ((maxLon - minLon) * 111.32 * Math.cos((cy * Math.PI) / 180) * (maxLat - minLat) * 111.32) /
     ((targetSize - 1) * (targetSize - 1));
@@ -723,7 +786,7 @@ export async function buildTerrainForBbox(
   // mapped OpenStreetMap waterways when Overpass has them; otherwise, inside a watershed, drainage lines computed
   // from the D8 flow (none on land within the box, where they would mean little)
   const d8Channels =
-    outline.kind === "land_within_box"
+    drawn.kind !== "watershed" && drawn.kind !== "drainage_within_box"
       ? []
       : traceChannels(outline, targetSize, cellKm2).map((p) => p.map(toLonLat));
   const streamSource: StreamSource =
@@ -764,8 +827,11 @@ export async function buildTerrainForBbox(
     landCells,
     catchmentRing,
     outline: {
-      kind: outline.kind,
-      ...(outline.outlet !== undefined
+      kind: drawn.kind,
+      ...(drawn.fallback ? { fallback: drawn.fallback } : {}),
+      ...(outline.outlet !== undefined &&
+      drawn.kind === outline.kind &&
+      drawn.kind !== "land_within_box"
         ? {
             outlet: toLonLat([
               outline.outlet % targetSize,
