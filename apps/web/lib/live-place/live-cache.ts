@@ -1,12 +1,14 @@
 /**
  * Per-place cache of measured live data under `.local/cache/live-data/<kind>/<key>.json` (gitignored, like the
  * terrain cache). Only measured results are stored: a missing value is fetched again next time. Typed arrays are kept
- * as base64 of their bytes so grids survive the round trip exactly.
+ * as base64 of their bytes so grids survive the round trip, while an image with a PNG buffer is stored as a `.png`
+ * file beside a small `.json` metadata file.
  */
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import type { Bbox, LiveResult, Measured, Ring } from "./planetary.ts";
+import { decodePngRgba } from "./satellite-fetcher.ts";
 
 const REPO_ROOT = process.cwd().endsWith("/apps/web")
   ? resolve(process.cwd(), "..", "..")
@@ -59,12 +61,50 @@ export function liveCachePath(kind: string, key: string, dir = LIVE_CACHE_DIR): 
   return join(dir, kind.replace(/[^a-z0-9-]/gi, "_"), `${key}.json`);
 }
 
+interface PngSidecarValue {
+  png?: unknown;
+  rgba?: unknown;
+  pngFile?: unknown;
+  width?: unknown;
+  height?: unknown;
+}
+
+function hasPngSidecar(
+  v: unknown,
+): v is Record<string, unknown> & { png: Uint8Array; rgba: Uint8Array } {
+  if (!v || typeof v !== "object") return false;
+  const c = v as PngSidecarValue;
+  return c.png instanceof Uint8Array && c.rgba instanceof Uint8Array;
+}
+
 export function readLiveCache<T>(kind: string, key: string, dir?: string): Measured<T> | null {
   const path = liveCachePath(kind, key, dir);
   if (!existsSync(path)) return null;
   try {
-    const parsed = JSON.parse(readFileSync(path, "utf8"), decode) as { status?: unknown };
-    return parsed.status === "measured" ? (parsed as Measured<T>) : null;
+    const parsed = JSON.parse(readFileSync(path, "utf8"), decode) as {
+      status?: unknown;
+      value?: unknown;
+    };
+    if (parsed.status !== "measured") return null;
+    if (parsed.value && typeof parsed.value === "object" && "pngFile" in parsed.value) {
+      const val = parsed.value as Record<string, unknown> & PngSidecarValue;
+      if (typeof val.pngFile !== "string") return null;
+      const pngPath = join(dirname(path), val.pngFile);
+      if (!existsSync(pngPath)) return null;
+      const png = new Uint8Array(readFileSync(pngPath));
+      const decoded = decodePngRgba(png);
+      if (
+        !decoded ||
+        (typeof val.width === "number" && decoded.width !== val.width) ||
+        (typeof val.height === "number" && decoded.height !== val.height)
+      ) {
+        return null;
+      }
+      delete val.pngFile;
+      val.png = png;
+      val.rgba = decoded.data;
+    }
+    return parsed as Measured<T>;
   } catch {
     return null;
   }
@@ -78,8 +118,20 @@ export function writeLiveCache<T>(
 ): void {
   const path = liveCachePath(kind, key, dir);
   mkdirSync(dirname(path), { recursive: true });
+  let toWrite: unknown = value;
+  if (hasPngSidecar(value.value)) {
+    const pngFile = `${key}.png`;
+    const pngPath = join(dirname(path), pngFile);
+    const pngTmp = `${pngPath}.${process.pid}.tmp`;
+    writeFileSync(pngTmp, value.value.png);
+    renameSync(pngTmp, pngPath);
+    const meta: Record<string, unknown> = { ...value.value, pngFile };
+    delete meta.png;
+    delete meta.rgba;
+    toWrite = { ...value, value: meta };
+  }
   const tmp = `${path}.${process.pid}.tmp`;
-  writeFileSync(tmp, JSON.stringify(value, encode));
+  writeFileSync(tmp, JSON.stringify(toWrite, encode));
   renameSync(tmp, path);
 }
 

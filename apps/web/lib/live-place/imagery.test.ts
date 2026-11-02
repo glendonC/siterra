@@ -1,6 +1,9 @@
-import { readFileSync } from "node:fs";
-import { describe, expect, it } from "vitest";
+import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { afterEach, describe, expect, it } from "vitest";
 import { fetchTrueColour, groupAcquisitions, imageSize, sclShares } from "./imagery.ts";
+import { cachedLive, liveCacheKey, liveCachePath } from "./live-cache.ts";
 import type { Bbox, StacItem } from "./planetary.ts";
 
 // Recorded 2 Nov 2026 by wrapping fetch around fetchTrueColour(Central Park box, size 32, 3 candidates, now
@@ -11,6 +14,9 @@ const stac = readFileSync(new URL(dir + "stac.json", import.meta.url));
 const OCT = "S2C_MSIL2A_20261006T155131_R054_T18TWL_20261006T185302";
 const MAR = "S2A_MSIL2A_20260309T154711_R011_T18TWL_20260309T222622";
 const NOV = "S2B_MSIL2A_20251102T154319_R011_T18TWL_20251102T193858";
+const AUG_12 = "S2B_MSIL2A_20260812T154809_R054_T18TWL_20260812T194239";
+const AUG_29_B = "S2B_MSIL2A_20260829T153809_R011_T18TWL_20260829T193538";
+const AUG_29_A = "S2A_MSIL2A_20260829T155711_R054_T18TWL_20260830T015313";
 const visualOct = read(`visual-${OCT}.png`);
 const BBOX: Bbox = [-73.975, 40.775, -73.955, 40.79];
 
@@ -70,6 +76,61 @@ describe("fetchTrueColour", () => {
     expect(r.value.itemIds).toEqual([MAR]);
   });
 
+  it("prefers a snow-free scene in the growing season over a clearer winter or autumn scene, and records the rule and date", async () => {
+    const r = await fetchTrueColour(BBOX, {
+      fetchImpl: archive(),
+      size: 32,
+      maxCandidates: 3,
+      seasonMonths: [5, 6, 7, 8],
+      now: () => new Date("2026-11-02T12:00:00Z"),
+    });
+    if (r.status !== "measured") throw new Error(`expected an image, got ${JSON.stringify(r)}`);
+    expect(r.value.itemIds).toEqual([AUG_29_A]);
+    expect(r.value.date).toBe("2026-08-29");
+    expect(r.value.selectionRule).toBe("growing_season_snow_free");
+    expect(r.value.seasonMonths).toEqual([5, 6, 7, 8]);
+    expect(r.value.boxSnowPct).toBe(0);
+    expect(r.value.selection).toMatch(/snow-free growing-season rule.*May to August.*2026-08-29/);
+  });
+
+  it("passes over a growing-season scene with snow in the box (SCL 11) and falls back to the clearest of the year when none qualifies", async () => {
+    const snowy = (id: string) => {
+      const copy = read(`scl-${id}.npy`).slice();
+      const headerLen = copy.length - 2 * 64 * 64;
+      copy.fill(11, headerLen, headerLen + 500); // SCL 11: snow or ice (~12.2% of the box)
+      return copy;
+    };
+    // First: one snowy August scene is skipped in favour of a snow-free August scene.
+    const inSeason = await fetchTrueColour(BBOX, {
+      fetchImpl: archive({ [AUG_29_A]: snowy(AUG_29_A) }),
+      size: 32,
+      maxCandidates: 3,
+      seasonMonths: [5, 6, 7, 8],
+      now: () => new Date("2026-11-02T12:00:00Z"),
+    });
+    if (inSeason.status !== "measured") throw new Error("expected an image");
+    expect(inSeason.value.itemIds).toEqual([AUG_29_B]);
+    expect(inSeason.value.selectionRule).toBe("growing_season_snow_free");
+
+    // Second: when every growing-season candidate has snow, fall back to the clearest snow-free scene of the year.
+    const fallback = await fetchTrueColour(BBOX, {
+      fetchImpl: archive({
+        [AUG_12]: snowy(AUG_12),
+        [AUG_29_B]: snowy(AUG_29_B),
+        [AUG_29_A]: snowy(AUG_29_A),
+      }),
+      size: 32,
+      maxCandidates: 3,
+      seasonMonths: [5, 6, 7, 8],
+      now: () => new Date("2026-11-02T12:00:00Z"),
+    });
+    if (fallback.status !== "measured") throw new Error("expected fallback image");
+    expect(fallback.value.itemIds).toEqual([OCT]);
+    expect(fallback.value.date).toBe("2026-10-06");
+    expect(fallback.value.selectionRule).toBe("year_clearest_fallback");
+    expect(fallback.value.selection).toMatch(/clearest-of-year fallback.*2026-10-06/);
+  });
+
   it("passes over a scene that leaves part of the box unseen, and is missing when none covers it", async () => {
     const empty = read(`scl-${NOV}.npy`).slice();
     empty.fill(0, empty.length - 64 * 64); // mask band all zero: no data
@@ -85,6 +146,46 @@ describe("fetchTrueColour", () => {
       reason: "coverage_below_threshold",
     });
     expect(r).not.toHaveProperty("value");
+  });
+});
+
+describe("imagery cache sidecar", () => {
+  let cacheDir = "";
+  afterEach(() => {
+    if (cacheDir) rmSync(cacheDir, { recursive: true, force: true });
+  });
+
+  it("writes the image as a PNG file beside a small JSON metadata file instead of base64 in JSON", async () => {
+    cacheDir = mkdtempSync(join(tmpdir(), "siterra-imagery-cache-"));
+    const key = liveCacheKey(BBOX, undefined, "1.0.0");
+    let calls = 0;
+    const fetcher = () => {
+      calls++;
+      return fetchTrueColour(BBOX, {
+        fetchImpl: archive(),
+        size: 32,
+        maxCandidates: 3,
+        seasonMonths: [5, 6, 7, 8],
+        now: () => new Date("2026-11-02T12:00:00Z"),
+      });
+    };
+    const first = await cachedLive("imagery", key, fetcher, cacheDir);
+    const second = await cachedLive("imagery", key, fetcher, cacheDir);
+    expect(calls).toBe(1);
+    if (first.status !== "measured" || second.status !== "measured") {
+      throw new Error("expected measured image");
+    }
+    const jsonPath = liveCachePath("imagery", key, cacheDir);
+    const pngPath = jsonPath.replace(/\.json$/, ".png");
+    expect(existsSync(jsonPath)).toBe(true);
+    expect(existsSync(pngPath)).toBe(true);
+    const rawJson = readFileSync(jsonPath, "utf8");
+    expect(rawJson).not.toContain("$typed");
+    expect(rawJson.length).toBeLessThan(1500);
+    expect(new Uint8Array(readFileSync(pngPath))).toEqual(visualOct);
+    expect(second.value.png).toEqual(first.value.png);
+    expect(second.value.rgba).toEqual(first.value.rgba);
+    expect(second.value.selectionRule).toBe("growing_season_snow_free");
   });
 });
 
@@ -110,9 +211,10 @@ describe("groupAcquisitions", () => {
 });
 
 describe("sclShares and imageSize", () => {
-  it("counts cloud and shadow classes and no data", () => {
+  it("counts cloud, shadow and snow classes and no data", () => {
     expect(sclShares(Uint8Array.from([4, 5, 8, 3, 0, 11, 10, 6]))).toEqual({
       cloud: 0.375,
+      snow: 0.125,
       noData: 0.125,
     });
   });

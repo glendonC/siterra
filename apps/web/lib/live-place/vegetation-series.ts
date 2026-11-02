@@ -184,7 +184,7 @@ export function seasonPeriods(year: number, months: readonly number[]): string[]
   return out;
 }
 
-function windowLabel(months: readonly number[]): string {
+export function windowLabel(months: readonly number[]): string {
   const first = months[0] ?? 1;
   const last = months[months.length - 1] ?? first;
   return `${MONTH_NAMES[first - 1] ?? ""} to ${MONTH_NAMES[last - 1] ?? ""}`;
@@ -521,6 +521,62 @@ export function groupTerraItems(items: readonly StacItem[]): CompositeItems[] {
   return [...byStart.values()]
     .map((g) => ({ ...g, itemIds: g.itemIds.sort() }))
     .sort((a, b) => a.start.localeCompare(b.start));
+}
+
+/**
+ * Resolves a place's four-month growing window from the MODIS Terra reference years (2003, 2012, 2021) without
+ * fetching the rest of the 27-year record. Returns null when the place has no Terra composites or no valid window.
+ */
+export async function fetchGrowingWindow(
+  bbox: Bbox,
+  opts: LiveFetchOptions = {},
+): Promise<SeasonWindow | null> {
+  const limit = opts.concurrency ?? PC_CONCURRENCY;
+  const window = modisWindowForBbox(bbox);
+  const inPlace = placeMask(window, bbox);
+  if (!inPlace.some((v) => v === 1)) return null;
+  try {
+    const pages = await mapLimited(REFERENCE_YEARS, limit, (year) =>
+      stacSearch(
+        {
+          collections: [COLLECTION],
+          bbox,
+          datetime: `${year}-01-01T00:00:00Z/${year}-12-31T23:59:59Z`,
+          limit: 200,
+        },
+        opts,
+      ),
+    );
+    const reference = groupTerraItems(pages.flat());
+    if (reference.length === 0) return null;
+    const composites: ModisComposite[] = [];
+    await mapLimited(reference, limit, async (g) => {
+      let values: Float32Array | null = null;
+      for (const id of g.itemIds) {
+        try {
+          const arr = await fetchNpyCrop(
+            {
+              collection: COLLECTION,
+              item: id,
+              assets: [NDVI_ASSET, REL_ASSET],
+              bounds: window.bounds,
+              crs: MODIS_SINUSOIDAL_PROJ,
+            },
+            opts,
+          );
+          const filtered = filterComposite(arr, window);
+          if (values) mergeInto(values, filtered);
+          else values = filtered;
+        } catch (err) {
+          if (opts.signal?.aborted) throw err;
+        }
+      }
+      if (values) composites.push({ start: g.start, itemIds: g.itemIds, values });
+    });
+    return chooseGrowingWindow({ composites, inPlace });
+  } catch {
+    return null;
+  }
 }
 
 /**
