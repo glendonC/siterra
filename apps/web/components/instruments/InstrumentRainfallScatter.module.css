@@ -1,4 +1,4 @@
-/* The rainfall scatter, in the Obsidian tokens of app/obsidian.css and the type of the pixel anatomy (specimen C):
+/* The rainfall scatter, in the Obsidian tokens of app/obsidian.css and the type of the pixel anatomy:
    a 1440 x 900 stage scaled to fit, the caption at the top left, the plot, a side column, the credit line. */
 
 .root {
@@ -142,7 +142,7 @@
   border-color: var(--control-line-strong);
 }
 
-/* the attribution line: 16 px under the shell's command line, as the specimens set it */
+/* the attribution line: 16 px under the shell's command line, by design */
 .credit {
   position: absolute;
   left: 48px;

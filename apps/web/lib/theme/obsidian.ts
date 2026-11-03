@@ -1,8 +1,8 @@
-// Direction 1, SHD Obsidian: the theme of the instrument views, with the values of the approved specimens (five
+// Direction 1, SHD Obsidian: the theme of the instrument views, with the values of the design system (five
 // layers, cutaway, pixel anatomy). This file and app/obsidian.css are the only places where the instruments'
 // colour values are written (VC-01). The one warm amber marks only the selected or proposed thing.
 
-/** A colour as 0 to 1 channels, for shader uniforms that the specimens wrote as numbers. */
+/** A colour as 0 to 1 channels, for shader uniforms for shader uniforms as numbers. */
 export type Channels = readonly [number, number, number];
 
 /** A colour computed from these tokens (0 to 1 channels, as the ramps give them) written as CSS. */
@@ -67,7 +67,7 @@ export const sheetColours = {
   swatchSnow: "#9cc9ea",
 } as const;
 
-/** The pixel anatomy (approved specimen C): WorldCover classes, the June NDVI ramp, the locator and the charts. */
+/** The pixel anatomy: WorldCover classes, the June NDVI ramp, the locator and the charts. */
 export const pixelColours = {
   /** WorldCover classes by code: tree cover, cropland, grassland, bare or sparse vegetation. */
   classes: { 10: "#3b7a2c", 40: "#956ed2", 30: "#a4932e", 60: "#3b5d96" } as Record<number, string>,
@@ -99,7 +99,7 @@ export const pixelColours = {
 } as const;
 
 /**
- * The overview (approved specimen D4): the land lit and draped as in specimen B with a cool rim and fog, the arc's
+ * The overview: the land lit and draped as in the reference with a cool rim and fog, the arc's
  * two tints, the drainage and outline on the land, and the mask stops of its depth of field.
  */
 export const overviewColours = {
@@ -124,6 +124,8 @@ export const overviewColours = {
   rainCell: "#86b6da",
   /** The proposed walking routes: the one warm amber, for a proposed thing. */
   route: obsidian.accent,
+  /** Accent colour shared by the survey plan and the measurement front. */
+  surveyAccent: "#2563eb",
   drainage: modelColours.drainage,
 } as const;
 
@@ -131,7 +133,7 @@ export const overviewColours = {
 export const maskAt = (alpha: number) => `rgb(0 0 0 / ${alpha.toFixed(3)})`;
 
 /**
- * The globe in the Obsidian palette (decision 11, 30 Oct 2026: one palette from the first screen): the ground the
+ * The globe in the Obsidian palette: the ground the
  * overview stands on, light dots for the land, a cool body tint so the sphere reads against the ground, the
  * overview's own albedo and key light, and a warm tone for the rangeland biomes.
  */
@@ -146,7 +148,7 @@ export const globeColours = {
 } as const;
 
 /**
- * A layer lifted off the overview's land at rest (decision 12): its plate where the layer holds nothing, the land
+ * A layer lifted off the overview's land at rest: its plate where the layer holds nothing, the land
  * cover's two classes (the overview's own), and the three elevation bands, low to high, in the land's cool greys.
  */
 export const liftColours = {
@@ -159,7 +161,7 @@ export const liftColours = {
 } as const;
 
 /**
- * "See It Over Time" (specimen T, UI-2): the growing-season greenness ramp from the land's own neutral albedo through
+ * "See It Over Time": the growing-season greenness ramp from the land's own neutral albedo through
  * olive to the irrigated floor's deep green (stops at 0 to 1 of the place's own domain), the snow white, and the
  * no-value tone with its hatch (the dark theme's no-observation token).
  */

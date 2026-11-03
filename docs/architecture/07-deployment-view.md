@@ -33,14 +33,14 @@ flowchart LR
 | Environment | Runs | Notes |
 |---|---|---|
 | Local development | Web, worker and PostgreSQL | Its own model API key, separate from the deployed worker's |
-| Deployed | Web, worker and PostgreSQL as Railway services | Same Node major version as local; account spend alert set on day 1 |
+| Deployed | Web, worker and PostgreSQL as Railway services | Same Node major version as local; account spend alert configured before live use |
 | Local deployment (fallback) | The same services with a persistent database | Labeled; the submission text says the demo ran locally |
 
 A public demo session gets an isolated copy of the seed case with quotas and expiry. Credentials live in a secret store, never in files ([CONTRIBUTING.md](../../CONTRIBUTING.md#public-and-private-placement)).
 
 ## Deployment checks
 
-The hosting gate (GATE-04 in the delivery plan) passes only when, on the deployment:
+The deployment verification gate passes only when, on the target host:
 
 - the worker survives the browser closing;
 - the SSE stream reconnects across the 15-minute request cap;

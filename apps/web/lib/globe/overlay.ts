@@ -29,7 +29,7 @@ export function ringPoints(c: Vec3, lonDeg: number, rho: number, n = 72): Vec3[]
 /** Angular radius that keeps the ring 12 CSS px wide on screen at a view distance in km. */
 export const ringRho = (distanceKm: number) => (12 * distanceKm) / (F_PX * R_KM);
 
-/** Whether a projected point is a point: a globe drawn at no size projects to NaN (U28f: the lead's console errors). */
+/** Whether a projected point is a point: a globe drawn at no size projects to NaN. */
 const finite = (p: readonly number[] | undefined): p is [number, number, number] =>
   p !== undefined && Number.isFinite(p[0]) && Number.isFinite(p[1]);
 

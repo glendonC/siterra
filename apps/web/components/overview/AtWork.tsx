@@ -1,12 +1,10 @@
 "use client";
 
-// A question at work on the overview (U29, the founder's specimen R "Muse Spark at work", upgraded for Section 8 AI
-// View):
-// - Top-left architectural header with place name and active question (▸ question)
-// - Sleek icon-only vertical squircle rail on the left with animated perimeter color sweep while running,
-//   and a feathered side-blur inspector on click / Space
-// - Full-width feathered bottom band with loader + live thinking stream while running, and settled summary +
-//   5 explanation cause pills + proposed field check + "See the Findings" CTA when done.
+// Investigation thinking trace on the valley overview:
+// - Top-left architectural header with the active question
+// - Left-hand collapsible step accordion with horizontally scrollable dataset/literature chips and inline controls
+// - Settled synthesis takeaway and direct transition to the findings and field verification plan when complete
+// - Spatial task cursors across the 3D terrain synced with terrain layer lifts
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
@@ -70,9 +68,9 @@ export function AtWork({
   onTogglePause,
   onStopRun,
 }: {
-  /** Opens the run's findings (the results), once it is done: the question card's Enter (decision 15). */
+  /** Opens the run's findings drawer once the investigation is complete. */
   onFindings: () => void;
-  /** Syncs the 3D terrain layer carve/lift with the active or selected agent task. */
+  /** Syncs the 3D terrain layer carve/lift with the active or selected task. */
   onFocusTask?: (task: RunTask | null) => void;
   /** Manually focuses a specific 3D terrain layer from the inline visual breakdown. */
   onFocusLayer?: (layer: "bands" | "cover" | "trend" | "rain" | "routes" | null) => void;
@@ -93,19 +91,19 @@ export function AtWork({
   arc: readonly Pt[];
   /** The catchment's left-most rim point on screen (design px), where the proposed check is anchored. */
   rimLeft: Pt | null;
-  /** A Source's short citation (kept for the findings' reading card). */
+  /** A Source's short citation. */
   sourceName: (id: string) => string;
   /** A recorded run's replay clock (ms of run time), in place of the wall clock. */
   nowMs?: number;
-  /** The run shown is a recording (the development harness), at this speed and of this length (ms); it says so at
-   * the edge. */
+  /** Recording playback metadata when replaying a recorded run. */
   recording?: { speed: number; length: number } | null;
 }) {
   const clock = useClock(run, fixedNow, paused);
-  // once the run has completed, its time is the one it ran for (its last event), never a replay clock held past it
+  // Once the run has completed, its time is fixed at its final event timestamp
   const nowMs = run.done ? run.nowMs : clock;
   const [folded, setFolded] = useState(true);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+  const [hoveredTaskId, setHoveredTaskId] = useState<string | null>(null);
   const [stepsDismissed, setStepsDismissed] = useState(false);
 
   const nonQueuedTasks = run.tasks.filter((t) => t.state !== "queued");
@@ -139,17 +137,25 @@ export function AtWork({
     !stepsDismissed && selectedTaskId !== null
       ? (nonQueuedTasks.find((t) => t.id === selectedTaskId) ?? null)
       : null;
-  const activeOrRunningTask = !stepsDismissed ? (selectedTask ?? latestRunningTask) : null;
+  const defaultSettledTask = run.done
+    ? ([...staggeredNonQueued]
+        .reverse()
+        .find((t) => t.steps.length > 0 || t.searchedChips.length > 0) ??
+      staggeredNonQueued[0] ??
+      null)
+    : null;
+  const activeOrRunningTask = !stepsDismissed
+    ? (selectedTask ?? latestRunningTask ?? defaultSettledTask)
+    : null;
+
+  const hoveredTask =
+    hoveredTaskId !== null ? (nonQueuedTasks.find((t) => t.id === hoveredTaskId) ?? null) : null;
+  const focusedTerrainTask = hoveredTask ?? activeOrRunningTask;
 
   useEffect(() => {
     if (!onFocusTask) return;
-    onFocusTask(activeOrRunningTask);
-  }, [
-    activeOrRunningTask?.id,
-    activeOrRunningTask?.kind,
-    activeOrRunningTask?.sublabel,
-    onFocusTask,
-  ]);
+    onFocusTask(focusedTerrainTask);
+  }, [focusedTerrainTask?.id, focusedTerrainTask?.kind, focusedTerrainTask?.sublabel, onFocusTask]);
 
   useEffect(() => {
     const param = new URLSearchParams(
@@ -244,7 +250,12 @@ export function AtWork({
   const head = at(nowMs, 0);
   const disc = arc[0] ?? { x: 0, y: 0 };
   const radius = Math.hypot(disc.x - centre.x, disc.y - centre.y) || 320;
-  const cursors = cursorPointsOf(run.tasks, centre, radius, selectedTaskId);
+  const cursors = cursorPointsOf(
+    staggeredNonQueued,
+    centre,
+    radius,
+    activeOrRunningTask?.id ?? selectedTaskId,
+  );
 
   const check = run.checks[0] ?? null;
   const checkAt = rimLeft ? { x: rimLeft.x - 28, y: Math.max(rimLeft.y - 22, 430) } : null;
@@ -290,7 +301,6 @@ export function AtWork({
         ) : null}
       </svg>
 
-      {/* Top left: the question; T Thinking is in the command bar */}
       <header className={styles.topLeftHeader}>
         <section className={styles.question} data-run-question>
           <h2 className={styles.asked}>{question}</h2>
@@ -319,6 +329,9 @@ export function AtWork({
       <AtWorkCursors
         cursors={cursors}
         selectedTaskId={selectedTaskId}
+        hoveredTaskId={hoveredTaskId}
+        setHoveredTaskId={setHoveredTaskId}
+        setFolded={setFolded}
         setSelectedTaskId={setSelectedTaskId}
         setStepsDismissed={setStepsDismissed}
       />

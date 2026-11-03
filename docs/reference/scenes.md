@@ -99,7 +99,7 @@ Example resolutions for the Aït Bouguemez catchment are computed in the researc
 | `river_flythrough` | Tour | Area, main-stem line record | P1 |
 | `strata_tour` | Tour | Strata records | P1 |
 
-Viewpoint and path roles need a context feature record (point or line with provenance and attribution, for example a DEM-derived main stem or an OpenStreetMap summit), planned for a later contracts version; it is not part of contracts 1.3.0 ([data contracts](data-contracts.md)).
+Viewpoint and path roles bind a `ContextFeature` record (point or line with provenance and attribution, for example a DEM-derived main stem or an OpenStreetMap summit, added in contracts 1.6 and 1.12; [data contracts](data-contracts.md#context-features)).
 
 ## The model's role
 

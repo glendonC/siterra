@@ -28,7 +28,7 @@ export interface OverviewAsk {
   setLiveSearch: (on: boolean) => void;
   /** The case as the session holds it now. */
   snapshot: CaseSnapshot;
-  /** The session's events as they reach the page (a replay at reading pace): the run's own stream (U29). */
+  /** The session's events as they reach the page (a replay at reading pace): the run's own stream. */
   events: readonly Event[];
   /** True while a replay is actively pacing events. */
   pacing: boolean;

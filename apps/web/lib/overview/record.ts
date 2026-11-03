@@ -1,4 +1,4 @@
-// The opened finding's record (approved specimen D4, js/node.js nodeHud): the big number, a season chart of the 26
+// The opened finding's record: the headline metric, a season chart of the 26
 // March to June means with the fitted line, the 95% interval, and the published context in the record's own short
 // display text with its sources. Every value comes from the case: the Measurements, the instrument specs' assets and
 // the Evidence and Source records. Pure; record-data.ts reads the assets.

@@ -38,7 +38,7 @@ Domain and technical terms used across Siterra's documentation. Where a term nam
 | Evidence labels | [V] verified, [D] decision, [H] hypothesis, [U] unverified: the labels documentation uses for claims ([documentation index](../README.md#evidence-labels)). |
 | Field-validation plan | The prepared package (`OperationalAction`, component `action_package`): objective, sampling strata, measurements, roles, permissions, resource categories and dependencies. |
 | Focus mode | A shell state that hides the investigation sheet and timeline so the map fills the frame. |
-| Gate | A delivery checkpoint that can stop or narrow the build, GATE-00 to GATE-05 (delivery plan). |
+| Gate | A verification checkpoint that must pass before dependent capabilities or deployments are enabled. |
 | Geo selection | The analysis or context geometry (`GeoSelection`), with a boundary role and a geometry status. `analysis_ready` requires provenance, CRS, area method and limitations. |
 | Gold set | Items written by a person with known correct answers, used only to score model output; never sent to a model. |
 | Hold and release | Composition changes apply immediately only when they complete the user's latest command and the pointer and keyboard focus are outside the affected section; otherwise they wait behind "View new findings (n)". |
@@ -49,7 +49,7 @@ Domain and technical terms used across Siterra's documentation. Where a term nam
 | Intervention | A candidate response (`Intervention`) with conditions, assumptions, ecological and livelihood considerations and required review roles. No benefit numbers. |
 | Investigation sheet | The opaque panel that holds the five sections, with only the focused section expanded ([UX architecture](../reference/ux-architecture.md#anatomy)). |
 | Island | A floating panel over the full-bleed map: case pill, map ornament, investigation sheet with the director, timeline and legend ([UX architecture](../reference/ux-architecture.md)). |
-| Lane | A parallel implementation unit with owned directories: platform, agent runtime, science and map data, workspace UI, quality (delivery plan). |
+| Lane | A subsystem ownership boundary in the repository: platform, agent runtime, science and map data, workspace UI, and quality. |
 | Layer recipe | A coded function that emits MapLibre layers over bundle sources for map scenes (for example `area_outline`, `period_raster`). Not to be confused with an analysis recipe. |
 | Layout action | A typed presentation change proposed by the model (`show_component`, `update_component`, `set_comparison`, `focus_entity`, `hide_component`) and applied by the reducer. |
 | Local initiator | A person with a stake in a place but no technical staff, such as a tour operator, who commissions a case to raise a concern with officials or community groups ([users and flows](../explanation/users-and-flows.md#second-role-local-initiator)). |
@@ -66,7 +66,7 @@ Domain and technical terms used across Siterra's documentation. Where a term nam
 | Numeric provenance check | The validator rule that every number in model-written text matches a value in a referenced measurement (within its displayed precision), a date or period, or a number inside a cited excerpt. |
 | Operational action | Prepared real-world work (`OperationalAction`) with `externalExecutionEnabled: false`. States `draft → awaiting_review → prepared`, with `blocked`, `cancelled` and `superseded` branches. |
 | Outbox | Rows written with each command in the same transaction; the dispatcher enqueues jobs from them with a stable key, so a lost queue message is recovered. |
-| P0, P1, P2 | Priorities: P0 is essential for a credible demonstration, P1 is high-value polish only after all P0 tests pass, P2 is optional (delivery plan). |
+| P0, P1, P2 | Priorities: P0 is essential for a credible demonstration, P1 is high-value polish only after all P0 tests pass, P2 is optional. |
 | Period | A calendar month identified as `period_YYYY-MM` (UTC, start inclusive, end exclusive). An identifier, not a record; every view selects periods by this ID only. |
 | Pre-registration | Committing an analysis plan's scope and windows before any result is read, so the model cannot choose a window after seeing the data ([analysis recipes](../reference/analysis-recipes.md)). |
 | Prepared | The terminal P0 state for operational actions; there is no `executed` state. |

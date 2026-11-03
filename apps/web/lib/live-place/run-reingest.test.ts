@@ -261,7 +261,7 @@ describe("re-ingest of earlier live cases", () => {
     expect(proposal.upserts.map((r) => r.id)).toEqual([]);
   });
 
-  it("sees a case built before the outline labels or DATA wiring as stale, so a rebuild updates it", async () => {
+  it("sees a case built by an earlier pipeline version as stale, so a rebuild updates it", async () => {
     const stored = await storedSnapshot();
     for (const b of stored.records.dataBundleRecords) b.methodVersion = "2.1.0";
     expect(staleReasons(stored)).toEqual(["built by live pipeline 2.1.0, current 2.2.0"]);
@@ -288,7 +288,7 @@ describe("re-ingest of earlier live cases", () => {
       commit: { newCaseRevision: 2 },
       rebasedFrom: null,
     } as unknown as Awaited<ReturnType<typeof applyCommit>>);
-    // the first rebuild crashes as the founder's run did (an outline the record could not hold)
+    // the first rebuild throws when an outline ring has too few points
     vi.mocked(buildTerrainForBbox).mockRejectedValueOnce(
       new Error("Too small: expected array to have >=4 items"),
     );

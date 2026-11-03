@@ -1,4 +1,4 @@
-// The other places on the globe (U25, item k): every seed case GET /api/seed-cases lists, by its own place name,
+// The other places on the globe: every seed case GET /api/seed-cases lists, by its own place name,
 // region and outlet, except the place the visitor is opening; each is a point the visitor can choose to open instead.
 
 import { z } from "zod";

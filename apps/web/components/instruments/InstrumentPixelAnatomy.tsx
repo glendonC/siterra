@@ -1,6 +1,6 @@
 "use client";
 
-// The pixel anatomy (approved specimen C): one MODIS 250 m pixel opened into its 10 m Sentinel-2 cells, the measured
+// The pixel anatomy: one MODIS 250 m pixel opened into its 10 m Sentinel-2 cells, the measured
 // class spectra, its own season record, a labelled linear mix model with movable class boundaries (drag, or focus a
 // boundary and use the arrow keys; Home returns to the measured shares) and a proposed, dashed field check. The
 // panels are drawn by lib/instruments/pixel/scene.ts on a 1440 x 900 stage scaled to fit. The caption and the
@@ -31,7 +31,7 @@ import styles from "./InstrumentPixelAnatomy.module.css";
 import { useInstrument } from "./InstrumentRecords";
 
 /**
- * The caption's two source notes from the record (U25): the first citation's own description of what it measures,
+ * The caption's two source notes from the record: the first citation's own description of what it measures,
  * and the last one's (the mix model); none when the record holds no such measurement.
  */
 function tipsOf(
@@ -50,7 +50,7 @@ export function InstrumentPixelAnatomy({
   /** The model's opening shares: as measured, or the bundle's example shift. */
   state?: "measured" | "shifted";
   /**
-   * Opened in place over the land (U27): the panels stand as cards round the pixel's risen cells, 02 chooses their
+   * Opened in place over the land: the panels stand as cards round the pixel's risen cells, 02 chooses their
    * paint, and each card has a leader to the pixel, wherever the overview reports it on the stage.
    */
   around?: {

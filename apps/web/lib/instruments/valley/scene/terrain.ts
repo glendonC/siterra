@@ -84,7 +84,7 @@ uniform float uContour, uIndex;
 uniform sampler2D uCover;   // optional WorldCover marks: R tree cover, G cropland or built-up
 uniform float uCoverA;
 uniform sampler2D uLM;      // optional baked light (the overview's): R soft cast shadow, G ambient occlusion
-uniform float uLMA;         // 0 none; 1 the baked light in full (a land handed over from the overview, decision 12)
+uniform float uLMA;         // 0 none; 1 the baked light in full (a land handed over from the overview)
 uniform vec3 uTreeC, uCropC, uLimitC;
 uniform vec2 uLimits;      // the equal-area band limits (m)
 uniform float uBandLines;
@@ -272,7 +272,7 @@ const WALL_FRAG = /* glsl */ `
 uniform vec3 uL, uLight, uAmbient, uAlbedo, uLine, uLimitC;
 uniform float uLineA, uFade;
 uniform vec3 uBg;
-uniform float uShow;          // 1 drawn; toward 0 the wall sinks into the ground (a land handed over, decision 12)
+uniform float uShow;          // 1 drawn; toward 0 the wall sinks into the ground (a land handed over)
 uniform vec3 uBandTint, uBandA;
 uniform float uLimitA;
 uniform vec2 uLimits;

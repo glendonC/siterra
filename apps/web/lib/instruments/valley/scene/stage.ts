@@ -66,7 +66,7 @@ export interface Stage {
   /**
    * Narrows a perspective stage's field of view by a factor (1 as made): with the camera drawn back to keep the
    * picture's size, a factor near 0 makes the view nearly orthographic (the overview handing its land to the layer
-   * stack, decision 12).
+   * stack).
    */
   setFovScale(k: number): void;
   render(): void;

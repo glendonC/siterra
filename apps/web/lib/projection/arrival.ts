@@ -88,7 +88,7 @@ export function placeNamesFromCase(s: CaseSnapshot): {
   areaLabel: string;
   regionName: string;
 } {
-  // the record's own place when it names one (U25: every place reads by its own names); an older record without
+  // the record's own place when it names one; an older record without
   // one keeps the reading of its title and sources
   const place = s.case.place;
   const valleyMatch = /\bin the\s+(.+)$/i.exec(s.case.title);

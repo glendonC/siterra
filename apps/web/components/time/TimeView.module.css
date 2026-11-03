@@ -1,5 +1,5 @@
-/* "See It Over Time" over the overview's land (UI-2), in the tokens of app/obsidian.css (no colour literal here). The
-   readout at the left as specimen T set it (the year large, the stored value under it), the band labels at the right
+/* "See It Over Time" over the overview's land, in the tokens of app/obsidian.css (no colour literal here). The
+   readout at the left (the year large, the stored value under it), the band labels at the right
    on hairlines to their bands' lit edges, the key above the legend, the playhead above the view control. */
 
 .view {
@@ -10,7 +10,7 @@
   font-family: var(--font-sans);
   pointer-events: none;
   opacity: 0;
-  /* the words arrive once the land has settled in its place (decision 14d) */
+  /* the words arrive once the land has settled in its place */
   transition: opacity 420ms ease-out 760ms;
 }
 

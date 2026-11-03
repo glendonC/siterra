@@ -28,7 +28,7 @@ export const SCATTER_DESIGN = { width: 1440, height: 900 } as const;
 
 /**
  * The plot inside the stage, and its axes' ranges and ticks (mm, NDVI); it starts right of the ask disc's place on
- * the arc (decision 13), which every view keeps clear.
+ * the arc, which every view keeps clear.
  */
 const PLOT = { left: 540, right: 1010, top: 168, bottom: 680 } as const;
 const SIDE = { x: 1064, w: 336 } as const;
@@ -52,7 +52,7 @@ export function InstrumentRainfallScatter() {
   });
   const [data, setData] = useState<ScatterData | null>(null);
   const [loadFailed, setFailed] = useState(false);
-  // the fit's caveat in full, its slope and interval, and the gate wait behind one step (decision 16, U28b)
+  // the fit's caveat in full, its slope and interval, and the gate wait behind one step
   const [more, setMore] = useState(false);
   const moreId = useId();
   // an instrument the case holds no spec for cannot be drawn
@@ -104,12 +104,12 @@ export function InstrumentRainfallScatter() {
   }, []);
 
   const caption = view?.spec.caption;
-  // the bundle's own windows in words (U25: each place its own season and rainfall window)
+  // the bundle's own windows in words
   const words = {
     growing: windowWords(data?.windows.growing) ?? en["season.unstated"].text,
     rainfall: windowWords(data?.windows.rainfall) ?? en["season.unstated"].text,
   };
-  // the axes from the place's own seasons (U25, item f)
+  // the axes from the place's own seasons
   const RAIN = data
     ? axisRange(
         data.seasons.map((s) => s.rain_mm),

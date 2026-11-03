@@ -1,4 +1,4 @@
-// What one view of the land hands the next when the land is taken apart in place (decision 12): where the land
+// What one view of the land hands the next when the land is taken apart in place: where the land
 // stands on screen and how it is seen and lit, so the next view's first frame draws the same land in the same place.
 
 import type { Texture } from "three";

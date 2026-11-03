@@ -22,7 +22,7 @@ Every number below comes from running the harness; nothing is estimated in advan
 
 ## Gold sets
 
-Built during the build from the case corpus (the cited sources) and signed by a named person. About 10 items per core source is enough to detect regressions; the set is versioned with the corpus manifest. Gold items never enter model prompts.
+Constructed from the case corpus (the cited sources) and signed by a named reviewer. About 10 items per core source is enough to detect regressions; the set is versioned with the corpus manifest. Gold items never enter model prompts.
 
 ### Extraction gold set
 
@@ -52,7 +52,7 @@ Items drafted by a model carry `labeler` "model draft (<model ID>), unreviewed" 
 
 Excerpt text is public only where the source licence allows it. Otherwise `excerpt` is null and `char_offset` and `char_length` locate it in the stored text; the harness reads the text from its local copy, checks that copy against `text_sha256` or `snapshot_sha256` first, so a re-extraction that moved the offsets fails as changed text rather than as a wrong excerpt, and then checks the excerpt against `excerpt_sha256`.
 
-A numeric gold file, `data/case/gold/numeric.jsonl`, follows later: one item per value, with the bundle ID, period, metric, value and the SHA-256 of the bundle's collection.
+The numeric gold file, `data/case/gold/numeric.jsonl`, holds one item per value, with the bundle ID, period, metric, value and the SHA-256 of the bundle's collection.
 
 A synthetic smoke set is not a gold set. The 16 invented statement pairs used to try the second-reader contract on local Glimmer on 2026-10-27 ([Meta models research](../../research/technology/meta-models.md)) showed that the contract parses on that route; they are never reported in the Quality tab.
 

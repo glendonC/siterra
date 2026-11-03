@@ -32,7 +32,7 @@ Do not add tldraw, an agent framework, Redis, a second queue, a vector database 
 | Approach | Why | Decision |
 |---|---|---|
 | The case record is authoritative; all views are projections bound to exact revisions | Consistency, replay, staleness | ADR-0012 |
-| Contracts in JSON Schema, mirrored in Zod | Parallel lanes need fixed contracts | ADR-0013 |
+| Contracts in JSON Schema, mirrored in Zod | Strict schema boundaries across services and packages | ADR-0013 |
 | One coordinator plus bounded task jobs; read and deterministic tools only; proposals as structured final outputs; layered validators including numeric provenance and excerpt verification | Real autonomy without fabricated numbers | ADR-0014 |
 | Meta-first model: `muse-spark-1.3` on the Responses API, `store: false`, strict structured output, with an ordered fallback chain | Platform verified; the event rules weight Meta tooling at 25% | ADR-0015 |
 | Observations precomputed offline and reproducible; planning, reading, comparison and composition live; precomputed and live labeled | Reliability without fake autonomy | ADR-0021 |

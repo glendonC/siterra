@@ -1,4 +1,4 @@
-/* The actions beside a thing on the land (decision 15): the one control style, in a row that wraps */
+/* Contextual actions beside a terrain feature: unified control style in a wrapping row */
 .list {
   display: flex;
   flex-wrap: wrap;

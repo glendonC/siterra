@@ -4,7 +4,7 @@ The component catalog: what each component is for, what it binds, how it behaves
 
 ## Hero components (design language 1.3)
 
-The parts of the approved hero ([scenes](scenes.md#the-hero-sequence-design-language-13)). Sizes are CSS px on the 1440-wide layout; colours are the light theme's tokens ([design system](design-system.md)), named here by their roles. Strings and their IDs are in [microcopy](microcopy.md), sections 1 and 1a. The workspace components further down predate the hero; inside the hero sequence its parts apply. Where the five sections, the Views menu and the timeline sit in the hero's layout is not decided yet.
+The parts of the approved hero ([scenes](scenes.md#the-hero-sequence-design-language-13)). Sizes are CSS px on the 1440-wide layout; colours are the light theme's tokens ([design system](design-system.md)), named here by their roles. Strings and their IDs are in [microcopy](microcopy.md), sections 1 and 1a. The workspace components further down apply to the full investigation workspace outside the hero sequence, where the five sections, the Views menu and the timeline live.
 
 ### Card
 
@@ -70,7 +70,7 @@ Measured layers lift as thin sheets cut to the catchment outline (`map.sheet`, t
 | Case mark | A ring in the accent (1.5 px, about 12 px across on screen at any zoom) and a 6 px point in the accent with a 1.5 px paper ring |
 | Range name | IBM Plex Sans Medium 12, tracking 0.1em, ink on a 3 px paper halo, set on a smooth curve along the range just north of the case |
 | Legend | A swatch of the lit land (`map.biome-swatch` with a 1 px `map.biome-swatch-edge` inside) and "Rangeland biomes, potential extent (Rangelands Atlas method)" in 12/16 grey, on a paper backing |
-| Key hints | The valley's form ([Key hints](#key-hints)), here in one row centred at the bottom (bottom 34) on a paper backing. The approved opening and globe frames drew larger ones (28 by 26 glyph boxes, Medium 14/20 labels, the action at Medium 17/24); the build uses the valley's form everywhere, and the same for the Sources and notices dialog |
+| Key hints | The valley's form ([Key hints](#key-hints)), here in one row centred at the bottom (bottom 34) on a paper backing. The opening, globe and valley views use the same unified valley key-hint geometry, as does the Sources and notices dialog |
 
 ### Credit line and notices
 
@@ -363,7 +363,7 @@ A component in `loading` binds the task IDs that will produce its records, so it
 
 ## CMP-23 Explanation branches (`explanation_branches`)
 
-Added in contracts 1.10.0 ([explanation branches](data-contracts.md#explanation-branches)). The visual design and the copy belong to the UI lane.
+Added in contracts 1.10.0 ([explanation branches](data-contracts.md#explanation-branches)).
 
 On screen it is the field plan instrument (`/instruments/field`, every check labeled Proposed) and the overview's results view. The earlier `/stage` view, which listed branches beside the map and placed them as pins on the terrain, is retired: no branch is drawn on the land, since no branch record carries a place.
 

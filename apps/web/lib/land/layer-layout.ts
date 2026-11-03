@@ -1,4 +1,4 @@
-// The layer stack's layout for any land: specimen A's measured stack for the Aït Bouguemez valley (layout-a.json),
+// The layer stack's layout for any land: the reference measured stack for the Aït Bouguemez valley (layout-a.json),
 // written relative to the land it was measured on, so another land gets the same composition. The plate is the
 // smallest rectangle round the outline with a margin; the sheets stand one gap apart from one gap above the land's
 // highest point; the camera keeps its bearing to the land's long axis, its elevation, and its target's place against
@@ -8,7 +8,7 @@ import type { LayerStackLayout } from "../instruments/valley/fixtures";
 
 type XZ = readonly [number, number];
 
-/** Specimen A, measured on the valley (layout-a.json), relative to that land. */
+/** the reference, measured on the valley (layout-a.json), relative to that land. */
 const A = {
   /** Camera bearing less the land's long axis bearing (140 against 55.84). */
   azOff: 84.16,
@@ -17,7 +17,7 @@ const A = {
   gap: 9.435,
   first: 9.4315,
   targetY: 15.259,
-  /** The target against the plate's centre (km, model x and z), turned back by the specimen's bearing. */
+  /** The target against the plate's centre (km, model x and z), turned back by the default bearing. */
   targetAt: [-7.977, -0.397] as XZ,
   az: 140,
   scale: 11.442,

@@ -1,4 +1,4 @@
-// The playhead of "See It Over Time" (specimen T's clock): one position from the first season's January to the last
+// The playhead of "See It Over Time" (the reference clock): one position from the first season's January to the last
 // season's December, then the trend. A position on a month's centre outside a year's last two months shows measured
 // values only; between month centres the snow share is interpolated for motion, and over a year's last two months the
 // pixels' season blends into the next one. Both are named in the key as blended; the readout and the annotations

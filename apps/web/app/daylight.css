@@ -68,7 +68,7 @@
   --ink-on-wall: #2b2925;
   --hairline-on-wall: rgb(43 41 37 / 0.5);
 
-  /* Valley overview (specimen D4) in Daylight Paper (#f2efea) */
+  /* Valley overview in Daylight Paper (#f2efea) */
   --ov-ground:
     radial-gradient(
       ellipse 38% 52% at 50% 50%,

@@ -51,7 +51,7 @@ export const en = {
   "chrome.zoomIn": { text: "Zoom In", kind: "button" },
   "chrome.zoomOut": { text: "Zoom Out", kind: "button" },
   "chrome.data": { text: "Data: {names}", kind: "ui" },
-  // the drawn relief's vertical exaggeration, after the data's names where land is drawn (decision 16)
+  // the drawn relief's vertical exaggeration, after the data's names where land is drawn
   "chrome.relief": { text: "Relief ×{value}", kind: "label" },
   // with the credits: the land's height is drawn exaggerated, so its slopes look steeper than they are
   "chrome.relief.note": {
@@ -62,7 +62,7 @@ export const en = {
   // the run's steps, by the name the run's view already has (VT-15: no "Thinking" for a machine)
   "chrome.key.thinking": { text: "Agents at Work", kind: "button" },
   "chrome.key.scope": { text: "Limits", kind: "button", honesty: true },
-  // the mode line at the top right of every screen after the opening (U32, U33, PC-04, DQ-02): plain scope pill
+  // the mode line at the top right of every screen after the opening: plain scope pill
   // opening what Siterra does not do, and while a question's run is on the screen, where that run comes from
   "chrome.mode.concept": { text: "What Siterra won't do", kind: "label", honesty: true },
   "chrome.mode.replay": { text: "What Siterra won't do", kind: "label", honesty: true },
@@ -130,7 +130,7 @@ export const en = {
     text: "Rangeland biomes, potential extent (Rangelands Atlas method)",
     kind: "ui",
   },
-  // the rangeland biomes layer's credit, as data/map/licences/resolve-ecoregions-2017.md gives it (U30)
+  // the rangeland biomes layer's credit, as data/map/licences/resolve-ecoregions-2017.md gives it
   "credit.resolve": { text: "Ecoregions 2017 © Resolve, CC BY 4.0", kind: "ui" },
   "source.resolve": { text: "Resolve Ecoregions", kind: "label" },
   "credit.globe": {
@@ -361,7 +361,7 @@ export const en = {
   },
   "mode.fixture": { text: "Fixture Data", kind: "heading" },
 
-  // Instruments: the layer stack (approved specimen A). Figures, years and limits come from the record's fixtures
+  // Instruments: the layer stack. Figures, years and limits come from the record's fixtures
   // (lib/instruments/valley/fixtures.ts); credits are numbered by the sheet they serve
   "instrument.layers.description": {
     text: "A relief model of the catchment with its drainage lines. Above it are five sheets: the vegetation trend, rainfall, snow cover, land cover, and the three elevation bands.",
@@ -397,7 +397,7 @@ export const en = {
     kind: "ui",
   },
 
-  // Instruments: the cutaway (approved specimen B). Figures, years and limits come from the fixtures; the place's
+  // Instruments: the cutaway. Figures, years and limits come from the fixtures; the place's
   // name and the two published statements with their sources come from their own fixtures, not from here
   // (lib/instruments/valley/cutaway-data.ts)
   "instrument.cutaway.description": {
@@ -416,7 +416,7 @@ export const en = {
   "instrument.cutaway.band.mid": { text: "{lower} to {upper} m", kind: "label" },
   "instrument.cutaway.band.low": { text: "Below {limit} m", kind: "label" },
   "instrument.cutaway.band.unit": { text: "NDVI per decade", kind: "label" },
-  // the snow key's two lines, as specimen B breaks them
+  // the snow key's two lines, as the reference breaks them
   "instrument.cutaway.snow": { text: "Snow-covered share by month,", kind: "label" },
   "instrument.cutaway.snow.years": { text: "mean of {from} to {to}", kind: "label" },
   "instrument.cutaway.metres": { text: "{value} m", kind: "label" },
@@ -434,8 +434,8 @@ export const en = {
 
   // Instruments: the briefing shell around them. Enter in the command line opens the valley with the typed text in
   // the valley's command line, sending nothing
-  // each view's name in the breadcrumb, in plain words (decision 13)
-  // no count: a place's record names its own layers (the second place has four; U30)
+  // each view's name in the breadcrumb, in plain words
+  // no count: a place's record names its own layers
   "instrument.shell.layers": { text: "Layers", kind: "label" },
   "instrument.shell.cutaway": { text: "Cut through", kind: "label" },
   "instrument.shell.pixel": { text: "This pixel", kind: "label" },
@@ -443,7 +443,7 @@ export const en = {
   "instrument.shell.field": { text: "Field plan", kind: "label" },
   "instrument.shell.command": { text: "Ask or challenge", kind: "label" },
 
-  // Instruments: the pixel anatomy (approved specimen C). Every number comes from the pixel's data file; the species
+  // Instruments: the pixel anatomy. Every number comes from the pixel's data file; the species
   // statements and their sources come from the statements fixture
   // the neutral question, shown only when the case's record states none (P7b-10 states each place's own)
   "instrument.pixel.question": {
@@ -583,7 +583,7 @@ export const en = {
   "instrument.pixel.failed": { text: "Pixel not loaded. Reload the page to retry.", kind: "ui" },
 
   // Instruments: the rainfall scatter. Every total here is the bundle's primary rainfall window and says so (its window
-  // in words, U25); seasons, the fit and the driest seasons come from the restrend bundle files the spec names
+  // in words); seasons, the fit and the driest seasons come from the restrend bundle files the spec names
   "instrument.scatter.description": {
     text: "The catchment's seasons as points: each season's greenness against the rainfall before it, a straight-line fit, the four driest seasons ringed.",
     kind: "ui",
@@ -697,7 +697,7 @@ export const en = {
     kind: "ui",
   },
 
-  // The overview (approved specimen D4) at /valley: the relief inside an arc, five findings on it, the proposed field
+  // The overview at /valley: the relief inside an arc, five findings on it, the proposed field
   // check on the land and the ask. Every number, the case question, the place's name and its area come from the
   // records; the findings' captions name what each number is
   "overview.description": {
@@ -709,17 +709,17 @@ export const en = {
     kind: "ui",
   },
   "overview.findings": { text: "Findings", kind: "heading" },
-  // decision 16 & U33: plain words first under each number; the season, years and test details are in the opened card
+  // plain words first under each number; the season, years and test details are in the opened card
   "overview.finding.catchment.1": { text: "Whole area greenness trend", kind: "label" },
   "overview.finding.band.1": { text: "Below {limit} m trend", kind: "label" },
   "overview.finding.pixel.1": { text: "One 250 m square", kind: "label" },
   "overview.finding.rain.1": { text: "Explained by rainfall", kind: "label" },
-  // the share's direction from its Measurement's metric (AUDIT's U28 advisory: every place said greening)
+  // the share's direction from its Measurement's metric
   "overview.finding.fdr.1": { text: "of the area {direction}", kind: "label" },
   "overview.fdr.up": { text: "greening", kind: "label" },
   "overview.fdr.down": { text: "browning", kind: "label" },
   "overview.fdr.none": { text: "with a trend", kind: "label" },
-  // a direction-neutral place's record holds both shares: both are shown, each from its own Measurement (U25b)
+  // a direction-neutral place's record holds both shares: both are shown, each from its own Measurement
   "overview.fdr.share": { text: "{value} {direction}", kind: "label" },
   "overview.fdr.both": { text: "{first}, {second}", kind: "label" },
   "overview.finding.fdr.pair.1": {
@@ -733,7 +733,7 @@ export const en = {
   "overview.finding.fdr.2": { text: "after a false discovery rate check", kind: "label" },
   "overview.field": { text: "Proposed field check, not measured", kind: "label", honesty: true },
   "overview.pixel": { text: "This pixel", kind: "label" },
-  // a question at work on the overview (U29, specimen R); only what runs now has words (decision 16)
+  // a question at work on the overview; only what runs now has words
   "run.task.one": { text: "{model}, 1 call, {time} s", kind: "label" },
   "run.task.many": { text: "{model}, {calls} calls, {time} s", kind: "label" },
   "run.task.waiting": { text: "Calling the model, {time} s", kind: "label" },
@@ -823,7 +823,7 @@ export const en = {
     kind: "label",
     honesty: true,
   },
-  // decision 16: the column says where the routes start and what kind of figure they are; their limits in full and
+  // the column says where the routes start and what kind of figure they are; their limits in full and
   // the cost function wait behind "Method and Limits"
   "overview.routes.grey": {
     text: "From {origin}, one way. Model estimates.",
@@ -849,7 +849,7 @@ export const en = {
   // the opened finding's record (D4's opened node): a kicker, the number, its caption, the season chart and its
   // line, the published context in the record's display text with its sources, and the way to the full instrument
   "overview.record.pixel": { text: "One pixel", kind: "label" },
-  // what the land shows while a finding is open (decision 6): its footprint, from the case's own assets
+  // what the land shows while a finding is open: its footprint, from the case's own assets
 
   "overview.lift.trend": {
     text: "{n} cells, {window}; {share} of the area {direction} after a false discovery rate check",
@@ -876,11 +876,11 @@ export const en = {
     kind: "label",
   },
   "overview.record.rainCaption": { text: "Explained by rainfall (R squared)", kind: "label" },
-  // decision 16: the card's interval is its fit and its numbers, and one short line says what a dot is
+  // the card's interval is its fit and its numbers, and one short line says what a dot is
   "overview.record.theilSen": { text: "Theil-Sen, 95%: {lower} to {upper}", kind: "label" },
   "overview.record.ols": { text: "Least squares, 95%: {lower} to {upper}", kind: "label" },
   "overview.record.dot": { text: "Each dot, one season's mean", kind: "label" },
-  // what the slope colours on the land are, and are not (the lead's U25b must-fix: no finding read into the map)
+  // what the slope colours on the land are, and are not
   "overview.onLand.fdrRule": {
     text: "Colors show each cell's trend, not which cells pass the check.",
     kind: "ui",
@@ -902,7 +902,7 @@ export const en = {
     kind: "ui",
     honesty: true,
   },
-  // each record's one action, named by what the visitor will see (decision 13)
+  // each record's one action, named by what the visitor will see
   "overview.open.layers": { text: "See the Layers", kind: "button" },
   "overview.open.cutaway": { text: "Inspect Elevation Band", kind: "button" },
   "overview.open.pixel": { text: "Open This Pixel", kind: "button" },
@@ -1035,11 +1035,11 @@ export const LINT_ALLOWLIST: Partial<Record<MessageId, { rules: string[]; reason
   },
   "overview.open.field": {
     rules: ["VT-48"],
-    reason: "The lead's decision 13 names each record's action by what the visitor will see.",
+    reason: "the design names each record's action by what the visitor will see.",
   },
   "overview.open.time": {
     rules: ["VT-48"],
-    reason: "The lead named this action (decision 15 adds T): it says what the visitor will see.",
+    reason: "The lead named this action: it says what the visitor will see.",
   },
   "source.gbif": {
     rules: ["VT-08"],

@@ -1,8 +1,8 @@
 "use client";
 
-// What can be done with a thing on the land, beside it (decision 15): each action with its key chip and also
-// clickable, Enter first, Esc Back last. `still` draws the same list without controls, for the label that follows
-// the cursor (its keys work; a plain click on the land runs Enter).
+// Contextual actions beside a feature on the terrain: each action shows its key chip and is
+// clickable, with Enter first and Esc Back last. `still` renders the list without interactive controls for the
+// cursor-following hover label (where keys work directly and a click on the terrain runs Enter).
 
 import type { ReactNode, Ref } from "react";
 import { en } from "../../lib/copy/en";

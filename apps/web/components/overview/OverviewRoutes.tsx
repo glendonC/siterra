@@ -1,11 +1,8 @@
 "use client";
 
-// The proposed walking routes opened (U12), in the opened record's place on the right: the entry's words in ink and
-// what the routes are not in grey (the bundle's own words), then each route as the record names it, with its length,
-// climb and estimated time from the bundle's route_lines rounded once, and its end as the record names it; the cost
-// function from the proposed_routes summary closes the column in grey. Each route is numbered as its end is on the
-// land. Hovering or focusing a route lifts its line
-// and end on the land and quiets the others.
+// The proposed walking routes drawer on the right: displays the route summary, what the routes do not authorize,
+// and each route with its length, climb, estimated time, and destination from the bundle's route_lines.
+// Hovering or focusing a route lifts its line and endpoint marker on the terrain.
 
 import { useState, type Ref } from "react";
 import { en, format } from "../../lib/copy/en";
@@ -51,16 +48,16 @@ export function OverviewRoutes({
   routes: readonly RouteLine[];
   load: RoutesLoad;
   onPick: (id: string | null) => void;
-  /** Opens the field plan in place over the land (decision 13); true when it did, so the link does not load. */
+  /** Opens the field plan in place over the land; returns true when handled in place. */
   onOpen?: (href: string) => boolean;
-  /** What can be done from here, from what the record offers (decision 15). */
+  /** Contextual actions available from the current record. */
   actions: readonly Action[];
   onBack?: () => void;
   refs: RoutesRefs;
 }) {
   const record = load.status === "ready" ? load.record : null;
   const list = inBundleOrder(routes, record?.order);
-  // decision 16: the routes' limits and cost function wait behind a step
+  // Progressive disclosure for the routes' limits and cost function
   const [methodOpen, setMethodOpen] = useState(false);
   const ends = new Set(list.map((r) => r.end));
   const sharedEnd = list.length > 1 && ends.size === 1 ? (list[0]?.end ?? null) : null;

@@ -1,9 +1,9 @@
 "use client";
 
-// The cutaway (approved specimen B): the catchment cut north to south through Tabant, the section face as the hero.
+// The cutaway: the catchment cut north to south through Tabant, the section face as the hero.
 // Against the face at each elevation band's height: the band's name, its March to June trend and its monthly snow
 // cover, on one hairline each; the two published statements as numbered chips next to what they describe, each
-// opening its words on focus or hover (decision 16, U28b); the ruler, the limits and
+// opening its words on focus or hover; the ruler, the limits and
 // the place on the model. The scene is three.js (lib/instruments/valley/scene/cutaway.ts); the words are HTML,
 // placed after every render so they follow the model when it is turned. The caption is the cross section spec's,
 // as the case records carry it.
@@ -96,7 +96,7 @@ function dot(e: SVGCircleElement | null, x: number, y: number) {
   e?.setAttribute("cy", y.toFixed(1));
 }
 
-/** The section cut through in place over the overview's land (decision 13); the clock is useTeardown's. */
+/** The section cut through in place over the overview's land; the clock is useTeardown's. */
 const TEAR_S = { in: 2.8, back: 1.5 } as const;
 
 export function InstrumentCutaway({ teardown }: { teardown?: Teardown } = {}) {
@@ -185,7 +185,7 @@ export function InstrumentCutaway({ teardown }: { teardown?: Teardown } = {}) {
       const colX = south.x + 28;
       const at = [(yTop + yU) / 2, (yU + yL) / 2, yL + (yL - yU) / 2];
       // a low place's bands are a few px apart on the face: each block keeps at least its own height below the one
-      // above it (U25b), its hairline still from its own band's middle
+      // above it, its hairline still from its own band's middle
       const BLOCK = 58;
       const ys = at.slice();
       for (let i = 1; i < ys.length; i++) ys[i] = Math.max(ys[i] ?? 0, (ys[i - 1] ?? 0) + BLOCK);
@@ -305,7 +305,7 @@ export function InstrumentCutaway({ teardown }: { teardown?: Teardown } = {}) {
     ref: RefObject<HTMLDivElement | null>,
     className: string,
   ) => {
-    // a place whose record publishes no such statement shows no chip for it (U25b)
+    // a place whose record publishes no such statement shows no chip for it
     if (!statement(id)) return null;
     const n = STATEMENTS.indexOf(id) + 1;
     const open = openStatement === id;
@@ -401,7 +401,7 @@ export function InstrumentCutaway({ teardown }: { teardown?: Teardown } = {}) {
           }
         </p>
       )}
-      {/* the headline at once, from the record's caption (the lead's U28f: no bare land while the section's assets
+      {/* the headline at once, from the record's caption (the lead's no bare land while the section's assets
           arrive); a quiet line while the section is still drawn */}
       {caption && lead && !failed && (
         <p className={styles.brief} data-cut-headline>

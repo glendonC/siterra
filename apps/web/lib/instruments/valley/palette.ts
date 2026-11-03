@@ -1,5 +1,5 @@
 // How the valley sheets colour their data. The colours are tokens (lib/theme/obsidian.ts); this file only maps
-// values onto them, as the approved specimens did.
+// values onto them, as the design system did.
 
 import { sheetColours, type Channels } from "../../theme/obsidian";
 
@@ -52,7 +52,7 @@ export const RAIN_RANGE = { lo: 500, hi: 850 } as const;
 
 /**
  * A place's rain sheet range: the first place's where its cells fit in it; otherwise the cells' own lowest and highest
- * totals, widened to the next 50 mm (U25b: another place's window holds other totals).
+ * totals, widened to the next 50 mm.
  */
 export function rainRangeOf(cells: readonly { window_mm: number }[]): { lo: number; hi: number } {
   const mm = cells.map((c) => c.window_mm);

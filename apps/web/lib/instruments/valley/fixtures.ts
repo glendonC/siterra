@@ -1,4 +1,4 @@
-// The valley fixtures in public/instruments/valley, copied from the approved specimens. The pages still read the
+// The valley fixtures in public/instruments/valley, copied from the design system. The pages still read the
 // relief, the trend cells, the layout and the statements from here until the bundles' display assets and the
 // record's display statements land; the rest are the test inputs the case builders (derive.ts, context.ts,
 // outline.ts) are checked against. Each names its source by its path in this repository, with the sha256 where the
@@ -123,7 +123,7 @@ export const figuresSchema = z.object({
 });
 
 /**
- * Specimen A's measured stack (solved before rendering so that no sheet hides another): camera bearing and
+ * the reference measured stack (solved before rendering so that no sheet hides another): camera bearing and
  * elevation, scale in CSS px per km at 1440 x 900, the sheets' heights and the plate's corners in model x, z.
  */
 export const layoutSchema = z.object({

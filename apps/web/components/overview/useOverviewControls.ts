@@ -219,8 +219,8 @@ export function useOverviewKeyboardShortcuts({
           firstFinding.focus({ preventScroll: true });
         }
       } else if (ev.key === "Enter" || /^[a-zA-Z]$/.test(ev.key)) {
-        // the action keys of the opened card, or of the label under the cursor (decision 15); Enter on a focused
-        // control is the control's own
+        // Action keys for the opened card or the hovered terrain feature; Enter on a focused
+        // control triggers that control directly.
         if (ev.metaKey || ev.ctrlKey || ev.altKey) return;
         const t = ev.target as HTMLElement | null;
         // (a finding's own label keeps the focus while its card opens: Enter there is the card's Enter)

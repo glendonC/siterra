@@ -108,13 +108,13 @@
   text-wrap: pretty;
 }
 
-/* the one action: the field plan, opened in place over the land (decision 13) */
+/* Primary action: open the field plan in place over the terrain */
 .open {
   margin-top: 14px;
   pointer-events: auto;
 }
 
-/* the step to the routes' limits and cost function (decision 16) */
+/* Progressive disclosure toggle for the routes' limits and cost function */
 .method {
   margin-top: 10px;
   padding: 0;

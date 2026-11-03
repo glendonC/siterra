@@ -372,7 +372,7 @@ describe("an outline that cannot be drawn", () => {
     expect(ring[0]).toEqual(ring.at(-1));
   };
 
-  it("draws the box, saying so, for the founder's case whose box holds no land (1 N, 46.9 W, open sea)", async () => {
+  it("draws the box, saying so, when the box holds no land (1 N, 46.9 W, open sea)", async () => {
     const sea = flatTile(0);
     globalThis.fetch = vi.fn((input: RequestInfo | URL) => {
       const url = input instanceof Request ? input.url : input.toString();

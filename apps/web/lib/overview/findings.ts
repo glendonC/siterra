@@ -1,4 +1,4 @@
-// The overview's five findings (approved specimen D4): each sits at a fixed clock angle on the arc and shows one
+// The overview's five findings: each sits at a fixed clock angle on the arc and shows one
 // Measurement that an instrument spec's caption cites, formatted as the instruments format it. No number is
 // written here: a finding whose spec or Measurement the case does not hold is left out, or surfaced as an explicit
 // "Not measured yet" state when the case record marks whole-area vegetation missing with a reason.
@@ -24,7 +24,7 @@ interface Plan {
   form: "trend" | "rSquared" | "share";
 }
 
-/** D4's clock and tone for each finding; the citations as the instrument specs order them. */
+/** Clock angle and tone for each finding; citations follow the instrument spec ordering. */
 export const FINDINGS: readonly Plan[] = [
   { id: "catchment", clock: 306, tone: "green", kind: "layer_stack", citation: 0, form: "trend" },
   { id: "band", clock: 32, tone: "green", kind: "cross_section", citation: 0, form: "trend" },
@@ -42,7 +42,7 @@ export interface Finding {
   measurementId: string;
   value: number;
   display: string;
-  /** The measurement's period as its record names it: its years and season window (U25: every place its own). */
+  /** The measurement's period as its record names it: its years and season window. */
   period: Period | null;
   /** A share's direction as its Measurement's metric names it (upward greening, downward browning); null otherwise. */
   direction: "up" | "down" | null;
@@ -110,7 +110,7 @@ export function directionWord(direction: Finding["direction"] | undefined): stri
   ].text;
 }
 
-/** A share finding as words: "24.7% greening", or both shares where the record holds both (U25b). */
+/** A share finding as words: "24.7% greening", or both shares where the record holds both. */
 export function sharesWords(f: Pick<Finding, "display" | "direction" | "pair">): string {
   const one = format("overview.fdr.share", {
     value: f.display,
@@ -156,7 +156,7 @@ export function captionOf(
   return [line1];
 }
 
-/** The share the caption cites after a share, when it names the other direction (U25b). */
+/** The share the caption cites after a share, when it names the other direction. */
 function pairOf(
   snapshot: CaseSnapshot,
   plan: Plan,
@@ -613,7 +613,7 @@ export function overviewLabelOf(
 }
 
 /**
- * Plain-English headline for the Board 3 Rev 3 finding card (`OverviewRecord`).
+ * Plain-English headline for the finding inspection card (`OverviewRecord`).
  */
 export function recordHeadlineForFinding(
   f: Finding,
@@ -662,7 +662,7 @@ export interface RecordKeyValueRow {
 }
 
 /**
- * Hairline-divided key-value rows for the Board 3 Rev 3 finding card (`OverviewRecord`).
+ * Hairline-divided key-value rows for the finding inspection card (`OverviewRecord`).
  */
 export function recordRowsForFinding(
   f: Finding,

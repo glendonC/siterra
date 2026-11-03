@@ -1,7 +1,7 @@
 // The pixel anatomy's fixture from the S3 bundle (bundle_pixel_anatomy_ait_bouguemez) and the season trend tables
 // (the elevation band's March to June record). Pure, with type imports only, so the lane's copy script and the
 // fixture test run the same code. Two parts are derived here, each by a stated rule: the Theil-Sen line's intercept
-// (median of the residuals) and the proposed field transect (the specimen's rule, a proposal, never a measurement).
+// (median of the residuals) and the proposed field transect (a deterministic proposal, never a measurement).
 // The model's NDVI is not stored: the page computes it live from the class medians and shares.
 
 /** The composition bar's class order: tree cover, cropland, grassland, bare or sparse vegetation. */
@@ -33,7 +33,7 @@ interface Sources {
   [path: string]: unknown;
 }
 
-/** A source by its file name, wherever the place's bundle lies (U25r: every place's bundle holds the same files). */
+/** A source by its file name, wherever the place's bundle lies (every place's bundle holds the same files). */
 function fileNamed(src: Sources, sources: readonly { path: string }[], name: string): unknown {
   const path = sources.find((s) => s.path.endsWith(`/${name}`))?.path;
   if (path === undefined || !(path in src)) throw new Error(`The pixel anatomy has no ${name}`);
@@ -109,7 +109,7 @@ export function proposeTransect(cells: Cells) {
 
 /** The page's data file, from the bundle files and the season tables keyed by their repository paths. */
 export function pixelFixture(src: Sources, sources: { path: string; sha256: string }[]) {
-  // the bundle's 1.0.0 and 1.1.0 names (U25r): 1.1.0 states the footprint's CRS beside its corners and names the
+  // the bundle's 1.0.0 and 1.1.0 names: 1.1.0 states the footprint's CRS beside its corners and names the
   // month's NDVI by its month; 1.0.0 named both after the first place (utm29n, june)
   const anatomy = fileNamed(src, sources, "pixel-anatomy.json") as {
     pixel: {

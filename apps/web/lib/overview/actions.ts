@@ -1,4 +1,4 @@
-// What can be done with a thing on the land (decision 15): a short list beside it, on the same hairline leader as its
+// Contextual actions for a terrain feature: a short list beside it, on the same hairline leader as its
 // card, each action with its key chip and also clickable. The list comes from what the record offers (the views its
 // listing holds ready), at most three actions, Enter always the primary one, and the same letter for the same verb
 // everywhere (L layers, P pixel, C cut, F field plan; E is the brief's export, which these views do not offer); Esc
@@ -15,7 +15,7 @@ export const VIEW_INSTRUMENT: Record<ViewKind, string> = {
   pixel: "pixel_anatomy",
   rainfall: "rainfall_scatter",
   field: "field_plan",
-  // See It Over Time (UI-2) is offered where the case holds a pixel seasons bundle, not by an instrument spec
+  // See It Over Time is offered where the case holds a pixel seasons bundle, not by an instrument spec
   time: "",
 };
 
@@ -28,7 +28,7 @@ export const VIEW_HREF: Record<ViewKind, string> = {
   time: "/instruments/time",
 };
 
-/** Each view's action, named by what the visitor will see (decision 13). */
+/** Each view's action, named by what the visitor will see. */
 export const VIEW_LABEL: Record<ViewKind, MessageId> = {
   layers: "overview.open.layers",
   cutaway: "overview.open.cutaway",

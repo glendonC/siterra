@@ -88,7 +88,7 @@ The arrival's one primary action is the key hint "↵ Start investigation"; "F R
 
 ### The instruments' budget
 
-The instrument views (the layer stack, the cutaway, the pixel anatomy) have their own budget instead of the hero's: each approved specimen's counts are the ceiling for its instrument (lead decision, 29 Oct 2026). Credits are not counted. The layer stack, from the approved specimen of the five layers:
+The instrument views (the layer stack, the cutaway, the pixel anatomy) have their own visual budget distinct from the hero's: each instrument's reference specification defines its element ceilings. Credits are not counted. The layer stack (five layers over relief):
 
 | Per screen | Ceiling |
 |---|---|
@@ -100,7 +100,7 @@ The instrument views (the layer stack, the cutaway, the pixel anatomy) have thei
 | Warm accent | 1 thing, the selected sheet |
 | Command line | 1, from the briefing shell |
 
-The cutaway, from the approved specimen of the section through Tabant:
+The cutaway (cross-section through Tabant):
 
 | Per screen | Ceiling |
 |---|---|
@@ -113,7 +113,7 @@ The cutaway, from the approved specimen of the section through Tabant:
 | Warm accent | 1 thing, the cut line along the profile |
 | Command line | 1, from the briefing shell |
 
-The pixel anatomy, from the approved specimen of one MODIS pixel opened into its Sentinel-2 cells:
+The pixel anatomy (one MODIS pixel opened into its Sentinel-2 cells):
 
 | Per screen | Ceiling |
 |---|---|
@@ -175,7 +175,7 @@ Shell states are derived, never proposed: `arrival`, `investigating`, `comparing
 
 Data-only changes apply in place: rows append, nothing reorders under the pointer, changed cells get a brief highlight. Composition changes apply immediately only when they complete the user's latest command and the pointer and keyboard focus are outside the affected section; otherwise they wait behind "View new findings (n)" with one polite announcement. An open inspector also holds them. All records of one commit apply in one state update so map layer, chart and timeline switch together.
 
-If time runs short, cut in this order: shared-element chip travel, two-period mode, model-proposed titles, model `hide_component`, animated composition, and finally model-proposed layout entirely (default projection only; the demo must then say placement is deterministic). Never cut validation, revision binding, missing and error states, text equivalents, hold and release, or reduced motion.
+Validation, revision binding, missing and error states, text equivalents, hold and release, and reduced motion are mandatory invariants; optional composition embellishments (shared-element chip travel, two-period mode, model-proposed titles, `hide_component` and animated composition) degrade gracefully to the deterministic default projection when omitted.
 
 ## Shared context
 

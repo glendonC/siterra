@@ -1,4 +1,4 @@
-// "See It Over Time" (specimen T, UI-2): what the playhead plays, read from a case's own bundles, never from code that
+// "See It Over Time": what the playhead plays, read from a case's own bundles, never from code that
 // names a place. Pure parsers over the assets the read API serves (checksums checked by the loader):
 // - the growing-season NDVI of every 250 m MODIS pixel per season (bundle_pixel_seasons: the binary cube and its
 //   header, which names its seasons, its window and its nodata rule);

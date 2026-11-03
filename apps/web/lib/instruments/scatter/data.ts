@@ -1,7 +1,7 @@
 // The rainfall scatter's data: the catchment's seasons of greenness against the rainfall total before each, the
 // straight-line fit across them and the four driest seasons, read from the restrend bundle's two files that the
 // rainfall scatter spec names (restrend_tables, restrend_long_record). The windows are the bundle's own primary ones
-// (U25, item f: March to June against September to May for the first place, February to May against October to April
+// (March to June against September to May for the first place, February to May against October to April
 // for Calaveras Creek), and are labelled so wherever they show; other totals never show beside them.
 
 import { z } from "zod";
@@ -141,7 +141,7 @@ export interface AxisRange {
 }
 
 /**
- * An axis from a place's own values (U25, item f): the smallest of the round steps that keeps at most eight intervals,
+ * An axis from a place's own values: the smallest of the round steps that keeps at most eight intervals,
  * the ends rounded outward to it. The first place's seasons give the approved 300 to 1,000 mm and 0.18 to 0.23.
  */
 export function axisRange(values: readonly number[], steps: readonly number[]): AxisRange {

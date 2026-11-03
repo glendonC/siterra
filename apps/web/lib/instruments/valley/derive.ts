@@ -21,7 +21,7 @@ const SNOW_DECIMALS = 4;
 
 /**
  * Each stratum's OLS slope and 95% interval per decade over the summary's own primary growing window and reliability
- * (U25: March to June for the first place, February to May for Calaveras Creek).
+ *.
  */
 export function seasonTrendFrom(summary: unknown): Figures["season_trend"] {
   const s = summary as {

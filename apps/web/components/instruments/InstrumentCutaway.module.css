@@ -1,4 +1,4 @@
-/* The cutaway instrument (approved specimen B), in the Obsidian tokens of app/obsidian.css: one large figure at the
+/* The cutaway instrument, in the Obsidian tokens of app/obsidian.css: one large figure at the
    top left, band blocks against the section face on hairlines, the two published statements next to what they
    describe, the ruler and limits on the model, the sources. */
 
@@ -221,7 +221,7 @@
   width: 540px;
 }
 
-/* a published statement waits as a numbered chip on the section (decision 16); its words open beside it */
+/* a published statement waits as a numbered chip on the section; its words open beside it */
 .statementChip {
   display: inline-block;
   width: 24px;
@@ -325,7 +325,7 @@
   white-space: nowrap;
 }
 
-/* the section cut through in place (decision 13): the words wait until the cut face stands toward the visitor */
+/* the section cut through in place: the words wait until the cut face stands toward the visitor */
 .root > :not(canvas) {
   transition: opacity 0.45s ease;
 }
@@ -334,7 +334,7 @@
   opacity: 0;
 }
 
-/* the quiet line while the section is still drawn (U28f) */
+/* the quiet line while the section is still drawn */
 .drawing {
   display: block;
   margin-top: 6px;

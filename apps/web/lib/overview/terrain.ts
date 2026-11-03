@@ -785,9 +785,9 @@ function t975(df: number): number {
 }
 
 /**
- * Builds `RecordData` (26-year `SeasonChart`, `ScatterData`, and `RecordContext` Paper Specimen Card)
+ * Builds `RecordData` (26-year `SeasonChart`, `ScatterData`, and `RecordContext` Paper the referenceard)
  * synchronously from a case's `InstrumentSpec`, `Measurement`, `Evidence`, and `Source` records
- * so findings render their chart and specimen card on frame 1 and when static bundle files are absent.
+ * so findings render their chart and the referenceard on frame 1 and when static bundle files are absent.
  */
 export function fallbackRecordData(id: FindingId, snapshot: CaseSnapshot): RecordData {
   const specs = snapshot.records.instrumentSpecRecords ?? [];

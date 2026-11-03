@@ -1,7 +1,6 @@
-/* The next-steps briefing over the land (decision 16), in the tokens of app/obsidian.css (no colour literal here,
-   VC-01). Few words, large enough to read: a headline at 28 px, one card at a time with its title at 22 px and its
-   lines at 17 px. The amber is the proposed: the markers' dashed stems, the lit band, "Proposed field check". The
-   card arrives after its leader draws; it never stands over the land. */
+/* On-the-ground field verification briefing over the 3D valley terrain.
+   Uses theme tokens from app/obsidian.css and app/daylight.css.
+   Displays the arrival headline and amber terrain markers, then steps through one editorial card at a time. */
 
 .briefing {
   position: fixed;
@@ -92,6 +91,15 @@
   border: 1px solid var(--accent);
   border-radius: 999px;
   color: var(--text-primary);
+}
+
+.arrivalContext {
+  margin: 10px 0 0 12px;
+  max-width: 580px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--text-secondary);
+  transition: opacity 260ms ease-out;
 }
 
 /* a field check on its band: an amber dashed stem rising from its place, its number and name at the top */
@@ -194,9 +202,15 @@
   }
 }
 
-/* one card at a time: words on the ground, no box (specimens A and C), arriving after its leader */
+/* Step card positioned beside the terrain at the end of its hairline leader */
 .card {
   position: absolute;
+  padding: 16px 18px;
+  border-radius: 12px;
+  border: 1px solid var(--hairline-quiet);
+  background: color-mix(in srgb, var(--bg-overlay) 84%, transparent);
+  backdrop-filter: blur(18px) saturate(1.15);
+  -webkit-backdrop-filter: blur(18px) saturate(1.15);
   animation: arrive 300ms cubic-bezier(0.2, 0.7, 0.2, 1) 180ms both;
 }
 
@@ -222,14 +236,16 @@
   font-family: var(--font-sans);
 }
 
-/* while a card is open the headline and its status step back (decision 16a: under about 40 words a frame) */
+/* While a step card is open, the arrival headline and context step back to keep focus on the active card */
 .headline,
-.status {
+.status,
+.arrivalContext {
   transition: opacity 260ms ease-out;
 }
 
 .briefing:not([data-step="arrival"]) .headline,
-.briefing:not([data-step="arrival"]) .status {
+.briefing:not([data-step="arrival"]) .status,
+.briefing:not([data-step="arrival"]) .arrivalContext {
   opacity: 0;
   visibility: hidden;
 }
@@ -307,53 +323,86 @@
   color: var(--text-secondary);
 }
 
-/* the step counter at the left edge, with the key that moves it */
+/* Step progress rail at the bottom-left with labeled step pills and navigation controls */
 .counter {
   position: absolute;
   left: 56px;
-  bottom: 104px;
+  bottom: 96px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
 }
 
 .dots {
   display: flex;
-  gap: 4px;
+  flex-wrap: wrap;
+  gap: 6px;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-/* one short bar per step, no numerals: the current one in ink, the done ones half, the rest quiet */
 .dot {
-  width: 22px;
-  height: 14px;
-  padding: 0;
-  border: 0;
-  background: none;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 4px 8px;
+  border: 1px solid var(--hairline-quiet);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--bg-overlay) 72%, transparent);
   cursor: pointer;
+  transition:
+    border-color 140ms ease,
+    background-color 140ms ease;
 }
 
-.dot::before {
-  content: "";
+.dotBar {
   display: block;
+  width: 100%;
+  min-width: 22px;
   height: 2px;
-  margin-top: 6px;
   background: var(--hairline-quiet);
 }
 
-.dot[data-done]::before {
+.dotLabel {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  line-height: 14px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  white-space: nowrap;
+}
+
+.dot[data-done] .dotBar {
   background: var(--hairline);
 }
 
-.dot[aria-current="step"]::before {
-  background: var(--text-primary);
+.dot[data-done] .dotLabel {
+  color: var(--text-secondary);
 }
 
-.dot:hover::before,
-.dot:focus-visible::before {
+.dot[aria-current="step"] {
+  border-color: var(--accent);
+}
+
+.dot[aria-current="step"] .dotBar {
+  background: var(--accent);
+}
+
+.dot[aria-current="step"] .dotLabel {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.dot:hover .dotBar,
+.dot:focus-visible .dotBar {
   background: var(--text-secondary);
+}
+
+.dot:hover .dotLabel,
+.dot:focus-visible .dotLabel {
+  color: var(--text-primary);
 }
 
 .dot:focus-visible {

@@ -567,7 +567,7 @@ function sampleLandCoverChange() {
   );
 }
 
-describe("DATA 01 and DATA 02 wiring in ingest", () => {
+describe("MODIS vegetation and Impact Observatory land-cover wiring in ingest", () => {
   it("wires measured MODIS vegetation and Impact Observatory land cover under a 20 s cap", async () => {
     const vegSeries = sampleVegetationSeries(false);
     const lcChange = sampleLandCoverChange();
@@ -724,7 +724,7 @@ describe("DATA 01 and DATA 02 wiring in ingest", () => {
     expect(catchmentTrend?.missingReason).toBe(vegWithheld.areaTrendWithheld);
   });
 
-  it("keeps values missing with DATA's timeout reason when the 20 s cap is exceeded", async () => {
+  it("keeps values missing with the timeout reason when the 20 s cap is exceeded", async () => {
     vi.mocked(fetchVegetationSeries).mockResolvedValueOnce({
       status: "missing",
       source: "modis-13Q1-061",

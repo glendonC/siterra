@@ -1,7 +1,7 @@
 "use client";
 
 // Loads the map bundle (the globe's and the valley's assets) and the case, then runs the sequence. A
-// visitor who has been here goes straight back to their case on the overview (approved specimen D4), with the
+// visitor who has been here goes straight back to their case on the overview, with the
 // case already open, so only its instrument listing is read.
 
 import { en } from "../../lib/copy/en";
@@ -22,7 +22,7 @@ export function JourneyPage() {
   if (c.arrival.kind !== "ready")
     return <CaseNotice badge="case.coverageRequired" message="case.noBoundary" />;
   const params = new URLSearchParams(window.location.search);
-  // the Siterra crumb (?start) or a globe dive (?dive=1) shows the journey even to a visitor who has been here
+  // The Siterra crumb (?start) or a globe dive (?dive=1) shows the journey even to a returning visitor.
   if (c.resumed && !params.has("start") && !params.has("dive"))
     return (
       <InstrumentRecords snapshot={c.snapshot}>

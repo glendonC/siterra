@@ -1,4 +1,4 @@
-// The next-steps package as a briefing you step through (the lead's decision 16, 30 Oct 19:55): a headline on
+// The next-steps package as a briefing you step through: a headline on
 // arrival, then five steps, one at a time, each a card of at most three short lines. The lines are the record's
 // own, never shortened or rewritten: a step whose lines would pass the card's word budget pages them, one page per
 // press, so a long line is never cut and nothing is crowded. Everything in full stays in the exported brief. Pure.
@@ -6,7 +6,7 @@
 import type { PackageLine, PackageMeasure, PackageResponse, PackageView } from "./package";
 
 /**
- * A card's word budget: about two short lines (decision 16a: at most three lines of about 12 words; the lead, 20:12:
+ * A card's word budget: about two short lines (at most three lines of about 12 words; the lead, 20:12:
  * step frames under about 40 words with the card's kicker, the markers and the keys).
  */
 export const CARD_WORDS = 24;

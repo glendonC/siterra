@@ -1,4 +1,4 @@
-// Where a card about a thing on the land stands (decision 14): beside its anchor, on the side with room, never over
+// Where a card about a terrain feature stands: beside its anchor, on the side with room, never over
 // the subject it describes, never off the screen, never over the controls fixed at the edges; it keeps its side while
 // the camera moves unless another side is clearly better. Design px at 1440 x 900.
 

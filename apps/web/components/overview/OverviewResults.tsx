@@ -1,9 +1,10 @@
 "use client";
 
-// The ask's results (U11b), in the opened record's place on the right: the answer caption from the request's
-// BranchMerge counts (ink and grey, as the instruments set theirs), then the findings the request committed, one per
-// line, each statement as recorded (a Source id in its text read as the Source's short citation), two lines until focused, with its verification state in catalog words
-// and its numbered source chip; a chip opens the cited locator and excerpt in a small quiet note.
+// Post-thinking investigation results drawer on the valley overview:
+// Synthesizes the direct answer to the case question, presents the tested explanations with their
+// predictions and verification status, surfaces local context & published studies, lists all committed
+// evidence records with verifiable source excerpts, and frames the transition to the on-the-ground
+// field verification plan.
 
 import type { CaseSnapshot } from "@siterra/contracts";
 import { useMemo, useRef, useState, type Ref } from "react";
@@ -14,16 +15,71 @@ import {
   commandMerge,
   readableStatement,
   resultsCaption,
+  shortCitation,
   sourceNote,
   verificationOf,
 } from "../../lib/overview/results";
 import type { Action } from "../../lib/overview/actions";
 import { ActionList } from "./ActionList";
 import { Control } from "../controls/Control";
-import { pformat, pkg } from "../../lib/copy/package";
-import { overviewVerdictForCase } from "../../lib/overview/findings";
+import { pkg } from "../../lib/copy/package";
+import { answerForCase, overviewVerdictForCase } from "../../lib/overview/findings";
+import type { VerdictCause, VerdictStatus } from "../../lib/package/verdict";
 import verdictStyles from "../package/Verdict.module.css";
 import styles from "./OverviewResults.module.css";
+
+const HUMAN_STATUS_BADGE: Record<VerdictStatus, string> = {
+  consistent: "Supported by data",
+  cannot_be_assessed: "Needs field check",
+  contradicted: "Ruled out",
+};
+
+function joinHumanList(items: readonly string[]): string {
+  if (items.length === 0) return "";
+  if (items.length === 1) return items[0] ?? "";
+  if (items.length === 2) return `${items[0] ?? ""} and ${items[1] ?? ""}`;
+  return `${items.slice(0, -1).join(", ")}, and ${items[items.length - 1] ?? ""}`;
+}
+
+function buildHumanLeadSummary(causes: readonly VerdictCause[], limit: string | null): string {
+  const supported = causes
+    .filter((c) => c.status === "consistent")
+    .map((c) => c.label.toLowerCase());
+  const open = causes
+    .filter((c) => c.status === "cannot_be_assessed")
+    .map((c) => c.label.toLowerCase());
+  const ruledOut = causes
+    .filter((c) => c.status === "contradicted")
+    .map((c) => c.label.toLowerCase());
+
+  const parts: string[] = [];
+  if (limit) parts.push(limit);
+  if (supported.length > 0 && ruledOut.length > 0) {
+    parts.push(
+      `Across the ${String(causes.length)} explanations we checked, ${joinHumanList(supported)} aligns with the satellite record, while ${joinHumanList(ruledOut)} ${ruledOut.length === 1 ? "is" : "are"} ruled out.`,
+    );
+  } else if (ruledOut.length > 0) {
+    parts.push(
+      `We checked ${String(causes.length)} possible explanations: ${joinHumanList(ruledOut)} ${ruledOut.length === 1 ? "is" : "are"} ruled out by the satellite record.`,
+    );
+  }
+  if (open.length > 0) {
+    parts.push(
+      `Whether ${joinHumanList(open)} played a role cannot be separated from space and requires an on-the-ground check.`,
+    );
+  }
+  return parts.join(" ");
+}
+
+function buildPlanCalloutCopy(causes: readonly VerdictCause[]): string {
+  const open = causes
+    .filter((c) => c.status === "cannot_be_assessed")
+    .map((c) => c.label.toLowerCase());
+  if (open.length > 0) {
+    return `Satellite records cannot measure ${joinHumanList(open)} from space. Review the proposed on-the-ground field checks, candidate responses, and sign-off steps.`;
+  }
+  return "Review the proposed on-the-ground field checks, candidate responses, and sign-off steps before any land decision.";
+}
 
 export interface ResultsRefs {
   root: Ref<HTMLDivElement>;
@@ -44,13 +100,13 @@ export function OverviewResults({
 }: {
   snapshot: CaseSnapshot;
   commandId: string;
-  /** Opens the field plan in place over the land (decision 13); true when it did, so the link does not load. */
+  /** Opens an instrument or field plan view in place over the land; returns true when handled. */
   onOpen?: (href: string) => boolean;
-  /** Opens the question's next-steps package in place (UI-2); absent when its command committed none. */
+  /** Opens the question's next-steps field verification briefing in place over the land. */
   onPackage?: () => void;
   /** Rotates and highlights the 3D valley terrain behind the frost when a hypothesis is focused or hovered. */
   onFocusCause?: (explanationId: string) => void;
-  /** What can be done from here, from what the record offers (decision 15). */
+  /** Available terrain and instrument views from the case record. */
   actions: readonly Action[];
   onBack?: () => void;
   refs: ResultsRefs;
@@ -71,6 +127,7 @@ export function OverviewResults({
     return [...findings, ...accepted.filter((e) => !seen.has(e.id))];
   }, [snapshot, findings]);
   const verdict = useMemo(() => overviewVerdictForCase(snapshot, commandId), [snapshot, commandId]);
+  const caseAnswer = useMemo(() => answerForCase(snapshot), [snapshot]);
   const shownFindings = verdict ? allAcceptedFindings : findings;
   const caption = useMemo(
     () =>
@@ -79,6 +136,49 @@ export function OverviewResults({
         : resultsCaption(commandMerge(snapshot, commandId), findings.length),
     [verdict, snapshot, commandId, findings.length],
   );
+  const contextCards = useMemo(() => {
+    const cards: { id: string; title: string; badge: string; body: string; causeId: string }[] = [];
+    const seenTexts = new Set<string>();
+    for (const ev of allAcceptedFindings) {
+      const loc = ev.provenance.sourceLocators[0];
+      if (ev.claimKind !== "scientific_context" && !loc) continue;
+      const src = loc
+        ? snapshot.records.sourceRecords.find((s) => s.id === loc.sourceId)
+        : undefined;
+      const body = readableStatement(snapshot, ev.statement);
+      if (seenTexts.has(body)) continue;
+      seenTexts.add(body);
+      const lower = body.toLowerCase();
+      const causeId =
+        lower.includes("graz") || lower.includes("agdal") || lower.includes("herd")
+          ? "grazing"
+          : lower.includes("rain") || lower.includes("drought")
+            ? "rainfall"
+            : lower.includes("snow") || lower.includes("elevation")
+              ? "snow_terrain"
+              : "land_use";
+      cards.push({
+        id: ev.id,
+        title: src?.title ?? "Published study in case record",
+        badge: src ? shortCitation(src) : "Case source",
+        body,
+        causeId,
+      });
+    }
+    for (const iv of snapshot.records.interventionRecords) {
+      const body = readableStatement(snapshot, iv.description);
+      if (seenTexts.has(body)) continue;
+      seenTexts.add(body);
+      cards.push({
+        id: iv.id,
+        title: iv.title,
+        badge: "Candidate response",
+        body,
+        causeId: "grazing",
+      });
+    }
+    return cards.slice(0, 6);
+  }, [allAcceptedFindings, snapshot]);
   const chips = useMemo(() => chipNumbers(shownFindings), [shownFindings]);
   const [note, setNote] = useState<string | null>(null);
   const [activeCauseIdx, setActiveCauseIdx] = useState(0);
@@ -101,7 +201,7 @@ export function OverviewResults({
         aria-label={showVerdict ? pkg["verdict.title"].text : en["results.title"].text}
       >
         <div className={styles.plane}>
-          <p className={styles.caption} data-results-caption>
+          <p className={styles.srOnly} data-results-caption>
             <span className={styles.ink}>{caption.ink}</span>
             {caption.grey ? (
               <>
@@ -110,6 +210,15 @@ export function OverviewResults({
               </>
             ) : null}
           </p>
+          <div className={styles.leadBriefing} data-chrome="">
+            <span className={styles.leadKicker}>{"What the evidence shows"}</span>
+            <h2 className={styles.leadHeadline}>{caseAnswer.claim}</h2>
+            {verdict || caseAnswer.limit ? (
+              <p className={styles.leadSummary}>
+                {verdict ? buildHumanLeadSummary(verdict.causes, caseAnswer.limit) : caseAnswer.limit}
+              </p>
+            ) : null}
+          </div>
           {verdict && findings.length > 0 ? (
             <div className={styles.tabs} data-chrome="">
               <button
@@ -121,19 +230,21 @@ export function OverviewResults({
                   setTab("verdict");
                 }}
               >
-                <span>{pformat("verdict.tab.causes", { n: verdict.causes.length })}</span>
+                <span>{`What we tested (${String(verdict.causes.length)})`}</span>
               </button>
-              <button
-                type="button"
-                className={styles.tab}
-                aria-pressed={tab === "livelihoods"}
-                data-results-tab="livelihoods"
-                onClick={() => {
-                  setTab("livelihoods");
-                }}
-              >
-                <span>{"Livelihood & Policy Audit (4)"}</span>
-              </button>
+              {contextCards.length > 0 ? (
+                <button
+                  type="button"
+                  className={styles.tab}
+                  aria-pressed={tab === "livelihoods"}
+                  data-results-tab="livelihoods"
+                  onClick={() => {
+                    setTab("livelihoods");
+                  }}
+                >
+                  <span>{`Local context & studies (${String(contextCards.length)})`}</span>
+                </button>
+              ) : null}
               <button
                 type="button"
                 className={styles.tab}
@@ -143,7 +254,7 @@ export function OverviewResults({
                   setTab("findings");
                 }}
               >
-                <span>{pformat("verdict.tab.context", { n: allAcceptedFindings.length })}</span>
+                <span>{`All evidence (${String(allAcceptedFindings.length)})`}</span>
               </button>
             </div>
           ) : null}
@@ -202,16 +313,21 @@ export function OverviewResults({
                     >
                       <div className={verdictStyles.head}>
                         <span className={verdictStyles.headLeft}>
-                          <span className={verdictStyles.causeIndex} data-chrome="">
-                            {String(i + 1).padStart(2, "0")}
-                          </span>
+                          <span
+                            className={verdictStyles.causeDot}
+                            data-status={c.status}
+                            data-chrome=""
+                          />
                           <span className={verdictStyles.name}>{c.label}</span>
                         </span>
                         <span
                           className={verdictStyles.status}
                           data-status={c.status}
-                          data-verdict-status-text=""
+                          data-chrome=""
                         >
+                          {HUMAN_STATUS_BADGE[c.status]}
+                        </span>
+                        <span className={styles.srOnly} data-verdict-status-text="">
                           {c.statusText}
                         </span>
                       </div>
@@ -221,9 +337,7 @@ export function OverviewResults({
                             {c.reason}
                           </p>
                           <p className={verdictStyles.prediction} data-verdict-prediction="">
-                            <span className={verdictStyles.predLabel}>
-                              {pkg["verdict.predicted"].text}:
-                            </span>{" "}
+                            <span className={verdictStyles.predLabel}>{"Hypothesis tested:"}</span>{" "}
                             {c.prediction}
                           </p>
                           {c.localContext ? (
@@ -242,7 +356,7 @@ export function OverviewResults({
                           {c.nextCheck ? (
                             <p className={verdictStyles.nextCheck} data-verdict-check="">
                               <span className={verdictStyles.predLabel}>
-                                {pkg["verdict.fieldCheck"].text}
+                                {"On-the-ground check:"}
                               </span>{" "}
                               {c.nextCheck}
                             </p>
@@ -254,108 +368,37 @@ export function OverviewResults({
                 })}
               </ul>
             </>
-          ) : showLivelihoods ? (
+          ) : null}
+          {!showVerdict && showLivelihoods ? (
             <div data-chrome="">
               <ul className={styles.livelihoodMatrix}>
-                <li
-                  className={styles.livelihoodCard}
-                  onPointerEnter={() => {
-                    onFocusCause?.("grazing");
-                  }}
-                  onClick={() => {
-                    onFocusCause?.("grazing");
-                  }}
-                >
-                  <div className={styles.livelihoodHead}>
-                    <span className={styles.livelihoodHeadLeft}>
-                      <span className={styles.livelihoodIndex}>{"01"}</span>
-                      <span className={styles.livelihoodTitle}>
-                        {"Customary Agdal Pasture Rules & Grazing Shift"}
+                {contextCards.map((item, idx) => (
+                  <li
+                    key={item.id}
+                    className={styles.livelihoodCard}
+                    onPointerEnter={() => {
+                      onFocusCause?.(item.causeId);
+                    }}
+                    onClick={() => {
+                      onFocusCause?.(item.causeId);
+                    }}
+                  >
+                    <div className={styles.livelihoodHead}>
+                      <span className={styles.livelihoodHeadLeft}>
+                        <span className={styles.livelihoodIndex}>
+                          {String(idx + 1).padStart(2, "0")}
+                        </span>
+                        <span className={styles.livelihoodTitle}>{item.title}</span>
                       </span>
-                    </span>
-                    <span className={styles.livelihoodBadge}>{"Blanco et al. 2015"}</span>
-                  </div>
-                  <p className={styles.livelihoodBody}>
-                    {
-                      "Communal agdal rules regulate high-pasture opening dates, while winter transhumance decline has shifted year-round livestock reliance onto valley-floor orchards and lower slopes."
-                    }
-                  </p>
-                </li>
-                <li
-                  className={styles.livelihoodCard}
-                  onPointerEnter={() => {
-                    onFocusCause?.("snow_terrain");
-                  }}
-                  onClick={() => {
-                    onFocusCause?.("snow_terrain");
-                  }}
-                >
-                  <div className={styles.livelihoodHead}>
-                    <span className={styles.livelihoodHeadLeft}>
-                      <span className={styles.livelihoodIndex}>{"02"}</span>
-                      <span className={styles.livelihoodTitle}>
-                        {"Pastoral Law 113-13 & National Drought Shock"}
-                      </span>
-                    </span>
-                    <span className={styles.livelihoodBadge}>{"Dahan et al. 2012, FAO 2024"}</span>
-                  </div>
-                  <p className={styles.livelihoodBody}>
-                    {
-                      "Under Morocco's Law 113-13 permit framework and a 2024 cereal harvest >40% below average, restricting pasture access without verified forage baselines directly threatens smallholder herd survival."
-                    }
-                  </p>
-                </li>
-                <li
-                  className={styles.livelihoodCard}
-                  onPointerEnter={() => {
-                    onFocusCause?.("land_use");
-                  }}
-                  onClick={() => {
-                    onFocusCause?.("land_use");
-                  }}
-                >
-                  <div className={styles.livelihoodHead}>
-                    <span className={styles.livelihoodHeadLeft}>
-                      <span className={styles.livelihoodIndex}>{"03"}</span>
-                      <span className={styles.livelihoodTitle}>
-                        {"Historical Policy Caution: 1917 Forest Decree"}
-                      </span>
-                    </span>
-                    <span className={styles.livelihoodBadge}>{"Davis 2005, West et al. 2023"}</span>
-                  </div>
-                  <p className={styles.livelihoodBody}>
-                    {
-                      "Protectorate Morocco's 1917 decree banned pastoral grazing over deforestation claims later contradicted by fossil pollen, and 26-site audits show top-down restrictions fail without local baselines."
-                    }
-                  </p>
-                </li>
-                <li
-                  className={styles.livelihoodCard}
-                  onPointerEnter={() => {
-                    onFocusCause?.("data_artefact");
-                  }}
-                  onClick={() => {
-                    onFocusCause?.("data_artefact");
-                  }}
-                >
-                  <div className={styles.livelihoodHead}>
-                    <span className={styles.livelihoodHeadLeft}>
-                      <span className={styles.livelihoodIndex}>{"04"}</span>
-                      <span className={styles.livelihoodTitle}>
-                        {"250 m Sensor Mixing: Ground Walks Precede Action"}
-                      </span>
-                    </span>
-                    <span className={styles.livelihoodBadge}>{"Wessels et al. 2012"}</span>
-                  </div>
-                  <p className={styles.livelihoodBody}>
-                    {
-                      "A 250 m satellite pixel cannot distinguish nutritious forage grass from unpalatable thorny cushion shrubs. All 4 GPS field walks and community sign-off are required before any rule change."
-                    }
-                  </p>
-                </li>
+                      <span className={styles.livelihoodBadge}>{item.badge}</span>
+                    </div>
+                    <p className={styles.livelihoodBody}>{item.body}</p>
+                  </li>
+                ))}
               </ul>
             </div>
-          ) : (
+          ) : null}
+          {!showVerdict && !showLivelihoods ? (
             <>
               <div className={styles.k} data-chrome="">
                 {en["results.findings"].text}
@@ -401,23 +444,37 @@ export function OverviewResults({
                 })}
               </ul>
             </>
-          )}
-          <div className={styles.bottomActionRow}>
+          ) : null}
+          <div className={styles.bottomActionSection} data-chrome="">
             {onPackage ? (
-              <div className={styles.package} data-chrome="">
-                <Control
-                  variant="quiet"
-                  className={styles.openPlanBtn}
-                  keyHint="Enter"
-                  keyShortcut="Enter"
-                  onClick={onPackage}
-                  data-open-package=""
-                >
-                  {pkg["package.open"].text}
-                </Control>
+              <div className={styles.packageCallout} data-chrome="">
+                <div className={styles.packageCalloutCopy}>
+                  <span className={styles.packageCalloutKicker}>
+                    {"Next step · On-the-ground verification"}
+                  </span>
+                  <span className={styles.packageCalloutTitle}>
+                    {"Field verification & decision plan"}
+                  </span>
+                  <p className={styles.packageCalloutDesc}>
+                    {buildPlanCalloutCopy(verdict?.causes ?? [])}
+                  </p>
+                </div>
+                <div className={styles.package}>
+                  <Control
+                    variant="primary"
+                    className={styles.openPlanBtn}
+                    keyHint="Enter"
+                    keyShortcut="Enter"
+                    onClick={onPackage}
+                    data-open-package=""
+                  >
+                    {pkg["package.open"].text}
+                  </Control>
+                </div>
               </div>
             ) : null}
-            <div data-chrome="">
+            <div className={styles.secondaryActionsRow} data-chrome="">
+              <span className={styles.secondaryActionsLabel}>{"Explore 3D terrain views:"}</span>
               <ActionList
                 actions={actions}
                 {...(onOpen ? { onOpen } : {})}

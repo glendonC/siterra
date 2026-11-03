@@ -1,4 +1,4 @@
-// A finding's footprint on the overview's land (the lead's decision 6, 30 Oct 2026), read from the case's own assets
+// A finding's footprint on the overview's land, read from the case's own assets
 // through the instrument listing (checksums checked): every MODIS cell's March to June Theil-Sen slope from the trend
 // bundle's trend_cells asset, painted on its fixed display scale (the slope only: the bundle's SCI-52 rule forbids
 // drawing significance or false discovery rate classes), and the CHIRPS cells over the land from the rainfall layer's

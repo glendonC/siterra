@@ -1,6 +1,6 @@
 "use client";
 
-// Object-anchored action prompts (the lead's decision 15, from contextual prompts such as Hitman 3's): pointing at or
+// Object-anchored action prompts: pointing at or
 // focusing a package item shows, beside it on a hairline leader, what can be done with it, at most three actions,
 // each with its key chip and also clickable, Enter always the primary. The list is built only from what the item's
 // record offers: its cited sources (Enter, Read the Source) and, when its record names a field check, the field plan

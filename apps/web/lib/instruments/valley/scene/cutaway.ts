@@ -1,4 +1,4 @@
-// The cutaway (approved specimen B): the catchment model cut along the S2 transect through Tabant, from boundary to
+// The cutaway: the catchment model cut along the S2 transect through Tabant, from boundary to
 // boundary. The eastern block stays and shows its section: the bundle's profile as the one warm line along the top
 // of the lit section face, the 2,316.8 m and 2,815.2 m band limits across the face with each band faintly tinted,
 // WorldCover tree cover and cropland or built-up along the valley floor just under the profile, and an elevation
@@ -38,7 +38,7 @@ import { bitmapTexture, heightTexture } from "./textures";
 export const CUTAWAY_EXAG = 2.5;
 /** The most: beyond it the relief's own 30 m noise stands up as spikes behind the face. */
 const CUTAWAY_EXAG_MAX = 8;
-/** The section's drawn height over its length that the vertical scale aims at (U25b: a low, long place's section is
+/** The section's drawn height over its length that the vertical scale aims at (a low, long place's section is
  * not a flat strip). */
 const PROFILE_RATIO = 0.3;
 
@@ -56,12 +56,12 @@ export function cutawayExag(data: Pick<CutawayData, "catchment" | "range" | "tra
 }
 /** The size the view was solved at, in CSS px; other sizes scale the picture to fit. */
 export const CUTAWAY_DESIGN = { width: 1440, height: 900 } as const;
-/** Camera elevation above the horizon and vertical field of view, degrees, as specimen B. */
+/** Camera elevation above the horizon and vertical field of view, degrees, as the reference. */
 const ELEVATION = 9;
 const FOV = 26;
 /**
  * The block's region at the design size: about half the frame width, centred a little low and right of centre, so
- * the ruler's labels keep clear of the ask disc's place on the arc (decision 13).
+ * the ruler's labels keep clear of the ask disc's place on the arc.
  */
 const FIT = { width: 700, cx: 812, cy: 474, maxHeight: 600 };
 /**
@@ -121,8 +121,8 @@ export interface CutawayScene {
   /** Turns the model about the measured target: degrees of bearing, and of elevation (kept within 2 to 60). */
   turn(dAzimuth: number, dElevation: number): void;
   /**
-   * The land cut through in place (decision 13): at 0 the overview's whole land as the overview showed it, at 1
-   * specimen B's section; between, the land splits along the section line, the western half slides away and the
+   * The land cut through in place: at 0 the overview's whole land as the overview showed it, at 1
+   * the reference section; between, the land splits along the section line, the western half slides away and the
    * cut face turns toward the visitor.
    */
   setIntro(k: number, from: LandPose): void;
@@ -313,7 +313,7 @@ function buildCutaway(canvas: HTMLCanvasElement, data: CutawayData): CutawayScen
       if (sideEN([E, N]) < 0 || !pointInRing(ring, E, N)) continue;
       fitPts.push(frame.v(E, N, H[j * g.width + i] ?? 0));
     }
-  // the view turns a little under the ruler's middle height (specimen B's 2,200 m on the valley)
+  // the view turns a little under the ruler's middle height (the reference 2,200 m on the valley)
   const pivot = BASE + 0.476 * (RULER.top - BASE);
   const target: Vec3 = [(pN[0] + pS[0]) / 2, frame.y(pivot), (pN[1] + pS[1]) / 2];
   const { distance, shift, box: fitBox } = fitView(fitPts, target, cut.faceBearing);
@@ -368,7 +368,7 @@ function buildCutaway(canvas: HTMLCanvasElement, data: CutawayData): CutawayScen
   };
   reset();
 
-  // ---------- the land cut through in place (decision 13) ----------
+  // ---------- the land cut through in place ----------
   const lf = landFrame(catchment.ring, data.range);
   const lightB = light.dir.clone();
   const keyB = (relief.uniforms as unknown as { uLight: { value: Vector3 } }).uLight.value.clone();

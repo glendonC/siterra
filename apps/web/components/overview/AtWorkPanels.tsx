@@ -1,17 +1,13 @@
 "use client";
 
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  type CSSProperties,
-  type Dispatch,
-  type SetStateAction,
-} from "react";
+import type { CSSProperties, Dispatch, SetStateAction } from "react";
 import { en, format, type MessageId } from "../../lib/copy/en";
-import type { CursorPoint } from "../../lib/run/layout";
-import type { RunModel, RunTask, RunTaskState } from "../../lib/run/model";
+import type { RunBranch, RunModel, RunTask, RunTaskState } from "../../lib/run/model";
+import { AtWorkCursors, agentAccentColor, humanTaskTitle } from "./AtWorkCursors";
+import { ScrollableThinkingChips } from "./ScrollableThinkingChips";
 import styles from "./AtWork.module.css";
+
+export { AtWorkCursors, ScrollableThinkingChips, agentAccentColor, humanTaskTitle };
 
 export const seconds = (ms: number) => (Math.max(0, ms) / 1000).toFixed(1);
 export const usd = (microUsd: number) => (microUsd / 1e6).toFixed(2);
@@ -25,7 +21,7 @@ export const TASK_STATE_WORD: Record<RunTaskState, MessageId> = {
   cancelled: "task.cancelled",
 };
 
-/** The open explanations first, the contradicted after them (the reference study: what needs a person first). */
+/** Open explanations first, contradicted explanations after them so items requiring field checks surface first. */
 const RANK: Record<string, number> = {
   consistent: 0,
   cannot_be_assessed: 1,
@@ -48,160 +44,24 @@ export function taskMetaLine(t: RunTask, nowMs: number): string {
   return format("run.tree.time", { time: dur });
 }
 
-const TRIAD_BY_KIND: Record<string, string> = {
-  plan: "#1d6fe8",
-  observation_analysis: "#1e824c",
-  source_research: "#d48817",
-  livelihood_governance: "#d94838",
-  explanation_branches: "#1d6fe8",
-  field_check: "#1e824c",
-};
+function buildSettledTakeaway(branches: readonly RunBranch[], checkLabel: string | null): string {
+  const supported = branches.filter((b) => b.status === "consistent");
+  const open = branches.filter((b) => b.status === "cannot_be_assessed");
+  const ruledOut = branches.filter((b) => b.status === "contradicted");
 
-const TRIAD_CYCLE = ["#1d6fe8", "#1e824c", "#d48817", "#d94838"] as const;
-
-export function agentAccentColor(t: RunTask, idx: number): string {
-  return TRIAD_BY_KIND[t.kind] ?? TRIAD_CYCLE[idx % TRIAD_CYCLE.length] ?? "#1d6fe8";
-}
-
-function humanTaskTitle(t: RunTask, duplicateKind: boolean, obsIdx: number): string {
-  switch (t.kind) {
-    case "plan":
-      return "Plan";
-    case "observation_analysis": {
-      if (!duplicateKind) return "Satellite & climate check";
-      const sub = (t.sublabel ?? "").toLowerCase();
-      if (sub.includes("rain") || obsIdx > 0) return "Rainfall & terrain check";
-      return "Satellite & vegetation check";
-    }
-    case "source_research":
-      return "Published sources";
-    case "livelihood_governance":
-      return en["task.kind.livelihood_governance"].text;
-    case "explanation_branches":
-      return "Competing explanations";
-    case "field_check":
-      return "Field verification plan";
-    case "instrument_composition":
-    case "view":
-    case "view_order":
-      return "Synthesis & view order";
-    default:
-      return en[`task.kind.${t.kind}` as MessageId].text;
+  if (open.length > 0 && ruledOut.length > 0) {
+    const openNames = open.map((b) => b.label.toLowerCase()).join(" and ");
+    const supPart =
+      supported.length > 0
+        ? `supports ${supported.map((b) => b.label.toLowerCase()).join(" and")} and `
+        : "";
+    return `Satellite data ${supPart}rules out ${String(ruledOut.length)} causes, while ${openNames} requires an on-the-ground check${checkLabel ? ` (${checkLabel})` : ""}.`;
   }
-}
-
-function ScrollableThinkingChips({
-  chips,
-  chipMeta,
-  isExpanded,
-}: {
-  chips: readonly string[];
-  chipMeta: RunModel["chipMeta"];
-  isExpanded: boolean;
-}) {
-  const scrollRef = useRef<HTMLDivElement | null>(null);
-  const fadeRef = useRef<"right" | "left" | "both" | null>(null);
-
-  const syncFade = useCallback(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    const maxScroll = el.scrollWidth - el.clientWidth;
-    let next: "right" | "left" | "both" | null = null;
-    if (maxScroll > 2) {
-      const left = el.scrollLeft > 3;
-      const right = el.scrollLeft < maxScroll - 3;
-      next = left && right ? "both" : right ? "right" : left ? "left" : null;
-    }
-    if (fadeRef.current !== next) {
-      fadeRef.current = next;
-      if (next) {
-        el.setAttribute("data-fade", next);
-      } else {
-        el.removeAttribute("data-fade");
-      }
-    }
-  }, []);
-
-  useEffect(() => {
-    syncFade();
-    const el = scrollRef.current;
-    if (!el || typeof ResizeObserver === "undefined") return;
-    const ro = new ResizeObserver(() => {
-      syncFade();
-    });
-    ro.observe(el);
-    return () => {
-      ro.disconnect();
-    };
-  }, [chips.length, isExpanded, syncFade]);
-
-  return (
-    <div
-      ref={scrollRef}
-      className={styles.thinkingChips}
-      data-thinking-chips=""
-      onScroll={syncFade}
-      onWheel={(e) => {
-        const el = e.currentTarget;
-        if (el.scrollWidth <= el.clientWidth) return;
-        if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
-          e.preventDefault();
-          el.scrollLeft += e.deltaY;
-          syncFade();
-        }
-      }}
-    >
-      {chips.map((chip, chipIdx) => {
-        const meta = chipMeta?.[chip];
-        const tip = meta
-          ? meta.publisher
-            ? `${meta.title} (${meta.publisher})`
-            : meta.title
-          : undefined;
-        return meta?.url ? (
-          <a
-            key={chip}
-            href={meta.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.thinkingChipLink}
-            title={tip}
-            aria-label={`Open ${chip}`}
-            style={{ "--chip-idx": chipIdx } as CSSProperties}
-            data-thinking-chip={isExpanded ? "" : undefined}
-          >
-            <span>{chip}</span>
-            <svg
-              className={styles.thinkingChipArrow}
-              width="9"
-              height="9"
-              viewBox="0 0 10 10"
-              fill="none"
-              aria-hidden="true"
-            >
-              <path
-                d="M2.5 7.5L7.5 2.5M7.5 2.5H3.5M7.5 2.5V6.5"
-                stroke="currentColor"
-                strokeWidth="1.3"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </a>
-        ) : (
-          <span
-            key={chip}
-            className={styles.thinkingChip}
-            title={tip}
-            style={{ "--chip-idx": chipIdx } as CSSProperties}
-            data-thinking-chip={isExpanded ? "" : undefined}
-          >
-            {chip}
-          </span>
-        );
-      })}
-    </div>
-  );
+  if (open.length > 0) {
+    const openNames = open.map((b) => b.label.toLowerCase()).join(" and ");
+    return `Whether ${openNames} contributed cannot be separated from space and needs an on-the-ground check.`;
+  }
+  return "All candidate causes have been evaluated against the case record.";
 }
 
 export function AtWorkAgentTree({
@@ -232,7 +92,8 @@ export function AtWorkAgentTree({
   follow?: boolean;
   stepsDismissed?: boolean;
   onFocusLayer?:
-    ((layer: "bands" | "cover" | "trend" | "rain" | "routes" | null) => void) | undefined;
+    | ((layer: "bands" | "cover" | "trend" | "rain" | "routes" | null) => void)
+    | undefined;
   onFocusCause?: ((causeId: string) => void) | undefined;
   onFindings?: (() => void) | undefined;
   paused?: boolean | undefined;
@@ -294,16 +155,25 @@ export function AtWorkAgentTree({
         data-folded={expandedAll ? "false" : "true"}
       >
         <div className={styles.thinkingHeader}>
+          {run.done ? (
+            <span className={styles.thinkingDoneDot} aria-hidden="true" data-chrome="" />
+          ) : null}
           <span
             className={styles.thinkingWord}
             data-active={!run.done && !paused ? "" : undefined}
+            data-done={run.done ? "" : undefined}
             data-chrome=""
           >
-            {"Thinking"}
+            {run.done ? "Analysis complete" : "Thinking"}
           </span>
           <span className={styles.thinkingTime} data-chrome="">
             {format("run.tree.time", { time: seconds(nowMs) })}
           </span>
+          {run.done && run.findings.length > 0 ? (
+            <span className={styles.thinkingFindingsBadge} data-chrome="">
+              {`${String(run.findings.length)} findings`}
+            </span>
+          ) : null}
           {!run.done && paused ? (
             <span className={styles.thinkingPausedBadge} data-chrome="">
               {"Paused"}
@@ -545,13 +415,16 @@ export function AtWorkAgentTree({
 
             {run.done && run.needsReview ? (
               <li
-                className={styles.treeNode}
+                className={styles.treeNodeReviewItem}
                 style={{ "--agent-color": "#d97706" } as CSSProperties}
                 data-agent-node="review"
                 data-agent-state="review"
                 data-agent-review=""
                 data-chrome=""
               >
+                <p className={styles.settledTakeaway} data-chrome="">
+                  {buildSettledTakeaway(run.branches, run.checks[0]?.label ?? null)}
+                </p>
                 <button
                   type="button"
                   className={styles.treeNodeReview}
@@ -568,28 +441,17 @@ export function AtWorkAgentTree({
                   <span className={styles.needsYouPill} data-needs-you="">
                     {en["run.tree.needsYou"].text}
                   </span>
-                  <span className={styles.treeNodeReviewLabel} data-chrome="" data-run-check="">
-                    {run.checks[0]
-                      ? `Review field plan · ${run.checks[0].label}`
-                      : "Review field plan"}
+                  <span className={styles.treeNodeReviewLabel} data-chrome="">
+                    {"See findings & Review field plan"}
                   </span>
-                  <svg
-                    className={styles.treeNodeChevron}
-                    width="12"
-                    height="12"
-                    viewBox="0 0 12 12"
-                    fill="none"
-                    aria-hidden="true"
-                    data-chrome=""
-                  >
-                    <path
-                      d="M4.5 2.75L7.75 6L4.5 9.25"
-                      stroke="currentColor"
-                      strokeWidth="1.4"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
+                  {run.checks[0] ? (
+                    <span className={styles.srOnly} data-chrome="" data-run-check="">
+                      {run.checks[0].label}
+                    </span>
+                  ) : null}
+                  <span className={styles.reviewKeyHint} data-chrome="">
+                    {"↵"}
+                  </span>
                 </button>
               </li>
             ) : null}
@@ -654,15 +516,6 @@ export function AtWorkAgentTree({
       </aside>
     </div>
   );
-}
-
-export function AtWorkCursors(_props: {
-  cursors: readonly CursorPoint[];
-  selectedTaskId: string | null;
-  setSelectedTaskId: Dispatch<SetStateAction<string | null>>;
-  setStepsDismissed: Dispatch<SetStateAction<boolean>>;
-}) {
-  return null;
 }
 
 export function AtWorkThinkingCard(_props: {

@@ -1,4 +1,4 @@
-// The pixel anatomy's data (approved specimen C): one MODIS 250 m pixel at three scales plus the measured class
+// The pixel anatomy's data: one MODIS 250 m pixel at three scales plus the measured class
 // spectra, the pixel's own season record and the proposed field check, copied from the S3 bundle
 // (bundle_pixel_anatomy_ait_bouguemez) and the season trend tables by lib/instruments/pixel/fixture.ts, which the
 // fixture test recomputes. The page builds the same data from the case's assets (case.ts); public/instruments/pixel/

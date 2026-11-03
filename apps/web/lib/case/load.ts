@@ -35,7 +35,7 @@ export async function loadSnapshot(caseId: string, fetchImpl: Fetch): Promise<Ca
 interface DemoCopy {
   caseId: string;
   expiresAt: string;
-  /** The seed case it is a copy of, when the visitor named one (U25: a second place opens its own copy). */
+  /** The seed case it is a copy of, when the visitor named one. */
   seedCaseId?: string;
 }
 

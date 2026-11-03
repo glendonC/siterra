@@ -1,11 +1,8 @@
 "use client";
 
-// The opened finding's record (approved specimen D4, js/node.js nodeHud and css/d4.css): on the finding's side, a
-// small kicker, the big number, its caption, the season chart (the 26 March to June means, the fitted line and light
-// gridlines) and its interval line, then the way to the full instrument; below, the published context in the record's
-// short display text with its sources, joined by one fine dotted line. A frosted field behind the record blurs the
-// land with no edge and no box. The page places the frost, the dotted line and the hairline from the finding's dot
-// (ValleyOverview's apply); every value here comes from the case.
+// Spatial finding inspection card on the valley overview: displays the finding's area kicker,
+// headline metric, comparison rows, optional rainfall scatter chart, slope legend, and verified
+// published research excerpt connected by a fine dotted leader. All values derive from the case record.
 
 import { useEffect, useState, type CSSProperties, type Ref } from "react";
 import { en, format } from "../../lib/copy/en";
@@ -26,10 +23,10 @@ import { ActionList } from "./ActionList";
 import { pixelColours as C } from "../../lib/theme/obsidian";
 import styles from "./OverviewRecord.module.css";
 
-/** D4's chart: compact 420 x 154 CSS px with its margins so the slanted card and open context fit the frame. */
+/** Compact 420 x 154 CSS px chart dimensions for the finding inspection card. */
 const CHART = { w: 420, h: 154, pl: 34, pr: 8, pt: 20, pb: 28 } as const;
 const NARROW = CHART;
-/** The rain card opened wide (Compare with Rainfall). */
+/** Expanded rainfall comparison chart dimensions. */
 const WIDE = { w: 580, h: 270, pl: 34, pr: 8, pt: 20, pb: 28 } as const;
 
 export interface RecordRefs {
@@ -45,7 +42,7 @@ export interface RecordRefs {
 
 /** September to May rainfall (mm) across, March to June NDVI up, the straight-line fit across the seasons. */
 function RainScatter({ data, wide = false }: { data: ScatterData; wide?: boolean }) {
-  // compared with rainfall (decision 13): the card opens wider and the 26 seasons rise into place, one by one
+  // When expanded for rainfall comparison, the card widens and the seasonal points animate into place
   const CHART = wide ? WIDE : NARROW;
   const H = CHART.h + 16;
   const pb = CHART.pb + 16;
@@ -82,7 +79,7 @@ function RainScatter({ data, wide = false }: { data: ScatterData; wide?: boolean
         </text>
       ))}
       <text x={CHART.w - CHART.pr} y={H - 4} textAnchor="end">
-        {/* the rainfall window the bundle's primary analysis uses, in words (U25) */}
+        {/* The primary rainfall window from the analysis bundle, formatted in plain words */}
         {format("overview.record.rain", {
           window:
             windowWords(data.windows.rainfall === "annual" ? "jan_dec" : data.windows.rainfall) ??
@@ -153,26 +150,26 @@ export function OverviewRecord({
   pixelNote: string | null;
   /** The record's name for its area ("Valley catchment"), the kicker of a finding over the whole area. */
   areaLabel: string;
-  /** The side it opens on: the side its finding sits on the arc (decision 6). */
+  /** The side the card opens on, matching the side its finding occupies on the valley arc. */
   side: "left" | "right";
   /** What the land shows while it is open (its footprint), in the catalog's words. */
   onLand: string | null;
   /** The fixed slope scale the land is painted on, when it is. */
   slopeKey: { domain: number } | null;
-  /** Regional scan (7B) and Pettitt change-point timing (7C) for band and fdr cards. */
+  /** Regional scan and Pettitt change-point timing for band and FDR cards. */
   scanTiming?: ScanTimingSummary | null;
-  /** What can be done with this finding, from what the record offers (decision 15). */
+  /** Available navigation actions for this finding from the case record. */
   actions: readonly Action[];
-  /** Opens a view in place, taking the land apart (decision 12); true when it did, so the link does not load. */
+  /** Opens an instrument view in place over the terrain; returns true when handled in-place. */
   onOpen?: (href: string) => boolean;
   onBack?: () => void;
-  /** The published context opened or closed: the page places the card's words again. */
+  /** Callback fired when the published context drawer toggles open or closed so layout can update. */
   onContextToggle?: () => void;
   /** The rain card opened wide: its seasons compared with rainfall, rising beside the rain-tinted land. */
   wide?: boolean;
   refs: RecordRefs;
 }) {
-  // the published context behind its button; the page lays the card out again when it opens or closes
+  // Toggles the published research excerpt panel and triggers layout recalculation
   const [contextOpen, setContextOpen] = useState(false);
   useEffect(() => {
     setContextOpen(false);
@@ -180,7 +177,7 @@ export function OverviewRecord({
   useEffect(() => {
     onContextToggle?.();
   }, [contextOpen, onContextToggle]);
-  // the finding's own season and years, from its measurement's period (U25)
+  // Derives the finding's season window and year range from its measurement period
   const { window } = seasonWords(finding?.period ?? null);
   const kicker =
     sel === "field"

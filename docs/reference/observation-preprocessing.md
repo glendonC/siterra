@@ -2,7 +2,7 @@
 
 Specification version 0.2.
 
-Public method proposal, 2026-10-26; v0.2 adds the default access route found by the [availability probe](../../research/geospatial/data-availability.md) and the [catchment](../../research/geospatial/study-area.md). Not executable production code and not an executed analysis. Dataset definitions and access routes: [inventory](data-sources-and-methods.md). Source register: [bibliography](../../research/science/source-register.md).
+Public method specification, 2026-10-26; v0.2 adds the default access route found by the [availability probe](../../research/geospatial/data-availability.md) and the [catchment](../../research/geospatial/study-area.md), implemented by the offline pipeline (`science/pipeline/`). Dataset definitions and access routes: [inventory](data-sources-and-methods.md). Source register: [bibliography](../../research/science/source-register.md).
 
 ## 1. Freeze the area and run manifest
 

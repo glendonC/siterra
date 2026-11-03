@@ -32,7 +32,7 @@ import styles from "./InstrumentShell.module.css";
 
 export type InstrumentId = "layers" | "cutaway" | "pixel" | "rainfall" | "field";
 
-/** Each view's name in the breadcrumb (decision 13: no list of views; the visitor reaches them through the findings). */
+/** Each view's name in the breadcrumb. */
 const VIEW_NAME: Record<InstrumentId, MessageId> = {
   layers: "instrument.shell.layers",
   cutaway: "instrument.shell.cutaway",
@@ -58,7 +58,7 @@ export function InstrumentShell({
   /** Records to draw instead of the case the shell would open (the lane's preview). */
   records?: { snapshot: CaseSnapshot; listing: InstrumentListing };
   /**
-   * Back to the valley without a page load: the overview opened this instrument in place (decision 12) and plays
+   * Back to the valley without a page load: the overview opened this instrument in place and plays
    * the land back together; without it, back loads the valley.
    */
   onBack?: () => void;

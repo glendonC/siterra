@@ -1,4 +1,4 @@
-// A place's seasons in words, from the ids its own record and bundles use (U25, item d): a window id names its first
+// A place's seasons in words, from the ids its own record and bundles use: a window id names its first
 // and last month ("feb_may" is February to May, "oct_apr" October to April), and a period id names its years and its
 // window ("period_2000-2025_feb_may"). Every place's captions say its own season this way; none is fixed in code.
 

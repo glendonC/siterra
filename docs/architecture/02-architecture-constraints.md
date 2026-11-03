@@ -13,7 +13,7 @@ Verified platform facts (TECH-03 to TECH-10, TECH-30 to TECH-34) and the resulti
 | `text.format` json_schema output is always schema-constrained; strict subset: root plain object, no `oneOf`/`allOf`, `anyOf` only below root, every object closed and fully required, no recursion | Every task's final proposal is a `text.format` structured output generated from Zod; model-facing schemas pass a contract test for the subset |
 | `tool_choice` must be `"auto"`; parallel tool calls default on; arguments "not guaranteed to validate" | Function tools are only for reads and deterministic computation; the proposal is the structured final output, not a forced tool call; validate everything |
 | Errors: retry 429, 500, 503 with backoff and `Retry-After`; do not retry 400 to 404 or 413; do not blindly retry a non-streaming 504 | Stream every call; first-event and inactivity timeouts (not a total timeout); retry policy per error type in [agent orchestration](../reference/agent-orchestration.md#state-retry-and-recovery) |
-| Spark Standard USD 1.25 in, 4.25 out, 0.15 cached per million tokens; web search 2.50 per thousand; 3,000 RPM and 4M TPM per team; no hard spend cap, only an email alert | Application budgets are the only hard stop; set the account alert on day 1 |
+| Spark Standard USD 1.25 in, 4.25 out, 0.15 cached per million tokens; web search 2.50 per thousand; 3,000 RPM and 4M TPM per team; no hard spend cap, only an email alert | Application budgets are the only hard stop; configure the account spend alert before running live requests |
 | Standard mode is not used for training; Contributor mode is and must not receive personal or confidential data | Standard mode only, never Contributor mode; model requests carry no personal or confidential data |
 | `GET /v1/status` is public | Pre-demo health check, not proof of account access |
 
@@ -21,7 +21,7 @@ How the adapter uses these rules is in [cross-cutting concepts](08-cross-cutting
 
 ## Model access gate
 
-Live model work depends on GATE-01 in the delivery plan: a server-side authenticated call; `muse-spark-1.3` listed for the team; strict structured output; `store: false` with encrypted reasoning replay across one tool round trip; streamed events to completion; refusal and error handling; usage captured. The checks are one script run with the key from the environment; one run makes three billed calls, about USD 0.01 at list prices with an upper bound near USD 0.02 (rejected requests assumed unbilled [U]). A refusal is not provoked on purpose, so refusal handling is tested against a recorded event sequence. Access is unverified until these checks pass [U].
+Live model execution requires passing the model access verification checks: a server-side authenticated call; `muse-spark-1.3` listed for the team; strict structured output; `store: false` with encrypted reasoning replay across one tool round trip; streamed events to completion; refusal and error handling; usage captured. The checks are one script run with the key from the environment; one run makes three billed calls, about USD 0.01 at list prices with an upper bound near USD 0.02 (rejected requests assumed unbilled [U]). A refusal is not provoked on purpose, so refusal handling is tested against a recorded event sequence. Access is unverified until these checks pass [U].
 
 Fallbacks, in order: another Standard Spark revision through the same tests; then Muse Spark Open (Meta's open-weight release) through a documented hosting provider, as a separately labeled model with its own adapter tests and Chat Completions transport (TECH-32); then a labeled replay of recorded outputs. Llama API is not a fallback (TECH-33). No silent substitution, and never another model family.
 
@@ -105,8 +105,8 @@ These decisions constrain every building block. Each is a decision record in the
 
 ## Organizational constraints
 
-- The build runs as parallel lanes, each owning its directories; shared root files belong to the platform lane (delivery plan).
-- Gates, the day plan, priorities and stop rules are in the delivery plan.
+- Repository modules maintain strict ownership boundaries across platform contracts, agent runtime, science pipeline, workspace UI and quality verification.
+- Feature priorities (P0 core baseline, P1 extensions, P2 optional experiments) and release verification criteria govern what ships.
 - Spending on any plan or account is the founder's decision. The maintainer chooses the project license and approves publication.
 - Public implementation requirements must be complete without private notes; placement rules are in [CONTRIBUTING.md](../../CONTRIBUTING.md).
 

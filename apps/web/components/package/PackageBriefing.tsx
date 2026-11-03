@@ -1,15 +1,12 @@
 "use client";
 
-// The next-steps package as a briefing you step through (the lead's decision 16), the way a game briefs a mission
-// over its map (the reference study's Division 2 map: a dark matte land under one warm light, one stem rising from the
-// chosen place, a name and a few short rows beside it, key hints instead of buttons; Death Stranding's markers on
-// stems to their true place; Maverick's dashed line for what is proposed).
-// On arrival: the land, each field check as an amber marker on its band, and one headline. Then five steps, one card
-// at a time, Space or the arrow keys: what is known so far, what is still open, the field checks (the land lights the
-// one the card is about), the candidate responses (none ranked) and who must approve. A card holds a title and at
-// most three short lines (steps.ts pages longer ones, never cutting a record line); it stands beside the land on a
-// hairline leader, never over it. Everything in full lives in the exported brief (E). Nothing here sends, schedules or
-// authorizes anything.
+// Step-by-step on-the-ground field verification briefing over the 3D valley terrain:
+// On arrival, displays the valley with each proposed field check anchored on its elevation band
+// by an amber stem marker, alongside the briefing headline and overview framing.
+// Stepping forward (Space, arrow keys, or clicking any step in the bottom rail) walks through five
+// structured cards: Known So Far, Still Open, The Field Checks (highlighting each check's terrain band),
+// Candidate Responses (unranked), and Who Must Approve.
+// Full details can be exported to the printable brief (E). Nothing here sends, schedules, or authorizes action.
 
 import type { CaseSnapshot } from "@siterra/contracts";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -285,6 +282,11 @@ export function PackageBriefing({
           <span className={styles.statusWord}>{t(`package.status.${effectiveStatus}`)}</span>
           <span>{t("steps.nothingSent")}</span>
         </p>
+        <p className={styles.arrivalContext} data-chrome="">
+          {
+            "Satellite data established the valley's long-term trends, but ground-level causes require on-the-ground verification at the numbered markers on the terrain."
+          }
+        </p>
       </header>
 
       {markers.map((g) => {
@@ -357,7 +359,12 @@ export function PackageBriefing({
                 onClick={() => {
                   setAt({ step: i, page: 0 });
                 }}
-              />
+              >
+                <span className={styles.dotBar} aria-hidden="true" data-chrome="" />
+                <span className={styles.dotLabel} data-chrome="">
+                  {`${String(i + 1).padStart(2, "0")} ${t(TITLE[s.id])}`}
+                </span>
+              </button>
             </li>
           ))}
         </ol>

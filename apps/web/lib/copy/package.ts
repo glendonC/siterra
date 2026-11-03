@@ -180,10 +180,10 @@ export const pkg = {
   "briefing.count.resource.one": { text: "one resource", kind: "label" },
   "briefing.count.resource.many": { text: "{n} resources", kind: "label" },
   "briefing.chip": { text: "Source {n}", kind: "label" },
-  // the action prompt beside a pointed item (decision 15)
+  // the action prompt beside a pointed item
   "prompt.label": { text: "Actions for this item", kind: "ui" },
   "prompt.read": { text: "Read the Source", kind: "button" },
-  // the briefing you step through (decision 16): a headline on arrival, then five steps, one card at a time
+  // the briefing you step through: a headline on arrival, then five steps, one card at a time
   "steps.headline": { text: "Your plan: {checks} before any decision", kind: "ui" },
   "steps.count.one": { text: "one field check", kind: "label" },
   "steps.count.many": { text: "{n} field checks", kind: "label" },

@@ -30,7 +30,7 @@ export const cutawayTransectSchema = z
     N: z.array(z.number()),
     h: z.array(z.number()),
     land_cover_runs: z.array(run),
-    // null where the place's transect states no valley floor (U25b: Calaveras Creek's valley axis)
+    // null where the place's transect states no valley floor
     valley_floor: z.object({ from_m: z.number(), to_m: z.number() }).nullable(),
   })
   .refine(

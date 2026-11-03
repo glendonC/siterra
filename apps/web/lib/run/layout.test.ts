@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { along, centreOf, clockFraction, lanesOf, outward } from "./layout";
+import { along, centreOf, clockFraction, cursorPointsOf, lanesOf, outward } from "./layout";
 import type { RunTask } from "./model";
 
 const task = (id: string, start: number, end: number | null): RunTask => ({
@@ -59,5 +59,72 @@ describe("the run's place on the arc (U29)", () => {
     expect(lanes.get("a")).toBe(0);
     expect(lanes.get("b")).toBe(1);
     expect(lanes.get("c")).toBe(1);
+  });
+
+  it("places parallel agent cursors in non-overlapping valley zones", () => {
+    const centre = { x: 640, y: 400 };
+    const radius = 300;
+    const tasks: RunTask[] = [
+      {
+        ...task("obs-ndvi", 6_000, null),
+        kind: "observation_analysis",
+        sublabel: "NDVI & trend recipes",
+        activeLabel: "Computing vegetation trend",
+        activeTarget: {
+          kind: "land",
+          stratumId: "valley_floor",
+          bundleId: "bundle_1",
+          recipeId: "ndvi_trend",
+          sourceId: null,
+          pages: [],
+          sections: [],
+          queryTerms: [],
+        },
+      },
+      {
+        ...task("obs-rain", 6_000, null),
+        kind: "observation_analysis",
+        sublabel: "Terrain & rainfall",
+        activeLabel: "Checking rainfall & terrain",
+        activeTarget: {
+          kind: "bundle",
+          stratumId: null,
+          bundleId: "bundle_chirps",
+          recipeId: "chirps_season",
+          sourceId: null,
+          pages: [],
+          sections: [],
+          queryTerms: [],
+        },
+      },
+      {
+        ...task("src-read", 8_000, null),
+        kind: "source_reading",
+        activeLabel: "Reading Aakairi et al. 2026",
+        activeTarget: {
+          kind: "source",
+          stratumId: null,
+          bundleId: null,
+          recipeId: null,
+          sourceId: "src_1",
+          pages: [4],
+          sections: [],
+          queryTerms: [],
+        },
+      },
+    ];
+    const pts = cursorPointsOf(tasks, centre, radius, "src-read");
+    expect(pts).toHaveLength(3);
+    for (let i = 0; i < pts.length; i += 1) {
+      for (let j = i + 1; j < pts.length; j += 1) {
+        const a = pts[i]?.at;
+        const b = pts[j]?.at;
+        expect(a).toBeDefined();
+        expect(b).toBeDefined();
+        if (!a || !b) continue;
+        const overlaps = Math.abs(a.x - b.x) < 200 && Math.abs(a.y - b.y) < 55;
+        expect(overlaps).toBe(false);
+      }
+    }
   });
 });

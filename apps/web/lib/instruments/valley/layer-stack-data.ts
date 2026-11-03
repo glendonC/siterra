@@ -31,7 +31,7 @@ export async function loadLayerStackData(
   };
   const read = (ref: Parameters<typeof readJsonAsset>[1]) =>
     readJsonAsset(view, ref, fetchImpl, signal);
-  // the snow sheet only where the spec names a snow layer (U25b: the record decides which sheets stand)
+  // the snow sheet only where the spec names a snow layer
   const snowLayer = p.layers.find((l) => l.layer === "snow_cover");
   const [land, trend, outline, rain, snow] = await Promise.all([
     readTerrain([view], fetchImpl, signal, { bands: true }),

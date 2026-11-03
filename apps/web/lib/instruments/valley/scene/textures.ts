@@ -1,5 +1,5 @@
 // Data textures for the valley scenes: the relief heights, and PNG rasters whose bytes are data (no colour
-// conversion, no premultiplication), as the specimens loaded them.
+// conversion, no premultiplication), ass loaded them.
 
 import {
   DataTexture,

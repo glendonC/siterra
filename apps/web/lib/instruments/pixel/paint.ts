@@ -1,4 +1,4 @@
-// The pixel's 10 m cells painted three ways (decision 12, U27): their shared true-colour composite (display only),
+// The pixel's 10 m cells painted three ways: their shared true-colour composite (display only),
 // their June NDVI median in the anatomy's steps, or their WorldCover class; the same colours as the pixel anatomy.
 
 import { pixelColours as C } from "../../theme/obsidian";

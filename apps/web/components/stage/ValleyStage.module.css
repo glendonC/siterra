@@ -64,7 +64,7 @@
   white-space: nowrap;
 }
 
-/* The outline at arrival: the approved frame's ink stroke over a thin paper casing, above the crest. */
+/* The outline at arrival: an ink stroke over a thin paper casing, above the crest. */
 .outline {
   position: absolute;
   inset: 0;
@@ -151,7 +151,7 @@
   }
 }
 
-/* The flat reading's frame (MOT-12): graticule ticks at the edges and a scale bar, type.hero-instrument. */
+/* The flat reading's frame: graticule ticks at the edges and a scale bar, type.hero-instrument. */
 .flatFrame {
   position: absolute;
   inset: 0;

@@ -1,4 +1,4 @@
-// "See It Over Time" (specimen T, UI-2): the view's words, a sibling of en.ts with the same Message shape and lint
+// "See It Over Time": the view's words, a sibling of en.ts with the same Message shape and lint
 // (time.test.ts runs it). Every number and name it shows is a record field; these are only the labels around them.
 // No place name.
 

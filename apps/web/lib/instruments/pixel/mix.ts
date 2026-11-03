@@ -1,4 +1,4 @@
-// The pixel anatomy's model (approved specimen C): a linear mixture of the measured class spectra. In each band the
+// The pixel anatomy's model: a linear mixture of the measured class spectra. In each band the
 // mixed reflectance is the sum over classes of share x class median reflectance, and the NDVI of the mix is
 // (B08 - B04) / (B08 + B04). It is a model, not a measurement of plant species.
 

@@ -1,8 +1,5 @@
-/* The ask (approved specimen D4, css/d4.css), in the tokens of app/obsidian.css: a matte coloured circle, deeper at the
-   centre and lighter toward the rim, with no glow, no shine and no outline; its last 1.5 px feather into the ground.
-   Hover lifts its colour a little and fills the plus; open turns the plus into a close mark. Open, a fade of the ground
-   rises from the bottom edge with a curved top, no border and no box, and the question sits in it in large light
-   type. */
+/* The ask overlay and trigger disc: a matte circle with no glow or shine; when open, a soft ground veil
+   rises from the bottom edge and frames the question input in large display type. */
 
 .ask {
   position: absolute;
@@ -310,7 +307,7 @@
   outline-offset: 2px;
 }
 
-/* the request's activity beside the disc while the ask is closed (decision 14): the status stands by its subject */
+/* the request's activity beside the disc while the ask is closed */
 .beside {
   position: absolute;
   margin: -10px 0 0 76px;
@@ -328,7 +325,7 @@
   visibility: visible;
 }
 
-/* guided question prompts beside the ask disc at rest on the overview (U33b) */
+/* guided question prompts beside the ask disc at rest on the overview */
 .prompts {
   position: absolute;
   left: 48px;
@@ -406,7 +403,7 @@
   flex: 1 1 auto;
 }
 
-/* suggested question rows below the large input when the ask is open (U33b) */
+/* suggested question rows below the large input when the ask is open */
 .openSuggestions {
   position: absolute;
   left: 50%;

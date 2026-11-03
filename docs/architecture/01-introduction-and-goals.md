@@ -44,5 +44,5 @@ Roles are design assumptions, not interview findings [U]; see [users and flows](
 | Community participant or appropriately mandated representative | Understandable proposal, livelihood effects, language access and the ability to disagree |
 | Field practitioner | Specific observations to collect, sampling rationale, safe access and permission requirements |
 | Observer or demo viewer | What the system actually did and what remains hypothetical; mode labels on every screen |
-| Implementation lanes: platform, agent runtime, science and map data, workspace UI, quality | Fixed contracts, owned directories and integration rules (delivery plan) |
+| Engineering and domain maintainers (platform, agent runtime, science pipeline, workspace UI, quality) | Fixed data contracts, module boundaries and verification rules |
 | Maintainer | Chooses the project license and approves publication or any change of repository visibility |

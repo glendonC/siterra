@@ -60,7 +60,7 @@ describe("pixel.json", () => {
 });
 
 describe("the derived parts", () => {
-  it("proposes the specimen's transect by its rule: row 19, ten cells from column 9", () => {
+  it("proposes the field transect by its rule: row 19, ten cells from column 9", () => {
     const cells = read(`${B}/pixel-cells.json`) as Parameters<typeof proposeTransect>[0];
     expect(proposeTransect(cells)).toEqual({
       length_m: 100,
@@ -85,7 +85,7 @@ describe("the derived parts", () => {
   });
 });
 
-describe("the pixel anatomy bundle's two versions (U25r)", () => {
+describe("the pixel anatomy bundle's two versions", () => {
   // 1.1.0 renamed the place-specific fields: footprint_corners with footprint_corners_crs beside it (was
   // footprint_corners_utm29n) and month_ndvi (was june_ndvi); the reader takes either, and each file by its name
   const files = Object.fromEntries(fixture.sources.map((s) => [s.path, read(s.path)]));

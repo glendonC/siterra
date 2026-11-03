@@ -1,6 +1,6 @@
 "use client";
 
-// "See It Over Time" (specimen T, UI-2), in place over the overview's own land: one playhead from the first season's
+// "See It Over Time", in place over the overview's own land: one playhead from the first season's
 // January to the last season's December, then the trend. The land's pixels take each season's growing-season NDVI
 // (painted through the overview's footprint overlay), each month's snow whitens its elevation band, the four driest
 // seasons by the place's rainfall window are marked on the track, and at the end each pixel's trend spreads out from
@@ -22,7 +22,7 @@ import { Control } from "../controls/Control";
 import styles from "./TimeView.module.css";
 
 const t = (id: TimeMessageId) => tm[id].text;
-/** Months per second while playing (26 years in about 21 s, as the specimen played). */
+/** Months per second while playing (26 years in about 21 s, as the the referencelayed). */
 const RATE = 15;
 /** The trend's spread, in playhead months after the last December. */
 const TREND_SPAN = 30;

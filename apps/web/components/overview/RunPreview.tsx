@@ -1,8 +1,8 @@
 "use client";
 
-// Development harness for U29: the overview over the case's own land, with the RECORDED run of specimen R at work on
-// it in place of the ask's live stream. ?at=<ms of run time> holds a moment for still frames; ?speed= sets the replay
-// speed (the specimen's 4 by default). Every screen it feeds says it is a recording.
+// Development harness for recorded-run replay: renders the valley overview over the case's terrain with a recorded
+// run in place of the live stream. `?at=<ms>` holds a specific timestamp for still frames; `?speed=` sets the replay
+// multiplier (4x by default). Every screen it feeds indicates that it is a recording.
 
 import { Event, type CaseSnapshot } from "@siterra/contracts";
 import { useMemo } from "react";

@@ -4,7 +4,7 @@
 // and toggled by G where the case holds a species bundle, drawn on the overview at rest and over time. The scene
 // draws one same-size dot per recorded point (never sized by a count, which follows recording effort); this layer
 // adds the words: the layer's card at the edge, and for the point under the cursor one warm stem to its group's
-// glyph, the ring of its stated uncertainty on the land, and a card of at most three short lines (decision 16).
+// glyph, the ring of its stated uncertainty on the land, and a card of at most three short lines.
 // Enter steps through the point's records one by one; Esc steps back. A record says an organism was recorded here,
 // never presence, abundance or change; a period is the years the records span. Fossil specimens stay off the land
 // and are counted in the layer's card.
@@ -282,7 +282,7 @@ export function LifeLayer({
   return (
     <div ref={root} className={styles.layer} data-life-layer="" aria-label={t("life.region")}>
       {/* the layer's card at the edge: what is drawn, what is not, and what a record is not */}
-      {/* one card at a time (decision 16): the layer's card steps back while a point's card is open */}
+      {/* one card at a time: the layer's card steps back while a point's card is open */}
       <section
         className={styles.layerCard}
         data-life-card=""

@@ -1,6 +1,6 @@
 # Microcopy
 
-Status: adopted string set for the build, 2026-10-27 (ADR-0043); sections 1 and 1a updated the same day with the hero the founder approved (design language 1.3). The build moves these strings into message catalogs (I18N-01); the catalog then becomes the source of truth.
+Status: adopted string set, 2026-10-27 (ADR-0043); sections 1 and 1a updated the same day with the approved hero (design language 1.3). Strings are externalized in the application message catalog (`apps/web/lib/copy/en.ts`, I18N-01), which serves as the runtime source of truth.
 
 How to read this file:
 
@@ -940,7 +940,7 @@ Status: accepted with ADR-0043, amendment 1 and the [precise standard](voice-and
 
 Unchanged (74): `globe.range`, `globe.legend`, `dive.highAtlas`, `credit.globe`, `credit.dive`, `arrival.valleyName`, `arrival.region`, `arrival.studyArea`, `arrival.studyAreaLimit`, `arrival.outlet`, `arrival.question`, `flat.close`, `flat.lonW`, `flat.latN`, `flat.km`, `flat.m`, `work.stop`, `work.observationLine`, `activity.rejected`, `activity.cause`, `rule.schema`, `rule.unknown_reference`, `rule.stale_reference`, `rule.ownership`, `rule.claim_kind`, `rule.numeric_provenance`, `rule.unit`, `rule.coverage`, `rule.authority`, `rule.prohibited_claim`, `rule.transition`, `rule.limit`, `rule.catalog_mismatch`, `rule.focus_not_permitted`, `rule.excerpt_mismatch`, `legend.ndvi.subtitle`, `legend.coverage`, `legend.ndvi.coverage`, `legend.ndvi.coverage.bare`, `legend.ndvi.painted`, `legend.ndvi.painted.bare`, `legend.flags`, `legend.flags.reducedQaNote`, `flag.snow`, `flag.terrainShadow`, `flag.lowSceneCount`, `flag.partialMonth`, `flag.qaJoinIncomplete`, `flag.reducedQa`, `legend.ndvi.excluded`, `legend.ndvi.note`, `legend.ndvi.method`, `legend.ndvi.cells`, `legend.ndvi.cellsDisplay`, `notice.maplibre`, `notice.maplibreContour`, `notice.relief`, `notice.imagery`, `notice.fontSans`, `notice.fontMono`, `stage.northName`, `stage.imagery`, `credit.terrain`, `credit.rainfall`, `credit.imagery`, `credit.outletInput`, `credit.worldcover`, `mode.liveDetail`, `mode.replayDetail`, `scope.will2`, `scope.willNot1`, `scope.willNot2`, `scope.willNot3`, `mode.conceptDetail`.
 
-Shown but not catalog strings, so not changed in this pass:
+Runtime strings owned by domain records or event templates outside the UI message catalog:
 
 | Text | Owner | Note |
 |---|---|---|

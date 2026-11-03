@@ -1,6 +1,6 @@
 // What the globe shows at a time t, as a pure function of the clock and the moments the viewer acted: the limb
 // under the opening's beats, the turn to the case when the action is pressed, then the zoom into the case, after
-// which the overview's own land takes over (decision 11). Ported from the design lane's hero study A4 (app4.js
+// which the overview's own land takes over. Ported from the design lane's hero study A4 (app4.js
 // frame()).
 
 import { globeColours } from "../theme/obsidian";
@@ -68,7 +68,7 @@ export interface GlobeState {
   done: boolean;
 }
 
-/** The zoom into the case (decision 11): Open to the land's handover (s). */
+/** The zoom into the case: Open to the land's handover (s). */
 export const ZOOM_S = 1.4;
 /** The camera's height over the case when the earth has sunk into the ground (km). */
 const ZOOM_END_KM = 1500;
@@ -76,7 +76,7 @@ const ZOOM_END_KM = 1500;
 /**
  * The camera and overlays at time t. Open (the dive) zooms straight down onto the case's own outlet, north up, while
  * the earth sinks into the ground round it, so that the screen holds only the ground and the case's ring and point
- * when the land takes over (decision 11: one land object on one camera path; the land is the overview's own).
+ * when the land takes over.
  */
 export function globeStateAt(
   t: number,

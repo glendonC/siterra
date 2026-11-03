@@ -1,5 +1,5 @@
-// A question's run as specimen R shows it (U29): what the command's own events and records say at this moment,
-// in R's terms. Every time is milliseconds after the command was accepted; every word comes from the case's
+// A question's run model: what the command's own events and records say at this moment.
+// Every time is milliseconds after the command was accepted; every word comes from the case's
 // records or the event log through the app's own rules (task names, model names, verification words); nothing is
 // computed for show. Events the page has not been given yet do not exist here, so a paced replay unfolds in order.
 

@@ -72,7 +72,7 @@ data/
   map/                regional map assets (PMTiles, terrain) and attribution
 ```
 
-Bundles follow ADR-0028: one STAC Collection per bundle, one Item per period, a display raster as the `overview` asset and a value grid as the `data` asset; the importer maps them into `DataBundle`, `Measurement` and `TemporalObservation` records. Large raw downloads stay in the ignored `data/raw/` folder. Derived bundles are committed only if license-cleared and small (target under 50 MB in total); otherwise they are served from object storage with the same manifest hashes. Shared root files (`package.json`, `pnpm-workspace.yaml`, the base `tsconfig`, CI) belong to the platform lane.
+Bundles follow ADR-0028: one STAC Collection per bundle, one Item per period, a display raster as the `overview` asset and a value grid as the `data` asset; the importer maps them into `DataBundle`, `Measurement` and `TemporalObservation` records. Large raw downloads stay in the ignored `data/raw/` folder. Derived bundles are committed only if license-cleared and small (target under 50 MB in total); otherwise they are served from object storage with the same manifest hashes. Shared root configuration files (`package.json`, `pnpm-workspace.yaml`, the base `tsconfig`, CI) are managed at the workspace root.
 
 Planning material that the application consumes or follows:
 
@@ -86,9 +86,9 @@ Planning material that the application consumes or follows:
 
 ## Building blocks
 
-| Block | Responsibility | Owning lane |
+| Block | Responsibility | Subsystem boundary |
 |---|---|---|
-| `apps/web` | Workspace UI; `app/api` holds the route handlers and the SSE stream | Workspace UI; `app/api` belongs to platform |
+| `apps/web` | Workspace UI; `app/api` holds the route handlers and the SSE stream | Workspace UI (`app/api` in platform) |
 | `apps/worker` | Queue consumers and the agent runtime | Agent runtime |
 | `packages/contracts` | Zod schemas mirroring the JSON Schema contracts, types, fixtures; one catalog entry per component kind | Platform |
 | `packages/domain` | Commit validator, numeric provenance check, state machines, staleness propagation, workspace projection | Platform |
@@ -97,8 +97,6 @@ Planning material that the application consumes or follows:
 | `science/` | Offline pipeline producing bundles and recipe results | Science and map data |
 | `data/` | Case seed, validated bundles, regional map assets | Science and map data |
 | `tests/`, `e2e/` | Acceptance suites, prohibited-claims and numeric scans, accessibility checks, performance traces | Quality |
-
-Lane deliverables and dependencies are in the delivery plan.
 
 ### Inside the worker
 
@@ -113,7 +111,7 @@ Lane deliverables and dependencies are in the delivery plan.
 
 ## Integration contracts
 
-These must not change without the owning lane's approval:
+These cross-package contracts must remain synchronized across all modules:
 
 - [`schemas/case.schema.json`](../../schemas/case.schema.json), [`schemas/stac/siterra-extension.schema.json`](../../schemas/stac/siterra-extension.schema.json) and [`schemas/openapi.json`](../../schemas/openapi.json), with the STAC profile for bundles (ADR-0028).
 - The API routes in the [runtime view](06-runtime-view.md#api-and-stream) and the event kinds in [data contracts](../reference/data-contracts.md#events).

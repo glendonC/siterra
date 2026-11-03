@@ -1,6 +1,6 @@
 "use client";
 
-// The ask (approved specimen D4): a matte slate-teal circle with a small light label and a thin circled plus, no glow
+// The ask control: a matte slate-teal circle with a small light label and a thin circled plus, no glow
 // and no outline. The circle or the "/" key opens a colourless fade rising from the bottom with the question typed in
 // large light type; Esc closes it. Enter hands the text to the page (the overview sends it; an instrument carries it
 // to the overview). The activity line shows only once the page passes one, after Enter.
@@ -13,7 +13,7 @@ import type { AskLine } from "../../lib/overview/ask-line";
 import styles from "./Ask.module.css";
 
 export interface AskProps {
-  /** "arc": D4's 112 px circle, placed by the page on the arc's start; "rest": a 44 px circle at the bottom centre. */
+  /** "arc": 112 px circle placed on the arc's start; "rest": a 44 px circle at the bottom centre. */
   variant: "arc" | "rest";
   /** True while no key may open or close it (the overview's arrival from the globe). */
   keysOff?: boolean;
@@ -38,9 +38,9 @@ export interface AskProps {
   /** False: no circle on the screen (the overview, where "/ Ask" in the command bar opens the ask). */
   disc?: boolean;
   circleStyle?: CSSProperties;
-  /** The activity line beside the disc while the ask is closed (decision 14: a status stands beside its subject). */
+  /** The activity line beside the disc while the ask is closed. */
   besideRef?: Ref<HTMLParagraphElement>;
-  /** Validated questions for the place (U33b), shown as guided prompts at rest and inside the open ask. */
+  /** Validated questions for the place, shown as guided prompts at rest and inside the open ask. */
   suggestions?: readonly SuggestedQuestion[] | undefined;
   /** True while the guided prompts stand beside the ask circle at rest on the overview. */
   showPromptsAtRest?: boolean | undefined;
@@ -52,7 +52,7 @@ const typing = (t: EventTarget | null) =>
   t instanceof HTMLElement &&
   (t.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(t.tagName));
 
-/** The smallest type a long question steps down to before it would scroll (U30). */
+/** The smallest font size a long question steps down to before it scrolls. */
 const ASK_MIN_PX = 24;
 
 export function Ask({
@@ -101,7 +101,7 @@ export function Ask({
   }, [keysOff, open, onOpen, onClose]);
 
   // open, the typing goes to the question; closed, the focus leaves it
-  // a long question stays whole on its one line: the type steps down to fit the field, from 46 px to 24 px (U30)
+  // a long question stays whole on its one line: the type steps down to fit the field, from 46 px to 24 px
   useLayoutEffect(() => {
     const el = inputRef.current;
     if (!el) return;
@@ -170,7 +170,9 @@ export function Ask({
                 data-ask-live-search
                 aria-pressed={Boolean(liveSearch)}
                 tabIndex={open ? 0 : -1}
-                onClick={() => onToggleLiveSearch(!liveSearch)}
+                onClick={() => {
+                  onToggleLiveSearch(!liveSearch);
+                }}
               >
                 {liveSearch ? pkg["verdict.live.on"].text : pkg["verdict.live.off"].text}
               </button>

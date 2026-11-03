@@ -64,31 +64,27 @@ export function deriveBranchContext(
   ];
 
   // 1. Match hypotheses linked to this branch (or by keywords only when branch has no hypothesisId)
-  const hypotheses = snapshot.records.hypothesisRecords ?? [];
+  const hypotheses = snapshot.records.hypothesisRecords;
   const directHypotheses = branch?.hypothesisId
     ? hypotheses.filter((h) => h.id === branch.hypothesisId)
     : [];
   const matchingHypotheses =
     directHypotheses.length > 0
       ? directHypotheses
-      : hypotheses.filter((h) => matchesKeywords(h.statement ?? "", keywords));
+      : hypotheses.filter((h) => matchesKeywords(h.statement, keywords));
   const hypIds = new Set(matchingHypotheses.map((h) => h.id));
 
   // 2. Find candidate interventions linked exclusively to this hypothesis first, then by keywords, then shared hypothesis
-  const interventions = snapshot.records.interventionRecords ?? [];
+  const interventions = snapshot.records.interventionRecords;
   const intervention =
     interventions.find(
-      (i) =>
-        (i.hypothesisIds ?? []).length === 1 &&
-        (i.hypothesisIds ?? []).some((id) => hypIds.has(id)),
+      (i) => i.hypothesisIds.length === 1 && i.hypothesisIds.some((id) => hypIds.has(id)),
     ) ??
-    interventions.find((i) =>
-      matchesKeywords(`${i.title ?? ""} ${i.description ?? ""}`, keywords),
-    ) ??
-    interventions.find((i) => (i.hypothesisIds ?? []).some((id) => hypIds.has(id)));
+    interventions.find((i) => matchesKeywords(`${i.title} ${i.description}`, keywords)) ??
+    interventions.find((i) => i.hypothesisIds.some((id) => hypIds.has(id)));
 
   // 3. Find field plan measurements from OperationalAction records that discriminate this branch
-  const allMeasurements = (snapshot.records.operationalActionRecords ?? []).flatMap(
+  const allMeasurements = snapshot.records.operationalActionRecords.flatMap(
     (a) => a.fieldPlan?.measurements ?? [],
   );
   const fieldCheckPred = (branch?.predictions ?? []).find((p) => p.test.kind === "field_check");
@@ -98,30 +94,22 @@ export function deriveBranchContext(
         fieldCheckPred?.test.kind === "field_check" &&
         m.fieldCheckId === fieldCheckPred.test.fieldCheckId,
     ) ??
-    allMeasurements.find((m) =>
-      matchesKeywords(`${m.what ?? ""} ${m.method ?? ""}`, keywords),
-    ) ??
-    allMeasurements.find((m) =>
-      (m.discriminatesHypothesisIds ?? []).some((id) => hypIds.has(id)),
-    );
+    allMeasurements.find((m) => matchesKeywords(`${m.what} ${m.method}`, keywords)) ??
+    allMeasurements.find((m) => m.discriminatesHypothesisIds.some((id) => hypIds.has(id)));
 
   // 4. Find the best published / context Evidence record for this explanation
   const branchEvIds = new Set<string>([
     ...matchingHypotheses.flatMap((h) => [
-      ...(h.supportingEvidenceIds ?? []),
-      ...(h.contradictingEvidenceIds ?? []),
+      ...h.supportingEvidenceIds,
+      ...h.contradictingEvidenceIds,
     ]),
   ]);
 
-  const acceptedEvidence = (snapshot.records.evidenceRecords ?? []).filter(
-    (e) => e.status === "accepted",
-  );
-  const hasSourceLocator = (e: Evidence) => (e.provenance?.sourceLocators?.length ?? 0) > 0;
+  const acceptedEvidence = snapshot.records.evidenceRecords.filter((e) => e.status === "accepted");
+  const hasSourceLocator = (e: Evidence) => e.provenance.sourceLocators.length > 0;
   const contextEvidence =
     acceptedEvidence.find(
-      (e) =>
-        (e.claimKind === "scientific_context" || hasSourceLocator(e)) &&
-        branchEvIds.has(e.id),
+      (e) => (e.claimKind === "scientific_context" || hasSourceLocator(e)) && branchEvIds.has(e.id),
     ) ??
     acceptedEvidence.find(
       (e) =>
@@ -130,14 +118,12 @@ export function deriveBranchContext(
           `${e.statement} ${findSourceForEvidence(snapshot, e)?.title ?? ""}`,
           keywords,
         ),
-    ) ??
-    acceptedEvidence.find((e) => branchEvIds.has(e.id)) ??
-    acceptedEvidence.find((e) => matchesKeywords(e.statement, keywords));
+    );
 
   // 5. Find a matching Source record if no context evidence matched directly
   const matchedSource =
     (contextEvidence ? findSourceForEvidence(snapshot, contextEvidence) : undefined) ??
-    (snapshot.records.sourceRecords ?? []).find((s) =>
+    snapshot.records.sourceRecords.find((s) =>
       matchesKeywords(`${s.title} ${s.publisher ?? ""}`, keywords),
     );
 
@@ -246,8 +232,7 @@ export function verdictForCase(snapshot: CaseSnapshot, commandId: string | null)
       status: "cannot_be_assessed",
       prediction:
         "Elevation, aspect moisture differences, and snowmelt timing drive the upper-band signal.",
-      reason:
-        "Upper-band phenology shifts require local elevation-stratum verification.",
+      reason: "Upper-band phenology shifts require local elevation-stratum verification.",
     },
     {
       id: "data_artefact",

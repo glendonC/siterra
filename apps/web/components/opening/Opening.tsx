@@ -865,7 +865,8 @@ export function Opening({
                       </div>
                     </div>
                   </div>
-                ) : activeDocTab !== "sources" ? (
+                ) : null}
+                {activeDocTab !== "architecture" && activeDocTab !== "sources" ? (
                   <div className={styles.docPointsList}>
                     {doc.points.map((pt) => (
                       <div key={pt.num} className={styles.docPointRow}>
@@ -889,7 +890,8 @@ export function Opening({
                       </div>
                     ))}
                   </div>
-                ) : (
+                ) : null}
+                {activeDocTab === "sources" ? (
                   <div className={styles.docSourcesList}>
                     {PRIMARY_SOURCES.map((s) => (
                       <div key={s.code} className={styles.docSourceItem}>
@@ -915,7 +917,7 @@ export function Opening({
                       </div>
                     ))}
                   </div>
-                )}
+                ) : null}
               </section>
             </div>
           </div>

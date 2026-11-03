@@ -1,5 +1,5 @@
-/* The opened finding's record (Board 3 Rev 3 slanted frosted-glass panel) in the tokens of
-   app/obsidian.css, on the overview's 1440 x 900 stage. Every text is 12 px or larger. */
+/* Spatial finding inspection card on the valley overview. Uses flat editorial frosted-glass
+   surfaces consistent with the overview drawers and theme tokens. Every text is 12 px or larger. */
 
 .record {
   position: absolute;
@@ -8,14 +8,14 @@
   visibility: hidden;
 }
 
-/* legacy frost ref kept in DOM for placeRecordDom; the card's own .glass provides the frosted surface */
+/* Legacy frost ref kept in DOM for layout placement; the card's own .glass provides the frosted surface */
 .frost {
   position: absolute;
   pointer-events: none;
   opacity: 0;
 }
 
-/* the slanted frosted-glass card beside its subject on the land (Board 3 Rev 3) */
+/* Editorial frosted-glass card beside its subject on the land */
 .inst {
   position: absolute;
   left: 640px;
@@ -28,29 +28,42 @@
   inset: 0;
   z-index: 0;
   pointer-events: none;
+  border-radius: 14px;
   background: linear-gradient(
     155deg,
-    rgb(255 255 255 / 0.84) 0%,
-    rgb(250 248 244 / 0.74) 55%,
-    rgb(242 239 234 / 0.66) 100%
+    rgb(255 255 255 / 0.88) 0%,
+    rgb(250 248 244 / 0.82) 55%,
+    rgb(242 239 234 / 0.76) 100%
   );
   border: 1px solid rgb(255 255 255 / 0.85);
-  backdrop-filter: blur(18px) saturate(1.2) brightness(1.08);
-  -webkit-backdrop-filter: blur(18px) saturate(1.2) brightness(1.08);
+  backdrop-filter: blur(20px) saturate(1.22) brightness(1.04);
+  -webkit-backdrop-filter: blur(20px) saturate(1.22) brightness(1.04);
   box-shadow:
     inset 0 0 0 0.5px rgb(43 41 37 / 0.12),
-    0 1px 2px rgb(43 41 37 / 0.08),
-    0 14px 34px rgb(43 41 37 / 0.14);
-  transform: skewY(-4.5deg);
-  transform-origin: 100% 50%;
+    0 2px 6px rgb(43 41 37 / 0.06),
+    0 18px 38px rgb(43 41 37 / 0.14);
+  transform: none;
+}
+
+:global([data-theme="obsidian"]) .glass {
+  background: linear-gradient(
+    155deg,
+    rgb(20 26 30 / 0.88) 0%,
+    rgb(15 20 24 / 0.82) 55%,
+    rgb(11 16 19 / 0.78) 100%
+  );
+  border-color: rgb(255 255 255 / 0.12);
+  box-shadow:
+    inset 0 0 0 0.5px rgb(255 255 255 / 0.08),
+    0 2px 8px rgb(0 0 0 / 0.28),
+    0 20px 44px rgb(0 0 0 / 0.45);
 }
 
 .plane {
   position: relative;
   z-index: 1;
   padding: 18px 20px 16px;
-  transform: skewY(-4.5deg);
-  transform-origin: 100% 50%;
+  transform: none;
 }
 
 .plane [data-actions] {
@@ -171,7 +184,7 @@
 .open {
   margin-top: 14px;
 }
-/* D4 set the evidence at 676 px over a 10 px credit; the 12 px credit runs a line taller, so the evidence sits higher */
+/* Published research excerpt card positioned below the finding record */
 .evid {
   position: absolute;
   left: 1012px;
@@ -181,9 +194,9 @@
   padding: 14px 16px;
   background: #f2efea;
   color: #14181a;
-  border-radius: 2px;
+  border-radius: 10px;
   border-left: 3px solid #d97724;
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.42);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
 }
 
 .evid::before {
@@ -306,7 +319,7 @@
   color: var(--text-tertiary);
 }
 
-/* the rain card compared with rainfall (decision 13): wider, its 26 seasons rising into place from the axis */
+/* Expanded rainfall comparison card width */
 .record[data-wide] .inst {
   width: 620px;
 }
@@ -327,7 +340,7 @@
   }
 }
 
-/* the published context pill on the card's action row (decision 16) */
+/* Published context toggle pill on the card's action row */
 .contextToggle {
   display: inline-flex;
   align-items: center;

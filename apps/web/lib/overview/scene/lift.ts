@@ -1,7 +1,6 @@
-// One evidence layer lifted a little off the land (decision 12): a copy of the land's own surface, the same relief
-// mesh raised by `uLift` (km), carrying one layer of the case's evidence, never a decorative shape: the March to June
-// slope of every trend cell, the CHIRPS rainfall cells, the WorldCover land cover, or the equal-area elevation bands.
-// It is drawn over the land, through it where the land would hide it, so a layer reads as lifted off its ground.
+// Elevated evidence layer mesh: a copy of the terrain relief surface raised by `uLift` (km) to display a single
+// analytical layer (growing-season NDVI trend slope, CHIRPS rainfall grid, WorldCover classes, or equal-area
+// elevation bands). Rendered with depth testing disabled so the lifted sheet remains legible above the terrain.
 
 import {
   type BufferGeometry,

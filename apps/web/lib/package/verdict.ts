@@ -303,6 +303,13 @@ function formatReason(
         `Greenness in ${where} ${verb} from ${trend[2] ?? ""} (${trend[4] ?? ""}).`,
       );
     }
+    const seasonSummary = /^The season summary places (.*) (above|below) normal\.$/i.exec(obs);
+    if (seasonSummary) {
+      const dir = (seasonSummary[2] ?? "above").toLowerCase();
+      return plainVerdictText(
+        `Rainfall in ${seasonSummary[1] ?? "that season"} was ${dir} normal while vegetation greenness did not follow a single-season drought drop, so rainfall alone does not explain the trend.`,
+      );
+    }
     const flagNone = /^(\w+) is recorded for none of (.*)\.$/i.exec(obs);
     if (flagNone) {
       return plainVerdictText(`No ${flagNone[1] ?? "flag"} was recorded in ${flagNone[2] ?? ""}.`);

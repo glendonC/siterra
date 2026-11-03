@@ -80,7 +80,7 @@ export function placeRecordDom(
 }
 
 /**
- * Places the opened finding's card beside its anchor in the open half of the viewport clear of the 3D terrain (decision 14).
+ * Places the opened finding's card beside its anchor in the open half of the viewport clear of the 3D terrain.
  */
 export function placeCardDom(
   els: {

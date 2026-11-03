@@ -1,4 +1,4 @@
-/* Direction 1, SHD Obsidian: the theme of the instrument views, with the values of the approved specimens.
+/* Direction 1, SHD Obsidian: the theme of the instrument views, with the values of the design system.
    This file and lib/theme/obsidian.ts are the only places where the instruments' colour values are written
    (VC-01). It applies inside an element with data-theme="obsidian"; the daylight tokens stay as they are. */
 
@@ -65,7 +65,7 @@
   --ink-on-wall: #131a1d;
   --hairline-on-wall: rgb(19 26 29 / 0.55);
 
-  /* the overview (approved specimen D4) */
+  /* the overview */
   --ov-ground:
     radial-gradient(
       ellipse 36% 50% at 50% 50%,
@@ -156,7 +156,7 @@
   --ov-grid: rgb(255 255 255 / 0.07);
   --ov-connector: rgb(201 214 218 / 0.55);
   --ov-connector-end: #c9d6da;
-  /* a card standing on the land (U27): the ground, nearly opaque, the land faintly through it */
+  /* a card standing on the land: the ground, nearly opaque, the land faintly through it */
   --ov-card: rgb(11 16 18 / 0.8);
   /* AffectUI Clean dark tokens for the Agent Tree, Cursors and Thinking/Plan inspector (Section 8) */
   --tree-card-bg: rgb(18 26 30 / 0.92);
@@ -189,7 +189,7 @@
     transparent 100%
   );
 
-  /* the journey (opening and globe) in the Obsidian palette (decision 11): the roles its styles name, now dark */
+  /* the journey (opening and globe) in the Obsidian palette: the roles its styles name, now dark */
   --paper: #0b1012;
   --ink: #ebf0f1;
   --grey: #9aa6ab;

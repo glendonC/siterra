@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { pixelColours as C } from "../../theme/obsidian";
 import { cellColour } from "./paint";
 
-describe("cellColour (U27)", () => {
+describe("cellColour", () => {
   const cell = { rgb: [255, 0, 51] as const, ndvi: 0.45, cls: 30 };
 
   it("paints the true colour composite as 0 to 1 RGB", () => {

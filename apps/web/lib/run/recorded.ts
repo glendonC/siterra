@@ -1,7 +1,7 @@
 "use client";
 
-// A recorded run fed to the overview in place of the ask's live stream (U29; the lead, 30 Oct: the RECORDED run
-// "Founder instance smoke 1", for tests and frames only, and every screen it feeds says it is a recording). The
+// A recorded run fed to the overview in place of the ask's live stream (for tests and deterministic frames,
+// where every screen it feeds indicates that it is a recording). The
 // development harness provides it; the product's overview never does. Its events are revealed on a replay clock in
 // their recorded order and spacing, so the same event model the live stream feeds unfolds it.
 
@@ -13,7 +13,7 @@ export interface RecordedRun {
   question: string;
   snapshot: CaseSnapshot;
   events: readonly Event[];
-  /** Times faster than it ran (the specimen's 4). */
+  /** Replay speed multiplier relative to real time (4x by default). */
   speed: number;
   /** A fixed moment of the run (ms after acceptance), for still frames; null plays from the start. */
   at: number | null;

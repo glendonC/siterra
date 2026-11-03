@@ -1,7 +1,7 @@
 // Shader source for the globe, ported from the design lane's approved hero study A4 (gl4.js, 27 Oct 2026; our own
 // code). The globe is ray traced per pixel against the unit sphere: relief, dots sized by elevation, contour lines
 // drawn outward from the case, the rising relief, and the rangeland biomes lit. Edit the look in one place: here.
-// The palette is the Obsidian globe's (lib/theme/obsidian globeColours, decision 11): the names keep the study's
+// The palette is the Obsidian globe's (lib/theme/obsidian globeColours): the names keep the study's
 // roles, PAPER being the ground the globe stands on and fades to.
 
 import { daylight } from "../theme/daylight";
@@ -19,7 +19,7 @@ const HEAD = `#version 300 es
 precision highp float;
 precision highp sampler2D;
 `;
-// Both approved palettes: Obsidian dark (decision 11) and Daylight paper (hero study A4 / siterra-hero-board.png).
+// Both approved palettes: Obsidian dark and Daylight paper (hero study A4 / siterra-hero-board.png).
 const PALETTE = `
 const vec3 D_PAPER = ${vec3(G.ground)}, D_INK = ${vec3(G.ink)}, D_GREY = ${vec3(G.grey)};
 const vec3 D_SHADOW = ${vec3(G.shadow)}, D_ALBEDO = ${vec3(G.albedo)}, D_BIOME = ${vec3(G.biome)};

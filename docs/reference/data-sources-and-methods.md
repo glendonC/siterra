@@ -1,6 +1,6 @@
 # Data sources and reproducible methods
 
-Status: public specification, 2026-10-26; updated 2026-10-27. The catchment is frozen at native 30 m and a validated CHIRPS rainfall bundle exists ([`data/bundles/`](../../data/bundles/catalog.json)); the Sentinel-2 bundle is in progress. A preview catchment geometry and catalog-level availability counts were computed during planning ([study area](../../research/geospatial/study-area.md), [availability probe](../../research/geospatial/data-availability.md)). Catalog counts describe metadata, not clear observations. Source IDs resolve in the [science bibliography](../../research/science/source-register.md). Output format: [bundle output](observation-preprocessing.md#bundle-output) (STAC profile).
+Status: public specification, 2026-10-26; updated 2026-10-27. The catchment is frozen at native 30 m and validated observation and recipe bundles are cataloged in [`data/bundles/`](../../data/bundles/catalog.json). A preview catchment geometry and catalog-level availability counts were computed during planning ([study area](../../research/geospatial/study-area.md), [availability probe](../../research/geospatial/data-availability.md)). Catalog counts describe metadata, not clear observations. Source IDs resolve in the [science bibliography](../../research/science/source-register.md). Output format: [bundle output](observation-preprocessing.md#bundle-output) (STAC profile).
 
 ## Study area
 
@@ -83,7 +83,7 @@ Every measurement carries the fields required by the [bundle output](observation
 
 ## Second place: Calaveras Creek
 
-**Why (built 2026-10-30):** to show that the pipeline serves a second place without new code per place. The place is a grazed rangeland in the Bay Area, the Calaveras Creek catchment above Calaveras Dam, chosen by the lead. Every place value is read from [`science/places/calaveras-creek.json`](../../science/places/calaveras-creek.json), written and registered before any layer of the place was computed; its nine revisions are listed there, and the two changes made after something had been seen are labelled POST HOC. The bundles are under [`data/bundles/`](../../data/bundles/catalog.json) with the id suffix `calaveras_creek`. Nothing here is a field observation, a gauge comparison or a statement about a grazing lease; no data of the place's managers was used.
+**Why (built 2026-10-30):** to show that the pipeline serves a second place without new code per place. The place is a grazed rangeland in the Bay Area, the Calaveras Creek catchment above Calaveras Dam, selected as an independent validation watershed. Every place value is read from [`science/places/calaveras-creek.json`](../../science/places/calaveras-creek.json), written and registered before any layer of the place was computed; its nine revisions are listed there, and the two changes made after something had been seen are labelled POST HOC. The bundles are under [`data/bundles/`](../../data/bundles/catalog.json) with the id suffix `calaveras_creek`. Nothing here is a field observation, a gauge comparison or a statement about a grazing lease; no data of the place's managers was used.
 
 | Property | Value |
 |---|---|

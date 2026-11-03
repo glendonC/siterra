@@ -1,4 +1,4 @@
-// The overview's arc (approved specimen D4, js/d4.js): part of an upright circle in the picture plane behind the land,
+// The overview's arc: part of an upright circle in the picture plane behind the land,
 // open at the bottom. Clock degrees: 0 at the top, clockwise. It runs clockwise from A0 (lower left, where the ask
 // circle sits) over the top to A1 (lower right); its opacity rises from nothing over the first FA degrees and falls to
 // nothing over the last FB degrees. Every length is CSS px at the 1440 x 900 design.
@@ -9,7 +9,7 @@ export const ARC = { a0: 236, a1: 128, fa: 50, fb: 46, peak: 0.8 } as const;
 export const DIAL = { r: 372, cx: 720, cy: 452, back: 34 } as const;
 /** The dial with a finding opened: moved up and left, larger, turned away (yaw, degrees). */
 export const DIAL1 = { cx: 210, cy: 170, r: 470, yaw: 24 } as const;
-/** Where the ask disc rests on the arc (design px): the dial's start, the same in every view (decision 13d). */
+/** Where the ask disc rests on the arc (design px): the dial's start, shared across views. */
 export const ASK_AT = {
   x: DIAL.cx + DIAL.r * Math.sin(((236 as number) * Math.PI) / 180),
   y: DIAL.cy - DIAL.r * Math.cos(((236 as number) * Math.PI) / 180),
@@ -27,7 +27,7 @@ export const uOf = (clock: number) => mod360(clock - ARC.a0);
 
 export const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 export const clamp01 = (x: number) => Math.max(0, Math.min(1, x));
-/** Smootherstep, the specimen's easing. */
+/** Smootherstep easing function. */
 export const ease = (x: number) => (x <= 0 ? 0 : x >= 1 ? 1 : x * x * x * (x * (6 * x - 15) + 10));
 export const sstep = (a: number, b: number, x: number) => {
   const t = clamp01((x - a) / (b - a));
@@ -70,7 +70,7 @@ export function outward(clock: number, roll = 0): { ux: number; uy: number } {
 export type Side = "left" | "right" | "centre";
 export type Rise = "above" | "below" | "middle";
 
-/** Where a label sits from its dot: beyond the dot along the outward direction (the specimen's thresholds). */
+/** Where a label sits from its dot: beyond the dot along the outward direction. */
 export function labelSide(ux: number, uy: number): { side: Side; rise: Rise } {
   return {
     side: ux < -0.35 ? "left" : ux > 0.35 ? "right" : "centre",

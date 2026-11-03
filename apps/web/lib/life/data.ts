@@ -151,7 +151,7 @@ export interface RecordedPoint {
 
 /**
  * The records drawn on the land, grouped by their recorded coordinate, in the order each point first appears. A
- * fossil specimen records an organism of an earlier age, not a living one: it stays off the land (the lead, 21:08)
+ * fossil the referenceecords an organism of an earlier age, not a living one: it stays off the land (the lead, 21:08)
  * and is counted in the layer's card instead.
  */
 export function pointsOf(o: Occurrences, zone: number): RecordedPoint[] {

@@ -27,7 +27,7 @@ export function Arrow({ deg, className }: { deg: number; className: string | und
 
 /** What the card says of the land while a finding is open: only the trend map's rule, when its asset was read. */
 export function onLandOf(sel: Selection, data: OverviewData | null): string | null {
-  // decision 16: the lit land shows its footprint and the hover names it; only the trend map's rule stays in words
+  // The lit terrain shows its footprint and hover names it; only the trend map's statistical rule stays in words.
   if (sel === "fdr") return data?.footprints.slope ? en["overview.onLand.fdrRule"].text : null;
   return null;
 }

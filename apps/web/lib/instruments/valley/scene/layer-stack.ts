@@ -1,4 +1,4 @@
-// The five layers over the valley (approved specimen A): the catchment as a physical model (30 m relief cut along
+// The five layers over the valley: the catchment as a physical model (30 m relief cut along
 // the frozen boundary with a section wall, one warm low light, contours every 250 m, drainage from the same DEM)
 // under five plates, one dataset each, stacked straight up. The camera, the gaps and the plate come from the
 // fixture layout-a.json, measured before rendering so that no layer's content hides another's.
@@ -60,8 +60,8 @@ export interface LayerStackScene {
   /** How far each sheet has come off the land (0 to 1, in the order of `sheets`); all 1 at rest. */
   sheetIn: readonly number[];
   /**
-   * The land taken apart (decision 12): at 0 the overview's land as the overview showed it (its pose, its height
-   * scale and light, the sheets inside it), at 1 specimen A's stack; between, the camera moves to the measured view,
+   * The land taken apart: at 0 the overview's land as the overview showed it (its pose, its height
+   * scale and light, the sheets inside it), at 1 the reference stack; between, the camera moves to the measured view,
    * the land settles to this view's height scale and the sheets peel up one by one, the first to the top.
    */
   setIntro(k: number, from: LandPose): void;
@@ -82,7 +82,7 @@ function buildLayerStack(canvas: HTMLCanvasElement, data: LayerStackData): Layer
   const strata = bitmapTexture(data.bands);
   const { meta, relief: H, catchment, rivers, trend, rain, snow } = data;
   const g = meta.relief;
-  // the plinth's base, and the layout (specimen A's, carried to this land) from the land's own outline and heights
+  // the plinth's base, and the layout (the reference, carried to this land) from the land's own outline and heights
   const lf = landFrame(catchment.ring, data.range);
   const frame = makeFrame(meta.frame, { exag: LAYER_STACK_EXAG, base: lf.base });
   const L = layerStackLayout(
@@ -226,7 +226,7 @@ function buildLayerStack(canvas: HTMLCanvasElement, data: LayerStackData): Layer
     stage.render();
   };
 
-  // ---------- the land taken apart from the overview's (decision 12) ----------
+  // ---------- the land taken apart from the overview's ----------
   const lightA = light.dir.clone();
   const reliefU = relief.uniforms as unknown as {
     uL: { value: Vector3 };

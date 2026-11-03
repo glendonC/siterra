@@ -50,7 +50,7 @@ export interface OverviewData {
     note: string;
     /**
      * Its Sentinel-2 cells (10 m) whose centres lie inside it, each with its centre and its display colour (the
-     * shared true-colour composite, display only), for the pixel taken apart (decision 12).
+     * shared true-colour composite, display only), for the pixel taken apart.
      */
     cells: {
       E: number;

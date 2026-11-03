@@ -1,6 +1,6 @@
 "use client";
 
-// The layer stack (approved specimen A): five sheets of the record stacked straight up over the 3D catchment,
+// The layer stack: five sheets of the record stacked straight up over the 3D catchment,
 // numbered labels on one hairline leader each, one large figure at the top left, and the sources. The scene is
 // three.js (lib/instruments/valley/scene/layer-stack.ts); the words around it are HTML, placed after every render
 // so they follow the model when it is turned. The caption is the layer stack spec's, as the case records carry it.
@@ -40,7 +40,7 @@ import { useTeardown, type Teardown } from "./useTeardown";
 import styles from "./InstrumentLayerStack.module.css";
 import { useInstrument } from "./InstrumentRecords";
 
-/** Left edge of the labels at the design width, as the specimen measured it. */
+/** Left edge of the labels at the design width, as the the referenceeasured it. */
 const LABEL_X = 1100;
 /** The selected sheet: its number and its leader carry the one warm line. */
 const SELECTED: SheetId = "trend";
@@ -156,7 +156,7 @@ const TURN: Record<string, [number, number]> = {
 };
 
 /**
- * The land taken apart in place (decision 12): the overview hands over where its land stands (`from`); the stack's
+ * The land taken apart in place: the overview hands over where its land stands (`from`); the stack's
  * first frame draws that land there and calls `onDrawn`, then the sheets peel up into the stack. With `back` set it
  * plays back until the sheets have settled into the land, then calls `onBack`.
  */

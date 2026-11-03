@@ -1,6 +1,6 @@
 // Thin sheets that lift off the model, one real dataset each. A sheet is a plate with a faint fill and a thin light
 // rim (decoration, and it reads as such); its data is crisp line work plus a faint tint, drawn at the data's own
-// cell size: MODIS 250 m cells, CHIRPS 0.05 degree cells, 10 m rasters. Ported from the approved specimens.
+// cell size: MODIS 250 m cells, CHIRPS 0.05 degree cells, 10 m rasters. Ported from the design system.
 
 import {
   BufferGeometry,

@@ -1,4 +1,4 @@
-/* The layer stack instrument (approved specimen A), in the Obsidian tokens of app/obsidian.css: one large figure
+/* The layer stack instrument, in the Obsidian tokens of app/obsidian.css: one large figure
    at the top left, numbered sheet labels on hairline leaders, the vertical scale under the model, the sources. */
 
 .root {
@@ -67,7 +67,7 @@
   font-size: 14px;
   line-height: 20px;
   color: var(--text-secondary);
-  /* wraps inside the brief, clear of the plates (U25b: a place's longer caption) */
+  /* wraps inside the brief, clear of the plates */
   white-space: normal;
 }
 
@@ -226,7 +226,7 @@
   white-space: nowrap;
 }
 
-/* the land taken apart from the overview (decision 12): the brief and the scale note wait until the stack stands */
+/* the land taken apart from the overview: the brief and the scale note wait until the stack stands */
 .brief,
 .scaleNote {
   transition: opacity 0.45s ease;

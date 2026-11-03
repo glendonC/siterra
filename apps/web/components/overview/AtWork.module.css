@@ -1,9 +1,8 @@
-/* A question at work on the overview (Death Stranding World Map + Filter Rail aesthetic):
-   - Top-Left Architectural Header (Place + ▸ Question)
-   - Left Icon-Only Squircle Rail with animated color border-edge sweep while running + vertical guide ticks
-   - Feathered Side-Blur Inspector on click / Space (using --ov-frost & --ov-frost-mask, no flat box or borders)
-   - Full-Width Bottom Feathered Band with loader + live thinking stream while running, and settled summary + 5 causes when done
-   - Spatial reticles on the 3D terrain */
+/* Investigation thinking trace on the valley overview:
+   - Top-left question header
+   - Left-hand feathered step trace with single-open accordion detail and scrollable source chips
+   - Settled synthesis takeaway card and field plan review CTA when the run finishes
+   - Spatial task cursors across the 3D terrain */
 
 .atWork {
   position: absolute;
@@ -61,7 +60,7 @@
   stroke-width: 1.5;
 }
 
-/* ─── Top-Left Architectural Header (Death Stranding Map / Information Style) ─── */
+/* ─── Top-Left Architectural Header ─── */
 
 .topLeftHeader {
   position: absolute;
@@ -85,13 +84,6 @@
   pointer-events: auto;
 }
 
-.questionCaret {
-  font: 600 12px / 1 var(--font-mono);
-  color: var(--ov-blue);
-  flex-shrink: 0;
-  transform: translateY(-1px);
-}
-
 .asked {
   margin: 0;
   font: 400 14px / 19px var(--font-sans);
@@ -100,7 +92,7 @@
   text-shadow: var(--paper-halo);
 }
 
-/* ─── Upright, Borderless Top-Left Thinking Trace (AffectUI / Globe Shimmer) ─── */
+/* ─── Upright Top-Left Thinking Trace ─── */
 
 .leftRailSystem {
   position: absolute;
@@ -110,7 +102,7 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  max-width: 320px;
+  max-width: 332px;
   pointer-events: none;
 }
 
@@ -118,8 +110,8 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  width: 320px;
-  max-width: 320px;
+  width: 332px;
+  max-width: 332px;
   padding: 2px 0;
   pointer-events: auto;
   isolation: isolate;
@@ -141,9 +133,18 @@
 .thinkingHeader {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
-  gap: 8px;
+  align-items: center;
+  gap: 7px;
   margin: 0 0 8px;
+}
+
+.thinkingDoneDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: #1e824c;
+  box-shadow: 0 0 0 3px rgba(30, 130, 76, 0.16);
+  flex-shrink: 0;
 }
 
 .thinkingWord {
@@ -177,6 +178,17 @@
   text-shadow: var(--paper-halo);
 }
 
+.thinkingFindingsBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: rgba(29, 111, 232, 0.11);
+  color: #1d5ec9;
+  font: 500 11px / 15px var(--font-sans);
+  font-variant-numeric: tabular-nums;
+}
+
 .thinkingPausedBadge {
   display: inline-flex;
   align-items: center;
@@ -186,14 +198,6 @@
   color: #b4690e;
   font: 500 11px / 15px var(--font-sans);
   letter-spacing: 0.01em;
-}
-
-.thinkingStatusInline {
-  font: 400 12px / 16px var(--font-sans);
-  font-variant-numeric: tabular-nums;
-  color: var(--text-secondary);
-  text-shadow: var(--paper-halo);
-  margin-left: auto;
 }
 
 .srOnly {
@@ -399,60 +403,59 @@
   color: var(--text-tertiary);
 }
 
-.treeNodeScope {
-  font: 400 12px / 16px var(--font-sans);
-  color: var(--text-tertiary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 96px;
+/* ─── Settled Completion Card & Review CTA ─── */
+
+.treeNodeReviewItem {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-top: 6px;
+  padding: 9px 11px;
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--bg-surface, #fff) 78%, transparent);
+  border: 1px solid rgba(212, 136, 23, 0.28);
+  box-shadow: 0 6px 18px rgba(26, 23, 20, 0.06);
+  animation: treeNodeArrive 260ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-.treeNodeState {
-  margin-left: auto;
-  font: 400 12px / 16px var(--font-sans);
-  font-variant-numeric: tabular-nums;
-  color: var(--text-tertiary);
-  flex-shrink: 0;
+.settledTakeaway {
+  margin: 0;
+  font: 400 12px / 16.5px var(--font-sans);
+  color: var(--text-secondary);
 }
 
 .treeNodeReview {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 8px;
-  width: fit-content;
-  max-width: 100%;
-  padding: 3px 8px 3px 6px;
-  margin-left: -6px;
-  border: 0;
-  border-radius: 5px;
-  background: transparent;
+  gap: 7px;
+  width: 100%;
+  padding: 5px 8px;
+  border: 1px solid rgba(212, 136, 23, 0.32);
+  border-radius: 6px;
+  background: rgba(212, 136, 23, 0.1);
   color: var(--text-primary);
   text-align: left;
   cursor: pointer;
   outline: none;
-  text-shadow: var(--paper-halo);
   transition:
     background-color 140ms ease,
-    color 140ms ease;
+    border-color 140ms ease,
+    transform 140ms ease;
 }
 
 .treeNodeReview:hover,
 .treeNodeReview:focus-visible {
-  background: rgba(26, 23, 20, 0.055);
-}
-
-.treeNodeReview:hover .treeNodeChevron,
-.treeNodeReview:focus-visible .treeNodeChevron {
-  opacity: 1;
-  color: var(--text-primary);
-  transform: translateX(1.5px);
+  background: rgba(212, 136, 23, 0.18);
+  border-color: rgba(212, 136, 23, 0.48);
 }
 
 .treeNodeReviewLabel {
-  font: 500 13px / 18px var(--font-sans);
+  font: 600 12.5px / 17px var(--font-sans);
   color: var(--text-primary);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
@@ -461,13 +464,28 @@
   align-items: center;
   padding: 1px 6px;
   border-radius: 4px;
-  border: 1px solid rgba(212, 136, 23, 0.28);
-  background: rgba(212, 136, 23, 0.12);
+  border: 1px solid rgba(212, 136, 23, 0.32);
+  background: rgba(212, 136, 23, 0.16);
   color: #8a5009;
-  font: 500 11.5px / 15px var(--font-sans);
+  font: 600 11px / 15px var(--font-sans);
   letter-spacing: 0.01em;
   white-space: nowrap;
-  text-shadow: none;
+  flex-shrink: 0;
+}
+
+.reviewKeyHint {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 17px;
+  padding: 0 4px;
+  border-radius: 3.5px;
+  background: rgba(26, 23, 20, 0.08);
+  font: 500 11px / 1 var(--font-sans);
+  color: var(--text-secondary);
+  flex-shrink: 0;
 }
 
 /* ─── Inline Accordion Detail beneath Expanded Step ─── */
@@ -652,15 +670,6 @@
   }
 }
 
-.thinkingStepList {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
 .inlineBranchesList {
   margin: 0;
   padding: 0;
@@ -808,9 +817,9 @@
   .topLeftHeader,
   .thinkingFoot,
   .treeNode,
+  .treeNodeReviewItem,
   .treeNode[data-expanded] .inlineTraceWrap,
-  .treeNode[data-expanded] .thinkingChip,
-  .bottomThinkingBand {
+  .treeNode[data-expanded] .thinkingChip {
     animation: none;
     transition: none;
   }
@@ -826,390 +835,177 @@
   white-space: nowrap;
 }
 
-.thinkingStepTime {
-  font: 400 12px / 16px var(--font-sans);
-  font-variant-numeric: tabular-nums;
-  color: var(--text-tertiary);
-}
-
-/* ─── Full-Width Bottom Feathered Band (Death Stranding Map Subtitle + Loader) ─── */
-
-.bottomThinkingBand {
-  position: absolute;
-  isolation: isolate;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 9;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 9px;
-  /* clear of the command bar at the bottom right */
-  padding: 36px 48px 64px;
-  pointer-events: none;
-  animation: treeNodeArrive 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-.bottomThinkingBand::before {
-  content: "";
-  position: absolute;
-  inset: -16px 0 0 0;
-  z-index: -1;
-  pointer-events: none;
-  background: linear-gradient(
-    to top,
-    color-mix(in srgb, var(--bg-canvas) 92%, transparent) 0%,
-    color-mix(in srgb, var(--bg-canvas) 76%, transparent) 55%,
-    transparent 100%
-  );
-  mask-image: linear-gradient(to top, black 55%, transparent 100%);
-  -webkit-mask-image: linear-gradient(to top, black 55%, transparent 100%);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-}
-
-.bottomLoaderTrack {
-  width: 180px;
-  height: 2px;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--agent-color, var(--ov-blue)) 22%, transparent);
-  overflow: hidden;
-  position: relative;
-}
-
-.bottomLoaderBar {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 45%;
-  border-radius: 999px;
-  background: var(--agent-color, var(--ov-blue));
-  animation: bottomBarSlide 1.35s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-}
-
-@keyframes bottomBarSlide {
-  0% {
-    left: -45%;
-  }
-  100% {
-    left: 100%;
-  }
-}
-
-.bottomThinkingContent {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  text-align: center;
-  max-width: 1120px;
-  pointer-events: auto;
-}
-
-.bottomRunningRow {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.bottomPrimaryCard {
-  display: inline-flex;
-  align-items: baseline;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 9px;
-  border: 0;
-  background: transparent;
-  padding: 2px 8px;
-  cursor: pointer;
-  text-align: center;
-}
-
-.bottomAgentName {
-  font: 600 12px / 16px var(--font-mono);
-  letter-spacing: 0.02em;
-  color: var(--agent-color, var(--ov-blue));
-}
-
-.bottomThinkingText {
-  font: 400 14.5px / 20px var(--font-sans);
-  color: var(--text-primary);
-  text-shadow: var(--paper-halo);
-}
-
-.bottomSecondaryRunning {
-  display: none;
-}
-
-.bottomSecondaryDot {
-  width: 6px;
-  height: 6px;
-  border-radius: 2px;
-  background: var(--agent-color, var(--ov-blue));
-}
-
-.bottomStatusRow {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: 8px 18px;
-}
-
-.sofar {
-  margin: 0;
-  font: 500 12px / 16px var(--font-mono);
-  color: var(--ov-blue);
-  text-shadow: var(--paper-halo);
-}
-
-.atWork[data-done] .sofar {
-  color: var(--text-primary);
-}
-
-.counts {
-  display: inline-flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px 12px;
-  margin: 0;
-  font: 400 12px / 16px var(--font-sans);
-  color: var(--text-secondary);
-  text-shadow: var(--paper-halo);
-}
-
-.countItem {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  white-space: nowrap;
-}
-
-.mark {
-  font-size: 12px;
-  line-height: 1;
-}
-
-.countItem[data-gather="run.count.checked"] .mark {
-  color: var(--ov-blue);
-}
-
-.countItem[data-gather="run.count.computed"] .mark {
-  color: var(--ov-green);
-}
-
-.countItem[data-gather="run.count.unchecked"] .mark {
-  color: var(--ov-amber-tag);
-}
-
-.check {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 7px;
-  margin: 0;
-}
-
-.checkKicker {
-  font: 600 12px / 16px var(--font-mono);
-  letter-spacing: 0.02em;
-  color: var(--ov-amber-tag);
-}
-
-.checkLabel {
-  font: 500 12.5px / 16px var(--font-sans);
-  color: var(--text-primary);
-}
-
-/* Horizontal 5-Cause Strip inside Bottom Feathered Band; it paints above the status row, so a cause's note (which opens
-   over that row) is not covered by it */
-.branches {
-  position: relative;
-  z-index: 2;
-  margin: 2px 0 0;
-  padding: 0;
-  list-style: none;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: 6px 10px;
-}
-
-.branch {
-  position: relative;
-  padding: 4px 10px;
-  border-radius: 6px;
-  background: color-mix(in srgb, var(--bg-canvas) 65%, transparent);
-  font: 400 12px / 16px var(--font-sans);
-  color: var(--text-tertiary);
-  cursor: pointer;
-  transition:
-    background 150ms ease,
-    transform 150ms ease;
-}
-
-.branch:hover {
-  transform: translateY(-1px);
-  background: color-mix(in srgb, var(--bg-canvas) 92%, transparent);
-}
-
-.branchRow {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 8px;
-}
-
-.branchWord {
-  font: 500 12px / 16px var(--font-mono);
-}
-
-.branch[data-status="consistent"] {
-  color: var(--text-primary);
-  font-weight: 500;
-  background: color-mix(in srgb, var(--ov-blue) 10%, var(--bg-canvas));
-}
-
-.branch[data-status="consistent"] .branchWord {
-  color: var(--ov-blue);
-}
-
-.branch[data-status="cannot_be_assessed"] {
-  color: var(--text-primary);
-  font-weight: 500;
-  background: color-mix(in srgb, var(--ov-amber-tag) 11%, var(--bg-canvas));
-}
-
-.branch[data-status="cannot_be_assessed"] .branchWord {
-  color: var(--ov-amber-tag);
-}
-
-.reason {
-  position: absolute;
-  left: 50%;
-  bottom: calc(100% + 8px);
-  transform: translateX(-50%);
-  width: max-content;
-  max-width: 300px;
-  padding: 6px 10px;
-  border-radius: 6px;
-  background: var(--bg-surface);
-  box-shadow: var(--shadow-popover);
-  font: 400 13px / 18px var(--font-sans);
-  color: var(--text-primary);
-  text-align: center;
-  pointer-events: none;
-  z-index: 20;
-}
-
 /* ─── Spatial Cursors on 3D Land ─── */
+
+.cursorLayer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 8;
+}
 
 .agentCursor {
   position: absolute;
-  transform: translate(-11px, -11px);
+  transform: translate(-2px, -2px);
   display: inline-flex;
-  align-items: center;
-  gap: 8px;
+  align-items: flex-start;
+  gap: 3px;
   padding: 0;
   border: 0;
   background: transparent;
   color: var(--text-primary);
   pointer-events: auto;
   cursor: pointer;
+  opacity: 0.84;
   z-index: 7;
   transition:
+    left 420ms cubic-bezier(0.22, 1, 0.36, 1),
+    top 420ms cubic-bezier(0.22, 1, 0.36, 1),
     opacity 180ms ease,
-    transform 180ms ease;
+    transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+  animation: cursorArrive 240ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-.agentCursor:hover {
-  transform: translate(-11px, -11px) scale(1.04);
-  z-index: 10;
-}
-
-.agentCursor[data-dimmed] {
-  opacity: 0.28;
-}
-
-.cursorReticle {
-  position: relative;
-  width: 22px;
-  height: 22px;
-  border-radius: 999px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: color-mix(in srgb, var(--bg-canvas) 82%, transparent);
-  border: 1.5px solid var(--ov-blue);
-  flex-shrink: 0;
-}
-
-.cursorReticle[data-target-kind="land"] {
-  border-color: var(--ov-green);
-}
-
-.cursorRing {
-  width: 6px;
-  height: 6px;
-  border-radius: 999px;
-  background: var(--ov-blue);
-  animation: cursorPulse 1.6s ease-in-out infinite;
-}
-
-.cursorRing[data-target-kind="land"] {
-  background: var(--ov-green);
-}
-
-@keyframes cursorPulse {
-  0%,
-  100% {
-    transform: scale(0.9);
-    opacity: 0.8;
+@keyframes cursorArrive {
+  from {
+    opacity: 0;
+    transform: translate(-2px, 4px) scale(0.92);
   }
-  50% {
-    transform: scale(1.3);
+  to {
     opacity: 1;
+    transform: translate(-2px, -2px) scale(1);
   }
 }
 
-.cursorBody {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  padding: 3px 7px;
-  border-radius: 4px;
-  background: color-mix(in srgb, var(--bg-surface) 88%, transparent);
-  box-shadow: 0 1px 2px rgb(43 41 37 / 0.08);
-  text-align: left;
-  max-width: 220px;
-  transition: opacity 160ms ease;
+.agentCursor[data-primary] {
+  opacity: 1;
+  z-index: 12;
 }
 
-/* Hide overlapping secondary cursor text pills unless hovered or selected, or when the side-blur inspector is open */
-.agentCursor:not([data-primary]):not([data-selected]):not(:hover) .cursorBody,
-.atWork:has([data-agent-thinking]) .cursorBody {
+.agentCursor[data-selected],
+.agentCursor[data-hovered],
+.agentCursor:hover,
+.agentCursor:focus-visible {
+  opacity: 1;
+  z-index: 20;
+  outline: none;
+}
+
+.agentCursor:hover,
+.agentCursor:focus-visible {
+  transform: translate(-2px, -3px) scale(1.03);
+}
+
+.cursorScanRing {
+  position: absolute;
+  left: -7px;
+  top: -7px;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  border: 1.5px solid var(--agent-color, #1d6fe8);
+  background: color-mix(in srgb, var(--agent-color, #1d6fe8) 18%, transparent);
   opacity: 0;
   pointer-events: none;
 }
 
-.cursorTask {
-  font: 600 12px / 16px var(--font-mono);
-  letter-spacing: 0.02em;
-  color: var(--ov-blue);
-  text-shadow: var(--paper-halo);
+.agentCursor[data-primary] .cursorScanRing,
+.agentCursor[data-selected] .cursorScanRing,
+.agentCursor[data-hovered] .cursorScanRing,
+.agentCursor:hover .cursorScanRing {
+  opacity: 0.9;
+  animation: cursorScanPulse 2s cubic-bezier(0.22, 1, 0.36, 1) infinite;
 }
 
-.agentCursor[data-target-kind="land"] .cursorTask {
-  color: var(--ov-green);
+@keyframes cursorScanPulse {
+  0% {
+    transform: scale(0.55);
+    opacity: 0.9;
+  }
+  75% {
+    transform: scale(1.9);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1.9);
+    opacity: 0;
+  }
 }
 
-.cursorLabel {
-  font: 500 12px / 16px var(--font-sans);
-  color: var(--text-primary);
-  text-shadow: var(--paper-halo);
+.cursorPointerSvg {
+  flex-shrink: 0;
+  filter: drop-shadow(0 2px 4px rgba(20, 18, 15, 0.28));
+}
+
+.cursorPill {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  margin-top: 10px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, var(--agent-color, #1d6fe8) 34%, rgba(255, 255, 255, 0.2));
+  background: rgba(26, 23, 20, 0.82);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 4px 12px rgba(20, 18, 15, 0.2);
+  text-align: left;
+  max-width: 210px;
+  transition:
+    padding 160ms ease,
+    background 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.agentCursor[data-primary] .cursorPill,
+.agentCursor[data-selected] .cursorPill,
+.agentCursor[data-hovered] .cursorPill,
+.agentCursor:hover .cursorPill {
+  padding: 5px 9px;
+  background: rgba(24, 21, 18, 0.9);
+  border-color: color-mix(in srgb, var(--agent-color, #1d6fe8) 58%, rgba(255, 255, 255, 0.3));
+  box-shadow: 0 6px 16px rgba(20, 18, 15, 0.28);
+}
+
+.cursorPillHeader {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 194px;
+}
+
+.cursorPillName {
+  font: 500 11px / 14px var(--font-sans);
+  color: #f6f3ec;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 210px;
+  max-width: 160px;
+}
+
+.agentCursor[data-primary] .cursorPillName,
+.agentCursor[data-selected] .cursorPillName,
+.agentCursor[data-hovered] .cursorPillName,
+.agentCursor:hover .cursorPillName {
+  font-weight: 600;
+  font-size: 11.5px;
+  line-height: 15px;
+}
+
+.cursorPillHint {
+  flex-shrink: 0;
+  font: 500 10px / 13px var(--font-sans);
+  color: color-mix(in srgb, var(--agent-color, #67a8ff) 45%, #f6f3ec);
+  letter-spacing: 0.01em;
+}
+
+.cursorPillAction {
+  font: 400 11px / 14px var(--font-sans);
+  color: rgba(246, 243, 236, 0.78);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 194px;
 }

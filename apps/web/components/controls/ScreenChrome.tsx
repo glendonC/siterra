@@ -1,10 +1,8 @@
 "use client";
 
-// The controls every screen after the opening shares (the lead's decisions 2 to 5, 30 Oct 2026): a breadcrumb with a
-// back arrow at the top left (Esc goes back one level; the Siterra crumb returns to the opening), a quiet legend of
-// the keys that work right now at the bottom right whose entries are themselves the buttons (Destiny's manner), the
-// sources behind one of them (S) with one short line of the data's names always visible, and a small view control
-// (reset, zoom out, zoom in) for screens with a 3D view. Words come from the catalog, colours from the theme tokens.
+// Shared screen controls across the overview and instruments: top-left breadcrumb navigation,
+// bottom-right contextual key legend, dataset/literature attribution drawer (S), governance limits
+// note (W), and 3D camera reset/zoom controls. All user-facing copy comes from the message catalog.
 
 import { useEffect, useId, useRef, type ReactNode } from "react";
 import { en, format } from "../../lib/copy/en";
@@ -93,12 +91,9 @@ export function Breadcrumb({
 export type CaseMode = "live" | "replay" | "concept";
 
 /**
- * The mode line at the top right (U32, PC-04, DQ-02): shown while a question's run is on the screen to state where
- * that run comes from (live, or a replay). One click opens what Siterra does not do; Esc, a second click or a click
- * elsewhere closes it.
+ * Mode indicator hook point at the top right; returns null so no mode badge clutters the canvas.
  */
 export function ModeLine(_props: { mode: CaseMode; run?: "live" | "replay" | null }) {
-  // Catalog keys `chrome.mode.${mode}` ("chrome.mode.live", "chrome.mode.replay", "chrome.mode.concept") reserved.
   return null;
 }
 
@@ -146,8 +141,86 @@ export interface SourceSet {
   lines: string[];
   /** The data's short names for the one visible line ("Copernicus DEM", "ESA WorldCover"). */
   short: string[];
-  /** The drawn relief's vertical exaggeration, said on the data line where land is drawn (decision 16). */
+  /** Vertical terrain exaggeration factor shown with the dataset credits where 3D relief is drawn. */
   relief?: number;
+}
+
+function classifySourceLine(line: string): { category: string; url?: string } {
+  const low = line.toLowerCase();
+  if (low.includes("mod13q1") || (low.includes("modis") && !low.includes("mod10a1"))) {
+    return {
+      category: "Satellite Vegetation",
+      url: "https://lpdaac.usgs.gov/products/mod13q1v061/",
+    };
+  }
+  if (low.includes("mod10a1") || low.includes("nsidc")) {
+    return {
+      category: "Snow Cover",
+      url: "https://nsidc.org/data/mod10a1/versions/61",
+    };
+  }
+  if (low.includes("chirps")) {
+    return {
+      category: "Climate & Rainfall",
+      url: "https://www.chc.ucsb.edu/data/chirps",
+    };
+  }
+  if (low.includes("worldcover")) {
+    return {
+      category: "Land Cover · 10 m",
+      url: "https://esa-worldcover.org/",
+    };
+  }
+  if (low.includes("sentinel")) {
+    return {
+      category: "Optical Imagery · 10 m",
+      url: "https://dataspace.copernicus.eu/",
+    };
+  }
+  if (
+    low.includes("worlddem") ||
+    low.includes("copernicus dem") ||
+    low.includes("glo-30") ||
+    low.includes("glo-90") ||
+    low.includes("terrarium") ||
+    low.includes("elevation")
+  ) {
+    return {
+      category: "Elevation & Relief",
+      url: "https://spacedata.copernicus.eu/collections/copernicus-digital-elevation-model",
+    };
+  }
+  if (low.includes("era5") || low.includes("open-meteo")) {
+    return {
+      category: "Climate Reanalysis",
+      url: "https://open-meteo.com/en/docs/historical-weather-api",
+    };
+  }
+  if (low.includes("geonames")) {
+    return {
+      category: "Place Gazetteer",
+      url: "https://www.geonames.org/",
+    };
+  }
+  if (low.includes("openstreetmap") || low.includes("overpass")) {
+    return {
+      category: "Hydrography & Paths",
+      url: "https://www.openstreetmap.org/copyright",
+    };
+  }
+  if (low.includes("gbif")) {
+    return {
+      category: "Biodiversity Records",
+      url: "https://www.gbif.org/",
+    };
+  }
+  if (low.includes("resolve") || low.includes("ecoregions")) {
+    return {
+      category: "Biome Extent",
+      url: "https://ecoregions.appspot.com/",
+    };
+  }
+  return { category: "Published Literature" };
 }
 
 /** The one short line of the data's names, always visible. */
@@ -165,14 +238,14 @@ export function SourcesLine({ sources }: { sources: SourceSet }) {
   );
 }
 
-/** Every credit and licence in full, in a quiet panel above the legend; Esc or S closes it. */
+/** Full dataset attributions, licenses, and relief scale in an editorial drawer; Esc or S closes it. */
 export function SourcesPanel({
   sources,
   open,
   onClose,
   side = "right",
 }: {
-  /** With `relief`, the drawn relief's exaggeration is said here, with the credits, rather than on the screen. */
+  /** With `relief`, the drawn relief's exaggeration is stated alongside the credits. */
   sources: SourceSet;
   open: boolean;
   onClose: () => void;
@@ -196,17 +269,66 @@ export function SourcesPanel({
       data-side={side}
     >
       <div className={styles.panelHead}>
-        <h2 id={id} className={styles.panelTitle}>
-          {en["chrome.sources"].text}
-        </h2>
+        <div className={styles.panelTitleGroup}>
+          <span className={styles.panelKicker}>{"Data & Attribution"}</span>
+          <h2 id={id} className={styles.panelTitle}>
+            {en["chrome.sources"].text}
+          </h2>
+        </div>
         <Control keyHint="Esc" keyShortcut="Escape" onClick={onClose}>
           {en["chrome.close"].text}
         </Control>
       </div>
+      {sources.short.length > 0 ? (
+        <div className={styles.panelShortTags} aria-hidden="true">
+          {sources.short.map((name) => (
+            <span key={name} className={styles.panelShortTag}>
+              {name}
+            </span>
+          ))}
+        </div>
+      ) : null}
       <ol className={styles.panelList}>
-        {sources.lines.map((l) => (
-          <li key={l}>{l}</li>
-        ))}
+        {sources.lines.map((l, idx) => {
+          const meta = classifySourceLine(l);
+          return (
+            <li key={l} className={styles.panelItem}>
+              <div className={styles.panelItemTop}>
+                <span className={styles.panelItemIndex}>
+                  {String(idx + 1).padStart(2, "0")}
+                </span>
+                <span className={styles.panelItemCategory}>{meta.category}</span>
+                {meta.url ? (
+                  <a
+                    href={meta.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={styles.panelItemLink}
+                    aria-label={`Open ${meta.category} reference`}
+                  >
+                    <span>{"Reference"}</span>
+                    <svg
+                      width="9"
+                      height="9"
+                      viewBox="0 0 10 10"
+                      fill="none"
+                      aria-hidden="true"
+                    >
+                      <path
+                        d="M2.5 7.5L7.5 2.5M7.5 2.5H3.5M7.5 2.5V6.5"
+                        stroke="currentColor"
+                        strokeWidth="1.3"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </a>
+                ) : null}
+              </div>
+              <span className={styles.panelItemText}>{l}</span>
+            </li>
+          );
+        })}
       </ol>
       {sources.relief === undefined ? null : (
         <p className={styles.panelNote} data-relief>
@@ -217,12 +339,12 @@ export function SourcesPanel({
   );
 }
 
-/** What Siterra does not do, and who reviews (PC-04): one key in the command bar opens it; Esc or the key closes it. */
+/** Governance and operational boundaries: what Siterra does not do and who reviews drafts. */
 export function ScopeNote({ open, onClose }: { open: boolean; onClose: () => void }) {
   const id = useId();
   useEffect(() => {
     if (!open) return;
-    // in the capture phase, so the Esc that closes the note is not also the screen's Esc
+    // Capture phase ensures Esc closes this popover before triggering screen-level Esc navigation
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Escape") return;
       e.preventDefault();
@@ -237,8 +359,31 @@ export function ScopeNote({ open, onClose }: { open: boolean; onClose: () => voi
   if (!open) return null;
   return (
     <div id={id} className={styles.scopeNote} role="note" data-scope-popover>
-      <p>{en["chrome.scope.not"].text}</p>
-      <p>{en["chrome.scope.review"].text}</p>
+      <div className={styles.scopeHead}>
+        <div className={styles.panelTitleGroup}>
+          <span className={styles.panelKicker}>{"Governance & Scope"}</span>
+          <span className={styles.scopeTitle}>{en["chrome.key.scope"].text}</span>
+        </div>
+        <Control keyHint="Esc" keyShortcut="Escape" onClick={onClose}>
+          {en["chrome.close"].text}
+        </Control>
+      </div>
+      <div className={styles.scopeItems}>
+        <div className={styles.scopeItem}>
+          <span className={styles.scopeItemDot} data-kind="boundary" aria-hidden="true" />
+          <div className={styles.scopeItemBody}>
+            <span className={styles.scopeItemLabel}>{"No autonomous action"}</span>
+            <p>{en["chrome.scope.not"].text}</p>
+          </div>
+        </div>
+        <div className={styles.scopeItem}>
+          <span className={styles.scopeItemDot} data-kind="review" aria-hidden="true" />
+          <div className={styles.scopeItemBody}>
+            <span className={styles.scopeItemLabel}>{"Human review required"}</span>
+            <p>{en["chrome.scope.review"].text}</p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

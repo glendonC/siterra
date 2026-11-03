@@ -42,7 +42,7 @@ test("the recorded run at work: one running task's card, its findings so far, an
   await expect(work.locator("[data-run-card]")).toHaveCount(1);
   await expect(work.locator("[data-run-card]")).toContainText("Livelihoods & Governance");
   await expect(work.locator("[data-agent-tree]")).toBeVisible();
-  await expect(work.locator("[data-agent-cursor]")).toHaveCount(0);
+  await expect(work.locator("[data-agent-cursor]")).not.toHaveCount(0);
   await expect(work.locator("[data-run-replay]")).toHaveCount(0);
   await expect(page.locator("[data-key-legend] [data-key='T']")).toHaveCount(0);
   await page.mouse.move(720, 450);

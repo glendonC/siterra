@@ -1,4 +1,4 @@
-/* The overview (approved specimen D4, css/d4.css) in the tokens of app/obsidian.css. The words sit on a 1440 x 900
+/* The valley overview layout and HUD styles. The words sit on a 1440 x 900
    stage scaled to fit (the page sets its transform from the scene's layout); the canvases fill the frame. */
 
 .root {
@@ -242,7 +242,7 @@
   color: var(--ov-ink-3);
 }
 
-/* both shares, one over the other, each with its direction beside its number (U25b) */
+/* both shares, one over the other, each with its direction beside its number */
 .pair {
   display: flex;
   flex-direction: column;
@@ -576,7 +576,7 @@
   color: var(--text-secondary);
 }
 
-/* the arrival from the globe (decision 11): the chrome waits until the findings are in, then comes in with them */
+/* Arrival from the globe: the chrome waits until the findings are in, then fades in with them */
 .layer :is([data-crumbs], [data-mode-line], [data-view-control], .place),
 .layer > :has(> [data-key-legend]) {
   transition: opacity 0.45s ease;
@@ -589,7 +589,7 @@
   pointer-events: none;
 }
 
-/* a layer lifted off the land at rest (decision 12): a hairline leader and its name and status from the record */
+/* A layer lifted off the land at rest: a hairline leader and its name and status from the record */
 .liftWire {
   stroke: var(--ov-wire);
   stroke-width: 1;
@@ -620,7 +620,7 @@
   color: var(--ov-ink-2);
 }
 
-/* an instrument opened in place over the overview (decision 12): drawn out of sight until its first frame holds the
+/* An instrument opened in place over the overview: drawn out of sight until its first frame holds the
    land where the overview left it, then it takes the screen; the overview keeps its land under it */
 .inPlace {
   position: fixed;
@@ -635,7 +635,7 @@
   transition: opacity 0.45s ease;
 }
 
-/* the rainfall's seasons stand beside the land, which stays, tinted by the rain cells (decision 13) */
+/* the rainfall's seasons stand beside the land, which stays, tinted by the rain cells */
 .inPlace:is([data-kind="rainfall"], [data-kind="pixel"])
   :is([data-shell], [data-instrument="rainfall"]) {
   background: transparent;
@@ -664,7 +664,7 @@
   pointer-events: none;
 }
 
-/* the pixel's cards stand round its risen cells on the land (U27): the land stays, nothing else of the overview */
+/* the pixel's cards stand round its risen cells on the land: the land stays, nothing else of the overview */
 .layer[data-covered="land"] > :not(.inPlace, [data-land]) {
   visibility: hidden;
 }
@@ -673,7 +673,7 @@
   visibility: hidden;
 }
 
-/* the label under the cursor on the land at rest (decision 14): the part's name and its height from the record, on a
+/* the label under the cursor on the land at rest: the part's name and its height from the record, on a
    hairline from the point; it comes and goes quickly so it never trails the cursor */
 .hoverWire {
   stroke: var(--ov-wire);
@@ -720,7 +720,7 @@
   white-space: pre-line;
 }
 
-/* a question at work (U29): clean 3D terrain scan without the circular wire arc or the bottom place block; the command
+/* Active thinking state: clean 3D terrain scan without the circular wire arc or the bottom place block; the command
    bar stays */
 .layer[data-at-work]
   :is(
