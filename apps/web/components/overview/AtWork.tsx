@@ -8,7 +8,7 @@
 // - Full-width feathered bottom band with loader + live thinking stream while running, and settled summary +
 //   5 explanation cause pills + proposed field check + "See the Findings" CTA when done.
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   along,
   centreOf,
@@ -26,8 +26,9 @@ const LANE_PX = 0;
 
 /** A live run's clock between its events: the wall time since the command was accepted, never behind its last event.
  * A replay keeps its own events' times; a recording plays on its replay clock. */
-function useClock(run: RunModel, fixed: number | undefined): number {
-  const live = fixed === undefined && !run.done && run.replay === null && run.acceptedAt !== null;
+function useClock(run: RunModel, fixed: number | undefined, paused = false): number {
+  const live =
+    fixed === undefined && !run.done && !paused && run.replay === null && run.acceptedAt !== null;
   const [wall, setWall] = useState(() => Date.now());
   useEffect(() => {
     if (!live) return;
@@ -65,6 +66,9 @@ export function AtWork({
   onFocusTask,
   onFocusLayer,
   onFocusCause,
+  paused = false,
+  onTogglePause,
+  onStopRun,
 }: {
   /** Opens the run's findings (the results), once it is done: the question card's Enter (decision 15). */
   onFindings: () => void;
@@ -74,6 +78,12 @@ export function AtWork({
   onFocusLayer?: (layer: "bands" | "cover" | "trend" | "rain" | "routes" | null) => void;
   /** Focuses the 3D terrain layer corresponding to a hovered explanation cause. */
   onFocusCause?: (causeId: string) => void;
+  /** Whether the active thinking run is paused for inspection. */
+  paused?: boolean | undefined;
+  /** Toggles pause/resume of the active thinking run. */
+  onTogglePause?: (() => void) | undefined;
+  /** Stops/cancels the active thinking run and returns to the overview. */
+  onStopRun?: (() => void) | undefined;
   run: RunModel;
   /** The question the run answers, as it was asked. */
   question: string;
@@ -91,7 +101,7 @@ export function AtWork({
    * the edge. */
   recording?: { speed: number; length: number } | null;
 }) {
-  const clock = useClock(run, fixedNow);
+  const clock = useClock(run, fixedNow, paused);
   // once the run has completed, its time is the one it ran for (its last event), never a replay clock held past it
   const nowMs = run.done ? run.nowMs : clock;
   const [hoveredBranch, setHoveredBranch] = useState<string | null>(null);
@@ -99,19 +109,38 @@ export function AtWork({
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [stepsDismissed, setStepsDismissed] = useState(false);
 
-  const runningTask = run.tasks.find((t) => t.state === "running") ?? null;
-  const runningTaskId = runningTask?.id ?? null;
+  const nonQueuedTasks = run.tasks.filter((t) => t.state !== "queued");
+  const sameStartCounts = new Map<number, number>();
+  const staggeredNonQueued = nonQueuedTasks.filter((t) => {
+    if (run.done || selectedTaskId === t.id || t.startMs === null) return true;
+    const idxInBatch = sameStartCounts.get(t.startMs) ?? 0;
+    sameStartCounts.set(t.startMs, idxInBatch + 1);
+    return nowMs >= t.startMs + idxInBatch * 2200;
+  });
+  const runningTasks = staggeredNonQueued.filter(
+    (t) => t.state === "running" && !(t.kind === "explanation_branches" && run.branches.length > 0),
+  );
+  const latestRunningTask = runningTasks[runningTasks.length - 1] ?? runningTasks[0] ?? null;
+  const latestRunningId = latestRunningTask?.id ?? null;
+
+  const prevLatestRunningId = useRef<string | null>(latestRunningId);
+  const prevDone = useRef<boolean>(run.done);
   useEffect(() => {
-    if (selectedTaskId === null) {
+    const runningChanged =
+      latestRunningId !== null && latestRunningId !== prevLatestRunningId.current;
+    const justFinished = run.done && !prevDone.current;
+    prevLatestRunningId.current = latestRunningId;
+    prevDone.current = run.done;
+    if ((runningChanged || justFinished) && selectedTaskId === null) {
       setStepsDismissed(false);
     }
-  }, [runningTaskId, run.done, selectedTaskId]);
+  }, [latestRunningId, run.done, selectedTaskId]);
 
-  const activeOrRunningTask =
-    runningTask ??
-    (selectedTaskId !== null
-      ? (run.tasks.find((t) => t.id === selectedTaskId && t.state !== "queued") ?? null)
-      : null);
+  const selectedTask =
+    !stepsDismissed && selectedTaskId !== null
+      ? (nonQueuedTasks.find((t) => t.id === selectedTaskId) ?? null)
+      : null;
+  const activeOrRunningTask = !stepsDismissed ? (selectedTask ?? latestRunningTask) : null;
 
   useEffect(() => {
     if (!onFocusTask) return;
@@ -163,6 +192,10 @@ export function AtWork({
         ev.preventDefault();
         ev.stopPropagation();
         onFindings();
+      } else if ((ev.key === "p" || ev.key === "P") && !done && onTogglePause) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        onTogglePause();
       } else if (ev.key === " ") {
         ev.preventDefault();
         cycleFollow();
@@ -184,6 +217,7 @@ export function AtWork({
         });
       } else if (ev.key === "Escape" && selectedTaskId !== null) {
         ev.preventDefault();
+        ev.stopPropagation();
         setSelectedTaskId(null);
       }
     };
@@ -191,7 +225,7 @@ export function AtWork({
     return () => {
       window.removeEventListener("keydown", onKey, { capture: true });
     };
-  }, [done, onFindings, cycleFollow, selectedTaskId, run.tasks]);
+  }, [done, onFindings, onTogglePause, cycleFollow, selectedTaskId, run.tasks]);
 
   if (arc.length < 3) return null;
   const centre = centreOf(arc);
@@ -276,6 +310,10 @@ export function AtWork({
         follow={selectedTaskId !== null}
         stepsDismissed={stepsDismissed}
         onFocusLayer={onFocusLayer}
+        onFindings={onFindings}
+        paused={paused}
+        onTogglePause={onTogglePause}
+        onStopRun={onStopRun}
       />
 
       {run.done ? (

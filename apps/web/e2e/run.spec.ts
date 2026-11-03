@@ -42,9 +42,13 @@ test("the recorded run at work: one running task's card, its findings so far, an
   await expect(work.locator("[data-run-card]")).toHaveCount(1);
   await expect(work.locator("[data-run-card]")).toContainText("Livelihoods & Governance");
   await expect(work.locator("[data-agent-tree]")).toBeVisible();
-  await expect(work.locator("[data-agent-cursor]")).toHaveCount(1);
-  await expect(work.locator("[data-agent-cursor]")).toContainText("Reading El Aayadi et al. 2026");
+  await expect(work.locator("[data-agent-cursor]")).toHaveCount(0);
   await expect(work.locator("[data-run-replay]")).toHaveCount(0);
+  await expect(page.locator("[data-key-legend] [data-key='T']")).toHaveCount(0);
+  await page.mouse.move(720, 450);
+  await expect(page.locator("[data-hover-label][data-shown]")).toHaveCount(0);
+  await page.keyboard.press("t");
+  await expect(work).toBeVisible();
   const [q, treeBox] = await Promise.all([
     work.locator("[data-run-question]").boundingBox(),
     work.locator("[data-agent-tree]").boundingBox(),
@@ -61,12 +65,50 @@ test("the recorded run at work: one running task's card, its findings so far, an
   const n = await words(page);
   expect(n).toBeGreaterThan(10);
   expect(n).toBeLessThanOrEqual(40);
-  // Following one agent opens its Steps card with searched chips and active step, and dims sibling lanes
+  // Single-open accordion: only one thinking section is expanded and bold at a time
+  await expect(work.locator("[data-agent-node][data-expanded]")).toHaveCount(1);
+  await expect(work.locator("[data-agent-node][data-active-node]")).toHaveCount(1);
+  // Following one agent opens its Steps card with searched chips and active step
   await page.keyboard.press(" ");
   await expect(work.locator("[data-agent-thinking]")).toBeVisible();
   await expect(work.locator("[data-thinking-chip]").first()).toContainText("Herrera 2024");
+  await expect(work.locator("[data-thinking-chip]").first()).toHaveAttribute(
+    "href",
+    /digitallibrary\.un\.org/,
+  );
   await expect(work.locator("[data-thinking-step]").first()).toContainText("Reading Herrera 2024");
+  await expect(work.locator("[data-thinking-step]").first()).toHaveAttribute(
+    "href",
+    /digitallibrary\.un\.org/,
+  );
   await expect(work.locator("[data-run-task][data-dimmed]")).not.toHaveCount(0);
+  // Clicking the open section collapses it cleanly; clicking another section opens only that section
+  await work.locator("[data-agent-node][data-expanded] > button").click();
+  await expect(work.locator("[data-agent-node][data-expanded]")).toHaveCount(0);
+  await expect(work.locator("[data-agent-thinking]")).toHaveCount(0);
+  await work.locator("[data-agent-node='source_research'] > button").click();
+  await expect(work.locator("[data-agent-node][data-expanded]")).toHaveCount(1);
+  await expect(work.locator("[data-agent-thinking]")).toHaveCount(1);
+  await expect(work.locator("[data-thinking-chip]").first()).toHaveAttribute(
+    "href",
+    "https://doi.org/10.1002/pan3.70379",
+  );
+  // All source chips render in a horizontally scrollable strip with edge fade
+  expect(await work.locator("[data-thinking-chip]").count()).toBeGreaterThan(2);
+  const chipStrip = work.locator("[data-agent-thinking] [data-thinking-chips]");
+  await expect(chipStrip).toHaveAttribute("data-fade", "right");
+  await chipStrip.evaluate((el) => {
+    el.scrollLeft = el.scrollWidth;
+    el.dispatchEvent(new Event("scroll"));
+  });
+  await expect(chipStrip).toHaveAttribute("data-fade", "left");
+  // Clicking 'Pause' pauses the trace and switches to 'Resume'; clicking 'Stop' stops the trace
+  await expect(work.locator("[data-run-pause]")).toHaveText("Pause");
+  await work.locator("[data-run-pause]").click();
+  await expect(work.locator("[data-run-pause]")).toHaveText("Resume");
+  await work.locator("[data-run-pause]").click();
+  await expect(work.locator("[data-run-pause]")).toHaveText("Pause");
+  await expect(work.locator("[data-run-stop]")).toHaveText("Stop");
 });
 
 test("the recorded run settled: its count and time, the open explanations first, the proposed check; Enter reads the findings", async ({
@@ -94,6 +136,7 @@ test("the recorded run settled: its count and time, the open explanations first,
   await expect(work.locator("[data-run-check]")).toContainText("Local Rain Records");
   await expect(work.locator("[data-run-card]")).toHaveCount(0);
   await expect(work.locator("[data-agent-review] [data-needs-you]")).toHaveText("Needs You");
+  await expect(work.locator("[data-agent-review] button")).toContainText("Review field plan");
   const n = await words(page);
   expect(n).toBeGreaterThan(20);
   expect(n).toBeLessThanOrEqual(45);
@@ -162,6 +205,9 @@ test("the thinking is the case's own run: the recording's question and measured 
   await expect(work.locator("[data-run-question]")).toHaveText(/Why is the valley floor greener\?/);
   await expect(work.locator("[data-run-status]")).toHaveText("23 findings in 101.1 s");
   await expect(work.locator("[data-run-replay]")).toHaveCount(0);
+  await work.locator("[data-agent-review] button").click();
+  await expect(page.locator("[data-at-work]")).toHaveCount(0);
+  await expect(page.locator("[data-record='results']")).toBeVisible();
 
   await page.goto("/valley?case=case_calaveras_creek");
   await expect(page.locator("[data-overview-root][data-ready]")).toBeAttached({ timeout: 90_000 });

@@ -6,7 +6,7 @@
 // their recorded order and spacing, so the same event model the live stream feeds unfolds it.
 
 import type { CaseSnapshot, Event } from "@siterra/contracts";
-import { createContext, useEffect, useState } from "react";
+import { createContext, useEffect, useRef, useState } from "react";
 
 export interface RecordedRun {
   commandId: string;
@@ -43,22 +43,31 @@ export function lengthOf(run: RecordedRun): number {
  * The replay clock (ms of run time), ticking at the run's speed in steps of 100 ms from when the overview's land is
  * drawn; fixed at `at` when given.
  */
-export function useRecordedClock(run: RecordedRun | null): number {
+export function useRecordedClock(run: RecordedRun | null, paused = false): number {
   const [ms, setMs] = useState(() => run?.at ?? 0);
+  const pausedRef = useRef(paused);
+  pausedRef.current = paused;
   useEffect(() => {
     if (!run || run.at !== null) return;
     const end = lengthOf(run);
     // the replay starts once the land is drawn, so the run's first moments are not played to a blank screen
-    let t0: number | null = null;
+    let lastTick: number | null = null;
+    let accMs = 0;
     const id = window.setInterval(() => {
-      if (t0 === null) {
+      const now = performance.now();
+      if (lastTick === null) {
         if (!document.querySelector("[data-overview-root][data-ready]:not([data-arriving])"))
           return;
-        t0 = performance.now();
+        lastTick = now;
       }
-      const t = Math.min(end, (performance.now() - t0) * run.speed);
-      setMs(t >= end ? end : Math.floor(t / 100) * 100);
-      if (t >= end) window.clearInterval(id);
+      if (pausedRef.current) {
+        lastTick = now;
+        return;
+      }
+      accMs = Math.min(end, accMs + (now - lastTick) * run.speed);
+      lastTick = now;
+      setMs(accMs >= end ? end : Math.floor(accMs / 100) * 100);
+      if (accMs >= end) window.clearInterval(id);
     }, 50);
     return () => {
       window.clearInterval(id);

@@ -22,6 +22,7 @@ export function usePacedLog(
   log: EventLog,
   commandId: string | undefined,
   paced: boolean,
+  paused = false,
 ): PacedLog {
   const [shown, setShown] = useState(0);
   const [all, setAll] = useState(false);
@@ -36,14 +37,14 @@ export function usePacedLog(
   const active = paced && !all && commandId !== undefined;
   const pacing = active && shown < total;
   useEffect(() => {
-    if (!pacing) return;
+    if (!pacing || paused) return;
     const t = window.setTimeout(() => {
       setShown((n) => n + 1);
     }, READING_PACE_MS);
     return () => {
       window.clearTimeout(t);
     };
-  }, [pacing, shown]);
+  }, [pacing, paused, shown]);
   const showAll = useCallback(() => {
     setAll(true);
   }, []);

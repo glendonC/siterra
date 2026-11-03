@@ -1,6 +1,13 @@
 "use client";
 
-import { useEffect, type CSSProperties, type Dispatch, type SetStateAction } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  type CSSProperties,
+  type Dispatch,
+  type SetStateAction,
+} from "react";
 import { en, format, type MessageId } from "../../lib/copy/en";
 import type { CursorPoint } from "../../lib/run/layout";
 import type { RunModel, RunTask, RunTaskState } from "../../lib/run/model";
@@ -82,6 +89,120 @@ function humanTaskTitle(t: RunTask, duplicateKind: boolean, obsIdx: number): str
   }
 }
 
+function ScrollableThinkingChips({
+  chips,
+  chipMeta,
+  isExpanded,
+}: {
+  chips: readonly string[];
+  chipMeta: RunModel["chipMeta"];
+  isExpanded: boolean;
+}) {
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const fadeRef = useRef<"right" | "left" | "both" | null>(null);
+
+  const syncFade = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const maxScroll = el.scrollWidth - el.clientWidth;
+    let next: "right" | "left" | "both" | null = null;
+    if (maxScroll > 2) {
+      const left = el.scrollLeft > 3;
+      const right = el.scrollLeft < maxScroll - 3;
+      next = left && right ? "both" : right ? "right" : left ? "left" : null;
+    }
+    if (fadeRef.current !== next) {
+      fadeRef.current = next;
+      if (next) {
+        el.setAttribute("data-fade", next);
+      } else {
+        el.removeAttribute("data-fade");
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    syncFade();
+    const el = scrollRef.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(() => {
+      syncFade();
+    });
+    ro.observe(el);
+    return () => {
+      ro.disconnect();
+    };
+  }, [chips.length, isExpanded, syncFade]);
+
+  return (
+    <div
+      ref={scrollRef}
+      className={styles.thinkingChips}
+      data-thinking-chips=""
+      onScroll={syncFade}
+      onWheel={(e) => {
+        const el = e.currentTarget;
+        if (el.scrollWidth <= el.clientWidth) return;
+        if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+          e.preventDefault();
+          el.scrollLeft += e.deltaY;
+          syncFade();
+        }
+      }}
+    >
+      {chips.map((chip, chipIdx) => {
+        const meta = chipMeta?.[chip];
+        const tip = meta
+          ? meta.publisher
+            ? `${meta.title} (${meta.publisher})`
+            : meta.title
+          : undefined;
+        return meta?.url ? (
+          <a
+            key={chip}
+            href={meta.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.thinkingChipLink}
+            title={tip}
+            aria-label={`Open ${chip}`}
+            style={{ "--chip-idx": chipIdx } as CSSProperties}
+            data-thinking-chip={isExpanded ? "" : undefined}
+          >
+            <span>{chip}</span>
+            <svg
+              className={styles.thinkingChipArrow}
+              width="9"
+              height="9"
+              viewBox="0 0 10 10"
+              fill="none"
+              aria-hidden="true"
+            >
+              <path
+                d="M2.5 7.5L7.5 2.5M7.5 2.5H3.5M7.5 2.5V6.5"
+                stroke="currentColor"
+                strokeWidth="1.3"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </a>
+        ) : (
+          <span
+            key={chip}
+            className={styles.thinkingChip}
+            title={tip}
+            style={{ "--chip-idx": chipIdx } as CSSProperties}
+            data-thinking-chip={isExpanded ? "" : undefined}
+          >
+            {chip}
+          </span>
+        );
+      })}
+    </div>
+  );
+}
+
 export function AtWorkAgentTree({
   run,
   nowMs,
@@ -93,6 +214,10 @@ export function AtWorkAgentTree({
   cycleFollow: _cycleFollow,
   follow: _follow = false,
   stepsDismissed = false,
+  onFindings,
+  paused = false,
+  onTogglePause,
+  onStopRun,
 }: {
   run: RunModel;
   nowMs: number;
@@ -106,6 +231,10 @@ export function AtWorkAgentTree({
   stepsDismissed?: boolean;
   onFocusLayer?:
     ((layer: "bands" | "cover" | "trend" | "rain" | "routes" | null) => void) | undefined;
+  onFindings?: (() => void) | undefined;
+  paused?: boolean | undefined;
+  onTogglePause?: (() => void) | undefined;
+  onStopRun?: (() => void) | undefined;
 }) {
   const kindCounts = new Map<string, number>();
   for (const t of run.tasks) {
@@ -131,13 +260,6 @@ export function AtWorkAgentTree({
         runningTasks[0] ??
         null)
       : null;
-
-  const primaryRunningId = primaryRunning?.id ?? null;
-  useEffect(() => {
-    if (selectedTaskId === null) {
-      setStepsDismissed(false);
-    }
-  }, [primaryRunningId, run.done, selectedTaskId, setStepsDismissed]);
 
   if (run.tasks.length === 0) return null;
 
@@ -171,7 +293,7 @@ export function AtWorkAgentTree({
         <div className={styles.thinkingHeader}>
           <span
             className={styles.thinkingWord}
-            data-active={!run.done ? "" : undefined}
+            data-active={!run.done && !paused ? "" : undefined}
             data-chrome=""
           >
             {"Thinking"}
@@ -179,6 +301,11 @@ export function AtWorkAgentTree({
           <span className={styles.thinkingTime} data-chrome="">
             {format("run.tree.time", { time: seconds(nowMs) })}
           </span>
+          {!run.done && paused ? (
+            <span className={styles.thinkingPausedBadge} data-chrome="">
+              {"Paused"}
+            </span>
+          ) : null}
           {!run.done ? (
             <span className={styles.srOnly} data-run-status>
               {format("run.sofar", { n: run.findings.length })}
@@ -197,6 +324,7 @@ export function AtWorkAgentTree({
               const isRunning = t.state === "running";
               const isPrimaryRunning = primaryRunning?.id === t.id;
               const isExpanded = expandedTask?.id === t.id;
+              const isActiveHighlight = isExpanded || (expandedTask === null && isPrimaryRunning);
               const duplicateKind = (kindCounts.get(t.kind) ?? 0) > 1;
               const obsIdx = t.kind === "observation_analysis" ? obsSeen++ : 0;
               const taskTitle = humanTaskTitle(t, duplicateKind, obsIdx);
@@ -207,9 +335,10 @@ export function AtWorkAgentTree({
                   ? t.searchedChips
                   : [...(t.bundleLabels ?? []), ...(t.sourceCitations ?? [])]
               ).filter((c) => c && c !== unknownBundle && c !== unknownSource);
-              const shownChips = chipSource.slice(0, 2);
-              const extraChipCount = Math.max(0, chipSource.length - shownChips.length);
               const summaryStep = t.steps.length > 0 ? (t.steps[t.steps.length - 1] ?? null) : null;
+              const stepSourceMeta = summaryStep?.target?.sourceId
+                ? run.sourceMetaById?.[summaryStep.target.sourceId]
+                : undefined;
               const fallbackStepText =
                 t.kind === "instrument_composition" || t.kind === "view" || t.kind === "view_order"
                   ? "Ordered findings and views for the briefing"
@@ -218,18 +347,29 @@ export function AtWorkAgentTree({
                     : t.sublabel
                       ? `Checking ${t.sublabel.toLowerCase()}`
                       : en["run.step.readCatchment"].text;
+              const shouldShimmer =
+                !run.done &&
+                !paused &&
+                isPrimaryRunning &&
+                (summaryStep ? summaryStep.status === "running" || isRunning : isRunning);
 
               return (
                 <li
                   key={t.id}
                   className={styles.treeNode}
-                  style={{ "--agent-color": accent } as CSSProperties}
+                  style={
+                    {
+                      "--agent-color": accent,
+                      "--node-delay": run.done ? idx * 24 : 0,
+                    } as CSSProperties
+                  }
                   data-run-task={t.kind}
                   data-agent-node={t.kind}
                   data-agent-state={t.state}
                   data-root={isRoot ? "" : undefined}
                   data-selected={isSelected ? "" : undefined}
                   data-expanded={isExpanded ? "" : undefined}
+                  data-active-node={isActiveHighlight ? "" : undefined}
                   data-dimmed={isDimmed ? "" : undefined}
                 >
                   <button
@@ -281,52 +421,73 @@ export function AtWorkAgentTree({
                     </svg>
                   </button>
 
-                  {isExpanded ? (
-                    <div
-                      className={styles.inlineTraceDetail}
-                      data-agent-thinking={t.kind}
-                      data-chrome=""
-                    >
-                      {shownChips.length > 0 ? (
-                        <div className={styles.thinkingChips}>
-                          {shownChips.map((chip) => (
-                            <span key={chip} className={styles.thinkingChip} data-thinking-chip="">
-                              {chip}
-                            </span>
-                          ))}
-                          {extraChipCount > 0 ? (
-                            <span className={styles.thinkingChip} data-thinking-chip="">
-                              {`+${String(extraChipCount)} more`}
-                            </span>
-                          ) : null}
-                        </div>
-                      ) : null}
+                  <div
+                    className={styles.inlineTraceWrap}
+                    data-expanded={isExpanded ? "" : undefined}
+                    aria-hidden={!isExpanded}
+                    data-chrome=""
+                  >
+                    <div className={styles.inlineTraceInner}>
+                      <div
+                        className={styles.inlineTraceDetail}
+                        data-agent-thinking={isExpanded ? t.kind : undefined}
+                        data-chrome=""
+                      >
+                        {chipSource.length > 0 ? (
+                          <ScrollableThinkingChips
+                            chips={chipSource}
+                            chipMeta={run.chipMeta}
+                            isExpanded={isExpanded}
+                          />
+                        ) : null}
 
-                      {summaryStep ? (
-                        <div
-                          className={styles.thinkingStep}
-                          data-thinking-step={summaryStep.status}
-                          data-active-shimmer={
-                            summaryStep.status === "running" || isRunning ? "" : undefined
-                          }
-                        >
-                          <span className={styles.thinkingStepLabel}>{summaryStep.label}</span>
-                        </div>
-                      ) : t.activeLabel ? (
-                        <p className={styles.inspectorLiveLine} data-active-shimmer="">
-                          {t.activeLabel}
-                        </p>
-                      ) : (
-                        <div
-                          className={styles.thinkingStep}
-                          data-thinking-step={isRunning ? "running" : "succeeded"}
-                          data-active-shimmer={isRunning ? "" : undefined}
-                        >
-                          <span className={styles.thinkingStepLabel}>{fallbackStepText}</span>
-                        </div>
-                      )}
+                        {summaryStep ? (
+                          stepSourceMeta?.url ? (
+                            <a
+                              href={stepSourceMeta.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className={styles.thinkingStepLink}
+                              title={
+                                stepSourceMeta.publisher
+                                  ? `${stepSourceMeta.title} (${stepSourceMeta.publisher})`
+                                  : stepSourceMeta.title
+                              }
+                              data-thinking-step={isExpanded ? summaryStep.status : undefined}
+                              data-active-shimmer={shouldShimmer ? "" : undefined}
+                            >
+                              <span className={styles.thinkingStepLabel}>{summaryStep.label}</span>
+                            </a>
+                          ) : (
+                            <div
+                              className={styles.thinkingStep}
+                              data-thinking-step={isExpanded ? summaryStep.status : undefined}
+                              data-active-shimmer={shouldShimmer ? "" : undefined}
+                            >
+                              <span className={styles.thinkingStepLabel}>{summaryStep.label}</span>
+                            </div>
+                          )
+                        ) : t.activeLabel ? (
+                          <p
+                            className={styles.inspectorLiveLine}
+                            data-active-shimmer={shouldShimmer ? "" : undefined}
+                          >
+                            {t.activeLabel}
+                          </p>
+                        ) : (
+                          <div
+                            className={styles.thinkingStep}
+                            data-thinking-step={
+                              isExpanded ? (isRunning ? "running" : "succeeded") : undefined
+                            }
+                            data-active-shimmer={shouldShimmer ? "" : undefined}
+                          >
+                            <span className={styles.thinkingStepLabel}>{fallbackStepText}</span>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  ) : null}
+                  </div>
                 </li>
               );
             })}
@@ -340,20 +501,101 @@ export function AtWorkAgentTree({
                 data-agent-review=""
                 data-chrome=""
               >
-                <div className={styles.treeNodeReview}>
-                  <span className={styles.treeNodeBullet} data-state="review" aria-hidden="true" />
+                <button
+                  type="button"
+                  className={styles.treeNodeReview}
+                  onClick={() => {
+                    onFindings?.();
+                  }}
+                >
+                  <span
+                    className={styles.treeNodeBullet}
+                    data-state="review"
+                    aria-hidden="true"
+                    data-chrome=""
+                  />
                   <span className={styles.needsYouPill} data-needs-you="">
                     {en["run.tree.needsYou"].text}
                   </span>
-                </div>
+                  <span className={styles.treeNodeReviewLabel} data-chrome="">
+                    {"Review field plan"}
+                  </span>
+                  <svg
+                    className={styles.treeNodeChevron}
+                    width="12"
+                    height="12"
+                    viewBox="0 0 12 12"
+                    fill="none"
+                    aria-hidden="true"
+                    data-chrome=""
+                  >
+                    <path
+                      d="M4.5 2.75L7.75 6L4.5 9.25"
+                      stroke="currentColor"
+                      strokeWidth="1.4"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </button>
               </li>
             ) : null}
           </ol>
         ) : null}
 
         {!run.done && run.tasks.length > 0 ? (
-          <div className={styles.thinkingFoot} data-run-step-count="" data-chrome="">
-            {`Step ${String(Math.max(1, staggeredNonQueued.length))} of ${String(Math.max(7, run.tasks.length))}`}
+          <div className={styles.thinkingFootRow} data-chrome="">
+            <span className={styles.thinkingFoot} data-run-step-count="">
+              {`Step ${String(Math.max(1, staggeredNonQueued.length))} of ${String(Math.max(7, run.tasks.length))}`}
+            </span>
+            {onTogglePause ? (
+              <button
+                type="button"
+                className={styles.thinkingActionBtn}
+                data-run-pause=""
+                aria-pressed={paused}
+                onClick={onTogglePause}
+              >
+                <svg
+                  width="9"
+                  height="9"
+                  viewBox="0 0 10 10"
+                  fill="none"
+                  aria-hidden="true"
+                  className={styles.thinkingActionIcon}
+                >
+                  {paused ? (
+                    <path d="M2.5 1.8L8.2 5L2.5 8.2V1.8Z" fill="currentColor" />
+                  ) : (
+                    <>
+                      <rect x="2.2" y="1.8" width="2" height="6.4" rx="0.5" fill="currentColor" />
+                      <rect x="5.8" y="1.8" width="2" height="6.4" rx="0.5" fill="currentColor" />
+                    </>
+                  )}
+                </svg>
+                <span>{paused ? "Resume" : "Pause"}</span>
+              </button>
+            ) : null}
+            {onStopRun ? (
+              <button
+                type="button"
+                className={styles.thinkingActionBtn}
+                data-run-stop=""
+                onClick={onStopRun}
+              >
+                <svg
+                  width="8"
+                  height="8"
+                  viewBox="0 0 10 10"
+                  fill="none"
+                  aria-hidden="true"
+                  className={styles.thinkingActionIcon}
+                >
+                  <rect x="2" y="2" width="6" height="6" rx="1" fill="currentColor" />
+                </svg>
+                <span>{"Stop"}</span>
+              </button>
+            ) : null}
           </div>
         ) : null}
       </aside>
@@ -546,60 +788,13 @@ export function AtWorkBottomThinkingBand({
   );
 }
 
-export function AtWorkCursors({
-  cursors,
-  selectedTaskId,
-  setSelectedTaskId,
-  setStepsDismissed,
-}: {
+export function AtWorkCursors(_props: {
   cursors: readonly CursorPoint[];
   selectedTaskId: string | null;
   setSelectedTaskId: Dispatch<SetStateAction<string | null>>;
   setStepsDismissed: Dispatch<SetStateAction<boolean>>;
 }) {
-  const primaryTaskId =
-    selectedTaskId ?? cursors[cursors.length - 1]?.task.id ?? cursors[0]?.task.id ?? null;
-
-  return (
-    <>
-      {cursors.map((c) => {
-        const isSelected = selectedTaskId === c.task.id;
-        const isPrimary = c.task.id === primaryTaskId;
-        const isDimmed = selectedTaskId !== null && !isSelected;
-        return (
-          <button
-            key={c.task.id}
-            type="button"
-            className={styles.agentCursor}
-            style={{ top: `${c.at.y.toFixed(1)}px`, left: `${c.at.x.toFixed(1)}px` }}
-            data-agent-cursor={c.task.kind}
-            data-target-kind={c.targetKind}
-            data-stratum={c.stratumId ?? undefined}
-            data-selected={isSelected ? "" : undefined}
-            data-primary={isPrimary ? "" : undefined}
-            data-dimmed={isDimmed ? "" : undefined}
-            data-chrome=""
-            onClick={() => {
-              setStepsDismissed(false);
-              setSelectedTaskId((cur) => (cur === c.task.id ? null : c.task.id));
-            }}
-          >
-            <span className={styles.cursorReticle} data-target-kind={c.targetKind}>
-              <span className={styles.cursorRing} data-target-kind={c.targetKind} />
-            </span>
-            <span className={styles.cursorBody}>
-              <span className={styles.cursorTask}>
-                {en[`task.kind.${c.task.kind}` as MessageId].text}
-              </span>
-              <span className={styles.cursorLabel} data-cursor-label="">
-                {c.label}
-              </span>
-            </span>
-          </button>
-        );
-      })}
-    </>
-  );
+  return null;
 }
 
 export function AtWorkThinkingCard(_props: {

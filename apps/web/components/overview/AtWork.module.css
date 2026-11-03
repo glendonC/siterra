@@ -74,6 +74,7 @@
   align-items: flex-start;
   gap: 8px;
   pointer-events: none;
+  animation: treeNodeArrive 260ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .question {
@@ -153,8 +154,15 @@
 }
 
 .thinkingWord[data-active] {
-  background: linear-gradient(90deg, #57524a 0%, #1a1714 45%, #8a8378 55%, #57524a 100%);
-  background-size: 220% 100%;
+  background: linear-gradient(
+    90deg,
+    #1a1714 0%,
+    #1a1714 32%,
+    #8a8378 50%,
+    #1a1714 68%,
+    #1a1714 100%
+  );
+  background-size: 240% 100%;
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -167,6 +175,17 @@
   font-variant-numeric: tabular-nums;
   color: var(--text-tertiary);
   text-shadow: var(--paper-halo);
+}
+
+.thinkingPausedBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: rgba(212, 136, 23, 0.14);
+  color: #b4690e;
+  font: 500 11px / 15px var(--font-sans);
+  letter-spacing: 0.01em;
 }
 
 .thinkingStatusInline {
@@ -189,12 +208,57 @@
   border: 0;
 }
 
-.thinkingFoot {
+.thinkingFootRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   margin: 7px 0 0 15px;
+  animation: treeNodeArrive 240ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.thinkingFoot {
+  margin: 0;
   font: 400 12px / 16px var(--font-sans);
   color: var(--text-tertiary);
   font-variant-numeric: tabular-nums;
   text-shadow: var(--paper-halo);
+}
+
+.thinkingActionBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 6px;
+  border: 1px solid rgba(26, 23, 20, 0.1);
+  border-radius: 4px;
+  background: rgba(26, 23, 20, 0.035);
+  color: var(--text-secondary);
+  font: 500 11.5px / 15px var(--font-sans);
+  cursor: pointer;
+  outline: none;
+  text-shadow: none;
+  transition:
+    background-color 140ms ease,
+    border-color 140ms ease,
+    color 140ms ease;
+}
+
+.thinkingActionBtn[aria-pressed="true"] {
+  background: rgba(212, 136, 23, 0.12);
+  border-color: rgba(212, 136, 23, 0.28);
+  color: var(--text-primary);
+}
+
+.thinkingActionIcon {
+  flex-shrink: 0;
+  opacity: 0.78;
+}
+
+.thinkingActionBtn:hover,
+.thinkingActionBtn:focus-visible {
+  background: rgba(26, 23, 20, 0.08);
+  border-color: rgba(26, 23, 20, 0.18);
+  color: var(--text-primary);
 }
 
 .treeList {
@@ -211,11 +275,20 @@
   display: flex;
   flex-direction: column;
   gap: 0;
-  transition: opacity 150ms ease;
+  min-width: 0;
+  max-width: 100%;
+  animation: treeNodeArrive 260ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-.treeNode[data-dimmed] {
-  opacity: 0.42;
+@keyframes treeNodeArrive {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .treeNodeBtn {
@@ -290,7 +363,7 @@
   transition: opacity 150ms ease;
 }
 
-.treeNodeBullet[data-state="running"],
+.treeNode[data-active-node] .treeNodeBullet,
 .treeNode[data-expanded] .treeNodeBullet,
 .treeNodeBtn:hover:not(:disabled) .treeNodeBullet {
   opacity: 1;
@@ -313,9 +386,10 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  transition: color 160ms ease;
 }
 
-.treeNodeName[data-state="running"],
+.treeNode[data-active-node] .treeNodeName,
 .treeNode[data-expanded] .treeNodeName {
   font-weight: 600;
   color: var(--text-primary);
@@ -347,7 +421,39 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 1px 0;
+  width: fit-content;
+  max-width: 100%;
+  padding: 3px 8px 3px 6px;
+  margin-left: -6px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--text-primary);
+  text-align: left;
+  cursor: pointer;
+  outline: none;
+  text-shadow: var(--paper-halo);
+  transition:
+    background-color 140ms ease,
+    color 140ms ease;
+}
+
+.treeNodeReview:hover,
+.treeNodeReview:focus-visible {
+  background: rgba(26, 23, 20, 0.055);
+}
+
+.treeNodeReview:hover .treeNodeChevron,
+.treeNodeReview:focus-visible .treeNodeChevron {
+  opacity: 1;
+  color: var(--text-primary);
+  transform: translateX(1.5px);
+}
+
+.treeNodeReviewLabel {
+  font: 500 13px / 18px var(--font-sans);
+  color: var(--text-primary);
+  white-space: nowrap;
 }
 
 .needsYouPill {
@@ -364,10 +470,53 @@
 
 /* ─── Inline Accordion Detail beneath Expanded Step ─── */
 
+.inlineTraceWrap {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: 0fr;
+  min-width: 0;
+  opacity: 0;
+  transform: translateY(-4px);
+  pointer-events: none;
+  transition:
+    grid-template-rows 260ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 200ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.treeNode[data-expanded] .inlineTraceWrap {
+  grid-template-rows: 1fr;
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+  animation: traceWrapOpen 260ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes traceWrapOpen {
+  from {
+    grid-template-rows: 0fr;
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    grid-template-rows: 1fr;
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.inlineTraceInner {
+  overflow: hidden;
+  min-height: 0;
+  min-width: 0;
+}
+
 .inlineTraceDetail {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  min-width: 0;
+  max-width: 100%;
   margin: 5px 0 2px 3px;
   padding: 1px 0 1px 11px;
   border-left: 1px solid rgba(26, 23, 20, 0.14);
@@ -382,12 +531,60 @@
 .thinkingChips {
   display: flex;
   flex-wrap: nowrap;
+  align-items: center;
   gap: 5px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  overscroll-behavior-x: contain;
+  padding: 1px 0;
 }
 
-.thinkingChip {
+.thinkingChips::-webkit-scrollbar {
+  display: none;
+}
+
+.thinkingChips[data-fade] {
+  padding-right: 12px;
+}
+
+.thinkingChips[data-fade="right"] {
+  -webkit-mask-image: linear-gradient(to right, #000 0%, #000 calc(100% - 36px), transparent 100%);
+  mask-image: linear-gradient(to right, #000 0%, #000 calc(100% - 36px), transparent 100%);
+}
+
+.thinkingChips[data-fade="left"] {
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 24px, #000 100%);
+  mask-image: linear-gradient(to right, transparent 0%, #000 24px, #000 100%);
+}
+
+.thinkingChips[data-fade="both"] {
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    #000 24px,
+    #000 calc(100% - 36px),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    #000 24px,
+    #000 calc(100% - 36px),
+    transparent 100%
+  );
+}
+
+.thinkingChip,
+.thinkingChipLink {
   display: inline-flex;
   align-items: center;
+  flex-shrink: 0;
+  gap: 4px;
   padding: 2px 7px;
   border-radius: 4px;
   border: 1px solid rgba(26, 23, 20, 0.08);
@@ -396,6 +593,61 @@
   font: 400 12px / 16px var(--font-sans);
   white-space: nowrap;
   text-shadow: none;
+  text-decoration: none;
+}
+
+.thinkingChipLink {
+  cursor: pointer;
+  outline: none;
+  transition:
+    background-color 140ms ease,
+    border-color 140ms ease,
+    color 140ms ease;
+}
+
+.thinkingChipLink:hover,
+.thinkingChipLink:focus-visible {
+  background: rgba(26, 23, 20, 0.085);
+  border-color: rgba(26, 23, 20, 0.16);
+  color: var(--text-primary);
+}
+
+.thinkingChipArrow {
+  flex-shrink: 0;
+  opacity: 0.55;
+  transition:
+    opacity 140ms ease,
+    transform 140ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.thinkingChipLink:hover .thinkingChipArrow,
+.thinkingChipLink:focus-visible .thinkingChipArrow {
+  opacity: 0.95;
+  transform: translate(0.5px, -0.5px);
+}
+
+.treeNode[data-expanded] .thinkingChip,
+.treeNode[data-expanded] .thinkingChipLink {
+  animation: traceChipArrive 240ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.treeNode[data-expanded] :is(.thinkingChip, .thinkingChipLink):nth-child(2) {
+  animation-delay: 35ms;
+}
+
+.treeNode[data-expanded] :is(.thinkingChip, .thinkingChipLink):nth-child(3) {
+  animation-delay: 70ms;
+}
+
+@keyframes traceChipArrive {
+  from {
+    opacity: 0;
+    transform: translateY(3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .thinkingStepList {
@@ -407,23 +659,44 @@
   gap: 3px;
 }
 
-.thinkingStep {
+.thinkingStep,
+.thinkingStepLink {
   display: inline-block;
   width: max-content;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
   font: 400 12.5px / 17px var(--font-sans);
   color: var(--text-secondary);
   white-space: nowrap;
+  text-decoration: none;
 }
 
-.thinkingStep[data-thinking-step="running"] {
+.thinkingStepLink:hover,
+.thinkingStepLink:focus-visible {
   color: var(--text-primary);
-  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.thinkingStep[data-thinking-step="running"],
+.thinkingStepLink[data-thinking-step="running"] {
+  color: var(--text-secondary);
+  font-weight: 400;
 }
 
 .thinkingStep[data-active-shimmer] .thinkingStepLabel,
+.thinkingStepLink[data-active-shimmer] .thinkingStepLabel,
 .inspectorLiveLine[data-active-shimmer] {
-  background: linear-gradient(90deg, #57524a 0%, #1a1714 45%, #8a8378 55%, #57524a 100%);
-  background-size: 220% 100%;
+  background: linear-gradient(
+    90deg,
+    #46423b 0%,
+    #46423b 35%,
+    #787166 50%,
+    #46423b 65%,
+    #46423b 100%
+  );
+  background-size: 240% 100%;
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -449,6 +722,20 @@
     -webkit-background-clip: border-box;
     background-clip: border-box;
     color: var(--text-primary);
+  }
+
+  .topLeftHeader,
+  .thinkingFoot,
+  .treeNode,
+  .treeNode[data-expanded] .inlineTraceWrap,
+  .treeNode[data-expanded] .thinkingChip,
+  .bottomThinkingBand {
+    animation: none;
+    transition: none;
+  }
+
+  .inlineTraceWrap {
+    transition: none;
   }
 }
 
@@ -481,6 +768,7 @@
   /* clear of the command bar at the bottom right */
   padding: 36px 48px 64px;
   pointer-events: none;
+  animation: treeNodeArrive 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .bottomThinkingBand::before {

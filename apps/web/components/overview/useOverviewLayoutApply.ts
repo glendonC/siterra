@@ -98,6 +98,13 @@ export interface UseOverviewLayoutApplyArgs {
     panX: number;
     panY: number;
   }>;
+  camTargetRef?: RefObject<{
+    zoom: number;
+    turn: number;
+    pitch: number;
+    panX: number;
+    panY: number;
+  } | null>;
   panelRef: RefObject<boolean>;
   selWireRef: RefObject<SVGLineElement | null>;
   askCircleRef: RefObject<HTMLButtonElement | null>;
@@ -187,6 +194,7 @@ export function useOverviewLayoutApply(args: UseOverviewLayoutApplyArgs) {
     wireRefs,
     hov,
     camRef,
+    camTargetRef,
     panelRef,
     selWireRef,
     askCircleRef,
@@ -597,6 +605,36 @@ export function useOverviewLayoutApply(args: UseOverviewLayoutApplyArgs) {
       l[key] = Math.abs(d) <= step ? gl[key] : l[key] + Math.sign(d) * step;
       if (l[key] !== gl[key]) moving = true;
     }
+    const CT = camTargetRef?.current;
+    if (CT) {
+      const c = camRef.current;
+      const k = reducedMotion.current ? 1 : 1 - Math.exp(-dt * 8.5);
+      const dz = CT.zoom - c.zoom;
+      const dtTurn = ((((CT.turn - c.turn + 180) % 360) + 360) % 360) - 180;
+      const dp = CT.pitch - c.pitch;
+      const dx = CT.panX - c.panX;
+      const dy = CT.panY - c.panY;
+      if (
+        Math.abs(dz) < 1e-3 &&
+        Math.abs(dtTurn) < 0.05 &&
+        Math.abs(dp) < 0.05 &&
+        Math.hypot(dx, dy) < 0.02
+      ) {
+        c.zoom = CT.zoom;
+        c.turn = CT.turn;
+        c.pitch = CT.pitch;
+        c.panX = CT.panX;
+        c.panY = CT.panY;
+        camTargetRef.current = null;
+      } else {
+        c.zoom += dz * k;
+        c.turn = ((((c.turn + dtTurn * k + 180) % 360) + 360) % 360) - 180;
+        c.pitch += dp * k;
+        c.panX += dx * k;
+        c.panY += dy * k;
+        moving = true;
+      }
+    }
     const PA = pkgAsideRef.current;
     if (PA.k !== PA.goal) {
       const step = dt / 0.7;
@@ -672,7 +710,10 @@ export function useOverviewLayoutApply(args: UseOverviewLayoutApplyArgs) {
               : 0;
       moving = true;
     } else if (Q.t0 === -1 && Q.layer) {
-      Q.k = 1;
+      if (Q.k < 1) {
+        Q.k = reducedMotion.current ? 1 : Math.min(1, Q.k + dt * 3.2);
+        moving = true;
+      }
     } else {
       Q.t0 = null;
       if (Q.k > 0) {

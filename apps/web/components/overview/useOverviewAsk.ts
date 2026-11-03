@@ -30,9 +30,15 @@ export interface OverviewAsk {
   snapshot: CaseSnapshot;
   /** The session's events as they reach the page (a replay at reading pace): the run's own stream (U29). */
   events: readonly Event[];
+  /** True while a replay is actively pacing events. */
+  pacing: boolean;
+  /** Fast-forwards a paced replay to show all events immediately. */
+  skipPacing: () => void;
+  /** Requests cooperative cancellation of a live running command. */
+  cancel: () => void;
 }
 
-export function useOverviewAsk(initial: CaseSnapshot): OverviewAsk {
+export function useOverviewAsk(initial: CaseSnapshot, paused = false): OverviewAsk {
   const { snapshot, log } = useCaseSession(initial);
   const [sent, setSent] = useState(false);
   const [commandId, setCommandId] = useState<string | null>(null);
@@ -42,7 +48,7 @@ export function useOverviewAsk(initial: CaseSnapshot): OverviewAsk {
   const running = commandId !== null && commandRunning(snapshot, log, commandId);
   // a replayed request started here plays out at reading pace, as on the valley
   const replay = commandId ? replayOrigin(log.events, commandId) : undefined;
-  const paced = usePacedLog(log, commandId ?? undefined, replay !== undefined);
+  const paced = usePacedLog(log, commandId ?? undefined, replay !== undefined, paused);
 
   const send = useCallback(
     (typed: string) => {
@@ -94,6 +100,16 @@ export function useOverviewAsk(initial: CaseSnapshot): OverviewAsk {
     [snapshot, paced.log, paced.pacing, commandId, sent, notice],
   );
 
+  const cancel = useCallback(() => {
+    if (!commandId) return;
+    void fetch(`/api/commands/${encodeURIComponent(commandId)}/cancel`, {
+      method: "POST",
+      credentials: "same-origin",
+    }).catch(() => {
+      // Ignore network/409 errors if command already completed
+    });
+  }, [commandId]);
+
   return {
     activity,
     send,
@@ -102,5 +118,8 @@ export function useOverviewAsk(initial: CaseSnapshot): OverviewAsk {
     snapshot,
     commandId,
     events: paced.log.events,
+    pacing: paced.pacing,
+    skipPacing: paced.showAll,
+    cancel,
   };
 }

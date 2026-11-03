@@ -104,6 +104,7 @@
   color: var(--ov-ink-2);
   max-width: 560px;
   text-shadow: var(--ov-halo-dark);
+  transition: opacity 220ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 /* two-tone answer line under the question (Board 1 section 6) */
@@ -118,6 +119,7 @@
   color: var(--ov-ink);
   text-shadow: var(--ov-halo-dark);
   pointer-events: none;
+  transition: opacity 220ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .answerClaim {
@@ -131,6 +133,7 @@
 
 .arcCanvas {
   opacity: 0;
+  transition: opacity 260ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .missingHatch {

@@ -313,8 +313,9 @@ function OverviewReady({
 
   const liftOrder = useRef<LiftId[]>([]);
   const liftShownRef = useRef<LiftId | null>(null);
+  const [runPaused, setRunPaused] = useState(false);
 
-  const ask = useOverviewAsk(snapshot);
+  const ask = useOverviewAsk(snapshot, runPaused);
   const recorded = useContext(RecordedRunContext);
   const fallbackCommandId = useMemo(
     () =>
@@ -340,20 +341,25 @@ function OverviewReady({
 
   const [atWork, setAtWork] = useState(effectiveViewMode === "run");
   const [thinkingHidden, setThinkingHidden] = useState(false);
-  const atWorkRef = useRef(atWork);
-  atWorkRef.current = atWork;
+  useEffect(() => {
+    if (effectiveViewMode === "run") {
+      setThinkingHidden(false);
+      setAtWork(true);
+    }
+  }, [effectiveViewMode]);
   // this case's own recording, if it has one (shown settled unless the address asks to watch it run); none otherwise
   const builtinRecorded = useMemo<RecordedRun | null>(
     () => buildRecordedRunForCase(snapshot, 3.5, effectiveViewMode !== "run"),
     [snapshot, effectiveViewMode],
   );
   const atWorkShown = (atWork || recorded !== null) && !thinkingHidden;
+  const atWorkRef = useRef(atWorkShown);
+  atWorkRef.current = atWorkShown;
   const [sentText, setSentText] = useState("");
   // the built-in recording stands in only while no question of the visitor's is on its way: once one is sent, the
   // screen waits for that run's own events rather than playing someone else's
-  const effectiveRecorded =
-    recorded ?? (atWorkShown && !ask.commandId && !sentText ? builtinRecorded : null);
-  const effectiveRecClock = useRecordedClock(effectiveRecorded);
+  const effectiveRecorded = recorded ?? (!ask.commandId && !sentText ? builtinRecorded : null);
+  const effectiveRecClock = useRecordedClock(effectiveRecorded, runPaused);
   const askRun = useMemo(
     () => (ask.commandId ? runModel(ask.snapshot, ask.events, ask.commandId) : null),
     [ask.snapshot, ask.events, ask.commandId],
@@ -379,33 +385,10 @@ function OverviewReady({
   const run = recRun ?? askRun;
   // the thinking is offered only when this case has a run to show: its recording, or a question's own run
   const thinkingRun = run ?? fallbackCompletedRun;
-
   useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.metaKey || e.ctrlKey || e.altKey) return;
-      const t = e.target;
-      if (
-        t instanceof HTMLElement &&
-        (t.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(t.tagName))
-      ) {
-        return;
-      }
-      if ((e.key === "t" || e.key === "T") && thinkingRun && !selRef.current) {
-        e.preventDefault();
-        if (atWorkShown) {
-          setThinkingHidden(true);
-          setAtWork(false);
-        } else {
-          setThinkingHidden(false);
-          setAtWork(true);
-        }
-      }
-    };
-    window.addEventListener("keydown", onKeyDown);
-    return () => {
-      window.removeEventListener("keydown", onKeyDown);
-    };
-  }, [atWorkShown, thinkingRun]);
+    if (run?.done) setRunPaused(false);
+  }, [run?.done]);
+
   const [runArc, setRunArc] = useState<RunArcState | null>(null);
   const runArcKey = useRef("");
   const refresh = useRecordsRefresh();
@@ -492,6 +475,13 @@ function OverviewReady({
   const liftRef = useRef<HTMLDivElement>(null);
   const cornerRef = useRef<HTMLDivElement>(null);
   const camRef = useRef({ zoom: 1, turn: 0, pitch: 0, panX: 0, panY: 0 });
+  const camTargetRef = useRef<{
+    zoom: number;
+    turn: number;
+    pitch: number;
+    panX: number;
+    panY: number;
+  } | null>(null);
   const [moved, setMoved] = useState(false);
   const movedRef = useRef(false);
   const recRef = useRef<HTMLDivElement>(null);
@@ -594,6 +584,7 @@ function OverviewReady({
     wireRefs,
     hov,
     camRef,
+    camTargetRef,
     panelRef,
     selWireRef,
     askCircleRef,
@@ -692,6 +683,7 @@ function OverviewReady({
   const open = useCallback(
     (id: Selection) => {
       if (selRef.current && selRef.current !== id && goal.current.s > 0) return;
+      camTargetRef.current = null;
       camRef.current = { zoom: 1, turn: 0, pitch: 0, panX: 0, panY: 0 };
       movedRef.current = false;
       setMoved(false);
@@ -853,6 +845,7 @@ function OverviewReady({
 
   const setCam = useCallback(
     (next: { zoom?: number; turn?: number; pitch?: number; panX?: number; panY?: number }) => {
+      camTargetRef.current = null;
       const c = camRef.current;
       c.zoom = Math.min(ZOOM.max, Math.max(ZOOM.min, next.zoom ?? c.zoom));
       const rawTurn = next.turn ?? c.turn;
@@ -903,46 +896,58 @@ function OverviewReady({
     (explanationId: string) => {
       const lim = bandLimit?.value ?? 2317;
       idle.current.t0 = -1;
+      const smoothCam = (zoom: number, turn: number) => {
+        if (reducedMotion.current) {
+          camTargetRef.current = null;
+          camRef.current.zoom = zoom;
+          camRef.current.turn = turn;
+        } else {
+          camTargetRef.current = {
+            zoom,
+            turn,
+            pitch: camRef.current.pitch,
+            panX: camRef.current.panX,
+            panY: camRef.current.panY,
+          };
+        }
+      };
       if (explanationId === "rainfall") {
         goal.current.r = 0;
         const hasRain = Boolean(data?.footprints.rain?.length);
         liftShownRef.current = hasRain ? "rain" : null;
         setLiftShown(hasRain ? "rain" : null);
         idle.current.layer = hasRain ? "rain" : null;
-        idle.current.k = hasRain ? 1 : 0;
+        if (!hasRain) idle.current.k = 0;
+        else if (idle.current.k === 0) idle.current.k = reducedMotion.current ? 1 : 0.05;
         pkgRangesRef.current = { ranges: [], lit: null };
-        camRef.current.zoom = 1.08;
-        camRef.current.turn = 14;
+        smoothCam(1.08, 14);
         go();
       } else if (explanationId === "grazing") {
         goal.current.r = 1;
         liftShownRef.current = "bands";
         setLiftShown("bands");
         idle.current.layer = "bands";
-        idle.current.k = 1;
+        if (idle.current.k === 0) idle.current.k = reducedMotion.current ? 1 : 0.05;
         pkgRangesRef.current = { ranges: [{ lo: lim, hi: 3200 }], lit: 0 };
-        camRef.current.zoom = 1.18;
-        camRef.current.turn = -26;
+        smoothCam(1.18, -26);
         go();
       } else if (explanationId === "land_use") {
         goal.current.r = 0;
         liftShownRef.current = "cover";
         setLiftShown("cover");
         idle.current.layer = "cover";
-        idle.current.k = 1;
+        if (idle.current.k === 0) idle.current.k = reducedMotion.current ? 1 : 0.05;
         pkgRangesRef.current = { ranges: [{ lo: 1800, hi: lim }], lit: 0 };
-        camRef.current.zoom = 1.22;
-        camRef.current.turn = -16;
+        smoothCam(1.22, -16);
         go();
       } else if (explanationId === "snow_terrain") {
         goal.current.r = 0;
         liftShownRef.current = "bands";
         setLiftShown("bands");
         idle.current.layer = "bands";
-        idle.current.k = 1;
+        if (idle.current.k === 0) idle.current.k = reducedMotion.current ? 1 : 0.05;
         pkgRangesRef.current = { ranges: [{ lo: lim, hi: 3200 }], lit: 0 };
-        camRef.current.zoom = 1.14;
-        camRef.current.turn = -20;
+        smoothCam(1.14, -20);
         go();
       } else if (explanationId === "data_artefact") {
         goal.current.r = 1;
@@ -950,10 +955,10 @@ function OverviewReady({
         liftShownRef.current = hasTrend ? "trend" : null;
         setLiftShown(hasTrend ? "trend" : null);
         idle.current.layer = hasTrend ? "trend" : null;
-        idle.current.k = hasTrend ? 1 : 0;
+        if (!hasTrend) idle.current.k = 0;
+        else if (idle.current.k === 0) idle.current.k = reducedMotion.current ? 1 : 0.05;
         pkgRangesRef.current = { ranges: [], lit: null };
-        camRef.current.zoom = 1.32;
-        camRef.current.turn = 22;
+        smoothCam(1.32, 22);
         go();
       }
     },
@@ -966,10 +971,21 @@ function OverviewReady({
       const applyCam = (zoom: number, turn: number) => {
         if (!arrival.current.done) return;
         if (manual) {
-          setCam({ zoom, turn, pitch: 0, panX: 0, panY: 0 });
-        } else if (!movedRef.current) {
+          const isMoved = Math.abs(zoom - 1) > 1e-3 || Math.abs(turn) > 0.1;
+          movedRef.current = isMoved;
+          setMoved(isMoved);
+        } else if (movedRef.current) {
+          return;
+        }
+        if (reducedMotion.current) {
+          camTargetRef.current = null;
           camRef.current.zoom = zoom;
           camRef.current.turn = turn;
+          camRef.current.pitch = 0;
+          camRef.current.panX = 0;
+          camRef.current.panY = 0;
+        } else {
+          camTargetRef.current = { zoom, turn, pitch: 0, panX: 0, panY: 0 };
         }
       };
       if (!lens) {
@@ -999,7 +1015,7 @@ function OverviewReady({
           liftShownRef.current = "bands";
           setLiftShown("bands");
           idle.current.layer = "bands";
-          idle.current.k = 1;
+          if (idle.current.k === 0) idle.current.k = reducedMotion.current ? 1 : 0.05;
         }
         pkgRangesRef.current = {
           ranges: [
@@ -1017,7 +1033,7 @@ function OverviewReady({
           liftShownRef.current = "rain";
           setLiftShown("rain");
           idle.current.layer = "rain";
-          idle.current.k = 1;
+          if (idle.current.k === 0) idle.current.k = reducedMotion.current ? 1 : 0.05;
         }
         pkgRangesRef.current = { ranges: [], lit: null };
         applyCam(1.04, 8);
@@ -1029,7 +1045,7 @@ function OverviewReady({
           liftShownRef.current = "trend";
           setLiftShown("trend");
           idle.current.layer = "trend";
-          idle.current.k = 1;
+          if (idle.current.k === 0) idle.current.k = reducedMotion.current ? 1 : 0.05;
         }
         pkgRangesRef.current = { ranges: [], lit: null };
         applyCam(1.08, 10);
@@ -1040,7 +1056,7 @@ function OverviewReady({
           liftShownRef.current = "cover";
           setLiftShown("cover");
           idle.current.layer = "cover";
-          idle.current.k = 1;
+          if (idle.current.k === 0) idle.current.k = reducedMotion.current ? 1 : 0.05;
         }
         pkgRangesRef.current = { ranges: [{ lo: 1800, hi: lim }], lit: 0 };
         applyCam(1.06, -6);
@@ -1051,19 +1067,22 @@ function OverviewReady({
           liftShownRef.current = "bands";
           setLiftShown("bands");
           idle.current.layer = "bands";
-          idle.current.k = 1;
+          if (idle.current.k === 0) idle.current.k = reducedMotion.current ? 1 : 0.05;
         }
         pkgRangesRef.current = { ranges: [{ lo: lim, hi: 3200 }], lit: 0 };
         applyCam(1.08, -12);
         go();
       }
     },
-    [bandLimit?.value, data, go, setCam],
+    [bandLimit?.value, data, go],
   );
 
   const focusTaskLayer = useCallback(
     (task: { kind: string; sublabel?: string | null } | null) => {
-      if (!task) return;
+      if (!task) {
+        focusLayer(null, false);
+        return;
+      }
       if (task.kind === "plan") {
         focusLayer("bands", false);
       } else if (task.sublabel === "Vegetation" || task.sublabel === "NDVI & trend recipes") {
@@ -1084,6 +1103,34 @@ function OverviewReady({
     [focusLayer],
   );
 
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      const t = e.target;
+      if (
+        t instanceof HTMLElement &&
+        (t.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(t.tagName))
+      ) {
+        return;
+      }
+      if ((e.key === "t" || e.key === "T") && thinkingRun?.done && !selRef.current) {
+        e.preventDefault();
+        focusTaskLayer(null);
+        if (atWorkShown) {
+          setThinkingHidden(true);
+          setAtWork(false);
+        } else {
+          setThinkingHidden(false);
+          setAtWork(true);
+        }
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [atWorkShown, focusTaskLayer, thinkingRun?.done]);
+
   useOverviewKeyboardShortcuts({
     arriving,
     askOpen,
@@ -1094,7 +1141,18 @@ function OverviewReady({
     setRainWide,
     selRef,
     atWorkRef,
-    setAtWork,
+    setAtWork: (next) => {
+      const val = typeof next === "function" ? next(atWorkRef.current) : next;
+      if (!val) {
+        if (run && !run.done) {
+          toOpening();
+          return;
+        }
+        focusTaskLayer(null);
+        setThinkingHidden(true);
+      }
+      setAtWork(val);
+    },
     pkgOpenRef,
     cardActionsRef,
     hoverShown,
@@ -1146,7 +1204,14 @@ function OverviewReady({
     hoverWords,
     offeredRef,
     openRef,
+    atWorkRef,
   });
+
+  useEffect(() => {
+    if (atWorkShown) {
+      hideHoverRef.current();
+    }
+  }, [atWorkShown]);
 
   useEffect(() => {
     goal.current.o = askOpen ? 1 : 0;
@@ -1171,11 +1236,14 @@ function OverviewReady({
   // the command bar (HUD-2, decision A): every action as a key and its label, only the ones that apply now, the
   // screen's one action first
   const seeFindings = () => {
+    focusTaskLayer(null);
     setThinkingHidden(true);
     setAtWork(false);
     open("results");
   };
   const toggleThinking = () => {
+    if (atWorkShown && run && !run.done) return;
+    focusTaskLayer(null);
     if (atWorkShown) {
       setThinkingHidden(true);
       setAtWork(false);
@@ -1196,7 +1264,20 @@ function OverviewReady({
           },
         ]
       : []),
-    ...(thinkingRun && !sel
+    ...(atWorkShown && run && !run.done && !sel
+      ? [
+          {
+            chip: "P",
+            shortcut: "P",
+            label: runPaused ? "Resume" : "Pause",
+            onPress: () => {
+              setRunPaused((p) => !p);
+            },
+            pressed: runPaused,
+          },
+        ]
+      : []),
+    ...(thinkingRun?.done && !sel
       ? [
           {
             chip: "T",
@@ -1369,6 +1450,7 @@ function OverviewReady({
               (sentText || effectiveQuestion || snapshot.case.objective)
             }
             onFindings={() => {
+              focusTaskLayer(null);
               setThinkingHidden(true);
               setAtWork(false);
               open("results");
@@ -1378,6 +1460,28 @@ function OverviewReady({
               focusLayer(l, true);
             }}
             onFocusCause={focusCauseFromLedger}
+            paused={runPaused}
+            onTogglePause={
+              !run.done
+                ? () => {
+                    setRunPaused((p) => !p);
+                  }
+                : undefined
+            }
+            onStopRun={
+              !run.done
+                ? () => {
+                    setRunPaused(false);
+                    if (ask.commandId && !ask.pacing && run.replay === null) {
+                      ask.cancel();
+                    }
+                    focusTaskLayer(null);
+                    setThinkingHidden(true);
+                    setAtWork(false);
+                    if (sentText) setAskText(sentText);
+                  }
+                : undefined
+            }
             rimLeft={runArc.rimLeft}
             {...(effectiveRecorded
               ? {
@@ -1615,6 +1719,7 @@ function OverviewReady({
             text={askText}
             onText={setAskText}
             onEnter={(text) => {
+              setThinkingHidden(false);
               setAtWork(true);
               setSentText(text);
               setAskOpen(false);

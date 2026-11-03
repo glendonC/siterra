@@ -344,6 +344,7 @@ export function useOverviewLandHover({
   hoverWords,
   offeredRef,
   openRef,
+  atWorkRef,
 }: {
   hoverRef: RefObject<HTMLDivElement | null>;
   hoverNameRef: RefObject<HTMLSpanElement | null>;
@@ -370,6 +371,7 @@ export function useOverviewLandHover({
   }>;
   offeredRef: RefObject<ReadonlySet<ViewKind>>;
   openRef: RefObject<(href: string) => boolean>;
+  atWorkRef?: RefObject<boolean>;
 }): void {
   useEffect(() => {
     let raf = 0;
@@ -395,6 +397,8 @@ export function useOverviewLandHover({
       const t = ev.target as HTMLElement | null;
       const quiet =
         held ||
+        Boolean(atWorkRef?.current) ||
+        document.querySelector("[data-overview-root][data-at-work]") !== null ||
         lifeHot.current ||
         selRef.current !== null ||
         tearRef.current !== null ||
@@ -402,7 +406,9 @@ export function useOverviewLandHover({
         askOpenRef.current ||
         exitRef.current.away > 0 ||
         Boolean(
-          t?.closest("button, a, input, textarea, [role='dialog'], [data-ask], [data-hover-off]"),
+          t?.closest(
+            "button, a, input, textarea, [role='dialog'], [data-ask], [data-at-work], [data-hover-off]",
+          ),
         );
       if (quiet) {
         hide();
@@ -486,9 +492,16 @@ export function useOverviewLandHover({
       held = false;
       const d = down;
       down = null;
-      if (!d?.shown || Math.hypot(e.clientX - d.x, e.clientY - d.y) > 4) return;
+      if (
+        !d?.shown ||
+        Boolean(atWorkRef?.current) ||
+        document.querySelector("[data-overview-root][data-at-work]") !== null ||
+        Math.hypot(e.clientX - d.x, e.clientY - d.y) > 4
+      )
+        return;
       const t = e.target as HTMLElement | null;
-      if (t?.closest("button, a, input, textarea, [role='dialog'], [data-ask]")) return;
+      if (t?.closest("button, a, input, textarea, [role='dialog'], [data-ask], [data-at-work]"))
+        return;
       const primary = actionForKey(hoverActs.current, "Enter");
       if (primary?.view) openRef.current(VIEW_HREF[primary.view]);
     };

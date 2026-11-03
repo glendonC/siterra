@@ -96,6 +96,12 @@ export interface RunBranch {
   reason: string | null;
 }
 
+export interface RunChipMeta {
+  url: string | null;
+  title: string;
+  publisher: string | null;
+}
+
 export interface RunModel {
   commandId: string;
   /** Wall time of the command's acceptance. */
@@ -121,6 +127,10 @@ export interface RunModel {
   totalCostMicroUsd: number | null;
   /** True when the run has completed and has a plan or field checks awaiting human review. */
   needsReview: boolean;
+  /** Lookup of chip label to source/bundle metadata (URL, title, publisher). */
+  chipMeta?: Readonly<Record<string, RunChipMeta>>;
+  /** Lookup of source ID to source metadata (URL, title, publisher). */
+  sourceMetaById?: Readonly<Record<string, RunChipMeta>>;
 }
 
 const END: Partial<Record<Event["kind"], RunTaskState>> = {
@@ -260,10 +270,18 @@ function deriveTaskSublabel(
   question: string,
 ): string | null {
   if (kind === "observation_analysis") {
-    if (bundleIds.some((b) => b.includes("restrend") || b.includes("pixel_trend") || b.includes("ndvi_departure"))) {
+    if (
+      bundleIds.some(
+        (b) => b.includes("restrend") || b.includes("pixel_trend") || b.includes("ndvi_departure"),
+      )
+    ) {
       return "Vegetation";
     }
-    if (bundleIds.some((b) => b.includes("chirps") || b.includes("relief") || b.includes("terrain_strata"))) {
+    if (
+      bundleIds.some(
+        (b) => b.includes("chirps") || b.includes("relief") || b.includes("terrain_strata"),
+      )
+    ) {
       return "Rainfall & terrain";
     }
     return /valley[_ ]floor/i.test(question) ? "Valley floor" : "Catchment";
@@ -500,6 +518,48 @@ export function runModel(
         (tr) => tr.commandId === commandId && tr.status === "awaiting_review",
       ));
 
+  const chipMeta: Record<string, RunChipMeta> = {};
+  const sourceMetaById: Record<string, RunChipMeta> = {};
+  for (const src of snapshot.records.sourceRecords) {
+    const meta: RunChipMeta = {
+      url: src.url,
+      title: src.title,
+      publisher: src.publisher,
+    };
+    sourceMetaById[src.id] = meta;
+    chipMeta[shortCitation(src)] = meta;
+  }
+  const s2 = snapshot.records.sourceRecords.find(
+    (s) => s.id === "src_SCI-07" || /sentinel-2/i.test(s.title),
+  );
+  if (s2) {
+    chipMeta[en["source.sentinel"].text] = {
+      url: s2.url,
+      title: s2.title,
+      publisher: s2.publisher,
+    };
+  }
+  const chirps = snapshot.records.sourceRecords.find(
+    (s) => s.id === "src_SCI-09" || /chirps/i.test(s.title),
+  );
+  if (chirps) {
+    chipMeta[en["source.chirps"].text] = {
+      url: chirps.url,
+      title: chirps.title,
+      publisher: chirps.publisher,
+    };
+  }
+  const wc = snapshot.records.sourceRecords.find(
+    (s) => s.id === "src_SCI-13" || /worldcover/i.test(s.title),
+  );
+  if (wc) {
+    chipMeta[en["source.worldcover"].text] = {
+      url: wc.url,
+      title: wc.title,
+      publisher: wc.publisher,
+    };
+  }
+
   const last = own.at(-1);
   return {
     commandId,
@@ -515,5 +575,7 @@ export function runModel(
     checks,
     totalCostMicroUsd: hasCost ? totalCost : null,
     needsReview,
+    chipMeta,
+    sourceMetaById,
   };
 }
