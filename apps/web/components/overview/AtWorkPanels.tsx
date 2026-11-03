@@ -1,6 +1,6 @@
 "use client";
 
-import type { CSSProperties, Dispatch, SetStateAction } from "react";
+import { useEffect, type CSSProperties, type Dispatch, type SetStateAction } from "react";
 import { en, format, type MessageId } from "../../lib/copy/en";
 import type { CursorPoint } from "../../lib/run/layout";
 import type { RunModel, RunTask, RunTaskState } from "../../lib/run/model";
@@ -107,14 +107,21 @@ export function AtWorkAgentTree({
   onFocusLayer?:
     ((layer: "bands" | "cover" | "trend" | "rain" | "routes" | null) => void) | undefined;
 }) {
-  if (run.tasks.length === 0) return null;
-
   const kindCounts = new Map<string, number>();
   for (const t of run.tasks) {
     kindCounts.set(t.kind, (kindCounts.get(t.kind) ?? 0) + 1);
   }
 
-  const runningTasks = run.tasks.filter(
+  const nonQueuedTasks = run.tasks.filter((t) => t.state !== "queued");
+  const sameStartCounts = new Map<number, number>();
+  const staggeredNonQueued = nonQueuedTasks.filter((t) => {
+    if (run.done || selectedTaskId === t.id || t.startMs === null) return true;
+    const idxInBatch = sameStartCounts.get(t.startMs) ?? 0;
+    sameStartCounts.set(t.startMs, idxInBatch + 1);
+    return nowMs >= t.startMs + idxInBatch * 2200;
+  });
+
+  const runningTasks = staggeredNonQueued.filter(
     (t) => t.state === "running" && !(t.kind === "explanation_branches" && run.branches.length > 0),
   );
   const primaryRunning =
@@ -125,17 +132,32 @@ export function AtWorkAgentTree({
         null)
       : null;
 
-  const nonQueuedTasks = run.tasks.filter((t) => t.state !== "queued");
+  const primaryRunningId = primaryRunning?.id ?? null;
+  useEffect(() => {
+    if (selectedTaskId === null) {
+      setStepsDismissed(false);
+    }
+  }, [primaryRunningId, run.done, selectedTaskId, setStepsDismissed]);
+
+  if (run.tasks.length === 0) return null;
+
   const visibleTasks = expandedAll
-    ? nonQueuedTasks
-    : nonQueuedTasks.filter((t) => t.state === "running" || selectedTaskId === t.id);
+    ? staggeredNonQueued
+    : staggeredNonQueued.filter((t) => t.state === "running" || selectedTaskId === t.id);
   const showTreeList = visibleTasks.length > 0 || (run.done && run.needsReview);
 
+  const defaultSettledTask = run.done
+    ? ([...visibleTasks].reverse().find((t) => t.steps.length > 0 || t.searchedChips.length > 0) ??
+      visibleTasks[0] ??
+      null)
+    : null;
   const selectedTask =
     !stepsDismissed && selectedTaskId !== null
       ? (nonQueuedTasks.find((t) => t.id === selectedTaskId) ?? null)
       : null;
-  const expandedTask = !stepsDismissed ? (selectedTask ?? primaryRunning) : null;
+  const expandedTask = !stepsDismissed
+    ? (selectedTask ?? primaryRunning ?? (run.done ? defaultSettledTask : null))
+    : null;
 
   let obsSeen = 0;
 
@@ -178,9 +200,24 @@ export function AtWorkAgentTree({
               const duplicateKind = (kindCounts.get(t.kind) ?? 0) > 1;
               const obsIdx = t.kind === "observation_analysis" ? obsSeen++ : 0;
               const taskTitle = humanTaskTitle(t, duplicateKind, obsIdx);
-              const shownChips = t.searchedChips.slice(0, 2);
-              const extraChipCount = Math.max(0, t.searchedChips.length - shownChips.length);
+              const unknownBundle = en["results.unknownBundle"].text;
+              const unknownSource = en["results.unknownSource"].text;
+              const chipSource = (
+                t.searchedChips.length > 0
+                  ? t.searchedChips
+                  : [...(t.bundleLabels ?? []), ...(t.sourceCitations ?? [])]
+              ).filter((c) => c && c !== unknownBundle && c !== unknownSource);
+              const shownChips = chipSource.slice(0, 2);
+              const extraChipCount = Math.max(0, chipSource.length - shownChips.length);
               const summaryStep = t.steps.length > 0 ? (t.steps[t.steps.length - 1] ?? null) : null;
+              const fallbackStepText =
+                t.kind === "instrument_composition" || t.kind === "view" || t.kind === "view_order"
+                  ? "Ordered findings and views for the briefing"
+                  : t.kind === "plan"
+                    ? en["run.step.plan"].text
+                    : t.sublabel
+                      ? `Checking ${t.sublabel.toLowerCase()}`
+                      : en["run.step.readCatchment"].text;
 
               return (
                 <li
@@ -203,8 +240,13 @@ export function AtWorkAgentTree({
                     data-run-card={isPrimaryRunning ? t.kind : undefined}
                     data-chrome={isPrimaryRunning ? undefined : ""}
                     onClick={() => {
-                      setStepsDismissed(false);
-                      setSelectedTaskId((cur) => (cur === t.id ? null : t.id));
+                      if (isExpanded) {
+                        setStepsDismissed(true);
+                        setSelectedTaskId(null);
+                      } else {
+                        setStepsDismissed(false);
+                        setSelectedTaskId(t.id);
+                      }
                     }}
                   >
                     <span
@@ -218,6 +260,25 @@ export function AtWorkAgentTree({
                     <span className={styles.treeNodeName} data-state={t.state}>
                       {taskTitle}
                     </span>
+
+                    <svg
+                      className={styles.treeNodeChevron}
+                      data-expanded={isExpanded ? "" : undefined}
+                      width="12"
+                      height="12"
+                      viewBox="0 0 12 12"
+                      fill="none"
+                      aria-hidden="true"
+                      data-chrome=""
+                    >
+                      <path
+                        d="M4.5 2.75L7.75 6L4.5 9.25"
+                        stroke="currentColor"
+                        strokeWidth="1.4"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
                   </button>
 
                   {isExpanded ? (
@@ -255,7 +316,15 @@ export function AtWorkAgentTree({
                         <p className={styles.inspectorLiveLine} data-active-shimmer="">
                           {t.activeLabel}
                         </p>
-                      ) : null}
+                      ) : (
+                        <div
+                          className={styles.thinkingStep}
+                          data-thinking-step={isRunning ? "running" : "succeeded"}
+                          data-active-shimmer={isRunning ? "" : undefined}
+                        >
+                          <span className={styles.thinkingStepLabel}>{fallbackStepText}</span>
+                        </div>
+                      )}
                     </div>
                   ) : null}
                 </li>
@@ -284,7 +353,7 @@ export function AtWorkAgentTree({
 
         {!run.done && run.tasks.length > 0 ? (
           <div className={styles.thinkingFoot} data-run-step-count="" data-chrome="">
-            {`Step ${String(Math.max(1, nonQueuedTasks.length))} of ${String(run.tasks.length)}`}
+            {`Step ${String(Math.max(1, staggeredNonQueued.length))} of ${String(Math.max(7, run.tasks.length))}`}
           </div>
         ) : null}
       </aside>

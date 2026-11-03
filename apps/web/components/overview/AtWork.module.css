@@ -113,11 +113,6 @@
   pointer-events: none;
 }
 
-/* the replay line lengthens the header: the trace starts below it */
-.atWork:has([data-run-replay]) .leftRailSystem {
-  top: calc(118px / var(--hud-scale, 1) - var(--hud-shift-y, 0px));
-}
-
 .agentTree {
   position: relative;
   display: flex;
@@ -228,15 +223,21 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  width: 100%;
-  padding: 1px 0;
+  width: fit-content;
+  max-width: 100%;
+  padding: 3px 8px 3px 6px;
+  margin-left: -6px;
   border: 0;
+  border-radius: 5px;
   background: transparent;
   color: var(--text-secondary);
   text-align: left;
   cursor: pointer;
   outline: none;
   text-shadow: var(--paper-halo);
+  transition:
+    background-color 140ms ease,
+    color 140ms ease;
 }
 
 .treeNodeBtn:disabled,
@@ -246,7 +247,36 @@
   pointer-events: none;
 }
 
+.treeNodeBtn:hover:not(:disabled) {
+  background: rgba(26, 23, 20, 0.055);
+}
+
+.treeNode[data-expanded] .treeNodeBtn {
+  background: rgba(26, 23, 20, 0.04);
+}
+
 .treeNodeBtn:hover:not(:disabled) .treeNodeName {
+  color: var(--text-primary);
+}
+
+.treeNodeChevron {
+  flex-shrink: 0;
+  color: var(--text-tertiary);
+  opacity: 0.75;
+  transition:
+    transform 160ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 140ms ease,
+    color 140ms ease;
+}
+
+.treeNodeChevron[data-expanded] {
+  transform: rotate(90deg);
+  opacity: 1;
+  color: var(--text-primary);
+}
+
+.treeNodeBtn:hover:not(:disabled) .treeNodeChevron {
+  opacity: 1;
   color: var(--text-primary);
 }
 
@@ -813,13 +843,4 @@
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 210px;
-}
-
-/* the line under the question when the run on screen is a replay: where it comes from, in the header it belongs to */
-.replayLine {
-  margin: -2px 0 0 0;
-  font: 400 12px / 16px var(--font-mono);
-  color: var(--text-secondary);
-  text-shadow: var(--paper-halo);
-  pointer-events: auto;
 }

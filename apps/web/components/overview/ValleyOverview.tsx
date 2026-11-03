@@ -363,7 +363,7 @@ function OverviewReady({
       effectiveRecorded
         ? runModel(
             effectiveRecorded.snapshot,
-            revealed(effectiveRecorded, Math.max(450, effectiveRecClock)),
+            revealed(effectiveRecorded, Math.max(550, effectiveRecClock)),
             effectiveRecorded.commandId,
           )
         : null,

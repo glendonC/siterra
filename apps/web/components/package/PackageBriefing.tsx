@@ -22,13 +22,7 @@ import {
   type RecordedReviewDecision,
   type ReviewChoice,
 } from "../../lib/package/review";
-import {
-  nextOf,
-  previousOf,
-  stepsOf,
-  type Cursor,
-  type Step,
-} from "../../lib/package/steps";
+import { nextOf, previousOf, stepsOf, type Cursor, type Step } from "../../lib/package/steps";
 import { LABEL_DROP, labelWidth, layoutMarkers } from "../../lib/package/markers";
 import { Control } from "../controls/Control";
 import { usePrompt } from "./ActionPrompt";
@@ -290,7 +284,6 @@ export function PackageBriefing({
         <p className={styles.status}>
           <span className={styles.statusWord}>{t(`package.status.${effectiveStatus}`)}</span>
           <span>{t("steps.nothingSent")}</span>
-          {view.mode !== "live" ? <span>{t(`package.mode.${view.mode}`)}</span> : null}
         </p>
       </header>
 

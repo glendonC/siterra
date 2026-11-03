@@ -114,22 +114,10 @@ async function stubbedRun(page: Page, live: boolean) {
   await expect(page.locator("[data-at-work]").first()).toBeVisible({ timeout: 20_000 });
 }
 
-test("a replayed run says Replay under its question, and no mode line ever shows", async ({
-  page,
-}) => {
+test("a replayed run shows neither a replay line nor a mode line", async ({ page }) => {
   test.setTimeout(180_000);
   await stubbedRun(page, false);
-  const note = page.locator("[data-at-work] [data-run-replay]");
-  await expect(note).toHaveText("Replay of a synthetic run, no model called now", {
-    timeout: 30_000,
-  });
-  await expect(note).toBeVisible();
-  // the line sits in the header, under the question it belongs to
-  const [q, n] = await Promise.all([
-    page.locator("[data-at-work] [data-run-question]").boundingBox(),
-    note.boundingBox(),
-  ]);
-  expect(q && n && n.y >= q.y + q.height - 1 && n.y < q.y + q.height + 24).toBe(true);
+  await expect(page.locator("[data-at-work] [data-run-replay]")).toHaveCount(0);
   await expect(page.locator("[data-overview-root][data-at-work='done']")).toHaveCount(1, {
     timeout: 60_000,
   });

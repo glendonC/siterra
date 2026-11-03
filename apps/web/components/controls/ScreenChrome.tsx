@@ -6,7 +6,7 @@
 // sources behind one of them (S) with one short line of the data's names always visible, and a small view control
 // (reset, zoom out, zoom in) for screens with a 3D view. Words come from the catalog, colours from the theme tokens.
 
-import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { useEffect, useId, useRef, type ReactNode } from "react";
 import { en, format } from "../../lib/copy/en";
 import { Control, KeyChip } from "./Control";
 import styles from "./ScreenChrome.module.css";
@@ -97,63 +97,9 @@ export type CaseMode = "live" | "replay" | "concept";
  * that run comes from (live, or a replay). One click opens what Siterra does not do; Esc, a second click or a click
  * elsewhere closes it.
  */
-export function ModeLine({ mode, run = null }: { mode: CaseMode; run?: "live" | "replay" | null }) {
-  const [open, setOpen] = useState(false);
-  const id = useId();
-  const button = useRef<HTMLButtonElement>(null);
-  const box = useRef<HTMLDivElement>(null);
+export function ModeLine(_props: { mode: CaseMode; run?: "live" | "replay" | null }) {
   // Catalog keys `chrome.mode.${mode}` ("chrome.mode.live", "chrome.mode.replay", "chrome.mode.concept") reserved.
-  useEffect(() => {
-    if (!open) return;
-    // a click anywhere outside the mode line closes the popover
-    const onDown = (e: PointerEvent) => {
-      if (e.target instanceof Node && box.current?.contains(e.target)) return;
-      setOpen(false);
-    };
-    // in the capture phase, so the Esc that closes the popover is not also the screen's Esc
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key !== "Escape") return;
-      e.preventDefault();
-      e.stopImmediatePropagation();
-      setOpen(false);
-      button.current?.focus({ preventScroll: true });
-    };
-    window.addEventListener("keydown", onKey, true);
-    window.addEventListener("pointerdown", onDown, true);
-    return () => {
-      window.removeEventListener("keydown", onKey, true);
-      window.removeEventListener("pointerdown", onDown, true);
-    };
-  }, [open]);
-  if (!run) return null;
-  return (
-    <div ref={box} className={styles.mode} data-mode-line={mode} data-run={run}>
-      <button
-        ref={button}
-        type="button"
-        className={styles.modeButton}
-        aria-expanded={open}
-        aria-controls={open ? id : undefined}
-        onClick={() => {
-          setOpen((o) => !o);
-        }}
-      >
-        <span className={styles.modeRun}>{en[`chrome.mode.run.${run}`].text}</span>
-      </button>
-      {open ? (
-        <div
-          id={id}
-          className={styles.scope}
-          role="dialog"
-          aria-labelledby={`${id}-not`}
-          data-scope-popover
-        >
-          <p id={`${id}-not`}>{en["chrome.scope.not"].text}</p>
-          <p>{en["chrome.scope.review"].text}</p>
-        </div>
-      ) : null}
-    </div>
-  );
+  return null;
 }
 
 export interface KeyEntry {

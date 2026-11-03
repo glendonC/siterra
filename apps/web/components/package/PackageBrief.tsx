@@ -108,7 +108,6 @@ export function PackageBrief({ snapshot, briefId }: { snapshot: CaseSnapshot; br
             {!decision && view.actionStatus ? (
               <span>{t(`package.action.${view.actionStatus}`)}</span>
             ) : null}
-            {view.mode !== "live" ? <span>{t(`package.mode.${view.mode}`)}</span> : null}
             <span>{pformat("package.revision", { n: view.preparedOn })}</span>
           </p>
           {decision?.note ? (

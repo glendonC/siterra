@@ -52,7 +52,8 @@ export function useRecordedClock(run: RecordedRun | null): number {
     let t0: number | null = null;
     const id = window.setInterval(() => {
       if (t0 === null) {
-        if (!document.querySelector("[data-overview-root][data-ready]")) return;
+        if (!document.querySelector("[data-overview-root][data-ready]:not([data-arriving])"))
+          return;
         t0 = performance.now();
       }
       const t = Math.min(end, (performance.now() - t0) * run.speed);

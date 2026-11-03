@@ -44,23 +44,17 @@ test("the recorded run at work: one running task's card, its findings so far, an
   await expect(work.locator("[data-agent-tree]")).toBeVisible();
   await expect(work.locator("[data-agent-cursor]")).toHaveCount(1);
   await expect(work.locator("[data-agent-cursor]")).toContainText("Reading El Aayadi et al. 2026");
-  // the recording says so in the header, under its question, where it is read; nothing calls it live
-  const replay = work.locator("[data-run-replay]");
-  await expect(replay).toHaveText("Replay of live run, 30 Oct 2026, shown 4× faster");
-  await expect(replay).toBeVisible();
-  const [q, r, treeBox] = await Promise.all([
+  await expect(work.locator("[data-run-replay]")).toHaveCount(0);
+  const [q, treeBox] = await Promise.all([
     work.locator("[data-run-question]").boundingBox(),
-    replay.boundingBox(),
     work.locator("[data-agent-tree]").boundingBox(),
   ]);
-  expect(q && r && r.width > 100 && r.y >= q.y + q.height - 1 && r.y < q.y + q.height + 24).toBe(
+  expect(q && treeBox && Math.abs(treeBox.x - q.x) <= 2 && treeBox.y >= q.y + q.height - 1).toBe(
     true,
   );
-  expect(q && treeBox && Math.abs(treeBox.x - q.x) <= 2).toBe(true);
   await expect(work.locator("[data-agent-state='queued']")).toHaveCount(0);
   await expect(work.locator("[data-run-step-count]")).toHaveText("Step 5 of 7");
   expect(await work.innerText()).not.toMatch(/[▸▾✓]/);
-  expect(await replay.evaluate((el) => getComputedStyle(el).opacity)).toBe("1");
   await expect(page.locator("[data-mode-line]")).toHaveCount(0);
   await expect(page.getByText("Live", { exact: true })).toHaveCount(0);
   await expect(work.locator("[data-run-branches]")).toHaveCount(0);
@@ -151,9 +145,7 @@ test("a question sent from the ask takes the arc from its own stream, and a repl
   await expect(work.locator("[data-run-question]")).toContainText(
     "Why is the valley floor greener?",
   );
-  await expect(work.locator("[data-run-replay]")).toContainText(
-    "Replay of a synthetic run, no model called now",
-  );
+  await expect(work.locator("[data-run-replay]")).toHaveCount(0);
 });
 
 test("the thinking is the case's own run: the recording's question and measured length, and none for another place", async ({
@@ -169,7 +161,7 @@ test("the thinking is the case's own run: the recording's question and measured 
   await expect(work).toBeVisible({ timeout: 20_000 });
   await expect(work.locator("[data-run-question]")).toHaveText(/Why is the valley floor greener\?/);
   await expect(work.locator("[data-run-status]")).toHaveText("23 findings in 101.1 s");
-  await expect(work.locator("[data-run-replay]")).toBeVisible();
+  await expect(work.locator("[data-run-replay]")).toHaveCount(0);
 
   await page.goto("/valley?case=case_calaveras_creek");
   await expect(page.locator("[data-overview-root][data-ready]")).toBeAttached({ timeout: 90_000 });

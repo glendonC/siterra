@@ -87,11 +87,6 @@ export function PackageStepCard({
             {t(`package.status.${effectiveStatus}`)}
           </span>
         ) : null}
-        {step.id !== "approve" && view.mode !== "live" ? (
-          <span className={styles.kickerMode} data-chrome="">
-            {view.mode === "replay" ? t("steps.replay") : t(`package.mode.${view.mode}`)}
-          </span>
-        ) : null}
       </p>
       {page.kind === "lines" ? (
         <>

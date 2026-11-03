@@ -8,8 +8,7 @@
 // - Full-width feathered bottom band with loader + live thinking stream while running, and settled summary +
 //   5 explanation cause pills + proposed field check + "See the Findings" CTA when done.
 
-import { useCallback, useEffect, useState, type ReactNode } from "react";
-import { en, format } from "../../lib/copy/en";
+import { useCallback, useEffect, useState } from "react";
 import {
   along,
   centreOf,
@@ -43,17 +42,6 @@ function useClock(run: RunModel, fixed: number | undefined): number {
   if (!live) return run.nowMs;
   return Math.max(run.nowMs, wall - Date.parse(run.acceptedAt ?? ""));
 }
-
-/** The day a run was asked, as the recording's note gives it ("30 Oct 2026"). */
-const dayOf = (iso: string | null) =>
-  iso
-    ? new Date(iso).toLocaleDateString("en-GB", {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-        timeZone: "UTC",
-      })
-    : "";
 
 function resolveTaskMatch(
   tasks: readonly RunTask[],
@@ -112,6 +100,13 @@ export function AtWork({
   const [stepsDismissed, setStepsDismissed] = useState(false);
 
   const runningTask = run.tasks.find((t) => t.state === "running") ?? null;
+  const runningTaskId = runningTask?.id ?? null;
+  useEffect(() => {
+    if (selectedTaskId === null) {
+      setStepsDismissed(false);
+    }
+  }, [runningTaskId, run.done, selectedTaskId]);
+
   const activeOrRunningTask =
     runningTask ??
     (selectedTaskId !== null
@@ -221,26 +216,6 @@ export function AtWork({
   const check = run.checks[0] ?? null;
   const checkAt = rimLeft ? { x: rimLeft.x - 28, y: Math.max(rimLeft.y - 22, 430) } : null;
 
-  // a run that is not happening now says so in one line under its question (honesty strings; a live run says nothing)
-  let note: ReactNode = null;
-  if (recording)
-    note = (
-      <p
-        className={styles.replayLine}
-        data-chrome=""
-        data-run-replay
-        title={en["run.recorded.detail"].text}
-      >
-        {format("run.recorded.title", { date: dayOf(run.acceptedAt), speed: recording.speed })}
-      </p>
-    );
-  else if (run.replay)
-    note = (
-      <p className={styles.replayLine} data-chrome="" data-run-replay>
-        {en[run.replay === "synthetic" ? "run.replayed" : "run.recorded"].text}
-      </p>
-    );
-
   return (
     <div
       className={styles.atWork}
@@ -282,12 +257,11 @@ export function AtWork({
         ) : null}
       </svg>
 
-      {/* Top left: the question (and, for a replay, where it comes from); T Thinking is in the command bar */}
+      {/* Top left: the question; T Thinking is in the command bar */}
       <header className={styles.topLeftHeader}>
         <section className={styles.question} data-run-question>
           <h2 className={styles.asked}>{question}</h2>
         </section>
-        {note}
       </header>
 
       <AtWorkAgentTree
