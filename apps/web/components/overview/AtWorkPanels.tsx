@@ -33,10 +33,11 @@ const RANK: Record<string, number> = {
   contradicted: 3,
 };
 
-const STATUS: Record<string, MessageId> = {
-  consistent: "run.branch.consistent",
-  contradicted: "run.branch.contradicted",
-  cannot_be_assessed: "run.branch.cannot",
+const BRANCH_SHORT_STATUS: Record<string, string> = {
+  consistent: "Supported",
+  cannot_be_assessed: "Needs field data",
+  contradicted: "Ruled out",
+  sealed: "Checking",
 };
 
 export function taskMetaLine(t: RunTask, nowMs: number): string {
@@ -214,6 +215,7 @@ export function AtWorkAgentTree({
   cycleFollow: _cycleFollow,
   follow: _follow = false,
   stepsDismissed = false,
+  onFocusCause,
   onFindings,
   paused = false,
   onTogglePause,
@@ -231,6 +233,7 @@ export function AtWorkAgentTree({
   stepsDismissed?: boolean;
   onFocusLayer?:
     ((layer: "bands" | "cover" | "trend" | "rain" | "routes" | null) => void) | undefined;
+  onFocusCause?: ((causeId: string) => void) | undefined;
   onFindings?: (() => void) | undefined;
   paused?: boolean | undefined;
   onTogglePause?: (() => void) | undefined;
@@ -306,11 +309,11 @@ export function AtWorkAgentTree({
               {"Paused"}
             </span>
           ) : null}
-          {!run.done ? (
-            <span className={styles.srOnly} data-run-status>
-              {format("run.sofar", { n: run.findings.length })}
-            </span>
-          ) : null}
+          <span className={styles.srOnly} data-run-status>
+            {run.done
+              ? format("run.findings", { n: run.findings.length, time: seconds(nowMs) })
+              : format("run.sofar", { n: run.findings.length })}
+          </span>
         </div>
 
         {showTreeList ? (
@@ -377,8 +380,8 @@ export function AtWorkAgentTree({
                     className={styles.treeNodeBtn}
                     aria-expanded={isExpanded}
                     aria-label={taskTitle}
-                    data-run-card={isPrimaryRunning ? t.kind : undefined}
-                    data-chrome={isPrimaryRunning ? undefined : ""}
+                    data-run-card={!run.done && isPrimaryRunning ? t.kind : undefined}
+                    data-chrome={run.done || isPrimaryRunning ? undefined : ""}
                     onClick={() => {
                       if (isExpanded) {
                         setStepsDismissed(true);
@@ -439,6 +442,54 @@ export function AtWorkAgentTree({
                             chipMeta={run.chipMeta}
                             isExpanded={isExpanded}
                           />
+                        ) : null}
+
+                        {t.kind === "explanation_branches" && run.branches.length > 0 ? (
+                          <ul
+                            className={styles.inlineBranchesList}
+                            data-run-branches={isExpanded ? "" : undefined}
+                          >
+                            {[...run.branches]
+                              .sort(
+                                (a, b) =>
+                                  (RANK[a.status ?? "sealed"] ?? 2) -
+                                  (RANK[b.status ?? "sealed"] ?? 2),
+                              )
+                              .map((b) => {
+                                const statusKey = b.status ?? "sealed";
+                                const shortStatus = BRANCH_SHORT_STATUS[statusKey] ?? "Checking";
+                                return (
+                                  <li
+                                    key={b.id}
+                                    className={styles.inlineBranchItem}
+                                    data-status={statusKey}
+                                    title={b.reason ?? undefined}
+                                    onPointerEnter={() => {
+                                      onFocusCause?.(b.id);
+                                    }}
+                                  >
+                                    <span
+                                      className={styles.inlineBranchDot}
+                                      data-status={statusKey}
+                                      aria-hidden="true"
+                                    />
+                                    <span className={styles.inlineBranchLabel}>{b.label}</span>
+                                    <span
+                                      className={styles.inlineBranchStatus}
+                                      data-status={statusKey}
+                                    >
+                                      {shortStatus}
+                                    </span>
+                                  </li>
+                                );
+                              })}
+                          </ul>
+                        ) : null}
+
+                        {t.kind === "field_check" && run.checks[0] ? (
+                          <div className={styles.inlineCheckRow}>
+                            <span className={styles.inlineCheckLabel}>{run.checks[0].label}</span>
+                          </div>
                         ) : null}
 
                         {summaryStep ? (
@@ -517,8 +568,10 @@ export function AtWorkAgentTree({
                   <span className={styles.needsYouPill} data-needs-you="">
                     {en["run.tree.needsYou"].text}
                   </span>
-                  <span className={styles.treeNodeReviewLabel} data-chrome="">
-                    {"Review field plan"}
+                  <span className={styles.treeNodeReviewLabel} data-chrome="" data-run-check="">
+                    {run.checks[0]
+                      ? `Review field plan · ${run.checks[0].label}`
+                      : "Review field plan"}
                   </span>
                   <svg
                     className={styles.treeNodeChevron}
@@ -599,191 +652,6 @@ export function AtWorkAgentTree({
           </div>
         ) : null}
       </aside>
-    </div>
-  );
-}
-
-export function AtWorkBottomThinkingBand({
-  run,
-  nowMs,
-  selectedTaskId,
-  setSelectedTaskId,
-  setStepsDismissed,
-  hoveredBranch,
-  setHoveredBranch,
-  onFocusCause,
-}: {
-  run: RunModel;
-  nowMs: number;
-  selectedTaskId: string | null;
-  setSelectedTaskId: Dispatch<SetStateAction<string | null>>;
-  setStepsDismissed: Dispatch<SetStateAction<boolean>>;
-  hoveredBranch: string | null;
-  setHoveredBranch: Dispatch<SetStateAction<string | null>>;
-  onFocusCause?: ((causeId: string) => void) | undefined;
-}) {
-  const runningTasks = run.tasks.filter(
-    (t) => t.state === "running" && !(t.kind === "explanation_branches" && run.branches.length > 0),
-  );
-
-  const primary =
-    runningTasks.length > 0
-      ? ((selectedTaskId ? runningTasks.find((t) => t.id === selectedTaskId) : null) ??
-        runningTasks[runningTasks.length - 1] ??
-        runningTasks[0] ??
-        null)
-      : null;
-  const primaryIdx = primary
-    ? Math.max(
-        0,
-        run.tasks.findIndex((x) => x.id === primary.id),
-      )
-    : 0;
-  const accent = primary ? agentAccentColor(primary, primaryIdx) : "#2563eb";
-
-  const count = (l: string) => run.findings.filter((f) => f.lands === l).length;
-  const counts = [
-    { n: count("source"), id: "run.count.checked" as const, mark: "●" },
-    { n: count("land"), id: "run.count.computed" as const, mark: "◆" },
-    { n: count("unchecked"), id: "run.count.unchecked" as const, mark: "○" },
-  ].filter((c) => c.n > 0);
-
-  const check = run.checks[0] ?? null;
-
-  return (
-    <div
-      className={styles.bottomThinkingBand}
-      style={{ "--agent-color": accent } as CSSProperties}
-      data-settled={run.done ? "" : undefined}
-    >
-      {!run.done ? (
-        <div className={styles.bottomLoaderTrack} aria-hidden="true">
-          <div className={styles.bottomLoaderBar} />
-        </div>
-      ) : null}
-
-      <div className={styles.bottomThinkingContent}>
-        {/* Active agent thinking stream while running */}
-        {!run.done && primary ? (
-          <div className={styles.bottomRunningRow}>
-            {runningTasks.map((t) => {
-              const isPrimary = t.id === primary.id;
-              const idx = Math.max(
-                0,
-                run.tasks.findIndex((x) => x.id === t.id),
-              );
-              const color = agentAccentColor(t, idx);
-              if (!isPrimary) {
-                return (
-                  <button
-                    key={t.id}
-                    type="button"
-                    className={styles.bottomSecondaryRunning}
-                    style={{ "--agent-color": color } as CSSProperties}
-                    data-run-card={t.kind}
-                    data-chrome=""
-                    onClick={() => {
-                      setStepsDismissed(false);
-                      setSelectedTaskId(t.id);
-                    }}
-                  >
-                    <span className={styles.bottomSecondaryDot} />
-                    <span>{en[`task.kind.${t.kind}` as MessageId].text}</span>
-                  </button>
-                );
-              }
-              return (
-                <button
-                  key={t.id}
-                  type="button"
-                  className={styles.bottomPrimaryCard}
-                  style={{ "--agent-color": color } as CSSProperties}
-                  data-run-card={t.kind}
-                  onClick={() => {
-                    setStepsDismissed(false);
-                    setSelectedTaskId((cur) => (cur === t.id ? null : t.id));
-                  }}
-                >
-                  <span className={styles.bottomAgentName}>
-                    {en[`task.kind.${t.kind}` as MessageId].text}
-                  </span>
-                  {t.activeLabel ? (
-                    <span className={styles.bottomThinkingText} data-chrome="">
-                      {t.activeLabel}
-                    </span>
-                  ) : null}
-                </button>
-              );
-            })}
-          </div>
-        ) : null}
-
-        {/* Status + Evidence Breakdown + Field Check + CTA Row */}
-        <div className={styles.bottomStatusRow}>
-          <p className={styles.sofar} data-run-status>
-            {run.done
-              ? format("run.findings", { n: run.findings.length, time: seconds(nowMs) })
-              : format("run.sofar", { n: run.findings.length })}
-          </p>
-
-          {counts.length > 0 ? (
-            <p className={styles.counts} data-run-findings>
-              {counts.map((c) => (
-                <span key={c.id} className={styles.countItem} data-gather={c.id}>
-                  <span className={styles.mark} aria-hidden="true" data-chrome="">
-                    {c.mark}
-                  </span>
-                  {format(c.id, { n: c.n })}
-                </span>
-              ))}
-            </p>
-          ) : null}
-
-          {check ? (
-            <section className={styles.check} data-run-check>
-              <span className={styles.checkKicker}>{en["run.check.kicker"].text}</span>
-              <span className={styles.checkLabel}>{check.label}</span>
-            </section>
-          ) : null}
-        </div>
-
-        {/* Horizontal 5-Cause Pill Strip when branches are available */}
-        {run.branches.length > 0 ? (
-          <ul className={styles.branches} data-run-branches>
-            {[...run.branches]
-              .sort((a, b) => (RANK[a.status ?? "sealed"] ?? 2) - (RANK[b.status ?? "sealed"] ?? 2))
-              .map((b) => {
-                const word = b.status
-                  ? (STATUS[b.status] ?? "run.branch.sealed")
-                  : "run.branch.sealed";
-                return (
-                  <li
-                    key={b.id}
-                    className={styles.branch}
-                    data-status={b.status ?? "sealed"}
-                    onPointerEnter={() => {
-                      setHoveredBranch(b.id);
-                      onFocusCause?.(b.id);
-                    }}
-                    onPointerLeave={() => {
-                      setHoveredBranch((h) => (h === b.id ? null : h));
-                    }}
-                  >
-                    <span className={styles.branchRow}>
-                      <span>{b.label}</span>
-                      <span className={styles.branchWord} data-chrome="">
-                        {en[word].text}
-                      </span>
-                    </span>
-                    {hoveredBranch === b.id && b.reason ? (
-                      <span className={styles.reason}>{b.reason}</span>
-                    ) : null}
-                  </li>
-                );
-              })}
-          </ul>
-        ) : null}
-      </div>
     </div>
   );
 }

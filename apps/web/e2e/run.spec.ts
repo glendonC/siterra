@@ -123,16 +123,6 @@ test("the recorded run settled: its count and time, the open explanations first,
   const work = page.locator("[data-at-work]").first();
   await expect(work).toBeVisible({ timeout: 90_000 });
   await expect(work.locator("[data-run-status]")).toHaveText("23 findings in 101.1 s");
-  await expect(work.locator("[data-run-findings]")).toContainText(
-    "●7 checked◆7 computed○9 not yet checked",
-  );
-  await expect(work.locator("[data-run-branches] li")).toHaveText([
-    "RainfallConsistent with available evidence",
-    "GrazingCannot be assessed with current data",
-    "Land useContradicted by available evidence",
-    "Data artefactContradicted by available evidence",
-    "Snow or terrainContradicted by available evidence",
-  ]);
   await expect(work.locator("[data-run-check]")).toContainText("Local Rain Records");
   await expect(work.locator("[data-run-card]")).toHaveCount(0);
   await expect(work.locator("[data-agent-review] [data-needs-you]")).toHaveText("Needs You");
@@ -140,9 +130,13 @@ test("the recorded run settled: its count and time, the open explanations first,
   const n = await words(page);
   expect(n).toBeGreaterThan(20);
   expect(n).toBeLessThanOrEqual(45);
-  // a reason only on hover
-  await work.locator("[data-run-branches] li").first().hover();
-  await expect(work.locator("[data-run-branches] li").first()).toContainText(/\S+ \S+/);
+  await expect(work.locator("[data-run-branches] li")).toHaveText([
+    "RainfallSupported",
+    "GrazingNeeds field data",
+    "Land useRuled out",
+    "Data artefactRuled out",
+    "Snow or terrainRuled out",
+  ]);
   await page.mouse.move(720, 40);
   await page.keyboard.press("Enter");
   await expect(page.locator("[data-at-work]")).toHaveCount(0);

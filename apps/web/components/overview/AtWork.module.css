@@ -459,13 +459,15 @@
 .needsYouPill {
   display: inline-flex;
   align-items: center;
-  padding: 2px 6px;
+  padding: 1px 6px;
   border-radius: 4px;
-  background: #d97706;
-  color: #ffffff;
-  font: 600 12px / 16px var(--font-sans);
+  border: 1px solid rgba(212, 136, 23, 0.28);
+  background: rgba(212, 136, 23, 0.12);
+  color: #8a5009;
+  font: 500 11.5px / 15px var(--font-sans);
   letter-spacing: 0.01em;
   white-space: nowrap;
+  text-shadow: none;
 }
 
 /* ─── Inline Accordion Detail beneath Expanded Step ─── */
@@ -657,6 +659,85 @@
   display: flex;
   flex-direction: column;
   gap: 3px;
+}
+
+.inlineBranchesList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.inlineBranchItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 6px 2px 4px;
+  margin-left: -4px;
+  border-radius: 4px;
+  font: 400 12px / 16px var(--font-sans);
+  color: var(--text-primary);
+  transition: background-color 140ms ease;
+}
+
+.inlineBranchItem:hover {
+  background: rgba(26, 23, 20, 0.045);
+}
+
+.inlineBranchItem[data-status="contradicted"] {
+  color: var(--text-tertiary);
+}
+
+.inlineBranchDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  flex-shrink: 0;
+  background: rgba(26, 23, 20, 0.25);
+}
+
+.inlineBranchDot[data-status="consistent"] {
+  background: #1d6fe8;
+}
+
+.inlineBranchDot[data-status="cannot_be_assessed"] {
+  background: #d48817;
+}
+
+.inlineBranchLabel {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.inlineBranchStatus {
+  margin-left: auto;
+  flex-shrink: 0;
+  font: 500 11px / 15px var(--font-sans);
+  color: var(--text-tertiary);
+}
+
+.inlineBranchStatus[data-status="consistent"] {
+  color: #1c5070;
+}
+
+.inlineBranchStatus[data-status="cannot_be_assessed"] {
+  color: #8a5009;
+}
+
+.inlineCheckRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font: 500 12px / 16px var(--font-sans);
+  color: var(--text-primary);
+}
+
+.inlineCheckLabel {
+  color: #8a5009;
 }
 
 .thinkingStep,

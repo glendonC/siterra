@@ -19,7 +19,7 @@ import {
   type Pt,
 } from "../../lib/run/layout";
 import type { RunModel, RunTask } from "../../lib/run/model";
-import { AtWorkAgentTree, AtWorkBottomThinkingBand, AtWorkCursors } from "./AtWorkPanels";
+import { AtWorkAgentTree, AtWorkCursors } from "./AtWorkPanels";
 import styles from "./AtWork.module.css";
 
 const LANE_PX = 0;
@@ -104,7 +104,6 @@ export function AtWork({
   const clock = useClock(run, fixedNow, paused);
   // once the run has completed, its time is the one it ran for (its last event), never a replay clock held past it
   const nowMs = run.done ? run.nowMs : clock;
-  const [hoveredBranch, setHoveredBranch] = useState<string | null>(null);
   const [folded, setFolded] = useState(true);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [stepsDismissed, setStepsDismissed] = useState(false);
@@ -310,24 +309,12 @@ export function AtWork({
         follow={selectedTaskId !== null}
         stepsDismissed={stepsDismissed}
         onFocusLayer={onFocusLayer}
+        onFocusCause={onFocusCause}
         onFindings={onFindings}
         paused={paused}
         onTogglePause={onTogglePause}
         onStopRun={onStopRun}
       />
-
-      {run.done ? (
-        <AtWorkBottomThinkingBand
-          run={run}
-          nowMs={nowMs}
-          selectedTaskId={selectedTaskId}
-          setSelectedTaskId={setSelectedTaskId}
-          setStepsDismissed={setStepsDismissed}
-          hoveredBranch={hoveredBranch}
-          setHoveredBranch={setHoveredBranch}
-          onFocusCause={onFocusCause}
-        />
-      ) : null}
 
       <AtWorkCursors
         cursors={cursors}
