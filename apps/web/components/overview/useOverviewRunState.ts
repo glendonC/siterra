@@ -16,6 +16,7 @@ import { answerAddress, runOfSearch } from "../../lib/overview/answer-run";
 import type { Box as CardBox, Side as CardSide } from "../../lib/overview/card";
 import { shouldReopen } from "../../lib/overview/ask-line";
 import type { Finding, FindingId } from "../../lib/overview/findings";
+import { opensOnSteps } from "../../lib/overview/run-mode";
 import type {
   LiftId,
   OverviewLayout,
@@ -170,19 +171,25 @@ export function useOverviewRunState({
     [ask.snapshot, pkgBrief, fallbackCommandId],
   );
 
-  const [atWork, setAtWork] = useState(effectiveViewMode === "run");
-  const [thinkingHidden, setThinkingHidden] = useState(false);
-  useEffect(() => {
-    if (effectiveViewMode === "run") {
-      setThinkingHidden(false);
-      setAtWork(true);
-    }
-  }, [effectiveViewMode]);
-
   const builtinRecorded = useMemo<RecordedRun | null>(
     () => buildRecordedRunForCase(snapshot, 3.5, effectiveViewMode !== "run"),
     [snapshot, effectiveViewMode],
   );
+  // run mode shows steps only with a run to show (lib/overview/run-mode.ts): a place with no recording of its own, and
+  // nothing sent from here, opens on its answer once its land has arrived instead of waiting for steps that never come
+  const stepsFirst = opensOnSteps({
+    runMode: effectiveViewMode === "run",
+    recording: recorded !== null || builtinRecorded !== null,
+    sent: ask.status?.state ?? null,
+  });
+  const [atWork, setAtWork] = useState(stepsFirst);
+  const [thinkingHidden, setThinkingHidden] = useState(false);
+  useEffect(() => {
+    if (stepsFirst) {
+      setThinkingHidden(false);
+      setAtWork(true);
+    }
+  }, [stepsFirst]);
   const atWorkShown = (atWork || recorded !== null) && !thinkingHidden;
   const atWorkRef = useRef(atWorkShown);
   atWorkRef.current = atWorkShown;

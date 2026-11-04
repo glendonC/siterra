@@ -1,15 +1,13 @@
 "use client";
 
-// When the land splits into its evidence sheets (lib/overview/scene/overview-stack): all through the thinking; once
-// on a first visit's answer, rising and settling by itself; and on the answer whenever Map Layers is pressed, until
-// it is pressed again or Esc. The answer column never moves for it. A return from a view, or reduced motion, shows
-// the end state at once.
+// When the land splits into its evidence sheets (lib/overview/scene/overview-stack): all through the thinking, and on
+// the answer whenever Map Layers is pressed, until it is pressed again or Esc (lib/overview/run-mode.ts splitOpen). It
+// never splits by itself: the land arrives settled, the answer's own layer lifted. The answer column never moves for
+// it. A return from a view, or reduced motion, shows the end state at once.
 
 import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
+import { splitOpen } from "../../lib/overview/run-mode";
 import type { OverviewScene } from "../../lib/overview/scene/overview";
-
-/** How long the first visit's split stands before it settles (s): about 3 s in all with its rise and settle. */
-const ARRIVAL_HOLD = 0.9;
 
 export function useLayerStack({
   sceneRef,
@@ -37,14 +35,11 @@ export function useLayerStack({
   keysBlocked: boolean;
 }) {
   const [mapOpen, setMapOpen] = useState(false);
-  /** The thinking, or a view, came before the answer (so it does not split by itself). */
-  const thinkingSeen = useRef(false);
-  const arrived = useRef(false);
   /** The return from a view has been shown (at once); later presses of Map Layers move again. */
   const returnShown = useRef(false);
   /** The scene last given a goal, and that goal, so a render that changes nothing leaves a motion alone. */
   const sent = useRef<{ scene: OverviewScene; open: boolean } | null>(null);
-  const open = ready && (thinking || (answer && mapOpen));
+  const open = splitOpen({ ready, steps: thinking, answer, mapLayers: mapOpen });
 
   // Map Layers belongs to the answer: leaving the answer settles it
   useEffect(() => {
@@ -54,8 +49,6 @@ export function useLayerStack({
   // the goal, given once the scene stands (the page mounts it after this effect, so it may take a frame), and again
   // to a scene mounted anew
   useEffect(() => {
-    // what came before the answer decides whether it splits by itself: no thinking and no view behind it
-    if (thinking || returned) thinkingSeen.current = true;
     if (!ready) return;
     let raf = 0;
     const give = () => {
@@ -73,15 +66,6 @@ export function useLayerStack({
       const remounted =
         fresh && sent.current !== null && !(sent.current.open && sent.current.scene.stackPending());
       const still = reducedMotion.current || back || (!answer && !thinking) || remounted;
-      // a first visit's answer, with no thinking before it and no view behind it: the land splits once by itself
-      if (answer && !open && !arrived.current && !thinkingSeen.current) {
-        arrived.current = true;
-        sent.current = { scene, open: false };
-        scene.setStack({ open: true, hold: ARRIVAL_HOLD, instant: still });
-        go();
-        return;
-      }
-      if (answer || thinking) arrived.current = true;
       // a split asked for while the land was still arriving waits in the scene; the land now stands, so it starts
       if (!fresh && sent.current?.open === open) {
         if (scene.stackPending()) go();

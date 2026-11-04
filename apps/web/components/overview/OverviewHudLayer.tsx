@@ -339,8 +339,8 @@ export function OverviewHudLayer({
         0) > 0,
     [readout, recordSnap, stepsSnap],
   );
-  // the land splits into its evidence sheets in place (lib/overview/scene): through the steps, once on a first visit's
-  // answer, and on the answer whenever Map Layers is pressed; a way back from a view shows its end state at once
+  // the land splits into its evidence sheets in place (lib/overview/scene): through the steps, and on the answer whenever
+  // Map Layers is pressed, never by itself; a way back from a view shows its end state at once
   const layerStack = useLayerStack({
     sceneRef: refs.sceneRef,
     go,
@@ -713,10 +713,10 @@ export function OverviewHudLayer({
             <Readout
               key={answer.kind === "case" ? "case" : answer.commandId}
               readout={readout}
+              // the question the answer is to: a recording's own, else the case's, as a plain visit shows it (a place
+              // the globe started with another question has no run that answered it)
               question={
-                answer.kind === "recording"
-                  ? answer.recording.question
-                  : (effectiveQuestion ?? snapshot.case.objective)
+                answer.kind === "recording" ? answer.recording.question : snapshot.case.objective
               }
               asked={askedId !== null && askedId === ask.commandId && sentText ? sentText : null}
               views={views}
