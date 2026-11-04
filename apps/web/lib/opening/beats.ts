@@ -25,9 +25,9 @@ export interface StoryBeat {
 
 /**
  * Four crystal-clear, everyday-English story beats:
- * 1. Scale & Gap (Blue): Over half of Earth's land, 2B people, free maps vs. months of expert work.
+ * 1. Scale & Gap (Blue): Over half of Earth's land, 2B livelihoods, free images rarely used in decisions.
  * 2. Why Maps Mislead (Red): Crops & weeds look just as green from space as healthy grass; 30-40% lost before trends show.
- * 3. Real-World Harm (Yellow): 26 conservation projects failed; herders blamed for drought.
+ * 3. Real-World Harm (Yellow): colonial Morocco blamed herders for forest loss that fossil pollen later contradicted.
  * 4. What Siterra Does (Green): Pick any place on Earth and ask what is changing the land.
  */
 export const STORY_BEATS: readonly StoryBeat[] = [
@@ -36,8 +36,8 @@ export const STORY_BEATS: readonly StoryBeat[] = [
     tone: "blue",
     globeLon: -18,
     globeLat: 24,
-    ink: "Over half of Earth's land is open pasture and rangeland, supporting two billion people.",
-    grey: "Free satellite maps cover the entire planet, yet figuring out what is actually happening to a single valley still takes months of expensive expert work.",
+    ink: "Over half of Earth's land is open pasture and rangeland, supporting the livelihoods of about two billion people.",
+    grey: "Free satellite images cover all of it, yet they rarely shape decisions about the land, and checking one valley on the ground can be costly and hard.",
     citations: [
       {
         id: "UNCCD",
@@ -45,16 +45,16 @@ export const STORY_BEATS: readonly StoryBeat[] = [
         title: "Global Land Outlook Thematic Report on Rangelands and Pastoralists",
         venue: "United Nations Convention to Combat Desertification",
         finding:
-          "Rangelands cover over 54% of terrestrial land (80M km²) and support ~2 billion people globally, while local site-level monitoring capacity remains scarce.",
+          "Rangelands cover 80 million km², over 54% of the terrestrial surface, and support the livelihoods of about 2 billion people; monitoring them can be expensive and hard, and projects often lack the capacity.",
         href: "https://digitallibrary.un.org/record/4058928/files/1413651-EN.pdf",
       },
       {
         id: "IPBES",
-        label: "IPBES Global Assessment, 2018",
-        title: "Global Assessment Report on Land Degradation and Restoration",
+        label: "IPBES Land Degradation Assessment, 2018",
+        title: "Assessment Report on Land Degradation and Restoration, Summary for Policymakers",
         venue: "Intergovernmental Science-Policy Platform (CC BY 4.0)",
         finding:
-          "Land degradation impacts 3.2 billion people worldwide, yet open Earth-observation data is rarely combined with local land knowledge in decisions.",
+          "Land degradation negatively impacts the well-being of at least 3.2 billion people; remote sensing and open data exist, yet they are not commonly used in land decisions.",
         href: "https://doi.org/10.5281/zenodo.3237411",
       },
     ],
@@ -65,7 +65,7 @@ export const STORY_BEATS: readonly StoryBeat[] = [
     globeLon: 16,
     globeLat: 18,
     ink: "A satellite map can look healthy and green while the land on the ground is actually worsening.",
-    grey: "From space, irrigated crops and thorny weeds blend right in with healthy grass, and satellite trends often miss the damage until 30 to 40% of the plants are already gone.",
+    grey: "From space, irrigated crops and thorny weeds blend right in with healthy grass, and in simulations, satellite trends missed the damage until 30 to 40% of the vegetation was lost.",
     citations: [
       {
         id: "RSE",
@@ -80,10 +80,9 @@ export const STORY_BEATS: readonly StoryBeat[] = [
       {
         id: "LANDSAT",
         label: "Zhu et al., 2019",
-        title: "Benefits of the free and open Landsat data policy & sub-pixel limits",
+        title: "Benefits of the free and open Landsat data policy",
         venue: "Remote Sensing of Environment · Vol. 224, pp. 382–385",
-        finding:
-          "Open satellite archives expanded global observation 20-fold, but coarse optical pixels still blend different plant types together without higher-resolution separation.",
+        finding: "After Landsat data became free in 2008, its use rose 20-fold.",
         href: "https://doi.org/10.1016/j.rse.2019.02.016",
       },
     ],
@@ -93,27 +92,18 @@ export const STORY_BEATS: readonly StoryBeat[] = [
     tone: "yellow",
     globeLon: -52,
     globeLat: 12,
-    ink: "When governments or climate projects act on a misleading map, both the land and local people pay the price.",
-    grey: "Across 26 studied conservation projects in six countries, most failed to stop land loss, and local herders are routinely blamed for damage actually caused by drought.",
+    ink: "When governments act on a misleading map, the land and the people who depend on it pay the price.",
+    grey: "In colonial Morocco, officials blamed herders for vast forest loss and outlawed most of their traditional forest uses. Fossil pollen later showed the loss was far smaller.",
     citations: [
       {
-        id: "SCIENCE",
-        label: "West et al., 2023 · Science",
+        id: "DAVIS",
+        label: "Davis, 2005 · Environmental History",
         title:
-          "Action needed to make carbon offsets from forest conservation work for climate change mitigation",
-        venue: "Science · Vol. 381, Issue 6660",
+          "Potential Forests: Degradation Narratives, Science, and Environmental Policy in Protectorate Morocco, 1912–1956",
+        venue: "Environmental History · Vol. 10, No. 2, pp. 211–238",
         finding:
-          "Audit across 26 conservation sites in six countries showing that most projects failed to reduce land loss because they lacked a verified baseline.",
-        href: "https://doi.org/10.1126/science.ade3535",
-      },
-      {
-        id: "IIED",
-        label: "Behnke & Scoones, 1992",
-        title: "Rethinking Range Ecology: Implications for Rangeland Management",
-        venue: "IIED & ODI · Global Drylands Synthesis",
-        finding:
-          "Demonstrates that in dryland ecosystems, multi-year rainfall swings drive plant changes far more than livestock numbers, refuting top-down overgrazing assumptions.",
-        href: "https://www.iied.org/7282iied",
+          "The 1917 forest decree banned grazing for six years in burned or harvested forests and restricted or criminalized most customary forest uses; officials treated forest grazing as the main cause of deforestation, yet fossil pollen evidence contradicts the large deforestation estimates.",
+        href: "https://doi.org/10.1093/envhis/10.2.211",
       },
     ],
   },

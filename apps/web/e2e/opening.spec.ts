@@ -13,7 +13,7 @@ test("the opening says what Siterra does and offers one action, how it works on 
   const opening = page.locator("[data-opening]");
   await expect(opening).toBeVisible({ timeout: 60_000 });
   await expect(opening.locator("[data-string-id='opening.beat.1']")).toContainText(
-    "Over half of Earth's land is open pasture and rangeland, supporting two billion people.",
+    "Over half of Earth's land is open pasture and rangeland, supporting the livelihoods of about two billion people.",
   );
   await expect(opening.locator("[data-opening-action]")).toContainText("Press Enter to start");
   const dialog = opening.getByRole("dialog");
