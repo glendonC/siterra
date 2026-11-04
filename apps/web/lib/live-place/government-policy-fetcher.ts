@@ -90,7 +90,7 @@ export function stripHtmlAndNormalize(raw: string): string {
     .replace(/&#39;/gi, "'")
     .replace(/\s+/g, " ")
     .trim()
-    .replace(/^(?:abstract|summary|background)\s*[:.—-]?\s*/i, "")
+    .replace(/^(?:abstract|summary|background)\s*[:.\u2014-]?\s*/i, "")
     .trim();
 }
 
@@ -105,7 +105,7 @@ export function extractVerbatimExcerpt(raw: string, maxLen = 260): string | null
 
   const sentences = cleaned.match(/[^.!?]+[.!?]+/g);
   if (sentences && sentences.length > 0) {
-    const first = sentences[0]!.trim();
+    const first = sentences[0].trim();
     if (first.length >= 24 && first.length <= maxLen) {
       const second = sentences[1]?.trim();
       if (second && first.length + 1 + second.length <= maxLen) {
@@ -162,7 +162,9 @@ function parseAuthorsList(raw: unknown, fallback: string): string[] {
   if (!text) return [fallback];
   const parts = text
     .split(/[;|]|\band\b/i)
-    .flatMap((chunk) => (chunk.includes(",") && chunk.split(",").length > 2 ? chunk.split(",") : [chunk]))
+    .flatMap((chunk) =>
+      chunk.includes(",") && chunk.split(",").length > 2 ? chunk.split(",") : [chunk],
+    )
     .map((s) => s.replace(/\s+/g, " ").trim())
     .filter((s) => s.length > 1 && s.length < 90);
   const unique = [...new Set(parts)].slice(0, 6);
@@ -182,7 +184,9 @@ export async function fetchWorldBankDocuments(
   fetchImpl: typeof globalThis.fetch = globalThis.fetch,
 ): Promise<WorldBankDocRaw[]> {
   const ac = new AbortController();
-  const timer = setTimeout(() => ac.abort(), timeoutMs);
+  const timer = setTimeout(() => {
+    ac.abort();
+  }, timeoutMs);
   try {
     const url = `https://search.worldbank.org/api/v2/wds?format=json&qterm=${encodeURIComponent(
       query,
@@ -205,7 +209,7 @@ export async function fetchWorldBankDocuments(
       const docs: WorldBankDocRaw[] = [];
       for (const [key, val] of Object.entries(data.documents)) {
         if (key === "facets" || typeof val !== "object" || val === null) continue;
-        docs.push(val as WorldBankDocRaw);
+        docs.push(val);
       }
       return docs;
     }
@@ -226,7 +230,9 @@ export async function fetchFederalRegisterDocuments(
   fetchImpl: typeof globalThis.fetch = globalThis.fetch,
 ): Promise<FederalRegisterDocRaw[]> {
   const ac = new AbortController();
-  const timer = setTimeout(() => ac.abort(), timeoutMs);
+  const timer = setTimeout(() => {
+    ac.abort();
+  }, timeoutMs);
   try {
     const url = `https://www.federalregister.gov/api/v1/documents.json?per_page=4&conditions[term]=${encodeURIComponent(
       query,
@@ -257,7 +263,9 @@ export async function fetchEuropePmcArticles(
   fetchImpl: typeof globalThis.fetch = globalThis.fetch,
 ): Promise<EuropePmcResultRaw[]> {
   const ac = new AbortController();
-  const timer = setTimeout(() => ac.abort(), timeoutMs);
+  const timer = setTimeout(() => {
+    ac.abort();
+  }, timeoutMs);
   try {
     const url = `https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=${encodeURIComponent(
       query,
@@ -433,7 +441,8 @@ export async function fetchGovernmentPolicyAndOpenAccess(
         ],
       },
       interpretation: `Provides multilateral project, watershed investment, and institutional context for ${placeName}.`,
-      uncertainty: "Official project documentation; current local operational status requires stakeholder confirmation.",
+      uncertainty:
+        "Official project documentation; current local operational status requires stakeholder confirmation.",
       reviewDecisionIds: [],
     });
     if (parsedEv.success) {
@@ -548,7 +557,8 @@ export async function fetchGovernmentPolicyAndOpenAccess(
         ],
       },
       interpretation: `Documents regulatory, agency, or environmental impact determinations relevant to ${placeName}.`,
-      uncertainty: "Official regulatory notice; parcel applicability requires administrative confirmation.",
+      uncertainty:
+        "Official regulatory notice; parcel applicability requires administrative confirmation.",
       reviewDecisionIds: [],
     });
     if (parsedEv.success) {
@@ -569,7 +579,10 @@ export async function fetchGovernmentPolicyAndOpenAccess(
 
     const idx = sources.length + 1;
     const srcId = `src_epmc_${slug}_${hash6}_${String(idx)}`;
-    const cleanDoi = art.doi?.replace(/^https?:\/\/doi\.org\//i, "").replace(/^doi:/i, "").trim();
+    const cleanDoi = art.doi
+      ?.replace(/^https?:\/\/doi\.org\//i, "")
+      .replace(/^doi:/i, "")
+      .trim();
     const validUrl = cleanDoi
       ? `https://doi.org/${cleanDoi}`
       : `https://europepmc.org/article/${encodeURIComponent(art.source ?? "MED")}/${encodeURIComponent(
@@ -653,7 +666,8 @@ export async function fetchGovernmentPolicyAndOpenAccess(
         ],
       },
       interpretation: `Provides peer-reviewed open-access scientific findings for ${placeName}.`,
-      uncertainty: "Published open-access literature; local site conditions require field verification.",
+      uncertainty:
+        "Published open-access literature; local site conditions require field verification.",
       reviewDecisionIds: [],
     });
     if (parsedEv.success) {

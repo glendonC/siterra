@@ -1,8 +1,8 @@
-// The playhead of "See It Over Time" (the reference clock): one position from the first season's January to the last
+// The playhead of "Year by Year" (the reference clock): one position from the first season's January to the last
 // season's December, then the trend. A position on a month's centre outside a year's last two months shows measured
 // values only; between month centres the snow share is interpolated for motion, and over a year's last two months the
-// pixels' season blends into the next one. Both are named in the key as blended; the readout and the annotations
-// always show stored values. A paused or dragged playhead rests on a month's centre. Pure.
+// pixels' season blends into the next one, while it plays; the readout and the annotations always show stored values.
+// A paused or dragged playhead rests on a month's centre, so what stays on screen is measured. Pure.
 
 /** Months a year's season blends into the next over (November and December). */
 export const BLEND_MONTHS = 2;

@@ -1,4 +1,4 @@
-// "See It Over Time" (UI-2): each 250 m pixel painted on the land's overlay for one moment of the playhead. In a
+// "Year by Year" (UI-2): each 250 m pixel painted on the land's overlay for one moment of the playhead. In a
 // season: the pixel's growing-season NDVI on the place's own scale (the ramp of lib/theme/obsidian.ts timeColours),
 // blended into the next season only over a year's last two months, the no-value tone where the season has none. In
 // the trend: each pixel's Theil-Sen slope on the trend asset's own display scale (the overview's slope colours),

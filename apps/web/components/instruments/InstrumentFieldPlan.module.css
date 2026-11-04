@@ -1,5 +1,5 @@
-/* The field plan, in the Obsidian tokens of app/obsidian.css and the type of the other instruments: a 1440 x 900
-   stage scaled to fit, the caption at the top left, explanation columns, dashed proposed checks. */
+/* The field plan, in the theme's tokens and the type of the other views: a 1440 x 900 stage scaled to fit, the
+   headline at the top left in the answer's type, explanation columns, dashed checks. */
 
 .root {
   position: absolute;
@@ -28,11 +28,11 @@
 
 .caption {
   left: 40px;
-  top: 24px;
-  width: 820px;
+  top: 36px;
+  width: 760px;
   margin: 0;
-  font-size: 20px;
-  line-height: 28px;
+  font: 400 25px / 32px var(--font-sans);
+  letter-spacing: -0.012em;
   text-wrap: pretty;
 }
 
@@ -100,11 +100,6 @@
   font-weight: 500;
 }
 
-.proposed {
-  font: 500 12px/16px var(--font-mono);
-  color: var(--accent);
-}
-
 .checkNote,
 .footnote {
   font-size: 12px;
@@ -122,8 +117,8 @@
 
 .notice {
   left: 40px;
-  top: 56px;
-  width: 820px;
+  top: 36px;
+  width: 760px;
   margin: 0;
   font-size: 14px;
   line-height: 20px;
@@ -132,8 +127,8 @@
 
 .noticeHead {
   margin: 0 0 8px;
-  font-size: 20px;
-  line-height: 28px;
+  font: 400 25px / 32px var(--font-sans);
+  letter-spacing: -0.012em;
   color: var(--text-primary);
 }
 
@@ -149,4 +144,25 @@
   overflow: hidden;
   clip-path: inset(50%);
   white-space: nowrap;
+}
+
+/* no word under 12 px on screen: the stage is scaled to fit the window, so type that would land under 12 px grows,
+   in the stage's own px, until it lands on 12 (its line height grows with it) */
+.stage {
+  --min-type: calc(12px / var(--stage-scale, 1));
+}
+
+.stage :is(.colStatus, .colReason, .checkNote, .footnote) {
+  font-size: max(12px, var(--min-type));
+  line-height: max(16px, calc(var(--min-type) * 1.333));
+}
+
+.stage :is(.notice, .noticeReason) {
+  font-size: max(14px, var(--min-type));
+  line-height: max(20px, calc(var(--min-type) * 1.429));
+}
+
+.stage :is(.colLabel, .checkLabel) {
+  font-size: max(15px, var(--min-type));
+  line-height: max(20px, calc(var(--min-type) * 1.333));
 }

@@ -1,11 +1,18 @@
-/* The printable brief in the daylight tokens of app/daylight.css (no colour literal here, VC-01): paper, ink, one
-   accent for the status word, hairline rules between sections. A4 on paper with the print button hidden. */
+/* The printable brief in the theme tokens of app/daylight.css and app/obsidian.css (no colour literal here, VC-01):
+   the app's theme on screen, the daylight tokens on paper (CMP-14). One hairline between the parts and none inside
+   them but a table's rows; no text under 12px. A4 on paper with the print button hidden. */
 
-/* the app's body does not scroll (globals.css); the brief scrolls in its own layer, with no native bar */
+/* the app's body does not scroll (globals.css); the brief scrolls in its own layer, with no native bar. The scroller
+   is daylight (data-theme="light") whatever the screen shows, so it keeps the daylight tokens for paper */
 .scroller {
+  --paper-print: var(--paper);
+  --ink-print: var(--ink);
+  --grey-print: var(--grey);
+  --rule-print: var(--rule);
   position: fixed;
   inset: 0;
   overflow-y: auto;
+  overscroll-behavior: none;
   scrollbar-width: none;
   background: var(--paper);
 }
@@ -14,39 +21,46 @@
   display: none;
 }
 
+/* the page's ground in the app's theme (data-theme on this element) */
+.ground {
+  min-height: 100%;
+  background: var(--paper);
+  color: var(--ink);
+}
+
 .page {
   box-sizing: border-box;
   max-width: 880px;
   margin: 0 auto;
-  padding: 56px 56px 72px;
-  background: var(--paper);
-  color: var(--ink);
+  padding: 40px 56px 80px;
   font-family: var(--font-sans);
   font-size: 14px;
   line-height: 21px;
 }
 
-.state {
-  margin: 120px auto;
+.waiting {
   max-width: 560px;
+  margin: 0 auto;
+  padding: 120px 0;
+  font: 400 14px / 21px var(--font-sans);
   color: var(--grey);
-  font-family: var(--font-sans);
 }
 
 .tools {
   display: flex;
   justify-content: flex-end;
-  margin-bottom: 24px;
+  margin-bottom: 16px;
 }
 
+/* the head: the place, the title, the plan's own title, the question, and its state said once */
 .head {
-  padding-bottom: 20px;
-  border-bottom: 1px solid var(--rule-strong);
+  padding-bottom: 28px;
 }
 
 .kicker {
   margin: 0;
-  font-size: 12px;
+  font-size: 13px;
+  line-height: 18px;
   color: var(--grey);
 }
 
@@ -64,51 +78,39 @@
   line-height: 24px;
 }
 
-.meta {
-  display: grid;
-  grid-template-columns: 96px 1fr;
-  gap: 4px 16px;
-  margin: 16px 0 0;
+.head .pairs {
+  margin-top: 20px;
 }
 
-.meta dt,
-.pairs dt,
-.pair dt {
+.standing {
+  margin: 14px 0 0;
   color: var(--grey);
 }
 
-.meta dd,
-.pairs dd,
-.pair dd {
-  margin: 0;
-}
-
-.status {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px 16px;
-  margin: 16px 0 0;
-  font-size: 12px;
-  color: var(--grey);
-}
-
-.statusWord {
-  padding: 1px 8px;
-  border: 1px solid var(--accent);
-  border-radius: 999px;
+.stateWord {
+  font-weight: 500;
   color: var(--ink);
 }
 
-.honest,
-.origin {
+.note {
   margin: 8px 0 0;
-  font-size: 12px;
-  line-height: 17px;
+  font-size: 13px;
+  line-height: 19px;
   color: var(--grey);
 }
 
-.section {
-  padding: 20px 0 4px;
+/* the parts: one hairline above each, the same space inside every one */
+.part,
+.twoUp {
+  padding: 24px 0;
+  border-top: 1px solid var(--rule);
+}
+
+.twoUp {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 40px;
+  break-inside: avoid;
 }
 
 .h2,
@@ -116,74 +118,69 @@
   break-after: avoid;
 }
 
-.table tr,
-.pairs {
-  break-inside: avoid;
-}
-
-.twoUp {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0 40px;
-  border-top: 1px solid var(--rule);
-}
-
-.twoUp + .section,
-.section + .section,
-.section + .twoUp,
-.head + .twoUp {
-  border-top: 1px solid var(--rule);
-}
-
 .h2 {
-  margin: 0 0 10px;
+  margin: 0 0 12px;
   font-size: 15px;
   font-weight: 600;
   line-height: 20px;
 }
 
 .h3 {
-  margin: 14px 0 6px;
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  margin: 20px 0 8px;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
+  line-height: 20px;
 }
 
 .lines,
-.plain,
-.reviews {
+.plain {
+  display: grid;
+  gap: 8px;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.lines li {
-  margin: 0 0 10px;
+.lines li,
+.plain li {
   break-inside: avoid;
 }
 
-.claim {
-  display: block;
-  font-size: 11px;
-  line-height: 15px;
-  color: var(--grey);
+.lines + .plain {
+  margin-top: 12px;
 }
 
 .text {
   margin: 0;
 }
 
+/* a line's numbered sources: raised, with no room taken from the line */
 .refs {
   margin-left: 3px;
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 12px;
+  line-height: 0;
   color: var(--grey);
 }
 
+/* a label and its value; the resources' kinds stand in the same column (.kind) */
 .pairs {
   display: grid;
-  grid-template-columns: 96px 1fr;
-  gap: 4px 16px;
-  margin: 8px 0 12px;
+  grid-template-columns: 120px 1fr;
+  gap: 6px 16px;
+  margin: 12px 0 0;
+  break-inside: avoid;
+}
+
+.pairs dt {
+  color: var(--grey);
+}
+
+.pairs dd {
+  margin: 0;
 }
 
 .pair {
@@ -192,29 +189,74 @@
 
 .table {
   width: 100%;
+  margin: 16px 0 0;
   border-collapse: collapse;
-  margin: 8px 0 0;
   font-size: 13px;
   line-height: 19px;
 }
 
+.table tr {
+  break-inside: avoid;
+}
+
 .table th {
-  padding: 6px 8px 6px 0;
-  border-bottom: 1px solid var(--rule-strong);
+  padding: 0 12px 8px 0;
+  border-bottom: 1px solid var(--rule);
   font-weight: 500;
   text-align: left;
   color: var(--grey);
 }
 
 .table td {
-  padding: 8px 8px 8px 0;
-  border-bottom: 1px solid var(--rule);
+  padding: 10px 12px 10px 0;
   vertical-align: top;
+}
+
+.table tbody tr + tr td {
+  border-top: 1px solid var(--rule);
+}
+
+.table + .note,
+.table + .pairs {
+  margin-top: 12px;
+}
+
+/* the plan's measurements: the number, then what and where wider than when and who */
+.plan th:nth-child(1) {
+  width: 32px;
+}
+
+.plan th:nth-child(2) {
+  width: 22%;
+}
+
+.plan th:nth-child(3) {
+  width: 24%;
+}
+
+.plan th:nth-child(4) {
+  width: 16%;
+}
+
+.plan th:nth-child(6) {
+  width: 14%;
+}
+
+/* the resources: a list at the body's size, its kinds in the labels' column, kept on one page */
+.list {
+  font-size: 14px;
+  line-height: 21px;
+  break-inside: avoid;
+}
+
+.list .kind {
+  width: 136px;
+  padding-right: 16px;
 }
 
 .n {
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 12px;
   color: var(--grey);
 }
 
@@ -232,51 +274,64 @@
 
 .place {
   display: block;
-  margin-bottom: 6px;
 }
 
-.plain li {
-  margin: 0 0 6px;
-}
-
-.responses {
-  display: grid;
-  grid-template-columns: 1fr;
+.place + .place {
+  margin-top: 6px;
 }
 
 .response {
   break-inside: avoid;
-  border-top: 1px solid var(--rule);
 }
 
-.response:first-child {
-  border-top: 0;
+.response .h3 {
+  margin-top: 24px;
 }
 
-.reviews li {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 6px 0;
-  border-top: 1px solid var(--rule);
-}
-
+/* the sources: the title, a link to the study where it has one, and in grey its authors, venue and pages */
 .sources {
+  display: grid;
+  gap: 10px;
   margin: 0;
-  padding-left: 22px;
-  font-size: 12px;
-  line-height: 18px;
+  padding: 0 0 0 24px;
 }
 
 .sources li {
-  margin: 0 0 8px;
+  padding-left: 4px;
+  break-inside: avoid;
 }
 
-.foot {
-  margin-top: 32px;
-  padding-top: 12px;
-  border-top: 1px solid var(--rule-strong);
+.sources li::marker {
+  font-family: var(--font-mono);
   font-size: 12px;
+  color: var(--grey);
+}
+
+/* a link reads as one: the shared hover background, standing clear of its words, never an underline */
+.link {
+  margin: 0 -4px;
+  padding: 1px 4px;
+  border-radius: 4px;
+  color: var(--sources-link);
+  text-decoration: none;
+  transition: background-color 140ms ease;
+}
+
+.link:hover,
+.link:focus-visible {
+  background: var(--trace-fill);
+}
+
+.link:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 0;
+}
+
+.detail {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  line-height: 18px;
   color: var(--grey);
 }
 
@@ -285,6 +340,7 @@
   margin: 16mm 14mm;
 }
 
+/* paper: daylight whatever the screen shows, the whole document in the flow, and each study's address written out */
 @media print {
   :global(html),
   :global(body) {
@@ -298,6 +354,16 @@
     background: none;
   }
 
+  .scroller .ground {
+    --paper: var(--paper-print);
+    --ink: var(--ink-print);
+    --grey: var(--grey-print);
+    --rule: var(--rule-print);
+    color-scheme: light;
+    min-height: 0;
+    background: none;
+  }
+
   .tools {
     display: none;
   }
@@ -305,6 +371,16 @@
   .page {
     max-width: none;
     padding: 0;
-    background: none;
+  }
+
+  .link {
+    margin: 0;
+    padding: 0;
+    color: var(--ink);
+  }
+
+  .link::after {
+    content: " " attr(href);
+    color: var(--grey);
   }
 }

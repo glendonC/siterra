@@ -1,9 +1,18 @@
 import { expect, test, type Page } from "@playwright/test";
+import { en } from "../lib/copy/en";
+import { pkg } from "../lib/copy/package";
+import { rd } from "../lib/copy/readout";
+import { findingWords, followUpOf, nextWords, reviewWords } from "../lib/readout/readout";
+import { answerOf, atTheAnswer, crumbsOf, keyOf, loadedRecord, readoutOn } from "./answer";
 import { sharedCase } from "./demo-case";
 
-// The next-steps package (UI-2 unit 1): the "What to Do Next" card and its printable brief, read from the case
-// record. Until PLATFORM's P9 commits packages in the live question, a case holds one only where a lane loaded the
-// synthetic package (lib/package/fixtures/synthetic.ts); without one these tests are skipped, never faked.
+// The next-steps package (UI-2): its printable brief, and the parts of the answer that read it from the case record:
+// Next (what each field check would tell apart), the reviews the plan asks for with the demo plan review, and E to
+// export the brief. The answer reads the case record at the overview's home, and still after a question of the
+// visitor's own, whose findings then head it as a Follow-up (here the command whose tasks committed the package, its
+// acceptance and completion served to the page: no worker runs, no model is called, nothing leaves the machine).
+// Until PLATFORM's P9 commits packages in the live question, a case holds one only where a lane loaded the synthetic
+// package (lib/package/fixtures/synthetic.ts); without one these tests are skipped, never faked.
 
 test.use({ viewport: { width: 1440, height: 900 } });
 
@@ -28,20 +37,26 @@ test("the printable brief holds every part, its sources and limits, in the dayli
   await expect(brief).toHaveAttribute("data-ready", "", { timeout: 60_000 });
   const text = await brief.innerText();
   for (const heading of [
-    "Your Plan",
-    "Known",
-    "Uncertain",
-    "Measure Next",
-    "Candidate Responses",
-    "Resources",
-    "Siterra Prepared",
-    "Needs Authorization",
-    "Sources",
-    "Package Limits",
+    pkg["brief.title"].text,
+    pkg["package.section.known"].text,
+    pkg["package.section.uncertain"].text,
+    pkg["package.section.measure"].text,
+    pkg["package.section.responses"].text,
+    pkg["package.section.resources"].text,
+    pkg["package.section.prepared"].text,
+    pkg["package.section.authorization"].text,
+    pkg["package.sources"].text,
+    pkg["package.limitations"].text,
   ])
     expect(text, heading).toContain(heading);
-  expect(text).toContain("Nothing has been sent, scheduled or authorized.");
-  expect(text).toContain("None is ranked or recommended.");
+  // one state, and that nothing has been sent, scheduled or authorized, said once where a reader meets it first
+  const state = pkg["brief.state"].text.replace(
+    "{state}",
+    pkg["package.status.ready_for_review"].text,
+  );
+  expect(text).toContain(state);
+  expect(text.split("Nothing has been sent").length - 1).toBe(1);
+  expect(text).toContain(pkg["package.responses.note"].text);
   // no record id reaches the page
   expect(text).not.toMatch(/\b(?:ev|src|int|res|act|brief|rev|task|bundle)_[A-Za-z0-9]/);
   // the daylight ground, not obsidian: the page's ground is the daylight paper token
@@ -59,147 +74,111 @@ test("the printable brief holds every part, its sources and limits, in the dayli
   expect(daylight).toBe(true);
 });
 
-/** Words the briefing shows outside the global chrome and the action prompts (decision 16a). */
-async function briefingWords(page: Page): Promise<number> {
-  return page.evaluate(() => {
-    const root = document.querySelector("[data-package-briefing]");
-    if (!root) return 0;
-    const walk = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
-    let n = 0;
-    for (let t = walk.nextNode(); t; t = walk.nextNode()) {
-      const el = t.parentElement;
-      if (!el || el.closest("[data-action-prompt], [data-chrome]")) continue;
-      const cs = getComputedStyle(el);
-      if (cs.visibility === "hidden" || cs.display === "none") continue;
-      n += ((t.textContent ?? "").trim().match(/\S+/g) ?? []).length;
-    }
-    return n;
-  });
+const QUESTION = "What should happen next?";
+
+interface CaseRecords {
+  briefRecords: {
+    id: string;
+    createdAt: string;
+    provenance: { generatedByTaskId: string | null };
+  }[];
+  taskRecords: { id: string; commandId: string }[];
+  branchMergeRecords?: { createdAt: string }[];
+  operationalActionRecords?: { createdAt: string; fieldPlan: unknown }[];
 }
 
-/** Words the Verdict scorecard shows at rest outside chrome and the focused cause's opened detail (decision 16). */
-async function verdictWords(page: Page): Promise<number> {
-  return page.evaluate(() => {
-    const root = document.querySelector("[data-record='results']");
-    if (!root) return 0;
-    const walk = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
-    let n = 0;
-    for (let t = walk.nextNode(); t; t = walk.nextNode()) {
-      const el = t.parentElement;
-      if (!el || el.closest("[data-action-prompt], [data-chrome], [data-verdict-detail]")) continue;
-      const cs = getComputedStyle(el);
-      if (cs.visibility === "hidden" || cs.display === "none") continue;
-      n += ((t.textContent ?? "").trim().match(/\S+/g) ?? []).length;
-    }
-    return n;
-  });
+/**
+ * The case's package as the record holds it: the latest brief and the command whose task committed it. Null when the
+ * case holds no package (no brief, no committing command, no field plan or no merge).
+ */
+async function packageOf(page: Page, caseId: string) {
+  const res = await page.request.get(`/api/cases/${encodeURIComponent(caseId)}`);
+  if (!res.ok()) return null;
+  const r = ((await res.json()) as { records: CaseRecords }).records;
+  const latest = <T extends { createdAt: string }>(xs: readonly T[]) =>
+    [...xs].sort((a, b) => a.createdAt.localeCompare(b.createdAt)).at(-1);
+  const brief = latest(r.briefRecords);
+  const commandId = r.taskRecords.find(
+    (t) => t.id === brief?.provenance.generatedByTaskId,
+  )?.commandId;
+  const plan = latest((r.operationalActionRecords ?? []).filter((a) => a.fieldPlan));
+  const merge = latest(r.branchMergeRecords ?? []);
+  if (!brief || !commandId || !plan || !merge) return null;
+  return { briefId: brief.id, commandId };
 }
 
-test("the briefing arrives with one headline, steps through five cards by key, and leaves on Esc", async ({
-  page,
-}) => {
-  test.skip(
-    process.env.SITERRA_WEB_SERVER === "production",
-    "the harness page is development only",
-  );
-  const caseId = sharedCase();
-  const briefId = await briefOf(page, caseId);
-  test.skip(
-    briefId === null,
-    "the case holds no package (P9 not landed, synthetic package not loaded)",
-  );
-  await page.goto(`/brief/preview?case=${caseId}`);
-  await expect(page.locator("[data-ready]")).toBeAttached({ timeout: 60_000 });
-  await page.evaluate(() => {
-    localStorage.clear();
-  });
-  await page.keyboard.press("Enter");
-  const briefing = page.locator("[data-package-briefing]");
-  await expect(briefing).toHaveAttribute("data-state", "in");
-  // the arrival: one headline, no card, within the text budget
-  await expect(briefing).toHaveAttribute("data-step", "arrival");
-  await expect(briefing.getByRole("heading", { level: 2 })).toHaveText(/^Your plan: /);
-  await expect(briefing).toContainText("Nothing sent or authorized.");
-  await expect(briefing.locator("[data-card]")).toHaveCount(0);
-  expect(await briefingWords(page)).toBeLessThanOrEqual(40);
-  // Space steps through the cards in order, one at a time, each a title and at most three lines
-  const seen: string[] = [];
-  for (let k = 0; k < 12; k++) {
-    await page.keyboard.press("Space");
-    const card = briefing.locator("[data-card]");
-    await expect(card).toHaveCount(1);
-    const id = (await card.getAttribute("data-card")) ?? "";
-    if (seen.at(-1) !== id) seen.push(id);
-    expect(await card.locator("li").count()).toBeLessThanOrEqual(3);
-    expect(await briefingWords(page), `step ${id}`).toBeLessThanOrEqual(40);
-  }
-  expect(seen).toEqual(["known", "open", "checks", "responses", "approve"]);
-  // on the final approval step, Next [Space] is hidden and interactive review actions record the review decision
-  await expect(briefing.locator("[data-step-next]")).toHaveCount(0);
-  await expect(briefing.locator("[data-needs-you]")).toHaveText("Needs you");
-  await expect(briefing.locator("[data-review-approve]")).toHaveText("Approve the PlanEnter");
-  await expect(briefing.locator("[data-review-ask-changes]")).toHaveText("Ask for ChangesA");
-  await page.keyboard.press("Enter");
-  await expect(briefing.locator("[data-review-badge='approved']")).toHaveText("Prepared");
-  await expect(briefing.locator("[data-review-recorded='approved']")).toHaveText(
-    "Plan approved (recorded on this case; nothing is sent externally)",
-  );
-  expect(await briefingWords(page)).toBeLessThanOrEqual(40);
-  // asking for changes opens the optional reviewer note and records changes_requested
-  await page.keyboard.press("a");
-  await expect(briefing.locator("[data-review-recorded='changes_requested']")).toHaveText(
-    "Changes requested (recorded on this case; nothing is sent externally)",
-  );
-  await briefing.locator("[data-review-note]").fill("Check upper pasture dates first");
-  await briefing.locator("[data-review-record-changes]").click();
-  await expect(briefing.locator("[data-review-note-shown]")).toContainText(
-    "Check upper pasture dates first",
-  );
-  // pointing at a line offers its source beside it (decision 15)
-  await briefing.locator("[data-card] li").first().hover();
-  await expect(page.locator("[data-action-prompt]").getByRole("button").first()).toHaveText(
-    "Read the SourceEnter",
-  );
-  // the arrow key goes back a page at a time, all the way to the arrival; Esc leaves
-  await page.mouse.move(10, 10);
-  for (let k = 0; k < 20; k++) await page.keyboard.press("ArrowLeft");
-  await expect(briefing).toHaveAttribute("data-step", "arrival");
-  await page.keyboard.press("Escape");
-  await expect(briefing).toHaveCount(0);
-});
+/** Opens a case's answer at the overview's home; returns it with the readout the record should give. */
+async function homeOf(page: Page, caseId: string) {
+  const record = loadedRecord(page);
+  const readout = await atTheAnswer(page, `/valley?case=${caseId}`);
+  const { snapshot, listing } = await record;
+  return { readout, snapshot, listing, model: answerOf(snapshot, listing) };
+}
 
-test("from a question's results, Your Plan opens the package on the land, and Esc returns", async ({
+test("at home the answer reads the case's package: what each check would tell apart, the reviews it asks for; E exports the brief, Esc goes to the Landing", async ({
   page,
 }) => {
   test.setTimeout(180_000);
-  // the case's package and the command whose tasks committed it, from the record
   const caseId = sharedCase();
-  const res = await page.request.get(`/api/cases/${encodeURIComponent(caseId)}`);
-  test.skip(!res.ok(), "the case could not be read");
-  const snap = (await res.json()) as {
-    records: {
-      briefRecords: { id: string; provenance: { generatedByTaskId: string | null } }[];
-      taskRecords: { id: string; commandId: string }[];
-    };
-  };
-  const brief = snap.records.briefRecords.at(-1);
-  const commandId = snap.records.taskRecords.find(
-    (t) => t.id === brief?.provenance.generatedByTaskId,
-  )?.commandId;
-  test.skip(
-    !commandId,
-    "the case holds no package (P9 not run here, synthetic package not loaded)",
+  const pack = await packageOf(page, caseId);
+  test.skip(!pack, "the case holds no package (P9 not run here, synthetic package not loaded)");
+  if (!pack) return;
+  const { readout, snapshot, model } = await homeOf(page, caseId);
+  await expect(readout.locator("[data-run-question]")).toHaveText(snapshot.case.objective);
+  // Next: the field plan's checks, each saying what only it would tell apart
+  const ground = model.ground;
+  if (!ground) throw new Error("the case's package holds no field plan the merge binds");
+  await expect(readout.locator("[data-readout-group='ground'] [data-readout-check]")).toHaveText(
+    ground.checks.map((c) => nextWords(c)),
   );
-  // the question is answered by that command, and its completion arrives on the event stream: no worker runs, no
-  // model is called; the page reads the package from the record
+  // the reviews the record asks for, as one row under Needs You with the export's key
+  const asked = reviewWords(ground.reviews);
+  if (!asked) throw new Error("the case's package asks for no review");
+  const review = readout.locator("[data-readout-review]");
+  await expect(review).toHaveText(`${asked}${rd["readout.review.key"].text}`);
+  await expect(readout).toContainText(en["run.tree.needsYou"].text);
+  // the record holds a brief, so the key bar offers its export
+  await expect(keyOf(page, "E")).toHaveText(`E${rd["readout.key.brief"].text}`);
+
+  // E opens the case's own brief, and so does the review's row
+  const brief = new RegExp(`/brief\\?case=${caseId}&brief=${pack.briefId}$`);
+  const byKey = page.waitForEvent("popup");
+  await page.keyboard.press("e");
+  const exported = await byKey;
+  await expect(exported).toHaveURL(brief);
+  await exported.close();
+  const byRow = page.waitForEvent("popup");
+  await review.click();
+  const opened = await byRow;
+  await expect(opened).toHaveURL(brief);
+  await opened.close();
+
+  // Esc leaves the place for the Landing
+  await page.keyboard.press("Escape");
+  await expect(page.locator("[data-opening]")).toBeVisible({ timeout: 60_000 });
+});
+
+test("after a question of the visitor's own, its steps take the screen, then its answer: the case's, headed by a Follow-up with the question and its findings", async ({
+  page,
+}) => {
+  test.setTimeout(180_000);
+  const caseId = sharedCase();
+  const pack = await packageOf(page, caseId);
+  test.skip(!pack, "the case holds no package (P9 not run here, synthetic package not loaded)");
+  if (!pack) return;
+  // the question is answered by the command whose tasks committed the package: its acceptance, the completion call
+  // and its completion event are served here, so the page reads the package from the case record
   await page.route("**/api/cases/*/commands", (route) =>
     route.request().method() === "POST"
       ? route.fulfill({
           status: 202,
           contentType: "application/json",
-          body: JSON.stringify({ recordType: "Command", id: commandId, caseId }),
+          body: JSON.stringify({ recordType: "Command", id: pack.commandId, caseId }),
         })
       : route.continue(),
+  );
+  await page.route("**/api/cases/*/commands/*/complete", (route) =>
+    route.fulfill({ status: 200, json: { status: "skipped" } }),
   );
   const completed = {
     recordType: "Event",
@@ -209,7 +188,7 @@ test("from a question's results, Your Plan opens the package on the land, and Es
     sequence: 1,
     occurredAt: new Date().toISOString(),
     kind: "command.completed",
-    commandId,
+    commandId: pack.commandId,
     taskId: null,
     caseRevision: 1,
     entityIds: [],
@@ -229,64 +208,92 @@ test("from a question's results, Your Plan opens the package on the land, and Es
       body: `id: 1\ndata: ${JSON.stringify(completed)}\n\n`,
     }),
   );
-  await page.goto(`/valley?case=${caseId}`);
-  const root = page.locator("[data-overview-root]");
-  await expect(root).toHaveAttribute("data-ready", "", { timeout: 90_000 });
+  const { snapshot, listing, model } = await homeOf(page, caseId);
   await page.keyboard.press("/");
-  await page.keyboard.type("What should happen next?");
+  const input = page.locator("input[name='question']");
+  await expect(input).toBeFocused();
+  await page.keyboard.type(QUESTION);
   await page.keyboard.press("Enter");
-  // the run takes the arc (U29); once it is done its question card opens the findings
-  await page.locator("[data-run-open-findings]").click();
-  // Scene 6 Verdict shows all 5 tested causes with plain status, and expands only the focused cause at a time
-  await expect(page.locator("[data-verdict-cause]")).toHaveCount(5);
-  await expect(page.locator("[data-verdict-detail]")).toHaveCount(1);
-  await expect(page.locator("[data-verdict-reason]")).toHaveCount(1);
-  await expect(page.locator("[data-verdict-prediction]")).toHaveCount(1);
-  expect(await verdictWords(page)).toBeLessThanOrEqual(40);
-  // the card takes the focus once it is drawn; ArrowDown steps through causes, and Enter opens Your Plan
-  await expect(page.locator("[data-result]").first()).toBeFocused();
-  await page.keyboard.press("ArrowDown");
-  await page.keyboard.press("ArrowDown");
-  await expect(page.locator("[data-verdict-reason]")).toContainText(
-    "orchard history needs a field check.",
+  // the question's steps take the screen at once, under their own crumb
+  await expect(page.locator("[data-at-work][data-run-layer]")).toBeVisible({ timeout: 20_000 });
+  expect((await crumbsOf(page)).at(-1)).toBe(en["chrome.key.thinking"].text);
+  // done, they hand over to the question's answer, which the address names
+  const readout = readoutOn(page);
+  await expect(readout).toBeVisible({ timeout: 30_000 });
+  await expect(page).toHaveURL(new RegExp(`[?&]run=${pack.commandId}`));
+  // the Follow-up: the question sent and its own findings, as plain sentences
+  const followUp = readout.locator("[data-readout-request]");
+  await expect(followUp.locator("dt")).toHaveText(rd["readout.request.head"].text);
+  await expect(followUp).toContainText(QUESTION);
+  const findings = answerOf(snapshot, listing, pack.commandId).request?.findings ?? [];
+  const toggle = followUp.locator("[data-readout-request-toggle]");
+  if (findings.length) {
+    // the first findings, and when there are more, one row that shows them all and then fewer again
+    const first = followUpOf(findings, false);
+    const lines = followUp.locator("dd > p:not([class*='asked'])");
+    await expect(lines).toHaveText(first.shown.map((f) => findingWords(f)));
+    if (first.toggle) {
+      await expect(toggle).toHaveText(first.toggle);
+      await expect(toggle).toHaveAttribute("aria-expanded", "false");
+      await toggle.click();
+      const all = followUpOf(findings, true);
+      await expect(lines).toHaveText(all.shown.map((f) => findingWords(f)));
+      await expect(toggle).toHaveText(all.toggle ?? "");
+      await expect(toggle).toHaveAttribute("aria-expanded", "true");
+      await toggle.click();
+      await expect(lines).toHaveText(first.shown.map((f) => findingWords(f)));
+    } else await expect(toggle).toHaveCount(0);
+  } else {
+    await expect(followUp).toContainText(rd["readout.request.none"].text);
+    await expect(toggle).toHaveCount(0);
+  }
+  // the rest is still the case's: its sentence, its package's checks and its review
+  await expect(readout.locator("[data-readout-answer]")).toHaveText(model.answer.claim ?? "");
+  await expect(readout.locator("[data-readout-group='ground'] [data-readout-check]")).toHaveText(
+    (model.ground?.checks ?? []).map((c) => nextWords(c)),
   );
-  await page.keyboard.press("ArrowUp");
-  await page.keyboard.press("ArrowUp");
-  // the results offer the package as their Enter
-  const open = page.locator("[data-open-package]");
-  await expect(open).toHaveText("Your PlanEnter");
-  await page.mouse.move(720, 120);
+  await expect(readout.locator("[data-readout-review]")).toBeVisible();
+});
+
+test("the package stands in the answer's own column, on screen; Enter opens no other view and the crumb stays Findings", async ({
+  page,
+}) => {
+  test.setTimeout(180_000);
+  const caseId = sharedCase();
+  const pack = await packageOf(page, caseId);
+  test.skip(!pack, "the case holds no package (P9 not run here, synthetic package not loaded)");
+  if (!pack) return;
+  const { readout } = await homeOf(page, caseId);
+  // the checks and the review sit in the same column as the answer, under it
+  const ground = readout.locator("[data-readout-group='ground']");
+  const review = readout.locator("[data-readout-review]");
+  await expect(ground).toBeVisible();
+  await expect(review).toBeVisible();
+  const [answerBox, groundBox] = await Promise.all([
+    readout.locator("[data-readout-answer]").boundingBox(),
+    ground.boundingBox(),
+  ]);
+  expect(answerBox && groundBox && groundBox.y > answerBox.y).toBe(true);
+  expect(answerBox && groundBox && Math.abs(groundBox.x - answerBox.x) <= 12).toBe(true);
+  // Enter opens no plan view: the answer and its crumb stay
   await page.keyboard.press("Enter");
-  const briefing = page.locator("[data-package-briefing][data-land]");
-  await expect(briefing).toHaveAttribute("data-state", "in", { timeout: 10_000 });
-  await expect(page.getByRole("navigation").getByText("Your Plan")).toBeVisible();
-  // the arrival: the headline and the markers on their bands, nothing else
-  await expect(briefing).toHaveAttribute("data-step", "arrival");
-  await expect(briefing.getByRole("heading", { level: 2 })).toHaveText(/^Your plan: /);
-  // Space opens the first card beside the land
-  await page.keyboard.press("Space");
-  await expect(briefing.locator("[data-card='known']")).toBeVisible();
-  // step to the final approval card, approve the plan, and verify the exported brief reflects it
-  await briefing.getByRole("button", { name: "Who Must Approve" }).click();
-  await expect(briefing.locator("[data-card='approve']")).toBeVisible();
-  await expect(briefing.locator("[data-step-next]")).toHaveCount(0);
-  await briefing.locator("[data-review-approve]").click();
-  await expect(briefing.locator("[data-review-recorded='approved']")).toHaveText(
-    "Plan approved (recorded on this case; nothing is sent externally)",
-  );
-  // the overview's legend carries the brief's export while the package is open, and E opens it
-  await expect(page.getByText("Export Brief")).toBeVisible();
-  const popup = page.waitForEvent("popup");
-  await page.keyboard.press("e");
-  const exported = await popup;
-  await expect(exported).toHaveURL(/\/brief\?case=.*&brief=/);
-  await expect(exported.locator("[data-brief-review-status]")).toHaveText(
-    "Plan approved (recorded on this case; nothing is sent externally)",
-  );
-  await expect(exported.locator("[data-brief]")).not.toContainText("Awaiting Review");
-  await exported.close();
-  // Esc returns to the overview at rest
-  await page.keyboard.press("Escape");
-  await expect(briefing).toHaveCount(0, { timeout: 10_000 });
-  await expect(page.locator("[data-case-question]")).toBeVisible();
+  await page.waitForTimeout(1_500);
+  expect((await crumbsOf(page)).at(-1)).toBe(en["overview.crumb.results"].text);
+  await expect(ground).toBeVisible();
+  // still on screen: neither the review nor anything above it is faded out (the list names any that is)
+  const faded = () =>
+    review.evaluate((el) => {
+      const out: string[] = [];
+      for (let e: Element | null = el; e; e = e.parentElement) {
+        const o = Number(getComputedStyle(e).opacity);
+        if (o < 0.9)
+          out.push(
+            `<${e.tagName.toLowerCase()} class="${e.getAttribute("class") ?? ""}"> at ${String(o)}`,
+          );
+      }
+      return out;
+    });
+  await expect.poll(faded, { timeout: 5_000 }).toEqual([]);
+  const box = await review.boundingBox();
+  expect(box && box.y + box.height <= 900 && box.x >= 0).toBe(true);
 });

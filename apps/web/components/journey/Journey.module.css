@@ -26,11 +26,12 @@
 
 .handover,
 .overlay {
-  transition: opacity 0.6s ease 0.3s;
+  transition: opacity 0.24s ease;
 }
 
 .journey[data-landing] :is(.handover, .overlay) {
   opacity: 0;
+  pointer-events: none;
 }
 
 .globe {
@@ -156,9 +157,9 @@
   width: 310px;
   padding: 11px 14px;
   border-radius: 3px;
-  background: var(--keycap-bg, #252930);
-  color: var(--keycap-ink, #f4f2ed);
-  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.24);
+  background: var(--keycap-bg);
+  color: var(--keycap-ink);
+  box-shadow: var(--globe-card-shadow);
   pointer-events: auto;
   cursor: pointer;
   z-index: 18;
@@ -213,7 +214,7 @@
 .monumentKicker {
   font: 400 9.5px / 13px var(--font-mono);
   letter-spacing: 0.04em;
-  color: var(--keycap-ink, #f4f2ed);
+  color: var(--keycap-ink);
   opacity: 0.72;
 }
 
@@ -223,7 +224,7 @@
   gap: 5px;
   font: 500 9px / 12px var(--font-mono);
   letter-spacing: 0.06em;
-  color: var(--keycap-ink, #f4f2ed);
+  color: var(--keycap-ink);
 }
 
 .monumentActionKey {
@@ -234,20 +235,20 @@
   padding: 0 3px;
   border-radius: 2px;
   background: var(--triad-blue);
-  color: #ffffff;
+  color: var(--ink-on-triad);
   font: 500 9px / 1 var(--font-mono);
 }
 
 .casePlace {
   margin: 0;
   font: 400 12.5px / 16.5px var(--font-sans);
-  color: var(--keycap-ink, #f4f2ed);
+  color: var(--keycap-ink);
 }
 
 .caseQuestion {
   margin: 0;
   font: 300 11.5px / 15.5px var(--font-sans);
-  color: var(--keycap-ink, #f4f2ed);
+  color: var(--keycap-ink);
   opacity: 0.8;
 }
 
@@ -255,7 +256,7 @@
 .caseNote {
   margin: 0;
   font: 400 11.5px / 15.5px var(--font-sans);
-  color: var(--keycap-ink, #f4f2ed);
+  color: var(--keycap-ink);
   opacity: 0.8;
 }
 
@@ -353,8 +354,8 @@
 
 .setupThemeBtn:hover,
 .setupThemeBtn:focus-visible {
-  background: var(--keycap-bg, #252930);
-  color: var(--keycap-ink, #f4f2ed);
+  background: var(--keycap-bg);
+  color: var(--keycap-ink);
   outline: none;
 }
 
@@ -964,8 +965,8 @@
   height: 19px;
   padding: 0 5px;
   border-radius: 2.5px;
-  background: var(--keycap-bg, #252930);
-  color: var(--keycap-ink, #f4f2ed);
+  background: var(--keycap-bg);
+  color: var(--keycap-ink);
   font: 500 10px / 1 var(--font-mono);
   text-shadow: none;
   flex-shrink: 0;
@@ -976,12 +977,12 @@
 
 .keycapBlue {
   background: var(--triad-blue);
-  color: #ffffff;
+  color: var(--ink-on-triad);
 }
 
 .keycapRed {
   background: var(--triad-red);
-  color: #ffffff;
+  color: var(--ink-on-triad);
 }
 
 /* ============================================================================
@@ -1015,8 +1016,8 @@
   height: 20px;
   padding: 0 6px;
   border-radius: 2.5px;
-  background: var(--keycap-bg, #252930);
-  color: var(--keycap-ink, #f4f2ed);
+  background: var(--keycap-bg);
+  color: var(--keycap-ink);
   font: 500 9.5px / 1 var(--font-mono);
   letter-spacing: 0.04em;
   text-shadow: none;
@@ -1066,8 +1067,8 @@
   min-width: 24px;
   height: 22px;
   padding: 0 6px;
-  background: var(--keycap-bg, #252930);
-  color: var(--keycap-ink, #f4f2ed);
+  background: var(--keycap-bg);
+  color: var(--keycap-ink);
   font: 400 10px / 1 var(--font-mono);
   border-radius: 2.5px;
   text-shadow: none;
@@ -1075,7 +1076,7 @@
 
 .detroitKeyCapPrimary {
   background: var(--triad-blue);
-  color: #ffffff;
+  color: var(--ink-on-triad);
 }
 
 .srOnlyOthers {
@@ -1132,8 +1133,8 @@
   height: 15px;
   padding: 0 3px;
   border-radius: 2px;
-  background: var(--keycap-bg, #252930);
-  color: var(--keycap-ink, #f4f2ed);
+  background: var(--keycap-bg);
+  color: var(--keycap-ink);
   font: 500 9px / 1 var(--font-mono);
 }
 
@@ -1189,12 +1190,20 @@
     filter 440ms ease 45ms;
 }
 
+.setupStage[data-opened] .dbhLaunch {
+  opacity: 0;
+  filter: blur(2px);
+  transform: translate3d(-42px, -8px, -140px) scale(0.9);
+  transition:
+    transform 460ms cubic-bezier(0.22, 1, 0.36, 1) 60ms,
+    opacity 340ms ease 60ms,
+    filter 340ms ease 60ms;
+}
+
 .globeMonumentCard[data-diving] {
   pointer-events: none;
   border-color: var(--triad-blue);
-  box-shadow:
-    0 0 0 1px rgba(43, 115, 232, 0.35),
-    0 18px 38px rgba(0, 0, 0, 0.32);
+  box-shadow: var(--globe-card-dive-shadow);
   transform: translate3d(0, -4px, 0) scale(1.02);
   transition:
     transform 520ms cubic-bezier(0.22, 1, 0.36, 1),

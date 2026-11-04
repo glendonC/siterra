@@ -1,6 +1,8 @@
 import { expect, test } from "@playwright/test";
+import { readoutOn, shownLabels } from "./answer";
 
-// A returning visitor: a reload of the home page goes back to their case, not to the start of the opening.
+// A returning visitor: a reload of the home page goes back to their case, not to the start of the opening: the
+// overview's home, the answer (UI-2).
 test.use({ storageState: { cookies: [], origins: [] } });
 
 test("a first visit opens with the opening, and a reload returns to the visitor's case", async ({
@@ -24,7 +26,8 @@ test("a first visit opens with the opening, and a reload returns to the visitor'
   await expect(page.locator("[data-overview-root]")).toHaveAttribute("data-ready", "", {
     timeout: 60_000,
   });
-  await expect(page.locator("[data-finding]")).toHaveCount(4);
+  await expect(readoutOn(page)).toBeVisible({ timeout: 15_000 });
+  await expect.poll(() => shownLabels(page)).toBe(0);
   await expect(page.locator("[data-phase]")).toHaveCount(0);
   // no new demo copy: only the visitor's own case is read (the session may read it again as events replay)
   expect(asked.length).toBeGreaterThan(0);

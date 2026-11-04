@@ -322,6 +322,8 @@ export interface WallOptions {
   bandTint?: string;
   /** One normal (model x, z) for the whole wall, as for a straight section face lit as one plane. */
   faceNormal?: readonly [number, number];
+  /** The ground the wall fades to; the Obsidian canvas when absent. */
+  bg?: string;
 }
 
 /** A vertical wall under a polyline of (E, N) points, from the relief surface down to the base elevation. */
@@ -392,7 +394,7 @@ export function createWall(
     uLimitA: { value: o.limitA ?? 0 },
     uLimitC: { value: rgbVec(channels(modelColours.wallLimit)) },
     uLimits: { value: new Vector2(...o.limits) },
-    uBg: { value: hexVec(obsidian.canvas) },
+    uBg: { value: hexVec(o.bg ?? obsidian.canvas) },
     uShow: { value: 1 },
   };
   const material = new ShaderMaterial({

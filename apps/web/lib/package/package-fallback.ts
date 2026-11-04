@@ -50,16 +50,18 @@ export function packageViewForCase(
 
   const sources: PackageSource[] = snapshot.records.sourceRecords.slice(0, 4).map((s, idx) => ({
     n: idx + 1,
-    short: shortCitation(s),
     key: s.id,
-    note: `${s.title} (${(s.publicationDate ?? "").slice(0, 4) || "published record"})`,
+    title: s.title,
+    href: s.url,
+    detail: [shortCitation(s), ...(s.publisher ? [s.publisher] : [])],
   }));
   if (sources.length === 0) {
     sources.push({
       n: 1,
-      short: strataBundle?.label ?? "Satellite & climate bundle",
       key: bundleId ?? "bundle_1",
-      note: "Computed from the case's validated remote-sensing and climate bundle.",
+      title: strataBundle?.label ?? "Satellite & climate bundle",
+      href: null,
+      detail: strataBundle?.attribution ? [strataBundle.attribution] : [],
     });
   }
   const c1 = sources[0]?.n ?? 1;
@@ -139,7 +141,6 @@ export function packageViewForCase(
           },
         ],
         fieldCheck: { id: "herd_records", label: "Stewardship & access records" },
-        answers: ["Seasonal stocking and rest dates across upper slopes."],
         chips: [c1],
       },
       {
@@ -156,7 +157,6 @@ export function packageViewForCase(
           },
         ],
         fieldCheck: { id: "orchard_history", label: "Valley-floor land history" },
-        answers: ["Timing of irrigation or crop transitions on the valley floor."],
         chips: [c2],
       },
     ],
@@ -169,7 +169,9 @@ export function packageViewForCase(
         status: "candidate",
         assumptions: ["Existing local governance institutions cover the upper watershed slopes."],
         checkFirst: ["Seasonal access numbers and customary opening dates."],
-        livelihood: ["Shifting spring access affects household livelihoods; local review required."],
+        livelihood: [
+          "Shifting spring access affects household livelihoods; local review required.",
+        ],
         ecology: ["Allows perennial forage and vegetation recovery during spring flush."],
         reviewRoles: ["community_livelihood", "scientific"],
         chips: [c1, c2],

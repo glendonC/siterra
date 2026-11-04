@@ -19,12 +19,11 @@ import type {
   ReviewDecision,
   Task,
 } from "@siterra/contracts";
+import { HOST_TEXT } from "../host-text";
 
-export const SYNTHETIC_NOTE =
-  "Synthetic fixture for the interface: written by hand in the brief task's record shapes, not a model output and not a plan anyone made.";
-const BRIEF_DRAFT = "Draft prepared by Siterra; nothing is sent, scheduled or authorized.";
-const NO_AUTHORITY =
-  "Local authority and representation are not established; nothing is sent, scheduled or authorized.";
+export const SYNTHETIC_NOTE = HOST_TEXT.synthetic;
+const BRIEF_DRAFT = HOST_TEXT.briefDraft;
+const NO_AUTHORITY = HOST_TEXT.noAuthority;
 const RESOURCE = "Unknown, to be established locally.";
 
 export interface RecordedRun {

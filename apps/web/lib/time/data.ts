@@ -1,13 +1,14 @@
-// "See It Over Time": what the playhead plays, read from a case's own bundles, never from code that
+// "Year by Year": what the playhead plays, read from a case's own bundles, never from code that
 // names a place. Pure parsers over the assets the read API serves (checksums checked by the loader):
 // - the growing-season NDVI of every 250 m MODIS pixel per season (bundle_pixel_seasons: the binary cube and its
 //   header, which names its seasons, its window and its nodata rule);
 // - each pixel's place on the land and its trend (the pixel trend bundle's trend_cells: row, col, four UTM corners and
-//   the Theil-Sen slope per decade), which index the same grid as the cube;
+//   the Theil-Sen slope per decade), which index the same grid as the cube, and the shares of the catchment and of
+//   each band that trend upward or downward (the same bundle's summary, where the answer reads its own shares);
 // - snow by elevation band per month (snow_cover_by_band: the terrain_strata band set at the bundle's own default
 //   threshold), only where the bundle does not record the recipe as not applicable;
-// - the driest seasons by the place's primary rainfall window, and each band's season values and trend (restrend and
-//   season trend bundles, at their own primary windows).
+// - every season's rain by the place's primary rainfall window, and the catchment's and each band's season values and
+//   trend (restrend and season trend bundles, at their own primary windows).
 
 import { z } from "zod";
 
@@ -167,8 +168,8 @@ export interface DrySeason {
   to: string;
 }
 
-/** The four driest seasons of the catchment by the place's primary rainfall window, driest first. */
-export function driestFrom(tables: unknown, n = 4): DrySeason[] {
+/** Every season's rain over the catchment in the place's primary rainfall window, in the record's order. */
+export function rainFrom(tables: unknown): DrySeason[] {
   const r = restrend.parse(tables);
   return r.rainfall
     .filter(
@@ -182,7 +183,12 @@ export function driestFrom(tables: unknown, n = 4): DrySeason[] {
       mm: x.rainfall_mm ?? 0,
       from: x.months[0] ?? "",
       to: x.months.at(-1) ?? "",
-    }))
+    }));
+}
+
+/** The four driest seasons of the catchment by the place's primary rainfall window, driest first. */
+export function driestFrom(tables: unknown, n = 4): DrySeason[] {
+  return rainFrom(tables)
     .sort((a, b) => a.mm - b.mm)
     .slice(0, n);
 }
@@ -202,7 +208,11 @@ const seasonTrend = z.object({
       stratum: z.string(),
       growing_window: z.string(),
       reliability: z.string(),
-      ols: z.object({ slope_per_decade: z.number() }).nullable().optional(),
+      ols: z
+        .object({ slope_per_decade: z.number(), direction: z.string().optional() })
+        .nullable()
+        .optional(),
+      fdr_pass: z.boolean().nullable().optional(),
     }),
   ),
 });
@@ -222,6 +232,12 @@ export interface StratumSeries {
   ndvi: Map<number, number | null>;
   /** The trend over every season at the primary window and reliability (NDVI per decade). */
   slopePerDecade: number | null;
+  /**
+   * The trend's direction as the record states it from its 95% interval ("upward", "downward", "includes_zero"),
+   * and whether it passes the record's false discovery rate check; null where the record states neither.
+   */
+  direction: string | null;
+  fdrPass: boolean | null;
 }
 
 /** The catchment and its elevation bands at the place's primary growing window, as the season trend bundle holds them. */
@@ -243,8 +259,51 @@ export function strataFrom(json: unknown): StratumSeries[] {
         label: s.label,
         ndvi: new Map((base?.seasons ?? []).map((x) => [x.year, x.ndvi])),
         slopePerDecade: res?.ols?.slope_per_decade ?? null,
+        direction: res?.ols?.direction ?? null,
+        fdrPass: res?.fdr_pass ?? null,
       };
     });
+}
+
+const trendSummary = z.object({
+  primary: z.object({ growing_window: z.string() }),
+  windows_summary: z.record(z.string(), z.unknown()),
+});
+const areaShare = z.object({
+  group: z.string(),
+  increasing_fdr_share: z.number(),
+  decreasing_fdr_share: z.number(),
+});
+
+/** The shares of an area whose pixels trend upward and downward after the record's false discovery rate check. */
+export interface AreaShares {
+  up: number;
+  down: number;
+}
+
+/**
+ * The pixel trend's own shares at its primary window: the catchment's (the same record field the answer's shares are
+ * read from, windows_summary/<window>/catchment) and each group's, by the group's id ("elevation_low").
+ */
+export function sharesFrom(summary: unknown): {
+  window: string;
+  catchment: AreaShares;
+  groups: Map<string, AreaShares>;
+} {
+  const s = trendSummary.parse(summary);
+  const window = s.primary.growing_window;
+  const at = z
+    .object({ catchment: areaShare, area_shares: z.array(areaShare) })
+    .parse(s.windows_summary[window]);
+  const of = (x: z.infer<typeof areaShare>): AreaShares => ({
+    up: x.increasing_fdr_share,
+    down: x.decreasing_fdr_share,
+  });
+  return {
+    window,
+    catchment: of(at.catchment),
+    groups: new Map(at.area_shares.map((x) => [x.group, of(x)])),
+  };
 }
 
 const changeTimingSchema = z.object({

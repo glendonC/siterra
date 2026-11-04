@@ -60,6 +60,8 @@ export const ND = { az: 40, el: 33, dist: 42, x: 360, y: 600 } as const;
 export const WIDE = { fh: 560, cx: 300, cy: 470 } as const;
 /** Next-steps package layout: fits the terrain in the middle column (design px). */
 export const PKG = { fh: 540, cx: 720, cy: 478, aside: 190 } as const;
+/** Answer readout layout: fits the terrain right of the readout's left column (design px). */
+export const READOUT = { fh: 600, cx: 900, cy: 480 } as const;
 /** Walking routes layout: elevated close-in view fitting all routes on the left side of the stage. */
 export const RT = { el: 40, w: 470, h: 320, cx: 370, cy: 570 } as const;
 /** Reference clock angle (degrees) for scaling azimuthal camera swing by finding position. */
@@ -184,6 +186,20 @@ export interface Point {
 
 export type Box = { x0: number; y0: number; x1: number; y1: number };
 export type View = Omit<PerspectiveView, "design"> & { shift: [number, number] };
+
+/** The box round model points: x0, y0, z0, x1, y1, z1. */
+const bbox3 = (pts: readonly Vec3[]): [number, number, number, number, number, number] =>
+  pts.reduce<[number, number, number, number, number, number]>(
+    (b, p) => [
+      Math.min(b[0], p[0]),
+      Math.min(b[1], p[1]),
+      Math.min(b[2], p[2]),
+      Math.max(b[3], p[0]),
+      Math.max(b[4], p[1]),
+      Math.max(b[5], p[2]),
+    ],
+    [Infinity, Infinity, Infinity, -Infinity, -Infinity, -Infinity],
+  );
 
 export const bbox = (pts: readonly Point[]): Box =>
   pts.reduce(
@@ -326,6 +342,26 @@ export function createCameraRig(opts: {
     return view;
   };
 
+  /** A view from a bearing and elevation that fits `pts` inside `box` (design px), centred in it. */
+  const fitPoints = (pts: readonly Vec3[], az: number, el: number, box: Box): View => {
+    const c = bbox3(pts);
+    const target: Vec3 = [(c[0] + c[3]) / 2, (c[1] + c[4]) / 2, (c[2] + c[5]) / 2];
+    const base = { target, azimuth: az, elevation: el, shift: [0, 0] as [number, number] };
+    let distance = 90 * lf.kmScale;
+    for (let it = 0; it < 10; it++) {
+      set({ ...base, distance });
+      const b = bbox(pts.map(project));
+      distance *= Math.max((b.y1 - b.y0) / (box.y1 - box.y0), (b.x1 - b.x0) / (box.x1 - box.x0));
+    }
+    set({ ...base, distance });
+    const b = bbox(pts.map(project));
+    return {
+      ...base,
+      distance,
+      shift: [(box.x0 + box.x1) / 2 - (b.x0 + b.x1) / 2, (box.y0 + box.y1) / 2 - (b.y0 + b.y1) / 2],
+    };
+  };
+
   const pointAt = (target: Vec3, az: number): View => {
     const v: View = {
       target,
@@ -408,7 +444,32 @@ export function createCameraRig(opts: {
         sN += g.N0 - (j + 0.5) * g.res;
         n++;
       }
-    const at = n ? frame.v(sE / n, sN / n, sample(sE / n, sN / n)) : null;
+    if (!n) {
+      rangePlaces.set(key, null);
+      return null;
+    }
+    // the band's centre may fall outside the band (a ring of ridges centres on the valley floor): snap it to the
+    // band's own cell nearest that centre, so a label set there sits on the band
+    const cE = sE / n;
+    const cN = sN / n;
+    let best = Infinity;
+    let bE = cE;
+    let bN = cN;
+    for (let j = 0; j < g.height; j++)
+      for (let i = 0; i < g.width; i++) {
+        const k = j * g.width + i;
+        const h = H[k] ?? NaN;
+        if (!M30[k] || !(h >= (lo ?? -Infinity)) || !(h < (hi ?? Infinity))) continue;
+        const E = g.E0 + (i + 0.5) * g.res;
+        const N = g.N0 - (j + 0.5) * g.res;
+        const d = (E - cE) ** 2 + (N - cN) ** 2;
+        if (d < best) {
+          best = d;
+          bE = E;
+          bN = N;
+        }
+      }
+    const at = frame.v(bE, bN, sample(bE, bN));
     rangePlaces.set(key, at);
     return at;
   };
@@ -441,8 +502,8 @@ export function createCameraRig(opts: {
     const v =
       sel === "time"
         ? view0
-        : sel === "package"
-          ? fitLand(az0, ND.el, PKG.fh, PKG.cx, PKG.cy)
+        : sel === "package" || sel === "results"
+          ? fitLand(az0, ND.el, READOUT.fh, READOUT.cx, READOUT.cy)
           : sel === "routes" && RC
             ? routesView(RC)
             : place
@@ -497,7 +558,12 @@ export function createCameraRig(opts: {
     introView,
     pixelView,
     getCurrent: () => current,
-    solveCameraFrame(next: SceneState) {
+    fitPoints,
+    /**
+     * The camera for a frame. `stack` turns it toward the land taken apart (its view, and how far: 0 to 1), with the
+     * visitor's own turns and zoom let go while it stands, so the stack keeps its place beside the answer.
+     */
+    solveCameraFrame(next: SceneState, stack?: { k: number; view: View } | null) {
       const e = ease(next.s);
       const v1 = next.sel ? viewFor(next.sel) : view0;
       const rise = next.rise ?? 1;
@@ -510,21 +576,22 @@ export function createCameraRig(opts: {
             ? viewAt(introView(next.from), viewPlan, ease(clamp01(rise / 0.45)))
             : viewAt(viewPlan, destView, planToCarveK)
           : destView;
-      const at =
-        splitK > 0 && TP
-          ? viewAt(atRest, pixelView(TP), ease(clamp01(splitK / 0.45)))
-          : atRest;
+      const atPixel =
+        splitK > 0 && TP ? viewAt(atRest, pixelView(TP), ease(clamp01(splitK / 0.45))) : atRest;
+      const sk = stack ? clamp01(stack.k) : 0;
+      const at = stack && sk > 0 ? viewAt(atPixel, stack.view, sk) : atPixel;
+      const own = 1 - sk;
       const carveShaderK = sstep(0.42, 0.96, rise);
       const carveK = Math.max(0.015, carveShaderK);
       const exitK = ease(clamp01(next.exit ?? 0));
       const fovK = 1 - 0.9 * exitK;
       stage.setFovScale(fovK);
       const dolly = Math.tan(rad(FOV / 2)) / Math.tan(rad((FOV * fovK) / 2));
-      const az = at.azimuth + (next.turn ?? 0);
-      const el = Math.max(10, Math.min(84, at.elevation + (next.pitch ?? 0)));
+      const az = at.azimuth + (next.turn ?? 0) * own;
+      const el = Math.max(10, Math.min(84, at.elevation + (next.pitch ?? 0) * own));
       const azRad = rad(az);
-      const panRight = next.panX ?? 0;
-      const panFwd = next.panY ?? 0;
+      const panRight = (next.panX ?? 0) * own;
+      const panFwd = (next.panY ?? 0) * own;
       const target: Vec3 =
         panRight !== 0 || panFwd !== 0
           ? [
@@ -537,10 +604,10 @@ export function createCameraRig(opts: {
         ...at,
         target,
         shift: [
-          at.shift[0] - (next.sel === "package" ? (next.aside ?? 0) * PKG.aside * e : 0),
+          at.shift[0] - (next.sel === "package" ? (next.aside ?? 0) * PKG.aside * e * own : 0),
           at.shift[1],
         ] as [number, number],
-        distance: at.distance * (next.zoom ?? 1) * dolly,
+        distance: at.distance * lerp(1, next.zoom ?? 1, own) * dolly,
         azimuth: az,
         elevation: el,
       };

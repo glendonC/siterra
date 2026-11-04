@@ -19,15 +19,11 @@ function memoryStorage() {
 
 describe("review decisions (7F)", () => {
   it("formats the exact honesty messages for approval and requested changes", () => {
-    expect(reviewMessageOf("approved")).toBe(
-      "Plan approved (recorded on this case; nothing is sent externally)",
-    );
-    expect(reviewMessageOf("changes_requested")).toBe(
-      "Changes requested (recorded on this case; nothing is sent externally)",
-    );
+    expect(reviewMessageOf("approved")).toBe("Plan approved (demo)");
+    expect(reviewMessageOf("changes_requested")).toBe("Changes requested (demo)");
   });
 
-  it("posts to /api/cases/:id/review-decisions and persists the local decision when 404", async () => {
+  it("posts to /api/cases/:id/review-decisions and records nothing when the case refuses it", async () => {
     const storage = memoryStorage();
     const calls: { url: string; body: unknown }[] = [];
     const fetcher = ((input: RequestInfo | URL, init?: RequestInit) => {
@@ -39,7 +35,7 @@ describe("review decisions (7F)", () => {
       return Promise.resolve(new Response("Not Found", { status: 404 }));
     }) as typeof fetch;
 
-    const decision: RecordedReviewDecision = await submitReviewDecision({
+    const decision = await submitReviewDecision({
       caseId: "case_aitbouguemez",
       briefId: "brief_synthetic_package",
       actionId: "act_synthetic_field_plan",
@@ -50,18 +46,34 @@ describe("review decisions (7F)", () => {
       now: "2026-10-31T10:00:00.000Z",
     });
 
-    expect(decision.status).toBe("approved");
+    expect(decision).toBeNull();
     expect(calls).toHaveLength(1);
     expect(calls[0]?.url).toBe("/api/cases/case_aitbouguemez/review-decisions");
     expect(PlanReviewDecisionRequest.parse(calls[0]?.body)).toEqual({
       decision: "approved",
     });
+    expect(readRecordedReview("case_aitbouguemez", "brief_synthetic_package", storage)).toBeNull();
+  });
+
+  it("records the decision once the case accepts it", async () => {
+    const storage = memoryStorage();
+    const fetcher = (() =>
+      Promise.resolve(new Response("{}", { status: 201 }))) as unknown as typeof fetch;
+    const decision: RecordedReviewDecision | null = await submitReviewDecision({
+      caseId: "case_aitbouguemez",
+      briefId: "brief_synthetic_package",
+      status: "approved",
+      fetcher,
+      storage,
+      now: "2026-10-31T10:00:00.000Z",
+    });
+    expect(decision?.status).toBe("approved");
     expect(readRecordedReview("case_aitbouguemez", "brief_synthetic_package", storage)).toEqual(
       decision,
     );
   });
 
-  it("persists changes_requested with an optional reviewer note even when offline", async () => {
+  it("records nothing when offline, the note included", async () => {
     const storage = memoryStorage();
     const fetcher = (() => Promise.reject(new Error("offline"))) as unknown as typeof fetch;
 
@@ -76,10 +88,7 @@ describe("review decisions (7F)", () => {
       now: "2026-10-31T10:05:00.000Z",
     });
 
-    expect(decision.status).toBe("changes_requested");
-    expect(decision.note).toBe("Check spring pasture dates with village council first");
-    expect(readRecordedReview("case_aitbouguemez", "brief_synthetic_package", storage)).toEqual(
-      decision,
-    );
+    expect(decision).toBeNull();
+    expect(readRecordedReview("case_aitbouguemez", "brief_synthetic_package", storage)).toBeNull();
   });
 });

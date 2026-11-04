@@ -95,6 +95,9 @@ export function useOverviewSceneData(args: UseOverviewSceneDataArgs) {
   const pixel = instrumentOf(listing, "pixel_anatomy") ?? null;
 
   const [data, setData] = useState<OverviewData | null>(null);
+  // a scene disposed with the land's data closes its images; a scene mounted again (a changed finding clock, or Fast
+  // Refresh in development) reads the land again rather than draw from closed images
+  const [reread, setReread] = useState(0);
   const [terrainOutline, setTerrainOutline] = useState<TerrainFile["outline"]>(undefined);
   const [elevationSource, setElevationSource] = useState<ElevationSourceInput | null>(null);
   const [failed, setFailed] = useState(false);
@@ -167,7 +170,7 @@ export function useOverviewSceneData(args: UseOverviewSceneDataArgs) {
     return () => {
       ac.abort();
     };
-  }, [landKey]);
+  }, [landKey, reread]);
 
   const settled = useRef(onSettled);
   settled.current = onSettled;
@@ -190,6 +193,11 @@ export function useOverviewSceneData(args: UseOverviewSceneDataArgs) {
     const arc = arcRef.current;
     const blur = blurRef.current;
     if (!data || !land || !arc || !blur) return;
+    if (data.landcover.width === 0) {
+      setData(null);
+      setReread((n) => n + 1);
+      return;
+    }
     let scene: OverviewScene;
     try {
       scene = mountOverview(
@@ -197,6 +205,8 @@ export function useOverviewSceneData(args: UseOverviewSceneDataArgs) {
         data,
         findingsRef.current.map((f) => ({ id: f.id, clock: f.clock })),
         bandLimitM,
+        // the layer stack's spec: its snow and rain assets are sheets of the land's split too
+        sources.current.layers ?? null,
       );
     } catch (e) {
       console.error("Overview not drawn", e);
@@ -217,10 +227,18 @@ export function useOverviewSceneData(args: UseOverviewSceneDataArgs) {
         root.dataset.askGap = (g.distanceAt(at.ask) - ASK_R).toFixed(1);
         root.dataset.ready = "";
         settled.current?.();
-        if (!timeAtArrival.current && window.location.pathname === VIEW_HREF.time) {
+        // Year by Year by its own address: it opens from the answer, which may already be up by now. Only on the
+        // first drawn land: a later redraw while the view is open (opened from the answer) never moves the address
+        if (!timeAtArrival.current) {
           timeAtArrival.current = true;
-          if (offeredRef.current.has("time") && !selRef.current) openRef.current(VIEW_HREF.time);
-          else window.history.replaceState(null, "", `/valley${window.location.search}`);
+          if (window.location.pathname === VIEW_HREF.time) {
+            const from = selRef.current;
+            const opened =
+              offeredRef.current.has("time") &&
+              (from === null || from === "results") &&
+              openRef.current(VIEW_HREF.time);
+            if (!opened) window.history.replaceState(null, "", `/valley${window.location.search}`);
+          }
         }
       })
       .catch((e: unknown) => {

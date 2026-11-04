@@ -1,5 +1,5 @@
-/* The shared screen controls: the breadcrumb at the top left, the key legend and the sources at the bottom right, the
-   view control at the bottom centre. Theme tokens only (app/daylight.css, app/obsidian.css). */
+/* The shared screen controls: the breadcrumb at the top left, the key legend at the bottom right, the view control at
+   the bottom centre, and the globe's credits drawer. Theme tokens only (app/daylight.css, app/obsidian.css). */
 
 .crumbs {
   position: absolute;
@@ -8,113 +8,113 @@
   z-index: 20;
   display: flex;
   align-items: center;
-  gap: 10px;
   pointer-events: auto;
 }
 
-.srOnly {
+/* a view standing over the land (the overview keeps its land under a view opened in place: data-covered="land"):
+   a soft scrim of the ground behind the trail, from the screen's top left corner (the trail stands 40 px in and 26 px
+   down) to past its last crumb, easing out to the right and below; the keys at the bottom right stand on its mirror
+   image. Over the bare ground none is drawn, where the same colour would only band */
+:global([data-covered="land"]) .crumbs::before,
+:global([data-covered="land"]) .legend::before {
+  --fade-1: color-mix(in srgb, var(--mask-opaque) 62%, transparent);
+  --fade-2: color-mix(in srgb, var(--mask-opaque) 26%, transparent);
+  content: "";
   position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
+  z-index: -1;
+  background: color-mix(in srgb, var(--bg-canvas) 88%, transparent);
+  mask-composite: intersect;
+  pointer-events: none;
 }
 
-.back {
-  padding: 0 6px 0 10px;
+:global([data-covered="land"]) .crumbs::before {
+  inset: -26px -190px -64px -40px;
+  mask-image:
+    linear-gradient(
+      to right,
+      var(--mask-opaque) calc(100% - 200px),
+      var(--fade-1) calc(100% - 130px),
+      var(--fade-2) calc(100% - 60px),
+      transparent
+    ),
+    linear-gradient(
+      to bottom,
+      var(--mask-opaque) 44%,
+      var(--fade-1) 62%,
+      var(--fade-2) 80%,
+      transparent
+    );
 }
 
+/* a halo of the ground's own colour keeps the trail readable over land or imagery */
 .trail {
   display: flex;
   align-items: baseline;
   margin: 0;
   padding: 0;
   list-style: none;
-  font: 400 14px / 20px var(--font-sans);
+  font: 300 19px / 24px var(--font-sans);
+  letter-spacing: -0.02em;
+  text-shadow: var(--paper-halo);
 }
 
 .crumb {
   display: flex;
-  align-items: center;
-}
-
-.brandButton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  margin-right: 6px;
-  padding: 0;
-  border: 1px solid color-mix(in srgb, var(--control-ink) 14%, transparent);
-  border-radius: 6px;
-  background: transparent;
-  color: var(--control-grey);
-  cursor: pointer;
-  align-self: center;
-  transition: color 140ms ease, border-color 140ms ease, background 140ms ease;
-}
-
-.brandButton:hover,
-.brandButton:focus-visible {
-  color: var(--control-ink);
-  border-color: color-mix(in srgb, var(--control-ink) 32%, transparent);
-  background: color-mix(in srgb, var(--control-ink) 4%, transparent);
-}
-
-.brandButton:focus-visible {
-  outline: none;
-}
-
-.backChevron {
-  width: 13px;
-  height: 13px;
-  flex-shrink: 0;
+  align-items: baseline;
 }
 
 .sep {
-  margin: 0 8px;
+  margin: 0 9px;
+  font: 300 18px / 24px var(--font-sans);
   color: var(--control-grey);
-  opacity: 0.45;
+  opacity: 0.48;
 }
 
-.crumb[data-place-crumb] .here,
-.crumb[data-place-crumb] .crumbButton {
-  font: 350 22px / 26px var(--font-sans);
-  letter-spacing: -0.025em;
+.crumb[data-place-crumb] .here {
+  font: 300 19px / 24px var(--font-sans);
+  letter-spacing: -0.02em;
   color: var(--control-ink);
   padding: 0;
 }
 
+.crumb[data-place-crumb] .crumbButton {
+  font: 300 19px / 24px var(--font-sans);
+  letter-spacing: -0.02em;
+  color: var(--control-grey);
+  padding: 0;
+}
+
+/* no padding, so the gaps round each separator are the same whichever crumb is a button */
 .crumbButton {
-  padding: 2px 4px;
+  padding: 0;
   border: 0;
-  border-radius: 4px;
+  border-radius: 2.5px;
   background: none;
   font: inherit;
   color: var(--control-grey);
   cursor: pointer;
+  transition: color 140ms ease;
 }
 
 .crumbButton:hover,
-.crumbButton:focus-visible {
+.crumbButton:focus-visible,
+.crumb[data-place-crumb] .crumbButton:hover,
+.crumb[data-place-crumb] .crumbButton:focus-visible {
   color: var(--control-ink);
 }
 
 .crumbButton:focus-visible {
-  outline: 1px solid var(--control-line-strong);
+  outline: none;
 }
 
 .here {
-  padding: 0 2px;
+  padding: 0;
   color: var(--control-ink);
-  font-weight: 450;
+  font-weight: 400;
 }
 
+/* only the keys take the pointer: while the bar is hidden (the open Ask's own keys stand in its place) its box lets
+   a click through to them */
 .legendBlock {
   position: absolute;
   right: 40px;
@@ -124,10 +124,11 @@
   flex-direction: column;
   align-items: flex-end;
   gap: 8px;
-  pointer-events: auto;
+  pointer-events: none;
 }
 
 .legend {
+  pointer-events: auto;
   display: flex;
   gap: 14px;
   margin: 0;
@@ -135,6 +136,31 @@
   list-style: none;
 }
 
+/* the keys' scrim, from the screen's bottom right corner (the keys stand 40 px in and 28 px up) to before the first */
+:global([data-covered="land"]) .legend {
+  position: relative;
+}
+
+:global([data-covered="land"]) .legend::before {
+  inset: -64px -40px -28px -190px;
+  mask-image:
+    linear-gradient(
+      to left,
+      var(--mask-opaque) calc(100% - 200px),
+      var(--fade-1) calc(100% - 130px),
+      var(--fade-2) calc(100% - 60px),
+      transparent
+    ),
+    linear-gradient(
+      to top,
+      var(--mask-opaque) 46%,
+      var(--fade-1) 63%,
+      var(--fade-2) 81%,
+      transparent
+    );
+}
+
+/* the labels keep a halo of the ground, as the trail does, so they read over land or imagery */
 .keyEntry {
   display: inline-flex;
   align-items: center;
@@ -146,6 +172,7 @@
   background: none;
   font: 400 12px / 16px var(--font-sans);
   color: var(--control-grey);
+  text-shadow: var(--paper-halo);
   cursor: pointer;
 }
 
@@ -158,14 +185,6 @@
 
 .keyEntry:focus-visible {
   outline: 1px solid var(--control-line-strong);
-}
-
-.dataLine {
-  margin: 0;
-  font: 400 12px / 16px var(--font-sans);
-  color: var(--control-grey);
-  text-shadow: var(--paper-halo);
-  text-align: right;
 }
 
 .panel {
@@ -210,13 +229,6 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
-}
-
-.panelKicker {
-  font: 600 10.5px / 14px var(--font-sans);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--accent);
 }
 
 .panelTitle {
@@ -293,7 +305,9 @@
   font: 500 11px / 14px var(--font-sans);
   color: var(--accent);
   text-decoration: none;
-  transition: background-color 140ms ease, color 140ms ease;
+  transition:
+    background-color 140ms ease,
+    color 140ms ease;
 }
 
 .panelItemLink:hover,
@@ -317,91 +331,6 @@
   color: var(--control-ink);
 }
 
-/* Governance and operational boundaries popover above the command bar at the bottom right */
-.scopeNote {
-  position: absolute;
-  right: 40px;
-  bottom: 72px;
-  z-index: 30;
-  width: 380px;
-  padding: 14px 16px 15px;
-  border: 1px solid color-mix(in srgb, var(--control-ink) 12%, transparent);
-  border-radius: 14px;
-  background: color-mix(in srgb, var(--bg-overlay) 92%, transparent);
-  backdrop-filter: blur(20px) saturate(1.25);
-  -webkit-backdrop-filter: blur(20px) saturate(1.25);
-  box-shadow:
-    0 18px 42px color-mix(in srgb, var(--control-ink) 16%, transparent),
-    0 2px 6px color-mix(in srgb, var(--control-ink) 6%, transparent),
-    inset 0 1px 0 color-mix(in srgb, var(--bg-canvas) 35%, transparent);
-  color: var(--control-ink);
-  font: 400 12.5px / 17px var(--font-sans);
-  pointer-events: auto;
-}
-
-.scopeHead {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid color-mix(in srgb, var(--control-ink) 10%, transparent);
-}
-
-.scopeTitle {
-  font: 600 15px / 20px var(--font-sans);
-  letter-spacing: -0.01em;
-  color: var(--control-ink);
-}
-
-.scopeItems {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 10px;
-}
-
-.scopeItem {
-  display: flex;
-  align-items: flex-start;
-  gap: 9px;
-  padding: 8px 10px;
-  border-radius: 9px;
-  background: color-mix(in srgb, var(--control-ink) 3.5%, transparent);
-  border: 1px solid color-mix(in srgb, var(--control-ink) 7%, transparent);
-}
-
-.scopeItemDot {
-  width: 7px;
-  height: 7px;
-  margin-top: 5px;
-  border-radius: 999px;
-  flex-shrink: 0;
-  background: var(--accent);
-}
-
-.scopeItemDot[data-kind="review"] {
-  background: var(--status-open);
-}
-
-.scopeItemBody {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-
-.scopeItemLabel {
-  font: 600 12px / 15px var(--font-sans);
-  color: var(--control-ink);
-}
-
-.scopeNote p {
-  margin: 0;
-  font: 400 12px / 16.5px var(--font-sans);
-  color: var(--control-grey);
-}
-
 .view {
   position: absolute;
   left: 50%;
@@ -411,78 +340,4 @@
   gap: 8px;
   transform: translateX(-50%);
   pointer-events: auto;
-}
-
-/* When the ask control rests at the bottom centre, the view control sits to its left */
-.besideAsk {
-  left: calc(50% - 46px);
-  bottom: 67px;
-  transform: translateX(-100%);
-}
-
-/* Vertical relief exaggeration label after the dataset names */
-.relief {
-  margin-left: 14px;
-}
-
-/* Top-right mode indicator container */
-.mode {
-  position: absolute;
-  right: 86px;
-  top: 26px;
-  z-index: 20;
-  pointer-events: auto;
-}
-
-.modeButton {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  height: 26px;
-  padding: 0 4px;
-  border: 0;
-  border-radius: 0;
-  background: none;
-  font: 500 12px / 16px var(--font-mono);
-  letter-spacing: 0.03em;
-  color: var(--control-grey);
-  cursor: pointer;
-}
-
-.modeButton:hover,
-.modeButton:focus-visible,
-.modeButton[aria-expanded="true"] {
-  color: var(--control-ink);
-  background: transparent;
-}
-
-.modeButton:focus-visible {
-  outline: 1px solid var(--control-line-strong);
-}
-
-/* the run's source pill at the top right */
-.modeRun {
-  color: var(--control-ink);
-}
-
-.scope {
-  position: absolute;
-  right: 0;
-  top: 34px;
-  width: 288px;
-  padding: 8px 12px;
-  border: 1px solid var(--control-line);
-  border-radius: 12px;
-  background: var(--bg-overlay);
-  color: var(--control-ink);
-  font: 400 12px / 15.5px var(--font-sans);
-}
-
-.scope p {
-  margin: 0;
-}
-
-.scope p + p {
-  margin-top: 4px;
-  color: var(--control-grey);
 }

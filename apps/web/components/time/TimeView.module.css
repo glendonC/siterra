@@ -1,6 +1,7 @@
-/* "See It Over Time" over the overview's land, in the tokens of app/obsidian.css (no colour literal here). The
-   readout at the left (the year large, the stored value under it), the band labels at the right
-   on hairlines to their bands' lit edges, the key above the legend, the playhead above the view control. */
+/* "Year by Year" over the overview's land, in the tokens of app/daylight.css and app/obsidian.css (no colour literal
+   here). One column at the left on the breadcrumb's edge, clear of the land: the year large, where it stands among
+   the record's years, what was measured, the driest years' rain, then the playhead under them and the land's colour
+   key. The band labels stand on hairlines to their bands' lit edges, with the land's right side to themselves. */
 
 .view {
   position: fixed;
@@ -18,32 +19,35 @@
   opacity: 1;
 }
 
+/* the Ask, Sources and Limits have the screen while they are open: the view's words step out of their way at once */
 .view > * {
-  pointer-events: auto;
+  transition: opacity 200ms ease;
 }
 
-.question {
+.view[data-covered] > * {
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 200ms ease,
+    visibility 0s linear 200ms;
+}
+
+.column {
   position: absolute;
-  left: 44px;
-  top: 72px;
-  margin: 0;
-  font-size: 13px;
-  line-height: 18px;
-  color: var(--text-tertiary);
+  left: 40px;
+  top: calc(50% - 190px);
+  width: 400px;
+  text-shadow: var(--paper-halo);
 }
 
+/* a fixed height, so the playhead under it never moves as the lines above it change */
 .readout {
-  position: absolute;
-  left: 56px;
-  top: 300px;
-  width: 340px;
+  height: 196px;
 }
 
 .kicker {
   margin: 0 0 6px;
-  font-family: var(--font-mono);
-  font-size: 13px;
-  line-height: 18px;
+  font: 400 13px / 18px var(--font-mono);
   color: var(--text-tertiary);
 }
 
@@ -56,44 +60,140 @@
   font-variant-numeric: tabular-nums;
 }
 
-.value {
-  margin: 10px 0 0;
-  font-size: 32px;
-  font-weight: 300;
-  line-height: 38px;
-  font-variant-numeric: tabular-nums;
+/* a verdict of more than one word ("No clear change") stays on one line */
+.big[data-long] {
+  font-size: 48px;
+  line-height: 54px;
 }
 
-.label {
-  margin: 6px 0 0;
-  font-size: 15px;
-  line-height: 21px;
-  color: var(--text-secondary);
-}
-
-.dry {
-  margin: 18px 0 0;
-  padding-left: 14px;
-  border-left: 2px solid var(--text-tertiary);
-  font-size: 15px;
-  line-height: 21px;
-  color: var(--text-secondary);
-}
-
-.timing {
-  margin: 14px 0 0;
-  padding-left: 12px;
-  border-left: 2px solid var(--ov-green);
-  font-size: 14px;
-  line-height: 19px;
-  color: var(--text-primary);
-}
-
-.scan {
+/* what the year or the record means, in ink */
+.place {
   margin: 8px 0 0;
-  font-size: 13px;
-  line-height: 18px;
+  font-size: 22px;
+  line-height: 28px;
+}
+
+.readout[data-trend-state] .place {
+  margin-top: 10px;
+  font-size: 16px;
+  line-height: 22px;
+}
+
+.measure {
+  margin: 4px 0 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--text-secondary);
+}
+
+.note {
+  margin: 14px 0 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--text-secondary);
+}
+
+.readout[data-trend-state] .note {
+  margin-top: 8px;
+}
+
+/* the driest years' mark, the same dash in the column, on the track and beside its name */
+.dryGlyph {
+  display: inline-block;
+  width: 12px;
+  height: 3px;
+  margin-right: 8px;
+  vertical-align: middle;
+  background: var(--text-tertiary);
+}
+
+.player {
+  margin-top: 20px;
+}
+
+.track {
+  position: relative;
+  height: 40px;
+  cursor: pointer;
+  outline: none;
+  touch-action: none;
+  pointer-events: auto;
+}
+
+.track:focus-visible {
+  outline: 1px solid var(--ov-focus);
+  outline-offset: 4px;
+}
+
+/* the years' line, then the whole record's after a gap */
+.line {
+  position: absolute;
+  bottom: 0;
+  height: 1px;
+  background: var(--hairline);
+  pointer-events: none;
+}
+
+.trendLine {
+  right: 0;
+  margin-left: 6px;
+}
+
+.headLabel {
+  position: absolute;
+  top: 0;
+  left: clamp(0px, calc(var(--at) - 36px), calc(100% - 72px));
+  width: 72px;
+  text-align: center;
+  white-space: nowrap;
+  font: 400 13px / 16px var(--font-mono);
+  color: var(--text-primary);
+  pointer-events: none;
+}
+
+.head {
+  position: absolute;
+  bottom: -6px;
+  width: 0;
+  height: 24px;
+  margin-left: -1px;
+  border-left: 2px solid var(--text-primary);
+  pointer-events: none;
+}
+
+.dryMark {
+  position: absolute;
+  bottom: 5px;
+  height: 3px;
+  background: var(--text-tertiary);
+  pointer-events: none;
+}
+
+.tick {
+  position: absolute;
+  top: calc(100% + 8px);
+  transform: translateX(-50%);
+  font: 400 12px / 16px var(--font-mono);
   color: var(--text-tertiary);
+  pointer-events: none;
+}
+
+.tick[data-first] {
+  transform: none;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 32px;
+  pointer-events: auto;
+}
+
+.dryKey {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--text-secondary);
 }
 
 /* a band's label on a hairline from its lit edge on the land */
@@ -104,6 +204,7 @@
   width: 0;
   height: 0;
   pointer-events: none;
+  text-shadow: var(--paper-halo);
 }
 
 .bandDot {
@@ -127,7 +228,7 @@
 .bandText {
   position: absolute;
   left: 88px;
-  top: -12px;
+  top: -10px;
   display: flex;
   flex-direction: column;
   white-space: nowrap;
@@ -135,34 +236,18 @@
 
 .bandName {
   font-size: 14px;
-  line-height: 18px;
+  line-height: 20px;
   color: var(--text-secondary);
 }
 
 .bandValue {
-  font-size: 20px;
-  line-height: 26px;
-  font-variant-numeric: tabular-nums;
+  font-size: 15px;
+  line-height: 20px;
 }
 
-.snow {
-  font-size: 14px;
-  color: var(--text-secondary);
-}
-
-.bandTiming {
-  margin-left: 6px;
-  font-family: var(--font-mono);
-  font-size: 12px;
-  line-height: 16px;
-  color: var(--ov-green);
-}
-
+/* the full width of the track above it, so both share their edges */
 .key {
-  position: absolute;
-  right: 56px;
-  bottom: 140px;
-  width: 300px;
+  margin-top: 28px;
 }
 
 .keyTitle {
@@ -182,106 +267,14 @@
   display: flex;
   justify-content: space-between;
   margin-top: 4px;
-  font-family: var(--font-mono);
-  font-size: 12px;
+  font: 400 12px / 16px var(--font-mono);
   color: var(--text-tertiary);
-}
-
-.keyNote {
-  margin: 10px 0 0;
-  font-size: 13px;
-  line-height: 18px;
-  color: var(--text-tertiary);
-}
-
-/* the playhead, above the view control */
-.player {
-  position: absolute;
-  left: 50%;
-  bottom: 104px;
-  display: flex;
-  gap: 18px;
-  align-items: center;
-  transform: translateX(-50%);
-}
-
-.track {
-  position: relative;
-  width: 560px;
-  height: 34px;
-  border-bottom: 1px solid var(--hairline);
-  cursor: pointer;
-  outline: none;
-  touch-action: none;
-}
-
-.track:focus-visible {
-  outline: 1px solid var(--ov-focus);
-  outline-offset: 4px;
-}
-
-.tick {
-  position: absolute;
-  bottom: -22px;
-  transform: translateX(-50%);
-  font-family: var(--font-mono);
-  font-size: 12px;
-  color: var(--text-tertiary);
-  pointer-events: none;
-}
-
-.dryMark {
-  position: absolute;
-  bottom: 4px;
-  width: 14px;
-  height: 3px;
-  background: var(--text-tertiary);
-  pointer-events: none;
-}
-
-.changeMark {
-  position: absolute;
-  bottom: 0;
-  width: 0;
-  height: 12px;
-  border-left: 2px solid var(--ov-green);
-  pointer-events: none;
-}
-
-.changeMarkLabel {
-  position: absolute;
-  bottom: 11px;
-  left: 0;
-  transform: translateX(-50%);
-  white-space: nowrap;
-  font-family: var(--font-mono);
-  font-size: 12px;
-  line-height: 15px;
-  color: var(--ov-green);
-}
-
-.head {
-  position: absolute;
-  bottom: -6px;
-  width: 0;
-  height: 22px;
-  border-left: 2px solid var(--text-primary);
-  pointer-events: none;
-}
-
-.headLabel {
-  position: absolute;
-  bottom: 26px;
-  left: -2px;
-  white-space: nowrap;
-  font-family: var(--font-mono);
-  font-size: 13px;
-  color: var(--text-primary);
-  transform: translateX(-50%);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .view {
+  .view,
+  .view > *,
+  .view[data-covered] > * {
     transition: none;
   }
 }

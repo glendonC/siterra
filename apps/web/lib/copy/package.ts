@@ -1,53 +1,25 @@
 // The next-steps package's words (UI-2 unit 1), a sibling of en.ts with the same Message shape and the same lint
-// (package.test.ts runs it): the "What to Do Next" card on the land and the printable brief. Every line the package
-// shows is a record field; these are only the headings, labels and fixed sentences around them. No place name.
+// (package.test.ts runs it): the printable brief, and the few package words the overview still shows. Every line
+// the package shows is a record field; these are only the headings, labels and fixed sentences around them. No
+// place name.
 
 import type { Message } from "./en";
 
 export const pkg = {
-  // the card and the button in the results that opens it
-  "package.title": { text: "Your Plan", kind: "heading" },
-  "package.open": { text: "Your Plan", kind: "button" },
-  "package.nothingSent": {
-    text: "A draft for review. Nothing has been sent, scheduled or authorized.",
+  // the brief's head: its state, then the one sentence that nothing has been sent, scheduled or authorized
+  "brief.state": {
+    text: "{state}. Nothing has been sent, scheduled or authorized.",
     kind: "ui",
     honesty: true,
   },
-  "package.none": {
-    text: "This question has no prepared package in the record yet.",
-    kind: "ui",
-    honesty: true,
-  },
-  "package.revision": { text: "Prepared on case revision {n}", kind: "label" },
-  "package.staleRevision": {
-    text: "The case changed after this package. Prepared on revision {n}, the case is at {now}.",
-    kind: "ui",
-    honesty: true,
-  },
+  // the brief's state as its record holds it, unless a review decision is recorded (lib/package/review.ts)
+  "package.status.draft": { text: "Draft", kind: "label" },
+  "package.status.ready_for_review": { text: "Ready for review", kind: "label" },
+  "package.status.prepared": { text: "Prepared", kind: "label" },
+  "package.status.stale": { text: "Out of date", kind: "label" },
+  "package.status.superseded": { text: "Replaced", kind: "label" },
 
-  // the brief's status word and the action's (status words are headings: Title Case)
-  "package.status.draft": { text: "Draft", kind: "heading" },
-  "package.status.ready_for_review": { text: "Ready for Review", kind: "heading" },
-  "package.status.prepared": { text: "Prepared", kind: "heading" },
-  "package.status.stale": { text: "Out of Date", kind: "heading" },
-  "package.status.superseded": { text: "Replaced", kind: "heading" },
-  "package.action.awaiting_review": { text: "Awaiting Review", kind: "heading" },
-  "package.action.draft": { text: "Draft", kind: "heading" },
-  "package.action.prepared": { text: "Prepared", kind: "heading" },
-  "package.action.blocked": { text: "Blocked", kind: "heading" },
-  "package.action.cancelled": { text: "Canceled", kind: "heading" },
-  "package.action.superseded": { text: "Replaced", kind: "heading" },
-
-  // how the package was made, from the brief's mode and its limitations
-  "package.mode.replay": {
-    text: "Replayed run: not a live model call",
-    kind: "label",
-    honesty: true,
-  },
-  "package.mode.concept": { text: "Concept case", kind: "label", honesty: true },
-  "package.mode.live": { text: "Live run", kind: "label" },
-
-  // the card's sections, in the brief's order (CMP-14), with the plan and the responses between
+  // the brief's parts, in its order (CMP-14), with the plan and the responses between
   "package.section.known": { text: "Known", kind: "heading" },
   "package.section.uncertain": { text: "Uncertain", kind: "heading" },
   "package.section.measure": { text: "Measure Next", kind: "heading" },
@@ -55,23 +27,12 @@ export const pkg = {
   "package.section.resources": { text: "Resources", kind: "heading" },
   "package.section.prepared": { text: "Siterra Prepared", kind: "heading" },
   "package.section.authorization": { text: "Needs Authorization", kind: "heading" },
-  "package.authorization.note": {
-    text: "A person with the authority decides each of these; Siterra cannot.",
-    kind: "ui",
-    honesty: true,
-  },
   "package.section.involve": { text: "Who Takes Part", kind: "heading" },
   "package.section.next": { text: "What Happens Next", kind: "heading" },
-  // the short names in the card's part row
 
-  // a line's claim kind, as the brief records it
-  "package.claim.observation": { text: "Observation", kind: "label" },
-  "package.claim.scientific_context": { text: "Published context", kind: "label" },
-  "package.claim.hypothesis": { text: "Explanation to test", kind: "label", honesty: true },
-  "package.claim.model_estimate": { text: "Model estimate", kind: "label", honesty: true },
-  "package.claim.scenario": { text: "Scenario", kind: "label", honesty: true },
-  "package.claim.field_requirement": { text: "Needs a field check", kind: "label" },
-  "package.claim.verified_outcome": { text: "Verified outcome", kind: "label" },
+  // a line's kind, named only where it changes how the line reads, in the answer column's words (lib/copy/readout.ts)
+  "package.claim.hypothesis": { text: "Hypothesis: {text}", kind: "ui", honesty: true },
+  "package.claim.scenario": { text: "Scenario: {text}", kind: "ui", honesty: true },
 
   // the field plan: objective, then each measurement with where, when, how and who
   "package.objective": { text: "Objective", kind: "label" },
@@ -81,47 +42,35 @@ export const pkg = {
   "package.when": { text: "When", kind: "label" },
   "package.how": { text: "How", kind: "label" },
   "package.who": { text: "Who", kind: "label" },
-  "package.answers": { text: "Answers", kind: "label" },
-  // a link that passed PLATFORM's fit rule (P9d): the measurement and the check share at least one explanation pair
-  "package.fieldCheck": { text: "Shares a question with the field check: {label}", kind: "label" },
-  "package.place.text": {
-    text: "A kind of place, not drawn on the land",
-    kind: "label",
-    honesty: true,
-  },
   "package.place.choose": {
     text: "Kinds of place, not sampling points: the local team chooses the sites.",
     kind: "ui",
     honesty: true,
   },
   "package.deferred": { text: "Left for Later", kind: "heading" },
-  "package.fromPlan": {
-    text: "From the field plan Siterra drafted, for a person to review.",
-    kind: "ui",
-    honesty: true,
-  },
   "package.permissions": { text: "Before Field Work", kind: "heading" },
 
-  // resources, by kind, with the record's estimate status
+  // resources, by kind; how much of each, and what is still to check, said once when every resource shares it
   "package.kind.expertise": { text: "Expertise", kind: "label" },
   "package.kind.time": { text: "Time", kind: "label" },
   "package.kind.equipment": { text: "Equipment", kind: "label" },
   "package.kind.funding": { text: "Funding", kind: "label" },
   "package.kind.local_information": { text: "Local information", kind: "label" },
   "package.kind.permission": { text: "Permission", kind: "label" },
-  "package.estimate.unknown": { text: "Amount not estimated", kind: "label", honesty: true },
-  "package.estimate.scenario_assumption": {
-    text: "Amount assumed for a scenario",
+  "package.amount": { text: "Amount", kind: "label" },
+  "package.amount.unknown": { text: "Not estimated", kind: "label", honesty: true },
+  "package.amount.scenario_assumption": {
+    text: "Assumed for a scenario",
     kind: "label",
     honesty: true,
   },
-  "package.estimate.source_supported": { text: "Amount from a source", kind: "label" },
-  "package.estimate.confirmed": { text: "Amount confirmed", kind: "label" },
-  "package.toCheck": { text: "To check: {what}", kind: "label" },
+  "package.amount.source_supported": { text: "From a source", kind: "label" },
+  "package.amount.confirmed": { text: "Confirmed", kind: "label" },
+  "package.toCheck": { text: "To check", kind: "label" },
 
   // candidate responses: never ranked, never recommended
   "package.responses.note": {
-    text: "Candidate responses, in the record's order. None is ranked or recommended.",
+    text: "None is ranked or recommended.",
     kind: "ui",
     honesty: true,
   },
@@ -136,6 +85,8 @@ export const pkg = {
     kind: "label",
   },
   "package.role.program_coordination": { text: "Program coordination reviewers", kind: "label" },
+  // the reviews the plan asks for, one line for each state with the roles in it
+  "package.reviews": { text: "{state}: {roles}.", kind: "ui" },
   "package.review.requested": {
     text: "Review requested, not yet given",
     kind: "label",
@@ -147,115 +98,64 @@ export const pkg = {
   "package.review.deferred": { text: "Deferred", kind: "label" },
   "package.review.not_requested": { text: "Not requested", kind: "label" },
   "package.authority": {
-    text: "No one's authority to decide is established in this record.",
+    text: "No one's authority to decide has been established.",
     kind: "ui",
     honesty: true,
   },
   "package.conditions": { text: "Still Open", kind: "heading" },
 
-  // sources: numbered chips, the same rule as the results
-  "package.chip": { text: "Source {n}", kind: "label" },
+  // sources and limits
   "package.sources": { text: "Sources", kind: "heading" },
-  "package.limitations": { text: "Package Limits", kind: "heading" },
-
-  // the briefing on the land: its panels, the measurements standing on their places, the keys
-  "briefing.open": { text: "Still Open", kind: "heading" },
-  "briefing.onLand": { text: "Where to Measure", kind: "heading" },
-  "briefing.proposed": {
-    text: "Proposed field check. Not measured.",
-    kind: "label",
+  "package.source.missing": { text: "A source the case does not hold", kind: "ui" },
+  // a study's cited pages, several at once
+  "package.source.pages": { text: "pages {pages}", kind: "label" },
+  "package.limitations": { text: "Limits", kind: "heading" },
+  // the fixed sentences host code writes into a package (lib/package/host-text.ts), as the brief says them
+  "package.host.noAuthority": {
+    text: "Local authority and representation are not established.",
+    kind: "ui",
     honesty: true,
   },
-  "briefing.offLand": { text: "Not drawn on the land", kind: "label", honesty: true },
-  "briefing.back": { text: "Back", kind: "button" },
-  "briefing.region": { text: "The next-steps package", kind: "ui" },
-  "briefing.counts": {
-    text: "{measures}, {responses} and {resources}, ready for a person to review.",
+  "package.host.synthetic": {
+    text: "An example written by hand: not drafted by a model, and not a plan anyone made.",
     kind: "ui",
+    honesty: true,
   },
-  "briefing.count.measure.one": { text: "One field check", kind: "label" },
-  "briefing.count.measure.many": { text: "{n} field checks", kind: "label" },
-  "briefing.count.response.one": { text: "one candidate response", kind: "label" },
-  "briefing.count.response.many": { text: "{n} candidate responses", kind: "label" },
-  "briefing.count.resource.one": { text: "one resource", kind: "label" },
-  "briefing.count.resource.many": { text: "{n} resources", kind: "label" },
-  "briefing.chip": { text: "Source {n}", kind: "label" },
-  // the action prompt beside a pointed item
-  "prompt.label": { text: "Actions for this item", kind: "ui" },
-  "prompt.read": { text: "Read the Source", kind: "button" },
-  // the briefing you step through: a headline on arrival, then five steps, one card at a time
-  "steps.headline": { text: "Your plan: {checks} before any decision", kind: "ui" },
-  "steps.count.one": { text: "one field check", kind: "label" },
-  "steps.count.many": { text: "{n} field checks", kind: "label" },
-  "steps.known": { text: "Known So Far", kind: "heading" },
-  "steps.open": { text: "Still Open", kind: "heading" },
-  "steps.checks": { text: "The Field Checks", kind: "heading" },
-  "steps.responses": { text: "Candidate Responses", kind: "heading" },
-  "steps.approve": { text: "Who Must Approve", kind: "heading" },
-  "steps.needsYou": { text: "Needs you", kind: "label" },
-  "steps.of": { text: "{n} of {total}", kind: "label" },
-  "steps.begin": { text: "Begin", kind: "button" },
-  "steps.next": { text: "Next", kind: "button" },
-  "steps.previous": { text: "Previous", kind: "button" },
-  "steps.noneRanked": { text: "None is ranked or recommended.", kind: "ui", honesty: true },
-  "steps.offLand": { text: "A kind of place, not drawn on the land.", kind: "ui", honesty: true },
-  "steps.replay": { text: "Replayed, not a live run", kind: "label", honesty: true },
+  "package.host.replaySynthetic": {
+    text: "Written from example answers prepared by hand, not by a model.",
+    kind: "ui",
+    honesty: true,
+  },
+  "package.host.replayRecorded": {
+    text: "Written from an earlier model answer, not a new model call.",
+    kind: "ui",
+    honesty: true,
+  },
+
+  // a line the record cites no source for
   "steps.noSource": { text: "No source cited", kind: "label", honesty: true },
-  "steps.nothingSent": { text: "Nothing sent or authorized.", kind: "label", honesty: true },
-  "steps.counter": { text: "Steps of the briefing", kind: "ui" },
-  // the verdict (Scene 6): the 5 tested causes with plain status, one-line reason, and prediction before looking
-  "verdict.title": { text: "Verdict", kind: "heading" },
-  "verdict.caption": { text: "{count} causes tested against the record.", kind: "ui" },
-  "verdict.predicted": { text: "Predicted before looking", kind: "label" },
-  "verdict.fieldCheck": { text: "Field check:", kind: "label" },
-  "verdict.tab.causes": { text: "Explanations ({n})", kind: "label" },
-  "verdict.tab.context": { text: "Evidence and context ({n})", kind: "label" },
-  "verdict.open": { text: "Explanations and context", kind: "label" },
-  "verdict.live.on": { text: "Live web and literature: on", kind: "label" },
-  "verdict.live.off": { text: "Case record only", kind: "label" },
-  "verdict.status.locked": { text: "Predictions locked", kind: "label" },
-  "verdict.status.consistent": { text: "Consistent with available evidence", kind: "label" },
-  "verdict.status.contradicted": { text: "Contradicted by available evidence", kind: "label" },
-  "verdict.status.cannot_be_assessed": {
-    text: "Cannot be assessed with current data",
-    kind: "label",
-  },
-  "verdict.status.needs_reassessment": { text: "Needs reassessment", kind: "label" },
-  // the approval step (Scene 7, 7F): interactive review actions recorded on the case only
-  "review.approve": { text: "Approve the Plan", kind: "button" },
-  "review.askChanges": { text: "Ask for Changes", kind: "button" },
-  "review.recordChanges": { text: "Record Changes", kind: "button" },
-  "review.note.label": { text: "Reviewer note (optional)", kind: "label" },
-  "review.note.placeholder": { text: "Short note for the case record", kind: "ui" },
+  // a recorded review decision: recorded on the case only, nothing sent externally
   "review.approved": {
-    text: "Plan approved (recorded on this case; nothing is sent externally)",
+    text: "Plan approved (demo)",
     kind: "ui",
     honesty: true,
   },
   "review.changesRequested": {
-    text: "Changes requested (recorded on this case; nothing is sent externally)",
+    text: "Changes requested (demo)",
     kind: "ui",
     honesty: true,
   },
   "review.recordedNote": { text: "Reviewer note: {note}", kind: "ui" },
-  "review.recordedHeading": { text: "Recorded Decision", kind: "heading" },
-  // the controls and their keys
+  // the overview's control that opens the printable brief
   "package.export": { text: "Export Brief", kind: "button" },
 
-  // the printable brief (daylight palette)
+  // the printable brief
   "brief.title": { text: "Your Plan", kind: "heading" },
-  "brief.kicker": { text: "Next-steps package prepared by Siterra", kind: "ui" },
   "brief.question": { text: "Question", kind: "label" },
   "brief.print": { text: "Print Brief", kind: "button" },
   "brief.loading": { text: "Reading the case record", kind: "ui" },
   "brief.failed": { text: "The case record could not be read. Nothing is shown.", kind: "ui" },
-  "brief.missing": { text: "The record holds no package with this id.", kind: "ui" },
-  "brief.footer": {
-    text: "Every line cites the record it comes from. Siterra sends, spends and decides nothing; a person decides.",
-    kind: "ui",
-    honesty: true,
-  },
-  "brief.case": { text: "Case {id}, revision {n}", kind: "label" },
+  "brief.missing": { text: "The case holds no plan at this address.", kind: "ui" },
 } as const satisfies Record<string, Message>;
 
 export type PackageMessageId = keyof typeof pkg;
@@ -264,23 +164,6 @@ export type PackageMessageId = keyof typeof pkg;
 export const PACKAGE_LINT_ALLOWLIST: Partial<
   Record<PackageMessageId, { rules: string[]; reason: string }>
 > = {
-  "package.title": {
-    rules: ["VT-45"],
-    reason:
-      "Scene 7 in the replan names the package 'Your Plan' so the visitor knows the decision is theirs.",
-  },
-  "package.open": {
-    rules: ["VT-45"],
-    reason: "The primary button in Scene 6 names 'Your Plan' to match Scene 7's title.",
-  },
-  "steps.headline": {
-    rules: ["VT-45"],
-    reason: "Scene 7 arrival headline uses 'Your plan' as specified in the replan.",
-  },
-  "steps.needsYou": {
-    rules: ["VT-45"],
-    reason: "The final approval step is labeled 'Needs you' in the replan (7F).",
-  },
   "brief.title": {
     rules: ["VT-45"],
     reason: "The printed brief carries the same 'Your Plan' title as the briefing it exports.",

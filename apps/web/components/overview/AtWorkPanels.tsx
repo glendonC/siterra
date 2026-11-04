@@ -1,27 +1,18 @@
 "use client";
 
 import type { CSSProperties, Dispatch, SetStateAction } from "react";
-import { en, format, type MessageId } from "../../lib/copy/en";
-import type { RunBranch, RunModel, RunTask, RunTaskState } from "../../lib/run/model";
-import { AtWorkCursors, agentAccentColor, humanTaskTitle } from "./AtWorkCursors";
+import { en, format } from "../../lib/copy/en";
+import { rd, type ReadoutMessageId } from "../../lib/copy/readout";
+import type { RunModel } from "../../lib/run/model";
+import { KeyChip } from "../controls/Control";
+import { agentAccentColor, shownSteps, stepLine } from "./AtWorkCursors";
 import { ScrollableThinkingChips } from "./ScrollableThinkingChips";
 import styles from "./AtWork.module.css";
 
-export { AtWorkCursors, ScrollableThinkingChips, agentAccentColor, humanTaskTitle };
-
 export const seconds = (ms: number) => (Math.max(0, ms) / 1000).toFixed(1);
-export const usd = (microUsd: number) => (microUsd / 1e6).toFixed(2);
 
-export const TASK_STATE_WORD: Record<RunTaskState, MessageId> = {
-  queued: "task.queued",
-  running: "task.running",
-  succeeded: "task.done",
-  partial: "task.partial",
-  failed: "task.failed",
-  cancelled: "task.cancelled",
-};
-
-/** Open explanations first, contradicted explanations after them so items requiring field checks surface first. */
+/** The explanations that fit first, then the ones without enough data, then the ones that do not fit; one with no
+ *  verdict yet goes before the ones that do not fit. */
 const RANK: Record<string, number> = {
   consistent: 0,
   cannot_be_assessed: 1,
@@ -29,82 +20,51 @@ const RANK: Record<string, number> = {
   contradicted: 3,
 };
 
-const BRANCH_SHORT_STATUS: Record<string, string> = {
-  consistent: "Supported",
-  cannot_be_assessed: "Needs field data",
-  contradicted: "Ruled out",
-  sealed: "Checking",
+/** An explanation's verdict in the answer's own three words (lib/copy/readout.ts). */
+const VERDICT: Record<string, ReadoutMessageId> = {
+  consistent: "readout.verdict.consistent",
+  cannot_be_assessed: "readout.verdict.cannot_be_assessed",
+  contradicted: "readout.verdict.contradicted",
 };
-
-export function taskMetaLine(t: RunTask, nowMs: number): string {
-  const dur = seconds((t.endMs ?? nowMs) - (t.startMs ?? t.queuedMs));
-  if (t.model) {
-    return format("run.tree.meta", { model: t.model, time: dur });
-  }
-  return format("run.tree.time", { time: dur });
-}
-
-function buildSettledTakeaway(branches: readonly RunBranch[], checkLabel: string | null): string {
-  const supported = branches.filter((b) => b.status === "consistent");
-  const open = branches.filter((b) => b.status === "cannot_be_assessed");
-  const ruledOut = branches.filter((b) => b.status === "contradicted");
-
-  if (open.length > 0 && ruledOut.length > 0) {
-    const openNames = open.map((b) => b.label.toLowerCase()).join(" and ");
-    const supPart =
-      supported.length > 0
-        ? `supports ${supported.map((b) => b.label.toLowerCase()).join(" and")} and `
-        : "";
-    return `Satellite data ${supPart}rules out ${String(ruledOut.length)} causes, while ${openNames} requires an on-the-ground check${checkLabel ? ` (${checkLabel})` : ""}.`;
-  }
-  if (open.length > 0) {
-    const openNames = open.map((b) => b.label.toLowerCase()).join(" and ");
-    return `Whether ${openNames} contributed cannot be separated from space and needs an on-the-ground check.`;
-  }
-  return "All candidate causes have been evaluated against the case record.";
-}
 
 export function AtWorkAgentTree({
   run,
   nowMs,
+  titles,
   folded: expandedAll,
-  setFolded: _setExpandedAll,
   selectedTaskId,
   setSelectedTaskId,
   setStepsDismissed,
-  cycleFollow: _cycleFollow,
-  follow: _follow = false,
   stepsDismissed = false,
   onFocusCause,
   onFindings,
   paused = false,
   onTogglePause,
   onStopRun,
+  reviewRequested = false,
+  asked = false,
+  stopped = null,
 }: {
   run: RunModel;
   nowMs: number;
+  titles: ReadonlyMap<string, string>;
   folded: boolean;
-  setFolded: Dispatch<SetStateAction<boolean>>;
   selectedTaskId: string | null;
   setSelectedTaskId: Dispatch<SetStateAction<string | null>>;
   setStepsDismissed: Dispatch<SetStateAction<boolean>>;
-  cycleFollow: () => void;
-  follow?: boolean;
   stepsDismissed?: boolean;
-  onFocusLayer?:
-    | ((layer: "bands" | "cover" | "trend" | "rain" | "routes" | null) => void)
-    | undefined;
   onFocusCause?: ((causeId: string) => void) | undefined;
   onFindings?: (() => void) | undefined;
   paused?: boolean | undefined;
   onTogglePause?: (() => void) | undefined;
   onStopRun?: (() => void) | undefined;
+  /** The run's own record asks the visitor for a review: the hand-over row says Needs You. */
+  reviewRequested?: boolean | undefined;
+  /** The steps of a question asked from the Ask: the status line says where it stands (data-ask-status). */
+  asked?: boolean | undefined;
+  /** A question asked from the Ask that was not answered: the status line is this sentence, with no hand-over row. */
+  stopped?: string | null | undefined;
 }) {
-  const kindCounts = new Map<string, number>();
-  for (const t of run.tasks) {
-    kindCounts.set(t.kind, (kindCounts.get(t.kind) ?? 0) + 1);
-  }
-
   const nonQueuedTasks = run.tasks.filter((t) => t.state !== "queued");
   const sameStartCounts = new Map<number, number>();
   const staggeredNonQueued = nonQueuedTasks.filter((t) => {
@@ -114,9 +74,8 @@ export function AtWorkAgentTree({
     return nowMs >= t.startMs + idxInBatch * 2200;
   });
 
-  const runningTasks = staggeredNonQueued.filter(
-    (t) => t.state === "running" && !(t.kind === "explanation_branches" && run.branches.length > 0),
-  );
+  // the explanations' step stays open while it writes and tests them: its list is where they show during the run
+  const runningTasks = staggeredNonQueued.filter((t) => t.state === "running");
   const primaryRunning =
     runningTasks.length > 0
       ? ((selectedTaskId ? runningTasks.find((t) => t.id === selectedTaskId) : null) ??
@@ -125,12 +84,12 @@ export function AtWorkAgentTree({
         null)
       : null;
 
-  if (run.tasks.length === 0) return null;
-
+  // the status line stands from the start, before any step: the question is at work from Enter
   const visibleTasks = expandedAll
     ? staggeredNonQueued
     : staggeredNonQueued.filter((t) => t.state === "running" || selectedTaskId === t.id);
-  const showTreeList = visibleTasks.length > 0 || (run.done && run.needsReview);
+  const handOver = run.done && stopped === null;
+  const showTreeList = visibleTasks.length > 0 || handOver;
 
   const defaultSettledTask = run.done
     ? ([...visibleTasks].reverse().find((t) => t.steps.length > 0 || t.searchedChips.length > 0) ??
@@ -145,52 +104,59 @@ export function AtWorkAgentTree({
     ? (selectedTask ?? primaryRunning ?? (run.done ? defaultSettledTask : null))
     : null;
 
-  let obsSeen = 0;
+  const word = run.done ? "run.tree.complete" : paused ? "run.tree.paused" : "run.tree.working";
 
   return (
-    <div className={styles.leftRailSystem}>
+    <div className={styles.leftRailSystem} data-stopped={stopped !== null ? "" : undefined}>
       <aside
         className={styles.agentTree}
         data-agent-tree=""
         data-folded={expandedAll ? "false" : "true"}
+        data-stopped={stopped !== null ? "" : undefined}
       >
-        <div className={styles.thinkingHeader}>
-          {run.done ? (
-            <span className={styles.thinkingDoneDot} aria-hidden="true" data-chrome="" />
-          ) : null}
-          <span
-            className={styles.thinkingWord}
-            data-active={!run.done && !paused ? "" : undefined}
-            data-done={run.done ? "" : undefined}
-            data-chrome=""
-          >
-            {run.done ? "Analysis complete" : "Thinking"}
-          </span>
-          <span className={styles.thinkingTime} data-chrome="">
-            {format("run.tree.time", { time: seconds(nowMs) })}
-          </span>
-          {run.done && run.findings.length > 0 ? (
-            <span className={styles.thinkingFindingsBadge} data-chrome="">
-              {`${String(run.findings.length)} findings`}
-            </span>
-          ) : null}
-          {!run.done && paused ? (
-            <span className={styles.thinkingPausedBadge} data-chrome="">
-              {"Paused"}
-            </span>
-          ) : null}
-          <span className={styles.srOnly} data-run-status>
-            {run.done
-              ? format("run.findings", { n: run.findings.length, time: seconds(nowMs) })
-              : format("run.sofar", { n: run.findings.length })}
-          </span>
+        <div
+          className={styles.thinkingHeader}
+          data-stopped={stopped !== null ? "" : undefined}
+          data-ask-status={
+            asked ? (stopped !== null ? "stopped" : run.done ? "answered" : "working") : undefined
+          }
+        >
+          {stopped !== null ? (
+            <>
+              {/* the trace's closed dot, then why the question was not answered in the status word's type */}
+              <span className={styles.thinkingClosedDot} aria-hidden="true" data-chrome="" />
+              <span className={styles.thinkingStopped} role="status">
+                {stopped}
+              </span>
+            </>
+          ) : (
+            <>
+              {run.done ? (
+                <span className={styles.thinkingDoneDot} aria-hidden="true" data-chrome="" />
+              ) : null}
+              <span
+                className={styles.thinkingWord}
+                data-active={!run.done && !paused ? "" : undefined}
+                data-done={run.done ? "" : undefined}
+                data-chrome=""
+              >
+                {en[word].text}
+              </span>
+              <span className={styles.thinkingTime} data-chrome="">
+                {format("run.tree.time", { time: seconds(nowMs) })}
+              </span>
+              <span className={styles.srOnly} data-run-status>
+                {run.done
+                  ? format("run.findings", { n: run.findings.length, time: seconds(nowMs) })
+                  : format("run.sofar", { n: run.findings.length })}
+              </span>
+            </>
+          )}
         </div>
 
         {showTreeList ? (
           <ol className={styles.treeList}>
             {visibleTasks.map((t, idx) => {
-              const fullIdx = run.tasks.findIndex((x) => x.id === t.id);
-              const accent = agentAccentColor(t, fullIdx >= 0 ? fullIdx : idx);
               const isRoot = t.kind === "plan" || idx === 0;
               const isSelected = selectedTaskId === t.id;
               const isDimmed = selectedTaskId !== null && !isSelected;
@@ -198,9 +164,7 @@ export function AtWorkAgentTree({
               const isPrimaryRunning = primaryRunning?.id === t.id;
               const isExpanded = expandedTask?.id === t.id;
               const isActiveHighlight = isExpanded || (expandedTask === null && isPrimaryRunning);
-              const duplicateKind = (kindCounts.get(t.kind) ?? 0) > 1;
-              const obsIdx = t.kind === "observation_analysis" ? obsSeen++ : 0;
-              const taskTitle = humanTaskTitle(t, duplicateKind, obsIdx);
+              const taskTitle = titles.get(t.id) ?? "";
               const unknownBundle = en["results.unknownBundle"].text;
               const unknownSource = en["results.unknownSource"].text;
               const chipSource = (
@@ -208,18 +172,10 @@ export function AtWorkAgentTree({
                   ? t.searchedChips
                   : [...(t.bundleLabels ?? []), ...(t.sourceCitations ?? [])]
               ).filter((c) => c && c !== unknownBundle && c !== unknownSource);
-              const summaryStep = t.steps.length > 0 ? (t.steps[t.steps.length - 1] ?? null) : null;
+              const summaryStep = shownSteps(t).at(-1) ?? null;
               const stepSourceMeta = summaryStep?.target?.sourceId
                 ? run.sourceMetaById?.[summaryStep.target.sourceId]
                 : undefined;
-              const fallbackStepText =
-                t.kind === "instrument_composition" || t.kind === "view" || t.kind === "view_order"
-                  ? "Ordered findings and views for the briefing"
-                  : t.kind === "plan"
-                    ? en["run.step.plan"].text
-                    : t.sublabel
-                      ? `Checking ${t.sublabel.toLowerCase()}`
-                      : en["run.step.readCatchment"].text;
               const shouldShimmer =
                 !run.done &&
                 !paused &&
@@ -232,7 +188,7 @@ export function AtWorkAgentTree({
                   className={styles.treeNode}
                   style={
                     {
-                      "--agent-color": accent,
+                      "--agent-color": agentAccentColor(t),
                       "--node-delay": run.done ? idx * 24 : 0,
                     } as CSSProperties
                   }
@@ -327,13 +283,12 @@ export function AtWorkAgentTree({
                               )
                               .map((b) => {
                                 const statusKey = b.status ?? "sealed";
-                                const shortStatus = BRANCH_SHORT_STATUS[statusKey] ?? "Checking";
+                                const verdict = b.status ? VERDICT[b.status] : undefined;
                                 return (
                                   <li
                                     key={b.id}
                                     className={styles.inlineBranchItem}
                                     data-status={statusKey}
-                                    title={b.reason ?? undefined}
                                     onPointerEnter={() => {
                                       onFocusCause?.(b.id);
                                     }}
@@ -344,66 +299,48 @@ export function AtWorkAgentTree({
                                       aria-hidden="true"
                                     />
                                     <span className={styles.inlineBranchLabel}>{b.label}</span>
-                                    <span
-                                      className={styles.inlineBranchStatus}
-                                      data-status={statusKey}
-                                    >
-                                      {shortStatus}
-                                    </span>
+                                    {verdict ? (
+                                      <span
+                                        className={styles.inlineBranchStatus}
+                                        data-status={statusKey}
+                                      >
+                                        {rd[verdict].text}
+                                      </span>
+                                    ) : null}
                                   </li>
                                 );
                               })}
                           </ul>
                         ) : null}
 
-                        {t.kind === "field_check" && run.checks[0] ? (
+                        {t.kind === "brief_package" && run.checks[0] ? (
                           <div className={styles.inlineCheckRow}>
                             <span className={styles.inlineCheckLabel}>{run.checks[0].label}</span>
                           </div>
                         ) : null}
 
-                        {summaryStep ? (
-                          stepSourceMeta?.url ? (
-                            <a
-                              href={stepSourceMeta.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className={styles.thinkingStepLink}
-                              title={
-                                stepSourceMeta.publisher
-                                  ? `${stepSourceMeta.title} (${stepSourceMeta.publisher})`
-                                  : stepSourceMeta.title
-                              }
-                              data-thinking-step={isExpanded ? summaryStep.status : undefined}
-                              data-active-shimmer={shouldShimmer ? "" : undefined}
-                            >
-                              <span className={styles.thinkingStepLabel}>{summaryStep.label}</span>
-                            </a>
-                          ) : (
-                            <div
-                              className={styles.thinkingStep}
-                              data-thinking-step={isExpanded ? summaryStep.status : undefined}
-                              data-active-shimmer={shouldShimmer ? "" : undefined}
-                            >
-                              <span className={styles.thinkingStepLabel}>{summaryStep.label}</span>
-                            </div>
-                          )
-                        ) : t.activeLabel ? (
-                          <p
-                            className={styles.inspectorLiveLine}
+                        {summaryStep && stepSourceMeta?.url ? (
+                          <a
+                            href={stepSourceMeta.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={styles.thinkingStepLink}
+                            data-thinking-step={isExpanded ? summaryStep.status : undefined}
                             data-active-shimmer={shouldShimmer ? "" : undefined}
                           >
-                            {t.activeLabel}
-                          </p>
+                            <span className={styles.thinkingStepLabel}>{summaryStep.label}</span>
+                          </a>
                         ) : (
                           <div
                             className={styles.thinkingStep}
                             data-thinking-step={
-                              isExpanded ? (isRunning ? "running" : "succeeded") : undefined
+                              isExpanded
+                                ? (summaryStep?.status ?? (isRunning ? "running" : "succeeded"))
+                                : undefined
                             }
                             data-active-shimmer={shouldShimmer ? "" : undefined}
                           >
-                            <span className={styles.thinkingStepLabel}>{fallbackStepText}</span>
+                            <span className={styles.thinkingStepLabel}>{stepLine(t)}</span>
                           </div>
                         )}
                       </div>
@@ -413,55 +350,50 @@ export function AtWorkAgentTree({
               );
             })}
 
-            {run.done && run.needsReview ? (
+            {handOver ? (
               <li
                 className={styles.treeNodeReviewItem}
-                style={{ "--agent-color": "#d97706" } as CSSProperties}
                 data-agent-node="review"
                 data-agent-state="review"
                 data-agent-review=""
                 data-chrome=""
               >
-                <p className={styles.settledTakeaway} data-chrome="">
-                  {buildSettledTakeaway(run.branches, run.checks[0]?.label ?? null)}
-                </p>
                 <button
                   type="button"
                   className={styles.treeNodeReview}
+                  aria-keyshortcuts="Enter"
                   onClick={() => {
                     onFindings?.();
                   }}
                 >
-                  <span
-                    className={styles.treeNodeBullet}
-                    data-state="review"
-                    aria-hidden="true"
-                    data-chrome=""
-                  />
-                  <span className={styles.needsYouPill} data-needs-you="">
-                    {en["run.tree.needsYou"].text}
-                  </span>
+                  {reviewRequested ? (
+                    <span className={styles.needsYouPill} data-needs-you="">
+                      {en["run.tree.needsYou"].text}
+                    </span>
+                  ) : null}
                   <span className={styles.treeNodeReviewLabel} data-chrome="">
-                    {"See findings & Review field plan"}
+                    {en["run.open"].text}
                   </span>
-                  {run.checks[0] ? (
+                  {reviewRequested && run.checks[0] ? (
                     <span className={styles.srOnly} data-chrome="" data-run-check="">
                       {run.checks[0].label}
                     </span>
                   ) : null}
-                  <span className={styles.reviewKeyHint} data-chrome="">
-                    {"↵"}
-                  </span>
+                  <KeyChip>↵</KeyChip>
                 </button>
               </li>
             ) : null}
           </ol>
         ) : null}
 
-        {!run.done && run.tasks.length > 0 ? (
+        {/* the step count with Pause and Stop, once a step is shown: before that the status line stands alone */}
+        {!run.done && stopped === null && staggeredNonQueued.length > 0 ? (
           <div className={styles.thinkingFootRow} data-chrome="">
             <span className={styles.thinkingFoot} data-run-step-count="">
-              {`Step ${String(Math.max(1, staggeredNonQueued.length))} of ${String(Math.max(7, run.tasks.length))}`}
+              {format("run.tree.step", {
+                n: Math.max(1, staggeredNonQueued.length),
+                total: run.tasks.length,
+              })}
             </span>
             {onTogglePause ? (
               <button
@@ -469,6 +401,7 @@ export function AtWorkAgentTree({
                 className={styles.thinkingActionBtn}
                 data-run-pause=""
                 aria-pressed={paused}
+                aria-keyshortcuts="P"
                 onClick={onTogglePause}
               >
                 <svg
@@ -488,7 +421,7 @@ export function AtWorkAgentTree({
                     </>
                   )}
                 </svg>
-                <span>{paused ? "Resume" : "Pause"}</span>
+                <span>{en[paused ? "run.tree.resume" : "run.tree.pause"].text}</span>
               </button>
             ) : null}
             {onStopRun ? (
@@ -508,7 +441,7 @@ export function AtWorkAgentTree({
                 >
                   <rect x="2" y="2" width="6" height="6" rx="1" fill="currentColor" />
                 </svg>
-                <span>{"Stop"}</span>
+                <span>{en["run.tree.stop"].text}</span>
               </button>
             ) : null}
           </div>
@@ -516,12 +449,4 @@ export function AtWorkAgentTree({
       </aside>
     </div>
   );
-}
-
-export function AtWorkThinkingCard(_props: {
-  thinkingTask: RunTask | undefined;
-  nowMs: number;
-  setStepsDismissed: Dispatch<SetStateAction<boolean>>;
-}) {
-  return null;
 }

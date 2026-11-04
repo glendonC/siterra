@@ -154,6 +154,7 @@ export function useOverviewKeyboardShortcuts({
   rainWideRef,
   setRainWide,
   selRef,
+  nextSelRef,
   atWorkRef,
   setAtWork,
   pkgOpenRef,
@@ -175,6 +176,8 @@ export function useOverviewKeyboardShortcuts({
   rainWideRef: RefObject<boolean>;
   setRainWide: Dispatch<SetStateAction<boolean>>;
   selRef: RefObject<Selection | null>;
+  /** A view still opening from the answer (Esc comes back to the answer, not out of the place). */
+  nextSelRef: RefObject<unknown>;
   atWorkRef: RefObject<boolean>;
   setAtWork: Dispatch<SetStateAction<boolean>>;
   pkgOpenRef: RefObject<(() => void) | null>;
@@ -200,7 +203,12 @@ export function useOverviewKeyboardShortcuts({
         else if (rainWideRef.current) {
           setRainWide(false);
           goTo("/valley");
-        } else if (selRef.current) back();
+        } else if (
+          (selRef.current === "results" || selRef.current === "package") &&
+          !nextSelRef.current
+        )
+          toOpening();
+        else if (selRef.current) back();
         else if (atWorkRef.current) setAtWork(false);
         else toOpening();
       } else if (
@@ -225,16 +233,21 @@ export function useOverviewKeyboardShortcuts({
         const t = ev.target as HTMLElement | null;
         // (a finding's own label keeps the focus while its card opens: Enter there is the card's Enter)
         if (ev.key === "Enter" && t?.closest("a, button") && !t.closest("[data-finding]")) return;
+        // the answer holds its own Enter, view numbers and E; its other letters (S, R, G) are the overview's
+        const inAnswer = selRef.current === "results" || selRef.current === "package";
+        if (ev.key === "Enter" && inAnswer) return;
         if (ev.key === "Enter" && pkgOpenRef.current) {
           ev.preventDefault();
           pkgOpenRef.current();
           return;
         }
-        const list = selRef.current
-          ? cardActionsRef.current
-          : hoverShown.current
-            ? hoverActs.current
-            : [];
+        const list = inAnswer
+          ? []
+          : selRef.current
+            ? cardActionsRef.current
+            : hoverShown.current
+              ? hoverActs.current
+              : [];
         const a = actionForKey(list, ev.key);
         if (a?.view) {
           ev.preventDefault();
@@ -277,6 +290,7 @@ export function useOverviewKeyboardShortcuts({
     rainWideRef,
     setRainWide,
     selRef,
+    nextSelRef,
     atWorkRef,
     setAtWork,
     pkgOpenRef,
@@ -307,7 +321,9 @@ export function useOverviewIdleWake({
     reducedMotion.current = matchMedia("(prefers-reduced-motion: reduce)").matches;
     const onInput = () => {
       idle.current.last = performance.now();
-      idle.current.t0 = null;
+      // input restarts the idle wait; a sheet held up on purpose (t0 -1: the answer's proof, a check's band) stays
+      // up until something else replaces it
+      if (idle.current.t0 !== -1) idle.current.t0 = null;
     };
     const events = ["pointermove", "pointerdown", "wheel", "keydown"] as const;
     for (const ev of events) window.addEventListener(ev, onInput, { passive: true });
@@ -407,7 +423,7 @@ export function useOverviewLandHover({
         exitRef.current.away > 0 ||
         Boolean(
           t?.closest(
-            "button, a, input, textarea, [role='dialog'], [data-ask], [data-at-work], [data-hover-off]",
+            "button, a, input, textarea, [role='dialog'], [data-at-work], [data-hover-off]",
           ),
         );
       if (quiet) {
@@ -500,8 +516,7 @@ export function useOverviewLandHover({
       )
         return;
       const t = e.target as HTMLElement | null;
-      if (t?.closest("button, a, input, textarea, [role='dialog'], [data-ask], [data-at-work]"))
-        return;
+      if (t?.closest("button, a, input, textarea, [role='dialog'], [data-at-work]")) return;
       const primary = actionForKey(hoverActs.current, "Enter");
       if (primary?.view) openRef.current(VIEW_HREF[primary.view]);
     };

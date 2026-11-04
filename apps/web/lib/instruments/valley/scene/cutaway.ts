@@ -15,7 +15,8 @@ import {
 } from "three";
 import type { LandPose } from "../../../land/handoff";
 import { smoothRing } from "../../../stage/smooth";
-import { modelColours, obsidian, overviewColours, sheetColours } from "../../../theme/obsidian";
+import { modelColours, overviewColours, sheetColours } from "../../../theme/obsidian";
+import { instrumentPalette, type InstrumentPalette } from "../../../theme/instruments";
 import type { CutawayData } from "../cutaway-data";
 import { makeFrame, makeHeightSampler, type Vec3 } from "../frame";
 import { openRing, signedArea, type Point } from "../geometry";
@@ -129,7 +130,11 @@ export interface CutawayScene {
   dispose(): void;
 }
 
-function buildCutaway(canvas: HTMLCanvasElement, data: CutawayData): CutawayScene {
+function buildCutaway(
+  canvas: HTMLCanvasElement,
+  data: CutawayData,
+  pal: InstrumentPalette,
+): CutawayScene {
   const landcover = bitmapTexture(data.landcover);
   const { meta, relief: H, catchment, rivers, transect: line, places } = data;
   const g = meta.relief;
@@ -158,7 +163,7 @@ function buildCutaway(canvas: HTMLCanvasElement, data: CutawayData): CutawayScen
     scale: 1.04,
   });
 
-  const stage = createStage(canvas, obsidian.canvas, { fov: FOV });
+  const stage = createStage(canvas, pal.canvas, { fov: FOV });
   const { scene, lines } = stage;
 
   // the eastern block: relief discarded west of the cut, the catchment wall as runs that end on the cut
@@ -191,7 +196,7 @@ function buildCutaway(canvas: HTMLCanvasElement, data: CutawayData): CutawayScen
   const outward = signedArea(ring) > 0 ? -1 : 1;
   const runs = runsEastOf(ring, sideEN);
   for (const r of runs) {
-    const w = createWall(r, sample, frame, { outward, light, limits: data.limits });
+    const w = createWall(r, sample, frame, { outward, light, limits: data.limits, bg: pal.canvas });
     walls.push(w);
     scene.add(w);
   }
@@ -203,7 +208,7 @@ function buildCutaway(canvas: HTMLCanvasElement, data: CutawayData): CutawayScen
   scene.add(
     lines.lines(
       runs.map((r) => r.map(([E, N]) => frame.v(E, N, sample(E, N) + 6))),
-      { color: modelColours.catchmentLine, opacity: 0.5, width: 1 },
+      { color: pal.line, opacity: 0.5, width: 1 },
     ),
   );
   // drainage east of the cut; every vertex height is the relief height (+4 m so the line shows)
@@ -242,6 +247,7 @@ function buildCutaway(canvas: HTMLCanvasElement, data: CutawayData): CutawayScen
     bandA: [0, 0.13, 0.26],
     limitA: 0.92,
     faceNormal: [-ex, -ez],
+    bg: pal.canvas,
   });
   walls.push(face);
   // what the cut alone shows (its face, the lines on it, the ruler) comes in once the cut has opened
@@ -260,7 +266,7 @@ function buildCutaway(canvas: HTMLCanvasElement, data: CutawayData): CutawayScen
           return frame.v(e, n, (line.h[i] ?? 0) + 3);
         }),
       ],
-      { color: obsidian.accent, width: 1.8 },
+      { color: pal.accent, width: 1.8 },
     ),
   );
   // WorldCover tree cover, and cropland or built-up, along the valley floor just under the profile
@@ -297,7 +303,7 @@ function buildCutaway(canvas: HTMLCanvasElement, data: CutawayData): CutawayScen
     const tip = along(rulerAt, -(e % RULER.every === 0 ? TICK.long : TICK.short));
     ruler.push([frame.v(rE, rN, e), frame.v(frame.E(tip[0]), frame.N(tip[1]), e)]);
   }
-  scene.add(lines.lines(ruler, { color: modelColours.catchmentLine, opacity: 0.8, width: 1 }));
+  scene.add(lines.lines(ruler, { color: pal.line, opacity: 0.8, width: 1 }));
   const labelTip = along(rulerAt, -TICK.long);
 
   // the points the view is fitted to: the block's walls, the face, the ruler, the relief east of the cut
@@ -493,8 +499,13 @@ function buildCutaway(canvas: HTMLCanvasElement, data: CutawayData): CutawayScen
 }
 
 /** Builds the scene on the next tick; a failure to build rejects. */
-export function mountCutaway(canvas: HTMLCanvasElement, data: CutawayData): Promise<CutawayScene> {
-  return Promise.resolve().then(() => buildCutaway(canvas, data));
+export function mountCutaway(
+  canvas: HTMLCanvasElement,
+  data: CutawayData,
+  /** The colours in the app's theme; Obsidian's when none is given. */
+  pal: InstrumentPalette = instrumentPalette("obsidian"),
+): Promise<CutawayScene> {
+  return Promise.resolve().then(() => buildCutaway(canvas, data, pal));
 }
 
 /**

@@ -33,7 +33,27 @@ describe("package catalog", () => {
   });
 
   it("fills placeholders and leaves a missing one visible", () => {
-    expect(pformat("package.revision", { n: 3 })).toBe("Prepared on case revision 3");
-    expect(pformat("package.revision")).toBe("Prepared on case revision {n}");
+    expect(pformat("brief.state", { state: pkg["package.status.ready_for_review"].text })).toBe(
+      "Ready for review. Nothing has been sent, scheduled or authorized.",
+    );
+    expect(pformat("brief.state")).toBe("{state}. Nothing has been sent, scheduled or authorized.");
+  });
+
+  it("says nothing is sent, scheduled or authorized in one string only, the brief's head", () => {
+    const saying = entries
+      .filter(([, m]) => /\b(?:sent|scheduled|authori[sz]ed)\b/i.test(m.text))
+      .map(([id]) => id);
+    expect(saying).toEqual(["brief.state"]);
+  });
+
+  it("shows no record vocabulary: no revision, package, claim kind or file name", () => {
+    const internal = entries
+      .filter(([, m]) =>
+        /\b(?:revision|package|fixture|replay|recorded|claim kind|model estimate)\b|\.pdf\b/i.test(
+          m.text,
+        ),
+      )
+      .map(([id]) => id);
+    expect(internal).toEqual([]);
   });
 });

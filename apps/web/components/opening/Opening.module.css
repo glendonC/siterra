@@ -5,12 +5,12 @@
    - Single-surface frosted blur editorial overlay (left hairline spec rows + right narrative with colored squircle badges & clickable links). */
 
 .opening {
-  --triad-blue-c: var(--triad-blue, #1d6fe8);
-  --triad-red-c: var(--triad-red, #d94838);
-  --triad-yellow-c: var(--triad-yellow, #d48817);
-  --triad-green-c: var(--triad-green, #1e824c);
-  --squircle-dark-bg: var(--keycap-bg, #3b4046);
-  --squircle-dark-ink: var(--keycap-ink, #ffffff);
+  --triad-blue-c: var(--triad-blue);
+  --triad-red-c: var(--triad-red);
+  --triad-yellow-c: var(--triad-yellow);
+  --triad-green-c: var(--triad-green);
+  --squircle-dark-bg: var(--keycap-bg);
+  --squircle-dark-ink: var(--keycap-ink);
 
   position: fixed;
   inset: 0;
@@ -60,7 +60,7 @@
   color: var(--ink);
 }
 
-/* Bare, borderless editorial navigation links — animated colored squircle on the left on hover/active */
+/* Bare, borderless editorial navigation links: animated colored squircle on the left on hover/active */
 .topNav {
   display: inline-flex;
   align-items: center;
@@ -171,7 +171,7 @@
   outline: none;
 }
 
-/* Permanently fixed editorial stage — never shifts vertically when globe limb or beat text changes */
+/* Permanently fixed editorial stage: never shifts vertically when globe limb or beat text changes */
 .paper {
   position: absolute;
   left: 32px;
@@ -405,8 +405,8 @@
   padding: 12px 16px;
   border: 1px solid var(--rule-strong);
   border-radius: 4px;
-  background: var(--bg-canvas, #f2efea);
-  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.1);
+  background: var(--bg-canvas);
+  box-shadow: var(--citation-card-shadow);
   text-align: left;
   z-index: 40;
   pointer-events: none;
@@ -427,7 +427,7 @@
   padding: 2px 6px;
   border-radius: 2.5px;
   background: var(--triad-blue-c);
-  color: #ffffff;
+  color: var(--ink-on-triad);
   font: 500 10px / 14px var(--font-mono);
   letter-spacing: 0.04em;
 }
@@ -506,7 +506,7 @@
   border: 0;
   border-radius: 2.5px;
   background: var(--triad-blue-c);
-  color: #ffffff;
+  color: var(--ink-on-triad);
   font: 400 11px / 1 var(--font-mono);
   letter-spacing: 0;
 }
@@ -523,7 +523,7 @@
   position: fixed;
   inset: 0;
   z-index: 60;
-  background: color-mix(in srgb, var(--bg-canvas, #f2efea) 88%, transparent);
+  background: color-mix(in srgb, var(--bg-canvas) 88%, transparent);
   backdrop-filter: blur(26px) saturate(1.06);
   display: flex;
   align-items: flex-start;
@@ -654,7 +654,7 @@
   letter-spacing: 0.02em;
 }
 
-/* Clean 2-column layout on the same frosted surface — strictly fixed height */
+/* Clean 2-column layout on the same frosted surface, strictly fixed height */
 .docSheetBody {
   flex: 1;
   min-height: 0;
@@ -778,7 +778,7 @@
   padding: 0 5px;
   border-radius: 2.5px;
   background: var(--triad-blue-c);
-  color: #ffffff;
+  color: var(--ink-on-triad);
   font: 500 10.5px / 1 var(--font-mono);
   margin-top: 1px;
 }
@@ -855,7 +855,7 @@
   padding: 2px 6px;
   border-radius: 2.5px;
   background: var(--triad-blue-c);
-  color: #ffffff;
+  color: var(--ink-on-triad);
   font: 500 10px / 14px var(--font-mono);
 }
 
@@ -987,7 +987,7 @@
   height: 20px;
   border-radius: 2.5px;
   background: var(--triad-blue-c);
-  color: #ffffff;
+  color: var(--ink-on-triad);
   flex-shrink: 0;
 }
 

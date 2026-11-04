@@ -11,7 +11,8 @@ describe("globe palette", () => {
   });
 
   it("puts the Obsidian globe palette into the shader: the ground is the overview's #0b1012", () => {
-    expect(GLOBE_FS).toContain("const vec3 PAPER = vec3(0.043, 0.063, 0.071)");
+    // the dark palette's ground (D_PAPER), mixed with the daylight one (L_PAPER) by u_light
+    expect(GLOBE_FS).toContain("const vec3 D_PAPER = vec3(0.043, 0.063, 0.071)");
     expect(GLOBE_FS).toContain("BIOME = ");
     expect(GLOBE_FS.startsWith("#version 300 es")).toBe(true);
   });

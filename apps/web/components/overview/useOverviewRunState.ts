@@ -2,6 +2,7 @@
 
 import type { CaseSnapshot } from "@siterra/contracts";
 import {
+  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -11,6 +12,7 @@ import {
   type RefObject,
   type SetStateAction,
 } from "react";
+import { answerAddress, runOfSearch } from "../../lib/overview/answer-run";
 import type { Box as CardBox, Side as CardSide } from "../../lib/overview/card";
 import { shouldReopen } from "../../lib/overview/ask-line";
 import type { Finding, FindingId } from "../../lib/overview/findings";
@@ -27,16 +29,17 @@ import { buildRecordedRunForCase } from "../../lib/run/case-run";
 import { runModel, type RunModel } from "../../lib/run/model";
 import {
   RecordedRunContext,
+  acceptedAtOf,
   revealed,
   useRecordedClock,
   type RecordedRun,
 } from "../../lib/run/recorded";
 import { useRecordsRefresh } from "../instruments/InstrumentRecords";
 import type { LifeFrame } from "../life/LifeLayer";
-import type { Stands } from "../package/PackageBriefing";
 import type { TimeFrame } from "../time/TimeView";
+import type { LayerStackHandle } from "./LayerStack";
 import { useOverviewAsk } from "./useOverviewAsk";
-import type { Live, RunArcState } from "./useOverviewLayoutApply";
+import type { Live, RunArcState, Stands } from "./useOverviewLayoutApply";
 
 /**
  * Arrival state passed from the globe journey: the overview mounts while the globe is visible,
@@ -79,7 +82,17 @@ export interface OverviewRunState {
   runArc: RunArcState | null;
   setRunArc: Dispatch<SetStateAction<RunArcState | null>>;
   runArcKey: RefObject<string>;
+  /** The answer the overview's home shows: the run the steps handed over to, or null for the case's own. */
+  answer: AnswerOf;
+  /** The steps hand over to their run's answer, which the address then names (?run=). */
+  handOver: () => void;
 }
+
+/** The record the answer reads: a recorded run's own, a question sent from here, or the case's. */
+export type AnswerOf =
+  | { kind: "case" }
+  | { kind: "recording"; commandId: string; recording: RecordedRun; acceptedAt: string | null }
+  | { kind: "asked"; commandId: string; acceptedAt: string | null };
 
 export function useOverviewRunState({
   snapshot,
@@ -217,6 +230,50 @@ export function useOverviewRunState({
     refresh(ask.snapshot);
   }, [ask.snapshot, snapshot.case.revision, refresh]);
 
+  // the answer the home shows, named by the address: the run the steps last handed over to, else the case's own
+  const [answerRun, setAnswerRun] = useState<string | null>(() =>
+    typeof window === "undefined" ? null : runOfSearch(window.location.search),
+  );
+  const answer = useMemo<AnswerOf>(() => {
+    if (answerRun === null) return { kind: "case" };
+    const recording = [recorded, builtinRecorded].find((r) => r?.commandId === answerRun) ?? null;
+    if (recording)
+      return {
+        kind: "recording",
+        commandId: answerRun,
+        recording,
+        acceptedAt: acceptedAtOf(recording.events, answerRun),
+      };
+    // a question sent from here: this page's own, or one whose tasks the case record holds (after a reload)
+    const held =
+      answerRun === ask.commandId ||
+      ask.snapshot.records.taskRecords.some((t) => t.commandId === answerRun);
+    return held
+      ? { kind: "asked", commandId: answerRun, acceptedAt: acceptedAtOf(ask.events, answerRun) }
+      : { kind: "case" };
+  }, [answerRun, recorded, builtinRecorded, ask.commandId, ask.snapshot, ask.events]);
+  // the address names the answer shown, and drops a run the page does not know; a hand-over from the steps puts the
+  // answer at its own address, /valley, even on the journey's page, so a reload, Back or a view keeps the answer
+  // (answerAddress). The page stays as it is: only the address changes.
+  const named = answer.kind === "case" ? null : answer.commandId;
+  const handedOver = useRef(false);
+  useEffect(() => {
+    const next = answerAddress(
+      window.location.pathname,
+      window.location.search,
+      named,
+      handedOver.current,
+    );
+    handedOver.current = false;
+    if (next) window.history.replaceState(null, "", next);
+  }, [named]);
+  const runCommandId = effectiveRecorded?.commandId ?? ask.commandId;
+  const handOver = useCallback(() => {
+    if (!runCommandId) return;
+    handedOver.current = true;
+    setAnswerRun(runCommandId);
+  }, [runCommandId]);
+
   return {
     effectiveQuestion,
     effectiveIntro,
@@ -246,6 +303,8 @@ export function useOverviewRunState({
     runArc,
     setRunArc,
     runArcKey,
+    answer,
+    handOver,
   };
 }
 
@@ -258,13 +317,13 @@ export function useOverviewDomRefs(canvasFindings: readonly Finding[], lifeOn: b
     layer: LiftId | null;
     k: number;
   }>({ last: performance.now(), t0: null, layer: null, k: 0 });
-  const liftLabelRef = useRef<HTMLDivElement>(null);
+  // the land's layer labels (LayerStack), placed every frame from the scene's layout
+  const stackLabelsRef = useRef<LayerStackHandle>(null);
   const hoverRef = useRef<HTMLDivElement>(null);
   const hoverNameRef = useRef<HTMLSpanElement>(null);
   const hoverStatusRef = useRef<HTMLSpanElement>(null);
   const hoverWireRef = useRef<SVGLineElement>(null);
   const hoverSide = useRef<CardSide | null>(null);
-  const liftWireRef = useRef<SVGLineElement>(null);
   const reducedMotion = useRef(false);
   const exitRef = useRef<{ dir: -1 | 0 | 1; k: number; away: number; narrow: boolean }>({
     dir: 0,
@@ -278,6 +337,8 @@ export function useOverviewDomRefs(canvasFindings: readonly Finding[], lifeOn: b
   const goal = useRef<Live>({ s: 0, h: 0, k: 0, o: 0, r: 0 });
   const hov = useRef<FindingId | null>(null);
   const selRef = useRef<Selection | null>(null);
+  // what opens once the open selection has closed, instead of the land at rest (the answer handing over to a view)
+  const nextSelRef = useRef<{ sel: Selection; then: () => void } | null>(null);
   const raf = useRef(0);
   const last = useRef(0);
 
@@ -310,9 +371,7 @@ export function useOverviewDomRefs(canvasFindings: readonly Finding[], lifeOn: b
   const connectorRef = useRef<SVGSVGElement>(null);
   const midcapRef = useRef<HTMLDivElement>(null);
   const firstResultRef = useRef<HTMLLIElement>(null);
-  const askCircleRef = useRef<HTMLButtonElement>(null);
   const askBesideRef = useRef<HTMLParagraphElement>(null);
-  const askPromptsRef = useRef<HTMLDivElement>(null);
   const fieldRef = useRef<HTMLButtonElement>(null);
   const fieldTagRef = useRef<HTMLSpanElement>(null);
   const pixTagRef = useRef<HTMLDivElement>(null);
@@ -340,7 +399,6 @@ export function useOverviewDomRefs(canvasFindings: readonly Finding[], lifeOn: b
   const lifeHot = useRef(false);
   const hideHoverRef = useRef<() => void>(() => undefined);
   const pkgAsideRef = useRef({ k: 0, goal: 0 });
-  const backRef = useRef<() => void>(() => undefined);
   const openRef = useRef<(href: string) => boolean>(() => false);
   const pkgHandoff = useRef(false);
   const standSubs = useRef(new Set<(s: Stands) => void>());
@@ -361,13 +419,12 @@ export function useOverviewDomRefs(canvasFindings: readonly Finding[], lifeOn: b
     liftOrder,
     liftShownRef,
     idle,
-    liftLabelRef,
+    stackLabelsRef,
     hoverRef,
     hoverNameRef,
     hoverStatusRef,
     hoverWireRef,
     hoverSide,
-    liftWireRef,
     reducedMotion,
     exitRef,
     splitRef,
@@ -376,6 +433,7 @@ export function useOverviewDomRefs(canvasFindings: readonly Finding[], lifeOn: b
     goal,
     hov,
     selRef,
+    nextSelRef,
     raf,
     last,
     rootRef,
@@ -401,9 +459,7 @@ export function useOverviewDomRefs(canvasFindings: readonly Finding[], lifeOn: b
     connectorRef,
     midcapRef,
     firstResultRef,
-    askCircleRef,
     askBesideRef,
-    askPromptsRef,
     fieldRef,
     fieldTagRef,
     pixTagRef,
@@ -419,7 +475,6 @@ export function useOverviewDomRefs(canvasFindings: readonly Finding[], lifeOn: b
     lifeHot,
     hideHoverRef,
     pkgAsideRef,
-    backRef,
     openRef,
     pkgHandoff,
     standSubs,

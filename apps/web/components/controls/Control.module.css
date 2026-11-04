@@ -1,6 +1,8 @@
-/* Two clean control patterns from the approved reference boards (Qoves + siterra-hero-board.png + Division 2):
-   1. Primary CTA (.primary): solid pill with clean text only — NEVER a squircle keycap inside a pill border.
-   2. Key-prompt control (.withKey): standalone crisp 22x22 square keycap next to plain unbordered text — NEVER an outer pill border wrapping both. */
+/* Two control patterns from the approved reference boards (Qoves, siterra-hero-board.png, Division 2), in the theme's
+   tokens only (VC-01):
+   1. Primary action (.primary): clean text only, never a keycap inside a pill border.
+   2. Key-prompt control (.withKey): a standalone 22 x 22 keycap next to plain unbordered text, never an outer border
+      wrapping both. */
 
 .control {
   display: inline-flex;
@@ -51,12 +53,12 @@
 .primary:hover,
 .primary:focus-visible {
   background: transparent;
-  color: #2b73e8;
+  color: var(--triad-blue);
 }
 
 .primary .key {
-  background: #2b73e8;
-  color: #ffffff;
+  background: var(--triad-blue);
+  color: var(--keycap-ink);
 }
 
 /* Pattern B: unbordered key-hint + label (flex-direction: row-reverse places keycap on the left visually while keeping label+key DOM text order) */
@@ -79,8 +81,8 @@
 
 .withKey:hover .key,
 .withKey:focus-visible .key {
-  background: #2b73e8;
-  color: #ffffff;
+  background: var(--triad-blue);
+  color: var(--keycap-ink);
 }
 
 .quiet {
@@ -110,10 +112,9 @@
   border-radius: 3px;
   font: 500 12px / 1 var(--font-mono);
   letter-spacing: 0.03em;
-  color: #f4f2ed;
-  background: #252930;
+  color: var(--keycap-ink);
+  background: var(--keycap-bg);
   text-shadow: none !important;
-  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.22);
   transition:
     background-color 140ms ease-out,
     color 140ms ease-out;

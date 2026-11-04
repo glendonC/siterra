@@ -1,0 +1,494 @@
+/* The case's sources and limits (S and W) in the landing's own Sources layout (components/opening/Opening.module.css,
+   the doc sheet): the same grid, spacing and tab bar with its coloured square, on the canvas colour itself, so nothing
+   beneath shows through in either theme (approved board, frame 3). The close is the Ask's: the key bar's Esc key and
+   the word beside it. The type is set a step larger than the landing's, to be read at length: no word under 12 px,
+   the lines a reader reads (credits, limits, titles) at 13 px or more on a line 1.45 times their size, and every grey
+   at 4.5:1 or more on the ground. A link or a row that opens something takes the shared hover background, never an
+   underline. Theme tokens only, so it reads on the daylight overview and in the Obsidian instruments. */
+
+.veil {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 68px 48px 48px;
+  box-sizing: border-box;
+  background: var(--bg-canvas);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  text-align: left;
+  pointer-events: auto;
+  outline: none;
+  animation: veilIn 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.sheet {
+  width: 100%;
+  max-width: 1060px;
+  height: min(690px, calc(100vh - 108px));
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  animation: sheetIn 280ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.top {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--rule-strong);
+}
+
+.tabs {
+  display: inline-flex;
+  align-items: center;
+  gap: 26px;
+}
+
+.tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  border: 0;
+  background: transparent;
+  /* a step up from the landing's 13 px on the same 18 px line, so the bar and the columns under it keep their place */
+  font: 400 14px / 18px var(--font-sans);
+  color: var(--grey);
+  cursor: pointer;
+  outline: none;
+  transition: color 150ms ease;
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 2px;
+  background: var(--triad-green);
+  opacity: 0.28;
+  transform: scale(0.75);
+  transition:
+    opacity 180ms ease,
+    transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* the limits are the record's own words, not a finding: the neutral ink square */
+.tab[data-tone="ink"] .dot {
+  background: var(--ink);
+}
+
+.tab:hover,
+.tab:focus-visible,
+.tab[data-active] {
+  color: var(--ink);
+}
+
+.tab:hover .dot,
+.tab:focus-visible .dot,
+.tab[data-active] .dot {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* the Ask's close (components/overview/Ask.module.css, the key entries): the key bar's chip and the word in grey */
+.close {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 26px;
+  padding: 0 2px;
+  border: 0;
+  background: none;
+  font: 400 12px / 16px var(--font-sans);
+  color: var(--control-grey);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.close:hover,
+.close:focus-visible {
+  color: var(--control-ink);
+}
+
+.close:focus-visible {
+  outline: 1px solid var(--control-line-strong);
+}
+
+/* two columns on the one surface: the data at 310 px, the two-tone line and the list beside them. The body is not
+   clipped, so a column's focus ring shows whole round its words. */
+.body {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 310px 1fr;
+  gap: 56px;
+  align-items: stretch;
+}
+
+/* each column scrolls on its own (wheel, trackpad, touch, and the keys once the column has the focus) and draws no
+   bar: the edge with more to read fades instead, as the thinking trace's chips do (data-fade, set from the scroll
+   position by components/controls/scrollFade.ts, which also makes the column a keyboard stop while it can scroll).
+   The column stands 8 px past its grid cell above and below and 12 px either side, taken back as padding, so no word
+   moves and the focus ring has room inside the column (a mask would cut a ring drawn outside it). */
+.spec,
+.narrative {
+  --fade-top: 36px;
+  --fade-bottom: 56px;
+  min-height: 0;
+  margin: -8px -12px;
+  padding: 8px 12px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+  display: flex;
+  flex-direction: column;
+  border-radius: 6px;
+  outline: none;
+}
+
+.spec::-webkit-scrollbar,
+.narrative::-webkit-scrollbar,
+.body::-webkit-scrollbar {
+  display: none;
+}
+
+.spec {
+  gap: 10px;
+}
+
+.narrative {
+  padding-right: 20px;
+  gap: 18px;
+}
+
+:is(.spec, .narrative, .body)[data-fade="bottom"] {
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    var(--mask-opaque) calc(100% - var(--fade-bottom)),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    var(--mask-opaque) calc(100% - var(--fade-bottom)),
+    transparent 100%
+  );
+}
+
+:is(.spec, .narrative, .body)[data-fade="top"] {
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    var(--mask-opaque) var(--fade-top)
+  );
+  mask-image: linear-gradient(to bottom, transparent 0%, var(--mask-opaque) var(--fade-top));
+}
+
+:is(.spec, .narrative, .body)[data-fade="both"] {
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    var(--mask-opaque) var(--fade-top),
+    var(--mask-opaque) calc(100% - var(--fade-bottom)),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    var(--mask-opaque) var(--fade-top),
+    var(--mask-opaque) calc(100% - var(--fade-bottom)),
+    transparent 100%
+  );
+}
+
+/* a column the keyboard reached: a ring inside its edge, in the overview's focus colour */
+:is(.spec, .narrative, .body):focus-visible {
+  outline: 1px solid var(--ov-focus);
+  outline-offset: -1px;
+}
+
+.kicker {
+  flex-shrink: 0;
+  padding-bottom: 4px;
+  font: 400 12px / 16px var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--grey);
+}
+
+/* Sources, left: each dataset once, its name and reach on one row and its credits and licences whole under it */
+.specList {
+  flex-shrink: 0;
+  margin: 0;
+  padding: 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.specRow {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: 14px;
+  row-gap: 8px;
+  padding: 10px 0 12px;
+  border-top: 1px solid var(--rule);
+}
+
+.specLabel {
+  font: 400 13px / 19px var(--font-sans);
+  color: var(--grey);
+  white-space: nowrap;
+}
+
+.specValue {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
+  min-width: 0;
+  text-align: right;
+}
+
+.specPrimary {
+  font: 400 13px / 19px var(--font-sans);
+  color: var(--ink);
+}
+
+.specSub {
+  font: 400 12px / 18px var(--font-sans);
+  color: var(--grey);
+}
+
+.credits {
+  grid-column: 1 / -1;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+/* the credits are read word for word: body size, not a caption's; a long address breaks where it must */
+.notice {
+  margin: 0;
+  font: 400 13px / 19px var(--font-sans);
+  color: var(--grey);
+  overflow-wrap: anywhere;
+}
+
+.mapCredits {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 8px;
+}
+
+/* a link inside a credit: the link colour, and the shared hover background standing 2 px past its words */
+.link {
+  margin: 0 -2px;
+  padding: 0 2px;
+  border-radius: 3px;
+  color: var(--sources-link);
+  text-decoration: none;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  outline: none;
+  transition: background-color 140ms ease;
+}
+
+.link:hover,
+.link:focus-visible {
+  background: var(--trace-fill);
+}
+
+.link:focus-visible {
+  outline: 1px solid var(--control-line-strong);
+}
+
+/* Sources, right: the two-tone line from the record's counts, the run and relief beside it, then the publications */
+.head {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.lead {
+  margin: 0 0 4px;
+  font: 300 23px / 32px var(--font-sans);
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+.ink {
+  color: var(--ink);
+  font-weight: 300;
+}
+
+.grey {
+  color: var(--grey);
+  font-weight: 300;
+}
+
+.note {
+  margin: 0;
+  font: 400 13px / 19px var(--font-sans);
+  color: var(--grey);
+}
+
+.publications {
+  flex-shrink: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--rule);
+}
+
+.publications > li {
+  padding: 6px 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+/* a publication is one row that opens it: the shared hover background, standing 8 px past its words either side */
+.publication {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin: 0 -8px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  color: inherit;
+  text-decoration: none;
+  outline: none;
+  transition: background-color 140ms ease;
+}
+
+.publication:hover,
+.publication:focus-visible {
+  background: var(--trace-fill);
+}
+
+.publication:focus-visible {
+  outline: 1px solid var(--control-line-strong);
+}
+
+.author {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font: 400 13px / 19px var(--font-mono);
+  color: var(--ink);
+}
+
+.arrow {
+  flex-shrink: 0;
+  color: var(--sources-link);
+}
+
+.title {
+  font: 400 14px / 21px var(--font-sans);
+  color: var(--ink);
+}
+
+.venue {
+  font: 400 13px / 19px var(--font-sans);
+  color: var(--grey);
+}
+
+/* Limits: a heading for what each part cannot show, a topic under it, and the plain lines, set apart by space */
+.limitsColumn {
+  gap: 32px;
+}
+
+.group {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.topic {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* a topic is named as Sources names what a dataset measured: grey beside the ink it labels */
+.topicLabel {
+  font: 400 13px / 19px var(--font-sans);
+  color: var(--grey);
+}
+
+.lines {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.line {
+  font: 400 14px / 21px var(--font-sans);
+  color: var(--ink);
+}
+
+.spec .line {
+  font: 400 13px / 19px var(--font-sans);
+}
+
+@keyframes veilIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes sheetIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* a narrow screen: one column under the other, and the panel scrolls, with the same fade, room and ring */
+@media (max-width: 900px) {
+  .body {
+    --fade-top: 36px;
+    --fade-bottom: 56px;
+    grid-template-columns: 1fr;
+    gap: 28px;
+    margin: -8px -12px;
+    padding: 8px 12px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: none;
+    border-radius: 6px;
+    outline: none;
+  }
+
+  .spec,
+  .narrative {
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .veil,
+  .sheet {
+    animation: none;
+  }
+}

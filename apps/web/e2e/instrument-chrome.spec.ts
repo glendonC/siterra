@@ -1,37 +1,46 @@
 import { expect, test, type Page } from "@playwright/test";
+import { en } from "../lib/copy/en";
+import { VIEW_LABEL } from "../lib/overview/actions";
+import { overlayView } from "../lib/sources/overlay";
+import {
+  atTheAnswer,
+  columnBox,
+  crumbsOf,
+  keysOf,
+  loadedRecord,
+  openView,
+  readoutOn,
+  shownLabels,
+  viewsOf,
+} from "./answer";
 
-// The controls every screen after the opening shares (decisions 1 to 4, 30 Oct 2026): the breadcrumb with its back
-// arrow, Esc one level back, R the view reset, S the sources, and the keys that work now, on the overview and in an
-// instrument. Enter is never pressed in the ask here.
+// The controls every screen after the opening shares (decisions 1 to 4, 30 Oct 2026): the breadcrumb that starts at
+// the place, Esc one level back, S the sources and W the limits (one overlay, its tab by the key), the theme toggle
+// where the answer has it, and the keys that work now, Esc Back last, on the overview and in a view. The overview's
+// home is the answer (UI-2), which offers no view reset. Enter is never pressed in the ask here.
+
+const PLACE = "Aït Bouguemez valley";
+const FINDINGS = en["overview.crumb.results"].text;
+
+const overlay = (page: Page, tab?: "sources" | "limits") =>
+  page.locator(tab ? `[data-sources-overlay][data-tab='${tab}']` : "[data-sources-overlay]");
 
 test.use({ viewport: { width: 1440, height: 900 } });
 
-const crumbs = (page: Page) =>
-  page
-    .locator("[data-crumbs] li")
-    .evaluateAll((els) => els.map((e) => e.textContent.replace("/", "").trim()));
-
-test("the overview: one command bar, Esc one level at a time, R resets the view, S the sources, W the scope", async ({
+test("the overview's answer: one key bar, S the sources, W the limits, Esc one level at a time", async ({
   page,
 }) => {
-  await page.goto("/valley");
-  await expect(page.locator("[data-overview-root]")).toHaveAttribute("data-ready", "", {
-    timeout: 60_000,
-  });
-  // no back button: the top left holds the place and its question; Esc is in the bar (HUD-2, decision A)
-  expect(await crumbs(page)).toEqual(["Aït Bouguemez valley"]);
-  await expect(page.locator("[data-crumbs] button")).toHaveCount(0);
-  await expect(page.locator("[data-key-legend] [data-key]")).toHaveText([
-    "↵See the Findings",
-    "TAgents at Work",
-    // species sightings key, where the case holds a species bundle (UI-2)
-    "GSpecies",
-    "/Ask",
-    "RReset View",
-    "SSources",
-    "WLimits",
-    "EscBack",
-  ]);
+  const record = loadedRecord(page);
+  await atTheAnswer(page);
+  const { snapshot, listing } = await record;
+  // the top left holds the place and the answer's crumb
+  expect(await crumbsOf(page)).toEqual([PLACE, FINDINGS]);
+  // the case answer's keys: its views, the brief (the case holds one), the ask, the sources, the limits, Back last;
+  // no Analysis Steps (a run's answer has them), no view reset, no See the Findings, no species key
+  const n = viewsOf(snapshot, listing).length;
+  expect(
+    await keysOf(page).evaluateAll((els) => els.map((e) => e.getAttribute("data-key"))),
+  ).toEqual([n > 1 ? `1 to ${String(n)}` : "1", "E", "/", "S", "W", "Esc"]);
   // nothing else floats on the overview: no thinking pill, no data line, no ask circle, no view cluster, no
   // bottom-left legend, no mode line
   for (const gone of [
@@ -44,106 +53,125 @@ test("the overview: one command bar, Esc one level at a time, R resets the view,
     "[data-mode-line]",
   ])
     await expect(page.locator(gone), gone).toHaveCount(0);
-  // W says what Siterra does not do; Esc closes it before anything else
+  // W opens the record's own limits under their plain headings; S switches the same overlay to the sources; Esc
+  // closes it before anything else
+  const { side, main } = overlayView(snapshot).limits;
   await page.keyboard.press("w");
-  await expect(page.locator("[data-scope-popover]")).toContainText(
-    "Siterra does not contact people, spend money or make land decisions.",
+  await expect(overlay(page, "limits").locator("[data-limits] > :first-child")).toHaveText(
+    [...side, ...main].map((s) => s.heading),
+  );
+  await page.keyboard.press("s");
+  await expect(overlay(page, "sources")).toBeVisible();
+  await expect(overlay(page)).toHaveCount(1);
+  await page.keyboard.press("Escape");
+  await expect(overlay(page)).toHaveCount(0);
+  await expect(readoutOn(page)).toBeVisible();
+  // a view one level down, and Esc back up to the answer at once
+  await openView(page, "cutaway");
+  await expect
+    .poll(async () => (await crumbsOf(page)).slice(-3))
+    .toEqual([PLACE, FINDINGS, en[VIEW_LABEL.cutaway].text]);
+  await page.keyboard.press("Escape");
+  await expect(readoutOn(page)).toBeVisible({ timeout: 2_000 });
+  await expect.poll(() => crumbsOf(page)).toEqual([PLACE, FINDINGS]);
+  // S opens the sources, S again closes them; Esc closes them before it goes back a level
+  await page.keyboard.press("s");
+  await expect(overlay(page, "sources")).toBeVisible();
+  await page.keyboard.press("s");
+  await expect(overlay(page)).toHaveCount(0);
+  await page.keyboard.press("s");
+  await expect(overlay(page, "sources")).toBeVisible();
+  // its close is the key bar's Esc and the word beside it
+  await expect(overlay(page).locator("[data-sources-close]")).toHaveText(
+    `Esc${en["chrome.close"].text}`,
   );
   await page.keyboard.press("Escape");
-  await expect(page.locator("[data-scope-popover]")).toHaveCount(0);
-  await expect(page.locator("[data-overview-root]")).toBeVisible();
-  // a finding opens one level down; Esc comes back up
-  await page.locator("[data-finding='fdr']").click();
-  await expect(page.locator("[data-record='fdr']")).toBeVisible();
-  expect(await crumbs(page)).toEqual(["Aït Bouguemez valley", "24.7% greening"]);
-  await page.keyboard.press("Escape");
-  await expect(page.locator("[data-record]")).toHaveCount(0);
-  expect(await crumbs(page)).toEqual(["Aït Bouguemez valley"]);
-  // the wheel zooms; R puts the overview's pose back
-  await page.mouse.move(720, 450);
-  await page.mouse.wheel(0, -400);
-  await expect(page.locator("[data-view-moved]")).toHaveCount(1);
-  await page.keyboard.press("r");
-  await expect(page.locator("[data-view-moved]")).toHaveCount(0);
-  // S opens the sources; Esc closes them before it goes back a level
-  await page.keyboard.press("s");
-  await expect(page.locator("[data-sources-panel]")).toBeVisible();
-  await page.keyboard.press("Escape");
-  await expect(page.locator("[data-sources-panel]")).toHaveCount(0);
-  await expect(page.locator("[data-overview-root]")).toBeVisible();
+  await expect(overlay(page)).toHaveCount(0);
+  await expect(readoutOn(page)).toBeVisible();
   // at the top level, Esc returns to the opening
   await page.keyboard.press("Escape");
   await expect(page.locator("[data-opening]")).toBeVisible({ timeout: 60_000 });
 });
 
-test("an instrument: breadcrumb to its place, R and the view control on a 3D view, Esc back to the valley", async ({
+test("a view by its address: the trail from its place, R and the view control on a 3D view, the theme toggle, Esc back to the answer", async ({
   page,
 }) => {
   await page.goto("/instruments/cutaway");
   await expect(page.locator("[data-band]").first()).toBeVisible({ timeout: 60_000 });
-  expect(await crumbs(page)).toEqual(["Siterra", "Aït Bouguemez valley", "Cut through"]);
+  expect(await crumbsOf(page)).toEqual([PLACE, FINDINGS, en[VIEW_LABEL.cutaway].text]);
   await expect(page.locator("[data-view-control]")).toBeVisible();
-  await expect(page.locator("[data-key-legend] [data-key]")).toHaveText([
-    "EscBack",
-    "/Ask",
-    "SSources",
-  ]);
+  await expect(keysOf(page)).toHaveText(["/Ask", "SSources", "WLimits", "EscBack"]);
+  // the theme toggle switches the view's theme
+  const shell = page.locator("[data-shell='cutaway']");
+  const before = await shell.getAttribute("data-theme");
+  await page.locator("[data-theme-toggle]").click();
+  await expect(shell).toHaveAttribute("data-theme", before === "obsidian" ? "light" : "obsidian");
   await page.keyboard.press("s");
-  await expect(page.locator("[data-sources-panel]")).toBeVisible();
+  await expect(overlay(page, "sources")).toBeVisible();
+  // the tab bar switches between the two
+  await overlay(page).locator("[data-sources-tab='limits']").click();
+  await expect(overlay(page, "limits")).toBeVisible();
   await page.keyboard.press("Escape");
-  await expect(page.locator("[data-sources-panel]")).toHaveCount(0);
+  await expect(overlay(page)).toHaveCount(0);
+  await page.keyboard.press("w");
+  await expect(overlay(page, "limits")).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(overlay(page)).toHaveCount(0);
   await page.keyboard.press("Escape");
   await expect(page).toHaveURL(/\/valley$/);
+  await expect(readoutOn(page)).toBeVisible({ timeout: 90_000 });
 });
 
-test("a flat instrument offers no view control and no R", async ({ page }) => {
+test("a flat view offers no view control and no R", async ({ page }) => {
   await page.goto("/instruments/rainfall");
   await expect(page.locator("[data-season]").first()).toBeVisible({ timeout: 60_000 });
   await expect(page.locator("[data-view-control]")).toHaveCount(0);
-  await expect(page.locator("[data-key-legend] [data-key]")).toHaveText([
-    "EscBack",
-    "/Ask",
-    "SSources",
-  ]);
+  await expect(keysOf(page)).toHaveText(["/Ask", "SSources", "WLimits", "EscBack"]);
 });
 
-test("a finding opens on its own side with its footprint named, and a turned land clears the arc", async ({
+test("the answer's sheet is named on the land, clear of the column and the key bar, and the land still turns under it", async ({
   page,
 }) => {
-  await page.goto("/valley");
-  await expect(page.locator("[data-overview-root]")).toHaveAttribute("data-ready", "", {
-    timeout: 60_000,
-  });
-  // 24.7% sits on the arc's left: its record opens on the left, with the slope key and what the land shows
-  await page.locator("[data-finding='fdr']").click();
-  const left = page.locator("[data-record='fdr']");
-  await expect(left).toHaveAttribute("data-side", "left");
-  await expect(left.locator("[data-slope-key]")).toBeVisible();
-  // decision 16: the card keeps the trend map's rule; the land shows the cells
-  await expect(left.locator("[data-on-land]")).toHaveText(
-    "Colors show each cell's trend, not which cells pass the check.",
-  );
-  // no ring label stays while a record is open, and the case question steps aside for a record on the left
-  const opacity = (sel: string) =>
-    page.locator(sel).evaluate((el) => Number(getComputedStyle(el).opacity));
-  await expect.poll(() => opacity("[data-case-question]")).toBeLessThan(0.05);
-  await expect.poll(() => opacity("[data-finding='band']")).toBeLessThan(0.05);
-  await page.keyboard.press("Escape");
-  await expect(page.locator("[data-record]")).toHaveCount(0);
-  await expect.poll(() => opacity("[data-case-question]")).toBeGreaterThan(0.95);
-  // the pixel sits on the right: its record opens on the right, and the question stays
-  await page.locator("[data-finding='pixel']").click();
-  await expect(page.locator("[data-record='pixel']")).toHaveAttribute("data-side", "right");
-  await expect.poll(() => opacity("[data-case-question]")).toBeGreaterThan(0.95);
-  await page.keyboard.press("Escape");
-  await expect(page.locator("[data-record]")).toHaveCount(0);
-  // a turned land clears the arc's labels; R brings the pose and the labels back
+  const readout = await atTheAnswer(page);
+  // the measured finding's sheet stands on the land as the answer's proof, named right of the column; no finding
+  // label is left round the arc
+  const sheet = page.locator("[data-overview-root] [data-layer-stack] [data-sheet='trend']");
+  await expect(sheet).toHaveCSS("visibility", "visible", { timeout: 15_000 });
+  await expect.poll(() => shownLabels(page)).toBe(0);
+  /** A box drawn by an element and its children (the label's own box is placed by a transform). */
+  const drawn = () =>
+    sheet.evaluate((el) => {
+      const rs = [el, ...Array.from(el.querySelectorAll("*"))]
+        .map((e) => e.getBoundingClientRect())
+        .filter((r) => r.width > 0 && r.height > 0);
+      const x0 = Math.min(...rs.map((r) => r.left));
+      const y0 = Math.min(...rs.map((r) => r.top));
+      return {
+        x: x0,
+        y: y0,
+        width: Math.max(...rs.map((r) => r.right)) - x0,
+        height: Math.max(...rs.map((r) => r.bottom)) - y0,
+      };
+    });
+  const meet = (
+    a: { x: number; y: number; width: number; height: number },
+    b: { x: number; y: number; width: number; height: number },
+  ) => a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height;
+  const [caption, rail, keys] = await Promise.all([
+    drawn(),
+    columnBox(page),
+    page.locator("[data-key-legend]").boundingBox(),
+  ]);
+  if (!keys) throw new Error("the key bar");
+  expect(caption.x).toBeGreaterThan(rail.x + rail.width);
+  expect(meet(caption, rail)).toBe(false);
+  expect(meet(caption, keys)).toBe(false);
+  // a drag turns the land under the answer, which stays
   await page.mouse.move(900, 500);
   await page.mouse.down();
   for (let i = 0; i < 20; i++) await page.mouse.move(900 - i * 8, 500);
   await page.mouse.up();
   await expect(page.locator("[data-view-moved]")).toHaveCount(1);
-  await page.keyboard.press("r");
-  await expect(page.locator("[data-view-moved]")).toHaveCount(0);
-  await expect.poll(() => opacity("[data-finding='band']")).toBeGreaterThan(0.95);
+  await expect(readout).toBeVisible();
+  expect(await crumbsOf(page)).toEqual([PLACE, FINDINGS]);
 });

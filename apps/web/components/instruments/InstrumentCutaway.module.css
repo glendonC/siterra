@@ -36,55 +36,37 @@
   pointer-events: none;
 }
 
-/* the briefing: one large figure, its unit line, one grey qualifying line with a source chip */
+/* the briefing, on the breadcrumb's left edge: the headline in the answer's type, the record's figure and its unit
+   under it, and one line on how sure the bands are */
 .brief {
   position: absolute;
-  left: 48px;
+  left: 40px;
   top: 36px;
-  width: 640px;
-  margin: 0;
+  width: 560px;
   pointer-events: none;
 }
 
-.fig {
-  display: block;
-  font-size: 56px;
-  line-height: 60px;
-  font-weight: 300;
-  letter-spacing: -0.5px;
+.lead {
+  margin: 0;
+  font: 400 25px / 32px var(--font-sans);
+  letter-spacing: -0.012em;
+  text-wrap: pretty;
+  color: var(--text-primary);
 }
 
 .unit {
-  display: block;
-  margin-top: 4px;
-  font-size: 17px;
-  line-height: 24px;
-  white-space: nowrap;
+  margin: 8px 0 0;
+  font-size: 16px;
+  line-height: 22px;
+  color: var(--text-primary);
 }
 
 .qual {
-  display: block;
-  margin-top: 4px;
+  margin: 6px 0 0;
   font-size: 14px;
   line-height: 20px;
   color: var(--text-secondary);
-  white-space: nowrap;
-}
-
-.chip {
-  display: inline-block;
-  min-width: 18px;
-  height: 18px;
-  padding: 0 4px;
-  margin-left: 6px;
-  border: 1px solid var(--hairline);
-  border-radius: 3px;
-  font-family: var(--font-mono);
-  font-size: 12px;
-  line-height: 16px;
-  text-align: center;
-  color: var(--text-secondary);
-  vertical-align: 1px;
+  text-wrap: pretty;
 }
 
 /* words that belong to the model, placed after every render */
@@ -104,12 +86,11 @@
   width: 240px;
 }
 
+/* the band's name as written: no capitals, which would turn its metres into "M" */
 .bandName {
   font-size: 13px;
   line-height: 18px;
   font-weight: 500;
-  letter-spacing: 2.2px;
-  text-transform: uppercase;
   white-space: nowrap;
 }
 
@@ -186,15 +167,19 @@
   border-radius: 1px;
 }
 
+/* a halo of the ground keeps the ruler readable where it crosses the model's wall */
 .tickLabel {
   font-family: var(--font-mono);
   font-size: 12px;
   line-height: 14px;
   color: var(--text-secondary);
   white-space: nowrap;
+  text-shadow: var(--paper-halo);
 }
 
+/* on the lit section face: dark ink on a light wall, so no halo of the ground round it */
 .onWall {
+  text-shadow: none;
   color: var(--ink-on-wall);
   font-weight: 500;
 }
@@ -217,45 +202,68 @@
   color: var(--ink-on-wall);
 }
 
+/* open, the statement's words keep within the section face's width; the words at the section's foot, which they would
+   run into, step aside at once while they are open */
 .onWallText[data-open] {
-  width: 540px;
+  width: 480px;
 }
 
-/* a published statement waits as a numbered chip on the section; its words open beside it */
+.root:has([data-statement][data-open]) [data-section-foot] {
+  opacity: 0;
+  transition: none;
+}
+
+/* a published statement waits on the section as the plain name of the part it describes, a text button with the
+   shared hover and open background standing 6 px past its words (taken back as margin, so no word moves); its words
+   open under it */
 .statementChip {
   display: inline-block;
-  width: 24px;
-  height: 24px;
-  padding: 0;
-  border: 1px solid var(--control-line);
-  border-radius: 50%;
-  background: var(--bg-canvas);
-  font-family: var(--font-mono);
-  font-size: 12px;
-  line-height: 22px;
-  text-align: center;
-  color: var(--control-ink);
-  text-shadow: none;
+  margin: -2px -6px;
+  padding: 2px 6px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  font: inherit;
+  font-weight: 500;
+  color: inherit;
+  text-shadow: inherit;
   cursor: pointer;
   pointer-events: auto;
-  vertical-align: middle;
+  transition: background-color 140ms ease;
 }
 
 .statementChip:hover,
-.statementChip:focus-visible,
 .statementChip[aria-expanded="true"] {
-  background: var(--control-fill);
-  border-color: var(--control-line-strong);
+  background: var(--trace-fill);
 }
 
+/* on the lit section face the fill is the wall's ink, as its words are */
+.onWallText .statementChip:hover,
+.onWallText .statementChip[aria-expanded="true"] {
+  background: color-mix(in srgb, var(--ink-on-wall) 8%, transparent);
+}
+
+.statementChip:focus-visible {
+  outline: 2px solid var(--text-primary);
+  outline-offset: 0;
+}
+
+.onWallText .statementChip:focus-visible {
+  outline-color: var(--ink-on-wall);
+}
+
+/* open, a statement's words stand on a card of the ground, as the pixel's cards stand on the land, so they read on
+   the section face, the land or the ground past it in either theme */
 .statementText {
   display: block;
   margin-top: 6px;
-}
-
-.onWallText .chip {
-  color: var(--ink-on-wall);
-  border-color: var(--hairline-on-wall);
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: var(--ov-card);
+  backdrop-filter: blur(14px) saturate(0.7);
+  font-weight: 400;
+  color: var(--text-secondary);
+  text-shadow: none;
 }
 
 .side,
@@ -336,8 +344,7 @@
 
 /* the quiet line while the section is still drawn */
 .drawing {
-  display: block;
-  margin-top: 6px;
+  margin: 6px 0 0;
   font-size: 13px;
   line-height: 18px;
   color: var(--text-tertiary);

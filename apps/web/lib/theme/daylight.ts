@@ -48,3 +48,40 @@ export const ndviDeparture = {
   above2: "#4eb293",
   above3: "#16866a",
 } as const;
+
+/**
+ * The instrument views in daylight (they follow the app's theme): their ground and accent, the leaders, the cutaway's
+ * lines and snow ramp, and the pixel's neutral chart colours. The data ramps that read on either ground (land cover
+ * classes, the June NDVI steps) stay the Obsidian ones (lib/theme/obsidian.ts pixelColours).
+ */
+export const daylightInstruments = {
+  canvas: "#f2efea",
+  accent: "#b5561f",
+  /** Leaders: ink at 55% and 85%; across the lit section face, the on-wall ink at 70%. */
+  leaderQuiet: "rgb(43 41 37 / 0.55)",
+  leaderDot: "rgb(43 41 37 / 0.85)",
+  leaderOnWall: "rgb(19 26 29 / 0.7)",
+  /** The cutaway's ruler and catchment line on the paper ground. */
+  line: "#3d3a35",
+  /** Snow-covered share, none to all: paper to a deep cold blue. */
+  snow: ["#e6edf2", "#b4cadc", "#6d98bf", "#2e6696"],
+  pixel: {
+    locatorGround: "#e4ded4",
+    locatorOutline: "rgb(43 41 37 / 0.45)",
+    /** The locator's slope key: the paper neutral, and data.ndvi-departure's light arms (below, above). */
+    slopeNeutral: "#e4ded4",
+    slopeBelow: [ndviDeparture.below1, ndviDeparture.below2, ndviDeparture.below3],
+    slopeAbove: [ndviDeparture.above1, ndviDeparture.above2, ndviDeparture.above3],
+    noValue: "#d9d3c9",
+    cellLine: "rgb(242 239 234 / 0.55)",
+    veil: "rgb(242 239 234 / 0.74)",
+    gridLine: "rgb(43 41 37 / 0.12)",
+    bandShade: "rgb(43 41 37 / 0.05)",
+    axis: "#87837d",
+    ink2: "#6b6762",
+    ink: "#2b2925",
+    series: "#3a8a3c",
+    connector: "rgb(43 41 37 / 0.35)",
+    connectorWarm: "rgb(181 86 31 / 0.7)",
+  },
+} as const;

@@ -1,18 +1,19 @@
 "use client";
 
-// The field plan, in the instruments' A to C manner, drawn as a dashed blueprint and labelled proposed: the branch
-// merge's explanations across the top with the status the merge gave each, and every proposed field check as a
-// dashed row joining the explanations it tells apart. Caption and records come from the case (the field plan spec
-// and the merge it names). A case without a field plan spec shows why the composer opened none.
+// The field plan, drawn as a dashed blueprint: the explanations across the top with the verdict the record gives
+// each, in the answer's three words (Fits, Not enough data, Does not fit), and every field check as a dashed row
+// joining the explanations it tells apart. Caption and records come from the case (the field plan spec and the
+// record it names). A case without a field plan spec shows why none was opened.
 
 import { en, format, type MessageId } from "../../lib/copy/en";
+import { rd, type ReadoutMessageId } from "../../lib/copy/readout";
 import { keepTogether } from "../../lib/instruments/caption";
 import { fieldPlanFrom, type FieldPlanData } from "../../lib/instruments/fieldplan/data";
 import { plainReason } from "../../lib/instruments/fieldplan/reason";
-import { obsidian, pixelColours as C } from "../../lib/theme/obsidian";
 import styles from "./InstrumentFieldPlan.module.css";
 import { Fragment, useEffect, useId, useRef } from "react";
 import { useBlockedReasons, useInstrument } from "./InstrumentRecords";
+import { STAGE_MARGIN, useShellPalette } from "./ShellContext";
 
 export const FIELD_PLAN_DESIGN = { width: 1440, height: 900 } as const;
 
@@ -21,7 +22,10 @@ const COLUMNS = { first: 200, step: 260, head: 196 } as const;
 const ROWS = { first: 470, step: 150 } as const;
 const OPEN = "cannot_be_assessed";
 
+// the answer's own verdict words where it has one; the record's other states by the catalog's names
 const statusLabel = (status: string) => {
+  const verdict = `readout.verdict.${status}`;
+  if (verdict in rd) return rd[verdict as ReadoutMessageId].text;
   const id = `branches.status.${status}` as MessageId;
   return id in en ? en[id].text : status;
 };
@@ -39,6 +43,8 @@ export function InstrumentFieldPlan() {
   const rootRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const record = useInstrument("field_plan");
+  const pal = useShellPalette();
+  const C = pal.pixel;
   const blocked = useBlockedReasons("field_plan");
   const descriptionId = useId();
 
@@ -51,9 +57,12 @@ export function InstrumentFieldPlan() {
         root.clientWidth / FIELD_PLAN_DESIGN.width,
         root.clientHeight / FIELD_PLAN_DESIGN.height,
       );
-      const left = (root.clientWidth - FIELD_PLAN_DESIGN.width * s) / 2;
+      // the design's 40 px left margin on the screen's, under the breadcrumb, whatever the scale
+      const left = STAGE_MARGIN * (1 - s);
       const top = (root.clientHeight - FIELD_PLAN_DESIGN.height * s) / 2;
       stage.style.transform = `translate(${left.toFixed(1)}px, ${top.toFixed(1)}px) scale(${s.toFixed(4)})`;
+      // the stage's type keeps to 12 px on screen at any scale (the module's --min-type)
+      stage.style.setProperty("--stage-scale", s.toFixed(4));
     };
     const observer = new ResizeObserver(fitStage);
     observer.observe(root);
@@ -77,7 +86,7 @@ export function InstrumentFieldPlan() {
   const layout = data ? plan(data) : null;
 
   return (
-    <div ref={rootRef} className={styles.root} data-theme="obsidian" data-instrument="field">
+    <div ref={rootRef} className={styles.root} data-instrument="field">
       <p id={descriptionId} className={styles.srOnly}>
         {en["instrument.fieldPlan.description"].text}
       </p>
@@ -131,7 +140,7 @@ export function InstrumentFieldPlan() {
                       x2={Math.max(...xs)}
                       y1={y}
                       y2={y}
-                      stroke={obsidian.accent}
+                      stroke={pal.accent}
                       strokeWidth={1}
                       strokeDasharray="4 4"
                     />
@@ -141,8 +150,8 @@ export function InstrumentFieldPlan() {
                         cx={layout.x(id)}
                         cy={y}
                         r={4}
-                        fill={obsidian.canvas}
-                        stroke={obsidian.accent}
+                        fill={pal.canvas}
+                        stroke={pal.accent}
                         strokeWidth={1.5}
                       />
                     ))}
@@ -170,13 +179,18 @@ export function InstrumentFieldPlan() {
               const y = ROWS.first + i * ROWS.step;
               return (
                 <Fragment key={c.id}>
-                  <div className={styles.checkHead} style={{ left: left - 4, top: y - 34 }}>
+                  <div
+                    className={styles.checkHead}
+                    style={{ left: left - 4, top: y - 34 }}
+                    data-ask-aside
+                  >
                     <span className={styles.checkLabel}>{c.label}</span>
-                    <span className={styles.proposed}>
-                      {en["instrument.fieldPlan.proposed"].text}
-                    </span>
                   </div>
-                  <div className={styles.checkNote} style={{ left: left - 4, top: y + 12 }}>
+                  <div
+                    className={styles.checkNote}
+                    style={{ left: left - 4, top: y + 12 }}
+                    data-ask-aside
+                  >
                     {format("instrument.fieldPlan.separates", {
                       pairs: c.separates
                         .map(([a, b]) =>
@@ -193,6 +207,7 @@ export function InstrumentFieldPlan() {
                       key={`${a} ${b}`}
                       className={styles.checkNote}
                       style={{ left: left - 4, top: y + 30 }}
+                      data-ask-aside
                     >
                       {format("instrument.fieldPlan.only", {
                         a: layout.label(a),
@@ -203,7 +218,9 @@ export function InstrumentFieldPlan() {
                 </Fragment>
               );
             })}
-            <p className={styles.footnote}>
+            {/* the checks' words and the footnote stand where the open Ask's line and suggestions do: they step
+                aside while it is open */}
+            <p className={styles.footnote} data-ask-aside>
               {data.unseparated.length === 0
                 ? en["instrument.fieldPlan.unseparated.none"].text
                 : format("instrument.fieldPlan.unseparated", {

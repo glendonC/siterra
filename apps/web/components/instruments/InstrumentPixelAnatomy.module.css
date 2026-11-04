@@ -1,5 +1,5 @@
-/* The pixel anatomy instrument, in the Obsidian tokens of app/obsidian.css: a 1440 x 900 stage
-   scaled to fit, the caption at the top left, six numbered panels, the live mix model, the credit line. */
+/* Inside One Pixel, in the theme's tokens: a 1440 x 900 stage scaled to fit, the caption at the top left and six
+   numbered steps; in place over the land, the steps stand in one list that opens one step at a time. */
 
 .root {
   position: absolute;
@@ -80,40 +80,19 @@
   color: var(--text-tertiary);
 }
 
-.chip {
-  position: relative;
-  display: inline-block;
-  min-width: 18px;
-  height: 18px;
-  margin: 0 0 0 6px;
-  padding: 0 5px;
-  border: 0;
-  border-radius: 4px;
-  background: var(--bg-overlay);
-  color: var(--text-secondary);
-  font: 500 12px/18px var(--font-mono);
-  vertical-align: 3px;
-  cursor: help;
+/* under the statement: the trend's figure as its detail, then what covers the pixel */
+.captionDetail {
+  margin-top: 4px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--text-primary);
 }
 
-.chipTip {
-  display: none;
-  position: absolute;
-  left: 0;
-  top: 24px;
-  z-index: 5;
-  width: 360px;
-  padding: 10px 12px;
-  border-radius: 6px;
-  background: var(--bg-overlay);
+.captionGrey {
+  margin-top: 8px;
+  font-size: 14px;
+  line-height: 20px;
   color: var(--text-secondary);
-  font: 400 12px/17px var(--font-sans);
-  text-align: left;
-}
-
-.chip:hover .chipTip,
-.chip:focus-visible .chipTip {
-  display: block;
 }
 
 .panelHead {
@@ -179,19 +158,24 @@
   color: var(--text-primary);
 }
 
+/* one grid for the whole table, so its columns line up whatever the type size */
 .specTable {
   display: grid;
+  grid-template-columns: 18px 1fr auto auto;
+  column-gap: 8px;
   row-gap: 1px;
+  align-items: center;
 }
 
 .specRow {
-  display: grid;
-  grid-template-columns: 18px 1fr 70px 64px;
-  column-gap: 6px;
-  align-items: center;
+  display: contents;
   font-size: 12px;
   line-height: 15px;
   color: var(--text-secondary);
+}
+
+.specRow > * {
+  white-space: nowrap;
 }
 
 .lineKey {
@@ -217,10 +201,11 @@
   color: var(--accent);
 }
 
+/* a cover's name under its segment of the bar: placed at the segment's middle and centred on it by its own width
+   (scene-picking.ts) */
 .segLabel {
   position: absolute;
-  width: 90px;
-  text-align: center;
+  width: max-content;
   white-space: nowrap;
   font-size: 12px;
   line-height: 16px;
@@ -266,38 +251,45 @@
   color: var(--text-secondary);
 }
 
-/* the one control style (components/controls): pill, hairline, faint fill on hover and focus, its key's chip inside */
+/* a text button: no border, the shared hover background (as the answer's rows), its key in the key bar's chip */
 .textButton {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  height: 24px;
-  padding: 0 4px 0 10px;
-  border: 1px solid var(--control-line);
-  border-radius: 999px;
-  background: none;
+  height: 30px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
   color: var(--control-ink);
   font: 400 13px / 18px var(--font-sans);
   cursor: pointer;
+  transition: background-color 140ms ease;
 }
 
-.textButton:hover,
+/* the hover background waits for the pointer to move over the view: a pointer left resting where the answer's row was
+   clicked would otherwise light the row that opens under it, which then reads as a second open step */
+.stage[data-pointer-moved] .textButton:hover {
+  background: var(--trace-fill);
+}
+
 .textButton:focus-visible {
-  background: var(--control-fill);
-  border-color: var(--control-line-strong);
+  outline: 2px solid var(--text-primary);
+  outline-offset: 2px;
 }
 
+/* the key bar's chip (components/controls KeyChip): a 22 px keycap, mono 12 */
 .textButton kbd {
   display: inline-grid;
   place-items: center;
-  min-width: 20px;
-  height: 18px;
-  padding: 0 4px;
-  border: 1px solid var(--control-line);
-  border-radius: 4px;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 5px;
+  border-radius: 3px;
   font: 500 12px / 1 var(--font-mono);
-  color: var(--control-grey);
-  background: var(--control-chip);
+  letter-spacing: 0.03em;
+  color: var(--keycap-ink);
+  background: var(--keycap-bg);
 }
 
 .credit {
@@ -324,6 +316,13 @@
   white-space: nowrap;
 }
 
+/* on the view's own page: the name of the paint the large cells show, under them */
+.heroName {
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--text-secondary);
+}
+
 /* in place over the land: no ground of its own; each panel on a frosted card, the land showing between them */
 .root[data-around] {
   background: transparent;
@@ -334,16 +333,6 @@
   background: var(--ov-card);
   backdrop-filter: blur(14px) saturate(0.7);
   pointer-events: none;
-}
-
-.paintButton {
-  padding: 0 10px;
-}
-
-.paintButton[aria-pressed="true"] {
-  color: var(--text-primary);
-  border-color: var(--control-line-strong);
-  background: var(--control-fill);
 }
 
 /* a panel's own part in place: moved, stacked or waiting as a chip by the scene */
@@ -361,10 +350,41 @@
   pointer-events: auto;
 }
 
-.paintRow {
+/* the cells' paint: one text segmented control, the chosen paint on the shared selected background */
+.segmented {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 2px;
+}
+
+.segment {
+  height: 28px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--text-secondary);
+  font: 400 13px / 18px var(--font-sans);
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color 140ms ease,
+    color 140ms ease;
+}
+
+.stage[data-pointer-moved] .segment:hover {
+  background: var(--trace-fill);
+}
+
+.segment[aria-pressed="true"] {
+  background: var(--trace-fill);
+  color: var(--text-primary);
+}
+
+.segment:focus-visible,
+.stepRow:focus-visible {
+  outline: 2px solid var(--text-primary);
+  outline-offset: 2px;
 }
 
 /* a key belongs to the paint the cells carry; the others step out */
@@ -372,33 +392,83 @@
   display: none;
 }
 
-/* 01, 04 and 06 waiting in the left column: their number and title, opening their card beside the column */
-.partChip {
-  gap: 8px;
-  padding: 0 12px;
-}
-
-.partChip[aria-expanded="true"] {
-  border-color: var(--control-line-strong);
-  background: var(--control-fill);
-}
-
-/* the chips in one row under the caption */
-.chipRow {
+/* in place, a step's row in the list: its number in mono as the key bar's chips write it, then its name; the open
+   step keeps its place on the shared selected background, its content opening under it */
+.stepRow {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-/* in place, 06's step to what the check would record and its published context */
-.contextStep {
-  padding: 0 10px;
-}
-
-.fieldContext {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  overflow-y: auto;
+  align-items: center;
+  gap: 12px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--text-primary);
+  font: 400 14px / 20px var(--font-sans);
+  text-align: left;
+  cursor: pointer;
   pointer-events: auto;
+  transition: background-color 140ms ease;
+}
+
+.stage[data-pointer-moved] .stepRow:hover,
+.stepRow[aria-expanded="true"] {
+  background: var(--trace-fill);
+}
+
+.stepNum {
+  font: 500 12px / 1 var(--font-mono);
+  letter-spacing: 0.03em;
+  color: var(--text-tertiary);
+}
+
+.stepRow[aria-expanded="true"] .stepNum {
+  color: var(--text-secondary);
+}
+
+/* no word under 12 px on screen: the stage is scaled to fit the window, so type that would land under 12 px grows,
+   in the stage's own px, until it lands on 12 (its line height grows with it) */
+.stage {
+  --min-type: calc(12px / var(--stage-scale, 1));
+}
+
+.stage
+  :is(
+    .t12,
+    .num,
+    .panelDetail,
+    .note,
+    .barCaption,
+    .roKey,
+    .roMeasured,
+    .citation,
+    .multTitle,
+    .classRow,
+    .segLabel,
+    .roGloss,
+    .recordsItem,
+    .stepNum,
+    .textButton kbd
+  ) {
+  font-size: max(12px, var(--min-type));
+  line-height: max(16px, calc(var(--min-type) * 1.333));
+}
+
+.stage :is(.specRow) {
+  font-size: max(12px, var(--min-type));
+  line-height: max(15px, calc(var(--min-type) * 1.25));
+}
+
+.stage :is(.modelLabel, .proposed, .roDelta, .meaning, .textButton, .segment, .heroName) {
+  font-size: max(13px, var(--min-type));
+  line-height: max(18px, calc(var(--min-type) * 1.385));
+}
+
+.stage :is(.captionKey, .captionDetail, .captionGrey, .stepRow) {
+  font-size: max(14px, var(--min-type));
+  line-height: max(20px, calc(var(--min-type) * 1.429));
+}
+
+.stage :is(.title) {
+  font-size: max(15px, var(--min-type));
+  line-height: max(20px, calc(var(--min-type) * 1.333));
 }

@@ -1,45 +1,89 @@
 "use client";
 
-// The briefing shell around one instrument (the lead's decisions 1 to 5, 30 Oct 2026): a breadcrumb with a back arrow
-// at the top left ("Siterra / Aït Bouguemez valley / Cutaway"; Esc goes back to the valley, the Siterra crumb to the
-// opening), the quiet switcher between the views at the top right, the instrument below them in its own stage area,
-// the ask resting at the bottom centre, the keys that work now at the bottom right with the instrument's sources
-// behind S and one short line of the data's names, and a view control (reset R, zoom) for the 3D instruments. The ask's
-// circle or "/" opens it; Enter carries the typed text to the overview at /valley; nothing is sent from here.
+// The briefing shell around one instrument: the breadcrumb at the top left as on the overview, starting at the place
+// ("Aït Bouguemez valley / Findings / Elevation Bands"; Esc and each parent crumb go back to the overview), the theme
+// toggle at the top right where the answer has it, the instrument below them in its own stage area, the keys that work
+// now at the bottom right in the answer's order (Esc Back last) with the case's sources behind S and its limits behind
+// W (one overlay, components/controls/SourcesOverlay.tsx), and a view control (reset R, zoom) for the 3D instruments.
+// "/" or the key bar's "/ Ask" opens the ask as the overview opens it, with the same suggested questions; Enter carries
+// the typed text to the overview at /valley; nothing is sent from here.
 
 import type { CaseSnapshot, InstrumentListing } from "@siterra/contracts";
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
-import { en, type MessageId } from "../../lib/copy/en";
-import { ASK_AT } from "../../lib/overview/arc";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+  type RefObject,
+} from "react";
+import { en } from "../../lib/copy/en";
+import { VIEW_LABEL } from "../../lib/overview/actions";
 import { placeNamesFromCase } from "../../lib/projection/arrival";
 import { carryQuestion } from "../../lib/shell/handoff";
+import { THEME_KEY, savedTheme, themeOf, type AppTheme } from "../../lib/theme/instruments";
 import {
   Breadcrumb,
-  ModeLine,
   KeyLegend,
-  OPENING_HREF,
-  SourcesLine,
-  SourcesPanel,
   ViewControl,
   typing,
   type KeyEntry,
   type SourceSet,
 } from "../controls/ScreenChrome";
+import { SourcesOverlay, type SourcesTab } from "../controls/SourcesOverlay";
+import { ThemeIcon } from "../opening/Opening";
 import { Ask } from "../overview/Ask";
 import { InstrumentRecords, useInstrumentRecords } from "./InstrumentRecords";
-import { ShellContext, type ViewHandle } from "./ShellContext";
+import { ShellContext, ShellTheme, type ViewHandle } from "./ShellContext";
 import styles from "./InstrumentShell.module.css";
 
 export type InstrumentId = "layers" | "cutaway" | "pixel" | "rainfall" | "field";
 
-/** Each view's name in the breadcrumb. */
-const VIEW_NAME: Record<InstrumentId, MessageId> = {
-  layers: "instrument.shell.layers",
-  cutaway: "instrument.shell.cutaway",
-  pixel: "instrument.shell.pixel",
-  rainfall: "instrument.shell.rainfall",
-  field: "instrument.shell.field",
-};
+/**
+ * The app's theme for the shell: inside the overview (a view opened in place) the overview's own, followed as it
+ * changes; on a view's own address the visitor's saved choice, as the overview reads it. Daylight until it is read.
+ * The toggle hands the change to the overview where it was given one, else switches here and saves the choice.
+ */
+function useAppTheme(
+  ref: RefObject<HTMLElement | null>,
+  onToggle: (() => void) | undefined,
+): [AppTheme, () => void] {
+  const [theme, setTheme] = useState<AppTheme>("light");
+  const [own, setOwn] = useState<AppTheme | null>(null);
+  // before the first paint, so a view opened over a dark overview never shows a light frame
+  useLayoutEffect(() => {
+    const host = ref.current?.parentElement?.closest("[data-theme]") ?? null;
+    const read = () => {
+      setTheme(host ? themeOf(host.getAttribute("data-theme")) : savedTheme());
+      setOwn(null);
+    };
+    read();
+    if (!host) return;
+    const watch = new MutationObserver(read);
+    watch.observe(host, { attributes: true, attributeFilter: ["data-theme"] });
+    return () => {
+      watch.disconnect();
+    };
+  }, [ref]);
+  const shown = own ?? theme;
+  const toggle = useCallback(() => {
+    if (onToggle) {
+      onToggle();
+      return;
+    }
+    const next: AppTheme = shown === "obsidian" ? "light" : "obsidian";
+    setOwn(next);
+    try {
+      window.localStorage.setItem(THEME_KEY, next);
+    } catch {
+      // a browser that keeps nothing still shows the switch for this visit
+    }
+  }, [onToggle, shown]);
+  return [shown, toggle];
+}
 
 // a full load; the way back to the overview keeps the address's query (the place, ?case=), so it opens the same place
 const go = (href: string) => {
@@ -52,6 +96,7 @@ export function InstrumentShell({
   onBack,
   tearing,
   finding,
+  onToggleTheme,
   children,
 }: {
   current: InstrumentId;
@@ -64,33 +109,52 @@ export function InstrumentShell({
   onBack?: () => void;
   /** True while the land is being taken apart or put back: the shell's chrome waits, and no key but Esc acts. */
   tearing?: boolean;
-  /** The finding the view was opened from (its crumb plays the view back to that finding's record). */
+  /** The crumb of the overview level the view was opened from (its crumb plays the view back to it). */
   finding?: string;
+  /** The overview's own theme switch, where it opened this view in place. */
+  onToggleTheme?: () => void;
   children: ReactNode;
 }) {
   const [sources, setSources] = useState<SourceSet | null>(null);
   const [view, setView] = useState<ViewHandle | null>(null);
   const slots = useMemo(() => ({ setSources, setView }), []);
+  const ref = useRef<HTMLDivElement>(null);
+  const [theme, toggleTheme] = useAppTheme(ref, onToggleTheme);
   return (
     <div
+      ref={ref}
       className={styles.shell}
-      data-theme="obsidian"
+      data-theme={theme}
       data-shell={current}
       data-tearing={tearing ? "" : undefined}
     >
-      <ShellContext.Provider value={slots}>
-        <InstrumentRecords records={records}>
-          <div className={styles.stage}>{children}</div>
-          <ShellChrome
-            current={current}
-            sources={sources}
-            view={view}
-            onBack={onBack}
-            tearing={tearing ?? false}
-            finding={finding ?? null}
-          />
-        </InstrumentRecords>
-      </ShellContext.Provider>
+      <ShellTheme.Provider value={theme}>
+        <ShellContext.Provider value={slots}>
+          <InstrumentRecords records={records}>
+            <div className={styles.stage}>{children}</div>
+            <button
+              type="button"
+              className={styles.themeButton}
+              onClick={toggleTheme}
+              aria-label={
+                en[theme === "obsidian" ? "chrome.theme.light" : "chrome.theme.dark"].text
+              }
+              title={en[theme === "obsidian" ? "chrome.theme.light" : "chrome.theme.dark"].text}
+              data-theme-toggle
+            >
+              <ThemeIcon theme={theme} />
+            </button>
+            <ShellChrome
+              current={current}
+              sources={sources}
+              view={view}
+              onBack={onBack}
+              tearing={tearing ?? false}
+              finding={finding ?? null}
+            />
+          </InstrumentRecords>
+        </ShellContext.Provider>
+      </ShellTheme.Provider>
     </div>
   );
 }
@@ -113,9 +177,8 @@ function ShellChrome({
   const records = useInstrumentRecords();
   const valley =
     records.status === "ready" ? placeNamesFromCase(records.snapshot).valleyName : null;
-  const label = VIEW_NAME[current];
-  const question = records.status === "ready" ? records.snapshot.case.objective : null;
-  // the ask disc rests where the overview's rests, on the arc's start, scaled with the 1440 x 900 design
+  // the open ask stands in the 1440 x 900 design scaled to the window, as on the overview: its suggestions and keys
+  // keep to the screen's own margins through the same frame variables
   const [fit, setFit] = useState({ s: 1, ox: 0, oy: 0 });
   useEffect(() => {
     const onResize = () => {
@@ -132,7 +195,12 @@ function ShellChrome({
   }, []);
   const [askOpen, setAskOpen] = useState(false);
   const [text, setText] = useState("");
-  const [panel, setPanel] = useState(false);
+  // the sources and limits overlay and its open tab, from the case record once it is read
+  const [sheet, setSheet] = useState<SourcesTab | null>(null);
+  const snapshot = records.status === "ready" ? records.snapshot : null;
+  const closeSheet = useCallback(() => {
+    setSheet(null);
+  }, []);
   const onOpen = useCallback(() => {
     setAskOpen(true);
   }, []);
@@ -153,7 +221,8 @@ function ShellChrome({
     view?.reset();
   }, [view]);
 
-  // the screen's keys: Esc back one level (after the panel), R reset the 3D view, S the sources
+  // the screen's keys: Esc back one level, R reset the 3D view, S the sources and W the limits; while the overlay is
+  // open it has the keys itself (Esc closes it first). S or W pressed before the record is read opens it once it is.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (askOpen || typing(e)) return;
@@ -161,83 +230,97 @@ function ShellChrome({
       if (tearing && e.key !== "Escape") return;
       if (e.key === "Escape") {
         e.preventDefault();
-        if (panel) setPanel(false);
+        if (sheet) setSheet(null);
         else back();
       } else if ((e.key === "r" || e.key === "R") && view) {
         e.preventDefault();
         reset();
-      } else if ((e.key === "s" || e.key === "S") && sources) {
+      } else if (e.key === "s" || e.key === "S") {
         e.preventDefault();
-        setPanel((p) => !p);
+        setSheet("sources");
+      } else if (e.key === "w" || e.key === "W") {
+        e.preventDefault();
+        setSheet("limits");
       }
     };
     window.addEventListener("keydown", onKey);
     return () => {
       window.removeEventListener("keydown", onKey);
     };
-  }, [askOpen, panel, view, sources, back, reset, tearing]);
+  }, [askOpen, view, sheet, back, reset, tearing]);
 
-  // "chrome.key.reset" is shown in ViewControl rather than duplicated in KeyLegend.
+  // the answer's order, Esc Back last; "chrome.key.reset" is shown in ViewControl rather than duplicated here
   const entries: KeyEntry[] = [
-    { chip: "Esc", shortcut: "Escape", label: en["chrome.key.back"].text, onPress: back },
     { chip: "/", shortcut: "/", label: en["chrome.key.ask"].text, onPress: onOpen },
-    ...(sources
+    ...(snapshot
       ? [
           {
             chip: "S",
             shortcut: "S",
             label: en["chrome.key.sources"].text,
             onPress: () => {
-              setPanel((p) => !p);
+              setSheet((t) => (t === "sources" ? null : "sources"));
             },
-            pressed: panel,
+            pressed: sheet === "sources",
+          },
+          {
+            chip: "W",
+            shortcut: "W",
+            label: en["chrome.key.scope"].text,
+            onPress: () => {
+              setSheet((t) => (t === "limits" ? null : "limits"));
+            },
+            pressed: sheet === "limits",
           },
         ]
       : []),
+    { chip: "Esc", shortcut: "Escape", label: en["chrome.key.back"].text, onPress: back },
   ];
+  // the overview's suggested questions for the place, less the case's own question
+  const suggestions =
+    records.status === "ready"
+      ? (records.listing.suggestedQuestions ?? []).filter(
+          (q) =>
+            q.question.trim().toLowerCase() !==
+            records.snapshot.case.objective.trim().toLowerCase(),
+        )
+      : undefined;
+
+  // the frame variables the ask reads to keep its suggestions and keys on the screen's margins (Ask.module.css)
+  const frame = {
+    transform: `translate(${fit.ox.toFixed(1)}px, ${fit.oy.toFixed(1)}px) scale(${fit.s.toFixed(5)})`,
+    "--hud-scale": fit.s.toFixed(5),
+    "--hud-shift-x": `${(fit.ox / fit.s).toFixed(2)}px`,
+    "--hud-shift-y": `${(fit.oy / fit.s).toFixed(2)}px`,
+  } as CSSProperties;
 
   return (
     <>
-      {records.status === "ready" ? <ModeLine mode={records.snapshot.case.mode} /> : null}
-      <Breadcrumb
-        onBack={back}
-        crumbs={[
-          {
-            label: en["opening.title"].text,
-            onSelect: () => {
-              go(OPENING_HREF);
-            },
-          },
-          ...(valley ? [{ label: valley, onSelect: back }] : []),
-          ...(finding ? [{ label: finding, onSelect: back }] : []),
-          { label: en[label].text },
-        ]}
-      />
-      {question ? (
-        <p className={styles.question} data-case-question>
-          {question}
-        </p>
-      ) : null}
+      {/* the trail waits for the place's name, so it does not shift once the record is read */}
+      {records.status === "opening" ? null : (
+        <Breadcrumb
+          crumbs={[
+            ...(valley ? [{ label: valley, onSelect: back }] : []),
+            // the level the view was opened from; a view loaded by its own address goes back to the place's findings
+            { label: finding ?? en["overview.crumb.results"].text, onSelect: back },
+            { label: en[VIEW_LABEL[current]].text },
+          ]}
+        />
+      )}
       {view ? <ViewControl onReset={reset} onZoom={view.zoomBy} /> : null}
-      <KeyLegend entries={entries}>{sources ? <SourcesLine sources={sources} /> : null}</KeyLegend>
-      {sources ? (
-        <SourcesPanel
-          sources={sources}
-          open={panel}
-          onClose={() => {
-            setPanel(false);
-          }}
+      <KeyLegend entries={entries} />
+      {snapshot ? (
+        <SourcesOverlay
+          snapshot={snapshot}
+          tab={sheet}
+          onTab={setSheet}
+          onClose={closeSheet}
+          relief={sources?.relief}
         />
       ) : null}
-      <div
-        className={styles.askPlace}
-        style={{
-          transform: `translate(${fit.ox.toFixed(1)}px, ${fit.oy.toFixed(1)}px) scale(${fit.s.toFixed(5)})`,
-        }}
-      >
+      <div className={styles.askPlace} style={frame}>
         <Ask
-          variant="arc"
-          circleStyle={{ left: `${ASK_AT.x.toFixed(1)}px`, top: `${ASK_AT.y.toFixed(1)}px` }}
+          keysOff={tearing}
           open={askOpen}
           onOpen={onOpen}
           onClose={onClose}
@@ -245,6 +328,7 @@ function ShellChrome({
           onText={setText}
           onEnter={onEnter}
           activity={null}
+          suggestions={suggestions}
         />
       </div>
     </>

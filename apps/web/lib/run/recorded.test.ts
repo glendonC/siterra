@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { Event, type CaseSnapshot } from "@siterra/contracts";
 import { describe, expect, it } from "vitest";
 import { runModel } from "./model";
+import { acceptedAtOf, dayWords } from "./recorded";
 
 // The RECORDED run "Founder instance smoke 1" (specimen R's read-only extract; the lead, 30 Oct: tests and frames
 // only) through the same event model the live stream feeds. Its figures are the specimen's, from the run's records.
@@ -43,5 +44,18 @@ describe("runModel over the recorded run (U29, specimen R)", () => {
     expect(half.done).toBe(false);
     expect(half.merge).toBeNull();
     expect(half.findings.length).toBeLessThan(23);
+  });
+});
+
+describe("the run's day, for the Sources line", () => {
+  it("reads when its command was accepted", () => {
+    expect(acceptedAtOf(events, id)).toBe("2026-10-30T14:52:27.728Z");
+    expect(acceptedAtOf(events, "cmd_not_in_the_run")).toBeNull();
+  });
+
+  it("says the day in words, in UTC", () => {
+    expect(dayWords("2026-10-30T14:52:27.728Z")).toBe("30 October 2026");
+    expect(dayWords("2026-10-30T23:59:59Z")).toBe("30 October 2026");
+    expect(dayWords("not a date")).toBeNull();
   });
 });

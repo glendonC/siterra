@@ -1,4 +1,4 @@
-// "See It Over Time" (UI-2): which of a case's bundles the view reads, found by their records' methods (never by a
+// "Year by Year" (UI-2): which of a case's bundles the view reads, found by their records' methods (never by a
 // place's name), and the reading of their assets through the read API, each refused unless its sha256 is the checksum
 // the API serves. Snow is optional: a case without a snow bundle, or whose bundle records the recipe as not
 // applicable, plays without it.
@@ -7,12 +7,14 @@ import type { CaseSnapshot } from "@siterra/contracts";
 import {
   changeTimingFrom,
   domainOf,
-  driestFrom,
   pixelCellsFrom,
+  rainFrom,
   regionalScanFrom,
   seasonCubeFrom,
+  sharesFrom,
   snowFrom,
   strataFrom,
+  type AreaShares,
   type ChangeTiming,
   type DrySeason,
   type PixelCell,
@@ -75,11 +77,18 @@ export interface TimeData {
   /** The trend asset's own fixed display scale (± domain, neutral half width), NDVI per decade. */
   trendScale: { domain: number; neutral: number };
   snow: SnowBands | null;
+  /** Every season's rain over the catchment in the place's primary rainfall window. */
+  rain: DrySeason[];
+  /** The four driest of them, driest first: the track marks them. */
   driest: DrySeason[];
   strata: StratumSeries[];
+  /** The pixel trend's own shares of the catchment and of each band (by group id) that greened and browned. */
+  shares: { catchment: AreaShares; groups: Map<string, AreaShares> };
   changeTiming: ChangeTiming;
-  regionalScan: RegionalScan;
 }
+
+/** How many of the driest seasons the track marks. */
+export const DRIEST_MARKED = 4;
 
 export interface ScanTimingSummary {
   changeTiming: ChangeTiming;
@@ -112,11 +121,12 @@ export async function loadTimeData(
   signal?: AbortSignal,
 ): Promise<TimeData> {
   const read = (bundle: string, key: string) => readAsset(caseId, bundle, key, fetchImpl, signal);
-  const [bin, header, summary, cells, restrend, seasonTrend] = await Promise.all([
+  const [bin, header, summary, cells, trendSummary, restrend, seasonTrend] = await Promise.all([
     read(src.seasons, "pixel_seasons_bin"),
     read(src.seasons, "pixel_seasons_bin_header"),
     read(src.seasons, "pixel_seasons"),
     read(src.trend, "trend_cells"),
+    read(src.trend, "pixel_trend_long_record"),
     read(src.restrend, "restrend_tables"),
     read(src.seasonTrend, "season_trend_long_record"),
   ]);
@@ -129,6 +139,8 @@ export async function loadTimeData(
   const scale = cellsJson.display_scale;
   if (!scale) throw new Error("trend_cells states no display scale");
   const summaryJson = json(summary);
+  const rain = rainFrom(json(restrend));
+  const { catchment, groups } = sharesFrom(json(trendSummary));
   return {
     cube: seasonCubeFrom(bin, json(header)),
     cells: pixelCellsFrom(cellsJson),
@@ -138,9 +150,10 @@ export async function loadTimeData(
       neutral: scale.neutral_per_decade,
     },
     snow: snow ? snowFrom(json(snow[0]), json(snow[1])) : null,
-    driest: driestFrom(json(restrend)),
+    rain,
+    driest: [...rain].sort((a, b) => a.mm - b.mm).slice(0, DRIEST_MARKED),
     strata: strataFrom(json(seasonTrend)),
+    shares: { catchment, groups },
     changeTiming: changeTimingFrom(summaryJson),
-    regionalScan: regionalScanFrom(summaryJson),
   };
 }

@@ -4,7 +4,7 @@ import { useCallback, type Dispatch, type RefObject, type SetStateAction } from 
 import { nearestOnBox, type Box as CardBox, type Side as CardSide } from "../../lib/overview/card";
 import { clamp01, ease, labelAt, labelSide, lerp, wireTo } from "../../lib/overview/arc";
 import { VIEW_HREF } from "../../lib/overview/actions";
-import { placeCardDom, placeRecordDom, toDesignRect } from "../../lib/overview/hud-layout";
+import { placeCardDom, placeRecordDom } from "../../lib/overview/hud-layout";
 import type { Finding, FindingId } from "../../lib/overview/findings";
 import {
   ROUTE_QUIET,
@@ -20,9 +20,9 @@ import {
 import { goTo } from "./useOverviewControls";
 import type { CellPaint } from "../../lib/instruments/pixel/paint";
 import type { HeightRange } from "../../lib/package/bands";
-import type { Stands } from "../package/PackageBriefing";
 import type { TimeFrame } from "../time/TimeView";
 import type { LifeFrame } from "../life/LifeLayer";
+import type { LayerStackHandle } from "./LayerStack";
 import type { OverviewIntro } from "./ValleyOverview";
 import type { TearState } from "./useOverviewTearInPlace";
 
@@ -50,6 +50,15 @@ export interface RunArcState {
   arc: Point[];
   land: OverviewLayout["landBox"];
   rimLeft: Point | null;
+  /** The split land's sheets once the split stands (layer and left-most point, design px), null while it moves or is
+   *  settled: the steps' cursors point at them. */
+  sheets: { id: string; left: Point }[] | null;
+}
+
+/** Where the overview's land stands on screen (CSS px), and each field check's marker point on it. */
+export interface Stands {
+  points: ({ x: number; y: number; behind: boolean } | null)[];
+  box: { x0: number; y0: number; x1: number; y1: number };
 }
 
 export interface UseOverviewLayoutApplyArgs {
@@ -63,6 +72,7 @@ export interface UseOverviewLayoutApplyArgs {
   goal: RefObject<Live>;
   pkgHandoff: RefObject<boolean>;
   selRef: RefObject<Selection | null>;
+  nextSelRef: RefObject<{ sel: Selection; then: () => void } | null>;
   setSel: Dispatch<SetStateAction<Selection | null>>;
   hudRef: RefObject<HTMLDivElement | null>;
   appearRef: RefObject<number>;
@@ -107,15 +117,12 @@ export interface UseOverviewLayoutApplyArgs {
   } | null>;
   panelRef: RefObject<boolean>;
   selWireRef: RefObject<SVGLineElement | null>;
-  askCircleRef: RefObject<HTMLButtonElement | null>;
   askBesideRef: RefObject<HTMLParagraphElement | null>;
-  askPromptsRef: RefObject<HTMLDivElement | null>;
   fieldRef: RefObject<HTMLButtonElement | null>;
   fieldTagRef: RefObject<HTMLSpanElement | null>;
   endRefs: RefObject<Map<string, HTMLElement>>;
   pickRef: RefObject<string | null>;
-  liftLabelRef: RefObject<HTMLDivElement | null>;
-  liftWireRef: RefObject<SVGLineElement | null>;
+  stackLabelsRef: RefObject<LayerStackHandle | null>;
   idle: RefObject<{
     last: number;
     t0: number | null;
@@ -165,6 +172,7 @@ export function useOverviewLayoutApply(args: UseOverviewLayoutApplyArgs) {
     goal,
     pkgHandoff,
     selRef,
+    nextSelRef,
     setSel,
     hudRef,
     appearRef,
@@ -197,15 +205,12 @@ export function useOverviewLayoutApply(args: UseOverviewLayoutApplyArgs) {
     camTargetRef,
     panelRef,
     selWireRef,
-    askCircleRef,
     askBesideRef,
-    askPromptsRef,
     fieldRef,
     fieldTagRef,
     endRefs,
     pickRef,
-    liftLabelRef,
-    liftWireRef,
+    stackLabelsRef,
     idle,
     startRef,
     pixTagRef,
@@ -290,16 +295,24 @@ export function useOverviewLayoutApply(args: UseOverviewLayoutApplyArgs) {
     }
     const a0 = layout.arcAt[0];
     const a1 = layout.arcAt[layout.arcAt.length - 1];
-    const key = a0 && a1 ? [a0.x, a0.y, a1.x, a1.y].map((v) => v.toFixed(0)).join(",") : "";
+    // the split's sheets go to the steps once the split stands, so the key moves when it stands or the window resizes,
+    // never every frame of its motion
+    const st = layout.stack;
+    const sheets = st.open && st.k >= 1 ? st.sheets.map((s) => ({ id: s.id, left: s.left })) : null;
+    const sheetKey = sheets
+      ? [layout.rimLeft, ...sheets.map((s) => s.left)]
+          .map((p) => (p ? `${p.x.toFixed(0)},${p.y.toFixed(0)}` : "-"))
+          .join(";")
+      : "";
+    const arcKey = a0 && a1 ? [a0.x, a0.y, a1.x, a1.y].map((v) => v.toFixed(0)).join(",") : "";
+    const key = `${arcKey}|${sheetKey}`;
     if (key !== runArcKey.current) {
       runArcKey.current = key;
-      setRunArc({ arc: layout.arcAt, land: layout.landBox, rimLeft: layout.rimLeft });
+      setRunArc({ arc: layout.arcAt, land: layout.landBox, rimLeft: layout.rimLeft, sheets });
     }
     const { s, h, k, o } = live.current;
     const { fit, e } = layout;
-    const pkgQuiet =
-      pkgHandoff.current ||
-      ((selRef.current === "package" || selRef.current === "time") && goal.current.s === 1);
+    const pkgQuiet = pkgHandoff.current || (selRef.current === "time" && goal.current.s === 1);
     const oe = ease(o);
     const selected = selRef.current;
     const hud = hudRef.current;
@@ -311,11 +324,8 @@ export function useOverviewLayoutApply(args: UseOverviewLayoutApplyArgs) {
       hud.style.setProperty("--hud-shift-y", `${shiftY.toFixed(2)}px`);
       // the header under the place name is set in screen px, so it keeps its place below the (unscaled) name
       hud.style.setProperty("--hud-scale", fit.scale.toFixed(5));
-      const pkgAway = pkgQuiet
-        ? 1
-        : selected === "package" || selected === "time"
-          ? clamp01(s * 1.4)
-          : 0;
+      const pkgAway = pkgQuiet ? 1 : selected === "time" ? clamp01(s * 1.4) : 0;
+      // the steps show their question from the first frame, while the land still arrives under them
       const atWorkActive = rootRef.current?.hasAttribute("data-at-work") ?? false;
       const baseAppear = atWorkActive ? 1 : appearRef.current;
       const shown = baseAppear * (1 - exitRef.current.away) * (1 - pkgAway);
@@ -439,19 +449,13 @@ export function useOverviewLayoutApply(args: UseOverviewLayoutApplyArgs) {
       const other = f.id !== hov.current ? h : 0;
       const lower = place.dot.y > layout.centre.y + 40;
       const aw = awayOf(camRef.current);
-      let op =
+      const op =
         (1 - aw) *
         (1 - 0.38 * other) *
         (1 - 0.3 * k) *
         (1 - e) *
         (lower ? 1 - oe : 1 - 0.16 * oe) *
         (isSel ? 1 : place.onArc);
-      const panelEl = panelRef.current ? document.querySelector("[data-sources-panel]") : null;
-      if (panelEl) {
-        const p = toDesignRect(panelEl, hudRef.current, fit.scale);
-        const lr = { l: at.x, t: at.y, r: at.x + label.offsetWidth, b: at.y + label.offsetHeight };
-        if (lr.l < p.right && p.left < lr.r && lr.t < p.bottom && p.top < lr.b) op *= 0.25;
-      }
       label.style.opacity = op.toFixed(3);
       label.style.setProperty("--hov", hv.toFixed(3));
       const quiet = Math.max(e - 0.05, 0.2 - op) > 0;
@@ -491,27 +495,11 @@ export function useOverviewLayoutApply(args: UseOverviewLayoutApplyArgs) {
     }
     const away = ease(clamp01(s / 0.55));
     const askGone = Math.max(away, awayOf(camRef.current), pkgQuiet ? 1 : 0);
-    const circle = askCircleRef.current;
-    if (circle) {
-      circle.style.left = `${layout.ask.x.toFixed(2)}px`;
-      circle.style.top = `${layout.ask.y.toFixed(2)}px`;
-      circle.style.opacity = (1 - askGone).toFixed(3);
-      circle.style.visibility = askGone > 0.99 ? "hidden" : "visible";
-      circle.style.transform = `translateY(${(-LIFT * oe).toFixed(2)}px) scale(${(1 + 0.04 * Math.max(k, oe)).toFixed(4)})`;
-    }
     const beside = askBesideRef.current;
     if (beside) {
       beside.style.left = `${layout.ask.x.toFixed(2)}px`;
       beside.style.top = `${layout.ask.y.toFixed(2)}px`;
       beside.style.opacity = (1 - askGone).toFixed(3);
-    }
-    const prompts = askPromptsRef.current;
-    if (prompts) {
-      const shown = prompts.hasAttribute("data-shown");
-      const op = shown ? (1 - askGone) * (1 - oe) : 0;
-      prompts.style.opacity = op.toFixed(3);
-      prompts.style.visibility = op < 0.01 ? "hidden" : "visible";
-      prompts.style.pointerEvents = op < 0.5 ? "none" : "auto";
     }
     const field = fieldRef.current;
     if (field && layout.field) {
@@ -543,27 +531,8 @@ export function useOverviewLayoutApply(args: UseOverviewLayoutApplyArgs) {
         (selected === "routes" ? clamp01((e - 0.5) / 0.5) : 0).toFixed(3),
       );
     }
-    const liftLabel = liftLabelRef.current;
-    const liftWire = liftWireRef.current;
-    const lk = idle.current.k;
-    if (liftLabel && liftWire) {
-      if (layout.liftAt && lk > 0) {
-        const x2 = layout.liftAt.x + 64;
-        const y2 = layout.liftAt.y - 34;
-        liftWire.setAttribute("x1", layout.liftAt.x.toFixed(2));
-        liftWire.setAttribute("y1", layout.liftAt.y.toFixed(2));
-        liftWire.setAttribute("x2", x2.toFixed(2));
-        liftWire.setAttribute("y2", y2.toFixed(2));
-        liftWire.style.opacity = (0.8 * clamp01((lk - 0.3) / 0.5)).toFixed(3);
-        liftLabel.style.left = `${(x2 + 8).toFixed(2)}px`;
-        liftLabel.style.top = `${(y2 - 9).toFixed(2)}px`;
-        liftLabel.style.opacity = clamp01((lk - 0.4) / 0.5).toFixed(3);
-        liftLabel.style.visibility = "visible";
-      } else {
-        liftWire.style.opacity = "0";
-        liftLabel.style.visibility = "hidden";
-      }
-    }
+    // the land's layer labels: the split's column, or the lifted layer's label once settled (LayerStack)
+    stackLabelsRef.current?.place(layout);
     const start = startRef.current;
     if (start && layout.routeStart) {
       start.style.left = `${layout.routeStart.at.x.toFixed(2)}px`;
@@ -599,10 +568,12 @@ export function useOverviewLayoutApply(args: UseOverviewLayoutApplyArgs) {
     const l = live.current;
     const gl = goal.current;
     const X = exitRef.current;
+    // with reduced motion every move lands at once (the answer's hand-over moves no land)
     for (const key of ["s", "h", "k", "o", "r"] as const) {
       const d = gl[key] - l[key];
       const step = dt / (key === "s" && X.dir === 1 ? 0.35 : DUR[key]);
-      l[key] = Math.abs(d) <= step ? gl[key] : l[key] + Math.sign(d) * step;
+      l[key] =
+        reducedMotion.current || Math.abs(d) <= step ? gl[key] : l[key] + Math.sign(d) * step;
       if (l[key] !== gl[key]) moving = true;
     }
     const CT = camTargetRef?.current;
@@ -641,9 +612,16 @@ export function useOverviewLayoutApply(args: UseOverviewLayoutApplyArgs) {
       PA.k = Math.abs(PA.goal - PA.k) <= step ? PA.goal : PA.k + Math.sign(PA.goal - PA.k) * step;
       moving = true;
     }
-    if (l.s === 0 && gl.s === 0 && selRef.current) {
+    // a closed selection leaves the land at rest, or hands over to the next; a view in place keeps the answer under it
+    if (l.s === 0 && gl.s === 0 && selRef.current && !tearRef.current) {
+      const next = nextSelRef.current;
+      nextSelRef.current = null;
       selRef.current = null;
       setSel(null);
+      if (next) {
+        next.then();
+        moving = true;
+      }
     }
     const awayTo = tearRef.current ? 1 : 0;
     if (X.away !== awayTo) {
@@ -744,7 +722,8 @@ export function useOverviewLayoutApply(args: UseOverviewLayoutApplyArgs) {
         I.onDone();
       } else moving = true;
     }
-    scene.render({
+    // the scene says when the land's sheets are still splitting or settling, on its own clock
+    const stackMoving = scene.render({
       ...l,
       ...camRef.current,
       sel: selRef.current,
@@ -762,12 +741,10 @@ export function useOverviewLayoutApply(args: UseOverviewLayoutApplyArgs) {
       lifeRing: lifeRef.current.ring,
       ranges: pkgRangesRef.current.ranges,
       lit: pkgRangesRef.current.lit,
-      quiet:
-        pkgHandoff.current ||
-        ((selRef.current === "package" || selRef.current === "time") && goal.current.s === 1),
+      quiet: pkgHandoff.current || (selRef.current === "time" && goal.current.s === 1),
       ...(arrive ?? {}),
     });
-    raf.current = moving ? requestAnimationFrame(frame) : 0;
+    raf.current = moving || stackMoving ? requestAnimationFrame(frame) : 0;
   }, []);
 
   const go = useCallback(() => {

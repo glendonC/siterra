@@ -24,6 +24,7 @@ import {
   type View,
 } from "./overview-camera";
 import { CELL_RISE } from "./overview-sheets";
+import type { StackLayout } from "./overview-stack";
 
 export {
   awayOf,
@@ -70,6 +71,8 @@ export interface OverviewLayout {
   routeStart: { at: Point; behind: boolean } | null;
   /** The lifted layer's right-most rim point on screen, where its label's leader starts, while one is lifted. */
   liftAt: Point | null;
+  /** The land's sheets off the land: every one while it stands split, else the one lifted alone (overview-stack). */
+  stack: StackLayout;
   /** Screen-space bounding box of the terrain and anchor point for the open finding card. */
   landBox: { x0: number; y0: number; x1: number; y1: number };
   anchor: Point | null;
@@ -223,7 +226,7 @@ export function createProjectionRig(opts: {
   };
 
   const standsOf = (st: SceneState): OverviewLayout["stands"] =>
-    st.sel !== "package"
+    st.sel !== "package" && st.sel !== "results"
       ? []
       : (st.ranges ?? []).map((r) => {
           const p = rangePlace(r.lo, r.hi);
@@ -261,6 +264,7 @@ export function createProjectionRig(opts: {
       state: SceneState,
       span: ArcSpan,
       liftAt: Point | null,
+      stack: StackLayout,
       lifeData: {
         lifeAt: Float32Array | null;
         lifeFocus: { at: Point; behind: boolean; ring: Point[] | null } | null;
@@ -358,6 +362,7 @@ export function createProjectionRig(opts: {
         routeEnds: routeEnds.map((r) => ({ id: r.id, at: project(r.p), behind: occluded(r.p) })),
         routeStart: routeStart ? { at: project(routeStart), behind: occluded(routeStart) } : null,
         liftAt,
+        stack,
         landBox: lb,
         anchor: selPlace ? selPlace.dot : anchorOf(state.sel, lb),
         subject: subjectOf(state.sel, lb),

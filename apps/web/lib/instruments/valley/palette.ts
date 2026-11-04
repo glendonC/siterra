@@ -68,5 +68,6 @@ export function rainRangeOf(cells: readonly { window_mm: number }[]): { lo: numb
 export const rainColour = (mm: number, range: { lo: number; hi: number } = RAIN_RANGE): Rgb =>
   ramp(sheetColours.rain, (mm - range.lo) / (range.hi - range.lo));
 
-/** A snow-covered share, 0 to 1. */
-export const snowColour = (share: number): Rgb => ramp(sheetColours.snow, share);
+/** A snow-covered share, 0 to 1, on the theme's snow ramp (the sheets' own when none is given). */
+export const snowColour = (share: number, stops: readonly string[] = sheetColours.snow): Rgb =>
+  ramp(stops, share);

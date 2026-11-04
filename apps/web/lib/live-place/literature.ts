@@ -42,7 +42,7 @@ export function reconstructAbstract(
     .filter(Boolean)
     .join(" ")
     .replace(/\s+/g, " ")
-    .replace(/^(?:abstract|summary)\s*[:.—-]?\s*/i, "")
+    .replace(/^(?:abstract|summary)\s*[:.\u2014-]?\s*/i, "")
     .trim();
   if (raw.length <= 20) return null;
 

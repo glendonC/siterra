@@ -2,7 +2,6 @@
 // pixel anatomy scene (Panel 05 Linear Mix Model and in-place card slot + leader geometry).
 
 import { en, format } from "../../copy/en";
-import { pixelColours as C } from "../../theme/obsidian";
 import { change, day, fixed } from "../format";
 import type { PixelData } from "./data";
 import { mixSpectra, moveBoundary, ndviOf, type Shares } from "./mix";
@@ -11,8 +10,8 @@ import { renderFieldPanel } from "./scene-charts";
 import {
   ANCHOR_OF,
   AROUND,
-  ASK_CLEAR,
   BAR,
+  BAR_AROUND,
   classColour,
   className,
   classShort,
@@ -35,17 +34,23 @@ export function createModelController(
   around: PixelAround | null,
   onSpectraDraw: (refl: Record<string, number>, ndvi: number) => void,
 ) {
-  const { c, svg, div, place, panelHead, part } = dom;
+  const { c, svg, div, place, panelHead, part, C, type } = dom;
   const order = d.classes.map((k) => k.code);
+  // the covers' names under the bar stand in two rows a line apart at the size they are drawn at (the module's 12 px
+  // floor sets their line at 4/3 of it)
+  const labelLine = Math.max(16, (type * 4) / 3);
+  const labelRow = labelLine + 2;
   const measured: Shares = Object.fromEntries(
     order.map((code) => [code, d.measured_shares[String(code)] ?? 0]),
   );
   let shares: Shares = { ...measured };
 
   const { div: stage, g: overlay } = part("05");
-  const y5 = around ? L.rowB + 30 : L.rowB;
-  const x0 = L.col2.x + ASK_CLEAR;
-  const w = L.col2.w - ASK_CLEAR;
+  const y5 = L.rowB;
+  const x0 = L.col2.x;
+  const w = around ? AROUND.column.w : L.col2.w;
+  // in place the bar is narrower, so the bar and its readout fit the step list's column
+  const bar = around ? BAR_AROUND : BAR;
   panelHead(x0, y5, w, "05", "instrument.pixel.model");
   place(
     div(
@@ -61,21 +66,17 @@ export function createModelController(
   const by = y5 + 112;
   const g = svg("g", {}, overlay);
   if (!around)
-    place(div("barCaption", stage, en["instrument.pixel.model.bar"].text), bx, y5 + 64, BAR.w);
+    place(div("barCaption", stage, en["instrument.pixel.model.bar"].text), bx, y5 + 64, bar.w);
   const barG = svg("g", {}, g);
   const tickG = svg("g", {}, g);
   let acc = 0;
   for (let i = 0; i < order.length - 1; i++) {
     acc += measured[order[i] ?? -1] ?? 0;
-    const x = bx + acc * BAR.w;
-    svg(
-      "line",
-      { x1: x, x2: x, y1: by - 9, y2: by - 3, stroke: C.ink2, "stroke-width": 1 },
-      tickG,
-    );
+    const x = bx + acc * bar.w;
+    svg("line", { x1: x, x2: x, y1: by - 9, y2: by - 3, stroke: C.ink2, "stroke-width": 1 }, tickG);
   }
-  const segLabels = place(div("segLabels", stage), bx, by + BAR.h + 6, BAR.w, 36);
-  const readout = place(div("readout", stage), x0 + BAR.readout, y5 + 64, w - BAR.readout);
+  const segLabels = place(div("segLabels", stage), bx, by + bar.h + 6, bar.w, labelRow + labelLine);
+  const readout = place(div("readout", stage), x0 + bar.readout, y5 + 64, w - bar.readout);
   const handles: SVGGElement[] = [];
 
   const redraw = () => {
@@ -84,8 +85,8 @@ export function createModelController(
     let a = 0;
     order.forEach((code, i) => {
       const share = shares[code] ?? 0;
-      const sx = bx + a * BAR.w;
-      const sw = share * BAR.w;
+      const sx = bx + a * bar.w;
+      const sw = share * bar.w;
       if (sw > 2)
         svg(
           "rect",
@@ -93,9 +94,9 @@ export function createModelController(
             x: sx + (i ? 1 : 0),
             y: by,
             width: Math.max(0, sw - (i ? 2 : 0)),
-            height: BAR.h,
+            height: bar.h,
             rx: 2,
-            fill: classColour(code),
+            fill: classColour(code, C),
           },
           barG,
         );
@@ -104,14 +105,17 @@ export function createModelController(
         segLabels,
         format("instrument.pixel.model.segment", { name: classShort(code), share: pct(share) }),
       );
-      lab.style.left = `${String(Math.min(BAR.w - 90, Math.max(0, (a + share / 2) * BAR.w - 45)))}px`;
-      lab.style.top = `${String((i % 2) * 18)}px`;
+      // centred under its segment, and kept within the bar, by its own width as drawn
+      const mid = (a + share / 2) * bar.w;
+      lab.style.left = `${mid.toFixed(1)}px`;
+      lab.style.transform = `translateX(clamp(${(-mid).toFixed(1)}px, -50%, calc(${(bar.w - mid).toFixed(1)}px - 100%)))`;
+      lab.style.top = `${((i % 2) * labelRow).toFixed(1)}px`;
       a += share;
     });
     a = 0;
     handles.forEach((h, i) => {
       a += shares[order[i] ?? -1] ?? 0;
-      h.setAttribute("transform", `translate(${String(bx + a * BAR.w)},${String(by)})`);
+      h.setAttribute("transform", `translate(${String(bx + a * bar.w)},${String(by)})`);
       h.setAttribute("aria-valuenow", String(Math.round(a * 100)));
     });
     const refl = mixSpectra(d.classes, shares);
@@ -148,12 +152,9 @@ export function createModelController(
     div(
       "roMeasured",
       readout,
-      format(
-        around ? "instrument.pixel.model.measuredShort" : "instrument.pixel.model.measured",
-        {
-          value: fixed(d.spectra.measured_ndvi, 2),
-        },
-      ),
+      format(around ? "instrument.pixel.model.measuredShort" : "instrument.pixel.model.measured", {
+        value: fixed(d.spectra.measured_ndvi, 2),
+      }),
     );
     onSpectraDraw(refl, nd);
   };
@@ -175,8 +176,8 @@ export function createModelController(
       g,
     );
     h.dataset["boundary"] = String(i);
-    svg("rect", { x: -7, y: -6, width: 14, height: BAR.h + 12, fill: "transparent" }, h);
-    svg("line", { x1: 0, x2: 0, y1: -4, y2: BAR.h + 4, stroke: C.ink, "stroke-width": 2 }, h);
+    svg("rect", { x: -7, y: -6, width: 14, height: bar.h + 12, fill: "transparent" }, h);
+    svg("line", { x1: 0, x2: 0, y1: -4, y2: bar.h + 4, stroke: C.ink, "stroke-width": 2 }, h);
     let dragging = false;
     h.addEventListener("pointerdown", (e) => {
       dragging = true;
@@ -192,7 +193,7 @@ export function createModelController(
       const xLocal = (e.clientX - rect.left) / scale;
       let before = 0;
       for (let k = 0; k <= i; k++) before += shares[order[k] ?? -1] ?? 0;
-      shares = moveBoundary(order, shares, i, (xLocal - (bx + before * BAR.w)) / BAR.w);
+      shares = moveBoundary(order, shares, i, (xLocal - (bx + before * bar.w)) / bar.w);
       redraw();
     });
     h.addEventListener("keydown", (e) => {
@@ -220,17 +221,19 @@ export function createModelController(
     place(
       div("barCaption nowrap", stage, en["instrument.pixel.model.drag"].text),
       bx,
-      by + BAR.h + 46,
-      BAR.w,
+      by + bar.h + 46,
+      bar.w,
     );
-  const reset = place(document.createElement("button"), bx, by + BAR.h + 66);
+  // a text button with its key in the key bar's chip, the chip first as the key bar draws it, under the covers' names
+  const namesEnd = by + bar.h + 6 + labelRow + labelLine;
+  const reset = place(document.createElement("button"), bx - 8, namesEnd + (around ? 6 : 26));
   reset.className = c("textButton");
   reset.type = "button";
-  reset.textContent = en["instrument.pixel.model.reset"].text;
   const kbdChip = document.createElement("kbd");
   kbdChip.textContent = "Home";
   kbdChip.setAttribute("aria-hidden", "true");
   reset.appendChild(kbdChip);
+  reset.appendChild(document.createTextNode(en["instrument.pixel.model.reset"].text));
   reset.setAttribute("aria-keyshortcuts", "Home");
   reset.addEventListener("click", () => {
     shares = { ...measured };
@@ -238,12 +241,7 @@ export function createModelController(
   });
   stage.appendChild(reset);
   if (!around)
-    place(
-      div("meaning", stage, en["instrument.pixel.model.meaning"].text),
-      bx,
-      by + BAR.h + 96,
-      w,
-    );
+    place(div("meaning", stage, en["instrument.pixel.model.meaning"].text), bx, by + bar.h + 96, w);
 
   return {
     draw: redraw,
@@ -259,15 +257,15 @@ export function createModelController(
   };
 }
 
-const CHIPS = [
+/** The six steps in order, each named by what it shows. */
+const STEPS = [
   ["01", "instrument.pixel.locate"],
+  ["02", "instrument.pixel.cells"],
   ["03", "instrument.pixel.spectra"],
   ["04", "instrument.pixel.series"],
   ["05", "instrument.pixel.model"],
   ["06", "instrument.pixel.field"],
 ] as const;
-
-const SLOT = new Set(["02", "01", "04", "06"]);
 
 const near = (p: Pt, b: StageBox): Pt => [
   Math.min(b.x1, Math.max(b.x0, p[0])),
@@ -289,8 +287,7 @@ const onOutline = (p: Pt, pts: readonly (readonly [number, number])[]): Pt => {
     const dx = b[0] - a[0];
     const dy = b[1] - a[1];
     const l2 = dx * dx + dy * dy;
-    const t =
-      l2 > 0 ? Math.min(1, Math.max(0, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / l2)) : 0;
+    const t = l2 > 0 ? Math.min(1, Math.max(0, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / l2)) : 0;
     const q: Pt = [a[0] + dx * t, a[1] + dy * t];
     const d = Math.hypot(q[0] - p[0], q[1] - p[1]);
     if (d < bd) {
@@ -301,23 +298,27 @@ const onOutline = (p: Pt, pts: readonly (readonly [number, number])[]): Pt => {
   return best;
 };
 
-/** Manages in-place frosted cards, chip bar navigation, slot swapping, paint selection, and leader lines. */
+/**
+ * In place: the statement on its frosted card and, under it, one panel with the six steps in order. A step's content
+ * opens directly under its own row, one step at a time, with a leader to where it is on the land; 02 is open at first.
+ */
 export function createAroundController(
   dom: SceneDom,
   stage: HTMLElement,
   around: PixelAround | null,
 ) {
-  const { c, svg, div, place, overlay, parts } = dom;
-  const natural = new Map<string, StageBox>();
-  const shiftOf = new Map<string, readonly [number, number]>();
-  const partBox = new Map<string, StageBox>();
-  const chipBox = new Map<string, StageBox>();
-  const chipButtons = new Map<string, HTMLButtonElement>();
-  let opened: string | null = null;
+  const { c, svg, div, place, overlay, parts, C } = dom;
+  const rows = new Map<string, HTMLButtonElement>();
+  /** The open step's content where it stands now. */
+  let openBox: StageBox | null = null;
+  let opened: string | null = "02";
   let lastPixel: StageBox | null = null;
   let lastAnchors: PixelAnchors | null = null;
+  let list: HTMLDivElement | null = null;
+  let listTop = 0;
 
-  const fitBack = (id: string, p: { div: HTMLElement; g: Element }) => {
+  // a part's own box before it is moved: the words it shows and its drawing
+  const boxOf = (p: { div: HTMLElement; g: Element }): StageBox | null => {
     const b = { x0: Infinity, y0: Infinity, x1: -Infinity, y1: -Infinity };
     const grow = (x0: number, y0: number, x1: number, y1: number) => {
       if (x1 - x0 < 1 || y1 - y0 < 1) return;
@@ -326,82 +327,76 @@ export function createAroundController(
       b.x1 = Math.max(b.x1, x1);
       b.y1 = Math.max(b.y1, y1);
     };
-    let back: HTMLDivElement | null = null;
     for (const el of p.div.children)
-      if (el instanceof HTMLElement) {
-        if (el.dataset.card !== undefined) back = el as HTMLDivElement;
-        else if (el.style.visibility !== "hidden" && el.style.display !== "none")
-          grow(
-            el.offsetLeft,
-            el.offsetTop,
-            el.offsetLeft + el.offsetWidth,
-            el.offsetTop + el.offsetHeight,
-          );
-      }
+      if (
+        el instanceof HTMLElement &&
+        el.dataset.card === undefined &&
+        el.style.visibility !== "hidden" &&
+        el.style.display !== "none"
+      )
+        grow(
+          el.offsetLeft,
+          el.offsetTop,
+          el.offsetLeft + el.offsetWidth,
+          el.offsetTop + el.offsetHeight,
+        );
     const bb = (p.g as SVGSVGElement).getBBox();
     grow(bb.x, bb.y, bb.x + bb.width, bb.y + bb.height);
-    if (!Number.isFinite(b.x0)) return;
-    const top = id === "caption" ? 4 : 12;
-    if (!back) {
-      back = div("card", p.div);
-      back.dataset.card = id;
-      p.div.insertBefore(back, p.div.firstChild);
-    }
-    place(back, b.x0 - 12, b.y0 - top, b.x1 - b.x0 + 24, b.y1 - b.y0 + top + 12);
-    natural.set(id, { x0: b.x0 - 12, y0: b.y0 - top, x1: b.x1 + 12, y1: b.y1 + 12 });
-    const sh = shiftOf.get(id);
-    if (sh)
-      partBox.set(id, {
-        x0: b.x0 - 12 + sh[0],
-        y0: b.y0 - top + sh[1],
-        x1: b.x1 + 12 + sh[0],
-        y1: b.y1 + 12 + sh[1],
-      });
+    return Number.isFinite(b.x0) ? b : null;
   };
 
-  const leaders = svg("g", { "data-leaders": "" }, overlay);
+  // the open step's leader steps aside with the step while the Ask is open, as the list does
+  const leaders = svg("g", { "data-leaders": "", "data-ask-aside": "" }, overlay);
 
   function setPixelBox(box: StageBox | null, anchors?: PixelAnchors | null) {
     lastPixel = box;
     if (anchors !== undefined) lastAnchors = anchors;
     leaders.replaceChildren();
-    if (!around || !box || !lastAnchors) return;
-    const open = (["02", "01", "03", "04", "05", "06"] as const).filter((id) =>
-      id === "02" ? !(opened !== null && SLOT.has(opened)) : opened === id,
-    );
-    for (const id of open) {
-      const b = partBox.get(id);
-      const kind = ANCHOR_OF[id];
-      const outline = kind ? lastAnchors[kind] : [];
-      if (!b || !outline.length) continue;
-      const a = near(middle(outline), b);
-      const e = onOutline(a, outline);
-      if (Math.hypot(e[0] - a[0], e[1] - a[1]) < 6) continue;
-      svg(
-        "line",
-        { x1: a[0], y1: a[1], x2: e[0], y2: e[1], stroke: C.connector, "stroke-width": 0.75 },
-        leaders,
-      ).dataset.leader = id;
-      svg("circle", { cx: e[0], cy: e[1], r: 2, fill: C.connector }, leaders);
-    }
+    if (!around || !box || !lastAnchors || !opened || !openBox) return;
+    const kind = ANCHOR_OF[opened];
+    const outline = kind ? lastAnchors[kind] : [];
+    if (!outline.length) return;
+    const a = near(middle(outline), openBox);
+    const e = onOutline(a, outline);
+    if (Math.hypot(e[0] - a[0], e[1] - a[1]) < 6) return;
+    svg(
+      "line",
+      { x1: a[0], y1: a[1], x2: e[0], y2: e[1], stroke: C.connector, "stroke-width": 0.75 },
+      leaders,
+    ).dataset.leader = opened;
+    svg("circle", { cx: e[0], cy: e[1], r: 2, fill: C.connector }, leaders);
   }
 
-  function show(id: string | null) {
-    opened = id;
-    for (const [cid] of CHIPS) {
-      const p = parts.get(cid);
-      if (p) p.div.style.display = cid === id ? "" : "none";
-      chipButtons.get(cid)?.setAttribute("aria-expanded", String(cid === id));
+  // the rows top to bottom: the open step's content under its own row, and the rows after it below that
+  function layout() {
+    if (!list) return;
+    const x = AROUND.column.x;
+    let y = listTop + AROUND.listPad;
+    openBox = null;
+    for (const [id] of STEPS) {
+      const row = rows.get(id);
+      const p = parts.get(id);
+      if (!row || !p) continue;
+      place(row, x - 8, y, AROUND.column.w + 16, AROUND.rowH);
+      y += AROUND.rowH;
+      const open = opened === id;
+      row.setAttribute("aria-expanded", String(open));
+      p.div.style.display = open ? "" : "none";
+      if (!open) continue;
+      const nb = boxOf(p);
+      if (!nb) continue;
+      const top = y + AROUND.openGap;
+      const x0 = Number(p.div.dataset.x0 ?? nb.x0);
+      p.div.style.transform = `translate(${String(x - x0)}px, ${String(top - nb.y0)}px)`;
+      openBox = {
+        x0: x - 12,
+        y0: top - 4,
+        x1: x + AROUND.column.w + 12,
+        y1: top + nb.y1 - nb.y0 + 4,
+      };
+      y = top + (nb.y1 - nb.y0) + AROUND.openGap + 2;
     }
-    const p02 = parts.get("02");
-    if (p02) p02.div.style.display = id !== null && SLOT.has(id) ? "none" : "";
-    setPixelBox(lastPixel);
-  }
-
-  function refit(id: string) {
-    const p = parts.get(id);
-    if (!around || !p) return;
-    fitBack(id, p);
+    place(list, x - 12, listTop, AROUND.column.w + 24, y + AROUND.listPad - listTop);
     setPixelBox(lastPixel);
   }
 
@@ -413,78 +408,53 @@ export function createAroundController(
       k.setAttribute("display", on ? "inline" : "none");
       k.style.visibility = on ? "" : "hidden";
     }
-    refit("02");
+    // the key under the paint control changes height: the rows after it move with it
+    layout();
   };
 
   if (around) {
-    for (const k of stage.querySelectorAll<HTMLElement | SVGElement>("[data-paint-key]")) {
-      const on = k.getAttribute("data-paint-key") === around.paint;
-      k.setAttribute("display", on ? "inline" : "none");
-      k.style.visibility = on ? "" : "hidden";
+    // the statement's card
+    const cap = parts.get("caption");
+    const cb = cap ? boxOf(cap) : null;
+    if (cap && cb) {
+      const back = div("card", cap.div);
+      back.dataset.card = "caption";
+      cap.div.insertBefore(back, cap.div.firstChild);
+      place(back, cb.x0 - 12, cb.y0 - 4, cb.x1 - cb.x0 + 24, cb.y1 - cb.y0 + 16);
     }
-    for (const [id, p] of parts) fitBack(id, p);
-
-    const cap = natural.get("caption");
-    const row = place(
-      div("chipRow", stage),
-      AROUND.column.x,
-      (cap?.y1 ?? AROUND.cellsY - 40) + 14,
-      AROUND.column.w,
-    );
-    for (const [id, title] of CHIPS) {
+    listTop = (cb?.y1 ?? AROUND.cellsY - 40) + 24;
+    // the steps' panel, then each step's row followed by its content, so the focus moves through them in order
+    list = div("card", stage);
+    list.dataset.stepList = "";
+    list.dataset.askAside = "";
+    for (const [id, title] of STEPS) {
+      const p = parts.get(id);
+      if (!p) continue;
       const b = document.createElement("button");
       b.type = "button";
-      b.className = c("textButton", "partChip");
-      b.dataset.chip = id;
+      b.className = c("stepRow");
+      b.dataset.step = id;
+      b.dataset.askAside = "";
       b.setAttribute("aria-expanded", "false");
-      div("num", b, id);
-      div("title", b, en[title].text);
-      row.appendChild(b);
-      chipButtons.set(id, b);
-      const card = parts.get(id)?.div;
-      const stays = (to: EventTarget | null) =>
-        to instanceof Node && (to === b || (card?.contains(to) ?? false));
+      const num = document.createElement("span");
+      num.className = c("stepNum");
+      num.textContent = id;
+      const name = document.createElement("span");
+      name.textContent = en[title].text;
+      b.append(num, name);
       b.addEventListener("click", () => {
-        show(opened === id ? null : id);
+        opened = opened === id ? null : id;
+        layout();
       });
-      b.addEventListener("focus", () => {
-        if (b.matches(":focus-visible")) show(id);
-      });
-      b.addEventListener("blur", (e) => {
-        if (opened === id && !stays(e.relatedTarget)) show(null);
-      });
-      card?.addEventListener("focusout", (e) => {
-        if (opened === id && !stays(e.relatedTarget)) show(null);
-      });
+      stage.appendChild(b);
+      stage.appendChild(p.div);
+      rows.set(id, b);
     }
-    for (const [id, b] of chipButtons)
-      chipBox.set(id, {
-        x0: row.offsetLeft + b.offsetLeft,
-        y0: row.offsetTop + b.offsetTop,
-        x1: row.offsetLeft + b.offsetLeft + b.offsetWidth,
-        y1: row.offsetTop + b.offsetTop + b.offsetHeight,
-      });
-    const slotY = row.offsetTop + row.offsetHeight + 14;
-    for (const [id, nb] of natural) {
-      const sh: readonly [number, number] = SLOT.has(id)
-        ? [AROUND.column.x - 12 - nb.x0, slotY - nb.y0]
-        : (AROUND.shift[id] ?? [0, 0]);
-      shiftOf.set(id, sh);
-      const p = parts.get(id);
-      if (p) p.div.style.transform = `translate(${String(sh[0])}px, ${String(sh[1])}px)`;
-      partBox.set(id, {
-        x0: nb.x0 + sh[0],
-        y0: nb.y0 + sh[1],
-        x1: nb.x1 + sh[0],
-        y1: nb.y1 + sh[1],
-      });
-    }
+    stage.appendChild(overlay);
     setPaint(around.paint);
-    show(null);
   }
 
   return {
-    refit,
     setPixelBox,
     setPaint,
   };

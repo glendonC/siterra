@@ -1,8 +1,9 @@
 // Layout constants, coordinate transforms, colour ramps, and DOM/SVG rendering primitives for the
 // pixel anatomy instrument scene.
 
-import { en, format, type MessageId } from "../../copy/en";
-import { cssColour, pixelColours as C } from "../../theme/obsidian";
+import { en, type MessageId } from "../../copy/en";
+import type { InstrumentPalette, PixelPalette } from "../../theme/instruments";
+import { cssColour } from "../../theme/obsidian";
 import { ramp } from "../valley/palette";
 import { NDVI_BREAKS, type CellPaint } from "./paint";
 
@@ -70,13 +71,19 @@ export const L = {
 export const MULT_W = 224;
 /** Vertical offset of panel 02's paint selector buttons below its title in in-place mode. */
 export const PAINT_ROW = 34;
-/** Composition bar dimensions and readout horizontal offset in panel 05. */
+/** Composition bar dimensions and readout horizontal offset in panel 05; in place, narrower to fit the step list. */
 export const BAR = { w: 300, h: 24, readout: 324 };
-/** Horizontal inset for panel 05 so it stays clear of the prompt disc on the dial arc. */
-export const ASK_CLEAR = 150;
+export const BAR_AROUND = { w: 236, h: 24, readout: 260 };
 
 /** Class names a CSS module gives the scene's parts. */
 export type PixelClasses = Readonly<Record<string, string>>;
+
+/**
+ * The sans face's box round a word, in em of its size: the browser draws it 1.05 em above the baseline and 0.3 em
+ * below. Words set one under another are spaced by it at the size they are drawn at, so the 12 px floor, which
+ * grows them on a scaled down stage, never makes them touch.
+ */
+export const TYPE_BOX = { ascent: 1.05, descent: 0.3 } as const;
 
 /**
  * In-place inspection mode over the 3D terrain: the Sentinel-2 cells stand risen on the land in the
@@ -85,6 +92,8 @@ export type PixelClasses = Readonly<Record<string, string>>;
 export interface PixelAround {
   paint: CellPaint;
   onPaint: (paint: CellPaint) => void;
+  /** On the view's own page, with no land: the pixel's cells drawn large right of the list, in the chosen paint. */
+  hero?: boolean;
 }
 
 /**
@@ -116,22 +125,20 @@ export interface StageBox {
 }
 
 /**
- * Layout geometry for in-place pixel inspection (stage px): the risen pixel sits in the centre; at rest
- * the caption and panel 02 occupy the left column while panels 01, 03, 04, 05, and 06 wait as chips
- * beneath the caption. Selecting 01, 04, or 06 swaps it into 02's slot, while 03 and 05 open on the
- * right side so cards never overlap one another or the pixel.
+ * Layout geometry for in-place pixel inspection (stage px): the risen pixel stands in the centre, and the left column
+ * holds the statement and, under it, one panel with the six steps in order; the open step's content opens under its
+ * own row, one at a time.
  */
 export const AROUND = {
   column: { x: 40, w: 400 },
-  /** Initial top coordinate for panel 02 in the left column before dynamic chip-row placement. */
+  /** Panel 02's top before the list places it. */
   cellsY: 236,
-  /** Width of a slotted card in the left column (narrowed so panel 06 clears the prompt disc). */
-  slotW: 280,
-  /** Translation offsets for right-hand cards (03 and 05) relative to their standalone grid positions. */
-  shift: {
-    "03": [0, -52],
-    "05": [370, -64],
-  } as Record<string, readonly [number, number]>,
+  /** The list panel: its padding round the rows, a row's height, and the gap round an open step's content. */
+  listPad: 8,
+  rowH: 32,
+  openGap: 10,
+  /** On the view's own page: where the cells stand large, right of the list, and their longest side. */
+  hero: { x: 560, y: 96, size: 600 },
 };
 
 export type Pt = [number, number];
@@ -153,33 +160,41 @@ export const classShort = (code: number) => {
   return id in en ? en[id].text : String(code);
 };
 
-export const classColour = (code: number) => C.classes[code] ?? C.otherClass;
+export const classColour = (code: number, C: PixelPalette) => C.classes[code] ?? C.otherClass;
 
-export const ndviColour = (v: number | null) => {
+export const ndviColour = (v: number | null, C: PixelPalette) => {
   if (v === null) return C.noValue;
   let i = 0;
   while (i < NDVI_BREAKS.length && v >= (NDVI_BREAKS[i] ?? Infinity)) i++;
   return C.ndviSteps[i] ?? C.noValue;
 };
 
-export const slopeFillColour = (v: number, scale: { domain: number; neutral: number }): string => {
+export const slopeFillColour = (
+  v: number,
+  scale: { domain: number; neutral: number },
+  C: PixelPalette,
+): string => {
   const a = Math.abs(v);
   if (a < scale.neutral) return C.slopeNeutral;
   return cssColour(
-    ramp(
-      [C.slopeNeutral, ...(v < 0 ? C.slopeBelow : C.slopeAbove)],
-      Math.min(1, a / scale.domain),
-    ),
+    ramp([C.slopeNeutral, ...(v < 0 ? C.slopeBelow : C.slopeAbove)], Math.min(1, a / scale.domain)),
   );
 };
 
-/** Creates DOM and SVG construction helpers and manages per-panel containers for the pixel scene. */
+/**
+ * Creates DOM and SVG construction helpers and manages per-panel containers for the pixel scene; it carries the
+ * theme's colours (C for the charts, O for the ground and the accent).
+ */
 export function createSceneDom(
   stage: HTMLElement,
   cls: PixelClasses,
   around: PixelAround | null,
+  pal: InstrumentPalette,
 ) {
   const c = (...names: string[]) => names.map((n) => cls[n] ?? n).join(" ");
+  // the size, in the stage's own px, the 12 px words are drawn at: 12 px on screen whatever the stage's scale (the
+  // module's --min-type, from the --stage-scale the page sets before it mounts the scene)
+  const type = Math.max(12, 12 / (parseFloat(stage.style.getPropertyValue("--stage-scale")) || 1));
   const svg = <K extends keyof SVGElementTagNameMap>(tag: K, attrs: Attrs, parent: Element) => {
     const e = document.createElementNS(NS, tag);
     for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, String(v));
@@ -210,20 +225,6 @@ export function createSceneDom(
     class: c("t12", tone),
     "text-anchor": anchor,
   });
-  const chip = (n: number, tip: string) => {
-    const b = document.createElement("button");
-    b.className = c("chip");
-    b.type = "button";
-    b.textContent = String(n);
-    b.setAttribute("aria-label", format("instrument.pixel.chip", { n, text: tip }));
-    const t = document.createElement("span");
-    t.className = c("chipTip");
-    t.setAttribute("role", "tooltip");
-    t.textContent = tip;
-    b.appendChild(t);
-    return b;
-  };
-
   stage.replaceChildren();
   const overlay = document.createElementNS(NS, "svg");
   overlay.setAttribute("class", c("overlay"));
@@ -242,6 +243,8 @@ export function createSceneDom(
     const d = document.createElement("div");
     d.className = c("part");
     d.dataset.part = id;
+    // a step's words and the statement step aside while the Ask is open (InstrumentShell.module.css)
+    d.dataset.askAside = "";
     stage.appendChild(d);
     const g = document.createElementNS(NS, "svg");
     g.setAttribute("class", c("overlay"));
@@ -253,6 +256,7 @@ export function createSceneDom(
     return p;
   };
 
+  // in place the step's own row in the list carries its number and title, so the panel draws only its detail
   const panelHead = (
     x: number,
     y: number,
@@ -262,13 +266,32 @@ export function createSceneDom(
     detail?: string,
   ) => {
     const host = part(num).div;
-    const h = place(div("panelHead", host), x, y, w);
-    div("num", h, num);
-    div("title", h, en[title].text);
+    // the panel's own left edge: in place its words line up with the step list's at this x, whatever bleeds past it
+    host.dataset.x0 = String(x);
+    if (!around) {
+      const h = place(div("panelHead", host), x, y, w);
+      div("num", h, num);
+      div("title", h, en[title].text);
+    }
     if (detail) place(div("panelDetail", host, detail), x, y + 22, w);
   };
 
-  return { c, svg, text, div, place, t12, chip, overlay, parts, part, panelHead };
+  return {
+    c,
+    type,
+    svg,
+    text,
+    div,
+    place,
+    t12,
+    overlay,
+    parts,
+    part,
+    panelHead,
+    C: pal.pixel,
+    O: pal,
+    root: stage,
+  };
 }
 
 export type SceneDom = ReturnType<typeof createSceneDom>;

@@ -101,7 +101,9 @@ export async function fetchBiodiversityContext(
 
   const url = `https://api.gbif.org/v1/occurrence/search?decimalLatitude=${minLat},${maxLat}&decimalLongitude=${minLon},${maxLon}&hasCoordinate=true&limit=35`;
   const ac = new AbortController();
-  const timer = setTimeout(() => ac.abort(), 4000);
+  const timer = setTimeout(() => {
+    ac.abort();
+  }, 4000);
 
   try {
     const res = await fetch(url, {
@@ -145,9 +147,7 @@ export async function fetchBiodiversityContext(
       }
     }
 
-    const topSpecies = [...bySpecies.values()]
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 12);
+    const topSpecies = [...bySpecies.values()].sort((a, b) => b.count - a.count).slice(0, 12);
     const speciesCount = bySpecies.size;
     if (speciesCount === 0) return empty;
 
@@ -171,7 +171,7 @@ export async function fetchBiodiversityContext(
     const licenseTable = ["CC_BY_4_0", "CC_BY_NC_4_0", "CC0_1_0"];
     const datasetsTable = [
       {
-        title: `GBIF Occurrence Download — ${placeName}`,
+        title: `GBIF Occurrence Download: ${placeName}`,
         publisher: "Global Biodiversity Information Facility (GBIF)",
         doi: null,
       },
@@ -208,7 +208,9 @@ export async function fetchBiodiversityContext(
         bIdx = basisTable.length;
         basisTable.push(bStr);
       }
-      colGbifId.push(typeof r.key === "number" ? r.key : typeof r.gbifID === "number" ? r.gbifID : 100000 + idx);
+      colGbifId.push(
+        typeof r.key === "number" ? r.key : typeof r.gbifID === "number" ? r.gbifID : 100000 + idx,
+      );
       colTaxon.push(tIdx);
       colYear.push(typeof r.year === "number" ? r.year : null);
       colEventDate.push(typeof r.eventDate === "string" ? r.eventDate.slice(0, 10) : null);
@@ -275,7 +277,7 @@ export async function fetchBiodiversityContext(
       createdAt: now,
       updatedAt: now,
       caseId,
-      title: `GBIF Species Occurrence Records — ${placeName} (${regionName})`,
+      title: `GBIF Species Occurrence Records: ${placeName} (${regionName})`,
       url,
       publisher: "Global Biodiversity Information Facility (GBIF)",
       authors: ["GBIF Data Publishers"],
@@ -287,10 +289,7 @@ export async function fetchBiodiversityContext(
       license: "CC BY 4.0",
       redistributionStatus: "permitted",
       contentHash,
-      notes: [
-        excerpt,
-        `Retrieved via GBIF Occurrence Search API (${url}).`,
-      ],
+      notes: [excerpt, `Retrieved via GBIF Occurrence Search API (${url}).`],
     });
 
     if (src.success) {

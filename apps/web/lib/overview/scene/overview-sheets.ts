@@ -1,12 +1,11 @@
 // Layer sheet rendering and surface overlays for the overview scene: footprint canvases (`trend` slope
-// and `rain` CHIRPS tiles), elevated evidence layers (`bands`, `trend`, `rain`, `cover`), Sentinel-2
+// and `rain` CHIRPS tiles), the canvases the evidence sheets paint (overview-stack.ts lifts them), Sentinel-2
 // instanced pixel cells, dynamic temporal canvas overlay, and depth-of-field canvas blur.
 
 import {
   CanvasTexture,
   Color,
   DynamicDrawUsage,
-  Group,
   InstancedMesh,
   LinearFilter,
   LinearMipmapLinearFilter,
@@ -20,14 +19,10 @@ import {
 import { cellColour, type CellPaint } from "../../instruments/pixel/paint";
 import type { Frame, Grid, Vec3 } from "../../instruments/valley/frame";
 import type { Stage } from "../../instruments/valley/scene/stage";
-import { liftColours as LC, maskAt, overviewColours as C } from "../../theme/obsidian";
+import { maskAt, overviewColours as C } from "../../theme/obsidian";
 import { clamp01, ease, sstep } from "../arc";
 import type { OverviewData } from "../data";
 import { slopeColour } from "../footprint";
-import { createLift, type LiftLayer } from "./lift";
-import { hexVec } from "./overview-shaders";
-import type { Relief } from "./terrain";
-import { smoothRing } from "./terrain-mesh";
 
 /** Vertical rise (model km) of the Sentinel-2 cells above the terrain when the pixel is inspected. */
 export const CELL_RISE = 0.22;
@@ -121,90 +116,6 @@ export function createFootprintSheets(data: OverviewData, g: Grid) {
     : null;
 
   return { slopeTex, rainTex };
-}
-
-/** Creates the lifted evidence layer mesh (`trend`, `rain`, `cover`, `bands`) and its accompanying rim outline. */
-export function createLiftRig(
-  scene: Scene,
-  stageLines: Stage["lines"],
-  data: OverviewData,
-  g: Grid,
-  a: Grid,
-  frame: Frame,
-  sample: (E: number, N: number) => number,
-  relief: Relief,
-  lcTex: Texture,
-  slopeTex: CanvasTexture | null,
-  rainTex: CanvasTexture | null,
-  kmScale: number,
-) {
-  const liftKm = 3.2 * kmScale;
-  const bandsTex = data.bands ? coverTexture(data.bands) : null;
-  const liftLayers: Partial<Record<LiftId, LiftLayer>> = {
-    ...(slopeTex
-      ? { trend: { mode: "overlay" as const, tex: slopeTex, rect: frame.rect(g) } }
-      : {}),
-    ...(rainTex ? { rain: { mode: "overlay" as const, tex: rainTex, rect: frame.rect(g) } } : {}),
-    cover: {
-      mode: "cover",
-      tex: lcTex,
-      rect: frame.rect(a),
-      colours: [hexVec(LC.tree), hexVec(LC.crop)],
-    },
-    ...(bandsTex
-      ? {
-          bands: {
-            mode: "bands" as const,
-            tex: bandsTex,
-            rect: frame.rect(a),
-            colours: [hexVec(LC.bandLow), hexVec(LC.bandMid), hexVec(LC.bandHigh)],
-          },
-        }
-      : {}),
-  };
-
-  const lift = createLift(
-    relief.mesh.geometry,
-    relief.uniforms,
-    lcTex,
-    frame.rect(a),
-    hexVec(LC.plate),
-  );
-  scene.add(lift.mesh);
-
-  const liftEdge = new Group();
-  const liftEdgeLine = stageLines.lines(
-    [smoothRing(data.ring, 2).map(([E, N]) => frame.v(E, N, sample(E, N) + 5))],
-    { color: C.catchmentLine, width: 1, opacity: 0, closed: true },
-  );
-  liftEdgeLine.renderOrder = 41;
-  liftEdge.add(liftEdgeLine);
-  scene.add(liftEdge);
-
-  let liftHeight = 0;
-
-  return {
-    update(nextLift: { layer: LiftId; k: number } | null | undefined) {
-      const lk = nextLift ? ease(clamp01(nextLift.k)) : 0;
-      liftHeight = liftKm * lk;
-      const liftA = sstep(0, 0.35, nextLift?.k ?? 0);
-      lift.show(nextLift ? (liftLayers[nextLift.layer] ?? null) : null, liftHeight, 0.55 * liftA);
-      liftEdge.position.y = liftHeight;
-      liftEdgeLine.material.opacity = 0.7 * liftA;
-      liftEdgeLine.visible = liftA > 0.002;
-      return { liftA, liftHeight };
-    },
-    anchor(rimTop: readonly Vec3[], project: (p: Vec3) => ScreenPoint): ScreenPoint | null {
-      if (liftHeight <= 0.01) return null;
-      return rimTop
-        .map((p) => project([p[0], p[1] + liftHeight, p[2]]))
-        .reduce((b, q) => (q.x > b.x ? q : b));
-    },
-    dispose() {
-      bandsTex?.dispose();
-      lift.dispose();
-    },
-  };
 }
 
 /** Creates the instanced Sentinel-2 10 m cell mesh and MODIS pixel footprint outline on the terrain. */

@@ -1,20 +1,28 @@
 "use client";
 
-// The ask control: a matte slate-teal circle with a small light label and a thin circled plus, no glow
-// and no outline. The circle or the "/" key opens a colourless fade rising from the bottom with the question typed in
-// large light type; Esc closes it. Enter hands the text to the page (the overview sends it; an instrument carries it
-// to the overview). The activity line shows only once the page passes one, after Enter.
+// The ask: the "/" key, or the key bar's "/ Ask" entry, opens a colourless fade rising from the bottom with the
+// question typed in large light type under its label (CMP-05: a labeled line, no placeholder). Esc, its own "Esc
+// Close" or a click anywhere outside its line closes it; that click does nothing else. Enter or its "Submit" hands the
+// text to the page (the overview sends it; an instrument carries it to the overview). While the line is empty, up to
+// two suggested questions stand on its left: the arrow keys pick one and Enter asks it; typing puts them away. The
+// activity line shows only once the page passes one, after Enter.
 
 import type { SuggestedQuestion } from "@siterra/contracts";
-import { useEffect, useLayoutEffect, useRef, type CSSProperties, type Ref } from "react";
+import {
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type KeyboardEvent as ReactKeyboardEvent,
+  type Ref,
+} from "react";
 import { en, format } from "../../lib/copy/en";
-import { pkg } from "../../lib/copy/package";
 import type { AskLine } from "../../lib/overview/ask-line";
+import { KeyChip } from "../controls/Control";
 import styles from "./Ask.module.css";
 
 export interface AskProps {
-  /** "arc": 112 px circle placed on the arc's start; "rest": a 44 px circle at the bottom centre. */
-  variant: "arc" | "rest";
   /** True while no key may open or close it (the overview's arrival from the globe). */
   keysOff?: boolean;
   open: boolean;
@@ -27,24 +35,10 @@ export interface AskProps {
   activity: AskLine | null;
   /** A completed request's "Findings: N" opens its results. */
   onFindings?: () => void;
-  /** Opens the case's next-steps plan (PackageBriefing) directly from Ask. */
-  onOpenPlan?: () => void;
-  /** Live web, literature & governance retrieval toggle state. */
-  liveSearch?: boolean;
-  onToggleLiveSearch?: (next: boolean) => void;
-  /** The circle hovered or focused (the overview dims its findings a little). */
-  onHover?: (on: boolean) => void;
-  circleRef?: Ref<HTMLButtonElement>;
-  /** False: no circle on the screen (the overview, where "/ Ask" in the command bar opens the ask). */
-  disc?: boolean;
-  circleStyle?: CSSProperties;
-  /** The activity line beside the disc while the ask is closed. */
+  /** The activity line at the ask's resting place while the ask is closed (the overview places it). */
   besideRef?: Ref<HTMLParagraphElement>;
-  /** Validated questions for the place, shown as guided prompts at rest and inside the open ask. */
+  /** Validated questions for the place, offered beside the empty line inside the open ask. */
   suggestions?: readonly SuggestedQuestion[] | undefined;
-  /** True while the guided prompts stand beside the ask circle at rest on the overview. */
-  showPromptsAtRest?: boolean | undefined;
-  promptsRef?: Ref<HTMLDivElement> | undefined;
 }
 
 /** True when a key press belongs to a field the viewer is typing in. */
@@ -55,8 +49,10 @@ const typing = (t: EventTarget | null) =>
 /** The smallest font size a long question steps down to before it scrolls. */
 const ASK_MIN_PX = 24;
 
+/** CMP-05: up to two suggestions. */
+const SUGGESTIONS_MAX = 2;
+
 export function Ask({
-  variant,
   keysOff = false,
   open,
   onOpen,
@@ -66,17 +62,40 @@ export function Ask({
   onEnter,
   activity,
   onFindings,
-  onOpenPlan,
-  liveSearch,
-  onToggleLiveSearch,
-  onHover,
-  circleRef,
-  circleStyle,
-  disc = true,
   besideRef,
   suggestions,
 }: AskProps) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const lineId = useId();
+  const suggestedId = useId();
+  // the suggestion the arrow keys or the pointer picked, lit alone; -1 is none, and Enter sends the line as typed
+  const [pick, setPick] = useState(-1);
+  const offered =
+    open && text === "" && activity === null ? (suggestions ?? []).slice(0, SUGGESTIONS_MAX) : [];
+  const picked = pick < offered.length ? pick : -1;
+
+  const ask = (q: SuggestedQuestion) => {
+    onText(q.question);
+    onEnter(q.question);
+  };
+
+  // while the line is empty the arrow keys step through the suggestions and back to the line itself, and Enter asks
+  // the one picked; the focus stays on the line
+  const onLineKey = (e: ReactKeyboardEvent<HTMLInputElement>) => {
+    const n = offered.length;
+    if (n === 0 || e.nativeEvent.isComposing) return;
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      e.preventDefault();
+      const step = e.key === "ArrowDown" ? 1 : n;
+      setPick(((picked + 1 + step) % (n + 1)) - 1);
+    } else if (e.key === "Enter") {
+      const q = offered[picked];
+      if (!q) return;
+      e.preventDefault();
+      ask(q);
+    }
+  };
 
   // "/" opens the ask from anywhere but a field being typed in
   // Esc closes it from anywhere while it is open
@@ -99,6 +118,37 @@ export function Ask({
       window.removeEventListener("keydown", onKey);
     };
   }, [keysOff, open, onOpen, onClose]);
+
+  // a press outside the line, its suggestions, its activity and its keys closes the ask, and the click it makes is
+  // spent on that: it does not also act on the land or the view under the fade
+  const closeRef = useRef(onClose);
+  closeRef.current = onClose;
+  const shut = useRef({ open, keysOff });
+  shut.current = { open, keysOff };
+  useEffect(() => {
+    let spent = false;
+    const inside = (t: EventTarget | null) =>
+      t instanceof Element &&
+      (rootRef.current?.contains(t) ?? false) &&
+      t.closest("form, [data-ask-suggestions], [data-ask-activity], [data-ask-keys]") !== null;
+    const onDown = (e: PointerEvent) => {
+      if (!shut.current.open || shut.current.keysOff || inside(e.target)) return;
+      spent = true;
+      closeRef.current();
+    };
+    const onClick = (e: MouseEvent) => {
+      if (!spent) return;
+      spent = false;
+      e.preventDefault();
+      e.stopPropagation();
+    };
+    window.addEventListener("pointerdown", onDown, true);
+    window.addEventListener("click", onClick, true);
+    return () => {
+      window.removeEventListener("pointerdown", onDown, true);
+      window.removeEventListener("click", onClick, true);
+    };
+  }, []);
 
   // open, the typing goes to the question; closed, the focus leaves it
   // a long question stays whole on its one line: the type steps down to fit the field, from 46 px to 24 px
@@ -123,37 +173,11 @@ export function Ask({
   }, [open]);
 
   return (
-    <div className={styles.ask} data-variant={variant} data-open={open ? "" : undefined}>
+    <div ref={rootRef} className={styles.ask} data-open={open ? "" : undefined} data-ask-overlay>
       <div className={styles.veil} aria-hidden="true" />
-      {disc ? (
-        <button
-          ref={circleRef}
-          type="button"
-          className={styles.disc}
-          style={circleStyle}
-          aria-label={open ? en["ask.close"].text : en["ask.open"].text}
-          aria-keyshortcuts="/"
-          aria-expanded={open}
-          data-ask
-          onClick={open ? onClose : onOpen}
-          onPointerEnter={() => onHover?.(true)}
-          onPointerLeave={() => onHover?.(false)}
-          onFocus={() => onHover?.(true)}
-          onBlur={() => onHover?.(false)}
-        >
-          <span className={styles.label} aria-hidden="true">
-            {en["ask.circle"].text}
-          </span>
-          <svg className={styles.plus} viewBox="-10 -10 20 20" aria-hidden="true">
-            <circle r="9" />
-            <path d="M-3.6 0 H3.6 M0 -3.6 V3.6" />
-          </svg>
-        </button>
-      ) : null}
       <p
         ref={besideRef}
         className={styles.beside}
-        style={circleStyle}
         aria-hidden="true"
         data-ask-beside
         data-shown={!open && activity !== null ? "" : undefined}
@@ -161,52 +185,6 @@ export function Ask({
         {activity?.text}
       </p>
       <div className={styles.panel} aria-hidden={!open}>
-        {(onToggleLiveSearch !== undefined || onFindings !== undefined || onOpenPlan !== undefined) && (
-          <div className={styles.modeBar} data-chrome>
-            {onToggleLiveSearch !== undefined ? (
-              <button
-                type="button"
-                className={styles.modePill}
-                data-ask-live-search
-                aria-pressed={Boolean(liveSearch)}
-                tabIndex={open ? 0 : -1}
-                onClick={() => {
-                  onToggleLiveSearch(!liveSearch);
-                }}
-              >
-                {liveSearch ? pkg["verdict.live.on"].text : pkg["verdict.live.off"].text}
-              </button>
-            ) : null}
-            {onFindings !== undefined ? (
-              <button
-                type="button"
-                className={styles.modePill}
-                data-ask-open-verdict
-                tabIndex={open ? 0 : -1}
-                onClick={() => {
-                  onClose();
-                  onFindings();
-                }}
-              >
-                {pkg["verdict.open"].text}
-              </button>
-            ) : null}
-            {onOpenPlan !== undefined ? (
-              <button
-                type="button"
-                className={styles.modePill}
-                data-ask-open-plan
-                tabIndex={open ? 0 : -1}
-                onClick={() => {
-                  onClose();
-                  onOpenPlan();
-                }}
-              >
-                {pkg["package.open"].text}
-              </button>
-            ) : null}
-          </div>
-        )}
         <form
           className={styles.qline}
           autoComplete="off"
@@ -215,42 +193,58 @@ export function Ask({
             onEnter(text);
           }}
         >
+          <label className={styles.name} htmlFor={lineId}>
+            {en["ask.label"].text}
+          </label>
           <input
             ref={inputRef}
+            id={lineId}
             className={styles.input}
             type="text"
             name="question"
             value={text}
-            placeholder={en["instrument.shell.command"].text}
             tabIndex={open ? 0 : -1}
-            aria-label={en["instrument.shell.command"].text}
             onChange={(e) => {
+              setPick(-1);
               onText(e.target.value);
+            }}
+            onKeyDown={onLineKey}
+            onBlur={() => {
+              setPick(-1);
             }}
           />
         </form>
-        {activity === null && suggestions && suggestions.length > 0 ? (
-          <ul className={styles.openSuggestions} data-ask-suggestions>
-            {suggestions.slice(0, 3).map((q, idx) => (
-              <li key={q.id}>
-                <button
-                  type="button"
-                  className={styles.openSuggestionBtn}
-                  data-ask-suggestion={q.id}
-                  tabIndex={open ? 0 : -1}
-                  onClick={() => {
-                    onText(q.question);
-                    onEnter(q.question);
-                  }}
-                >
-                  <kbd className={styles.promptKey} aria-hidden="true">
-                    {idx + 1}
-                  </kbd>
-                  <span className={styles.openSuggestionText}>{q.question}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
+        {offered.length > 0 ? (
+          <div className={styles.suggested} data-ask-suggestions>
+            {/* a div, not a p: the text checks read a p with an id as the screen reader's key description */}
+            <div className={styles.kicker} id={suggestedId}>
+              {en["ask.suggested"].text}
+            </div>
+            {/* the arrow keys light a suggestion while the focus stays on the line: say which one */}
+            <p className={styles.srOnly} aria-live="polite" data-ask-picked>
+              {picked >= 0 ? (offered[picked]?.question ?? "") : ""}
+            </p>
+            <ul className={styles.suggestions} aria-labelledby={suggestedId}>
+              {offered.map((q, i) => (
+                <li key={q.id}>
+                  <button
+                    type="button"
+                    className={styles.suggestion}
+                    data-ask-suggestion={q.id}
+                    data-selected={i === picked ? "" : undefined}
+                    onPointerEnter={() => {
+                      setPick(i);
+                    }}
+                    onClick={() => {
+                      ask(q);
+                    }}
+                  >
+                    {q.question}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
         ) : null}
         {activity !== null ? (
           <p className={styles.act} role="status" data-ask-activity>
@@ -270,6 +264,33 @@ export function Ask({
             ) : null}
           </p>
         ) : null}
+        {/* the keys that work while it is open, each also a button, drawn as the key bar draws its entries */}
+        <div className={styles.keys} data-ask-keys>
+          <button
+            type="button"
+            className={styles.keyEntry}
+            tabIndex={open ? 0 : -1}
+            aria-keyshortcuts="Enter"
+            data-ask-key="Enter"
+            onClick={() => {
+              onEnter(text);
+            }}
+          >
+            <KeyChip>↵</KeyChip>
+            {en["ask.key.submit"].text}
+          </button>
+          <button
+            type="button"
+            className={styles.keyEntry}
+            tabIndex={open ? 0 : -1}
+            aria-keyshortcuts="Escape"
+            data-ask-key="Escape"
+            onClick={onClose}
+          >
+            <KeyChip>Esc</KeyChip>
+            {en["ask.key.close"].text}
+          </button>
+        </div>
       </div>
     </div>
   );

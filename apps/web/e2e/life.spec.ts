@@ -1,12 +1,25 @@
 import { createHash } from "node:crypto";
 import { expect, test, type Page } from "@playwright/test";
 import { SYNTHETIC_LIFE_BUNDLE, syntheticOccurrences } from "../lib/life/fixtures/occurrences";
+import { atTheAnswer, openView } from "./answer";
 
-// Recorded life on the land (UI-2). On the first place's own stored GBIF bundle: G shows the layer (off by default)
-// with its counts, a point under the cursor opens its card, Enter reads its first record. On the SYNTHETIC fixture in
-// the stored asset's format (it takes the real bundle's place in the case's snapshot, its asset served with the
-// checksum the read API serves): every line of the cards, the fossil specimen counted and not drawn, Esc steps back,
-// G hides the layer. Without a species bundle no key is offered.
+// Recorded life on the land (UI-2). The overview's home is the answer, which offers no species key: recorded life is
+// G's over time, on Year by Year opened from the answer's views. On the first place's own stored GBIF bundle: G
+// shows the layer (off by default) with its counts, a point under the cursor opens its card, Enter reads its first
+// record. On the SYNTHETIC fixture in the stored asset's format (it takes the real bundle's place in the case's
+// snapshot, its asset served with the checksum the read API serves): every line of the cards, the fossil specimen
+// counted and not drawn, Esc steps back, G hides the layer. Without a species bundle no key is offered.
+
+/** Opens Year by Year from the answer's views, where recorded life is offered. */
+async function overTime(page: Page) {
+  await atTheAnswer(page);
+  // the answer offers no species key, and G does nothing there
+  await expect(page.locator("[data-key-legend] [data-key='G']")).toHaveCount(0);
+  await page.keyboard.press("g");
+  await expect(page.locator("[data-life-layer]")).toHaveCount(0);
+  await openView(page, "time");
+  await expect(page.locator("[data-time-view]")).toBeVisible({ timeout: 15_000 });
+}
 
 test.use({ viewport: { width: 1440, height: 900 } });
 
@@ -58,14 +71,11 @@ async function withoutLife(page: Page) {
   });
 }
 
-test("G shows the first place's own recorded life; a point's card; Enter reads its first record", async ({
+test("over time, G shows the first place's own recorded life; a point's card; Enter reads its first record", async ({
   page,
 }) => {
   test.setTimeout(180_000);
-  await page.goto("/valley");
-  await expect(page.locator("[data-overview-root]")).toHaveAttribute("data-ready", "", {
-    timeout: 90_000,
-  });
+  await overTime(page);
   const layer = page.locator("[data-life-layer]");
   await expect(layer).toHaveCount(0);
   await page.mouse.move(720, 60);
@@ -94,11 +104,8 @@ test("on the synthetic fixture: every card line; Enter steps the records, Esc st
 }) => {
   test.setTimeout(180_000);
   await withSyntheticLife(page);
-  await page.goto("/valley");
-  await expect(page.locator("[data-overview-root]")).toHaveAttribute("data-ready", "", {
-    timeout: 90_000,
-  });
-  // off by default; the key legend offers it where the case holds a species bundle
+  await overTime(page);
+  // off by default; over time the key legend offers it where the case holds a species bundle
   const layer = page.locator("[data-life-layer]");
   await expect(layer).toHaveCount(0);
   await expect(page.getByRole("button", { name: /Species/ })).toBeVisible();
@@ -127,10 +134,10 @@ test("on the synthetic fixture: every card line; Enter steps the records, Esc st
   await expect(point).toContainText("Location uncertainty not stated");
   await page.keyboard.press("Enter");
   await expect(point).toContainText("2 of 5");
-  // Esc steps back to the point's card, without leaving the overview
+  // Esc steps back to the point's card, without leaving Year by Year
   await page.keyboard.press("Escape");
   await expect(point).toContainText("5 records, 4 species");
-  await expect(page).toHaveURL(/\/valley/);
+  await expect(page.locator("[data-time-view]")).toBeVisible();
   // the words never claim presence, abundance or change
   const words = (await layer.innerText()).replace("not presence or abundance", "");
   expect(words).not.toMatch(/presence|abundance|decline|increase|trend|common|rare/i);
@@ -145,23 +152,14 @@ test("recorded life stays on over time, and a case without a species bundle offe
 }) => {
   test.setTimeout(180_000);
   await withoutLife(page);
-  await page.goto("/valley");
-  await expect(page.locator("[data-overview-root]")).toHaveAttribute("data-ready", "", {
-    timeout: 90_000,
-  });
+  await atTheAnswer(page);
   await expect(page.getByRole("button", { name: /Species/ })).toHaveCount(0);
   await page.keyboard.press("g");
   await expect(page.locator("[data-life-layer]")).toHaveCount(0);
 
   await page.unrouteAll({ behavior: "wait" });
-  await page.reload();
-  await expect(page.locator("[data-overview-root]")).toHaveAttribute("data-ready", "", {
-    timeout: 90_000,
-  });
-  await page.locator("[data-finding='fdr']").click();
+  await overTime(page);
   await page.mouse.move(720, 60);
-  await page.keyboard.press("t");
-  await expect(page.locator("[data-time-view]")).toBeVisible({ timeout: 10_000 });
   await page.keyboard.press("g");
   await expect(page.locator("[data-life-layer]")).toBeVisible({ timeout: 10_000 });
 });

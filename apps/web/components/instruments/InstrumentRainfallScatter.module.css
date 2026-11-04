@@ -1,5 +1,5 @@
-/* The rainfall scatter, in the Obsidian tokens of app/obsidian.css and the type of the pixel anatomy:
-   a 1440 x 900 stage scaled to fit, the caption at the top left, the plot, a side column, the credit line. */
+/* Rain and Greenness, in the theme's tokens: a 1440 x 900 stage scaled to fit, the headline at the top left in the
+   answer's type, the words in the left column under it and the plot to their right. */
 
 .root {
   position: absolute;
@@ -28,34 +28,13 @@
 .caption {
   position: absolute;
   left: 40px;
-  top: 56px;
-  width: 820px;
+  top: 36px;
+  width: 760px;
   margin: 0;
-  font-size: 20px;
-  line-height: 28px;
+  font: 400 25px / 32px var(--font-sans);
+  letter-spacing: -0.012em;
   text-wrap: pretty;
-}
-
-.ink {
   color: var(--text-primary);
-}
-
-.grey {
-  color: var(--text-tertiary);
-}
-
-.chip {
-  display: inline-block;
-  min-width: 18px;
-  height: 18px;
-  margin: 0 0 0 6px;
-  padding: 0 5px;
-  border-radius: 4px;
-  background: var(--bg-overlay);
-  font: 500 12px/18px var(--font-mono);
-  color: var(--text-secondary);
-  text-align: center;
-  vertical-align: 3px;
 }
 
 .plot {
@@ -71,12 +50,14 @@
   fill: var(--text-tertiary);
 }
 
+/* a halo of the ground keeps a label readable where a season's mark sits under it */
 .driest,
 .fitLabel {
   font-size: 12px;
   line-height: 16px;
   white-space: nowrap;
   color: var(--text-secondary);
+  text-shadow: var(--paper-halo);
 }
 
 .axisX,
@@ -87,7 +68,10 @@
   white-space: nowrap;
 }
 
+/* the rain axis's name under its ticks (set 1.9 em under the plot, 0.3 em deep): 40 px under the plot at the design
+   size, and further down with the ticks when the 12 px floor grows them */
 .axisX {
+  margin-top: max(40px, calc(2.2em + 6px));
   text-align: center;
 }
 
@@ -103,10 +87,10 @@
 
 .sideKey {
   display: flex;
-  gap: 6px;
+  gap: 8px;
   align-items: center;
-  font-size: 12px;
-  line-height: 16px;
+  font-size: 13px;
+  line-height: 18px;
   color: var(--text-secondary);
 }
 
@@ -114,56 +98,16 @@
   flex: none;
 }
 
+/* what the fit measures and how much greenness moved with rain, under the key */
+.notes {
+  margin-top: 20px;
+}
+
 .sideNote {
-  font-size: 12px;
-  line-height: 16px;
-  color: var(--text-tertiary);
-}
-
-/* the step to the fit's caveat in full, its interval and its gate */
-.more {
-  display: inline-flex;
-  align-items: center;
-  height: 24px;
-  margin: 0 0 12px;
-  padding: 0 10px;
-  border: 1px solid var(--control-line);
-  border-radius: 999px;
-  background: none;
-  color: var(--control-ink);
-  font: 400 13px / 18px var(--font-sans);
-  cursor: pointer;
-}
-
-.more:hover,
-.more:focus-visible,
-.more[aria-expanded="true"] {
-  background: var(--control-fill);
-  border-color: var(--control-line-strong);
-}
-
-/* the attribution line: 16 px under the shell's command line, by design */
-.credit {
-  position: absolute;
-  left: 48px;
-  right: 48px;
-  top: 856px;
-  margin: 0;
-  text-align: center;
-  font-size: 12px;
-  line-height: 16px;
-  color: var(--text-tertiary);
-  text-wrap: balance;
-}
-
-.credit span + span {
-  margin-left: 0.6em;
-}
-
-.credit b {
-  font-weight: 500;
-  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 19px;
   color: var(--text-secondary);
+  text-wrap: pretty;
 }
 
 .failed {
@@ -182,4 +126,30 @@
   overflow: hidden;
   clip-path: inset(50%);
   white-space: nowrap;
+}
+
+/* no word under 12 px on screen: the stage is scaled to fit the window, so type that would land under 12 px grows,
+   in the stage's own px, until it lands on 12 (its line height grows with it) */
+.stage {
+  --min-type: calc(12px / var(--stage-scale, 1));
+}
+
+.stage :is(.tick, .driest, .fitLabel, .axisX, .axisY) {
+  font-size: max(12px, var(--min-type));
+  line-height: max(16px, calc(var(--min-type) * 1.333));
+}
+
+.stage :is(.sideKey) {
+  font-size: max(13px, var(--min-type));
+  line-height: max(18px, calc(var(--min-type) * 1.385));
+}
+
+.stage :is(.sideNote) {
+  font-size: max(13px, var(--min-type));
+  line-height: max(19px, calc(var(--min-type) * 1.462));
+}
+
+.stage :is(.sideFigure) {
+  font-size: max(15px, var(--min-type));
+  line-height: max(20px, calc(var(--min-type) * 1.333));
 }

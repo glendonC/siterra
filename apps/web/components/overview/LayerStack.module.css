@@ -1,0 +1,130 @@
+/* The land's layer labels (LayerStack.tsx): the thinking trace's land label (Readout.module.css .placeTip), one per
+   sheet, on a hairline to its sheet's edge. Placed in CSS px over the canvas, never scaled; no text under 12 px. */
+
+.layer {
+  position: absolute;
+  inset: 0;
+  z-index: 7;
+  pointer-events: none;
+  /* the label's own ground and ink, read here in the page's theme; inside a label the other theme's tokens apply */
+  --stack-label-bg: var(--trace-label-bg);
+  --stack-label-ink: var(--trace-label-ink);
+  --stack-label-sub: var(--trace-label-sub);
+  --stack-leader: var(--ov-wire);
+  --stack-leader-lit: var(--accent);
+}
+
+/* the labels belong to the answer and the thinking: none shows while a view stands open, in place (the overview's
+   root is handing the land over) or by its own address (the root then holds neither the answer nor the steps, as
+   under Year by Year). At once, so nothing fades over the view; their places are still kept every frame. */
+:global([data-overview-root][data-tearing]) .layer,
+:global([data-overview-root]:not([data-readout]):not([data-at-work])) .layer {
+  opacity: 0;
+}
+
+.leaders {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.leader {
+  stroke: var(--stack-leader);
+  stroke-width: 1;
+  visibility: hidden;
+}
+
+.end {
+  fill: var(--stack-leader);
+  visibility: hidden;
+}
+
+.leader[data-lit] {
+  stroke: var(--stack-leader-lit);
+}
+
+.end[data-lit] {
+  fill: var(--stack-leader-lit);
+}
+
+.label {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: max-content;
+  max-width: 260px;
+  padding: 7px 10px 8px;
+  border-radius: 4px;
+  background: var(--stack-label-bg);
+  color: var(--stack-label-ink);
+  font-family: var(--font-sans);
+  white-space: nowrap;
+  visibility: hidden;
+  will-change: transform, opacity;
+}
+
+.name {
+  font: 500 13px / 17px var(--font-sans);
+}
+
+.line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font: 400 12px / 16px var(--font-sans);
+  color: var(--stack-label-sub);
+}
+
+.ramp {
+  flex: none;
+  width: 44px;
+  height: 6px;
+  border-radius: 1px;
+}
+
+.class {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.class + .class {
+  margin-left: 6px;
+}
+
+.patch {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 1px;
+}
+
+/* the explanation's verdict: the trace's dots, in the tokens that read on the label's ground */
+.dot {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--trace-closed);
+}
+
+.dot[data-status="consistent"] {
+  background: var(--trace-consistent);
+}
+
+.dot[data-status="cannot_be_assessed"] {
+  background: var(--trace-open);
+}
+
+.explanation {
+  color: var(--stack-label-ink);
+}
+
+.verdict {
+  margin-left: 2px;
+}

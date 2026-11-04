@@ -13,15 +13,17 @@ import {
 import { en } from "../../lib/copy/en";
 import { pkg } from "../../lib/copy/package";
 import { bandLimitsOf } from "../../lib/land/record";
+import type { AskStatus } from "../../lib/overview/ask-line";
 import type { LiftId, Selection } from "../../lib/overview/scene/overview";
 import type { packageView } from "../../lib/package/package";
 import type { RunModel } from "../../lib/run/model";
 import { OPENING_HREF, type KeyEntry } from "../controls/ScreenChrome";
 import type { LifeMount } from "../life/LifeLayer";
-import type { LandMount } from "../package/PackageBriefing";
 import type { TimeMount } from "../time/TimeView";
+import type { Stands } from "./useOverviewLayoutApply";
 import type { useOverviewDomRefs } from "./useOverviewRunState";
 import type { TearState } from "./useOverviewTearInPlace";
+import { sheetOfTask, type StepTask } from "./AtWorkCursors";
 
 /** Camera bounds: zoom factor, 360° bearing turn, vertical pitch tilt, and horizontal pan. */
 const ZOOM = { min: 0.28, max: 2.2 } as const;
@@ -31,6 +33,9 @@ const PAN_MAX = 18;
 export interface UseOverviewLayerFocusArgs {
   snapshot: CaseSnapshot;
   askSnapshot: CaseSnapshot;
+  /** Where a question asked from the Ask stands (useOverviewAsk): its steps stay while it is at work or was not
+   *  answered, and hand over only to its answer. */
+  askStatus?: AskStatus | null;
   bandLimitValue: number | null;
   data: {
     footprints: {
@@ -43,9 +48,16 @@ export interface UseOverviewLayerFocusArgs {
   setMoved: (v: boolean) => void;
   setLiftShown: (v: LiftId | null) => void;
   sel: Selection | null;
+  setSel: Dispatch<SetStateAction<Selection | null>>;
   atWorkShown: boolean;
+  atWorkRef: RefObject<boolean>;
   setAtWork: Dispatch<SetStateAction<boolean>>;
   setThinkingHidden: Dispatch<SetStateAction<boolean>>;
+  /** The steps hand over to their run's answer (the address names it). */
+  handOver: () => void;
+  /** The answer on screen is a run's (it has steps to show), not the case's own. */
+  answerIsRun: boolean;
+  tearRef: RefObject<TearState | null>;
   run: RunModel | null;
   thinkingRun: RunModel | null;
   runPaused: boolean;
@@ -69,9 +81,13 @@ export interface UseOverviewLayerFocusArgs {
   go: () => void;
 }
 
+/** How long a finished run's steps stay up before its answer takes over, with no input. */
+const REVEAL_AFTER_MS = 4000;
+
 export function useOverviewLayerFocus({
   snapshot,
   askSnapshot,
+  askStatus = null,
   bandLimitValue,
   data,
   arrival,
@@ -79,9 +95,14 @@ export function useOverviewLayerFocus({
   setMoved,
   setLiftShown,
   sel,
+  setSel,
   atWorkShown,
+  atWorkRef,
   setAtWork,
   setThinkingHidden,
+  handOver,
+  answerIsRun,
+  tearRef,
   run,
   thinkingRun,
   runPaused,
@@ -114,16 +135,17 @@ export function useOverviewLayerFocus({
     idle,
     liftShownRef,
     pkgRangesRef,
-    pkgAsideRef,
+    standSubs,
     timeRef,
     timeSubs,
     lifeRef,
     lifeSubs,
     lifeHot,
-    standSubs,
     hideHoverRef,
     sceneRef,
     selRef,
+    nextSelRef,
+    live,
   } = domRefs;
 
   const timeMount = useMemo<TimeMount>(
@@ -169,26 +191,16 @@ export function useOverviewLayerFocus({
     [go, hideHoverRef, lifeHot, lifeRef, lifeSubs, sceneRef],
   );
 
-  const pkgLand = useMemo<LandMount>(
-    () => ({
-      limits: bandLimitsOf(snapshot),
-      onRanges: (ranges, lit) => {
-        pkgRangesRef.current = { ranges, lit };
-        go();
-      },
-      onAside: (aside) => {
-        pkgAsideRef.current.goal = aside ? 1 : 0;
-        go();
-      },
-      subscribe: (f) => {
-        standSubs.current.add(f);
-        go();
-        return () => {
-          standSubs.current.delete(f);
-        };
-      },
-    }),
-    [snapshot, go, pkgAsideRef, pkgRangesRef, standSubs],
+  // each lit band's place on screen, every frame, for the label that sits on it
+  const subscribeStands = useCallback(
+    (f: (s: Stands) => void) => {
+      standSubs.current.add(f);
+      go();
+      return () => {
+        standSubs.current.delete(f);
+      };
+    },
+    [go, standSubs],
   );
 
   const setCam = useCallback(
@@ -218,7 +230,13 @@ export function useOverviewLayerFocus({
   }, []);
 
   const reset = useCallback(() => {
-    if (selRef.current) back();
+    // R puts the camera back; on the answer or a view that is all it does (the answer's lit sheet stays lit)
+    const s = selRef.current;
+    if (s === "results" || s === "package" || s === "time") {
+      setCam({ zoom: 1, turn: 0, pitch: 0, panX: 0, panY: 0 });
+      return;
+    }
+    if (s) back();
     goal.current.r = 0;
     goal.current.h = 0;
     hov.current = null;
@@ -248,48 +266,58 @@ export function useOverviewLayerFocus({
     [goal, idle, liftShownRef, pkgRangesRef, reducedMotion, setLiftShown],
   );
 
-  const focusCauseFromLedger = useCallback(
-    (explanationId: string) => {
-      const lim = bandLimitValue ?? 2317;
-      idle.current.t0 = -1;
-      const smoothCam = (zoom: number, turn: number) => {
-        if (reducedMotion.current) {
-          camTargetRef.current = null;
-          camRef.current.zoom = zoom;
-          camRef.current.turn = turn;
-        } else {
-          camTargetRef.current = {
-            zoom,
-            turn,
-            pitch: camRef.current.pitch,
-            panX: camRef.current.panX,
-            panY: camRef.current.panY,
-          };
-        }
-      };
-      if (explanationId === "rainfall") {
-        applyLayerLift(data?.footprints.rain?.length ? "rain" : null, 0, [], null);
-        smoothCam(1.08, 14);
-        go();
-      } else if (explanationId === "grazing") {
-        applyLayerLift("bands", 1, [{ lo: lim, hi: 3200 }], 0);
-        smoothCam(1.18, -26);
-        go();
-      } else if (explanationId === "land_use") {
-        applyLayerLift("cover", 0, [{ lo: 1800, hi: lim }], 0);
-        smoothCam(1.22, -16);
-        go();
-      } else if (explanationId === "snow_terrain") {
-        applyLayerLift("bands", 0, [{ lo: lim, hi: 3200 }], 0);
-        smoothCam(1.14, -20);
-        go();
-      } else if (explanationId === "data_artefact") {
-        applyLayerLift(data?.footprints.slope ? "trend" : null, 1, [], null);
-        smoothCam(1.32, 22);
-        go();
-      }
+  // a field check's place: the record's elevation strata, bounded by the case's own band limits; any other
+  // stratum has no drawn extent, so nothing is lit for it
+  const focusStrata = useCallback(
+    (keys: readonly string[] | null) => {
+      const limits = bandLimitsOf(snapshot);
+      const range = (key: string): { lo: number; hi: number } | null =>
+        !limits
+          ? null
+          : key === "elevation_low"
+            ? { lo: -1000, hi: limits[0] }
+            : key === "elevation_mid"
+              ? { lo: limits[0], hi: limits[1] }
+              : key === "elevation_high"
+                ? { lo: limits[1], hi: 9000 }
+                : null;
+      const ranges = (keys ?? []).map(range).filter((r) => r !== null);
+      idle.current.t0 = ranges.length ? -1 : null;
+      applyLayerLift(null, 0, ranges, ranges.length ? 0 : null);
+      go();
     },
-    [applyLayerLift, bandLimitValue, camRef, camTargetRef, data, go, idle, reducedMotion],
+    [applyLayerLift, go, idle, snapshot],
+  );
+
+  // the answer on the land: the sheet its claim reads, lifted with its own caption, and the next check's place lit
+  // beneath it; with neither, the land is left as it is
+  const showResult = useCallback(
+    (layer: LiftId | null, keys: readonly string[]) => {
+      const limits = bandLimitsOf(snapshot);
+      const ranges = keys
+        .map((key) =>
+          !limits
+            ? null
+            : key === "elevation_low"
+              ? { lo: -1000, hi: limits[0] }
+              : key === "elevation_mid"
+                ? { lo: limits[0], hi: limits[1] }
+                : key === "elevation_high"
+                  ? { lo: limits[1], hi: 9000 }
+                  : null,
+        )
+        .filter((r) => r !== null);
+      if (!layer && !ranges.length) {
+        idle.current.t0 = null;
+        applyLayerLift(null, 0, [], null);
+        go();
+        return;
+      }
+      idle.current.t0 = -1;
+      applyLayerLift(layer ?? "bands", 0, ranges, ranges.length ? 0 : null);
+      go();
+    },
+    [applyLayerLift, go, idle, snapshot],
   );
 
   const focusLayer = useCallback(
@@ -377,37 +405,83 @@ export function useOverviewLayerFocus({
   );
 
   const focusTaskLayer = useCallback(
-    (task: { kind: string; sublabel?: string | null } | null) => {
+    (task: StepTask | null) => {
       if (!task) {
         focusLayer(null, false);
         return;
       }
-      const sub = (task.sublabel ?? "").toLowerCase();
-      if (task.kind === "plan") {
-        focusLayer("bands", false);
-      } else if (
-        sub.includes("vegetation") ||
-        sub.includes("ndvi") ||
-        sub.includes("trend") ||
-        sub.includes("valley floor")
-      ) {
-        focusLayer("trend", false);
-      } else if (sub.includes("rain") || sub.includes("terrain") || sub.includes("catchment")) {
-        focusLayer("rain", false);
-      } else if (task.kind === "source_research" || task.kind === "source_reading") {
-        focusLayer("cover", false);
-      } else if (task.kind === "livelihood_governance") {
-        focusLayer("routes", false);
-      } else if (
-        task.kind === "explanation_branches" ||
-        task.kind === "field_check" ||
-        task.kind === "instrument_composition"
-      ) {
-        focusLayer("bands", false);
-      }
+      // the sheet the step's own line names, the one its cursor points at too (AtWorkCursors, sheetOfTask); the land
+      // lifts no snow sheet, so a step about snow leaves every sheet lit
+      const sheet = sheetOfTask(task, (s) =>
+        s === "rain"
+          ? (data?.footprints.rain?.length ?? 0) > 0
+          : s === "trend"
+            ? Boolean(data?.footprints.slope)
+            : true,
+      );
+      focusLayer(sheet === "snow" ? null : sheet, false);
     },
-    [focusLayer],
+    [data, focusLayer],
   );
+
+  const pkgHref =
+    sel === "package" && (pkgBrief || pkgView)
+      ? `/brief?case=${encodeURIComponent(askSnapshot.case.id)}&brief=${encodeURIComponent(pkgBrief?.id ?? pkgView?.briefId ?? "")}`
+      : null;
+
+  // the steps hand over to the answer: a run's steps to that run's answer, which the address then names
+  const seeFindings = useCallback(() => {
+    if (atWorkRef.current) handOver();
+    focusTaskLayer(null);
+    setThinkingHidden(true);
+    setAtWork(false);
+    open("results");
+  }, [atWorkRef, focusTaskLayer, handOver, open, setAtWork, setThinkingHidden]);
+
+  // the steps take the screen from the answer at once, the land with them, or nothing happens: never the answer left
+  // up under steps that are not drawn. Read from the refs, so a key pressed as the answer opens sees what is open.
+  const showSteps = useCallback(() => {
+    const s = selRef.current;
+    if (tearRef.current || nextSelRef.current || (s && s !== "results")) return;
+    focusTaskLayer(null);
+    if (s) {
+      selRef.current = null;
+      setSel(null);
+      live.current.s = 0;
+      goal.current.s = 0;
+    }
+    setThinkingHidden(false);
+    setAtWork(true);
+    go();
+  }, [
+    focusTaskLayer,
+    go,
+    goal,
+    live,
+    nextSelRef,
+    selRef,
+    setAtWork,
+    setSel,
+    setThinkingHidden,
+    tearRef,
+  ]);
+
+  // the analysis steps and their own answer swap places: T shows the steps of the run the answer is from (the case's own
+  // answer has none: a recorded run asked another question), and T again goes back; steps opened by T stay until then
+  const answerIsRunRef = useRef(answerIsRun);
+  answerIsRunRef.current = answerIsRun;
+  const manualSteps = useRef(false);
+  const toggleThinking = useCallback(() => {
+    if (!atWorkRef.current) {
+      if (!answerIsRunRef.current) return;
+      manualSteps.current = true;
+      showSteps();
+    } else if (!run || run.done) seeFindings();
+  }, [atWorkRef, run, seeFindings, showSteps]);
+
+  // a question asked from the Ask that is still at work, or was not answered, holds its steps: they never hand over by
+  // themselves, and neither T nor Enter hands its command over to the answer (Esc and Ask Again are its ways on)
+  const askHolds = askStatus !== null && askStatus.state !== "answered";
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -419,40 +493,25 @@ export function useOverviewLayerFocus({
       ) {
         return;
       }
-      if ((e.key === "t" || e.key === "T") && thinkingRun?.done && !selRef.current) {
+      const inReadout = selRef.current === "results" || selRef.current === "package";
+      if (
+        (e.key === "t" || e.key === "T") &&
+        thinkingRun?.done &&
+        !askHolds &&
+        (!selRef.current || inReadout)
+      ) {
         e.preventDefault();
-        focusTaskLayer(null);
-        setThinkingHidden(atWorkShown);
-        setAtWork(!atWorkShown);
+        toggleThinking();
       }
     };
     window.addEventListener("keydown", onKeyDown);
     return () => {
       window.removeEventListener("keydown", onKeyDown);
     };
-  }, [atWorkShown, focusTaskLayer, selRef, setAtWork, setThinkingHidden, thinkingRun?.done]);
-
-  const pkgHref =
-    sel === "package" && (pkgBrief || pkgView)
-      ? `/brief?case=${encodeURIComponent(askSnapshot.case.id)}&brief=${encodeURIComponent(pkgBrief?.id ?? pkgView?.briefId ?? "")}`
-      : null;
-
-  const seeFindings = useCallback(() => {
-    focusTaskLayer(null);
-    setThinkingHidden(true);
-    setAtWork(false);
-    open("results");
-  }, [focusTaskLayer, open, setAtWork, setThinkingHidden]);
-
-  const toggleThinking = useCallback(() => {
-    if (atWorkShown && run && !run.done) return;
-    focusTaskLayer(null);
-    setThinkingHidden(atWorkShown);
-    setAtWork(!atWorkShown);
-  }, [atWorkShown, focusTaskLayer, run, setAtWork, setThinkingHidden]);
+  }, [askHolds, selRef, thinkingRun?.done, toggleThinking]);
 
   const keys: KeyEntry[] = [
-    ...(!sel && (!atWorkShown || run?.done)
+    ...(!sel && (!atWorkShown || run?.done) && !askHolds
       ? [
           {
             chip: "↵",
@@ -468,13 +527,17 @@ export function useOverviewLayerFocus({
           {
             chip: "P",
             shortcut: "P",
-            label: runPaused ? "Resume" : "Pause",
-            onPress: () => { setRunPaused((p) => !p); },
+            label: en[runPaused ? "run.tree.resume" : "run.tree.pause"].text,
+            onPress: () => {
+              setRunPaused((p) => !p);
+            },
             pressed: runPaused,
           },
         ]
       : []),
-    ...(thinkingRun?.done && !sel
+    ...(thinkingRun?.done &&
+    !askHolds &&
+    ((!sel && atWorkShown) || ((sel === "results" || sel === "package") && answerIsRun))
       ? [
           {
             chip: "T",
@@ -501,7 +564,9 @@ export function useOverviewLayerFocus({
             chip: "G",
             shortcut: "G",
             label: en["chrome.key.life"].text,
-            onPress: () => { setLifeOn((v) => !v); },
+            onPress: () => {
+              setLifeOn((v) => !v);
+            },
             pressed: lifeOn,
           },
         ]
@@ -514,14 +579,18 @@ export function useOverviewLayerFocus({
       chip: "S",
       shortcut: "S",
       label: en["chrome.key.sources"].text,
-      onPress: () => { setPanel((p) => !p); },
+      onPress: () => {
+        setPanel((p) => !p);
+      },
       pressed: panel,
     },
     {
       chip: "W",
       shortcut: "W",
       label: en["chrome.key.scope"].text,
-      onPress: () => { setScope((s) => !s); },
+      onPress: () => {
+        setScope((s) => !s);
+      },
       pressed: scope,
     },
     {
@@ -529,11 +598,42 @@ export function useOverviewLayerFocus({
       shortcut: "Escape",
       label: en["chrome.key.back"].text,
       onPress: () => {
-        if (selRef.current) back();
+        // the answer is the overview's home: Back from it leaves the place; a view, or one opening, comes back to it
+        const s = selRef.current;
+        if ((s === "results" || s === "package") && !nextSelRef.current) toOpening();
+        else if (s) back();
         else toOpening();
       },
     },
   ];
+
+  // a finished run hands over to its answer by itself, once, a few seconds after it completes; any input restarts the
+  // wait, so a visitor reading the steps is not pulled away, and after the hand-over T moves between steps and answer
+  // (steps T opened are the visitor's: they stay until T, Enter or Esc, and never hand over by themselves). The wait is
+  // the finished command's: a case record read again (a reconnecting stream sends its events again) is not input.
+  const revealedFor = useRef<string | null>(null);
+  const finished = thinkingRun?.done ? thinkingRun.commandId : null;
+  useEffect(() => {
+    if (!atWorkShown) manualSteps.current = false;
+    if (finished === null || !atWorkShown || sel || revealedFor.current === finished) return;
+    if (manualSteps.current || askHolds) return;
+    const fire = () => {
+      revealedFor.current = finished;
+      seeFindings();
+    };
+    let timer = window.setTimeout(fire, REVEAL_AFTER_MS);
+    // a visitor reading the steps, the pointer moving over them included, is not pulled away
+    const busy = () => {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(fire, REVEAL_AFTER_MS);
+    };
+    const events = ["pointerdown", "pointermove", "keydown", "wheel"] as const;
+    for (const ev of events) window.addEventListener(ev, busy, { passive: true });
+    return () => {
+      window.clearTimeout(timer);
+      for (const ev of events) window.removeEventListener(ev, busy);
+    };
+  }, [askHolds, atWorkShown, finished, seeFindings, sel]);
 
   const keysRef = useRef({ seeFindings, atWorkShown });
   keysRef.current = { seeFindings, atWorkShown };
@@ -542,16 +642,16 @@ export function useOverviewLayerFocus({
     const onKey = (ev: KeyboardEvent) => {
       if (ev.metaKey || ev.ctrlKey || ev.altKey || askOpen || arriving || tear) return;
       const t = ev.target;
-      if (
-        t instanceof HTMLElement &&
-        t.closest("input, textarea, select, a, button, [contenteditable]")
-      )
+      if (t instanceof HTMLElement && t.closest("input, textarea, select, [contenteditable]"))
         return;
+      // Enter on a focused control belongs to that control; W works from anywhere, as S does
+      const onControl = t instanceof HTMLElement && t.closest("a, button") !== null;
       if (ev.key === "w" || ev.key === "W") {
         ev.preventDefault();
         setScope((s) => !s);
       } else if (
         ev.key === "Enter" &&
+        !onControl &&
         !selRef.current &&
         !keysRef.current.atWorkShown &&
         !hoverShown.current
@@ -569,13 +669,16 @@ export function useOverviewLayerFocus({
   return {
     timeMount,
     lifeMount,
-    pkgLand,
     setCam,
     toOpening,
     reset,
-    focusCauseFromLedger,
+    focusStrata,
+    showResult,
+    subscribeStands,
     focusLayer,
     focusTaskLayer,
     keys,
+    seeFindings,
+    showSteps,
   };
 }

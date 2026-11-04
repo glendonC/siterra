@@ -6,10 +6,10 @@
 :root[data-theme="light"],
 [data-theme="light"] {
   /* Perceptual OKLCH Earth-system triad (Warm Paper #F2EFEA light mode) */
-  --triad-blue: #1D6FE8; /* oklch(56% 0.19 255) — Hydrosphere / Climate & Deterministic Code */
-  --triad-red: #D94838; /* oklch(57% 0.18 28) — Lithosphere / Livelihood Risk & Sensor Mixing */
-  --triad-yellow: #D48817; /* oklch(66% 0.15 74) — Sol / Field Transects & Primary Sources */
-  --triad-green: #1E824C; /* oklch(54% 0.13 152) — Biosphere / Confirmed Vegetation Signal */
+  --triad-blue: #1d6fe8; /* oklch(56% 0.19 255): Hydrosphere / Climate & Deterministic Code */
+  --triad-red: #d94838; /* oklch(57% 0.18 28): Lithosphere / Livelihood Risk & Sensor Mixing */
+  --triad-yellow: #d48817; /* oklch(66% 0.15 74): Sol / Field Transects & Primary Sources */
+  --triad-green: #1e824c; /* oklch(54% 0.13 152): Biosphere / Confirmed Vegetation Signal */
   --triad-blue-soft: rgb(29 111 232 / 0.12);
   --triad-red-soft: rgb(217 72 56 / 0.12);
   --triad-yellow-soft: rgb(212 136 23 / 0.12);
@@ -28,10 +28,10 @@
 [data-theme="obsidian"] {
   color-scheme: dark;
   /* Perceptual OKLCH Earth-system triad (Obsidian #0E1013 dark mode) */
-  --triad-blue: #4D9BFF;
-  --triad-red: #F26B5B;
-  --triad-yellow: #F2B238;
-  --triad-green: #3DBE7A;
+  --triad-blue: #4d9bff;
+  --triad-red: #f26b5b;
+  --triad-yellow: #f2b238;
+  --triad-green: #3dbe7a;
   --triad-blue-soft: rgb(77 155 255 / 0.12);
   --triad-red-soft: rgb(242 107 91 / 0.12);
   --triad-yellow-soft: rgb(242 178 56 / 0.12);
@@ -156,6 +156,19 @@
   --ov-grid: rgb(255 255 255 / 0.07);
   --ov-connector: rgb(201 214 218 / 0.55);
   --ov-connector-end: #c9d6da;
+  /* the finding record's frosted card, dark (app/daylight.css has the light one); where transparency is reduced it
+     keeps this ground, its edge and shadow as they are */
+  --record-glass: linear-gradient(
+    155deg,
+    rgb(20 26 30 / 0.88) 0%,
+    rgb(15 20 24 / 0.82) 55%,
+    rgb(11 16 19 / 0.78) 100%
+  );
+  --record-glass-edge: rgb(255 255 255 / 0.12);
+  --record-glass-shadow:
+    inset 0 0 0 0.5px rgb(255 255 255 / 0.08), 0 2px 8px rgb(0 0 0 / 0.28),
+    0 20px 44px rgb(0 0 0 / 0.45);
+  --record-glass-plain: var(--record-glass);
   /* a card standing on the land: the ground, nearly opaque, the land faintly through it */
   --ov-card: rgb(11 16 18 / 0.8);
   /* AffectUI Clean dark tokens for the Agent Tree, Cursors and Thinking/Plan inspector (Section 8) */
@@ -199,6 +212,29 @@
   --card-glass: rgb(20 28 32 / 0.78);
   --veil-read: rgb(11 16 18 / 0.76);
   --paper-halo: 0 0 2px #0b1012, 0 0 2px #0b1012, 0 0 3px #0b1012;
+
+  /* The thinking trace's palette on the dark ground (the dark status tokens' info and warning values) */
+  --trace-measured: #71b5f9;
+  --trace-open: #ef9e2c;
+  --trace-consistent: #71b5f9;
+  --trace-consistent-ink: #8dc2fa;
+  --trace-open-ink: #faae4d;
+  --trace-closed: rgb(235 240 241 / 0.3);
+  --trace-fill: rgb(235 240 241 / 0.08);
+  --trace-line: rgb(235 240 241 / 0.18);
+  --trace-label-bg: rgb(242 239 234 / 0.94);
+  --trace-label-ink: #141210;
+  --trace-label-sub: rgb(20 18 16 / 0.7);
+  --trace-pill-ink: #141210;
+  --trace-key-bg: #e8eef0;
+  --trace-key-ink: #0b1012;
+
+  /* The sources and limits overlay: the ink on a study's venue tag, the dark ground on the brighter dark triad */
+  --sources-tag-ink: #0b1012;
+  --sources-tag-ink-yellow: #0b1012;
+  /* the dark triad blue already reads at 6.8:1 on the ground */
+  --sources-link: var(--triad-blue);
+
   --biome-fill: #3a3226;
   --biome-edge: rgb(224 122 58 / 0.45);
 }

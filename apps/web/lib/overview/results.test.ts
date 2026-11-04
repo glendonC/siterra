@@ -4,14 +4,11 @@ import type { BranchMerge, CaseSnapshot, Evidence, Task } from "@siterra/contrac
 import { describe, expect, it } from "vitest";
 import { seed } from "../instruments/seed-listing";
 import {
-  chipNumbers,
   commandFindings,
   commandMerge,
-  resultsCaption,
   sourceKey,
   readableStatement,
   shortCitation,
-  sourceNote,
   verificationOf,
 } from "./results";
 
@@ -59,98 +56,6 @@ const snapshot: CaseSnapshot = {
   },
 };
 
-describe("the results caption", () => {
-  it("states the recorded merge's counts in catalog words", () => {
-    expect(resultsCaption(merge, 1)).toEqual({
-      ink: "Two explanations are contradicted and three cannot be assessed yet.",
-      grey: "The field plan proposes 2 checks that tell the open ones apart.",
-    });
-  });
-
-  it("lists every status present, in order, with the noun in the first clause only", () => {
-    const b = merge.branches;
-    const mixed = {
-      ...merge,
-      branches: [
-        { ...b[0], status: "contradicted" },
-        { ...b[1], status: "consistent" },
-        { ...b[2], status: "cannot_be_assessed" },
-      ],
-      fieldPlan: { measurements: [merge.fieldPlan?.measurements[0]], unseparated: [] },
-    } as unknown as BranchMerge;
-    expect(resultsCaption(mixed, 0)).toEqual({
-      ink: "One explanation is contradicted, one is consistent with the records and one cannot be assessed yet.",
-      grey: "The field plan proposes 1 check that tells the open ones apart.",
-    });
-  });
-
-  it("never claims more than the plan: unseparated pairs are counted, not hidden", () => {
-    const pair = ["grazing", "land_use"];
-    const one = {
-      ...merge,
-      fieldPlan: { ...merge.fieldPlan, unseparated: [pair] },
-    } as unknown as BranchMerge;
-    expect(resultsCaption(one, 1).grey).toBe(
-      "The field plan proposes 2 checks; 1 pair of open explanations is not told apart by any of them.",
-    );
-    const two = {
-      ...merge,
-      fieldPlan: { ...merge.fieldPlan, unseparated: [pair, ["grazing", "snow_terrain"]] },
-    } as unknown as BranchMerge;
-    expect(resultsCaption(two, 1).grey).toBe(
-      "The field plan proposes 2 checks; 2 pairs of open explanations are not told apart by any of them.",
-    );
-    // one check and one pair: every count agrees with its number
-    const single = {
-      ...merge,
-      fieldPlan: {
-        ...merge.fieldPlan,
-        measurements: [merge.fieldPlan?.measurements[0]],
-        unseparated: [pair],
-      },
-    } as unknown as BranchMerge;
-    expect(resultsCaption(single, 1).grey).toBe(
-      "The field plan proposes 1 check; 1 pair of open explanations is not told apart by any of them.",
-    );
-    // the recorded plan leaves none apart, so its sentence stays the plain one
-    expect(resultsCaption(merge, 1).grey).toBe(
-      "The field plan proposes 2 checks that tell the open ones apart.",
-    );
-  });
-
-  it("speaks of the plan only when at least two explanations remain open", () => {
-    const b = merge.branches;
-    const withOpen = (n: number) =>
-      ({
-        ...merge,
-        branches: b.map((x, i) => ({
-          ...x,
-          status: i < n ? "cannot_be_assessed" : "contradicted",
-        })),
-      }) as unknown as BranchMerge;
-    expect(resultsCaption(withOpen(1), 1).grey).toBeNull();
-    expect(resultsCaption(withOpen(2), 1).grey).toBe(
-      "The field plan proposes 2 checks that tell the open ones apart.",
-    );
-    // consistent branches are open too: only contradicted ones are closed
-    const consistent = {
-      ...merge,
-      branches: b.map((x, i) => ({ ...x, status: i < 2 ? "consistent" : "contradicted" })),
-    } as unknown as BranchMerge;
-    expect(resultsCaption(consistent, 1).grey).not.toBeNull();
-  });
-
-  it("says only the findings count when the request merged no branches", () => {
-    expect(resultsCaption(undefined, 2)).toEqual({
-      ink: "The request added 2 findings to the case record.",
-      grey: null,
-    });
-    expect(resultsCaption(undefined, 1).ink).toBe(
-      "The request added 1 finding to the case record.",
-    );
-  });
-});
-
 describe("the findings list", () => {
   it("takes the accepted Evidence of the command's tasks, and its merge", () => {
     expect(commandFindings(snapshot, COMMAND).map((e) => e.id)).toEqual([recorded.id]);
@@ -171,13 +76,14 @@ describe("the findings list", () => {
     expect(commandMerge(snapshot, "cmd_other")).toBeUndefined();
   });
 
-  it("numbers chips by source record, else by bundle, in the order first cited", () => {
+  it("keys chips by source record, else by bundle", () => {
     const withSource = seed.records.evidenceRecords.find(
       (e) => e.provenance.sourceLocators.length > 0,
     ) as Evidence;
     const sameSource = { ...withSource, id: "ev_same_source" };
     expect(sourceKey(recorded)).toBe("bundle_s2_ndvi_monthly_ait_bouguemez");
-    expect(chipNumbers([recorded, withSource, sameSource, recorded])).toEqual([1, 2, 2, 1]);
+    expect(sourceKey(sameSource)).toBe(sourceKey(withSource));
+    expect(sourceKey(withSource)).not.toBe(sourceKey(recorded));
   });
 
   it("states each finding's verification as its record holds it, never an unverified one as checked", () => {
@@ -201,20 +107,9 @@ describe("the findings list", () => {
       "results.unchecked",
       "results.unchecked",
     ]);
-    // a chip for a checked source, a computed bundle, an attached source; none for a bare unverified line
-    expect(chipNumbers([checked, recorded, unchecked, bare])).toEqual([1, 2, 1, null]);
-  });
-
-  it("opens the cited locator and excerpt, or the bundle and measurements for computed evidence", () => {
-    const withSource = seed.records.evidenceRecords.find(
-      (e) => e.provenance.sourceLocators[0]?.excerpt,
-    ) as Evidence;
-    const loc = withSource.provenance.sourceLocators[0];
-    expect(sourceNote(snapshot, withSource)).toContain(loc?.locator ?? "?");
-    expect(sourceNote(snapshot, withSource)).toContain(loc?.excerpt ?? "?");
-    // the computed note counts its measurements and names no record id
-    expect(sourceNote(snapshot, recorded)).toMatch(/\. Computed from one of its measurements\.$/);
-    expect(sourceNote(snapshot, recorded)).not.toMatch(/\bmeas_|\bsrc_|\bev_/);
+    // an attached source keys a chip whether or not it was checked; a bare unverified line has none
+    expect(sourceKey(unchecked)).toBe(sourceKey(checked));
+    expect(sourceKey(bare)).toBeNull();
   });
 });
 

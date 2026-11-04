@@ -1,7 +1,9 @@
 // Overview 3D scene orchestrator: mounts the catchment relief, boundary wall, survey plan,
-// footprint sheets, elevated evidence layers, instanced Sentinel-2 pixel cells, draped walking routes,
-// recorded-life bio-markers, secondary dial arc overlay, depth-of-field blur, and layout projector.
+// footprint sheets, the evidence sheets (lifted one at a time, or the land split into all of them), instanced
+// Sentinel-2 pixel cells, draped walking routes, recorded-life bio-markers, secondary dial arc overlay, depth-of-field
+// blur, and layout projector.
 
+import type { InstrumentView } from "@siterra/contracts";
 import { makeFrame, makeHeightSampler } from "../../instruments/valley/frame";
 import { createStage } from "../../instruments/valley/scene/stage";
 import { heightTexture } from "../../instruments/valley/scene/textures";
@@ -11,6 +13,8 @@ import { overviewColours as C, timeColours as TC } from "../../theme/obsidian";
 import { clamp01, ease, lerp, spanAt, sstep } from "../arc";
 import type { OverviewData } from "../data";
 import type { FindingId } from "../findings";
+import { stackBox, type Theme } from "../layers";
+import { loadStackData, type StackData } from "../layers-data";
 import {
   createLandProbe,
   createLifeRig,
@@ -43,11 +47,17 @@ import {
   coverTexture,
   createDepthOfField,
   createFootprintSheets,
-  createLiftRig,
   createOverlayController,
   createPixelCellsRig,
   type LiftId,
 } from "./overview-sheets";
+import {
+  createStackRig,
+  STACK_VIEW,
+  type StackCommand,
+  type StackLayout,
+  type StackSheetPlace,
+} from "./overview-stack";
 import {
   bakeLight,
   createOccluder,
@@ -78,10 +88,26 @@ export {
   type SceneState,
   type Selection,
   sideOf,
+  type StackCommand,
+  type StackLayout,
+  type StackSheetPlace,
 };
 
 export interface OverviewScene {
-  render(state: SceneState): void;
+  /** Draws a frame; true while the land's sheets are still moving, so the caller keeps drawing. */
+  render(state: SceneState): boolean;
+  /**
+   * Splits the land into its evidence sheets in place, or settles them (the layer in focus, SceneState.lift, stays
+   * lifted alone, and is lit while the stack stands). The motion runs on the scene's own clock: call render until it
+   * returns false.
+   */
+  setStack(cmd: StackCommand): void;
+  /** A split was asked for and has not stood up yet: it waits for the land to finish arriving, then needs frames. */
+  stackPending(): boolean;
+  /** The stack's sheets beyond the overview's own data: snow cover, and the rain sheet's amounts. */
+  setStackData(d: StackData): void;
+  /** The page's theme, which the sheets' colours follow. */
+  setTheme(theme: Theme): void;
   /** The land under a point of the land canvas (CSS px from its top left), or null where the ray meets no land. */
   probe(x: number, y: number): LandProbe | null;
   /** The relief grid an overlay is painted on: its size in canvas px and a UTM point's place on it. */
@@ -93,7 +119,8 @@ export interface OverviewScene {
   setLife(points: readonly { e: number; n: number; tone: string }[] | null): void;
   /** Current screen bounding box, camera orientation, and baked lighting for view handoff. */
   handoff(): LandPose;
-  onLayout(f: (layout: OverviewLayout) => void): void;
+  /** Calls `f` with every frame's layout; the returned function stops it. */
+  onLayout(f: (layout: OverviewLayout) => void): () => void;
   /** The land's footprint and the arc's clearance, read back from the next render. */
   measureGaps(): Promise<Gaps>;
   dispose(): void;
@@ -105,11 +132,17 @@ interface CanvasSet {
   blur: HTMLCanvasElement;
 }
 
+/** The page's theme as the overview's root states it (data-theme), which the sheets' colours follow. */
+const themeOf = (el: Element | null): Theme =>
+  el?.getAttribute("data-theme") === "obsidian" ? "obsidian" : "light";
+
 export function mountOverview(
   canvases: CanvasSet,
   data: OverviewData,
   findings: readonly { id: FindingId; clock: number }[],
   bandLimitM: number | null,
+  /** The layer stack spec, whose snow and rain assets the land's split also draws; null draws it without them. */
+  layers: InstrumentView | null = null,
 ): OverviewScene {
   const design = OVERVIEW_DESIGN;
   const stage = createStage(canvases.land, C.fog, { fov: FOV, alpha: true });
@@ -202,22 +235,29 @@ export function mountOverview(
 
   const riverLines = createRiverLines(scene, stage.lines, data, frame);
 
-  // ---------- sheets, lifted layers, pixel cells, routes, and recorded life ----------
+  // ---------- sheets, the evidence stack, pixel cells, routes, and recorded life ----------
   const { slopeTex, rainTex } = createFootprintSheets(data, g);
-  const liftRig = createLiftRig(
-    scene,
-    stage.lines,
+  const stackRig = createStackRig({
     data,
     g,
     a,
     frame,
-    sample,
-    relief,
+    relief: relief.uniforms,
     lcTex,
     slopeTex,
-    rainTex,
-    lf.kmScale,
-  );
+    rainShareTex: rainTex,
+    ring: rim.map(([E, N]) => ({ x: frame.x(E), z: frame.z(N), y: frame.y(sample(E, N)) })),
+    rim: rim
+      .filter((_, i) => i % 3 === 0)
+      .map(([E, N]) => ({ x: frame.x(E), z: frame.z(N), y: frame.y(sample(E, N)) })),
+    rimFoot: (lf.rimFoot * exag) / 1000,
+    lines: stage.lines,
+    yMin: frame.y(data.range.min),
+    yMax: frame.y(data.range.max),
+    bearing: az0,
+    kmScale: lf.kmScale,
+    addToScene: (m) => scene.add(m),
+  });
   const pixelRig = createPixelCellsRig(scene, stage.lines, data, frame, sample);
   const routesRig = createRoutesRig(scene, data, frame, sample, meshHeight);
   const lifeRig = createLifeRig(scene, () => stage.size(), frame, meshHeight, lf.kmScale);
@@ -324,13 +364,59 @@ export function mountOverview(
       gapWaiters = [];
     }
 
-    const liftAt = liftRig.anchor(proj.rimTop, proj.project);
+    const liftAt = stackRig.liftAt(proj.project, scene.scale.y);
+    const stackAt = stackRig.layout(proj.project, proj.landBox(), scene.scale.y);
     const lifeData = lifeRig.projectLayout(state, proj.project, proj.occluded);
-    const layout = proj.buildLayout(state, span, liftAt, lifeData);
-    for (const l of listeners) l(layout);
+    const layout = proj.buildLayout(state, span, liftAt, stackAt, lifeData);
+    for (const l of [...listeners]) l(layout);
   });
 
-  return {
+  // the stack's camera, solved again only when the canvas, its fit or the sheets change
+  let stackSolved: { key: string; view: ReturnType<typeof proj.fitPoints> } | null = null;
+  const stackView = () => {
+    const size = stage.size();
+    const fit = proj.getFit();
+    const key = [size.width, size.height, fit.scale, fit.ox, fit.oy, stackRig.version()]
+      .map((v) => v.toFixed(3))
+      .join(",");
+    if (stackSolved?.key !== key)
+      stackSolved = {
+        key,
+        view: proj.fitPoints(
+          stackRig.framePoints(),
+          stackRig.azimuth,
+          STACK_VIEW.el,
+          stackBox(size, fit),
+        ),
+      };
+    return stackSolved.view;
+  };
+
+  // the sheets follow the page's theme as it changes, and the stack's snow and rain amounts arrive once read
+  const overviewRoot = canvases.land.closest("[data-overview-root]");
+  const themed = canvases.land.closest("[data-theme]");
+  stackRig.setTheme(themeOf(themed));
+  const redraw = () => {
+    if (state.rise === undefined || state.rise >= 1) api.render(state);
+  };
+  const themeWatch = new MutationObserver(() => {
+    stackRig.setTheme(themeOf(themed));
+    redraw();
+  });
+  if (themed) themeWatch.observe(themed, { attributes: true, attributeFilter: ["data-theme"] });
+  const reading = new AbortController();
+  if (layers)
+    loadStackData(layers, data.zone, undefined, reading.signal).then(
+      (d) => {
+        stackRig.setData(d);
+        redraw();
+      },
+      (e: unknown) => {
+        if (!reading.signal.aborted) console.error("Layer stack sheets not read", e);
+      },
+    );
+
+  const api: OverviewScene = {
     probe,
     overlayGrid() {
       const k = 2;
@@ -345,8 +431,15 @@ export function mountOverview(
     },
     render(next) {
       state = next;
-      const { e, v1, view, rise, splitK, exitK, carveShaderK, carveK } =
-        proj.solveCameraFrame(next);
+      // a split waits for the land to stand: while the overview arrives (out of sight behind the globe, then coming
+      // down and rising out of the plan) no sheet leaves it
+      const held = (next.rise ?? 1) < 1 || (overviewRoot?.hasAttribute("data-arriving") ?? false);
+      const stackMoving = stackRig.step(performance.now(), next.lift, held);
+      const stackK = stackRig.camK();
+      const { e, v1, view, rise, splitK, exitK, carveShaderK, carveK } = proj.solveCameraFrame(
+        next,
+        stackK > 0 ? { k: stackK, view: stackView() } : null,
+      );
       pixelRig.paintCells(next.cellPaint ?? "rgb");
       pixelRig.placeCells(splitK);
       scene.scale.y = carveK;
@@ -371,7 +464,7 @@ export function mountOverview(
 
       routesRig.update(camera, proj.project, next.r, next.sel, next.route, e, dim);
 
-      const { liftA } = liftRig.update(next.lift);
+      const { liftA } = stackRig.place();
       relief.uniforms.uDim.value *= 1 - 0.15 * liftA;
       wall.uniforms.uDim.value *= 1 - 0.15 * liftA;
       surveyPlan.uniforms.uDim.value *= 1 - 0.15 * liftA;
@@ -401,7 +494,9 @@ export function mountOverview(
       relief.uniforms.uBandA.value = next.sel === "band" && bandLimitM !== null ? 0.9 * e : 0;
 
       const rg =
-        next.sel === "package" && next.lit != null ? (next.ranges?.[next.lit] ?? null) : null;
+        (next.sel === "package" || next.sel === "results") && next.lit != null
+          ? (next.ranges?.[next.lit] ?? null)
+          : null;
       relief.uniforms.uRangeLo.value = rg?.lo ?? -1e5;
       relief.uniforms.uRangeHi.value = rg?.hi ?? 1e5;
       relief.uniforms.uRangeA.value = rg ? 0.9 * e : 0;
@@ -430,10 +525,19 @@ export function mountOverview(
 
       surveyPlan.mesh.visible = gapWaiters.length === 0;
       stage.render();
+      return stackMoving;
     },
+    setStack: stackRig.set,
+    stackPending: stackRig.pending,
+    setStackData: stackRig.setData,
+    setTheme: stackRig.setTheme,
     setLife: lifeRig.setLife,
     onLayout(f) {
       listeners.push(f);
+      return () => {
+        const i = listeners.indexOf(f);
+        if (i >= 0) listeners.splice(i, 1);
+      };
     },
     handoff() {
       const b = proj.landBox();
@@ -464,6 +568,8 @@ export function mountOverview(
       });
     },
     dispose() {
+      themeWatch.disconnect();
+      reading.abort();
       arcOverlay.dispose();
       surveyPlan.mesh.geometry.dispose();
       surveyPlan.mesh.material.dispose();
@@ -471,14 +577,15 @@ export function mountOverview(
       lifeRig.dispose();
       slopeTex?.dispose();
       rainTex?.dispose();
-      liftRig.dispose();
+      stackRig.dispose();
       pixelRig.dispose();
       stage.dispose();
       for (const t of [hTex, lcTex, lightMap]) t.dispose();
       waterTex?.dispose();
       trueColourTex?.dispose();
-      data.landcover.close();
-      data.trueColour?.close();
+      // the land cover and true-colour bitmaps belong to the data, which the page may draw again (a remount with the
+      // same data), so they are left open for it
     },
   };
+  return api;
 }

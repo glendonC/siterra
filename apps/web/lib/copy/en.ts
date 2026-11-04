@@ -33,8 +33,8 @@ export const en = {
   },
 
   "opening.action": { text: "Choose a Place", kind: "button" },
-  // the controls every screen after the opening shares (decisions 2 to 5): the breadcrumb, the keys that work now,
-  // the sources behind one button with the data's short names always visible, and the view control
+  // the controls every screen after the opening shares (decisions 2 to 5): the breadcrumb, the keys that work now
+  // with the sources and limits behind S and W, and the view control
   "chrome.crumbs": { text: "Location in the case", kind: "ui" },
   "chrome.back": { text: "Back", kind: "button" },
   "chrome.keys": { text: "Keys that work now", kind: "ui" },
@@ -50,9 +50,9 @@ export const en = {
   "chrome.reset": { text: "Reset View", kind: "button" },
   "chrome.zoomIn": { text: "Zoom In", kind: "button" },
   "chrome.zoomOut": { text: "Zoom Out", kind: "button" },
-  "chrome.data": { text: "Data: {names}", kind: "ui" },
-  // the drawn relief's vertical exaggeration, after the data's names where land is drawn
-  "chrome.relief": { text: "Relief ×{value}", kind: "label" },
+  // the theme switch at the top right of every screen after the opening, named by what it switches to
+  "chrome.theme.light": { text: "Use Light Theme", kind: "button" },
+  "chrome.theme.dark": { text: "Use Dark Theme", kind: "button" },
   // with the credits: the land's height is drawn exaggerated, so its slopes look steeper than they are
   "chrome.relief.note": {
     text: "The land's height is drawn {value} times its true scale.",
@@ -60,7 +60,7 @@ export const en = {
     honesty: true,
   },
   // the run's steps, by the name the run's view already has (VT-15: no "Thinking" for a machine)
-  "chrome.key.thinking": { text: "Agents at Work", kind: "button" },
+  "chrome.key.thinking": { text: "Analysis Steps", kind: "button" },
   "chrome.key.scope": { text: "Limits", kind: "button", honesty: true },
   // the mode line at the top right of every screen after the opening: plain scope pill
   // opening what Siterra does not do, and while a question's run is on the screen, where that run comes from
@@ -69,28 +69,15 @@ export const en = {
   "chrome.mode.live": { text: "What Siterra won't do", kind: "label", honesty: true },
   "chrome.mode.run.live": { text: "Live", kind: "label" },
   "chrome.mode.run.replay": { text: "Replay", kind: "label", honesty: true },
-  // its popover: what Siterra does not do (the three items exactly) and who reviews
-  "chrome.scope.not": {
-    text: "Siterra does not contact people, spend money or make land decisions.",
-    kind: "ui",
-    honesty: true,
-  },
-  // true for a visitor too: nothing a visitor's run makes is reviewed, so it stays a draft
-  "chrome.scope.review": {
-    text: "Every result is a draft until a person reviews it.",
-    kind: "ui",
-    honesty: true,
-  },
-  // the data's short names for that line
+  // the data's short names, where a screen names its data in brief (the globe's credits, a run's model line)
   "source.dem": { text: "Copernicus DEM", kind: "label" },
   "source.worldcover": { text: "ESA WorldCover", kind: "label" },
   "source.modis": { text: "NASA MODIS", kind: "label" },
   "source.chirps": { text: "CHIRPS", kind: "label" },
   "source.geonames": { text: "GeoNames", kind: "label" },
-  // recorded life's records, in the short sources line while the layer shows (UI-2)
+  // recorded life's records, named while the layer shows (UI-2)
   "source.gbif": { text: "GBIF", kind: "label" },
   "source.sentinel": { text: "Copernicus Sentinel-2", kind: "label" },
-  "source.studies": { text: "{n} published studies", kind: "label" },
   "opening.howButton": { text: "How It Works", kind: "button" },
 
   // The engine's five stages (ADR-0043 amendment, proposed). ADR-0023 bars causal diagnosis, so stage 3
@@ -371,7 +358,8 @@ export const en = {
     text: "Arrow keys turn the model; Home returns to the measured view.",
     kind: "ui",
   },
-  "instrument.layers.scale": { text: "Vertical scale {value}×", kind: "label" },
+  // the relief's exaggeration under a drawn model, in plain words
+  "instrument.layers.scale": { text: "Heights shown {value} times taller", kind: "label" },
   "instrument.layers.failed": { text: "Layers not loaded. Reload the page to retry.", kind: "ui" },
   "instrument.sheet.trend": { text: "Vegetation Trend", kind: "heading" },
   "instrument.sheet.trend.key": { text: "{value} NDVI per decade", kind: "label" },
@@ -401,8 +389,28 @@ export const en = {
   // name and the two published statements with their sources come from their own fixtures, not from here
   // (lib/instruments/valley/cutaway-data.ts)
   "instrument.cutaway.description": {
-    text: "The catchment cut north to south through {place}. Its section face shows the true elevation profile and the two band limits. Beside each band are its vegetation trend and its monthly snow cover.",
+    text: "The catchment cut north to south through {place}. Its section face shows the true elevation profile and the two band limits. Beside each band are its greenness (NDVI) trend and its monthly snow cover.",
     kind: "ui",
+  },
+  // the headline: where greenness changed most, from the three bands' own figures (lib/instruments/valley/band-lead)
+  "instrument.cutaway.lead.rose": { text: "Greenness (NDVI) rose most {where}", kind: "ui" },
+  "instrument.cutaway.lead.fell": { text: "Greenness (NDVI) fell most {where}", kind: "ui" },
+  "instrument.cutaway.where.high": { text: "at {limit} m and above", kind: "label" },
+  "instrument.cutaway.where.mid": { text: "between {lower} and {upper} m", kind: "label" },
+  "instrument.cutaway.where.low": { text: "below {limit} m", kind: "label" },
+  // whether every band's 95% interval lies on one side of zero, in plain words
+  "instrument.cutaway.clear.up": {
+    text: "Averaged over the whole catchment, all three bands got greener, each by more than its margin of error.",
+    kind: "ui",
+  },
+  "instrument.cutaway.clear.down": {
+    text: "Averaged over the whole catchment, all three bands got browner, each by more than its margin of error.",
+    kind: "ui",
+  },
+  "instrument.cutaway.clear.mixed": {
+    text: "Averaged over the whole catchment, not every band changed by more than its margin of error.",
+    kind: "ui",
+    honesty: true,
   },
   "instrument.cutaway.keys": {
     text: "Arrow keys turn the model; Home returns to the measured view.",
@@ -430,60 +438,76 @@ export const en = {
     honesty: true,
   },
   "instrument.cutaway.drawing": { text: "Drawing the section", kind: "label" },
-  "instrument.cutaway.statement": { text: "Published statement {n}", kind: "label" },
+  // a published statement waits on the section as the plain name of the part of the land it describes, by its
+  // placement (no place word: the statement's own words, from the record, say what the place calls it); its words
+  // open from it
+  "instrument.cutaway.at.upper_slope": { text: "Upper slopes", kind: "label" },
+  "instrument.cutaway.at.valley_floor": { text: "Low ground", kind: "label" },
 
-  // Instruments: the briefing shell around them. Enter in the command line opens the valley with the typed text in
-  // the valley's command line, sending nothing
-  // each view's name in the breadcrumb, in plain words
-  // no count: a place's record names its own layers
-  "instrument.shell.layers": { text: "Layers", kind: "label" },
-  "instrument.shell.cutaway": { text: "Cut through", kind: "label" },
-  "instrument.shell.pixel": { text: "This pixel", kind: "label" },
-  "instrument.shell.rainfall": { text: "Rainfall", kind: "label" },
-  "instrument.shell.field": { text: "Field plan", kind: "label" },
-  "instrument.shell.command": { text: "Ask or challenge", kind: "label" },
+  // the overview's crumb while the rain finding's scatter is open wide: the view's own name (overview.open.rainfall)
+  "instrument.shell.rainfall": { text: "Rain and Greenness", kind: "label" },
 
-  // Instruments: the pixel anatomy. Every number comes from the pixel's data file; the species
-  // statements and their sources come from the statements fixture
+  // Instruments: Inside One Pixel. Every number comes from the pixel's data file; the species statements and their
+  // sources come from the statements fixture. The six steps are named by what each shows, as one kind of phrase
   // the neutral question, shown only when the case's record states none (P7b-10 states each place's own)
   "instrument.pixel.question": {
     text: "What is one pixel's trend made of?",
     kind: "ui",
   },
-  "instrument.pixel.source.trend": {
-    text: "MODIS MOD13Q1 v6.1 (Didan 2021), per-pixel Theil-Sen trend, Siterra pixel_trend_long_record; ESA WorldCover v200 (Zanaga et al. 2022).",
+  // the statement over the steps, from the pixel's own data (lib/instruments/pixel/statement.ts): what it did by
+  // where its trend's 95% interval lies, the trend's figure under it, then what covers it and, where the mix model
+  // says so, what more of those covers alone would do
+  "instrument.pixel.lead.greener": {
+    text: "This pixel got greener from {from} to {to}.",
     kind: "ui",
   },
-  "instrument.pixel.source.spectra": {
-    text: "Sentinel-2 L2A class spectra measured in the pixel's own cells, Earth Search sentinel-cogs.",
+  "instrument.pixel.lead.browner": {
+    text: "This pixel got browner from {from} to {to}.",
     kind: "ui",
   },
-  "instrument.pixel.chip": { text: "Source {n}: {text}", kind: "label" },
-  "instrument.pixel.locate": { text: "Locate", kind: "heading" },
+  "instrument.pixel.lead.flat": {
+    text: "This pixel shows no clear change from {from} to {to}.",
+    kind: "ui",
+  },
+  "instrument.pixel.trend": {
+    text: "{value} greenness (NDVI) per decade, {window}",
+    kind: "label",
+  },
+  "instrument.pixel.note.both": { text: "Trees and fields cover {share} of it.", kind: "ui" },
+  "instrument.pixel.note.trees": { text: "Trees cover {share} of it.", kind: "ui" },
+  "instrument.pixel.note.fields": { text: "Fields cover {share} of it.", kind: "ui" },
+  "instrument.pixel.note.both.more": {
+    text: "More trees or fields alone would make it look greener, even if its grassland did not change.",
+    kind: "ui",
+  },
+  "instrument.pixel.note.trees.more": {
+    text: "More trees alone would make it look greener, even if its grassland did not change.",
+    kind: "ui",
+  },
+  "instrument.pixel.note.fields.more": {
+    text: "More fields alone would make it look greener, even if its grassland did not change.",
+    kind: "ui",
+  },
+  "instrument.pixel.locate": { text: "Where It Is", kind: "heading" },
+  // the statement above says the unit as "greenness (NDVI)"; the map's key names it as NDVI
   "instrument.pixel.locate.key": {
-    text: "NDVI per decade, {window} {from} to {to}",
+    text: "NDVI per decade, {window}, {from} to {to}",
     kind: "label",
   },
   "instrument.pixel.km": { text: "{value} km", kind: "label" },
   "instrument.pixel.m": { text: "{value} m", kind: "label" },
-  "instrument.pixel.cells": { text: "Pixel Cells", kind: "heading" },
+  "instrument.pixel.cells": { text: "What Covers It", kind: "heading" },
   "instrument.pixel.cells.detail": {
-    text: "Pixel {tile}, row {row}, column {col}, as its {cells} Sentinel-2 cells of 10 m. Cells outside it are veiled.",
+    text: "The pixel as its {cells} Sentinel-2 cells of 10 m; the cells around it are dimmed.",
     kind: "ui",
   },
-  "instrument.pixel.cells.detailLand": {
-    text: "Pixel {tile}, row {row}, column {col}, as its {cells} Sentinel-2 cells of 10 m, risen from the land. Paint them by:",
-    kind: "ui",
-  },
-  "instrument.pixel.cells.truecolour": { text: "True color", kind: "label" },
-  "instrument.pixel.cells.ndvi": { text: "NDVI, {month}", kind: "label" },
-  "instrument.pixel.cells.class": { text: "WorldCover {year} class", kind: "label" },
-  "instrument.pixel.cells.truecolourNote": {
-    text: "Shared display composite. Display only, no value read from it.",
-    kind: "ui",
-  },
+  // the cells' paint, one choice at a time (in place a segmented control that colors the risen cells)
+  "instrument.pixel.cells.paint": { text: "Color the cells by", kind: "ui" },
+  "instrument.pixel.cells.truecolour": { text: "True Color", kind: "label" },
+  "instrument.pixel.cells.ndvi": { text: "Greenness, {month}", kind: "label" },
+  "instrument.pixel.cells.class": { text: "Land Cover, {year}", kind: "label" },
   "instrument.pixel.cells.ndviNote": {
-    text: "Monthly median of {min} to {max} clear dates per cell",
+    text: "Each cell's median of {min} to {max} clear days that month",
     kind: "label",
   },
   "instrument.pixel.class.10": { text: "Tree cover", kind: "label" },
@@ -494,14 +518,14 @@ export const en = {
   "instrument.pixel.classShort.40": { text: "Cropland", kind: "label" },
   "instrument.pixel.classShort.30": { text: "Grassland", kind: "label" },
   "instrument.pixel.classShort.60": { text: "Bare", kind: "label" },
-  "instrument.pixel.spectra": { text: "Measured Spectra", kind: "heading" },
+  "instrument.pixel.spectra": { text: "How Covers Reflect", kind: "heading" },
   "instrument.pixel.spectra.detail": {
-    text: "Sentinel-2 L2A, {date}: median of each class's cells. All {cells} cells clear.",
+    text: "Sentinel-2, {date}: the median of each cover's cells; all {cells} cells were clear.",
     kind: "ui",
   },
   "instrument.pixel.spectra.reflectance": { text: "Reflectance", kind: "label" },
-  "instrument.pixel.spectra.red": { text: "Red B04", kind: "label" },
-  "instrument.pixel.spectra.nir": { text: "Near-infrared B08", kind: "label" },
+  "instrument.pixel.spectra.red": { text: "Red", kind: "label" },
+  "instrument.pixel.spectra.nir": { text: "Near-infrared", kind: "label" },
   "instrument.pixel.spectra.axisShort": { text: "Wavelength, nm", kind: "label" },
   "instrument.pixel.spectra.axis": {
     text: "Wavelength, nm (axis broken at 900 to 1500)",
@@ -510,38 +534,37 @@ export const en = {
   "instrument.pixel.spectra.ndvi": { text: "NDVI {value}", kind: "label" },
   "instrument.pixel.spectra.cellCount": { text: "{n} cells", kind: "label" },
   "instrument.pixel.spectra.pixel": { text: "This pixel, all cells", kind: "label" },
-  "instrument.pixel.spectra.model": { text: "Model mix, panel 05", kind: "label" },
-  "instrument.pixel.series": { text: "Season Record", kind: "heading" },
+  "instrument.pixel.spectra.model": { text: "Model mix", kind: "label" },
+  "instrument.pixel.series": { text: "How It Changed", kind: "heading" },
   "instrument.pixel.series.pixel": { text: "This pixel", kind: "label" },
-  "instrument.pixel.series.band": { text: "Band below", kind: "label" },
+  "instrument.pixel.series.band": { text: "All land below", kind: "label" },
   "instrument.pixel.series.trend": {
-    text: "{slope} per decade, 95% {lower} to {upper}",
+    text: "{slope} NDVI per decade, 95% interval {lower} to {upper}",
     kind: "label",
   },
-  "instrument.pixel.model": { text: "Linear Mix Model", kind: "heading" },
+  "instrument.pixel.model": { text: "How Covers Mix", kind: "heading" },
   "instrument.pixel.model.label": {
-    text: "Model: linear mix of measured class spectra from this pixel. Not a measurement of plant species.",
+    text: "A model that mixes the measured light of this pixel's covers by their shares.",
     kind: "ui",
   },
   "instrument.pixel.model.keyShort": { text: "Model NDVI", kind: "label" },
   "instrument.pixel.model.measuredShort": { text: "Measured {value}", kind: "label" },
   "instrument.pixel.model.labelShort": {
-    text: "A linear mix of this pixel's class spectra. Not a measurement of plant species.",
+    text: "The covers' measured light, mixed by their shares. Drag a boundary to change them.",
     kind: "ui",
-    honesty: true,
   },
   "instrument.pixel.model.bar": {
-    text: "Class shares in the model; ticks mark the measured shares.",
+    text: "Each cover's share in the model; ticks mark the measured shares.",
     kind: "ui",
   },
   "instrument.pixel.model.segment": { text: "{name} {share}", kind: "label" },
   "instrument.pixel.model.boundary": { text: "Boundary between {left} and {right}", kind: "label" },
   "instrument.pixel.model.key": {
-    text: "Model NDVI, mix of the {date} class medians",
+    text: "Model NDVI, mix of the {date} cover medians",
     kind: "label",
   },
   "instrument.pixel.model.delta": {
-    text: "{value} in model NDVI from the measured mix",
+    text: "{value} from the measured mix",
     kind: "label",
   },
   "instrument.pixel.model.gloss": { text: "Mixed red {red} and near-infrared {nir}.", kind: "ui" },
@@ -550,22 +573,25 @@ export const en = {
     kind: "ui",
   },
   "instrument.pixel.model.drag": {
-    text: "Drag a boundary to move share between two classes.",
+    text: "Drag a boundary to move share between two covers.",
     kind: "ui",
   },
   "instrument.pixel.model.reset": { text: "Reset Shares", kind: "button" },
   "instrument.pixel.model.meaning": {
-    text: "Grassland keeps its measured spectrum in every mix; only the shares move. The satellite records the mix, not which plants grow in the grassland.",
+    text: "Grassland keeps its measured light in every mix; only the shares move. The satellite sees the mix, not which plants grow in the grassland.",
     kind: "ui",
   },
-  "instrument.pixel.field": { text: "Field Check", kind: "heading" },
-  "instrument.pixel.field.proposed": { text: "Proposed field check. Not measured.", kind: "ui" },
+  "instrument.pixel.field": { text: "What to Check", kind: "heading" },
+  "instrument.pixel.field.proposed": {
+    text: "A plan for a field team; nothing is measured yet.",
+    kind: "ui",
+  },
   "instrument.pixel.field.transect": {
-    text: "Transect of {length} m on grassland: {n} quadrats, dashed on 02",
+    text: "A {length} m line across the grassland with {n} sample squares",
     kind: "label",
   },
   "instrument.pixel.field.records": {
-    text: "Records plant cover by species and palatability, bare ground",
+    text: "It would record each species' cover, whether grazing animals eat it, and bare ground",
     kind: "label",
   },
   "instrument.pixel.field.noSpectrum": {
@@ -573,13 +599,13 @@ export const en = {
     kind: "ui",
   },
   "instrument.pixel.description": {
-    text: "One 250 m satellite pixel shown as its 10 m Sentinel-2 cells, with the measured spectra of its land cover classes and its season record. A linear mix model has movable class shares, and a field check is proposed.",
+    text: "One 250 m satellite pixel in six steps. Where it is, its 10 m Sentinel-2 cells and what covers them, and the light each cover reflects. Its greenness season by season, a model that mixes its covers by their shares, and what a field team could check.",
     kind: "ui",
   },
-  // a cited statement and its references, as "(SCI-03, pp. 7 to 8)"
-  "instrument.pixel.ref": { text: "{text} ({refs}).", kind: "label" },
-  "instrument.pixel.ref.page": { text: "{id}, p. {page}", kind: "label" },
-  "instrument.pixel.ref.pages": { text: "{id}, pp. {page}", kind: "label" },
+  // a cited statement and its references, as "(El Aayadi et al. 2026, pp. 7 to 8)"
+  "instrument.ref": { text: "{text} ({refs}).", kind: "label" },
+  "instrument.ref.page": { text: "{id}, p. {page}", kind: "label" },
+  "instrument.ref.pages": { text: "{id}, pp. {page}", kind: "label" },
   "instrument.pixel.failed": { text: "Pixel not loaded. Reload the page to retry.", kind: "ui" },
 
   // Instruments: the rainfall scatter. Every total here is the bundle's primary rainfall window and says so (its window
@@ -593,29 +619,47 @@ export const en = {
     kind: "ui",
   },
   "instrument.scatter.axis.rain": { text: "{window} rainfall, mm", kind: "label" },
-  "instrument.scatter.axis.ndvi": { text: "{window} NDVI, catchment mean", kind: "label" },
-  "instrument.scatter.fit": { text: "Straight-line fit, R squared {r2}", kind: "label" },
+  "instrument.scatter.axis.ndvi": {
+    text: "{window} greenness (NDVI), catchment mean",
+    kind: "label",
+  },
+  // the headline: how greenness follows rainfall from one season to the next, by where the fit's 95% interval for its
+  // slope lies against zero (lib/instruments/scatter/lead.ts). It says nothing of the greening over the years, which
+  // the answer tests another way
+  "instrument.scatter.lead.weak": {
+    text: "Year to year, {growing} greenness follows {rainfall} rainfall only weakly.",
+    kind: "ui",
+  },
+  "instrument.scatter.lead.rises": {
+    text: "Year to year, {growing} greenness rises with {rainfall} rainfall.",
+    kind: "ui",
+  },
+  "instrument.scatter.lead.falls": {
+    text: "Year to year, {growing} greenness falls as {rainfall} rainfall rises.",
+    kind: "ui",
+  },
+  // the fit's R squared, in the notes beside the plot, with what its scale means and what it cannot say
+  "instrument.scatter.r2": {
+    text: "R squared {r2} measures how closely the seasons keep to the straight line: 0 is not at all, 1 is every season on it. It says nothing about why.",
+    kind: "ui",
+  },
+  // the fit's R squared is in the notes beside the plot, so the line's label names the line only
+  "instrument.scatter.fit": { text: "Straight-line fit", kind: "label" },
   "instrument.scatter.driest": { text: "{year}, {mm} mm", kind: "label" },
   "instrument.scatter.seasons": { text: "{n} seasons, {from} to {to}", kind: "label" },
   "instrument.scatter.key.season": { text: "One season", kind: "label" },
-  "instrument.scatter.why": {
-    text: "The fit says nothing about why.",
-    kind: "label",
-    honesty: true,
-  },
-  "instrument.scatter.more": { text: "Fit and interval", kind: "label" },
   "instrument.scatter.key.driest": {
     text: "The four driest {window} totals",
     kind: "label",
   },
   "instrument.scatter.slope": {
-    text: "Rainfall slope {slope} NDVI per 100 mm, 95% {lower} to {upper}.",
+    text: "Each 100 mm more rain went with {slope} NDVI (95% interval {lower} to {upper}).",
     kind: "ui",
   },
-  // Instruments: the field plan. Explanations, statuses and checks come from the branch merge the field plan spec
-  // names; every check is proposed, nothing is scheduled
+  // Instruments: the field plan. Explanations, verdicts and checks come from the record the field plan spec names;
+  // every check is a plan, nothing is scheduled
   "instrument.fieldPlan.description": {
-    text: "The explanations the branch merge weighed, with the status it gave each, and the proposed field checks that would tell the open ones apart.",
+    text: "The explanations Siterra weighed, its verdict on each, and the field checks that would tell the open ones apart.",
     kind: "ui",
   },
   "instrument.fieldPlan.failed": {
@@ -623,10 +667,9 @@ export const en = {
     kind: "ui",
   },
   "instrument.fieldPlan.none": {
-    text: "This case's record holds no field plan yet.",
+    text: "There is no field plan for this place yet.",
     kind: "ui",
   },
-  "instrument.fieldPlan.proposed": { text: "Proposed", kind: "label" },
   "instrument.fieldPlan.reason.failed": {
     text: "A prediction it needs failed on adequate data.",
     kind: "ui",
@@ -676,36 +719,32 @@ export const en = {
   },
   "instrument.fieldPlan.separates": { text: "Tells apart {pairs}", kind: "label" },
   "instrument.fieldPlan.only": {
-    text: "The only proposed check that tells {a} from {b}",
+    text: "The only check that tells {a} from {b}",
     kind: "label",
   },
   "instrument.fieldPlan.pair": { text: "{a} and {b}", kind: "label" },
   "instrument.fieldPlan.unseparated.none": {
-    text: "Every pair of open explanations has a proposed check that tells them apart.",
+    text: "Every pair of open explanations has a check that tells them apart.",
     kind: "ui",
   },
   "instrument.fieldPlan.unseparated": {
-    text: "No proposed check tells these apart: {pairs}.",
+    text: "No check tells these apart: {pairs}.",
     kind: "ui",
   },
   "instrument.scatter.gate": {
-    text: "The interval includes zero, so the rainfall-adjusted trend's precondition is not met.",
-    kind: "ui",
-  },
-  "instrument.pixel.credit": {
-    text: "Contains modified Copernicus Sentinel data 2025. MODIS MOD13Q1 v6.1, NASA LP DAAC. © ESA WorldCover project 2021, CC BY 4.0. Catchment from Copernicus DEM GLO-30.",
+    text: "That interval includes zero, so the greening trend is not adjusted for rainfall.",
     kind: "ui",
   },
 
-  // The overview at /valley: the relief inside an arc, five findings on it, the proposed field
-  // check on the land and the ask. Every number, the case question, the place's name and its area come from the
-  // records; the findings' captions name what each number is
+  // The overview at /valley: the place's answer beside its land, the views it offers, the key bar and the ask. Every
+  // number, the case question, the place's name and its area come from the records; the screen reader's description
+  // and keys say what the screen shows today
   "overview.description": {
-    text: "A relief model of the catchment inside one arc. Each point on the arc is a finding with its number. The circle on the arc's lower left opens the ask.",
+    text: "The answer for the place on the left: what was measured, the explanations tested and the views that show them. The land is on the right as a relief model; the keys that work now are at the bottom right.",
     kind: "ui",
   },
   "overview.keys": {
-    text: "Enter opens a finding's view over the land; Esc plays it back to the overview. The slash key opens the ask.",
+    text: "The arrow keys move through the explanations, 1 to 5 open the views, T shows the analysis steps and E exports the brief. The slash key opens the ask, S and W the sources and limits, and Esc goes back.",
     kind: "ui",
   },
   "overview.findings": { text: "Findings", kind: "heading" },
@@ -744,9 +783,9 @@ export const en = {
     honesty: true,
   },
   "run.branch.sealed": { text: "Predictions locked", kind: "label" },
-  "run.branch.consistent": { text: "Consistent with available evidence", kind: "label" },
-  "run.branch.contradicted": { text: "Contradicted by available evidence", kind: "label" },
-  "run.branch.cannot": { text: "Cannot be assessed with current data", kind: "label" },
+  "run.branch.consistent": { text: "Fits", kind: "label" },
+  "run.branch.contradicted": { text: "Does not fit", kind: "label" },
+  "run.branch.cannot": { text: "Not enough data", kind: "label" },
   "run.branch.reassess": { text: "Needs reassessment", kind: "label" },
   "run.check": { text: "Proposed check: {label}", kind: "label", honesty: true },
   "run.sofar": { text: "Findings so far: {n}", kind: "label" },
@@ -784,6 +823,22 @@ export const en = {
   "run.tree.foldedDone": { text: "{total} tasks done in {time} s", kind: "label" },
   "run.tree.follow": { text: "Follow One Agent", kind: "button" },
   "run.tree.followAll": { text: "Show All Agents", kind: "button" },
+  // the analysis steps' titles and their run state (lane steps: AtWorkPanels.tsx, AtWorkCursors.tsx)
+  "run.title.observations": { text: "Satellite & Climate Check", kind: "heading" },
+  "run.title.vegetation": { text: "Satellite & Vegetation Check", kind: "heading" },
+  "run.title.rainfall": { text: "Rainfall & Terrain Check", kind: "heading" },
+  "run.title.sources": { text: "Published Sources", kind: "heading" },
+  "run.title.explanations": { text: "Competing Explanations", kind: "heading" },
+  "run.title.fieldPlan": { text: "Field Verification Plan", kind: "heading" },
+  "run.title.views": { text: "Order of Views", kind: "heading" },
+  "run.tree.working": { text: "Analyzing", kind: "label" },
+  "run.tree.complete": { text: "Analysis complete", kind: "label" },
+  "run.tree.paused": { text: "Paused", kind: "label" },
+  "run.tree.step": { text: "Step {n} of {total}", kind: "label" },
+  "run.tree.pause": { text: "Pause", kind: "button" },
+  "run.tree.resume": { text: "Resume", kind: "button" },
+  "run.tree.stop": { text: "Stop", kind: "button" },
+  "run.step.views": { text: "Ordering the views", kind: "label" },
   "run.tree.time": { text: "{time} s", kind: "label" },
   "run.tree.cost": { text: "${cost}", kind: "label" },
   "run.tree.meta": { text: "{model}, {time} s", kind: "label" },
@@ -902,13 +957,13 @@ export const en = {
     kind: "ui",
     honesty: true,
   },
-  // each record's one action, named by what the visitor will see
-  "overview.open.layers": { text: "See the Layers", kind: "button" },
-  "overview.open.cutaway": { text: "Inspect Elevation Band", kind: "button" },
-  "overview.open.pixel": { text: "Open This Pixel", kind: "button" },
-  "overview.open.rainfall": { text: "Compare with Rainfall", kind: "button" },
-  "overview.open.field": { text: "See the Field Plan", kind: "button" },
-  "overview.open.time": { text: "See It Over Time", kind: "button" },
+  // each view's name: what the view shows, in at most three words (VT-48); the view's last crumb says the same
+  "overview.open.layers": { text: "Map Layers", kind: "button" },
+  "overview.open.cutaway": { text: "Elevation Bands", kind: "button" },
+  "overview.open.pixel": { text: "Inside One Pixel", kind: "button" },
+  "overview.open.rainfall": { text: "Rain and Greenness", kind: "button" },
+  "overview.open.field": { text: "Field Plan", kind: "button" },
+  "overview.open.time": { text: "Year by Year", kind: "button" },
   "overview.cite": { text: "{authors} {year}, {venue}, p. {page}", kind: "label" },
   "overview.cite.pages": { text: "{authors} {year}, {venue}, pp. {pages}", kind: "label" },
   "overview.cite.noPage": { text: "{authors} {year}, {venue}", kind: "label" },
@@ -933,71 +988,22 @@ export const en = {
     kind: "ui",
   },
 
-  // The ask: a matte circle that opens a fade from the bottom with the question typed in large type. Enter sends it
-  // on the overview (the same commission as the valley's command line) and carries it to the overview from an
-  // instrument, sending nothing there; the activity line shows only after Enter, from the session's log
-  "ask.circle": { text: "ask", kind: "label" },
-  "ask.open": { text: "Ask Siterra", kind: "button" },
-  "ask.close": { text: "Close Ask", kind: "button" },
-  "ask.prompts.kicker": { text: "Ask Siterra to investigate", kind: "label" },
+  // The ask: "/" or the key bar's "/ Ask" opens a fade from the bottom with the question typed in large type. Enter
+  // sends it on the overview (the same commission as the valley's command line) and carries it to the overview from
+  // an instrument, sending nothing there; the activity line shows only after Enter, from the session's log
+  // the open ask: its line's visible label (CMP-05, no placeholder), the kicker over the suggested questions beside
+  // the empty line, and the keys that work while it is open (hints drawn as the key bar draws them, not buttons)
+  "ask.label": { text: "Ask Siterra", kind: "label" },
+  "ask.suggested": { text: "Suggested", kind: "label" },
+  "ask.key.submit": { text: "Submit", kind: "label" },
+  "ask.key.close": { text: "Close", kind: "label" },
   // the activity line: the step running with the model and route that served it (the activity panel's badge)
   "ask.taskModel": { text: "{model}: {task}, {status}", kind: "ui" },
   "ask.task": { text: "{task}, {status}", kind: "ui" },
-  // The ask's results (U11b): the work card's outcome with its findings count as a button, and the results view it
-  // opens: an answer caption from the request's BranchMerge counts, then the findings it committed, each statement
-  // as recorded, with a source chip that opens the cited locator and excerpt
+  // The ask's results (U11b): the work card's outcome with its findings count as a button, then how a finding the
+  // request committed cites its source (the locator and excerpt) and whether it was checked against it
   "ask.complete": { text: "Complete.", kind: "ui" },
   "ask.findings": { text: "Findings: {n}", kind: "button" },
-  "results.title": { text: "Results", kind: "heading" },
-  "results.findings": { text: "Findings", kind: "heading" },
-  "results.chip": { text: "Source {n}", kind: "button" },
-  "results.n0": { text: "no", kind: "label" },
-  "results.n1": { text: "one", kind: "label" },
-  "results.n2": { text: "two", kind: "label" },
-  "results.n3": { text: "three", kind: "label" },
-  "results.n4": { text: "four", kind: "label" },
-  "results.n5": { text: "five", kind: "label" },
-  "results.first.contradicted.one": { text: "{n} explanation is contradicted", kind: "ui" },
-  "results.first.contradicted.many": { text: "{n} explanations are contradicted", kind: "ui" },
-  "results.then.contradicted.one": { text: "{n} is contradicted", kind: "ui" },
-  "results.then.contradicted.many": { text: "{n} are contradicted", kind: "ui" },
-  "results.first.consistent.one": {
-    text: "{n} explanation is consistent with the records",
-    kind: "ui",
-  },
-  "results.first.consistent.many": {
-    text: "{n} explanations are consistent with the records",
-    kind: "ui",
-  },
-  "results.then.consistent.one": { text: "{n} is consistent with the records", kind: "ui" },
-  "results.then.consistent.many": { text: "{n} are consistent with the records", kind: "ui" },
-  "results.first.cannot.one": { text: "{n} explanation cannot be assessed yet", kind: "ui" },
-  "results.first.cannot.many": { text: "{n} explanations cannot be assessed yet", kind: "ui" },
-  "results.then.cannot.one": { text: "{n} cannot be assessed yet", kind: "ui" },
-  "results.then.cannot.many": { text: "{n} cannot be assessed yet", kind: "ui" },
-  "results.join1": { text: "{a}.", kind: "ui" },
-  "results.join2": { text: "{a} and {b}.", kind: "ui" },
-  "results.join3": { text: "{a}, {b} and {c}.", kind: "ui" },
-  "results.plan.one": {
-    text: "The field plan proposes {n} check that tells the open ones apart.",
-    kind: "ui",
-  },
-  "results.plan.many": {
-    text: "The field plan proposes {n} checks that tell the open ones apart.",
-    kind: "ui",
-  },
-  "results.plan.none": { text: "No proposed field check tells the open ones apart.", kind: "ui" },
-  // the counts agree with their numbers: "1 check", "2 checks"; "1 pair ... is", "2 pairs ... are"
-  "results.plan.partial": {
-    text: "The field plan proposes {checks}; {pairs} not told apart by any of them.",
-    kind: "ui",
-  },
-  "results.count.check.one": { text: "{n} check", kind: "ui" },
-  "results.count.check.many": { text: "{n} checks", kind: "ui" },
-  "results.count.pair.one": { text: "{n} pair of open explanations is", kind: "ui" },
-  "results.count.pair.many": { text: "{n} pairs of open explanations are", kind: "ui" },
-  "results.only.one": { text: "The request added {n} finding to the case record.", kind: "ui" },
-  "results.only.many": { text: "The request added {n} findings to the case record.", kind: "ui" },
   "results.excerpt": { text: "{title}, {locator}: \u201c{excerpt}\u201d", kind: "ui" },
   "results.locator": { text: "{title}, {locator}", kind: "ui" },
   "results.cite": { text: "{authors} {year}", kind: "label" },
@@ -1033,14 +1039,6 @@ export const LINT_ALLOWLIST: Partial<Record<MessageId, { rules: string[]; reason
     reason:
       "The founder's replan names the scope pill 'What Siterra won't do' in plain conversational words.",
   },
-  "overview.open.field": {
-    rules: ["VT-48"],
-    reason: "the design names each record's action by what the visitor will see.",
-  },
-  "overview.open.time": {
-    rules: ["VT-48"],
-    reason: "The lead named this action: it says what the visitor will see.",
-  },
   "source.gbif": {
     rules: ["VT-08"],
     reason:
@@ -1065,16 +1063,6 @@ export const LINT_ALLOWLIST: Partial<Record<MessageId, { rules: string[]; reason
   "instrument.credit.dem": {
     rules: ["VT-03", "VT-08"],
     reason: "Copernicus WorldDEM-30 licence notice, kept in the wording the licence requires.",
-  },
-  "instrument.pixel.source.trend": {
-    rules: ["VT-08"],
-    reason:
-      "MODIS is the instrument's name; the source note names the product, the recipe and the land cover map as their publishers list them.",
-  },
-  "instrument.pixel.credit": {
-    rules: ["VT-08"],
-    reason:
-      "MODIS is the instrument's name and LP DAAC the archive's; the credit carries the data licences' required wording.",
   },
   "credit.globe": {
     rules: ["VT-03", "VT-08"],

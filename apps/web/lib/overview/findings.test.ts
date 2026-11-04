@@ -1,13 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { seed, seedListing } from "../instruments/seed-listing";
 import {
-  answerForCase,
   captionOf,
   FINDINGS,
   findingsFrom,
   outlineLabelOf,
   overviewLabelOf,
-  overviewVerdictForCase,
   recordHeadlineForFinding,
   recordRowsForFinding,
 } from "./findings";
@@ -258,156 +256,6 @@ describe("findingsFrom (seed case)", () => {
         points: 4,
       }),
     ).toBe("The 20 km box (no outline could be drawn)");
-  });
-
-  it("uses the canonical status vocabulary in overviewVerdictForCase and never emits a >100% correlation", () => {
-    const baseM = seed.records.measurementRecords[0];
-    if (!baseM) throw new Error("missing seed measurement");
-    const liveRecords = {
-      ...seed.records,
-      branchMergeRecords: [],
-      measurementRecords: [
-        {
-          ...baseM,
-          id: "meas_live_precip_mean",
-          caseId: "case_loc_queenstown_7e0699",
-          caseRevision: 2,
-          recipeId: "recipe_era5",
-          metric: "annual_precipitation_mean_mm",
-          unit: "mm",
-          value: 1154.2,
-          status: "available" as const,
-          missingReason: null,
-        },
-        {
-          ...baseM,
-          id: "meas_live_ndvi_missing",
-          caseId: "case_loc_queenstown_7e0699",
-          caseRevision: 2,
-          recipeId: "recipe_ndvi",
-          metric: "ndvi_trend_unadjusted_per_decade",
-          unit: "NDVI per decade",
-          value: null,
-          status: "missing" as const,
-          missingReason: "Requires a 25-year MODIS or Sentinel-2 growing-season NDVI series.",
-        },
-      ],
-    };
-    const verdict = overviewVerdictForCase(
-      { ...seed, case: { ...seed.case, id: "case_loc_queenstown_7e0699" }, records: liveRecords },
-      null,
-    );
-    if (!verdict) throw new Error("expected verdict");
-    const allowedStatuses = new Set([
-      "Predictions locked",
-      "Consistent with available evidence",
-      "Contradicted by available evidence",
-      "Cannot be assessed with current data",
-      "Needs reassessment",
-    ]);
-    for (const c of verdict.causes) {
-      expect(allowedStatuses.has(c.statusText)).toBe(true);
-      expect(c.reason).not.toContain("115.42");
-      expect(c.reason).not.toContain("27.54");
-      expect(c.reason).not.toContain("1154");
-    }
-    const rainCause = verdict.causes.find((c) => c.id === "rainfall");
-    expect(rainCause?.status).toBe("cannot_be_assessed");
-    expect(rainCause?.statusText).toBe("Cannot be assessed with current data");
-  });
-
-  it("computes the two-tone answerForCase for greening, direction-neutral, and missing-vegetation cases", () => {
-    // Seed case without BranchMerge: only the measurement claim
-    const withoutMerge = {
-      ...seed,
-      records: { ...seed.records, branchMergeRecords: [] },
-    };
-    expect(answerForCase(withoutMerge)).toEqual({
-      claim: "Since 2000 the valley has greened, not browned.",
-      limit: null,
-    });
-
-    // Seed case with an unassessed grazing branch in BranchMerge
-    const withMerge = {
-      ...seed,
-      records: {
-        ...seed.records,
-        branchMergeRecords: [
-          {
-            recordType: "BranchMerge" as const,
-            id: "merge_test_1",
-            revision: 1,
-            createdAt: "2026-01-01T00:00:00Z",
-            updatedAt: "2026-01-01T00:00:00Z",
-            caseId: seed.case.id,
-            commandId: "cmd_test_1",
-            taskId: "task_test_1",
-            rulesVersion: "merge@1",
-            predictionsCaseRevision: seed.case.revision,
-            branches: [
-              {
-                branchId: "branch_grazing",
-                branchRevision: 1,
-                explanationId: "grazing",
-                status: "cannot_be_assessed" as const,
-                reason: "Grazing cannot be assessed from satellite greenness alone.",
-              },
-            ],
-            conflicts: [],
-            provenance: {
-              sourceLocators: [],
-              dataBundleIds: [],
-              methodId: null,
-              methodVersion: null,
-              inputVersions: [],
-              generatedByTaskId: null,
-              generatedAt: "2026-01-01T00:00:00Z",
-              verificationStatus: "computed_checked" as const,
-              limitations: [],
-            },
-          },
-        ],
-      },
-    };
-    expect(answerForCase(withMerge)).toEqual({
-      claim: "Since 2000 the valley has greened, not browned.",
-      limit: "From space we cannot tell whether grazing played a part.",
-    });
-
-    // Direction-neutral case (Calaveras Creek style: 0% upward and downward FDR share)
-    const neutralRecords = {
-      ...seed.records,
-      branchMergeRecords: [],
-      measurementRecords: seed.records.measurementRecords.map((m) =>
-        m.metric === "area_share_upward_fdr" || m.metric === "area_share_downward_fdr"
-          ? { ...m, value: 0 }
-          : m,
-      ),
-    };
-    expect(answerForCase({ ...seed, records: neutralRecords })).toEqual({
-      claim: "Since 2000 no clear change in greenness across the catchment.",
-      limit: null,
-    });
-
-    // Live place missing vegetation
-    const missingVegRecords = {
-      ...seed.records,
-      branchMergeRecords: [],
-      measurementRecords: seed.records.measurementRecords.map((m) =>
-        m.metric === "ndvi_trend_unadjusted_per_decade"
-          ? {
-              ...m,
-              value: null,
-              status: "missing" as const,
-              missingReason: "Requires a 25-year MODIS or Sentinel-2 growing-season NDVI series.",
-            }
-          : m,
-      ),
-    };
-    expect(answerForCase({ ...seed, records: missingVegRecords })).toEqual({
-      claim: "Not answered yet: vegetation has not been measured here.",
-      limit: "None of the 5 explanations can be tested without it.",
-    });
   });
 
   it("builds hairline-divided key-value rows and plain-English headlines for OverviewRecord from the case findings", () => {

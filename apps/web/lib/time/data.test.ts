@@ -23,7 +23,7 @@ const bin = (p: string) => {
 };
 
 for (const place of ["ait_bouguemez", "calaveras_creek"] as const) {
-  describe(`See It Over Time from ${place}'s own records`, () => {
+  describe(`Year by Year from ${place}'s own records`, () => {
     const cube = seasonCubeFrom(
       bin(`bundle_pixel_seasons_${place}/pixel-seasons.bin`),
       json(`bundle_pixel_seasons_${place}/pixel-seasons.bin.json`),

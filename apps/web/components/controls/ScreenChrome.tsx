@@ -1,8 +1,9 @@
 "use client";
 
 // Shared screen controls across the overview and instruments: top-left breadcrumb navigation,
-// bottom-right contextual key legend, dataset/literature attribution drawer (S), governance limits
-// note (W), and 3D camera reset/zoom controls. All user-facing copy comes from the message catalog.
+// bottom-right contextual key legend, the globe's credits drawer (S), and 3D camera reset/zoom controls. The case's
+// sources and limits (S and W) are one overlay of their own (SourcesOverlay.tsx). All user-facing copy comes from the
+// message catalog.
 
 import { useEffect, useId, useRef, type ReactNode } from "react";
 import { en, format } from "../../lib/copy/en";
@@ -16,85 +17,38 @@ export interface Crumb {
 }
 
 /**
- * "Siterra / Aït Bouguemez valley / 24.7% greening": each parent crumb navigates back to its level ("chrome.back").
- * Without the brand crumb (the overview, where Esc in the command bar goes back), the trail starts at the place.
+ * "Aït Bouguemez valley / Findings / Elevation Bands": the trail starts at the place on every screen, and each parent
+ * crumb goes back to its level.
  */
-export function Breadcrumb({
-  crumbs,
-  brand = true,
-}: {
-  crumbs: Crumb[];
-  onBack?: () => void;
-  brand?: boolean;
-}) {
-  const offset = brand ? 0 : 1;
+export function Breadcrumb({ crumbs }: { crumbs: Crumb[] }) {
   return (
     <nav className={styles.crumbs} aria-label={en["chrome.crumbs"].text} data-crumbs>
       <ol className={styles.trail}>
-        {crumbs.map((c, n) => {
-          const i = n + offset;
-          return (
-            <li
-              key={`${String(i)}-${c.label}`}
-              className={styles.crumb}
-              data-brand-crumb={i === 0 ? "" : undefined}
-              data-place-crumb={i === 1 ? "" : undefined}
-            >
-              {i > 1 ? (
-                <span className={styles.sep} aria-hidden="true">
-                  /
-                </span>
-              ) : null}
-              {c.onSelect ? (
-                <button
-                  type="button"
-                  className={i === 0 ? styles.brandButton : styles.crumbButton}
-                  onClick={c.onSelect}
-                  title={i === 0 ? "Back to Globe" : undefined}
-                >
-                  {i === 0 ? (
-                    <>
-                      <svg
-                        className={styles.backChevron}
-                        viewBox="0 0 14 14"
-                        fill="none"
-                        aria-hidden="true"
-                      >
-                        <path
-                          d="M9 2.75L4.75 7L9 11.25"
-                          stroke="currentColor"
-                          strokeWidth="1.25"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                      <span className={styles.srOnly}>{c.label}</span>
-                    </>
-                  ) : (
-                    <span>{c.label}</span>
-                  )}
-                </button>
-              ) : (
-                <span className={styles.here} aria-current="page">
-                  {c.label}
-                </span>
-              )}
-            </li>
-          );
-        })}
+        {crumbs.map((c, i) => (
+          <li
+            key={`${String(i)}-${c.label}`}
+            className={styles.crumb}
+            data-place-crumb={i === 0 ? "" : undefined}
+          >
+            {i > 0 ? (
+              <span className={styles.sep} aria-hidden="true">
+                /
+              </span>
+            ) : null}
+            {c.onSelect ? (
+              <button type="button" className={styles.crumbButton} onClick={c.onSelect}>
+                {c.label}
+              </button>
+            ) : (
+              <span className={styles.here} aria-current="page">
+                {c.label}
+              </span>
+            )}
+          </li>
+        ))}
       </ol>
     </nav>
   );
-}
-
-/** The case's mode as its record states it. */
-export type CaseMode = "live" | "replay" | "concept";
-
-/**
- * Mode indicator hook point at the top right; returns null so no mode badge clutters the canvas.
- */
-export function ModeLine(_props: { mode: CaseMode; run?: "live" | "replay" | null }) {
-  return null;
 }
 
 export interface KeyEntry {
@@ -139,7 +93,7 @@ export function KeyLegend({ entries, children }: { entries: KeyEntry[]; children
 export interface SourceSet {
   /** Every credit and licence in full, in the order the screen's numbered chips cite them. */
   lines: string[];
-  /** The data's short names for the one visible line ("Copernicus DEM", "ESA WorldCover"). */
+  /** The data's short names ("Copernicus DEM", "ESA WorldCover"), as tags over the globe's credits. */
   short: string[];
   /** Vertical terrain exaggeration factor shown with the dataset credits where 3D relief is drawn. */
   relief?: number;
@@ -223,22 +177,10 @@ function classifySourceLine(line: string): { category: string; url?: string } {
   return { category: "Published Literature" };
 }
 
-/** The one short line of the data's names, always visible. */
-export function SourcesLine({ sources }: { sources: SourceSet }) {
-  if (sources.short.length === 0) return null;
-  return (
-    <p className={styles.dataLine} data-sources-line>
-      {format("chrome.data", { names: sources.short.join(", ") })}
-      {sources.relief === undefined ? null : (
-        <span className={styles.relief} data-relief>
-          {format("chrome.relief", { value: sources.relief })}
-        </span>
-      )}
-    </p>
-  );
-}
-
-/** Full dataset attributions, licenses, and relief scale in an editorial drawer; Esc or S closes it. */
+/**
+ * The globe's credits and licences in full (components/journey/Journey.tsx), in a drawer; Esc or S closes it. A case's
+ * screens show its sources and limits from the record instead (SourcesOverlay.tsx).
+ */
 export function SourcesPanel({
   sources,
   open,
@@ -270,7 +212,6 @@ export function SourcesPanel({
     >
       <div className={styles.panelHead}>
         <div className={styles.panelTitleGroup}>
-          <span className={styles.panelKicker}>{"Data & Attribution"}</span>
           <h2 id={id} className={styles.panelTitle}>
             {en["chrome.sources"].text}
           </h2>
@@ -294,9 +235,7 @@ export function SourcesPanel({
           return (
             <li key={l} className={styles.panelItem}>
               <div className={styles.panelItemTop}>
-                <span className={styles.panelItemIndex}>
-                  {String(idx + 1).padStart(2, "0")}
-                </span>
+                <span className={styles.panelItemIndex}>{String(idx + 1).padStart(2, "0")}</span>
                 <span className={styles.panelItemCategory}>{meta.category}</span>
                 {meta.url ? (
                   <a
@@ -307,13 +246,7 @@ export function SourcesPanel({
                     aria-label={`Open ${meta.category} reference`}
                   >
                     <span>{"Reference"}</span>
-                    <svg
-                      width="9"
-                      height="9"
-                      viewBox="0 0 10 10"
-                      fill="none"
-                      aria-hidden="true"
-                    >
+                    <svg width="9" height="9" viewBox="0 0 10 10" fill="none" aria-hidden="true">
                       <path
                         d="M2.5 7.5L7.5 2.5M7.5 2.5H3.5M7.5 2.5V6.5"
                         stroke="currentColor"
@@ -339,74 +272,17 @@ export function SourcesPanel({
   );
 }
 
-/** Governance and operational boundaries: what Siterra does not do and who reviews drafts. */
-export function ScopeNote({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const id = useId();
-  useEffect(() => {
-    if (!open) return;
-    // Capture phase ensures Esc closes this popover before triggering screen-level Esc navigation
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key !== "Escape") return;
-      e.preventDefault();
-      e.stopImmediatePropagation();
-      onClose();
-    };
-    window.addEventListener("keydown", onKey, true);
-    return () => {
-      window.removeEventListener("keydown", onKey, true);
-    };
-  }, [open, onClose]);
-  if (!open) return null;
-  return (
-    <div id={id} className={styles.scopeNote} role="note" data-scope-popover>
-      <div className={styles.scopeHead}>
-        <div className={styles.panelTitleGroup}>
-          <span className={styles.panelKicker}>{"Governance & Scope"}</span>
-          <span className={styles.scopeTitle}>{en["chrome.key.scope"].text}</span>
-        </div>
-        <Control keyHint="Esc" keyShortcut="Escape" onClick={onClose}>
-          {en["chrome.close"].text}
-        </Control>
-      </div>
-      <div className={styles.scopeItems}>
-        <div className={styles.scopeItem}>
-          <span className={styles.scopeItemDot} data-kind="boundary" aria-hidden="true" />
-          <div className={styles.scopeItemBody}>
-            <span className={styles.scopeItemLabel}>{"No autonomous action"}</span>
-            <p>{en["chrome.scope.not"].text}</p>
-          </div>
-        </div>
-        <div className={styles.scopeItem}>
-          <span className={styles.scopeItemDot} data-kind="review" aria-hidden="true" />
-          <div className={styles.scopeItemBody}>
-            <span className={styles.scopeItemLabel}>{"Human review required"}</span>
-            <p>{en["chrome.scope.review"].text}</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 /** Reset (R), zoom out and zoom in, for a screen with a 3D view. */
 export function ViewControl({
   onReset,
   onZoom,
-  besideAsk = false,
 }: {
   onReset: () => void;
   /** A factor on the view's distance: below 1 closer. */
   onZoom: (factor: number) => void;
-  /** Where the ask rests at the bottom centre (the instruments), the control sits just left of it. */
-  besideAsk?: boolean;
 }) {
   return (
-    <div
-      className={besideAsk ? `${styles.view} ${styles.besideAsk}` : styles.view}
-      role="group"
-      aria-label={en["chrome.view"].text}
-      data-view-control
-    >
+    <div className={styles.view} role="group" aria-label={en["chrome.view"].text} data-view-control>
       <Control keyHint="R" keyShortcut="R" onClick={onReset}>
         {en["chrome.reset"].text}
       </Control>

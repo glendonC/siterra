@@ -1,12 +1,12 @@
 "use client";
 
-// The cutaway: the catchment cut north to south through Tabant, the section face as the hero.
-// Against the face at each elevation band's height: the band's name, its March to June trend and its monthly snow
-// cover, on one hairline each; the two published statements as numbered chips next to what they describe, each
-// opening its words on focus or hover; the ruler, the limits and
-// the place on the model. The scene is three.js (lib/instruments/valley/scene/cutaway.ts); the words are HTML,
-// placed after every render so they follow the model when it is turned. The caption is the cross section spec's,
-// as the case records carry it.
+// Elevation Bands: the catchment cut north to south through its place, the section face as the hero. The headline
+// says where greenness changed most, from the three bands' own trends (lib/instruments/valley/band-lead.ts), with
+// the record's caption line under it. Against the face at each band's height: the band's name, its March to June
+// trend and its monthly snow cover, on one hairline each; the two published statements, each waiting as the plain
+// name of the part it describes and opening its words and references on focus or hover; the ruler, the limits and
+// the place on the model. The scene is three.js (lib/instruments/valley/scene/cutaway.ts); the words are HTML, placed after
+// every render so they follow the model when it is turned.
 
 import {
   useEffect,
@@ -19,8 +19,10 @@ import {
 } from "react";
 import { en, format, type MessageId } from "../../lib/copy/en";
 import { bandLimitsOf } from "../../lib/land/record";
-import { splitFigure } from "../../lib/instruments/caption";
+import { keepTogether } from "../../lib/instruments/caption";
 import { metres, percent, signed } from "../../lib/instruments/format";
+import { citedText } from "../../lib/instruments/placed-statements";
+import { bandLead, type BandId } from "../../lib/instruments/valley/band-lead";
 import { loadCutawayData, type CutawayData } from "../../lib/instruments/valley/cutaway-data";
 import type { Vec3 } from "../../lib/instruments/valley/frame";
 import { SNOW_YEARS } from "../../lib/instruments/valley/fixtures";
@@ -31,13 +33,12 @@ import {
   mountCutaway,
   type CutawayScene,
 } from "../../lib/instruments/valley/scene/cutaway";
-import { cssColour, obsidian, sheetColours } from "../../lib/theme/obsidian";
-import { useShellSources, useShellView, type ViewHandle } from "./ShellContext";
+import { cssColour } from "../../lib/theme/obsidian";
+import { useShellPalette, useShellView, type ViewHandle } from "./ShellContext";
 import styles from "./InstrumentCutaway.module.css";
 import { useInstrument } from "./InstrumentRecords";
 import { useTeardown, type Teardown } from "./useTeardown";
 
-type BandId = "elevation_high" | "elevation_mid" | "elevation_low";
 /** Top to bottom, as they stand on the face. */
 const BANDS: readonly BandId[] = ["elevation_high", "elevation_mid", "elevation_low"];
 
@@ -49,12 +50,12 @@ const bandName = (id: BandId, limits: readonly [number, number]) => {
   return format("instrument.cutaway.band.low", { limit: lower });
 };
 
-/** The sources, numbered as the chips are; the two statements' sources and the place's come from the case record. */
-const CREDITS_BEFORE: MessageId[] = ["instrument.credit.modisNdvi", "instrument.credit.modisSnow"];
-const CREDITS_AFTER: MessageId[] = ["instrument.credit.worldcover", "instrument.credit.dem"];
-const STATEMENT_CHIP_FROM = CREDITS_BEFORE.length + 1;
-
-const SNOW_KEY = `linear-gradient(90deg, ${sheetColours.snow.join(", ")})`;
+/** Where a band is, inside the headline's sentence. */
+const WHERE: Record<BandId, MessageId> = {
+  elevation_high: "instrument.cutaway.where.high",
+  elevation_mid: "instrument.cutaway.where.mid",
+  elevation_low: "instrument.cutaway.where.low",
+};
 
 /** Arrow keys turn the model (degrees of bearing, of elevation); Home shows the measured view. */
 const TURN: Record<string, [number, number]> = {
@@ -67,9 +68,12 @@ const TURN: Record<string, [number, number]> = {
 type Anchor =
   "left-middle" | "left-top" | "right-middle" | "right-bottom" | "center-top" | "center-bottom";
 
-/** The published statements, numbered top to bottom as they stand on the section. */
-const STATEMENTS = ["upper_slope", "valley_floor"] as const;
-type StatementId = (typeof STATEMENTS)[number];
+/** The published statements, each named on the section by the part it describes, in plain words. */
+type StatementId = "upper_slope" | "valley_floor";
+const STATEMENT_AT: Record<StatementId, MessageId> = {
+  upper_slope: "instrument.cutaway.at.upper_slope",
+  valley_floor: "instrument.cutaway.at.valley_floor",
+};
 
 /** Puts an element's anchor point at (x, y) and shows it. */
 function place(e: HTMLElement | null, x: number, y: number, anchor: Anchor) {
@@ -135,6 +139,9 @@ export function InstrumentCutaway({ teardown }: { teardown?: Teardown } = {}) {
   const [openStatement, setOpenStatement] = useState<StatementId | null>(null);
   const [loadFailed, setFailed] = useState(false);
   const record = useInstrument("cross_section");
+  // the scene, the leaders and the snow strips in the app's theme
+  const pal = useShellPalette();
+  const snowKey = `linear-gradient(90deg, ${pal.snow.join(", ")})`;
   // the cross section spec draws no land cover raster yet: the layer stack's is read in its place
   const stack = useInstrument("layer_stack");
   const landFrom = stack.status === "ready" ? stack.view : null;
@@ -143,7 +150,6 @@ export function InstrumentCutaway({ teardown }: { teardown?: Teardown } = {}) {
   const view = record.status === "ready" ? record.view : null;
   const snapshot = record.status === "ready" ? record.snapshot : null;
   const caption = view?.spec.caption ?? null;
-  const lead = caption ? splitFigure(caption.ink) : null;
   const keysId = useId();
 
   useEffect(() => {
@@ -242,7 +248,7 @@ export function InstrumentCutaway({ teardown }: { teardown?: Teardown } = {}) {
       place(scaleRef.current, nb.x + 18, nb.y + 6, "left-top");
     };
 
-    mountCutaway(canvas, data).then(
+    mountCutaway(canvas, data, pal).then(
       (s) => {
         if (ac.signal.aborted) {
           s.dispose();
@@ -264,7 +270,7 @@ export function InstrumentCutaway({ teardown }: { teardown?: Teardown } = {}) {
       scene?.dispose();
       sceneRef.current = null;
     };
-  }, [data, caption, kick]);
+  }, [data, caption, kick, pal]);
 
   // the place's label appears after the scene has found it on the line, and a statement opens or closes; lay the
   // words out again then
@@ -289,25 +295,44 @@ export function InstrumentCutaway({ teardown }: { teardown?: Teardown } = {}) {
 
   const section = data?.places.places[0]?.name ?? "";
   const statement = (id: string) => data?.statements.statements.find((s) => s.id === id);
-  const chip = (sourceId: string) =>
-    (data?.statements.sources.findIndex((s) => s.id === sourceId) ?? -1) + STATEMENT_CHIP_FROM;
-  const chips = (id: string) =>
-    [...new Set(statement(id)?.cites.map((c) => chip(c.sourceId)))]
-      .sort((a, b) => a - b)
-      .map((n) => (
-        <span key={n} className={styles.chip}>
-          {n}
-        </span>
-      ));
-  // a statement on the section: its numbered chip, and its words with their source chips while it is open
+  // where greenness changed most and whether every band's interval clears zero, from the bands' own trends
+  const headline = data
+    ? (() => {
+        const l = bandLead(data.figures.season_trend);
+        const lower = metres(data.limits[0]);
+        const upper = metres(data.limits[1]);
+        const where = format(WHERE[l.band], {
+          limit: l.band === "elevation_high" ? upper : lower,
+          lower,
+          upper,
+        });
+        return {
+          lead: format(
+            l.direction === "rose"
+              ? "instrument.cutaway.lead.rose"
+              : "instrument.cutaway.lead.fell",
+            { where },
+          ),
+          clear:
+            en[
+              l.clear === "up"
+                ? "instrument.cutaway.clear.up"
+                : l.clear === "down"
+                  ? "instrument.cutaway.clear.down"
+                  : "instrument.cutaway.clear.mixed"
+            ].text,
+        };
+      })()
+    : null;
+  // a statement on the section: the name of the part it describes, and its words with their references while it is
+  // open
   const statementAt = (
     id: StatementId,
     ref: RefObject<HTMLDivElement | null>,
     className: string,
   ) => {
-    // a place whose record publishes no such statement shows no chip for it
+    // a place whose record publishes no such statement shows no name for it
     if (!statement(id)) return null;
-    const n = STATEMENTS.indexOf(id) + 1;
     const open = openStatement === id;
     const close = () => {
       setOpenStatement((o) => (o === id ? null : o));
@@ -318,7 +343,6 @@ export function InstrumentCutaway({ teardown }: { teardown?: Teardown } = {}) {
           type="button"
           className={styles.statementChip}
           aria-expanded={open}
-          aria-label={format("instrument.cutaway.statement", { n })}
           data-statement-chip={id}
           onFocus={() => {
             setOpenStatement(id);
@@ -334,50 +358,21 @@ export function InstrumentCutaway({ teardown }: { teardown?: Teardown } = {}) {
             setOpenStatement(id);
           }}
         >
-          {n}
+          {en[STATEMENT_AT[id]].text}
         </button>
         {open ? (
           <span className={styles.statementText} data-statement-text>
-            {statement(id)?.text}
-            {chips(id)}
+            {(() => {
+              const st = statement(id);
+              return st ? citedText(st) : null;
+            })()}
           </span>
         ) : null}
       </div>
     );
   };
-  const credits = data
-    ? [
-        ...CREDITS_BEFORE.map((id) => en[id].text),
-        ...data.statements.sources.map((s) => s.citation),
-        ...CREDITS_AFTER.map((id) => en[id].text),
-        ...data.places.places.map((p) => p.attribution),
-      ]
-    : [];
-  // every credit in full behind the shell's S, numbered as the chips cite them; the data's short names stay visible
-  useShellSources(
-    data
-      ? {
-          lines: credits,
-          short: [
-            en["source.modis"].text,
-            en["source.worldcover"].text,
-            en["source.dem"].text,
-            ...(data.places.places.length ? [en["source.geonames"].text] : []),
-            ...(data.statements.sources.length
-              ? [format("source.studies", { n: data.statements.sources.length })]
-              : []),
-          ],
-        }
-      : null,
-  );
-
   return (
-    <div
-      className={styles.root}
-      data-theme="obsidian"
-      data-instrument="cutaway"
-      data-tearing={tearing ? "" : undefined}
-    >
+    <div className={styles.root} data-instrument="cutaway" data-tearing={tearing ? "" : undefined}>
       <canvas
         ref={canvasRef}
         className={styles.canvas}
@@ -401,24 +396,21 @@ export function InstrumentCutaway({ teardown }: { teardown?: Teardown } = {}) {
           }
         </p>
       )}
-      {/* the headline at once, from the record's caption (the lead's no bare land while the section's assets
-          arrive); a quiet line while the section is still drawn */}
-      {caption && lead && !failed && (
-        <p className={styles.brief} data-cut-headline>
-          {lead.figure !== null && <span className={styles.fig}>{lead.figure}</span>}
-          <span className={styles.unit}>{lead.rest}</span>
-          <span className={styles.qual}>
-            {caption.grey}
-            <span className={styles.chip}>{1}</span>
-          </span>
+      {/* the record's figure at once (no bare land while the section's assets arrive), the headline over it once
+          the bands are read; a quiet line while the section is still drawn */}
+      {caption && !failed && (
+        <div className={styles.brief} data-cut-headline>
+          {headline ? <p className={styles.lead}>{headline.lead}</p> : null}
+          <p className={styles.unit}>{keepTogether(caption.ink)}</p>
+          {headline ? <p className={styles.qual}>{headline.clear}</p> : null}
           {!data || tearing ? (
-            <span className={styles.drawing} data-cut-drawing>
+            <p className={styles.drawing} data-cut-drawing>
               {en["instrument.cutaway.drawing"].text}
-            </span>
+            </p>
           ) : null}
-        </p>
+        </div>
       )}
-      {data && caption && lead && !failed && (
+      {data && caption && !failed && (
         <>
           <svg className={styles.leaders} aria-hidden="true">
             {BANDS.map((id, i) => (
@@ -427,7 +419,7 @@ export function InstrumentCutaway({ teardown }: { teardown?: Teardown } = {}) {
                   ref={(e) => {
                     bandLeaderRefs.current[i] = e;
                   }}
-                  stroke={obsidian.leaderQuiet}
+                  stroke={pal.leaderQuiet}
                   strokeWidth={1}
                 />
                 <circle
@@ -435,19 +427,19 @@ export function InstrumentCutaway({ teardown }: { teardown?: Teardown } = {}) {
                     bandDotRefs.current[i] = e;
                   }}
                   r={2}
-                  fill={obsidian.leaderDot}
+                  fill={pal.leaderDot}
                 />
               </g>
             ))}
             {statement("upper_slope") ? (
               <>
-                <line ref={upperStemRef} stroke={obsidian.leaderQuiet} strokeWidth={1} />
-                <circle ref={upperDotRef} r={2} fill={obsidian.leaderDot} />
+                <line ref={upperStemRef} stroke={pal.leaderQuiet} strokeWidth={1} />
+                <circle ref={upperDotRef} r={2} fill={pal.leaderDot} />
               </>
             ) : null}
-            {placeName && <line ref={placeTickRef} stroke={obsidian.leaderDot} strokeWidth={1} />}
+            {placeName && <line ref={placeTickRef} stroke={pal.leaderDot} strokeWidth={1} />}
             {statement("valley_floor") ? (
-              <line ref={floorStemRef} stroke={obsidian.leaderOnWall} strokeWidth={1} />
+              <line ref={floorStemRef} stroke={pal.leaderOnWall} strokeWidth={1} />
             ) : null}
           </svg>
           {BANDS.map((id, i) => (
@@ -470,7 +462,7 @@ export function InstrumentCutaway({ teardown }: { teardown?: Teardown } = {}) {
                     <i
                       key={data.snow?.months[m] ?? m}
                       title={`${data.snow?.months[m] ?? ""} ${percent(v, 0)}`}
-                      style={{ background: cssColour(snowColour(v)) }}
+                      style={{ background: cssColour(snowColour(v, pal.snow)) }}
                     />
                   ))}
                 </span>
@@ -493,10 +485,9 @@ export function InstrumentCutaway({ teardown }: { teardown?: Teardown } = {}) {
                   })}
                   <span className={styles.rampKey}>
                     <span>{0}</span>
-                    <i style={{ background: SNOW_KEY }} />
+                    <i style={{ background: snowKey }} />
                     <span>{percent(1, 0)}</span>
                   </span>
-                  <span className={styles.chip}>{2}</span>
                 </div>
               </div>
             </>
@@ -535,6 +526,7 @@ export function InstrumentCutaway({ teardown }: { teardown?: Teardown } = {}) {
             </div>
           )}
           {statementAt("valley_floor", floorRef, `${styles.statement} ${styles.onWallText}`)}
+          {/* the words at the section's foot stand where the open Ask's label does: they step aside while it is open */}
           {(["instrument.cutaway.north", "instrument.cutaway.south"] as const).map((id, i) => (
             <div
               key={id}
@@ -542,11 +534,19 @@ export function InstrumentCutaway({ teardown }: { teardown?: Teardown } = {}) {
                 endRefs.current[i] = el;
               }}
               className={styles.tickLabel}
+              data-ask-aside
+              data-section-foot
             >
               {en[id].text}
             </div>
           ))}
-          <div ref={scaleRef} className={styles.scaleNote} data-scale-note>
+          <div
+            ref={scaleRef}
+            className={styles.scaleNote}
+            data-scale-note
+            data-ask-aside
+            data-section-foot
+          >
             {format("instrument.layers.scale", { value: cutawayExag(data) })}
           </div>
         </>

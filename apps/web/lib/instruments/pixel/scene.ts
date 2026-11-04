@@ -1,12 +1,13 @@
-// Pixel anatomy scene orchestrator: mounts the six analytical panels (01 Locate, 02 Pixel Cells,
-// 03 Class Spectra, 04 Season Record, 05 Linear Mix Model, 06 Field Check) on a 1440 x 900 stage in
-// either standalone full-page mode or in-place card mode around the 3D terrain pixel.
+// Pixel anatomy scene orchestrator: mounts the six steps (01 Where It Is, 02 What Covers It, 03 How Covers
+// Reflect, 04 How It Changed, 05 How Covers Mix, 06 What to Check) on a 1440 x 900 stage, either all at once on the
+// page or in place around the risen pixel as one ordered list that opens one step at a time.
 
-import type { InstrumentCaption } from "@siterra/contracts";
+import { instrumentPalette, type InstrumentPalette } from "../../theme/instruments";
 import type { PlacedStatements } from "../placed-statements";
 import type { PixelData } from "./data";
 import type { Shares } from "./mix";
 import type { CellPaint } from "./paint";
+import { pixelStatement } from "./statement";
 import {
   renderCaption,
   renderCellsBuffers,
@@ -15,11 +16,7 @@ import {
   renderSeriesPanel,
   renderSpectraPanel,
 } from "./scene-buffers";
-import {
-  createAroundController,
-  createModelController,
-  renderFieldPanel,
-} from "./scene-picking";
+import { createAroundController, createModelController, renderFieldPanel } from "./scene-picking";
 import {
   AROUND,
   createSceneDom,
@@ -62,43 +59,30 @@ export interface PixelScene {
 export function mountPixel(
   stage: HTMLElement,
   d: PixelData,
-  /** The pixel anatomy spec's caption, as the case records carry it. */
-  caption: InstrumentCaption,
   statements: PlacedStatements,
   locator: PixelLocator,
   cls: PixelClasses,
   around: PixelAround | null = null,
-  /**
-   * The caption's two source notes from the case record: what its first citation and its model citation
-   * measure, falling back to the catalog's default notes when the record states none.
-   */
-  tips: readonly [string | null, string | null] = [null, null],
   /** The pixel's question as the case record states it, or the catalog's default question when absent. */
   question: string | null = null,
+  /** The colours in the app's theme. */
+  pal: InstrumentPalette = instrumentPalette("obsidian"),
 ): PixelScene {
-  const dom = createSceneDom(stage, cls, around);
+  const dom = createSceneDom(stage, cls, around, pal);
   const cellPx = Math.min(L.cellPx, MULT_W / Math.max(d.grid.rows, d.grid.cols));
   const toGrid = ([x, y]: readonly [number, number]): Pt => [
     ((x - d.grid.origin_x) / 10) * cellPx,
     ((d.grid.origin_y - y) / 10) * cellPx,
   ];
 
-  renderCaption(dom, caption, around, tips, question);
+  // the statement in plain words from the pixel's own data, the trend's season as the trend cells state it
+  renderCaption(dom, pixelStatement(d, locator.window), around, question);
   const ring = renderLocateBuffer(dom, d, locator);
-  const { fp, multiples } = renderCellsBuffers(dom, d, around, cellPx, toGrid);
+  const { fp, multiples, repaint } = renderCellsBuffers(dom, d, around, cellPx, toGrid);
   const spectra = renderSpectraPanel(dom, d, around);
   renderSeriesPanel(dom, d, locator);
 
-  let aroundCtrl: ReturnType<typeof createAroundController> | null = null;
-  const transectEnd = renderFieldPanel(
-    dom,
-    d,
-    statements,
-    around,
-    multiples,
-    toGrid,
-    (id) => aroundCtrl?.refit(id),
-  );
+  const transectEnd = renderFieldPanel(dom, d, statements, around, multiples, toGrid);
   const modelCtrl = createModelController(dom, d, around, (refl, ndvi) => {
     spectra.draw(refl, ndvi);
   });
@@ -106,7 +90,7 @@ export function mountPixel(
 
   stage.appendChild(dom.overlay);
   modelCtrl.draw();
-  aroundCtrl = createAroundController(dom, stage, around);
+  const aroundCtrl = createAroundController(dom, stage, around);
 
   return {
     setPixelBox: (box, anchors) => {
@@ -114,6 +98,7 @@ export function mountPixel(
     },
     setPaint: (paint) => {
       aroundCtrl.setPaint(paint);
+      repaint?.(paint);
     },
     setShares: (shares) => {
       modelCtrl.setShares(shares);

@@ -1,6 +1,6 @@
-/* The briefing shell around one instrument, in the Obsidian tokens: the breadcrumb at the top left and a quiet text
-   switcher at the top right over a 64 px band, the instrument in the stage area below it, the ask
-   (components/overview/Ask.module.css) resting at the bottom centre, the keys and sources at the bottom right. */
+/* The briefing shell around one instrument: the breadcrumb at the top left over a 64 px band, the instrument in the
+   stage area below it, the keys at the bottom right, and the ask (components/overview/Ask.module.css) in the 1440 x
+   900 design scaled to the window, as on the overview. */
 
 .shell {
   position: fixed;
@@ -19,63 +19,17 @@
   bottom: 0;
 }
 
-.switcher {
-  position: absolute;
-  top: 34px;
-  right: 48px;
-  z-index: 10;
-  display: flex;
-  gap: 20px;
-}
-
-.view {
-  font-size: 13px;
-  line-height: 18px;
-  color: var(--text-tertiary);
-  text-decoration: none;
-}
-
-.view:hover,
-.view:focus-visible {
-  color: var(--text-secondary);
-}
-
-.view[aria-current="page"] {
-  color: var(--text-primary);
-  font-weight: 500;
-}
-
-.view:focus-visible {
-  outline: 1px solid var(--hairline);
-  outline-offset: 3px;
-}
-
 /* the land taken apart in place: the chrome around the instrument comes in once the land has */
-.shell :is(nav, [data-key-legend], [data-view-control], [data-sources-line], [data-ask]) {
+.shell :is(nav, [data-key-legend], [data-view-control]) {
   transition: opacity 0.45s ease;
 }
 
-.shell[data-tearing]
-  :is(nav, [data-key-legend], [data-view-control], [data-sources-line], [data-ask]) {
+.shell[data-tearing] :is(nav, [data-key-legend], [data-view-control]) {
   opacity: 0;
   pointer-events: none;
 }
 
-/* the case question under the breadcrumb, as on the overview */
-.question {
-  position: absolute;
-  left: 48px;
-  top: 74px;
-  margin: 0;
-  max-width: 440px;
-  font-size: 13px;
-  line-height: 18px;
-  color: var(--text-tertiary);
-  pointer-events: none;
-  z-index: 5;
-}
-
-/* the ask disc's place: the 1440 x 900 design scaled to the window, the disc on the arc's start as on the overview */
+/* the ask's frame: the 1440 x 900 design scaled to the window (its transform and frame variables are set inline) */
 .askPlace {
   position: absolute;
   left: 0;
@@ -85,4 +39,78 @@
   transform-origin: 0 0;
   pointer-events: none;
   z-index: 20;
+}
+
+/* the open Ask carries its own key hints (Submit, Close): the shell's key bar and view control step out of its way */
+.shell:has([data-ask-overlay][data-open]) :is([data-key-legend], [data-view-control]) {
+  visibility: hidden;
+}
+
+/* as on the answer: the view's picture (the land, the chart, the cells) stays in sight under the Ask's soft backing,
+   and only the view's words that its line and suggestions would stand on step aside (each view marks them); they
+   come back at once when it closes */
+.shell:has([data-ask-overlay][data-open]) .stage [data-ask-aside] {
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.25s ease,
+    visibility 0s linear 0.25s;
+}
+
+/* the theme switch where the answer has it, at the top right */
+.themeButton {
+  position: absolute;
+  top: 24px;
+  right: 40px;
+  z-index: 20;
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ov-ink-2);
+  cursor: pointer;
+  outline: none;
+  transition: color 160ms ease;
+}
+
+.themeButton:hover,
+.themeButton:focus-visible {
+  color: var(--ov-bright);
+}
+
+/* over the land (a view opened in place on it), the switch stands on the trail's soft scrim of the ground
+   (ScreenChrome.module.css), mirrored from the screen's top right corner */
+:global([data-covered="land"]) .themeButton::before {
+  --fade-1: color-mix(in srgb, var(--mask-opaque) 62%, transparent);
+  --fade-2: color-mix(in srgb, var(--mask-opaque) 26%, transparent);
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: -24px -40px -56px -120px;
+  background: color-mix(in srgb, var(--bg-canvas) 88%, transparent);
+  mask-image:
+    linear-gradient(
+      to left,
+      var(--mask-opaque) calc(100% - 130px),
+      var(--fade-1) calc(100% - 85px),
+      var(--fade-2) calc(100% - 40px),
+      transparent
+    ),
+    linear-gradient(
+      to bottom,
+      var(--mask-opaque) 42%,
+      var(--fade-1) 60%,
+      var(--fade-2) 79%,
+      transparent
+    );
+  mask-composite: intersect;
+  pointer-events: none;
+}
+
+.shell[data-tearing] .themeButton {
+  opacity: 0;
+  pointer-events: none;
 }

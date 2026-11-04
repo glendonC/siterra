@@ -1,6 +1,6 @@
-// Interactive review decisions for Scene 7 ("Your Plan", replan 7F): records "Approve the Plan" or "Ask for Changes"
-// (with an optional short reviewer note) on the local case state and posts to /api/cases/:id/review-decisions when
-// available, falling back cleanly if the endpoint returns 404 or the browser is offline.
+// Plan review decisions in demo mode: an approval or a request for changes (with an optional short reviewer note),
+// posted to /api/cases/:id/review-decisions. Nothing counts as recorded until the case accepts it: a refused or
+// offline request records nothing, here or on the case.
 
 import type { PlanReviewDecisionRequest } from "@siterra/contracts";
 import { pkg } from "../copy/package";
@@ -125,7 +125,7 @@ export async function submitReviewDecision({
   fetcher?: typeof fetch;
   storage?: Pick<Storage, "setItem"> | null;
   now?: string;
-}): Promise<RecordedReviewDecision> {
+}): Promise<RecordedReviewDecision | null> {
   const trimmedNote = note.trim().slice(0, 500);
   const decision: RecordedReviewDecision = {
     caseId,
@@ -135,23 +135,22 @@ export async function submitReviewDecision({
     note: trimmedNote,
     decidedAt: now,
   };
-  writeRecordedReview(decision, storage);
-
-  if (fetcher) {
-    const payload: PlanReviewDecisionRequest = {
-      decision: status,
-      ...(trimmedNote.length > 0 ? { note: trimmedNote } : {}),
-    };
-    try {
-      await fetcher(`/api/cases/${encodeURIComponent(caseId)}/review-decisions`, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-    } catch {
-      // Offline or unmounted route: local case state is already updated.
-    }
+  if (!fetcher) return null;
+  const payload: PlanReviewDecisionRequest = {
+    decision: status,
+    ...(trimmedNote.length > 0 ? { note: trimmedNote } : {}),
+  };
+  try {
+    const res = await fetcher(`/api/cases/${encodeURIComponent(caseId)}/review-decisions`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) return null;
+  } catch {
+    return null;
   }
-
+  // the case accepted it: only now is the decision recorded
+  writeRecordedReview(decision, storage);
   return decision;
 }

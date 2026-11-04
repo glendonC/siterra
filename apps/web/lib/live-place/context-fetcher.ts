@@ -16,7 +16,7 @@ function firstTwoSentences(text: string, maxLen = 250): string | null {
   if (cleaned.length < 30) return null;
   const sentences = cleaned.match(/[^.!?]+[.!?]+/g);
   if (sentences && sentences.length > 0) {
-    const s0 = sentences[0]!.trim();
+    const s0 = sentences[0].trim();
     if (s0.length <= maxLen) {
       const s1 = sentences[1]?.trim();
       if (s1 && s0.length + 1 + s1.length <= maxLen) {
@@ -38,7 +38,9 @@ async function fetchWikiRegionalPages(
   regionName: string,
 ): Promise<WikiSearchPage[]> {
   const ac = new AbortController();
-  const timer = setTimeout(() => ac.abort(), 4000);
+  const timer = setTimeout(() => {
+    ac.abort();
+  }, 4000);
   try {
     const headers = {
       Accept: "application/json",
@@ -109,7 +111,9 @@ async function fetchGovernanceWorks(
   regionName: string,
 ): Promise<OpenAlexWork[]> {
   const ac = new AbortController();
-  const timer = setTimeout(() => ac.abort(), 4000);
+  const timer = setTimeout(() => {
+    ac.abort();
+  }, 4000);
   try {
     const regionPrimary = (regionName.split(",")[0] ?? regionName).trim() || placeName;
     const q = `${placeName} ${regionPrimary} governance management conservation stewardship water rights land tenure`;
@@ -195,7 +199,7 @@ export async function fetchRegionalContextAndGovernance(params: {
       createdAt: now,
       updatedAt: now,
       caseId,
-      title: `${title} — Regional & Institutional Geography (${regionName})`,
+      title: `${title}: Regional & Institutional Geography (${regionName})`,
       url: pageUrl,
       publisher: "Wikimedia Foundation / Regional Geographic Register",
       authors: ["Wikipedia Contributors"],
@@ -246,7 +250,8 @@ export async function fetchRegionalContextAndGovernance(params: {
         ],
       },
       interpretation: `Establishes regional geography, land designation, and local context around ${placeName}.`,
-      uncertainty: "Secondary geographic summary; field confirmation required for parcel-level governance.",
+      uncertainty:
+        "Secondary geographic summary; field confirmation required for parcel-level governance.",
       reviewDecisionIds: [],
     });
     if (ev.success) {
@@ -344,7 +349,8 @@ export async function fetchRegionalContextAndGovernance(params: {
         ],
       },
       interpretation: `Documents institutional, regulatory, or stewardship context relevant to ${placeName}.`,
-      uncertainty: "Published regional study; current local jurisdiction requires stakeholder review.",
+      uncertainty:
+        "Published regional study; current local jurisdiction requires stakeholder review.",
       reviewDecisionIds: [],
     });
     if (ev.success) {

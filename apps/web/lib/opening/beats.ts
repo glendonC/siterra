@@ -65,12 +65,13 @@ export const STORY_BEATS: readonly StoryBeat[] = [
     globeLon: 16,
     globeLat: 18,
     ink: "A satellite map can look healthy and green while the land on the ground is actually worsening.",
-    grey: "From space, irrigated crops and thorny weeds blend right in with healthy grass—and satellite trends often miss the damage until 30 to 40% of the plants are already gone.",
+    grey: "From space, irrigated crops and thorny weeds blend right in with healthy grass, and satellite trends often miss the damage until 30 to 40% of the plants are already gone.",
     citations: [
       {
         id: "RSE",
         label: "Wessels et al., 2012",
-        title: "Limits to detectability of land degradation by trend analysis of vegetation index data",
+        title:
+          "Limits to detectability of land degradation by trend analysis of vegetation index data",
         venue: "Remote Sensing of Environment · Vol. 125, pp. 10–22",
         finding:
           "In simulations, 30–40% vegetation loss is required before a standard satellite vegetation trend becomes statistically detectable under variable rainfall.",
@@ -93,12 +94,13 @@ export const STORY_BEATS: readonly StoryBeat[] = [
     globeLon: -52,
     globeLat: 12,
     ink: "When governments or climate projects act on a misleading map, both the land and local people pay the price.",
-    grey: "Across 26 studied conservation projects in six countries, most failed to stop land loss—and local herders are routinely blamed for damage actually caused by drought.",
+    grey: "Across 26 studied conservation projects in six countries, most failed to stop land loss, and local herders are routinely blamed for damage actually caused by drought.",
     citations: [
       {
         id: "SCIENCE",
         label: "West et al., 2023 · Science",
-        title: "Action needed to make carbon offsets from forest conservation work for climate change mitigation",
+        title:
+          "Action needed to make carbon offsets from forest conservation work for climate change mitigation",
         venue: "Science · Vol. 381, Issue 6660",
         finding:
           "Audit across 26 conservation sites in six countries showing that most projects failed to reduce land loss because they lacked a verified baseline.",
@@ -121,7 +123,7 @@ export const STORY_BEATS: readonly StoryBeat[] = [
     globeLon: -6.5,
     globeLat: 31.6,
     ink: "Pick any place on Earth and ask what is changing the land.",
-    grey: "Siterra cross-checks decades of satellite imagery, rainfall records, and scientific studies to test every explanation side by side—then maps the exact spots to check on foot.",
+    grey: "Siterra cross-checks decades of satellite imagery, rainfall records, and scientific studies to test every explanation side by side, then maps the exact spots to check on foot.",
     citations: [
       {
         id: "METHOD",

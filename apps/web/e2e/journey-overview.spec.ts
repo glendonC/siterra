@@ -1,9 +1,11 @@
 import { expect, test, type Page, type Request } from "@playwright/test";
+import { openView, readoutOn, shownLabels } from "./answer";
 
 // The journey at "/" lands on the overview (approved specimen D4) as one world (decision 11): Enter on the opening,
-// Enter on the globe, the camera goes down onto the case's point and the overview's own land rises there; no MapLibre
-// valley is ever drawn. A returning visitor's reload goes straight to the overview, and the only write the page makes
-// is the one demo session it opens on a first visit. Enter is never pressed in the ask here.
+// Enter on the globe, the camera goes down onto the case's point and the overview's own land rises there, the case's
+// recorded run at work on it (its Analysis Steps), which hands over to the answer once it is done (UI-2); no MapLibre
+// valley is ever drawn. A returning visitor's reload goes straight to the overview's home, the answer, and the only
+// write the page makes is the one demo session it opens on a first visit. Enter is never pressed in the ask here.
 test.use({ storageState: { cookies: [], origins: [] }, viewport: { width: 1440, height: 900 } });
 
 /** Every request other than a GET. */
@@ -24,11 +26,20 @@ async function chooseAndStart(page: Page) {
   await page.keyboard.press("Enter");
 }
 
-async function overview(page: Page) {
+/**
+ * The overview, drawn: after the journey's arrival the case's recorded run is at work on it, its steps showing; on a
+ * resumed visit it opens on its home, the answer. No finding label is left round the arc either way.
+ */
+async function overview(page: Page, on: "steps" | "answer") {
   await expect(page.locator("[data-overview-root]")).toHaveAttribute("data-ready", "", {
     timeout: 60_000,
   });
-  await expect(page.locator("[data-overview] [data-finding]")).toHaveCount(4);
+  if (on === "steps")
+    await expect(page.locator("[data-overview] [data-at-work][data-run-layer]")).toBeVisible({
+      timeout: 15_000,
+    });
+  else await expect(readoutOn(page)).toBeVisible({ timeout: 15_000 });
+  await expect.poll(() => shownLabels(page)).toBe(0);
   // the old arrival is gone: no command line, no cards, no settled MapLibre valley
   await expect(page.locator("#command-input")).toHaveCount(0);
   await expect(page.locator("[data-arrival-settled]")).toHaveCount(0);
@@ -90,16 +101,16 @@ test("the opening, the globe and the zoom land on the overview, and a reload ret
     .toBe(true);
   await expect(page.locator("[data-case-card] button")).toHaveCount(0);
   await expect(page.locator("[data-phase=rest]")).toBeVisible({ timeout: 90_000 });
-  await overview(page);
+  await overview(page, "steps");
   await expect(page.locator("[data-overview-root]")).not.toHaveAttribute("data-arriving", "");
   // no MapLibre valley is drawn at any point
   await expect(page.locator(".maplibregl-map")).toHaveCount(0);
   expect(sent).toEqual(["POST /api/demo-sessions"]);
 
-  // a resumed visit: the stored demo copy, read again, with no new session
+  // a resumed visit: the stored demo copy, read again, with no new session, on the overview's home
   sent.length = 0;
   await page.reload();
-  await overview(page);
+  await overview(page, "answer");
   await expect(page.locator("[data-phase]")).toHaveCount(0);
   expect(sent).toEqual([]);
 });
@@ -113,7 +124,7 @@ test("Esc during the arrival ends it at once on the overview", async ({ page }) 
   await expect(page.locator("[data-phase=zoom]")).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(page.locator("[data-phase=rest]")).toBeVisible({ timeout: 60_000 });
-  await overview(page);
+  await overview(page, "steps");
   await expect(page.locator("[data-case-card]")).toHaveCount(0);
 });
 
@@ -126,10 +137,10 @@ test("under reduced motion Open cuts straight to the overview", async ({ page })
   await chooseAndStart(page);
   await expect(page.locator("[data-phase=zoom]")).toHaveCount(0);
   await expect(page.locator("[data-phase=rest]")).toBeVisible({ timeout: 60_000 });
-  await overview(page);
+  await overview(page, "steps");
 });
 
-test("no drawing gets a non-number through the journey, the overview, a card and the cut (U28f), at 1024 x 600", async ({
+test("no drawing gets a non-number through the journey, the overview, its answer and the cut (U28f), at 1024 x 600", async ({
   page,
 }) => {
   test.setTimeout(240_000);
@@ -156,7 +167,7 @@ test("no drawing gets a non-number through the journey, the overview, a card and
   await expect(page.locator("[data-phase=globe]")).toBeVisible();
   await chooseAndStart(page);
   await expect(page.locator("[data-phase=rest]")).toBeVisible({ timeout: 90_000 });
-  await overview(page);
+  await overview(page, "steps");
   await page.waitForTimeout(1500);
   expect(await nonNumbers()).toEqual([]);
   // a hidden browser pane gives every element no size (the lead's walk): hide the page a moment, then show it again
@@ -169,11 +180,11 @@ test("no drawing gets a non-number through the journey, the overview, a card and
   });
   await page.waitForTimeout(800);
   expect(await nonNumbers()).toEqual([]);
-  await page.locator("[data-finding='band']").click();
-  await expect(page.locator("[data-record='band']")).toBeVisible();
+  // the recorded run, once done, hands over to its answer by itself
+  await expect(readoutOn(page)).toBeVisible({ timeout: 120_000 });
   await page.waitForTimeout(1200);
   expect(await nonNumbers()).toEqual([]);
-  await page.locator("[data-record] [data-actions] a").first().click();
+  await openView(page, "cutaway");
   await expect(page.locator("[data-instrument='cutaway'] [data-band]").first()).toBeVisible({
     timeout: 60_000,
   });

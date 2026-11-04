@@ -2,7 +2,8 @@
   display: none;
 }
 
-@media (width < 1024px), (height < 600px) {
+/* screens only: a printed page is narrower than the bound, and the brief prints (components/package) */
+@media screen and (width < 1024px), screen and (height < 600px) {
   .gate {
     position: fixed;
     inset: 0;

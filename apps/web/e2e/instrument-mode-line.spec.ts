@@ -1,10 +1,12 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { expect, test, type Page } from "@playwright/test";
+import { atTheAnswer, readoutOn } from "./answer";
 
 // Where a run comes from (DQ-02, as the founder decided on 2 Nov 2026): no mode line at the top right in any state and
 // no "Live" anywhere. A replay says so in one line under its question, starting with "Replay"; a live run carries no
-// label. Enter is pressed in the ask only against a stubbed stream (no worker, no model).
+// label. Enter is pressed in the ask only against a stubbed stream (no worker, no model). The overview's home is the
+// answer (UI-2); a question sent from it puts its steps on the screen at once.
 
 test.use({ viewport: { width: 1440, height: 900 } });
 
@@ -31,16 +33,17 @@ test("when no run is active, no mode line is shown on the overview or instrument
 }) => {
   test.setTimeout(240_000);
   const rest = page.locator("[data-overview-root][data-ready]:not([data-arriving])");
-  await page.goto("/valley");
+  await atTheAnswer(page);
   await expect(rest).toHaveCount(1, { timeout: 90_000 });
-  await expectNoneShown(page, "the overview");
-  await page.locator("[data-finding='fdr']").click();
-  await expect(page.locator("[data-record='fdr']")).toBeVisible();
-  await expectNoneShown(page, "a finding's card");
-  await page.keyboard.press("Escape");
+  await expectNoneShown(page, "the answer");
+  // a check of the plan lit on the land
+  await readoutOn(page).locator("[data-readout-check] button").first().click();
+  await expect(page.locator("[data-readout-place]")).toHaveCount(1);
+  await expectNoneShown(page, "a check lit on the land");
+  // every view by its address (Map Layers' address opens the answer, which splits its land in place)
   for (const id of ["layers", "cutaway", "rainfall", "pixel", "field"]) {
     await page.goto(`/instruments/${id}`);
-    await expect(page.locator("[data-crumbs]")).toBeVisible({ timeout: 60_000 });
+    await expect(page.locator("[data-crumbs]").first()).toBeVisible({ timeout: 60_000 });
     await expectNoneShown(page, `/instruments/${id}`);
   }
 });
@@ -72,6 +75,10 @@ async function stubbedRun(page: Page, live: boolean) {
         })
       : route.continue(),
   );
+  // the follow-up's completion is answered here too, so nothing reaches the server's model route
+  await page.route("**/api/cases/*/commands/*/complete", (route) =>
+    route.fulfill({ status: 200, contentType: "application/json", body: '{"status":"skipped"}' }),
+  );
   await page.route("**/api/cases/*/events*", (route) =>
     route.fulfill({
       status: 200,
@@ -81,10 +88,7 @@ async function stubbedRun(page: Page, live: boolean) {
         .join(""),
     }),
   );
-  await page.goto("/valley");
-  await expect(page.locator("[data-overview-root]")).toHaveAttribute("data-ready", "", {
-    timeout: 90_000,
-  });
+  await atTheAnswer(page);
   // no run, no mode line
   await expect(page.locator("[data-mode-line]")).toHaveCount(0);
   // every run word a mode line would show from here on (there should be none)
@@ -111,6 +115,7 @@ async function stubbedRun(page: Page, live: boolean) {
   await page.keyboard.press("/");
   await page.keyboard.type("Why is the valley floor greener?");
   await page.keyboard.press("Enter");
+  // the question's steps take the screen at once
   await expect(page.locator("[data-at-work]").first()).toBeVisible({ timeout: 20_000 });
 }
 

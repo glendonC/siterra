@@ -13,16 +13,14 @@ import { type CaseSnapshot, type InstrumentListing } from "@siterra/contracts";
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { en } from "../../lib/copy/en";
 import { bandLimitsOf } from "../../lib/land/record";
-import { instrumentOf } from "../../lib/instruments/listing";
 import {
-  VIEW_HREF,
   VIEW_INSTRUMENT,
   actionsFor,
   type Action,
   type Thing,
   type ViewKind,
 } from "../../lib/overview/actions";
-import { findingsFrom, type FindingId } from "../../lib/overview/findings";
+import { findingsFrom } from "../../lib/overview/findings";
 import type { LiftId, Selection } from "../../lib/overview/scene/overview";
 import { catchmentAreaKm2 } from "../../lib/overview/record";
 import { placeNamesFromCase } from "../../lib/projection/arrival";
@@ -43,11 +41,7 @@ import { timeSourcesOf } from "../../lib/time/load";
 import { lifeSourceOf } from "../../lib/life/load";
 import { OverviewHudLayer } from "./OverviewHudLayer";
 import { useOverviewLayerFocus } from "./useOverviewLayerFocus";
-import {
-  useOverviewDomRefs,
-  useOverviewRunState,
-  type OverviewIntro,
-} from "./useOverviewRunState";
+import { useOverviewDomRefs, useOverviewRunState, type OverviewIntro } from "./useOverviewRunState";
 import styles from "./ValleyOverview.module.css";
 
 export type { OverviewIntro } from "./useOverviewRunState";
@@ -166,19 +160,48 @@ function OverviewReady({
   commissionedQuestion?: string;
 }) {
   const {
-    effectiveQuestion, effectiveIntro, introRef, arrival, appearRef, arriving, setArriving,
-    runPaused, setRunPaused, ask, fallbackCommandId, pkgBrief, pkgView, setAtWork,
-    setThinkingHidden, atWorkShown, atWorkRef, sentText, setSentText, effectiveRecorded,
-    effectiveRecClock, run, thinkingRun, runArc, setRunArc, runArcKey,
+    effectiveQuestion,
+    effectiveIntro,
+    introRef,
+    arrival,
+    appearRef,
+    arriving,
+    setArriving,
+    runPaused,
+    setRunPaused,
+    ask,
+    fallbackCommandId,
+    pkgBrief,
+    pkgView,
+    setAtWork,
+    setThinkingHidden,
+    atWorkShown,
+    atWorkRef,
+    sentText,
+    setSentText,
+    effectiveRecorded,
+    effectiveRecClock,
+    run,
+    thinkingRun,
+    runArc,
+    setRunArc,
+    runArcKey,
+    answer,
+    handOver,
   } = useOverviewRunState({ snapshot, intro, initialViewMode, commissionedQuestion });
 
-  const { findings: all, bandLimit } = useMemo(() => findingsFrom(snapshot, listing), [snapshot, listing]);
-  const findings = useMemo(() => all.filter((f) => f.id !== "band" || bandLimit !== null), [all, bandLimit]);
+  const { findings: all, bandLimit } = useMemo(
+    () => findingsFrom(snapshot, listing),
+    [snapshot, listing],
+  );
+  const findings = useMemo(
+    () => all.filter((f) => f.id !== "band" || bandLimit !== null),
+    [all, bandLimit],
+  );
   const canvasFindings = useMemo(
     () => findings.filter((f) => f.id !== "catchment" || Boolean(f.missingReason)),
     [findings],
   );
-  const planned = instrumentOf(listing, "field_plan") !== undefined;
   const offered = useMemo(() => {
     const views = new Set(
       (Object.keys(VIEW_INSTRUMENT) as ViewKind[]).filter((v) =>
@@ -201,7 +224,7 @@ function OverviewReady({
   const [askOpen, setAskOpen] = useState(false);
   const askOpenRef = useRef(askOpen);
   askOpenRef.current = askOpen;
-  const [liftShown, setLiftShown] = useState<LiftId | null>(null);
+  const [, setLiftShown] = useState<LiftId | null>(null);
   const [tear, setTear] = useState<TearState | null>(null);
   const [rainWide, setRainWide] = useState(false);
   const [cellPaint, setCellPaint] = useState<CellPaint>("rgb");
@@ -211,7 +234,6 @@ function OverviewReady({
   const tearRef = useRef(tear);
   tearRef.current = tear;
   const [askText, setAskText] = useState("");
-  const [askHover, setAskHover] = useState(false);
   useEffect(() => {
     const q = takeQuestion();
     if (q) {
@@ -240,14 +262,48 @@ function OverviewReady({
 
   const domRefs = useOverviewDomRefs(canvasFindings, lifeOn);
   const {
-    liftShownRef, idle, reducedMotion, goal, hov, selRef, rootRef, camRef, camTargetRef,
-    movedRef, linkRef, firstResultRef, askCircleRef, fieldRef, routesRef, pickRef,
-    pkgRangesRef, hideHoverRef, pkgAsideRef, backRef, pkgHandoff, panelRef, labelRefs,
+    liftShownRef,
+    idle,
+    reducedMotion,
+    live,
+    goal,
+    hov,
+    selRef,
+    nextSelRef,
+    rootRef,
+    camRef,
+    camTargetRef,
+    movedRef,
+    linkRef,
+    firstResultRef,
+    fieldRef,
+    routesRef,
+    pickRef,
+    pkgRangesRef,
+    hideHoverRef,
+    pkgAsideRef,
+    pkgHandoff,
+    panelRef,
+    labelRefs,
+    exitRef,
+    splitRef,
   } = domRefs;
 
   const { apply, go } = useOverviewLayoutApply({
-    ...domRefs, runArcKey, setRunArc, setSel, appearRef, tearRef, setTear,
-    cellPaintRef, setCellPaint, askOpenRef, arrival, setLiftShown, introRef, setArriving,
+    ...domRefs,
+    runArcKey,
+    setRunArc,
+    setSel,
+    appearRef,
+    tearRef,
+    setTear,
+    cellPaintRef,
+    setCellPaint,
+    askOpenRef,
+    arrival,
+    setLiftShown,
+    introRef,
+    setArriving,
   });
 
   const introRun = effectiveIntro?.run ?? false;
@@ -257,17 +313,31 @@ function OverviewReady({
   }, [introRun, introSkip, go]);
 
   const {
-    layers, data, terrainOutline, failed, recordData, routesLoad, scanTiming, origin, routeNumber, sourceSet,
+    layers,
+    data,
+    terrainOutline,
+    failed,
+    recordData,
+    routesLoad,
+    scanTiming,
+    origin,
+    routeNumber,
+    sourceSet,
   } = useOverviewSceneData({
-    ...domRefs, snapshot, listing, findings, bandLimitM: bandLimit?.value ?? null,
-    sel, lifeOn, lifeBundle, offeredRef, onSettled, apply, go,
+    ...domRefs,
+    snapshot,
+    listing,
+    findings,
+    bandLimitM: bandLimit?.value ?? null,
+    sel,
+    lifeOn,
+    lifeBundle,
+    offeredRef,
+    onSettled,
+    apply,
+    go,
   });
 
-  const hover = (id: FindingId, on: boolean) => {
-    if (on) hov.current = id;
-    goal.current.h = on ? 1 : 0;
-    go();
-  };
   const pickRoute = useCallback(
     (id: string | null) => {
       pickRef.current = id;
@@ -294,7 +364,8 @@ function OverviewReady({
       setSel(id);
       pickRef.current = null;
       goal.current.s = 1;
-      setAskOpen(false);
+      // the answer is home: an ask already open over it (a question carried from a view) stays open
+      if (id !== "results") setAskOpen(false);
       go();
       window.setTimeout(() => {
         (id === "results" || id === "routes" ? firstResultRef.current : linkRef.current)?.focus({
@@ -303,37 +374,95 @@ function OverviewReady({
       }, 350);
     },
     [
-      camRef, camTargetRef, firstResultRef, go, goal, hov, idle,
-      liftShownRef, linkRef, movedRef, pickRef, pkgRangesRef, selRef,
+      camRef,
+      camTargetRef,
+      firstResultRef,
+      go,
+      goal,
+      hov,
+      idle,
+      liftShownRef,
+      linkRef,
+      movedRef,
+      pickRef,
+      pkgRangesRef,
+      selRef,
     ],
   );
 
   const [pkgShown, setPkgShown] = useState(false);
   const pkgOpenRef = useRef<(() => void) | null>(null);
 
+  // back on the answer at once, from a view in place, See It Over Time, or either one still opening: whatever the
+  // view moved is put back in one frame, the answer is still there under it as it was, and nothing eases in between
+  // (data-back holds the chrome's own fades off until the next view opens)
+  // true for the frame after a way back, so the land's split (useLayerStack) shows its end state at once
+  const [returned, setReturned] = useState(false);
+  useEffect(() => {
+    if (!returned) return;
+    const id = requestAnimationFrame(() => {
+      setReturned(false);
+    });
+    return () => {
+      cancelAnimationFrame(id);
+    };
+  }, [returned]);
+  const answerNow = useCallback(() => {
+    setReturned(true);
+    const X = exitRef.current;
+    X.dir = 0;
+    X.k = 0;
+    X.away = 0;
+    splitRef.current = { dir: 0, k: 0 };
+    nextSelRef.current = null;
+    pkgHandoff.current = false;
+    if (cellPaintRef.current !== "rgb") {
+      cellPaintRef.current = "rgb";
+      setCellPaint("rgb");
+    }
+    setRainWide(false);
+    tearRef.current = null;
+    setTear(null);
+    // the seasons put the answer's lifted sheet down: it is back up at once, not rising again
+    if (selRef.current === "time") idle.current.k = 1;
+    selRef.current = "results";
+    setSel("results");
+    live.current.s = 1;
+    goal.current.s = 1;
+    rootRef.current?.setAttribute("data-back", "");
+    goTo("/valley");
+    go();
+  }, [exitRef, go, goal, idle, live, nextSelRef, pkgHandoff, rootRef, selRef, splitRef]);
+
   const back = useCallback(() => {
     const was = selRef.current;
+    if (was === "time" || nextSelRef.current || tearRef.current) {
+      answerNow();
+      return;
+    }
     if (was === "package") {
       setPkgShown(false);
       pkgAsideRef.current.goal = 0;
     }
-    if (was === "time" && window.location.pathname === VIEW_HREF.time) goTo("/valley");
     setRainWide(false);
     goal.current.s = 0;
     go();
     if (was === "field") fieldRef.current?.focus({ preventScroll: true });
     else if (was === "routes") routesRef.current?.focus({ preventScroll: true });
-    else if (was === "results" || was === "package" || was === "time")
-      window.setTimeout(() => askCircleRef.current?.focus({ preventScroll: true }), DUR.s * 1000);
-    else if (was) labelRefs.current.get(was)?.focus({ preventScroll: true });
-  }, [askCircleRef, fieldRef, go, goal, labelRefs, pkgAsideRef, routesRef, selRef]);
-
-  backRef.current = back;
+    else if (was && was !== "results" && was !== "package")
+      labelRefs.current.get(was)?.focus({ preventScroll: true });
+  }, [answerNow, fieldRef, go, goal, labelRefs, nextSelRef, pkgAsideRef, routesRef, selRef]);
 
   const { openInPlace, backInPlace, onStackDrawn, onStackStood, onStackBack } =
     useOverviewTearInPlace({
-      ...domRefs, bandLimitDisplay: bandLimit?.display ?? "", back, open,
-      setRainWide, tearRef, setTear, go,
+      ...domRefs,
+      bandLimitDisplay: bandLimit?.display ?? "",
+      open,
+      answerNow,
+      setRainWide,
+      tearRef,
+      setTear,
+      go,
     });
 
   const openPackage = useCallback(() => {
@@ -364,9 +493,9 @@ function OverviewReady({
   const [scope, setScope] = useState(false);
   useOverviewIdleWake({ reducedMotion, idle, waitSeconds: IDLE.wait, go });
   useEffect(() => {
-    panelRef.current = panel;
+    panelRef.current = panel || scope;
     go();
-  }, [panel, go, panelRef]);
+  }, [panel, scope, go, panelRef]);
 
   const onAskOpen = useCallback(() => {
     setAskText("");
@@ -377,19 +506,78 @@ function OverviewReady({
   }, []);
 
   const {
-    timeMount, lifeMount, pkgLand, setCam, toOpening, reset,
-    focusCauseFromLedger, focusLayer, focusTaskLayer, keys,
+    timeMount,
+    lifeMount,
+    setCam,
+    toOpening,
+    reset,
+    focusStrata,
+    showResult,
+    subscribeStands,
+    focusLayer,
+    focusTaskLayer,
+    keys,
+    seeFindings,
+    showSteps,
   } = useOverviewLayerFocus({
-    snapshot, askSnapshot: ask.snapshot, bandLimitValue: bandLimit?.value ?? null,
-    data, arrival, domRefs, setMoved, setLiftShown, sel, atWorkShown, setAtWork,
-    setThinkingHidden, run, thinkingRun, runPaused, setRunPaused, pkgBrief, pkgView,
-    lifeBundle, lifeOn, setLifeOn, tear, askOpen, arriving, hoverShown,
-    panel, setPanel, scope, setScope, onAskOpen, open, back, go,
+    snapshot,
+    askSnapshot: ask.snapshot,
+    askStatus: ask.status,
+    bandLimitValue: bandLimit?.value ?? null,
+    data,
+    arrival,
+    domRefs,
+    setMoved,
+    setLiftShown,
+    sel,
+    setSel,
+    atWorkShown,
+    atWorkRef,
+    setAtWork,
+    setThinkingHidden,
+    handOver,
+    answerIsRun: answer.kind !== "case",
+    tearRef,
+    run,
+    thinkingRun,
+    runPaused,
+    setRunPaused,
+    pkgBrief,
+    pkgView,
+    lifeBundle,
+    lifeOn,
+    setLifeOn,
+    tear,
+    askOpen,
+    arriving,
+    hoverShown,
+    panel,
+    setPanel,
+    scope,
+    setScope,
+    onAskOpen,
+    open,
+    back,
+    go,
   });
 
+  // the answer is the overview's home: once the land has arrived, with nothing open and no steps showing, it opens
+  useEffect(() => {
+    if (sel || atWorkShown || arriving || tear || !data) return;
+    open("results");
+  }, [arriving, atWorkShown, data, open, sel, tear]);
+
   useOverviewKeyboardShortcuts({
-    arriving, askOpen, panel, setPanel, tearRef, rainWideRef, setRainWide,
-    selRef, atWorkRef,
+    arriving,
+    askOpen,
+    panel,
+    setPanel,
+    tearRef,
+    rainWideRef,
+    setRainWide,
+    selRef,
+    nextSelRef,
+    atWorkRef,
     setAtWork: (next) => {
       const val = typeof next === "function" ? next(atWorkRef.current) : next;
       if (!val) {
@@ -402,8 +590,16 @@ function OverviewReady({
       }
       setAtWork(val);
     },
-    pkgOpenRef, cardActionsRef, hoverShown, hoverActs, lifeBundleRef,
-    setLifeOn, back, reset, toOpening, openInPlace,
+    pkgOpenRef,
+    cardActionsRef,
+    hoverShown,
+    hoverActs,
+    lifeBundleRef,
+    setLifeOn,
+    back,
+    reset,
+    toOpening,
+    openInPlace,
   });
 
   useOverviewCameraDragWheel({ rootRef, camRef, setCam });
@@ -416,8 +612,16 @@ function OverviewReady({
   const arrivingRef = useRef(arriving);
   arrivingRef.current = arriving;
   useOverviewLandHover({
-    ...domRefs, hoverShown, hoverActs, setHoverThing, tearRef,
-    arrivingRef, askOpenRef, hoverWords, offeredRef, atWorkRef,
+    ...domRefs,
+    hoverShown,
+    hoverActs,
+    setHoverThing,
+    tearRef,
+    arrivingRef,
+    askOpenRef,
+    hoverWords,
+    offeredRef,
+    atWorkRef,
   });
 
   useEffect(() => {
@@ -427,39 +631,94 @@ function OverviewReady({
     goal.current.o = askOpen ? 1 : 0;
     go();
   }, [askOpen, go, goal]);
-  useEffect(() => {
-    goal.current.k = askHover ? 1 : 0;
-    go();
-  }, [askHover, go, goal]);
 
   return (
     <OverviewHudLayer
-      snapshot={snapshot} listing={listing} ask={ask} names={names} area={area}
-      findings={findings} canvasFindings={canvasFindings} bandLimit={bandLimit}
-      planned={planned} offered={offered} reasons={reasons} descriptionId={descriptionId}
-      theme={theme} onToggleTheme={onToggleTheme} effectiveQuestion={effectiveQuestion}
-      sentText={sentText} setSentText={setSentText} atWorkShown={atWorkShown}
-      setAtWork={setAtWork} setThinkingHidden={setThinkingHidden} run={run}
-      runArc={runArc} runPaused={runPaused} setRunPaused={setRunPaused}
-      effectiveRecorded={effectiveRecorded} effectiveRecClock={effectiveRecClock}
-      fallbackCommandId={fallbackCommandId} pkgView={pkgView} pkgShown={pkgShown}
-      pkgOpenRef={pkgOpenRef} openPackage={openPackage} sel={sel}
-      cardActions={cardActions} hoverThing={hoverThing} arriving={arriving}
-      tear={tear} rainWide={rainWide} setRainWide={setRainWide}
-      cellPaint={cellPaint} cellPaintRef={cellPaintRef} setCellPaint={setCellPaint}
-      moved={moved} liftShown={liftShown} askOpen={askOpen} setAskOpen={setAskOpen}
-      askText={askText} setAskText={setAskText} setAskHover={setAskHover}
-      onAskOpen={onAskOpen} onAskClose={onAskClose} panel={panel} setPanel={setPanel}
-      scope={scope} setScope={setScope} lifeBundle={lifeBundle} lifeOn={lifeOn}
-      keys={keys} layers={layers} data={data} terrainOutline={terrainOutline}
-      failed={failed} recordData={recordData} routesLoad={routesLoad}
-      scanTiming={scanTiming} origin={origin} routeNumber={routeNumber}
-      sourceSet={sourceSet} timeMount={timeMount} lifeMount={lifeMount}
-      pkgLand={pkgLand} focusTaskLayer={focusTaskLayer} focusLayer={focusLayer}
-      focusCauseFromLedger={focusCauseFromLedger} hover={hover} pickRoute={pickRoute}
-      open={open} back={back} toOpening={toOpening} openInPlace={openInPlace}
-      backInPlace={backInPlace} onStackDrawn={onStackDrawn} onStackStood={onStackStood}
-      onStackBack={onStackBack} go={go} refs={domRefs}
+      snapshot={snapshot}
+      listing={listing}
+      ask={ask}
+      names={names}
+      area={area}
+      findings={findings}
+      bandLimit={bandLimit}
+      offered={offered}
+      reasons={reasons}
+      descriptionId={descriptionId}
+      theme={theme}
+      onToggleTheme={onToggleTheme}
+      effectiveQuestion={effectiveQuestion}
+      sentText={sentText}
+      setSentText={setSentText}
+      atWorkShown={atWorkShown}
+      setAtWork={setAtWork}
+      setThinkingHidden={setThinkingHidden}
+      run={run}
+      runArc={runArc}
+      runPaused={runPaused}
+      setRunPaused={setRunPaused}
+      effectiveRecorded={effectiveRecorded}
+      effectiveRecClock={effectiveRecClock}
+      fallbackCommandId={fallbackCommandId}
+      pkgView={pkgView}
+      pkgShown={pkgShown}
+      pkgOpenRef={pkgOpenRef}
+      openPackage={openPackage}
+      sel={sel}
+      cardActions={cardActions}
+      hoverThing={hoverThing}
+      arriving={arriving}
+      tear={tear}
+      rainWide={rainWide}
+      setRainWide={setRainWide}
+      cellPaint={cellPaint}
+      cellPaintRef={cellPaintRef}
+      setCellPaint={setCellPaint}
+      moved={moved}
+      returned={returned}
+      askOpen={askOpen}
+      setAskOpen={setAskOpen}
+      askText={askText}
+      setAskText={setAskText}
+      answer={answer}
+      seeFindings={seeFindings}
+      showSteps={showSteps}
+      answerNow={answerNow}
+      onAskOpen={onAskOpen}
+      onAskClose={onAskClose}
+      panel={panel}
+      setPanel={setPanel}
+      scope={scope}
+      setScope={setScope}
+      lifeBundle={lifeBundle}
+      lifeOn={lifeOn}
+      keys={keys}
+      layers={layers}
+      data={data}
+      terrainOutline={terrainOutline}
+      failed={failed}
+      recordData={recordData}
+      routesLoad={routesLoad}
+      scanTiming={scanTiming}
+      origin={origin}
+      routeNumber={routeNumber}
+      sourceSet={sourceSet}
+      timeMount={timeMount}
+      lifeMount={lifeMount}
+      focusTaskLayer={focusTaskLayer}
+      focusLayer={focusLayer}
+      focusStrata={focusStrata}
+      showResult={showResult}
+      subscribeStands={subscribeStands}
+      pickRoute={pickRoute}
+      back={back}
+      toOpening={toOpening}
+      openInPlace={openInPlace}
+      backInPlace={backInPlace}
+      onStackDrawn={onStackDrawn}
+      onStackStood={onStackStood}
+      onStackBack={onStackBack}
+      go={go}
+      refs={domRefs}
     />
   );
 }

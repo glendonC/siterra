@@ -1,12 +1,14 @@
 "use client";
 
-// Investigation thinking trace on the valley overview:
-// - Top-left architectural header with the active question
-// - Left-hand collapsible step accordion with horizontally scrollable dataset/literature chips and inline controls
-// - Settled synthesis takeaway and direct transition to the findings and field verification plan when complete
-// - Spatial task cursors across the 3D terrain synced with terrain layer lifts
+// The analysis steps on the valley overview:
+// - the question, top left
+// - the status line under it: the word while the steps work (from Enter, before any step), once done the word that
+//   says so, or for a question asked from the Ask that was not answered, one sentence saying why with the closed dot
+// - the steps, one open at a time, with the sources each read and its last step, and Pause and Stop while they run
+// - once the run is done, the row that hands over to its findings (Enter)
+// - each running step's cursor at the sheet of the split land it reads, the land lighting the step in focus
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   along,
   centreOf,
@@ -14,19 +16,35 @@ import {
   cursorPointsOf,
   lanesOf,
   outward,
+  type CursorPoint,
   type Pt,
 } from "../../lib/run/layout";
 import type { RunModel, RunTask } from "../../lib/run/model";
-import { AtWorkAgentTree, AtWorkCursors } from "./AtWorkPanels";
+import {
+  AtWorkCursors,
+  sheetOfTask,
+  stepLine,
+  taskTitles,
+  type PlacedCursor,
+  type Sheet,
+} from "./AtWorkCursors";
+import { AtWorkAgentTree } from "./AtWorkPanels";
 import styles from "./AtWork.module.css";
 
 const LANE_PX = 0;
 
-/** A live run's clock between its events: the wall time since the command was accepted, never behind its last event.
- * A replay keeps its own events' times; a recording plays on its replay clock. */
-function useClock(run: RunModel, fixed: number | undefined, paused = false): number {
+/** A live run's clock between its events: the wall time since the command was accepted (a question asked from the
+ * Ask: since Enter), never behind its last event. A replay keeps its own events' times; a recording plays on its replay
+ * clock. */
+function useClock(
+  run: RunModel,
+  fixed: number | undefined,
+  paused = false,
+  startedAt?: number,
+): number {
+  const origin = startedAt ?? (run.acceptedAt !== null ? Date.parse(run.acceptedAt) : null);
   const live =
-    fixed === undefined && !run.done && !paused && run.replay === null && run.acceptedAt !== null;
+    fixed === undefined && !run.done && !paused && run.replay === null && origin !== null;
   const [wall, setWall] = useState(() => Date.now());
   useEffect(() => {
     if (!live) return;
@@ -39,7 +57,51 @@ function useClock(run: RunModel, fixed: number | undefined, paused = false): num
   }, [live]);
   if (fixed !== undefined) return fixed;
   if (!live) return run.nowMs;
-  return Math.max(run.nowMs, wall - Date.parse(run.acceptedAt ?? ""));
+  return Math.max(run.nowMs, wall - origin);
+}
+
+/** A step that did something: it read a source or a bundle, or took a step of its own. */
+const didWork = (t: RunTask) => t.steps.length > 0 || t.searchedChips.length > 0;
+
+/** A sheet of the split land: its layer and its left-most edge point on screen (design px). */
+export interface SheetAnchor {
+  id: string;
+  left: Pt;
+}
+
+/** The cursors at the split land's sheets: each at the left edge of the sheet the land lights for its step, or of the
+ *  land itself, one to a sheet; `first` names the steps that keep their sheet when two share one (the step in focus,
+ *  then the primary). */
+function onSheets(
+  cursors: readonly CursorPoint[],
+  sheets: readonly SheetAnchor[],
+  land: Pt | null,
+  first: readonly (string | null)[],
+): PlacedCursor[] {
+  const rank = (id: string) => {
+    const i = first.indexOf(id);
+    return i < 0 ? first.length : i;
+  };
+  const order = [...cursors].sort((a, b) => rank(a.task.id) - rank(b.task.id));
+  const has = (id: Sheet) => sheets.some((s) => s.id === id);
+  const taken = new Set<string>();
+  const placed: PlacedCursor[] = [];
+  for (const c of order) {
+    const layer = sheetOfTask(c.task, has);
+    const sheet = layer === null ? undefined : sheets.find((s) => s.id === layer);
+    const at = sheet?.left ?? land;
+    const key = sheet?.id ?? "land";
+    if (!at || taken.has(key)) continue;
+    taken.add(key);
+    placed.push({
+      task: c.task,
+      at,
+      side: "left",
+      targetKind: c.targetKind,
+      stratumId: c.stratumId,
+    });
+  }
+  return placed;
 }
 
 function resolveTaskMatch(
@@ -52,21 +114,23 @@ function resolveTaskMatch(
 }
 
 export function AtWork({
-  run,
+  run: given,
   question,
-  placeName: _placeName,
   arc,
   rimLeft,
-  sourceName: _sourceName,
+  sheets,
   nowMs: fixedNow,
   recording = null,
   onFindings,
   onFocusTask,
-  onFocusLayer,
   onFocusCause,
   paused = false,
   onTogglePause,
   onStopRun,
+  reviewRequested = false,
+  startedAt,
+  stopped = null,
+  onBack,
 }: {
   /** Opens the run's findings drawer once the investigation is complete. */
   onFindings: () => void;
@@ -89,18 +153,43 @@ export function AtWork({
   placeName?: string;
   /** The drawn arc on screen (design px), a point every 2 degrees from the ask disc. */
   arc: readonly Pt[];
-  /** The catchment's left-most rim point on screen (design px), where the proposed check is anchored. */
+  /** The land's left-most rim point on screen (design px): a step that reads no sheet of the split land points here. */
   rimLeft: Pt | null;
+  /** The split land's sheets once the split stands, null while it moves or is settled; left out, the cursors stand by
+   *  their points round the arc. */
+  sheets?: readonly SheetAnchor[] | null | undefined;
   /** A Source's short citation. */
   sourceName: (id: string) => string;
   /** A recorded run's replay clock (ms of run time), in place of the wall clock. */
   nowMs?: number;
   /** Recording playback metadata when replaying a recorded run. */
   recording?: { speed: number; length: number } | null;
+  /** The run's own record asks the visitor for a review, as its answer then says (Needs You). */
+  reviewRequested?: boolean | undefined;
+  /** A question asked from the Ask: when Enter was pressed (ms since the epoch), the moment its clock counts from. */
+  startedAt?: number | undefined;
+  /** A question asked from the Ask that was not answered: the sentence that says why (lib/overview/ask-line.ts). */
+  stopped?: string | null | undefined;
+  /** A question asked from the Ask: Esc leaves its steps for the answer (asking a question still at work to stop). */
+  onBack?: (() => void) | undefined;
 }) {
-  const clock = useClock(run, fixedNow, paused);
-  // Once the run has completed, its time is fixed at its final event timestamp
-  const nowMs = run.done ? run.nowMs : clock;
+  // a question that was not answered shows only the steps that did something; the reason is its status line
+  const run = useMemo(
+    () => (stopped === null ? given : { ...given, tasks: given.tasks.filter(didWork) }),
+    [given, stopped],
+  );
+  const clock = useClock(run, fixedNow, paused, startedAt);
+  // Once the run has completed, its time is fixed at its final event timestamp; a question asked from the Ask keeps
+  // the time it counted since Enter, so its clock never steps back as it ends
+  const counted = useRef(0);
+  const nowMs = run.done
+    ? startedAt === undefined
+      ? run.nowMs
+      : Math.max(run.nowMs, counted.current)
+    : clock;
+  useEffect(() => {
+    counted.current = nowMs;
+  }, [nowMs]);
   const [folded, setFolded] = useState(true);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [hoveredTaskId, setHoveredTaskId] = useState<string | null>(null);
@@ -114,9 +203,8 @@ export function AtWork({
     sameStartCounts.set(t.startMs, idxInBatch + 1);
     return nowMs >= t.startMs + idxInBatch * 2200;
   });
-  const runningTasks = staggeredNonQueued.filter(
-    (t) => t.state === "running" && !(t.kind === "explanation_branches" && run.branches.length > 0),
-  );
+  // the explanations' step stays open while it writes and tests them: its list is where they show during the run
+  const runningTasks = staggeredNonQueued.filter((t) => t.state === "running");
   const latestRunningTask = runningTasks[runningTasks.length - 1] ?? runningTasks[0] ?? null;
   const latestRunningId = latestRunningTask?.id ?? null;
 
@@ -152,10 +240,12 @@ export function AtWork({
     hoveredTaskId !== null ? (nonQueuedTasks.find((t) => t.id === hoveredTaskId) ?? null) : null;
   const focusedTerrainTask = hoveredTask ?? activeOrRunningTask;
 
+  // the land lights the sheet the step's line names, so it follows the line as the step moves on
+  const focusLine = focusedTerrainTask ? stepLine(focusedTerrainTask) : null;
   useEffect(() => {
     if (!onFocusTask) return;
     onFocusTask(focusedTerrainTask);
-  }, [focusedTerrainTask?.id, focusedTerrainTask?.kind, focusedTerrainTask?.sublabel, onFocusTask]);
+  }, [focusedTerrainTask?.id, focusLine, onFocusTask]);
 
   useEffect(() => {
     const param = new URLSearchParams(
@@ -187,7 +277,8 @@ export function AtWork({
     });
   }, [run.tasks]);
 
-  const done = run.done;
+  // a question that was not answered has no findings to hand over to: its ways on are Ask Again and Esc
+  const done = run.done && stopped === null;
   useEffect(() => {
     const onKey = (ev: KeyboardEvent) => {
       if (ev.metaKey || ev.ctrlKey || ev.altKey) return;
@@ -224,13 +315,18 @@ export function AtWork({
         ev.preventDefault();
         ev.stopPropagation();
         setSelectedTaskId(null);
+      } else if (ev.key === "Escape" && onBack) {
+        // ahead of the overview's own Esc, which would leave the place while a question is at work
+        ev.preventDefault();
+        ev.stopPropagation();
+        onBack();
       }
     };
     window.addEventListener("keydown", onKey, { capture: true });
     return () => {
       window.removeEventListener("keydown", onKey, { capture: true });
     };
-  }, [done, onFindings, onTogglePause, cycleFollow, selectedTaskId, run.tasks]);
+  }, [done, onBack, onFindings, onTogglePause, cycleFollow, selectedTaskId, run.tasks]);
 
   if (arc.length < 3) return null;
   const centre = centreOf(arc);
@@ -256,9 +352,23 @@ export function AtWork({
     radius,
     activeOrRunningTask?.id ?? selectedTaskId,
   );
-
-  const check = run.checks[0] ?? null;
-  const checkAt = rimLeft ? { x: rimLeft.x - 28, y: Math.max(rimLeft.y - 22, 430) } : null;
+  const primaryId =
+    cursors.find((c) => c.task.id === activeOrRunningTask?.id)?.task.id ??
+    cursors.at(-1)?.task.id ??
+    null;
+  const placed: PlacedCursor[] =
+    sheets === undefined
+      ? cursors.map((c) => ({
+          task: c.task,
+          at: c.at,
+          side: "right",
+          targetKind: c.targetKind,
+          stratumId: c.stratumId,
+        }))
+      : sheets === null
+        ? []
+        : onSheets(cursors, sheets, rimLeft, [focusedTerrainTask?.id ?? null, primaryId]);
+  const titles = taskTitles(run.tasks);
 
   return (
     <div
@@ -296,9 +406,6 @@ export function AtWork({
           );
         })}
         <circle className={styles.head} cx={head.x} cy={head.y} r={run.done ? 3 : 4.5} />
-        {check && checkAt && rimLeft ? (
-          <circle className={styles.checkFoot} cx={rimLeft.x} cy={rimLeft.y} r={4} />
-        ) : null}
       </svg>
 
       <header className={styles.topLeftHeader}>
@@ -310,24 +417,26 @@ export function AtWork({
       <AtWorkAgentTree
         run={run}
         nowMs={nowMs}
+        titles={titles}
         folded={folded}
-        setFolded={setFolded}
         selectedTaskId={selectedTaskId}
         setSelectedTaskId={setSelectedTaskId}
         setStepsDismissed={setStepsDismissed}
-        cycleFollow={cycleFollow}
-        follow={selectedTaskId !== null}
         stepsDismissed={stepsDismissed}
-        onFocusLayer={onFocusLayer}
         onFocusCause={onFocusCause}
         onFindings={onFindings}
         paused={paused}
         onTogglePause={onTogglePause}
         onStopRun={onStopRun}
+        reviewRequested={reviewRequested}
+        asked={startedAt !== undefined}
+        stopped={stopped}
       />
 
       <AtWorkCursors
-        cursors={cursors}
+        cursors={stopped === null ? placed : []}
+        titles={titles}
+        primaryId={primaryId}
         selectedTaskId={selectedTaskId}
         hoveredTaskId={hoveredTaskId}
         setHoveredTaskId={setHoveredTaskId}

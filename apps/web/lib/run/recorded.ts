@@ -39,6 +39,26 @@ export function lengthOf(run: RecordedRun): number {
   return run.events.reduce((m, e) => Math.max(m, eventMs(run, e)), 0);
 }
 
+/** When a command was accepted (its event's ISO time), or null when the events do not hold it. */
+export function acceptedAtOf(events: readonly Event[], commandId: string): string | null {
+  return (
+    events.find((e) => e.commandId === commandId && e.kind === "command.accepted")?.occurredAt ??
+    null
+  );
+}
+
+/** A day in words, "30 October 2026", in UTC so every visitor reads the record's own day; null for no date. */
+export function dayWords(iso: string): string | null {
+  const at = new Date(iso);
+  if (Number.isNaN(at.getTime())) return null;
+  return new Intl.DateTimeFormat("en-GB", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(at);
+}
+
 /**
  * The replay clock (ms of run time), ticking at the run's speed in steps of 100 ms from when the overview's land is
  * drawn; fixed at `at` when given.

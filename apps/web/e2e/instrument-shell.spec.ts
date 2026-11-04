@@ -1,80 +1,42 @@
-import { expect, test, type Request } from "@playwright/test";
-import { ASK_AT } from "../lib/overview/arc";
+import { expect, test, type Locator, type Request } from "@playwright/test";
+import { en } from "../lib/copy/en";
+import { VIEW_LABEL } from "../lib/overview/actions";
+import { crumbsOf, keyOf, loadedRecord } from "./answer";
 import { textReport } from "./instrument-text";
 
-// The chrome around each view (the lead's decisions 13 and 14): no list of views and no word "Instrument" on screen;
-// the breadcrumb names the view; the one ask disc rests on the arc's place, the same in every view (58 x 58 CSS px
-// round ASK_AT at 1440 x 900), and each view keeps 24 px round it clear of text. The ask opens by its circle or "/"
-// and sends nothing; Enter (which carries the text to the overview) is not pressed here.
+// The chrome around each view (the lead's decisions 13 and 14, UI-2): no list of views and no word "Instrument" on
+// screen; the breadcrumb names the view under its place; there is no ask circle: the ask opens by "/" or the key bar's
+// "/ Ask" with the overview's suggestions for the place, and closes on Esc, its own "Esc Close" or a press outside. On a
+// view the picture stays in sight under it and only the view's words step aside. Nothing is sent: Enter (which carries
+// the text to the overview) and the ask's own Submit are never pressed here.
 
 test.use({ viewport: { width: 1440, height: 900 } });
 
-const ASK = { x: ASK_AT.x - 29, y: ASK_AT.y - 29, width: 58, height: 58 };
-const CLEAR = 24;
-const CREDIT_GAP = 16;
-const PAGES = ["layers", "cutaway", "pixel", "rainfall", "field"] as const;
-/** An element each instrument shows once its words are placed. */
+const PAGES = ["cutaway", "pixel", "rainfall", "field"] as const;
+/** An element each view shows once its words are placed. */
 const READY: Record<(typeof PAGES)[number], string> = {
-  layers: "[data-sheet]",
   cutaway: "[data-band]",
-  pixel: "[role='slider']",
+  pixel: "[data-pixel-hero]",
   rainfall: "[data-season]",
   // the seed case holds no field plan: the page says so
   field: "[data-field-plan]",
 };
 
 for (const id of PAGES) {
-  test(`frames the ${id} view with no view list and the ask on the arc`, async ({ page }) => {
+  test(`frames the ${id} view with no view list, no ask circle and its name in the trail`, async ({
+    page,
+  }) => {
     await page.goto(`/instruments/${id}`);
-    await expect(page.locator(READY[id]).first()).toBeVisible();
+    await expect(page.locator(READY[id]).first()).toBeVisible({ timeout: 60_000 });
     await expect(page.locator("nav[aria-label='Instruments']")).toHaveCount(0);
     expect(await page.locator("body").innerText()).not.toMatch(/\binstruments?\b/i);
-    const box = await page.locator("[data-ask]").boundingBox();
-    expect(box).not.toBeNull();
-    for (const k of ["x", "y", "width", "height"] as const)
-      expect(Math.abs((box?.[k] ?? 0) - ASK[k])).toBeLessThan(1);
-    const frags = await page.evaluate(() => {
-      const out: {
-        t: string;
-        credit: boolean;
-        top: number;
-        bottom: number;
-        left: number;
-        right: number;
-      }[] = [];
-      const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
-      for (let n = walker.nextNode(); n; n = walker.nextNode()) {
-        const el = n.parentElement;
-        if (!n.textContent?.trim() || !el || el.closest("[data-ask], p[id]")) continue;
-        if (getComputedStyle(el).visibility === "hidden") continue;
-        const r = document.createRange();
-        r.selectNodeContents(n);
-        for (const g of r.getClientRects())
-          if (g.width > 0.5)
-            out.push({
-              t: n.textContent.trim().slice(0, 30),
-              credit: Boolean(el.closest("[class*='credit']")),
-              top: g.top,
-              bottom: g.bottom,
-              left: g.left,
-              right: g.right,
-            });
-      }
-      return out;
-    });
-    const end = ASK.y + ASK.height;
-    const near = frags.filter((f) => {
-      const across = f.right > ASK.x - CLEAR && f.left < ASK.x + ASK.width + CLEAR;
-      const gap = f.credit ? CREDIT_GAP : CLEAR;
-      return across && f.bottom > ASK.y - CLEAR && f.top < end + gap;
-    });
-    expect(near.map((f) => f.t)).toEqual([]);
-    const report = await textReport(page, "[data-shell]");
-    expect({
-      overlaps: report.overlaps.filter((o) => o !== "Siterra | Aït Bouguemez valley"),
-      small: report.small.filter((s) => s !== "ask"),
-      outside: report.outside,
-    }).toEqual({
+    await expect(page.locator("[data-ask]")).toHaveCount(0);
+    expect(await crumbsOf(page)).toEqual([
+      "Aït Bouguemez valley",
+      en["overview.crumb.results"].text,
+      en[VIEW_LABEL[id]].text,
+    ]);
+    expect(await textReport(page, "[data-shell]")).toEqual({
       overlaps: [],
       small: [],
       outside: [],
@@ -82,27 +44,62 @@ for (const id of PAGES) {
   });
 }
 
-test("the ask opens by its circle and by the slash key and sends nothing", async ({ page }) => {
+/** How many of the given elements a visitor can see (not hidden by style). */
+const seen = (els: Locator) =>
+  els.evaluateAll((all) => all.filter((e) => getComputedStyle(e).visibility !== "hidden").length);
+
+test("on a view the ask opens by the slash key and by the key bar, keeps the picture in sight with the words aside, closes three ways, and sends nothing", async ({
+  page,
+}) => {
   const sent: string[] = [];
   page.on("request", (r: Request) => {
     // opening the demo copy of the seed case is the one write a page makes before anything is asked
     if (r.method() !== "GET" && new URL(r.url()).pathname !== "/api/demo-sessions")
       sent.push(`${r.method()} ${r.url()}`);
   });
-  await page.goto("/instruments/layers");
-  await expect(page.locator("[data-sheet]").first()).toBeVisible();
-  const ask = page.locator("[data-ask]");
+  const record = loadedRecord(page);
+  await page.goto("/instruments/rainfall");
+  const view = page.locator("[data-instrument='rainfall']");
+  const picture = view.locator("[data-season]");
+  await expect(picture.first()).toBeVisible({ timeout: 60_000 });
+  await expect(keyOf(page, "S")).toBeVisible({ timeout: 30_000 });
+  const { snapshot, listing } = await record;
+  const ask = page.locator("[data-ask-overlay]");
   const input = page.locator("input[name='question']");
-  await ask.click();
+  const words = view.locator("[data-ask-aside]");
+  const all = await words.count();
+  expect(all).toBeGreaterThan(0);
+  // "/" opens it on the line, with the place's suggestions less the case's own question (two at most)
+  await page.keyboard.press("/");
+  await expect(ask).toHaveAttribute("data-open", "");
   await expect(input).toBeFocused();
+  const offered = (listing.suggestedQuestions ?? [])
+    .filter((q) => q.question.trim().toLowerCase() !== snapshot.case.objective.trim().toLowerCase())
+    .slice(0, 2)
+    .map((q) => q.question);
+  await expect(page.locator("[data-ask-suggestion]")).toHaveText(offered);
+  // the picture stays in sight; the view's words step aside, and the key bar gives way to the ask's own keys
+  await expect(picture.first()).toBeVisible();
+  await expect.poll(() => seen(words)).toBe(0);
+  await expect(page.locator("[data-key-legend]")).toBeHidden();
   await input.pressSequentially("Is the valley floor greener since 2019?");
   await expect(input).toHaveValue("Is the valley floor greener since 2019?");
+  // Esc closes it and the words come back
   await page.keyboard.press("Escape");
-  await expect(ask).toHaveAttribute("aria-expanded", "false");
-  await page.locator("body").click({ position: { x: 20, y: 450 } });
+  await expect(ask).not.toHaveAttribute("data-open", "");
+  await expect.poll(() => seen(words)).toBe(all);
+  await expect(page.locator("[data-key-legend]")).toBeVisible();
+  // the key bar's "/ Ask" opens it; its own "Esc Close" closes it
+  await keyOf(page, "/").click();
+  await expect(ask).toHaveAttribute("data-open", "");
+  await page.locator("[data-ask-keys] [data-ask-key='Escape']").click();
+  await expect(ask).not.toHaveAttribute("data-open", "");
+  // a press outside it closes it too
   await page.keyboard.press("/");
-  await expect(input).toBeFocused();
-  await page.keyboard.press("Escape");
-  await expect(ask).toHaveAttribute("aria-expanded", "false");
+  await expect(ask).toHaveAttribute("data-open", "");
+  await page.mouse.click(20, 450);
+  await expect(ask).not.toHaveAttribute("data-open", "");
+  // still on the view: neither close went back a level
+  await expect(page).toHaveURL(/\/instruments\/rainfall$/);
   expect(sent).toEqual([]);
 });

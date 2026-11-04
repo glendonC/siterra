@@ -1,10 +1,9 @@
 // Canvas raster buffers and 10 m cell grid views for the pixel anatomy scene
 // (Caption, Panel 01 Locate, Panel 02 Pixel Cells, and standalone connectors).
 
-import type { InstrumentCaption } from "@siterra/contracts";
-import { en, format } from "../../copy/en";
-import { cssColour, obsidian, pixelColours as C } from "../../theme/obsidian";
-import { day, signed } from "../format";
+import { en, format, type MessageId } from "../../copy/en";
+import { cssColour } from "../../theme/obsidian";
+import { signed } from "../format";
 import type { PixelData } from "./data";
 import { NDVI_BREAKS, type CellPaint } from "./paint";
 import { renderSeriesPanel, renderSpectraPanel } from "./scene-charts";
@@ -25,18 +24,39 @@ import {
   type SceneDom,
   slopeFillColour,
 } from "./scene-shaders";
+import type { PixelStatement } from "./statement";
 
 export { renderSeriesPanel, renderSpectraPanel };
 
-/** Renders the scene caption: question heading, primary and secondary statements, and source chips. */
+/** The catalog's month names, January first. */
+const MONTHS: readonly MessageId[] = [
+  "month.jan",
+  "month.feb",
+  "month.mar",
+  "month.apr",
+  "month.may",
+  "month.jun",
+  "month.jul",
+  "month.aug",
+  "month.sep",
+  "month.oct",
+  "month.nov",
+  "month.dec",
+];
+
+/**
+ * Renders the scene's statement (statement.ts): what the pixel did in plain words, the trend's figure under it as the
+ * detail, then what covers the pixel and what that does to its greenness. Its sources are behind the shell's S.
+ * Beside the step list the question is left out: the statement already says what it asks, and the list needs the
+ * height.
+ */
 export function renderCaption(
   dom: SceneDom,
-  caption: InstrumentCaption,
+  statement: PixelStatement,
   around: PixelAround | null,
-  tips: readonly [string | null, string | null],
   question: string | null,
 ) {
-  const { c, div, place, chip, part } = dom;
+  const { c, div, place, part } = dom;
   const stage = part("caption").div;
   const cap = place(
     div("caption", stage),
@@ -44,31 +64,19 @@ export function renderCaption(
     L.caption.y,
     around ? AROUND.column.w : L.caption.w,
   );
-  div("captionKey", cap, question ?? en["instrument.pixel.question"].text);
+  if (!around) div("captionKey", cap, question ?? en["instrument.pixel.question"].text);
   const p = div("captionStatement", cap);
   const ink = document.createElement("span");
   ink.className = c("ink");
-  ink.textContent = caption.ink;
+  ink.textContent = statement.lead;
   p.appendChild(ink);
-  p.appendChild(chip(1, tips[0] ?? en["instrument.pixel.source.trend"].text));
-  const note2 = tips[1] ?? en["instrument.pixel.source.spectra"].text;
-  if (around) p.appendChild(chip(2, `${caption.grey} ${note2}`));
-  else {
-    const grey = document.createElement("span");
-    grey.className = c("grey");
-    grey.textContent = ` ${caption.grey}`;
-    p.appendChild(grey);
-    p.appendChild(chip(2, note2));
-  }
+  div("captionDetail", cap, statement.detail);
+  if (statement.note !== null) div("captionGrey", cap, statement.note);
 }
 
 /** Renders Panel 01 (Locate): 2D catchment slope canvas buffer, pixel footprint marker, 5 km scale bar, and slope key. */
-export function renderLocateBuffer(
-  dom: SceneDom,
-  d: PixelData,
-  locator: PixelLocator,
-): Pt {
-  const { svg, text, div, place, t12, panelHead, part } = dom;
+export function renderLocateBuffer(dom: SceneDom, d: PixelData, locator: PixelLocator): Pt {
+  const { svg, text, div, place, t12, panelHead, part, C, O } = dom;
   const { div: stage, g: overlay } = part("01");
   const loc = locatorGrid(locator.ring);
   const SLOPE = locator.scale;
@@ -107,7 +115,7 @@ export function renderLocateBuffer(
     ctx.fill();
     for (const cell of locator.cells) {
       const v = cell[8] ?? 0;
-      ctx.fillStyle = slopeFillColour(v, SLOPE);
+      ctx.fillStyle = slopeFillColour(v, SLOPE, C);
       path([0, 2, 4, 6].map((i) => toLoc([cell[i] ?? 0, cell[i + 1] ?? 0])));
       ctx.fill();
     }
@@ -120,12 +128,8 @@ export function renderLocateBuffer(
   const fp = d.pixel.footprint_utm29n.map(toLoc);
   const cx = fp.reduce((a, p) => a + p[0], 0) / 4;
   const cy = fp.reduce((a, p) => a + p[1], 0) / 4;
-  svg("polygon", { points: pts(fp), fill: obsidian.accent }, g);
-  svg(
-    "circle",
-    { cx, cy, r: 7.5, fill: "none", stroke: obsidian.accent, "stroke-width": 1.5 },
-    g,
-  );
+  svg("polygon", { points: pts(fp), fill: O.accent }, g);
+  svg("circle", { cx, cy, r: 7.5, fill: "none", stroke: O.accent, "stroke-width": 1.5 }, g);
   const km5 = (5000 / loc.res_m) * s;
   const sb = svg("g", { transform: `translate(${String(W - km5)},${String(H + 13)})` }, g);
   for (const [x1, y1, x2, y2] of [
@@ -152,7 +156,7 @@ export function renderLocateBuffer(
   text(key, kw, 20, signed(hi, 2), t12("ink3", "end"));
   place(
     div(
-      "note nowrap",
+      "note",
       stage,
       format("instrument.pixel.locate.key", {
         window: locator.window ?? en["season.unstated"].text,
@@ -164,7 +168,6 @@ export function renderLocateBuffer(
     y0 + H + 36,
     W,
   );
-  place(div("note", stage, d.selection.note), x0, y0 + H + 60, W).dataset.pixelNote = "";
   return [x0 + cx, y0 + cy];
 }
 
@@ -176,7 +179,7 @@ export function renderCellsBuffers(
   cellPx: number,
   toGrid: (pt: readonly [number, number]) => Pt,
 ) {
-  const { c, svg, text, div, place, t12, panelHead, part } = dom;
+  const { c, svg, text, div, place, t12, panelHead, part, C, O } = dom;
   const size = d.grid.cols * cellPx;
   const tall = d.grid.rows * cellPx;
   const fp = d.pixel.footprint_utm29n.map(toGrid);
@@ -194,18 +197,14 @@ export function renderCellsBuffers(
     "instrument.pixel.cells",
     around
       ? undefined
-      : format("instrument.pixel.cells.detail", {
-          tile: d.pixel.modis_tile,
-          row: d.pixel.tile_row,
-          col: d.pixel.tile_col,
-          cells: int(d.pixel.analysis_cells),
-        }),
+      : format("instrument.pixel.cells.detail", { cells: int(d.pixel.analysis_cells) }),
   );
 
+  const [year, month] = d.ndvi_month.split("-");
   const titles = [
     en["instrument.pixel.cells.truecolour"].text,
     format("instrument.pixel.cells.ndvi", {
-      month: day(`${d.ndvi_month}-01`).replace(/^\d+ /, ""),
+      month: `${en[MONTHS[Number(month) - 1] ?? "month.jan"].text} ${year ?? ""}`,
     }),
     format("instrument.pixel.cells.class", { year: 2021 }),
   ];
@@ -214,18 +213,22 @@ export function renderCellsBuffers(
       const rgb = d.grid.truecolour_rgb[r]?.[k] ?? [0, 0, 0];
       return cssColour(rgb.map((v) => v / 255));
     },
-    (r, k) => ndviColour(d.grid.ndvi_median[r]?.[k] ?? null),
-    (r, k) => classColour(d.grid.worldcover[r]?.[k] ?? -1),
+    (r, k) => ndviColour(d.grid.ndvi_median[r]?.[k] ?? null, C),
+    (r, k) => classColour(d.grid.worldcover[r]?.[k] ?? -1, C),
   ];
 
   const dpr = window.devicePixelRatio || 1;
   const PAINTS: CellPaint[] = ["rgb", "ndvi", "class"];
   if (around) {
-    const row = place(div("paintRow", stage), p2.x, p2.y + PAINT_ROW, p2.w);
+    // the cells' paint as one text segmented control, the chosen one on the shared selected background
+    // its first choice's words on the column's edge, its background bleeding left as the list's rows do
+    const row = place(div("segmented", stage), p2.x - 8, p2.y + PAINT_ROW, p2.w + 16);
+    row.setAttribute("role", "group");
+    row.setAttribute("aria-label", en["instrument.pixel.cells.paint"].text);
     L.multiples.forEach((_, i) => {
       const b = document.createElement("button");
       b.type = "button";
-      b.className = c("textButton", "paintButton");
+      b.className = c("segment");
       b.textContent = titles[i] ?? "";
       const paint = PAINTS[i] ?? "rgb";
       b.dataset.paint = paint;
@@ -273,11 +276,7 @@ export function renderCellsBuffers(
         ctx.fill("evenodd");
       }
       const g = svg("g", { transform: `translate(${String(x)},${String(L.multY)})` }, overlay);
-      svg(
-        "polygon",
-        { points: pts(fp), fill: "none", stroke: obsidian.accent, "stroke-width": 1.25 },
-        g,
-      );
+      svg("polygon", { points: pts(fp), fill: "none", stroke: O.accent, "stroke-width": 1.25 }, g);
       multiples.push({ x, g });
     });
   }
@@ -319,16 +318,12 @@ export function renderCellsBuffers(
       );
   }
 
-  const ny0 = around ? p2.y + PAINT_ROW + 40 : L.multY + tall + 10;
+  const ny0 = around ? p2.y + PAINT_ROW + 42 : L.multY + tall + 10;
   const kx = (i: number) => (around ? p2.x : (L.multiples[i] ?? p2.x));
   const keyOf = (e: Element, paint: CellPaint) => {
     if (around) e.setAttribute("data-paint-key", paint);
     return e;
   };
-  keyOf(
-    place(div("note", stage, en["instrument.pixel.cells.truecolourNote"].text), kx(0), ny0, size),
-    "rgb",
-  );
   const kg = keyOf(
     svg("g", { transform: `translate(${String(kx(1))},${String(ny0)})` }, overlay),
     "ndvi",
@@ -359,12 +354,68 @@ export function renderCellsBuffers(
   const key = keyOf(place(div("classKey", stage), kx(2), ny0, size), "class");
   for (const k of d.classes) {
     const row = div("classRow", key);
-    div("swatch", row).style.background = classColour(k.code);
+    div("swatch", row).style.background = classColour(k.code, C);
     div("className", row, className(k.code));
     div("classShare", row, pct(k.share));
   }
 
-  return { size, tall, fp, multiples };
+  // on the view's own page the cells stand large right of the list, in the paint the list's step 02 chooses, with
+  // the pixel's outline and its name under them
+  let repaint: ((paint: CellPaint) => void) | null = null;
+  if (around?.hero) {
+    const H = AROUND.hero;
+    const big = Math.floor(H.size / Math.max(d.grid.rows, d.grid.cols));
+    const hw = d.grid.cols * big;
+    const hh = d.grid.rows * big;
+    const cv = document.createElement("canvas");
+    cv.width = Math.round(hw * dpr);
+    cv.height = Math.round(hh * dpr);
+    cv.dataset.pixelHero = "";
+    place(cv, H.x, H.y, hw, hh);
+    dom.root.appendChild(cv);
+    const hfp = fp.map(([x, y]): Pt => [(x / cellPx) * big, (y / cellPx) * big]);
+    const g = svg("g", { transform: `translate(${String(H.x)},${String(H.y)})` }, dom.overlay);
+    svg("polygon", { points: pts(hfp), fill: "none", stroke: O.accent, "stroke-width": 1.5 }, g);
+    const name = place(div("heroName", dom.root), H.x, H.y + hh + 10, hw);
+    // the cells stay in sight under the open Ask; their name, where its line stands, steps aside
+    name.dataset.askAside = "";
+    const ctx = cv.getContext("2d");
+    repaint = (paint: CellPaint) => {
+      const at = PAINTS.indexOf(paint);
+      const fill = painters[at] ?? painters[0];
+      name.textContent = titles[at] ?? "";
+      if (!ctx || !fill) return;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, hw, hh);
+      for (let r = 0; r < d.grid.rows; r++)
+        for (let k = 0; k < d.grid.cols; k++) {
+          ctx.fillStyle = fill(r, k);
+          ctx.fillRect(k * big, r * big, big, big);
+        }
+      ctx.strokeStyle = C.cellLine;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      for (let k = 1; k < d.grid.cols; k++) {
+        ctx.moveTo(k * big, 0);
+        ctx.lineTo(k * big, hh);
+      }
+      for (let k = 1; k < d.grid.rows; k++) {
+        ctx.moveTo(0, k * big);
+        ctx.lineTo(hw, k * big);
+      }
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.rect(0, 0, hw, hh);
+      ctx.moveTo(...(hfp[0] ?? [0, 0]));
+      for (let k = 1; k < 4; k++) ctx.lineTo(...(hfp[k] ?? [0, 0]));
+      ctx.closePath();
+      ctx.fillStyle = C.veil;
+      ctx.fill("evenodd");
+    };
+    repaint(around.paint);
+  }
+
+  return { size, tall, fp, multiples, repaint };
 }
 
 /** Renders standalone SVG connector hairlines linking the locator ring to the cell grid and the transect to the field check panel. */
@@ -376,7 +427,7 @@ export function renderConnectors(
   ring: Pt,
   transectEnd: Pt,
 ) {
-  const { svg, overlay } = dom;
+  const { svg, overlay, C, O } = dom;
   const g = svg("g", {}, overlay);
   const m0 = multiples[0];
   if (m0) {
@@ -419,6 +470,6 @@ export function renderConnectors(
       },
       g,
     );
-    svg("circle", { cx: ex, cy: ey, r: 2, fill: obsidian.accent }, g);
+    svg("circle", { cx: ex, cy: ey, r: 2, fill: O.accent }, g);
   }
 }

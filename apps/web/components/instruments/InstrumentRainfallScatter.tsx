@@ -1,9 +1,11 @@
 "use client";
 
-// The rainfall scatter, in the instruments' A to C manner: the catchment's 26 seasons of March to June greenness
-// against the September to May rainfall total before each, the straight-line fit with its R squared, and the four
-// driest seasons marked. Data and caption come from the rainfall scatter spec (restrend bundle files read through
-// the case asset route); the 1440 x 900 stage is scaled to fit.
+// Rain and Greenness: the catchment's seasons of March to June greenness against the September to May rainfall
+// total before each, the straight-line fit, and the four driest seasons marked. Above, the headline says how
+// greenness follows rainfall from one season to the next (lib/instruments/scatter/lead.ts); in the left column, what
+// a mark is, the fit's R squared and what it means, and how much greenness moved with rain. Data come from the
+// rainfall scatter spec (restrend bundle files read through the case asset route); the 1440 x 900 stage is scaled to
+// fit.
 
 import { useEffect, useId, useRef, useState } from "react";
 import { en, format } from "../../lib/copy/en";
@@ -11,6 +13,7 @@ import { windowWords } from "../../lib/land/season";
 import { keepTogether } from "../../lib/instruments/caption";
 import { fixed, signed } from "../../lib/instruments/format";
 import { readJsonAsset } from "../../lib/instruments/listing";
+import { RAIN_LEAD, rainLink } from "../../lib/instruments/scatter/lead";
 import {
   NDVI_STEPS,
   RAIN_STEPS,
@@ -19,19 +22,15 @@ import {
   type AxisRange,
   type ScatterData,
 } from "../../lib/instruments/scatter/data";
-import { obsidian, pixelColours as C } from "../../lib/theme/obsidian";
-import { useShellSources } from "./ShellContext";
 import styles from "./InstrumentRainfallScatter.module.css";
 import { useInstrument } from "./InstrumentRecords";
+import { STAGE_MARGIN, useShellPalette } from "./ShellContext";
 
 export const SCATTER_DESIGN = { width: 1440, height: 900 } as const;
 
-/**
- * The plot inside the stage, and its axes' ranges and ticks (mm, NDVI); it starts right of the ask disc's place on
- * the arc, which every view keeps clear.
- */
-const PLOT = { left: 540, right: 1010, top: 168, bottom: 680 } as const;
-const SIDE = { x: 1064, w: 336 } as const;
+/** The plot inside the stage, right of the left column that carries the words, as the answer's land is. */
+const PLOT = { left: 620, right: 1180, top: 168, bottom: 680 } as const;
+const SIDE = { x: 40, w: 380 } as const;
 /** Before the seasons are read: the axes stand empty. */
 const NO_AXIS: AxisRange = { lo: 0, hi: 1, step: 1 };
 
@@ -39,22 +38,14 @@ const ticks = (r: { lo: number; hi: number; step: number }) =>
   Array.from({ length: Math.round((r.hi - r.lo) / r.step) + 1 }, (_, i) => r.lo + i * r.step);
 const mm = (v: number) => String(Math.round(v));
 
-const CREDITS = ["instrument.credit.chirps", "instrument.credit.modisNdvi"] as const;
-
 export function InstrumentRainfallScatter() {
   const rootRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const record = useInstrument("rainfall_scatter");
-  // its credits sit behind the shell's S; the data's short names stay visible
-  useShellSources({
-    lines: CREDITS.map((id) => en[id].text),
-    short: [en["source.chirps"].text, en["source.modis"].text],
-  });
+  const pal = useShellPalette();
+  const C = pal.pixel;
   const [data, setData] = useState<ScatterData | null>(null);
   const [loadFailed, setFailed] = useState(false);
-  // the fit's caveat in full, its slope and interval, and the gate wait behind one step
-  const [more, setMore] = useState(false);
-  const moreId = useId();
   // an instrument the case holds no spec for cannot be drawn
   const failed = loadFailed || record.status === "failed" || record.status === "absent";
   const view = record.status === "ready" ? record.view : null;
@@ -91,9 +82,12 @@ export function InstrumentRainfallScatter() {
         root.clientWidth / SCATTER_DESIGN.width,
         root.clientHeight / SCATTER_DESIGN.height,
       );
-      const left = (root.clientWidth - SCATTER_DESIGN.width * s) / 2;
+      // the design's 40 px left margin on the screen's, under the breadcrumb, whatever the scale
+      const left = STAGE_MARGIN * (1 - s);
       const top = (root.clientHeight - SCATTER_DESIGN.height * s) / 2;
       stage.style.transform = `translate(${left.toFixed(1)}px, ${top.toFixed(1)}px) scale(${s.toFixed(4)})`;
+      // the stage's type keeps to 12 px on screen at any scale (the module's --min-type)
+      stage.style.setProperty("--stage-scale", s.toFixed(4));
     };
     const observer = new ResizeObserver(fitStage);
     observer.observe(root);
@@ -134,7 +128,7 @@ export function InstrumentRainfallScatter() {
     : [];
 
   return (
-    <div ref={rootRef} className={styles.root} data-theme="obsidian" data-instrument="rainfall">
+    <div ref={rootRef} className={styles.root} data-instrument="rainfall">
       <p id={descriptionId} className={styles.srOnly}>
         {en["instrument.scatter.description"].text}
       </p>
@@ -147,12 +141,10 @@ export function InstrumentRainfallScatter() {
         {caption && data && !failed && (
           <>
             <p className={styles.caption}>
-              <span className={styles.ink}>{keepTogether(caption.ink)}</span>
-              <span className={styles.chip}>1</span>
-              <span className={styles.chip}>2</span>{" "}
-              <span className={styles.grey} data-scatter-why>
-                {en["instrument.scatter.why"].text}
-              </span>
+              {format(RAIN_LEAD[rainLink(data.fit)], {
+                growing: words.growing,
+                rainfall: words.rainfall,
+              })}
             </p>
             <svg
               className={styles.plot}
@@ -160,18 +152,35 @@ export function InstrumentRainfallScatter() {
               height={SCATTER_DESIGN.height}
               aria-hidden="true"
             >
+              {/* the ticks are set off their lines in em, so they keep clear of each other at the size they are
+                  drawn at: the greenness ticks centred on their lines, the rain ticks' baselines 1.9 em under the
+                  plot, so their boxes start under the lowest greenness tick's */}
               {ticks(NDVI).map((v) => (
                 <g key={`y${String(v)}`}>
                   <line x1={PLOT.left} x2={PLOT.right} y1={ys(v)} y2={ys(v)} stroke={C.gridLine} />
-                  <text className={styles.tick} x={PLOT.left - 10} y={ys(v) + 4} textAnchor="end">
+                  <text
+                    className={styles.tick}
+                    x={PLOT.left - 10}
+                    y={ys(v)}
+                    dy="0.35em"
+                    textAnchor="end"
+                  >
                     {fixed(v, 2)}
                   </text>
                 </g>
               ))}
+              {/* the rain axis's words stand where the open Ask's line does: they step aside while it is open */}
               {ticks(RAIN).map((v) => (
                 <g key={`x${String(v)}`}>
                   <line x1={xs(v)} x2={xs(v)} y1={PLOT.top} y2={PLOT.bottom} stroke={C.gridLine} />
-                  <text className={styles.tick} x={xs(v)} y={PLOT.bottom + 20} textAnchor="middle">
+                  <text
+                    className={styles.tick}
+                    x={xs(v)}
+                    y={PLOT.bottom}
+                    dy="1.9em"
+                    textAnchor="middle"
+                    data-ask-aside
+                  >
                     {v}
                   </text>
                 </g>
@@ -191,7 +200,7 @@ export function InstrumentRainfallScatter() {
                   cy={ys(s.ndvi)}
                   r={4}
                   fill={C.series}
-                  stroke={obsidian.canvas}
+                  stroke={pal.canvas}
                   strokeWidth={1}
                   data-season={s.year}
                 />
@@ -203,7 +212,7 @@ export function InstrumentRainfallScatter() {
                     cy={ys(s.ndvi)}
                     r={8}
                     fill="none"
-                    stroke={obsidian.accent}
+                    stroke={pal.accent}
                     strokeWidth={1.25}
                   />
                 </g>
@@ -224,16 +233,18 @@ export function InstrumentRainfallScatter() {
             ))}
             <div
               className={styles.fitLabel}
-              style={{ left: PLOT.right - 260, top: (line[1]?.[1] ?? PLOT.top) - 26 }}
+              // past the line's right end, clear of the seasons
+              style={{ left: PLOT.right + 10, top: (line[1]?.[1] ?? PLOT.top) - 8 }}
             >
-              {format("instrument.scatter.fit", { r2: fixed(data.fit.r_squared, 3) })}
+              {en["instrument.scatter.fit"].text}
             </div>
             <div className={styles.axisY} style={{ left: PLOT.left, top: PLOT.top - 30 }}>
               {format("instrument.scatter.axis.ndvi", { window: words.growing })}
             </div>
             <div
               className={styles.axisX}
-              style={{ left: PLOT.left, top: PLOT.bottom + 40, width: PLOT.right - PLOT.left }}
+              style={{ left: PLOT.left, top: PLOT.bottom, width: PLOT.right - PLOT.left }}
+              data-ask-aside
             >
               {format("instrument.scatter.axis.rain", { window: words.rainfall })}
             </div>
@@ -247,37 +258,29 @@ export function InstrumentRainfallScatter() {
               </p>
               <p className={styles.sideKey}>
                 <svg className={styles.key} width={20} height={16} aria-hidden="true">
+                  <circle cx={10} cy={8} r={4} fill={C.series} />
+                </svg>
+                {en["instrument.scatter.key.season"].text}
+              </p>
+              <p className={styles.sideKey}>
+                <svg className={styles.key} width={20} height={16} aria-hidden="true">
                   <circle
                     cx={10}
                     cy={8}
                     r={6.5}
                     fill="none"
-                    stroke={obsidian.accent}
+                    stroke={pal.accent}
                     strokeWidth={1.25}
                   />
                 </svg>
                 {format("instrument.scatter.key.driest", { window: words.rainfall })}
               </p>
-              <button
-                type="button"
-                className={styles.more}
-                aria-expanded={more}
-                aria-controls={moreId}
-                data-scatter-more
-                onClick={() => {
-                  setMore((m) => !m);
-                }}
-              >
-                {en["instrument.scatter.more"].text}
-              </button>
-              <div id={moreId} hidden={!more} data-scatter-details>
-                <p className={styles.sideKey}>
-                  <svg className={styles.key} width={20} height={16} aria-hidden="true">
-                    <circle cx={10} cy={8} r={4} fill={C.series} />
-                  </svg>
-                  {en["instrument.scatter.key.season"].text}
+              <div className={styles.notes} data-scatter-details>
+                <p className={styles.sideNote}>
+                  {keepTogether(
+                    format("instrument.scatter.r2", { r2: fixed(data.fit.r_squared, 3) }),
+                  )}
                 </p>
-                <p className={styles.sideNote}>{keepTogether(caption.grey)}</p>
                 <p className={styles.sideNote}>
                   {format("instrument.scatter.slope", {
                     slope: signed(data.fit.slope_per_100_mm, 4),

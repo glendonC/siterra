@@ -5,6 +5,7 @@
 // record's id without its "src_" prefix (src_SCI-19 is SCI-19); its citation is the overview's short reference.
 
 import type { CaseSnapshot, DisplayText } from "@siterra/contracts";
+import { format } from "../copy/en";
 import { reference } from "../overview/record";
 import { shortCitation } from "../overview/results";
 
@@ -82,4 +83,20 @@ export function placedStatements(
     )
     .map((src) => ({ id: shortSourceId(src.id), citation: reference(src, []) }));
   return { sources, statements };
+}
+
+/** A statement's words with its references after them: "Herders report losing palatable species (El Aayadi et al.
+ * 2026, pp. 7 to 8)." */
+export function citedText(st: PlacedStatement): string {
+  const refs = st.cites
+    .map((ct) =>
+      ct.page
+        ? format(ct.page.includes(" ") ? "instrument.ref.pages" : "instrument.ref.page", {
+            id: ct.name,
+            page: ct.page,
+          })
+        : ct.name,
+    )
+    .join("; ");
+  return format("instrument.ref", { text: st.text.replace(/\.$/, ""), refs });
 }

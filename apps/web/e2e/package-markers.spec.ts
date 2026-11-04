@@ -1,149 +1,142 @@
 import { expect, test, type Page } from "@playwright/test";
+import { nextWords } from "../lib/readout/readout";
+import { answerOf, atTheAnswer, columnBox, loadedRecord, readoutOn } from "./answer";
 import { sharedCase } from "./demo-case";
+import { textReport } from "./instrument-text";
 
-// The package's field check markers on the land (UI-2 package 1f; the lead, after "Founder instance smoke 4", where
-// six checks on one anchor piled their names on one another). The case's synthetic package is crowded here, in the
-// snapshot this page reads, with four SYNTHETIC checks on the first check's own place, as smoke 4's were: they stand as
-// one marker carrying their numbers on every page (the card names the open check), and no label ever meets another
-// or the card. Without a package in the case the test is skipped, never faked.
+// Checks that share a place, on the answer (UI-2; the lead, after "Founder instance smoke 4", where six checks on one
+// anchor piled their names on one another on the land). The case's synthetic package is crowded here, in the snapshot
+// this page reads, with four SYNTHETIC checks on the first check's own place, as smoke 4's were. The answer reads the
+// case record at the overview's home: each check keeps its own Next row in the plan's order, its words stay apart
+// however many checks the plan holds, and only the pressed check is named on the land, at its place, clear of the
+// column and the key bar. What each row says is derived from the crowded record the page read. Without a package the
+// tests are skipped.
 
 test.use({ viewport: { width: 1440, height: 900 } });
 
-type Box = { x: number; y: number; width: number; height: number };
-const meet = (a: Box, b: Box) =>
-  a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height;
-
-async function labelsApart(page: Page): Promise<void> {
-  const boxes = // the labels, and the open step's card: no label may meet another, nor the card
-    (
-      await Promise.all(
-        (await page.locator("[data-marker-label], [data-package-briefing] [data-card]").all()).map(
-          (l) => l.boundingBox(),
-        ),
-      )
-    ).filter((b): b is Box => b !== null);
-  for (let i = 0; i < boxes.length; i++)
-    for (let j = i + 1; j < boxes.length; j++) {
-      const a = boxes[i];
-      const b = boxes[j];
-      if (a && b) expect(meet(a, b), `labels ${String(i)} and ${String(j)} overlap`).toBe(false);
-    }
+interface Measurement {
+  what: string;
+  fieldCheckId?: string | null;
+  stratumKeys: string[];
+  [key: string]: unknown;
+}
+interface FieldPlan {
+  measurements: Measurement[];
 }
 
-test("checks that share an anchor stand as one numbered marker; numbers only, the card names the open check; labels never overlap", async ({
-  page,
-}) => {
-  test.setTimeout(180_000);
+const SYNTHETIC = "SYNTHETIC crowded check";
+
+/**
+ * Opens the case's answer with its field plan crowded by four SYNTHETIC copies of its first check on that check's own
+ * place (fieldCheckId is optional and is left out of the copies), and returns the answer model of the record the page
+ * read. Null when the case holds no package.
+ */
+async function crowdedAnswer(page: Page) {
   const caseId = sharedCase();
   const res = await page.request.get(`/api/cases/${encodeURIComponent(caseId)}`);
-  test.skip(!res.ok(), "the case could not be read");
+  if (!res.ok()) return null;
   const snap = (await res.json()) as {
     records: {
-      briefRecords: {
-        id: string;
-        actionIds: string[];
-        provenance: { generatedByTaskId: string | null };
-      }[];
-      taskRecords: { id: string; commandId: string }[];
+      briefRecords: unknown[];
+      operationalActionRecords?: { id: string; createdAt: string; fieldPlan: FieldPlan | null }[];
     };
   };
-  const brief = snap.records.briefRecords.at(-1);
-  const commandId = snap.records.taskRecords.find(
-    (t) => t.id === brief?.provenance.generatedByTaskId,
-  )?.commandId;
-  test.skip(!brief || !commandId, "the case holds no package (synthetic package not loaded)");
-  const actionId = brief?.actionIds[0];
-
-  // the snapshot this page reads, with four SYNTHETIC checks on the first check's place (smoke 4's shape)
+  // the action the answer reads its field plan from: the latest that carries one
+  const action = [...(snap.records.operationalActionRecords ?? [])]
+    .filter((a) => a.fieldPlan)
+    .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
+    .at(-1);
+  const first = action?.fieldPlan?.measurements[0];
+  if (!snap.records.briefRecords.length || !action || !first) return null;
+  const { fieldCheckId: _link, ...bare } = first;
+  const copies: Measurement[] = [1, 2, 3, 4].map((k) => ({
+    ...bare,
+    what: `${SYNTHETIC} ${String(k)} on the same place`,
+  }));
+  // the snapshot this page reads, with the copies on the first check's place (smoke 4's shape)
   await page.route(`**/api/cases/${caseId}`, async (route) => {
     if (route.request().method() !== "GET") return route.fallback();
     const r = await route.fetch();
     const s = (await r.json()) as {
-      records: {
-        operationalActionRecords: {
-          id: string;
-          fieldPlan: { measurements: Record<string, unknown>[] } | null;
-        }[];
-      };
+      records: { operationalActionRecords: { id: string; fieldPlan: FieldPlan | null }[] };
     };
-    for (const a of s.records.operationalActionRecords) {
-      const first = a.fieldPlan?.measurements[0];
-      if (a.id !== actionId || !a.fieldPlan || !first) continue;
-      // copies of the first check on its own place; fieldCheckId is optional and is left out
-      const { fieldCheckId: _link, ...bare } = first;
-      for (let k = 1; k <= 4; k++)
-        a.fieldPlan.measurements.push({
-          ...bare,
-          what: `SYNTHETIC crowded check ${String(k)} on the same place`,
-        });
-    }
+    for (const a of s.records.operationalActionRecords)
+      if (a.id === action.id && a.fieldPlan) a.fieldPlan.measurements.push(...copies);
     return route.fulfill({ response: r, json: s });
   });
-  await page.route("**/api/cases/*/commands", (route) =>
-    route.request().method() === "POST"
-      ? route.fulfill({
-          status: 202,
-          contentType: "application/json",
-          body: JSON.stringify({ recordType: "Command", id: commandId, caseId }),
-        })
-      : route.continue(),
+  const record = loadedRecord(page);
+  const readout = await atTheAnswer(page, `/valley?case=${caseId}`);
+  const { snapshot, listing } = await record;
+  const checks = answerOf(snapshot, listing).ground?.checks ?? [];
+  // the page read the crowded plan: the four copies are among the answer's checks
+  expect(checks.filter((c) => c.what.startsWith(SYNTHETIC))).toHaveLength(4);
+  return { readout, checks };
+}
+
+const rowOf = (page: Page, c: { fieldCheckId: string | null; number: string }) =>
+  readoutOn(page).locator(`[data-readout-check='${c.fieldCheckId ?? c.number}']`);
+
+test("checks that share a place each keep their own Next row in the plan's order, and never pile their words on one another", async ({
+  page,
+}) => {
+  test.setTimeout(180_000);
+  const opened = await crowdedAnswer(page);
+  test.skip(!opened, "the case holds no package (synthetic package not loaded)");
+  if (!opened) return;
+  const { readout, checks } = opened;
+  await expect(readout.locator("[data-readout-group='ground'] li")).toHaveText(
+    checks.map((c) => nextWords(c)),
   );
-  const completed = {
-    recordType: "Event",
-    schemaVersion: "1.19.0",
-    id: "evt_e2e_markers_completed",
-    caseId,
-    sequence: 1,
-    occurredAt: new Date().toISOString(),
-    kind: "command.completed",
-    commandId,
-    taskId: null,
-    caseRevision: 1,
-    entityIds: [],
-    message: "Completed.",
-    dedupeKey: "e2e.markers.completed",
-    resultStatus: "succeeded",
-    tool: null,
-    usage: null,
-    validation: null,
-    spanId: null,
-    parentSpanId: null,
-  };
-  await page.route("**/api/cases/*/events*", (route) =>
-    route.fulfill({
-      status: 200,
-      contentType: "text/event-stream",
-      body: `id: 1\ndata: ${JSON.stringify(completed)}\n\n`,
-    }),
-  );
+  // no line of the answer's text overlaps another, however many checks share the first one's place
+  expect((await textReport(page, "[data-overview-root] [data-readout]")).overlaps).toEqual([]);
+});
 
-  await page.goto(`/valley?case=${caseId}`);
-  await expect(page.locator("[data-overview-root]")).toHaveAttribute("data-ready", "", {
-    timeout: 90_000,
-  });
-  await page.keyboard.press("/");
-  await page.keyboard.type("What should happen next?");
-  await page.keyboard.press("Enter");
-  await page.locator("[data-run-open-findings]").click();
-  await expect(page.locator("[data-result]").first()).toBeFocused();
-  await page.mouse.move(720, 120);
-  await page.keyboard.press("Enter");
-  const briefing = page.locator("[data-package-briefing][data-land]");
-  await expect(briefing).toHaveAttribute("data-state", "in", { timeout: 10_000 });
-
-  // arrival: the five checks on one place stand as one marker of numbers; no check's name
-  const markers = briefing.locator("[data-marker]");
-  await expect(markers).toHaveCount(1);
-  await expect(markers.first()).toHaveAttribute("data-marker", "1 3 4 5 6");
-  await expect(markers.first().locator("[data-marker-label]")).toHaveText("0103040506");
-  await labelsApart(page);
-
-  // every page: only the open check adds its name to its marker, and no two labels overlap
-  for (let k = 0; k < 16; k++) {
-    await page.keyboard.press("Space");
-    await page.waitForTimeout(120);
-    await labelsApart(page);
-    // numbers only on every page: the card names the open check
-    await expect(markers.first().locator("[data-marker-label]")).toHaveText("0103040506");
-  }
+test("on the land only the pressed check is named, at its place; the label meets neither the column nor the key bar", async ({
+  page,
+}) => {
+  test.setTimeout(180_000);
+  const opened = await crowdedAnswer(page);
+  test.skip(!opened, "the case holds no package (synthetic package not loaded)");
+  if (!opened) return;
+  const { checks } = opened;
+  const place = page.locator("[data-readout-place]");
+  // nothing is named on the land until a check is pressed
+  await expect(place).toHaveCount(0);
+  // a check whose place the land does not draw is no button
+  for (const c of checks.filter((x) => !x.drawn))
+    await expect(rowOf(page, c).locator("button")).toHaveCount(0);
+  const copies = checks.filter((c) => c.drawn && c.what.startsWith(SYNTHETIC));
+  test.skip(copies.length < 2, "the first check's place is not drawn on the land");
+  const [one, two] = copies;
+  if (!one || !two) return;
+  // pressing a copy lights its place, named in the plan's words for it (the column names the check)
+  await rowOf(page, one).locator("button").click();
+  await expect(rowOf(page, one).locator("button")).toHaveAttribute("aria-pressed", "true");
+  await expect(place).toHaveCount(1);
+  await expect(place).toHaveCSS("visibility", "visible");
+  await expect(place.locator("b")).toHaveText(one.place ?? one.what);
+  // pressing another names only that one: still one label, one row pressed
+  await rowOf(page, two).locator("button").click();
+  await expect(rowOf(page, two).locator("button")).toHaveAttribute("aria-pressed", "true");
+  await expect(rowOf(page, one).locator("button")).toHaveAttribute("aria-pressed", "false");
+  await expect(place).toHaveCount(1);
+  await expect(
+    readoutOn(page).locator("[data-readout-group='ground'] button[aria-pressed='true']"),
+  ).toHaveCount(1);
+  // the label stands clear of the answer's column and the key bar
+  const meet = (
+    a: { x: number; y: number; width: number; height: number },
+    b: { x: number; y: number; width: number; height: number },
+  ) => a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height;
+  const [label, rail, keys] = await Promise.all([
+    place.locator("b").boundingBox(),
+    columnBox(page),
+    page.locator("[data-key-legend]").boundingBox(),
+  ]);
+  if (!label || !keys) throw new Error("the label or the key bar");
+  expect(meet(label, rail)).toBe(false);
+  expect(meet(label, keys)).toBe(false);
+  // pressed again, it lets go: nothing is named on the land
+  await rowOf(page, two).locator("button").click();
+  await expect(place).toHaveCount(0);
 });

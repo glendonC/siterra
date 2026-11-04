@@ -14,7 +14,6 @@ export interface CursorSlot {
   at: Pt;
   targetKind: "land" | "bundle" | "source";
   stratumId: string | null;
-  label: string;
 }
 
 export type CursorPoint = CursorSlot;
@@ -221,8 +220,7 @@ export function cursorPointsOf(
   const cursors: CursorSlot[] = [];
   for (const task of tasks) {
     let target = task.state === "running" ? task.activeTarget : null;
-    let label = task.state === "running" ? task.activeLabel : null;
-    if ((!target || !label) && selectedTaskId && task.id === selectedTaskId) {
+    if (!target && selectedTaskId && task.id === selectedTaskId) {
       const lastWithTarget = [...task.steps]
         .reverse()
         .find(
@@ -232,7 +230,6 @@ export function cursorPointsOf(
         );
       if (lastWithTarget?.target) {
         target = lastWithTarget.target;
-        label = lastWithTarget.label;
       } else {
         const defaultStratum =
           task.kind === "livelihood_governance" || task.kind === "field_check"
@@ -250,13 +247,9 @@ export function cursorPointsOf(
           sections: [],
           queryTerms: [],
         };
-        label =
-          task.activeLabel ??
-          task.steps[task.steps.length - 1]?.label ??
-          (task.kind === "plan" ? "Scoping valley layers" : "Inspecting valley");
       }
     }
-    if (!target || !label) continue;
+    if (!target) continue;
     const kind = target.kind;
     if (kind !== "land" && kind !== "bundle" && kind !== "source") continue;
     const key = `${kind}:${target.stratumId ?? ""}:${task.sublabel ?? ""}`;
@@ -267,7 +260,6 @@ export function cursorPointsOf(
       at: anchorForTarget(centre, radius, task, kind, target.stratumId, idx),
       targetKind: kind,
       stratumId: target.stratumId,
-      label,
     });
   }
   if (cursors.length <= 1) return cursors;
