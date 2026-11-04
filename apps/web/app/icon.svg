@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+  <!-- SiterraMark (components/opening/Opening.tsx) at tab size: the same geometry with a 1.9 stroke so it
+       reads at 16 px. Ink from app/daylight.css; the dark scheme's ink from app/obsidian.css. -->
+  <style>
+    @media (prefers-color-scheme: dark) {
+      g {
+        stroke: #ebf0f1;
+      }
+    }
+  </style>
+  <g stroke="#2b2925" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="10.3" y="1.5" width="3.4" height="6.4" rx="1.7" />
+    <rect x="10.3" y="1.5" width="3.4" height="6.4" rx="1.7" transform="rotate(60 12 12)" />
+    <rect x="10.3" y="1.5" width="3.4" height="6.4" rx="1.7" transform="rotate(120 12 12)" />
+    <rect x="10.3" y="1.5" width="3.4" height="6.4" rx="1.7" transform="rotate(180 12 12)" />
+    <rect x="10.3" y="1.5" width="3.4" height="6.4" rx="1.7" transform="rotate(240 12 12)" />
+    <rect x="10.3" y="1.5" width="3.4" height="6.4" rx="1.7" transform="rotate(300 12 12)" />
+  </g>
+</svg>
