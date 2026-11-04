@@ -1,7 +1,8 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import type { BranchMerge, CaseSnapshot, Evidence, Task } from "@siterra/contracts";
+import type { BranchMerge, CaseSnapshot, Task } from "@siterra/contracts";
 import { describe, expect, it } from "vitest";
+import { caseFindings, versionOf, type ViewLeads } from "../ask/findings";
 import { en } from "../copy/en";
 import { rd, type ReadoutMessageId } from "../copy/readout";
 import { seed, seedListing } from "../instruments/seed-listing";
@@ -81,6 +82,68 @@ const SHARE = /^area_share_(?:upward|downward)_fdr$/;
 
 /** The verdict rows as the column lists them: each status with its explanations' labels. */
 const verdicts = (r: Readout) => r.verdicts.map((v) => [v.status, v.rows.map((x) => x.label)]);
+
+const ASKED = "cmd_asked";
+const QUESTION = "Does wet-season rainfall explain the greening?";
+
+/** The views' leads as lib/ask/leads.ts reads them for the demo case (lib/ask/leads.test.ts). */
+const LEADS: ViewLeads = {
+  rainfall: [
+    "Year to year, March to June greenness follows September to May rainfall only weakly.",
+  ],
+};
+
+/**
+ * The demo case with a question typed in the Ask: its task (as the completion route writes it) ended with this status,
+ * naming the given records, each at the revision the case holds unless one is given.
+ */
+function askedCase(
+  chosen: readonly (string | { entityId: string; revision: number })[],
+  status: Task["status"] = "succeeded",
+  id = "task_ask_abc123",
+): CaseSnapshot {
+  const base = only(run28.evidenceRecords, () => true, "evidence");
+  const task: Task = {
+    recordType: "Task",
+    id,
+    revision: 1,
+    createdAt: base.createdAt,
+    updatedAt: base.createdAt,
+    caseId: demo.case.id,
+    commandId: ASKED,
+    kind: "source_research",
+    question: QUESTION,
+    status,
+    dependsOnTaskIds: [],
+    inputVersions: chosen.map((c) => {
+      if (typeof c !== "string") return c;
+      const v = versionOf(demo, c);
+      if (!v) throw new Error(`the demo case holds no ${c}`);
+      return v;
+    }),
+    allowedTools: ["read_case", "read_evidence"],
+    outputEntityIds: [],
+    idempotencyKey: `ask-task-${id}`,
+    attempt: 0,
+    maxModelRounds: 1,
+    deadlineAt: base.createdAt,
+    budgetMicroUsd: 0,
+    spentMicroUsd: 0,
+    checkpointId: null,
+    failureCode: status === "failed" ? "http_503" : null,
+    missingInputs: [],
+    startedAt: base.createdAt,
+    finishedAt: base.createdAt,
+  };
+  return withRecords(demo, { taskRecords: [...demo.records.taskRecords, task] });
+}
+
+/** A follow-up's findings as the column shows them: a view's lead from its read lines. */
+const shownOf = (r: Readout) =>
+  (r.request?.findings ?? []).map((f) => ({
+    ...f,
+    lines: f.lines ?? (f.place.kind === "view" ? (LEADS[f.place.view] ?? []) : []),
+  }));
 
 describe("the home answer (the demo case)", () => {
   const r = readout(demo);
@@ -184,7 +247,10 @@ describe("every string the column can show", () => {
     ]),
     ...(r.ground?.checks ?? []).map(nextWords),
     ...[reviewWords(r.ground?.reviews ?? [])].filter((s): s is string => s !== null),
-    ...(r.request?.findings ?? []).map(findingWords),
+    ...shownOf(r).flatMap((f) => [
+      ...f.lines,
+      f.place.kind === "source" ? (f.place.source ?? "") : "",
+    ]),
     ...[false, true].flatMap((all) => followUpOf(r.request?.findings ?? [], all).toggle ?? []),
     ...FIXED.map((id) => rd[id].text),
     en["run.tree.needsYou"].text,
@@ -193,10 +259,18 @@ describe("every string the column can show", () => {
   it.each([
     ["the home answer", demo, null],
     ["the run's answer", recorded.snapshot, null],
-    ["the run's answer with its findings as a follow-up", recorded.snapshot, recorded.commandId],
+    [
+      "the home answer with a typed question's findings",
+      askedCase([
+        "meas_pixel_trend_upward_fdr_share_catchment_mar_jun",
+        "inst_rainfall_scatter_valley",
+        "ev_valley_bottom_cultivated_sci03",
+      ]),
+      ASKED,
+    ],
   ] as const)("%s uses none of the record's vocabulary", (_name, snapshot, commandId) => {
     const shown = column(readout(snapshot, commandId));
-    if (commandId) expect(readout(snapshot, commandId).request?.findings.length).toBeGreaterThan(0);
+    if (commandId) expect(readout(snapshot, commandId).request?.findings.length).toBe(3);
     expect(shown.filter((s) => RECORD_WORDS.test(s) || SNAKE.test(s))).toEqual([]);
   });
 
@@ -516,90 +590,133 @@ describe("the next checks", () => {
   });
 });
 
-describe("a follow-up request", () => {
-  it("lists its own accepted and provisional findings, newest first, naming only the non-factual kinds", () => {
-    const base = only(recorded.snapshot.records.taskRecords, () => true, "task");
-    const task: Task = {
-      ...base,
-      id: "task_follow_up",
-      commandId: "cmd_follow_up",
-      kind: "source_research",
-      question: "Which sources describe herding?",
-    };
-    const like = only(recorded.snapshot.records.evidenceRecords, () => true, "evidence");
-    const evidence = (
-      id: string,
-      createdAt: string,
-      status: Evidence["status"],
-      claimKind: Evidence["claimKind"],
-      statement: string,
-    ): Evidence => ({
-      ...like,
-      id,
-      createdAt,
-      updatedAt: createdAt,
-      status,
-      claimKind,
-      statement,
-      provenance: { ...like.provenance, generatedByTaskId: task.id },
-    });
-    const asked = withRecords(recorded.snapshot, {
-      taskRecords: [...recorded.snapshot.records.taskRecords, task],
-      evidenceRecords: [
-        ...recorded.snapshot.records.evidenceRecords,
-        evidence(
-          "ev_follow_older",
-          "2026-11-01T10:00:00.000Z",
-          "accepted",
-          "observation",
-          "The greenness was lowest in period_2022-04.",
-        ),
-        evidence(
-          "ev_follow_newer",
-          "2026-11-02T10:00:00.000Z",
-          "provisional",
-          "hypothesis",
-          "Herds moved higher in spring.",
-        ),
-        evidence(
-          "ev_follow_rejected",
-          "2026-11-03T10:00:00.000Z",
-          "rejected",
-          "observation",
-          "Rejected.",
-        ),
-        evidence("ev_follow_stale", "2026-11-03T11:00:00.000Z", "stale", "scenario", "Stale."),
-      ],
-    });
-    const request = readout(asked, "cmd_follow_up").request;
-    expect(request?.findings.map((f) => [f.id, f.claimKind])).toEqual([
-      ["ev_follow_newer", "hypothesis"],
-      ["ev_follow_older", "observation"],
-    ]);
-    expect(request?.findings.map(findingWords)).toEqual([
-      "Hypothesis: Herds moved higher in spring.",
-      "The greenness was lowest in April 2022.",
-    ]);
-    expect(findingWords({ text: "Grazing doubles.", claimKind: "scenario" })).toBe(
-      "Scenario: Grazing doubles.",
+describe("a question typed in the Ask", () => {
+  it("shows the case's findings its task chose, in its order, as the column words them, under its question", () => {
+    const r = readout(
+      askedCase([
+        "branch_338b5acb3a5443b5e287905d70032a91",
+        "inst_rainfall_scatter_valley",
+        "ev_valley_bottom_cultivated_sci03",
+      ]),
+      ASKED,
     );
-    expect(readout(asked, "cmd_not_in_the_record").request).toEqual({
-      commandId: "cmd_not_in_the_record",
-      findings: [],
+    expect(r.request?.question).toBe(QUESTION);
+    expect(r.request?.answered).toBe(true);
+    expect(shownOf(r).map((f) => [f.id, f.place, f.lines])).toEqual([
+      [
+        "branch_338b5acb3a5443b5e287905d70032a91",
+        { kind: "verdict" },
+        ["Rainfall does not fit the evidence."],
+      ],
+      ["inst_rainfall_scatter_valley", { kind: "view", view: "rainfall" }, LEADS.rainfall],
+      [
+        "ev_valley_bottom_cultivated_sci03",
+        { kind: "source", source: "El Aayadi et al. 2026; Auclair et al. 2011" },
+        ["Irrigated valley floor, about 1,800 to 2,200 m, with more than thirty villages."],
+      ],
+    ]);
+    // a view's lead is read apart, from the view's own data; the column reads it with these sources
+    expect(r.request?.findings[1]?.lines).toBeNull();
+    expect(r.request?.leads).toEqual({
+      caseId: demo.case.id,
+      limits: bandLimitsOf(demo),
+      seasons: "bundle_pixel_seasons_ait_bouguemez",
     });
-    expect(readout(asked).request).toBeNull();
-    expect(readout(asked, null).request).toBeNull();
   });
 
-  it("shows its first findings and one row for the rest, then every finding and a row to show fewer", () => {
-    const findings = readout(recorded.snapshot, recorded.commandId).request?.findings ?? [];
-    expect(findings.length).toBeGreaterThan(3);
-    // collapsed: the first two in the order the record dates them, and the row that names how many there are
-    expect(followUpOf(findings, false)).toEqual({
-      shown: findings.slice(0, 2),
-      toggle: `Show all ${String(findings.length)} findings`,
+  it("shows no word that is not the visitor's question or the case's own: the task names records, never text", () => {
+    const column = readout(demo);
+    const own = caseFindings(
+      demo,
+      {
+        answer: column.answer,
+        verdicts: column.verdicts,
+        checks: column.ground?.checks ?? [],
+        mergeId: column.mergeId,
+      },
+      LEADS,
+    );
+    const said = new Set([
+      QUESTION,
+      ...own.flatMap((f) => [...f.lines, f.place.kind === "source" ? f.place.source : null]),
+    ]);
+    const every = askedCase(own.map((f) => f.key));
+    const r = readout(every, ASKED);
+    const shown = shownOf(r);
+    expect(shown.length).toBe(own.length);
+    for (const s of [
+      r.request?.question,
+      ...shown.flatMap((f) => [...f.lines, f.place.kind === "source" ? f.place.source : null]),
+    ])
+      expect(said.has(s ?? null), String(s)).toBe(true);
+    // the task's record holds the visitor's question and the records' ids and revisions, nothing else to say
+    const task = every.records.taskRecords.find((t) => t.commandId === ASKED);
+    expect(Object.keys(task?.inputVersions[0] ?? {}).sort()).toEqual(["entityId", "revision"]);
+  });
+
+  it("says that the case has no finding on it when its task chose none", () => {
+    const r = readout(askedCase([]), ASKED);
+    expect(r.request).toMatchObject({ question: QUESTION, answered: true, findings: [] });
+  });
+
+  it("drops a chosen record that has moved on since, and keeps the rest", () => {
+    const verdict = versionOf(demo, "branch_338b5acb3a5443b5e287905d70032a91");
+    if (!verdict) throw new Error("the demo case holds no rainfall branch");
+    const r = readout(
+      askedCase([{ ...verdict, revision: verdict.revision + 1 }, "ev_synthetic_need_herd_records"]),
+      ASKED,
+    );
+    expect(r.request?.findings.map((f) => f.lines)).toEqual([
+      ["Herd numbers and routes by season would tell grazing from snow or terrain."],
+    ]);
+  });
+
+  it("says nothing but the question until its task has ended with an answer", () => {
+    expect(readout(demo, ASKED).request).toMatchObject({
+      question: null,
+      answered: false,
+      findings: [],
     });
-    // expanded: every finding, and the row that folds them back
+    expect(
+      readout(askedCase(["branch_338b5acb3a5443b5e287905d70032a91"], "running"), ASKED).request,
+    ).toMatchObject({
+      question: QUESTION,
+      answered: false,
+      findings: [],
+    });
+    expect(
+      readout(askedCase(["branch_338b5acb3a5443b5e287905d70032a91"], "failed"), ASKED).request,
+    ).toMatchObject({
+      answered: false,
+      findings: [],
+    });
+  });
+
+  it("reads only a task that answers from the case's findings: an earlier source-reading task chose nothing", () => {
+    const r = readout(
+      askedCase(["branch_338b5acb3a5443b5e287905d70032a91"], "succeeded", "task_cmd_abc123"),
+      ASKED,
+    );
+    expect(r.request).toMatchObject({ question: null, answered: true, findings: [] });
+    // a command its other tasks answered (the package's, still awaiting review) chose none of the case's findings
+    const pack = only(demo.records.taskRecords, (t) => t.kind === "brief_package", "package task");
+    expect(pack.status).toBe("awaiting_review");
+    expect(readout(demo, pack.commandId).request).toMatchObject({
+      question: null,
+      answered: true,
+      findings: [],
+    });
+    expect(readout(askedCase([]), ASKED).request).not.toBeNull();
+    expect(readout(askedCase([])).request).toBeNull();
+    expect(readout(askedCase([]), null).request).toBeNull();
+  });
+
+  it("shows a longer follow-up's first findings and one row for the rest, then every finding and a row to show fewer", () => {
+    const findings = ["a", "b", "c", "d", "e"];
+    expect(followUpOf(findings, false)).toEqual({
+      shown: ["a", "b"],
+      toggle: "Show all 5 findings",
+    });
     expect(followUpOf(findings, true)).toEqual({ shown: findings, toggle: "Show fewer" });
     // three or fewer: all of them and no row, either way, so a row never hides a single finding
     for (const all of [false, true]) {
@@ -610,6 +727,8 @@ describe("a follow-up request", () => {
         });
       }
     }
+    expect(findingWords({ lines: ["One.", "Two."] })).toBe("One. Two.");
+    expect(findingWords({ lines: null })).toBe("");
   });
 });
 

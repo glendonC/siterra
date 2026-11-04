@@ -4,34 +4,37 @@
 // evidence; the verdicts hold every explanation the answer does not name, each with the merge's status, out of date
 // once its branch moved past the revision the merge scored (CMP-23); the checks to make next are the field plan of the
 // action the merge's plan binds (else the merge's own), each with the pairs of explanations only it tells apart; the
-// reviews are the ones requested of that plan. Nothing here ranks, rewords a host's text or places an explanation on
-// the land: no branch record carries a place.
+// reviews are the ones requested of that plan; a question typed in the Ask heads them with the case's findings its task
+// chose (lib/ask/findings.ts). Nothing here ranks, rewords a host's text or places an explanation on the land: no branch
+// record carries a place.
 
 import type { CaseSnapshot } from "@siterra/contracts";
-import { en, format, type MessageId } from "../copy/en";
+import { chosenFindings, type ChosenFinding } from "../ask/findings";
+import { leadSourcesOf, type LeadSources } from "../ask/leads";
+import { isAskTaskId } from "../ask/task";
 import { rd, rformat, type ReadoutMessageId } from "../copy/readout";
 import { percent } from "../instruments/format";
 import { bandLimitsOf } from "../land/record";
 import { periodOf } from "../land/season";
 import type { Finding } from "../overview/findings";
-import { readableStatement } from "../overview/results";
 import { rangeOfKey } from "../package/bands";
+import { STATUS_ANSWERS, capital, inline, joinLabels } from "./words";
+
+export {
+  datedText,
+  joinLabels,
+  nextWords,
+  periodIdWords,
+  seasonIdWords,
+  sentenceCase,
+  verdictWords,
+} from "./words";
 
 type Records = CaseSnapshot["records"];
 type Merge = NonNullable<Records["branchMergeRecords"]>[number];
 type Action = Records["operationalActionRecords"][number];
 type Measurement = Records["measurementRecords"][number];
 export type BranchStatus = Merge["branches"][number]["status"];
-
-/** A record's own claim kind (an Evidence's, a Measurement source's), as the contracts name the seven. */
-export type ClaimKind =
-  | "observation"
-  | "scientific_context"
-  | "hypothesis"
-  | "model_estimate"
-  | "scenario"
-  | "field_requirement"
-  | "verified_outcome";
 
 export interface ReadoutAnswer {
   /**
@@ -81,6 +84,8 @@ export interface GroundCheck {
    * each pair in the merge's order.
    */
   separates: readonly { a: string; b: string }[];
+  /** The gaps, then the explanations, the check's plan says it settles (their record ids); none without a plan. */
+  rests: readonly string[];
 }
 
 export interface Ground {
@@ -89,10 +94,24 @@ export interface Ground {
   reviews: readonly { id: string; role: string; mode: string }[];
 }
 
-export interface RequestFinding {
+/** A finding a follow-up's task chose: its record's id, and its lines once read (a view's lead is read apart). */
+export interface FollowUpFinding extends ChosenFinding {
   id: string;
-  text: string;
-  claimKind: ClaimKind;
+}
+
+export interface FollowUp {
+  commandId: string;
+  /** The question as the follow-up's task holds it; null until the record holds the task. */
+  question: string | null;
+  /**
+   * True once the record holds the question's outcome: its own task's choice (none, possibly), or, for a command whose
+   * other tasks answered it, those tasks. Until then, and for a task that failed, nothing is said but the question.
+   */
+  answered: boolean;
+  /** The case's findings the question's task chose, in its order (it chooses three at most). */
+  findings: readonly FollowUpFinding[];
+  /** What a chosen view's lead is read from (lib/ask/leads.ts). */
+  leads: LeadSources;
 }
 
 export interface Readout {
@@ -102,97 +121,14 @@ export interface Readout {
   /** The explanations under their verdicts, leaving out the ones the answer already names. */
   verdicts: readonly Verdict[];
   ground: Ground | null;
-  /** A follow-up request's own findings, when opts.commandId names a command: its Evidence (accepted or provisional), newest first. */
-  request: { commandId: string; findings: readonly RequestFinding[] } | null;
+  /** The merge the verdicts come from; null without one. */
+  mergeId: string | null;
+  /** A question typed in the Ask, when opts.commandId names its command: the case's findings its task chose. */
+  request: FollowUp | null;
 }
-
-const MONTH_KEYS = [
-  "jan",
-  "feb",
-  "mar",
-  "apr",
-  "may",
-  "jun",
-  "jul",
-  "aug",
-  "sep",
-  "oct",
-  "nov",
-  "dec",
-] as const;
-
-/** A month's number (1 to 12) as its name; null for any other number. */
-const monthName = (m: number): string | null => {
-  const key = MONTH_KEYS[m - 1];
-  return key ? en[`month.${key}` as MessageId].text : null;
-};
-
-/** A "YYYY-MM" with a month from 01 to 12 as "April 2022"; null for any other text. */
-function monthWords(ym: string): string | null {
-  const [, year, month] = /^(\d{4})-(\d{2})$/.exec(ym) ?? [];
-  const name = month === undefined ? null : monthName(Number(month));
-  return year !== undefined && name ? `${name} ${year}` : null;
-}
-
-/** A season id ("season_2021-11_2022-04") in words: "November 2021 to April 2022"; null unless both are months. */
-export function seasonIdWords(id: string): string | null {
-  const [, start, end] = /^season_(\d{4}-\d{2})_(\d{4}-\d{2})$/.exec(id) ?? [];
-  const from = start === undefined ? null : monthWords(start);
-  const to = end === undefined ? null : monthWords(end);
-  return from && to ? format("season.window", { from, to }) : null;
-}
-
-/** A monthly period id ("period_2022-04") in words ("April 2022"); any other id as written. */
-export function periodIdWords(id: string): string {
-  const month = /^period_(\d{4}-(?:0[1-9]|1[0-2]))$/.exec(id)?.[1];
-  return (month === undefined ? null : monthWords(month)) ?? id;
-}
-
-/** A host's text with its period and season ids shown as dates; every other word is left as written. */
-export function datedText(text: string): string {
-  return text
-    .replace(/\bseason_\d{4}-\d{2}_\d{4}-\d{2}\b/g, (id) => seasonIdWords(id) ?? id)
-    .replace(/\bperiod_\d{4}-\d{2}\b/g, (id) => periodIdWords(id));
-}
-
-/** A label inside a sentence: lower case first unless it reads as an acronym ("MODIS"). */
-const inline = (label: string) =>
-  /^[A-Z][a-z]/.test(label) ? label.charAt(0).toLowerCase() + label.slice(1) : label;
-
-/** Words that start a sentence: the first letter in capitals. */
-const capital = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
 
 /** An explanation id in words, for a branch the record does not hold: "snow_terrain" as "Snow terrain". */
 const idLabel = (id: string) => capital(id.replace(/_/g, " "));
-
-/**
- * A plan's own description in sentence case: the first letter in capitals and every other word in lower case,
- * except a word in capitals or with a figure ("Local Rain Records" as "Local rain records", "MODIS" and "2019" kept).
- */
-export function sentenceCase(text: string): string {
-  return capital(
-    text
-      .split(" ")
-      .map((word) =>
-        /\d/.test(word) || /^[^a-z]*[A-Z][^a-z]*[A-Z][^a-z]*$/.test(word)
-          ? word
-          : word.toLowerCase(),
-      )
-      .join(" "),
-  );
-}
-
-/** Words joined as a list, each as given: "a", "a and b", "a, b and c". */
-function joinWords(words: readonly string[]): string {
-  if (words.length <= 1) return words[0] ?? "";
-  const last = words[words.length - 1] ?? "";
-  return rformat("readout.and", { first: words.slice(0, -1).join(", "), last });
-}
-
-/** Labels joined as words: "Grazing", "Grazing and land use", "Grazing, land use and snow or terrain". */
-export function joinLabels(labels: readonly string[], sentenceStart = true): string {
-  return joinWords(labels.map((l, i) => (i === 0 && sentenceStart ? capital(l) : inline(l))));
-}
 
 /** The one merge the readout binds: the latest by its record's time. */
 export function latestMerge(snapshot: CaseSnapshot): Merge | null {
@@ -290,33 +226,6 @@ function otherShare(
     : undefined;
   return other?.value != null ? { m: other, display: percent(other.value, 1) } : null;
 }
-
-/** An answer made of verdicts, in the order one is chosen; the labels start the sentence except after "Not enough data". */
-const STATUS_ANSWERS: readonly {
-  status: BranchStatus;
-  one: ReadoutMessageId;
-  many: ReadoutMessageId;
-  labelsFirst: boolean;
-}[] = [
-  {
-    status: "consistent",
-    one: "readout.answer.fits.one",
-    many: "readout.answer.fits.many",
-    labelsFirst: true,
-  },
-  {
-    status: "contradicted",
-    one: "readout.answer.doesNotFit.one",
-    many: "readout.answer.doesNotFit.many",
-    labelsFirst: true,
-  },
-  {
-    status: "cannot_be_assessed",
-    one: "readout.answer.open",
-    many: "readout.answer.open",
-    labelsFirst: false,
-  },
-];
 
 /**
  * The answer in one sentence: the long record's measured shares since the first year of their own record, else the
@@ -458,6 +367,7 @@ function groundOf(
             m.stratumKeys.every((k) => stratumRange(k, limits) !== null),
           stratumKeys: m.stratumKeys,
           separates: separatesOf(merge, fieldCheckId, rows),
+          rests: [...m.resolvesGapIds, ...m.discriminatesHypothesisIds],
         };
       })
     : (merge?.fieldPlan?.measurements ?? []).map((m, i) => ({
@@ -468,6 +378,7 @@ function groundOf(
         drawn: false,
         stratumKeys: [],
         separates: separatesOf(merge, m.fieldCheckId, rows),
+        rests: [],
       }));
   // the reviews are the bound plan's own: the ones requested of it
   const reviews = action
@@ -484,30 +395,35 @@ function groundOf(
   return { checks, reviews };
 }
 
-/** A follow-up request's own findings: the Evidence its command's tasks wrote, accepted or provisional, newest first. */
-function requestOf(snapshot: CaseSnapshot, commandId: string): NonNullable<Readout["request"]> {
-  const tasks = new Set(
-    snapshot.records.taskRecords.filter((t) => t.commandId === commandId).map((t) => t.id),
-  );
-  const findings = snapshot.records.evidenceRecords
-    .filter(
-      (e) =>
-        (e.status === "accepted" || e.status === "provisional") &&
-        tasks.has(e.provenance.generatedByTaskId ?? ""),
-    )
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt) || a.id.localeCompare(b.id))
-    .map((e) => ({
-      id: e.id,
-      text: datedText(readableStatement(snapshot, e.statement)),
-      claimKind: e.claimKind,
-    }));
-  return { commandId, findings };
+/**
+ * A question typed in the Ask: the case's findings its task chose (lib/ask/findings.ts chosenFindings), from the
+ * records the task names (Task.inputVersions), each worded again from the record as the column words it. The model's
+ * own words are kept nowhere, so none can be shown.
+ */
+function requestOf(
+  snapshot: CaseSnapshot,
+  commandId: string,
+  column: Parameters<typeof chosenFindings>[1],
+): FollowUp {
+  const tasks = snapshot.records.taskRecords
+    .filter((t) => t.commandId === commandId)
+    .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+  const ask = tasks.filter((t) => isAskTaskId(t.id)).at(-1);
+  const chose = ask?.status === "succeeded" ? ask.inputVersions : [];
+  return {
+    commandId,
+    question: ask?.question ?? null,
+    answered: ask ? ask.status === "succeeded" : tasks.length > 0,
+    findings: chosenFindings(snapshot, column, chose).map((f) => ({ ...f, id: f.key.entityId })),
+    leads: leadSourcesOf(snapshot),
+  };
 }
 
 /**
  * The readout of one case record, with the arc's findings computed from that same record. `limits` are the two
  * elevation band limits the land is drawn with, which decide which checks it can light (the record's own,
- * bandLimitsOf, when left out; null for none); `commandId` names a follow-up request whose own findings it lists.
+ * bandLimitsOf, when left out; null for none); `commandId` names a question typed in the Ask, whose chosen findings
+ * it lists.
  * The band limit's words are no longer read; the parameter stays for the callers.
  */
 export function readoutOf(
@@ -520,36 +436,29 @@ export function readoutOf(
   const explanations = merge ? explanationsOf(snapshot, merge) : null;
   const limits = opts.limits === undefined ? bandLimitsOf(snapshot) : opts.limits;
   const answer = answerOf(snapshot, findings, explanations);
+  const verdicts = verdictsOf(explanations, answer);
+  const ground = groundOf(snapshot, merge, explanations?.rows ?? [], limits);
+  const mergeId = merge?.id ?? null;
   return {
     answer,
     explanations,
-    verdicts: verdictsOf(explanations, answer),
-    ground: groundOf(snapshot, merge, explanations?.rows ?? [], limits),
-    request: opts.commandId ? requestOf(snapshot, opts.commandId) : null,
+    verdicts,
+    ground,
+    mergeId,
+    request: opts.commandId
+      ? requestOf(snapshot, opts.commandId, {
+          answer,
+          verdicts,
+          checks: ground?.checks ?? [],
+          mergeId,
+        })
+      : null,
   };
 }
 
-/**
- * What a check would tell apart, in one sentence: "Local rain records would tell rainfall from grazing."; a check
- * that alone tells nothing apart is named on its own: "Orchard planting years."
- */
-export function nextWords(check: Pick<GroundCheck, "what" | "separates">): string {
-  const what = sentenceCase(check.what);
-  return check.separates.length
-    ? rformat("readout.next.separates", {
-        check: what,
-        pairs: joinWords(check.separates.map((p) => rformat("readout.next.pair", p))),
-      })
-    : rformat("readout.next.check", { check: what });
-}
-
-/** A follow-up's finding as a sentence; a hypothesis or a scenario says so first, since neither states a fact. */
-export function findingWords(f: Pick<RequestFinding, "text" | "claimKind">): string {
-  return f.claimKind === "hypothesis"
-    ? rformat("readout.request.hypothesis", { text: f.text })
-    : f.claimKind === "scenario"
-      ? rformat("readout.request.scenario", { text: f.text })
-      : f.text;
+/** A follow-up's finding as one text: its lines as its view or the column words them, one after another. */
+export function findingWords(f: Pick<FollowUpFinding, "lines">): string {
+  return (f.lines ?? []).join(" ");
 }
 
 /** A follow-up with this many findings or fewer shows them whole; a longer one shows its first ones and a row. */
@@ -560,8 +469,8 @@ const FIRST_FINDINGS = 2;
 
 /**
  * A follow-up's findings as the column shows them, so they never push the rest of the column out of sight: three or
- * fewer whole, with no row (a row never hides a single finding); more than three, the first two in the order the record
- * dates them with one row that shows all of them, and once that row is pressed every finding with a row that shows
+ * fewer whole, with no row (a row never hides a single finding); more than three, the first two in the order its task
+ * chose them with one row that shows all of them, and once that row is pressed every finding with a row that shows
  * fewer.
  */
 export function followUpOf<T>(

@@ -47,7 +47,7 @@ describe("readout catalog", () => {
       "readout.next.pair": { text: "{a} from {b}", kind: "ui" },
       "readout.views.head": { text: "Look closer", kind: "label" },
       "readout.request.head": { text: "Follow-up", kind: "label" },
-      "readout.request.none": { text: "No findings for this question yet.", kind: "ui" },
+      "readout.request.none": { text: "This case has no finding on that yet.", kind: "ui" },
       "readout.key.views": { text: "Look Closer", kind: "heading" },
     };
     for (const [id, msg] of Object.entries(shown)) {
@@ -80,6 +80,9 @@ describe("readout catalog", () => {
       "readout.key.details",
       "readout.review.approve",
       "readout.review.changes",
+      // a typed question's findings are the case's own, worded as the case words them: no kind is named before one
+      "readout.request.hypothesis",
+      "readout.request.scenario",
     ]) {
       expect(id in rd, id).toBe(false);
     }

@@ -44,6 +44,7 @@ export function AtWorkAgentTree({
   reviewRequested = false,
   asked = false,
   stopped = null,
+  chosen = null,
 }: {
   run: RunModel;
   nowMs: number;
@@ -64,6 +65,8 @@ export function AtWorkAgentTree({
   asked?: boolean | undefined;
   /** A question asked from the Ask that was not answered: the status line is this sentence, with no hand-over row. */
   stopped?: string | null | undefined;
+  /** How many of the case's findings a question asked from the Ask chose (lib/ask/task.ts); null for any other run. */
+  chosen?: number | null | undefined;
 }) {
   const nonQueuedTasks = run.tasks.filter((t) => t.state !== "queued");
   const sameStartCounts = new Map<number, number>();
@@ -145,10 +148,14 @@ export function AtWorkAgentTree({
               <span className={styles.thinkingTime} data-chrome="">
                 {format("run.tree.time", { time: seconds(nowMs) })}
               </span>
+              {/* a question asked from the Ask counts the case's findings its answer chose; a run, the ones it wrote */}
               <span className={styles.srOnly} data-run-status>
                 {run.done
-                  ? format("run.findings", { n: run.findings.length, time: seconds(nowMs) })
-                  : format("run.sofar", { n: run.findings.length })}
+                  ? format("run.findings", {
+                      n: chosen ?? run.findings.length,
+                      time: seconds(nowMs),
+                    })
+                  : format("run.sofar", { n: chosen ?? run.findings.length })}
               </span>
             </>
           )}

@@ -1,11 +1,16 @@
-// The words of a question asked from the Ask while its steps are the screen: the key that asks it again with its words
-// kept, and the one sentence that says why it was not answered, from the server's refusal or the failure code its task
-// ends with (lib/overview/ask-line.ts). A sibling of en.ts with the same Message shape and the same lint (ask.test.ts
-// runs it). The quota refusals keep en.ts's own words (work.quotaUsed, work.instanceLimit).
+// The words of a question asked from the Ask while its steps are the screen: its one step, which reads the case's own
+// findings (lib/ask/findings.ts), the key that asks it again with its words kept, and the one sentence that says why
+// it was not answered, from the server's refusal or the failure code its task ends with (lib/overview/ask-line.ts). A
+// sibling of en.ts with the same Message shape and the same lint (ask.test.ts runs it). The quota refusals keep en.ts's
+// own words (work.quotaUsed, work.instanceLimit).
 
 import type { Message } from "./en";
 
 export const ak = {
+  // the question's one step, by name, and what it does
+  "ask.task.title": { text: "Case Findings", kind: "heading" },
+  "ask.task.line": { text: "Reading this case's findings", kind: "label" },
+
   // the key bar on a question that was not answered: the Ask opens again with the question in it
   "ask.key.again": { text: "Ask Again", kind: "button" },
 
@@ -30,6 +35,10 @@ export const ak = {
   },
   "ask.stopped.unmatched": {
     text: "Could not answer: the reply did not match the sources it cited.",
+    kind: "ui",
+  },
+  "ask.stopped.unreadable": {
+    text: "Could not answer: the model's reply could not be read.",
     kind: "ui",
   },
   "ask.stopped.changed": {

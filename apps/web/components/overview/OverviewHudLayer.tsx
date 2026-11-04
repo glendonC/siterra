@@ -11,6 +11,7 @@ import {
   type RefObject,
   type SetStateAction,
 } from "react";
+import { chosenCount } from "../../lib/ask/task";
 import { ak } from "../../lib/copy/ask";
 import { en, format } from "../../lib/copy/en";
 import { rd } from "../../lib/copy/readout";
@@ -616,6 +617,7 @@ export function OverviewHudLayer({
               ? {
                   startedAt: ask.sentAt,
                   stopped: asking.state === "stopped" ? asking.text : null,
+                  chosen: chosenCount(ask.snapshot.records.taskRecords, asking.commandId),
                   onBack: askOpen || panel || scope ? undefined : leaveQuestion,
                 }
               : {})}

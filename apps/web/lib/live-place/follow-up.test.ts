@@ -1,8 +1,9 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { type CaseSnapshot, Evidence, Source, Task } from "@siterra/contracts";
+import { type CaseSnapshot, Task } from "@siterra/contracts";
 import { CommitProposal, EventDraft } from "@siterra/db";
 import { describe, expect, it } from "vitest";
+import { isAskTaskId } from "../ask/task.ts";
 import {
   type ModelCall,
   commandCompletedEvent,
@@ -12,129 +13,77 @@ import {
   followUpTask,
   followUpTaskId,
   noAnswerCode,
-  numbersNotInExcerpt,
   observedFetch,
-  verifiedFindingEvidence,
 } from "./follow-up.ts";
-import type { LlmVerifiedFinding } from "./llm-schema-and-prompt.ts";
 
 const NOW = "2026-11-03T10:00:00.000Z";
 const CASE_ID = "case_follow_up_test";
 const COMMAND_ID = "cmd_follow_up_test";
 const HASH = commandHash(COMMAND_ID);
 const TASK_ID = followUpTaskId(HASH);
-const CTX = {
-  caseId: CASE_ID,
-  geoSelectionId: "geo_follow_up_test",
-  taskId: TASK_ID,
-  hash: HASH,
-  now: NOW,
-};
 
 const seed = JSON.parse(
   readFileSync(
     join(
       import.meta.dirname,
-      "..",
-      "..",
-      "..",
-      "..",
-      "packages",
-      "contracts",
-      "fixtures",
+      ...["..", "..", "..", "..", "packages", "contracts", "fixtures"],
       "case-snapshot-aitbouguemez-seed.json",
     ),
     "utf8",
   ),
 ) as CaseSnapshot;
-const SCI03 = seed.records.sourceRecords.find((s) => s.id === "src_SCI-03") as Source;
 
-// a retrieved source whose notes hold its abstract, at a revision other than 1
-const ABSTRACT =
-  "Upper pastures above 2317 m lost palatable perennial grasses between 2010 and 2020 where grazing pressure rose.";
-const AGDAL = Source.parse({
-  ...SCI03,
-  id: "src_agdal_follow_up_1",
-  revision: 3,
-  title: "Agdal pastures and grazing pressure in the Central High Atlas",
-  notes: [ABSTRACT],
-});
+// the records two chosen findings are built from, in the answer's order: a view's spec and a gap a check settles
+const CHOSEN = [
+  { entityId: "inst_rainfall_scatter_valley", revision: 1 },
+  { entityId: "ev_synthetic_need_herd_records", revision: 1 },
+];
 
-const finding = (f: Partial<LlmVerifiedFinding>): LlmVerifiedFinding => ({
-  statement: ABSTRACT,
-  sourceId: AGDAL.id,
-  exactQuote: ABSTRACT,
-  interpretation: "Grazing is the main driver of the change.",
-  ...f,
-});
+const taskOf = (over: Partial<Parameters<typeof followUpTask>[0]> = {}) =>
+  Task.parse(
+    followUpTask({
+      caseId: CASE_ID,
+      commandId: COMMAND_ID,
+      question: "Does wet-season rainfall explain the greening?",
+      taskId: TASK_ID,
+      hash: HASH,
+      startedAt: NOW,
+      now: NOW,
+      status: "succeeded",
+      failureCode: null,
+      chosen: CHOSEN,
+      ...over,
+    }),
+  );
 
-describe("the findings a follow-up keeps from the model", () => {
-  it("stores nothing for the probe: a title fragment as the excerpt and numbers the excerpt lacks", () => {
-    const probe = {
-      statement:
-        "Grazing pressure on the upper slopes doubled between 2010 and 2023, removing 45% of palatable cover.",
-      sourceId: "src_SCI-03",
-      exactQuote: SCI03.title.slice(0, 40),
-      interpretation: "Grazing is the main driver of the change.",
-    };
-    expect(verifiedFindingEvidence([probe], [SCI03], CTX)).toEqual([]);
-    // with an excerpt that is in the notes, the statement still holds 2010, 2023 and 45 that the excerpt lacks
-    const inNotes = { ...probe, exactQuote: SCI03.notes[0] ?? "" };
-    expect(numbersNotInExcerpt(probe.statement, inNotes.exactQuote)).toEqual([
-      "2010",
-      "2023",
-      "45%",
-    ]);
-    expect(verifiedFindingEvidence([inNotes], [SCI03], CTX)).toEqual([]);
+describe("the follow-up's task", () => {
+  it("is the question's one task, named by its command, and the steps know it by its id", () => {
+    expect(TASK_ID).toBe(`task_ask_${HASH}`);
+    expect(HASH).toMatch(/^[0-9a-f]{6}$/);
+    expect(isAskTaskId(TASK_ID)).toBe(true);
   });
 
-  it("refuses a statement with any number its excerpt lacks, dates included", () => {
-    expect(numbersNotInExcerpt("Grasses declined above 2,317 m after 2010.", ABSTRACT)).toEqual([]);
-    expect(numbersNotInExcerpt("Grasses declined in 2010-04.", ABSTRACT)).toEqual(["04"]);
-    const refused = finding({ statement: "Palatable grasses fell by 30% above 2317 m." });
-    expect(verifiedFindingEvidence([refused], [AGDAL], CTX)).toEqual([]);
-  });
-
-  it("keeps a paraphrase as provisional and unverified, with no interpretation and the source's own revision", () => {
-    const [ev] = verifiedFindingEvidence(
-      [finding({ statement: "Grazing pressure rose on the upper pastures above 2317 m." })],
-      [AGDAL],
-      CTX,
-    );
-    expect(Evidence.parse(ev)).toMatchObject({
-      id: `ev_llm_${HASH}_1`,
-      claimKind: "scientific_context",
-      status: "provisional",
-      interpretation: null,
-      provenance: {
-        verificationStatus: "unverified",
-        generatedByTaskId: TASK_ID,
-        inputVersions: [{ entityId: AGDAL.id, revision: 3 }],
-        sourceLocators: [{ sourceId: AGDAL.id, locator: "verified excerpt", excerpt: ABSTRACT }],
-      },
+  it("names the chosen findings' records as what its answer rests on, in the answer's order, and writes none", () => {
+    expect(taskOf()).toMatchObject({
+      kind: "source_research",
+      question: "Does wet-season rainfall explain the greening?",
+      status: "succeeded",
+      inputVersions: CHOSEN,
+      allowedTools: ["read_case", "read_evidence"],
+      outputEntityIds: [],
+      maxModelRounds: 1,
+      failureCode: null,
     });
+    // a record named twice is named once, where it was first named
+    expect(taskOf({ chosen: [...CHOSEN, ...CHOSEN.slice(0, 1)] }).inputVersions).toEqual(CHOSEN);
   });
 
-  it("accepts as source-checked only a statement quoted word for word from its excerpt", () => {
-    const [ev] = verifiedFindingEvidence(
-      [finding({ statement: "upper pastures above 2317 m lost palatable perennial grasses" })],
-      [AGDAL],
-      CTX,
-    );
-    expect(Evidence.parse(ev)).toMatchObject({
-      status: "accepted",
-      interpretation: null,
-      provenance: { verificationStatus: "source_checked" },
+  it("records a failure with its cause", () => {
+    expect(taskOf({ status: "failed", failureCode: "http_503", chosen: [] })).toMatchObject({
+      status: "failed",
+      failureCode: "http_503",
+      inputVersions: [],
     });
-  });
-
-  it("drops a finding whose source the model was not given, or whose excerpt is not in the source's notes", () => {
-    expect(verifiedFindingEvidence([finding({ sourceId: "src_not_given" })], [AGDAL], CTX)).toEqual(
-      [],
-    );
-    expect(verifiedFindingEvidence([finding({ exactQuote: AGDAL.title })], [AGDAL], CTX)).toEqual(
-      [],
-    );
   });
 });
 
@@ -152,11 +101,11 @@ describe("the model call as its transport reported it", () => {
     expect(noAnswerCode(timedOut.report())).toBe("model_timeout");
 
     expect(noAnswerCode({ httpStatus: null, error: "TypeError" })).toBe("model_unreachable");
-    expect(noAnswerCode({ httpStatus: 200, error: null })).toBe("validation_rejected");
+    expect(noAnswerCode({ httpStatus: 200, error: null })).toBe("reply_unreadable");
   });
 });
 
-describe("the records and events of a follow-up", () => {
+describe("the events of a follow-up", () => {
   const call: ModelCall = {
     model: "muse-spark-1.3",
     startedAt: NOW,
@@ -169,47 +118,23 @@ describe("the records and events of a follow-up", () => {
     commandId: COMMAND_ID,
     taskId: TASK_ID,
     placeName: "Imlil",
-    liveSearch: false,
     startedAt: NOW,
     now: NOW,
   };
 
-  it("records a failed task with its cause, and the model call with no price it was not given", () => {
-    const task = Task.parse(
-      followUpTask({
-        caseId: CASE_ID,
-        commandId: COMMAND_ID,
-        question: "Why did the upper slopes stay green in 2023?",
-        taskId: TASK_ID,
-        hash: HASH,
-        startedAt: NOW,
-        now: NOW,
-        status: "failed",
-        failureCode: "http_503",
-        evidenceIds: [],
-        inputVersions: [],
-      }),
-    );
-    expect(task).toMatchObject({
-      kind: "source_research",
-      status: "failed",
-      failureCode: "http_503",
-    });
-
+  it("says what the task did in host words, with the model call and no price it was not given", () => {
     const drafts = followUpEvents({
       ...base,
       status: "failed",
       failureCode: "http_503",
       call,
-      sourceIds: [],
-      acceptedIds: [],
-      provisionalIds: [],
+      chosen: 0,
     }).map((d) => EventDraft.parse(d));
     expect(drafts.map((d) => [d.kind, d.message])).toEqual([
-      ["task.started", "Reading the case's stored sources for Imlil."],
+      ["task.started", "Reading the case's findings for Imlil."],
       ["model.started", "Model call to muse-spark-1.3 (Model API) started."],
       ["model.completed", "Model call to muse-spark-1.3 (Model API) failed with http_503."],
-      ["case.committed", "Committed 0 sources and 0 evidence records for Imlil."],
+      ["case.committed", "Committed the question's task for Imlil."],
       ["task.failed", "Source research task failed: http_503."],
     ]);
     expect(drafts[2]?.usage).toMatchObject({
@@ -229,27 +154,27 @@ describe("the records and events of a follow-up", () => {
     });
   });
 
-  it("lists only its own records, and counts accepted items apart from provisional paraphrases", () => {
-    const drafts = followUpEvents({
+  it("commits only its task, and counts the findings its answer rests on, or says it found none", () => {
+    const answered = { ...call, answered: true, transport: { httpStatus: 200, error: null } };
+    const two = followUpEvents({
       ...base,
       status: "succeeded",
       failureCode: null,
-      call: { ...call, answered: true, transport: { httpStatus: 200, error: null } },
-      sourceIds: ["src_oa_abc123_1"],
-      acceptedIds: ["ev_gov_abc123_1"],
-      provisionalIds: ["ev_llm_abc123_1", "ev_llm_abc123_2"],
-    }).map((d) => EventDraft.parse(d));
-    const committed = drafts.find((d) => d.kind === "case.committed");
-    expect(committed?.entityIds).toEqual([
-      "src_oa_abc123_1",
-      "ev_gov_abc123_1",
-      "ev_llm_abc123_1",
-      "ev_llm_abc123_2",
-      TASK_ID,
-    ]);
-    expect(drafts.find((d) => d.kind === "model.completed")?.usage?.status).toBe("succeeded");
-    expect(drafts.at(-1)?.message).toBe(
-      "Source research task accepted 1 item and kept 2 paraphrases as provisional.",
+      call: answered,
+      chosen: 2,
+    });
+    expect(two.find((d) => d.kind === "case.committed")?.entityIds).toEqual([TASK_ID]);
+    expect(two.find((d) => d.kind === "model.completed")?.usage?.status).toBe("succeeded");
+    expect(two.at(-1)?.message).toBe("Source research task chose 2 findings of the case.");
+    const none = followUpEvents({
+      ...base,
+      status: "succeeded",
+      failureCode: null,
+      call: answered,
+      chosen: 0,
+    });
+    expect(none.at(-1)?.message).toBe(
+      "Source research task found no finding of the case that answers the question.",
     );
   });
 
@@ -259,30 +184,15 @@ describe("the records and events of a follow-up", () => {
       status: "failed",
       failureCode: "model_not_configured",
       call: null,
-      sourceIds: [],
-      acceptedIds: [],
-      provisionalIds: [],
+      chosen: 0,
     }).map((d) => d.kind);
     expect(kinds).toEqual(["case.committed", "task.failed"]);
   });
+});
 
-  it("proposes one commit at the revision it read, leaving the case's fields as they were", () => {
-    const task = followUpTask({
-      caseId: seed.case.id,
-      commandId: COMMAND_ID,
-      question: "q",
-      taskId: TASK_ID,
-      hash: HASH,
-      startedAt: NOW,
-      now: NOW,
-      status: "succeeded",
-      failureCode: null,
-      evidenceIds: [],
-      inputVersions: [
-        { entityId: "src_SCI-03", revision: 1 },
-        { entityId: "src_SCI-03", revision: 1 },
-      ],
-    });
+describe("the follow-up's commit", () => {
+  it("is proposed at the revision it read, resting on the chosen records, leaving the case's fields as they were", () => {
+    const task = taskOf({ caseId: seed.case.id });
     const commit = CommitProposal.parse(
       followUpCommit({
         id: "commit_follow_up_test",
@@ -293,21 +203,23 @@ describe("the records and events of a follow-up", () => {
         inputVersions: task.inputVersions,
         upserts: [task],
         events: followUpEvents({
-          ...base,
+          commandId: COMMAND_ID,
+          taskId: TASK_ID,
+          placeName: "Imlil",
+          startedAt: NOW,
+          now: NOW,
           status: "succeeded",
           failureCode: null,
           call: null,
-          sourceIds: [],
-          acceptedIds: [],
-          provisionalIds: [],
+          chosen: CHOSEN.length,
         }),
       }),
     );
-    expect(task.inputVersions).toEqual([{ entityId: "src_SCI-03", revision: 1 }]);
     expect(commit).toMatchObject({
       expectedCaseRevision: seed.case.revision,
       newCaseRevision: seed.case.revision + 1,
-      inputVersions: [{ entityId: "src_SCI-03", revision: 1 }],
+      inputVersions: CHOSEN,
+      upserts: [task],
       caseAfter: { ...seed.case, revision: seed.case.revision + 1, updatedAt: NOW },
     });
   });

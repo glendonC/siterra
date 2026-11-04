@@ -282,6 +282,10 @@ describe("the words for a failure code", () => {
     expect(words("validation_rejected")).toBe(
       "Could not answer: the reply did not match the sources it cited.",
     );
+    // a reply that is not the object the question asked for has its own words
+    expect(words("reply_unreadable")).toBe(
+      "Could not answer: the model's reply could not be read.",
+    );
     expect(words("stale_inputs")).toBe(
       "Could not answer: a source changed while it was being read.",
     );

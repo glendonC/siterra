@@ -1,23 +1,23 @@
-import { readFileSync } from "node:fs";
-import type { Command, Evidence, Source } from "@siterra/contracts";
+import { readFile } from "node:fs/promises";
+import type { CaseSnapshot, Command, EntityVersion } from "@siterra/contracts";
 import {
+  type CaseAssetFile,
   type Pool,
   appendEvents,
   applyCommit,
   inTransaction,
   isCancelRequested,
+  readInstruments,
   readSnapshot,
+  resolveBundleAsset,
+  resolveCaseAsset,
   setCommandStatus,
 } from "@siterra/db";
 import { newId } from "@siterra/domain";
-import {
-  type HistoricalClimateSummary,
-  MIN_COMPLETE_YEARS,
-  OPEN_METEO_SOURCE,
-  computeStatsFromAnnual,
-  unavailableClimate,
-} from "../../../../../../../lib/live-place/climate-series.ts";
-import { fetchRegionalContextAndGovernance } from "../../../../../../../lib/live-place/context-fetcher.ts";
+import { caseFindings, type ViewLeads } from "../../../../../../../lib/ask/findings.ts";
+import { leadSourcesOf, loadViewLeads } from "../../../../../../../lib/ask/leads.ts";
+import { selectFindings } from "../../../../../../../lib/ask/select.ts";
+import { bandLimitsOf } from "../../../../../../../lib/land/record.ts";
 import {
   type FollowUpStatus,
   type ModelCall,
@@ -29,59 +29,16 @@ import {
   followUpTaskId,
   noAnswerCode,
   observedFetch,
-  verifiedFindingEvidence,
 } from "../../../../../../../lib/live-place/follow-up.ts";
-import { fetchGovernmentPolicyAndOpenAccess } from "../../../../../../../lib/live-place/government-policy-fetcher.ts";
-import { fetchOpenAlexSources } from "../../../../../../../lib/live-place/literature.ts";
-import { terrainCachePath } from "../../../../../../../lib/live-place/terrain-builder.ts";
-import {
-  reasonOverCaseWithLlm,
-  resolveLlmConfig,
-} from "../../../../../../../lib/live-place/llm-reasoner.ts";
+import { resolveLlmConfig } from "../../../../../../../lib/live-place/llm-reasoner.ts";
+import { findingsFrom } from "../../../../../../../lib/overview/findings.ts";
+import { readoutOf } from "../../../../../../../lib/readout/readout.ts";
+import { bundlesDir } from "../../../../../bundles-dir.ts";
 import { database } from "../../../../../database.ts";
 import { json, problem } from "../../../../../problem.ts";
 import { fromApplicationOrigin, requestSession } from "../../../../../session.ts";
 
 export const dynamic = "force-dynamic";
-
-/** The elevation span of the place's terrain grid, or null when no terrain file is cached for the case. */
-function terrainSpan(caseId: string): { minElevationM: number; maxElevationM: number } | null {
-  try {
-    const t = JSON.parse(readFileSync(terrainCachePath(caseId), "utf8")) as {
-      minElevationM?: unknown;
-      maxElevationM?: unknown;
-    };
-    return typeof t.minElevationM === "number" && typeof t.maxElevationM === "number"
-      ? { minElevationM: t.minElevationM, maxElevationM: t.maxElevationM }
-      : null;
-  } catch {
-    return null;
-  }
-}
-
-/**
- * The rainfall series as the case record holds it: only available yearly precipitation values, with
- * the trend recomputed from them. Vegetation is not measured for live places, so none is passed on.
- */
-function extractClimateFromSnapshot(
-  measurements: ReadonlyArray<{
-    metric: string;
-    value: number | null;
-    periodId: string;
-    status: string;
-  }>,
-): HistoricalClimateSummary {
-  const rain = measurements.filter(
-    (m) => m.metric === "precipitation_annual_mm" && m.status === "available" && m.value !== null,
-  );
-  const years = rain
-    .map((m) => ({ year: Number(m.periodId.slice(7, 11)), precipMm: m.value ?? 0, et0Mm: null }))
-    .filter((r) => Number.isInteger(r.year))
-    .sort((a, b) => a.year - b.year);
-  return years.length < MIN_COMPLETE_YEARS
-    ? unavailableClimate(`the case record holds ${String(years.length)} rainfall years`)
-    : computeStatsFromAnnual(years, OPEN_METEO_SOURCE);
-}
 
 /**
  * Takes the command for this route: still accepted, of a case the session owns, and with no plan job handed to the
@@ -117,9 +74,49 @@ async function claimCommand(
 }
 
 /**
- * Completes a follow-up question the client sends after its command is accepted: claims the command, reads (with
- * live search, also retrieves) sources, asks the model, keeps only what its checks allow, and commits the outcome
- * under one source research task (lib/live-place/follow-up.ts). It never writes a branch, merge or brief.
+ * The bundle files the views' leads are read from (lib/ask/leads.ts), served from the bundles folder as the read API
+ * serves them: a case asset by its bundle, content hash and path, or a bundle asset of the case by its key, each only
+ * when its bytes match the checksum its bundle's collection lists. Any other address is not found.
+ */
+function bundleFiles(dir: string, snap: CaseSnapshot): typeof globalThis.fetch {
+  const fileOf = (path: readonly string[]): CaseAssetFile | null => {
+    if (path[0] !== "api") return null;
+    if (path[1] === "case-assets") {
+      const [bundleId = "", contentHash = "", ...rest] = path.slice(2);
+      return resolveCaseAsset(dir, { bundleId, contentHash, assetPath: rest.join("/") });
+    }
+    if (path[1] !== "cases" || path[3] !== "bundles" || path[5] !== "assets") return null;
+    const bundle = snap.records.dataBundleRecords.find(
+      (b) => b.id === path[4] && b.status === "validated",
+    );
+    if (!bundle?.contentHash) return null;
+    const found = resolveBundleAsset(dir, {
+      bundleId: bundle.id,
+      contentHash: bundle.contentHash,
+      assetKey: path[6] ?? "",
+    });
+    return found.status === "available" ? found.file : null;
+  };
+  return async (input) => {
+    const href = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
+    const path = new URL(href, "http://bundles.invalid").pathname
+      .split("/")
+      .slice(1)
+      .map(decodeURIComponent);
+    const file = fileOf(path);
+    if (file === null) return new Response(null, { status: 404 });
+    return new Response(await readFile(file.absolutePath), {
+      status: 200,
+      headers: { "Content-Type": file.contentType, ETag: `"${file.checksum}"` },
+    });
+  };
+}
+
+/**
+ * Completes a question typed in the Ask once its command is accepted: claims the command, lists the case's own
+ * findings (lib/ask/findings.ts), asks the model once which of them answer the question (lib/ask/select.ts), and
+ * commits one task that names the chosen findings' records in the answer's order (lib/live-place/follow-up.ts). It
+ * writes no Source, Evidence, branch, merge or brief, and keeps nothing the model writes.
  */
 export async function POST(
   request: Request,
@@ -129,15 +126,6 @@ export async function POST(
   const session = fromApplicationOrigin(request) ? await requestSession(request) : null;
   if (session === null) {
     return problem(401, "unauthenticated");
-  }
-
-  // web search is P1 and billed per query: only an explicit true turns it on
-  let liveSearch = false;
-  try {
-    const body = (await request.json()) as { liveSearch?: unknown } | null;
-    liveSearch = body?.liveSearch === true;
-  } catch {
-    // no body, or not JSON: no live search
   }
 
   const db = database();
@@ -150,7 +138,7 @@ export async function POST(
     return json({ status: "skipped" }, 200);
   }
   try {
-    return await complete(db, { caseId, command, ownerScopeId: session.ownerScopeId, liveSearch });
+    return await complete(db, { caseId, command, ownerScopeId: session.ownerScopeId });
   } catch {
     // a claimed command never stays running: it ends failed, so the ask stops waiting for it
     await setCommandStatus(db, commandId, "failed", []);
@@ -163,68 +151,40 @@ export async function POST(
 
 async function complete(
   db: Pool,
-  args: { caseId: string; command: Command; ownerScopeId: string; liveSearch: boolean },
+  args: { caseId: string; command: Command; ownerScopeId: string },
 ): Promise<Response> {
-  const { caseId, command, liveSearch } = args;
+  const { caseId, command } = args;
   const commandId = command.id;
   const startedAt = new Date().toISOString();
   const snap = await readSnapshot(db, caseId, args.ownerScopeId);
   if (!snap) {
     throw new Error(`Case ${caseId} is not readable`);
   }
-
   const placeName = snap.case.place?.name ?? snap.case.title;
-  const regionName = snap.case.place?.region ?? "";
-  const geoId =
-    snap.case.activeGeoSelectionId ?? snap.records.geoSelectionRecords[0]?.id ?? `geo_${caseId}`;
-  const outlet = (snap.records.contextFeatureRecords ?? []).find((f) => f.role === "outlet");
-  const coords = outlet?.geometry.type === "Point" ? outlet.geometry.coordinates : [-6.42, 31.66];
-  const lon = coords[0] ?? -6.42;
-  const lat = coords[1] ?? 31.66;
+  const hash = commandHash(commandId);
+  const taskId = followUpTaskId(hash);
 
-  const cmdHash = commandHash(commandId);
-  const slug =
-    placeName
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "_")
-      .replace(/^_+|_+$/g, "")
-      .slice(0, 16) || "place";
-  const taskId = followUpTaskId(cmdHash);
-
-  /** Commits the outcome (a task that did not succeed keeps nothing it found), then ends the command. */
+  /** Commits the task with its outcome (a task that did not succeed names no record), then ends the command. */
   const finish = async (outcome: {
     status: FollowUpStatus;
     failureCode?: string;
     call?: ModelCall;
-    sources?: Source[];
-    evidence?: Evidence[];
+    chosen?: readonly EntityVersion[];
   }): Promise<Response> => {
     const now = new Date().toISOString();
-    const kept = outcome.status === "succeeded" ? (outcome.evidence ?? []) : [];
-    const keptSources = outcome.status === "succeeded" ? (outcome.sources ?? []) : [];
-    // the case's own records the kept Evidence rests on, at the revisions read; the new Sources are written here
-    const held = new Map(snap.records.sourceRecords.map((s) => [s.id, s.revision]));
-    const inputs = kept
-      .flatMap((e) => e.provenance.inputVersions)
-      .filter((v) => held.get(v.entityId) === v.revision);
-    const record = (
-      status: FollowUpStatus,
-      failureCode: string | null,
-      sources: Source[],
-      evidence: Evidence[],
-    ) => {
+    const record = (status: FollowUpStatus, failureCode: string | null) => {
+      const chosen = status === "succeeded" ? (outcome.chosen ?? []) : [];
       const task = followUpTask({
         caseId,
         commandId,
         question: command.text,
         taskId,
-        hash: cmdHash,
+        hash,
         startedAt,
         now,
         status,
         failureCode,
-        evidenceIds: evidence.map((e) => e.id),
-        inputVersions: evidence.length > 0 ? inputs : [],
+        chosen,
       });
       return followUpCommit({
         id: newId("commit"),
@@ -233,33 +193,27 @@ async function complete(
         taskId,
         now,
         inputVersions: task.inputVersions,
-        upserts: [task, ...sources, ...evidence],
+        upserts: [task],
         events: followUpEvents({
           commandId,
           taskId,
           placeName,
-          liveSearch,
           startedAt,
           now,
           status,
           failureCode,
           call: outcome.call ?? null,
-          sourceIds: sources.map((s) => s.id),
-          acceptedIds: evidence.filter((e) => e.status === "accepted").map((e) => e.id),
-          provisionalIds: evidence.filter((e) => e.status !== "accepted").map((e) => e.id),
+          chosen: chosen.length,
         }),
       });
     };
 
     let status = outcome.status;
-    let committed = await applyCommit(
-      db,
-      record(status, outcome.failureCode ?? null, keptSources, kept),
-    );
+    let committed = await applyCommit(db, record(status, outcome.failureCode ?? null));
     if (committed.status === "stale") {
-      // a Source the Evidence cites changed after it was read: none of this answer is kept, and the task says why
+      // a record a chosen finding is built from changed after it was read: the answer is not kept, and the task says why
       status = "failed";
-      committed = await applyCommit(db, record(status, "stale_inputs", [], []));
+      committed = await applyCommit(db, record(status, "stale_inputs"));
     }
     if (committed.status === "stale" || committed.status === "not_found") {
       throw new Error(`The follow-up commit was ${committed.status}`);
@@ -283,100 +237,43 @@ async function complete(
   }
   const config = resolveLlmConfig();
   if (config === null) {
-    // no live search either: its results could only be read by the model
     return finish({ status: "failed", failureCode: "model_not_configured" });
   }
 
-  const newlyFetchedSources: Source[] = [];
-  const newlyCreatedEvidence: Evidence[] = [];
-  if (liveSearch) {
-    try {
-      const existingTitles = snap.records.sourceRecords.map((s) => s.title);
-      const queryText = `${placeName} ${command.text.slice(0, 70)}`;
-      const [oaSources, regCtx, govPolicy] = await Promise.all([
-        fetchOpenAlexSources(caseId, `${slug}_q`, cmdHash, queryText, regionName, startedAt),
-        fetchRegionalContextAndGovernance({
-          caseId,
-          slug: `${slug}_q`,
-          hash6: cmdHash,
-          lon,
-          lat,
-          placeName,
-          regionName,
-          geoId,
-          now: startedAt,
-          existingSourceTitles: existingTitles,
-        }),
-        fetchGovernmentPolicyAndOpenAccess({
-          caseId,
-          slug: `${slug}_q`,
-          hash6: cmdHash,
-          placeName,
-          regionName,
-          geoId,
-          now: startedAt,
-          question: command.text,
-          existingSourceTitles: existingTitles,
-        }),
-      ]);
-      // each record once, and none the case already holds: a commit writes an entity at most once
-      const seen = new Set([
-        ...snap.records.sourceRecords.map((s) => s.id),
-        ...snap.records.evidenceRecords.map((e) => e.id),
-      ]);
-      const fresh = <T extends { id: string }>(records: readonly T[]): T[] => {
-        const kept: T[] = [];
-        for (const r of records) {
-          if (seen.has(r.id)) continue;
-          seen.add(r.id);
-          kept.push(r);
-        }
-        return kept;
-      };
-      newlyFetchedSources.push(
-        ...fresh([
-          ...oaSources.filter((s) => s.sourceKind === "peer_reviewed").slice(0, 2),
-          ...regCtx.contextSources.slice(0, 2),
-          ...govPolicy.sources.slice(0, 3),
-        ]),
-      );
-      // retrieved by this follow-up's task, so credited to it
-      newlyCreatedEvidence.push(
-        ...fresh([...regCtx.contextEvidence.slice(0, 2), ...govPolicy.evidence.slice(0, 2)]).map(
-          (e) => ({ ...e, provenance: { ...e.provenance, generatedByTaskId: taskId } }),
-        ),
-      );
-    } catch {
-      // Non-fatal if offline
-    }
-    if (await isCancelRequested(db, commandId)) {
-      return finish({ status: "cancelled" });
-    }
+  // the case's findings, worded as its answer column and its views word them; a view is read from the case's own
+  // bundles, and none is offered without the bundles folder
+  const dir = bundlesDir();
+  const listing = await readInstruments(db, {
+    caseId,
+    ownerScopeId: args.ownerScopeId,
+    bundlesDir: dir,
+  });
+  const column = readoutOf(snap, listing ? findingsFrom(snap, listing).findings : [], "", {
+    limits: bandLimitsOf(snap),
+  });
+  const leads: ViewLeads =
+    listing && dir ? await loadViewLeads(leadSourcesOf(snap), listing, bundleFiles(dir, snap)) : {};
+  const findings = caseFindings(
+    snap,
+    {
+      answer: column.answer,
+      verdicts: column.verdicts,
+      checks: column.ground?.checks ?? [],
+      mergeId: column.mergeId,
+    },
+    leads,
+  );
+  // nothing to choose from: no model call, and the answer is that the case holds no finding yet
+  if (findings.length === 0) {
+    return finish({ status: "succeeded", chosen: [] });
   }
-
-  const allSources: Source[] = [...newlyFetchedSources, ...snap.records.sourceRecords];
-  const bandLimitMeas = snap.records.measurementRecords.find(
-    (m) => m.metric === "elevation_band_limit" && typeof m.value === "number",
-  );
-  const areaMeas = snap.records.measurementRecords.find(
-    (m) => m.metric === "drainage_outlet_upstream_area" && typeof m.value === "number",
-  );
-  const span = terrainSpan(caseId);
 
   const transport = observedFetch((input, init) => globalThis.fetch(input, init));
   const callStart = Date.now();
-  const llmResult = await reasonOverCaseWithLlm({
-    placeName,
-    regionName,
-    lon,
-    lat,
-    minElevationM: span?.minElevationM ?? null,
-    maxElevationM: span?.maxElevationM ?? null,
-    ...(typeof bandLimitMeas?.value === "number" ? { bandLimitM: bandLimitMeas.value } : {}),
-    ...(typeof areaMeas?.value === "number" ? { areaKm2: areaMeas.value } : {}),
-    climate: extractClimateFromSnapshot(snap.records.measurementRecords),
-    sources: allSources,
+  const chosen = await selectFindings({
     question: command.text,
+    placeName,
+    findings,
     config,
     fetchImpl: transport.fetch,
   });
@@ -386,28 +283,15 @@ async function complete(
     startedAt: new Date(callStart).toISOString(),
     endedAt: new Date(callEnd).toISOString(),
     durationMs: callEnd - callStart,
-    answered: llmResult !== null,
+    answered: chosen !== null,
     transport: transport.report(),
   };
 
   if (await isCancelRequested(db, commandId)) {
     return finish({ status: "cancelled", call });
   }
-  if (llmResult === null) {
+  if (chosen === null) {
     return finish({ status: "failed", failureCode: noAnswerCode(call.transport), call });
   }
-  // the model's causes and summary are written nowhere; its findings only as the checks allow
-  const found = verifiedFindingEvidence(llmResult.verifiedFindings, allSources, {
-    caseId,
-    geoSelectionId: geoId,
-    taskId,
-    hash: cmdHash,
-    now: call.endedAt,
-  });
-  return finish({
-    status: "succeeded",
-    call,
-    sources: newlyFetchedSources,
-    evidence: [...newlyCreatedEvidence, ...found],
-  });
+  return finish({ status: "succeeded", call, chosen: chosen.map((f) => f.key) });
 }

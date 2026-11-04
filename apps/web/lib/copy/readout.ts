@@ -42,12 +42,10 @@ export const rd = {
   // the views, each one key away
   "readout.views.head": { text: "Look closer", kind: "label" },
 
-  // a follow-up the visitor asked: its findings, the kinds that state no fact named before them
+  // a question the visitor typed: the case's findings that answer it, or that the case has none on it yet
   "readout.request.head": { text: "Follow-up", kind: "label" },
-  "readout.request.none": { text: "No findings for this question yet.", kind: "ui" },
-  "readout.request.hypothesis": { text: "Hypothesis: {text}", kind: "ui" },
-  "readout.request.scenario": { text: "Scenario: {text}", kind: "ui" },
-  // the row under the first three findings, and the same row once all of them show
+  "readout.request.none": { text: "This case has no finding on that yet.", kind: "ui" },
+  // the row under the first findings of a longer follow-up, and the same row once all of them show
   "readout.request.all": { text: "Show all {n} findings", kind: "ui" },
   "readout.request.fewer": { text: "Show fewer", kind: "ui" },
 

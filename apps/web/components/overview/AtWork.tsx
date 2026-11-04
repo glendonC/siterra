@@ -130,6 +130,7 @@ export function AtWork({
   reviewRequested = false,
   startedAt,
   stopped = null,
+  chosen = null,
   onBack,
 }: {
   /** Opens the run's findings drawer once the investigation is complete. */
@@ -170,6 +171,8 @@ export function AtWork({
   startedAt?: number | undefined;
   /** A question asked from the Ask that was not answered: the sentence that says why (lib/overview/ask-line.ts). */
   stopped?: string | null | undefined;
+  /** How many of the case's findings a question asked from the Ask chose (lib/ask/task.ts); null for any other run. */
+  chosen?: number | null | undefined;
   /** A question asked from the Ask: Esc leaves its steps for the answer (asking a question still at work to stop). */
   onBack?: (() => void) | undefined;
 }) {
@@ -431,6 +434,7 @@ export function AtWork({
         reviewRequested={reviewRequested}
         asked={startedAt !== undefined}
         stopped={stopped}
+        chosen={chosen}
       />
 
       <AtWorkCursors

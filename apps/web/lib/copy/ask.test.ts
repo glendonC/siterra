@@ -39,4 +39,9 @@ describe("ask catalog", () => {
   it("names the key that asks again by what it does", () => {
     expect(ak["ask.key.again"]).toEqual({ text: "Ask Again", kind: "button" });
   });
+
+  it("names the question's one step by what it reads", () => {
+    expect(ak["ask.task.title"]).toEqual({ text: "Case Findings", kind: "heading" });
+    expect(ak["ask.task.line"]).toEqual({ text: "Reading this case's findings", kind: "label" });
+  });
 });

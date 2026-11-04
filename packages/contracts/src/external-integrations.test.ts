@@ -31,7 +31,7 @@ const allowedOutbound: Record<string, string> = {
   "apps/web/app/api/geocode/route.ts":
     "the globe's place search: read-only GET lookups at Open-Meteo geocoding and OpenStreetMap Nominatim with the typed name, or at Nominatim's reverse geocoding with the chosen coordinates; nothing is posted, published or messaged",
   "apps/web/app/api/cases/[caseId]/commands/[commandId]/complete/route.ts":
-    "a follow-up question's model call to the configured model endpoint (lib/live-place/llm-reasoner.ts), wrapped by observedFetch so the call's transport is recorded on the command; it posts the question with the case's context to that endpoint alone, and nothing is published or messaged",
+    "a typed question's one call to the configured model endpoint, made by lib/ask/select.ts (selectFindings) over globalThis.fetch wrapped by observedFetch so what the transport reported is recorded with the question's task (its events and failure code); it posts the question and the case's own findings under short ids to that endpoint alone and keeps only the ids it chose; nothing is published or messaged",
 };
 
 function walk(dir: string, keep: (path: string) => boolean): string[] {

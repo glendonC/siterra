@@ -1,19 +1,32 @@
 "use client";
 
 // The answer (UI-2): one sheet that needs no click to be understood. The question; the answer in one sentence; then
-// one grid of a label and its content: each verdict with the explanations the answer does not already name, the checks
-// that would tell them apart, the views each one key away, and the review the plan asks for. Every word is a record
-// field or a catalog word around one (lib/readout/readout.ts), and the land shows the claim's own sheet
-// (lib/readout/proof.ts). No explanation is drawn on the land (CMP-23).
+// one grid of a label and its content: a question typed in the Ask with the case's findings that answer it, each verdict
+// with the explanations the answer does not already name, the checks that would tell them apart, the views each one key
+// away, and the review the plan asks for. Every word is a record field or a catalog word around one
+// (lib/readout/readout.ts), a chosen view's lead is its view's own (lib/ask/leads.ts), and the land shows the claim's
+// own sheet (lib/readout/proof.ts). No explanation is drawn on the land (CMP-23).
 
-import { Fragment, useEffect, useRef, useState, type CSSProperties, type RefObject } from "react";
+import {
+  Fragment,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type RefObject,
+} from "react";
+import type { LeadView, ViewLeads } from "../../lib/ask/findings";
+import { loadViewLeads, type LeadSources } from "../../lib/ask/leads";
 import { en } from "../../lib/copy/en";
 import { rd } from "../../lib/copy/readout";
+import { loadInstruments } from "../../lib/instruments/listing";
+import { VIEW_LABEL } from "../../lib/overview/actions";
 import {
-  findingWords,
   followUpOf,
   nextWords,
   reviewWords,
+  type FollowUpFinding,
   type GroundCheck,
   type Readout as ReadoutModel,
 } from "../../lib/readout/readout";
@@ -48,6 +61,94 @@ export interface ReadoutProps {
   keysOff?: boolean;
   /** Not read: nothing in the column steps. */
   stepRef?: RefObject<((delta: 1 | -1) => void) | null>;
+}
+
+/** How long the column waits for a chosen view's lead before it shows the rest without it. */
+const LEAD_WAIT_MS = 4000;
+
+type Get = (input: string, init?: RequestInit) => Promise<Response>;
+const get: Get = (input, init) => fetch(input, init);
+
+/** The listing of each case, and each view's lead, read once per page (lib/ask/leads.ts); a failed read is tried again. */
+const listings = new Map<string, Promise<Awaited<ReturnType<typeof loadInstruments>>>>();
+const leadReads = new Map<string, Promise<readonly string[] | null>>();
+
+function leadOf(sources: LeadSources, view: LeadView): Promise<readonly string[] | null> {
+  const key = `${sources.caseId} ${view}`;
+  const held = leadReads.get(key);
+  if (held) return held;
+  let listing = listings.get(sources.caseId);
+  if (!listing) {
+    listing = loadInstruments(sources.caseId, get);
+    listings.set(sources.caseId, listing);
+  }
+  const read = listing
+    .then((l) => (l.status === "ready" ? loadViewLeads(sources, l.listing, get, [view]) : {}))
+    .then((leads: ViewLeads) => leads[view] ?? null)
+    .catch(() => null)
+    .then((lines) => {
+      if (lines === null) {
+        leadReads.delete(key);
+        listings.delete(sources.caseId);
+      }
+      return lines;
+    });
+  leadReads.set(key, read);
+  return read;
+}
+
+/**
+ * The leads of the views a follow-up chose, once read: until they are (or the wait is over), `settled` is false and
+ * the column holds its groups back, so nothing moves under the reader when the lines arrive.
+ */
+function useViewLeads(
+  sources: LeadSources | null,
+  views: readonly LeadView[],
+): { leads: ViewLeads; settled: boolean } {
+  const caseId = sources?.caseId ?? null;
+  const lower = sources?.limits?.[0] ?? null;
+  const upper = sources?.limits?.[1] ?? null;
+  const seasons = sources?.seasons ?? null;
+  const want = views.join(" ");
+  const key = caseId !== null && want ? `${caseId} ${want}` : "";
+  const [read, setRead] = useState<{ key: string; leads: ViewLeads; settled: boolean }>({
+    key: "",
+    leads: {},
+    settled: false,
+  });
+  useEffect(() => {
+    if (caseId === null || !want) return;
+    const src: LeadSources = {
+      caseId,
+      limits: lower !== null && upper !== null ? [lower, upper] : null,
+      seasons,
+    };
+    const at = `${caseId} ${want}`;
+    let live = true;
+    const timer = window.setTimeout(() => {
+      if (live)
+        setRead((r) =>
+          r.key === at ? { ...r, settled: true } : { key: at, leads: {}, settled: true },
+        );
+    }, LEAD_WAIT_MS);
+    void Promise.all(
+      (want.split(" ") as LeadView[]).map(async (v) => [v, await leadOf(src, v)] as const),
+    ).then((pairs) => {
+      if (!live) return;
+      window.clearTimeout(timer);
+      setRead({
+        key: at,
+        leads: Object.fromEntries(pairs.flatMap(([v, lines]) => (lines ? [[v, lines]] : []))),
+        settled: true,
+      });
+    });
+    return () => {
+      live = false;
+      window.clearTimeout(timer);
+    };
+  }, [caseId, lower, upper, seasons, want]);
+  if (!key) return { leads: {}, settled: true };
+  return read.key === key ? read : { leads: {}, settled: false };
 }
 
 /** The stagger index of a part as it arrives. */
@@ -132,10 +233,36 @@ export function Readout({
     };
   }, [keysOff, onBrief, views]);
 
+  // a chosen view's lead is read from its view's own data; every other finding comes worded from the record
+  const chosenViews = useMemo(
+    () => [
+      ...new Set(
+        (request?.findings ?? []).flatMap((f) =>
+          f.lines === null && f.place.kind === "view" ? [f.place.view] : [],
+        ),
+      ),
+    ],
+    [request],
+  );
+  const { leads, settled } = useViewLeads(request?.leads ?? null, chosenViews);
+  const findings = (request?.findings ?? []).flatMap(
+    (f): (FollowUpFinding & { lines: readonly string[] })[] => {
+      const lines = f.lines ?? (f.place.kind === "view" ? leads[f.place.view] : undefined);
+      return lines?.length ? [{ ...f, lines }] : [];
+    },
+  );
+  const viewOf = (view: LeadView) => {
+    const label = en[VIEW_LABEL[view]].text;
+    const n = views.findIndex((v) => v.label === label);
+    const v = views[n];
+    return v ? { ...v, key: String(n + 1) } : null;
+  };
+
   const { verdicts } = readout;
   const checks = ground?.checks ?? [];
   const reviewLine = ground ? reviewWords(ground.reviews) : null;
-  const followUp = request ? followUpOf(request.findings, allFindings) : null;
+  const followUp = request ? followUpOf(findings, allFindings) : null;
+  const askedWords = asked ?? request?.question ?? null;
   let order = 0;
   const next = () => order++;
 
@@ -150,7 +277,7 @@ export function Readout({
         </p>
 
         <div className={styles.sections} ref={scrollFade}>
-          {request && followUp ? (
+          {!settled ? null : request && followUp ? (
             <dl
               className={`${styles.grid} ${styles.arrive}`}
               data-readout-request
@@ -158,12 +285,39 @@ export function Readout({
             >
               <dt className={styles.head}>{rd["readout.request.head"].text}</dt>
               <dd className={`${styles.cell} ${styles.lines}`}>
-                {asked ? <p className={styles.asked}>{asked}</p> : null}
-                {request.findings.length ? (
-                  followUp.shown.map((f) => <p key={f.id}>{findingWords(f)}</p>)
-                ) : (
-                  <p className={styles.quiet}>{rd["readout.request.none"].text}</p>
-                )}
+                {askedWords ? <p className={styles.asked}>{askedWords}</p> : null}
+                {followUp.shown.map((f) => {
+                  const view = f.place.kind === "view" ? viewOf(f.place.view) : null;
+                  return (
+                    <div
+                      key={f.id}
+                      className={styles.finding}
+                      data-readout-request-finding={f.place.kind}
+                    >
+                      {f.lines.map((line) => (
+                        <p key={line}>{line}</p>
+                      ))}
+                      {f.place.kind === "source" && f.place.source ? (
+                        <p className={styles.source}>{f.place.source}</p>
+                      ) : null}
+                      {view ? (
+                        <button
+                          type="button"
+                          className={styles.row}
+                          aria-keyshortcuts={view.key}
+                          onClick={view.onOpen}
+                        >
+                          <KeyChip>{view.key}</KeyChip>
+                          <span>{view.label}</span>
+                        </button>
+                      ) : null}
+                    </div>
+                  );
+                })}
+                {/* the answer to the question, in ink like any finding: the case says nothing on it yet */}
+                {request.answered && !findings.length ? (
+                  <p>{rd["readout.request.none"].text}</p>
+                ) : null}
                 {followUp.toggle ? (
                   <button
                     type="button"
@@ -181,7 +335,7 @@ export function Readout({
             </dl>
           ) : null}
 
-          {verdicts.length ? (
+          {settled && verdicts.length ? (
             <dl className={styles.grid} data-readout-group="explanations">
               {verdicts.map((v) => {
                 const i = next();
@@ -218,7 +372,7 @@ export function Readout({
             </dl>
           ) : null}
 
-          {checks.length ? (
+          {settled && checks.length ? (
             <dl
               className={`${styles.grid} ${styles.arrive}`}
               data-readout-group="ground"
@@ -252,7 +406,7 @@ export function Readout({
             </dl>
           ) : null}
 
-          {views.length ? (
+          {settled && views.length ? (
             <dl className={`${styles.grid} ${styles.arrive}`} data-readout-views style={at(next())}>
               <dt className={styles.head}>{rd["readout.views.head"].text}</dt>
               <dd className={styles.cell}>
@@ -277,7 +431,7 @@ export function Readout({
           ) : null}
         </div>
 
-        {reviewLine ? (
+        {settled && reviewLine ? (
           <div className={`${styles.grid} ${styles.review} ${styles.arrive}`} style={at(next())}>
             <div className={styles.head}>
               <span className={styles.pill}>{en["run.tree.needsYou"].text}</span>

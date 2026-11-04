@@ -1,6 +1,8 @@
 "use client";
 
 import type { CSSProperties, Dispatch, SetStateAction } from "react";
+import { isAskTaskId } from "../../lib/ask/task";
+import { ak } from "../../lib/copy/ask";
 import { en, type MessageId } from "../../lib/copy/en";
 import type { CursorPoint, Pt } from "../../lib/run/layout";
 import type { RunTask, RunTaskStep } from "../../lib/run/model";
@@ -23,11 +25,16 @@ const TITLE: Partial<Record<string, MessageId>> = {
 };
 
 /** Each step's name, by task id. The two observation steps are told apart by what they read, the vegetation's
- *  greenness or the rainfall and terrain; a run with one has the one name for both. */
+ *  greenness or the rainfall and terrain; a run with one has the one name for both. A question typed in the Ask has
+ *  one step, which reads the case's own findings (lib/ask/task.ts). */
 export function taskTitles(tasks: readonly RunTask[]): Map<string, string> {
   const observations = tasks.filter((t) => t.kind === "observation_analysis");
   const titles = new Map<string, string>();
   for (const t of tasks) {
+    if (isAskTaskId(t.id)) {
+      titles.set(t.id, ak["ask.task.title"].text);
+      continue;
+    }
     let id = TITLE[t.kind];
     if (t.kind === "observation_analysis") {
       const sub = (t.sublabel ?? "").toLowerCase();
@@ -49,7 +56,7 @@ export function taskTitles(tasks: readonly RunTask[]): Map<string, string> {
 const VALIDATED = en["run.step.validated"].text;
 
 /** What a step's line is read from. */
-export type StepTask = Pick<RunTask, "kind" | "sublabel" | "steps" | "activeLabel">;
+export type StepTask = Pick<RunTask, "id" | "kind" | "sublabel" | "steps" | "activeLabel">;
 
 /** A task's steps as the list shows them: code checking each proposal is not a step of its own. */
 export function shownSteps(t: Pick<RunTask, "steps">): RunTaskStep[] {
@@ -57,8 +64,10 @@ export function shownSteps(t: Pick<RunTask, "steps">): RunTaskStep[] {
 }
 
 /** What a step does, in one line: its last step, else what it does now, else what a step of its kind does first. The
- *  list and the step's cursor say the same line. */
+ *  list and the step's cursor say the same line. A typed question's one step only ever reads the case's findings: its
+ *  events can arrive before the record of its task, when no kind is known yet. */
 export function stepLine(t: StepTask): string {
+  if (isAskTaskId(t.id)) return ak["ask.task.line"].text;
   const last = shownSteps(t).at(-1);
   if (last) return last.label;
   if (t.activeLabel) return t.activeLabel;

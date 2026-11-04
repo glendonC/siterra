@@ -104,6 +104,7 @@ const FAILED: Record<string, AskMessageId> = {
   command_deadline: "ask.stopped.slow",
   model_refused: "ask.stopped.declined",
   validation_rejected: "ask.stopped.unmatched",
+  reply_unreadable: "ask.stopped.unreadable",
   stale_inputs: "ask.stopped.changed",
   round_limit: "ask.stopped.steps",
   out_of_scope: "ask.stopped.scope",

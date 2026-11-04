@@ -1,14 +1,14 @@
-// The follow-up completion route on a real database (a fresh one for this file on DATABASE_URL): a case whose first
-// command scored its explanation branches (the recorded 28 Oct merge) and whose current brief another command wrote,
-// and follow-up commands sent to it. The model, the live search and the terrain file are stubs; the claim, the
-// commit, the events and the command's status are the database's own.
+// The completion route of a question typed in the Ask, on a real database (a fresh one for this file on DATABASE_URL):
+// the demo case (the seed with the recorded 28 Oct merge, its scored branches and the synthetic package whose brief is
+// the case's current one) with its bundles read from data/bundles, and questions sent to it. Only the model's HTTP
+// reply is a stub, so the findings list, the one call, the reading of its reply and the commit are the route's own,
+// and the claim, the commit, the events and the command's status are the database's.
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import {
   type CaseSnapshot,
   type EnvironmentalCase,
-  type Evidence,
-  type Source,
+  type ExplanationBranch,
   Task,
   caseSchemaVersion,
 } from "@siterra/contracts";
@@ -18,7 +18,9 @@ import {
   applyCommit,
   createSession,
   eventsAfter,
+  findBundlesDir,
   loadSeedCase,
+  readInstruments,
   readSnapshot,
   requestCancel,
   sessionCookieName,
@@ -34,43 +36,22 @@ import { newId } from "@siterra/domain";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { en, format } from "../../../../../../../lib/copy/en.ts";
 import type * as Reasoner from "../../../../../../../lib/live-place/llm-reasoner.ts";
-import type {
-  LlmConfig,
-  LlmReasonerInput,
-  LlmReasonerOutput,
-  LlmVerifiedFinding,
-} from "../../../../../../../lib/live-place/llm-reasoner.ts";
+import type { LlmConfig } from "../../../../../../../lib/live-place/llm-reasoner.ts";
+import { bandLimitsOf } from "../../../../../../../lib/land/record.ts";
 import { askLine } from "../../../../../../../lib/overview/ask-line.ts";
+import { findingsFrom } from "../../../../../../../lib/overview/findings.ts";
 import {
   type RecordedRun,
   withSyntheticPackage,
 } from "../../../../../../../lib/package/fixtures/synthetic.ts";
+import { readoutOf } from "../../../../../../../lib/readout/readout.ts";
 import type * as Route from "./route.ts";
 
-const h = vi.hoisted(() => ({
-  reason: vi.fn<(input: LlmReasonerInput) => Promise<LlmReasonerOutput | null>>(),
-  config: vi.fn<() => LlmConfig | null>(),
-  openAlex: vi.fn<() => Promise<Source[]>>(),
-  regional: vi.fn<() => Promise<{ contextSources: Source[]; contextEvidence: Evidence[] }>>(),
-  government: vi.fn<() => Promise<{ sources: Source[]; evidence: Evidence[] }>>(),
-}));
+const h = vi.hoisted(() => ({ config: vi.fn<() => LlmConfig | null>() }));
 
 vi.mock("../../../../../../../lib/live-place/llm-reasoner.ts", async (importOriginal) => ({
   ...(await importOriginal<typeof Reasoner>()),
-  reasonOverCaseWithLlm: h.reason,
   resolveLlmConfig: h.config,
-}));
-vi.mock("../../../../../../../lib/live-place/terrain-builder.ts", () => ({
-  terrainCachePath: () => "/nonexistent/siterra-follow-up-test/terrain.json",
-}));
-vi.mock("../../../../../../../lib/live-place/literature.ts", () => ({
-  fetchOpenAlexSources: h.openAlex,
-}));
-vi.mock("../../../../../../../lib/live-place/context-fetcher.ts", () => ({
-  fetchRegionalContextAndGovernance: h.regional,
-}));
-vi.mock("../../../../../../../lib/live-place/government-policy-fetcher.ts", () => ({
-  fetchGovernmentPolicyAndOpenAccess: h.government,
 }));
 
 const FIXTURES = join(
@@ -96,44 +77,25 @@ const CONFIG: LlmConfig = {
   apiKey: "test-only-not-a-key",
   baseUrl: "https://model.invalid/v1",
 };
-const SCI03 = pkg.snapshot.records.sourceRecords.find((s) => s.id === "src_SCI-03") as Source;
 
-// the model's free text, each piece written so it can be searched for in everything the follow-up wrote
-const SUMMARY = "Model summary: grazing explains the change and the brief should say so.";
-const answer = (verifiedFindings: LlmVerifiedFinding[] = []): LlmReasonerOutput => ({
-  provider: "meta",
-  model: "muse-spark-1.3",
-  hypotheses: [],
-  interventions: [],
-  causes: (["rainfall", "grazing", "land_use", "snow_terrain", "data_artefact"] as const).map(
-    (explanationId) => ({
-      explanationId,
-      statement: `Model statement for ${explanationId}: settled by the follow-up.`,
-      statusReason: `Model reason for ${explanationId}: tested by the follow-up.`,
-      prediction: `Model prediction for ${explanationId}, reworded after scoring.`,
-      fieldCheck: { what: "Model field check", method: "Model method", seasonWindow: "Spring" },
-    }),
-  ),
-  verifiedFindings,
-  briefSummary: SUMMARY,
-});
-const MODEL_TEXT = [
-  SUMMARY,
-  ...answer().causes.flatMap((c) => [c.statement, c.statusReason, c.prediction]),
-];
-// a paraphrase of a note the seed's src_SCI-03 holds (no number in it): kept, but only as provisional
-const PARAPHRASE: LlmVerifiedFinding = {
-  statement: "The full text of this study was read again before its excerpts were checked.",
-  sourceId: "src_SCI-03",
-  exactQuote: SCI03.notes[0] ?? "",
-  interpretation: "Grazing is the main driver of the change.",
-};
+// the findings the questions here expect, as the column and the views word them
+const RAIN_LEAD =
+  "Year to year, March to June greenness follows September to May rainfall only weakly.";
+const RAIN_VERDICT = "Rainfall does not fit the evidence.";
+const GRAZING_VERDICT = "Not enough data yet on grazing.";
+const HERD_CHECK = "Herd numbers and routes by season would tell grazing from snow or terrain.";
+const RAIN_SPEC = "inst_rainfall_scatter_valley";
+const RAIN_BRANCH = "branch_338b5acb3a5443b5e287905d70032a91";
+// the model's own words, written so they can be searched for in everything the follow-up wrote and shows
+const PROSE = "Model prose: grazing explains the change and the brief should say so.";
 
 const shared = globalThis as typeof globalThis & { siterraPool?: Pool };
 let db: TestDatabase;
 let route: typeof Route;
 let cookie = "";
 let asked = 0;
+/** What the model was sent, call by call. */
+let sent: { url: string; text: string }[] = [];
 
 /** The case as it stands before any follow-up, loaded as a seed with the rest of its records as they are. */
 async function loadCase(pool: Pool): Promise<void> {
@@ -169,6 +131,47 @@ async function loadCase(pool: Pool): Promise<void> {
   }
 }
 
+/** The finding ids the model was offered, by the words of each finding. */
+function offered(text: string): Map<string, string> {
+  const ids = new Map<string, string>();
+  for (const line of text.split("\n")) {
+    const [, id, words] = /^(f\d+) \[[^\]]*\] (.*)$/.exec(line) ?? [];
+    if (id && words) ids.set(words, id);
+  }
+  return ids;
+}
+
+const urlOf = (input: RequestInfo | URL): string =>
+  typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
+
+/** A model reply naming the findings with these words (and some prose of its own besides), or a reply as given. */
+function model(reply: { choose: readonly string[] } | { status: number } | { text: string }) {
+  return (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+    const body = typeof init?.body === "string" ? init.body : "{}";
+    const text =
+      (JSON.parse(body) as { input?: { content: { text: string }[] }[] }).input?.[0]?.content[0]
+        ?.text ?? "";
+    sent.push({ url: urlOf(input), text });
+    if ("status" in reply)
+      return Promise.resolve(
+        new Response(JSON.stringify({ error: PROSE }), { status: reply.status }),
+      );
+    const out =
+      "text" in reply
+        ? reply.text
+        : JSON.stringify({
+            ids: [...reply.choose.map((words) => offered(text).get(words) ?? words), "f99", PROSE],
+            answer: PROSE,
+          });
+    return Promise.resolve(
+      new Response(JSON.stringify({ output_text: out }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      }),
+    );
+  };
+}
+
 beforeAll(async () => {
   db = await freshDatabase();
   process.env["DATABASE_URL"] = db.url;
@@ -184,11 +187,9 @@ afterAll(async () => {
 });
 
 beforeEach(() => {
+  sent = [];
   h.config.mockReturnValue(CONFIG);
-  h.reason.mockResolvedValue(answer());
-  h.openAlex.mockResolvedValue([]);
-  h.regional.mockResolvedValue({ contextSources: [], contextEvidence: [] });
-  h.government.mockResolvedValue({ sources: [], evidence: [] });
+  vi.stubGlobal("fetch", model({ choose: [] }));
 });
 
 afterEach(() => {
@@ -196,7 +197,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-async function ask(text = "Why did the upper slopes stay green in 2023?"): Promise<string> {
+async function ask(text = "Does wet-season rainfall explain the greening?"): Promise<string> {
   asked += 1;
   const outcome = await submitCommand(db.pool, {
     caseId: CASE_ID,
@@ -207,7 +208,7 @@ async function ask(text = "Why did the upper slopes stay green in 2023?"): Promi
   return outcome.command.id;
 }
 
-function complete(commandId: string, body: object = { liveSearch: false }): Promise<Response> {
+function complete(commandId: string, body: object = {}): Promise<Response> {
   return route.POST(
     new Request(`${ORIGIN}/api/cases/${CASE_ID}/commands/${commandId}/complete`, {
       method: "POST",
@@ -260,7 +261,22 @@ async function statusOf(commandId: string): Promise<string | undefined> {
   return rows.rows[0]?.status;
 }
 
-/** The Ask line for the command once the session holds the case and its events. */
+/** The answer column for the question, as the page builds it from the case and its listing. */
+async function columnOf(commandId: string) {
+  const snap = await current();
+  const listing = await readInstruments(db.pool, {
+    caseId: CASE_ID,
+    ownerScopeId: OWNER,
+    bundlesDir: findBundlesDir(process.cwd()),
+  });
+  if (!listing) throw new Error("The case has no listing");
+  return readoutOf(snap, findingsFrom(snap, listing).findings, "", {
+    commandId,
+    limits: bandLimitsOf(snap),
+  });
+}
+
+/** The work card's line for the command once the session holds the case and its events. */
 async function askLineOf(commandId: string) {
   const events = await eventsAfter(db.pool, CASE_ID, 0, 5000);
   return askLine({
@@ -274,7 +290,11 @@ async function askLineOf(commandId: string) {
 }
 
 const everything = async (commandId: string): Promise<string> =>
-  JSON.stringify({ records: await written(commandId), events: await eventsOf(commandId) });
+  JSON.stringify({
+    records: await written(commandId),
+    events: await eventsOf(commandId),
+    column: (await columnOf(commandId)).request,
+  });
 
 /** A commit another request makes while the follow-up waits on the model; returns the revision it made. */
 async function commitElsewhere(upserts: CommitProposal["upserts"]): Promise<number> {
@@ -322,87 +342,130 @@ async function commitElsewhere(upserts: CommitProposal["upserts"]): Promise<numb
   return outcome.commit.newCaseRevision;
 }
 
-describe("a follow-up question that runs no scoring", () => {
-  it("writes no BranchMerge or ExplanationBranch, and none for the follow-up's command", async () => {
+describe("a question answered from the case's own findings", () => {
+  it("offers the model, in one call, the case's findings as the column and the views word them", async () => {
+    const id = await ask(
+      "How much of the valley's greenness change does wet-season rainfall explain?",
+    );
+    await complete(id);
+    expect(sent).toHaveLength(1);
+    expect(sent[0]?.url).toBe(`${CONFIG.baseUrl}/responses`);
+    const words = offered(sent[0]?.text ?? "");
+    for (const said of [
+      "Since 2000, 24.7% of the area has greened and 0.1% has browned.",
+      RAIN_VERDICT,
+      GRAZING_VERDICT,
+      HERD_CHECK,
+      RAIN_LEAD,
+      "Of the pixels that stepped up to greener, half did so by 2011.",
+    ])
+      expect(words.has(said), said).toBe(true);
+    expect(sent[0]?.text).toContain(
+      "Question: How much of the valley's greenness change does wet-season rainfall explain?",
+    );
+  });
+
+  it("records the chosen findings' records in the answer's order, writes only its task, and the column shows them", async () => {
+    vi.stubGlobal("fetch", model({ choose: [RAIN_LEAD, RAIN_VERDICT] }));
     const before = await current();
     const id = await ask();
     const res = await complete(id);
-    expect(res.status).toBe(200);
     expect(await res.json()).toEqual({
       status: "completed",
       commandId: id,
       revision: before.case.revision + 1,
     });
     expect((await written(id)).map((r) => r.record_type)).toEqual(["Task"]);
-    const after = await current();
-    expect(after.records.branchMergeRecords).toEqual(before.records.branchMergeRecords);
-    expect(after.records.explanationBranchRecords).toEqual(before.records.explanationBranchRecords);
-    expect((after.records.branchMergeRecords ?? []).some((m) => m.commandId === id)).toBe(false);
-    expect((after.records.explanationBranchRecords ?? []).some((b) => b.commandId === id)).toBe(
-      false,
-    );
-  });
-
-  it("leaves each scored prediction's wording and committed revision, and each merge reason, as scored", async () => {
-    const before = await current();
-    const branches = before.records.explanationBranchRecords ?? [];
-    expect(branches.length).toBeGreaterThan(0);
-    const id = await ask();
-    await complete(id);
-    const after = await current();
-    for (const b of branches) {
-      const now = after.records.explanationBranchRecords?.find((x) => x.id === b.id);
-      expect(now?.revision).toBe(b.revision);
-      expect(now?.predictionsCaseRevision).toBe(b.predictionsCaseRevision);
-      expect(now?.predictions.map((p) => p.wording)).toEqual(b.predictions.map((p) => p.wording));
-      expect(now?.statement).toBe(b.statement);
-      expect(now?.statusReason).toBe(b.statusReason);
-    }
-    expect(
-      after.records.branchMergeRecords?.flatMap((m) => m.branches.map((x) => x.reason)),
-    ).toEqual(before.records.branchMergeRecords?.flatMap((m) => m.branches.map((x) => x.reason)));
-    const text = await everything(id);
-    for (const t of MODEL_TEXT) expect(text).not.toContain(t);
-  });
-
-  it("leaves the Brief and the case's current brief as they were, and cites no evidence for the model's text", async () => {
-    const before = await current();
-    const brief = before.records.briefRecords.find((b) => b.id === pkg.briefId);
-    expect(brief?.evidenceIds.length).toBeGreaterThan(0);
-    const id = await ask();
-    await complete(id);
-    const after = await current();
-    expect(after.records.briefRecords).toEqual(before.records.briefRecords);
-    expect(after.case.currentBriefId).toBe(pkg.briefId);
-    const text = await everything(id);
-    expect(text).not.toContain(SUMMARY);
-    // the summary was once cited to the brief's first evidence: nothing the follow-up wrote names any of it
-    for (const evidenceId of brief?.evidenceIds ?? []) expect(text).not.toContain(evidenceId);
-    expect((await taskOf(id)).outputEntityIds).toEqual([]);
-  });
-
-  it("completes the Ask line with no findings when the model answers", async () => {
-    const id = await ask();
-    await complete(id);
+    const task = await taskOf(id);
+    expect(task).toMatchObject({
+      id: expect.stringMatching(/^task_ask_[0-9a-f]{6}$/) as string,
+      kind: "source_research",
+      status: "succeeded",
+      question: "Does wet-season rainfall explain the greening?",
+      outputEntityIds: [],
+      inputVersions: [
+        { entityId: RAIN_SPEC, revision: 1 },
+        { entityId: RAIN_BRANCH, revision: 2 },
+      ],
+    });
     expect(await statusOf(id)).toBe("succeeded");
+    expect((await eventsOf(id)).map((e) => [e.kind, e.message])).toEqual([
+      ["command.accepted", "Request received"],
+      ["task.started", "Reading the case's findings for Aït Bouguemez valley."],
+      ["model.started", "Model call to muse-spark-1.3 (Model API) started."],
+      ["model.completed", "Model call to muse-spark-1.3 (Model API) finished."],
+      ["case.committed", "Committed the question's task for Aït Bouguemez valley."],
+      ["task.succeeded", "Source research task chose 2 findings of the case."],
+      ["command.completed", "Command completed."],
+    ]);
+    const shown = (await columnOf(id)).request;
+    expect(shown?.answered).toBe(true);
+    expect(shown?.question).toBe("Does wet-season rainfall explain the greening?");
+    expect(shown?.findings.map((f) => [f.id, f.place, f.lines])).toEqual([
+      [RAIN_SPEC, { kind: "view", view: "rainfall" }, null],
+      [RAIN_BRANCH, { kind: "verdict" }, [RAIN_VERDICT]],
+    ]);
+  });
+
+  it("answers a cause from the verdict and the check that would settle it", async () => {
+    vi.stubGlobal("fetch", model({ choose: [GRAZING_VERDICT, HERD_CHECK] }));
+    const id = await ask("Is grazing the cause?");
+    await complete(id);
+    expect((await columnOf(id)).request?.findings.map((f) => f.lines)).toEqual([
+      [GRAZING_VERDICT],
+      [HERD_CHECK],
+    ]);
+  });
+
+  it("keeps no word the model writes, in any record, event or line shown", async () => {
+    vi.stubGlobal("fetch", model({ choose: [RAIN_VERDICT] }));
+    const id = await ask();
+    await complete(id);
+    expect((await columnOf(id)).request?.findings.map((f) => f.lines)).toEqual([[RAIN_VERDICT]]);
+    expect(await everything(id)).not.toContain("Model prose");
+  });
+
+  it("says the case has no finding on it when the model names none the case holds", async () => {
+    vi.stubGlobal("fetch", model({ text: JSON.stringify({ ids: ["f99", PROSE] }) }));
+    const id = await ask("Who decides when the shared pastures open and close?");
+    await complete(id);
+    expect(await taskOf(id)).toMatchObject({ status: "succeeded", inputVersions: [] });
+    expect((await eventsOf(id)).find((e) => e.kind === "task.succeeded")?.message).toBe(
+      "Source research task found no finding of the case that answers the question.",
+    );
+    expect((await columnOf(id)).request).toMatchObject({ answered: true, findings: [] });
+  });
+
+  it("writes no Source, Evidence, branch, merge or brief, and leaves the case's current brief where it is", async () => {
+    vi.stubGlobal("fetch", model({ choose: [RAIN_LEAD] }));
+    const before = await current();
+    const id = await ask();
+    await complete(id, { liveSearch: true });
+    expect(sent).toHaveLength(1);
+    const after = await current();
+    for (const key of [
+      "sourceRecords",
+      "evidenceRecords",
+      "explanationBranchRecords",
+      "branchMergeRecords",
+      "briefRecords",
+    ] as const)
+      expect(after.records[key]).toEqual(before.records[key]);
+    expect(after.case.currentBriefId).toBe(pkg.briefId);
     expect(await askLineOf(id)).toEqual({ text: en["ask.complete"].text, findings: 0 });
   });
 });
 
-describe("a follow-up question the model gives no usable answer", () => {
+describe("a question the model gives no usable answer", () => {
   it("records the task as failed with the transport's cause, and the Ask line says so", async () => {
-    vi.stubGlobal("fetch", () => Promise.resolve(new Response("", { status: 503 })));
-    h.reason.mockImplementation(async (input) => {
-      await input.fetchImpl?.(`${CONFIG.baseUrl}/responses`, { method: "POST" });
-      return null;
-    });
+    vi.stubGlobal("fetch", model({ status: 503 }));
     const id = await ask();
     const res = await complete(id);
     expect(await res.json()).toMatchObject({ status: "failed", commandId: id });
     expect(await taskOf(id)).toMatchObject({
-      kind: "source_research",
       status: "failed",
       failureCode: "http_503",
+      inputVersions: [],
       outputEntityIds: [],
     });
     const events = await eventsOf(id);
@@ -420,14 +483,25 @@ describe("a follow-up question the model gives no usable answer", () => {
     expect((await askLineOf(id))?.text).toBe(
       format("work.failed", { cause: en["work.cause.modelDown"].text }),
     );
+    expect(await everything(id)).not.toContain("Model prose");
   });
 
-  it("fails without searching or calling the model when no model is configured", async () => {
+  it("fails when the reply is not the object asked for", async () => {
+    vi.stubGlobal("fetch", model({ text: PROSE }));
+    const id = await ask();
+    await complete(id);
+    expect(await taskOf(id)).toMatchObject({
+      status: "failed",
+      failureCode: "reply_unreadable",
+    });
+    expect(await everything(id)).not.toContain("Model prose");
+  });
+
+  it("fails without calling the model when none is configured", async () => {
     h.config.mockReturnValue(null);
     const id = await ask();
-    await complete(id, { liveSearch: true });
-    expect(h.reason).not.toHaveBeenCalled();
-    expect(h.openAlex).not.toHaveBeenCalled();
+    await complete(id);
+    expect(sent).toHaveLength(0);
     expect(await taskOf(id)).toMatchObject({
       status: "failed",
       failureCode: "model_not_configured",
@@ -445,7 +519,7 @@ describe("taking the command", () => {
       responses.map(async (r) => ((await r.json()) as { status: string }).status),
     );
     expect(statuses.sort()).toEqual(["completed", "skipped"]);
-    expect(h.reason).toHaveBeenCalledTimes(1);
+    expect(sent).toHaveLength(1);
     const commits = await db.pool.query("select id from commits where command_id = $1", [id]);
     expect(commits.rowCount).toBe(1);
   });
@@ -463,7 +537,7 @@ describe("taking the command", () => {
     expect(await (await complete(id)).json()).toEqual({ status: "skipped" });
     expect(await statusOf(id)).toBe("accepted");
     expect(await written(id)).toEqual([]);
-    expect(h.reason).not.toHaveBeenCalled();
+    expect(sent).toHaveLength(0);
   });
 });
 
@@ -471,16 +545,16 @@ describe("the follow-up's revision", () => {
   it("lands after revisions other requests commit during the model call, never on an older one", async () => {
     const before = (await current()).case.revision;
     let elsewhere = 0;
-    h.reason.mockImplementation(async () => {
+    const reply = model({ choose: [RAIN_VERDICT] });
+    vi.stubGlobal("fetch", async (input: RequestInfo | URL, init?: RequestInit) => {
       await commitElsewhere([exampleEvidence(CASE_ID, "ev_example_concurrent_1")]);
       elsewhere = await commitElsewhere([exampleEvidence(CASE_ID, "ev_example_concurrent_2")]);
-      return answer([PARAPHRASE]);
+      return reply(input, init);
     });
     const id = await ask();
     const res = await complete(id);
     expect(elsewhere).toBe(before + 2);
     expect(await res.json()).toMatchObject({ status: "completed", revision: before + 3 });
-
     const commit = await db.pool.query<{
       expected_case_revision: number;
       new_case_revision: number;
@@ -488,124 +562,52 @@ describe("the follow-up's revision", () => {
     expect(commit.rows).toEqual([
       { expected_case_revision: before + 2, new_case_revision: before + 3 },
     ]);
-    expect((await written(id)).map((r) => r.case_revision)).toEqual([before + 3, before + 3]);
-
-    const head = await db.pool.query<{ revision: number }>(
-      "select revision from cases where id = $1",
-      [CASE_ID],
-    );
+    expect((await written(id)).map((r) => r.case_revision)).toEqual([before + 3]);
     const revisions = await db.pool.query<{ revision: number }>(
       "select revision from case_revisions where case_id = $1 order by revision",
       [CASE_ID],
     );
     const all = revisions.rows.map((r) => r.revision);
-    expect(head.rows[0]?.revision).toBe(before + 3);
     expect(all.at(-1)).toBe(before + 3);
     expect(all).toEqual(Array.from({ length: all.length }, (_, i) => i + 1));
-    const kept = await current();
-    expect(kept.records.evidenceRecords.map((e) => e.id)).toEqual(
-      expect.arrayContaining(["ev_example_concurrent_1", "ev_example_concurrent_2"]),
-    );
+    expect((await taskOf(id)).inputVersions).toEqual([{ entityId: RAIN_BRANCH, revision: 2 }]);
   });
 
-  it("ends cancelled and keeps nothing it found when the command is cancelled during the model call", async () => {
+  it("ends cancelled and names nothing when the command is cancelled during the model call", async () => {
     const id = await ask();
-    h.reason.mockImplementation(async () => {
+    const reply = model({ choose: [RAIN_VERDICT] });
+    vi.stubGlobal("fetch", async (input: RequestInfo | URL, init?: RequestInit) => {
       await requestCancel(db.pool, { commandId: id, ownerScopeId: OWNER });
-      return answer([PARAPHRASE]);
+      return reply(input, init);
     });
     expect(await (await complete(id)).json()).toMatchObject({ status: "cancelled", commandId: id });
     expect((await written(id)).map((r) => r.record_type)).toEqual(["Task"]);
-    expect(await taskOf(id)).toMatchObject({ status: "cancelled", outputEntityIds: [] });
+    expect(await taskOf(id)).toMatchObject({ status: "cancelled", inputVersions: [] });
     expect((await eventsOf(id)).map((e) => e.kind)).toEqual(
       expect.arrayContaining(["model.completed", "task.cancelled", "command.completed"]),
     );
     expect(await statusOf(id)).toBe("cancelled");
     expect((await askLineOf(id))?.text).toBe(en["work.cancelled"].text);
   });
-});
 
-describe("what the follow-up keeps from its sources", () => {
-  it("searches the web only when the request asks for it", async () => {
-    const id = await ask();
-    await complete(id, {});
-    expect(h.openAlex).not.toHaveBeenCalled();
-    expect(h.government).not.toHaveBeenCalled();
-  });
-
-  it("commits them under its own task, keeps the model's paraphrase provisional, and counts accepted findings", async () => {
-    const abstract =
-      "Upper pastures above 2317 m lost palatable perennial grasses where grazing pressure rose.";
-    const retrieved: Source = {
-      ...SCI03,
-      id: "src_oa_follow_up_test_1",
-      sourceKind: "peer_reviewed",
-      notes: [abstract],
-    };
-    const fetched: Evidence = {
-      ...(pkg.snapshot.records.evidenceRecords[0] as Evidence),
-      id: "ev_gov_follow_up_test_1",
-      status: "accepted",
-    };
-    h.openAlex.mockResolvedValue([retrieved]);
-    h.government.mockResolvedValue({ sources: [], evidence: [fetched] });
-    h.reason.mockResolvedValue(
-      answer([
-        {
-          statement: "Upper pastures above 2317 m lost palatable perennial grasses.",
-          sourceId: retrieved.id,
-          exactQuote: abstract,
-          interpretation: "Grazing is the main driver of the change.",
-        },
-        PARAPHRASE,
-        {
-          statement: "Grazing doubled between 2010 and 2023, removing 45% of palatable cover.",
-          sourceId: retrieved.id,
-          exactQuote: abstract,
-          interpretation: "Grazing is the main driver of the change.",
-        },
-      ]),
-    );
-    const id = await ask();
-    await complete(id, { liveSearch: true });
-
-    const rows = await written(id);
-    expect(rows.map((r) => r.record_type)).toEqual([
-      "Evidence",
-      "Evidence",
-      "Evidence",
-      "Source",
-      "Task",
-    ]);
-    const task = await taskOf(id);
-    const evidence = rows
-      .filter((r) => r.record_type === "Evidence")
-      .map((r) => r.record as Evidence);
-    expect(task.outputEntityIds.sort()).toEqual(evidence.map((e) => e.id).sort());
-    for (const e of evidence) {
-      expect(e.provenance.generatedByTaskId).toBe(task.id);
-      expect(e.interpretation === null || e.id === fetched.id).toBe(true);
-    }
-    const byStatus = Object.fromEntries(evidence.map((e) => [e.id, e.status]));
-    expect(byStatus).toEqual({
-      [fetched.id]: "accepted",
-      [`ev_llm_${task.id.slice("task_cmd_".length)}_1`]: "accepted",
-      [`ev_llm_${task.id.slice("task_cmd_".length)}_2`]: "provisional",
-    });
-    expect(await everything(id)).not.toContain("removing 45% of palatable cover");
-    expect(task.inputVersions).toEqual([{ entityId: "src_SCI-03", revision: SCI03.revision }]);
-    expect((await askLineOf(id))?.findings).toBe(2);
-  });
-
-  it("keeps nothing when a source its evidence cites changes during the model call", async () => {
-    h.reason.mockImplementation(async () => {
-      await commitElsewhere([{ ...SCI03, revision: SCI03.revision + 1, updatedAt: NOW }]);
-      return answer([PARAPHRASE]);
+  // last: it gives a branch a newer revision, which every later question would read
+  it("keeps nothing when a record a chosen finding is built from changes during the model call", async () => {
+    const branch = (await current()).records.explanationBranchRecords?.find(
+      (b) => b.id === RAIN_BRANCH,
+    ) as ExplanationBranch;
+    const reply = model({ choose: [RAIN_VERDICT] });
+    vi.stubGlobal("fetch", async (input: RequestInfo | URL, init?: RequestInit) => {
+      await commitElsewhere([{ ...branch, revision: branch.revision + 1, updatedAt: NOW }]);
+      return reply(input, init);
     });
     const id = await ask();
     expect(await (await complete(id)).json()).toMatchObject({ status: "failed", commandId: id });
     expect((await written(id)).map((r) => r.record_type)).toEqual(["Task"]);
-    expect(await taskOf(id)).toMatchObject({ status: "failed", failureCode: "stale_inputs" });
+    expect(await taskOf(id)).toMatchObject({
+      status: "failed",
+      failureCode: "stale_inputs",
+      inputVersions: [],
+    });
     expect(await statusOf(id)).toBe("failed");
   });
 });
