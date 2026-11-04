@@ -14,8 +14,7 @@ import {
   type VisualChoreographyTarget,
 } from "./llm-schema-and-prompt.ts";
 
-export const PROHIBITED_CLAIM_REGEX =
-  /\b(prove|proves|proven|certainly|definitely|guaranteed)\b/i;
+export const PROHIBITED_CLAIM_REGEX = /\b(prove|proves|proven|certainly|definitely|guaranteed)\b/i;
 
 /**
  * Returns true if the text contains any prohibited certainty word (`prove`, `proves`, `proven`,
@@ -40,14 +39,16 @@ export function normalizeForQuoteCheck(text: string): string {
 
 /**
  * Checks whether `candidateQuote` is a verbatim substring (case/whitespace normalized)
- * of any stored excerpt/note or title on `source`.
+ * of any stored excerpt/note on `source`. The title is not part of the corpus: a few words of
+ * a title would otherwise "verify" any statement made about it.
  */
 export function isVerbatimQuoteInSource(candidateQuote: string, source: Source): boolean {
-  const normQuote = normalizeForQuoteCheck(candidateQuote).replace(/\.{3,}$/, "").trim();
+  const normQuote = normalizeForQuoteCheck(candidateQuote)
+    .replace(/\.{3,}$/, "")
+    .trim();
   if (normQuote.length < 12) return false;
 
-  const corpusParts = [...source.notes, source.title];
-  for (const part of corpusParts) {
+  for (const part of source.notes) {
     const normPart = normalizeForQuoteCheck(part);
     if (normPart.includes(normQuote)) {
       return true;
@@ -77,9 +78,7 @@ export function choreographyForExplanation(
 ): VisualChoreographyTarget {
   const normalized = explanationId.trim().toLowerCase();
   const limit =
-    Number.isFinite(bandLimitM) && bandLimitM > 0
-      ? Math.round(bandLimitM)
-      : DEFAULT_BAND_LIMIT_M;
+    Number.isFinite(bandLimitM) && bandLimitM > 0 ? Math.round(bandLimitM) : DEFAULT_BAND_LIMIT_M;
   const minElev =
     typeof options.minElevationM === "number" && Number.isFinite(options.minElevationM)
       ? Math.round(options.minElevationM)
@@ -186,7 +185,8 @@ export function choreographyForExplanation(
 }
 
 function inferExplanationFromFinding(finding: LlmVerifiedFinding): ExplanationId {
-  const combined = `${finding.statement} ${finding.exactQuote} ${finding.interpretation}`.toLowerCase();
+  const combined =
+    `${finding.statement} ${finding.exactQuote} ${finding.interpretation}`.toLowerCase();
   if (
     /\b(grazing|livestock|pastoral|agdal|transhumance|stocking|herd|allotment|forage|exclosure)\b/.test(
       combined,
@@ -260,10 +260,7 @@ export function verifyLlmReasonerOutput(
         : `Verified excerpt from ${sourceId}.`;
 
     if (!sourceId || !exactQuote || !statement) continue;
-    if (
-      containsProhibitedClaim(statement) ||
-      containsProhibitedClaim(interpretation)
-    ) {
+    if (containsProhibitedClaim(statement) || containsProhibitedClaim(interpretation)) {
       continue;
     }
 
@@ -348,19 +345,12 @@ export function verifyLlmReasonerOutput(
   // 4. Verify causes for the 5 explanation branches and attach deterministic 3D visual choreography
   const bandLimitM = metaInfo.bandLimitM ?? DEFAULT_BAND_LIMIT_M;
   const rawCauses = Array.isArray(obj["causes"]) ? obj["causes"] : [];
-  const validExpIds = new Set([
-    "rainfall",
-    "grazing",
-    "land_use",
-    "snow_terrain",
-    "data_artefact",
-  ]);
+  const validExpIds = new Set(["rainfall", "grazing", "land_use", "snow_terrain", "data_artefact"]);
   const causes: LlmCauseDraft[] = [];
   for (const item of rawCauses) {
     if (typeof item !== "object" || item === null) continue;
     const c = item as Record<string, unknown>;
-    const explanationId =
-      typeof c["explanationId"] === "string" ? c["explanationId"].trim() : "";
+    const explanationId = typeof c["explanationId"] === "string" ? c["explanationId"].trim() : "";
     const statement = typeof c["statement"] === "string" ? c["statement"].trim() : "";
     const statusReason =
       typeof c["statusReason"] === "string" ? c["statusReason"].trim() : statement;
@@ -405,7 +395,9 @@ export function verifyLlmReasonerOutput(
       prediction,
       fieldCheck: {
         what: sanitizeProhibitedWords(what || `Field verification for ${explanationId}`),
-        method: sanitizeProhibitedWords(method || "Structured local interviews and transect checks"),
+        method: sanitizeProhibitedWords(
+          method || "Structured local interviews and transect checks",
+        ),
         seasonWindow: sanitizeProhibitedWords(seasonWindow || "Growing season"),
       },
       visualFocus,

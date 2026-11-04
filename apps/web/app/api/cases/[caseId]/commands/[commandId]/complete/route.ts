@@ -1,25 +1,15 @@
-import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
+import type { Command, Evidence, Source } from "@siterra/contracts";
 import {
-  type BranchMerge,
-  type Brief,
-  type BriefItem,
-  type Command,
-  type EnvironmentalCase,
-  Evidence,
-  type ExplanationBranch,
-  type Source,
-  type Task,
-} from "@siterra/contracts";
-import {
+  type Pool,
+  appendEvents,
+  applyCommit,
   inTransaction,
-  insertEvents,
-  lockCase,
-  notifyEvents,
+  isCancelRequested,
   readSnapshot,
   setCommandStatus,
-  setLastSequence,
 } from "@siterra/db";
+import { newId } from "@siterra/domain";
 import {
   type HistoricalClimateSummary,
   MIN_COMPLETE_YEARS,
@@ -28,12 +18,25 @@ import {
   unavailableClimate,
 } from "../../../../../../../lib/live-place/climate-series.ts";
 import { fetchRegionalContextAndGovernance } from "../../../../../../../lib/live-place/context-fetcher.ts";
+import {
+  type FollowUpStatus,
+  type ModelCall,
+  commandCompletedEvent,
+  commandHash,
+  followUpCommit,
+  followUpEvents,
+  followUpTask,
+  followUpTaskId,
+  noAnswerCode,
+  observedFetch,
+  verifiedFindingEvidence,
+} from "../../../../../../../lib/live-place/follow-up.ts";
 import { fetchGovernmentPolicyAndOpenAccess } from "../../../../../../../lib/live-place/government-policy-fetcher.ts";
 import { fetchOpenAlexSources } from "../../../../../../../lib/live-place/literature.ts";
 import { terrainCachePath } from "../../../../../../../lib/live-place/terrain-builder.ts";
 import {
-  choreographyForExplanation,
   reasonOverCaseWithLlm,
+  resolveLlmConfig,
 } from "../../../../../../../lib/live-place/llm-reasoner.ts";
 import { database } from "../../../../../database.ts";
 import { json, problem } from "../../../../../problem.ts";
@@ -80,6 +83,44 @@ function extractClimateFromSnapshot(
     : computeStatsFromAnnual(years, OPEN_METEO_SOURCE);
 }
 
+/**
+ * Takes the command for this route: still accepted, of a case the session owns, and with no plan job handed to the
+ * worker yet. Its undispatched plan job is withdrawn in the same transaction, so the worker never runs it as well.
+ * Null when the command is not this route's to run.
+ */
+async function claimCommand(
+  db: Pool,
+  args: { caseId: string; commandId: string; ownerScopeId: string },
+): Promise<Command | null> {
+  return inTransaction(db, async (tx) => {
+    const jobs = await tx.query<{ dispatched: boolean }>(
+      "select dispatched_at is not null as dispatched from outbox where command_id = $1 for update",
+      [args.commandId],
+    );
+    if (jobs.rows.some((job) => job.dispatched)) return null;
+    const claimed = await tx.query<{ record: Command }>(
+      `update commands c
+       set status = 'running', record = jsonb_set(c.record, '{status}', '"running"'), updated_at = now()
+       from cases k
+       where c.id = $1 and c.case_id = $2 and k.id = c.case_id and k.owner_scope_id = $3
+         and c.status = 'accepted'
+       returning c.record`,
+      [args.commandId, args.caseId, args.ownerScopeId],
+    );
+    const command = claimed.rows[0]?.record;
+    if (command === undefined) return null;
+    await tx.query("delete from outbox where command_id = $1 and dispatched_at is null", [
+      args.commandId,
+    ]);
+    return command;
+  });
+}
+
+/**
+ * Completes a follow-up question the client sends after its command is accepted: claims the command, reads (with
+ * live search, also retrieves) sources, asks the model, keeps only what its checks allow, and commits the outcome
+ * under one source research task (lib/live-place/follow-up.ts). It never writes a branch, merge or brief.
+ */
 export async function POST(
   request: Request,
   context: { params: Promise<{ caseId: string; commandId: string }> },
@@ -90,64 +131,170 @@ export async function POST(
     return problem(401, "unauthenticated");
   }
 
-  let liveSearch = true;
+  // web search is P1 and billed per query: only an explicit true turns it on
+  let liveSearch = false;
   try {
-    const body = (await request.json()) as { liveSearch?: boolean };
-    if (typeof body?.liveSearch === "boolean") {
-      liveSearch = body.liveSearch;
-    }
+    const body = (await request.json()) as { liveSearch?: unknown } | null;
+    liveSearch = body?.liveSearch === true;
   } catch {
-    // Default liveSearch = true
+    // no body, or not JSON: no live search
   }
 
   const db = database();
-  const cmdRow = await db.query<{ record: Command; status: string }>(
-    "SELECT record, status FROM commands WHERE id = $1 AND case_id = $2",
-    [commandId, caseId],
-  );
-  const cmd = cmdRow.rows[0];
-  if (!cmd || cmd.status !== "accepted") {
+  const command = await claimCommand(db, {
+    caseId,
+    commandId,
+    ownerScopeId: session.ownerScopeId,
+  });
+  if (command === null) {
     return json({ status: "skipped" }, 200);
   }
+  try {
+    return await complete(db, { caseId, command, ownerScopeId: session.ownerScopeId, liveSearch });
+  } catch {
+    // a claimed command never stays running: it ends failed, so the ask stops waiting for it
+    await setCommandStatus(db, commandId, "failed", []);
+    await appendEvents(db, caseId, [
+      commandCompletedEvent(commandId, "failed", [], new Date().toISOString()),
+    ]);
+    return problem(500, "internal_error");
+  }
+}
 
-  const snap = await readSnapshot(db, caseId, session.ownerScopeId);
+async function complete(
+  db: Pool,
+  args: { caseId: string; command: Command; ownerScopeId: string; liveSearch: boolean },
+): Promise<Response> {
+  const { caseId, command, liveSearch } = args;
+  const commandId = command.id;
+  const startedAt = new Date().toISOString();
+  const snap = await readSnapshot(db, caseId, args.ownerScopeId);
   if (!snap) {
-    return json({ status: "skipped" }, 200);
+    throw new Error(`Case ${caseId} is not readable`);
   }
 
-  const now = new Date().toISOString();
   const placeName = snap.case.place?.name ?? snap.case.title;
   const regionName = snap.case.place?.region ?? "";
   const geoId =
-    snap.case.activeGeoSelectionId ??
-    snap.records.geoSelectionRecords[0]?.id ??
-    `geo_${caseId}`;
+    snap.case.activeGeoSelectionId ?? snap.records.geoSelectionRecords[0]?.id ?? `geo_${caseId}`;
   const outlet = (snap.records.contextFeatureRecords ?? []).find((f) => f.role === "outlet");
-  const coords =
-    outlet?.geometry.type === "Point" ? outlet.geometry.coordinates : [-6.42, 31.66];
+  const coords = outlet?.geometry.type === "Point" ? outlet.geometry.coordinates : [-6.42, 31.66];
   const lon = coords[0] ?? -6.42;
   const lat = coords[1] ?? 31.66;
 
-  const cmdHash = createHash("sha256").update(commandId).digest("hex").slice(0, 6);
+  const cmdHash = commandHash(commandId);
   const slug =
     placeName
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "_")
       .replace(/^_+|_+$/g, "")
       .slice(0, 16) || "place";
+  const taskId = followUpTaskId(cmdHash);
 
-  const taskId = `task_cmd_${cmdHash}`;
-  const briefTaskId = `task_brief_${cmdHash}`;
-  const newEntityIds: string[] = [];
+  /** Commits the outcome (a task that did not succeed keeps nothing it found), then ends the command. */
+  const finish = async (outcome: {
+    status: FollowUpStatus;
+    failureCode?: string;
+    call?: ModelCall;
+    sources?: Source[];
+    evidence?: Evidence[];
+  }): Promise<Response> => {
+    const now = new Date().toISOString();
+    const kept = outcome.status === "succeeded" ? (outcome.evidence ?? []) : [];
+    const keptSources = outcome.status === "succeeded" ? (outcome.sources ?? []) : [];
+    // the case's own records the kept Evidence rests on, at the revisions read; the new Sources are written here
+    const held = new Map(snap.records.sourceRecords.map((s) => [s.id, s.revision]));
+    const inputs = kept
+      .flatMap((e) => e.provenance.inputVersions)
+      .filter((v) => held.get(v.entityId) === v.revision);
+    const record = (
+      status: FollowUpStatus,
+      failureCode: string | null,
+      sources: Source[],
+      evidence: Evidence[],
+    ) => {
+      const task = followUpTask({
+        caseId,
+        commandId,
+        question: command.text,
+        taskId,
+        hash: cmdHash,
+        startedAt,
+        now,
+        status,
+        failureCode,
+        evidenceIds: evidence.map((e) => e.id),
+        inputVersions: evidence.length > 0 ? inputs : [],
+      });
+      return followUpCommit({
+        id: newId("commit"),
+        caseRecord: snap.case,
+        commandId,
+        taskId,
+        now,
+        inputVersions: task.inputVersions,
+        upserts: [task, ...sources, ...evidence],
+        events: followUpEvents({
+          commandId,
+          taskId,
+          placeName,
+          liveSearch,
+          startedAt,
+          now,
+          status,
+          failureCode,
+          call: outcome.call ?? null,
+          sourceIds: sources.map((s) => s.id),
+          acceptedIds: evidence.filter((e) => e.status === "accepted").map((e) => e.id),
+          provisionalIds: evidence.filter((e) => e.status !== "accepted").map((e) => e.id),
+        }),
+      });
+    };
+
+    let status = outcome.status;
+    let committed = await applyCommit(
+      db,
+      record(status, outcome.failureCode ?? null, keptSources, kept),
+    );
+    if (committed.status === "stale") {
+      // a Source the Evidence cites changed after it was read: none of this answer is kept, and the task says why
+      status = "failed";
+      committed = await applyCommit(db, record(status, "stale_inputs", [], []));
+    }
+    if (committed.status === "stale" || committed.status === "not_found") {
+      throw new Error(`The follow-up commit was ${committed.status}`);
+    }
+    const revision =
+      committed.status === "committed"
+        ? committed.commit.newCaseRevision
+        : committed.newCaseRevision;
+    await setCommandStatus(db, commandId, status, [taskId]);
+    await appendEvents(db, caseId, [
+      commandCompletedEvent(commandId, status, [taskId], new Date().toISOString()),
+    ]);
+    return json(
+      { status: status === "succeeded" ? "completed" : status, commandId, revision },
+      200,
+    );
+  };
+
+  if (await isCancelRequested(db, commandId)) {
+    return finish({ status: "cancelled" });
+  }
+  const config = resolveLlmConfig();
+  if (config === null) {
+    // no live search either: its results could only be read by the model
+    return finish({ status: "failed", failureCode: "model_not_configured" });
+  }
+
   const newlyFetchedSources: Source[] = [];
   const newlyCreatedEvidence: Evidence[] = [];
-
   if (liveSearch) {
     try {
       const existingTitles = snap.records.sourceRecords.map((s) => s.title);
-      const queryText = `${placeName} ${cmd.record.text.slice(0, 70)}`;
+      const queryText = `${placeName} ${command.text.slice(0, 70)}`;
       const [oaSources, regCtx, govPolicy] = await Promise.all([
-        fetchOpenAlexSources(caseId, `${slug}_q`, cmdHash, queryText, regionName, now),
+        fetchOpenAlexSources(caseId, `${slug}_q`, cmdHash, queryText, regionName, startedAt),
         fetchRegionalContextAndGovernance({
           caseId,
           slug: `${slug}_q`,
@@ -157,7 +304,7 @@ export async function POST(
           placeName,
           regionName,
           geoId,
-          now,
+          now: startedAt,
           existingSourceTitles: existingTitles,
         }),
         fetchGovernmentPolicyAndOpenAccess({
@@ -167,58 +314,48 @@ export async function POST(
           placeName,
           regionName,
           geoId,
-          now,
-          question: cmd.record.text,
+          now: startedAt,
+          question: command.text,
           existingSourceTitles: existingTitles,
         }),
       ]);
-
-      const peerStudies = oaSources.filter((s) => s.sourceKind === "peer_reviewed").slice(0, 2);
-      const candidateSources = [
-        ...peerStudies,
-        ...regCtx.contextSources.slice(0, 2),
-        ...govPolicy.sources.slice(0, 3),
-      ];
-      for (const src of candidateSources) {
-        await db.query(
-          `INSERT INTO records (case_id, entity_id, revision, record_type, record, case_revision)
-           VALUES ($1, $2, $3, 'Source', $4, $5)
-           ON CONFLICT (case_id, entity_id, revision) DO NOTHING`,
-          [caseId, src.id, src.revision, JSON.stringify(src), snap.case.revision],
-        );
-        newlyFetchedSources.push(src);
-        newEntityIds.push(src.id);
-      }
-
-      const candidateEvidence = [
-        ...regCtx.contextEvidence.slice(0, 2),
-        ...govPolicy.evidence.slice(0, 2),
-      ];
-      for (const rawEv of candidateEvidence) {
-        const evWithTask: Evidence = {
-          ...rawEv,
-          provenance: {
-            ...rawEv.provenance,
-            generatedByTaskId: briefTaskId,
-          },
-        };
-        await db.query(
-          `INSERT INTO records (case_id, entity_id, revision, record_type, record, case_revision)
-           VALUES ($1, $2, $3, 'Evidence', $4, $5)
-           ON CONFLICT (case_id, entity_id, revision) DO NOTHING`,
-          [caseId, evWithTask.id, evWithTask.revision, JSON.stringify(evWithTask), snap.case.revision],
-        );
-        newlyCreatedEvidence.push(evWithTask);
-        newEntityIds.push(evWithTask.id);
-      }
+      // each record once, and none the case already holds: a commit writes an entity at most once
+      const seen = new Set([
+        ...snap.records.sourceRecords.map((s) => s.id),
+        ...snap.records.evidenceRecords.map((e) => e.id),
+      ]);
+      const fresh = <T extends { id: string }>(records: readonly T[]): T[] => {
+        const kept: T[] = [];
+        for (const r of records) {
+          if (seen.has(r.id)) continue;
+          seen.add(r.id);
+          kept.push(r);
+        }
+        return kept;
+      };
+      newlyFetchedSources.push(
+        ...fresh([
+          ...oaSources.filter((s) => s.sourceKind === "peer_reviewed").slice(0, 2),
+          ...regCtx.contextSources.slice(0, 2),
+          ...govPolicy.sources.slice(0, 3),
+        ]),
+      );
+      // retrieved by this follow-up's task, so credited to it
+      newlyCreatedEvidence.push(
+        ...fresh([...regCtx.contextEvidence.slice(0, 2), ...govPolicy.evidence.slice(0, 2)]).map(
+          (e) => ({ ...e, provenance: { ...e.provenance, generatedByTaskId: taskId } }),
+        ),
+      );
     } catch {
       // Non-fatal if offline
+    }
+    if (await isCancelRequested(db, commandId)) {
+      return finish({ status: "cancelled" });
     }
   }
 
   const allSources: Source[] = [...newlyFetchedSources, ...snap.records.sourceRecords];
-  const climate = extractClimateFromSnapshot(snap.records.measurementRecords ?? []);
-  const bandLimitMeas = (snap.records.measurementRecords ?? []).find(
+  const bandLimitMeas = snap.records.measurementRecords.find(
     (m) => m.metric === "elevation_band_limit" && typeof m.value === "number",
   );
   const areaMeas = snap.records.measurementRecords.find(
@@ -226,6 +363,8 @@ export async function POST(
   );
   const span = terrainSpan(caseId);
 
+  const transport = observedFetch((input, init) => globalThis.fetch(input, init));
+  const callStart = Date.now();
   const llmResult = await reasonOverCaseWithLlm({
     placeName,
     regionName,
@@ -235,383 +374,40 @@ export async function POST(
     maxElevationM: span?.maxElevationM ?? null,
     ...(typeof bandLimitMeas?.value === "number" ? { bandLimitM: bandLimitMeas.value } : {}),
     ...(typeof areaMeas?.value === "number" ? { areaKm2: areaMeas.value } : {}),
-    climate,
+    climate: extractClimateFromSnapshot(snap.records.measurementRecords),
     sources: allSources,
-    question: cmd.record.text,
+    question: command.text,
+    config,
+    fetchImpl: transport.fetch,
   });
+  const callEnd = Date.now();
+  const call: ModelCall = {
+    model: config.model,
+    startedAt: new Date(callStart).toISOString(),
+    endedAt: new Date(callEnd).toISOString(),
+    durationMs: callEnd - callStart,
+    answered: llmResult !== null,
+    transport: transport.report(),
+  };
 
-  if (llmResult?.verifiedFindings) {
-    for (let i = 0; i < llmResult.verifiedFindings.length; i++) {
-      const vf = llmResult.verifiedFindings[i]!;
-      const parsedEv = Evidence.safeParse({
-        recordType: "Evidence",
-        id: `ev_llm_${cmdHash}_${String(i + 1)}`,
-        revision: 1,
-        createdAt: now,
-        updatedAt: now,
-        caseId,
-        statement: vf.statement,
-        claimKind: "scientific_context",
-        status: "accepted",
-        geoSelectionId: geoId,
-        periodIds: [],
-        measurementIds: [],
-        provenance: {
-          sourceLocators: [
-            {
-              sourceId: vf.sourceId,
-              locator: "verified excerpt",
-              excerpt: vf.exactQuote.slice(0, 260),
-            },
-          ],
-          dataBundleIds: [],
-          methodId: null,
-          methodVersion: null,
-          inputVersions: [{ entityId: vf.sourceId, revision: 1 }],
-          generatedByTaskId: briefTaskId,
-          generatedAt: now,
-          verificationStatus: "source_checked",
-          limitations: [
-            "Independently verified verbatim quote from retrieved source corpus.",
-          ],
-        },
-        interpretation: vf.interpretation || null,
-        uncertainty: "Published literature or regulatory excerpt; field verification required for site-level decisions.",
-        reviewDecisionIds: [],
-      });
-      if (parsedEv.success) {
-        await db.query(
-          `INSERT INTO records (case_id, entity_id, revision, record_type, record, case_revision)
-           VALUES ($1, $2, $3, 'Evidence', $4, $5)
-           ON CONFLICT (case_id, entity_id, revision) DO NOTHING`,
-          [
-            caseId,
-            parsedEv.data.id,
-            parsedEv.data.revision,
-            JSON.stringify(parsedEv.data),
-            snap.case.revision + 1,
-          ],
-        );
-        newlyCreatedEvidence.push(parsedEv.data);
-        newEntityIds.push(parsedEv.data.id);
-      }
-    }
+  if (await isCancelRequested(db, commandId)) {
+    return finish({ status: "cancelled", call });
   }
-
-  const llmCauseByExp = new Map(
-    (llmResult?.causes ?? []).map((c) => [c.explanationId, c] as const),
-  );
-
-  // Bind the case's latest BranchMerge, ExplanationBranches, and Brief Task to this commandId
-  const latestMerge = (snap.records.branchMergeRecords ?? []).at(-1);
-  const latestBrief = snap.records.briefRecords.at(-1);
-
-  if (latestMerge) {
-    const sourceBranches = (snap.records.explanationBranchRecords ?? []).filter(
-      (b) => b.commandId === latestMerge.commandId,
-    );
-    const clonedBranches: ExplanationBranch[] = sourceBranches.map((b) => {
-      const llmCause = llmCauseByExp.get(
-        b.explanationId as
-          | "rainfall"
-          | "grazing"
-          | "land_use"
-          | "snow_terrain"
-          | "data_artefact",
-      );
-      return {
-        ...b,
-        id: `branch_${b.explanationId}_${cmdHash}`,
-        revision: 2,
-        commandId,
-        taskId,
-        statement: llmCause?.statement || b.statement,
-        statusReason: llmCause?.statusReason || b.statusReason,
-        predictions:
-          llmCause && b.predictions.length > 0
-            ? [
-                {
-                  ...b.predictions[0]!,
-                  wording: llmCause.prediction || b.predictions[0]!.wording,
-                },
-                ...b.predictions.slice(1),
-              ]
-            : b.predictions,
-        model: llmResult
-          ? {
-              ...b.model,
-              model: llmResult.model,
-              promptVersion: "llm-reasoner@1",
-            }
-          : b.model,
-        createdAt: now,
-        updatedAt: now,
-      };
-    });
-    for (const cb of clonedBranches) {
-      await db.query(
-        `INSERT INTO records (case_id, entity_id, revision, record_type, record, case_revision)
-         VALUES ($1, $2, $3, 'ExplanationBranch', $4, $5)
-         ON CONFLICT (case_id, entity_id, revision) DO NOTHING`,
-        [caseId, cb.id, cb.revision, JSON.stringify(cb), snap.case.revision + 1],
-      );
-      newEntityIds.push(cb.id);
-    }
-
-    const branchIdMap = new Map<string, string>();
-    for (const b of sourceBranches) {
-      branchIdMap.set(b.id, `branch_${b.explanationId}_${cmdHash}`);
-    }
-
-    const clonedMerge: BranchMerge = {
-      ...latestMerge,
-      id: `merge_${cmdHash}`,
-      revision: 1,
-      commandId,
-      taskId,
-      createdAt: now,
-      updatedAt: now,
-      branches: latestMerge.branches.map((mb) => {
-        const llmCause = llmCauseByExp.get(
-          mb.explanationId as
-            | "rainfall"
-            | "grazing"
-            | "land_use"
-            | "snow_terrain"
-            | "data_artefact",
-        );
-        return {
-          ...mb,
-          branchId: branchIdMap.get(mb.branchId) ?? mb.branchId,
-          reason: llmCause?.statusReason || mb.reason,
-        };
-      }),
-      conflicts: latestMerge.conflicts.map((c) => ({
-        ...c,
-        predictions: c.predictions.map((p) => ({
-          ...p,
-          branchId: branchIdMap.get(p.branchId) ?? p.branchId,
-        })),
-      })),
-    };
-    await db.query(
-      `INSERT INTO records (case_id, entity_id, revision, record_type, record, case_revision)
-       VALUES ($1, $2, $3, 'BranchMerge', $4, $5)
-       ON CONFLICT (case_id, entity_id, revision) DO NOTHING`,
-      [
-        caseId,
-        clonedMerge.id,
-        clonedMerge.revision,
-        JSON.stringify(clonedMerge),
-        snap.case.revision + 1,
-      ],
-    );
-    newEntityIds.push(clonedMerge.id);
+  if (llmResult === null) {
+    return finish({ status: "failed", failureCode: noAnswerCode(call.transport), call });
   }
-
-  let updatedBriefId: string | null = null;
-  if (latestBrief) {
-    const clonedBriefId = `brief_${cmdHash}`;
-    updatedBriefId = clonedBriefId;
-
-    const newKnownItems: BriefItem[] = [];
-    if (llmResult?.briefSummary) {
-      const citeIds =
-        newlyCreatedEvidence.length > 0
-          ? newlyCreatedEvidence.map((e) => e.id)
-          : latestBrief.evidenceIds.slice(0, 2);
-      newKnownItems.push({
-        text: llmResult.briefSummary.slice(0, 395),
-        claimKind: "scientific_context",
-        evidenceIds: citeIds,
-        measurementIds: [],
-      });
-    }
-    for (const ev of newlyCreatedEvidence) {
-      newKnownItems.push({
-        text: ev.statement.slice(0, 395),
-        claimKind: ev.claimKind,
-        evidenceIds: [ev.id],
-        measurementIds: ev.measurementIds,
-      });
-    }
-
-    const clonedBrief: Brief = {
-      ...latestBrief,
-      id: clonedBriefId,
-      revision: 1,
-      createdAt: now,
-      updatedAt: now,
-      evidenceIds: [
-        ...new Set([
-          ...newlyCreatedEvidence.map((e) => e.id),
-          ...latestBrief.evidenceIds,
-        ]),
-      ],
-      known: [...newKnownItems, ...latestBrief.known].slice(0, 8),
-      mode: llmResult ? "live" : latestBrief.mode,
-      provenance: {
-        ...latestBrief.provenance,
-        generatedByTaskId: briefTaskId,
-        generatedAt: now,
-      },
-    };
-    const clonedBriefTask: Task = {
-      recordType: "Task",
-      id: briefTaskId,
-      revision: 1,
-      createdAt: now,
-      updatedAt: now,
-      caseId,
-      commandId,
-      kind: "brief_package",
-      question: cmd.record.text,
-      status: "awaiting_review",
-      dependsOnTaskIds: [],
-      inputVersions: [],
-      allowedTools: ["read_case", "read_evidence", "propose_package", "request_review"],
-      outputEntityIds: [
-        ...newlyCreatedEvidence.map((e) => e.id),
-        ...latestBrief.actionIds,
-        clonedBriefId,
-      ],
-      idempotencyKey: `brief-task-${cmdHash}`,
-      attempt: 0,
-      maxModelRounds: 3,
-      deadlineAt: now,
-      budgetMicroUsd: 0,
-      spentMicroUsd: 0,
-      checkpointId: null,
-      failureCode: null,
-      missingInputs: [],
-      startedAt: now,
-      finishedAt: now,
-    };
-    await db.query(
-      `INSERT INTO records (case_id, entity_id, revision, record_type, record, case_revision)
-       VALUES ($1, $2, $3, 'Task', $4, $5)
-       ON CONFLICT (case_id, entity_id, revision) DO NOTHING`,
-      [caseId, clonedBriefTask.id, 1, JSON.stringify(clonedBriefTask), snap.case.revision + 1],
-    );
-    await db.query(
-      `INSERT INTO records (case_id, entity_id, revision, record_type, record, case_revision)
-       VALUES ($1, $2, $3, 'Brief', $4, $5)
-       ON CONFLICT (case_id, entity_id, revision) DO NOTHING`,
-      [caseId, clonedBrief.id, 1, JSON.stringify(clonedBrief), snap.case.revision + 1],
-    );
-    newEntityIds.push(clonedBriefTask.id, clonedBrief.id);
-  }
-
-  const nextRev = snap.case.revision + 1;
-  await inTransaction(db, async (tx) => {
-    const locked = await lockCase(tx, caseId);
-    if (!locked) return;
-    const baseRecord = locked.record as EnvironmentalCase;
-    const updatedCase: EnvironmentalCase = {
-      ...baseRecord,
-      revision: nextRev,
-      updatedAt: now,
-      ...(updatedBriefId ? { currentBriefId: updatedBriefId } : {}),
-    };
-    await tx.query("UPDATE cases SET revision = $2, record = $3 WHERE id = $1", [
-      caseId,
-      nextRev,
-      JSON.stringify(updatedCase),
-    ]);
-    await tx.query(
-      "INSERT INTO case_revisions (case_id, revision, record) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING",
-      [caseId, nextRev, JSON.stringify(updatedCase)],
-    );
-
-    const { lastSequence } = await insertEvents(
-      tx,
-      { ...locked, revision: nextRev, record: updatedCase },
-      [
-        {
-          occurredAt: now,
-          kind: "task.started",
-          commandId,
-          taskId,
-          entityIds: [taskId],
-          message: `Testing competing explanations and retrieving ${liveSearch ? "live literature, regulatory notices & governance context" : "verified corpus"} for ${placeName}.`,
-          dedupeKey: `task.started:${taskId}`,
-          resultStatus: null,
-          tool: null,
-          usage: null,
-          validation: null,
-          spanId: null,
-          parentSpanId: null,
-        },
-        {
-          occurredAt: now,
-          kind: "case.committed",
-          commandId,
-          taskId,
-          entityIds: newEntityIds.length > 0 ? newEntityIds : [caseId],
-          message: `Committed competing explanation synthesis and local context for ${placeName}.`,
-          dedupeKey: `case.committed:${commandId}`,
-          resultStatus: null,
-          tool: null,
-          usage: null,
-          validation: null,
-          spanId: null,
-          parentSpanId: null,
-        },
-        {
-          occurredAt: now,
-          kind: "task.succeeded",
-          commandId,
-          taskId,
-          entityIds: [taskId],
-          message: "Completed explanation branch scoring and field check plan.",
-          dedupeKey: `task.succeeded:${taskId}`,
-          resultStatus: "succeeded",
-          tool: null,
-          usage: null,
-          validation: null,
-          spanId: null,
-          parentSpanId: null,
-        },
-        {
-          occurredAt: now,
-          kind: "command.completed",
-          commandId,
-          taskId: null,
-          entityIds: [commandId],
-          message: "Completed.",
-          dedupeKey: `command.completed:${commandId}`,
-          resultStatus: "succeeded",
-          tool: null,
-          usage: null,
-          validation: null,
-          spanId: null,
-          parentSpanId: null,
-        },
-      ],
-      nextRev,
-    );
-    await setLastSequence(tx, caseId, lastSequence);
-    await notifyEvents(tx, caseId);
+  // the model's causes and summary are written nowhere; its findings only as the checks allow
+  const found = verifiedFindingEvidence(llmResult.verifiedFindings, allSources, {
+    caseId,
+    geoSelectionId: geoId,
+    taskId,
+    hash: cmdHash,
+    now: call.endedAt,
   });
-
-  const visualChoreography =
-    llmResult?.visualChoreography ??
-    (["rainfall", "grazing", "land_use", "snow_terrain", "data_artefact"] as const).map((expId) =>
-      choreographyForExplanation(
-        expId,
-        typeof bandLimitMeas?.value === "number" ? bandLimitMeas.value : undefined,
-        span ?? {},
-      ),
-    );
-
-  await setCommandStatus(db, commandId, "succeeded", [taskId, briefTaskId]);
-  return json(
-    {
-      status: "completed",
-      commandId,
-      revision: nextRev,
-      visualChoreography,
-    },
-    200,
-  );
+  return finish({
+    status: "succeeded",
+    call,
+    sources: newlyFetchedSources,
+    evidence: [...newlyCreatedEvidence, ...found],
+  });
 }
